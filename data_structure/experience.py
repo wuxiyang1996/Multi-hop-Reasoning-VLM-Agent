@@ -1,0 +1,453 @@
+# This file is to define the data structure for the experience, which is used to store the experience of the agent.
+# The learned/rollout data are stored in the differetn data structure, including: 
+# 1. Experience: Single state-action-next_state-reward-done tuple.
+# 2. SubTask_Experience (strategy or tool): A collection of experiences, accomplishing some stage-wise tasks over a few steps.
+# 3. Episode: A collection of experiences, which is used to store the experience over the entire game rollout of the agent.
+# Also we need to include experience buffers and tool buffers to store the experience and tool/strategy for the agent. The storage optimization is for later tasks.
+# For each experience and sub-task experience, we need to include the evalution interface for external evaluation functions.
+
+# Please note that this code only include the data structure code, data management and data processing are for other files.
+
+from typing import List, Optional
+from API_func import ask_model
+import random
+from data_structure.helper import *
+
+# The data structure for the experience, which is used to store the experience of the agent.
+# TODO: Multi-modality
+class Experience:
+    def __init__(self, state, action, reward, next_state, done, intentions=None, tasks=None, sub_tasks=None):
+        # Required fields, must to be filled in the experience generation process.
+        self.state = state
+        self.action = action
+        self.reward = reward
+        self.next_state = next_state
+
+        # The done is just a label marking the end of an episode.
+        self.done = done
+        # The sub-task done is for marking whether the current sub-task is completed.
+        self.sub_task_done = None
+
+        # Optional fields, could be filled in the experience generation process.
+        # Index of the experience in the episode.
+        self.idx = None
+
+        # Optional, but required in our design. Could be remove in the baselines.
+        # Involving the intentions and tasks generation process, also the sub-task labelings.
+        # Please note that in each game, we assume that there might be a long-horiztion task for the agent to accomplish.
+        self.intentions = intentions
+        self.tasks = tasks # Long-term tasks, which is the goal of the agent.
+        self.sub_tasks = sub_tasks # Short-term tasks, represening the current strategy of the agent.
+        
+        # Summarization of the experience.
+        # Essential for expeerience query and retrieal, also for the experience synthesis
+        self.summary = None
+        # Summary of the state of the experience, used for quick retrieval and query.
+        self.summary_state = None
+
+        # Synthetic experience fields.
+        self.is_synthetic = False
+
+        # only set with the experience is synthetic.
+        self.syn_experience_quality = None
+
+    # Generate the summary of the experience.
+    # The intention of this function is to generate the summmary of the current state and 
+    def generate_summary(self):
+        # Generate the summary of the experience.
+        # We mainly focus on the state, action and next state, but exclude the done, which is just a label marking the end of an episode.
+        prompt = (
+            f"Generate the summary of the experience. "
+            f"Focusing on the current state over the ego agents' state and other agents' states that prompts the agent to take the actions."
+            f"Capture the key points of the state but make it very concise."
+            f"The state is {self.state}, the action is {self.action}, the next state is {self.next_state}."
+            f"Please include the following information: "
+            f"1. The summary of the state, including the ego agents' state and other agents' states."
+            f"2. The summary of the action. Make it very concise."
+            f"3. The summary of the next state. Focusing on the outcome of the ego agents' action"
+        )
+        self.summary = ask_model(prompt)
+        return self.summary
+
+    def generate_summary_state(self):
+        # Generate the summary of the state.
+        prompt = (
+            f"Generate the summary of the state. "
+            f"Focusing on the current state over the ego agents' state and other agents' states that prompts the agent to take the actions, but exclude the action taken"
+            f"Capture the key points of the state but make it very concise."
+            f"The state is {self.state}. "
+        )
+        self.summary_state = ask_model(prompt)
+        return self.summary_state
+
+    # Helper to generate intentions for this experience (for experience labeling).
+    # We should have intentions for our own agents.
+    def generate_intentions(self, history: List[Experience]):
+        prev_summary_list = [exp.summary for exp in history]
+        prompt = (
+            f"Generate the intentions for the experience, while the intentions marks the motivation for agent to take the action and achieve the sub-task. "
+            f"Also, the historical state over the last few steps should be considered. "
+            f"The current state is {self.state}, the current action is {self.action}, the current next state is {self.next_state}, the current sub-task is {self.sub_tasks}. "
+            f"The history is {prev_summary_list}. Given in the time-wise order."
+        )
+        self.intentions = ask_model(prompt)
+        return self.intentions
+
+    # Helper function to generate the intentions or summaries if not provided.
+    # For now only use summary, not summary_state.
+    def initialize_intentions_and_summary(self, history: Optional[List[Experience]] = None):
+        if self.intentions is None:
+            self.generate_intentions(history)
+        if self.summary is None:
+            self.generate_summary()
+        return self.intentions, self.summary
+
+    # Convert the experience to a dictionary.
+    def to_dict(self):
+        return {
+            "state": self.state,
+            "action": self.action,
+            "reward": self.reward,
+            "next_state": self.next_state,
+            "done": self.done,
+            "intentions": self.intentions,
+            "tasks": self.tasks,
+            "sub_tasks": self.sub_tasks,
+            "summary": self.summary,
+            "summary_state": self.summary_state,
+            "is_synthetic": self.is_synthetic,
+            "syn_experience_quality": self.syn_experience_quality,
+            "idx": self.idx,
+        }
+    
+    # Convert the dictionary to an experience.
+    def from_dict(self, dict: dict):
+        self.state = dict["state"]
+        self.action = dict["action"]
+        self.reward = dict["reward"]
+        self.next_state = dict["next_state"]
+        self.done = dict["done"]
+        self.intentions = dict["intentions"]
+        self.tasks = dict["tasks"]
+        self.sub_tasks = dict["sub_tasks"]
+        self.summary = dict["summary"]
+        self.summary_state = dict["summary_state"]
+        self.is_synthetic = dict["is_synthetic"]
+        self.syn_experience_quality = dict["syn_experience_quality"]
+        self.idx = dict["idx"]
+        return self
+
+
+# Episode is the collection of experiences, which is used to store the experience of the agent.
+# Please include the intention and task generation process in the episode.
+# The episode initially from the rollout, leaving for fruther process and push into the experience replay buffer.
+class Episode:
+    def __init__(self, experiences: List[Experience], task: str):
+        self.experiences = experiences
+
+        # The summary of the episode.
+        self.summary = None
+
+        # The tasks of the episode, which is unique for each episode.
+        self.task = task
+
+        # The outcome of the episode.
+        self.outcome = None
+
+        # Synthetic experience fields.
+        self.is_synthetic = False
+
+        # only set with the experience is synthetic.
+        self.syn_experience_quality = None
+
+    def get_reward(self):
+        return sum(experience.reward for experience in self.experiences)
+
+    def get_length(self):
+        return len(self.experiences)
+
+    def set_outcome(self):
+        # Set the outcome of the episode.
+        self.outcome = self.experiences[-1].done
+        return self.outcome
+    
+    def generate_summary(self):
+        # Generate the summary of the episode.
+        prompt = (
+            f"Generate the summary of the episode. "
+            f"The episode is {self.experiences}, the task is {self.task}, the outcome is {self.outcome}. "
+        )
+        self.summary = ask_model(prompt)
+        return self.summary
+
+    # This is a function to separate the episode into sub-episodes.
+    # The outcome_length is the number of steps to look ahead to evaluate the outcome of the sub-task, is a hyper-parameter.
+    def separate_into_sub_episodes(self, outcome_length: int = 5):
+        all_sub_tasks = []
+        # this is to store the index of the starting experience of the sub-task in the episode.
+        sub_task_idx = []
+        sub_episodes = []
+        curr_sub_task = None
+
+        # Find out the sub-task indices in the episode.
+        for experience in self.experiences:
+            if experience.sub_tasks is not None and experience.sub_tasks not in all_sub_tasks:
+                all_sub_tasks.append(experience.sub_tasks)
+                sub_task_idx.append(experience.idx)
+                curr_sub_task = experience.sub_tasks
+        
+        sub_task_idx.append(len(self.experiences) - 1)
+
+        # Segment the episode into sub-episodes given the idx.
+        for i in range(len(sub_task_idx) - 1):
+            curr_idx = sub_task_idx[i]
+            next_idx = sub_task_idx[i + 1]
+            if next_idx + outcome_length <= len(self.experiences):
+                sub_episodes.append(SubTask_Experience(curr_sub_task, self.task, 
+                self.experiences[curr_idx:next_idx], self.experiences[next_idx:next_idx+outcome_length]))
+            else:
+                sub_episodes.append(SubTask_Experience(curr_sub_task, self.task, 
+                self.experiences[curr_idx:next_idx]))
+        return sub_episodes
+
+    # Convert the episode to a dictionary.
+    def to_dict(self):
+        return {
+            "experiences": [exp.to_dict() for exp in self.experiences],
+            "task": self.task,
+            "outcome": self.outcome,
+            "is_synthetic": self.is_synthetic,
+            "syn_experience_quality": self.syn_experience_quality,
+        }
+
+    # Convert the dictionary to an episode.
+    def from_dict(self, dict: dict):
+        self.experiences = [Experience.from_dict(exp) for exp in dict["experiences"]]
+        self.task = dict["task"]
+        self.outcome = dict["outcome"]
+        self.is_synthetic = dict["is_synthetic"]
+        self.syn_experience_quality = dict["syn_experience_quality"]
+        return self
+
+# The intention of this class is to store the experience of the agent for each sub-task.
+# While the sub-tasks could be taken as a part of the entire episode.
+# Denote that this data structure is used for labeling strategies or tools to complete the sub-task, within a limited length.
+# Please note that this is for training purposes, only update after the current rollout is completed.
+class SubTask_Experience:
+    def __init__(self, sub_task: str, final_goal: str, experiences: List[Experience], outcome:Optional[List[Experience]] = None):
+        # What's this strategy or tool used for.
+        self.sub_task = sub_task
+        self.final_goal = final_goal
+        # Contents of the sub-task experience.
+        self.sub_task_experience = experiences
+
+        # Outcome of the sub-task.
+        self.outcome_experiences = outcome
+        
+        # The summary for query this strategy or tool.
+        self.summary = None
+        # The summary of the outcome of the sub-task. 
+        self.outcome_summary = None
+
+        # The length of the sub-task experience.
+        self.length = len(experiences)
+
+        # The cumulative reward of the sub-task experience. For the ease to quick retrieval and query.
+        self.cumulative_reward = sum(exp.reward for exp in experiences)
+
+        # Synthetic experience fields.
+        self.is_synthetic = False
+
+        # only set with the experience is synthetic.
+        self.syn_experience_quality = None
+
+
+    # Helper to generate intentions for this experience (for experience labeling).
+    # We should have intentions for our own agents.
+    def generate_summary(self):
+        prev_summary_list = [exp.summary for exp in self.sub_task_experience]
+        # Handle case when sub_task is None
+        if self.sub_task is None:
+            prompt = (
+                f"Summarize the agent's strategy and motivation to achieve the final goal '{self.final_goal}'. "
+                f"Experience history (time-ordered): {prev_summary_list}"
+            )
+        else:
+            prompt = (
+                f"Summarize why the agent chose sub-task '{self.sub_task}' to achieve the final goal '{self.final_goal}'. "
+                f"Include the motivation and strategy. "
+                f"Experience history (time-ordered): {prev_summary_list}"
+            )
+        self.summary = ask_model(prompt)
+        return self.summary
+
+    # The ideal outcome summary given the subsequences     
+    def generate_outcome_summary(self):
+        prev_outcome_summary_list = [exp.outcome_summary for exp in self.outcome_experiences]
+        # Handle case when sub_task is None
+        if self.sub_task is None:
+            prompt = (
+                f"Evaluate whether the agent's actions contributed to the final goal '{self.final_goal}'. "
+                f"Consider if they induced rewarding actions in subsequent steps. "
+                f"Subsequent outcomes (time-ordered): {prev_outcome_summary_list}"
+            )
+        else:
+            prompt = (
+                f"Evaluate whether completing the sub-task '{self.sub_task}' contributed to the final goal '{self.final_goal}'. "
+                f"Consider if it induced rewarding actions in the subsequent steps. "
+                f"Subsequent outcomes (time-ordered): {prev_outcome_summary_list}"
+            )
+        self.outcome_summary = ask_model(prompt)
+        return self.outcome_summary
+
+    # Only being used when labeling trajectory from external sources.
+    def sub_task_labeling(self):
+        # The summary of the sub-task experience.
+        prev_summary_list = [exp.summary for exp in self.sub_task_experience]
+
+        if self.outcome_experiences is not None:
+            # The outcome summary of the sub-task experience.
+            prev_outcome_summary_list = [exp.outcome_summary for exp in self.outcome_experiences]
+            prompt = (
+                f"Create a concise one-sentence label for this sub-task that describes the strategy used. "
+                f"Sub-task summary: {prev_summary_list}. "
+                f"Outcome summary: {prev_outcome_summary_list}"
+            )
+        else:
+            prompt = (
+                f"Create a concise one-sentence label for this sub-task that describes the strategy used. "
+                f"Sub-task summary: {prev_summary_list}. "
+            )
+        self.sub_task_label = ask_model(prompt)
+        return self.sub_task_label
+
+    # Initialize the sub-task experience.
+    def initialize_sub_task_experience(self):
+        # Initialize the summary of the sub-task experience.
+        if self.summary is None:
+            self.generate_summary()
+        
+        # Initialize the outcome summary of the sub-task experience.
+        if self.outcome_summary is None:
+            self.generate_outcome_summary()
+
+        # Initialize the sub-task label.
+        if self.sub_task_label is None:
+            self.sub_task_labeling()
+        return self.summary, self.outcome_summary, self.sub_task_label
+    
+
+    # Convert the sub-task experience to a dictionary.
+    def to_dict(self):
+        return {
+            "sub_task": self.sub_task,
+            "final_goal": self.final_goal,
+            "sub_task_experience": [exp.to_dict() for exp in self.sub_task_experience],
+            "outcome_experiences": [exp.to_dict() for exp in self.outcome_experiences],
+        }
+
+    # Convert the dictionary to a sub-task experience.
+    def from_dict(self, dict: dict):
+        self.sub_task = dict["sub_task"]
+        self.final_goal = dict["final_goal"]
+        self.sub_task_experience = [Experience.from_dict(exp) for exp in dict["sub_task_experience"]]
+        self.outcome_experiences = [Experience.from_dict(exp) for exp in dict["outcome_experiences"]]
+        return self
+
+# Experience Replay Buffer
+# The intention of this class is to store the experience of the agent for the experience replay.
+# One thing: Need to determine whether to include the experince or the episode.
+#TODO: Prioritize the experience pop-out and selection for the episode. 
+class Experience_Replay_Buffer:
+    def __init__(self, buffer_size: int):
+        self.buffer = []
+        self.buffer_size = buffer_size
+
+    # Add experience(s) to the buffer.
+    # Enforces buffer size limit using FIFO (First In First Out) policy.
+    # Supports both single experience and list of experiences (episode or strategy-level).
+    def add_experience(self, experience):
+        # Handle both single experience and list of experiences
+        if isinstance(experience, list):
+            # Add multiple experiences at once
+            self.buffer.extend(experience)
+        elif isinstance(experience, Episode):
+            # Add all experiences from an episode
+            self.buffer.extend(experience.experiences)
+        else:
+            # Add single experience
+            self.buffer.append(experience)
+        
+        # Remove oldest experiences if buffer exceeds maximum size
+        if len(self.buffer) > self.buffer_size:
+            overflow = len(self.buffer) - self.buffer_size
+            self.buffer = self.buffer[overflow:]
+
+    def add_experiences(self, experiences: List[Experience]):
+        """Add multiple experiences at once (convenience method)."""
+        self.add_experience(experiences)
+
+    # Return all the experience summaries for query and RAG.
+    def get_experience_summary(self, query: str):
+        return [experience.summary for experience in self.buffer if query in experience.summary]
+
+    def sample_experience(self, batch_size: int):
+        return random.sample(self.buffer, batch_size)
+    
+    def __len__(self):
+        return len(self.buffer)
+
+
+# Store the tool/strategy extracted from the unlabeled experiences.
+# Please note that the tool/strategy should have a limited length and a profile for retrieval.
+class Tool_Buffer:
+    def __init__(self, buffer_size: int):
+        self.buffer = []
+        self.buffer_size = buffer_size
+
+    # Add tool(s) to the buffer.
+    # Enforces buffer size limit using FIFO (First In First Out) policy.
+    # Supports both single tool and list of tools (strategy-level).
+    def add_tool(self, tool):
+        # Handle both single tool and list of tools
+        if isinstance(tool, list):
+            # Add multiple tools at once
+            self.buffer.extend(tool)
+        elif isinstance(tool, SubTask_Experience):
+            # Add SubTask_Experience as a tool
+            self.buffer.append(tool)
+        else:
+            # Add single tool (string or object)
+            self.buffer.append(tool)
+        
+        # Remove oldest tools if buffer exceeds maximum size
+        if len(self.buffer) > self.buffer_size:
+            overflow = len(self.buffer) - self.buffer_size
+            self.buffer = self.buffer[overflow:]
+
+    def add_tools(self, tools: List):
+        """Add multiple tools at once (convenience method)."""
+        self.add_tool(tools)
+
+    def sample_tool(self, batch_size: int):
+        """Sample random tools from the buffer."""
+        return random.sample(self.buffer, min(batch_size, len(self.buffer)))
+
+    # Return all the tool summaries for query and RAG.
+    def get_tool_summary(self, query: str):
+        return [tool.summary for tool in self.buffer if query in tool.summary]
+    
+    def __len__(self):
+        """Return the number of tools in the buffer."""
+        return len(self.buffer)
+
+    # Convert the tool buffer to a dictionary.
+    def to_dict(self):
+        return {
+            "tools": [tool.to_dict() for tool in self.buffer],
+        }
+    
+    # Convert the dictionary to a tool buffer, while the content is the sub-task experience.
+    def from_dict(self, dict: dict):
+        self.buffer = [SubTask_Experience.from_dict(tool) for tool in dict["tools"]]
+        return self

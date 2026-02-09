@@ -1,0 +1,1 @@
+# This file is to define some assisstive funciton for the agent, apart from the agent class.
