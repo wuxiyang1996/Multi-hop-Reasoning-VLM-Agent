@@ -17,6 +17,11 @@ This repository provides a framework for enhancing agentic decision-making in mu
     - Source: [AgentEvolver Games](https://github.com/modelscope/AgentEvolver/blob/main/games/README.md) by ModelScope
   - [Evaluation Scripts](env/README.md) - Test scripts for running agents in these environments
 
+- **🔍 RAG & Embeddings**: [rag/](rag/) - Embedding models for experience retrieval
+  - Text (RAG) embedding: default [Qwen/Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B)
+  - Multimodal embedding: default [Qwen/Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B)
+  - Configurable via `RAG_EMBEDDING_MODEL` and `MULTIMODAL_EMBEDDING_MODEL` or constructor args; see [rag/README.md](rag/README.md)
+
 - **🔗 Repository**: [GitHub - Game-AI-Agent](https://github.com/wuxiyang1996/Game-AI-Agent)
 
 ## Dependencies
@@ -182,3 +187,23 @@ ToDo:
 1. Trainer Code, need to adopt PPO code, GRPO code base and GDPO code base, also, need to include LoRA for fast fine-tuning and should be based on R1 codebases for the ease of debugging and modification.
 2. We must need a priorized experience replay module to improve the training performance later.
 3. All trainers should allow LoRA options when training.
+
+
+####################
+
+## Framework
+Agent for decision-making, frozen, fully depending on the memory retrieval
+
+
+### World model for experience synthesis
+
+Take it as a image editing task, taking the skills and current state as the input, generate teh intended state
+
+Longcat 
+https://huggingface.co/meituan-longcat/LongCat-Image-Edit
+
+Qwen-Edit
+https://huggingface.co/Qwen/Qwen-Image-Edit-2511
+
+Bagel
+https://huggingface.co/ByteDance-Seed/BAGEL-7B-MoT
