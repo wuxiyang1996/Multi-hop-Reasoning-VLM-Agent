@@ -34,7 +34,6 @@ from skill_agents.stage3_mvp.effects_compute import compute_effects
 from skill_agents.stage3_mvp.contract_learn import learn_effects_contract
 from skill_agents.stage3_mvp.contract_verify import verify_effects_contract
 from skill_agents.stage3_mvp.contract_refine import refine_effects_contract
-from skill_agents.skill_bank.bank import SkillBankMVP
 
 
 # ── Segment specification (light input schema) ──────────────────────
@@ -149,6 +148,7 @@ def run_stage3_mvp(
     if extract_fn is None:
         extract_fn = default_extract_predicates
     if bank is None:
+        from skill_agents.skill_bank.bank import SkillBankMVP
         bank = SkillBankMVP(path=bank_path)
 
     # Step 1+2: summarize and compute effects for every segment
