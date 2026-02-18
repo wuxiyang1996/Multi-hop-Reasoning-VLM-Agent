@@ -7,4 +7,6 @@ Subpackages:
   - contract_verification: Stage 3 skill bank construction and contract verification.
   - stage3_mvp: Stage 3 MVP effects-only contract learning, verification, and refinement.
   - skill_bank: Persistent storage for learned skill contracts.
+  - skill_evaluation: Holistic quality assessment of extracted skills (coherence,
+    discriminability, composability, generalization, utility, granularity).
 """
