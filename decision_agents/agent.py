@@ -19,6 +19,7 @@ from .agent_helper import (
     get_state_summary as helper_get_state_summary,
     infer_intention as helper_infer_intention,
     skill_bank_to_text,
+    query_skill_bank,
     EpisodicMemoryStore,
 )
 from .reward_func import RewardComputer, RewardConfig, RewardResult
@@ -372,29 +373,7 @@ def run_tool(
 
     if tool_name == TOOL_QUERY_SKILL:
         key = args.get("key", "")
-        bank = agent.skill_bank
-        if bank is None:
-            return {"micro_plan": [], "skill_id": None}
-        # Try by skill_id first
-        try:
-            ids = list(bank.skill_ids)
-            skill_id = None
-            key_lower = key.lower()
-            for sid in ids:
-                if sid.lower() in key_lower or key_lower in sid.lower():
-                    skill_id = sid
-                    break
-            if skill_id is None and ids:
-                skill_id = ids[0]
-            if skill_id:
-                c = bank.get_contract(skill_id)
-                if c:
-                    add_set = getattr(c, "eff_add", set()) or set()
-                    steps = [{"action": None, "effect": lit} for lit in list(add_set)[:5]]
-                    return {"skill_id": skill_id, "micro_plan": steps or [{"action": "proceed"}]}
-        except Exception:
-            pass
-        return {"micro_plan": [], "skill_id": None}
+        return query_skill_bank(agent.skill_bank, key, top_k=1)
 
     if tool_name == TOOL_QUERY_MEMORY:
         key = args.get("key", "")

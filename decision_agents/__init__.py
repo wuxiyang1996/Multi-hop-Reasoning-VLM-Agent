@@ -18,6 +18,7 @@ from .agent_helper import (
     infer_intention,
     EpisodicMemoryStore,
     skill_bank_to_text,
+    query_skill_bank,
 )
 
 from .agent import (
@@ -55,6 +56,7 @@ __all__ = [
     "infer_intention",
     "EpisodicMemoryStore",
     "skill_bank_to_text",
+    "query_skill_bank",
     "VLMDecisionAgent",
     "AgentState",
     "run_tool",

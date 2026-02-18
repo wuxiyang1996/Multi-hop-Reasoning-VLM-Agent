@@ -29,6 +29,18 @@ This repository provides a framework for enhancing agentic decision-making in mu
   - Multimodal embedding: default [Qwen/Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B)
   - Configurable via `RAG_EMBEDDING_MODEL` and `MULTIMODAL_EMBEDDING_MODEL` or constructor args; see [rag/README.md](rag/README.md)
 
+- **🎮 Decision Agent**: [decision_agents/](decision_agents/) - VLM decision-making agent for step-by-step game play
+  - Two-turn micro-loop: `take_action` → `reward` per timestep; tools: `get_state_summary`, `get_intention`, `query_skill`, `query_memory`
+  - Uses a **skill bank** (from skill_agents) for retrieval: `QUERY_SKILL(key)` returns a procedure (micro_plan) and contract
+  - Reward shaping: env reward + skill-following bonus + query/call/switch costs
+  - See [decision_agents/README.md](decision_agents/README.md)
+
+- **📚 Skill Agents**: [skill_agents/](skill_agents/) - Build and maintain a reusable Skill Bank from trajectories
+  - **SkillBankAgent**: full pipeline — ingest episodes → segment (Stage 1+2) → learn contracts (Stage 3) → maintain bank (Stage 4) → query
+  - **SkillQueryEngine**: keyword and effect-based retrieval; consumed by decision_agents for `query_skill`
+  - Subpackages: boundary_proposal (Stage 1), infer_segmentation (Stage 2), stage3_mvp, bank_maintenance, skill_evaluation
+  - See [skill_agents/README.md](skill_agents/README.md) and [skill_agents/PLAN.md](skill_agents/PLAN.md)
+
 - **✂️ Stage 1 Boundary Proposal**: [skill_agents/boundary_proposal/](skill_agents/boundary_proposal/) - High-recall candidate cut points for trajectory segmentation
   - Integrated with `Episode` / `SubTask_Experience` data structures and per-env signal extractors (Overcooked, Avalon, Diplomacy)
   - Optional RAG-embedding change-point detection via `TextEmbedder`
@@ -51,6 +63,70 @@ This framework integrates with the following game environments:
 The intention of this readme file is to provide an outline of each module serving for different purposes, and provide some initial instructions for vibe coding, also for the ease of integration and debugging.
 
 The instruction prompt includes the function definition and the ToDo list, including all the functions under a class serving for different purposes.
+
+---
+
+## Decision & Skill Agents: Co-evolution
+
+The **decision_agents** (VLM decision-making agent) and **skill_agents** (Skill Bank pipeline) are designed to **co-evolve**: the decision agent plays the game using skills retrieved from the bank, and new trajectories are fed back into the skill pipeline to refine and extend the bank.
+
+### Big picture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CO-EVOLUTION LOOP                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌──────────────────────┐         ┌──────────────────────┐                 │
+│   │   decision_agents    │         │   skill_agents       │                 │
+│   │   VLMDecisionAgent   │         │   SkillBankAgent     │                 │
+│   │                      │         │                      │                 │
+│   │ • step(obs) → tool   │  query  │ • ingest_episodes()  │                 │
+│   │ • take_action        │ ──────► │ • segment → Stage 3  │                 │
+│   │ • query_skill(key)   │ ◄────── │ • maintain bank      │                 │
+│   │ • query_memory       │  bank   │ • query_skill(key)   │                 │
+│   │ • reward (r_follow)  │         │ • add/remove/update  │                 │
+│   └──────────┬───────────┘         └──────────┬───────────┘                 │
+│              │                                 │                             │
+│              │ run_episode_vlm_agent(env)      │ run_until_stable()          │
+│              ▼                                 ▼                             │
+│   ┌──────────────────────┐         ┌──────────────────────┐                 │
+│   │  Episode (trajectory) │ ──────► │  Skill Bank (JSONL)   │                 │
+│   │  observations, actions│  feed  │  contracts, reports  │                 │
+│   │  rewards, done        │  back  │  versioned, queryable │                 │
+│   └──────────────────────┘         └──────────────────────┘                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### How they connect
+
+| Role | decision_agents | skill_agents |
+|------|-----------------|--------------|
+| **Provides** | Game play: one action per step, optional retrieval (`query_skill`, `query_memory`) | Skill Bank: segment trajectories, learn effect contracts, split/merge/refine skills |
+| **Consumes** | Skill bank (list of skills + contracts for prompt and `QUERY_SKILL`) | Raw episodes (from rollouts or demos) to segment and extract skills |
+| **Interface** | `VLMDecisionAgent(skill_bank=...)`; `run_tool(TOOL_QUERY_SKILL, {"key": "..."})` | `SkillBankAgent.query_skill(key)` or `SkillQueryEngine`; `skill_bank_to_text(bank)` for prompt |
+
+The decision agent’s `skill_bank` can be a **SkillBankMVP** (plain storage) or a **SkillBankAgent** (full pipeline). Helpers (`skill_bank_to_text`, `query_skill_bank`) accept both and use the richest API available.
+
+### Typical workflow
+
+1. **Bootstrap (optional)**  
+   Load or create an initial skill bank (e.g. from a few hand-labelled or pre-segmented episodes).  
+   `skill_agent = SkillBankAgent(bank_path="..."); skill_agent.load()` or `skill_agent.ingest_episodes(seed_episodes)`.
+
+2. **Play**  
+   Run the VLM agent with that bank:  
+   `run_episode_vlm_agent(env, agent=VLMDecisionAgent(skill_bank=skill_agent), ...)`.
+
+3. **Feed back**  
+   Collect the episode (observations, actions, rewards) into an `Episode` and ingest:  
+   `skill_agent.ingest_episodes([episode])` then optionally `skill_agent.run_until_stable()`.
+
+4. **Repeat**  
+   The bank improves (new skills from `__NEW__`, splits/merges/refinements), so the next run has better `query_skill` results and reward shaping.
+
+See [decision_agents/README.md](decision_agents/README.md) for the VLM agent API and [skill_agents/README.md](skill_agents/README.md) for the pipeline and query usage.
 
 #####################
 

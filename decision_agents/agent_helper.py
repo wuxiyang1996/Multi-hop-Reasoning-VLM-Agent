@@ -143,24 +143,90 @@ class EpisodicMemoryStore:
 def skill_bank_to_text(skill_bank: Any) -> str:
     """
     Format skill bank for inclusion in agent prompt (skill_ids + short effect summary).
-    skill_bank can be SkillBankMVP or any object with .skill_ids and .get_contract(skill_id).
+    skill_bank can be SkillBankMVP, SkillBankAgent, or any object with
+    .skill_ids and .get_contract(skill_id).
     """
     if skill_bank is None:
         return "(no skill bank)"
+
+    # SkillBankAgent wraps a SkillBankMVP; unwrap if needed
+    bank = getattr(skill_bank, "bank", skill_bank)
+
     try:
-        ids = list(skill_bank.skill_ids)[:50]
+        ids = list(bank.skill_ids)[:50]
     except AttributeError:
         return "(no skill bank)"
     if not ids:
         return "(empty skill bank)"
-    lines = ["Available skill IDs: " + ", ".join(ids)]
+
+    lines = [f"Available skills ({len(ids)}): " + ", ".join(ids)]
     for sid in ids[:15]:
         try:
-            c = skill_bank.get_contract(sid)
+            c = bank.get_contract(sid)
             if c is not None:
                 add = getattr(c, "eff_add", set()) or set()
                 dele = getattr(c, "eff_del", set()) or set()
-                lines.append(f"  - {sid}: effects add {len(add)}, del {len(dele)}")
+                add_preview = ", ".join(sorted(add)[:3])
+                parts = [f"add({len(add)})", f"del({len(dele)})"]
+                if add_preview:
+                    parts.append(f"e.g. {add_preview}")
+                r = bank.get_report(sid) if hasattr(bank, "get_report") else None
+                if r is not None:
+                    parts.append(f"pass={r.overall_pass_rate:.0%}")
+                lines.append(f"  - {sid}: {', '.join(parts)}")
         except Exception:
             lines.append(f"  - {sid}")
     return "\n".join(lines)
+
+
+def query_skill_bank(skill_bank: Any, key: str, top_k: int = 1) -> Dict[str, Any]:
+    """Query the skill bank and return a result compatible with the QUERY_SKILL tool.
+
+    Supports SkillBankAgent (rich query), SkillQueryEngine, and plain SkillBankMVP
+    (fallback to name matching).
+
+    Returns ``{"skill_id": str|None, "micro_plan": list[dict], ...}``.
+    """
+    if skill_bank is None:
+        return {"skill_id": None, "micro_plan": []}
+
+    # SkillBankAgent has .query_skill()
+    if hasattr(skill_bank, "query_skill"):
+        results = skill_bank.query_skill(key, top_k=top_k)
+        if results:
+            best = results[0]
+            return {
+                "skill_id": best.get("skill_id"),
+                "micro_plan": best.get("micro_plan", []) or [{"action": "proceed"}],
+                "contract": best.get("contract", {}),
+            }
+        return {"skill_id": None, "micro_plan": []}
+
+    # SkillQueryEngine
+    if hasattr(skill_bank, "query_for_decision_agent"):
+        return skill_bank.query_for_decision_agent(key, top_k=top_k)
+
+    # Fallback: plain SkillBankMVP or similar — name match
+    bank = getattr(skill_bank, "bank", skill_bank)
+    try:
+        ids = list(bank.skill_ids)
+    except AttributeError:
+        return {"skill_id": None, "micro_plan": []}
+
+    key_lower = key.lower()
+    skill_id = None
+    for sid in ids:
+        if sid.lower() in key_lower or key_lower in sid.lower():
+            skill_id = sid
+            break
+    if skill_id is None and ids:
+        skill_id = ids[0]
+
+    if skill_id:
+        c = bank.get_contract(skill_id)
+        if c:
+            add_set = getattr(c, "eff_add", set()) or set()
+            steps = [{"action": None, "effect": lit} for lit in sorted(add_set)[:5]]
+            return {"skill_id": skill_id, "micro_plan": steps or [{"action": "proceed"}]}
+
+    return {"skill_id": None, "micro_plan": []}
