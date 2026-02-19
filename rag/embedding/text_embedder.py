@@ -52,6 +52,9 @@ class TextEmbedder(TextEmbedderBase):
             kwargs.setdefault("tokenizer_kwargs", {})["padding_side"] = "left"
 
         self._model = SentenceTransformer(self._model_name, device=self._device, **kwargs)
+        self._model.eval()
+        for param in self._model.parameters():
+            param.requires_grad = False
         return self._model
 
     def encode(

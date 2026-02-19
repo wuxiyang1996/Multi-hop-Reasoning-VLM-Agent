@@ -80,14 +80,47 @@ def infer_intention(
 # ---------------------------------------------------------------------------
 
 class EpisodicMemoryStore:
-    """
-    Simple episodic memory: store experiences with (key, summary, action, outcome)
-    and retrieve by keyword overlap with query. Used for query_memory tool.
+    """Episodic memory with RAG-embedding retrieval (cosine similarity) and
+    keyword-overlap fallback.
+
+    When an ``embedder`` is provided (a ``TextEmbedderBase`` from
+    ``rag.embedding``), every memory is embedded on ``add`` and queries are
+    scored via cosine similarity.  The final score is a weighted mix of
+    embedding similarity and keyword overlap so the system degrades
+    gracefully if the embedding model is unavailable.
+
+    When no embedder is provided, behaviour is identical to the original
+    keyword-overlap-only store.
     """
 
-    def __init__(self, max_entries: int = 500) -> None:
+    def __init__(
+        self,
+        max_entries: int = 500,
+        embedder: Any = None,
+        embedding_weight: float = 0.7,
+    ) -> None:
+        """
+        Args:
+            max_entries: Maximum number of memories to keep (FIFO eviction).
+            embedder: Optional ``TextEmbedderBase`` (e.g. from
+                ``rag.get_text_embedder()``).  Enables embedding retrieval.
+            embedding_weight: Blend weight for embedding vs keyword score
+                (0 = keyword only, 1 = embedding only).
+        """
         self._entries: List[Dict[str, Any]] = []
         self._max_entries = max_entries
+        self._embedder = embedder
+        self._embedding_weight = embedding_weight
+        self._memory_store: Any = None
+        if embedder is not None:
+            self._init_memory_store(embedder)
+
+    def _init_memory_store(self, embedder: Any) -> None:
+        try:
+            from rag.retrieval import MemoryStore
+            self._memory_store = MemoryStore(embedder=embedder, top_k=self._max_entries)
+        except ImportError:
+            self._memory_store = None
 
     def add(
         self,
@@ -97,7 +130,7 @@ class EpisodicMemoryStore:
         outcome: Any = None,
         extra: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Add one memory entry (e.g. from an experience or episode summary)."""
+        """Add one memory entry and embed it if an embedder is available."""
         entry = {
             "key": key,
             "summary": summary,
@@ -107,30 +140,66 @@ class EpisodicMemoryStore:
         }
         self._entries.append(entry)
         if len(self._entries) > self._max_entries:
-            self._entries = self._entries[-self._max_entries :]
+            self._entries = self._entries[-self._max_entries:]
+
+        if self._memory_store is not None:
+            text = (key + " " + summary).strip()
+            if text:
+                try:
+                    self._memory_store.add_texts([text], payloads=[entry])
+                except Exception:
+                    pass
 
     def add_experience(self, state_summary: str, action: Any, next_state_summary: str, done: bool) -> None:
-        """Convenience: add from a single experience (summary_state, action, next summary, done)."""
+        """Convenience: add from a single experience."""
         key = state_summary[:200] if state_summary else ""
         self.add(key=key, summary=state_summary, action=action, outcome=next_state_summary, extra={"done": done})
 
     def query(self, query_key: str, k: int = 3) -> List[Dict[str, Any]]:
-        """
-        Retrieve up to k relevant memories by keyword overlap.
-        query_key should include: scene/level, objective, entities, failure mode if any.
+        """Retrieve top-k memories by embedding similarity + keyword overlap.
+
+        If an embedder is available, scores are a weighted blend of cosine
+        similarity and keyword overlap.  Otherwise falls back to keyword only.
         """
         if not query_key or not self._entries:
             return []
+
+        keyword_scores = self._keyword_scores(query_key)
+
+        if self._memory_store is not None and len(self._memory_store) > 0:
+            try:
+                ranked = self._memory_store.rank(query_key, k=len(self._entries))
+                emb_scores = {idx: score for idx, score, _ in ranked}
+            except Exception:
+                emb_scores = {}
+        else:
+            emb_scores = {}
+
+        w = self._embedding_weight if emb_scores else 0.0
+        scored: List[Tuple[float, Dict[str, Any]]] = []
+        for i, entry in enumerate(self._entries):
+            kw = keyword_scores[i]
+            emb = emb_scores.get(i, 0.0)
+            combined = w * emb + (1.0 - w) * kw
+            scored.append((combined, entry))
+
+        scored.sort(key=lambda x: -x[0])
+        return [e for _, e in scored[:k]]
+
+    def _keyword_scores(self, query_key: str) -> List[float]:
         q_lower = query_key.lower()
         q_words = set(w for w in q_lower.split() if len(w) >= 2)
-        scored: List[Tuple[float, Dict[str, Any]]] = []
+        scores: List[float] = []
         for e in self._entries:
             text = (e.get("key", "") + " " + e.get("summary", "")).lower()
             t_words = set(w for w in text.split() if len(w) >= 2)
             overlap = len(q_words & t_words) / max(len(q_words), 1)
-            scored.append((overlap, e))
-        scored.sort(key=lambda x: -x[0])
-        return [e for _, e in scored[:k]]
+            scores.append(overlap)
+        return scores
+
+    @property
+    def has_embedder(self) -> bool:
+        return self._memory_store is not None
 
     def __len__(self) -> int:
         return len(self._entries)

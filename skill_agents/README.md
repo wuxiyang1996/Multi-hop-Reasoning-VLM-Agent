@@ -11,6 +11,7 @@ Build and maintain a **Skill Bank** from long-horizon game trajectories: segment
 | **SkillBankAgent** | Full pipeline: ingest episodes → segment → learn contracts → maintain bank → query. |
 | **SkillQueryEngine** | Rich retrieval: keyword and effect-based search over the bank. |
 | **SkillBankMVP** | Persistent storage (JSONL) for skill contracts and verification reports. |
+| **tool_call_reward** | Reward for tool calls (query_skill / query_memory / call_skill) for agentic RL training. |
 | **PLAN.md** | Operating plan (stages, constraints, data model). |
 
 Subpackages implement each stage:
@@ -99,6 +100,46 @@ vlm_agent = VLMDecisionAgent(
 result = run_episode_vlm_agent(env, agent=vlm_agent, max_steps=500, verbose=True)
 ```
 
+### 4. Tool-call reward (agentic RL)
+
+Use `compute_tool_call_reward` to get a reward signal for each tool call (query_skill, query_memory, call_skill). Combine with env reward and decision_agents’ `reward` tool for RL training.
+
+```python
+from skill_agents import compute_tool_call_reward, ToolCallRewardConfig, SkillBankMVP
+
+bank = SkillBankMVP("data/skill_bank.jsonl")
+bank.load()
+
+# After the decision agent calls query_skill and you have the outcome:
+reward_result = compute_tool_call_reward(
+    tool_name="query_skill",
+    tool_args={"key": "navigate to pot and place onion"},
+    context_observation="chef near pot, holding onion",
+    outcome_observation="onion in pot, soup cooking",
+    skill_bank=bank,
+    retrieved_skill_id="nav_to_pot",
+    retrieved_result={"skill_id": "nav_to_pot", "score": 0.85},
+    config=ToolCallRewardConfig(w_relevance=1.0, w_utility=1.0),
+)
+print(reward_result.r_total)   # for RL loss / value target
+print(reward_result.to_dict()) # r_relevance, r_utility, details
+```
+
+For a full episode of tool calls, use `compute_episode_tool_call_returns(tool_call_trajectory, skill_bank=bank)` to get a list of per-step rewards.
+
+### How tool-call reward is computed
+
+**r_total = w_relevance × r_relevance + w_utility × r_utility** (for agentic RL: reward for “was this tool call good?”).
+
+- **r_relevance**
+  - **query_skill**: If you have a retrieval **score** (e.g. from `SkillQueryEngine.query(key)` or `retrieved_result["score"]`), **r_relevance = score × relevance_scale** (default scale 0.5). If no score is passed but `skill_bank` and query `key` are provided, the code builds a `SkillQueryEngine`, runs `query(key, top_k=1)`, and uses the top result’s score. Otherwise **r_relevance = default_query_reward** (0).
+  - **query_memory**: If you pass **retrieval_quality** in [0,1], **r_relevance = retrieval_quality × relevance_scale**; else **r_relevance = default_memory_reward** (0).
+
+- **r_utility** (for **query_skill** and **call_skill**)
+  - The skill’s **eff_add** set is taken from the contract (or from the bank using `retrieved_skill_id`). Each predicate is **satisfied** if all of its tokens (length ≥ 2) appear in the **outcome_observation** text (case-insensitive). Then **r_utility = (# satisfied) × utility_per_predicate** (default 0.1), plus **utility_full_completion** (default 0.3) when all **eff_add** predicates are satisfied. No state across steps—purely outcome-based.
+
+Predicate satisfaction is implemented by tokenizing the predicate and the outcome string and checking containment (see `_predicates_satisfied_in_text` in `tool_call_reward.py`). This reward is separate from the decision agent’s **r_follow** (which is stateful and uses the current observation); use both for RL (e.g. env + decision reward + tool-call reward).
+
 ---
 
 ## Main APIs
@@ -127,7 +168,9 @@ result = run_episode_vlm_agent(env, agent=vlm_agent, max_steps=500, verbose=True
 
 ### SkillQueryEngine
 
-Use when you already have a **SkillBankMVP** and want retrieval without the full pipeline:
+Use when you already have a **SkillBankMVP** and want retrieval without the full pipeline.
+The engine auto-loads a RAG `TextEmbedder` (Qwen3-Embedding-0.6B) for
+cosine-similarity scoring, blended with keyword Jaccard:
 
 ```python
 from skill_agents import SkillQueryEngine
@@ -136,7 +179,11 @@ from skill_agents.skill_bank.bank import SkillBankMVP
 bank = SkillBankMVP("bank.jsonl")
 bank.load()
 
-engine = SkillQueryEngine(bank)
+engine = SkillQueryEngine(bank)            # auto-loads RAG embedder
+# or pass an explicit embedder:
+# from rag import get_text_embedder
+# engine = SkillQueryEngine(bank, embedder=get_text_embedder(), embedding_weight=0.6)
+
 results = engine.query("place onion in pot", top_k=3)
 detail = engine.get_detail("place_onion")
 list_all = engine.list_all()
@@ -190,9 +237,10 @@ Key options (see `pipeline.PipelineConfig` for all):
 skill_agents/
 ├── README.md           # This file
 ├── PLAN.md             # SkillBank Agent operating plan
-├── __init__.py         # SkillBankAgent, SkillQueryEngine, PipelineConfig, SkillBankMVP
+├── __init__.py         # SkillBankAgent, SkillQueryEngine, PipelineConfig, SkillBankMVP, tool_call_reward
 ├── pipeline.py         # SkillBankAgent orchestrator
 ├── query.py            # SkillQueryEngine
+├── tool_call_reward.py # Reward for tool calls (agentic RL)
 ├── skill_bank/
 │   └── bank.py         # SkillBankMVP persistence
 ├── boundary_proposal/  # Stage 1

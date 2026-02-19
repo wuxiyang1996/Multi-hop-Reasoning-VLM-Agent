@@ -48,7 +48,11 @@ from skill_agents.skill_bank.bank import SkillBankMVP
 bank = SkillBankMVP("path/to/bank.jsonl")
 bank.load()
 
-memory = EpisodicMemoryStore(max_entries=500)
+# RAG-powered episodic memory (auto-loads Qwen3-Embedding-0.6B)
+from rag import get_text_embedder
+memory = EpisodicMemoryStore(max_entries=500, embedder=get_text_embedder())
+# Or let VLMDecisionAgent auto-load the embedder:
+#   memory = None  # agent will create EpisodicMemoryStore with RAG embedder
 
 reward_cfg = RewardConfig(
     w_follow=0.1,             # weight on skill-following shaping
@@ -146,14 +150,21 @@ intention = infer_intention(
 
 ### `EpisodicMemoryStore`
 
-Simple keyword-overlap retrieval memory for the `query_memory` tool.
+RAG-embedding retrieval memory for the `query_memory` tool.  When an
+embedder is supplied (or auto-loaded from `rag/`), memories are embedded
+on `add` and queries use cosine similarity blended with keyword overlap.
 
 ```python
 from decision_agents import EpisodicMemoryStore
+from rag import get_text_embedder
 
-mem = EpisodicMemoryStore(max_entries=500)
+mem = EpisodicMemoryStore(
+    max_entries=500,
+    embedder=get_text_embedder(),   # RAG embedding (Qwen3-Embedding-0.6B)
+    embedding_weight=0.7,           # 70% embedding, 30% keyword overlap
+)
 
-# Add entries
+# Add entries (automatically embedded)
 mem.add_experience(
     state_summary="corridor, low HP, sniper on balcony",
     action="take cover behind pillar",
@@ -161,7 +172,7 @@ mem.add_experience(
     done=False,
 )
 
-# Query
+# Query — uses cosine similarity + keyword overlap
 results = mem.query("corridor, low HP, sniper, need cover", k=3)
 # returns list of dicts: [{key, summary, action, outcome, ...}, ...]
 ```
@@ -225,6 +236,17 @@ print(rc.history)
 - **r_follow**: Skill-following shaping (termination-free). Checks how many `eff_add` predicates from the active skill's contract appear in the observation. Awards bonuses for newly satisfied predicates and a completion bonus when all are met.
 - **r_cost**: Negative costs for queries, skill calls, and skill switching.
 - **r_total**: `r_env + w_follow * r_follow + r_cost`.
+
+### How reward is computed (detail)
+
+- **r_follow (skill-following)**  
+  The active skill’s contract has an **eff_add** set (e.g. `at_pot`, `onion_in_pot`). Each predicate is treated as satisfied if **all** of its tokens (after tokenizing, length ≥ 2) appear in the **current observation** text (case-insensitive). The computer is **stateful**: it tracks which predicates were already satisfied in previous steps. It only gives the **per-predicate bonus** for **newly** satisfied predicates; when the set of satisfied predicates equals the full **eff_add**, it adds the **completion bonus**. If no new predicate is satisfied on a step, it applies a **no-progress penalty**.
+
+- **r_cost**  
+  **query_mem_cost** (default -0.05) when the action is QUERY_MEM; **query_skill_cost** (-0.05) for QUERY_SKILL; **call_skill_cost** (-0.02) for CALL_SKILL; **skill_switch_cost** (-0.10) when the active skill id changes from the previous step.
+
+- **Combined**  
+  **r_total = r_env + w_follow × r_follow + r_cost**. Used for the two-turn micro-loop (take_action → reward) and for logging/training.
 
 ---
 

@@ -1,9 +1,14 @@
 """
 Skill query engine — rich retrieval API over the Skill Bank.
 
-Provides keyword matching, effect-based retrieval, and detailed skill
+Provides **embedding-based retrieval** (via RAG ``TextEmbedder``) combined
+with keyword matching, effect-based retrieval, and detailed skill
 inspection.  Designed as the query backend for ``decision_agents``
 (``query_skill`` tool) and the pipeline's ``SkillBankAgent.query_skill``.
+
+When a ``TextEmbedderBase`` is supplied (or auto-loaded from ``rag``),
+skill descriptions are embedded and queries use cosine similarity
+blended with keyword / Jaccard scores.
 
 Usage::
 
@@ -11,7 +16,8 @@ Usage::
     from skill_agents.skill_bank.bank import SkillBankMVP
 
     bank = SkillBankMVP("bank.jsonl"); bank.load()
-    engine = SkillQueryEngine(bank)
+    engine = SkillQueryEngine(bank)          # auto-loads RAG embedder
+    engine = SkillQueryEngine(bank, embedder=my_embedder)  # explicit
 
     results = engine.query("navigate to pot and place onion", top_k=3)
     details = engine.get_detail("nav_to_pot")
@@ -21,6 +27,8 @@ from __future__ import annotations
 
 import re
 from typing import Any, Dict, List, Optional, Set
+
+import numpy as np
 
 from skill_agents.skill_bank.bank import SkillBankMVP
 from skill_agents.stage3_mvp.schemas import SkillEffectsContract, VerificationReport
@@ -53,26 +61,69 @@ def _contract_summary(c: SkillEffectsContract) -> Dict[str, Any]:
     }
 
 
+def _skill_description(sid: str, c: Optional[SkillEffectsContract]) -> str:
+    """Build a textual description of a skill for embedding."""
+    parts = [sid.replace("_", " ")]
+    if c is not None:
+        for lit in sorted(c.eff_add or set()):
+            parts.append(lit)
+        for lit in sorted(c.eff_del or set()):
+            parts.append(lit)
+        for lit in sorted(c.eff_event or set()):
+            parts.append(lit)
+    return " ".join(parts)
+
+
 class SkillQueryEngine:
-    """Query interface over a SkillBankMVP.
+    """Query interface over a SkillBankMVP with RAG embedding support.
 
     Supports:
+    - **embedding query**: cosine similarity over skill descriptions via RAG.
     - **keyword query**: match query tokens against skill ID and effect literals.
     - **effect query**: find skills whose effects overlap with desired state changes.
     - **list / detail**: enumerate skills or inspect one in depth.
+
+    The final score is a weighted blend of embedding similarity and keyword
+    Jaccard (controlled by ``embedding_weight``).  When no embedder is
+    available, the engine falls back to keyword-only scoring.
     """
 
-    def __init__(self, bank: SkillBankMVP) -> None:
+    def __init__(
+        self,
+        bank: SkillBankMVP,
+        embedder: Any = None,
+        embedding_weight: float = 0.6,
+    ) -> None:
+        """
+        Args:
+            bank: The skill bank to query over.
+            embedder: Optional ``TextEmbedderBase``.  When *None* the engine
+                tries to auto-load one from ``rag.get_text_embedder()``.
+            embedding_weight: Blend weight for embedding vs keyword score.
+        """
         self._bank = bank
+        self._embedding_weight = embedding_weight
+        self._embedder = embedder
+        if self._embedder is None:
+            try:
+                from rag import get_text_embedder
+                self._embedder = get_text_embedder()
+            except Exception:
+                self._embedder = None
+        self._skill_embeddings: Optional[np.ndarray] = None
+        self._skill_id_order: List[str] = []
         self._build_index()
 
     def _build_index(self) -> None:
-        """Pre-tokenise skill IDs and effects for fast matching."""
+        """Pre-tokenise skill IDs/effects and embed skill descriptions."""
         self._id_tokens: Dict[str, Set[str]] = {}
         self._effect_tokens: Dict[str, Set[str]] = {}
         self._effect_sets: Dict[str, Set[str]] = {}
 
-        for sid in self._bank.skill_ids:
+        descs: List[str] = []
+        self._skill_id_order = list(self._bank.skill_ids)
+
+        for sid in self._skill_id_order:
             self._id_tokens[sid] = _tokenize(sid)
             c = self._bank.get_contract(sid)
             if c is not None:
@@ -84,28 +135,61 @@ class SkillQueryEngine:
             else:
                 self._effect_sets[sid] = set()
                 self._effect_tokens[sid] = set()
+            descs.append(_skill_description(sid, c))
+
+        if self._embedder is not None and descs:
+            try:
+                self._skill_embeddings = self._embedder.encode(
+                    descs, prompt_name="passage",
+                )
+            except Exception:
+                self._skill_embeddings = None
+
+    def rebuild_index(self) -> None:
+        """Re-index after the skill bank has been mutated."""
+        self._build_index()
+
+    @property
+    def has_embedder(self) -> bool:
+        return self._skill_embeddings is not None
+
+    def _embedding_scores(self, query: str) -> Optional[np.ndarray]:
+        """Return per-skill cosine similarity scores for *query*, or None."""
+        if self._embedder is None or self._skill_embeddings is None:
+            return None
+        try:
+            q_emb = self._embedder.encode(query, prompt_name="query")
+            q_emb = np.atleast_2d(q_emb).astype(np.float32)
+            scores = (q_emb @ self._skill_embeddings.T).squeeze(0)
+            return scores
+        except Exception:
+            return None
 
     # ── Keyword query ────────────────────────────────────────────────
 
     def query(self, key: str, top_k: int = 3) -> List[Dict[str, Any]]:
         """Score every skill against a natural-language query key.
 
-        Scoring: weighted combination of skill-ID token overlap and
-        effect-literal token overlap.
+        Scoring blends cosine-similarity (from RAG embeddings) with
+        keyword Jaccard over skill-ID tokens and effect-literal tokens.
 
         Returns up to *top_k* results, each a dict with ``skill_id``,
-        ``score``, ``contract`` summary, and ``micro_plan`` (list of
-        eff_add predicates as plan steps).
+        ``score``, ``contract`` summary, and ``micro_plan``.
         """
         q_tokens = _tokenize(key)
         if not q_tokens:
             return self.list_all()[:top_k]
 
+        emb_scores = self._embedding_scores(key)
+        w = self._embedding_weight if emb_scores is not None else 0.0
+
         scored: List[tuple] = []
-        for sid in self._bank.skill_ids:
+        for i, sid in enumerate(self._skill_id_order):
             id_score = _jaccard(q_tokens, self._id_tokens.get(sid, set()))
             eff_score = _jaccard(q_tokens, self._effect_tokens.get(sid, set()))
-            total = 0.6 * id_score + 0.4 * eff_score
+            kw_score = 0.6 * id_score + 0.4 * eff_score
+            emb = float(emb_scores[i]) if emb_scores is not None else 0.0
+            total = w * emb + (1.0 - w) * kw_score
             scored.append((total, sid))
 
         scored.sort(key=lambda x: -x[0])
@@ -139,21 +223,29 @@ class SkillQueryEngine:
         """Find skills whose contract effects best match desired state changes.
 
         Uses Jaccard similarity between the query effect set and each
-        skill's effect set.
+        skill's effect set, blended with embedding similarity when
+        available.
         """
         query_set = (desired_add or set()) | (desired_del or set())
         if not query_set:
             return self.list_all()[:top_k]
 
+        query_text = " ".join(sorted(query_set))
+        emb_scores = self._embedding_scores(query_text)
+        w = self._embedding_weight * 0.5 if emb_scores is not None else 0.0
+
         scored: List[tuple] = []
-        for sid, eff in self._effect_sets.items():
+        for i, sid in enumerate(self._skill_id_order):
+            eff = self._effect_sets.get(sid, set())
             sim = _jaccard(query_set, eff)
             if desired_add:
                 c = self._bank.get_contract(sid)
                 if c and c.eff_add:
                     add_overlap = len((desired_add or set()) & c.eff_add) / max(len(desired_add or set()), 1)
                     sim = 0.5 * sim + 0.5 * add_overlap
-            scored.append((sim, sid))
+            emb = float(emb_scores[i]) if emb_scores is not None else 0.0
+            total = w * emb + (1.0 - w) * sim
+            scored.append((total, sid))
 
         scored.sort(key=lambda x: -x[0])
         results: List[Dict[str, Any]] = []

@@ -97,10 +97,21 @@ class VLMDecisionAgent:
         skill_abort_k: int = DEFAULT_SKILL_ABORT_K,
         game: Optional[str] = None,
         reward_config: Optional[RewardConfig] = None,
+        embedder: Any = None,
     ) -> None:
         self.model = model or "gpt-4o-mini"
         self.skill_bank = skill_bank
-        self.memory = memory or EpisodicMemoryStore()
+        if memory is not None:
+            self.memory = memory
+        else:
+            emb = embedder
+            if emb is None:
+                try:
+                    from rag import get_text_embedder
+                    emb = get_text_embedder()
+                except Exception:
+                    emb = None
+            self.memory = EpisodicMemoryStore(embedder=emb)
         self.retrieval_budget_n = retrieval_budget_n
         self.skill_abort_k = skill_abort_k
         self.game_hint = game
