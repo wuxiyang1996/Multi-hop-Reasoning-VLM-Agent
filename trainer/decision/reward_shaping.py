@@ -33,6 +33,7 @@ class RewardBreakdown:
     r_env: float = 0.0
     r_follow: float = 0.0
     r_cost: float = 0.0
+    r_tool: float = 0.0
     r_total: float = 0.0
     action_type: str = "primitive"
     active_skill_id: Optional[str] = None
@@ -41,7 +42,8 @@ class RewardBreakdown:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "r_env": self.r_env, "r_follow": self.r_follow,
-            "r_cost": self.r_cost, "r_total": self.r_total,
+            "r_cost": self.r_cost, "r_tool": self.r_tool,
+            "r_total": self.r_total,
             "action_type": self.action_type,
             "active_skill_id": self.active_skill_id,
             "newly_satisfied": self.newly_satisfied,
@@ -52,11 +54,10 @@ class TrainRewardShaper:
     """Per-step reward shaper (used inside environment workers).
 
     Wraps decision_agents.reward_func.RewardComputer with bank-state-aware
-    shaping.  Still used for computing the shaped per-step reward that
-    gets accumulated into episode_rewards by VERL's rollout loop.
+    shaping and tool-call reward integration from skill_agents.
     """
 
-    def __init__(self, config=None, skill_bank=None):
+    def __init__(self, config=None, skill_bank=None, tool_call_reward_weight: float = 0.1):
         try:
             from decision_agents.reward_func import RewardComputer, RewardConfig
             self.config = config or RewardConfig()
@@ -65,6 +66,19 @@ class TrainRewardShaper:
             self.config = config
             self.computer = None
         self.skill_bank = skill_bank
+        self.tool_call_reward_weight = tool_call_reward_weight
+
+        self._tool_reward_fn = None
+        self._tool_reward_cfg = None
+        try:
+            from skill_agents.tool_call_reward import (
+                compute_tool_call_reward as _fn,
+                ToolCallRewardConfig,
+            )
+            self._tool_reward_fn = _fn
+            self._tool_reward_cfg = ToolCallRewardConfig()
+        except ImportError:
+            pass
 
     def reset(self) -> None:
         if self.computer is not None:
@@ -74,10 +88,22 @@ class TrainRewardShaper:
         self, r_env: float, action_type: str, observation: str,
         active_skill_id: Optional[str] = None, skill_contract=None,
         bank_state=None,
+        query_key: Optional[str] = None,
+        outcome_observation: Optional[str] = None,
+        retrieval_score: Optional[float] = None,
     ) -> RewardBreakdown:
-        """Compute reward with full breakdown."""
+        """Compute reward with full breakdown including tool-call reward."""
         if self.computer is None:
-            return RewardBreakdown(r_env=r_env, r_total=r_env, action_type=action_type)
+            r_tool = self._compute_tool_reward(
+                action_type, query_key, active_skill_id,
+                observation, outcome_observation, bank_state,
+                retrieval_score,
+            )
+            r_total = r_env + self.tool_call_reward_weight * r_tool
+            return RewardBreakdown(
+                r_env=r_env, r_tool=r_tool, r_total=r_total,
+                action_type=action_type,
+            )
 
         bank = bank_state or self.skill_bank
         contract = skill_contract
@@ -94,12 +120,58 @@ class TrainRewardShaper:
         )
         new_satisfied = len(self.computer.satisfied_predicates) - prev_satisfied
 
+        r_tool = self._compute_tool_reward(
+            action_type, query_key, active_skill_id,
+            observation, outcome_observation, bank,
+            retrieval_score,
+        )
+
+        r_total = rr.r_total + self.tool_call_reward_weight * r_tool
+
         return RewardBreakdown(
             r_env=rr.r_env, r_follow=rr.r_follow, r_cost=rr.r_cost,
-            r_total=rr.r_total, action_type=action_type,
+            r_tool=r_tool, r_total=r_total, action_type=action_type,
             active_skill_id=active_skill_id,
             newly_satisfied=max(new_satisfied, 0),
         )
+
+    def _compute_tool_reward(
+        self,
+        action_type: str,
+        query_key: Optional[str],
+        active_skill_id: Optional[str],
+        context_obs: Optional[str],
+        outcome_obs: Optional[str],
+        bank: Any,
+        retrieval_score: Optional[float],
+    ) -> float:
+        """Compute tool-call reward using skill_agents.tool_call_reward."""
+        if self._tool_reward_fn is None:
+            return 0.0
+        if action_type not in ("QUERY_SKILL", "QUERY_MEM", "CALL_SKILL"):
+            return 0.0
+
+        tool_name_map = {
+            "QUERY_SKILL": "query_skill",
+            "QUERY_MEM": "query_memory",
+            "CALL_SKILL": "call_skill",
+        }
+        tool_name = tool_name_map.get(action_type, "take_action")
+
+        try:
+            result = self._tool_reward_fn(
+                tool_name=tool_name,
+                tool_args={"key": query_key or ""},
+                context_observation=context_obs,
+                outcome_observation=outcome_obs,
+                skill_bank=bank,
+                retrieved_skill_id=active_skill_id,
+                retrieval_quality=retrieval_score,
+                config=self._tool_reward_cfg,
+            )
+            return result.r_total
+        except Exception:
+            return 0.0
 
     def update_bank(self, new_bank) -> None:
         self.skill_bank = new_bank

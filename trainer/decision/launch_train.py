@@ -406,27 +406,92 @@ if _HAS_VERL:
 
 
 def _build_coevo_callback(config, envs, val_envs):
-    """Build the co-evolution callback from config."""
+    """Build the co-evolution callback from config.
+
+    Initialises the SkillBankCoEvolutionCallback with all skill agent
+    stages packed into the tool-calling pipeline.  The callback wraps
+    boundary proposal (Stage 1), segmentation decode (Stage 2), contract
+    learning (Stage 3), and bank maintenance (Stage 4) so that each stage
+    runs inside the training loop and trajectory segmentations are
+    persisted and updatable.
+    """
     from trainer.decision.coevolution_callback import (
         CoEvolutionConfig,
         SkillBankCoEvolutionCallback,
     )
+    from trainer.skillbank.stages.stage1_propose_cuts import ProposeCutsConfig
+    from trainer.skillbank.stages.stage2_decode import DecodeConfig
+    from trainer.skillbank.stages.stage3_contracts import ContractLearningConfig
+    from trainer.skillbank.stages.stage4_update import UpdateConfig
 
     coevo_cfg = config.coevolution
+
+    propose_cuts_cfg = None
+    if coevo_cfg.get("propose_cuts"):
+        pc = coevo_cfg.propose_cuts
+        propose_cuts_cfg = ProposeCutsConfig(
+            min_segment_width=pc.get("min_segment_width", 5),
+            merge_radius=pc.get("merge_radius", 5),
+            predicate_change_weight=pc.get("predicate_change_weight", 0.5),
+            surprisal_weight=pc.get("surprisal_weight", 0.5),
+        )
+
+    decode_cfg = None
+    if coevo_cfg.get("decode"):
+        dc = coevo_cfg.decode
+        decode_cfg = DecodeConfig(
+            top_m_candidates=dc.get("top_m_candidates", 10),
+            segment_min_len=dc.get("segment_min_len", 3),
+            new_skill_penalty=dc.get("new_skill_penalty", 5.0),
+            eff_freq=dc.get("eff_freq", 0.8),
+        )
+
+    contracts_cfg = None
+    if coevo_cfg.get("contracts"):
+        cc = coevo_cfg.contracts
+        contracts_cfg = ContractLearningConfig(
+            eff_freq=cc.get("eff_freq", 0.8),
+            min_instances_per_skill=cc.get("min_instances_per_skill", 5),
+        )
+
+    update_cfg = None
+    if coevo_cfg.get("update"):
+        uc = coevo_cfg.update
+        update_cfg = UpdateConfig(
+            min_new_cluster_size=uc.get("min_new_cluster_size", 5),
+            merge_jaccard_threshold=uc.get("merge_jaccard_threshold", 0.85),
+            refine_delta_threshold=uc.get("refine_delta_threshold", 0.05),
+        )
+
     callback_config = CoEvolutionConfig(
         bank_update_cadence=coevo_cfg.get("bank_update_cadence", 10),
         em_max_iterations=coevo_cfg.get("em_max_iterations", 3),
         min_pass_rate=coevo_cfg.get("min_pass_rate", 0.6),
         max_new_rate=coevo_cfg.get("max_new_rate", 0.3),
         bank_dir=coevo_cfg.get("bank_dir", "runs/skillbank"),
+        segmentation_store_path=coevo_cfg.get(
+            "segmentation_store_path",
+            "runs/skillbank/segmentations.jsonl",
+        ),
+        max_trajectories_per_update=coevo_cfg.get("max_trajectories_per_update", 256),
+        enable_tool_call_reward=coevo_cfg.get("enable_tool_call_reward", True),
+        tool_call_reward_weight=coevo_cfg.get("tool_call_reward_weight", 0.1),
+        propose_cuts=propose_cuts_cfg,
+        decode=decode_cfg,
+        contracts=contracts_cfg,
+        update=update_cfg,
     )
 
     initial_bank = None
+    bank_path = coevo_cfg.get("initial_bank_path")
     try:
         from skill_agents.skill_bank.bank import SkillBankMVP
         initial_bank = SkillBankMVP()
+        if bank_path:
+            initial_bank.load(bank_path)
+            logger.info("Loaded initial skill bank from %s", bank_path)
     except ImportError:
-        pass
+        logger.warning("skill_agents not available; starting with empty bank")
 
     return SkillBankCoEvolutionCallback(
         config=callback_config,

@@ -224,6 +224,43 @@ Key options (see `pipeline.PipelineConfig` for all):
 
 ---
 
+## Training integration (VERL co-evolution)
+
+During VERL-based training, all four skill agent stages are integrated into the training loop via the **SkillBankCoEvolutionCallback** (in `trainer/decision/coevolution_callback.py`). Each stage is wrapped as a named tool in the `SkillAgentToolPipeline`:
+
+| Tool name | Stage | Function |
+|-----------|-------|----------|
+| `boundary_proposal` | Stage 1 | Propose candidate segment boundaries from predicate/surprisal signals |
+| `segmentation_decode` | Stage 2 | Assign skill labels via Viterbi/DP over proposed cuts |
+| `contract_learning` | Stage 3 | Learn and verify effects contracts from decoded segments |
+| `bank_maintenance` | Stage 4 | Refine, materialize NEW, merge, split skills |
+
+### How it works
+
+1. After each VERL training step (at the configured cadence), the callback extracts rollout trajectories from the VERL batch.
+2. Trajectories are converted to `TrajectoryForEM` and fed through the full pipeline.
+3. The EMTrainer runs Stages 1-4 iteratively until convergence.
+4. If the update is accepted (passes SkillEval gating), the bank is hot-swapped into environment workers.
+5. Trajectory segmentations are persisted in a `SegmentationStore` (JSONL), keyed by trajectory ID. Each entry records the decoded segments, bank version, global step, and associated tool calls.
+
+### Segmentation persistence
+
+The `SegmentationStore` (in the callback module) keeps per-trajectory segmentations that are **updated during training**. When the EM pipeline re-segments a trajectory with a newer bank, the store replaces the old entry. This lets downstream consumers (e.g. replay, evaluation, visualization) access the latest segmentation for any trajectory.
+
+### Tool-call reward in training
+
+The `tool_call_reward` module is integrated into the training reward pipeline via `TrainRewardShaper` (in `trainer/decision/reward_shaping.py`). When the decision agent makes a tool call (QUERY_SKILL, QUERY_MEM, CALL_SKILL), the shaper computes `r_tool` using `compute_tool_call_reward` and adds it to the step reward:
+
+```
+r_total = r_env + w_follow × r_follow + r_cost + tool_call_reward_weight × r_tool
+```
+
+This provides a dense learning signal for when and how to use tools effectively.
+
+See [trainer/README.md](../trainer/README.md) for full co-evolution setup and configuration.
+
+---
+
 ## Subpackage docs
 
 - [boundary_proposal/README.md](boundary_proposal/README.md) — Stage 1 signals and `segment_episode` / `propose_from_episode`.

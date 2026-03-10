@@ -39,16 +39,17 @@ trainer/
     seeds.py                   # Deterministic seed management
     metrics.py                 # RolloutRecord schema, metric aggregation
   decision/
-    env_wrapper.py             # EnvWrapper: retrieval-as-action, reward computation
+    env_wrapper.py             # EnvWrapper: retrieval-as-action, tool call trace recording
     policy_interface.py        # PolicyInterface: logprob extraction for GRPO
-    reward_shaping.py          # compute_reward(prev, action, next, bank_state)
+    reward_shaping.py          # Reward shaping with tool-call reward integration
     rollout_collector.py       # Parallel rollout collection
-    grpo_trainer.py            # GRPO training loop
+    grpo_trainer.py            # GRPO training loop + GameAITrainer (VERL)
     replay_buffer.py           # Episode replay buffer
     launch_train.py            # CLI entry point for decision agent training
+    coevolution_callback.py    # SkillBank co-evolution callback (VERL)
   skillbank/
     ingest_rollouts.py         # Convert decision agent rollouts → trajectory objects
-    em_trainer.py              # Hard-EM loop driver (propose → decode → contract → update → gate)
+    em_trainer.py              # Hard-EM loop driver with segmentation store support
     stages/
       stage0_predicates.py     # Extract/booleanize predicates from observations
       stage1_propose_cuts.py   # Propose boundary candidates
@@ -101,9 +102,10 @@ Defined in `trainer/decision/reward_shaping.py` — `compute_reward(prev, action
 - `r_env` — raw environment reward
 - `r_follow` — termination-free skill-following shaping
 - `r_cost` — query/call/switch costs
-- `r_total` — combined reward
+- `r_tool` — tool-call reward from `skill_agents.tool_call_reward` (relevance + utility)
+- `r_total` — combined reward: `r_base + tool_call_reward_weight × r_tool`
 
-Wraps `decision_agents.reward_func.RewardComputer` with additional bank-state-aware shaping.
+Wraps `decision_agents.reward_func.RewardComputer` with bank-state-aware shaping and integrates `skill_agents.tool_call_reward.compute_tool_call_reward` for agentic RL on tool calls (QUERY_SKILL, QUERY_MEM, CALL_SKILL).
 
 ### 1.3 SkillBank Query Contract
 
@@ -121,9 +123,10 @@ Defined in `trainer/skillbank/bank_io/bank_store.py`:
 
 `EnvWrapper.step(action)`:
 - Primitive actions → forward to game env
-- `QUERY_MEM`/`QUERY_SKILL` → call tool, store cards in context, apply query cost
-- `CALL_SKILL` → set `active_skill` in wrapper state, apply call cost
-- Returns `(obs_{t+1}, r_env, info, done, metadata)`
+- `QUERY_MEM`/`QUERY_SKILL` → call tool, store cards in context, apply query cost; record `ToolCallEvent` (timestep, type, key, retrieved IDs, retrieval score) into `WrapperState.tool_call_trace`
+- `CALL_SKILL` → set `active_skill` in wrapper state, apply call cost; record tool call event
+- Returns `(obs_{t+1}, r_env, info, done, metadata)` — `info` now includes `retrieval_score` and `retrieved_ids`
+- `get_tool_call_traces()` / `get_episode_tool_calls(env_idx)` export traces for segmentation
 
 **Files:** `trainer/decision/env_wrapper.py`, `trainer/decision/reward_shaping.py`
 
@@ -205,6 +208,39 @@ Transactional updates:
 
 ## 4) Co-Evolution Training Schedule
 
+### VERL integration: `SkillBankCoEvolutionCallback`
+
+In VERL mode, co-evolution is driven by `trainer/decision/coevolution_callback.py`. The callback is injected into `GameAITrainer.fit()` and runs after each actor update at a configurable cadence. It packs all four skill agent stages into a unified tool-calling pipeline:
+
+```
+Training step N (at cadence)
+    │
+    ├── 1. Extract RolloutRecords from VERL DataProto batch
+    ├── 2. Convert to TrajectoryForEM via ingest_rollouts
+    ├── 3. Run SkillAgentToolPipeline (all stages):
+    │       ├── Tool: boundary_proposal  (Stage 1 — propose cuts)
+    │       ├── Tool: segmentation_decode (Stage 2 — DP skill labels)
+    │       ├── Tool: contract_learning   (Stage 3 — learn/verify contracts)
+    │       └── Tool: bank_maintenance    (Stage 4 — refine/merge/split)
+    ├── 4. Persist segmentations to SegmentationStore (JSONL)
+    ├── 5. If accepted: hot-swap bank into env workers
+    ├── 6. Compute tool-call reward metrics
+    └── 7. Return metrics dict for VERL logger
+```
+
+Key classes in `coevolution_callback.py`:
+
+| Class | Purpose |
+|-------|---------|
+| `CoEvolutionConfig` | Cadence, EM iterations, pass rate, tool-call reward weight, per-stage configs |
+| `SegmentationStore` | Persistent JSONL store for per-trajectory segmentations; keyed by traj_id, updated each EM cycle |
+| `SkillAgentToolPipeline` | Wraps stages 1-4 as named callable tools; supports `run_full_pipeline()` and `run_stages_individually()` |
+| `SkillBankCoEvolutionCallback` | Main callback with `on_step_end(global_step, batch, metrics)` |
+
+Segmentations are stored and **updated during training**: each time the EM pipeline re-segments a trajectory, the `SegmentationStore` replaces the old entry with the new segments, bank version, and associated tool calls.
+
+### Standalone orchestrator
+
 Top-level orchestrator (`trainer/launch_coevolution.py`):
 1. Run Decision GRPO continuously
 2. Every E episodes:
@@ -225,7 +261,7 @@ Top-level orchestrator (`trainer/launch_coevolution.py`):
 - Win rate / score / objective completion
 - `query_skill` rate, `query_mem` rate, `call_skill` rate
 - Average query key length
-- `r_env`, `r_follow`, `r_cost`, `r_total` (means and histograms)
+- `r_env`, `r_follow`, `r_cost`, `r_tool`, `r_total` (means and histograms)
 - Skill switching rate
 
 ### SkillBank Agent Metrics
@@ -235,6 +271,14 @@ Top-level orchestrator (`trainer/launch_coevolution.py`):
 - Refine/materialize/merge/split event counts
 - Bank size growth rate and churn rate
 - Bank diff report per version
+
+### Co-Evolution Metrics (from callback)
+- `coevo/accepted` — whether the EM update was accepted
+- `coevo/bank_version` — current bank version
+- `coevo/n_skills` — number of skills in the bank
+- `coevo/n_segmentations_stored` — trajectories with stored segmentations
+- `coevo/boundary_proposal/*`, `coevo/segmentation_decode/*`, `coevo/contract_learning/*`, `coevo/bank_maintenance/*` — per-stage metrics
+- `coevo/tool_call_count`, `coevo/tool_call_reward_mean`, `coevo/tool_call_relevance_mean`, `coevo/tool_call_utility_mean` — tool-call reward metrics
 
 ---
 

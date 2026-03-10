@@ -8,7 +8,7 @@ Usage::
 
     from trainer.skillbank.em_trainer import EMTrainer, EMConfig
 
-    trainer = EMTrainer(bank=bank, config=cfg)
+    trainer = EMTrainer(bank_store=bank_store, config=cfg)
     result = trainer.run(trajectories)
     # result.accepted, result.bank_version, result.diff_report
 """
@@ -120,10 +120,14 @@ class EMTrainer:
       3. SkillEval gating on holdout
       4. Commit or rollback
 
+    Supports an optional ``segmentation_store`` so that per-trajectory
+    segmentations are persisted and can be updated across training steps.
+
     Args:
         bank_store: VersionedBankStore for transactional updates
         config: EMConfig with all hyperparameters
         diff_logger: DiffLogger for recording bank changes
+        segmentation_store: optional store for persistent segment tracking
     """
 
     def __init__(
@@ -131,11 +135,13 @@ class EMTrainer:
         bank_store: VersionedBankStore,
         config: Optional[EMConfig] = None,
         diff_logger: Optional[DiffLogger] = None,
+        segmentation_store: Any = None,
     ):
         self.store = bank_store
         self.cfg = config or EMConfig()
         self.diff_logger = diff_logger or DiffLogger()
         self._index = KeywordIndex()
+        self._seg_store = segmentation_store
 
     def run(self, trajectories: List[TrajectoryForEM]) -> EMRunResult:
         """Execute the full EM pipeline on a batch of trajectories.
@@ -179,6 +185,7 @@ class EMTrainer:
                 break
 
         last_decode = self._decode_all(train_trajs, candidate)
+        self._last_decode = last_decode
         last_contracts = learn_contracts(
             last_decode, candidate, self.cfg.contracts
         )
@@ -207,6 +214,8 @@ class EMTrainer:
             result.accepted = True
             self._index.build(self.store.current_bank)
 
+            self._update_segmentation_store(last_decode, new_version)
+
             logger.info("EM accepted → bank v%d (%d skills)",
                         new_version, len(getattr(self.store.current_bank, "skill_ids", [])))
         else:
@@ -216,6 +225,24 @@ class EMTrainer:
             logger.warning("EM rejected: %s", result.rejection_reason)
 
         return result
+
+    def _update_segmentation_store(
+        self, decode_results: List[DecodeResult], bank_version: int,
+    ) -> None:
+        """Persist decoded segmentations so they can be updated later."""
+        if self._seg_store is None:
+            return
+        for dr in decode_results:
+            seg_dicts = [s.to_dict() for s in dr.segments]
+            self._seg_store.update(
+                traj_id=dr.traj_id,
+                segments=seg_dicts,
+                bank_version=bank_version,
+            )
+
+    @property
+    def last_decode_results(self) -> Optional[List[DecodeResult]]:
+        return getattr(self, "_last_decode", None)
 
     def _run_iteration(
         self,

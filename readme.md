@@ -38,10 +38,11 @@ This repository provides a framework for enhancing agentic decision-making in mu
   - **Stage 4** [bank_maintenance/](skill_agents/bank_maintenance/): Split/merge/refine; `materialize_new_skills`.
   - **Query & storage**: [SkillQueryEngine](skill_agents/query.py) (RAG + keyword/effect), [SkillBankMVP](skill_agents/skill_bank/bank.py), [tool_call_reward](skill_agents/tool_call_reward.py), [skill_evaluation/](skill_agents/skill_evaluation/). [skill_agents/README.md](skill_agents/README.md) · [PLAN.md](skill_agents/PLAN.md)
 
-- **🏋️ Training** — [trainer/](trainer/): Co-evolution of both agents.
-  - **Agent A (Decision)**: GRPO — primitives + `QUERY_MEM` / `QUERY_SKILL` / `CALL_SKILL`; reward = r_env + shaping + costs.
-  - **Agent B (SkillBank)**: Hard-EM (decode → update → gate); optional boundary/tie-breaker learners.
-  - Shared: [metrics](trainer/common/metrics.py), [reward_shaping](trainer/decision/reward_shaping.py), [eval_harness](trainer/common/eval_harness.py). Entry: [launch_trainer](trainer/decision/launch_trainer.py), [launch_coevolution](trainer/launch_coevolution.py). [trainer/README.md](trainer/README.md)
+- **🏋️ Training** — [trainer/](trainer/): Co-evolution of both agents via VERL.
+  - **Agent A (Decision)**: GRPO — primitives + `QUERY_MEM` / `QUERY_SKILL` / `CALL_SKILL`; reward = r_env + shaping + costs + tool-call reward.
+  - **Agent B (SkillBank)**: Hard-EM (decode → update → gate); all four stages packed as a tool pipeline in the [co-evolution callback](trainer/decision/coevolution_callback.py). Trajectory segmentations stored and updated via `SegmentationStore`.
+  - **Co-evolution callback**: [coevolution_callback.py](trainer/decision/coevolution_callback.py) — `SkillBankCoEvolutionCallback` + `SkillAgentToolPipeline` + `SegmentationStore`; integrates `skill_agents.tool_call_reward` into reward shaping.
+  - Shared: [metrics](trainer/common/metrics.py), [reward_shaping](trainer/decision/reward_shaping.py), [eval_harness](trainer/common/eval_harness.py). Entry: [launch_train](trainer/decision/launch_train.py), [launch_coevolution](trainer/launch_coevolution.py). [trainer/README.md](trainer/README.md)
 
 - **▶️ Inference** — [inference/](inference/): Run the decision agent and store rollouts in [data_structure](data_structure/experience.py) format (`Episode` + `Experience`). `run_inference(env, task=..., episode_buffer=..., save_path=...)`; `rollout_to_episode(rollout, task=...)` to convert an existing rollout. [inference/README.md](inference/README.md)
 
@@ -94,7 +95,7 @@ The **decision_agents** (VLM decision-making agent) and **skill_agents** (Skill 
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**With training** ([trainer/](trainer/)): the same loop is driven by **GRPO** (decision agent) and **Hard-EM** (skill bank). The orchestrator [trainer/launch_coevolution.py](trainer/launch_coevolution.py) runs GRPO continuously, periodically freezes a rollout batch, runs the SkillBank EM trainer (propose cuts → decode → contracts → update → SkillEval gating), and deploys the new bank only if fixed-seed evaluation passes. See [trainer/README.md](trainer/README.md).
+**With training** ([trainer/](trainer/)): the same loop is driven by **GRPO** (decision agent) and **Hard-EM** (skill bank). In VERL mode, the [SkillBankCoEvolutionCallback](trainer/decision/coevolution_callback.py) is injected into `GameAITrainer.fit()` and runs all four skill agent stages (boundary proposal, segmentation decode, contract learning, bank maintenance) as a unified tool-calling pipeline after each training step. Trajectory segmentations are persisted in a `SegmentationStore` and updated as the bank evolves. Tool-call rewards from `skill_agents.tool_call_reward` are integrated into the reward shaping for dense RL signal on tool use. Standalone mode: [trainer/launch_coevolution.py](trainer/launch_coevolution.py) runs GRPO continuously, periodically freezes a rollout batch, runs the SkillBank EM trainer, and deploys the new bank only if SkillEval gating passes. See [trainer/README.md](trainer/README.md).
 
 ### How they connect
 
@@ -140,16 +141,18 @@ See [decision_agents/README.md](decision_agents/README.md) for the VLM agent API
 
 ### How reward is computed (decision + skill agents)
 
-Reward for the decision/skill stack is computed in two places:
+Reward for the decision/skill stack is computed in two places, now unified during training:
 
 - **decision_agents** (`reward_func.py`): **r_total = r_env + w_follow × r_follow + r_cost**
   - **r_env**: Raw environment reward from `env.step`.
   - **r_follow**: Skill-following shaping. The active skill’s contract has `eff_add` predicates (e.g. `at_pot`, `onion_in_pot`). Each predicate is checked against the **current observation text** (tokenize predicate and observation; predicate counts as satisfied if all its tokens appear in the observation). The agent gets a **per-predicate bonus** for each **newly** satisfied predicate, a **completion bonus** when all are satisfied, and a **small penalty** when no new predicate is satisfied this step. This is stateful over the episode (tracks which predicates were already satisfied).
   - **r_cost**: Negative costs for tool use: **query_mem_cost**, **query_skill_cost**, **call_skill_cost**, and **skill_switch_cost** when the active skill changes.
 
-- **skill_agents** (`tool_call_reward.py`): **r_total = w_relevance × r_relevance + w_utility × r_utility** (for agentic RL: “was this tool call good?”)
+- **skill_agents** (`tool_call_reward.py`): **r_tool = w_relevance × r_relevance + w_utility × r_utility** (for agentic RL: “was this tool call good?”)
   - **r_relevance**: For **query_skill**, the retrieval score (from `SkillQueryEngine.query(key)` or from `retrieved_result["score"]`) scaled by `relevance_scale`. For **query_memory**, an optional `retrieval_quality` in [0,1] scaled the same way.
   - **r_utility**: For **query_skill** and **call_skill**, the skill’s **eff_add** predicates are checked against the **outcome observation** text (after the tool call). Same token-in-text rule: each predicate satisfied in the outcome gets a per-predicate bonus; if all are satisfied, an extra completion bonus. No state across steps—purely outcome-based.
+
+- **Training integration** (`trainer/decision/reward_shaping.py`): during VERL training, `TrainRewardShaper` combines both sources into a single per-step reward: **r_total = r_env + w_follow × r_follow + r_cost + tool_call_reward_weight × r_tool**. The tool-call reward (`r_tool`) is computed by `compute_tool_call_reward` for every QUERY_SKILL, QUERY_MEM, and CALL_SKILL action, providing a dense learning signal for effective tool use.
 
 Predicate satisfaction in both modules is **text-based**: tokenize the predicate (e.g. `onion_in_pot` → tokens), then require all tokens (length ≥ 2) to appear in the observation/outcome string (case-insensitive).
 
@@ -320,7 +323,7 @@ The agent keeps: **current_intention**, **progress_notes**, **last_actions** (la
 
 ### Reward (decision_agents/reward_func.py)
 
-**r_total = r_env + w_follow × r_follow + r_cost**
+**r_total = r_env + w_follow × r_follow + r_cost + tool_call_reward_weight × r_tool**
 
 - **r_env**: Raw environment reward from env.step.
 - **r_follow**: Skill-following shaping (termination-free). The active skill's contract has **eff_add** predicates; each is satisfied if its tokens appear in the current observation. The agent gets a **per-predicate bonus** for newly satisfied predicates, a **completion bonus** when all are satisfied, and a **no-progress penalty** when none are newly satisfied.
@@ -420,22 +423,29 @@ The training code uses experience to train agents so they (i) take better action
 
 - **Decision Agent (Agent A)** — **GRPO** (Group Relative Policy Optimization)
   - **Actions**: primitives + `QUERY_MEM(key)`, `QUERY_SKILL(key)`, `CALL_SKILL(id, params)`; retrieval is first-class.
-  - **Reward**: r_env + w_follow × r_follow + r_cost (query/call/switch costs); optional skill-follow shaping.
-  - **Components**: [trainer/decision/env_wrapper.py](trainer/decision/env_wrapper.py) (retrieval-as-action), [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py), [trainer/decision/rollout_collector.py](trainer/decision/rollout_collector.py), [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py), [trainer/decision/replay_buffer.py](trainer/decision/replay_buffer.py).
+  - **Reward**: r_env + w_follow × r_follow + r_cost + tool_call_reward_weight × r_tool; tool-call reward integrated from `skill_agents.tool_call_reward`.
+  - **Components**: [trainer/decision/env_wrapper.py](trainer/decision/env_wrapper.py) (retrieval-as-action, tool call trace recording), [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py), [trainer/decision/rollout_collector.py](trainer/decision/rollout_collector.py), [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py), [trainer/decision/replay_buffer.py](trainer/decision/replay_buffer.py).
   - **Launch**: `python -m trainer.decision.launch_train --config trainer/common/configs/decision_grpo.yaml`
 
 - **SkillBank Agent (Agent B)** — **Hard-EM** (decode → update → gate)
   - **Pipeline**: ingest rollouts → Stage 0 (predicates) → Stage 1 (propose cuts) → Stage 2 (decode) → Stage 3 (contracts) → Stage 4 (refine/materialize/merge/split) → SkillEval gating; no global LLM scoring.
-  - **Components**: [trainer/skillbank/ingest_rollouts.py](trainer/skillbank/ingest_rollouts.py), [trainer/skillbank/em_trainer.py](trainer/skillbank/em_trainer.py), [trainer/skillbank/stages/](trainer/skillbank/stages/), [trainer/skillbank/bank_io/](trainer/skillbank/bank_io/) (versioned store, indices, diff logger).
+  - **Components**: [trainer/skillbank/ingest_rollouts.py](trainer/skillbank/ingest_rollouts.py), [trainer/skillbank/em_trainer.py](trainer/skillbank/em_trainer.py) (with segmentation store support), [trainer/skillbank/stages/](trainer/skillbank/stages/), [trainer/skillbank/bank_io/](trainer/skillbank/bank_io/) (versioned store, indices, diff logger).
   - **Optional learners**: boundary classifier ([trainer/skillbank/learners/boundary_trainer.py](trainer/skillbank/learners/boundary_trainer.py)), top-2 tie-breaker ([trainer/skillbank/learners/tiebreaker_trainer.py](trainer/skillbank/learners/tiebreaker_trainer.py)).
+
+- **Co-evolution callback** (VERL): [trainer/decision/coevolution_callback.py](trainer/decision/coevolution_callback.py)
+  - `SkillBankCoEvolutionCallback` — injected into `GameAITrainer.fit()`; runs after each training step at cadence.
+  - `SkillAgentToolPipeline` — wraps all four skill agent stages as callable tools: `boundary_proposal`, `segmentation_decode`, `contract_learning`, `bank_maintenance`.
+  - `SegmentationStore` — persistent JSONL store for per-trajectory segmentations, keyed by trajectory ID, updated each EM cycle.
+  - Integrates `skill_agents.tool_call_reward` for tool-call reward metrics.
+  - On accepted update: hot-swaps bank into environment workers, persists segmentations.
 
 - **Shared**
   - **Rollout schema**: [trainer/common/metrics.py](trainer/common/metrics.py) — `RolloutRecord` / `RolloutStep` (single source of truth for both trainers).
-  - **Reward contract**: [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py) — `compute_reward(prev, action, next, bank_state)` → r_env, r_follow, r_cost, r_total.
+  - **Reward contract**: [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py) — `compute_reward(prev, action, next, bank_state)` → r_env, r_follow, r_cost, r_tool, r_total.
   - **Eval & logging**: [trainer/common/eval_harness.py](trainer/common/eval_harness.py) (fixed-seed eval, SkillBank quick eval for gating), [trainer/common/logging.py](trainer/common/logging.py), [trainer/common/seeds.py](trainer/common/seeds.py).
   - **Configs**: [trainer/common/configs/decision_grpo.yaml](trainer/common/configs/decision_grpo.yaml), [trainer/common/configs/skillbank_em.yaml](trainer/common/configs/skillbank_em.yaml).
 
-- **Co-evolution orchestrator**: [trainer/launch_coevolution.py](trainer/launch_coevolution.py)
+- **Standalone co-evolution orchestrator**: [trainer/launch_coevolution.py](trainer/launch_coevolution.py)
   - Runs Decision GRPO continuously; every N episodes freezes a rollout batch, runs SkillBank EM, gates with fixed-seed eval, then commits or rolls back the bank.
   - Run: `python -m trainer.launch_coevolution --decision-config trainer/common/configs/decision_grpo.yaml --skillbank-config trainer/common/configs/skillbank_em.yaml`
 

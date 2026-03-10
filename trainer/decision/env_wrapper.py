@@ -95,6 +95,18 @@ def gameai_projection(text_actions: List[str]) -> Tuple[List[str], List[int]]:
 # Per-env state
 # ---------------------------------------------------------------------------
 @dataclass
+class ToolCallEvent:
+    """Record of a single tool call made during a rollout step."""
+    t: int = 0
+    action_type: str = ""
+    action_raw: str = ""
+    key: Optional[str] = None
+    skill_id: Optional[str] = None
+    retrieved_ids: List[str] = field(default_factory=list)
+    retrieval_score: float = 0.0
+
+
+@dataclass
 class WrapperState:
     """Internal state maintained per environment instance."""
     active_skill_id: Optional[str] = None
@@ -105,6 +117,7 @@ class WrapperState:
     step_count: int = 0
     episode_id: str = ""
     context_buffer: str = ""
+    tool_call_trace: List[ToolCallEvent] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -191,6 +204,8 @@ class GameAIVecEnv:
     def _handle_retrieval(self, idx, parsed):
         st = self.states[idx]
         atype = parsed["type"]
+        retrieval_score = 0.0
+        retrieved_ids: List[str] = []
 
         if atype == "QUERY_SKILL" and self.skill_bank is not None:
             key = parsed.get("key", "")
@@ -201,6 +216,9 @@ class GameAIVecEnv:
             elif hasattr(self.skill_bank, "skill_ids"):
                 retrieved = [{"skill_id": sid} for sid in self.skill_bank.skill_ids[:3]]
             st.retrieved_cards = retrieved
+            retrieved_ids = [c.get("skill_id", "") for c in retrieved]
+            if retrieved:
+                retrieval_score = float(retrieved[0].get("score", 0.0))
             card_text = "\n".join(
                 f"  [{c.get('skill_id', '?')}] score={c.get('score', 0):.3f}"
                 for c in retrieved
@@ -219,13 +237,27 @@ class GameAIVecEnv:
             st.active_skill_contract = None
             if self.skill_bank and hasattr(self.skill_bank, "get_contract"):
                 st.active_skill_contract = self.skill_bank.get_contract(skill_id)
+            retrieved_ids = [skill_id]
             st.context_buffer += f"\n[CALL_SKILL activated: {skill_id}]"
+
+        event = ToolCallEvent(
+            t=st.step_count,
+            action_type=atype,
+            action_raw=parsed.get("key", parsed.get("skill_id", "")),
+            key=parsed.get("key"),
+            skill_id=parsed.get("skill_id") or (retrieved_ids[0] if retrieved_ids else None),
+            retrieved_ids=retrieved_ids,
+            retrieval_score=retrieval_score,
+        )
+        st.tool_call_trace.append(event)
 
         info = {
             "won": False, "action_type": atype,
             "active_skill_id": st.active_skill_id,
             "prev_skill_id": st.prev_skill_id,
             "query_key": parsed.get("key"),
+            "retrieval_score": retrieval_score,
+            "retrieved_ids": retrieved_ids,
         }
         return st.context_buffer, 0.0, False, info
 
@@ -250,6 +282,24 @@ class GameAIVecEnv:
         info["prev_skill_id"] = st.prev_skill_id
         info["query_key"] = None
         return obs_text, r_env, done, info
+
+    def get_tool_call_traces(self) -> List[List[ToolCallEvent]]:
+        """Return per-env tool call traces for the current episodes."""
+        return [list(st.tool_call_trace) for st in self.states]
+
+    def get_episode_tool_calls(self, env_idx: int) -> List[Dict[str, Any]]:
+        """Return tool call dicts for a single environment's current episode."""
+        if env_idx >= len(self.states):
+            return []
+        return [
+            {
+                "t": e.t, "action_type": e.action_type,
+                "key": e.key, "skill_id": e.skill_id,
+                "retrieved_ids": e.retrieved_ids,
+                "retrieval_score": e.retrieval_score,
+            }
+            for e in self.states[env_idx].tool_call_trace
+        ]
 
     def update_skill_bank(self, new_bank):
         """Hot-swap the skill bank (called after co-evolution bank update)."""
