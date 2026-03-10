@@ -134,72 +134,157 @@ def _config_path(game_dir: str) -> str:
     return str(GAMINGAGENT_ROOT / "gamingagent" / "envs" / game_dir / "game_env_config.json")
 
 
+def _adapter_kwargs(cache_dir: str, config_path: str) -> Dict[str, Any]:
+    """Standard GymEnvAdapter kwargs (2048, sokoban, tetris)."""
+    return dict(
+        render_mode=None,
+        observation_mode_for_adapter="text",
+        agent_cache_dir_for_adapter=cache_dir,
+        game_specific_config_path_for_adapter=config_path,
+    )
+
+
+def _candy_crush_kwargs(cache_dir: str, config_path: str) -> Dict[str, Any]:
+    """CandyCrushEnv — adapter pattern but no render_mode parameter."""
+    return dict(
+        observation_mode_for_adapter="text",
+        agent_cache_dir_for_adapter=cache_dir,
+        game_specific_config_path_for_adapter=config_path,
+    )
+
+
+def _retro_kwargs(game_name: str):
+    """Factory for retro envs (SuperMarioBros, NineteenFortyTwo) that take
+    (game_name, config_dir_path, observation_mode, base_log_dir)."""
+    def _build(cache_dir: str, config_path: str) -> Dict[str, Any]:
+        return dict(
+            game_name=game_name,
+            config_dir_path=str(Path(config_path).parent),
+            observation_mode="text",
+            base_log_dir=cache_dir,
+        )
+    return _build
+
+
+def _doom_kwargs(cache_dir: str, config_path: str) -> Dict[str, Any]:
+    """DoomEnvWrapper — retro-style args plus render_mode."""
+    return dict(
+        game_name="doom",
+        config_dir_path=str(Path(config_path).parent),
+        observation_mode="text",
+        base_log_dir=cache_dir,
+        render_mode=None,
+        headless=True,
+    )
+
+
+def _pokemon_red_kwargs(cache_dir: str, config_path: str) -> Dict[str, Any]:
+    """PokemonRedEnv — adapter pattern but also needs rom_path from config."""
+    import json as _json
+    rom_path = None
+    try:
+        with open(config_path) as _f:
+            _cfg = _json.load(_f)
+            rom_path = _cfg.get("rom_path")
+    except Exception:
+        pass
+    kwargs: Dict[str, Any] = dict(
+        render_mode=None,
+        observation_mode_for_adapter="text",
+        agent_cache_dir_for_adapter=cache_dir,
+        game_specific_config_path_for_adapter=config_path,
+    )
+    if rom_path:
+        kwargs["rom_path"] = rom_path
+    return kwargs
+
+
+def _ace_attorney_kwargs(cache_dir: str, config_path: str) -> Dict[str, Any]:
+    """AceAttorneyEnv — uses adapter_ prefixed args."""
+    return dict(
+        adapter_observation_mode="text",
+        adapter_agent_cache_dir=cache_dir,
+        adapter_config_path=config_path,
+    )
+
+
 GAME_REGISTRY: Dict[str, Dict[str, Any]] = {
     "twenty_forty_eight": {
         "env_class": TwentyFortyEightEnv,
         "config_path": _config_path("custom_01_2048"),
         "action_names": ["up", "down", "left", "right"],
         "task": "Achieve the highest possible tile in 2048 by merging tiles strategically.",
+        "init_kwargs": _adapter_kwargs,
     },
     "sokoban": {
         "env_class": SokobanEnv,
         "config_path": _config_path("custom_02_sokoban"),
         "action_names": ["up", "down", "left", "right", "push up", "push down", "push left", "push right", "no_op"],
         "task": "Push all boxes onto goal positions in the Sokoban puzzle.",
+        "init_kwargs": _adapter_kwargs,
     },
     "candy_crush": {
         "env_class": CandyCrushEnv,
         "config_path": _config_path("custom_03_candy_crush"),
         "action_names": [],  # dynamic: swap(row1,col1,row2,col2) on 8x8 board
         "task": "Match three or more candies in a row/column to clear the board and maximize score.",
+        "init_kwargs": _candy_crush_kwargs,
     },
     "tetris": {
         "env_class": TetrisEnv,
         "config_path": _config_path("custom_04_tetris"),
         "action_names": ["no_op", "left", "right", "rotate_left", "rotate_right", "soft_drop", "hard_drop"],
         "task": "Clear as many lines as possible in Tetris by placing tetrominoes strategically.",
+        "init_kwargs": _adapter_kwargs,
     },
     "doom": {
         "env_class": DoomEnv,
         "config_path": _config_path("custom_05_doom"),
         "action_names": ["move_left", "move_right", "attack"],
         "task": "Survive and defeat enemies in Doom by shooting and dodging.",
+        "init_kwargs": _doom_kwargs,
     },
     "pokemon_red": {
         "env_class": PokemonRedEnv,
         "config_path": _config_path("custom_06_pokemon_red"),
         "action_names": ["a", "b", "start", "select", "up", "down", "left", "right"],
         "task": "Progress through Pokemon Red by exploring, battling, and catching Pokemon.",
+        "init_kwargs": _pokemon_red_kwargs,
     },
     "super_mario_bros": {
         "env_class": SuperMarioBrosEnv,
         "config_path": _config_path("retro_01_super_mario_bros"),
         "action_names": ["noop", "right", "right_a", "right_b", "right_a_b", "a", "b", "left", "left_a", "left_b", "left_a_b", "down", "up"],
         "task": "Complete levels in Super Mario Bros by running, jumping, and avoiding enemies.",
+        "init_kwargs": _retro_kwargs("super_mario_bros"),
     },
     "ace_attorney": {
         "env_class": AceAttorneyEnv,
         "config_path": _config_path("retro_02_ace_attorney"),
         "action_names": ["a", "b", "l", "r", "up", "down", "left", "right", "no_op"],
         "task": "Solve cases in Ace Attorney by investigating evidence and cross-examining witnesses.",
+        "init_kwargs": _ace_attorney_kwargs,
     },
     "nineteen_forty_two": {
         "env_class": NineteenFortyTwoEnv,
         "config_path": _config_path("retro_03_1942"),
         "action_names": ["noop", "right", "right_b", "a", "b", "left", "left_b", "down", "up"],
         "task": "Survive waves of enemy aircraft in 1942 by dodging and shooting.",
+        "init_kwargs": _retro_kwargs("nineteen_forty_two"),
     },
     "tic_tac_toe": {
         "env_class": SingleTicTacToeEnv,
         "config_path": _config_path("zoo_01_tictactoe"),
         "action_names": ["place 0", "place 1", "place 2", "place 3", "place 4", "place 5", "place 6", "place 7", "place 8"],
         "task": "Win at Tic-Tac-Toe by placing marks to get three in a row.",
+        "init_kwargs": _adapter_kwargs,
     },
     "texas_holdem": {
         "env_class": SingleTexasHoldemEnv,
         "config_path": _config_path("zoo_02_texasholdem"),
         "action_names": ["call", "raise", "fold", "check"],
         "task": "Win at Texas Hold'em poker by making optimal betting decisions.",
+        "init_kwargs": _adapter_kwargs,
     },
 }
 
@@ -222,12 +307,9 @@ class ColdStartEnvWrapper:
         cache_dir = str(SCRIPT_DIR / "cache" / game_name)
         os.makedirs(cache_dir, exist_ok=True)
 
-        self._env = reg["env_class"](
-            render_mode=None,
-            observation_mode_for_adapter="text",
-            agent_cache_dir_for_adapter=cache_dir,
-            game_specific_config_path_for_adapter=reg["config_path"],
-        )
+        kwargs_fn = reg.get("init_kwargs", _adapter_kwargs)
+        env_kwargs = kwargs_fn(cache_dir, reg["config_path"])
+        self._env = reg["env_class"](**env_kwargs)
         self._action_names = reg["action_names"]
         self._game_name = game_name
         self._max_steps = max_steps

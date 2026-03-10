@@ -515,10 +515,109 @@ The training code uses experience to train agents so they (i) take better action
 
 See [trainer/README.md](trainer/README.md) for full layout, milestones, metrics, and implementation order.
 
+### Multi-LoRA Skill Bank Agent
+
+The skill bank agent uses a **shared Qwen3-8B backbone** with **4 function-specific LoRA adapters**, one per EM stage function. This avoids loading 4 separate models while giving each stage a specialized fine-tuned head.
+
+```
+┌─────────────────────────────────────────┐
+│       Qwen3-8B  (shared backbone)       │
+│                                         │
+│  ┌──────────┐      ┌──────────┐        │
+│  │ BOUNDARY  │      │ SEGMENT  │        │  ← predicate extraction (Stage 1)
+│  │   LoRA    │      │   LoRA   │        │  ← skill label ranking  (Stage 2)
+│  └──────────┘      └──────────┘        │
+│  ┌──────────┐      ┌──────────┐        │
+│  │ CONTRACT  │      │ RETRIEVAL│        │  ← effect summarization  (Stage 3)
+│  │   LoRA    │      │   LoRA   │        │  ← skill re-ranking      (Stage 2)
+│  └──────────┘      └──────────┘        │
+└─────────────────────────────────────────┘
+```
+
+**Key modules:**
+
+| Module | Purpose |
+|--------|---------|
+| [`skill_agents/lora/skill_function.py`](skill_agents/lora/skill_function.py) | `SkillFunction` enum — routing key for adapter selection |
+| [`skill_agents/lora/config.py`](skill_agents/lora/config.py) | `MultiLoraConfig` + `LoraTrainingConfig` dataclasses |
+| [`skill_agents/lora/model.py`](skill_agents/lora/model.py) | `MultiLoraSkillBankLLM` — shared model with adapter switching via PEFT |
+| [`configs/skillbank_lora.yaml`](configs/skillbank_lora.yaml) | Full config: base model, adapter paths, generation defaults |
+| [`trainer/skillbank/lora/`](trainer/skillbank/lora/) | Per-adapter training scripts + unified `train_lora.py` |
+| [`trainer/skillbank/lora/data_builder.py`](trainer/skillbank/lora/data_builder.py) | Dataset builders with prompt templates for each function |
+
+**Singleton pattern:** `MultiLoraSkillBankLLM.set_shared_instance(llm)` is called once at startup. Consumer code automatically discovers the model:
+
+- [`skill_agents/boundary_proposal/llm_extractor.py`](skill_agents/boundary_proposal/llm_extractor.py) → BOUNDARY adapter
+- [`skill_agents/infer_segmentation/llm_teacher.py`](skill_agents/infer_segmentation/llm_teacher.py) → SEGMENT adapter
+- [`skill_agents/stage3_mvp/llm_contract.py`](skill_agents/stage3_mvp/llm_contract.py) → CONTRACT adapter (enriches frequency-based contracts with LLM-generated effects)
+- [`skill_agents/skill_bank/llm_retrieval.py`](skill_agents/skill_bank/llm_retrieval.py) → RETRIEVAL adapter (re-ranks skill candidates during decode)
+
+All four consumers fall back gracefully to the algorithmic path or API-based `ask_model` when the multi-LoRA model is not configured.
+
+**Usage:**
+
+```python
+from skill_agents.lora import MultiLoraSkillBankLLM, MultiLoraConfig
+import yaml
+
+with open("configs/skillbank_lora.yaml") as f:
+    raw = yaml.safe_load(f)
+cfg = MultiLoraConfig.from_dict(raw["lora"])
+llm = MultiLoraSkillBankLLM(cfg)
+llm.load()
+MultiLoraSkillBankLLM.set_shared_instance(llm)
+# Now all EM stages automatically use the LoRA adapters
+```
+
+### Co-Evolution Training Scripts
+
+Shell-based orchestration for multi-GPU co-evolution training:
+
+| Script | Purpose |
+|--------|---------|
+| [`scripts/coevolution_train.sh`](scripts/coevolution_train.sh) | Main loop: cold-start rollouts → Skill Bank v1 → Decision Agent v1 → iterate |
+| [`scripts/decision_agent_train.sh`](scripts/decision_agent_train.sh) | GRPO training for Decision Agent (Qwen3-14B) on GPUs 0-3 via VERL |
+| [`scripts/skillbank_agent_train.sh`](scripts/skillbank_agent_train.sh) | LoRA training + Hard-EM for Skill Bank Agent (Qwen3-8B) on GPUs 4-7 |
+| [`cold_start/run_100_rollouts.py`](cold_start/run_100_rollouts.py) | Batch rollout generation (100 episodes per game) |
+
+**Run co-evolution:**
+```bash
+# Default: Qwen3-14B decision + Qwen3-8B skill bank, 6 iterations
+bash scripts/coevolution_train.sh
+
+# Custom:
+Decision_base_model=Qwen/Qwen3-14B \
+SkillBank_base_model=Qwen/Qwen3-8B \
+NUM_ITERATIONS=10 TRAIN_STEPS=30 \
+  bash scripts/coevolution_train.sh
+```
+
+### Recent Bug Fixes (Co-Evolution Pipeline)
+
+The following bugs prevented the co-evolution training pipeline from completing successfully. All have been fixed:
+
+| # | Bug | Location | Root Cause | Fix |
+|---|-----|----------|------------|-----|
+| 1 | **6/9 game envs fail on construction** | `cold_start/generate_cold_start.py` | `ColdStartEnvWrapper` passed `render_mode=None` + adapter kwargs to all envs, but CandyCrush, Doom, SuperMarioBros, AceAttorney, NineteenFortyTwo, and PokemonRed have different constructor signatures | Added per-env `init_kwargs` factories in `GAME_REGISTRY` that return the correct kwargs for each env type |
+| 2 | **JSONL consolidation produces 0-byte file** | `scripts/coevolution_train.sh` | `glob.glob('episode_*.json')` searched the top-level rollout dir, but episodes are in per-game subdirs (e.g. `rollouts_v0/tetris/episode_000.json`) | Changed to recursive glob with `**` pattern |
+| 3 | **Skillbank ingest fails on `import pandas`** | `scripts/skillbank_agent_train.sh` | The JSONL codepath doesn't need pandas, but the `except ImportError` fallback re-imported it; also no validation on empty files | Restructured: pandas only for `.parquet`; added minimal JSONL fallback; added upfront file-exists and non-empty checks |
+| 4 | **`train_lora_adapter()` doesn't exist** | `trainer/skillbank/lora/train_lora.py` | Shell script imports `train_lora_adapter` but module only had CLI-based `train(args)` | Added `train_lora_adapter()` wrapper function that constructs an `argparse.Namespace` and delegates to `train()` |
+| 5 | **Exit codes masked by `\| tee`** | `scripts/skillbank_agent_train.sh`, `scripts/decision_agent_train.sh` | `python3 -c "..." \| tee log` returns tee's exit code (0), hiding Python failures | Added `set -o pipefail`; added `PIPESTATUS[0]` checks after ingest, LoRA, and EM steps |
+| 6 | **Empty file passes skip-check** | `scripts/coevolution_train.sh` | `[ -f file ]` checks existence, not content; a 0-byte JSONL from failed consolidation passed the guard | Changed all rollout checks from `-f` to `-s` (exists AND non-empty); added cleanup of stale empty files |
+| 7 | **Multi-LoRA model never initialized for EM** | `scripts/skillbank_agent_train.sh`, `trainer/launch_coevolution.py` | LoRA adapter paths were wired into config but `MultiLoraSkillBankLLM` was never instantiated or registered as singleton | Added `MultiLoraSkillBankLLM` initialization + `set_shared_instance()` before EM runs |
+| 8 | **CONTRACT and RETRIEVAL adapters not wired** | EM stages 2 and 3 | Only BOUNDARY and SEGMENT had consumer call sites; CONTRACT and RETRIEVAL adapters were trained but unused | Added `llm_contract.py` (Stage 3 enrichment) and `llm_retrieval.py` (Stage 2 re-ranking) with graceful fallback |
+
+**After fixing, clean stale outputs before re-running:**
+```bash
+cd runs/coevolution
+rm -f rollouts/*_rollouts_v0.jsonl
+rm -rf temp_results/* lora_adapters/* logs/skillbank/*
+```
+
 ToDo (future):
-1. Integrate PPO / GDPO code bases and LoRA for fast fine-tuning (e.g. R1-style) where applicable.
+1. Integrate PPO / GDPO code bases for alternative training objectives where applicable.
 2. Strengthen prioritized experience replay in [trainer/decision/replay_buffer.py](trainer/decision/replay_buffer.py) for training performance.
-3. Add LoRA options to policy interface when training decision agent with parameter updates.
+3. Add LoRA options to the decision agent policy interface for parameter-efficient fine-tuning.
 
 ---
 
@@ -537,5 +636,5 @@ Unfinished or future work across the repo. See in-doc sections for details.
 | **Completion** | LLM completion-level function (distinct from r_follow) | **Open** |
 | **Completion** | Steps-left estimator (initial + final state; use RAG experience) | **Open** |
 | **Decision agent** | Reachable tasks / intention update; optional RAG for training-free | **Open** (partially done: get_state_summary, infer_intention, EpisodicMemoryStore) |
-| **Trainer** | PPO / GDPO / LoRA integration; stronger prioritized replay; LoRA in policy interface | **Open** |
+| **Trainer** | PPO / GDPO integration; stronger prioritized replay; LoRA in decision agent policy interface | **[Partial]** — Multi-LoRA for skill bank agent is done (4 adapters: boundary, segment, contract, retrieval); decision agent LoRA open |
 

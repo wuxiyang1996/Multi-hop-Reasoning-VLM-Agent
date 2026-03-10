@@ -110,6 +110,18 @@ def run_coevolution(
         diff_logger=diff_logger,
     )
 
+    lora_section = skillbank_cfg.get("lora")
+    if lora_section and lora_section.get("adapter_paths"):
+        try:
+            from skill_agents.lora import MultiLoraSkillBankLLM, MultiLoraConfig
+            lora_cfg = MultiLoraConfig.from_dict(lora_section)
+            lora_llm = MultiLoraSkillBankLLM(lora_cfg)
+            lora_llm.load()
+            MultiLoraSkillBankLLM.set_shared_instance(lora_llm)
+            logger.info("Multi-LoRA model initialized: %s", lora_llm.loaded_adapters)
+        except Exception as exc:
+            logger.warning("Multi-LoRA init failed (%s), EM stages will use API fallback", exc)
+
     seed_manager = SeedManager(
         base_seed=42,
         eval_seeds=eval_cfg.get("seeds", [42, 137, 256, 512]),

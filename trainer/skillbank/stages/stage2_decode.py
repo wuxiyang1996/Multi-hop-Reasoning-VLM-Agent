@@ -138,6 +138,34 @@ def decode_trajectory(
         scores.append((new_score, NEW_LABEL))
 
         scores.sort(key=lambda x: -x[0])
+
+        # Optional LLM-based re-ranking via RETRIEVAL adapter.
+        # Boosts scores of skills that the LLM ranks highly.
+        if skill_ids:
+            try:
+                from skill_agents.skill_bank.llm_retrieval import llm_retrieve_skills
+                descs = {}
+                for sid in skill_ids[:20]:
+                    c = bank.get_contract(sid)
+                    if c:
+                        add = sorted(getattr(c, "eff_add", set()) or set())
+                        descs[sid] = f"adds {add}" if add else sid
+                state_dict = {"B_start": sorted(B_start), "eff_needed": sorted(obs_eff_add)}
+                llm_ranking = llm_retrieve_skills(
+                    query=f"segment t={t_start}-{t_end}",
+                    current_state=state_dict,
+                    skill_descriptions=descs,
+                )
+                if llm_ranking:
+                    boost = 0.3
+                    score_dict = {sid: sc for sc, sid in scores}
+                    for rank, sid in enumerate(llm_ranking):
+                        if sid in score_dict:
+                            score_dict[sid] += boost / (rank + 1)
+                    scores = [(sc, sid) for sid, sc in score_dict.items()]
+                    scores.sort(key=lambda x: -x[0])
+            except Exception:
+                pass
         best_score, best_label = scores[0]
         runner_score, runner_label = scores[1] if len(scores) > 1 else (0.0, "")
         margin = best_score - runner_score

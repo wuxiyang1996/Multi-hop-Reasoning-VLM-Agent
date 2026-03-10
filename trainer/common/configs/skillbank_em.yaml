@@ -69,17 +69,16 @@ logging:
   use_wandb: false
   wandb_project: "game-ai-skillbank"
 
-# ── Multi-LoRA (optional) ───────────────────────────────────────────
-# When present, the skill bank agent uses a shared Qwen3-8B backbone
-# with function-specific LoRA adapters instead of API-based LLM calls.
-# Omit this section to keep using the API-based ask_model.
-# lora:
-#   base_model_name_or_path: "Qwen/Qwen3-8B"
-#   adapter_paths:
-#     boundary:  "runs/lora_adapters/boundary"
-#     segment:   "runs/lora_adapters/segment"
-#     contract:  "runs/lora_adapters/contract"
-#     retrieval: "runs/lora_adapters/retrieval"
-#   device: "auto"
-#   dtype: "bfloat16"
-#   allow_fallback_to_base_model: true
+# ── Multi-LoRA (Skill Bank in LoRA mode) ──────────────────────────────
+# Skill bank uses a shared Qwen3-8B backbone with function-specific
+# LoRA adapters. Paths are overridden at runtime by skillbank_agent_train.sh.
+lora:
+  base_model_name_or_path: "Qwen/Qwen3-8B"
+  adapter_paths:
+    boundary:  "runs/lora_adapters/boundary"
+    segment:   "runs/lora_adapters/segment"
+    contract:  "runs/lora_adapters/contract"
+    retrieval: "runs/lora_adapters/retrieval"
+  device: "auto"
+  dtype: "bfloat16"
+  allow_fallback_to_base_model: true

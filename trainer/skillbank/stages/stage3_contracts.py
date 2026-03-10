@@ -105,6 +105,35 @@ def learn_contracts(
         consensus_add = {p for p, c in add_counts.items() if c >= freq_threshold}
         consensus_del = {p for p, c in del_counts.items() if c >= freq_threshold}
 
+        # Enrich with LLM-based contract summarization when CONTRACT adapter
+        # is available.  LLM suggestions are merged (union) with the
+        # frequency-based consensus so they augment rather than replace.
+        try:
+            from skill_agents.stage3_mvp.llm_contract import llm_summarize_contract
+            seg_obs = [
+                str(getattr(seg, "B_start", set()))[:200] for seg in segments[:3]
+            ]
+            all_starts = set().union(*(seg.B_start for seg in segments if seg.B_start))
+            all_ends = set().union(*(seg.B_end for seg in segments if seg.B_end))
+            llm_result = llm_summarize_contract(
+                skill_id=skill_id,
+                segment_observations=seg_obs,
+                predicates_start=all_starts,
+                predicates_end=all_ends,
+                n_instances=n,
+            )
+            if llm_result:
+                llm_add = set(llm_result.get("eff_add", []))
+                llm_del = set(llm_result.get("eff_del", []))
+                if llm_add:
+                    consensus_add = consensus_add | llm_add
+                if llm_del:
+                    consensus_del = consensus_del | llm_del
+                logger.debug("CONTRACT adapter enriched skill %s: +%d add, +%d del",
+                             skill_id, len(llm_add), len(llm_del))
+        except Exception as exc:
+            logger.debug("CONTRACT adapter enrichment skipped for %s: %s", skill_id, exc)
+
         pass_count = 0
         verify_n = min(n, cfg.verification_sample_size)
         for seg in segments[:verify_n]:

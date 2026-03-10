@@ -233,6 +233,47 @@ def train(args: argparse.Namespace) -> None:
     logger.info("Wrote metadata to %s", meta_path)
 
 
+def train_lora_adapter(
+    base_model: str,
+    task: str,
+    data_path: str,
+    output_dir: str,
+    bank_path: str | None = None,
+    lora_rank: int = 16,
+    lora_alpha: int = 32,
+    lr: float = 2e-4,
+    num_epochs: int = 3,
+    batch_size: int = 4,
+    gradient_accumulation_steps: int = 4,
+    max_seq_length: int = 2048,
+) -> None:
+    """Programmatic entry point for skill-bank LoRA training.
+
+    Called by ``skillbank_agent_train.sh`` instead of going through the CLI.
+    """
+    args = argparse.Namespace(
+        skill_function=task,
+        data_path=data_path,
+        base_model=base_model,
+        output_dir=output_dir,
+        lora_r=lora_rank,
+        lora_alpha=lora_alpha,
+        lora_dropout=0.05,
+        target_modules=None,
+        lr=lr,
+        epochs=num_epochs,
+        batch_size=batch_size,
+        grad_accum=gradient_accumulation_steps,
+        max_seq_length=max_seq_length,
+        warmup_ratio=0.05,
+        logging_steps=10,
+        save_steps=200,
+        bf16=True,
+        eval_fraction=0.05,
+    )
+    train(args)
+
+
 def main():
     args = parse_args()
     train(args)
