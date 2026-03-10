@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-03-10T10:48:21.084021",
+  "source": "videogamebench_dos",
+  "model": "gpt-5-mini",
+  "episodes_per_game": 2,
+  "max_steps": 3,
+  "labeled": false,
+  "total_elapsed_seconds": 13.265350580215454,
+  "games": [
+    "doom2"
+  ],
+  "per_game_summaries": [
+    {
+      "game": "doom2",
+      "timestamp": "2026-03-10T10:48:21.083929",
+      "model": "gpt-5-mini",
+      "agent_type": "dummy",
+      "total_episodes": 2,
+      "target_episodes": 2,
+      "max_steps": 3,
+      "labeled": false,
+      "elapsed_seconds": 13.264971733093262,
+      "episode_stats": [
+        {
+          "game": "doom2",
+          "steps": 3,
+          "total_reward": 0.0,
+          "terminated": false,
+          "truncated": true,
+          "model": "gpt-5-mini",
+          "agent_type": "dummy",
+          "episode_index": 0
+        },
+        {
+          "game": "doom2",
+          "steps": 3,
+          "total_reward": 0.0,
+          "terminated": false,
+          "truncated": true,
+          "model": "gpt-5-mini",
+          "agent_type": "dummy",
+          "episode_index": 1
+        }
+      ],
+      "mean_reward": 0.0,
+      "mean_steps": 3.0
+    }
+  ]
+}

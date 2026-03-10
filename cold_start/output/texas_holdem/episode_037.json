@@ -1,0 +1,59 @@
+{
+  "episode_id": "cd8ae7d4-ff42-439d-9c96-67ad6506a6ac",
+  "env_name": "gamingagent",
+  "game_name": "texas_holdem",
+  "experiences": [
+    {
+      "state": "=== TEXAS HOLD'EM ===\n\nStreet: PRE-FLOP\nCurrent Player: player_1\nPot: $3\n\nCommunity Cards:\n  (none yet)\n\nYour Hand:\n  5 S 2 D\n\nPlayers (Pot Contributions):\n  player_0: $2 (waiting)\n  player_1: $1 (ACTING)\n\nAvailable Actions:\n  call | raise | fold\n",
+      "action": "call",
+      "reward": 0.0,
+      "next_state": "=== TEXAS HOLD'EM ===\n\nStreet: FLOP\nCurrent Player: player_1\nPot: $8\n\nCommunity Cards:\n  8 D 4 D 6 D\n\nYour Hand:\n  5 S 2 D\n\nPlayers (Pot Contributions):\n  player_0: $4 (waiting)\n  player_1: $4 (ACTING)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "done": false,
+      "intentions": null,
+      "tasks": "Win at Texas Hold'em poker by making optimal betting decisions.",
+      "sub_tasks": null,
+      "summary": null,
+      "summary_state": null,
+      "idx": 0
+    },
+    {
+      "state": "=== TEXAS HOLD'EM ===\n\nStreet: FLOP\nCurrent Player: player_1\nPot: $8\n\nCommunity Cards:\n  8 D 4 D 6 D\n\nYour Hand:\n  5 S 2 D\n\nPlayers (Pot Contributions):\n  player_0: $4 (waiting)\n  player_1: $4 (ACTING)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "action": "call",
+      "reward": 0.0,
+      "next_state": "=== TEXAS HOLD'EM ===\n\nStreet: TURN\nCurrent Player: player_1\nPot: $12\n\nCommunity Cards:\n  8 D 4 D 6 D 3 C\n\nYour Hand:\n  5 S 2 D\n\nPlayers (Pot Contributions):\n  player_0: $6 (waiting)\n  player_1: $6 (ACTING)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "done": false,
+      "intentions": null,
+      "tasks": "Win at Texas Hold'em poker by making optimal betting decisions.",
+      "sub_tasks": null,
+      "summary": null,
+      "summary_state": null,
+      "idx": 1
+    },
+    {
+      "state": "=== TEXAS HOLD'EM ===\n\nStreet: TURN\nCurrent Player: player_1\nPot: $12\n\nCommunity Cards:\n  8 D 4 D 6 D 3 C\n\nYour Hand:\n  5 S 2 D\n\nPlayers (Pot Contributions):\n  player_0: $6 (waiting)\n  player_1: $6 (ACTING)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "action": "call",
+      "reward": -1.0,
+      "next_state": "=== TEXAS HOLD'EM ===\n\nStreet: TURN\nCurrent Player: player_0\nPot: $12\n\nCommunity Cards:\n  8 D 4 D 6 D 3 C\n\nYour Hand:\n  Q D T H\n\nPlayers (Pot Contributions):\n  player_0: $6 (ACTING)\n  player_1: $6 (waiting)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "done": true,
+      "intentions": null,
+      "tasks": "Win at Texas Hold'em poker by making optimal betting decisions.",
+      "sub_tasks": null,
+      "summary": null,
+      "summary_state": null,
+      "idx": 2
+    }
+  ],
+  "task": "Win at Texas Hold'em poker by making optimal betting decisions.",
+  "outcome": true,
+  "summary": null,
+  "metadata": {
+    "game": "texas_holdem",
+    "steps": 3,
+    "total_reward": -1.0,
+    "terminated": true,
+    "truncated": true,
+    "model": "gpt-5-mini",
+    "agent_type": "dummy",
+    "episode_index": 37
+  }
+}

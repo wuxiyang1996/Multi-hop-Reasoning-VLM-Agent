@@ -1,0 +1,46 @@
+{
+  "episode_id": "b8bbfe37-76bc-49ce-9627-71363b9ff6d1",
+  "env_name": "gamingagent",
+  "game_name": "texas_holdem",
+  "experiences": [
+    {
+      "state": "=== TEXAS HOLD'EM ===\n\nStreet: PRE-FLOP\nCurrent Player: player_0\nPot: $3\n\nCommunity Cards:\n  (none yet)\n\nYour Hand:\n  J D 2 C\n\nPlayers (Pot Contributions):\n  player_0: $1 (ACTING)\n  player_1: $2 (waiting)\n\nAvailable Actions:\n  call | raise | fold\n",
+      "action": "call",
+      "reward": 0.0,
+      "next_state": "=== TEXAS HOLD'EM ===\n\nStreet: PRE-FLOP\nCurrent Player: player_1\nPot: $4\n\nCommunity Cards:\n  (none yet)\n\nYour Hand:\n  9 C T S\n\nPlayers (Pot Contributions):\n  player_0: $2 (waiting)\n  player_1: $2 (ACTING)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "done": false,
+      "intentions": null,
+      "tasks": "Win at Texas Hold'em poker by making optimal betting decisions.",
+      "sub_tasks": null,
+      "summary": null,
+      "summary_state": null,
+      "idx": 0
+    },
+    {
+      "state": "=== TEXAS HOLD'EM ===\n\nStreet: PRE-FLOP\nCurrent Player: player_1\nPot: $4\n\nCommunity Cards:\n  (none yet)\n\nYour Hand:\n  9 C T S\n\nPlayers (Pot Contributions):\n  player_0: $2 (waiting)\n  player_1: $2 (ACTING)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "action": "call",
+      "reward": -1.0,
+      "next_state": "=== TEXAS HOLD'EM ===\n\nStreet: FLOP\nCurrent Player: player_0\nPot: $4\n\nCommunity Cards:\n  K H 8 H 7 H\n\nYour Hand:\n  J D 2 C\n\nPlayers (Pot Contributions):\n  player_0: $2 (ACTING)\n  player_1: $2 (waiting)\n\nAvailable Actions:\n  raise | fold | check\n\nRecent Moves:\n  Last action: call",
+      "done": true,
+      "intentions": null,
+      "tasks": "Win at Texas Hold'em poker by making optimal betting decisions.",
+      "sub_tasks": null,
+      "summary": null,
+      "summary_state": null,
+      "idx": 1
+    }
+  ],
+  "task": "Win at Texas Hold'em poker by making optimal betting decisions.",
+  "outcome": true,
+  "summary": null,
+  "metadata": {
+    "game": "texas_holdem",
+    "steps": 2,
+    "total_reward": -1.0,
+    "terminated": true,
+    "truncated": true,
+    "model": "gpt-5-mini",
+    "agent_type": "dummy",
+    "episode_index": 20
+  }
+}

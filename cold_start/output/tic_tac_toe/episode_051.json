@@ -1,0 +1,46 @@
+{
+  "episode_id": "77130fcf-0afa-4cfe-9c50-84334d036c47",
+  "env_name": "gamingagent",
+  "game_name": "tic_tac_toe",
+  "experiences": [
+    {
+      "state": "Current Board:\n  0 1 2\n0 . . . \n1 . . . \n2 . . . \n\nLegend: X=Player 1, O=Player 2, .=Empty\n\nCurrent Player: player_1\nLegal Actions: place 0 (row 0, col 0), place 1 (row 0, col 1), place 2 (row 0, col 2), place 3 (row 1, col 0), place 4 (row 1, col 1), place 5 (row 1, col 2), place 6 (row 2, col 0), place 7 (row 2, col 1), place 8 (row 2, col 2)\nCHOOSING ANY OTHER ACTION WILL CAUSE IMMEDIATE GAME TERMINATION\n\nAction Format: Use 'place X' where X is the cell number (0-8)\nCell numbering: 0=top-left, 1=top-center, 2=top-right, 3=middle-left, etc.",
+      "action": "place 0",
+      "reward": 0.0,
+      "next_state": "Current Board:\n  0 1 2\n0 X . . \n1 . O . \n2 . . . \n\nLegend: X=Player 1, O=Player 2, .=Empty\n\nCurrent Player: player_1\nLegal Actions: place 1 (row 0, col 1), place 2 (row 0, col 2), place 3 (row 1, col 0), place 5 (row 1, col 2), place 6 (row 2, col 0), place 7 (row 2, col 1), place 8 (row 2, col 2)\nCHOOSING ANY OTHER ACTION WILL CAUSE IMMEDIATE GAME TERMINATION\n\nAction Format: Use 'place X' where X is the cell number (0-8)\nCell numbering: 0=top-left, 1=top-center, 2=top-right, 3=middle-left, etc.",
+      "done": false,
+      "intentions": null,
+      "tasks": "Win at Tic-Tac-Toe by placing marks to get three in a row.",
+      "sub_tasks": null,
+      "summary": null,
+      "summary_state": null,
+      "idx": 0
+    },
+    {
+      "state": "Current Board:\n  0 1 2\n0 X . . \n1 . O . \n2 . . . \n\nLegend: X=Player 1, O=Player 2, .=Empty\n\nCurrent Player: player_1\nLegal Actions: place 1 (row 0, col 1), place 2 (row 0, col 2), place 3 (row 1, col 0), place 5 (row 1, col 2), place 6 (row 2, col 0), place 7 (row 2, col 1), place 8 (row 2, col 2)\nCHOOSING ANY OTHER ACTION WILL CAUSE IMMEDIATE GAME TERMINATION\n\nAction Format: Use 'place X' where X is the cell number (0-8)\nCell numbering: 0=top-left, 1=top-center, 2=top-right, 3=middle-left, etc.",
+      "action": "place 0",
+      "reward": -1.0,
+      "next_state": "Current Board:\n  0 1 2\n0 X . . \n1 . O . \n2 . . . \n\nLegend: X=Player 1, O=Player 2, .=Empty\n\nCurrent Player: player_1\nLegal Actions: place 1 (row 0, col 1), place 2 (row 0, col 2), place 3 (row 1, col 0), place 5 (row 1, col 2), place 6 (row 2, col 0), place 7 (row 2, col 1), place 8 (row 2, col 2)\nCHOOSING ANY OTHER ACTION WILL CAUSE IMMEDIATE GAME TERMINATION\n\nAction Format: Use 'place X' where X is the cell number (0-8)\nCell numbering: 0=top-left, 1=top-center, 2=top-right, 3=middle-left, etc.",
+      "done": true,
+      "intentions": null,
+      "tasks": "Win at Tic-Tac-Toe by placing marks to get three in a row.",
+      "sub_tasks": null,
+      "summary": null,
+      "summary_state": null,
+      "idx": 1
+    }
+  ],
+  "task": "Win at Tic-Tac-Toe by placing marks to get three in a row.",
+  "outcome": true,
+  "summary": null,
+  "metadata": {
+    "game": "tic_tac_toe",
+    "steps": 2,
+    "total_reward": -1.0,
+    "terminated": true,
+    "truncated": true,
+    "model": "gpt-5-mini",
+    "agent_type": "dummy",
+    "episode_index": 51
+  }
+}

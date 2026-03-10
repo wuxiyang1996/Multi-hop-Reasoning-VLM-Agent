@@ -81,7 +81,7 @@ except ImportError:
     SokobanEnv = None
 
 try:
-    from gamingagent.envs.custom_03_candy_crush.candy_crush_env import CandyCrushEnv
+    from gamingagent.envs.custom_03_candy_crush.candyCrushEnv import CandyCrushEnv
 except ImportError:
     CandyCrushEnv = None
 
@@ -89,6 +89,41 @@ try:
     from gamingagent.envs.custom_04_tetris.tetrisEnv import TetrisEnv
 except ImportError:
     TetrisEnv = None
+
+try:
+    from gamingagent.envs.custom_05_doom.doomEnv import DoomEnvWrapper as DoomEnv
+except ImportError:
+    DoomEnv = None
+
+try:
+    from gamingagent.envs.custom_06_pokemon_red.pokemonRedEnv import PokemonRedEnv
+except ImportError:
+    PokemonRedEnv = None
+
+try:
+    from gamingagent.envs.retro_01_super_mario_bros.superMarioBrosEnv import SuperMarioBrosEnv
+except ImportError:
+    SuperMarioBrosEnv = None
+
+try:
+    from gamingagent.envs.retro_02_ace_attorney.aceAttorneyEnv import AceAttorneyEnv
+except ImportError:
+    AceAttorneyEnv = None
+
+try:
+    from gamingagent.envs.retro_03_1942.NineteenFortyTwo_env import NineteenFortyTwoEnv
+except ImportError:
+    NineteenFortyTwoEnv = None
+
+try:
+    from gamingagent.envs.zoo_01_tictactoe.TicTacToeEnv import SingleTicTacToeEnv
+except ImportError:
+    SingleTicTacToeEnv = None
+
+try:
+    from gamingagent.envs.zoo_02_texasholdem.TexasHoldemEnv import SingleTexasHoldemEnv
+except ImportError:
+    SingleTexasHoldemEnv = None
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +146,60 @@ GAME_REGISTRY: Dict[str, Dict[str, Any]] = {
         "config_path": _config_path("custom_02_sokoban"),
         "action_names": ["up", "down", "left", "right", "push up", "push down", "push left", "push right", "no_op"],
         "task": "Push all boxes onto goal positions in the Sokoban puzzle.",
+    },
+    "candy_crush": {
+        "env_class": CandyCrushEnv,
+        "config_path": _config_path("custom_03_candy_crush"),
+        "action_names": [],  # dynamic: swap(row1,col1,row2,col2) on 8x8 board
+        "task": "Match three or more candies in a row/column to clear the board and maximize score.",
+    },
+    "tetris": {
+        "env_class": TetrisEnv,
+        "config_path": _config_path("custom_04_tetris"),
+        "action_names": ["no_op", "left", "right", "rotate_left", "rotate_right", "soft_drop", "hard_drop"],
+        "task": "Clear as many lines as possible in Tetris by placing tetrominoes strategically.",
+    },
+    "doom": {
+        "env_class": DoomEnv,
+        "config_path": _config_path("custom_05_doom"),
+        "action_names": ["move_left", "move_right", "attack"],
+        "task": "Survive and defeat enemies in Doom by shooting and dodging.",
+    },
+    "pokemon_red": {
+        "env_class": PokemonRedEnv,
+        "config_path": _config_path("custom_06_pokemon_red"),
+        "action_names": ["a", "b", "start", "select", "up", "down", "left", "right"],
+        "task": "Progress through Pokemon Red by exploring, battling, and catching Pokemon.",
+    },
+    "super_mario_bros": {
+        "env_class": SuperMarioBrosEnv,
+        "config_path": _config_path("retro_01_super_mario_bros"),
+        "action_names": ["noop", "right", "right_a", "right_b", "right_a_b", "a", "b", "left", "left_a", "left_b", "left_a_b", "down", "up"],
+        "task": "Complete levels in Super Mario Bros by running, jumping, and avoiding enemies.",
+    },
+    "ace_attorney": {
+        "env_class": AceAttorneyEnv,
+        "config_path": _config_path("retro_02_ace_attorney"),
+        "action_names": ["a", "b", "l", "r", "up", "down", "left", "right", "no_op"],
+        "task": "Solve cases in Ace Attorney by investigating evidence and cross-examining witnesses.",
+    },
+    "nineteen_forty_two": {
+        "env_class": NineteenFortyTwoEnv,
+        "config_path": _config_path("retro_03_1942"),
+        "action_names": ["noop", "right", "right_b", "a", "b", "left", "left_b", "down", "up"],
+        "task": "Survive waves of enemy aircraft in 1942 by dodging and shooting.",
+    },
+    "tic_tac_toe": {
+        "env_class": SingleTicTacToeEnv,
+        "config_path": _config_path("zoo_01_tictactoe"),
+        "action_names": ["place 0", "place 1", "place 2", "place 3", "place 4", "place 5", "place 6", "place 7", "place 8"],
+        "task": "Win at Tic-Tac-Toe by placing marks to get three in a row.",
+    },
+    "texas_holdem": {
+        "env_class": SingleTexasHoldemEnv,
+        "config_path": _config_path("zoo_02_texasholdem"),
+        "action_names": ["call", "raise", "fold", "check"],
+        "task": "Win at Texas Hold'em poker by making optimal betting decisions.",
     },
 }
 
