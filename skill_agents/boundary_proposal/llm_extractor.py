@@ -39,6 +39,22 @@ from skill_agents.boundary_proposal.signal_extractors import SignalExtractorBase
 
 logger = logging.getLogger(__name__)
 
+
+def _make_boundary_ask_fn():
+    """Build an ask_model callable routed through the LoRA boundary adapter.
+
+    Returns None if the lora module is not configured, letting callers
+    fall back to the default API-based ``ask_model``.
+    """
+    try:
+        from skill_agents.lora import MultiLoraSkillBankLLM, SkillFunction
+        llm = MultiLoraSkillBankLLM.get_shared_instance()
+        if llm is not None:
+            return llm.as_ask_fn(SkillFunction.BOUNDARY)
+    except Exception:
+        pass
+    return None
+
 # ---------------------------------------------------------------------------
 # Prompt templates
 # ---------------------------------------------------------------------------
@@ -181,6 +197,9 @@ class LLMSignalExtractor(SignalExtractorBase):
     def _get_ask_model(self) -> Callable:
         if self._ask_model_fn is not None:
             return self._ask_model_fn
+        lora_fn = _make_boundary_ask_fn()
+        if lora_fn is not None:
+            return lora_fn
         from API_func import ask_model
         return ask_model
 

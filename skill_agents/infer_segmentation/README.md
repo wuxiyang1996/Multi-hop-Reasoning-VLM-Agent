@@ -72,13 +72,16 @@ The `PreferenceScorer` is trained from collected preferences:
 
 ## How the score is computed
 
-The decoder assigns one **segment score** per (segment, skill, prev_skill). That score is a weighted sum of four terms, computed in **`SegmentScorer`** (`scorer.py`):
+The decoder assigns one **segment score** per (segment, skill, prev_skill). That score is a weighted sum of five terms, computed in **`SegmentScorer`** (`scorer.py`):
 
 ```
-segment_score = w_bf * behavior_fit + w_dp * duration_prior + w_tp * transition_prior + w_cc * contract_compat
+segment_score = w_bf * behavior_fit + w_dp * duration_prior + w_tp * transition_prior
+              + w_cc * contract_compat + w_bq * boundary_quality
 ```
 
-Defaults: `ScorerWeights(behavior_fit=1.0, duration_prior=0.3, transition_prior=1.0, contract_compat=0.0)`.
+Defaults: `ScorerWeights(behavior_fit=1.0, duration_prior=0.3, transition_prior=1.0, contract_compat=0.0, boundary_quality=0.0)`.
+
+When contract feedback is enabled (via `ContractFeedbackConfig`), `w_cc` is set automatically: 0.3 for `"weak"`, 1.0 for `"strong"`. When a `BoundaryPreferenceScorer` is plugged in, `w_bq` controls its influence.
 
 ### 1. Behavior fit
 
@@ -118,15 +121,39 @@ So: short or very long segments get penalized unless the skill’s duration stat
 
 - **NEW_SKILL:** Handled in `SegmentScorer`, not in PreferenceScorer: if current skill is NEW_SKILL, return `-penalty` (e.g. -5.0); if prev_skill is NEW_SKILL, 0.0.
 
-### 4. Contract compatibility
+### 4. Contract compatibility (Stage 3 → Stage 2 closed loop)
 
 **How the score is obtained:**
 
 - **At decode time:** `SegmentScorer.contract_compat(skill, predicates_start, predicates_end)` is called. In code (`scorer.py`):
   - If `self._compat_fn` is **None** (the default), it **always returns 0.0**. So by default this term contributes **nothing** to the segment score.
-  - If you constructed `SegmentScorer(..., compat_fn=my_fn)`, then for each skill (except NEW_SKILL) it returns `my_fn(skill, predicates_start, predicates_end)`. So the score is **whatever your function returns** (e.g. a bonus when the skill’s “contract” matches the state change from start to end predicates).
+  - If you constructed `SegmentScorer(..., compat_fn=my_fn)`, then for each skill (except NEW_SKILL) it returns `my_fn(skill, predicates_start, predicates_end)`.
 
-- **Where it’s used:** The decoders pass `predicates_start` and `predicates_end` (from the episode’s per-timestep predicates at segment start/end) into `score_breakdown`; those same values are passed into `contract_compat`. So if you add a custom `compat_fn`, it can use that state to add a bonus/penalty. In the **current pipeline** no `compat_fn` is set, so contract compatibility is always 0 and “where it’s used” is simply: **in the weighted sum, with weight `contract_compat` (default 0.0)**. The design leaves room for a future contract term; for now, state consistency is folded into the LLM’s segment ranking and thus into the learned behavior_fit.
+- **Closed loop via `SkillBankMVP.compat_fn`:** When `contract_feedback_mode` is `"weak"` or `"strong"` in `PipelineConfig`, the pipeline passes `bank.compat_fn` to the `SegmentScorer`. This creates a Stage 3 → Stage 2 feedback loop:
+  1. Stage 3 learns effects contracts from segments.
+  2. Next iteration, Stage 2 uses those contracts as a soft bias: skills whose contracts match the observed predicate changes get a bonus; skills with missing or contradictory effects are penalized.
+  3. This guides segmentation toward assigning skills where their contracts are a good fit.
+
+- **`ContractFeedbackConfig`** (in `config.py`) controls the loop:
+
+  | Field | Default | Meaning |
+  |-------|---------|---------|
+  | `mode` | `"off"` | `"off"` = no feedback; `"weak"` = soft bias (weight 0.3); `"strong"` = dominant (weight 1.0) |
+  | `strength` | `0.3` | Manual weight override (used when mode is set) |
+  | `p_thresh` | `0.5` | Predicate probability threshold for binary effect evaluation |
+  | `missing_penalty` | `-0.5` | Score penalty when contract expects an effect not in predicates |
+  | `contradiction_penalty` | `-1.0` | Score penalty when observed change contradicts the contract |
+
+### 5. Boundary quality
+
+**How the score is obtained:**
+
+- **At decode time:** `SegmentScorer.boundary_quality(seg_start, seg_end)` is called. If a `BoundaryPreferenceScorer` is plugged in, it returns the scorer's `decoding_bonus(seg_start, seg_end)` which considers:
+  - **Signal strength:** How many Stage 1 signals support the boundary (predicate flip, reward spike, done flag, etc.)
+  - **Predicate discontinuity:** How much the predicate state changes at the boundary
+  - **Learned preference:** Pairwise preference data from human or LLM feedback on boundary quality
+- If no boundary scorer is set, returns 0.0.
+- Controlled by `ScorerWeights.boundary_quality` (default 0.0).
 
 ### Where it’s used
 
@@ -241,7 +268,7 @@ The `diagnostics` module (`diagnostics.py`) holds everything the decoders return
 
 ### What gets recorded
 
-- **Per segment:** top-K skill candidates with total score and per-term breakdown (behavior_fit, duration_prior, transition_prior, contract_compat).
+- **Per segment:** top-K skill candidates with total score and per-term breakdown (behavior_fit, duration_prior, transition_prior, contract_compat, boundary_quality).
 - **Margin** = score(rank-1) − score(rank-2). Small margin → decoder is uncertain which skill fits.
 - **Per boundary (optional):** score if we cut there vs not, so you can see boundary confidence.
 
@@ -255,7 +282,7 @@ Uncertain segments (low margin) are the best targets for asking the LLM for more
 |-------|--------|
 | `skill` | Skill name (e.g. `"move"`, `"attack"`, or `NEW_SKILL`) |
 | `total_score` | Weighted sum of the four score terms for this (segment, skill) pair |
-| `breakdown` | Dict of per-term scores, e.g. `{"behavior_fit": 2.1, "duration_prior": -0.3, "transition_prior": 0.5, "contract_compat": 0.0}` |
+| `breakdown` | Dict of per-term scores, e.g. `{"behavior_fit": 2.1, "duration_prior": -0.3, "transition_prior": 0.5, "contract_compat": 0.0, "boundary_quality": 0.0}` |
 
 The decoder keeps the top-K candidates per segment (K from `DecoderConfig.top_k_diagnostics`). The first candidate is the chosen skill; the rest explain why the segment was or wasn’t assigned something else.
 
@@ -375,7 +402,8 @@ This section is a quick reference for what each file and its main components do.
 
 | Class / field | Purpose |
 |---------------|--------|
-| **ScorerWeights** | Weights for the four score terms: `behavior_fit`, `duration_prior`, `transition_prior`, `contract_compat`. |
+| **ScorerWeights** | Weights for the five score terms: `behavior_fit`, `duration_prior`, `transition_prior`, `contract_compat`, `boundary_quality`. |
+| **ContractFeedbackConfig** | Stage 3 → Stage 2 closed-loop control: `mode` (`"off"`/`"weak"`/`"strong"`), `strength`, `p_thresh`, penalty values. |
 | **DurationPriorConfig** | Gaussian duration prior: `default_mean`, `default_std`, `min_length`, `max_length`. |
 | **NewSkillConfig** | Special `__NEW__` skill: `enabled`, `penalty`, `background_log_prob`. |
 | **LLMTeacherConfig** | LLM calls: `model`, `temperature`, `max_tokens`, `max_workers`, `max_concurrent_llm_calls` (set to 1 for local GPU to avoid OOM). |
@@ -389,8 +417,8 @@ Defines how each segment–skill pair is scored (weighted sum of four terms).
 
 | Function / class | Purpose |
 |------------------|--------|
-| **SegmentScorer** | Composite scorer: behavior_fit + duration_prior + transition_prior + contract_compat. Accepts pluggable `behavior_fit_fn` and `transition_fn` (e.g. from PreferenceScorer). |
-| **behavior_fit**, **duration_prior**, **transition_prior**, **contract_compat** | The four terms; behavior_fit and transition_prior usually come from PreferenceScorer. |
+| **SegmentScorer** | Composite scorer: behavior_fit + duration_prior + transition_prior + contract_compat + boundary_quality. Accepts pluggable `behavior_fit_fn`, `transition_fn`, `compat_fn`, and `boundary_scorer`. |
+| **behavior_fit**, **duration_prior**, **transition_prior**, **contract_compat**, **boundary_quality** | The five terms; behavior_fit and transition_prior from PreferenceScorer; contract_compat from `SkillBankMVP.compat_fn`; boundary_quality from `BoundaryPreferenceScorer`. |
 | **score**, **score_breakdown** | Full segment score and per-term breakdown (for diagnostics). |
 | **NEW_SKILL** | Sentinel for “none of the known skills”; gets a penalty. |
 
@@ -463,6 +491,8 @@ Runs the pipeline without the LLM: simulated rankings → preferences → train 
 ### Main concepts
 
 - **Preference, not score:** The LLM only outputs rankings (or A/B choices); all numeric scores come from the trained PreferenceScorer.
-- **Segment score** = behavior_fit + duration_prior + transition_prior + contract_compat (weights in ScorerWeights).
+- **Segment score** = behavior_fit + duration_prior + transition_prior + contract_compat + boundary_quality (weights in ScorerWeights).
+- **Closed loop:** When contract feedback is enabled, Stage 3 contracts bias Stage 2 segmentation via `compat_fn` (see §4 above).
+- **Boundary quality:** When a `BoundaryPreferenceScorer` is plugged in, segment boundaries are scored for plausibility (see §5 above).
 - **Uncertainty** = low margin between top-two skills on a segment; those segments are used for active learning.
 - **Decoding** is either exact (Viterbi DP) or approximate (beam) over the same candidate boundaries and the same SegmentScorer interface.

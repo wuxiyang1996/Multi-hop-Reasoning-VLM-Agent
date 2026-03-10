@@ -25,6 +25,7 @@ No preconditions, invariants, SPLIT, or MATERIALIZE_NEW. Used by the main pipeli
 
 - **Input:** Segment list (e.g. from [infer_segmentation](../infer_segmentation/README.md)); use `specs_from_segmentation_result()` to convert.
 - **Output:** [SkillBankMVP](../skill_bank/README.md) with `SkillEffectsContract` and `VerificationReport` per skill.
+- **Closed loop → Stage 2:** Learned contracts feed back into Stage 2 via `SkillBankMVP.compat_fn`. When `contract_feedback_mode` is `"weak"` or `"strong"`, the Stage 2 `SegmentScorer` uses contract compatibility as a soft bias to guide skill assignment toward skills whose effects match observed predicate changes. See [infer_segmentation/README.md](../infer_segmentation/README.md) §4 for details.
 
 ## High-level API
 

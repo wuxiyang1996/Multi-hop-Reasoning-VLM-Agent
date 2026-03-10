@@ -294,6 +294,67 @@ Passed via `extractor_kwargs` in `segment_episode()` etc:
 
 ---
 
+## Boundary Preference Learning
+
+The `BoundaryPreferenceScorer` provides lightweight plausibility evaluation for candidate cut points. It can be used in two ways:
+
+1. **Stage 1 filtering:** Remove low-quality candidates before decoding.
+2. **Stage 2 scoring term:** Add a `boundary_quality` bonus/penalty in the `SegmentScorer`.
+
+### How it works
+
+The scorer combines three signals for each candidate timestep:
+
+| Signal | Source | Description |
+|--------|--------|-------------|
+| **Signal strength** | Stage 1 candidates | How many distinct signals support the boundary (predicate flip, reward spike, done flag, change-point, surprisal) |
+| **Predicate discontinuity** | Predicate data | Fraction of predicates that change value at the boundary |
+| **Learned preference** | Pairwise feedback | Bradley-Terry score from human or LLM pairwise preferences on boundary quality |
+
+The composite plausibility score is a weighted combination of these three signals.
+
+### Usage
+
+```python
+from skill_agents.boundary_proposal import BoundaryPreferenceScorer, BoundaryPreferenceConfig
+
+scorer = BoundaryPreferenceScorer(config=BoundaryPreferenceConfig(
+    signal_strength_weight=1.0,
+    predicate_weight=1.0,
+    learned_weight=0.5,
+    min_plausibility=0.2,
+))
+
+# Register Stage 1 candidates and predicate data
+scorer.set_candidates(candidates)
+scorer.set_predicates(predicates)
+
+# Optional: add pairwise preferences (from LLM or human)
+scorer.add_preference(t_win=42, t_lose=38)
+
+# Filter candidates (Stage 1 integration)
+filtered = scorer.filter_candidates(candidates, top_frac=0.8)
+
+# Score a segment's boundaries (Stage 2 integration)
+bonus = scorer.decoding_bonus(seg_start=10, seg_end=25)
+```
+
+### Configuration
+
+```python
+from skill_agents.boundary_proposal import BoundaryPreferenceConfig
+
+config = BoundaryPreferenceConfig(
+    signal_strength_weight=1.0,   # Weight for number of supporting signals
+    predicate_weight=1.0,         # Weight for predicate discontinuity
+    learned_weight=0.5,           # Weight for learned preference (Bradley-Terry)
+    learning_rate=0.1,            # LR for preference learning
+    min_plausibility=0.2,         # Floor for filter_candidates
+)
+```
+
+---
+
 ## Module layout
 
 ```
@@ -305,13 +366,14 @@ skill_agents/boundary_proposal/
 ├── signal_extractors.py   # Factory + rule-based extractors + HybridSignalExtractor
 ├── llm_extractor.py       # LLM-based predicate extraction (batched, JSON output)
 ├── episode_adapter.py     # Episode → signals → candidates → SubTask_Experience
+├── boundary_preference.py # BoundaryPreferenceScorer: plausibility scoring for cut points
 ├── example_toy.py         # Standalone toy example (no LLM needed)
 └── requirements.txt       # numpy
 ```
 
 ### Key functions
 
-| Function | Module | Purpose |
+| Function / Class | Module | Purpose |
 |---|---|---|
 | `segment_episode()` | `episode_adapter` | Full pipeline: Episode → SubTask_Experience list |
 | `propose_from_episode()` | `episode_adapter` | Episode → BoundaryCandidate list |
@@ -320,6 +382,8 @@ skill_agents/boundary_proposal/
 | `propose_boundary_candidates()` | `proposal` | Raw arrays → BoundaryCandidate list |
 | `compute_changepoint_scores()` | `changepoint` | Embeddings → change-point score array |
 | `get_signal_extractor()` | `signal_extractors` | Factory: rule-based / LLM / hybrid |
+| `BoundaryPreferenceScorer` | `boundary_preference` | Plausibility scoring for cut points (signal strength + predicate discontinuity + learned preference) |
+| `BoundaryPreferenceConfig` | `boundary_preference` | Configuration for boundary preference scoring |
 
 ---
 

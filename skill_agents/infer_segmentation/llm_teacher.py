@@ -34,7 +34,18 @@ if str(_repo_root) not in sys.path:
 
 
 def _get_ask_model():
-    """Lazy import to avoid pulling in API dependencies at module load."""
+    """Lazy import to avoid pulling in API dependencies at module load.
+
+    Prefers the LoRA segment adapter when available, otherwise falls back
+    to the API-based ``ask_model``.
+    """
+    try:
+        from skill_agents.lora import MultiLoraSkillBankLLM, SkillFunction
+        llm = MultiLoraSkillBankLLM.get_shared_instance()
+        if llm is not None:
+            return llm.as_ask_fn(SkillFunction.SEGMENT)
+    except Exception:
+        pass
     from API_func import ask_model
     return ask_model
 
