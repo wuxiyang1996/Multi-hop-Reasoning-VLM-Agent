@@ -26,7 +26,7 @@ This repository provides a framework for enhancing agentic decision-making in mu
 
 - **🎮 Decision Agent** — [decision_agents/](decision_agents/): VLM step-by-step play with a **two-turn micro-loop** per timestep: `take_action` (primitives or `QUERY_MEM` / `QUERY_SKILL` / `CALL_SKILL`) → `reward`. Uses a skill bank (from skill_agents) for retrieval; `QUERY_SKILL(key)` returns a micro_plan and contract.
   - **Core**: [agent.py](decision_agents/agent.py) — `VLMDecisionAgent`, `run_tool()`, `run_episode_vlm_agent()`; [dummy_agent.py](decision_agents/dummy_agent.py) — game detection, action extraction.
-  - **Helpers**: [agent_helper.py](decision_agents/agent_helper.py) — `get_state_summary()`, `infer_intention()`, `EpisodicMemoryStore` (RAG-backed memory), `skill_bank_to_text()`, `query_skill_bank()`.
+  - **Helpers**: [agent_helper.py](decision_agents/agent_helper.py) — `get_state_summary()`, `compact_structured_state()`, `compact_text_observation()`, `infer_intention()`, `EpisodicMemoryStore` (RAG-backed memory), `skill_bank_to_text()`, `query_skill_bank()`.
   - **Reward**: [reward_func.py](decision_agents/reward_func.py) — `RewardConfig`, `RewardComputer`; **r_total** = r_env + w_follow×r_follow + r_cost (query_mem_cost, query_skill_cost, call_skill_cost, skill_switch_cost).
   - **Tools**: `take_action`, `reward`, `get_state_summary`, `get_intention`, `query_skill`, `query_memory`. See [decision_agents/README.md](decision_agents/README.md).
 
@@ -310,7 +310,7 @@ The **VLM Decision Agent** plays games using a **two-turn micro-loop** per times
 |------|--------|
 | **take_action** | Execute one action: either a **primitive** (move, interact, etc.) or a **retrieval action** — `QUERY_MEM(key)`, `QUERY_SKILL(key)`, `CALL_SKILL(skill_id, params)`. |
 | **reward** | Compute reward for the last transition (r_env, r_follow, r_cost, r_total). Call once right after take_action. |
-| **get_state_summary** | Optional: concise text summary of the observation (LLM-based for long observations). |
+| **get_state_summary** | Optional: compact `key=value` state summary (≤ 400 chars). Prefers wrapper-produced structured dict; deterministic compression by default, optional LLM fallback. |
 | **get_intention** | Optional: short phrase for current subgoal; uses last_actions, progress_notes, task. |
 | **query_skill** | Used when take_action is QUERY_SKILL: retrieve procedures from the skill bank by key. |
 | **query_memory** | Used when take_action is QUERY_MEM: retrieve similar past experiences (EpisodicMemoryStore). |
@@ -333,9 +333,10 @@ Defaults: `RewardConfig(w_follow=0.1, query_mem_cost=-0.05, query_skill_cost=-0.
 
 ### Helpers and integration
 
-- **get_state_summary(observation, game, model)** — text summary for long observations.
+- **get_state_summary(observation, structured_state, *, max_chars, ...)** — compact `key=value` state summary (≤ 400 chars). Prefers structured dict from env wrapper; falls back to deterministic text compression. See [decision_agents/README.md](decision_agents/README.md).
+- **compact_structured_state(dict, max_chars)**, **compact_text_observation(obs, max_chars)** — low-level compressors.
 - **infer_intention(summary, game, model, context)** — subgoal phrase.
-- **EpisodicMemoryStore** — keyword-overlap memory; **add_experience()**, **query(key, k)**.
+- **EpisodicMemoryStore** — RAG-backed memory; **add_experience()**, **query(key, k)**.
 - **skill_bank_to_text(bank)**, **query_skill_bank(bank, key, top_k)** — used in prompts and by run_tool(TOOL_QUERY_SKILL).
 - The agent's **skill_bank** can be a **SkillBankMVP** or a **SkillBankAgent**; **run_episode_vlm_agent(env, agent=..., max_steps=...)** runs the full two-turn loop and returns observations, actions, rewards, reward_details, done, steps, cumulative_reward.
 

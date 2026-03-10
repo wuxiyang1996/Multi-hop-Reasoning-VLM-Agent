@@ -20,9 +20,113 @@ Usage:
     obs, reward, term, trunc, info = env.step("push up")
 """
 
+import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
+
+# ---------------------------------------------------------------------------
+# Compact structured state summary (for agent context / retrieval)
+# ---------------------------------------------------------------------------
+
+# Lightweight game-type detectors applied to observation text
+_GAME_HINTS = [
+    (re.compile(r"sokoban|box|wall|goal|push", re.I), "sokoban"),
+    (re.compile(r"maze|corridor|exit", re.I), "maze"),
+    (re.compile(r"tetris|block|rotate|drop", re.I), "tetris"),
+    (re.compile(r"grid|tile|cell", re.I), "grid_game"),
+]
+
+
+def _detect_game_hint(text: str) -> str:
+    """Return a short game name hint from observation text."""
+    for pat, name in _GAME_HINTS:
+        if pat.search(text):
+            return name
+    return "text_game"
+
+
+def _extract_clauses(text: str, limit: int = 6) -> List[str]:
+    """Split *text* into short informative clauses (up to *limit*)."""
+    clauses = re.split(r"[.\n|]+", text)
+    clauses = [c.strip() for c in clauses if c.strip() and len(c.strip()) > 2]
+    clauses = [c for c in clauses if not re.match(r"^[-=]{3,}", c)]
+    return clauses[:limit]
+
+
+def build_structured_state_summary(
+    obs: Union[Dict[str, Any], str],
+    step: int = 0,
+    action_names: Optional[List[str]] = None,
+    last_reward: Optional[float] = None,
+) -> dict:
+    """Build a compact structured dict for a GamingAgent observation.
+
+    Designed to be fed into ``compact_structured_state()`` from
+    ``decision_agents.agent_helper``.
+
+    Returns:
+        Dict with short key=value-friendly fields.  Example::
+
+            {"game": "sokoban", "step": 14, "objective": "push_box",
+             "self": "near:box", "critical": "goal:right",
+             "progress": "box_on_goal:2/4"}
+    """
+    if isinstance(obs, str):
+        raw_text = obs
+    elif isinstance(obs, dict):
+        raw_text = str(obs.get("text") or obs.get("textual_representation", ""))
+    else:
+        raw_text = str(obs)
+
+    game_hint = _detect_game_hint(raw_text)
+    clauses = _extract_clauses(raw_text)
+
+    summary: dict = {"game": game_hint, "step": step}
+
+    # Pull the most informative clauses into semantic slots
+    objective_clause = ""
+    self_clause = ""
+    critical_clause = ""
+    progress_clause = ""
+
+    for c in clauses:
+        cl = c.lower()
+        if not objective_clause and any(
+            w in cl for w in ("goal", "objective", "task", "target", "deliver", "push")
+        ):
+            objective_clause = c[:60]
+        elif not self_clause and any(
+            w in cl for w in ("you", "player", "agent", "position", "at (")
+        ):
+            self_clause = c[:60]
+        elif not critical_clause and any(
+            w in cl for w in ("enemy", "hazard", "obstacle", "pot", "box", "wall", "door", "key")
+        ):
+            critical_clause = c[:60]
+        elif not progress_clause and any(
+            w in cl for w in ("score", "progress", "step", "remaining", "left", "complete")
+        ):
+            progress_clause = c[:60]
+
+    if not self_clause and clauses:
+        self_clause = clauses[0][:60]
+
+    if self_clause:
+        summary["self"] = self_clause
+    if objective_clause:
+        summary["objective"] = objective_clause
+    if critical_clause:
+        summary["critical"] = critical_clause
+    if progress_clause:
+        summary["progress"] = progress_clause
+    if last_reward is not None:
+        summary["reward"] = str(last_reward)
+    if action_names:
+        summary["affordance"] = ",".join(action_names[:8])
+
+    return summary
 
 
 def state_to_natural_language(obs: Union[Dict[str, Any], str]) -> str:
@@ -89,10 +193,14 @@ class GamingAgentNLWrapper:
     ) -> Tuple[str, Dict[str, Any]]:
         obs, info = self._env.reset(seed=seed, options=options)
         self._step_count = 0
+        self._last_reward: Optional[float] = None
         self._action_names = info.get("action_names", getattr(self._env, "action_names", []))
         nl = self._obs_to_nl(obs, info)
         info["state_natural_language"] = nl
         info["action_names"] = self._action_names
+        info["structured_state"] = build_structured_state_summary(
+            obs, step=0, action_names=self._action_names,
+        )
         return nl, info
 
     def step(
@@ -101,10 +209,17 @@ class GamingAgentNLWrapper:
     ) -> Tuple[str, float, bool, bool, Dict[str, Any]]:
         obs, reward, terminated, truncated, info = self._env.step(action)
         self._step_count += 1
+        self._last_reward = float(reward)
         nl = self._obs_to_nl(obs, info)
         info["state_natural_language"] = nl
         info["action_names"] = self._action_names
         info["step"] = self._step_count
+        info["structured_state"] = build_structured_state_summary(
+            obs,
+            step=self._step_count,
+            action_names=self._action_names,
+            last_reward=self._last_reward,
+        )
         return nl, float(reward), bool(terminated), bool(truncated), info
 
     def close(self) -> None:

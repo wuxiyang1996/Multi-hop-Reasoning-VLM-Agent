@@ -21,6 +21,7 @@ from .agent_helper import (
     skill_bank_to_text,
     query_skill_bank,
     EpisodicMemoryStore,
+    HARD_SUMMARY_CHAR_LIMIT,
 )
 from .reward_func import RewardComputer, RewardConfig, RewardResult
 
@@ -293,7 +294,7 @@ class VLMDecisionAgent:
         s.steps_since_retrieval += 1
 
         if tool_name == TOOL_GET_STATE_SUMMARY:
-            s.last_state_summary = str(tool_result)[:1000]
+            s.last_state_summary = str(tool_result)[:HARD_SUMMARY_CHAR_LIMIT]
 
         elif tool_name == TOOL_GET_INTENTION:
             s.current_intention = str(tool_result)[:200] if tool_result else ""
@@ -367,7 +368,13 @@ def run_tool(
         return action
 
     if tool_name == TOOL_GET_STATE_SUMMARY:
-        return helper_get_state_summary(observation, game=game, model=agent.model)
+        structured = info.get("structured_state") if info else None
+        return helper_get_state_summary(
+            observation,
+            structured_state=structured,
+            game=game,
+            model=agent.model,
+        )
 
     if tool_name == TOOL_GET_INTENTION:
         summary = agent.state.last_state_summary or observation
@@ -470,7 +477,7 @@ def run_episode_vlm_agent(
             last_tool_name = tool_name
             last_tool_result = result
             if tool_name == TOOL_GET_STATE_SUMMARY:
-                agent.state.last_state_summary = str(result)[:1000]
+                agent.state.last_state_summary = str(result)[:HARD_SUMMARY_CHAR_LIMIT]
             # Re-query agent for the actual action after the non-action tool.
             out = agent.step(observation, info, last_tool_name, last_tool_result)
             tool_name = out.get("tool", TOOL_TAKE_ACTION)

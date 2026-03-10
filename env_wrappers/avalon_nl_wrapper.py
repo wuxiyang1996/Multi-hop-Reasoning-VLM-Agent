@@ -49,6 +49,71 @@ _ROLE_SIDE = {
 }
 
 # ---------------------------------------------------------------------------
+# Compact structured state summary (for agent context / retrieval)
+# ---------------------------------------------------------------------------
+
+_PHASE_SHORT = {0: "team_select", 1: "team_vote", 2: "quest_vote", 3: "assassination"}
+
+_OBJECTIVE_BY_PHASE = {
+    0: "propose_team",
+    1: "approve_or_reject_team",
+    2: "pass_or_fail_quest",
+    3: "choose_assassination_target",
+}
+
+
+def build_structured_state_summary(
+    env: "AvalonGameEnvironment",
+    roles: list,
+    player_id: int,
+) -> dict:
+    """Build a compact structured dict for the Avalon game state.
+
+    Designed to be fed into ``compact_structured_state()`` from
+    ``decision_agents.agent_helper``.
+
+    Returns:
+        Dict with short key=value-friendly fields.  Example::
+
+            {"game": "avalon", "phase": "team_vote",
+             "self": "role:Percival", "progress": "quest:1/5 fail:0",
+             "critical": "leader:p3 team:3",
+             "objective": "approve_or_reject_team"}
+    """
+    phase_id = env.phase
+    phase_short = _PHASE_SHORT.get(phase_id, f"p{phase_id}")
+
+    role_id, role_name, is_good = roles[player_id]
+    side = "G" if is_good else "E"
+
+    quest_done = len(env.quest_results)
+    good_wins = sum(env.quest_results) if env.quest_results else 0
+    evil_wins = quest_done - good_wins
+
+    leader = env.quest_leader
+    team_size = (
+        env.num_players_for_quest[env.turn]
+        if env.turn < len(env.num_players_for_quest)
+        else 0
+    )
+
+    summary: dict = {
+        "game": "avalon",
+        "phase": phase_short,
+        "self": f"role:{role_name}({side})",
+        "progress": f"quest:{quest_done}/5 good:{good_wins} evil:{evil_wins}",
+        "critical": f"leader:p{leader} team_sz:{team_size} rd:{env.round + 1}/5",
+        "objective": _OBJECTIVE_BY_PHASE.get(phase_id, ""),
+    }
+
+    # Add quest team if visible
+    if env.quest_team:
+        summary["critical"] += f" team:{list(env.quest_team)}"
+
+    return summary
+
+
+# ---------------------------------------------------------------------------
 # NL -> action parsers
 # ---------------------------------------------------------------------------
 _APPROVE_WORDS = {"approve", "yes", "accept", "aye", "agree", "yea", "pass", "support", "1"}
@@ -547,6 +612,13 @@ class AvalonNLWrapper:
         if self.env is None:
             return {}
         phase_id = self.env.phase
+
+        # Structured summary for the primary player (controlled or player 0)
+        primary_pid = self._controlled_player if self._controlled_player is not None else 0
+        structured = build_structured_state_summary(
+            self.env, self.roles, player_id=primary_pid,
+        )
+
         return {
             "phase": phase_id,
             "phase_name": _PHASE_NAMES.get(phase_id, f"Phase {phase_id}"),
@@ -571,6 +643,7 @@ class AvalonNLWrapper:
             "last_vote_result": self._last_vote_result,
             "active_players": self._get_active_players(),
             "expected_action": self._get_expected_action_description(),
+            "structured_state": structured,
         }
 
     def _get_active_players(self) -> List[int]:

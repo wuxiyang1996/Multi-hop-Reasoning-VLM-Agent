@@ -1,9 +1,15 @@
 # This file defines helper functions for the VLM decision agent: state summarization,
 # intention inference, episodic memory store, and skill-bank formatting.
+#
+# The state-summary pipeline produces compact key=value summaries optimised for
+# LLM/VLM context windows, retrieval, skill-bank indexing, and trajectory
+# segmentation.  Summaries are *not* human-readable paragraphs — they are short
+# structured abstractions of the current game state.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+import re
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 try:
     from API_func import ask_model
@@ -12,33 +18,285 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# State summary
+# Summary budget constants
+# ---------------------------------------------------------------------------
+
+DEFAULT_SUMMARY_CHAR_BUDGET: int = 400
+"""Default budget for state summaries (characters).  Prefer ~220-380 when
+possible; treat 400 as the hard cap, not a target to fill."""
+
+HARD_SUMMARY_CHAR_LIMIT: int = 400
+"""Absolute upper bound.  No summary should exceed this."""
+
+
+# ---------------------------------------------------------------------------
+# Boilerplate patterns to strip from raw observations
+# ---------------------------------------------------------------------------
+
+_BOILERPLATE_RE = re.compile(
+    r"(?i)"
+    r"(choose one action[^\n]*"
+    r"|valid actions?[^\n]*"
+    r"|possible actions?[^\n]*"
+    r"|examples?[:\s][^\n]*"
+    r"|respond with[^\n]*"
+    r"|reply with[^\n]*"
+    r"|submit your orders[^\n]*"
+    r"|output format[^\n]*"
+    r"|order format[^\n]*"
+    r"|--- order format ---[^\n]*"
+    r"|  hold:[^\n]*"
+    r"|  move:[^\n]*"
+    r"|  support hold:[^\n]*"
+    r"|  support move:[^\n]*"
+    r"|  convoy:[^\n]*"
+    r"|  retreat:[^\n]*"
+    r"|  disband:[^\n]*"
+    r"|  build:[^\n]*"
+    r"|example:?\s*\[?\"[A-Z]\s[A-Z]{3}[^\n]*"
+    r")"
+)
+
+# Keys to prioritise when compressing a structured state dict
+_PRIORITY_KEYS = (
+    "game", "phase", "subgoal", "objective", "self", "ally", "enemy",
+    "critical", "resources", "orders", "inventory", "progress",
+    "time_left", "affordance", "delta", "valid_actions",
+)
+
+
+# ---------------------------------------------------------------------------
+# Low-level helpers
+# ---------------------------------------------------------------------------
+
+def _safe_str(x: Any) -> str:
+    """Coerce *x* to a short string suitable for a summary slot."""
+    if x is None:
+        return ""
+    if isinstance(x, str):
+        return x.strip()
+    if isinstance(x, (list, tuple)):
+        if len(x) == 0:
+            return ""
+        items = [_safe_str(i) for i in x[:6]]
+        out = ",".join(items)
+        if len(x) > 6:
+            out += f"..+{len(x) - 6}"
+        return out
+    if isinstance(x, dict):
+        parts = [f"{k}:{_safe_str(v)}" for k, v in list(x.items())[:4]]
+        return "{" + ",".join(parts) + "}"
+    return str(x).strip()
+
+
+def _remove_boilerplate(obs: str) -> str:
+    """Strip action-formatting instructions and boilerplate from *obs*."""
+    cleaned = _BOILERPLATE_RE.sub("", obs)
+    # collapse blank lines
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
+def _truncate_keep_important(text: str, max_chars: int) -> str:
+    """Truncate *text* to *max_chars* keeping the most information-dense prefix.
+
+    Prefers cutting at a sentence / clause boundary when possible.
+    """
+    if len(text) <= max_chars:
+        return text
+    cut = text[:max_chars]
+    # try to cut at last sentence-end
+    for sep in (". ", "| ", "; ", ", ", " "):
+        pos = cut.rfind(sep)
+        if pos > max_chars // 2:
+            return cut[:pos + len(sep)].rstrip()
+    return cut.rstrip()
+
+
+def _join_kv(parts: List[Tuple[str, str]], max_chars: int) -> str:
+    """Join ``(key, value)`` pairs as ``key=value | key=value | ...``.
+
+    Drops trailing pairs if the result would exceed *max_chars*.
+    """
+    segments: List[str] = []
+    length = 0
+    for key, val in parts:
+        if not val:
+            continue
+        seg = f"{key}={val}"
+        added = len(seg) + (3 if segments else 0)  # " | " separator
+        if length + added > max_chars:
+            break
+        segments.append(seg)
+        length += added
+    return " | ".join(segments)
+
+
+# ---------------------------------------------------------------------------
+# Structured-state compressor
+# ---------------------------------------------------------------------------
+
+def compact_structured_state(
+    structured_state: Dict[str, Any],
+    max_chars: int = DEFAULT_SUMMARY_CHAR_BUDGET,
+) -> str:
+    """Compress a structured state dict into a compact ``key=value`` summary.
+
+    *structured_state* should be a flat-ish dict produced by an env wrapper's
+    ``build_structured_state_summary()``.  Keys listed in ``_PRIORITY_KEYS``
+    are emitted first; remaining keys are appended if budget allows.
+
+    Returns:
+        A string of at most *max_chars* characters.
+    """
+    max_chars = min(max_chars, HARD_SUMMARY_CHAR_LIMIT)
+    if not structured_state:
+        return ""
+
+    ordered: List[Tuple[str, str]] = []
+    seen = set()
+    for k in _PRIORITY_KEYS:
+        if k in structured_state:
+            ordered.append((k, _safe_str(structured_state[k])))
+            seen.add(k)
+    for k, v in structured_state.items():
+        if k not in seen:
+            ordered.append((k, _safe_str(v)))
+
+    return _join_kv(ordered, max_chars)
+
+
+# ---------------------------------------------------------------------------
+# Text-observation compressor
+# ---------------------------------------------------------------------------
+
+def compact_text_observation(
+    observation: str,
+    max_chars: int = DEFAULT_SUMMARY_CHAR_BUDGET,
+) -> str:
+    """Deterministically compress a raw text observation into a short summary.
+
+    Steps:
+      1. Strip boilerplate / action-format instructions.
+      2. Split into clauses.
+      3. Keep the most informative clauses that fit within *max_chars*.
+
+    Returns:
+        A string of at most *max_chars* characters.  Never returns the raw
+        observation verbatim (even if it is already short).
+    """
+    max_chars = min(max_chars, HARD_SUMMARY_CHAR_LIMIT)
+    if not observation or not isinstance(observation, str):
+        return ""
+
+    text = _remove_boilerplate(observation)
+    if not text:
+        return ""
+
+    # Normalise whitespace
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{2,}", "\n", text)
+
+    # Split into clauses (sentences, newlines, pipe-delimited)
+    clauses = re.split(r"[.\n|]+", text)
+    clauses = [c.strip() for c in clauses if c.strip() and len(c.strip()) > 2]
+
+    if not clauses:
+        return _truncate_keep_important(text, max_chars)
+
+    # Heuristic: drop lines that are purely decorative (=== headers, --- separators)
+    clauses = [c for c in clauses if not re.match(r"^[-=]{3,}", c)]
+
+    # Build output greedily, keeping as many clauses as fit
+    parts: List[str] = []
+    length = 0
+    for c in clauses:
+        needed = len(c) + (3 if parts else 0)  # " | " separator
+        if length + needed > max_chars:
+            break
+        parts.append(c)
+        length += needed
+
+    if not parts:
+        # Single long clause — truncate it
+        return _truncate_keep_important(clauses[0], max_chars)
+
+    return " | ".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
 # ---------------------------------------------------------------------------
 
 def get_state_summary(
     observation: str,
+    structured_state: Optional[Dict[str, Any]] = None,
+    *,
+    max_chars: int = DEFAULT_SUMMARY_CHAR_BUDGET,
+    use_llm_fallback: bool = False,
+    llm_callable: Optional[Callable[..., str]] = None,
+    # Legacy keyword args kept for backward compatibility
     game: Optional[str] = None,
     model: Optional[str] = None,
-    max_chars: int = 2000,
 ) -> str:
-    """
-    Produce a concise textual summary of the current observation for grounding.
-    If observation is already short, return as-is; otherwise use LLM to summarize.
-    """
-    if not observation or not isinstance(observation, str):
-        return ""
-    obs = observation.strip()
-    if len(obs) <= max_chars:
-        return obs
-    if ask_model is None:
-        return obs[:max_chars] + "..."
-    prompt = (
-        "Summarize this game observation in 2-5 short sentences. "
-        "Include: location/area, key entities, threats, objectives, and valid actions if mentioned. "
-        "Keep it under 400 characters.\n\nObservation:\n" + obs[:4000]
-    )
-    return ask_model(prompt, model=model or "gpt-4o-mini", temperature=0.2, max_tokens=300)
+    """Produce a compact state summary for agent context / retrieval / memory.
 
+    Priority order:
+      1. ``structured_state`` → ``compact_structured_state()``
+      2. ``observation``      → ``compact_text_observation()``
+      3. LLM fallback (only if *use_llm_fallback* is True)
+
+    The result is **never** the raw observation verbatim and always respects
+    *max_chars* (capped at ``HARD_SUMMARY_CHAR_LIMIT``).
+
+    Args:
+        observation: Raw text observation from the environment.
+        structured_state: Optional dict from wrapper's
+            ``build_structured_state_summary()``.
+        max_chars: Soft character budget (default 220).
+        use_llm_fallback: If True and deterministic compression is very lossy,
+            attempt an LLM-based summarisation.  Disabled by default.
+        llm_callable: Custom LLM callable ``(prompt, **kw) -> str``.
+            Falls back to ``ask_model`` if available.
+        game: (legacy) Game hint — ignored by deterministic path.
+        model: (legacy) Model name for LLM fallback.
+
+    Returns:
+        Compact summary string, always ≤ ``HARD_SUMMARY_CHAR_LIMIT`` chars.
+    """
+    max_chars = min(max_chars, HARD_SUMMARY_CHAR_LIMIT)
+
+    # --- Path 1: structured state ---
+    if structured_state:
+        summary = compact_structured_state(structured_state, max_chars)
+        if summary:
+            return summary
+
+    # --- Path 2: deterministic text compression ---
+    summary = compact_text_observation(observation, max_chars)
+    if summary:
+        return summary
+
+    # --- Path 3 (optional): LLM fallback ---
+    if use_llm_fallback:
+        _llm = llm_callable or ask_model
+        if _llm is not None:
+            obs_slice = (observation or "")[:3000]
+            prompt = (
+                "Compress this game state into a compact key=value summary. "
+                f"Max {max_chars} characters. No prose. "
+                "Format: key=value | key=value | ...\n\n" + obs_slice
+            )
+            try:
+                result = _llm(prompt, model=model or "gpt-4o-mini",
+                              temperature=0.0, max_tokens=200)
+                if result:
+                    return _truncate_keep_important(result.strip(), max_chars)
+            except Exception:
+                pass
+
+    return ""
+gi
 
 # ---------------------------------------------------------------------------
 # Intention inference

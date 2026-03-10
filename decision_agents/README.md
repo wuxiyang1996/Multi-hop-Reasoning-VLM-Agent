@@ -7,7 +7,7 @@ VLM decision-making agent that plays video games step-by-step using a **two-turn
 | File | What it does |
 |------|-------------|
 | `agent.py` | `VLMDecisionAgent` class, `run_tool()`, `run_episode_vlm_agent()` |
-| `agent_helper.py` | `get_state_summary()`, `infer_intention()`, `EpisodicMemoryStore`, `skill_bank_to_text()` |
+| `agent_helper.py` | `get_state_summary()`, `compact_structured_state()`, `compact_text_observation()`, `infer_intention()`, `EpisodicMemoryStore`, `skill_bank_to_text()` |
 | `reward_func.py` | `RewardConfig`, `RewardResult`, `RewardComputer`, `compute_reward()` |
 | `dummy_agent.py` | Baseline `language_agent_action()` + game detection + action extraction |
 | `__init__.py` | Re-exports everything above |
@@ -120,15 +120,64 @@ for t in range(200):
 
 ## Helper functions
 
-### `get_state_summary(observation, game=None, model=None)`
+### `get_state_summary(observation, structured_state=None, *, max_chars=400, use_llm_fallback=False, llm_callable=None)`
 
-Returns a concise text summary of a long or complex observation. Short observations are returned as-is; long ones are summarized via LLM.
+Produces a compact `key=value` state summary optimised for LLM/VLM context
+windows, retrieval, skill-bank indexing, and trajectory segmentation.
+Summaries are **never** raw observation text and always ≤ 400 characters.
+
+**Priority order:**
+1. `structured_state` → `compact_structured_state()` (preferred; wrapper-produced dict)
+2. `observation` → `compact_text_observation()` (deterministic boilerplate removal + clause compression)
+3. LLM fallback (optional, disabled by default)
+
+**Length policy:** All summaries obey a unified **400-character hard cap**
+(`HARD_SUMMARY_CHAR_LIMIT`).  Prefer ~220–380 chars when possible.
 
 ```python
 from decision_agents import get_state_summary
 
-summary = get_state_summary(long_observation_text, model="gpt-4o-mini")
+# With structured state from a wrapper (preferred)
+summary = get_state_summary(
+    obs_text,
+    structured_state=info.get("structured_state"),
+)
+# → "game=overcooked | self=hold:onion pos:1,2 | ally=hold:dish | critical=pot:2ing:cooking | orders=onion_soup | time_left=47"
+
+# Text-only fallback (boilerplate stripped, clauses compressed)
+summary = get_state_summary(long_observation_text)
 ```
+
+**Supported wrappers with `build_structured_state_summary()`:**
+
+| Wrapper | Key fields | Example |
+|---------|-----------|---------|
+| Overcooked | game, self, ally, critical, orders, time_left | `game=overcooked \| self=hold:onion pos:1,2 \| ally=hold:dish \| critical=pot:2ing:cooking` |
+| Avalon | game, phase, self, progress, critical, objective | `game=avalon \| phase=team_vote \| self=role:Percival(G) \| progress=quest:1/5 good:1 evil:0` |
+| Diplomacy | game, phase, self, resources, critical, objective | `game=diplomacy \| phase=S1902M \| self=power:FRANCE centers:5 \| resources=units:A PAR,F BRE` |
+| GamingAgent | game, step, self, objective, critical, affordance | `game=sokoban \| self=Player at (2,3) \| objective=push box \| critical=Box at (3,3)` |
+| VideoGameBench | game, step, last_action, progress, critical, objective | `game=kirby \| objective=break_stall \| critical=repeat:RIGHTx8 \| progress=stall:8` |
+
+Each wrapper sets `info["structured_state"]` on `reset()` and `step()`, which
+the `run_tool(TOOL_GET_STATE_SUMMARY, ...)` call site automatically consumes.
+
+**Helper functions** (all in `agent_helper.py`):
+
+| Function | Purpose |
+|----------|---------|
+| `compact_structured_state(dict, max_chars)` | Dict → `key=value \| ...` string, priority-ordered |
+| `compact_text_observation(obs, max_chars)` | Raw text → boilerplate-stripped, clause-compressed string |
+| `_safe_str(x)` | Coerce any value to a short summary-safe string |
+| `_remove_boilerplate(obs)` | Strip action-format instructions from raw observation |
+| `_truncate_keep_important(text, max_chars)` | Truncate at clause boundary |
+| `_join_kv(parts, max_chars)` | Join `(key, value)` pairs with budget control |
+
+**Constants:**
+
+| Constant | Value | Meaning |
+|----------|-------|---------|
+| `DEFAULT_SUMMARY_CHAR_BUDGET` | 400 | Default budget for all summaries |
+| `HARD_SUMMARY_CHAR_LIMIT` | 400 | Absolute upper bound; never exceeded |
 
 ### `infer_intention(summary_or_observation, game=None, model=None, context=None)`
 

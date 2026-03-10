@@ -57,6 +57,89 @@ def _orientation_to_name(orientation: tuple) -> str:
     return _DIRECTION_NAMES.get(tuple(orientation), "unknown")
 
 
+# ---------------------------------------------------------------------------
+# Compact structured state summary (for agent context / retrieval)
+# ---------------------------------------------------------------------------
+
+def _compact_held(held) -> str:
+    """One-token description of a held object."""
+    if held is None:
+        return "none"
+    name = getattr(held, "name", str(held))
+    if name == "soup":
+        if getattr(held, "is_ready", False):
+            return "soup:ready"
+        if getattr(held, "is_cooking", False):
+            return "soup:cooking"
+        return "soup:raw"
+    return name
+
+
+def _compact_pot_status(objects: dict) -> str:
+    """Summarise pot state in ≤20 chars."""
+    for pos, obj in objects.items():
+        name = getattr(obj, "name", "")
+        if name == "soup":
+            ings = getattr(obj, "ingredients", [])
+            n = len(ings)
+            if getattr(obj, "is_ready", False):
+                return f"pot:{n}ing:ready"
+            if getattr(obj, "is_cooking", False):
+                return f"pot:{n}ing:cooking"
+            if n > 0:
+                return f"pot:{n}ing:waiting"
+    return "pot:empty"
+
+
+def build_structured_state_summary(
+    state: Any,
+    agent_idx: int = 0,
+    horizon: Optional[int] = None,
+) -> dict:
+    """Build a compact structured dict for the Overcooked state.
+
+    Designed to be fed into ``compact_structured_state()`` from
+    ``decision_agents.agent_helper``.
+
+    Returns:
+        Dict with short key=value-friendly fields.  Example::
+
+            {"game": "overcooked", "self": "hold:onion near:pot",
+             "ally": "hold:dish", "critical": "pot:2ing:cooking",
+             "orders": "onion_soup", "time_left": 47}
+    """
+    players = getattr(state, "players", ())
+    if len(players) < 2:
+        return {"game": "overcooked", "critical": "invalid_state"}
+
+    you = players[agent_idx]
+    other = players[1 - agent_idx]
+
+    y_held = _compact_held(getattr(you, "held_object", None))
+    y_pos = getattr(you, "position", (0, 0))
+    o_held = _compact_held(getattr(other, "held_object", None))
+
+    objects = getattr(state, "objects", {})
+    pot = _compact_pot_status(objects)
+
+    timestep = getattr(state, "timestep", 0)
+    time_left = (horizon - timestep) if horizon is not None else None
+
+    orders_raw = getattr(state, "bonus_orders", []) or getattr(state, "all_orders", [])
+    orders_str = ",".join(str(o) for o in orders_raw[:3]) if orders_raw else ""
+
+    summary: dict = {"game": "overcooked"}
+    summary["self"] = f"hold:{y_held} pos:{y_pos[0]},{y_pos[1]}"
+    summary["ally"] = f"hold:{o_held}"
+    summary["critical"] = pot
+    if orders_str:
+        summary["orders"] = orders_str
+    if time_left is not None:
+        summary["time_left"] = str(time_left)
+
+    return summary
+
+
 def _describe_held_object(held) -> str:
     if held is None:
         return "nothing"
@@ -412,11 +495,17 @@ class OvercookedNLWrapper:
             state_nl_1 = self._state_to_nl(state, 1)
             info["state_natural_language"] = state_nl_0  # primary
             info["state_natural_language_by_agent"] = [state_nl_0, state_nl_1]
+            info["structured_state"] = build_structured_state_summary(
+                state, agent_idx=0, horizon=self._horizon,
+            )
             obs = [state_nl_0, state_nl_1]
         else:
             agent_idx = info.get("agent_idx", 0)
             state_nl = self._state_to_nl(state, agent_idx)
             info["state_natural_language"] = state_nl
+            info["structured_state"] = build_structured_state_summary(
+                state, agent_idx=agent_idx, horizon=self._horizon,
+            )
             obs = state_nl
         self._render_gui(state)
         return obs, info
@@ -472,11 +561,17 @@ class OvercookedNLWrapper:
             state_nl_1 = self._state_to_nl(state, 1)
             info["state_natural_language"] = state_nl_0
             info["state_natural_language_by_agent"] = [state_nl_0, state_nl_1]
+            info["structured_state"] = build_structured_state_summary(
+                state, agent_idx=0, horizon=self._horizon,
+            )
             obs = [state_nl_0, state_nl_1]
         else:
             agent_idx = info.get("agent_idx", 0)
             state_nl = self._state_to_nl(state, agent_idx)
             info["state_natural_language"] = state_nl
+            info["structured_state"] = build_structured_state_summary(
+                state, agent_idx=agent_idx, horizon=self._horizon,
+            )
             obs = state_nl
         self._render_gui(state)
         return obs, reward, terminated, truncated, info

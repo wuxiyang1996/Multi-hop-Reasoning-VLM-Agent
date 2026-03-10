@@ -82,6 +82,75 @@ _ORDER_TYPE_HELP = {
 
 
 # ---------------------------------------------------------------------------
+# Compact structured state summary (for agent context / retrieval)
+# ---------------------------------------------------------------------------
+
+def build_structured_state_summary(
+    game: "Game",
+    power_name: str,
+) -> dict:
+    """Build a compact structured dict for one Diplomacy power.
+
+    Designed to be fed into ``compact_structured_state()`` from
+    ``decision_agents.agent_helper``.
+
+    Returns:
+        Dict with short key=value-friendly fields.  Example::
+
+            {"game": "diplomacy", "phase": "S1902M",
+             "self": "power:France centers:5",
+             "critical": "fronts:ENG,BUR",
+             "resources": "units:A PAR,F BRE",
+             "objective": "issue_orders"}
+    """
+    current_phase = game.get_current_phase()
+    phase_type = current_phase[-1] if current_phase and current_phase not in ("FORMING", "COMPLETED") else ""
+    power = game.powers.get(power_name)
+
+    if power is None or power.is_eliminated():
+        return {
+            "game": "diplomacy",
+            "phase": current_phase,
+            "self": f"power:{power_name} ELIMINATED",
+        }
+
+    units = list(power.units) if power.units else []
+    centers = list(power.centers) if power.centers else []
+    units_short = ",".join(units[:6])
+    if len(units) > 6:
+        units_short += f"..+{len(units) - 6}"
+
+    # Determine orderable locations to hint at action fronts
+    orderable_locs = game.get_orderable_locations(power_name) or []
+    fronts_short = ",".join(orderable_locs[:5])
+    if len(orderable_locs) > 5:
+        fronts_short += f"..+{len(orderable_locs) - 5}"
+
+    objective = {
+        "M": "issue_move_orders",
+        "R": "issue_retreat_orders",
+        "A": "build_or_disband",
+    }.get(phase_type, "wait")
+
+    summary: dict = {
+        "game": "diplomacy",
+        "phase": current_phase,
+        "self": f"power:{power_name} centers:{len(centers)}",
+        "resources": f"units:{units_short}" if units_short else "units:none",
+        "objective": objective,
+    }
+    if fronts_short:
+        summary["critical"] = f"locs:{fronts_short}"
+
+    # Compact retreats if any
+    if power.retreats:
+        ret_units = ",".join(str(u) for u in list(power.retreats.keys())[:3])
+        summary["critical"] = summary.get("critical", "") + f" retreat:{ret_units}"
+
+    return summary
+
+
+# ---------------------------------------------------------------------------
 # State -> NL
 # ---------------------------------------------------------------------------
 
@@ -536,6 +605,13 @@ class DiplomacyNLWrapper:
                 if locs:
                     active_powers[pname] = locs
 
+        # Structured summary for the primary power
+        primary_power = self._controlled_power or next(iter(self.game.powers), None)
+        structured = (
+            build_structured_state_summary(self.game, primary_power)
+            if primary_power else {}
+        )
+
         info = {
             "phase": current_phase,
             "phase_type": phase_type,
@@ -547,6 +623,7 @@ class DiplomacyNLWrapper:
             "phase_history": list(self._phase_history),
             "negotiation_log": list(self._negotiation_log),
             "order_history": dict(self.game.order_history) if self.game.order_history else {},
+            "structured_state": structured,
         }
 
         # Add possible orders (can be large; include for active powers only)

@@ -28,6 +28,8 @@ import numpy as np
 
 # Button order: 0=no-op, 1=A, 2=B, 3=SELECT, 4=START, 5=RIGHT, 6=LEFT, 7=UP, 8=DOWN
 VIDEOGAMEBENCH_BUTTON_NAMES = ["no-op", "A", "B", "SELECT", "START", "RIGHT", "LEFT", "UP", "DOWN"]
+
+_ACTION_INDEX_TO_NAME = {i: n for i, n in enumerate(VIDEOGAMEBENCH_BUTTON_NAMES)}
 _NL_TO_INDEX: Dict[str, int] = {
     "no-op": 0, "noop": 0, "none": 0, "nothing": 0, "stay": 0, "wait": 0, "hold": 0,
     "a": 1, "press a": 1, "button a": 1,
@@ -39,6 +41,73 @@ _NL_TO_INDEX: Dict[str, int] = {
     "up": 7, "press up": 7, "move up": 7, "↑": 7,
     "down": 8, "press down": 8, "move down": 8, "↓": 8,
 }
+
+
+# ---------------------------------------------------------------------------
+# Compact structured state summary (for agent context / retrieval)
+# ---------------------------------------------------------------------------
+
+_STALL_WINDOW = 8
+
+
+def build_structured_state_summary(
+    step: int,
+    last_action: Optional[int] = None,
+    last_reward: float = 0.0,
+    recent_actions: Optional[List[int]] = None,
+    recent_rewards: Optional[List[float]] = None,
+    game_name: str = "videogame",
+) -> dict:
+    """Build a compact interaction-driven structured dict for VideoGameBench.
+
+    Since raw semantic state is typically unavailable (only screen pixels),
+    this summary uses interaction signals: action history, reward trend,
+    stagnation detection, and repeated-action patterns.
+
+    Designed to be fed into ``compact_structured_state()`` from
+    ``decision_agents.agent_helper``.
+
+    Returns:
+        Dict with short key=value-friendly fields.  Example::
+
+            {"game": "kirby", "step": 37, "last_action": "RIGHT",
+             "progress": "stall:8", "critical": "repeat:RIGHTx4",
+             "reward": "0.0", "objective": "break_stall"}
+    """
+    summary: dict = {"game": game_name, "step": step}
+
+    if last_action is not None:
+        summary["last_action"] = _ACTION_INDEX_TO_NAME.get(last_action, str(last_action))
+
+    # Reward trend
+    if recent_rewards:
+        last_n = recent_rewards[-_STALL_WINDOW:]
+        summary["reward"] = str(last_reward)
+        nonzero = sum(1 for r in last_n if r != 0.0)
+        if nonzero == 0 and len(last_n) >= 3:
+            summary["progress"] = f"stall:{len(last_n)}"
+        elif nonzero > 0:
+            trend = sum(last_n)
+            summary["progress"] = f"trend:{trend:+.1f}({nonzero}nz/{len(last_n)})"
+    elif last_reward != 0.0:
+        summary["reward"] = str(last_reward)
+
+    # Repeated action detection
+    if recent_actions and len(recent_actions) >= 3:
+        last_n = recent_actions[-_STALL_WINDOW:]
+        if len(set(last_n)) == 1:
+            name = _ACTION_INDEX_TO_NAME.get(last_n[0], str(last_n[0]))
+            summary["critical"] = f"repeat:{name}x{len(last_n)}"
+
+    # Objective heuristic
+    if "stall" in summary.get("progress", ""):
+        summary["objective"] = "break_stall"
+    elif "repeat" in summary.get("critical", ""):
+        summary["objective"] = "vary_action"
+    else:
+        summary["objective"] = "continue"
+
+    return summary
 
 
 def state_to_natural_language(
@@ -119,13 +188,18 @@ class VideoGameBenchNLWrapper:
     Compatible with agents.dummy_agent.language_agent_action when game=GAME_VIDEOGAMEBENCH.
     """
 
-    def __init__(self, env: Any):
+    def __init__(self, env: Any, game_name: str = "videogame"):
         """
         Args:
             env: VideoGameBenchGBEnv (or any env with step(int) -> obs, reward, term, trunc, info).
+            game_name: Short game identifier for structured summaries (e.g. "kirby").
         """
         self._env = env
+        self._game_name = game_name
         self._step_count = 0
+        self._recent_actions: List[int] = []
+        self._recent_rewards: List[float] = []
+        self._last_action: Optional[int] = None
 
     @property
     def env(self):
@@ -143,10 +217,16 @@ class VideoGameBenchNLWrapper:
     ) -> Tuple[str, Dict[str, Any]]:
         obs, info = self._env.reset(seed=seed, options=options)
         self._step_count = 0
+        self._recent_actions = []
+        self._recent_rewards = []
+        self._last_action = None
         info["step"] = 0
         nl = self._build_nl_state(info)
         info["state_natural_language"] = nl
         info["raw_obs"] = obs
+        info["structured_state"] = build_structured_state_summary(
+            step=0, game_name=self._game_name,
+        )
         return nl, info
 
     def step(
@@ -154,15 +234,30 @@ class VideoGameBenchNLWrapper:
         action: Union[str, int, np.integer],
     ) -> Tuple[str, float, bool, bool, Dict[str, Any]]:
         if isinstance(action, str):
-            action = natural_language_to_action_index(action)
+            action_idx = natural_language_to_action_index(action)
         else:
-            action = int(action)
-        obs, reward, terminated, truncated, info = self._env.step(action)
-        self._step_count = info.get("step", self._step_count)
+            action_idx = int(action)
+        obs, reward, terminated, truncated, info = self._env.step(action_idx)
+        self._step_count = info.get("step", self._step_count + 1)
+        self._last_action = action_idx
+        self._recent_actions.append(action_idx)
+        self._recent_rewards.append(float(reward))
+        # Keep bounded history
+        if len(self._recent_actions) > 16:
+            self._recent_actions = self._recent_actions[-16:]
+            self._recent_rewards = self._recent_rewards[-16:]
         nl = self._build_nl_state(info)
         info["state_natural_language"] = nl
         info["raw_obs"] = obs
-        info["action_index"] = action
+        info["action_index"] = action_idx
+        info["structured_state"] = build_structured_state_summary(
+            step=self._step_count,
+            last_action=self._last_action,
+            last_reward=float(reward),
+            recent_actions=self._recent_actions,
+            recent_rewards=self._recent_rewards,
+            game_name=self._game_name,
+        )
         return nl, float(reward), bool(terminated), bool(truncated), info
 
     def close(self) -> None:
