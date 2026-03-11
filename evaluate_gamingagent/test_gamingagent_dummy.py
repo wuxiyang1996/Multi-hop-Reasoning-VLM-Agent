@@ -9,7 +9,7 @@ to run episodes where the agent chooses actions from natural language state.
 Usage (from the Game-AI-Agent codebase root):
 
     # Ensure GamingAgent is on PYTHONPATH
-    set PYTHONPATH=%CD%;%CD%\..\GamingAgent
+    export PYTHONPATH=$(pwd):$(pwd)/../GamingAgent
     python evaluate_gamingagent/test_gamingagent_dummy.py --game twenty_forty_eight
 
 Options:
@@ -52,7 +52,7 @@ except ImportError as e:
     sys.exit(1)
 
 try:
-    from agents.dummy_agent import (
+    from decision_agents.dummy_agent import (
         language_agent_action,
         GAME_GAMINGAGENT,
         _default_action,
@@ -63,10 +63,10 @@ except ImportError:
     _default_action = lambda g: "stay" if g != "gamingagent" else "no-op"
 
 try:
-    from gym_like import make_gaming_env, list_games
+    from evaluate_gamingagent.gym_like import make_gaming_env, list_games
 except ImportError:
     try:
-        from gamingagent.gym_like import make_gaming_env, list_games
+        from gym_like import make_gaming_env, list_games
     except ImportError:
         make_gaming_env = None
         list_games = lambda: []
@@ -213,7 +213,7 @@ def main():
     parser.add_argument("--episodes", type=int, default=1, help="Number of episodes")
     parser.add_argument("--mode", type=str, default="fallback",
                         choices=["llm", "random_nl", "fallback"], help="Agent mode")
-    parser.add_argument("--model", type=str, default="gpt-4o-mini", help="LLM model for llm mode")
+    parser.add_argument("--model", type=str, default="gpt-5.4", help="LLM model for llm mode")
     parser.add_argument("--verbose", "-v", action="store_true", help="Print full NL observations")
     parser.add_argument("--list-games", action="store_true", help="List available games and exit")
 

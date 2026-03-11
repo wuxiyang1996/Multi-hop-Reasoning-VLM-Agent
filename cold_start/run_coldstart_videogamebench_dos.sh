@@ -29,17 +29,23 @@ if [ -z "$VIDEOGAMEBENCH_ROOT" ] || [ ! -d "$VIDEOGAMEBENCH_ROOT" ]; then
     exit 1
 fi
 
-if [ -z "${OPENAI_API_KEY:-}" ]; then
-    OPENAI_API_KEY="$(python3 -c "
+if [ -z "${OPENROUTER_API_KEY:-}" ]; then
+    OPENROUTER_API_KEY="$(python3 -c "
 import sys; sys.path.insert(0, '${CODEBASE_ROOT}')
-from api_keys import openai_api_key; print(openai_api_key)
+from api_keys import open_router_api_key; print(open_router_api_key or '')
 " 2>/dev/null || echo "")"
+    export OPENROUTER_API_KEY
+fi
+if [ -z "${OPENAI_API_KEY:-}" ]; then
+    OPENAI_API_KEY="${OPENROUTER_API_KEY:-$(python3 -c "
+import sys; sys.path.insert(0, '${CODEBASE_ROOT}')
+from api_keys import openai_api_key; print(openai_api_key or '')
+" 2>/dev/null || echo "")}"
     export OPENAI_API_KEY
 fi
 
-if [ -z "${OPENAI_API_KEY:-}" ]; then
-    echo "[ERROR] OPENAI_API_KEY not set and not found in api_keys.py"
-    echo "        export OPENAI_API_KEY='sk-...' and retry"
+if [ -z "${OPENROUTER_API_KEY:-}" ] && [ -z "${OPENAI_API_KEY:-}" ]; then
+    echo "[ERROR] No API key found. Set OPENROUTER_API_KEY or open_router_api_key in api_keys.py (preferred), or OPENAI_API_KEY"
     exit 1
 fi
 
@@ -48,7 +54,7 @@ echo "  Cold-Start: VideoGameBench DOS (GPT-5-mini)"
 echo "================================================================"
 echo "  Codebase:   $CODEBASE_ROOT"
 echo "  VideoGameBench: $VIDEOGAMEBENCH_ROOT"
-echo "  API key:    ${OPENAI_API_KEY:0:12}..."
+[ -n "${OPENROUTER_API_KEY:-}" ] && echo "  API key:    ${OPENROUTER_API_KEY:0:12}... (OpenRouter)" || echo "  API key:    ${OPENAI_API_KEY:0:12}..."
 echo "================================================================"
 echo ""
 

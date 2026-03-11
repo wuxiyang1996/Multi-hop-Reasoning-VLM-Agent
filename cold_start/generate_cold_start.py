@@ -8,7 +8,8 @@ initial seed data for the skill database.
 
 Usage (from Game-AI-Agent root):
 
-    export OPENAI_API_KEY="sk-..."
+    # Prefer OpenRouter (used by default): set open_router_api_key in api_keys.py or:
+    export OPENROUTER_API_KEY="sk-or-..."
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
 
     # Generate cold-start data for 2048
@@ -124,6 +125,17 @@ try:
     from gamingagent.envs.zoo_02_texasholdem.TexasHoldemEnv import SingleTexasHoldemEnv
 except ImportError:
     SingleTexasHoldemEnv = None
+
+# ---------------------------------------------------------------------------
+# Orak benchmark (krafton-ai/Orak) game environment imports
+# ---------------------------------------------------------------------------
+_ORAK_REPO = CODEBASE_ROOT.parent / "Orak"
+_ORAK_SRC = _ORAK_REPO / "src"
+_ORAK_MCP_GAMES = _ORAK_SRC / "mcp_game_servers"
+_ORAK_MCP_AGENTS = _ORAK_SRC / "mcp_agent_client"
+for _orak_p in [str(_ORAK_SRC), str(_ORAK_MCP_GAMES)]:
+    if Path(_orak_p).exists() and _orak_p not in sys.path:
+        sys.path.insert(0, _orak_p)
 
 
 # ---------------------------------------------------------------------------
@@ -286,6 +298,123 @@ GAME_REGISTRY: Dict[str, Dict[str, Any]] = {
         "task": "Win at Texas Hold'em poker by making optimal betting decisions.",
         "init_kwargs": _adapter_kwargs,
     },
+    # ── Orak benchmark (krafton-ai/Orak, 12 games, 6 genres) ─────────
+    # All use Orak's BaseEnv implementations, loaded via make_orak_env.
+    # Puzzle
+    "orak_twenty_fourty_eight": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "twenty_fourty_eight" / "config.yaml"),
+        "action_names": ["up", "down", "left", "right"],
+        "task": "Merge tiles to reach 2048. Score = min(score/20000*100, 100).",
+        "init_kwargs": None,
+    },
+    "orak_baba_is_you": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "baba_is_you" / "config.yaml"),
+        "action_names": ["idle", "left", "right", "up", "down"],
+        "task": "Solve rule-manipulation puzzles by pushing word blocks. 100=win, 40=WIN exists, 20=WALL broken.",
+        "init_kwargs": None,
+    },
+    # Action
+    "orak_super_mario": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "super_mario" / "config.yaml"),
+        "action_names": [f"Jump Level : {i}" for i in range(7)],
+        "task": "Advance Mario right. Score = x_pos/3161*100.",
+        "init_kwargs": None,
+    },
+    "orak_street_fighter": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "street_fighter" / "config.yaml"),
+        "action_names": [
+            "Move Closer", "Move Away", "Fireball", "Megapunch", "Hurricane",
+            "Low Kick", "Medium Kick", "High Kick", "Jump Closer", "Jump Away",
+            "Crouch", "Block", "Low Punch", "Medium Punch", "High Punch",
+        ],
+        "task": "Defeat opponents in Street Fighter III. Score = stages cleared.",
+        "init_kwargs": None,
+    },
+    # Strategy
+    "orak_star_craft": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "star_craft" / "config.yaml"),
+        "action_names": [
+            "TRAIN PROBE", "TRAIN ZEALOT", "TRAIN STALKER", "BUILD PYLON",
+            "BUILD GATEWAY", "BUILD ASSIMILATOR", "BUILD NEXUS",
+            "BUILD CYBERNETICSCORE", "RESEARCH WARPGATERESEARCH",
+            "RESEARCH CHARGE", "SCOUTING PROBE", "MULTI-ATTACK",
+            "MULTI-RETREAT", "CHRONOBOOST NEXUS", "EMPTY ACTION",
+        ],
+        "task": "Win 1v1 as Protoss vs Zerg bot. Provide 5 sequential macro actions per step.",
+        "init_kwargs": None,
+    },
+    "orak_star_craft_multi": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "star_craft_multi" / "config.yaml"),
+        "action_names": [],
+        "task": "Win 1v1 StarCraft II (2-player). Provide 5 actions per step.",
+        "init_kwargs": None,
+    },
+    "orak_slay_the_spire": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "slay_the_spire" / "config.yaml"),
+        "action_names": ["PLAY", "END", "CHOOSE", "SKIP"],
+        "task": "Climb the Spire with card combos. Score = floor reached (max 50).",
+        "init_kwargs": None,
+    },
+    # RPG
+    "orak_pokemon_red": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "pokemon_red" / "config.yaml"),
+        "action_names": [
+            "up", "down", "left", "right", "a", "b", "start", "select",
+            "move_to", "interact_with_object", "warp_with_warp_point",
+            "continue_dialog", "select_move_in_battle",
+            "switch_pkmn_in_battle", "run_away", "use_item_in_battle",
+        ],
+        "task": "Progress through Pokemon Red storyline milestones (0-12 flags).",
+        "init_kwargs": None,
+    },
+    "orak_darkest_dungeon": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "darkest_dungeon" / "config.yaml"),
+        "action_names": ["attack", "heal", "swap", "idle", "skip"],
+        "task": "Survive dungeon raids. Score = 0.4*combat + 0.3*survival + 0.3*(1-stress).",
+        "init_kwargs": None,
+    },
+    # Adventure
+    "orak_pwaat": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "pwaat" / "config.yaml"),
+        "action_names": ["Ok", "Back", "Down", "Up", "Left", "Right", "Present evidence", "Press"],
+        "task": "Solve cases in Ace Attorney. Score = milestone rewards.",
+        "init_kwargs": None,
+    },
+    "orak_her_story": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "her_story" / "config.yaml"),
+        "action_names": ["Search", "Play Video"],
+        "task": "Uncover the story by searching keywords and watching videos. Score = views/272.",
+        "init_kwargs": None,
+    },
+    # Simulation
+    "orak_minecraft": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "minecraft" / "config.yaml"),
+        "action_names": [],
+        "task": "Craft target items in Minecraft via JavaScript async functions.",
+        "init_kwargs": None,
+    },
+    "orak_stardew_valley": {
+        "env_class": "orak",
+        "config_path": str(_ORAK_MCP_AGENTS / "configs" / "stardew_valley" / "config.yaml"),
+        "action_names": [
+            "till_soil", "plant_seeds", "water_seeds", "harvest_crops",
+            "sell_item", "buy_item", "get_out_of_house", "go_house_and_sleep",
+        ],
+        "task": "Complete farming tasks in Stardew Valley.",
+        "init_kwargs": None,
+    },
 }
 
 
@@ -304,18 +433,32 @@ class ColdStartEnvWrapper:
         if reg is None or reg["env_class"] is None:
             raise ValueError(f"Game '{game_name}' not available. Install GamingAgent and check imports.")
 
-        cache_dir = str(SCRIPT_DIR / "cache" / game_name)
-        os.makedirs(cache_dir, exist_ok=True)
-
-        kwargs_fn = reg.get("init_kwargs", _adapter_kwargs)
-        env_kwargs = kwargs_fn(cache_dir, reg["config_path"])
-        self._env = reg["env_class"](**env_kwargs)
         self._action_names = reg["action_names"]
         self._game_name = game_name
         self._max_steps = max_steps
         self._step_count = 0
+        self._is_orak = (reg["env_class"] == "orak")
+
+        if self._is_orak:
+            from evaluate_orak.orak_nl_wrapper import make_orak_env
+            orak_short = game_name.replace("orak_", "")
+            self._orak_wrapper = make_orak_env(orak_short, max_steps=max_steps)
+            self._env = self._orak_wrapper.env
+        else:
+            self._orak_wrapper = None
+            cache_dir = str(SCRIPT_DIR / "cache" / game_name)
+            os.makedirs(cache_dir, exist_ok=True)
+            kwargs_fn = reg.get("init_kwargs", _adapter_kwargs)
+            env_kwargs = kwargs_fn(cache_dir, reg["config_path"])
+            self._env = reg["env_class"](**env_kwargs)
 
     def reset(self, seed=None, options=None) -> Tuple[str, Dict[str, Any]]:
+        if self._is_orak:
+            text, info = self._orak_wrapper.reset(seed=seed)
+            self._step_count = 0
+            info["game"] = "orak"
+            return text, info
+
         obs, info = self._env.reset(seed=seed)
         self._step_count = 0
         text = self._obs_to_text(obs)
@@ -326,9 +469,17 @@ class ColdStartEnvWrapper:
         return text, info
 
     def step(self, action) -> Tuple[str, float, bool, bool, Dict[str, Any]]:
-        action_str = str(action) if action is not None else _default_action(GAME_GAMINGAGENT)
+        if self._is_orak:
+            action_str = str(action).strip() if action is not None else ""
+            text, reward, terminated, truncated, info = self._orak_wrapper.step(action_str)
+            self._step_count += 1
+            info["game"] = "orak"
+            info["perf_score"] = info.get("score", 0.0)
+            return text, reward, terminated, truncated, info
+
+        action_str = str(action).strip() if action is not None else ""
+        action_str = self._validate_action(action_str)
         result = self._env.step(agent_action_str=action_str)
-        # GamingAgent envs return 6-tuple: (obs, reward, term, trunc, info, perf_score)
         obs, reward, terminated, truncated, info = result[0], result[1], result[2], result[3], result[4]
         self._step_count += 1
         if self._step_count >= self._max_steps:
@@ -344,6 +495,22 @@ class ColdStartEnvWrapper:
     def close(self):
         if hasattr(self._env, "close"):
             self._env.close()
+
+    def _validate_action(self, action_str: str) -> str:
+        """Ensure action_str is valid for this game; fall back to a random valid action."""
+        if not self._action_names:
+            return action_str
+        if action_str in self._action_names:
+            return action_str
+        lower_map = {a.lower(): a for a in self._action_names}
+        canonical = lower_map.get(action_str.lower())
+        if canonical:
+            return canonical
+        import random
+        fallback = random.choice(self._action_names)
+        print(f"    [WARN] Invalid action '{action_str}' for {self._game_name}, "
+              f"using random fallback '{fallback}'")
+        return fallback
 
     def _obs_to_text(self, obs) -> str:
         if isinstance(obs, str):
@@ -383,6 +550,15 @@ def run_dummy_agent_episode(
             use_function_call=True,
             temperature=0.3,
         )
+
+        if action_names and str(action) not in action_names:
+            lower_map = {a.lower(): a for a in action_names}
+            canonical = lower_map.get(str(action).lower().strip())
+            if canonical:
+                action = canonical
+            else:
+                import random
+                action = random.choice(action_names)
 
         next_obs, reward, terminated, truncated, next_info = env.step(action)
         done = terminated or truncated
@@ -545,12 +721,22 @@ def main():
     output_dir = Path(args.output_dir) if args.output_dir else SCRIPT_DIR / "data"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    if not os.environ.get("OPENAI_API_KEY"):
-        print("[WARNING] OPENAI_API_KEY not set. LLM calls will fail.")
-        print("  Set it with: export OPENAI_API_KEY='sk-...'")
+    try:
+        from api_keys import open_router_api_key
+        has_key = bool(os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY") or (open_router_api_key and open_router_api_key.strip()))
+    except Exception:
+        has_key = bool(os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY"))
+    if not has_key:
+        print("[WARNING] No API key set. LLM calls will fail.")
+        print("  Prefer: open_router_api_key in api_keys.py or export OPENROUTER_API_KEY='sk-or-...'")
+        print("  Or: export OPENAI_API_KEY='sk-...'")
 
     games = list(GAME_REGISTRY.keys()) if args.all_games else [args.game]
-    available_games = [g for g in games if GAME_REGISTRY[g]["env_class"] is not None]
+    available_games = [
+        g for g in games
+        if GAME_REGISTRY[g]["env_class"] is not None
+        and (GAME_REGISTRY[g]["env_class"] == "orak" or GAME_REGISTRY[g]["env_class"] is not None)
+    ]
 
     if not available_games:
         print("[ERROR] No games available. Ensure GamingAgent is installed.")

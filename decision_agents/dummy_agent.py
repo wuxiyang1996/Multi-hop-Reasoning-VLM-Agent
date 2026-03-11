@@ -85,10 +85,16 @@ except ImportError:
 
 try:
     import openai
-    from api_keys import openai_api_key
+    from api_keys import openai_api_key, open_router_api_key
 except (ImportError, AttributeError):
     openai = None
     openai_api_key = None
+    open_router_api_key = None
+
+try:
+    from API_func import OPENROUTER_BASE
+except ImportError:
+    OPENROUTER_BASE = "https://openrouter.ai/api/v1"
 
 # Import Experience and Episode classes, and buffers
 try:
@@ -111,6 +117,20 @@ GAME_DIPLOMACY = "diplomacy"
 GAME_GAMINGAGENT = "gamingagent"
 GAME_VIDEOGAMEBENCH = "videogamebench"
 GAME_VIDEOGAMEBENCH_DOS = "videogamebench_dos"
+GAME_ORAK = "orak"
+GAME_ORAK_STARCRAFT = "orak_starcraft"
+GAME_ORAK_STARCRAFT_MULTI = "orak_starcraft_multi"
+GAME_ORAK_MARIO = "orak_mario"
+GAME_ORAK_POKEMON = "orak_pokemon"
+GAME_ORAK_2048 = "orak_2048"
+GAME_ORAK_STREET_FIGHTER = "orak_street_fighter"
+GAME_ORAK_SLAY_THE_SPIRE = "orak_slay_the_spire"
+GAME_ORAK_DARKEST_DUNGEON = "orak_darkest_dungeon"
+GAME_ORAK_PWAAT = "orak_pwaat"
+GAME_ORAK_HER_STORY = "orak_her_story"
+GAME_ORAK_MINECRAFT = "orak_minecraft"
+GAME_ORAK_STARDEW_VALLEY = "orak_stardew_valley"
+GAME_ORAK_BABA_IS_YOU = "orak_baba_is_you"
 
 
 # ---------------------------------------------------------------------------
@@ -242,6 +262,173 @@ VIDEOGAMEBENCH_DOS_USER_TEMPLATE = (
 
 
 # ---------------------------------------------------------------------------
+# Orak constants (AIcrowd Game Agent Challenge 2025)
+# ---------------------------------------------------------------------------
+ORAK_STARCRAFT_SYSTEM_PROMPT = (
+    "You are playing StarCraft II as Protoss against a Zerg AI opponent.\n"
+    "You receive the current game state and must output exactly 5 actions per step.\n\n"
+    "Action categories: TRAIN <unit>, BUILD <structure>, RESEARCH <upgrade>, "
+    "SCOUTING <unit>, MULTI-ATTACK, MULTI-RETREAT, CHRONOBOOST <building>, EMPTY ACTION.\n\n"
+    "Reply with 5 numbered actions:\n"
+    "1: <ACTION>\n2: <ACTION>\n3: <ACTION>\n4: <ACTION>\n5: <ACTION>\n\n"
+    "Use exact action names (e.g. TRAIN ZEALOT, BUILD PYLON, RESEARCH CHARGE)."
+)
+
+ORAK_STARCRAFT_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "Provide exactly 5 actions in the format:\n"
+    "1: <ACTION>\n2: <ACTION>\n3: <ACTION>\n4: <ACTION>\n5: <ACTION>"
+)
+
+ORAK_MARIO_SYSTEM_PROMPT = (
+    "You are playing Super Mario Bros. Mario auto-runs right; you control jump height.\n"
+    "Choose a jump level from 0 (no jump) to 6 (highest jump).\n\n"
+    "Reply in format: Jump Level : N  (where N is 0-6)"
+)
+
+ORAK_MARIO_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What jump level? Reply: Jump Level : N  (N from 0-6)"
+)
+
+ORAK_POKEMON_SYSTEM_PROMPT = (
+    "You are playing Pokemon Red. Available tools:\n"
+    "- Basic: up, down, left, right, a, b, start, select\n"
+    "- Advanced: move_to(x,y), interact_with_object(name), warp_with_warp_point(x,y),\n"
+    "  continue_dialog(), select_move_in_battle(move_name), switch_pkmn_in_battle(pokemon),\n"
+    "  run_away(), use_item_in_battle(item)\n\n"
+    "Reply with exactly one action or tool call."
+)
+
+ORAK_POKEMON_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What action do you take?"
+)
+
+ORAK_2048_SYSTEM_PROMPT = (
+    "You are playing 2048. Merge tiles by sliding in one direction.\n"
+    "Reply with exactly one: up, down, left, or right."
+)
+
+ORAK_2048_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What direction? Reply: up, down, left, or right."
+)
+
+ORAK_STREET_FIGHTER_SYSTEM_PROMPT = (
+    "You are playing Street Fighter III: 3rd Strike.\n"
+    "Choose one meta-instruction per turn from your character's moveset.\n\n"
+    "Common moves: Move Closer, Move Away, Fireball, Megapunch, Hurricane, "
+    "Low Kick, Medium Kick, High Kick, Low Punch, Medium Punch, High Punch, "
+    "Jump Closer, Jump Away, Crouch, Block.\n\n"
+    "Reply with exactly one move name."
+)
+
+ORAK_STREET_FIGHTER_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What move do you choose? Reply with one move name."
+)
+
+ORAK_SLAY_THE_SPIRE_SYSTEM_PROMPT = (
+    "You are playing Slay the Spire as a deck-building roguelike.\n"
+    "Actions depend on the current screen:\n"
+    "- Combat: PLAY <card_index> [target_index], or END to end turn.\n"
+    "- Card reward: CHOOSE <card_index> or SKIP.\n\n"
+    "Reply with one action per line."
+)
+
+ORAK_SLAY_THE_SPIRE_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What action? Reply with: PLAY <idx> [target], END, CHOOSE <idx>, or SKIP."
+)
+
+ORAK_DARKEST_DUNGEON_SYSTEM_PROMPT = (
+    "You are playing Darkest Dungeon. Your party of heroes raids a dungeon.\n"
+    "Each turn in combat, choose one action:\n"
+    "- attack target X using skill slot Y\n"
+    "- heal target X using skill slot Y\n"
+    "- swap rank X hero forward/backward by Y\n"
+    "- idle (skip turn)\n\n"
+    "Reply with exactly one action."
+)
+
+ORAK_DARKEST_DUNGEON_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What action? Reply: attack/heal/swap/idle with target and skill details."
+)
+
+ORAK_PWAAT_SYSTEM_PROMPT = (
+    "You are playing Phoenix Wright: Ace Attorney Trilogy.\n"
+    "Navigate court scenes by choosing actions:\n"
+    "- Ok (advance dialog), Back, Up, Down, Left, Right\n"
+    "- Present evidence <index> during cross-examination\n"
+    "- Press (press witness on testimony)\n"
+    "- Choose option <number> for multiple choice\n\n"
+    "Reply with exactly one action."
+)
+
+ORAK_PWAAT_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What action do you take? Reply with one action."
+)
+
+ORAK_HER_STORY_SYSTEM_PROMPT = (
+    "You are playing Her Story, a detective FMV game.\n"
+    "Search keywords to find video clips, then play them to uncover the story.\n\n"
+    "Actions:\n"
+    "- Search <keyword> (search the database with a keyword)\n"
+    "- Play Video <index> (watch a specific video from search results)\n\n"
+    "Reply with exactly one action."
+)
+
+ORAK_HER_STORY_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What action? Reply: Search <keyword> or Play Video <index>."
+)
+
+ORAK_MINECRAFT_SYSTEM_PROMPT = (
+    "You are playing Minecraft. You control a bot and must craft target items.\n"
+    "Write a JavaScript async function that takes a `bot` parameter.\n"
+    "Available APIs: exploreUntil, mineBlock, craftItem, placeItem, smeltItem, "
+    "killMob, useChest, etc.\n\n"
+    "Reply with a ```javascript code block containing your async function."
+)
+
+ORAK_MINECRAFT_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "Write a JavaScript async function to accomplish the task."
+)
+
+ORAK_STARDEW_VALLEY_SYSTEM_PROMPT = (
+    "You are playing Stardew Valley. Complete farming tasks using skill expressions.\n"
+    "Available skills: till_soil, plant_seeds, water_seeds, harvest_crops, "
+    "sell_item, buy_item, get_out_of_house, go_house_and_sleep.\n\n"
+    "Reply with a Python list of skill calls, e.g.:\n"
+    "[\"till_soil\", \"plant_seeds\", \"water_seeds\"]"
+)
+
+ORAK_STARDEW_VALLEY_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What skills do you use? Reply with a Python list of skill calls."
+)
+
+ORAK_BABA_IS_YOU_SYSTEM_PROMPT = (
+    "You are playing Baba Is You, a rule-manipulation puzzle game.\n"
+    "Move BABA (or the controllable entity) to satisfy the WIN condition.\n"
+    "Actions: idle, left, right, up, down (optionally with step count, e.g. 'up 3').\n\n"
+    "Reply with a sequence of moves, one per line."
+)
+
+ORAK_BABA_IS_YOU_USER_TEMPLATE = (
+    "Current game state:\n\n{state}\n\n"
+    "What moves? Reply with directions (e.g. 'up', 'left 2', 'down')."
+)
+
+ORAK_STARCRAFT_MULTI_SYSTEM_PROMPT = ORAK_STARCRAFT_SYSTEM_PROMPT
+ORAK_STARCRAFT_MULTI_USER_TEMPLATE = ORAK_STARCRAFT_USER_TEMPLATE
+
+
+# ---------------------------------------------------------------------------
 # Game auto-detection
 # ---------------------------------------------------------------------------
 
@@ -256,6 +443,70 @@ def detect_game(state_nl: str) -> str:
         return GAME_OVERCOOKED
 
     text = state_nl.lower()
+
+    # Orak StarCraft II markers
+    if "starcraft" in text and ("protoss" in text or "zerg" in text or "minerals" in text):
+        return GAME_ORAK_STARCRAFT
+    if "game time" in text and ("supply" in text or "nexus" in text or "pylon" in text):
+        return GAME_ORAK_STARCRAFT
+
+    # Orak Super Mario markers (jump-level based)
+    if "position of mario" in text or "jump level" in text:
+        return GAME_ORAK_MARIO
+
+    # Orak Pokemon Red markers (map-based observation)
+    if "map name:" in text and "your position" in text and "warppoint" in text:
+        return GAME_ORAK_POKEMON
+    if "[full map]" in text and "[current party]" in text:
+        return GAME_ORAK_POKEMON
+
+    # Orak 2048 markers
+    if "board of 2048" in text:
+        return GAME_ORAK_2048
+
+    # Orak Street Fighter III markers
+    if "street fighter" in text or ("health" in text and "super bar" in text and "stun" in text):
+        return GAME_ORAK_STREET_FIGHTER
+    if "move closer" in text and "fireball" in text:
+        return GAME_ORAK_STREET_FIGHTER
+
+    # Orak Slay the Spire markers
+    if "slay the spire" in text or ("floor" in text and "energy" in text and ("hand:" in text or "deck:" in text)):
+        return GAME_ORAK_SLAY_THE_SPIRE
+    if "ironclad" in text and ("block" in text or "strike" in text or "defend" in text):
+        return GAME_ORAK_SLAY_THE_SPIRE
+
+    # Orak Darkest Dungeon markers
+    if "darkest dungeon" in text or ("rank" in text and "stress" in text and "skill slot" in text):
+        return GAME_ORAK_DARKEST_DUNGEON
+    if "raid" in text and ("hero" in text or "enemy formation" in text) and "stress" in text:
+        return GAME_ORAK_DARKEST_DUNGEON
+
+    # Orak Ace Attorney (pwaat) markers
+    if "cross-examination" in text or "court record" in text or "testimony" in text:
+        return GAME_ORAK_PWAAT
+    if "evidence" in text and "profile" in text and ("present" in text or "press" in text):
+        return GAME_ORAK_PWAAT
+
+    # Orak Her Story markers
+    if "her story" in text or ("search" in text and "play video" in text and "session" in text):
+        return GAME_ORAK_HER_STORY
+
+    # Orak Minecraft markers (Voyager-style)
+    if "biome:" in text and "nearby blocks" in text and "inventory" in text:
+        return GAME_ORAK_MINECRAFT
+
+    # Orak Stardew Valley markers
+    if "stardew" in text or ("tilled_soil" in text and ("plant_seeds" in text or "harvest_crops" in text)):
+        return GAME_ORAK_STARDEW_VALLEY
+    if "season:" in text and "energy:" in text and ("crops" in text or "toolbar" in text):
+        return GAME_ORAK_STARDEW_VALLEY
+
+    # Orak Baba Is You markers
+    if "baba is you" in text or ("baba" in text and "is" in text and "you" in text and "level" in text):
+        return GAME_ORAK_BABA_IS_YOU
+    if "active rules" in text and "objects" in text and ("wall" in text or "flag" in text):
+        return GAME_ORAK_BABA_IS_YOU
 
     # VideoGameBench DOS markers
     if "dos game screen" in text or "choose one key" in text:
@@ -321,6 +572,34 @@ def _get_system_prompt(game: str) -> str:
         return VIDEOGAMEBENCH_SYSTEM_PROMPT
     if game == GAME_VIDEOGAMEBENCH_DOS:
         return VIDEOGAMEBENCH_DOS_SYSTEM_PROMPT
+    if game == GAME_ORAK_STARCRAFT:
+        return ORAK_STARCRAFT_SYSTEM_PROMPT
+    if game == GAME_ORAK_MARIO:
+        return ORAK_MARIO_SYSTEM_PROMPT
+    if game == GAME_ORAK_POKEMON:
+        return ORAK_POKEMON_SYSTEM_PROMPT
+    if game == GAME_ORAK_2048:
+        return ORAK_2048_SYSTEM_PROMPT
+    if game == GAME_ORAK_STARCRAFT_MULTI:
+        return ORAK_STARCRAFT_MULTI_SYSTEM_PROMPT
+    if game == GAME_ORAK_STREET_FIGHTER:
+        return ORAK_STREET_FIGHTER_SYSTEM_PROMPT
+    if game == GAME_ORAK_SLAY_THE_SPIRE:
+        return ORAK_SLAY_THE_SPIRE_SYSTEM_PROMPT
+    if game == GAME_ORAK_DARKEST_DUNGEON:
+        return ORAK_DARKEST_DUNGEON_SYSTEM_PROMPT
+    if game == GAME_ORAK_PWAAT:
+        return ORAK_PWAAT_SYSTEM_PROMPT
+    if game == GAME_ORAK_HER_STORY:
+        return ORAK_HER_STORY_SYSTEM_PROMPT
+    if game == GAME_ORAK_MINECRAFT:
+        return ORAK_MINECRAFT_SYSTEM_PROMPT
+    if game == GAME_ORAK_STARDEW_VALLEY:
+        return ORAK_STARDEW_VALLEY_SYSTEM_PROMPT
+    if game == GAME_ORAK_BABA_IS_YOU:
+        return ORAK_BABA_IS_YOU_SYSTEM_PROMPT
+    if game == GAME_ORAK:
+        return GAMINGAGENT_SYSTEM_PROMPT
     return OVERCOOKED_SYSTEM_PROMPT
 
 
@@ -336,6 +615,34 @@ def _get_user_prompt(state_nl: str, game: str) -> str:
         return VIDEOGAMEBENCH_USER_TEMPLATE.format(state=state_nl)
     if game == GAME_VIDEOGAMEBENCH_DOS:
         return VIDEOGAMEBENCH_DOS_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_STARCRAFT:
+        return ORAK_STARCRAFT_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_MARIO:
+        return ORAK_MARIO_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_POKEMON:
+        return ORAK_POKEMON_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_2048:
+        return ORAK_2048_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_STARCRAFT_MULTI:
+        return ORAK_STARCRAFT_MULTI_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_STREET_FIGHTER:
+        return ORAK_STREET_FIGHTER_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_SLAY_THE_SPIRE:
+        return ORAK_SLAY_THE_SPIRE_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_DARKEST_DUNGEON:
+        return ORAK_DARKEST_DUNGEON_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_PWAAT:
+        return ORAK_PWAAT_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_HER_STORY:
+        return ORAK_HER_STORY_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_MINECRAFT:
+        return ORAK_MINECRAFT_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_STARDEW_VALLEY:
+        return ORAK_STARDEW_VALLEY_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK_BABA_IS_YOU:
+        return ORAK_BABA_IS_YOU_USER_TEMPLATE.format(state=state_nl)
+    if game == GAME_ORAK:
+        return GAMINGAGENT_USER_TEMPLATE.format(state=state_nl)
     return OVERCOOKED_USER_TEMPLATE.format(state=state_nl)
 
 
@@ -472,9 +779,9 @@ def _parse_valid_actions_from_state(state_nl: str) -> List[str]:
 
 def _extract_gamingagent_action(text: str, state_nl: str) -> Optional[str]:
     """Extract one valid GamingAgent action from model reply."""
-    if not text or not isinstance(text, str):
-        return None
     valid = _parse_valid_actions_from_state(state_nl)
+    if not text or not isinstance(text, str):
+        return valid[0] if valid else None
     reply = text.strip().lower()
     words = re.findall(r"[\w_]+", reply)
     for w in words:
@@ -536,6 +843,190 @@ def _extract_videogamebench_dos_action(text: str) -> Optional[str]:
         if w in key_map:
             return key_map[w]
     return "Space"
+
+
+def _extract_orak_starcraft_action(text: str) -> Optional[str]:
+    """Extract StarCraft II multi-action string (5 numbered actions)."""
+    if not text or not isinstance(text, str):
+        return "1: TRAIN PROBE\n2: BUILD PYLON\n3: EMPTY ACTION\n4: EMPTY ACTION\n5: EMPTY ACTION"
+    pattern = r"\d+:\s*<?([^>\n]+)>?"
+    matches = re.findall(pattern, text)
+    if matches:
+        actions = [m.strip() for m in matches[:5]]
+        while len(actions) < 5:
+            actions.append("EMPTY ACTION")
+        return "\n".join(f"{i+1}: {a}" for i, a in enumerate(actions))
+    return text.strip()
+
+
+def _extract_orak_mario_action(text: str) -> Optional[str]:
+    """Extract Super Mario jump level."""
+    if not text:
+        return "Jump Level : 0"
+    m = re.search(r"[Jj]ump\s*[Ll]evel\s*[:\-]\s*(\d)", text)
+    if m:
+        return f"Jump Level : {m.group(1)}"
+    digits = re.findall(r"\d", text)
+    for d in digits:
+        if d in "0123456":
+            return f"Jump Level : {d}"
+    return "Jump Level : 0"
+
+
+def _extract_orak_pokemon_action(text: str) -> Optional[str]:
+    """Extract Pokemon Red action or tool call."""
+    if not text:
+        return "a"
+    stripped = text.strip()
+    basic = ["up", "down", "left", "right", "a", "b", "start", "select"]
+    for b in basic:
+        if stripped.lower() == b:
+            return b
+    if "use_tool" in stripped or "move_to" in stripped or "interact_with" in stripped:
+        return stripped
+    if "continue_dialog" in stripped:
+        return stripped
+    for b in basic:
+        if b in stripped.lower():
+            return b
+    return stripped
+
+
+def _extract_orak_2048_action(text: str) -> Optional[str]:
+    """Extract 2048 direction."""
+    if not text:
+        return "up"
+    lower = text.strip().lower()
+    for d in ["up", "down", "left", "right"]:
+        if d in lower:
+            return d
+    return "up"
+
+
+def _extract_orak_street_fighter_action(text: str) -> Optional[str]:
+    """Extract Street Fighter move name."""
+    if not text:
+        return "Move Closer"
+    moves = [
+        "Move Closer", "Move Away", "Fireball", "Megapunch", "Hurricane",
+        "Low Kick", "Medium Kick", "High Kick", "Jump Closer", "Jump Away",
+        "Crouch", "Block", "Low Punch", "Medium Punch", "High Punch",
+    ]
+    lower = text.strip().lower()
+    for m in moves:
+        if m.lower() in lower:
+            return m
+    return text.strip() if text.strip() else "Move Closer"
+
+
+def _extract_orak_slay_the_spire_action(text: str) -> Optional[str]:
+    """Extract Slay the Spire action (PLAY/END/CHOOSE/SKIP)."""
+    if not text:
+        return "END"
+    stripped = text.strip()
+    if re.match(r"(?i)play\s+\d+", stripped):
+        return stripped.upper()
+    if re.match(r"(?i)end", stripped):
+        return "END"
+    if re.match(r"(?i)choose\s+\d+", stripped):
+        return stripped.upper()
+    if re.match(r"(?i)skip", stripped):
+        return "SKIP"
+    m = re.search(r"(PLAY\s+\d+(?:\s+\d+)?|END|CHOOSE\s+\d+|SKIP)", stripped, re.IGNORECASE)
+    if m:
+        return m.group(1).upper()
+    return stripped
+
+
+def _extract_orak_darkest_dungeon_action(text: str) -> Optional[str]:
+    """Extract Darkest Dungeon combat action."""
+    if not text:
+        return "idle"
+    lower = text.strip().lower()
+    if "idle" in lower or "skip" in lower or "pass" in lower:
+        return "idle"
+    if re.search(r"attack\s+target\s+\d+\s+using\s+skill\s+slot\s+\d+", lower):
+        return text.strip()
+    if re.search(r"heal\s+target\s+\d+\s+using\s+skill\s+slot\s+\d+", lower):
+        return text.strip()
+    if re.search(r"swap\s+rank\s+\d+", lower):
+        return text.strip()
+    if "attack" in lower:
+        return text.strip()
+    if "heal" in lower:
+        return text.strip()
+    return text.strip() if text.strip() else "idle"
+
+
+def _extract_orak_pwaat_action(text: str) -> Optional[str]:
+    """Extract Ace Attorney action (Ok/Back/Present/Press/option index)."""
+    if not text:
+        return "Ok"
+    stripped = text.strip()
+    lower = stripped.lower()
+    actions = ["ok", "back", "down", "up", "left", "right", "press"]
+    for a in actions:
+        if lower == a:
+            return a.capitalize() if a != "ok" else "Ok"
+    if "present" in lower:
+        return stripped
+    m = re.search(r"(\d+)", stripped)
+    if m:
+        return m.group(1)
+    return stripped if stripped else "Ok"
+
+
+def _extract_orak_her_story_action(text: str) -> Optional[str]:
+    """Extract Her Story action (Search/Play Video)."""
+    if not text:
+        return "Search murder"
+    stripped = text.strip()
+    if re.match(r"(?i)search\s+.+", stripped):
+        return stripped
+    if re.match(r"(?i)play\s+video\s+\d+", stripped):
+        return stripped
+    m = re.search(r"(?i)(search\s+\S+|play\s+video\s+\d+)", stripped)
+    if m:
+        return m.group(1)
+    return f"Search {stripped}" if stripped else "Search murder"
+
+
+def _extract_orak_minecraft_action(text: str) -> Optional[str]:
+    """Extract Minecraft JavaScript code action."""
+    if not text:
+        return 'async function action(bot) { await bot.chat("hello"); }'
+    m = re.search(r"```(?:javascript|js)?\s*\n?(.*?)```", text, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    return text.strip()
+
+
+def _extract_orak_stardew_valley_action(text: str) -> Optional[str]:
+    """Extract Stardew Valley skill list."""
+    if not text:
+        return '["till_soil"]'
+    m = re.search(r"\[.*?\]", text, re.DOTALL)
+    if m:
+        return m.group(0)
+    return text.strip()
+
+
+def _extract_orak_baba_is_you_action(text: str) -> Optional[str]:
+    """Extract Baba Is You movement actions."""
+    if not text:
+        return "idle"
+    lower = text.strip().lower()
+    valid = ["idle", "left", "right", "up", "down"]
+    for v in valid:
+        if lower == v or lower.startswith(v):
+            return lower
+    m = re.findall(r"(idle|left|right|up|down)(?:\s+(\d+))?", lower)
+    if m:
+        parts = []
+        for direction, count in m:
+            parts.append(f"{direction} {count}" if count else direction)
+        return "\n".join(parts)
+    return text.strip() if text.strip() else "idle"
 
 
 def _extract_diplomacy_orders(text: str) -> List[str]:
@@ -605,21 +1096,78 @@ def extract_action(text: str, game: str, state_nl: str = "") -> Union[str, List[
         return _extract_videogamebench_action(text)
     if game == GAME_VIDEOGAMEBENCH_DOS:
         return _extract_videogamebench_dos_action(text)
+    if game == GAME_ORAK_STARCRAFT:
+        return _extract_orak_starcraft_action(text)
+    if game == GAME_ORAK_MARIO:
+        return _extract_orak_mario_action(text)
+    if game == GAME_ORAK_POKEMON:
+        return _extract_orak_pokemon_action(text)
+    if game == GAME_ORAK_2048:
+        return _extract_orak_2048_action(text)
+    if game == GAME_ORAK_STARCRAFT_MULTI:
+        return _extract_orak_starcraft_action(text)
+    if game == GAME_ORAK_STREET_FIGHTER:
+        return _extract_orak_street_fighter_action(text)
+    if game == GAME_ORAK_SLAY_THE_SPIRE:
+        return _extract_orak_slay_the_spire_action(text)
+    if game == GAME_ORAK_DARKEST_DUNGEON:
+        return _extract_orak_darkest_dungeon_action(text)
+    if game == GAME_ORAK_PWAAT:
+        return _extract_orak_pwaat_action(text)
+    if game == GAME_ORAK_HER_STORY:
+        return _extract_orak_her_story_action(text)
+    if game == GAME_ORAK_MINECRAFT:
+        return _extract_orak_minecraft_action(text)
+    if game == GAME_ORAK_STARDEW_VALLEY:
+        return _extract_orak_stardew_valley_action(text)
+    if game == GAME_ORAK_BABA_IS_YOU:
+        return _extract_orak_baba_is_you_action(text)
+    if game == GAME_ORAK:
+        return _extract_gamingagent_action(text, state_nl)
     return _extract_overcooked_action(text)
 
 
-def _default_action(game: str) -> Union[str, List[str]]:
+def _default_action(game: str, state_nl: str = "") -> Union[str, List[str]]:
     """Return a safe default/fallback action for the given game."""
     if game == GAME_AVALON:
         return "approve"
     if game == GAME_DIPLOMACY:
         return []
     if game == GAME_GAMINGAGENT:
-        return "stay"  # Generic; env may have different default
+        valid = _parse_valid_actions_from_state(state_nl) if state_nl else []
+        return valid[0] if valid else "up"
     if game == GAME_VIDEOGAMEBENCH:
         return "no-op"
     if game == GAME_VIDEOGAMEBENCH_DOS:
         return "Space"
+    if game == GAME_ORAK_STARCRAFT:
+        return "1: TRAIN PROBE\n2: BUILD PYLON\n3: EMPTY ACTION\n4: EMPTY ACTION\n5: EMPTY ACTION"
+    if game == GAME_ORAK_MARIO:
+        return "Jump Level : 3"
+    if game == GAME_ORAK_POKEMON:
+        return "a"
+    if game == GAME_ORAK_2048:
+        return "down"
+    if game == GAME_ORAK_STARCRAFT_MULTI:
+        return "1: TRAIN PROBE\n2: BUILD PYLON\n3: EMPTY ACTION\n4: EMPTY ACTION\n5: EMPTY ACTION"
+    if game == GAME_ORAK_STREET_FIGHTER:
+        return "Move Closer"
+    if game == GAME_ORAK_SLAY_THE_SPIRE:
+        return "END"
+    if game == GAME_ORAK_DARKEST_DUNGEON:
+        return "idle"
+    if game == GAME_ORAK_PWAAT:
+        return "Ok"
+    if game == GAME_ORAK_HER_STORY:
+        return "Search murder"
+    if game == GAME_ORAK_MINECRAFT:
+        return 'async function action(bot) { await bot.chat("hello"); }'
+    if game == GAME_ORAK_STARDEW_VALLEY:
+        return '["till_soil"]'
+    if game == GAME_ORAK_BABA_IS_YOU:
+        return "right"
+    if game == GAME_ORAK:
+        return "up"
     return "stay"
 
 
@@ -655,7 +1203,7 @@ def ask_model_action(
 
     prompt = _get_user_prompt(state_nl, game)
     if ask_model is None:
-        return _default_action(game)
+        return _default_action(game, state_nl)
 
     reply = ask_model(
         prompt,
@@ -665,7 +1213,7 @@ def ask_model_action(
     )
 
     action = extract_action(reply, game, state_nl)
-    return action if action is not None else _default_action(game)
+    return action if action is not None else _default_action(game, state_nl)
 
 
 # ---------------------------------------------------------------------------
@@ -844,10 +1392,17 @@ def ask_gpt_function_action(
     if game is None:
         game = detect_game(state_nl)
 
-    if openai is None or openai_api_key is None:
+    use_router = open_router_api_key and open_router_api_key.strip()
+    if openai is None or (not use_router and openai_api_key is None):
         return ask_model_action(state_nl, game=game, model=model, temperature=temperature)
 
-    openai.api_key = openai_api_key
+    client_kw = {}
+    if use_router:
+        client_kw = {"base_url": OPENROUTER_BASE, "api_key": open_router_api_key.strip()}
+        openrouter_model = model if "/" in model else f"openai/{model}"
+        model = openrouter_model
+    else:
+        openai.api_key = openai_api_key
 
     system_prompt = _get_system_prompt(game)
     user_content = _get_user_prompt(state_nl, game)
@@ -879,17 +1434,31 @@ def ask_gpt_function_action(
         result_key = "action"
 
     try:
-        response = openai.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            tools=tools,
-            tool_choice={"type": "function", "function": {"name": func_name}},
-            temperature=temperature,
-            max_tokens=300,
-        )
+        if client_kw:
+            client = openai.OpenAI(**client_kw)
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+                tools=tools,
+                tool_choice={"type": "function", "function": {"name": func_name}},
+                temperature=temperature,
+                max_tokens=300,
+            )
+        else:
+            response = openai.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+                tools=tools,
+                tool_choice={"type": "function", "function": {"name": func_name}},
+                temperature=temperature,
+                max_tokens=300,
+            )
         msg = response.choices[0].message
 
         if msg.tool_calls and len(msg.tool_calls) > 0:
@@ -933,7 +1502,7 @@ def ask_gpt_function_action(
 
         # Fallback: parse content
         action = extract_action(msg.content or "", game, state_nl)
-        return action if action is not None else _default_action(game)
+        return action if action is not None else _default_action(game, state_nl)
 
     except Exception:
         return ask_model_action(state_nl, game=game, model=model, temperature=temperature)
@@ -974,7 +1543,7 @@ def language_agent_action(
     if game is None:
         game = detect_game(state_nl)
 
-    if use_function_call and openai is not None and openai_api_key is not None:
+    if use_function_call and openai is not None and ((open_router_api_key and open_router_api_key.strip()) or openai_api_key is not None):
         return ask_gpt_function_action(
             state_nl,
             game=game,

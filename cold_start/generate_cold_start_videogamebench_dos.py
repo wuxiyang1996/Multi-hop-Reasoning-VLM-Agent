@@ -9,7 +9,7 @@ be ingested by the skill pipeline and trainer.
 
 Usage (from Game-AI-Agent root):
 
-    export OPENAI_API_KEY="sk-..."
+    export OPENROUTER_API_KEY="sk-or-..."  # or set open_router_api_key in api_keys.py
     export PYTHONPATH="$(pwd):$(pwd)/../videogamebench:$PYTHONPATH"
 
     # 5 episodes per DOS game, GPT-5-mini (default)
@@ -354,9 +354,15 @@ def main():
     output_dir = Path(args.output_dir) if args.output_dir else DEFAULT_OUTPUT_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    if not os.environ.get("OPENAI_API_KEY"):
-        print("[WARNING] OPENAI_API_KEY not set. LLM calls will fail.")
-        print("  Set it with: export OPENAI_API_KEY='sk-...'")
+    try:
+        from api_keys import open_router_api_key
+        has_key = bool(os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY") or (open_router_api_key and open_router_api_key.strip()))
+    except Exception:
+        has_key = bool(os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY"))
+    if not has_key:
+        print("[WARNING] No API key set. LLM calls will fail.")
+        print("  Prefer: open_router_api_key in api_keys.py or export OPENROUTER_API_KEY='sk-or-...'")
+        print("  Or: export OPENAI_API_KEY='sk-...'")
 
     DOSGameServer, DOSGameInterface, GAME_URL_MAP = _get_dos_env()
     if DOSGameServer is None or GAME_URL_MAP is None:

@@ -1,35 +1,49 @@
-# This file is to define the API calling functions for the agent, create a general function for each model 
-# By default, we will use ask_model function to call the API. All test cases will be done using GPT-4o-mini.
+# This file is to define the API calling functions for the agent, create a general function for each model
+# By default, we use OpenRouter when open_router_api_key is set (cold-start, ask_model, etc.); else OpenAI.
 
 import openai
 from anthropic import Anthropic
 from google import genai
-from api_keys import openai_api_key, claude_api_key, gemini_api_key
+from api_keys import openai_api_key, claude_api_key, gemini_api_key, open_router_api_key
+
+OPENROUTER_BASE = "https://openrouter.ai/api/v1"
+
+
+def ask_openrouter(question, model="openai/gpt-4o-mini", temperature=0.7, max_tokens=2000):
+    """
+    Ask a question via OpenRouter (unified API for GPT, Claude, Gemini, etc.).
+    Used by default for cold-start data gathering and ask_model when key is set.
+    """
+    if not (open_router_api_key and open_router_api_key.strip()):
+        return f"Error: OpenRouter API key not set. Set OPENROUTER_API_KEY or add open_router_api_key in api_keys.py."
+    try:
+        client = openai.OpenAI(base_url=OPENROUTER_BASE, api_key=open_router_api_key.strip())
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": question}],
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content or ""
+    except Exception as e:
+        return f"Error calling OpenRouter API: {str(e)}"
 
 
 def ask_gpt(question, model="gpt-4o", temperature=0.7, max_tokens=2000):
     """
-    Ask a question to GPT models using OpenAI API.
-    
-    Args:
-        question (str): The question to ask
-        model (str): The GPT model to use (default: "gpt-4o")
-        temperature (float): Sampling temperature (default: 0.7)
-        max_tokens (int): Maximum tokens in response (default: 2000)
-    
-    Returns:
-        str: The generated answer
+    Ask a question to GPT models. Uses OpenRouter when open_router_api_key is set (default in this repo).
     """
+    if open_router_api_key and open_router_api_key.strip():
+        # Prefer OpenRouter so one key is used for cold-start, etc.
+        openrouter_model = model if "/" in model else f"openai/{model}"
+        return ask_openrouter(question, model=openrouter_model, temperature=temperature, max_tokens=max_tokens)
     openai.api_key = openai_api_key
-    
     try:
         response = openai.chat.completions.create(
             model=model,
-            messages=[
-                {"role": "user", "content": question}
-            ],
+            messages=[{"role": "user", "content": question}],
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -113,15 +127,13 @@ def ask_model(question, model=None, temperature=0.7, max_tokens=2000):
     Returns:
         str: The generated answer
     """
-    # Default model if none specified
+    # Default model if none specified (routed via OpenRouter when key is set)
     if model is None:
         model = "gpt-4o"
-    
-    # Determine which API to use based on model name
     model_lower = model.lower()
-    
+
+    # GPT-style models: use ask_gpt (which uses OpenRouter when open_router_api_key is set)
     if "gpt" in model_lower or model_lower.startswith("o1"):
-        # OpenAI GPT models
         return ask_gpt(question, model=model, temperature=temperature, max_tokens=max_tokens)
     
     elif "claude" in model_lower:

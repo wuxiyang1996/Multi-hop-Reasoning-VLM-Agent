@@ -13,8 +13,10 @@ Generate initial trajectory data and skill seeds for the Game-AI-Agent system.
 # 1. Activate the cold-start conda environment
 conda activate cold-start-agent
 
-# 2. Set your OpenAI API key
-export OPENAI_API_KEY="sk-..."
+# 2. Set your API key (prefer OpenRouter; used for cold-start and ask_model)
+# Option A: open_router_api_key in api_keys.py (recommended)
+# Option B: export OPENROUTER_API_KEY="sk-or-..."
+# Option C: export OPENAI_API_KEY="sk-..."
 
 # 3. Set PYTHONPATH (from Game-AI-Agent root)
 cd /path/to/Game-AI-Agent
