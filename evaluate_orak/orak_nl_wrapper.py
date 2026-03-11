@@ -221,6 +221,7 @@ class OrakNLWrapper:
         if self._include_action_hint and self._action_names:
             if self._game_name in ("star_craft", "star_craft_multi"):
                 nl += "\n\nProvide exactly 5 actions in the format:\n1: <ACTION>\n2: <ACTION>\n...\n5: <ACTION>"
+                nl += f"\n\nValid actions: {', '.join(a for a in self._action_names if a != 'EMPTY ACTION')}, EMPTY ACTION"
             elif self._game_name == "slay_the_spire":
                 nl += "\n\nChoose: PLAY <card_idx> [target_idx], END, CHOOSE <idx>, or SKIP."
             elif self._game_name == "minecraft":
@@ -256,6 +257,16 @@ class OrakNLWrapper:
 
             obs_text = _obs_to_text(obs_obj, self._env)
 
+        # SC2: the bot's first on_step() hasn't run yet, so the initial
+        # observation is empty.  Do one warmup step with EMPTY ACTIONs to
+        # get the real first game state from the running SC2 process.
+        if not obs_text.strip() and self._game_name in ("star_craft", "star_craft_multi"):
+            n_actions = getattr(self._env, "num_actions", 5)
+            empty_actions = "\n".join(f"{i}: EMPTY ACTION" for i in range(1, n_actions + 1))
+            warmup_nl, _, _, _, warmup_info = self.step(empty_actions)
+            self._step_count = 0
+            return warmup_nl, warmup_info
+
         nl = self._format_obs(obs_text)
 
         game_info = {}
@@ -289,7 +300,15 @@ class OrakNLWrapper:
             score, done = self._env.evaluate(obs_obj)
             obs_text = _obs_to_text(obs_obj, self._env)
 
-        reward = float(score) if score else float(reward_raw or 0)
+        # SC2 evaluate() returns (result_name, done) where result_name is
+        # a string like "Victory"/"Defeat"/"Tie" or None while in progress.
+        if isinstance(score, str):
+            _SC2_RESULT_MAP = {"Victory": 100.0, "Defeat": 0.0, "Tie": 50.0}
+            reward = _SC2_RESULT_MAP.get(score, 0.0)
+        elif score is not None:
+            reward = float(score)
+        else:
+            reward = float(reward_raw or 0)
 
         self._step_count += 1
         self._last_reward = reward
@@ -371,4 +390,13 @@ def make_orak_env(
 
     env = EnvCreator(cfg).create()
 
-    return OrakNLWrapper(env, game_name=game_name, max_steps=max_steps)
+    wrapper = OrakNLWrapper(env, game_name=game_name, max_steps=max_steps)
+
+    # Use the real action space from the env when available (e.g. SC2 has 72
+    # Protoss actions vs the 15-action subset in ORAK_GAMES).
+    if hasattr(env, "action_dict") and env.action_dict:
+        wrapper._action_names = sorted(
+            env.action_dict.keys(), key=lambda a: env.action_dict[a]
+        )
+
+    return wrapper
