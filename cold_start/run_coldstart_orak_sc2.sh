@@ -8,9 +8,10 @@
 # Usage:
 #   bash cold_start/run_coldstart_orak_sc2.sh                       # 10 episodes (default)
 #   bash cold_start/run_coldstart_orak_sc2.sh --episodes 3 -v       # quick test
-#   bash cold_start/run_coldstart_orak_sc2.sh --workers 4           # 4 parallel SC2 instances
+#   (SC2 is always 1 worker; --workers has no effect for star_craft)
+#   bash cold_start/run_coldstart_orak_sc2.sh --model gpt-5.4      # use GPT-5.4 instead of gpt-5-mini
 #   bash cold_start/run_coldstart_orak_sc2.sh --resume              # resume interrupted run
-#   bash cold_start/run_coldstart_orak_sc2.sh --help                # all options
+#   bash cold_start/run_coldstart_orak_sc2.sh --help               # all options
 #
 # All extra arguments are forwarded to generate_cold_start_orak.py.
 
@@ -73,6 +74,7 @@ fi
 
 python "${SCRIPT_DIR}/generate_cold_start_orak.py" \
     --games star_craft \
+    --model gpt-5-mini \
     "${EXTRA_ARGS[@]}"
 
 # ── Post-run ───────────────────────────────────────────────────────────────

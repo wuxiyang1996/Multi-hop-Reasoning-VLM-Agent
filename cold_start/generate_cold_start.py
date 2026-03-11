@@ -173,9 +173,11 @@ def _pokemon_red_kwargs(cache_dir: str, config_path: str) -> Dict[str, Any]:
     try:
         with open(config_path) as _f:
             _cfg = _json.load(_f)
-            rom_path = _cfg.get("rom_path")
+            rom_path = _cfg.get("env_init_kwargs", {}).get("rom_path")
     except Exception:
         pass
+    if rom_path and not os.path.isabs(rom_path):
+        rom_path = str(GAMINGAGENT_ROOT / rom_path)
     kwargs: Dict[str, Any] = dict(
         render_mode=None,
         observation_mode_for_adapter="text",
@@ -401,6 +403,7 @@ COLD_START_MAX_STEPS_NATURAL_END: Dict[str, int] = {
     "sokoban": 200,
     "candy_crush": 50,
     "tetris": 200,
+    "pokemon_red": 500,
 }
 
 

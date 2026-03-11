@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
@@ -59,6 +60,14 @@ ORAK_SRC = CODEBASE_ROOT.parent / "Orak" / "src"
 for _p in [str(CODEBASE_ROOT), str(ORAK_SRC)]:
     if Path(_p).exists() and _p not in sys.path:
         sys.path.insert(0, _p)
+
+# Quiet SC2 library logs (protocol, controller, main) so cold-start runs are readable
+logging.getLogger("sc2").setLevel(logging.WARNING)
+try:
+    import loguru
+    loguru.logger.disable("sc2")
+except Exception:
+    pass
 
 # ---------------------------------------------------------------------------
 # Imports
@@ -249,6 +258,37 @@ def _build_tools_sc2(action_names: List[str]) -> list:
 
 
 # ---------------------------------------------------------------------------
+# Safe tool-call argument parsing (handles truncated/malformed JSON from LLM)
+# ---------------------------------------------------------------------------
+
+def _parse_tool_args(raw: str) -> Dict[str, Any]:
+    """Parse tool call arguments JSON; on failure try to fix or extract known keys."""
+    if not raw or not isinstance(raw, str):
+        return {}
+    raw = raw.strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+    # Try to fix unterminated string: close string and object if we're inside "..."
+    try:
+        in_str = raw.rfind('"')
+        if in_str > 0 and raw.count('"') % 2 == 1:
+            attempt = raw + '"}' if not raw.rstrip().endswith("}") else raw + '"'
+            return json.loads(attempt)
+    except json.JSONDecodeError:
+        pass
+    # Extract "key": "value" for known keys (handles truncated/malformed JSON)
+    out: Dict[str, Any] = {}
+    for key in ["reasoning", "action", "action_1", "action_2", "action_3", "action_4", "action_5"]:
+        pat = re.compile(rf'"{re.escape(key)}"\s*:\s*"((?:[^"\\]|\\.)*)"', re.DOTALL)
+        m = pat.search(raw)
+        if m:
+            out[key] = m.group(1).replace("\\n", "\n").replace('\\"', '"').strip()
+    return out
+
+
+# ---------------------------------------------------------------------------
 # GPT-5.4 agent action functions
 # ---------------------------------------------------------------------------
 
@@ -279,7 +319,7 @@ def gpt54_mario_action(
         if msg.tool_calls:
             raw = getattr(msg.tool_calls[0], "arguments", None) or \
                   getattr(msg.tool_calls[0].function, "arguments", None) or "{}"
-            args = json.loads(raw) if isinstance(raw, str) else (raw or {})
+            args = _parse_tool_args(raw) if isinstance(raw, str) else (raw or {})
             return _canonicalize(args.get("action", ""), action_names), args.get("reasoning")
         return _canonicalize(msg.content or "", action_names), None
     except Exception as exc:
@@ -315,14 +355,14 @@ def gpt54_sc2_action(
         if msg.tool_calls:
             raw = getattr(msg.tool_calls[0], "arguments", None) or \
                   getattr(msg.tool_calls[0].function, "arguments", None) or "{}"
-            args = json.loads(raw) if isinstance(raw, str) else (raw or {})
+            args = _parse_tool_args(raw) if isinstance(raw, str) else (raw or {})
             reasoning = args.get("reasoning")
             acts = [_canonicalize(args.get(f"action_{i}", default), action_names) for i in range(1, 6)]
             return "\n".join(f"{i}: {a}" for i, a in enumerate(acts, 1)), reasoning
         content = msg.content or ""
         return content.strip() or "\n".join(f"{i}: {default}" for i in range(1, 6)), None
     except Exception as exc:
-        print(f"    [WARN] GPT-5.4 SC2 call failed ({exc}), fallback")
+        print(f"    [WARN] SC2 call failed ({exc}), fallback")
         return "\n".join(f"{i}: {default}" for i in range(1, 6)), None
 
 
@@ -534,6 +574,10 @@ def run_game_rollouts(
     t0 = time.time()
 
     workers = getattr(args, "workers", 1) or 1
+    # StarCraft II env spawns one SC2 process per episode; multiple instances hang (port/single-binary).
+    if game_name in ("star_craft", "star_craft_multi") and workers > 1:
+        print(f"  [NOTE] StarCraft II uses 1 worker only (multiple SC2 instances would hang).")
+        workers = 1
     io_lock = Lock()
 
     if workers > 1:

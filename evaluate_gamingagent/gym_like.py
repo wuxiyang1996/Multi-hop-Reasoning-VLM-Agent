@@ -39,6 +39,7 @@ GAME_CONFIG_MAPPING = {
     "sokoban": "custom_02_sokoban",
     "candy_crush": "custom_03_candy_crush",
     "tetris": "custom_04_tetris",
+    "pokemon_red": "custom_06_pokemon_red",
     "tictactoe": "zoo_01_tictactoe",
     "texasholdem": "zoo_02_texasholdem",
 }
@@ -302,6 +303,32 @@ def make_gaming_env(
                 "max_unchanged_steps_for_termination", 30
             ),
             **common_adapter_kw,
+        )
+
+    elif game == "pokemon_red":
+        from gamingagent.envs.custom_06_pokemon_red.pokemonRedEnv import (
+            PokemonRedEnv,
+        )
+        init_kw = config.get("env_init_kwargs", {})
+        rom_path = init_kw.get("rom_path", "")
+        if rom_path and not os.path.isabs(rom_path):
+            rom_path = str(_GAMINGAGENT_ROOT / rom_path)
+        if not os.path.isfile(rom_path):
+            raise FileNotFoundError(
+                f"Pokemon Red ROM not found at '{rom_path}'. "
+                f"Place the .gb ROM at {_GAMINGAGENT_ROOT / 'gamingagent' / 'configs' / 'custom_06_pokemon_red' / 'rom' / 'pokemon.gb'}"
+            )
+        env = PokemonRedEnv(
+            render_mode=None,
+            rom_path=rom_path,
+            sound=init_kw.get("sound", False),
+            game_name_for_adapter=game,
+            observation_mode_for_adapter=observation_mode,
+            agent_cache_dir_for_adapter=cache_dir,
+            game_specific_config_path_for_adapter=config_path,
+            max_stuck_steps_for_adapter=config.get(
+                "max_unchanged_steps_for_termination", 100
+            ),
         )
 
     elif game == "tictactoe":

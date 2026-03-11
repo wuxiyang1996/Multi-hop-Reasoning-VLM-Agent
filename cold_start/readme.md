@@ -4,7 +4,7 @@ Generate initial trajectory data and skill seeds for the Game-AI-Agent system.
 
 ## Scope: Environments and Games We Use
 
-We have **three** cold-start generators covering **8 games** across three environment stacks:
+We have **four** cold-start generators covering **9 games** across three environment stacks:
 
 ### 1. LMGame-Bench (`generate_cold_start_gpt54.py`)
 
@@ -29,7 +29,15 @@ We have **three** cold-start generators covering **8 games** across three enviro
 | 7 | **Super Mario** | `super_mario` | `Jump Level : 0` … `6` |
 | 8 | **StarCraft II** | `star_craft` | 5 macro actions per step (e.g. `TRAIN ZEALOT`) |
 
-Other envs and games (e.g. Doom, Pokemon Red, Super Mario Bros, Ace Attorney, 1942, Tic-Tac-Toe, Texas Hold'em from the full LMGame-Bench set) are **not available** in our setup.
+### 4. Pokemon Red — Orak (`generate_cold_start_pokemon_red.py`)
+
+| # | Game | Registry Key | Actions |
+|---|------|--------------|---------|
+| 9 | **Pokemon Red** | `pokemon_red` | High-level tools: `move_to`, `warp_with_warp_point`, `continue_dialog`, `select_move_in_battle`, etc.; raw buttons: `up`/`down`/`left`/`right`/`a`/`b` |
+
+Uses the **Orak** Pokemon Red environment and toolset (PyBoy + `pokered` map data). Text-only (no screens). See [Pokemon Red cold-start](#pokemon-red-rollouts--orak) below.
+
+Other envs and games (e.g. Doom, Ace Attorney, 1942, Tic-Tac-Toe, Texas Hold'em from the full LMGame-Bench set) are **not available** in our setup.
 
 ### End conditions (how episodes terminate)
 
@@ -45,6 +53,7 @@ All cold-start generators use the **natural end condition** of each game engine.
 | **Diplomacy** | Solo victory (`game.is_game_done`) or 20 phases elapsed (`DiplomacyConfig.max_phases = 20`). | `DiplomacyNLWrapper.done` |
 | **Super Mario** | Level complete or game over; capped at 100 steps. | Orak env |
 | **StarCraft II** | Game victory/defeat; capped at 1000 steps. | Orak env |
+| **Pokemon Red** | Whiteout (all party HP=0); no progress (80 steps same location); Orak 12-milestone completion; or max_steps. | Orak env + cold-start script |
 
 ## Goal
 
@@ -184,6 +193,31 @@ bash cold_start/run_coldstart_orak_sc2.sh --episodes 5
 
 Output: `cold_start/output/gpt54_orak/<game_name>/`
 
+## Pokemon Red Rollouts — Orak
+
+Pokemon Red cold-start uses the **Orak** environment and toolset (PyBoy emulator, text-only state). It requires:
+
+1. **ROM**: A `.gb` ROM (e.g. `Pokemon - Red Version (USA, Europe).gb`). A symlink is typically used at `GamingAgent/gamingagent/configs/custom_06_pokemon_red/rom/pokemon.gb`.
+2. **PyBoy**: `pip install pyboy==2.5.2`
+3. **Map data**: The `pokered` disassembly must be cloned and processed so navigation tools (`move_to`, `warp_with_warp_point`, etc.) work:
+   - Clone: `game_agent/Orak/src/mcp_game_servers/pokemon_red/game/pokered` from [pret/pokered](https://github.com/pret/pokered).
+   - From Orak root: `python3 src/mcp_game_servers/pokemon_red/game/utils/map_preprocess.py` to generate `processed_map/` (and fix case symlinks if needed for Linux).
+
+```bash
+# From Game-AI-Agent root
+bash cold_start/run_coldstart_pokemon_red.sh --episodes 3 --max_steps 200 --verbose --no_label
+
+# With custom ROM path
+bash cold_start/run_coldstart_pokemon_red.sh --episodes 5 --max_steps 500 --rom_path /path/to/pokemon.gb
+
+# Resume interrupted run
+bash cold_start/run_coldstart_pokemon_red.sh --episodes 10 --resume --no_label
+```
+
+Output: `cold_start/output/gpt54_pokemon_red/pokemon_red/`
+
+Natural termination: whiteout, no-progress cap (80 steps same location), Orak 12-milestone score completion, or `--max_steps`.
+
 ## Output Structure
 
 All generators produce the same directory layout per game:
@@ -196,7 +230,7 @@ cold_start/output/<suite>/<game_name>/
 └── rollout_summary.json                     # Per-game stats
 ```
 
-Suites: `gpt54/` (LMGame-Bench), `gpt54_evolver/` (Avalon/Diplomacy), `gpt54_orak/` (Mario/StarCraft).
+Suites: `gpt54/` (LMGame-Bench), `gpt54_evolver/` (Avalon/Diplomacy), `gpt54_orak/` (Mario/StarCraft), `gpt54_pokemon_red/` (Pokemon Red via Orak).
 
 A `batch_rollout_summary.json` sits at the suite root with cross-game stats.
 

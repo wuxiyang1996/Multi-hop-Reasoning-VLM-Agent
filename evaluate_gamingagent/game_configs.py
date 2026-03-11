@@ -96,10 +96,10 @@ GAME_CONFIGS: Dict[str, GameConfig] = {
         category="custom",
         max_steps=200,
         episodes=1,
-        available=False,
+        available=True,
         rom_required=True,
         description="Navigate the world of Pokemon Red (Game Boy)",
-        notes="Requires Pokemon Red .gb ROM file + PyBoy",
+        notes="Requires Pokemon Red .gb ROM file + PyBoy; ROM at GamingAgent/gamingagent/configs/custom_06_pokemon_red/rom/pokemon.gb",
     ),
 
     # ── Retro games ─────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ This module provides a Gymnasium-compatible wrapper around native GamingAgent en
 
 ## Game Inventory
 
-LMGame-Bench contains **11 games** across 3 categories. **6 are included** in the training benchmark:
+LMGame-Bench contains **11 games** across 3 categories. **7 are included** in the training benchmark:
 
 | # | Game | Category | Actions | Status |
 |---|------|----------|---------|--------|
@@ -16,31 +16,32 @@ LMGame-Bench contains **11 games** across 3 categories. **6 are included** in th
 | 2 | **Sokoban** | custom | `up`, `down`, `left`, `right` | Available |
 | 3 | **Candy Crush** | custom | coordinate swaps, e.g. `((0,5),(1,5))` | Available |
 | 4 | **Tetris** | custom | `move_left`, `move_right`, `rotate_cw`, `rotate_ccw`, `hard_drop`, `soft_drop` | Available |
-| 5 | **Tic-Tac-Toe** | zoo | `place 0` .. `place 8` | Available |
-| 6 | **Texas Hold'em** | zoo | `call`, `raise`, `fold`, `check` | Available |
+| 5 | **Pokemon Red** | custom | `a`, `b`, `start`, `select`, `up`, `down`, `left`, `right` | Available (ROM) |
+| 6 | **Tic-Tac-Toe** | zoo | `place 0` .. `place 8` | Available |
+| 7 | **Texas Hold'em** | zoo | `call`, `raise`, `fold`, `check` | Available |
 
 ### Excluded Games
 
 | Game | Reason |
 |------|--------|
 | Doom (Basic) | Text-only mode too limited for meaningful training |
-| Pokemon Red | Requires Game Boy ROM file (`.gb`) |
 | Super Mario Bros | Requires NES ROM via `stable-retro` |
 | Ace Attorney | Requires GBA ROM via `stable-retro` |
 | 1942 | Requires NES ROM via `stable-retro` |
 
 ## Scope of This Wrapper
 
-Due to environment complexity and availability constraints, this wrapper currently targets only the **4 custom-category games**:
+This wrapper targets the **5 custom-category games** and 2 zoo games:
 
-| # | Game | Actions |
-|---|------|---------|
-| 1 | **2048** | `up`, `down`, `left`, `right` |
-| 2 | **Sokoban** | `up`, `down`, `left`, `right` |
-| 3 | **Candy Crush** | coordinate swaps, e.g. `((0,5),(1,5))` |
-| 4 | **Tetris** | `move_left`, `move_right`, `rotate_cw`, `rotate_ccw`, `hard_drop`, `soft_drop` |
+| # | Game | Actions | Requirements |
+|---|------|---------|-------------|
+| 1 | **2048** | `up`, `down`, `left`, `right` | None |
+| 2 | **Sokoban** | `up`, `down`, `left`, `right` | None |
+| 3 | **Candy Crush** | coordinate swaps, e.g. `((0,5),(1,5))` | None |
+| 4 | **Tetris** | `move_left`, `move_right`, `rotate_cw`, `rotate_ccw`, `hard_drop`, `soft_drop` | None |
+| 5 | **Pokemon Red** | `a`, `b`, `start`, `select`, `up`, `down`, `left`, `right` | PyBoy + `.gb` ROM |
 
-These four games are fully self-contained (no ROMs, no external assets) and expose deterministic, text-representable state, making them straightforward to integrate into training and evaluation pipelines. The remaining games are either excluded entirely (ROM dependencies) or deferred (PettingZoo multi-agent environments) and may be added in future iterations.
+The first four games are fully self-contained. Pokemon Red requires `pyboy` and a Game Boy ROM placed at `GamingAgent/gamingagent/configs/custom_06_pokemon_red/rom/pokemon.gb`. The remaining games are either excluded entirely (ROM dependencies for retro games) or deferred (PettingZoo multi-agent environments) and may be added in future iterations.
 
 ## Module Structure
 
@@ -68,6 +69,18 @@ conda activate game-ai-agent
 #     GamingAgent/        <- reference repo (read-only)
 ```
 
+### Pokemon Red Setup (optional)
+
+```bash
+# Install PyBoy emulator
+pip install pyboy==2.5.2
+
+# Place the ROM (symlink or copy)
+mkdir -p ../GamingAgent/gamingagent/configs/custom_06_pokemon_red/rom
+ln -s /path/to/your/pokemon_red.gb \
+    ../GamingAgent/gamingagent/configs/custom_06_pokemon_red/rom/pokemon.gb
+```
+
 ### List All Games
 
 ```bash
@@ -77,7 +90,7 @@ python evaluate_gamingagent/run_benchmark.py --list
 ### Run the Full Benchmark
 
 ```bash
-# All 6 available games with GPT-5.4
+# All 7 available games with GPT-5.4
 python evaluate_gamingagent/run_benchmark.py --model gpt-5.4
 
 # Save results to JSON
@@ -188,7 +201,7 @@ When `--output` is specified, results are saved as JSON:
   "mode": "llm",
   "total_elapsed_s": 455.2,
   "total_games_in_benchmark": 11,
-  "games_run": 6,
+  "games_run": 7,
   "results": [
     {
       "game": "candy_crush",
