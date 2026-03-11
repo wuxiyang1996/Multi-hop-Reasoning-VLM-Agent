@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+gt#!/usr/bin/env python
 """
 Cold-start base agent using GPT-5.4 for LM-Game Bench (GamingAgent).
 
