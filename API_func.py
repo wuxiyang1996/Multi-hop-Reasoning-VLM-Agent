@@ -1,12 +1,16 @@
 # This file is to define the API calling functions for the agent, create a general function for each model
 # By default, we use OpenRouter when open_router_api_key is set (cold-start, ask_model, etc.); else OpenAI.
 
+import os
 import openai
 from anthropic import Anthropic
 from google import genai
 from api_keys import openai_api_key, claude_api_key, gemini_api_key, open_router_api_key
 
 OPENROUTER_BASE = "https://openrouter.ai/api/v1"
+
+VLLM_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
+VLLM_API_KEY = os.environ.get("VLLM_API_KEY", "EMPTY")
 
 
 def ask_openrouter(question, model="openai/gpt-4o-mini", temperature=0.7, max_tokens=2000):
@@ -109,6 +113,24 @@ def ask_gemini(question, model="gemini-2.5-flash", temperature=0.7, max_tokens=2
         return f"Error calling Gemini API: {str(e)}"
 
 
+def ask_vllm(question, model="Qwen/Qwen3-14B", temperature=0.7, max_tokens=2000):
+    """
+    Ask a question via a vLLM-served model using its OpenAI-compatible endpoint.
+    Configure the endpoint via VLLM_BASE_URL env var (default: http://localhost:8000/v1).
+    """
+    try:
+        client = openai.OpenAI(base_url=VLLM_BASE_URL, api_key=VLLM_API_KEY)
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": question}],
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content or ""
+    except Exception as e:
+        return f"Error calling vLLM API at {VLLM_BASE_URL}: {str(e)}"
+
+
 def ask_model(question, model=None, temperature=0.7, max_tokens=2000):
     """
     General function to ask any AI model a question.
@@ -144,5 +166,8 @@ def ask_model(question, model=None, temperature=0.7, max_tokens=2000):
         # Google Gemini models
         return ask_gemini(question, model=model, temperature=temperature, max_tokens=max_tokens)
     
+    elif "qwen" in model_lower or "vllm" in model_lower:
+        return ask_vllm(question, model=model, temperature=temperature, max_tokens=max_tokens)
+
     else:
-        return f"Error: Unknown model '{model}'. Please specify a GPT, Claude, or Gemini model."
+        return f"Error: Unknown model '{model}'. Please specify a GPT, Claude, Gemini, or Qwen model."

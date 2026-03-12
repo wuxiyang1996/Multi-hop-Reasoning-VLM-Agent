@@ -20,6 +20,7 @@ Usage:
     obs, reward, term, trunc, info = env.step("push up")
 """
 
+import ast
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -30,11 +31,11 @@ import numpy as np
 # Compact structured state summary (for agent context / retrieval)
 # ---------------------------------------------------------------------------
 
-# Lightweight game-type detectors applied to observation text
 _GAME_HINTS = [
     (re.compile(r"sokoban|box|wall|goal|push", re.I), "sokoban"),
     (re.compile(r"maze|corridor|exit", re.I), "maze"),
     (re.compile(r"tetris|block|rotate|drop", re.I), "tetris"),
+    (re.compile(r"2048|twenty.?forty.?eight|highest.?tile", re.I), "2048"),
     (re.compile(r"grid|tile|cell", re.I), "grid_game"),
 ]
 
@@ -55,6 +56,87 @@ def _extract_clauses(text: str, limit: int = 6) -> List[str]:
     return clauses[:limit]
 
 
+# ---------------------------------------------------------------------------
+# Numpy-string parsing helpers (for games that emit np.uint8/np.int64 etc.)
+# ---------------------------------------------------------------------------
+
+_NUMPY_RE = re.compile(r"np\.(?:u?int|float)\d*\(([0-9.eE+-]+)\)")
+
+
+def _clean_numpy_str(text: str) -> str:
+    """Replace ``np.uint8(2)`` style wrappers with plain Python literals."""
+    return _NUMPY_RE.sub(r"\1", text)
+
+
+def _try_parse_dict(text: str) -> Optional[dict]:
+    """Try to parse a dict-like string after cleaning numpy wrappers."""
+    cleaned = _clean_numpy_str(text)
+    m = re.search(r"\{.+\}", cleaned, re.DOTALL)
+    if not m:
+        return None
+    try:
+        return ast.literal_eval(m.group(0))
+    except (ValueError, SyntaxError):
+        return None
+
+
+# ---------------------------------------------------------------------------
+# 2048-specific helpers
+# ---------------------------------------------------------------------------
+
+def _compact_board(board: list) -> str:
+    """Compact 2D board: ``'0,0,0,0/0,0,0,0/2,0,0,0/0,0,0,2'``."""
+    return "/".join(",".join(str(int(c)) for c in row) for row in board)
+
+
+def _count_merges(board: list) -> int:
+    """Count adjacent same-value non-zero pairs (merge opportunities)."""
+    count = 0
+    for r in range(len(board)):
+        for c in range(len(board[r])):
+            v = int(board[r][c])
+            if v == 0:
+                continue
+            if c + 1 < len(board[r]) and int(board[r][c + 1]) == v:
+                count += 1
+            if r + 1 < len(board) and int(board[r + 1][c]) == v:
+                count += 1
+    return count
+
+
+def _build_2048_summary(
+    parsed: dict,
+    step: int,
+    action_names: Optional[List[str]],
+    last_reward: Optional[float],
+) -> dict:
+    """Build structured state for a 2048 board observation."""
+    board = parsed["board"]
+    highest = int(parsed.get("highest_tile", 0))
+    if highest == 0:
+        highest = max(int(c) for row in board for c in row)
+    empty = sum(1 for row in board for c in row if int(c) == 0)
+    merges = _count_merges(board)
+
+    summary: dict = {
+        "game": "2048",
+        "board": _compact_board(board),
+        "max_tile": highest,
+        "empty": empty,
+        "merges": merges,
+        "step": step,
+    }
+    if last_reward is not None:
+        summary["reward"] = str(last_reward)
+    if action_names:
+        summary["affordance"] = ",".join(action_names[:8])
+    return summary
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+
 def build_structured_state_summary(
     obs: Union[Dict[str, Any], str],
     step: int = 0,
@@ -69,23 +151,35 @@ def build_structured_state_summary(
     Returns:
         Dict with short key=value-friendly fields.  Example::
 
-            {"game": "sokoban", "step": 14, "objective": "push_box",
-             "self": "near:box", "critical": "goal:right",
-             "progress": "box_on_goal:2/4"}
+            {"game": "2048", "board": "0,0,0,0/0,0,2,0/...",
+             "max_tile": 16, "empty": 12, "merges": 2, "step": 5}
     """
     if isinstance(obs, str):
         raw_text = obs
     elif isinstance(obs, dict):
         raw_text = str(obs.get("text") or obs.get("textual_representation", ""))
+        if not raw_text:
+            raw_text = str(obs)
     else:
         raw_text = str(obs)
 
+    # --- Try structured parsing for games with dict-like observations ---
+    parsed = None
+    if isinstance(obs, dict) and "board" in obs:
+        parsed = {k: (v if not hasattr(v, 'item') else v.item())
+                  for k, v in obs.items()}
+    elif raw_text:
+        parsed = _try_parse_dict(raw_text)
+
+    if parsed and "board" in parsed:
+        return _build_2048_summary(parsed, step, action_names, last_reward)
+
+    # --- Generic text-based extraction (non-2048 games) ---
     game_hint = _detect_game_hint(raw_text)
     clauses = _extract_clauses(raw_text)
 
     summary: dict = {"game": game_hint, "step": step}
 
-    # Pull the most informative clauses into semantic slots
     objective_clause = ""
     self_clause = ""
     critical_clause = ""

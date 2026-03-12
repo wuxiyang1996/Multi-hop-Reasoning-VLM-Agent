@@ -16,6 +16,7 @@
 #   bash cold_start/run_coldstart_pokemon_red.sh --episodes 5 --verbose
 #   bash cold_start/run_coldstart_pokemon_red.sh --episodes 20 --resume
 #   bash cold_start/run_coldstart_pokemon_red.sh --episodes 3 --verbose --no_label
+#   bash cold_start/run_coldstart_pokemon_red.sh --episodes 60 --fast   # max speed
 
 set -euo pipefail
 
@@ -78,5 +79,5 @@ python3 "${SCRIPT_DIR}/generate_cold_start_pokemon_red.py" --rom_path "$ROM_PATH
 
 echo ""
 echo "================================================================"
-echo "  Done. Output: cold_start/output/gpt54_pokemon_red/pokemon_red/"
+echo "  Done. Output: cold_start/output/gpt54/pokemon_red/"
 echo "================================================================"

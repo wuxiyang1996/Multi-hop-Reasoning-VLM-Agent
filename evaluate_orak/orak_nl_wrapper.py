@@ -386,9 +386,15 @@ def make_orak_env(
             cfg.env.log_path = log_dir
             if hasattr(cfg.env, "show_graphic"):
                 cfg.env.show_graphic = False
+            # Resolve rom_path relative to Orak repo root so it works
+            # regardless of the caller's cwd.
+            if hasattr(cfg.env, "rom_path") and not os.path.isabs(cfg.env.rom_path):
+                abs_rom = os.path.normpath(os.path.join(str(_ORAK_REPO), cfg.env.rom_path))
+                cfg.env.rom_path = abs_rom
         cfg.log_path = log_dir
 
-    env = EnvCreator(cfg).create()
+    with _orak_cwd():
+        env = EnvCreator(cfg).create()
 
     wrapper = OrakNLWrapper(env, game_name=game_name, max_steps=max_steps)
 

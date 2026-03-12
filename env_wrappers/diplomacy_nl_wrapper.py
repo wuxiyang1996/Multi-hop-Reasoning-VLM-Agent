@@ -88,20 +88,19 @@ _ORDER_TYPE_HELP = {
 def build_structured_state_summary(
     game: "Game",
     power_name: str,
+    prev_sc_counts: Optional[Dict[str, int]] = None,
 ) -> dict:
     """Build a compact structured dict for one Diplomacy power.
 
     Designed to be fed into ``compact_structured_state()`` from
     ``decision_agents.agent_helper``.
 
-    Returns:
-        Dict with short key=value-friendly fields.  Example::
+    Args:
+        prev_sc_counts: SC counts from the previous phase — if provided,
+            a ``delta`` field is included showing which powers gained/lost.
 
-            {"game": "diplomacy", "phase": "S1902M",
-             "self": "power:France centers:5",
-             "critical": "fronts:ENG,BUR",
-             "resources": "units:A PAR,F BRE",
-             "objective": "issue_orders"}
+    Returns:
+        Dict with short key=value-friendly fields.
     """
     current_phase = game.get_current_phase()
     phase_type = current_phase[-1] if current_phase and current_phase not in ("FORMING", "COMPLETED") else ""
@@ -120,7 +119,6 @@ def build_structured_state_summary(
     if len(units) > 6:
         units_short += f"..+{len(units) - 6}"
 
-    # Determine orderable locations to hint at action fronts
     orderable_locs = game.get_orderable_locations(power_name) or []
     fronts_short = ",".join(orderable_locs[:5])
     if len(orderable_locs) > 5:
@@ -132,20 +130,43 @@ def build_structured_state_summary(
         "A": "build_or_disband",
     }.get(phase_type, "wait")
 
+    # All-powers SC snapshot (compact)
+    rivals_parts = []
+    for pname, pobj in game.powers.items():
+        if pname == power_name or pobj.is_eliminated():
+            continue
+        rivals_parts.append(f"{pname[:3]}:{len(pobj.centers)}")
+    rivals_str = ",".join(rivals_parts)
+
     summary: dict = {
         "game": "diplomacy",
         "phase": current_phase,
+        "objective": objective,
         "self": f"power:{power_name} centers:{len(centers)}",
         "resources": f"units:{units_short}" if units_short else "units:none",
-        "objective": objective,
     }
+
+    if rivals_str:
+        summary["rivals"] = rivals_str
+
     if fronts_short:
         summary["critical"] = f"locs:{fronts_short}"
 
-    # Compact retreats if any
     if power.retreats:
         ret_units = ",".join(str(u) for u in list(power.retreats.keys())[:3])
         summary["critical"] = summary.get("critical", "") + f" retreat:{ret_units}"
+
+    # SC delta since last phase
+    if prev_sc_counts:
+        deltas = []
+        for pname, pobj in game.powers.items():
+            cur = len(pobj.centers) if not pobj.is_eliminated() else 0
+            prev = prev_sc_counts.get(pname, cur)
+            diff = cur - prev
+            if diff != 0:
+                deltas.append(f"{pname[:3]}{'+' if diff > 0 else ''}{diff}")
+        if deltas:
+            summary["delta"] = ",".join(deltas)
 
     return summary
 

@@ -225,6 +225,336 @@ def compact_text_observation(
 
 
 # ---------------------------------------------------------------------------
+# Subgoal tags for structured intention labeling
+# ---------------------------------------------------------------------------
+
+SUBGOAL_TAGS = (
+    "SETUP", "CLEAR", "MERGE", "ATTACK", "DEFEND",
+    "NAVIGATE", "POSITION", "COLLECT", "BUILD", "SURVIVE",
+    "OPTIMIZE", "EXPLORE", "EXECUTE",
+)
+
+
+# ---------------------------------------------------------------------------
+# Game-aware fact extraction (deterministic, no LLM)
+# ---------------------------------------------------------------------------
+
+def _try_parse_dict(s: str) -> Optional[Dict[str, Any]]:
+    """Try to parse *s* as a Python dict literal or JSON object."""
+    s = s.strip()
+    if not s.startswith("{"):
+        return None
+    import json as _json
+    try:
+        return _json.loads(s)
+    except Exception:
+        pass
+    import ast as _ast
+    try:
+        result = _ast.literal_eval(s)
+        return result if isinstance(result, dict) else None
+    except Exception:
+        return None
+
+
+def _extract_tetris_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    lines = state.split("\n")
+    board_lines: List[str] = []
+    in_board = False
+    for ln in lines:
+        s = ln.strip()
+        if len(s) == 10 and all(c in ".IOTSZJL" for c in s):
+            in_board = True
+            board_lines.append(s)
+            if len(board_lines) >= 20:
+                break
+        elif in_board:
+            break
+    if board_lines:
+        # Find boundary between active piece (floating) and settled stack.
+        # Scan from bottom upward; the first fully-empty row marks the top
+        # of the settled region (cleared rows can't exist in Tetris).
+        settled_top = len(board_lines)
+        for row_idx in range(len(board_lines) - 1, -1, -1):
+            if all(c == "." for c in board_lines[row_idx]):
+                settled_top = row_idx + 1
+                break
+        else:
+            settled_top = 0
+        settled = board_lines[settled_top:]
+        facts["stack_h"] = str(len(settled))
+        holes = 0
+        for col in range(min(10, len(board_lines[0]))):
+            found_block = False
+            for row in settled:
+                c = row[col] if col < len(row) else "."
+                if c != ".":
+                    found_block = True
+                elif found_block:
+                    holes += 1
+        if holes:
+            facts["holes"] = str(holes)
+        active_chars = set()
+        for row in board_lines[:settled_top]:
+            active_chars.update(c for c in row if c != ".")
+        if active_chars:
+            facts["piece"] = "".join(sorted(active_chars))
+    m = re.search(r"Next\s+Pieces?\s*:\s*([A-Z,]+)", state)
+    if m:
+        facts["next"] = m.group(1).strip()
+    m = re.search(r"Lv\s*:\s*(\d+)", state)
+    if m:
+        facts["level"] = m.group(1)
+    return facts
+
+
+def _extract_candy_crush_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    m = re.search(r"Score\s*:\s*(\d+)", state)
+    if m:
+        facts["score"] = m.group(1)
+    m = re.search(r"Moves\s+Left\s*:\s*(\d+)", state)
+    if m:
+        facts["moves"] = m.group(1)
+    board_rows: List[List[str]] = []
+    for line in state.split("\n"):
+        m2 = re.match(r"\s*\d+\|\s*(.+)", line.strip())
+        if m2:
+            board_rows.append(m2.group(1).strip().split())
+    if board_rows:
+        nrows, ncols = len(board_rows), len(board_rows[0])
+        facts["board"] = f"{nrows}x{ncols}"
+        pairs = 0
+        for r in range(nrows):
+            for c in range(ncols - 1):
+                if board_rows[r][c] == board_rows[r][c + 1]:
+                    pairs += 1
+        for c in range(ncols):
+            for r in range(nrows - 1):
+                if board_rows[r][c] == board_rows[r + 1][c]:
+                    pairs += 1
+        facts["pairs"] = str(pairs)
+    return facts
+
+
+def _extract_2048_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    d = _try_parse_dict(state)
+    if d and "board" in d:
+        board = d["board"]
+        tiles = [v for row in board for v in row if v > 0]
+        facts["highest"] = str(max(tiles)) if tiles else "0"
+        facts["empty"] = str(sum(1 for row in board for v in row if v == 0))
+        facts["tiles"] = ",".join(str(v) for v in sorted(tiles, reverse=True)[:5])
+        merges = 0
+        for r in range(len(board)):
+            for c in range(len(board[r])):
+                v = board[r][c]
+                if v == 0:
+                    continue
+                if c + 1 < len(board[r]) and board[r][c + 1] == v:
+                    merges += 1
+                if r + 1 < len(board) and board[r + 1][c] == v:
+                    merges += 1
+        if merges:
+            facts["merges"] = str(merges)
+    else:
+        m = re.search(r"highest.?tile.*?(\d+)", state, re.I)
+        if m:
+            facts["highest"] = m.group(1)
+        m = re.search(r"(\d+)\s+empty", state, re.I)
+        if m:
+            facts["empty"] = m.group(1)
+    return facts
+
+
+def _extract_sokoban_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    boxes, docks = [], []
+    worker_pos = None
+    for line in state.split("\n"):
+        m = re.match(
+            r"\s*\d+\s*\|\s*(.+?)\s*\|\s*\((\d+),\s*(\d+)\)", line.strip()
+        )
+        if not m:
+            continue
+        item = m.group(1).strip().lower()
+        pos = (int(m.group(2)), int(m.group(3)))
+        if "worker" in item:
+            worker_pos = pos
+        elif "box" in item and "dark" not in item:
+            boxes.append(pos)
+        elif "dock" in item:
+            docks.append(pos)
+    if worker_pos:
+        facts["worker"] = f"({worker_pos[0]},{worker_pos[1]})"
+    if boxes:
+        facts["boxes"] = str(len(boxes))
+    if docks:
+        on_dock = len(set(boxes) & set(docks))
+        facts["solved"] = f"{on_dock}/{len(docks)}"
+    return facts
+
+
+def _extract_mario_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    m = re.search(r"Position\s+of\s+Mario\s*:\s*\((\d+),\s*(\d+)\)", state)
+    if m:
+        facts["mario"] = f"({m.group(1)},{m.group(2)})"
+    for obj, key in [
+        ("Question Blocks", "qblocks"),
+        ("Monster Goomba", "goomba"),
+        ("Monster Koopas", "koopas"),
+        ("Item Mushrooms", "mushroom"),
+        ("Pit", "pit"),
+        ("Flag", "flag"),
+        ("Warp Pipe", "pipe"),
+    ]:
+        m = re.search(rf"-\s*{re.escape(obj)}\s*:\s*(.+)", state)
+        if m:
+            val = m.group(1).strip()
+            if "none" not in val.lower():
+                positions = re.findall(r"\([\d,\s]+\)", val)
+                if positions:
+                    facts[key] = ",".join(
+                        p.replace(" ", "") for p in positions[:4]
+                    )
+    return facts
+
+
+def _extract_avalon_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    d = _try_parse_dict(state)
+    text = str(list(d.values())[0]) if isinstance(d, dict) and d else state
+    for pat, key in [
+        (r"Current quest\s*:\s*(\d+)", "quest"),
+        (r"Current round\s*:\s*(\d+)", "round"),
+        (r"Your role\s*:\s*(\w+)", "role"),
+        (r"Team size\s*(?:required)?\s*:\s*(\d+)", "team_size"),
+    ]:
+        m = re.search(pat, text)
+        if m:
+            facts[key] = m.group(1)
+    return facts
+
+
+def _extract_diplomacy_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    d = _try_parse_dict(state)
+    text = str(list(d.values())[0]) if isinstance(d, dict) and d else state
+    for pat, key in [
+        (r"Phase\s*:\s*(\S+)", "phase"),
+        (r"You are\s*:\s*(\w+)", "power"),
+        (r"\((\d+)\s+total\)", "centers"),
+    ]:
+        m = re.search(pat, text)
+        if m:
+            facts[key] = m.group(1)
+    m = re.search(r"Your units\s*:\s*\[([^\]]+)\]", text)
+    if m:
+        facts["units"] = m.group(1).replace("'", "").strip()[:80]
+    return facts
+
+
+def _extract_generic_facts(state: str) -> Dict[str, str]:
+    facts: Dict[str, str] = {}
+    for pat, key in [
+        (r"(?:Score|score|points?)\s*[=:]\s*(\d+)", "score"),
+        (r"(?:Level|Lv|level)\s*[=:]\s*(\d+)", "level"),
+    ]:
+        m = re.search(pat, state)
+        if m:
+            facts[key] = m.group(1)
+    return facts
+
+
+_GAME_EXTRACTORS: Dict[str, Any] = {
+    "tetris": _extract_tetris_facts,
+    "candy_crush": _extract_candy_crush_facts,
+    "twenty_forty_eight": _extract_2048_facts,
+    "sokoban": _extract_sokoban_facts,
+    "super_mario": _extract_mario_facts,
+    "avalon": _extract_avalon_facts,
+    "diplomacy": _extract_diplomacy_facts,
+}
+
+
+def extract_game_facts(state: str, game_name: str = "") -> Dict[str, str]:
+    """Deterministically extract structured facts from raw game state text.
+
+    Returns ``{fact_name: value_string}``.  No LLM is called.
+    Supports: tetris, candy_crush, twenty_forty_eight, sokoban, super_mario,
+    avalon, diplomacy.  Falls back to generic score/level extraction.
+    """
+    gn = game_name.lower().replace(" ", "_")
+    fn = _GAME_EXTRACTORS.get(gn, _extract_generic_facts)
+    try:
+        return fn(state)
+    except Exception:
+        return _extract_generic_facts(state)
+
+
+def estimate_game_phase(step_idx: int, total_steps: int) -> str:
+    """Estimate game phase from step progress ratio."""
+    if total_steps <= 0:
+        return "unknown"
+    ratio = step_idx / total_steps
+    if ratio < 0.25:
+        return "opening"
+    if ratio < 0.65:
+        return "midgame"
+    return "endgame"
+
+
+def build_rag_summary(
+    state: str,
+    game_name: str = "",
+    *,
+    step_idx: int = -1,
+    total_steps: int = -1,
+    reward: float = 0.0,
+    max_chars: int = DEFAULT_SUMMARY_CHAR_BUDGET,
+) -> str:
+    """Build a compact ``key=value`` summary optimised for RAG embedding retrieval.
+
+    Fully deterministic (no LLM).  Combines game-aware fact extraction with
+    phase estimation and reward context.  Falls back to
+    ``compact_text_observation`` when game-specific extraction is sparse.
+
+    Example output::
+
+        game=tetris | phase=opening | next=S,O,I,J | stack_h=2 | level=1
+    """
+    max_chars = min(max_chars, HARD_SUMMARY_CHAR_LIMIT)
+    facts = extract_game_facts(state, game_name)
+
+    parts: List[Tuple[str, str]] = []
+    if game_name:
+        parts.append(("game", game_name.replace("_", " ")))
+    if step_idx >= 0 and total_steps > 0:
+        if "phase" not in facts:
+            parts.append(("phase", estimate_game_phase(step_idx, total_steps)))
+        parts.append(("step", f"{step_idx}/{total_steps}"))
+    for k, v in facts.items():
+        if v:
+            parts.append((k, v))
+    if reward and reward != 0:
+        parts.append(("reward", f"{reward:+g}"))
+
+    result = _join_kv(parts, max_chars)
+
+    if len(result) < 50 and state:
+        budget = max_chars - len(result) - 3
+        if budget > 20:
+            compact = compact_text_observation(state, max_chars=budget)
+            if compact:
+                result = (result + " | " + compact) if result else compact
+
+    return result[:max_chars]
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -298,6 +628,27 @@ def get_state_summary(
     return ""
 
 # ---------------------------------------------------------------------------
+# Think-tag stripping (for reasoning models like Qwen3, QwQ, etc.)
+# ---------------------------------------------------------------------------
+
+_THINK_COMPLETE_RE = re.compile(r"<think>.*?</think>\s*", re.DOTALL)
+_THINK_OPEN_RE = re.compile(r"<think>.*", re.DOTALL)
+
+
+def strip_think_tags(text: str) -> str:
+    """Remove ``<think>...</think>`` reasoning blocks from model output.
+
+    Handles both complete and truncated (opened but never closed) blocks.
+    Exported so other modules (e.g. eval scripts) can reuse it.
+    """
+    if not text or "<think>" not in text:
+        return text
+    result = _THINK_COMPLETE_RE.sub("", text)
+    result = _THINK_OPEN_RE.sub("", result)
+    return result.strip()
+
+
+# ---------------------------------------------------------------------------
 # Intention inference
 # ---------------------------------------------------------------------------
 
@@ -307,29 +658,88 @@ def infer_intention(
     model: Optional[str] = None,
     context: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """
-    Infer current intention (short objective/subgoal) from state summary or observation.
-    context can include: last_actions, progress_notes, task description.
+    """Infer a concise intention phrase (subgoal) from a state summary.
+
+    Returns a short phrase (<=12 words) suitable for skill-bank indexing,
+    decision-making context, and trajectory annotation.
+
+    *context* may include: ``last_actions``, ``task``, ``progress_notes``,
+    ``power_name``, ``phase``, ``sc_delta``.
     """
     if not summary_or_observation or not isinstance(summary_or_observation, str):
-        return "Explore and survive."
+        return ""
     if ask_model is None:
-        return "Complete objective."
+        return ""
+
     ctx = context or {}
-    extra = ""
+
+    if game == "diplomacy":
+        prompt = _build_diplomacy_intention_prompt(summary_or_observation, ctx)
+    else:
+        extra = ""
+        if ctx.get("last_actions"):
+            extra += "\nRecent actions: " + ", ".join(str(a) for a in ctx["last_actions"][-3:])
+        if ctx.get("task"):
+            extra += "\nTask: " + str(ctx["task"])
+        prompt = (
+            "State:\n" + summary_or_observation[:2000] + extra + "\n\n"
+            "Reply with ONLY a short phrase (max 12 words) describing the agent's "
+            "immediate subgoal. No explanation. No reasoning. Just the phrase.\n"
+            "Good examples: 'merge 4s into 8 toward top-left', "
+            "'clear bottom rows for space', 'push box onto goal tile'\n"
+            "Intention:"
+        )
+
+    out = ask_model(prompt, model=model or "gpt-4o-mini", temperature=0.2, max_tokens=200)
+    if not out or out.startswith("Error"):
+        return ""
+
+    cleaned = strip_think_tags(out)
+    if not cleaned:
+        return ""
+
+    cleaned = cleaned.split("\n")[0].strip().strip('"').strip("'").strip()
+    # Strip power-name prefixes like "GERMANY:" that leak through
+    cleaned = re.sub(r"^[A-Z]{3,}:\s*", "", cleaned)
+
+    words = cleaned.split()
+    if len(words) > 15:
+        cleaned = " ".join(words[:15])
+
+    return cleaned[:120]
+
+
+def _build_diplomacy_intention_prompt(
+    summary: str,
+    ctx: Dict[str, Any],
+) -> str:
+    """Build a Diplomacy-specific intention prompt anchored to one power."""
+    power = ctx.get("power_name", "")
+    phase = ctx.get("phase", "")
+    sc_delta = ctx.get("sc_delta", "")
+
+    parts = [f"You are {power} in Diplomacy." if power else "You are playing Diplomacy."]
+    if phase:
+        parts.append(f"Phase: {phase}.")
+    parts.append(f"\nSituation:\n{summary[:1500]}")
+
+    if sc_delta:
+        parts.append(f"\nRecent SC changes: {sc_delta}")
+
     if ctx.get("last_actions"):
-        extra += "\nRecent actions: " + ", ".join(str(a) for a in ctx["last_actions"][-3:])
-    if ctx.get("progress_notes"):
-        extra += "\nProgress: " + " | ".join(ctx["progress_notes"])
-    if ctx.get("task"):
-        extra += "\nEpisode task: " + str(ctx["task"])
-    prompt = (
-        "Given this game state, output a single short phrase (under 15 words) "
-        "describing the agent's current objective or subgoal. Be specific (e.g. 'Reach checkpoint', 'Avoid sniper and heal').\n\n"
-        "State:\n" + summary_or_observation[:2500] + extra + "\n\nIntention phrase:"
+        recent = ctx["last_actions"][-3:]
+        parts.append("\nRecent orders: " + " | ".join(str(a) for a in recent))
+
+    parts.append(
+        "\n\nReply with ONLY a short phrase (max 12 words) stating YOUR immediate "
+        "strategic subgoal as " + (power or "this power") + ". "
+        "Focus on territorial objectives, not descriptions of the board.\n"
+        "Good examples: 'capture SER and RUM via BUL support', "
+        "'defend BUD against Russian advance from GAL', "
+        "'convoy army to TUN via ION', 'ally with France against Germany'\n"
+        "Intention:"
     )
-    out = ask_model(prompt, model=model or "gpt-4o-mini", temperature=0.2, max_tokens=80)
-    return (out or "Complete objective.").strip()[:200]
+    return "".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -443,13 +853,15 @@ class EpisodicMemoryStore:
         scored.sort(key=lambda x: -x[0])
         return [e for _, e in scored[:k]]
 
+    _KW_SPLIT_RE = re.compile(r"[\s=|:,;/]+")
+
     def _keyword_scores(self, query_key: str) -> List[float]:
         q_lower = query_key.lower()
-        q_words = set(w for w in q_lower.split() if len(w) >= 2)
+        q_words = set(w for w in self._KW_SPLIT_RE.split(q_lower) if len(w) >= 2)
         scores: List[float] = []
         for e in self._entries:
             text = (e.get("key", "") + " " + e.get("summary", "")).lower()
-            t_words = set(w for w in text.split() if len(w) >= 2)
+            t_words = set(w for w in self._KW_SPLIT_RE.split(text) if len(w) >= 2)
             overlap = len(q_words & t_words) / max(len(q_words), 1)
             scores.append(overlap)
         return scores

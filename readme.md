@@ -6,7 +6,7 @@
 
 This repository provides a framework for enhancing agentic decision-making in multi-player, long-horizon games through unsupervised experience. The framework integrates with multiple game environments and supports both training-free (RAG-based) and trainable (RL-based) agent architectures. This readme outlines each module, gives initial instructions for vibe coding, and aims to ease integration and debugging (including function definitions and ToDo lists for each class).
 
-**No external repos are bundled.** This repository contains only Game-AI-Agent code. For Avalon/Diplomacy you need [AgentEvolver](https://github.com/modelscope/AgentEvolver) (clone as sibling or on `PYTHONPATH`). For GamingAgent or VideoGameBench evaluation, clone those repos as siblings when needed; see the respective `evaluate_*/setup_*_eval_env.md` files. For **VERL training and inference** (vLLM/sglang, GiGPO/PPO), use [verl-agent](https://github.com/verl-project/verl-agent) as a sibling and see [INSTALL.md](INSTALL.md).
+**No external repos are bundled.** This repository contains only Game-AI-Agent code. For Avalon/Diplomacy you need [AgentEvolver](https://github.com/modelscope/AgentEvolver) (clone as sibling or on `PYTHONPATH`). For GamingAgent evaluation, clone that repo as a sibling when needed; see [evaluate_gamingagent/setup_gamingagent_eval_env.md](evaluate_gamingagent/setup_gamingagent_eval_env.md). For **VERL training and inference** (vLLM/sglang, GiGPO/PPO), use [verl-agent](https://github.com/verl-project/verl-agent) as a sibling and see [INSTALL.md](INSTALL.md).
 
 **Install:** See **[INSTALL.md](INSTALL.md)** for setup and VERL/verl-agent. Quick: add this repo to `PYTHONPATH`, or `conda env create -f environment.yml` then `conda activate game-ai-agent`.
 
@@ -17,10 +17,8 @@ This repository provides a framework for enhancing agentic decision-making in mu
 - **🔗 Repository**: [GitHub - Game-AI-Agent](https://github.com/wuxiyang1996/Game-AI-Agent)
 
 - **📦 Environment Wrappers** — [env_wrappers/](env_wrappers/): NL wrappers and evaluation for game environments
-  - [Overcooked AI](env_wrappers/overcooked_nl_wrapper.py) — [overcooked_ai](https://github.com/HumanCompatibleAI/overcooked_ai); eval: [evaluate_overcooked/](evaluate_overcooked/)
   - [Avalon](env_wrappers/avalon_nl_wrapper.py) · [Diplomacy](env_wrappers/diplomacy_nl_wrapper.py) — require **AgentEvolver** (external; [AgentEvolver Games](https://github.com/modelscope/AgentEvolver/blob/main/games/README.md)); eval: [evaluation_evolver/](evaluation_evolver/)
   - [GamingAgent](env_wrappers/gamingagent_nl_wrapper.py) — LMGame-Bench (2048, Sokoban, Tetris); requires **GamingAgent** (external); eval: [evaluate_gamingagent/](evaluate_gamingagent/)
-  - [VideoGameBench GB](env_wrappers/videogamebench_nl_wrapper.py) — Game Boy games (Kirby, etc.); [VideoGameBench DOS](env_wrappers/videogamebench_dos_nl_wrapper.py) — DOS games (Doom, Civ, etc.); eval: [evaluate_videogamebench/](evaluate_videogamebench/)
 
 - **🔍 RAG & Embeddings** — [rag/](rag/): Text (default [Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B)), multimodal (default [Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B)); config: `RAG_EMBEDDING_MODEL`, `MULTIMODAL_EMBEDDING_MODEL`. [rag/README.md](rag/README.md)
 
@@ -54,12 +52,9 @@ This framework integrates with the following game environments. Each has an NL w
 
 | Environment | Source | Wrapper | Evaluation |
 |-------------|--------|---------|------------|
-| **Overcooked AI** | [overcooked_ai](https://github.com/HumanCompatibleAI/overcooked_ai) — cooperative human-AI benchmark (Overcooked game) | [overcooked_nl_wrapper.py](env_wrappers/overcooked_nl_wrapper.py) | [evaluate_overcooked/](evaluate_overcooked/) |
 | **Avalon** | **External:** [AgentEvolver Games](https://github.com/modelscope/AgentEvolver/blob/main/games/README.md) — hidden-role deduction | [avalon_nl_wrapper.py](env_wrappers/avalon_nl_wrapper.py) | [evaluation_evolver/](evaluation_evolver/) |
 | **Diplomacy** | **External:** [AgentEvolver Games](https://github.com/modelscope/AgentEvolver/blob/main/games/README.md) — strategic negotiation | [diplomacy_nl_wrapper.py](env_wrappers/diplomacy_nl_wrapper.py) | [evaluation_evolver/](evaluation_evolver/) |
 | **GamingAgent (LMGame-Bench)** | **External:** [GamingAgent](https://github.com/lmgame-org/GamingAgent) — 2048, Sokoban, Tetris, etc. | [gamingagent_nl_wrapper.py](env_wrappers/gamingagent_nl_wrapper.py) | [evaluate_gamingagent/](evaluate_gamingagent/) |
-| **VideoGameBench (Game Boy)** | **External:** [VideoGameBench](https://github.com/) — Game Boy ROMs via PyBoy | [videogamebench_nl_wrapper.py](env_wrappers/videogamebench_nl_wrapper.py) | [evaluate_videogamebench/](evaluate_videogamebench/) |
-| **VideoGameBench (DOS)** | **External:** DOS games (JS-DOS in browser) | [videogamebench_dos_nl_wrapper.py](env_wrappers/videogamebench_dos_nl_wrapper.py) | [evaluate_videogamebench/](evaluate_videogamebench/) |
 
 ### Wrapper identification contract
 
@@ -68,9 +63,6 @@ All wrappers set `info["env_name"]` and `info["game_name"]` on every `reset()` a
 | Wrapper | `info["env_name"]` | `info["game_name"]` | Notes |
 |---------|---------------------|---------------------|-------|
 | GamingAgentNLWrapper | `"gamingagent"` | Auto-detected from obs (`"sokoban"`, `"tetris"`, `"2048"`, …) or explicit `game_name` constructor arg | Constructor: `GamingAgentNLWrapper(env, game_name="sokoban")` |
-| VideoGameBenchNLWrapper | `"videogamebench"` | From constructor `game_name` (e.g. `"kirby"`) | Constructor: `VideoGameBenchNLWrapper(env, game_name="kirby")` |
-| VideoGameBenchDOSNLWrapper | `"videogamebench_dos"` | From constructor `game_name` (e.g. `"doom2"`) | Stateless helper; call `wrapper.inject_info(info)` to set fields |
-| OvercookedNLWrapper | `"overcooked"` | `"overcooked"` | Single-game platform |
 | AvalonNLWrapper | `"avalon"` | `"avalon"` | Single-game platform |
 | DiplomacyNLWrapper | `"diplomacy"` | `"diplomacy"` | Single-game platform |
 | ColdStartEnvWrapper | `"gamingagent"` | Registry key (e.g. `"sokoban"`, `"twenty_forty_eight"`) | Used in [cold_start/](cold_start/) |
@@ -214,15 +206,15 @@ An **episode** is a sequence of experiences (time-length limited) with final rew
 
 ### Three-part identifier
 
-Every Episode carries a triple that uniquely identifies it across both GamingAgent and VideoGameBench:
+Every Episode carries a triple that uniquely identifies it across supported environments:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
 | `episode_id` | `str` | Auto-generated UUID (or caller-provided) | `"a3f1b2c4-..."` |
-| `env_name` | `str` | Platform / wrapper name | `"gamingagent"`, `"videogamebench"`, `"videogamebench_dos"`, `"overcooked"` |
-| `game_name` | `str` | Specific game within the platform | `"sokoban"`, `"2048"`, `"kirby"`, `"doom2"`, `"overcooked"` |
+| `env_name` | `str` | Platform / wrapper name | `"gamingagent"`, `"avalon"`, `"diplomacy"` |
+| `game_name` | `str` | Specific game within the platform | `"sokoban"`, `"2048"`, `"avalon"` |
 
-For single-game platforms (Overcooked, Avalon, Diplomacy), `env_name == game_name`. For multi-game platforms (GamingAgent, VideoGameBench), `game_name` disambiguates which game was played. All three fields are populated automatically by `run_episode_vlm_agent()` from wrapper `info` and are persisted through `to_dict()` / `from_dict()`.
+For single-game platforms (Avalon, Diplomacy), `env_name == game_name`. For multi-game platforms (GamingAgent), `game_name` disambiguates which game was played. All three fields are populated automatically by `run_episode_vlm_agent()` from wrapper `info` and are persisted through `to_dict()` / `from_dict()`.
 
 The **metadata** dict stores rollout-level information (cumulative reward, final agent state, etc.). When returned by `run_episode_vlm_agent()`, metadata includes: `cumulative_reward`, `agent_state`, `done`, `steps`.
 
@@ -283,7 +275,7 @@ from data_structure.experience import Episode  # experiences + task
 
 config = PipelineConfig(
     bank_path="data/skill_bank.jsonl",
-    env_name="llm+overcooked",   # or "llm" for LLM-based predicate extraction
+    env_name="llm+gamingagent",   # or "llm" for LLM-based predicate extraction
     merge_radius=5,               # constrain boundary proximity
     new_skill_penalty=5.0,        # penalty for assigning __NEW__
     preference_iterations=3,      # active-learning rounds for preference scorer
@@ -440,8 +432,8 @@ from decision_agents import run_episode_vlm_agent
 
 episode = run_episode_vlm_agent(env, task="My task", max_steps=500)
 # episode.episode_id: auto-generated UUID
-# episode.env_name:   from wrapper info (e.g. "gamingagent", "videogamebench")
-# episode.game_name:  specific game (e.g. "sokoban", "kirby", "doom2")
+# episode.env_name:   from wrapper info (e.g. "gamingagent", "avalon")
+# episode.game_name:  specific game (e.g. "sokoban", "2048", "avalon")
 # episode.experiences: list of Experience with summary_state, intentions, sub_tasks populated
 # episode.metadata: rollout-level data (cumulative_reward, agent_state, done, steps)
 # episode.to_dict(): for JSON save/load (includes all identifier fields)

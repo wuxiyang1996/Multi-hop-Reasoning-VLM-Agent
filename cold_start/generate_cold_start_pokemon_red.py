@@ -13,11 +13,11 @@ Natural termination conditions:
   3. Score completion: Orak evaluate() returns done
   4. Max steps: configurable hard cap (default 500)
 
-Output structure (cold_start/output/gpt54_pokemon_red/pokemon_red/):
-  - episode_NNN.json        Individual episode (Episode.to_dict())
+Output structure (cold_start/output/gpt54/pokemon_red/), same as other envs:
+  - episode_NNN.json        Individual episode (Episode.to_dict() + metadata)
   - episode_buffer.json     All episodes in Episode_Buffer format
-  - rollouts.jsonl          Append-friendly JSONL (one Episode per line)
-  - rollout_summary.json    Per-game run stats
+  - rollouts.jsonl          Append-friendly JSONL (one Episode per line, rollout_metadata)
+  - rollout_summary.json    Per-game run stats (target_episodes, max_steps, labeled, etc.)
 
 Usage (from Game-AI-Agent root):
 
@@ -188,7 +188,7 @@ def make_orak_env(rom_path: str, log_path: str, task: str = "DefeatBrock") -> Po
 # Intro skip (cold-boot: title → NEW GAME → Oak → naming → play)
 # ===================================================================
 
-def skip_intro(runner: PyBoyRunner, max_presses: int = 350, verbose: bool = False):
+def skip_intro(runner: PyBoyRunner, max_presses: int = 350, verbose: bool = False, fast: bool = False):
     """Press buttons until we are truly past the intro.
 
     A "true" Field state means: get_battle_state() == "Field" AND we
@@ -218,7 +218,7 @@ def skip_intro(runner: PyBoyRunner, max_presses: int = 350, verbose: bool = Fals
                               f"(map_h={map_h}, party={party_count})")
                     return
                 # Wait a beat and re-check rather than pressing more buttons
-                time.sleep(0.2)
+                time.sleep(0.02 if fast else 0.2)
                 continue
             else:
                 field_confirm = 0
@@ -236,13 +236,13 @@ def skip_intro(runner: PyBoyRunner, max_presses: int = 350, verbose: bool = Fals
 
         if same >= 5:
             runner.send_input("down")
-            time.sleep(0.15)
+            time.sleep(0.02 if fast else 0.15)
             runner.send_input("a")
-            time.sleep(0.15)
+            time.sleep(0.02 if fast else 0.15)
             same = 0
         else:
             runner.send_input("a")
-            time.sleep(0.15)
+            time.sleep(0.02 if fast else 0.15)
 
     if verbose:
         print(f"  [intro] WARNING: hit max presses ({max_presses})")
@@ -530,7 +530,7 @@ def _has_map_data(toolset: PokemonToolset) -> bool:
 
 
 def execute_action(action_str: str, toolset: PokemonToolset,
-                   env: PokemonRedEnv) -> str:
+                   env: PokemonRedEnv, fast: bool = False) -> str:
     """Execute a parsed action string (tool or raw buttons).
 
     Returns a feedback string for recording.
@@ -552,7 +552,7 @@ def execute_action(action_str: str, toolset: PokemonToolset,
             results.append(f"{part} -> {result}")
         elif part.lower() in VALID_ACTIONS:
             env.send_action_set([part.lower()])
-            time.sleep(0.3)
+            time.sleep(0.05 if fast else 0.3)
             results.append(part.lower())
         elif part.lower() == "quit":
             results.append("quit")
@@ -574,6 +574,7 @@ def run_pokemon_episode(
     reflect_every: int = 5,
     verbose: bool = False,
     log_path: str = "/tmp/pokemon_cold_start",
+    fast: bool = False,
 ) -> Tuple[Episode, Dict[str, Any]]:
     """Run one Pokemon Red episode using Orak env + toolset."""
 
@@ -597,7 +598,7 @@ def run_pokemon_episode(
     # --- Skip intro ---
     if verbose:
         print("  [env] Skipping intro…")
-    skip_intro(env.runner, verbose=verbose)
+    skip_intro(env.runner, verbose=verbose, fast=fast)
 
     # --- Init state ---
     state_text = env._receive_state()
@@ -678,7 +679,7 @@ def run_pokemon_episode(
         )
 
         # --- Execute action ---
-        feedback = execute_action(action_str, toolset, env)
+        feedback = execute_action(action_str, toolset, env, fast=fast)
         step_count += 1
 
         # --- Post-step state ---
@@ -721,13 +722,17 @@ def run_pokemon_episode(
         exp.action_type = "tool" if "use_tool" in action_str else "primitive"
         exp.available_actions = action_names
         exp.interface = {"env_name": "orak", "game_name": GAME_NAME}
+        exp.raw_state = str(state_text) if state_text else None
+        exp.raw_next_state = str(next_state_text) if next_state_text else None
         experiences.append(exp)
 
         if verbose:
             loc = next_state_dict.get("map_info", {}).get("map_name", "?")
             act_short = action_str[:50]
+            # Show full feedback so tool results (True/False, messages) aren't cut off
+            fb = feedback if len(feedback) <= 200 else feedback[:197] + "..."
             print(f"  step {step_count}: {act_short} @ {loc}  score={score_str}  "
-                  f"feedback={feedback[:60]}")
+                  f"feedback={fb}")
 
         if score_done:
             termination_reason = "score_complete"
@@ -736,7 +741,7 @@ def run_pokemon_episode(
     # --- Cleanup ---
     try:
         env.runner.running = False
-        time.sleep(0.5)
+        time.sleep(0.1 if fast else 0.5)
     except Exception:
         pass
 
@@ -748,11 +753,15 @@ def run_pokemon_episode(
     )
     episode.set_outcome()
 
+    terminated = termination_reason in ("score_complete", "whiteout")
+    truncated = termination_reason in ("max_steps", "no_progress")
     stats = {
         "game": GAME_NAME,
         "steps": step_count,
         "total_reward": total_reward,
         "termination_reason": termination_reason,
+        "terminated": terminated,
+        "truncated": truncated,
         "model": model,
         "agent_type": "gpt54_orak_toolset",
         "final_location": state_dict.get("map_info", {}).get("map_name"),
@@ -812,6 +821,7 @@ def run_all_episodes(args, output_dir: Path) -> Dict:
                 reflect_every=args.reflect_every,
                 verbose=args.verbose,
                 log_path=ep_log,
+                fast=args.fast,
             )
 
             stats["episode_index"] = ep_idx
@@ -851,6 +861,9 @@ def run_all_episodes(args, output_dir: Path) -> Dict:
         "model": args.model,
         "agent_type": "gpt54_orak_toolset",
         "total_episodes": len(all_stats),
+        "target_episodes": args.episodes,
+        "max_steps": effective_max_steps,
+        "labeled": not args.no_label,
         "elapsed_seconds": elapsed,
         "episode_stats": all_stats,
     }
@@ -860,14 +873,16 @@ def run_all_episodes(args, output_dir: Path) -> Dict:
         steps = [s.get("steps", 0) for s in good]
         summary["mean_reward"] = sum(rewards) / len(rewards)
         summary["mean_steps"] = sum(steps) / len(steps)
+        summary["max_reward"] = max(rewards)
+        summary["min_reward"] = min(rewards)
         reasons = {}
         for s in good:
             r = s.get("termination_reason", "?")
             reasons[r] = reasons.get(r, 0) + 1
         summary["termination_reasons"] = reasons
 
-    with open(game_dir / "rollout_summary.json", "w") as f:
-        json.dump(summary, f, indent=2, default=str)
+    with open(game_dir / "rollout_summary.json", "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2, ensure_ascii=False, default=str)
 
     return summary
 
@@ -892,8 +907,14 @@ def main():
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--verbose", "-v", action="store_true")
     parser.add_argument("--output_dir", type=str, default=None)
+    parser.add_argument("--fast", action="store_true",
+                        help="Max speed: no emulator throttle, shorter sleeps, faster startup")
 
     args = parser.parse_args()
+
+    if args.fast:
+        os.environ["PYBOY_FRAME_TIME"] = "0"
+        os.environ["POKEMON_STARTUP_DELAY"] = "1"
 
     # Resolve ROM path
     if not args.rom_path:
@@ -911,7 +932,7 @@ def main():
                 print(f"  {c}")
             sys.exit(1)
 
-    output_dir = Path(args.output_dir) if args.output_dir else SCRIPT_DIR / "output" / "gpt54_pokemon_red"
+    output_dir = Path(args.output_dir) if args.output_dir else SCRIPT_DIR / "output" / "gpt54"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     has_key = bool(
@@ -935,6 +956,7 @@ def main():
     print(f"  Temp:            {args.temperature}")
     print(f"  Reflect every:   {args.reflect_every}")
     print(f"  No-progress cap: {NO_PROGRESS_THRESHOLD}")
+    print(f"  Fast mode:       {args.fast}")
     print(f"  Output:          {output_dir}")
     print("=" * 72)
     print()
@@ -963,7 +985,7 @@ def main():
             print(f"  Avg steps:  {summary['mean_steps']:.1f}")
         if "termination_reasons" in summary:
             print(f"  End reasons: {summary['termination_reasons']}")
-    print(f"  Output:    {output_dir / GAME_NAME}")
+    print(f"  Output:    {output_dir / GAME_NAME}  (same layout as gpt54/<game>/)")
     print(f"{'=' * 72}\n")
 
 

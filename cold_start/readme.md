@@ -4,7 +4,7 @@ Generate initial trajectory data and skill seeds for the Game-AI-Agent system.
 
 ## Scope: Environments and Games We Use
 
-We have **four** cold-start generators covering **9 games** across three environment stacks:
+We have **four** cold-start generators covering **8 games** across three environment stacks:
 
 ### 1. LMGame-Bench (`generate_cold_start_gpt54.py`)
 
@@ -27,13 +27,12 @@ We have **four** cold-start generators covering **9 games** across three environ
 | # | Game | Registry Key | Actions |
 |---|------|--------------|---------|
 | 7 | **Super Mario** | `super_mario` | `Jump Level : 0` … `6` |
-| 8 | **StarCraft II** | `star_craft` | 5 macro actions per step (e.g. `TRAIN ZEALOT`) |
 
 ### 4. Pokemon Red — Orak (`generate_cold_start_pokemon_red.py`)
 
 | # | Game | Registry Key | Actions |
 |---|------|--------------|---------|
-| 9 | **Pokemon Red** | `pokemon_red` | High-level tools: `move_to`, `warp_with_warp_point`, `continue_dialog`, `select_move_in_battle`, etc.; raw buttons: `up`/`down`/`left`/`right`/`a`/`b` |
+| 8 | **Pokemon Red** | `pokemon_red` | High-level tools: `move_to`, `warp_with_warp_point`, `continue_dialog`, `select_move_in_battle`, etc.; raw buttons: `up`/`down`/`left`/`right`/`a`/`b` |
 
 Uses the **Orak** Pokemon Red environment and toolset (PyBoy + `pokered` map data). Text-only (no screens). See [Pokemon Red cold-start](#pokemon-red-rollouts--orak) below.
 
@@ -52,7 +51,6 @@ All cold-start generators use the **natural end condition** of each game engine.
 | **Avalon** | 3 quest failures (Evil wins) or assassination resolves after 3 quest successes. Always finite. | `AvalonGameEnvironment.done` |
 | **Diplomacy** | Solo victory (`game.is_game_done`) or 20 phases elapsed (`DiplomacyConfig.max_phases = 20`). | `DiplomacyNLWrapper.done` |
 | **Super Mario** | Level complete or game over; capped at 100 steps. | Orak env |
-| **StarCraft II** | Game victory/defeat; capped at 1000 steps. | Orak env |
 | **Pokemon Red** | Whiteout (all party HP=0); no progress (80 steps same location); Orak 12-milestone completion; or max_steps. | Orak env + cold-start script |
 
 ## Goal
@@ -173,7 +171,7 @@ python cold_start/generate_cold_start_evolver.py --resume
 
 Output: `cold_start/output/gpt54_evolver/<game_name>/`
 
-## Orak Rollouts — Super Mario & StarCraft II (games 7-8)
+## Orak Rollouts — Super Mario (game 7)
 
 Each Orak game needs its own conda environment.
 
@@ -183,12 +181,6 @@ source evaluate_orak/setup_orak_mario.sh
 python cold_start/generate_cold_start_orak.py --games super_mario --episodes 10
 # or:
 bash cold_start/run_coldstart_orak_mario.sh --episodes 10
-
-# --- StarCraft II ---
-source evaluate_orak/setup_orak_sc2.sh
-python cold_start/generate_cold_start_orak.py --games star_craft --episodes 5
-# or:
-bash cold_start/run_coldstart_orak_sc2.sh --episodes 5
 ```
 
 Output: `cold_start/output/gpt54_orak/<game_name>/`
@@ -230,7 +222,7 @@ cold_start/output/<suite>/<game_name>/
 └── rollout_summary.json                     # Per-game stats
 ```
 
-Suites: `gpt54/` (LMGame-Bench), `gpt54_evolver/` (Avalon/Diplomacy), `gpt54_orak/` (Mario/StarCraft), `gpt54_pokemon_red/` (Pokemon Red via Orak).
+Suites: `gpt54/` (LMGame-Bench), `gpt54_evolver/` (Avalon/Diplomacy), `gpt54_orak/` (Mario), `gpt54_pokemon_red/` (Pokemon Red via Orak).
 
 A `batch_rollout_summary.json` sits at the suite root with cross-game stats.
 
@@ -364,9 +356,8 @@ underlying game engine -- not an artificial step cap.
 | Game | Natural end condition | How it propagates |
 |------|----------------------|-------------------|
 | **Super Mario** | `gym_super_mario_bros` sets `done=True` on death, timer expiry, or flag reached. | `gym env.step()` → `SuperMarioEnv.step()` → `evaluate()` → `OrakNLWrapper.step()` returns `terminated=True`. |
-| **StarCraft II** | python-sc2 `run_game()` finishes with Victory / Defeat / Tie. `sc2_run_game()` sets `transaction['done']=True`. | `action_step()` → `step()` → `evaluate()` → `OrakNLWrapper.step()` returns `terminated=True`. |
 
-The wrapper's `max_steps` (Mario=100, SC2=1000, matching the starter kit's
+The wrapper's `max_steps` (Mario=100, matching the starter kit's
 `MAX_STEPS`) acts only as a safety-net truncation. It sets `truncated=True`
 (never `terminated`) and only fires when the game hasn't already ended
 naturally (line 316-317 of `orak_nl_wrapper.py`).
@@ -384,7 +375,7 @@ exp.interface = {
     "step": step_count,
     "terminated": terminated,   # natural game-end (death, victory, flag, etc.)
     "truncated": truncated,     # hit max_steps safety limit
-    "score": step_info.get("score"),  # evaluate() result (x_pos for Mario, "Victory"/"Defeat" for SC2)
+    "score": step_info.get("score"),  # evaluate() result (e.g. x_pos for Mario)
     "cumulative_reward": total_reward,
 }
 ```
@@ -402,19 +393,14 @@ debugging.
 - **Available actions**: `exp.available_actions` = full action name list from the env.
 - **Agent action taken**: `exp.action` = exact string chosen by GPT-5.4.
 - **Agent reasoning**: `exp.intentions` = chain-of-thought from the GPT tool call.
-- **Shell scripts**: `run_coldstart_orak_mario.sh` (max_steps=100) and
-  `run_coldstart_orak_sc2.sh` (max_steps=1000) match the starter kit's
-  `MAX_STEPS` dict exactly.
+- **Shell scripts**: `run_coldstart_orak_mario.sh` (max_steps=100) matches the starter kit's
+  `MAX_STEPS` dict.
 
 ### Gathering 60 rollouts
 
 ```bash
 # Super Mario (from Game-AI-Agent dir, orak-mario conda env)
 bash cold_start/run_coldstart_orak_mario.sh --episodes 60 --max_steps 100 --no_label --resume -v
-
-# StarCraft II (from Game-AI-Agent dir, orak-sc2 conda env)
-bash cold_start/run_coldstart_orak_sc2.sh --episodes 60 --max_steps 1000 --no_label --resume -v
 ```
 
-Run separately (each activates its own conda env). `--resume` makes
-interrupted runs idempotent.
+`--resume` makes interrupted runs idempotent.

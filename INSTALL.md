@@ -28,7 +28,7 @@ When using the **conda environment** (section 4), activate it first; the scripts
   **Infer segmentation**: `pip install -r skill_agents/infer_segmentation/requirements.txt`
 
 - **Game environments**: Install per environment (Overcooked, AgentEvolver, GamingAgent, VideoGameBench).  
-  See [evaluate_overcooked](evaluate_overcooked/), [evaluation_evolver/setup_evolver_eval_env.md](evaluation_evolver/setup_evolver_eval_env.md), [evaluate_gamingagent/setup_gamingagent_eval_env.md](evaluate_gamingagent/setup_gamingagent_eval_env.md), [evaluate_videogamebench/setup_videogamebench_eval_env.md](evaluate_videogamebench/setup_videogamebench_eval_env.md).
+  See [legacy/evaluate_overcooked](legacy/evaluate_overcooked/), [evaluation_evolver/setup_evolver_eval_env.md](evaluation_evolver/setup_evolver_eval_env.md), [evaluate_gamingagent/setup_gamingagent_eval_env.md](evaluate_gamingagent/setup_gamingagent_eval_env.md), [legacy/evaluate_videogamebench/setup_videogamebench_eval_env.md](legacy/evaluate_videogamebench/setup_videogamebench_eval_env.md).
 
 ## 3. VERL and verl-agent (training and VERL inference)
 

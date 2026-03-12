@@ -4,9 +4,9 @@
 #
 # Creates the "game-ai-agent" conda environment with all dependencies for:
 #   - Game-AI-Agent trainer (GRPO, SkillBank, co-evolution)
-#   - evaluate_videogamebench (DOS games via Playwright)
+#   - legacy/evaluate_videogamebench (DOS games via Playwright)
 #   - evaluate_gamingagent (2048, Sokoban, Tetris, VizDoom, etc.)
-#   - evaluate_overcooked (multi-agent cooking)
+#   - legacy/evaluate_overcooked (multi-agent cooking)
 #   - evaluation_evolver (Avalon + Diplomacy via AgentEvolver)
 #
 # Prerequisites:
