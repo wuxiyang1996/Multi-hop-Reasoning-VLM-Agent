@@ -213,6 +213,17 @@ class SegmentScorer:
 
     # ── composite score ─────────────────────────────────────────────
 
+    def boundary_preference(self, seg_start: int, seg_end: int) -> float:
+        """Boundary preference score: positive means "cut here is good".
+
+        Combines the boundary scorer output (if any) with structural priors.
+        This is the Phase 3 explicit boundary preference learning signal.
+        """
+        score = 0.0
+        if self._boundary_scorer is not None:
+            score += self._boundary_scorer(seg_start, seg_end)
+        return score
+
     def score(
         self,
         i: int,
@@ -232,8 +243,9 @@ class SegmentScorer:
         tp = w.transition_prior * self.transition_prior(skill, prev_skill)
         cc = w.contract_compat * self.contract_compat(skill, predicates_start, predicates_end)
         bq = self.boundary_quality(i, j)
+        bp = w.boundary_preference * self.boundary_preference(i, j)
 
-        return bf + dp_ + tp + cc + bq
+        return bf + dp_ + tp + cc + bq + bp
 
     def score_breakdown(
         self,
@@ -255,6 +267,7 @@ class SegmentScorer:
         tp_raw = self.transition_prior(skill, prev_skill)
         cc_raw = self.contract_compat(skill, predicates_start, predicates_end)
         bq_raw = self.boundary_quality(i, j)
+        bp_raw = self.boundary_preference(i, j)
 
         return {
             "behavior_fit": bf_raw,
@@ -266,12 +279,15 @@ class SegmentScorer:
             "contract_compat": cc_raw,
             "contract_compat_w": w.contract_compat * cc_raw,
             "boundary_quality": bq_raw,
+            "boundary_preference": bp_raw,
+            "boundary_preference_w": w.boundary_preference * bp_raw,
             "total": (
                 w.behavior_fit * bf_raw
                 + w.duration_prior * dp_raw
                 + w.transition_prior * tp_raw
                 + w.contract_compat * cc_raw
                 + bq_raw
+                + w.boundary_preference * bp_raw
             ),
         }
 
@@ -318,6 +334,7 @@ class SegmentScorer:
             tp_raw = self.transition_prior(skill, prev_skill)
             cc_raw = self.contract_compat(skill, p_start, p_end)
             bq_raw = self.boundary_quality(i, j)
+            bp_raw = self.boundary_preference(i, j)
             out.append({
                 "behavior_fit": bf_raw,
                 "behavior_fit_w": w.behavior_fit * bf_raw,
@@ -328,12 +345,15 @@ class SegmentScorer:
                 "contract_compat": cc_raw,
                 "contract_compat_w": w.contract_compat * cc_raw,
                 "boundary_quality": bq_raw,
+                "boundary_preference": bp_raw,
+                "boundary_preference_w": w.boundary_preference * bp_raw,
                 "total": (
                     w.behavior_fit * bf_raw
                     + w.duration_prior * dp_raw
                     + w.transition_prior * tp_raw
                     + w.contract_compat * cc_raw
                     + bq_raw
+                    + w.boundary_preference * bp_raw
                 ),
             })
         return out

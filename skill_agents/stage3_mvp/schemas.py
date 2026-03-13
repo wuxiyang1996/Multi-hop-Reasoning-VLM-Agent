@@ -387,6 +387,7 @@ class Skill:
     contract: Optional[SkillEffectsContract] = None
     sub_episodes: List[SubEpisodeRef] = field(default_factory=list)
     expected_tag_pattern: List[str] = field(default_factory=list)
+    execution_hint: Optional[ExecutionHint] = None
 
     # Protocol version history for rollback
     protocol_history: List[Dict[str, Any]] = field(default_factory=list)
@@ -480,6 +481,7 @@ class Skill:
             "contract": self.contract.to_dict() if self.contract else None,
             "sub_episodes": [se.to_dict() for se in self.sub_episodes],
             "expected_tag_pattern": self.expected_tag_pattern,
+            "execution_hint": self.execution_hint.to_dict() if self.execution_hint else None,
             "protocol_history": self.protocol_history,
             "n_instances": self.n_instances,
             "retired": self.retired,
@@ -494,6 +496,8 @@ class Skill:
 
         sub_eps = [SubEpisodeRef.from_dict(se) for se in d.get("sub_episodes", [])]
         protocol = Protocol.from_dict(d.get("protocol", {}))
+        exec_hint_data = d.get("execution_hint")
+        exec_hint = ExecutionHint.from_dict(exec_hint_data) if exec_hint_data else None
 
         return cls(
             skill_id=d.get("skill_id", ""),
@@ -505,6 +509,7 @@ class Skill:
             contract=contract,
             sub_episodes=sub_eps,
             expected_tag_pattern=d.get("expected_tag_pattern", []),
+            execution_hint=exec_hint,
             protocol_history=d.get("protocol_history", []),
             n_instances=d.get("n_instances", 0),
             retired=d.get("retired", False),
@@ -524,4 +529,175 @@ class Skill:
             n_instances=contract.n_instances,
             created_at=contract.created_at,
             updated_at=contract.updated_at,
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Proto-Skill: intermediate representation between NEW and real skills
+# ─────────────────────────────────────────────────────────────────────
+
+
+@dataclass
+class ProtoSkill:
+    """Lightweight intermediate skill representation.
+
+    Sits between raw ``__NEW__`` segments and fully materialized ``Skill``
+    objects.  A proto-skill collects evidence gradually and can be used
+    by Stage 2 as a candidate label *before* full promotion.
+
+    Lifecycle::
+
+        __NEW__ segments → cluster → ProtoSkill → light verification → Skill
+
+    Fields provide enough structure for Stage 2 to reason about the
+    proto-skill without requiring a full effects contract or protocol.
+    """
+
+    proto_id: str = ""
+    member_seg_ids: List[str] = field(default_factory=list)
+    candidate_effects_add: Set[str] = field(default_factory=set)
+    candidate_effects_del: Set[str] = field(default_factory=set)
+    candidate_effects_event: Set[str] = field(default_factory=set)
+    support: int = 0
+    consistency: float = 0.0
+    separability: float = 0.0
+    tag_distribution: Dict[str, int] = field(default_factory=dict)
+    typical_length_mean: float = 10.0
+    typical_length_std: float = 5.0
+    context_before: List[str] = field(default_factory=list)
+    context_after: List[str] = field(default_factory=list)
+
+    # Verification status
+    verified: bool = False
+    verification_pass_rate: float = 0.0
+    n_verifications: int = 0
+
+    created_at: float = field(default_factory=time.time)
+    updated_at: float = field(default_factory=time.time)
+
+    @property
+    def is_promotable(self) -> bool:
+        """Whether the proto-skill has enough evidence for full promotion."""
+        return (
+            self.support >= 5
+            and self.consistency >= 0.5
+            and self.verification_pass_rate >= 0.6
+            and self.n_verifications >= 1
+        )
+
+    @property
+    def candidate_label(self) -> str:
+        """Label that Stage 2 can use as a candidate during decoding."""
+        return f"__PROTO__{self.proto_id}"
+
+    def to_skill(self) -> Skill:
+        """Promote this proto-skill to a full Skill."""
+        contract = SkillEffectsContract(
+            skill_id=self.proto_id,
+            eff_add=set(self.candidate_effects_add),
+            eff_del=set(self.candidate_effects_del),
+            eff_event=set(self.candidate_effects_event),
+            n_instances=self.support,
+        )
+
+        top_tags = sorted(
+            self.tag_distribution.items(), key=lambda x: -x[1]
+        )[:5]
+
+        return Skill(
+            skill_id=self.proto_id,
+            contract=contract,
+            tags=[t for t, _ in top_tags],
+            n_instances=self.support,
+            created_at=self.created_at,
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "proto_id": self.proto_id,
+            "member_seg_ids": self.member_seg_ids,
+            "candidate_effects_add": sorted(self.candidate_effects_add),
+            "candidate_effects_del": sorted(self.candidate_effects_del),
+            "candidate_effects_event": sorted(self.candidate_effects_event),
+            "support": self.support,
+            "consistency": self.consistency,
+            "separability": self.separability,
+            "tag_distribution": self.tag_distribution,
+            "typical_length_mean": self.typical_length_mean,
+            "typical_length_std": self.typical_length_std,
+            "context_before": self.context_before,
+            "context_after": self.context_after,
+            "verified": self.verified,
+            "verification_pass_rate": self.verification_pass_rate,
+            "n_verifications": self.n_verifications,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> ProtoSkill:
+        return cls(
+            proto_id=d.get("proto_id", ""),
+            member_seg_ids=d.get("member_seg_ids", []),
+            candidate_effects_add=set(d.get("candidate_effects_add", [])),
+            candidate_effects_del=set(d.get("candidate_effects_del", [])),
+            candidate_effects_event=set(d.get("candidate_effects_event", [])),
+            support=d.get("support", 0),
+            consistency=d.get("consistency", 0.0),
+            separability=d.get("separability", 0.0),
+            tag_distribution=d.get("tag_distribution", {}),
+            typical_length_mean=d.get("typical_length_mean", 10.0),
+            typical_length_std=d.get("typical_length_std", 5.0),
+            context_before=d.get("context_before", []),
+            context_after=d.get("context_after", []),
+            verified=d.get("verified", False),
+            verification_pass_rate=d.get("verification_pass_rate", 0.0),
+            n_verifications=d.get("n_verifications", 0),
+            created_at=d.get("created_at", 0.0),
+            updated_at=d.get("updated_at", 0.0),
+        )
+
+
+@dataclass
+class ExecutionHint:
+    """Distilled execution guidance derived from successful segments.
+
+    Stored per-skill, bridges the gap from "what this skill achieves"
+    to "how to carry it out".  See Phase 5 of the agentic skill-memory plan.
+    """
+
+    common_preconditions: List[str] = field(default_factory=list)
+    common_target_objects: List[str] = field(default_factory=list)
+    state_transition_pattern: str = ""
+    termination_cues: List[str] = field(default_factory=list)
+    common_failure_modes: List[str] = field(default_factory=list)
+    execution_description: str = ""
+    n_source_segments: int = 0
+    updated_at: float = field(default_factory=time.time)
+
+    def to_dict(self) -> dict:
+        return {
+            "common_preconditions": self.common_preconditions,
+            "common_target_objects": self.common_target_objects,
+            "state_transition_pattern": self.state_transition_pattern,
+            "termination_cues": self.termination_cues,
+            "common_failure_modes": self.common_failure_modes,
+            "execution_description": self.execution_description,
+            "n_source_segments": self.n_source_segments,
+            "updated_at": self.updated_at,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> ExecutionHint:
+        if not d:
+            return cls()
+        return cls(
+            common_preconditions=d.get("common_preconditions", []),
+            common_target_objects=d.get("common_target_objects", []),
+            state_transition_pattern=d.get("state_transition_pattern", ""),
+            termination_cues=d.get("termination_cues", []),
+            common_failure_modes=d.get("common_failure_modes", []),
+            execution_description=d.get("execution_description", ""),
+            n_source_segments=d.get("n_source_segments", 0),
+            updated_at=d.get("updated_at", 0.0),
         )

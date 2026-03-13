@@ -39,6 +39,7 @@ class ScorerWeights:
     duration_prior: float = 0.3
     transition_prior: float = 1.0
     contract_compat: float = 0.0  # set by ContractFeedbackConfig or manually
+    boundary_preference: float = 0.5  # Phase 3: "cut here" vs "do not cut here"
 
 
 @dataclass
@@ -87,6 +88,23 @@ class PreferenceLearningConfig:
 
 
 @dataclass
+class UncertainLabelConfig:
+    """Phase 3: uncertain-label path thresholds.
+
+    Instead of forcing every segment into a known skill, three outcomes:
+      - confident known skill (margin >= confident_margin)
+      - low-confidence known skill (margin < confident_margin but >= uncertain_margin)
+      - NEW / unknown (assigned __NEW__)
+
+    Low-confidence segments go to an uncertain pool for reconsideration.
+    """
+
+    confident_margin: float = 2.0
+    uncertain_margin: float = 1.0
+    reconsider_after_n_updates: int = 3
+
+
+@dataclass
 class DecoderConfig:
     """Parameters shared by Viterbi DP and beam decoders."""
 
@@ -112,6 +130,7 @@ class SegmentationConfig:
     preference: PreferenceLearningConfig = field(default_factory=PreferenceLearningConfig)
     decoder: DecoderConfig = field(default_factory=DecoderConfig)
     contract_feedback: ContractFeedbackConfig = field(default_factory=ContractFeedbackConfig)
+    uncertain_label: UncertainLabelConfig = field(default_factory=UncertainLabelConfig)
 
     method: str = "dp"  # "dp" (Viterbi) or "beam"
 

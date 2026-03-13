@@ -29,7 +29,12 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from skill_agents.skill_bank.bank import SkillBankMVP
-from skill_agents.skill_bank.new_pool import NewPoolManager, NewPoolConfig
+from skill_agents.skill_bank.new_pool import (
+    NewPoolManager,
+    NewPoolConfig,
+    ProtoSkillManager,
+    ProtoSkillConfig,
+)
 from skill_agents.stage3_mvp.schemas import (
     SegmentRecord,
     SkillEffectsContract,
@@ -165,6 +170,7 @@ class SkillBankAgent:
             min_distinctiveness=self.config.new_pool_min_distinctiveness,
             min_pass_rate=self.config.split_pass_rate_threshold,
         ))
+        self._proto_mgr = ProtoSkillManager(config=ProtoSkillConfig())
         self._observations_by_traj: Dict[str, list] = {}
         self._traj_lengths: Dict[str, int] = {}
         self._preference_store: Any = None  # lazily created
@@ -525,6 +531,128 @@ class SkillBankAgent:
             expected_duration=max(1, avg_len),
         )
 
+    # ── Phase 5: Distill execution hints ────────────────────────────
+
+    def distill_execution_hints(self, min_successful: int = 3) -> int:
+        """Derive lightweight execution hints for skills with enough evidence.
+
+        For each skill, aggregates successful sub-episodes to produce:
+        - common preconditions
+        - common target objects
+        - state-transition pattern
+        - termination cues
+        - common failure modes
+        - natural-language execution description
+
+        Returns the number of skills updated with hints.
+        """
+        from skill_agents.stage3_mvp.schemas import ExecutionHint
+        from collections import Counter
+
+        updated = 0
+        for sid in self.bank.skill_ids:
+            skill = self.bank.get_skill(sid)
+            if skill is None or skill.retired:
+                continue
+
+            successful = [
+                se for se in skill.sub_episodes
+                if se.outcome == "success" or se.quality_score >= 0.6
+            ]
+            if len(successful) < min_successful:
+                continue
+
+            # Skip if hint is recent and based on enough data
+            if (skill.execution_hint is not None
+                    and skill.execution_hint.n_source_segments >= len(successful)):
+                continue
+
+            contract = skill.contract
+
+            # --- common preconditions ---
+            preconditions: List[str] = []
+            if skill.protocol.preconditions:
+                preconditions = list(skill.protocol.preconditions[:5])
+
+            # --- common target objects ---
+            obj_counter: Counter = Counter()
+            for se in successful:
+                for tag in se.intention_tags:
+                    parts = tag.strip("[]").split("_")
+                    for p in parts:
+                        if p and len(p) > 2 and p.upper() != p:
+                            obj_counter[p.lower()] += 1
+            target_objects = [obj for obj, _ in obj_counter.most_common(5)]
+
+            # --- state-transition pattern ---
+            transition_pattern = ""
+            if contract is not None:
+                add_str = ", ".join(sorted(contract.eff_add)[:3]) if contract.eff_add else ""
+                del_str = ", ".join(sorted(contract.eff_del)[:3]) if contract.eff_del else ""
+                parts = []
+                if del_str:
+                    parts.append(f"removes [{del_str}]")
+                if add_str:
+                    parts.append(f"achieves [{add_str}]")
+                transition_pattern = " → ".join(parts)
+
+            # --- termination cues ---
+            termination_cues: List[str] = []
+            if skill.protocol.success_criteria:
+                termination_cues = list(skill.protocol.success_criteria[:3])
+            elif contract is not None and contract.eff_add:
+                termination_cues = [
+                    f"{lit} becomes true" for lit in sorted(contract.eff_add)[:3]
+                ]
+
+            # --- failure modes ---
+            failure_modes: List[str] = []
+            report = self.bank.get_report(sid)
+            if report is not None and report.failure_signatures:
+                failure_modes = [
+                    f"{sig} ({cnt}x)"
+                    for sig, cnt in sorted(
+                        report.failure_signatures.items(), key=lambda x: -x[1]
+                    )[:3]
+                ]
+            if skill.protocol.abort_criteria:
+                failure_modes.extend(skill.protocol.abort_criteria[:2])
+
+            # --- execution description ---
+            exec_desc = ""
+            if skill.strategic_description:
+                exec_desc = skill.strategic_description
+            elif skill.protocol.steps:
+                exec_desc = " → ".join(skill.protocol.steps[:4])
+            elif successful:
+                summaries = [se.summary for se in successful if se.summary][:3]
+                if summaries:
+                    exec_desc = "; ".join(summaries)
+
+            # Compute typical durations
+            lengths = [se.length for se in successful]
+            avg_len = sum(lengths) / max(len(lengths), 1)
+
+            hint = ExecutionHint(
+                common_preconditions=preconditions,
+                common_target_objects=target_objects,
+                state_transition_pattern=transition_pattern,
+                termination_cues=termination_cues,
+                common_failure_modes=failure_modes[:5],
+                execution_description=exec_desc,
+                n_source_segments=len(successful),
+            )
+
+            skill.execution_hint = hint
+            self.bank.add_or_update_skill(skill)
+            updated += 1
+
+        if updated:
+            logger.info("Distilled execution hints for %d skills.", updated)
+            self._invalidate_query_engine()
+
+        return updated
+
     # ── Stage 4.5: sub-episode quality check ────────────────────────
 
     def run_sub_episode_quality_check(self) -> List[dict]:
@@ -612,6 +740,62 @@ class SkillBankAgent:
         for seg in self._new_pool:
             if seg.skill_label in alias_map:
                 seg.skill_label = alias_map[seg.skill_label]
+
+    # ── Proto-Skill Management ────────────────────────────────────────
+
+    def form_proto_skills(self) -> int:
+        """Scan NEW pool clusters and form proto-skills.
+
+        Proto-skills are lightweight intermediates that can participate
+        in Stage 2 decoding before full promotion.
+
+        Returns the number of proto-skills created.
+        """
+        existing = set(self.bank.skill_ids)
+        created = self._proto_mgr.form_from_pool(
+            self._new_pool_mgr, existing_bank_skills=existing,
+        )
+        if created:
+            logger.info(
+                "Formed %d proto-skills: %s",
+                len(created),
+                [p.proto_id for p in created[:5]],
+            )
+        return len(created)
+
+    def verify_proto_skills(self) -> int:
+        """Run light verification on all unverified proto-skills.
+
+        Returns the number of proto-skills verified.
+        """
+        verified = 0
+        for pid in list(self._proto_mgr.proto_ids):
+            proto = self._proto_mgr.get(pid)
+            if proto is None or proto.verified:
+                continue
+            pass_rate = self._proto_mgr.verify(
+                pid, self.bank, self._observations_by_traj,
+            )
+            if pass_rate is not None:
+                verified += 1
+                logger.info(
+                    "Proto-skill %s verified: pass_rate=%.3f",
+                    pid, pass_rate,
+                )
+        return verified
+
+    def promote_proto_skills(self) -> int:
+        """Promote qualifying proto-skills to real skills.
+
+        Returns the number of skills promoted.
+        """
+        promoted = self._proto_mgr.promote_ready(self.bank)
+        if promoted:
+            logger.info("Promoted %d proto-skills to real skills: %s", len(promoted), promoted[:5])
+            self._invalidate_query_engine()
+            if self.config.bank_path:
+                self.bank.save(self.config.bank_path)
+        return len(promoted)
 
     # ── Materialize NEW ──────────────────────────────────────────────
 
@@ -775,7 +959,11 @@ class SkillBankAgent:
         skill_names: Optional[List[str]] = None,
         **kwargs,
     ) -> IterationSnapshot:
-        """Execute one full pipeline iteration: (optional ingest) → Stage 3 → Stage 4 → materialize → snapshot.
+        """Execute one full pipeline iteration.
+
+        Pipeline: (optional ingest) → Stage 3 → quality check
+        → Stage 4 → proto-skill formation → verification → promotion
+        → materialize remaining NEW → execution hints → snapshot.
 
         If *episodes* is provided, runs Stage 1+2 first.
         """
@@ -790,9 +978,19 @@ class SkillBankAgent:
 
         self.run_sub_episode_quality_check()
         self.run_bank_maintenance()
+
+        # Phase 4: proto-skill layer (NEW → cluster → proto → verify → promote)
+        n_proto = self.form_proto_skills()
+        if n_proto > 0:
+            self.verify_proto_skills()
+        n_promoted = self.promote_proto_skills()
+
         n_mat = self.materialize_new_skills()
 
-        snap = self._take_snapshot(n_materialized=n_mat)
+        # Phase 5: distill execution hints for skills with enough evidence
+        self.distill_execution_hints()
+
+        snap = self._take_snapshot(n_materialized=n_mat + n_promoted)
         self._history.append(snap)
         return snap
 
@@ -906,32 +1104,56 @@ class SkillBankAgent:
 
     # ── Query API (used by decision_agents) ──────────────────────────
 
-    def query_skill(self, key: str, top_k: int = 3) -> List[Dict[str, Any]]:
+    def query_skill(
+        self,
+        key: str,
+        top_k: int = 3,
+        current_state: Optional[Dict[str, float]] = None,
+        current_predicates: Optional[Dict[str, float]] = None,
+    ) -> List[Dict[str, Any]]:
         """Query skills by natural-language key (scene/objective/entities).
 
-        Returns a list of dicts with skill_id, contract summary, and match info,
-        suitable for decision_agents.
+        When *current_state* or *current_predicates* is provided, defaults
+        to the rich state-aware ``select()`` path which uses applicability,
+        pass rate, matched/missing effects, and state-conditioned ranking.
+
+        Falls back to the simpler retrieval-only ``query()`` path only when
+        no state information is available.
+
+        Returns a list of structured guidance dicts suitable for
+        decision_agents.
         """
         engine = self._get_query_engine()
+        state = current_state or current_predicates
+        if state is not None:
+            results = engine.select(
+                key, current_state=state, top_k=top_k,
+            )
+            return [r.to_dict() for r in results]
         return engine.query(key, top_k=top_k)
 
     def select_skill(
         self,
         query: str,
         current_state: Optional[Dict[str, float]] = None,
+        current_predicates: Optional[Dict[str, float]] = None,
         top_k: int = 3,
     ) -> List[Dict[str, Any]]:
         """Rich skill selection combining retrieval relevance with execution
-        applicability.
+        applicability and structured guidance.
 
-        Preferred API for decision agents.  When ``current_state`` is
-        provided, the result includes ``applicability`` and ``confidence``
-        in addition to ``relevance``.
+        Preferred API for decision agents.  When ``current_state`` or
+        ``current_predicates`` is provided, the result includes full
+        guidance: applicability, confidence, why_selected, expected_effects,
+        preconditions, termination_hint, failure_modes, execution_hint.
 
         Returns list of ``SkillSelectionResult.to_dict()``.
         """
         engine = self._get_query_engine()
-        results = engine.select(query, current_state=current_state, top_k=top_k)
+        state = current_state or current_predicates
+        results = engine.select(
+            query, current_state=state, top_k=top_k,
+        )
         return [r.to_dict() for r in results]
 
     def query_by_effects(

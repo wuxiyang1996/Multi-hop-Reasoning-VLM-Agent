@@ -33,6 +33,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 import numpy as np
 
 from skill_agents.stage3_mvp.schemas import (
+    ProtoSkill,
     SegmentRecord,
     SkillEffectsContract,
     VerificationReport,
@@ -556,5 +557,278 @@ class NewPoolManager:
                     "sig": c.representative_sig,
                 }
                 for c in candidates[:5]
+            ],
+        }
+
+
+# ═════════════════════════════════════════════════════════════════════
+# Proto-Skill Manager
+# ═════════════════════════════════════════════════════════════════════
+
+
+@dataclass
+class ProtoSkillConfig:
+    """Thresholds for proto-skill formation and promotion."""
+
+    min_cluster_size: int = 3
+    min_consistency: float = 0.4
+    min_separability: float = 0.2
+    promotion_min_support: int = 5
+    promotion_min_consistency: float = 0.5
+    promotion_min_pass_rate: float = 0.6
+    max_proto_skills: int = 50
+
+
+class ProtoSkillManager:
+    """Manages the proto-skill layer between __NEW__ and real skills.
+
+    Proto-skills are lightweight intermediate representations that allow
+    NEW clusters to participate in Stage 2 decoding as candidate labels
+    *before* full promotion.  This accelerates new-skill growth by giving
+    the system a meaningful intermediate target earlier.
+
+    Lifecycle::
+
+        __NEW__ → cluster (via NewPoolManager) → ProtoSkill
+        → light verification → if is_promotable → real Skill
+
+    Stage 2 can include proto-skill candidate labels in decoding.
+    """
+
+    def __init__(self, config: Optional[ProtoSkillConfig] = None) -> None:
+        self.config = config or ProtoSkillConfig()
+        self._protos: Dict[str, ProtoSkill] = {}
+
+    @property
+    def proto_ids(self) -> List[str]:
+        return list(self._protos.keys())
+
+    @property
+    def size(self) -> int:
+        return len(self._protos)
+
+    def get(self, proto_id: str) -> Optional[ProtoSkill]:
+        return self._protos.get(proto_id)
+
+    def candidate_labels(self) -> List[str]:
+        """Return Stage-2-compatible labels for all proto-skills."""
+        return [p.candidate_label for p in self._protos.values()]
+
+    # ── Formation ────────────────────────────────────────────────────
+
+    def form_from_cluster(
+        self,
+        cluster_summary: ClusterSummary,
+        member_records: List[SegmentRecord],
+        existing_bank_skills: Optional[Set[str]] = None,
+    ) -> Optional[ProtoSkill]:
+        """Attempt to form a proto-skill from a NEW cluster.
+
+        Criteria: cluster must meet min_cluster_size, min_consistency,
+        and have enough distinctiveness from existing skills and protos.
+        """
+        cfg = self.config
+        if cluster_summary.size < cfg.min_cluster_size:
+            return None
+        if cluster_summary.consistency < cfg.min_consistency:
+            return None
+        if len(self._protos) >= cfg.max_proto_skills:
+            return None
+
+        centroid = cluster_summary.effect_centroid_add | cluster_summary.effect_centroid_del
+        if existing_bank_skills and centroid:
+            for existing_id in existing_bank_skills:
+                pass  # separability checked at promotion time
+
+        proto_id = f"proto_{int(time.time())}_{cluster_summary.cluster_id}"
+        if proto_id in self._protos:
+            proto_id += f"_{len(self._protos)}"
+
+        durations = [max(1, r.t_end - r.t_start + 1) for r in member_records]
+        dur_arr = np.array(durations, dtype=np.float64)
+
+        tag_dist: Counter = Counter()
+        for r in member_records:
+            for e in (r.eff_event or set()):
+                if e.startswith("tag_"):
+                    tag_dist[e] += 1
+
+        context_before: Counter = Counter()
+        context_after: Counter = Counter()
+
+        proto = ProtoSkill(
+            proto_id=proto_id,
+            member_seg_ids=[r.seg_id for r in member_records],
+            candidate_effects_add=set(cluster_summary.effect_centroid_add),
+            candidate_effects_del=set(cluster_summary.effect_centroid_del),
+            candidate_effects_event=set(cluster_summary.effect_centroid_event),
+            support=cluster_summary.size,
+            consistency=cluster_summary.consistency,
+            tag_distribution=dict(tag_dist),
+            typical_length_mean=float(dur_arr.mean()),
+            typical_length_std=float(dur_arr.std()),
+            context_before=[
+                sk for sk, _ in cluster_summary.predecessor_distribution.items()
+            ][:5],
+            context_after=[
+                sk for sk, _ in cluster_summary.successor_distribution.items()
+            ][:5],
+        )
+
+        self._protos[proto_id] = proto
+        return proto
+
+    def form_from_pool(
+        self,
+        pool_manager: NewPoolManager,
+        existing_bank_skills: Optional[Set[str]] = None,
+    ) -> List[ProtoSkill]:
+        """Scan all mature clusters in a NewPoolManager and form proto-skills.
+
+        Returns list of newly created ProtoSkills.
+        """
+        candidates = pool_manager.get_candidates()
+        created: List[ProtoSkill] = []
+
+        for summary in candidates:
+            records = pool_manager.get_cluster_records(summary.cluster_id)
+            proto = self.form_from_cluster(
+                summary, records, existing_bank_skills,
+            )
+            if proto is not None:
+                created.append(proto)
+
+        return created
+
+    # ── Verification ────────────────────────────────────────────────
+
+    def verify(
+        self,
+        proto_id: str,
+        bank,
+        observations_by_traj: Dict[str, list],
+    ) -> Optional[float]:
+        """Run light verification on a proto-skill.
+
+        Uses Stage 3 to compute pass rate for the proto-skill's members.
+        Returns the pass rate or None if verification failed.
+        """
+        proto = self._protos.get(proto_id)
+        if proto is None:
+            return None
+
+        from skill_agents.stage3_mvp.run_stage3_mvp import (
+            run_stage3_mvp,
+            SegmentSpec,
+        )
+        from skill_agents.stage3_mvp.config import Stage3MVPConfig
+
+        specs = []
+        for seg_id in proto.member_seg_ids[:20]:
+            parts = seg_id.rsplit("_seg", 1)
+            if len(parts) == 2:
+                traj_id = parts[0]
+            else:
+                traj_id = seg_id
+            specs.append(SegmentSpec(
+                seg_id=seg_id,
+                traj_id=traj_id,
+                t_start=0,
+                t_end=0,
+                skill_label=proto.proto_id,
+            ))
+
+        if not specs:
+            return None
+
+        s3_config = Stage3MVPConfig(min_instances_per_skill=1)
+        try:
+            summary = run_stage3_mvp(
+                segments=specs,
+                observations_by_traj=observations_by_traj,
+                config=s3_config,
+                bank=bank,
+            )
+            if proto.proto_id in summary.skill_results:
+                pass_rate = summary.skill_results[proto.proto_id].get("pass_rate", 0.0)
+            else:
+                pass_rate = 0.0
+        except Exception:
+            pass_rate = 0.0
+
+        proto.verified = True
+        proto.verification_pass_rate = pass_rate
+        proto.n_verifications += 1
+        proto.updated_at = time.time()
+
+        # Clean up trial contract
+        if bank.has_skill(proto.proto_id):
+            bank.remove(proto.proto_id)
+
+        return pass_rate
+
+    # ── Promotion ────────────────────────────────────────────────────
+
+    def promote_ready(self, bank) -> List[str]:
+        """Promote all proto-skills that pass the promotion criteria.
+
+        Returns list of newly created skill IDs.
+        """
+        promoted: List[str] = []
+        to_remove: List[str] = []
+
+        for pid, proto in self._protos.items():
+            if not proto.is_promotable:
+                continue
+
+            skill = proto.to_skill()
+            bank.add_or_update(skill.contract)
+            bank.add_or_update_skill(skill)
+            promoted.append(pid)
+            to_remove.append(pid)
+
+        for pid in to_remove:
+            del self._protos[pid]
+
+        return promoted
+
+    # ── Persistence ──────────────────────────────────────────────────
+
+    def save(self, filepath: str) -> None:
+        path = Path(filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            "proto_skills": {
+                pid: p.to_dict() for pid, p in self._protos.items()
+            }
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, default=str)
+
+    def load(self, filepath: str) -> None:
+        path = Path(filepath)
+        if not path.exists():
+            return
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self._protos = {}
+        for pid, pd in data.get("proto_skills", {}).items():
+            self._protos[pid] = ProtoSkill.from_dict(pd)
+
+    def summary(self) -> Dict[str, Any]:
+        """Compact summary for logging."""
+        promotable = [p for p in self._protos.values() if p.is_promotable]
+        return {
+            "n_protos": len(self._protos),
+            "n_promotable": len(promotable),
+            "protos": [
+                {
+                    "id": p.proto_id,
+                    "support": p.support,
+                    "consistency": round(p.consistency, 3),
+                    "verified": p.verified,
+                    "pass_rate": round(p.verification_pass_rate, 3),
+                }
+                for p in list(self._protos.values())[:10]
             ],
         }

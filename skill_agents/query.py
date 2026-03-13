@@ -113,21 +113,28 @@ def _skill_description(
 
 @dataclass
 class SkillSelectionResult:
-    """Rich result from the skill selection policy.
+    """Structured guidance package returned by the skill selection policy.
 
-    Decision agents should use these fields to decide which skill to execute:
-      - ``relevance``: how well the skill matches the query (0-1).
-      - ``applicability``: how well the current state matches the skill's
-        contract / preconditions (approx. -1 to +1).
-      - ``confidence``: combined score incorporating pass rate and evidence.
-      - ``matched_effects``: which contract effects match the desired outcome.
-      - ``missing_effects``: expected effects not matched by the current state.
+    Decision agents use these fields to decide which skill to execute and
+    how to carry it out.  The package goes well beyond retrieval relevance:
+    it provides *why* the skill was selected, *what* it will achieve,
+    *when* it is valid, *how* to execute it, *when* it is done, and *what*
+    can go wrong.
     """
 
     skill_id: str
+    skill_name: str = ""
+    why_selected: str = ""
+    applicability_score: float = 0.0
     relevance: float = 0.0
-    applicability: float = 0.0
     confidence: float = 0.0
+
+    expected_effects: List[str] = field(default_factory=list)
+    preconditions: List[str] = field(default_factory=list)
+    termination_hint: str = ""
+    failure_modes: List[str] = field(default_factory=list)
+    execution_hint: str = ""
+
     contract_match_score: float = 0.0
     pass_rate: Optional[float] = None
     n_instances: int = 0
@@ -139,9 +146,16 @@ class SkillSelectionResult:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "skill_id": self.skill_id,
+            "skill_name": self.skill_name,
+            "why_selected": self.why_selected,
+            "applicability_score": round(self.applicability_score, 4),
             "relevance": round(self.relevance, 4),
-            "applicability": round(self.applicability, 4),
             "confidence": round(self.confidence, 4),
+            "expected_effects": self.expected_effects,
+            "preconditions": self.preconditions,
+            "termination_hint": self.termination_hint,
+            "failure_modes": self.failure_modes,
+            "execution_hint": self.execution_hint,
             "contract_match_score": round(self.contract_match_score, 4),
             "pass_rate": round(self.pass_rate, 3) if self.pass_rate is not None else None,
             "n_instances": self.n_instances,
@@ -334,18 +348,140 @@ class SkillQueryEngine:
 
     # ── Rich selection API (preferred for decision agents) ───────────
 
+    def _build_guidance_fields(
+        self,
+        sid: str,
+        query: str,
+        relevance: float,
+        applicability: float,
+        matched: List[str],
+        missing: List[str],
+        current_state: Optional[Dict[str, float]],
+    ) -> Dict[str, Any]:
+        """Derive structured guidance fields for a skill selection result.
+
+        Returns a dict with: skill_name, why_selected, expected_effects,
+        preconditions, termination_hint, failure_modes, execution_hint,
+        micro_plan.
+        """
+        c = self._bank.get_contract(sid)
+        r = self._bank.get_report(sid)
+        has_get_skill = hasattr(self._bank, "get_skill")
+        skill = self._bank.get_skill(sid) if has_get_skill else None
+
+        skill_name = ""
+        if skill is not None and getattr(skill, "name", ""):
+            skill_name = skill.name
+        elif c is not None and getattr(c, "name", ""):
+            skill_name = c.name
+        else:
+            skill_name = sid.replace("_", " ")
+
+        # --- why_selected ---
+        reasons = []
+        if relevance > 0.3:
+            reasons.append(f"matches query '{query[:60]}' (rel={relevance:.2f})")
+        if applicability > 0.2:
+            reasons.append(f"applicable in current state (app={applicability:.2f})")
+        if matched:
+            reasons.append(f"effects align: {', '.join(matched[:3])}")
+        pass_rate = r.overall_pass_rate if r else None
+        if pass_rate is not None and pass_rate >= 0.7:
+            reasons.append(f"reliable (pass_rate={pass_rate:.0%})")
+        why_selected = "; ".join(reasons) if reasons else "best available match"
+
+        # --- expected_effects ---
+        expected_effects: List[str] = []
+        if c is not None:
+            for lit in sorted(c.eff_add or set()):
+                expected_effects.append(f"+{lit}")
+            for lit in sorted(c.eff_del or set()):
+                expected_effects.append(f"-{lit}")
+            for lit in sorted(c.eff_event or set()):
+                expected_effects.append(f"event:{lit}")
+
+        # --- preconditions ---
+        preconditions: List[str] = []
+        if skill is not None and skill.protocol.preconditions:
+            preconditions = list(skill.protocol.preconditions)
+        elif missing and current_state is not None:
+            preconditions = [f"needs: {lit}" for lit in missing[:5]]
+
+        # --- termination_hint ---
+        termination_hint = ""
+        if skill is not None and skill.protocol.success_criteria:
+            termination_hint = "; ".join(skill.protocol.success_criteria[:3])
+        elif c is not None and c.eff_add:
+            termination_hint = "done when: " + ", ".join(
+                sorted(c.eff_add)[:3]
+            ) + " become true"
+
+        # --- failure_modes ---
+        failure_modes: List[str] = []
+        if r is not None and r.failure_signatures:
+            for sig, count in sorted(
+                r.failure_signatures.items(), key=lambda x: -x[1]
+            )[:3]:
+                failure_modes.append(f"{sig} ({count}x)")
+        if skill is not None and skill.protocol.abort_criteria:
+            failure_modes.extend(skill.protocol.abort_criteria[:2])
+
+        # --- execution_hint ---
+        execution_hint = ""
+        if skill is not None and getattr(skill, "execution_hint", None) is not None:
+            eh = skill.execution_hint
+            execution_hint = eh.execution_description or ""
+            if not execution_hint and eh.state_transition_pattern:
+                execution_hint = eh.state_transition_pattern
+            if eh.termination_cues and not termination_hint:
+                termination_hint = "; ".join(eh.termination_cues[:3])
+            if eh.common_failure_modes and not failure_modes:
+                failure_modes = list(eh.common_failure_modes[:3])
+            if eh.common_preconditions and not preconditions:
+                preconditions = list(eh.common_preconditions[:5])
+        if not execution_hint:
+            if skill is not None and skill.strategic_description:
+                execution_hint = skill.strategic_description
+            elif skill is not None and skill.protocol.steps:
+                execution_hint = " → ".join(skill.protocol.steps[:4])
+            elif c is not None and c.description:
+                execution_hint = c.description
+
+        # --- micro_plan ---
+        if skill is not None and skill.protocol.steps:
+            micro_plan = [{"action": step} for step in skill.protocol.steps[:7]]
+        elif c:
+            micro_plan = [
+                {"action": None, "effect": lit}
+                for lit in sorted(c.eff_add or set())[:7]
+            ]
+        else:
+            micro_plan = []
+
+        return {
+            "skill_name": skill_name,
+            "why_selected": why_selected,
+            "expected_effects": expected_effects,
+            "preconditions": preconditions,
+            "termination_hint": termination_hint,
+            "failure_modes": failure_modes,
+            "execution_hint": execution_hint,
+            "micro_plan": micro_plan,
+        }
+
     def select(
         self,
         query: str,
         current_state: Optional[Dict[str, float]] = None,
+        current_predicates: Optional[Dict[str, float]] = None,
         top_k: int = 3,
     ) -> List[SkillSelectionResult]:
         """Rich skill selection combining retrieval relevance with execution
-        applicability.
+        applicability and structured guidance.
 
         This is the preferred API for decision agents.  It separates "is this
         skill relevant to what I want?" from "can this skill execute now?"
-        and provides supporting evidence.
+        and provides actionable execution guidance.
 
         Parameters
         ----------
@@ -354,50 +490,54 @@ class SkillQueryEngine:
         current_state : dict, optional
             Current predicate state as ``{predicate: probability}``.
             When provided, enables contract-based applicability scoring.
+        current_predicates : dict, optional
+            Alias for *current_state* (either works; *current_state* takes
+            precedence when both are provided).
         top_k : int
             Number of results to return.
 
         Returns
         -------
         list[SkillSelectionResult]
-            Sorted by confidence (highest first).
+            Sorted by confidence (highest first).  Each result includes
+            structured guidance fields (why_selected, expected_effects,
+            preconditions, termination_hint, failure_modes, execution_hint).
         """
+        state = current_state or current_predicates
         relevance_scores = self._compute_relevance(query)
 
         results: List[SkillSelectionResult] = []
         for sid in self._skill_id_order:
             rel = relevance_scores.get(sid, 0.0)
-            app, matched, missing = self._compute_applicability(sid, current_state)
+            app, matched, missing = self._compute_applicability(sid, state)
             conf = self._compute_confidence(sid, rel, app)
 
             c = self._bank.get_contract(sid)
             r = self._bank.get_report(sid)
 
-            # Build micro_plan from protocol steps when available
-            has_get_skill = hasattr(self._bank, "get_skill")
-            skill = self._bank.get_skill(sid) if has_get_skill else None
-            if skill is not None and skill.protocol.steps:
-                micro_plan = [{"action": step} for step in skill.protocol.steps[:7]]
-            elif c:
-                micro_plan = [
-                    {"action": None, "effect": lit}
-                    for lit in sorted(c.eff_add or set())[:7]
-                ]
-            else:
-                micro_plan = []
+            guidance = self._build_guidance_fields(
+                sid, query, rel, app, matched, missing, state,
+            )
 
             result = SkillSelectionResult(
                 skill_id=sid,
+                skill_name=guidance["skill_name"],
+                why_selected=guidance["why_selected"],
+                applicability_score=app,
                 relevance=rel,
-                applicability=app,
                 confidence=conf,
+                expected_effects=guidance["expected_effects"],
+                preconditions=guidance["preconditions"],
+                termination_hint=guidance["termination_hint"],
+                failure_modes=guidance["failure_modes"],
+                execution_hint=guidance["execution_hint"],
                 contract_match_score=app,
                 pass_rate=r.overall_pass_rate if r else None,
                 n_instances=c.n_instances if c else 0,
                 matched_effects=matched,
                 missing_effects=missing,
                 contract=_contract_summary(c) if c else {},
-                micro_plan=micro_plan,
+                micro_plan=guidance["micro_plan"],
             )
             results.append(result)
 
@@ -549,22 +689,25 @@ class SkillQueryEngine:
         self,
         key: str,
         current_state: Optional[Dict[str, float]] = None,
+        current_predicates: Optional[Dict[str, float]] = None,
         top_k: int = 1,
     ) -> Dict[str, Any]:
         """Convenience method for decision agents returning a single best-match.
 
-        When ``current_state`` is provided, uses the full selection policy
-        (relevance + applicability).  Otherwise falls back to retrieval only.
+        Defaults to the full selection policy (relevance + applicability +
+        structured guidance) whenever *current_state* or *current_predicates*
+        is available.  Falls back to retrieval only when no state is given.
 
-        Returns a dict with: skill_id, micro_plan, contract, relevance,
-        applicability, confidence.
+        Returns a structured guidance dict including: skill_id, skill_name,
+        why_selected, applicability_score, expected_effects, preconditions,
+        termination_hint, failure_modes, execution_hint, micro_plan, etc.
         """
-        if current_state is not None:
-            results = self.select(key, current_state=current_state, top_k=top_k)
+        state = current_state or current_predicates
+        if state is not None:
+            results = self.select(key, current_state=state, top_k=top_k)
             if not results:
                 return {"skill_id": None, "micro_plan": [], "confidence": 0.0}
-            best = results[0]
-            return best.to_dict()
+            return results[0].to_dict()
 
         # Backward-compatible path
         results = self.query(key, top_k=top_k)

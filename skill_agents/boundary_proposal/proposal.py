@@ -1,15 +1,17 @@
 """
 Stage 1 boundary proposal: generate candidate cut points C from multiple signals.
 
-Signals: predicate flips, action surprisal spikes, embedding change-points, hard events.
+Signals: predicate flips, action surprisal spikes, embedding change-points,
+         hard events, **intention-tag changes** (tag proposes, Stage 2 decides).
 Output: merged and optionally density-controlled candidate set (centers + windows).
 """
 
 from __future__ import annotations
 
+import re
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Dict, List, Optional, Set
 
 # ---------------------------------------------------------------------------
 # Types and config
@@ -50,6 +52,12 @@ class ProposalConfig:
 
     # Density: for soft signals, keep at most this many per minute (None = no cap)
     soft_max_per_minute: Optional[int] = 20
+
+    # ── Intention-tag boundary signals ─────────────────────────────
+    # Tag change → boundary candidate (tag proposes, Stage 2 decides)
+    tag_min_segment_len: int = 3
+    tag_completion_bonus_weight: float = 1.5  # stronger event for done/completion
+    tag_repeated_filter: bool = True  # ignore A→A non-changes
 
 
 # ---------------------------------------------------------------------------
@@ -181,6 +189,81 @@ def _triggers_from_events(
     return sorted(out, key=lambda x: x[0])
 
 
+# ── Tag aliases for canonicalization (subset of signal_extractors) ───
+
+_TAG_RE = re.compile(r"\[(\w+)\]")
+
+_TAG_ALIASES: Dict[str, str] = {
+    "PLACE": "SETUP", "DROP": "EXECUTE", "MOVE": "NAVIGATE",
+    "SWAP": "EXECUTE", "PUSH": "NAVIGATE", "JUMP": "NAVIGATE",
+    "MATCH": "CLEAR", "PLAN": "SETUP", "ARRANGE": "SETUP",
+    "ROTATE": "SETUP", "ORGANIZE": "OPTIMIZE", "SCORE": "EXECUTE",
+    "PROTECT": "DEFEND", "GRAB": "COLLECT", "FLEE": "SURVIVE",
+    "RUN": "NAVIGATE", "CREATE": "BUILD", "FIND": "EXPLORE",
+    "FIX": "OPTIMIZE", "ALIGN": "POSITION", "TARGET": "ATTACK",
+    "SECURE": "DEFEND", "EXPAND": "ATTACK", "RETREAT": "DEFEND",
+}
+
+
+def _canonicalize_tag(raw: str) -> str:
+    """Normalize a tag string: strip brackets, upper, resolve aliases."""
+    m = _TAG_RE.match((raw or "").strip())
+    token = m.group(1).upper() if m else raw.strip().strip("[]").upper()
+    return _TAG_ALIASES.get(token, token)
+
+
+def _triggers_from_intention_tags(
+    intention_tags: list[str],
+    config: ProposalConfig,
+    done_flags: Optional[list[bool]] = None,
+) -> list[tuple[int, str]]:
+    """
+    E) Intention-tag signal: propose boundaries from tag changes and completions.
+
+    Two sub-signals:
+      1. Tag change: if the canonical tag at t differs from t-1, propose t.
+         Subject to min_segment_len and repeated-tag filtering.
+      2. Tag completion / done: if done_flags[t] is True, propose t as a
+         stronger "tag_done" event.
+
+    The tag signal is a *proposal prior* — Stage 2 makes the final decision.
+    """
+    out: list[tuple[int, str]] = []
+    if not intention_tags:
+        return out
+
+    T = len(intention_tags)
+    canonical = [_canonicalize_tag(t) for t in intention_tags]
+
+    last_change_t = 0
+
+    for t in range(1, T):
+        prev_tag = canonical[t - 1]
+        curr_tag = canonical[t]
+
+        # Skip UNKNOWN tags
+        if curr_tag == "UNKNOWN" or not curr_tag:
+            continue
+
+        # --- Signal 1: tag change ---
+        if curr_tag != prev_tag:
+            if config.tag_repeated_filter and prev_tag == "UNKNOWN":
+                pass  # don't count transitions from UNKNOWN
+            elif (t - last_change_t) < config.tag_min_segment_len:
+                pass  # too rapid, skip
+            else:
+                out.append((t, "tag_change"))
+                last_change_t = t
+
+    # --- Signal 2: tag completion / done ---
+    if done_flags is not None:
+        for t in range(T):
+            if done_flags[t]:
+                out.append((t, "tag_done"))
+
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Merge and window
 # ---------------------------------------------------------------------------
@@ -236,7 +319,7 @@ def _density_control(
     if config.soft_max_per_minute is None:
         return candidates
 
-    hard = [c for c in candidates if "event" in c.source or "predicate" in c.source]
+    hard = [c for c in candidates if "event" in c.source or "predicate" in c.source or "tag" in c.source]
     soft = [c for c in candidates if c not in hard]
 
     by_minute: dict[int, list[BoundaryCandidate]] = {}
@@ -265,6 +348,8 @@ def propose_boundary_candidates(
     surprisal: Optional[np.ndarray] = None,
     changepoint_scores: Optional[np.ndarray] = None,
     event_times: Optional[list[int]] = None,
+    intention_tags: Optional[list[str]] = None,
+    done_flags: Optional[list[bool]] = None,
     config: Optional[ProposalConfig] = None,
     event_window: int = 1,
 ) -> list[BoundaryCandidate]:
@@ -283,6 +368,14 @@ def propose_boundary_candidates(
         Change-point score per timestep; shape (T,).
     event_times : list[int], optional
         Hard event timesteps (reward spike, death, menu toggle, etc.).
+    intention_tags : list[str], optional
+        Per-timestep intention tag strings (e.g. ``"[MOVE_TO_ONION]"``).
+        Tag changes produce boundary candidates; tag completion / done
+        produces stronger boundary events.  Subject to
+        ``tag_min_segment_len`` and repeated-tag filtering.
+    done_flags : list[bool], optional
+        Per-timestep completion flags.  When True at timestep *t*, the
+        tag-done signal emits a stronger boundary event.
     config : ProposalConfig, optional
         If None, uses ProposalConfig() defaults.
     event_window : int
@@ -309,6 +402,11 @@ def propose_boundary_candidates(
 
     if event_times is not None:
         triggers.extend(_triggers_from_events(event_times, event_window=event_window))
+
+    if intention_tags is not None and len(intention_tags) > 0:
+        triggers.extend(
+            _triggers_from_intention_tags(intention_tags, cfg, done_flags)
+        )
 
     triggers = [(t, s) for t, s in triggers if 0 <= t < T]
     if not triggers:
