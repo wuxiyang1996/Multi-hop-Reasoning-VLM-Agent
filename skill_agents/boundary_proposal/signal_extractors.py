@@ -34,6 +34,7 @@ Usage:
 
 from __future__ import annotations
 
+import re
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple
@@ -335,6 +336,102 @@ class GenericSignalExtractor(SignalExtractorBase):
 
 
 # ---------------------------------------------------------------------------
+# Intention-based: extract predicates from [TAG] intention strings
+# ---------------------------------------------------------------------------
+
+_SUBGOAL_TAGS_DEFAULT = (
+    "SETUP", "CLEAR", "MERGE", "ATTACK", "DEFEND",
+    "NAVIGATE", "POSITION", "COLLECT", "BUILD", "SURVIVE",
+    "OPTIMIZE", "EXPLORE", "EXECUTE",
+)
+
+_TAG_ALIASES: Dict[str, str] = {
+    "PLACE": "SETUP", "DROP": "EXECUTE", "MOVE": "NAVIGATE",
+    "SWAP": "EXECUTE", "PUSH": "NAVIGATE", "JUMP": "NAVIGATE",
+    "MATCH": "CLEAR", "PLAN": "SETUP", "ARRANGE": "SETUP",
+    "ROTATE": "SETUP", "ORGANIZE": "OPTIMIZE", "SCORE": "EXECUTE",
+    "PROTECT": "DEFEND", "GRAB": "COLLECT", "FLEE": "SURVIVE",
+    "RUN": "NAVIGATE", "CREATE": "BUILD", "FIND": "EXPLORE",
+    "FIX": "OPTIMIZE", "ALIGN": "POSITION", "TARGET": "ATTACK",
+    "SECURE": "DEFEND", "EXPAND": "ATTACK", "RETREAT": "DEFEND",
+}
+
+_TAG_RE = re.compile(r"\[(\w+)\]")
+
+
+def parse_intention_tag(intention: str, tags: tuple = _SUBGOAL_TAGS_DEFAULT) -> str:
+    """Extract and normalise the [TAG] from an intention string.
+
+    Returns the canonical tag (e.g. ``"CLEAR"``) or ``"UNKNOWN"`` if no
+    recognised tag is found.
+    """
+    m = _TAG_RE.match((intention or "").strip())
+    if not m:
+        return "UNKNOWN"
+    raw = m.group(1).upper()
+    if raw in tags:
+        return raw
+    return _TAG_ALIASES.get(raw, "UNKNOWN")
+
+
+class IntentionSignalExtractor(SignalExtractorBase):
+    """Extract predicates and events from ``[TAG]`` intention annotations.
+
+    Produces per-timestep predicate dicts with one-hot ``tag_<tag>`` keys
+    that match the vocabulary used by intention-extracted
+    ``SkillEffectsContract`` objects (``eff_add={..._completed}``,
+    ``eff_event={tag_...}``).
+
+    Works on any ``Experience`` that carries an ``intentions`` attribute
+    (i.e. LLM-labeled episodes).  For unlabeled data the predicates will
+    be empty dicts and events will only contain ``done`` flags, which is a
+    safe no-op.
+
+    Parameters
+    ----------
+    tags : tuple[str, ...]
+        Canonical tag vocabulary.  Defaults to ``SUBGOAL_TAGS``.
+    """
+
+    def __init__(self, tags: tuple = _SUBGOAL_TAGS_DEFAULT):
+        self._tags = tags
+        self._tag_set = frozenset(tags)
+
+    def extract_predicates(self, experiences: list) -> List[Optional[dict]]:
+        predicates: List[Optional[dict]] = []
+        for exp in experiences:
+            intent = getattr(exp, "intentions", None) or ""
+            tag = parse_intention_tag(intent, self._tags)
+
+            preds: dict = {f"tag_{t.lower()}": float(t == tag) for t in self._tags}
+
+            done = bool(getattr(exp, "done", False))
+            if tag != "UNKNOWN":
+                preds[f"{tag.lower()}_completed"] = float(done)
+
+            preds["done"] = done
+            predicates.append(preds)
+        return predicates
+
+    def extract_event_times(self, experiences: list) -> List[int]:
+        events: List[int] = []
+        prev_tag: Optional[str] = None
+        for t, exp in enumerate(experiences):
+            intent = getattr(exp, "intentions", None) or ""
+            tag = parse_intention_tag(intent, self._tags)
+
+            if tag != "UNKNOWN" and tag != prev_tag and prev_tag is not None:
+                events.append(t)
+            prev_tag = tag
+
+            if getattr(exp, "done", False):
+                events.append(t)
+
+        events.extend(self.detect_reward_spike_events(experiences))
+        return sorted(set(events))
+
+
+# ---------------------------------------------------------------------------
 # Hybrid: LLM predicates + rule-based hard events
 # ---------------------------------------------------------------------------
 
@@ -441,9 +538,27 @@ def get_signal_extractor(
         rule_ext = _RULE_EXTRACTORS[env_part](**_filter_kwargs(_RULE_EXTRACTORS[env_part], env_kwargs))
         return HybridSignalExtractor(llm_ext, rule_ext)
 
+    # Pure intention-based
+    if key == "intention":
+        return IntentionSignalExtractor(**_filter_kwargs(IntentionSignalExtractor, kwargs))
+
+    # Hybrid: "intention+envname" — intention predicates + per-env hard events
+    if key.startswith("intention+"):
+        env_part = key[len("intention+"):]
+        if env_part not in _RULE_EXTRACTORS:
+            raise ValueError(
+                f"Unknown env '{env_part}' in hybrid '{env_name}'. "
+                f"Available: {list(_RULE_EXTRACTORS.keys())}"
+            )
+        intent_ext = IntentionSignalExtractor(**_filter_kwargs(IntentionSignalExtractor, kwargs))
+        env_kwargs = {k: v for k, v in kwargs.items() if k != "tags"}
+        rule_ext = _RULE_EXTRACTORS[env_part](**_filter_kwargs(_RULE_EXTRACTORS[env_part], env_kwargs))
+        return HybridSignalExtractor(intent_ext, rule_ext)
+
     raise ValueError(
         f"Unknown extractor '{env_name}'. "
-        f"Available: {list(_RULE_EXTRACTORS.keys())} | 'llm' | 'llm+<env>'"
+        f"Available: {list(_RULE_EXTRACTORS.keys())} | 'llm' | 'llm+<env>' | "
+        f"'intention' | 'intention+<env>'"
     )
 
 

@@ -48,6 +48,8 @@ from skill_agents.boundary_proposal.signal_extractors import (
     get_signal_extractor,
     SignalExtractorBase,
     HybridSignalExtractor,
+    IntentionSignalExtractor,
+    parse_intention_tag,
 )
 from skill_agents.boundary_proposal.episode_adapter import (
     segment_episode,
@@ -78,6 +80,8 @@ __all__ = [
     "get_signal_extractor",
     "SignalExtractorBase",
     "HybridSignalExtractor",
+    "IntentionSignalExtractor",
+    "parse_intention_tag",
     # Boundary preference
     "BoundaryPreferenceScorer",
     "BoundaryPreferenceConfig",

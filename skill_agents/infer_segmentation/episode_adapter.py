@@ -56,16 +56,35 @@ def _extract_obs_actions(experiences: list) -> Tuple[list, list]:
 
 
 def _extract_predicates(experiences: list) -> List[Optional[dict]]:
-    """Build per-timestep predicate dicts from experiences."""
+    """Build per-timestep predicate dicts from experiences.
+
+    When an experience carries an ``intentions`` string with a ``[TAG]``
+    prefix, we decompose it into ``tag_<tag>`` one-hot keys and a
+    ``<tag>_completed`` flag so that ``_effects_compat_score`` can match
+    intention-extracted contracts (Strategy B).
+    """
+    from skill_agents.boundary_proposal.signal_extractors import parse_intention_tag
+
     predicates = []
     for exp in experiences:
-        preds = {}
+        preds: dict = {}
+
         if getattr(exp, "sub_tasks", None) is not None:
             preds["sub_task"] = exp.sub_tasks
-        if getattr(exp, "intentions", None) is not None:
-            preds["intention"] = exp.intentions
+
+        intent = getattr(exp, "intentions", None)
+        if intent is not None:
+            preds["intention"] = intent
+            tag = parse_intention_tag(intent)
+            if tag != "UNKNOWN":
+                preds[f"tag_{tag.lower()}"] = 1.0
+                preds[f"{tag.lower()}_completed"] = float(
+                    getattr(exp, "done", False)
+                )
+
         if getattr(exp, "done", None) is not None:
             preds["done"] = exp.done
+
         predicates.append(preds if preds else None)
     return predicates
 

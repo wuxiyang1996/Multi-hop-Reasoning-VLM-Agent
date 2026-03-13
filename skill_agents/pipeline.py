@@ -93,6 +93,7 @@ class PipelineConfig:
 
     # LLM
     llm_model: Optional[str] = None
+    max_concurrent_llm_calls: Optional[int] = None  # cap for local GPU (e.g. 1)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -255,7 +256,10 @@ class SkillBankAgent:
                 margin_threshold=cfg.margin_threshold,
                 max_queries_per_iter=cfg.max_queries_per_iter,
             ),
-            llm_teacher=LLMTeacherConfig(model=cfg.llm_model),
+            llm_teacher=LLMTeacherConfig(
+                model=cfg.llm_model,
+                max_concurrent_llm_calls=cfg.max_concurrent_llm_calls,
+            ),
             contract_feedback=ContractFeedbackConfig(
                 mode=cfg.contract_feedback_mode,
                 strength=cfg.contract_feedback_strength,
@@ -476,7 +480,10 @@ class SkillBankAgent:
         """
         from skill_agents.infer_segmentation.config import LLMTeacherConfig
 
-        llm_cfg = LLMTeacherConfig(model=self.config.llm_model) if self.config.llm_model else None
+        llm_cfg = LLMTeacherConfig(
+            model=self.config.llm_model,
+            max_concurrent_llm_calls=self.config.max_concurrent_llm_calls,
+        ) if self.config.llm_model else None
 
         # Try the new pool manager first
         if self._new_pool_mgr.size >= self.config.new_pool_min_cluster_size:

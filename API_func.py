@@ -113,10 +113,22 @@ def ask_gemini(question, model="gemini-2.5-flash", temperature=0.7, max_tokens=2
         return f"Error calling Gemini API: {str(e)}"
 
 
+def _strip_think_tags(text: str) -> str:
+    """Remove ``<think>...</think>`` reasoning blocks (Qwen3, QwQ, etc.)."""
+    import re
+    if not text or "<think>" not in text:
+        return text
+    text = re.sub(r"<think>.*?</think>\s*", "", text, flags=re.DOTALL)
+    text = re.sub(r"<think>.*", "", text, flags=re.DOTALL)
+    return text.strip()
+
+
 def ask_vllm(question, model="Qwen/Qwen3-14B", temperature=0.7, max_tokens=2000):
     """
     Ask a question via a vLLM-served model using its OpenAI-compatible endpoint.
     Configure the endpoint via VLLM_BASE_URL env var (default: http://localhost:8000/v1).
+
+    Automatically strips ``<think>`` tags from reasoning models (Qwen3, QwQ, etc.).
     """
     try:
         client = openai.OpenAI(base_url=VLLM_BASE_URL, api_key=VLLM_API_KEY)
@@ -126,7 +138,8 @@ def ask_vllm(question, model="Qwen/Qwen3-14B", temperature=0.7, max_tokens=2000)
             temperature=temperature,
             max_tokens=max_tokens,
         )
-        return response.choices[0].message.content or ""
+        raw = response.choices[0].message.content or ""
+        return _strip_think_tags(raw)
     except Exception as e:
         return f"Error calling vLLM API at {VLLM_BASE_URL}: {str(e)}"
 
