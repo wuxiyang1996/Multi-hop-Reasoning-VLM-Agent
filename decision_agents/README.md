@@ -1,16 +1,16 @@
 # decision_agents
 
-VLM decision-making agent that plays video games step-by-step using a **two-turn micro-loop**: `take_action` → `reward` per timestep. Supports skill-bank retrieval, episodic memory, intention inference, and composite reward shaping.
+VLM decision-making agent that plays video games step-by-step using a **two-turn micro-loop**: `take_action` → `reward` per timestep. Supports **skill-bank retrieval** (protocol-driven plans), **episodic memory**, **intention inference**, and **composite reward shaping**.
 
 ## Files
 
 | File | What it does |
 |------|-------------|
-| `agent.py` | `VLMDecisionAgent` class, `run_tool()`, `run_episode_vlm_agent()` |
-| `agent_helper.py` | `get_state_summary()`, `build_rag_summary()`, `extract_game_facts()`, `infer_intention()`, `EpisodicMemoryStore`, `skill_bank_to_text()`, `SUBGOAL_TAGS` |
-| `reward_func.py` | `RewardConfig`, `RewardResult`, `RewardComputer`, `compute_reward()` |
+| `agent.py` | `VLMDecisionAgent`, `run_tool()`, `run_episode_vlm_agent()`, tool handlers (e.g. `TOOL_QUERY_SKILL` → `active_skill_plan` from protocol steps) |
+| `agent_helper.py` | `get_state_summary()`, `build_rag_summary()`, `extract_game_facts()`, `infer_intention()`, `EpisodicMemoryStore`, `skill_bank_to_text()`, `query_skill_bank()` / `select_skill_from_bank()`, `_get_protocol_for_skill()` |
+| `reward_func.py` | `RewardConfig`, `RewardResult`, `RewardComputer`, `compute_reward()` (r_follow uses skill contract `eff_add`) |
 | `dummy_agent.py` | Baseline `language_agent_action()` + game detection + action extraction |
-| `__init__.py` | Re-exports everything above |
+| `__init__.py` | Re-exports the above |
 
 ---
 
@@ -51,6 +51,8 @@ restored = Episode.from_dict(d)
 ```
 
 ### With a skill bank and custom reward config
+
+The skill bank exposes a **protocol store** view to the decision agent: for each skill it can see `name`, `strategic_description`, `protocol` (steps, preconditions, success_criteria, expected_duration), and `confidence`. When the agent calls **query_skill**, the best-matching skill’s **protocol.steps** are used to fill `active_skill_plan`; reward shaping still uses the skill’s **contract** (e.g. `eff_add`) via `bank.get_contract(skill_id)`.
 
 ```python
 from decision_agents import (
@@ -136,6 +138,17 @@ for t in range(200):
     last_tool_name = tool
     last_tool_result = decision.get("result")
 ```
+
+---
+
+## Skill bank: protocol store vs contract
+
+The skill bank stores each skill as a **Skill** object with two logical parts (see `skill_agents.stage3_mvp.schemas`):
+
+- **Protocol store** — What the decision agent sees: `name`, `strategic_description`, `tags`, `protocol` (steps, preconditions, success_criteria, abort_criteria, expected_duration), `confidence`. Used by `skill_bank_to_text()`, `query_skill_bank()`, and to set `active_skill_plan` from `protocol.steps`.
+- **Contract** — Effects (`eff_add`, `eff_del`, `eff_event`) used for segmentation, verification, and **reward shaping**. The agent still gets the contract via `bank.get_contract(skill_id)` when computing r_follow.
+
+So: the agent **plans** from protocols (when present) and is **rewarded** for making progress on the contract’s eff_add predicates.
 
 ---
 
@@ -290,16 +303,18 @@ results = mem.query("game=fps | hp=low | threat=sniper", k=3)
 # returns list of dicts: [{key, summary, action, outcome, ...}, ...]
 ```
 
-### `skill_bank_to_text(skill_bank)`
+### `skill_bank_to_text(skill_bank)` and `query_skill_bank(skill_bank, state, task, ...)`
 
-Formats a `SkillBankMVP` into a short string listing skill IDs and effect counts, for inclusion in agent prompts.
+**`skill_bank_to_text(skill_bank)`** — Formats the skill bank for agent prompts. When a skill has a **protocol** (name, strategic_description, steps), the string shows those; otherwise it falls back to effect counts (eff_add / eff_del). Output is tuned for the decision agent (no internal evidence or sub-episode pointers).
 
 ```python
 from decision_agents import skill_bank_to_text
 
 text = skill_bank_to_text(bank)
-# "Available skill IDs: nav_corridor, combat_sniper, ...\n  - nav_corridor: effects add 3, del 1\n  ..."
+# "Available skill IDs: nav_corridor, merge_corner, ...\n  - merge_corner: Keep highest tile in corner (conf=0.85, ~12 steps)\n    when: ...; done: ...\n  ..."
 ```
+
+**`query_skill_bank(skill_bank, state, task, ...)`** — Picks the best-matching skill for the current state/task and returns it with a **protocol** dict (steps, preconditions, success_criteria, expected_duration) when available. The agent uses `protocol["steps"]` as `active_skill_plan`; reward shaping still uses `bank.get_contract(skill_id)` for r_follow. Same entry point as `select_skill_from_bank`.
 
 ---
 
