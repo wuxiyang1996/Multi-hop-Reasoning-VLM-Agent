@@ -79,7 +79,7 @@ All wrappers set `info["env_name"]` and `info["game_name"]` on every `reset()` a
 
 ## Decision & Skill Agents: Co-evolution
 
-Two agents co-evolve: the **Decision Agent** (Qwen3-14B + LoRA, GRPO) plays games using skills from the bank, and the **Skill Bank Agent** (Qwen3-8B + 3 LoRA, Hard-EM) discovers and refines skills from the Decision Agent's trajectories. Training runs on **8 × A100-80GB GPUs** (GPUs 0-3 for Decision, GPUs 4-7 for Skill Bank). See [Section 5: Trainer code](#5-trainer-code) for full training settings and scripts.
+Two agents co-evolve: the **Decision Agent** (Qwen3-14B + LoRA, GRPO) plays games using skills from the bank, and the **Skill Bank Agent** (Qwen3-14B + 3 LoRA, Hard-EM) discovers and refines skills from the Decision Agent's trajectories. Training runs on **8 × A100-80GB GPUs** (GPUs 0-3 for Decision, GPUs 4-7 for Skill Bank). See [Section 5: Trainer code](#5-trainer-code) for full training settings and scripts.
 
 ### Big picture
 
@@ -87,7 +87,7 @@ Two agents co-evolve: the **Decision Agent** (Qwen3-14B + LoRA, GRPO) plays game
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                          CO-EVOLUTION LOOP                                    │
 │                                                                              │
-│  Decision Agent (Qwen3-14B + LoRA)       Skill Bank Agent (Qwen3-8B + 3 LoRA)
+│  Decision Agent (Qwen3-14B + LoRA)       Skill Bank Agent (Qwen3-14B + 3 LoRA)
 │  GPUs 0-3, GRPO via VERL                 GPUs 4-7, Hard-EM                   │
 │  ┌──────────────────────┐                ┌──────────────────────┐            │
 │  │ • take_action        │  query_skill   │ • boundary proposal  │            │
@@ -113,7 +113,7 @@ Two agents co-evolve: the **Decision Agent** (Qwen3-14B + LoRA, GRPO) plays game
 
 | Role | Decision Agent | Skill Bank Agent |
 |------|----------------|------------------|
-| **Model** | Qwen3-14B + LoRA (rank 16) | Qwen3-8B + 3 LoRA (SEGMENT, CONTRACT, CURATOR) |
+| **Model** | Qwen3-14B + LoRA (rank 16) | Qwen3-14B + 3 LoRA (SEGMENT, CONTRACT, CURATOR) |
 | **Training** | GRPO via VERL (group size 8, LR 1e-5) | Hard-EM with LoRA fine-tuning (LR 2e-4) |
 | **Provides** | Game play: primitive actions + tool calls (`QUERY_SKILL`, `CALL_SKILL`, `QUERY_MEM`) | Skill Bank: segmented trajectories, effect contracts, split/merge/refine |
 | **Consumes** | Skill bank (protocols for planning, contracts for reward shaping) | Raw episodes from Decision Agent rollouts |
@@ -392,7 +392,7 @@ The first two are env-related. A time-sensitive discount can be applied to penal
 
 # 5. Trainer code
 
-The training code lives in **[trainer/](trainer/)** and implements co-evolution between two agents on **8 × A100-80GB GPUs**: a **Decision Agent** (Qwen3-14B, GRPO, GPUs 0-3) that plays games and a **Skill Bank Agent** (Qwen3-8B, 3 LoRA adapters + Hard-EM, GPUs 4-7) that discovers and maintains reusable skills from the Decision Agent's trajectories. Both agents improve each other over multiple co-evolution iterations.
+The training code lives in **[trainer/](trainer/)** and implements co-evolution between two agents on **8 × A100-80GB GPUs**: a **Decision Agent** (Qwen3-14B, GRPO, GPUs 0-3) that plays games and a **Skill Bank Agent** (Qwen3-14B, 3 LoRA adapters + Hard-EM, GPUs 4-7) that discovers and maintains reusable skills from the Decision Agent's trajectories. Both agents improve each other over multiple co-evolution iterations.
 
 ## Decision Agent (Agent A) — Qwen3-14B + LoRA GRPO
 
@@ -421,13 +421,13 @@ The Decision Agent selects primitive game actions and tool calls (`QUERY_SKILL`,
 
 **Components**: [trainer/decision/env_wrapper.py](trainer/decision/env_wrapper.py) (retrieval-as-action, tool call trace recording), [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py), [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py), [trainer/decision/replay_buffer.py](trainer/decision/replay_buffer.py), [trainer/decision/rollout_collector.py](trainer/decision/rollout_collector.py).
 
-## Skill Bank Agent (Agent B) — Qwen3-8B + 3 LoRA (Hard-EM)
+## Skill Bank Agent (Agent B) — Qwen3-14B + 3 LoRA (Hard-EM)
 
-The Skill Bank Agent processes trajectory rollouts from the Decision Agent through a 4-stage pipeline, with 3 GRPO-trained LoRA adapters on a shared Qwen3-8B backbone. Stage 1 (boundary) and retrieval are algorithmic / RAG — not GRPO-wrapped.
+The Skill Bank Agent processes trajectory rollouts from the Decision Agent through a 4-stage pipeline, with 3 GRPO-trained LoRA adapters on a shared Qwen3-14B backbone. Stage 1 (boundary) and retrieval are algorithmic / RAG — not GRPO-wrapped.
 
 ```
 ┌─────────────────────────────────────────┐
-│       Qwen3-8B  (shared backbone)        │
+│       Qwen3-14B  (shared backbone)        │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐  │
 │  │ SEGMENT  │ │ CONTRACT │ │ CURATOR  │  │  ← Stage 2 label preferences
 │  │   LoRA   │ │   LoRA   │ │   LoRA   │  │  ← Stage 3 effect contracts
@@ -439,7 +439,7 @@ The Skill Bank Agent processes trajectory rollouts from the Decision Agent throu
 
 | Parameter | Value |
 |-----------|-------|
-| Base model | Qwen/Qwen3-8B |
+| Base model | Qwen/Qwen3-14B |
 | LoRA rank / alpha | 16 / 32 |
 | Learning rate | 2e-4 |
 | Epochs | 3 |
@@ -489,16 +489,16 @@ Iteration 2+:
 |--------|---------|
 | [`scripts/coevolution_train.sh`](scripts/coevolution_train.sh) | Main loop: cold-start rollouts → Skill Bank v1 → Decision Agent v1 → iterate (default 6 iterations) |
 | [`scripts/decision_agent_train.sh`](scripts/decision_agent_train.sh) | GRPO training for Decision Agent (Qwen3-14B) on GPUs 0-3 via VERL |
-| [`scripts/skillbank_agent_train.sh`](scripts/skillbank_agent_train.sh) | LoRA training + Hard-EM for Skill Bank Agent (Qwen3-8B) on GPUs 4-7 |
+| [`scripts/skillbank_agent_train.sh`](scripts/skillbank_agent_train.sh) | LoRA training + Hard-EM for Skill Bank Agent (Qwen3-14B) on GPUs 4-7 |
 | [`cold_start/run_100_rollouts.py`](cold_start/run_100_rollouts.py) | Batch rollout generation (100 episodes per game) |
 
 ```bash
-# Default: Qwen3-14B decision + Qwen3-8B skill bank, 6 iterations
+# Default: Qwen3-14B decision + Qwen3-14B skill bank, 6 iterations
 bash scripts/coevolution_train.sh
 
 # Custom:
 Decision_base_model=Qwen/Qwen3-14B \
-SkillBank_base_model=Qwen/Qwen3-8B \
+SkillBank_base_model=Qwen/Qwen3-14B \
 NUM_ITERATIONS=10 TRAIN_STEPS=30 \
   bash scripts/coevolution_train.sh
 ```
