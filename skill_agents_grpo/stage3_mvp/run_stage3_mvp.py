@@ -210,6 +210,26 @@ def run_stage3_mvp(
 
         contract = learn_effects_contract(skill_id, instances, config, prev_ver)
 
+        # Collect cold-start I/O by also calling the LLM contract path.
+        # The algorithmic contract above does the real work; this LLM call
+        # only generates training data for the CONTRACT LoRA adapter.
+        try:
+            from skill_agents_grpo.stage3_mvp.llm_contract import llm_summarize_contract
+            sample_obs = []
+            for inst in instances[:5]:
+                if inst.observations:
+                    sample_obs.append(str(inst.observations[:2]))
+            llm_summarize_contract(
+                skill_id=skill_id,
+                segment_observations=sample_obs,
+                predicates_start=contract.eff_add or set(),
+                predicates_end=contract.eff_del or set(),
+                n_instances=len(instances),
+                model=getattr(config, "model", ""),
+            )
+        except Exception:
+            pass
+
         # Step 4: verify
         report = verify_effects_contract(contract, instances, config)
 

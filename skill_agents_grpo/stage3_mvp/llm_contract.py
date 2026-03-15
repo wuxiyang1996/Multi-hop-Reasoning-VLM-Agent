@@ -82,12 +82,21 @@ def llm_summarize_contract(
     n_instances: int = 0,
     *,
     temperature: float = 0.1,
+    model: str = "",
     **kwargs: Any,
 ) -> Optional[Dict[str, Any]]:
-    """Use the CONTRACT adapter to generate an effect summary for a skill.
+    """Use the CONTRACT adapter (or ask_model fallback) to generate an effect summary.
 
     Returns a dict ``{"eff_add": [...], "eff_del": [...], "description": "..."}``
-    or None if the adapter is unavailable or the call fails.
+    or None if no LLM backend is available or the call fails.
+
+    Resolution order for the LLM backend:
+      1. CONTRACT LoRA adapter (via ``MultiLoraSkillBankLLM``)
+      2. ``ask_model`` fallback (routes to GPT / Qwen via OpenRouter)
+
+    The fallback ensures cold-start I/O is always collected even when no
+    LoRA adapter is configured, providing training data for the CONTRACT
+    adapter's initial fine-tuning.
 
     When GRPO wrapping is active (via ``enable_contract_grpo``), the
     wrapper intercepts this call, generates G samples at higher temperature,
@@ -98,6 +107,16 @@ def llm_summarize_contract(
     from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
 
     ask_fn = _get_contract_ask_fn()
+    resolved_model = ""
+    if ask_fn is None:
+        try:
+            from skill_agents_grpo._llm_compat import wrap_ask_for_reasoning_models
+            from API_func import ask_model as _ask_model
+            if _ask_model is not None:
+                ask_fn = wrap_ask_for_reasoning_models(_ask_model)
+                resolved_model = model or "ask_model_fallback"
+        except Exception:
+            pass
     if ask_fn is None:
         return None
 
@@ -107,7 +126,10 @@ def llm_summarize_contract(
 
     try:
         t0 = _time.time()
-        raw = ask_fn(prompt, temperature=temperature)
+        call_kwargs: Dict[str, Any] = {"temperature": temperature}
+        if resolved_model and resolved_model != "ask_model_fallback":
+            call_kwargs["model"] = resolved_model
+        raw = ask_fn(prompt, **call_kwargs)
         elapsed = _time.time() - t0
         start = raw.find("{")
         end = raw.rfind("}") + 1
@@ -121,7 +143,7 @@ def llm_summarize_contract(
             prompt=prompt,
             response=raw or "",
             parsed=parsed,
-            model="",
+            model=resolved_model,
             temperature=temperature,
             elapsed_s=round(elapsed, 3),
             skill_id=skill_id,
@@ -131,7 +153,7 @@ def llm_summarize_contract(
 
         return parsed
     except Exception as exc:
-        logger.debug("CONTRACT adapter call failed for %s: %s", skill_id, exc)
+        logger.debug("CONTRACT call failed for %s: %s", skill_id, exc)
 
     return None
 

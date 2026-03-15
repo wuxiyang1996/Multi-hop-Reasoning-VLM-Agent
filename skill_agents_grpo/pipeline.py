@@ -60,7 +60,7 @@ class PipelineConfig:
     # Stage 1: boundary proposal
     env_name: str = "llm"
     game_name: str = "generic"  # actual game identifier for phase detection
-    merge_radius: int = 5
+    merge_radius: int = 3
     extractor_model: Optional[str] = None
 
     # Stage 2: segmentation
@@ -620,14 +620,20 @@ class SkillBankAgent:
         updated = 0
         for sid in self.bank.skill_ids:
             skill = self.bank.get_skill(sid)
-            if skill is None or skill.retired:
+            if skill is None:
                 continue
 
-            high_quality = [se for se in skill.sub_episodes if se.quality_score >= 0.6]
-            if len(high_quality) < 3 and skill.protocol.steps:
+            has_protocol = bool(skill.protocol and skill.protocol.steps)
+            q_threshold = 0.6 if has_protocol else 0.35
+            high_quality = [se for se in skill.sub_episodes if se.quality_score >= q_threshold]
+
+            # For skills that already have a protocol, require strong evidence
+            # before overwriting.  For new/retired skills without a protocol,
+            # allow bootstrapping from fewer sub-episodes (min 1).
+            if has_protocol and len(high_quality) < 3:
                 continue
 
-            if len(high_quality) < 3:
+            if not has_protocol and len(high_quality) < 1:
                 continue
 
             protocol = self._synthesize_protocol(skill, high_quality)
@@ -877,7 +883,7 @@ class SkillBankAgent:
         updated = 0
         for sid in self.bank.skill_ids:
             skill = self.bank.get_skill(sid)
-            if skill is None or skill.retired:
+            if skill is None:
                 continue
 
             successful = [

@@ -624,6 +624,7 @@ def generate_skill_name(
         f"SUMMARY: game=<game> | skill=<name> | effects=<top effects> | context=<when to use>\n"
     )
 
+    call_t0 = time.time()
     result = _ask_gpt54(prompt, model=model, max_tokens=120, temperature=0.3,
                         _caller=f"generate_skill_name:{skill_id}")
 
@@ -641,6 +642,21 @@ def generate_skill_name(
                 parsed_summary = line[8:].strip().strip('"').strip("'")
                 if len(parsed_summary) > 10:
                     rag_summary = parsed_summary[:HARD_SUMMARY_CHAR_LIMIT]
+
+    from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+    record_io(ColdStartRecord(
+        module="skill_naming",
+        function="generate_skill_name",
+        prompt=prompt,
+        response=result or "",
+        parsed={"name": name, "rag_summary": rag_summary},
+        model=model,
+        temperature=0.3,
+        max_tokens=120,
+        elapsed_s=round(time.time() - call_t0, 3),
+        skill_id=skill_id,
+        extra={"game": game_name},
+    ))
 
     return name, rag_summary
 
@@ -808,19 +824,37 @@ def generate_skill_description(
         f"Be concrete and specific to the game. Max 40 words.\nDescription:"
     )
 
+    call_t0 = time.time()
     result = _ask_gpt54(prompt, model=model, max_tokens=200, temperature=0.3,
                         _caller=f"generate_skill_description:{skill_id}")
+    desc = f"Skill '{name}' in {game_name}: applies {eff_str[:80]}."
     if result:
-        desc = result.split("\n")[0].strip().strip('"').strip("'")
-        if len(desc) > 250:
-            cut = desc[:250].rfind(".")
-            desc = desc[:cut + 1] if cut > 80 else desc[:250]
-        if desc and desc[-1] not in ".!?":
-            cut = desc.rfind(".")
+        raw_desc = result.split("\n")[0].strip().strip('"').strip("'")
+        if len(raw_desc) > 250:
+            cut = raw_desc[:250].rfind(".")
+            raw_desc = raw_desc[:cut + 1] if cut > 80 else raw_desc[:250]
+        if raw_desc and raw_desc[-1] not in ".!?":
+            cut = raw_desc.rfind(".")
             if cut > 40:
-                desc = desc[:cut + 1]
-        return desc
-    return f"Skill '{name}' in {game_name}: applies {eff_str[:80]}."
+                raw_desc = raw_desc[:cut + 1]
+        desc = raw_desc
+
+    from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+    record_io(ColdStartRecord(
+        module="skill_naming",
+        function="generate_skill_description",
+        prompt=prompt,
+        response=result or "",
+        parsed={"description": desc},
+        model=model,
+        temperature=0.3,
+        max_tokens=200,
+        elapsed_s=round(time.time() - call_t0, 3),
+        skill_id=skill_id,
+        extra={"game": game_name},
+    ))
+
+    return desc
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1003,6 +1037,18 @@ def _link_sub_episodes_to_skills(
         skill = agent.bank.get_skill(sid)
         if skill is None:
             continue
+        # Preserve quality scores from earlier quality-check runs:
+        # build a lookup from (episode_id, seg_start) → quality_score.
+        existing_scores: Dict[tuple, float] = {}
+        for se in (skill.sub_episodes or []):
+            key = (getattr(se, "episode_id", ""), getattr(se, "seg_start", -1))
+            if se.quality_score > 0:
+                existing_scores[key] = se.quality_score
+        if existing_scores:
+            for ref in refs:
+                key = (getattr(ref, "episode_id", ""), getattr(ref, "seg_start", -1))
+                if key in existing_scores:
+                    ref.quality_score = existing_scores[key]
         skill.sub_episodes = refs
         skill.n_instances = max(skill.n_instances, len(refs))
         agent.bank.add_or_update_skill(skill)
@@ -1408,7 +1454,7 @@ def extract_skills_for_game(
         bank_path=bank_path,
         env_name="llm",
         game_name=game_name,
-        merge_radius=5,
+        merge_radius=3,
         extractor_model=model,
         segmentation_method="dp",
         preference_iterations=1,
@@ -1684,6 +1730,36 @@ def extract_skills_for_game(
         rec.finish()
         if checkpoint is not None:
             checkpoint.mark_stage(game_name, "stage_3")
+
+    # ══════════════════════════════════════════════════════════════
+    # LINK SUB-EPISODES — must precede quality check so skills
+    # have sub-episode refs when scoring runs.
+    # ══════════════════════════════════════════════════════════════
+    _pre_qc_linked = 0
+    if all_sub_episodes and len(agent.skill_ids) > 0:
+        pre_link_rec = io_log.new_record("pre_qc_link_sub_episodes")
+        pre_link_rec.start()
+        pre_link_rec.record_input("n_sub_episodes", len(all_sub_episodes))
+        pre_link_rec.record_input("n_skills", len(agent.skill_ids))
+        pre_link_rec.record_input("skill_ids", list(agent.skill_ids))
+        sub_task_labels = {}
+        for se in all_sub_episodes:
+            lbl = getattr(se, "sub_task", None) or ""
+            sub_task_labels[lbl] = sub_task_labels.get(lbl, 0) + 1
+        pre_link_rec.record_input("sub_task_label_distribution", sub_task_labels)
+        try:
+            _pre_qc_linked = _link_sub_episodes_to_skills(
+                agent, all_sub_episodes, verbose=verbose,
+            )
+            pre_link_rec.record_output("n_linked", _pre_qc_linked)
+            pre_link_rec.record_output("bank_skills_after", _bank_snapshot(agent))
+            print(f"    [Pre-QC link] Linked {_pre_qc_linked} sub-episode ref(s) "
+                  f"across {len(agent.skill_ids)} skill(s)")
+        except Exception as exc:
+            pre_link_rec.record_error(exc)
+            print(f"    [WARN] Pre-QC sub-episode linking failed: {exc}")
+            traceback.print_exc()
+        pre_link_rec.finish()
 
     # ══════════════════════════════════════════════════════════════
     # STAGE 4.5: Sub-episode quality check — per-skill iteration
@@ -2400,6 +2476,9 @@ def extract_skills_for_game(
             checkpoint.mark_stage(game_name, "protocols_done")
 
     # ── Link sub-episodes to skills in the bank ──
+    # Re-link to pick up any new skills from fallback / re-segmentation
+    # and to ensure the final bank has sub-episode refs even if the
+    # pre-quality-check linking was partial.
     if all_sub_episodes and len(agent.skill_ids) > 0:
         link_rec = io_log.new_record("link_sub_episodes")
         link_rec.start()
@@ -2416,7 +2495,99 @@ def extract_skills_for_game(
             print(f"    [WARN] Sub-episode linking failed: {exc}")
             if verbose:
                 traceback.print_exc()
+
+        # Un-retire skills that now have enough sub-episodes after
+        # final re-linking.  The quality check may have retired them
+        # prematurely (e.g. before sub-episodes were linked).
+        min_viable = 2
+        n_unretired = 0
+        for sid in list(agent.skill_ids):
+            skill = agent.bank.get_skill(sid)
+            if skill is None or not skill.retired:
+                continue
+            if len(skill.sub_episodes) >= min_viable:
+                skill.retired = False
+                agent.bank.add_or_update_skill(skill)
+                n_unretired += 1
+                if verbose:
+                    print(f"      Un-retired {sid} ({len(skill.sub_episodes)} sub-episodes)")
+        if n_unretired > 0:
+            print(f"    Un-retired {n_unretired} skill(s) after final sub-episode linking")
+            link_rec.record_output("n_unretired", n_unretired)
+
+        link_rec.record_output("bank_skills_after", _bank_snapshot(agent))
         link_rec.finish()
+
+    # ── Run protocol update for any newly un-retired skills ──
+    # Skills that were retired during the quality check missed the earlier
+    # protocol update pass.  Now that they are un-retired (and have
+    # sub-episodes), give them a chance to get protocols.
+    if len(agent.skill_ids) > 0:
+        try:
+            n_late_protos = agent.update_protocols()
+            if n_late_protos > 0:
+                print(f"    Late protocol update: {n_late_protos} protocol(s) synthesized")
+        except Exception as exc:
+            print(f"    [WARN] Late protocol update failed: {exc}")
+
+    # ── Name any unnamed skills ──
+    # Skills created late in the pipeline (e.g. during re-runs, proto
+    # promotion, or materialization) may bypass the naming stage.
+    unnamed_sids = [
+        sid for sid in agent.skill_ids
+        if not (agent.bank.get_skill(sid) or type("", (), {"name": ""})()).name
+        or (agent.bank.get_skill(sid) or type("", (), {"name": ""})()).name == sid
+    ]
+    if unnamed_sids:
+        _flush_llm_calls()
+        print(f"    Naming {len(unnamed_sids)} unnamed skill(s) ...")
+        for sid in unnamed_sids:
+            contract = agent.get_contract(sid)
+            if contract is None:
+                continue
+            sample_intentions: List[str] = []
+            for seg in agent.segments:
+                if seg.skill_label != sid:
+                    continue
+                for ep_data in episodes_data:
+                    exps = ep_data.get("experiences", [])
+                    for t in range(seg.t_start, min(seg.t_end, len(exps))):
+                        intent = exps[t].get("intentions", "")
+                        if intent and len(sample_intentions) < 5:
+                            sample_intentions.append(intent)
+                if len(sample_intentions) >= 5:
+                    break
+            try:
+                name, rag_summary = generate_skill_name(
+                    sid, contract, game_name, sample_intentions, model=model,
+                )
+                description = generate_skill_description(
+                    sid, name, contract, game_name, [], model=model,
+                )
+                skill = agent.bank.get_skill(sid)
+                if skill is not None:
+                    skill.name = name
+                    skill.strategic_description = description
+                    agent.bank.add_or_update_skill(skill)
+                    if verbose:
+                        print(f"      Named {sid} → {name}")
+                if sid not in skill_catalog:
+                    skill_catalog[sid] = {
+                        "skill_id": sid,
+                        "name": name,
+                        "summary": rag_summary,
+                        "description": description,
+                        "eff_add": sorted(contract.eff_add) if contract.eff_add else [],
+                        "eff_del": sorted(contract.eff_del) if contract.eff_del else [],
+                        "eff_event": sorted(contract.eff_event) if contract.eff_event else [],
+                        "n_instances": contract.n_instances,
+                        "version": contract.version,
+                    }
+            except Exception as exc:
+                print(f"      [WARN] Failed to name skill {sid}: {exc}")
+        late_naming_calls = _flush_llm_calls()
+        game_llm_calls.extend(late_naming_calls)
+        print(f"    Named {len(unnamed_sids)} skill(s)")
 
     # ── Final snapshot (all pipeline stages complete) ──
     _snapshot_episode("final", agent, io_log, game_llm_calls)

@@ -157,6 +157,7 @@ def _extract_predicates(experiences: list) -> List[Optional[dict]]:
 def _build_intention_fit_fn(
     experiences: list,
     game_name: str = "generic",
+    skill_names: Optional[List[str]] = None,
 ) -> Optional["Callable[[str, int, int], float]"]:
     """Build a closure that scores intention-tag agreement for a segment.
 
@@ -187,22 +188,41 @@ def _build_intention_fit_fn(
         make_compound_label(p, t) for p, t in zip(phases, raw_tags)
     ]
 
+    # Pre-compute which simple tags have compound variants among candidates.
+    # When both "CLEAR" and "early:CLEAR" exist, the simple "CLEAR" must NOT
+    # subsume compound-labeled steps — otherwise compound labels can never
+    # win and skill diversity collapses to the simple labels only.
+    _has_compound_variant: set = set()
+    if skill_names:
+        compound_skills = {s for s in skill_names if ":" in s}
+        for cs in compound_skills:
+            _tag = cs.split(":", 1)[1]
+            if _tag in skill_names:
+                _has_compound_variant.add(_tag)
+
     def _intention_fit(skill: str, i: int, j: int) -> float:
         seg_labels = compound_labels[i : j + 1]
         length = len(seg_labels)
         if length == 0:
             return 0.0
-        # Match against the compound label directly.
-        # Also allow partial match: if skill is a raw tag (no colon),
-        # match the tag portion of compound labels.
         if ":" in skill:
+            matches = sum(1 for lb in seg_labels if lb == skill)
+        elif skill in _has_compound_variant:
             matches = sum(1 for lb in seg_labels if lb == skill)
         else:
             matches = sum(
                 1 for lb in seg_labels
                 if lb == skill or lb.endswith(f":{skill}")
             )
-        return (matches / length) * length
+        match_frac = matches / length
+        if match_frac > 0:
+            return match_frac * length
+        # Stronger mismatch penalty when the correct phase-specific label
+        # exists as a candidate — prevents behavior_fit from overriding
+        # the intention signal and collapsing diversity.
+        if _has_compound_variant and (":" in skill or skill in _has_compound_variant):
+            return -2.0 * length
+        return -0.5 * length
     return _intention_fit
 
 
@@ -405,7 +425,9 @@ def infer_and_segment(
 
     # ── Build intention-fit signal from per-step compound labels ────
     _game = game_name or env_name
-    intention_fit_fn = _build_intention_fit_fn(experiences, game_name=_game)
+    intention_fit_fn = _build_intention_fit_fn(
+        experiences, game_name=_game, skill_names=skill_names,
+    )
 
     # Update GRPO episode context so the scorer_factory used by the GRPO
     # reward function rebuilds an equivalent scorer (with intention_fit_fn).
@@ -460,8 +482,67 @@ def infer_and_segment(
         )
         result = _decode(centers, T, scorer, observations, actions, predicates, cfg)
 
+    # ── Post-decode: relabel segments using intention-tag majority ──
+    # The decoder picks labels to maximise a score that mixes LLM
+    # preferences with intention tags.  When compound phase labels exist,
+    # preferences can still dominate and collapse diversity.  Relabelling
+    # each segment with the majority per-step compound label preserves
+    # the decoder's *boundaries* (which are behaviourally meaningful)
+    # while ensuring the *labels* reflect the ground-truth intention tags.
+    if intention_fit_fn is not None:
+        _relabel_segments_by_intention(
+            result, experiences, skill_names, game_name=_game,
+        )
+
     sub_episodes = _segments_to_sub_episodes(result, experiences, episode.task, outcome_length)
     return result, sub_episodes, store
+
+
+def _relabel_segments_by_intention(
+    result,
+    experiences: list,
+    skill_names: List[str],
+    game_name: str = "generic",
+) -> None:
+    """Relabel decoded segments using majority compound intention label.
+
+    Only relabels when the majority label exists in ``skill_names``
+    and differs from the decoder's assignment.  Leaves the decoder's
+    boundaries untouched.
+    """
+    from collections import Counter
+    from skill_agents_grpo.boundary_proposal.signal_extractors import parse_intention_tag
+    from skill_agents_grpo.infer_segmentation.phase_detector import (
+        detect_phases,
+        make_compound_label,
+    )
+
+    raw_tags = []
+    for exp in experiences:
+        intent = getattr(exp, "intentions", None)
+        tag = parse_intention_tag(intent) if intent else "UNKNOWN"
+        raw_tags.append(tag)
+
+    if all(t == "UNKNOWN" for t in raw_tags):
+        return
+
+    phases = detect_phases(experiences, game_name=game_name)
+    compound_labels = [
+        make_compound_label(p, t) for p, t in zip(phases, raw_tags)
+    ]
+
+    skill_set = set(skill_names)
+    T = len(experiences)
+    for seg in result.segments:
+        start = seg.start
+        end = min(seg.end + 1, T)
+        seg_labels = compound_labels[start:end]
+        counts = Counter(lb for lb in seg_labels if lb != "UNKNOWN")
+        if not counts:
+            continue
+        majority_label, majority_count = counts.most_common(1)[0]
+        if majority_label in skill_set and majority_label != seg.assigned_skill:
+            seg.assigned_skill = majority_label
 
 
 def infer_and_segment_offline(
@@ -512,7 +593,9 @@ def infer_and_segment_offline(
     observations, actions = _extract_obs_actions(experiences)
     predicates = _extract_predicates(experiences)
     _game = game_name or env_name
-    intention_fit_fn = _build_intention_fit_fn(experiences, game_name=_game)
+    intention_fit_fn = _build_intention_fit_fn(
+        experiences, game_name=_game, skill_names=skill_names,
+    )
 
     result = infer_segmentation(
         candidates=centers,
@@ -528,5 +611,10 @@ def infer_and_segment_offline(
         compat_fn=compat_fn,
         intention_fit_fn=intention_fit_fn,
     )
+    if intention_fit_fn is not None:
+        _game = game_name or env_name
+        _relabel_segments_by_intention(
+            result, experiences, skill_names, game_name=_game,
+        )
     sub_episodes = _segments_to_sub_episodes(result, experiences, episode.task, outcome_length)
     return result, sub_episodes

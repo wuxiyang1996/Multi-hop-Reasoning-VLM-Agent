@@ -62,6 +62,7 @@ def score_sub_episode(
     skill: Skill,
     *,
     reward_range: Tuple[float, float] = (0.0, 1.0),
+    median_length: Optional[int] = None,
 ) -> float:
     """Compute a composite quality score in [0, 1] for a single sub-episode.
 
@@ -70,19 +71,35 @@ def score_sub_episode(
       - follow_through: 1.0 if success, 0.5 if partial, 0.0 if failure (weight 0.3)
       - compactness: 1 - |len - expected_duration| / expected_duration (weight 0.2)
       - consistency: tag-sequence alignment with expected pattern (weight 0.2)
+
+    Bootstrap mode: when no protocol exists yet or all rewards are zero,
+    the scoring relaxes to avoid penalizing sub-episodes that simply lack
+    reward signals (common in social deduction / exploration games).
     """
-    # Outcome reward (normalized)
+    # Outcome reward (normalized).  When all rewards are identical (r_range=0,
+    # common for sparse-reward games), give a neutral 0.5 instead of 0.
     r_min, r_max = reward_range
-    r_range = r_max - r_min if r_max > r_min else 1.0
-    outcome_reward = max(0.0, min(1.0, (sub_ep.cumulative_reward - r_min) / r_range))
+    r_range = r_max - r_min if r_max > r_min else 0.0
+    if r_range > 0:
+        outcome_reward = max(0.0, min(1.0, (sub_ep.cumulative_reward - r_min) / r_range))
+    else:
+        outcome_reward = 0.5
 
     # Follow-through
     follow_map = {"success": 1.0, "partial": 0.5, "failure": 0.0}
     follow_through = follow_map.get(sub_ep.outcome, 0.5)
 
-    # Compactness (uses SubEpisodeRef.length property)
-    expected = max(1, skill.protocol.expected_duration)
-    compactness = max(0.0, 1.0 - abs(sub_ep.length - expected) / expected)
+    # Compactness: when no protocol exists yet (expected_duration <= 1 and
+    # no steps), use the median sub-episode length as the reference so the
+    # score reflects relative consistency rather than deviation from 1.
+    has_protocol = skill.protocol.steps and skill.protocol.expected_duration > 1
+    if has_protocol:
+        expected = skill.protocol.expected_duration
+    elif median_length is not None and median_length > 1:
+        expected = median_length
+    else:
+        expected = max(sub_ep.length, 1)  # self-reference → compactness = 1.0
+    compactness = max(0.0, 1.0 - abs(sub_ep.length - expected) / max(expected, 1))
 
     # Consistency (uses intention_tags stored on the pointer)
     consistency = _tag_consistency(
@@ -114,8 +131,14 @@ def score_all_sub_episodes(
         r_max = max(rewards) if rewards else 1.0
         reward_range = (r_min, r_max)
 
+    # Compute median length for bootstrap compactness when no protocol exists
+    lengths = sorted(se.length for se in skill.sub_episodes)
+    median_length = lengths[len(lengths) // 2] if lengths else None
+
     for se in skill.sub_episodes:
-        se.quality_score = score_sub_episode(se, skill, reward_range=reward_range)
+        se.quality_score = score_sub_episode(
+            se, skill, reward_range=reward_range, median_length=median_length,
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -153,6 +176,8 @@ def run_quality_check(
     drop_threshold: float = 0.2,
     min_aggregate_count: int = 3,
     min_viable_count: int = 2,
+    protocol_quality_threshold: float = 0.6,
+    bootstrap_quality_threshold: float = 0.35,
 ) -> Dict:
     """Run the full quality-check pipeline for one skill.
 
@@ -161,6 +186,10 @@ def run_quality_check(
       2. DROP bottom-quality sub-episodes
       3. AGGREGATE: mark skill for protocol update if enough high-quality exist
       4. RETIRE if too few sub-episodes remain
+
+    Bootstrap mode: when no protocol exists yet, the quality threshold
+    for protocol synthesis is lowered to ``bootstrap_quality_threshold``
+    so the first protocol can be bootstrapped from available data.
 
     Returns a dict summarizing the actions taken.
     """
@@ -188,18 +217,25 @@ def run_quality_check(
         ]
         result["dropped"] = before - len(skill.sub_episodes)
 
-    # AGGREGATE: check if enough high-quality sub-episodes exist
-    high_quality = [se for se in skill.sub_episodes if se.quality_score >= 0.6]
+    # AGGREGATE: check if enough high-quality sub-episodes exist.
+    # Use a lower threshold when no protocol exists yet (bootstrap).
+    has_protocol = bool(skill.protocol and skill.protocol.steps)
+    q_threshold = protocol_quality_threshold if has_protocol else bootstrap_quality_threshold
+    high_quality = [se for se in skill.sub_episodes if se.quality_score >= q_threshold]
     if len(high_quality) >= min_aggregate_count:
         result["needs_protocol_update"] = True
 
-    # RETIRE if too few remain
-    if len(skill.sub_episodes) < min_viable_count:
+    # RETIRE if too few remain after dropping — but only when the skill
+    # originally had sub-episodes.  A skill with 0 sub-episodes simply
+    # hasn't been linked yet (sub-episode linking may run later), so
+    # retiring it here would be premature.
+    if result["before_count"] > 0 and len(skill.sub_episodes) < min_viable_count:
         skill.retired = True
         result["retired"] = True
 
-    # Update instance count
-    skill.n_instances = len(skill.sub_episodes)
+    # Update instance count (keep the higher of linked vs historical)
+    if skill.sub_episodes:
+        skill.n_instances = max(skill.n_instances, len(skill.sub_episodes))
     result["after_count"] = len(skill.sub_episodes)
 
     return result
