@@ -36,6 +36,7 @@ class ScorerWeights:
     """Relative weights for each term in the segment score decomposition."""
 
     behavior_fit: float = 1.0
+    intention_fit: float = 2.0  # per-step intention tag agreement
     duration_prior: float = 0.3
     transition_prior: float = 1.0
     contract_compat: float = 0.0  # set by ContractFeedbackConfig or manually

@@ -109,6 +109,11 @@ class Stage3MVPSummary:
 
 # ── Main pipeline ────────────────────────────────────────────────────
 
+def _identity_extract(obs: Any) -> Dict[str, float]:
+    """Pass-through extractor for pre-computed predicate dicts."""
+    return obs if isinstance(obs, dict) else {}
+
+
 def run_stage3_mvp(
     segments: List[SegmentSpec],
     observations_by_traj: Dict[str, Sequence[Any]],
@@ -117,6 +122,7 @@ def run_stage3_mvp(
     extract_fn: Optional[Callable] = None,
     bank: Optional[SkillBankMVP] = None,
     bank_path: Optional[str] = None,
+    precomputed_predicates_by_traj: Optional[Dict[str, List[Dict[str, float]]]] = None,
 ) -> Stage3MVPSummary:
     """Run the full Stage 3 MVP pipeline.
 
@@ -136,6 +142,10 @@ def run_stage3_mvp(
         Existing bank to update.  A new one is created if not provided.
     bank_path : str, optional
         Path to save the skill bank JSONL after the run.
+    precomputed_predicates_by_traj : dict, optional
+        Mapping ``traj_id -> list[{predicate: prob}]`` (one per timestep).
+        When provided, these are used directly instead of calling
+        *extract_fn* on raw observations.
 
     Returns
     -------
@@ -151,10 +161,17 @@ def run_stage3_mvp(
         from skill_agents_grpo.skill_bank.bank import SkillBankMVP
         bank = SkillBankMVP(path=bank_path)
 
+    _precomputed = precomputed_predicates_by_traj or {}
+
     # Step 1+2: summarize and compute effects for every segment
     records: List[SegmentRecord] = []
     for spec in segments:
-        obs = observations_by_traj.get(spec.traj_id, [])
+        if spec.traj_id in _precomputed:
+            obs = _precomputed[spec.traj_id]
+            _ef = _identity_extract
+        else:
+            obs = observations_by_traj.get(spec.traj_id, [])
+            _ef = extract_fn
         rec = summarize_segment(
             seg_id=spec.seg_id,
             traj_id=spec.traj_id,
@@ -162,7 +179,7 @@ def run_stage3_mvp(
             t_end=spec.t_end,
             skill_label=spec.skill_label,
             observations=obs,
-            extract_predicates=extract_fn,
+            extract_predicates=_ef,
             config=config,
             vocab=vocab,
             ui_events=spec.ui_events,

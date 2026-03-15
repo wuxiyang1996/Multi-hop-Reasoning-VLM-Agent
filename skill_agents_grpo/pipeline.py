@@ -67,7 +67,7 @@ class PipelineConfig:
     preference_iterations: int = 3
     margin_threshold: float = 1.0
     max_queries_per_iter: int = 5
-    new_skill_penalty: float = 5.0
+    new_skill_penalty: float = 2.0
 
     # Boundary scoring (tag-change penalty model)
     consistency_penalty: float = 0.3
@@ -172,6 +172,7 @@ class SkillBankAgent:
         ))
         self._proto_mgr = ProtoSkillManager(config=ProtoSkillConfig())
         self._observations_by_traj: Dict[str, list] = {}
+        self._predicates_by_traj: Dict[str, List[Dict[str, float]]] = {}
         self._traj_lengths: Dict[str, int] = {}
         self._preference_store: Any = None  # lazily created
         self._iteration: int = 0
@@ -223,6 +224,25 @@ class SkillBankAgent:
     def _invalidate_query_engine(self):
         self._query_engine = None
 
+    @staticmethod
+    def _seed_skills_from_intentions(episode) -> List[str]:
+        """Extract unique canonical intention tags from an episode.
+
+        Used as seed skill names for the first pass when the bank is empty,
+        so the DP decoder has real labels to assign instead of only __NEW__.
+        """
+        from skill_agents_grpo.boundary_proposal.signal_extractors import (
+            parse_intention_tag,
+        )
+        tags = set()
+        for exp in episode.experiences:
+            intent = getattr(exp, "intentions", None)
+            if intent:
+                tag = parse_intention_tag(intent)
+                if tag != "UNKNOWN":
+                    tags.add(tag)
+        return sorted(tags)
+
     # ── Stage 1+2: Segment one episode ───────────────────────────────
 
     def segment_episode(
@@ -256,6 +276,14 @@ class SkillBankAgent:
         cfg = self.config
         _env = env_name or cfg.env_name
         _skill_names = skill_names or list(self.bank.skill_ids)
+
+        # Always merge intention tags from the current episode so the
+        # decoder can discover new skill types beyond the existing bank.
+        # Without this, once the bank has e.g. 1 skill, the decoder only
+        # sees [that_skill, __NEW__] and the penalty makes __NEW__
+        # uncompetitive — locking the bank to a single skill forever.
+        seeded = self._seed_skills_from_intentions(episode)
+        _skill_names = sorted(set(_skill_names) | set(seeded))
 
         seg_config = SegmentationConfig(
             method=cfg.segmentation_method,
@@ -323,7 +351,8 @@ class SkillBankAgent:
         """Store observations and convert segmentation result to SegmentRecord."""
         exps = episode.experiences
         self._observations_by_traj[traj_id] = [
-            getattr(e, "state", None) for e in exps
+            getattr(e, "summary_state", None) or getattr(e, "state", None)
+            for e in exps
         ]
         self._traj_lengths[traj_id] = len(exps)
 
@@ -368,6 +397,125 @@ class SkillBankAgent:
         self._invalidate_query_engine()
         return results
 
+    # ── LLM predicate extraction for Stage 3 ────────────────────────
+
+    def _ensure_predicates_extracted(self) -> None:
+        """Batch-extract predicates for any trajectories not yet processed.
+
+        Uses the same LLM prompt as boundary proposal (Stage 1) to extract
+        structured predicates from state descriptions, then converts to
+        ``Dict[str, float]`` suitable for Stage 3 effects computation.
+        """
+        traj_ids_needed = [
+            tid for tid in self._observations_by_traj
+            if tid not in self._predicates_by_traj
+        ]
+        if not traj_ids_needed:
+            return
+
+        model = self.config.llm_model or self.config.extractor_model
+        if model is None:
+            logger.debug("No LLM model configured — skipping predicate extraction.")
+            return
+
+        try:
+            from API_func import ask_model as _raw_ask
+        except ImportError:
+            logger.debug("API_func not available — skipping predicate extraction.")
+            return
+
+        from skill_agents_grpo._llm_compat import wrap_ask_for_reasoning_models
+        from skill_agents_grpo.boundary_proposal.llm_extractor import (
+            _PREDICATE_EXTRACTION_PROMPT,
+            _parse_json_array,
+            _normalize_predicate_keys,
+        )
+
+        ask = wrap_ask_for_reasoning_models(_raw_ask, model_hint=model)
+        chunk_size = 30
+        max_chars = 500
+
+        for traj_id in traj_ids_needed:
+            observations = self._observations_by_traj.get(traj_id, [])
+            if not observations:
+                self._predicates_by_traj[traj_id] = []
+                continue
+
+            state_texts = []
+            for obs in observations:
+                if isinstance(obs, str):
+                    t = obs[:max_chars] + "..." if len(obs) > max_chars else obs
+                elif isinstance(obs, dict):
+                    t = json.dumps(obs, default=str, ensure_ascii=False)
+                    if len(t) > max_chars:
+                        t = t[:max_chars] + "..."
+                elif obs is not None:
+                    t = str(obs)[:max_chars]
+                else:
+                    t = "(empty)"
+                state_texts.append(t)
+
+            all_preds: List[dict] = []
+            for start in range(0, len(state_texts), chunk_size):
+                end = min(start + chunk_size, len(state_texts))
+                chunk = state_texts[start:end]
+
+                states_block = "\n".join(
+                    f"  t={start + i}: {s}" for i, s in enumerate(chunk)
+                )
+                prompt = _PREDICATE_EXTRACTION_PROMPT.format(
+                    states_block=states_block,
+                    num_states=len(chunk),
+                )
+                try:
+                    response = ask(prompt, model=model, temperature=0.2, max_tokens=3000)
+                    parsed = _parse_json_array(response)
+                    if parsed is not None:
+                        chunk_preds = [p if isinstance(p, dict) else {} for p in parsed]
+                        while len(chunk_preds) < len(chunk):
+                            chunk_preds.append({})
+                        chunk_preds = chunk_preds[:len(chunk)]
+                    else:
+                        chunk_preds = [{} for _ in chunk]
+                except Exception:
+                    chunk_preds = [{} for _ in chunk]
+                all_preds.extend(chunk_preds)
+
+            all_preds = _normalize_predicate_keys(all_preds)
+            self._predicates_by_traj[traj_id] = [
+                self._convert_to_float_predicates(p) for p in all_preds
+            ]
+            logger.info(
+                "Extracted predicates for traj %s: %d timesteps, %d unique predicates",
+                traj_id, len(all_preds),
+                len({k for p in self._predicates_by_traj[traj_id] for k in p}),
+            )
+
+    @staticmethod
+    def _convert_to_float_predicates(pred_dict: dict) -> Dict[str, float]:
+        """Convert LLM predicate dict (mixed types) to Stage 3 float predicates.
+
+        String values become ``key=value`` with prob 1.0 so that changes
+        between e.g. ``phase=opening`` and ``phase=midgame`` are captured
+        as eff_add / eff_del.
+        """
+        result: Dict[str, float] = {}
+        for k, v in pred_dict.items():
+            if v is None:
+                continue
+            if isinstance(v, bool):
+                result[k] = 1.0 if v else 0.0
+            elif isinstance(v, (int, float)):
+                if 0 <= v <= 1:
+                    result[k] = float(v)
+                else:
+                    result[f"{k}={v}"] = 1.0
+            elif isinstance(v, str):
+                result[f"{k}={v}"] = 1.0
+            else:
+                result[k] = 1.0
+        return result
+
     # ── Stage 3: contract learning ───────────────────────────────────
 
     def run_contract_learning(self) -> Any:
@@ -406,12 +554,15 @@ class SkillBankAgent:
             logger.info("No non-NEW segments to process in Stage 3.")
             return Stage3MVPSummary()
 
+        self._ensure_predicates_extracted()
+
         summary = run_stage3_mvp(
             segments=specs,
             observations_by_traj=self._observations_by_traj,
             config=s3_config,
             bank=self.bank,
             bank_path=cfg.bank_path,
+            precomputed_predicates_by_traj=self._predicates_by_traj or None,
         )
         logger.info("Stage 3: %s", summary)
         self._invalidate_query_engine()
@@ -801,9 +952,13 @@ class SkillBankAgent:
         embeddings: Optional[Dict[str, List[float]]] = None,
         stage2_diagnostics: Optional[List[dict]] = None,
     ) -> Any:
-        """Run Stage 4: split, merge, refine skills and local re-decode.
+        """Run Stage 4 core: split, merge, refine skills and local re-decode.
 
         Returns BankMaintenanceResult.
+
+        Note: materialize and promote are kept as separate calls so callers
+        (e.g. the extraction script) can checkpoint between each operation.
+        Use ``run_stage4_full`` to execute all five operations in one call.
         """
         from skill_agents_grpo.bank_maintenance.run_bank_maintenance import (
             run_bank_maintenance,
@@ -814,10 +969,10 @@ class SkillBankAgent:
         cfg = self.config
 
         maint_config = BankMaintenanceConfig(
-            split_pass_rate_threshold=cfg.split_pass_rate_threshold,
-            child_pass_rate_threshold=cfg.child_pass_rate_threshold,
-            merge_jaccard_threshold=cfg.merge_jaccard_threshold,
-            merge_embedding_threshold=cfg.merge_embedding_threshold,
+            split_pass_rate_thresh=cfg.split_pass_rate_threshold,
+            child_pass_rate_thresh=cfg.child_pass_rate_threshold,
+            merge_eff_jaccard_thresh=cfg.merge_jaccard_threshold,
+            merge_emb_cosine_thresh=cfg.merge_embedding_threshold,
             min_child_size=cfg.min_child_size,
         )
 
@@ -1077,8 +1232,8 @@ class SkillBankAgent:
         """Execute one full pipeline iteration.
 
         Pipeline: (optional ingest) → Stage 3 → quality check
-        → Stage 4 → proto-skill formation → verification → promotion
-        → materialize remaining NEW → execution hints → snapshot.
+        → Stage 4 (split/merge/refine) → materialize → promote
+        → execution hints → snapshot.
 
         If *episodes* is provided, runs Stage 1+2 first.
         """
@@ -1094,7 +1249,7 @@ class SkillBankAgent:
         self.run_sub_episode_quality_check()
         self.run_bank_maintenance()
 
-        # Phase 4: proto-skill layer (NEW → cluster → proto → verify → promote)
+        # Stage 4 continued: materialize + promote
         n_proto = self.form_proto_skills()
         if n_proto > 0:
             self.verify_proto_skills()

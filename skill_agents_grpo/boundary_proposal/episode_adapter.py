@@ -120,10 +120,32 @@ def extract_signals(
                 window_size=changepoint_window,
             )
 
+    # Intention tags (e.g. "[DEFEND] Do something") — extract the [TAG] part
+    intention_tags: Optional[list] = None
+    done_flags: Optional[list] = None
+    _raw_tags = []
+    _raw_dones = []
+    for exp in experiences:
+        intent = getattr(exp, "intentions", None)
+        if isinstance(intent, str) and intent:
+            import re as _re
+            m = _re.match(r"\[([A-Z_]+)\]", intent)
+            _raw_tags.append(m.group(1) if m else intent.split("]")[0].lstrip("[") if "]" in intent else "")
+        elif isinstance(intent, dict):
+            _raw_tags.append(intent.get("tag", ""))
+        else:
+            _raw_tags.append("")
+        _raw_dones.append(bool(getattr(exp, "done", False)))
+    if any(t for t in _raw_tags):
+        intention_tags = _raw_tags
+        done_flags = _raw_dones
+
     return {
         "predicates": predicates,
         "event_times": event_times,
         "changepoint_scores": changepoint_scores,
+        "intention_tags": intention_tags,
+        "done_flags": done_flags,
         # Metadata (not passed to propose_boundary_candidates directly)
         "_summaries": summaries,
     }
@@ -187,6 +209,8 @@ def propose_from_episode(
         surprisal=surprisal,
         changepoint_scores=signals["changepoint_scores"],
         event_times=signals["event_times"],
+        intention_tags=signals.get("intention_tags"),
+        done_flags=signals.get("done_flags"),
         config=config,
         event_window=event_window,
     )

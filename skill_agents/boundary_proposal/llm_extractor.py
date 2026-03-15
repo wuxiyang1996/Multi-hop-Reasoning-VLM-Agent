@@ -62,15 +62,20 @@ def _make_boundary_ask_fn():
 _PREDICATE_EXTRACTION_PROMPT = """\
 You are analyzing a game agent's trajectory to identify key state facts (predicates) at each timestep.
 
-For each timestep below, extract the important discrete state facts as key-value pairs.
+For each timestep below, extract ONLY the important discrete state facts as key-value pairs.
 Focus on facts that, when they CHANGE between consecutive steps, would signal a meaningful transition:
+- Game phase or stage (e.g. opening, midgame, endgame)
 - Location or area the agent is in
 - Items held, inventory changes
-- Game phase, menu/UI mode
 - Objectives completed or active
-- Interaction targets (NPCs, objects)
-- Agent status (alive, health level, role)
-- Team composition or alliances
+- Major status changes (health level, danger level, score milestones)
+- Agent role or team composition
+
+Do NOT include facts that change every single step (these are noise, not transitions):
+- Step counters or turn numbers
+- Current piece/card/item being placed (changes every action)
+- Next-piece queues or draw piles
+- Minor score increments
 
 Return ONLY a JSON array with one object per timestep, in order.
 Each object should have string keys and string/boolean/number values.
@@ -115,8 +120,17 @@ Return JSON array of booleans (length {num_pairs}):"""
 def _parse_json_array(text: str) -> Optional[list]:
     """
     Try to parse a JSON array from LLM output.
-    Handles common issues: markdown fences, trailing commas, partial output.
+    Handles common issues: markdown fences, trailing commas, partial output,
+    thinking blocks, and truncated responses.
     """
+    if not text or not text.strip():
+        return None
+
+    # Strip <think>…</think> reasoning blocks (some models emit these)
+    text = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.DOTALL)
+    # Strip incomplete <think> blocks at the end
+    text = re.sub(r"<think>[\s\S]*$", "", text, flags=re.DOTALL)
+
     # Strip markdown code fences
     text = re.sub(r"```(?:json)?\s*", "", text)
     text = text.strip().rstrip("`")
@@ -141,6 +155,22 @@ def _parse_json_array(text: str) -> Optional[list]:
                 return result
         except json.JSONDecodeError:
             pass
+
+    # Truncated response: find the last complete object and close the array
+    match = re.search(r"\[[\s\S]*", text)
+    if match:
+        candidate = match.group(0)
+        candidate = re.sub(r",\s*([}\]])", r"\1", candidate)
+        # Find last complete `}` and close the array there
+        last_brace = candidate.rfind("}")
+        if last_brace > 0:
+            candidate = candidate[: last_brace + 1] + "]"
+            try:
+                result = json.loads(candidate)
+                if isinstance(result, list):
+                    return result
+            except json.JSONDecodeError:
+                pass
 
     return None
 
@@ -207,6 +237,18 @@ class LLMSignalExtractor(SignalExtractorBase):
         from API_func import ask_model
         return wrap_ask_for_reasoning_models(ask_model, model_hint=self._model)
 
+    @staticmethod
+    def _best_state_text(exp: Any) -> Any:
+        """Pick the most concise semantic representation of an experience's state.
+
+        Prefers ``summary_state`` (compact key=value) over the raw ``state``
+        (which for visual games like Tetris can be huge ASCII-art grids).
+        """
+        summary = getattr(exp, "summary_state", None)
+        if summary:
+            return summary
+        return exp.state
+
     def _state_to_text(self, state: Any) -> str:
         """Convert a state (str, dict, or other) to a concise text repr."""
         if isinstance(state, str):
@@ -251,9 +293,13 @@ class LLMSignalExtractor(SignalExtractorBase):
                     result.append({})
                 return result[: len(states)]
             else:
+                resp_preview = (response[:300] + "…") if response and len(response) > 300 else response
                 logger.warning(
-                    "LLM predicate extraction: failed to parse JSON for chunk at t=%d",
+                    "LLM predicate extraction: failed to parse JSON for chunk at t=%d "
+                    "(response length=%d). Preview: %s",
                     chunk_offset,
+                    len(response) if response else 0,
+                    resp_preview,
                 )
                 return [{} for _ in states]
         except Exception as e:
@@ -266,12 +312,18 @@ class LLMSignalExtractor(SignalExtractorBase):
 
         States are chunked into groups of ``chunk_size``.  Each chunk is
         sent as one LLM call that returns a JSON array of predicate dicts.
+        Prefers ``summary_state`` over raw ``state`` when available, since
+        summary_state is a compact key=value string ideal for predicate
+        extraction (raw state can be huge ASCII grids for visual games).
         """
         T = len(experiences)
         if T == 0:
             return []
 
-        state_texts = [self._state_to_text(exp.state) for exp in experiences]
+        state_texts = [
+            self._state_to_text(self._best_state_text(exp))
+            for exp in experiences
+        ]
         all_predicates: List[dict] = []
 
         for start in range(0, T, self._chunk_size):
@@ -372,6 +424,16 @@ class LLMSignalExtractor(SignalExtractorBase):
 # ---------------------------------------------------------------------------
 
 
+_NOISE_KEY_PATTERNS = re.compile(
+    r"^("
+    r"step|step_number|step_total|turn|turn_number|move_number"
+    r"|current_piece|active_piece|next_queue|next_pieces"
+    r"|reward|score_delta|immediate_reward"
+    r")$",
+    re.IGNORECASE,
+)
+
+
 def _normalize_predicate_keys(predicates: List[dict]) -> List[dict]:
     """
     Ensure predicate dicts use consistent keys across the trajectory.
@@ -379,6 +441,9 @@ def _normalize_predicate_keys(predicates: List[dict]) -> List[dict]:
     The LLM might use slightly different key names across chunks
     (e.g. "location" vs "area").  This pass collects the union of all
     keys and fills missing keys with None so that flip detection works.
+
+    Also strips known per-step noise keys (step counters, piece identity)
+    that would trigger a boundary on every timestep.
     """
     if not predicates:
         return predicates
@@ -386,6 +451,9 @@ def _normalize_predicate_keys(predicates: List[dict]) -> List[dict]:
     all_keys = set()
     for p in predicates:
         all_keys.update(p.keys())
+
+    # Remove noise keys that change every step
+    all_keys = {k for k in all_keys if not _NOISE_KEY_PATTERNS.match(k)}
 
     normalized = []
     for p in predicates:

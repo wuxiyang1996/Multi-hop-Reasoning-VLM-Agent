@@ -106,7 +106,7 @@ def retrieve_merge_candidates(
 
 def _jaccard(a: FrozenSet[str], b: FrozenSet[str]) -> float:
     if not a and not b:
-        return 1.0
+        return 0.0  # unknown effects ≠ identical — refuse to merge
     return len(a & b) / len(a | b)
 
 

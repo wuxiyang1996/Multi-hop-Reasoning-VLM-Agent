@@ -223,6 +223,25 @@ class SkillBankAgent:
     def _invalidate_query_engine(self):
         self._query_engine = None
 
+    @staticmethod
+    def _seed_skills_from_intentions(episode) -> List[str]:
+        """Extract unique canonical intention tags from an episode.
+
+        Used as seed skill names for the first pass when the bank is empty,
+        so the DP decoder has real labels to assign instead of only __NEW__.
+        """
+        from skill_agents.boundary_proposal.signal_extractors import (
+            parse_intention_tag,
+        )
+        tags = set()
+        for exp in episode.experiences:
+            intent = getattr(exp, "intentions", None)
+            if intent:
+                tag = parse_intention_tag(intent)
+                if tag != "UNKNOWN":
+                    tags.add(tag)
+        return sorted(tags)
+
     # ── Stage 1+2: Segment one episode ───────────────────────────────
 
     def segment_episode(
@@ -256,6 +275,13 @@ class SkillBankAgent:
         cfg = self.config
         _env = env_name or cfg.env_name
         _skill_names = skill_names or list(self.bank.skill_ids)
+
+        # When the bank is empty, seed skill names from the episode's
+        # intention tags so the DP decoder has real labels to assign
+        # (otherwise only __NEW__ is available and the penalty makes it
+        # always prefer 1 segment).
+        if not _skill_names:
+            _skill_names = self._seed_skills_from_intentions(episode)
 
         seg_config = SegmentationConfig(
             method=cfg.segmentation_method,

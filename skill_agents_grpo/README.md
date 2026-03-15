@@ -218,10 +218,13 @@ Predicate satisfaction is implemented by tokenizing the predicate and the outcom
 | `segment_episode(episode, env_name=..., skill_names=...)` | Run Stage 1+2 on one episode; returns `(SegmentationResult, list[SubTask_Experience])`. Accumulates segment records. |
 | `ingest_episodes(episodes, ...)` | Segment each episode then run Stage 3 (contract learning). Returns list of `(result, sub_episodes)` per episode. |
 | `run_contract_learning()` | Stage 3: learn/verify/refine effects contracts from accumulated segments. |
-| `run_bank_maintenance(...)` | Stage 4: split / merge / refine skills. |
-| `materialize_new_skills()` | Promote `__NEW__` segments via `NewPoolManager` (rich clustering + consistency checks). |
+| `run_bank_maintenance(...)` | Stage 4 core: split / merge / refine skills. Returns `BankMaintenanceResult`. |
+| `form_proto_skills()` | Stage 4 materialize: cluster `__NEW__` segments → create proto-skills in staging area. |
+| `verify_proto_skills()` | Stage 4 verify: run contract verification on unverified proto-skills. |
+| `promote_proto_skills()` | Stage 4 promote: graduate verified proto-skills to real bank skills. |
+| `materialize_new_skills()` | Stage 4 materialize (legacy): promote `__NEW__` via `NewPoolManager` clustering + consistency checks. |
 | `run_evaluation(episode_outcomes=...)` | Run skill quality evaluation (optional). |
-| `run_full_iteration(episodes=...)` | One pass: (optional ingest) → Stage 3 → Stage 4 → materialize → snapshot. |
+| `run_full_iteration(episodes=...)` | One pass: (optional ingest) → Stage 3 → Stage 4 (split/merge/refine/materialize/promote) → snapshot. |
 | `run_until_stable(max_iterations=...)` | Iterate until convergence; then `save()`. |
 | `query_skill(key, top_k=3)` | Keyword-style retrieval; returns list of `{skill_id, score, contract, micro_plan}`. |
 | `select_skill(query, current_state=..., top_k=3)` | **Rich skill selection**: relevance + applicability + confidence. Preferred for decision agents. |

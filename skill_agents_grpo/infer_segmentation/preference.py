@@ -113,6 +113,14 @@ class PreferenceStore:
     def __len__(self) -> int:
         return len(self._examples)
 
+    def known_skills(self) -> set:
+        """Return the set of skill names that appear in stored preferences."""
+        skills: set = set()
+        for ex in self._examples:
+            skills.add(ex.skill_win)
+            skills.add(ex.skill_lose)
+        return skills
+
     def save(self, filepath: Optional[str] = None) -> None:
         path = Path(filepath or self._filepath)
         path.parent.mkdir(parents=True, exist_ok=True)

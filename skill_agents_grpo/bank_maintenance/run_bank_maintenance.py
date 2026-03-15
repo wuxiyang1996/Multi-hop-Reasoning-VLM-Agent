@@ -80,6 +80,8 @@ class BankMaintenanceResult:
         self.split_results: List[SplitResult] = []
         self.merge_results: List[MergeResult] = []
         self.refine_results: List[RefineResult] = []
+        self.materialized_ids: List[str] = []
+        self.promoted_ids: List[str] = []
         self.redecode_requests: List[RedecodeRequest] = []
         self.alias_map: Dict[str, str] = {}
 
@@ -111,6 +113,8 @@ class BankMaintenanceResult:
                 }
                 for rr in self.refine_results
             ],
+            "materialized": self.materialized_ids,
+            "promoted": self.promoted_ids,
             "n_redecode_requests": len(self.redecode_requests),
             "alias_map": self.alias_map,
         }

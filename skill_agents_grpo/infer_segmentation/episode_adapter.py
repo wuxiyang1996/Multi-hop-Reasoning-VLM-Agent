@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from skill_agents_grpo.infer_segmentation.config import SegmentationConfig
 from skill_agents_grpo.infer_segmentation.scorer import SegmentScorer
@@ -89,11 +89,41 @@ def _extract_predicates(experiences: list) -> List[Optional[dict]]:
     return predicates
 
 
+def _build_intention_fit_fn(
+    experiences: list,
+) -> Optional["Callable[[str, int, int], float]"]:
+    """Build a closure that scores intention-tag agreement for a segment.
+
+    Returns ``None`` when no intention tags are available so the scorer
+    degrades gracefully to LLM-only mode.
+    """
+    from skill_agents_grpo.boundary_proposal.signal_extractors import parse_intention_tag
+
+    tags: List[str] = []
+    for exp in experiences:
+        intent = getattr(exp, "intentions", None)
+        tag = parse_intention_tag(intent) if intent else "UNKNOWN"
+        tags.append(tag)
+
+    if all(t == "UNKNOWN" for t in tags):
+        return None
+
+    def _intention_fit(skill: str, i: int, j: int) -> float:
+        seg_tags = tags[i : j + 1]
+        length = len(seg_tags)
+        if length == 0:
+            return 0.0
+        matches = sum(1 for t in seg_tags if t == skill)
+        return (matches / length) * length  # match_fraction * segment_length
+    return _intention_fit
+
+
 def _build_scorer_from_preferences(
     skill_names: List[str],
     store: PreferenceStore,
     config: SegmentationConfig,
     compat_fn=None,
+    intention_fit_fn=None,
 ) -> SegmentScorer:
     """Train a PreferenceScorer and wrap it in a SegmentScorer."""
     pref_scorer = PreferenceScorer(
@@ -109,6 +139,7 @@ def _build_scorer_from_preferences(
         behavior_fit_fn=pref_scorer.behavior_fit,
         transition_fn=pref_scorer.transition_prior,
         compat_fn=compat_fn,
+        intention_fit_fn=intention_fit_fn,
     )
 
 
@@ -281,8 +312,13 @@ def infer_and_segment(
 
     store = preference_store or PreferenceStore()
 
-    # ── Cold-start: collect preferences from LLM teacher ────────────
-    if len(store) == 0:
+    # ── Collect preferences from LLM teacher ─────────────────────────
+    # Re-collect when the store is empty (cold-start) OR when the skill
+    # vocabulary has expanded beyond what the store covers.  Without this,
+    # newly seeded skills have no preference data and the scorer assigns
+    # them zero/default scores, so they can never win.
+    unseen_skills = set(skill_names) - store.known_skills()
+    if len(store) == 0 or unseen_skills:
         segment_prefs = collect_segment_preferences(
             segments, observations, actions, skill_names,
             predicates=predicates, config=cfg.llm_teacher,
@@ -295,8 +331,14 @@ def infer_and_segment(
             )
             store.add_batch(transition_prefs)
 
+    # ── Build intention-fit signal from per-step tags ───────────────
+    intention_fit_fn = _build_intention_fit_fn(experiences)
+
     # ── Train scorer and decode ─────────────────────────────────────
-    scorer = _build_scorer_from_preferences(skill_names, store, cfg, compat_fn=compat_fn)
+    scorer = _build_scorer_from_preferences(
+        skill_names, store, cfg, compat_fn=compat_fn,
+        intention_fit_fn=intention_fit_fn,
+    )
     result = _decode(centers, T, scorer, observations, actions, predicates, cfg)
 
     # ── Active learning iterations ──────────────────────────────────
@@ -311,7 +353,10 @@ def infer_and_segment(
             break
 
         store.add_batch(new_prefs)
-        scorer = _build_scorer_from_preferences(skill_names, store, cfg, compat_fn=compat_fn)
+        scorer = _build_scorer_from_preferences(
+            skill_names, store, cfg, compat_fn=compat_fn,
+            intention_fit_fn=intention_fit_fn,
+        )
         result = _decode(centers, T, scorer, observations, actions, predicates, cfg)
 
     sub_episodes = _segments_to_sub_episodes(result, experiences, episode.task, outcome_length)

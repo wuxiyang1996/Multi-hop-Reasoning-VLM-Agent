@@ -73,7 +73,7 @@ import traceback
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
 # Path setup
@@ -145,6 +145,99 @@ DEFAULT_OUTPUT_DIR = SCRIPT_DIR / "output" / "gpt54_skillbank_grpo"
 
 _SUBGOAL_TAG_SET = frozenset(SUBGOAL_TAGS)
 
+
+# ---------------------------------------------------------------------------
+# GRPO / local-model helpers
+# ---------------------------------------------------------------------------
+
+def setup_local_model(
+    model_name_or_path: str,
+    adapter_dir: Optional[str] = None,
+) -> "MultiLoraSkillBankLLM":
+    """Instantiate the local Qwen3-14B model and register as shared instance.
+
+    If ``adapter_dir`` contains previously trained LoRA adapters, they are
+    loaded automatically so GRPO training can continue from where it left off.
+    """
+    from skill_agents_grpo.lora.config import MultiLoraConfig
+    from skill_agents_grpo.lora.model import MultiLoraSkillBankLLM
+    from skill_agents_grpo.lora.skill_function import SkillFunction
+
+    adapter_paths: Dict[str, str] = {}
+    if adapter_dir:
+        _ad = Path(adapter_dir)
+        for fn in (SkillFunction.SEGMENT, SkillFunction.CONTRACT, SkillFunction.CURATOR):
+            candidate = _ad / fn.value
+            if candidate.exists():
+                adapter_paths[fn.value] = str(candidate)
+
+    cfg = MultiLoraConfig(
+        base_model_name_or_path=model_name_or_path,
+        adapter_paths=adapter_paths,
+        allow_fallback_to_base_model=True,
+    )
+    llm = MultiLoraSkillBankLLM(cfg)
+    MultiLoraSkillBankLLM.set_shared_instance(llm)
+    print(f"  Local model: {model_name_or_path}")
+    if adapter_paths:
+        print(f"  LoRA adapters: {list(adapter_paths.keys())}")
+    return llm
+
+
+def setup_grpo_orchestrator(
+    llm: "MultiLoraSkillBankLLM",
+    group_size: int = 4,
+) -> "GRPOOrchestrator":
+    """Create and return a GRPO orchestrator (wrappers NOT yet enabled)."""
+    from skill_agents_grpo.grpo.orchestrator import GRPOOrchestrator
+    from skill_agents_grpo.grpo.config import GRPOConfig, StageGRPOConfig
+    from skill_agents_grpo.lora.skill_function import SkillFunction
+
+    grpo_cfg = GRPOConfig(stage_configs={
+        SkillFunction.SEGMENT.value: StageGRPOConfig(
+            group_size=group_size, kl_coeff=0.02, lr=3e-5,
+            epochs_per_batch=3, temperature=0.7,
+        ),
+        SkillFunction.CONTRACT.value: StageGRPOConfig(
+            group_size=group_size, kl_coeff=0.05, lr=5e-5,
+            epochs_per_batch=2, temperature=0.7,
+        ),
+        SkillFunction.CURATOR.value: StageGRPOConfig(
+            group_size=group_size, kl_coeff=0.05, lr=5e-5,
+            epochs_per_batch=2, temperature=0.7,
+        ),
+    })
+    orch = GRPOOrchestrator(llm, grpo_cfg)
+    print(f"  GRPO orchestrator created (G={group_size})")
+    return orch
+
+
+def save_lora_adapters(
+    llm: "MultiLoraSkillBankLLM",
+    adapter_dir: str,
+) -> None:
+    """Save all loaded LoRA adapters to disk."""
+    from skill_agents_grpo.lora.skill_function import SkillFunction
+
+    _ad = Path(adapter_dir)
+    _ad.mkdir(parents=True, exist_ok=True)
+
+    if not llm.is_loaded or not llm._is_peft_model:
+        return
+
+    for fn in (SkillFunction.SEGMENT, SkillFunction.CONTRACT, SkillFunction.CURATOR):
+        name = fn.adapter_name
+        if name not in llm._loaded_adapters:
+            continue
+        save_path = _ad / fn.value
+        save_path.mkdir(parents=True, exist_ok=True)
+        try:
+            llm._model.set_adapter(name)
+            llm._model.save_pretrained(str(save_path))
+            print(f"    Saved adapter '{name}' → {save_path}")
+        except Exception as exc:
+            print(f"    [WARN] Failed to save adapter '{name}': {exc}")
+
 _TAG_ALIASES: Dict[str, str] = {
     "PLACE": "SETUP", "DROP": "EXECUTE", "MOVE": "NAVIGATE",
     "SWAP": "EXECUTE", "PUSH": "NAVIGATE", "JUMP": "NAVIGATE",
@@ -166,7 +259,8 @@ _TAG_RE = re.compile(r"\[(\w+)\]\s*")
 class StageIORecord:
     """Captures serialisable I/O metadata for one pipeline stage invocation."""
 
-    def __init__(self, stage_name: str) -> None:
+    def __init__(self, stage_name: str,
+                 on_finish: Optional[Callable[["StageIORecord"], None]] = None) -> None:
         self.stage_name = stage_name
         self.timestamp_start: Optional[str] = None
         self.timestamp_end: Optional[str] = None
@@ -175,6 +269,7 @@ class StageIORecord:
         self.outputs: Dict[str, Any] = {}
         self.error: Optional[str] = None
         self._t0: float = 0.0
+        self._on_finish = on_finish
 
     def start(self) -> "StageIORecord":
         self._t0 = time.time()
@@ -184,6 +279,11 @@ class StageIORecord:
     def finish(self) -> "StageIORecord":
         self.elapsed_seconds = round(time.time() - self._t0, 3)
         self.timestamp_end = datetime.now().isoformat()
+        if self._on_finish is not None:
+            try:
+                self._on_finish(self)
+            except Exception:
+                pass
         return self
 
     def record_input(self, key: str, value: Any) -> None:
@@ -255,13 +355,15 @@ def _safe_serialize(obj: Any, depth: int = 0, max_depth: int = 3) -> Any:
 class StageIOLog:
     """Accumulates stage I/O records for a single game run."""
 
-    def __init__(self, game_name: str, model: str) -> None:
+    def __init__(self, game_name: str, model: str,
+                 on_finish: Optional[Callable[[StageIORecord], None]] = None) -> None:
         self.game_name = game_name
         self.model = model
         self.records: List[StageIORecord] = []
+        self._on_finish = on_finish
 
     def new_record(self, stage_name: str) -> StageIORecord:
-        rec = StageIORecord(stage_name)
+        rec = StageIORecord(stage_name, on_finish=self._on_finish)
         self.records.append(rec)
         return rec
 
@@ -281,6 +383,100 @@ class StageIOLog:
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# Checkpoint / resume support
+# ═══════════════════════════════════════════════════════════════════════
+
+_CHECKPOINT_FILENAME = "extraction_checkpoint.json"
+
+
+class ExtractionCheckpoint:
+    """Track which games / episodes have completed so the run can resume."""
+
+    def __init__(self, output_dir: Path) -> None:
+        self._path = output_dir / _CHECKPOINT_FILENAME
+        self._data: Dict[str, Any] = {
+            "completed_games": [],
+            "in_progress_game": None,
+            "completed_episodes": {},
+            "stage_reached": {},
+        }
+        if self._path.exists():
+            try:
+                with open(self._path, "r", encoding="utf-8") as f:
+                    self._data.update(json.load(f))
+            except Exception:
+                pass
+
+    def _save(self) -> None:
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self._path.with_suffix(".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(self._data, f, indent=2, ensure_ascii=False)
+        tmp.replace(self._path)
+
+    def is_game_complete(self, game: str) -> bool:
+        return game in self._data["completed_games"]
+
+    def completed_episode_count(self, game: str) -> int:
+        return self._data["completed_episodes"].get(game, 0)
+
+    def stage_reached(self, game: str) -> Optional[str]:
+        return self._data["stage_reached"].get(game)
+
+    def mark_episode_done(self, game: str, episode_idx: int, stage: str = "stage_1_2") -> None:
+        self._data["in_progress_game"] = game
+        self._data["completed_episodes"][game] = episode_idx + 1
+        self._data["stage_reached"][game] = stage
+        self._save()
+
+    def mark_stage(self, game: str, stage: str) -> None:
+        self._data["stage_reached"][game] = stage
+        self._save()
+
+    def mark_game_complete(self, game: str) -> None:
+        if game not in self._data["completed_games"]:
+            self._data["completed_games"].append(game)
+        self._data["in_progress_game"] = None
+        self._data["stage_reached"].pop(game, None)
+        self._data["completed_episodes"].pop(game, None)
+        self._save()
+
+    def reset(self) -> None:
+        self._data = {
+            "completed_games": [],
+            "in_progress_game": None,
+            "completed_episodes": {},
+            "stage_reached": {},
+        }
+        if self._path.exists():
+            self._path.unlink()
+
+    @property
+    def path(self) -> Path:
+        return self._path
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# LLM call I/O recording
+# ═══════════════════════════════════════════════════════════════════════
+
+_llm_call_log: List[Dict[str, Any]] = []
+
+
+def _flush_llm_calls() -> List[Dict[str, Any]]:
+    """Return and clear accumulated LLM call records since last flush."""
+    global _llm_call_log
+    calls = list(_llm_call_log)
+    _llm_call_log.clear()
+    return calls
+
+
+def _reset_llm_call_log() -> None:
+    """Clear all accumulated LLM call records."""
+    _llm_call_log.clear()
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # LLM helpers
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -291,16 +487,43 @@ def _ask_gpt54(
     model: str = MODEL_GPT54,
     temperature: float = 0.2,
     max_tokens: int = 150,
+    _caller: str = "",
 ) -> Optional[str]:
+    call_t0 = time.time()
     full_prompt = f"{system}\n\n{prompt}" if system else prompt
+    result = None
+    error_msg = None
     if ask_model is not None:
-        result = ask_model(
-            full_prompt, model=model,
-            temperature=temperature, max_tokens=max_tokens,
-        )
-        if result and not result.startswith("Error"):
-            return strip_think_tags(result).strip()
-    return None
+        try:
+            raw = ask_model(
+                full_prompt, model=model,
+                temperature=temperature, max_tokens=max_tokens,
+            )
+            if raw and not raw.startswith("Error"):
+                result = strip_think_tags(raw).strip()
+            elif raw:
+                error_msg = raw[:500]
+        except Exception as exc:
+            error_msg = f"{type(exc).__name__}: {exc}"
+
+    call_record: Dict[str, Any] = {
+        "timestamp": datetime.now().isoformat(),
+        "caller": _caller,
+        "model": model,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "prompt_chars": len(prompt),
+        "prompt": prompt[:3000],
+        "system": system[:500] if system else "",
+        "response_chars": len(result) if result else 0,
+        "response": result[:3000] if result else None,
+        "elapsed_s": round(time.time() - call_t0, 3),
+    }
+    if error_msg:
+        call_record["error"] = error_msg
+    _llm_call_log.append(call_record)
+
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -401,7 +624,8 @@ def generate_skill_name(
         f"SUMMARY: game=<game> | skill=<name> | effects=<top effects> | context=<when to use>\n"
     )
 
-    result = _ask_gpt54(prompt, model=model, max_tokens=120, temperature=0.3)
+    result = _ask_gpt54(prompt, model=model, max_tokens=120, temperature=0.3,
+                        _caller=f"generate_skill_name:{skill_id}")
 
     name = skill_id.replace("_", " ").title()
     rag_summary = f"game={game_name} | skill={skill_id} | eff_add={eff_add_str}"
@@ -452,10 +676,14 @@ def generate_skill_protocol(
         f"PRECONDITIONS:\n- <when this skill should be invoked>\n"
         f"STEPS:\n- <step 1>\n- <step 2>\n- ...\n"
         f"SUCCESS_CRITERIA:\n- <how to know the skill succeeded>\n"
-        f"ABORT_CRITERIA:\n- <when to abandon this skill>\n"
+        f"ABORT_CRITERIA:\n- <game-specific condition when to abandon this skill>\n\n"
+        f"IMPORTANT: All criteria must be specific to {game_name}. "
+        f"Do NOT use generic abort criteria like 'no progress after expected duration'. "
+        f"Instead, describe concrete in-game conditions. Finish every sentence completely.\n"
     )
 
-    result = _ask_gpt54(prompt, model=model, max_tokens=500, temperature=0.3)
+    result = _ask_gpt54(prompt, model=model, max_tokens=800, temperature=0.3,
+                        _caller=f"generate_skill_protocol:{skill_id}")
 
     preconditions: List[str] = []
     steps: List[str] = []
@@ -514,6 +742,17 @@ def generate_skill_protocol(
     steps = _trim_incomplete(steps)
     preconditions = _trim_incomplete(preconditions)
     success_criteria = _trim_incomplete(success_criteria)
+    abort_criteria = _trim_incomplete(abort_criteria)
+
+    _GENERIC_ABORT_PHRASES = {
+        "no progress after expected duration",
+        "no progress after duration",
+        "no progress",
+    }
+    abort_criteria = [
+        a for a in abort_criteria
+        if a.strip().rstrip(".").lower() not in _GENERIC_ABORT_PHRASES
+    ]
 
     if not steps:
         if contract.eff_add:
@@ -539,7 +778,7 @@ def generate_skill_protocol(
             success_criteria = [f"{name} completed successfully"]
 
     if not abort_criteria:
-        abort_criteria = ["No progress after expected duration"]
+        abort_criteria = [f"The game state in {game_name} no longer permits {name} actions"]
 
     return {
         "preconditions": preconditions,
@@ -569,12 +808,17 @@ def generate_skill_description(
         f"Be concrete and specific to the game. Max 40 words.\nDescription:"
     )
 
-    result = _ask_gpt54(prompt, model=model, max_tokens=120, temperature=0.3)
+    result = _ask_gpt54(prompt, model=model, max_tokens=200, temperature=0.3,
+                        _caller=f"generate_skill_description:{skill_id}")
     if result:
         desc = result.split("\n")[0].strip().strip('"').strip("'")
-        if len(desc) > 200:
-            cut = desc[:200].rfind(".")
-            desc = desc[:cut + 1] if cut > 80 else desc[:200]
+        if len(desc) > 250:
+            cut = desc[:250].rfind(".")
+            desc = desc[:cut + 1] if cut > 80 else desc[:250]
+        if desc and desc[-1] not in ".!?":
+            cut = desc.rfind(".")
+            if cut > 40:
+                desc = desc[:cut + 1]
         return desc
     return f"Skill '{name}' in {game_name}: applies {eff_str[:80]}."
 
@@ -626,6 +870,27 @@ def _compute_predicate_effects(
 # Intention-based fallback segmentation
 # ═══════════════════════════════════════════════════════════════════════
 
+def _compute_sub_episode_quality(
+    segment_exps: list,
+    outcome_exps: Optional[list],
+) -> float:
+    """Compute a [0, 1] quality score for a fallback sub-episode."""
+    if not segment_exps:
+        return 0.0
+    seg_reward = sum(getattr(e, "reward", 0.0) or 0.0 for e in segment_exps)
+    n_steps = len(segment_exps)
+    reward_score = min(1.0, max(0.0, seg_reward / max(n_steps, 1)))
+
+    outcome_score = 0.0
+    if outcome_exps:
+        oc_reward = sum(getattr(e, "reward", 0.0) or 0.0 for e in outcome_exps)
+        outcome_score = 0.5 if oc_reward > 0 else 0.0
+
+    length_score = min(1.0, n_steps / 10.0) if n_steps >= 2 else 0.2
+
+    return round(min(1.0, 0.4 * reward_score + 0.3 * outcome_score + 0.3 * length_score), 3)
+
+
 def _build_sub_episodes_from_tags(
     tag_segments: List[Dict[str, Any]],
     episodes: List[Episode],
@@ -658,6 +923,7 @@ def _build_sub_episodes_from_tags(
             outcome=outcome_exps,
             seg_id=seg_id,
         )
+        sub_ep.quality_score = _compute_sub_episode_quality(segment_exps, outcome_exps)
         sub_episodes.append(sub_ep)
     return sub_episodes
 
@@ -671,10 +937,20 @@ def _link_sub_episodes_to_skills(
     linked = 0
     skill_refs: Dict[str, List[SubEpisodeRef]] = defaultdict(list)
 
+    # Build a fallback for __NEW__ sub_tasks: if the bank has exactly one
+    # non-retired skill (typically a promoted proto), remap __NEW__ to it.
+    active_ids = [
+        sid for sid in agent.skill_ids
+        if not (agent.bank.get_skill(sid) or type("", (), {"retired": True})()).retired
+    ]
+    new_remap_target = active_ids[0] if len(active_ids) == 1 else None
+
     for se in all_sub_episodes:
         skill_id = se.sub_task
         if not skill_id:
             continue
+        if skill_id == "__NEW__" and new_remap_target:
+            skill_id = new_remap_target
 
         cum_reward = sum(
             getattr(e, "reward", 0.0) or 0.0
@@ -899,6 +1175,28 @@ def intention_based_segmentation(
             s["skill_summary"] = rag_summary
             s["description"] = description
 
+    # ── Deduplicate near-identical skills ──
+    names_seen: Dict[str, str] = {}
+    merge_map: Dict[str, str] = {}
+    for sid, entry in list(skill_catalog.items()):
+        norm_name = entry["name"].strip().lower()
+        if norm_name in names_seen:
+            canonical = names_seen[norm_name]
+            merge_map[sid] = canonical
+            skill_catalog[canonical]["n_instances"] += entry["n_instances"]
+            skill_catalog[canonical]["total_steps"] += entry["total_steps"]
+            del skill_catalog[sid]
+            if verbose:
+                print(f"      [DEDUP] Merged '{entry['name']}' ({sid}) → {canonical}")
+        else:
+            names_seen[norm_name] = sid
+
+    if merge_map:
+        for seg in tag_segments:
+            old_id = seg.get("skill_id", "")
+            if old_id in merge_map:
+                seg["skill_id"] = merge_map[old_id]
+
     sub_episodes: List[SubTask_Experience] = []
     if episodes:
         sub_episodes = _build_sub_episodes_from_tags(
@@ -1012,6 +1310,8 @@ def extract_skills_for_game(
     model: str = MODEL_GPT54,
     verbose: bool = False,
     resegment: bool = False,
+    checkpoint: Optional[ExtractionCheckpoint] = None,
+    resume_from_episode: int = 0,
 ) -> Tuple[SkillBankAgent, Dict[str, Dict[str, Any]], List[SubTask_Experience], StageIOLog]:
     """Run the full skill_agents_grpo SkillBankAgent pipeline on labeled episodes
     for one game, recording I/O at every stage boundary.
@@ -1042,6 +1342,61 @@ def extract_skills_for_game(
     Returns (agent, skill_catalog, sub_episodes, io_log).
     """
     io_log = StageIOLog(game_name, model)
+    _reset_llm_call_log()
+    game_llm_calls: List[Dict[str, Any]] = []
+
+    # Will be set after agent is created to attach bank snapshots to every record
+    _agent_ref_for_snapshot: List = []  # mutable container for closure
+
+    def _on_record_finish(rec: StageIORecord) -> None:
+        if _agent_ref_for_snapshot:
+            rec.record_output("bank_skills_after", _bank_snapshot(_agent_ref_for_snapshot[0]))
+
+    io_log._on_finish = _on_record_finish
+
+    snapshots_dir = output_dir / "episode_snapshots"
+    snapshots_dir.mkdir(parents=True, exist_ok=True)
+
+    def _snapshot_episode(label: str, agent_ref, io_log_ref: StageIOLog,
+                          llm_calls: List[Dict[str, Any]]) -> None:
+        """Save a point-in-time copy of the I/O log, skill bank, and LLM calls."""
+        snap_dir = snapshots_dir / label
+        snap_dir.mkdir(parents=True, exist_ok=True)
+        io_log_ref.save(snap_dir / "stage_io_log.json")
+        if agent_ref is not None:
+            agent_ref.bank.save(str(snap_dir / "skill_bank.jsonl"))
+        if llm_calls:
+            with open(snap_dir / "llm_calls.json", "w", encoding="utf-8") as f:
+                json.dump({
+                    "game": game_name, "model": model,
+                    "snapshot": label,
+                    "n_calls": len(llm_calls),
+                    "calls": llm_calls,
+                }, f, indent=2, ensure_ascii=False, default=str)
+        print(f"    [Snapshot] {label} → {snap_dir}")
+
+    def _bank_snapshot(agent_ref) -> List[Dict[str, Any]]:
+        """Lightweight snapshot of every skill in the bank (for I/O records)."""
+        snap: List[Dict[str, Any]] = []
+        for sid in sorted(agent_ref.skill_ids):
+            skill = agent_ref.bank.get_skill(sid)
+            if skill is None:
+                snap.append({"skill_id": sid, "missing": True})
+                continue
+            contract = skill.contract
+            proto = skill.protocol
+            snap.append({
+                "skill_id": sid,
+                "name": skill.name or sid,
+                "retired": bool(skill.retired),
+                "n_instances": contract.n_instances if contract else 0,
+                "version": contract.version if contract else 0,
+                "n_sub_episodes": len(skill.sub_episodes) if skill.sub_episodes else 0,
+                "has_protocol": bool(proto and proto.steps),
+                "n_protocol_steps": len(proto.steps) if proto and proto.steps else 0,
+                "tags": skill.tags[:3] if skill.tags else [],
+            })
+        return snap
 
     bank_path = str(output_dir / "skill_bank.jsonl")
 
@@ -1065,6 +1420,38 @@ def extract_skills_for_game(
     )
 
     agent = SkillBankAgent(config=config)
+    _agent_ref_for_snapshot.append(agent)
+
+    # ── Load existing skill bank if present (incremental update) ──
+    existing_bank_path = output_dir / "skill_bank.jsonl"
+    n_loaded = 0
+    if existing_bank_path.exists():
+        try:
+            agent.load()
+            n_loaded = len(agent.skill_ids)
+            n_unretired = 0
+            for sid in list(agent.skill_ids):
+                skill = agent.bank.get_skill(sid)
+                if skill is not None and skill.retired:
+                    skill.retired = False
+                    agent.bank.add_or_update_skill(skill)
+                    n_unretired += 1
+            if n_loaded > 0:
+                msg = f"    Loaded existing skill bank: {n_loaded} skill(s) from {existing_bank_path}"
+                if n_unretired > 0:
+                    msg += f" ({n_unretired} un-retired for re-evaluation)"
+                print(msg)
+        except Exception as exc:
+            print(f"    [WARN] Failed to load existing bank: {exc}")
+            n_loaded = 0
+
+    load_rec = io_log.new_record("load_existing_bank")
+    load_rec.start()
+    load_rec.record_input("bank_path", str(existing_bank_path))
+    load_rec.record_input("bank_exists", existing_bank_path.exists())
+    load_rec.record_output("n_skills_loaded", n_loaded)
+    load_rec.record_output("loaded_skill_ids", list(agent.skill_ids))
+    load_rec.finish()
 
     # ── Convert episodes ──
     episodes: List[Episode] = []
@@ -1086,9 +1473,26 @@ def extract_skills_for_game(
     # Side-effect: accumulates SegmentRecord on agent._all_segments
     # ══════════════════════════════════════════════════════════════
     all_sub_episodes: List[SubTask_Experience] = []
-    print(f"    [Stage 1+2] Segmenting {len(episodes)} episode(s) via SkillBankAgent.segment_episode ...")
+    skipped = 0
+    if resume_from_episode > 0:
+        print(f"    [Stage 1+2] Resuming from episode {resume_from_episode} "
+              f"({resume_from_episode} already done, "
+              f"{len(episodes) - resume_from_episode} remaining) ...")
+    else:
+        print(f"    [Stage 1+2] Segmenting {len(episodes)} episode(s) "
+              f"via SkillBankAgent.segment_episode ...")
 
     for i, ep in enumerate(episodes):
+        if i < resume_from_episode:
+            skipped += 1
+            rec = io_log.new_record(f"stage_1_2_episode_{i}")
+            rec.start()
+            rec.record_input("episode_index", i)
+            rec.record_input("skipped", True)
+            rec.record_output("resumed_from_checkpoint", True)
+            rec.finish()
+            continue
+
         rec = io_log.new_record(f"stage_1_2_episode_{i}")
         rec.start()
         rec.record_input("episode_index", i)
@@ -1121,6 +1525,112 @@ def extract_skills_for_game(
                 traceback.print_exc()
         rec.finish()
 
+        # Snapshot after each episode's segmentation
+        ep_llm = _flush_llm_calls()
+        game_llm_calls.extend(ep_llm)
+        _snapshot_episode(f"episode_{i}", agent, io_log, game_llm_calls)
+
+        # ── Per-episode bank management (stage 3 → stage 4) ─────────
+        _pe_dir = output_dir / "per_episode_bank_management" / f"episode_{i}"
+        _pe_dir.mkdir(parents=True, exist_ok=True)
+        _pe_rec: Dict[str, Any] = {
+            "episode_index": i,
+            "game": game_name,
+            "timestamp_start": datetime.now().isoformat(),
+            "stage_3_contract_learning": None,
+            "stage_4_bank_maintenance": None,
+            "skill_bank_snapshot_before": _bank_snapshot(agent),
+            "skill_bank_snapshot_after": None,
+        }
+
+        if agent._all_segments:
+            _s3_in = {
+                "n_all_segments": len(agent._all_segments),
+                "n_trajectories": len(agent._observations_by_traj),
+                "segment_skill_labels": list(set(
+                    s.skill_label for s in agent._all_segments)),
+                "bank_skill_ids_before": list(agent.skill_ids),
+            }
+            try:
+                _s3_sum = agent.run_contract_learning()
+                _pe_rec["stage_3_contract_learning"] = {
+                    "inputs": _s3_in,
+                    "outputs": {
+                        "stage3_summary": _safe_serialize(_s3_sum),
+                        "bank_skill_ids_after": list(agent.skill_ids),
+                        "n_skills_after": len(agent.skill_ids),
+                    },
+                    "error": None,
+                }
+                if verbose:
+                    print(f"      [Per-ep S3] Episode {i}: "
+                          f"{len(agent.skill_ids)} skill(s) after contract learning")
+            except Exception as exc:
+                _pe_rec["stage_3_contract_learning"] = {
+                    "inputs": _s3_in, "outputs": {},
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+                if verbose:
+                    print(f"      [Per-ep S3] Episode {i} failed: {exc}")
+
+        if agent._all_segments and len(agent.skill_ids) > 0:
+            _s4_in = {
+                "n_all_segments": len(agent._all_segments),
+                "n_skills_before": len(agent.skill_ids),
+                "skill_ids_before": list(agent.skill_ids),
+            }
+            try:
+                _maint = agent.run_bank_maintenance()
+                _sp = getattr(_maint, "split_results", []) or []
+                _mg = getattr(_maint, "merge_results", []) or []
+                _rf = getattr(_maint, "refine_results", []) or []
+                _pe_rec["stage_4_bank_maintenance"] = {
+                    "inputs": _s4_in,
+                    "outputs": {
+                        "n_splits": len(_sp),
+                        "n_merges": len(_mg),
+                        "n_refines": len(_rf),
+                        "alias_map": _safe_serialize(
+                            getattr(_maint, "alias_map", {})),
+                        "n_skills_after": len(agent.skill_ids),
+                        "skill_ids_after": list(agent.skill_ids),
+                        "split_details": [_safe_serialize(s) for s in _sp],
+                        "merge_details": [_safe_serialize(m) for m in _mg],
+                        "refine_details": [_safe_serialize(r) for r in _rf],
+                    },
+                    "error": None,
+                }
+                if verbose:
+                    print(f"      [Per-ep S4] Episode {i}: "
+                          f"{len(_sp)} splits, {len(_mg)} merges, "
+                          f"{len(_rf)} refines")
+            except Exception as exc:
+                _pe_rec["stage_4_bank_maintenance"] = {
+                    "inputs": _s4_in, "outputs": {},
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+                if verbose:
+                    print(f"      [Per-ep S4] Episode {i} failed: {exc}")
+        else:
+            _skip = ("no segments" if not agent._all_segments
+                     else "no skills in bank yet")
+            _pe_rec["stage_4_bank_maintenance"] = {
+                "skipped": True, "reason": _skip}
+            if verbose:
+                print(f"      [Per-ep S4] Episode {i}: skipped ({_skip})")
+
+        _pe_rec["skill_bank_snapshot_after"] = _bank_snapshot(agent)
+        _pe_rec["timestamp_end"] = datetime.now().isoformat()
+        with open(_pe_dir / "bank_management_io.json", "w",
+                  encoding="utf-8") as f:
+            json.dump(_pe_rec, f, indent=2, ensure_ascii=False, default=str)
+        agent.bank.save(str(_pe_dir / "skill_bank.jsonl"))
+        print(f"    [Per-ep bank mgmt] episode_{i} → {_pe_dir}")
+
+        # Checkpoint this episode so we can resume after it
+        if checkpoint is not None:
+            checkpoint.mark_episode_done(game_name, i, stage="stage_1_2")
+
     # ══════════════════════════════════════════════════════════════
     # STAGE 3: Contract learning / verify / refine
     # Function: SkillBankAgent.run_contract_learning()
@@ -1152,78 +1662,171 @@ def extract_skills_for_game(
             if verbose:
                 print(f"      [WARN] Stage 3 contract learning failed: {exc}")
         rec.finish()
+        if checkpoint is not None:
+            checkpoint.mark_stage(game_name, "stage_3")
 
     # ══════════════════════════════════════════════════════════════
-    # STAGE 4.5: Sub-episode quality check
-    # Function: SkillBankAgent.run_sub_episode_quality_check()
-    # Input:  bank skills (with sub_episodes attached)
-    # Output: list[dict] per-skill quality check results
-    # Side-effect: drops low-quality sub-episodes, retires depleted skills
+    # STAGE 4.5: Sub-episode quality check — per-skill iteration
+    # Runs quality filter on each skill individually with full I/O
+    # recording per skill (not a single bulk JSON).
     # ══════════════════════════════════════════════════════════════
     if len(agent.skill_ids) > 0:
-        rec = io_log.new_record("stage_4_5_quality_check")
-        rec.start()
-        rec.record_input("n_skills", len(agent.skill_ids))
-        rec.record_input("skill_ids", list(agent.skill_ids))
-        skill_sub_ep_counts = {}
-        for sid in agent.skill_ids:
-            sk = agent.bank.get_skill(sid)
-            if sk:
-                skill_sub_ep_counts[sid] = len(sk.sub_episodes) if sk.sub_episodes else 0
-        rec.record_input("sub_episode_counts_per_skill", skill_sub_ep_counts)
+        from skill_agents_grpo.quality.sub_episode_evaluator import (
+            run_quality_check as _run_qc_single,
+        )
 
-        try:
-            quality_results = agent.run_sub_episode_quality_check()
-            rec.record_output("n_results", len(quality_results))
-            rec.record_output("results", quality_results)
-            n_retired = sum(1 for r in quality_results if r.get("retired"))
-            n_dropped = sum(r.get("dropped", 0) for r in quality_results)
-            rec.record_output("total_retired", n_retired)
-            rec.record_output("total_sub_eps_dropped", n_dropped)
-            if verbose and quality_results:
-                print(f"      Stage 4.5: {len(quality_results)} skills checked, "
-                      f"{n_dropped} sub-eps dropped, {n_retired} retired")
-        except Exception as exc:
-            rec.record_error(exc)
-            if verbose:
-                print(f"      [WARN] Stage 4.5 quality check failed: {exc}")
-        rec.finish()
+        total_dropped = 0
+        total_retired = 0
+        n_checked = 0
+        print(f"    [Stage 4.5] Quality-checking {len(agent.skill_ids)} skill(s) one-by-one ...")
+
+        for sid in list(agent.skill_ids):
+            skill = agent.bank.get_skill(sid)
+            if skill is None or skill.retired:
+                rec = io_log.new_record(f"stage_4_5_quality_check/{sid}")
+                rec.start()
+                rec.record_input("skill_id", sid)
+                rec.record_input("skipped", True)
+                rec.record_input("reason", "skill is None" if skill is None else "retired")
+                rec.record_output("action", "skipped")
+                rec.finish()
+                continue
+
+            rec = io_log.new_record(f"stage_4_5_quality_check/{sid}")
+            rec.start()
+
+            sub_eps_before = skill.sub_episodes or []
+            rec.record_input("skill_id", sid)
+            rec.record_input("skill_name", skill.name)
+            rec.record_input("n_sub_episodes_before", len(sub_eps_before))
+            rec.record_input("sub_episodes_detail", [
+                {
+                    "seg_start": se.seg_start,
+                    "seg_end": se.seg_end,
+                    "outcome": se.outcome,
+                    "cumulative_reward": se.cumulative_reward,
+                    "quality_score_before": se.quality_score,
+                    "intention_tags": se.intention_tags[:5] if se.intention_tags else [],
+                    "summary": se.summary[:120] if se.summary else "",
+                }
+                for se in sub_eps_before
+            ])
+
+            try:
+                qc_result = _run_qc_single(skill)
+                agent.bank.add_or_update_skill(skill)
+
+                sub_eps_after = skill.sub_episodes or []
+                rec.record_output("before_count", qc_result["before_count"])
+                rec.record_output("dropped", qc_result["dropped"])
+                rec.record_output("after_count", qc_result["after_count"])
+                rec.record_output("needs_protocol_update", qc_result["needs_protocol_update"])
+                rec.record_output("retired", qc_result["retired"])
+                rec.record_output("sub_episodes_after", [
+                    {
+                        "seg_start": se.seg_start,
+                        "seg_end": se.seg_end,
+                        "outcome": se.outcome,
+                        "quality_score": se.quality_score,
+                    }
+                    for se in sub_eps_after
+                ])
+
+                total_dropped += qc_result["dropped"]
+                if qc_result["retired"]:
+                    total_retired += 1
+                n_checked += 1
+
+                if verbose:
+                    status = "RETIRED" if qc_result["retired"] else "ok"
+                    print(f"      {sid}: {qc_result['before_count']}→{qc_result['after_count']} "
+                          f"sub-eps (dropped {qc_result['dropped']}) [{status}]")
+            except Exception as exc:
+                rec.record_error(exc)
+                if verbose:
+                    print(f"      [WARN] Quality check for {sid} failed: {exc}")
+            rec.finish()
+
+        if n_checked > 0:
+            print(f"    Stage 4.5 complete: {n_checked} skills checked, "
+                  f"{total_dropped} sub-eps dropped, {total_retired} retired")
+        if checkpoint is not None:
+            checkpoint.mark_stage(game_name, "stage_4_5")
 
     # ══════════════════════════════════════════════════════════════
-    # STAGE 4: Bank maintenance: split / merge / refine
-    # Function: SkillBankAgent.run_bank_maintenance()
-    # Input:  bank, all_segments, config, embeddings, stage2_diagnostics
-    # Output: BankMaintenanceResult (splits, merges, refines, alias_map)
-    # Side-effect: modifies bank in-place
+    # STAGE 4: Bank maintenance — per-operation I/O recording
+    # Runs split / merge / refine via the pipeline, then records
+    # a separate I/O entry for each individual operation.
     # ══════════════════════════════════════════════════════════════
     if agent._all_segments and len(agent.skill_ids) > 0:
-        rec = io_log.new_record("stage_4_bank_maintenance")
-        rec.start()
-        rec.record_input("n_all_segments", len(agent._all_segments))
-        rec.record_input("n_skills_before", len(agent.skill_ids))
-        rec.record_input("skill_ids_before", list(agent.skill_ids))
+        overview_rec = io_log.new_record("stage_4_bank_maintenance")
+        overview_rec.start()
+        overview_rec.record_input("n_all_segments", len(agent._all_segments))
+        overview_rec.record_input("n_skills_before", len(agent.skill_ids))
+        overview_rec.record_input("skill_ids_before", list(agent.skill_ids))
 
         try:
             maint_result = agent.run_bank_maintenance()
-            n_s = len(maint_result.split_results) if hasattr(maint_result, "split_results") else 0
-            n_m = len(maint_result.merge_results) if hasattr(maint_result, "merge_results") else 0
-            n_r = len(maint_result.refine_results) if hasattr(maint_result, "refine_results") else 0
+            split_results = maint_result.split_results if hasattr(maint_result, "split_results") else []
+            merge_results = maint_result.merge_results if hasattr(maint_result, "merge_results") else []
+            refine_results = maint_result.refine_results if hasattr(maint_result, "refine_results") else []
 
-            rec.record_output("n_splits", n_s)
-            rec.record_output("n_merges", n_m)
-            rec.record_output("n_refines", n_r)
-            rec.record_output("alias_map", getattr(maint_result, "alias_map", {}))
-            rec.record_output("n_skills_after", len(agent.skill_ids))
-            rec.record_output("skill_ids_after", list(agent.skill_ids))
-            rec.record_output("full_result", maint_result)
+            overview_rec.record_output("n_splits", len(split_results))
+            overview_rec.record_output("n_merges", len(merge_results))
+            overview_rec.record_output("n_refines", len(refine_results))
+            overview_rec.record_output("alias_map", getattr(maint_result, "alias_map", {}))
+            overview_rec.record_output("n_skills_after", len(agent.skill_ids))
+            overview_rec.record_output("skill_ids_after", list(agent.skill_ids))
+            overview_rec.finish()
+
+            for sr in split_results:
+                split_rec = io_log.new_record(f"stage_4_split/{sr.parent_id}")
+                split_rec.start()
+                split_rec.record_input("parent_id", sr.parent_id)
+                split_rec.record_output("accepted", sr.accepted)
+                split_rec.record_output("reason", sr.reason)
+                split_rec.record_output("children", [
+                    {
+                        "skill_id": c.skill_id,
+                        "parent_id": c.parent_id,
+                        "n_instance_seg_ids": len(c.instance_seg_ids),
+                        "pass_rate": c.report.overall_pass_rate if c.report else None,
+                    }
+                    for c in sr.children
+                ] if sr.children else [])
+                split_rec.finish()
+
+            for mr in merge_results:
+                merge_rec = io_log.new_record(f"stage_4_merge/{mr.canonical_id}")
+                merge_rec.start()
+                merge_rec.record_input("canonical_id", mr.canonical_id)
+                merge_rec.record_input("merged_ids", mr.merged_ids)
+                merge_rec.record_output("accepted", mr.accepted)
+                merge_rec.record_output("reason", mr.reason)
+                merge_rec.record_output("alias_map", mr.alias_map)
+                merge_rec.record_output("pass_rate", mr.report.overall_pass_rate if mr.report else None)
+                merge_rec.finish()
+
+            for rr in refine_results:
+                refine_rec = io_log.new_record(f"stage_4_refine/{rr.skill_id}")
+                refine_rec.start()
+                refine_rec.record_input("skill_id", rr.skill_id)
+                refine_rec.record_output("reason", rr.reason)
+                refine_rec.record_output("dropped_literals", rr.dropped_literals)
+                refine_rec.record_output("added_literals", rr.added_literals)
+                refine_rec.record_output("has_new_contract", rr.new_contract is not None)
+                refine_rec.finish()
 
             if verbose:
-                print(f"      Stage 4 bank maintenance: {n_s} splits, {n_m} merges, {n_r} refines")
+                print(f"      Stage 4 bank maintenance: {len(split_results)} splits, "
+                      f"{len(merge_results)} merges, {len(refine_results)} refines")
         except Exception as exc:
-            rec.record_error(exc)
+            overview_rec.record_error(exc)
+            overview_rec.finish()
             if verbose:
                 print(f"      [WARN] Stage 4 bank maintenance failed: {exc}")
-        rec.finish()
+        if checkpoint is not None:
+            checkpoint.mark_stage(game_name, "stage_4")
 
     # ══════════════════════════════════════════════════════════════
     # PROTO-SKILL FORMATION
@@ -1410,36 +2013,88 @@ def extract_skills_for_game(
         rec.finish()
 
     pipeline_skills = len(agent.skill_ids)
+    new_pipeline_skills = pipeline_skills - n_loaded
     if pipeline_skills > 0:
-        if verbose:
-            print(f"    SkillBankAgent (GRPO) extracted {pipeline_skills} skill(s)")
+        print(f"    SkillBankAgent (GRPO) has {pipeline_skills} skill(s) "
+              f"({n_loaded} loaded, {new_pipeline_skills} new from pipeline)")
     else:
-        print(f"    SkillBankAgent (GRPO) produced 0 skills — falling back to intention-based segmentation")
+        print(f"    SkillBankAgent (GRPO) produced 0 new skills — "
+              f"running intention-based segmentation for discovery")
 
     # ── Fallback: intention-based segmentation ──
-    use_intention_fallback = pipeline_skills == 0
+    # Run if the pipeline didn't produce new differentiated skills.
+    # Proto skills (from cold-start) are undifferentiated blobs — the
+    # intention-based fallback creates proper per-tag skills from the
+    # labeled episode data.
+    all_new_are_protos = (
+        n_loaded == 0
+        and len(agent.skill_ids) > 0
+        and all(sid.startswith("proto_") for sid in agent.skill_ids)
+    )
+    use_intention_fallback = new_pipeline_skills == 0 or all_new_are_protos
     skill_catalog: Dict[str, Dict[str, Any]] = {}
 
+    # Build catalog entries for existing (loaded) skills first
+    for sid in list(agent.skill_ids):
+        skill = agent.bank.get_skill(sid)
+        if skill is None or skill.retired:
+            continue
+        contract = skill.contract
+        if contract is None:
+            continue
+        skill_catalog[sid] = {
+            "skill_id": sid,
+            "name": skill.name or sid,
+            "summary": skill.strategic_description or "",
+            "description": skill.strategic_description or "",
+            "tag": skill.tags[0] if skill.tags else "",
+            "eff_add": sorted(contract.eff_add) if contract.eff_add else [],
+            "eff_del": sorted(contract.eff_del) if contract.eff_del else [],
+            "eff_event": sorted(contract.eff_event) if contract.eff_event else [],
+            "n_instances": contract.n_instances,
+            "version": contract.version,
+        }
+
     if use_intention_fallback:
+        # Retire undifferentiated proto skills — the fallback will replace
+        # them with properly differentiated intention-based skills.
+        if all_new_are_protos:
+            for sid in list(agent.skill_ids):
+                if sid.startswith("proto_"):
+                    skill = agent.bank.get_skill(sid)
+                    if skill is not None:
+                        skill.retired = True
+                        agent.bank.add_or_update_skill(skill)
+                    if verbose:
+                        print(f"      Retired undifferentiated proto skill {sid}")
+
         fb_rec = io_log.new_record("fallback_intention_segmentation")
         fb_rec.start()
         fb_rec.record_input("n_episodes_data", len(episodes_data))
         fb_rec.record_input("game_name", game_name)
         fb_rec.record_input("model", model)
+        fb_rec.record_input("existing_skill_ids", list(agent.skill_ids))
+        fb_rec.record_input("retired_protos", all_new_are_protos)
 
-        _tag_segments, skill_catalog, fallback_sub_episodes = intention_based_segmentation(
+        _flush_llm_calls()
+        _tag_segments, fb_catalog, fallback_sub_episodes = intention_based_segmentation(
             episodes_data, game_name, episodes=episodes,
             model=model, verbose=verbose,
         )
         all_sub_episodes = fallback_sub_episodes
 
-        fb_rec.record_output("n_tag_segments", len(_tag_segments))
-        fb_rec.record_output("n_skills_in_catalog", len(skill_catalog))
-        fb_rec.record_output("n_sub_episodes", len(fallback_sub_episodes))
-        fb_rec.record_output("skill_ids", list(skill_catalog.keys()))
-        fb_rec.finish()
+        fb_llm_calls = _flush_llm_calls()
+        game_llm_calls.extend(fb_llm_calls)
 
-        for sid, entry in skill_catalog.items():
+        n_new_from_fallback = 0
+        for sid, entry in fb_catalog.items():
+            existing = agent.bank.get_skill(sid)
+            if existing is not None and not existing.retired:
+                existing.n_instances = max(existing.n_instances, entry.get("n_instances", 0))
+                agent.bank.add_or_update_skill(existing)
+                skill_catalog[sid] = entry
+                continue
+
             contract = SkillEffectsContract(
                 skill_id=sid,
                 name=entry["name"],
@@ -1452,16 +2107,83 @@ def extract_skills_for_game(
             agent.bank.add_or_update(contract)
             skill = agent.bank.get_skill(sid)
             if skill is not None:
+                skill.name = entry["name"]
+                skill.strategic_description = entry.get("description", "")
                 tag = entry.get("tag", "")
                 if tag:
                     skill.tags = [tag]
                     skill.expected_tag_pattern = [tag]
                 agent.bank.add_or_update_skill(skill)
+            skill_catalog[sid] = entry
+            n_new_from_fallback += 1
+
+        fb_rec.record_output("n_tag_segments", len(_tag_segments))
+        fb_rec.record_output("n_skills_in_catalog", len(fb_catalog))
+        fb_rec.record_output("n_new_skills_added", n_new_from_fallback)
+        fb_rec.record_output("n_existing_skills_updated", len(fb_catalog) - n_new_from_fallback)
+        fb_rec.record_output("n_sub_episodes", len(fallback_sub_episodes))
+        fb_rec.record_output("skill_ids", list(fb_catalog.keys()))
+        fb_rec.record_output("n_llm_calls", len(fb_llm_calls))
+        fb_rec.record_output("llm_call_summary", [
+            {"caller": c["caller"], "elapsed_s": c["elapsed_s"],
+             "response_chars": c["response_chars"]}
+            for c in fb_llm_calls
+        ])
+        fb_rec.finish()
+
+        # Run Stage 4.5 quality check on newly added fallback skills
+        if n_new_from_fallback > 0 and all_sub_episodes:
+            from skill_agents_grpo.quality.sub_episode_evaluator import (
+                run_quality_check as _run_qc_single,
+            )
+            print(f"    [Stage 4.5 post-fallback] Quality-checking {len(agent.skill_ids)} skill(s) ...")
+            for sid in list(agent.skill_ids):
+                skill = agent.bank.get_skill(sid)
+                if skill is None or skill.retired:
+                    rec = io_log.new_record(f"stage_4_5_quality_check/{sid}")
+                    rec.start()
+                    rec.record_input("skill_id", sid)
+                    rec.record_input("skipped", True)
+                    rec.record_input("reason", "skill is None" if skill is None else "retired")
+                    rec.record_output("action", "skipped")
+                    rec.finish()
+                    continue
+                rec = io_log.new_record(f"stage_4_5_quality_check/{sid}")
+                rec.start()
+                sub_eps_before = skill.sub_episodes or []
+                rec.record_input("skill_id", sid)
+                rec.record_input("skill_name", skill.name)
+                rec.record_input("n_sub_episodes_before", len(sub_eps_before))
+                rec.record_input("sub_episodes_detail", [
+                    {
+                        "seg_start": se.seg_start, "seg_end": se.seg_end,
+                        "outcome": se.outcome, "cumulative_reward": se.cumulative_reward,
+                        "quality_score_before": se.quality_score,
+                    }
+                    for se in sub_eps_before
+                ])
+                try:
+                    qc_result = _run_qc_single(skill)
+                    agent.bank.add_or_update_skill(skill)
+                    rec.record_output("before_count", qc_result["before_count"])
+                    rec.record_output("dropped", qc_result["dropped"])
+                    rec.record_output("after_count", qc_result["after_count"])
+                    rec.record_output("needs_protocol_update", qc_result["needs_protocol_update"])
+                    rec.record_output("retired", qc_result["retired"])
+                    if verbose:
+                        status = "RETIRED" if qc_result["retired"] else "ok"
+                        print(f"      {sid}: {qc_result['before_count']}→{qc_result['after_count']} "
+                              f"sub-eps (dropped {qc_result['dropped']}) [{status}]")
+                except Exception as exc:
+                    rec.record_error(exc)
+                rec.finish()
+
     else:
         cat_rec = io_log.new_record("build_skill_catalog_from_pipeline")
         cat_rec.start()
         cat_rec.record_input("n_pipeline_skills", pipeline_skills)
         cat_rec.record_input("skill_ids", list(agent.skill_ids))
+        _flush_llm_calls()
 
         for sid in agent.skill_ids:
             contract = agent.get_contract(sid)
@@ -1496,6 +2218,14 @@ def extract_skills_for_game(
             contract.description = description
             agent.bank.add_or_update(contract)
 
+            skill = agent.bank.get_skill(sid)
+            if skill is not None:
+                if not skill.name or skill.name == sid:
+                    skill.name = name
+                if not skill.strategic_description:
+                    skill.strategic_description = description
+                agent.bank.add_or_update_skill(skill)
+
             skill_catalog[sid] = {
                 "skill_id": sid,
                 "name": name,
@@ -1512,9 +2242,20 @@ def extract_skills_for_game(
                 print(f"      Skill {sid}: {name}")
                 print(f"        summary: {rag_summary[:80]}...")
 
+        cat_llm_calls = _flush_llm_calls()
+        game_llm_calls.extend(cat_llm_calls)
         cat_rec.record_output("n_catalog_entries", len(skill_catalog))
         cat_rec.record_output("catalog_skill_ids", list(skill_catalog.keys()))
+        cat_rec.record_output("n_llm_calls", len(cat_llm_calls))
+        cat_rec.record_output("llm_call_summary", [
+            {"caller": c["caller"], "elapsed_s": c["elapsed_s"],
+             "response_chars": c["response_chars"]}
+            for c in cat_llm_calls
+        ])
         cat_rec.finish()
+
+    if checkpoint is not None:
+        checkpoint.mark_stage(game_name, "catalog_built")
 
     # ── Optional re-segmentation pass against seeded bank ──
     if resegment and len(agent.skill_ids) > 0 and episodes:
@@ -1608,22 +2349,35 @@ def extract_skills_for_game(
         proto_gen_rec.record_input("n_skills", len(agent.skill_ids))
 
         print(f"    [GPT-5.4] Generating protocols for skills with empty protocols ...")
+        _flush_llm_calls()
         try:
             n_protos = populate_skill_protocols(
                 agent, skill_catalog, episodes_data, game_name,
                 model=model, verbose=verbose,
             )
+            proto_llm_calls = _flush_llm_calls()
+            game_llm_calls.extend(proto_llm_calls)
             proto_gen_rec.record_output("n_protocols_generated", n_protos)
+            proto_gen_rec.record_output("n_llm_calls", len(proto_llm_calls))
+            proto_gen_rec.record_output("llm_call_summary", [
+                {"caller": c["caller"], "elapsed_s": c["elapsed_s"],
+                 "response_chars": c["response_chars"]}
+                for c in proto_llm_calls
+            ])
             if n_protos > 0:
                 print(f"    Generated {n_protos} protocol(s) via GPT-5.4")
             else:
                 print(f"    All skills already have protocols")
         except Exception as exc:
+            proto_llm_calls = _flush_llm_calls()
+            game_llm_calls.extend(proto_llm_calls)
             proto_gen_rec.record_error(exc)
             print(f"    [WARN] Protocol generation failed: {exc}")
             if verbose:
                 traceback.print_exc()
         proto_gen_rec.finish()
+        if checkpoint is not None:
+            checkpoint.mark_stage(game_name, "protocols_done")
 
     # ── Link sub-episodes to skills in the bank ──
     if all_sub_episodes and len(agent.skill_ids) > 0:
@@ -1643,6 +2397,9 @@ def extract_skills_for_game(
             if verbose:
                 traceback.print_exc()
         link_rec.finish()
+
+    # ── Final snapshot (all pipeline stages complete) ──
+    _snapshot_episode("final", agent, io_log, game_llm_calls)
 
     # ── Persist skill bank ──
     try:
@@ -1672,6 +2429,30 @@ def extract_skills_for_game(
     io_log_path = output_dir / "stage_io_log.json"
     io_log.save(io_log_path)
     print(f"    Stage I/O log → {io_log_path}")
+
+    # ── Flush any remaining LLM calls and save full LLM call log ──
+    remaining = _flush_llm_calls()
+    game_llm_calls.extend(remaining)
+
+    if game_llm_calls:
+        llm_log_path = output_dir / "llm_calls_log.json"
+        try:
+            llm_log_data = {
+                "game": game_name,
+                "model": model,
+                "pipeline": "skill_agents_grpo",
+                "timestamp": datetime.now().isoformat(),
+                "n_calls": len(game_llm_calls),
+                "total_prompt_chars": sum(c.get("prompt_chars", 0) for c in game_llm_calls),
+                "total_response_chars": sum(c.get("response_chars", 0) for c in game_llm_calls),
+                "total_elapsed_s": round(sum(c.get("elapsed_s", 0) for c in game_llm_calls), 3),
+                "calls": game_llm_calls,
+            }
+            with open(llm_log_path, "w", encoding="utf-8") as f:
+                json.dump(llm_log_data, f, indent=2, ensure_ascii=False, default=str)
+            print(f"    LLM call log  → {llm_log_path} ({len(game_llm_calls)} calls)")
+        except Exception as exc:
+            print(f"    [WARN] Failed to save LLM call log: {exc}")
 
     return agent, skill_catalog, all_sub_episodes, io_log
 
@@ -1881,7 +2662,8 @@ def aggregate_cross_game_archetypes(
             f"n_skills={len(instances)} | n_games={len(games_involved)}"
         )
 
-        result = _ask_gpt54(prompt, model=model, max_tokens=200, temperature=0.3)
+        result = _ask_gpt54(prompt, model=model, max_tokens=200, temperature=0.3,
+                            _caller=f"aggregate_archetype:{archetype_id}")
         if result:
             for line in result.split("\n"):
                 line = line.strip()
@@ -2028,8 +2810,38 @@ def main():
         help="Preview what would be processed without running extraction",
     )
     parser.add_argument(
+        "--resume", action="store_true",
+        help="Resume from last checkpoint (skip completed games/episodes)",
+    )
+    parser.add_argument(
         "--verbose", "-v", action="store_true",
         help="Print per-step details",
+    )
+
+    # ── GRPO / local-model options ──
+    parser.add_argument(
+        "--use_grpo", action="store_true",
+        help="Enable GRPO training loop: sample G ranking sets per segment, "
+             "select best-of-G, and train LoRA adapters after each game",
+    )
+    parser.add_argument(
+        "--local_model", type=str, default=None,
+        help="HuggingFace model id or local path for the base LLM "
+             "(e.g. Qwen/Qwen3-14B). When set, uses this model instead of "
+             "the API for all LLM teacher calls",
+    )
+    parser.add_argument(
+        "--adapter_dir", type=str, default=None,
+        help="Directory containing LoRA adapters to load (and save after "
+             "GRPO training). Defaults to <output_dir>/lora_adapters",
+    )
+    parser.add_argument(
+        "--grpo_group_size", type=int, default=4,
+        help="GRPO group size G (number of samples per call, default: 4)",
+    )
+    parser.add_argument(
+        "--grpo_train_every", type=int, default=0,
+        help="Run GRPO train_step every N episodes (0 = once per game, default: 0)",
     )
 
     args = parser.parse_args()
@@ -2046,14 +2858,32 @@ def main():
     if args.one_per_game:
         args.max_episodes = 1
 
-    has_key = bool(
-        os.environ.get("OPENROUTER_API_KEY")
-        or os.environ.get("OPENAI_API_KEY")
-        or (open_router_api_key and str(open_router_api_key).strip())
-    )
-    if not has_key:
-        print("[WARNING] No API key detected. LLM calls will fail.")
-        print("  Set OPENROUTER_API_KEY or OPENAI_API_KEY.")
+    # ── Local model / GRPO setup ─────────────────────────────────────
+    _local_llm = None
+    _grpo_orch = None
+    _adapter_dir = args.adapter_dir
+
+    if args.local_model:
+        if _adapter_dir is None:
+            _adapter_dir = str(output_dir / "lora_adapters")
+        _local_llm = setup_local_model(args.local_model, adapter_dir=_adapter_dir)
+        if args.use_grpo:
+            _grpo_orch = setup_grpo_orchestrator(
+                _local_llm, group_size=args.grpo_group_size,
+            )
+    elif args.use_grpo:
+        print("[ERROR] --use_grpo requires --local_model (e.g. Qwen/Qwen3-14B)")
+        sys.exit(1)
+
+    if not args.local_model:
+        has_key = bool(
+            os.environ.get("OPENROUTER_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+            or (open_router_api_key and str(open_router_api_key).strip())
+        )
+        if not has_key:
+            print("[WARNING] No API key detected. LLM calls will fail.")
+            print("  Set OPENROUTER_API_KEY or OPENAI_API_KEY.")
 
     game_files = find_episode_files(input_dir, games=args.games)
 
@@ -2064,10 +2894,13 @@ def main():
     total_episodes = sum(len(v) for v in game_files.values())
 
     print("=" * 78)
-    print("  GPT-5.4 Skill Bank Extraction (skill_agents_grpo pipeline)")
+    print("  Skill Bank Extraction (skill_agents_grpo pipeline)")
     print("=" * 78)
     print(f"  Pipeline:      skill_agents_grpo")
-    print(f"  Model:         {args.model}")
+    print(f"  LLM teacher:   {args.local_model or args.model}")
+    print(f"  GRPO:          {'ON (G=' + str(args.grpo_group_size) + ')' if args.use_grpo else 'off'}")
+    if _adapter_dir and args.use_grpo:
+        print(f"  Adapter dir:   {_adapter_dir}")
     print(f"  Input:         {input_dir}")
     print(f"  Output:        {output_dir}")
     print(f"  Games:         {', '.join(sorted(game_files.keys()))}")
@@ -2078,6 +2911,7 @@ def main():
     print(f"  Archetypes:    {'SKIP' if args.skip_archetypes else 'yes'}")
     print(f"  Save annotated:{args.save_annotated}")
     print(f"  Dry run:       {args.dry_run}")
+    print(f"  Resume:        {args.resume}")
     print(f"  I/O recording: enabled (stage_io_log.json per game)")
     print("=" * 78)
 
@@ -2098,6 +2932,10 @@ def main():
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    checkpoint = ExtractionCheckpoint(output_dir)
+    if not args.resume:
+        checkpoint.reset()
+
     overall_t0 = time.time()
     all_stats: List[Dict[str, Any]] = []
     all_catalogs: Dict[str, Dict[str, Dict[str, Any]]] = {}
@@ -2105,6 +2943,34 @@ def main():
 
     for game, gfiles in sorted(game_files.items()):
         episode_files = gfiles[:args.max_episodes] if args.max_episodes else gfiles
+
+        # ── Resume: skip fully completed games ──
+        if args.resume and checkpoint.is_game_complete(game):
+            print(f"\n  [RESUME] Skipping {game} (already complete)")
+            # Reload its catalog so archetype aggregation still works
+            cat_path = output_dir / game / "skill_catalog.json"
+            if cat_path.exists():
+                try:
+                    cat_data = json.loads(cat_path.read_text(encoding="utf-8"))
+                    all_catalogs[game] = {
+                        s["skill_id"]: s for s in cat_data.get("skills", [])
+                    }
+                except Exception:
+                    pass
+            summary_path = output_dir / game / "extraction_summary.json"
+            if summary_path.exists():
+                try:
+                    all_stats.append(json.loads(summary_path.read_text(encoding="utf-8")))
+                except Exception:
+                    pass
+            continue
+
+        resume_from_episode = 0
+        if args.resume:
+            resume_from_episode = checkpoint.completed_episode_count(game)
+            if resume_from_episode > 0:
+                print(f"\n  [RESUME] {game}: resuming from episode {resume_from_episode}")
+
         print(f"\n{'━' * 78}")
         print(f"  GAME: {game} ({len(episode_files)} episodes) [skill_agents_grpo]")
         print(f"{'━' * 78}")
@@ -2144,6 +3010,8 @@ def main():
                 model=args.model,
                 verbose=args.verbose,
                 resegment=args.resegment,
+                checkpoint=checkpoint,
+                resume_from_episode=resume_from_episode,
             )
             annotate_episodes_with_skills(
                 game_episodes_data, agent, skill_catalog,
@@ -2221,6 +3089,7 @@ def main():
                 }, f, indent=2, ensure_ascii=False)
             print(f"    Skill catalog → {catalog_path}")
 
+        checkpoint.mark_game_complete(game)
         print(f"    Done in {game_elapsed:.1f}s")
 
     # ── Cross-game archetype aggregation ──
