@@ -1,300 +1,309 @@
 # Training Infrastructure
 
-**Preferred: VERL (verl-agent).** For distributed GiGPO/PPO training with vLLM/sglang and FSDP, use [VERL](https://github.com/verl-project/verl) via [verl-agent](https://github.com/verl-project/verl-agent):
+## Quick Start — Co-Evolution Training
+
+The primary training path is the **async co-evolution loop** in `trainer/coevolution/`. It runs two agents in alternating phases with cross-system overlap, GRPO training on 5 LoRA adapters, and full W&B logging.
 
 ```bash
-# From Game-AI-Agent repo root; requires verl-agent at ../verl-agent
+# 1. Start vLLM server (GPUs 0-3, 5 LoRA adapters)
+CUDA_VISIBLE_DEVICES=0,1,2,3 bash scripts/launch_vllm_coevolution.sh
+
+# 2. Run co-evolution (GRPO on GPUs 4-7)
+export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
+python scripts/run_coevolution.py \
+    --total-steps 100 \
+    --episodes-per-game 8 \
+    --checkpoint-interval 5 \
+    --wandb-project game-ai-coevolution
+
+# Quick test (3 games, no GRPO, no W&B)
+python scripts/run_coevolution.py \
+    --games tetris twenty_forty_eight sokoban \
+    --total-steps 3 --no-grpo --no-wandb
+
+# Resume from checkpoint
+python scripts/run_coevolution.py --resume
+```
+
+### VERL integration
+
+For distributed GiGPO/PPO training with FSDP, use [VERL](https://github.com/verl-project/verl) via [verl-agent](https://github.com/verl-project/verl-agent):
+
+```bash
 python -m scripts.run_trainer --verl
 python -m scripts.run_trainer --verl algorithm.adv_estimator=gigpo trainer.nnodes=2
 ```
 
-Or run the trainer module (no `--config` → delegates to VERL):
-
-```bash
-python -m trainer.decision.launch_train env.env_name=gameai ...
-```
-
-Standalone (in-repo) training remains available for debugging or when VERL is not installed: `python -m scripts.run_trainer --config trainer/common/configs/decision_grpo.yaml`.
-
 ---
 
-Co-evolution training for two agents:
-
-- **Agent A (VLM Decision Agent):** Trained with **GRPO** (Group Relative Policy Optimization), where `QUERY_MEM` / `QUERY_SKILL` / `CALL_SKILL` are treated as actions with query/call costs + optional skill-follow shaping.
-- **Agent B (SkillBank Agent):** Trained/updated via **Hard-EM** (decode → update → gate) as an algorithmic pipeline, with optional small supervised learners (boundary classifier, top-2 tie-breaker). No global LLM scoring.
-
----
-
-## 0) Repo Layout
+## Repo Layout
 
 ```
 trainer/
   README.md
-  common/
+  coevolution/                       ← PRIMARY: async co-evolution loop
+    __init__.py
+    config.py                        # CoEvolutionConfig: games, GPUs, checkpointing, W&B
+    vllm_client.py                   # AsyncVLLMClient: async wrapper for vLLM multi-LoRA API
+    episode_runner.py                # run_episode_async(): async port of run_episode()
+    rollout_collector.py             # collect_rollouts(): LPT scheduling + semaphore
+    skillbank_pipeline.py            # AsyncSkillBankPipeline: async Stage 1-4 wrapper
+    grpo_training.py                 # DecisionGRPOTrainer + SkillBankGRPOTrainer
+    checkpoint.py                    # save/load/find checkpoints (bank + 5 adapters)
+    orchestrator.py                  # co_evolution_loop(): Phase A+B+C main loop
+
+  common/                            ← DEPRECATED (used by legacy modules below)
     configs/
-      decision_grpo.yaml       # GRPO hyperparams, costs, shaping weights
-      skillbank_em.yaml        # EM hyperparams, gating thresholds
-    logging.py                 # Structured logging for both trainers
-    eval_harness.py            # Fixed-seed evaluation harness (shared)
-    seeds.py                   # Deterministic seed management
-    metrics.py                 # RolloutRecord schema, metric aggregation
-  decision/
-    env_wrapper.py             # EnvWrapper: retrieval-as-action, tool call trace recording
-    policy_interface.py        # PolicyInterface: logprob extraction for GRPO
-    reward_shaping.py          # Reward shaping with tool-call reward integration
-    rollout_collector.py       # Parallel rollout collection
-    grpo_trainer.py            # GRPO training loop + GameAITrainer (VERL)
-    replay_buffer.py           # Episode replay buffer
-    launch_train.py            # CLI entry point for decision agent training
-    coevolution_callback.py    # SkillBank co-evolution callback (VERL)
-  skillbank/
-    ingest_rollouts.py         # Convert decision agent rollouts → trajectory objects
-    em_trainer.py              # Hard-EM loop driver with segmentation store support
-    stages/
-      stage0_predicates.py     # Extract/booleanize predicates from observations
-      stage1_propose_cuts.py   # Propose boundary candidates
-      stage2_decode.py         # Viterbi/DP decode: assign skill labels to segments
-      stage3_contracts.py      # Learn/verify effects-only contracts
-      stage4_update.py         # Refine, materialize NEW, merge/split
-      skilleval.py             # SkillEval gating: pass rate, support, discriminability
-    learners/
-      boundary_train.py        # Optional: boundary classifier (supervised)
-      tiebreaker_train.py      # Optional: top-2 tie-breaker (supervised)
-    bank_io/
-      bank_store.py            # Versioned bank storage with commit/rollback
-      indices.py               # Skill retrieval indices (keyword, embedding)
-      diff_logger.py           # Bank diff reports between versions
-  launch_coevolution.py        # Top-level co-evolution orchestrator
+      decision_grpo.yaml             # GRPO hyperparams, costs, shaping weights
+      skillbank_em.yaml              # EM hyperparams, gating thresholds
+    logging.py                       # TrainLogger (W&B wrapper)
+    eval_harness.py                  # Fixed-seed evaluation harness
+    seeds.py                         # Deterministic seed management
+    metrics.py                       # RolloutRecord schema, metric aggregation
+
+  decision/                          ← DEPRECATED (replaced by coevolution/)
+    env_wrapper.py                   # EnvWrapper: retrieval-as-action
+    policy_interface.py              # PolicyInterface: logprob extraction
+    reward_shaping.py                # Reward shaping with tool-call reward
+    rollout_collector.py             # Synchronous rollout collection
+    grpo_trainer.py                  # GRPO training loop + GameAITrainer (VERL)
+    replay_buffer.py                 # Episode replay buffer
+    launch_train.py                  # CLI entry point (standalone / VERL)
+    coevolution_callback.py          # SkillBank co-evolution callback (VERL)
+
+  skillbank/                         ← DEPRECATED (replaced by coevolution/)
+    ingest_rollouts.py               # Convert rollouts → trajectory objects
+    em_trainer.py                    # Hard-EM loop driver
+    stages/                          # Stage 0-4 pipeline
+    learners/                        # Optional supervised learners
+    bank_io/                         # VersionedBankStore, indices, diff logger
+    lora/                            # LoRA SFT training scripts (still used by tests)
+
+  launch_coevolution.py              ← DEPRECATED (replaced by coevolution/orchestrator.py)
 ```
 
----
+### Deprecation notes
 
-## 1) Shared Interfaces
+The `common/`, `decision/`, `skillbank/`, and `launch_coevolution.py` modules are the **legacy synchronous training path**. They are kept for backward compatibility because:
 
-### 1.1 Rollout Record Format (single source of truth)
+- `cold_start/load_rollouts.py` imports `trainer.common.metrics.RolloutRecord`
+- `tests/test_lora_dispatch.py` imports `trainer.skillbank.lora.data_builder`
+- `scripts/skillbank_agent_train.sh` imports from `trainer.skillbank.lora`
+- `install_game_ai_agent_env.sh` verification checks reference them
 
-Defined in `trainer/common/metrics.py` — `RolloutRecord` dataclass used by both trainers:
-
-| Field | Type | Description |
-|---|---|---|
-| `step` | int | Timestep index |
-| `obs_id` / `frame_ptr` | str | Observation identifier |
-| `action` | str | Action taken (primitive or retrieval) |
-| `action_type` | str | `"primitive"`, `"QUERY_MEM"`, `"QUERY_SKILL"`, `"CALL_SKILL"` |
-| `ui_events` | list[str] | UI events observed |
-| `predicates` | dict[str, float] | Predicate probabilities |
-| `embedding` | list[float] (opt.) | Observation embedding |
-| `r_env` | float | Environment reward |
-| `r_follow` | float | Skill-following shaping reward |
-| `r_cost` | float | Action cost |
-| `r_total` | float | Combined reward |
-| `done` | bool | Episode termination |
-| `episode_id` | str | Episode identifier |
-| `traj_id` | str | Trajectory identifier |
-| `seed` | int | Environment seed |
-| `active_skill_id` | str \| None | Active skill before/after |
-| `query_key` | str \| None | Key used in QUERY_MEM/QUERY_SKILL |
-
-### 1.2 Reward Tool Contract
-
-Defined in `trainer/decision/reward_shaping.py` — `compute_reward(prev, action, next, bank_state)` returns:
-
-- `r_env` — raw environment reward
-- `r_follow` — termination-free skill-following shaping
-- `r_cost` — query/call/switch costs
-- `r_tool` — tool-call reward from `skill_agents.tool_call_reward` (relevance + utility)
-- `r_total` — combined reward: `r_base + tool_call_reward_weight × r_tool`
-
-Wraps `decision_agents.reward_func.RewardComputer` with bank-state-aware shaping and integrates `skill_agents.tool_call_reward.compute_tool_call_reward` for agentic RL on tool calls (QUERY_SKILL, QUERY_MEM, CALL_SKILL).
-
-### 1.3 SkillBank Query Contract
-
-Defined in `trainer/skillbank/bank_io/bank_store.py`:
-
-- `query_skill(key) -> topK SkillCards`
-- `query_memory(key) -> topK MemoryCards`
-- `SkillCard` fields: `skill_id`, `effects`, `typical_len`, `confusers`, `profile`
+The new `trainer/coevolution/` package is **completely self-contained** and does not import from any of these legacy modules. All new development should use `trainer/coevolution/`.
 
 ---
 
-## 2) VLM Decision Agent Trainer (GRPO)
+## Co-Evolution Architecture
 
-### Milestone D1 — Environment Wrapper & Actionization
+Two agents share one Qwen3-14B base model served through a single vLLM instance with **5 LoRA adapters** loaded simultaneously:
 
-`EnvWrapper.step(action)`:
-- Primitive actions → forward to game env
-- `QUERY_MEM`/`QUERY_SKILL` → call tool, store cards in context, apply query cost; record `ToolCallEvent` (timestep, type, key, retrieved IDs, retrieval score) into `WrapperState.tool_call_trace`
-- `CALL_SKILL` → set `active_skill` in wrapper state, apply call cost; record tool call event
-- Returns `(obs_{t+1}, r_env, info, done, metadata)` — `info` now includes `retrieval_score` and `retrieved_ids`
-- `get_tool_call_traces()` / `get_episode_tool_calls(env_idx)` export traces for segmentation
+| Adapter | Agent | Purpose | GRPO reward signal |
+|---------|-------|---------|-------------------|
+| `action_taking` | Decision | Choose game action | Step reward from env |
+| `skill_selection` | Decision | Pick skill from bank | Step reward from env |
+| `segment` | Skill Bank | Assign skill labels | Contract pass rate + follow score |
+| `contract` | Skill Bank | Learn effect contracts | Holdout verification pass rate |
+| `curator` | Skill Bank | Refine/merge/split skills | Bank quality delta |
 
-**Files:** `trainer/decision/env_wrapper.py`, `trainer/decision/reward_shaping.py`
+**Not GRPO-trained:** `boundary` (base model, reward too indirect), `retrieval` (legacy/planned).
 
-### Milestone D2 — Reward Shaping
-
-Without skill termination:
-- Progress-to-late-states when `active_skill != None`
-- Query/call/switch costs
-- Outputs full reward breakdown
-
-**Files:** `trainer/decision/reward_shaping.py`
-
-### Milestone D3 — Rollout Collector
-
-Collects rollouts with:
-- Actions, `r_env`, `r_total`, reward breakdown
-- Saved `obs_id`, `ui_events`, predicates, embeddings
-
-**Files:** `trainer/decision/rollout_collector.py`, `trainer/decision/replay_buffer.py`
-
-### Milestone D4 — GRPO Trainer
-
-GRPO loop (group sampling + ranking objective):
-1. Sample a batch of episodes with current policy
-2. Compute returns/advantages from `r_total`
-3. GRPO update on action logprobs
-4. Log: win/score, query/call rates, average costs, skill switching frequency
-
-**Files:** `trainer/decision/grpo_trainer.py`, `trainer/decision/launch_train.py`
-
----
-
-## 3) SkillBank Agent Trainer (Hard-EM + Gating)
-
-### Milestone S1 — Ingest Recent Rollouts
-
-`ingest_rollouts(D_k)`:
-- Loads last N trajectories from Decision Agent buffer
-- Extracts `ui_events`, predicates, embeddings
-- Produces per-trajectory objects for Stage 1/2
-
-**Files:** `trainer/skillbank/ingest_rollouts.py`
-
-### Milestone S2 — EM Loop Driver
-
-`em_trainer.py`:
-- Input: `Bank_k`, `TrajBatch D_k`
-- Output: `Bank_{k+1}`, segmentation results, diff report
-- Per iteration (1–3 per batch):
-  1. Stage 1: ProposeCuts
-  2. Stage 2: Decode → segments + diagnostics
-  3. Stage 3: Build/Verify Contracts
-  4. Stage 4: Update (refine + materialize NEW in MVP)
-  5. SkillEval gating on: pass rate, support, discriminability, complexity
-  6. Commit or reject; write bank snapshot + diff logs
-
-**Files:** `trainer/skillbank/em_trainer.py`, `trainer/skillbank/stages/*`, `trainer/skillbank/bank_io/*`
-
-### Milestone S3 — Bank Versioning & Rollback
-
-Transactional updates:
-- Build `Bank'` in-memory
-- Run SkillEval + quick eval
-- If accepted → write snapshot `Bank_{k+1}`, rebuild indices
-- Else → keep `Bank_k`
-
-**Files:** `trainer/skillbank/bank_io/bank_store.py`, `indices.py`, `diff_logger.py`
-
-### Milestone S4 — Quick Evaluation for Gating
-
-`SkillBankQuickEval` on fixed seeds:
-- Re-decode a small holdout batch using `Bank'`
-- Metrics: NEW rate, avg margin, contract pass rate distribution, confusion matrix
-- If metrics regress beyond thresholds → reject
-
-**File:** `trainer/common/eval_harness.py`
-
----
-
-## 4) Co-Evolution Training Schedule
-
-### VERL integration: `SkillBankCoEvolutionCallback`
-
-In VERL mode, co-evolution is driven by `trainer/decision/coevolution_callback.py`. The callback is injected into `GameAITrainer.fit()` and runs after each actor update at a configurable cadence. It packs all four skill agent stages into a unified tool-calling pipeline:
+### The Loop
 
 ```
-Training step N (at cadence)
-    │
-    ├── 1. Extract RolloutRecords from VERL DataProto batch
-    ├── 2. Convert to TrajectoryForEM via ingest_rollouts
-    ├── 3. Run SkillAgentToolPipeline (all stages):
-    │       ├── Tool: boundary_proposal  (Stage 1 — propose cuts)
-    │       ├── Tool: segmentation_decode (Stage 2 — DP skill labels)
-    │       ├── Tool: contract_learning   (Stage 3 — learn/verify contracts)
-    │       └── Tool: bank_maintenance    (Stage 4 — refine/merge/split)
-    ├── 4. Persist segmentations to SegmentationStore (JSONL)
-    ├── 5. If accepted: hot-swap bank into env workers
-    ├── 6. Compute tool-call reward metrics
-    └── 7. Return metrics dict for VERL logger
+Step 0 (cold start):
+    Bank = empty
+    Decision agent collects rollouts WITHOUT skill selection
+    (action_taking LoRA only, no skill_selection calls)
+
+Step 1:
+    Skill bank processes Step 0 rollouts → Bank_v1
+
+Step 2:
+    Decision agent collects rollouts WITH skill selection using Bank_v1
+    (both skill_selection + action_taking LoRAs active)
+
+Step 3:
+    Skill bank processes Step 2 rollouts → Bank_v2
+    GRPO updates all 5 LoRAs
+
+    ... repeat Step 2-3 ...
 ```
 
-Key classes in `coevolution_callback.py`:
+### Three Phases per Step
 
-| Class | Purpose |
-|-------|---------|
-| `CoEvolutionConfig` | Cadence, EM iterations, pass rate, tool-call reward weight, per-stage configs |
-| `SegmentationStore` | Persistent JSONL store for per-trajectory segmentations; keyed by traj_id, updated each EM cycle |
-| `SkillAgentToolPipeline` | Wraps stages 1-4 as named callable tools; supports `run_full_pipeline()` and `run_stages_individually()` |
-| `SkillBankCoEvolutionCallback` | Main callback with `on_step_end(global_step, batch, metrics)` |
+```
+Phase A + B (overlapped):
+  ┌───────────────────────────────────────────────────────────┐
+  │  collect_rollouts()                                        │
+  │  ├── LPT schedule: super_mario → pokemon → ... → candy    │
+  │  ├── asyncio.Semaphore(40) caps concurrency                │
+  │  ├── run_episode_async() × 64 coroutines                   │
+  │  │   ├── summary_state    (deterministic, 0 calls)         │
+  │  │   ├── summary_prose    (await vllm, base model)         │
+  │  │   ├── skill_selection  (await vllm, skill_selection)    │
+  │  │   ├── intention        (await vllm, base model)         │
+  │  │   ├── action_taking    (await vllm, action_taking)      │
+  │  │   └── env.step()       (ThreadPoolExecutor)             │
+  │  └── on_episode_done → asyncio.Queue                       │
+  │                              │                             │
+  │  skill_bank_consumer()  ◄────┘  cross-system overlap       │
+  │  └── micro-batch → Stage 1+2 (ThreadPoolExecutor)         │
+  └───────────────────────────────────────────────────────────┘
+                              │
+Phase B finalize:             ▼
+  ┌───────────────────────────────────────────────────────────┐
+  │  sb_pipeline.finalize_update()                             │
+  │  ├── Stage 3: contract learning  (contract LoRA)           │
+  │  ├── Stage 4: bank maintenance   (curator LoRA)            │
+  │  └── Proto-skill materialization                           │
+  └───────────────────────────────────────────────────────────┘
+                              │
+Phase C (parallel on GPUs 4-7):
+  ┌──────────────────────┐  ┌──────────────────────┐
+  │ Decision GRPO        │  │ Skill Bank GRPO      │
+  │ GPUs 4-5             │  │ GPUs 6-7             │
+  │ • skill_selection    │  │ • segment            │
+  │ • action_taking      │  │ • contract           │
+  │                      │  │ • curator             │
+  └──────────────────────┘  └──────────────────────┘
+```
 
-Segmentations are stored and **updated during training**: each time the EM pipeline re-segments a trajectory, the `SegmentationStore` replaces the old entry with the new segments, bank version, and associated tool calls.
+### GPU Allocation (8 GPUs)
 
-### Standalone orchestrator
+| GPUs | Role | What runs |
+|------|------|-----------|
+| 0-3 | Inference | vLLM server (TP=4), 5 LoRAs, prefix caching, chunked prefill |
+| 4-5 | Training | Decision agent GRPO (skill_selection + action_taking) |
+| 6-7 | Training | Skill bank GRPO (segment + contract + curator) |
 
-Top-level orchestrator (`trainer/launch_coevolution.py`):
-1. Run Decision GRPO continuously
-2. Every E episodes:
-   - Freeze a rollout batch `D_k`
-   - Run SkillBank EM trainer → propose `Bank_{k+1}`
-   - Gate using fixed-seed eval (decision agent frozen during eval)
-   - If accepted, deploy `Bank_{k+1}` to env wrapper/retriever
-   - Continue GRPO with new bank
-3. Stability rules:
-   - Don't update bank every few episodes; use slower cadence (200–1000 episodes)
-   - Always keep last-good bank for rollback
-
----
-
-## 5) Metrics & Dashboards
-
-### Decision Agent Metrics
-- Win rate / score / objective completion
-- `query_skill` rate, `query_mem` rate, `call_skill` rate
-- Average query key length
-- `r_env`, `r_follow`, `r_cost`, `r_tool`, `r_total` (means and histograms)
-- Skill switching rate
-
-### SkillBank Agent Metrics
-- Number of skills, NEW pool size
-- Contract pass rate per skill
-- Avg margin and confusion pairs
-- Refine/materialize/merge/split event counts
-- Bank size growth rate and churn rate
-- Bank diff report per version
-
-### Co-Evolution Metrics (from callback)
-- `coevo/accepted` — whether the EM update was accepted
-- `coevo/bank_version` — current bank version
-- `coevo/n_skills` — number of skills in the bank
-- `coevo/n_segmentations_stored` — trajectories with stored segmentations
-- `coevo/boundary_proposal/*`, `coevo/segmentation_decode/*`, `coevo/contract_learning/*`, `coevo/bank_maintenance/*` — per-stage metrics
-- `coevo/tool_call_count`, `coevo/tool_call_reward_mean`, `coevo/tool_call_relevance_mean`, `coevo/tool_call_utility_mean` — tool-call reward metrics
+Inference and training never compete for the same GPUs — vLLM serves continuously during Phase A+B while GRPO runs on separate devices in Phase C.
 
 ---
 
-## 6) Implementation Order
+## Key Features
 
-1. Shared schemas + reward shaping contract (unblocks everything)
-2. Decision env wrapper "retrieval-as-action" + reward breakdown
-3. Decision rollout collector + GRPO loop (even if rough)
-4. SkillBank `ingest_rollouts` + `bank_store` versioning
-5. Stage 1 propose cuts + Stage 2 decode (MVP)
-6. Stage 3 contracts + SkillEval + Stage 4 refine/materialize NEW
-7. Co-evolution orchestrator + gating/rollback
-8. Optional learners: boundary classifier, tie-breaker
+### LPT Scheduling (`rollout_collector.py`)
+
+Games are sorted by descending duration and interleaved round-robin:
+- Longest games (super_mario 500 steps) start first
+- Shortest games (candy_crush 50 steps) finish early → feed skill bank pipeline while long games run
+- Maximizes vLLM GPU utilization and enables cross-system overlap
+
+### Cross-System Overlap (`orchestrator.py`)
+
+As short-game episodes complete, their trajectories immediately enter the skill bank pipeline via `asyncio.Queue`. By the time super_mario finishes, 6/8 games are already through Stage 1+2. Effective Phase B overhead: ~30s (instead of ~4 min serial).
+
+### Cold-Start Handling (`episode_runner.py`)
+
+Step 0 passes `skill_bank=None` → `get_top_k_skill_candidates()` returns `[]` → no `skill_selection` LoRA call → only `action_taking` fires. GRPO records contain `action_taking` data only (no `skill_selection` samples). Subsequent steps automatically enable full skill selection when the bank becomes populated.
+
+### Stuck Detection (`episode_runner.py`)
+
+Early episode termination if the last N steps (default 15) have zero cumulative reward. Saves vLLM tokens on hopeless episodes without affecting good runs.
+
+### Checkpointing (`checkpoint.py`)
+
+Every `checkpoint_interval` steps (default 5) and at step 0:
+- Skill bank state (`skill_bank.jsonl`)
+- All 5 LoRA adapter weights
+- Step metadata (bank version, metrics, timing)
+- Auto-cleanup keeps last 10 checkpoints
+
+### W&B Logging (`orchestrator.py`)
+
+Logged every step:
+- Per-game rewards (mean, max, min, steps)
+- Aggregate reward across all games
+- Skill bank size and growth
+- Per-adapter GRPO loss and sample counts
+- Phase timing breakdown (A+B, B finalize, C)
+- vLLM call counts and token usage
 
 ---
 
-## 7) Config Knobs
+## Module Reference
 
-See `trainer/common/configs/decision_grpo.yaml` and `trainer/common/configs/skillbank_em.yaml` for all hyperparameters.
+### `trainer/coevolution/config.py`
+
+```python
+@dataclass
+class CoEvolutionConfig:
+    games: List[str]                # Default: all 8 skill bank games
+    episodes_per_game: int = 8
+    max_concurrent_episodes: int = 40
+    total_steps: int = 30
+    vllm_base_url: str = "http://localhost:8000/v1"
+    model_name: str = "Qwen/Qwen3-14B"
+    temperature: float = 0.3
+    max_tokens: int = 512
+    grpo_enabled: bool = True
+    grpo_decision_devices: List[int] = [4, 5]
+    grpo_skillbank_devices: List[int] = [6, 7]
+    checkpoint_dir: str = "runs/coevolution/checkpoints"
+    checkpoint_interval: int = 5
+    wandb_enabled: bool = True
+    wandb_project: str = "game-ai-coevolution"
+    resume_from_step: Optional[int] = None
+```
+
+### `trainer/coevolution/vllm_client.py`
+
+Async wrapper over vLLM's OpenAI-compatible API. Routes requests to the correct LoRA adapter via the `model` field. Tracks call counts and token usage for logging.
+
+### `trainer/coevolution/episode_runner.py`
+
+Async port of `scripts/qwen3_decision_agent.run_episode()`. Returns `EpisodeResult` with `grpo_records: List[GRPORecord]` for both `action_taking` and `skill_selection` adapters.
+
+### `trainer/coevolution/rollout_collector.py`
+
+LPT-ordered scheduling with `asyncio.Semaphore` concurrency cap. Calls `on_episode_done` callback for cross-system overlap.
+
+### `trainer/coevolution/skillbank_pipeline.py`
+
+Wraps `skill_agents_grpo.pipeline.SkillBankAgent` for async operation. Receives episodes incrementally during rollout collection, then finalizes with contract learning + bank maintenance.
+
+### `trainer/coevolution/grpo_training.py`
+
+Two independent trainers (`DecisionGRPOTrainer`, `SkillBankGRPOTrainer`) that wrap `skill_agents_grpo.grpo.GRPOOrchestrator`. Run concurrently on separate GPU groups via `asyncio.gather`.
+
+### `trainer/coevolution/checkpoint.py`
+
+Saves/loads full snapshots: bank state + all 5 adapter weights + metadata. Auto-detects latest checkpoint for resume.
+
+### `trainer/coevolution/orchestrator.py`
+
+The main `co_evolution_loop()` coroutine. Manages Phase A (rollouts with cross-system overlap), Phase B (skill bank finalize), Phase C (GRPO training), checkpointing, and W&B logging.
+
+---
+
+## Estimated Timeline
+
+| Steps | Wall time (8 GPU) | Notes |
+|-------|-------------------|-------|
+| 1 step | ~3-5 min | Phase A+B ~2.5 min, Phase C ~2 min (parallel GRPO) |
+| 30 steps | ~2-3 hours | Default setting |
+| 100 steps | ~5-8 hours | Recommended for convergence |
+
+---
+
+## Legacy Modules (deprecated)
+
+The following modules are the original synchronous training infrastructure. They are **not used** by `trainer/coevolution/` and are kept only for backward compatibility with `cold_start/`, `tests/`, and shell scripts.
+
+### `trainer/launch_coevolution.py`
+
+Old synchronous co-evolution loop. Replaced by `trainer/coevolution/orchestrator.py`.
+
+### `trainer/decision/`
+
+Old synchronous decision agent training: `GRPOTrainer`, `LLMPolicy`, `collect_batch`, `ReplayBuffer`, `EnvWrapper`. Also contains VERL-specific classes (`GameAITrainer`, `VERLActorProxy`) for the VERL integration path.
+
+### `trainer/skillbank/`
+
+Old Hard-EM pipeline driver: `EMTrainer`, `VersionedBankStore`, stages 0-4, `ingest_rollouts`. The `lora/` subdirectory (standalone LoRA SFT scripts) is still referenced by `tests/test_lora_dispatch.py`.
+
+### `trainer/common/`
+
+Shared types (`RolloutRecord`, `RolloutStep`, `DecisionMetrics`, `SkillBankMetrics`), `TrainLogger`, `SeedManager`, evaluation harness, and YAML config files. Still imported by `cold_start/load_rollouts.py`.

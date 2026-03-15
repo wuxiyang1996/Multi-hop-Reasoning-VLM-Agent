@@ -1,5 +1,9 @@
 """
-Co-evolution orchestrator: runs Decision Agent GRPO continuously and
+DEPRECATED — Use ``trainer.coevolution.orchestrator.co_evolution_loop`` and
+``scripts/run_coevolution.py`` instead.  This module is the old synchronous
+co-evolution loop kept for backward compatibility only.
+
+Old co-evolution orchestrator: runs Decision Agent GRPO continuously and
 periodically updates the SkillBank via Hard-EM.
 
 Training schedule:
@@ -12,7 +16,7 @@ Training schedule:
      e. Continue GRPO with new bank
   3. Stability: always keep last-good bank for rollback
 
-Usage:
+Usage (legacy):
     python -m trainer.launch_coevolution \\
         --decision-config trainer/common/configs/decision_grpo.yaml \\
         --skillbank-config trainer/common/configs/skillbank_em.yaml
