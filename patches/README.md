@@ -36,3 +36,41 @@ if not self.adapter.move_to_action_idx and self.env_move_to_action_idx:
 
 Now the adapter's first lookup succeeds directly — no warning, no regex
 fallback needed.
+
+---
+
+## 002 — Orak: disable screenshot storage for Pokemon Red & Super Mario (2026-03-15)
+
+**Files changed (Orak repo):**
+- `Orak/src/mcp_game_servers/pokemon_red/game/pyboy_runner.py` — `take_screenshot()`
+- `Orak/src/mcp_game_servers/pokemon_red/game/pokemon_red_env.py` — `PokemonRedEnv`
+- `Orak/src/mcp_game_servers/super_mario/game/super_mario_env.py` — `SuperMarioEnv`
+
+**Files changed (Game-AI-Agent):**
+- `evaluate_orak/orak_nl_wrapper.py` — `make_orak_env()`
+- `evaluate_orak/orak_gym_like.py` — `make_orak_gaming_env()`
+
+**Problem:**
+Pokemon Red called `PyBoyRunner.take_screenshot()` on every `initial_obs()`
+and `step()`, writing a timestamped PNG to `<log_path>/screenshots/`. Over
+long evaluation runs this accumulated gigabytes of unused images. Super Mario
+had a similar `save_state_image()` (commented out) and was still converting
+every frame to a PIL image unnecessarily.
+
+**Fix:**
+1. `pyboy_runner.py`: `take_screenshot()` now accepts `save=True`. When
+   `save=False` it returns the PIL image from `pyboy.screen.image` without
+   writing to disk.
+2. `pokemon_red_env.py`: Added `save_screenshots: bool = True` to `Config`.
+   Both `initial_obs()` and `step()` pass `save=self.save_screenshots` to
+   `take_screenshot()`.
+3. `super_mario_env.py`: Added `save_screenshots: bool = True` to `Config`.
+   When False, `initial_obs()` and `step()` skip the `to_pil_image()`
+   conversion (sets `image=None`). Also added a `save` guard to
+   `save_state_image()`.
+4. `orak_nl_wrapper.py` and `orak_gym_like.py`: Both wrappers set
+   `cfg.env.save_screenshots = False` for `pokemon_red` / `super_mario`
+   (resp. `orak_pokemon_red` / `orak_super_mario`) via `omegaconf.open_dict`.
+
+All defaults remain `True` so other games and direct Orak usage are
+unaffected.
