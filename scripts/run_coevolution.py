@@ -34,6 +34,10 @@ Usage (from Game-AI-Agent root):
         --wandb-project game-ai-coevolution \\
         --resume
 
+    # Explicit run directory (otherwise auto-generated from model+timestamp):
+    python scripts/run_coevolution.py \\
+        --run-dir runs/Qwen3-14B_20260315_143022
+
     # Specific games only:
     python scripts/run_coevolution.py \\
         --games tetris twenty_forty_eight sokoban \\
@@ -45,11 +49,19 @@ Usage (from Game-AI-Agent root):
 
 from __future__ import annotations
 
+import os
+
+# Headless mode: disable display requirements for retro/pyglet/SDL
+# before any game-related imports. Ensures training runs without Xvfb.
+os.environ.setdefault("PYGLET_HEADLESS", "1")
+os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+
 import argparse
 import asyncio
 import logging
 import sys
 from pathlib import Path
+from typing import Dict
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 CODEBASE_ROOT = SCRIPT_DIR.parent
@@ -120,20 +132,24 @@ def parse_args() -> argparse.Namespace:
 
     # Directories
     parser.add_argument(
-        "--bank-dir", type=str, default="runs/skillbank",
-        help="Skill bank directory (default: runs/skillbank)",
+        "--run-dir", type=str, default=None,
+        help="Root run directory (default: auto-generated from model name + timestamp)",
     )
     parser.add_argument(
-        "--adapter-dir", type=str, default="runs/lora_adapters",
-        help="LoRA adapter directory (default: runs/lora_adapters)",
+        "--bank-dir", type=str, default=None,
+        help="Skill bank directory (default: <run-dir>/skillbank)",
     )
     parser.add_argument(
-        "--checkpoint-dir", type=str, default="runs/coevolution/checkpoints",
-        help="Checkpoint directory (default: runs/coevolution/checkpoints)",
+        "--adapter-dir", type=str, default=None,
+        help="LoRA adapter directory (default: <run-dir>/lora_adapters)",
     )
     parser.add_argument(
-        "--log-dir", type=str, default="runs/coevolution",
-        help="Log directory (default: runs/coevolution)",
+        "--checkpoint-dir", type=str, default=None,
+        help="Checkpoint directory (default: <run-dir>/checkpoints)",
+    )
+    parser.add_argument(
+        "--log-dir", type=str, default=None,
+        help="Log directory (default: <run-dir>)",
     )
 
     # Checkpointing
@@ -142,14 +158,38 @@ def parse_args() -> argparse.Namespace:
         help="Save checkpoint every N steps (default: 5)",
     )
 
-    # Resume
-    parser.add_argument(
+    # Start mode: from-scratch vs resume (mutually exclusive)
+    start_group = parser.add_mutually_exclusive_group()
+    start_group.add_argument(
+        "--from-scratch", action="store_true",
+        help="Train from scratch: random-init all 5 LoRA adapters with "
+             "gaussian weights and ignore any existing checkpoints",
+    )
+    start_group.add_argument(
         "--resume", action="store_true",
-        help="Auto-resume from latest checkpoint",
+        help="Resume from latest checkpoint (fail if none exists)",
     )
     parser.add_argument(
         "--resume-from-step", type=int, default=None,
-        help="Resume from specific checkpoint step",
+        help="Resume from a specific checkpoint step (implies --resume)",
+    )
+
+    # Pre-trained adapter loading
+    parser.add_argument(
+        "--load-adapters-from", type=str, default=None, metavar="DIR",
+        help="Load pre-trained LoRA adapters from DIR (expects sub-dirs: "
+             "skill_selection, action_taking, segment, contract, curator). "
+             "Missing adapters will be random-initialised.",
+    )
+    parser.add_argument(
+        "--load-decision-adapters", type=str, default=None, metavar="DIR",
+        help="Load only the 2 decision agent adapters (skill_selection, "
+             "action_taking) from DIR. Skill bank adapters are random-init.",
+    )
+    parser.add_argument(
+        "--load-skillbank-adapters", type=str, default=None, metavar="DIR",
+        help="Load only the 3 skill bank adapters (segment, contract, "
+             "curator) from DIR. Decision adapters are random-init.",
     )
 
     # W&B
@@ -182,18 +222,6 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler(
-                Path(args.log_dir) / "coevolution.log",
-                mode="a",
-            ) if Path(args.log_dir).parent.exists() else logging.StreamHandler(),
-        ],
-    )
-
     games = args.games if args.games else list(SKILL_BANK_GAMES)
     for g in games:
         if g not in SKILL_BANK_GAMES:
@@ -204,11 +232,39 @@ def main() -> None:
         logging.error("No valid games specified")
         sys.exit(1)
 
-    resume_step = args.resume_from_step
-    if args.resume and resume_step is None:
-        resume_step = -1  # sentinel: auto-detect latest
+    # Determine start mode
+    if args.from_scratch:
+        start_mode = "from_scratch"
+    elif args.resume or args.resume_from_step is not None:
+        start_mode = "resume"
+    else:
+        start_mode = "auto"
 
-    config = CoEvolutionConfig(
+    # Build pretrained_adapter_paths from CLI flags
+    pretrained: Dict[str, str] = {}
+    decision_names = ["skill_selection", "action_taking"]
+    skillbank_names = ["segment", "contract", "curator"]
+
+    if args.load_adapters_from:
+        src = Path(args.load_adapters_from)
+        for name in decision_names + skillbank_names:
+            p = src / name
+            if p.exists():
+                pretrained[name] = str(p)
+    if args.load_decision_adapters:
+        src = Path(args.load_decision_adapters)
+        for name in decision_names:
+            p = src / name
+            if p.exists():
+                pretrained[name] = str(p)
+    if args.load_skillbank_adapters:
+        src = Path(args.load_skillbank_adapters)
+        for name in skillbank_names:
+            p = src / name
+            if p.exists():
+                pretrained[name] = str(p)
+
+    config_kwargs = dict(
         games=games,
         episodes_per_game=args.episodes_per_game,
         max_concurrent_episodes=args.max_concurrent,
@@ -220,22 +276,39 @@ def main() -> None:
         grpo_enabled=not args.no_grpo,
         grpo_decision_devices=args.grpo_decision_devices,
         grpo_skillbank_devices=args.grpo_skillbank_devices,
-        bank_dir=args.bank_dir,
-        adapter_dir=args.adapter_dir,
-        checkpoint_dir=args.checkpoint_dir,
-        log_dir=args.log_dir,
         checkpoint_interval=args.checkpoint_interval,
         wandb_enabled=not args.no_wandb,
         wandb_project=args.wandb_project,
         wandb_run_name=args.wandb_run_name,
-        resume_from_step=resume_step if resume_step != -1 else None,
+        start_mode=start_mode,
+        resume_from_step=args.resume_from_step,
+        pretrained_adapter_paths=pretrained,
         thread_workers=args.thread_workers,
         process_workers=args.process_workers,
     )
 
+    if args.run_dir is not None:
+        config_kwargs["run_dir"] = args.run_dir
+    if args.bank_dir is not None:
+        config_kwargs["bank_dir"] = args.bank_dir
+    if args.adapter_dir is not None:
+        config_kwargs["adapter_dir"] = args.adapter_dir
+    if args.checkpoint_dir is not None:
+        config_kwargs["checkpoint_dir"] = args.checkpoint_dir
+    if args.log_dir is not None:
+        config_kwargs["log_dir"] = args.log_dir
+
+    config = CoEvolutionConfig(**config_kwargs)
+    config.resolve_paths()
+
+    # Set up logging after paths are resolved
+    log_file = Path(config.log_dir) / "coevolution.log"
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
     print("=" * 70)
     print("  CO-EVOLUTION TRAINING")
     print("=" * 70)
+    print(f"  Run dir:      {config.run_dir}")
     print(f"  Games:        {', '.join(games)}")
     print(f"  Steps:        {config.total_steps}")
     print(f"  Eps/game:     {config.episodes_per_game}")
@@ -246,23 +319,38 @@ def main() -> None:
     if config.grpo_enabled:
         print(f"    Decision:   GPUs {config.grpo_decision_devices}")
         print(f"    SkillBank:  GPUs {config.grpo_skillbank_devices}")
+    print(f"  Bank dir:     {config.bank_dir}")
+    print(f"  Adapter dir:  {config.adapter_dir}")
     print(f"  Checkpoint:   every {config.checkpoint_interval} steps → {config.checkpoint_dir}")
+    print(f"  GRPO data:    {config.grpo_data_dir}")
+    print(f"  Rewards:      {config.rewards_dir}")
+    print(f"  TensorBoard:  {config.tensorboard_dir}")
+    print(f"  Log dir:      {config.log_dir}")
     print(f"  W&B:          {'enabled' if config.wandb_enabled else 'disabled'}")
-    if config.resume_from_step is not None:
-        print(f"  Resume:       from step {config.resume_from_step}")
-    elif args.resume:
-        print("  Resume:       auto-detect latest checkpoint")
+    if config.start_mode == "from_scratch":
+        print("  Start mode:   FROM SCRATCH (gaussian LoRA init, no checkpoint)")
+        print(f"    Warmup:     {config.scratch_warmup_steps} steps "
+              f"(lr {config.scratch_initial_lr:.0e}→{config.scratch_steady_lr:.0e}, "
+              f"temp {config.scratch_initial_temperature}→{config.scratch_steady_temperature})")
+    elif config.start_mode == "resume":
+        if config.resume_from_step is not None:
+            print(f"  Start mode:   RESUME from step {config.resume_from_step}")
+        else:
+            print("  Start mode:   RESUME from latest checkpoint")
+    else:
+        print("  Start mode:   AUTO (resume if checkpoint exists, else fresh)")
+    if pretrained:
+        print(f"  Pre-trained:  {list(pretrained.keys())}")
     print("=" * 70)
 
-    # Handle auto-resume
-    if args.resume and config.resume_from_step is None:
-        from trainer.coevolution.checkpoint import find_latest_checkpoint
-        latest = find_latest_checkpoint(config.checkpoint_dir)
-        if latest is not None:
-            config.resume_from_step = latest
-            print(f"  Auto-resuming from checkpoint step {latest}")
-        else:
-            print("  No checkpoint found, starting from step 0")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(log_file, mode="a"),
+        ],
+    )
 
     asyncio.run(co_evolution_loop(config))
 

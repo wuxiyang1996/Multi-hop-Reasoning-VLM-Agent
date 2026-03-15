@@ -46,10 +46,12 @@ class AsyncSkillBankPipeline:
         bank_dir: str = "runs/skillbank",
         model_name: str = "Qwen/Qwen3-14B",
         executor: Optional[ThreadPoolExecutor] = None,
+        report_dir: Optional[str] = None,
     ):
         self.bank_dir = bank_dir
         self.model_name = model_name
         self._executor = executor
+        self.report_dir = report_dir or str(Path(bank_dir) / "reports")
         self._agent: Any = None
         self._pending_episodes: List[Any] = []
         self._grpo_data: Dict[str, List[Dict[str, Any]]] = {
@@ -82,6 +84,7 @@ class AsyncSkillBankPipeline:
             new_pool_min_consistency=0.3,
             new_pool_min_distinctiveness=0.15,
             min_new_cluster_size=1,
+            report_dir=self.report_dir,
         )
         self._agent = SkillBankAgent(config=config)
 

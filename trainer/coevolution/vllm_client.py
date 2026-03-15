@@ -26,6 +26,9 @@ ADAPTER_MAP = {
     "base": None,
 }
 
+# HTTP 400/404 status codes that indicate a missing LoRA adapter
+_ADAPTER_NOT_FOUND_CODES = {400, 404}
+
 
 @dataclass
 class GenerateResult:
@@ -34,6 +37,15 @@ class GenerateResult:
     completion_tokens: int = 0
     latency_ms: float = 0.0
     adapter: Optional[str] = None
+
+
+def _is_adapter_missing(exc: Exception) -> bool:
+    """Check if an OpenAI API error indicates the LoRA adapter is not loaded."""
+    status = getattr(exc, "status_code", None)
+    if status in _ADAPTER_NOT_FOUND_CODES:
+        return True
+    msg = str(exc).lower()
+    return "not found" in msg or "does not exist" in msg or "unknown model" in msg
 
 
 class AsyncVLLMClient:
@@ -85,6 +97,7 @@ class AsyncVLLMClient:
         mtok = max_tokens if max_tokens is not None else self.default_max_tokens
 
         model_id = self.model
+        used_adapter = adapter
         if adapter and adapter in ADAPTER_MAP and ADAPTER_MAP[adapter] is not None:
             model_id = ADAPTER_MAP[adapter]
 
@@ -96,13 +109,33 @@ class AsyncVLLMClient:
                 max_tokens=mtok,
                 stop=stop,
             )
-            text = resp.choices[0].text if resp.choices else ""
-            usage = resp.usage
-            prompt_tokens = usage.prompt_tokens if usage else 0
-            completion_tokens = usage.completion_tokens if usage else 0
         except Exception as exc:
-            logger.warning("vLLM call failed (adapter=%s): %s", adapter, exc)
-            return GenerateResult(text="", adapter=adapter)
+            # If the adapter isn't loaded yet (cold start), fall back to base model
+            if adapter and model_id != self.model and _is_adapter_missing(exc):
+                logger.info(
+                    "Adapter '%s' not loaded in vLLM, falling back to base model",
+                    adapter,
+                )
+                used_adapter = None
+                try:
+                    resp = await self._client.completions.create(
+                        model=self.model,
+                        prompt=prompt,
+                        temperature=temp,
+                        max_tokens=mtok,
+                        stop=stop,
+                    )
+                except Exception as exc2:
+                    logger.warning("vLLM base-model fallback failed: %s", exc2)
+                    return GenerateResult(text="", adapter=used_adapter)
+            else:
+                logger.warning("vLLM call failed (adapter=%s): %s", adapter, exc)
+                return GenerateResult(text="", adapter=used_adapter)
+
+        text = resp.choices[0].text if resp.choices else ""
+        usage = resp.usage
+        prompt_tokens = usage.prompt_tokens if usage else 0
+        completion_tokens = usage.completion_tokens if usage else 0
 
         elapsed = (time.monotonic() - t0) * 1000
         self._call_count += 1
@@ -114,7 +147,7 @@ class AsyncVLLMClient:
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             latency_ms=elapsed,
-            adapter=adapter,
+            adapter=used_adapter,
         )
 
     async def generate_chat(
@@ -131,6 +164,7 @@ class AsyncVLLMClient:
         mtok = max_tokens if max_tokens is not None else self.default_max_tokens
 
         model_id = self.model
+        used_adapter = adapter
         if adapter and adapter in ADAPTER_MAP and ADAPTER_MAP[adapter] is not None:
             model_id = ADAPTER_MAP[adapter]
 
@@ -141,13 +175,31 @@ class AsyncVLLMClient:
                 temperature=temp,
                 max_tokens=mtok,
             )
-            text = resp.choices[0].message.content if resp.choices else ""
-            usage = resp.usage
-            prompt_tokens = usage.prompt_tokens if usage else 0
-            completion_tokens = usage.completion_tokens if usage else 0
         except Exception as exc:
-            logger.warning("vLLM chat call failed (adapter=%s): %s", adapter, exc)
-            return GenerateResult(text="", adapter=adapter)
+            if adapter and model_id != self.model and _is_adapter_missing(exc):
+                logger.info(
+                    "Adapter '%s' not loaded in vLLM (chat), falling back to base model",
+                    adapter,
+                )
+                used_adapter = None
+                try:
+                    resp = await self._client.chat.completions.create(
+                        model=self.model,
+                        messages=messages,
+                        temperature=temp,
+                        max_tokens=mtok,
+                    )
+                except Exception as exc2:
+                    logger.warning("vLLM chat base-model fallback failed: %s", exc2)
+                    return GenerateResult(text="", adapter=used_adapter)
+            else:
+                logger.warning("vLLM chat call failed (adapter=%s): %s", adapter, exc)
+                return GenerateResult(text="", adapter=used_adapter)
+
+        text = resp.choices[0].message.content if resp.choices else ""
+        usage = resp.usage
+        prompt_tokens = usage.prompt_tokens if usage else 0
+        completion_tokens = usage.completion_tokens if usage else 0
 
         elapsed = (time.monotonic() - t0) * 1000
         self._call_count += 1
@@ -159,7 +211,7 @@ class AsyncVLLMClient:
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             latency_ms=elapsed,
-            adapter=adapter,
+            adapter=used_adapter,
         )
 
     def stats(self) -> Dict[str, Any]:

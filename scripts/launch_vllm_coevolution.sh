@@ -4,11 +4,26 @@
 # Uses GPUs 0-3 for inference with tensor parallelism.
 # GPUs 4-7 are reserved for GRPO training.
 #
+# Headless: no display required.
+#
 # Usage:
+#   conda activate game-ai-agent
 #   bash scripts/launch_vllm_coevolution.sh
+#
+#   # Override defaults via env vars:
+#   VLLM_MODEL=Qwen/Qwen3-8B VLLM_TP=2 bash scripts/launch_vllm_coevolution.sh
+#
+#   # Restrict to specific GPUs:
 #   CUDA_VISIBLE_DEVICES=0,1,2,3 bash scripts/launch_vllm_coevolution.sh
+#
+#   # Point to a timestamped run directory for adapters:
+#   ADAPTER_DIR=runs/Qwen3-14B_20260315_143022/lora_adapters bash scripts/launch_vllm_coevolution.sh
 
 set -euo pipefail
+
+# Headless rendering
+export PYGLET_HEADLESS=1
+export SDL_VIDEODRIVER=dummy
 
 MODEL="${VLLM_MODEL:-Qwen/Qwen3-14B}"
 PORT="${VLLM_PORT:-8000}"
@@ -40,9 +55,11 @@ done
 
 echo "═══════════════════════════════════════════════════"
 
-LORA_FLAGS=""
+# Always enable LoRA support so adapters can be hot-loaded after GRPO
+# training creates them (cold start has no adapters yet).
+LORA_FLAGS="--enable-lora --max-loras 5 --max-lora-rank 64"
 if [ -n "${LORA_ARGS}" ]; then
-    LORA_FLAGS="--enable-lora --max-loras 5 --max-lora-rank 64 --lora-modules ${LORA_ARGS}"
+    LORA_FLAGS="${LORA_FLAGS} --lora-modules ${LORA_ARGS}"
 fi
 
 exec python -m vllm.entrypoints.openai.api_server \

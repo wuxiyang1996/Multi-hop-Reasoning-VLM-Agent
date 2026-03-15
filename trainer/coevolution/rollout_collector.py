@@ -149,6 +149,13 @@ async def collect_rollouts(
     return results
 
 
+def _std(values: list) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    return (sum((v - mean) ** 2 for v in values) / (len(values) - 1)) ** 0.5
+
+
 def compute_episode_metrics(results: List[EpisodeResult]) -> Dict[str, Any]:
     """Aggregate episode-level metrics for logging."""
     from collections import defaultdict
@@ -176,6 +183,7 @@ def compute_episode_metrics(results: List[EpisodeResult]) -> Dict[str, Any]:
             "mean_reward": sum(rewards) / len(rewards) if rewards else 0.0,
             "max_reward": max(rewards) if rewards else 0.0,
             "min_reward": min(rewards) if rewards else 0.0,
+            "std_reward": _std(rewards),
             "mean_steps": sum(g["step_counts"]) / len(g["step_counts"]) if g["step_counts"] else 0,
             "total_reward": g["total_reward"],
         }
@@ -184,6 +192,9 @@ def compute_episode_metrics(results: List[EpisodeResult]) -> Dict[str, Any]:
     summary["aggregate"] = {
         "n_episodes": len(all_rewards),
         "mean_reward": sum(all_rewards) / len(all_rewards) if all_rewards else 0.0,
+        "max_reward": max(all_rewards) if all_rewards else 0.0,
+        "min_reward": min(all_rewards) if all_rewards else 0.0,
+        "std_reward": _std(all_rewards),
         "total_steps": sum(r.steps for r in results),
         "wall_time_s": max(r.wall_time_s for r in results) if results else 0.0,
     }

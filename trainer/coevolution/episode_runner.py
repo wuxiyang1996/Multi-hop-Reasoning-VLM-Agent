@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import random
 import re
 import time
@@ -16,6 +17,10 @@ import uuid
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+# Headless mode for retro/pyglet/SDL — must be set before any game env import
+os.environ.setdefault("PYGLET_HEADLESS", "1")
+os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 from trainer.coevolution.config import EMULATOR_GAMES
 from trainer.coevolution.vllm_client import AsyncVLLMClient

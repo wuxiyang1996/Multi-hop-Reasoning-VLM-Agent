@@ -25,15 +25,6 @@ python scripts/run_coevolution.py \
 python scripts/run_coevolution.py --resume
 ```
 
-### VERL integration
-
-For distributed GiGPO/PPO training with FSDP, use [VERL](https://github.com/verl-project/verl) via [verl-agent](https://github.com/verl-project/verl-agent):
-
-```bash
-python -m scripts.run_trainer --verl
-python -m scripts.run_trainer --verl algorithm.adv_estimator=gigpo trainer.nnodes=2
-```
-
 ---
 
 ## Repo Layout
@@ -298,7 +289,7 @@ Old synchronous co-evolution loop. Replaced by `trainer/coevolution/orchestrator
 
 ### `trainer/decision/`
 
-Old synchronous decision agent training: `GRPOTrainer`, `LLMPolicy`, `collect_batch`, `ReplayBuffer`, `EnvWrapper`. Also contains VERL-specific classes (`GameAITrainer`, `VERLActorProxy`) for the VERL integration path.
+Old synchronous decision agent training: `GRPOTrainer`, `LLMPolicy`, `collect_batch`, `ReplayBuffer`, `EnvWrapper`. Also contains unused VERL scaffolding (`GameAITrainer`, `VERLActorProxy`) behind `try/except ImportError` guards — VERL is not installed.
 
 ### `trainer/skillbank/`
 

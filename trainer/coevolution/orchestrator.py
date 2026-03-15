@@ -30,7 +30,7 @@ from trainer.coevolution.checkpoint import (
     load_checkpoint,
     save_checkpoint,
 )
-from trainer.coevolution.config import CoEvolutionConfig
+from trainer.coevolution.config import CoEvolutionConfig, prepare_adapters
 from trainer.coevolution.episode_runner import EpisodeResult
 from trainer.coevolution.grpo_training import GRPOStepResult, run_grpo_training
 from trainer.coevolution.rollout_collector import (
@@ -56,6 +56,14 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     Checkpoints saved every ``checkpoint_interval`` steps.
     All metrics logged to W&B in real time.
     """
+    # ── Resolve all paths under run_dir ───────────────────────────
+    config.resolve_paths()
+    logger.info("Run directory: %s", config.run_dir)
+
+    # ── Ensure LoRA adapters exist ──────────────────────────────────
+    adapter_map = prepare_adapters(config)
+    logger.info("Adapters ready: %s", list(adapter_map.keys()))
+
     # ── Initialize W&B ────────────────────────────────────────────
     wandb = None
     if config.wandb_enabled:
@@ -65,19 +73,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             wandb.init(
                 project=config.wandb_project,
                 name=config.wandb_run_name,
-                config={
-                    "games": config.games,
-                    "episodes_per_game": config.episodes_per_game,
-                    "max_concurrent_episodes": config.max_concurrent_episodes,
-                    "total_steps": config.total_steps,
-                    "model_name": config.model_name,
-                    "temperature": config.temperature,
-                    "max_tokens": config.max_tokens,
-                    "checkpoint_interval": config.checkpoint_interval,
-                    "grpo_enabled": config.grpo_enabled,
-                    "grpo_decision_devices": config.grpo_decision_devices,
-                    "grpo_skillbank_devices": config.grpo_skillbank_devices,
-                },
+                config=config.to_dict(),
                 resume="allow",
             )
             logger.info("W&B initialized: project=%s", config.wandb_project)
@@ -110,24 +106,47 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         bank_dir=config.bank_dir,
         model_name=config.model_name,
         executor=thread_executor,
+        report_dir=str(Path(config.bank_dir) / "reports"),
     )
 
-    # ── Resume from checkpoint ────────────────────────────────────
+    # ── Determine start step ─────────────────────────────────────
     start_step = 0
-    if config.resume_from_step is not None:
-        start_step = config.resume_from_step
-        try:
+
+    if config.start_mode == "from_scratch":
+        logger.info("Starting from scratch — ignoring any existing checkpoints")
+
+    elif config.start_mode == "resume":
+        if config.resume_from_step is not None:
+            start_step = config.resume_from_step
+            try:
+                metadata = load_checkpoint(
+                    config.checkpoint_dir, start_step,
+                    adapter_dir=config.adapter_dir,
+                    bank_agent=sb_pipeline.get_agent(),
+                )
+                logger.info("Resumed from checkpoint step %d", start_step)
+                start_step += 1
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    f"--resume-from-step {start_step}: checkpoint not found "
+                    f"in {config.checkpoint_dir}"
+                )
+        else:
+            latest = find_latest_checkpoint(config.checkpoint_dir)
+            if latest is None:
+                raise FileNotFoundError(
+                    f"--resume requested but no checkpoint found "
+                    f"in {config.checkpoint_dir}"
+                )
             metadata = load_checkpoint(
-                config.checkpoint_dir, start_step,
+                config.checkpoint_dir, latest,
                 adapter_dir=config.adapter_dir,
                 bank_agent=sb_pipeline.get_agent(),
             )
-            logger.info("Resumed from checkpoint step %d", start_step)
-            start_step += 1  # continue from next step
-        except FileNotFoundError:
-            logger.warning("Checkpoint step %d not found, starting from 0", start_step)
-            start_step = 0
-    elif config.resume_from_step is None:
+            start_step = latest + 1
+            logger.info("Resumed from latest checkpoint step %d", latest)
+
+    else:  # auto
         latest = find_latest_checkpoint(config.checkpoint_dir)
         if latest is not None:
             try:
@@ -137,13 +156,40 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     bank_agent=sb_pipeline.get_agent(),
                 )
                 start_step = latest + 1
-                logger.info("Auto-resumed from latest checkpoint step %d", latest)
+                logger.info("Auto-resumed from checkpoint step %d", latest)
             except Exception:
+                logger.warning("Auto-resume failed, starting from step 0")
                 start_step = 0
+        else:
+            logger.info("No checkpoint found, starting from step 0")
 
     # ── Ensure output directories ─────────────────────────────────
-    for d in [config.bank_dir, config.adapter_dir, config.checkpoint_dir, config.log_dir]:
+    for d in [
+        config.bank_dir, config.adapter_dir, config.checkpoint_dir,
+        config.log_dir, config.grpo_data_dir, config.rewards_dir,
+        config.tensorboard_dir,
+    ]:
         Path(d).mkdir(parents=True, exist_ok=True)
+
+    # ── Initialize TensorBoard ────────────────────────────────────
+    tb_writer = None
+    try:
+        from torch.utils.tensorboard import SummaryWriter
+        tb_writer = SummaryWriter(log_dir=config.tensorboard_dir)
+        logger.info("TensorBoard initialized: %s", config.tensorboard_dir)
+    except ImportError:
+        logger.warning("torch.utils.tensorboard not available, TensorBoard disabled")
+    except Exception as exc:
+        logger.warning("TensorBoard init failed: %s", exc)
+
+    # ── Persist full config snapshot ──────────────────────────────
+    config_path = Path(config.log_dir) / "config.json"
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config.to_dict(), f, indent=2, default=str)
+        logger.info("Config saved: %s", config_path)
+    except Exception as exc:
+        logger.warning("Config save failed: %s", exc)
 
     # ── Step history for logging ──────────────────────────────────
     step_log_path = Path(config.log_dir) / "step_log.jsonl"
@@ -236,6 +282,25 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             phase_ab_time, len(rollout_results), n_consumed,
         )
 
+        # ── Export per-episode rewards ────────────────────────────────
+        try:
+            rewards_path = Path(config.rewards_dir) / f"step_{step:04d}.jsonl"
+            with open(rewards_path, "w", encoding="utf-8") as f:
+                for ep in rollout_results:
+                    if ep.game == "__SENTINEL__":
+                        continue
+                    record = {
+                        "game": ep.game,
+                        "episode_id": ep.episode_id,
+                        "steps": ep.steps,
+                        "reward": getattr(ep, "reward", None),
+                        "success": getattr(ep, "success", None),
+                    }
+                    f.write(json.dumps(record, default=str) + "\n")
+            logger.debug("Rewards exported: %s", rewards_path)
+        except Exception as exc:
+            logger.warning("Rewards export failed: %s", exc)
+
         # ── Phase B: Finalize skill bank update ──────────────────────
         phase_b_t0 = time.monotonic()
         sb_update_result: Optional[SkillBankUpdateResult] = None
@@ -257,12 +322,27 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     rollout_results,
                     sb_pipeline.grpo_data,
                     config,
+                    step=step,
                     executor=thread_executor,
                 )
             except Exception as exc:
                 logger.error("GRPO training failed: %s", exc)
             phase_c_time = time.monotonic() - phase_c_t0
             logger.info("Phase C (GRPO): %.1fs", phase_c_time)
+
+            # ── Export GRPO training data ─────────────────────────────
+            if grpo_result:
+                try:
+                    grpo_step_dir = Path(config.grpo_data_dir) / f"step_{step:04d}"
+                    grpo_step_dir.mkdir(parents=True, exist_ok=True)
+                    for adapter_name, records in grpo_result.records.items():
+                        out_path = grpo_step_dir / f"{adapter_name}.jsonl"
+                        with open(out_path, "w", encoding="utf-8") as f:
+                            for rec in records:
+                                f.write(json.dumps(rec, default=str) + "\n")
+                    logger.debug("GRPO data exported: %s", grpo_step_dir)
+                except Exception as exc:
+                    logger.warning("GRPO data export failed: %s", exc)
 
         # ── Metrics ──────────────────────────────────────────────────
         step_elapsed = time.monotonic() - step_t0
@@ -319,11 +399,16 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             for game, m in episode_metrics["per_game"].items():
                 log_dict[f"reward/{game}/mean"] = m["mean_reward"]
                 log_dict[f"reward/{game}/max"] = m["max_reward"]
+                log_dict[f"reward/{game}/min"] = m["min_reward"]
+                log_dict[f"reward/{game}/std"] = m["std_reward"]
                 log_dict[f"reward/{game}/n_episodes"] = m["n_episodes"]
                 log_dict[f"reward/{game}/mean_steps"] = m["mean_steps"]
 
             # Aggregate reward
             log_dict["reward/mean"] = episode_metrics["aggregate"]["mean_reward"]
+            log_dict["reward/max"] = episode_metrics["aggregate"]["max_reward"]
+            log_dict["reward/min"] = episode_metrics["aggregate"]["min_reward"]
+            log_dict["reward/std"] = episode_metrics["aggregate"]["std_reward"]
             log_dict["reward/total_steps"] = episode_metrics["aggregate"]["total_steps"]
 
             # Skill bank metrics
@@ -345,6 +430,49 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 wandb.log(log_dict, step=step)
             except Exception as exc:
                 logger.warning("W&B log failed: %s", exc)
+
+        # ── TensorBoard logging ──────────────────────────────────────
+        if tb_writer is not None:
+            try:
+                tb_writer.add_scalar("timing/wall_time_s", step_elapsed, step)
+                tb_writer.add_scalar("timing/phase_ab_s", phase_ab_time, step)
+                tb_writer.add_scalar("timing/phase_b_finalize_s", phase_b_time, step)
+                tb_writer.add_scalar("timing/phase_c_grpo_s", phase_c_time, step)
+
+                tb_writer.add_scalar("reward/mean", episode_metrics["aggregate"]["mean_reward"], step)
+                tb_writer.add_scalar("reward/max", episode_metrics["aggregate"]["max_reward"], step)
+                tb_writer.add_scalar("reward/min", episode_metrics["aggregate"]["min_reward"], step)
+                tb_writer.add_scalar("reward/std", episode_metrics["aggregate"]["std_reward"], step)
+                tb_writer.add_scalar("reward/total_steps", episode_metrics["aggregate"]["total_steps"], step)
+                for game, m in episode_metrics["per_game"].items():
+                    tb_writer.add_scalar(f"reward/{game}/mean", m["mean_reward"], step)
+                    tb_writer.add_scalar(f"reward/{game}/max", m["max_reward"], step)
+                    tb_writer.add_scalar(f"reward/{game}/min", m["min_reward"], step)
+                    tb_writer.add_scalar(f"reward/{game}/std", m["std_reward"], step)
+
+                tb_writer.add_scalar("skillbank/n_skills", n_skills, step)
+                tb_writer.add_scalar("skillbank/n_new_skills",
+                                     sb_update_result.n_new_skills if sb_update_result else 0, step)
+                if sb_update_result:
+                    for stage, t in sb_update_result.stage_times.items():
+                        tb_writer.add_scalar(f"skillbank/{stage}_time_s", t, step)
+
+                tb_writer.add_scalar("vllm/calls", vllm_stats["call_count"], step)
+                tb_writer.add_scalar("vllm/prompt_tokens", vllm_stats["total_prompt_tokens"], step)
+                tb_writer.add_scalar("vllm/completion_tokens", vllm_stats["total_completion_tokens"], step)
+
+                if grpo_result:
+                    for adapter, stats in grpo_result.decision_stats.items():
+                        tb_writer.add_scalar(f"grpo/decision/{adapter}/loss", stats.mean_loss, step)
+                        tb_writer.add_scalar(f"grpo/decision/{adapter}/n_samples", stats.n_samples, step)
+                    for adapter, stats in grpo_result.skillbank_stats.items():
+                        tb_writer.add_scalar(f"grpo/skillbank/{adapter}/loss", stats.mean_loss, step)
+                        tb_writer.add_scalar(f"grpo/skillbank/{adapter}/n_samples", stats.n_samples, step)
+                    tb_writer.add_scalar("grpo/wall_time_s", grpo_result.wall_time_s, step)
+
+                tb_writer.flush()
+            except Exception as exc:
+                logger.warning("TensorBoard log failed: %s", exc)
 
         # ── Step log (JSONL) ─────────────────────────────────────────
         try:
@@ -382,6 +510,12 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     # ── Cleanup ───────────────────────────────────────────────────
     thread_executor.shutdown(wait=False)
     process_executor.shutdown(wait=False)
+
+    if tb_writer is not None:
+        try:
+            tb_writer.close()
+        except Exception:
+            pass
 
     if wandb is not None:
         try:

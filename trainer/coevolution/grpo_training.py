@@ -43,6 +43,7 @@ class GRPOStepResult:
     decision_stats: Dict[str, GRPOTrainStats] = field(default_factory=dict)
     skillbank_stats: Dict[str, GRPOTrainStats] = field(default_factory=dict)
     wall_time_s: float = 0.0
+    records: Dict[str, List[Dict[str, Any]]] = field(default_factory=dict)
 
 
 def _collect_grpo_records(results: List[EpisodeResult]) -> Dict[str, List[GRPORecord]]:
@@ -72,11 +73,17 @@ class DecisionGRPOTrainer:
         adapter_dir: str = "runs/lora_adapters",
         devices: Optional[List[int]] = None,
         group_size: int = 8,
+        lr: float = 5e-5,
+        temperature: float = 0.7,
+        kl_coeff: float = 0.05,
     ):
         self.model_name = model_name
         self.adapter_dir = adapter_dir
         self.devices = devices or [4, 5]
         self.group_size = group_size
+        self.lr = lr
+        self.temperature = temperature
+        self.kl_coeff = kl_coeff
         self._orchestrator: Any = None
         self._llm: Any = None
 
@@ -107,16 +114,26 @@ class DecisionGRPOTrainer:
 
         grpo_cfg = GRPOConfig(stage_configs={
             "skill_selection": StageGRPOConfig(
-                group_size=self.group_size, kl_coeff=0.02, lr=3e-5,
-                epochs_per_batch=3, temperature=0.7,
+                group_size=self.group_size,
+                kl_coeff=min(self.kl_coeff, 0.02),
+                lr=self.lr * 0.6,
+                epochs_per_batch=3,
+                temperature=self.temperature,
             ),
             "action_taking": StageGRPOConfig(
-                group_size=self.group_size, kl_coeff=0.05, lr=5e-5,
-                epochs_per_batch=2, temperature=0.7,
+                group_size=self.group_size,
+                kl_coeff=self.kl_coeff,
+                lr=self.lr,
+                epochs_per_batch=2,
+                temperature=self.temperature,
             ),
         })
         self._orchestrator = GRPOOrchestrator(self._llm, grpo_cfg)
-        logger.info("Decision GRPO orchestrator initialized on %s", device_str)
+        logger.info(
+            "Decision GRPO orchestrator initialized on %s "
+            "(lr=%.2e, temp=%.2f, kl=%.3f)",
+            device_str, self.lr, self.temperature, self.kl_coeff,
+        )
         return self._orchestrator
 
     def train_step(
@@ -210,10 +227,16 @@ class SkillBankGRPOTrainer:
         model_name: str = "Qwen/Qwen3-14B",
         adapter_dir: str = "runs/lora_adapters",
         devices: Optional[List[int]] = None,
+        lr: float = 5e-5,
+        temperature: float = 0.7,
+        kl_coeff: float = 0.05,
     ):
         self.model_name = model_name
         self.adapter_dir = adapter_dir
         self.devices = devices or [6, 7]
+        self.lr = lr
+        self.temperature = temperature
+        self.kl_coeff = kl_coeff
         self._orchestrator: Any = None
         self._llm: Any = None
 
@@ -244,20 +267,33 @@ class SkillBankGRPOTrainer:
 
         grpo_cfg = GRPOConfig(stage_configs={
             "segment": StageGRPOConfig(
-                group_size=4, kl_coeff=0.02, lr=3e-5,
-                epochs_per_batch=3, temperature=0.7,
+                group_size=4,
+                kl_coeff=min(self.kl_coeff, 0.02),
+                lr=self.lr * 0.6,
+                epochs_per_batch=3,
+                temperature=self.temperature,
             ),
             "contract": StageGRPOConfig(
-                group_size=4, kl_coeff=0.05, lr=5e-5,
-                epochs_per_batch=2, temperature=0.7,
+                group_size=4,
+                kl_coeff=self.kl_coeff,
+                lr=self.lr,
+                epochs_per_batch=2,
+                temperature=self.temperature,
             ),
             "curator": StageGRPOConfig(
-                group_size=4, kl_coeff=0.05, lr=5e-5,
-                epochs_per_batch=2, temperature=0.7,
+                group_size=4,
+                kl_coeff=self.kl_coeff,
+                lr=self.lr,
+                epochs_per_batch=2,
+                temperature=self.temperature,
             ),
         })
         self._orchestrator = GRPOOrchestrator(self._llm, grpo_cfg)
-        logger.info("Skill bank GRPO orchestrator initialized on %s", device_str)
+        logger.info(
+            "Skill bank GRPO orchestrator initialized on %s "
+            "(lr=%.2e, temp=%.2f, kl=%.3f)",
+            device_str, self.lr, self.temperature, self.kl_coeff,
+        )
         return self._orchestrator
 
     def train_step(
@@ -337,15 +373,32 @@ async def run_grpo_training(
     skillbank_grpo_data: Dict[str, List[Dict[str, Any]]],
     config: Any,
     *,
+    step: int = 0,
     executor: Optional[ThreadPoolExecutor] = None,
 ) -> GRPOStepResult:
     """Run GRPO training for both decision agent and skill bank.
 
     Decision agent and skill bank GRPO are independent and can run
     concurrently on separate GPU groups.
+
+    Parameters
+    ----------
+    step : int
+        Current co-evolution step (used for from-scratch learning rate /
+        temperature schedule).
     """
     t0 = time.monotonic()
     loop = asyncio.get_running_loop()
+
+    # Get per-step hyperparameters from the from-scratch schedule
+    sched = config.grpo_schedule(step)
+    lr = sched["lr"]
+    temperature = sched["temperature"]
+    kl_coeff = sched["kl_coeff"]
+    logger.info(
+        "GRPO step %d schedule: lr=%.2e, temp=%.2f, kl=%.3f",
+        step, lr, temperature, kl_coeff,
+    )
 
     decision_records = _collect_grpo_records(rollout_results)
     has_decision_data = any(len(v) > 0 for v in decision_records.values())
@@ -362,6 +415,9 @@ async def run_grpo_training(
             model_name=config.model_name,
             adapter_dir=config.adapter_dir,
             devices=config.grpo_decision_devices,
+            lr=lr,
+            temperature=temperature,
+            kl_coeff=kl_coeff,
         )
         decision_stats = await loop.run_in_executor(
             executor, trainer.train_step, decision_records,
@@ -376,6 +432,9 @@ async def run_grpo_training(
             model_name=config.model_name,
             adapter_dir=config.adapter_dir,
             devices=config.grpo_skillbank_devices,
+            lr=lr,
+            temperature=temperature,
+            kl_coeff=kl_coeff,
         )
         skillbank_stats = await loop.run_in_executor(
             executor, trainer.train_step, skillbank_grpo_data,
@@ -384,9 +443,22 @@ async def run_grpo_training(
 
     await asyncio.gather(_train_decision(), _train_skillbank())
 
+    # Collect serializable records for disk export
+    all_records: Dict[str, List[Dict[str, Any]]] = {}
+    for adapter_name, recs in decision_records.items():
+        all_records[adapter_name] = [
+            {"prompt": r.prompt, "completion": r.completion,
+             "reward": r.reward, "episode_id": r.episode_id,
+             "step": r.step, "adapter": r.adapter}
+            for r in recs
+        ]
+    for adapter_name, samples in skillbank_grpo_data.items():
+        all_records[adapter_name] = list(samples)
+
     elapsed = time.monotonic() - t0
     return GRPOStepResult(
         decision_stats=decision_stats,
         skillbank_stats=skillbank_stats,
         wall_time_s=elapsed,
+        records=all_records,
     )

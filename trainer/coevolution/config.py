@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import re
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -51,6 +53,26 @@ ADAPTER_NAMES = [
 ]
 
 
+def _model_short_name(model_name: str) -> str:
+    """Extract a filesystem-safe short name from a model identifier.
+
+    ``"Qwen/Qwen3-14B"`` → ``"Qwen3-14B"``
+    ``"meta-llama/Llama-3-8B"`` → ``"Llama-3-8B"``
+    """
+    short = model_name.rsplit("/", 1)[-1]
+    return re.sub(r"[^\w\-.]", "_", short)
+
+
+def _generate_run_dir(model_name: str) -> str:
+    """Generate a unique run directory name from model name + timestamp.
+
+    Example: ``runs/Qwen3-14B_20260315_143022``
+    """
+    short = _model_short_name(model_name)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    return str(Path("runs") / f"{short}_{ts}")
+
+
 @dataclass
 class CoEvolutionConfig:
     """Top-level configuration for the co-evolution loop."""
@@ -75,11 +97,18 @@ class CoEvolutionConfig:
     grpo_decision_devices: List[int] = field(default_factory=lambda: [4, 5])
     grpo_skillbank_devices: List[int] = field(default_factory=lambda: [6, 7])
 
-    # Directories
-    bank_dir: str = "runs/skillbank"
-    adapter_dir: str = "runs/lora_adapters"
-    checkpoint_dir: str = "runs/coevolution/checkpoints"
-    log_dir: str = "runs/coevolution"
+    # Run directory — all other dirs are relative to this.
+    # Auto-generated from model_name + timestamp if None.
+    run_dir: Optional[str] = None
+
+    # Directories (rebased under run_dir by resolve_paths())
+    bank_dir: str = "skillbank"
+    adapter_dir: str = "lora_adapters"
+    checkpoint_dir: str = "checkpoints"
+    log_dir: str = ""  # root of run_dir
+    grpo_data_dir: str = "grpo_data"
+    rewards_dir: str = "rewards"
+    tensorboard_dir: str = "tensorboard"
 
     # Checkpointing
     checkpoint_interval: int = 5
@@ -89,8 +118,18 @@ class CoEvolutionConfig:
     wandb_project: str = "game-ai-coevolution"
     wandb_run_name: Optional[str] = None
 
-    # Resume
+    # Start mode:
+    #   "from_scratch" — random-init all LoRA adapters, ignore any checkpoint
+    #   "resume"       — resume from latest (or specific) checkpoint
+    #   "auto"         — resume if checkpoint exists, else from scratch
+    start_mode: str = "auto"
     resume_from_step: Optional[int] = None
+
+    # Load pre-trained adapters instead of random init.
+    # Maps adapter name → path to an existing adapter directory.
+    # Only used when start_mode != "resume" (resume loads from checkpoint).
+    # Example: {"skill_selection": "prev_run/lora/skill_selection", ...}
+    pretrained_adapter_paths: Dict[str, str] = field(default_factory=dict)
 
     # Thread/process executors
     thread_workers: int = 20
@@ -100,5 +139,259 @@ class CoEvolutionConfig:
     stuck_window: int = 15
     min_steps_before_stuck_check: int = 20
 
+    # LoRA adapter defaults (matches skill_agents_grpo.lora.config)
+    lora_r: int = 16
+    lora_alpha: int = 32
+    lora_dropout: float = 0.05
+    lora_target_modules: Optional[List[str]] = None
+    # "gaussian" → both A and B get small random init (better for GRPO)
+    # True       → Kaiming A + zero B (standard LoRA, B gets no grad initially)
+    lora_init_weights: Any = "gaussian"
+
+    # GRPO from-scratch schedule — higher exploration early, then anneal.
+    # Only applied when start_mode == "from_scratch" (otherwise GRPO
+    # configs use the default values from StageGRPOConfig).
+    scratch_warmup_steps: int = 5
+    scratch_initial_lr: float = 1e-4
+    scratch_steady_lr: float = 5e-5
+    scratch_initial_temperature: float = 1.0
+    scratch_steady_temperature: float = 0.7
+    scratch_initial_kl_coeff: float = 0.01
+    scratch_steady_kl_coeff: float = 0.05
+
+    _resolved: bool = field(default=False, repr=False)
+
+    def resolve_paths(self) -> "CoEvolutionConfig":
+        """Rebase all directory paths under ``run_dir``.
+
+        If ``run_dir`` is ``None``, generates one from the model name
+        and current timestamp (e.g. ``runs/Qwen3-14B_20260315_143022``).
+
+        Idempotent — calling twice is safe.
+        """
+        if self._resolved:
+            return self
+
+        if self.run_dir is None:
+            self.run_dir = _generate_run_dir(self.model_name)
+
+        root = Path(self.run_dir)
+
+        def _rebase(rel: str) -> str:
+            p = Path(rel)
+            if p.is_absolute() or str(p).startswith("runs/"):
+                return rel
+            return str(root / rel) if rel else str(root)
+
+        self.bank_dir = _rebase(self.bank_dir)
+        self.adapter_dir = _rebase(self.adapter_dir)
+        self.checkpoint_dir = _rebase(self.checkpoint_dir)
+        self.log_dir = _rebase(self.log_dir) if self.log_dir else str(root)
+        self.grpo_data_dir = _rebase(self.grpo_data_dir)
+        self.rewards_dir = _rebase(self.rewards_dir)
+        self.tensorboard_dir = _rebase(self.tensorboard_dir)
+
+        self._resolved = True
+        return self
+
     def adapter_path(self, name: str) -> str:
         return str(Path(self.adapter_dir) / name)
+
+    def grpo_schedule(self, step: int) -> Dict[str, float]:
+        """Return GRPO hyperparameters for the current step.
+
+        During from-scratch training, the first ``scratch_warmup_steps``
+        use higher learning rate, higher sampling temperature (more
+        exploration), and lower KL penalty (allow larger policy shifts).
+        After warmup, values anneal linearly to steady-state.
+        """
+        if self.start_mode != "from_scratch":
+            return {
+                "lr": self.scratch_steady_lr,
+                "temperature": self.scratch_steady_temperature,
+                "kl_coeff": self.scratch_steady_kl_coeff,
+            }
+
+        w = self.scratch_warmup_steps
+        if w <= 0 or step >= w:
+            alpha = 1.0
+        else:
+            alpha = step / w  # 0 → 1 over warmup
+
+        def _lerp(init: float, steady: float) -> float:
+            return init + alpha * (steady - init)
+
+        return {
+            "lr": _lerp(self.scratch_initial_lr, self.scratch_steady_lr),
+            "temperature": _lerp(
+                self.scratch_initial_temperature,
+                self.scratch_steady_temperature,
+            ),
+            "kl_coeff": _lerp(
+                self.scratch_initial_kl_coeff,
+                self.scratch_steady_kl_coeff,
+            ),
+        }
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializable dict for config.json persistence."""
+        d = asdict(self)
+        d.pop("_resolved", None)
+        return d
+
+
+DECISION_ADAPTERS = ["skill_selection", "action_taking"]
+SKILLBANK_ADAPTERS = ["segment", "contract", "curator"]
+
+
+def prepare_adapters(config: CoEvolutionConfig) -> Dict[str, str]:
+    """Ensure every adapter directory is populated and ready for vLLM/GRPO.
+
+    Two paths:
+
+    **Load pre-trained** (``config.pretrained_adapter_paths`` is non-empty):
+        Copy the 2 decision + 3 skill-bank adapters from the given paths
+        into ``config.adapter_dir``.  Any adapter not listed in the dict
+        will be random-initialised as a fallback.
+
+    **Train from scratch** (``config.start_mode == "from_scratch"`` or
+    no pre-trained paths and no existing adapters):
+        Create random-initialised adapters (``init_lora_weights="gaussian"``
+        by default).  Both the A and B LoRA matrices receive small random
+        values so that gradients flow to all parameters from step 1.
+
+    Returns a dict mapping adapter name → resolved directory path.
+    """
+    import gc
+    import logging
+    import shutil
+
+    import torch
+    from peft import LoraConfig, TaskType, get_peft_model
+    from transformers import AutoConfig, AutoModelForCausalLM
+
+    logger = logging.getLogger(__name__)
+    force = config.start_mode == "from_scratch"
+    pretrained = config.pretrained_adapter_paths or {}
+    result: Dict[str, str] = {}
+
+    # ── Phase 1: copy pre-trained adapters ────────────────────────
+    copied: List[str] = []
+    for name in ADAPTER_NAMES:
+        dst = Path(config.adapter_dir) / name
+        src = pretrained.get(name)
+        if src is not None:
+            src_path = Path(src)
+            if not (src_path / "adapter_config.json").exists():
+                logger.warning(
+                    "Pre-trained adapter '%s' not found at %s — will random-init",
+                    name, src,
+                )
+                continue
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(str(src_path), str(dst))
+            logger.info("Loaded pre-trained adapter '%s': %s → %s", name, src, dst)
+            copied.append(name)
+            result[name] = str(dst)
+
+    # ── Phase 2: random-init any remaining missing adapters ───────
+    need_init: List[str] = []
+    for name in ADAPTER_NAMES:
+        if name in copied:
+            continue
+        dst = Path(config.adapter_dir) / name
+        marker = dst / "adapter_config.json"
+        if marker.exists() and not force:
+            logger.info("LoRA adapter '%s' already exists: %s", name, dst)
+            result[name] = str(dst)
+        else:
+            if force and dst.exists():
+                logger.info("Force re-init: removing existing adapter '%s'", name)
+                shutil.rmtree(dst)
+            need_init.append(name)
+
+    if not need_init:
+        if copied:
+            logger.info(
+                "Loaded %d pre-trained adapter(s), all adapters ready", len(copied),
+            )
+        return result
+
+    # ── Resolve target_modules from model architecture ────────────
+    target_modules = config.lora_target_modules
+    if target_modules is None:
+        model_cfg = AutoConfig.from_pretrained(
+            config.model_name, trust_remote_code=True,
+        )
+        arch = getattr(model_cfg, "model_type", "")
+        if "qwen" in arch.lower():
+            target_modules = [
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "gate_proj", "up_proj", "down_proj",
+            ]
+        else:
+            target_modules = ["q_proj", "v_proj"]
+
+    lora_cfg = LoraConfig(
+        r=config.lora_r,
+        lora_alpha=config.lora_alpha,
+        lora_dropout=config.lora_dropout,
+        target_modules=target_modules,
+        bias="none",
+        task_type=TaskType.CAUSAL_LM,
+        init_lora_weights=config.lora_init_weights,
+    )
+
+    init_desc = (
+        "gaussian (A & B both random — GRPO-ready)"
+        if config.lora_init_weights == "gaussian"
+        else f"standard ({config.lora_init_weights})"
+    )
+    logger.info(
+        "Loading base model '%s' on CPU to initialise %d adapter(s) "
+        "[init=%s, r=%d, alpha=%d]: %s",
+        config.model_name, len(need_init), init_desc,
+        config.lora_r, config.lora_alpha, need_init,
+    )
+    base_model = AutoModelForCausalLM.from_pretrained(
+        config.model_name,
+        torch_dtype=torch.bfloat16,
+        device_map="cpu",
+        trust_remote_code=True,
+    )
+
+    for name in need_init:
+        out = Path(config.adapter_dir) / name
+        out.mkdir(parents=True, exist_ok=True)
+        logger.info("Random-init LoRA adapter '%s' → %s", name, out)
+        try:
+            peft_model = get_peft_model(base_model, lora_cfg)
+            peft_model.save_pretrained(str(out))
+            result[name] = str(out)
+            base_model = peft_model.unload()
+        except Exception as exc:
+            logger.error("Failed to create adapter '%s': %s", name, exc)
+
+    del base_model
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    logger.info(
+        "Adapter summary: %d pre-trained, %d random-init, %d total ready",
+        len(copied), len(need_init), len(result),
+    )
+    return result
+
+
+# Keep the old name as an alias for backward compatibility
+def init_lora_adapters(
+    config: CoEvolutionConfig,
+    force: bool = False,
+) -> List[str]:
+    """Backward-compatible wrapper around :func:`prepare_adapters`."""
+    if force:
+        config.start_mode = "from_scratch"
+    result = prepare_adapters(config)
+    return list(result.keys())
