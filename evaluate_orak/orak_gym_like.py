@@ -184,6 +184,8 @@ def make_orak_gaming_env(
 
     cfg = omegaconf.OmegaConf.load(config_path)
 
+    _NO_SCREENSHOT_GAMES = {"orak_pokemon_red", "orak_super_mario"}
+
     log_dir = str(_CODEBASE_ROOT / "orak_logs" / game)
     os.makedirs(log_dir, exist_ok=True)
     with omegaconf.open_dict(cfg):
@@ -191,6 +193,8 @@ def make_orak_gaming_env(
             cfg.env.log_path = log_dir
             if hasattr(cfg.env, "show_graphic"):
                 cfg.env.show_graphic = False
+            if game in _NO_SCREENSHOT_GAMES:
+                cfg.env.save_screenshots = False
         cfg.log_path = log_dir
 
     env = EnvCreator(cfg).create()

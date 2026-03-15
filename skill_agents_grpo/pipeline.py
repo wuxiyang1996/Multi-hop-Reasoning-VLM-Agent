@@ -356,7 +356,12 @@ class SkillBankAgent:
                 game_name=_game,
             )
 
-        traj_id = getattr(episode, "task", None) or f"traj_{len(self._traj_lengths)}"
+        ep_id = getattr(episode, "episode_id", None) or ""
+        base = getattr(episode, "task", None) or "traj"
+        idx = len(self._traj_lengths)
+        traj_id = f"{base}__ep{idx}" if ep_id == "" else f"{base}__ep{ep_id}"
+        if traj_id in self._observations_by_traj:
+            traj_id = f"{traj_id}_{idx}"
         self._cache_trajectory(episode, traj_id, result)
 
         return result, sub_episodes
@@ -411,14 +416,93 @@ class SkillBankAgent:
         self._invalidate_query_engine()
         return results
 
-    # ── LLM predicate extraction for Stage 3 ────────────────────────
+    # ── Predicate extraction for Stage 3 ────────────────────────────
+
+    _KV_NOISE_KEYS = frozenset({
+        "step", "step_number", "n/a", "filtered_screen_text",
+        "selection_box_text", "expansion_direction",
+    })
+
+    @staticmethod
+    def _parse_kv_state(obs: Any) -> Dict[str, str]:
+        """Parse a state string into a dict, handling ``key=val``,
+        ``key: val``, and ``[key]: val`` formats separated by ``|``."""
+        if obs is None:
+            return {}
+        text = obs if isinstance(obs, str) else str(obs)
+        result: Dict[str, str] = {}
+        for part in text.split("|"):
+            part = part.strip()
+            if not part:
+                continue
+            # Try key=value first
+            if "=" in part:
+                k, _, v = part.partition("=")
+            elif ":" in part:
+                k, _, v = part.partition(":")
+            else:
+                continue
+            k = k.strip().strip("[]").lower().replace(" ", "_")
+            v = v.strip().strip(",")
+            if not k or not v or k in SkillBankAgent._KV_NOISE_KEYS:
+                continue
+            if v.lower() in ("n/a", "none", "-"):
+                continue
+            # Extract sub-fields from complex values like "RedsHouse2f, (x_max...)"
+            if k == "map_name" and "," in v:
+                v = v.split(",")[0].strip()
+            if k == "your_position_(x,_y)":
+                k = "position"
+            result[k] = v
+        return result
+
+    _PER_STEP_NOISE = frozenset({
+        "step", "position", "your_position_(x,_y)",
+        "current_money", "reward",
+    })
+
+    @staticmethod
+    def _kv_to_predicates(kv: Dict[str, str], prev_kv: Optional[Dict[str, str]] = None) -> Dict[str, float]:
+        """Convert a parsed key-value state into namespaced float predicates.
+
+        Also detects changes from *prev_kv* and emits ``event.`` predicates
+        for keys that don't change every single step.
+        """
+        preds: Dict[str, float] = {}
+        for k, v in kv.items():
+            if k in SkillBankAgent._PER_STEP_NOISE:
+                continue
+            v_lower = v.lower()
+            if v_lower in ("true", "yes", "1"):
+                preds[f"world.{k}"] = 1.0
+            elif v_lower in ("false", "no", "0", "not in battle",
+                              "no more pokemons"):
+                preds[f"world.{k}"] = 0.0
+            else:
+                preds[f"world.{k}={v}"] = 1.0
+
+        if prev_kv is not None:
+            for k in set(kv) | set(prev_kv):
+                if k in SkillBankAgent._PER_STEP_NOISE:
+                    continue
+                old_v = prev_kv.get(k)
+                new_v = kv.get(k)
+                if old_v != new_v and old_v is not None and new_v is not None:
+                    preds[f"event.{k}_changed"] = 1.0
+                elif old_v is None and new_v is not None:
+                    preds[f"event.{k}_appeared"] = 1.0
+                elif old_v is not None and new_v is None:
+                    preds[f"event.{k}_disappeared"] = 1.0
+        return preds
 
     def _ensure_predicates_extracted(self) -> None:
-        """Batch-extract predicates for any trajectories not yet processed.
+        """Extract predicates for trajectories not yet processed.
 
-        Uses the same LLM prompt as boundary proposal (Stage 1) to extract
-        structured predicates from state descriptions, then converts to
-        ``Dict[str, float]`` suitable for Stage 3 effects computation.
+        Uses a two-tier strategy:
+        1. **Rule-based** (fast, reliable): parses ``key=value`` state strings
+           directly and detects changes between consecutive steps.
+        2. **LLM-based** (fallback): calls the LLM only when rule-based
+           extraction yields too few predicates.
         """
         traj_ids_needed = [
             tid for tid in self._observations_by_traj
@@ -427,16 +511,54 @@ class SkillBankAgent:
         if not traj_ids_needed:
             return
 
+        for traj_id in traj_ids_needed:
+            observations = self._observations_by_traj.get(traj_id, [])
+            if not observations:
+                self._predicates_by_traj[traj_id] = []
+                continue
+
+            kv_states = [self._parse_kv_state(obs) for obs in observations]
+
+            all_preds: List[Dict[str, float]] = []
+            prev_kv: Optional[Dict[str, str]] = None
+            for kv in kv_states:
+                preds = self._kv_to_predicates(kv, prev_kv)
+                all_preds.append(preds)
+                prev_kv = kv
+
+            n_unique = len({k for p in all_preds for k in p})
+            if n_unique < 3:
+                llm_preds = self._extract_predicates_llm(traj_id, observations)
+                if llm_preds:
+                    for i, lp in enumerate(llm_preds):
+                        if i < len(all_preds):
+                            merged = dict(all_preds[i])
+                            merged.update(lp)
+                            all_preds[i] = merged
+                        else:
+                            all_preds.append(lp)
+
+            self._predicates_by_traj[traj_id] = all_preds
+            logger.info(
+                "Extracted predicates for traj %s: %d timesteps, %d unique predicates",
+                traj_id, len(all_preds),
+                len({k for p in all_preds for k in p}),
+            )
+
+    def _extract_predicates_llm(
+        self,
+        traj_id: str,
+        observations: list,
+    ) -> Optional[List[Dict[str, float]]]:
+        """LLM-based predicate extraction fallback."""
         model = self.config.llm_model or self.config.extractor_model
         if model is None:
-            logger.debug("No LLM model configured — skipping predicate extraction.")
-            return
+            return None
 
         try:
             from API_func import ask_model as _raw_ask
         except ImportError:
-            logger.debug("API_func not available — skipping predicate extraction.")
-            return
+            return None
 
         from skill_agents_grpo._llm_compat import wrap_ask_for_reasoning_models
         from skill_agents_grpo.boundary_proposal.llm_extractor import (
@@ -449,83 +571,70 @@ class SkillBankAgent:
         chunk_size = 30
         max_chars = 500
 
-        for traj_id in traj_ids_needed:
-            observations = self._observations_by_traj.get(traj_id, [])
-            if not observations:
-                self._predicates_by_traj[traj_id] = []
-                continue
+        state_texts = []
+        for obs in observations:
+            if isinstance(obs, str):
+                t = obs[:max_chars] + "..." if len(obs) > max_chars else obs
+            elif isinstance(obs, dict):
+                t = json.dumps(obs, default=str, ensure_ascii=False)
+                if len(t) > max_chars:
+                    t = t[:max_chars] + "..."
+            elif obs is not None:
+                t = str(obs)[:max_chars]
+            else:
+                t = "(empty)"
+            state_texts.append(t)
 
-            state_texts = []
-            for obs in observations:
-                if isinstance(obs, str):
-                    t = obs[:max_chars] + "..." if len(obs) > max_chars else obs
-                elif isinstance(obs, dict):
-                    t = json.dumps(obs, default=str, ensure_ascii=False)
-                    if len(t) > max_chars:
-                        t = t[:max_chars] + "..."
-                elif obs is not None:
-                    t = str(obs)[:max_chars]
-                else:
-                    t = "(empty)"
-                state_texts.append(t)
+        all_preds: List[dict] = []
+        for start in range(0, len(state_texts), chunk_size):
+            end = min(start + chunk_size, len(state_texts))
+            chunk = state_texts[start:end]
 
-            all_preds: List[dict] = []
-            for start in range(0, len(state_texts), chunk_size):
-                end = min(start + chunk_size, len(state_texts))
-                chunk = state_texts[start:end]
-
-                states_block = "\n".join(
-                    f"  t={start + i}: {s}" for i, s in enumerate(chunk)
-                )
-                prompt = _PREDICATE_EXTRACTION_PROMPT.format(
-                    states_block=states_block,
-                    num_states=len(chunk),
-                )
-                try:
-                    import time as _time
-                    from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
-
-                    t0 = _time.time()
-                    response = ask(prompt, model=model, temperature=0.2, max_tokens=3000)
-                    elapsed = _time.time() - t0
-                    parsed = _parse_json_array(response)
-
-                    record_io(ColdStartRecord(
-                        module="pipeline",
-                        function="predicate_extraction",
-                        prompt=prompt,
-                        response=response or "",
-                        parsed={"n_predicates": len(parsed)} if parsed else None,
-                        model=model or "",
-                        temperature=0.2,
-                        max_tokens=3000,
-                        elapsed_s=round(elapsed, 3),
-                        segment_start=start,
-                        segment_end=end,
-                        n_steps=len(chunk),
-                        error=None if parsed else "parse_failed",
-                    ))
-
-                    if parsed is not None:
-                        chunk_preds = [p if isinstance(p, dict) else {} for p in parsed]
-                        while len(chunk_preds) < len(chunk):
-                            chunk_preds.append({})
-                        chunk_preds = chunk_preds[:len(chunk)]
-                    else:
-                        chunk_preds = [{} for _ in chunk]
-                except Exception:
-                    chunk_preds = [{} for _ in chunk]
-                all_preds.extend(chunk_preds)
-
-            all_preds = _normalize_predicate_keys(all_preds)
-            self._predicates_by_traj[traj_id] = [
-                self._convert_to_float_predicates(p) for p in all_preds
-            ]
-            logger.info(
-                "Extracted predicates for traj %s: %d timesteps, %d unique predicates",
-                traj_id, len(all_preds),
-                len({k for p in self._predicates_by_traj[traj_id] for k in p}),
+            states_block = "\n".join(
+                f"  t={start + i}: {s}" for i, s in enumerate(chunk)
             )
+            prompt = _PREDICATE_EXTRACTION_PROMPT.format(
+                states_block=states_block,
+                num_states=len(chunk),
+            )
+            try:
+                import time as _time
+                from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
+                t0 = _time.time()
+                response = ask(prompt, model=model, temperature=0.2, max_tokens=3000)
+                elapsed = _time.time() - t0
+                parsed = _parse_json_array(response)
+
+                record_io(ColdStartRecord(
+                    module="pipeline",
+                    function="predicate_extraction",
+                    prompt=prompt,
+                    response=response or "",
+                    parsed={"n_predicates": len(parsed)} if parsed else None,
+                    model=model or "",
+                    temperature=0.2,
+                    max_tokens=3000,
+                    elapsed_s=round(elapsed, 3),
+                    segment_start=start,
+                    segment_end=end,
+                    n_steps=len(chunk),
+                    error=None if parsed else "parse_failed",
+                ))
+
+                if parsed is not None:
+                    chunk_preds = [p if isinstance(p, dict) else {} for p in parsed]
+                    while len(chunk_preds) < len(chunk):
+                        chunk_preds.append({})
+                    chunk_preds = chunk_preds[:len(chunk)]
+                else:
+                    chunk_preds = [{} for _ in chunk]
+            except Exception:
+                chunk_preds = [{} for _ in chunk]
+            all_preds.extend(chunk_preds)
+
+        all_preds = _normalize_predicate_keys(all_preds)
+        return [self._convert_to_float_predicates(p) for p in all_preds]
 
     @staticmethod
     def _convert_to_float_predicates(pred_dict: dict) -> Dict[str, float]:

@@ -1,39 +1,54 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Qwen3-14B Decision Agent with Skill Bank Guidance.
+Qwen3-14B Decision Agent with Dual LoRA GRPO + Skill Bank.
 
-Uses Qwen3-14B (served via vLLM) as the decision-making LLM to play games,
-querying a pre-built skill bank (from GPT-5.4 extraction) to guide action
-selection at each step.
+Uses Qwen3-14B (served via vLLM) with two GRPO-trained LoRA adapters:
 
-Pipeline:
-  1. Load skill bank from labeling/output/gpt54_skillbank/<game>/
-  2. For each game episode:
-     a. Get state summary (deterministic + LLM)
-     b. Infer intention via Qwen3-14B
-     c. Query skill bank for relevant skill guidance
-     d. Inject skill protocol into LLM prompt
-     e. Qwen3-14B selects action
-  3. Save rollouts to test_rollout/decision_agent/<game>/<timestamp>/
+  - **skill_selection LoRA**: state + intention + top-k candidates → chosen skill
+  - **action_taking LoRA**:  state + actions + skill guidance → chosen action
+
+Mirrors the cold-start labeling pipeline (label_episodes_with_skills.py)
+for consistent I/O format between offline labeling and online play.
+
+Pipeline per step:
+  1. Generate ``summary_state`` (deterministic via ``build_rag_summary``)
+  2. Generate ``summary`` (summary_state + delta-aware strategic note)
+  3. Skill selection via **skill_selection LoRA** (top-k → LLM pick)
+  4. Generate ``intention`` (skill-aware, delta/urgency-grounded, [TAG] phrase)
+  5. Action selection via **action_taking LoRA** (state + skill + intention)
+  6. Record GRPO I/O for both LoRAs (action_taking.jsonl + skill_selection.jsonl)
+
+GRPO output per episode (in grpo_data/ under each game dir):
+  - action_taking.jsonl    — state + available actions → chosen action
+  - skill_selection.jsonl  — state + intention + candidates → chosen skill
+
+Both follow a shared schema for a single GRPO trainer:
+  { "type", "game", "episode", "step",
+    "prompt", "completion", "reward",
+    + type-specific metadata }
 
 Usage (from Game-AI-Agent root):
 
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
     export VLLM_BASE_URL="http://localhost:8000/v1"
 
-    # Single game, 3 episodes
+    # Single game, 3 episodes (vLLM only, no LoRA)
     python -m scripts.qwen3_decision_agent --games twenty_forty_eight --episodes 3
+
+    # With dual LoRA GRPO adapters
+    python -m scripts.qwen3_decision_agent --use_lora \\
+        --local_model Qwen/Qwen3-14B \\
+        --adapter_dir adapters/decision_agent/ \\
+        --games tetris --episodes 5 -v
+
+    # Save trained adapters after run
+    python -m scripts.qwen3_decision_agent --use_lora \\
+        --save_adapters adapters/decision_agent/ \\
+        --episodes 3
 
     # One episode per game (run each game once), on GPU 0, verbose
     python -m scripts.qwen3_decision_agent --one_per_game --gpu 0 -v
-
-    # All available games, 5 episodes each, verbose
-    python -m scripts.qwen3_decision_agent --episodes 5 -v
-
-    # Specific GPU(s)
-    python -m scripts.qwen3_decision_agent --gpu 1 --games tetris --episodes 2
-    python -m scripts.qwen3_decision_agent --gpu 0,1 --one_per_game
 
     # Without skill bank (baseline)
     python -m scripts.qwen3_decision_agent --no-bank --episodes 3
@@ -81,8 +96,17 @@ from decision_agents.agent_helper import (
     infer_intention,
     strip_think_tags,
     select_skill_from_bank,
+    build_rag_summary,
+    extract_game_facts,
+    compact_text_observation,
     HARD_SUMMARY_CHAR_LIMIT,
+    SUBGOAL_TAGS,
 )
+
+try:
+    from decision_agents.agent_helper import _get_protocol_for_skill
+except ImportError:
+    _get_protocol_for_skill = None
 from decision_agents.dummy_agent import (
     extract_action,
     GAME_GAMINGAGENT,
@@ -121,6 +145,428 @@ DEFAULT_BANK_DIR = CODEBASE_ROOT / "labeling" / "output" / "gpt54_skillbank"
 DEFAULT_OUTPUT_DIR = CODEBASE_ROOT / "test_rollout" / "decision_agent"
 
 LMGAME_BENCH_NAMES = {"twenty_forty_eight", "sokoban", "candy_crush", "tetris"}
+
+INTENTION_WORD_BUDGET = 15
+_SUBGOAL_TAG_SET = frozenset(SUBGOAL_TAGS)
+
+_TAG_ALIASES: Dict[str, str] = {
+    "PLACE": "SETUP", "DROP": "EXECUTE", "MOVE": "NAVIGATE",
+    "SWAP": "EXECUTE", "PUSH": "NAVIGATE", "JUMP": "NAVIGATE",
+    "MATCH": "CLEAR", "PLAN": "SETUP", "ARRANGE": "SETUP",
+    "ROTATE": "SETUP", "ORGANIZE": "OPTIMIZE", "SCORE": "EXECUTE",
+    "PROTECT": "DEFEND", "GRAB": "COLLECT", "FLEE": "SURVIVE",
+    "RUN": "NAVIGATE", "CREATE": "BUILD", "FIND": "EXPLORE",
+    "FIX": "OPTIMIZE", "ALIGN": "POSITION", "TARGET": "ATTACK",
+    "SECURE": "DEFEND", "EXPAND": "ATTACK", "RETREAT": "DEFEND",
+}
+
+_TAG_RE = re.compile(r"\[(\w+)\]\s*")
+
+
+# ---------------------------------------------------------------------------
+# Tag normalization & state-delta helpers (ported from labeling pipeline)
+# ---------------------------------------------------------------------------
+
+def _normalize_intention(raw: str) -> str:
+    """Ensure intention has a valid ``[TAG] phrase`` format."""
+    raw = raw.split("\n")[0].strip().strip('"').strip("'")
+    if not raw.startswith("["):
+        return f"[EXECUTE] {raw}"
+    m = _TAG_RE.match(raw)
+    if not m:
+        return f"[EXECUTE] {raw}"
+    tag = m.group(1).upper()
+    rest = raw[m.end():].strip()
+    if tag not in _SUBGOAL_TAG_SET:
+        tag = _TAG_ALIASES.get(tag, "EXECUTE")
+    return f"[{tag}] {rest}" if rest else f"[{tag}]"
+
+
+def _compute_state_delta(prev_ss: str, curr_ss: str) -> str:
+    """Return a compact diff between two ``summary_state`` key=value strings."""
+    if not prev_ss or not curr_ss:
+        return ""
+
+    def _parse(ss: str) -> Dict[str, str]:
+        d: Dict[str, str] = {}
+        for seg in ss.split(" | "):
+            if "=" in seg:
+                k, v = seg.split("=", 1)
+                d[k.strip()] = v.strip()
+        return d
+
+    skip = {"game", "step", "phase"}
+    p, c = _parse(prev_ss), _parse(curr_ss)
+    changes: List[str] = []
+    for k, v in c.items():
+        if k in skip:
+            continue
+        pv = p.get(k)
+        if pv is not None and pv != v:
+            changes.append(f"{k}:{pv}->{v}")
+    return ", ".join(changes[:5])
+
+
+def _detect_urgency(summary_state: str, game_name: str) -> str:
+    """Return urgency warning when absolute state values are critical."""
+    def _val(key: str) -> Optional[float]:
+        for seg in summary_state.split(" | "):
+            seg = seg.strip()
+            if seg.startswith(f"{key}="):
+                try:
+                    return float(seg.split("=", 1)[1].split(",")[0])
+                except (ValueError, IndexError):
+                    return None
+        return None
+
+    gn = game_name.lower()
+    warnings: List[str] = []
+    if gn == "tetris":
+        h = _val("holes")
+        sh = _val("stack_h")
+        if h is not None and h > 25:
+            warnings.append("severe holes—prioritise CLEAR or SURVIVE")
+        if sh is not None and sh > 14:
+            warnings.append("stack near ceiling—SURVIVE")
+    elif gn in ("2048", "twenty_forty_eight"):
+        e = _val("empty")
+        if e is not None and e < 3:
+            warnings.append("board nearly full—must MERGE now")
+    elif "candy" in gn:
+        m = _val("moves")
+        if m is not None and m < 5:
+            warnings.append("very few moves left—maximise every action")
+    elif "mario" in gn:
+        t = _val("time")
+        if t is not None and t < 50:
+            warnings.append("time running out—NAVIGATE quickly")
+    return "; ".join(warnings)
+
+
+# ---------------------------------------------------------------------------
+# Deterministic summary_state + LLM-enriched summary + skill-aware intention
+# ---------------------------------------------------------------------------
+
+def generate_summary_state(
+    state: str,
+    game_name: str = "",
+    step_idx: int = -1,
+    total_steps: int = -1,
+    reward: float = 0.0,
+) -> str:
+    """Compact ``key=value`` state summary (deterministic, 0 LLM calls)."""
+    return build_rag_summary(
+        state, game_name,
+        step_idx=step_idx,
+        total_steps=total_steps,
+        reward=reward,
+    )
+
+
+def generate_summary_prose(
+    state: str,
+    game_name: str = "",
+    summary_state: str = "",
+    prev_summary_state: str = "",
+    model: str = DEFAULT_MODEL,
+) -> str:
+    """``summary_state | note=<strategic assessment>`` (1 cheap LLM call)."""
+    if not summary_state:
+        summary_state = generate_summary_state(state, game_name)
+
+    compact = compact_text_observation(state, max_chars=200)
+    state_text = compact if compact else state[:1000]
+    game_label = game_name.replace("_", " ") if game_name else "game"
+    delta = _compute_state_delta(prev_summary_state, summary_state)
+    delta_line = f"Changed since last step: {delta}\n" if delta else ""
+
+    prompt = (
+        f"{game_label}: {state_text}\n"
+        f"{delta_line}"
+        f"Key strategic note about the current threat or opportunity "
+        f"(max 10 words, be specific to what changed).\n"
+        f"Note:"
+    )
+
+    if ask_model is not None:
+        try:
+            note = ask_model(prompt, model=model, temperature=0.2, max_tokens=25)
+            if note and not note.startswith("Error"):
+                note = strip_think_tags(note).strip()
+                note = note.split("\n")[0].strip().strip('"').strip("'")[:80]
+                return f"{summary_state} | note={note}"[:HARD_SUMMARY_CHAR_LIMIT]
+        except Exception:
+            pass
+    return summary_state[:HARD_SUMMARY_CHAR_LIMIT]
+
+
+def generate_skill_aware_intention(
+    state: str,
+    action: str,
+    game_name: str = "",
+    summary_state: str = "",
+    prev_intention: str = "",
+    prev_summary_state: str = "",
+    skill_guidance: Optional[Dict[str, Any]] = None,
+    model: str = DEFAULT_MODEL,
+) -> str:
+    """Produce ``[TAG] subgoal`` — grounded in facts, delta, urgency, and active skill."""
+    tags_str = "|".join(SUBGOAL_TAGS)
+    facts_line = f"Facts: {summary_state}\n" if summary_state else ""
+    delta = _compute_state_delta(prev_summary_state, summary_state)
+    delta_line = f"Changed: {delta}\n" if delta else ""
+    urgency = _detect_urgency(summary_state, game_name)
+    urgency_line = f"URGENCY: {urgency}\n" if urgency else ""
+    prev_line = f"Previous subgoal: {prev_intention}\n" if prev_intention else ""
+    shift_hint = (
+        "IMPORTANT: If the situation changed significantly or urgency is high, "
+        "pick a NEW tag that matches the new priority.\n"
+        if delta or urgency else ""
+    )
+
+    skill_context = ""
+    if skill_guidance and skill_guidance.get("skill_id"):
+        sk_name = skill_guidance.get("skill_name", skill_guidance["skill_id"])
+        sk_hint = skill_guidance.get("execution_hint", "")
+        skill_context = f"Active skill: {sk_name}"
+        if sk_hint:
+            skill_context += f" — {sk_hint[:100]}"
+        skill_context += "\n"
+
+    game_label = game_name.replace("_", " ") if game_name else "game"
+    compact = compact_text_observation(state, max_chars=200)
+    state_text = compact if compact else state[:800]
+
+    prompt = (
+        f"{game_label}. Action: {action}\n"
+        f"State: {state_text}\n"
+        f"{facts_line}"
+        f"{delta_line}"
+        f"{urgency_line}"
+        f"{skill_context}"
+        f"{prev_line}"
+        f"{shift_hint}"
+        f"What subgoal? Reply ONLY: [TAG] phrase "
+        f"(max {INTENTION_WORD_BUDGET} words)\n"
+        f"Tags: {tags_str}\n"
+        f"Subgoal:"
+    )
+
+    if ask_model is not None:
+        try:
+            result = ask_model(prompt, model=model, temperature=0.2, max_tokens=40)
+            if result and not result.startswith("Error"):
+                result = strip_think_tags(result).strip()
+                return _normalize_intention(result)[:150]
+        except Exception:
+            pass
+
+    fallback = infer_intention(state, game=game_name, model=model)
+    if fallback:
+        return _normalize_intention(f"[EXECUTE] {fallback}")[:150]
+    return f"[EXECUTE] {action}"
+
+
+def _skill_guidance_to_label(guidance: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Convert skill guidance dict to compact label for storage."""
+    if guidance is None or not guidance.get("skill_id"):
+        return None
+    label: Dict[str, Any] = {
+        "skill_id": guidance["skill_id"],
+        "skill_name": guidance.get("skill_name", ""),
+    }
+    if guidance.get("execution_hint"):
+        label["execution_hint"] = guidance["execution_hint"][:200]
+    if guidance.get("why_selected"):
+        label["why_selected"] = guidance["why_selected"][:200]
+    protocol = guidance.get("protocol", {})
+    if protocol and isinstance(protocol, dict):
+        compact_proto: Dict[str, Any] = {}
+        if protocol.get("steps"):
+            compact_proto["steps"] = protocol["steps"][:7]
+        if protocol.get("preconditions"):
+            compact_proto["preconditions"] = protocol["preconditions"][:3]
+        if protocol.get("success_criteria"):
+            compact_proto["success_criteria"] = protocol["success_criteria"][:3]
+        if compact_proto:
+            label["protocol"] = compact_proto
+    if guidance.get("confidence") is not None:
+        label["confidence"] = guidance["confidence"]
+    return label
+
+
+# ---------------------------------------------------------------------------
+# Dual LoRA GRPO infrastructure (skill_selection + action_taking)
+# ---------------------------------------------------------------------------
+
+class DualLoRAManager:
+    """Manages two LoRA adapters for the decision agent GRPO training.
+
+    Adapter 1 — ``skill_selection``: state + intention + candidates → chosen skill
+    Adapter 2 — ``action_taking``:  state + actions + skill guidance → chosen action
+
+    When no local model is available, falls back to the default vLLM endpoint.
+    """
+
+    def __init__(self):
+        self._llm = None
+        self._grpo_orchestrator = None
+        self._enabled = False
+
+    def setup(
+        self,
+        model_name_or_path: str,
+        adapter_dir: Optional[str] = None,
+        grpo_group_size: int = 4,
+    ) -> None:
+        """Initialize the local model with optional LoRA adapters."""
+        try:
+            from skill_agents_grpo.lora.config import MultiLoraConfig
+            from skill_agents_grpo.lora.model import MultiLoraSkillBankLLM
+        except ImportError:
+            print("[DualLoRA] skill_agents_grpo.lora not available, using vLLM only")
+            return
+
+        adapter_paths: Dict[str, str] = {}
+        if adapter_dir:
+            _ad = Path(adapter_dir)
+            for name in ("skill_selection", "action_taking"):
+                candidate = _ad / name
+                if candidate.exists():
+                    adapter_paths[name] = str(candidate)
+
+        cfg = MultiLoraConfig(
+            base_model_name_or_path=model_name_or_path,
+            adapter_paths=adapter_paths,
+            allow_fallback_to_base_model=True,
+        )
+        self._llm = MultiLoraSkillBankLLM(cfg)
+        MultiLoraSkillBankLLM.set_shared_instance(self._llm)
+        self._enabled = True
+
+        print(f"  [DualLoRA] Model: {model_name_or_path}")
+        if adapter_paths:
+            print(f"  [DualLoRA] Adapters: {list(adapter_paths.keys())}")
+
+        try:
+            from skill_agents_grpo.grpo.orchestrator import GRPOOrchestrator
+            from skill_agents_grpo.grpo.config import GRPOConfig, StageGRPOConfig
+
+            grpo_cfg = GRPOConfig(stage_configs={
+                "skill_selection": StageGRPOConfig(
+                    group_size=grpo_group_size, kl_coeff=0.02, lr=3e-5,
+                    epochs_per_batch=3, temperature=0.7,
+                ),
+                "action_taking": StageGRPOConfig(
+                    group_size=grpo_group_size, kl_coeff=0.05, lr=5e-5,
+                    epochs_per_batch=2, temperature=0.7,
+                ),
+            })
+            self._grpo_orchestrator = GRPOOrchestrator(self._llm, grpo_cfg)
+            print(f"  [DualLoRA] GRPO orchestrator (G={grpo_group_size})")
+        except (ImportError, Exception) as exc:
+            print(f"  [DualLoRA] GRPO not available: {exc}")
+
+    def save_adapters(self, adapter_dir: str) -> None:
+        """Save trained LoRA adapters to disk."""
+        if self._llm is None or not self._enabled:
+            return
+        _ad = Path(adapter_dir)
+        _ad.mkdir(parents=True, exist_ok=True)
+        if not getattr(self._llm, "_is_peft_model", False):
+            return
+        for name in ("skill_selection", "action_taking"):
+            adapter_name = f"lora_{name}"
+            loaded = getattr(self._llm, "_loaded_adapters", {})
+            if adapter_name not in loaded:
+                continue
+            save_path = _ad / name
+            save_path.mkdir(parents=True, exist_ok=True)
+            try:
+                self._llm._model.set_adapter(adapter_name)
+                self._llm._model.save_pretrained(str(save_path))
+                print(f"    [DualLoRA] Saved adapter '{name}' → {save_path}")
+            except Exception as exc:
+                print(f"    [DualLoRA] Save failed '{name}': {exc}")
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    def call_skill_selection(
+        self,
+        prompt: str,
+        model: str = DEFAULT_MODEL,
+        temperature: float = 0.3,
+        max_tokens: int = 256,
+    ) -> Optional[str]:
+        """Call the skill_selection LoRA (or fallback to vLLM)."""
+        if self._enabled and self._llm is not None:
+            try:
+                return self._llm.generate(
+                    prompt, adapter_name="lora_skill_selection",
+                    temperature=temperature, max_tokens=max_tokens,
+                )
+            except Exception:
+                pass
+        if ask_model is not None:
+            return ask_model(prompt, model=model, temperature=temperature, max_tokens=max_tokens)
+        return None
+
+    def call_action_taking(
+        self,
+        prompt: str,
+        model: str = DEFAULT_MODEL,
+        temperature: float = 0.3,
+        max_tokens: int = 512,
+    ) -> Optional[str]:
+        """Call the action_taking LoRA (or fallback to vLLM)."""
+        if self._enabled and self._llm is not None:
+            try:
+                return self._llm.generate(
+                    prompt, adapter_name="lora_action_taking",
+                    temperature=temperature, max_tokens=max_tokens,
+                )
+            except Exception:
+                pass
+        if ask_model is not None:
+            return ask_model(prompt, model=model, temperature=temperature, max_tokens=max_tokens)
+        return None
+
+
+_dual_lora = DualLoRAManager()
+
+
+# ---------------------------------------------------------------------------
+# GRPO I/O recording per step
+# ---------------------------------------------------------------------------
+
+class GRPOStepRecord:
+    """Captures prompt/completion/reward for one GRPO training sample."""
+
+    def __init__(self, record_type: str, game: str, episode_id: str, step: int):
+        self.type = record_type
+        self.game = game
+        self.episode = episode_id
+        self.step = step
+        self.prompt: str = ""
+        self.completion: str = ""
+        self.reward: float = 0.0
+        self.metadata: Dict[str, Any] = {}
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = {
+            "type": self.type,
+            "game": self.game,
+            "episode": self.episode,
+            "step": self.step,
+            "prompt": self.prompt,
+            "completion": self.completion,
+            "reward": self.reward,
+        }
+        d.update(self.metadata)
+        return d
+
 
 # ---------------------------------------------------------------------------
 # Skill bank loading
@@ -459,18 +905,17 @@ def select_skill_via_llm(
     intention: str,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.3,
-) -> Tuple[int, Optional[str]]:
-    """LLM call #1: select the best skill from *candidates*.
+) -> Tuple[int, Optional[str], Optional[str]]:
+    """LLM call #1 (skill_selection LoRA): select the best skill.
 
-    Returns (chosen_index, reasoning).  Falls back to index 0 if the
-    LLM is unavailable.
+    Returns (chosen_index, reasoning, raw_prompt) — the prompt is returned
+    so callers can record it for GRPO training.  Falls back to index 0 if
+    the LLM is unavailable.
     """
     if not candidates:
-        return 0, None
+        return 0, None, None
     if len(candidates) == 1:
-        return 0, "only one candidate available"
-    if ask_model is None:
-        return 0, None
+        return 0, "only one candidate available", None
 
     candidates_text = _format_candidates_for_selection(candidates)
     user_content = SKILL_SELECTION_USER_TEMPLATE.format(
@@ -480,14 +925,14 @@ def select_skill_via_llm(
     )
     prompt = SKILL_SELECTION_SYSTEM_PROMPT + "\n" + user_content
 
-    try:
-        reply = ask_model(prompt, model=model, temperature=temperature, max_tokens=256)
-        if reply and not reply.startswith("Error"):
-            return parse_skill_selection(reply, len(candidates), candidates)
-    except Exception as exc:
-        print(f"    [WARN] Skill selection LLM call failed ({exc}), using top candidate")
+    reply = _dual_lora.call_skill_selection(
+        prompt, model=model, temperature=temperature, max_tokens=256,
+    )
+    if reply and not reply.startswith("Error"):
+        idx, reasoning = parse_skill_selection(reply, len(candidates), candidates)
+        return idx, reasoning, prompt
 
-    return 0, None
+    return 0, None, prompt
 
 
 # ---------------------------------------------------------------------------
@@ -778,30 +1223,41 @@ def qwen3_action(
     recent_actions: Optional[List[str]] = None,
     recent_rewards: Optional[List[float]] = None,
     protocol_step_idx: int = 0,
-) -> Tuple[str, Optional[str]]:
-    """Query Qwen3-14B via vLLM. Returns (action, reasoning)."""
-    if ask_model is None:
-        return (action_names[0] if action_names else "stay"), None
+    summary_state: str = "",
+    intention: str = "",
+) -> Tuple[str, Optional[str], Optional[str]]:
+    """LLM call #2 (action_taking LoRA): choose an action.
 
+    Returns (action, reasoning, raw_prompt) — prompt is returned for
+    GRPO I/O recording.
+    """
     recent_context = _build_recent_context(
         recent_actions or [], recent_rewards or [],
     )
-    user_content = USER_TEMPLATE.format(
-        state=state_nl[:4000],
-        actions=_format_numbered_actions(action_names),
-        recent_context=recent_context,
+
+    state_text = summary_state if summary_state else state_nl[:4000]
+    intention_line = f"Current intention: {intention}\n\n" if intention else ""
+
+    user_content = (
+        f"Game state:\n\n{state_text}\n\n"
+        f"{intention_line}"
+        f"{recent_context}"
+        f"Available actions (pick ONE by number):\n"
+        f"{_format_numbered_actions(action_names)}\n\n"
+        f"Choose the best action. Output REASONING then ACTION number."
     )
+
     skill_text = format_skill_guidance_for_prompt(skill_guidance, protocol_step_idx)
     prompt = SYSTEM_PROMPT + skill_text + "\n" + user_content
 
-    try:
-        reply = ask_model(prompt, model=model, temperature=temperature, max_tokens=512)
-        if reply and not reply.startswith("Error"):
-            return parse_qwen_response(reply, action_names)
-    except Exception as exc:
-        print(f"    [WARN] Qwen3-14B call failed ({exc}), using fallback")
+    reply = _dual_lora.call_action_taking(
+        prompt, model=model, temperature=temperature, max_tokens=512,
+    )
+    if reply and not reply.startswith("Error"):
+        action, reasoning = parse_qwen_response(reply, action_names)
+        return action, reasoning, prompt
 
-    return (action_names[0] if action_names else "stay"), None
+    return (action_names[0] if action_names else "stay"), None, prompt
 
 
 # ---------------------------------------------------------------------------
@@ -954,9 +1410,19 @@ def run_episode(
     temperature: float = 0.3,
     verbose: bool = False,
     skill_bank: Any = None,
-) -> Tuple[Episode, Dict[str, Any]]:
-    """Run one episode with Qwen3-14B decision agent + skill bank guidance."""
+) -> Tuple[Episode, Dict[str, Any], List[Dict[str, Any]]]:
+    """Run one episode with dual-LoRA GRPO decision agent + skill bank.
 
+    Pipeline per step (mirrors cold-start labeling):
+      1. Generate ``summary_state`` (deterministic via ``build_rag_summary``)
+      2. Generate ``summary`` (summary_state + delta-aware strategic note)
+      3. Skill selection via **skill_selection LoRA** (top-k → LLM pick)
+      4. Generate ``intention`` (skill-aware, delta/urgency-grounded)
+      5. Action selection via **action_taking LoRA** (state + skill + intention)
+      6. Record GRPO I/O for both LoRAs
+
+    Returns (episode, stats, grpo_records).
+    """
     game_cfg = GAME_CONFIGS.get(game)
     task = game_cfg.description if game_cfg else f"Play {game}"
 
@@ -971,13 +1437,20 @@ def run_episode(
     action_names = info.get("action_names", [])
     structured_state = info.get("structured_state")
 
+    import uuid as _uuid
+    episode_id = f"{game}_{_uuid.uuid4().hex[:8]}"
+
     experiences: List[Experience] = []
+    grpo_records: List[Dict[str, Any]] = []
     total_reward = 0.0
     step_count = 0
     terminated = False
     truncated = False
-    last_state_summary = ""
+    current_summary_state = ""
+    current_summary = ""
     current_intention = ""
+    prev_summary_state = ""
+    prev_intention = ""
 
     recent_actions: List[str] = []
     recent_rewards: List[float] = []
@@ -990,54 +1463,57 @@ def run_episode(
     while step_count < max_steps:
         step_actions = action_names if action_names else ["stay"]
 
-        summary = get_state_summary(
-            obs_nl,
-            structured_state=structured_state,
-            game=GAME_GAMINGAGENT,
+        # ── 1. summary_state (deterministic, 0 LLM calls) ──────────
+        summary_state = generate_summary_state(
+            obs_nl, game_name=game,
+            step_idx=step_count, total_steps=max_steps,
+            reward=total_reward,
+        )
+        current_summary_state = summary_state
+
+        # ── 2. summary (summary_state + delta-aware note, 1 LLM call)
+        summary = generate_summary_prose(
+            obs_nl, game_name=game,
+            summary_state=summary_state,
+            prev_summary_state=prev_summary_state,
             model=model,
         )
-        if summary:
-            last_state_summary = summary[:HARD_SUMMARY_CHAR_LIMIT]
+        current_summary = summary
 
-        intention = infer_intention(
-            last_state_summary or obs_nl,
-            game=GAME_GAMINGAGENT,
-            model=model,
-            context={
-                "last_actions": recent_actions[-5:],
-                "task": task,
-            },
-        )
-        if intention:
-            current_intention = intention
-
+        # ── 3. Skill selection (skill_selection LoRA) ───────────────
         need_reselect = skill_tracker.should_reselect(
             last_guidance,
-            state_text=last_state_summary or obs_nl,
+            state_text=summary_state or obs_nl,
         )
+        skill_select_prompt: Optional[str] = None
+
         if need_reselect or last_guidance is None:
             if verbose and skill_tracker.reselect_reason:
                 print(f"    [skill-reselect] reason={skill_tracker.reselect_reason}")
 
-            # --- LLM skill selection: retrieve top-k, then LLM picks one ---
+            facts = extract_game_facts(obs_nl, game)
+            step_structured = {k: v for k, v in facts.items() if v}
+
             candidates = get_top_k_skill_candidates(
                 skill_bank,
-                last_state_summary or obs_nl,
+                summary_state or obs_nl,
                 game_name=game,
                 intention=current_intention,
-                structured_state=structured_state,
+                structured_state=step_structured if step_structured else structured_state,
                 top_k=3,
             )
 
             if candidates:
-                chosen_idx, skill_reasoning = select_skill_via_llm(
+                chosen_idx, skill_reasoning, skill_select_prompt = select_skill_via_llm(
                     candidates,
-                    state_summary=last_state_summary or obs_nl,
+                    state_summary=summary_state or obs_nl,
                     intention=current_intention,
                     model=model,
                     temperature=temperature,
                 )
                 guidance = candidates[chosen_idx]
+                if skill_reasoning:
+                    guidance["why_selected"] = skill_reasoning
                 last_candidates = candidates
                 last_chosen_idx = chosen_idx
                 last_skill_reasoning = skill_reasoning
@@ -1068,7 +1544,21 @@ def run_episode(
         else:
             guidance = last_guidance
 
-        action, reasoning = qwen3_action(
+        # ── 4. Intention (skill-aware, delta/urgency grounded) ──────
+        intention = generate_skill_aware_intention(
+            obs_nl,
+            action=recent_actions[-1] if recent_actions else "start",
+            game_name=game,
+            summary_state=summary_state,
+            prev_intention=prev_intention,
+            prev_summary_state=prev_summary_state,
+            skill_guidance=guidance,
+            model=model,
+        )
+        current_intention = intention
+
+        # ── 5. Action selection (action_taking LoRA) ────────────────
+        action, reasoning, action_prompt = qwen3_action(
             state_nl=obs_nl,
             action_names=step_actions,
             model=model,
@@ -1077,6 +1567,8 @@ def run_episode(
             recent_actions=recent_actions,
             recent_rewards=recent_rewards,
             protocol_step_idx=skill_tracker.protocol_step_idx,
+            summary_state=summary_state,
+            intention=current_intention,
         )
 
         action = _apply_anti_repetition(action, step_actions, recent_actions, recent_rewards)
@@ -1096,9 +1588,51 @@ def run_episode(
         recent_rewards.append(float(reward))
 
         skill_id = guidance.get("skill_id") if guidance else None
-        skill_name = guidance.get("skill_name", "") if guidance else ""
-        skill_tracker.update(skill_id, skill_name, float(reward))
+        skill_name_val = guidance.get("skill_name", "") if guidance else ""
+        skill_tracker.update(skill_id, skill_name_val, float(reward))
 
+        # ── 6. Record GRPO I/O ─────────────────────────────────────
+        # Action-taking GRPO record
+        if action_prompt:
+            try:
+                action_num = step_actions.index(action) + 1
+            except ValueError:
+                action_num = 1
+            action_completion = f"REASONING: {reasoning or 'Expert play.'}\nACTION: {action_num}"
+            act_rec = GRPOStepRecord("action_taking", game, episode_id, step_count)
+            act_rec.prompt = action_prompt
+            act_rec.completion = action_completion
+            act_rec.reward = float(reward)
+            act_rec.metadata = {
+                "chosen_action": str(action),
+                "available_actions": list(step_actions),
+                "summary_state": summary_state,
+                "intention": current_intention,
+                "active_skill": skill_id,
+            }
+            grpo_records.append(act_rec.to_dict())
+
+        # Skill-selection GRPO record
+        if skill_select_prompt and last_candidates and len(last_candidates) >= 2:
+            sk_completion = (
+                f"REASONING: {last_skill_reasoning}\nSKILL: {last_chosen_idx + 1}"
+                if last_skill_reasoning
+                else f"SKILL: {last_chosen_idx + 1}"
+            )
+            sk_rec = GRPOStepRecord("skill_selection", game, episode_id, step_count)
+            sk_rec.prompt = skill_select_prompt
+            sk_rec.completion = sk_completion
+            sk_rec.reward = float(reward)
+            sk_rec.metadata = {
+                "chosen_idx": last_chosen_idx,
+                "skill_candidates": [c.get("skill_id") for c in last_candidates],
+                "chosen_skill_id": last_candidates[last_chosen_idx].get("skill_id") if last_chosen_idx < len(last_candidates) else None,
+                "summary_state": summary_state,
+                "intention": current_intention,
+            }
+            grpo_records.append(sk_rec.to_dict())
+
+        # ── Build Experience ────────────────────────────────────────
         exp = Experience(
             state=obs_nl,
             action=str(action),
@@ -1110,26 +1644,25 @@ def run_episode(
         )
         exp.idx = step_count
         exp.action_type = "primitive"
-        exp.summary_state = last_state_summary if last_state_summary else None
+        exp.summary_state = summary_state
+        exp.summary = current_summary
         exp.available_actions = list(step_actions) if step_actions else None
         exp.interface = {"env_name": "gamingagent", "game_name": game}
 
-        if guidance and guidance.get("skill_id"):
-            exp.sub_tasks = guidance.get("skill_name", guidance["skill_id"])
+        skills_label = _skill_guidance_to_label(guidance)
+        exp.sub_tasks = skills_label.get("skill_name", skills_label["skill_id"]) if skills_label else None
 
-        # Skill selection metadata for GRPO training
         if last_candidates:
             exp.skill_candidates = [c.get("skill_id") for c in last_candidates]
             exp.skill_chosen_idx = last_chosen_idx
             exp.skill_reasoning = last_skill_reasoning
-
-        exp.summary = last_state_summary or None
 
         experiences.append(exp)
 
         if verbose:
             intent_short = (current_intention[:60] + "...") if len(current_intention) > 60 else current_intention
             reason_short = (reasoning[:60] + "...") if reasoning and len(reasoning) > 60 else reasoning
+            ss_short = (summary_state[:60] + "...") if len(summary_state) > 60 else summary_state
             skill_disp = skill_tracker.active_skill_name or "none"
             proto_total = skill_tracker.total_protocol_steps
             if proto_total > 0:
@@ -1142,11 +1675,14 @@ def run_episode(
             print(
                 f"  step {step_count}: action={action}, reward={reward:.2f}, "
                 f"cum={total_reward:.2f}\n"
+                f"    summary_state: {ss_short}\n"
                 f"    intention: {intent_short}\n"
                 f"    skill:     {skill_info}\n"
                 f"    reasoning: {reason_short}"
             )
 
+        prev_summary_state = summary_state
+        prev_intention = current_intention
         obs_nl = next_obs_nl
         action_names = next_action_names
         structured_state = next_structured_state
@@ -1162,16 +1698,19 @@ def run_episode(
         task=task,
         env_name="gamingagent",
         game_name=game,
+        episode_id=episode_id,
         metadata={
             "done": terminated or truncated,
             "steps": step_count,
             "total_reward": total_reward,
             "model": model,
-            "agent_type": "qwen3_14b_decision_with_skillbank",
+            "agent_type": "qwen3_14b_dual_lora_grpo",
             "final_intention": current_intention,
-            "final_state_summary": last_state_summary,
+            "final_summary_state": current_summary_state,
+            "final_summary": current_summary,
             "skill_switches": skill_tracker.skill_switches,
             "unique_actions": len(set(recent_actions)),
+            "grpo_records_count": len(grpo_records),
         },
     )
     episode.set_outcome()
@@ -1183,11 +1722,12 @@ def run_episode(
         "terminated": terminated,
         "truncated": truncated,
         "model": model,
-        "agent_type": "qwen3_14b_decision_with_skillbank",
+        "agent_type": "qwen3_14b_dual_lora_grpo",
         "skill_switches": skill_tracker.skill_switches,
         "unique_actions": len(set(recent_actions)),
+        "grpo_records": len(grpo_records),
     }
-    return episode, stats
+    return episode, stats, grpo_records
 
 
 def _try_alternate_skill(
@@ -1229,6 +1769,56 @@ def _try_alternate_skill(
 
 
 # ---------------------------------------------------------------------------
+# GRPO training data export (two JSONL files per game)
+# ---------------------------------------------------------------------------
+
+def export_grpo_episode_data(
+    grpo_records: List[Dict[str, Any]],
+    grpo_dir: Path,
+) -> Dict[str, int]:
+    """Export GRPO training data for both LoRAs from a single episode.
+
+    Writes two append-mode JSONL files under *grpo_dir*:
+
+    ``action_taking.jsonl``
+        One row per step. Contains the full action-selection prompt
+        (state + available actions + active skill guidance + intention)
+        and the chosen action. Reward is the step reward.
+
+    ``skill_selection.jsonl``
+        One row per step where >= 2 skill candidates were available.
+        Contains the skill-selection prompt (state + intention +
+        numbered candidate menu) and the chosen skill.
+        Reward is the step reward.
+
+    Returns ``{"action": n_action, "skill": n_skill}``.
+    """
+    if not grpo_records:
+        return {"action": 0, "skill": 0}
+
+    grpo_dir.mkdir(parents=True, exist_ok=True)
+    action_path = grpo_dir / "action_taking.jsonl"
+    skill_path = grpo_dir / "skill_selection.jsonl"
+
+    n_action = 0
+    n_skill = 0
+
+    with open(action_path, "a", encoding="utf-8") as f_act, \
+         open(skill_path, "a", encoding="utf-8") as f_sk:
+        for rec in grpo_records:
+            rec_type = rec.get("type", "")
+            line = json.dumps(rec, ensure_ascii=False) + "\n"
+            if rec_type == "action_taking":
+                f_act.write(line)
+                n_action += 1
+            elif rec_type == "skill_selection":
+                f_sk.write(line)
+                n_skill += 1
+
+    return {"action": n_action, "skill": n_skill}
+
+
+# ---------------------------------------------------------------------------
 # Batch runner
 # ---------------------------------------------------------------------------
 
@@ -1266,7 +1856,7 @@ def run_game_rollouts(
         print(f"\n  [{game_name}] Episode {ep_idx + 1}/{args.episodes}")
 
         try:
-            episode, stats = run_episode(
+            episode, stats, grpo_records = run_episode(
                 game=game_name,
                 max_steps=effective_max_steps,
                 model=args.model,
@@ -1291,6 +1881,14 @@ def run_game_rollouts(
             record["rollout_metadata"] = stats
             with open(jsonl_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+
+            # Export GRPO training data (action_taking + skill_selection)
+            grpo_game_dir = game_dir / "grpo_data"
+            grpo_counts = export_grpo_episode_data(grpo_records, grpo_game_dir)
+            n_act = grpo_counts["action"]
+            n_sk = grpo_counts["skill"]
+            if n_act > 0 or n_sk > 0:
+                print(f"    GRPO data: {n_act} action + {n_sk} skill samples → {grpo_game_dir}")
 
         except Exception as e:
             print(f"    [ERROR] Episode {ep_idx + 1} failed: {e}")
@@ -1374,6 +1972,18 @@ def main():
     parser.add_argument("--verbose", "-v", action="store_true",
                         help="Print step-by-step details")
 
+    # Dual LoRA / GRPO arguments
+    parser.add_argument("--use_lora", action="store_true",
+                        help="Enable dual LoRA adapters (skill_selection + action_taking)")
+    parser.add_argument("--local_model", type=str, default=None,
+                        help="Local model path for LoRA (default: same as --model)")
+    parser.add_argument("--adapter_dir", type=str, default=None,
+                        help="Directory with LoRA adapters (skill_selection/, action_taking/)")
+    parser.add_argument("--save_adapters", type=str, default=None,
+                        help="Save trained LoRA adapters to this directory after run")
+    parser.add_argument("--grpo_group_size", type=int, default=4,
+                        help="GRPO group size for LoRA training (default: 4)")
+
     args = parser.parse_args()
 
     if args.gpu is not None:
@@ -1441,17 +2051,29 @@ def main():
         else:
             print(f"[WARNING] No skill bank found at {bank_base}")
 
+    # ---- Setup dual LoRA if requested ----
+    if args.use_lora:
+        lora_model = args.local_model or args.model
+        _dual_lora.setup(
+            model_name_or_path=lora_model,
+            adapter_dir=args.adapter_dir,
+            grpo_group_size=args.grpo_group_size,
+        )
+
     vllm_url = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
 
     gpu_info = os.environ.get("CUDA_VISIBLE_DEVICES", "all")
 
     print("=" * 78)
-    print("  Qwen3-14B Decision Agent with Skill Bank")
+    print("  Qwen3-14B Decision Agent with Skill Bank + Dual LoRA GRPO")
     print("=" * 78)
     print(f"  Model:       {args.model}")
     print(f"  vLLM:        {vllm_url}")
     print(f"  GPU:         {gpu_info}")
     print(f"  Skill Bank:  {bank_path_str}")
+    print(f"  Dual LoRA:   {'enabled' if _dual_lora.enabled else 'disabled (vLLM only)'}")
+    if args.adapter_dir:
+        print(f"  Adapters:    {args.adapter_dir}")
     print(f"  Games:       {', '.join(available_games)}")
     print(f"  Episodes:    {args.episodes} per game")
     print(f"  Output:      {output_dir}")
@@ -1485,11 +2107,17 @@ def main():
 
     overall_elapsed = time.time() - overall_t0
 
+    # ---- Save LoRA adapters if requested ----
+    if args.save_adapters and _dual_lora.enabled:
+        _dual_lora.save_adapters(args.save_adapters)
+        print(f"  LoRA adapters saved → {args.save_adapters}")
+
     master_summary = {
         "timestamp": datetime.now().isoformat(),
         "model": args.model,
-        "agent_type": "qwen3_14b_decision_with_skillbank",
+        "agent_type": "qwen3_14b_dual_lora_grpo",
         "skill_bank": bank_path_str,
+        "dual_lora_enabled": _dual_lora.enabled,
         "episodes_per_game": args.episodes,
         "total_elapsed_seconds": overall_elapsed,
         "games": available_games,

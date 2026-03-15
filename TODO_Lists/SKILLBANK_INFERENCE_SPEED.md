@@ -37,11 +37,10 @@ python -m vllm.entrypoints.openai.api_server \
     --model Qwen/Qwen3-14B \
     --enable-lora \
     --lora-modules \
-        boundary=runs/lora_adapters/boundary \
         segment=runs/lora_adapters/segment \
         contract=runs/lora_adapters/contract \
-        retrieval=runs/lora_adapters/retrieval \
-    --max-loras 4 \
+        curator=runs/lora_adapters/curator \
+    --max-loras 3 \
     --max-model-len 8192 \
     --gpu-memory-utilization 0.85 \
     --dtype auto \
@@ -183,7 +182,7 @@ For skill extraction (`run_qwen3_skillbank_agent.sh`), the speedup is similar. C
 
 ### The Idea
 
-Instead of processing all 32 trajectories through Stage 1, waiting, then all through Stage 2, waiting, then all through Stage 3 — split into micro-batches and pipeline them through the stages. Since each stage uses a different LoRA adapter and vLLM serves all adapters concurrently, Stage 1 requests (boundary adapter) and Stage 2 requests (segment adapter) from different micro-batches land in the **same GPU batch**.
+Instead of processing all 32 trajectories through Stage 1, waiting, then all through Stage 2, waiting, then all through Stage 3 — split into micro-batches and pipeline them through the stages. Stage 1 (boundary) uses the base model; Stages 2-3 use LoRA adapters. Since vLLM serves all adapters concurrently, Stage 1 requests (base model) and Stage 2 requests (segment adapter) from different micro-batches land in the **same GPU batch**.
 
 ### Without Pipeline (stage-at-a-time)
 
@@ -220,7 +219,7 @@ At peak, the GPU processes boundary, segment, and contract adapter requests **in
 
 ### Why This Works
 
-1. **Different LoRA adapters coexist in vLLM**: with `--enable-lora --max-loras 4`, all four adapters are loaded simultaneously. A single vLLM batch can contain requests targeting different adapters. The base model forward pass is shared; only the LoRA delta differs per request.
+1. **Different LoRA adapters coexist in vLLM**: with `--enable-lora --max-loras 3`, all three GRPO-trained adapters (`segment`, `contract`, `curator`) are loaded simultaneously. Stage 1 (boundary) uses the base model without a LoRA adapter. A single vLLM batch can contain requests targeting different adapters. The base model forward pass is shared; only the LoRA delta differs per request.
 
 2. **Higher GPU utilization**: in the stage-at-a-time approach, the GPU briefly idles between stages while CPU prepares the next stage's inputs. In the pipeline, those idle slots are filled by requests from the next micro-batch's earlier stage.
 
@@ -371,7 +370,7 @@ Neither layer knows about the other. Python doesn't know about GPU batching. vLL
 **Concrete trace of a 2-micro-batch pipeline:**
 
 ```
-t=0.0s  Python: MB1 sends 32 S1 requests (boundary adapter) → vLLM queue
+t=0.0s  Python: MB1 sends 32 S1 requests (base model, no LoRA) → vLLM queue
         Python: MB2 is at "await S1" — its coroutine hasn't started yet? No, it HAS started
                 but it's also awaiting its own S1 generate_batch
         vLLM:   batch contains [MB1:S1 x32] + [MB2:S1 x32] = 64 boundary requests
@@ -451,7 +450,7 @@ For extraction there are no GRPO updates, so the pipeline is **fully unconstrain
 # Multi-episode pipelined extraction
 async def extract_all(episodes):
     async def extract_one(ep):
-        s1 = await stage1_boundary(ep)     # boundary adapter
+        s1 = await stage1_boundary(ep)     # base model (no LoRA)
         s2 = await stage2_decode(ep, s1)   # segment adapter
         s3 = await stage3_contract(ep, s2) # contract adapter
         return s1, s2, s3
@@ -507,7 +506,7 @@ After each GRPO update modifies a LoRA adapter's weights, vLLM must reload the a
 
 ### P0 — Critical (20x throughput)
 
-- [ ] **Update vLLM launch script** — add `--enable-lora --lora-modules ... --max-loras 4` to `run_qwen3_skillbank_agent.sh`
+- [ ] **Update vLLM launch script** — add `--enable-lora --lora-modules segment,contract,curator --max-loras 3` to `run_qwen3_skillbank_agent.sh`. Stage 1 (boundary) uses base model; `retrieval` is legacy.
 - [ ] **Create async vLLM client wrapper** — `skill_agents/lora/vllm_client.py` with `generate_batch()` and `chat_with_tools()` methods
 - [ ] **Replace `MultiLoraSkillBankLLM.generate()`** — route through vLLM API instead of HuggingFace `.generate()`. Keep the same public interface (`generate(function, prompt)`) but internally use HTTP calls to vLLM.
 - [ ] **Remove `max_concurrent_llm_calls=1`** in `scripts/qwen3_skillbank_agent.py`
@@ -534,7 +533,7 @@ All components share one Qwen3-14B on one A100-80GB:
 | Component | Memory |
 |-----------|--------|
 | Qwen3-14B base weights (bf16) | ~28 GB |
-| 4 LoRA adapters (rank 16 each) | ~0.8 GB total |
+| 3 LoRA adapters (rank 16 each) | ~0.6 GB total |
 | vLLM KV cache (at 0.85 utilization) | ~39 GB |
 | **Total** | ~68 GB / 80 GB |
 

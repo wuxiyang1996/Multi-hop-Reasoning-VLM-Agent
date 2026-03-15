@@ -381,11 +381,15 @@ def make_orak_env(
     log_dir = str(_CODEBASE_ROOT / "orak_logs" / game_name)
     os.makedirs(log_dir, exist_ok=True)
 
+    _NO_SCREENSHOT_GAMES = {"pokemon_red", "super_mario"}
+
     with omegaconf.open_dict(cfg):
         if "env" in cfg:
             cfg.env.log_path = log_dir
             if hasattr(cfg.env, "show_graphic"):
                 cfg.env.show_graphic = False
+            if game_name in _NO_SCREENSHOT_GAMES:
+                cfg.env.save_screenshots = False
             # Resolve rom_path relative to Orak repo root so it works
             # regardless of the caller's cwd.
             if hasattr(cfg.env, "rom_path") and not os.path.isabs(cfg.env.rom_path):

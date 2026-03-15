@@ -75,6 +75,9 @@ def check_refine_triggers(
     if confusion_partners and len(confusion_partners) >= 1:
         return True, "too_weak_confusers"
 
+    if not profile.all_effects and profile.n_instances >= 5:
+        return True, "empty_contract"
+
     return False, ""
 
 
