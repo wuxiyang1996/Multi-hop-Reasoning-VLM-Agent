@@ -1343,6 +1343,10 @@ def extract_skills_for_game(
     """
     io_log = StageIOLog(game_name, model)
     _reset_llm_call_log()
+    from skill_agents_grpo.infer_segmentation.llm_teacher import reset_teacher_io_records
+    reset_teacher_io_records()
+    from skill_agents_grpo.coldstart_io import reset as _reset_coldstart
+    _reset_coldstart()
     game_llm_calls: List[Dict[str, Any]] = []
 
     # Will be set after agent is created to attach bank snapshots to every record
@@ -1403,6 +1407,7 @@ def extract_skills_for_game(
     config = PipelineConfig(
         bank_path=bank_path,
         env_name="llm",
+        game_name=game_name,
         merge_radius=5,
         extractor_model=model,
         segmentation_method="dp",
@@ -1625,6 +1630,21 @@ def extract_skills_for_game(
                   encoding="utf-8") as f:
             json.dump(_pe_rec, f, indent=2, ensure_ascii=False, default=str)
         agent.bank.save(str(_pe_dir / "skill_bank.jsonl"))
+
+        # Incrementally flush cold-start I/O records to avoid data loss
+        from skill_agents_grpo.coldstart_io import flush as _flush_coldstart
+        _cs_records = _flush_coldstart()
+        if _cs_records:
+            _cs_path = output_dir / "coldstart_io_all.jsonl"
+            try:
+                with open(_cs_path, "a", encoding="utf-8") as _csf:
+                    for _csr in _cs_records:
+                        _csr["episode_index"] = i
+                        _csr["game"] = game_name
+                        _csf.write(json.dumps(_csr, ensure_ascii=False, default=str) + "\n")
+            except Exception:
+                pass
+
         print(f"    [Per-ep bank mgmt] episode_{i} → {_pe_dir}")
 
         # Checkpoint this episode so we can resume after it
@@ -2454,6 +2474,66 @@ def extract_skills_for_game(
         except Exception as exc:
             print(f"    [WARN] Failed to save LLM call log: {exc}")
 
+    # ── Flush Stage 2 teacher I/O (cold-start data for Qwen3-14B) ────
+    # Records every prompt/response from the LLM teacher (segment
+    # rankings, transition rankings, pairwise choices, skill naming).
+    # These serve as supervised fine-tuning data for Qwen3-14B cold-start
+    # and as reference outputs for GRPO reward comparison.
+    from skill_agents_grpo.infer_segmentation.llm_teacher import flush_teacher_io_records
+
+    teacher_records = flush_teacher_io_records()
+    if teacher_records:
+        teacher_io_path = output_dir / "teacher_io_coldstart.jsonl"
+        try:
+            with open(teacher_io_path, "w", encoding="utf-8") as f:
+                for rec in teacher_records:
+                    f.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+
+            by_fn = {}
+            for rec in teacher_records:
+                fn = rec.get("function", "unknown")
+                by_fn[fn] = by_fn.get(fn, 0) + 1
+            print(f"    Teacher I/O   → {teacher_io_path} ({len(teacher_records)} records: {by_fn})")
+        except Exception as exc:
+            print(f"    [WARN] Failed to save teacher I/O: {exc}")
+
+    # ── Flush remaining cold-start I/O from all GRPO-connected modules ──
+    # Records from: boundary_proposal (predicate_extraction, boundary_significance),
+    # stage3_contract (contract_summary), bank_curator (filter_candidates),
+    # skill_retrieval (retrieve_skills), pipeline (predicate_extraction,
+    # protocol_synthesis).  Most records are already incrementally flushed
+    # per-episode; this catches any remaining from post-episode stages.
+    from skill_agents_grpo.coldstart_io import flush as _flush_coldstart_final
+
+    remaining_cs = _flush_coldstart_final()
+    if remaining_cs:
+        cs_path = output_dir / "coldstart_io_all.jsonl"
+        try:
+            with open(cs_path, "a", encoding="utf-8") as f:
+                for rec in remaining_cs:
+                    rec["game"] = game_name
+                    f.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+        except Exception as exc:
+            print(f"    [WARN] Failed to save cold-start I/O: {exc}")
+
+    # Report cold-start I/O stats
+    cs_path = output_dir / "coldstart_io_all.jsonl"
+    if cs_path.exists():
+        try:
+            n_cs = sum(1 for _ in open(cs_path, "r", encoding="utf-8"))
+            by_mod: Dict[str, int] = {}
+            with open(cs_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    try:
+                        rec = json.loads(line)
+                        mod = rec.get("module", "unknown")
+                        by_mod[mod] = by_mod.get(mod, 0) + 1
+                    except Exception:
+                        pass
+            print(f"    Cold-start IO → {cs_path} ({n_cs} records: {by_mod})")
+        except Exception:
+            pass
+
     return agent, skill_catalog, all_sub_episodes, io_log
 
 
@@ -3002,6 +3082,18 @@ def main():
 
         print(f"    Loaded {len(game_episodes_data)} episode(s)")
 
+        # ── Enable GRPO wrappers for this game ──
+        if _grpo_orch is not None:
+            from skill_agents_grpo.infer_segmentation.episode_adapter import (
+                grpo_scorer_factory,
+                grpo_decode_fn,
+            )
+            _grpo_orch.enable_wrappers(
+                segment_scorer_factory=grpo_scorer_factory,
+                segment_decode_fn=grpo_decode_fn,
+            )
+            print(f"    [GRPO] Wrappers enabled for {game}")
+
         # ── Skill extraction (GRPO pipeline) ──
         try:
             agent, skill_catalog, sub_episodes, io_log = extract_skills_for_game(
@@ -3054,6 +3146,27 @@ def main():
                 except Exception as exc:
                     print(f"    [ERROR] Failed to save annotated episode: {exc}")
 
+        # ── GRPO: train step + disable wrappers + save adapters ──
+        if _grpo_orch is not None:
+            try:
+                grpo_stats = _grpo_orch.train_step()
+                _grpo_orch.disable_wrappers()
+                if grpo_stats:
+                    print(f"    [GRPO] Train step complete: {grpo_stats}")
+                else:
+                    print(f"    [GRPO] Train step: no samples in buffer")
+                if _local_llm is not None and _adapter_dir:
+                    save_lora_adapters(_local_llm, _adapter_dir)
+                    print(f"    [GRPO] Adapters saved → {_adapter_dir}")
+            except Exception as exc:
+                print(f"    [GRPO] Training/save failed: {exc}")
+                if args.verbose:
+                    traceback.print_exc()
+                try:
+                    _grpo_orch.disable_wrappers()
+                except Exception:
+                    pass
+
         game_elapsed = time.time() - game_t0
         stat = {
             "game": game,
@@ -3062,6 +3175,7 @@ def main():
             "skills_extracted": len(skill_catalog),
             "sub_episodes": len(sub_episodes),
             "elapsed_seconds": round(game_elapsed, 1),
+            "grpo_enabled": args.use_grpo,
         }
         all_stats.append(stat)
 

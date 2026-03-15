@@ -324,3 +324,67 @@ def _segmentation_reward_with_decode(
         return max(0.0, 0.35 * r_margin + 0.35 * r_confident + 0.20 + 0.10 * r_new_penalty)
 
     return 0.2  # decode succeeded but no segment diagnostics
+
+
+# ── Skill Selection reward (delayed, for decision-agent GRPO) ────────
+
+def skill_selection_reward(
+    reward_on_skill: float,
+    steps_on_skill: int,
+    max_skill_duration: int = 10,
+    success_met: bool = False,
+    abort_triggered: bool = False,
+    confidence: float = 0.5,
+) -> float:
+    """Reward for a skill selection decision, assigned at skill-switch time.
+
+    This is a *delayed* reward: it is computed when the skill tracker
+    triggers a reselection (duration exceeded, success met, abort, or
+    zero-reward stall) and retroactively assigned to the skill-selection
+    sample in the GRPO buffer.
+
+    Parameters
+    ----------
+    reward_on_skill : float
+        Cumulative environment reward earned while the skill was active.
+    steps_on_skill : int
+        Number of steps the skill was active.
+    max_skill_duration : int
+        Maximum allowed duration for the skill.
+    success_met : bool
+        Whether the skill's success criteria were satisfied.
+    abort_triggered : bool
+        Whether the skill was terminated due to abort criteria.
+    confidence : float
+        RAG confidence score of the selected skill (prior).
+
+    Returns
+    -------
+    float
+        Reward in [0, 1].
+
+    Components (weights sum to 1.0):
+        0.40 * env_reward — normalized cumulative reward during skill
+        0.20 * efficiency — ratio of useful steps vs. max duration
+        0.20 * success    — 1.0 if success criteria met, 0.0 otherwise
+        0.10 * no_abort   — 1.0 if no abort triggered, 0.0 otherwise
+        0.10 * confidence — RAG confidence as a soft prior
+    """
+    r_env = min(1.0, max(0.0, reward_on_skill / max(steps_on_skill, 1)))
+
+    if steps_on_skill <= 0:
+        r_efficiency = 0.0
+    else:
+        r_efficiency = min(1.0, max_skill_duration / max(steps_on_skill, 1))
+
+    r_success = 1.0 if success_met else 0.0
+    r_no_abort = 0.0 if abort_triggered else 1.0
+    r_confidence = max(0.0, min(1.0, confidence))
+
+    return (
+        0.40 * r_env
+        + 0.20 * r_efficiency
+        + 0.20 * r_success
+        + 0.10 * r_no_abort
+        + 0.10 * r_confidence
+    )

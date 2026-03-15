@@ -25,8 +25,8 @@ Build and maintain a **Skill Bank** from long-horizon game trajectories: segment
 
 Subpackages implement each stage:
 
-- **boundary_proposal** — Stage 1: high-recall candidate cut points + boundary plausibility scoring. *Not GRPO-wrapped* (boundaries are algorithmic from predicates + signals).
-- **infer_segmentation** — Stage 2: skill labelling with preference learning + contract feedback. **GRPO:** SEGMENT LoRA wraps `collect_segment_preferences()`; reward = `SegmentationDiagnostics`.
+- **boundary_proposal** — Stage 1: high-recall candidate cut points + boundary plausibility scoring. Phase transitions (from `phase_detector`) are injected as boundary events. *Not GRPO-wrapped* (boundaries are algorithmic from predicates + signals).
+- **infer_segmentation** — Stage 2: skill labelling with preference learning + contract feedback + **phase-aware intention-fit scoring**. Skills are compound labels (`"endgame:MERGE"`, `"opening:POSITION"`). **GRPO:** SEGMENT LoRA wraps `collect_segment_preferences()`; reward = `SegmentationDiagnostics`.
 - **stage3_mvp** — Stage 3: effects-only contract learn/verify/refine. **GRPO:** CONTRACT LoRA wraps `llm_summarize_contract()`; reward = `verify_effects_contract().overall_pass_rate`.
 - **bank_maintenance** — Stage 4: propose candidates → **filter (CURATOR LoRA)** → execute. Refine/merge/split/materialize/promote; proto-skill lifecycle respected.
 - **skill_evaluation** — Quality assessment (optional LLM judge).
@@ -283,6 +283,7 @@ Key options (see `pipeline.PipelineConfig` for all). **Model convention:** use `
 |-------|--------|--------|
 | `bank_path` | `None` | JSONL path for the skill bank. |
 | `env_name` | `"llm"` | Signal extraction: `"llm"`, `"llm+overcooked"`, `"overcooked"`, etc. |
+| `game_name` | `"generic"` | Actual game identifier for phase detection (e.g. `"twenty_forty_eight"`, `"super_mario"`). |
 | `extractor_model` | `None` | LLM for Stage 1 boundary proposal (e.g. `Qwen/Qwen3-14B`, `gpt-4o-mini`). |
 | `llm_model` | `None` | LLM for protocol synthesis and pipeline LLM calls. |
 | `merge_radius` | `5` | Merge boundary candidates within this many steps (Stage 1). |
@@ -304,14 +305,96 @@ Key options (see `pipeline.PipelineConfig` for all). **Model convention:** use `
 ## Data flow
 
 1. **Episode** (from env rollouts or demos) has `experiences` and `task`. Use `Episode` from `data_structure.experience`.
-2. **Stage 1** (boundary_proposal): extract signals → propose candidate cut points **C**. Optionally filter with `BoundaryPreferenceScorer`. *Not GRPO-wrapped.*
-3. **Stage 2** (infer_segmentation): decode over **C** with preference-learned scorer → segments + skill labels (including `__NEW__`). Contract feedback uses `bank.compat_fn`. **GRPO:** SEGMENT LoRA wraps `collect_segment_preferences()`; reward from `SegmentationDiagnostics` after scorer rebuild + decode.
-4. **Stage 3** (stage3_mvp): for each non-NEW skill, learn effects contract, verify, refine; persist to bank. **GRPO:** CONTRACT LoRA wraps `llm_summarize_contract()`; reward = `verify_effects_contract().overall_pass_rate`. Contracts feed back into Stage 2 via `compat_fn`.
-5. **Stage 4** (bank_maintenance): **propose** candidates (refine/merge/split/materialize/promote) from `SkillProfile` + triggers → **filter** via `filter_candidates()` (CURATOR LoRA: approve/veto/defer) → **execute** approved actions. Refine = weaken + strengthen; merge/split use alias map and local re-decode. **GRPO:** CURATOR LoRA reward = `bank_quality_delta`.
-6. **Proto-skill staging:** `__NEW__` → `NewPoolManager` clusters → materialize → proto-skill in staging → verify → promote to real bank. Proto-skills participate in Stage 2 decoding before promotion.
-7. **Query / Select:** decision agent uses `select_skill(query, current_state)` or `query_skill(key)` / `query_by_effects(...)`.
+2. **Phase detection** (`phase_detector`): per-step game-phase labels are computed from state features (board occupancy, position progress, etc.). Combined with intention tags to create **compound skill labels** (`"endgame:MERGE"`, `"early_level:NAVIGATE"`). See [Phase detection](#phase-detection-preprocessor) below.
+3. **Stage 1** (boundary_proposal): extract signals → propose candidate cut points **C**. Phase transitions are injected as boundary events. *Not GRPO-wrapped.*
+4. **Stage 2** (infer_segmentation): decode over **C** with preference-learned scorer → segments + compound skill labels (including `__NEW__`). The `intention_fit` term matches compound labels. Contract feedback uses `bank.compat_fn`. **GRPO:** SEGMENT LoRA wraps `collect_segment_preferences()`; reward from `SegmentationDiagnostics` after scorer rebuild + decode.
+5. **Stage 3** (stage3_mvp): for each non-NEW skill, learn effects contract, verify, refine; persist to bank. **GRPO:** CONTRACT LoRA wraps `llm_summarize_contract()`; reward = `verify_effects_contract().overall_pass_rate`. Contracts feed back into Stage 2 via `compat_fn`.
+6. **Stage 4** (bank_maintenance): **propose** candidates (refine/merge/split/materialize/promote) from `SkillProfile` + triggers → **filter** via `filter_candidates()` (CURATOR LoRA: approve/veto/defer) → **execute** approved actions. Refine = weaken + strengthen; merge/split use alias map and local re-decode. **GRPO:** CURATOR LoRA reward = `bank_quality_delta`.
+7. **Proto-skill staging:** `__NEW__` → `NewPoolManager` clusters → materialize → proto-skill in staging → verify → promote to real bank. Proto-skills participate in Stage 2 decoding before promotion.
+8. **Query / Select:** decision agent uses `select_skill(query, current_state)` or `query_skill(key)` / `query_by_effects(...)`.
+
+### Stage 2 scoring formula
+
+The `SegmentScorer` combines six terms to score each candidate segment `(i, j)` with skill `k`:
+
+```
+Score(i, j, k | k_prev) =
+    w_bf  * behavior_fit(obs, act, k)       [LLM preferences — Bradley-Terry]
+  + w_if  * intention_fit(k, i, j)          [per-step tag agreement]
+  + w_dp  * duration_prior(j-i+1, k)       [Gaussian]
+  + w_tp  * transition_prior(k, k_prev)     [LLM preferences — Bradley-Terry]
+  + w_cc  * contract_compat(k, P_i, P_j)   [Stage 3 feedback]
+  + w_bp  * boundary_preference(i, j)
+```
+
+| Term | Weight | Source | Purpose |
+|------|--------|--------|---------|
+| `behavior_fit` | 1.0 | LLM teacher rankings → Bradley-Terry | Does the segment's behavior match this skill? |
+| `intention_fit` | **2.0** | Per-step phase:tag compound labels | Fraction of steps in `[i,j]` whose compound label matches skill `k`, scaled by segment length. Prevents label collapse and distinguishes same-tag skills across game phases. |
+| `duration_prior` | 0.3 | Gaussian (configurable) | Is the segment length reasonable for this skill? |
+| `transition_prior` | 1.0 | LLM teacher rankings → Bradley-Terry | Is `k` a natural successor to `k_prev`? |
+| `contract_compat` | 0.0 (off) | Stage 3 effects contracts | Do the state changes match the skill's learned contract? |
+| `boundary_preference` | 0.5 | Boundary plausibility scorer | Is this a good place to cut? |
+
+The `intention_fit` term uses **compound labels** produced by the [phase detection preprocessor](#phase-detection-preprocessor). Each step gets a label like `"endgame:MERGE"` (combining game phase + intention tag), so that the same tactical intent in different game phases becomes a distinct skill. When no tags are available, `intention_fit` returns 0 and the scorer degrades gracefully to LLM-only mode. Partial matching is supported: a raw tag skill like `"MERGE"` still matches the tag portion of compound labels.
+
+Vocabulary merging ensures the decoder always sees all compound labels alongside existing bank skills: `_seed_skills_from_intentions()` runs phase detection and extracts unique compound labels from each episode, merging them into the skill vocabulary before decoding. The preference store re-collects LLM rankings whenever new skills appear (`unseen_skills` check).
 
 **GRPO co-evolution:** Each EM step runs Phase 1 (wrappers generate G samples, store in buffer, return best); then Phase 2 (`GRPOLoRATrainer` one step per adapter, clear buffer). Protocol synthesis (`update_protocols()`) remains plain LLM inference when `llm_model` / `extractor_model` is set.
+
+---
+
+## Phase detection preprocessor
+
+Per-step intention tags (`[MERGE]`, `[NAVIGATE]`) capture **tactical** intent but not **strategic** context. The same tactic in different game phases represents a different skill — e.g. `MERGE` on an empty 2048 board (opening) vs. a nearly-full board (endgame) require different strategies.
+
+The **phase detector** (`infer_segmentation/phase_detector.py`) adds a phase label to each timestep and combines it with the intention tag to create **compound skill labels**:
+
+```
+raw tag:      MERGE          MERGE          MERGE
+phase:        opening        midgame        endgame
+compound:     opening:MERGE  midgame:MERGE  endgame:MERGE   ← 3 distinct skills
+```
+
+### Game-specific extractors
+
+Each game has a dedicated extractor that parses structured state features:
+
+| Game | State Feature | Phases |
+|------|--------------|--------|
+| **2048** | Board occupancy + highest tile | `opening`, `midgame`, `endgame` |
+| **Tetris** | Board fill ratio | `opening`, `midgame`, `endgame` |
+| **Super Mario** | Mario x-position (level progress) | `early_level`, `mid_level`, `late_level` |
+| **Sokoban** | Boxes on goal positions | `setup`, `solving`, `finishing` |
+| **Pokemon Red** | State text keywords (battle/route/menu) | `battle`, `exploration`, `overworld`, `menu` |
+| **Avalon** | Round signals (vote/quest/assassin) | `team_building`, `quest`, `endgame` |
+| **Diplomacy** | Turn/season signals | `opening`, `orders`, `retreat`, `adjustment` |
+| **Candy Crush** | Temporal position (no strong state signal) | `early`, `mid`, `late` |
+
+### Generic fallback
+
+If a game-specific extractor returns only 1 unique phase (uninformative), the detector falls back to **temporal-third detection**: it splits the episode into thirds and checks whether the tag distributions differ meaningfully across them. If they do, it labels steps as `early`/`mid`/`late`; otherwise it returns `"mid"` everywhere (which `make_compound_label` strips, preserving raw tags).
+
+### Integration points
+
+The phase detector feeds into three places:
+
+1. **Skill seeding** (`pipeline.py → _seed_skills_from_intentions`): seeds compound labels (`"endgame:MERGE"`) instead of raw tags, giving the decoder a richer vocabulary.
+2. **Intention-fit scoring** (`episode_adapter.py → _build_intention_fit_fn`): the scorer matches compound labels against skills, so `endgame:MERGE` scores high in late-episode segments and 0 in early ones.
+3. **Boundary proposal** (`boundary_proposal/episode_adapter.py → propose_from_episode`): phase transition timesteps are injected as boundary events, ensuring the decoder has cut points where game phases change.
+
+The `game_name` field in `PipelineConfig` controls which game-specific extractor is used (separate from `env_name` which controls signal extraction strategy).
+
+### Impact
+
+| Game | Before (raw tags) | After (compound labels) |
+|------|-------------------|------------------------|
+| 2048 | 1 skill (`MERGE`) | 9 skills (`opening:MERGE`, `midgame:MERGE`, `endgame:MERGE`, `endgame:SURVIVE`, ...) |
+| Super Mario | 1 skill (`NAVIGATE`) | 4 skills (`early:NAVIGATE`, `NAVIGATE`, `CLEAR`, `late:CLEAR`) |
+| Candy Crush | 1 skill | 2 skills |
+| Sokoban | 2 skills | 3 skills |
+| Pokemon Red | 2 skills | 3 skills |
+| Tetris | 4 skills | 4 skills (maintained) |
 
 ---
 
@@ -337,6 +420,68 @@ All LLM entry points in skill_agents use this wrapper:
 - **skill_evaluation/evaluators.py** — LLM judge
 
 Protocol and naming prompts have also been tightened (game-AI expert roles, concrete steps, tag-specific execution-hint failure modes) so that with the full token budget, outputs are concrete and game-specific rather than generic.
+
+---
+
+## Running skill extraction (with or without GRPO)
+
+The extraction script `extract_skillbank_grpo_gpt54.py` supports three modes:
+
+### Mode 1: API-based LLM teacher (default — GPT-5.4)
+
+```bash
+export OPENROUTER_API_KEY="sk-or-..."
+export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
+
+# All games
+python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54
+
+# Quick test: one episode per game
+python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54 --one_per_game -v
+
+# Specific games
+python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54 --games twenty_forty_eight tetris
+```
+
+### Mode 2: Local model as LLM teacher (Qwen3-14B, no GRPO)
+
+Uses Qwen3-14B (or any HuggingFace model) for all LLM teacher calls instead of the API. The model is loaded once and registered as the shared instance; all LLM call sites auto-discover it.
+
+```bash
+python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54 \
+    --local_model Qwen/Qwen3-14B \
+    --games twenty_forty_eight --one_per_game -v
+```
+
+### Mode 3: Local model + GRPO training
+
+Enables the full GRPO loop: for each LLM teacher call, G candidate ranking sets are sampled at elevated temperature, each is evaluated by rebuilding the scorer and running the Viterbi decoder, the best is returned to the pipeline, and all samples are stored for LoRA fine-tuning. After each game, a GRPO training step updates the LoRA adapters.
+
+```bash
+python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54 \
+    --local_model Qwen/Qwen3-14B \
+    --use_grpo \
+    --grpo_group_size 4 \
+    --adapter_dir output/lora_adapters \
+    --games twenty_forty_eight -v
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--local_model` | None | HuggingFace model id or path (e.g. `Qwen/Qwen3-14B`) |
+| `--use_grpo` | off | Enable GRPO sampling + LoRA training |
+| `--grpo_group_size` | 4 | Number of samples per LLM call (G) |
+| `--adapter_dir` | `<output>/lora_adapters` | Load/save LoRA adapters here |
+| `--grpo_train_every` | 0 | Train every N episodes (0 = once per game) |
+
+The GRPO loop per game:
+1. `GRPOOrchestrator.enable_wrappers()` — monkey-patches `collect_segment_preferences`, `llm_summarize_contract`, `filter_candidates`
+2. Run `extract_skills_for_game()` — pipeline calls go through GRPO wrappers
+3. `GRPOOrchestrator.train_step()` — reads buffer, computes advantages, PPO-clip loss on LoRA params
+4. `GRPOOrchestrator.disable_wrappers()` — restores original functions
+5. Save updated LoRA adapters to `--adapter_dir`
+
+Trained adapters persist across runs: pass the same `--adapter_dir` on the next invocation to resume training from where you left off.
 
 ---
 
@@ -371,6 +516,280 @@ See [trainer/README.md](../trainer/README.md) for co-evolution setup and [TODO_L
 
 ---
 
+## Cold-start I/O recording for Qwen+GRPO
+
+Every LLM-calling function that will be replaced or augmented by Qwen+GRPO records its full prompt/response. These records serve as:
+
+1. **Supervised fine-tuning data** for Qwen3-14B cold-start (before any GRPO training).
+2. **Reference outputs** for GRPO reward comparison (teacher vs. student).
+
+### Two recording systems
+
+| System | File | Source modules | When it fires |
+|--------|------|---------------|---------------|
+| **Teacher I/O** | `teacher_io_coldstart.jsonl` | `infer_segmentation/llm_teacher.py` | Always (API fallback) |
+| **Cold-start I/O** | `coldstart_io_all.jsonl` | `boundary_proposal`, `stage3_contract`, `bank_curator`, `skill_retrieval`, `pipeline` | API calls always; LoRA adapter calls when configured |
+
+Both are written per-game to the game's output directory. `coldstart_io_all.jsonl` is **incrementally flushed per-episode** (append mode) so data survives crashes.
+
+### Recorded functions and sample formats
+
+#### 1. `segment_ranking` (llm_teacher — SEGMENTATION adapter)
+
+Rank candidate skills for a trajectory segment.
+
+```json
+{
+  "function": "segment_ranking",
+  "prompt": "You are an expert at recognizing skills...\nA trajectory segment spans timesteps 11 to 12...",
+  "response": "{\"ranking\":[\"late:DEFEND\",\"POSITION\",...],\"reasoning\":\"...\"}",
+  "parsed": {"ranking": ["late:DEFEND", "POSITION", ...], "reasoning": "..."},
+  "model": "gpt-5.4",
+  "temperature": 0.3,
+  "max_tokens": 1000,
+  "elapsed_s": 3.42,
+  "segment_start": 11,
+  "segment_end": 12,
+  "skill_names": ["CLEAR", "POSITION", "early:CLEAR", "late:DEFEND"]
+}
+```
+
+#### 2. `transition_ranking` (llm_teacher — SEGMENTATION adapter)
+
+Rank likely next skills given the previous skill.
+
+```json
+{
+  "function": "transition_ranking",
+  "prompt": "The agent just finished executing skill: \"early:CLEAR\"...",
+  "response": "{\"ranking\":[\"early:POSITION\",...],\"reasoning\":\"...\"}",
+  "parsed": {"ranking": ["early:POSITION", "early:SETUP", ...], "reasoning": "..."},
+  "model": "gpt-5.4",
+  "temperature": 0.3,
+  "elapsed_s": 2.3,
+  "skill_names": ["CLEAR", "POSITION", "early:CLEAR", "early:POSITION"],
+  "prev_skill": "early:CLEAR"
+}
+```
+
+#### 3. `pairwise_choice` (llm_teacher — SEGMENTATION adapter)
+
+A/B choice for uncertain segment assignments.
+
+```json
+{
+  "function": "pairwise_choice",
+  "prompt": "Segment: timesteps 0 to 13\nObservations: [...]...\nSkill A: POSITION\nSkill B: DEFEND",
+  "response": "{\"choice\":\"A\",\"evidence\":\"...\"}",
+  "parsed": {"choice": "A", "evidence": "The segment is dominated by selecting quest teams..."},
+  "model": "gpt-5.4",
+  "elapsed_s": 2.62,
+  "segment_end": 13,
+  "skill_a": "POSITION",
+  "skill_b": "DEFEND"
+}
+```
+
+#### 4. `skill_naming` (llm_teacher — SEGMENTATION adapter)
+
+Name + description for new skill clusters. Fires when new skills emerge.
+
+```json
+{
+  "function": "skill_naming",
+  "prompt": "Name this skill cluster based on the following segments...",
+  "response": "{\"name\":\"Guard Endgame Reads\",\"description\":\"...\"}",
+  "parsed": {"name": "Guard Endgame Reads", "description": "..."},
+  "model": "gpt-5.4",
+  "elapsed_s": 1.8,
+  "skill_names": ["DEFEND"]
+}
+```
+
+#### 5. `boundary_proposal:predicate_extraction` (BOUNDARY adapter)
+
+Extract structured predicates from state descriptions.
+
+```json
+{
+  "module": "boundary_proposal",
+  "function": "predicate_extraction",
+  "prompt": "You are analyzing a game agent's trajectory...\nTimesteps:\n  t=0: game=2048 | highest_tile=2 ...",
+  "response": "[{\"phase\":\"opening\",\"highest_tile\":\"2\"}, ...]",
+  "parsed": {"n_predicates": 30},
+  "model": "qwen3-14b",
+  "temperature": 0.2,
+  "max_tokens": 3000,
+  "elapsed_s": 1.2,
+  "segment_start": 0,
+  "segment_end": 30,
+  "n_steps": 30
+}
+```
+
+#### 6. `boundary_proposal:boundary_significance` (BOUNDARY adapter)
+
+Filter which predicate changes are real skill boundaries.
+
+```json
+{
+  "module": "boundary_proposal",
+  "function": "boundary_significance",
+  "prompt": "You are analyzing state transitions...\nPairs:\n  t=5: {\"phase\":\"opening\"} -> {\"phase\":\"midgame\"}...",
+  "response": "[true, false, true]",
+  "parsed": {"significances": [true, false, true]},
+  "model": "qwen3-14b",
+  "temperature": 0.1,
+  "max_tokens": 2000,
+  "elapsed_s": 0.8,
+  "n_steps": 3
+}
+```
+
+#### 7. `stage3_contract:contract_summary` (CONTRACT adapter)
+
+Generate effect summary (eff_add / eff_del / description) for a skill.
+
+```json
+{
+  "module": "stage3_contract",
+  "function": "contract_summary",
+  "prompt": "You are analyzing skill effects...\nSkill: endgame:MERGE\nNumber of instances: 5...",
+  "response": "{\"eff_add\":[\"phase=endgame\"],\"eff_del\":[\"phase=midgame\"],\"description\":\"Transition to endgame\"}",
+  "parsed": {"eff_add": ["phase=endgame"], "eff_del": ["phase=midgame"], "description": "Transition to endgame"},
+  "temperature": 0.1,
+  "elapsed_s": 1.5,
+  "skill_id": "endgame:MERGE",
+  "extra": {"n_instances": 5}
+}
+```
+
+#### 8. `bank_curator:filter_candidates` (CURATOR adapter)
+
+Approve / veto / defer bank maintenance actions.
+
+```json
+{
+  "module": "bank_curator",
+  "function": "filter_candidates",
+  "prompt": "You are a skill bank maintenance curator...\nAction 0: REFINE on endgame:MERGE...",
+  "response": "{\"decisions\":[{\"idx\":0,\"verdict\":\"approve\",\"reason\":\"clear evidence\"}]}",
+  "parsed": {"decisions": [{"idx": 0, "verdict": "approve", "reason": "clear evidence"}]},
+  "temperature": 0.2,
+  "elapsed_s": 2.0,
+  "extra": {"n_candidates": 3}
+}
+```
+
+#### 9. `skill_retrieval:retrieve_skills` (RETRIEVAL adapter)
+
+Query rewriting + skill ranking for decision agents.
+
+```json
+{
+  "module": "skill_retrieval",
+  "function": "retrieve_skills",
+  "prompt": "You are a skill retrieval assistant...\nAgent's current goal: merge tiles...",
+  "response": "{\"rewritten_query\":\"endgame merge\",\"ranking\":[\"endgame:MERGE\"],\"reasoning\":\"best fit\"}",
+  "parsed": {"rewritten_query": "endgame merge", "ranking": ["endgame:MERGE"], "reasoning": "best fit"},
+  "temperature": 0.1,
+  "elapsed_s": 0.5,
+  "skill_names": ["endgame:MERGE", "midgame:MERGE"],
+  "extra": {"query": "merge tiles", "top_k": 5}
+}
+```
+
+#### 10. `pipeline:predicate_extraction`
+
+Same as #5 but called from `SkillBankAgent._ensure_predicates_extracted` (Stage 3).
+
+```json
+{
+  "module": "pipeline",
+  "function": "predicate_extraction",
+  "prompt": "You are analyzing a game agent's trajectory...",
+  "response": "[{\"phase\":\"opening\"}]",
+  "parsed": {"n_predicates": 1},
+  "model": "gpt-5.4",
+  "temperature": 0.2,
+  "max_tokens": 3000,
+  "elapsed_s": 1.1,
+  "segment_start": 0,
+  "segment_end": 30,
+  "n_steps": 30
+}
+```
+
+#### 11. `pipeline:protocol_synthesis`
+
+Generate structured execution protocol for a skill.
+
+```json
+{
+  "module": "pipeline",
+  "function": "protocol_synthesis",
+  "prompt": "You are a game-AI protocol designer...\nSkill: endgame:MERGE\nEffects: ...",
+  "response": "{\"preconditions\":[\"high tile\"],\"steps\":[\"merge tiles\"],\"success_criteria\":[\"reached 2048\"],\"abort_criteria\":[\"no moves\"]}",
+  "parsed": {"preconditions": ["high tile"], "steps": ["merge tiles"], "success_criteria": ["reached 2048"], "abort_criteria": ["no moves"]},
+  "model": "gpt-5.4",
+  "temperature": 0.2,
+  "max_tokens": 800,
+  "elapsed_s": 1.8,
+  "skill_id": "endgame:MERGE"
+}
+```
+
+### Coverage matrix
+
+| # | Module | Function | LoRA Adapter | Fires w/o LoRA? | Output file |
+|---|--------|----------|--------------|-----------------|-------------|
+| 1 | `llm_teacher` | `segment_ranking` | SEGMENTATION | Yes (API fallback) | `teacher_io_coldstart.jsonl` |
+| 2 | `llm_teacher` | `transition_ranking` | SEGMENTATION | Yes | `teacher_io_coldstart.jsonl` |
+| 3 | `llm_teacher` | `pairwise_choice` | SEGMENTATION | Yes | `teacher_io_coldstart.jsonl` |
+| 4 | `llm_teacher` | `skill_naming` | SEGMENTATION | Yes | `teacher_io_coldstart.jsonl` |
+| 5 | `boundary_proposal` | `predicate_extraction` | BOUNDARY | Yes (API fallback) | `coldstart_io_all.jsonl` |
+| 6 | `boundary_proposal` | `boundary_significance` | BOUNDARY | Yes (API fallback) | `coldstart_io_all.jsonl` |
+| 7 | `stage3_contract` | `contract_summary` | CONTRACT | No (LoRA only) | `coldstart_io_all.jsonl` |
+| 8 | `bank_curator` | `filter_candidates` | CURATOR | No (LoRA only) | `coldstart_io_all.jsonl` |
+| 9 | `skill_retrieval` | `retrieve_skills` | RETRIEVAL | No (LoRA only) | `coldstart_io_all.jsonl` |
+| 10 | `pipeline` | `predicate_extraction` | — | Yes (API) | `coldstart_io_all.jsonl` |
+| 11 | `pipeline` | `protocol_synthesis` | — | Yes (API) | `coldstart_io_all.jsonl` |
+
+Functions 7–9 only produce records when `MultiLoraSkillBankLLM` is configured (Qwen3-14B + LoRA adapters). The rest fire via the API fallback.
+
+### Implementation
+
+The centralized recording module is `coldstart_io.py`:
+
+```python
+from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord, flush, reset
+
+# Record after each LLM call
+record_io(ColdStartRecord(
+    module="boundary_proposal",
+    function="predicate_extraction",
+    prompt=prompt,
+    response=response,
+    parsed=parsed_result,
+    model=model_name,
+    elapsed_s=elapsed,
+))
+
+# Flush (returns list[dict] and clears buffer)
+records = flush()
+
+# Non-destructive read
+records = get_records()
+```
+
+The main pipeline (`extract_skillbank_grpo_gpt54.py`):
+- Resets the buffer at the start of each game.
+- Flushes incrementally after each episode (append to `coldstart_io_all.jsonl` with `episode_index` and `game` tags).
+- Flushes remaining records at the end of the pipeline.
+- Prints per-module record counts in the summary.
+
+---
+
 ## Subpackage docs
 
 - [boundary_proposal/README.md](boundary_proposal/README.md) — Stage 1 signals and `segment_episode` / `propose_from_episode`.
@@ -383,34 +802,43 @@ See [trainer/README.md](../trainer/README.md) for co-evolution setup and [TODO_L
 ## File layout
 
 ```
-skill_agents/
-├── README.md              # This file
-├── PLAN.md                # SkillBank Agent operating plan
-├── __init__.py            # SkillBankAgent, SkillQueryEngine, NewPoolManager, etc.
-├── _llm_compat.py         # Reasoning-model compatibility (strip_think_tags, /no_think wrapper)
-├── pipeline.py            # SkillBankAgent orchestrator (contract feedback, NEW pool, proto-skill flow)
-├── query.py               # SkillQueryEngine + SkillSelectionResult (retrieval + selection policy)
-├── tool_call_reward.py    # Reward for tool calls (agentic RL)
+skill_agents_grpo/
+├── README.md                 # This file
+├── PLAN.md                   # SkillBank Agent operating plan
+├── __init__.py               # SkillBankAgent, SkillQueryEngine, NewPoolManager, etc.
+├── _llm_compat.py            # Reasoning-model compatibility (strip_think_tags, /no_think wrapper)
+├── coldstart_io.py           # Centralized cold-start I/O recording for all GRPO-connected functions
+├── pipeline.py               # SkillBankAgent orchestrator (contract feedback, NEW pool, proto-skill flow)
+├── query.py                  # SkillQueryEngine + SkillSelectionResult (retrieval + selection policy)
+├── tool_call_reward.py       # Reward for tool calls (agentic RL)
 ├── skill_bank/
-│   ├── bank.py            # SkillBankMVP persistence + compat_fn (Stage 3→2 feedback)
-│   └── new_pool.py        # NewPoolManager: NEW tracking; get_candidates() for Stage 4 materialize
-├── boundary_proposal/     # Stage 1 (not GRPO-wrapped)
-├── infer_segmentation/    # Stage 2 — SEGMENT LoRA wraps collect_segment_preferences()
-├── stage3_mvp/            # Stage 3 — CONTRACT LoRA wraps llm_summarize_contract()
-├── bank_maintenance/      # Stage 4 — propose (profiles, triggers) + execute (refine/merge/split/materialize/promote)
+│   ├── bank.py               # SkillBankMVP persistence + compat_fn (Stage 3→2 feedback)
+│   └── new_pool.py           # NewPoolManager: NEW tracking; get_candidates() for Stage 4 materialize
+├── boundary_proposal/        # Stage 1 (not GRPO-wrapped)
+├── infer_segmentation/       # Stage 2 — preference learning + phase-aware intention-fit scoring
+│   ├── config.py             # ScorerWeights (incl. intention_fit=2.0), SegmentationConfig
+│   ├── scorer.py             # SegmentScorer: 6-term composite (behavior_fit, intention_fit, ...)
+│   ├── dp_decoder.py         # Viterbi HSMM decoder
+│   ├── episode_adapter.py    # infer_and_segment(): builds compound-label intention_fit_fn
+│   ├── phase_detector.py     # Phase detection: game-specific extractors + generic fallback
+│   ├── llm_teacher.py        # LLM teacher: rankings → pairwise prefs; TeacherIORecord cold-start
+│   ├── preference.py         # PreferenceStore, PreferenceScorer (Bradley-Terry)
+│   └── diagnostics.py        # SegmentationResult, SegmentDiagnostic
+├── stage3_mvp/               # Stage 3 — CONTRACT LoRA wraps llm_summarize_contract()
+├── bank_maintenance/         # Stage 4 — propose → filter (CURATOR LoRA) → execute
 ├── contract_verification/
-├── skill_evaluation/      # Quality evaluation
-└── lora/                  # MultiLoraSkillBankLLM (log_probs for GRPO), Qwen3-14B config
-
-trainer/skillbank/
-├── grpo/                  # GRPO wrapper pipeline
-│   ├── buffer.py          # GRPOBuffer (adapter, prompt, completions, rewards)
-│   ├── wrapper.py         # GRPOCallWrapper (G samples, reward, store, return best)
-│   ├── trainer.py         # GRPOLoRATrainer (log_probs, advantages, LoRA update)
-│   ├── rewards.py         # contract_reward(), curator_reward(), segmentation_reward()
-│   └── config.py          # Per-stage GRPO hyperparameters
-├── stage4_candidates.py   # propose_candidates(), CandidateAction, conflict/deferral annotation
-├── stage4_filter.py       # filter_candidates() — CURATOR LoRA, approve/veto/defer
-├── stage4_prompts.py      # Curator system prompt, output schema
-└── em_trainer.py          # EM loop: propose → filter → execute; Phase 2 GRPO train_step
+├── skill_evaluation/         # Quality evaluation
+├── grpo/                     # GRPO infrastructure
+│   ├── orchestrator.py       # GRPOOrchestrator: enable/disable wrappers, train_step
+│   ├── wrapper.py            # GRPOCallWrapper (G samples, reward, store, return best)
+│   ├── trainer.py            # GRPOLoRATrainer (log_probs, advantages, PPO-clip LoRA update)
+│   ├── rewards.py            # contract_reward(), curator_reward(), segmentation_reward()
+│   ├── buffer.py             # GRPOBuffer (adapter, prompt, completions, rewards)
+│   └── config.py             # Per-stage GRPO hyperparameters (StageGRPOConfig, GRPOConfig)
+├── lora/                     # Multi-LoRA model (GRPO-capable)
+│   ├── model.py              # MultiLoraSkillBankLLM: generate() + log_probs() for GRPO training
+│   ├── config.py             # MultiLoraConfig (Qwen3-14B base + adapter paths)
+│   └── skill_function.py     # SkillFunction enum (SEGMENT, CONTRACT, CURATOR, ...)
+└── extract_skillbank/        # Extraction scripts
+    └── extract_skillbank_grpo_gpt54.py  # Main script: --local_model, --use_grpo flags
 ```

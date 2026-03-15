@@ -298,6 +298,9 @@ class LLMSignalExtractor(SignalExtractorBase):
         chunk_offset: int,
     ) -> List[dict]:
         """Extract predicates for one chunk of states via LLM."""
+        import time as _time
+        from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
         ask = self._get_ask_model()
 
         states_block = "\n".join(
@@ -313,12 +316,30 @@ class LLMSignalExtractor(SignalExtractorBase):
             kwargs["model"] = self._model
 
         try:
+            t0 = _time.time()
             response = ask(prompt, **kwargs)
+            elapsed = _time.time() - t0
             parsed = _parse_json_array(response)
+
+            record_io(ColdStartRecord(
+                module="boundary_proposal",
+                function="predicate_extraction",
+                prompt=prompt,
+                response=response or "",
+                parsed={"n_predicates": len(parsed)} if parsed else None,
+                model=self._model or "",
+                temperature=self._temperature,
+                max_tokens=3000,
+                elapsed_s=round(elapsed, 3),
+                segment_start=chunk_offset,
+                segment_end=chunk_offset + len(states),
+                n_steps=len(states),
+                error=None if parsed else "parse_failed",
+            ))
+
             if parsed is not None and len(parsed) == len(states):
                 return [p if isinstance(p, dict) else {} for p in parsed]
             elif parsed is not None:
-                # Length mismatch — pad or truncate
                 result = [p if isinstance(p, dict) else {} for p in parsed]
                 while len(result) < len(states):
                     result.append({})
@@ -382,6 +403,9 @@ class LLMSignalExtractor(SignalExtractorBase):
         significant boundary.  Non-significant changes are smoothed out
         (set to match the previous step so they don't trigger a flip).
         """
+        import time as _time
+        from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
         ask = self._get_ask_model()
         T = len(predicates)
 
@@ -410,12 +434,28 @@ class LLMSignalExtractor(SignalExtractorBase):
             kwargs["model"] = self._model
 
         try:
+            t0 = _time.time()
             response = ask(prompt, **kwargs)
+            elapsed = _time.time() - t0
             parsed = _parse_json_array(response)
+
+            record_io(ColdStartRecord(
+                module="boundary_proposal",
+                function="boundary_significance",
+                prompt=prompt,
+                response=response or "",
+                parsed={"significances": parsed} if parsed else None,
+                model=self._model or "",
+                temperature=0.1,
+                max_tokens=2000,
+                elapsed_s=round(elapsed, 3),
+                n_steps=len(change_pairs),
+                error=None if parsed and len(parsed) >= len(change_pairs) else "parse_failed",
+            ))
+
             if parsed and len(parsed) >= len(change_pairs):
                 significances = [bool(v) for v in parsed[: len(change_pairs)]]
             else:
-                # Can't parse — keep all changes (safe default)
                 return predicates
         except Exception:
             return predicates

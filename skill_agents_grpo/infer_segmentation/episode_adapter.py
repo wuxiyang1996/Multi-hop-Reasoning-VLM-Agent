@@ -44,6 +44,71 @@ if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 
+# ── GRPO episode context ─────────────────────────────────────────────
+# When GRPO wraps collect_segment_preferences, the reward function needs
+# to rebuild a SegmentScorer that includes the current episode's
+# intention_fit_fn.  We expose module-level state + factory functions
+# that the GRPO wrapper reads at evaluation time.
+
+_grpo_episode_ctx: dict = {}
+
+
+def _set_grpo_episode_context(
+    skill_names: List[str],
+    config: "SegmentationConfig",
+    intention_fit_fn: Optional[Callable] = None,
+    compat_fn: Optional[Callable] = None,
+) -> None:
+    """Update the per-episode context used by :func:`grpo_scorer_factory`."""
+    _grpo_episode_ctx.update({
+        "skill_names": skill_names,
+        "config": config,
+        "intention_fit_fn": intention_fit_fn,
+        "compat_fn": compat_fn,
+    })
+
+
+def grpo_scorer_factory(preference_list: list) -> "SegmentScorer":
+    """Build a SegmentScorer from *preference_list* + current episode context.
+
+    Designed to be passed to ``enable_segment_grpo`` / ``segmentation_reward``
+    so that the GRPO reward evaluation reconstructs the same scorer (including
+    ``intention_fit_fn``) that the main pipeline uses.
+    """
+    ctx = _grpo_episode_ctx
+    if not ctx:
+        raise RuntimeError(
+            "grpo_scorer_factory called but no episode context has been set. "
+            "Ensure _set_grpo_episode_context() is called before the LLM "
+            "teacher runs."
+        )
+    store = PreferenceStore()
+    store.add_batch(preference_list)
+    return _build_scorer_from_preferences(
+        skill_names=ctx["skill_names"],
+        store=store,
+        config=ctx["config"],
+        compat_fn=ctx.get("compat_fn"),
+        intention_fit_fn=ctx.get("intention_fit_fn"),
+    )
+
+
+def grpo_decode_fn(
+    scorer: "SegmentScorer",
+    segments: list,
+    observations: Sequence,
+    actions: Sequence,
+    skill_names: List[str],
+    predicates: Optional[list],
+) -> "SegmentationResult":
+    """Thin decode wrapper for GRPO reward evaluation."""
+    ctx = _grpo_episode_ctx
+    config = ctx.get("config") or SegmentationConfig()
+    T = len(observations)
+    candidates = sorted({pt for seg in segments for pt in [seg[0], seg[1]]})
+    return _decode(candidates, T, scorer, observations, actions, predicates, config)
+
+
 def _extract_obs_actions(experiences: list) -> Tuple[list, list]:
     """Pull observations and actions from Experience objects."""
     observations = []
@@ -91,30 +156,53 @@ def _extract_predicates(experiences: list) -> List[Optional[dict]]:
 
 def _build_intention_fit_fn(
     experiences: list,
+    game_name: str = "generic",
 ) -> Optional["Callable[[str, int, int], float]"]:
     """Build a closure that scores intention-tag agreement for a segment.
+
+    Uses the phase detector to produce per-step **compound labels**
+    (``"phase:tag"``) so that the same raw tag in different game phases
+    results in different skill assignments.
 
     Returns ``None`` when no intention tags are available so the scorer
     degrades gracefully to LLM-only mode.
     """
     from skill_agents_grpo.boundary_proposal.signal_extractors import parse_intention_tag
+    from skill_agents_grpo.infer_segmentation.phase_detector import (
+        detect_phases,
+        make_compound_label,
+    )
 
-    tags: List[str] = []
+    raw_tags: List[str] = []
     for exp in experiences:
         intent = getattr(exp, "intentions", None)
         tag = parse_intention_tag(intent) if intent else "UNKNOWN"
-        tags.append(tag)
+        raw_tags.append(tag)
 
-    if all(t == "UNKNOWN" for t in tags):
+    if all(t == "UNKNOWN" for t in raw_tags):
         return None
 
+    phases = detect_phases(experiences, game_name=game_name)
+    compound_labels = [
+        make_compound_label(p, t) for p, t in zip(phases, raw_tags)
+    ]
+
     def _intention_fit(skill: str, i: int, j: int) -> float:
-        seg_tags = tags[i : j + 1]
-        length = len(seg_tags)
+        seg_labels = compound_labels[i : j + 1]
+        length = len(seg_labels)
         if length == 0:
             return 0.0
-        matches = sum(1 for t in seg_tags if t == skill)
-        return (matches / length) * length  # match_fraction * segment_length
+        # Match against the compound label directly.
+        # Also allow partial match: if skill is a raw tag (no colon),
+        # match the tag portion of compound labels.
+        if ":" in skill:
+            matches = sum(1 for lb in seg_labels if lb == skill)
+        else:
+            matches = sum(
+                1 for lb in seg_labels
+                if lb == skill or lb.endswith(f":{skill}")
+            )
+        return (matches / length) * length
     return _intention_fit
 
 
@@ -199,6 +287,7 @@ def infer_segmentation(
     transition_fn=None,
     duration_stats=None,
     compat_fn=None,
+    intention_fit_fn=None,
 ) -> SegmentationResult:
     """
     Core InferSegmentation: run DP or beam search over candidates.
@@ -218,6 +307,7 @@ def infer_segmentation(
             transition_fn=transition_fn,
             duration_stats=duration_stats,
             compat_fn=compat_fn,
+            intention_fit_fn=intention_fit_fn,
         )
 
     return _decode(candidates, T, active_scorer, observations, actions, predicates, cfg)
@@ -237,6 +327,7 @@ def infer_and_segment(
     preference_store: Optional[PreferenceStore] = None,
     extractor_kwargs=None,
     compat_fn=None,
+    game_name: Optional[str] = None,
 ) -> Tuple[SegmentationResult, list, PreferenceStore]:
     """
     Inference pipeline with LLM (e.g. GPT-5):
@@ -312,6 +403,19 @@ def infer_and_segment(
 
     store = preference_store or PreferenceStore()
 
+    # ── Build intention-fit signal from per-step compound labels ────
+    _game = game_name or env_name
+    intention_fit_fn = _build_intention_fit_fn(experiences, game_name=_game)
+
+    # Update GRPO episode context so the scorer_factory used by the GRPO
+    # reward function rebuilds an equivalent scorer (with intention_fit_fn).
+    _set_grpo_episode_context(
+        skill_names=skill_names,
+        config=cfg,
+        intention_fit_fn=intention_fit_fn,
+        compat_fn=compat_fn,
+    )
+
     # ── Collect preferences from LLM teacher ─────────────────────────
     # Re-collect when the store is empty (cold-start) OR when the skill
     # vocabulary has expanded beyond what the store covers.  Without this,
@@ -330,9 +434,6 @@ def infer_and_segment(
                 skill_names, config=cfg.llm_teacher,
             )
             store.add_batch(transition_prefs)
-
-    # ── Build intention-fit signal from per-step tags ───────────────
-    intention_fit_fn = _build_intention_fit_fn(experiences)
 
     # ── Train scorer and decode ─────────────────────────────────────
     scorer = _build_scorer_from_preferences(
@@ -377,6 +478,7 @@ def infer_and_segment_offline(
     duration_stats=None,
     extractor_kwargs=None,
     compat_fn=None,
+    game_name: Optional[str] = None,
 ) -> Tuple[SegmentationResult, list]:
     """
     Offline pipeline (no LLM): decode using provided scoring functions only.
@@ -409,6 +511,8 @@ def infer_and_segment_offline(
 
     observations, actions = _extract_obs_actions(experiences)
     predicates = _extract_predicates(experiences)
+    _game = game_name or env_name
+    intention_fit_fn = _build_intention_fit_fn(experiences, game_name=_game)
 
     result = infer_segmentation(
         candidates=centers,
@@ -422,6 +526,7 @@ def infer_and_segment_offline(
         transition_fn=transition_fn,
         duration_stats=duration_stats,
         compat_fn=compat_fn,
+        intention_fit_fn=intention_fit_fn,
     )
     sub_episodes = _segments_to_sub_episodes(result, experiences, episode.task, outcome_length)
     return result, sub_episodes

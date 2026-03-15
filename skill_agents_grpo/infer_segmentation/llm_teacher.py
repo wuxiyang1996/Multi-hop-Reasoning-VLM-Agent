@@ -30,11 +30,80 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
+import logging
+import time as _time
+from dataclasses import dataclass, field, asdict
+
 from skill_agents_grpo.infer_segmentation.config import LLMTeacherConfig
 
 _repo_root = Path(__file__).resolve().parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
+
+logger = logging.getLogger(__name__)
+
+
+# ── Cold-start I/O recording ─────────────────────────────────────────
+# Every LLM teacher call is recorded so that (prompt, response) pairs
+# can serve as supervised fine-tuning data for Qwen3-14B cold-start,
+# and as reference outputs for GRPO reward comparison.
+
+@dataclass
+class TeacherIORecord:
+    """One LLM teacher call with full prompt/response for cold-start replay."""
+    function: str                             # segment_ranking | transition_ranking | pairwise_choice | skill_naming
+    prompt: str = ""
+    response: str = ""
+    parsed: Optional[dict] = None             # structured output (ranking list, choice, name)
+    model: str = ""
+    temperature: float = 0.0
+    max_tokens: int = 0
+    elapsed_s: float = 0.0
+    # Segment-level context (when applicable)
+    segment_start: Optional[int] = None
+    segment_end: Optional[int] = None
+    skill_names: List[str] = field(default_factory=list)
+    prev_skill: Optional[str] = None          # for transition rankings
+    skill_a: Optional[str] = None             # for pairwise
+    skill_b: Optional[str] = None             # for pairwise
+    error: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        d = asdict(self)
+        d = {k: v for k, v in d.items() if v is not None and v != "" and v != [] and v != 0 and v != 0.0}
+        if "function" not in d:
+            d["function"] = self.function
+        return d
+
+
+_teacher_io_records: List[TeacherIORecord] = []
+_teacher_io_lock = threading.Lock()
+
+
+def _record_teacher_io(rec: TeacherIORecord) -> None:
+    """Thread-safe append to the module-level recording buffer."""
+    with _teacher_io_lock:
+        _teacher_io_records.append(rec)
+
+
+def get_teacher_io_records() -> List[dict]:
+    """Return all accumulated records as dicts (non-destructive)."""
+    with _teacher_io_lock:
+        return [r.to_dict() for r in _teacher_io_records]
+
+
+def flush_teacher_io_records() -> List[dict]:
+    """Return and clear all accumulated records."""
+    with _teacher_io_lock:
+        out = [r.to_dict() for r in _teacher_io_records]
+        _teacher_io_records.clear()
+        return out
+
+
+def reset_teacher_io_records() -> None:
+    """Clear all accumulated records without returning them."""
+    with _teacher_io_lock:
+        _teacher_io_records.clear()
 
 
 def _get_ask_model():
@@ -241,11 +310,29 @@ def _collect_one_segment_prefs(
     prompt = _build_segment_ranking_prompt(
         seg_obs, seg_act, skill_names, start, end, p_start, p_end,
     )
+    t0 = _time.time()
     response = ask(
         prompt, model=cfg.model,
         temperature=cfg.temperature, max_tokens=cfg.max_tokens,
     )
+    elapsed = _time.time() - t0
     parsed = _parse_json_from_response(response)
+
+    _record_teacher_io(TeacherIORecord(
+        function="segment_ranking",
+        prompt=prompt,
+        response=response or "",
+        parsed=parsed,
+        model=cfg.model or "",
+        temperature=cfg.temperature,
+        max_tokens=cfg.max_tokens,
+        elapsed_s=round(elapsed, 3),
+        segment_start=start,
+        segment_end=end,
+        skill_names=list(skill_names),
+        error=None if parsed and "ranking" in parsed else "parse_failed",
+    ))
+
     if not parsed or "ranking" not in parsed:
         return []
     ranking = [s for s in parsed["ranking"] if s in skill_names]
@@ -332,11 +419,28 @@ def _collect_one_transition_prefs(
     from skill_agents_grpo.infer_segmentation.preference import PreferenceExample
 
     prompt = _build_transition_ranking_prompt(prev_skill, skill_names)
+    t0 = _time.time()
     response = ask(
         prompt, model=cfg.model,
         temperature=cfg.temperature, max_tokens=cfg.max_tokens,
     )
+    elapsed = _time.time() - t0
     parsed = _parse_json_from_response(response)
+
+    _record_teacher_io(TeacherIORecord(
+        function="transition_ranking",
+        prompt=prompt,
+        response=response or "",
+        parsed=parsed,
+        model=cfg.model or "",
+        temperature=cfg.temperature,
+        max_tokens=cfg.max_tokens,
+        elapsed_s=round(elapsed, 3),
+        prev_skill=prev_skill,
+        skill_names=list(skill_names),
+        error=None if parsed and "ranking" in parsed else "parse_failed",
+    ))
+
     if not parsed or "ranking" not in parsed:
         return []
     ranking = [s for s in parsed["ranking"] if s in skill_names]
@@ -415,11 +519,30 @@ def _collect_one_uncertain_pref(
     prompt = _build_pairwise_prompt(
         seg_obs, seg_act, skill_a, skill_b, seg.start, seg.end,
     )
+    t0 = _time.time()
     response = ask(
         prompt, model=cfg.model,
         temperature=cfg.temperature, max_tokens=cfg.max_tokens,
     )
+    elapsed = _time.time() - t0
     parsed = _parse_json_from_response(response)
+
+    _record_teacher_io(TeacherIORecord(
+        function="pairwise_choice",
+        prompt=prompt,
+        response=response or "",
+        parsed=parsed,
+        model=cfg.model or "",
+        temperature=cfg.temperature,
+        max_tokens=cfg.max_tokens,
+        elapsed_s=round(elapsed, 3),
+        segment_start=seg.start,
+        segment_end=seg.end,
+        skill_a=skill_a,
+        skill_b=skill_b,
+        error=None if parsed else "parse_failed",
+    ))
+
     if not parsed:
         return None
     choice = parsed.get("choice", "").upper().strip()
@@ -517,13 +640,28 @@ def suggest_skill_name(
         eff_del=eff_del,
         eff_event=eff_event,
     )
+    t0 = _time.time()
     response = ask(
         prompt,
         model=cfg.model,
         temperature=cfg.temperature,
         max_tokens=cfg.max_tokens,
     )
+    elapsed = _time.time() - t0
     parsed = _parse_json_from_response(response)
+
+    _record_teacher_io(TeacherIORecord(
+        function="skill_naming",
+        prompt=prompt,
+        response=response or "",
+        parsed=parsed,
+        model=cfg.model or "",
+        temperature=cfg.temperature,
+        max_tokens=cfg.max_tokens,
+        elapsed_s=round(elapsed, 3),
+        error=None if parsed and "name" in (parsed or {}) else "parse_failed",
+    ))
+
     if not parsed or "name" not in parsed:
         return None
     name = (parsed.get("name") or "").strip()

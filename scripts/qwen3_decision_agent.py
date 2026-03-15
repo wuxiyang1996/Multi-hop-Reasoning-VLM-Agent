@@ -259,6 +259,238 @@ def format_skill_guidance_for_prompt(
 
 
 # ---------------------------------------------------------------------------
+# Top-k skill candidate retrieval + LLM-based skill selection
+# ---------------------------------------------------------------------------
+
+def get_top_k_skill_candidates(
+    skill_bank: Any,
+    state_text: str,
+    game_name: str = "",
+    intention: str = "",
+    structured_state: Optional[Dict[str, Any]] = None,
+    top_k: int = 3,
+) -> List[Dict[str, Any]]:
+    """Retrieve *top_k* skill candidates from the skill bank.
+
+    Returns a list of guidance dicts (same schema as ``get_skill_guidance``),
+    sorted by confidence (highest first).  When fewer than *top_k* skills
+    are available, returns whatever is available.
+    """
+    if skill_bank is None:
+        return []
+
+    key_parts = []
+    if game_name:
+        key_parts.append(game_name)
+    if intention:
+        key_parts.append(intention)
+    key_parts.append(state_text[:1500])
+    key = " ".join(key_parts)
+
+    state_for_scoring = None
+    if structured_state and isinstance(structured_state, dict):
+        state_for_scoring = {
+            k: (float(v) if isinstance(v, (int, float, bool)) else 1.0)
+            for k, v in structured_state.items()
+            if v is not None and str(v).strip()
+        }
+
+    from decision_agents.agent_helper import _get_protocol_for_skill
+
+    candidates: List[Dict[str, Any]] = []
+
+    # Preferred path: SkillQueryEngine.select() returns rich SkillSelectionResult list
+    if hasattr(skill_bank, "select"):
+        try:
+            results = skill_bank.select(
+                key,
+                current_state=state_for_scoring,
+                current_predicates=state_for_scoring,
+                top_k=top_k,
+            )
+            for r in (results or []):
+                d = r.to_dict() if hasattr(r, "to_dict") else dict(r)
+                sid = d.get("skill_id")
+                if not sid:
+                    continue
+                protocol = _get_protocol_for_skill(skill_bank, sid)
+                d["protocol"] = protocol or d.get("protocol", {})
+                _enrich_candidate(skill_bank, d)
+                candidates.append(d)
+        except Exception:
+            pass
+
+    if candidates:
+        return candidates
+
+    # Fallback: call select_skill_from_bank for a single result
+    try:
+        single = get_skill_guidance(
+            skill_bank, state_text, game_name, intention, structured_state,
+        )
+        if single and single.get("skill_id"):
+            return [single]
+    except Exception:
+        pass
+
+    return []
+
+
+def _enrich_candidate(skill_bank: Any, d: Dict[str, Any]) -> None:
+    """Fill in missing skill_name / execution_hint from the bank."""
+    if d.get("skill_name") and d.get("execution_hint"):
+        return
+    sid = d.get("skill_id")
+    if not sid:
+        return
+    underlying = (
+        getattr(skill_bank, "_bank", None)
+        or getattr(skill_bank, "bank", None)
+        or skill_bank
+    )
+    if hasattr(underlying, "get_skill"):
+        skill_obj = underlying.get_skill(sid)
+        if skill_obj:
+            if not d.get("skill_name"):
+                d["skill_name"] = skill_obj.name or sid
+            if not d.get("execution_hint"):
+                d["execution_hint"] = skill_obj.strategic_description or ""
+
+
+# ---------------------------------------------------------------------------
+# Skill selection prompt + LLM call
+# ---------------------------------------------------------------------------
+
+SKILL_SELECTION_SYSTEM_PROMPT = (
+    "You are an expert game strategist. "
+    "Given the current game state and a set of candidate strategies, "
+    "choose the ONE strategy most likely to make progress.\n\n"
+    "Output format (strict):\n"
+    "REASONING: <1-2 sentences why this strategy fits the current state>\n"
+    "SKILL: <number>\n"
+)
+
+SKILL_SELECTION_USER_TEMPLATE = (
+    "Game state:\n{state_summary}\n\n"
+    "Current intention: {intention}\n\n"
+    "Available strategies (pick ONE by number):\n{candidates_text}\n\n"
+    "Choose the best strategy. Output REASONING then SKILL number."
+)
+
+
+def _format_candidates_for_selection(candidates: List[Dict[str, Any]]) -> str:
+    """Format candidate skills as a numbered menu for the selection prompt."""
+    lines: List[str] = []
+    for i, c in enumerate(candidates, 1):
+        name = c.get("skill_name") or c.get("skill_id", f"strategy_{i}")
+        hint = c.get("execution_hint", "")
+        protocol = c.get("protocol", {})
+        steps = protocol.get("steps", []) if isinstance(protocol, dict) else []
+
+        lines.append(f"  {i}. {name}")
+        if hint:
+            lines.append(f"     Strategy: {hint[:150]}")
+        if steps:
+            step_text = " -> ".join(steps[:4])
+            if len(steps) > 4:
+                step_text += " -> ..."
+            lines.append(f"     Plan: {step_text}")
+
+        confidence = c.get("confidence")
+        if confidence is not None:
+            lines.append(f"     Confidence: {confidence:.2f}")
+    return "\n".join(lines)
+
+
+def parse_skill_selection(
+    reply: str,
+    n_candidates: int,
+    candidates: Optional[List[Dict[str, Any]]] = None,
+) -> Tuple[int, Optional[str]]:
+    """Parse the LLM skill selection response.
+
+    Returns (chosen_index, reasoning).  *chosen_index* is 0-based.
+    Falls back to the highest-confidence candidate (index 0) on parse
+    failure, since candidates are pre-sorted by confidence.
+    """
+    if not reply:
+        return 0, None
+
+    cleaned = strip_think_tags(reply)
+    if not cleaned:
+        cleaned = reply
+
+    reasoning = None
+    reasoning_m = re.search(
+        r"REASONING\s*:\s*(.+?)(?=\nSKILL|\Z)", cleaned, re.DOTALL | re.IGNORECASE,
+    )
+    if reasoning_m:
+        reasoning = reasoning_m.group(1).strip()
+
+    # Try SKILL: <number>
+    skill_m = re.search(r"SKILL\s*:\s*(\d+)", cleaned, re.IGNORECASE)
+    if skill_m:
+        idx = int(skill_m.group(1)) - 1
+        if 0 <= idx < n_candidates:
+            return idx, reasoning
+
+    # Fallback: any standalone digit in the last 100 chars
+    tail = cleaned[-100:]
+    nums = re.findall(r"\b(\d+)\b", tail)
+    for n_str in reversed(nums):
+        idx = int(n_str) - 1
+        if 0 <= idx < n_candidates:
+            return idx, reasoning
+
+    # Fallback: match candidate name in response text
+    if candidates:
+        cleaned_lower = cleaned.lower()
+        for i, c in enumerate(candidates):
+            name = (c.get("skill_name") or "").lower()
+            if name and len(name) >= 4 and name in cleaned_lower:
+                return i, reasoning
+
+    return 0, reasoning
+
+
+def select_skill_via_llm(
+    candidates: List[Dict[str, Any]],
+    state_summary: str,
+    intention: str,
+    model: str = DEFAULT_MODEL,
+    temperature: float = 0.3,
+) -> Tuple[int, Optional[str]]:
+    """LLM call #1: select the best skill from *candidates*.
+
+    Returns (chosen_index, reasoning).  Falls back to index 0 if the
+    LLM is unavailable.
+    """
+    if not candidates:
+        return 0, None
+    if len(candidates) == 1:
+        return 0, "only one candidate available"
+    if ask_model is None:
+        return 0, None
+
+    candidates_text = _format_candidates_for_selection(candidates)
+    user_content = SKILL_SELECTION_USER_TEMPLATE.format(
+        state_summary=state_summary[:3000],
+        intention=intention[:500],
+        candidates_text=candidates_text,
+    )
+    prompt = SKILL_SELECTION_SYSTEM_PROMPT + "\n" + user_content
+
+    try:
+        reply = ask_model(prompt, model=model, temperature=temperature, max_tokens=256)
+        if reply and not reply.startswith("Error"):
+            return parse_skill_selection(reply, len(candidates), candidates)
+    except Exception as exc:
+        print(f"    [WARN] Skill selection LLM call failed ({exc}), using top candidate")
+
+    return 0, None
+
+
+# ---------------------------------------------------------------------------
 # Prompts
 # ---------------------------------------------------------------------------
 
@@ -751,6 +983,9 @@ def run_episode(
     recent_rewards: List[float] = []
     skill_tracker = _SkillTracker()
     last_guidance: Optional[Dict[str, Any]] = None
+    last_candidates: List[Dict[str, Any]] = []
+    last_chosen_idx: int = 0
+    last_skill_reasoning: Optional[str] = None
 
     while step_count < max_steps:
         step_actions = action_names if action_names else ["stay"]
@@ -783,20 +1018,52 @@ def run_episode(
         if need_reselect or last_guidance is None:
             if verbose and skill_tracker.reselect_reason:
                 print(f"    [skill-reselect] reason={skill_tracker.reselect_reason}")
-            guidance = get_skill_guidance(
+
+            # --- LLM skill selection: retrieve top-k, then LLM picks one ---
+            candidates = get_top_k_skill_candidates(
                 skill_bank,
                 last_state_summary or obs_nl,
                 game_name=game,
                 intention=current_intention,
                 structured_state=structured_state,
+                top_k=3,
             )
-            if guidance and guidance.get("skill_id"):
-                if need_reselect and last_guidance and guidance.get("skill_id") == last_guidance.get("skill_id"):
-                    exclude_id = guidance["skill_id"]
-                    alt = _try_alternate_skill(skill_bank, last_state_summary or obs_nl, game, current_intention, exclude_id)
-                    if alt:
-                        guidance = alt
+
+            if candidates:
+                chosen_idx, skill_reasoning = select_skill_via_llm(
+                    candidates,
+                    state_summary=last_state_summary or obs_nl,
+                    intention=current_intention,
+                    model=model,
+                    temperature=temperature,
+                )
+                guidance = candidates[chosen_idx]
+                last_candidates = candidates
+                last_chosen_idx = chosen_idx
+                last_skill_reasoning = skill_reasoning
+
+                if verbose:
+                    cand_names = [
+                        c.get("skill_name") or c.get("skill_id", "?")
+                        for c in candidates
+                    ]
+                    chosen_name = cand_names[chosen_idx] if chosen_idx < len(cand_names) else "?"
+                    reason_disp = (
+                        (skill_reasoning[:80] + "...") if skill_reasoning and len(skill_reasoning) > 80
+                        else skill_reasoning
+                    )
+                    print(
+                        f"    [skill-select] candidates: {cand_names}\n"
+                        f"    [skill-select] chosen: {chosen_name} (reason: {reason_disp!r})"
+                    )
+
                 skill_tracker.set_protocol(guidance.get("protocol"))
+            else:
+                guidance = None
+                last_candidates = []
+                last_chosen_idx = 0
+                last_skill_reasoning = None
+
             last_guidance = guidance
         else:
             guidance = last_guidance
@@ -849,6 +1116,12 @@ def run_episode(
 
         if guidance and guidance.get("skill_id"):
             exp.sub_tasks = guidance.get("skill_name", guidance["skill_id"])
+
+        # Skill selection metadata for GRPO training
+        if last_candidates:
+            exp.skill_candidates = [c.get("skill_id") for c in last_candidates]
+            exp.skill_chosen_idx = last_chosen_idx
+            exp.skill_reasoning = last_skill_reasoning
 
         exp.summary = last_state_summary or None
 

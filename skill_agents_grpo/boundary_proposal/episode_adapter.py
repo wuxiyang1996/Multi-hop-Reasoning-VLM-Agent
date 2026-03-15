@@ -203,12 +203,26 @@ def propose_from_episode(
         extractor_kwargs=extractor_kwargs,
     )
 
+    # Phase-transition boundaries: detect game phases and add transitions
+    # as high-priority event triggers so the decoder sees finer segments.
+    from skill_agents_grpo.infer_segmentation.phase_detector import detect_phases
+    phase_events = []
+    try:
+        phases = detect_phases(experiences, game_name=env_name)
+        for t in range(1, len(phases)):
+            if phases[t] != phases[t - 1]:
+                phase_events.append(t)
+    except Exception:
+        pass
+
+    all_events = sorted(set((signals["event_times"] or []) + phase_events))
+
     candidates = propose_boundary_candidates(
         T,
         predicates=signals["predicates"],
         surprisal=surprisal,
         changepoint_scores=signals["changepoint_scores"],
-        event_times=signals["event_times"],
+        event_times=all_events if all_events else signals["event_times"],
         intention_tags=signals.get("intention_tags"),
         done_flags=signals.get("done_flags"),
         config=config,

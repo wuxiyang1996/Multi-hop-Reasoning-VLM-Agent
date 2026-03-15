@@ -140,6 +140,9 @@ def filter_candidates(
     When GRPO wrapping is active (via ``enable_curator_grpo``), the
     wrapper intercepts this call automatically.
     """
+    import time as _time
+    from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
     if not candidates:
         return {"decisions": []}
 
@@ -151,13 +154,30 @@ def filter_candidates(
     prompt = _build_curator_prompt(candidates, summary)
 
     try:
+        t0 = _time.time()
         raw = ask_fn(prompt, temperature=temperature)
+        elapsed = _time.time() - t0
         start = raw.find("{")
         end = raw.rfind("}") + 1
+        parsed = None
         if start >= 0 and end > start:
             parsed = json.loads(raw[start:end])
-            if "decisions" in parsed:
-                return parsed
+
+        record_io(ColdStartRecord(
+            module="bank_curator",
+            function="filter_candidates",
+            prompt=prompt,
+            response=raw or "",
+            parsed=parsed,
+            model="",
+            temperature=temperature,
+            elapsed_s=round(elapsed, 3),
+            extra={"n_candidates": len(candidates)},
+            error=None if parsed and "decisions" in parsed else "parse_failed",
+        ))
+
+        if parsed and "decisions" in parsed:
+            return parsed
     except Exception as exc:
         logger.debug("CURATOR adapter call failed: %s", exc)
 

@@ -59,6 +59,7 @@ class PipelineConfig:
 
     # Stage 1: boundary proposal
     env_name: str = "llm"
+    game_name: str = "generic"  # actual game identifier for phase detection
     merge_radius: int = 5
     extractor_model: Optional[str] = None
 
@@ -225,23 +226,33 @@ class SkillBankAgent:
         self._query_engine = None
 
     @staticmethod
-    def _seed_skills_from_intentions(episode) -> List[str]:
-        """Extract unique canonical intention tags from an episode.
+    def _seed_skills_from_intentions(
+        episode, game_name: str = "generic",
+    ) -> List[str]:
+        """Extract unique compound skill labels (phase:tag) from an episode.
 
-        Used as seed skill names for the first pass when the bank is empty,
-        so the DP decoder has real labels to assign instead of only __NEW__.
+        Uses the phase detector to produce per-step phase labels, then
+        combines them with intention tags via ``make_compound_label`` so
+        that e.g. early-game MERGE and endgame MERGE become distinct seeds.
         """
         from skill_agents_grpo.boundary_proposal.signal_extractors import (
             parse_intention_tag,
         )
-        tags = set()
-        for exp in episode.experiences:
+        from skill_agents_grpo.infer_segmentation.phase_detector import (
+            detect_phases,
+            make_compound_label,
+        )
+
+        exps = episode.experiences
+        phases = detect_phases(exps, game_name=game_name)
+        labels: set = set()
+        for exp, phase in zip(exps, phases):
             intent = getattr(exp, "intentions", None)
             if intent:
                 tag = parse_intention_tag(intent)
                 if tag != "UNKNOWN":
-                    tags.add(tag)
-        return sorted(tags)
+                    labels.add(make_compound_label(phase, tag))
+        return sorted(labels)
 
     # ── Stage 1+2: Segment one episode ───────────────────────────────
 
@@ -275,6 +286,7 @@ class SkillBankAgent:
 
         cfg = self.config
         _env = env_name or cfg.env_name
+        _game = cfg.game_name
         _skill_names = skill_names or list(self.bank.skill_ids)
 
         # Always merge intention tags from the current episode so the
@@ -282,7 +294,7 @@ class SkillBankAgent:
         # Without this, once the bank has e.g. 1 skill, the decoder only
         # sees [that_skill, __NEW__] and the penalty makes __NEW__
         # uncompetitive — locking the bank to a single skill forever.
-        seeded = self._seed_skills_from_intentions(episode)
+        seeded = self._seed_skills_from_intentions(episode, game_name=_game)
         _skill_names = sorted(set(_skill_names) | set(seeded))
 
         seg_config = SegmentationConfig(
@@ -327,6 +339,7 @@ class SkillBankAgent:
                 preference_store=store,
                 extractor_kwargs=_extractor_kwargs,
                 compat_fn=_compat_fn,
+                game_name=_game,
             )
             self._preference_store = store
         else:
@@ -340,6 +353,7 @@ class SkillBankAgent:
                 surprisal=surprisal,
                 extractor_kwargs=_extractor_kwargs,
                 compat_fn=_compat_fn,
+                game_name=_game,
             )
 
         traj_id = getattr(episode, "task", None) or f"traj_{len(self._traj_lengths)}"
@@ -468,8 +482,30 @@ class SkillBankAgent:
                     num_states=len(chunk),
                 )
                 try:
+                    import time as _time
+                    from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
+                    t0 = _time.time()
                     response = ask(prompt, model=model, temperature=0.2, max_tokens=3000)
+                    elapsed = _time.time() - t0
                     parsed = _parse_json_array(response)
+
+                    record_io(ColdStartRecord(
+                        module="pipeline",
+                        function="predicate_extraction",
+                        prompt=prompt,
+                        response=response or "",
+                        parsed={"n_predicates": len(parsed)} if parsed else None,
+                        model=model or "",
+                        temperature=0.2,
+                        max_tokens=3000,
+                        elapsed_s=round(elapsed, 3),
+                        segment_start=start,
+                        segment_end=end,
+                        n_steps=len(chunk),
+                        error=None if parsed else "parse_failed",
+                    ))
+
                     if parsed is not None:
                         chunk_preds = [p if isinstance(p, dict) else {} for p in parsed]
                         while len(chunk_preds) < len(chunk):
@@ -758,14 +794,58 @@ class SkillBankAgent:
             f"Reply with ONLY the JSON object."
         )
         try:
+            import time as _time_mod
+            from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
+            t0 = _time_mod.time()
             reply = _ask(prompt, model=model, temperature=0.2, max_tokens=800)
+            elapsed = _time_mod.time() - t0
+
             if not reply or reply.startswith("Error"):
+                record_io(ColdStartRecord(
+                    module="pipeline",
+                    function="protocol_synthesis",
+                    prompt=prompt,
+                    response=reply or "",
+                    model=model or "",
+                    temperature=0.2,
+                    max_tokens=800,
+                    elapsed_s=round(elapsed, 3),
+                    skill_id=skill.skill_id,
+                    error="empty_or_error_response",
+                ))
                 return None
             import re
             json_m = re.search(r"\{[\s\S]*\}", reply)
             if not json_m:
+                record_io(ColdStartRecord(
+                    module="pipeline",
+                    function="protocol_synthesis",
+                    prompt=prompt,
+                    response=reply,
+                    model=model or "",
+                    temperature=0.2,
+                    max_tokens=800,
+                    elapsed_s=round(elapsed, 3),
+                    skill_id=skill.skill_id,
+                    error="no_json_found",
+                ))
                 return None
             data = _json.loads(json_m.group(0))
+
+            record_io(ColdStartRecord(
+                module="pipeline",
+                function="protocol_synthesis",
+                prompt=prompt,
+                response=reply,
+                parsed=data,
+                model=model or "",
+                temperature=0.2,
+                max_tokens=800,
+                elapsed_s=round(elapsed, 3),
+                skill_id=skill.skill_id,
+            ))
+
             return Protocol(
                 preconditions=data.get("preconditions", [])[:5],
                 steps=data.get("steps", [])[:7],

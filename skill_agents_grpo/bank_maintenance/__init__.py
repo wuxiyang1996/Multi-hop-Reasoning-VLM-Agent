@@ -23,12 +23,12 @@ All public symbols are importable from the sub-modules directly::
 def __getattr__(name: str):
     """Lazy imports to avoid circular dependency with skill_bank ↔ stage3_mvp."""
     _lazy_map = {
-        "BankMaintenanceConfig": "skill_agents.bank_maintenance.config",
-        "run_bank_maintenance": "skill_agents.bank_maintenance.run_bank_maintenance",
-        "BankMaintenanceResult": "skill_agents.bank_maintenance.run_bank_maintenance",
-        "BankDiffReport": "skill_agents.bank_maintenance.schemas",
-        "RedecodeRequest": "skill_agents.bank_maintenance.schemas",
-        "SkillProfile": "skill_agents.bank_maintenance.schemas",
+        "BankMaintenanceConfig": "skill_agents_grpo.bank_maintenance.config",
+        "run_bank_maintenance": "skill_agents_grpo.bank_maintenance.run_bank_maintenance",
+        "BankMaintenanceResult": "skill_agents_grpo.bank_maintenance.run_bank_maintenance",
+        "BankDiffReport": "skill_agents_grpo.bank_maintenance.schemas",
+        "RedecodeRequest": "skill_agents_grpo.bank_maintenance.schemas",
+        "SkillProfile": "skill_agents_grpo.bank_maintenance.schemas",
     }
     if name in _lazy_map:
         import importlib

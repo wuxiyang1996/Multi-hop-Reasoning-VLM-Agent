@@ -62,6 +62,9 @@ def llm_retrieve_skills(
     Returns a ranked list of skill IDs, or None if the adapter is
     unavailable or the call fails.
     """
+    import time as _time
+    from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
     ask_fn = _get_retrieval_ask_fn()
     if ask_fn is None:
         return None
@@ -77,14 +80,33 @@ def llm_retrieve_skills(
     )
 
     try:
+        t0 = _time.time()
         raw = ask_fn(prompt, temperature=0.1)
+        elapsed = _time.time() - t0
         start = raw.find("{")
         end = raw.rfind("}") + 1
+        parsed = None
         if start >= 0 and end > start:
             parsed = json.loads(raw[start:end])
-            ranking = parsed.get("ranking", [])
-            valid = [s for s in ranking if s in skill_descriptions]
-            return valid[:top_k] if valid else None
+
+        ranking = parsed.get("ranking", []) if parsed else []
+        valid = [s for s in ranking if s in skill_descriptions]
+
+        record_io(ColdStartRecord(
+            module="skill_retrieval",
+            function="retrieve_skills",
+            prompt=prompt,
+            response=raw or "",
+            parsed=parsed,
+            model="",
+            temperature=0.1,
+            elapsed_s=round(elapsed, 3),
+            skill_names=list(skill_descriptions.keys())[:30],
+            extra={"query": query, "top_k": top_k},
+            error=None if valid else "no_valid_ranking",
+        ))
+
+        return valid[:top_k] if valid else None
     except Exception as exc:
         logger.debug("RETRIEVAL adapter call failed: %s", exc)
 

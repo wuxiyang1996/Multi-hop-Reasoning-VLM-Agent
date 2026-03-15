@@ -6,6 +6,14 @@
 # Reads from:  labeling/output/gpt54/<game>/episode_*.json
 # Writes to:   skill_agents_grpo/extract_skillbank/output/gpt54_skillbank_grpo/<game>/
 #
+# Per-game outputs include:
+#   - skill_bank.jsonl, skill_catalog.json      — extracted skills
+#   - stage_io_log.json                         — per-stage I/O recordings
+#   - llm_calls_log.json                        — direct GPT-5.4 call log
+#   - teacher_io_coldstart.jsonl                — Stage 2 LLM teacher I/O
+#       (segment rankings, transition rankings, pairwise choices, skill naming)
+#       Use this as supervised fine-tuning data for Qwen3-14B cold-start.
+#
 # Prerequisites:
 #   - Labeled rollouts must exist in the input directory
 #   - OPENROUTER_API_KEY (or OPENAI_API_KEY) must be set

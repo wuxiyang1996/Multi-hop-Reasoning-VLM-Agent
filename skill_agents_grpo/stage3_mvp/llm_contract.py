@@ -94,6 +94,9 @@ def llm_summarize_contract(
     evaluates each with ``contract_reward()``, stores data for training,
     and returns the best.
     """
+    import time as _time
+    from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
+
     ask_fn = _get_contract_ask_fn()
     if ask_fn is None:
         return None
@@ -103,11 +106,30 @@ def llm_summarize_contract(
     )
 
     try:
+        t0 = _time.time()
         raw = ask_fn(prompt, temperature=temperature)
+        elapsed = _time.time() - t0
         start = raw.find("{")
         end = raw.rfind("}") + 1
+        parsed = None
         if start >= 0 and end > start:
-            return json.loads(raw[start:end])
+            parsed = json.loads(raw[start:end])
+
+        record_io(ColdStartRecord(
+            module="stage3_contract",
+            function="contract_summary",
+            prompt=prompt,
+            response=raw or "",
+            parsed=parsed,
+            model="",
+            temperature=temperature,
+            elapsed_s=round(elapsed, 3),
+            skill_id=skill_id,
+            extra={"n_instances": n_instances},
+            error=None if parsed else "parse_failed",
+        ))
+
+        return parsed
     except Exception as exc:
         logger.debug("CONTRACT adapter call failed for %s: %s", skill_id, exc)
 
