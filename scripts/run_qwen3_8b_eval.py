@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Evaluate Qwen3-14B as a decision agent on GamingAgent (LMGame-Bench) games.
+Evaluate Qwen3-8B as a decision agent on GamingAgent (LMGame-Bench) games.
 
 Uses the GamingAgentNLWrapper + gym_like env from evaluate_gamingagent,
 and calls get_state_summary / infer_intention from decision_agents.agent_helper
@@ -15,10 +15,10 @@ Output is saved in Episode / Experience format (data_structure.experience) to:
         rollout_summary.json    Per-game run stats
 
 Storage layout is model/game/timestamp (timestamp = run start), e.g.:
-    output/Qwen3-14B/twenty_forty_eight/20260312_143025/episode_000.json
+    output/Qwen3-8B/twenty_forty_eight/20260312_143025/episode_000.json
 
 Requirements:
-    - A vLLM server serving Qwen/Qwen3-14B on an OpenAI-compatible endpoint.
+    - A vLLM server serving Qwen/Qwen3-8B on an OpenAI-compatible endpoint.
       Set VLLM_BASE_URL env var (default: http://localhost:8000/v1).
     - GamingAgent repo on PYTHONPATH.
 
@@ -28,16 +28,16 @@ Usage (from Game-AI-Agent root):
     export VLLM_BASE_URL="http://localhost:8000/v1"
 
     # Single game, 3 episodes
-    python -m scripts.run_qwen3_14b_eval --games twenty_forty_eight --episodes 3
+    python -m scripts.run_qwen3_8b_eval --games twenty_forty_eight --episodes 3
 
     # All available games, 10 episodes each
-    python -m scripts.run_qwen3_14b_eval --episodes 10
+    python -m scripts.run_qwen3_8b_eval --episodes 10
 
     # Resume an interrupted run
-    python -m scripts.run_qwen3_14b_eval --resume
+    python -m scripts.run_qwen3_8b_eval --resume
 
     # With labeling (generates summary/intentions via LLM for each experience)
-    python -m scripts.run_qwen3_14b_eval --label --label_model gpt-4o-mini
+    python -m scripts.run_qwen3_8b_eval --label --label_model gpt-4o-mini
 """
 
 from __future__ import annotations
@@ -152,9 +152,9 @@ except ImportError:
     _ORAK_GAME_AVAILABLE["pokemon_red"] = False
 
 # ---------------------------------------------------------------------------
-# Qwen3-14B model defaults
+# Qwen3-8B model defaults
 # ---------------------------------------------------------------------------
-DEFAULT_MODEL = "Qwen/Qwen3-14B"
+DEFAULT_MODEL = "Qwen/Qwen3-8B"
 
 # ---------------------------------------------------------------------------
 # Game categories for routing
@@ -305,7 +305,7 @@ def format_skill_guidance_for_prompt(guidance: Optional[Dict[str, Any]]) -> str:
 
 
 QWEN_SYSTEM_PROMPT = (
-    "You are an expert game-playing agent powered by Qwen3-14B.\n"
+    "You are an expert game-playing agent powered by Qwen3-8B.\n"
     "You receive a textual description of the current game state and must choose exactly one action.\n\n"
     "Before choosing, briefly reason about:\n"
     "1. Key elements of the current state (key=value facts).\n"
@@ -324,7 +324,7 @@ QWEN_USER_TEMPLATE = (
 
 # --- Avalon ---
 QWEN_AVALON_SYSTEM = (
-    "You are an expert Avalon player powered by Qwen3-14B.\n"
+    "You are an expert Avalon player powered by Qwen3-8B.\n"
     "You receive the current game state for a specific player and must choose an action.\n\n"
     "Before choosing, briefly reason about:\n"
     "1. What you know about other players' roles based on observations so far.\n"
@@ -348,7 +348,7 @@ QWEN_AVALON_USER = (
 
 # --- Diplomacy ---
 QWEN_DIPLOMACY_SYSTEM = (
-    "You are an expert Diplomacy player powered by Qwen3-14B.\n"
+    "You are an expert Diplomacy player powered by Qwen3-8B.\n"
     "You control one power and must issue orders for your units this phase.\n\n"
     "Before choosing, briefly reason about:\n"
     "1. Your current territorial position and supply-centre count (key=value facts).\n"
@@ -375,7 +375,7 @@ QWEN_DIPLOMACY_USER = (
 
 # --- Orak (Super Mario, Pokemon Red) ---
 QWEN_ORAK_SYSTEM = (
-    "You are an expert game-playing agent powered by Qwen3-14B.\n"
+    "You are an expert game-playing agent powered by Qwen3-8B.\n"
     "You receive a textual description of the current game state and must choose exactly one action.\n\n"
     "Before choosing, briefly reason about:\n"
     "1. Key elements of the current state (key=value facts).\n"
@@ -394,7 +394,7 @@ QWEN_ORAK_USER = (
 
 
 # ---------------------------------------------------------------------------
-# Qwen3-14B action function
+# Qwen3-8B action function
 # ---------------------------------------------------------------------------
 
 def _parse_qwen_response(reply: str, valid_actions: List[str]) -> Tuple[str, Optional[str]]:
@@ -437,7 +437,7 @@ def qwen3_agent_action(
     temperature: float = 0.3,
     skill_guidance: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, Optional[str]]:
-    """Query Qwen3-14B via vLLM. Returns (action, reasoning)."""
+    """Query Qwen3-8B via vLLM. Returns (action, reasoning)."""
     if ask_model is None:
         return (action_names[0] if action_names else "stay"), None
 
@@ -453,7 +453,7 @@ def qwen3_agent_action(
         if reply and not reply.startswith("Error"):
             return _parse_qwen_response(reply, action_names)
     except Exception as exc:
-        print(f"    [WARN] Qwen3-14B call failed ({exc}), using fallback")
+        print(f"    [WARN] Qwen3-8B call failed ({exc}), using fallback")
 
     return (action_names[0] if action_names else "stay"), None
 
@@ -468,7 +468,7 @@ def qwen3_avalon_action(
     temperature: float = 0.3,
     skill_guidance: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, Optional[str]]:
-    """Query Qwen3-14B for one Avalon player. Returns (action_str, reasoning)."""
+    """Query Qwen3-8B for one Avalon player. Returns (action_str, reasoning)."""
     if ask_model is None:
         return "wait", None
 
@@ -517,7 +517,7 @@ def qwen3_diplomacy_action(
     temperature: float = 0.3,
     skill_guidance: Optional[Dict[str, Any]] = None,
 ) -> Tuple[List[str], Optional[str]]:
-    """Query Qwen3-14B for one Diplomacy power. Returns (orders_list, reasoning)."""
+    """Query Qwen3-8B for one Diplomacy power. Returns (orders_list, reasoning)."""
     if ask_model is None:
         return [], None
 
@@ -552,7 +552,7 @@ def qwen3_orak_action(
     temperature: float = 0.3,
     skill_guidance: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, Optional[str]]:
-    """Query Qwen3-14B for one Orak game step. Returns (action, reasoning)."""
+    """Query Qwen3-8B for one Orak game step. Returns (action, reasoning)."""
     if ask_model is None:
         return (action_names[0] if action_names else "stay"), None
 
@@ -587,7 +587,7 @@ def run_qwen3_episode(
     label_model: Optional[str] = None,
     skill_bank: Any = None,
 ) -> Tuple[Episode, Dict[str, Any]]:
-    """Run one episode with Qwen3-14B, calling get_state_summary and
+    """Run one episode with Qwen3-8B, calling get_state_summary and
     infer_intention at every step."""
 
     game_cfg = GAME_CONFIGS.get(game)
@@ -736,7 +736,7 @@ def run_qwen3_episode(
             "steps": step_count,
             "total_reward": total_reward,
             "model": model,
-            "agent_type": "qwen3_14b",
+            "agent_type": "qwen3_8b",
             "final_intention": current_intention,
             "final_state_summary": last_state_summary,
         },
@@ -750,7 +750,7 @@ def run_qwen3_episode(
         "terminated": terminated,
         "truncated": truncated,
         "model": model,
-        "agent_type": "qwen3_14b",
+        "agent_type": "qwen3_8b",
     }
     return episode, stats
 
@@ -928,7 +928,7 @@ def run_qwen3_sokoban_episode(
             "steps": step_count,
             "total_reward": total_reward,
             "model": model,
-            "agent_type": "qwen3_14b_sokoban",
+            "agent_type": "qwen3_8b_sokoban",
             "final_intention": current_intention,
             "final_state_summary": last_state_summary,
         },
@@ -942,7 +942,7 @@ def run_qwen3_sokoban_episode(
         "terminated": terminated,
         "truncated": truncated,
         "model": model,
-        "agent_type": "qwen3_14b_sokoban",
+        "agent_type": "qwen3_8b_sokoban",
     }
     return episode, stats
 
@@ -972,7 +972,7 @@ def run_qwen3_avalon_episode(
     skill_bank: Any = None,
     **kwargs,
 ) -> Tuple[Episode, Dict[str, Any]]:
-    """Run one Avalon episode with all players controlled by Qwen3-14B."""
+    """Run one Avalon episode with all players controlled by Qwen3-8B."""
     if AvalonNLWrapper is None:
         raise ImportError("AvalonNLWrapper not available. Install AgentEvolver deps.")
 
@@ -1096,7 +1096,7 @@ def run_qwen3_avalon_episode(
             "steps": step_count,
             "total_reward": total_reward,
             "model": model,
-            "agent_type": "qwen3_14b",
+            "agent_type": "qwen3_8b",
             "good_victory": info.get("good_victory"),
         },
     )
@@ -1109,7 +1109,7 @@ def run_qwen3_avalon_episode(
         "terminated": env.done,
         "truncated": False,
         "model": model,
-        "agent_type": "qwen3_14b",
+        "agent_type": "qwen3_8b",
         "good_victory": info.get("good_victory"),
     }
     return episode, stats
@@ -1127,7 +1127,7 @@ def run_qwen3_diplomacy_episode(
     skill_bank: Any = None,
     **kwargs,
 ) -> Tuple[Episode, Dict[str, Any]]:
-    """Run one Diplomacy episode with all 7 powers controlled by Qwen3-14B."""
+    """Run one Diplomacy episode with all 7 powers controlled by Qwen3-8B."""
     if DiplomacyNLWrapper is None:
         raise ImportError("DiplomacyNLWrapper not available. Install AI_Diplomacy deps.")
 
@@ -1311,7 +1311,7 @@ def run_qwen3_diplomacy_episode(
             "steps": step_count,
             "total_reward": total_reward,
             "model": model,
-            "agent_type": "qwen3_14b",
+            "agent_type": "qwen3_8b",
             "final_sc_rewards": final_rewards,
         },
     )
@@ -1324,7 +1324,7 @@ def run_qwen3_diplomacy_episode(
         "terminated": terminated,
         "truncated": truncated,
         "model": model,
-        "agent_type": "qwen3_14b",
+        "agent_type": "qwen3_8b",
         "max_phases": DIPLOMACY_MAX_PHASES,
         "final_sc_rewards": final_rewards,
     }
@@ -1344,7 +1344,7 @@ def run_qwen3_orak_episode(
     skill_bank: Any = None,
     **kwargs,
 ) -> Tuple[Episode, Dict[str, Any]]:
-    """Run one Orak game episode with Qwen3-14B."""
+    """Run one Orak game episode with Qwen3-8B."""
     if make_orak_env is None:
         raise ImportError("Orak env not available. Install Orak deps and activate the correct conda env.")
 
@@ -1472,7 +1472,7 @@ def run_qwen3_orak_episode(
             "steps": step_count,
             "total_reward": total_reward,
             "model": model,
-            "agent_type": "qwen3_14b",
+            "agent_type": "qwen3_8b",
         },
     )
     episode.set_outcome()
@@ -1486,7 +1486,7 @@ def run_qwen3_orak_episode(
         "terminated": terminated,
         "truncated": truncated,
         "model": model,
-        "agent_type": "qwen3_14b",
+        "agent_type": "qwen3_8b",
     }
     return episode, stats
 
@@ -1519,7 +1519,7 @@ def save_game_summary(
         "game": game_name,
         "timestamp": datetime.now().isoformat(),
         "model": args.model,
-        "agent_type": "qwen3_14b",
+        "agent_type": "qwen3_8b",
         "total_episodes": len(all_stats),
         "target_episodes": args.episodes,
         "max_steps": args.max_steps,
@@ -1715,7 +1715,7 @@ def _game_description(game_name: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Qwen3-14B decision agent evaluation across LMGame-Bench, AgentEvolver, and Orak games",
+        description="Qwen3-8B decision agent evaluation across LMGame-Bench, AgentEvolver, and Orak games",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
@@ -1888,7 +1888,7 @@ def main():
         "run_started": run_timestamp,
         "timestamp": datetime.now().isoformat(),
         "model": args.model,
-        "agent_type": "qwen3_14b",
+        "agent_type": "qwen3_8b",
         "episodes_per_game": args.episodes,
         "max_steps": args.max_steps,
         "temperature": args.temperature,

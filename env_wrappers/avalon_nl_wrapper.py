@@ -662,6 +662,8 @@ class AvalonNLWrapper:
 
     def _process_phase_single(self, phase_id: int, action: Any) -> None:
         """Process one phase with action from controlled player + partner policy."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         cp = self._controlled_player
         actions: Dict[int, Any] = {}
 
@@ -671,22 +673,39 @@ class AvalonNLWrapper:
                 actions[leader] = action
             else:
                 actions[leader] = self._partner_policy(self.env, self.roles, leader, phase_id)
-            # Other players don't act in team selection
 
         elif phase_id == 1:
-            for i in range(self._num_players):
-                if i == cp:
-                    actions[i] = action
-                else:
-                    actions[i] = self._partner_policy(self.env, self.roles, i, phase_id)
+            actions[cp] = action
+            partner_ids = [i for i in range(self._num_players) if i != cp]
+            with ThreadPoolExecutor(max_workers=len(partner_ids)) as pool:
+                futures = {
+                    pool.submit(self._partner_policy, self.env, self.roles, pid, phase_id): pid
+                    for pid in partner_ids
+                }
+                for fut in as_completed(futures):
+                    pid = futures[fut]
+                    try:
+                        actions[pid] = fut.result()
+                    except Exception:
+                        actions[pid] = _random_partner_action(self.env, self.roles, pid, phase_id)
 
         elif phase_id == 2:
             current_team = list(self.env.get_current_quest_team())
-            for pid in current_team:
-                if pid == cp:
-                    actions[pid] = action
-                else:
-                    actions[pid] = self._partner_policy(self.env, self.roles, pid, phase_id)
+            partner_pids = [pid for pid in current_team if pid != cp]
+            if cp in current_team:
+                actions[cp] = action
+            if partner_pids:
+                with ThreadPoolExecutor(max_workers=len(partner_pids)) as pool:
+                    futures = {
+                        pool.submit(self._partner_policy, self.env, self.roles, pid, phase_id): pid
+                        for pid in partner_pids
+                    }
+                    for fut in as_completed(futures):
+                        pid = futures[fut]
+                        try:
+                            actions[pid] = fut.result()
+                        except Exception:
+                            actions[pid] = _random_partner_action(self.env, self.roles, pid, phase_id)
 
         elif phase_id == 3:
             assassin_id = int(self.env.get_assassin())

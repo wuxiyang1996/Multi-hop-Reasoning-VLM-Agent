@@ -74,3 +74,46 @@ every frame to a PIL image unnecessarily.
 
 All defaults remain `True` so other games and direct Orak usage are
 unaffected.
+
+---
+
+## 003 — GRPO: inf segment reward crashes FSDP training with SIGABRT (2026-03-17)
+
+**Files changed:**
+- `skill_agents_grpo/infer_segmentation/diagnostics.py` — `SegmentDiagnostic.margin`, `SegmentationDiagnostics.from_result`
+- `skill_agents_grpo/grpo/rewards.py` — `_segmentation_reward_with_decode`
+- `trainer/coevolution/grpo_training.py` — `_compute_advantages`
+- `skill_agents_grpo/grpo/fsdp_trainer.py` — training loop
+
+**Problem:**
+`SegmentDiagnostic.margin` returned `float("inf")` when a segment had fewer
+than 2 skill candidates (common during cold start with a small skill bank).
+The reward function `_segmentation_reward_with_decode` consumed these margins
+without filtering, so `sum([1.8, 1.8, inf])` produced an `inf` reward.
+
+This `inf` propagated through three stages:
+1. **Reward** → `inf` returned by `_segmentation_reward_with_decode`
+2. **Advantage** → `_compute_advantages` computed `mean = inf`, `var = nan`,
+   all advantages became `nan`
+3. **FSDP** → `nan` advantage fed into the PPO loss, one rank diverged while
+   others stayed finite, NCCL collective communication deadlocked, and
+   `torch.multiprocessing.spawn` raised `ProcessExitedException: process 0
+   terminated with signal SIGABRT`
+
+The diagnostics *display* path (`SegmentationDiagnostics.from_result`) already
+filtered `inf` margins, but the *reward* path did not.
+
+**Fix (4 layers):**
+1. **`diagnostics.py`** — `margin` now returns `1e6` instead of `float("inf")`
+   as the sentinel for "no comparison possible". `from_result` updated to
+   filter `margin < 1e6` accordingly. Eliminates `inf` at the source.
+2. **`rewards.py`** — `_segmentation_reward_with_decode` now filters margins
+   with `math.isfinite(seg.margin)` before averaging, mirroring the
+   diagnostics display path. Prevents `inf` rewards even if margin sentinels
+   change.
+3. **`grpo_training.py`** — `_compute_advantages` sanitizes non-finite rewards
+   by replacing them with the mean of finite rewards before normalization.
+   Prevents `nan` advantages.
+4. **`fsdp_trainer.py`** — Training loop skips any sample whose advantage or
+   loss is non-finite, substituting a zero-gradient contribution. Prevents
+   any future numerical divergence from crashing the entire run.

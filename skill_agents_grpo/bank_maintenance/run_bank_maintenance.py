@@ -244,6 +244,47 @@ def build_transition_bigrams(
     return dict(bigrams)
 
 
+def _collect_curator_candidates(result: BankMaintenanceResult) -> List[Dict[str, Any]]:
+    """Summarize all maintenance actions as curator candidates.
+
+    Uses ``"type"`` as the key for the action kind, matching
+    ``_format_action`` in ``llm_curator.py``.
+    """
+    candidates: List[Dict[str, Any]] = []
+    for sr in result.split_results:
+        if sr.accepted:
+            candidates.append({
+                "type": "split",
+                "skill_id": sr.parent_id,
+                "n_instances": len(sr.children),
+                "details": {
+                    "children": [c.skill_id for c in sr.children],
+                },
+            })
+    for mr in result.merge_results:
+        if mr.accepted:
+            candidates.append({
+                "type": "merge",
+                "skill_id": mr.canonical_id,
+                "pass_rate": mr.report.overall_pass_rate if mr.report else 0,
+                "n_instances": len(mr.merged_ids),
+                "details": {
+                    "merged_ids": mr.merged_ids,
+                },
+            })
+    for rr in result.refine_results:
+        if rr.new_contract is not None:
+            candidates.append({
+                "type": "refine",
+                "skill_id": rr.skill_id,
+                "details": {
+                    "dropped": rr.dropped_literals[:5] if rr.dropped_literals else [],
+                    "added": rr.added_literals[:5] if rr.added_literals else [],
+                },
+            })
+    return candidates
+
+
 # ═════════════════════════════════════════════════════════════════════
 # Main orchestrator
 # ═════════════════════════════════════════════════════════════════════
@@ -563,6 +604,17 @@ def run_bank_maintenance(
             skill_id=skill_id,
             details={"n_instances": len(instances)},
         ))
+
+    # ── 4b. CURATOR — LLM filtering of maintenance actions ──────
+    # Summarize all proposed actions and call the curator so GRPO
+    # training data is generated for the curator adapter.
+    curator_candidates = _collect_curator_candidates(result)
+    if curator_candidates:
+        try:
+            from skill_agents_grpo.bank_maintenance.llm_curator import filter_candidates
+            filter_candidates(curator_candidates, bank)
+        except Exception as exc:
+            logger.debug("Curator filtering skipped: %s", exc)
 
     # ── 5. Execute local re-decode (if decode_fn provided) ───────
     if decode_fn and result.redecode_requests:

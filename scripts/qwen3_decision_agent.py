@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Qwen3-14B Decision Agent with Dual LoRA GRPO + Skill Bank.
+Qwen3-8B Decision Agent with Dual LoRA GRPO + Skill Bank.
 
-Uses Qwen3-14B (served via vLLM) with two GRPO-trained LoRA adapters:
+Uses Qwen3-8B (served via vLLM) with two GRPO-trained LoRA adapters:
 
   - **skill_selection LoRA**: state + intention + top-k candidates → chosen skill
   - **action_taking LoRA**:  state + actions + skill guidance → chosen action
@@ -38,7 +38,7 @@ Usage (from Game-AI-Agent root):
 
     # With dual LoRA GRPO adapters
     python -m scripts.qwen3_decision_agent --use_lora \\
-        --local_model Qwen/Qwen3-14B \\
+        --local_model Qwen/Qwen3-8B \\
         --adapter_dir adapters/decision_agent/ \\
         --games tetris --episodes 5 -v
 
@@ -140,7 +140,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-DEFAULT_MODEL = "Qwen/Qwen3-14B"
+DEFAULT_MODEL = "Qwen/Qwen3-8B"
 DEFAULT_BANK_DIR = CODEBASE_ROOT / "labeling" / "output" / "gpt54_skillbank"
 DEFAULT_OUTPUT_DIR = CODEBASE_ROOT / "test_rollout" / "decision_agent"
 
@@ -783,7 +783,13 @@ def get_top_k_skill_candidates(
 
 
 def _enrich_candidate(skill_bank: Any, d: Dict[str, Any]) -> None:
-    """Fill in missing skill_name / execution_hint from the bank."""
+    """Fill in missing skill_name / execution_hint from the bank.
+
+    When no strategic description is available (e.g. co-evolution skills
+    that only have predicate-based contracts), generates a compact
+    hint from the contract effects so the action-taking prompt has
+    *some* context about what the skill does.
+    """
     if d.get("skill_name") and d.get("execution_hint"):
         return
     sid = d.get("skill_id")
@@ -800,7 +806,31 @@ def _enrich_candidate(skill_bank: Any, d: Dict[str, Any]) -> None:
             if not d.get("skill_name"):
                 d["skill_name"] = skill_obj.name or sid
             if not d.get("execution_hint"):
-                d["execution_hint"] = skill_obj.strategic_description or ""
+                desc = skill_obj.strategic_description or ""
+                if not desc:
+                    desc = _hint_from_contract(skill_obj)
+                d["execution_hint"] = desc
+
+
+def _hint_from_contract(skill_obj: Any) -> str:
+    """Build a compact strategy hint from a skill's contract effects."""
+    contract = getattr(skill_obj, "contract", None)
+    if contract is None:
+        return ""
+    eff_add = getattr(contract, "eff_add", None) or []
+    eff_del = getattr(contract, "eff_del", None) or []
+    if not eff_add and not eff_del:
+        return ""
+
+    def _clean(pred: str) -> str:
+        return pred.replace("event.", "").replace("world.", "").replace("_", " ")
+
+    parts = []
+    if eff_add:
+        parts.append("causes: " + ", ".join(_clean(p) for p in sorted(eff_add)[:4]))
+    if eff_del:
+        parts.append("ends: " + ", ".join(_clean(p) for p in sorted(eff_del)[:4]))
+    return "; ".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -1704,7 +1734,7 @@ def run_episode(
             "steps": step_count,
             "total_reward": total_reward,
             "model": model,
-            "agent_type": "qwen3_14b_dual_lora_grpo",
+            "agent_type": "qwen3_8b_dual_lora_grpo",
             "final_intention": current_intention,
             "final_summary_state": current_summary_state,
             "final_summary": current_summary,
@@ -1722,7 +1752,7 @@ def run_episode(
         "terminated": terminated,
         "truncated": truncated,
         "model": model,
-        "agent_type": "qwen3_14b_dual_lora_grpo",
+        "agent_type": "qwen3_8b_dual_lora_grpo",
         "skill_switches": skill_tracker.skill_switches,
         "unique_actions": len(set(recent_actions)),
         "grpo_records": len(grpo_records),
@@ -1917,7 +1947,7 @@ def run_game_rollouts(
         "game": game_name,
         "timestamp": datetime.now().isoformat(),
         "model": args.model,
-        "agent_type": "qwen3_14b_decision_with_skillbank",
+        "agent_type": "qwen3_8b_decision_with_skillbank",
         "total_episodes": len(all_stats),
         "elapsed_seconds": elapsed,
         "episode_stats": all_stats,
@@ -1944,7 +1974,7 @@ def run_game_rollouts(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Qwen3-14B Decision Agent with Skill Bank guidance",
+        description="Qwen3-8B Decision Agent with Skill Bank guidance",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--games", type=str, nargs="+", default=None,
@@ -2065,7 +2095,7 @@ def main():
     gpu_info = os.environ.get("CUDA_VISIBLE_DEVICES", "all")
 
     print("=" * 78)
-    print("  Qwen3-14B Decision Agent with Skill Bank + Dual LoRA GRPO")
+    print("  Qwen3-8B Decision Agent with Skill Bank + Dual LoRA GRPO")
     print("=" * 78)
     print(f"  Model:       {args.model}")
     print(f"  vLLM:        {vllm_url}")
@@ -2115,7 +2145,7 @@ def main():
     master_summary = {
         "timestamp": datetime.now().isoformat(),
         "model": args.model,
-        "agent_type": "qwen3_14b_dual_lora_grpo",
+        "agent_type": "qwen3_8b_dual_lora_grpo",
         "skill_bank": bank_path_str,
         "dual_lora_enabled": _dual_lora.enabled,
         "episodes_per_game": args.episodes,

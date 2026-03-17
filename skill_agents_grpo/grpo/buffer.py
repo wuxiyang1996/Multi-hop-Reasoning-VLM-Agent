@@ -10,6 +10,7 @@ log-probs with gradients, and performs policy-gradient updates.
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -69,6 +70,7 @@ class GRPOBuffer:
     def __init__(self, max_size_per_adapter: int = 256) -> None:
         self._samples: Dict[str, List[GRPOSample]] = {}
         self._max_size = max_size_per_adapter
+        self._lock = threading.Lock()
 
     def add(self, sample: GRPOSample) -> None:
         adapter = sample.adapter
@@ -76,37 +78,43 @@ class GRPOBuffer:
             adapter = SkillFunction(adapter)
             sample.adapter = adapter
         key = adapter.value
-        if key not in self._samples:
-            self._samples[key] = []
-        buf = self._samples[key]
-        buf.append(sample)
-        if len(buf) > self._max_size:
-            buf.pop(0)
+        with self._lock:
+            if key not in self._samples:
+                self._samples[key] = []
+            buf = self._samples[key]
+            buf.append(sample)
+            if len(buf) > self._max_size:
+                buf.pop(0)
 
     def samples_for(self, adapter: SkillFunction) -> List[GRPOSample]:
-        return list(self._samples.get(adapter.value, []))
+        with self._lock:
+            return list(self._samples.get(adapter.value, []))
 
     def size(self, adapter: Optional[SkillFunction] = None) -> int:
-        if adapter is not None:
-            return len(self._samples.get(adapter.value, []))
-        return sum(len(v) for v in self._samples.values())
+        with self._lock:
+            if adapter is not None:
+                return len(self._samples.get(adapter.value, []))
+            return sum(len(v) for v in self._samples.values())
 
     def clear(self, adapter: Optional[SkillFunction] = None) -> None:
-        if adapter is not None:
-            self._samples.pop(adapter.value, None)
-        else:
-            self._samples.clear()
+        with self._lock:
+            if adapter is not None:
+                self._samples.pop(adapter.value, None)
+            else:
+                self._samples.clear()
 
     def adapters_with_data(self) -> List[SkillFunction]:
-        result = []
-        for key, samples in self._samples.items():
-            if samples:
-                try:
-                    result.append(SkillFunction(key))
-                except ValueError:
-                    pass
-        return result
+        with self._lock:
+            result = []
+            for key, samples in self._samples.items():
+                if samples:
+                    try:
+                        result.append(SkillFunction(key))
+                    except ValueError:
+                        pass
+            return result
 
     def __repr__(self) -> str:
-        parts = [f"{k}: {len(v)}" for k, v in self._samples.items() if v]
+        with self._lock:
+            parts = [f"{k}: {len(v)}" for k, v in self._samples.items() if v]
         return f"GRPOBuffer({', '.join(parts) or 'empty'})"

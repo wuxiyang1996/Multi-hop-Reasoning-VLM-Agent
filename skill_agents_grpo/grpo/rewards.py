@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Set
 
@@ -311,7 +312,7 @@ def _segmentation_reward_with_decode(
         n_total = len(result.segments)
 
         for seg in result.segments:
-            if hasattr(seg, "margin"):
+            if hasattr(seg, "margin") and math.isfinite(seg.margin):
                 margins.append(seg.margin)
             if hasattr(seg, "skill") and seg.skill == "__NEW__":
                 n_new += 1

@@ -680,6 +680,7 @@ class SkillBankAgent:
             eff_freq=cfg.eff_freq,
             min_instances_per_skill=cfg.min_instances_per_skill,
             start_end_window=cfg.start_end_window,
+            model=cfg.llm_model or "",
         )
 
         specs = [

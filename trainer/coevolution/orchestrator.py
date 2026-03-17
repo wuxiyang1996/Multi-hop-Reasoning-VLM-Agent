@@ -95,14 +95,20 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             base_port=config.vllm_base_port,
             gpu_util=config.vllm_gpu_util,
             log_dir=vllm_log_dir,
+            speculative_model=config.speculative_model,
+            num_speculative_tokens=config.num_speculative_tokens,
         )
+        spec_info = ""
+        if config.speculative_model:
+            spec_info = f"  |  spec_decode={config.speculative_model} ({config.num_speculative_tokens} tokens)"
         logger.info(
             "vLLM managed mode: %d × TP=1 instances on GPUs %s, "
-            "ports %d–%d  |  GRPO on GPUs %s",
+            "ports %d–%d  |  GRPO on GPUs %s%s",
             len(config.vllm_gpu_ids), config.vllm_gpu_ids,
             config.vllm_base_port,
             config.vllm_base_port + len(config.vllm_gpu_ids) - 1,
             config.grpo_devices,
+            spec_info,
         )
 
     # ── vLLM client (supports multiple backends) ──────────────
@@ -124,6 +130,9 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             logger.error("vLLM server not reachable at %s", config.vllm_base_url)
             raise ConnectionError(f"vLLM not reachable: {config.vllm_base_url}")
         logger.info("vLLM server healthy at %s", config.vllm_base_url)
+
+    # Expose all vLLM URLs so API_func.ask_vllm round-robins across them
+    os.environ["VLLM_BASE_URLS"] = ",".join(config.vllm_base_urls)
 
     # ── Executors ─────────────────────────────────────────────────
     thread_executor = ThreadPoolExecutor(

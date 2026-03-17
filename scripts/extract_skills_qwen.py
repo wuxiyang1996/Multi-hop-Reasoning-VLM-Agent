@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Extract skills from labeled episode trajectories using Qwen3-14B via vLLM.
+Extract skills from labeled episode trajectories using Qwen3-8B via vLLM.
 
 Uses the SkillBankAgent pipeline with the IntentionSignalExtractor (Strategy B)
 so that Stage 1 boundary proposals come from [TAG] intention transitions —
-no LLM calls for boundary detection.  The LLM (Qwen3-14B) is only used for:
+no LLM calls for boundary detection.  The LLM (Qwen3-8B) is only used for:
 
   - Stage 2: preference-based skill ranking (LLM teacher)
   - Skill naming and description generation
@@ -13,7 +13,7 @@ no LLM calls for boundary detection.  The LLM (Qwen3-14B) is only used for:
 
 Reads labeled episodes that already have ``[TAG] phrase`` intentions
 (e.g. from ``labeling/label_and_extract_skills_gpt54.py`` Phase 1 or
-``scripts/run_qwen3_14b_eval.py --label``).
+``scripts/run_qwen3_8b_eval.py --label``).
 
 Output structure (scripts/output/qwen_skills/):
   <game_name>/episode_NNN.json      Episode with skills populated
@@ -22,7 +22,7 @@ Output structure (scripts/output/qwen_skills/):
   skill_catalog_all.json            Combined catalog across games
 
 Requirements:
-  - vLLM serving Qwen/Qwen3-14B  (set VLLM_BASE_URL, default localhost:8000/v1)
+  - vLLM serving Qwen/Qwen3-8B  (set VLLM_BASE_URL, default localhost:8000/v1)
   - Labeled episodes with [TAG] intentions in the input directory
 
 Usage (from Game-AI-Agent root):
@@ -99,7 +99,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-DEFAULT_MODEL = "Qwen/Qwen3-14B"
+DEFAULT_MODEL = "Qwen/Qwen3-8B"
 
 DEFAULT_INPUT_DIRS: List[Path] = [
     CODEBASE_ROOT / "labeling" / "output" / "gpt54_skills",
@@ -647,7 +647,7 @@ def find_episode_files(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Extract skills from labeled episodes using Qwen3-14B via vLLM",
+        description="Extract skills from labeled episodes using Qwen3-8B via vLLM",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--input_dir", type=str, nargs="*", default=None,
@@ -696,7 +696,7 @@ def main():
     vllm_url = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
 
     print("=" * 78)
-    print("  Qwen3-14B Skill Extraction (SkillBankAgent + IntentionSignalExtractor)")
+    print("  Qwen3-8B Skill Extraction (SkillBankAgent + IntentionSignalExtractor)")
     print("=" * 78)
     print(f"  Model:         {args.model}")
     print(f"  vLLM endpoint: {vllm_url}")

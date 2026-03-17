@@ -1,8 +1,8 @@
 #!/bin/bash
 # =============================================================================
-# Qwen3-14B Skill Extraction
+# Qwen3-8B Skill Extraction
 # =============================================================================
-# Launches a vLLM server for Qwen/Qwen3-14B, then runs skill extraction on
+# Launches a vLLM server for Qwen/Qwen3-8B, then runs skill extraction on
 # labeled episode trajectories using the SkillBankAgent pipeline with the
 # IntentionSignalExtractor (Strategy B).
 #
@@ -29,7 +29,7 @@
 #   bash scripts/run_extract_skills_qwen.sh --max_episodes 5
 #
 #   # Custom input (e.g. from Qwen eval rollouts)
-#   bash scripts/run_extract_skills_qwen.sh --input_dir output/Qwen3-14B
+#   bash scripts/run_extract_skills_qwen.sh --input_dir output/Qwen3-8B
 #
 #   # Skip vLLM launch (server already running)
 #   bash scripts/run_extract_skills_qwen.sh --no-server --one_per_game -v
@@ -84,7 +84,7 @@ mkdir -p "$HF_HUB_CACHE"
 # Defaults
 # ---------------------------------------------------------------------------
 EVAL_GPUS="${EVAL_GPUS:-0}"
-MODEL="${MODEL:-Qwen/Qwen3-14B}"
+MODEL="${MODEL:-Qwen/Qwen3-8B}"
 VLLM_PORT="${VLLM_PORT:-8000}"
 VLLM_HOST="${VLLM_HOST:-127.0.0.1}"
 LAUNCH_SERVER=true

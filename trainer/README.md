@@ -88,7 +88,7 @@ The new `trainer/coevolution/` package is **completely self-contained** and does
 
 ## Co-Evolution Architecture
 
-Two agents share one Qwen3-14B base model served through a single vLLM instance with **5 LoRA adapters** loaded simultaneously:
+Two agents share one Qwen3-8B base model served through a single vLLM instance with **5 LoRA adapters** loaded simultaneously:
 
 | Adapter | Agent | Purpose | GRPO reward signal |
 |---------|-------|---------|-------------------|
@@ -259,7 +259,7 @@ class CoEvolutionConfig:
     max_concurrent_episodes: int = 40
     total_steps: int = 30
     vllm_base_url: str = "http://localhost:8000/v1"
-    model_name: str = "Qwen/Qwen3-14B"
+    model_name: str = "Qwen/Qwen3-8B"
     temperature: float = 0.3
     max_tokens: int = 512
     grpo_enabled: bool = True

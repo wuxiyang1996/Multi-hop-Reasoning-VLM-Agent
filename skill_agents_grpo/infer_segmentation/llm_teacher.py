@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 # ── Cold-start I/O recording ─────────────────────────────────────────
 # Every LLM teacher call is recorded so that (prompt, response) pairs
-# can serve as supervised fine-tuning data for Qwen3-14B cold-start,
+# can serve as supervised fine-tuning data for Qwen3-8B cold-start,
 # and as reference outputs for GRPO reward comparison.
 
 @dataclass
@@ -349,6 +349,7 @@ def collect_segment_preferences(
     skill_names: List[str],
     predicates: Optional[List[Optional[dict]]] = None,
     config: Optional[LLMTeacherConfig] = None,
+    **_kw: Any,
 ) -> list:
     """
     Proactive preference collection: ask the LLM to rank skills for
@@ -375,6 +376,10 @@ def collect_segment_preferences(
         Pairwise preferences derived from LLM rankings.
     """
     cfg = config or LLMTeacherConfig()
+    if "temperature" in _kw:
+        from copy import copy
+        cfg = copy(cfg)
+        cfg.temperature = _kw["temperature"]
     ask = _get_ask_model()
     max_workers = getattr(cfg, "max_workers", None)
     if max_workers is None or max_workers <= 1:

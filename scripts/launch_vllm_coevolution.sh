@@ -22,7 +22,7 @@
 #   VLLM_TP=4 CUDA_VISIBLE_DEVICES=0,1,2,3 bash scripts/launch_vllm_coevolution.sh
 #
 #   # Point to a timestamped run directory for adapters:
-#   ADAPTER_DIR=runs/Qwen3-14B_20260315_143022/lora_adapters bash scripts/launch_vllm_coevolution.sh
+#   ADAPTER_DIR=runs/Qwen3-8B_20260315_143022/lora_adapters bash scripts/launch_vllm_coevolution.sh
 
 set -euo pipefail
 
@@ -35,11 +35,13 @@ export HF_HOME="${HF_HOME:-/workspace/huggingface}"
 export HF_HUB_CACHE="${HF_HUB_CACHE:-${HF_HOME}/hub}"
 mkdir -p "${HF_HUB_CACHE}"
 
-MODEL="${VLLM_MODEL:-Qwen/Qwen3-14B}"
+MODEL="${VLLM_MODEL:-Qwen/Qwen3-8B}"
 PORT="${VLLM_PORT:-8000}"
 TP="${VLLM_TP:-4}"
 GPU_UTIL="${VLLM_GPU_UTIL:-0.90}"
 ADAPTER_DIR="${ADAPTER_DIR:-runs/lora_adapters}"
+SPEC_MODEL="${SPEC_MODEL:-Qwen/Qwen3-0.6B}"
+SPEC_TOKENS="${SPEC_TOKENS:-5}"
 
 echo "═══════════════════════════════════════════════════"
 echo "  vLLM Co-Evolution Server"
@@ -49,6 +51,7 @@ echo "  TP:       ${TP}"
 echo "  GPU Util: ${GPU_UTIL}"
 echo "  Port:     ${PORT}"
 echo "  Adapters: ${ADAPTER_DIR}"
+echo "  Spec dec: ${SPEC_MODEL} (${SPEC_TOKENS} tokens)"
 echo "═══════════════════════════════════════════════════"
 
 # Build --lora-modules args (only for adapters that exist)
@@ -79,11 +82,18 @@ if [ -n "${LORA_ARGS}" ]; then
     LORA_FLAGS="${LORA_FLAGS} --lora-modules ${LORA_ARGS}"
 fi
 
+SPEC_ARGS=()
+if [ -n "${SPEC_MODEL}" ]; then
+    SPEC_JSON="{\"model\":\"${SPEC_MODEL}\",\"num_speculative_tokens\":${SPEC_TOKENS},\"method\":\"draft_model\"}"
+    SPEC_ARGS=(--speculative_config "${SPEC_JSON}")
+fi
+
 exec python -m vllm.entrypoints.openai.api_server \
     --model "${MODEL}" \
     --tensor-parallel-size "${TP}" \
     --gpu-memory-utilization "${GPU_UTIL}" \
     ${LORA_FLAGS} \
+    "${SPEC_ARGS[@]}" \
     --enable-prefix-caching \
     --enable-chunked-prefill \
     --max-num-seqs 256 \

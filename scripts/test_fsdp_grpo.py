@@ -136,8 +136,8 @@ def main():
         help="GPU IDs to use (default: 4 5 6 7)",
     )
     parser.add_argument(
-        "--model", type=str, default="Qwen/Qwen3-14B",
-        help="Model name (default: Qwen/Qwen3-14B)",
+        "--model", type=str, default="Qwen/Qwen3-8B",
+        help="Model name (default: Qwen/Qwen3-8B)",
     )
     parser.add_argument(
         "--n-samples", type=int, default=64,

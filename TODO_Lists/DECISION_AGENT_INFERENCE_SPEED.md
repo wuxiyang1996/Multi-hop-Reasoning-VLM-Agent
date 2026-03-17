@@ -141,7 +141,7 @@ Serve `skill_selection` and `action_taking` adapters through vLLM alongside the 
 
 ```bash
 python -m vllm.entrypoints.openai.api_server \
-    --model Qwen/Qwen3-14B \
+    --model Qwen/Qwen3-8B \
     --enable-lora \
     --lora-modules \
         segment=runs/lora_adapters/segment \
@@ -591,7 +591,7 @@ if should_regen_intention:
 
 | Component | Memory |
 |-----------|--------|
-| Qwen3-14B base weights (bf16) | ~28 GB |
+| Qwen3-8B base weights (bf16) | ~16 GB |
 | 5 LoRA adapters (rank 16 each) | ~1.0 GB total |
 | vLLM KV cache (at 0.85 utilization) | ~38 GB |
 | **Total** | ~67.4 GB / 80 GB |

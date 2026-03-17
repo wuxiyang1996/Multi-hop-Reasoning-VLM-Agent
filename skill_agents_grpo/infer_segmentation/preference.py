@@ -93,8 +93,9 @@ class PreferenceStore:
     def add(self, example: PreferenceExample) -> None:
         self._examples.append(example)
 
-    def add_batch(self, examples: List[PreferenceExample]) -> None:
-        self._examples.extend(examples)
+    def add_batch(self, examples: Optional[List[PreferenceExample]]) -> None:
+        if examples:
+            self._examples.extend(examples)
 
     @property
     def examples(self) -> List[PreferenceExample]:

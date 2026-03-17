@@ -19,7 +19,7 @@ Usage::
 
     stats = run_fsdp_grpo(
         gpu_ids=[4, 5, 6, 7],
-        model_name="Qwen/Qwen3-14B",
+        model_name="Qwen/Qwen3-8B",
         adapter_dir="runs/lora_adapters/decision/skill_selection",
         adapter_name="skill_selection",
         prompts=prompts,
@@ -59,15 +59,18 @@ def _detect_wrap_cls(model):
     return set()
 
 
-def _fsdp_train_worker(rank: int, args: Dict[str, Any]) -> None:
-    """Per-GPU FSDP training worker (spawned by :func:`run_fsdp_grpo`).
+def _train_one_adapter(
+    rank: int,
+    device: "torch.device",
+    is_main: bool,
+    world_size: int,
+    model_name: str,
+    job: Dict[str, Any],
+) -> None:
+    """Train a single LoRA adapter with FSDP.
 
-    Each rank:
-    1. Loads the full base model to its GPU
-    2. Applies/creates the LoRA adapter
-    3. Wraps with FSDP (shards frozen weights across all ranks)
-    4. Trains on its slice of the data
-    5. Rank 0 gathers and saves the adapter
+    Assumes NCCL process group is already initialized.
+    Loads model, trains, saves, and frees GPU memory.
     """
     import functools
 
@@ -83,192 +86,288 @@ def _fsdp_train_worker(rank: int, args: Dict[str, Any]) -> None:
     from torch.distributed.fsdp.wrap import transformer_auto_wrap_policy
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    world_size = args["world_size"]
-    master_port = args["master_port"]
-    model_name = args["model_name"]
-    adapter_dir = args["adapter_dir"]
-    adapter_name = args["adapter_name"]
-    prompts = args["prompts"]
-    completions = args["completions"]
-    advantages = args["advantages"]
-    lr = args["lr"]
-    epochs = args["epochs"]
-    batch_size = args["batch_size"]
-    clip_ratio = args["clip_ratio"]
-    kl_coeff = args["kl_coeff"]
-    save_dir = args["save_dir"]
-    result_file = args["result_file"]
-    io_log_dir = args.get("io_log_dir")
+    adapter_dir = job["adapter_dir"]
+    adapter_name = job["adapter_name"]
+    prompts = job["prompts"]
+    completions = job["completions"]
+    advantages = job["advantages"]
+    lr = job["lr"]
+    epochs = job["epochs"]
+    batch_size = job["batch_size"]
+    clip_ratio = job["clip_ratio"]
+    kl_coeff = job["kl_coeff"]
+    save_dir = job["save_dir"]
+    result_file = job["result_file"]
+    io_log_dir = job.get("io_log_dir")
 
-    # CUDA_VISIBLE_DEVICES is set by the launcher so rank maps cleanly
-    torch.cuda.set_device(rank)
-    device = torch.device(f"cuda:{rank}")
+    t0 = time.time()
 
-    os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = str(master_port)
-    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+    if is_main:
+        logger.info(
+            "FSDP rank 0: loading %s (bf16) onto %d GPUs",
+            model_name, world_size,
+        )
 
-    is_main = rank == 0
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype=torch.bfloat16,
+        device_map={"": rank},
+        trust_remote_code=True,
+    )
+    model.gradient_checkpointing_enable(
+        gradient_checkpointing_kwargs={"use_reentrant": False},
+    )
 
-    try:
-        t0 = time.time()
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name, trust_remote_code=True,
+    )
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
 
-        # ── 1. Load base model ──────────────────────────────────────
+    from peft import LoraConfig, PeftModel, TaskType, get_peft_model
+
+    adapter_path = Path(adapter_dir)
+    adapter_config_file = adapter_path / "adapter_config.json"
+
+    if adapter_config_file.exists():
+        model = PeftModel.from_pretrained(
+            model, str(adapter_path),
+            adapter_name=adapter_name,
+            is_trainable=True,
+        )
         if is_main:
-            logger.info(
-                "FSDP rank 0: loading %s (bf16) onto %d GPUs",
-                model_name, world_size,
-            )
-
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            torch_dtype=torch.bfloat16,
-            device_map={"": rank},
-            trust_remote_code=True,
+            logger.info("Loaded adapter '%s' from %s", adapter_name, adapter_path)
+    else:
+        lora_cfg = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=16,
+            lora_alpha=32,
+            lora_dropout=0.05,
+            target_modules=[
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "gate_proj", "up_proj",
+            ],
+            inference_mode=False,
         )
-        model.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False},
-        )
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name, trust_remote_code=True,
-        )
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-
-        # ── 2. Apply LoRA adapter ───────────────────────────────────
-        from peft import LoraConfig, PeftModel, TaskType, get_peft_model
-
-        adapter_path = Path(adapter_dir)
-        adapter_config_file = adapter_path / "adapter_config.json"
-
-        if adapter_config_file.exists():
-            model = PeftModel.from_pretrained(
-                model, str(adapter_path),
-                adapter_name=adapter_name,
-                is_trainable=True,
-            )
-            if is_main:
-                logger.info("Loaded adapter '%s' from %s", adapter_name, adapter_path)
-        else:
-            lora_cfg = LoraConfig(
-                task_type=TaskType.CAUSAL_LM,
-                r=16,
-                lora_alpha=32,
-                lora_dropout=0.05,
-                target_modules=[
-                    "q_proj", "k_proj", "v_proj", "o_proj",
-                    "gate_proj", "up_proj", "down_proj",
-                ],
-                inference_mode=False,
-            )
-            model = get_peft_model(model, lora_cfg, adapter_name=adapter_name)
-            if is_main:
-                logger.info("Created fresh adapter '%s' (r=16, alpha=32)", adapter_name)
-
-        for n, p in model.named_parameters():
-            is_lora = "lora" in n.lower()
-            p.requires_grad = is_lora
-            if is_lora and p.dtype != torch.bfloat16:
-                p.data = p.data.to(torch.bfloat16)
-        model.train()
-
-        # ── 3. Wrap with FSDP ──────────────────────────────────────
-        wrap_cls = _detect_wrap_cls(model)
-        if wrap_cls:
-            auto_policy = functools.partial(
-                transformer_auto_wrap_policy,
-                transformer_layer_cls=wrap_cls,
-            )
-        else:
-            auto_policy = None
-
-        bf16_policy = MixedPrecision(
-            param_dtype=torch.bfloat16,
-            reduce_dtype=torch.bfloat16,
-            buffer_dtype=torch.bfloat16,
-        )
-
-        model = FSDP(
-            model,
-            auto_wrap_policy=auto_policy,
-            sharding_strategy=ShardingStrategy.FULL_SHARD,
-            mixed_precision=bf16_policy,
-            device_id=rank,
-            use_orig_params=True,
-        )
-
-        load_time = time.time() - t0
+        model = get_peft_model(model, lora_cfg, adapter_name=adapter_name)
         if is_main:
-            n_trainable = sum(
-                p.numel() for p in model.parameters() if p.requires_grad
-            )
-            logger.info(
-                "FSDP model ready (%d GPUs, %s trainable params, %.1fs load)",
-                world_size, f"{n_trainable:,}", load_time,
-            )
+            logger.info("Created fresh adapter '%s' (r=16, alpha=32)", adapter_name)
 
-        # ── 4. Shard data ──────────────────────────────────────────
-        n_total = len(prompts)
-        per_rank = n_total // world_size
-        start_idx = rank * per_rank
-        end_idx = start_idx + per_rank if rank < world_size - 1 else n_total
-        my_prompts = prompts[start_idx:end_idx]
-        my_completions = completions[start_idx:end_idx]
-        my_advantages = advantages[start_idx:end_idx]
-        n_my = len(my_prompts)
+    for n, p in model.named_parameters():
+        is_lora = "lora" in n.lower()
+        p.requires_grad = is_lora
+        if is_lora and p.dtype != torch.bfloat16:
+            p.data = p.data.to(torch.bfloat16)
+    model.train()
 
+    wrap_cls = _detect_wrap_cls(model)
+    if wrap_cls:
+        auto_policy = functools.partial(
+            transformer_auto_wrap_policy,
+            transformer_layer_cls=wrap_cls,
+        )
+    else:
+        auto_policy = None
+
+    bf16_policy = MixedPrecision(
+        param_dtype=torch.bfloat16,
+        reduce_dtype=torch.bfloat16,
+        buffer_dtype=torch.bfloat16,
+    )
+
+    model = FSDP(
+        model,
+        auto_wrap_policy=auto_policy,
+        sharding_strategy=ShardingStrategy.FULL_SHARD,
+        mixed_precision=bf16_policy,
+        device_id=rank,
+        use_orig_params=True,
+    )
+
+    load_time = time.time() - t0
+    if is_main:
+        n_trainable = sum(
+            p.numel() for p in model.parameters() if p.requires_grad
+        )
+        logger.info(
+            "FSDP model ready (%d GPUs, %s trainable params, %.1fs load)",
+            world_size, f"{n_trainable:,}", load_time,
+        )
+
+    n_total = len(prompts)
+    per_rank = n_total // world_size
+    start_idx = rank * per_rank
+    end_idx = start_idx + per_rank if rank < world_size - 1 else n_total
+    my_prompts = prompts[start_idx:end_idx]
+    my_completions = completions[start_idx:end_idx]
+    my_advantages = advantages[start_idx:end_idx]
+    n_my = len(my_prompts)
+
+    if is_main:
+        logger.info(
+            "FSDP GRPO [%s]: %d samples → %d/rank, %d epochs, bs=%d",
+            adapter_name, n_total, n_my, epochs, batch_size,
+        )
+
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.AdamW(trainable_params, lr=lr)
+
+    t_ref = time.time()
+    tokenized: list = []
+    for i in range(n_my):
+        full_text = my_prompts[i] + my_completions[i]
+        enc = tokenizer(
+            full_text, return_tensors="pt", truncation=True,
+        )
+        penc = tokenizer(my_prompts[i], return_tensors="pt")
+        plen = penc["input_ids"].shape[1]
+        if plen >= enc["input_ids"].shape[1]:
+            continue
+        tokenized.append({
+            "input_ids": enc["input_ids"],
+            "attn_mask": enc["attention_mask"],
+            "plen": plen,
+            "adv": my_advantages[i],
+        })
+
+    n_valid_local = torch.tensor(
+        len(tokenized), device=device, dtype=torch.long,
+    )
+    n_valid_max = n_valid_local.clone()
+    dist.all_reduce(n_valid_max, op=dist.ReduceOp.MAX)
+    n_valid_max_val = int(n_valid_max.item())
+
+    if n_valid_max_val == 0:
         if is_main:
-            logger.info(
-                "FSDP GRPO [%s]: %d samples → %d/rank, %d epochs, bs=%d",
-                adapter_name, n_total, n_my, epochs, batch_size,
-            )
-
-        # ── 5. Optimizer ───────────────────────────────────────────
-        trainable_params = [p for p in model.parameters() if p.requires_grad]
-        optimizer = torch.optim.AdamW(trainable_params, lr=lr)
-
-        # ── 5.5. Pre-tokenize & compute reference log-probs ──────
-        # Compute log-probs under the *current* policy (before any
-        # gradient steps) to serve as the PPO/GRPO reference.
-        # Without this, ratio = exp(new - old) is always 1.0 and the
-        # clipping / KL penalty has no effect.
-        #
-        # Pre-tokenize everything first (CPU-only), then run a single
-        # batched no-grad forward pass.  This is ~5-10x faster than
-        # processing samples one-by-one.
-        t_ref = time.time()
-        ref_data: list = [None] * n_my
-        tokenized: list = [None] * n_my
-        for i in range(n_my):
-            full_text = my_prompts[i] + my_completions[i]
-            enc = tokenizer(
-                full_text, return_tensors="pt", truncation=True,
-            )
-            penc = tokenizer(my_prompts[i], return_tensors="pt")
-            plen = penc["input_ids"].shape[1]
-            if plen >= enc["input_ids"].shape[1]:
-                continue
-            tokenized[i] = {
-                "input_ids": enc["input_ids"],
-                "attn_mask": enc["attention_mask"],
-                "plen": plen,
+            logger.warning("All samples filtered out, skipping training")
+            result = {
+                "n_samples": 0, "n_tokens": 0,
+                "mean_loss": 0.0, "epochs": 0,
+                "train_time_s": 0.0, "load_time_s": load_time,
+                "n_gpus": world_size, "throughput": 0.0,
             }
+            with open(result_file, "w") as f:
+                json.dump(result, f)
+        del model, optimizer, tokenizer
+        gc.collect()
+        torch.cuda.empty_cache()
+        return
 
-        ref_batch_size = batch_size * 2
-        model.eval()
-        with torch.no_grad():
-            for mb_s in range(0, n_my, ref_batch_size):
-                mb_e = min(mb_s + ref_batch_size, n_my)
-                for i in range(mb_s, mb_e):
-                    tk = tokenized[i]
-                    if tk is None:
-                        continue
-                    input_ids = tk["input_ids"].to(device)
-                    attn_mask = tk["attn_mask"].to(device)
-                    plen = tk["plen"]
+    dummy_entry = tokenized[0] if tokenized else {
+        "input_ids": torch.ones(1, 2, dtype=torch.long),
+        "attn_mask": torch.ones(1, 2, dtype=torch.long),
+        "plen": 1,
+        "adv": 0.0,
+    }
+    while len(tokenized) < n_valid_max_val:
+        tokenized.append(None)
 
-                    out = model(input_ids=input_ids, attention_mask=attn_mask)
+    ref_data: list = [None] * len(tokenized)
+
+    model.eval()
+    with torch.no_grad():
+        for i in range(len(tokenized)):
+            tk = tokenized[i]
+            is_dummy = tk is None
+            if is_dummy:
+                tk = dummy_entry
+
+            input_ids = tk["input_ids"].to(device)
+            attn_mask = tk["attn_mask"].to(device)
+            plen = tk["plen"]
+
+            out = model(input_ids=input_ids, attention_mask=attn_mask)
+
+            if is_dummy:
+                del out
+                continue
+
+            logits = out.logits[:, plen - 1:-1, :]
+            target = input_ids[:, plen:]
+            lp = torch.log_softmax(logits, dim=-1)
+            per_tok = lp.gather(
+                -1, target.unsqueeze(-1),
+            ).squeeze(-1).squeeze(0)
+
+            if per_tok.numel() == 0:
+                continue
+            ref_data[i] = {
+                "input_ids": input_ids.cpu(),
+                "attn_mask": attn_mask.cpu(),
+                "plen": plen,
+                "ref_lp": per_tok.cpu(),
+                "adv": tk["adv"],
+            }
+    model.train()
+
+    ref_data = [rd for rd in ref_data if rd is not None]
+
+    n_train_local = torch.tensor(
+        len(ref_data), device=device, dtype=torch.long,
+    )
+    n_train_max = n_train_local.clone()
+    dist.all_reduce(n_train_max, op=dist.ReduceOp.MAX)
+    n_train_max_val = int(n_train_max.item())
+
+    if n_train_max_val == 0:
+        if is_main:
+            logger.warning("No valid ref data, skipping training")
+            result = {
+                "n_samples": 0, "n_tokens": 0,
+                "mean_loss": 0.0, "epochs": 0,
+                "train_time_s": 0.0, "load_time_s": load_time,
+                "n_gpus": world_size, "throughput": 0.0,
+            }
+            with open(result_file, "w") as f:
+                json.dump(result, f)
+        del model, optimizer, tokenizer
+        gc.collect()
+        torch.cuda.empty_cache()
+        return
+
+    if is_main:
+        logger.info(
+            "Reference log-probs: %d/%d valid (%.1fs)",
+            len(ref_data), n_my, time.time() - t_ref,
+        )
+
+    dummy_rd = ref_data[0] if ref_data else None
+    while len(ref_data) < n_train_max_val:
+        ref_data.append(None)
+
+    total_loss = 0.0
+    total_tokens = 0
+    n_my_train = len(ref_data)
+    n_mini = max(1, (n_my_train + batch_size - 1) // batch_size)
+    t_train = time.time()
+
+    for epoch in range(epochs):
+        optimizer.zero_grad()
+        epoch_loss = 0.0
+        epoch_samples = 0
+        t_epoch = time.time()
+
+        for mb in range(n_mini):
+            mb_start = mb * batch_size
+            mb_end = min(mb_start + batch_size, n_my_train)
+            mb_losses: list = []
+
+            for i in range(mb_start, mb_end):
+                rd = ref_data[i]
+                is_dummy = rd is None
+                if is_dummy:
+                    rd = dummy_rd
+
+                input_ids = rd["input_ids"].to(device)
+                attn_mask = rd["attn_mask"].to(device)
+                plen = rd["plen"]
+                old_lp = rd["ref_lp"].to(device)
+
+                with torch.enable_grad():
+                    out = model(
+                        input_ids=input_ids,
+                        attention_mask=attn_mask,
+                    )
                     logits = out.logits[:, plen - 1:-1, :]
                     target = input_ids[:, plen:]
                     lp = torch.log_softmax(logits, dim=-1)
@@ -276,159 +375,175 @@ def _fsdp_train_worker(rank: int, args: Dict[str, Any]) -> None:
                         -1, target.unsqueeze(-1),
                     ).squeeze(-1).squeeze(0)
 
-                    if per_tok.numel() == 0:
-                        continue
-                    ref_data[i] = {
-                        "input_ids": input_ids.cpu(),
-                        "attn_mask": attn_mask.cpu(),
-                        "plen": plen,
-                        "ref_lp": per_tok.cpu(),
-                    }
-        model.train()
+                if is_dummy:
+                    mb_losses.append(per_tok.sum() * 0.0)
+                    continue
 
-        if is_main:
-            n_valid = sum(1 for r in ref_data if r is not None)
-            logger.info(
-                "Reference log-probs: %d/%d valid (%.1fs)",
-                n_valid, n_my, time.time() - t_ref,
-            )
+                ratio = torch.exp(per_tok - old_lp)
+                clipped = torch.clamp(
+                    ratio, 1.0 - clip_ratio, 1.0 + clip_ratio,
+                )
+                adv_t = torch.tensor(
+                    rd["adv"], device=device, dtype=per_tok.dtype,
+                )
+                if not torch.isfinite(adv_t).all():
+                    mb_losses.append(per_tok.sum() * 0.0)
+                    continue
+                surr = torch.min(ratio * adv_t, clipped * adv_t)
+                loss = -surr.mean() + kl_coeff * (old_lp - per_tok).mean()
+                if not torch.isfinite(loss):
+                    mb_losses.append(per_tok.sum() * 0.0)
+                    continue
 
-        # ── 6. Training loop ───────────────────────────────────────
-        total_loss = 0.0
-        total_tokens = 0
-        n_mini = max(1, (n_my + batch_size - 1) // batch_size)
-        t_train = time.time()
+                mb_losses.append(loss)
+                epoch_loss += loss.item()
+                epoch_samples += 1
+                total_tokens += per_tok.numel()
 
-        for epoch in range(epochs):
+            if mb_losses:
+                torch.stack(mb_losses).mean().backward()
+
+            torch.nn.utils.clip_grad_norm_(trainable_params, max_norm=1.0)
+            optimizer.step()
             optimizer.zero_grad()
-            epoch_loss = 0.0
-            epoch_samples = 0
-            t_epoch = time.time()
 
-            for mb in range(n_mini):
-                mb_start = mb * batch_size
-                mb_end = min(mb_start + batch_size, n_my)
-                mb_losses: list = []
-
-                for i in range(mb_start, mb_end):
-                    rd = ref_data[i]
-                    if rd is None:
-                        continue
-
-                    input_ids = rd["input_ids"].to(device)
-                    attn_mask = rd["attn_mask"].to(device)
-                    plen = rd["plen"]
-                    old_lp = rd["ref_lp"].to(device)
-
-                    with torch.enable_grad():
-                        out = model(
-                            input_ids=input_ids,
-                            attention_mask=attn_mask,
-                        )
-                        logits = out.logits[:, plen - 1:-1, :]
-                        target = input_ids[:, plen:]
-                        lp = torch.log_softmax(logits, dim=-1)
-                        per_tok = lp.gather(
-                            -1, target.unsqueeze(-1),
-                        ).squeeze(-1).squeeze(0)
-
-                    ratio = torch.exp(per_tok - old_lp)
-                    clipped = torch.clamp(
-                        ratio, 1.0 - clip_ratio, 1.0 + clip_ratio,
-                    )
-                    adv_t = torch.tensor(
-                        my_advantages[i], device=device, dtype=per_tok.dtype,
-                    )
-                    surr = torch.min(ratio * adv_t, clipped * adv_t)
-                    loss = -surr.mean() + kl_coeff * (old_lp - per_tok).mean()
-
-                    mb_losses.append(loss)
-                    epoch_loss += loss.item()
-                    epoch_samples += 1
-                    total_tokens += per_tok.numel()
-
-                if mb_losses:
-                    torch.stack(mb_losses).mean().backward()
-
-                torch.nn.utils.clip_grad_norm_(trainable_params, max_norm=1.0)
-                optimizer.step()
-                optimizer.zero_grad()
-
-            total_loss += epoch_loss / max(epoch_samples, 1)
-
-            if is_main:
-                elapsed = time.time() - t_epoch
-                rate = n_my / elapsed if elapsed > 0 else 0
-                logger.info(
-                    "  FSDP [%s] epoch %d/%d: loss=%.4f (%.1f samples/s, %.1fs)",
-                    adapter_name, epoch + 1, epochs,
-                    epoch_loss / max(epoch_samples, 1), rate, elapsed,
-                )
-
-        train_time = time.time() - t_train
-
-        # ── 7. Save adapter (rank 0 gathers full state) ───────────
-        save_policy = FullStateDictConfig(
-            offload_to_cpu=True, rank0_only=True,
-        )
-        with FSDP.state_dict_type(
-            model, StateDictType.FULL_STATE_DICT, save_policy,
-        ):
-            state_dict = model.state_dict()
+        total_loss += epoch_loss / max(epoch_samples, 1)
 
         if is_main:
-            save_path = Path(save_dir)
-            save_path.mkdir(parents=True, exist_ok=True)
-
-            lora_state = {
-                k: v for k, v in state_dict.items() if "lora_" in k
-            }
-
-            if lora_state:
-                try:
-                    from safetensors.torch import save_file
-                    save_file(lora_state, str(save_path / "adapter_model.safetensors"))
-                except ImportError:
-                    torch.save(lora_state, str(save_path / "adapter_model.bin"))
-
-                logger.info(
-                    "Saved %d LoRA tensors → %s", len(lora_state), save_path,
-                )
-            else:
-                logger.warning("No LoRA parameters found to save!")
-
-            mean_loss = total_loss / max(epochs, 1)
-            throughput = n_total * epochs / train_time if train_time > 0 else 0
+            elapsed = time.time() - t_epoch
+            rate = n_my / elapsed if elapsed > 0 else 0
             logger.info(
-                "FSDP GRPO [%s] done: %.1fs train (%.1fs load), "
-                "%d tokens, loss=%.4f, %.1f samples/s",
-                adapter_name, train_time, load_time,
-                total_tokens, mean_loss, throughput,
+                "  FSDP [%s] epoch %d/%d: loss=%.4f (%.1f samples/s, %.1fs)",
+                adapter_name, epoch + 1, epochs,
+                epoch_loss / max(epoch_samples, 1), rate, elapsed,
             )
 
-            result = {
-                "n_samples": n_total,
-                "n_tokens": total_tokens,
-                "mean_loss": mean_loss,
-                "epochs": epochs,
-                "train_time_s": train_time,
-                "load_time_s": load_time,
-                "n_gpus": world_size,
-                "throughput": throughput,
-            }
-            with open(result_file, "w") as f:
-                json.dump(result, f)
+    train_time = time.time() - t_train
 
-        # Debug I/O
-        if io_log_dir and is_main:
-            _write_debug_io(
-                io_log_dir, adapter_name, prompts, completions, advantages,
+    save_policy = FullStateDictConfig(
+        offload_to_cpu=True, rank0_only=True,
+    )
+    with FSDP.state_dict_type(
+        model, StateDictType.FULL_STATE_DICT, save_policy,
+    ):
+        state_dict = model.state_dict()
+
+    if is_main:
+        save_path = Path(save_dir)
+        save_path.mkdir(parents=True, exist_ok=True)
+
+        import re
+        _adapter_key_re = re.compile(
+            r"(lora_[AB])\." + re.escape(adapter_name) + r"\.(weight)"
+        )
+        lora_state = {}
+        for k, v in state_dict.items():
+            if "lora_" not in k:
+                continue
+            clean_key = _adapter_key_re.sub(r"\1.\2", k)
+            lora_state[clean_key] = v
+
+        if lora_state:
+            try:
+                from safetensors.torch import save_file
+                save_file(lora_state, str(save_path / "adapter_model.safetensors"))
+            except ImportError:
+                torch.save(lora_state, str(save_path / "adapter_model.bin"))
+
+            logger.info(
+                "Saved %d LoRA tensors → %s", len(lora_state), save_path,
             )
+        else:
+            logger.warning("No LoRA parameters found to save!")
 
-        del model, optimizer, tokenizer, state_dict
-        gc.collect()
-        torch.cuda.empty_cache()
+        mean_loss = total_loss / max(epochs, 1)
+        throughput = n_total * epochs / train_time if train_time > 0 else 0
+        logger.info(
+            "FSDP GRPO [%s] done: %.1fs train (%.1fs load), "
+            "%d tokens, loss=%.4f, %.1f samples/s",
+            adapter_name, train_time, load_time,
+            total_tokens, mean_loss, throughput,
+        )
 
+        result = {
+            "n_samples": n_total,
+            "n_tokens": total_tokens,
+            "mean_loss": mean_loss,
+            "epochs": epochs,
+            "train_time_s": train_time,
+            "load_time_s": load_time,
+            "n_gpus": world_size,
+            "throughput": throughput,
+        }
+        with open(result_file, "w") as f:
+            json.dump(result, f)
+
+    if io_log_dir and is_main:
+        _write_debug_io(
+            io_log_dir, adapter_name, prompts, completions, advantages,
+        )
+
+    del model, optimizer, tokenizer, state_dict
+    gc.collect()
+    torch.cuda.empty_cache()
+
+
+def _fsdp_train_worker(rank: int, args: Dict[str, Any]) -> None:
+    """Per-GPU FSDP training worker (spawned by :func:`run_fsdp_grpo`).
+
+    Thin wrapper that initialises the NCCL process group, delegates to
+    :func:`_train_one_adapter`, then tears down the group.
+    """
+    import torch
+    import torch.distributed as dist
+
+    torch.cuda.set_device(rank)
+    device = torch.device(f"cuda:{rank}")
+
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = str(args["master_port"])
+    dist.init_process_group("nccl", rank=rank, world_size=args["world_size"])
+
+    try:
+        _train_one_adapter(
+            rank, device, rank == 0, args["world_size"],
+            args["model_name"], args,
+        )
+    finally:
+        if dist.is_initialized():
+            dist.destroy_process_group()
+
+
+def _fsdp_train_worker_multi(rank: int, args: Dict[str, Any]) -> None:
+    """Per-GPU worker that trains multiple adapters sequentially.
+
+    The NCCL process group is initialized once and reused across all
+    adapter jobs, and subsequent model loads benefit from OS page cache.
+    """
+    import torch
+    import torch.distributed as dist
+
+    torch.cuda.set_device(rank)
+    device = torch.device(f"cuda:{rank}")
+
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = str(args["master_port"])
+    dist.init_process_group("nccl", rank=rank, world_size=args["world_size"])
+
+    is_main = rank == 0
+
+    try:
+        for job_idx, job in enumerate(args["jobs"]):
+            if is_main:
+                logger.info(
+                    "Multi-adapter job %d/%d: '%s'",
+                    job_idx + 1, len(args["jobs"]), job["adapter_name"],
+                )
+            _train_one_adapter(
+                rank, device, is_main, args["world_size"],
+                args["model_name"], job,
+            )
+            dist.barrier()
     finally:
         if dist.is_initialized():
             dist.destroy_process_group()
@@ -488,7 +603,7 @@ def run_fsdp_grpo(
     gpu_ids : list[int]
         Physical GPU indices (e.g. ``[4, 5, 6, 7]``).
     model_name : str
-        HuggingFace model id (e.g. ``"Qwen/Qwen3-14B"``).
+        HuggingFace model id (e.g. ``"Qwen/Qwen3-8B"``).
     adapter_dir : str
         Directory containing the LoRA adapter (or where a fresh one
         will be created).
@@ -576,3 +691,115 @@ def run_fsdp_grpo(
         "FSDP GRPO '%s' complete: %.1fs wall time", adapter_name, elapsed,
     )
     return result
+
+
+def run_fsdp_grpo_multi(
+    gpu_ids: List[int],
+    model_name: str,
+    jobs: List[Dict[str, Any]],
+    *,
+    io_log_dir: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Train multiple LoRA adapters in a single process spawn.
+
+    The NCCL process group and spawned workers are reused across all
+    adapter jobs, and subsequent model loads benefit from OS page cache
+    (the 14B model is only read from disk on the first job).
+
+    Parameters
+    ----------
+    gpu_ids : list[int]
+        Physical GPU indices (e.g. ``[4, 5, 6, 7]``).
+    model_name : str
+        HuggingFace model id.
+    jobs : list[dict]
+        Each dict must contain: ``adapter_dir``, ``adapter_name``,
+        ``prompts``, ``completions``, ``advantages``, ``lr``,
+        ``epochs``, ``batch_size``, ``clip_ratio``, ``kl_coeff``,
+        ``save_dir``.
+
+    Returns
+    -------
+    list[dict]
+        One result dict per job (same order as *jobs*).
+    """
+    import torch.multiprocessing as mp
+
+    valid_jobs = [j for j in jobs if j.get("prompts")]
+    if not valid_jobs:
+        logger.warning("No jobs with training data, nothing to do")
+        return [{"n_samples": 0, "skipped": True} for _ in jobs]
+
+    world_size = len(gpu_ids)
+    master_port = _find_free_port()
+
+    result_files = []
+    for j in valid_jobs:
+        fd, rfile = tempfile.mkstemp(suffix=".json", prefix="fsdp_result_")
+        os.close(fd)
+        j["result_file"] = rfile
+        j.setdefault("io_log_dir", io_log_dir)
+        j.setdefault("save_dir", j["adapter_dir"])
+        result_files.append(rfile)
+
+    args = {
+        "world_size": world_size,
+        "master_port": master_port,
+        "model_name": model_name,
+        "jobs": valid_jobs,
+    }
+
+    adapter_names = [j["adapter_name"] for j in valid_jobs]
+    logger.info(
+        "Launching FSDP GRPO multi (%s) on %d GPUs %s",
+        ", ".join(adapter_names), world_size, gpu_ids,
+    )
+
+    original_cvd = os.environ.get("CUDA_VISIBLE_DEVICES")
+    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(g) for g in gpu_ids)
+
+    t0 = time.time()
+    try:
+        mp.spawn(
+            _fsdp_train_worker_multi,
+            nprocs=world_size,
+            args=(args,),
+            join=True,
+        )
+    finally:
+        if original_cvd is not None:
+            os.environ["CUDA_VISIBLE_DEVICES"] = original_cvd
+        else:
+            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+
+    elapsed = time.time() - t0
+
+    results = []
+    for rfile in result_files:
+        try:
+            with open(rfile) as f:
+                r = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as exc:
+            logger.error("Failed to read FSDP result: %s", exc)
+            r = {"error": str(exc)}
+        finally:
+            try:
+                os.unlink(rfile)
+            except OSError:
+                pass
+        results.append(r)
+
+    # Insert skipped placeholders for jobs that had no data
+    full_results = []
+    valid_iter = iter(results)
+    for j in jobs:
+        if j.get("prompts"):
+            full_results.append(next(valid_iter))
+        else:
+            full_results.append({"n_samples": 0, "skipped": True})
+
+    logger.info(
+        "FSDP GRPO multi complete: %d adapters in %.1fs wall time",
+        len(valid_jobs), elapsed,
+    )
+    return full_results

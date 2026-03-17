@@ -25,6 +25,7 @@ Usage:
 from __future__ import annotations
 
 import sys
+import threading
 from pathlib import Path
 from typing import Callable, List, Optional, Sequence, Tuple
 
@@ -45,12 +46,10 @@ if str(_repo_root) not in sys.path:
 
 
 # ── GRPO episode context ─────────────────────────────────────────────
-# When GRPO wraps collect_segment_preferences, the reward function needs
-# to rebuild a SegmentScorer that includes the current episode's
-# intention_fit_fn.  We expose module-level state + factory functions
-# that the GRPO wrapper reads at evaluation time.
+# Thread-local storage so concurrent segmentations (one per game in the
+# co-evolution loop) don't overwrite each other's context.
 
-_grpo_episode_ctx: dict = {}
+_grpo_episode_ctx = threading.local()
 
 
 def _set_grpo_episode_context(
@@ -59,13 +58,17 @@ def _set_grpo_episode_context(
     intention_fit_fn: Optional[Callable] = None,
     compat_fn: Optional[Callable] = None,
 ) -> None:
-    """Update the per-episode context used by :func:`grpo_scorer_factory`."""
-    _grpo_episode_ctx.update({
+    """Update the per-thread episode context used by :func:`grpo_scorer_factory`."""
+    _grpo_episode_ctx.data = {
         "skill_names": skill_names,
         "config": config,
         "intention_fit_fn": intention_fit_fn,
         "compat_fn": compat_fn,
-    })
+    }
+
+
+def _get_grpo_episode_context() -> dict:
+    return getattr(_grpo_episode_ctx, "data", {})
 
 
 def grpo_scorer_factory(preference_list: list) -> "SegmentScorer":
@@ -75,7 +78,7 @@ def grpo_scorer_factory(preference_list: list) -> "SegmentScorer":
     so that the GRPO reward evaluation reconstructs the same scorer (including
     ``intention_fit_fn``) that the main pipeline uses.
     """
-    ctx = _grpo_episode_ctx
+    ctx = _get_grpo_episode_context()
     if not ctx:
         raise RuntimeError(
             "grpo_scorer_factory called but no episode context has been set. "
@@ -102,7 +105,7 @@ def grpo_decode_fn(
     predicates: Optional[list],
 ) -> "SegmentationResult":
     """Thin decode wrapper for GRPO reward evaluation."""
-    ctx = _grpo_episode_ctx
+    ctx = _get_grpo_episode_context()
     config = ctx.get("config") or SegmentationConfig()
     T = len(observations)
     candidates = sorted({pt for seg in segments for pt in [seg[0], seg[1]]})
@@ -448,7 +451,7 @@ def infer_and_segment(
         segment_prefs = collect_segment_preferences(
             segments, observations, actions, skill_names,
             predicates=predicates, config=cfg.llm_teacher,
-        )
+        ) or []
         store.add_batch(segment_prefs)
 
         if cfg.preference.collect_transitions:

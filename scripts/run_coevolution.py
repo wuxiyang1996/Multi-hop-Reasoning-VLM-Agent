@@ -5,7 +5,7 @@ Usage (from Game-AI-Agent root):
 
     # 1. Start vLLM server (on GPUs 0-3 with 5 LoRA adapters):
     python -m vllm.entrypoints.openai.api_server \\
-        --model Qwen/Qwen3-14B \\
+        --model Qwen/Qwen3-8B \\
         --tensor-parallel-size 4 \\
         --gpu-memory-utilization 0.90 \\
         --enable-lora \\
@@ -36,7 +36,7 @@ Usage (from Game-AI-Agent root):
 
     # Explicit run directory (otherwise auto-generated from model+timestamp):
     python scripts/run_coevolution.py \\
-        --run-dir runs/Qwen3-14B_20260315_143022
+        --run-dir runs/Qwen3-8B_20260315_143022
 
     # Specific games only:
     python scripts/run_coevolution.py \\
@@ -57,7 +57,7 @@ os.environ.setdefault("PYGLET_HEADLESS", "1")
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 # HuggingFace cache — point to /workspace/huggingface so models
-# (Qwen3-14B etc.) are not re-downloaded.
+# (Qwen3-8B etc.) are not re-downloaded.
 os.environ.setdefault("HF_HOME", "/workspace/huggingface")
 os.environ.setdefault("HF_HUB_CACHE", os.path.join(os.environ["HF_HOME"], "hub"))
 
@@ -111,8 +111,8 @@ def parse_args() -> argparse.Namespace:
 
     # Model
     parser.add_argument(
-        "--model", type=str, default="Qwen/Qwen3-14B",
-        help="Base model name (default: Qwen/Qwen3-14B)",
+        "--model", type=str, default="Qwen/Qwen3-8B",
+        help="Base model name (default: Qwen/Qwen3-8B)",
     )
     parser.add_argument(
         "--temperature", type=float, default=0.3,
@@ -151,6 +151,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--vllm-gpu-util", type=float, default=0.90,
         help="GPU memory utilization for vLLM (default: 0.90)",
+    )
+    parser.add_argument(
+        "--speculative-model", type=str, default="Qwen/Qwen3-0.6B",
+        help="Draft model for speculative decoding (default: Qwen/Qwen3-0.6B). "
+             "Set to empty string to disable.",
+    )
+    parser.add_argument(
+        "--num-speculative-tokens", type=int, default=5,
+        help="Number of tokens the draft model proposes per step (default: 5)",
     )
 
     # GRPO
@@ -313,6 +322,8 @@ def main() -> None:
         vllm_base_url=args.vllm_url,
         vllm_base_port=args.vllm_base_port,
         vllm_gpu_util=args.vllm_gpu_util,
+        speculative_model=args.speculative_model or None,
+        num_speculative_tokens=args.num_speculative_tokens,
         model_name=args.model,
         temperature=args.temperature,
         max_tokens=args.max_tokens,

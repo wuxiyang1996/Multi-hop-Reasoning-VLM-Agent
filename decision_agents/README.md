@@ -5,7 +5,7 @@ LLM decision-making agent that plays video games step-by-step. Supports **skill-
 **Two model backends:**
 
 - **GPT-5.4** (training-free) — used for cold-start data generation and labeling via OpenRouter / OpenAI API.
-- **Qwen3-14B** (GRPO-trained) — served via vLLM for decision-agent inference and evaluation.
+- **Qwen3-8B** (GRPO-trained) — served via vLLM for decision-agent inference and evaluation.
 
 Both share the same code path; `API_func.ask_model` routes to the correct API based on the model name. Skill bank loading and querying (`load_skill_bank`, `select_skill_from_bank`, `skill_bank_to_text`) are identical for both backends.
 
@@ -28,7 +28,7 @@ Both share the same code path; `API_func.ask_model` routes to the correct API ba
 
 ## Decision agent pipelines
 
-Two script-level pipelines drive the decision agent at inference time. Both use `Qwen/Qwen3-14B` served via vLLM and share the same core helpers from `decision_agents/`, but differ in skill-bank integration depth and game coverage.
+Two script-level pipelines drive the decision agent at inference time. Both use `Qwen/Qwen3-8B` served via vLLM and share the same core helpers from `decision_agents/`, but differ in skill-bank integration depth and game coverage.
 
 ### Pipeline A — `scripts/qwen3_decision_agent.py` (with skill select)
 
@@ -37,12 +37,12 @@ Skill-bank-guided decision agent with protocol-aware lifecycle management.
 **Per-step loop:**
 
 1. **`get_state_summary()`** — deterministic + LLM state compression into `key=value` format (≤400 chars)
-2. **`infer_intention()`** — Qwen3-14B produces a `[TAG] subgoal phrase` from summary + context (last actions, task)
+2. **`infer_intention()`** — Qwen3-8B produces a `[TAG] subgoal phrase` from summary + context (last actions, task)
 3. **Skill re-selection check** (`_SkillTracker.should_reselect()`) — triggers re-query when: no active skill, duration exceeded, zero-reward stall (≥4 steps with reward ≤0), abort/success criteria keyword-matched in current state
 4. **`get_skill_guidance()`** — queries `SkillQueryEngine` (RAG mode) using `game_name + intention + state_text[:1500]` as query, with `structured_state` converted to `{predicate: float}` for applicability scoring. Returns skill_id, skill_name, execution_hint, protocol (steps, preconditions, success/abort criteria)
    - If re-selecting and the same skill returns, `_try_alternate_skill()` randomly picks a different skill_id
    - Sets protocol on `_SkillTracker` for step tracking and prompt injection
-5. **`qwen3_action()`** — builds prompt: system prompt + `format_skill_guidance_for_prompt()` (active skill name, strategy, plan steps with `>>` marker at current step, preconditions, done-when, abort-if) + recent actions/rewards context + numbered action list → Qwen3-14B via vLLM
+5. **`qwen3_action()`** — builds prompt: system prompt + `format_skill_guidance_for_prompt()` (active skill name, strategy, plan steps with `>>` marker at current step, preconditions, done-when, abort-if) + recent actions/rewards context + numbered action list → Qwen3-8B via vLLM
 6. **`parse_qwen_response()`** — multi-strategy action extraction: exact match → numbered selection → substring → edit distance → token overlap → **RAG embedding semantic match** (`ActionEmbeddingMatcher` using `Qwen3-Embedding-0.6B`) as final fallback
 7. **`_apply_anti_repetition()`** — if same action repeated N times with 0 reward, randomly pick an alternative
 8. **`env.step(action)`**
@@ -69,16 +69,16 @@ python -m scripts.qwen3_decision_agent --no-bank --episodes 3        # baseline 
 python -m scripts.qwen3_decision_agent --bank /path/to/bank --episodes 3
 ```
 
-### Pipeline B — `scripts/run_qwen3_14b_eval.py` (without skill select)
+### Pipeline B — `scripts/run_qwen3_8b_eval.py` (without skill select)
 
 General-purpose evaluation script across multiple benchmarks, with optional skill bank support but no skill lifecycle tracking.
 
 **Per-step loop:**
 
 1. **`get_state_summary()`** — same deterministic + LLM state compression
-2. **`infer_intention()`** — same Qwen3-14B intention inference
+2. **`infer_intention()`** — same Qwen3-8B intention inference
 3. **`get_skill_guidance()`** — optional (via `--bank` flag), simpler query using `state[:500]`, no intention/structured_state scoring, no re-selection logic
-4. **`qwen3_agent_action()`** — builds prompt: system prompt + skill guidance text + user template (comma-separated actions) → Qwen3-14B via vLLM
+4. **`qwen3_agent_action()`** — builds prompt: system prompt + skill guidance text + user template (comma-separated actions) → Qwen3-8B via vLLM
 5. **`_parse_qwen_response()`** — simpler parsing: exact match (case-insensitive) → `extract_action()` fallback → first valid action (no fuzzy/edit-distance/RAG)
 6. **`env.step(action)`**
 7. **Generate experience summary** via LLM: a "short strategic note" from state + action (extra LLM call per step)
@@ -107,16 +107,16 @@ General-purpose evaluation script across multiple benchmarks, with optional skil
 export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
 export VLLM_BASE_URL="http://localhost:8000/v1"
 
-python -m scripts.run_qwen3_14b_eval --games twenty_forty_eight --episodes 3
-python -m scripts.run_qwen3_14b_eval --episodes 10                   # all available games
-python -m scripts.run_qwen3_14b_eval --resume                       # resume interrupted run
-python -m scripts.run_qwen3_14b_eval --bank path/to/bank.jsonl      # with optional skill bank
-python -m scripts.run_qwen3_14b_eval --list-games                   # show available games
+python -m scripts.run_qwen3_8b_eval --games twenty_forty_eight --episodes 3
+python -m scripts.run_qwen3_8b_eval --episodes 10                   # all available games
+python -m scripts.run_qwen3_8b_eval --resume                       # resume interrupted run
+python -m scripts.run_qwen3_8b_eval --bank path/to/bank.jsonl      # with optional skill bank
+python -m scripts.run_qwen3_8b_eval --list-games                   # show available games
 ```
 
 ### Pipeline comparison
 
-| Aspect | `qwen3_decision_agent.py` | `run_qwen3_14b_eval.py` |
+| Aspect | `qwen3_decision_agent.py` | `run_qwen3_8b_eval.py` |
 |--------|---------------------------|------------------------|
 | Skill bank | Required (per-game, query engine, tracker) | Optional (`--bank` flag) |
 | Skill lifecycle | `_SkillTracker` with reselect, alternate, protocol steps | Single query per step, no tracking |
@@ -190,7 +190,7 @@ from decision_agents import VLMDecisionAgent, run_episode_vlm_agent, RewardConfi
 
 episode = run_episode_vlm_agent(
     env,
-    model="Qwen/Qwen3-14B",   # or "gpt-5.4" for training-free cold-start
+    model="Qwen/Qwen3-8B",   # or "gpt-5.4" for training-free cold-start
     task="Complete level 1",
     max_steps=200,
     verbose=True,
@@ -235,7 +235,7 @@ reward_cfg = RewardConfig(
 )
 
 agent = VLMDecisionAgent(
-    model="Qwen/Qwen3-14B",
+    model="Qwen/Qwen3-8B",
     skill_bank=bank,
     memory=memory,
     reward_config=reward_cfg,
@@ -253,7 +253,7 @@ episode = run_episode_vlm_agent(env, agent=agent, task="Clear all boxes", max_st
 ```python
 from decision_agents import VLMDecisionAgent
 
-agent = VLMDecisionAgent(model="Qwen/Qwen3-14B")
+agent = VLMDecisionAgent(model="Qwen/Qwen3-8B")
 obs, info = env.reset()
 
 last_tool_name = None
@@ -451,7 +451,7 @@ from decision_agents import language_agent_action
 action = language_agent_action(
     state_nl=observation_text,
     game="sokoban",
-    model="Qwen/Qwen3-14B",    # or "gpt-5.4"
+    model="Qwen/Qwen3-8B",    # or "gpt-5.4"
 )
 ```
 

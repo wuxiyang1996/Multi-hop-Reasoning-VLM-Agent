@@ -2,7 +2,7 @@
 
 Build and maintain a **Skill Bank** from long-horizon game trajectories: segment trajectories into skills, learn symbolic contracts (effects), and serve queries for the [decision_agents](../decision_agents/README.md) VLM agent.
 
-**Model-agnostic design:** The pipeline and decision agent use the same skill-bank functions regardless of LLM backend. GPT and Qwen (and other backends) differ only in which API `ask_model` calls; loading, querying, and protocol synthesis all go through the same code paths. Set `PipelineConfig.llm_model` and/or `extractor_model` to your training or inference model (e.g. `Qwen/Qwen3-14B` or `gpt-4o-mini`) so protocol synthesis and boundary proposal use the correct backend.
+**Model-agnostic design:** The pipeline and decision agent use the same skill-bank functions regardless of LLM backend. GPT and Qwen (and other backends) differ only in which API `ask_model` calls; loading, querying, and protocol synthesis all go through the same code paths. Set `PipelineConfig.llm_model` and/or `extractor_model` to your training or inference model (e.g. `Qwen/Qwen3-8B` or `gpt-4o-mini`) so protocol synthesis and boundary proposal use the correct backend.
 
 **Reasoning-model compatibility:** When using Qwen3 or other reasoning models that emit internal `<think>` blocks, all LLM call sites in skill_agents are wrapped via [`_llm_compat.py`](_llm_compat.py): prompts get `/no_think` appended so the full token budget goes to structured output, and responses are stripped of think tags. This avoids generic or truncated names, descriptions, and protocols. See [Reasoning-model compatibility](#reasoning-model-compatibility) below.
 
@@ -114,7 +114,7 @@ skill_agent.load()
 
 # Decision agent: pass any model name (GPT, Qwen, etc.); same code path
 vlm_agent = VLMDecisionAgent(
-    model="gpt-4o-mini",      # or "Qwen/Qwen3-14B", etc.
+    model="gpt-4o-mini",      # or "Qwen/Qwen3-8B", etc.
     skill_bank=skill_agent,   # or skill_agent.bank for plain bank
     reward_config=RewardConfig(w_follow=0.1),
 )
@@ -237,7 +237,7 @@ Key options (see `pipeline.PipelineConfig` for all):
 |-------|--------|--------|
 | `bank_path` | `None` | JSONL path for the skill bank. |
 | `env_name` | `"llm"` | Signal extraction: `"llm"`, `"llm+overcooked"`, `"overcooked"`, etc. |
-| `extractor_model` | `None` | LLM for Stage 1 boundary proposal. Set to your backend (e.g. `gpt-4o-mini`, `Qwen/Qwen3-14B`); same `ask_model` routing as inference. |
+| `extractor_model` | `None` | LLM for Stage 1 boundary proposal. Set to your backend (e.g. `gpt-4o-mini`, `Qwen/Qwen3-8B`); same `ask_model` routing as inference. |
 | `llm_model` | `None` | LLM for protocol synthesis and other pipeline LLM calls. When set, `update_protocols()` can generate richer protocols via `ask_model` (model-agnostic). |
 | `merge_radius` | `5` | Merge boundary candidates within this many steps (Stage 1). |
 | `preference_iterations` | `3` | Active-learning rounds in Stage 2. |
@@ -270,7 +270,7 @@ Key options (see `pipeline.PipelineConfig` for all):
 
 ## Reasoning-model compatibility
 
-Reasoning models (e.g. **Qwen3-14B**, QwQ) default to an internal “thinking” mode that emits `<think>…</think>` blocks before the actual answer. Those blocks consume the `max_tokens` budget and often leave little or no room for the structured output (JSON, rankings, protocols) the pipeline needs.
+Reasoning models (e.g. **Qwen3-8B**, QwQ) default to an internal “thinking” mode that emits `<think>…</think>` blocks before the actual answer. Those blocks consume the `max_tokens` budget and often leave little or no room for the structured output (JSON, rankings, protocols) the pipeline needs.
 
 The module [`skill_agents/_llm_compat.py`](_llm_compat.py) provides:
 

@@ -62,7 +62,7 @@ ADAPTER_NAMES = [
 def _model_short_name(model_name: str) -> str:
     """Extract a filesystem-safe short name from a model identifier.
 
-    ``"Qwen/Qwen3-14B"`` → ``"Qwen3-14B"``
+    ``"Qwen/Qwen3-8B"`` → ``"Qwen3-8B"``
     ``"meta-llama/Llama-3-8B"`` → ``"Llama-3-8B"``
     """
     short = model_name.rsplit("/", 1)[-1]
@@ -72,7 +72,7 @@ def _model_short_name(model_name: str) -> str:
 def _generate_run_dir(model_name: str) -> str:
     """Generate a unique run directory name from model name + timestamp.
 
-    Example: ``runs/Qwen3-14B_20260315_143022``
+    Example: ``runs/Qwen3-8B_20260315_143022``
     """
     short = _model_short_name(model_name)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -102,12 +102,17 @@ class CoEvolutionConfig:
     )
 
     # vLLM inference
-    model_name: str = "Qwen/Qwen3-14B"
+    model_name: str = "Qwen/Qwen3-8B"
     temperature: float = 0.3
     max_tokens: int = 512
     vllm_base_url: str = "http://localhost:8000/v1"  # used only when manage_vllm=False
     vllm_base_port: int = 8000
     vllm_gpu_util: float = 0.90
+
+    # Speculative decoding — use a small draft model to propose tokens
+    # that the main model verifies in parallel (~2-3x generation speedup).
+    speculative_model: Optional[str] = "Qwen/Qwen3-0.6B"
+    num_speculative_tokens: int = 5
 
     # When True, the orchestrator manages vLLM server lifecycle
     # (persistent instances on vllm_gpu_ids, hot-reload after GRPO).
@@ -195,7 +200,7 @@ class CoEvolutionConfig:
         """Rebase all directory paths under ``run_dir``.
 
         If ``run_dir`` is ``None``, generates one from the model name
-        and current timestamp (e.g. ``runs/Qwen3-14B_20260315_143022``).
+        and current timestamp (e.g. ``runs/Qwen3-8B_20260315_143022``).
 
         Idempotent — calling twice is safe.
         """
@@ -389,7 +394,7 @@ def prepare_adapters(config: CoEvolutionConfig) -> Dict[str, str]:
         if "qwen" in arch.lower():
             target_modules = [
                 "q_proj", "k_proj", "v_proj", "o_proj",
-                "gate_proj", "up_proj", "down_proj",
+                "gate_proj", "up_proj",
             ]
         else:
             target_modules = ["q_proj", "v_proj"]

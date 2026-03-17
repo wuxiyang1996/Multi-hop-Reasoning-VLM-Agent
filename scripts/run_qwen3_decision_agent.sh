@@ -1,8 +1,8 @@
 #!/bin/bash
 # =============================================================================
-# Qwen3-14B Decision Agent with Skill Bank
+# Qwen3-8B Decision Agent with Skill Bank
 # =============================================================================
-# Launches a vLLM server for Qwen/Qwen3-14B, then runs the decision agent
+# Launches a vLLM server for Qwen/Qwen3-8B, then runs the decision agent
 # that plays games using skills from labeling/output/gpt54_skillbank/ to guide
 # its action selection.
 #
@@ -78,7 +78,7 @@ mkdir -p "$HF_HUB_CACHE"
 # Defaults
 # ---------------------------------------------------------------------------
 EVAL_GPUS="${EVAL_GPUS:-0}"
-MODEL="${MODEL:-Qwen/Qwen3-14B}"
+MODEL="${MODEL:-Qwen/Qwen3-8B}"
 VLLM_PORT="${VLLM_PORT:-8000}"
 VLLM_HOST="${VLLM_HOST:-127.0.0.1}"
 LAUNCH_SERVER=true
@@ -197,7 +197,7 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "============================================"
-echo "  Running Qwen3-14B Decision Agent"
+echo "  Running Qwen3-8B Decision Agent"
 echo "  Skill Bank: labeling/output/gpt54_skillbank"
 echo "  Output:     test_rollout/decision_agent"
 echo "============================================"

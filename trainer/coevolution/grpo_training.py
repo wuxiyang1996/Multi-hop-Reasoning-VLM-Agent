@@ -18,6 +18,7 @@ data slice.
 from __future__ import annotations
 
 import logging
+import math
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -53,13 +54,18 @@ def _compute_advantages(rewards: List[float]) -> List[float]:
     """Group-normalize rewards to zero-mean, unit-variance advantages."""
     if not rewards:
         return []
-    n = len(rewards)
+    finite = [r for r in rewards if math.isfinite(r)]
+    if not finite:
+        return [0.0] * len(rewards)
+    fallback = sum(finite) / len(finite)
+    sanitized = [r if math.isfinite(r) else fallback for r in rewards]
+    n = len(sanitized)
     if n == 1:
         return [0.0]
-    mean = sum(rewards) / n
-    var = sum((r - mean) ** 2 for r in rewards) / n
+    mean = sum(sanitized) / n
+    var = sum((r - mean) ** 2 for r in sanitized) / n
     std = var ** 0.5 if var > 0 else 1.0
-    return [(r - mean) / std for r in rewards]
+    return [(r - mean) / std for r in sanitized]
 
 
 def _collect_grpo_records(results: List[EpisodeResult]) -> Dict[str, List[GRPORecord]]:
@@ -81,22 +87,25 @@ def _records_to_training_data(
 ) -> tuple:
     """Convert GRPORecords to flat (prompts, completions, advantages) lists.
 
-    Records are grouped by (episode_id, step) and advantages are
-    computed within each group.
+    Advantages are computed per-episode (all steps within the same
+    episode form a group).  Within an episode, steps with above-average
+    rewards get positive advantages, below-average get negative.
+
+    This replaces the earlier per-(episode, step) grouping which always
+    produced groups of size 1 and advantages of exactly 0.0.
     """
-    groups: Dict[str, List[GRPORecord]] = {}
+    by_episode: Dict[str, List[GRPORecord]] = {}
     for rec in records:
-        key = f"{rec.episode_id}_{rec.step}"
-        groups.setdefault(key, []).append(rec)
+        by_episode.setdefault(rec.episode_id, []).append(rec)
 
     prompts: List[str] = []
     completions: List[str] = []
     advantages: List[float] = []
 
-    for group in groups.values():
-        rewards = [r.reward for r in group]
+    for ep_records in by_episode.values():
+        rewards = [r.reward for r in ep_records]
         advs = _compute_advantages(rewards)
-        for rec, adv in zip(group, advs):
+        for rec, adv in zip(ep_records, advs):
             if rec.completion:
                 prompts.append(rec.prompt)
                 completions.append(rec.completion)
@@ -144,7 +153,7 @@ class DecisionGRPOTrainer:
 
     def __init__(
         self,
-        model_name: str = "Qwen/Qwen3-14B",
+        model_name: str = "Qwen/Qwen3-8B",
         adapter_dir: str = "runs/lora_adapters",
         devices: Optional[List[int]] = None,
         group_size: int = 8,
@@ -164,10 +173,8 @@ class DecisionGRPOTrainer:
         self,
         records: Dict[str, List[GRPORecord]],
     ) -> Dict[str, GRPOTrainStats]:
-        """Run FSDP GRPO for each decision adapter that has data."""
-        from skill_agents_grpo.grpo.fsdp_trainer import run_fsdp_grpo
-
-        result: Dict[str, GRPOTrainStats] = {}
+        """Run FSDP GRPO for all decision adapters in a single spawn."""
+        from skill_agents_grpo.grpo.fsdp_trainer import run_fsdp_grpo_multi
 
         adapter_configs = {
             "skill_selection": {
@@ -181,6 +188,9 @@ class DecisionGRPOTrainer:
                 "epochs": 2,
             },
         }
+
+        jobs: List[Dict] = []
+        job_names: List[str] = []
 
         for adapter_name, cfg in adapter_configs.items():
             recs = records.get(adapter_name, [])
@@ -198,25 +208,35 @@ class DecisionGRPOTrainer:
                 adapter_name, len(prompts), len(self.devices),
             )
 
-            stats = run_fsdp_grpo(
-                gpu_ids=self.devices,
-                model_name=self.model_name,
-                adapter_dir=adapter_path,
-                adapter_name=adapter_name,
-                prompts=prompts,
-                completions=completions,
-                advantages=advantages,
-                lr=cfg["lr"],
-                epochs=cfg["epochs"],
-                batch_size=8,
-                clip_ratio=0.2,
-                kl_coeff=cfg["kl_coeff"],
-                save_dir=adapter_path,
-                io_log_dir=self.io_log_dir,
-            )
+            jobs.append({
+                "adapter_dir": adapter_path,
+                "adapter_name": adapter_name,
+                "prompts": prompts,
+                "completions": completions,
+                "advantages": advantages,
+                "lr": cfg["lr"],
+                "epochs": cfg["epochs"],
+                "batch_size": 8,
+                "clip_ratio": 0.2,
+                "kl_coeff": cfg["kl_coeff"],
+                "save_dir": adapter_path,
+            })
+            job_names.append(adapter_name)
 
-            result[adapter_name] = GRPOTrainStats(
-                adapter=adapter_name,
+        if not jobs:
+            return {}
+
+        all_stats = run_fsdp_grpo_multi(
+            gpu_ids=self.devices,
+            model_name=self.model_name,
+            jobs=jobs,
+            io_log_dir=self.io_log_dir,
+        )
+
+        result: Dict[str, GRPOTrainStats] = {}
+        for name, stats in zip(job_names, all_stats):
+            result[name] = GRPOTrainStats(
+                adapter=name,
                 n_samples=stats.get("n_samples", 0),
                 n_tokens=stats.get("n_tokens", 0),
                 mean_loss=stats.get("mean_loss", 0.0),
@@ -245,7 +265,7 @@ class SkillBankGRPOTrainer:
 
     def __init__(
         self,
-        model_name: str = "Qwen/Qwen3-14B",
+        model_name: str = "Qwen/Qwen3-8B",
         adapter_dir: str = "runs/lora_adapters",
         devices: Optional[List[int]] = None,
         lr: float = 5e-5,
@@ -264,10 +284,13 @@ class SkillBankGRPOTrainer:
         self,
         grpo_data: Dict[str, List[Dict[str, Any]]],
     ) -> Dict[str, GRPOTrainStats]:
-        """Run FSDP GRPO for each skill bank adapter that has data."""
-        from skill_agents_grpo.grpo.fsdp_trainer import run_fsdp_grpo
+        """Run FSDP GRPO for each skill bank adapter in its own spawn.
 
-        result: Dict[str, GRPOTrainStats] = {}
+        Each adapter gets a fresh ``mp.spawn`` with clean GPU memory,
+        avoiding the fragmentation / SIGABRT that occurs when multiple
+        adapters are trained sequentially inside a single process group.
+        """
+        from skill_agents_grpo.grpo.fsdp_trainer import run_fsdp_grpo
 
         adapter_configs = {
             "segment": {
@@ -286,6 +309,8 @@ class SkillBankGRPOTrainer:
                 "epochs": 2,
             },
         }
+
+        result: Dict[str, GRPOTrainStats] = {}
 
         for adapter_name, cfg in adapter_configs.items():
             samples = grpo_data.get(adapter_name, [])
@@ -319,6 +344,14 @@ class SkillBankGRPOTrainer:
                 save_dir=adapter_path,
                 io_log_dir=self.io_log_dir,
             )
+
+            import gc
+            gc.collect()
+            try:
+                import torch
+                torch.cuda.empty_cache()
+            except Exception:
+                pass
 
             result[adapter_name] = GRPOTrainStats(
                 adapter=adapter_name,
@@ -405,6 +438,16 @@ async def run_grpo_training(
         decision_stats = await loop.run_in_executor(
             executor, trainer.train_step, decision_records,
         )
+
+    if has_decision_data and has_skillbank_data:
+        import gc, time as _time
+        gc.collect()
+        try:
+            import torch
+            torch.cuda.empty_cache()
+        except Exception:
+            pass
+        _time.sleep(5)
 
     if has_skillbank_data:
         logger.info("Phase C.2: Skill bank GRPO on GPUs %s", devices)

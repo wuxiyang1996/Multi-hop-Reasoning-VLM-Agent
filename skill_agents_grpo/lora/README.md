@@ -2,7 +2,7 @@
 
 ## 3 GRPO-trained LoRA adapters
 
-This module uses one shared Qwen3-14B backbone with **3 active LoRA adapters**, each trained via GRPO:
+This module uses one shared Qwen3-8B backbone with **3 active LoRA adapters**, each trained via GRPO:
 
 | Function      | What it does                                          | Adapter    | GRPO reward |
 |--------------|-------------------------------------------------------|------------|-------------|
@@ -26,7 +26,7 @@ Each adapter learns function-specific patterns without interference:
 
 ```
 ┌──────────────────────────────────────────┐
-│        Qwen3-14B  (shared base)          │
+│        Qwen3-8B  (shared base)          │
 │                                          │
 │  ┌──────────┐  ┌──────────┐             │
 │  │ segment   │  │ contract │             │
@@ -81,7 +81,7 @@ loss.backward()     # gradients flow into CONTRACT LoRA params only
 from skill_agents_grpo.lora import MultiLoraSkillBankLLM, MultiLoraConfig, SkillFunction
 
 cfg = MultiLoraConfig(
-    base_model_name_or_path="Qwen/Qwen3-14B",
+    base_model_name_or_path="Qwen/Qwen3-8B",
     adapter_paths={
         "segment":   "runs/lora_adapters/segment",
         "contract":  "runs/lora_adapters/contract",
@@ -161,7 +161,7 @@ Each wrapper:
 skill_agents_grpo/lora/
 ├── __init__.py          # Exports: SkillFunction, MultiLoraConfig, MultiLoraSkillBankLLM
 ├── skill_function.py    # SkillFunction enum (3 active + 2 legacy)
-├── config.py            # MultiLoraConfig, LoraTrainingConfig (Qwen3-14B defaults)
+├── config.py            # MultiLoraConfig, LoraTrainingConfig (Qwen3-8B defaults)
 ├── model.py             # MultiLoraSkillBankLLM (generate + log_probs)
 └── README.md            # This file
 

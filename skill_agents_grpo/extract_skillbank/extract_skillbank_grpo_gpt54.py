@@ -154,7 +154,7 @@ def setup_local_model(
     model_name_or_path: str,
     adapter_dir: Optional[str] = None,
 ) -> "MultiLoraSkillBankLLM":
-    """Instantiate the local Qwen3-14B model and register as shared instance.
+    """Instantiate the local Qwen3-8B model and register as shared instance.
 
     If ``adapter_dir`` contains previously trained LoRA adapters, they are
     loaded automatically so GRPO training can continue from where it left off.
@@ -2645,10 +2645,10 @@ def extract_skills_for_game(
         except Exception as exc:
             print(f"    [WARN] Failed to save LLM call log: {exc}")
 
-    # ── Flush Stage 2 teacher I/O (cold-start data for Qwen3-14B) ────
+    # ── Flush Stage 2 teacher I/O (cold-start data for Qwen3-8B) ────
     # Records every prompt/response from the LLM teacher (segment
     # rankings, transition rankings, pairwise choices, skill naming).
-    # These serve as supervised fine-tuning data for Qwen3-14B cold-start
+    # These serve as supervised fine-tuning data for Qwen3-8B cold-start
     # and as reference outputs for GRPO reward comparison.
     from skill_agents_grpo.infer_segmentation.llm_teacher import flush_teacher_io_records
 
@@ -3078,7 +3078,7 @@ def main():
     parser.add_argument(
         "--local_model", type=str, default=None,
         help="HuggingFace model id or local path for the base LLM "
-             "(e.g. Qwen/Qwen3-14B). When set, uses this model instead of "
+             "(e.g. Qwen/Qwen3-8B). When set, uses this model instead of "
              "the API for all LLM teacher calls",
     )
     parser.add_argument(
@@ -3123,7 +3123,7 @@ def main():
                 _local_llm, group_size=args.grpo_group_size,
             )
     elif args.use_grpo:
-        print("[ERROR] --use_grpo requires --local_model (e.g. Qwen/Qwen3-14B)")
+        print("[ERROR] --use_grpo requires --local_model (e.g. Qwen/Qwen3-8B)")
         sys.exit(1)
 
     if not args.local_model:

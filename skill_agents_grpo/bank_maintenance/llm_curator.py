@@ -67,7 +67,7 @@ def _format_action(idx: int, action: Dict[str, Any]) -> str:
 
 
 def _get_curator_ask_fn() -> Optional[Callable[..., str]]:
-    """Return a CURATOR-routed ask function, or None if unavailable."""
+    """Return a CURATOR-routed ask function, or fallback to ask_model."""
     from skill_agents_grpo._llm_compat import wrap_ask_for_reasoning_models
 
     try:
@@ -79,7 +79,8 @@ def _get_curator_ask_fn() -> Optional[Callable[..., str]]:
             )
     except Exception:
         pass
-    return None
+    from API_func import ask_model
+    return wrap_ask_for_reasoning_models(ask_model)
 
 
 def _build_curator_prompt(

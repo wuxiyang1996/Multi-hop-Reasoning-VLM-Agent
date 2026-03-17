@@ -1,8 +1,8 @@
 #!/bin/bash
 # =============================================================================
-# Qwen3-14B Decision Agent Evaluation
+# Qwen3-8B Decision Agent Evaluation
 # =============================================================================
-# Launches a vLLM server for Qwen/Qwen3-14B, then runs the evaluation script
+# Launches a vLLM server for Qwen/Qwen3-8B, then runs the evaluation script
 # that collects rollouts with intention + state summary annotations.
 #
 # Supports 8 games across 3 environment stacks:
@@ -22,39 +22,39 @@
 # ======================== USAGE ==============================================
 #
 #   # Run on all available games, 3 episodes each (default)
-#   bash scripts/run_qwen3_14b_eval.sh
+#   bash scripts/run_qwen3_8b_eval.sh
 #
 #   # LMGame-Bench games only
-#   bash scripts/run_qwen3_14b_eval.sh --games twenty_forty_eight sokoban candy_crush tetris
+#   bash scripts/run_qwen3_8b_eval.sh --games twenty_forty_eight sokoban candy_crush tetris
 #
 #   # All 8 games (LMGame-Bench + AgentEvolver + Orak)
-#   bash scripts/run_qwen3_14b_eval.sh --games twenty_forty_eight sokoban candy_crush tetris avalon diplomacy super_mario pokemon_red
+#   bash scripts/run_qwen3_8b_eval.sh --games twenty_forty_eight sokoban candy_crush tetris avalon diplomacy super_mario pokemon_red
 #
 #   # AgentEvolver games only
-#   bash scripts/run_qwen3_14b_eval.sh --games avalon diplomacy --episodes 3
+#   bash scripts/run_qwen3_8b_eval.sh --games avalon diplomacy --episodes 3
 #
 #   # Orak games only
-#   bash scripts/run_qwen3_14b_eval.sh --games super_mario pokemon_red --episodes 3
+#   bash scripts/run_qwen3_8b_eval.sh --games super_mario pokemon_red --episodes 3
 #
 #   # More episodes
-#   bash scripts/run_qwen3_14b_eval.sh --episodes 10
+#   bash scripts/run_qwen3_8b_eval.sh --episodes 10
 #
 #   # Custom model path (local checkpoint instead of HF hub)
-#   bash scripts/run_qwen3_14b_eval.sh --model /path/to/checkpoint
+#   bash scripts/run_qwen3_8b_eval.sh --model /path/to/checkpoint
 #
 #   # Run on specific GPU(s)
-#   bash scripts/run_qwen3_14b_eval.sh --gpu 1
-#   bash scripts/run_qwen3_14b_eval.sh --gpu 0,1 --tp 2
+#   bash scripts/run_qwen3_8b_eval.sh --gpu 1
+#   bash scripts/run_qwen3_8b_eval.sh --gpu 0,1 --tp 2
 #
 #   # Skip vLLM launch (server already running externally)
 #   VLLM_BASE_URL="http://localhost:8000/v1" \
-#       bash scripts/run_qwen3_14b_eval.sh --no-server
+#       bash scripts/run_qwen3_8b_eval.sh --no-server
 #
 #   # Resume interrupted run
-#   bash scripts/run_qwen3_14b_eval.sh --resume
+#   bash scripts/run_qwen3_8b_eval.sh --resume
 #
 #   # Verbose step-by-step output
-#   bash scripts/run_qwen3_14b_eval.sh --games tetris --episodes 2 -v
+#   bash scripts/run_qwen3_8b_eval.sh --games tetris --episodes 2 -v
 #
 # =============================================================================
 
@@ -117,8 +117,8 @@ export HF_HOME="${HF_HOME:-/workspace/huggingface}"
 export HF_HUB_CACHE="${HF_HUB_CACHE:-${HF_HOME}/hub}"
 mkdir -p "$HF_HUB_CACHE"
 
-# Remove Qwen3-14B from the default home cache if present (avoid stale/corrupt files)
-DEFAULT_HF_CACHE="/home/ubuntu/.cache/huggingface/hub/models--Qwen--Qwen3-14B"
+# Remove Qwen3-8B from the default home cache if present (avoid stale/corrupt files)
+DEFAULT_HF_CACHE="/home/ubuntu/.cache/huggingface/hub/models--Qwen--Qwen3-8B"
 if [ -e "$DEFAULT_HF_CACHE" ]; then
     echo "[eval.sh] Removing initial-path cache: $DEFAULT_HF_CACHE"
     rm -rf "$DEFAULT_HF_CACHE"
@@ -128,7 +128,7 @@ fi
 # Defaults
 # ---------------------------------------------------------------------------
 EVAL_GPUS="${EVAL_GPUS:-0}"
-MODEL="${MODEL:-Qwen/Qwen3-14B}"
+MODEL="${MODEL:-Qwen/Qwen3-8B}"
 VLLM_PORT="${VLLM_PORT:-8000}"
 VLLM_HOST="${VLLM_HOST:-127.0.0.1}"
 LAUNCH_SERVER=true
@@ -354,7 +354,7 @@ MAIN_RUN_ARGS="$(_build_main_args)" && RUN_MAIN=true || RUN_MAIN=false
 if [ "$RUN_MAIN" = true ]; then
     echo ""
     echo "============================================"
-    echo "  Qwen3-14B Evaluation  (game-ai-agent env)"
+    echo "  Qwen3-8B Evaluation  (game-ai-agent env)"
     echo "============================================"
     echo "  VLLM_BASE_URL: $VLLM_BASE_URL"
     echo "  Output:        $SHARED_OUTPUT_DIR"
@@ -363,7 +363,7 @@ if [ "$RUN_MAIN" = true ]; then
     echo ""
 
     # shellcheck disable=SC2086
-    python -m scripts.run_qwen3_14b_eval $MAIN_RUN_ARGS
+    python -m scripts.run_qwen3_8b_eval $MAIN_RUN_ARGS
     EXIT_CODE=$?
 
     if [ $EXIT_CODE -ne 0 ]; then
@@ -406,7 +406,7 @@ if [ ${#MARIO_GAMES[@]} -gt 0 ]; then
 
     echo ""
     echo "============================================"
-    echo "  Qwen3-14B Evaluation  ($ORAK_MARIO_ENV env)"
+    echo "  Qwen3-8B Evaluation  ($ORAK_MARIO_ENV env)"
     echo "============================================"
     echo "  VLLM_BASE_URL: $VLLM_BASE_URL"
     echo "  Output:        $SHARED_OUTPUT_DIR"
@@ -414,7 +414,7 @@ if [ ${#MARIO_GAMES[@]} -gt 0 ]; then
     echo "============================================"
     echo ""
 
-    python -m scripts.run_qwen3_14b_eval "${MARIO_RUN_ARGS[@]}"
+    python -m scripts.run_qwen3_8b_eval "${MARIO_RUN_ARGS[@]}"
     MARIO_EXIT=$?
 
     if [ $MARIO_EXIT -ne 0 ]; then

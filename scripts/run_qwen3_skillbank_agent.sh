@@ -1,11 +1,11 @@
 #!/bin/bash
 # =============================================================================
-# Qwen3-14B Skill Bank Agent — Extract Skills from GPT-5.4 Rollouts
+# Qwen3-8B Skill Bank Agent — Extract Skills from GPT-5.4 Rollouts
 # =============================================================================
-# Launches a vLLM server for Qwen/Qwen3-14B, then runs skill extraction on
+# Launches a vLLM server for Qwen/Qwen3-8B, then runs skill extraction on
 # labeled rollouts from labeling/output/gpt54/ using the SkillBankAgent
 # pipeline. Same functionality as extract_skillbank_gpt54.py but using
-# Qwen3-14B as the LLM backend.
+# Qwen3-8B as the LLM backend.
 #
 # Input:  labeling/output/gpt54/<game>/episode_*.json
 # Output: test_rollout/skillbank_agent/<game>/
@@ -87,7 +87,7 @@ mkdir -p "$HF_HUB_CACHE"
 # Defaults
 # ---------------------------------------------------------------------------
 EVAL_GPUS="${EVAL_GPUS:-0}"
-MODEL="${MODEL:-Qwen/Qwen3-14B}"
+MODEL="${MODEL:-Qwen/Qwen3-8B}"
 VLLM_PORT="${VLLM_PORT:-8000}"
 VLLM_HOST="${VLLM_HOST:-127.0.0.1}"
 LAUNCH_SERVER=true
@@ -206,7 +206,7 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "============================================"
-echo "  Running Qwen3-14B Skill Bank Extraction"
+echo "  Running Qwen3-8B Skill Bank Extraction"
 echo "  Input:  labeling/output/gpt54"
 echo "  Output: test_rollout/skillbank_agent"
 echo "============================================"

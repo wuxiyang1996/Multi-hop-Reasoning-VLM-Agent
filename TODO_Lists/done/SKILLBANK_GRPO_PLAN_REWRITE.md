@@ -9,7 +9,7 @@
 
 ## What the New GRPO Plan Does
 
-GRPO trains the backend Qwen3-14B LLM (via LoRA adapters) for each stage where the pipeline calls an LLM to generate structured output. It does NOT replace the algorithmic/heuristic functions — those stay as infrastructure around the GRPO-trained stages.
+GRPO trains the backend Qwen3-8B LLM (via LoRA adapters) for each stage where the pipeline calls an LLM to generate structured output. It does NOT replace the algorithmic/heuristic functions — those stay as infrastructure around the GRPO-trained stages.
 
 ### GRPO-trained LoRA adapters (LLM generation tasks)
 
@@ -316,7 +316,7 @@ Recommendation: **Option A** — most aligned with existing architecture, lowest
 | **`run_full_iteration()` doesn't call `run_evaluation()`** | Plan shows evaluation in co-evolution loop | Clarify: evaluation is separate from the iteration loop |
 | **Sub-episode quality check** (Stage 4.5): `sub_episode_evaluator.py` scores outcome_reward, follow_through, consistency, compactness; retires depleted skills | Not mentioned | Add Stage 4.5 to the plan |
 | **Post-processing not in plan**: protocol generation (`generate_skill_protocol()` via GPT-5.4), skill catalogs (`skill_catalog.json`), cross-game archetypes (`skill_archetypes.json`), intention-based fallback, sub-episode linking, episode annotation | Not mentioned | Note as out-of-scope for GRPO but document dependencies |
-| **Model mismatch**: extraction uses GPT-5.4; GRPO plan uses Qwen3-14B | Not reconciled | Clarify: cold-start extraction uses GPT-5.4, co-evolution uses Qwen3-14B |
+| **Model mismatch**: extraction uses GPT-5.4; GRPO plan uses Qwen3-8B | Not reconciled | Clarify: cold-start extraction uses GPT-5.4, co-evolution uses Qwen3-8B |
 | **SkillEval** (`skill_evaluation/`): LLM-as-judge over 6 dimensions (coherence, discriminability, composability, generalization, utility, granularity) + holistic pass with recommendations (KEEP/REFINE/SPLIT/MERGE/DISCARD) | Plan mentions SkillEval as binary gate | Document the full SkillEval dimensions and how recommendations feed back into Stage 4 |
 
 ### Key files
@@ -332,7 +332,7 @@ Recommendation: **Option A** — most aligned with existing architecture, lowest
 - [ ] Document both orchestration paths: extraction (cold-start) vs co-evolution (GRPO training)
 - [ ] Add Stage 4.5 (sub-episode quality check) to the plan
 - [ ] Clarify SkillEval: 6 dimensions + holistic recommendations, not just a binary gate
-- [ ] Note model mismatch: cold-start = GPT-5.4, co-evolution = Qwen3-14B
+- [ ] Note model mismatch: cold-start = GPT-5.4, co-evolution = Qwen3-8B
 - [ ] Document post-processing (protocols, catalogs, archetypes) as out-of-scope but note dependencies
 - [ ] Fix `run_full_iteration()` vs `run_evaluation()` placement
 

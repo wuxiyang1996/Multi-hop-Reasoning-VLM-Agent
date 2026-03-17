@@ -14,9 +14,10 @@ Typical lifecycle::
         await manager.reload_adapters()  # hot-reload updated weights
     manager.stop()               # Cleanup at end
 
-Memory budget per instance (Qwen3-14B, A100-80GB, TP=1):
-  - Model weights (bf16):    ~28 GB
-  - KV cache (gpu_util=0.9): ~44 GB  →  ~275 max sequences @ 1K tokens
+Memory budget per instance (Qwen3-8B, A100-80GB, TP=1):
+  - Model weights (bf16):    ~16 GB
+  - Draft model (0.6B bf16): ~1.2 GB  (speculative decoding)
+  - KV cache (gpu_util=0.9): ~55 GB  →  ~340 max sequences @ 1K tokens
   - Total:                   ~72 GB / 80 GB
 """
 
@@ -45,9 +46,11 @@ class VLLMServerManager:
         gpu_ids: List[int],
         base_port: int = 8000,
         gpu_util: float = 0.90,
-        max_num_seqs: int = 32,
-        enforce_eager: bool = True,
+        max_num_seqs: int = 128,
+        enforce_eager: bool = False,
         log_dir: Optional[str] = None,
+        speculative_model: Optional[str] = None,
+        num_speculative_tokens: int = 5,
     ):
         self.model_name = model_name
         self.adapter_dir = adapter_dir
@@ -57,10 +60,24 @@ class VLLMServerManager:
         self.max_num_seqs = max_num_seqs
         self.enforce_eager = enforce_eager
         self.log_dir = log_dir
+        self.speculative_model = speculative_model
+        self.num_speculative_tokens = num_speculative_tokens
         self._processes: List[subprocess.Popen] = []
         self._log_files: list = []
+        self._speculative_config_json = self._build_speculative_config()
 
         atexit.register(self.stop)
+
+    def _build_speculative_config(self) -> Optional[str]:
+        """Build the JSON string for --speculative_config if a draft model is set."""
+        if not self.speculative_model:
+            return None
+        import json
+        return json.dumps({
+            "model": self.speculative_model,
+            "num_speculative_tokens": self.num_speculative_tokens,
+            "method": "draft_model",
+        })
 
     @property
     def n_instances(self) -> int:
@@ -107,6 +124,7 @@ class VLLMServerManager:
 
             env = os.environ.copy()
             env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+            env["VLLM_ALLOW_RUNTIME_LORA_UPDATING"] = "1"
             env.setdefault("HF_HOME", "/workspace/huggingface")
             env.setdefault("HF_HUB_CACHE", os.path.join(env["HF_HOME"], "hub"))
 
@@ -117,6 +135,7 @@ class VLLMServerManager:
                 "--gpu-memory-utilization", str(self.gpu_util),
                 "--enable-lora", "--max-loras", "5", "--max-lora-rank", "64",
                 "--enable-prefix-caching",
+                "--enable-chunked-prefill",
                 "--max-num-seqs", str(self.max_num_seqs),
                 "--port", str(port),
                 "--trust-remote-code",
@@ -124,6 +143,11 @@ class VLLMServerManager:
 
             if self.enforce_eager:
                 cmd.append("--enforce-eager")
+
+            if self._speculative_config_json:
+                cmd.extend([
+                    "--speculative_config", self._speculative_config_json,
+                ])
 
             if lora_modules:
                 cmd.extend(["--lora-modules"] + lora_modules)
@@ -147,20 +171,25 @@ class VLLMServerManager:
             if log_fh:
                 self._log_files.append(log_fh)
 
+        spec_msg = ""
+        if self.speculative_model:
+            spec_msg = f", spec_decode={self.speculative_model} ({self.num_speculative_tokens} tok)"
         if lora_modules:
             logger.info(
-                "Started %d vLLM instances (ports %d–%d) with %d LoRA adapters",
+                "Started %d vLLM instances (ports %d–%d) with %d LoRA adapters%s",
                 self.n_instances,
                 self.base_port,
                 self.base_port + self.n_instances - 1,
                 len(lora_modules),
+                spec_msg,
             )
         else:
             logger.info(
-                "Started %d vLLM instances (ports %d–%d), no LoRA adapters yet",
+                "Started %d vLLM instances (ports %d–%d), no LoRA adapters yet%s",
                 self.n_instances,
                 self.base_port,
                 self.base_port + self.n_instances - 1,
+                spec_msg,
             )
 
     def stop(self) -> None:

@@ -2,7 +2,7 @@
 # =============================================================================
 # Co-Evolution Framework: Decision Agent Training (GRPO)
 # =============================================================================
-# Trains the Decision Agent (Qwen3-14B) using Group Relative Policy
+# Trains the Decision Agent (Qwen3-8B) using Group Relative Policy
 # Optimization via VERL on game environment rollouts.
 #
 # The Decision Agent selects primitive game actions and tool calls
@@ -72,7 +72,7 @@ trap cleanup_decision_training EXIT INT TERM
 # ---------------------------------------------------------------------------
 # Arguments
 # ---------------------------------------------------------------------------
-decision_model_path=${1:-Qwen/Qwen3-14B}
+decision_model_path=${1:-Qwen/Qwen3-8B}
 save_name=${2:-decision_agent_v1}
 bank_snapshot_path=${3:-}
 
@@ -137,7 +137,7 @@ if [ -n "$bank_snapshot_path" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Train Decision Agent (Qwen3-14B) with GRPO on GPUs 0-3
+# Train Decision Agent (Qwen3-8B) with GRPO on GPUs 0-3
 # ---------------------------------------------------------------------------
 echo "[decision_train] Starting GRPO training (max_steps=$TRAIN_STEPS, group_size=$GROUP_SIZE)..."
 CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m verl.trainer.main \

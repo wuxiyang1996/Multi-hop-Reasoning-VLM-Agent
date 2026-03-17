@@ -3,7 +3,7 @@
 # Co-Evolution Framework: Main Orchestrator
 # =============================================================================
 # Runs the full co-evolution training loop between:
-#   Decision Agent  — Qwen3-14B, trained with GRPO (via VERL)
+#   Decision Agent  — Qwen3-8B, trained with GRPO (via VERL)
 #   Skill Bank Agent — Qwen3-8B + LoRA, trained with Hard-EM
 #
 # Co-evolution schedule (per iteration):
@@ -28,7 +28,7 @@
 #   bash scripts/coevolution_train.sh
 #
 #   # Custom:
-#   Decision_base_model=Qwen/Qwen3-14B \
+#   Decision_base_model=Qwen/Qwen3-8B \
 #   SkillBank_base_model=Qwen/Qwen3-8B \
 #   NUM_ITERATIONS=10 TRAIN_STEPS=30 \
 #     bash scripts/coevolution_train.sh
@@ -46,7 +46,7 @@ export PYTHONPATH="${REPO_ROOT}:${PYTHONPATH:-}"
 export STORAGE_PATH="${STORAGE_PATH:-${REPO_ROOT}/runs/coevolution}"
 
 # --------------- (2) BASE MODELS ---------------
-Decision_base_model="${Decision_base_model:-Qwen/Qwen3-14B}"
+Decision_base_model="${Decision_base_model:-Qwen/Qwen3-8B}"
 SkillBank_base_model="${SkillBank_base_model:-Qwen/Qwen3-8B}"
 
 # --------------- (3) MODEL ABBREVIATION ---------------
@@ -85,7 +85,7 @@ COLDSTART_MAX_STEPS="${COLDSTART_MAX_STEPS:-50}"
 echo "============================================"
 echo "  Co-Evolution Training"
 echo "============================================"
-echo "  Decision Agent:    $Decision_base_model (Qwen3-14B)"
+echo "  Decision Agent:    $Decision_base_model (Qwen3-8B)"
 echo "  Skill Bank Agent:  $SkillBank_base_model (Qwen3-8B + LoRA)"
 echo "  Experiment:        $Model_abbr"
 echo "  Storage:           $STORAGE_PATH"
@@ -242,7 +242,7 @@ DECISION_V1="${Model_abbr}_decision_v1"
 if [ -d "${STORAGE_PATH}/models/${DECISION_V1}/global_step_${TRAIN_STEPS}/actor/huggingface" ]; then
     echo "[Iter 1] Decision Agent v1 already exists, skipping..."
 else
-    echo "[Iter 1] Training Decision Agent v1 (Qwen3-14B GRPO)..."
+    echo "[Iter 1] Training Decision Agent v1 (Qwen3-8B GRPO)..."
     bash scripts/decision_agent_train.sh \
         "$Decision_base_model" \
         "$DECISION_V1" \
@@ -296,7 +296,7 @@ for i in $(seq 2 $NUM_ITERATIONS); do
     if [ -d "${STORAGE_PATH}/models/${DECISION_NAME}/global_step_${TRAIN_STEPS}/actor/huggingface" ]; then
         echo "[Iter $i] Decision Agent v${i} already exists, skipping..."
     else
-        echo "[Iter $i] Training Decision Agent v${i} (Qwen3-14B GRPO)..."
+        echo "[Iter $i] Training Decision Agent v${i} (Qwen3-8B GRPO)..."
         bash scripts/decision_agent_train.sh \
             "$DECISION_PREV" \
             "$DECISION_NAME" \
@@ -315,7 +315,7 @@ echo "=========================================="
 echo "  Co-Evolution Training Complete!"
 echo "=========================================="
 echo ""
-echo "  Decision Agent (Qwen3-14B):"
+echo "  Decision Agent (Qwen3-8B):"
 for i in $(seq 1 $NUM_ITERATIONS); do
     DEC_PATH="${STORAGE_PATH}/models/${Model_abbr}_decision_v${i}/global_step_${TRAIN_STEPS}/actor/huggingface"
     if [ -d "$DEC_PATH" ]; then

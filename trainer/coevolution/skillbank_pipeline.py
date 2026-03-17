@@ -44,15 +44,18 @@ class AsyncSkillBankPipeline:
     def __init__(
         self,
         bank_dir: str = "runs/skillbank",
-        model_name: str = "Qwen/Qwen3-14B",
+        model_name: str = "Qwen/Qwen3-8B",
         executor: Optional[ThreadPoolExecutor] = None,
         report_dir: Optional[str] = None,
+        game_name: str = "generic",
     ):
         self.bank_dir = bank_dir
         self.model_name = model_name
+        self.game_name = game_name
         self._executor = executor
         self.report_dir = report_dir or str(Path(bank_dir) / "reports")
         self._agent: Any = None
+        self._query_engine: Any = None
         self._pending_episodes: List[Any] = []
         self._grpo_data: Dict[str, List[Dict[str, Any]]] = {
             "segment": [],
@@ -72,6 +75,7 @@ class AsyncSkillBankPipeline:
         config = PipelineConfig(
             bank_path=bank_path,
             env_name="llm",
+            game_name=self.game_name,
             llm_model=self.model_name,
             extractor_model=self.model_name,
             segmentation_method="dp",
@@ -198,7 +202,16 @@ class AsyncSkillBankPipeline:
         self._pending_episodes.extend(episodes)
 
     async def finalize_update(self) -> SkillBankUpdateResult:
-        """Run contract learning + bank maintenance after all episodes ingested.
+        """Run the full skill-bank update pipeline.
+
+        Execution order (changed from earlier versions):
+          1. Proto-skill materialization — turn __NEW__ clusters into real
+             skills so that contract learning and bank maintenance have
+             non-empty skill vocabularies from the very first step.
+          2. Contract learning (Stage 3) — learn effect summaries; now runs
+             on materialized skill labels instead of seeing only __NEW__.
+          3. Bank maintenance (Stage 4) — split / merge / refine existing
+             skills, with LLM curator filtering.
 
         Returns the update result with bank metrics.
         """
@@ -211,35 +224,7 @@ class AsyncSkillBankPipeline:
         n_episodes = len(self._pending_episodes)
         n_skills_before = len(agent.skill_ids)
 
-        # Stage 3: Contract learning
-        t_s3 = time.monotonic()
-
-        def _run_contracts():
-            if agent._all_segments:
-                try:
-                    return agent.run_contract_learning()
-                except Exception as exc:
-                    logger.warning("Contract learning failed: %s", exc)
-            return None
-
-        s3_result = await loop.run_in_executor(executor, _run_contracts)
-        stage_times["contract_learning"] = time.monotonic() - t_s3
-
-        # Stage 4: Bank maintenance
-        t_s4 = time.monotonic()
-
-        def _run_maintenance():
-            if agent._all_segments and len(agent.skill_ids) > 0:
-                try:
-                    return agent.run_bank_maintenance()
-                except Exception as exc:
-                    logger.warning("Bank maintenance failed: %s", exc)
-            return None
-
-        s4_result = await loop.run_in_executor(executor, _run_maintenance)
-        stage_times["bank_maintenance"] = time.monotonic() - t_s4
-
-        # Proto-skill materialization
+        # ── 1. Proto-skill materialization (FIRST) ───────────────────
         t_mat = time.monotonic()
 
         def _materialize():
@@ -259,7 +244,44 @@ class AsyncSkillBankPipeline:
         mat_result = await loop.run_in_executor(executor, _materialize)
         stage_times["materialization"] = time.monotonic() - t_mat
 
-        # Save bank
+        n_after_materialize = len(agent.skill_ids)
+        if n_after_materialize > n_skills_before:
+            logger.info(
+                "Materialized %d new skills (%d→%d) — "
+                "relabelling __NEW__ segments before contract learning",
+                n_after_materialize - n_skills_before,
+                n_skills_before, n_after_materialize,
+            )
+
+        # ── 2. Contract learning (Stage 3) ───────────────────────────
+        t_s3 = time.monotonic()
+
+        def _run_contracts():
+            if agent._all_segments:
+                try:
+                    return agent.run_contract_learning()
+                except Exception as exc:
+                    logger.warning("Contract learning failed: %s", exc)
+            return None
+
+        s3_result = await loop.run_in_executor(executor, _run_contracts)
+        stage_times["contract_learning"] = time.monotonic() - t_s3
+
+        # ── 3. Bank maintenance (Stage 4) ────────────────────────────
+        t_s4 = time.monotonic()
+
+        def _run_maintenance():
+            if agent._all_segments and len(agent.skill_ids) > 0:
+                try:
+                    return agent.run_bank_maintenance()
+                except Exception as exc:
+                    logger.warning("Bank maintenance failed: %s", exc)
+            return None
+
+        s4_result = await loop.run_in_executor(executor, _run_maintenance)
+        stage_times["bank_maintenance"] = time.monotonic() - t_s4
+
+        # ── Save bank ────────────────────────────────────────────────
         def _save_bank():
             try:
                 agent.save()
@@ -267,6 +289,8 @@ class AsyncSkillBankPipeline:
                 logger.warning("Bank save failed: %s", exc)
 
         await loop.run_in_executor(executor, _save_bank)
+
+        self._query_engine = None
 
         n_skills_after = len(agent.skill_ids)
         elapsed = time.monotonic() - t0
@@ -290,11 +314,33 @@ class AsyncSkillBankPipeline:
 
         return self._update_result
 
-    def get_bank(self) -> Any:
-        """Return the current skill bank object."""
+    def get_raw_bank(self) -> Any:
+        """Return the raw ``SkillBankMVP`` (has ``.skill_ids``, etc.)."""
         if self._agent is not None:
             return self._agent.bank
         return None
+
+    def get_bank(self) -> Any:
+        """Return a query-engine-wrapped skill bank for decision agents.
+
+        Wrapping in ``SkillQueryEngine`` provides the ``.select()`` method
+        needed by ``get_top_k_skill_candidates`` for multi-candidate skill
+        selection.  Without this, only a single fallback candidate is
+        returned and the skill_selection adapter never fires.
+        """
+        if self._agent is None:
+            return None
+        bank = self._agent.bank
+        if bank is None or len(bank) == 0:
+            return bank
+        if self._query_engine is not None:
+            return self._query_engine
+        try:
+            from skill_agents_grpo.query import SkillQueryEngine
+            self._query_engine = SkillQueryEngine(bank)
+            return self._query_engine
+        except Exception:
+            return bank
 
     def get_agent(self) -> Any:
         """Return the SkillBankAgent instance."""
@@ -329,8 +375,9 @@ class PerGameSkillBankManager:
         self,
         games: List[str],
         bank_dir: str = "runs/skillbank",
-        model_name: str = "Qwen/Qwen3-14B",
+        model_name: str = "Qwen/Qwen3-8B",
         executor: Optional[ThreadPoolExecutor] = None,
+        grpo_group_size: int = 4,
     ):
         self._pipelines: Dict[str, AsyncSkillBankPipeline] = {}
         for game in games:
@@ -341,12 +388,87 @@ class PerGameSkillBankManager:
                 model_name=model_name,
                 executor=executor,
                 report_dir=str(Path(game_dir) / "reports"),
+                game_name=game,
             )
         self._bank_dir = bank_dir
+        self._grpo_group_size = grpo_group_size
+        self._grpo_buffer: Optional[Any] = None
+        self._collected_grpo: Dict[str, List[Dict[str, Any]]] = {
+            "segment": [], "contract": [], "curator": [],
+        }
         logger.info(
             "PerGameSkillBankManager: %d game banks under %s",
             len(games), bank_dir,
         )
+
+    # ── GRPO wrapper management ─────────────────────────────────────
+
+    def _enable_grpo_wrappers(self) -> None:
+        """Activate GRPO wrappers on skill-bank LLM calls (module-level)."""
+        from skill_agents_grpo.grpo.buffer import GRPOBuffer
+        from skill_agents_grpo.stage3_mvp.llm_contract import enable_contract_grpo
+        from skill_agents_grpo.bank_maintenance.llm_curator import enable_curator_grpo
+        from skill_agents_grpo.infer_segmentation.llm_teacher import enable_segment_grpo
+        from skill_agents_grpo.infer_segmentation.episode_adapter import (
+            grpo_scorer_factory,
+            grpo_decode_fn,
+        )
+
+        self._grpo_buffer = GRPOBuffer()
+        gs = self._grpo_group_size
+
+        enable_segment_grpo(
+            buffer=self._grpo_buffer, group_size=gs, temperature=0.7,
+            scorer_factory=grpo_scorer_factory,
+            decode_fn=grpo_decode_fn,
+        )
+        enable_contract_grpo(buffer=self._grpo_buffer, group_size=gs, temperature=0.7)
+        enable_curator_grpo(buffer=self._grpo_buffer, group_size=gs, temperature=0.7)
+        logger.info("Skill-bank GRPO wrappers enabled (G=%d)", gs)
+
+    def _disable_grpo_wrappers(self) -> None:
+        """Deactivate GRPO wrappers and restore original functions."""
+        from skill_agents_grpo.stage3_mvp.llm_contract import disable_contract_grpo
+        from skill_agents_grpo.bank_maintenance.llm_curator import disable_curator_grpo
+        from skill_agents_grpo.infer_segmentation.llm_teacher import disable_segment_grpo
+
+        disable_segment_grpo()
+        disable_contract_grpo()
+        disable_curator_grpo()
+        logger.info("Skill-bank GRPO wrappers disabled")
+
+    def _collect_grpo_data(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Drain the shared GRPO buffer into the per-adapter dict format."""
+        from skill_agents_grpo.lora.skill_function import SkillFunction
+
+        collected: Dict[str, List[Dict[str, Any]]] = {
+            "segment": [], "contract": [], "curator": [],
+        }
+        if self._grpo_buffer is None:
+            return collected
+
+        adapter_map = {
+            SkillFunction.SEGMENT: "segment",
+            SkillFunction.CONTRACT: "contract",
+            SkillFunction.CURATOR: "curator",
+        }
+        for sf, key in adapter_map.items():
+            for sample in self._grpo_buffer.samples_for(sf):
+                if sample.prompt and sample.completions:
+                    collected[key].append({
+                        "prompt": sample.prompt,
+                        "completions": sample.completions,
+                        "rewards": sample.rewards,
+                    })
+
+        n_total = sum(len(v) for v in collected.values())
+        if n_total:
+            logger.info(
+                "Collected %d GRPO samples: segment=%d, contract=%d, curator=%d",
+                n_total, len(collected["segment"]),
+                len(collected["contract"]), len(collected["curator"]),
+            )
+        return collected
 
     def pipeline_for(self, game: str) -> Optional[AsyncSkillBankPipeline]:
         return self._pipelines.get(game)
@@ -372,6 +494,16 @@ class PerGameSkillBankManager:
     def reset_for_step(self) -> None:
         for pipe in self._pipelines.values():
             pipe.reset_for_step()
+        self._grpo_buffer = None
+        self._collected_grpo = {"segment": [], "contract": [], "curator": []}
+        try:
+            self._disable_grpo_wrappers()
+        except Exception:
+            pass
+        try:
+            self._enable_grpo_wrappers()
+        except Exception as exc:
+            logger.warning("Failed to enable GRPO wrappers: %s", exc)
 
     async def process_batch_async(
         self, results: List[EpisodeResult],
@@ -410,23 +542,25 @@ class PerGameSkillBankManager:
             for game, pipe in self._pipelines.items()
         ]
         await asyncio.gather(*tasks)
+
+        try:
+            self._disable_grpo_wrappers()
+        except Exception as exc:
+            logger.warning("Failed to disable GRPO wrappers: %s", exc)
+
+        self._collected_grpo = self._collect_grpo_data()
+
         return results
 
     @property
     def grpo_data(self) -> Dict[str, List[Dict[str, Any]]]:
-        """Merge GRPO data from all per-game pipelines."""
-        merged: Dict[str, List[Dict[str, Any]]] = {
-            "segment": [], "contract": [], "curator": [],
-        }
-        for pipe in self._pipelines.values():
-            for key in merged:
-                merged[key].extend(pipe.grpo_data.get(key, []))
-        return merged
+        """Return GRPO training data collected by the wrappers."""
+        return self._collected_grpo
 
     def total_skills(self) -> int:
         total = 0
         for pipe in self._pipelines.values():
-            bank = pipe.get_bank()
+            bank = pipe.get_raw_bank()
             if bank and hasattr(bank, "skill_ids"):
                 total += len(list(bank.skill_ids))
         return total
@@ -435,7 +569,7 @@ class PerGameSkillBankManager:
         """Return ``{game: n_skills}``."""
         counts = {}
         for game, pipe in self._pipelines.items():
-            bank = pipe.get_bank()
+            bank = pipe.get_raw_bank()
             if bank and hasattr(bank, "skill_ids"):
                 counts[game] = len(list(bank.skill_ids))
             else:

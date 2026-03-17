@@ -1,7 +1,10 @@
 # This file is to define the API calling functions for the agent, create a general function for each model
 # By default, we use OpenRouter when open_router_api_key is set (cold-start, ask_model, etc.); else OpenAI.
 
+import itertools as _itertools
 import os
+import threading as _threading
+
 import openai
 from anthropic import Anthropic
 from google import genai
@@ -12,12 +15,37 @@ OPENROUTER_BASE = "https://openrouter.ai/api/v1"
 VLLM_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
 VLLM_API_KEY = os.environ.get("VLLM_API_KEY", "EMPTY")
 
+_vllm_url_cycle = None
+_vllm_url_lock = _threading.Lock()
+_VLLM_URLS: list[str] = []
+
+
+def _init_vllm_urls() -> None:
+    """Lazily read VLLM_BASE_URLS (or VLLM_BASE_URL) and set up round-robin."""
+    global _vllm_url_cycle, _VLLM_URLS
+    raw = os.environ.get("VLLM_BASE_URLS", "")
+    if raw:
+        _VLLM_URLS = [u.strip() for u in raw.split(",") if u.strip()]
+    else:
+        _VLLM_URLS = [os.environ.get("VLLM_BASE_URL", VLLM_BASE_URL)]
+    _vllm_url_cycle = _itertools.cycle(_VLLM_URLS)
+
+
+def _next_vllm_url() -> str:
+    """Return the next vLLM URL in round-robin order (thread-safe)."""
+    with _vllm_url_lock:
+        global _vllm_url_cycle
+        if _vllm_url_cycle is None:
+            _init_vllm_urls()
+        return next(_vllm_url_cycle)
+
+
 # Cached vLLM reachability (None = not yet probed)
 _vllm_reachable: bool | None = None
 
 
 def _probe_vllm() -> bool:
-    """One-shot TCP probe to check if the vLLM server is reachable.
+    """One-shot TCP probe to check if any vLLM server is reachable.
 
     Result is cached so subsequent calls return instantly.
     """
@@ -25,18 +53,26 @@ def _probe_vllm() -> bool:
     if _vllm_reachable is not None:
         return _vllm_reachable
 
+    with _vllm_url_lock:
+        if not _VLLM_URLS:
+            _init_vllm_urls()
+
     import socket
-    try:
-        stripped = VLLM_BASE_URL.replace("http://", "").replace("https://", "").rstrip("/")
-        host_port = stripped.split("/")[0]
-        host, port_str = host_port.rsplit(":", 1)
-        sock = socket.create_connection((host, int(port_str)), timeout=2)
-        sock.close()
-        _vllm_reachable = True
-    except Exception:
-        _vllm_reachable = False
-        print(f"[API_func] vLLM at {VLLM_BASE_URL} unreachable — "
-              "Qwen calls will be routed through OpenRouter.")
+    for url in _VLLM_URLS:
+        try:
+            stripped = url.replace("http://", "").replace("https://", "").rstrip("/")
+            host_port = stripped.split("/")[0]
+            host, port_str = host_port.rsplit(":", 1)
+            sock = socket.create_connection((host, int(port_str)), timeout=2)
+            sock.close()
+            _vllm_reachable = True
+            return True
+        except Exception:
+            continue
+
+    _vllm_reachable = False
+    print(f"[API_func] vLLM at {_VLLM_URLS} unreachable — "
+          "Qwen calls will be routed through OpenRouter.")
     return _vllm_reachable
 
 
@@ -150,7 +186,7 @@ def _strip_think_tags(text: str) -> str:
     return text.strip()
 
 
-def ask_vllm(question, model="Qwen/Qwen3-14B", temperature=0.7, max_tokens=2000):
+def ask_vllm(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
     """
     Ask a question via a vLLM-served model using its OpenAI-compatible endpoint.
     Configure the endpoint via VLLM_BASE_URL env var (default: http://localhost:8000/v1).
@@ -165,8 +201,9 @@ def ask_vllm(question, model="Qwen/Qwen3-14B", temperature=0.7, max_tokens=2000)
             question, model=model, temperature=temperature, max_tokens=max_tokens,
         )
 
+    url = _next_vllm_url()
     try:
-        client = openai.OpenAI(base_url=VLLM_BASE_URL, api_key=VLLM_API_KEY)
+        client = openai.OpenAI(base_url=url, api_key=VLLM_API_KEY)
         response = client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": question}],
@@ -183,10 +220,10 @@ def ask_vllm(question, model="Qwen/Qwen3-14B", temperature=0.7, max_tokens=2000)
         )
         if not fallback.startswith("Error"):
             return fallback
-        return f"Error calling vLLM API at {VLLM_BASE_URL}: {str(e)}"
+        return f"Error calling vLLM API at {url}: {str(e)}"
 
 
-def _ask_qwen_via_openrouter(question, model="Qwen/Qwen3-14B", temperature=0.7, max_tokens=2000):
+def _ask_qwen_via_openrouter(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
     """Route a Qwen model call through OpenRouter as a fallback.
 
     Handles Qwen3 reasoning-model quirks:

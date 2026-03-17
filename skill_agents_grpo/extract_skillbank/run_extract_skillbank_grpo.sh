@@ -12,7 +12,7 @@
 #   - llm_calls_log.json                        — direct GPT-5.4 call log
 #   - teacher_io_coldstart.jsonl                — Stage 2 LLM teacher I/O
 #       (segment rankings, transition rankings, pairwise choices, skill naming)
-#       Use this as supervised fine-tuning data for Qwen3-14B cold-start.
+#       Use this as supervised fine-tuning data for Qwen3-8B cold-start.
 #
 # Prerequisites:
 #   - Labeled rollouts must exist in the input directory

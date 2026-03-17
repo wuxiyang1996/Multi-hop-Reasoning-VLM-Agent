@@ -211,7 +211,7 @@ Gen 2+: Repeat with growing bank
 | File | Role |
 |------|------|
 | `labeling/label_and_extract_skills_gpt54.py` | Intention-based extraction + fallback segmentation (GPT-5.4) |
-| `scripts/extract_skills_qwen.py` | Qwen3-14B skill extraction via vLLM (Strategy B) |
+| `scripts/extract_skills_qwen.py` | Qwen3-8B skill extraction via vLLM (Strategy B) |
 | `skill_agents/infer_segmentation/episode_adapter.py` | `_extract_predicates` (Stage 2 predicate producer) |
 | `skill_agents/skill_bank/bank.py` | `_effects_compat_score` (contract matching) |
 | `skill_agents/boundary_proposal/signal_extractors.py` | `SignalExtractorBase` + factory + `IntentionSignalExtractor` |
@@ -235,7 +235,7 @@ Implemented across these files:
 | `skill_agents/infer_segmentation/episode_adapter.py` | Patched `_extract_predicates` to decompose `[TAG]` → `tag_<tag>` + `<tag>_completed` keys |
 | `skill_agents/pipeline.py` | Added `max_concurrent_llm_calls` to `PipelineConfig` (for local GPU inference) |
 | `API_func.py` | Added `_strip_think_tags` in `ask_vllm` (Qwen3 `<think>` block removal) |
-| `scripts/extract_skills_qwen.py` | Standalone Qwen3-14B skill extraction script using Strategy B |
+| `scripts/extract_skills_qwen.py` | Standalone Qwen3-8B skill extraction script using Strategy B |
 
 Verified: `_effects_compat_score` now scores +1.0 for matching intention contracts
 (was stuck at -0.5 before). Tag transitions are explicit boundary proposals.
@@ -264,16 +264,16 @@ Audit completed. Here is what needs to change and where:
 
 | Config | Current | Change to |
 |--------|---------|-----------|
-| `coevolution_train.sh` `SkillBank_base_model` | `Qwen/Qwen3-8B` | `Qwen/Qwen3-14B` |
-| `skillbank_agent_train.sh` `SKILLBANK_BASE_MODEL` | `Qwen/Qwen3-8B` | `Qwen/Qwen3-14B` |
-| `trainer/common/configs/skillbank_em.yaml` `lora.base_model_name_or_path` | `Qwen/Qwen3-8B` | `Qwen/Qwen3-14B` |
+| `coevolution_train.sh` `SkillBank_base_model` | `Qwen/Qwen3-8B` | `Qwen/Qwen3-8B` |
+| `skillbank_agent_train.sh` `SKILLBANK_BASE_MODEL` | `Qwen/Qwen3-8B` | `Qwen/Qwen3-8B` |
+| `trainer/common/configs/skillbank_em.yaml` `lora.base_model_name_or_path` | `Qwen/Qwen3-8B` | `Qwen/Qwen3-8B` |
 
-**LoRA adapters:** Need retraining for Qwen3-14B base (boundary, segment,
+**LoRA adapters:** Need retraining for Qwen3-8B base (boundary, segment,
 contract, retrieval adapters). This is a training run, not a code change.
 
 **HF vs vLLM for EM:** `MultiLoraSkillBankLLM` uses HuggingFace `from_pretrained`,
 not vLLM. Two options:
 - **Option A (recommended):** Keep HF for EM (LoRA adapters on local GPU), use vLLM
-  only for decision agent rollout. Just swap base model to Qwen3-14B in config.
+  only for decision agent rollout. Just swap base model to Qwen3-8B in config.
 - **Option B:** Add vLLM backend to `MultiLoraSkillBankLLM` so EM stages call
   `ask_vllm`. More work, only needed if LoRA adapters are not used.

@@ -1,5 +1,5 @@
 # Co-Evolution Framework: Decision Agent GRPO Training — 40GB GPUs
-# Model: Qwen/Qwen3-14B
+# Model: Qwen/Qwen3-8B
 # Adjusted for 40GB VRAM: lower batch sizes, KV cache cap, CPU offload.
 
 data:
@@ -47,7 +47,7 @@ worker:
     loss_agg_mode: token_mean
     strategy: fsdp
     model:
-      model_path: Qwen/Qwen3-14B
+      model_path: Qwen/Qwen3-8B
       enable_gradient_checkpointing: true
       trust_remote_code: false
       lora:

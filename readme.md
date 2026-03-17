@@ -22,7 +22,7 @@ This repository provides a framework for enhancing agentic decision-making in mu
 
 - **🔍 RAG & Embeddings** — [rag/](rag/): Text (default [Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B)), multimodal (default [Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B)); config: `RAG_EMBEDDING_MODEL`, `MULTIMODAL_EMBEDDING_MODEL`. [rag/README.md](rag/README.md)
 
-- **🎮 Decision Agent** — [decision_agents/](decision_agents/): VLM step-by-step play with a **two-turn micro-loop** per timestep: (1) **take_action** — primitives or `QUERY_MEM` / `QUERY_SKILL` / `CALL_SKILL`; (2) **reward** — composite reward. **Per-step protocol:** `get_state_summary` (required) → optional `query_skill` or `query_memory` (budget-limited) → `take_action` (required) → `get_intention` (required) → `reward` (required). Skill bank supplies **protocol store** (name, steps, preconditions) for planning and **contract** (eff_add) for r_follow; `select_skill_from_bank` / `query_skill_bank` return protocol steps and use `bank.get_contract(skill_id)` for reward. **Model-agnostic:** same code path for GPT, Qwen, etc.; pass `model="gpt-4o-mini"` or `model="Qwen/Qwen3-14B"`; callers should pass an explicit `model`. See [decision_agents/README.md](decision_agents/README.md).
+- **🎮 Decision Agent** — [decision_agents/](decision_agents/): VLM step-by-step play with a **two-turn micro-loop** per timestep: (1) **take_action** — primitives or `QUERY_MEM` / `QUERY_SKILL` / `CALL_SKILL`; (2) **reward** — composite reward. **Per-step protocol:** `get_state_summary` (required) → optional `query_skill` or `query_memory` (budget-limited) → `take_action` (required) → `get_intention` (required) → `reward` (required). Skill bank supplies **protocol store** (name, steps, preconditions) for planning and **contract** (eff_add) for r_follow; `select_skill_from_bank` / `query_skill_bank` return protocol steps and use `bank.get_contract(skill_id)` for reward. **Model-agnostic:** same code path for GPT, Qwen, etc.; pass `model="gpt-4o-mini"` or `model="Qwen/Qwen3-8B"`; callers should pass an explicit `model`. See [decision_agents/README.md](decision_agents/README.md).
   - **Core**: [agent.py](decision_agents/agent.py) — `VLMDecisionAgent`, `run_tool()`, `run_episode_vlm_agent()`; [dummy_agent.py](decision_agents/dummy_agent.py) — game detection, action extraction.
   - **Helpers**: [agent_helper.py](decision_agents/agent_helper.py) — `get_state_summary()`, `build_rag_summary()`, `extract_game_facts()`, `infer_intention()` ([TAG] phrase), `EpisodicMemoryStore`, `skill_bank_to_text()`, `query_skill_bank()` / `select_skill_from_bank()`, `_get_protocol_for_skill()`, `SUBGOAL_TAGS`.
   - **Reward**: [reward_func.py](decision_agents/reward_func.py) — `RewardConfig`, `RewardComputer`; **r_total** = r_env + w_follow×r_follow + r_cost (query_mem_cost, query_skill_cost, call_skill_cost, skill_switch_cost).
@@ -42,7 +42,7 @@ This repository provides a framework for enhancing agentic decision-making in mu
   - **Co-evolution callback**: [coevolution_callback.py](trainer/decision/coevolution_callback.py) — `SkillBankCoEvolutionCallback` + `SkillAgentToolPipeline` + `SegmentationStore`; integrates `skill_agents.tool_call_reward` into reward shaping. On accepted EM update, [launch_coevolution.py](trainer/launch_coevolution.py) passes the training model into `SkillBankAgent` for protocol synthesis (same `ask_model` routing as inference). [launch_train](trainer/decision/launch_train.py) initializes `SkillQueryEngine` when loading the bank so training rollouts use the same retrieval path as inference.
   - Shared: [metrics](trainer/common/metrics.py), [reward_shaping](trainer/decision/reward_shaping.py), [eval_harness](trainer/common/eval_harness.py). Entry: [launch_train](trainer/decision/launch_train.py), [launch_coevolution](trainer/launch_coevolution.py). [trainer/README.md](trainer/README.md)
 
-- **▶️ Inference** — [inference/](inference/): Run the decision agent and store rollouts in [data_structure](data_structure/experience.py) format (`Episode` + `Experience`). **Unified skill bank path:** Both `scripts/run_inference.py` (any model via `--model`) and `scripts/run_qwen3_14b_eval.py` (Qwen, `--bank` optional) use the same `load_skill_bank()`, `select_skill_from_bank()`, and `skill_bank_to_text()`; only the LLM backend differs. `run_episode_vlm_agent()` returns `Episode` directly; `run_inference()` wraps it with buffer/save support. [inference/README.md](inference/README.md)
+- **▶️ Inference** — [inference/](inference/): Run the decision agent and store rollouts in [data_structure](data_structure/experience.py) format (`Episode` + `Experience`). **Unified skill bank path:** Both `scripts/run_inference.py` (any model via `--model`) and `scripts/run_qwen3_8b_eval.py` (Qwen, `--bank` optional) use the same `load_skill_bank()`, `select_skill_from_bank()`, and `skill_bank_to_text()`; only the LLM backend differs. `run_episode_vlm_agent()` returns `Episode` directly; `run_inference()` wraps it with buffer/save support. [inference/README.md](inference/README.md)
 
 ---
 
@@ -79,7 +79,7 @@ All wrappers set `info["env_name"]` and `info["game_name"]` on every `reset()` a
 
 ## Decision & Skill Agents: Co-evolution
 
-Two agents co-evolve: the **Decision Agent** (Qwen3-14B + LoRA, GRPO) plays games using skills from the bank, and the **Skill Bank Agent** (Qwen3-14B + 3 LoRA, Hard-EM) discovers and refines skills from the Decision Agent's trajectories. Training runs on **8 × A100-80GB GPUs** (GPUs 0-3 for Decision, GPUs 4-7 for Skill Bank). See [Section 5: Trainer code](#5-trainer-code) for full training settings and scripts.
+Two agents co-evolve: the **Decision Agent** (Qwen3-8B + LoRA, GRPO) plays games using skills from the bank, and the **Skill Bank Agent** (Qwen3-8B + 3 LoRA, Hard-EM) discovers and refines skills from the Decision Agent's trajectories. Training runs on **8 × A100-80GB GPUs** (GPUs 0-3 for Decision, GPUs 4-7 for Skill Bank). See [Section 5: Trainer code](#5-trainer-code) for full training settings and scripts.
 
 ### Big picture
 
@@ -87,7 +87,7 @@ Two agents co-evolve: the **Decision Agent** (Qwen3-14B + LoRA, GRPO) plays game
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                          CO-EVOLUTION LOOP                                    │
 │                                                                              │
-│  Decision Agent (Qwen3-14B + LoRA)       Skill Bank Agent (Qwen3-14B + 3 LoRA)
+│  Decision Agent (Qwen3-8B + LoRA)       Skill Bank Agent (Qwen3-8B + 3 LoRA)
 │  GPUs 0-3, GRPO via VERL                 GPUs 4-7, Hard-EM                   │
 │  ┌──────────────────────┐                ┌──────────────────────┐            │
 │  │ • take_action        │  query_skill   │ • boundary proposal  │            │
@@ -113,7 +113,7 @@ Two agents co-evolve: the **Decision Agent** (Qwen3-14B + LoRA, GRPO) plays game
 
 | Role | Decision Agent | Skill Bank Agent |
 |------|----------------|------------------|
-| **Model** | Qwen3-14B + LoRA (rank 16) | Qwen3-14B + 3 LoRA (SEGMENT, CONTRACT, CURATOR) |
+| **Model** | Qwen3-8B + LoRA (rank 16) | Qwen3-8B + 3 LoRA (SEGMENT, CONTRACT, CURATOR) |
 | **Training** | GRPO via VERL (group size 8, LR 1e-5) | Hard-EM with LoRA fine-tuning (LR 2e-4) |
 | **Provides** | Game play: primitive actions + tool calls (`QUERY_SKILL`, `CALL_SKILL`, `QUERY_MEM`) | Skill Bank: segmented trajectories, effect contracts, split/merge/refine |
 | **Consumes** | Skill bank (protocols for planning, contracts for reward shaping) | Raw episodes from Decision Agent rollouts |
@@ -285,7 +285,7 @@ Entry points: [SkillBankAgent](skill_agents/pipeline.py) (`segment_episode`, `in
 
 # 4. Decision-making agent
 
-The [decision_agents](decision_agents/) module provides an LLM decision agent for step-by-step game play with **skill-bank retrieval** (RAG-based), episodic memory, intention inference, and composite reward. Two backends share the same code path: **GPT-5.4** (training-free, cold-start/labeling) and **Qwen3-14B** (GRPO-trained, vLLM). See [decision_agents/README.md](decision_agents/README.md).
+The [decision_agents](decision_agents/) module provides an LLM decision agent for step-by-step game play with **skill-bank retrieval** (RAG-based), episodic memory, intention inference, and composite reward. Two backends share the same code path: **GPT-5.4** (training-free, cold-start/labeling) and **Qwen3-8B** (GRPO-trained, vLLM). See [decision_agents/README.md](decision_agents/README.md).
 
 ## RAG-mode decision agent with skill selection
 
@@ -392,9 +392,9 @@ The first two are env-related. A time-sensitive discount can be applied to penal
 
 # 5. Trainer code
 
-The training code lives in **[trainer/](trainer/)** and implements co-evolution between two agents on **8 × A100-80GB GPUs**: a **Decision Agent** (Qwen3-14B, GRPO, GPUs 0-3) that plays games and a **Skill Bank Agent** (Qwen3-14B, 3 LoRA adapters + Hard-EM, GPUs 4-7) that discovers and maintains reusable skills from the Decision Agent's trajectories. Both agents improve each other over multiple co-evolution iterations.
+The training code lives in **[trainer/](trainer/)** and implements co-evolution between two agents on **8 × A100-80GB GPUs**: a **Decision Agent** (Qwen3-8B, GRPO, GPUs 0-3) that plays games and a **Skill Bank Agent** (Qwen3-8B, 3 LoRA adapters + Hard-EM, GPUs 4-7) that discovers and maintains reusable skills from the Decision Agent's trajectories. Both agents improve each other over multiple co-evolution iterations.
 
-## Decision Agent (Agent A) — Qwen3-14B + LoRA GRPO
+## Decision Agent (Agent A) — Qwen3-8B + LoRA GRPO
 
 The Decision Agent selects primitive game actions and tool calls (`QUERY_SKILL`, `CALL_SKILL`, `QUERY_MEM`) against the current skill bank. Trained with **GRPO via VERL** (`GameAITrainer` subclassing `RayPPOTrainer`).
 
@@ -402,7 +402,7 @@ The Decision Agent selects primitive game actions and tool calls (`QUERY_SKILL`,
 
 | Parameter | Value |
 |-----------|-------|
-| Base model | Qwen/Qwen3-14B |
+| Base model | Qwen/Qwen3-8B |
 | LoRA rank / alpha | 16 / 32 |
 | GRPO group size | 8 |
 | Clip ratio | 0.2 |
@@ -421,13 +421,13 @@ The Decision Agent selects primitive game actions and tool calls (`QUERY_SKILL`,
 
 **Components**: [trainer/decision/env_wrapper.py](trainer/decision/env_wrapper.py) (retrieval-as-action, tool call trace recording), [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py), [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py), [trainer/decision/replay_buffer.py](trainer/decision/replay_buffer.py), [trainer/decision/rollout_collector.py](trainer/decision/rollout_collector.py).
 
-## Skill Bank Agent (Agent B) — Qwen3-14B + 3 LoRA (Hard-EM)
+## Skill Bank Agent (Agent B) — Qwen3-8B + 3 LoRA (Hard-EM)
 
-The Skill Bank Agent processes trajectory rollouts from the Decision Agent through a 4-stage pipeline, with 3 GRPO-trained LoRA adapters on a shared Qwen3-14B backbone. Stage 1 (boundary) and retrieval are algorithmic / RAG — not GRPO-wrapped.
+The Skill Bank Agent processes trajectory rollouts from the Decision Agent through a 4-stage pipeline, with 3 GRPO-trained LoRA adapters on a shared Qwen3-8B backbone. Stage 1 (boundary) and retrieval are algorithmic / RAG — not GRPO-wrapped.
 
 ```
 ┌─────────────────────────────────────────┐
-│       Qwen3-14B  (shared backbone)        │
+│       Qwen3-8B  (shared backbone)        │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐  │
 │  │ SEGMENT  │ │ CONTRACT │ │ CURATOR  │  │  ← Stage 2 label preferences
 │  │   LoRA   │ │   LoRA   │ │   LoRA   │  │  ← Stage 3 effect contracts
@@ -439,7 +439,7 @@ The Skill Bank Agent processes trajectory rollouts from the Decision Agent throu
 
 | Parameter | Value |
 |-----------|-------|
-| Base model | Qwen/Qwen3-14B |
+| Base model | Qwen/Qwen3-8B |
 | LoRA rank / alpha | 16 / 32 |
 | Learning rate | 2e-4 |
 | Epochs | 3 |
@@ -465,7 +465,7 @@ The co-evolution loop alternates between training both agents. Each iteration: c
 
 ```
 Iteration 1:
-  cold-start rollouts (base Qwen3-14B)
+  cold-start rollouts (base Qwen3-8B)
     → Skill Bank v1 (LoRA training + Hard-EM on GPUs 4-7)
     → Decision Agent v1 (GRPO on GPUs 0-3, with Bank v1)
 
@@ -488,17 +488,17 @@ Iteration 2+:
 | Script | Purpose |
 |--------|---------|
 | [`scripts/coevolution_train.sh`](scripts/coevolution_train.sh) | Main loop: cold-start rollouts → Skill Bank v1 → Decision Agent v1 → iterate (default 6 iterations) |
-| [`scripts/decision_agent_train.sh`](scripts/decision_agent_train.sh) | GRPO training for Decision Agent (Qwen3-14B) on GPUs 0-3 via VERL |
-| [`scripts/skillbank_agent_train.sh`](scripts/skillbank_agent_train.sh) | LoRA training + Hard-EM for Skill Bank Agent (Qwen3-14B) on GPUs 4-7 |
+| [`scripts/decision_agent_train.sh`](scripts/decision_agent_train.sh) | GRPO training for Decision Agent (Qwen3-8B) on GPUs 0-3 via VERL |
+| [`scripts/skillbank_agent_train.sh`](scripts/skillbank_agent_train.sh) | LoRA training + Hard-EM for Skill Bank Agent (Qwen3-8B) on GPUs 4-7 |
 | [`cold_start/run_100_rollouts.py`](cold_start/run_100_rollouts.py) | Batch rollout generation (100 episodes per game) |
 
 ```bash
-# Default: Qwen3-14B decision + Qwen3-14B skill bank, 6 iterations
+# Default: Qwen3-8B decision + Qwen3-8B skill bank, 6 iterations
 bash scripts/coevolution_train.sh
 
 # Custom:
-Decision_base_model=Qwen/Qwen3-14B \
-SkillBank_base_model=Qwen/Qwen3-14B \
+Decision_base_model=Qwen/Qwen3-8B \
+SkillBank_base_model=Qwen/Qwen3-8B \
 NUM_ITERATIONS=10 TRAIN_STEPS=30 \
   bash scripts/coevolution_train.sh
 ```

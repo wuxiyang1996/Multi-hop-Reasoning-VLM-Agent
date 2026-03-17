@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Validate Qwen3-14B (or other model) rollout outputs: report and optionally remove invalid/empty runs.
+Validate Qwen3-8B (or other model) rollout outputs: report and optionally remove invalid/empty runs.
 
 A run is considered VALID if the game dir has at least one real episode:
   - at least one episode_NNN.json (excluding episode_buffer.json), OR
@@ -11,7 +11,7 @@ Otherwise the run is INVALID (empty or failed).
 
 Usage (from Game-AI-Agent root):
 
-  # Report only (default: output/Qwen3-14B)
+  # Report only (default: output/Qwen3-8B)
   python -m scripts.validate_qwen3_outputs
 
   # Custom base dir
@@ -90,7 +90,7 @@ def main():
     )
     parser.add_argument(
         "--base_dir", type=str, default=None,
-        help="Base dir to scan (default: output/Qwen3-14B)",
+        help="Base dir to scan (default: output/Qwen3-8B)",
     )
     parser.add_argument(
         "--remove", action="store_true",
@@ -100,7 +100,7 @@ def main():
 
     script_dir = Path(__file__).resolve().parent
     codebase_root = script_dir.parent
-    base_dir = Path(args.base_dir) if args.base_dir else codebase_root / "output" / "Qwen3-14B"
+    base_dir = Path(args.base_dir) if args.base_dir else codebase_root / "output" / "Qwen3-8B"
     if not base_dir.is_dir():
         print(f"Base dir does not exist: {base_dir}")
         return

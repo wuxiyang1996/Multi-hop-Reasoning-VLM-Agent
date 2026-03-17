@@ -214,12 +214,22 @@ def run_stage3_mvp(
         # The algorithmic contract above does the real work; this LLM call
         # only generates training data for the CONTRACT LoRA adapter.
         try:
-            from skill_agents_grpo.stage3_mvp.llm_contract import llm_summarize_contract
+            import skill_agents_grpo.stage3_mvp.llm_contract as _contract_mod
+            _contract_fn = _contract_mod.llm_summarize_contract
             sample_obs = []
             for inst in instances[:5]:
-                if inst.observations:
-                    sample_obs.append(str(inst.observations[:2]))
-            llm_summarize_contract(
+                parts = []
+                if getattr(inst, "events", None):
+                    parts.append(f"events={inst.events[:6]}")
+                if getattr(inst, "P_start", None):
+                    top = sorted(inst.P_start.items(), key=lambda x: -x[1])[:4]
+                    parts.append(f"start={dict(top)}")
+                if getattr(inst, "P_end", None):
+                    top = sorted(inst.P_end.items(), key=lambda x: -x[1])[:4]
+                    parts.append(f"end={dict(top)}")
+                if parts:
+                    sample_obs.append("; ".join(parts))
+            _contract_fn(
                 skill_id=skill_id,
                 segment_observations=sample_obs,
                 predicates_start=contract.eff_add or set(),
@@ -227,8 +237,11 @@ def run_stage3_mvp(
                 n_instances=len(instances),
                 model=getattr(config, "model", ""),
             )
-        except Exception:
-            pass
+        except Exception as _contract_exc:
+            import logging as _log
+            _log.getLogger(__name__).warning(
+                "Contract LLM call failed for %s: %s", skill_id, _contract_exc,
+            )
 
         # Step 4: verify
         report = verify_effects_contract(contract, instances, config)

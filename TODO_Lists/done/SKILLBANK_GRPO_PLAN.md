@@ -11,7 +11,7 @@
 
 Three workstreams:
 
-1. **Stages 1–3 GRPO**: Train GRPO LoRA adapters on Qwen3-14B for the LLM generation tasks in each stage — boundary proposal, segment preference generation, and contract generation — rewarded by downstream metrics. The adapters augment (not replace) the existing algorithmic/heuristic infrastructure in `skill_agents/`.
+1. **Stages 1–3 GRPO**: Train GRPO LoRA adapters on Qwen3-8B for the LLM generation tasks in each stage — boundary proposal, segment preference generation, and contract generation — rewarded by downstream metrics. The adapters augment (not replace) the existing algorithmic/heuristic infrastructure in `skill_agents/`.
 2. **Stage 4 LLM-Advised Bank Maintenance**: Add a single-turn LLM filter (CURATOR LoRA) to the algorithmic bank maintenance pipeline in `skill_agents/bank_maintenance/`. The algorithm proposes candidates (split/merge/refine/materialize/promote); the LLM approves, vetoes, or defers.
 3. **`select_skill` GRPO**: Train the decision agent's skill-selection policy with GRPO so it learns _when_ to query, _which_ skill to pick, and _when_ to switch — rewarded by downstream episode return.
 
@@ -24,11 +24,11 @@ Three workstreams:
 | 3 — Contracts | `skill_agents/stage3_mvp/` | `trainer/skillbank/stages/stage3_contracts.py` |
 | 4 — Maintenance | `skill_agents/bank_maintenance/` | `trainer/skillbank/stages/stage4_update.py` |
 
-**Model convention:** This project uses a single Qwen model size throughout — **Qwen3-14B** for all components (vLLM serving, LoRA adapters, decision agent, tool-calling). No mixed model sizes. All existing references to Qwen3-8B in the codebase (`skill_agents/lora/config.py`, `trainer/common/configs/skillbank_em.yaml`, etc.) must be updated to Qwen3-14B.
+**Model convention:** This project uses a single Qwen model size throughout — **Qwen3-8B** for all components (vLLM serving, LoRA adapters, decision agent, tool-calling). No mixed model sizes. All existing references to Qwen3-8B in the codebase (`skill_agents/lora/config.py`, `trainer/common/configs/skillbank_em.yaml`, etc.) must be updated to Qwen3-8B.
 
 ### GRPO-Trained LoRA Adapters
 
-5 LoRA adapters on the shared Qwen3-14B base, each trained independently via GRPO:
+5 LoRA adapters on the shared Qwen3-8B base, each trained independently via GRPO:
 
 | Adapter | Stage | LLM Generation Task | Augments / Replaces |
 |---------|-------|---------------------|---------------------|
@@ -97,7 +97,7 @@ for co_evolution_step in range(total_steps):
 
 ### 1.1 Architecture
 
-Each stage uses the shared Qwen3-14B base model with a dedicated LoRA adapter (BOUNDARY, SEGMENT, CONTRACT). During GRPO training, each adapter is updated independently. The shared base stays frozen. This is the same Qwen3-14B used for vLLM serving and the decision agent — one model size for the entire project.
+Each stage uses the shared Qwen3-8B base model with a dedicated LoRA adapter (BOUNDARY, SEGMENT, CONTRACT). During GRPO training, each adapter is updated independently. The shared base stays frozen. This is the same Qwen3-8B used for vLLM serving and the decision agent — one model size for the entire project.
 
 Each adapter augments (not replaces) the existing algorithmic infrastructure in `skill_agents/`:
 
@@ -107,7 +107,7 @@ Each adapter augments (not replaces) the existing algorithmic infrastructure in 
 | 2 | Generate pairwise preferences (replaces LLM teacher) | `PreferenceStore` → `PreferenceScorer` (Bradley-Terry) → `SegmentScorer` (6-term) → DP/beam decoder |
 | 3 | Generate contract suggestions (union enrichment) | `learn_effects_contract()` (frequency counting) → `verify_effects_contract()` → `refine_effects_contract()` |
 
-**GPU memory note:** Qwen3-14B in bf16 ≈ 28GB base. With LoRA rank 16 and 5 adapters loaded, add ~200MB per adapter (LoRA params are tiny relative to the base). GRPO training adds optimizer states + gradients for adapter params only (~1–2GB total). Fits comfortably on a single 80GB A100. For inference via vLLM, the existing `--gpu-memory-utilization 0.75` (≈60GB on 80GB) is sufficient for 14B with generous KV cache.
+**GPU memory note:** Qwen3-8B in bf16 ≈ 28GB base. With LoRA rank 16 and 5 adapters loaded, add ~200MB per adapter (LoRA params are tiny relative to the base). GRPO training adds optimizer states + gradients for adapter params only (~1–2GB total). Fits comfortably on a single 80GB A100. For inference via vLLM, the existing `--gpu-memory-utilization 0.75` (≈60GB on 80GB) is sufficient for 14B with generous KV cache.
 
 ```
 For each EM batch of trajectories:
@@ -529,11 +529,11 @@ summarize_segment()  →  compute_effects()  →  learn_effects_contract() (freq
 
 All three stages share:
 
-- [ ] `trainer/skillbank/grpo/grpo_lora_updater.py` — GRPO advantage computation + LoRA parameter update on Qwen3-14B. Reuses advantage normalization logic from `trainer/decision/grpo_trainer.py` but operates on LoRA params only.
+- [ ] `trainer/skillbank/grpo/grpo_lora_updater.py` — GRPO advantage computation + LoRA parameter update on Qwen3-8B. Reuses advantage normalization logic from `trainer/decision/grpo_trainer.py` but operates on LoRA params only.
 - [ ] `trainer/skillbank/grpo/config.py` — per-stage GRPO hyperparameters (G, clip_ratio, kl_coeff, lr). Lower G and higher kl_coeff than decision agent since skill bank outputs are more structured.
 - [ ] `trainer/common/configs/skillbank_grpo.yaml` — unified config file.
-- [ ] Update `skill_agents/lora/config.py` — change `base_model_name_or_path` default from `"Qwen/Qwen3-8B"` to `"Qwen/Qwen3-14B"`
-- [ ] Update `trainer/common/configs/skillbank_em.yaml` — change `lora.base_model_name_or_path` from `"Qwen/Qwen3-8B"` to `"Qwen/Qwen3-14B"`
+- [ ] Update `skill_agents/lora/config.py` — change `base_model_name_or_path` default from `"Qwen/Qwen3-8B"` to `"Qwen/Qwen3-8B"`
+- [ ] Update `trainer/common/configs/skillbank_em.yaml` — change `lora.base_model_name_or_path` from `"Qwen/Qwen3-8B"` to `"Qwen/Qwen3-8B"`
 
 **Hyperparameter defaults:**
 
@@ -721,7 +721,7 @@ __NEW__ segments (from Stage 2 decode)
 
 ### 2.5 Model & Serving
 
-**Qwen3-14B via vLLM** — same model as everything else. Uses the `/v1/chat/completions` endpoint, single turn, no tool-calling. Structured output via vLLM's JSON constrained decoding (`response_format={"type": "json_object"}`).
+**Qwen3-8B via vLLM** — same model as everything else. Uses the `/v1/chat/completions` endpoint, single turn, no tool-calling. Structured output via vLLM's JSON constrained decoding (`response_format={"type": "json_object"}`).
 
 ### 2.6 Candidate Generation (Algorithm)
 
@@ -1097,7 +1097,7 @@ def filter_candidates(
 
     try:
         response = vllm_client.chat.completions.create(
-            model="Qwen/Qwen3-14B",
+            model="Qwen/Qwen3-8B",
             messages=[
                 {"role": "system", "content": CURATOR_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
@@ -1117,7 +1117,7 @@ def filter_candidates(
         # Single retry with corrective prompt
         try:
             response = vllm_client.chat.completions.create(
-                model="Qwen/Qwen3-14B",
+                model="Qwen/Qwen3-8B",
                 messages=[
                     {"role": "system", "content": CURATOR_SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
@@ -1344,7 +1344,7 @@ def stage4_grpo_step(
     group_outputs = []
     for g in range(G):
         response = vllm_client.chat.completions.create(
-            model="Qwen/Qwen3-14B",
+            model="Qwen/Qwen3-8B",
             messages=[{"role": "system", "content": CURATOR_SYSTEM_PROMPT},
                       {"role": "user", "content": prompt}],
             temperature=0.7,  # higher temp for diversity during GRPO
@@ -1507,7 +1507,7 @@ The cost penalties (`c_skill`, `c_switch`) already exist in `decision_grpo.yaml`
 
 **Current:** `SkillQueryEngine.select()` uses a fixed weighted sum: `0.4 * relevance + 0.35 * applicability + 0.25 * pass_rate`
 
-**Proposed:** Train a RETRIEVAL LoRA adapter (on the shared Qwen3-14B base) to re-rank skills.
+**Proposed:** Train a RETRIEVAL LoRA adapter (on the shared Qwen3-8B base) to re-rank skills.
 
 | Component | Detail |
 |-----------|--------|
@@ -1599,10 +1599,10 @@ Total episode return → GRPO advantage → updates:
     ┌─────────▼──────┐  ┌─────▼──────┐  ┌──────▼─────────┐
     │ §1: Stages 1-3 │  │ §2: Stage 4│  │ §3: select_skill│
     │ GRPO adapters  │  │ LLM-advised│  │ GRPO + reranker │
-    │ (Qwen3-14B     │  │ propose →  │  │ (Qwen3-14B     │
+    │ (Qwen3-8B     │  │ propose →  │  │ (Qwen3-8B     │
     │  + LoRA:       │  │ filter →   │  │  + LoRA:       │
     │  BOUNDARY,     │  │ execute    │  │  RETRIEVAL)    │
-    │  SEGMENT,      │  │ (Qwen3-14B │  │                │
+    │  SEGMENT,      │  │ (Qwen3-8B │  │                │
     │  CONTRACT)     │  │  + LoRA:   │  │                │
     │                │  │  CURATOR)  │  │                │
     └────────┬───────┘  └─────┬──────┘  └──────┬─────────┘
@@ -1614,11 +1614,11 @@ Total episode return → GRPO advantage → updates:
                     │  (launch_coevo.py) │
                     └───────────────────┘
 
-    All components use Qwen3-14B. No mixed model sizes.
+    All components use Qwen3-8B. No mixed model sizes.
     5 LoRA adapters total: BOUNDARY, SEGMENT, CONTRACT, CURATOR, RETRIEVAL.
 ```
 
-**§1 and §3 can be developed in parallel** — they share the Qwen3-14B LoRA infrastructure but operate on different adapters (BOUNDARY/SEGMENT/CONTRACT vs RETRIEVAL).
+**§1 and §3 can be developed in parallel** — they share the Qwen3-8B LoRA infrastructure but operate on different adapters (BOUNDARY/SEGMENT/CONTRACT vs RETRIEVAL).
 
 **§2 Phase 0 starts immediately** — counterfactual logging requires zero new infrastructure (just wrap `run_bank_maintenance()` with leave-one-out evaluation). Phase 1 (SFT) and Phase 2 (GRPO) depend on §1.5 shared GRPO infrastructure.
 
@@ -1644,7 +1644,7 @@ Total episode return → GRPO advantage → updates:
 
 3. **RETRIEVAL adapter training data**: The RETRIEVAL adapter needs (query, candidates, selected, outcome_reward) tuples. During GRPO, these come from rollouts. But initially the adapter has no training — should we warm-start from the `SkillQueryEngine.select()` rankings (distillation)?
 
-4. **GPU memory for LoRA training on 14B**: Qwen3-14B in bf16 ≈ 28GB. With LoRA (rank 16) and 5 adapters loaded, add ~1GB total (LoRA params are tiny). GRPO training adds optimizer states + gradients for adapter params only (~1–2GB). Fits on a single 80GB A100 but requires careful `gpu-memory-utilization` tuning when vLLM is also serving on the same GPU. Consider: (a) dedicated GPU for LoRA training separate from vLLM serving, or (b) time-slicing — pause vLLM during GRPO LoRA updates, resume for inference.
+4. **GPU memory for LoRA training on 14B**: Qwen3-8B in bf16 ≈ 28GB. With LoRA (rank 16) and 5 adapters loaded, add ~1GB total (LoRA params are tiny). GRPO training adds optimizer states + gradients for adapter params only (~1–2GB). Fits on a single 80GB A100 but requires careful `gpu-memory-utilization` tuning when vLLM is also serving on the same GPU. Consider: (a) dedicated GPU for LoRA training separate from vLLM serving, or (b) time-slicing — pause vLLM during GRPO LoRA updates, resume for inference.
 
 5. **Stage 4 Phase 0 duration**: How many EM iterations before transitioning from Phase 0 (logging only) to Phase 1 (SFT)? 100 is the current estimate — is this enough counterfactual data for reliable SFT?
 
@@ -1652,15 +1652,15 @@ Total episode return → GRPO advantage → updates:
 
 7. **Stage 2 GRPO integration point**: The plan uses Option A (GRPO replaces LLM teacher, preferences feed into existing PreferenceStore → Bradley-Terry → SegmentScorer → decoder). Should we start with Option C (re-ranker on top) for lower risk, and upgrade to Option A after validation?
 
-8. **Model mismatch between cold-start and co-evolution**: Cold-start extraction uses GPT-5.4 (`labeling/extract_skillbank_gpt54.py`); co-evolution uses Qwen3-14B. The initial bank quality may degrade when switching models. Should we run a calibration pass where Qwen3-14B re-processes the cold-start bank?
+8. **Model mismatch between cold-start and co-evolution**: Cold-start extraction uses GPT-5.4 (`labeling/extract_skillbank_gpt54.py`); co-evolution uses Qwen3-8B. The initial bank quality may degrade when switching models. Should we run a calibration pass where Qwen3-8B re-processes the cold-start bank?
 
 9. **Stage 4 local re-decode cost**: After splits and merges, `redecode_windows()` re-runs Stage 2 on affected trajectory windows. With `redecode_window_pad=300`, this can be expensive for large banks with many splits per iteration. Should we batch re-decode requests and run them asynchronously?
 
 ---
 
-## Codebase Cleanup — Qwen3-8B → Qwen3-14B
+## Codebase Cleanup — Qwen3-8B → Qwen3-8B
 
-The following files currently reference `Qwen3-8B` and must be updated to `Qwen3-14B`:
+The following files currently reference `Qwen3-8B` and must be updated to `Qwen3-8B`:
 
 - [ ] `skill_agents/lora/config.py` — `MultiLoraConfig.base_model_name_or_path` default
 - [ ] `skill_agents/lora/config.py` — `LoraTrainingConfig.base_model_name_or_path` default

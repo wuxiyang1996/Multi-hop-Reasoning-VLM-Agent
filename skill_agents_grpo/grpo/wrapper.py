@@ -108,22 +108,39 @@ class GRPOCallWrapper:
         """Core sampling logic."""
         self._call_count += 1
 
-        # Inject higher temperature for diversity
         kwargs_sample = {**kwargs, "temperature": self.temperature}
 
         samples: List[Any] = []
         completions: List[str] = []
+        n_failures = 0
 
         for _ in range(self.group_size):
             try:
                 out = original_fn(*args, **kwargs_sample)
                 samples.append(out)
                 completions.append(str(out) if out is not None else "")
-            except Exception:
+            except Exception as exc:
+                n_failures += 1
+                if n_failures == 1:
+                    logger.warning(
+                        "GRPO[%s] sample failed: %s", self.adapter.value, exc,
+                    )
                 samples.append(None)
                 completions.append("")
 
-        # Evaluate rewards
+        if n_failures == self.group_size:
+            logger.warning(
+                "GRPO[%s] all %d samples failed — falling back to unwrapped call",
+                self.adapter.value, self.group_size,
+            )
+            try:
+                return original_fn(*args, **kwargs)
+            except Exception as exc:
+                logger.error(
+                    "GRPO[%s] fallback also failed: %s", self.adapter.value, exc,
+                )
+                return None
+
         rewards: List[float] = []
         for sample in samples:
             try:
@@ -132,7 +149,6 @@ class GRPOCallWrapper:
             except Exception:
                 rewards.append(0.0)
 
-        # Extract prompt for training
         prompt = ""
         if self.prompt_extractor is not None:
             try:
@@ -140,7 +156,6 @@ class GRPOCallWrapper:
             except Exception:
                 pass
 
-        # Extract metadata
         metadata: Dict[str, Any] = {}
         if self.metadata_extractor is not None:
             try:
@@ -148,7 +163,6 @@ class GRPOCallWrapper:
             except Exception:
                 pass
 
-        # Store in buffer
         grpo_sample = GRPOSample(
             adapter=self.adapter,
             prompt=prompt,
@@ -159,13 +173,13 @@ class GRPOCallWrapper:
         self.buffer.add(grpo_sample)
         self._total_samples += self.group_size
 
-        logger.debug(
-            "GRPO[%s] call #%d: rewards=%s best_idx=%d",
-            self.adapter.value, self._call_count,
-            [f"{r:.3f}" for r in rewards], grpo_sample.best_index,
+        non_empty = sum(1 for c in completions if c)
+        logger.info(
+            "GRPO[%s] call #%d: %d/%d non-empty, rewards=%s, prompt_len=%d",
+            self.adapter.value, self._call_count, non_empty, len(completions),
+            [f"{r:.3f}" for r in rewards], len(prompt),
         )
 
-        # Return the best sample to the pipeline
         best_idx = grpo_sample.best_index
         return samples[best_idx]
 

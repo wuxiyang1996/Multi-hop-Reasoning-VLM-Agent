@@ -1,7 +1,7 @@
 """
 Multi-LoRA skill-bank LLM wrapper (GRPO edition).
 
-Loads one shared Qwen3-14B causal-LM backbone and up to 3 GRPO-trained
+Loads one shared Qwen3-8B causal-LM backbone and up to 3 GRPO-trained
 LoRA adapters (segment, contract, curator).  BOUNDARY and RETRIEVAL
 enum values are kept for backward compat but have no adapters here.
 
@@ -15,7 +15,7 @@ Usage::
     from skill_agents_grpo.lora import MultiLoraSkillBankLLM, MultiLoraConfig, SkillFunction
 
     cfg = MultiLoraConfig(
-        base_model_name_or_path="Qwen/Qwen3-14B",
+        base_model_name_or_path="Qwen/Qwen3-8B",
         adapter_paths={
             "segment":  "runs/lora_adapters/segment",
             "contract": "runs/lora_adapters/contract",

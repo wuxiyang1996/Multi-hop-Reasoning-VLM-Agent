@@ -2,9 +2,9 @@
 
 Build and maintain a **Skill Bank** from long-horizon game trajectories: segment trajectories into skills, learn symbolic contracts (effects), and serve queries for the [decision_agents](../decision_agents/README.md) VLM agent. The pipeline supports **GRPO-trained LoRA adapters** that wrap existing LLM call points: each call produces G samples, is scored with CPU-only rewards, and the best sample is returned so the EM pipeline runs unchanged while adapters improve over time.
 
-**Model convention:** This project uses **Qwen3-14B** for all skill-bank components (vLLM serving, LoRA adapters, boundary/protocol/contract/curator calls). All configs and code references use Qwen3-14B; legacy Qwen3-8B references are being updated. See [TODO_Lists/SKILLBANK_GRPO_PLAN.md](../TODO_Lists/SKILLBANK_GRPO_PLAN.md) for the full GRPO architecture.
+**Model convention:** This project uses **Qwen3-8B** for all skill-bank components (vLLM serving, LoRA adapters, boundary/protocol/contract/curator calls). All configs and code references use Qwen3-8B. See [TODO_Lists/SKILLBANK_GRPO_PLAN.md](../TODO_Lists/SKILLBANK_GRPO_PLAN.md) for the full GRPO architecture.
 
-**Model-agnostic design:** The pipeline and decision agent use the same skill-bank functions regardless of LLM backend. GPT and Qwen differ only in which API `ask_model` calls; set `PipelineConfig.llm_model` and/or `extractor_model` (e.g. `Qwen/Qwen3-14B` or `gpt-4o-mini`) for protocol synthesis and boundary proposal.
+**Model-agnostic design:** The pipeline and decision agent use the same skill-bank functions regardless of LLM backend. GPT and Qwen differ only in which API `ask_model` calls; set `PipelineConfig.llm_model` and/or `extractor_model` (e.g. `Qwen/Qwen3-8B` or `gpt-4o-mini`) for protocol synthesis and boundary proposal.
 
 **Reasoning-model compatibility:** When using Qwen3 or other reasoning models that emit `<think>` blocks, all LLM call sites are wrapped via [`_llm_compat.py`](_llm_compat.py): prompts get `/no_think` appended and responses are stripped of think tags. See [Reasoning-model compatibility](#reasoning-model-compatibility) below.
 
@@ -48,7 +48,7 @@ Subpackages implement each stage:
 | **Phase 1 — Rollout** | During EM | Pipeline calls LLM as normal → `GRPOCallWrapper` generates G samples (temperature=0.7) → reward computed per sample → data stored in `GRPOBuffer` → best sample returned to pipeline. |
 | **Phase 2 — Training** | After EM step | `GRPOLoRATrainer` reads buffer → recomputes log_probs (gradients on) → group-normalized rewards → GRPO policy gradient → updates LoRA adapter → clears buffer. |
 
-### Three GRPO targets (3 LoRA adapters on Qwen3-14B)
+### Three GRPO targets (3 LoRA adapters on Qwen3-8B)
 
 | Adapter | Stage | Wrapped function | Reward |
 |---------|-------|------------------|--------|
@@ -161,7 +161,7 @@ skill_agent.load()
 
 # Decision agent: pass any model name (GPT, Qwen, etc.); same code path
 vlm_agent = VLMDecisionAgent(
-    model="gpt-4o-mini",      # or "Qwen/Qwen3-14B", etc.
+    model="gpt-4o-mini",      # or "Qwen/Qwen3-8B", etc.
     skill_bank=skill_agent,   # or skill_agent.bank for plain bank
     reward_config=RewardConfig(w_follow=0.1),
 )
@@ -289,7 +289,7 @@ decision_result = engine.query_for_decision_agent(
 
 ### PipelineConfig
 
-All fields (see `pipeline.PipelineConfig` dataclass). **Model convention:** use `Qwen/Qwen3-14B` for GRPO and co-evolution.
+All fields (see `pipeline.PipelineConfig` dataclass). **Model convention:** use `Qwen/Qwen3-8B` for GRPO and co-evolution.
 
 | Field | Default | Meaning |
 |-------|--------|--------|
@@ -301,7 +301,7 @@ All fields (see `pipeline.PipelineConfig` dataclass). **Model convention:** use 
 | `env_name` | `"llm"` | Signal extraction: `"llm"`, `"llm+overcooked"`, `"overcooked"`, etc. |
 | `game_name` | `"generic"` | Actual game identifier for phase detection (e.g. `"twenty_forty_eight"`, `"super_mario"`). |
 | `merge_radius` | `3` | Merge boundary candidates within this many steps. |
-| `extractor_model` | `None` | LLM for boundary proposal (e.g. `Qwen/Qwen3-14B`, `gpt-4o-mini`). |
+| `extractor_model` | `None` | LLM for boundary proposal (e.g. `Qwen/Qwen3-8B`, `gpt-4o-mini`). |
 | | | **Stage 2: segmentation** |
 | `segmentation_method` | `"dp"` | Decoder method: `"dp"` (Viterbi) or `"beam"`. |
 | `preference_iterations` | `3` | Active-learning rounds. |
@@ -441,7 +441,7 @@ The `game_name` field in `PipelineConfig` controls which game-specific extractor
 
 ## Reasoning-model compatibility
 
-Reasoning models (e.g. **Qwen3-14B**, QwQ) default to an internal "thinking" mode that emits `<think>…</think>` blocks before the actual answer. Those blocks consume the `max_tokens` budget and often leave little or no room for the structured output (JSON, rankings, protocols) the pipeline needs.
+Reasoning models (e.g. **Qwen3-8B**, QwQ) default to an internal "thinking" mode that emits `<think>…</think>` blocks before the actual answer. Those blocks consume the `max_tokens` budget and often leave little or no room for the structured output (JSON, rankings, protocols) the pipeline needs.
 
 The module [`skill_agents/_llm_compat.py`](_llm_compat.py) provides:
 
@@ -490,13 +490,13 @@ bash extract_skillbank/run_extract_skillbank_grpo.sh --one_per_game -v
 bash extract_skillbank/run_extract_skillbank_grpo.sh --dry_run
 ```
 
-### Mode 2: Local model as LLM teacher (Qwen3-14B, no GRPO)
+### Mode 2: Local model as LLM teacher (Qwen3-8B, no GRPO)
 
-Uses Qwen3-14B (or any HuggingFace model) for all LLM teacher calls instead of the API. The model is loaded once and registered as the shared instance; all LLM call sites auto-discover it.
+Uses Qwen3-8B (or any HuggingFace model) for all LLM teacher calls instead of the API. The model is loaded once and registered as the shared instance; all LLM call sites auto-discover it.
 
 ```bash
 python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54 \
-    --local_model Qwen/Qwen3-14B \
+    --local_model Qwen/Qwen3-8B \
     --games twenty_forty_eight --one_per_game -v
 ```
 
@@ -506,7 +506,7 @@ Enables the full GRPO loop: for each LLM teacher call, G candidate ranking sets 
 
 ```bash
 python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54 \
-    --local_model Qwen/Qwen3-14B \
+    --local_model Qwen/Qwen3-8B \
     --use_grpo \
     --grpo_group_size 4 \
     --adapter_dir output/lora_adapters \
@@ -529,7 +529,7 @@ python -m skill_agents_grpo.extract_skillbank.extract_skillbank_grpo_gpt54 \
 | `--dry_run` | off | Preview what would be processed without running extraction. |
 | `--resume` | off | Resume from last checkpoint (skip completed games/episodes). |
 | `-v` / `--verbose` | off | Print per-step details. |
-| `--local_model` | None | HuggingFace model id or path (e.g. `Qwen/Qwen3-14B`). |
+| `--local_model` | None | HuggingFace model id or path (e.g. `Qwen/Qwen3-8B`). |
 | `--use_grpo` | off | Enable GRPO sampling + LoRA training. |
 | `--grpo_group_size` | 4 | Number of samples per LLM call (G). |
 | `--adapter_dir` | `<output>/lora_adapters` | Load/save LoRA adapters here. |
@@ -581,7 +581,7 @@ See [trainer/README.md](../trainer/README.md) for co-evolution setup and [TODO_L
 
 Every LLM-calling function that will be replaced or augmented by Qwen+GRPO records its full prompt/response. These records serve as:
 
-1. **Supervised fine-tuning data** for Qwen3-14B cold-start (before any GRPO training).
+1. **Supervised fine-tuning data** for Qwen3-8B cold-start (before any GRPO training).
 2. **Reference outputs** for GRPO reward comparison (teacher vs. student).
 
 ### Two recording systems
@@ -816,7 +816,7 @@ Generate structured execution protocol for a skill.
 | 10 | `pipeline` | `predicate_extraction` | — | Yes (API) | `coldstart_io_all.jsonl` |
 | 11 | `pipeline` | `protocol_synthesis` | — | Yes (API) | `coldstart_io_all.jsonl` |
 
-Functions 7–9 only produce records when `MultiLoraSkillBankLLM` is configured (Qwen3-14B + LoRA adapters). The rest fire via the API fallback.
+Functions 7–9 only produce records when `MultiLoraSkillBankLLM` is configured (Qwen3-8B + LoRA adapters). The rest fire via the API fallback.
 
 ### Implementation
 
@@ -861,7 +861,7 @@ The main pipeline (`extract_skillbank_grpo_gpt54.py`):
 - [skill_bank/README.md](skill_bank/README.md) — Persistent storage and NEW pool management.
 - [skill_evaluation/README.md](skill_evaluation/README.md) — Quality assessment.
 - [contract_verification/README.md](contract_verification/README.md) — Legacy full Pre/Eff/Inv contract verification.
-- [lora/README.md](lora/README.md) — Multi-LoRA model (Qwen3-14B + adapters).
+- [lora/README.md](lora/README.md) — Multi-LoRA model (Qwen3-8B + adapters).
 - [PLAN.md](PLAN.md) — Full operating plan (constraints, thresholds, module map).
 - [PIPELINE_CALL_FLOW.md](PIPELINE_CALL_FLOW.md) — How each function is called from the agent framework.
 - [CHANGELOG_REFACTOR.md](CHANGELOG_REFACTOR.md) — Refactoring history and migration notes.
@@ -949,7 +949,7 @@ skill_agents_grpo/
 │   └── config.py             # Per-stage GRPO hyperparameters (StageGRPOConfig, GRPOConfig)
 ├── lora/                     # Multi-LoRA model (GRPO-capable)
 │   ├── model.py              # MultiLoraSkillBankLLM: generate() + log_probs() for GRPO training
-│   ├── config.py             # MultiLoraConfig (Qwen3-14B base + adapter paths)
+│   ├── config.py             # MultiLoraConfig (Qwen3-8B base + adapter paths)
 │   └── skill_function.py     # SkillFunction enum (SEGMENT, CONTRACT, CURATOR, ...)
 └── extract_skillbank/        # Extraction scripts
     ├── extract_skillbank_grpo_gpt54.py  # Main script: --local_model, --use_grpo flags

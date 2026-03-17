@@ -62,7 +62,7 @@ class AsyncVLLMClient:
         self,
         base_url: str = "http://localhost:8000/v1",
         base_urls: Optional[List[str]] = None,
-        model: str = "Qwen/Qwen3-14B",
+        model: str = "Qwen/Qwen3-8B",
         default_temperature: float = 0.3,
         default_max_tokens: int = 512,
         timeout: float = 120.0,

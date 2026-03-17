@@ -1,6 +1,6 @@
 """Compatibility helpers for reasoning-model LLM calls (Qwen3, QwQ, etc.).
 
-Reasoning models like Qwen3-14B default to an internal "thinking" mode that
+Reasoning models like Qwen3-8B default to an internal "thinking" mode that
 emits ``<think>…</think>`` blocks *before* the actual answer.  These blocks
 consume the ``max_tokens`` budget and often leave nothing for the structured
 output we need (JSON, rankings, protocols).

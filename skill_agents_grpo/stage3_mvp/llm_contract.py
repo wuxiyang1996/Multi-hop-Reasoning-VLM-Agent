@@ -38,7 +38,7 @@ Summarize the effects of this skill as a JSON object:
 
 
 def _get_contract_ask_fn() -> Optional[Callable[..., str]]:
-    """Return a CONTRACT-routed ask function, or None if unavailable.
+    """Return a CONTRACT-routed ask function, or fallback to ask_model.
 
     The returned callable is wrapped for reasoning-model compatibility
     (Qwen3 ``/no_think``, think-tag stripping).
@@ -54,7 +54,8 @@ def _get_contract_ask_fn() -> Optional[Callable[..., str]]:
             )
     except Exception:
         pass
-    return None
+    from API_func import ask_model
+    return wrap_ask_for_reasoning_models(ask_model)
 
 
 def _build_contract_prompt(
@@ -107,18 +108,10 @@ def llm_summarize_contract(
     from skill_agents_grpo.coldstart_io import record_io, ColdStartRecord
 
     ask_fn = _get_contract_ask_fn()
-    resolved_model = ""
-    if ask_fn is None:
-        try:
-            from skill_agents_grpo._llm_compat import wrap_ask_for_reasoning_models
-            from API_func import ask_model as _ask_model
-            if _ask_model is not None:
-                ask_fn = wrap_ask_for_reasoning_models(_ask_model)
-                resolved_model = model or "ask_model_fallback"
-        except Exception:
-            pass
     if ask_fn is None:
         return None
+
+    resolved_model = model or ""
 
     prompt = _build_contract_prompt(
         skill_id, segment_observations, predicates_start, predicates_end, n_instances,
@@ -127,7 +120,7 @@ def llm_summarize_contract(
     try:
         t0 = _time.time()
         call_kwargs: Dict[str, Any] = {"temperature": temperature}
-        if resolved_model and resolved_model != "ask_model_fallback":
+        if resolved_model:
             call_kwargs["model"] = resolved_model
         raw = ask_fn(prompt, **call_kwargs)
         elapsed = _time.time() - t0

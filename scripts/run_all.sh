@@ -29,7 +29,7 @@
 #    LOAD_ADAPTERS_FROM=runs/prev_run/lora_adapters bash scripts/run_all.sh
 #
 #    # Resume a previous run:
-#    RUN_DIR=runs/Qwen3-14B_20260315_143022 RESUME=1 bash scripts/run_all.sh
+#    RUN_DIR=runs/Qwen3-8B_20260315_143022 RESUME=1 bash scripts/run_all.sh
 #
 #    # Legacy mode (external vLLM):
 #    MANAGE_VLLM=0 bash scripts/run_all.sh
@@ -53,7 +53,7 @@ mkdir -p "${HF_HUB_CACHE}"
 export PYTHONPATH="${PROJECT_ROOT}:${PROJECT_ROOT}/../GamingAgent:${PROJECT_ROOT}/../AgentEvolver:${PROJECT_ROOT}/../AI_Diplomacy:${PROJECT_ROOT}/../Orak:${PYTHONPATH:-}"
 
 # ── Configurable parameters ──────────────────────────────────────────
-MODEL="${VLLM_MODEL:-Qwen/Qwen3-14B}"
+MODEL="${VLLM_MODEL:-Qwen/Qwen3-8B}"
 PORT="${VLLM_PORT:-8000}"
 TP="${VLLM_TP:-4}"
 GPU_UTIL="${VLLM_GPU_UTIL:-0.90}"
@@ -70,6 +70,8 @@ LOAD_ADAPTERS_FROM="${LOAD_ADAPTERS_FROM:-}"
 DEBUG_IO="${DEBUG_IO:-}"
 VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
 GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
+SPEC_MODEL="${SPEC_MODEL:-Qwen/Qwen3-0.6B}"
+SPEC_TOKENS="${SPEC_TOKENS:-5}"
 
 # ── Cleanup on exit (only for legacy mode) ────────────────────────────
 VLLM_PID=""
@@ -99,6 +101,7 @@ if [ "${MANAGE_VLLM}" = "1" ]; then
     echo "  GPU mode:      MANAGED (persistent vLLM + FSDP)"
     echo "  vLLM GPUs:     ${VLLM_GPUS}"
     echo "  GRPO GPUs:     ${GRPO_GPUS}"
+    echo "  Spec decode:   ${SPEC_MODEL} (${SPEC_TOKENS} tokens)"
 else
     echo "  GPU mode:      LEGACY (vLLM TP=${TP} + separate GRPO GPUs)"
     echo "  vLLM port:     ${PORT}"
@@ -180,6 +183,8 @@ if [ "${MANAGE_VLLM}" = "1" ]; then
     TRAIN_ARGS+=(--grpo-devices ${GRPO_GPUS})
     TRAIN_ARGS+=(--vllm-base-port "${PORT}")
     TRAIN_ARGS+=(--vllm-gpu-util "${GPU_UTIL}")
+    TRAIN_ARGS+=(--speculative-model "${SPEC_MODEL}")
+    TRAIN_ARGS+=(--num-speculative-tokens "${SPEC_TOKENS}")
 
     echo ""
     echo "[run_all] Starting co-evolution (managed vLLM mode)..."

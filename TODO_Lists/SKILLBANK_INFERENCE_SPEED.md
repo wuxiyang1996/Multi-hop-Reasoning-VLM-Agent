@@ -10,7 +10,7 @@
 
 With GRPO on Stages 1–3 and a tool-calling agent on Stage 4, the skill bank pipeline makes **~572 LLM calls per EM step**. The current `MultiLoraSkillBankLLM.generate()` is single-request (batch size 1, HuggingFace `.generate()`), and the extraction script hard-codes `max_concurrent_llm_calls=1`. Everything is serial.
 
-At ~50 tokens/sec output (Qwen3-14B, single request), one EM step takes **~47 minutes**. With 3 EM iterations per co-evolution step, that's over 2 hours just for skill bank updates. Unacceptable.
+At ~50 tokens/sec output (Qwen3-8B, single request), one EM step takes **~47 minutes**. With 3 EM iterations per co-evolution step, that's over 2 hours just for skill bank updates. Unacceptable.
 
 ---
 
@@ -34,7 +34,7 @@ vLLM natively supports serving multiple LoRA adapters on the same base model. Al
 
 ```bash
 python -m vllm.entrypoints.openai.api_server \
-    --model Qwen/Qwen3-14B \
+    --model Qwen/Qwen3-8B \
     --enable-lora \
     --lora-modules \
         segment=runs/lora_adapters/segment \
@@ -352,7 +352,7 @@ Each iteration processes one token for EVERY in-flight request. New requests joi
 - 64 segment-adapter requests (MB0:S2) at token position 120
 - 42 contract-adapter requests (MB0:S3) still prefilling
 
-All sharing the same base Qwen3-14B weights, with only the LoRA delta differing per request. This is maximally GPU-efficient.
+All sharing the same base Qwen3-8B weights, with only the LoRA delta differing per request. This is maximally GPU-efficient.
 
 **Why order is preserved:** vLLM's scheduling is **per-request, not per-batch**. Each HTTP request gets its own response when its generation is done. There is no global "batch N done" signal. `generate_batch()` tracks individual request IDs and returns when ALL requests in its group have responses. The grouping is application-level (Python), not vLLM-level.
 
@@ -528,11 +528,11 @@ After each GRPO update modifies a LoRA adapter's weights, vLLM must reload the a
 
 ## GPU Memory Budget
 
-All components share one Qwen3-14B on one A100-80GB:
+All components share one Qwen3-8B on one A100-80GB:
 
 | Component | Memory |
 |-----------|--------|
-| Qwen3-14B base weights (bf16) | ~28 GB |
+| Qwen3-8B base weights (bf16) | ~16 GB |
 | 3 LoRA adapters (rank 16 each) | ~0.6 GB total |
 | vLLM KV cache (at 0.85 utilization) | ~39 GB |
 | **Total** | ~68 GB / 80 GB |

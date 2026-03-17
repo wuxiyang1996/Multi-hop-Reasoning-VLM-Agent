@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Qwen3-14B Skill Bank Agent (GRPO pipeline) — extract skills from GPT-5.4
-rollouts using the **skill_agents_grpo** pipeline with Qwen3-14B as the
+Qwen3-8B Skill Bank Agent (GRPO pipeline) — extract skills from GPT-5.4
+rollouts using the **skill_agents_grpo** pipeline with Qwen3-8B as the
 LLM backend (served via vLLM).
 
 Mirrors ``extract_skillbank_grpo_gpt54.py`` but replaces the GPT-5.4
-backend with a locally-hosted Qwen3-14B, and optionally trains per-stage
+backend with a locally-hosted Qwen3-8B, and optionally trains per-stage
 LoRA adapters via GRPO.
 
 Pipeline stages (all via ``skill_agents_grpo``):
@@ -32,7 +32,7 @@ Pipeline stages (all via ``skill_agents_grpo``):
               (``SkillBankAgent.run_evaluation``)
 
 Then generates:
-  - Qwen3-14B skill names, descriptions, and RAG summaries
+  - Qwen3-8B skill names, descriptions, and RAG summaries
   - Per-game ``skill_bank.jsonl`` and ``skill_catalog.json``
   - Cross-game archetype aggregation (``skill_archetypes.json``)
   - Combined ``skill_catalog_all.json``
@@ -61,7 +61,7 @@ Usage (from Game-AI-Agent root):
 
     # Enable GRPO training with LoRA
     python -m scripts.qwen3_skillbank_agent \\
-        --use_grpo --local_model Qwen/Qwen3-14B --one_per_game -v
+        --use_grpo --local_model Qwen/Qwen3-8B --one_per_game -v
 
     # Re-segment against seeded bank
     python -m scripts.qwen3_skillbank_agent --resegment --one_per_game
@@ -132,7 +132,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-DEFAULT_MODEL = "Qwen/Qwen3-14B"
+DEFAULT_MODEL = "Qwen/Qwen3-8B"
 
 DEFAULT_INPUT_DIR = CODEBASE_ROOT / "labeling" / "output" / "gpt54"
 DEFAULT_OUTPUT_DIR = CODEBASE_ROOT / "test_rollout" / "skillbank_agent_grpo"
@@ -148,7 +148,7 @@ def setup_local_model(
     model_name_or_path: str,
     adapter_dir: Optional[str] = None,
 ) -> "MultiLoraSkillBankLLM":
-    """Instantiate the local Qwen3-14B model with optional LoRA adapters."""
+    """Instantiate the local Qwen3-8B model with optional LoRA adapters."""
     from skill_agents_grpo.lora.config import MultiLoraConfig
     from skill_agents_grpo.lora.model import MultiLoraSkillBankLLM
     from skill_agents_grpo.lora.skill_function import SkillFunction
@@ -469,7 +469,7 @@ def _reset_llm_call_log() -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# LLM helpers — Qwen3-14B via vLLM (ask_model) with /no_think
+# LLM helpers — Qwen3-8B via vLLM (ask_model) with /no_think
 # ═══════════════════════════════════════════════════════════════════════
 
 def _ask_llm(
@@ -480,7 +480,7 @@ def _ask_llm(
     max_tokens: int = 400,
     _caller: str = "",
 ) -> Optional[str]:
-    """Call Qwen3-14B via ask_model and strip think tags.
+    """Call Qwen3-8B via ask_model and strip think tags.
 
     Appends /no_think to disable Qwen3's thinking mode so the full
     token budget goes to the actual structured output.
@@ -589,7 +589,7 @@ def dict_to_episode(episode_data: Dict[str, Any]) -> Episode:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# Skill naming / description via Qwen3-14B
+# Skill naming / description via Qwen3-8B
 # ═══════════════════════════════════════════════════════════════════════
 
 def generate_skill_name(
@@ -599,7 +599,7 @@ def generate_skill_name(
     sample_intentions: List[str],
     model: str = DEFAULT_MODEL,
 ) -> Tuple[str, str]:
-    """Ask Qwen3-14B to generate a short skill name and RAG summary."""
+    """Ask Qwen3-8B to generate a short skill name and RAG summary."""
     eff_add_str = ", ".join(sorted(contract.eff_add)[:8]) if contract.eff_add else "none"
     eff_del_str = ", ".join(sorted(contract.eff_del)[:8]) if contract.eff_del else "none"
     eff_event_str = ", ".join(sorted(contract.eff_event)[:5]) if contract.eff_event else "none"
@@ -672,7 +672,7 @@ def generate_skill_protocol(
     sample_states: List[str],
     model: str = DEFAULT_MODEL,
 ) -> Dict[str, Any]:
-    """Ask Qwen3-14B to generate actionable protocol fields for a skill."""
+    """Ask Qwen3-8B to generate actionable protocol fields for a skill."""
     eff_add_str = ", ".join(sorted(contract.eff_add)[:6]) if contract.eff_add else "none"
     eff_del_str = ", ".join(sorted(contract.eff_del)[:6]) if contract.eff_del else "none"
     eff_event_str = ", ".join(sorted(contract.eff_event)[:5]) if contract.eff_event else "none"
@@ -818,7 +818,7 @@ def generate_skill_description(
     sample_states: List[str],
     model: str = DEFAULT_MODEL,
 ) -> str:
-    """Ask Qwen3-14B to generate a 1-2 sentence description for the skill."""
+    """Ask Qwen3-8B to generate a 1-2 sentence description for the skill."""
     eff_str = ", ".join(sorted(contract.eff_add | contract.eff_del)[:10])
     states_str = " // ".join(s[:100] for s in sample_states[:3]) if sample_states else "n/a"
 
@@ -1272,7 +1272,7 @@ def populate_skill_protocols(
     model: str = DEFAULT_MODEL,
     verbose: bool = False,
 ) -> int:
-    """Fill empty protocols on skills in the bank using Qwen3-14B."""
+    """Fill empty protocols on skills in the bank using Qwen3-8B."""
     from skill_agents_grpo.stage3_mvp.schemas import Protocol
 
     updated = 0
@@ -2367,13 +2367,13 @@ def extract_skills_for_game(
             print(f"    Re-segmentation produced {len(reseg_sub_episodes)} sub-episodes, "
                   f"{len(reseg_agent.skill_ids)} skills")
 
-    # Qwen3-14B protocol generation for skills with empty protocols
+    # Qwen3-8B protocol generation for skills with empty protocols
     if len(agent.skill_ids) > 0:
         proto_gen_rec = io_log.new_record("qwen3_protocol_generation")
         proto_gen_rec.start()
         proto_gen_rec.record_input("n_skills", len(agent.skill_ids))
 
-        print(f"    [Qwen3-14B] Generating protocols for skills with empty protocols ...")
+        print(f"    [Qwen3-8B] Generating protocols for skills with empty protocols ...")
         _flush_llm_calls()
         try:
             n_protos = populate_skill_protocols(
@@ -2390,7 +2390,7 @@ def extract_skills_for_game(
                 for c in proto_llm_calls
             ])
             if n_protos > 0:
-                print(f"    Generated {n_protos} protocol(s) via Qwen3-14B")
+                print(f"    Generated {n_protos} protocol(s) via Qwen3-8B")
             else:
                 print(f"    All skills already have protocols")
         except Exception as exc:
@@ -2918,7 +2918,7 @@ def aggregate_cross_game_archetypes(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Qwen3-14B Skill Bank Agent (GRPO pipeline) — extract skills from GPT-5.4 rollouts",
+        description="Qwen3-8B Skill Bank Agent (GRPO pipeline) — extract skills from GPT-5.4 rollouts",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
@@ -2929,7 +2929,7 @@ def main():
             "  # Quick test\n"
             "  python -m scripts.qwen3_skillbank_agent --one_per_game -v\n\n"
             "  # Enable GRPO training with LoRA\n"
-            "  python -m scripts.qwen3_skillbank_agent --use_grpo --local_model Qwen/Qwen3-14B --one_per_game -v\n\n"
+            "  python -m scripts.qwen3_skillbank_agent --use_grpo --local_model Qwen/Qwen3-8B --one_per_game -v\n\n"
             "  # Custom dirs\n"
             "  python -m scripts.qwen3_skillbank_agent --input_dir path/to/labeled --output_dir path/to/output\n"
         ),
@@ -2992,7 +2992,7 @@ def main():
     parser.add_argument(
         "--local_model", type=str, default=None,
         help="HuggingFace model id or local path for the base LLM "
-             "(e.g. Qwen/Qwen3-14B). When set, uses this model for local "
+             "(e.g. Qwen/Qwen3-8B). When set, uses this model for local "
              "inference and GRPO training",
     )
     parser.add_argument(
@@ -3037,7 +3037,7 @@ def main():
                 _local_llm, group_size=args.grpo_group_size,
             )
     elif args.use_grpo:
-        print("[ERROR] --use_grpo requires --local_model (e.g. Qwen/Qwen3-14B)")
+        print("[ERROR] --use_grpo requires --local_model (e.g. Qwen/Qwen3-8B)")
         sys.exit(1)
 
     vllm_url = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
@@ -3051,7 +3051,7 @@ def main():
     total_episodes = sum(len(v) for v in game_files.values())
 
     print("=" * 78)
-    print("  Qwen3-14B Skill Bank Agent (GRPO pipeline)")
+    print("  Qwen3-8B Skill Bank Agent (GRPO pipeline)")
     print("=" * 78)
     print(f"  Pipeline:      skill_agents_grpo")
     print(f"  LLM backend:   {args.local_model or args.model}")
@@ -3129,7 +3129,7 @@ def main():
                 print(f"\n  [RESUME] {game}: resuming from episode {resume_from_episode}")
 
         print(f"\n{'━' * 78}")
-        print(f"  GAME: {game} ({len(episode_files)} episodes) [Qwen3-14B + skill_agents_grpo]")
+        print(f"  GAME: {game} ({len(episode_files)} episodes) [Qwen3-8B + skill_agents_grpo]")
         print(f"{'━' * 78}")
 
         game_out_dir = output_dir / game
@@ -3287,7 +3287,7 @@ def main():
     n_archetypes = 0
     if not args.skip_archetypes and len(all_catalogs) >= 1:
         print(f"\n{'━' * 78}")
-        print(f"  Cross-Game Skill Archetype Aggregation (Qwen3-14B + skill_agents_grpo)")
+        print(f"  Cross-Game Skill Archetype Aggregation (Qwen3-8B + skill_agents_grpo)")
         print(f"{'━' * 78}")
         print(f"  Aggregating skills from {len(all_catalogs)} game(s) ...")
         t0 = time.time()
@@ -3308,7 +3308,7 @@ def main():
 
     # Final summary
     print(f"\n{'=' * 78}")
-    print("  SKILL BANK EXTRACTION COMPLETE (Qwen3-14B + skill_agents_grpo)")
+    print("  SKILL BANK EXTRACTION COMPLETE (Qwen3-8B + skill_agents_grpo)")
     print(f"{'=' * 78}")
     total_processed = sum(s["episodes_processed"] for s in all_stats)
     total_skills = sum(s["skills_extracted"] for s in all_stats)

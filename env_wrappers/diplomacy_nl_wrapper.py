@@ -346,9 +346,9 @@ def parse_orders(text: Any, game: "Game", power_name: str) -> List[str]:
 # Default partner policy (random orders)
 # ---------------------------------------------------------------------------
 
-def _random_partner_orders(game: "Game", power_name: str) -> List[str]:
+def _random_partner_orders(game: "Game", power_name: str, **_kwargs) -> List[str]:
     """Generate random valid orders for a power."""
-    possible_orders = game.get_all_possible_orders()
+    possible_orders = _kwargs.get("all_possible_orders") or game.get_all_possible_orders()
     orderable_locs = game.get_orderable_locations(power_name) or []
     orders = []
     for loc in orderable_locs:
@@ -383,6 +383,23 @@ def _retrieve_skill_hint(skill_bank: Any, obs_text: str, game: str = "diplomacy"
     return ""
 
 
+def _build_shared_board_context(game: "Game") -> str:
+    """Build a power-agnostic board summary reusable by all partner calls."""
+    current_phase = game.get_current_phase()
+    lines = [f"=== Diplomacy — Phase: {current_phase} ===", ""]
+    lines.append("--- All Powers Status ---")
+    for pname, pobj in game.powers.items():
+        if pobj.is_eliminated():
+            lines.append(f"  {pname}: ELIMINATED")
+        else:
+            lines.append(
+                f"  {pname}: {len(pobj.centers)} centers, "
+                f"units={pobj.units}"
+            )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _make_llm_partner_policy(
     base_urls: List[str],
     model_name: str,
@@ -399,20 +416,37 @@ def _make_llm_partner_policy(
     When a *skill_bank* is provided the top-1 skill hint is injected into the
     prompt (CPU-only retrieval, zero extra LLM calls).
     Falls back to random for any unparseable orders.
+
+    The callable accepts optional *shared_ctx* and *all_possible_orders* kwargs
+    so that ``_submit_orders_single`` can compute these once per phase and reuse
+    them for all 6 opponent calls.
     """
     import requests as _requests
 
     _url_cycle = itertools.cycle(base_urls)
 
-    def _llm_partner_orders(game: "Game", power_name: str) -> List[str]:
+    def _llm_partner_orders(
+        game: "Game",
+        power_name: str,
+        *,
+        shared_ctx: Optional[str] = None,
+        all_possible_orders: Optional[dict] = None,
+    ) -> List[str]:
         try:
-            obs = state_to_natural_language(game, power_name)
-            obs_short = obs[:2000]
-
-            possible_orders = game.get_all_possible_orders()
+            possible_orders = all_possible_orders or game.get_all_possible_orders()
             orderable_locs = game.get_orderable_locations(power_name) or []
             if not orderable_locs:
                 return []
+
+            power = game.powers.get(power_name)
+            if shared_ctx is None:
+                shared_ctx = _build_shared_board_context(game)
+
+            power_lines = [f"You are: {power_name}."]
+            if power:
+                power_lines.append(f"Your units: {power.units if power.units else 'None'}")
+                power_lines.append(f"Your supply centers: {list(power.centers)} ({len(power.centers)} total)")
+            obs_text = shared_ctx + "\n".join(power_lines)
 
             loc_options = []
             for loc in orderable_locs:
@@ -421,11 +455,11 @@ def _make_llm_partner_policy(
                     loc_options.append(f"  {loc}: {opts}")
             options_str = "\n".join(loc_options)
 
-            skill_line = _retrieve_skill_hint(skill_bank, obs_short, game_name)
+            skill_line = _retrieve_skill_hint(skill_bank, obs_text, game_name)
             skill_prefix = f"{skill_line}\n" if skill_line else ""
 
             prompt = (
-                f"{obs_short}\n\n{skill_prefix}"
+                f"{obs_text}\n\n{skill_prefix}"
                 f"Pick one order per unit from these options:\n"
                 f"{options_str}\n\n"
                 f"Reply with one order per line, nothing else.\nOrders:\n"
@@ -673,15 +707,50 @@ class DiplomacyNLWrapper:
 
     def _submit_orders_single(self, action: Any) -> None:
         """Submit orders for controlled power + partner policy for others."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        controlled_orders = None
+        partner_powers = []
         for power_name, power in self.game.powers.items():
             if power.is_eliminated():
                 continue
             if power_name == self._controlled_power:
-                orders = parse_orders(action, self.game, power_name)
+                controlled_orders = (power_name, parse_orders(action, self.game, power_name))
             else:
-                orders = self._partner_policy(self.game, power_name)
+                partner_powers.append(power_name)
+
+        if controlled_orders:
+            pn, orders = controlled_orders
             if orders:
-                self.game.set_orders(power_name, orders)
+                self.game.set_orders(pn, orders)
+
+        if partner_powers:
+            shared_ctx = _build_shared_board_context(self.game)
+            all_orders = self.game.get_all_possible_orders()
+
+            def _call_partner(pn):
+                try:
+                    return self._partner_policy(
+                        self.game, pn,
+                        shared_ctx=shared_ctx,
+                        all_possible_orders=all_orders,
+                    )
+                except TypeError:
+                    return self._partner_policy(self.game, pn)
+
+            with ThreadPoolExecutor(max_workers=len(partner_powers)) as pool:
+                futures = {
+                    pool.submit(_call_partner, pn): pn
+                    for pn in partner_powers
+                }
+                for fut in as_completed(futures):
+                    pn = futures[fut]
+                    try:
+                        orders = fut.result()
+                    except Exception:
+                        orders = _random_partner_orders(self.game, pn)
+                    if orders:
+                        self.game.set_orders(pn, orders)
 
     # ---- Phase history ----
 

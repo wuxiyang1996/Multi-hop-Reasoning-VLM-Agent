@@ -14,7 +14,7 @@ The co-evolution framework alternates between two agents:
 1. **Decision Agent** — plays games using two LoRA adapters (`skill_selection`, `action_taking`), producing rollouts
 2. **Skill Bank Agent** — processes rollouts to discover, segment, and refine skills via three GRPO-trained LoRA adapters (`segment`, `contract`, `curator`). Stage 1 (boundary) uses the base model (reward is too indirect for GRPO). `retrieval` is legacy/planned.
 
-Both share one Qwen3-14B base model served through a single vLLM instance with 5 LoRA adapters loaded simultaneously.
+Both share one Qwen3-8B base model served through a single vLLM instance with 5 LoRA adapters loaded simultaneously.
 
 ---
 
@@ -688,7 +688,7 @@ Phase A+B finishes in ~1.8 min, then waits ~1.2 min for GRPO to complete and hot
 
 ```bash
 CUDA_VISIBLE_DEVICES=0,1,2,3 python -m vllm.entrypoints.openai.api_server \
-    --model Qwen/Qwen3-14B \
+    --model Qwen/Qwen3-8B \
     --tensor-parallel-size 4 \
     --enable-lora \
     --lora-modules \
@@ -742,7 +742,7 @@ def train_all_grpo(rollout_results, skillbank_grpo_data):
 
 | Component | Per GPU (TP=4, GPUs 0-3) | Per GPU (GPUs 4-5 or 6-7) |
 |-----------|--------------------------|---------------------------|
-| Qwen3-14B base (bf16, sharded) | ~7 GB | ~14 GB (replicated) |
+| Qwen3-8B base (bf16, sharded) | ~4 GB | ~8 GB (replicated) |
 | 5 LoRA adapters (rank 16) | ~0.25 GB | ~0.6 GB (subset) |
 | KV cache | ~50 GB | — |
 | Optimizer states + gradients | — | ~4 GB |
