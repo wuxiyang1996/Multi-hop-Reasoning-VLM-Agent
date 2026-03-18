@@ -12,7 +12,7 @@ This repository provides a framework for enhancing agentic decision-making in mu
 
 **Install:** See **[INSTALL.md](INSTALL.md)** for setup (optional verl-agent). Quick: add this repo to `PYTHONPATH`, or `conda env create -f environment.yml` then `conda activate game-ai-agent`.
 
-**Contents:** 1. [Environments](#1-environments) · 2. [Data structure (skills and experiences)](#2-data-structure-skills-and-experiences) · 3. [Skill agent](#3-skill-agent) · 4. [Decision-making agent](#4-decision-making-agent) · 5. [Trainer code](#5-trainer-code) · [Implemented (done)](#implemented-done) · [ToDo (unfinished)](#todo-unfinished--future--consolidated)
+**Contents:** 1. [Environments](#1-environments) · 2. [Data structure (skills and experiences)](#2-data-structure-skills-and-experiences) · 3. [Skill agent](#3-skill-agent) · 4. [Decision-making agent](#4-decision-making-agent) · 5. [Trainer code](#5-trainer-code) · [Implemented (done)](#implemented-done)
 
 ## Quick Links
 
@@ -1058,14 +1058,3 @@ refined = pipeline.refine_low_pass_protocols(
     min_episodes=3,
 )
 ```
-
----
-
-# ToDo (unfinished / future) — consolidated
-
-Unfinished or future work across the repo. See in-doc sections for details.
-
-| Area | Item | Status |
-|------|------|--------|
-| **Trainer** | Decision agent LoRA for parameter-efficient fine-tuning | **Open** |
-
