@@ -389,6 +389,157 @@ We adopt the idea of GDPO: normalize each kind of reward under each category. Re
 
 The first two are env-related. A time-sensitive discount can be applied to penalize long episodes. For reward tied to the *decision* agent’s use of skills (query_skill, call_skill), see [skill_agents/tool_call_reward](skill_agents/tool_call_reward.py) (r_relevance, r_utility).
 
+## GRPO reward functions (per adapter)
+
+Each of the 5 LoRA adapters has its own reward signal used during GRPO training.
+Decision-agent adapters receive rewards from game rollouts; skill-bank adapters
+receive shaped rewards from dedicated reward functions in
+[`skill_agents_grpo/grpo/rewards.py`](skill_agents_grpo/grpo/rewards.py).
+
+### skill_selection
+
+**Source**: raw environment reward from `env.step(action)` — assigned per step in
+[`episode_runner.py`](trainer/coevolution/episode_runner.py).
+
+```
+reward = float(env_reward)   # sparse, per-step
+```
+
+An unused richer formula exists in `rewards.py` (`skill_selection_reward()`) but
+is not wired into the episode runner:
+
+```
+r = 0.40 * r_env + 0.20 * r_efficiency + 0.20 * r_success + 0.10 * r_no_abort + 0.10 * r_confidence
+```
+
+### action_taking
+
+**Source**: same raw environment reward from `env.step(action)` — identical to
+`skill_selection`.
+
+```
+reward = float(env_reward)   # sparse, per-step
+```
+
+Both decision-agent adapters share the reward signal per step, stored as
+`GRPORecord` objects in [`episode_runner.py`](trainer/coevolution/episode_runner.py).
+
+### segment — `segmentation_reward()`
+
+**Source**: shaped reward evaluated on segment preference lists produced by the
+GRPO wrapper.
+
+Full path (with scorer and decode function):
+
+```
+r = max(0, 0.35 * r_margin + 0.35 * r_confident + 0.20 + 0.10 * r_new_penalty)
+```
+
+- `r_margin` — mean segment margins / 5.0
+- `r_confident` — fraction of segments with margin > 1.0
+- `r_new_penalty` — -0.5 * (n_new / n_total), penalizes `__NEW__` segments
+
+Heuristic fallback (no scorer/decode):
+
+```
+r = 0.4 * coverage_ratio + 0.4 * depth_score + 0.2
+```
+
+### contract — `contract_reward()`
+
+**Source**: shaped reward evaluated on parsed LLM contract output (`eff_add`,
+`eff_del` predicates).
+
+Full path (with holdout verification):
+
+```
+r = 0.50 * r_pass + 0.25 * r_literal + 0.15 * r_sparsity + 0.10 * r_coverage
+```
+
+- `r_pass` — `overall_pass_rate` from `verify_effects_contract()`
+- `r_literal` — mean per-literal success rate across eff_add + eff_del
+- `r_sparsity` — `max(0, 1 - max(0, n_literals - 20) / 20)`, penalizes verbose contracts
+- `r_coverage` — fraction of holdout instances passing the contract
+
+Structural fallback: 0.0 for null output, 0.05 for empty effects, else ~0.3-0.5
+with a sparsity bonus.
+
+### curator — `curator_reward()`
+
+**Source**: shaped reward evaluated on parsed curator approve/veto/defer decisions.
+
+Full path (with quality oracle):
+
+```
+r = max(0, 0.5 + quality_delta) + conservative_bonus
+```
+
+- `quality_delta` — q(filtered bank) - q(all actions applied): measures whether
+  the curator's filtering improved bank quality
+- `conservative_bonus` — 0.1 * (n_defer / n_total)
+
+Heuristic fallback (no quality functions):
+
+```
+r = 0.3 + 0.3 * diversity + conservative_bonus + reason_bonus
+```
+
+- `diversity` — 1.0 - |approve_rate - 0.5| * 2.0, penalizes approve-all or reject-all
+- `reason_bonus` — 0.1 if all decisions include reasoning text
+
+### Training flow
+
+Rewards are stored in two forms depending on the adapter:
+
+- **Decision agent**: `GRPORecord` per step (prompt, completion, reward) collected
+  in [`episode_runner.py`](trainer/coevolution/episode_runner.py), converted to
+  training data via `_records_to_training_data()`.
+- **Skill bank**: `GRPOSample` per call (prompt, completions, rewards) stored in
+  [`GRPOBuffer`](skill_agents_grpo/grpo/buffer.py) via
+  [`GRPOCallWrapper`](skill_agents_grpo/grpo/wrapper.py), converted via
+  `_samples_to_training_data()`.
+
+Advantages are computed with `_compute_advantages()`: zero-mean, unit-variance
+normalization within each group.
+
+## Skill evaluation and exploration
+
+Skill quality is measured by `compute_skill_score()` on the `Skill` dataclass:
+
+```
+skill_score = 0.5 * mean(quality_score) + 0.5 * usage_frequency
+```
+
+- `quality_score` — min-max normalized composite score per sub-episode (reward,
+  follow-through, compactness, consistency). Already in [0, 1].
+- `usage_frequency` — `min(1.0, n_selections / fair_share)` where
+  `fair_share = total_selections / bank_size`. New skills with no sub-episodes
+  return 0.5 (benefit of the doubt).
+
+Used in bank maintenance:
+- **Retirement**: `skill_score < 0.2` AND `n_sub_episodes >= 5`
+- **Protocol refinement**: triggered when `skill_score < 0.35`
+- **Curator prompt**: includes `Skill score: X.XX` for each action
+
+Skill selection uses a **UCB exploration bonus** to encourage trying
+under-selected skills:
+
+```
+confidence = exploit + explore
+exploit = 0.40 * relevance + 0.30 * applicability + 0.30 * pass_rate
+explore = 0.15 * sqrt(ln(N_total + 1) / (n_skill + 1))
+```
+
+A `SelectionTracker` (per-iteration counter) tracks selection counts. Reset at
+the start of each co-evolution iteration.
+
+The **skill_selection GRPO reward** uses a delayed, per-skill-period signal
+(assigned at skill-switch time) instead of raw per-step env reward:
+
+```
+r = min(1.0, max(0.0, cumulative_env_reward / steps_on_skill))
+```
+
 ---
 
 # 5. Trainer code

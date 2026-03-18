@@ -591,6 +591,9 @@ class _SkillTracker:
         self._abort_criteria: List[str] = []
         self._predicate_success: List[str] = []
         self._predicate_abort: List[str] = []
+        self._prev_reward_on_skill: float = 0.0
+        self._prev_steps_on_skill: int = 0
+        self._just_switched: bool = False
         self._step_checks: List[str] = []
         self._reselect_reason: str = ""
 
@@ -652,6 +655,9 @@ class _SkillTracker:
     def update(self, skill_id: Optional[str], skill_name: str, reward: float,
                state_text: str = ""):
         if skill_id != self.active_skill_id:
+            self._prev_reward_on_skill = self.reward_on_skill
+            self._prev_steps_on_skill = self.steps_on_skill
+            self._just_switched = self.active_skill_id is not None and self.steps_on_skill > 0
             self.active_skill_id = skill_id
             self.active_skill_name = skill_name
             self.steps_on_skill = 1
@@ -659,6 +665,7 @@ class _SkillTracker:
             self.skill_switches += 1
             self._protocol_step_idx = 0
         else:
+            self._just_switched = False
             self.steps_on_skill += 1
             self.reward_on_skill += reward
             n_steps = self.total_protocol_steps
@@ -1047,9 +1054,16 @@ async def run_episode_async(
                 if last_skill_reasoning
                 else f"SKILL: {last_chosen_idx + 1}"
             )
+            # Delayed reward: normalized per-step env reward from the
+            # previous skill period (assigned at skill-switch time).
+            if skill_tracker._just_switched and skill_tracker._prev_steps_on_skill > 0:
+                sk_reward = min(1.0, max(0.0,
+                    skill_tracker._prev_reward_on_skill / skill_tracker._prev_steps_on_skill))
+            else:
+                sk_reward = min(1.0, max(0.0, float(reward)))
             grpo_records.append(GRPORecord(
                 adapter="skill_selection", game=game, episode_id=episode_id, step=step_count,
-                prompt=skill_select_prompt, completion=sk_completion, reward=float(reward),
+                prompt=skill_select_prompt, completion=sk_completion, reward=sk_reward,
                 metadata={
                     "chosen_idx": last_chosen_idx,
                     "skill_candidates": [c.get("skill_id") for c in last_candidates],

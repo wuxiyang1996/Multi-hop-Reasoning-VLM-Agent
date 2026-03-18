@@ -53,6 +53,8 @@ def _format_action(idx: int, action: Dict[str, Any]) -> str:
     skill_id = action.get("skill_id", "?")
     parts = [f"  Action {idx}: {action_type.upper()} on {skill_id}"]
 
+    if "skill_score" in action:
+        parts.append(f"    Skill score: {action['skill_score']:.2f}")
     if "trigger" in action:
         parts.append(f"    Trigger: {action['trigger']}")
     if "pass_rate" in action:

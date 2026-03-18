@@ -104,6 +104,7 @@ class RewardComputer:
         self._steps_in_skill: int = 0
         self._cumulative: RewardResult = RewardResult()
         self._history: List[RewardResult] = []
+        self._skill_period_r_follow: float = 0.0
 
     # ── Main API ─────────────────────────────────────────────────────
 
@@ -193,6 +194,7 @@ class RewardComputer:
             self._active_skill_id = active_skill_id
             self._satisfied_preds = set()
             self._steps_in_skill = 0
+            self._skill_period_r_follow = 0.0
 
         self._steps_in_skill += 1
 
@@ -219,6 +221,7 @@ class RewardComputer:
         if self._satisfied_preds == eff_add:
             r += self.cfg.follow_completion_bonus
 
+        self._skill_period_r_follow += r
         return r
 
     # ── Accessors ────────────────────────────────────────────────────
@@ -244,6 +247,11 @@ class RewardComputer:
     @property
     def steps_in_skill(self) -> int:
         return self._steps_in_skill
+
+    @property
+    def skill_period_r_follow(self) -> float:
+        """Cumulative r_follow for the current skill period (reset on switch)."""
+        return self._skill_period_r_follow
 
 
 # ---------------------------------------------------------------------------

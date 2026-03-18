@@ -465,6 +465,25 @@ class Skill:
         evidence_factor = min(1.0, self.n_instances / 10.0)
         return evidence_factor * self.success_rate
 
+    def compute_skill_score(
+        self,
+        n_selections: int = 0,
+        n_total_selections: int = 0,
+        n_bank_skills: int = 1,
+    ) -> float:
+        """Composite skill quality score in [0, 1].
+
+        Two equal-weight components:
+        - reward contribution: mean quality_score (already min-max normalized)
+        - usage frequency: how often the agent selects this skill vs fair share
+        """
+        if not self.sub_episodes:
+            return 0.5
+        r_reward = sum(se.quality_score for se in self.sub_episodes) / len(self.sub_episodes)
+        fair_share = max(1, n_total_selections) / max(1, n_bank_skills)
+        r_usage = min(1.0, n_selections / max(1.0, fair_share))
+        return 0.5 * r_reward + 0.5 * r_usage
+
     @property
     def evidence_summaries(self) -> List[str]:
         """Collect summaries from all sub-episode refs (for skill agent reasoning)."""

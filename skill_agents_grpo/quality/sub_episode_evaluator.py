@@ -225,13 +225,17 @@ def run_quality_check(
     if len(high_quality) >= min_aggregate_count:
         result["needs_protocol_update"] = True
 
-    # RETIRE if too few remain after dropping — but only when the skill
-    # originally had sub-episodes.  A skill with 0 sub-episodes simply
-    # hasn't been linked yet (sub-episode linking may run later), so
-    # retiring it here would be premature.
+    # RETIRE: either too few sub-episodes remain, or skill_score is
+    # persistently low (< 0.2) with enough evidence (>= 5 sub-episodes).
     if result["before_count"] > 0 and len(skill.sub_episodes) < min_viable_count:
         skill.retired = True
         result["retired"] = True
+    elif len(skill.sub_episodes) >= 5:
+        ss = skill.compute_skill_score()
+        if ss < 0.2:
+            skill.retired = True
+            result["retired"] = True
+            result["retire_reason"] = f"low skill_score ({ss:.2f})"
 
     # Update instance count (keep the higher of linked vs historical)
     if skill.sub_episodes:

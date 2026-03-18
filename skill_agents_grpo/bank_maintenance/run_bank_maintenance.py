@@ -254,12 +254,19 @@ def _collect_curator_candidates(
     Uses ``"type"`` as the key for the action kind, matching
     ``_format_action`` in ``llm_curator.py``.
     """
+    def _get_skill_score(sid: str) -> float:
+        if bank is None:
+            return 0.5
+        skill = bank.get_skill(sid)
+        return skill.compute_skill_score() if skill else 0.5
+
     candidates: List[Dict[str, Any]] = []
     for sr in result.split_results:
         if sr.accepted:
             candidates.append({
                 "type": "split",
                 "skill_id": sr.parent_id,
+                "skill_score": _get_skill_score(sr.parent_id),
                 "n_instances": len(sr.children),
                 "details": {
                     "children": [c.skill_id for c in sr.children],
@@ -270,6 +277,7 @@ def _collect_curator_candidates(
             candidates.append({
                 "type": "merge",
                 "skill_id": mr.canonical_id,
+                "skill_score": _get_skill_score(mr.canonical_id),
                 "pass_rate": mr.report.overall_pass_rate if mr.report else 0,
                 "n_instances": len(mr.merged_ids),
                 "details": {
@@ -281,6 +289,7 @@ def _collect_curator_candidates(
             candidates.append({
                 "type": "refine",
                 "skill_id": rr.skill_id,
+                "skill_score": _get_skill_score(rr.skill_id),
                 "details": {
                     "dropped": rr.dropped_literals[:5] if rr.dropped_literals else [],
                     "added": rr.added_literals[:5] if rr.added_literals else [],
@@ -291,6 +300,7 @@ def _collect_curator_candidates(
         candidates.append({
             "type": "materialize",
             "skill_id": mid,
+            "skill_score": _get_skill_score(mid),
             "trigger": "recurring pattern",
             "n_instances": len(getattr(skill, "sub_episodes", [])) if skill else 0,
             "details": {
@@ -303,6 +313,7 @@ def _collect_curator_candidates(
         candidates.append({
             "type": "promote",
             "skill_id": pid,
+            "skill_score": _get_skill_score(pid),
             "trigger": "proto-skill qualified",
             "pass_rate": report.overall_pass_rate if report else 0,
             "n_instances": getattr(skill, "n_instances", 0) if skill else 0,

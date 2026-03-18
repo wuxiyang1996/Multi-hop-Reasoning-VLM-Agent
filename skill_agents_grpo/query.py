@@ -36,11 +36,36 @@ Usage::
 
 from __future__ import annotations
 
+import math
 import re
+from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
+
+
+class SelectionTracker:
+    """Lightweight per-iteration counter for UCB exploration in skill selection."""
+
+    def __init__(self) -> None:
+        self._counts: Dict[str, int] = defaultdict(int)
+        self._total: int = 0
+
+    def increment(self, skill_id: str) -> None:
+        self._counts[skill_id] += 1
+        self._total += 1
+
+    def get(self, skill_id: str) -> Tuple[int, int]:
+        """Return (n_skill, n_total) for UCB computation."""
+        return self._counts[skill_id], self._total
+
+    def get_all_counts(self) -> Dict[str, int]:
+        return dict(self._counts)
+
+    def reset(self) -> None:
+        self._counts.clear()
+        self._total = 0
 
 from skill_agents_grpo.skill_bank.bank import SkillBankMVP, _effects_compat_score
 from skill_agents_grpo.stage3_mvp.schemas import SkillEffectsContract, VerificationReport
@@ -189,6 +214,7 @@ class SkillQueryEngine:
         self._bank = bank
         self._embedding_weight = embedding_weight
         self._embedder = embedder
+        self.selection_tracker = SelectionTracker()
         if self._embedder is None:
             try:
                 from rag import get_text_embedder
@@ -333,18 +359,22 @@ class SkillQueryEngine:
         sid: str,
         relevance: float,
         applicability: float,
+        n_skill: int = 0,
+        n_total: int = 0,
     ) -> float:
-        """Combined confidence blending relevance, applicability, and pass rate.
+        """Combined confidence with UCB exploration bonus.
 
-        Confidence = w_rel * relevance + w_app * norm_applicability + w_pr * pass_rate
+        exploit = 0.40 * relevance + 0.30 * norm_applicability + 0.30 * pass_rate
+        explore = 0.15 * sqrt(ln(n_total + 1) / (n_skill + 1))
         """
         r = self._bank.get_report(sid)
         pass_rate = r.overall_pass_rate if r else 0.5
 
         norm_app = (applicability + 1.0) / 2.0  # map [-1,1] to [0,1]
 
-        w_rel, w_app, w_pr = 0.4, 0.35, 0.25
-        return w_rel * relevance + w_app * norm_app + w_pr * pass_rate
+        exploit = 0.40 * relevance + 0.30 * norm_app + 0.30 * pass_rate
+        explore = 0.15 * math.sqrt(math.log(n_total + 1) / (n_skill + 1))
+        return exploit + explore
 
     # ── Rich selection API (preferred for decision agents) ───────────
 
@@ -515,7 +545,8 @@ class SkillQueryEngine:
         for sid in self._skill_id_order:
             rel = relevance_scores.get(sid, 0.0)
             app, matched, missing = self._compute_applicability(sid, state)
-            conf = self._compute_confidence(sid, rel, app)
+            n_skill, n_total = self.selection_tracker.get(sid)
+            conf = self._compute_confidence(sid, rel, app, n_skill=n_skill, n_total=n_total)
 
             c = self._bank.get_contract(sid)
             r = self._bank.get_report(sid)

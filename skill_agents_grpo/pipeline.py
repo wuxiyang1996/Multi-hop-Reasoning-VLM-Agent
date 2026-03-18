@@ -779,10 +779,10 @@ class SkillBankAgent:
 
     def refine_low_pass_protocols(
         self,
-        pass_rate_threshold: float = 0.4,
+        skill_score_threshold: float = 0.35,
         min_episodes: int = 3,
     ) -> int:
-        """Re-synthesize protocols for skills with a low success rate.
+        """Re-synthesize protocols for skills with a low skill_score.
 
         Called periodically (e.g. every N co-evolution iterations) to give
         struggling skills a chance to improve their protocols using the
@@ -803,7 +803,7 @@ class SkillBankAgent:
                 continue
             if not skill.protocol or not skill.protocol.steps:
                 continue
-            if skill.success_rate >= pass_rate_threshold:
+            if skill.compute_skill_score() >= skill_score_threshold:
                 continue
             if len(skill.sub_episodes) < min_episodes:
                 continue
