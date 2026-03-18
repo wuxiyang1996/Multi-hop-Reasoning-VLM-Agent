@@ -6,9 +6,11 @@
 
 This repository provides a framework for enhancing agentic decision-making in multi-player, long-horizon games through unsupervised experience. The framework integrates with multiple game environments and supports both training-free (RAG-based) and trainable (RL-based) agent architectures. This readme outlines each module and aims to ease integration and debugging.
 
-**No external repos are bundled.** This repository contains only Game-AI-Agent code. For Avalon/Diplomacy you need [AgentEvolver](https://github.com/modelscope/AgentEvolver) (clone as sibling or on `PYTHONPATH`). For GamingAgent evaluation, clone that repo as a sibling when needed; see [evaluate_gamingagent/setup_gamingagent_eval_env.md](evaluate_gamingagent/setup_gamingagent_eval_env.md). For **VERL training and inference** (vLLM/sglang, GiGPO/PPO), use [verl-agent](https://github.com/verl-project/verl-agent) as a sibling and see [INSTALL.md](INSTALL.md).
+**No external repos are bundled.** This repository contains only Game-AI-Agent code. For Avalon/Diplomacy you need [AgentEvolver](https://github.com/modelscope/AgentEvolver) (clone as sibling or on `PYTHONPATH`). For GamingAgent evaluation, clone that repo as a sibling when needed; see [evaluate_gamingagent/setup_gamingagent_eval_env.md](evaluate_gamingagent/setup_gamingagent_eval_env.md).
 
-**Install:** See **[INSTALL.md](INSTALL.md)** for setup and VERL/verl-agent. Quick: add this repo to `PYTHONPATH`, or `conda env create -f environment.yml` then `conda activate game-ai-agent`.
+**GRPO in this repo:** The default co-evolution loop trains all five LoRA adapters with **GRPO via PyTorch FSDP** ([`trainer/coevolution/grpo_training.py`](trainer/coevolution/grpo_training.py) → [`skill_agents_grpo/grpo/fsdp_trainer.py`](skill_agents_grpo/grpo/fsdp_trainer.py)), not VERL. For an **optional** Ray/VERL stack (vLLM/sglang, GiGPO/PPO, `RayPPOTrainer`), use [verl-agent](https://github.com/verl-project/verl-agent) as a sibling; see [INSTALL.md](INSTALL.md) and [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py) (`GameAITrainer`).
+
+**Install:** See **[INSTALL.md](INSTALL.md)** for setup (optional verl-agent). Quick: add this repo to `PYTHONPATH`, or `conda env create -f environment.yml` then `conda activate game-ai-agent`.
 
 **Contents:** 1. [Environments](#1-environments) · 2. [Data structure (skills and experiences)](#2-data-structure-skills-and-experiences) · 3. [Skill agent](#3-skill-agent) · 4. [Decision-making agent](#4-decision-making-agent) · 5. [Trainer code](#5-trainer-code) · [Implemented (done)](#implemented-done) · [ToDo (unfinished)](#todo-unfinished--future--consolidated)
 
@@ -36,7 +38,7 @@ This repository provides a framework for enhancing agentic decision-making in mu
   - **Stage 4** [bank_maintenance/](skill_agents/bank_maintenance/): Split/merge/refine; `materialize_new_skills()` (NewPoolManager).
   - **Query & storage**: [SkillQueryEngine](skill_agents/query.py) (RAG + keyword/effect; `select()` for rich selection), [SkillBankMVP](skill_agents/skill_bank/bank.py) (+ `compat_fn`), [tool_call_reward](skill_agents/tool_call_reward.py), [skill_evaluation/](skill_agents/skill_evaluation/).
 
-- **🏋️ Training** — [trainer/](trainer/): Co-evolution of both agents via VERL.
+- **🏋️ Training** — [trainer/](trainer/): Co-evolution of both agents (async loop in [`trainer/coevolution/`](trainer/coevolution/)). **Decision GRPO** uses **FSDP**; **Skill Bank** uses Hard-EM. Optional **VERL** path via verl-agent for Ray-scale training.
   - **SFT Cold-Start** ([trainer/SFT/](trainer/SFT/)): Train all 5 LoRA adapters (skill_selection, action_taking, segment, contract, curator) from teacher-labelled cold-start data before GRPO. Launch: `bash scripts/run_sft_coldstart.sh`.
   - **Agent A (Decision)**: GRPO — primitives + `QUERY_MEM` / `QUERY_SKILL` / `CALL_SKILL`; reward = r_env + shaping + costs + tool-call reward.
   - **Agent B (SkillBank)**: Hard-EM (decode → update → gate); all four stages packed as a tool pipeline in the [co-evolution callback](trainer/decision/coevolution_callback.py). Trajectory segmentations stored and updated via `SegmentationStore`.
@@ -89,7 +91,7 @@ Two agents co-evolve: the **Decision Agent** (Qwen3-8B + LoRA, GRPO) plays games
 │                          CO-EVOLUTION LOOP                                    │
 │                                                                              │
 │  Decision Agent (Qwen3-8B + LoRA)       Skill Bank Agent (Qwen3-8B + 3 LoRA)
-│  GPUs 0-3, GRPO via VERL                 GPUs 4-7, Hard-EM                   │
+│  GPUs 0-3, GRPO (FSDP)                   GPUs 4-7, Hard-EM                   │
 │  ┌──────────────────────┐                ┌──────────────────────┐            │
 │  │ • take_action        │  query_skill   │ • boundary proposal  │            │
 │  │ • query_skill(key)   │ ─────────────► │ • segment decode     │            │
@@ -115,7 +117,7 @@ Two agents co-evolve: the **Decision Agent** (Qwen3-8B + LoRA, GRPO) plays games
 | Role | Decision Agent | Skill Bank Agent |
 |------|----------------|------------------|
 | **Model** | Qwen3-8B + LoRA (rank 16) | Qwen3-8B + 3 LoRA (SEGMENT, CONTRACT, CURATOR) |
-| **Training** | GRPO via VERL (group size 8, LR 1e-5) | Hard-EM with LoRA fine-tuning (LR 2e-4) |
+| **Training** | GRPO via **FSDP** (group size 8, LR 1e-5); optional VERL | Hard-EM with LoRA fine-tuning (LR 2e-4) |
 | **Provides** | Game play: primitive actions + tool calls (`QUERY_SKILL`, `CALL_SKILL`, `QUERY_MEM`) | Skill Bank: segmented trajectories, effect contracts, split/merge/refine |
 | **Consumes** | Skill bank (protocols for planning, contracts for reward shaping) | Raw episodes from Decision Agent rollouts |
 | **Interface** | `VLMDecisionAgent(skill_bank=..., model=...)` → `select_skill_from_bank()` / `query_skill_bank()` | `SkillBankAgent.select_skill(query, current_state)` / `SkillQueryEngine` |
@@ -548,9 +550,9 @@ The training code lives in **[trainer/](trainer/)** and implements co-evolution 
 
 ## Decision Agent (Agent A) — Qwen3-8B + LoRA GRPO
 
-The Decision Agent selects primitive game actions and tool calls (`QUERY_SKILL`, `CALL_SKILL`, `QUERY_MEM`) against the current skill bank. Trained with **GRPO via VERL** (`GameAITrainer` subclassing `RayPPOTrainer`).
+The Decision Agent selects primitive game actions and tool calls (`QUERY_SKILL`, `CALL_SKILL`, `QUERY_MEM`) against the current skill bank. **Default training:** **GRPO** with group-normalized advantages over frozen Qwen3-8B + LoRA, implemented as **multi-GPU FSDP** in [`skill_agents_grpo/grpo/fsdp_trainer.py`](skill_agents_grpo/grpo/fsdp_trainer.py) (invoked from [`trainer/coevolution/grpo_training.py`](trainer/coevolution/grpo_training.py)). **Optional:** VERL / `GameAITrainer` (`RayPPOTrainer`, `adv_estimator=grpo`) when using [verl-agent](https://github.com/verl-project/verl-agent).
 
-**Training settings** ([`scripts/configs/decision_agent_grpo_80gb.yaml`](scripts/configs/decision_agent_grpo_80gb.yaml)):
+**Training settings** (targets; see co-evolution config and [`scripts/configs/decision_agent_grpo_80gb.yaml`](scripts/configs/decision_agent_grpo_80gb.yaml) for YAML-aligned hyperparameters):
 
 | Parameter | Value |
 |-----------|-------|
@@ -571,7 +573,7 @@ The Decision Agent selects primitive game actions and tool calls (`QUERY_SKILL`,
 - `r_cost` — negative costs for retrieval queries, skill calls, and skill switching
 - `r_tool` — tool-call quality reward from `skill_agents.tool_call_reward`
 
-**Components**: [trainer/decision/env_wrapper.py](trainer/decision/env_wrapper.py) (retrieval-as-action, tool call trace recording), [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py), [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py), [trainer/decision/replay_buffer.py](trainer/decision/replay_buffer.py), [trainer/decision/rollout_collector.py](trainer/decision/rollout_collector.py).
+**Components**: [trainer/coevolution/grpo_training.py](trainer/coevolution/grpo_training.py) (orchestration → FSDP GRPO), [skill_agents_grpo/grpo/fsdp_trainer.py](skill_agents_grpo/grpo/fsdp_trainer.py), [trainer/decision/env_wrapper.py](trainer/decision/env_wrapper.py), [trainer/decision/reward_shaping.py](trainer/decision/reward_shaping.py), [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py) (standalone `GRPOTrainer` + VERL notes), [trainer/decision/replay_buffer.py](trainer/decision/replay_buffer.py), [trainer/coevolution/rollout_collector.py](trainer/coevolution/rollout_collector.py).
 
 ## Skill Bank Agent (Agent B) — Qwen3-8B + 3 LoRA (Hard-EM)
 
@@ -627,13 +629,11 @@ Iteration 2+:
     → Decision Agent v_i (GRPO with updated bank)
 ```
 
-**Co-evolution callback** (VERL): [trainer/decision/coevolution_callback.py](trainer/decision/coevolution_callback.py)
-- `SkillBankCoEvolutionCallback` — injected into `GameAITrainer.fit()`; runs EM every 10 training steps.
-- `SkillAgentToolPipeline` — wraps all four skill agent stages as callable tools.
-- `SegmentationStore` — persistent JSONL store for per-trajectory segmentations, updated each EM cycle.
-- On accepted update: hot-swaps bank into environment workers.
+**Main co-evolution loop**: [`trainer/coevolution/orchestrator.py`](trainer/coevolution/orchestrator.py) — rollouts (vLLM) → Skill Bank EM → **FSDP GRPO** on decision + skill-bank adapters → repeat. Phase C GRPO: [`trainer/coevolution/grpo_training.py`](trainer/coevolution/grpo_training.py).
 
-**Standalone orchestrator**: [trainer/launch_coevolution.py](trainer/launch_coevolution.py) — runs Decision GRPO continuously; every N episodes freezes a rollout batch, runs SkillBank EM, gates with fixed-seed eval, then commits or rolls back the bank.
+**VERL callback (optional)**: [trainer/decision/coevolution_callback.py](trainer/decision/coevolution_callback.py) — `SkillBankCoEvolutionCallback` hooks **Skill Bank EM** into `GameAITrainer.fit()` when using verl-agent; `SkillAgentToolPipeline`, `SegmentationStore`, bank hot-swap in workers.
+
+**Legacy / alternate entry**: [trainer/launch_coevolution.py](trainer/launch_coevolution.py) — standalone Decision GRPO + periodic Skill Bank EM with eval gating.
 
 ### SFT Cold-Start Training
 
@@ -948,7 +948,7 @@ results = train_all_adapters(config, gpu=2)     # sequential on specific GPU
 |--------|---------|
 | [`scripts/run_sft_coldstart.sh`](scripts/run_sft_coldstart.sh) | SFT cold-start: train all 5 LoRA adapters from teacher-labelled data (run before co-evolution) |
 | [`scripts/coevolution_train.sh`](scripts/coevolution_train.sh) | Main loop: cold-start rollouts → Skill Bank v1 → Decision Agent v1 → iterate (default 6 iterations) |
-| [`scripts/decision_agent_train.sh`](scripts/decision_agent_train.sh) | GRPO training for Decision Agent (Qwen3-8B) on GPUs 0-3 via VERL |
+| [`scripts/decision_agent_train.sh`](scripts/decision_agent_train.sh) | Decision Agent GRPO on GPUs 0-3 (**FSDP** + vLLM rollout per script; not VERL) |
 | [`scripts/skillbank_agent_train.sh`](scripts/skillbank_agent_train.sh) | LoRA training + Hard-EM for Skill Bank Agent (Qwen3-8B) on GPUs 4-7 |
 | [`cold_start/run_100_rollouts.py`](cold_start/run_100_rollouts.py) | Batch rollout generation (100 episodes per game) |
 
