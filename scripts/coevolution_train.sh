@@ -32,6 +32,11 @@
 #   SkillBank_base_model=Qwen/Qwen3-8B \
 #   NUM_ITERATIONS=10 TRAIN_STEPS=30 \
 #     bash scripts/coevolution_train.sh
+#
+#   # Warm-start from SFT cold-start adapters (run_sft_coldstart.sh output):
+#   LOAD_DECISION_ADAPTERS=runs/sft_coldstart/decision \
+#   LOAD_SKILLBANK_ADAPTERS=runs/sft_coldstart/skillbank \
+#     bash scripts/coevolution_train.sh
 # =============================================================================
 
 set -e
@@ -51,6 +56,18 @@ SkillBank_base_model="${SkillBank_base_model:-Qwen/Qwen3-8B}"
 
 # --------------- (3) MODEL ABBREVIATION ---------------
 Model_abbr="${Model_abbr:-CoEvo-Decision14B-SkillBank8B}"
+
+# --------------- (3b) WARM-START FROM SFT COLD-START ADAPTERS ---------------
+# Paths to pre-trained adapters from run_sft_coldstart.sh.
+# Decision:  contains sub-dirs skill_selection/, action_taking/
+# SkillBank: contains sub-dirs segment/, contract/, curator/
+#
+# Usage:
+#   LOAD_DECISION_ADAPTERS=runs/sft_coldstart/decision \
+#   LOAD_SKILLBANK_ADAPTERS=runs/sft_coldstart/skillbank \
+#     bash scripts/coevolution_train.sh
+LOAD_DECISION_ADAPTERS="${LOAD_DECISION_ADAPTERS:-}"
+LOAD_SKILLBANK_ADAPTERS="${LOAD_SKILLBANK_ADAPTERS:-}"
 
 # --------------- (4) GPU MEMORY ---------------
 export GPU_MEM="${GPU_MEM:-80}"
@@ -94,6 +111,12 @@ echo "  GRPO Steps/iter:   $TRAIN_STEPS"
 echo "  Num Iterations:    $NUM_ITERATIONS"
 echo "  EM Iterations:     $EM_MAX_ITERATIONS"
 echo "  LoRA Rank:         $LORA_RANK"
+if [ -n "$LOAD_DECISION_ADAPTERS" ]; then
+echo "  Decision SFT:      $LOAD_DECISION_ADAPTERS"
+fi
+if [ -n "$LOAD_SKILLBANK_ADAPTERS" ]; then
+echo "  SkillBank SFT:     $LOAD_SKILLBANK_ADAPTERS"
+fi
 echo "============================================"
 echo ""
 
@@ -203,19 +226,139 @@ if not episodes:
 }
 
 # =============================================================================
-# Iteration 1: Both agents start from their respective base models
+# Warm-start: merge SFT cold-start adapters into initial checkpoints
+# =============================================================================
+Decision_init_model="$Decision_base_model"
+
+if [ -n "$LOAD_DECISION_ADAPTERS" ]; then
+    MERGED_DECISION="${STORAGE_PATH}/models/decision_sft_merged"
+    if [ -f "${MERGED_DECISION}/config.json" ]; then
+        echo "[warm-start] Decision SFT-merged model already exists, reusing."
+    else
+        echo "[warm-start] Merging Decision SFT adapters into base model..."
+        mkdir -p "$MERGED_DECISION"
+        python3 -c "
+import sys, os, json, glob
+sys.path.insert(0, '${REPO_ROOT}')
+
+adapter_root = '${LOAD_DECISION_ADAPTERS}'
+base_model   = '${Decision_base_model}'
+output_dir   = '${MERGED_DECISION}'
+
+# Discover sub-adapters (skill_selection, action_taking, etc.)
+sub_dirs = sorted([
+    d for d in glob.glob(os.path.join(adapter_root, '*'))
+    if os.path.isdir(d) and os.path.exists(os.path.join(d, 'adapter_config.json'))
+])
+if not sub_dirs:
+    print(f'WARNING: No adapters found under {adapter_root}, using base model as-is.')
+    # Symlink base model so downstream sees a valid checkpoint
+    os.symlink(os.path.abspath(base_model), os.path.join(output_dir, '_base_link'))
+    sys.exit(0)
+
+print(f'Found {len(sub_dirs)} decision adapter(s): {[os.path.basename(d) for d in sub_dirs]}')
+
+try:
+    from peft import PeftModel
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    import torch
+
+    tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        base_model, torch_dtype=torch.bfloat16, trust_remote_code=True, device_map='cpu',
+    )
+    for adapter_path in sub_dirs:
+        adapter_name = os.path.basename(adapter_path)
+        print(f'  Merging adapter: {adapter_name} from {adapter_path}')
+        model = PeftModel.from_pretrained(model, adapter_path, adapter_name=adapter_name)
+        model = model.merge_and_unload()
+
+    model.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)
+    print(f'Merged decision model saved to {output_dir}')
+except ImportError as e:
+    print(f'peft/transformers not available ({e}), copying base model config as fallback.')
+    import shutil
+    for f in ['config.json', 'generation_config.json', 'tokenizer.json',
+              'tokenizer_config.json', 'special_tokens_map.json']:
+        src = os.path.join(base_model, f)
+        if os.path.exists(src):
+            shutil.copy2(src, os.path.join(output_dir, f))
+" 2>&1 | tee "${STORAGE_PATH}/logs/decision_sft_merge.log"
+    fi
+    if [ -f "${MERGED_DECISION}/config.json" ]; then
+        Decision_init_model="$MERGED_DECISION"
+        echo "[warm-start] Decision Agent will start from: $Decision_init_model"
+    else
+        echo "[warm-start] Merge produced no checkpoint; falling back to base model."
+    fi
+    cleanup_gpu_for_next_phase
+    sleep 3
+fi
+
+SKILLBANK_INIT_ADAPTERS=""
+if [ -n "$LOAD_SKILLBANK_ADAPTERS" ]; then
+    echo "[warm-start] Seeding Skill Bank LoRA adapters from SFT cold-start..."
+    SKILLBANK_V1_ADAPTER_DIR="${STORAGE_PATH}/lora_adapters/${Model_abbr}_skillbank_v1"
+    mkdir -p "$SKILLBANK_V1_ADAPTER_DIR"
+
+    python3 -c "
+import os, sys, shutil, json, glob
+sys.path.insert(0, '${REPO_ROOT}')
+
+src_root = '${LOAD_SKILLBANK_ADAPTERS}'
+dst_root = '${SKILLBANK_V1_ADAPTER_DIR}'
+
+# Map SFT adapter names → skillbank EM stage names
+# SFT produces: segment, contract, curator
+# EM expects:   boundary, segment, contract, retrieval
+STAGE_MAP = {
+    'segment':  'segment',
+    'contract': 'contract',
+    'curator':  'retrieval',
+}
+
+sub_dirs = [
+    d for d in glob.glob(os.path.join(src_root, '*'))
+    if os.path.isdir(d) and os.path.exists(os.path.join(d, 'adapter_config.json'))
+]
+print(f'Found {len(sub_dirs)} SFT skillbank adapter(s): {[os.path.basename(d) for d in sub_dirs]}')
+
+for adapter_path in sub_dirs:
+    name = os.path.basename(adapter_path)
+    target_stage = STAGE_MAP.get(name, name)
+    dst = os.path.join(dst_root, target_stage)
+    if os.path.exists(os.path.join(dst, 'adapter_config.json')):
+        print(f'  {target_stage}: already seeded, skipping.')
+        continue
+    os.makedirs(dst, exist_ok=True)
+    for f in os.listdir(adapter_path):
+        src_f = os.path.join(adapter_path, f)
+        if os.path.isfile(src_f):
+            shutil.copy2(src_f, os.path.join(dst, f))
+    print(f'  {name} → {target_stage}: copied to {dst}')
+
+print('Skill Bank adapter seeding complete.')
+" 2>&1 | tee "${STORAGE_PATH}/logs/skillbank_sft_seed.log"
+
+    SKILLBANK_INIT_ADAPTERS="$SKILLBANK_V1_ADAPTER_DIR"
+    echo "[warm-start] Skill Bank adapters seeded at: $SKILLBANK_INIT_ADAPTERS"
+fi
+
+# =============================================================================
+# Iteration 1: Both agents start from their respective base/warm models
 # =============================================================================
 echo "=========================================="
 echo "Starting Iteration 1"
 echo "=========================================="
 
-# --- Phase 1a: Cold-start rollouts with base Decision Agent ---
+# --- Phase 1a: Cold-start rollouts with Decision Agent (base or SFT-merged) ---
 ROLLOUT_V0="${Model_abbr}_rollouts_v0"
 if [ -s "${STORAGE_PATH}/rollouts/${ROLLOUT_V0}.jsonl" ]; then
     echo "[Iter 1] Cold-start rollouts already exist, skipping..."
 else
-    echo "[Iter 1] Collecting cold-start rollouts with base Decision Agent..."
-    collect_rollouts "$Decision_base_model" "" "$ROLLOUT_V0"
+    echo "[Iter 1] Collecting cold-start rollouts with Decision Agent ($Decision_init_model)..."
+    collect_rollouts "$Decision_init_model" "" "$ROLLOUT_V0"
 fi
 
 cleanup_gpu_for_next_phase
@@ -227,10 +370,16 @@ if [ -f "${STORAGE_PATH}/temp_results/${SKILLBANK_V1}_em_result.json" ]; then
     echo "[Iter 1] Skill Bank v1 already trained, skipping..."
 else
     echo "[Iter 1] Training Skill Bank Agent v1 (Qwen3-8B + LoRA)..."
+    # If SFT adapters were seeded, export the path so skillbank_agent_train.sh
+    # can detect pre-existing adapters and skip re-training those stages.
+    if [ -n "$SKILLBANK_INIT_ADAPTERS" ]; then
+        export SKILLBANK_INIT_ADAPTER_DIR="$SKILLBANK_INIT_ADAPTERS"
+    fi
     bash scripts/skillbank_agent_train.sh \
         "${STORAGE_PATH}/rollouts/${ROLLOUT_V0}.jsonl" \
         "" \
         "$SKILLBANK_V1"
+    unset SKILLBANK_INIT_ADAPTER_DIR 2>/dev/null || true
 fi
 
 cleanup_gpu_for_next_phase
@@ -244,7 +393,7 @@ if [ -d "${STORAGE_PATH}/models/${DECISION_V1}/global_step_${TRAIN_STEPS}/actor/
 else
     echo "[Iter 1] Training Decision Agent v1 (Qwen3-8B GRPO)..."
     bash scripts/decision_agent_train.sh \
-        "$Decision_base_model" \
+        "$Decision_init_model" \
         "$DECISION_V1" \
         "$BANK_PATH"
 fi

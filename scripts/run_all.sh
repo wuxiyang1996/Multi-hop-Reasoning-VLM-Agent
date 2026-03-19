@@ -25,8 +25,13 @@
 #    # Train from scratch (gaussian random LoRA init):
 #    FROM_SCRATCH=1 bash scripts/run_all.sh
 #
-#    # Load pre-trained adapters:
+#    # Load pre-trained adapters (all 5):
 #    LOAD_ADAPTERS_FROM=runs/prev_run/lora_adapters bash scripts/run_all.sh
+#
+#    # Load decision + skillbank adapters from SFT cold-start:
+#    LOAD_DECISION_ADAPTERS=runs/sft_coldstart/decision \
+#    LOAD_SKILLBANK_ADAPTERS=runs/sft_coldstart/skillbank \
+#      bash scripts/run_all.sh
 #
 #    # Resume a previous run:
 #    RUN_DIR=runs/Qwen3-8B_20260315_143022 RESUME=1 bash scripts/run_all.sh
@@ -67,6 +72,8 @@ RUN_DIR="${RUN_DIR:-}"
 RESUME="${RESUME:-}"
 FROM_SCRATCH="${FROM_SCRATCH:-}"
 LOAD_ADAPTERS_FROM="${LOAD_ADAPTERS_FROM:-}"
+LOAD_DECISION_ADAPTERS="${LOAD_DECISION_ADAPTERS:-}"
+LOAD_SKILLBANK_ADAPTERS="${LOAD_SKILLBANK_ADAPTERS:-}"
 DEBUG_IO="${DEBUG_IO:-}"
 VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
 GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
@@ -115,6 +122,12 @@ elif [ -n "${RESUME}" ]; then
     echo "  Start mode:    RESUME"
 else
     echo "  Start mode:    AUTO"
+fi
+if [ -n "${LOAD_DECISION_ADAPTERS}" ]; then
+    echo "  Decision SFT:  ${LOAD_DECISION_ADAPTERS}"
+fi
+if [ -n "${LOAD_SKILLBANK_ADAPTERS}" ]; then
+    echo "  SkillBank SFT: ${LOAD_SKILLBANK_ADAPTERS}"
 fi
 echo "══════════════════════════════════════════════════════════════"
 
@@ -167,6 +180,14 @@ fi
 
 if [ -n "${LOAD_ADAPTERS_FROM}" ]; then
     TRAIN_ARGS+=(--load-adapters-from "${LOAD_ADAPTERS_FROM}")
+fi
+
+if [ -n "${LOAD_DECISION_ADAPTERS}" ]; then
+    TRAIN_ARGS+=(--load-decision-adapters "${LOAD_DECISION_ADAPTERS}")
+fi
+
+if [ -n "${LOAD_SKILLBANK_ADAPTERS}" ]; then
+    TRAIN_ARGS+=(--load-skillbank-adapters "${LOAD_SKILLBANK_ADAPTERS}")
 fi
 
 if [ -n "${DEBUG_IO}" ]; then
