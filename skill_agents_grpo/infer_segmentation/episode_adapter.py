@@ -204,6 +204,38 @@ def _build_intention_fit_fn(
         make_compound_label(p, t) for p, t in zip(phases, raw_tags)
     ]
 
+    # Guard: if BOTH raw tags AND compound labels are monotone, the
+    # intention signal carries no information.  When raw tags are
+    # monotone but phases add diversity (e.g. "early:SETUP" vs
+    # "midgame:SETUP"), keep the signal — it still differentiates.
+    _monotone_dampen = 1.0
+    known_tags = [t for t in raw_tags if t != "UNKNOWN"]
+    if known_tags:
+        from collections import Counter
+        tag_counts = Counter(known_tags)
+        dominant_frac = tag_counts.most_common(1)[0][1] / len(known_tags)
+        if dominant_frac > 0.9:
+            known_compounds = [c for c in compound_labels if not c.endswith("UNKNOWN")]
+            if known_compounds:
+                compound_counts = Counter(known_compounds)
+                compound_dominant = compound_counts.most_common(1)[0][1] / len(known_compounds)
+            else:
+                compound_dominant = 1.0
+            if compound_dominant > 0.9:
+                logger.debug(
+                    "Intention tags are monotone (%.0f%% %s) and phases "
+                    "add no diversity — disabling intention_fit",
+                    dominant_frac * 100, tag_counts.most_common(1)[0][0],
+                )
+                return None
+            _monotone_dampen = 0.5
+            logger.debug(
+                "Raw tags monotone (%.0f%% %s) but phases add diversity "
+                "(%d unique compounds) — keeping intention_fit at %.1fx",
+                dominant_frac * 100, tag_counts.most_common(1)[0][0],
+                len(compound_counts), _monotone_dampen,
+            )
+
     # Pre-compute which simple tags have compound variants among candidates.
     # When both "CLEAR" and "early:CLEAR" exist, the simple "CLEAR" must NOT
     # subsume compound-labeled steps — otherwise compound labels can never
@@ -242,7 +274,8 @@ def _build_intention_fit_fn(
                 )
             )
             match_frac = matches / length
-            return match_frac * length if match_frac > 0 else -0.3 * length
+            score = match_frac * length if match_frac > 0 else -0.3 * length
+            return score * _monotone_dampen
 
         if ":" in skill:
             matches = sum(1 for lb in seg_labels if lb == skill)
@@ -255,13 +288,13 @@ def _build_intention_fit_fn(
             )
         match_frac = matches / length
         if match_frac > 0:
-            return match_frac * length
+            return match_frac * length * _monotone_dampen
         # Stronger mismatch penalty when the correct phase-specific label
         # exists as a candidate — prevents behavior_fit from overriding
         # the intention signal and collapsing diversity.
         if _has_compound_variant and (":" in skill or skill in _has_compound_variant):
-            return -2.0 * length
-        return -0.5 * length
+            return -2.0 * length * _monotone_dampen
+        return -0.5 * length * _monotone_dampen
     return _intention_fit
 
 

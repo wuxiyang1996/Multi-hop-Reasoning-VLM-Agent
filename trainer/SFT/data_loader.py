@@ -167,8 +167,8 @@ def _inject_context_lines(
     """Inject GRPO context lines between ``Game state:`` and ``Available actions``.
 
     GRPO episode_runner inserts (in order):
+      - ``Assigned subgoal: ...`` (from base-model intention call)
       - ``URGENCY: ...`` (conditional, game-specific)
-      - ``Previous subgoal: ...`` (conditional)
       - ``Active skill: {name} — {hint}`` (conditional)
       - ``Recent actions and rewards: ...`` (conditional)
 
@@ -182,7 +182,7 @@ def _inject_context_lines(
 
     intention = row.get("intention", "")
     if intention:
-        lines.append(f"Previous subgoal: {intention}")
+        lines.append(f"Assigned subgoal: {intention}")
 
     active_skill = row.get("active_skill", "")
     if active_skill and skill_bank:
@@ -218,9 +218,9 @@ def _align_action_taking_to_coevolution(
       2. Output format: add SUBGOAL line before REASONING.
       3. Skill guidance block: upgrade to full protocol format with
          Preconditions, Progress, Plan steps, Done/Abort.
-      4. Context lines: inject Previous subgoal, Active skill one-liner
+      4. Context lines: inject Assigned subgoal, Active skill one-liner
          between Game state and Available actions.
-      5. Closing: Subgoal tags + instructions.
+      5. Closing: Subgoal tags + "Use the assigned subgoal tag" instruction.
       6. Completion: prepend ``SUBGOAL: <intention>`` from metadata.
     """
     prompt = row.get("prompt", "")
@@ -249,12 +249,12 @@ def _align_action_taking_to_coevolution(
     # Fix 4: Inject context lines (Previous subgoal, Active skill)
     prompt = _inject_context_lines(prompt, row, skill_bank)
 
-    # Fix 5: Closing instructions — add subgoal tags
+    # Fix 5: Closing instructions — add subgoal tags + assigned subgoal
     prompt = re.sub(
         r"Choose the best action\.\s*Output REASONING then ACTION number\.",
         f"Subgoal tags: {_SUBGOAL_TAGS_STR}\n"
-        "First state your SUBGOAL, then choose the best action.\n"
-        "Output SUBGOAL, REASONING, then ACTION number.",
+        "Use the assigned subgoal tag in your SUBGOAL line, then choose the best action.\n"
+        "Output SUBGOAL: [TAG] objective, REASONING, then ACTION number.",
         prompt,
     )
 

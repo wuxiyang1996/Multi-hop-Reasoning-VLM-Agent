@@ -399,13 +399,23 @@ class AsyncSkillBankPipeline:
         return self._grpo_data
 
     def reset_for_step(self) -> None:
-        """Clear per-step state (pending episodes, GRPO data)."""
+        """Clear per-step state (pending episodes, GRPO data).
+
+        ``_new_pool_mgr`` is intentionally preserved across steps so
+        that ``__NEW__`` segment candidates accumulate until they meet
+        the clustering/promotion thresholds.  Only the per-step working
+        lists (``_all_segments``, ``_new_pool``) are cleared.
+        ``_observations_by_traj`` is also kept so cross-step
+        materialization can access trajectory data from earlier steps.
+        """
         self._pending_episodes.clear()
         self._grpo_data = {"segment": [], "contract": [], "curator": []}
         self._update_result = None
         if self._agent is not None:
             self._agent._all_segments = []
             self._agent._new_pool = []
+            # NOTE: _new_pool_mgr and _observations_by_traj are NOT
+            # cleared — they accumulate across steps on purpose.
 
 
 class PerGameSkillBankManager:

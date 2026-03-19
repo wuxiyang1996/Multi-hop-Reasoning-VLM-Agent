@@ -104,6 +104,16 @@ def _count_merges(board: list) -> int:
     return count
 
 
+def _2048_phase(highest: int, empty: int) -> str:
+    """Matches phase_detector._extract_2048_phases logic."""
+    occupancy = 1.0 - (empty / 16.0)
+    if occupancy < 0.35 and highest <= 32:
+        return "opening"
+    if occupancy > 0.7 or highest >= 256:
+        return "endgame"
+    return "midgame"
+
+
 def _build_2048_summary(
     parsed: dict,
     step: int,
@@ -118,12 +128,17 @@ def _build_2048_summary(
     empty = sum(1 for row in board for c in row if int(c) == 0)
     merges = _count_merges(board)
 
+    flat = [int(c) for row in board for c in row]
+    max_count = flat.count(highest) if highest > 0 else 0
+
     summary: dict = {
         "game": "2048",
         "board": _compact_board(board),
         "max_tile": highest,
         "empty": empty,
         "merges": merges,
+        "max_count": max_count,
+        "phase": _2048_phase(highest, empty),
         "step": step,
     }
     if last_reward is not None:

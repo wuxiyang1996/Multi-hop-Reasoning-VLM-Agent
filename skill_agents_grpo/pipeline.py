@@ -359,10 +359,12 @@ class SkillBankAgent:
         )
         from skill_agents_grpo.infer_segmentation.config import (
             ContractFeedbackConfig,
+            DurationPriorConfig,
             SegmentationConfig,
             NewSkillConfig,
             PreferenceLearningConfig,
             LLMTeacherConfig,
+            get_duration_prior_for_game,
         )
         from skill_agents_grpo.boundary_proposal.proposal import ProposalConfig
 
@@ -379,8 +381,12 @@ class SkillBankAgent:
         seeded = self._seed_skills_from_intentions(episode, game_name=_game)
         _skill_names = sorted(set(_skill_names) | set(seeded))
 
+        T = len(episode.experiences)
+        duration_cfg = get_duration_prior_for_game(_game, episode_length=T)
+
         seg_config = SegmentationConfig(
             method=cfg.segmentation_method,
+            duration=duration_cfg,
             new_skill=NewSkillConfig(
                 enabled=True,
                 penalty=cfg.new_skill_penalty,

@@ -8,7 +8,7 @@ LLM preference-teacher settings, and preference-learning hyperparameters.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
 
 @dataclass
@@ -33,10 +33,17 @@ class ContractFeedbackConfig:
 
 @dataclass
 class ScorerWeights:
-    """Relative weights for each term in the segment score decomposition."""
+    """Relative weights for each term in the segment score decomposition.
+
+    ``intention_fit`` was previously 2.0, which made the tag-matching
+    signal dominate — segments always preferred existing `:SETUP` (or
+    similar) skills and ``__NEW__`` could never compete (it scores 0
+    on intention_fit).  Lowered to 1.0 so behaviour_fit and transition
+    priors have a fair vote alongside tags.
+    """
 
     behavior_fit: float = 1.0
-    intention_fit: float = 2.0  # per-step intention tag agreement
+    intention_fit: float = 1.0
     duration_prior: float = 0.3
     transition_prior: float = 1.0
     contract_compat: float = 0.0  # set by ContractFeedbackConfig or manually
@@ -45,21 +52,87 @@ class ScorerWeights:
 
 @dataclass
 class DurationPriorConfig:
-    """Parameters for the per-skill duration prior log p(l | k)."""
+    """Parameters for the per-skill duration prior log p(l | k).
+
+    When ``adaptive`` is True (default), ``default_mean`` and
+    ``default_std`` are auto-tuned per episode based on the game and
+    trajectory length via :func:`get_duration_prior_for_game`.
+    """
 
     default_mean: float = 8.0
     default_std: float = 5.0
     min_length: int = 2
     max_length: int = 200
+    adaptive: bool = True
+
+
+# ── Game-aware duration priors ───────────────────────────────────────
+# Hand-tuned (mean, std) for segment length by game.  Longer / more
+# strategic games get larger means so the decoder produces fewer,
+# chunkier segments that capture real skill-level strategies.
+
+GAME_DURATION_PRIORS: Dict[str, Tuple[float, float]] = {
+    "tetris": (8.0, 5.0),
+    "candy_crush": (12.0, 6.0),
+    "twenty_forty_eight": (18.0, 10.0),
+    "2048": (18.0, 10.0),
+    "sokoban": (14.0, 7.0),
+    "avalon": (12.0, 6.0),
+    "diplomacy": (18.0, 10.0),
+    "pokemon_red": (12.0, 7.0),
+    "pokemon": (12.0, 7.0),
+    "super_mario": (10.0, 6.0),
+}
+
+
+def get_duration_prior_for_game(
+    game_name: str,
+    episode_length: Optional[int] = None,
+) -> DurationPriorConfig:
+    """Return a :class:`DurationPriorConfig` tuned for *game_name*.
+
+    Lookup order:
+      1. ``GAME_DURATION_PRIORS`` hand-tuned table.
+      2. Adaptive heuristic: target ~10-12 segments per episode so each
+         segment captures a meaningful strategic chunk.
+      3. Fallback defaults (mean=8, std=5).
+    """
+    if game_name in GAME_DURATION_PRIORS:
+        mean, std = GAME_DURATION_PRIORS[game_name]
+        if episode_length and episode_length > 0:
+            ratio = episode_length / (mean * 12)
+            if ratio > 1.5:
+                mean = max(mean, episode_length / 12.0)
+                std = max(std, mean * 0.55)
+    elif episode_length and episode_length > 0:
+        mean = max(5.0, episode_length / 12.0)
+        std = max(3.0, mean * 0.55)
+    else:
+        return DurationPriorConfig()
+
+    return DurationPriorConfig(
+        default_mean=mean,
+        default_std=std,
+        min_length=2,
+        max_length=max(200, int(mean * 6)),
+        adaptive=False,
+    )
 
 
 @dataclass
 class NewSkillConfig:
-    """Parameters for the special NEW-skill channel."""
+    """Parameters for the special NEW-skill channel.
+
+    ``background_log_prob`` is the per-step log-probability used for
+    ``__NEW__`` segments' behavior_fit.  The old value of -3.0 was so
+    harsh that __NEW__ could never beat even a mediocre known-skill
+    match, effectively freezing the skill bank after cold start.
+    Reduced to -0.5 so the decoder can label genuinely novel segments.
+    """
 
     enabled: bool = True
     penalty: float = 5.0  # alpha: subtracted from background score
-    background_log_prob: float = -3.0  # fallback log-prob per step
+    background_log_prob: float = -0.5  # fallback log-prob per step
 
 
 @dataclass

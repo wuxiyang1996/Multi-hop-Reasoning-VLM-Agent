@@ -116,7 +116,8 @@ SYSTEM_PROMPT = (
     "- Study the state carefully before choosing.\n"
     "- Consider which action makes the most progress toward winning.\n"
     "- NEVER repeat the same action more than 2 times in a row — try something different.\n"
-    "- If recent actions got zero reward, change strategy.\n\n"
+    "- If recent actions got zero reward, change strategy.\n"
+    "- Your SUBGOAL tag is assigned — use it in your SUBGOAL line.\n\n"
     "Output format (strict):\n"
     "SUBGOAL: [TAG] <your immediate objective in ≤15 words>\n"
     "REASONING: <1-2 sentences>\n"
@@ -379,6 +380,101 @@ def _normalize_intention(raw: str) -> str:
     if tag not in _SUBGOAL_TAG_SET:
         tag = _TAG_ALIASES.get(tag, "EXECUTE")
     return f"[{tag}] {rest}" if rest else f"[{tag}]"
+
+
+async def _generate_intention(
+    vllm_client: AsyncVLLMClient,
+    state_text: str,
+    game_name: str,
+    summary_state: str,
+    prev_intention: str,
+    prev_summary_state: str,
+    delta: str,
+    urgency: str,
+    skill_guidance: Optional[Dict[str, Any]],
+    last_action: str,
+) -> str:
+    """Generate a ``[TAG] subgoal`` via the **base model** (no LoRA).
+
+    Ported from ``qwen3_decision_agent.generate_skill_aware_intention()``.
+    Uses higher temperature (0.7) so the base model's SFT-trained tag
+    diversity is preserved — unlike the action_taking LoRA which has
+    collapsed to a single tag.
+    """
+    imp = _lazy_imports()
+    tags_str = "|".join(imp["SUBGOAL_TAGS"])
+    facts_line = f"Facts: {summary_state}\n" if summary_state else ""
+    delta_line = f"Changed: {delta}\n" if delta else ""
+    urgency_line = f"URGENCY: {urgency}\n" if urgency else ""
+    prev_line = f"Previous subgoal: {prev_intention}\n" if prev_intention else ""
+    shift_hint = (
+        "IMPORTANT: If the situation changed significantly or urgency is high, "
+        "pick a NEW tag that matches the new priority.\n"
+        if delta or urgency else ""
+    )
+
+    skill_context = ""
+    if skill_guidance and skill_guidance.get("skill_id"):
+        sk_name = skill_guidance.get("skill_name", skill_guidance["skill_id"])
+        sk_hint = skill_guidance.get("execution_hint", "")
+        skill_context = f"Active skill: {sk_name}"
+        if sk_hint:
+            skill_context += f" — {sk_hint[:100]}"
+        skill_context += "\n"
+
+    game_label = game_name.replace("_", " ") if game_name else "game"
+
+    examples = (
+        "Examples:\n"
+        "  tetris, stack_h=14, holes=8 → [SURVIVE] reduce stack height before game over\n"
+        "  tetris, holes=2, stack_h=6 → [SETUP] position piece for future line clear\n"
+        "  tetris, full row forming → [CLEAR] complete the line to score points\n"
+        "  2048, empty=3, max=256 → [MERGE] combine tiles to free board space\n"
+        "  2048, large tile in corner → [POSITION] keep max tile anchored in corner\n"
+        "  2048, board nearly full → [SURVIVE] avoid game over by creating space\n"
+        "  candy_crush, moves=4, target=500 → [CLEAR] maximize cascade combos now\n"
+        "  candy_crush, special candy available → [EXECUTE] activate combo for big score\n"
+        "  candy_crush, board cluttered → [OPTIMIZE] clear blockers to open matches\n"
+        "  sokoban, box misaligned → [POSITION] push box toward its target square\n"
+        "  sokoban, path blocked by wall → [NAVIGATE] find route around obstacle\n"
+        "  avalon, suspicious player → [DEFEND] block suspected spy from mission\n"
+        "  avalon, team forming → [ATTACK] push to lead the next mission\n"
+        "  diplomacy, ally requesting support → [BUILD] strengthen alliance for next turn\n"
+        "  diplomacy, unexplored border → [EXPLORE] scout neighbor's intentions\n"
+        "  pokemon, item on ground → [COLLECT] pick up item before moving on\n"
+    )
+
+    prompt = (
+        f"{game_label}. Action: {last_action}\n"
+        f"State: {state_text}\n"
+        f"{facts_line}"
+        f"{delta_line}"
+        f"{urgency_line}"
+        f"{skill_context}"
+        f"{prev_line}"
+        f"{shift_hint}"
+        f"{examples}\n"
+        f"What subgoal? Reply ONLY: [TAG] phrase "
+        f"(max {INTENTION_WORD_BUDGET} words)\n"
+        f"Tags: {tags_str}\n"
+        f"Subgoal:"
+    )
+
+    try:
+        result = await vllm_client.generate_chat(
+            [{"role": "user", "content": prompt}],
+            adapter="base", temperature=0.7, max_tokens=40,
+            stop=["\n\n"],
+        )
+        text = result.text.strip() if result.text else ""
+        if text:
+            imp2 = _lazy_imports()
+            text = imp2["strip_think_tags"](text).strip()
+            return _normalize_intention(text)[:150]
+    except Exception as exc:
+        logger.debug("Intention generation failed: %s", exc)
+
+    return prev_intention or "[EXECUTE] play"
 
 
 def _format_numbered_actions(action_names: List[str]) -> str:
@@ -876,8 +972,10 @@ async def run_episode_async(
         delta = _compute_state_delta(prev_summary_state, summary_state)
         delta_line = f"Changed since last step: {delta}\n" if delta else ""
 
-        # ── 2+3. summary_prose & skill_selection (PARALLEL) ──────
-        # Both only need obs_nl/summary_state — fire concurrently.
+        # Pre-compute urgency (needed by both intention and action prompts)
+        urgency = _detect_urgency(summary_state, game)
+
+        # ── 2+3+4. summary_prose, skill_selection, intention (PARALLEL)
         summary_prompt = (
             f"{game_label}: {state_text}\n"
             f"{delta_line}"
@@ -888,6 +986,20 @@ async def run_episode_async(
             [{"role": "user", "content": summary_prompt}],
             adapter="base", temperature=0.2, max_tokens=25,
             stop=["\n"],
+        )
+
+        # Intention generation — base model, no LoRA, higher temp
+        intention_coro = _generate_intention(
+            vllm_client,
+            state_text=state_text,
+            game_name=game,
+            summary_state=summary_state,
+            prev_intention=prev_intention,
+            prev_summary_state=prev_summary_state,
+            delta=delta,
+            urgency=urgency,
+            skill_guidance=last_guidance,
+            last_action=recent_actions[-1] if recent_actions else "start",
         )
 
         need_reselect = skill_tracker.should_reselect(
@@ -926,13 +1038,15 @@ async def run_episode_async(
                     stop=["\n\nAvailable", "\n\nGame state", "\n\n---"],
                 )
 
-        # Fire both LLM calls concurrently
+        # Fire all LLM calls concurrently
         if skill_coro is not None:
-            summary_result, sk_result = await asyncio.gather(
-                summary_coro, skill_coro,
+            summary_result, assigned_subgoal, sk_result = await asyncio.gather(
+                summary_coro, intention_coro, skill_coro,
             )
         else:
-            summary_result = await summary_coro
+            summary_result, assigned_subgoal = await asyncio.gather(
+                summary_coro, intention_coro,
+            )
             sk_result = None
 
         # Process summary result
@@ -979,10 +1093,10 @@ async def run_episode_async(
         else:
             guidance = last_guidance
 
-        # ── 4+5. Merged: subgoal + action (action_taking LoRA) ──
-        urgency = _detect_urgency(summary_state, game)
+        # ── 5. Action selection (action_taking LoRA) ────────────
+        # The intention tag comes from the base model (step 4 above).
+        # We inject it as "Assigned subgoal" so the LoRA follows it.
         urgency_line = f"URGENCY: {urgency}\n" if urgency else ""
-        prev_line = f"Previous subgoal: {prev_intention}\n" if prev_intention else ""
         skill_context = ""
         if guidance and guidance.get("skill_id"):
             sk_name = guidance.get("skill_name", guidance["skill_id"])
@@ -1003,24 +1117,25 @@ async def run_episode_async(
         tags_str = "|".join(imp_tags)
         action_user = (
             f"Game state:\n\n{summary_for_action}\n\n"
-            f"{urgency_line}{prev_line}{skill_context}{recent_context}"
+            f"Assigned subgoal: {assigned_subgoal}\n"
+            f"{urgency_line}{skill_context}{recent_context}"
             f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
             f"Subgoal tags: {tags_str}\n"
-            f"First state your SUBGOAL, then choose the best action.\n"
-            f"Output SUBGOAL, REASONING, then ACTION number."
+            f"Use the assigned subgoal tag in your SUBGOAL line, then choose the best action.\n"
+            f"Output SUBGOAL: [TAG] objective, REASONING, then ACTION number."
         )
         action_prompt = SYSTEM_PROMPT + skill_text + "\n" + action_user
 
         action_result = await vllm_client.generate_chat(
             [{"role": "user", "content": action_prompt}],
             adapter="action_taking",
-            temperature=temperature, max_tokens=256,
+            temperature=temperature, max_tokens=384,
             stop=["\n\nAvailable", "\n\nGame state", "\n\n---"],
         )
         action, reasoning, parsed_intention = _parse_action_response(
             action_result.text, step_actions,
         )
-        current_intention = parsed_intention or prev_intention or "[EXECUTE] play"
+        current_intention = parsed_intention or assigned_subgoal or prev_intention or "[EXECUTE] play"
         action = _apply_anti_repetition(action, step_actions, recent_actions, recent_rewards)
 
         # ── 6. env.step() (in executor) ─────────────────────────
@@ -1065,6 +1180,8 @@ async def run_episode_async(
                     "available_actions": list(step_actions),
                     "summary_state": summary_state,
                     "intention": current_intention,
+                    "assigned_intention": assigned_subgoal,
+                    "intention_source": "base_model",
                     "active_skill": skill_id,
                     "intrinsic_bonus": skill_tracker._intrinsic_bonus,
                 },

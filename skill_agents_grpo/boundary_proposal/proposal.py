@@ -73,6 +73,14 @@ class ProposalConfig:
     # Set to 0 to disable fallback boundaries.
     min_boundaries_enabled: bool = True
 
+    # ── Adaptive target segment length ────────────────────────────────
+    # When True, ``target_segment_length`` is scaled up for longer
+    # episodes so the decoder doesn't produce an excess of tiny
+    # segments.  The effective target becomes
+    #   max(target_segment_length, T // target_segment_count).
+    adaptive_target: bool = True
+    target_segment_count: int = 12  # aim for ~12 segments per episode
+
     # ── Intention-tag boundary signals ─────────────────────────────
     # Tag change → boundary candidate (tag proposes, Stage 2 decides)
     tag_min_segment_len: int = 3
@@ -510,8 +518,15 @@ def propose_boundary_candidates(
         )
 
     # ── Minimum boundary density: add evenly-spaced fallbacks ─────
-    if cfg.min_boundaries_enabled and cfg.target_segment_length > 0:
-        min_boundaries = max(1, T // cfg.target_segment_length - 1)
+    effective_target_seg_len = cfg.target_segment_length
+    if cfg.adaptive_target and cfg.target_segment_count > 0 and T > 0:
+        effective_target_seg_len = max(
+            cfg.target_segment_length,
+            T // cfg.target_segment_count,
+        )
+
+    if cfg.min_boundaries_enabled and effective_target_seg_len > 0:
+        min_boundaries = max(1, T // effective_target_seg_len - 1)
         existing_centers = {t for t, _ in triggers}
         if len(existing_centers) < min_boundaries:
             n_needed = min_boundaries
