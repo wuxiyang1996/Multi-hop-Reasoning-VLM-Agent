@@ -51,28 +51,33 @@ def _get_curator_reward_context() -> dict:
 
 _CURATOR_PROMPT_TEMPLATE = """\
 You are a skill bank maintenance curator. Review the proposed actions and decide \
-whether to approve, veto, or defer each one.
+whether to approve, veto, or defer each one. Base your decisions on skill quality \
+(skill_score) and encourage new skill exploration when evidence supports it.
 
 ## Bank Summary
 Total skills: {n_skills}
 Mean pass rate: {mean_pass_rate:.2f}
+Mean skill score: {mean_skill_score:.2f}
 Skills with low pass rate (<0.60): {n_low_pass}
 
 ## Proposed Actions
 {actions_text}
 
 For each action, respond with a JSON object:
-{{"decisions": [{{"idx": 0, "verdict": "approve|veto|defer", "reason": "brief reason"}}, ...]}}
+{{"decisions": [{{"idx": 0, "verdict": "approve|veto|defer", "reason": "brief reason citing skill_score and metrics"}}, ...]}}
 
 Action types: SPLIT, MERGE, REFINE, MATERIALIZE, PROMOTE.
 
 Guidelines:
-- APPROVE actions that improve bank quality with clear evidence.
-- VETO actions where the evidence is contradictory or the risk outweighs benefit.
-- DEFER when evidence is insufficient (fewer than 5 instances, marginal metrics).
-- For MATERIALIZE: approve if the recurring pattern is distinct from existing skills.
-- For PROMOTE: approve if the proto-skill has a reasonable pass rate and enough instances.
-- Prefer conservative decisions — a deferred action can be reconsidered later.
+- Base decisions primarily on **skill_score** (0-1) which reflects episode reward, \
+reuse success, contract quality, and cross-episode consistency.
+- APPROVE actions on skills with skill_score > 0.5 that have clear evidence.
+- VETO actions where skill_score is low and evidence is contradictory.
+- For MATERIALIZE/PROMOTE: **encourage new skill exploration** — approve if the \
+skill has a valid contract and reasonable pass rate, even with limited instances. \
+New skills expand the bank's coverage of game behaviors.
+- DEFER only when evidence is truly insufficient (no contract, zero instances).
+- Cite specific metric values (skill_score, pass_rate, n_instances) in your reasoning.
 """
 
 
@@ -129,6 +134,7 @@ def _build_curator_prompt(
     return _CURATOR_PROMPT_TEMPLATE.format(
         n_skills=bank_summary.get("n_skills", 0),
         mean_pass_rate=bank_summary.get("mean_pass_rate", 0.0),
+        mean_skill_score=bank_summary.get("mean_skill_score", 0.5),
         n_low_pass=bank_summary.get("n_low_pass", 0),
         actions_text=actions_text or "(no actions proposed)",
     )
@@ -144,18 +150,26 @@ def make_bank_summary(bank: Any) -> Dict[str, Any]:
 
     n_skills = len(skills)
     pass_rates = []
+    skill_scores = []
     for s in skills:
         if hasattr(s, "contract") and s.contract:
             pr = getattr(s, "pass_rate", None)
             if pr is not None:
                 pass_rates.append(pr)
+        if hasattr(s, "compute_skill_score"):
+            try:
+                skill_scores.append(s.compute_skill_score())
+            except Exception:
+                pass
 
     mean_pr = sum(pass_rates) / max(len(pass_rates), 1) if pass_rates else 0.0
+    mean_ss = sum(skill_scores) / max(len(skill_scores), 1) if skill_scores else 0.5
     n_low = sum(1 for pr in pass_rates if pr < 0.60)
 
     return {
         "n_skills": n_skills,
         "mean_pass_rate": mean_pr,
+        "mean_skill_score": mean_ss,
         "n_low_pass": n_low,
     }
 

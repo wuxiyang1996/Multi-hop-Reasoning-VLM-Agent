@@ -329,9 +329,11 @@ class SkillBankAgent:
 
         _skill_descs: Optional[Dict[str, str]] = None
         _skill_tags: Optional[Dict[str, List[str]]] = None
+        _bank_skill_scores: Optional[Dict[str, float]] = None
         if _skill_names and len(self.bank) > 0:
             _skill_descs = {}
             _skill_tags = {}
+            _bank_skill_scores = {}
             for sid in _skill_names:
                 sk = self.bank.get_skill(sid)
                 if sk is None:
@@ -345,6 +347,10 @@ class SkillBankAgent:
                     _skill_descs[sid] = " — ".join(parts)
                 if sk.tags:
                     _skill_tags[sid] = sk.tags
+                try:
+                    _bank_skill_scores[sid] = sk.compute_skill_score()
+                except Exception:
+                    _bank_skill_scores[sid] = 0.5
 
         if _skill_names:
             result, sub_episodes, store = infer_and_segment(
@@ -361,6 +367,7 @@ class SkillBankAgent:
                 game_name=_game,
                 skill_descriptions=_skill_descs,
                 skill_tags=_skill_tags,
+                bank_skill_scores=_bank_skill_scores,
             )
             self._preference_store = store
         else:
@@ -399,12 +406,17 @@ class SkillBankAgent:
         segments = result.segments
         for idx, seg in enumerate(segments):
             seg_id = f"{traj_id}_seg{idx:04d}"
+            seg_reward = sum(
+                getattr(e, "reward", 0.0) or 0.0
+                for e in exps[seg.start: seg.end + 1]
+            )
             rec = SegmentRecord(
                 seg_id=seg_id,
                 traj_id=traj_id,
                 t_start=seg.start,
                 t_end=seg.end,
                 skill_label=seg.assigned_skill,
+                cumulative_reward=seg_reward,
             )
             if seg.assigned_skill == "__NEW__":
                 self._new_pool.append(rec)
@@ -1235,7 +1247,7 @@ class SkillBankAgent:
             for sid in self.bank.skill_ids
             if self.bank.get_skill(sid) is not None
         ]
-        results = run_quality_check_batch(skills)
+        results = run_quality_check_batch(skills, bank=self.bank)
 
         for r in results:
             if r.get("retired"):

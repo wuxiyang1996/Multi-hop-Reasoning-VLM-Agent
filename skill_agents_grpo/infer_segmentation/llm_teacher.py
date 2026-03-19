@@ -405,6 +405,8 @@ def collect_segment_preferences(
     predicates: Optional[List[Optional[dict]]] = None,
     config: Optional[LLMTeacherConfig] = None,
     skill_descriptions: Optional[Dict[str, str]] = None,
+    per_step_rewards: Optional[List[float]] = None,
+    episode_total_reward: Optional[float] = None,
     **_kw: Any,
 ) -> list:
     """
@@ -428,6 +430,10 @@ def collect_segment_preferences(
     config : LLMTeacherConfig, optional
     skill_descriptions : dict, optional
         Mapping ``skill_id`` → short summary string.
+    per_step_rewards : list[float], optional
+        Per-timestep game rewards from the episode.
+    episode_total_reward : float, optional
+        Sum of all per-step rewards in the episode.
 
     Returns
     -------

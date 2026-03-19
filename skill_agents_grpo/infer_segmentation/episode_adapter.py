@@ -389,6 +389,7 @@ def infer_and_segment(
     game_name: Optional[str] = None,
     skill_descriptions: Optional[Dict[str, str]] = None,
     skill_tags: Optional[Dict[str, List[str]]] = None,
+    bank_skill_scores: Optional[Dict[str, float]] = None,
 ) -> Tuple[SegmentationResult, list, PreferenceStore]:
     """
     Inference pipeline with LLM (e.g. GPT-5):
@@ -462,6 +463,8 @@ def infer_and_segment(
 
     observations, actions = _extract_obs_actions(experiences)
     predicates = _extract_predicates(experiences)
+    per_step_rewards = [getattr(exp, "reward", 0.0) or 0.0 for exp in experiences]
+    episode_total_reward = sum(per_step_rewards)
 
     # Build segment list from boundaries
     cut_indices = sorted(set([0] + centers + [T - 1]))
@@ -505,6 +508,9 @@ def infer_and_segment(
             segments, observations, actions, skill_names,
             predicates=predicates, config=cfg.llm_teacher,
             skill_descriptions=skill_descriptions,
+            per_step_rewards=per_step_rewards,
+            episode_total_reward=episode_total_reward,
+            bank_skill_scores=bank_skill_scores,
         ) or []
         store.add_batch(segment_prefs)
 

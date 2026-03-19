@@ -241,11 +241,16 @@ def run_stage3_mvp(
             for _inst in _train:
                 _consensus_add.update(getattr(_inst, "eff_add", set()))
                 _consensus_del.update(getattr(_inst, "eff_del", set()))
+            _instance_rewards = [
+                getattr(inst, "cumulative_reward", 0.0)
+                for inst in _holdout
+            ]
             _contract_mod.set_contract_reward_context(
                 consensus_add=_consensus_add,
                 consensus_del=_consensus_del,
                 holdout_instances=_holdout,
                 verify_config=config,
+                instance_rewards=_instance_rewards,
             )
             sample_obs = []
             for inst in instances[:5]:

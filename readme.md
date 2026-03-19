@@ -253,9 +253,9 @@ Segment long-horizon trajectories into **sub-tasks** (skills): unlabeled episode
 | Step | Implementation | Notes |
 |------|----------------|--------|
 | **Stage 1: Boundary proposal** | [boundary_proposal](skill_agents/boundary_proposal/): signals (rule-based per env or **LLM** `env_name="llm"` / `"llm+overcooked"`) → **candidate cut points** C. [merge_radius](skill_agents/pipeline.py) (default 5). *Not GRPO-wrapped.* | High-recall boundaries only. |
-| **Stage 2: Sub-task labeling** | [infer_segmentation](skill_agents/infer_segmentation/): decode over C with **preference-learned scorer** (LLM rankings → Bradley–Terry). Options = bank IDs + `__NEW__`. Contract feedback via `compat_fn`. **GRPO:** [skill_agents_grpo](skill_agents_grpo/): SEGMENT LoRA wraps `collect_segment_preferences()`; reward = SegmentationDiagnostics. | Output: [SegmentationResult](skill_agents/infer_segmentation/diagnostics.py) + list of [SubTask_Experience](data_structure/experience). |
-| **Stage 3: Contract learning** | [stage3_mvp](skill_agents/stage3_mvp/): effects-only contracts (eff_add, eff_del, eff_event), verify, refine → [SkillBankMVP](skill_agents/skill_bank/bank.py). **GRPO:** CONTRACT LoRA wraps `llm_summarize_contract()`; reward = `verify_effects_contract().overall_pass_rate`. | Contracts feed back to Stage 2 via `compat_fn`. |
-| **Stage 4: Bank maintenance** | [bank_maintenance](skill_agents/bank_maintenance/): **propose** (refine/merge/split/materialize/promote) → **filter** via `filter_candidates()` (CURATOR LoRA: approve/veto/defer) → **execute** approved actions. **GRPO:** CURATOR LoRA reward = bank_quality_delta. [materialize_new_skills](skill_agents/pipeline.py), [NewPoolManager](skill_agents/skill_bank/new_pool.py), **proto-skill staging** (`__NEW__` → materialize → verify → promote). | See [skill_agents_grpo/README.md](skill_agents_grpo/README.md) and [TODO_Lists/SKILLBANK_GRPO_PLAN.md](TODO_Lists/SKILLBANK_GRPO_PLAN.md). |
+| **Stage 2: Sub-task labeling** | [infer_segmentation](skill_agents/infer_segmentation/): decode over C with **preference-learned scorer** (LLM rankings → Bradley–Terry). Options = bank IDs + `__NEW__`. Contract feedback via `compat_fn`. **GRPO:** [skill_agents_grpo](skill_agents_grpo/): SEGMENT LoRA wraps `collect_segment_preferences()`; reward = [`segmentation_reward()`](skill_agents_grpo/grpo/rewards.py) (decode + episode reward + optional `bank_skill_scores`). | Output: [SegmentationResult](skill_agents/infer_segmentation/diagnostics.py) + list of [SubTask_Experience](data_structure/experience). |
+| **Stage 3: Contract learning** | [stage3_mvp](skill_agents/stage3_mvp/): effects-only contracts (eff_add, eff_del, eff_event), verify, refine → [SkillBankMVP](skill_agents/skill_bank/bank.py). **GRPO:** CONTRACT LoRA wraps `llm_summarize_contract()`; reward = [`contract_reward()`](skill_agents_grpo/grpo/rewards.py) (standalone verify + start/end coverage + consensus + reward-weighted instances). | Contracts feed back to Stage 2 via `compat_fn`. |
+| **Stage 4: Bank maintenance** | [bank_maintenance](skill_agents/bank_maintenance/): **propose** (refine/merge/split/materialize/promote) → **filter** via `filter_candidates()` (CURATOR LoRA: approve/veto/defer) → **execute** approved actions. **GRPO:** CURATOR LoRA reward = [`curator_reward()`](skill_agents_grpo/grpo/rewards.py) (skill quality + exploration + outcomes when available). [materialize_new_skills](skill_agents/pipeline.py), [NewPoolManager](skill_agents/skill_bank/new_pool.py), **proto-skill staging** (`__NEW__` → materialize → verify → promote). | See [skill_agents_grpo/README.md](skill_agents_grpo/README.md) and [TODO_Lists/SKILLBANK_GRPO_PLAN.md](TODO_Lists/SKILLBANK_GRPO_PLAN.md). |
 
 **Training for the labeling path** is implemented via the GRPO pipeline (SEGMENT LoRA for Stage 2, CONTRACT for Stage 3, CURATOR for Stage 4) and co-evolution with the decision agent; see [skill_agents_grpo/README.md](skill_agents_grpo/README.md).
 
@@ -428,66 +428,86 @@ Both decision-agent adapters share the reward signal per step, stored as
 
 ### segment — `segmentation_reward()`
 
-**Source**: shaped reward evaluated on segment preference lists produced by the
-GRPO wrapper.
+**Source**: shaped reward on each GRPO sample = one full **preference list** for
+the episode; the wrapper calls `reward_fn(sample, *args, **kwargs)` so **each
+rollout can get a different score** when preferences differ.
 
-Full path (with scorer and decode function):
+**Decode path** (normal: `scorer_factory` + `decode_fn` from
+[`enable_segment_grpo`](skill_agents_grpo/infer_segmentation/llm_teacher.py)):
 
-```
-r = max(0, 0.35 * r_margin + 0.35 * r_confident + 0.20 + 0.10 * r_new_penalty)
-```
+- Rebuilds the preference scorer, runs Viterbi/beam decode, then blends:
+  - **Decode quality** — normalized `total_score`, mean **margins**
+  - **Reuse** — fraction of segments not labeled `__NEW__`
+  - **Reward alignment** — share of **positive** per-step env reward on segments
+    assigned to existing skills (partial credit for `__NEW__`); uses
+    `per_step_rewards` / `episode_total_reward` from the episode
+  - **Value match** (when `bank_skill_scores` is passed from the pipeline) —
+    high-`compute_skill_score()` skills aligned with high-reward segments
 
-- `r_margin` — mean segment margins / 5.0
-- `r_confident` — fraction of segments with margin > 1.0
-- `r_new_penalty` — -0.5 * (n_new / n_total), penalizes `__NEW__` segments
+Weights differ slightly with vs without `bank_skill_scores` (see source).
 
-Heuristic fallback (no scorer/decode):
+**Fallback** (no scorer/decode): reuse strength + winner **diversity**,
+per-segment **dominance**, segment **coverage**, optional bank-quality hint, and
+a small **content fingerprint** of (segment → winning skill) so different LLM
+rankings do not collapse to identical rewards.
 
-```
-r = 0.4 * coverage_ratio + 0.4 * depth_score + 0.2
-```
+Pipeline plumbing: [`pipeline.py`](skill_agents_grpo/pipeline.py) passes
+`bank_skill_scores` into [`infer_and_segment`](skill_agents_grpo/infer_segmentation/episode_adapter.py) → `collect_segment_preferences(...)`.
 
 ### contract — `contract_reward()`
 
-**Source**: shaped reward evaluated on parsed LLM contract output (`eff_add`,
-`eff_del` predicates).
+**Source**: shaped reward on parsed `{"eff_add", "eff_del"}` per GRPO sample;
+**each completion is scored on its own** (standalone contract, no union-merge
+with consensus for verification).
 
-Full path (with holdout verification):
+**Verification path** (holdout instances + `verify_config`; context from
+[`set_contract_reward_context`](skill_agents_grpo/stage3_mvp/llm_contract.py)):
 
-```
-r = 0.50 * r_pass + 0.25 * r_literal + 0.15 * r_sparsity + 0.10 * r_coverage
-```
+- **Standalone pass rate** — weighted by per-instance **cumulative game reward**
+- **Start→end coverage** — F1 of `eff_add` vs `predicates_end`, `eff_del` vs
+  `predicates_start`, sparsity, **specificity** (effects that match true
+  gains/losses), plus a tiny **effect-identity fingerprint** so near-duplicate
+  effect sets still differ (avoids flat rewards across the group)
+- **Precision / recall** vs frequency consensus
+- **Reward align** — pass rate on high- vs low-reward holdouts
 
-- `r_pass` — `overall_pass_rate` from `verify_effects_contract()`
-- `r_literal` — mean per-literal success rate across eff_add + eff_del
-- `r_sparsity` — `max(0, 1 - max(0, n_literals - 20) / 20)`, penalizes verbose contracts
-- `r_coverage` — fraction of holdout instances passing the contract
-
-Structural fallback: 0.0 for null output, 0.05 for empty effects, else ~0.3-0.5
-with a sparsity bonus.
+**Fallback** (no holdout): same start/end F1 + sparsity + specificity +
+fingerprint; empty effects → `0.05`, `None` output → `0.0`.
 
 ### curator — `curator_reward()`
 
-**Source**: shaped reward evaluated on parsed curator approve/veto/defer decisions.
+**Source**: shaped reward on parsed `{"decisions": [{"idx", "verdict", "reason"}, ...]}`.
 
-Full path (with quality oracle):
+**Evidence path** (default when `action_outcomes` not set):
 
-```
-r = max(0, 0.5 + quality_delta) + conservative_bonus
-```
+- **Quality alignment** — continuous: approve scores with `skill_score`, veto
+  with `(1 - skill_score)`, defer mid-range
+- **Exploration** — bonus for approving **materialize** / **promote** with some
+  evidence (`pass_rate` / `skill_score` / `n_instances`)
+- **Reason quality** — cites metrics (`pass_rate`, `skill_score`, `n_instances`,
+  `skill_id`) in free text
 
-- `quality_delta` — q(filtered bank) - q(all actions applied): measures whether
-  the curator's filtering improved bank quality
-- `conservative_bonus` — 0.1 * (n_defer / n_total)
+**Outcomes path** (maintenance sets
+[`set_curator_reward_context`](skill_agents_grpo/bank_maintenance/llm_curator.py)
+with `action_outcomes`): weighted **approve/veto** correctness vs
+`succeeded` + `|quality_delta|`, blended with the evidence path and an
+**exploration** term for new-skill actions.
 
-Heuristic fallback (no quality functions):
+Curator prompt includes **mean skill score** and guidance to ground decisions in
+[`Skill.compute_skill_score()`](skill_agents_grpo/stage3_mvp/schemas.py) while
+encouraging new-skill exploration.
 
-```
-r = 0.3 + 0.3 * diversity + conservative_bonus + reason_bonus
-```
+### Per-rollout variance (GRPO advantage signal)
 
-- `diversity` — 1.0 - |approve_rate - 0.5| * 2.0, penalizes approve-all or reject-all
-- `reason_bonus` — 0.1 if all decisions include reasoning text
+[`GRPOCallWrapper`](skill_agents_grpo/grpo/wrapper.py) samples **G** completions
+at `temperature > 0` and scores each with `reward_fn(sample_i, *args, **kwargs)`.
+Rewards must **differ across samples** when outputs differ, or group advantages
+collapse to zero. The skill-bank reward functions above are designed so that
+different effect sets, preference rankings, or curator JSON produce different
+scores; regression tests live in
+[`tests/test_reward_variance.py`](tests/test_reward_variance.py) (with
+[`tests/test_quality_scoring.py`](tests/test_quality_scoring.py) for segment /
+skill quality scoring).
 
 ### Training flow
 
@@ -506,22 +526,39 @@ normalization within each group.
 
 ## Skill evaluation and exploration
 
-Skill quality is measured by `compute_skill_score()` on the `Skill` dataclass:
+**Sub-episode (segment) quality** — [`score_sub_episode()`](skill_agents_grpo/quality/sub_episode_evaluator.py)
+writes `SubEpisodeRef.quality_score` using configurable
+`SegmentQualityWeights`: **episode credit** (normalized cumulative game reward),
+**local progress** (outcome), **segmentation validity** (compactness + tag
+consistency), **contract validity** (`contract_pass_rate` / threshold), and a
+**novelty bonus** only when the segment is valid and contract-verifiable.
+
+**Skill-level score** — `Skill.compute_skill_score()` in
+[`schemas.py`](skill_agents_grpo/stage3_mvp/schemas.py) (no longer dominated by raw
+usage frequency):
 
 ```
-skill_score = 0.5 * mean(quality_score) + 0.5 * usage_frequency
+skill_score ≈ w_seg * mean(quality_score)
+           + w_reuse * reuse_success
+           + w_contract * contract_pass
+           + w_consistency * cross_episode_consistency
+           + w_explore * exploration_value
 ```
 
-- `quality_score` — min-max normalized composite score per sub-episode (reward,
-  follow-through, compactness, consistency). Already in [0, 1].
-- `usage_frequency` — `min(1.0, n_selections / fair_share)` where
-  `fair_share = total_selections / bank_size`. New skills with no sub-episodes
-  return 0.5 (benefit of the doubt).
+- **reuse_success** — successful outcomes on sub-episodes (with evidence scaling),
+  not raw selection counts
+- **contract_pass** — verification pass rate when provided
+- **cross_episode_consistency** — stability of rewards across episodes
+- **exploration_value** — small bonus for young skills with a real contract
 
-Used in bank maintenance:
-- **Retirement**: `skill_score < 0.2` AND `n_sub_episodes >= 5`
-- **Protocol refinement**: triggered when `skill_score < 0.35`
-- **Curator prompt**: includes `Skill score: X.XX` for each action
+Weights are overridable via an optional `weights` dict; empty sub-episodes
+return `0.5` for backward compatibility.
+
+Used in bank maintenance and GRPO context:
+- **Retirement / refinement thresholds** — still use `skill_score` heuristics as before
+- **Curator candidates** — [`_collect_curator_candidates`](skill_agents_grpo/bank_maintenance/run_bank_maintenance.py) fills `skill_score` via `compute_skill_score()`
+- **Segmentation GRPO** — pipeline passes per-skill scores as `bank_skill_scores`
+- **Tests**: [`tests/test_quality_scoring.py`](tests/test_quality_scoring.py)
 
 Skill selection uses a **UCB exploration bonus** to encourage trying
 under-selected skills:
@@ -551,6 +588,8 @@ The training code lives in **[trainer/](trainer/)** and implements co-evolution 
 ## Decision Agent (Agent A) — Qwen3-8B + LoRA GRPO
 
 The Decision Agent is **LLM-only**: it consumes **text** state summaries from wrappers (NL observations, structured `key=value` fields), not raw images or a vision encoder. It selects primitive game actions and tool calls (`QUERY_SKILL`, `CALL_SKILL`, `QUERY_MEM`) against the current skill bank. **Default training:** **GRPO** with group-normalized advantages over frozen Qwen3-8B + LoRA, implemented as **multi-GPU FSDP** in [`skill_agents_grpo/grpo/fsdp_trainer.py`](skill_agents_grpo/grpo/fsdp_trainer.py) (invoked from [`trainer/coevolution/grpo_training.py`](trainer/coevolution/grpo_training.py)). **Optional:** VERL / `GameAITrainer` (`RayPPOTrainer`, `adv_estimator=grpo`) when using [verl-agent](https://github.com/verl-project/verl-agent).
+
+**Note:** The skill-bank FSDP trainer does **not** wrap the full model in `torch.compile(dynamic=True)` (PyTorch Inductor can fail on these graphs); `torch.set_float32_matmul_precision("high")` is still applied.
 
 **Training settings** (targets; see co-evolution config and [`scripts/configs/decision_agent_grpo_80gb.yaml`](scripts/configs/decision_agent_grpo_80gb.yaml) for YAML-aligned hyperparameters):
 
@@ -611,7 +650,7 @@ The Skill Bank Agent processes trajectory rollouts from the Decision Agent throu
 
 **Components**: [trainer/skillbank/em_trainer.py](trainer/skillbank/em_trainer.py) (with segmentation store), [trainer/skillbank/stages/](trainer/skillbank/stages/), [trainer/skillbank/bank_io/](trainer/skillbank/bank_io/) (versioned store, indices, diff logger), [trainer/skillbank/learners/](trainer/skillbank/learners/) (boundary classifier, tie-breaker). LoRA routing via [skill_agents_grpo/lora/](skill_agents_grpo/lora/) — `SkillFunction` enum, `MultiLoraSkillBankLLM`, adapter routing. LLM calls use [skill_agents/_llm_compat.py](skill_agents/_llm_compat.py) for reasoning-model compatibility (`/no_think`, think-tag stripping).
 
-See [skill_agents_grpo/README.md](skill_agents_grpo/README.md) for the full GRPO skill bank pipeline and [TODO_Lists/SKILLBANK_GRPO_PLAN.md](TODO_Lists/SKILLBANK_GRPO_PLAN.md) for the training plan.
+See [skill_agents_grpo/README.md](skill_agents_grpo/README.md) for the full GRPO skill bank pipeline and [TODO_Lists/SKILLBANK_GRPO_PLAN.md](TODO_Lists/SKILLBANK_GRPO_PLAN.md) for the training plan. **Reward design** for SEGMENT / CONTRACT / CURATOR adapters is documented under [§ GRPO reward functions (per adapter)](#grpo-reward-functions-per-adapter) (decision-agent section).
 
 ### LoRA input / output examples (illustrative)
 

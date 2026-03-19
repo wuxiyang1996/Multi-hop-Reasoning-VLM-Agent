@@ -1101,17 +1101,7 @@ def _fsdp_train_worker_multi(rank: int, args: Dict[str, Any]) -> None:
         )
 
         torch.set_float32_matmul_precision("high")
-        try:
-            torch._dynamo.config.cache_size_limit = 64
-            torch._dynamo.config.suppress_errors = True
-            model = torch.compile(model, dynamic=True)
-            if is_main:
-                logger.info("torch.compile(dynamic=True) applied to persistent FSDP model")
-        except Exception as exc:
-            if is_main:
-                logger.warning(
-                    "torch.compile unavailable, continuing without: %s", exc,
-                )
+        torch._dynamo.config.suppress_errors = True
 
         init_time = time.time() - t_init
         if is_main:

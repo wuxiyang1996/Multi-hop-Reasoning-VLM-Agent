@@ -37,17 +37,26 @@ def set_contract_reward_context(
     consensus_del: Optional[Set[str]] = None,
     holdout_instances: Optional[list] = None,
     verify_config: Optional[Any] = None,
+    instance_rewards: Optional[List[float]] = None,
 ) -> None:
     """Update the per-thread contract reward context.
 
     Called from the Stage 3 pipeline right before ``llm_summarize_contract``
     so that the GRPO reward function uses the real verification path.
+
+    Parameters
+    ----------
+    instance_rewards : list[float], optional
+        Per-holdout-instance cumulative game reward, parallel to
+        *holdout_instances*.  Used to weight verification so effects
+        holding in high-reward instances matter more.
     """
     _reward_ctx.data = {
         "consensus_add": consensus_add,
         "consensus_del": consensus_del,
         "holdout_instances": holdout_instances,
         "verify_config": verify_config,
+        "instance_rewards": instance_rewards,
     }
 
 
@@ -222,7 +231,8 @@ def enable_contract_grpo(
         passthrough = {
             k: v for k, v in kwargs.items()
             if k not in ("consensus_add", "consensus_del",
-                         "holdout_instances", "verify_config")
+                         "holdout_instances", "verify_config",
+                         "instance_rewards")
         }
         return contract_reward(
             llm_output, *args,
@@ -230,6 +240,7 @@ def enable_contract_grpo(
             consensus_del=ctx.get("consensus_del"),
             holdout_instances=ctx.get("holdout_instances"),
             verify_config=ctx.get("verify_config"),
+            instance_rewards=ctx.get("instance_rewards"),
             **passthrough,
         )
 
