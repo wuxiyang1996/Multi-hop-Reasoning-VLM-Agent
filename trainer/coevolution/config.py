@@ -107,7 +107,7 @@ class CoEvolutionConfig:
     max_tokens: int = 512
     vllm_base_url: str = "http://localhost:8000/v1"  # used only when manage_vllm=False
     vllm_base_port: int = 8000
-    vllm_gpu_util: float = 0.90
+    vllm_gpu_util: float = 0.95
 
     # Speculative decoding — use a small draft model to propose tokens
     # that the main model verifies in parallel (~2-3x generation speedup).

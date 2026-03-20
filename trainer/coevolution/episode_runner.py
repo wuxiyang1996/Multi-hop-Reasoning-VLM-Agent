@@ -411,6 +411,7 @@ async def _generate_intention(
     urgency: str,
     skill_guidance: Optional[Dict[str, Any]],
     last_action: str,
+    tag_history: Optional[List[str]] = None,
 ) -> str:
     """Generate a ``[TAG] subgoal`` via the **base model** (no LoRA).
 
@@ -420,7 +421,8 @@ async def _generate_intention(
     collapsed to a single tag.
     """
     imp = _lazy_imports()
-    tags_str = "|".join(imp["SUBGOAL_TAGS"])
+    SUBGOAL_TAGS = imp["SUBGOAL_TAGS"]
+    tags_str = "|".join(SUBGOAL_TAGS)
     facts_line = f"Facts: {summary_state}\n" if summary_state else ""
     delta_line = f"Changed: {delta}\n" if delta else ""
     urgency_line = f"URGENCY: {urgency}\n" if urgency else ""
@@ -430,6 +432,20 @@ async def _generate_intention(
         "pick a NEW tag that matches the new priority.\n"
         if delta or urgency else ""
     )
+
+    diversity_hint = ""
+    if tag_history and len(tag_history) >= 5:
+        from collections import Counter
+        window = tag_history[-10:]
+        counts = Counter(window)
+        top_tag, top_count = counts.most_common(1)[0]
+        if top_count / len(window) > 0.5:
+            others = [t for t in SUBGOAL_TAGS if t != top_tag][:4]
+            diversity_hint = (
+                f"DIVERSITY: You used [{top_tag}] {top_count}/{len(window)} "
+                f"recent steps. Try a DIFFERENT tag like "
+                f"{', '.join(others)}.\n"
+            )
 
     skill_context = ""
     if skill_guidance and skill_guidance.get("skill_id"):
@@ -471,6 +487,7 @@ async def _generate_intention(
         f"{skill_context}"
         f"{prev_line}"
         f"{shift_hint}"
+        f"{diversity_hint}"
         f"{examples}\n"
         f"What subgoal? Reply ONLY: [TAG] phrase "
         f"(max {INTENTION_WORD_BUDGET} words)\n"
@@ -481,7 +498,7 @@ async def _generate_intention(
     try:
         result = await vllm_client.generate_chat(
             [{"role": "user", "content": prompt}],
-            adapter="base", temperature=0.7, max_tokens=512,
+            adapter="base", temperature=0.7, max_tokens=96,
         )
         text = result.text.strip() if result.text else ""
         if text:
@@ -972,6 +989,7 @@ async def run_episode_async(
 
     recent_actions: List[str] = []
     recent_rewards: List[float] = []
+    tag_history: List[str] = []
     skill_tracker = _SkillTracker()
     last_guidance: Optional[Dict[str, Any]] = None
     last_candidates: List[Dict[str, Any]] = []
@@ -1006,7 +1024,7 @@ async def run_episode_async(
         )
         summary_coro = vllm_client.generate_chat(
             [{"role": "user", "content": summary_prompt}],
-            adapter="base", temperature=0.2, max_tokens=150,
+            adapter="base", temperature=0.2, max_tokens=64,
         )
 
         # Intention generation — base model, no LoRA, higher temp
@@ -1021,6 +1039,7 @@ async def run_episode_async(
             urgency=urgency,
             skill_guidance=last_guidance,
             last_action=recent_actions[-1] if recent_actions else "start",
+            tag_history=tag_history,
         )
 
         need_reselect = skill_tracker.should_reselect(
@@ -1150,7 +1169,7 @@ async def run_episode_async(
         action_result = await vllm_client.generate_chat(
             [{"role": "user", "content": action_prompt}],
             adapter="action_taking",
-            temperature=temperature, max_tokens=384,
+            temperature=temperature, max_tokens=64,
             stop=["\n\nAvailable", "\n\nGame state", "\n\n---"],
         )
         action, reasoning, parsed_intention = _parse_action_response(
@@ -1261,6 +1280,9 @@ async def run_episode_async(
 
         prev_summary_state = summary_state
         prev_intention = current_intention
+        m = _TAG_RE.match(current_intention) if current_intention else None
+        if m:
+            tag_history.append(m.group(1).upper())
         obs_nl = next_obs_nl
         action_names = next_action_names
         structured_state = next_structured_state

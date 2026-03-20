@@ -230,6 +230,10 @@ class AsyncVLLMClient:
             adapter=used_adapter,
         )
 
+    _DEFAULT_EXTRA_BODY: Dict[str, Any] = {
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
+
     async def generate_chat(
         self,
         messages: List[Dict[str, str]],
@@ -238,8 +242,13 @@ class AsyncVLLMClient:
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         stop: Optional[List[str]] = None,
+        extra_body: Optional[Dict[str, Any]] = None,
     ) -> GenerateResult:
-        """Chat-completion variant that lets vLLM apply the chat template."""
+        """Chat-completion variant that lets vLLM apply the chat template.
+
+        Thinking is disabled by default to avoid wasting tokens on
+        ``<think>`` blocks.  Pass ``extra_body={}`` to override.
+        """
         t0 = time.monotonic()
         temp = temperature if temperature is not None else self.default_temperature
         mtok = max_tokens if max_tokens is not None else self.default_max_tokens
@@ -249,9 +258,12 @@ class AsyncVLLMClient:
         if adapter and adapter in ADAPTER_MAP and ADAPTER_MAP[adapter] is not None:
             model_id = ADAPTER_MAP[adapter]
 
+        effective_extra = extra_body if extra_body is not None else self._DEFAULT_EXTRA_BODY
         extra_kwargs: Dict[str, Any] = {}
         if stop:
             extra_kwargs["stop"] = stop
+        if effective_extra:
+            extra_kwargs["extra_body"] = effective_extra
 
         client = self._next_client()
         try:

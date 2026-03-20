@@ -17,8 +17,8 @@ Typical lifecycle::
 Memory budget per instance (Qwen3-8B, A100-80GB, TP=1):
   - Model weights (bf16):    ~16 GB
   - Draft model (0.6B bf16): ~1.2 GB  (speculative decoding)
-  - KV cache (gpu_util=0.9): ~55 GB  →  ~340 max sequences @ 1K tokens
-  - Total:                   ~72 GB / 80 GB
+  - KV cache (gpu_util=0.95): ~59 GB  →  ~365 max sequences @ 1K tokens
+  - Total:                    ~76 GB / 80 GB
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ class VLLMServerManager:
         adapter_dir: str,
         gpu_ids: List[int],
         base_port: int = 8000,
-        gpu_util: float = 0.90,
+        gpu_util: float = 0.95,
         max_num_seqs: int = 128,
         enforce_eager: bool = False,
         log_dir: Optional[str] = None,
@@ -204,6 +204,7 @@ class VLLMServerManager:
                 "--enable-prefix-caching",
                 "--enable-chunked-prefill",
                 "--max-num-seqs", str(self.max_num_seqs),
+                "--max-num-batched-tokens", "16384",
                 "--port", str(port),
                 "--trust-remote-code",
             ]

@@ -115,15 +115,18 @@ def _get_ask_model():
     """
     from skill_agents_grpo._llm_compat import wrap_ask_for_reasoning_models
 
+    _hint = "Qwen/Qwen3-8B"
     try:
         from skill_agents_grpo.lora import MultiLoraSkillBankLLM, SkillFunction
         llm = MultiLoraSkillBankLLM.get_shared_instance()
         if llm is not None:
-            return wrap_ask_for_reasoning_models(llm.as_ask_fn(SkillFunction.SEGMENT))
+            return wrap_ask_for_reasoning_models(
+                llm.as_ask_fn(SkillFunction.SEGMENT), model_hint=_hint,
+            )
     except Exception:
         pass
     from API_func import ask_model
-    return wrap_ask_for_reasoning_models(ask_model)
+    return wrap_ask_for_reasoning_models(ask_model, model_hint=_hint)
 
 
 def _wrap_ask_with_semaphore(ask: Callable, max_concurrent: int):

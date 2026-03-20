@@ -92,12 +92,13 @@ def _get_contract_ask_fn() -> Optional[Callable[..., str]]:
     """
     from skill_agents_grpo._llm_compat import wrap_ask_for_reasoning_models
 
+    _hint = "Qwen/Qwen3-8B"
     try:
         from skill_agents_grpo.lora import MultiLoraSkillBankLLM, SkillFunction
         llm = MultiLoraSkillBankLLM.get_shared_instance()
         if llm is not None:
             return wrap_ask_for_reasoning_models(
-                llm.as_ask_fn(SkillFunction.CONTRACT),
+                llm.as_ask_fn(SkillFunction.CONTRACT), model_hint=_hint,
             )
     except Exception:
         pass
@@ -105,11 +106,11 @@ def _get_contract_ask_fn() -> Optional[Callable[..., str]]:
         from API_func import ask_vllm, _probe_vllm
         if _probe_vllm():
             logger.debug("CONTRACT fallback: using local vLLM")
-            return wrap_ask_for_reasoning_models(ask_vllm)
+            return wrap_ask_for_reasoning_models(ask_vllm, model_hint=_hint)
     except Exception:
         pass
     from API_func import ask_model
-    return wrap_ask_for_reasoning_models(ask_model)
+    return wrap_ask_for_reasoning_models(ask_model, model_hint=_hint)
 
 
 def _build_contract_prompt(

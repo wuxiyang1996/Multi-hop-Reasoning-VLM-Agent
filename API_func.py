@@ -212,6 +212,7 @@ def ask_vllm(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
             messages=[{"role": "user", "content": question}],
             temperature=temperature,
             max_tokens=max_tokens,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
         )
         raw = response.choices[0].message.content or ""
         return _strip_think_tags(raw)
