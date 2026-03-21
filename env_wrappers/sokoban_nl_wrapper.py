@@ -391,6 +391,7 @@ def table_obs_to_grid(obs_text: str) -> Optional[List[List[str]]]:
         "box": "$",
         "dock": "?",
         "box on dock": "*",
+        "worker on dock": "+",
         "empty": " ",
     }
 

@@ -283,3 +283,54 @@ and anti-repetition guards.
 
 **Config change:**
 - `max_memory`: 10 → 15 (more trajectory context for richer reflections)
+
+---
+
+## 007 — Tetris: revert board-quality reward shaping (2026-03-21)
+
+**File changed:**
+- `GamingAgent/gamingagent/envs/custom_04_tetris/tetrisEnv.py` — `_commit_active_tetromino()`
+
+**Copies:** `patches/007_tetris_revert_shaping/tetrisEnv.py`
+
+**Reverts:** Patch 005
+
+**Problem:**
+The board-quality shaping introduced in patch 005 (hole penalties, height
+penalties) was counterproductive during co-evolution training. Analysis of
+`Qwen3-8B_20260321_065208` (steps 0-4, 40 tetris episodes) showed:
+
+1. **Zero lines cleared in all 40 episodes.** The agent never clears a
+   line. Without the +10.0 line-clear bonus, the only positive signal is
+   +1.0 per piece placed.
+
+2. **Shaping penalties swamp the base reward.** Mean shaping penalty was
+   -10 to -15 per episode, turning an original reward of +8 to +10 (pieces
+   placed) into a shaped reward of -1 to -6. GRPO saw deeply negative
+   rewards for episodes that were actually surviving decently.
+
+3. **Reward signal inverted.** An episode placing 18 pieces (good survival)
+   got shaped reward +2.75 but original reward +18.0 — the shaping ate
+   15.25 points. GRPO could not distinguish good from bad play because
+   the dominant signal was hole/height noise, not gameplay quality.
+
+4. **Original metric was stable.** Under the original reward (just pieces
+   placed), mean reward was steady at +8.8 to +10.4 across all 5 steps.
+   The agent was not regressing — the shaping was manufacturing false
+   regression.
+
+The shaping was designed to break a hard_drop spam reward trap (patch 005),
+but the macro action wrapper already solved this by presenting only
+evaluated placements with hole/height info in the action descriptions. The
+agent already sees `Z-flat col3 (+2holes, h=8)` vs `Z-flat col5 (0holes,
+h=4)` — it doesn't need reward penalties to learn positioning.
+
+**Fix:**
+Removed the three shaping components from `_commit_active_tetromino()`:
+- `-0.3 × new_holes` penalty (removed)
+- `+0.2 × holes_filled` bonus (removed)
+- `-0.5 × (height/20 - 0.75)` height penalty (removed)
+- `_board_holes()` pre-check before placement (removed — method retained
+  for observation use)
+
+Reward is now the original: `REWARD_PIECE_PLACED (+1.0) + lines × REWARD_PER_LINE_CLEARED (+10.0)`. Always non-negative.

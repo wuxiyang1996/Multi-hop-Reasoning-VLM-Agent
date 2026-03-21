@@ -388,8 +388,12 @@ def _extract_sokoban_facts(state: str) -> Dict[str, str]:
         pos = (int(m.group(2)), int(m.group(3)))
         if "worker" in item:
             worker_pos = pos
+            if "dock" in item:
+                docks.append(pos)
         elif "box" in item and "dark" not in item:
             boxes.append(pos)
+            if "dock" in item:
+                docks.append(pos)
         elif "dock" in item:
             docks.append(pos)
     if worker_pos:
