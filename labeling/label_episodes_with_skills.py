@@ -32,7 +32,7 @@ Output structure (labeling/output/gpt54_with_skills/<game_name>/):
   - episode_NNN.json        Labeled episode (original + new fields)
   - labeling_summary.json   Run statistics
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export OPENROUTER_API_KEY="sk-or-..."
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"

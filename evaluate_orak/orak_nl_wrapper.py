@@ -23,14 +23,22 @@ Usage:
 
 from __future__ import annotations
 
+import atexit
 import contextlib
+import logging
 import os
+import random
 import re
+import shutil
 import sys
+import tempfile
+import time as _time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
@@ -61,6 +69,139 @@ def _orak_cwd():
 def _cfg_path(game: str) -> str:
     """Resolve config.yaml path from the Orak repo."""
     return str(_ORAK_MCP_AGENTS / "configs" / game / "config.yaml")
+
+
+_pokemon_warnings_suppressed = False
+
+
+def _suppress_pokemon_map_warnings() -> None:
+    """Monkey-patch PyBoyRunner to silence '[WARN] asm not found' and
+    '[WARN] Map module not found' prints that fire on every state read."""
+    global _pokemon_warnings_suppressed
+    if _pokemon_warnings_suppressed:
+        return
+    _pokemon_warnings_suppressed = True
+    try:
+        import io as _io
+        import mcp_game_servers.pokemon_red.game.pyboy_runner as _pbr
+
+        _orig_load_map = _pbr.load_map_module
+
+        def _quiet_load_map(map_name: str):
+            old_stdout = sys.stdout
+            sys.stdout = _io.StringIO()
+            try:
+                return _orig_load_map(map_name)
+            finally:
+                sys.stdout = old_stdout
+
+        _pbr.load_map_module = _quiet_load_map
+
+        _orig_parse = _pbr.parse_object_sprites
+
+        def _quiet_parse(asm_path: str):
+            old_stdout = sys.stdout
+            sys.stdout = _io.StringIO()
+            try:
+                return _orig_parse(asm_path)
+            finally:
+                sys.stdout = old_stdout
+
+        _pbr.parse_object_sprites = _quiet_parse
+    except Exception:
+        pass
+
+
+_POKEMON_TOOL_ACTIONS = frozenset({
+    "move_to", "interact_with_object", "warp_with_warp_point",
+    "continue_dialog", "select_move_in_battle",
+    "switch_pkmn_in_battle", "run_away", "use_item_in_battle",
+})
+
+
+# ── Pokemon Red intro skip ────────────────────────────────────────────
+
+def _skip_pokemon_red_intro(env: Any, max_presses: int = 350) -> None:
+    """Press through title screen, NEW GAME, Oak intro, and naming.
+
+    Brings the game from Title screen to Field state (Red's bedroom).
+    Adapted from cold_start/generate_cold_start_pokemon_red.py.
+    """
+    runner = env.runner
+    last_text = ""
+    same = 0
+    field_confirm = 0
+    FIELD_CONFIRM_NEEDED = 3
+
+    for i in range(max_presses):
+        state = runner.get_battle_state()
+
+        if state == "Field":
+            mem = runner.pyboy.memory
+            map_h = mem[0xD368]
+            party_count = mem[0xD163]
+            if map_h > 0 or party_count > 0:
+                field_confirm += 1
+                if field_confirm >= FIELD_CONFIRM_NEEDED:
+                    logger.info(
+                        "Pokemon Red intro skipped after %d presses "
+                        "(map_h=%d, party=%d)",
+                        i, map_h, party_count,
+                    )
+                    return
+                _time.sleep(0.15)
+                continue
+            else:
+                field_confirm = 0
+        else:
+            field_confirm = 0
+
+        dialog = runner.get_dialog()
+        text_portion = (
+            dialog.split("[Selection Box Text]")[0] if dialog else ""
+        )
+
+        if text_portion == last_text:
+            same += 1
+        else:
+            same = 0
+            last_text = text_portion
+
+        if same >= 5:
+            runner.send_input("down")
+            _time.sleep(0.15)
+            runner.send_input("a")
+            _time.sleep(0.15)
+            same = 0
+        else:
+            runner.send_input("a")
+            _time.sleep(0.15)
+
+    logger.warning("Pokemon Red intro skip: hit max presses (%d)", max_presses)
+
+
+# ── Pokemon Red PokemonToolset integration ─────────────────────────────
+
+class _PokemonAgentMemory:
+    """Minimal memory object matching what PokemonToolset expects."""
+    __slots__ = ("state_dict", "map_memory_dict", "dialog_buffer")
+
+    def __init__(self) -> None:
+        self.state_dict: Dict[str, Any] = {}
+        self.map_memory_dict: Dict[str, Any] = {}
+        self.dialog_buffer: List[str] = []
+
+
+class _PokemonAgentShell:
+    """Minimal agent wrapper matching what PokemonToolset expects.
+
+    PokemonToolset accesses ``self.agent.env`` and ``self.agent.memory``.
+    """
+    __slots__ = ("env", "memory")
+
+    def __init__(self, env: Any) -> None:
+        self.env = env
+        self.memory = _PokemonAgentMemory()
 
 
 ORAK_GAMES: Dict[str, Dict[str, Any]] = {
@@ -187,7 +328,7 @@ class OrakNLWrapper:
     """
     Wraps an Orak BaseEnv so observations are NL strings and step()
     accepts string actions. Presents the same interface as other
-    Game-AI-Agent NL wrappers.
+    Multi-hop-Reasoning-VLM-Agent NL wrappers.
     """
 
     def __init__(
@@ -203,10 +344,14 @@ class OrakNLWrapper:
         self._max_steps = max_steps
         self._step_count = 0
         self._last_reward: Optional[float] = None
+        self._prev_score_val: float = 0.0
 
         game_info = ORAK_GAMES.get(game_name, {})
         self._action_names: List[str] = game_info.get("action_names", [])
         self._task: str = game_info.get("task", "")
+
+        self._pokemon_toolset: Any = None
+        self._pokemon_agent: Optional[_PokemonAgentShell] = None
 
     @property
     def env(self):
@@ -240,6 +385,7 @@ class OrakNLWrapper:
     ) -> Tuple[str, Dict[str, Any]]:
         self._step_count = 0
         self._last_reward = None
+        self._prev_score_val = 0.0
 
         with _orak_cwd():
             # Orak BaseEnv uses initial_obs() rather than Gymnasium's reset()
@@ -289,6 +435,12 @@ class OrakNLWrapper:
     ) -> Tuple[str, float, bool, bool, Dict[str, Any]]:
         action_str = str(action).strip()
 
+        if (
+            self._game_name == "pokemon_red"
+            and action_str.lower() in _POKEMON_TOOL_ACTIONS
+        ):
+            return self._pokemon_tool_step(action_str.lower())
+
         with _orak_cwd():
             action_obj = self._env.text2action(action_str)
 
@@ -300,15 +452,31 @@ class OrakNLWrapper:
             score, done = self._env.evaluate(obs_obj)
             obs_text = _obs_to_text(obs_obj, self._env)
 
-        # SC2 evaluate() returns (result_name, done) where result_name is
-        # a string like "Victory"/"Defeat"/"Tie" or None while in progress.
+        # Convert evaluate() score → numeric reward (delta-based).
+        #
+        # evaluate() return formats vary by game:
+        #   SC2:         ("Victory"|"Defeat"|"Tie"|None, done)
+        #   Pokemon Red: ("8.3 (1/12)", done)  — numeric prefix with milestone info
+        #   Mario:       (float, done)
+        #   Others:      (float|str|None, done)
+        _SC2_RESULT_MAP = {"Victory": 100.0, "Defeat": 0.0, "Tie": 50.0}
+        score_val = 0.0
         if isinstance(score, str):
-            _SC2_RESULT_MAP = {"Victory": 100.0, "Defeat": 0.0, "Tie": 50.0}
-            reward = _SC2_RESULT_MAP.get(score, 0.0)
+            if score in _SC2_RESULT_MAP:
+                score_val = _SC2_RESULT_MAP[score]
+            else:
+                try:
+                    score_val = float(score.split("(")[0].strip())
+                except (ValueError, AttributeError):
+                    score_val = 0.0
         elif score is not None:
-            reward = float(score)
-        else:
-            reward = float(reward_raw or 0)
+            try:
+                score_val = float(score)
+            except (ValueError, TypeError):
+                score_val = 0.0
+
+        reward = score_val - self._prev_score_val
+        self._prev_score_val = score_val
 
         self._step_count += 1
         self._last_reward = reward
@@ -333,6 +501,315 @@ class OrakNLWrapper:
             **game_info,
         }
         return nl, reward, bool(terminated or done), bool(truncated), info
+
+    # ── Pokemon Red tool action support ──────────────────────────────
+
+    def _init_pokemon_toolset(self) -> None:
+        """Lazy-init PokemonToolset for handling high-level actions."""
+        from mcp_game_servers.pokemon_red.game.utils.pokemon_tools import (
+            PokemonToolset,
+        )
+        self._pokemon_agent = _PokemonAgentShell(self._env)
+        self._pokemon_toolset = PokemonToolset(self._pokemon_agent)
+
+    def _sync_pokemon_state(self) -> None:
+        """Sync PokemonToolset agent memory with env state."""
+        agent = self._pokemon_agent
+        env = self._env
+        if not env.state_dict:
+            state_text = env._receive_state()
+            env.state_text = state_text
+            env.state_dict = env.parse_game_state(state_text)
+        agent.memory.state_dict = env.state_dict.copy()
+        map_name = agent.memory.state_dict.get("map_info", {}).get("map_name")
+        if map_name and agent.memory.state_dict.get("map_info", {}).get("x_max") is not None:
+            try:
+                agent.memory.map_memory_dict = (
+                    self._pokemon_toolset.get_map_memory_dict(
+                        agent.memory.state_dict,
+                        agent.memory.map_memory_dict,
+                    )
+                )
+            except Exception:
+                pass
+
+    def _pokemon_finalize_step(self) -> Tuple[str, float, bool, bool, Dict[str, Any]]:
+        """After a tool action, read new state, evaluate, return step tuple."""
+        env = self._env
+
+        with _orak_cwd():
+            state_text = env._receive_state()
+            env.state_text = state_text
+            env.state_dict = env.parse_game_state(state_text)
+
+            from mcp_game_servers.pokemon_red.game.pokemon_red_env import (
+                PokemonRedObs,
+            )
+            obs = PokemonRedObs(state_text=state_text, image=None)
+            obs_text = env.obs2text(obs)
+            score, done = env.evaluate(obs)
+
+        score_val = 0.0
+        if isinstance(score, str):
+            try:
+                score_val = float(score.split("(")[0].strip())
+            except (ValueError, AttributeError):
+                score_val = 0.0
+        elif score is not None:
+            try:
+                score_val = float(score)
+            except (ValueError, TypeError):
+                score_val = 0.0
+
+        reward = score_val - self._prev_score_val
+        self._prev_score_val = score_val
+
+        self._step_count += 1
+        self._last_reward = reward
+
+        truncated = False
+        if self._step_count >= self._max_steps and not done:
+            truncated = True
+
+        nl = self._format_obs(obs_text)
+        game_info = {}
+        if hasattr(env, "get_game_info"):
+            game_info = env.get_game_info() or {}
+
+        info: Dict[str, Any] = {
+            "state_natural_language": nl,
+            "action_names": self._action_names,
+            "env_name": "orak",
+            "game_name": self._game_name,
+            "step": self._step_count,
+            "score": score,
+            "task": self._task,
+            **game_info,
+        }
+        return nl, reward, bool(done), bool(truncated), info
+
+    def _pokemon_tool_step(
+        self, action_str: str,
+    ) -> Tuple[str, float, bool, bool, Dict[str, Any]]:
+        """Execute a Pokemon Red tool action and return a step tuple."""
+        if self._pokemon_toolset is None:
+            self._init_pokemon_toolset()
+
+        env = self._env
+        # Save prev state for evaluate() delta comparison
+        env.prev_state_text = env.state_text
+        env.prev_state_dict = (
+            env.state_dict.copy() if isinstance(env.state_dict, dict)
+            else env.state_dict
+        )
+        self._sync_pokemon_state()
+
+        toolset = self._pokemon_toolset
+
+        with _orak_cwd():
+            try:
+                if action_str == "continue_dialog":
+                    toolset.continue_dialog()
+                elif action_str == "run_away":
+                    toolset.run_away()
+                elif action_str == "select_move_in_battle":
+                    self._pokemon_auto_attack()
+                elif action_str == "switch_pkmn_in_battle":
+                    self._pokemon_auto_switch()
+                elif action_str == "move_to":
+                    self._pokemon_auto_move()
+                elif action_str == "interact_with_object":
+                    self._pokemon_auto_interact()
+                elif action_str == "warp_with_warp_point":
+                    self._pokemon_auto_warp()
+                elif action_str == "use_item_in_battle":
+                    self._pokemon_auto_use_item()
+            except Exception as exc:
+                logger.debug("Pokemon tool %s failed: %s", action_str, exc)
+
+        return self._pokemon_finalize_step()
+
+    # -- Simplified tool implementations for parameterized actions ------
+
+    def _pokemon_auto_attack(self) -> None:
+        """FIGHT -> first available move."""
+        env = self._env
+        state = self._pokemon_agent.memory.state_dict
+        if "Battle" not in state.get("state", ""):
+            env.send_action_set(["a"])
+            _time.sleep(0.5)
+            return
+        # Navigate to FIGHT (up-left) and press A
+        env.send_action_set(["up", "left", "a"])
+        _time.sleep(0.3)
+        # Select first move (top-left) and press A
+        env.send_action_set(["up", "left", "a"])
+        _time.sleep(1.0)
+        self._pokemon_mash_a_until_actionable()
+
+    def _pokemon_auto_switch(self) -> None:
+        """PKMN -> first pokemon -> SWITCH."""
+        env = self._env
+        state = self._pokemon_agent.memory.state_dict
+        if "Battle" not in state.get("state", ""):
+            env.send_action_set(["a"])
+            _time.sleep(0.5)
+            return
+        env.send_action_set(["up", "right", "a"])
+        _time.sleep(0.3)
+        env.send_action_set(["a"])
+        _time.sleep(0.3)
+        env.send_action_set(["a"])
+        _time.sleep(1.0)
+        self._pokemon_mash_a_until_actionable()
+
+    def _pokemon_auto_use_item(self) -> None:
+        """ITEM -> first item -> USE."""
+        env = self._env
+        state = self._pokemon_agent.memory.state_dict
+        if "Battle" not in state.get("state", ""):
+            env.send_action_set(["a"])
+            _time.sleep(0.5)
+            return
+        env.send_action_set(["down", "left", "a"])
+        _time.sleep(0.3)
+        env.send_action_set(["a"])
+        _time.sleep(0.3)
+        env.send_action_set(["a"])
+        _time.sleep(1.0)
+        self._pokemon_mash_a_until_actionable()
+
+    def _pokemon_auto_move(self) -> None:
+        """Without coordinates, try to move toward a warp point or explore."""
+        env = self._env
+        agent = self._pokemon_agent
+        state = agent.memory.state_dict
+        if state.get("state") != "Field":
+            env.send_action_set(["a"])
+            _time.sleep(0.5)
+            return
+
+        map_name = state.get("map_info", {}).get("map_name", "")
+        mm = agent.memory.map_memory_dict.get(map_name, {})
+        explored_map = mm.get("explored_map", [])
+
+        if explored_map:
+            px = state["map_info"].get("player_pos_x", 0)
+            py = state["map_info"].get("player_pos_y", 0)
+            try:
+                success, path = self._pokemon_toolset._find_path_inner(
+                    *self._pokemon_pick_target(explored_map, px, py)
+                )
+                if success and path:
+                    cmds = re.split(r"[|/;, \t\n]+", path)[:8]
+                    for c in cmds:
+                        env.send_action_set([c])
+                        _time.sleep(0.3)
+                    return
+            except Exception:
+                pass
+
+        direction = random.choice(["up", "down", "left", "right"])
+        for _ in range(3):
+            env.send_action_set([direction])
+            _time.sleep(0.3)
+
+    def _pokemon_pick_target(
+        self, explored_map: list, px: int, py: int,
+    ) -> Tuple[int, int]:
+        """Pick a useful destination: nearest WarpPoint, or unexplored tile."""
+        warp_points = []
+        walkable = []
+        for y, row in enumerate(explored_map):
+            for x, cell in enumerate(row):
+                if cell == "WarpPoint":
+                    warp_points.append((x, y))
+                elif cell in ("O", "G") and (x, y) != (px, py):
+                    walkable.append((x, y))
+
+        best = None
+        best_dist = float("inf")
+        for x, y in warp_points:
+            d = abs(x - px) + abs(y - py)
+            if 0 < d < best_dist:
+                best = (x, y)
+                best_dist = d
+        if best:
+            return best
+
+        if walkable:
+            random.shuffle(walkable)
+            return walkable[0]
+        return (px, py)
+
+    def _pokemon_auto_interact(self) -> None:
+        """Press A to interact with whatever is in front, continue dialog."""
+        env = self._env
+        state = self._pokemon_agent.memory.state_dict
+        if state.get("state") != "Field":
+            env.send_action_set(["a"])
+            _time.sleep(0.5)
+            return
+        env.send_action_set(["a"])
+        _time.sleep(0.5)
+        text_obs = env._receive_state()
+        sd = env.parse_game_state(text_obs)
+        self._pokemon_agent.memory.state_dict = sd
+        if sd.get("state") == "Dialog":
+            try:
+                self._pokemon_toolset.continue_dialog()
+            except Exception:
+                pass
+
+    def _pokemon_auto_warp(self) -> None:
+        """Find nearest WarpPoint and try to warp there via toolset."""
+        env = self._env
+        agent = self._pokemon_agent
+        state = agent.memory.state_dict
+        if state.get("state") != "Field":
+            env.send_action_set(["a"])
+            _time.sleep(0.5)
+            return
+
+        map_name = state.get("map_info", {}).get("map_name", "")
+        mm = agent.memory.map_memory_dict.get(map_name, {})
+        explored_map = mm.get("explored_map", [])
+
+        if explored_map:
+            px = state["map_info"].get("player_pos_x", 0)
+            py = state["map_info"].get("player_pos_y", 0)
+            warp_points = []
+            for y, row in enumerate(explored_map):
+                for x, cell in enumerate(row):
+                    if cell == "WarpPoint":
+                        warp_points.append((x, y, abs(x - px) + abs(y - py)))
+            warp_points.sort(key=lambda t: t[2])
+            for wx, wy, _ in warp_points:
+                try:
+                    self._pokemon_toolset.warp_with_warp_point(wx, wy)
+                    return
+                except Exception:
+                    continue
+
+        direction = random.choice(["up", "down", "left", "right"])
+        for _ in range(5):
+            env.send_action_set([direction])
+            _time.sleep(0.3)
+
+    def _pokemon_mash_a_until_actionable(self, max_presses: int = 15) -> None:
+        """Press A until state returns to Field or a selection box appears."""
+        env = self._env
+        for _ in range(max_presses):
+            env.send_action_set(["a"])
+            _time.sleep(0.5)
+            text_obs = env._receive_state()
+            sd = env.parse_game_state(text_obs)
+            self._pokemon_agent.memory.state_dict = sd
+            if sd.get("state") == "Field":
+                break
+            sel = sd.get("selection_box_text", "N/A")
+            if sel != "N/A" and "FIGHT" in sel:
+                break
 
     def close(self) -> None:
         if hasattr(self._env, "close"):
@@ -395,10 +872,37 @@ def make_orak_env(
             if hasattr(cfg.env, "rom_path") and not os.path.isabs(cfg.env.rom_path):
                 abs_rom = os.path.normpath(os.path.join(str(_ORAK_REPO), cfg.env.rom_path))
                 cfg.env.rom_path = abs_rom
+            # Isolate ROM to a temp dir so parallel PyBoy instances don't
+            # conflict on .ram/.sav files (each derived from the ROM path).
+            if hasattr(cfg.env, "rom_path") and game_name == "pokemon_red":
+                _tmp = tempfile.mkdtemp(prefix="pokemon_red_orak_")
+                _rom_copy = os.path.join(_tmp, os.path.basename(cfg.env.rom_path))
+                _src_rom = cfg.env.rom_path
+                if os.path.islink(_src_rom):
+                    _src_rom = os.path.realpath(_src_rom)
+                shutil.copy2(_src_rom, _rom_copy)
+                atexit.register(shutil.rmtree, _tmp, True)
+                cfg.env.rom_path = _rom_copy
         cfg.log_path = log_dir
 
     with _orak_cwd():
         env = EnvCreator(cfg).create()
+
+    # Pokemon Red: suppress noisy PyBoyRunner warnings about missing
+    # pokered disassembly .asm files, then skip the title/Oak intro.
+    if game_name == "pokemon_red":
+        _suppress_pokemon_map_warnings()
+        logger.info("Pokemon Red: skipping intro (title → Field)…")
+        with _orak_cwd():
+            _skip_pokemon_red_intro(env)
+            state_text = env._receive_state()
+            env.state_text = state_text
+            env.state_dict = env.parse_game_state(state_text)
+        logger.info(
+            "Pokemon Red: intro done, state=%s map=%s",
+            env.state_dict.get("state"),
+            env.state_dict.get("map_info", {}).get("map_name"),
+        )
 
     wrapper = OrakNLWrapper(env, game_name=game_name, max_steps=max_steps)
 

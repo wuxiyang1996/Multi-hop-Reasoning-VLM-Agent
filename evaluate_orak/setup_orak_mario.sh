@@ -2,7 +2,7 @@
 # Setup script for the orak-mario conda environment.
 #
 # Activates the environment and sets PYTHONPATH so that both
-# Game-AI-Agent modules and Orak src are importable.
+# Multi-hop-Reasoning-VLM-Agent modules and Orak src are importable.
 #
 # Usage:
 #   source evaluate_orak/setup_orak_mario.sh

@@ -7,7 +7,7 @@ VideoGameBench DOS games (JS-DOS in browser), then optionally labels them
 with the same model. Output format matches cold_start/output/ so data can
 be ingested by the skill pipeline and trainer.
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export OPENROUTER_API_KEY="sk-or-..."  # or set open_router_api_key in api_keys.py
     export PYTHONPATH="$(pwd):$(pwd)/../videogamebench:$PYTHONPATH"
@@ -48,7 +48,7 @@ for p in [str(CODEBASE_ROOT), str(VIDEOGAMEBENCH_ROOT)]:
         sys.path.insert(0, p)
 
 # ---------------------------------------------------------------------------
-# Imports from Game-AI-Agent
+# Imports from Multi-hop-Reasoning-VLM-Agent
 # ---------------------------------------------------------------------------
 from data_structure.experience import Experience, Episode, Episode_Buffer
 from decision_agents.dummy_agent import (
@@ -65,7 +65,7 @@ try:
     )
 except ImportError as e:
     print(f"[ERROR] Cannot import env_wrappers: {e}")
-    print("  Run from Game-AI-Agent root with PYTHONPATH including this repo.")
+    print("  Run from Multi-hop-Reasoning-VLM-Agent root with PYTHONPATH including this repo.")
     sys.exit(1)
 
 # Optional: trajectory labeling (reuse from GamingAgent cold-start)

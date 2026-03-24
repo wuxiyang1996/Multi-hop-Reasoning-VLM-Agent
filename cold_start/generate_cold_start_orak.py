@@ -13,7 +13,7 @@ Output structure (cold_start/output/gpt54_orak/<game_name>/):
   - rollouts.jsonl          Append-friendly JSONL (one Episode per line)
   - rollout_summary.json    Per-game run stats
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     # --- Super Mario (activate orak-mario first) ---
     source evaluate_orak/setup_orak_mario.sh

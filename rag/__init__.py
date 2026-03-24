@@ -1,4 +1,4 @@
-# RAG module: embedding models and experience retrieval for Game-AI-Agent.
+# RAG module: embedding models and experience retrieval for Multi-hop-Reasoning-VLM-Agent.
 # - Text (RAG) embedding: default Qwen/Qwen3-Embedding-0.6B
 # - Multimodal embedding: default Qwen/Qwen3-VL-Embedding-2B
 # - Ranking: compare query to stored memory embeddings, return top-k

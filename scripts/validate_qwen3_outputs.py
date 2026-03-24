@@ -9,7 +9,7 @@ A run is considered VALID if the game dir has at least one real episode:
 
 Otherwise the run is INVALID (empty or failed).
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
   # Report only (default: output/Qwen3-8B)
   python -m scripts.validate_qwen3_outputs

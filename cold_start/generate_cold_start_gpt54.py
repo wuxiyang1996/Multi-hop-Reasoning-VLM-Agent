@@ -13,7 +13,7 @@ Output structure (cold_start/output/gpt54/<game_name>/):
   - rollouts.jsonl          Append-friendly JSONL (one Episode per line)
   - rollout_summary.json    Per-game run stats
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export OPENROUTER_API_KEY="sk-or-..."
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
@@ -56,7 +56,7 @@ for p in [str(CODEBASE_ROOT), str(GAMINGAGENT_ROOT)]:
         sys.path.insert(0, p)
 
 # ---------------------------------------------------------------------------
-# Imports from Game-AI-Agent
+# Imports from Multi-hop-Reasoning-VLM-Agent
 # ---------------------------------------------------------------------------
 from data_structure.experience import Experience, Episode, Episode_Buffer
 

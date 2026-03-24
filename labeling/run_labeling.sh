@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run GPT-5.4 episode labeling from the Game-AI-Agent root.
+# Run GPT-5.4 episode labeling from the Multi-hop-Reasoning-VLM-Agent root.
 #
 # Usage:
 #   bash labeling/run_labeling.sh                           # all games

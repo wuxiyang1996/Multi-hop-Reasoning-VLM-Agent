@@ -12,7 +12,7 @@ Output structure (cold_start/output/alfworld7b_lmgame/<game_name>/):
   - rollouts.jsonl          Append-friendly JSONL (one Episode per line)
   - rollout_summary.json    Per-game run stats
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     # SFT baseline
     python cold_start/ALFWORLD-7B/generate_cold_start_lmgame_alfworld7b.py \\
@@ -37,7 +37,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 SCRIPT_DIR = Path(__file__).resolve().parent          # cold_start/ALFWORLD-7B/
 COLD_START_DIR = SCRIPT_DIR.parent                     # cold_start/
-CODEBASE_ROOT = COLD_START_DIR.parent                  # Game-AI-Agent/
+CODEBASE_ROOT = COLD_START_DIR.parent                  # Multi-hop-Reasoning-VLM-Agent/
 GAMINGAGENT_ROOT = CODEBASE_ROOT.parent / "GamingAgent"
 
 for p in [str(CODEBASE_ROOT), str(GAMINGAGENT_ROOT), str(SCRIPT_DIR)]:

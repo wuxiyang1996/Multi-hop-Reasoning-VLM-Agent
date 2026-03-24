@@ -1,9 +1,9 @@
-# Conda environment for Game-AI-Agent.
+# Conda environment for Multi-hop-Reasoning-VLM-Agent.
 #
 # Create:  conda env create -f environment.yml
 # Activate: conda activate game-ai-agent
 #
-# For VERL training/inference: clone verl-agent as a sibling of Game-AI-Agent
+# For VERL training/inference: clone verl-agent as a sibling of Multi-hop-Reasoning-VLM-Agent
 # and install it (pip install -e .). See INSTALL.md section 3.
 
 name: game-ai-agent
@@ -29,7 +29,7 @@ dependencies:
     - omegaconf
     - hydra-core
 
-# VERL path: after creating this env, clone verl-agent next to Game-AI-Agent
+# VERL path: after creating this env, clone verl-agent next to Multi-hop-Reasoning-VLM-Agent
 # and run: pip install -e ./verl-agent
 # Then: python -m scripts.run_trainer --verl  (training)
 #       python -m scripts.run_inference --verl (inference)

@@ -7,7 +7,7 @@ Runs one (or both) game environments using GPT-5.4 as the backbone model,
 with all players/powers controlled by the same LLM through
 decision_agents.dummy_agent.language_agent_action.
 
-Usage (from Game-AI-Agent root, with AgentEvolver on PYTHONPATH):
+Usage (from Multi-hop-Reasoning-VLM-Agent root, with AgentEvolver on PYTHONPATH):
 
     export PYTHONPATH="$(pwd):$(pwd)/../AgentEvolver:$PYTHONPATH"
     export OPENROUTER_API_KEY="sk-or-..."   # or OPENAI_API_KEY
@@ -46,12 +46,12 @@ from typing import Any, Dict, List, Optional, Union
 # ---------------------------------------------------------------------------
 # Path setup — ensure codebase root, AgentEvolver and AI_Diplomacy are importable
 # ---------------------------------------------------------------------------
-_root = Path(__file__).resolve().parent.parent          # Game-AI-Agent/
+_root = Path(__file__).resolve().parent.parent          # Multi-hop-Reasoning-VLM-Agent/
 _workspace = _root.parent                                # parent dir (e.g. game_agent/)
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-# AgentEvolver can live as a sibling of Game-AI-Agent or inside it
+# AgentEvolver can live as a sibling of Multi-hop-Reasoning-VLM-Agent or inside it
 for _candidate in [_workspace / "AgentEvolver", _root / "AgentEvolver"]:
     if _candidate.exists() and str(_candidate) not in sys.path:
         sys.path.insert(0, str(_candidate))

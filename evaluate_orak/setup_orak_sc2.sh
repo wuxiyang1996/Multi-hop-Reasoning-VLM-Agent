@@ -2,7 +2,7 @@
 # Setup script for the orak-sc2 conda environment.
 #
 # Activates the environment, sets SC2PATH, and configures PYTHONPATH
-# so that both Game-AI-Agent modules and Orak src are importable.
+# so that both Multi-hop-Reasoning-VLM-Agent modules and Orak src are importable.
 #
 # Usage:
 #   source evaluate_orak/setup_orak_sc2.sh

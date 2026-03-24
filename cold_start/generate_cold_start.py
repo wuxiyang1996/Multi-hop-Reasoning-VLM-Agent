@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """
-Cold-start data generation for Game-AI-Agent.
+Cold-start data generation for Multi-hop-Reasoning-VLM-Agent.
 
 Generates unlabeled trajectories using the prompt decision agent (VLMDecisionAgent)
 and/or the dummy language agent, then labels them with GPT-5-mini to produce
 initial seed data for the skill database.
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     # Prefer OpenRouter (used by default): set open_router_api_key in api_keys.py or:
     export OPENROUTER_API_KEY="sk-or-..."
@@ -49,7 +49,7 @@ for p in [str(CODEBASE_ROOT), str(GAMINGAGENT_ROOT)]:
         sys.path.insert(0, p)
 
 # ---------------------------------------------------------------------------
-# Imports from Game-AI-Agent
+# Imports from Multi-hop-Reasoning-VLM-Agent
 # ---------------------------------------------------------------------------
 from API_func import ask_model
 from data_structure.experience import Experience, Episode, Episode_Buffer
@@ -726,7 +726,7 @@ def label_trajectory(episode: Episode, model: str) -> Episode:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate cold-start data for Game-AI-Agent",
+        description="Generate cold-start data for Multi-hop-Reasoning-VLM-Agent",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--game", type=str, default="twenty_forty_eight",

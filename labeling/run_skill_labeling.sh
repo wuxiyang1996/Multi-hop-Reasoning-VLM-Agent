@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run GPT-5.4 episode labeling + skill extraction from the Game-AI-Agent root.
+# Run GPT-5.4 episode labeling + skill extraction from the Multi-hop-Reasoning-VLM-Agent root.
 #
 # This wraps label_and_extract_skills_gpt54.py which runs two phases:
 #   Phase 1: Label episodes (summary_state, summary, intentions)

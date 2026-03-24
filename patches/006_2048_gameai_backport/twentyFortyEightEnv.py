@@ -52,7 +52,7 @@ ACTION_FROM_STR = {"up": 0, "right": 1, "down": 2, "left": 3}
 MAX_REPEAT_ZERO_REWARD = 2
 
 # ---------------------------------------------------------------------------
-# Phase detection  (from Game-AI-Agent phase_detector._extract_2048_phases)
+# Phase detection  (from Multi-hop-Reasoning-VLM-Agent phase_detector._extract_2048_phases)
 # ---------------------------------------------------------------------------
 
 def detect_phase(highest: int, empty: int) -> str:
@@ -144,7 +144,7 @@ def _board_to_vals(board_powers: np.ndarray) -> list:
 
 
 # ---------------------------------------------------------------------------
-# Compound skill protocols  (from Game-AI-Agent skill seeds + enrichment)
+# Compound skill protocols  (from Multi-hop-Reasoning-VLM-Agent skill seeds + enrichment)
 # ---------------------------------------------------------------------------
 
 SKILL_PROTOCOLS = {
@@ -210,7 +210,7 @@ def build_enhanced_text_repr(
 
     lines: List[str] = []
 
-    # ── Structured state summary (Game-AI-Agent format) ──
+    # ── Structured state summary (Multi-hop-Reasoning-VLM-Agent format) ──
     lines.append(
         f"game=2048 | step={step_num} | phase={phase} | score={total_score} "
         f"| max_tile={highest} | empty={empty}/16 | merges={merges} "
@@ -236,13 +236,13 @@ def build_enhanced_text_repr(
         if delta_parts:
             lines.append(f"\nChanged: {', '.join(delta_parts)}")
 
-    # ── Urgency detection (Game-AI-Agent _detect_urgency) ──
+    # ── Urgency detection (Multi-hop-Reasoning-VLM-Agent _detect_urgency) ──
     if empty < 3:
         lines.append("\n!! URGENCY: board nearly full — must MERGE now !!")
     elif empty < 5 and phase == "endgame":
         lines.append("\n! WARNING: board getting tight — prioritize merges !")
 
-    # ── Recent action/reward context (Game-AI-Agent _build_recent_context) ──
+    # ── Recent action/reward context (Multi-hop-Reasoning-VLM-Agent _build_recent_context) ──
     if recent_actions:
         lines.append("\n=== RECENT ACTIONS ===")
         for a, r in zip(recent_actions[-5:], recent_rewards[-5:]):
@@ -270,7 +270,7 @@ def build_enhanced_text_repr(
         lines.append(f"  {name.upper()}: +{score}pts | empty={n_empty} merges={n_merges} max={n_highest} mono={n_mono:.1f} smooth={n_smooth:.1f}")
         lines.append(f"    board=[{board_str}]")
 
-    # ── Active skill protocol (Game-AI-Agent compound skills) ──
+    # ── Active skill protocol (Multi-hop-Reasoning-VLM-Agent compound skills) ──
     skill = SKILL_PROTOCOLS[phase]
     lines.append(f"\n=== ACTIVE SKILL: {skill['active_skill']} ===")
     lines.append(f"Strategy: {skill['strategy']}")
@@ -327,7 +327,7 @@ class TwentyFortyEightEnv(gym.Env):
         self.current_raw_board: Optional[np.ndarray] = None
         self.current_info_dict: Dict[str, Any] = {}
 
-        # Game-AI-Agent inspired tracking state
+        # Multi-hop-Reasoning-VLM-Agent inspired tracking state
         self._recent_actions: List[str] = []
         self._recent_rewards: List[float] = []
         self._prev_board: Optional[np.ndarray] = None
@@ -383,7 +383,7 @@ class TwentyFortyEightEnv(gym.Env):
         self.is_legal_move = True
         self.illegal_move_count = 0
 
-        # Reset Game-AI-Agent tracking state
+        # Reset Multi-hop-Reasoning-VLM-Agent tracking state
         self._recent_actions = []
         self._recent_rewards = []
         self._prev_board = None
@@ -506,7 +506,7 @@ class TwentyFortyEightEnv(gym.Env):
 
     def _apply_anti_repetition(self, action_str: Optional[str]) -> Optional[str]:
         """Force a different action if same one repeated with zero reward.
-        Borrowed from Game-AI-Agent episode_runner._apply_anti_repetition.
+        Borrowed from Multi-hop-Reasoning-VLM-Agent episode_runner._apply_anti_repetition.
         """
         if action_str is None or len(self._recent_actions) < MAX_REPEAT_ZERO_REWARD:
             return action_str
@@ -531,7 +531,7 @@ class TwentyFortyEightEnv(gym.Env):
         self._step_num += 1
         self._prev_board = self.current_raw_board.copy() if self.current_raw_board is not None else None
 
-        # Anti-repetition guard (Game-AI-Agent)
+        # Anti-repetition guard (Multi-hop-Reasoning-VLM-Agent)
         agent_action_str = self._apply_anti_repetition(agent_action_str)
 
         env_action_idx = self.adapter.map_agent_action_to_env_action(agent_action_str)
@@ -562,7 +562,7 @@ class TwentyFortyEightEnv(gym.Env):
             print(f"[TwentyFortyEightEnv] Action '{agent_action_str}' is skip/invalid. Gym env not stepped.")
             terminated = self.is_terminated(board=self.board)
 
-        # Track recent actions/rewards (Game-AI-Agent)
+        # Track recent actions/rewards (Multi-hop-Reasoning-VLM-Agent)
         self._recent_actions.append(str(agent_action_str or "none"))
         self._recent_rewards.append(reward)
 

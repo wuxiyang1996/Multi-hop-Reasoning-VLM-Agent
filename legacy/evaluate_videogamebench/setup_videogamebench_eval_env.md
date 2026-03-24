@@ -6,7 +6,7 @@
 
 ## 1. VideoGameBench repository (external)
 
-Clone and install VideoGameBench as a sibling of Game-AI-Agent (or elsewhere and add to `PYTHONPATH`):
+Clone and install VideoGameBench as a sibling of Multi-hop-Reasoning-VLM-Agent (or elsewhere and add to `PYTHONPATH`):
 
 ```powershell
 cd D:\ICML2026
@@ -32,10 +32,10 @@ $env:OPENAI_API_KEY = "your_api_key"
 
 ## 4. Run evaluation tests
 
-From the Game-AI-Agent codebase root:
+From the Multi-hop-Reasoning-VLM-Agent codebase root:
 
 ```powershell
-cd D:\ICML2026\Game-AI-Agent
+cd D:\ICML2026\Multi-hop-Reasoning-VLM-Agent
 $env:PYTHONPATH = (Get-Location).Path + ";" + (Get-Location).Path + "\..\videogamebench"
 python evaluate_videogamebench/test_videogamebench_dummy.py --game doom2 --max_steps 20
 python evaluate_videogamebench/test_videogamebench_dummy.py --game doom2 --mode random_nl --headless

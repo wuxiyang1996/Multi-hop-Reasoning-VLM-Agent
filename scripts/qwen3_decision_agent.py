@@ -28,7 +28,7 @@ Both follow a shared schema for a single GRPO trainer:
     "prompt", "completion", "reward",
     + type-specific metadata }
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
     export VLLM_BASE_URL="http://localhost:8000/v1"

@@ -9,7 +9,7 @@
 #   episode_000.json .. episode_004.json, episode_buffer.json, rollouts.jsonl,
 #   rollout_summary.json
 #
-# Usage (from Game-AI-Agent root):
+# Usage (from Multi-hop-Reasoning-VLM-Agent root):
 #   bash legacy/run_coldstart_videogamebench_dos.sh
 #   bash legacy/run_coldstart_videogamebench_dos.sh --episodes 3 --headless
 #   bash legacy/run_coldstart_videogamebench_dos.sh --games doom2 civ
@@ -25,7 +25,7 @@ export PYTHONPATH="${CODEBASE_ROOT}:${VIDEOGAMEBENCH_ROOT:-}:${PYTHONPATH:-}"
 
 if [ -z "$VIDEOGAMEBENCH_ROOT" ] || [ ! -d "$VIDEOGAMEBENCH_ROOT" ]; then
     echo "[ERROR] videogamebench repo not found at $CODEBASE_ROOT/../videogamebench"
-    echo "        Clone it as a sibling of Game-AI-Agent for DOS cold-start."
+    echo "        Clone it as a sibling of Multi-hop-Reasoning-VLM-Agent for DOS cold-start."
     exit 1
 fi
 

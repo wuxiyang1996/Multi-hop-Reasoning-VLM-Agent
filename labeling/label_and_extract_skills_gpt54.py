@@ -43,7 +43,7 @@ Output structure (labeling/output/gpt54_skills/):
   - skill_rag_index.json              Flat RAG index (archetypes + instances)
   - skill_catalog_all.json            Combined per-game catalog
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export OPENROUTER_API_KEY="sk-or-..."
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"

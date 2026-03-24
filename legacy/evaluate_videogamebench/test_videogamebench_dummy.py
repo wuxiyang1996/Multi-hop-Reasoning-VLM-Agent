@@ -6,7 +6,7 @@ Test script: run dummy_agent in VideoGameBench via DOS games only.
 Uses DOS games (JS-DOS in browser) via env_wrappers.VideoGameBenchDOSNLWrapper.
 Game Boy / PyBoy games are excluded (no ROMs required).
 
-Usage (from the Game-AI-Agent codebase root):
+Usage (from the Multi-hop-Reasoning-VLM-Agent codebase root):
 
     set PYTHONPATH=%CD%;%CD%\..\videogamebench
     python evaluate_videogamebench/test_videogamebench_dummy.py --game doom2
@@ -54,7 +54,7 @@ try:
     )
 except ImportError as e:
     print(f"[ERROR] Cannot import env_wrappers: {e}")
-    print("  Run from Game-AI-Agent root. Ensure env_wrappers is on PYTHONPATH.")
+    print("  Run from Multi-hop-Reasoning-VLM-Agent root. Ensure env_wrappers is on PYTHONPATH.")
     sys.exit(1)
 
 try:

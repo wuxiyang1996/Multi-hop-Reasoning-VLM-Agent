@@ -37,7 +37,7 @@ Then generates:
   - Combined ``skill_catalog_all.json``
   - Per-stage I/O recordings (``stage_io_log.json``)
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export OPENROUTER_API_KEY="sk-or-..."
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
@@ -80,7 +80,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent          # .../skill_agents_grpo/extract_skillbank/
 GRPO_ROOT = SCRIPT_DIR.parent                         # .../skill_agents_grpo/
-CODEBASE_ROOT = GRPO_ROOT.parent                      # .../Game-AI-Agent/
+CODEBASE_ROOT = GRPO_ROOT.parent                      # .../Multi-hop-Reasoning-VLM-Agent/
 GAMINGAGENT_ROOT = CODEBASE_ROOT.parent / "GamingAgent"
 LABELING_DIR = CODEBASE_ROOT / "labeling"
 

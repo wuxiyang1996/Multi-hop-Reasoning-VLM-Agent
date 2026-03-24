@@ -94,7 +94,7 @@ MAX_STEPS="${MAX_STEPS:-500}"
 OUTPUT_DIR="${OUTPUT_DIR:-}"
 
 echo "============================================"
-echo "  Game-AI-Agent Inference"
+echo "  Multi-hop-Reasoning-VLM-Agent Inference"
 echo "============================================"
 echo "  GPU(s):     $INFERENCE_GPUS"
 echo "  Repo root:  $REPO_ROOT"

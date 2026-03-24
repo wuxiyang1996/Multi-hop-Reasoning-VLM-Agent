@@ -68,7 +68,7 @@ SPEC_MODEL="${SPEC_MODEL:-Qwen/Qwen3-0.6B}"
 SPEC_TOKENS="${SPEC_TOKENS:-5}"
 RESUME_STEP="${RESUME_STEP:-5}"
 
-RUN_DIR="/workspace/game_agent/Game-AI-Agent/runs/Qwen3-8B_20260321_213813"
+RUN_DIR="/workspace/game_agent/Multi-hop-Reasoning-VLM-Agent/runs/Qwen3-8B_20260321_213813"
 
 # ── Validate checkpoint ──────────────────────────────────────────────
 CKPT_DIR="${RUN_DIR}/checkpoints/step_$(printf '%04d' "${RESUME_STEP}")"

@@ -5,7 +5,7 @@
 # Activates the orak-sc2 conda environment, sets SC2PATH, and runs
 # generate_cold_start_orak.py for star_craft.
 #
-# Usage (from Game-AI-Agent root):
+# Usage (from Multi-hop-Reasoning-VLM-Agent root):
 #   bash legacy/run_coldstart_orak_sc2.sh                       # 10 episodes (default)
 #   bash legacy/run_coldstart_orak_sc2.sh --episodes 3 -v       # quick test
 #   (SC2 is always 1 worker; --workers has no effect for star_craft)

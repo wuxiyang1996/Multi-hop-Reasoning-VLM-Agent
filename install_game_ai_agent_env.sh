@@ -3,7 +3,7 @@
 # install_game_ai_agent_env.sh
 #
 # Creates the "game-ai-agent" conda environment with all dependencies for:
-#   - Game-AI-Agent trainer (GRPO, SkillBank, co-evolution)
+#   - Multi-hop-Reasoning-VLM-Agent trainer (GRPO, SkillBank, co-evolution)
 #   - legacy/evaluate_videogamebench (DOS games via Playwright)
 #   - evaluate_gamingagent (2048, Sokoban, Tetris, VizDoom, etc.)
 #   - legacy/evaluate_overcooked (multi-agent cooking)
@@ -13,7 +13,7 @@
 #   - miniconda3 or anaconda installed
 #   - CUDA 12.x drivers on the host (for GPU training/inference)
 #   - The following repos cloned as siblings under the same parent directory:
-#       Game-AI-Agent/     (this repo)
+#       Multi-hop-Reasoning-VLM-Agent/     (this repo)
 #       videogamebench/    (https://github.com/alexzhang13/videogamebench)
 #       GamingAgent/       (https://github.com/lmgame-org/GamingAgent)
 #       overcooked_ai/     (https://github.com/HumanCompatibleAI/overcooked_ai)
@@ -21,13 +21,13 @@
 #
 # Usage:
 #   cd /path/to/parent          # directory containing all repos above
-#   bash Game-AI-Agent/install_game_ai_agent_env.sh [CONDA_PATH]
+#   bash Multi-hop-Reasoning-VLM-Agent/install_game_ai_agent_env.sh [CONDA_PATH]
 #
 #   CONDA_PATH: optional path to conda binary (default: auto-detect)
 #
 # After install:
 #   conda activate game-ai-agent
-#   export PYTHONPATH=$(pwd)/Game-AI-Agent:$(pwd)/overcooked_ai/src:$(pwd)/AgentEvolver:$(pwd)/videogamebench:$(pwd)/GamingAgent:$PYTHONPATH
+#   export PYTHONPATH=$(pwd)/Multi-hop-Reasoning-VLM-Agent:$(pwd)/overcooked_ai/src:$(pwd)/AgentEvolver:$(pwd)/videogamebench:$(pwd)/GamingAgent:$PYTHONPATH
 # =============================================================================
 
 set -euo pipefail
@@ -39,7 +39,7 @@ ENV_NAME="game-ai-agent"
 PYTHON_VERSION="3.11"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Parent of Game-AI-Agent = directory containing all sibling repos
+# Parent of Multi-hop-Reasoning-VLM-Agent = directory containing all sibling repos
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Locate conda
@@ -61,7 +61,7 @@ PIP="$CONDA_DIR/envs/$ENV_NAME/bin/pip"
 PYTHON="$CONDA_DIR/envs/$ENV_NAME/bin/python"
 
 echo "============================================================"
-echo "  Game-AI-Agent environment installer"
+echo "  Multi-hop-Reasoning-VLM-Agent environment installer"
 echo "============================================================"
 echo "  conda:       $CONDA"
 echo "  env name:    $ENV_NAME"
@@ -74,7 +74,7 @@ echo
 # Repo checks
 # ---------------------------------------------------------------------------
 REPOS=(
-    "Game-AI-Agent"
+    "Multi-hop-Reasoning-VLM-Agent"
     "videogamebench"
     "GamingAgent"
     "overcooked_ai"
@@ -199,7 +199,7 @@ echo "[7/7] Pinning numpy==1.26.4 and verifying ..."
 
 echo
 echo "Running import checks ..."
-PYTHONPATH="$PARENT_DIR/Game-AI-Agent:$PARENT_DIR/overcooked_ai/src:$PARENT_DIR/AgentEvolver:$PARENT_DIR/videogamebench:$PARENT_DIR/GamingAgent" \
+PYTHONPATH="$PARENT_DIR/Multi-hop-Reasoning-VLM-Agent:$PARENT_DIR/overcooked_ai/src:$PARENT_DIR/AgentEvolver:$PARENT_DIR/videogamebench:$PARENT_DIR/GamingAgent" \
 "$PYTHON" -c "
 import sys
 
@@ -267,7 +267,7 @@ echo "  Activate:"
 echo "    conda activate $ENV_NAME"
 echo
 echo "  Set PYTHONPATH (from the parent directory of all repos):"
-echo "    export PYTHONPATH=\$(pwd)/Game-AI-Agent:\$(pwd)/overcooked_ai/src:\$(pwd)/AgentEvolver:\$(pwd)/videogamebench:\$(pwd)/GamingAgent:\$PYTHONPATH"
+echo "    export PYTHONPATH=\$(pwd)/Multi-hop-Reasoning-VLM-Agent:\$(pwd)/overcooked_ai/src:\$(pwd)/AgentEvolver:\$(pwd)/videogamebench:\$(pwd)/GamingAgent:\$PYTHONPATH"
 echo
 echo "  Known nominal warning:"
 echo "    gamingagent 0.1.0 requires numpy==1.24.4 (we use 1.26.4 — works fine)"

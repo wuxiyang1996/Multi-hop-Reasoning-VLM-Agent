@@ -25,7 +25,7 @@ GAMINGAGENT_ROOT="$(cd "$CODEBASE_ROOT/../GamingAgent" 2>/dev/null && pwd || ech
 
 if [ -z "$GAMINGAGENT_ROOT" ] || [ ! -d "$GAMINGAGENT_ROOT" ]; then
     echo "[ERROR] GamingAgent repo not found at $CODEBASE_ROOT/../GamingAgent"
-    echo "        Clone it as a sibling: git clone <url> alongside Game-AI-Agent"
+    echo "        Clone it as a sibling: git clone <url> alongside Multi-hop-Reasoning-VLM-Agent"
     exit 1
 fi
 

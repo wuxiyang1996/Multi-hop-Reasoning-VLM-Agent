@@ -13,7 +13,7 @@ Output structure (cold_start/output/gpt54_sokoban/<game_name>/):
   - rollouts.jsonl          Append-friendly JSONL (one Episode per line)
   - rollout_summary.json    Per-game run stats
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export OPENROUTER_API_KEY="sk-or-..."
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"

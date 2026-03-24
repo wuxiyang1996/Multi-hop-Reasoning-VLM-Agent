@@ -1,12 +1,12 @@
 # evaluate_orak -- Orak Benchmark Integration
 
 Integration of the [Orak](https://github.com/krafton-ai/Orak) game benchmark
-(krafton-ai/Orak) into the Game-AI-Agent framework.
+(krafton-ai/Orak) into the Multi-hop-Reasoning-VLM-Agent framework.
 
 Orak is a foundational benchmark for evaluating LLM agents across **12 popular
 video games** spanning 6 genres. This module provides NL wrappers, Gymnasium
 interfaces, and a benchmark runner so that all Orak games can be driven by
-Game-AI-Agent's decision agents.
+Multi-hop-Reasoning-VLM-Agent's decision agents.
 
 Paper: [arXiv:2506.03610](https://arxiv.org/pdf/2506.03610)
 
@@ -159,7 +159,7 @@ Pokemon Red in this repo is **text-only**: state is derived from PyBoy memory re
 
 ### Cold-start (trajectory generation)
 
-From `Game-AI-Agent`:
+From `Multi-hop-Reasoning-VLM-Agent`:
 
 ```bash
 export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$(pwd)/../Orak/src:$PYTHONPATH"
@@ -206,7 +206,7 @@ env.close()
 ### CLI Benchmark
 
 ```bash
-cd Game-AI-Agent
+cd Multi-hop-Reasoning-VLM-Agent
 export PYTHONPATH="$(pwd):$(pwd)/../Orak/src:$PYTHONPATH"
 
 # Single game
@@ -246,7 +246,7 @@ Output is saved to `orak_benchmark_output/<game>/episode_XXX.json`.
 
 The `OrakNLWrapper` bridges Orak's `BaseEnv` interface (which uses
 `initial_obs()`, `obs2text()`, `text2action()`, `step()`, `evaluate()`) to
-the standard `reset()`/`step()` Gymnasium-style loop that Game-AI-Agent
+the standard `reset()`/`step()` Gymnasium-style loop that Multi-hop-Reasoning-VLM-Agent
 decision agents expect.
 
 ---

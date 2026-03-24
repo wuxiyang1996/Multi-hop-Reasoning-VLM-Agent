@@ -12,7 +12,7 @@ Output structure (cold_start/output/alfworld7b_pokemon_red/pokemon_red/):
   - rollouts.jsonl          JSONL
   - rollout_summary.json    Per-game stats
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$(pwd)/../Orak/src:$PYTHONPATH"
 
@@ -39,7 +39,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 SCRIPT_DIR = Path(__file__).resolve().parent          # cold_start/ALFWORLD-7B/
 COLD_START_DIR = SCRIPT_DIR.parent                     # cold_start/
-CODEBASE_ROOT = COLD_START_DIR.parent                  # Game-AI-Agent/
+CODEBASE_ROOT = COLD_START_DIR.parent                  # Multi-hop-Reasoning-VLM-Agent/
 GAMINGAGENT_ROOT = CODEBASE_ROOT.parent / "GamingAgent"
 ORAK_SRC = CODEBASE_ROOT.parent / "Orak" / "src"
 

@@ -9,7 +9,7 @@ call is routed through an OpenAI function-calling tool (``choose_action``),
 matching the pattern established by ``generate_cold_start_gpt54.py`` for
 LM-Game Bench games.
 
-Usage (from Game-AI-Agent root, with Orak src on PYTHONPATH):
+Usage (from Multi-hop-Reasoning-VLM-Agent root, with Orak src on PYTHONPATH):
 
     # --- Super Mario ---
     source evaluate_orak/setup_orak_mario.sh

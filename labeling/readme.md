@@ -134,7 +134,7 @@ step 49/50 (endgame — final move):
 ## Usage — Labels Only (`label_episodes_gpt54.py`)
 
 ```bash
-# From Game-AI-Agent root
+# From Multi-hop-Reasoning-VLM-Agent root
 export OPENROUTER_API_KEY="sk-or-..."
 export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
 
@@ -167,7 +167,7 @@ This pipeline extends the labels-only pipeline by loading a **pre-built skill ba
 **Prerequisites:** A skill bank must already exist (e.g. from `skill_agents_grpo/extract_skillbank/`). The script auto-discovers per-game banks under the default search directories.
 
 ```bash
-# From Game-AI-Agent root
+# From Multi-hop-Reasoning-VLM-Agent root
 export OPENROUTER_API_KEY="sk-or-..."
 export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
 
@@ -400,7 +400,7 @@ Use this when you already have labeled episodes (e.g. in `labeling/output/gpt54/
 **Output:** `labeling/output/gpt54_skillbank/` (or `--output_dir <path>`) — per-game skill banks, catalogs, sub_episodes, and cross-game archetypes.
 
 ```bash
-# From Game-AI-Agent root
+# From Multi-hop-Reasoning-VLM-Agent root
 export OPENROUTER_API_KEY="sk-or-..."
 export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
 

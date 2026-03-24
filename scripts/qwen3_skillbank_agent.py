@@ -40,7 +40,7 @@ Then generates:
   - Cold-start I/O records (``coldstart_io_all.jsonl``)
   - Teacher I/O records (``teacher_io_coldstart.jsonl``)
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
     export VLLM_BASE_URL="http://localhost:8000/v1"

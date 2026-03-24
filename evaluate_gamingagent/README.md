@@ -1,6 +1,6 @@
 # LMGame-Bench Evaluation Suite
 
-Evaluation harness for [GamingAgent (LMGame-Bench)](https://github.com/GamingAgent/LMGame-Bench) environments, adapted for use with the Game-AI-Agent codebase.
+Evaluation harness for [GamingAgent (LMGame-Bench)](https://github.com/GamingAgent/LMGame-Bench) environments, adapted for use with the Multi-hop-Reasoning-VLM-Agent codebase.
 
 ## Overview
 
@@ -63,9 +63,9 @@ evaluate_gamingagent/
 # Activate the conda environment
 conda activate game-ai-agent
 
-# Ensure GamingAgent is cloned alongside Game-AI-Agent:
+# Ensure GamingAgent is cloned alongside Multi-hop-Reasoning-VLM-Agent:
 #   game_agent/
-#     Game-AI-Agent/      <- this repo
+#     Multi-hop-Reasoning-VLM-Agent/      <- this repo
 #     GamingAgent/        <- reference repo (read-only)
 ```
 

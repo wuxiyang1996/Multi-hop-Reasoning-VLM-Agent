@@ -17,7 +17,7 @@ The JSONL and episode_buffer formats are compatible with:
   - skill_agents/pipeline.py (SkillBankAgent.ingest_episodes)
   - data_structure/experience.py (Episode_Buffer.load_from_json)
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     # Prefer OpenRouter (used by default): set open_router_api_key in api_keys.py or:
     export OPENROUTER_API_KEY="sk-or-..."
@@ -60,7 +60,7 @@ for p in [str(CODEBASE_ROOT), str(GAMINGAGENT_ROOT)]:
         sys.path.insert(0, p)
 
 # ---------------------------------------------------------------------------
-# Imports from Game-AI-Agent
+# Imports from Multi-hop-Reasoning-VLM-Agent
 # ---------------------------------------------------------------------------
 from API_func import ask_model
 from data_structure.experience import Experience, Episode, Episode_Buffer

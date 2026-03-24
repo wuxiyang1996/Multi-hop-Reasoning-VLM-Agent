@@ -9,7 +9,7 @@
 #   python -m inference.run_verl_inference [Hydra overrides...]
 #   python -m inference.run_verl_inference trainer.total_epochs=0 trainer.val_before_train=True
 #
-# Requires: verl-agent at ../verl-agent and Game-AI-Agent on PYTHONPATH.
+# Requires: verl-agent at ../verl-agent and Multi-hop-Reasoning-VLM-Agent on PYTHONPATH.
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from pathlib import Path
 def run_verl_inference(extra_overrides: list[str] | None = None) -> int:
     """Run VERL Game-AI in inference-only mode (validation rollouts, no training).
 
-    Requires verl-agent at ../verl-agent relative to Game-AI-Agent repo root.
+    Requires verl-agent at ../verl-agent relative to Multi-hop-Reasoning-VLM-Agent repo root.
     Overrides are passed to verl.trainer.main_gameai (Hydra).
     """
     repo_root = Path(__file__).resolve().parent.parent
@@ -30,7 +30,7 @@ def run_verl_inference(extra_overrides: list[str] | None = None) -> int:
     if not verl_agent_root.is_dir():
         print(
             f"verl-agent not found at {verl_agent_root}. "
-            "Clone it next to Game-AI-Agent and install: pip install -e .",
+            "Clone it next to Multi-hop-Reasoning-VLM-Agent and install: pip install -e .",
             file=sys.stderr,
         )
         return 1

@@ -9,7 +9,7 @@ Output structure (cold_start/output/alfworld7b_evolver/<game_name>/):
   - rollouts.jsonl          Append-friendly JSONL (one Episode per line)
   - rollout_summary.json    Per-game run stats
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export PYTHONPATH="$(pwd):$(pwd)/../AgentEvolver:$PYTHONPATH"
 
@@ -36,7 +36,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 SCRIPT_DIR = Path(__file__).resolve().parent          # cold_start/ALFWORLD-7B/
 COLD_START_DIR = SCRIPT_DIR.parent                     # cold_start/
-CODEBASE_ROOT = COLD_START_DIR.parent                  # Game-AI-Agent/
+CODEBASE_ROOT = COLD_START_DIR.parent                  # Multi-hop-Reasoning-VLM-Agent/
 _workspace = CODEBASE_ROOT.parent
 
 for p in [str(CODEBASE_ROOT), str(SCRIPT_DIR)]:

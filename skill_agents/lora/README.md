@@ -189,6 +189,6 @@ tests/
 ## Tests
 
 ```bash
-cd Game-AI-Agent
+cd Multi-hop-Reasoning-VLM-Agent
 python -m pytest tests/test_lora_dispatch.py -v
 ```

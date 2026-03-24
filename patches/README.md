@@ -46,7 +46,7 @@ fallback needed.
 - `Orak/src/mcp_game_servers/pokemon_red/game/pokemon_red_env.py` — `PokemonRedEnv`
 - `Orak/src/mcp_game_servers/super_mario/game/super_mario_env.py` — `SuperMarioEnv`
 
-**Files changed (Game-AI-Agent):**
+**Files changed (Multi-hop-Reasoning-VLM-Agent):**
 - `evaluate_orak/orak_nl_wrapper.py` — `make_orak_env()`
 - `evaluate_orak/orak_gym_like.py` — `make_orak_gaming_env()`
 
@@ -123,7 +123,7 @@ filtered `inf` margins, but the *reward* path did not.
 ## 004 — Sokoban: exempt from stuck detection + reduce step penalty + distance shaping (2026-03-21)
 
 **Files changed:**
-- `Game-AI-Agent/trainer/coevolution/episode_runner.py` — stuck detection exempt set
+- `Multi-hop-Reasoning-VLM-Agent/trainer/coevolution/episode_runner.py` — stuck detection exempt set
 - `GamingAgent/gamingagent/envs/custom_02_sokoban/sokobanEnv.py` — step penalty, distance shaping
 
 **Problem:**
@@ -204,7 +204,7 @@ reward variance, GRPO advantages were flat and no learning happened.
 
 ---
 
-## 006 — 2048: Game-AI-Agent techniques backported to GamingAgent inference agent (2026-03-21)
+## 006 — 2048: Multi-hop-Reasoning-VLM-Agent techniques backported to GamingAgent inference agent (2026-03-21)
 
 **Files changed:**
 - `GamingAgent/gamingagent/envs/custom_01_2048/twentyFortyEightEnv.py` — complete observation pipeline rewrite
@@ -217,11 +217,11 @@ The GamingAgent 2048 agent sent a raw Python dict as the text observation
 10 empty spaces'}`). The LLM had to mentally simulate tile mechanics for
 all 4 moves, guess at board quality, and had no phase-awareness, no recent
 action context, and no urgency signals. This left significant performance
-on the table compared to Game-AI-Agent's co-evolution agent, which uses
+on the table compared to Multi-hop-Reasoning-VLM-Agent's co-evolution agent, which uses
 structured state summaries, phase-aware skill protocols, urgency detection,
 and anti-repetition guards.
 
-**Fix (8 techniques backported from Game-AI-Agent):**
+**Fix (8 techniques backported from Multi-hop-Reasoning-VLM-Agent):**
 
 1. **Phase detection** (from `phase_detector._extract_2048_phases`):
    Classifies board as `opening`/`midgame`/`endgame` using occupancy and
@@ -261,7 +261,7 @@ and anti-repetition guards.
    times with zero total reward, a random alternative is forced. Prevents
    the agent from getting stuck in fruitless loops.
 
-**Prompt changes (from Game-AI-Agent episode_runner prompt structure):**
+**Prompt changes (from Multi-hop-Reasoning-VLM-Agent episode_runner prompt structure):**
 
 - **Compound skill protocols** (from `pipeline._GAME_DEFAULT_SEEDS` +
   `skill_enrichment`): Each phase has a named skill with strategy, plan

@@ -1,6 +1,6 @@
 # Cold-Start Data Generation
 
-Generate initial trajectory data and skill seeds for the Game-AI-Agent system.
+Generate initial trajectory data and skill seeds for the Multi-hop-Reasoning-VLM-Agent system.
 
 ## Scope: Environments and Games We Use
 
@@ -69,8 +69,8 @@ conda activate cold-start-agent
 # Option B: export OPENROUTER_API_KEY="sk-or-..."
 # Option C: export OPENAI_API_KEY="sk-..."
 
-# 3. Set PYTHONPATH (from Game-AI-Agent root)
-cd /path/to/Game-AI-Agent
+# 3. Set PYTHONPATH (from Multi-hop-Reasoning-VLM-Agent root)
+cd /path/to/Multi-hop-Reasoning-VLM-Agent
 export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
 ```
 
@@ -196,7 +196,7 @@ Pokemon Red cold-start uses the **Orak** environment and toolset (PyBoy emulator
    - From Orak root: `python3 src/mcp_game_servers/pokemon_red/game/utils/map_preprocess.py` to generate `processed_map/` (and fix case symlinks if needed for Linux).
 
 ```bash
-# From Game-AI-Agent root (labeling off by default; use labeling/ for that)
+# From Multi-hop-Reasoning-VLM-Agent root (labeling off by default; use labeling/ for that)
 bash cold_start/run_coldstart_pokemon_red.sh --episodes 3 --max_steps 200 --verbose
 
 # With custom ROM path
@@ -402,7 +402,7 @@ debugging.
 ### Gathering 60 rollouts
 
 ```bash
-# Super Mario (from Game-AI-Agent dir, orak-mario conda env)
+# Super Mario (from Multi-hop-Reasoning-VLM-Agent dir, orak-mario conda env)
 bash cold_start/run_coldstart_orak_mario.sh --episodes 60 --max_steps 100 --resume -v
 ```
 

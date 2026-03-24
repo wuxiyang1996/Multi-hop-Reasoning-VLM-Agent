@@ -36,12 +36,14 @@ logger = logging.getLogger(__name__)
 _IMPORTS_CACHE: Dict[str, Any] = {}
 
 # Games that use Orak env (evaluate_orak.orak_nl_wrapper.make_orak_env)
-ORAK_GAMES_SET = {"super_mario"}
+ORAK_GAMES_SET = {"super_mario", "pokemon_red"}
+# Orak games that MUST use SubprocessEnv (nes_py / NumPy 2.x incompatibility)
+ORAK_SUBPROCESS_GAMES = {"super_mario"}
 # Games that use AgentEvolver wrappers (env_wrappers)
 EVOLVER_GAMES_SET = {"diplomacy", "avalon"}
 # Games that use GamingAgent make_gaming_env
 GAMINGAGENT_GAMES = {
-    "twenty_forty_eight", "sokoban", "candy_crush", "tetris", "pokemon_red",
+    "twenty_forty_eight", "sokoban", "candy_crush", "tetris",
 }
 
 
@@ -959,6 +961,7 @@ async def run_episode_async(
     model_name: Optional[str] = None,
     assigned_role: Optional[str] = None,
     assigned_role_index: Optional[int] = None,
+    step_sync: Any = None,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -1001,9 +1004,13 @@ async def run_episode_async(
 
     if game in ORAK_GAMES_SET:
         SubprocessEnv = imp["SubprocessEnv"]
-        if make_orak_env is None:
+        use_subprocess = (
+            make_orak_env is None or game in ORAK_SUBPROCESS_GAMES
+        )
+        if use_subprocess:
             logger.info(
-                "Orak import unavailable — using SubprocessEnv for %s", game
+                "Using SubprocessEnv for %s (orak_import=%s, forced=%s)",
+                game, make_orak_env is not None, game in ORAK_SUBPROCESS_GAMES,
             )
             if exe:
                 env = await loop.run_in_executor(
@@ -1208,6 +1215,11 @@ async def run_episode_async(
                     stop=["\n\nAvailable", "\n\nGame state", "\n\n---"],
                 )
 
+        # Sync with other episodes so LLM requests hit vLLM together
+        # (batch-size-1 throughput is 10-20x worse than batched).
+        if step_sync is not None:
+            await step_sync.arrive()
+
         # Fire all LLM calls concurrently
         if skill_coro is not None:
             summary_result, assigned_subgoal, sk_result = await asyncio.gather(
@@ -1306,6 +1318,9 @@ async def run_episode_async(
             f"Output SUBGOAL: [TAG] objective, REASONING, then ACTION number."
         )
         action_prompt = SYSTEM_PROMPT + skill_text + "\n" + action_user
+
+        if step_sync is not None:
+            await step_sync.arrive()
 
         action_result = await vllm_client.generate_chat(
             [{"role": "user", "content": action_prompt}],
@@ -1468,6 +1483,9 @@ async def run_episode_async(
                 and sum(recent_rewards[-stuck_window:]) <= 0):
             logger.debug("Episode %s stuck at step %d, terminating early", episode_id, step_count)
             break
+
+    if step_sync is not None:
+        step_sync.depart()
 
     try:
         env.close()

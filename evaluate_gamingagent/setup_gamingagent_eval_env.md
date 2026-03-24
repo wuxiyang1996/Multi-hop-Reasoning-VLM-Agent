@@ -4,7 +4,7 @@
 
 ## 1. GamingAgent repository (external)
 
-Clone and install GamingAgent as a sibling of Game-AI-Agent (or elsewhere and add to `PYTHONPATH`):
+Clone and install GamingAgent as a sibling of Multi-hop-Reasoning-VLM-Agent (or elsewhere and add to `PYTHONPATH`):
 
 ```powershell
 cd D:\ICML2026
@@ -39,10 +39,10 @@ $env:OPENAI_API_KEY = "your_api_key"
 
 ## 4. Run evaluation tests
 
-From the Game-AI-Agent codebase root with GamingAgent on PYTHONPATH:
+From the Multi-hop-Reasoning-VLM-Agent codebase root with GamingAgent on PYTHONPATH:
 
 ```powershell
-cd D:\ICML2026\Game-AI-Agent
+cd D:\ICML2026\Multi-hop-Reasoning-VLM-Agent
 $env:PYTHONPATH = (Get-Location).Path + ";" + (Get-Location).Path + "\..\GamingAgent"
 python evaluate_gamingagent/test_gamingagent_dummy.py --game twenty_forty_eight --max_steps 20
 python evaluate_gamingagent/test_gamingagent_dummy.py --game sokoban --max_steps 30 --mode random_nl

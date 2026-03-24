@@ -6,7 +6,7 @@ Test script: run dummy_agent in GamingAgent (LMGame-Bench) via GamingAgentNLWrap
 Uses env_wrappers.GamingAgentNLWrapper and agents.dummy_agent.language_agent_action
 to run episodes where the agent chooses actions from natural language state.
 
-Usage (from the Game-AI-Agent codebase root):
+Usage (from the Multi-hop-Reasoning-VLM-Agent codebase root):
 
     # Ensure GamingAgent is on PYTHONPATH
     export PYTHONPATH=$(pwd):$(pwd)/../GamingAgent
@@ -48,7 +48,7 @@ try:
     from env_wrappers.gamingagent_nl_wrapper import GamingAgentNLWrapper, state_to_natural_language
 except ImportError as e:
     print(f"[ERROR] Cannot import env_wrappers: {e}")
-    print("  Run from Game-AI-Agent root. Ensure env_wrappers is on PYTHONPATH.")
+    print("  Run from Multi-hop-Reasoning-VLM-Agent root. Ensure env_wrappers is on PYTHONPATH.")
     sys.exit(1)
 
 try:

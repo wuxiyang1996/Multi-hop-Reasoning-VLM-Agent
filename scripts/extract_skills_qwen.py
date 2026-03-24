@@ -25,7 +25,7 @@ Requirements:
   - vLLM serving Qwen/Qwen3-8B  (set VLLM_BASE_URL, default localhost:8000/v1)
   - Labeled episodes with [TAG] intentions in the input directory
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
     export VLLM_BASE_URL="http://localhost:8000/v1"

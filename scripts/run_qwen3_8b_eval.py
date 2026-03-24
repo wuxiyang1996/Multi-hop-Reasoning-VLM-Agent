@@ -8,7 +8,7 @@ and calls get_state_summary / infer_intention from decision_agents.agent_helper
 at every step so that rollouts contain rich intention + summary fields.
 
 Output is saved in Episode / Experience format (data_structure.experience) to:
-    Game-AI-Agent/output/<model_name>/<game_name>/<YYYYMMDD_HHMMSS>/
+    Multi-hop-Reasoning-VLM-Agent/output/<model_name>/<game_name>/<YYYYMMDD_HHMMSS>/
         episode_NNN.json        Per-episode JSON
         episode_buffer.json     All episodes in Episode_Buffer format
         rollouts.jsonl          Append-friendly JSONL
@@ -22,7 +22,7 @@ Requirements:
       Set VLLM_BASE_URL env var (default: http://localhost:8000/v1).
     - GamingAgent repo on PYTHONPATH.
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
     export VLLM_BASE_URL="http://localhost:8000/v1"

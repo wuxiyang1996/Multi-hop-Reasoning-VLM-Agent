@@ -17,7 +17,7 @@ Suites:
   - alfworld7b_sft/  (for Alfworld-7B-SFT checkpoints)
   - alfworld7b_rl/   (for Alfworld-7B-RL checkpoints)
 
-Usage (from Game-AI-Agent root, after installing ALFWorld + SkillRL deps):
+Usage (from Multi-hop-Reasoning-VLM-Agent root, after installing ALFWorld + SkillRL deps):
 
     # SFT checkpoint (HF or local path)
     python cold_start/ALFWORLD-7B/generate_cold_start_alfworld_7b.py \
@@ -54,7 +54,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 SCRIPT_DIR = Path(__file__).resolve().parent          # cold_start/ALFWORLD-7B/
 COLD_START_DIR = SCRIPT_DIR.parent                     # cold_start/
-CODEBASE_ROOT = COLD_START_DIR.parent                  # Game-AI-Agent/
+CODEBASE_ROOT = COLD_START_DIR.parent                  # Multi-hop-Reasoning-VLM-Agent/
 
 for _p in [str(CODEBASE_ROOT), str(SCRIPT_DIR)]:
     if _p not in sys.path:

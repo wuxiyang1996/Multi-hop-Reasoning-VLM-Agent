@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CODEBASE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WORKSPACE_ROOT="$(cd "$CODEBASE_ROOT/.." && pwd)"
 
-# AgentEvolver: sibling of Game-AI-Agent or child
+# AgentEvolver: sibling of Multi-hop-Reasoning-VLM-Agent or child
 AGENTEVOLVER_ROOT=""
 for candidate in "$WORKSPACE_ROOT/AgentEvolver" "$CODEBASE_ROOT/AgentEvolver"; do
     if [ -d "$candidate" ]; then
@@ -34,12 +34,12 @@ for candidate in "$WORKSPACE_ROOT/AgentEvolver" "$CODEBASE_ROOT/AgentEvolver"; d
 done
 
 if [ -z "$AGENTEVOLVER_ROOT" ]; then
-    echo "[ERROR] AgentEvolver repo not found as a sibling or child of Game-AI-Agent."
+    echo "[ERROR] AgentEvolver repo not found as a sibling or child of Multi-hop-Reasoning-VLM-Agent."
     echo "        Expected at: $WORKSPACE_ROOT/AgentEvolver or $CODEBASE_ROOT/AgentEvolver"
     exit 1
 fi
 
-# AI_Diplomacy: sibling of Game-AI-Agent or child (needed for diplomacy)
+# AI_Diplomacy: sibling of Multi-hop-Reasoning-VLM-Agent or child (needed for diplomacy)
 AI_DIPLOMACY_ROOT=""
 for candidate in "$WORKSPACE_ROOT/AI_Diplomacy" "$CODEBASE_ROOT/AI_Diplomacy"; do
     if [ -d "$candidate" ]; then

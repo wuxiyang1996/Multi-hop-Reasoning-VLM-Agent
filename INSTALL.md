@@ -1,23 +1,23 @@
 # Installation
 
-This document covers installing Game-AI-Agent and (optionally) VERL/verl-agent for training and inference.
+This document covers installing Multi-hop-Reasoning-VLM-Agent and (optionally) VERL/verl-agent for training and inference.
 
 ## Requirements
 
 - **Python**: 3.9+
 - **CUDA**: 12.1+ (for VERL training/inference with vLLM/sglang)
 
-## 1. Clone and set up Game-AI-Agent
+## 1. Clone and set up Multi-hop-Reasoning-VLM-Agent
 
 This repo is used as a library by adding it to `PYTHONPATH` (no `setup.py`). From the repository root or parent workspace:
 
 ```bash
-cd /path/to/Game-AI-Agent
+cd /path/to/Multi-hop-Reasoning-VLM-Agent
 export PYTHONPATH="$(pwd):$PYTHONPATH"
 # Or on Windows: set PYTHONPATH=%CD%;%PYTHONPATH%
 ```
 
-When using the **conda environment** (section 4), activate it first; the scripts assume the repo root is on `PYTHONPATH` (e.g. run commands from `Game-AI-Agent` or set `PYTHONPATH` to include it).
+When using the **conda environment** (section 4), activate it first; the scripts assume the repo root is on `PYTHONPATH` (e.g. run commands from `Multi-hop-Reasoning-VLM-Agent` or set `PYTHONPATH` to include it).
 
 ## 2. Optional dependencies
 
@@ -36,7 +36,7 @@ For **VERL-based training** and **VERL-based inference** (vLLM/sglang, Ray, FSDP
 
 ### 3.1 Clone verl-agent
 
-Clone verl-agent as a **sibling** of Game-AI-Agent so both are on the same parent path (e.g. `ICML2026/Game-AI-Agent` and `ICML2026/verl-agent`):
+Clone verl-agent as a **sibling** of Multi-hop-Reasoning-VLM-Agent so both are on the same parent path (e.g. `ICML2026/Multi-hop-Reasoning-VLM-Agent` and `ICML2026/verl-agent`):
 
 ```bash
 cd /path/to/parent   # e.g. ICML2026
@@ -64,7 +64,7 @@ From the **parent** of both repos (or with `PYTHONPATH` set so both are importab
 **Training:**
 
 ```bash
-cd /path/to/Game-AI-Agent
+cd /path/to/Multi-hop-Reasoning-VLM-Agent
 python -m scripts.run_trainer --verl
 python -m scripts.run_trainer --verl algorithm.adv_estimator=gigpo trainer.nnodes=2
 ```
@@ -76,7 +76,7 @@ python -m scripts.run_inference --verl
 python -m inference.run_verl_inference data.val_batch_size=8
 ```
 
-The scripts set `PYTHONPATH` to include both Game-AI-Agent and verl-agent when invoking `verl.trainer.main_gameai`.
+The scripts set `PYTHONPATH` to include both Multi-hop-Reasoning-VLM-Agent and verl-agent when invoking `verl.trainer.main_gameai`.
 
 ## 4. Conda environment
 

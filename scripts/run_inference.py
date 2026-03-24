@@ -7,7 +7,7 @@ Loads a Decision Agent (local checkpoint or API model) and a persisted
 Skill Bank, then runs episodes across supported game environments and
 writes rollouts + aggregate metrics.
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     export PYTHONPATH="$(pwd):$PYTHONPATH"
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Run Orak benchmark (krafton-ai/Orak) games through the Game-AI-Agent pipeline.
+Run Orak benchmark (krafton-ai/Orak) games through the Multi-hop-Reasoning-VLM-Agent pipeline.
 
 Supports 12 games across 6 genres, with both the VLM decision agent and
 the dummy language agent.
@@ -172,7 +172,7 @@ def run_vlm_episode(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run Orak benchmark games through Game-AI-Agent",
+        description="Run Orak benchmark games through Multi-hop-Reasoning-VLM-Agent",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--game", type=str, default="twenty_fourty_eight",

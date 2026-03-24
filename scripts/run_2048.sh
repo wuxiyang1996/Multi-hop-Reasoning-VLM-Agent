@@ -85,7 +85,7 @@ fi
 
 # ── New run directory for 2048 ───────────────────────────────────────
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_DIR="${RUN_DIR:-/workspace/game_agent/Game-AI-Agent/runs/Qwen3-8B_2048_${TIMESTAMP}}"
+RUN_DIR="${RUN_DIR:-/workspace/game_agent/Multi-hop-Reasoning-VLM-Agent/runs/Qwen3-8B_2048_${TIMESTAMP}}"
 mkdir -p "${RUN_DIR}/checkpoints"
 
 # ── Cleanup on exit ──────────────────────────────────────────────────

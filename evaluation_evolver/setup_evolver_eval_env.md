@@ -1,10 +1,10 @@
 # Setting up the evolver_eval conda environment
 
-**AgentEvolver is not included in this repo.** Clone [AgentEvolver](https://github.com/modelscope/AgentEvolver) as a sibling of Game-AI-Agent (e.g. `D:\ICML2026\AgentEvolver`) so the `games` package is on `PYTHONPATH`. Then follow the steps below so the `evolver_eval` env can run Avalon/Diplomacy and evaluation.
+**AgentEvolver is not included in this repo.** Clone [AgentEvolver](https://github.com/modelscope/AgentEvolver) as a sibling of Multi-hop-Reasoning-VLM-Agent (e.g. `D:\ICML2026\AgentEvolver`) so the `games` package is on `PYTHONPATH`. Then follow the steps below so the `evolver_eval` env can run Avalon/Diplomacy and evaluation.
 
 ## 1. Create the conda environment (if not already created)
 
-From the **Game-AI-Agent root** (or parent workspace):
+From the **Multi-hop-Reasoning-VLM-Agent root** (or parent workspace):
 
 ```powershell
 conda create -n evolver_eval python=3.11 -y
@@ -12,7 +12,7 @@ conda create -n evolver_eval python=3.11 -y
 
 ## 2. Install game dependencies (per AgentEvolver games/README.md)
 
-Activate the env and install the minimal requirements for the games web UI and evaluation (path assumes AgentEvolver is a sibling of Game-AI-Agent):
+Activate the env and install the minimal requirements for the games web UI and evaluation (path assumes AgentEvolver is a sibling of Multi-hop-Reasoning-VLM-Agent):
 
 ```powershell
 conda activate evolver_eval

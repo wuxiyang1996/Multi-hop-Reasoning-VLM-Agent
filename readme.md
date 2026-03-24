@@ -1,12 +1,12 @@
 # Enhance Agentic Decision-making in Multiple-player long-horizon games with unsupervised experiences
 
-[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/wuxiyang1996/Game-AI-Agent)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/wuxiyang1996/Multi-hop-Reasoning-VLM-Agent)
 
 ## Overview
 
 This repository provides a framework for enhancing agentic decision-making in multi-player, long-horizon games through unsupervised experience. The framework integrates with multiple game environments and supports both training-free (RAG-based) and trainable (RL-based) **text LLM** agent architectures (observations are **text** summaries; the default decision and training stack is **LLM-only**). This readme outlines each module and aims to ease integration and debugging.
 
-**No external repos are bundled.** This repository contains only Game-AI-Agent code. For Avalon/Diplomacy you need [AgentEvolver](https://github.com/modelscope/AgentEvolver) (clone as sibling or on `PYTHONPATH`). For GamingAgent evaluation, clone that repo as a sibling when needed; see [evaluate_gamingagent/setup_gamingagent_eval_env.md](evaluate_gamingagent/setup_gamingagent_eval_env.md).
+**No external repos are bundled.** This repository contains only Multi-hop-Reasoning-VLM-Agent code. For Avalon/Diplomacy you need [AgentEvolver](https://github.com/modelscope/AgentEvolver) (clone as sibling or on `PYTHONPATH`). For GamingAgent evaluation, clone that repo as a sibling when needed; see [evaluate_gamingagent/setup_gamingagent_eval_env.md](evaluate_gamingagent/setup_gamingagent_eval_env.md).
 
 **GRPO in this repo:** The default co-evolution loop trains all five LoRA adapters with **GRPO via PyTorch FSDP** ([`trainer/coevolution/grpo_training.py`](trainer/coevolution/grpo_training.py) → [`skill_agents_grpo/grpo/fsdp_trainer.py`](skill_agents_grpo/grpo/fsdp_trainer.py)), not VERL. For an **optional** Ray/VERL stack (vLLM/sglang, GiGPO/PPO, `RayPPOTrainer`), use [verl-agent](https://github.com/verl-project/verl-agent) as a sibling; see [INSTALL.md](INSTALL.md) and [trainer/decision/grpo_trainer.py](trainer/decision/grpo_trainer.py) (`GameAITrainer`).
 
@@ -16,7 +16,7 @@ This repository provides a framework for enhancing agentic decision-making in mu
 
 ## Quick Links
 
-- **🔗 Repository**: [GitHub - Game-AI-Agent](https://github.com/wuxiyang1996/Game-AI-Agent)
+- **🔗 Repository**: [GitHub - Multi-hop-Reasoning-VLM-Agent](https://github.com/wuxiyang1996/Multi-hop-Reasoning-VLM-Agent)
 
 - **📦 Environment Wrappers** — [env_wrappers/](env_wrappers/): NL wrappers and evaluation for game environments
   - [Avalon](env_wrappers/avalon_nl_wrapper.py) · [Diplomacy](env_wrappers/diplomacy_nl_wrapper.py) — require **AgentEvolver** (external; [AgentEvolver Games](https://github.com/modelscope/AgentEvolver/blob/main/games/README.md)); eval: [evaluation_evolver/](evaluation_evolver/)

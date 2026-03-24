@@ -10,7 +10,7 @@ Output structure (cold_start/output/alfworld7b_orak/<game_name>/):
   - rollouts.jsonl          Append-friendly JSONL (one Episode per line)
   - rollout_summary.json    Per-game run stats
 
-Usage (from Game-AI-Agent root):
+Usage (from Multi-hop-Reasoning-VLM-Agent root):
 
     # Super Mario (activate orak-mario env first)
     source evaluate_orak/setup_orak_mario.sh
@@ -39,7 +39,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 SCRIPT_DIR = Path(__file__).resolve().parent          # cold_start/ALFWORLD-7B/
 COLD_START_DIR = SCRIPT_DIR.parent                     # cold_start/
-CODEBASE_ROOT = COLD_START_DIR.parent                  # Game-AI-Agent/
+CODEBASE_ROOT = COLD_START_DIR.parent                  # Multi-hop-Reasoning-VLM-Agent/
 ORAK_SRC = CODEBASE_ROOT.parent / "Orak" / "src"
 
 for _p in [str(CODEBASE_ROOT), str(ORAK_SRC), str(SCRIPT_DIR)]:
