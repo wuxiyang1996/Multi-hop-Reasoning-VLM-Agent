@@ -147,7 +147,7 @@ Store each skill with (among others): `skill_name`, `skill_family`, `abstraction
 
 ## Skill synthesis / supervision agent
 
-We introduce a **Skill Synthesis / Supervision Agent** to grow the skill bank with **synthetic interaction skills** found from rollout failures, weak existing skills, and missing multi-step compositions. Its job is not to invent arbitrary skills, but to propose **reusable, verifiable, high-utility** routines that improve downstream decision-making in both **game** and **web** environments.
+We introduce a **Skill Synthesis / Supervision Agent** to grow the skill bank with **synthetic interaction skills** found from rollout failures, weak existing skills, and missing multi-step compositions. Its job is not to invent arbitrary skills, but to propose **reusable, verifiable, high-utility** routines that improve downstream decision-making in both **game** and **web** environments. The same agent also **guides cross-domain transfer**: it helps **retrieve, adapt, and validate** abstract protocols when moving skills between games, web agents, and visual reasoning—so transfer stays **reasoning-shaped** (slot-level protocols) rather than a blind copy of domain-specific actions.
 
 ### Motivation
 
@@ -177,6 +177,7 @@ The agent sits **between Stage 3 (Contract Learning) and Stage 4 (Bank Maintenan
 - **Generate candidates** as structured protocols with explicit contracts.  
 - **Score quality** with learned supervision from the decision agent and the skill-bank agent.  
 - **Promote selectively** via proto-skill **canary** evaluation before anything enters the persistent bank.  
+- **Steer cross-domain transfer** by proposing **instantiations** and **transfer_notes**-style updates when a skill is reused in a new domain, and by scoring whether adapted candidates still meet contracts after canary rollouts there.  
 
 ### Initial scope
 
@@ -243,7 +244,7 @@ Measure whether synthesis improves:
 
 ### Long-term goal
 
-A **self-improving skill bank** where decision-making, skill discovery, and bank supervision **co-evolve**—supporting more robust long-horizon behavior in **interactive games** and **web-based** tasks.
+A **self-improving skill bank** where decision-making, skill discovery, bank supervision, and **cross-domain skill migration** **co-evolve**—supporting more robust long-horizon behavior in **interactive games**, **web-based** tasks, and **visual reasoning** settings that share the same protocol schema.
 
 ---
 
