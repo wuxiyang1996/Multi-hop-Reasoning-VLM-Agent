@@ -10,11 +10,13 @@ NL Wrappers:
   - DiplomacyNLWrapper:    Diplomacy strategic negotiation (7 agents / powers)
   - GamingAgentNLWrapper:  GamingAgent / LMGame-Bench (2048, Candy Crush, Tetris)
   - OrakNLWrapper:         Orak environments (Super Mario)
+  - OSWorldNLWrapper:      OSWorld desktop automation (Ubuntu/Windows VMs)
   - TetrisMacroWrapper:    Tetris macro-action wrapper (placement-level actions)
 
 Evaluation helpers:
   - game_configs:          Per-game default configs (GameConfig, GAME_CONFIGS)
   - gym_like:              Gymnasium adapter for GamingAgent (make_gaming_env)
+  - osworld_wrapper:       Gymnasium adapter for OSWorld (OSWorldGymWrapper)
   - run_benchmark:         CLI benchmark runner for LMGame-Bench
   - run_orak_benchmark:    CLI benchmark runner for Orak games
 """
@@ -46,7 +48,14 @@ from env_wrappers.orak_nl_wrapper import (
     make_orak_env,
 )
 
-from env_wrappers.tetris_macro_wrapper import TetrisMacroWrapper
+from env_wrappers.osworld_wrapper import OSWorldGymWrapper, load_task_catalog
+from env_wrappers.osworld_nl_wrapper import (
+    OSWorldNLWrapper,
+    obs_to_natural_language as osworld_obs_to_nl,
+    build_osworld_state_summary,
+)
+
+from env_wrappers.tetris_macro_wrapper import TetrisMacroActionWrapper as TetrisMacroWrapper
 
 from env_wrappers.game_configs import (
     GAME_CONFIGS,
@@ -79,6 +88,12 @@ __all__ = [
     "ORAK_GAMES",
     "OrakNLWrapper",
     "make_orak_env",
+    # OSWorld
+    "OSWorldGymWrapper",
+    "OSWorldNLWrapper",
+    "load_task_catalog",
+    "osworld_obs_to_nl",
+    "build_osworld_state_summary",
     # Tetris Macro
     "TetrisMacroWrapper",
     # Game configs & Gymnasium adapters
