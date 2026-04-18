@@ -34,11 +34,23 @@ BrowserGym examples::
     result = browser_obs_to_schema(obs, step=3, task_id="webarena.shopping.143")
 """
 
+# ── Unified grounding pipeline ────────────────────────────────────────
+from vlm_wrapper.ground import (
+    GroundingRequest,
+    GroundingResult,
+    HopTrace,
+    ground,
+)
+
 # ── Shared utilities ──────────────────────────────────────────────────
 from vlm_wrapper.schema import (
     SCHEMA_VERSION,
+    build_adaptive_system_prompt,
     build_system_prompt,
     encode_image_b64,
+    parse_answer_block,
+    parse_answer_from_schema,
+    parse_evidence_from_schema,
     parse_schema_output,
     validate_schema,
 )
@@ -53,10 +65,19 @@ from vlm_wrapper.browser_adapter import generate_label as browser_generate_label
 from vlm_wrapper.browser_adapter import browser_obs_to_schema
 
 __all__ = [
+    # unified pipeline
+    "ground",
+    "GroundingRequest",
+    "GroundingResult",
+    "HopTrace",
     # shared
     "SCHEMA_VERSION",
+    "build_adaptive_system_prompt",
     "build_system_prompt",
     "encode_image_b64",
+    "parse_answer_block",
+    "parse_answer_from_schema",
+    "parse_evidence_from_schema",
     "parse_schema_output",
     "validate_schema",
     # head 1: heuristic

@@ -43,6 +43,7 @@ import openai
 from PIL import Image
 
 from .schema import (
+    build_adaptive_system_prompt,
     build_system_prompt,
     build_user_message,
     parse_schema_output,
@@ -92,6 +93,8 @@ def run_tool_loop(
     base_url: str | None = None,
     temperature: float | None = None,
     max_tokens: int | None = None,
+    sections: list[str] | None = None,
+    task_type: str = "interactive",
 ) -> dict[str, Any]:
     """Run the multi-turn tool-calling loop.
 
@@ -100,7 +103,8 @@ def run_tool_loop(
     image : PIL.Image
         Screenshot (game frame, browser viewport, video frame).
     domain : str
-        ``"gymv"``, ``"browser"``, or ``"video"``.
+        ``"gymv"``, ``"browser"``, ``"desktop"``, ``"image_qa"``,
+        ``"video_qa"``, or ``"video"``.
     registry : ToolRegistry
         Domain-specific tool registry with handlers bound to current obs.
     goal : str
@@ -121,6 +125,13 @@ def run_tool_loop(
         OpenAI client overrides.
     temperature / max_tokens : float / int
         Generation parameters.
+    sections : list[str] or None
+        Which schema sections to include.  If None, uses legacy default.
+        Valid: entities, attributes, relations, state_flags, targets,
+        uncertainty, actions, evidence, answer.
+    task_type : str
+        ``"interactive"`` | ``"qa"`` | ``"temporal"``.  Controls default
+        sections and prompt style.
 
     Returns
     -------
@@ -144,7 +155,15 @@ def run_tool_loop(
         client_kwargs["base_url"] = base_url
     client = openai.OpenAI(**client_kwargs)
 
-    system_prompt = build_system_prompt(domain, max_entities=max_entities)
+    if sections is not None:
+        system_prompt = build_adaptive_system_prompt(
+            domain,
+            sections=sections,
+            task_type=task_type,
+            max_entities=max_entities,
+        )
+    else:
+        system_prompt = build_system_prompt(domain, max_entities=max_entities)
     system_prompt += TOOL_USE_INSTRUCTION
 
     user_content = build_user_message(
@@ -213,7 +232,8 @@ def run_tool_loop(
             messages.append({"role": "assistant", "content": raw})
             schema = parse_schema_output(raw)
             if schema:
-                warnings = validate_schema(schema)
+                required = sections if sections is not None else None
+                warnings = validate_schema(schema, required_sections=required)
             break
 
         except Exception as exc:

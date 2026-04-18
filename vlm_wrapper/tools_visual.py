@@ -246,6 +246,42 @@ TOOL_READ_TEXT_REGION = ToolDef(
     domain="visual",
 )
 
+TOOL_GROUNDED_DETECT = ToolDef(
+    name="grounded_detect",
+    description=(
+        "Detect objects matching a natural-language query in the image. "
+        "Uses open-vocabulary grounding (GroundingDINO) — works on ANY "
+        "image content: natural scenes, photos, diagrams, synthetic "
+        "scenes (CLEVR), video frames, etc.  Returns bounding boxes, "
+        "labels, and confidence scores for every match.  Unlike "
+        "detect_objects (which finds UI elements), this finds arbitrary "
+        "objects described in plain English.  Example queries: 'red "
+        "sphere', 'person sitting on chair', 'largest car', 'blue cube'."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": (
+                    "What to detect.  Use '.' to separate multiple "
+                    "categories, e.g. 'red sphere . blue cube . cylinder'."
+                ),
+            },
+            "confidence_threshold": {
+                "type": "number",
+                "description": "Minimum confidence (0-1). Default 0.15.",
+            },
+            "max_results": {
+                "type": "integer",
+                "description": "Maximum detections to return. Default 20.",
+            },
+        },
+        "required": ["query"],
+    },
+    domain="visual",
+)
+
 
 # ── Internal state ────────────────────────────────────────────────────
 
@@ -261,27 +297,51 @@ class _DetectedElement:
     source: str
 
 
+def _check_gdino() -> bool:
+    """Check if GroundingDINO (or groundingdino via autodistill) is available."""
+    try:
+        from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection  # noqa: F401
+        return True
+    except ImportError:
+        pass
+    try:
+        import groundingdino  # noqa: F401
+        return True
+    except ImportError:
+        pass
+    return False
+
+
+def _check_omniparser() -> bool:
+    try:
+        from .grounding import parse_screen  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 class _VisualState:
-    """Holds the image and lazily-cached detection results."""
+    """Holds the image and lazily-cached detection results.
 
-    def __init__(self, image: Image.Image):
+    Supports two detection backends:
+    - **OmniParser-v2** (YOLO + Florence-2 + OCR): accurate for GUI
+      screenshots (buttons, icons, text fields).  The default for
+      ``domain in ("gymv", "browser", "desktop")``.
+    - **GroundingDINO**: open-vocabulary object detection — handles
+      natural images (CLEVR shapes, GQA real-world objects, video
+      frames with people/cars/animals).  Used for ``image_qa``,
+      ``video_qa``, and any domain where OmniParser would fail.
+
+    Both backends produce the same ``_DetectedElement`` list, so every
+    downstream tool (spatial_query, visual_search, count_objects, etc.)
+    works identically regardless of which backend ran.
+    """
+
+    def __init__(self, image: Image.Image, *, prefer_gdino: bool = False):
         self.image = image.convert("RGB")
+        self._prefer_gdino = prefer_gdino
         self._detections: list[_DetectedElement] | None = None
-        self._omniparser_available: bool | None = None
-
-    def _check_omniparser(self) -> bool:
-        if self._omniparser_available is not None:
-            return self._omniparser_available
-        try:
-            from .grounding import parse_screen  # noqa: F401
-            self._omniparser_available = True
-        except ImportError:
-            self._omniparser_available = False
-            logger.warning(
-                "OmniParser-v2 not available (missing ultralytics/transformers). "
-                "detect_objects will fall back to OCR-only mode."
-            )
-        return self._omniparser_available
+        self._gdino_cache: dict[str, list[_DetectedElement]] = {}
 
     def detect(
         self,
@@ -308,8 +368,18 @@ class _VisualState:
         confidence_threshold: float,
         max_elements: int,
     ) -> list[_DetectedElement]:
-        if self._check_omniparser():
+        if self._prefer_gdino and _check_gdino():
+            return self._detect_gdino_open(
+                confidence_threshold=confidence_threshold,
+                max_elements=max_elements,
+            )
+        if _check_omniparser():
             return self._detect_omniparser(confidence_threshold, max_elements)
+        if _check_gdino():
+            return self._detect_gdino_open(
+                confidence_threshold=confidence_threshold,
+                max_elements=max_elements,
+            )
         return self._detect_ocr_only()
 
     def _detect_omniparser(
@@ -337,8 +407,62 @@ class _VisualState:
             ))
         return results
 
+    def _detect_gdino_open(
+        self,
+        *,
+        query: str = "",
+        confidence_threshold: float = 0.15,
+        max_elements: int = 30,
+    ) -> list[_DetectedElement]:
+        """Open-vocabulary detection via GroundingDINO.
+
+        When *query* is empty, uses a generic prompt that detects
+        salient objects in the image.  When *query* is given, detects
+        specifically those objects.
+        """
+        if not query:
+            query = "object . item . thing . person . shape . element"
+
+        cache_key = f"{query}|{confidence_threshold}"
+        if cache_key in self._gdino_cache:
+            return self._gdino_cache[cache_key][:max_elements]
+
+        results = _run_gdino(
+            self.image,
+            query=query,
+            box_threshold=confidence_threshold,
+            max_elements=max_elements,
+        )
+        self._gdino_cache[cache_key] = results
+        return results[:max_elements]
+
+    def grounded_detect(
+        self,
+        query: str,
+        confidence_threshold: float = 0.15,
+        max_elements: int = 20,
+    ) -> list[_DetectedElement]:
+        """Query-driven detection: find objects matching a text description.
+
+        Unlike ``detect()`` (which does an open sweep), this targets
+        specific objects — the key capability for multi-hop reasoning
+        on natural images.
+        """
+        cache_key = f"{query}|{confidence_threshold}"
+        if cache_key in self._gdino_cache:
+            return self._gdino_cache[cache_key][:max_elements]
+
+        results = _run_gdino(
+            self.image,
+            query=query,
+            box_threshold=confidence_threshold,
+            max_elements=max_elements,
+        )
+        self._gdino_cache[cache_key] = results
+        return results[:max_elements]
+
     def _detect_ocr_only(self) -> list[_DetectedElement]:
-        """Fallback: OCR-only detection when OmniParser is unavailable."""
+        """Fallback: OCR-only detection when no detector is available."""
         try:
             import easyocr
             reader = easyocr.Reader(["en"], gpu=False)
@@ -377,6 +501,86 @@ class _VisualState:
             if ref_lower in d.label.lower():
                 return d
         return None
+
+
+# ── GroundingDINO runner ─────────────────────────────────────────────
+
+_gdino_model = None
+_gdino_processor = None
+
+
+def _run_gdino(
+    image: Image.Image,
+    query: str,
+    box_threshold: float = 0.15,
+    max_elements: int = 30,
+) -> list[_DetectedElement]:
+    """Run GroundingDINO on an image with a text query.
+
+    Tries HuggingFace transformers API first (Grounding DINO via
+    ``AutoModelForZeroShotObjectDetection``), which supports the
+    ``IDEA-Research/grounding-dino-base`` checkpoint.
+    """
+    global _gdino_model, _gdino_processor
+
+    try:
+        import torch
+        from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
+
+        if _gdino_model is None:
+            model_id = "IDEA-Research/grounding-dino-base"
+            logger.info("Loading GroundingDINO from %s ...", model_id)
+            _gdino_processor = AutoProcessor.from_pretrained(model_id)
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            _gdino_model = AutoModelForZeroShotObjectDetection.from_pretrained(
+                model_id
+            ).to(device)
+            logger.info("GroundingDINO loaded on %s", device)
+
+        inputs = _gdino_processor(
+            images=image, text=query, return_tensors="pt"
+        ).to(_gdino_model.device)
+
+        with torch.no_grad():
+            outputs = _gdino_model(**inputs)
+
+        target_sizes = torch.tensor([image.size[::-1]]).to(_gdino_model.device)
+        results = _gdino_processor.post_process_grounded_object_detection(
+            outputs,
+            inputs.input_ids,
+            box_threshold=box_threshold,
+            text_threshold=box_threshold,
+            target_sizes=target_sizes,
+        )[0]
+
+        elements: list[_DetectedElement] = []
+        boxes = results["boxes"].cpu().numpy()
+        scores = results["scores"].cpu().numpy()
+        labels = results.get("labels", results.get("text", []))
+
+        for i, (box, score) in enumerate(zip(boxes, scores)):
+            if i >= max_elements:
+                break
+            x1, y1, x2, y2 = box
+            w, h = x2 - x1, y2 - y1
+            label = labels[i] if i < len(labels) else query
+            elements.append(_DetectedElement(
+                index=i,
+                element_type="object",
+                label=str(label).strip(),
+                bbox=(int(x1), int(y1), int(w), int(h)),
+                interactable=False,
+                confidence=float(score),
+                source="grounding_dino",
+            ))
+        return elements
+
+    except ImportError:
+        logger.debug("GroundingDINO not available via transformers")
+    except Exception as exc:
+        logger.warning("GroundingDINO inference failed: %s", exc)
+
+    return []
 
 
 # ── Handler implementations ──────────────────────────────────────────
@@ -778,6 +982,46 @@ def _h_read_text_region(
     }
 
 
+def _h_grounded_detect(
+    state: _VisualState,
+    *,
+    query: str,
+    confidence_threshold: float = 0.15,
+    max_results: int = 20,
+) -> dict:
+    if not _check_gdino():
+        return {
+            "error": (
+                "GroundingDINO not available.  Install: "
+                "pip install transformers torch"
+            ),
+            "elements": [],
+            "count": 0,
+        }
+
+    dets = state.grounded_detect(
+        query=query,
+        confidence_threshold=confidence_threshold,
+        max_elements=max_results,
+    )
+    elements = []
+    for d in dets:
+        elements.append({
+            "index": d.index,
+            "label": d.label,
+            "bbox": {"x": d.bbox[0], "y": d.bbox[1], "w": d.bbox[2], "h": d.bbox[3]},
+            "confidence": round(d.confidence, 3),
+            "source": d.source,
+        })
+
+    return {
+        "query": query,
+        "elements": elements,
+        "count": len(elements),
+        "image_size": {"w": state.image.size[0], "h": state.image.size[1]},
+    }
+
+
 # ── Vision model helpers ─────────────────────────────────────────────
 
 def _caption_crop(crop: Image.Image) -> str:
@@ -835,28 +1079,39 @@ def _ocr_crop(crop: Image.Image) -> str:
 
 # ── Public: build registry ───────────────────────────────────────────
 
-def build_visual_registry(image: Image.Image | np.ndarray) -> ToolRegistry:
+def build_visual_registry(
+    image: Image.Image | np.ndarray,
+    *,
+    prefer_gdino: bool = False,
+) -> ToolRegistry:
     """Create a ToolRegistry with all vision-model-backed tools.
 
     Parameters
     ----------
     image : PIL.Image or np.ndarray
         The frame / screenshot to analyse.
+    prefer_gdino : bool
+        If True, ``detect_objects`` uses GroundingDINO (open-vocabulary)
+        instead of OmniParser (GUI-specific).  Set to True for natural
+        images (image QA, video QA).  Regardless of this flag,
+        ``grounded_detect`` is always available as an explicit
+        query-driven tool.
 
     Returns
     -------
     ToolRegistry
-        Registry with tools: detect_objects, describe_region,
-        visual_search, count_objects, classify_scene, spatial_query,
-        measure_distance, extract_colors, read_text_region.
+        Registry with tools: detect_objects, grounded_detect,
+        describe_region, visual_search, count_objects, classify_scene,
+        spatial_query, measure_distance, extract_colors, read_text_region.
     """
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
 
-    state = _VisualState(image)
+    state = _VisualState(image, prefer_gdino=prefer_gdino)
     reg = ToolRegistry(domain="visual")
 
     reg.register(TOOL_DETECT_OBJECTS, lambda **kw: _h_detect_objects(state, **kw))
+    reg.register(TOOL_GROUNDED_DETECT, lambda **kw: _h_grounded_detect(state, **kw))
     reg.register(TOOL_DESCRIBE_REGION, lambda **kw: _h_describe_region(state, **kw))
     reg.register(TOOL_VISUAL_SEARCH, lambda **kw: _h_visual_search(state, **kw))
     reg.register(TOOL_COUNT_OBJECTS, lambda **kw: _h_count_objects(state, **kw))
