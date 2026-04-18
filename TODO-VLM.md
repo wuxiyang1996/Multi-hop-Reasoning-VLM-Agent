@@ -625,3 +625,240 @@ The schema will evolve. Version it explicitly:
 - **v1.0** — stable schema validated across ≥ 3 Gym-V categories + ≥ 1 BrowserGym benchmark
 
 Schema version goes in the system prompt so the model can be trained on mixed versions during transition.
+
+---
+
+## 13. Chosen visual reasoning & video reasoning benchmarks
+
+The following benchmarks are selected for multi-step visual reasoning evaluation. The list is mixed image + video — the first three are image-based, the last two are video-based.
+
+### 13a. Image-based benchmarks
+
+**CLEVR** — Synthetic, compositional visual reasoning with functional programs; officially released and downloadable.
+
+- Download: https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip
+- Official page: https://cs.stanford.edu/people/jcjohns/clevr/
+
+**GQA** — Real-image visual reasoning with scene graphs, structured question semantics, and public download files for scene graphs, questions, and images.
+
+- Downloads:
+  - https://downloads.cs.stanford.edu/nlp/data/gqa/sceneGraphs.zip
+  - https://downloads.cs.stanford.edu/nlp/data/gqa/questions1.2.zip
+  - https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip
+- Official page: https://cs.stanford.edu/people/dorarad/gqa/download.html
+
+**ToolVQA** — A newer benchmark explicitly aimed at multi-step visual reasoning with tool use; the project page and repo point to a public Google Drive dataset release.
+
+- Download: https://drive.google.com/drive/folders/1diRjF2jK0aHoAMximnT7jNg4eN96ppCp?usp=sharing
+- Repo: https://github.com/Fugtemypt123/ToolVQA-release
+- Project page: https://fugtemypt123.github.io/ToolVQA-website/
+
+### 13b. Video-based benchmarks
+
+**SIV-Bench** — Open and very relevant for social interaction understanding and reasoning. The project page links both Code and Dataset, and the Hugging Face dataset page confirms the public dataset repo. Contains 2,792 real-world video clips and 8,792 high-quality QAs.
+
+- Dataset: https://huggingface.co/datasets/Fancylalala/SIV-Bench
+- Project page: https://kfq20.github.io/sivbench/
+- Code: https://github.com/kfq20/SIV-Bench
+
+**Video-Holmes** — Very relevant for complex multi-step clue-chaining reasoning. Contains 1,837 questions from 270 manually annotated suspense short films. Videos, questions, and eval code are packaged on GitHub and Hugging Face.
+
+- Repo: https://github.com/TencentARC/Video-Holmes
+- Dataset: https://huggingface.co/datasets/TencentARC/Video-Holmes
+- Project page: https://video-holmes.github.io/Page.github.io/
+- Download method:
+
+```bash
+git clone https://github.com/TencentARC/Video-Holmes.git
+cd Video-Holmes
+pip install huggingface_hub
+python download.py --hf_token YOUR_HUGGINGFACE_ACCESS_TOKEN
+unzip Benchmark/videos.zip -d Benchmark/
+unzip Benchmark/annotations.zip -d Benchmark/
+```
+
+### 13c. Summary table
+
+| Benchmark | Modality | Focus | Scale | Public |
+|-----------|----------|-------|-------|--------|
+| CLEVR | Image | Compositional visual reasoning | ~860K questions | Yes |
+| GQA | Image | Scene-graph grounded reasoning | ~22M questions | Yes |
+| ToolVQA | Image | Multi-step reasoning with tool use | — | Yes (Google Drive) |
+| SIV-Bench | Video | Social interaction understanding | 2,792 clips, 8,792 QAs | Yes (Hugging Face) |
+| Video-Holmes | Video | Multi-step clue-chaining | 270 films, 1,837 questions | Yes (Hugging Face) |
+
+---
+
+## 14. Visual grounding for benchmark evaluation via vlm_wrapper
+
+The `vlm_wrapper` pipeline (§12, this repo) already provides the machinery needed to do visual grounding on the chosen benchmarks — the key is matching each benchmark's modality (image vs. video) and reasoning style (compositional, scene-graph, tool-use, temporal, clue-chaining) to the right combination of vlm_wrapper heads and tool registries.
+
+### 14a. What "visual grounding" means here
+
+Visual grounding = for every entity, relation, or evidence hop the model references in its answer, trace it back to a specific pixel region (bounding box) and/or a specific temporal location (frame index / timestamp) in the source image or video. The `vlm_wrapper` produces this in the `<entities>` section (each entity has `pos=x,y,w,h`) and the hop trace (§7, each hop has `grounding=[eid, ...]`).
+
+Three heads are available:
+
+| Head | Input | Grounding method | Latency | Best for |
+|------|-------|------------------|---------|----------|
+| Head 1 — Heuristic | Text state (AXTree, obs.text) | Regex/tree-walking → schema | ~ms | Interactive envs with text state |
+| Head 2 — Vision | Screenshot → GPT-4o / Qwen3 | VLM directly produces schema | ~2-4s | General images, static QA |
+| Head 3 — OmniParser-v2 | Screenshot → YOLO + OCR + Florence-2 | Local model ensemble → schema | ~0.6s GPU | UI screenshots, precise bbox grounding |
+| Tool loop | Screenshot → VLM calls tools | Multi-hop tool calling → schema | ~5-15s | Complex reasoning with evidence chains |
+
+For benchmarks with no environment text state (all five chosen benchmarks), Head 1 is not applicable. The relevant heads are **Head 2**, **Head 3**, and the **tool-calling loop**.
+
+### 14b. Per-benchmark grounding strategy
+
+**CLEVR (image, compositional)**
+
+- Modality: single synthetic image per question.
+- Grounding need: locate each mentioned object (sphere, cube, cylinder) and verify spatial/attribute relations.
+- vlm_wrapper approach:
+  - `build_visual_registry(image)` → tools: `detect_objects`, `spatial_query`, `count_objects`, `extract_colors`, `visual_search`.
+  - The VLM reads the question, calls `detect_objects` to get all shapes with bboxes, calls `spatial_query` to verify "left of" / "behind" relations, calls `extract_colors` to confirm "red" / "blue" attributes.
+  - Each hop in the answer maps to a tool call → grounded evidence.
+  - Entry point: `visual_generate_label_with_tools(image, goal=question, task_id="clevr.xxx")`.
+
+**GQA (image, scene-graph grounded)**
+
+- Modality: single real-world image per question.
+- Grounding need: locate objects mentioned in the question, verify scene-graph relations (on, near, wearing, holding).
+- vlm_wrapper approach:
+  - Same as CLEVR: `build_visual_registry(image)`.
+  - GQA's ground-truth scene graphs provide gold bbox annotations — use these to evaluate whether the vlm_wrapper's `detect_objects` bboxes match (IoU comparison).
+  - The hop trace should align with GQA's functional program (select → filter → relate → query) — each program step maps to a tool call.
+  - GQA scene graphs can also be loaded as a validation oracle: after the VLM produces its schema, compare `<entities>` bboxes against GQA gold scene-graph bboxes.
+
+**ToolVQA (image, multi-step tool-use)**
+
+- Modality: single image per question, but the benchmark is explicitly about tool-augmented reasoning.
+- Grounding need: the benchmark already defines tool use as part of the reasoning — visual grounding is the piece that connects tool outputs back to image regions.
+- vlm_wrapper approach:
+  - `build_visual_registry(image)` provides the vision-model tool suite.
+  - ToolVQA's own tools (table lookup, knowledge graph query, etc.) can be added as custom tools via `ToolRegistry.register()` alongside the visual tools.
+  - The combined registry gives the VLM both visual grounding (detect, describe, spatial) and external knowledge tools in the same loop.
+  - Hop traces from `run_tool_loop` directly capture the multi-hop reasoning chain with grounded evidence.
+
+**SIV-Bench (video, social interaction)**
+
+- Modality: video clips (2,792 clips, 8,792 QAs).
+- Grounding need: temporal grounding (which frames show the relevant social interaction) + spatial grounding (which people/objects are involved).
+- vlm_wrapper approach:
+  - `build_video_visual_registry(frames=decoded_frames, fps=fps)` → full suite: temporal navigation + vision-model detection + cross-frame tools.
+  - Video-level tools: `get_frame`, `sample_frames`, `detect_scene_changes`, `temporal_navigate` — find the relevant temporal window.
+  - Cross-frame tools: `track_object` (follow a person across frames), `find_moment` (find when a social interaction starts/ends), `detect_activity` (classify interaction type), `compare_elements` (what changed between frames).
+  - Per-frame tools: `detect_objects_at_frame` (ground people/objects at a specific moment), `describe_region` (caption an ambiguous gesture or expression).
+  - Entry point: `video_visual_generate_label_with_tools(frames, goal=question, fps=fps)`.
+  - Grounding output: both temporal (frame index / timestamp per hop) and spatial (bbox per entity per frame).
+
+**Video-Holmes (video, clue-chaining)**
+
+- Modality: suspense short films (270 films, 1,837 questions).
+- Grounding need: multi-step clue chain — each clue is grounded in a specific temporal moment and spatial region. Evidence accumulates across time.
+- vlm_wrapper approach:
+  - Same registry as SIV-Bench: `build_video_visual_registry(...)`.
+  - The tool loop is particularly valuable here because Video-Holmes requires *multi-hop* reasoning: the VLM must find clue A in frame range X, then clue B in frame range Y, then chain them to answer the question.
+  - Tool call trace naturally captures the clue chain: `detect_scene_changes()` → `get_frame(idx)` → `detect_objects_at_frame(idx)` → `describe_region(...)` → navigate to next clue → repeat.
+  - The hop trace (§7) maps directly to Video-Holmes's reasoning structure: trigger → hop1 (find first clue) → hop2 (find second clue) → ... → output (answer).
+
+### 14c. Implementation plan for benchmark grounding
+
+```
+Phase 1 — Image benchmarks (CLEVR, GQA, ToolVQA)
+
+  1. Write benchmark loaders:
+       clevr_loader.py    — reads CLEVR questions + images
+       gqa_loader.py      — reads GQA questions + images + scene graphs
+       toolvqa_loader.py  — reads ToolVQA questions + images + tool defs
+
+  2. For each benchmark sample:
+       image, question, gold_answer = loader.load(sample_id)
+       result = visual_generate_label_with_tools(
+           image, goal=question, task_id=f"{benchmark}.{sample_id}",
+       )
+
+  3. Evaluate:
+       a) Answer accuracy: compare result vs gold_answer
+       b) Grounding quality (GQA only): IoU between predicted entity
+          bboxes and GQA gold scene-graph bboxes
+       c) Hop trace quality: does the tool call sequence align with
+          the gold functional program (GQA) or expected tool chain (ToolVQA)?
+
+Phase 2 — Video benchmarks (SIV-Bench, Video-Holmes)
+
+  1. Write benchmark loaders:
+       sivbench_loader.py      — reads video clips + QA pairs
+       videoholmes_loader.py   — reads films + questions + annotations
+
+  2. For each benchmark sample:
+       frames = decode_video(video_path)
+       result = video_visual_generate_label_with_tools(
+           frames, goal=question, fps=fps,
+           task_id=f"{benchmark}.{sample_id}",
+       )
+
+  3. Evaluate:
+       a) Answer accuracy: compare result vs gold_answer
+       b) Temporal grounding: do the accessed frame indices overlap
+          with gold temporal annotations (if available)?
+       c) Evidence chain quality: does the tool trace capture the
+          expected multi-hop reasoning structure?
+```
+
+### 14d. Grounding-aware schema extensions for benchmarks
+
+The base schema (§12a) needs minor benchmark-specific additions:
+
+```text
+<evidence>
+hop1.tool=detect_objects
+hop1.result_ref=e1,e3
+hop1.frame=null                  # null for image benchmarks
+hop1.confidence=high
+
+hop2.tool=spatial_query
+hop2.result_ref=e1,e3
+hop2.relation=left_of
+hop2.frame=null
+
+<answer>
+answer={predicted answer}
+grounding=[e1,e3]
+evidence_chain=[hop1,hop2]
+confidence=high
+```
+
+For video benchmarks, add temporal grounding:
+
+```text
+hop1.frame=42
+hop1.timestamp=14.0
+hop2.frame=87
+hop2.timestamp=29.0
+```
+
+### 14e. What this buys us
+
+1. **Auditable reasoning**: every answer has a tool-call trace mapping to specific image/video regions. Hallucination is detectable by checking whether the cited entities actually exist at the cited locations.
+2. **SFT training data**: the (question, tool_trace, answer) triples from benchmark evaluation become supervised fine-tuning data for Qwen3-VL-8B to learn grounded multi-hop reasoning.
+3. **Cross-benchmark transfer**: the schema is the same across all five benchmarks — a model trained on CLEVR/GQA tool traces transfers to SIV-Bench/Video-Holmes because the entity/relation/hop format is shared.
+4. **Grounding evaluation metric**: beyond answer accuracy, we can measure grounding precision (% of cited entities with correct bboxes) and temporal precision (% of cited frames within gold temporal windows).
+
+### 14f. Reference implementation
+
+The existing `vlm_wrapper` modules already implement all required pieces:
+
+| Component | Module | Status |
+|-----------|--------|--------|
+| Visual tool registry | `tools_visual.py` | Done — 9 tools (detect_objects, describe_region, spatial_query, visual_search, count_objects, classify_scene, measure_distance, extract_colors, read_text_region) |
+| Video tool registry | `tools_video.py` | Done — 8 tools (get_frame, sample_frames, compare_frames, detect_scene_changes, get_video_info, read_text_in_frame, temporal_navigate, list_valid_actions) |
+| Cross-frame registry | `tools_video_visual.py` | Done — 6 tools (track_object, summarize_clip, find_moment, detect_activity, compare_elements, detect_objects_at_frame) |
+| OmniParser grounding | `grounding.py` | Done — YOLO + OCR + Florence-2 pipeline |
+| Tool-calling loop | `tool_loop.py` | Done — multi-turn VLM loop with trace capture |
+| Convenience wrappers | `tool_loop.py` | Done — `visual_generate_label_with_tools`, `video_visual_generate_label_with_tools` |
+| Benchmark loaders | — | **TODO** — CLEVR, GQA, ToolVQA, SIV-Bench, Video-Holmes |
+| Evaluation harness | — | **TODO** — accuracy + grounding IoU + temporal precision + trace quality |
+| Schema extensions | `schema.py` | **TODO** — `<evidence>` and `<answer>` sections |
+
+Reference repo: https://github.com/wuxiyang1996/Multi-hop-Reasoning-VLM-Agent/tree/main/vlm_wrapper
