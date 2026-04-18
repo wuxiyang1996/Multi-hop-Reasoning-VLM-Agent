@@ -1902,6 +1902,99 @@ class SkillBankAgent:
         engine = self._get_query_engine()
         return engine.get_detail(skill_id)
 
+    # ── Transferable skill extraction ─────────────────────────────────
+
+    def extract_transferable_skills(
+        self,
+        other_banks: Optional[Dict[str, "SkillBankMVP"]] = None,
+        domain: str = "gymv",
+        output_dir: Optional[str] = None,
+        sim_threshold: float = 0.45,
+        min_cluster_games: int = 1,
+    ) -> List[Any]:
+        """Extract cross-domain transferable skill templates.
+
+        Analyses the current bank (plus optional *other_banks*) to discover
+        reusable skill patterns: normalises predicates → clusters by
+        structural similarity → abstracts into ``TransferableSkill``
+        templates with reasoning protocols and slot bindings.
+
+        Parameters
+        ----------
+        other_banks : dict, optional
+            Additional per-game banks to include (game_name → SkillBankMVP).
+        domain : str
+            Domain tag for the current bank.
+        output_dir : str, optional
+            Where to write output files (defaults to ``config.report_dir``).
+        sim_threshold : float
+            Structural similarity threshold for clustering.
+        min_cluster_games : int
+            Minimum distinct games in a cluster to produce a template.
+
+        Returns
+        -------
+        list[TransferableSkill]
+            Templates sorted by transferability score (descending).
+        """
+        from skill_agents.extract_transferable import TransferableSkillExtractor
+
+        extractor = TransferableSkillExtractor(
+            sim_threshold=sim_threshold,
+            min_cluster_games=min_cluster_games,
+        )
+
+        game = self.config.game_name
+        extractor.ingest_bank(self.bank, domain=domain, game=game)
+
+        if other_banks:
+            for g, b in other_banks.items():
+                extractor.ingest_bank(b, domain=domain, game=g)
+
+        templates = extractor.run()
+
+        out = output_dir or (
+            str(Path(self.config.report_dir) / "transferable")
+            if self.config.report_dir else None
+        )
+        if out:
+            extractor.export(out)
+            logger.info(
+                "Exported %d transferable templates to %s", len(templates), out,
+            )
+
+        return templates
+
+    def import_transferable_skill(
+        self,
+        template,
+        slot_map: Optional[Dict[str, str]] = None,
+    ) -> Optional[str]:
+        """Instantiate a TransferableSkill template into this bank.
+
+        Creates a concrete Skill from the template using *slot_map*
+        and adds it to the bank.  Returns the new skill_id or None
+        on failure.
+        """
+        from skill_agents.skill_template import TransferableSkill
+
+        if not isinstance(template, TransferableSkill):
+            logger.warning("Expected TransferableSkill, got %s", type(template))
+            return None
+
+        domain = "gymv"
+        game = self.config.game_name
+        skill = template.instantiate(
+            domain=domain, slot_map=slot_map or {}, game_name=game,
+        )
+        self.bank.add_or_update_skill(skill)
+        self._invalidate_query_engine()
+        logger.info(
+            "Imported transferable skill %s (from template %s)",
+            skill.skill_id, template.template_id,
+        )
+        return skill.skill_id
+
     # ── Accessors ────────────────────────────────────────────────────
 
     @property

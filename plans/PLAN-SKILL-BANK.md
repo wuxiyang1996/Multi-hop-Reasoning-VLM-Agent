@@ -253,12 +253,78 @@ Used for: SFT cold-start for Qwen3-8B, reference outputs for GRPO reward compari
 
 ---
 
-## 10. Implementation
+## 10. Transferable skill extraction
+
+Skills discovered in one game/domain can transfer to others.  The extraction pipeline analyses per-game banks and produces domain-agnostic templates.
+
+### Skill template format (`TransferableSkill`)
+
+Each transferable skill wraps the concrete `Skill` schema with three cross-domain abstractions:
+
+| Component | Purpose |
+|-----------|---------|
+| **SlotBinding** | Maps domain predicates to shared schema slots (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`) |
+| **AbstractPredicate** | Parameterised eff_add/eff_del using `$slot` placeholders, with per-domain instantiations |
+| **ReasoningProtocol** | Hop chain template using inner MDP actions (GROUND → CHECK → RETRIEVE → CONCLUDE → EXECUTE) |
+
+### Four transferable skill families
+
+| Family | Hop chain | Game | Browser | Visual QA |
+|--------|-----------|------|---------|-----------|
+| **locate_filter_select** | GROUND → CHECK → CONCLUDE → EXECUTE | Candidates → best legal move | UI elements → relevant control | Objects → attributes → answer |
+| **blocker_prerequisite_replan** | GROUND → CHECK → RETRIEVE → CONCLUDE → EXECUTE | Deadlock → resolve prerequisite | Disabled control → fill missing field | Weak evidence → gather anchor |
+| **history_hidden_state_act** | RETRIEVE → CHECK → GROUND → CONCLUDE → EXECUTE | Dialogue → infer alliance → act | Prior pages → session state → next step | Prior frames → disambiguate |
+| **compare_under_constraint** | GROUND → CHECK → CHECK → CONCLUDE → EXECUTE | Move preserving structure | Path minimising risk | Candidate consistent with constraints |
+
+### Extraction pipeline
+
+```
+Per-game skill banks
+    ↓
+Stage A: Predicate normalisation     — map game predicates to slots via regex heuristics
+    ↓
+Stage B: Structural clustering       — agglomerative clustering by role signatures (cross-game)
+    ↓
+Stage C: Template abstraction        — produce TransferableSkill with protocol + slot bindings
+    ↓
+Stage D: Transferability scoring     — domain coverage × slot coverage × protocol quality × evidence
+    ↓
+Stage E: Export                      — transferable_skills.jsonl + transfer_index.json + families
+```
+
+### Usage
+
+```python
+# From the SkillBankAgent
+templates = agent.extract_transferable_skills(
+    other_banks={"tetris": bank_tetris, "avalon": bank_avalon},
+    output_dir="output/transferable",
+)
+
+# Import a template into a new game
+agent.import_transferable_skill(templates[0], slot_map={
+    "target": "focused_element",
+    "blocker": "validation_error",
+})
+
+# Or standalone
+from skill_agents.extract_transferable import extract_transferable_skills
+templates = extract_transferable_skills(
+    banks={"2048": bank_2048, "tetris": bank_tetris},
+    output_dir="output/transferable",
+)
+```
+
+---
+
+## 11. Implementation
 
 | Directory | Purpose |
 |-----------|---------|
 | `skill_agents/pipeline.py` | SkillBankAgent orchestrator |
 | `skill_agents/query.py` | SkillQueryEngine + SkillSelectionResult |
+| `skill_agents/skill_template.py` | TransferableSkill, SlotBinding, ReasoningProtocol, AbstractPredicate |
+| `skill_agents/extract_transferable.py` | Cross-domain extraction pipeline (normalise → cluster → abstract → score → export) |
 | `skill_agents/boundary_proposal/` | Stage 1 |
 | `skill_agents/infer_segmentation/` | Stage 2 |
 | `skill_agents/stage3_mvp/` | Stage 3 |
@@ -273,12 +339,15 @@ Used for: SFT cold-start for Qwen3-8B, reference outputs for GRPO reward compari
 
 ---
 
-## 11. TODO
+## 12. TODO
 
 | Task | Priority | Status |
 |------|----------|--------|
+| Transferable skill template + extraction pipeline | P0 | **Done** |
 | Extend segmentation to inner MDP hop traces | P1 | Not started |
 | Reasoning skill discovery (hop chain templates) | P1 | Not started |
 | Inner hop reward signal for GRPO (hop quality + outer reward) | P1 | Not started |
 | Reasoning protocol contracts (trigger → hops → EXECUTE) | P2 | Not started |
 | RAG retrieval over reasoning templates (not just action skills) | P2 | Not started |
+| LLM-based slot binding (replace regex heuristics with LLM inference) | P2 | Not started |
+| Cross-domain transfer evaluation harness (transfer success rate metric) | P2 | Not started |

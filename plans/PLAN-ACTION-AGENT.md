@@ -251,7 +251,41 @@ The `<state>` schema is the state representation for the inner reasoning MDP:
 
 ---
 
-## 9. TODO
+## 9. Uncertainty-driven GROUND triggering
+
+The inner MDP agent actively manages information completeness through the GROUND action.  The `<uncertainty>` section in the schema is the communication channel between grounding and reasoning.
+
+### When to GROUND vs. act
+
+The `hop_select` adapter learns this trade-off end-to-end via GRPO:
+
+| Schema signal | Inner MDP response | Rationale |
+|---------------|-------------------|-----------|
+| `uncertainty.e5.label=high` + skill needs `$target` | `GROUND(e5)` → re-detect | Skill can't execute without confident target |
+| `uncertainty.e3.pos=medium` + action is coarse | `EXECUTE(action)` directly | Position uncertainty tolerable for coarse actions |
+| `blocker=null` + skill is `blocker_prerequisite_replan` | `GROUND(scene)` → find blockers | Skill explicitly requires blocker identification |
+| `candidate_set=[]` + skill is `locate_filter_select` | `GROUND(candidates)` → populate set | Empty candidate set means grounding was incomplete |
+| All slots populated, uncertainty low | Skip GROUND → `CHECK` or `EXECUTE` | Grounding was sufficient, proceed |
+
+### Slot coverage check before skill execution
+
+Before the `_SkillTracker` activates a skill, it checks that the skill's required slots (from `SlotBinding`) are populated in the current state.  Missing slots trigger a GROUND hop rather than skill failure:
+
+```
+SkillTracker.activate(skill, current_schema)
+  → check slot_bindings against <targets> + <entities>
+  → if $target missing: insert GROUND(target_query) as hop 0
+  → if $blocker missing but skill needs it: insert GROUND(blocker_query) as hop 0
+  → proceed with skill protocol from hop 1
+```
+
+This means **grounding doesn't need to be perfect** — it needs to be *good enough* for the reasoning layer to identify what's missing and fill it in.  The inner MDP reward naturally optimises this: unnecessary GROUND hops waste budget, but missing critical information causes task failure.
+
+See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) for the full 4-layer guarantee.
+
+---
+
+## 10. TODO
 
 | Task | Priority | Status |
 |------|----------|--------|
@@ -259,6 +293,8 @@ The `<state>` schema is the state representation for the inner reasoning MDP:
 | Implement inner reasoning MDP (hop_select adapter) | P0 | Not started |
 | Entity-referenced actions (click e5 instead of click(400,510)) | P1 | Not started |
 | Inner hop reward shaping (schema consistency + progress) | P1 | Not started |
+| Slot coverage check in _SkillTracker before skill activation | P1 | Not started |
+| Uncertainty-driven GROUND insertion (hop 0 when slots missing) | P1 | Not started |
 | Extend to BrowserGym action space | P1 | Not started |
 | Extend to OSWorld action space | P2 | Not started |
 | Video-based decision making (temporal action selection) | P2 | Not started |
@@ -266,7 +302,7 @@ The `<state>` schema is the state representation for the inner reasoning MDP:
 
 ---
 
-## 10. Implementation
+## 11. Implementation
 
 | File | Purpose |
 |------|---------|

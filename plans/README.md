@@ -26,9 +26,9 @@ Pixels (game frame / screenshot / video)
 
 | # | Plan | Scope |
 |---|------|-------|
-| 1 | **[Visual Grounding](PLAN-VISUAL-GROUNDING.md)** | VLM parser, canonical schema, grounding heads (heuristic, vision, OmniParser, tool loop), domain adapters (Gym-V, BrowserGym, OSWorld), benchmark evaluation (CLEVR, GQA, ToolVQA, SIV-Bench, Video-Holmes), Qwen3-VL-8B training |
-| 2 | **[Action Agent](PLAN-ACTION-AGENT.md)** | Two-level MDP (outer env + inner reasoning hops), decision loop, GROUND/CHECK/RETRIEVE/CONCLUDE/EXECUTE inner actions, two model backends (GPT-5.4, Qwen3-8B), reward shaping (r_env + r_follow + r_cost) |
-| 3 | **[Skill Bank](PLAN-SKILL-BANK.md)** | 5-stage pipeline (boundary proposal → segmentation → contract learning → bank maintenance → quality eval), GRPO co-evolution (3 LoRA adapters), reasoning skill discovery (hop chain templates), phase detection, proto-skill staging, query/select API |
+| 1 | **[Visual Grounding](PLAN-VISUAL-GROUNDING.md)** | VLM parser, canonical schema, grounding heads (heuristic, vision, OmniParser, tool loop), domain adapters (Gym-V, BrowserGym, OSWorld), benchmark evaluation (CLEVR, GQA, ToolVQA, SIV-Bench, Video-Holmes), schema completeness guarantee (§12), Qwen3-VL-8B training |
+| 2 | **[Action Agent](PLAN-ACTION-AGENT.md)** | Two-level MDP (outer env + inner reasoning hops), decision loop, GROUND/CHECK/RETRIEVE/CONCLUDE/EXECUTE inner actions, uncertainty-driven GROUND triggering (§9), two model backends (GPT-5.4, Qwen3-8B), reward shaping (r_env + r_follow + r_cost) |
+| 3 | **[Skill Bank](PLAN-SKILL-BANK.md)** | 5-stage pipeline (boundary proposal → segmentation → contract learning → bank maintenance → quality eval), GRPO co-evolution (3 LoRA adapters), transferable skill extraction (§10), reasoning skill discovery (hop chain templates), phase detection, proto-skill staging, query/select API |
 | 4 | **[Skill Crafter](PLAN-SKILL-CRAFTER.md)** | Skill composition (effect chaining + hop protocol chaining), cross-domain generalization (schema-slot transfer), transferable skill families (4 cross-domain families), novel skill hypothesis, integration with visual grounding tool traces |
 
 **Design reference:** [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md) — the two-level MDP framing that unifies all four plans.

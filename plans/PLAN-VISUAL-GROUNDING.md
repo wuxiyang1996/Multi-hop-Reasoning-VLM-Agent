@@ -318,13 +318,25 @@ Each hop forces explicit grounding with source attribution. Hallucination failur
 
 ## 9. Tool registries for multi-hop reasoning
 
+### Two detection backends
+
+| Backend | Model | Detects | Best for | Tool |
+|---------|-------|---------|----------|------|
+| OmniParser-v2 | YOLO + Florence-2 + OCR | UI elements: buttons, icons, text fields, menus | GUI screenshots (games, browser, desktop) | `detect_objects` |
+| GroundingDINO | `IDEA-Research/grounding-dino-base` | Arbitrary objects from text query | Natural images (CLEVR, GQA, photos, video frames) | `grounded_detect` |
+
+**`detect_objects`** runs OmniParser by default (GUI domains) or GroundingDINO (natural-image domains, controlled by `prefer_gdino` flag — set automatically by `ground()` based on domain).
+
+**`grounded_detect`** is always available as a query-driven tool: the VLM describes what to find in plain English ("red sphere", "person sitting on chair"), and GroundingDINO returns bounding boxes. This is the key capability for multi-hop reasoning on non-GUI images.
+
 ### Visual tools (single frame)
 
-`build_visual_registry(image)` → 9 tools:
+`build_visual_registry(image, prefer_gdino=False)` → 10 tools:
 
 | Tool | Purpose |
 |------|---------|
-| `detect_objects` | OmniParser-v2 element detection with bboxes |
+| `detect_objects` | OmniParser-v2 (GUI) or GroundingDINO (natural) element detection |
+| `grounded_detect` | **Open-vocabulary query-driven detection** (GroundingDINO) — finds arbitrary objects by description |
 | `describe_region` | Florence-2 caption for a crop |
 | `visual_search` | Text-query search over detected elements |
 | `count_objects` | Count elements by type or description |
@@ -424,15 +436,83 @@ For video benchmarks, add temporal grounding: `hop1.frame=42`, `hop1.timestamp=1
 
 ---
 
-## 12. Validation checkpoints
+## 12. Schema completeness guarantee (grounding → reasoning contract)
+
+Skills live in the reasoning/action layers, not in grounding.  Grounding is perception (SFT/distillation); reasoning is strategy (skills + GRPO).  But the reasoning layer depends on grounding producing a *complete enough* schema.  Four mechanisms guarantee this:
+
+### Layer 1 — Semantic schema validator (static gate)
+
+Extends the current `validate_schema()` (which only checks tag presence) with semantic checks run *before* the reasoning layer sees the schema:
+
+| Check | Threshold | On failure |
+|-------|-----------|------------|
+| **Slot population** | `<targets>` has `target=` set (not `null` for env tasks) | Re-ground or escalate head |
+| **Entity minimum** | ≥3 entities (games), ≥5 entities (browser), ≥1 (image QA) | Re-ground or escalate head |
+| **Uncertainty budget** | ≤50% of entities with `uncertainty=high` | Escalate head |
+| **Section content** | Every required section has ≥1 content line, not just tag | Escalate head |
+| **Relation coverage** | ≥1 relation if ≥3 entities present | Warning (soft) |
+
+### Layer 2 — Cascaded head escalation (automatic quality recovery)
+
+When the semantic validator fails, automatically try the next head:
+
+```
+Head 1: Heuristic (fast, free)
+    ↓ fails validator?
+Head 2: Vision / GPT-4o (~2-4s)
+    ↓ fails validator?
+Head 3: Tool loop / multi-hop (~5-15s)
+    ↓ still fails?
+Return best attempt + high uncertainty flags → reasoning layer decides
+```
+
+Escalation is domain-aware: games start at Head 1, image QA starts at Head 2, video QA starts at Head 3 (tool loop always).  The escalation rate target is <10% from Head 1 → Head 2.
+
+### Layer 3 — Uncertainty-driven GROUND triggering (runtime feedback loop)
+
+The inner MDP's `GROUND` action IS the feedback loop.  The reasoning agent doesn't passively receive a schema — it actively extends it when needed:
+
+```
+Schema arrives with <uncertainty> e5.label=high
+    ↓
+Inner MDP: skill "blocker_prerequisite_replan" triggers
+    ↓
+hop1: GROUND(e5)  →  calls detect_objects/describe_region  →  resolves uncertainty
+hop2: CHECK(constraint)  →  now has enough info
+hop3: EXECUTE(action)
+```
+
+The `<uncertainty>` section is the communication channel between grounding and reasoning.  Grounding flags what it's unsure about; reasoning decides whether to investigate or act despite uncertainty.  **This is why grounding doesn't need skills** — the reasoning skills already include GROUND as their first hop when information is missing.
+
+The `hop_select` LoRA adapter (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)) learns this trade-off end-to-end via GRPO: when is more grounding worth the cost versus acting on partial info?
+
+### Layer 4 — Skill-level slot coverage (before skill execution)
+
+When `SkillQueryEngine.select()` computes applicability, it checks whether the skill's required slots are populated in the current state.  A skill requiring `$blocker` won't fire if `blocker=null`.  This prevents skills from executing on incomplete information and implicitly triggers re-grounding when the agent picks skills that require more detailed perception.
+
+### Design decision: skills for reasoning only, not grounding
+
+| Layer | Learn skills? | Training paradigm | Rationale |
+|-------|:---:|---|---|
+| **Visual grounding** (perception) | No | SFT / distillation | Perception has correct answers, not strategic choices |
+| **Inner MDP reasoning** | **Yes** | Skills + GRPO | Strategic hop selection under uncertainty |
+| **Outer MDP action** | **Yes** | Skills + GRPO | Strategic action selection guided by skills |
+| **Grounding → reasoning evidence** | Yes (indirect) | Extraction pipeline | Mine hop patterns from grounding traces into reasoning skill templates |
+
+Grounding tool-loop traces (e.g. `detect_objects → spatial_query → count_objects` on CLEVR) are mined as evidence for reasoning skill templates via the transferable skill extraction pipeline (see [Skill Bank §10](PLAN-SKILL-BANK.md#10-transferable-skill-extraction)), but the templates are consumed by the reasoning layer, not the grounding layer.
+
+---
+
+## 13. Validation checkpoints
 
 - **After Phase 1:** Does the VLM produce structured summaries that the skill pipeline can use? Does structured format beat raw wrapper text for retrieval?
 - **After Phase 2:** Does the same schema work for web pages? Does the VLM generalize from games to web?
 - **After Phase 3:** Does API calling recover meaningful information?
+- **After schema guarantee:** Does the semantic validator + cascaded escalation achieve ≥95% schema completeness on the first pass?  Does the uncertainty channel correctly signal when GROUND hops are needed?
 
 ---
 
-## 13. Risks and mitigations
+## 14. Risks and mitigations
 
 | Risk | Mitigation |
 |------|------------|
@@ -448,11 +528,91 @@ For video benchmarks, add temporal grounding: `hop1.frame=42`, `hop1.timestamp=1
 
 ---
 
-## 14. Implementation status
+## 15. Unified grounding pipeline (`vlm_wrapper/ground.py`)
+
+All domains share a single code path: `ground(GroundingRequest) → GroundingResult`.
+
+```python
+from vlm_wrapper import ground, GroundingRequest
+
+# Image QA (CLEVR, GQA, ToolVQA)
+result = ground(GroundingRequest(
+    images=pil_image,
+    goal="How many red spheres are left of the blue cube?",
+    domain="image_qa",
+))
+result.schema   # <state>...</state> with <evidence> + <answer>
+result.answer   # "3"
+result.evidence # [HopTrace(tool='detect_objects', ...), HopTrace(tool='spatial_query', ...)]
+
+# Game (Gym-V)
+result = ground(GroundingRequest(
+    images=frame,
+    goal="Reach 2048",
+    domain="gymv",
+    context={"obs_text": obs.text, "description": env.description},
+))
+result.schema   # <state>...</state> with <targets> + <actions>
+
+# Browser (BrowserGym)
+result = ground(GroundingRequest(
+    images=screenshot,
+    goal="Find cheapest laptop",
+    domain="browser",
+    context={"obs": browsergym_obs},
+))
+
+# Desktop (OSWorld)
+result = ground(GroundingRequest(
+    images=screenshot,
+    goal="Open Spotify settings",
+    domain="desktop",
+    context={"a11y_tree_xml": a11y_xml},
+))
+
+# Video QA (SIV-Bench, Video-Holmes)
+result = ground(GroundingRequest(
+    images=frame_list,
+    goal="When does the character first appear?",
+    domain="video_qa",
+    context={"fps": 24.0},
+))
+result.answer   # "at 14.0 seconds"
+result.evidence # [HopTrace(tool='find_moment', frame=42, timestamp=14.0, ...)]
+```
+
+**All tasks are interactive multi-hop reasoning.** The tool-calling loop IS the interaction — a CLEVR question where the VLM calls `detect_objects` → `spatial_query` → `count_objects` → emits answer is structurally identical to a game agent calling `list_entities` → `check_relation` → emitting action. Every domain gets the same core schema (entities, attributes, relations, state_flags, targets, uncertainty, evidence). The only variation is the terminal section: `<actions>` for env tasks, `<answer>` for QA, or both.
+
+**How it works:**
+
+1. `ground()` resolves domain → output_mode (actions / answer / both)
+2. Auto-composes the right `ToolRegistry`: vision tools + domain tools
+3. Builds an adaptive system prompt: shared core + terminal section
+4. Runs `run_tool_loop()` — same interactive loop for ALL tasks
+5. Parses the result into a universal `GroundingResult`
+
+| Domain | Output mode | Auto-composed registry | Schema (core + terminal) |
+|--------|:-----------:|----------------------|--------------------------|
+| gymv | actions | visual + gymv | core + `<actions>` |
+| browser | actions | visual + browser | core + `<actions>` |
+| desktop | actions | visual + osworld | core + `<actions>` |
+| image_qa | answer | visual only | core + `<answer>` |
+| video_qa | answer | video_visual (all tools) | core + `<answer>` |
+
+Core = entities, attributes, relations, state_flags, targets, uncertainty, **evidence** (always present — the tool-calling hops are the evidence chain for every task type).
+
+**The per-domain wrappers still exist** for backward compatibility, but new code should use `ground()`.
+
+---
+
+## 16. Implementation status
 
 | Component | Module | Status |
 |-----------|--------|--------|
-| Visual tool registry | `vlm_wrapper/tools_visual.py` | Done (9 tools) |
+| **Unified pipeline** | `vlm_wrapper/ground.py` | **Done** |
+| Adaptive schema (evidence + answer) | `vlm_wrapper/schema.py` | **Done** |
+| **GroundingDINO backend** | `vlm_wrapper/tools_visual.py` | **Done** (`grounded_detect` + dual-backend `detect_objects`) |
+| Visual tool registry | `vlm_wrapper/tools_visual.py` | Done (10 tools) |
 | Video tool registry | `vlm_wrapper/tools_video.py` | Done (8 tools) |
 | Cross-frame registry | `vlm_wrapper/tools_video_visual.py` | Done (6 tools) |
 | OmniParser grounding | `vlm_wrapper/grounding.py` | Done |
@@ -462,16 +622,16 @@ For video benchmarks, add temporal grounding: `hop1.frame=42`, `hop1.timestamp=1
 | Vision adapters (Head 2) | `vlm_wrapper/gymv_adapter.py`, `browser_adapter.py` | Done |
 | Schema utilities | `vlm_wrapper/schema.py` | Done |
 | Demo script | `vlm_wrapper/demo_visual_grounding.py` | Done |
+| Semantic schema validator (§12 Layer 1) | `vlm_wrapper/schema.py` | **TODO** |
+| Cascaded head escalation (§12 Layer 2) | `vlm_wrapper/ground.py` | **TODO** |
 | Benchmark loaders | — | **TODO** |
 | Evaluation harness | — | **TODO** |
-| Schema `<evidence>` + `<answer>` sections | `vlm_wrapper/schema.py` | **TODO** |
-| Inner MDP hop trace logging in tool loop | `vlm_wrapper/tool_loop.py` | **TODO** |
 | Re-observation (Option B) for GROUND hops | `vlm_wrapper/tool_loop.py` | **TODO** |
 | Qwen3-VL-8B training pipeline | — | **TODO** |
 
 ---
 
-## 15. Reference
+## 17. Reference
 
 - vlm_wrapper repo: https://github.com/wuxiyang1996/Multi-hop-Reasoning-VLM-Agent/tree/main/vlm_wrapper
 - System plan index: [`plans/README.md`](README.md)
