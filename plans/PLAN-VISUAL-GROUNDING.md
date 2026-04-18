@@ -474,4 +474,4 @@ For video benchmarks, add temporal grounding: `hop1.frame=42`, `hop1.timestamp=1
 ## 15. Reference
 
 - vlm_wrapper repo: https://github.com/wuxiyang1996/Multi-hop-Reasoning-VLM-Agent/tree/main/vlm_wrapper
-- Original monolith: `TODO-VLM.md` (§1–14)
+- System plan index: [`plans/README.md`](README.md)

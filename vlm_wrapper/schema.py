@@ -1,7 +1,7 @@
 """Shared schema definition, system prompts, and image-encoding helpers.
 
 This is the single source of truth for the structured-state schema
-(TODO-VLM §12a).  Both the Gym-V and BrowserGym adapters import from here.
+(see plans/PLAN-VISUAL-GROUNDING.md §3).  Both the Gym-V and BrowserGym adapters import from here.
 """
 
 from __future__ import annotations

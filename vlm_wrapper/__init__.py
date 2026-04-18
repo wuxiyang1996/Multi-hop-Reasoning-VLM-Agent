@@ -1,6 +1,6 @@
 """VLM structured-state wrappers for Gym-V and BrowserGym.
 
-Two heads produce the same <state>…</state> schema (TODO-VLM §12a):
+Two heads produce the same <state>…</state> schema (see plans/PLAN-VISUAL-GROUNDING.md §3):
 
 **Head 1 — Heuristic (text-in → schema-out)**
   Fast, free, deterministic.  Parses native text state (obs.text,
