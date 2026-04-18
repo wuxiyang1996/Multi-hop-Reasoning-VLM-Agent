@@ -35,6 +35,28 @@ The Skill Crafter addresses these gaps by operating *top-down*: it proposes new 
                     Skill Bank (Stage 4: verify → promote)
                             ↓
                     Action Agent (trial execution)
+                            ↓ (on failure)
+                    ┌───────────────┐
+                    │  Failure       │
+                    │  Reflector     │
+                    │  (§6)         │
+                    └───────┬───────┘
+                            ↓
+              ┌─────────────┼──────────────┐
+              ↓             ↓              ↓
+         Localize       Diagnose       Recover
+         (where?)       (why?)         (how to fix?)
+              ↓             ↓              ↓
+              └─────────────┼──────────────┘
+                            ↓
+              ┌─────────────┼─────────────┐
+              ↓                           ↓
+        Skill Bank                  Skill Crafter
+        (patch existing)            (compose/hypothesize new)
+              ↓                           ↓
+              └─────────┬─────────────────┘
+                        ↓
+                  Retry with improved skills
 ```
 
 ### Three creation modes
@@ -153,10 +175,11 @@ Proposes entirely new skills that don't exist in the bank, based on:
 
 ### Hypothesis generation
 
-1. **Failure analysis:**
-   - Identify skills with high abort rates or low pass rates.
-   - Ask LLM: "Given these failures, what strategy would avoid them?"
-   - Propose the LLM's suggestion as a proto-skill.
+1. **Failure analysis** (informed by Failure Reflector §6)**:**
+   - Query the Failure Memory (§6.7) for skills with high abort rates, recurring failure patterns, or retired skills.
+   - Use `FailureDiagnosis` records — specifically the `violated_assumption` and `suggested_fix` fields — as structured input rather than raw failure counts.
+   - Ask LLM: "Given these diagnosed failures and their root causes, what strategy would avoid them?"
+   - Propose the LLM's suggestion as a proto-skill, linking back to the failure patterns it addresses.
 
 2. **Rule-based reasoning:**
    - Parse game description (`env.description`) for strategic implications.
@@ -195,7 +218,207 @@ Submitted to Skill Bank Stage 4 for proto-skill staging → verify → promote/r
 
 ---
 
-## 6. Transferable skill families (long-horizon reasoning)
+## 6. Failure Reflection & Reasoning Recovery
+
+### Motivation
+
+When the agent executes a multi-hop reasoning chain and it fails — wrong answer, timeout, degraded reward, aborted skill — the failure is rarely random. It originates at a specific step in the chain, for a specific reason. Without the ability to **locate**, **diagnose**, and **learn from** these failures, the Skill Crafter proposes blind fixes. This section defines a structured failure reflection loop that closes that gap.
+
+### 6.1 Failure Trace Capture
+
+Every reasoning chain (hop sequence) produces an execution trace. On failure, the trace is captured as a `FailureTrace`:
+
+```python
+FailureTrace(
+    episode_id="ep_0042",
+    skill_name="MERGE_chain",
+    hop_sequence=[
+        HopRecord(step=0, action="GROUND", input="locate highest tile", output="tile_256 at (0,0)", status="ok"),
+        HopRecord(step=1, action="CHECK",  input="adjacent mergeable?", output="tile_128 at (0,1)", status="ok"),
+        HopRecord(step=2, action="EXECUTE", input="merge (0,0)+(0,1)", output="blocked by tile_64", status="FAIL"),
+        HopRecord(step=3, action="CONCLUDE", input="—", output="—", status="skipped"),
+    ],
+    failure_step=2,
+    failure_type="precondition_violated",
+    context_snapshot={...},  # full state at failure point
+    expected_outcome="tile_384 at (0,0)",
+    actual_outcome="no merge; board unchanged",
+)
+```
+
+Key fields:
+- **`failure_step`** — the exact index in the hop sequence where things went wrong.
+- **`failure_type`** — classified category (see §6.2).
+- **`context_snapshot`** — the full `<state>` schema at the moment of failure, so the reflector can reason over what the agent *actually saw*.
+
+### 6.2 Failure Classification Taxonomy
+
+Not all failures are the same. The reflector classifies each failure into a category that determines the recovery strategy:
+
+| Category | Description | Example | Recovery bias |
+|----------|-------------|---------|---------------|
+| **grounding_error** | Entity was misidentified or not found | VLM returned wrong tile position | Re-ground with refined query |
+| **precondition_violated** | Step assumed a condition that wasn't true | Tried to merge but path was blocked | Backtrack and re-check preconditions |
+| **stale_context** | Relied on outdated state information | Board changed between GROUND and EXECUTE | Re-observe before acting |
+| **logical_error** | Reasoning step drew wrong conclusion from correct inputs | Chose wrong merge direction despite seeing the board correctly | Revise reasoning rule / protocol |
+| **missing_information** | Needed data the agent didn't have | Couldn't infer hidden tile from history | Add RETRIEVE hop or request more context |
+| **cascading_failure** | Earlier soft error amplified into hard failure at later step | Slightly wrong grounding → wrong CHECK → wrong EXECUTE | Trace back to root cause step |
+| **resource_exhaustion** | Ran out of hops / time / tokens before completion | Complex chain exceeded hop budget | Simplify protocol or increase budget |
+
+### 6.3 Failure Localization (Where)
+
+The reflector walks backward through the hop sequence to find the **root cause step** — which may differ from the step that visibly failed.
+
+**Algorithm: Backward Trace Analysis**
+
+```
+Input: FailureTrace T
+Output: root_cause_step, root_cause_type
+
+1. Start at T.failure_step (the step that raised the error).
+2. For each prior step i = failure_step-1 ... 0:
+   a. Re-evaluate step i's output against the context_snapshot at step i.
+   b. If step i's output was already degraded (wrong entity, stale state, 
+      incorrect inference):
+      - Mark i as candidate root cause.
+      - Classify the degradation type.
+   c. If step i's output was correct given its inputs → stop.
+      The root cause is the most recent candidate (or failure_step itself 
+      if no prior degradation found).
+3. Return (root_cause_step, root_cause_type).
+```
+
+This distinguishes between:
+- **Direct failures** — the failing step itself is the problem (e.g., wrong EXECUTE action).
+- **Cascading failures** — an earlier step silently produced bad output that propagated forward.
+
+### 6.4 Failure Diagnosis (Why)
+
+Once the root cause step is located, the reflector generates a structured diagnosis by prompting the LLM with the failure context:
+
+```
+Prompt template (failure_diagnosis):
+───────────────────────────────────
+You are analyzing a reasoning failure in a multi-hop chain.
+
+**Skill:** {skill_name}
+**Task:** {task_description}
+**Full hop trace:** {hop_sequence}
+**Root cause step:** Step {root_cause_step} — action: {action}, input: {input}
+**Expected output:** {expected}
+**Actual output:** {actual}
+**State at failure:** {context_snapshot}
+
+1. Why did step {root_cause_step} produce the wrong output?
+2. What assumption was violated?
+3. Was the input to this step correct? If not, trace the error further.
+4. What specific change to the skill's protocol would prevent this failure?
+───────────────────────────────────
+```
+
+The diagnosis output is a structured `FailureDiagnosis`:
+
+```python
+FailureDiagnosis(
+    root_cause_step=2,
+    root_cause_type="precondition_violated",
+    explanation="Step 2 attempted merge without checking that the path between tiles was clear. "
+                "The GROUND step correctly found the tiles, but the CHECK step only verified "
+                "value compatibility, not spatial accessibility.",
+    violated_assumption="Adjacent tiles with matching values can always merge",
+    suggested_fix="Add a CHECK_PATH hop between GROUND and EXECUTE that verifies no blocking "
+                  "tiles exist on the merge path.",
+    confidence=0.75,
+)
+```
+
+### 6.5 Recovery Strategies (How to Improve)
+
+Based on the diagnosis, the reflector proposes one or more recovery actions. These aren't just retries — they are structured improvements that feed back into the Skill Crafter's three creation modes:
+
+| Recovery strategy | When to apply | What it produces | Feeds into |
+|-------------------|---------------|------------------|------------|
+| **Protocol patch** | Logical error or missing check | Revised protocol with added/modified hop | Skill Bank (update existing skill) |
+| **Precondition strengthening** | Precondition violated | Tighter precondition predicates on the skill contract | Skill Bank (contract update) |
+| **Fallback injection** | Grounding error or stale context | `fallback(original_step, recovery_step)` composition | Composer (§3) |
+| **Hop insertion** | Missing information | New RETRIEVE or CHECK hop inserted into protocol | Skill Bank (protocol update) |
+| **Skill decomposition** | Cascading failure across many steps | Break monolithic skill into smaller, independently verifiable sub-skills | Composer (§3) |
+| **Re-grounding trigger** | Stale context | Add re-observe checkpoints at key protocol boundaries | Skill Bank (protocol update) |
+| **Skill retirement** | Persistent failure despite multiple fixes | Demote skill; let Hypothesizer (§5) propose replacement | Hypothesizer (§5) |
+
+### 6.6 Reflection Loop Integration
+
+The failure reflection loop runs as a post-episode process and connects to the rest of the Skill Crafter pipeline:
+
+```
+Episode execution (Action Agent)
+        ↓ (on failure)
+  FailureTrace capture
+        ↓
+  Failure Localization (§6.3)  →  root_cause_step
+        ↓
+  Failure Diagnosis (§6.4)     →  FailureDiagnosis
+        ↓
+  Recovery Proposal (§6.5)     →  RecoveryAction[]
+        ↓
+  ┌─────┴──────────────────┐
+  ↓                        ↓
+Skill Bank               Skill Crafter
+(patch existing)         (compose/hypothesize new)
+  ↓                        ↓
+  └────────┬───────────────┘
+           ↓
+  Action Agent (retry with improved skills)
+           ↓
+  Evaluate: did the fix work?
+           ↓
+  ┌────────┴────────┐
+  ↓                 ↓
+ Yes: promote      No: escalate
+ fix + update       (deeper reflection
+ confidence)        or retire skill)
+```
+
+### 6.7 Failure Memory & Pattern Aggregation
+
+Individual failure diagnoses are stored in a **Failure Memory** that enables pattern-level learning:
+
+- **Recurrence detection:** If the same `(skill, failure_type, root_cause_step)` tuple appears N+ times, escalate from "patch" to "redesign."
+- **Cross-skill patterns:** If multiple skills fail with the same `failure_type` (e.g., many skills have `stale_context` errors), propose a systemic fix (e.g., add re-grounding checkpoints to all long-chain protocols).
+- **Failure clustering:** Group failures by shared violated assumptions. Each cluster may point to a missing primitive skill or a flawed schema mapping.
+- **Improvement tracking:** For each recovery action applied, track whether it reduced the failure rate. Recovery actions with low success rates are themselves subject to reflection.
+
+```python
+FailureMemory(
+    entries=[FailureDiagnosis, ...],
+    
+    # Aggregated patterns
+    recurrence_counts={("MERGE_chain", "precondition_violated", 2): 7},
+    cross_skill_patterns={"stale_context": ["MERGE_chain", "POSITION_corner", "NAVIGATE_path"]},
+    recovery_effectiveness={
+        "add_CHECK_PATH_hop": {"applied": 5, "resolved": 4, "rate": 0.80},
+        "strengthen_precondition": {"applied": 3, "resolved": 1, "rate": 0.33},
+    },
+)
+```
+
+### 6.8 Escalation Policy
+
+Not every failure warrants the same level of response. The escalation policy determines how much effort to invest:
+
+| Occurrence count | Response level | Action |
+|------------------|---------------|--------|
+| 1st occurrence | **Log** | Store diagnosis, no immediate action |
+| 2nd occurrence (same pattern) | **Patch** | Apply lightest recovery strategy |
+| 3rd–5th occurrence | **Redesign** | Decompose or rewrite the skill protocol |
+| 6+ occurrences | **Retire & replace** | Demote skill, ask Hypothesizer for alternative |
+| Cross-skill pattern (3+ skills) | **Systemic fix** | Propose architectural change (new primitive, schema update) |
+
+---
+
+## 7. Transferable skill families (long-horizon reasoning)
+
+> **Note:** Failure reflection (§6) applies to reasoning chains within these skill families — when a locate→filter→select chain fails at the "filter" step, the reflector localizes that step, diagnoses why the filter criteria were wrong, and proposes a protocol patch or fallback.
 
 Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)), the Skill Crafter composes and transfers *reasoning policies* — not single-call chain-of-thought templates, but actual multi-step policies that can be trained, composed, and transferred across domains.
 
@@ -228,7 +451,7 @@ Because all domains share the same inner action vocabulary (GROUND, CHECK, RETRI
 
 ---
 
-## 7. Integration with Visual Grounding
+## 8. Integration with Visual Grounding & Failure Reflection
 
 The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 
@@ -247,9 +470,15 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 - Use `classify_scene` to characterize the game state and match to archetypes.
 - Use tool traces from failed episodes to identify where the agent's visual understanding broke down.
 
+### For Failure Reflection
+
+- Use `detect_objects` and `spatial_query` during backward trace analysis (§6.3) to re-evaluate whether GROUND steps produced correct visual grounding at the failure point.
+- Compare the VLM's current perception against the `context_snapshot` stored in the `FailureTrace` to detect grounding drift.
+- Feed visual grounding errors into the failure classification taxonomy (§6.2) as `grounding_error` — the most common failure type in visual reasoning domains.
+
 ---
 
-## 8. Evaluation
+## 9. Evaluation
 
 ### Metrics for crafted skills
 
@@ -261,6 +490,16 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | Composition utility | % of composed skills selected by action agent | Track |
 | Novelty | Jaccard distance from nearest existing skill | ≥ 0.25 |
 
+### Metrics for failure reflection
+
+| Metric | How measured | Threshold |
+|--------|-------------|-----------|
+| Localization accuracy | % of root cause steps confirmed correct by manual review | ≥ 0.7 |
+| Recovery success rate | % of applied recovery actions that resolved the failure pattern | ≥ 0.5 |
+| Mean diagnoses to fix | Average number of reflection cycles before a failure pattern is resolved | ≤ 3 |
+| Failure recurrence rate | % of fixed failures that reappear within N episodes | ≤ 0.15 |
+| Systemic fix coverage | % of cross-skill patterns addressed by systemic fixes | Track |
+
 ### Evaluation protocol
 
 1. Crafter proposes N proto-skills per iteration.
@@ -270,7 +509,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 
 ---
 
-## 9. Rollout order
+## 10. Rollout order
 
 **Phase 1 — Skill Composer (within-game)**
 1. Implement effect chaining algorithm.
@@ -290,13 +529,21 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 3. Verify transferred skills in target domain.
 4. Measure: does transfer reduce cold-start time in new domains?
 
-**Phase 4 — Cross-modality transfer (image ↔ video)**
+**Phase 4 — Failure Reflection Loop**
+1. Implement `FailureTrace` capture and `FailureMemory` storage.
+2. Implement backward trace analysis for failure localization.
+3. Implement LLM-based failure diagnosis with structured output.
+4. Implement recovery strategy selection and application.
+5. Implement escalation policy and pattern aggregation.
+6. Measure: do reflected fixes reduce failure recurrence?
+
+**Phase 5 — Cross-modality transfer (image ↔ video)**
 1. Transfer visual reasoning skills from image benchmarks to video.
 2. Transfer temporal reasoning patterns from video benchmarks to interactive environments.
 
 ---
 
-## 10. TODO
+## 11. TODO
 
 | Task | Priority | Status |
 |------|----------|--------|
@@ -304,15 +551,23 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | Composition operators (sequence, fallback, repeat_until) | P0 | Not started |
 | Failure analysis pipeline for hypothesis generation | P1 | Not started |
 | Schema-slot transfer algorithm | P1 | Not started |
+| FailureTrace capture & HopRecord serialization | P0 | Not started |
+| Backward trace analysis (failure localization) | P0 | Not started |
+| Failure classification taxonomy implementation | P1 | Not started |
+| LLM-based failure diagnosis with structured output | P1 | Not started |
+| Recovery strategy selector & applicator | P1 | Not started |
+| FailureMemory store & pattern aggregation | P1 | Not started |
+| Escalation policy engine | P2 | Not started |
 | Archetype library for hypothesis matching | P2 | Not started |
 | Cross-domain transfer evaluation harness | P2 | Not started |
 | Integration with vlm_wrapper tool traces | P2 | Not started |
 | Hop-chain composition operators (inner MDP) | P1 | Not started |
 | Cross-domain reasoning protocol transfer | P2 | Not started |
+| Failure reflection metrics & dashboarding | P2 | Not started |
 
 ---
 
-## 11. Implementation (planned)
+## 12. Implementation (planned)
 
 | File (planned) | Purpose |
 |----------------|---------|
@@ -321,5 +576,10 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | `skill_agents/crafter/hypothesizer.py` | Novel skill proposal from failures + rules |
 | `skill_agents/crafter/archetypes.py` | Game-theoretic archetype library |
 | `skill_agents/crafter/evaluation.py` | Crafted-skill quality metrics |
+| `skill_agents/crafter/failure_trace.py` | FailureTrace / HopRecord data structures and capture |
+| `skill_agents/crafter/failure_reflector.py` | Backward trace analysis, failure localization & classification |
+| `skill_agents/crafter/failure_diagnosis.py` | LLM-based diagnosis prompt construction & structured output |
+| `skill_agents/crafter/recovery.py` | Recovery strategy selection, application, and feedback |
+| `skill_agents/crafter/failure_memory.py` | Persistent failure memory, pattern aggregation, escalation |
 
 Currently no implementation exists — this is the newest component of the pipeline.

@@ -24,7 +24,7 @@ Usage::
 
     from vlm_wrapper.ground import ground, GroundingRequest
 
-    # Image QA (CLEVR, GQA, ToolVQA) — interactive multi-hop reasoning
+    # Image QA (CLEVR, GQA) — interactive multi-hop reasoning
     result = ground(GroundingRequest(
         images=pil_image,
         goal="How many red spheres are left of the blue cube?",

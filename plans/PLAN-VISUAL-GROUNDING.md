@@ -267,7 +267,7 @@ For each episode step in {Gym-V, BrowserGym}:
 2. **Validate with heuristic head** — for every GPT-4o label, run the heuristic head on the same observation. Flag disagreements to catch GPT-4o hallucinations before they enter training data.
 3. **Add tool-use training** — after basic SFT, add a second stage where the model learns to emit tool calls for position queries and relation checks.
 4. **Browser: MiniWoB++ → WebArena** — simple pages first, validate schema and entity prioritization, then scale to complex real-web pages. Use API escalation for the hard tail during data collection.
-5. **Benchmark evaluation** — CLEVR, GQA, ToolVQA (image), SIV-Bench, Video-Holmes (video).
+5. **Benchmark evaluation** — CLEVR, GQA (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning skills, not tool orchestration.
 6. **Expected data budget:** ~3-5K labeled examples per domain. At ~$0.01/example with GPT-4o, that's $30-50 per domain.
 
 ### Can Qwen3-VL-8B learn this task?
@@ -376,43 +376,78 @@ Each hop forces explicit grounding with source attribution. Hallucination failur
 
 ---
 
-## 10. Chosen benchmarks
+## 10. Benchmarks — selected for transferable visual reasoning skills
 
-The following benchmarks are selected for multi-step visual reasoning evaluation. Mixed image + video.
+The goal is to learn visual reasoning skills that transfer across games, web agents, OS agents, and video understanding.  Each benchmark trains a specific subset of skills; together they cover the full skill set.
+
+### Why these 4 benchmarks and not others
+
+**ToolVQA was dropped.**  Its hard part is tool orchestration and external knowledge retrieval (Calculator, GoogleSearch) — not visual reasoning.  A "call GoogleSearch after OCR" skill doesn't transfer to game playing or web navigation.
+
+The 4 remaining benchmarks were chosen because every skill they test maps directly to an interactive-agent skill:
+
+| Visual reasoning skill | Learned from | Transfers to |
+|------------------------|-------------|-------------|
+| Entity grounding (find things in pixels) | CLEVR (shapes), GQA (real objects) | Game tiles, browser buttons, desktop icons |
+| Spatial reasoning (left-of, above, between, contains) | CLEVR (compositional programs), GQA (scene graphs) | Game board layouts, web page structure, OS window arrangement |
+| Attribute recognition (color, material, state, value) | GQA (attributes per entity) | Element state (disabled, checked, focused), tile values, score displays |
+| Relation identification (blocks, contains, adjacent) | GQA (scene-graph relations), CLEVR (functional programs) | Same relation verbs in `<state>` schema across all domains |
+| Temporal entity tracking (track across frames) | SIV-Bench (people across video clips) | Game replays, browser session recordings, OS task execution |
+| Multi-hop evidence chaining (clue → clue → answer) | Video-Holmes (suspense film reasoning) | Multi-step task decomposition, skill-bank retrieval chains |
+
+**The `<state>` schema is the transfer mechanism.**  If the VLM learns to produce correct entities/relations/evidence from CLEVR, that same skill produces correct entities/relations/evidence from browser screenshots — because the schema is identical.
 
 ### Image-based
 
 **CLEVR** — Synthetic, compositional visual reasoning with functional programs.
+- Skills trained: entity grounding, spatial reasoning, attribute filtering, counting, compositional logic.
+- Why transferable: the compositional structure (detect → filter → relate → count) is the same multi-hop chain used in game and web grounding.
 - Download: https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip
 - Official page: https://cs.stanford.edu/people/jcjohns/clevr/
 
-**GQA** — Real-image visual reasoning with scene graphs.
-- Downloads: https://downloads.cs.stanford.edu/nlp/data/gqa/sceneGraphs.zip, questions1.2.zip, images.zip
+**GQA** — Real-image visual reasoning with scene graphs, structured question semantics.
+- Skills trained: entity grounding on real images, attribute recognition, relation identification, scene-graph traversal.
+- Why transferable: real-world entities and relations → bridges from synthetic (CLEVR) to the visual complexity of browser pages and desktop screenshots.
+- Scene graphs: https://downloads.cs.stanford.edu/nlp/data/gqa/sceneGraphs.zip
+- Questions: https://downloads.cs.stanford.edu/nlp/data/gqa/questions1.2.zip
+- Images: https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip
 - Official page: https://cs.stanford.edu/people/dorarad/gqa/download.html
-
-**ToolVQA** — Multi-step visual reasoning with tool use.
-- Download: https://drive.google.com/drive/folders/1diRjF2jK0aHoAMximnT7jNg4eN96ppCp?usp=sharing
-- Repo: https://github.com/Fugtemypt123/ToolVQA-release
 
 ### Video-based
 
-**SIV-Bench** — Social interaction understanding. 2,792 clips, 8,792 QAs.
+**SIV-Bench** — Social interaction understanding.  2,792 real-world video clips, 8,792 QAs.
+- Skills trained: temporal entity tracking, interaction detection, state change recognition across frames.
+- Why transferable: tracking entities over time and detecting state changes is exactly what game/browser/OS agents need during multi-step execution.
 - Dataset: https://huggingface.co/datasets/Fancylalala/SIV-Bench
 - Code: https://github.com/kfq20/SIV-Bench
+- Project page: https://kfq20.github.io/sivbench/
 
-**Video-Holmes** — Multi-step clue-chaining. 270 films, 1,837 questions.
+**Video-Holmes** — Multi-step clue-chaining. 270 manually annotated suspense short films, 1,837 questions.
+- Skills trained: multi-hop evidence chaining, temporal navigation, grounded reasoning across distant frames.
+- Why transferable: building an evidence chain from scattered visual clues is the same skill as multi-step task decomposition — the hops in Video-Holmes map 1:1 to inner-MDP hops in the action agent.
 - Repo: https://github.com/TencentARC/Video-Holmes
 - Dataset: https://huggingface.co/datasets/TencentARC/Video-Holmes
+- Project page: https://video-holmes.github.io/Page.github.io/
+- Download:
+  ```
+  git clone https://github.com/TencentARC/Video-Holmes.git
+  cd Video-Holmes
+  pip install huggingface_hub
+  python download.py --hf_token YOUR_HUGGINGFACE_ACCESS_TOKEN
+  unzip Benchmark/videos.zip -d Benchmark/
+  unzip Benchmark/annotations.zip -d Benchmark/
+  ```
 
 ### Per-benchmark grounding strategy
 
-| Benchmark | Modality | vlm_wrapper entry point | Key tools |
-|-----------|----------|------------------------|-----------|
-| CLEVR | Image | `visual_generate_label_with_tools()` | detect_objects, spatial_query, extract_colors |
-| GQA | Image | `visual_generate_label_with_tools()` | detect_objects, spatial_query + gold scene-graph IoU eval |
-| ToolVQA | Image | `visual_generate_label_with_tools()` + custom tools | detect_objects + ToolVQA-defined tools via ToolRegistry |
-| SIV-Bench | Video | `video_visual_generate_label_with_tools()` | track_object, find_moment, detect_activity |
-| Video-Holmes | Video | `video_visual_generate_label_with_tools()` | detect_scene_changes, track_object, describe_region |
+All benchmarks use the unified `ground()` entry point.  Image benchmarks auto-select GroundingDINO; video benchmarks get the full video_visual registry.
+
+| Benchmark | Modality | `ground()` domain | Detection backend | Multi-hop tool chain |
+|-----------|:--------:|:-----------------:|:-----------------:|----------------------|
+| CLEVR | Image | `"image_qa"` | GroundingDINO | `grounded_detect` → `spatial_query` → `count_objects` → `extract_colors` |
+| GQA | Image | `"image_qa"` | GroundingDINO | `grounded_detect` → `spatial_query` → `describe_region` + gold scene-graph IoU eval |
+| SIV-Bench | Video | `"video_qa"` | GroundingDINO | `grounded_detect` → `track_object` → `find_moment` → `detect_activity` |
+| Video-Holmes | Video | `"video_qa"` | GroundingDINO | `detect_scene_changes` → `grounded_detect` → `track_object` → `describe_region` |
 
 ---
 
@@ -535,7 +570,7 @@ All domains share a single code path: `ground(GroundingRequest) → GroundingRes
 ```python
 from vlm_wrapper import ground, GroundingRequest
 
-# Image QA (CLEVR, GQA, ToolVQA)
+# Image QA (CLEVR, GQA)
 result = ground(GroundingRequest(
     images=pil_image,
     goal="How many red spheres are left of the blue cube?",

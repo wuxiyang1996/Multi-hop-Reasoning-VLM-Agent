@@ -257,7 +257,7 @@ Train Qwen3-VL-8B via SFT distillation from GPT-4o labels so that at inference t
 2. **Validate with heuristic head** — flag GPT-4o hallucinations before they enter training data.
 3. **Add tool-use training** — teach the model to emit tool calls for position queries and relation checks.
 4. **Browser: MiniWoB++ → WebArena** — simple pages, then complex real-web pages.
-5. **Benchmark evaluation** — CLEVR, GQA, ToolVQA (image), SIV-Bench, Video-Holmes (video).
+5. **Benchmark evaluation** — CLEVR, GQA (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning skills.
 
 **Expected data budget:** ~3-5K labeled examples per domain. At ~$0.01/example with GPT-4o, that's $30-50 per domain.
 
