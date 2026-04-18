@@ -30,9 +30,9 @@ The Skill Crafter runs entirely on **Tier 1 (Qwen3-32B/72B, inference-only)** �
 - **Composer:** Pass 1 — propose candidate compositions; Pass 2 — verify effect chain validity per pair; Pass 3 — generate protocol + test expectations.
 - **Generalizer:** Pass 1 — identify shared structural slots; Pass 2 — propose mapping candidates; Pass 3 — instantiate and sanity-check with target-domain examples.
 - **Hypothesizer:** Best-of-N sampling (N=3–5) — generate N proposals, score by contract completeness + novelty, keep top-K.
-- **Failure Reflector:** Pass 1 — identify symptom step; Pass 2 — re-evaluate each prior hop with targeted prompts; Pass 3 — confirm root cause via counterfactual.
+- **Failure Reflector:** Pass 1 — identify symptom step; Pass 2 — re-evaluate each prior hop with targeted prompts; Pass 3 — confirm root cause via counterfactual; Pass 4 — evaluate alternative outcomes at the root cause step, compute regret, store `CounterfactualTrace` (§6.9).
 
-This multi-run design costs ~3–5× the tokens of a single 32B/72B call per task, but remains negligible compared to GRPO rollout costs since these tasks run once per episode batch, not per step.
+This multi-run design costs ~3–6× the tokens of a single 32B/72B call per task (the Failure Reflector's 4-pass chain is the most expensive at ~4–6×), but remains negligible compared to GRPO rollout costs since these tasks run once per episode batch, not per step. The additional Pass 4 adds ~500–1000 tokens per failure reflection — a modest increase that produces high-value counterfactual evidence for skill synthesis.
 
 ### Pipeline overview
 
@@ -125,7 +125,15 @@ Composed: sequence(A, B)
 3. For skills that are often repeated:
    - Check if repetition correlates with progress.
    - Propose `repeat_until(skill, progress_threshold)`.
-4. Submit proposals to Skill Bank Stage 4 (proto-skill staging → verify → promote).
+4. **Comparative evaluation** (counterfactual ranking)**:**
+   - Before submitting to Stage 4, compare alternative compositions against each other.
+   - For each skill A where multiple valid continuations exist (e.g., `sequence(A, B)`, `sequence(A, C)`, `sequence(A, D)` all pass effect chaining), run a composition-level counterfactual:
+     - Draw representative state snapshots from Failure Memory (§6.7) where skill A was recently active.
+     - For each candidate composition, predict cumulative effect coverage: how many of the composed skill's `eff_add` predicates would be satisfied starting from that state?
+     - Rank compositions by predicted coverage × historical pass rate of the component skills.
+   - Submit only the top-K compositions (default K=3 per skill A) rather than all valid ones. This reduces Stage 4 verification load while prioritizing the most promising combinations.
+   - Compositions that address high-regret patterns from `CounterfactualTrace` records (§6.9) get a ranking bonus, since they target known decision-point weaknesses.
+5. Submit top-K proposals to Skill Bank Stage 4 (proto-skill staging → verify → promote).
 
 ---
 
@@ -206,6 +214,14 @@ Proposes entirely new skills that don't exist in the bank, based on:
    - Maintain a library of game-theoretic archetypes (minimax, resource management, spatial planning, social deduction, etc.).
    - Match game characteristics to archetypes.
    - Instantiate archetype-specific skill templates.
+
+4. **Counterfactual synthesis** (informed by §6.9)**:**
+   - Query the Failure Memory (§6.7) for `CounterfactualTrace` entries with high regret (`regret_estimate > threshold`).
+   - Cluster by `best_alternative` patterns: if the same type of alternative repeatedly appears as the "better choice" across different episodes, that recurring pattern is a candidate skill.
+   - Ask LLM: "These N episodes all would have benefited from {alternative_pattern}. Generalize this into a reusable skill with a contract and protocol."
+   - Produces proto-skills with higher initial confidence (`0.5` vs. `0.3` for other sources) because they are grounded in specific counterfactual evidence rather than abstract failure patterns.
+   - **Synthesis trigger:** Automatic when a `(skill, decision_level, best_alternative)` tuple accumulates 3+ occurrences in Failure Memory's `high_regret_patterns` (see §6.7).
+   - **Advantage over failure analysis (source 1):** Failure analysis asks "what strategy would avoid this failure?" — a speculative question. Counterfactual synthesis asks "this specific alternative was predicted to work N times — generalize it" — a grounded question. The resulting proto-skills have tighter contracts because the counterfactual traces provide concrete precondition/postcondition examples.
 
 ### Hypothesis format
 
@@ -347,6 +363,35 @@ FailureDiagnosis(
 )
 ```
 
+**Pass 4 — Counterfactual evaluation** (feeds §6.9):
+
+After diagnosis, a fourth reasoning pass evaluates what the agent *should* have done instead. This pass takes the root cause step and diagnosis as input and produces a `CounterfactualTrace` (see §6.9 for data structures).
+
+```
+Prompt template (counterfactual_evaluation):
+───────────────────────────────────
+You are evaluating alternative actions for a reasoning failure.
+
+**Skill:** {skill_name}
+**Root cause step:** Step {root_cause_step} — chose: {chosen_action}
+**Diagnosis:** {explanation}
+**Violated assumption:** {violated_assumption}
+**State at decision point:** {context_snapshot}
+**Available alternatives:** {alternative_actions}
+
+For each alternative action:
+1. If step {root_cause_step} had done {alternative} instead of {chosen_action},
+   what would the subsequent steps have produced?
+2. Would this alternative have avoided the diagnosed failure? Why or why not?
+3. What is the estimated reward improvement over the actual outcome? (float, can be negative)
+4. Confidence that this alternative would have succeeded? (0.0–1.0)
+
+Rank alternatives by expected improvement. Identify the single best alternative.
+───────────────────────────────────
+```
+
+The multi-run reasoning budget for the Failure Reflector thus becomes: Pass 1 (symptom) → Pass 2 (re-evaluate hops) → Pass 3 (confirm root cause) → **Pass 4 (counterfactual alternatives)**. See §2 for updated token budget.
+
 ### 6.5 Recovery Strategies (How to Improve)
 
 Based on the diagnosis, the reflector proposes one or more recovery actions. These aren't just retries — they are structured improvements that feed back into the Skill Crafter's three creation modes:
@@ -414,8 +459,29 @@ FailureMemory(
         "add_CHECK_PATH_hop": {"applied": 5, "resolved": 4, "rate": 0.80},
         "strengthen_precondition": {"applied": 3, "resolved": 1, "rate": 0.33},
     },
+
+    # Counterfactual aggregation (§6.9)
+    counterfactual_traces=[CounterfactualTrace, ...],
+    high_regret_patterns={
+        # key: (skill, decision_level, best_alternative_type)
+        # value: occurrence count, mean regret, whether synthesis was triggered
+        ("MERGE_chain", "action", "CHECK_PATH"): {
+            "count": 5, "mean_regret": 0.18, "skill_synthesized": False,
+        },
+        ("POSITION_corner", "skill", "DEFEND_corner"): {
+            "count": 3, "mean_regret": 0.22, "skill_synthesized": True,
+        },
+    },
+    regret_driven_skills=["corner_defense", ...],  # skills born from counterfactual synthesis
 )
 ```
+
+**Counterfactual-specific aggregation logic:**
+
+- **Regret accumulation:** Each `CounterfactualTrace` is indexed by `(skill_name, decision_level, best_alternative)`. When the same tuple recurs, increment its count and update the running mean regret.
+- **Synthesis trigger:** When a high-regret pattern reaches 3+ occurrences (configurable), auto-dispatch to the Hypothesizer's counterfactual synthesis mode (§5, source 4). This is analogous to the escalation policy (§6.8) but driven by regret rather than failure recurrence.
+- **Effectiveness tracking:** After a regret-driven skill is synthesized and deployed, continue collecting `CounterfactualTrace` records at similar decision points. If regret at those points decreases, the synthesized skill is validated. If regret persists or increases, escalate to redesign.
+- **Cross-referencing with recovery effectiveness:** When a recovery action (§6.5) was informed by a `CounterfactualTrace.best_alternative`, track that linkage. This lets the system measure whether counterfactual-informed recoveries outperform non-counterfactual ones.
 
 ### 6.8 Escalation Policy
 
@@ -428,6 +494,136 @@ Not every failure warrants the same level of response. The escalation policy det
 | 3rd–5th occurrence | **Redesign** | Decompose or rewrite the skill protocol |
 | 6+ occurrences | **Retire & replace** | Demote skill, ask Hypothesizer for alternative |
 | Cross-skill pattern (3+ skills) | **Systemic fix** | Propose architectural change (new primitive, schema update) |
+
+### 6.9 Counterfactual Reasoning & Alternative Outcome Synthesis
+
+The Failure Reflector (§6.3–6.4) diagnoses *what went wrong on the path the agent took*. But it never asks the complementary question: **"What would have happened if the agent had chosen differently?"** Counterfactual reasoning closes this gap. Instead of only producing "this failed because X", the system produces "this failed because X, **and choosing Y instead would have succeeded because Z**" — a much richer signal for skill synthesis, decision boundary sharpening, and regret-driven learning.
+
+#### Three levels of counterfactual analysis
+
+Counterfactual reasoning applies at every level of the two-level MDP:
+
+| Level | Scope | Question | Cost |
+|-------|-------|----------|------|
+| **Action-level** (inner MDP) | Single hop within a skill | "What if hop 2 had done CHECK_PATH instead of CHECK_VALUE?" | Low — one extra LLM pass using existing `context_snapshot` |
+| **Skill-level** (outer MDP) | Skill selection decision point | "What if we'd selected POSITION_corner instead of MERGE_chain at this state?" | Medium — requires state schema at selection moment + candidate skill set |
+| **Composition-level** (Composer) | Proposed skill compositions | "What if we'd composed sequence(A, B) instead of sequence(A, C)?" | High — simulates alternative effect chains against representative states |
+
+**Action-level counterfactuals** operate on the `HopRecord` sequence within a single skill execution. The Failure Reflector already captures the `context_snapshot` at each step — the counterfactual pass feeds this snapshot to the LLM along with each alternative inner action (from the inner action vocabulary: GROUND, CHECK, RETRIEVE, CONCLUDE, EXECUTE) and asks for the predicted downstream outcome. This is the cheapest level and runs as Pass 4 of failure diagnosis (see §6.4).
+
+**Skill-level counterfactuals** operate on the skill selection decision points logged by `_SkillTracker`. They require the state schema at the selection moment plus the set of candidate skills that were scored but not chosen — both already available from `select_skill_from_bank()` scoring (see [Action Agent §3](PLAN-ACTION-AGENT.md#3-skill-guided-decision-making)). For each runner-up skill, the LLM predicts whether its protocol would have avoided the failure, given the state at that moment.
+
+**Composition-level counterfactuals** operate during the Composer's batch jobs (§3). When the Composer proposes `sequence(A, B)`, it also evaluates `sequence(A, C)`, `sequence(A, D)`, etc. against representative state snapshots drawn from Failure Memory. This ranks alternative compositions by predicted cumulative effect coverage before submitting them to Stage 4, reducing verification load.
+
+#### Data structures
+
+```python
+@dataclass
+class AlternativeOutcome:
+    option: str                  # the unchosen action/skill/composition
+    predicted_outcome: str       # LLM-predicted result of taking this alternative
+    predicted_reward_delta: float # estimated reward difference vs. what actually happened
+    confidence: float            # LLM self-assessed confidence (0–1)
+    reasoning: str               # chain-of-thought justification
+
+@dataclass
+class CounterfactualTrace:
+    episode_id: str
+    decision_point_step: int
+    decision_level: str          # "action" | "skill" | "composition"
+    chosen_option: str
+    chosen_outcome: str
+    alternative_options: list[AlternativeOutcome]
+    best_alternative: str        # the alternative with highest predicted_reward_delta
+    regret_estimate: float       # max(predicted_reward_delta) across alternatives
+```
+
+**Example:**
+
+```python
+CounterfactualTrace(
+    episode_id="ep_0042",
+    decision_point_step=2,
+    decision_level="action",
+    chosen_option="CHECK_VALUE(tile_128)",
+    chosen_outcome="FAIL: precondition_violated",
+    alternative_options=[
+        AlternativeOutcome(
+            option="CHECK_PATH(tile_256, tile_128)",
+            predicted_outcome="path_blocked detected → fallback triggered",
+            predicted_reward_delta=+0.15,
+            confidence=0.7,
+            reasoning="Path check would have detected tile_64 blocker before merge attempt",
+        ),
+        AlternativeOutcome(
+            option="GROUND(adjacent_tiles)",
+            predicted_outcome="re-grounding reveals updated board state",
+            predicted_reward_delta=+0.05,
+            confidence=0.4,
+            reasoning="Stale context possible but not confirmed",
+        ),
+    ],
+    best_alternative="CHECK_PATH(tile_256, tile_128)",
+    regret_estimate=0.15,
+)
+```
+
+**Key field: `regret_estimate`** — the predicted reward delta between what happened and what the best alternative would have produced. High-regret decision points are the richest source material for new skill synthesis (see §5, counterfactual synthesis).
+
+#### Counterfactual generation algorithm
+
+```
+Input: FailureDiagnosis D, FailureTrace T, available_actions (or candidate_skills)
+Output: CounterfactualTrace
+
+1. At the root_cause_step identified by D:
+   a. Enumerate alternative actions/skills available at that state.
+      - Action-level: inner action vocabulary minus the chosen action.
+      - Skill-level: top-K scored candidate skills from select_skill_from_bank().
+   b. Filter to top 2–3 alternatives by surface plausibility
+      (LLM pre-screen: "Given this state, which of these alternatives 
+       could plausibly address the diagnosed root cause?").
+2. For each surviving alternative:
+   a. Prompt LLM with context_snapshot + alternative action + remaining protocol steps.
+   b. Ask: "If step {root_cause_step} had done {alternative} instead of {chosen},
+      what would steps {root_cause_step+1}...{N} have produced?"
+   c. Extract predicted_outcome, predicted_reward_delta, confidence.
+3. Select best_alternative = argmax(predicted_reward_delta) among alternatives
+   with confidence ≥ 0.4.
+4. Compute regret_estimate = best_alternative.predicted_reward_delta.
+5. Return CounterfactualTrace.
+```
+
+#### Integration with the reflection loop
+
+Counterfactual analysis slots into the existing reflection loop (§6.6) as a post-diagnosis step:
+
+```
+Episode execution (Action Agent)
+        ↓ (on failure)
+  FailureTrace capture
+        ↓
+  Failure Localization (§6.3)  →  root_cause_step
+        ↓
+  Failure Diagnosis (§6.4)     →  FailureDiagnosis
+        ↓
+  Counterfactual Analysis (§6.9) → CounterfactualTrace
+        ↓
+  Recovery Proposal (§6.5)     →  RecoveryAction[]
+        ↓                          (now informed by best_alternative)
+  ┌─────┴──────────────────┐
+  ↓                        ↓
+Skill Bank               Skill Crafter
+(patch existing)         (compose/hypothesize new)
+```
+
+Recovery proposals (§6.5) now have access to the `CounterfactualTrace`: the `best_alternative` directly informs what recovery action to propose. A protocol patch can insert the counterfactually-validated alternative step rather than guessing at a fix.
+
+#### What NOT to do
+
+- **No environment rollback / replay.** Counterfactuals are LLM-predicted ("what would likely happen"), not simulated. If an environment supports cheap forking, that is a future optimization, not a requirement.
+- **No exhaustive enumeration.** Only the top 2–3 alternatives are evaluated per decision point. The pre-screen filter keeps cost bounded.
+- **No counterfactuals on success.** Only failed episodes trigger counterfactual analysis. Successful episodes already demonstrate a working path.
 
 ---
 
@@ -515,6 +711,15 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | Failure recurrence rate | % of fixed failures that reappear within N episodes | ≤ 0.15 |
 | Systemic fix coverage | % of cross-skill patterns addressed by systemic fixes | Track |
 
+### Metrics for counterfactual reasoning
+
+| Metric | How measured | Threshold |
+|--------|-------------|-----------|
+| Counterfactual prediction accuracy | % of predicted "better" alternatives that actually improve reward when tried | ≥ 0.5 |
+| Regret-driven skill utility | % of regret-synthesized skills that pass Stage 4 verification | ≥ 0.6 |
+| Regret reduction rate | Mean regret at similar decision points before vs. after synthesized skill deployment | Track (expect downward trend) |
+| Counterfactual-informed recovery lift | Recovery success rate for counterfactual-informed fixes vs. non-counterfactual fixes | > 0 delta |
+
 ### Evaluation protocol
 
 1. Crafter proposes N proto-skills per iteration.
@@ -552,6 +757,14 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 5. Implement escalation policy and pattern aggregation.
 6. Measure: do reflected fixes reduce failure recurrence?
 
+**Phase 4b — Counterfactual Reasoning & Regret-Driven Synthesis**
+1. Implement `CounterfactualTrace` generation (Pass 4 of failure diagnosis, §6.4/§6.9).
+2. Implement `AlternativeOutcome` prediction pipeline (LLM prompting + structured output).
+3. Integrate counterfactual traces into `FailureMemory` — regret accumulation and `high_regret_patterns` indexing.
+4. Implement regret-driven synthesis trigger in Hypothesizer (§5, source 4).
+5. Implement comparative composition ranking in Composer (§3, step 4).
+6. Measure: counterfactual prediction accuracy, regret-driven skill utility, regret reduction rate.
+
 **Phase 5 — Cross-modality transfer (image ↔ video)**
 1. Transfer visual reasoning skills from image benchmarks to video.
 2. Transfer temporal reasoning patterns from video benchmarks to interactive environments.
@@ -579,6 +792,12 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | Hop-chain composition operators (inner MDP) | P1 | Not started |
 | Cross-domain reasoning protocol transfer | P2 | Not started |
 | Failure reflection metrics & dashboarding | P2 | Not started |
+| CounterfactualTrace generation (Pass 4 of failure diagnosis) | P1 | Not started |
+| AlternativeOutcome prediction pipeline & LLM prompting | P1 | Not started |
+| Regret accumulation & high_regret_patterns indexing in FailureMemory | P1 | Not started |
+| Regret-driven synthesis trigger in Hypothesizer | P1 | Not started |
+| Comparative composition ranking in Composer | P2 | Not started |
+| Counterfactual prediction accuracy evaluation harness | P2 | Not started |
 
 ---
 
@@ -596,5 +815,8 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | `skill_agents/crafter/failure_diagnosis.py` | LLM-based diagnosis prompt construction & structured output |
 | `skill_agents/crafter/recovery.py` | Recovery strategy selection, application, and feedback |
 | `skill_agents/crafter/failure_memory.py` | Persistent failure memory, pattern aggregation, escalation |
+| `skill_agents/crafter/counterfactual.py` | CounterfactualTrace / AlternativeOutcome generation, regret estimation, alternative enumeration |
+
+Note: counterfactual reasoning also integrates into existing planned files — `failure_diagnosis.py` (Pass 4 prompt), `failure_memory.py` (regret aggregation), `hypothesizer.py` (counterfactual synthesis mode), `composer.py` (comparative composition ranking).
 
 Currently no implementation exists — this is the newest component of the pipeline.
