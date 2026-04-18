@@ -40,14 +40,93 @@ experience → Skill Bank ingestion + GRPO buffer
 
 ---
 
-## 2. Two model backends
+## 2. Tiered model architecture
 
-| Backend | Use case | Routing |
-|---------|----------|---------|
-| **GPT-5.4** (training-free) | Cold-start data generation, labeling | OpenRouter / OpenAI API |
-| **Qwen3-8B** (GRPO-trained, LoRA) | Decision agent inference, evaluation | vLLM serving |
+### Design choice: 8B-only vs. tiered 32B/72B + 8B
 
-Both share the same code path; `API_func.ask_model` routes to the correct API. Skill bank loading and querying are identical.
+Two options were considered:
+
+| | Option A: 8B + GRPO LoRA everywhere | Option B: 32B/72B inference + 8B trained executor |
+|---|---|---|
+| **Decision loop** | 8B (trained) | 8B (trained) — identical |
+| **Skill Crafter / Failure Reflector** | 8B (trained) | 32B/72B (inference-only) |
+| **Per-step latency** | Fast | Fast (same 8B in the hot path) |
+| **Skill/protocol quality** | Limited by 8B reasoning ceiling | Strong — 32B/72B excels at composition, diagnosis, analogy |
+| **Trainability** | Fully end-to-end | Real-time loop fully trainable; offline components frozen |
+| **Cold-start** | Weak until GRPO converges | 32B/72B generates high-quality trajectories from day one |
+
+**Decision: Option B (tiered).** The pipeline's offline components — Skill Crafter (composition, generalization, hypothesis), Failure Reflector (backward trace analysis, diagnosis, recovery), and cold-start generation — require multi-step counterfactual reasoning, cross-domain analogy, and structured diagnosis that 8B models consistently struggle with. These components run *between* episodes, not per-step, so the larger model adds zero latency to the decision loop.
+
+### Three model tiers
+
+```
+┌─────────────────────────────────────────────┐
+│  Tier 0: GPT-5.4 / frontier (API, offline)   │
+│  • Initial cold-start labeling               │
+│  • Reward model / judge for GRPO             │
+└──────────────────┬──────────────────────────┘
+                   ↓ bootstrap data
+┌─────────────────────────────────────────────┐
+│  Tier 1: Qwen3-32B/72B (inference, offline)  │
+│  • Skill Composer: effect chaining           │
+│  • Skill Hypothesizer: failure → new skills  │
+│  • Skill Generalizer: cross-domain transfer  │
+│  • Failure Reflector: localize + diagnose    │
+│  • Trajectory generation for GRPO buffer     │
+│  • Skill verification judging                │
+└──────────────────┬──────────────────────────┘
+                   │ skills, protocols, recovery
+                   │ patches, training signal
+                   ↓
+┌─────────────────────────────────────────────┐
+│  Tier 2: Qwen3-8B + GRPO LoRA (trained)     │
+│  • schema_gen: screenshot → <state> schema   │
+│  • hop_select: schema + trace → next hop     │
+│  • skill_select: schema → which skill        │
+│  • Action execution + anti-repetition        │
+│  • SkillTracker protocol following           │
+└─────────────────────────────────────────────┘
+```
+
+### Why the 8B real-time loop stays fast
+
+The 32B/72B never enters the per-step loop. Per-step operations (schema_gen, hop_select ×1–8, skill_select on reselect, action execution) are all served by the 8B on vLLM, identical to Option A. The 32B/72B runs as a separate offline process:
+
+| Offline operation | When it runs | Frequency |
+|---|---|---|
+| Failure Reflection (localize, diagnose) | After a failed episode ends | ~1× per failed episode |
+| Skill Composition (effect chaining) | Periodic batch job | Every N episodes |
+| Skill Hypothesis (from failure patterns) | When failure memory accumulates | Rare |
+| Cross-domain transfer | When adding a new domain | One-time |
+| Cold-start trajectory generation | Before GRPO training begins | One-time |
+
+Offline reflection can be pipelined: the 8B rolls out episode batch K+1 while the 32B/72B reflects on batch K. GRPO gradient computation dominates wall-clock time, so the 32B/72B reflection effectively hides inside existing training overhead.
+
+### Multi-run reasoning for 32B/72B
+
+Even at 32B/72B scale, the offline tasks (failure diagnosis, skill composition, cross-domain transfer) are too complex for single-pass inference. The 32B/72B must run **multiple reasoning passes** per task:
+
+| Offline task | Why single-pass is insufficient | Multi-run strategy |
+|---|---|---|
+| **Failure localization** | Backward trace analysis requires re-evaluating each hop against its context; a single pass often fixates on the symptom step, not the root cause | Pass 1: identify symptom step. Pass 2: re-evaluate each prior hop with targeted prompts. Pass 3: confirm root cause via counterfactual ("would fixing step K have prevented the failure?") |
+| **Failure diagnosis** | Diagnosis involves hypothesis generation + verification; one-shot diagnoses frequently hallucinate causal links | Pass 1: generate candidate explanations. Pass 2: verify each against context_snapshot. Pass 3: select most consistent explanation |
+| **Skill composition** | Effect chaining across 2+ skills requires verifying precondition/postcondition compatibility, which involves combinatorial checking | Pass 1: propose candidate compositions. Pass 2: verify effect chain validity per pair. Pass 3: generate protocol + test expectations |
+| **Skill hypothesis** | Novel skill proposals from failure patterns are speculative; most initial proposals are low-quality | Best-of-N sampling (N=3–5): generate N proposals, score by contract completeness + novelty, keep top-K |
+| **Cross-domain transfer** | Schema-slot mapping between domains is ambiguous; naive mappings fail | Pass 1: identify shared structural slots. Pass 2: propose mapping candidates. Pass 3: instantiate and sanity-check with target-domain examples |
+
+This multi-run design means each offline task costs ~3–5× the tokens of a single 32B/72B call, but these costs are amortized across many episodes and remain far cheaper than putting the 32B/72B in the per-step loop. The quality improvement from multi-run (especially for failure localization and diagnosis) is critical — single-pass failure reflection would produce noisy recovery patches that degrade rather than improve skills.
+
+**Budget guideline:** ~500–2000 tokens per offline reasoning pass × 3–5 passes × a few tasks per episode batch = on the order of 10K–50K tokens of 32B/72B inference per training iteration. Negligible compared to GRPO rollout costs.
+
+### Routing
+
+All three tiers share the same code path; `API_func.ask_model` routes to the correct backend:
+
+| Tier | Routing |
+|---|---|
+| Tier 0: GPT-5.4 | OpenRouter / OpenAI API |
+| Tier 1: Qwen3-32B/72B | vLLM serving (offline batch, quantized) |
+| Tier 2: Qwen3-8B | vLLM serving (real-time, LoRA hot-swap) |
 
 ---
 

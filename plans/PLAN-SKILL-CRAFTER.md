@@ -21,6 +21,21 @@ The Skill Crafter addresses these gaps by operating *top-down*: it proposes new 
 
 ## 2. Architecture
 
+### Model tier assignment
+
+The Skill Crafter runs entirely on **Tier 1 (Qwen3-32B/72B, inference-only)** — see [Action Agent §2](PLAN-ACTION-AGENT.md#2-tiered-model-architecture) for the full tiered architecture rationale. All three creation modes (Composer, Generalizer, Hypothesizer) and the Failure Reflector require multi-step counterfactual reasoning, cross-domain analogy, and structured diagnosis that exceed the 8B reasoning ceiling. Because these components run offline (between episodes, not per-step), the larger model adds no latency to the Action Agent's decision loop.
+
+**Multi-run reasoning requirement:** Even at 32B/72B scale, single-pass inference is insufficient for the Skill Crafter's tasks. Each creation or reflection task requires multiple reasoning passes:
+
+- **Composer:** Pass 1 — propose candidate compositions; Pass 2 — verify effect chain validity per pair; Pass 3 — generate protocol + test expectations.
+- **Generalizer:** Pass 1 — identify shared structural slots; Pass 2 — propose mapping candidates; Pass 3 — instantiate and sanity-check with target-domain examples.
+- **Hypothesizer:** Best-of-N sampling (N=3–5) — generate N proposals, score by contract completeness + novelty, keep top-K.
+- **Failure Reflector:** Pass 1 — identify symptom step; Pass 2 — re-evaluate each prior hop with targeted prompts; Pass 3 — confirm root cause via counterfactual.
+
+This multi-run design costs ~3–5× the tokens of a single 32B/72B call per task, but remains negligible compared to GRPO rollout costs since these tasks run once per episode batch, not per step.
+
+### Pipeline overview
+
 ```
                      Skill Bank (existing skills)
                             ↓
