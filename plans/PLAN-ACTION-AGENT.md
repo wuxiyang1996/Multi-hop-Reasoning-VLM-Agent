@@ -57,6 +57,97 @@ Two options were considered:
 
 **Decision: Option B (tiered).** The pipeline's offline components — Skill Crafter (composition, generalization, hypothesis), Failure Reflector (backward trace analysis, diagnosis, recovery), and cold-start generation — require multi-step counterfactual reasoning, cross-domain analogy, and structured diagnosis that 8B models consistently struggle with. These components run *between* episodes, not per-step, so the larger model adds zero latency to the decision loop.
 
+### 7B/8B capability assessment
+
+Not all parts of the system demand the same reasoning capability. The following assessment maps each component to a model-size tier based on task complexity, scaffolding, and failure risk.
+
+**Safe for 7B/8B** — bounded work under strong scaffolding:
+
+| Component | Why 7B/8B is sufficient |
+|---|---|
+| Online action execution (per-step loop §1) | Compressed key=value state, intention tag prediction, retrieval from RAG, action from valid list, robust parsing with fallbacks. Bounded decisions under scaffolding. |
+| Skill selection with strong retrieval (§3) | Not pure generation — retrieval + scoring with relevance, applicability, and historical pass rate, plus protocol-aware lifecycle rules (stall detection, success/abort matching, reselect triggers). |
+| Protocol following / reactive control | `_SkillTracker` offloads control structure: duration caps, reward stall detection, protocol step tracking, reselect triggers. Model is not inventing control policy from scratch. |
+| Short inner-hop reasoning (§5) | GROUND → CHECK → RETRIEVE → CONCLUDE → EXECUTE on easy-to-medium cases, when hops operate on the same schema and the action vocabulary is typed and limited. |
+
+**Borderline for 7B/8B** — works only with strong constraints:
+
+| Component | Risk | Mitigation |
+|---|---|---|
+| Intention inference | Noisy in ambiguous scenes or long histories | Fix the number of tags, keep state summary clean |
+| `hop_select` in the two-level MDP | Quality depends on whether hops are micro-decisions vs. open-ended relational reasoning; 7B drifts if too free-form | Keep inner MDP short, enforce typed outputs, train task-specific adapters |
+| `schema_gen` | Can work for stable interfaces or grid games; becomes bottleneck with messy screenshots, subtle occlusions, or social-video details | Use cascaded head escalation (§12 in Visual Grounding) as fallback |
+
+**Not 7B/8B-safe as currently written** — requires 32B/72B or redesign:
+
+| Component | Why 7B/8B fails | Plan reference |
+|---|---|---|
+| Failure reflection (localize + diagnose) | Requires backward trace analysis, hypothesis generation, verification, counterfactual confirmation. Even 32B/72B needs 3–5 passes. | [Skill Crafter §6](PLAN-SKILL-CRAFTER.md#6-failure-reflection--reasoning-recovery) |
+| Skill composition | Verifying precondition/postcondition compatibility across multiple skills requires combinatorial checking with multi-pass reasoning. | [Skill Crafter §3](PLAN-SKILL-CRAFTER.md#3-skill-composer) |
+| Skill hypothesis / new skill invention | Best-of-N proposal generation + scoring — too high-variance for 7B; a weaker model here pollutes the bank with bad abstractions. | [Skill Crafter §5](PLAN-SKILL-CRAFTER.md#5-skill-hypothesizer) |
+| Cross-domain transfer | Schema-slot mapping is ambiguous and needs identify-map-instantiate-sanity-check passes; 7B tends to fake analogical reasoning. | [Skill Crafter §4](PLAN-SKILL-CRAFTER.md#4-skill-generalizer) |
+| Cold-start trajectory generation | 8B-only option is weak until GRPO converges; tiered option uses larger models for high-quality traces from day one. | §2 tier table above |
+
+**Key risk:** If 7B/8B is made to do everything, the system may "work" in demos but fail silently in the parts that matter most for self-evolution. The biggest risk is not obvious crashes — it is the model producing plausible but wrong diagnoses, bad skill abstractions, and brittle transferred skills that then contaminate the bank.
+
+### Three-agent role split
+
+The system decomposes into three logical agents with distinct model assignments. The "skills agent" is split conceptually into a **skill-use agent** (online, in the loop) and a **skill-evolution agent** (offline, between episodes) — these are very different jobs.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Agent 1: Actor / Decision Agent  (Qwen3-8B, GRPO-trained)  │
+│  • schema consumption                                        │
+│  • intention inference                                       │
+│  • hop selection (inner MDP)                                 │
+│  • skill selection                                           │
+│  • action execution + anti-repetition                        │
+│  • protocol following                                        │
+│  • RL adaptation in the real-time loop                       │
+│  Timescale: updates every training iteration                 │
+└──────────────────────────────────────────────────────────────┘
+                        ↕ skill guidance, experience
+┌──────────────────────────────────────────────────────────────┐
+│  Agent 2: Skill-Use / Operational Agent  (8B or rule-heavy)  │
+│  • RAG skill retrieval (SkillQueryEngine)                    │
+│  • applicability scoring from structured predicates          │
+│  • _SkillTracker lifecycle management                        │
+│  • protocol step tracking                                    │
+│  • stall detection and reselect triggers                     │
+│  • pass-rate lookup                                          │
+│  Timescale: updates every few training iterations            │
+└──────────────────────────────────────────────────────────────┘
+                        ↕ candidate skills, patches, trajectories
+┌──────────────────────────────────────────────────────────────┐
+│  Agent 3: Skill Synthesis / Reflection Agent                 │
+│  (Qwen3-32B/72B, inference-only, frozen)                    │
+│                                                              │
+│  Roles:                                                      │
+│  • Failure reflector (localize + diagnose)                   │
+│  • Skill composer (effect chaining)                          │
+│  • Skill hypothesizer (failure → new skills)                 │
+│  • Cross-domain transfer mapper                              │
+│  • Offline trajectory generator (cold-start)                 │
+│  • Verification / judge for candidate skills and traces      │
+│                                                              │
+│  Key design:                                                 │
+│  • Outputs are treated as CANDIDATE patches/skills,          │
+│    admitted only after multi-pass verification and           │
+│    held-out replay checks.                                   │
+│  • NOT an unchecked writer — a proposal-and-verification     │
+│    engine.                                                   │
+│  Timescale: proposals every N episodes, with acceptance gate │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Acceptance gate for synthesis-reflection outputs:** Every synthesized or revised skill must pass:
+1. Contract completeness checks against the schema
+2. Retrieval compatibility with current bank entries
+3. Replay or held-out verification on stored trajectories
+4. Non-regression filtering (new patches must not lower pass rate on prior successful contexts)
+
+This maps to the existing Tier 1 / Tier 2 split but makes the boundary explicit: **Tier 2 = Agent 1 + Agent 2 (trained, online)**, **Tier 1 = Agent 3 (frozen, offline)**.
+
 ### Three model tiers
 
 ```
@@ -278,7 +369,98 @@ This is segmentable by the Skill Bank — reasoning hop chains become discoverab
 
 ---
 
-## 6. Integration with Visual Grounding
+## 6. Co-evolution & GRPO decomposition
+
+### Asymmetric co-evolution
+
+The three agents co-evolve, but not symmetrically. The core loop:
+
+1. **Actor improves** using the current skill bank (GRPO on action execution, skill selection, hop selection).
+2. **Skill bank improves** using trajectories from the current actor (operational updates to skills, protocols, pass rates).
+3. **Synthesis-reflection agent proposes** bank updates from accumulated failures and successes (candidate skills, revised protocols, recovery patches).
+4. **Verified updates** are fed back to the actor.
+
+```
+Actor rolls out with current bank
+        ↓
+Collect success/failure traces + skill-use statistics
+        ↓
+Frozen 32B/72B proposes diagnoses, new skills, compositions, protocol patches
+        ↓
+Verifier checks with replay, contract consistency, held-out contexts, non-regression
+        ↓
+Only accepted artifacts enter the bank or the training buffer
+        ↓
+Train smaller specialized heads/adapters on accepted artifacts (if narrow subtask becomes important)
+        ↓
+Repeat
+```
+
+### GRPO decomposition across agents
+
+| Agent | GRPO? | Policy outputs | Reward signal |
+|---|---|---|---|
+| **Actor** (8B) | **Yes** — primary GRPO target | selected skill, next reasoning hop, action | r_env + r_follow + r_cost; bonuses for valid action formatting, not stalling, respecting active-skill protocol |
+| **Skill-use / operational** (8B) | **Selective** — only for sequential bank-management decisions | continue/switch skill, accept/reject candidate segment as skill instance, merge/split/retire/keep, protocol revision choice from candidate set | Downstream actor improvement, skill reuse rate, contract satisfaction rate, reduced stall / fewer useless switches, bank compactness regularization |
+| **Synthesis-reflection** (32B/72B) | **Not initially** — frozen inference-only | N/A (outputs are candidate proposals, not RL actions) | N/A initially; if adapted later, narrow task-specific rewards only |
+
+**What NOT to GRPO on the skill-use side:** Simple retrieval, applicability scoring, pass-rate lookup, and `_SkillTracker` lifecycle logic are already algorithmic or scorer-based. GRPO adds value only for the sequential decision components (when to switch, accept, merge, split, refine).
+
+### Timescale separation
+
+All three agents must NOT co-evolve at full speed simultaneously — that creates instability where the actor chases a moving skill bank while the reflector changes supervision.
+
+| Timescale | Agent | Update cadence |
+|---|---|---|
+| **Fast** | Actor | Every training iteration |
+| **Medium** | Skill-bank operational | Every few training iterations |
+| **Slow** | Synthesis-reflection | Proposals every N episodes, with acceptance gating |
+
+**Concrete schedule:**
+- 5–10 actor GRPO update cycles, then 1 offline skill-bank update cycle.
+- Skill-bank refinement batch runs after the actor's update converges enough that traces are meaningful.
+- Synthesis-reflection runs after failed episodes, periodically for effect chaining, when failure memory accumulates, when adding new domains, and before GRPO for cold-start trajectory generation.
+
+### Training schedule
+
+**Phase 0: Bootstrap**
+- Use frontier model (GPT-5.4) or 32B/72B for seed traces and labels.
+- Initialize a small skill bank.
+- Train actor with GRPO on seed data.
+- Keep synthesis-reflection frozen.
+
+**Phase 1: Actor–skill bank co-evolution**
+- Alternate: K rollout/update cycles for actor, then 1 offline skill-bank update cycle.
+- Actor GRPO trains at least two LoRAs: `skill_select`, `action_execute`. Optionally a third for `hop_select` if committing to the inner MDP.
+- Skill-bank GRPO trains: SEGMENT, CONTRACT, CURATOR LoRAs (see [Skill Bank §7](PLAN-SKILL-BANK.md#7-grpo-co-evolution)).
+
+**Phase 2: Gated synthesis-reflection**
+- Every N failed episodes or every M training iterations: run reflector on recent failures.
+- Propose revised protocols, new skills, composition candidates, recovery patches.
+- Verify before admitting to bank.
+- Only accepted artifacts enter the bank.
+
+**Phase 3: Optional teacher adaptation**
+- Only after the frozen synthesis-reflection agent becomes the real bottleneck.
+- Train on narrow tasks only: failure localization, protocol revision, contract writing, candidate ranking/judging.
+- Not broad end-to-end GRPO. SFT or preference-style adaptation first.
+- See [Skill Crafter §2](PLAN-SKILL-CRAFTER.md#2-architecture) for the phased teacher adaptation policy.
+
+### Frozen teacher improvement channels
+
+The synthesis-reflection agent (32B/72B) can improve over time WITHOUT weight updates through five channels:
+
+1. **Better input distribution** — as the 8B actor and skill bank improve, the synthesis agent sees cleaner trajectories, more reusable segments, better failure logs, and richer skill statistics.
+2. **Better memory / artifact store** — the system is: frozen LLM + failure memory + skill bank snapshots + verification logs + proposal archive. As external memories improve, the agent improves.
+3. **Better inference procedure** — upgrade the multi-pass reasoning procedure: better decomposition, proposal-then-verify, best-of-N, counterfactual replay, stricter acceptance filters.
+4. **Better verification and selection** — as the actor and bank mature, downstream usefulness can be measured more reliably. The teacher doesn't need to be smarter if the gatekeeping becomes smarter.
+5. **Distillation into smaller specialized modules** — train smaller adapters or submodules on the outputs that pass verification: a small failure-localizer, a contract writer, a protocol patch ranker, a transfer-mapping scorer.
+
+**Principle:** Actor improvement = mostly weight updates. Synthesis improvement = mostly system-level updates at first. Train the actor, not the judge, until there is evidence the judge is the limiting factor.
+
+---
+
+## 7. Integration with Visual Grounding
 
 The action agent currently consumes text observations. The integration path:
 
@@ -296,7 +478,7 @@ The `<state>` schema is the state representation for the inner reasoning MDP:
 
 ---
 
-## 7. Two pipeline variants
+## 8. Two pipeline variants
 
 ### Pipeline A — `qwen3_decision_agent.py` (full skill lifecycle)
 
@@ -317,7 +499,7 @@ The `<state>` schema is the state representation for the inner reasoning MDP:
 
 ---
 
-## 8. Supported environments
+## 9. Supported environments
 
 | # | Stack | Game | Registry Key |
 |---|-------|------|-------------|
@@ -330,7 +512,7 @@ The `<state>` schema is the state representation for the inner reasoning MDP:
 
 ---
 
-## 9. Uncertainty-driven GROUND triggering
+## 10. Uncertainty-driven GROUND triggering
 
 The inner MDP agent actively manages information completeness through the GROUND action.  The `<uncertainty>` section in the schema is the communication channel between grounding and reasoning.
 
@@ -364,24 +546,30 @@ See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guar
 
 ---
 
-## 10. TODO
+## 11. TODO
 
 | Task | Priority | Status |
 |------|----------|--------|
 | Integrate VLM schema as primary state input | P0 | Not started |
 | Implement inner reasoning MDP (hop_select adapter) | P0 | Not started |
+| Implement three-agent role split (actor / skill-use / synthesis-reflection routing) | P0 | Not started |
+| GRPO decomposition: actor LoRAs (skill_select, action_execute, hop_select) | P0 | Not started |
+| Acceptance gate for synthesis-reflection outputs (contract check, replay, non-regression) | P0 | Not started |
 | Entity-referenced actions (click e5 instead of click(400,510)) | P1 | Not started |
 | Inner hop reward shaping (schema consistency + progress) | P1 | Not started |
 | Slot coverage check in _SkillTracker before skill activation | P1 | Not started |
 | Uncertainty-driven GROUND insertion (hop 0 when slots missing) | P1 | Not started |
+| Timescale separation: implement fast/medium/slow update cadence | P1 | Not started |
+| Skill-use GRPO: continue/switch, accept/reject, merge/split decisions | P1 | Not started |
 | Extend to BrowserGym action space | P1 | Not started |
 | Extend to OSWorld action space | P2 | Not started |
 | Video-based decision making (temporal action selection) | P2 | Not started |
 | Learned EXECUTE timing (when to stop reasoning and act) | P2 | Not started |
+| Phase 3 teacher adaptation: narrow SFT/preference tuning if frozen teacher bottlenecks | P2 | Not started |
 
 ---
 
-## 11. Implementation
+## 12. Implementation
 
 | File | Purpose |
 |------|---------|

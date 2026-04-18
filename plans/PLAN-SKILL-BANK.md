@@ -218,6 +218,41 @@ results = agent.query_by_effects(
 
 ## 7. GRPO co-evolution
 
+### Asymmetric co-evolution framework
+
+The Skill Bank sits at the **medium timescale** within the three-agent co-evolution framework (see [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Its operational components (retrieval, scoring, tracking) update more frequently than the synthesis-reflection agent but less frequently than the actor.
+
+**Co-evolution loop for the Skill Bank:**
+
+```
+Actor rolls out with current bank (fast timescale)
+        ↓
+Collect experience trajectories + skill-use statistics
+        ↓
+Skill Bank operational update (medium timescale):
+  • Segmentation of new trajectories
+  • Contract learning/refinement
+  • Bank maintenance (propose → filter → execute)
+  • Quality evaluation
+        ↓
+Synthesis-reflection agent proposes (slow timescale):
+  • New skills from failure reflection
+  • Compositions from effect chaining
+  • Cross-domain transfers
+        ↓
+Acceptance gate (before anything enters the bank):
+  1. Contract completeness checks against schema
+  2. Retrieval compatibility with current bank entries
+  3. Replay or held-out verification on stored trajectories
+  4. Non-regression filtering (must not lower pass rate on prior successes)
+        ↓
+Accepted artifacts enter bank → actor uses updated bank
+```
+
+**Update cadence:** 5–10 actor GRPO update cycles, then 1 offline skill-bank update cycle. Skill-bank refinement runs after the actor's update converges enough that traces are meaningful. Bank updates should not run every iteration — that creates a moving target the actor chases too aggressively.
+
+### LoRA adapters (8B, trained)
+
 Three LoRA adapters on Qwen3-8B, trained during co-evolution:
 
 | Adapter | Stage | Wrapped function | Reward |
@@ -226,9 +261,31 @@ Three LoRA adapters on Qwen3-8B, trained during co-evolution:
 | **CURATOR** (P1) | 4 | `filter_candidates()` | `bank_quality_delta` |
 | **SEGMENT** (P1) | 2 | `collect_segment_preferences()` | `SegmentationDiagnostics` |
 
-**Two-phase architecture:**
+These adapters belong to the **skill-use / operational agent** (Agent 2 in the [three-agent split](PLAN-ACTION-AGENT.md#three-agent-role-split)). They handle the sequential bank-management decisions that benefit from GRPO: segmentation, contract quality, and curation. Simple retrieval, applicability scoring, pass-rate lookup, and `_SkillTracker` lifecycle logic remain algorithmic — GRPO is not applied to these.
+
+**Additional skill-use GRPO targets** (selective, for sequential decisions only):
+
+| Decision | Policy output | Reward |
+|---|---|---|
+| Continue / switch active skill | binary | Downstream reward improvement, reduced stall |
+| Accept / reject candidate segment as skill instance | binary | Contract satisfaction, skill reuse rate |
+| Merge / split / retire / keep skill | categorical | Bank compactness regularization, downstream actor improvement |
+| Protocol revision choice from candidate set | categorical | Follow-through rate, skill pass rate delta |
+
+### Two-phase architecture
+
 1. **Phase 1 (Rollout):** Pipeline calls LLM as normal → GRPO wrapper generates G samples → reward per sample → best returned to pipeline + all stored in buffer.
 2. **Phase 2 (Training):** Read buffer → recompute log_probs → group-normalized rewards → GRPO policy gradient → update LoRA adapter → clear buffer.
+
+### Synthesis-reflection outputs (from frozen 32B/72B)
+
+The Skill Bank receives candidate artifacts from the synthesis-reflection agent ([Skill Crafter](PLAN-SKILL-CRAFTER.md)):
+- New skill proposals (from Composer, Hypothesizer, Generalizer)
+- Revised protocols (from Failure Reflector recovery actions)
+- Contract patches (precondition strengthening, effect updates)
+- Cross-domain transfer mappings
+
+All of these are treated as **candidate proposals**, not ground truth. They enter the bank only after passing the acceptance gate. The Skill Bank does not blindly trust the 32B/72B — it verifies, replays, and gates every output. See [Skill Crafter §2](PLAN-SKILL-CRAFTER.md#2-architecture) for the frozen teacher design rationale.
 
 ---
 
@@ -344,9 +401,13 @@ templates = extract_transferable_skills(
 | Task | Priority | Status |
 |------|----------|--------|
 | Transferable skill template + extraction pipeline | P0 | **Done** |
+| Acceptance gate pipeline (contract check, replay verification, non-regression filter) | P0 | Not started |
+| Implement timescale separation for bank update cadence (medium timescale) | P0 | Not started |
 | Extend segmentation to inner MDP hop traces | P1 | Not started |
 | Reasoning skill discovery (hop chain templates) | P1 | Not started |
 | Inner hop reward signal for GRPO (hop quality + outer reward) | P1 | Not started |
+| Skill-use GRPO: continue/switch, accept/reject, merge/split decisions | P1 | Not started |
+| Integration with synthesis-reflection agent outputs (gated candidate ingestion) | P1 | Not started |
 | Reasoning protocol contracts (trigger → hops → EXECUTE) | P2 | Not started |
 | RAG retrieval over reasoning templates (not just action skills) | P2 | Not started |
 | LLM-based slot binding (replace regex heuristics with LLM inference) | P2 | Not started |

@@ -23,9 +23,11 @@ The Skill Crafter addresses these gaps by operating *top-down*: it proposes new 
 
 ### Model tier assignment
 
-The Skill Crafter runs entirely on **Tier 1 (Qwen3-32B/72B, inference-only)** — see [Action Agent §2](PLAN-ACTION-AGENT.md#2-tiered-model-architecture) for the full tiered architecture rationale. All three creation modes (Composer, Generalizer, Hypothesizer) and the Failure Reflector require multi-step counterfactual reasoning, cross-domain analogy, and structured diagnosis that exceed the 8B reasoning ceiling. Because these components run offline (between episodes, not per-step), the larger model adds no latency to the Action Agent's decision loop.
+The Skill Crafter runs entirely on **Tier 1 (Qwen3-32B/72B, inference-only, frozen)** — see [Action Agent §2](PLAN-ACTION-AGENT.md#2-tiered-model-architecture) for the full tiered architecture rationale and the [three-agent role split](PLAN-ACTION-AGENT.md#three-agent-role-split). The Skill Crafter IS the **synthesis-reflection agent** (Agent 3). All three creation modes (Composer, Generalizer, Hypothesizer) and the Failure Reflector require multi-step counterfactual reasoning, cross-domain analogy, and structured diagnosis that exceed the 8B reasoning ceiling. Because these components run offline (between episodes, not per-step), the larger model adds no latency to the Action Agent's decision loop.
 
-**Multi-run reasoning requirement:** Even at 32B/72B scale, single-pass inference is insufficient for the Skill Crafter's tasks. Each creation or reflection task requires multiple reasoning passes:
+**Frozen-first design:** The 32B/72B backbone is kept frozen initially. Its outputs (candidate skills, revised protocols, recovery patches, diagnoses) are treated as **proposals**, not ground truth. Every output must pass multi-pass verification and held-out replay checks before entering the skill bank or training buffer. This avoids feedback-loop drift where the teacher becomes overconfident in the system's own biases. See [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition) for the full acceptance gate specification.
+
+**Multi-run reasoning requirement:** Even at 32B/72B scale, single-pass inference is insufficient for the Skill Crafter's tasks. The main bottleneck is not "lack of optimization" but "reasoning is hard and noisy." Each creation or reflection task requires multiple reasoning passes:
 
 - **Composer:** Pass 1 — propose candidate compositions; Pass 2 — verify effect chain validity per pair; Pass 3 — generate protocol + test expectations.
 - **Generalizer:** Pass 1 — identify shared structural slots; Pass 2 — propose mapping candidates; Pass 3 — instantiate and sanity-check with target-domain examples.
@@ -33,6 +35,49 @@ The Skill Crafter runs entirely on **Tier 1 (Qwen3-32B/72B, inference-only)** �
 - **Failure Reflector:** Pass 1 — identify symptom step; Pass 2 — re-evaluate each prior hop with targeted prompts; Pass 3 — confirm root cause via counterfactual; Pass 4 — evaluate alternative outcomes at the root cause step, compute regret, store `CounterfactualTrace` (§6.9).
 
 This multi-run design costs ~3–6× the tokens of a single 32B/72B call per task (the Failure Reflector's 4-pass chain is the most expensive at ~4–6×), but remains negligible compared to GRPO rollout costs since these tasks run once per episode batch, not per step. The additional Pass 4 adds ~500–1000 tokens per failure reflection — a modest increase that produces high-value counterfactual evidence for skill synthesis.
+
+### Frozen teacher improvement channels
+
+The synthesis-reflection agent (32B/72B) improves over time WITHOUT weight updates through five channels:
+
+1. **Better input distribution** — as the 8B actor and skill bank improve through GRPO, the Skill Crafter receives cleaner trajectories, more reusable segments, better failure logs, and richer skill statistics. The same frozen model produces much better outputs when reasoning over better evidence.
+2. **Better memory / artifact store** — the Skill Crafter is: frozen LLM + failure memory (§6.7) + skill bank snapshots + verification logs + proposal archive. As these external stores grow and improve, the Crafter's reasoning context improves.
+3. **Better inference procedure** — improve the multi-pass reasoning without touching weights: better decomposition, proposal-then-verify chains, best-of-N with smarter selection, counterfactual replay, stricter acceptance filters. This is where most early "improvement" should come from.
+4. **Better verification and selection** — as the actor and bank mature, downstream usefulness can be measured more reliably. A frozen model that emits many candidate skills becomes much more useful when the system can better select which candidates to keep.
+5. **Distillation into smaller specialized modules** — train smaller adapters or submodules on outputs that pass verification: a small failure-localizer, a contract writer, a protocol patch ranker, a transfer-mapping scorer. This builds a synthesis pipeline that improves over time without changing the main teacher.
+
+**Principle:** The thing that improves is the synthesis *system*, not necessarily the frozen model weights. Think of improvement as: frozen LLM + improving (data, memory, prompts, search, acceptance rules).
+
+### Phased teacher adaptation policy
+
+The 32B/72B teacher should NOT be fine-tuned from day one. Follow this phased approach:
+
+**Phase 1: Frozen teacher (default starting point)**
+- Keep 32B/72B frozen.
+- Improve prompts, decompositions, and multi-pass workflows.
+- Add strict verification before any teacher output enters the skill bank or GRPO data.
+- This phase may be sufficient for the entire project if verification quality is high enough.
+
+**Phase 2: Light adaptation only if needed**
+- Fine-tune only if repeated, narrow failures are observed:
+  - Poor formatting of contracts/protocols despite good evidence
+  - Weak domain vocabulary mapping
+  - Systematic failure in the schema language
+  - Low agreement with replay-based verification
+- If fine-tuning: start with small supervised or preference-style adaptation on narrow tasks:
+  - Failure localization
+  - Contract writing
+  - Protocol synthesis
+  - Schema-slot mapping
+  - Candidate ranking / judging
+- Do NOT do broad end-to-end RL on the teacher first.
+
+**Phase 3: GRPO on the teacher (last resort)**
+- Only after Phase 2 still shows a clear bottleneck.
+- Risk: teaching the teacher to optimize toward shallow proxies — writing plausible but wrong diagnoses, inventing too many "new skills", overfitting to the current bank schema, producing flashy but wrong recovery patches. Those errors then contaminate the bank.
+- If done: train only on structured subproblems with narrow rewards, not the full synthesis pipeline end-to-end.
+
+**Rule of thumb:** Train the actor, not the judge, until there is evidence the judge is the limiting factor. The bigger gains will likely come from better verifier design and replay checks, not from teacher fine-tuning.
 
 ### Pipeline overview
 
@@ -731,6 +776,14 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 
 ## 10. Rollout order
 
+> **Co-evolution alignment:** The Skill Crafter operates on the **slow timescale** within the three-agent co-evolution framework (see [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Crafter proposals run after failed episodes, periodically for effect chaining, when failure memory accumulates, when adding new domains, and before GRPO for cold-start trajectory generation. They are gated by the acceptance pipeline before entering the skill bank or training buffer.
+
+**Phase 0 — Frozen teacher bootstrap**
+1. Deploy 32B/72B frozen, inference-only.
+2. Validate multi-pass prompting and verification pipeline.
+3. Generate initial candidate skills from seed trajectories (from Tier 0 or 8B actor early rollouts).
+4. All outputs go through acceptance gate before entering bank.
+
 **Phase 1 — Skill Composer (within-game)**
 1. Implement effect chaining algorithm.
 2. Propose sequence/fallback compositions for existing game skills.
@@ -769,6 +822,12 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 1. Transfer visual reasoning skills from image benchmarks to video.
 2. Transfer temporal reasoning patterns from video benchmarks to interactive environments.
 
+**Phase 6 — Teacher adaptation (only if needed)**
+1. Identify if frozen teacher is the bottleneck (check: narrow repeated failures, poor contract formatting, low verification agreement).
+2. If yes: light SFT/preference tuning on narrow tasks (failure localization, contract writing, protocol synthesis, ranking).
+3. Measure: does teacher adaptation improve acceptance rate and downstream actor performance?
+4. See §2 Phased teacher adaptation policy.
+
 ---
 
 ## 11. TODO
@@ -777,6 +836,8 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 |------|----------|--------|
 | Effect chaining algorithm for skill composition | P0 | Not started |
 | Composition operators (sequence, fallback, repeat_until) | P0 | Not started |
+| Acceptance gate pipeline (contract check, replay verification, non-regression filter) | P0 | Not started |
+| Multi-pass verification workflow for 32B/72B outputs | P0 | Not started |
 | Failure analysis pipeline for hypothesis generation | P1 | Not started |
 | Schema-slot transfer algorithm | P1 | Not started |
 | FailureTrace capture & HopRecord serialization | P0 | Not started |
@@ -785,6 +846,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | LLM-based failure diagnosis with structured output | P1 | Not started |
 | Recovery strategy selector & applicator | P1 | Not started |
 | FailureMemory store & pattern aggregation | P1 | Not started |
+| Frozen teacher inference procedure optimization (prompt engineering, best-of-N, decomposition) | P1 | Not started |
 | Escalation policy engine | P2 | Not started |
 | Archetype library for hypothesis matching | P2 | Not started |
 | Cross-domain transfer evaluation harness | P2 | Not started |
@@ -798,6 +860,8 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | Regret-driven synthesis trigger in Hypothesizer | P1 | Not started |
 | Comparative composition ranking in Composer | P2 | Not started |
 | Counterfactual prediction accuracy evaluation harness | P2 | Not started |
+| Distillation of accepted outputs into smaller specialized modules (Phase 2 teacher adaptation) | P2 | Not started |
+| Narrow SFT/preference tuning for teacher if frozen approach bottlenecks (Phase 3) | P2 | Not started |
 
 ---
 
