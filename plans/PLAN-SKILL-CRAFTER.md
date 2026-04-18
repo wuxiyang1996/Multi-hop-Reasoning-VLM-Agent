@@ -190,6 +190,8 @@ Takes a skill learned in one game/domain and proposes an analogue for a differen
 
 ### Transfer via shared schema slots
 
+> **See also:** [Visual Skills](PLAN-VISUAL-SKILLS.md) extends this transfer mechanism with a cross-domain entity ontology (§5) and a three-layer skill bank hierarchy (abstract skill → domain adapter → environment-specific tactic) that applies to both grounding and reasoning skills.
+
 The canonical schema (from Visual Grounding) uses shared slot names across domains:
 
 | Slot | Game example | Browser example | Video example |

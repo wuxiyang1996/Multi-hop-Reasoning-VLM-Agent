@@ -534,7 +534,9 @@ When `SkillQueryEngine.select()` computes applicability, it checks whether the s
 | **Outer MDP action** | **Yes** | Skills + GRPO | Strategic action selection guided by skills |
 | **Grounding → reasoning evidence** | Yes (indirect) | Extraction pipeline | Mine hop patterns from grounding traces into reasoning skill templates |
 
-Grounding tool-loop traces (e.g. `detect_objects → spatial_query → count_objects` on CLEVR) are mined as evidence for reasoning skill templates via the transferable skill extraction pipeline (see [Skill Bank §10](PLAN-SKILL-BANK.md#10-transferable-skill-extraction)), but the templates are consumed by the reasoning layer, not the grounding layer.
+Grounding tool-loop traces (e.g. `detect_objects → spatial_query → count_objects` on CLEVR) are mined as evidence for reasoning skill templates via the transferable skill extraction pipeline (see [Skill Bank §9](PLAN-SKILL-BANK.md#9-transferable-skill-extraction)), but the templates are consumed by the reasoning layer, not the grounding layer.
+
+**Optional extension — grounding strategies as skills:** Multi-step grounding patterns (disambiguation, target recovery, evidence collection) that recur across domains can optionally be captured as transferable grounding skills. These sit between perception tools and reasoning skills and use belief/binding-effect contracts rather than world-effect contracts. See [Visual Skills](PLAN-VISUAL-SKILLS.md) for the full design. This extension does not change the core principle above — atomic perception tools remain tools, not skills.
 
 ---
 

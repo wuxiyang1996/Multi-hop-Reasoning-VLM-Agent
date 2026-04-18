@@ -542,7 +542,7 @@ SkillTracker.activate(skill, current_schema)
 
 This means **grounding doesn't need to be perfect** — it needs to be *good enough* for the reasoning layer to identify what's missing and fill it in.  The inner MDP reward naturally optimises this: unnecessary GROUND hops waste budget, but missing critical information causes task failure.
 
-See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) for the full 4-layer guarantee.
+See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) for the full 4-layer guarantee. See also [Visual Skills](PLAN-VISUAL-SKILLS.md) for an optional extension where recurring multi-step grounding patterns (disambiguation, target recovery, evidence collection) are captured as transferable grounding skills that `hop_select` can invoke as reusable templates.
 
 ---
 
