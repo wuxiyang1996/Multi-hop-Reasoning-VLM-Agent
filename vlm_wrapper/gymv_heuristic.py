@@ -35,6 +35,38 @@ _DIRECTION_ACTIONS = ["[Up]", "[Down]", "[Left]", "[Right]"]
 _WASD_ACTIONS = ["[w]", "[a]", "[s]", "[d]"]
 
 
+# Map heuristic entity labels to the cross-domain ontology
+# (PLAN-VISUAL-SKILLS §5) + the abstract operators those roles afford
+# (PLAN-VISUAL-SKILLS §3d).  These let downstream skill retrieval treat
+# heuristic-emitted gymv schemas the same as VLM-emitted ones.
+_LABEL_TO_ONTOLOGY: dict[str, str] = {
+    "wall": "blocking_entity",
+    "player": "tracked_entity",
+    "box": "selectable_entity",
+    "box_on_target": "tracked_entity",
+    "player_on_target": "tracked_entity",
+    "target": "goal_indicator",
+    "empty": "navigable_region",
+}
+
+_ONTOLOGY_TO_AFFORDANCES: dict[str, list[str]] = {
+    "blocking_entity":    [],
+    "tracked_entity":     ["track", "compare"],
+    "selectable_entity":  ["select", "compare"],
+    "goal_indicator":     ["approach", "inspect"],
+    "navigable_region":   ["approach"],
+}
+
+
+def _ontology_for(label: str) -> str:
+    """Pick the cross-domain ontology type for a heuristic label."""
+    if label in _LABEL_TO_ONTOLOGY:
+        return _LABEL_TO_ONTOLOGY[label]
+    if label.startswith("tile_"):
+        return "selectable_entity"
+    return "tracked_entity"
+
+
 def text_to_schema(
     obs_text: str = "",
     *,
@@ -81,13 +113,26 @@ def text_to_schema(
 
     lines.append("<entities>")
     for e in entities:
-        pos_str = f", pos={e['pos']}" if e.get("pos") else ""
-        lines.append(f"{e['eid']}[type={e['type']}, label={e['label']}{pos_str}]")
+        ontology = _ontology_for(e.get("label", ""))
+        e["_ontology"] = ontology  # stashed for <affordances>
+        pos_val = e.get("pos") or "null"
+        lines.append(
+            f"{e['eid']}[type={e['type']}, label={e['label']}, "
+            f"bid=null, pos={pos_val}, ontology={ontology}]"
+        )
     lines.append("")
 
     lines.append("<attributes>")
     for a in attributes:
         lines.append(f"{a['eid']}.{a['key']}={a['val']}")
+    lines.append("")
+
+    # <affordances> (PLAN-VISUAL-SKILLS §3d) — skill-level verbs.
+    lines.append("<affordances>")
+    for e in entities:
+        ops = _ONTOLOGY_TO_AFFORDANCES.get(e.get("_ontology", ""), [])
+        if ops:
+            lines.append(f"{e['eid']}.affords=[{', '.join(ops)}]")
     lines.append("")
 
     lines.append("<relations>")
@@ -98,6 +143,7 @@ def text_to_schema(
     lines.append("<state_flags>")
     lines.append(f"progress={progress}")
     lines.append(f"phase={phase}")
+    lines.append("scene_type=game_play")
     lines.append(f"error={error}")
     lines.append("dialog_open=false")
     lines.append("input_pending=false")
@@ -106,8 +152,10 @@ def text_to_schema(
     lines.append("<targets>")
     lines.append(f"target={target_eid}")
     lines.append(f"blocker={blocker_eid}")
+    lines.append("constraint=null")
     eids = [e["eid"] for e in entities[:5]]
     lines.append(f"candidate_set=[{','.join(eids)}]")
+    lines.append("history_anchor=null")
     lines.append("")
 
     if actions:

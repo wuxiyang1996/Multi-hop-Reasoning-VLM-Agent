@@ -36,7 +36,7 @@ from typing import Any, Iterable, Iterator
 
 from PIL import Image
 
-from ..ground import GroundingRequest, ground
+from ..ground import GroundingRequest, cascaded_ground
 
 logger = logging.getLogger(__name__)
 
@@ -263,9 +263,16 @@ def parse_clevr_sample(
         f"{sample.question}\n"
         "Inside <targets>, set `target=` to the entity ID of the shape "
         "the question is asking ABOUT (the answer referent), and "
-        "`candidate_set=[...]` to all entities you considered.  Each "
+        "`candidate_set=[e1,e2,...]` to the entity IDs you considered "
+        "(NEVER put raw colour/shape/letter tokens there).  Each "
         "<evidence> hop must declare `abstract_op=` (GROUND/CHECK/"
-        "RETRIEVE/CONCLUDE) and the actual `tool=` you called."
+        "RETRIEVE/CONCLUDE) and the actual `tool=` you called.  In "
+        "<answer>, `answer=` must be a single CLEVR token (a colour, "
+        "shape, material, size, count digit, or yes/no) — NOT a full "
+        "sentence.  In <state_flags>, set `scene_type=image_qa`, leave "
+        "`progress=null`, `phase=null`, `dialog_open=false`, "
+        "`input_pending=false`.  `pos=` must be `x,y,w,h` pixel ints or "
+        "`null` — no parens / brackets."
     )
     req = GroundingRequest(
         images=image,
@@ -286,7 +293,7 @@ def parse_clevr_sample(
         temperature=temperature,
     )
 
-    result = ground(req)
+    result = cascaded_ground(req, image_size=image.size)
 
     predicted = (result.answer or "").strip()
     gt = (sample.answer or "").strip() if sample.answer is not None else None
@@ -304,6 +311,8 @@ def parse_clevr_sample(
         "model": result.model,
         "warnings": result.warnings,
         "validation": result.validation.as_dict() if result.validation else None,
+        "head_used": result.head_used,
+        "escalation_trace": result.escalation_trace,
         "sample": sample.to_dict(),
     }
 

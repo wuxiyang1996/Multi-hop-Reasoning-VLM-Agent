@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-"""End-to-end smoke-test of every GPT-4o parser in ``vlm_wrapper``.
+"""End-to-end smoke-test of the cascaded visual-grounding pipeline.
 
-Runs the Head-2 / tool-loop pipeline across the five supported domains
-and writes each resulting ``<state>`` schema to ``out/schemas/`` so the
-shape can be inspected by eye:
+Drives every domain through ``vlm_wrapper.ground.cascaded_ground`` —
+the entry point PLAN-VISUAL-GROUNDING §12 mandates — so each schema
+goes through the VLM-first escalation chain (VLM → OmniParser (for
+browser/desktop) → tool loop) and the semantic validator + tool-trace
+reconciliation.  The obs-text / AXTree heuristic parsers ship as an
+opt-in alternative (``--gymv-head heuristic`` /
+``--browser-head heuristic``) but are NOT on the default path.
+Writes each resulting ``<state>`` schema to ``out/schemas/`` together
+with the ``escalation_trace`` that shows which head produced it.
 
-  1. ``gymv``         — vlm_wrapper.gymv_adapter.generate_label
-  2. ``browser``      — vlm_wrapper.browser_adapter.generate_label
-  3. ``desktop``      — vlm_wrapper.osworld_adapter.generate_label
-  4. ``clevr``        — vlm_wrapper.benchmarks.clevr.parse_clevr_sample
-  5. ``video_holmes`` — vlm_wrapper.benchmarks.video_holmes.parse_video_holmes_sample
+  1. ``gymv``         — interactive game frame
+  2. ``browser``      — browser screenshot
+  3. ``desktop``      — desktop screenshot
+  4. ``clevr``        — image-QA multi-hop reasoning
+  5. ``video_holmes`` — video-QA multi-hop temporal reasoning
 
 Each case uses a real input that already ships with the repo (bundled
 PNGs for the three interactive domains, ``data/CLEVR`` and
@@ -53,7 +59,41 @@ DEFAULT_CAPTURE_DIR = REPO_ROOT / "out" / "captures"
 
 CASES = ("gymv", "browser", "desktop", "clevr", "video_holmes")
 
+# Interactive-case heads you can force via `--head`.  `auto` means
+# "use the domain's default escalation chain" (PLAN-VISUAL-GROUNDING
+# §12 Layer 2).  Benchmarks (clevr / video_holmes) always use their
+# own default chain.
+HEAD_CHOICES = ("auto", "heuristic", "vlm", "omniparser", "tool_loop")
+
 logger = logging.getLogger("test_vlm_parsers")
+
+
+def _resolve_chain(domain: str, head: str) -> list[str] | None:
+    """Turn a `--head` value into the `chain=` arg for cascaded_ground.
+
+    `auto` → None (use the VLM-first domain default).  Heuristic is NOT
+    on the default path — it ships as an opt-in alternative and is
+    reachable only by passing ``--*-head heuristic`` (which becomes the
+    legacy ``heuristic → vlm → tool_loop`` chain so a flaky regex
+    parser still escalates cleanly).
+
+    Any other concrete head becomes a minimal chain short-circuiting
+    the cascade to exercise exactly that head, with a ``tool_loop``
+    fallback for ``vlm`` so the test doesn't crash when the single-shot
+    misses a section.
+    """
+    if head == "auto":
+        return None
+    if head == "heuristic":
+        # Opt-in legacy chain: text/AXTree heuristic first, then escalate.
+        if domain == "gymv":
+            return ["heuristic", "vlm", "tool_loop"]
+        if domain == "browser":
+            return ["heuristic", "vlm", "omniparser", "tool_loop"]
+        return ["heuristic", "vlm", "tool_loop"]
+    if head == "vlm":
+        return ["vlm", "tool_loop"]
+    return [head]
 
 
 # ----------------------------------------------------------------------
@@ -271,100 +311,183 @@ def _synthesize_desktop() -> "Image.Image":  # type: ignore[name-defined]
 # Per-case runners — each returns (case_result_dict, schema_string)
 # ======================================================================
 
+def _cascaded_result_to_dict(
+    case: str,
+    result: Any,
+    *,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Turn a ``GroundingResult`` from ``cascaded_ground`` into the flat
+    dict the runner serialises (mirrors the old adapter return shape).
+    """
+    from vlm_wrapper.ground import GroundingResult  # local import
+    assert isinstance(result, GroundingResult)
+    out = {
+        "case": case,
+        "model": result.model,
+        "domain": result.domain,
+        "output_mode": result.output_mode,
+        "head_used": result.head_used,
+        "rounds": result.rounds,
+        "warnings": list(result.warnings),
+        "validation": (
+            result.validation.as_dict() if result.validation else None
+        ),
+        "escalation_trace": result.escalation_trace,
+        "tool_trace": result.tool_trace,
+        "schema": result.schema,
+        "answer": result.answer,
+    }
+    if extra:
+        out.update(extra)
+    return out
+
+
 def _run_gymv(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
-    from vlm_wrapper.gymv_adapter import generate_label
+    from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 
     image, extras, source = _capture_or_synthesize_gymv(
         Path(args.capture_dir))
-    result = generate_label(
-        image,
+
+    # For the pure-VLM head we hide the synthetic obs_text so GPT-4o is
+    # genuinely parsing pixels instead of paraphrasing the text grid we
+    # already handed it.  The tool_loop head KEEPS obs_text (the gymv
+    # tool handlers read the ground-truth grid from it) but flags
+    # `show_obs_text=False` so the VLM can't just read the grid from
+    # the user prompt — it has to call tools to get the same data.
+    # PLAN-VISUAL-GROUNDING §4 "hybrid perception + tool-grounded truth".
+    obs_text = extras["obs_text"]
+    show_obs_text = True
+    if args.gymv_head == "vlm":
+        obs_text = ""
+    elif args.gymv_head == "tool_loop":
+        show_obs_text = False
+
+    req = GroundingRequest(
+        images=image,
         goal="Reach 2048",
+        domain="gymv",
+        output_mode="actions",
         task_id="Game2048-v0",
         step=0,
-        game_rules=extras["game_rules"],
-        obs_text=extras["obs_text"],
-        valid_actions=extras.get("valid_actions"),
+        context={
+            "description": extras["game_rules"],
+            "obs_text": obs_text,
+            "valid_actions": extras.get("valid_actions") or [],
+            "show_obs_text": show_obs_text,
+        },
         max_entities=16,
+        # Give the tool_loop head enough rounds to actually exercise
+        # multi-hop tool calling (list_entities → query_entity_pos →
+        # check_relation → count_merge_candidates → schema).
+        max_rounds=max(
+            6 if args.gymv_head == "tool_loop" else 2,
+            args.max_rounds,
+        ),
         model=args.model,
         api_key=args.api_key,
     )
-    return (
-        {
-            "case": "gymv",
+    result = cascaded_ground(
+        req,
+        image_size=image.size,
+        chain=_resolve_chain("gymv", args.gymv_head),
+    )
+    case = _cascaded_result_to_dict(
+        "gymv", result,
+        extra={
             "input_source": source,
             "image_size": list(image.size),
             "goal": "Reach 2048",
-            "model": result.get("model"),
-            "warnings": result.get("warnings"),
-            "validation": result.get("validation"),
-            "schema": result.get("schema"),
+            "requested_head": args.gymv_head,
+            "obs_text_sent": bool(obs_text),
         },
-        result.get("schema"),
     )
+    return case, result.schema
 
 
 def _run_browser(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
-    from vlm_wrapper.browser_adapter import generate_label
+    from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 
     image, extras, source = _capture_or_synthesize_browser(
         Path(args.capture_dir))
-    result = generate_label(
-        image,
-        goal="Identify the first section heading on the Wikipedia main page.",
+    goal = "Identify the first section heading on the Wikipedia main page."
+    ctx: dict[str, Any] = {}
+    if extras.get("obs") is not None:
+        ctx["obs"] = extras["obs"]
+    if extras.get("url"):
+        ctx["axtree_text"] = extras.get("axtree_text", "")
+
+    req = GroundingRequest(
+        images=image,
+        goal=goal,
+        domain="browser",
+        output_mode="actions",
         task_id="wiki.main_page.demo",
         step=0,
-        url=extras["url"],
+        context=ctx,
         max_entities=20,
+        max_rounds=max(2, args.max_rounds),
         model=args.model,
         api_key=args.api_key,
     )
-    return (
-        {
-            "case": "browser",
+    result = cascaded_ground(
+        req,
+        image_size=image.size,
+        chain=_resolve_chain("browser", args.browser_head),
+    )
+    case = _cascaded_result_to_dict(
+        "browser", result,
+        extra={
             "input_source": source,
             "image_size": list(image.size),
-            "goal": "Identify the first section heading on the Wikipedia main page.",
-            "url": extras["url"],
-            "model": result.get("model"),
-            "warnings": result.get("warnings"),
-            "validation": result.get("validation"),
-            "schema": result.get("schema"),
+            "goal": goal,
+            "url": extras.get("url"),
+            "requested_head": args.browser_head,
         },
-        result.get("schema"),
     )
+    return case, result.schema
 
 
 def _run_desktop(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
-    from vlm_wrapper.osworld_adapter import generate_label
+    from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 
     image, extras, source = _capture_or_synthesize_desktop(
         Path(args.capture_dir))
-    result = generate_label(
-        image,
-        instruction=(
-            "Open the Files application.  Plan the first pyautogui "
-            "action you would take from this desktop state."
-        ),
+    instruction = (
+        "Open the Files application.  Plan the first pyautogui "
+        "action you would take from this desktop state."
+    )
+    req = GroundingRequest(
+        images=image,
+        goal=instruction,
+        domain="desktop",
+        output_mode="actions",
         task_id="osworld.demo.open-files",
         step=0,
-        a11y_tree_xml=extras["a11y_tree_xml"],
+        context={
+            "instruction": instruction,
+            "a11y_tree_xml": extras.get("a11y_tree_xml", ""),
+        },
         max_entities=20,
+        max_rounds=max(2, args.max_rounds),
         model=args.model,
         api_key=args.api_key,
     )
-    return (
-        {
-            "case": "desktop",
+    result = cascaded_ground(
+        req,
+        image_size=image.size,
+        chain=_resolve_chain("desktop", args.desktop_head),
+    )
+    case = _cascaded_result_to_dict(
+        "desktop", result,
+        extra={
             "input_source": source,
             "image_size": list(image.size),
-            "instruction": "Open the Files application (first pyautogui step).",
-            "model": result.get("model"),
-            "warnings": result.get("warnings"),
-            "validation": result.get("validation"),
-            "schema": result.get("schema"),
+            "instruction": instruction,
+            "requested_head": args.desktop_head,
         },
-        result.get("schema"),
     )
+    return case, result.schema
 
 
 def _run_clevr(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
@@ -400,6 +523,8 @@ def _run_clevr(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
             "tool_trace": out.get("tool_trace"),
             "warnings": out.get("warnings"),
             "validation": out.get("validation"),
+            "head_used": out.get("head_used"),
+            "escalation_trace": out.get("escalation_trace"),
         },
         out.get("schema"),
     )
@@ -462,6 +587,8 @@ def _run_video_holmes(
             "tool_trace": out.get("tool_trace"),
             "warnings": out.get("warnings"),
             "validation": out.get("validation"),
+            "head_used": out.get("head_used"),
+            "escalation_trace": out.get("escalation_trace"),
         },
         out.get("schema"),
     )
@@ -524,12 +651,32 @@ def _run_case(name: str, args: argparse.Namespace, out_dir: Path) -> dict[str, A
     # about this schema (entity count, missing skill-context fields,
     # fabricated evidence, …).  Surfaces the issues the previous run
     # silently buried in `warnings`.
+    head_used = case_result.get("head_used")
+    if head_used:
+        chain = [
+            f"{e.get('head')}={'OK' if e.get('valid') else 'FAIL'}"
+            for e in (case_result.get("escalation_trace") or [])
+        ]
+        print(f"head_used: {head_used}  chain: {' -> '.join(chain) or '-'}")
+
+    # Surface the multi-hop tool trace so `--gymv-head tool_loop` and
+    # similar runs visibly show which tools GPT-4o invoked and how often.
+    trace = case_result.get("tool_trace") or []
+    if trace:
+        from collections import Counter
+        counts = Counter(
+            (tc.get("call", {}) or {}).get("name", "?") for tc in trace
+        )
+        summary = ", ".join(f"{name}×{n}" for name, n in counts.most_common())
+        print(f"tool_trace: {len(trace)} call(s)  [{summary}]")
+
     val = case_result.get("validation")
     if val:
         print(
             f"validation: valid={val.get('valid')}  "
             f"entities={val.get('entity_count')}  "
             f"high_uncert={val.get('high_uncertainty_frac')}  "
+            f"escalation={val.get('escalation_recommended')}  "
             f"missing_slots={val.get('missing_slots') or []}"
         )
         for err in val.get("errors", []) or []:
@@ -581,7 +728,7 @@ def _run_case(name: str, args: argparse.Namespace, out_dir: Path) -> dict[str, A
         "extra": {
             k: case_result.get(k)
             for k in ("answer", "ground_truth", "correct",
-                      "question_type", "rounds")
+                      "question_type", "rounds", "head_used")
             if k in case_result
         },
     }
@@ -611,6 +758,42 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Frame count for Video-Holmes.")
     p.add_argument("--dry-run", action="store_true",
                    help="Skip the actual runners; just list the plan.")
+
+    # Per-case head overrides.  `--head` is a convenience that applies
+    # to all interactive cases at once; the per-case flags override it.
+    p.add_argument(
+        "--head", choices=HEAD_CHOICES, default="auto",
+        help=(
+            "Force which grounding head the interactive cases "
+            "(gymv / browser / desktop) use.  'auto' (default) runs the "
+            "VLM-first domain cascade (NO heuristic); 'heuristic' opts "
+            "into the legacy text/AXTree parser as Head 1 (still "
+            "escalates to vlm → tool_loop); any other concrete head "
+            "short-circuits the cascade to that head.  Overridden by "
+            "the per-case flags below."
+        ),
+    )
+    p.add_argument(
+        "--gymv-head", choices=HEAD_CHOICES, default=None,
+        help=(
+            "Override --head for the gymv case.  'vlm' sends the game "
+            "frame to GPT-4o as a pure vision parser (no obs_text "
+            "shortcut).  'tool_loop' runs the multi-turn tool-calling "
+            "loop (see EXAMPLES.md).  'heuristic' opts into the legacy "
+            "regex/grid parser (off by default)."
+        ),
+    )
+    p.add_argument(
+        "--browser-head", choices=HEAD_CHOICES, default=None,
+        help=(
+            "Override --head for the browser case.  'heuristic' opts "
+            "into the legacy AXTree/DOM walk parser (off by default)."
+        ),
+    )
+    p.add_argument(
+        "--desktop-head", choices=HEAD_CHOICES, default=None,
+        help="Override --head for the desktop case.",
+    )
     return p
 
 
@@ -625,6 +808,12 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     args.api_key = args.api_key or os.environ.get("OPENAI_API_KEY")
     args.model = args.model or os.environ.get("VLM_LABEL_MODEL", "gpt-4o")
+
+    # Resolve per-case head overrides: explicit flag wins, otherwise
+    # inherit from the shared --head knob.
+    args.gymv_head = args.gymv_head or args.head
+    args.browser_head = args.browser_head or args.head
+    args.desktop_head = args.desktop_head or args.head
 
     if args.dry_run:
         print("Dry run. Cases that would run:")

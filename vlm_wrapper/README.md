@@ -29,15 +29,30 @@ If you want a minimal install on top of an existing env, use the optional `[visi
 
 ---
 
-## Four grounding heads
+## Grounding heads
 
-| | Head 1 — Heuristic | Head 2 — Vision | Head 3 — OmniParser-v2 | Tool Loop |
+The **main pipeline is VLM-first**: `cascaded_ground()` drives every domain through the vision-based heads and falls back to the multi-turn tool-calling loop when a schema misses the validator bar.  The `obs.text` / AXTree heuristic still exists as an **opt-in alternative** — useful for text-only smoke tests, regression fixtures, and real-time RL baselines — but it is **NOT** on the default cascade, because letting a regex silently satisfy the schema would mask real VLM grounding bugs.
+
+| | Vision (Head 1, default) | OmniParser-v2 (Head 2, browser/desktop) | Tool Loop (Head 3) | Heuristic (opt-in only) |
 |---|---|---|---|---|
-| Input | `obs.text` / AXTree (text) | Screenshot (pixels) | Screenshot (pixels) | Screenshot + tool defs |
-| Method | Regex + tree-walking | GPT-4o / Qwen3 vision API | YOLO + OCR + Florence-2 (local) | VLM calls tools iteratively |
-| Cost | Free | ~$0.01/call | Free (local GPU) | ~$0.05-0.10/schema |
-| Latency | <1 ms | ~1–3 s | ~0.6 s (GPU) | ~5–15 s |
-| Use case | Real-time RL, baselines | Training-label generation | UI screenshots, precise bbox | Complex reasoning with evidence chains |
+| Input | Screenshot / frame pixels | Screenshot (pixels) | Screenshot + tool defs | `obs.text` / AXTree (text) |
+| Method | GPT-4o / Qwen3 vision API | YOLO + OCR + Florence-2 (local) | VLM calls tools iteratively | Regex + tree-walking |
+| Cost | ~$0.01/call | Free (local GPU) | ~$0.05–0.10/schema | Free |
+| Latency | ~1–3 s | ~0.6 s (GPU) | ~5–15 s | <1 ms |
+| On default path | ✅ | ✅ (browser/desktop) | ✅ (on demand / image_qa, video_qa) | ❌ — pass `chain=["heuristic", …]` or `--*-head heuristic` |
+| Use case | Training-label generation | UI screenshots, precise bbox | Complex reasoning with evidence chains | Real-time RL baselines, offline text tests |
+
+Default chains (`vlm_wrapper.ground._ESCALATION_CHAINS`):
+
+```python
+"gymv":     ["vlm", "tool_loop"]
+"browser":  ["vlm", "omniparser", "tool_loop"]
+"desktop":  ["omniparser", "vlm", "tool_loop"]
+"image_qa": ["vlm", "tool_loop"]
+"video_qa": ["tool_loop"]
+```
+
+Opt-in legacy chains that start with the heuristic are exposed via `vlm_wrapper.ground._HEURISTIC_CHAINS` for callers that want them explicitly.
 
 ---
 
@@ -163,23 +178,9 @@ vlm_wrapper/
 
 ## Quick start
 
-### Head 1 — Heuristic (text state → schema)
+See also: [**EXAMPLES.md**](EXAMPLES.md) — fully worked schemas and tool-calling traces for all five domains (gymv, browser, desktop, CLEVR, Video-Holmes).
 
-```python
-from vlm_wrapper import gymv_heuristic_schema, browser_heuristic_schema
-
-# Gym-V
-schema = gymv_heuristic_schema(
-    obs_text="| 2 | 4 | 0 | 0 |\n| 0 | 16 | 8 | 0 |",
-    description="You are playing 2048. Valid moves: [Up], [Down], [Left], [Right].",
-    task_id="Game2048-v0", step=5,
-)
-
-# BrowserGym
-schema = browser_heuristic_schema(obs, step=3, task_id="webarena.shopping.143")
-```
-
-### Head 2 — Vision (screenshot → VLM → schema)
+### Head 1 — Vision (screenshot → VLM → schema)  *(default)*
 
 ```python
 from vlm_wrapper import gymv_generate_label, browser_obs_to_schema
@@ -198,7 +199,7 @@ print(result["validation"])  # dict: {"valid": bool, "entity_count": int, ...}
 result = browser_obs_to_schema(obs, step=3, task_id="webarena.shopping.143")
 ```
 
-### Head 3 — OmniParser-v2 Grounding (screenshot → local models → schema)
+### Head 2 — OmniParser-v2 Grounding (screenshot → local models → schema)
 
 ```python
 from vlm_wrapper import parse_screen, parse_screen_annotated
@@ -218,7 +219,7 @@ elements, annotated_img = parse_screen_annotated(pil_image)
 annotated_img.save("annotated.png")
 ```
 
-### Tool-calling loop (multi-hop visual reasoning)
+### Head 3 — Tool-calling loop (multi-hop visual reasoning)
 
 ```python
 from vlm_wrapper import visual_generate_label_with_tools, video_visual_generate_label_with_tools
@@ -239,9 +240,32 @@ result = video_visual_generate_label_with_tools(
 print(result["tool_trace"])  # temporal + visual evidence chain
 ```
 
+### Heuristic (opt-in only — text state → schema)
+
+Useful for text-only regression fixtures, real-time RL baselines, and wiring a new environment before the VLM-first pipeline is tuned.  It is NOT on the default cascade; reach it explicitly:
+
+```python
+from vlm_wrapper import gymv_heuristic_schema, browser_heuristic_schema
+
+schema = gymv_heuristic_schema(
+    obs_text="| 2 | 4 | 0 | 0 |\n| 0 | 16 | 8 | 0 |",
+    description="You are playing 2048. Valid moves: [Up], [Down], [Left], [Right].",
+    task_id="Game2048-v0", step=5,
+)
+
+schema = browser_heuristic_schema(obs, step=3, task_id="webarena.shopping.143")
+
+# Or as part of a cascade escalation (opt-in legacy chain):
+from vlm_wrapper.ground import cascaded_ground, _HEURISTIC_CHAINS, GroundingRequest
+result = cascaded_ground(
+    GroundingRequest(images=frame, goal=goal, domain="gymv", context={...}),
+    chain=_HEURISTIC_CHAINS["gymv"],   # ["heuristic", "vlm", "tool_loop"]
+)
+```
+
 ### OSWorld (desktop screenshots)
 
-Two paths to a ``<state>`` schema. Head 3 (OmniParser) runs locally:
+Two paths to a ``<state>`` schema. Head 2 (OmniParser) runs locally:
 
 ```python
 from vlm_wrapper.grounding_browsergym import grounding_osworld_obs_to_schema
@@ -249,7 +273,7 @@ from vlm_wrapper.grounding_browsergym import grounding_osworld_obs_to_schema
 result = grounding_osworld_obs_to_schema(osworld_obs, step=1, task_id="install-spotify")
 ```
 
-Head 2 (GPT-4o) — a single-shot vision adapter parallel to `gymv_adapter` / `browser_adapter`:
+Head 1 (GPT-4o vision) — a single-shot adapter parallel to `gymv_adapter` / `browser_adapter`:
 
 ```python
 from vlm_wrapper import osworld_generate_label, osworld_obs_to_schema
@@ -339,7 +363,7 @@ python scripts/run_vlm_parser.py video_holmes \
 
 Implements [`PLAN-VISUAL-GROUNDING` §12 Layers 1 & 2](../plans/PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract). `semantic_validate` goes beyond tag-presence checks — it verifies slot population, entity minima, uncertainty budget, section content, relation coverage, coordinate bounds, entity-reference integrity, **and the skill-context fields above** (ontology coverage, canonical affordance operators, inner-MDP `abstract_op` on every hop, `scene_type`, `history_anchor`). Missing skill-context fields emit warnings so pre-existing callers keep working.
 
-`cascaded_ground` runs the domain's escalation chain (heuristic → VLM → OmniParser → tool loop) and returns the first schema that passes validation, with `ValidationResult` and `escalation_trace` attached for telemetry. The same validation now also runs inside `ground()` and every adapter (`gymv_adapter.generate_label`, `browser_adapter.generate_label`, `osworld_adapter.generate_label`), which all return a `validation` dict.
+`cascaded_ground` runs the domain's VLM-first escalation chain (e.g. `vlm → tool_loop` for gymv, `vlm → omniparser → tool_loop` for browser) and returns the first schema that passes validation, with `ValidationResult` and `escalation_trace` attached for telemetry. The obs-text / AXTree heuristic is opt-in and not on the default path. The same validation now also runs inside `ground()` and every adapter (`gymv_adapter.generate_label`, `browser_adapter.generate_label`, `osworld_adapter.generate_label`), which all return a `validation` dict.
 
 `reconcile_evidence_with_tool_trace` cross-checks the `<evidence>` block against the actual tool calls. It catches three failure modes the validator alone cannot:
 
@@ -383,6 +407,43 @@ Exercises every parser on a real (or synthetic-fallback) input and prints a **va
 python scripts/test_vlm_parsers.py                  # all five domains
 python scripts/test_vlm_parsers.py --cases gymv     # one domain only
 python scripts/test_vlm_parsers.py --max-rounds 4   # cap tool-loop rounds
+
+# Force a specific grounding head (overrides the domain's default cascade):
+python scripts/test_vlm_parsers.py --cases gymv --gymv-head vlm        # pure-vision gymv
+python scripts/test_vlm_parsers.py --cases gymv --gymv-head heuristic  # text-only gymv
+python scripts/test_vlm_parsers.py --head vlm                          # all cases single-shot VLM
+python scripts/test_vlm_parsers.py --browser-head omniparser           # local OmniParser for browser
+```
+
+`--gymv-head vlm` zeroes out the synthetic `obs_text` before the call so GPT-4o is genuinely parsing the rendered game frame (not paraphrasing the text grid), while the game rules and the env's valid-action vocabulary still travel along in the system/user prompts — so the `<actions>` block comes back as `[Up]`/`[Down]`/`[Left]`/`[Right]` instead of invented names like `slide_left`. Programmatic equivalent:
+
+```python
+from vlm_wrapper.ground import GroundingRequest, cascaded_ground
+
+result = cascaded_ground(
+    GroundingRequest(
+        images=frame,
+        goal="Reach 2048",
+        domain="gymv",
+        context={"description": game_rules,
+                 "valid_actions": ["[Up]", "[Down]", "[Left]", "[Right]"]},
+    ),
+    chain=["vlm", "tool_loop"],   # skip the heuristic, fall back to tool loop
+)
+print(result.head_used)           # "vlm"
+print(result.schema)              # valid <state> parsed from pixels
+```
+
+**VLM + tool-calling for Gym-V** &nbsp;(`--gymv-head tool_loop`). Runs the multi-turn tool loop against the full `gymv` tool registry (`list_entities`, `query_entity_pos`, `get_grid_state`, `check_relation`, `count_merge_candidates`, `check_deadlock`, `spatial_analysis`, `get_state_flags`, `list_valid_actions`). Internally the runner keeps `obs_text` wired into the **tool handlers** (so they return ground-truth positions/grids) but sets `show_obs_text=False` in the request context, which hides the text grid from the VLM's user prompt — forcing GPT-4o to actually call tools instead of paraphrasing the grid:
+
+```bash
+python scripts/test_vlm_parsers.py --cases gymv --gymv-head tool_loop
+```
+
+The scorecard now surfaces the tool trace, e.g. `tool_trace: 2 call(s) [get_grid_state×1, count_merge_candidates×1]`, and the resulting `<evidence>` block cites each hop with its `abstract_op` (GROUND/CHECK/…) and the `functions.<tool>` it called. The pytest mirror of this case lives at `vlm_wrapper/tests/test_gpt4o_parsers.py::test_live_gymv_tool_loop_schema` and asserts head, tool-trace non-emptiness, valid-action verbatim copy, and `<evidence>` presence:
+
+```bash
+pytest vlm_wrapper/tests/test_gpt4o_parsers.py::test_live_gymv_tool_loop_schema -m live
 ```
 
 Each case writes `<state>` text to `out/schemas/<case>.schema.txt` and the full adapter result dict to `out/schemas/<case>.raw.json`.

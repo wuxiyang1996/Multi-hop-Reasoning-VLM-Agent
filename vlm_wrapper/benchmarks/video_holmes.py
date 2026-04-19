@@ -44,7 +44,7 @@ from typing import Any, Iterable, Iterator, Sequence
 import numpy as np
 from PIL import Image
 
-from ..ground import GroundingRequest, ground
+from ..ground import GroundingRequest, cascaded_ground
 
 logger = logging.getLogger(__name__)
 
@@ -108,14 +108,20 @@ class VideoHolmesSample:
             "<entities> ungrounded.\n"
             "2. Then call `sample_frames` and `detect_objects_at_frame` "
             "(or `read_text_in_frame`) on the localised window.\n"
-            "3. Inside <targets>, set `target=` to the entity ID of the "
-            "ANSWER referent (the person / object / event the question "
-            "asks about), NOT to an OCR text bubble.  Set "
-            "`candidate_set=[A,B,C,D,...]` listing the option letters.\n"
+            "3. In <entities>, list the people / objects / events you "
+            "detected, each with `pos=x,y,w,h` (bbox in the sampled "
+            "frame) or `null`, and an `ontology=` type.  In <targets>, "
+            "`target=` is the entity ID of the ANSWER referent; "
+            "`candidate_set=[e1,e2,...]` is a list of ENTITY IDs you "
+            "considered (NOT the MCQ option letters A–F).\n"
             "4. Each <evidence> hop must declare `abstract_op=` "
             "(GROUND / CHECK / RETRIEVE / CONCLUDE) and `tool=` of the "
-            "ACTUAL tool you called — do NOT invent hops.\n"
-            "5. Produce the full <state>…</state> schema defined in the "
+            "ACTUAL tool you called — do NOT invent hops.  Include "
+            "`frame=<idx>` and `timestamp=<s>` for every temporal hop.\n"
+            "5. In <state_flags>, set `scene_type=video_segment`, "
+            "`progress=null`, `phase=null`, `dialog_open=false`, "
+            "`input_pending=false`.\n"
+            "6. Produce the full <state>…</state> schema defined in the "
             "system prompt.  Inside the <answer> block, put a single "
             "letter (A-F) on the line beginning with 'answer=' — for "
             "example 'answer=C'."
@@ -503,7 +509,8 @@ def parse_video_holmes_sample(
         temperature=temperature,
     )
 
-    result = ground(req)
+    primary_size = frames[current_index].size
+    result = cascaded_ground(req, image_size=primary_size)
 
     answer_raw = result.answer
     answer_letter = _normalise_answer_letter(answer_raw)
@@ -526,6 +533,8 @@ def parse_video_holmes_sample(
         "raw": result.raw,
         "warnings": result.warnings,
         "validation": result.validation.as_dict() if result.validation else None,
+        "head_used": result.head_used,
+        "escalation_trace": result.escalation_trace,
         "sample": sample.to_dict(),
     }
 

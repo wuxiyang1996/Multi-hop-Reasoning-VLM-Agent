@@ -331,10 +331,34 @@ def _build_extra_context(req: GroundingRequest, domain: str) -> str:
     if domain == "gymv":
         desc = req.context.get("description", "")
         obs_text = req.context.get("obs_text", "")
+        valid_actions = req.context.get("valid_actions") or []
+        # Callers can hide obs_text from the VLM prompt while still wiring
+        # it into the tool registry (so gymv tools return ground truth).
+        # Use case: force GPT-4o to actually exercise list_entities /
+        # query_entity_pos / check_relation / count_merge_candidates
+        # instead of paraphrasing the text grid we already handed it.
+        show_obs_text = req.context.get("show_obs_text", True)
         if desc:
             parts.append(f"Game rules:\n{desc}")
-        if obs_text:
+        if obs_text and show_obs_text:
             parts.append(f"Environment text state (for reference):\n{obs_text}")
+        elif obs_text and not show_obs_text:
+            parts.append(
+                "Ground-truth state is available via the gymv tool "
+                "registry — call list_entities / get_grid_state / "
+                "query_entity_pos / check_relation before emitting the "
+                "schema.  Do NOT guess positions from pixels when a tool "
+                "can return them exactly."
+            )
+        if valid_actions:
+            # GPT-4o tends to invent prose action names like "slide_left"
+            # when left to its own devices.  Force it to copy from the
+            # env's real action vocabulary so the schema is executable.
+            joined = ", ".join(str(a) for a in valid_actions)
+            parts.append(
+                "Valid actions (copy these EXACTLY into <actions>, "
+                f"one per line as aN=<action>): {joined}"
+            )
 
     elif domain == "browser":
         obs = req.context.get("obs", {})
@@ -560,23 +584,41 @@ def _parse_evidence_hops(schema: str) -> list[HopTrace]:
 # ``escalation_recommended=True`` so the caller can route it to the
 # offline teacher (Path C).
 #
-# Escalation chain per domain (from PLAN-VISUAL-GROUNDING-MILESTONES §7):
+# Escalation chain per domain.  The heuristic adapters (obs-text grid
+# parsing for gymv, AXTree/DOM walk for browsergym) are **NOT** on the
+# default path — they short-circuit perception and would hide any VLM
+# grounding bug.  They remain implemented (see ``_attempt_heuristic``
+# and ``gymv_heuristic`` / ``browser_heuristic``) and can be requested
+# explicitly via ``chain=["heuristic", "vlm", "tool_loop"]`` or the
+# ``--gymv-head heuristic`` / ``--browser-head heuristic`` CLI flags
+# for text-only smoke tests, offline regressions, and CI sanity runs.
 #
 # | domain    | Head 1         | Head 2       | Head 3      | Tool loop   |
 # |-----------|:--------------:|:------------:|:-----------:|:-----------:|
-# | gymv      | heuristic      | vlm          | —           | on demand   |
-# | browser   | heuristic      | vlm          | omniparser  | on demand   |
+# | gymv      | vlm            | —            | —           | on demand   |
+# | browser   | vlm            | omniparser   | —           | on demand   |
 # | desktop   | omniparser     | vlm          | —           | on demand   |
-# | image_qa  | —              | vlm          | —           | always      |
-# | video_qa  | —              | —            | —           | always      |
+# | image_qa  | vlm            | —            | —           | always      |
+# | video_qa  | tool_loop      | —            | —           | always      |
+#
+# Opt-in (heuristic-first) chains are exposed as ``_HEURISTIC_CHAINS``
+# below for callers that explicitly want them.
 
 _ESCALATION_CHAINS: dict[str, list[str]] = {
-    "gymv":     ["heuristic", "vlm", "tool_loop"],
-    "browser":  ["heuristic", "vlm", "omniparser", "tool_loop"],
+    "gymv":     ["vlm", "tool_loop"],
+    "browser":  ["vlm", "omniparser", "tool_loop"],
     "desktop":  ["omniparser", "vlm", "tool_loop"],
     "image_qa": ["vlm", "tool_loop"],
     "video_qa": ["tool_loop"],
     "video":    ["tool_loop"],
+}
+
+# Legacy / opt-in chains that start with the heuristic adapter.  Not
+# used by cascaded_ground() by default — callers who want the old
+# "text-first" behaviour must pass one of these explicitly as ``chain``.
+_HEURISTIC_CHAINS: dict[str, list[str]] = {
+    "gymv":    ["heuristic", "vlm", "tool_loop"],
+    "browser": ["heuristic", "vlm", "omniparser", "tool_loop"],
 }
 
 
@@ -742,7 +784,11 @@ def cascaded_ground(
         When omitted, falls back to the primary image's actual size.
     chain : list[str], optional
         Override the default chain for the request's domain.  Valid
-        head names: ``heuristic``, ``vlm``, ``omniparser``, ``tool_loop``.
+        head names: ``heuristic`` (opt-in only — not on the default
+        path), ``vlm``, ``omniparser``, ``tool_loop``.  The default
+        chains (``_ESCALATION_CHAINS``) are VLM-first; pass
+        ``_HEURISTIC_CHAINS[domain]`` (or a custom list) to get the
+        legacy text/AXTree heuristic as Head 1.
     stop_on_first_valid : bool
         If True (default), return as soon as any head produces a
         validator-clean schema.  If False, run the full chain and return
@@ -806,6 +852,23 @@ def cascaded_ground(
             )
         except Exception:
             recon_warnings = []
+
+        # Fabricated grounding is a hard failure mode (PLAN-VISUAL-GROUNDING
+        # §12 Layer 1): the schema claims evidence that never came from a
+        # real tool call.  Promote those recon hits to errors and flag
+        # escalation so the next head has a chance to actually ground.
+        has_fabrication = any(
+            ("fabricated" in w or "ignored" in w or "evidence gap" in w)
+            for w in recon_warnings
+        )
+        if has_fabrication:
+            validation.errors.extend(
+                w for w in recon_warnings
+                if "fabricated" in w or "evidence gap" in w
+            )
+            validation.valid = False
+            validation.escalation_recommended = True
+
         attempt.validation = validation
         attempt.warnings = (
             list(attempt.warnings)

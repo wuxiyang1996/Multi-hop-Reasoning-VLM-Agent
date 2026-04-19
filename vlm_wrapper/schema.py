@@ -32,13 +32,18 @@ step={step}
 
 _SECTION_ENTITIES = """\
 <entities>
-e1[type={element|object|region|text}, label={short_label}, pos={x,y,w,h or null}, ontology={ontology_type}]
+e1[type={element|object|region|text}, label={short_label}, bid={str or null}, pos={x,y,w,h or null}, ontology={ontology_type}]
 e2[...]
 (list every visually distinct entity you can identify — ≤{max_entities})
+(type MUST be exactly one of: element | object | region | text.
+ Do NOT put ontology values into the type slot.)
 (ontology must be one of: selectable_entity | interactive_entity | container_entity |
  textual_anchor | navigable_region | tracked_entity | goal_indicator | blocking_entity.
  This is the cross-domain bridge that lets skills transfer between games / browser /
  desktop / image_qa / video — pick the type that best matches the entity's role.)
+(bid is the per-environment grounding id: browsergym id for web entities,
+ a11y node id for desktop entities, or `null` when no id exists.  The
+ downstream action agent needs it to execute `click(bid)` etc.)
 """
 
 _SECTION_ATTRIBUTES = """\
@@ -72,7 +77,7 @@ _SECTION_STATE_FLAGS = """\
 <state_flags>
 progress={0.0–1.0 or null}
 phase={early|mid|late|null}
-scene_type={main_menu|landing_page|form_entry|modal_dialog|loading|results_view|game_play|game_over|video_segment|null}
+scene_type={main_menu|landing_page|form_entry|modal_dialog|loading|results_view|game_play|game_over|video_segment|image_qa|null}
 error={description or null}
 dialog_open={true|false}
 input_pending={true|false}
@@ -168,9 +173,37 @@ INNER_MDP_OPS: tuple[str, ...] = (
     "GROUND", "CHECK", "RETRIEVE", "CONCLUDE", "VERIFY",
 )
 
+# Canonical scene-type enum (PLAN-VISUAL-SKILLS §5 scene descriptor).
+SCENE_TYPES: tuple[str, ...] = (
+    "main_menu", "landing_page", "form_entry", "modal_dialog", "loading",
+    "results_view", "game_play", "game_over", "video_segment",
+    "image_qa",
+)
+
+# Canonical entity type enum (PLAN-VISUAL-GROUNDING §3 entities schema).
+ENTITY_TYPES: tuple[str, ...] = (
+    "element", "object", "region", "text",
+)
+
 _SCHEMA_RULES = """\
 Rules:
-- pos= uses pixel coordinates (x,y,w,h) for browser/desktop, grid coords (r,c,1,1) for games.
+- pos= MUST be four comma-separated integers (x,y,w,h) or the literal word
+  `null`.  Do NOT wrap pos in parentheses, braces, or brackets.
+  REQUIRED examples: `pos=120,40,80,30`  `pos=null`
+  FORBIDDEN examples: `pos={120,40,80,30}`  `pos=(120,40,80,30)`  `pos=[120,40,80,30]`
+- For browser/desktop pos is pixel coordinates (x,y,width,height).
+  For gymv pos is grid coordinates (r,c,1,1).
+- `type=` MUST be exactly one of: element | object | region | text.
+  Put the skill-role name (selectable_entity, interactive_entity,
+  container_entity, textual_anchor, navigable_region, tracked_entity,
+  goal_indicator, blocking_entity) in `ontology=`, NEVER in `type=`.
+- `<affordances>` MUST be populated for every interactive or selectable
+  entity — this section is what the skill bank scores against.  Use only
+  these canonical verbs: focus / approach / inspect / select / open /
+  close / read / track / compare / wait_until / toggle / enter_text /
+  navigate_to.
+- `candidate_set=[…]` contains entity IDs only (e1, e3, …), never raw
+  labels, MCQ letters, or coordinates.
 - Keep labels short (≤5 words).
 - Entity IDs are sequential: e1, e2, e3 …
 - Reuse entity IDs across sections — never repeat the full label.
@@ -191,11 +224,15 @@ goal={goal}
 step={step}
 
 <entities>
-e1[type={element|object|region|text}, label={short_label}, pos={x,y,w,h or null}, ontology={ontology_type}]
+e1[type={element|object|region|text}, label={short_label}, bid={str or null}, pos={x,y,w,h or null}, ontology={ontology_type}]
 e2[...]
 (list every visually distinct entity you can identify — ≤{max_entities})
+(type MUST be exactly one of: element | object | region | text.  Do NOT put
+ ontology values into the type slot.)
 (ontology must be one of: selectable_entity | interactive_entity | container_entity |
  textual_anchor | navigable_region | tracked_entity | goal_indicator | blocking_entity.)
+(bid is the action-agent handle: browsergym id for web, a11y node id for
+ desktop, else `null`.)
 
 <attributes>
 e1.state={visible|hidden|disabled|focused|checked|...}
@@ -217,7 +254,7 @@ grouped(eA,eB,eC)
 <state_flags>
 progress={0.0–1.0 or null}
 phase={early|mid|late|null}
-scene_type={main_menu|landing_page|form_entry|modal_dialog|loading|results_view|game_play|game_over|video_segment|null}
+scene_type={main_menu|landing_page|form_entry|modal_dialog|loading|results_view|game_play|game_over|video_segment|image_qa|null}
 error={description or null}
 dialog_open={true|false}
 input_pending={true|false}
@@ -240,7 +277,16 @@ a2={action_string}
 </state>
 
 Rules:
-- pos= uses pixel coordinates (x,y,w,h) for browser, grid coords (r,c,1,1) for games.
+- pos= MUST be four comma-separated integers (x,y,w,h) or the literal word
+  `null`.  Do NOT wrap pos in parentheses, braces, or brackets.  Examples of
+  the REQUIRED form: `pos=120,40,80,30` or `pos=null`.  Examples to AVOID:
+  `pos={120,40,80,30}`, `pos=(120,40,80,30)`, `pos=[120,40,80,30]`.
+- For browser/desktop pos is pixel coordinates; for gymv pos is grid coords
+  (r,c,1,1).
+- `<affordances>` MUST be populated for every interactive or selectable
+  entity — this section is what the skill bank scores against.  Use only
+  canonical verbs: focus/approach/inspect/select/open/close/read/track/
+  compare/wait_until/toggle/enter_text/navigate_to.
 - Keep labels short (≤5 words).
 - Entity IDs are sequential: e1, e2, e3 …
 - Reuse entity IDs across sections — never repeat the full label.
@@ -255,6 +301,20 @@ Domain: gymv (video game).
 The screenshot is a rendered game frame.  Entities are game objects
 (tiles, pieces, player, walls, targets, etc.).  Positions are grid
 coordinates (row, col, 1, 1).  Actions are the valid game moves.
+
+Guidance for populating the schema from the image alone:
+- `target=` in <targets> MUST be a concrete eid.  Pick the entity the
+  next action should manipulate (e.g. the highest-value tile to merge
+  in 2048, the player in Sokoban, the piece being moved).  Never leave
+  `target=null` — if unsure, pick the most salient entity.
+- `candidate_set=[…]` lists the entity IDs relevant to the next move,
+  ordered by priority.  Always include `target` as the first element.
+- `scene_type=game_play` for mid-game frames; use `game_over` only when
+  the board shows a terminal state.
+- `<affordances>` should include at least `select`/`track` for tiles,
+  `approach` for goal tiles, so the skill bank can match this frame.
+- `<actions>` MUST copy the env's valid actions verbatim — never
+  paraphrase them (e.g. use `[Left]`, not `slide_left`).
 """
 
 BROWSER_CONTEXT = """\
@@ -263,15 +323,25 @@ The screenshot is a browser viewport.  Entities are UI elements
 (buttons, links, inputs, text blocks, images, etc.).  Positions are
 pixel coordinates (x, y, width, height).  Actions are browser
 commands: click(bid), fill(bid, "text"), scroll(direction), etc.
-If element IDs (bid) are visible as overlays, include them.
+Every interactive entity MUST include a `bid=` slot inside its entity
+line — read the id from the AXTree context when provided, or the
+browsergym overlay on the screenshot.  Use `bid=null` only when there
+is genuinely no AXTree element behind the visual element (e.g. an
+image-only banner).  The action agent cannot execute `click()` without
+a concrete `bid`.
 """
 
 DESKTOP_CONTEXT = """\
 Domain: desktop (OS-level application).
 The screenshot is a desktop or application window.  Entities are UI
 elements (buttons, menus, text fields, icons, windows, dialogs).
-Positions are pixel coordinates (x, y, width, height).  Actions
-are mouse/keyboard operations: click(x, y), type("text"), etc.
+Positions are pixel coordinates (x, y, width, height) — no parens, no
+brackets, just four comma-separated integers.  Actions are mouse /
+keyboard operations: click(x, y), type("text"), etc.  Each entity's
+`type=` MUST be one of element | object | region | text — put the
+skill-role name (selectable_entity, interactive_entity, …) in the
+`ontology=` slot, NEVER in `type=`.  `scene_type=` is a retrieval tag;
+for a bare OS desktop use `main_menu`, for a dialog use `modal_dialog`.
 """
 
 IMAGE_QA_CONTEXT = """\
@@ -599,7 +669,22 @@ _POS_FIELD_RE = re.compile(
     r"pos\s*=\s*(?P<val>null|\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+)",
 )
 
+# Strict pos format: `pos=null` or `pos=x,y,w,h` with optional single
+# space after each comma.  No parentheses, no brackets, no extra tokens.
+_POS_STRICT_RE = re.compile(
+    r"^pos\s*=\s*(null|\d+,\s?\d+,\s?\d+,\s?\d+)\s*$",
+)
+
+# Captures the whole `pos=…` field verbatim so we can detect malformed
+# variants like `pos=(1, 2, 3, 4)` or `pos=[1,2,3,4]`.
+_POS_VERBATIM_RE = re.compile(r"pos\s*=\s*([^,\]]+(?:,\s*\d+)?[^,\]]*)")
+
+_TYPE_FIELD_RE = re.compile(r"(?:^|[,\s\[])type\s*=\s*([a-zA-Z_]+)")
+
 _EID_REF_RE = re.compile(r"\be(\d+)\b")
+
+_PROGRESS_RE = re.compile(r"^progress\s*=\s*(.+?)\s*$", re.MULTILINE)
+_PHASE_RE = re.compile(r"^phase\s*=\s*(.+?)\s*$", re.MULTILINE)
 
 # Per-domain minimum entity counts (PLAN-VISUAL-GROUNDING §12 Layer 1).
 _ENTITY_MIN_BY_DOMAIN: dict[str, int] = {
@@ -613,13 +698,36 @@ _ENTITY_MIN_BY_DOMAIN: dict[str, int] = {
 }
 
 _ENV_DOMAINS: set[str] = {"gymv", "game", "browser", "desktop"}
+_QA_DOMAINS: set[str] = {"image_qa", "video_qa", "video"}
 
 # Sections that must exist AND have at least one content line (not just
-# the tag).  Keyed by the task type inferred from whether ``<actions>`` or
-# ``<answer>`` is present in the schema.
+# the tag).  This legacy default is kept for backward-compat callers
+# that pass no ``required_sections`` and no ``domain``.
 _REQUIRED_SECTIONS_CORE: list[str] = [
     "entities", "attributes", "relations", "state_flags", "targets",
 ]
+
+# Domain-aware required-section defaults.  Env tasks must ship with a
+# ``<targets>`` + ``<actions>`` tail (PLAN-ACTION-AGENT §2); QA tasks
+# must ship with ``<evidence>`` + ``<answer>`` (PLAN-VISUAL-GROUNDING §3).
+# Callers that explicitly pass ``required_sections`` still override this.
+_REQUIRED_SECTIONS_BY_DOMAIN: dict[str, list[str]] = {
+    "gymv":     ["entities", "attributes", "state_flags", "targets", "actions"],
+    "game":     ["entities", "attributes", "state_flags", "targets", "actions"],
+    "browser":  ["entities", "attributes", "state_flags", "targets", "actions"],
+    "desktop":  ["entities", "attributes", "state_flags", "targets", "actions"],
+    "image_qa": ["entities", "attributes", "state_flags", "targets",
+                  "evidence", "answer"],
+    "video_qa": ["entities",              "state_flags", "targets",
+                  "evidence", "answer"],
+    "video":    ["entities",              "state_flags", "targets",
+                  "evidence", "answer"],
+}
+
+
+def required_sections_for_domain(domain: str) -> list[str]:
+    """Return the default list of ``required_sections`` for a domain."""
+    return list(_REQUIRED_SECTIONS_BY_DOMAIN.get(domain, _REQUIRED_SECTIONS_CORE))
 
 
 @dataclass
@@ -717,6 +825,55 @@ def _referenced_eids(body: str) -> set[str]:
     return {f"e{n}" for n in _EID_REF_RE.findall(body)}
 
 
+def _split_top_level_commas(text: str) -> list[str]:
+    """Split ``text`` on commas that are NOT inside parens/brackets/braces.
+
+    Used to tokenize the inline field list inside an ``e1[…]`` entity
+    line where some fields (``pos=x,y,w,h``) legitimately contain
+    commas.
+    """
+    parts: list[str] = []
+    depth = 0
+    start = 0
+    for i, ch in enumerate(text):
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth = max(0, depth - 1)
+        elif ch == "," and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+    parts.append(text[start:])
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _extract_inline_field_value(inline: str, key: str) -> str | None:
+    """Return the value of ``key=…`` inside an entity inline list.
+
+    ``pos`` contains internal commas so we cannot use the simple
+    ``key\\s*=\\s*[^,]+`` pattern; we instead split on TOP-LEVEL commas
+    (ignoring parens/brackets) so ``pos=x,y,w,h`` is recovered intact.
+    For ``pos`` specifically we also greedily absorb up to three extra
+    top-level tokens that look like bare ``\\d+``, because a correctly
+    formatted ``pos=x,y,w,h`` is itself four top-level tokens.
+    """
+    tokens = _split_top_level_commas(inline)
+    for i, tok in enumerate(tokens):
+        m = re.match(rf"{re.escape(key)}\s*=\s*(.+)$", tok)
+        if not m:
+            continue
+        value = m.group(1).strip()
+        if key == "pos" and re.fullmatch(r"\d+", value):
+            follow = [
+                tokens[j] for j in range(i + 1, min(i + 4, len(tokens)))
+                if re.fullmatch(r"\d+", tokens[j])
+            ]
+            if len(follow) == 3:
+                return ",".join([value] + follow)
+        return value
+    return None
+
+
 def semantic_validate(
     schema_text: str | None,
     domain: str = "image_qa",
@@ -766,7 +923,7 @@ def semantic_validate(
        error, escalate.
     """
     if required_sections is None:
-        required_sections = list(_REQUIRED_SECTIONS_CORE)
+        required_sections = required_sections_for_domain(domain)
 
     result = ValidationResult()
 
@@ -884,6 +1041,124 @@ def semantic_validate(
                     f"pos={val} is outside image bounds "
                     f"({img_w}x{img_h})"
                 )
+
+    # Check 6b — strict pos= formatting (PLAN-VISUAL-GROUNDING §3 rule:
+    # "pos= uses pixel coordinates (x,y,w,h)").  Reject parens/brackets
+    # and anything that isn't ``null`` or four comma-separated ints.
+    # We pull the value out of each entity line by parsing the inline
+    # key=value list at the top level (splitting on commas that are NOT
+    # inside parens/brackets).
+    if entities_body:
+        bad_pos: list[str] = []
+        for line in _content_lines(entities_body):
+            line_m = _ENTITY_LINE_RE.match(line)
+            if not line_m:
+                continue
+            inline = line_m.group(2)
+            pos_val = _extract_inline_field_value(inline, "pos")
+            if pos_val is None:
+                continue
+            candidate = f"pos={pos_val.strip()}"
+            if _POS_STRICT_RE.match(candidate):
+                continue
+            bad_pos.append(candidate)
+        if bad_pos:
+            result.warnings.append(
+                "pos= fields with non-canonical format (expect `x,y,w,h` "
+                "or `null`, no parens/brackets): "
+                + "; ".join(bad_pos[:3])
+            )
+
+    # Check 8 — entity type= enum (element|object|region|text).
+    if entities_body:
+        bad_types: list[str] = []
+        for line in _content_lines(entities_body):
+            line_m = _ENTITY_LINE_RE.match(line)
+            if not line_m:
+                continue
+            inline = line_m.group(2)
+            t = _TYPE_FIELD_RE.search(inline)
+            if not t:
+                continue
+            val = t.group(1).strip()
+            if val not in ENTITY_TYPES:
+                bad_types.append(f"{line_m.group(1)}={val}")
+        if bad_types:
+            result.errors.append(
+                "entities with non-canonical type= (must be one of "
+                f"{ENTITY_TYPES}): " + ", ".join(bad_types[:5])
+            )
+
+    # Check 9 — candidate_set must resolve to declared entity ids
+    # (PLAN-VISUAL-GROUNDING §3 targets block).  The Video-Holmes runner
+    # used to drop A/B/C/D MCQ letters here, which breaks any skill that
+    # consumes the candidate list.
+    cs_m = _CANDIDATE_SET_RE.search(targets_body)
+    if cs_m and cs_m.group(1).strip():
+        raw_items = [s.strip() for s in cs_m.group(1).split(",") if s.strip()]
+        bad_cs = [
+            s for s in raw_items
+            if not re.fullmatch(r"e\d+", s)
+        ]
+        unknown_cs = [
+            s for s in raw_items
+            if re.fullmatch(r"e\d+", s) and s not in known_eids
+        ]
+        if bad_cs:
+            result.errors.append(
+                "candidate_set contains non-entity tokens (expect eN): "
+                + ",".join(bad_cs[:5])
+            )
+        if unknown_cs:
+            result.errors.append(
+                "candidate_set references unknown entity ids: "
+                + ",".join(unknown_cs[:5])
+            )
+
+    # Check 10 — scene_type enum.  This is an enrichment (PLAN-VISUAL-
+    # SKILLS §5), not a plan §3a mandate, so out-of-enum values are a
+    # warning — they still flow to the skill bank as a coarse string
+    # but don't cause hard escalation.
+    state_flags_body = sections.get("state_flags", "")
+    scene_m = _SCENE_TYPE_RE.search(state_flags_body)
+    if scene_m:
+        val = scene_m.group(1).strip()
+        if val.lower() != "null" and val not in SCENE_TYPES:
+            result.warnings.append(
+                f"scene_type={val} is not in the canonical enum "
+                f"({SCENE_TYPES}); skill-retrieval index will be coarser"
+            )
+
+    # Check 11 — env-only fields populated in a QA schema.  progress/
+    # phase are meaningful for env tasks (game progress, planning phase)
+    # but for image/video QA they should stay null.  Surface as a
+    # warning so the caller can clean up the schema before skill mining.
+    if domain in _QA_DOMAINS and state_flags_body:
+        for rx, fname in ((_PROGRESS_RE, "progress"), (_PHASE_RE, "phase")):
+            m = rx.search(state_flags_body)
+            if m and m.group(1).strip().lower() not in {"null", "none", ""}:
+                result.warnings.append(
+                    f"{fname}={m.group(1).strip()} is an env-only field; "
+                    f"should be null in a QA schema"
+                )
+
+    # Check 12 — browser entities should carry a bid= (browsergym id)
+    # when one is available.  We only emit a warning because the VLM may
+    # be ungrounded on a raw screenshot without AXTree.
+    if domain == "browser" and entities_body:
+        have_bid = 0
+        total = 0
+        for line in _content_lines(entities_body):
+            if not _ENTITY_LINE_RE.match(line):
+                continue
+            total += 1
+            if re.search(r"(?:^|[,\s\[])bid\s*=\s*([\w.-]+)", line):
+                have_bid += 1
+        if total > 0 and have_bid == 0:
+            result.warnings.append(
+                "no browser entity carries bid= "
+                "(browser actions need the AXTree id to be executable)"
+            )
 
     # ── Skill-context completeness checks (PLAN-SKILL-BANK §3 / ─────
     # PLAN-VISUAL-SKILLS §3-§5).  These produce *warnings*, not errors —
@@ -1024,6 +1299,16 @@ def reconcile_evidence_with_tool_trace(
     if not evidence_body:
         return warnings
 
+    # Normalise tool names so the `functions.` prefix some OpenAI
+    # function-calling logs emit doesn't mask a real match, and casing
+    # differences don't create phantom fabrications.
+    def _norm_tool(name: str) -> str:
+        n = str(name or "").strip()
+        for prefix in ("functions.", "tool.", "tools."):
+            if n.startswith(prefix):
+                n = n[len(prefix):]
+        return n.lower()
+
     # Build lookup: tool_name -> list of trace records.  ``tool_loop.py``
     # writes records as ``{"call": {"name": ..., "arguments": ...},
     # "result": ..., "reobserved": bool}`` while ad-hoc test traces use
@@ -1040,7 +1325,7 @@ def reconcile_evidence_with_tool_trace(
             tool_name = str(rec.get("name", "")).strip()
         if not tool_name:
             continue
-        by_tool.setdefault(tool_name, []).append(rec)
+        by_tool.setdefault(_norm_tool(tool_name), []).append(rec)
 
     # Helper — does a tool record contain ANY positive results?
     def _has_positive_result(rec: dict[str, Any]) -> bool:
@@ -1074,7 +1359,7 @@ def reconcile_evidence_with_tool_trace(
     }
 
     for hop_idx, tool_name in hop_tools.items():
-        records = by_tool.get(tool_name, [])
+        records = by_tool.get(_norm_tool(tool_name), [])
         if not records:
             warnings.append(
                 f"hop{hop_idx} claims tool={tool_name} but no such call "
@@ -1093,7 +1378,7 @@ def reconcile_evidence_with_tool_trace(
             )
 
     # Catch the inverse too: tools that were called but ignored.
-    declared_tools = set(hop_tools.values())
+    declared_tools = {_norm_tool(t) for t in hop_tools.values()}
     for tool_name, records in by_tool.items():
         if tool_name in declared_tools:
             continue
