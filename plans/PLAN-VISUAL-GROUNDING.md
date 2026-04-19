@@ -659,11 +659,11 @@ Core = entities, attributes, relations, state_flags, targets, uncertainty, **evi
 | Vision adapters (Head 2) | `vlm_wrapper/gymv_adapter.py`, `browser_adapter.py` | Done |
 | Schema utilities | `vlm_wrapper/schema.py` | Done |
 | Demo script | `vlm_wrapper/demo_visual_grounding.py` | Done |
-| Semantic schema validator (§12 Layer 1) | `vlm_wrapper/schema.py` | **TODO** |
-| Cascaded head escalation (§12 Layer 2) | `vlm_wrapper/ground.py` | **TODO** |
+| Semantic schema validator (§12 Layer 1) | `vlm_wrapper/schema.py` (`semantic_validate`, `ValidationResult`) | **Done** |
+| Cascaded head escalation (§12 Layer 2) | `vlm_wrapper/ground.py` (`cascaded_ground`) | **Done** |
 | Benchmark loaders | — | **TODO** |
 | Evaluation harness | — | **TODO** |
-| Re-observation (Option B) for GROUND hops | `vlm_wrapper/tool_loop.py` | **TODO** |
+| Re-observation (Option B) for GROUND hops | `vlm_wrapper/tool_loop.py` (`allow_reobservation`) + `tools_visual.zoom_region` | **Done** |
 | Qwen3-VL-8B training pipeline | — | **TODO** |
 
 ---

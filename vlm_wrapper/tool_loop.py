@@ -57,6 +57,12 @@ _DEFAULT_MODEL = os.environ.get("VLM_LABEL_MODEL", "gpt-4o")
 _DEFAULT_MAX_TOKENS = int(os.environ.get("VLM_LABEL_MAX_TOKENS", "1200"))
 _DEFAULT_TEMPERATURE = float(os.environ.get("VLM_LABEL_TEMPERATURE", "0.2"))
 
+# Tool results carrying this key are treated as re-observation payloads
+# (PLAN-VISUAL-GROUNDING §4 Option B).  The tool_loop strips the key
+# from the JSON it sends to the model (keeping the textual part) and
+# attaches the base64 PNG as an image in a follow-up user message.
+_REOBSERVE_KEY = "_reobserve_image_b64"
+
 TOOL_USE_INSTRUCTION = """\
 
 You have access to tools that return exact data from the environment.
@@ -95,6 +101,7 @@ def run_tool_loop(
     max_tokens: int | None = None,
     sections: list[str] | None = None,
     task_type: str = "interactive",
+    allow_reobservation: bool = True,
 ) -> dict[str, Any]:
     """Run the multi-turn tool-calling loop.
 
@@ -132,6 +139,13 @@ def run_tool_loop(
     task_type : str
         ``"interactive"`` | ``"qa"`` | ``"temporal"``.  Controls default
         sections and prompt style.
+    allow_reobservation : bool
+        PLAN-VISUAL-GROUNDING §4 Option B.  When True (default), tool
+        results carrying ``_reobserve_image_b64`` are intercepted: the
+        base64 PNG is attached as an additional user-side image in the
+        next turn so the VLM re-perceives a zoomed crop.  Set to False
+        for latency-sensitive games/web where Option A (schema-only
+        updates) is preferred.
 
     Returns
     -------
@@ -204,6 +218,8 @@ def run_tool_loop(
             if msg.tool_calls:
                 messages.append(msg.model_dump())
 
+                pending_reobs: list[dict[str, Any]] = []
+
                 for tc in msg.tool_calls:
                     fn_name = tc.function.name
                     try:
@@ -212,20 +228,74 @@ def run_tool_loop(
                         fn_args = {}
 
                     tool_result = registry.dispatch(fn_name, fn_args)
+
+                    # Option-B re-observation: strip the image payload
+                    # from the tool-result JSON (the model cannot read
+                    # raw base64 inside a tool message) and stash it for
+                    # a follow-up user message that carries the crop as
+                    # a first-class image input.
+                    reobs_b64 = None
+                    if (
+                        allow_reobservation
+                        and not tool_result.error
+                        and isinstance(tool_result.result, dict)
+                        and _REOBSERVE_KEY in tool_result.result
+                    ):
+                        reobs_b64 = tool_result.result.pop(_REOBSERVE_KEY)
+
                     tool_msg = tool_result.to_message(tc.id)
                     messages.append(tool_msg)
 
+                    if reobs_b64:
+                        region = (
+                            tool_result.result.get("region")
+                            if isinstance(tool_result.result, dict) else None
+                        )
+                        pending_reobs.append({
+                            "tool_call_id": tc.id,
+                            "tool": fn_name,
+                            "b64": reobs_b64,
+                            "region": region,
+                        })
+
                     tool_trace.append({
                         "call": {"name": fn_name, "arguments": fn_args},
-                        "result": tool_result.result if not tool_result.error else {"error": tool_result.error},
+                        "result": (
+                            tool_result.result
+                            if not tool_result.error
+                            else {"error": tool_result.error}
+                        ),
+                        "reobserved": bool(reobs_b64),
                     })
 
                     logger.info(
-                        "Round %d: tool %s(%s) -> %s",
+                        "Round %d: tool %s(%s) -> %s%s",
                         round_num, fn_name,
                         json.dumps(fn_args, default=str)[:100],
-                        json.dumps(tool_result.result, default=str)[:200] if not tool_result.error else tool_result.error,
+                        json.dumps(tool_result.result, default=str)[:200]
+                        if not tool_result.error else tool_result.error,
+                        " [reobs]" if reobs_b64 else "",
                     )
+
+                if pending_reobs:
+                    reobs_content: list[dict[str, Any]] = []
+                    for entry in pending_reobs:
+                        region = entry.get("region") or {}
+                        descriptor = (
+                            f"Re-observation from tool {entry['tool']} "
+                            f"(region={region}).  Use this zoomed view to "
+                            f"refine <entities>/<attributes>/<uncertainty>."
+                        )
+                        reobs_content.append({"type": "text", "text": descriptor})
+                        reobs_content.append({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{entry['b64']}",
+                                "detail": "high",
+                            },
+                        })
+                    messages.append({"role": "user", "content": reobs_content})
+
                 continue
 
             raw = msg.content or ""

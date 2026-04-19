@@ -169,6 +169,17 @@ def _load_caption(cache_dir: str = DEFAULT_CACHE_DIR):
     if _caption_model_processor is not None:
         return _caption_model_processor
 
+    # Florence-2's image backbone (DaViT) needs ``timm``.  If it's missing
+    # we raise a single, actionable error here instead of letting the
+    # transformers loader die deep inside ``modeling_florence2.py``.
+    try:
+        import timm  # noqa: F401
+    except ImportError as e:
+        raise ImportError(
+            "Florence-2 captioning requires `timm`.  Install the optional "
+            "vision extra: `pip install -e .[vision]` (or `pip install timm`)."
+        ) from e
+
     import torch
     from transformers import AutoProcessor, AutoModelForCausalLM
 

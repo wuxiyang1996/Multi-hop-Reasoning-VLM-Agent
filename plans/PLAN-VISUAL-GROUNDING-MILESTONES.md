@@ -118,6 +118,25 @@ Escalation outputs are stored as training examples and fed back into the next SF
 | image_qa | 8B VLM direct → validator → Path B if needed | GroundingDINO auto-selected |
 | video_qa | 8B VLM + video tool loop (always Path B) | Temporal search required |
 
+### Environment / data status (snapshot 2026-04-19)
+
+Tracks runtime readiness for the five domains. See
+[`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for setup
+commands.
+
+| Domain     | Conda env     | Runtime      | Benchmark       | Data  |
+|------------|---------------|:------------:|-----------------|:-----:|
+| gymv       | `gaming_eval` | **Ready**    | 2048 / Sokoban / Minesweeper         | bundled |
+| browser    | `browsergym`  | **Ready**    | MiniWoB++ / WebArena / VisualWebArena | tasks bundled |
+| desktop    | `osworld`     | **Ready**    | OSWorld                              | Docker pull pending |
+| image_qa   | `bench_vqa` (to create) | env TODO | CLEVR v1.0 | **Downloaded** — 100 000 images + 1 M questions + scene graphs at `data/CLEVR/CLEVR_v1.0/` |
+| video_qa   | `bench_vqa` (shared)    | env TODO | Video-Holmes | **Downloaded** — 503 cropped clips + 1 837 test Qs at `data/Video-Holmes/Benchmark/` |
+
+`bench_vqa` is the shared CPython 3.11 + PyTorch env recommended for `image_qa`
+and `video_qa` (single env covers both benchmarks). Only the env wheel install
+remains — the datasets themselves are on disk and have been smoke-tested
+against `vlm_wrapper.schema.build_adaptive_system_prompt`.
+
 ---
 
 ## 4. Two regimes for the 5 categories
@@ -434,11 +453,11 @@ Return best attempt + high uncertainty flags (Path C candidate)
 | Vision adapters (Head 2) | **Done** | — |
 | Schema utilities | **Done** | — |
 | Demo script | **Done** | — |
-| **Semantic schema validator** | **TODO** | Week 1 |
-| **Cascaded head escalation** | **TODO** | Week 2 |
+| **Semantic schema validator** | **Done** | Week 1 |
+| **Cascaded head escalation** | **Done** | Week 2 |
 | **Benchmark loaders** (CLEVR, GQA, SIV-Bench, Video-Holmes) | **TODO** | Week 6 |
 | **Evaluation harness** | **TODO** | Week 4 |
-| **Re-observation (Option B) for GROUND hops** | **TODO** | Week 8 |
+| **Re-observation (Option B) for GROUND hops** | **Done** | Week 8 |
 | **Qwen3-VL-8B training pipeline** | **TODO** | Week 3 |
 | **Data collection scripts** (Gym-V, BrowserGym) | **TODO** | Week 1 |
 | **Actor schema integration** | **TODO** | Week 7 |

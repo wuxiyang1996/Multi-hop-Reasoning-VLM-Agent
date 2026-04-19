@@ -25,6 +25,7 @@ from .schema import (
     build_system_prompt,
     build_user_message,
     parse_schema_output,
+    semantic_validate,
     validate_schema,
 )
 
@@ -139,6 +140,7 @@ def generate_label(
     raw = ""
     schema = None
     warnings: list[str] = []
+    validation: dict[str, Any] | None = None
 
     for attempt in range(1, retries + 2):
         try:
@@ -152,6 +154,13 @@ def generate_label(
             schema = parse_schema_output(raw)
             if schema:
                 warnings = validate_schema(schema)
+                vres = semantic_validate(
+                    schema,
+                    domain="browser",
+                    image_size=image.size if hasattr(image, "size") else None,
+                )
+                validation = vres.as_dict()
+                warnings = warnings + vres.warnings + vres.errors
                 break
             else:
                 logger.warning("Attempt %d: no <state> block in GPT output", attempt)
@@ -159,7 +168,13 @@ def generate_label(
             logger.warning("Attempt %d failed: %s", attempt, exc)
             raw = f"Error: {exc}"
 
-    return {"schema": schema, "raw": raw, "warnings": warnings, "model": model}
+    return {
+        "schema": schema,
+        "raw": raw,
+        "warnings": warnings,
+        "validation": validation,
+        "model": model,
+    }
 
 
 # ======================================================================

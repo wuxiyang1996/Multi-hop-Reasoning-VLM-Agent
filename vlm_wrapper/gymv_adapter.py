@@ -25,6 +25,7 @@ from .schema import (
     build_system_prompt,
     build_user_message,
     parse_schema_output,
+    semantic_validate,
     validate_schema,
 )
 
@@ -47,6 +48,7 @@ def generate_label(
     step: int = 0,
     game_rules: str = "",
     obs_text: str = "",
+    valid_actions: list[str] | None = None,
     max_entities: int = 20,
     model: str | None = None,
     api_key: str | None = None,
@@ -110,6 +112,15 @@ def generate_label(
         extra_ctx_parts.append(f"Game rules:\n{game_rules}")
     if obs_text:
         extra_ctx_parts.append(f"Environment text state (for reference):\n{obs_text}")
+    if valid_actions:
+        # The VLM tends to invent prose actions like "slide_left" — force
+        # it to copy verbatim from the env's actual action vocabulary so
+        # the schema is consumable by the action agent.
+        extra_ctx_parts.append(
+            "Valid actions for this environment (you MUST copy these "
+            "strings verbatim into <actions>; do NOT rename or reformat):\n"
+            + "\n".join(f"  - {a}" for a in valid_actions)
+        )
     extra_context = "\n\n".join(extra_ctx_parts)
 
     user_content = build_user_message(
@@ -129,6 +140,7 @@ def generate_label(
     raw = ""
     schema = None
     warnings: list[str] = []
+    validation: dict[str, Any] | None = None
 
     for attempt in range(1, retries + 2):
         try:
@@ -142,6 +154,15 @@ def generate_label(
             schema = parse_schema_output(raw)
             if schema:
                 warnings = validate_schema(schema)
+                # Semantic + skill-context validation (PLAN-VISUAL-GROUNDING §12
+                # Layer 1 + PLAN-SKILL-BANK §3 completeness checks).
+                vres = semantic_validate(
+                    schema,
+                    domain="gymv",
+                    image_size=image.size if hasattr(image, "size") else None,
+                )
+                validation = vres.as_dict()
+                warnings = warnings + vres.warnings + vres.errors
                 break
             else:
                 logger.warning("Attempt %d: no <state> block in GPT output", attempt)
@@ -149,7 +170,13 @@ def generate_label(
             logger.warning("Attempt %d failed: %s", attempt, exc)
             raw = f"Error: {exc}"
 
-    return {"schema": schema, "raw": raw, "warnings": warnings, "model": model}
+    return {
+        "schema": schema,
+        "raw": raw,
+        "warnings": warnings,
+        "validation": validation,
+        "model": model,
+    }
 
 
 # ======================================================================

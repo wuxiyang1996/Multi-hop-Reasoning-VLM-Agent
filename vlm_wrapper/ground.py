@@ -72,10 +72,12 @@ import numpy as np
 from PIL import Image
 
 from .schema import (
+    ValidationResult,
     build_adaptive_system_prompt,
     parse_answer_from_schema,
     parse_evidence_from_schema,
     parse_schema_output,
+    semantic_validate,
     validate_schema,
 )
 from .tool_loop import run_tool_loop
@@ -189,6 +191,10 @@ class GroundingRequest:
     api_key: str | None = None
     base_url: str | None = None
     temperature: float | None = None
+    # PLAN-VISUAL-GROUNDING §4 — Option A vs B.  Domains that should
+    # re-render / zoom into regions between hops (image QA, video QA)
+    # flip this to True.  Games / web default to False (Option A).
+    allow_reobservation: bool | None = None
 
 
 @dataclass
@@ -210,6 +216,11 @@ class GroundingResult:
     Every domain produces the same structure.  ``evidence`` is always
     populated (multi-hop reasoning traces).  ``answer`` is populated for
     QA domains; ``None`` for env-action domains.
+
+    ``validation`` is populated when the result went through the semantic
+    validator (either via ``cascaded_ground`` or an explicit call).
+    ``head_used`` and ``escalation_trace`` are populated by
+    ``cascaded_ground``.
     """
     schema: str | None = None
     answer: str | None = None
@@ -222,6 +233,9 @@ class GroundingResult:
     messages: list[dict[str, Any]] = field(default_factory=list)
     domain: str = ""
     output_mode: str = ""
+    validation: ValidationResult | None = None
+    head_used: str = ""
+    escalation_trace: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _infer_domain(req: GroundingRequest) -> str:
@@ -395,7 +409,15 @@ def ground(req: GroundingRequest) -> GroundingResult:
     # 4. Build extra context
     extra_context = _build_extra_context(req, domain)
 
-    # 5. Run the tool loop — same loop for all tasks
+    # 5. Run the tool loop — same loop for all tasks.  Option-B
+    # re-observation defaults to ON for image/video QA (fine-grained
+    # visual detail) and OFF for games/web where Option A (schema-only
+    # updates between hops) is cheaper.
+    if req.allow_reobservation is None:
+        allow_reobservation = domain in _NATURAL_IMAGE_DOMAINS
+    else:
+        allow_reobservation = req.allow_reobservation
+
     loop_result = run_tool_loop(
         primary_image,
         domain=domain,
@@ -412,11 +434,13 @@ def ground(req: GroundingRequest) -> GroundingResult:
         temperature=req.temperature,
         sections=sections,
         task_type="interactive",
+        allow_reobservation=allow_reobservation,
     )
 
     # 6. Parse into universal result
     schema = loop_result.get("schema")
     raw = loop_result.get("raw", "")
+    tool_trace = loop_result.get("tool_trace", [])
 
     answer = None
     evidence: list[HopTrace] = []
@@ -424,18 +448,44 @@ def ground(req: GroundingRequest) -> GroundingResult:
         answer = parse_answer_from_schema(schema)
         evidence = _parse_evidence_hops(schema)
 
+    warnings = list(loop_result.get("warnings", []))
+    validation: ValidationResult | None = None
+
+    # Even non-cascaded calls should get the semantic + skill-context
+    # checks and the tool-trace reconciliation.  Without this the
+    # benchmark scripts (CLEVR, Video-Holmes) never see the warnings the
+    # plan demands (PLAN-VISUAL-GROUNDING-MILESTONES §6 / §12).
+    if schema:
+        try:
+            from .schema import reconcile_evidence_with_tool_trace
+            primary_size = None
+            if isinstance(req.images, list) and req.images:
+                primary_size = _to_pil(req.images[0]).size
+            elif req.images is not None:
+                primary_size = _to_pil(req.images).size
+            validation = semantic_validate(
+                schema, domain=domain, image_size=primary_size,
+            )
+            warnings = warnings + validation.warnings + validation.errors
+            warnings = warnings + reconcile_evidence_with_tool_trace(
+                schema, tool_trace,
+            )
+        except Exception as exc:
+            logger.warning("post-loop validation failed: %s", exc)
+
     return GroundingResult(
         schema=schema,
         answer=answer,
         evidence=evidence,
         raw=raw,
-        warnings=loop_result.get("warnings", []),
+        warnings=warnings,
         model=loop_result.get("model", ""),
-        tool_trace=loop_result.get("tool_trace", []),
+        tool_trace=tool_trace,
         rounds=loop_result.get("rounds", 0),
         messages=loop_result.get("messages", []),
         domain=domain,
         output_mode=output_mode,
+        validation=validation,
     )
 
 
@@ -498,3 +548,291 @@ def _parse_evidence_hops(schema: str) -> list[HopTrace]:
         ))
 
     return hops
+
+
+# ── Cascaded head escalation (PLAN-VISUAL-GROUNDING §12 Layer 2) ──────
+#
+# The milestone plan (§7) lays out one starting head per domain and a
+# chain of fallbacks.  ``cascaded_ground`` walks that chain, running the
+# semantic validator after each attempt, and returning the first
+# ``GroundingResult`` whose schema passes validation.  If no head
+# produces a clean schema, the best attempt is returned with
+# ``escalation_recommended=True`` so the caller can route it to the
+# offline teacher (Path C).
+#
+# Escalation chain per domain (from PLAN-VISUAL-GROUNDING-MILESTONES §7):
+#
+# | domain    | Head 1         | Head 2       | Head 3      | Tool loop   |
+# |-----------|:--------------:|:------------:|:-----------:|:-----------:|
+# | gymv      | heuristic      | vlm          | —           | on demand   |
+# | browser   | heuristic      | vlm          | omniparser  | on demand   |
+# | desktop   | omniparser     | vlm          | —           | on demand   |
+# | image_qa  | —              | vlm          | —           | always      |
+# | video_qa  | —              | —            | —           | always      |
+
+_ESCALATION_CHAINS: dict[str, list[str]] = {
+    "gymv":     ["heuristic", "vlm", "tool_loop"],
+    "browser":  ["heuristic", "vlm", "omniparser", "tool_loop"],
+    "desktop":  ["omniparser", "vlm", "tool_loop"],
+    "image_qa": ["vlm", "tool_loop"],
+    "video_qa": ["tool_loop"],
+    "video":    ["tool_loop"],
+}
+
+
+def _attempt_heuristic(req: GroundingRequest, domain: str) -> GroundingResult:
+    """Head 1 — heuristic adapter for gymv / browser."""
+    schema: str | None = None
+    warnings: list[str] = []
+
+    try:
+        if domain == "gymv":
+            from .gymv_heuristic import text_to_schema
+            schema = text_to_schema(
+                obs_text=req.context.get("obs_text", ""),
+                description=req.context.get("description", ""),
+                task_id=req.task_id,
+                step=req.step,
+                max_entities=req.max_entities,
+            )
+        elif domain == "browser":
+            from .browser_heuristic import obs_to_schema
+            obs = req.context.get("obs") or {}
+            if not isinstance(obs, dict):
+                warnings.append("browser heuristic requires context['obs'] dict")
+            else:
+                schema = obs_to_schema(
+                    obs,
+                    step=req.step,
+                    task_id=req.task_id,
+                    max_entities=req.max_entities,
+                )
+        else:
+            warnings.append(f"no heuristic head for domain={domain}")
+    except Exception as exc:  # heuristic is best-effort
+        warnings.append(f"heuristic head failed: {exc}")
+
+    return GroundingResult(
+        schema=schema,
+        warnings=warnings,
+        domain=domain,
+        head_used="heuristic",
+    )
+
+
+def _attempt_omniparser(req: GroundingRequest, domain: str,
+                        primary_image: Image.Image) -> GroundingResult:
+    """Head 3 — local OmniParser grounding (browser / desktop).
+
+    ``grounding_*`` helpers return a dict with a ``schema`` string; we
+    lift that out so the cascade sees the same interface as other heads.
+    """
+    warnings: list[str] = []
+    schema: str | None = None
+    out: dict[str, Any] = {}
+
+    try:
+        if domain == "browser":
+            from .grounding_browsergym import grounding_obs_to_schema
+            obs = req.context.get("obs") or {}
+            if isinstance(obs, dict) and obs.get("screenshot") is not None:
+                out = grounding_obs_to_schema(
+                    obs,
+                    step=req.step,
+                    task_id=req.task_id,
+                    max_entities=req.max_entities,
+                )
+            else:
+                # Fall back to the raw image path when the browsergym obs
+                # is missing the screenshot field.
+                from .grounding_browsergym import grounding_image_to_schema
+                out = grounding_image_to_schema(
+                    primary_image,
+                    goal=req.goal,
+                    task_id=req.task_id,
+                    step=req.step,
+                    domain="browser",
+                    max_entities=req.max_entities,
+                )
+        elif domain == "desktop":
+            from .grounding_browsergym import grounding_image_to_schema
+            out = grounding_image_to_schema(
+                primary_image,
+                goal=req.context.get("instruction", req.goal),
+                task_id=req.task_id,
+                step=req.step,
+                domain="desktop",
+                max_entities=req.max_entities,
+            )
+        else:
+            warnings.append(f"no omniparser head for domain={domain}")
+    except ImportError as exc:
+        warnings.append(f"omniparser unavailable: {exc}")
+    except Exception as exc:
+        warnings.append(f"omniparser head failed: {exc}")
+
+    if out:
+        schema = out.get("schema")
+        warnings.extend(out.get("warnings", []) or [])
+
+    return GroundingResult(
+        schema=schema,
+        warnings=warnings,
+        domain=domain,
+        head_used="omniparser",
+    )
+
+
+def _attempt_vlm(req: GroundingRequest, domain: str,
+                 primary_image: Image.Image) -> GroundingResult:
+    """Head 2 — direct VLM schema generation (no tools).
+
+    We use a short tool-loop with ``max_rounds=1`` so the VLM produces
+    the schema in a single shot.  That keeps this head strictly cheaper
+    than the full tool loop below.
+    """
+    shortcut = GroundingRequest(
+        images=primary_image,
+        goal=req.goal,
+        domain=domain,
+        output_mode=req.output_mode,
+        task_id=req.task_id,
+        step=req.step,
+        context=req.context,
+        max_entities=req.max_entities,
+        max_rounds=1,
+        model=req.model,
+        api_key=req.api_key,
+        base_url=req.base_url,
+        temperature=req.temperature,
+    )
+    result = ground(shortcut)
+    result.head_used = "vlm"
+    return result
+
+
+def _attempt_tool_loop(req: GroundingRequest, domain: str) -> GroundingResult:
+    """Final head — full multi-hop tool-calling loop (existing ``ground``)."""
+    result = ground(req)
+    result.head_used = "tool_loop"
+    return result
+
+
+def cascaded_ground(
+    req: GroundingRequest,
+    *,
+    image_size: tuple[int, int] | None = None,
+    chain: list[str] | None = None,
+    stop_on_first_valid: bool = True,
+) -> GroundingResult:
+    """Domain-aware escalation wrapper around ``ground``.
+
+    Implements PLAN-VISUAL-GROUNDING §12 Layer 2: run the domain-default
+    head, validate with ``semantic_validate``, and escalate to the next
+    head if validation recommends it.  The returned ``GroundingResult``
+    carries ``validation``, ``head_used`` (head that produced the final
+    schema), and ``escalation_trace`` (a record of every head attempted).
+
+    Parameters
+    ----------
+    req : GroundingRequest
+        Same payload used by ``ground``.
+    image_size : (w, h), optional
+        Passed through to the validator's coordinate-bounds check.
+        When omitted, falls back to the primary image's actual size.
+    chain : list[str], optional
+        Override the default chain for the request's domain.  Valid
+        head names: ``heuristic``, ``vlm``, ``omniparser``, ``tool_loop``.
+    stop_on_first_valid : bool
+        If True (default), return as soon as any head produces a
+        validator-clean schema.  If False, run the full chain and return
+        the best attempt — useful for collecting escalation telemetry.
+
+    Returns
+    -------
+    GroundingResult
+        Best available result.  ``validation.valid`` indicates whether
+        any head produced a clean schema.  If not,
+        ``validation.escalation_recommended`` stays True so the caller
+        can flag this observation for Path C (offline teacher).
+    """
+    if req.images is None:
+        result = GroundingResult(
+            warnings=["no images provided"],
+            domain=req.domain,
+        )
+        result.validation = semantic_validate(None, domain=req.domain or "image_qa")
+        return result
+
+    domain = req.domain if req.domain != "auto" else _infer_domain(req)
+    chain = chain or _ESCALATION_CHAINS.get(domain, ["vlm", "tool_loop"])
+
+    if isinstance(req.images, list):
+        primary = _to_pil(req.images[req.context.get("current_index", 0)])
+    else:
+        primary = _to_pil(req.images)
+    if image_size is None:
+        image_size = primary.size
+
+    trace: list[dict[str, Any]] = []
+    best: GroundingResult | None = None
+    best_score: tuple[int, int] = (-1, -1)  # (not-escalated, entity_count)
+
+    for head in chain:
+        if head == "heuristic":
+            attempt = _attempt_heuristic(req, domain)
+        elif head == "omniparser":
+            attempt = _attempt_omniparser(req, domain, primary)
+        elif head == "vlm":
+            attempt = _attempt_vlm(req, domain, primary)
+        elif head == "tool_loop":
+            attempt = _attempt_tool_loop(req, domain)
+        else:
+            logger.warning("Unknown head in escalation chain: %s", head)
+            continue
+
+        validation = semantic_validate(
+            attempt.schema,
+            domain=domain,
+            image_size=image_size,
+        )
+        # Cross-check evidence hops against actual tool calls (catches
+        # fabricated grounding when GroundingDINO/Florence-2 fail
+        # silently).  Adds to warnings, not errors.
+        try:
+            from .schema import reconcile_evidence_with_tool_trace
+            recon_warnings = reconcile_evidence_with_tool_trace(
+                attempt.schema, attempt.tool_trace,
+            )
+        except Exception:
+            recon_warnings = []
+        attempt.validation = validation
+        attempt.warnings = (
+            list(attempt.warnings)
+            + list(validation.warnings) + list(validation.errors)
+            + recon_warnings
+        )
+        attempt.escalation_trace = list(trace) + [{
+            "head": head,
+            "valid": validation.valid,
+            "errors": list(validation.errors),
+            "warnings": list(validation.warnings) + recon_warnings,
+            "entity_count": validation.entity_count,
+        }]
+        trace = attempt.escalation_trace
+
+        logger.info(
+            "cascaded_ground: head=%s domain=%s valid=%s errors=%s",
+            head, domain, validation.valid, validation.errors,
+        )
+
+        score = (1 if validation.valid else 0, validation.entity_count)
+        if best is None or score > best_score:
+            best = attempt
+            best_score = score
+
+        if validation.valid and stop_on_first_valid:
+            return attempt
+
+    assert best is not None  # chain had at least one entry
+    return best

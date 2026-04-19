@@ -246,6 +246,44 @@ TOOL_READ_TEXT_REGION = ToolDef(
     domain="visual",
 )
 
+TOOL_ZOOM_REGION = ToolDef(
+    name="zoom_region",
+    description=(
+        "Re-observation (PLAN-VISUAL-GROUNDING §4 Option B): crop the "
+        "current frame to a region and resend the zoomed crop to yourself "
+        "on the next turn.  Use this when ``describe_region`` output is "
+        "ambiguous and you need to look at the region with fresh visual "
+        "focus.  Returns a base64 PNG of the crop and the crop geometry; "
+        "the harness attaches the image to the next user message."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "x": {"type": "integer", "description": "Left edge (pixels)."},
+            "y": {"type": "integer", "description": "Top edge (pixels)."},
+            "w": {"type": "integer", "description": "Width (pixels)."},
+            "h": {"type": "integer", "description": "Height (pixels)."},
+            "zoom": {
+                "type": "number",
+                "description": (
+                    "Optional upscale factor (1.0–4.0).  Default 2.0.  "
+                    "Higher values help with tiny text / fine details."
+                ),
+            },
+            "reason": {
+                "type": "string",
+                "description": (
+                    "Short note on what you are trying to see (logged in "
+                    "the evidence chain)."
+                ),
+            },
+        },
+        "required": ["x", "y", "w", "h"],
+    },
+    domain="visual",
+)
+
+
 TOOL_GROUNDED_DETECT = ToolDef(
     name="grounded_detect",
     description=(
@@ -545,18 +583,34 @@ def _run_gdino(
             outputs = _gdino_model(**inputs)
 
         target_sizes = torch.tensor([image.size[::-1]]).to(_gdino_model.device)
+
+        # transformers renamed this kwarg between 4.40 and 4.50:
+        #   4.40–4.49: post_process_grounded_object_detection(..., box_threshold=, text_threshold=)
+        #   4.50+   : post_process_grounded_object_detection(..., threshold=, text_threshold=)
+        # Detect which signature we have so the adapter works on both.
+        import inspect as _inspect
+        _sig_params = _inspect.signature(
+            _gdino_processor.post_process_grounded_object_detection
+        ).parameters
+        _thresh_kw = "threshold" if "threshold" in _sig_params else "box_threshold"
+        _post_kwargs = {
+            _thresh_kw: box_threshold,
+            "text_threshold": box_threshold,
+            "target_sizes": target_sizes,
+        }
         results = _gdino_processor.post_process_grounded_object_detection(
             outputs,
             inputs.input_ids,
-            box_threshold=box_threshold,
-            text_threshold=box_threshold,
-            target_sizes=target_sizes,
+            **_post_kwargs,
         )[0]
 
         elements: list[_DetectedElement] = []
         boxes = results["boxes"].cpu().numpy()
         scores = results["scores"].cpu().numpy()
-        labels = results.get("labels", results.get("text", []))
+        # 4.50+ returns "text_labels"; older versions return "labels".
+        labels = results.get("text_labels",
+                             results.get("labels",
+                                         results.get("text", [])))
 
         for i, (box, score) in enumerate(zip(boxes, scores)):
             if i >= max_elements:
@@ -636,6 +690,61 @@ def _h_describe_region(
         "region": {"x": x, "y": y, "w": w, "h": h},
         "caption": caption,
         "text_content": ocr_text,
+    }
+
+
+def _h_zoom_region(
+    state: _VisualState,
+    *,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    zoom: float = 2.0,
+    reason: str = "",
+) -> dict:
+    """Crop + upscale for Option-B re-observation.
+
+    Returns the crop both as a caption (like ``describe_region``) and as
+    a base64-encoded PNG under the magic key ``_reobserve_image_b64``.
+    ``run_tool_loop`` looks for that key and attaches the image to the
+    next user message so the VLM re-perceives the zoomed region directly.
+    """
+    import base64 as _b64
+    import io as _io
+
+    img_w, img_h = state.image.size
+    x = max(0, min(int(x), img_w - 1))
+    y = max(0, min(int(y), img_h - 1))
+    w = max(1, min(int(w), img_w - x))
+    h = max(1, min(int(h), img_h - y))
+    zoom = max(1.0, min(float(zoom), 4.0))
+
+    crop = state.image.crop((x, y, x + w, y + h))
+    if zoom > 1.0:
+        crop = crop.resize(
+            (int(crop.width * zoom), int(crop.height * zoom)),
+            Image.LANCZOS,
+        )
+
+    buf = _io.BytesIO()
+    crop.save(buf, format="PNG")
+    b64 = _b64.b64encode(buf.getvalue()).decode("ascii")
+
+    caption = _caption_crop(crop)
+    ocr_text = _ocr_crop(crop)
+
+    return {
+        "region": {"x": x, "y": y, "w": w, "h": h},
+        "zoom": zoom,
+        "crop_size": [crop.width, crop.height],
+        "caption": caption,
+        "text_content": ocr_text,
+        "reason": reason,
+        # Magic key — consumed by tool_loop.run_tool_loop to re-feed the
+        # crop as a user-side image message.  Keep the key name in sync
+        # with ``tool_loop._REOBSERVE_KEY``.
+        "_reobserve_image_b64": b64,
     }
 
 
@@ -1113,6 +1222,7 @@ def build_visual_registry(
     reg.register(TOOL_DETECT_OBJECTS, lambda **kw: _h_detect_objects(state, **kw))
     reg.register(TOOL_GROUNDED_DETECT, lambda **kw: _h_grounded_detect(state, **kw))
     reg.register(TOOL_DESCRIBE_REGION, lambda **kw: _h_describe_region(state, **kw))
+    reg.register(TOOL_ZOOM_REGION, lambda **kw: _h_zoom_region(state, **kw))
     reg.register(TOOL_VISUAL_SEARCH, lambda **kw: _h_visual_search(state, **kw))
     reg.register(TOOL_COUNT_OBJECTS, lambda **kw: _h_count_objects(state, **kw))
     reg.register(TOOL_CLASSIFY_SCENE, lambda **kw: _h_classify_scene(state))

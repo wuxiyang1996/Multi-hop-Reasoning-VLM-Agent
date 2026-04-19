@@ -39,12 +39,14 @@ from vlm_wrapper.ground import (
     GroundingRequest,
     GroundingResult,
     HopTrace,
+    cascaded_ground,
     ground,
 )
 
 # ── Shared utilities ──────────────────────────────────────────────────
 from vlm_wrapper.schema import (
     SCHEMA_VERSION,
+    ValidationResult,
     build_adaptive_system_prompt,
     build_system_prompt,
     encode_image_b64,
@@ -52,6 +54,7 @@ from vlm_wrapper.schema import (
     parse_answer_from_schema,
     parse_evidence_from_schema,
     parse_schema_output,
+    semantic_validate,
     validate_schema,
 )
 
@@ -63,15 +66,19 @@ from vlm_wrapper.browser_heuristic import obs_to_schema as browser_heuristic_sch
 from vlm_wrapper.gymv_adapter import generate_label as gymv_generate_label
 from vlm_wrapper.browser_adapter import generate_label as browser_generate_label
 from vlm_wrapper.browser_adapter import browser_obs_to_schema
+from vlm_wrapper.osworld_adapter import generate_label as osworld_generate_label
+from vlm_wrapper.osworld_adapter import osworld_obs_to_schema
 
 __all__ = [
     # unified pipeline
     "ground",
+    "cascaded_ground",
     "GroundingRequest",
     "GroundingResult",
     "HopTrace",
     # shared
     "SCHEMA_VERSION",
+    "ValidationResult",
     "build_adaptive_system_prompt",
     "build_system_prompt",
     "encode_image_b64",
@@ -79,6 +86,7 @@ __all__ = [
     "parse_answer_from_schema",
     "parse_evidence_from_schema",
     "parse_schema_output",
+    "semantic_validate",
     "validate_schema",
     # head 1: heuristic
     "gymv_heuristic_schema",
@@ -87,6 +95,8 @@ __all__ = [
     "gymv_generate_label",
     "browser_generate_label",
     "browser_obs_to_schema",
+    "osworld_generate_label",
+    "osworld_obs_to_schema",
 ]
 
 try:
@@ -155,3 +165,36 @@ __all__ += [
     "visual_generate_label_with_tools",
     "video_visual_generate_label_with_tools",
 ]
+
+# ── Benchmark loaders + GPT-4o parsers (CLEVR, Video-Holmes) ─────────
+try:
+    from vlm_wrapper.benchmarks import (
+        CLEVRSample,
+        VideoHolmesSample,
+        default_clevr_root,
+        default_video_holmes_root,
+        iter_clevr_samples,
+        iter_video_holmes_samples,
+        load_clevr_image,
+        load_clevr_questions,
+        load_video_holmes_questions,
+        parse_clevr_sample,
+        parse_video_holmes_sample,
+        sample_video_frames,
+    )
+    __all__ += [
+        "CLEVRSample",
+        "VideoHolmesSample",
+        "default_clevr_root",
+        "default_video_holmes_root",
+        "iter_clevr_samples",
+        "iter_video_holmes_samples",
+        "load_clevr_image",
+        "load_clevr_questions",
+        "load_video_holmes_questions",
+        "parse_clevr_sample",
+        "parse_video_holmes_sample",
+        "sample_video_frames",
+    ]
+except ImportError:
+    pass
