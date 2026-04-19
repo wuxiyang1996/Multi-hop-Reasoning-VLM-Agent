@@ -115,6 +115,8 @@ class RewardComputer:
         observation: str = "",
         active_skill_id: Optional[str] = None,
         skill_contract: Any = None,
+        queried_skill: bool = False,
+        queried_mem: bool = False,
     ) -> RewardResult:
         """
         Compute the composite reward for the last transition.
@@ -125,11 +127,21 @@ class RewardComputer:
             observation: Current observation text (used to check predicate satisfaction).
             active_skill_id: Skill currently being followed, or None.
             skill_contract: SkillEffectsContract (or any object with .eff_add set), or None.
+            queried_skill: True when this step invoked the skill-bank / provider
+                retrieval API (reselect event). Triggers ``query_skill_cost`` on
+                top of whatever ``action_type`` contributes. PLAN-ACTION-AGENT §4.
+            queried_mem: True when this step invoked episodic memory (an inner-MDP
+                ``RETRIEVE`` hop). Triggers ``query_mem_cost``.
 
         Returns:
             RewardResult with r_env, r_follow, r_cost, r_total.
         """
-        r_cost = self._compute_cost(action_type, active_skill_id)
+        r_cost = self._compute_cost(
+            action_type,
+            active_skill_id,
+            queried_skill=queried_skill,
+            queried_mem=queried_mem,
+        )
         r_follow = self._compute_follow(observation, active_skill_id, skill_contract)
         r_total = r_env + self.cfg.w_follow * r_follow + r_cost
 
@@ -150,8 +162,22 @@ class RewardComputer:
 
     # ── Cost component ───────────────────────────────────────────────
 
-    def _compute_cost(self, action_type: str, active_skill_id: Optional[str]) -> float:
-        """Negative cost for retrieval / skill-call / skill-switching."""
+    def _compute_cost(
+        self,
+        action_type: str,
+        active_skill_id: Optional[str],
+        *,
+        queried_skill: bool = False,
+        queried_mem: bool = False,
+    ) -> float:
+        """Negative cost for retrieval / skill-call / skill-switching.
+
+        ``action_type`` supplies the *primary* cost bucket, but a single
+        step can legitimately query both the skill bank AND memory while
+        still calling a skill — the ``queried_skill`` / ``queried_mem``
+        booleans let the caller add those costs on top without clobbering
+        the primary bucket.
+        """
         cost = 0.0
         at = action_type.upper() if action_type else ""
 
@@ -161,6 +187,14 @@ class RewardComputer:
             cost += self.cfg.query_skill_cost
         elif "CALL_SKILL" in at:
             cost += self.cfg.call_skill_cost
+
+        # Orthogonal query events reported by the actor (PLAN-ACTION-AGENT §4
+        # — reselect and RETRIEVE hops incur costs regardless of whether a
+        # skill is currently active).
+        if queried_skill:
+            cost += self.cfg.query_skill_cost
+        if queried_mem:
+            cost += self.cfg.query_mem_cost
 
         if active_skill_id != self._prev_skill_id and self._prev_skill_id is not None:
             cost += self.cfg.skill_switch_cost
@@ -266,6 +300,8 @@ def compute_reward(
     skill_contract: Any = None,
     computer: Optional[RewardComputer] = None,
     config: Optional[RewardConfig] = None,
+    queried_skill: bool = False,
+    queried_mem: bool = False,
 ) -> RewardResult:
     """
     Stateless convenience wrapper. If no ``computer`` is provided, creates a
@@ -280,4 +316,6 @@ def compute_reward(
         observation=observation,
         active_skill_id=active_skill_id,
         skill_contract=skill_contract,
+        queried_skill=queried_skill,
+        queried_mem=queried_mem,
     )

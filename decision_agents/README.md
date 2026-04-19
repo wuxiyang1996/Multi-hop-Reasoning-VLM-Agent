@@ -2,6 +2,172 @@
 
 The Decision Agent module from the **COS-PLAY** co-evolution framework (COLM 2026). Implements the three-stage decision loop described in Section 4.1 of the paper: **skill retrieval** → **intention update** → **action execution**, with composite reward shaping (r_total = r_env + λ_f · r_follow + r_cost).
 
+Two agents ship in this package:
+
+| Agent | Input | Use when |
+|-------|-------|----------|
+| `ActorAgent` (new, schema-native) | Parsed `<state>…</state>` schema from `vlm_wrapper` | You have visual-grounding output. This is the **Agent 1 (Actor)** target from [`plans/PLAN-ACTION-AGENT.md`](../plans/PLAN-ACTION-AGENT.md) §2.3 and the future GRPO training target (Phase 1). |
+| `VLMDecisionAgent` (legacy, text-native) | Raw observation text | You don't yet have VLM grounding wired in (Pipeline A / B below). Kept for backward compatibility with `scripts/qwen3_decision_agent.py` and `inference/run_qwen3_8b_eval.py`. |
+
+Both run the same decision loop shape; the actor just consumes a richer, pre-parsed state and exposes the inner-MDP / skill-interface seams the plan calls out.
+
+---
+
+## ActorAgent — schema-native decision agent
+
+`ActorAgent` implements §1 of `PLAN-ACTION-AGENT.md` end-to-end:
+
+```
+<state> schema (from vlm_wrapper)
+    ↓
+parse_state_schema → StateSchema          # decision_agents/schema_parser.py
+    ↓
+compact_summary + infer_intention         # replaces raw-text compression
+    ↓
+SkillTracker.should_reselect              # decision_agents/skill_tracker.py
+    ↓ (if reselect)
+SkillProvider.select(query, schema, ...)  # decision_agents/skill_interface.py
+    ↓
+SkillTracker.activate → slot coverage     # PLAN §10
+    ↓
+HopPolicy.select_next_hop × N             # decision_agents/inner_mdp.py
+    ↓ (EXECUTE)
+action prompt → LLM                       # schema + skill + valid actions
+    ↓
+resolve_entity_action(click(e5))          # PLAN §7 Phase 3
+    ↓
+anti-repetition guard
+    ↓
+env.step(action)                          # driven by the runner
+    ↓
+SkillTracker.record_step + RewardComputer
+    ↓
+SkillProvider.record_outcome (on skill end)
+```
+
+### Dependency injection
+
+Every piece with a `…Provider` / `…Policy` name is injectable so later phases of the plan can swap implementations without changing `ActorAgent`:
+
+| Interface | Default | Swap-in for |
+|-----------|---------|-------------|
+| `SkillProvider` | `NullSkillProvider` (skill-free) or `SkillBankProvider(bank)` (RAG) | Trained Skill-Use Agent (Agent 2) |
+| `HopPolicy` | `HeuristicHopPolicy` (rule-based over schema uncertainty + slot coverage) | `hop_select` LoRA adapter (PLAN §5) |
+| `RewardComputer` | Existing `reward_func.RewardComputer` | Extended reward decomposition (PLAN §6) |
+
+### Skill interface contract
+
+`SkillProvider` is the seam between the actor and anything that knows about skills. Three methods:
+
+| Method | Purpose |
+|--------|---------|
+| `select(query, state_summary, structured_state, current_predicates, top_k) -> list[SkillGuidance]` | Return candidate skills for the current state. |
+| `record_outcome(skill_id, outcome, reward, steps_taken, info)` | Called after every skill attempt terminates (`success` / `abort` / `stall` / `switch` / `timeout`). |
+| `available_skills() -> list[str]` | Enumerate what the provider can return. |
+
+`SkillGuidance` bundles everything the actor renders into the prompt: name, strategy, protocol steps, preconditions, success/abort criteria, required/optional slots (→ drive the GROUND-insertion rule), `eff_add` / `eff_del` effects (→ feed `r_follow`), and a fallback `micro_plan`.
+
+```python
+from decision_agents import ActorAgent, SkillBankProvider, run_actor_episode
+from skill_agents.skill_bank.bank import SkillBankMVP
+from skill_agents.query import SkillQueryEngine
+
+bank = SkillBankMVP("path/to/bank.jsonl"); bank.load()
+engine = SkillQueryEngine(bank=bank)
+
+agent = ActorAgent(
+    model="Qwen/Qwen3-8B",
+    skill_provider=SkillBankProvider(engine),   # or NullSkillProvider() for baseline
+)
+
+episode = run_actor_episode(env, agent=agent, task="Clear the board", max_steps=200)
+```
+
+### Where schemas come from
+
+The runner expects the env (or a wrapper around it) to place the `<state>` text on `info["schema"]` (or `info["schema_text"]`). Override via `schema_from_info=…` when integrating a different wrapper. When the key is missing the actor falls back to the raw-text path (Phase 1), so you can drop `ActorAgent` into existing envs before finishing the VLM wiring.
+
+### Files
+
+| File | What it does |
+|------|--------------|
+| `actor_agent.py` | `ActorAgent`, `ActorDecision`, `ActorState`, `run_actor_episode` |
+| `schema_parser.py` | `StateSchema`, `Entity`, `Targets`, `StateFlags`, `Relation`, `Hop`, `Answer`, `ResolvedAction`, `parse_state_schema`, `resolve_entity_action` |
+| `skill_interface.py` | `SkillProvider` protocol, `SkillGuidance`, `NullSkillProvider`, `SkillBankProvider` |
+| `skill_tracker.py` | `SkillTracker`, `ActivationCheck`, `TrackerState` — lifecycle + slot-coverage (PLAN §10) |
+| `inner_mdp.py` | `HopAction`, `HopStep`, `HopTrace`, `HopPolicy`, `HeuristicHopPolicy` — inner-MDP scaffold (PLAN §5) |
+
+---
+
+## ActorAgent — planned improvements (gaps vs PLAN-ACTION-AGENT.md)
+
+A deep review of `actor_agent.py` against `plans/PLAN-ACTION-AGENT.md` surfaced a handful of places where the code silently diverges from the plan or leaves a plan-promised feature un-wired. This section is the running TODO for closing those gaps. Everything below is additive — existing callers should not need to change.
+
+**Status legend:** ✅ shipped · 🟡 partial · ⬜ pending.
+
+### P0 — genuine divergences from the plan
+
+| # | Status | Gap | Plan ref | Fix (shipped or proposed) |
+|---|--------|-----|----------|---------------------------|
+| 1 | 🟡 | **Inner-MDP hops are logged, not executed.** `_run_inner_mdp` emitted `HopStep`s with no side effects. | §5 (Option A/B), §7 Phase 2 | **Shipped (Option A):** added `InnerScratchpad` on `ActorState`; `_run_inner_mdp` now dispatches through `_apply_hop_side_effect` — `GROUND` updates scratchpad + calls `tracker.clear_ground_flag`, `RETRIEVE` calls `self.memory.query` and stores top-3 hits, `CONCLUDE` appends to `scratchpad.notes`. **Deferred:** Option B visual-tool re-observation between hops. |
+| 2 | ✅ | **`ActivationCheck` is discarded / `clear_ground_flag` never called.** | §10 | **Shipped.** On activation the tracker's `missing_slots` seed `scratchpad.pending_ground_slots`; after every `GROUND` hop the actor calls `tracker.clear_ground_flag(schema)` so the LoRA doesn't have to re-derive Agent 2's deterministic slot-coverage rule. |
+| 3 | ✅ | **`r_cost` never fires for `QUERY_SKILL` / `QUERY_MEM`.** | §4, PLAN-PIPELINE-ORCHESTRATOR §7 | **Shipped.** `ActorDecision` now carries `queried_skill` / `queried_mem`; `observe_result` passes both into `RewardComputer.compute_reward`, which was extended with orthogonal `queried_skill=` / `queried_mem=` kwargs that add the per-event cost on top of the primary `action_type` bucket. |
+| 4 | ✅ | **Intention inference runs _after_ action selection.** | §1 step 2 | **Shipped.** `ActorAgent.step` was re-ordered: `_infer_intention` now runs right after `compact_summary` and before both the reselect decision and `_pick_action`, so the skill-bank query and the action prompt see the current step's intention. |
+| 5 | 🟡 | **Action parsing lacks the multi-strategy fallbacks.** | §1 step 6 | **Shipped:** `_extract_action_from_reply` now returns `(action, parse_path)` and implements exact → numbered (`"1."`/`"2)"`/`"3:"`) → entity-ref → edit distance (`difflib`, case-sensitive + caseless) → token overlap → loose substring → trailing-digit fallback. `parse_path` is logged on `ActorDecision` + `Experience.extras`. **Deferred:** lift into a shared `ActionParser` consumed by `VLMDecisionAgent` + optional RAG-embedding `ActionEmbeddingMatcher`. |
+| 6 | ⬜ | **`r_follow` uses text substring matching even when a schema is present.** | §4 r_follow | **Pending.** Next step: thread an optional `schema` into `RewardComputer.compute_reward` and match `eff_add` against `state_flags` / `entities_by_ontology` / `relations`. |
+
+### P1 — plan-named features the code doesn't expose
+
+| # | Status | Gap | Plan ref | Fix |
+|---|--------|-----|----------|-----|
+| 7 | ⬜ | **No `ContinueSwitchPolicy` seam for Agent 2 GRPO.** | §6 | Abstract `SkillTracker.should_reselect` into a pluggable policy, symmetric with `HopPolicy`. |
+| 8 | ⬜ | **Hop trace is not used for reward shaping.** | §5 "Reward for inner hops" | Cheap online signal: `-cost_per_inner_hop` + bonus when a `GROUND` hop reduces `schema.missing_slots`. Defer full GPT-4o-judged hop-quality reward to offline GRPO. |
+| 9 | ⬜ | **Pipeline-orchestrator log shapes are missing.** | PLAN-PIPELINE-ORCHESTRATOR §2.1/§2.2 | Accept a `TraceContext` dataclass in `ActorAgent.step`; thread `run_id` / `episode_id` / `step_id` / `span_id` / `schema_hash` through `decision.to_dict()` and each `HopStep`. |
+| 10 | ⬜ | **Budget control is only a hop cap.** | PLAN-PIPELINE-ORCHESTRATOR §7 | Accept an optional `BudgetCounter`; decrement in `_select_skill`, `_pick_action`, `_run_inner_mdp`, `memory.query`. On exhaustion, degrade to the deterministic fallbacks already present. |
+| 11 | ✅ | **`progress_notes` are written and never read.** | §1 step 5 | **Shipped.** `_build_action_prompt` now emits `Recent progress: …` from the last 3 notes alongside `Recent actions` / `Recent rewards`. |
+| 12 | ⬜ | **Entity-referenced actions aren't prompted for browser/OSWorld.** | §7 Phase 3 | When the domain is `browser` / `osworld`, append an "Entity-referenced actions you may also emit" section to the prompt, enumerated from `schema.interactive_entities()`. |
+
+### P2 — code-hygiene / smaller items
+
+- ✅ **`ActorDecision.to_dict` dropped `reasoning`** — now emitted alongside `queried_skill`, `queried_mem`, and `parse_path`.
+- ✅ **`_build_default_memory` silently returned `None`** — now logs `DEBUG` / `WARNING` so the missing-memory mode is traceable.
+- ✅ **`_ = json` sentinel at the bottom of `actor_agent.py`** — removed (and the unused `json` import with it).
+- ✅ **`skill_interface.py:506` `f"get_slot_bindings"`** — f-string prefix dropped.
+- ⬜ **`HopAction.VERIFY` is declared but never emitted or consumed.** The dispatcher in `_apply_hop_side_effect` handles it as a logged-only op, so it is now safe to leave in the action space for the future `hop_select` LoRA. Semantics (`VERIFY = re-check after CONCLUDE`) still need to be pinned.
+- ⬜ **Anti-repetition is deterministic** — plan §1 step 7 says "randomly pick". Seed with `Random(hash(episode_id))` or rotate by `len(last_actions)` to avoid 2-action limit cycles.
+- ✅ **Schema's own `task` / `goal` were ignored** — `_build_action_prompt` now falls back to `schema.goal or schema.task` when the caller-supplied `task` is empty.
+
+### Plan-side clarifications the code surfaces
+
+The review also exposed four places where `PLAN-ACTION-AGENT.md` is vaguer than it should be; these will be proposed as plan patches in parallel with the code changes:
+
+1. **§10 slot-coverage insertion responsibility** — currently the plan says `SkillTracker` inserts hop 0, but the code puts the rule in `HopPolicy`. The shipped `_apply_hop_side_effect` now routes the deterministic `clear_ground_flag` call through the tracker so the LoRA does **not** have to relearn the rule; the plan should codify this ownership.
+2. **§5 "scratchpad"** — the word appears once with no definition. The shipped `InnerScratchpad` dataclass (`pending_ground_slots` / `grounded_slots` / `memory_hits` / `notes`) is a concrete proposal; the plan should adopt it.
+3. **§4 cost accounting** — add a table specifying which step emits which cost (reselect → `query_skill_cost`; `RETRIEVE` hop that calls `memory.query` → `query_mem_cost`; `skill_switch_cost` fires iff `active_skill_id` changes). This matches the shipped behaviour.
+4. **§1 step ordering** — explicitly pin intention inference to run *before* reselect/action, matching both the plan's written prose and the shipped code.
+
+### Patch-set log
+
+Shipped so far (all additive — no existing-caller API breaks):
+
+1. ✅ Extended `RewardComputer` with orthogonal `queried_skill` / `queried_mem` cost events.
+2. ✅ Fixed `f"get_slot_bindings"` typo in `skill_interface.py`.
+3. ✅ Added `InnerScratchpad` dataclass and plumbed it onto `ActorState`.
+4. ✅ Extended `ActorDecision` with `queried_skill`, `queried_mem`, `parse_path`; re-exposed `reasoning` in `to_dict`.
+5. ✅ Re-ordered `ActorAgent.step` — intention inference now runs before reselect.
+6. ✅ Refactored `_run_inner_mdp` + new `_apply_hop_side_effect` to actually execute hops (GROUND → `tracker.clear_ground_flag`, RETRIEVE → `self.memory.query`, CONCLUDE → notes).
+7. ✅ Multi-strategy action parser (exact → numbered → entity-ref → edit distance → token overlap → loose → trailing-digit), with a `parse_path` log tag.
+8. ✅ `_build_action_prompt` now renders `Inner reasoning so far`, `Recent progress`, and falls back to `schema.goal` when the caller didn't pass a `task`.
+9. ✅ `observe_result` + `run_actor_episode` thread the new flags into `Experience.extras` (`queried_skill`, `queried_mem`, `parse_path`, `scratchpad`, `reasoning`).
+10. ✅ Removed the dead `_ = json` sentinel; logged the `_build_default_memory` fallback path.
+11. ✅ Tests: 13 new cases covering reselect cost, scratchpad grounding, RETRIEVE-hop memory wiring, `to_dict` shape, and the parser pipeline.
+
+Still open (see tables above): #1-OptionB, #5-sharedActionParser, #6, #7, #8, #9, #10, #12, VERIFY semantics, anti-repetition randomness.
+
+---
+
+## Legacy VLMDecisionAgent (text-native, Pipeline A / B)
+
 **Two model backends:**
 
 - **GPT-5.4** (training-free) — used for cold-start data generation and labeling via OpenRouter / OpenAI API.
