@@ -54,6 +54,44 @@ Default chains (`vlm_wrapper.ground._ESCALATION_CHAINS`):
 
 Opt-in legacy chains that start with the heuristic are exposed via `vlm_wrapper.ground._HEURISTIC_CHAINS` for callers that want them explicitly.
 
+### Five-domain feasibility snapshot
+
+This table is the quick answer to *"does the inference pipeline work end-to-end for every domain in the milestones plan?"*  Each row is wired into `cascaded_ground()` today, validated by `semantic_validate` with domain-specific rules, and covered by a live test in `vlm_wrapper/tests/test_gpt4o_parsers.py`.
+
+| Domain (plan name) | `cascaded_ground` chain | Tool registry composed | Required schema sections | Entity min | Benchmark data on disk | Live test |
+|---|---|---|---|---|---|---|
+| `gymv` (Gym-V) | `vlm → tool_loop` | `tools_visual` + `tools_gymv` | `entities, attributes, state_flags, targets, actions` | 3 | N/A — env-provided frames | `test_live_gymv_schema`, `test_live_gymv_tool_loop_schema` |
+| `browser` (BrowserGym) | `vlm → omniparser → tool_loop` | `tools_visual` + `tools_browser` | `entities, attributes, state_flags, targets, actions` | 5 | N/A — env-provided obs | `test_live_browser_schema` |
+| `desktop` (OSWorld) | `omniparser → vlm → tool_loop` | `tools_visual` + `tools_osworld` | `entities, attributes, state_flags, targets, actions` | 5 | N/A — env-provided obs | `test_live_desktop_schema` |
+| `image_qa` (CLEVR) | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | `data/CLEVR/CLEVR_v1.0/` ✅ | `test_live_clevr_schema` |
+| `video_qa` (Video-Holmes) | `tool_loop` only | `tools_video_visual` (temporal + visual + cross-frame) | `entities, state_flags, targets, evidence, answer` | 1 | `data/Video-Holmes/Benchmark/` ✅ | `test_live_video_holmes_schema` |
+
+**Intentional design choices (not bugs):**
+
+- **No text-heuristic head for `desktop`** — OSWorld a11y trees are noisy and the OmniParser image path is both more reliable and faster.
+- **`video_qa` starts at `tool_loop`** — video QA is temporal reasoning; a single-shot VLM over a frame grid wastes context and can't call `sample_frames` / `find_moment` / `track_object`.  The `vlm` head is still reachable via `chain=["vlm", "tool_loop"]` if you want it.
+- **`browser` OmniParser fallback is observable** — when `context["obs"]` is missing (e.g. raw screenshot only), `_attempt_omniparser` falls back to image-only grounding and appends an explicit warning to the `GroundingResult.warnings` list so the cascade telemetry records the degraded mode.
+- **Head 2 is a single code path** — `_attempt_vlm` for `gymv` / `browser` / `desktop` delegates to the same `generate_label` adapter that data-collection scripts call directly. No prompt drift between "Head 2 inside cascade" and "Head 2 at labeling time".
+
+**Not yet wired (Phase-0 TODOs, not feasibility blockers):**
+
+- GQA and SIV-Bench loaders under `benchmarks/` — follow the `clevr.py` / `video_holmes.py` pattern and they drop straight into the `image_qa` / `video_qa` chains.
+- Dual-teacher data collection scripts (`labeling/teachers.py`, `labeling/collect_*.py`).
+- Schema-vs-teacher cross-validation harness and ablation-study evaluation harness.
+
+See [`plans/PLAN-VISUAL-GROUNDING-MILESTONES.md §7`](../plans/PLAN-VISUAL-GROUNDING-MILESTONES.md) for the canonical status list.
+
+### Adapter vs. `cascaded_ground` — when to use which
+
+There are two shapes of Head-2 entry points.  They now share a single implementation; the difference is the call site and what you get back:
+
+| Entry point | Return type | Good for |
+|---|---|---|
+| `gymv_adapter.generate_label(image, …)` <br> `browser_adapter.generate_label(image, …)` <br> `osworld_adapter.generate_label(image, …)` | `dict` with `schema / raw / warnings / model / validation` | Data-collection loops that step through an env and log one schema per step, or pytest fixtures that want a deterministic single call. |
+| `cascaded_ground(GroundingRequest(...))` | `GroundingResult` with `schema / evidence / tool_trace / validation / head_used / escalation_trace` | Runtime inference where you want the cascade to escalate to OmniParser / the tool loop if the single-shot schema fails validation.  This is the path the decision-agent pipeline calls. |
+
+Internally, `cascaded_ground → _attempt_vlm → generate_label` for `gymv` / `browser` / `desktop`, so there is one prompt + one validator on both paths.
+
 ---
 
 ## Schema structure

@@ -455,12 +455,32 @@ Return best attempt + high uncertainty flags (Path C candidate)
 | Demo script | **Done** | — |
 | **Semantic schema validator** | **Done** | Week 1 |
 | **Cascaded head escalation** | **Done** | Week 2 |
-| **Benchmark loaders** (CLEVR, GQA, SIV-Bench, Video-Holmes) | **TODO** | Week 6 |
+| **Benchmark loaders** — CLEVR | **Done** | Week 6 |
+| **Benchmark loaders** — Video-Holmes | **Done** | Week 6 |
+| **Benchmark loaders** — GQA, SIV-Bench | **TODO** | Week 6 |
 | **Evaluation harness** | **TODO** | Week 4 |
 | **Re-observation (Option B) for GROUND hops** | **Done** | Week 8 |
 | **Qwen3-VL-8B training pipeline** | **TODO** | Week 3 |
 | **Data collection scripts** (Gym-V, BrowserGym) | **TODO** | Week 1 |
-| **Actor schema integration** | **TODO** | Week 7 |
+| **Actor schema integration** | **Done** | Week 7 |
+
+### Five-domain pipeline feasibility (snapshot 2026-04-19)
+
+Inference-time pipeline is green on all five milestone tasks. Each row is wired end-to-end into `vlm_wrapper.ground.cascaded_ground()` and covered by a live test.
+
+| Domain | Chain (`_ESCALATION_CHAINS`) | Tool registry | Required sections | Entity min | Benchmark data | Live test (in `vlm_wrapper/tests/test_gpt4o_parsers.py`) |
+|---|---|---|---|---:|---|---|
+| `gymv` | `vlm → tool_loop` | `tools_visual + tools_gymv` | `entities, attributes, state_flags, targets, actions` | 3 | env-provided | `test_live_gymv_schema`, `test_live_gymv_tool_loop_schema` |
+| `browser` | `vlm → omniparser → tool_loop` | `tools_visual + tools_browser` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `test_live_browser_schema` |
+| `desktop` | `omniparser → vlm → tool_loop` | `tools_visual + tools_osworld` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `test_live_desktop_schema` |
+| `image_qa` | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | `data/CLEVR/CLEVR_v1.0/` ✅ | `test_live_clevr_schema` |
+| `video_qa` | `tool_loop` | `tools_video_visual` (temporal + visual + cross-frame) | `entities, state_flags, targets, evidence, answer` | 1 | `data/Video-Holmes/Benchmark/` ✅ | `test_live_video_holmes_schema` |
+
+**Design choices locked in (by code + test, not just plan):**
+- `desktop` has no text-heuristic head (a11y trees are too noisy; OmniParser + VLM covers it).
+- `video_qa` starts at `tool_loop` because single-shot VLM over a frame grid can't call `sample_frames` / `find_moment` / `track_object`.  The `vlm` head is still reachable via `chain=["vlm", "tool_loop"]`.
+- `browser` OmniParser fallback (when `context["obs"]` lacks `screenshot`) now appends an explicit warning to `GroundingResult.warnings` so the cascade telemetry records the degraded mode — it no longer silently runs image-only.
+- Head 2 (`_attempt_vlm`) for `gymv` / `browser` / `desktop` delegates to the same `generate_label` adapter that data-collection scripts call directly, so there is exactly one prompt + one validator on both the cascade path and the labeling path.
 
 ---
 

@@ -686,7 +686,17 @@ def _attempt_omniparser(req: GroundingRequest, domain: str,
                 )
             else:
                 # Fall back to the raw image path when the browsergym obs
-                # is missing the screenshot field.
+                # is missing the screenshot field.  We emit an explicit
+                # warning so the cascade telemetry records the degraded
+                # mode — without ``obs`` the OmniParser head loses bid /
+                # role grounding and downstream skill selection can't
+                # bind ``click(bid)`` actions cleanly.
+                why = (
+                    "no context['obs'] dict with 'screenshot' for browser;"
+                    " running OmniParser on the raw image (no bid grounding)"
+                )
+                logger.warning("omniparser fallback: %s", why)
+                warnings.append(why)
                 from .grounding_browsergym import grounding_image_to_schema
                 out = grounding_image_to_schema(
                     primary_image,
@@ -727,14 +737,23 @@ def _attempt_omniparser(req: GroundingRequest, domain: str,
 
 def _attempt_vlm(req: GroundingRequest, domain: str,
                  primary_image: Image.Image) -> GroundingResult:
-    """Head 2 — direct VLM schema generation (no tools).
+    """Head 2 — direct single-shot VLM schema generation (no tools).
 
-    We use a short tool-loop with ``max_rounds=1`` so the VLM produces
-    the schema in a single shot.  That keeps this head strictly cheaper
-    than the full tool loop below.
+    For ``gymv`` / ``browser`` / ``desktop`` we delegate to the domain's
+    ``generate_label`` adapter so Head 2 in the cascade and Head 2 as
+    called directly by data-collection scripts share exactly one code
+    path (same prompt, same extra-context assembly, same retry and
+    validation semantics).  For ``image_qa`` / ``video_qa`` / ``video``
+    there are no dedicated single-shot adapters, so we fall back to
+    ``ground()`` with ``max_rounds=1`` — functionally single-shot
+    because the VLM is given tools but, at temperature ~0.2 and with an
+    aggressive system prompt, almost always emits the schema directly.
     """
+    if domain in ("gymv", "browser", "desktop"):
+        return _attempt_vlm_via_adapter(req, domain, primary_image)
+
     shortcut = GroundingRequest(
-        images=primary_image,
+        images=req.images if isinstance(req.images, list) else primary_image,
         goal=req.goal,
         domain=domain,
         output_mode=req.output_mode,
@@ -751,6 +770,124 @@ def _attempt_vlm(req: GroundingRequest, domain: str,
     result = ground(shortcut)
     result.head_used = "vlm"
     return result
+
+
+def _attempt_vlm_via_adapter(
+    req: GroundingRequest, domain: str, primary_image: Image.Image,
+) -> GroundingResult:
+    """Single-shot VLM via the per-domain ``generate_label`` adapter."""
+    ctx = req.context
+    output_mode = (
+        req.output_mode
+        if req.output_mode != "auto"
+        else _DOMAIN_TO_OUTPUT_MODE.get(domain, "answer")
+    )
+
+    try:
+        if domain == "gymv":
+            from .gymv_adapter import generate_label as gymv_generate_label
+            # ``show_obs_text=False`` (used by --gymv-head tool_loop) must
+            # also zero out obs_text in the single-shot VLM path — otherwise
+            # the VLM would still see the ground-truth grid and we'd be
+            # validating paraphrasing rather than visual grounding.
+            show_obs_text = ctx.get("show_obs_text", True)
+            out = gymv_generate_label(
+                primary_image,
+                goal=req.goal,
+                task_id=req.task_id,
+                step=req.step,
+                game_rules=ctx.get("description", ""),
+                obs_text=ctx.get("obs_text", "") if show_obs_text else "",
+                valid_actions=ctx.get("valid_actions"),
+                max_entities=req.max_entities,
+                model=req.model,
+                api_key=req.api_key,
+                base_url=req.base_url,
+                temperature=req.temperature,
+            )
+        elif domain == "browser":
+            from .browser_adapter import generate_label as browser_generate_label
+            obs = ctx.get("obs") or {}
+            url = obs.get("url", "") if isinstance(obs, dict) else ""
+            axtree_text = ctx.get("axtree_text", "")
+            if not axtree_text and isinstance(obs, dict):
+                # browsergym helpfully exposes a pre-flattened tree under
+                # ``axtree_txt``; fall through to it when present.
+                axtree_text = obs.get("axtree_txt", "") or ""
+            out = browser_generate_label(
+                primary_image,
+                goal=req.goal,
+                task_id=req.task_id,
+                step=req.step,
+                url=url,
+                axtree_text=axtree_text,
+                last_action=ctx.get("last_action", ""),
+                last_action_error=ctx.get("last_action_error", ""),
+                max_entities=req.max_entities,
+                model=req.model,
+                api_key=req.api_key,
+                base_url=req.base_url,
+                temperature=req.temperature,
+            )
+        elif domain == "desktop":
+            from .osworld_adapter import generate_label as osworld_generate_label
+            out = osworld_generate_label(
+                primary_image,
+                instruction=ctx.get("instruction", req.goal),
+                goal=req.goal,
+                task_id=req.task_id,
+                step=req.step,
+                a11y_tree_xml=ctx.get("a11y_tree_xml", ""),
+                terminal_output=ctx.get("terminal_output", ""),
+                last_action=ctx.get("last_action", ""),
+                last_action_error=ctx.get("last_action_error", ""),
+                max_entities=req.max_entities,
+                model=req.model,
+                api_key=req.api_key,
+                base_url=req.base_url,
+                temperature=req.temperature,
+            )
+        else:  # pragma: no cover — defensive
+            return GroundingResult(
+                warnings=[f"no vlm adapter for domain={domain}"],
+                domain=domain, head_used="vlm", output_mode=output_mode,
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("vlm adapter (%s) failed: %s", domain, exc)
+        return GroundingResult(
+            warnings=[f"vlm adapter failed ({domain}): {exc}"],
+            domain=domain, head_used="vlm", output_mode=output_mode,
+        )
+
+    schema = out.get("schema")
+    answer = parse_answer_from_schema(schema) if schema else None
+    evidence_raw = parse_evidence_from_schema(schema) if schema else []
+    evidence = [
+        HopTrace(
+            hop_id=h.get("hop_id", i + 1),
+            tool=h.get("tool"),
+            result_ref=h.get("result_ref"),
+            frame=h.get("frame"),
+            timestamp=h.get("timestamp"),
+            confidence=h.get("confidence"),
+            raw=h.get("raw", ""),
+        )
+        for i, h in enumerate(evidence_raw)
+    ]
+
+    return GroundingResult(
+        schema=schema,
+        answer=answer,
+        evidence=evidence,
+        raw=out.get("raw", ""),
+        warnings=list(out.get("warnings") or []),
+        model=out.get("model", ""),
+        tool_trace=[],
+        rounds=1,
+        domain=domain,
+        output_mode=output_mode,
+        head_used="vlm",
+    )
 
 
 def _attempt_tool_loop(req: GroundingRequest, domain: str) -> GroundingResult:
