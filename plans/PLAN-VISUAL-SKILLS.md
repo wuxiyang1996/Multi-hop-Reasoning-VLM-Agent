@@ -328,13 +328,13 @@ These are the multi-step grounding strategies that recur across domains, defined
 
 | Skill | Trigger | Protocol (tool chain) | Effect |
 |-------|---------|----------------------|--------|
-| `disambiguate_target` | `candidate_count(target_type) > 1` | GROUND(candidate set) → RETRIEVE(anchor text) → CHECK(spatial relation with anchor) → CONCLUDE(best candidate) | `binding(target)=resolved`, `candidate_count=1` |
-| `recover_target_after_loss` | `was_visible(target) AND not visible(target)` | GROUND(last_known_region) → CHECK(occlusion/scroll/scene_change) → GROUND(expanded_search) → CONCLUDE(reacquired OR lost) | `visible(target)=true` OR `abort: target_permanently_lost` |
-| `ground_by_text_anchor` | `target_label=ambiguous AND nearby_text_exists` | GROUND(text_anchors) → CHECK(proximity to target) → CONCLUDE(target identity from text context) | `binding(target)=resolved`, `confidence(target)≥high` |
-| `ground_by_spatial_relation` | `target_position=uncertain AND anchor_entity_known` | GROUND(anchor_entity) → CHECK(spatial relation) → CONCLUDE(target position from relation) | `localization(target)=precise` |
-| `localize_key_moment` | `domain=video AND temporal_window=unknown` | GROUND(scene boundaries) → CHECK(candidate moments) → GROUND(detail at candidate) → CONCLUDE(event_timestamp) | `temporal_binding=resolved`, `evidence_timestamp=set` |
-| `verify_target_interactable` | `target_bound AND action_pending` | CHECK(target.state != disabled) → CHECK(no blocking_entity) → CHECK(affordance matches action) → CONCLUDE(interactable=true/false) | `affordance(target)=confirmed` OR `abort: not_interactable` |
-| `collect_supporting_evidence` | `evidence_chain_length < required` | GROUND(additional entities) → CHECK(relations to target) → RETRIEVE(prior observations) → CONCLUDE(evidence sufficiency) | `evidence_collected=true`, `confidence(answer)≥τ` |
+| `disambiguate_target` | `candidate_count(target_type) > 1` | GROUND(candidate set) → RETRIEVE(anchor text) → CHECK(spatial relation with anchor) → COMMIT(best candidate) | `binding(target)=resolved`, `candidate_count=1` |
+| `recover_target_after_loss` | `was_visible(target) AND not visible(target)` | GROUND(last_known_region) → CHECK(occlusion/scroll/scene_change) → GROUND(expanded_search) → COMMIT(reacquired OR lost) | `visible(target)=true` OR `abort: target_permanently_lost` |
+| `ground_by_text_anchor` | `target_label=ambiguous AND nearby_text_exists` | GROUND(text_anchors) → CHECK(proximity to target) → COMMIT(target identity from text context) | `binding(target)=resolved`, `confidence(target)≥high` |
+| `ground_by_spatial_relation` | `target_position=uncertain AND anchor_entity_known` | GROUND(anchor_entity) → CHECK(spatial relation) → COMMIT(target position from relation) | `localization(target)=precise` |
+| `localize_key_moment` | `domain=video AND temporal_window=unknown` | GROUND(scene boundaries) → CHECK(candidate moments) → GROUND(detail at candidate) → COMMIT(event_timestamp) | `temporal_binding=resolved`, `evidence_timestamp=set` |
+| `verify_target_interactable` | `target_bound AND action_pending` | CHECK(target.state != disabled) → CHECK(no blocking_entity) → CHECK(affordance matches action) → COMMIT(interactable=true/false) | `affordance(target)=confirmed` OR `abort: not_interactable` |
+| `collect_supporting_evidence` | `evidence_chain_length < required` | GROUND(additional entities) → CHECK(relations to target) → RETRIEVE(prior observations) → COMMIT(evidence sufficiency) | `evidence_collected=true`, `confidence(answer)≥τ` |
 
 ### Grounding skill contracts
 
@@ -363,7 +363,7 @@ plan:
   - GROUND(candidate_set)
   - RETRIEVE(relevant_anchor_text)
   - CHECK(spatial_relation_with_anchor)
-  - CONCLUDE(best_candidate)
+  - COMMIT(best_candidate)
 
 effects:
   - binding(target) = resolved
@@ -558,7 +558,7 @@ Inner MDP: grounding skill "disambiguate_target" triggered
     ↓
 hop1: GROUND(candidate set) via detect_objects
 hop2: CHECK(spatial relation) via spatial_query
-hop3: CONCLUDE(best candidate)
+hop3: COMMIT(best candidate)
     ↓
 Schema updated: binding(e5)=resolved, confidence=high
     ↓

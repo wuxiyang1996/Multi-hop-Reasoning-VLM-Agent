@@ -2,7 +2,7 @@
 
 **Scope:** VLM visual parser — pixels → structured `<state>` schema — across games, browser, desktop, images, and video. Includes grounding heads, observation schema, adapters, training pipeline, benchmark evaluation, and multi-hop tool-calling reasoning.
 
-**Upstream:** Raw observations from Gym-V, BrowserGym, OSWorld, image/video benchmarks.
+**Upstream:** Raw observations from three interactive runtimes — [Gym-V](https://github.com/ModalMinds/gym-v) (179 procedurally-generated visual environments with a Gymnasium-compatible API, across single-turn reasoning / multi-turn games / spatial navigation / retro arcade), [BrowserGym](https://github.com/ServiceNow/BrowserGym) (MiniWoB++ / WebArena / VisualWebArena / AssistantBench), [OSWorld](https://github.com/xlang-ai/OSWorld) (desktop tasks over Office/Daily/Professional suites) — plus two offline image/video benchmarks (CLEVR / Video-Holmes). Each runtime is installed in its own conda env because of hard-pinned dependency conflicts (gymnasium 1.2+ for Gym-V vs 0.28 for OSWorld, transformers 4.35 for OSWorld vs 4.51+ for the grounding pipeline); see [`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md).
 **Downstream:** [Action Agent](PLAN-ACTION-AGENT.md) consumes the structured schema; [Skill Bank](PLAN-SKILL-BANK.md) uses schemas for contract learning and retrieval.
 
 ---
@@ -19,17 +19,26 @@ Train a VLM to produce structured scene summaries from visual observations (pixe
 
 Every episode step produces a free (visual input, text state) pair.
 
-**Gym-V**
+**Gym-V — [ModalMinds/gym-v](https://github.com/ModalMinds/gym-v)**
 
-- Visual input: raw frame / short frame stack.
-- Text state: wrapper captions, rules, state descriptions, procedural object/position metadata.
-- Start with the richest wrapper environments; expand as quality allows.
+- Visual input: raw frame / short frame stack from any of the 179 envs.
+- Text state: captions, rules, state descriptions, and structured metadata produced by Gym-V's composable observation wrappers (`Observation(image, text, metadata)`). Agents receive the same `obs["agent_0"].text` that we use as the training label.
+- Start with the richest-text wrappers (games + single-turn reasoning); expand into spatial / temporal as label quality allows. Difficulty presets (levels 0/1/2) give curriculum knobs for free.
+- Env: `gymv` (gymnasium ≥1.2.2).
 
-**BrowserGym**
+**BrowserGym — [ServiceNow/BrowserGym](https://github.com/ServiceNow/BrowserGym)**
 
 - Visual input: screenshot.
 - Text state: AXTree / DOM (element types, labels, form state, validation, hierarchy).
-- Available across all BrowserGym benchmarks (MiniWoB++, WebArena, VisualWebArena, WorkArena).
+- Available across MiniWoB++, WebArena, VisualWebArena, AssistantBench, and the WorkArena fork (optional `--no-deps` install).
+- Env: `browsergym` (playwright==1.44).
+
+**OSWorld — [xlang-ai/OSWorld](https://github.com/xlang-ai/OSWorld)**
+
+- Visual input: desktop screenshot at 1920×1080.
+- Text state: a11y tree extracted from the guest VM via `desktop-env`'s pyautogui / lxml adapters.
+- 369 tasks across Office / Daily / Professional suites; tasks drive VMware, VirtualBox, Docker, or AWS backends.
+- Env: `osworld` (gymnasium~=0.28.1, transformers~=4.35.2).
 
 No labeling pipeline needed — run episodes, collect pairs.
 
@@ -111,7 +120,7 @@ a2={action_string}
 - No nested braces/brackets beyond one level — critical for 8B model reliability.
 - Total token count for a typical web page: ~400–600 tokens. For a game frame: ~200–400 tokens.
 
-**Schema as inner MDP state:** Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)), this schema is the state representation for the inner reasoning MDP. Each GROUND/CHECK hop updates entities, relations, or uncertainty. The `<targets>` and `<uncertainty>` sections drive the agent's decision to continue reasoning (more hops) or act (EXECUTE). Shared slot names (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`) are the vocabulary that makes reasoning skills transferable across domains.
+**Schema as inner MDP state:** Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), this schema is the state representation for the inner reasoning MDP. Each GROUND/CHECK hop updates entities, relations, or uncertainty. The `<targets>` and `<uncertainty>` sections drive the agent's decision to continue reasoning (more hops) or act (EXECUTE). Shared slot names (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`) are the vocabulary that makes reasoning skills transferable across domains.
 
 ### 3b. Design constraints for small VLM (Qwen3-VL-8B)
 
@@ -168,7 +177,7 @@ Uses Microsoft's OmniParser-v2 (YOLO icon detector + Florence-2 icon captioner +
 
 VLM sees screenshot + system prompt + tool definitions → calls tools to gather ground-truth data → produces final schema. The trace becomes SFT data.
 
-Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)), each tool call in the loop maps to an inner MDP action:
+Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), each tool call in the loop maps to an inner MDP action:
 
 | Tool call pattern | Inner MDP action | Schema update |
 |-------------------|-----------------|---------------|
@@ -176,7 +185,7 @@ Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level
 | `spatial_query`, `check_relation` | CHECK(predicate) | Update relations, state_flags |
 | `describe_region`, `classify_scene` | GROUND(detail) | Refine attributes, reduce uncertainty |
 | `get_frame`, `sample_frames` | GROUND(temporal) | Add temporal entities/events |
-| Final schema output | CONCLUDE or EXECUTE | Complete schema for downstream |
+| Final schema output | COMMIT or EXECUTE | Complete schema for downstream |
 
 **Design decision — re-observation between hops:**
 - **Option A (default):** Hops operate on the same `<state>` schema, only updating an internal scratchpad. Cheaper, faster. Used for games/web.
@@ -519,7 +528,7 @@ hop3: EXECUTE(action)
 
 The `<uncertainty>` section is the communication channel between grounding and reasoning.  Grounding flags what it's unsure about; reasoning decides whether to investigate or act despite uncertainty.  **This is why grounding doesn't need skills** — the reasoning skills already include GROUND as their first hop when information is missing.
 
-The `hop_select` LoRA adapter (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)) learns this trade-off end-to-end via GRPO: when is more grounding worth the cost versus acting on partial info?
+The `hop_select` LoRA adapter (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)) learns this trade-off end-to-end via GRPO: when is more grounding worth the cost versus acting on partial info?
 
 ### Layer 4 — Skill-level slot coverage (before skill execution)
 

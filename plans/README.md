@@ -28,11 +28,12 @@ Pixels (game frame / screenshot / video)
 |---|------|-------|
 | 1 | **[Visual Grounding](PLAN-VISUAL-GROUNDING.md)** | VLM parser, canonical schema, grounding heads (heuristic, vision, OmniParser, tool loop), domain adapters (Gym-V, BrowserGym, OSWorld), benchmark evaluation (CLEVR, GQA, SIV-Bench, Video-Holmes), schema completeness guarantee (§12), Qwen3-VL-8B training |
 | 1b | **[Visual Grounding Milestones](PLAN-VISUAL-GROUNDING-MILESTONES.md)** | Concrete execution plan: 5-stage inference pipeline, routing policy (Path A/B/C), training phases 0–4, week-by-week schedule, 7 ablations, success criteria |
-| 2 | **[Action Agent](PLAN-ACTION-AGENT.md)** | Two-level MDP (outer env + inner reasoning hops), decision loop, GROUND/CHECK/RETRIEVE/CONCLUDE/EXECUTE inner actions, **7B/8B capability assessment (§2)**, **three-agent role split (§2)**, **co-evolution & GRPO decomposition (§6)**, **training schedule & timescale separation (§6)**, uncertainty-driven GROUND triggering (§10), tiered model architecture (Tier 0/1/2), reward shaping (r_env + r_follow + r_cost) |
+| 2 | **[Action Agent](PLAN-ACTION-AGENT.md)** | Two-level MDP (outer env + inner reasoning hops), decision loop, GROUND/CHECK/RETRIEVE/COMMIT/EXECUTE inner actions, **7B/8B capability assessment (§2)**, **three-agent role split (§2)**, **co-evolution & GRPO decomposition (§6)**, **training schedule & timescale separation (§6)**, uncertainty-driven GROUND triggering (§10), tiered model architecture (Tier 0/1/2), reward shaping (r_env + r_follow + r_cost) |
 | 3 | **[Skill Bank](PLAN-SKILL-BANK.md)** | **Cross-task** skill bank for reasoning and control across games, web, video, visual reasoning, and embodied tasks. Skill as structured-state program (§0.5), shared inner primitives + adapter-based binding (§1.5), unified structured state interface with entity ontology (§3), typed slots + domain adapters in data model (§4), 5-stage pipeline, effect families + 3-layer hierarchy (§8), 6 transferable skill families (§9), **asymmetric GRPO co-evolution with acceptance gates (§7)**, phase detection across domains (§5), query/select API with cross-domain retrieval (§6) |
 | 4 | **[Skill Crafter](PLAN-SKILL-CRAFTER.md)** | Skill composition (effect chaining + hop protocol chaining), cross-domain generalization (schema-slot transfer), transferable skill families (4 cross-domain families), novel skill hypothesis, **frozen teacher design with phased adaptation policy (§2)**, **frozen teacher improvement channels (§2)**, failure reflection & counterfactual reasoning, integration with visual grounding tool traces |
 | 5 | **[Visual Skills](PLAN-VISUAL-SKILLS.md)** *(optional)* | Transferable visual grounding strategies as skills — unified skill format for cross-domain transfer (preconditions/effects/slots/adapters), two kinds of effects (world vs belief/grounding), effect families, cross-domain entity ontology, three-layer skill bank hierarchy, automatic skill discovery from state transitions |
 | 6 | **[Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md)** | End-to-end harness — rollout DAG (online + offline), unified artifact/log schema, centralized acceptance gate with promotion/rollback, memory integration contracts, training cadence by timescale, full-system evaluation matrix, budget controller, failure escalation and human audit points |
+| 7 | **[Skill Harness](PLAN-HARNESS.md)** | Per-invocation runtime for skill use, validation, and transfer — `SkillEpisode`, `SkillHarness`, `AdapterRegistry`, `TransferManager`, `ReplayValidator`, `RewardLogger`; semantic-skill vs. domain-adapter separation; two-phase shadow→active transfer protocol; five-gate promotion (binding / adapter / replay / shadow / non-regression); Phase 0+1 as the immediate implementation target; composes with Pipeline Orchestrator (macro DAG) as its micro runtime |
 
 **Design reference:** [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md) — the two-level MDP framing that unifies the component plans (grounding through bank/crafter); the [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) specifies cross-cutting execution and gates.
 
@@ -77,23 +78,23 @@ a1=click(e1)
 
 `target`, `blocker`, `constraint`, `candidate_set`, `history_anchor` — used by all four plans for downstream skill transfer.
 
-### Two-level MDP (long-horizon reasoning)
+### Two-level MDP (with a lightweight inner loop)
 
-Multi-hop visual reasoning is reframed as a **long-horizon interaction** problem (see [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md)). Each reasoning hop becomes an explicit step in an inner MDP:
+Multi-hop visual reasoning is framed as a **two-level MDP** (see [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md)). The outer level is the environment; the inner level is a **lightweight typed control loop** — not a free-form reasoning generator:
 
 ```
 ┌── OUTER MDP (environment level) ──────────────────────┐
 │  State: screenshot + task    Action: click/type/move   │
 │                                                        │
-│  ┌── INNER MDP (reasoning level) ──────────────────┐  │
-│  │  State: <state> schema + hop trace              │  │
-│  │  Actions: GROUND | CHECK | RETRIEVE | CONCLUDE  │  │
+│  ┌── INNER MDP (typed local control, ≤3 hops) ────┐  │
+│  │  State: <state> schema + short typed trace      │  │
+│  │  Actions: GROUND | CHECK | RETRIEVE | COMMIT    │  │
 │  │           | EXECUTE (exits inner loop)           │  │
 │  └─────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────┘
 ```
 
-The agent **learns when to stop reasoning and act**. Skills capture *how to think* (reasoning hop chains), not just *what to do*. GRPO optimizes the full reasoning chain end-to-end. See [Action Agent §5](PLAN-ACTION-AGENT.md) for the full design.
+Online hop depth is capped at 0–2 by default and ≤3 under uncertainty. `hop_select` is a constrained typed next-hop router (not a mini planner). Skills still capture *how to think* (short typed hop chains), not just *what to do*. GRPO optimizes actor heads end-to-end, but heavy reasoning — failure diagnosis, skill composition, transfer, new skill invention — is strictly offline (32B/72B). See [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control) for the full design.
 
 ### Three-agent role split & model convention
 
@@ -120,7 +121,7 @@ The system decomposes into three logical agents with distinct model assignments 
 | Adapter | Agent | Purpose | Plan |
 |---------|-------|---------|------|
 | `schema_gen` | Agent 1 | Screenshot → `<state>` schema | [Visual Grounding](PLAN-VISUAL-GROUNDING.md) |
-| `hop_select` | Agent 1 | Schema + trace → next reasoning action | [Action Agent](PLAN-ACTION-AGENT.md) |
+| `hop_select` | Agent 1 | Typed next-hop router: schema + short typed trace → `(NEXT_HOP, TARGET)` from `{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}`; 0–3 hop cap | [Action Agent](PLAN-ACTION-AGENT.md) |
 | `skill_select` | Agent 1 | Schema → which reasoning skill to invoke | [Action Agent](PLAN-ACTION-AGENT.md) / [Skill Bank](PLAN-SKILL-BANK.md) |
 | `segment` | Agent 2 | Trajectory → skill boundary detection | [Skill Bank](PLAN-SKILL-BANK.md) |
 | `contract` | Agent 2 | Segment → effects contract | [Skill Bank](PLAN-SKILL-BANK.md) |

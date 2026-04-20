@@ -8,7 +8,7 @@ This repo is closer than the Video_Skills one. It still does not explicitly say 
 
 - The plans define a shared end-to-end pipeline: **Visual Grounding → Action Agent → Skill Bank → Skill Crafter**, with feedback loops between them. That is basically a **system runtime layout**, which is a core part of a harness.
 
-- The Action Agent plan explicitly includes a **decision loop** and a **two-level MDP** with inner actions like **GROUND | CHECK | RETRIEVE | CONCLUDE | EXECUTE**. That is very harness-like because it specifies how an episode is stepped and controlled.
+- The Action Agent plan explicitly includes a **decision loop** and a **two-level MDP** with inner actions like **GROUND | CHECK | RETRIEVE | COMMIT | EXECUTE**. That is very harness-like because it specifies how an episode is stepped and controlled.
 
 - The Skill Bank plan includes a **query/select API** with cross-domain retrieval, plus **shared primitives**, **adapters**, and a **unified structured state interface**. That is the closest thing here to an MCP-like interface layer, though it is still repo-specific rather than a standardized protocol.
 

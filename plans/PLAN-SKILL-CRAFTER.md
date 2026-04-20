@@ -314,7 +314,7 @@ FailureTrace(
         HopRecord(step=0, action="GROUND", input="locate highest tile", output="tile_256 at (0,0)", status="ok"),
         HopRecord(step=1, action="CHECK",  input="adjacent mergeable?", output="tile_128 at (0,1)", status="ok"),
         HopRecord(step=2, action="EXECUTE", input="merge (0,0)+(0,1)", output="blocked by tile_64", status="FAIL"),
-        HopRecord(step=3, action="CONCLUDE", input="—", output="—", status="skipped"),
+        HopRecord(step=3, action="COMMIT", input="—", output="—", status="skipped"),
     ],
     failure_step=2,
     failure_type="precondition_violated",
@@ -556,7 +556,7 @@ Counterfactual reasoning applies at every level of the two-level MDP:
 | **Skill-level** (outer MDP) | Skill selection decision point | "What if we'd selected POSITION_corner instead of MERGE_chain at this state?" | Medium — requires state schema at selection moment + candidate skill set |
 | **Composition-level** (Composer) | Proposed skill compositions | "What if we'd composed sequence(A, B) instead of sequence(A, C)?" | High — simulates alternative effect chains against representative states |
 
-**Action-level counterfactuals** operate on the `HopRecord` sequence within a single skill execution. The Failure Reflector already captures the `context_snapshot` at each step — the counterfactual pass feeds this snapshot to the LLM along with each alternative inner action (from the inner action vocabulary: GROUND, CHECK, RETRIEVE, CONCLUDE, EXECUTE) and asks for the predicted downstream outcome. This is the cheapest level and runs as Pass 4 of failure diagnosis (see §6.4).
+**Action-level counterfactuals** operate on the `HopRecord` sequence within a single skill execution. The Failure Reflector already captures the `context_snapshot` at each step — the counterfactual pass feeds this snapshot to the LLM along with each alternative inner action (from the inner action vocabulary: GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE) and asks for the predicted downstream outcome. This is the cheapest level and runs as Pass 4 of failure diagnosis (see §6.4).
 
 **Skill-level counterfactuals** operate on the skill selection decision points logged by `_SkillTracker`. They require the state schema at the selection moment plus the set of candidate skills that were scored but not chosen — both already available from `select_skill_from_bank()` scoring (see [Action Agent §3](PLAN-ACTION-AGENT.md#3-skill-guided-decision-making)). For each runner-up skill, the LLM predicts whether its protocol would have avoided the failure, given the state at that moment.
 
@@ -678,7 +678,7 @@ Recovery proposals (§6.5) now have access to the `CounterfactualTrace`: the `be
 
 > **Note:** Failure reflection (§6) applies to reasoning chains within these skill families — when a locate→filter→select chain fails at the "filter" step, the reflector localizes that step, diagnoses why the filter criteria were wrong, and proposes a protocol patch or fallback.
 
-Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)), the Skill Crafter composes and transfers *reasoning policies* — not single-call chain-of-thought templates, but actual multi-step policies that can be trained, composed, and transferred across domains.
+Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), the Skill Crafter composes and transfers *reasoning policies* — not single-call chain-of-thought templates, but actual multi-step policies that can be trained, composed, and transferred across domains.
 
 ### Cross-domain skill families
 
@@ -689,23 +689,23 @@ Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level
 | **History → hidden state → act** | Dialogue → alliance/threat | Prior pages → next step | Prior frames → disambiguate |
 | **Compare under future constraint** | Move preserving structure | Path lowering risk/steps | Candidate consistent with constraints |
 
-Each family is a reusable multi-step reasoning policy whose protocol maps to inner MDP actions (GROUND, CHECK, RETRIEVE, CONCLUDE, EXECUTE).
+Each family is a reusable multi-step reasoning policy whose protocol maps to inner MDP actions (GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE).
 
 ### Composition under the inner MDP
 
 Skill composition (§2) gains a new dimension: composing *reasoning hops* rather than just environment actions.
 
-- **Sequence composition** now chains hop protocols: Skill A's CONCLUDE feeds Skill B's GROUND trigger.
+- **Sequence composition** now chains hop protocols: Skill A's COMMIT feeds Skill B's GROUND trigger.
 - **Fallback composition** tries alternative reasoning strategies: if GROUND fails to locate the entity, fall back to RETRIEVE from memory.
 - **Nested composition**: an inner RETRIEVE hop can invoke a sub-skill's entire reasoning protocol.
 
 ### Transfer via shared reasoning vocabulary
 
-Because all domains share the same inner action vocabulary (GROUND, CHECK, RETRIEVE, CONCLUDE, EXECUTE) and the same `<state>` schema structure, transfer becomes a matter of **schema-slot mapping** rather than domain-specific engineering:
+Because all domains share the same inner action vocabulary (GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE) and the same `<state>` schema structure, transfer becomes a matter of **schema-slot mapping** rather than domain-specific engineering:
 
 1. **Source domain** skill: `Locate → filter → select` over entities {piece, obstacle, board_position} in a game.
 2. **Target domain** mapping: {piece → form_field, obstacle → validation_error, board_position → form_section} in browser.
-3. **Reasoning protocol** is unchanged: GROUND(target) → CHECK(constraints) → CONCLUDE(best) → EXECUTE(action).
+3. **Reasoning protocol** is unchanged: GROUND(target) → CHECK(constraints) → COMMIT(best) → EXECUTE(action).
 
 ---
 

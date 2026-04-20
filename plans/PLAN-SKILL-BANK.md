@@ -91,14 +91,14 @@ Different environments are mapped to a common typed state interface (§3). The c
 
 ### 2. Shared inner primitives
 
-Skills are written using reusable reasoning/control primitives from the inner MDP action vocabulary (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)):
+Skills are written using reusable reasoning/control primitives from the inner MDP action vocabulary (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)):
 
 | Primitive | Purpose |
 |-----------|---------|
 | `GROUND` | Locate / bind entities from visual or structured input |
 | `CHECK` | Verify a relation, attribute, or constraint |
 | `RETRIEVE` | Query skill bank, memory, or prior observations |
-| `CONCLUDE` | Commit an intermediate result or subgoal |
+| `COMMIT` | Commit an intermediate result or subgoal |
 | `ACT` / `EXECUTE` | Emit an environment action (exits inner loop) |
 | `VERIFY` | Confirm that expected effects hold after execution |
 
@@ -333,7 +333,7 @@ Each skill has three logical parts:
 
 ### 4.4. Reasoning skills (inner MDP hop chain templates)
 
-Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-two-level-mdp-long-horizon-reasoning)), skills capture *how to think*, not just *what to do*. Each reasoning skill is a multi-step policy over inner MDP actions (GROUND, CHECK, RETRIEVE, CONCLUDE, EXECUTE).
+Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), skills capture *how to think*, not just *what to do*. Each reasoning skill is a multi-step policy over inner MDP actions (GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE).
 
 **Example reasoning skill:**
 
@@ -349,7 +349,7 @@ protocol:
   hop1: GROUND(blocker entity)
   hop2: CHECK(what constraint is violated)
   hop3: RETRIEVE(similar past resolution)
-  hop4: CONCLUDE(subgoal = resolve blocker first)
+  hop4: COMMIT(subgoal = resolve blocker first)
   hop5: EXECUTE(action addressing blocker)
 effects:
   eff_add: [blocker_resolved, constraint_satisfied]
@@ -374,7 +374,7 @@ slots:
 protocol:
   hop1: GROUND(candidate_set)
   hop2: CHECK(filter_criterion against each candidate)
-  hop3: CONCLUDE(best candidate)
+  hop3: COMMIT(best candidate)
   hop4: EXECUTE(select best)
 effects:
   eff_add: [target_selected, candidate_resolved]
@@ -640,19 +640,19 @@ Each transferable skill wraps the concrete `Skill` schema with cross-domain abst
 |-----------|---------|
 | **SlotBinding** | Maps domain predicates to shared ontology slots (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`) |
 | **AbstractPredicate** | Parameterised eff_add/eff_del using `$slot` placeholders, with per-domain instantiations |
-| **ReasoningProtocol** | Hop chain template using inner MDP actions (GROUND → CHECK → RETRIEVE → CONCLUDE → EXECUTE) |
+| **ReasoningProtocol** | Hop chain template using inner MDP actions (GROUND → CHECK → RETRIEVE → COMMIT → EXECUTE) |
 | **DomainAdapters** | Per-domain execution realizations (tool calls, action bindings) |
 
 ### Transferable skill families
 
 | Family | Hop chain | Game | Browser | Visual QA | Video | Embodied |
 |--------|-----------|------|---------|-----------|-------|----------|
-| **locate_filter_select** | GROUND → CHECK → CONCLUDE → EXECUTE | Candidates → best legal move | UI elements → relevant control | Objects → attributes → answer | Frames → key moment | Objects → grasp target |
-| **blocker_prerequisite_replan** | GROUND → CHECK → RETRIEVE → CONCLUDE → EXECUTE | Deadlock → resolve prerequisite | Disabled control → fill missing field | Weak evidence → gather anchor | Missing context → scan earlier | Obstacle → clear path |
-| **history_hidden_state_act** | RETRIEVE → CHECK → GROUND → CONCLUDE → EXECUTE | Dialogue → infer alliance → act | Prior pages → session state → next step | Prior frames → disambiguate | Earlier scenes → identify person | Prior interactions → predict affordance |
-| **compare_under_constraint** | GROUND → CHECK → CHECK → CONCLUDE → EXECUTE | Move preserving structure | Path minimising risk | Candidate consistent with constraints | Moment consistent with timeline | Action within force/reach limits |
-| **disambiguate_target** | GROUND → RETRIEVE → CHECK → CONCLUDE | Multiple game objects → correct one | Similar UI elements → correct control | Ambiguous objects → correct match | Multiple people → correct track | Cluttered objects → correct grasp |
-| **collect_evidence_chain** | GROUND → CHECK → GROUND → CHECK → CONCLUDE | Multi-step board analysis | Multi-page form verification | Multi-hop visual reasoning | Multi-scene clue chaining | Multi-step task verification |
+| **locate_filter_select** | GROUND → CHECK → COMMIT → EXECUTE | Candidates → best legal move | UI elements → relevant control | Objects → attributes → answer | Frames → key moment | Objects → grasp target |
+| **blocker_prerequisite_replan** | GROUND → CHECK → RETRIEVE → COMMIT → EXECUTE | Deadlock → resolve prerequisite | Disabled control → fill missing field | Weak evidence → gather anchor | Missing context → scan earlier | Obstacle → clear path |
+| **history_hidden_state_act** | RETRIEVE → CHECK → GROUND → COMMIT → EXECUTE | Dialogue → infer alliance → act | Prior pages → session state → next step | Prior frames → disambiguate | Earlier scenes → identify person | Prior interactions → predict affordance |
+| **compare_under_constraint** | GROUND → CHECK → CHECK → COMMIT → EXECUTE | Move preserving structure | Path minimising risk | Candidate consistent with constraints | Moment consistent with timeline | Action within force/reach limits |
+| **disambiguate_target** | GROUND → RETRIEVE → CHECK → COMMIT | Multiple game objects → correct one | Similar UI elements → correct control | Ambiguous objects → correct match | Multiple people → correct track | Cluttered objects → correct grasp |
+| **collect_evidence_chain** | GROUND → CHECK → GROUND → CHECK → COMMIT | Multi-step board analysis | Multi-page form verification | Multi-hop visual reasoning | Multi-scene clue chaining | Multi-step task verification |
 
 ### Extraction pipeline
 

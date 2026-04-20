@@ -118,24 +118,38 @@ Escalation outputs are stored as training examples and fed back into the next SF
 | image_qa | 8B VLM direct → validator → Path B if needed | GroundingDINO auto-selected |
 | video_qa | 8B VLM + video tool loop (always Path B) | Temporal search required |
 
-### Environment / data status (snapshot 2026-04-19)
+### Environment / data status (snapshot 2026-04-20)
 
 Tracks runtime readiness for the five domains. See
-[`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for setup
-commands.
+[`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for
+setup commands. Each runtime is cloned from source and lives in its own
+conda env because their transitive pins conflict (see table note below).
 
-| Domain     | Conda env     | Runtime      | Benchmark       | Data  |
-|------------|---------------|:------------:|-----------------|:-----:|
-| gymv       | `gaming_eval` | **Ready**    | 2048 / Sokoban / Minesweeper         | bundled |
-| browser    | `browsergym`  | **Ready**    | MiniWoB++ / WebArena / VisualWebArena | tasks bundled |
-| desktop    | `osworld`     | **Ready**    | OSWorld                              | Docker pull pending |
-| image_qa   | `bench_vqa` (to create) | env TODO | CLEVR v1.0 | **Downloaded** — 100 000 images + 1 M questions + scene graphs at `data/CLEVR/CLEVR_v1.0/` |
-| video_qa   | `bench_vqa` (shared)    | env TODO | Video-Holmes | **Downloaded** — 503 cropped clips + 1 837 test Qs at `data/Video-Holmes/Benchmark/` |
+| Domain     | Conda env        | Upstream source                                                           | Runtime      | Benchmark       | Data  |
+|------------|------------------|---------------------------------------------------------------------------|:------------:|-----------------|:-----:|
+| gymv       | `gymv`           | [ModalMinds/gym-v](https://github.com/ModalMinds/gym-v)                   | **Ready**    | 179 procedurally-generated visual envs (single-turn / games / spatial / temporal) | bundled in the repo |
+| browser    | `browsergym`     | [ServiceNow/BrowserGym](https://github.com/ServiceNow/BrowserGym)         | **Ready**    | MiniWoB++ / WebArena / VisualWebArena / AssistantBench | tasks bundled; WebArena/VWA need self-hosted sites |
+| desktop    | `osworld`        | [xlang-ai/OSWorld](https://github.com/xlang-ai/OSWorld)                   | **Ready**    | OSWorld (Office, Daily, Professional) | Docker image / VMware VM pulled separately |
+| image_qa   | `vlm_benchmarks` | pip-installed CLEVR/GQA loaders + HF `datasets`                           | **Ready**    | CLEVR v1.0                 | **Downloaded** — 100 000 images + 1 M questions + scene graphs at `data/CLEVR/CLEVR_v1.0/` |
+| video_qa   | `vlm_benchmarks` | pip-installed Video-Holmes/SIV-Bench loaders + `decord`/`av`              | **Ready**    | Video-Holmes               | **Downloaded** — 503 cropped clips + 1 837 test Qs at `data/Video-Holmes/Benchmark/` |
 
-`bench_vqa` is the shared CPython 3.11 + PyTorch env recommended for `image_qa`
-and `video_qa` (single env covers both benchmarks). Only the env wheel install
-remains — the datasets themselves are on disk and have been smoke-tested
-against `vlm_wrapper.schema.build_adaptive_system_prompt`.
+**Why three runtime envs, not one?** The three interactive runtimes have
+hard-pinned dependency sets that cannot co-resolve:
+
+| Package      | gym-v        | BrowserGym | OSWorld / desktop-env |
+|--------------|--------------|------------|-----------------------|
+| `gymnasium`  | `>=1.2.2`    | `>=0.27`   | `~=0.28.1`            |
+| `playwright` | —            | `==1.44`   | unpinned (often 1.5x) |
+| `transformers` | —          | —          | `~=4.35.2`            |
+| `torch`      | —            | (VWA scorer)| `~=2.5.0`            |
+| `tqdm`       | —            | `>=4.66.2` (workarena only) | `~=4.65.0` |
+
+Gymnasium 0.28 → 1.x is an API-breaking transition (signatures, wrapper
+order, termination semantics), so gym-v and OSWorld cannot share an
+interpreter.  BrowserGym-core accepts both ranges, but we keep it in its
+own env so the playwright-1.44 and libwebarena pins don't ripple into
+the grounding stack.  The `vlm_benchmarks` env covers image_qa and
+video_qa plus the full `vlm_wrapper` grounding pipeline.
 
 ---
 
@@ -265,7 +279,7 @@ Output: [tool_call: detect_objects(...)] ... [tool_call: spatial_query(...)] ...
 **Prerequisite:** Phase 2 schema quality is good enough that the actor rarely sees broken schemas.
 
 **What to train:**
-- `hop_select` LoRA: schema + trace → next inner MDP action (GROUND/CHECK/RETRIEVE/CONCLUDE/EXECUTE)
+- `hop_select` LoRA: typed next-hop router — schema + short typed trace → `(NEXT_HOP, TARGET)` from `{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}`, with a 0–3 hop cap (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control))
 - `skill_select` LoRA: schema → which skill to invoke
 - GRPO with trajectory-level reward: `r_env + r_follow + r_cost`
 
@@ -409,7 +423,7 @@ Return best attempt + high uncertainty flags (Path C candidate)
 |---|------|--------|-------------|
 | 5.1 | Wire `<state>` schema into `get_state_summary()` | `decision_agents/agent_helper.py` | Schema-as-input mode |
 | 5.2 | Entity-referenced action format | `decision_agents/agent.py` | `click(e5)` parsing |
-| 5.3 | Inner MDP `hop_select` adapter | `decision_agents/` | GROUND/CHECK/RETRIEVE/CONCLUDE/EXECUTE loop |
+| 5.3 | Lightweight inner-MDP `hop_select` adapter (typed router, ≤3 hops) | `decision_agents/` | `{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}` loop |
 | 5.4 | GRPO training with schema input | `trainer/` | Actor checkpoint |
 | 5.5 | **Ablation A5:** actor with schema vs actor with raw text | `ablation_study/` | Task success rate comparison |
 

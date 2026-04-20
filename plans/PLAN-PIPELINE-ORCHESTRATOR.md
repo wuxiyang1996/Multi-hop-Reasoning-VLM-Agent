@@ -23,7 +23,7 @@ Every environment step (or batched chunk for video):
 ```
 observe (pixels / DOM / API)
   → ground          # Visual Grounding: pixels → <state>
-  → inner_mdp       # Action Agent: GROUND | CHECK | RETRIEVE | CONCLUDE | EXECUTE
+  → inner_mdp       # Action Agent: GROUND | CHECK | RETRIEVE | COMMIT | EXECUTE
   → act             # environment action from valid set
   → log_step        # append to EpisodeTrace (see §2)
 ```
@@ -250,7 +250,7 @@ Centralize **limits** that are currently implicit across plans: one **policy obj
 | Dimension | Example knobs |
 |-----------|----------------|
 | **Token budget** | Max tokens per step, per hop, per episode |
-| **Hop budget** | Max inner actions before forced `CONCLUDE` or `EXECUTE` |
+| **Hop budget** | Max inner hops before forced `EXECUTE`. Default **0–2 hops**; **≤3 hops** under uncertainty. See [Action Agent §5.4](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control). |
 | **Grounding escalation budget** | Max tool/GPT calls; Path C limits |
 | **Replay budget** | Max CPU time per gate stage |
 | **Teacher budget** | Max 32B/72B calls per day; queue discipline |
