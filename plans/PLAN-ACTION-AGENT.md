@@ -27,16 +27,43 @@ experience → Skill Bank ingestion + GRPO buffer
 
 ### Per-step loop
 
-1. **`get_state_summary()`** — deterministic + LLM state compression into `key=value` format (≤400 chars). Prefers `structured_state` from VLM grounding when available.
-2. **`infer_intention()`** — LLM produces a `[TAG] subgoal phrase` from summary + context (last actions, task). Tags: SETUP, CLEAR, MERGE, ATTACK, DEFEND, NAVIGATE, POSITION, COLLECT, BUILD, SURVIVE, OPTIMIZE, EXPLORE, EXECUTE.
-3. **Skill re-selection check** — triggers re-query when: no active skill, duration exceeded, zero-reward stall (≥4 steps), abort/success criteria matched in current state.
-4. **`get_skill_guidance()`** — queries `SkillQueryEngine` (RAG mode) using `game_name + intention + state_text[:1500]` as query, with `structured_state` converted to `{predicate: float}` for applicability scoring. Returns skill_id, protocol, execution_hint, failure_modes.
-5. **`action()`** — builds prompt: system prompt + skill guidance + recent actions/rewards + valid action list → LLM → action.
-6. **`parse_response()`** — multi-strategy action extraction: exact match → numbered selection → substring → edit distance → token overlap → RAG embedding semantic match as final fallback.
-7. **Anti-repetition** — if same action repeated N times with 0 reward, randomly pick alternative.
-8. **`env.step(action)`**
-9. **`_SkillTracker.update()`** — advance protocol step index, track reward-on-skill, switch count.
-10. **Build `Experience`** — state, action, reward, next_state, done, intentions, tasks, sub_tasks (active skill), summary_state, available_actions.
+The actor is decomposed into three explicit layers. Rule-heavy scaffolding runs first; the lightweight inner MDP only activates when local uncertainty cannot be resolved deterministically; the final action head always terminates the step.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer A — Skill Continuation Gate  (mostly rule-heavy)          │
+│  schema update → intention inference → continue / reselect /     │
+│  no-skill decision; stall, duration, success/abort checks        │
+└──────────────────────────┬──────────────────────────────────────┘
+                           ↓  (only if local uncertainty remains)
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer B — Lightweight Inner MDP  (typed, ≤3 hops)               │
+│  GROUND? CHECK? RETRIEVE? COMMIT? — resolve local uncertainty    │
+│  using a short typed trace, then exit to Layer C                 │
+└──────────────────────────┬──────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer C — Final Action Head                                     │
+│  action selection from valid list, parsing / fallback chain,     │
+│  anti-repetition, env.step, experience build                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+Concretely, each step executes:
+
+1. **`get_state_summary()`** — deterministic + LLM state compression into `key=value` format (≤400 chars). Prefers `structured_state` from VLM grounding when available. *(Layer A)*
+2. **`infer_intention()`** — LLM produces a `[TAG] subgoal phrase` from summary + context (last actions, task). Tags: SETUP, CLEAR, MERGE, ATTACK, DEFEND, NAVIGATE, POSITION, COLLECT, BUILD, SURVIVE, OPTIMIZE, EXPLORE, EXECUTE. *(Layer A)*
+3. **Skill continuation gate** — rule-heavy check using `_SkillTracker`: triggers re-query when no active skill, duration exceeded, zero-reward stall (≥4 steps), abort/success criteria matched in current state, or invalid context for the active skill. *(Layer A)*
+4. **`get_skill_guidance()`** — on reselect only: queries `SkillQueryEngine` (RAG mode) using `game_name + intention + state_text[:1500]`, with `structured_state` converted to `{predicate: float}` for applicability scoring. Returns skill_id, protocol, execution_hint, failure_modes. *(Layer A)*
+5. **Lightweight inner MDP** (invoked only if Layer A leaves local uncertainty) — short typed hop sequence from `{GROUND, CHECK, RETRIEVE, COMMIT}`, capped at 0–2 hops by default and 3 hops under uncertainty. `hop_select` is a constrained typed router (see §5), not a free-form planner. *(Layer B)*
+6. **`action()`** — builds prompt: system prompt + skill guidance + recent actions/rewards + valid action list → LLM → action. *(Layer C)*
+7. **`parse_response()`** — multi-strategy action extraction: exact match → numbered selection → substring → edit distance → token overlap → RAG embedding semantic match as final fallback. *(Layer C)*
+8. **Anti-repetition** — if same action repeated N times with 0 reward, randomly pick alternative. *(Layer C)*
+9. **`env.step(action)`** *(Layer C)*
+10. **`_SkillTracker.update()`** — advance protocol step index, track reward-on-skill, switch count.
+11. **Build `Experience`** — state, action, reward, next_state, done, intentions, tasks, sub_tasks (active skill), summary_state, available_actions.
+
+**Boundary rule.** Heavy reasoning tasks — failure diagnosis, counterfactual analysis, skill composition, cross-domain transfer mapping, new skill invention, reflective repair planning — **never** run inside this per-step loop. They are reserved for the offline 32B/72B synthesis/reflection tier (see §2, §6). The inner MDP is the actor's guardrail, not its brain.
 
 ---
 
@@ -68,14 +95,14 @@ Not all parts of the system demand the same reasoning capability. The following 
 | Online action execution (per-step loop §1) | Compressed key=value state, intention tag prediction, retrieval from RAG, action from valid list, robust parsing with fallbacks. Bounded decisions under scaffolding. |
 | Skill selection with strong retrieval (§3) | Not pure generation — retrieval + scoring with relevance, applicability, and historical pass rate, plus protocol-aware lifecycle rules (stall detection, success/abort matching, reselect triggers). |
 | Protocol following / reactive control | `_SkillTracker` offloads control structure: duration caps, reward stall detection, protocol step tracking, reselect triggers. Model is not inventing control policy from scratch. |
-| Short inner-hop reasoning (§5) | GROUND → CHECK → RETRIEVE → CONCLUDE → EXECUTE on easy-to-medium cases, when hops operate on the same schema and the action vocabulary is typed and limited. |
+| Short typed inner-hop routing (§5) | Constrained typed hops from `{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}`, capped at 0–2 by default and 3 under uncertainty. Only invoked when Layer A leaves local uncertainty; hops operate on the same schema and the action vocabulary is typed and limited. |
 
 **Borderline for 7B/8B** — works only with strong constraints:
 
 | Component | Risk | Mitigation |
 |---|---|---|
 | Intention inference | Noisy in ambiguous scenes or long histories | Fix the number of tags, keep state summary clean |
-| `hop_select` in the two-level MDP | Quality depends on whether hops are micro-decisions vs. open-ended relational reasoning; 7B drifts if too free-form | Keep inner MDP short, enforce typed outputs, train task-specific adapters |
+| `hop_select` in the inner MDP | Free-form hop generation drifts badly on 7B/8B — the actor starts imitating a full planner | Treat `hop_select` as a constrained typed next-hop router (not a reasoning generator): it predicts `(NEXT_HOP_TYPE, TARGET)` from a fixed 5-token vocabulary, with a hard 0–3 hop cap and a rule-heavy pre-gate (§5). |
 | `schema_gen` | Can work for stable interfaces or grid games; becomes bottleneck with messy screenshots, subtle occlusions, or social-video details | Use cascaded head escalation (§12 in Visual Grounding) as fallback |
 
 **Not 7B/8B-safe as currently written** — requires 32B/72B or redesign:
@@ -99,8 +126,8 @@ The system decomposes into three logical agents with distinct model assignments.
 │  Agent 1: Actor / Decision Agent  (Qwen3-8B, GRPO-trained)  │
 │  • schema consumption                                        │
 │  • intention inference                                       │
-│  • hop selection (inner MDP)                                 │
-│  • skill selection                                           │
+│  • skill continuation gate (rule-heavy) + skill selection    │
+│  • typed next-hop routing (lightweight inner MDP, ≤3 hops)   │
 │  • action execution + anti-repetition                        │
 │  • protocol following                                        │
 │  • RL adaptation in the real-time loop                       │
@@ -172,8 +199,8 @@ This maps to the existing Tier 1 / Tier 2 split but makes the boundary explicit:
 ┌─────────────────────────────────────────────┐
 │  Tier 2: Qwen3-8B + GRPO LoRA (trained)     │
 │  • schema_gen: screenshot → <state> schema   │
-│  • hop_select: schema + trace → next hop     │
-│  • skill_select: schema → which skill        │
+│  • skill_select: schema + intention → skill  │
+│  • hop_select: typed next-hop router (0–3)   │
 │  • Action execution + anti-repetition        │
 │  • SkillTracker protocol following           │
 └─────────────────────────────────────────────┘
@@ -181,7 +208,7 @@ This maps to the existing Tier 1 / Tier 2 split but makes the boundary explicit:
 
 ### Why the 8B real-time loop stays fast
 
-The 32B/72B never enters the per-step loop. Per-step operations (schema_gen, hop_select ×1–8, skill_select on reselect, action execution) are all served by the 8B on vLLM, identical to Option A. The 32B/72B runs as a separate offline process:
+The 32B/72B never enters the per-step loop. Per-step operations (schema_gen, skill_select on reselect, typed hop_select ×0–3, action execution) are all served by the 8B on vLLM, identical to Option A. The 32B/72B runs as a separate offline process:
 
 | Offline operation | When it runs | Frequency |
 |---|---|---|
@@ -281,91 +308,156 @@ Checks how many `eff_add` predicates from the active skill's contract appear in 
 
 ---
 
-## 5. Two-level MDP (long-horizon reasoning)
+## 5. Lightweight inner MDP (typed local control)
 
-The core architectural insight (from `LONG_HORIZON_REASONING.md`): multi-hop visual reasoning is reframed as a **long-horizon interaction** problem. Instead of performing all reasoning hops inside a single LLM inference pass, each hop becomes an explicit step in an MDP — turning the reasoning trace into a proper trajectory that can be optimized end-to-end with RL.
+We keep the inner MDP, but shrink it into a **lightweight typed control loop** — not a second planner. The online 8B actor benefits from structured local reasoning, but must not perform open-ended multi-step planning: short typed inner-hop reasoning is safe for 7B/8B, free-form hop selection is not.
 
-### Current vs. target granularity
+**Philosophy.** The inner MDP is the actor's *guardrail*, not its brain. The real heavy reasoning brain stays in the offline 32B/72B synthesis/reflection tier (§2, §6).
 
-|                    | Current (single-call)                                           | Target (two-level MDP)                                     |
-|--------------------|------------------------------------------------------------------|-------------------------------------------------------------|
-| **One "step"**     | Screenshot → (all hops internally in one LLM call) → env action  | Outer: env action; Inner: each reasoning hop is a step      |
-| **"Reasoning"**    | Happens *inside* a single inference pass (hop1→hop2→…→action)    | Happens *across* explicit steps (each hop is RL-trainable)  |
-| **Horizon**        | Short (hops are hidden, only env actions count as steps)         | Long (inner hops + outer actions = full trajectory)         |
+### 5.1 What stays, what shrinks, what moves out
 
-### Two-level MDP structure
+| Keep | Shrink | Move to offline 32B/72B |
+|---|---|---|
+| Structured state | Number of online hops | Failure diagnosis |
+| Intention inference | Hop vocabulary size | Multi-step causal analysis |
+| Skill retrieval / continuation | Freedom of `hop_select` | New skill invention |
+| `_SkillTracker` lifecycle | Online reasoning depth | Cross-skill composition |
+| Typed internal reasoning steps | Amount of actor-time reasoning | Cross-domain transfer mapping |
+| Replayable internal traces |   | Reflective repair planning |
+
+### 5.2 Three-layer actor decomposition
+
+The actor is explicitly three layers with clean responsibilities; see also the per-step loop in §1.
+
+**Layer A — Skill Continuation Gate** (mostly rule-heavy, lightweight scoring only).
+Decides keep current skill / reselect / no-skill. Owns:
+- no active skill → reselect
+- max duration exceeded → reselect
+- repeated no-progress / stall (≥4 steps, reward ≤0) → reselect
+- success criterion matched → retire skill
+- abort criterion matched → retire + blocklist for the step
+- invalid context for active skill → forced reselect
+
+If Layer A produces a confident action path (e.g. high-confidence state + high-confidence skill with populated slots), it bypasses Layer B entirely and goes straight to Layer C.
+
+**Layer B — Lightweight inner MDP** (only when local uncertainty remains).
+Resolves local uncertainty via short typed hops:
+- do I need to verify a condition? → CHECK
+- do I need to fetch memory / evidence? → RETRIEVE
+- is the state stale or insufficient? → GROUND (optional)
+- can I commit this local sub-decision? → COMMIT
+
+This is the *only* place the reduced hop vocabulary lives.
+
+**Layer C — Final Action Head**.
+Selects the concrete environment action from the valid list. Retains parsing, fallback chain, and anti-repetition safeguards. Always terminates the step.
+
+### 5.3 Reduced hop vocabulary
+
+The inner action space is a small, fixed, typed vocabulary — no free-form operations:
+
+| Hop | Meaning | Typical target |
+|---|---|---|
+| `GROUND` *(optional)* | Refresh or refine the structured state | `entity_query`, `scene`, `region:e5` |
+| `CHECK` | Verify a condition relevant to the current skill or subgoal | `can_continue_current_skill`, predicate name |
+| `RETRIEVE` | Query skill bank / episodic memory / evidence | `skill_bank:<intention>`, `episodic_memory:recent_similar_failure` |
+| `COMMIT` | Finalize the local sub-decision (internal state update) | subgoal id |
+| `EXECUTE` | Choose and emit the environment action; exits the inner loop | env action |
+
+`EXECUTE` is always the terminal hop of Layer B; everything else is non-terminal. `COMMIT` replaces the older, looser `CONCLUDE` token — the name makes clear it is a local finalization, not a free-form conclusion.
+
+### 5.4 Hop depth policy (strict caps)
+
+The actor does **not** perform long hop chains online.
+
+| Regime | Depth | Typical trace |
+|---|---|---|
+| Default | **0–2 hops** | high-confidence state + skill → `EXECUTE` |
+|   |   | clear skill, uncertain condition → `CHECK → EXECUTE` |
+| Uncertain | **≤3 hops** | weak skill match → `RETRIEVE → COMMIT → EXECUTE` |
+|   |   | stale / insufficient state → `GROUND → CHECK → EXECUTE` |
+| Forbidden | — | open-ended or long online hop chains |
+
+The cap is enforced hard (depth counter in `_SkillTracker`). When the cap is reached without `EXECUTE`, Layer C is invoked anyway with whatever evidence is available; this is deliberate — online time is not the place to reason further.
+
+### 5.5 `hop_select` as a typed next-hop router
+
+`hop_select` is **not** a mini planner and **not** a free-form reasoning generator. It is a constrained router that, at each inner step, predicts one typed operation and its target from a fixed schema:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  OUTER MDP (environment level)                       │
-│  State: screenshot + task description                │
-│  Action: click / type / game-move                    │
-│  Reward: task success (sparse)                       │
-│                                                      │
-│  ┌───────────────────────────────────────────────┐   │
-│  │  INNER MDP (reasoning level)                  │   │
-│  │  State: visual schema + hop trace so far       │   │
-│  │  Action: reasoning operation (one of):         │   │
-│  │    - GROUND(entity_query)  → find entities     │   │
-│  │    - CHECK(relation/attr)  → verify condition  │   │
-│  │    - RETRIEVE(memory_key)  → query skill bank  │   │
-│  │    - CONCLUDE(intermediate)→ commit subgoal    │   │
-│  │    - EXECUTE(env_action)   → exit inner loop   │   │
-│  │  Reward: shaped from hop quality + outer reward│   │
-│  └───────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
+NEXT_HOP = CHECK
+TARGET   = can_continue_current_skill
 ```
 
-Each outer step contains 1..N inner reasoning steps. The agent **learns when to stop reasoning and act**.
+or
 
-### Inner action vocabulary
+```
+NEXT_HOP = RETRIEVE
+TARGET   = episodic_memory:recent_similar_failure
+```
 
-The existing VLM Agent hop trace maps directly to the inner action space:
+This keeps the inner MDP compatible with 8B and avoids the drift risk noted in §2 (borderline table). No free-form natural-language reasoning trace is emitted online; the online trace is short, typed, and targeted. Long-form natural-language reasoning is reserved for the offline tier.
 
-| Hop trace step | Inner action | vlm_wrapper tool |
-|---------------|-------------|-----------------|
-| Locate relevant entities | `GROUND(query)` | `detect_objects`, `visual_search` |
-| Check constraints / relations | `CHECK(predicate)` | `spatial_query`, `check_relation` |
-| Query skill bank / memory | `RETRIEVE(key)` | `select_skill_from_bank` |
-| Commit intermediate result | `CONCLUDE(subgoal)` | (internal state update) |
-| Execute environment action | `EXECUTE(action)` | env.step() — exits inner loop |
+### 5.6 Component boundaries
 
-### Design decisions
+To keep the three typed heads from entangling:
 
-**Re-observation between hops:**
+| Head | Input | Output | Scope |
+|---|---|---|---|
+| `schema_gen` | observation | structured `<state>` | perception only |
+| `skill_select` | structured state + intention | skill / no-skill | skill retrieval + scoring |
+| `hop_select` | structured state + short typed trace | `(NEXT_HOP, TARGET)` from 5-token vocabulary | local uncertainty routing only |
+
+Anything that doesn't fit cleanly in one of these boxes is a sign it belongs in Layer A (rules) or in the offline tier.
+
+### 5.7 Re-observation between hops
+
 - **Option A (default):** Hops operate on the same `<state>` schema, only updating an internal scratchpad. Cheaper, faster.
-- **Option B (selective):** GROUND actions can trigger re-rendering or zooming into a region. More expensive but handles visual detail.
+- **Option B (selective):** `GROUND` can trigger re-rendering or zooming into a region. More expensive but handles visual detail.
 - **Recommendation:** A for games/web, B for visual QA where fine-grained visual grounding matters.
 
-**Reward for inner hops:**
+### 5.8 Reward for inner hops
+
 - Schema consistency reward (does the hop produce a valid schema update?)
-- Hop trace quality reward (GPT-4o judges full trace, for GRPO)
+- Hop trace quality reward (offline judge rates the short typed trace, for GRPO)
 - Progress shaping (reward for reducing uncertainty or resolving blockers)
-- **Recommendation:** GRPO with trajectory-level reward; let the policy learn which hops matter. Aligns with the existing `r_follow`.
+- Cost penalty for exceeding the 0–2 hop default (pushes the policy toward shorter traces)
+- **Recommendation:** GRPO with trajectory-level reward + explicit per-hop cost; aligns with the existing `r_follow` and `r_cost`.
 
-**Inner loop length:**
-- Hard cap (max 8 hops per outer step) + learned EXECUTE decision.
-- The existing `_SkillTracker` abort/success criteria naturally handles this.
-
-### LoRA adapter layout
+### 5.9 LoRA adapter layout
 
 | Adapter | Purpose |
-|---------|---------|
+|---|---|
 | `schema_gen` | Screenshot → `<state>` schema (Qwen3-VL) |
-| `hop_select` | Schema + trace → next reasoning action (replaces single-call action) |
-| `skill_select` | Schema → which reasoning skill to invoke |
+| `skill_select` | Structured state + intention → skill / no-skill |
+| `hop_select` | Structured state + short typed trace → `(NEXT_HOP, TARGET)` (constrained router) |
 | `segment` | Trajectory → skill boundary detection |
 | `contract` | Segment → effects contract |
 
-### Episode trajectory format
+### 5.10 Episode trajectory format
 
-Each episode becomes a proper long-horizon trajectory:
+Each episode is a long-horizon trajectory of outer env steps, each containing 0–3 typed inner hops:
 
 ```
-(schema_0, GROUND, schema_0') → (schema_0', CHECK, schema_0'') → (schema_0'', EXECUTE(click), schema_1) → ...
+(schema_0, CHECK, schema_0') → (schema_0', EXECUTE(click), schema_1)
+(schema_1, RETRIEVE, schema_1') → (schema_1', COMMIT, schema_1'') → (schema_1'', EXECUTE(move), schema_2)
+(schema_2, EXECUTE(wait), schema_3)
 ```
 
-This is segmentable by the Skill Bank — reasoning hop chains become discoverable skills.
+This remains segmentable by the Skill Bank — short typed hop sub-chains become discoverable local skills — without inflating the online planning surface.
+
+### 5.11 What is explicitly removed from the online actor
+
+The following are *not* done by the online 8B actor and are the responsibility of the offline 32B/72B tier (see §2, §6):
+
+- failure reflection / localization / diagnosis
+- counterfactual analysis
+- skill repair drafting
+- cross-domain transfer mapping
+- composition of new multi-skill procedures
+- long-form natural-language reasoning traces
+
+This separation is strict: keeping it intact is what makes the online loop trainable and stable.
 
 ---
 
@@ -466,7 +558,7 @@ The action agent currently consumes text observations. The integration path:
 
 1. **Phase 1 (current):** `get_state_summary()` compresses raw text observations. Single-call reasoning.
 2. **Phase 2 (schema input):** `get_state_summary()` receives the `<state>` schema directly from the VLM grounding pipeline, which replaces text-based compression with structured grounding.
-3. **Phase 3 (inner MDP):** Action agent implements the two-level MDP. The `<state>` schema becomes the inner MDP state. GROUND actions call vlm_wrapper tools. Entity references enable grounded actions ("click e5" instead of "click the red jacket").
+3. **Phase 3 (lightweight inner MDP):** Action agent implements the three-layer design in §5. The `<state>` schema becomes the inner MDP state. `GROUND` hops call vlm_wrapper tools. Entity references enable grounded actions ("click e5" instead of "click the red jacket"). Online hop depth is capped at 0–2 by default (≤3 under uncertainty).
 
 ### Schema as inner MDP state
 
@@ -474,7 +566,7 @@ The `<state>` schema is the state representation for the inner reasoning MDP:
 - `<entities>` + `<relations>` — what the agent knows about the scene (updated by GROUND/CHECK hops)
 - `<uncertainty>` — drives whether to gather more info (GROUND) or act (EXECUTE)
 - `<targets>` (target, blocker, candidate_set) — narrows the inner action space
-- `<state_flags>` (progress, error, dialog_open) — lifecycle decisions, including when to CONCLUDE or abort
+- `<state_flags>` (progress, error, dialog_open) — lifecycle decisions, including when to `COMMIT` or abort
 
 ---
 
@@ -551,9 +643,12 @@ See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guar
 | Task | Priority | Status |
 |------|----------|--------|
 | Integrate VLM schema as primary state input | P0 | Not started |
-| Implement inner reasoning MDP (hop_select adapter) | P0 | Not started |
+| Implement three-layer actor (Skill Continuation Gate → Lightweight Inner MDP → Final Action Head) | P0 | Not started |
+| Rule-heavy skill continuation gate (Layer A) wrapping `_SkillTracker` as pre-gate before inner MDP | P0 | Not started |
+| `hop_select` as typed next-hop router with 5-token vocabulary {GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE} | P0 | Not started |
+| Hard online hop-depth cap (0–2 default, ≤3 under uncertainty) with per-hop cost in reward | P0 | Not started |
 | Implement three-agent role split (actor / skill-use / synthesis-reflection routing) | P0 | Not started |
-| GRPO decomposition: actor LoRAs (skill_select, action_execute, hop_select) | P0 | Not started |
+| GRPO decomposition: actor LoRAs (skill_select, action_execute, hop_select-router) | P0 | Not started |
 | Acceptance gate for synthesis-reflection outputs (contract check, replay, non-regression) | P0 | Not started |
 | Entity-referenced actions (click e5 instead of click(400,510)) | P1 | Not started |
 | Inner hop reward shaping (schema consistency + progress) | P1 | Not started |
