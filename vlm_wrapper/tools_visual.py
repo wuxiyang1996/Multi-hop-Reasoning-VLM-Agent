@@ -1161,6 +1161,7 @@ def _caption_crop(crop: Image.Image) -> str:
             input_ids=inputs["input_ids"],
             pixel_values=inputs["pixel_values"],
             max_new_tokens=50, num_beams=1, do_sample=False,
+            use_cache=False,  # Florence-2 + transformers ≥4.55 cache shim bug
         )
         text = processor.batch_decode(generated, skip_special_tokens=True)[0]
         return text.strip()

@@ -342,11 +342,22 @@ def sample_video_frames(
             reader.release()
 
     duration = (total / fps) if (fps and fps > 0) else None
+    # Real per-sample timestamps in the *original* video so downstream
+    # tools can expose wallclock seconds instead of "sampled-frame
+    # index / native fps" (which would pretend the whole video is
+    # 0.3 seconds long for an 8-sample / 250-s clip).
+    sample_timestamps: list[float] = (
+        [round(idx / fps, 3) for idx in indices]
+        if (indices and fps and fps > 0)
+        else []
+    )
     meta = {
         "backend": backend,
         "total_frames": total,
         "duration_s": duration,
+        "native_fps": fps or None,
         "indices": indices,
+        "sample_timestamps": sample_timestamps,
         "num_frames": len(frames),
         "size": frames[0].size if frames else None,
     }
@@ -488,6 +499,20 @@ def parse_video_holmes_sample(
     task_id = f"video_holmes.{sample.split}.{sample.video_id}.Q{sample.question_id}"
     question_prompt = sample.format_question()
 
+    # Derive an *effective* fps for the downsampled frame list so the
+    # video tools (sample_frames / detect_scene_changes / get_video_info)
+    # surface wallclock timestamps instead of native-fps timestamps.
+    # Without this, an 8-frame sample of a 250-second clip pretends to
+    # be a 1/3-second micro-clip and the LLM asks for more frames inside
+    # a tiny 0.3-s window, misses the rest of the movie, and hallucinates
+    # context from essentially one frame.
+    duration_s = video_meta.get("duration_s") or 0.0
+    if duration_s and len(frames) > 0:
+        effective_fps = len(frames) / duration_s
+    else:
+        effective_fps = fps or 1.0
+    video_meta["effective_fps"] = round(effective_fps, 6)
+
     req = GroundingRequest(
         images=frames,
         goal=question_prompt,
@@ -496,7 +521,10 @@ def parse_video_holmes_sample(
         task_id=task_id,
         step=0,
         context={
-            "fps": fps,
+            "fps": effective_fps,
+            "native_fps": fps,
+            "duration_s": duration_s,
+            "sample_timestamps": video_meta.get("sample_timestamps") or [],
             "current_index": current_index,
             "question_type": sample.question_type,
             "options": dict(sample.options),

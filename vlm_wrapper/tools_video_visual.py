@@ -25,9 +25,11 @@ Usage::
 
 from __future__ import annotations
 
+import base64
+import io
 import logging
 import math
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 from PIL import Image
@@ -193,7 +195,12 @@ TOOL_DETECT_OBJECTS_AT_FRAME = ToolDef(
     description=(
         "Run object detection on a specific frame (not just the current "
         "one). Returns detected elements with bboxes and labels. "
-        "Combines temporal access with visual grounding."
+        "Combines temporal access with visual grounding.  NOTE: on "
+        "natural video (movies, vlogs, documentaries) this routes to an "
+        "open-vocabulary natural-image detector, not the UI icon "
+        "captioner — for pure narrative questions (relationships, "
+        "motives, plot) prefer `describe_frame` which gives a coherent "
+        "caption of the whole frame."
     ),
     parameters={
         "type": "object",
@@ -204,11 +211,45 @@ TOOL_DETECT_OBJECTS_AT_FRAME = ToolDef(
             },
             "confidence_threshold": {
                 "type": "number",
-                "description": "Min confidence. Default 0.05.",
+                "description": "Min confidence. Default 0.3 for video "
+                               "(subtitle-style hallucinations cluster "
+                               "below this).",
             },
             "max_elements": {
                 "type": "integer",
                 "description": "Max elements. Default 30.",
+            },
+        },
+        "required": ["frame_index"],
+    },
+    domain="video_visual",
+)
+
+
+TOOL_DESCRIBE_FRAME = ToolDef(
+    name="describe_frame",
+    description=(
+        "Ask the vision-LM to describe what is happening in a specific "
+        "frame: the setting, the visible people (age/appearance/role), "
+        "their actions, and any notable objects.  Prefer this over "
+        "`detect_objects_at_frame` for narrative video-QA (social "
+        "relationships, motives, causality, plot) where a coherent "
+        "caption is more useful than pixel-accurate boxes.  You can pass "
+        "an optional `focus` question to get an answer tailored to what "
+        "you care about."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "frame_index": {
+                "type": "integer",
+                "description": "Frame to describe (0-based).",
+            },
+            "focus": {
+                "type": "string",
+                "description": "Optional guiding question (e.g. "
+                               "\"how many people are visible and what "
+                               "are they doing?\"). Keep short.",
             },
         },
         "required": ["frame_index"],
@@ -228,12 +269,31 @@ class _VideoVisualState:
         video_path: str | None = None,
         fps: float = 1.0,
         current_index: int = 0,
+        *,
+        prefer_gdino: bool = False,
+        vlm_describer: Callable[..., str] | None = None,
+        sample_timestamps: list[float] | None = None,
     ):
         self._video = _VideoState(
             frames=frames, video_path=video_path,
             fps=fps, current_index=current_index,
         )
         self._visual_cache: dict[int, _VisualState] = {}
+        # When True, _VisualState routes detection through GroundingDINO
+        # (open-vocab natural-image detector) instead of the default
+        # OmniParser-v2 pipeline whose Florence-2 icon captioner
+        # hallucinates subtitle-style captions on cinematic frames.
+        self._prefer_gdino = prefer_gdino
+        # Optional callable: (pil_frame, focus=None) -> str.  Wired by
+        # ground.py so `describe_frame` can call the same model the
+        # outer tool loop is using.
+        self._vlm_describer = vlm_describer
+        # Optional per-sampled-frame wallclock timestamps in the
+        # original video.  When present, takes precedence over
+        # `i / fps` math and is surfaced to the model as the true
+        # timestamp so `sample_frames(start_sec, end_sec)` lines up
+        # with the actual video timeline.
+        self._sample_timestamps = sample_timestamps or []
 
     @property
     def video(self) -> _VideoState:
@@ -254,9 +314,22 @@ class _VideoVisualState:
         frame = self._video.get_frame(frame_idx)
         if frame is None:
             return None
-        vs = _VisualState(frame)
+        vs = _VisualState(frame, prefer_gdino=self._prefer_gdino)
         self._visual_cache[frame_idx] = vs
         return vs
+
+    def frame_timestamp(self, frame_idx: int) -> float:
+        """True wallclock timestamp for a sampled frame.
+
+        Prefers the per-sample map provided by the benchmark loader
+        (the real seconds in the original video) and falls back to
+        `frame_idx / fps` for in-memory sequences (game replays,
+        browser recordings) that were not pre-sampled.
+        """
+        if 0 <= frame_idx < len(self._sample_timestamps):
+            return float(self._sample_timestamps[frame_idx])
+        fps = self._video._fps
+        return round(frame_idx / fps, 3) if fps > 0 else 0.0
 
     def sample_indices(
         self,
@@ -642,15 +715,23 @@ def _h_detect_objects_at_frame(
     state: _VideoVisualState,
     *,
     frame_index: int,
-    confidence_threshold: float = 0.05,
+    confidence_threshold: float = 0.3,
     max_elements: int = 30,
 ) -> dict:
     vs = state.get_visual(frame_index)
     if vs is None:
         return {"error": f"Frame {frame_index} out of range [0, {state.total_frames})"}
 
+    # On cinematic/natural video the UI-icon captioner fires 9-17%
+    # "subtitle"-style hallucinations on frames with no text overlays
+    # at all.  Clamp the floor to 0.3 so those false positives get
+    # dropped unless the caller explicitly asks to see them.
+    effective_conf = max(confidence_threshold, 0.3) \
+        if not state._prefer_gdino and confidence_threshold < 0.3 \
+        else confidence_threshold
+
     dets = vs.detect(
-        confidence_threshold=confidence_threshold,
+        confidence_threshold=effective_conf,
         max_elements=max_elements,
     )
 
@@ -670,11 +751,154 @@ def _h_detect_objects_at_frame(
 
     return {
         "frame_index": frame_index,
-        "timestamp": round(frame_index / state.fps, 2) if state.fps > 0 else 0,
+        "timestamp": round(state.frame_timestamp(frame_index), 2),
         "elements": elements,
         "count": len(elements),
         "image_size": {"w": img_w, "h": img_h},
+        "backend": "gdino" if state._prefer_gdino else "omniparser",
     }
+
+
+def _h_describe_frame(
+    state: _VideoVisualState,
+    *,
+    frame_index: int,
+    focus: str | None = None,
+) -> dict:
+    """Return a natural-language description of a specific frame.
+
+    Calls the same VLM the outer tool loop is using so we don't need
+    a second model.  When no describer is wired in (e.g. unit tests
+    or offline replay), falls back to a structural summary built from
+    `detect_objects_at_frame`.
+    """
+    frame = state.video.get_frame(frame_index)
+    if frame is None:
+        return {
+            "error": f"Frame {frame_index} out of range "
+                     f"[0, {state.total_frames})",
+        }
+    ts = round(state.frame_timestamp(frame_index), 2)
+
+    if state._vlm_describer is not None:
+        try:
+            description = state._vlm_describer(frame, focus=focus)
+        except Exception as exc:
+            logger.warning(
+                "describe_frame: VLM describer failed (%s); "
+                "falling back to structural summary", exc,
+            )
+            description = _structural_summary(state, frame_index)
+            return {
+                "frame_index": frame_index,
+                "timestamp": ts,
+                "description": description,
+                "backend": "fallback",
+                "warning": str(exc),
+            }
+        return {
+            "frame_index": frame_index,
+            "timestamp": ts,
+            "description": description,
+            "backend": "vlm",
+        }
+
+    return {
+        "frame_index": frame_index,
+        "timestamp": ts,
+        "description": _structural_summary(state, frame_index),
+        "backend": "fallback",
+    }
+
+
+def _structural_summary(state: _VideoVisualState, frame_index: int) -> str:
+    """Offline fallback description when no VLM describer is configured."""
+    vs = state.get_visual(frame_index)
+    if vs is None:
+        return "(frame out of range)"
+    dets = vs.detect(confidence_threshold=0.4, max_elements=10)
+    if not dets:
+        return "(no high-confidence detections)"
+    parts = [f"{d.element_type}:{d.label}" for d in dets[:6]]
+    return "frame contains " + ", ".join(parts)
+
+
+def _frame_to_data_url(frame: Image.Image, max_side: int = 640) -> str:
+    """Encode a PIL frame as a PNG data: URL suitable for OpenAI vision."""
+    img = frame.convert("RGB")
+    w, h = img.size
+    long = max(w, h)
+    if max_side and long > max_side:
+        scale = max_side / long
+        img = img.resize(
+            (int(w * scale), int(h * scale)), Image.LANCZOS,
+        )
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{b64}"
+
+
+def make_openai_describer(
+    *,
+    client,
+    model: str,
+    max_side: int = 640,
+    max_tokens: int = 220,
+) -> Callable[..., str]:
+    """Build a `describe_frame` handler that calls an OpenAI vision model.
+
+    The returned callable has signature ``(frame, focus=None) -> str``
+    and asks the model for a concise factual description (no subtitle
+    OCR, no role-playing).  Designed to be cheap: one API call per
+    invocation, ~200 tokens back.
+    """
+    def _describe(frame: Image.Image, focus: str | None = None) -> str:
+        prompt = (
+            "You are a careful scene annotator for video-QA.  Describe "
+            "this frame in at most 5 short sentences.\n\n"
+            "RULES:\n"
+            " - Focus on PEOPLE (age/gender/clothing/visible facial "
+            "features), their ACTIONS, the SETTING, and any salient "
+            "OBJECTS.\n"
+            " - If text is visible in the frame, quote it ONLY if you "
+            "are sure it is really there.  Never invent subtitles, "
+            "chat bubbles, or captions that are not clearly present.\n"
+            " - Say 'unclear' if something is off-screen, blurry, or "
+            "you can't tell.  Do not guess identities.\n"
+            " - Do not describe camera / cinematography choices."
+        )
+        if focus:
+            prompt += f"\n\nEXTRA QUESTION (answer in the last sentence): {focus}"
+
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": _frame_to_data_url(frame, max_side),
+                                "detail": "high",
+                            },
+                        },
+                    ],
+                }],
+                temperature=0.0,
+                max_tokens=max_tokens,
+            )
+        except Exception as exc:
+            raise RuntimeError(
+                f"describe_frame VLM call failed: {exc}"
+            ) from exc
+
+        txt = (resp.choices[0].message.content or "").strip()
+        return txt or "(empty description)"
+
+    return _describe
 
 
 # ── Public: build combined registry ──────────────────────────────────
@@ -684,6 +908,10 @@ def build_video_visual_registry(
     video_path: str | None = None,
     fps: float = 1.0,
     current_index: int = 0,
+    *,
+    prefer_gdino: bool = False,
+    vlm_describer: Callable[..., str] | None = None,
+    sample_timestamps: list[float] | None = None,
 ) -> ToolRegistry:
     """Create a ToolRegistry with video nav + visual + cross-frame tools.
 
@@ -715,6 +943,9 @@ def build_video_visual_registry(
     vv_state = _VideoVisualState(
         frames=frames, video_path=video_path,
         fps=fps, current_index=current_index,
+        prefer_gdino=prefer_gdino,
+        vlm_describer=vlm_describer,
+        sample_timestamps=sample_timestamps,
     )
 
     video_reg = build_video_registry(
@@ -732,7 +963,9 @@ def build_video_visual_registry(
             current_frame = decoded[current_index]
 
     if current_frame is not None:
-        visual_reg = build_visual_registry(current_frame)
+        visual_reg = build_visual_registry(
+            current_frame, prefer_gdino=prefer_gdino,
+        )
     else:
         visual_reg = ToolRegistry(domain="visual")
 
@@ -745,5 +978,6 @@ def build_video_visual_registry(
     cross_reg.register(TOOL_DETECT_ACTIVITY, lambda **kw: _h_detect_activity(vv_state, **kw))
     cross_reg.register(TOOL_COMPARE_ELEMENTS, lambda **kw: _h_compare_elements(vv_state, **kw))
     cross_reg.register(TOOL_DETECT_OBJECTS_AT_FRAME, lambda **kw: _h_detect_objects_at_frame(vv_state, **kw))
+    cross_reg.register(TOOL_DESCRIBE_FRAME, lambda **kw: _h_describe_frame(vv_state, **kw))
 
     return combined.merge(cross_reg)

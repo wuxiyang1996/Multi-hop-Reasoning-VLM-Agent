@@ -46,6 +46,7 @@ from .schema import (
     build_adaptive_system_prompt,
     build_system_prompt,
     build_user_message,
+    count_entities,
     parse_schema_output,
     validate_schema,
 )
@@ -80,7 +81,115 @@ Strategy:
 You may call multiple tools before producing the schema.  When you are
 ready to output the final schema, respond with ONLY the <state>...</state>
 block and no tool calls.
+
+Evidence rules (VERY IMPORTANT — violations break skill contract learning):
+- In <evidence>, `hop_k.tool=` MUST be the concrete tool name you called
+  (e.g. `detect_objects`, `read_text_region`, `query_entity_pos`).  NEVER
+  write `tool=multi_tool_use.parallel`, `tool=functions.parallel`, or any
+  other scheduler wrapper — if you issued parallel calls, record each
+  inner call as a separate hop.
+- Every positive tool result MUST be referenced by at least one <evidence>
+  hop.  If a detection tool returned objects and you chose not to cite
+  them, re-check whether those objects are relevant to the goal before
+  dropping them.
+- `type=` in <entities> MUST be exactly one of: element | object | region
+  | text.  Domain-specific labels (icon, button, link, shape, sprite,
+  frame, scene, caption, …) belong in the `ontology=` slot, not `type=`.
+
+Entity-count targets by domain (emit at least this many <entities> lines
+before finalising the schema — keep calling tools until you clear the
+bar; the final schema will otherwise be rejected and re-run):
+- gymv, game: 3
+- browser, desktop: 5
+- image_qa, video_qa: 1 (as many as needed to answer)
+
+Video-QA special rules (domain=video_qa):
+- You have BOTH a region-level detector (`detect_objects_at_frame`) and
+  a caption-level VLM (`describe_frame(frame_index, focus?)`).  For
+  narrative questions (social relationship, motive, causal, plot),
+  prefer `describe_frame` — pixel bboxes of faces are less useful than
+  a one-paragraph scene caption.
+- For a narrative/QA question (question_type ∈ {SR, HR, MM, CS}),
+  inspect at least 2 DIFFERENT frames before emitting the schema, and
+  ideally 3+ frames spanning the start / middle / end of the clip.
+  Use the wallclock `sample_timestamps` in the extra-context block (if
+  provided) to pick well-spread frame indices.
+- NEVER trust subtitle-style captions from `detect_objects_at_frame`
+  unless the frame genuinely has overlaid text that you can also see
+  in the screenshot.  On cinematic footage the icon captioner
+  occasionally hallucinates chat-bubble text like "Yes bro, the flight
+  was tite" — those detections must NOT become `type=text` entities in
+  <entities>.
+- Ground your <entities> to *things you can see in the frame*: people
+  (describe them — "man_with_beard"), objects (phones, vehicles,
+  weapons, food), places (kitchen, street, office).
 """
+
+
+def _domain_entity_min(domain: str) -> int:
+    """Mirror of `schema._ENTITY_MIN_BY_DOMAIN` — kept separate to avoid
+    pulling a circular import in the prompt-assembly path."""
+    return {
+        "gymv": 3, "game": 3,
+        "browser": 5, "desktop": 5,
+        "image_qa": 1, "video_qa": 1, "video": 1,
+    }.get(domain, 1)
+
+
+_CONTINUE_INSTRUCTION_TEMPLATE = (
+    "Your draft schema has only {found} entities but this domain "
+    "({domain}) requires at least {needed}.  Call more grounding tools "
+    "(detect_objects / visual_search / read_text_region / "
+    "query_entity_pos / list_entities, whichever fits) to surface the "
+    "missing entities, then re-emit the full <state>...</state> schema "
+    "with the expanded <entities> section.  Do NOT output the schema "
+    "until you have ≥{needed} <entities> lines."
+)
+
+
+_VIDEO_NARRATIVE_QTYPES: frozenset[str] = frozenset({"SR", "HR", "MM", "CS"})
+_VIDEO_FRAME_TOOLS: frozenset[str] = frozenset({
+    "describe_frame", "detect_objects_at_frame", "read_text_in_frame",
+    "get_frame",
+})
+_MIN_DISTINCT_FRAMES_NARRATIVE: int = 2
+
+
+_VIDEO_CONTINUE_TEMPLATE = (
+    "Your draft schema was built from only {frames_seen} distinct "
+    "frame(s), but this is a narrative video question "
+    "(question_type={qtype}) — you need to inspect at least "
+    "{frames_needed} frames spanning different moments of the clip "
+    "before you can reliably answer.  Pick frame indices from "
+    "different regions of the clip (e.g. near the start, middle, and "
+    "end) and call `describe_frame(frame_index=...)` on them, then "
+    "re-emit the full <state>...</state> schema grounded in what you "
+    "observed across those frames.  Do NOT repeat the same frame "
+    "index."
+)
+
+
+def _count_distinct_frames(tool_trace: list[dict[str, Any]]) -> set[int]:
+    """Which frame indexes did the model actually inspect via tools?"""
+    seen: set[int] = set()
+    for tc in tool_trace:
+        call = tc.get("call") or {}
+        name = call.get("name")
+        if name not in _VIDEO_FRAME_TOOLS:
+            continue
+        args = call.get("arguments") or {}
+        idx = args.get("frame_index")
+        if idx is None and name == "get_frame":
+            idx = args.get("index")
+        if isinstance(idx, int):
+            seen.add(idx)
+        # Also credit frames that the tool itself reported — e.g.
+        # detect_objects_at_frame returns the `frame_index` it ran on.
+        result = tc.get("result") or {}
+        rf = result.get("frame_index") if isinstance(result, dict) else None
+        if isinstance(rf, int):
+            seen.add(rf)
+    return seen
 
 
 def run_tool_loop(
@@ -102,6 +211,7 @@ def run_tool_loop(
     sections: list[str] | None = None,
     task_type: str = "interactive",
     allow_reobservation: bool = True,
+    question_type: str | None = None,
 ) -> dict[str, Any]:
     """Run the multi-turn tool-calling loop.
 
@@ -304,6 +414,69 @@ def run_tool_loop(
             if schema:
                 required = sections if sections is not None else None
                 warnings = validate_schema(schema, required_sections=required)
+
+                # If the domain has a minimum-entity floor and the model
+                # emitted a schema below it, push a corrective user
+                # message and keep looping — provided we still have
+                # round budget.  This catches the common failure mode
+                # where GPT-4o stops after one tool call on a page
+                # (browser / desktop) with 50+ visible elements.
+                ent_min = _domain_entity_min(domain)
+                ent_found = count_entities(schema)
+                rounds_left = max_rounds - round_num
+                if (
+                    ent_min > 1
+                    and ent_found < ent_min
+                    and rounds_left >= 1
+                ):
+                    logger.info(
+                        "Round %d: schema has %d entities < min %d for "
+                        "domain=%s; nudging model to continue",
+                        round_num, ent_found, ent_min, domain,
+                    )
+                    messages.append({
+                        "role": "user",
+                        "content": _CONTINUE_INSTRUCTION_TEMPLATE.format(
+                            found=ent_found,
+                            domain=domain,
+                            needed=ent_min,
+                        ),
+                    })
+                    schema = None
+                    warnings = []
+                    continue
+
+                # Video-QA narrative questions: make sure the model
+                # actually looked at more than one frame.  Many video
+                # benchmarks have a "relationship/motive" flavour where
+                # one frame is not enough to ground the answer, but the
+                # entity-count check above would accept a one-frame
+                # schema because video_qa has a min of 1.
+                if (
+                    domain in ("video_qa", "video")
+                    and question_type in _VIDEO_NARRATIVE_QTYPES
+                    and rounds_left >= 1
+                ):
+                    distinct = _count_distinct_frames(tool_trace)
+                    if len(distinct) < _MIN_DISTINCT_FRAMES_NARRATIVE:
+                        logger.info(
+                            "Round %d: narrative video-QA (type=%s) "
+                            "grounded on %d distinct frame(s) < %d; "
+                            "nudging model to sample more frames",
+                            round_num, question_type, len(distinct),
+                            _MIN_DISTINCT_FRAMES_NARRATIVE,
+                        )
+                        messages.append({
+                            "role": "user",
+                            "content": _VIDEO_CONTINUE_TEMPLATE.format(
+                                frames_seen=len(distinct),
+                                qtype=question_type,
+                                frames_needed=_MIN_DISTINCT_FRAMES_NARRATIVE,
+                            ),
+                        })
+                        schema = None
+                        warnings = []
+                        continue
             break
 
         except Exception as exc:

@@ -185,6 +185,54 @@ ENTITY_TYPES: tuple[str, ...] = (
     "element", "object", "region", "text",
 )
 
+# Soft normalisation for colloquial / domain-specific type labels that the
+# VLM emits despite the prompt spec.  Keys are lowercased non-canonical
+# values; values are the canonical `ENTITY_TYPES` member they map to.
+# These are *accepted* during validation (so a schema with
+# `type=icon` is not rejected as unreasonable) but downstream tooling
+# should still treat the canonical form as ground truth — we surface a
+# single warning per schema when any normalisation fires so prompt
+# regressions don't silently accumulate.
+_TYPE_ALIASES: dict[str, str] = {
+    # GUI / web widgets — collapse onto `element`.
+    "icon": "element",
+    "button": "element",
+    "link": "element",
+    "input": "element",
+    "checkbox": "element",
+    "menu": "element",
+    "dialog": "element",
+    "window": "element",
+    "widget": "element",
+    # Image / frame atoms — collapse onto `object`.
+    "shape": "object",
+    "sprite": "object",
+    "tile": "object",
+    "piece": "object",
+    "image": "object",
+    "frame": "region",
+    "scene": "region",
+    "panel": "region",
+    "container": "region",
+    # Text-ish.
+    "label": "text",
+    "caption": "text",
+    "ocr": "text",
+    "heading": "text",
+}
+
+# Scheduler / wrapper tool names emitted by the OpenAI function-calling
+# runtime (and sometimes echoed by the VLM into <evidence>) that are not
+# real tools.  They must not be flagged as fabricated — they indicate a
+# prompt compliance issue instead.
+_TOOL_WRAPPER_NAMES: frozenset[str] = frozenset({
+    "multi_tool_use.parallel",
+    "multi_tool_use",
+    "parallel",
+    "tools.parallel",
+    "functions.parallel",
+})
+
 _SCHEMA_RULES = """\
 Rules:
 - pos= MUST be four comma-separated integers (x,y,w,h) or the literal word
@@ -988,17 +1036,35 @@ def semantic_validate(
     # Check 3 — uncertainty budget
     uncertainty_body = sections.get("uncertainty", "")
     high_count = 0
+    high_fields: list[str] = []
     for m in _UNCERTAINTY_LINE_RE.finditer(uncertainty_body):
         if m.group(3).lower() == "high":
             high_count += 1
+            high_fields.append(m.group(2))          # attribute name: pos | state | …
     if result.entity_count > 0:
         frac = high_count / result.entity_count
         result.high_uncertainty_frac = frac
         if frac > 0.5:
-            result.errors.append(
-                f"{high_count}/{result.entity_count} entities flagged "
-                f"uncertainty=high (>50%)"
-            )
+            # On QA domains (image_qa / video_qa / video) entities are
+            # routinely caption-grounded rather than bbox-grounded, so
+            # `pos=high` across the board is expected and should NOT
+            # fail validation.  Only escalate to a hard error when
+            # non-positional fields are mass-flagged (indicating the
+            # model is generally unsure about the scene) or the domain
+            # is pixel-grounded (games, browser, desktop).
+            only_positional = all(f == "pos" for f in high_fields)
+            if domain in _QA_DOMAINS and only_positional:
+                result.warnings.append(
+                    f"{high_count}/{result.entity_count} entities have "
+                    f"pos=high — expected for caption-grounded QA; add "
+                    f"pixel bboxes via detect_objects_at_frame if a "
+                    f"downstream skill needs spatial references."
+                )
+            else:
+                result.errors.append(
+                    f"{high_count}/{result.entity_count} entities flagged "
+                    f"uncertainty=high (>50%)"
+                )
 
     # Check 7 — entity reference integrity (hard error)
     cross_ref_sections = ["attributes", "relations", "targets", "uncertainty",
@@ -1072,6 +1138,7 @@ def semantic_validate(
     # Check 8 — entity type= enum (element|object|region|text).
     if entities_body:
         bad_types: list[str] = []
+        normalised_types: list[str] = []
         for line in _content_lines(entities_body):
             line_m = _ENTITY_LINE_RE.match(line)
             if not line_m:
@@ -1081,12 +1148,28 @@ def semantic_validate(
             if not t:
                 continue
             val = t.group(1).strip()
-            if val not in ENTITY_TYPES:
-                bad_types.append(f"{line_m.group(1)}={val}")
+            if val in ENTITY_TYPES:
+                continue
+            # Soft-accept common colloquial / domain labels by normalising
+            # them onto a canonical bucket.  Surface ONE warning with the
+            # full alias list so prompt drift is still visible but the
+            # schema isn't discarded over a label taxonomy disagreement.
+            if val.lower() in _TYPE_ALIASES:
+                normalised_types.append(
+                    f"{line_m.group(1)}={val}→{_TYPE_ALIASES[val.lower()]}"
+                )
+                continue
+            bad_types.append(f"{line_m.group(1)}={val}")
         if bad_types:
             result.errors.append(
                 "entities with non-canonical type= (must be one of "
                 f"{ENTITY_TYPES}): " + ", ".join(bad_types[:5])
+            )
+        if normalised_types:
+            result.warnings.append(
+                "entities with colloquial type= auto-normalised "
+                "(prompt compliance regression — consider updating the "
+                f"system prompt): {', '.join(normalised_types[:5])}"
             )
 
     # Check 9 — candidate_set must resolve to declared entity ids
@@ -1336,16 +1419,24 @@ def reconcile_evidence_with_tool_trace(
             return len(res) > 0
         if isinstance(res, dict):
             for k in ("elements", "detections", "objects", "matches",
-                      "frames", "moments", "boxes", "regions"):
+                      "frames", "moments", "boxes", "regions",
+                      "changes", "sampled", "added", "removed"):
                 v = res.get(k)
                 if isinstance(v, (list, tuple)) and len(v) > 0:
                     return True
             count = res.get("count")
             if isinstance(count, int) and count > 0:
                 return True
-            text = res.get("text")
-            if isinstance(text, str) and text.strip():
-                return True
+            # Caption-style tools (describe_frame, summarize_clip,
+            # describe_region, classify_scene, detect_activity) return
+            # a text field instead of a detections list.  Referencing
+            # them with result_ref=eN in <evidence> is legitimate when
+            # the model used that caption to introduce entity eN.
+            for k in ("description", "summary", "caption", "answer",
+                      "text", "label", "activity"):
+                v = res.get(k)
+                if isinstance(v, str) and v.strip():
+                    return True
             return any(_has_positive_result({"result": v})
                        for v in res.values() if isinstance(v, (list, dict)))
         if isinstance(res, str):
@@ -1359,7 +1450,23 @@ def reconcile_evidence_with_tool_trace(
     }
 
     for hop_idx, tool_name in hop_tools.items():
-        records = by_tool.get(_norm_tool(tool_name), [])
+        norm_name = _norm_tool(tool_name)
+        # OpenAI's function-calling runtime exposes a pseudo-tool called
+        # `multi_tool_use.parallel` that fans out concurrent calls.  It
+        # is not a real tool; flagging it as "fabricated" is misleading
+        # and the real fix is to get the VLM to cite the concrete inner
+        # tools in <evidence>.  Surface that as a distinct, softer
+        # warning so callers (and prompt regression tests) can tell the
+        # two failure modes apart.
+        if norm_name in _TOOL_WRAPPER_NAMES:
+            warnings.append(
+                f"hop{hop_idx} cites scheduler wrapper "
+                f"tool={tool_name} instead of the concrete inner "
+                f"tool — update the prompt to ask for the underlying "
+                f"tool name"
+            )
+            continue
+        records = by_tool.get(norm_name, [])
         if not records:
             warnings.append(
                 f"hop{hop_idx} claims tool={tool_name} but no such call "

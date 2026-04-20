@@ -8,24 +8,106 @@ Converts screenshots, video frames, and environment observations into a shared s
 
 ## Quick setup
 
-A dedicated conda env is shipped in [`environment.yml`](../environment.yml) with pinned versions of everything the parser needs (torch 2.4.1 + cu121, transformers 4.55, timm, easyocr, ultralytics, decord, …). The project's main `pyproject.toml` pulls in training-only deps (vllm etc.) that the parser doesn't need — use the dedicated env instead.
+`vlm_wrapper` itself runs inside a single **grounding** env that bundles torch / transformers / OmniParser-v2 / OCR / GroundingDINO / decord plus the CLEVR and Video-Holmes benchmark loaders. For **live data collection** from the three interactive runtimes (Gym-V, BrowserGym, OSWorld), each runtime has its own env because their transitive pins conflict — see [`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for the full incompatibility matrix.
+
+### The four conda envs
+
+| Env | YAML | Role | What's in it |
+|-----|------|------|--------------|
+| `vlm_benchmarks` | [`install/vlm_benchmarks.environment.yml`](../install/vlm_benchmarks.environment.yml) | **Grounding pipeline + offline benchmarks.** Use this to run `cascaded_ground`, Head 1/2/3, the tool loop, CLEVR, Video-Holmes, and all `scripts/` entry points. | torch 2.4.1+cu121, transformers 4.51–4.56, timm, ultralytics, easyocr, decord, supervision, openai, anthropic, google-genai, datasets, Pillow, playwright |
+| `gymv` | [`install/gymv.environment.yml`](../install/gymv.environment.yml) | **Gym-V env runtime** — drive [ModalMinds/gym-v](https://github.com/ModalMinds/gym-v) to capture `(frame, obs.text, info)` tuples. | gymnasium ≥1.2.2, gym-v editable install with `[games,spatial]`, textarena, pettingzoo, minigrid, miniworld |
+| `browsergym` | [`install/browsergym.environment.yml`](../install/browsergym.environment.yml) | **BrowserGym env runtime** — drive [ServiceNow/BrowserGym](https://github.com/ServiceNow/BrowserGym) to capture screenshots + AXTrees. | playwright 1.44, browsergym-core + miniwob + webarena + visualwebarena + assistantbench + experiments, libwebarena, libvisualwebarena |
+| `osworld` | [`install/osworld.environment.yml`](../install/osworld.environment.yml) | **OSWorld desktop runtime** — drive [xlang-ai/OSWorld](https://github.com/xlang-ai/OSWorld) to capture screenshots + a11y trees. | gymnasium ~0.28.1, transformers ~4.35.2, desktop-env 1.0.x, docker SDK, pyautogui |
+
+**Why four?** gym-v needs `gymnasium>=1.2.2`; OSWorld hard-pins `gymnasium~=0.28.1` (API-breaking difference); BrowserGym hard-pins `playwright==1.44`; OSWorld hard-pins `transformers~=4.35.2` which conflicts with the `>=4.51` that GroundingDINO in `vlm_benchmarks` requires. No single resolver solution exists.
+
+### Build the grounding env (this is the one you need to use `vlm_wrapper`)
 
 ```bash
-# Build the env (~5–10 min, downloads several GB)
-conda env create -f environment.yml
-conda activate vlm_wrapper
+# Create the unified grounding + benchmarks env (~10–15 min, downloads ~6 GB)
+conda env create -f install/vlm_benchmarks.environment.yml
+conda activate vlm_benchmarks
 
-# Make `vlm_wrapper` importable without pulling in vllm & friends
+# Make `vlm_wrapper` importable without pulling in the training-time vllm deps
 pip install -e . --no-deps
 
 # Offline sanity check (no API calls)
 pytest vlm_wrapper/tests -q
 
-# Live end-to-end smoke test across all five domains
+# Env-wide smoke test (torch, transformers, OmniParser weights, etc.)
+python install/vlm_benchmarks_smoke.py
+
+# Live end-to-end parse across all five domains (requires OPENAI_API_KEY)
 python scripts/test_vlm_parsers.py --cases gymv browser desktop clevr video_holmes
 ```
 
-If you want a minimal install on top of an existing env, use the optional `[vision]` extra: `pip install -e ".[vision]"` (pulls in `timm`, `easyocr`, `ultralytics`, `opencv-python`, `decord`).
+### Build the runtime envs (only if you need to *step* real environments)
+
+One-liner installers clone the upstream repos, create the env, install in editable mode, and run a smoke test. Run only the ones you plan to use:
+
+```bash
+# Gym-V — 179 procedurally generated envs
+bash install/install_gymv.sh          # creates conda env 'gymv'
+
+# BrowserGym — MiniWoB++ / WebArena / VisualWebArena / AssistantBench
+bash install/install_browsergym.sh    # creates conda env 'browsergym'
+
+# OSWorld — desktop tasks over Office / Daily / Professional suites
+bash install/install_osworld.sh       # creates conda env 'osworld'
+```
+
+Each script honours an optional argument for the clone directory (defaults to `/fs/gamma-projects/vlm-robot/{gym-v,BrowserGym,OSWorld}`). See [`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for VM-backend setup (Docker / VMware / AWS) that OSWorld additionally requires to execute tasks.
+
+### End-to-end data-collection flow across envs
+
+The grounding pipeline never calls `env.step()` itself — it only consumes observation dicts, screenshots, or frame stacks. That's the whole reason the envs can stay isolated: step in the runtime env, dump to disk, parse in the grounding env.
+
+```bash
+# ── 1. Collect from Gym-V ────────────────────────────────────────────────
+conda activate gymv
+python scripts/collect_gymv_rollouts.py \
+    --env-id Games/Game2048-v0 --episodes 50 \
+    --out data/rollouts/gymv_2048.jsonl           # writes (frame_path, obs_text, info) per step
+
+# ── 2. Collect from BrowserGym ───────────────────────────────────────────
+conda activate browsergym
+python scripts/collect_browsergym_rollouts.py \
+    --task-id miniwob.click-menu --episodes 20 \
+    --out data/rollouts/bgym_click_menu.jsonl
+
+# ── 3. Collect from OSWorld (requires Docker/VMware backend) ─────────────
+conda activate osworld
+python scripts/collect_osworld_rollouts.py \
+    --task-id osworld.install-spotify --episodes 5 \
+    --out data/rollouts/osw_install_spotify.jsonl
+
+# ── 4. Parse every rollout into <state> schemas (grounding env) ──────────
+conda activate vlm_benchmarks
+python scripts/label_rollouts.py \
+    --inputs data/rollouts/*.jsonl \
+    --out data/schemas/
+```
+
+The `scripts/collect_*_rollouts.py` data-collection helpers are Phase-0 TODOs in the milestones plan — see [`plans/PLAN-VISUAL-GROUNDING-MILESTONES.md`](../plans/PLAN-VISUAL-GROUNDING-MILESTONES.md) §7. While they're pending, you can exercise every part of `vlm_wrapper` from the bundled fixtures under `vlm_wrapper/real_*.png` without any runtime env:
+
+```bash
+conda activate vlm_benchmarks
+python scripts/test_vlm_parsers.py --cases gymv browser desktop
+```
+
+### Legacy minimal env (`vlm_wrapper`)
+
+A slimmer env is shipped at the project root ([`environment.yml`](../environment.yml)) with only the grounding stack — no benchmark loaders, no multi-provider API clients. Use it if you only need Head 1/2/3 on your own image inputs and want a smaller install:
+
+```bash
+conda env create -f environment.yml           # env name: vlm_wrapper
+conda activate vlm_wrapper
+pip install -e . --no-deps
+```
+
+Everything documented below works in either `vlm_benchmarks` or `vlm_wrapper`; the CLEVR / Video-Holmes examples only work in `vlm_benchmarks`.
+
+If you just want the vision back-ends on top of an already-existing env, the same stack is exposed as the `[vision]` pyproject extra: `pip install -e ".[vision]"` (pulls `timm`, `easyocr`, `ultralytics`, `opencv-python`, `decord`, `supervision`).
 
 ---
 
@@ -540,17 +622,28 @@ Or pass `model=`, `api_key=`, `base_url=` directly to any `generate_label` call.
 
 ## Requirements
 
-The simplest path is [`environment.yml`](../environment.yml) (see [Quick setup](#quick-setup)). It pins the tested combination:
+The tested combination for the **grounding env** ([`install/vlm_benchmarks.environment.yml`](../install/vlm_benchmarks.environment.yml)):
 
 | Layer | Pinned package(s) |
 |---|---|
 | Python | `3.11` |
 | Core ML | `torch==2.4.1+cu121`, `torchvision==0.19.1+cu121` |
-| HuggingFace | `transformers>=4.51,<4.56` (handles both the old `box_threshold=` and new `threshold=` GroundingDINO post-process API), `accelerate`, `safetensors`, `sentence-transformers` |
-| Head 3 vision stack | `timm` (required by Florence-2's DaViT backbone), `ultralytics` (YOLO icon detector), `easyocr`, `opencv-python` |
-| Video tools | `decord` |
-| API + utils | `openai`, `Pillow`, `numpy<2`, `omegaconf`, `pyyaml`, `loguru`, `python-dotenv`, `nvidia-ml-py` |
-| Tests | `pytest` |
+| HuggingFace | `transformers>=4.51,<4.56` (handles both the old `box_threshold=` and new `threshold=` GroundingDINO post-process API), `accelerate`, `safetensors`, `sentence-transformers`, `datasets`, `huggingface_hub` |
+| Head 3 vision stack | `timm` (required by Florence-2's DaViT backbone), `ultralytics` (YOLO icon detector), `easyocr`, `opencv-python`, `supervision` |
+| Video tools | `decord`, `av` |
+| API clients | `openai`, `anthropic`, `google-genai` |
+| Utils | `Pillow`, `numpy<2`, `omegaconf`, `pyyaml`, `loguru`, `python-dotenv`, `nvidia-ml-py`, `playwright` |
+| Tests | `pytest`, `pytest-mock` |
+
+For the **runtime envs**, the tightest pins are:
+
+| Runtime env | Critical pins | Why |
+|---|---|---|
+| `gymv`       | `gymnasium>=1.2.2`, `pettingzoo[classic]>=1.25.0`, `minigrid>=2.5.0`, `textarena>=0.7.4` | ModalMinds/gym-v pyproject requirements |
+| `browsergym` | `playwright==1.44`, `gymnasium>=0.27`, `numpy<2`, `libwebarena==0.0.5`, `libvisualwebarena==0.0.15` | BrowserGym-core's own pins; playwright 1.44 is the version the sub-packages ship against |
+| `osworld`    | `gymnasium~=0.28.1`, `transformers~=4.35.2`, `torch~=2.5.0`, `desktop-env>=1.0.2`, `docker>=7.0` | OSWorld's `requirements.txt` — conflicts with the grounding env on `gymnasium` + `transformers` |
+
+Running `python install/{gymv,browsergym,osworld,vlm_benchmarks}_smoke.py` inside the matching env prints the resolved versions plus one `[OK]/[FAIL]/[WARN]` line per module check.
 
 If you prefer pip-only on an existing env, the same vision stack is exposed as the `[vision]` extra in `pyproject.toml`:
 
@@ -562,9 +655,11 @@ pip install -e ".[vision]"
 
 - **GroundingDINO API rename** (`box_threshold=` → `threshold=` in `transformers 4.50+`). `tools_visual.py` now picks the right keyword at call time via `inspect.signature`, so both old and new wheels work.
 - **Florence-2 missing `timm`.** `grounding.py::_load_caption` now raises an actionable `ImportError` telling you to install the `vision` extra — instead of dying deep inside `modeling_florence2.py`.
-- **GPU compute-capability mismatches.** If `detect_objects_at_frame` fails with `CUDA error: no kernel image is available for execution on the device`, your GPU is newer than torch 2.4.1+cu121 supports (common on RTX 50-series). Upgrade by editing `environment.yml` to `torch==2.5.x` + `--extra-index-url …/cu124`.
+- **GPU compute-capability mismatches.** If `detect_objects_at_frame` fails with `CUDA error: no kernel image is available for execution on the device`, your GPU is newer than torch 2.4.1+cu121 supports (common on RTX 50-series). Upgrade by editing `install/vlm_benchmarks.environment.yml` to `torch==2.5.x` + `--extra-index-url …/cu124`.
+- **Wrong env activated.** Running `pytest vlm_wrapper/tests` or `scripts/test_vlm_parsers.py` from the `gymv` / `browsergym` / `osworld` env will fail with `ModuleNotFoundError: vlm_wrapper` or `No module named 'transformers.models.grounding_dino'`. Activate `vlm_benchmarks` (or the legacy `vlm_wrapper` env) first — the runtime envs intentionally don't include the grounding stack.
+- **OSWorld env and GroundingDINO.** `osworld` pins `transformers~=4.35.2`, which predates the `GroundingDinoForObjectDetection` class. Run OSWorld observation capture in the `osworld` env, but always schema-parse in `vlm_benchmarks`.
 
-OmniParser-v2 weights are downloaded automatically from HuggingFace (`microsoft/OmniParser-v2.0`) on first use. Falls back to OCR-only mode if weights are unavailable.
+OmniParser-v2 weights are downloaded automatically from HuggingFace (`microsoft/OmniParser-v2.0`) on first use into `~/.cache/omniparser-v2/` (override via `OMNIPARSER_CACHE_DIR`). Falls back to OCR-only mode if weights are unavailable.
 
 ---
 

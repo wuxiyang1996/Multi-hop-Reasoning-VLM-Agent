@@ -191,9 +191,36 @@ def _load_caption(cache_dir: str = DEFAULT_CACHE_DIR):
         "microsoft/Florence-2-base", trust_remote_code=True,
     )
     dtype = torch.float16 if device == "cuda" else torch.float32
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path, torch_dtype=dtype, trust_remote_code=True,
-    ).to(device)
+
+    # transformers ≥4.50 runs `_check_and_adjust_attn_implementation`
+    # during `from_pretrained`, which reads `model._supports_sdpa`.
+    # Florence-2's custom `Florence2ForConditionalGeneration` (loaded
+    # via trust_remote_code from microsoft/Florence-2-*) predates that
+    # attribute, so the load itself crashes with `AttributeError`.
+    # Forcing `attn_implementation="eager"` bypasses the SDPA path so
+    # the missing attribute never gets read, and is a no-op on models
+    # that already default to eager attention.
+    try:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path, torch_dtype=dtype, trust_remote_code=True,
+            attn_implementation="eager",
+        ).to(device)
+    except (TypeError, ValueError):
+        # Very old transformers that don't know `attn_implementation=`.
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path, torch_dtype=dtype, trust_remote_code=True,
+        ).to(device)
+
+    # Belt-and-suspenders: patch the missing attribute on the class so
+    # downstream calls that re-check it (e.g. `.generate()` internals)
+    # also succeed.
+    for attr, default in (
+        ("_supports_sdpa", False),
+        ("_supports_flash_attn_2", False),
+        ("_supports_cache_class", False),
+    ):
+        if not hasattr(type(model), attr):
+            setattr(type(model), attr, default)
 
     _caption_model_processor = {"model": model, "processor": processor}
     logger.info("Florence-2 icon captioner loaded from %s (device=%s)", model_path, device)
@@ -342,6 +369,7 @@ def _caption_icons(
             input_ids=inputs["input_ids"],
             pixel_values=inputs["pixel_values"],
             max_new_tokens=20, num_beams=1, do_sample=False,
+            use_cache=False,  # Florence-2 + transformers ≥4.55 cache shim bug
         )
         texts = processor.batch_decode(generated_ids, skip_special_tokens=True)
         captions.extend([t.strip() for t in texts])

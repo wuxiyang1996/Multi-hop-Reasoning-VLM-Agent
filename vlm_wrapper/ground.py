@@ -306,11 +306,38 @@ def _build_registry(
 
     elif domain in ("video_qa", "video") and isinstance(req.images, list):
         from .tools_video import build_video_registry
-        from .tools_video_visual import build_video_visual_registry
+        from .tools_video_visual import (
+            build_video_visual_registry, make_openai_describer,
+        )
+        # Natural video → GroundingDINO for detection, and a VLM-backed
+        # `describe_frame` tool so the model can get a coherent caption
+        # instead of relying on the UI icon captioner (which hallucinates
+        # subtitle-style text on cinematic frames).
+        describer = None
+        if req.model:
+            try:
+                import openai
+                client_kwargs: dict[str, Any] = {}
+                if req.api_key:
+                    client_kwargs["api_key"] = req.api_key
+                if req.base_url:
+                    client_kwargs["base_url"] = req.base_url
+                client = openai.OpenAI(**client_kwargs)
+                describer = make_openai_describer(
+                    client=client, model=req.model,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Could not build vlm_describer for describe_frame: %s",
+                    exc,
+                )
         vv_reg = build_video_visual_registry(
             frames=req.images,
             fps=req.context.get("fps", 1.0),
             current_index=req.context.get("current_index", 0),
+            prefer_gdino=(domain in ("video_qa", "video")),
+            vlm_describer=describer,
+            sample_timestamps=req.context.get("sample_timestamps") or [],
         )
         registries = [vv_reg]
 
@@ -375,13 +402,39 @@ def _build_extra_context(req: GroundingRequest, domain: str) -> str:
             parts.append(f"Task instruction: {instruction}")
 
     elif domain in ("video_qa", "video") and isinstance(req.images, list):
+        n = len(req.images)
         fps = req.context.get("fps", 1.0)
         cur = req.context.get("current_index", 0)
+        dur = req.context.get("duration_s") or 0.0
+        native_fps = req.context.get("native_fps")
+        sample_ts = req.context.get("sample_timestamps") or []
+        ts_hint = ""
+        if sample_ts and len(sample_ts) == n:
+            joined = ", ".join(f"f{i}={t:.1f}s" for i, t in enumerate(sample_ts))
+            ts_hint = f"\nSample-frame wallclock timestamps: {joined}"
+        question_type = req.context.get("question_type")
+        qt_hint = ""
+        if question_type in {"SR", "HR", "MM", "CS"}:
+            qt_hint = (
+                f"\nQuestion type: {question_type} — this is a narrative "
+                "question (relationship / motive / causal / social).  "
+                "Inspect MULTIPLE frames spanning different moments of "
+                "the clip before answering; one frame is not enough."
+            )
         parts.append(
-            f"Video: {len(req.images)} frames at {fps} FPS, "
+            f"Video: {n} uniformly sampled frames out of a "
+            f"{dur:.1f}-second clip "
+            f"(native {native_fps or '?'} FPS, "
+            f"effective sample FPS {fps:.4g}), "
             f"currently at frame {cur}.\n"
-            f"Full tool suite available: temporal navigation, "
-            f"vision-model detection, cross-frame tracking."
+            f"Tools available: temporal navigation (sample_frames, "
+            f"detect_scene_changes, get_frame), per-frame detection "
+            f"(detect_objects_at_frame — natural-image backend), "
+            f"cross-frame tracking (track_object, summarize_clip), and "
+            f"`describe_frame(frame_index)` which returns a VLM-generated "
+            f"caption.  For narrative questions, prefer describe_frame "
+            f"on ≥ 2 well-spread frames over detect_objects_at_frame."
+            f"{ts_hint}{qt_hint}"
         )
 
     elif domain == "image_qa":
@@ -459,6 +512,7 @@ def ground(req: GroundingRequest) -> GroundingResult:
         sections=sections,
         task_type="interactive",
         allow_reobservation=allow_reobservation,
+        question_type=req.context.get("question_type"),
     )
 
     # 6. Parse into universal result
@@ -861,19 +915,7 @@ def _attempt_vlm_via_adapter(
 
     schema = out.get("schema")
     answer = parse_answer_from_schema(schema) if schema else None
-    evidence_raw = parse_evidence_from_schema(schema) if schema else []
-    evidence = [
-        HopTrace(
-            hop_id=h.get("hop_id", i + 1),
-            tool=h.get("tool"),
-            result_ref=h.get("result_ref"),
-            frame=h.get("frame"),
-            timestamp=h.get("timestamp"),
-            confidence=h.get("confidence"),
-            raw=h.get("raw", ""),
-        )
-        for i, h in enumerate(evidence_raw)
-    ]
+    evidence = _parse_evidence_hops(schema) if schema else []
 
     return GroundingResult(
         schema=schema,
