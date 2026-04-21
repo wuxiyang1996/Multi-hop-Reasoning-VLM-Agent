@@ -12,7 +12,7 @@ retrieved.  It only needs three things per step:
    §10).
 
 This module defines the contract between the Actor (Agent 1) and the
-Skill-Use Agent (Agent 2) from ``plans/PLAN-ACTION-AGENT.md`` §2.3.  Two
+Skill-Use Agent (Agent 2) from ``plans/02-action-agent/PLAN-ACTION-AGENT.md`` §2.3.  Two
 concrete providers ship with this package:
 
 * :class:`NullSkillProvider` — a no-op used for skill-less runs and

@@ -8,9 +8,9 @@ draft → candidate → rejected
 active → deprecated / rolled_back
 ```
 
-**Problem statement.** Today the lifecycle is described in three places — [PLAN-SKILL-BANK.md §7 acceptance gate](PLAN-SKILL-BANK.md#7-grpo-co-evolution), [PLAN-HARNESS.md §10 promotion gates](PLAN-HARNESS.md#10-promotion-gates), and [PLAN-PIPELINE-ORCHESTRATOR.md §3 promotion / rollback rules](PLAN-PIPELINE-ORCHESTRATOR.md#3-promotion--rollback-rules) — but no document concretely defines (i) the canonical state machine, (ii) the canonical record types every component reads/writes, (iii) the ownership boundary between Skill Bank Agent / Harness / Pipeline Orchestrator, (iv) the storage split that makes "no promotion without gate" mechanically impossible to bypass, or (v) the phased build order. This plan is the canonical specification of all five.
+**Problem statement.** Today the lifecycle is described in three places — [PLAN-SKILL-BANK.md §7 acceptance gate](../03-skill-bank/PLAN-SKILL-BANK.md#7-grpo-co-evolution), [PLAN-HARNESS.md §10 promotion gates](../05-harness/PLAN-HARNESS.md#10-promotion-gates), and [PLAN-PIPELINE-ORCHESTRATOR.md §3 promotion / rollback rules](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3-promotion--rollback-rules) — but no document concretely defines (i) the canonical state machine, (ii) the canonical record types every component reads/writes, (iii) the ownership boundary between Skill Bank Agent / Harness / Pipeline Orchestrator, (iv) the storage split that makes "no promotion without gate" mechanically impossible to bypass, or (v) the phased build order. This plan is the canonical specification of all five.
 
-**Upstream:** [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) (skill data model, `evidence_role`, `evidence_interface`, lineage / provenance, negative knowledge), [PLAN-HARNESS.md](PLAN-HARNESS.md) (`SkillEpisode`, `SkillHarness`, `AdapterRegistry`, `TransferManager`, `ReplayValidator`, six promotion gates G0–G5, transfer-failure diagnostics), [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) (artifact / log schema, episode-local trajectory bookkeeping, evaluation matrix, budget controller, escalation ladder).
+**Upstream:** [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) (skill data model, `evidence_role`, `evidence_interface`, lineage / provenance, negative knowledge), [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) (`SkillEpisode`, `SkillHarness`, `AdapterRegistry`, `TransferManager`, `ReplayValidator`, six promotion gates G0–G5, transfer-failure diagnostics), [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) (artifact / log schema, episode-local trajectory bookkeeping, evaluation matrix, budget controller, escalation ladder).
 
 **Downstream:** Concrete `gate/`, `skill_bank/`, `harness/`, and `orchestrator/` module trees; configs (`configs/skill_gate.yaml`); JSONL artifact schemas backing `BankMutationProposal` / `GateVerdict` / `SkillEpisode` / `AuditRecord`.
 
@@ -26,9 +26,9 @@ The gate is one shared protocol with three owners. Each row below pins which mod
 
 | Owner | Owns (writes) | Does NOT own |
 |-------|---------------|--------------|
-| **Skill Bank Agent** ([PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md)) | skill state machine, versioning, provenance, candidate registration, promotion *recommendation*, final bank writes for `candidate / shadow / provisional / active / deprecated / rejected / rolled_back` | runtime validation execution; promotion *transactions* across multiple stores |
-| **Harness** ([PLAN-HARNESS.md](PLAN-HARNESS.md)) | static validation execution, replay validation, shadow execution, transfer validation, non-regression evaluation, gate-metrics emission (`SkillEpisode`, `GateVerdict` payloads) | bank pointer moves; snapshot creation; rollback transactions |
-| **Pipeline Orchestrator** ([PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md)) | batch scheduling, snapshot/checkpointing, **promotion + rollback transactions**, frozen eval-suite execution, audit trail, decision logging | per-skill semantic decisions; per-episode validation logic |
+| **Skill Bank Agent** ([PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md)) | skill state machine, versioning, provenance, candidate registration, promotion *recommendation*, final bank writes for `candidate / shadow / provisional / active / deprecated / rejected / rolled_back` | runtime validation execution; promotion *transactions* across multiple stores |
+| **Harness** ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) | static validation execution, replay validation, shadow execution, transfer validation, non-regression evaluation, gate-metrics emission (`SkillEpisode`, `GateVerdict` payloads) | bank pointer moves; snapshot creation; rollback transactions |
+| **Pipeline Orchestrator** ([PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)) | batch scheduling, snapshot/checkpointing, **promotion + rollback transactions**, frozen eval-suite execution, audit trail, decision logging | per-skill semantic decisions; per-episode validation logic |
 
 This split is consistent with what each plan already says is its scope. The unified gate just makes the boundary executable rather than a convention.
 
@@ -62,7 +62,7 @@ class SkillSourceType(str, Enum):
     SEEDED      = "human_seeded"
 ```
 
-**Hard rule.** All source types share *the same* gate; there is no fast path based on model size, lineage, or human authorship. This makes the "frozen 32B/72B proposals stay candidates until they pass the same gate stack" rule from [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs) mechanical rather than aspirational.
+**Hard rule.** All source types share *the same* gate; there is no fast path based on model size, lineage, or human authorship. This makes the "frozen 32B/72B proposals stay candidates until they pass the same gate stack" rule from [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs) mechanical rather than aspirational.
 
 ### 2.3 Allowed transitions
 
@@ -84,8 +84,8 @@ DRAFT ── static ──► CANDIDATE ── replay ──► SHADOW ── tr
 1. No skill is retrievable in `SkillHarness.run_active` unless its current `SkillStatus ∈ {ACTIVE, PROVISIONAL}`.
 2. No skill is retrievable in `SkillHarness.run_shadow` unless its current `SkillStatus ∈ {ACTIVE, PROVISIONAL, SHADOW, CANDIDATE}`.
 3. `DRAFT` skills are **not** in any retrieval index (they live in `draft_store`, §6).
-4. `REJECTED` and `ROLLED_BACK` skills retain their full `SkillEvaluationRecord` history for the [Skill Crafter](PLAN-SKILL-CRAFTER.md) repair / reflection loop.
-5. Every state transition records both a `SkillEvaluationRecord` (the per-stage verdict, §3.2) and an `AuditRecord` ([PLAN-PIPELINE-ORCHESTRATOR.md §8.3](PLAN-PIPELINE-ORCHESTRATOR.md#83-audit-artifact)).
+4. `REJECTED` and `ROLLED_BACK` skills retain their full `SkillEvaluationRecord` history for the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) repair / reflection loop.
+5. Every state transition records both a `SkillEvaluationRecord` (the per-stage verdict, §3.2) and an `AuditRecord` ([PLAN-PIPELINE-ORCHESTRATOR.md §8.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#83-audit-artifact)).
 
 ---
 
@@ -95,7 +95,7 @@ These three records are the **only** objects that cross the Skill-Bank ↔ Harne
 
 ### 3.1 `SkillRecord` (owned by Skill Bank)
 
-The bank-side canonical object. Concretizes the typed-slot / domain-adapter / evidence-driven items already required by [PLAN-SKILL-BANK.md §4](PLAN-SKILL-BANK.md#4-skill-data-model) and [§0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills).
+The bank-side canonical object. Concretizes the typed-slot / domain-adapter / evidence-driven items already required by [PLAN-SKILL-BANK.md §4](../03-skill-bank/PLAN-SKILL-BANK.md#4-skill-data-model) and [§0.3](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills).
 
 ```python
 @dataclass
@@ -137,7 +137,7 @@ class SkillRecord:
 
 ### 3.2 `SkillEvaluationRecord` (owned by Harness, consumed by Orchestrator + Skill Bank)
 
-The shared per-evaluation artifact, written once per gate-stage execution. Sits under `artifacts/gates/{gate_run_id}/` in [PLAN-PIPELINE-ORCHESTRATOR.md §2.3](PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical).
+The shared per-evaluation artifact, written once per gate-stage execution. Sits under `artifacts/gates/{gate_run_id}/` in [PLAN-PIPELINE-ORCHESTRATOR.md §2.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical).
 
 ```python
 @dataclass
@@ -171,7 +171,7 @@ class SkillEvaluationRecord:
     evaluated_at: str
 ```
 
-### 3.3 `GateVerdict` (already named in [PLAN-PIPELINE-ORCHESTRATOR.md §2.2](PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types) and [PLAN-HARNESS.md §10a](PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific))
+### 3.3 `GateVerdict` (already named in [PLAN-PIPELINE-ORCHESTRATOR.md §2.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types) and [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific))
 
 Concretized as:
 
@@ -235,7 +235,7 @@ configs/
   skill_gate.yaml                  # all thresholds in one file (§9)
 ```
 
-This mirrors the file responsibilities already declared in [PLAN-HARNESS.md §12.1](PLAN-HARNESS.md#121-file-responsibilities) and the implementation checklist in [PLAN-PIPELINE-ORCHESTRATOR.md §9](PLAN-PIPELINE-ORCHESTRATOR.md#9-implementation-checklist-cursor-ready).
+This mirrors the file responsibilities already declared in [PLAN-HARNESS.md §12.1](../05-harness/PLAN-HARNESS.md#121-file-responsibilities) and the implementation checklist in [PLAN-PIPELINE-ORCHESTRATOR.md §9](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#9-implementation-checklist-cursor-ready).
 
 ---
 
@@ -276,7 +276,7 @@ class GateRunner:
     ) -> SkillEvaluationRecord: ...
 ```
 
-`run_shadow` / `run_transfer` / `run_non_regression` MUST set `SkillEpisode.shadow = True` for every episode they generate (consistent with [PLAN-HARNESS.md §6.1](PLAN-HARNESS.md#61-phase-a--shadow-mode)) so the shadow constraints are enforced by the Harness, not by the gate code.
+`run_shadow` / `run_transfer` / `run_non_regression` MUST set `SkillEpisode.shadow = True` for every episode they generate (consistent with [PLAN-HARNESS.md §6.1](../05-harness/PLAN-HARNESS.md#61-phase-a--shadow-mode)) so the shadow constraints are enforced by the Harness, not by the gate code.
 
 ### 5.3 Orchestrator — `PromotionOrchestrator`
 
@@ -307,13 +307,13 @@ This is the structural reason the "no promotion without gate" invariant cannot b
 | `active_store`    | `ACTIVE`                                | `SkillHarness.run_active` (default rank), all online retrieval |
 | `archive_store`   | `DEPRECATED`, `REJECTED`, `ROLLED_BACK` | rollback target lookup, crafter repair input |
 
-Plus three index tables co-located with the bank snapshots from [PLAN-PIPELINE-ORCHESTRATOR.md §2.3](PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical):
+Plus three index tables co-located with the bank snapshots from [PLAN-PIPELINE-ORCHESTRATOR.md §2.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical):
 
 - `version_history(skill_id, version) → SkillRecord`
 - `gate_history(skill_id, version) → list[SkillEvaluationRecord]`
 - `rollback_links(skill_id, from_version, to_version, reason, audit_id)`
 
-**`SkillHarness.run_active` retrieval policy.** Sees `active_store` at full weight + `candidate_store(PROVISIONAL)` with the [PLAN-HARNESS.md §7.2](PLAN-HARNESS.md#72-shadow-origin-penalty) shadow-origin penalty applied. Never sees `CANDIDATE`, `SHADOW`, `DRAFT`, `REJECTED`, `DEPRECATED`, or `ROLLED_BACK`.
+**`SkillHarness.run_active` retrieval policy.** Sees `active_store` at full weight + `candidate_store(PROVISIONAL)` with the [PLAN-HARNESS.md §7.2](../05-harness/PLAN-HARNESS.md#72-shadow-origin-penalty) shadow-origin penalty applied. Never sees `CANDIDATE`, `SHADOW`, `DRAFT`, `REJECTED`, `DEPRECATED`, or `ROLLED_BACK`.
 
 **`SkillHarness.run_shadow` retrieval policy.** Sees `active_store` + `candidate_store` (CANDIDATE / SHADOW / PROVISIONAL) at full rank.
 
@@ -321,15 +321,15 @@ Plus three index tables co-located with the bank snapshots from [PLAN-PIPELINE-O
 
 ## 7. Gate stages (the canonical pipeline)
 
-This stack is the unified specification of what [PLAN-SKILL-BANK.md §7](PLAN-SKILL-BANK.md#7-grpo-co-evolution), [PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates), and [PLAN-PIPELINE-ORCHESTRATOR.md §3.1](PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) already each describe in part. Existing **G0 (Evidence-driven contract)** from [PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates) is **orthogonal** to this stack — it is checked at every `SkillHarness.finalize_episode` (active and shadow) and can demote at any time. The stages below run *as a batch* on candidates and produce one `SkillEvaluationRecord` per pass.
+This stack is the unified specification of what [PLAN-SKILL-BANK.md §7](../03-skill-bank/PLAN-SKILL-BANK.md#7-grpo-co-evolution), [PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates), and [PLAN-PIPELINE-ORCHESTRATOR.md §3.1](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) already each describe in part. Existing **G0 (Evidence-driven contract)** from [PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates) is **orthogonal** to this stack — it is checked at every `SkillHarness.finalize_episode` (active and shadow) and can demote at any time. The stages below run *as a batch* on candidates and produce one `SkillEvaluationRecord` per pass.
 
 ### Stage 0 — Static sanity check (`gate/static_checker.py`)
 
 | Item | Value |
 |------|-------|
 | **Inputs** | `SkillRecord`, schema spec, slot type spec, domain registry |
-| **Checks** | required fields present; no unresolved slots; preconditions / success_criteria / abort_criteria / procedure non-empty; `evidence_requirements` declared; `contract` schema valid; `applicable_domains` valid; `evidence_role` consistent with §8 effect family ([PLAN-SKILL-BANK.md §0.3 Clause B](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)); no environment-specific hardcoding in semantic body |
-| **Maps to existing gate** | Subsumes [PLAN-PIPELINE-ORCHESTRATOR.md §3.1.1 + §3.1.2](PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) (static contract + symbolic consistency) and [PLAN-HARNESS.md G1 binding feasibility](PLAN-HARNESS.md#10-promotion-gates) at the schema layer |
+| **Checks** | required fields present; no unresolved slots; preconditions / success_criteria / abort_criteria / procedure non-empty; `evidence_requirements` declared; `contract` schema valid; `applicable_domains` valid; `evidence_role` consistent with §8 effect family ([PLAN-SKILL-BANK.md §0.3 Clause B](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)); no environment-specific hardcoding in semantic body |
+| **Maps to existing gate** | Subsumes [PLAN-PIPELINE-ORCHESTRATOR.md §3.1.1 + §3.1.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) (static contract + symbolic consistency) and [PLAN-HARNESS.md G1 binding feasibility](../05-harness/PLAN-HARNESS.md#10-promotion-gates) at the schema layer |
 | **Transition** | `pass → CANDIDATE`; `fail → REJECTED` |
 
 ### Stage 1 — Offline replay validation (`gate/replay_gate.py` → `harness/replay_validator.py`)
@@ -338,27 +338,27 @@ This stack is the unified specification of what [PLAN-SKILL-BANK.md §7](PLAN-SK
 |------|-------|
 | **Inputs** | `SkillRecord`, held-out trajectories, candidate slot bindings, expected contract effects |
 | **Metrics** | precondition precision / recall; slot binding success; completion rate; success-criteria match; abort correctness; contract consistency; unsupported-step ratio; avg hop count; avg cost |
-| **Maps to existing gate** | [PLAN-HARNESS.md G3 Replay](PLAN-HARNESS.md#10-promotion-gates) + [PLAN-PIPELINE-ORCHESTRATOR.md §3.1.3](PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) |
+| **Maps to existing gate** | [PLAN-HARNESS.md G3 Replay](../05-harness/PLAN-HARNESS.md#10-promotion-gates) + [PLAN-PIPELINE-ORCHESTRATOR.md §3.1.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) |
 | **Transition** | `strong pass → SHADOW (all applicable_domains)`; `weak pass → SHADOW (subset)`; `fail → REJECTED` |
 
 ### Stage 2 — Shadow execution (`gate/shadow_gate.py` → `SkillHarness.run_shadow`)
 
 | Item | Value |
 |------|-------|
-| **Behavior** | Runs candidate in shadow only: retrieved, slot-bound, adapter-attached, scored against observed transitions. **MUST NOT** affect environment, training reward, or actor action — these are the constraints already pinned in [PLAN-HARNESS.md §6.1](PLAN-HARNESS.md#61-phase-a--shadow-mode) |
+| **Behavior** | Runs candidate in shadow only: retrieved, slot-bound, adapter-attached, scored against observed transitions. **MUST NOT** affect environment, training reward, or actor action — these are the constraints already pinned in [PLAN-HARNESS.md §6.1](../05-harness/PLAN-HARNESS.md#61-phase-a--shadow-mode) |
 | **Metrics** | shadow invocation appropriateness; slot binding stability; severe stall rate; contradiction rate; evidence grounding quality; contract progress reliability; shadow pass rate |
-| **Maps to existing gate** | [PLAN-HARNESS.md G4 Shadow](PLAN-HARNESS.md#10-promotion-gates) |
+| **Maps to existing gate** | [PLAN-HARNESS.md G4 Shadow](../05-harness/PLAN-HARNESS.md#10-promotion-gates) |
 | **Transition** | `pass → Stage 3`; `fail → REJECTED`; `borderline → remain SHADOW with more trials` |
 
 ### Stage 3 — Transfer validation (`gate/transfer_gate.py` → `harness/transfer_manager.py`)
 
 | Item | Value |
 |------|-------|
-| **Goal** | Verify that the skill is not merely an in-domain trick — i.e., the [PLAN-SKILL-BANK.md §0.1 general-protocol invariant](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families) actually holds |
+| **Goal** | Verify that the skill is not merely an in-domain trick — i.e., the [PLAN-SKILL-BANK.md §0.1 general-protocol invariant](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families) actually holds |
 | **Inputs** | source-domain `SkillRecord`, target-domain adapters, target ontology mapping, held-out target tasks |
 | **Tests** | same domain / different task; nearby domain; cross-domain with slot remapping |
 | **Metrics** | slot-rebinding success; adapter validation pass rate; ontology remap consistency; transfer success rate; degradation ratio vs source; evidence compatibility; failure-mode drift |
-| **Diagnostic labels** | populates [PLAN-HARNESS.md §10a](PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific) labels (`evidence_interface_mismatch`, `slot_binding_failed`, `adapter_execution_mismatch`, `evidence_insufficient`, `temporal_mismatch`, `ui_grounding_mismatch`, `desktop_object_mismatch`, `overconfident_commit`, `contract_mismatch`) |
+| **Diagnostic labels** | populates [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific) labels (`evidence_interface_mismatch`, `slot_binding_failed`, `adapter_execution_mismatch`, `evidence_insufficient`, `temporal_mismatch`, `ui_grounding_mismatch`, `desktop_object_mismatch`, `overconfident_commit`, `contract_mismatch`) |
 | **Transition** | `strong pass → Stage 4 (all approved domains)`; `partial pass → PROVISIONAL for approved domains only (LIMITED_PASS)`; `fail → REJECTED or local-only candidate` |
 
 ### Stage 4 — Non-regression (`gate/non_regression_gate.py`)
@@ -366,8 +366,8 @@ This stack is the unified specification of what [PLAN-SKILL-BANK.md §7](PLAN-SK
 | Item | Value |
 |------|-------|
 | **Goal** | Ensure newly admitted skill does not damage existing system |
-| **Frozen eval suite** | source-domain core tasks, target-domain transfer tasks, retrieval hit@k, slot-binding success, shadow transfer pass rate, promotion rate, overall task reward, unsupported reasoning rate, avg hop cost — composed by `orchestrator/eval_suite.py`, drawn from [PLAN-PIPELINE-ORCHESTRATOR.md §6](PLAN-PIPELINE-ORCHESTRATOR.md#6-evaluation-matrix) |
-| **Maps to existing gate** | [PLAN-HARNESS.md G5 Non-regression](PLAN-HARNESS.md#10-promotion-gates) + [PLAN-PIPELINE-ORCHESTRATOR.md §3.1.4](PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) |
+| **Frozen eval suite** | source-domain core tasks, target-domain transfer tasks, retrieval hit@k, slot-binding success, shadow transfer pass rate, promotion rate, overall task reward, unsupported reasoning rate, avg hop cost — composed by `orchestrator/eval_suite.py`, drawn from [PLAN-PIPELINE-ORCHESTRATOR.md §6](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#6-evaluation-matrix) |
+| **Maps to existing gate** | [PLAN-HARNESS.md G5 Non-regression](../05-harness/PLAN-HARNESS.md#10-promotion-gates) + [PLAN-PIPELINE-ORCHESTRATOR.md §3.1.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered) |
 | **Transition** | `pass → PROVISIONAL`; `fail → REJECTED, plus rollback any existing PROVISIONAL of this skill_id` |
 
 ### Stage 5 — Promotion (`gate/promotion_manager.py`)
@@ -384,12 +384,12 @@ The promotion *transaction* is owned by `PromotionOrchestrator.promote_if_passed
 | Trigger | Action |
 |---------|--------|
 | Non-regression later fails | `ACTIVE → ROLLED_BACK`; restore `prev_active_version`; quarantine offending skills |
-| Severe instability in production | same as above; raise to L2 in [PLAN-PIPELINE-ORCHESTRATOR.md §8.1](PLAN-PIPELINE-ORCHESTRATOR.md#81-escalation-ladder) |
+| Severe instability in production | same as above; raise to L2 in [PLAN-PIPELINE-ORCHESTRATOR.md §8.1](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#81-escalation-ladder) |
 | Conflict with better version | `ACTIVE → DEPRECATED` (newer version wins) |
 | Transfer harms source-domain performance | `ACTIVE → ROLLED_BACK` for the offending domain only (`LIMITED_PASS` → drop one domain); skill stays active where verified |
-| Repeated G0 violations in production | `ACTIVE → DEPRECATED`; route episodes to crafter `evidence_starved` cluster ([PLAN-SKILL-CRAFTER.md §6.2](PLAN-SKILL-CRAFTER.md)) |
+| Repeated G0 violations in production | `ACTIVE → DEPRECATED`; route episodes to crafter `evidence_starved` cluster ([PLAN-SKILL-CRAFTER.md §6.2](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) |
 
-All rollbacks go through `PromotionOrchestrator.rollback_if_needed` and emit an `AuditRecord` ([PLAN-PIPELINE-ORCHESTRATOR.md §8.3](PLAN-PIPELINE-ORCHESTRATOR.md#83-audit-artifact)) tagged with the trigger reason.
+All rollbacks go through `PromotionOrchestrator.rollback_if_needed` and emit an `AuditRecord` ([PLAN-PIPELINE-ORCHESTRATOR.md §8.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#83-audit-artifact)) tagged with the trigger reason.
 
 ---
 
@@ -418,19 +418,19 @@ Per §6 storage split:
 | DRAFT         | ❌                      | ❌ |
 | REJECTED / DEPRECATED / ROLLED_BACK | ❌ | ❌ |
 
-The `skill_select` head in [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) sees only what `SkillHarness.run_active` returns; it has no other channel to the bank.
+The `skill_select` head in [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) sees only what `SkillHarness.run_active` returns; it has no other channel to the bank.
 
 ### 8.3 Skill Bank Agent
 
-`SkillBankAgent` ([PLAN-SKILL-BANK.md §12](PLAN-SKILL-BANK.md#12-core-components)) gains one new subcomponent (`SkillLifecycleManager`) and no longer holds runtime validation logic — that belongs to the Harness. The bank's existing `TransferManager` (§12) is **renamed** to `LegacyTransferProposer` and proposes `TransferProposal` records that flow through `register_draft`; the runtime transfer validation lives in [PLAN-HARNESS.md §5.4](PLAN-HARNESS.md#54-transfermanager).
+`SkillBankAgent` ([PLAN-SKILL-BANK.md §12](../03-skill-bank/PLAN-SKILL-BANK.md#12-core-components)) gains one new subcomponent (`SkillLifecycleManager`) and no longer holds runtime validation logic — that belongs to the Harness. The bank's existing `TransferManager` (§12) is **renamed** to `LegacyTransferProposer` and proposes `TransferProposal` records that flow through `register_draft`; the runtime transfer validation lives in [PLAN-HARNESS.md §5.4](../05-harness/PLAN-HARNESS.md#54-transfermanager).
 
 ### 8.4 Harness
 
-`SkillHarness` keeps its existing surface. Adds `gate_runner.py` as a thin orchestration layer the Orchestrator calls. The existing six-gate set (G0–G5) in [PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates) remains the per-episode contract; the unified gate composes those gates into the *batch lifecycle* described in §7.
+`SkillHarness` keeps its existing surface. Adds `gate_runner.py` as a thin orchestration layer the Orchestrator calls. The existing six-gate set (G0–G5) in [PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates) remains the per-episode contract; the unified gate composes those gates into the *batch lifecycle* described in §7.
 
 ### 8.5 Pipeline Orchestrator
 
-The Orchestrator's centralized acceptance-gate role from [PLAN-PIPELINE-ORCHESTRATOR.md §3](PLAN-PIPELINE-ORCHESTRATOR.md#3-promotion--rollback-rules) is now executed via `PromotionOrchestrator`. The Orchestrator keeps end-to-end DAG control, snapshot management, frozen eval-suite execution, and audit logging.
+The Orchestrator's centralized acceptance-gate role from [PLAN-PIPELINE-ORCHESTRATOR.md §3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3-promotion--rollback-rules) is now executed via `PromotionOrchestrator`. The Orchestrator keeps end-to-end DAG control, snapshot management, frozen eval-suite execution, and audit logging.
 
 ---
 
@@ -467,19 +467,19 @@ promotion:
   shadow_origin_penalty: 0.30
 ```
 
-Do not overfit thresholds at this stage — exposing them centrally is the goal so the [PLAN-PIPELINE-ORCHESTRATOR.md §8.2](PLAN-PIPELINE-ORCHESTRATOR.md#82-human-audit-points) audit point ("change to acceptance thresholds") fires consistently when they move.
+Do not overfit thresholds at this stage — exposing them centrally is the goal so the [PLAN-PIPELINE-ORCHESTRATOR.md §8.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#82-human-audit-points) audit point ("change to acceptance thresholds") fires consistently when they move.
 
 ---
 
 ## 10. Logging and audit
 
-Every gate run emits the fields below to `artifacts/gates/{gate_run_id}/verdict.json` ([PLAN-PIPELINE-ORCHESTRATOR.md §2.3](PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical)).
+Every gate run emits the fields below to `artifacts/gates/{gate_run_id}/verdict.json` ([PLAN-PIPELINE-ORCHESTRATOR.md §2.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical)).
 
 **Required fields.** `skill_id`, `source_type`, `version`, `stage`, `verdict`, `metrics`, `artifacts`, `dataset/task slice`, `adapter_version` (per domain), `ontology_version`, `bank_snapshot_id`, `eval_suite_id`, `timestamp`.
 
 **Required artifacts.** Replay mismatch traces; shadow failure traces; slot-binding errors; transfer remap reports; regression deltas vs prior `snapshot_id`; full `SkillEpisode` set used for the evaluation.
 
-This subsumes [PLAN-HARNESS.md §10a.1](PLAN-HARNESS.md#10a1-consumers) (diagnostic-label tallying) and [PLAN-PIPELINE-ORCHESTRATOR.md §8.3](PLAN-PIPELINE-ORCHESTRATOR.md#83-audit-artifact) (signed `AuditRecord` for human decisions).
+This subsumes [PLAN-HARNESS.md §10a.1](../05-harness/PLAN-HARNESS.md#10a1-consumers) (diagnostic-label tallying) and [PLAN-PIPELINE-ORCHESTRATOR.md §8.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#83-audit-artifact) (signed `AuditRecord` for human decisions).
 
 ---
 
@@ -494,18 +494,18 @@ This subsumes [PLAN-HARNESS.md §10a.1](PLAN-HARNESS.md#10a1-consumers) (diagnos
 | **5 — Non-regression + promotion** | Provisional → active only after frozen eval-suite passes | `gate/non_regression_gate.py`, `orchestrator/eval_suite.py`, `orchestrator/snapshot_manager.py`, `orchestrator/rollback_manager.py`, `gate/promotion_manager.py` | A `PROVISIONAL` skill becomes `ACTIVE` after passing source-domain non-regression; a triggered rollback restores `prev_active_version` atomically |
 | **6 — Crafter / failure loop** | Rejection reasons re-enter the crafter | `SkillCrafter` consumes `SkillEvaluationRecord` + diagnostic labels; failure-cluster export; repair proposal path; candidate re-submission | A `REJECTED` skill is repaired by the crafter and re-enters `register_draft`; the new draft carries a `provenance.repaired_from` link |
 
-Phase 1 is the immediate implementation target. Phase 2 directly closes the **P0 acceptance-gate item** in [PLAN-SKILL-BANK.md §14 TODO](PLAN-SKILL-BANK.md#14-todo).
+Phase 1 is the immediate implementation target. Phase 2 directly closes the **P0 acceptance-gate item** in [PLAN-SKILL-BANK.md §14 TODO](../03-skill-bank/PLAN-SKILL-BANK.md#14-todo).
 
 ---
 
 ## 12. What not to do
 
 - **Do not** let `SkillCrafter` (or any other module) write to `active_store` directly. Only `PromotionOrchestrator` may move pointers; only `SkillLifecycleManager` may write to any skill store.
-- **Do not** let transferred skills enter `active_store` without passing Stages 2–4. The two-phase shadow → active protocol from [PLAN-HARNESS.md §6](PLAN-HARNESS.md#6-two-phase-transfer-protocol) is non-negotiable.
+- **Do not** let transferred skills enter `active_store` without passing Stages 2–4. The two-phase shadow → active protocol from [PLAN-HARNESS.md §6](../05-harness/PLAN-HARNESS.md#6-two-phase-transfer-protocol) is non-negotiable.
 - **Do not** push runtime replay code into `SkillBankAgent`. Replay execution belongs in the Harness (`harness/replay_validator.py`).
 - **Do not** let `ActionAgent` retrieve raw `CANDIDATE` or `DRAFT` skills under `run_active`. The retrieval policy in §6 is the single source of truth.
-- **Do not** keep cross-episode memory interfaces in this repo. The orchestrator's only state-keeping surface is the [§4 episode-local trajectory](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping); no episodic / semantic / state memory subsystem exists or should be added.
-- **Do not** use model size as a promotion shortcut. Frozen 32B/72B teacher proposals enter as `DRAFT` and must clear the same gate stack — already pinned in [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs).
+- **Do not** keep cross-episode memory interfaces in this repo. The orchestrator's only state-keeping surface is the [§4 episode-local trajectory](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping); no episodic / semantic / state memory subsystem exists or should be added.
+- **Do not** use model size as a promotion shortcut. Frozen 32B/72B teacher proposals enter as `DRAFT` and must clear the same gate stack — already pinned in [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs).
 
 ---
 
@@ -513,10 +513,10 @@ Phase 1 is the immediate implementation target. Phase 2 directly closes the **P0
 
 The following companion edits land in the existing plan files so they all reference this canonical specification:
 
-1. **[PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md)** — new subsection "Unified skill lifecycle and promotion ownership" (in §7); `§14 TODO` replaces the vague "Acceptance gate pipeline" row with concrete sub-items (`SkillStatus` enum, `SkillRecord`, `SkillLifecycleManager`, `GatePolicy`, store split).
-2. **[PLAN-HARNESS.md](PLAN-HARNESS.md)** — new section "Gate Execution Runtime" (§10b) that names `GateRunner` and lists per-stage entry points.
-3. **[PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md)** — new section "Promotion transaction and rollback protocol" (§3a) that names `PromotionOrchestrator`, the snapshot / pointer-move sequence, and the audit-logging contract.
-4. **[README.md](README.md)** — adds this plan to the plan-documents table.
+1. **[PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md)** — new subsection "Unified skill lifecycle and promotion ownership" (in §7); `§14 TODO` replaces the vague "Acceptance gate pipeline" row with concrete sub-items (`SkillStatus` enum, `SkillRecord`, `SkillLifecycleManager`, `GatePolicy`, store split).
+2. **[PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)** — new section "Gate Execution Runtime" (§10b) that names `GateRunner` and lists per-stage entry points.
+3. **[PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)** — new section "Promotion transaction and rollback protocol" (§3a) that names `PromotionOrchestrator`, the snapshot / pointer-move sequence, and the audit-logging contract.
+4. **[README.md](../README.md)** — adds this plan to the plan-documents table.
 
 These edits are **link-only**: every cross-plan section points back to this file rather than restating the lifecycle, records, or APIs.
 
@@ -526,10 +526,10 @@ These edits are **link-only**: every cross-plan section points back to this file
 
 | Document | Relationship |
 |----------|--------------|
-| [README](README.md) | Pipeline overview; lists this plan |
-| [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) | Skill data model + lifecycle owner |
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | Per-episode gate G0–G5; gate-runtime executor |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | Promotion / rollback transactions; snapshot management; audit |
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | Producer of `DRAFT` skills (mined / crafted / repaired / transferred); consumer of `REJECTED` records |
-| [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) | Retrieves only what `SkillHarness.run_active` returns |
-| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Predecessor edit pass; this plan extends its "control plane" framing with the explicit lifecycle |
+| [README](../README.md) | Pipeline overview; lists this plan |
+| [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | Skill data model + lifecycle owner |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | Per-episode gate G0–G5; gate-runtime executor |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | Promotion / rollback transactions; snapshot management; audit |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | Producer of `DRAFT` skills (mined / crafted / repaired / transferred); consumer of `REJECTED` records |
+| [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) | Retrieves only what `SkillHarness.run_active` returns |
+| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Predecessor edit pass; this plan extends its "control plane" framing with the explicit lifecycle |

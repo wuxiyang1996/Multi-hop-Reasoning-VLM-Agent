@@ -2,8 +2,8 @@
 
 This document covers the **five task domains** targeted by the
 `vlm_wrapper` grounding pipeline (see
-[`plans/PLAN-VISUAL-GROUNDING.md`](../plans/PLAN-VISUAL-GROUNDING.md) §2 and
-[`plans/PLAN-VISUAL-GROUNDING-MILESTONES.md`](../plans/PLAN-VISUAL-GROUNDING-MILESTONES.md) §3).
+[`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md`](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md) §2 and
+[`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md`](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) §3).
 
 For training / inference of the actor + skill stack, see the original
 [`install/README.md`](README.md). This file is scoped to what's needed

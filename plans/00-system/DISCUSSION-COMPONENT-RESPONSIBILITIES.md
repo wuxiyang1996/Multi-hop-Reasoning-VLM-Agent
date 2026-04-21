@@ -2,22 +2,22 @@
 
 **Purpose.** This file is a *role walkthrough*, not a new module spec. It uses concrete short-video reasoning scenarios to make the component split crisp: when the same workflow runs end-to-end, who owns which step, and — equally important — what each component **must not** do. It is a companion to:
 
-- [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) — skill content production and curation (Agent 2 medium-timescale + Crafter/Agent 3 proposals).
-- [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) — typed proposals fed into the bank's lifecycle (`PatchProposal | ComposeProposal | TransferProposal | RetireProposal`).
-- [PLAN-HARNESS.md](PLAN-HARNESS.md) — per-invocation skill runtime (the `SkillHarness` class).
-- [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) — system-level control plane (the macro DAG, gates, snapshots, training cadence).
-- [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) — the gate stack that all of the above share.
+- [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) — skill content production and curation (Agent 2 medium-timescale + Crafter/Agent 3 proposals).
+- [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) — typed proposals fed into the bank's lifecycle (`PatchProposal | ComposeProposal | TransferProposal | RetireProposal`).
+- [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) — per-invocation skill runtime (the `SkillHarness` class).
+- [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) — system-level control plane (the macro DAG, gates, snapshots, training cadence).
+- [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) — the gate stack that all of the above share.
 
 ---
 
 ## 0. Terminology note (read first)
 
-The repo has **two senses of "harness"** ([PLAN-EDITS-HARNESS-CONTROL-PLANE.md §0](PLAN-EDITS-HARNESS-CONTROL-PLANE.md#0-terminology-reconciliation-do-this-first)):
+The repo has **two senses of "harness"** ([PLAN-EDITS-HARNESS-CONTROL-PLANE.md §0](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md#0-terminology-reconciliation-do-this-first)):
 
-- **Skill-invocation runtime (micro-harness, `SkillHarness`)** — defined in [PLAN-HARNESS.md](PLAN-HARNESS.md). One skill call. Throughout this file, **"Harness"** means this micro-runtime.
-- **System-level control plane (the macro Harness)** — defined in [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md). The DAG that runs many episodes, owns gates, snapshots, and lifecycle. Throughout this file, **"Orchestrator"** means this control plane.
+- **Skill-invocation runtime (micro-harness, `SkillHarness`)** — defined in [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md). One skill call. Throughout this file, **"Harness"** means this micro-runtime.
+- **System-level control plane (the macro Harness)** — defined in [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md). The DAG that runs many episodes, owns gates, snapshots, and lifecycle. Throughout this file, **"Orchestrator"** means this control plane.
 
-**"Skill Bank Agent"** is shorthand for the bank's content-production responsibilities: Agent 2 (medium-timescale: `SEGMENT`, `CONTRACT`, `CURATOR`) plus the Crafter / Agent 3 (slow-timescale: composition, transfer, hypothesis), as defined in the [README three-agent split](README.md#three-agent-role-split--model-convention). It is the component that *creates or revises skill contents* in the bank; it is **not** the component that runs a single skill on a single state.
+**"Skill Bank Agent"** is shorthand for the bank's content-production responsibilities: Agent 2 (medium-timescale: `SEGMENT`, `CONTRACT`, `CURATOR`) plus the Crafter / Agent 3 (slow-timescale: composition, transfer, hypothesis), as defined in the [README three-agent split](../README.md#three-agent-role-split--model-convention). It is the component that *creates or revises skill contents* in the bank; it is **not** the component that runs a single skill on a single state.
 
 ---
 
@@ -45,7 +45,7 @@ R&D analogy:
 
 ## 2. Four worked scenarios
 
-All scenarios are framed around the project's near-term arena — short-video evidence-grounded reasoning ([README](README.md#current-execution-focus)) — but the same split holds in any of the five target domains.
+All scenarios are framed around the project's near-term arena — short-video evidence-grounded reasoning ([README](../README.md#current-execution-focus)) — but the same split holds in any of the five target domains.
 
 ### 2.1 Scenario A — Using an existing skill during one short-video QA episode
 
@@ -60,7 +60,7 @@ All scenarios are framed around the project's near-term arena — short-video ev
 3. Checks preconditions and evidence sufficiency (Gate G0 — evidence-driven contract).
 4. Attaches the video-domain adapter.
 5. Runs the skill.
-6. Records a `SkillEpisode` with `evidence_role`, `evidence_in`, `evidence_out`, `evidence_warrant` ([PLAN-HARNESS.md §5.1](PLAN-HARNESS.md#51-skillepisode)).
+6. Records a `SkillEpisode` with `evidence_role`, `evidence_in`, `evidence_out`, `evidence_warrant` ([PLAN-HARNESS.md §5.1](../05-harness/PLAN-HARNESS.md#51-skillepisode)).
 7. Types the outcome as `success / fail / abort / stall`.
 8. Logs evidence trace and reward pieces.
 
@@ -70,7 +70,7 @@ This matches the Harness's plan-level definition: *the micro runtime for skill u
 
 - This episode belongs to run `R12`.
 - Use snapshot `bank_v7`.
-- Collect the produced `SkillEpisode` into the run's typed trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
+- Collect the produced `SkillEpisode` into the run's typed trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 - Keep this trace for later evaluation, mining, and promotion decisions.
 
 **One-sentence summary.** *Harness executes the call; Orchestrator records where that call belongs in the larger run.*
@@ -89,7 +89,7 @@ This matches the Harness's plan-level definition: *the micro runtime for skill u
 
 **Skill Bank Agent — may have created or abstracted this skill earlier as a reusable semantic pattern.** It can later refine its contract if transfer repeatedly fails. It does **not** run the transfer online.
 
-**Harness — this is one of its most important responsibilities.** [PLAN-HARNESS.md](PLAN-HARNESS.md) explicitly defines transfer as: *reuse the semantic skill + rebind or synthesize the target-domain adapter*, and calls this the single most important invariant the Harness enforces.
+**Harness — this is one of its most important responsibilities.** [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) explicitly defines transfer as: *reuse the semantic skill + rebind or synthesize the target-domain adapter*, and calls this the single most important invariant the Harness enforces.
 
 For this scenario the Harness will:
 
@@ -112,7 +112,7 @@ For this scenario the Harness will:
 **What must not happen.**
 
 - The Harness must not let a transferred skill influence the active actor policy or environment reward before the shadow → active gate transition is approved.
-- The Skill Bank Agent must not edit the semantic skill to make a single transfer attempt succeed; refinement requires accumulated evidence and a typed proposal ([PLAN-SKILL-CRAFTER.md §2.5](PLAN-SKILL-CRAFTER.md)).
+- The Skill Bank Agent must not edit the semantic skill to make a single transfer attempt succeed; refinement requires accumulated evidence and a typed proposal ([PLAN-SKILL-CRAFTER.md §2.5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 - The Orchestrator must not bypass the shadow → active transition just because one episode looked good.
 
 ---
@@ -121,11 +121,11 @@ For this scenario the Harness will:
 
 **Situation.** Across many episodes the system keeps failing on questions like *"Who knew the truth before the confrontation?"* From accumulated traces, a useful pattern recurs: `compare_belief_state_before_and_after_dialogue_turn`.
 
-**Skill Bank Agent — this is where it becomes active.** Per [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) and [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md), it:
+**Skill Bank Agent — this is where it becomes active.** Per [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) and [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md), it:
 
 1. Looks at accumulated rollouts.
 2. Segments recurring useful sub-trajectories (`SEGMENT`).
-3. Learns or patches the contract (`CONTRACT`), declaring `evidence_role` and an `evidence_interface` (Clauses A and B of the evidence-driven invariant, [PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md)).
+3. Learns or patches the contract (`CONTRACT`), declaring `evidence_role` and an `evidence_interface` (Clauses A and B of the evidence-driven invariant, [PLAN-SKILL-BANK.md §0.3](../03-skill-bank/PLAN-SKILL-BANK.md)).
 4. Decides whether this is a new skill, a merge, a split, or a refinement.
 5. Proposes a candidate bank update as a typed proposal (`PatchProposal | ComposeProposal | TransferProposal | RetireProposal`).
 
@@ -140,7 +140,7 @@ This is the COS-PLAY-style role: **skill content production and curation**.
 
 The Harness evaluates **runtime viability** of the proposed skill, not whether the skill should *exist conceptually*.
 
-**Orchestrator — centralizes the acceptance decision.** Per [PLAN-PIPELINE-ORCHESTRATOR.md §3](PLAN-PIPELINE-ORCHESTRATOR.md):
+**Orchestrator — centralizes the acceptance decision.** Per [PLAN-PIPELINE-ORCHESTRATOR.md §3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md):
 
 - No bank promotion without the gate stack.
 - Replay before promote.
@@ -155,7 +155,7 @@ After the Skill Bank Agent proposes the candidate and the Harness produces runti
 **What must not happen.**
 
 - The Harness must not invent or re-author the skill contract; opaque skills (no `evidence_in` / `evidence_out`) are rejected at G0 rather than silently fixed.
-- The Skill Bank Agent must not write directly into the active store; new skills enter `draft_store` / `candidate_store` and only reach `active_store` via the Orchestrator's promotion transaction ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)).
+- The Skill Bank Agent must not write directly into the active store; new skills enter `draft_store` / `candidate_store` and only reach `active_store` via the Orchestrator's promotion transaction ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)).
 - The Orchestrator must not promote based on aggregate counts alone; it consumes the typed gate verdicts (`GateVerdict`) the Harness emits.
 
 ---
@@ -166,9 +166,9 @@ After the Skill Bank Agent proposes the candidate and the Harness produces runti
 
 **Skill Bank Agent — not the rollback actor.** It may later use the failure artifact to refine, split, or retire the offending skill (typed `PatchProposal` or `RetireProposal`), but it does not perform the rollback itself.
 
-**Harness — provides the local evidence.** It supplies the detailed `SkillEpisode` traces showing where the skill broke: which gate diagnostic fired (`slot_binding_failed`, `adapter_execution_mismatch`, `evidence_insufficient`, `temporal_mismatch`, `ui_grounding_mismatch`, `desktop_object_mismatch`, `overconfident_commit`, `contract_mismatch` — see [PLAN-HARNESS.md §10a](PLAN-HARNESS.md)), and what the evidence interface looked like at failure time.
+**Harness — provides the local evidence.** It supplies the detailed `SkillEpisode` traces showing where the skill broke: which gate diagnostic fired (`slot_binding_failed`, `adapter_execution_mismatch`, `evidence_insufficient`, `temporal_mismatch`, `ui_grounding_mismatch`, `desktop_object_mismatch`, `overconfident_commit`, `contract_mismatch` — see [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md)), and what the evidence interface looked like at failure time.
 
-**Orchestrator — squarely its responsibility.** Per [PLAN-PIPELINE-ORCHESTRATOR.md §3](PLAN-PIPELINE-ORCHESTRATOR.md), post-promotion regression triggers **pointer reversion to the last good `snapshot_id`**, and offending skills can be **quarantined**. Promotion and rollback are centralized in the Orchestrator's acceptance-gate policy.
+**Orchestrator — squarely its responsibility.** Per [PLAN-PIPELINE-ORCHESTRATOR.md §3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md), post-promotion regression triggers **pointer reversion to the last good `snapshot_id`**, and offending skills can be **quarantined**. Promotion and rollback are centralized in the Orchestrator's acceptance-gate policy.
 
 **One-sentence summary.** *Harness tells you what broke; Orchestrator decides to roll back.*
 

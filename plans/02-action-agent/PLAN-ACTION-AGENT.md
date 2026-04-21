@@ -1,8 +1,8 @@
 # PLAN: Action Agent (Decision Agent)
 
-**Scope:** The decision-making agent that consumes structured `<state>` schemas from the [Visual Grounding](PLAN-VISUAL-GROUNDING.md) pipeline and selects/executes environment actions guided by skills from the [Skill Bank](PLAN-SKILL-BANK.md).
+**Scope:** The decision-making agent that consumes structured `<state>` schemas from the [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) pipeline and selects/executes environment actions guided by skills from the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md).
 
-**Scope boundaries (deliberate).** The Action Agent is **domain-general** across game / webagent / os-agent / video-understanding / visual reasoning — the inner-action alphabet and the three-layer actor (§5) carry across all of them (see [§5.3a Cross-domain semantics](#53a-cross-domain-semantics-of-inner-actions)). The skills it invokes are **general protocols feasible across all five target domains** ([Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)); the agent does not consume domain-specific skill families. The **first evaluation arena** for the agent and its retrieved protocols is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that determines which adapters and eval slices are wired first, not what kind of skills exist. The agent operates entirely over an episode-local trajectory: `RETRIEVE` targets only the skill bank, and any evidence the agent cites lives inside the current episode's structured `<state>`, hop trace, and intermediate belief state.
+**Scope boundaries (deliberate).** The Action Agent is **domain-general** across game / webagent / os-agent / video-understanding / visual reasoning — the inner-action alphabet and the three-layer actor (§5) carry across all of them (see [§5.3a Cross-domain semantics](#53a-cross-domain-semantics-of-inner-actions)). The skills it invokes are **general protocols feasible across all five target domains** ([Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)); the agent does not consume domain-specific skill families. The **first evaluation arena** for the agent and its retrieved protocols is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that determines which adapters and eval slices are wired first, not what kind of skills exist. The agent operates entirely over an episode-local trajectory: `RETRIEVE` targets only the skill bank, and any evidence the agent cites lives inside the current episode's structured `<state>`, hop trace, and intermediate belief state.
 
 **Upstream:** Structured schema from visual grounding (vlm_wrapper heads); skill guidance from Skill Bank.
 **Downstream:** Environment actions; experience trajectories fed back to Skill Bank and GRPO training.
@@ -73,7 +73,7 @@ Concretely, each step executes:
 
 The Actor Agent should follow the COS-PLAY Decision Agent pattern rather than introducing a separate controller. It takes schema-based state as input, builds a compact state summary and intention, optionally retrieves or continues a skill, and then outputs either a primitive action, a skill-conditioned action, or a typed reasoning step. Reasoning steps are bounded intermediate decisions within the same online control loop rather than a separate long-horizon planner.
 
-For this project, the Actor remains the **online policy**. It is responsible for deciding, at each step, whether to continue the current skill, switch to another eligible skill, act without a skill, or emit a typed reasoning step before acting. This responsibility should not be delegated entirely to the [Harness](PLAN-HARNESS.md), even when the Harness is stronger.
+For this project, the Actor remains the **online policy**. It is responsible for deciding, at each step, whether to continue the current skill, switch to another eligible skill, act without a skill, or emit a typed reasoning step before acting. This responsibility should not be delegated entirely to the [Harness](../05-harness/PLAN-HARNESS.md), even when the Harness is stronger.
 
 The main reason is that skill continuation, skill switching, no-skill fallback, reasoning-step emission, and primitive action selection all belong to the same policy space. Moving final skill choice into the Harness would break the COS-PLAY-style decision loop and turn the Harness into a hidden policy model rather than a runtime support module.
 
@@ -134,7 +134,7 @@ The Actor should **not** directly perform:
 - long-horizon reflection,
 - memory retrieval.
 
-Those belong to other modules (see [Skill Bank](PLAN-SKILL-BANK.md), [Harness](PLAN-HARNESS.md), [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md), [Skill Crafter](PLAN-SKILL-CRAFTER.md)).
+Those belong to other modules (see [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md), [Harness](../05-harness/PLAN-HARNESS.md), [Pipeline Orchestrator](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md), [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 
 ### 1a.3 Why final skill selection stays in the Actor
 
@@ -198,7 +198,7 @@ This preserves the COS-PLAY decision skeleton while extending it to typed reason
 
 ### 1a.6 Actor–Harness interaction
 
-The Actor should **not** query the raw [Skill Bank](PLAN-SKILL-BANK.md) directly for unrestricted online use. Instead:
+The Actor should **not** query the raw [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) directly for unrestricted online use. Instead:
 
 - Skill Bank retrieves top-k candidate skills.
 - Harness filters and validates them into `eligible_skills`.
@@ -206,7 +206,7 @@ The Actor should **not** query the raw [Skill Bank](PLAN-SKILL-BANK.md) directly
 
 Thus the Actor consumes a **constrained candidate set** rather than an unconstrained bank.
 
-This preserves Actor flexibility while using the Harness to enforce runtime safety and feasibility. The Harness may additionally veto an Actor-proposed skill at invocation time (see [PLAN-HARNESS.md §1a](PLAN-HARNESS.md#1a-harness-role-as-frozen-72b-runtime-layer)); on veto, the Actor must fall back to another eligible skill, no-skill mode, a reasoning step, or a primitive action.
+This preserves Actor flexibility while using the Harness to enforce runtime safety and feasibility. The Harness may additionally veto an Actor-proposed skill at invocation time (see [PLAN-HARNESS.md §1a](../05-harness/PLAN-HARNESS.md#1a-harness-role-as-frozen-72b-runtime-layer)); on veto, the Actor must fall back to another eligible skill, no-skill mode, a reasoning step, or a primitive action.
 
 ### 1a.7 Training implication
 
@@ -264,10 +264,10 @@ Not all parts of the system demand the same reasoning capability. The following 
 
 | Component | Why 7B/8B fails | Plan reference |
 |---|---|---|
-| Failure reflection (localize + diagnose) | Requires backward trace analysis, hypothesis generation, verification, counterfactual confirmation. Even 32B/72B needs 3–5 passes. | [Skill Crafter §6](PLAN-SKILL-CRAFTER.md#6-failure-reflection--reasoning-recovery) |
-| Skill composition | Verifying precondition/postcondition compatibility across multiple skills requires combinatorial checking with multi-pass reasoning. | [Skill Crafter §3](PLAN-SKILL-CRAFTER.md#3-skill-composer) |
-| Skill hypothesis / new skill invention | Best-of-N proposal generation + scoring — too high-variance for 7B; a weaker model here pollutes the bank with bad abstractions. | [Skill Crafter §5](PLAN-SKILL-CRAFTER.md#5-skill-hypothesizer) |
-| Cross-domain transfer | Schema-slot mapping is ambiguous and needs identify-map-instantiate-sanity-check passes; 7B tends to fake analogical reasoning. | [Skill Crafter §4](PLAN-SKILL-CRAFTER.md#4-skill-generalizer) |
+| Failure reflection (localize + diagnose) | Requires backward trace analysis, hypothesis generation, verification, counterfactual confirmation. Even 32B/72B needs 3–5 passes. | [Skill Crafter §6](../04-skill-crafter/PLAN-SKILL-CRAFTER.md#6-failure-reflection--reasoning-recovery) |
+| Skill composition | Verifying precondition/postcondition compatibility across multiple skills requires combinatorial checking with multi-pass reasoning. | [Skill Crafter §3](../04-skill-crafter/PLAN-SKILL-CRAFTER.md#3-skill-composer) |
+| Skill hypothesis / new skill invention | Best-of-N proposal generation + scoring — too high-variance for 7B; a weaker model here pollutes the bank with bad abstractions. | [Skill Crafter §5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md#5-skill-hypothesizer) |
+| Cross-domain transfer | Schema-slot mapping is ambiguous and needs identify-map-instantiate-sanity-check passes; 7B tends to fake analogical reasoning. | [Skill Crafter §4](../04-skill-crafter/PLAN-SKILL-CRAFTER.md#4-skill-generalizer) |
 | Cold-start trajectory generation | 8B-only option is weak until GRPO converges; tiered option uses larger models for high-quality traces from day one. | §2 tier table above |
 
 **Key risk:** If 7B/8B is made to do everything, the system may "work" in demos but fail silently in the parts that matter most for self-evolution. The biggest risk is not obvious crashes — it is the model producing plausible but wrong diagnoses, bad skill abstractions, and brittle transferred skills that then contaminate the bank.
@@ -523,7 +523,7 @@ The inner action space is a small, fixed, typed vocabulary — no free-form oper
 
 #### 5.3-bis Inner-hop ↔ `evidence_role` contract (enforced by the Harness)
 
-Every skill in the bank declares an `evidence_role` ([PLAN-SKILL-BANK.md §0.3 Clause B](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)). The Action Agent **may not** invoke a skill whose `evidence_role` does not match the inner hop under which it is being invoked; mismatches are raised as `contract-violation: skill-role-mismatch` by the Harness (see [PLAN-HARNESS.md §10 Gate G0](PLAN-HARNESS.md#10-promotion-gates)).
+Every skill in the bank declares an `evidence_role` ([PLAN-SKILL-BANK.md §0.3 Clause B](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)). The Action Agent **may not** invoke a skill whose `evidence_role` does not match the inner hop under which it is being invoked; mismatches are raised as `contract-violation: skill-role-mismatch` by the Harness (see [PLAN-HARNESS.md §10 Gate G0](../05-harness/PLAN-HARNESS.md#10-promotion-gates)).
 
 | Inner hop | Allowed `evidence_role` | Required episode fields at hop exit |
 |-----|-----|-----|
@@ -537,7 +537,7 @@ This is the Action Agent side of the evidence-driven invariant: it guarantees th
 
 ### 5.3a. Cross-domain semantics of inner actions
 
-The inner-action alphabet is domain-general: the same five hops carry different surface forms across target domains while keeping one typed meaning. This is what makes inner traces transferable (see [Skill Bank §1.5](PLAN-SKILL-BANK.md#15-cross-task-transfer-objective)).
+The inner-action alphabet is domain-general: the same five hops carry different surface forms across target domains while keeping one typed meaning. This is what makes inner traces transferable (see [Skill Bank §1.5](../03-skill-bank/PLAN-SKILL-BANK.md#15-cross-task-transfer-objective)).
 
 | Hop | Cross-domain semantics | Game | Webagent | OS-agent | Video understanding | Visual reasoning |
 |-----|------------------------|------|----------|----------|----------------------|-------------------|
@@ -707,7 +707,7 @@ All three agents must NOT co-evolve at full speed simultaneously — that create
 **Phase 1: Actor–skill bank co-evolution**
 - Alternate: K rollout/update cycles for actor, then 1 offline skill-bank update cycle.
 - Actor GRPO trains at least two LoRAs: `skill_select`, `action_execute`. Optionally a third for `hop_select` if committing to the inner MDP.
-- Skill-bank GRPO trains: SEGMENT, CONTRACT, CURATOR LoRAs (see [Skill Bank §7](PLAN-SKILL-BANK.md#7-grpo-co-evolution)).
+- Skill-bank GRPO trains: SEGMENT, CONTRACT, CURATOR LoRAs (see [Skill Bank §7](../03-skill-bank/PLAN-SKILL-BANK.md#7-grpo-co-evolution)).
 
 **Phase 2: Gated synthesis-reflection**
 - Every N failed episodes or every M training iterations: run reflector on recent failures.
@@ -719,7 +719,7 @@ All three agents must NOT co-evolve at full speed simultaneously — that create
 - Only after the frozen synthesis-reflection agent becomes the real bottleneck.
 - Train on narrow tasks only: failure localization, protocol revision, contract writing, candidate ranking/judging.
 - Not broad end-to-end GRPO. SFT or preference-style adaptation first.
-- See [Skill Crafter §2](PLAN-SKILL-CRAFTER.md#2-architecture) for the phased teacher adaptation policy.
+- See [Skill Crafter §2](../04-skill-crafter/PLAN-SKILL-CRAFTER.md#2-architecture) for the phased teacher adaptation policy.
 
 ### Frozen teacher improvement channels
 
@@ -817,7 +817,7 @@ SkillTracker.activate(skill, current_schema)
 
 This means **grounding doesn't need to be perfect** — it needs to be *good enough* for the reasoning layer to identify what's missing and fill it in.  The inner MDP reward naturally optimises this: unnecessary GROUND hops waste budget, but missing critical information causes task failure.
 
-See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) for the full 4-layer guarantee. See also [Visual Skills](PLAN-VISUAL-SKILLS.md) for an optional extension where recurring multi-step grounding patterns (disambiguation, target recovery, evidence collection) are captured as transferable grounding skills that `hop_select` can invoke as reusable templates.
+See [Visual Grounding §12](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) for the full 4-layer guarantee. See also [Visual Skills](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) for an optional extension where recurring multi-step grounding patterns (disambiguation, target recovery, evidence collection) are captured as transferable grounding skills that `hop_select` can invoke as reusable templates.
 
 ---
 

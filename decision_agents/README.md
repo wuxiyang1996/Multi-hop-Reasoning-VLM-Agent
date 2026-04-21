@@ -6,7 +6,7 @@ Two agents ship in this package:
 
 | Agent | Input | Use when |
 |-------|-------|----------|
-| `ActorAgent` (new, schema-native) | Parsed `<state>…</state>` schema from `vlm_wrapper` | You have visual-grounding output. This is the **Agent 1 (Actor)** target from [`plans/PLAN-ACTION-AGENT.md`](../plans/PLAN-ACTION-AGENT.md) §2.3 and the future GRPO training target (Phase 1). |
+| `ActorAgent` (new, schema-native) | Parsed `<state>…</state>` schema from `vlm_wrapper` | You have visual-grounding output. This is the **Agent 1 (Actor)** target from [`plans/02-action-agent/PLAN-ACTION-AGENT.md`](../plans/02-action-agent/PLAN-ACTION-AGENT.md) §2.3 and the future GRPO training target (Phase 1). |
 | `VLMDecisionAgent` (legacy, text-native) | Raw observation text | You don't yet have VLM grounding wired in (Pipeline A / B below). Kept for backward compatibility with `scripts/qwen3_decision_agent.py` and `inference/run_qwen3_8b_eval.py`. |
 
 Both run the same decision loop shape; the actor just consumes a richer, pre-parsed state and exposes the inner-MDP / skill-interface seams the plan calls out.
@@ -101,7 +101,7 @@ The runner expects the env (or a wrapper around it) to place the `<state>` text 
 
 ## ActorAgent — planned improvements (gaps vs PLAN-ACTION-AGENT.md)
 
-A deep review of `actor_agent.py` against `plans/PLAN-ACTION-AGENT.md` surfaced a handful of places where the code silently diverges from the plan or leaves a plan-promised feature un-wired. This section is the running TODO for closing those gaps. Everything below is additive — existing callers should not need to change.
+A deep review of `actor_agent.py` against `plans/02-action-agent/PLAN-ACTION-AGENT.md` surfaced a handful of places where the code silently diverges from the plan or leaves a plan-promised feature un-wired. This section is the running TODO for closing those gaps. Everything below is additive — existing callers should not need to change.
 
 **Status legend:** ✅ shipped · 🟡 partial · ⬜ pending.
 

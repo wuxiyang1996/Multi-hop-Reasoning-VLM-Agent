@@ -416,12 +416,12 @@ The refactor is purely additive at the wire level:
 
 - [`legacy/PLAN-EXPERIENCE-REFACTOR.md`](legacy/PLAN-EXPERIENCE-REFACTOR.md) — the
   detailed refactor spec this implementation landed (archived for provenance).
-- [`../plans/PLAN-PIPELINE-ORCHESTRATOR.md`](../plans/PLAN-PIPELINE-ORCHESTRATOR.md)
+- [`../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)
   §4 — the no-memory evidence & trace bookkeeping contract these structures
   serve.
-- [`../plans/PLAN-HARNESS.md`](../plans/PLAN-HARNESS.md) §5 / §10 — the
+- [`../plans/05-harness/PLAN-HARNESS.md`](../plans/05-harness/PLAN-HARNESS.md) §5 / §10 — the
   `SkillEpisode` extension and the six-gate set (G0 = evidence-driven contract)
   that consumes `validate_evidence_contract()` and the answer support chain.
-- [`../plans/PLAN-SKILL-BANK.md`](../plans/PLAN-SKILL-BANK.md) §0.3 / §4 — the
+- [`../plans/03-skill-bank/PLAN-SKILL-BANK.md`](../plans/03-skill-bank/PLAN-SKILL-BANK.md) §0.3 / §4 — the
   evidence-driven invariant and the skill-bank consumer of
   `to_sub_episode_ref()`.

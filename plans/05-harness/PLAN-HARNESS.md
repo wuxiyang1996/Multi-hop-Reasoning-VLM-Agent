@@ -1,18 +1,18 @@
 # PLAN: Skill Harness — Unified Runtime for Skill Use, Validation, and Transfer
 
-**Scope:** Define a **Skill Harness** that sits on top of the existing framework as a unified runtime orchestration layer for skill retrieval, binding, execution, validation, and cross-domain transfer. The Harness is **not a new agent** — it is a thin orchestration layer that wraps the [Action Agent](PLAN-ACTION-AGENT.md), the [Skill Bank](PLAN-SKILL-BANK.md), and the [Skill Crafter](PLAN-SKILL-CRAFTER.md), and provides a single entry point for every skill invocation in the system.
+**Scope:** Define a **Skill Harness** that sits on top of the existing framework as a unified runtime orchestration layer for skill retrieval, binding, execution, validation, and cross-domain transfer. The Harness is **not a new agent** — it is a thin orchestration layer that wraps the [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md), the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md), and the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md), and provides a single entry point for every skill invocation in the system.
 
 **Problem statement:** Today, skills live in the Skill Bank and are called by the Action Agent, but there is no shared execution surface that (a) normalizes state into slots, (b) attaches domain-specific adapters, (c) records standardized execution traces, and (d) gates transferred skills behind replay + shadow validation. Without this layer, skill transfer risks destabilizing rollouts, cross-domain metrics are inconsistent, and there is no uniform reward signal for later GRPO on skill-use decisions.
 
-**Upstream:** Canonical `<state>` schema ([README § Canonical `<state>`](README.md)); shared slot names (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`); three-agent role split ([Action Agent §2](PLAN-ACTION-AGENT.md)); Skill Bank query/select API ([Skill Bank §6](PLAN-SKILL-BANK.md)); Skill Crafter transfer proposals ([Skill Crafter](PLAN-SKILL-CRAFTER.md)).
+**Upstream:** Canonical `<state>` schema ([README § Canonical `<state>`](../README.md)); shared slot names (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`); three-agent role split ([Action Agent §2](../02-action-agent/PLAN-ACTION-AGENT.md)); Skill Bank query/select API ([Skill Bank §6](../03-skill-bank/PLAN-SKILL-BANK.md)); Skill Crafter transfer proposals ([Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 
-**Downstream:** [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) acceptance gates (Harness emits `SkillEpisode` records consumed by the orchestrator's gate logic); unified reward signals for GRPO; evaluation harness for reuse and transfer benchmarks.
+**Downstream:** [Pipeline Orchestrator](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) acceptance gates (Harness emits `SkillEpisode` records consumed by the orchestrator's gate logic); unified reward signals for GRPO; evaluation harness for reuse and transfer benchmarks.
 
 **Relation to Pipeline Orchestrator.** The Pipeline Orchestrator is the **system-level DAG** that runs grounding → action → bank → crafter → gates across many episodes and runs. The Skill Harness is the **per-invocation runtime** for a single skill call. Pipeline Orchestrator = macro scheduler; Skill Harness = micro runtime for skill use. They compose: the orchestrator calls the Harness at every `inner_mdp` step where a skill is invoked.
 
-**Non-goals:** Replacing the Action Agent, Skill Bank, or Skill Crafter. Introducing a fourth agent. Making the 32B/72B teacher the default online controller. Adding new trainable models before the execution + validation loop works. **Narrowing the Harness to a single domain, or admitting domain-specific skills.** Every skill the Harness binds, runs, and validates is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning) — see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families). The Harness is the *domain-general transfer runtime*; short-video evidence-grounded reasoning is the first proving ground where that broad transfer is *validated*, not the definition of the Harness's scope.
+**Non-goals:** Replacing the Action Agent, Skill Bank, or Skill Crafter. Introducing a fourth agent. Making the 32B/72B teacher the default online controller. Adding new trainable models before the execution + validation loop works. **Narrowing the Harness to a single domain, or admitting domain-specific skills.** Every skill the Harness binds, runs, and validates is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning) — see [Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families). The Harness is the *domain-general transfer runtime*; short-video evidence-grounded reasoning is the first proving ground where that broad transfer is *validated*, not the definition of the Harness's scope.
 
-**Episode-local state surface.** The Harness reads skills from the bank and reads its episode-local trajectory — current `<state>`, short typed hop trace, intermediate belief state, and within-episode evidence references — directly from the orchestrator (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)). It maintains no other lookup channel.
+**Episode-local state surface.** The Harness reads skills from the bank and reads its episode-local trajectory — current `<state>`, short typed hop trace, intermediate belief state, and within-episode evidence references — directly from the orchestrator (see [Pipeline Orchestrator §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)). It maintains no other lookup channel.
 
 ---
 
@@ -27,13 +27,13 @@ Make skills **executable units** — not static objects in the bank — that can
 - reused across tasks,
 - transferred across domains safely.
 
-The Harness should become the **default path** for all skill invocation and should produce standardized execution records (`SkillEpisode`) that feed the acceptance gates ([Pipeline Orchestrator §3](PLAN-PIPELINE-ORCHESTRATOR.md)) and the reward logger.
+The Harness should become the **default path** for all skill invocation and should produce standardized execution records (`SkillEpisode`) that feed the acceptance gates ([Pipeline Orchestrator §3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)) and the reward logger.
 
 ---
 
 ## 1a. Harness Role as Frozen 72B Runtime Layer
 
-In this project, the Harness is a **frozen 72B model** wrapped by the orchestration layer described above. It should **not** replace the [Action Agent](PLAN-ACTION-AGENT.md) as the online policy. Instead, it should serve as a high-capacity **runtime verifier, candidate filter, veto layer, and teacher-like advisor**.
+In this project, the Harness is a **frozen 72B model** wrapped by the orchestration layer described above. It should **not** replace the [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) as the online policy. Instead, it should serve as a high-capacity **runtime verifier, candidate filter, veto layer, and teacher-like advisor**.
 
 Its role is to make skill usage safer, more executable, and more transferable at runtime, **without taking over the final policy decision**.
 
@@ -78,7 +78,7 @@ The Harness should **not** become the final online policy. It should not directl
 - whether a reasoning step should be emitted,
 - which primitive action should be taken.
 
-Those remain Actor decisions ([PLAN-ACTION-AGENT.md §1a.2](PLAN-ACTION-AGENT.md#1a2-actor-decision-scope)).
+Those remain Actor decisions ([PLAN-ACTION-AGENT.md §1a.2](../02-action-agent/PLAN-ACTION-AGENT.md#1a2-actor-decision-scope)).
 
 The Harness may **advise, filter, rank, or veto**, but it should not fully replace policy-level choice.
 
@@ -143,7 +143,7 @@ Because the Harness is frozen and high-capacity, it is attractive to let it choo
 - the trainable Actor would stop learning core skill-use policy,
 - the Harness would become a hidden policy model,
 - reasoning-step choice and skill choice would become fragmented,
-- the architecture would drift away from the intended COS-PLAY-style Decision Agent ([PLAN-ACTION-AGENT.md §1a](PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary)),
+- the architecture would drift away from the intended COS-PLAY-style Decision Agent ([PLAN-ACTION-AGENT.md §1a](../02-action-agent/PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary)),
 - the final system would rely too heavily on the frozen large model.
 
 Therefore, the Harness should remain a **runtime support and verification layer** rather than the main policy.
@@ -180,7 +180,7 @@ The portable part of a skill:
 - `contract` / expected effects
 - `evidence_requirements`
 
-This is what lives in the [Skill Bank](PLAN-SKILL-BANK.md) and is subject to composition / generalization by the [Skill Crafter](PLAN-SKILL-CRAFTER.md).
+This is what lives in the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) and is subject to composition / generalization by the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md).
 
 ### 2.2 Domain adapter (task-specific)
 
@@ -385,7 +385,7 @@ Responsibilities:
 
 ### 5.5 `ReplayValidator`
 
-Offline validation over logged transitions / held-out state slices ([Pipeline Orchestrator §3](PLAN-PIPELINE-ORCHESTRATOR.md)).
+Offline validation over logged transitions / held-out state slices ([Pipeline Orchestrator §3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)).
 
 Checks:
 
@@ -487,7 +487,7 @@ This lets the framework treat reasoning skills, grounding skills, and action ski
 
 ## 9. Where 7B/8B and 72B fit
 
-The Harness is **not** a 72B-only inference layer. Model assignment follows the [three-agent role split](README.md#three-agent-role-split--model-convention).
+The Harness is **not** a 72B-only inference layer. Model assignment follows the [three-agent role split](../README.md#three-agent-role-split--model-convention).
 
 ### 9.1 Fast loop — 7B/8B (Qwen3-8B)
 
@@ -516,18 +516,18 @@ The Harness must default to 7B/8B and escalate to the teacher only when an expli
 
 ## 10. Promotion gates
 
-A transferred (or newly promoted) skill is only admitted to active use when it passes **all six** gate categories, in order. Gate **G0 precedes all others** and is evaluated on every `SkillEpisode`, not only at transfer time — a skill that stops touching evidence in production is demoted. Verdicts are recorded in `GateVerdict` ([Pipeline Orchestrator §2.2](PLAN-PIPELINE-ORCHESTRATOR.md)).
+A transferred (or newly promoted) skill is only admitted to active use when it passes **all six** gate categories, in order. Gate **G0 precedes all others** and is evaluated on every `SkillEpisode`, not only at transfer time — a skill that stops touching evidence in production is demoted. Verdicts are recorded in `GateVerdict` ([Pipeline Orchestrator §2.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)).
 
 | Gate | Check | Source |
 |------|-------|--------|
-| **G0 — Evidence-driven contract** | For every episode used as evidence for promotion: `evidence_in ∪ evidence_out ≠ ∅`; `evidence_role` matches the skill's declared role ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)); role-specific fields are populated (GATHER⇒`evidence_out`; VERIFY⇒`verify_verdict`; REASON⇒`reason_warrant ⊆ evidence_in`; COMMIT⇒`evidence_warrant ≠ ∅`). Failure rejects the skill as `opaque-skill-violation` or `skill-role-mismatch`, independent of reward or success rate. | `SkillHarness.finalize_episode` |
+| **G0 — Evidence-driven contract** | For every episode used as evidence for promotion: `evidence_in ∪ evidence_out ≠ ∅`; `evidence_role` matches the skill's declared role ([PLAN-SKILL-BANK.md §0.3](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)); role-specific fields are populated (GATHER⇒`evidence_out`; VERIFY⇒`verify_verdict`; REASON⇒`reason_warrant ⊆ evidence_in`; COMMIT⇒`evidence_warrant ≠ ∅`). Failure rejects the skill as `opaque-skill-violation` or `skill-role-mismatch`, independent of reward or success rate. | `SkillHarness.finalize_episode` |
 | **G1 — Binding** | target slots ground; abstract predicates map to target ontology | `SkillHarness.bind_skill` |
 | **G2 — Adapter** | adapter exists (or synthesized adapter is valid); passes domain syntax / execution sanity | `AdapterRegistry.validate` |
 | **G3 — Replay** | expected effects match held-out transitions; protocol does not contradict observed data | `ReplayValidator` |
 | **G4 — Shadow** | shadow pass rate ≥ threshold; no severe instability / repeated stalls | `TransferManager.shadow_run_transfer` |
 | **G5 — Non-regression** | enabling transfer does not degrade prior source-domain competence beyond tolerance | cross-run eval on frozen source slice |
 
-Any failing gate → rejection with reason; candidate returns to the crafter for revision or is quarantined. G0 failures are routed to the crafter's `evidence-starved skill` failure cluster (see [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md)).
+Any failing gate → rejection with reason; candidate returns to the crafter for revision or is quarantined. G0 failures are routed to the crafter's `evidence-starved skill` failure cluster (see [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 
 ---
 
@@ -552,9 +552,9 @@ Each `GateVerdict` carries zero or more of the following labels; each label is p
 
 ### 10a.1 Consumers
 
-- The [Skill Bank](PLAN-SKILL-BANK.md) appends each label to the target skill's `known_failure_modes` (§4.3b) and, if a pattern recurs, to `do_not_transfer_if` / `false_binding_patterns`.
-- The [Skill Crafter](PLAN-SKILL-CRAFTER.md) uses the labels to route patch / compose / transfer-adaptation proposals to the right failure cluster.
-- The [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) tallies labels into per-domain dashboards so that "transfer is safe in domain X" is a claim backed by diagnostic distributions, not just aggregate success rates.
+- The [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) appends each label to the target skill's `known_failure_modes` (§4.3b) and, if a pattern recurs, to `do_not_transfer_if` / `false_binding_patterns`.
+- The [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) uses the labels to route patch / compose / transfer-adaptation proposals to the right failure cluster.
+- The [Pipeline Orchestrator](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) tallies labels into per-domain dashboards so that "transfer is safe in domain X" is a claim backed by diagnostic distributions, not just aggregate success rates.
 
 ### 10a.2 First validation arena (for the diagnostics, not for the skills)
 
@@ -564,9 +564,9 @@ The diagnostic labels above are defined for **all five target domains from day o
 
 ## 10b. Gate Execution Runtime
 
-The six per-episode gates G0–G5 in §10 are the *what*. The **Gate Execution Runtime** is the *how*: a single `GateRunner` entry point — owned by the Harness — that the [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) calls to execute the unified skill gate ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) over a candidate `SkillRecord`.
+The six per-episode gates G0–G5 in §10 are the *what*. The **Gate Execution Runtime** is the *how*: a single `GateRunner` entry point — owned by the Harness — that the [Pipeline Orchestrator](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) calls to execute the unified skill gate ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) over a candidate `SkillRecord`.
 
-This subsection defines `GateRunner`, the per-stage entry points, and where each stage delegates inside the existing Harness. It does **not** redefine the gate semantics or thresholds — those are pinned in [PLAN-UNIFIED-SKILL-GATE.md §7](PLAN-UNIFIED-SKILL-GATE.md#7-gate-stages-the-canonical-pipeline) and `configs/skill_gate.yaml` ([PLAN-UNIFIED-SKILL-GATE.md §9](PLAN-UNIFIED-SKILL-GATE.md#9-threshold-policy)).
+This subsection defines `GateRunner`, the per-stage entry points, and where each stage delegates inside the existing Harness. It does **not** redefine the gate semantics or thresholds — those are pinned in [PLAN-UNIFIED-SKILL-GATE.md §7](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#7-gate-stages-the-canonical-pipeline) and `configs/skill_gate.yaml` ([PLAN-UNIFIED-SKILL-GATE.md §9](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#9-threshold-policy)).
 
 ### 10b.1 `GateRunner` (`harness/gate_runner.py`)
 
@@ -583,7 +583,7 @@ class GateRunner:
     ) -> SkillEvaluationRecord: ...
 ```
 
-`GateRunner` is the **only** Harness-side entry point the Orchestrator may call to evaluate a candidate. It does not move bank pointers or mutate skill status — it produces `GateVerdictPayload` and `SkillEvaluationRecord` artifacts that the Orchestrator hands to `SkillLifecycleManager` under transaction control ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)).
+`GateRunner` is the **only** Harness-side entry point the Orchestrator may call to evaluate a candidate. It does not move bank pointers or mutate skill status — it produces `GateVerdictPayload` and `SkillEvaluationRecord` artifacts that the Orchestrator hands to `SkillLifecycleManager` under transaction control ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)).
 
 ### 10b.2 Per-stage delegation table
 
@@ -596,15 +596,15 @@ class GateRunner:
 | Stage 4 — Non-regression       | `run_non_regression`   | `harness/eval_harness.py` (existing) over the orchestrator-supplied frozen eval suite | G5 (Non-regression) |
 | Continuous (every episode)     | n/a — runs in `SkillHarness.finalize_episode` regardless of source | `SkillHarness.finalize_episode` per [§5.1](#51-skillepisode) | **G0 (Evidence-driven contract)** |
 
-**G0 is orthogonal to the batch lifecycle.** It is checked on every `SkillEpisode` produced by `run_active` *and* `run_shadow`, and a sustained pattern of G0 failures in production triggers `ACTIVE → DEPRECATED` via [PLAN-UNIFIED-SKILL-GATE.md §7 Stage 6](PLAN-UNIFIED-SKILL-GATE.md#stage-6--rollback--deprecation-orchestratorrollback_managerpy).
+**G0 is orthogonal to the batch lifecycle.** It is checked on every `SkillEpisode` produced by `run_active` *and* `run_shadow`, and a sustained pattern of G0 failures in production triggers `ACTIVE → DEPRECATED` via [PLAN-UNIFIED-SKILL-GATE.md §7 Stage 6](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#stage-6--rollback--deprecation-orchestratorrollback_managerpy).
 
 ### 10b.3 Diagnostic-label routing
 
 Each `GateVerdictPayload` carries the [§10a](#10a-transfer-failure-diagnostics-domain-specific) diagnostic labels. `assemble_evaluation` rolls them up into `SkillEvaluationRecord.diagnostic_labels`, which the Orchestrator forwards to:
 
-- the bank for `known_failure_modes` / `do_not_transfer_if` updates ([PLAN-SKILL-BANK.md §4.3b](PLAN-SKILL-BANK.md#43b-negative-knowledge)),
-- the [Skill Crafter](PLAN-SKILL-CRAFTER.md) for failure-cluster routing,
-- the orchestrator dashboards for per-domain transfer-safety distributions ([PLAN-PIPELINE-ORCHESTRATOR.md §6.4](PLAN-PIPELINE-ORCHESTRATOR.md#64-slices)).
+- the bank for `known_failure_modes` / `do_not_transfer_if` updates ([PLAN-SKILL-BANK.md §4.3b](../03-skill-bank/PLAN-SKILL-BANK.md#43b-negative-knowledge)),
+- the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) for failure-cluster routing,
+- the orchestrator dashboards for per-domain transfer-safety distributions ([PLAN-PIPELINE-ORCHESTRATOR.md §6.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#64-slices)).
 
 ### 10b.4 What stays out of `GateRunner`
 
@@ -630,7 +630,7 @@ Only after the Harness is working end-to-end should we consider adding trainable
 - `accept_transfer`
 - `adapter_refine`
 
-This mirrors the [Action Agent co-evolution schedule](PLAN-ACTION-AGENT.md) — the harness first, the learning later.
+This mirrors the [Action Agent co-evolution schedule](../02-action-agent/PLAN-ACTION-AGENT.md) — the harness first, the learning later.
 
 ---
 
@@ -662,13 +662,13 @@ harness/
 | File | Implements |
 |------|------------|
 | `skill_harness.py` | `normalize_state`, `retrieve_candidates`, `rank_candidates`, `bind_skill`, `attach_adapter`, `execute_step`, `update_episode`, `finalize_episode`, `run_active`, `run_shadow` |
-| `skill_episode.py` | `SkillEpisode` record + JSONL serialization compatible with [Pipeline Orchestrator §2](PLAN-PIPELINE-ORCHESTRATOR.md) |
+| `skill_episode.py` | `SkillEpisode` record + JSONL serialization compatible with [Pipeline Orchestrator §2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) |
 | `transfer_manager.py` | `propose_transfer`, `dry_run_transfer`, `shadow_run_transfer`, `promote`, `reject` |
 | `adapter_registry.py` | adapter registration, lookup, validation, synthesis escalation to 72B |
 | `replay_validator.py` | held-out replay checks (effects, protocol, evidence) |
 | `reward_logger.py` | central reward emission + metric collation |
 | `eval_harness.py` | reuse + transfer benchmark runner (metrics from §15) |
-| `gate_runner.py` | `GateRunner` (§10b) — `run_static_check`, `run_replay`, `run_shadow`, `run_transfer`, `run_non_regression`, `assemble_evaluation`; single entry point the [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) calls to execute the [Unified Skill Gate](PLAN-UNIFIED-SKILL-GATE.md) |
+| `gate_runner.py` | `GateRunner` (§10b) — `run_static_check`, `run_replay`, `run_shadow`, `run_transfer`, `run_non_regression`, `assemble_evaluation`; single entry point the [Pipeline Orchestrator](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) calls to execute the [Unified Skill Gate](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) |
 
 ---
 
@@ -741,7 +741,7 @@ The Harness (not scattered modules) owns these metrics.
 | `source_domain_non_regression` | Δ on frozen source-domain eval after enabling transfer |
 | `target_domain_reward_delta` | Δ on target-domain reward vs. baseline without transfer |
 
-These feed the [Pipeline Orchestrator §6](PLAN-PIPELINE-ORCHESTRATOR.md) evaluation matrix.
+These feed the [Pipeline Orchestrator §6](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) evaluation matrix.
 
 ---
 
@@ -757,7 +757,7 @@ Priority edits, in order:
 6. Add `ReplayValidator` and the promotion gate (§10) — Phase 3.
 7. Add `eval_harness.py` with the metrics from §15 — Phase 4.
 
-All new code should write `SkillEpisode` records in a format compatible with the Pipeline Orchestrator's artifact schema ([§2](PLAN-PIPELINE-ORCHESTRATOR.md)).
+All new code should write `SkillEpisode` records in a format compatible with the Pipeline Orchestrator's artifact schema ([§2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)).
 
 ---
 
@@ -788,7 +788,7 @@ We introduce a **Skill Harness** as a unified runtime and evaluation orchestrati
 
 ## 20. (Optional) Harness Ablations
 
-**Status:** Optional appendix. Run once Phase 0–4 (§14) are functional and the joint task evaluation contract ([PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md)) reports stable numbers. Skip this section if the project is still pre-MVP.
+**Status:** Optional appendix. Run once Phase 0–4 (§14) are functional and the joint task evaluation contract ([PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md)) reports stable numbers. Skip this section if the project is still pre-MVP.
 
 This appendix defines a **minimal ablation suite** for the Harness itself: what the Harness contributes *beyond the Actor* and *beyond the skill bank*. It is intentionally small. The default development loop should not wait on it; it exists so that, when the Harness is shipped, we can defend the claim that the Harness — not just the Actor or the skill bank — is doing measurable work.
 
@@ -799,7 +799,7 @@ The Harness sits between the Actor (trainable, 7B/8B) and the Skill Bank (storag
 - **"The Actor did it."** A skeptic can argue that any improvement attributed to the Harness is really the Actor learning to call good skills, and the Harness is just plumbing.
 - **"The bank did it."** A skeptic can argue that retrieval alone (with no binding/precondition/evidence/adapter checks) already returns the right skill most of the time, so the Harness's filtering / veto / scoring add nothing.
 
-Without explicit ablations these claims cannot be refuted. Module-level metrics (§15) measure *Harness internals* (slot binding rate, adapter pass rate) but they do not isolate the Harness's *contribution to system outcome*. The orchestrator-level eval ([PLAN-PIPELINE-ORCHESTRATOR.md §6](PLAN-PIPELINE-ORCHESTRATOR.md), [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md)) explicitly requires separate analysis of actor quality, harness filtering/veto quality, system performance, skill-use efficiency, reasoning-step usefulness, and transfer robustness — this appendix supplies the experimental design that makes those axes separable.
+Without explicit ablations these claims cannot be refuted. Module-level metrics (§15) measure *Harness internals* (slot binding rate, adapter pass rate) but they do not isolate the Harness's *contribution to system outcome*. The orchestrator-level eval ([PLAN-PIPELINE-ORCHESTRATOR.md §6](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md), [PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md)) explicitly requires separate analysis of actor quality, harness filtering/veto quality, system performance, skill-use efficiency, reasoning-step usefulness, and transfer robustness — this appendix supplies the experimental design that makes those axes separable.
 
 The suite is also the place where the **frozen-72B-as-runtime-validator** claim ([§1a](#1a-harness-role-as-frozen-72b-runtime-layer)) is checked: ablation **A0** answers the converse — does the Actor still improve when the validation layer is removed?
 
@@ -826,7 +826,7 @@ A staged matrix. Each row removes or adds exactly one Harness capability vs. its
 | **A1 — Harness-lite** | A0 + slot binding check + precondition check (G1 + applicability part of §7.1). Veto on bind/precondition failure only. | Evidence-role checks (G0), adapter validation (G2), replay (G3), shadow (G4), non-regression (G5), runtime veto on evidence/adapter, transfer gating. | Cheapest validation. Measures the contribution of *structural* checks alone. |
 | **A2 — Harness-core** | A1 + evidence-role / Gate G0 checks ([§5.1](#51-skillepisode)) + adapter validation (G2) + runtime veto on any failed check + advisory scoring ([§1a.6](#1a6-harness-as-teacher-like-advisor)). | Replay validation (G3), shadow execution (G4), non-regression (G5), promotion/rollback. | The core "filter + veto + advise" runtime. Measures Q1 and Q3. |
 | **A3 — Harness-transfer** | A2 + replay validation (G3) + shadow execution (G4) + transfer-aware ranking (§7.2). Cross-domain skills are admitted only after replay+shadow. | Promotion/rollback transactions, non-regression gate (G5). | Adds the transfer safety layer. Measures Q2 and the `opaque_skill_violation` / `evidence_insufficient` reductions on cross-domain slices. |
-| **A4 — Full system** | A3 + non-regression gate (G5) + promotion/rollback hooks ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)). Sustained G0 failures trigger demotion. | nothing. | Reference configuration. The shipped Harness. |
+| **A4 — Full system** | A3 + non-regression gate (G5) + promotion/rollback hooks ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)). Sustained G0 failures trigger demotion. | nothing. | Reference configuration. The shipped Harness. |
 
 **Constants across cells.** Same Actor checkpoint, same Skill Bank snapshot, same retrieval index, same evaluation slices, same seeds, same teacher escalation policy. Only the Harness configuration changes between cells.
 
@@ -840,7 +840,7 @@ A staged matrix. Each row removes or adds exactly one Harness capability vs. its
 
 ### 20.4 Metrics
 
-Recorded for every (cell × slice) pair. Numbers come from `SkillEpisode` ([§5.1](#51-skillepisode)) plus the orchestrator's task-level eval ([PLAN-EVAL-FIRST-TARGET.md §6–7](PLAN-EVAL-FIRST-TARGET.md)).
+Recorded for every (cell × slice) pair. Numbers come from `SkillEpisode` ([§5.1](#51-skillepisode)) plus the orchestrator's task-level eval ([PLAN-EVAL-FIRST-TARGET.md §6–7](../00-system/PLAN-EVAL-FIRST-TARGET.md)).
 
 | Group | Metric | Source |
 |-------|--------|--------|
@@ -868,7 +868,7 @@ Same instance pool as the joint eval, partitioned along the four axes below. Eve
 |------------|--------|---------|
 | **Domain reuse** | `in_domain_reuse` (skill ran ≥1× in the source domain), `cross_domain_transfer` (skill is being applied to a domain it has not run in) | Separates Q1 (validity) from Q2 (transfer safety). |
 | **Promotion stage** | `before_promotion` (skill in shadow / pre-G4), `after_promotion` (skill ACTIVE) | Verifies that the gates actually filter — `after_promotion` numbers must dominate `before_promotion` numbers in A3/A4. |
-| **Difficulty** | `easy`, `hard` (per [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md) `difficulty` metadata) | Detects ceilings: if A0 already saturates `easy`, the Harness's value will only show on `hard`. |
+| **Difficulty** | `easy`, `hard` (per [PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md) `difficulty` metadata) | Detects ceilings: if A0 already saturates `easy`, the Harness's value will only show on `hard`. |
 | **Domain** | the five target domains ([§13.1](#131-what-stays-where), bank §0.1) | Required to back the "transfer is safe in domain X" claim with diagnostic distributions, not just aggregates. |
 
 Minimum slice budget per cell × slice: large enough that a 5-point absolute change in task success is distinguishable from noise at the slice level. Below that, mark the slice as under-powered and report the cell × slice number with an explicit confidence note rather than dropping the slice.
@@ -884,7 +884,7 @@ For each cell, plot Actor top-1 accuracy on the Harness-eligible set over traini
 Per cell, report the Validity and Veto metrics from §20.4. Compute the A0→A1, A1→A2, A2→A3 deltas with confidence intervals. This is the report that defends "the Harness reduces harmful or low-value skill execution."
 
 **(c) Overall system outcome — per cell × slice.**
-Task success / answer accuracy / evidence support rate per cell × slice, plus the Joint Success Rate from [PLAN-EVAL-FIRST-TARGET.md §7](PLAN-EVAL-FIRST-TARGET.md). Cross-domain rows here are how Q2 is settled.
+Task success / answer accuracy / evidence support rate per cell × slice, plus the Joint Success Rate from [PLAN-EVAL-FIRST-TARGET.md §7](../00-system/PLAN-EVAL-FIRST-TARGET.md). Cross-domain rows here are how Q2 is settled.
 
 A run is reported as **"Harness contributes"** only if all three reports tell consistent stories: Actor decision quality is non-flat across cells, Harness filtering metrics improve monotonically A0→A4, and overall system outcome rises with the same shape — especially on `cross_domain_transfer` and `hard` slices.
 
@@ -904,6 +904,6 @@ Stop early at any step whose result invalidates the next step's premise.
 
 - **Do not build a massive benchmark matrix in v1.** Five cells × four slice axes × five domains is the ceiling for the first version. Anything more belongs in a successor plan.
 - **Do not rely on one giant teacher model to "solve everything" during ablations.** The 72B is the frozen runtime validator ([§1a](#1a-harness-role-as-frozen-72b-runtime-layer)) and may be escalated to per the existing rules ([§9.2](#92-slow-loop--3272b-frozen-teacher)); it must not be promoted to *online policy* inside any ablation cell, including A0. The point of the suite is to attribute outcome to Harness components, not to the teacher.
-- **Do not redefine gate semantics, thresholds, or `SkillEpisode` schema inside this appendix.** Those live in [§5.1](#51-skillepisode), [§10](#10-promotion-gates), and [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md). The ablation suite *consumes* them; if it needs to change them, that is a signal to update the upstream plans first.
+- **Do not redefine gate semantics, thresholds, or `SkillEpisode` schema inside this appendix.** Those live in [§5.1](#51-skillepisode), [§10](#10-promotion-gates), and [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md). The ablation suite *consumes* them; if it needs to change them, that is a signal to update the upstream plans first.
 - **Do not introduce new trainable models** to make a cell run. Cells differ only in which Harness capabilities are enabled, not in model identity or weights.
 - **Do not collapse Q1, Q2, Q3, Q4 into one number.** The point of the suite is that they are separable; merging them re-creates the ambiguity the suite was built to remove.

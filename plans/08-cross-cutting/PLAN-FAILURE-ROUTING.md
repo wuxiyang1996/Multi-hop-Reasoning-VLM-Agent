@@ -3,7 +3,7 @@
 **Status:** Single canonical policy that converts observed failures into governed downstream actions.
 **Owner:** Pipeline Orchestrator (rule application). Detection is delegated to producers (Harness, Visual Grounding, Judge, Budget Controller, Human Audit).
 **Substrate record:** [`FailureRoutingRecord`](PLAN-EXPERIENCE-EXTENSION.md#d-failureroutingrecord--making-failures-governable) (extension layer, P3).
-**Companions:** [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) §3, §3a, §8; [PLAN-HARNESS.md](PLAN-HARNESS.md) §10; [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md); [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md) §6.
+**Companions:** [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) §3, §3a, §8; [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) §10; [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md); [PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md) §6.
 
 ---
 
@@ -13,7 +13,7 @@ The system already produces a lot of failure signal:
 
 - Harness emits per-invocation diagnostics (`opaque_skill_violation`, `evidence_interface_mismatch`, `slot_binding_failed`, `adapter_execution_mismatch`, `evidence_starved`, `temporal_mismatch`, …).
 - Visual Grounding emits schema-validity verdicts on every `GroundingRecord`.
-- The Judge emits per-instance verdicts (`F1`–`F7` from [PLAN-EVAL-FIRST-TARGET.md §6](PLAN-EVAL-FIRST-TARGET.md#6-failure-taxonomy)).
+- The Judge emits per-instance verdicts (`F1`–`F7` from [PLAN-EVAL-FIRST-TARGET.md §6](../00-system/PLAN-EVAL-FIRST-TARGET.md#6-failure-taxonomy)).
 - The Budget Controller emits `budget_exceeded`, `degrade`, `deny` events.
 - The orchestrator's escalation ladder (L0–L3) emits human-audit triggers.
 
@@ -87,7 +87,7 @@ Examples:
 
 - Final answer wrong (Judge verdict `incorrect`, or MCQ exact-match failure).
 - Task failed (environment terminal failure on game / web / os tasks).
-- Regression after transfer (a transferred skill caused a measurable Joint Success Rate drop on a frozen eval slice — see [PLAN-EVAL-FIRST-TARGET.md §5](PLAN-EVAL-FIRST-TARGET.md#5-joint-success-definition-headline)).
+- Regression after transfer (a transferred skill caused a measurable Joint Success Rate drop on a frozen eval slice — see [PLAN-EVAL-FIRST-TARGET.md §5](../00-system/PLAN-EVAL-FIRST-TARGET.md#5-joint-success-definition-headline)).
 - Unsafe or unstable execution (policy violation, environment-side error, repeated crash).
 
 L4 is the only layer the *user* sees. L1–L3 exist so we can attribute L4 back to a fixable root.
@@ -107,9 +107,9 @@ Closed set. Adding a target requires bumping the policy version and updating the
 | `audit_only` | Human-audit dashboard | Surfaces the failure for review. No automatic action. | `failures/audit/` |
 | `replay_buffer` | Replay validator (gate stage 3) | Adds the episode/step to the held-out replay slice for future non-regression checks. | `failures/replay/` |
 | `relabel_queue` | Annotation pipeline | Sends the offending record back for relabeling (gold answer suspect, schema mis-labeled). | `failures/relabel/` |
-| `crafter_refine_queue` | [Skill Crafter](PLAN-SKILL-CRAFTER.md) | Becomes a candidate input for skill repair / composition / hypothesis. | `failures/crafter/` |
-| `rollback_candidate` | `PromotionOrchestrator.rollback_if_needed` ([§3a.4](PLAN-PIPELINE-ORCHESTRATOR.md#3a4-rollback-transaction-the-revert-path)) | Adds the implicated `(skill_id, version)` to the rollback candidate list. | `failures/rollback/` |
-| `adapter_repair_queue` | `AdapterRegistry` owner ([PLAN-HARNESS.md](PLAN-HARNESS.md)) | Marks an adapter as needing repair (bad binding, broken slot mapping). | `failures/adapter/` |
+| `crafter_refine_queue` | [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | Becomes a candidate input for skill repair / composition / hypothesis. | `failures/crafter/` |
+| `rollback_candidate` | `PromotionOrchestrator.rollback_if_needed` ([§3a.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a4-rollback-transaction-the-revert-path)) | Adds the implicated `(skill_id, version)` to the rollback candidate list. | `failures/rollback/` |
+| `adapter_repair_queue` | `AdapterRegistry` owner ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) | Marks an adapter as needing repair (bad binding, broken slot mapping). | `failures/adapter/` |
 | `ignore_noise` | — | The route was deliberately a no-op. Recorded so we can audit how often we ignore. | `failures/noise/` |
 
 `ignore_noise` is a real route, not a missing route. A failure with no routing record is a bug; a failure routed to `ignore_noise` is a deliberate decision.
@@ -192,7 +192,7 @@ A failure enters the **hard-case buffer** if at least one of the following holds
 1. **Frequent.** `repeat_count ≥ frequent_threshold` (default 5) within `recent_window_eps`.
 2. **High loss.** Severity is `critical`, or it directly caused an L4 outcome failure (linked via `parent_failure_id`).
 3. **Cross-domain repeated.** Same `failure_type` + same `skill_id` observed across ≥ 2 domains within the window.
-4. **High-uncertainty near-miss.** Judge reports `EvidenceValid = False` *but* `AnswerCorrect = True` (F3/F4 in [PLAN-EVAL-FIRST-TARGET.md §6](PLAN-EVAL-FIRST-TARGET.md#6-failure-taxonomy)) — these are exactly the cases where the system is "right for the wrong reasons" and we want to learn from them aggressively.
+4. **High-uncertainty near-miss.** Judge reports `EvidenceValid = False` *but* `AnswerCorrect = True` (F3/F4 in [PLAN-EVAL-FIRST-TARGET.md §6](../00-system/PLAN-EVAL-FIRST-TARGET.md#6-failure-taxonomy)) — these are exactly the cases where the system is "right for the wrong reasons" and we want to learn from them aggressively.
 
 Failures that **do not** match any of these criteria are routed to `ignore_noise`, counted, and dropped from per-failure storage. The counter is preserved so we can prove how often `ignore_noise` was applied.
 
@@ -215,7 +215,7 @@ Capacities live in `configs/failure_routing.yaml`. They are policy, not code.
 
 The routing layer is the *only* path by which detected failures reach downstream subsystems. No subsystem reads detector output directly.
 
-### 7.1 Skill Crafter ([PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md))
+### 7.1 Skill Crafter ([PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md))
 
 **Valid Crafter inputs** (from `crafter_refine_queue` only):
 
@@ -231,14 +231,14 @@ The routing layer is the *only* path by which detected failures reach downstream
 - Anything tagged `annotation_noise_suspected` — Crafter would learn the wrong lesson from labeling noise.
 - Anything routed to `ignore_noise`.
 
-The Crafter consumes records from `crafter_refine_queue` via `failures/crafter/*.jsonl` and turns them into `BankMutationProposal` candidates ([PLAN-PIPELINE-ORCHESTRATOR.md §2.2](PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types)). Proposals still pass the full gate stack — failure-driven proposals are not privileged.
+The Crafter consumes records from `crafter_refine_queue` via `failures/crafter/*.jsonl` and turns them into `BankMutationProposal` candidates ([PLAN-PIPELINE-ORCHESTRATOR.md §2.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types)). Proposals still pass the full gate stack — failure-driven proposals are not privileged.
 
 ### 7.2 Gate (Harness `GateRunner` + `PromotionOrchestrator`)
 
 **Inputs the gate is allowed to consume from routing:**
 
-- `rollback_candidate` records — fed into `PromotionOrchestrator.rollback_if_needed` ([§3a.4](PLAN-PIPELINE-ORCHESTRATOR.md#3a4-rollback-transaction-the-revert-path)).
-- `replay_buffer` records — added to the frozen replay slice consumed by gate stage 3 ([§3.1](PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered)).
+- `rollback_candidate` records — fed into `PromotionOrchestrator.rollback_if_needed` ([§3a.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a4-rollback-transaction-the-revert-path)).
+- `replay_buffer` records — added to the frozen replay slice consumed by gate stage 3 ([§3.1](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered)).
 
 **The gate never reads routing records to decide a verdict mid-stage.** Routing records influence *which traces enter the slice*, not how a candidate is scored on that slice.
 
@@ -251,18 +251,18 @@ The Crafter consumes records from `crafter_refine_queue` via `failures/crafter/*
 ### 7.4 Visual Grounding re-train queue
 
 - Consumes from `relabel_queue` and from L1 `replay_buffer` records tagged `schema_incomplete`.
-- Used by [PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md) training rounds.
+- Used by [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) training rounds.
 
 ### 7.5 Adapter repair queue
 
 - Consumes from `adapter_repair_queue`.
 - Each entry pins `(adapter_id, adapter_version, failure_type, exemplar_routing_ids)`.
-- Adapter owners drain this queue; a routed entry is closed only when a new adapter version passes the binding gate ([PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates)).
+- Adapter owners drain this queue; a routed entry is closed only when a new adapter version passes the binding gate ([PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates)).
 
 ### 7.6 Human audit
 
 - Consumes `audit_only`.
-- Drives `AuditRecord` writes ([PLAN-PIPELINE-ORCHESTRATOR.md §3a.5](PLAN-PIPELINE-ORCHESTRATOR.md#3a5-audit-logging-contract)).
+- Drives `AuditRecord` writes ([PLAN-PIPELINE-ORCHESTRATOR.md §3a.5](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a5-audit-logging-contract)).
 - Human verdicts can re-route a record (e.g. confirm an `annotation_noise_suspected` case → flip to `relabel_queue`); re-routes append a new `FailureRoutingRecord` with `parent_failure_id` set.
 
 ---
@@ -301,7 +301,7 @@ failures/
 
 | Reader | Reads from | Cadence |
 |--------|------------|---------|
-| Skill Crafter | `failures/crafter/` | Every Crafter batch ([PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) cadence). |
+| Skill Crafter | `failures/crafter/` | Every Crafter batch ([PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) cadence). |
 | Replay validator | `failures/replay/` | Every gate stage 3 invocation. |
 | `PromotionOrchestrator.rollback_if_needed` | `failures/rollback/` | Every promotion cycle. |
 | Adapter owners | `failures/adapter/` | Per adapter-repair sprint. |
@@ -346,7 +346,7 @@ Stated to keep the policy small and operational.
 5. **No bypass of Harness gates.** Routing influences which candidates get proposed and which slices get replayed. It never overrides a gate verdict.
 6. **No raw-noise → Crafter shortcut.** §7.1 is enforced by the rules table. A future rule that routes L1 parser glitches to `crafter_refine_queue` is rejected by review.
 7. **No new severity levels.** The four-value severity scale is closed. New `failure_type`s pick from existing severities.
-8. **No long-lived `failures/incoming/`.** If the runner falls behind, raise an L2 escalation ([PLAN-PIPELINE-ORCHESTRATOR.md §8.1](PLAN-PIPELINE-ORCHESTRATOR.md#81-escalation-ladder)). Backlog is itself a failure.
+8. **No long-lived `failures/incoming/`.** If the runner falls behind, raise an L2 escalation ([PLAN-PIPELINE-ORCHESTRATOR.md §8.1](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#81-escalation-ladder)). Backlog is itself a failure.
 
 ---
 
@@ -355,9 +355,9 @@ Stated to keep the policy small and operational.
 | Document | Relationship |
 |----------|--------------|
 | [PLAN-EXPERIENCE-EXTENSION.md](PLAN-EXPERIENCE-EXTENSION.md) | Defines `FailureRoutingRecord` and the two-step write contract. |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | §3 gate stages, §3a promotion / rollback transactions, §8 escalation ladder. |
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | Source of L2 invocation diagnostics; consumer of `rollback_candidate`. |
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | Sole consumer of `crafter_refine_queue`; produces `BankMutationProposal` from routed failures. |
-| [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md) | §6 failure taxonomy; F3/F4 are the canonical hard-case buffer entries. |
-| [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) | Source of L1 grounding failures; consumer of `relabel_queue`. |
-| [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) | Lifecycle states that `rollback_candidate` records flip. |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | §3 gate stages, §3a promotion / rollback transactions, §8 escalation ladder. |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | Source of L2 invocation diagnostics; consumer of `rollback_candidate`. |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | Sole consumer of `crafter_refine_queue`; produces `BankMutationProposal` from routed failures. |
+| [PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md) | §6 failure taxonomy; F3/F4 are the canonical hard-case buffer entries. |
+| [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) | Source of L1 grounding failures; consumer of `relabel_queue`. |
+| [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | Lifecycle states that `rollback_candidate` records flip. |

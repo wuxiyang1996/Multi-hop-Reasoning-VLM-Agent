@@ -1,6 +1,6 @@
 """Actor Agent — Tier-2 decision agent for the COS-PLAY pipeline.
 
-This module implements **Agent 1** from ``plans/PLAN-ACTION-AGENT.md``
+This module implements **Agent 1** from ``plans/02-action-agent/PLAN-ACTION-AGENT.md``
 §2.3: the trained actor that consumes a structured ``<state>…</state>``
 schema from the Visual Grounding pipeline (``vlm_wrapper``), selects a
 skill via an injected :class:`~decision_agents.skill_interface.SkillProvider`,

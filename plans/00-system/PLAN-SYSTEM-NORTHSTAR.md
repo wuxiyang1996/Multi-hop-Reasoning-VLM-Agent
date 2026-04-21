@@ -2,7 +2,7 @@
 
 **Status:** Control document. This plan does not introduce new modules; it pins the **single scoreboard** and the **decision policy** every other plan must report against.
 **Owner:** Pipeline Orchestrator (table assembly + CI emission). Each row's columns are owned by the originating module (§7).
-**Companions:** [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md) (joint task contract), [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) (eval matrix, gates), [PLAN-HARNESS.md](PLAN-HARNESS.md) (`SkillEpisode`), [PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md) (Path A/B/C), [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) (promotion / rollback).
+**Companions:** [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md) (joint task contract), [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) (eval matrix, gates), [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) (`SkillEpisode`), [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) (Path A/B/C), [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) (promotion / rollback).
 
 ---
 
@@ -17,7 +17,7 @@ This is necessary but dangerous. Without a single shared scoreboard:
 - **Cost regressions hide behind quality wins.** A new policy that adds two extra grounding calls per instance can buy 1 point of accuracy at 30% more compute and look like a win.
 - **Trade-offs become invisible.** Actor quality and Harness quality can move in opposite directions; without a control document, the project optimizes whichever number is in front of the loudest engineer.
 
-The orchestrator's evaluation matrix already requires separate analysis of **actor quality, harness filtering / veto quality, overall system performance, skill-use efficiency, reasoning-step usefulness, and transfer robustness** ([PLAN-PIPELINE-ORCHESTRATOR.md §0a.5](PLAN-PIPELINE-ORCHESTRATOR.md#0a5-evaluation-implication)). This document is the **single place** where those axes are projected into one canonical, reproducible table, and where the go/no-go rules over that table are written down — so module work cannot replace end-to-end work.
+The orchestrator's evaluation matrix already requires separate analysis of **actor quality, harness filtering / veto quality, overall system performance, skill-use efficiency, reasoning-step usefulness, and transfer robustness** ([PLAN-PIPELINE-ORCHESTRATOR.md §0a.5](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a5-evaluation-implication)). This document is the **single place** where those axes are projected into one canonical, reproducible table, and where the go/no-go rules over that table are written down — so module work cannot replace end-to-end work.
 
 This plan is binding. Any release report that does not print the §4 table is non-conforming, and any promotion that violates a §5 rule is invalid even if all module-level gates pass.
 
@@ -43,12 +43,12 @@ These explain *why* Layer 1 moved. They are not substitutes for Layer 1 (§3, §
 
 | Metric | Definition | Source |
 |--------|------------|--------|
-| **Path A acceptance rate** | fraction of grounding steps accepted on direct parse without tool repair / escalation ([PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md)) | grounding module |
-| **Schema completeness** | fraction of `<state>` records satisfying the canonical schema constraints ([README — Canonical `<state>`](README.md), [PLAN-VISUAL-GROUNDING.md §12](PLAN-VISUAL-GROUNDING.md)) | grounding validator |
-| **Binding success rate** | `SkillHarness.bind_skill` pass / attempts ([PLAN-HARNESS.md §15](PLAN-HARNESS.md#15-metrics)) | Harness |
-| **Evidence pass rate** | Gate G0 pass / `finalize_episode` calls ([PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates), [§5.1](PLAN-HARNESS.md#51-skillepisode)) | Harness |
-| **Transfer pass rate** | shadow → active promotion fraction ([PLAN-HARNESS.md §15](PLAN-HARNESS.md#15-metrics)) | Harness / Orchestrator |
-| **Promotion precision** | of skills promoted ACTIVE in the window, fraction not subsequently rolled back / deprecated ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) | Orchestrator |
+| **Path A acceptance rate** | fraction of grounding steps accepted on direct parse without tool repair / escalation ([PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md)) | grounding module |
+| **Schema completeness** | fraction of `<state>` records satisfying the canonical schema constraints ([README — Canonical `<state>`](../README.md), [PLAN-VISUAL-GROUNDING.md §12](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md)) | grounding validator |
+| **Binding success rate** | `SkillHarness.bind_skill` pass / attempts ([PLAN-HARNESS.md §15](../05-harness/PLAN-HARNESS.md#15-metrics)) | Harness |
+| **Evidence pass rate** | Gate G0 pass / `finalize_episode` calls ([PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates), [§5.1](../05-harness/PLAN-HARNESS.md#51-skillepisode)) | Harness |
+| **Transfer pass rate** | shadow → active promotion fraction ([PLAN-HARNESS.md §15](../05-harness/PLAN-HARNESS.md#15-metrics)) | Harness / Orchestrator |
+| **Promotion precision** | of skills promoted ACTIVE in the window, fraction not subsequently rolled back / deprecated ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) | Orchestrator |
 | **Rollback rate** | rollbacks / promotions in the reporting window | Orchestrator |
 
 Mechanism metrics are required on the canonical table (§4) for diagnosis but cannot be cited as system improvement on their own (§5).
@@ -59,7 +59,7 @@ These keep Layer 1 honest. A Layer 1 win at the price of a Layer 3 regression is
 
 | Metric | Definition | Source |
 |--------|------------|--------|
-| **Avg hops** | mean inner-MDP hops per instance ([PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md)) | Actor / orchestrator telemetry |
+| **Avg hops** | mean inner-MDP hops per instance ([PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md)) | Actor / orchestrator telemetry |
 | **Avg grounding calls** | mean grounding-tool invocations per instance | grounding module |
 | **Avg tool calls** | mean tool invocations per instance (incl. video / DOM / desktop tool calls, excluding grounding) | orchestrator telemetry |
 | **Latency** | wall-clock seconds per instance, p50 + p95 | orchestrator telemetry |
@@ -109,14 +109,14 @@ Every release prints **one** table at the top of its report, in this exact colum
 Directly below the canonical table, in this order, the report prints:
 
 1. **Failure taxonomy distribution** — per [PLAN-EVAL-FIRST-TARGET.md §6](PLAN-EVAL-FIRST-TARGET.md#6-failure-taxonomy), `F1`–`F7` counts and percentages, on the `overall` row at minimum.
-2. **Module quality strip** — three numbers, one row each: Actor decision quality (top-1 on Harness-eligible set), Harness filter precision and veto precision/recall ([PLAN-HARNESS.md §20.4](PLAN-HARNESS.md#204-metrics)), schema completeness ([Layer 2 §2.2](#22-layer-2--mechanism-metrics-why-the-system-delivers)). These are the orchestrator's required separated axes ([PLAN-PIPELINE-ORCHESTRATOR.md §0a.5](PLAN-PIPELINE-ORCHESTRATOR.md#0a5-evaluation-implication)) projected into the scoreboard.
+2. **Module quality strip** — three numbers, one row each: Actor decision quality (top-1 on Harness-eligible set), Harness filter precision and veto precision/recall ([PLAN-HARNESS.md §20.4](../05-harness/PLAN-HARNESS.md#204-metrics)), schema completeness ([Layer 2 §2.2](#22-layer-2--mechanism-metrics-why-the-system-delivers)). These are the orchestrator's required separated axes ([PLAN-PIPELINE-ORCHESTRATOR.md §0a.5](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a5-evaluation-implication)) projected into the scoreboard.
 3. **Promotion / rollback ledger** — per the reporting window: promotions count, rollbacks count, promotion precision, top three rollback reasons.
 
 ### 4.3 Reporting rules
 
 - The `overall` row is the **headline**. Joint Success is bolded.
 - Rows are emitted in the order shown; do not reorder per release.
-- Every cell in the table comes from the same `eval_suite_id` and `bank_snapshot_id` ([PLAN-PIPELINE-ORCHESTRATOR.md §3a.2](PLAN-PIPELINE-ORCHESTRATOR.md#3a2-batch-evaluation-schedule)) so the table is reproducible.
+- Every cell in the table comes from the same `eval_suite_id` and `bank_snapshot_id` ([PLAN-PIPELINE-ORCHESTRATOR.md §3a.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a2-batch-evaluation-schedule)) so the table is reproducible.
 - Empty cells are reported as `n/a` with a one-line reason in the appendix; they are never silently zero.
 - Anything not on the canonical table or in the three companion tables is **appendix-only** and must not appear in the release summary or commit message.
 - Two consecutive releases must use the same `eval_suite_id` unless an explicit eval-suite version bump is recorded in the report header — otherwise the deltas are not comparable.
@@ -137,7 +137,7 @@ Trigger: any Layer 2 metric improves by ≥ its noise band on the `overall` slic
 
 > If Joint Success improves but rollback / regression rate worsens too much, do not promote.
 
-Trigger: Joint Success Rate up, **and** rollback rate in the reporting window rises above its policy threshold (default: **rollback rate ≥ 2× the trailing 3-release median, or promotion precision < 0.7**). Action: the change does not flow into ACTIVE; it is held in `provisional` ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) until the next eval window. The orchestrator's promotion transaction ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)) must respect this rule, not just per-skill gate verdicts.
+Trigger: Joint Success Rate up, **and** rollback rate in the reporting window rises above its policy threshold (default: **rollback rate ≥ 2× the trailing 3-release median, or promotion precision < 0.7**). Action: the change does not flow into ACTIVE; it is held in `provisional` ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) until the next eval window. The orchestrator's promotion transaction ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)) must respect this rule, not just per-skill gate verdicts.
 
 ### 5.3 Cost down, evidence collapses — **NO-GO as optimization**
 
@@ -149,7 +149,7 @@ Trigger: any Layer 3 metric improves on the `overall` slice while Evidence Suppo
 
 > If actor quality degrades while harness quality rises, report it explicitly.
 
-Trigger: Actor decision quality (top-1 on Harness-eligible set) drops while Harness filter precision or veto precision rises, on the same eval window. Action: **the release report must call this out by name in the summary**, not bury it in the module strip. The architectural risk is that the trainable Actor is being absorbed by the frozen 72B Harness ([PLAN-HARNESS.md §1a.5](PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor)); if this pattern persists across two releases, it triggers a review of the Actor/Harness boundary before any further Harness expansion is merged.
+Trigger: Actor decision quality (top-1 on Harness-eligible set) drops while Harness filter precision or veto precision rises, on the same eval window. Action: **the release report must call this out by name in the summary**, not bury it in the module strip. The architectural risk is that the trainable Actor is being absorbed by the frozen 72B Harness ([PLAN-HARNESS.md §1a.5](../05-harness/PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor)); if this pattern persists across two releases, it triggers a review of the Actor/Harness boundary before any further Harness expansion is merged.
 
 ### 5.5 Slice-level regressions — **MUST not be hidden by overall gains**
 
@@ -169,7 +169,7 @@ The canonical table (§4) is reported **every release in every phase** — its s
 
 | Phase | Primary emphasis (must move) | Secondary emphasis (must not regress) | Phase exit signal |
 |-------|-------------------------------|----------------------------------------|-------------------|
-| **Phase 0–1 — Grounding + Harness MVP** | Schema completeness; Path A acceptance rate | Layer 3 cost; binding success | Path A and schema completeness reach the targets in [PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md); every skill invocation flows through the Harness ([PLAN-HARNESS.md §14 Phase 0](PLAN-HARNESS.md#14-phased-implementation-plan)). Joint Success is *measured* but not yet the gating signal. |
+| **Phase 0–1 — Grounding + Harness MVP** | Schema completeness; Path A acceptance rate | Layer 3 cost; binding success | Path A and schema completeness reach the targets in [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md); every skill invocation flows through the Harness ([PLAN-HARNESS.md §14 Phase 0](../05-harness/PLAN-HARNESS.md#14-phased-implementation-plan)). Joint Success is *measured* but not yet the gating signal. |
 | **Phase 2 — Evidence-driven loop** | Evidence Support Rate; Evidence pass rate (Gate G0) | Answer Accuracy; Layer 3 cost | Evidence Support Rate is non-trivial on the `overall` row and `F3` / `F4` are below their initial values. The eval triple ([PLAN-EVAL-FIRST-TARGET.md §5.1](PLAN-EVAL-FIRST-TARGET.md#51-other-required-headline-numbers)) becomes the headline. |
 | **Phase 3 — System integration** | **Joint Success Rate** (primary headline) | All Layer 2; all Layer 3 | Joint Success Rate is the gating number. §5.1 starts being enforced strictly: mechanism wins without Joint Success movement do not justify releases. |
 | **Phase 4 — Transfer hardening** | Transfer pass rate; Promotion precision; Rollback rate | Joint Success Rate on in-domain slices; Layer 3 cost | The `cross_domain_transfer` row of the canonical table is healthy; §5.2 is enforced strictly; rollback rate trends down release over release. |
@@ -191,12 +191,12 @@ Each column on the canonical table has exactly one **producing module** and one 
 | **Joint Success Rate** | eval driver | derived from the two above |
 | Path A acceptance rate | grounding module | grounding telemetry (`schema_gen` head) |
 | Schema completeness | grounding validator | grounding telemetry |
-| Binding success rate | Harness | `SkillEpisode.slot_bindings` + `SkillHarness.bind_skill` outcomes ([PLAN-HARNESS.md §5.1](PLAN-HARNESS.md#51-skillepisode)) |
+| Binding success rate | Harness | `SkillEpisode.slot_bindings` + `SkillHarness.bind_skill` outcomes ([PLAN-HARNESS.md §5.1](../05-harness/PLAN-HARNESS.md#51-skillepisode)) |
 | Evidence pass rate | Harness | Gate G0 outcomes in `SkillHarness.finalize_episode` |
-| Transfer pass rate | Harness + Orchestrator | `TransferManager` shadow→active fraction ([PLAN-HARNESS.md §5.4](PLAN-HARNESS.md#54-transfermanager)) |
-| Promotion precision | Orchestrator | `PromotionOrchestrator` ledger ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) |
+| Transfer pass rate | Harness + Orchestrator | `TransferManager` shadow→active fraction ([PLAN-HARNESS.md §5.4](../05-harness/PLAN-HARNESS.md#54-transfermanager)) |
+| Promotion precision | Orchestrator | `PromotionOrchestrator` ledger ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) |
 | Rollback rate | Orchestrator | rollback log over reporting window |
-| Avg hops | Actor / orchestrator | inner-MDP records ([PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md)) |
+| Avg hops | Actor / orchestrator | inner-MDP records ([PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md)) |
 | Avg grounding calls | grounding module | grounding telemetry |
 | Avg tool calls | orchestrator telemetry | per-instance tool ledger |
 | Latency (p50 / p95) | orchestrator telemetry | per-instance wall-clock |
@@ -207,7 +207,7 @@ Each column on the canonical table has exactly one **producing module** and one 
 | Companion table | Producer |
 |-----------------|----------|
 | Failure taxonomy distribution | eval driver ([PLAN-EVAL-FIRST-TARGET.md §6](PLAN-EVAL-FIRST-TARGET.md#6-failure-taxonomy)) |
-| Module quality strip — Actor row | Actor offline eval ([PLAN-HARNESS.md §20.4](PLAN-HARNESS.md#204-metrics)) |
+| Module quality strip — Actor row | Actor offline eval ([PLAN-HARNESS.md §20.4](../05-harness/PLAN-HARNESS.md#204-metrics)) |
 | Module quality strip — Harness row | Harness eval (filter precision, veto precision/recall) |
 | Module quality strip — Grounding row | grounding validator (schema completeness) |
 | Promotion / rollback ledger | Orchestrator |
@@ -232,7 +232,7 @@ Each column on the canonical table has exactly one **producing module** and one 
 - **Do not let mechanism metrics replace end-task metrics.** A release whose only progress is in Layer 2 is a refactor, not a system improvement (§5.1). Calling it otherwise is non-conforming.
 - **Do not collapse the table into a single score.** No "system score = w1·X + w2·Y + …" composite is allowed on the headline. The whole point of separating Layer 1 / Layer 2 / Layer 3 is that they are **not** interchangeable; collapsing them re-creates the ambiguity this plan exists to remove.
 - **Do not ship slice regressions silently.** Overall gains do not erase slice losses (§5.5). Any slice regression beyond noise is named in the summary.
-- **Do not let the frozen 72B Harness silently absorb the Actor.** §5.4 is enforced; if the Actor degrades while the Harness improves on two consecutive releases, the Actor/Harness boundary is reviewed before further Harness expansion ([PLAN-HARNESS.md §1a.5](PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor)).
+- **Do not let the frozen 72B Harness silently absorb the Actor.** §5.4 is enforced; if the Actor degrades while the Harness improves on two consecutive releases, the Actor/Harness boundary is reviewed before further Harness expansion ([PLAN-HARNESS.md §1a.5](../05-harness/PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor)).
 - **Do not chase leaderboards.** This scoreboard tracks the project's own delivery against itself across releases. Adding external benchmarks is governed by [PLAN-EVAL-FIRST-TARGET.md §11](PLAN-EVAL-FIRST-TARGET.md#11-non-goals); they do not replace the canonical table.
 - **Do not let Layer 3 cost regressions hide behind Layer 1 wins.** §5.3 is enforced; cost columns are required and headline-blocking when evidence collapses.
-- **Do not redefine the gate semantics, lifecycle, or `SkillEpisode` schema in this plan.** Those live in [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md), [PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates), and [PLAN-HARNESS.md §5.1](PLAN-HARNESS.md#51-skillepisode). This plan *consumes* them; if it needs to change them, change the upstream plan first.
+- **Do not redefine the gate semantics, lifecycle, or `SkillEpisode` schema in this plan.** Those live in [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md), [PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates), and [PLAN-HARNESS.md §5.1](../05-harness/PLAN-HARNESS.md#51-skillepisode). This plan *consumes* them; if it needs to change them, change the upstream plan first.

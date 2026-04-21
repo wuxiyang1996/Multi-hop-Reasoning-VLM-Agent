@@ -1,16 +1,16 @@
 # PLAN: Pipeline Orchestrator (End-to-End Harness)
 
-**Scope:** Define the **single top-level runner** that closes the loop across [Visual Grounding](PLAN-VISUAL-GROUNDING.md), [Action Agent](PLAN-ACTION-AGENT.md), [Skill Bank](PLAN-SKILL-BANK.md), and [Skill Crafter](PLAN-SKILL-CRAFTER.md). The orchestrator is the **domain-general control plane** for grounding → reasoning → skill retrieval → action → verification → promotion → rollback, with **episode-local evidence & trace bookkeeping** plus budgets, artifacts, gates, and full-system evaluation.
+**Scope:** Define the **single top-level runner** that closes the loop across [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md), [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md), [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md), and [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md). The orchestrator is the **domain-general control plane** for grounding → reasoning → skill retrieval → action → verification → promotion → rollback, with **episode-local evidence & trace bookkeeping** plus budgets, artifacts, gates, and full-system evaluation.
 
 **Scope boundaries (deliberate).** The orchestrator is domain-general across game / webagent / os-agent / video-understanding / visual reasoning. Its **first evaluation track** is **short-video evidence-grounded reasoning** (Video-Holmes-style). The orchestrator's only state-keeping surface is the episode-local trajectory described in §4 — current `<state>`, the short typed hop trace, intermediate belief state, and within-episode evidence references. Long-horizon video and any cross-episode storage layer are out of scope and have no APIs in this orchestrator.
 
 **Problem statement:** Sub-plans already specify module orchestrators (e.g., bank maintenance, grounding evaluation harness). What is missing is one **executable DAG** that repeatedly: collects rollouts → grounds → runs inner-hop reasoning → acts → logs traces → updates the bank → runs the crafter → **verifies** → promotes or rolls back → schedules training → re-evaluates — with explicit **acceptance gates**, **budget control**, and **observability**.
 
-**Upstream:** All component plans; shared `<state>` schema ([README § Canonical `<state>`](README.md)); two-level MDP framing ([`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md)).
+**Upstream:** All component plans; shared `<state>` schema ([README § Canonical `<state>`](../README.md)); two-level MDP framing ([`LONG_HORIZON_REASONING.md`](../../LONG_HORIZON_REASONING.md)).
 
 **Downstream:** Implementations of runners, job queues, artifact stores, CI-style verification, and monitoring dashboards.
 
-**Non-goals:** Replacing optional [Visual Skills](PLAN-VISUAL-SKILLS.md); duplicating milestone-level grounding SFT detail ([PLAN-VISUAL-GROUNDING-MILESTONES](PLAN-VISUAL-GROUNDING-MILESTONES.md)).
+**Non-goals:** Replacing optional [Visual Skills](../01-visual-grounding/PLAN-VISUAL-SKILLS.md); duplicating milestone-level grounding SFT detail ([PLAN-VISUAL-GROUNDING-MILESTONES](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md)).
 
 ---
 
@@ -22,9 +22,9 @@ The system follows a **four-way separation of responsibilities**. The orchestrat
 
 | Module | Responsibilities |
 |--------|------------------|
-| **Skill Bank** ([PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md)) | stores skill objects; retrieves top-k candidates; manages lifecycle states; receives promotion / rollback results. |
-| **Harness** ([PLAN-HARNESS.md](PLAN-HARNESS.md)) | filters retrieved candidates; validates binding and evidence; checks runtime feasibility; provides advisory scores; performs veto when necessary. Frozen 72B; **never** the online policy. |
-| **Actor** ([PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md)) | remains the online policy; decides continue / switch / no-skill / reasoning / action; consumes only Harness-filtered eligible candidates; produces online trajectories and experience. |
+| **Skill Bank** ([PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md)) | stores skill objects; retrieves top-k candidates; manages lifecycle states; receives promotion / rollback results. |
+| **Harness** ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) | filters retrieved candidates; validates binding and evidence; checks runtime feasibility; provides advisory scores; performs veto when necessary. Frozen 72B; **never** the online policy. |
+| **Actor** ([PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md)) | remains the online policy; decides continue / switch / no-skill / reasoning / action; consumes only Harness-filtered eligible candidates; produces online trajectories and experience. |
 | **Orchestrator** (this document) | manages batch evaluation; runs promotion / rollback; schedules validation; maintains snapshots and experiments; owns the audit trail. |
 
 This separation prevents any single module from becoming overloaded or semantically ambiguous. In particular, the orchestrator does **not** reach inside the Actor's policy choices, the Harness does **not** mutate the bank, and the Bank does **not** decide which candidate the Actor should run.
@@ -33,16 +33,16 @@ This separation prevents any single module from becoming overloaded or semantica
 
 The online path is:
 
-1. structured `<state>` is produced by [Visual Grounding](PLAN-VISUAL-GROUNDING.md);
-2. **Skill Bank** retrieves top-k skill candidates (see [PLAN-SKILL-BANK.md §6](PLAN-SKILL-BANK.md));
-3. **Harness** filters them into `eligible_skills` (see [PLAN-HARNESS.md §1a.3](PLAN-HARNESS.md#1a3-harness-output-contract));
+1. structured `<state>` is produced by [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md);
+2. **Skill Bank** retrieves top-k skill candidates (see [PLAN-SKILL-BANK.md §6](../03-skill-bank/PLAN-SKILL-BANK.md));
+3. **Harness** filters them into `eligible_skills` (see [PLAN-HARNESS.md §1a.3](../05-harness/PLAN-HARNESS.md#1a3-harness-output-contract));
 4. **Actor** makes the final policy decision:
    - continue current skill,
    - switch to an eligible skill,
    - no skill,
    - reasoning step,
    - primitive action;
-5. **Harness** performs invocation-time validation if a skill is proposed; on veto the Actor falls back ([PLAN-HARNESS.md §1a.4](PLAN-HARNESS.md#1a4-actor-proposal-harness-veto));
+5. **Harness** performs invocation-time validation if a skill is proposed; on veto the Actor falls back ([PLAN-HARNESS.md §1a.4](../05-harness/PLAN-HARNESS.md#1a4-actor-proposal-harness-veto));
 6. execution proceeds; the chosen action is emitted to the environment;
 7. traces are logged for replay, shadow evaluation, mining, and future promotion decisions (§2 artifact schema).
 
@@ -58,9 +58,9 @@ This principle should guide both implementation and evaluation. Any orchestrator
 
 Runtime skill filtering must be separated from promotion logic:
 
-- **Runtime filtering** belongs to the [Harness](PLAN-HARNESS.md).
-- **Final online choice** belongs to the [Actor](PLAN-ACTION-AGENT.md).
-- **Promotion, rollback, and bank mutation** belong to the orchestrator (§3, §3a) and to Skill Bank lifecycle logic ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)).
+- **Runtime filtering** belongs to the [Harness](../05-harness/PLAN-HARNESS.md).
+- **Final online choice** belongs to the [Actor](../02-action-agent/PLAN-ACTION-AGENT.md).
+- **Promotion, rollback, and bank mutation** belong to the orchestrator (§3, §3a) and to Skill Bank lifecycle logic ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)).
 
 This separation is important to avoid mixing:
 
@@ -201,13 +201,13 @@ The harness is only as debuggable as its **unified telemetry**. Treat logs as **
 ### 2.2 Required record types
 
 1. **`EpisodeMeta`** — domain, task, goal, seed, model adapters, budget snapshot at episode start.
-2. **`GroundingRecord`** — raw routing (Path A/B/C if applicable), latency, escalation reason, optional tool traces; **canonical `evidence_out`** for `GATHER`-role skills (see [PLAN-VISUAL-GROUNDING.md §3a](PLAN-VISUAL-GROUNDING.md#3a-shared-output-schema-both-domains-emit-this)): carries `evidence_id`, `source`, `kind`, `anchor`, `confidence`, `verified_by`.
+2. **`GroundingRecord`** — raw routing (Path A/B/C if applicable), latency, escalation reason, optional tool traces; **canonical `evidence_out`** for `GATHER`-role skills (see [PLAN-VISUAL-GROUNDING.md §3a](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md#3a-shared-output-schema-both-domains-emit-this)): carries `evidence_id`, `source`, `kind`, `anchor`, `confidence`, `verified_by`.
 3. **`InnerHopRecord`** — sequence of inner actions; slot coverage flags; uncertainty scores; re-ground triggers.
-4. **`ActionRecord`** — chosen env action, parse path, valid-set constraints, **`evidence_warrant: List[EvidenceRef]`** (non-empty for any committed env action or final answer, per [PLAN-ACTION-AGENT.md §5.3-bis](PLAN-ACTION-AGENT.md)).
+4. **`ActionRecord`** — chosen env action, parse path, valid-set constraints, **`evidence_warrant: List[EvidenceRef]`** (non-empty for any committed env action or final answer, per [PLAN-ACTION-AGENT.md §5.3-bis](../02-action-agent/PLAN-ACTION-AGENT.md)).
 5. **`RewardRecord`** — `r_env`, `r_follow`, `r_cost`, and components.
-6. **`SkillEpisode`** — per-skill-invocation record from the Harness (see [PLAN-HARNESS.md §5.1](PLAN-HARNESS.md#51-skillepisode)); carries `evidence_role`, `evidence_in`, `evidence_out`, `evidence_warrant`, `verify_verdict`, `reason_warrant`, `contract_progress`, `outcome`, and transfer-diagnostic labels. This is the record Gate G0 operates on.
-7. **`BankMutationProposal`** — segmented spans, contract deltas, merge/split ops — **staged**, not live until gate. Typed subclasses: `PatchProposal | ComposeProposal | TransferProposal | RetireProposal` (see [PLAN-SKILL-CRAFTER.md §2.5](PLAN-SKILL-CRAFTER.md)); every subclass declares `evidence_role` and `evidence_interface`.
-8. **`GateVerdict`** — pass/fail, failing checks list, replay diffs, non-regression metrics; carries zero or more typed diagnostic labels including `opaque_skill_violation`, `evidence_interface_mismatch`, `skill_role_mismatch` (see [PLAN-HARNESS.md §10a](PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific)).
+6. **`SkillEpisode`** — per-skill-invocation record from the Harness (see [PLAN-HARNESS.md §5.1](../05-harness/PLAN-HARNESS.md#51-skillepisode)); carries `evidence_role`, `evidence_in`, `evidence_out`, `evidence_warrant`, `verify_verdict`, `reason_warrant`, `contract_progress`, `outcome`, and transfer-diagnostic labels. This is the record Gate G0 operates on.
+7. **`BankMutationProposal`** — segmented spans, contract deltas, merge/split ops — **staged**, not live until gate. Typed subclasses: `PatchProposal | ComposeProposal | TransferProposal | RetireProposal` (see [PLAN-SKILL-CRAFTER.md §2.5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)); every subclass declares `evidence_role` and `evidence_interface`.
+8. **`GateVerdict`** — pass/fail, failing checks list, replay diffs, non-regression metrics; carries zero or more typed diagnostic labels including `opaque_skill_violation`, `evidence_interface_mismatch`, `skill_role_mismatch` (see [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific)).
 9. **`TrainJobSpec`** — which LoRA/timescale, data snapshot IDs, seed, cluster target.
 
 ### 2.3 Storage layout (logical)
@@ -265,7 +265,7 @@ Frozen 32B/72B proposals remain **candidates** until they pass the same gate sta
 
 The gate stages in §3.1 are the *what*. The **promotion transaction** is the *how* the orchestrator turns a passing `SkillEvaluationRecord` into an actual change in `current_production`, and the *rollback transaction* is the symmetric undo. Both run through one component — `PromotionOrchestrator` (`orchestrator/promotion_orchestrator.py`) — so that bank pointers never move on partial success.
 
-This section is the canonical specification of those two transactions. The full lifecycle, ownership boundary, record types, and storage split are in the [Unified Skill Gate](PLAN-UNIFIED-SKILL-GATE.md) plan; this section pins the orchestrator-side responsibilities and the audit-logging contract.
+This section is the canonical specification of those two transactions. The full lifecycle, ownership boundary, record types, and storage split are in the [Unified Skill Gate](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) plan; this section pins the orchestrator-side responsibilities and the audit-logging contract.
 
 ### 3a.1 `PromotionOrchestrator` (`orchestrator/promotion_orchestrator.py`)
 
@@ -279,7 +279,7 @@ class PromotionOrchestrator:
     ) -> list[SkillEvaluationRecord]: ...
 ```
 
-`evaluate_candidate` is the only path that calls into `harness/gate_runner.py` ([PLAN-HARNESS.md §10b](PLAN-HARNESS.md#10b-gate-execution-runtime)) for a candidate. `promote_if_passed` and `rollback_if_needed` wrap the pointer-move + status-mutation as a single transaction (§3a.3 / §3a.4).
+`evaluate_candidate` is the only path that calls into `harness/gate_runner.py` ([PLAN-HARNESS.md §10b](../05-harness/PLAN-HARNESS.md#10b-gate-execution-runtime)) for a candidate. `promote_if_passed` and `rollback_if_needed` wrap the pointer-move + status-mutation as a single transaction (§3a.3 / §3a.4).
 
 ### 3a.2 Batch evaluation schedule
 
@@ -298,10 +298,10 @@ Owned by the Orchestrator, fed by the offline evolution subgraph (§1.3):
 
 1. **Read** the latest `SkillEvaluationRecord` for `skill_id`. Refuse to proceed unless `final_decision ∈ {PASS, LIMITED_PASS}` and `status_after ∈ {PROVISIONAL, ACTIVE}`.
 2. **Snapshot create.** `snapshot_manager.create(parent=current_production)` produces a new `bank_snapshot_id` containing the proposed change.
-3. **Apply state transition.** Call `SkillLifecycleManager.mark_provisional` or `promote_active` ([PLAN-UNIFIED-SKILL-GATE.md §5.1](PLAN-UNIFIED-SKILL-GATE.md#51-skill-bank-agent--skilllifecyclemanager)). The bank stores receive the write under the new snapshot only.
+3. **Apply state transition.** Call `SkillLifecycleManager.mark_provisional` or `promote_active` ([PLAN-UNIFIED-SKILL-GATE.md §5.1](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#51-skill-bank-agent--skilllifecyclemanager)). The bank stores receive the write under the new snapshot only.
 4. **Pointer move.** Atomically advance `current_production` to the new `bank_snapshot_id`. The previous snapshot remains addressable.
 5. **Audit.** Emit a signed `AuditRecord` (§8.3) that links `skill_id`, `version`, `from_snapshot`, `to_snapshot`, `eval_suite_id`, `final_decision`, `decision_reason`, and the operator (human or automated trigger).
-6. **Notify.** Push the verdict to the gate dashboard (§9 item 6) and to the [Skill Crafter](PLAN-SKILL-CRAFTER.md) failure-cluster export if `final_decision == LIMITED_PASS`.
+6. **Notify.** Push the verdict to the gate dashboard (§9 item 6) and to the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) failure-cluster export if `final_decision == LIMITED_PASS`.
 
 If steps 2–4 fail, `snapshot_manager.discard(new_snapshot_id)` runs and `SkillLifecycleManager` reverts the in-memory status to `status_before`. No write to `active_store` happens outside this transaction.
 
@@ -312,7 +312,7 @@ If steps 2–4 fail, `snapshot_manager.discard(new_snapshot_id)` runs and `Skill
 | Trigger | Source |
 |---------|--------|
 | Post-promotion non-regression failure | `re_evaluate` (§1.3) detects regression beyond ε against the prior `snapshot_id` |
-| Sustained Gate G0 violations in production | `SkillHarness.finalize_episode` aggregator ([PLAN-HARNESS.md §10b.2](PLAN-HARNESS.md#10b2-per-stage-delegation-table)) |
+| Sustained Gate G0 violations in production | `SkillHarness.finalize_episode` aggregator ([PLAN-HARNESS.md §10b.2](../05-harness/PLAN-HARNESS.md#10b2-per-stage-delegation-table)) |
 | Repeated transfer-domain failures | `re_evaluate` per-domain slice |
 | Human escalation L2+ | §8.1 escalation ladder |
 
@@ -322,7 +322,7 @@ Steps:
 2. **Snapshot create.** `snapshot_manager.create(parent=current_production)` for the revert state.
 3. **Apply state transition.** `SkillLifecycleManager.rollback(skill_id, target_version, reason)` flips the current version to `ROLLED_BACK` (or `DEPRECATED` for non-emergency supersession) and restores the target version to `ACTIVE`. The `rollback_links` index is updated.
 4. **Pointer move.** Atomically advance `current_production`.
-5. **Quarantine.** Add the rolled-back `(skill_id, version)` to a quarantine list so the [Skill Crafter](PLAN-SKILL-CRAFTER.md) can pick it up for repair without it being re-proposed unchanged.
+5. **Quarantine.** Add the rolled-back `(skill_id, version)` to a quarantine list so the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) can pick it up for repair without it being re-proposed unchanged.
 6. **Audit.** Emit `AuditRecord` with the full trigger chain.
 
 Rollback is **always** atomic: either `current_production` references the post-rollback state and the audit record is written, or nothing changes.
@@ -356,7 +356,7 @@ The orchestrator's lane is purely *transaction control + scheduling + audit*.
 
 The orchestrator maintains an **episode-local trajectory** as its only state-keeping surface: current structured `<state>`, a short typed hop trace, an intermediate belief state, and within-episode evidence references. Everything resets at the episode boundary; the only durable artifacts are skill-bank snapshots (§3) and the append-only logs in §2. There is no cross-episode storage layer in this orchestrator.
 
-The bookkeeping is richer than a plain "log all tool calls" contract because of the **evidence-driven invariant** ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)): every skill is required to either consume or produce addressable evidence. If `<state>.evidence_refs` and the claim–evidence links below are not preserved episode-wide and rolled up into `SkillEpisode` records, Gate G0 cannot be evaluated, and skills would silently drift away from actually assisting reasoning. The bookkeeping below is the substrate that lets the Harness enforce "ALL skills are evidence-driven" mechanically rather than by convention.
+The bookkeeping is richer than a plain "log all tool calls" contract because of the **evidence-driven invariant** ([PLAN-SKILL-BANK.md §0.3](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)): every skill is required to either consume or produce addressable evidence. If `<state>.evidence_refs` and the claim–evidence links below are not preserved episode-wide and rolled up into `SkillEpisode` records, Gate G0 cannot be evaluated, and skills would silently drift away from actually assisting reasoning. The bookkeeping below is the substrate that lets the Harness enforce "ALL skills are evidence-driven" mechanically rather than by convention.
 
 ### 4.1 What the orchestrator maintains per episode
 
@@ -395,7 +395,7 @@ Re-issuing `GROUND` rebuilds the affected slice of current context directly; not
 
 ## 5. Training cadence by timescale
 
-Map jobs to the three-agent separation ([README § Three-agent role split](README.md)) with explicit **triggers** and **data dependencies**.
+Map jobs to the three-agent separation ([README § Three-agent role split](../README.md)) with explicit **triggers** and **data dependencies**.
 
 ### 5.1 Fast (Actor — every iteration / continuous)
 
@@ -418,7 +418,7 @@ Map jobs to the three-agent separation ([README § Three-agent role split](READM
 
 ### 5.4 Grounding (its own schedule)
 
-- Visual grounding training runs on **grounding milestones** ([Milestones plan](PLAN-VISUAL-GROUNDING-MILESTONES.md)); orchestrator **coordinates** snapshots so the actor always declares which `schema_gen` checkpoint it assumes.
+- Visual grounding training runs on **grounding milestones** ([Milestones plan](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md)); orchestrator **coordinates** snapshots so the actor always declares which `schema_gen` checkpoint it assumes.
 
 ---
 
@@ -469,7 +469,7 @@ Centralize **limits** that are currently implicit across plans: one **policy obj
 | Dimension | Example knobs |
 |-----------|----------------|
 | **Token budget** | Max tokens per step, per hop, per episode |
-| **Hop budget** | Max inner hops before forced `EXECUTE`. Default **0–2 hops**; **≤3 hops** under uncertainty. See [Action Agent §5.4](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control). |
+| **Hop budget** | Max inner hops before forced `EXECUTE`. Default **0–2 hops**; **≤3 hops** under uncertainty. See [Action Agent §5.4](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control). |
 | **Grounding escalation budget** | Max tool/GPT calls; Path C limits |
 | **Replay budget** | Max CPU time per gate stage |
 | **Teacher budget** | Max 32B/72B calls per day; queue discipline |
@@ -520,11 +520,11 @@ Each human decision produces a signed `AuditRecord` (who, when, rationale, linke
 ## 9. Implementation checklist (Cursor-ready)
 
 1. **Runner binary / service** — one entrypoint that loads config, wires stages, and writes `run_id` artifacts.
-2. **Artifact schemas** — JSON Schema or pydantic models for §2 record types, including `SkillRecord`, `SkillEvaluationRecord`, `GateVerdictPayload` from [PLAN-UNIFIED-SKILL-GATE.md §3](PLAN-UNIFIED-SKILL-GATE.md#3-canonical-data-structures).
+2. **Artifact schemas** — JSON Schema or pydantic models for §2 record types, including `SkillRecord`, `SkillEvaluationRecord`, `GateVerdictPayload` from [PLAN-UNIFIED-SKILL-GATE.md §3](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#3-canonical-data-structures).
 3. **Gate service** — `PromotionOrchestrator` (§3a), `orchestrator/snapshot_manager.py`, `orchestrator/rollback_manager.py`, `orchestrator/eval_suite.py`; calls into `harness/gate_runner.py` for stage execution.
 4. **Budget module** — shared library used by action agent and grounding routers.
 5. **Eval driver** — runs §6 matrix on frozen checkpoints + bank snapshots; supplies the frozen eval suite to non-regression checks.
-6. **Dashboards** — gate pass rate, rollback count, budget denials, per-domain metrics, per-domain transfer-failure-label distributions ([PLAN-HARNESS.md §10a](PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific)).
+6. **Dashboards** — gate pass rate, rollback count, budget denials, per-domain metrics, per-domain transfer-failure-label distributions ([PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific)).
 
 ---
 
@@ -532,14 +532,14 @@ Each human decision produces a signed `AuditRecord` (who, when, rationale, linke
 
 | Document | Relationship |
 |----------|----------------|
-| [README](README.md) | Pipeline overview and shared schema |
-| [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) | Grounding module; feeds `GroundingRecord` |
-| [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) | Inner MDP; feeds `InnerHopRecord` |
-| [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) | Segmentation & bank; `BankMutationProposal` |
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | Crafter proposals; teacher policies |
-| [PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md) | Module-level training schedule (coordinate with §5) |
-| [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) | Canonical lifecycle + record types + storage split + APIs that §3a transactions operate over |
-| [PLAN-HARNESS.md §10b](PLAN-HARNESS.md#10b-gate-execution-runtime) | `GateRunner` — the per-stage entry points called by `PromotionOrchestrator.evaluate_candidate` |
+| [README](../README.md) | Pipeline overview and shared schema |
+| [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) | Grounding module; feeds `GroundingRecord` |
+| [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) | Inner MDP; feeds `InnerHopRecord` |
+| [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | Segmentation & bank; `BankMutationProposal` |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | Crafter proposals; teacher policies |
+| [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) | Module-level training schedule (coordinate with §5) |
+| [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | Canonical lifecycle + record types + storage split + APIs that §3a transactions operate over |
+| [PLAN-HARNESS.md §10b](../05-harness/PLAN-HARNESS.md#10b-gate-execution-runtime) | `GateRunner` — the per-stage entry points called by `PromotionOrchestrator.evaluate_candidate` |
 
 ---
 

@@ -1,10 +1,10 @@
 # PLAN: Skill Crafter Agent
 
-**Scope:** Compose, create, and refine new skills from existing Skill Bank primitives. The Skill Crafter is the creative layer that discovers higher-order strategies by combining existing skills, generalizing across games/domains, and proposing novel skill hypotheses that the [Skill Bank](PLAN-SKILL-BANK.md) can test and adopt.
+**Scope:** Compose, create, and refine new skills from existing Skill Bank primitives. The Skill Crafter is the creative layer that discovers higher-order strategies by combining existing skills, generalizing across games/domains, and proposing novel skill hypotheses that the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) can test and adopt.
 
-**Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five target domains** — game / webagent / os-agent / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate; it does not become a "short-video-only skill" or a "browser-only skill". The Crafter's **first evaluation arena** is short-video (Video-Holmes-style) — that is where `verified_domains` entries are filled in first and where transfer-failure diagnostics ([PLAN-HARNESS.md §10a](PLAN-HARNESS.md)) are exercised first, **not** where a separate class of skills is synthesized. The Crafter-private `FailurePatternStore` (§6.7) is an offline pattern-aggregation index over `FailureDiagnosis` records; it is never read by the online actor and never extends the agent's episode-local trajectory.
+**Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five target domains** — game / webagent / os-agent / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate; it does not become a "short-video-only skill" or a "browser-only skill". The Crafter's **first evaluation arena** is short-video (Video-Holmes-style) — that is where `verified_domains` entries are filled in first and where transfer-failure diagnostics ([PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md)) are exercised first, **not** where a separate class of skills is synthesized. The Crafter-private `FailurePatternStore` (§6.7) is an offline pattern-aggregation index over `FailureDiagnosis` records; it is never read by the online actor and never extends the agent's episode-local trajectory.
 
-**Upstream:** Existing skill bank (contracts, protocols, execution traces); structured schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); episode trajectories from [Action Agent](PLAN-ACTION-AGENT.md).
+**Upstream:** Existing skill bank (contracts, protocols, execution traces); structured schemas from [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md); episode trajectories from [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md).
 **Downstream:** New/refined skills injected into the Skill Bank; cross-domain skill transfer proposals.
 
 ---
@@ -25,9 +25,9 @@ The Skill Crafter addresses these gaps by operating *top-down*: it proposes new 
 
 ### Model tier assignment
 
-The Skill Crafter runs entirely on **Tier 1 (Qwen3-32B/72B, inference-only, frozen)** — see [Action Agent §2](PLAN-ACTION-AGENT.md#2-tiered-model-architecture) for the full tiered architecture rationale and the [three-agent role split](PLAN-ACTION-AGENT.md#three-agent-role-split). The Skill Crafter IS the **synthesis-reflection agent** (Agent 3). All three creation modes (Composer, Generalizer, Hypothesizer) and the Failure Reflector require multi-step counterfactual reasoning, cross-domain analogy, and structured diagnosis that exceed the 8B reasoning ceiling. Because these components run offline (between episodes, not per-step), the larger model adds no latency to the Action Agent's decision loop.
+The Skill Crafter runs entirely on **Tier 1 (Qwen3-32B/72B, inference-only, frozen)** — see [Action Agent §2](../02-action-agent/PLAN-ACTION-AGENT.md#2-tiered-model-architecture) for the full tiered architecture rationale and the [three-agent role split](../02-action-agent/PLAN-ACTION-AGENT.md#three-agent-role-split). The Skill Crafter IS the **synthesis-reflection agent** (Agent 3). All three creation modes (Composer, Generalizer, Hypothesizer) and the Failure Reflector require multi-step counterfactual reasoning, cross-domain analogy, and structured diagnosis that exceed the 8B reasoning ceiling. Because these components run offline (between episodes, not per-step), the larger model adds no latency to the Action Agent's decision loop.
 
-**Frozen-first design:** The 32B/72B backbone is kept frozen initially. Its outputs (candidate skills, revised protocols, recovery patches, diagnoses) are treated as **proposals**, not ground truth. Every output must pass multi-pass verification and held-out replay checks before entering the skill bank or training buffer. This avoids feedback-loop drift where the teacher becomes overconfident in the system's own biases. See [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition) for the full acceptance gate specification.
+**Frozen-first design:** The 32B/72B backbone is kept frozen initially. Its outputs (candidate skills, revised protocols, recovery patches, diagnoses) are treated as **proposals**, not ground truth. Every output must pass multi-pass verification and held-out replay checks before entering the skill bank or training buffer. This avoids feedback-loop drift where the teacher becomes overconfident in the system's own biases. See [Action Agent §6](../02-action-agent/PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition) for the full acceptance gate specification.
 
 **Multi-run reasoning requirement:** Even at 32B/72B scale, single-pass inference is insufficient for the Skill Crafter's tasks. The main bottleneck is not "lack of optimization" but "reasoning is hard and noisy." Each creation or reflection task requires multiple reasoning passes:
 
@@ -43,7 +43,7 @@ This multi-run design costs ~3–6× the tokens of a single 32B/72B call per tas
 The synthesis-reflection agent (32B/72B) improves over time WITHOUT weight updates through five channels:
 
 1. **Better input distribution** — as the 8B actor and skill bank improve through GRPO, the Skill Crafter receives cleaner trajectories, more reusable segments, better failure logs, and richer skill statistics. The same frozen model produces much better outputs when reasoning over better evidence.
-2. **Better evidence serialization & transfer diagnostics** — Crafter context improves as the artifact stores that feed it get better at their jobs: (a) *evidence serialization* (how within-episode `evidence_refs`, tool traces, and claim–evidence links are laid out for the teacher), (b) *transfer diagnostics* (typed labels from the Harness, see [PLAN-HARNESS.md §10a](PLAN-HARNESS.md)), (c) *replay slices* (frozen trace selection pipelines), (d) *skill clustering* (how failure clusters and transfer-candidate groups are indexed), and (e) *verification prompts* (templates for Stage-4 acceptance). The Crafter-private `FailurePatternStore` (§6.7) is one of these artifact stores; it is offline-only and never read by the online actor.
+2. **Better evidence serialization & transfer diagnostics** — Crafter context improves as the artifact stores that feed it get better at their jobs: (a) *evidence serialization* (how within-episode `evidence_refs`, tool traces, and claim–evidence links are laid out for the teacher), (b) *transfer diagnostics* (typed labels from the Harness, see [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md)), (c) *replay slices* (frozen trace selection pipelines), (d) *skill clustering* (how failure clusters and transfer-candidate groups are indexed), and (e) *verification prompts* (templates for Stage-4 acceptance). The Crafter-private `FailurePatternStore` (§6.7) is one of these artifact stores; it is offline-only and never read by the online actor.
 3. **Better inference procedure** — improve the multi-pass reasoning without touching weights: better decomposition, proposal-then-verify chains, best-of-N with smarter selection, counterfactual replay, stricter acceptance filters. This is where most early "improvement" should come from.
 4. **Better verification and selection** — as the actor and bank mature, downstream usefulness can be measured more reliably. A frozen model that emits many candidate skills becomes much more useful when the system can better select which candidates to keep.
 5. **Distillation into smaller specialized modules** — train smaller adapters or submodules on outputs that pass verification: a small failure-localizer, a contract writer, a protocol patch ranker, a transfer-mapping scorer. This builds a synthesis pipeline that improves over time without changing the main teacher.
@@ -133,7 +133,7 @@ The 32B/72B teacher should NOT be fine-tuned from day one. Follow this phased ap
 
 ## 2.5 Typed proposal outputs (evidence-driven, domain-general)
 
-Every Crafter output is one of the four typed proposals below. All four carry the **evidence-driven fields** required by [Skill Bank §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills); proposals missing them are gate-rejected before they reach replay. Evidence fields are **declarations of intent** on the proposal — the Harness confirms them empirically at Gate G0 after shadow / replay runs.
+Every Crafter output is one of the four typed proposals below. All four carry the **evidence-driven fields** required by [Skill Bank §0.3](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills); proposals missing them are gate-rejected before they reach replay. Evidence fields are **declarations of intent** on the proposal — the Harness confirms them empirically at Gate G0 after shadow / replay runs.
 
 ```python
 class EvidenceInterfaceDecl:
@@ -254,7 +254,7 @@ Takes a skill learned in one game/domain and proposes an analogue for a differen
 
 ### Transfer via shared schema slots
 
-> **See also:** [Visual Skills](PLAN-VISUAL-SKILLS.md) extends this transfer mechanism with a cross-domain entity ontology (§5) and a three-layer skill bank hierarchy (abstract skill → domain adapter → environment-specific tactic) that applies to both grounding and reasoning skills.
+> **See also:** [Visual Skills](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) extends this transfer mechanism with a cross-domain entity ontology (§5) and a three-layer skill bank hierarchy (abstract skill → domain adapter → environment-specific tactic) that applies to both grounding and reasoning skills.
 
 The canonical schema (from Visual Grounding) uses shared slot names across domains:
 
@@ -404,7 +404,7 @@ Not all failures are the same. The reflector classifies each failure into a cate
 | **stale_context** | Relied on outdated state information | Board changed between GROUND and EXECUTE | Re-observe before acting |
 | **logical_error** | Reasoning step drew wrong conclusion from correct inputs | Chose wrong merge direction despite seeing the board correctly | Revise reasoning rule / protocol |
 | **missing_information** | Needed data the agent didn't have | Couldn't infer hidden tile from history | Add RETRIEVE hop or request more context |
-| **evidence_starved** | Skill executed with empty `evidence_in ∪ evidence_out`, or `evidence_role`-required fields unset, across ≥ N recent episodes — skill is no longer assisting reasoning (Gate G0 violation, [PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates)) | A `REASON` skill that stopped citing any `evidence_in` after a slot-binding drift; a `COMMIT` skill with empty `evidence_warrant` | Emit a `PatchProposal{patch_kind: "warrant-strengthen"}` requiring citation of specific evidence kinds, or a `RetireProposal{retire_reason: "evidence-starved"}` if the pattern persists |
+| **evidence_starved** | Skill executed with empty `evidence_in ∪ evidence_out`, or `evidence_role`-required fields unset, across ≥ N recent episodes — skill is no longer assisting reasoning (Gate G0 violation, [PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates)) | A `REASON` skill that stopped citing any `evidence_in` after a slot-binding drift; a `COMMIT` skill with empty `evidence_warrant` | Emit a `PatchProposal{patch_kind: "warrant-strengthen"}` requiring citation of specific evidence kinds, or a `RetireProposal{retire_reason: "evidence-starved"}` if the pattern persists |
 | **cascading_failure** | Earlier soft error amplified into hard failure at later step | Slightly wrong grounding → wrong CHECK → wrong EXECUTE | Trace back to root cause step |
 | **resource_exhaustion** | Ran out of hops / time / tokens before completion | Complex chain exceeded hop budget | Simplify protocol or increase budget |
 
@@ -623,7 +623,7 @@ Counterfactual reasoning applies at every level of the two-level MDP:
 
 **Action-level counterfactuals** operate on the `HopRecord` sequence within a single skill execution. The Failure Reflector already captures the `context_snapshot` at each step — the counterfactual pass feeds this snapshot to the LLM along with each alternative inner action (from the inner action vocabulary: GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE) and asks for the predicted downstream outcome. This is the cheapest level and runs as Pass 4 of failure diagnosis (see §6.4).
 
-**Skill-level counterfactuals** operate on the skill selection decision points logged by `_SkillTracker`. They require the state schema at the selection moment plus the set of candidate skills that were scored but not chosen — both already available from `select_skill_from_bank()` scoring (see [Action Agent §3](PLAN-ACTION-AGENT.md#3-skill-guided-decision-making)). For each runner-up skill, the LLM predicts whether its protocol would have avoided the failure, given the state at that moment.
+**Skill-level counterfactuals** operate on the skill selection decision points logged by `_SkillTracker`. They require the state schema at the selection moment plus the set of candidate skills that were scored but not chosen — both already available from `select_skill_from_bank()` scoring (see [Action Agent §3](../02-action-agent/PLAN-ACTION-AGENT.md#3-skill-guided-decision-making)). For each runner-up skill, the LLM predicts whether its protocol would have avoided the failure, given the state at that moment.
 
 **Composition-level counterfactuals** operate during the Composer's batch jobs (§3). When the Composer proposes `sequence(A, B)`, it also evaluates `sequence(A, C)`, `sequence(A, D)`, etc. against representative state snapshots drawn from the Failure Pattern Store. This ranks alternative compositions by predicted cumulative effect coverage before submitting them to Stage 4, reducing verification load.
 
@@ -743,7 +743,7 @@ Recovery proposals (§6.5) now have access to the `CounterfactualTrace`: the `be
 
 > **Note:** Failure reflection (§6) applies to reasoning chains within these skill families — when a locate→filter→select chain fails at the "filter" step, the reflector localizes that step, diagnoses why the filter criteria were wrong, and proposes a protocol patch or fallback.
 
-Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), the Skill Crafter composes and transfers *reasoning policies* — not single-call chain-of-thought templates, but actual multi-step policies that can be trained, composed, and transferred across domains.
+Under the two-level MDP (see [Action Agent §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), the Skill Crafter composes and transfers *reasoning policies* — not single-call chain-of-thought templates, but actual multi-step policies that can be trained, composed, and transferred across domains.
 
 ### Cross-domain skill families
 
@@ -843,7 +843,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 
 ## 10. Rollout order
 
-> **Co-evolution alignment:** The Skill Crafter operates on the **slow timescale** within the three-agent co-evolution framework (see [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Crafter proposals run after failed episodes, periodically for effect chaining, when the Failure Pattern Store accumulates, when adding new domains, and before GRPO for cold-start trajectory generation. They are gated by the acceptance pipeline before entering the skill bank or training buffer.
+> **Co-evolution alignment:** The Skill Crafter operates on the **slow timescale** within the three-agent co-evolution framework (see [Action Agent §6](../02-action-agent/PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Crafter proposals run after failed episodes, periodically for effect chaining, when the Failure Pattern Store accumulates, when adding new domains, and before GRPO for cold-start trajectory generation. They are gated by the acceptance pipeline before entering the skill bank or training buffer.
 
 **Phase 0 — Frozen teacher bootstrap**
 1. Deploy 32B/72B frozen, inference-only.

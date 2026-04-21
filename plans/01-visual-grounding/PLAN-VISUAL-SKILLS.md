@@ -3,7 +3,7 @@
 **Scope:** Define transferable visual grounding *strategies* as skills — multi-step perception programs that compose tools to resolve targets, disambiguate candidates, recover lost entities, and collect evidence across domains. These sit between raw perception tools and reasoning/action skills. Optional extension to the core pipeline.
 
 **Upstream:** Structured `<state>` schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); perception tool registries (visual, video, cross-frame).
-**Downstream:** Grounding-quality improvements consumed by [Action Agent](PLAN-ACTION-AGENT.md) inner MDP; grounding patterns consumed by [Skill Bank](PLAN-SKILL-BANK.md) for contract learning; cross-domain perception transfer consumed by [Skill Crafter](PLAN-SKILL-CRAFTER.md).
+**Downstream:** Grounding-quality improvements consumed by [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) inner MDP; grounding patterns consumed by [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) for contract learning; cross-domain perception transfer consumed by [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md).
 
 **Status:** Design proposal. Not required for the core pipeline — the system works without this layer (see [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) for the existing "skills for reasoning only, not grounding" rationale). This plan extends that design for scenarios where grounding itself requires reusable multi-step strategies.
 
@@ -19,13 +19,13 @@ For cross-domain transfer to work, the skill format must be grounded in the shar
 
 ### 0.1 Implementation priority (skills stay general protocols)
 
-Every visual / grounding skill in this plan is a **general protocol feasible across game, webagent, os-agent, video-understanding, and visual reasoning** (see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). The skill format, the effect families (§4), and the cross-domain ontology (§5) apply to all five target domains, and no protocol in this plan is admitted unless it is feasible across all of them via adapter binding.
+Every visual / grounding skill in this plan is a **general protocol feasible across game, webagent, os-agent, video-understanding, and visual reasoning** (see [Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). The skill format, the effect families (§4), and the cross-domain ontology (§5) apply to all five target domains, and no protocol in this plan is admitted unless it is feasible across all of them via adapter binding.
 
 What narrows is **implementation order for adapters and replay slices**, not skill content:
 
 - Short-video (Video-Holmes-style) is the first **evaluation arena** where general protocols like `collect_evidence_chain`, `disambiguate_target`, `locate_filter_select`, and `actor_action_binding` get their first `verified_domains` entry.
 - Adapters for game / webagent / os-agent / visual reasoning exist from day one (each protocol carries the full five-domain adapter contract); they are populated and replay-verified in a staggered order, but the protocols themselves do not change.
-- A protocol that turns out to only work on short video is not kept as a "short-video skill" — it is flagged as a failed transfer candidate and recorded in the originating skill's `known_failure_modes` / `do_not_transfer_if` (see [Skill Bank §4.3b](PLAN-SKILL-BANK.md)).
+- A protocol that turns out to only work on short video is not kept as a "short-video skill" — it is flagged as a failed transfer candidate and recorded in the originating skill's `known_failure_modes` / `do_not_transfer_if` (see [Skill Bank §4.3b](../03-skill-bank/PLAN-SKILL-BANK.md)).
 
 ### 0.2 Cross-domain `candidate_set` — one abstraction, five bindings
 
@@ -47,7 +47,7 @@ A skill written over `candidate_set` plus a filter/role criterion works in all f
 
 ### What the current design already does well
 
-The existing [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) correctly separates perception (SFT/distillation) from reasoning (skills + GRPO). The inner MDP's GROUND action already lets the reasoning agent extend the schema when information is missing. Tool-loop traces are already mined for reasoning skill templates via the transferable skill extraction pipeline ([Skill Bank §9](PLAN-SKILL-BANK.md#9-transferable-skill-extraction)).
+The existing [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract) correctly separates perception (SFT/distillation) from reasoning (skills + GRPO). The inner MDP's GROUND action already lets the reasoning agent extend the schema when information is missing. Tool-loop traces are already mined for reasoning skill templates via the transferable skill extraction pipeline ([Skill Bank §9](../03-skill-bank/PLAN-SKILL-BANK.md#9-transferable-skill-extraction)).
 
 ### What it doesn't capture
 
@@ -83,21 +83,21 @@ The existing skill bank defines skills by their effects on the world (eff_add, e
 
 | Effect type | Changes | Examples | Skill bank |
 |-------------|---------|----------|------------|
-| **World-effect skills** | External environment state | `selected(target)=true`, `opened(container)=true`, `distance(agent,target) decreases` | Existing [Skill Bank](PLAN-SKILL-BANK.md) |
+| **World-effect skills** | External environment state | `selected(target)=true`, `opened(container)=true`, `distance(agent,target) decreases` | Existing [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) |
 | **Belief/grounding-effect skills** | Internal binding / evidence state | `binding(target)=resolved`, `confidence(target)≥τ`, `candidate_count=1`, `evidence_collected=true` | This plan (new) |
 
 A grounding skill's "effect" is not a world state change — it is a cognitive state change: a target gets uniquely bound, ambiguity is resolved, confidence rises above a threshold, evidence is collected, a temporal window is identified.
 
 This distinction matters for contracts: grounding skill contracts use predicates like `binding()`, `confidence()`, `candidate_count()`, `evidence_chain_length()` rather than `selected()`, `opened()`, `moved()`.
 
-**`evidence_role` mapping ([PLAN-SKILL-BANK.md §0.3 Clause B](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)).** Visual / grounding skills fall into two evidence roles and only two:
+**`evidence_role` mapping ([PLAN-SKILL-BANK.md §0.3 Clause B](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)).** Visual / grounding skills fall into two evidence roles and only two:
 
 | Skill kind | `evidence_role` | Required episode fields |
 |-----|-----|-----|
 | Grounding / localization / inspection / segmentation / temporal-window discovery | `GATHER` | `evidence_out ≠ ∅` — the produced [`GroundingRecord`](PLAN-VISUAL-GROUNDING.md) is the canonical `evidence_out` |
 | Anchor / consistency / constraint / sufficiency checks over grounded evidence | `VERIFY` | `evidence_in ≠ ∅`; `verify_verdict ∈ {PASS, FAIL, INSUFFICIENT}` |
 
-A visual skill that selects an answer with a cited evidence chain is not a `GATHER`/`VERIFY` skill in this plan — it is a `COMMIT` skill living in the main [Skill Bank](PLAN-SKILL-BANK.md) that *consumes* `evidence_in` produced by the `GATHER`/`VERIFY` skills here. This separation keeps visual-skill semantics cleanly on the evidence-production side and prevents opaque "look-then-act" macros from entering this plan.
+A visual skill that selects an answer with a cited evidence chain is not a `GATHER`/`VERIFY` skill in this plan — it is a `COMMIT` skill living in the main [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) that *consumes* `evidence_in` produced by the `GATHER`/`VERIFY` skills here. This separation keeps visual-skill semantics cleanly on the evidence-production side and prevents opaque "look-then-act" macros from entering this plan.
 
 ---
 
@@ -318,7 +318,7 @@ This ontology is the bridge. Without it, a browser button and a game lever are u
 ### Mapping rules
 
 1. Each grounded entity from the `<state>` schema maps to one or more ontology types based on its attributes (`e*.state`, `e*.type`).
-2. Mapping can be heuristic (attribute-based rules) or learned (LLM-based slot binding — see [Skill Bank §14 TODO](PLAN-SKILL-BANK.md#14-todo)).
+2. Mapping can be heuristic (attribute-based rules) or learned (LLM-based slot binding — see [Skill Bank §14 TODO](../03-skill-bank/PLAN-SKILL-BANK.md#14-todo)).
 3. Ambiguous mappings produce multiple candidate bindings, handled by the `disambiguate_candidate` skill family.
 
 ---
@@ -536,7 +536,7 @@ From each cluster, produce:
 
 ### Integration with existing extraction pipeline
 
-This discovery process extends [Skill Bank §9 (Transferable Skill Extraction)](PLAN-SKILL-BANK.md#9-transferable-skill-extraction):
+This discovery process extends [Skill Bank §9 (Transferable Skill Extraction)](../03-skill-bank/PLAN-SKILL-BANK.md#9-transferable-skill-extraction):
 
 - Stage A (Predicate normalization) → also normalizes grounding predicates (`binding()`, `confidence()`, `candidate_count()`)
 - Stage B (Structural clustering) → clusters include grounding segments alongside reasoning segments
@@ -563,7 +563,7 @@ The existing inner MDP GROUND action already invokes grounding tools. Grounding 
 
 ### Relationship to Skill Bank
 
-Grounding skills enter the [Skill Bank](PLAN-SKILL-BANK.md) through the same pipeline:
+Grounding skills enter the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) through the same pipeline:
 
 - **Discovery:** Stages 1–2 (boundary proposal, segmentation) extended to grounding segments
 - **Contracts:** Stage 3 learns grounding contracts (binding/confidence predicates)
@@ -574,7 +574,7 @@ The bank stores both kinds of skills with a `skill_type` tag: `"reasoning"` or `
 
 ### Relationship to Skill Crafter
 
-The [Skill Crafter](PLAN-SKILL-CRAFTER.md) applies its three creation modes to grounding skills:
+The [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) applies its three creation modes to grounding skills:
 
 - **Composer:** Chain grounding skills (`disambiguate → verify → select`)
 - **Generalizer:** Transfer grounding strategies across domains (browser disambiguation → game disambiguation)
@@ -583,7 +583,7 @@ The [Skill Crafter](PLAN-SKILL-CRAFTER.md) applies its three creation modes to g
 
 ### Relationship to Action Agent
 
-The [Action Agent](PLAN-ACTION-AGENT.md) inner MDP can invoke grounding skills when GROUND hops are needed:
+The [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) inner MDP can invoke grounding skills when GROUND hops are needed:
 
 ```
 Schema arrives with <uncertainty> e5.label=high
@@ -603,7 +603,7 @@ Reasoning skill continues from updated schema
 
 ## 11. How the synthesis-reflection agent helps with transfer
 
-The frozen 32B/72B synthesis-reflection agent ([Skill Crafter §2](PLAN-SKILL-CRAFTER.md#2-architecture)) is critical for grounding skill transfer. Its offline tasks include:
+The frozen 32B/72B synthesis-reflection agent ([Skill Crafter §2](../04-skill-crafter/PLAN-SKILL-CRAFTER.md#2-architecture)) is critical for grounding skill transfer. Its offline tasks include:
 
 ### Identifying "new skill vs. new adapter"
 
@@ -624,7 +624,7 @@ The synthesis agent should determine: are these three different skills, or one a
 
 ### Merging skills with the same effect pattern
 
-When two grounding skills from different domains produce the same belief-state change, they should be merged into one abstract skill. The synthesis agent proposes merges; the acceptance gate ([Skill Bank §7](PLAN-SKILL-BANK.md#7-grpo-co-evolution)) verifies.
+When two grounding skills from different domains produce the same belief-state change, they should be merged into one abstract skill. The synthesis agent proposes merges; the acceptance gate ([Skill Bank §7](../03-skill-bank/PLAN-SKILL-BANK.md#7-grpo-co-evolution)) verifies.
 
 ### Diagnosing transfer failures
 
@@ -704,8 +704,8 @@ This plan is optional and depends on the core pipeline being functional.
 
 ## 15. Reference
 
-- Existing skill bank plan: [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) — transferable skill extraction (§10), data model (§3)
+- Existing skill bank plan: [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) — transferable skill extraction (§10), data model (§3)
 - Visual grounding plan: [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) — schema (§3), tool registries (§9), schema completeness (§12)
-- Action agent plan: [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) — inner MDP (§5), GROUND action, uncertainty-driven triggering (§10)
-- Skill crafter plan: [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) — composition (§3), generalization (§4), failure reflection (§6)
-- System plan index: [`plans/README.md`](README.md)
+- Action agent plan: [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) — inner MDP (§5), GROUND action, uncertainty-driven triggering (§10)
+- Skill crafter plan: [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) — composition (§3), generalization (§4), failure reflection (§6)
+- System plan index: [`plans/README.md`](../README.md)

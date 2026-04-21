@@ -4,12 +4,12 @@
 
 **Inputs (canonical specs — do not duplicate, link instead).**
 
-- [PLAN-HARNESS.md](PLAN-HARNESS.md) — design of `SkillEpisode`, `SkillHarness`, `AdapterRegistry`, `TransferManager`, `ReplayValidator`, `RewardLogger`, six-gate promotion (G0 evidence-driven / G1 binding / G2 adapter / G3 replay / G4 shadow / G5 non-regression), and the Phase 0 + Phase 1 immediate target.
-- [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) — composer / generalizer / hypothesizer creation modes, typed proposals (`PatchProposal | ComposeProposal | TransferProposal | RetireProposal`), failure trace + private failure memory, frozen 32B/72B teacher policy.
-- [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) — hot-path / warm-path DAG, artifact schemas (`SkillRecord`, `SkillEvaluationRecord`, `GateVerdict`, `AuditRecord`), promotion / rollback transactions (§3a), four-way Actor / Harness / Bank / Orchestrator boundary (§0a), budget controller, evaluation matrix.
-- [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) — canonical lifecycle states, ownership split (`SkillLifecycleManager`, `GateRunner`, `PromotionOrchestrator`), storage split (`draft_store / candidate_store / active_store / archive_store`).
-- [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) — skill object, retrieval API, lineage / negative-knowledge fields.
-- [PLAN-ACTION-AGENT.md §1a](PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary) — Actor consumes Harness-filtered `eligible_skills`, Actor remains the online policy.
+- [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) — design of `SkillEpisode`, `SkillHarness`, `AdapterRegistry`, `TransferManager`, `ReplayValidator`, `RewardLogger`, six-gate promotion (G0 evidence-driven / G1 binding / G2 adapter / G3 replay / G4 shadow / G5 non-regression), and the Phase 0 + Phase 1 immediate target.
+- [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) — composer / generalizer / hypothesizer creation modes, typed proposals (`PatchProposal | ComposeProposal | TransferProposal | RetireProposal`), failure trace + private failure memory, frozen 32B/72B teacher policy.
+- [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) — hot-path / warm-path DAG, artifact schemas (`SkillRecord`, `SkillEvaluationRecord`, `GateVerdict`, `AuditRecord`), promotion / rollback transactions (§3a), four-way Actor / Harness / Bank / Orchestrator boundary (§0a), budget controller, evaluation matrix.
+- [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) — canonical lifecycle states, ownership split (`SkillLifecycleManager`, `GateRunner`, `PromotionOrchestrator`), storage split (`draft_store / candidate_store / active_store / archive_store`).
+- [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) — skill object, retrieval API, lineage / negative-knowledge fields.
+- [PLAN-ACTION-AGENT.md §1a](../02-action-agent/PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary) — Actor consumes Harness-filtered `eligible_skills`, Actor remains the online policy.
 
 **Mental model for coding.**
 
@@ -19,7 +19,7 @@
 | **Skill Harness** | *Can this skill run here right now?* |
 | **Pipeline Orchestrator** | *Should this proposal become part of the next system version?* |
 
-Do **not** collapse these three modules. The architectural reasons are pinned in [PLAN-PIPELINE-ORCHESTRATOR.md §0a](PLAN-PIPELINE-ORCHESTRATOR.md#0a-actor-harness-skill-bank-orchestrator-boundary).
+Do **not** collapse these three modules. The architectural reasons are pinned in [PLAN-PIPELINE-ORCHESTRATOR.md §0a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a-actor-harness-skill-bank-orchestrator-boundary).
 
 ---
 
@@ -97,11 +97,11 @@ Where this layout differs from existing on-disk code, **align to this layout** a
 
 ## 2. Skill Harness (build first)
 
-The Harness plan explicitly names Phase 0 + Phase 1 as the immediate implementation target ([PLAN-HARNESS.md §19](PLAN-HARNESS.md#19-immediate-next-target)). Build `SkillEpisode`, `SkillHarness`, and `AdapterRegistry`, then route all current skill usage through them **before** transfer promotion.
+The Harness plan explicitly names Phase 0 + Phase 1 as the immediate implementation target ([PLAN-HARNESS.md §19](../05-harness/PLAN-HARNESS.md#19-immediate-next-target)). Build `SkillEpisode`, `SkillHarness`, and `AdapterRegistry`, then route all current skill usage through them **before** transfer promotion.
 
 ### 2.1 `harness/skill_episode.py`
 
-Implement the dataclass exactly per [PLAN-HARNESS.md §5.1](PLAN-HARNESS.md#51-skillepisode); the additional ID fields below are required by the orchestrator's artifact contract ([PLAN-PIPELINE-ORCHESTRATOR.md §2.1](PLAN-PIPELINE-ORCHESTRATOR.md#21-core-identifiers)).
+Implement the dataclass exactly per [PLAN-HARNESS.md §5.1](../05-harness/PLAN-HARNESS.md#51-skillepisode); the additional ID fields below are required by the orchestrator's artifact contract ([PLAN-PIPELINE-ORCHESTRATOR.md §2.1](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#21-core-identifiers)).
 
 ```python
 class SkillEpisode(BaseModel):
@@ -153,11 +153,11 @@ class SkillEpisode(BaseModel):
     metadata: dict = {}
 ```
 
-`finalize_episode` must enforce the role-specific field requirements from [PLAN-HARNESS.md §5.1 evidence-role table](PLAN-HARNESS.md#51-skillepisode); violations stamp `outcome = "fail"` with `abort_reason ∈ {"opaque-skill-violation", "skill-role-mismatch"}` and disqualify the episode from promotion evidence.
+`finalize_episode` must enforce the role-specific field requirements from [PLAN-HARNESS.md §5.1 evidence-role table](../05-harness/PLAN-HARNESS.md#51-skillepisode); violations stamp `outcome = "fail"` with `abort_reason ∈ {"opaque-skill-violation", "skill-role-mismatch"}` and disqualify the episode from promotion evidence.
 
 ### 2.2 `harness/adapter_registry.py`
 
-Method signatures per [PLAN-HARNESS.md §5.3](PLAN-HARNESS.md#53-adapterregistry):
+Method signatures per [PLAN-HARNESS.md §5.3](../05-harness/PLAN-HARNESS.md#53-adapterregistry):
 
 ```python
 class AdapterRegistry:
@@ -171,7 +171,7 @@ class AdapterRegistry:
 
 ### 2.3 `harness/skill_harness.py`
 
-Public entry points per [PLAN-HARNESS.md §5.2](PLAN-HARNESS.md#52-skillharness). The runtime sequence is **fixed** and matches §4 of the harness plan:
+Public entry points per [PLAN-HARNESS.md §5.2](../05-harness/PLAN-HARNESS.md#52-skillharness). The runtime sequence is **fixed** and matches §4 of the harness plan:
 
 ```
 normalize_state
@@ -187,11 +187,11 @@ normalize_state
   → return action(s) + SkillEpisode
 ```
 
-**Critical:** the Harness produces `eligible_skills` and may **veto** an Actor-proposed invocation, but it does **not** select the final skill. The Actor decides ([PLAN-ACTION-AGENT.md §1a.6](PLAN-ACTION-AGENT.md#1a6-actorharness-interaction), [PLAN-HARNESS.md §1a.4](PLAN-HARNESS.md#1a4-actor-proposal-harness-veto)).
+**Critical:** the Harness produces `eligible_skills` and may **veto** an Actor-proposed invocation, but it does **not** select the final skill. The Actor decides ([PLAN-ACTION-AGENT.md §1a.6](../02-action-agent/PLAN-ACTION-AGENT.md#1a6-actorharness-interaction), [PLAN-HARNESS.md §1a.4](../05-harness/PLAN-HARNESS.md#1a4-actor-proposal-harness-veto)).
 
 ### 2.4 `harness/reward_logger.py`
 
-Single sink for `r_env` / `r_follow` / `r_cost` / `r_transfer` / `r_adapter` per [PLAN-HARNESS.md §5.6](PLAN-HARNESS.md#56-rewardlogger). After this lands, no other module is allowed to write reward components directly.
+Single sink for `r_env` / `r_follow` / `r_cost` / `r_transfer` / `r_adapter` per [PLAN-HARNESS.md §5.6](../05-harness/PLAN-HARNESS.md#56-rewardlogger). After this lands, no other module is allowed to write reward components directly.
 
 ### 2.5 Phase A acceptance criteria (Harness MVP)
 
@@ -203,14 +203,14 @@ Stop Phase A only when **all** of the following are true:
 4. `finalize_episode` enforces evidence-role field requirements; opaque-skill / role-mismatch violations are stamped on the episode.
 5. The Actor receives `eligible_skills` from the Harness rather than querying the bank directly.
 
-These match [PLAN-HARNESS.md Phases 0–1](PLAN-HARNESS.md#14-phased-implementation-plan) success criteria.
+These match [PLAN-HARNESS.md Phases 0–1](../05-harness/PLAN-HARNESS.md#14-phased-implementation-plan) success criteria.
 
 ### 2.6 What stays out of the Harness
 
 - No skill invention.
 - No contract rewriting.
 - No bank promotion or snapshot mutation.
-- No final policy choice over which skill to run (that is the Actor; see [PLAN-ACTION-AGENT.md §1a.2](PLAN-ACTION-AGENT.md#1a2-actor-decision-scope)).
+- No final policy choice over which skill to run (that is the Actor; see [PLAN-ACTION-AGENT.md §1a.2](../02-action-agent/PLAN-ACTION-AGENT.md#1a2-actor-decision-scope)).
 
 ---
 
@@ -220,7 +220,7 @@ Build a **small control plane**, not a distributed system. The orchestrator's jo
 
 ### 3.1 `orchestrator/schemas.py`
 
-Pydantic models for every artifact named in [PLAN-PIPELINE-ORCHESTRATOR.md §2.2](PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types):
+Pydantic models for every artifact named in [PLAN-PIPELINE-ORCHESTRATOR.md §2.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types):
 
 - `EpisodeMeta`
 - `GroundingRecord`
@@ -230,13 +230,13 @@ Pydantic models for every artifact named in [PLAN-PIPELINE-ORCHESTRATOR.md §2.2
 - `SkillEpisode` *(re-export from `harness/skill_episode.py`)*
 - `BankMutationProposal` (subclasses: `PatchProposal | ComposeProposal | TransferProposal | RetireProposal`)
 - `GateVerdict` + `GateVerdictPayload`
-- `SkillRecord`, `SkillEvaluationRecord` *(per [PLAN-UNIFIED-SKILL-GATE.md §3](PLAN-UNIFIED-SKILL-GATE.md))*
+- `SkillRecord`, `SkillEvaluationRecord` *(per [PLAN-UNIFIED-SKILL-GATE.md §3](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md))*
 - `TrainJobSpec`
 - `AuditRecord`
 
 ### 3.2 `orchestrator/artifact_store.py`
 
-Local file-backed, append-only. Layout pinned by [PLAN-PIPELINE-ORCHESTRATOR.md §2.3](PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical):
+Local file-backed, append-only. Layout pinned by [PLAN-PIPELINE-ORCHESTRATOR.md §2.3](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#23-storage-layout-logical):
 
 ```
 artifacts/
@@ -254,7 +254,7 @@ artifacts/
     {job_id}/spec.json
 ```
 
-Every write must be **idempotent** (DAG invariant in [PLAN-PIPELINE-ORCHESTRATOR.md §1.4](PLAN-PIPELINE-ORCHESTRATOR.md#14-dag-invariants)).
+Every write must be **idempotent** (DAG invariant in [PLAN-PIPELINE-ORCHESTRATOR.md §1.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#14-dag-invariants)).
 
 ### 3.3 `orchestrator/runner.py`
 
@@ -280,16 +280,16 @@ Phase B implements the **four MVP checks** before all six gates come online:
 
 | MVP check | Maps to | Owner inside the harness |
 |-----------|---------|--------------------------|
-| Proposal schema validity | static contract check ([§3.1.1](PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered)) | `gate/static_checker.py` |
-| Evidence-interface validity | G0 ([PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates)) | `SkillHarness.finalize_episode` |
+| Proposal schema validity | static contract check ([§3.1.1](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#31-gate-stages-ordered)) | `gate/static_checker.py` |
+| Evidence-interface validity | G0 ([PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates)) | `SkillHarness.finalize_episode` |
 | Replay pass / fail | G3 | `harness/replay_validator.py` *(stub in MVP, full in Phase D)* |
 | Non-regression threshold | G5 | `harness/eval_harness.py` over frozen eval suite |
 
-The full six-gate `GateRunner` ([PLAN-HARNESS.md §10b](PLAN-HARNESS.md#10b-gate-execution-runtime)) lands in Phase D; the MVP gate service forwards the same `GateVerdictPayload` shape so callers do not change.
+The full six-gate `GateRunner` ([PLAN-HARNESS.md §10b](../05-harness/PLAN-HARNESS.md#10b-gate-execution-runtime)) lands in Phase D; the MVP gate service forwards the same `GateVerdictPayload` shape so callers do not change.
 
 ### 3.5 `orchestrator/promotion_orchestrator.py` and `rollback_manager.py`
 
-Implement the [PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol) transactions verbatim:
+Implement the [PLAN-PIPELINE-ORCHESTRATOR.md §3a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol) transactions verbatim:
 
 ```python
 class PromotionOrchestrator:
@@ -314,7 +314,7 @@ Rollback symmetric per §3a.4. **No partial pointer move ever**.
 
 ### 3.6 `orchestrator/budget.py`
 
-Per [PLAN-PIPELINE-ORCHESTRATOR.md §7](PLAN-PIPELINE-ORCHESTRATOR.md#7-budget-controller). One `BudgetController` per episode + nested per inner MDP. The `degrade` verdict must map to **explicit** logged behaviors, never silent omission.
+Per [PLAN-PIPELINE-ORCHESTRATOR.md §7](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#7-budget-controller). One `BudgetController` per episode + nested per inner MDP. The `degrade` verdict must map to **explicit** logged behaviors, never silent omission.
 
 ### 3.7 Phase B acceptance criteria (Orchestrator MVP)
 
@@ -331,11 +331,11 @@ Stop Phase B only when **all** of the following are true:
 
 ## 4. Skill Crafter (build third)
 
-Start as a **slow proposal service**, not a large autonomous subsystem. The 32B/72B teacher is **frozen first**; outputs are typed proposals subject to the orchestrator gate ([PLAN-SKILL-CRAFTER.md §2](PLAN-SKILL-CRAFTER.md)).
+Start as a **slow proposal service**, not a large autonomous subsystem. The 32B/72B teacher is **frozen first**; outputs are typed proposals subject to the orchestrator gate ([PLAN-SKILL-CRAFTER.md §2](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 
 ### 4.1 Scope for v1
 
-Implement only three creation modes ([PLAN-SKILL-CRAFTER.md three creation modes](PLAN-SKILL-CRAFTER.md)):
+Implement only three creation modes ([PLAN-SKILL-CRAFTER.md three creation modes](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)):
 
 | Mode | What it does | First implementation budget |
 |------|--------------|-----------------------------|
@@ -347,7 +347,7 @@ Implement only three creation modes ([PLAN-SKILL-CRAFTER.md three creation modes
 
 ### 4.2 `crafter/proposal_types.py`
 
-Carry the evidence-driven invariant on every proposal (per the Revision Note in [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](PLAN-EDITS-HARNESS-CONTROL-PLANE.md) and [PLAN-SKILL-CRAFTER.md §2.5](PLAN-SKILL-CRAFTER.md)):
+Carry the evidence-driven invariant on every proposal (per the Revision Note in [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) and [PLAN-SKILL-CRAFTER.md §2.5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)):
 
 ```python
 class BaseProposal(BaseModel):
@@ -396,7 +396,7 @@ class FailureTrace(BaseModel):
     diagnostics: list[str]
 ```
 
-Constructed from `SkillEpisode` records with `outcome ∈ {"fail", "abort", "stall"}` plus the orchestrator's surrounding trace. The Harness already emits the diagnostic labels listed in [PLAN-HARNESS.md §10a](PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific) — pass them through verbatim.
+Constructed from `SkillEpisode` records with `outcome ∈ {"fail", "abort", "stall"}` plus the orchestrator's surrounding trace. The Harness already emits the diagnostic labels listed in [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific) — pass them through verbatim.
 
 ### 4.4 `crafter/failure_memory.py`
 
@@ -425,14 +425,14 @@ class SkillCrafterService:
 
 ### 4.6 Crafter execution policy (when `service.py` is invoked)
 
-Triggers, in priority order, mirror [PLAN-SKILL-CRAFTER.md §2 cadence](PLAN-SKILL-CRAFTER.md):
+Triggers, in priority order, mirror [PLAN-SKILL-CRAFTER.md §2 cadence](../04-skill-crafter/PLAN-SKILL-CRAFTER.md):
 
 1. After repeated failure clusters (recurrence threshold in `failure_memory.recurrence_counts`).
 2. Periodically every N episodes for composition / generalization sweeps.
 3. When a new domain adapter appears in `AdapterRegistry`.
 4. Before cold-start trajectory generation (one-shot, gated).
 
-The teacher is **frozen** — no fine-tuning in v1. Improvement happens through better input distribution, evidence organization, replay validation, and verification ([PLAN-ACTION-AGENT.md §6 frozen-teacher channels](PLAN-ACTION-AGENT.md#frozen-teacher-improvement-channels)).
+The teacher is **frozen** — no fine-tuning in v1. Improvement happens through better input distribution, evidence organization, replay validation, and verification ([PLAN-ACTION-AGENT.md §6 frozen-teacher channels](../02-action-agent/PLAN-ACTION-AGENT.md#frozen-teacher-improvement-channels)).
 
 ### 4.7 Phase C acceptance criteria (Crafter MVP)
 
@@ -457,13 +457,13 @@ Stop Phase C only when **all** of the following are true:
 
 Only after Phases A–C are green:
 
-1. **`harness/transfer_manager.py`** — two-phase shadow → active transfer protocol per [PLAN-HARNESS.md §6](PLAN-HARNESS.md#6-two-phase-transfer-protocol).
+1. **`harness/transfer_manager.py`** — two-phase shadow → active transfer protocol per [PLAN-HARNESS.md §6](../05-harness/PLAN-HARNESS.md#6-two-phase-transfer-protocol).
 2. **`harness/replay_validator.py`** — held-out replay checks for G3.
-3. **`harness/gate_runner.py`** — full six-gate runner per [PLAN-HARNESS.md §10b](PLAN-HARNESS.md#10b-gate-execution-runtime), replacing the Phase B MVP gate service.
+3. **`harness/gate_runner.py`** — full six-gate runner per [PLAN-HARNESS.md §10b](../05-harness/PLAN-HARNESS.md#10b-gate-execution-runtime), replacing the Phase B MVP gate service.
 4. **Shadow-only transfer first** — `run_shadow` produces `SkillEpisode(shadow=True)` records that flow through gates G0–G5 but never affect `r_env` or `current_production`.
 5. **Active promotion** — only after the shadow + non-regression metrics are stable for K cycles.
 
-This sequence matches [PLAN-HARNESS.md §14 Phases 2–4](PLAN-HARNESS.md#14-phased-implementation-plan).
+This sequence matches [PLAN-HARNESS.md §14 Phases 2–4](../05-harness/PLAN-HARNESS.md#14-phased-implementation-plan).
 
 ---
 
@@ -475,7 +475,7 @@ This sequence matches [PLAN-HARNESS.md §14 Phases 2–4](PLAN-HARNESS.md#14-pha
 | **B — Orchestrator MVP** | one control plane, atomic snapshots | `orchestrator/schemas.py`, `orchestrator/artifact_store.py`, `orchestrator/runner.py`, `orchestrator/gate_service.py`, `orchestrator/promotion_orchestrator.py`, `orchestrator/snapshot_manager.py`, `orchestrator/rollback_manager.py`, `orchestrator/budget.py`, `orchestrator/config.py` | §3.7 acceptance criteria |
 | **C — Crafter MVP** | typed, gated, frozen-teacher proposals | `crafter/proposal_types.py`, `crafter/failure_trace.py`, `crafter/failure_diagnoser.py`, `crafter/failure_memory.py`, `crafter/composer.py`, `crafter/generalizer.py`, `crafter/hypothesizer.py`, `crafter/service.py` | §4.7 acceptance criteria |
 | **D — Transfer + Replay** | shadow-first cross-domain transfer | `harness/transfer_manager.py`, `harness/replay_validator.py`, `harness/gate_runner.py`, additional adapters (`osworld`, `video`, `visual_reasoning`) | shadow pass rate ≥ threshold for K cycles, then enable active promotion |
-| **E — Eval + dashboards** | measurable reuse / transfer | `orchestrator/eval_suite.py`, `orchestrator/eval_driver.py`, dashboards for §6.4 slices and §10a label distributions | metrics from [PLAN-HARNESS.md §15](PLAN-HARNESS.md#15-metrics) and [PLAN-PIPELINE-ORCHESTRATOR.md §6](PLAN-PIPELINE-ORCHESTRATOR.md#6-evaluation-matrix) reproducible per `run_id` |
+| **E — Eval + dashboards** | measurable reuse / transfer | `orchestrator/eval_suite.py`, `orchestrator/eval_driver.py`, dashboards for §6.4 slices and §10a label distributions | metrics from [PLAN-HARNESS.md §15](../05-harness/PLAN-HARNESS.md#15-metrics) and [PLAN-PIPELINE-ORCHESTRATOR.md §6](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#6-evaluation-matrix) reproducible per `run_id` |
 | **F — Trainable extensions (optional)** | learned skill-use decisions | `skill_select`, `continue_vs_switch`, `accept_transfer`, `adapter_refine` LoRAs | measurable gain over rule-based baselines |
 
 Phases A → B → C → D → E → F is strict; do not start a phase before its predecessor passes.
@@ -484,7 +484,7 @@ Phases A → B → C → D → E → F is strict; do not start a phase before it
 
 ## 7. Required invariants (apply to every phase)
 
-1. **No proposal reaches production without a gate pass.** Crafter outputs are candidates only ([PLAN-PIPELINE-ORCHESTRATOR.md §1.4](PLAN-PIPELINE-ORCHESTRATOR.md#14-dag-invariants)).
+1. **No proposal reaches production without a gate pass.** Crafter outputs are candidates only ([PLAN-PIPELINE-ORCHESTRATOR.md §1.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#14-dag-invariants)).
 2. **Replay before promote** for any proposal affecting `skill_select` / `hop_select` behavior.
 3. **Evidence-driven invariant.** `SkillHarness.finalize_episode` enforces G0; opaque-skill / role-mismatch episodes are not promotable regardless of reward.
 4. **Atomic promotion / rollback.** Either `current_production` references the new state and the audit record is written, or nothing changes.
@@ -492,8 +492,8 @@ Phases A → B → C → D → E → F is strict; do not start a phase before it
 6. **Harness is invocation-only.** No skill invention, no snapshot mutation, no final policy choice.
 7. **Orchestrator is system-only.** No per-invocation execution, no skill authoring.
 8. **Frozen teacher.** Only `crafter/` imports the 72B client. Only proposals exit; no proposal bypasses gates.
-9. **Episode-local state surface.** No cross-episode storage layer ([PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
-10. **Actor is the online policy.** Harness produces `eligible_skills` and may veto; Actor decides ([PLAN-ACTION-AGENT.md §1a](PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary)).
+9. **Episode-local state surface.** No cross-episode storage layer ([PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
+10. **Actor is the online policy.** Harness produces `eligible_skills` and may veto; Actor decides ([PLAN-ACTION-AGENT.md §1a](../02-action-agent/PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary)).
 
 ---
 
@@ -504,11 +504,11 @@ The prompt below is engineered to be dropped into Cursor verbatim. It encodes th
 ````
 Implement three separate modules: `harness/`, `crafter/`, and `orchestrator/`.
 Follow the canonical specs:
-  - plans/PLAN-HARNESS.md
-  - plans/PLAN-SKILL-CRAFTER.md
-  - plans/PLAN-PIPELINE-ORCHESTRATOR.md
-  - plans/PLAN-UNIFIED-SKILL-GATE.md
-  - plans/PLAN-COMPONENTS-IMPLEMENTATION.md  (this file — order + acceptance criteria)
+  - plans/05-harness/PLAN-HARNESS.md
+  - plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md
+  - plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md
+  - plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md
+  - plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md  (this file — order + acceptance criteria)
 
 Architectural boundaries (must hold):
 - Skill Harness = per-invocation runtime only. It owns retrieval, slot binding,
@@ -591,7 +591,7 @@ The best simplification is **not** to merge Crafter and Harness. The better simp
 - keep **Crafter** small and slow at first — it earns scope by proving its proposals survive the gate;
 - keep **Orchestrator** minimal but **authoritative** — it is the only place that mutates `current_production`.
 
-That fits the existing plans: the Harness is the micro runtime, the Crafter is the proposal layer, and the Orchestrator is the macro DAG and gate owner. Any temptation to fold one into another should be resisted; the four-way boundary in [PLAN-PIPELINE-ORCHESTRATOR.md §0a](PLAN-PIPELINE-ORCHESTRATOR.md#0a-actor-harness-skill-bank-orchestrator-boundary) exists precisely to prevent that drift.
+That fits the existing plans: the Harness is the micro runtime, the Crafter is the proposal layer, and the Orchestrator is the macro DAG and gate owner. Any temptation to fold one into another should be resisted; the four-way boundary in [PLAN-PIPELINE-ORCHESTRATOR.md §0a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a-actor-harness-skill-bank-orchestrator-boundary) exists precisely to prevent that drift.
 
 ---
 
@@ -599,13 +599,13 @@ That fits the existing plans: the Harness is the micro runtime, the Crafter is t
 
 | Document | Relationship |
 |----------|--------------|
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | Canonical Harness design — record types, six gates, two-phase transfer |
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | Canonical Crafter design — creation modes, typed proposals, failure memory |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | Canonical Orchestrator design — DAG, artifact schema, promotion/rollback transactions, four-way boundary |
-| [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) | Canonical lifecycle + ownership split (`SkillLifecycleManager`, `GateRunner`, `PromotionOrchestrator`) and storage split |
-| [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) | Skill object, retrieval API, lineage / negative-knowledge fields read by the Harness |
-| [PLAN-ACTION-AGENT.md §1a](PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary) | Actor consumes `eligible_skills`, remains the online policy |
-| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Edit-plan that aligned existing plan files for the evidence-driven invariant |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | Canonical Harness design — record types, six gates, two-phase transfer |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | Canonical Crafter design — creation modes, typed proposals, failure memory |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | Canonical Orchestrator design — DAG, artifact schema, promotion/rollback transactions, four-way boundary |
+| [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | Canonical lifecycle + ownership split (`SkillLifecycleManager`, `GateRunner`, `PromotionOrchestrator`) and storage split |
+| [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | Skill object, retrieval API, lineage / negative-knowledge fields read by the Harness |
+| [PLAN-ACTION-AGENT.md §1a](../02-action-agent/PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary) | Actor consumes `eligible_skills`, remains the online policy |
+| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Edit-plan that aligned existing plan files for the evidence-driven invariant |
 
 ---
 

@@ -1,6 +1,6 @@
 """Inner-MDP reasoning scaffold for the Actor Agent.
 
-``plans/PLAN-ACTION-AGENT.md`` §5 reframes multi-hop visual reasoning as
+``plans/02-action-agent/PLAN-ACTION-AGENT.md`` §5 reframes multi-hop visual reasoning as
 a **two-level MDP**: the outer loop is ``env.step``; the inner loop is
 an explicit sequence of reasoning hops whose last step exits the inner
 loop and emits an environment action.  Each hop is one of:

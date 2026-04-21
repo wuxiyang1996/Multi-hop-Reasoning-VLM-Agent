@@ -10,21 +10,21 @@
 
 **Scope.** Move the system from "we have a Skill Bank that *describes* cross-task transfer" to "we have a pipeline that *actually produces* transferable reasoning skills." This requires three coordinated additions, all of which are already directionally present in the repo but not yet wired into a runnable end-to-end loop:
 
-1. **Phase A — Transferable IR layer.** A typed-slot, ontology-mapped, adapter-bound *intermediate representation* for skills, so the same skill object can be exercised across game / webagent / os-agent / video-understanding / visual reasoning without rewriting prompt text. This sharpens what [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) §3, §4, and [PLAN-VISUAL-SKILLS.md](PLAN-VISUAL-SKILLS.md) §0.2 already gesture at into a single hard contract.
-2. **Phase B — Inner-hop reasoning skill discovery.** A discovery pipeline that mines *reasoning protocols* from the inner reasoning hops of the two-level MDP defined in [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) §5, instead of only segmenting outer-action trajectories. Today the inner-hop trace is logged but not mined; this phase makes it the primary substrate for new reasoning skills.
-3. **Phase C — Crafter as a verifiable synthesis / repair engine.** Convert the [Skill Crafter](PLAN-SKILL-CRAFTER.md) from a "responsibilities-and-prompts" specification into a concrete engine with explicit composition operators, backward failure localization, a discrete repair taxonomy, typed proposal outputs, and mandatory routing through the unified gate stack ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)).
+1. **Phase A — Transferable IR layer.** A typed-slot, ontology-mapped, adapter-bound *intermediate representation* for skills, so the same skill object can be exercised across game / webagent / os-agent / video-understanding / visual reasoning without rewriting prompt text. This sharpens what [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) §3, §4, and [PLAN-VISUAL-SKILLS.md](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) §0.2 already gesture at into a single hard contract.
+2. **Phase B — Inner-hop reasoning skill discovery.** A discovery pipeline that mines *reasoning protocols* from the inner reasoning hops of the two-level MDP defined in [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) §5, instead of only segmenting outer-action trajectories. Today the inner-hop trace is logged but not mined; this phase makes it the primary substrate for new reasoning skills.
+3. **Phase C — Crafter as a verifiable synthesis / repair engine.** Convert the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) from a "responsibilities-and-prompts" specification into a concrete engine with explicit composition operators, backward failure localization, a discrete repair taxonomy, typed proposal outputs, and mandatory routing through the unified gate stack ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)).
 
 **Non-goals.**
 
-- No new agent. The three phases are absorbed into Agents 1–3 already defined in [README §three-agent role split](README.md#three-agent-role-split--model-convention).
+- No new agent. The three phases are absorbed into Agents 1–3 already defined in [README §three-agent role split](../README.md#three-agent-role-split--model-convention).
 - No new trainable head. All Phase A / B / C work is either schema / contract work (Phase A), offline mining (Phase B), or frozen-teacher pipeline (Phase C). Existing GRPO-trained heads (`hop_select`, `skill_select`, `segment`, `contract`) are unchanged.
 - No new gate. Crafter outputs go through the existing unified gate stack: `static → replay → shadow → transfer → non-regression`. This plan adds inputs to that stack, not new stack stages.
-- No new state-keeping surface. Inner-hop traces are part of the orchestrator's episode-local trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md)). Pattern aggregation across episodes is offline only and lives in the Crafter-private `FailurePatternStore` already described in [PLAN-SKILL-CRAFTER.md §6.7](PLAN-SKILL-CRAFTER.md).
+- No new state-keeping surface. Inner-hop traces are part of the orchestrator's episode-local trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)). Pattern aggregation across episodes is offline only and lives in the Crafter-private `FailurePatternStore` already described in [PLAN-SKILL-CRAFTER.md §6.7](../04-skill-crafter/PLAN-SKILL-CRAFTER.md).
 
 **Compatibility.** All edits in this plan respect the two existing invariants enforced at the Harness gate:
 
-- **General-protocol invariant** — every IR object, every mined protocol, every Crafter proposal must be feasible across all five target domains ([PLAN-SKILL-BANK.md §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)).
-- **Evidence-driven invariant** — every skill, including Phase B mined protocols and Phase C composed / repaired candidates, declares one `evidence_role ∈ {GATHER, VERIFY, REASON, COMMIT}` and a non-empty `evidence_interface` ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)).
+- **General-protocol invariant** — every IR object, every mined protocol, every Crafter proposal must be feasible across all five target domains ([PLAN-SKILL-BANK.md §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)).
+- **Evidence-driven invariant** — every skill, including Phase B mined protocols and Phase C composed / repaired candidates, declares one `evidence_role ∈ {GATHER, VERIFY, REASON, COMMIT}` and a non-empty `evidence_interface` ([PLAN-SKILL-BANK.md §0.3](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)).
 
 ---
 
@@ -65,7 +65,7 @@ Define a single, typed `SkillIR` object that is the canonical in-memory and on-d
 
 ### 2.2 Canonical cross-domain ontology
 
-A skill cannot be transferable unless the entities, events, and evidence it refers to live in a domain-independent vocabulary. The Skill Bank already names this requirement ([PLAN-SKILL-BANK.md §3](PLAN-SKILL-BANK.md), [PLAN-VISUAL-SKILLS.md §0.2](PLAN-VISUAL-SKILLS.md)); Phase A pins it as a hard contract.
+A skill cannot be transferable unless the entities, events, and evidence it refers to live in a domain-independent vocabulary. The Skill Bank already names this requirement ([PLAN-SKILL-BANK.md §3](../03-skill-bank/PLAN-SKILL-BANK.md), [PLAN-VISUAL-SKILLS.md §0.2](../01-visual-grounding/PLAN-VISUAL-SKILLS.md)); Phase A pins it as a hard contract.
 
 **Top-level canonical ontology types.**
 
@@ -80,7 +80,7 @@ The set is closed at the canonical layer. Domain-specific subtypes are introduce
 
 ### 2.3 Domain ontology adapters
 
-Each of the five domains supplies a static mapping table from native object types to the canonical ontology. Adapters are pure data; they live next to the existing domain adapters in the harness's `AdapterRegistry` (see [PLAN-HARNESS.md](PLAN-HARNESS.md)).
+Each of the five domains supplies a static mapping table from native object types to the canonical ontology. Adapters are pure data; they live next to the existing domain adapters in the harness's `AdapterRegistry` (see [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)).
 
 | Domain | Native → canonical mapping (illustrative; full table per domain) |
 |--------|------------------------------------------------------------------|
@@ -94,7 +94,7 @@ Adapter compatibility (does adapter X cover all canonical types referenced by sk
 
 ### 2.4 Typed Slot Skill IR
 
-Every skill in the bank, every Crafter proposal, and every Phase B mined protocol is represented as the following object. Field names are chosen to be additive over what already exists in [PLAN-SKILL-BANK.md §4.1 / §4.2](PLAN-SKILL-BANK.md); existing fields are preserved.
+Every skill in the bank, every Crafter proposal, and every Phase B mined protocol is represented as the following object. Field names are chosen to be additive over what already exists in [PLAN-SKILL-BANK.md §4.1 / §4.2](../03-skill-bank/PLAN-SKILL-BANK.md); existing fields are preserved.
 
 ```text
 SkillIR = {
@@ -155,7 +155,7 @@ Skills must be written as sequences of typed operators rather than as domain-spe
 | `commit` | `commit(hypothesis, warrant: list[EvidenceRef]) → COMMIT` | Emit a decision / answer with explicit warrant |
 | `ground` | `ground(entity_hint, evidence_source) → EvidenceSpan` | Bind a textual / partial reference to a concrete grounded entity |
 
-These operators bind directly to the inner-MDP primitives in [PLAN-ACTION-AGENT.md §5](PLAN-ACTION-AGENT.md): `inspect / ground` map under `GROUND` and `RETRIEVE`; `verify` under `CHECK`; `compare / resolve_identity / track_state_change` under `CONCLUDE / REASON`; `commit` under `COMMIT / EXECUTE`. The mapping is enforced by the Harness contract at §0.3 Clause B.
+These operators bind directly to the inner-MDP primitives in [PLAN-ACTION-AGENT.md §5](../02-action-agent/PLAN-ACTION-AGENT.md): `inspect / ground` map under `GROUND` and `RETRIEVE`; `verify` under `CHECK`; `compare / resolve_identity / track_state_change` under `CONCLUDE / REASON`; `commit` under `COMMIT / EXECUTE`. The mapping is enforced by the Harness contract at §0.3 Clause B.
 
 ### 2.6 Minimal first-cut reasoning skill families
 
@@ -174,9 +174,9 @@ These six are sufficient to cover the bulk of reusable reasoning primitives acro
 
 | Plan file | Section to add |
 |-----------|----------------|
-| [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) | §3a *Canonical Cross-Domain Ontology*; §4.1a *Typed Slot Skill IR*; §4.3c *Domain Adapter Contract*; §9.0 *Transferable Skill Families (minimal set)* |
-| [PLAN-VISUAL-SKILLS.md](PLAN-VISUAL-SKILLS.md) | §2a *World vs Belief vs Grounding Effect — unified definition over canonical ontology* |
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | §10b *Slot binding validator*; §10c *Ontology remap validator*; §10d *Adapter compatibility checker* (all run inside the existing G0 / G2 / G3 gates, no new gate) |
+| [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | §3a *Canonical Cross-Domain Ontology*; §4.1a *Typed Slot Skill IR*; §4.3c *Domain Adapter Contract*; §9.0 *Transferable Skill Families (minimal set)* |
+| [PLAN-VISUAL-SKILLS.md](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) | §2a *World vs Belief vs Grounding Effect — unified definition over canonical ontology* |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | §10b *Slot binding validator*; §10c *Ontology remap validator*; §10d *Adapter compatibility checker* (all run inside the existing G0 / G2 / G3 gates, no new gate) |
 
 ---
 
@@ -184,7 +184,7 @@ These six are sufficient to cover the bulk of reusable reasoning primitives acro
 
 ### 3.1 Goal
 
-Move skill discovery from "look at outer action trajectories" to "look at the inner reasoning hops of the two-level MDP, segment them, attribute hop-level utility, and lift recurring fragments into typed reasoning protocols." The Action Agent's two-level MDP ([PLAN-ACTION-AGENT.md §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)) already produces the substrate; Phase B adds the mining pipeline.
+Move skill discovery from "look at outer action trajectories" to "look at the inner reasoning hops of the two-level MDP, segment them, attribute hop-level utility, and lift recurring fragments into typed reasoning protocols." The Action Agent's two-level MDP ([PLAN-ACTION-AGENT.md §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)) already produces the substrate; Phase B adds the mining pipeline.
 
 ### 3.2 New artifact — `HopTrace`
 
@@ -215,7 +215,7 @@ HopTrace = {
 }
 ```
 
-`HopTrace` is part of the orchestrator's episode-local trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)); cross-episode aggregation is offline-only and never read by the online actor.
+`HopTrace` is part of the orchestrator's episode-local trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)); cross-episode aggregation is offline-only and never read by the online actor.
 
 ### 3.3 Hop segmentation (do this *before* clustering)
 
@@ -295,16 +295,16 @@ Phase B must mine **failed** trace patterns with the same discipline as successf
 - `over_reasoning`,
 - `under_reasoning`.
 
-Failed-pattern clusters are written to the Crafter-private `FailurePatternStore` ([PLAN-SKILL-CRAFTER.md §6.7](PLAN-SKILL-CRAFTER.md)); they are never written to the bank and never read by the online actor.
+Failed-pattern clusters are written to the Crafter-private `FailurePatternStore` ([PLAN-SKILL-CRAFTER.md §6.7](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)); they are never written to the bank and never read by the online actor.
 
 ### 3.8 Where this lands
 
 | Plan file | Section to add |
 |-----------|----------------|
-| [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) | §5.4 *HopTrace logging contract*; §5.5 *Reasoning-step trace export*; §5.6 *Bounded inner-hop trace format* |
-| [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) | §5a *Inner-hop skill discovery pipeline* (sub-sections: segmentation, hop-utility attribution, signature clustering, protocol lifting, failed-pattern mining) |
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | §6.7a *Crafter consumes failed-hop pattern clusters* (input contract from §3.7) |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | §4a *HopTrace as part of the episode-local trajectory*; §2.3 *HopTrace artifact schema* |
+| [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) | §5.4 *HopTrace logging contract*; §5.5 *Reasoning-step trace export*; §5.6 *Bounded inner-hop trace format* |
+| [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | §5a *Inner-hop skill discovery pipeline* (sub-sections: segmentation, hop-utility attribution, signature clustering, protocol lifting, failed-pattern mining) |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | §6.7a *Crafter consumes failed-hop pattern clusters* (input contract from §3.7) |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | §4a *HopTrace as part of the episode-local trajectory*; §2.3 *HopTrace artifact schema* |
 
 ---
 
@@ -312,11 +312,11 @@ Failed-pattern clusters are written to the Crafter-private `FailurePatternStore`
 
 ### 4.1 Goal
 
-Promote the Crafter from "responsibilities-and-prompts" to a concrete engine with: (a) discrete composition operators, (b) backward failure localization at three layers, (c) a fixed repair taxonomy, (d) typed proposal outputs, and (e) mandatory routing through the unified gate stack. The Crafter remains a frozen 32B/72B teacher per [PLAN-SKILL-CRAFTER.md §2](PLAN-SKILL-CRAFTER.md); only its *control flow* is being made concrete.
+Promote the Crafter from "responsibilities-and-prompts" to a concrete engine with: (a) discrete composition operators, (b) backward failure localization at three layers, (c) a fixed repair taxonomy, (d) typed proposal outputs, and (e) mandatory routing through the unified gate stack. The Crafter remains a frozen 32B/72B teacher per [PLAN-SKILL-CRAFTER.md §2](../04-skill-crafter/PLAN-SKILL-CRAFTER.md); only its *control flow* is being made concrete.
 
 ### 4.2 Composition operators (first-version set)
 
-The first-version Crafter must support exactly these four discrete composition operations. Every `ComposeProposal` (cf. [PLAN-SKILL-CRAFTER.md §2.5](PLAN-SKILL-CRAFTER.md)) is built using one of them.
+The first-version Crafter must support exactly these four discrete composition operations. Every `ComposeProposal` (cf. [PLAN-SKILL-CRAFTER.md §2.5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) is built using one of them.
 
 1. **Sequential chaining.** `A → B`. Example: `inspect(target_entity) ▷ verify(event, evidence_span)` becomes `inspect_then_verify(target_entity, event, evidence_span)`.
 2. **Conditional branching.** `if cond then A else B`. Example: if `IdentityHypothesis.confidence < τ` then `resolve_identity` else `verify_event`.
@@ -333,7 +333,7 @@ Repair without localization is guesswork. The Crafter localizes every failure to
 | **L2 — Protocol** | `wrong_hop_order`, `premature_commit`, `verification_insufficient` | Hop order; missing verification; premature stopping; missing abort |
 | **L3 — Scope** | Cross-domain regression; over-broad applicability | Precondition too wide; `applicable_domains` too wide; evidence requirement too weak |
 
-Localization output is a typed `FailureDiagnosis` ([PLAN-SKILL-CRAFTER.md §6](PLAN-SKILL-CRAFTER.md)) with the `layer` field set, not a free-form prose explanation.
+Localization output is a typed `FailureDiagnosis` ([PLAN-SKILL-CRAFTER.md §6](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) with the `layer` field set, not a free-form prose explanation.
 
 ### 4.4 Repair taxonomy (discrete operations, not "reflection")
 
@@ -348,7 +348,7 @@ Repair is a closed set of operations, each parameterized by the diagnosis from �
 - `split_skill`,
 - `merge_with_support_skill`.
 
-Each repair produces a typed `PatchProposal` (existing type in [PLAN-SKILL-CRAFTER.md §2.5](PLAN-SKILL-CRAFTER.md)) with the operator name and parameters recorded for audit and rollback.
+Each repair produces a typed `PatchProposal` (existing type in [PLAN-SKILL-CRAFTER.md §2.5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) with the operator name and parameters recorded for audit and rollback.
 
 ### 4.5 Crafter outputs are *candidates* — never direct bank writes
 
@@ -358,7 +358,7 @@ This is non-negotiable and lines up with the existing unified gate spec. Crafter
 - `candidate_skill_patch` (`PatchProposal` against an existing skill),
 - `candidate_composite_protocol` (`ComposeProposal` over existing skills).
 
-These are routed through the unified gate stack in [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md): `static → replay → shadow → transfer → non-regression → promote / reject / repaired-retry`.
+These are routed through the unified gate stack in [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md): `static → replay → shadow → transfer → non-regression → promote / reject / repaired-retry`.
 
 ### 4.6 Multi-pass verification (the four passes already exist; pin them)
 
@@ -367,7 +367,7 @@ Crafter outputs cycle through four verification passes inside the existing gate 
 | Pass | Owner | What it checks |
 |------|-------|----------------|
 | **1 — Static sanity** | `SkillHarness` static gate (G0 / G1) | Schema completeness, slot legality, evidence-interface closure, adapter compatibility |
-| **2 — Replay validation** | `ReplayValidator` ([PLAN-HARNESS.md](PLAN-HARNESS.md)) | New / repaired protocol is at least as stable as the previous version on historical traces |
+| **2 — Replay validation** | `ReplayValidator` ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) | New / repaired protocol is at least as stable as the previous version on historical traces |
 | **3 — Shadow execution** | `TransferManager` shadow phase | Side-by-side execution against the active skill in real rollouts |
 | **4 — Transfer validation** | `TransferManager` transfer phase | New skill generalizes across `applicable_domains` rather than overfitting to a source domain |
 
@@ -406,10 +406,10 @@ CrafterOutput = {
 
 | Plan file | Section to add |
 |-----------|----------------|
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | §3a *Composition Operators*; §6.4a *Backward Failure Localization (3 layers)*; §6.5a *Repair Taxonomy*; §2.6 *Crafter Output Contract*; §6a *Crafter Verification Path (4 passes pinned to existing gates)* |
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | §11a *Replay / shadow / transfer validation hooks for crafted skills* (no new gate; documents which Pass 1–4 routes through which existing gate) |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | §3a *Crafter batch scheduling*; §3b *Crafted-candidate promotion path*; §3c *Rollback for faulty repaired skills* |
-| [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) | §SourceTypes addendum: confirm `crafted` and `repaired` source types route through the same five-stage stack (no special-casing) |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | §3a *Composition Operators*; §6.4a *Backward Failure Localization (3 layers)*; §6.5a *Repair Taxonomy*; §2.6 *Crafter Output Contract*; §6a *Crafter Verification Path (4 passes pinned to existing gates)* |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | §11a *Replay / shadow / transfer validation hooks for crafted skills* (no new gate; documents which Pass 1–4 routes through which existing gate) |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | §3a *Crafter batch scheduling*; §3b *Crafted-candidate promotion path*; §3c *Rollback for faulty repaired skills* |
+| [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | §SourceTypes addendum: confirm `crafted` and `repaired` source types route through the same five-stage stack (no special-casing) |
 
 ---
 
@@ -427,7 +427,7 @@ The single most common failure mode for plans like this is to ship Phase A, Phas
 | 6 | Unified gate stack | Skill Bank active store | Promoted skill, or `rejected` / `repaired-retry` |
 | 7 | Active Skill Bank | Action Agent (online) | Retrieved skill at next episode → new `HopTrace` |
 
-This is the same loop already implied by [README §pipeline overview](README.md#pipeline-overview), with Phase B added as an explicit producer between trajectory storage and the Crafter, and Phase A added as the typed substrate everyone shares. The Harness gate stack and the orchestrator's promotion economy are unchanged — they are the points of integration, not new components.
+This is the same loop already implied by [README §pipeline overview](../README.md#pipeline-overview), with Phase B added as an explicit producer between trajectory storage and the Crafter, and Phase A added as the typed substrate everyone shares. The Harness gate stack and the orchestrator's promotion economy are unchanged — they are the points of integration, not new components.
 
 **Two integration invariants the loop must preserve.**
 
@@ -442,14 +442,14 @@ A single table of every section to add, by file. Each entry is a section header 
 
 | File | New / extended sections |
 |------|-------------------------|
-| [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) | §3a Canonical cross-domain ontology; §4.1a Typed Slot Skill IR; §4.3c Domain adapter contract; §5a Inner-hop skill discovery pipeline (segmentation / utility / clustering / lifting / failed-pattern mining); §9.0 Transferable skill families (minimal six) |
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | §2.6 Crafter output contract; §3a Composition operators; §6.4a Backward failure localization (L1/L2/L3); §6.5a Repair taxonomy (8 operations); §6.7a Crafter consumes failed-hop pattern clusters; §6a Crafter verification path (4 passes) |
-| [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) | §5.4 HopTrace logging contract; §5.5 Reasoning-step trace export; §5.6 Bounded inner-hop trace format |
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | §10b Slot binding validator; §10c Ontology remap validator; §10d Adapter compatibility checker; §11a Replay / shadow / transfer hooks for crafted skills |
-| [PLAN-VISUAL-SKILLS.md](PLAN-VISUAL-SKILLS.md) | §2a World vs belief vs grounding effect — unified definition over canonical ontology |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | §2.3 HopTrace artifact schema; §3a Crafter batch scheduling; §3b Crafted-candidate promotion path; §3c Rollback for faulty repaired skills; §4a HopTrace as part of episode-local trajectory |
-| [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) | §SourceTypes addendum: `crafted` and `repaired` route through unchanged five-stage stack |
-| [README.md](README.md) | §key-shared-concepts addendum: pointer to canonical ontology; pointer to typed-operator skill procedures; pointer to inner-hop skill discovery |
+| [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | §3a Canonical cross-domain ontology; §4.1a Typed Slot Skill IR; §4.3c Domain adapter contract; §5a Inner-hop skill discovery pipeline (segmentation / utility / clustering / lifting / failed-pattern mining); §9.0 Transferable skill families (minimal six) |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | §2.6 Crafter output contract; §3a Composition operators; §6.4a Backward failure localization (L1/L2/L3); §6.5a Repair taxonomy (8 operations); §6.7a Crafter consumes failed-hop pattern clusters; §6a Crafter verification path (4 passes) |
+| [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) | §5.4 HopTrace logging contract; §5.5 Reasoning-step trace export; §5.6 Bounded inner-hop trace format |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | §10b Slot binding validator; §10c Ontology remap validator; §10d Adapter compatibility checker; §11a Replay / shadow / transfer hooks for crafted skills |
+| [PLAN-VISUAL-SKILLS.md](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) | §2a World vs belief vs grounding effect — unified definition over canonical ontology |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | §2.3 HopTrace artifact schema; §3a Crafter batch scheduling; §3b Crafted-candidate promotion path; §3c Rollback for faulty repaired skills; §4a HopTrace as part of episode-local trajectory |
+| [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | §SourceTypes addendum: `crafted` and `repaired` route through unchanged five-stage stack |
+| [README.md](../README.md) | §key-shared-concepts addendum: pointer to canonical ontology; pointer to typed-operator skill procedures; pointer to inner-hop skill discovery |
 
 ---
 
@@ -498,11 +498,11 @@ These items are pure quality / scale improvements once the loop is closed:
 
 ## 9. Related plans
 
-- [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) — IR and ontology land here; minimal six skill families list lives here.
-- [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) — composition operators, failure localization, repair taxonomy, output contract land here.
-- [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) — `HopTrace` logging contract lands here.
-- [PLAN-HARNESS.md](PLAN-HARNESS.md) — slot binding / ontology / adapter validators and crafter-validation hooks land here.
-- [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) — `HopTrace` artifact schema and crafted-candidate scheduling / rollback land here.
-- [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) — confirms `crafted` / `repaired` source types route through the unchanged stack.
-- [PLAN-VISUAL-SKILLS.md](PLAN-VISUAL-SKILLS.md) — unified world / belief / grounding effect definition over the canonical ontology lands here.
+- [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) — IR and ontology land here; minimal six skill families list lives here.
+- [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) — composition operators, failure localization, repair taxonomy, output contract land here.
+- [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) — `HopTrace` logging contract lands here.
+- [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) — slot binding / ontology / adapter validators and crafter-validation hooks land here.
+- [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) — `HopTrace` artifact schema and crafted-candidate scheduling / rollback land here.
+- [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) — confirms `crafted` / `repaired` source types route through the unchanged stack.
+- [PLAN-VISUAL-SKILLS.md](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) — unified world / belief / grounding effect definition over the canonical ontology lands here.
 - [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](PLAN-EDITS-HARNESS-CONTROL-PLANE.md) — sibling edit-plan; this document follows its style and respects its terminology reconciliation (Harness = control plane; `SkillHarness` = micro-runtime).

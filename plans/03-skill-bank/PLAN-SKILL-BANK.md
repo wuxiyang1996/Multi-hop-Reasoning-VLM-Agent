@@ -1,12 +1,12 @@
 # PLAN: Cross-Task Skill Bank for Reasoning and Control
 
-**Scope:** Build and maintain a cross-domain Skill Bank from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The bank stores **transferable reasoning, grounding, and control skills** defined over shared state abstractions and verified outcome contracts, and exposes them to the [Action Agent](PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
+**Scope:** Build and maintain a cross-domain Skill Bank from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The bank stores **transferable reasoning, grounding, and control skills** defined over shared state abstractions and verified outcome contracts, and exposes them to the [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
 
-**Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions; everything it consumes and emits is grounded in the orchestrator's episode-local trajectory (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
+**Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions; everything it consumes and emits is grounded in the orchestrator's episode-local trajectory (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 
-**Upstream:** Structured episode trajectories from the Action Agent; structured schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); intermediate reasoning traces; visual grounding outputs; within-episode evidence references (clip/frame / DOM / desktop / tool-call IDs); execution outcomes / verification signals. These inputs may come from multiple domains, but are converted into a shared typed structured representation before skill discovery and maintenance.
+**Upstream:** Structured episode trajectories from the Action Agent; structured schemas from [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md); intermediate reasoning traces; visual grounding outputs; within-episode evidence references (clip/frame / DOM / desktop / tool-call IDs); execution outcomes / verification signals. These inputs may come from multiple domains, but are converted into a shared typed structured representation before skill discovery and maintenance.
 **Downstream:** Skill guidance consumed by the Action Agent and the Reasoning Agent; skill contracts used for reward shaping; bank curation consumed by GRPO-based training loops.
-**Co-evolves with:** [Skill Crafter](PLAN-SKILL-CRAFTER.md) (which composes and creates new skills); [Visual Skills](PLAN-VISUAL-SKILLS.md) (optional grounding strategy layer).
+**Co-evolves with:** [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) (which composes and creates new skills); [Visual Skills](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) (optional grounding strategy layer).
 
 ---
 
@@ -31,20 +31,20 @@ Examples of general protocols (the bank's actual content):
 | `verify_constraint` | Check a typed predicate against grounded evidence before committing |
 | `actor_action_binding` | Bind an actor entity to an action entity via relations in `<state>` |
 
-Each protocol instantiates across every target domain via the same `candidate_set` / `target` / `blocker` / `constraint` / `history_anchor` slots (see [Visual Skills §0.2](PLAN-VISUAL-SKILLS.md#02-cross-domain-candidate_set--one-abstraction-five-bindings) for the five-domain binding table).
+Each protocol instantiates across every target domain via the same `candidate_set` / `target` / `blocker` / `constraint` / `history_anchor` slots (see [Visual Skills §0.2](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#02-cross-domain-candidate_set--one-abstraction-five-bindings) for the five-domain binding table).
 
 ### 0.2 What "execution priority" does and does not mean
 
 Narrowing the **execution/evaluation target** to short-video (Video-Holmes-style) is a **deployment and measurement choice**, not a skill-ontology choice. Concretely:
 
-- **What narrows:** which adapters are implemented first, which replay slices are built first, which transfer-failure diagnostics are exercised first (see [PLAN-HARNESS.md §10a.2](PLAN-HARNESS.md)), which `DomainEvalMatrix` slice is populated first.
+- **What narrows:** which adapters are implemented first, which replay slices are built first, which transfer-failure diagnostics are exercised first (see [PLAN-HARNESS.md §10a.2](../05-harness/PLAN-HARNESS.md)), which `DomainEvalMatrix` slice is populated first.
 - **What does not narrow:** the skill format, the protocol vocabulary, the effect families, the typed slots, the promotion gates, or which protocols the Crafter is allowed to synthesize. A skill that only works on short video is, by construction, *not a skill* for this bank — it is a failed transfer candidate and belongs in `known_failure_modes` / `do_not_transfer_if` (see §4.3b).
 
 When short-video evaluation exercises `collect_evidence_chain` first, it is exercising a **general protocol** whose adapter bindings for game / webagent / os-agent / visual reasoning exist from day one; the short-video arena is simply where the first `verified_domains` entry is written.
 
 ### 0.3 Evidence-driven invariant (no opaque skills)
 
-**Every skill in the bank is evidence-driven and exists only to assist reasoning / decision-making.** Together with [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families), this is a hard admission rule enforced by the Harness gate (see [PLAN-HARNESS.md §10 Gate G0](PLAN-HARNESS.md)); it is not a stylistic guideline. A skill is admitted only if it satisfies **both** clauses below.
+**Every skill in the bank is evidence-driven and exists only to assist reasoning / decision-making.** Together with [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families), this is a hard admission rule enforced by the Harness gate (see [PLAN-HARNESS.md §10 Gate G0](../05-harness/PLAN-HARNESS.md)); it is not a stylistic guideline. A skill is admitted only if it satisfies **both** clauses below.
 
 **Clause A — Evidence interface (mechanically enforced).**
 Every successful `SkillEpisode e(s)` must record at least one of:
@@ -57,7 +57,7 @@ An episode whose `evidence_in ∪ evidence_out = ∅` is an **opaque-skill viola
 **Clause B — Evidence role (declared, typed, checked).**
 Every skill declares exactly one `evidence_role` drawn from the closed set below. This is **orthogonal to** the task-effect taxonomy in [§8](#8-effect-families-and-skill-hierarchy) (Acquisition / Verification / Tracking / …): §8 is about *what state change* a skill produces in the world or belief; `evidence_role` is about *what role* the skill plays in the evidence-and-decision contract. Both fields are carried on every skill; §8's label must be consistent with `evidence_role` (e.g., a §8 `Verification` skill has `evidence_role = VERIFY`).
 
-`evidence_role` determines which evidence fields are required at episode time and which inner-MDP action may invoke the skill (see [PLAN-ACTION-AGENT.md §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)).
+`evidence_role` determines which evidence fields are required at episode time and which inner-MDP action may invoke the skill (see [PLAN-ACTION-AGENT.md §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)).
 
 | `evidence_role` | Purpose | Required episode fields | Invokable under inner action |
 |-----|-----|-----|-----|
@@ -70,7 +70,7 @@ No other `evidence_role` is admissible. In particular:
 
 - **Pure motor macros** (action sequences with no evidence warrant) are **not** skills.
 - **Pure templates** (e.g., prompt templates that don't touch `<state>`) are **not** skills.
-- **Pure planners / decomposers** that don't themselves cite what they conditioned on are **not** skills as a standalone entry; if they condition on `<state>` they become `REASON` skills with the conditioning evidence as `evidence_in`; otherwise they belong in the Crafter's `ComposeProposal` path as a composition of evidence-driven sub-skills (see [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md)).
+- **Pure planners / decomposers** that don't themselves cite what they conditioned on are **not** skills as a standalone entry; if they condition on `<state>` they become `REASON` skills with the conditioning evidence as `evidence_in`; otherwise they belong in the Crafter's `ComposeProposal` path as a composition of evidence-driven sub-skills (see [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 
 The right-most column is part of the Action Agent contract: the Action Agent MAY NOT invoke a skill whose `evidence_role` does not match the inner-MDP action it is instantiating. Mismatches are raised as `contract-violation: skill-role-mismatch` events by the Harness.
 
@@ -139,7 +139,7 @@ The Skill Bank serves:
 - the Reasoning Agent (hop chain templates, evidence strategies)
 - bank curation and GRPO-based training loops
 
-The bank's only persistent surface is its own snapshots; everything else — entity references, evidence pointers, intermediate belief state — is read from and written to the orchestrator's episode-local trajectory (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
+The bank's only persistent surface is its own snapshots; everything else — entity references, evidence pointers, intermediate belief state — is read from and written to the orchestrator's episode-local trajectory (see [Pipeline Orchestrator §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 
 ---
 
@@ -149,11 +149,11 @@ The bank should support **cross-task transfer** through three mechanisms:
 
 ### 1. Shared state abstraction
 
-Different environments are mapped to a common typed state interface (§3). The canonical `<state>` schema (defined in [Visual Grounding §3](PLAN-VISUAL-GROUNDING.md#3-canonical-schema)) provides the shared representation: entities, attributes, relations, state_flags, targets, uncertainty. All skill preconditions and effects are written over this shared schema.
+Different environments are mapped to a common typed state interface (§3). The canonical `<state>` schema (defined in [Visual Grounding §3](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md#3-canonical-schema)) provides the shared representation: entities, attributes, relations, state_flags, targets, uncertainty. All skill preconditions and effects are written over this shared schema.
 
 ### 2. Shared inner primitives
 
-Skills are written using reusable reasoning/control primitives from the inner MDP action vocabulary (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)):
+Skills are written using reusable reasoning/control primitives from the inner MDP action vocabulary (see [Action Agent §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)):
 
 | Primitive | Purpose |
 |-----------|---------|
@@ -172,7 +172,7 @@ Each environment provides an adapter that:
 - binds abstract actions to concrete actions
 - reports verification signals back to the bank
 
-This means skills transfer through **state + protocol + contract**, not through raw action strings. See [Visual Skills §6](PLAN-VISUAL-SKILLS.md#6-separating-semantics-from-execution) for the full semantic/execution separation and the abstract-operator-to-domain mapping table.
+This means skills transfer through **state + protocol + contract**, not through raw action strings. See [Visual Skills §6](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#6-separating-semantics-from-execution) for the full semantic/execution separation and the abstract-operator-to-domain mapping table.
 
 ---
 
@@ -212,7 +212,7 @@ The decoder may produce:
 - action-level skills
 - reasoning-level skills (hop chain templates)
 - mixed reasoning-and-control skills
-- grounding-level skills (multi-step perception strategies, see [Visual Skills §7](PLAN-VISUAL-SKILLS.md#7-grounding-skill-bank))
+- grounding-level skills (multi-step perception strategies, see [Visual Skills §7](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#7-grounding-skill-bank))
 
 If no existing skill fits well, assign `__NEW__` and forward to contract learning / bank maintenance.
 
@@ -295,7 +295,7 @@ Low-quality segments can be dropped before bank maintenance.
 
 ## 3. Unified structured state interface
 
-All tasks should be mapped into a typed structured state representation. The canonical `<state>` schema (defined in [Visual Grounding §3](PLAN-VISUAL-GROUNDING.md#3-canonical-schema)) provides the shared format. Skills are defined over this schema, not over raw observations.
+All tasks should be mapped into a typed structured state representation. The canonical `<state>` schema (defined in [Visual Grounding §3](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md#3-canonical-schema)) provides the shared format. Skills are defined over this schema, not over raw observations.
 
 ### 3.1. State schema
 
@@ -333,7 +333,7 @@ state:
 
 ### 3.2. Entity types (cross-domain ontology)
 
-For skills to transfer, domain-specific objects must map into shared types. See [Visual Skills §5](PLAN-VISUAL-SKILLS.md#5-cross-domain-entity-ontology) for the full ontology.
+For skills to transfer, domain-specific objects must map into shared types. See [Visual Skills §5](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#5-cross-domain-entity-ontology) for the full ontology.
 
 | Ontology type | Purpose | Example domains |
 |---------------|---------|-----------------|
@@ -388,13 +388,13 @@ Each skill has three logical parts:
     - `COMMIT` → declared decision/action schema plus `evidence_warrant` shape (non-empty, required)
   - `opacity_check`: the Harness rejects any episode whose recorded `evidence_in ∪ evidence_out = ∅` (opaque-skill violation, §0.3 Clause A).
 - `evidence_required` (legacy field, kept for reward shaping): which `evidence_out` entries must be present for a reward signal to fire; a subset of `evidence_outputs_or_warrant_spec`.
-- Used for segmentation verification, reward shaping (r_follow), stage 2↔3 feedback, and **the Gate G0 evidence-driven contract check** in [PLAN-HARNESS.md §10](PLAN-HARNESS.md).
+- Used for segmentation verification, reward shaping (r_follow), stage 2↔3 feedback, and **the Gate G0 evidence-driven contract check** in [PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md).
 
 **The agent plans from protocols, is rewarded for making progress on the contract's eff_add predicates, and is gated on the evidence interface: a skill whose episodes do not touch evidence is not promoted regardless of its reward.**
 
 ### 4.3. Transfer interface (what enables cross-domain reuse)
 
-- `slot_bindings`: maps typed slots to domain-specific schema fields (see [Visual Skills §3b](PLAN-VISUAL-SKILLS.md#3b-typed-slot-variables))
+- `slot_bindings`: maps typed slots to domain-specific schema fields (see [Visual Skills §3b](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#3b-typed-slot-variables))
 - `abstract_predicates`: parameterised eff_add/eff_del using `$slot` placeholders, with per-domain instantiations
 - `domain_adapters`: per-domain execution realizations (how abstract operators map to concrete tools/actions)
 - `transfer_hints`: domains where this skill has been validated
@@ -409,7 +409,7 @@ Every skill carries its own audit trail so the acceptance gate and the transfer 
 | `origin_trace_ids` | Episode + step IDs of the trajectories from which the skill was mined or composed |
 | `source_domains` | Domains the skill was originally extracted from |
 | `verified_domains` | Domains where the skill has passed replay + promotion (subset of target domains) |
-| `failure_clusters` | IDs of failure clusters (see [Skill Crafter §6.7](PLAN-SKILL-CRAFTER.md)) this skill was intended to patch |
+| `failure_clusters` | IDs of failure clusters (see [Skill Crafter §6.7](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) this skill was intended to patch |
 | `promotion_reason` | Short text + pointer to the `GateVerdict` that last promoted the current version |
 | `rollback_reason` | Present only for retired/quarantined skills; short text + pointer to the triggering regression |
 | `adapter_history` | List of `(target_domain, adapter_id, verdict)` binding attempts in reverse chronological order |
@@ -425,11 +425,11 @@ The bank broadens transfer risk as it broadens domain coverage; negative knowled
 | `do_not_transfer_if` | Target-domain predicates that block the transfer protocol from attempting to bind this skill (e.g., `domain == video_qa AND requires_actuation`) |
 | `false_binding_patterns` | Slot-binding patterns that historically looked plausible but produced contract failures (e.g., `candidate_set` from visual similarity without role filter) |
 
-These fields are populated by: (a) failure reflection in the Crafter (see [PLAN-SKILL-CRAFTER.md §6](PLAN-SKILL-CRAFTER.md)), (b) gate rollbacks in the orchestrator (§3.3), and (c) transfer-protocol quarantines in the Harness (see [PLAN-HARNESS.md §6](PLAN-HARNESS.md)).
+These fields are populated by: (a) failure reflection in the Crafter (see [PLAN-SKILL-CRAFTER.md §6](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)), (b) gate rollbacks in the orchestrator (§3.3), and (c) transfer-protocol quarantines in the Harness (see [PLAN-HARNESS.md §6](../05-harness/PLAN-HARNESS.md)).
 
 ### 4.4. Reasoning skills (inner MDP hop chain templates)
 
-Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), skills capture *how to think*, not just *what to do*. Each reasoning skill is a multi-step policy over inner MDP actions (GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE).
+Under the two-level MDP (see [Action Agent §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), skills capture *how to think*, not just *what to do*. Each reasoning skill is a multi-step policy over inner MDP actions (GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE).
 
 **Example reasoning skill:**
 
@@ -607,7 +607,7 @@ Each candidate skill is scored on three axes:
 
 ### Asymmetric co-evolution framework
 
-The Skill Bank sits at the **medium timescale** within the three-agent co-evolution framework (see [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Its operational components (retrieval, scoring, tracking) update more frequently than the synthesis-reflection agent but less frequently than the actor.
+The Skill Bank sits at the **medium timescale** within the three-agent co-evolution framework (see [Action Agent §6](../02-action-agent/PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Its operational components (retrieval, scoring, tracking) update more frequently than the synthesis-reflection agent but less frequently than the actor.
 
 **Co-evolution loop for the Skill Bank:**
 
@@ -650,7 +650,7 @@ Three LoRA adapters on Qwen3-8B, trained during co-evolution:
 | **CURATOR** (P1) | 4 | `filter_candidates()` | `bank_quality_delta` |
 | **SEGMENT** (P1) | 2 | `collect_segment_preferences()` | `SegmentationDiagnostics` |
 
-These adapters belong to the **skill-use / operational agent** (Agent 2 in the [three-agent split](PLAN-ACTION-AGENT.md#three-agent-role-split)). They handle the sequential bank-management decisions that benefit from GRPO: segmentation, contract quality, and curation. Simple retrieval, applicability scoring, pass-rate lookup, and `_SkillTracker` lifecycle logic remain algorithmic — GRPO is not applied to these.
+These adapters belong to the **skill-use / operational agent** (Agent 2 in the [three-agent split](../02-action-agent/PLAN-ACTION-AGENT.md#three-agent-role-split)). They handle the sequential bank-management decisions that benefit from GRPO: segmentation, contract quality, and curation. Simple retrieval, applicability scoring, pass-rate lookup, and `_SkillTracker` lifecycle logic remain algorithmic — GRPO is not applied to these.
 
 **Additional skill-use GRPO targets** (selective, for sequential decisions only):
 
@@ -669,20 +669,20 @@ These adapters belong to the **skill-use / operational agent** (Agent 2 in the [
 
 ### Synthesis-reflection outputs (from frozen 32B/72B)
 
-The Skill Bank receives candidate artifacts from the synthesis-reflection agent ([Skill Crafter](PLAN-SKILL-CRAFTER.md)):
+The Skill Bank receives candidate artifacts from the synthesis-reflection agent ([Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)):
 - New skill proposals (from Composer, Hypothesizer, Generalizer)
 - Revised protocols (from Failure Reflector recovery actions)
 - Contract patches (precondition strengthening, effect updates)
 - Cross-domain transfer mappings (new adapters for existing abstract skills)
-- "New skill vs. new adapter" decisions (see [Visual Skills §11](PLAN-VISUAL-SKILLS.md#11-how-the-synthesis-reflection-agent-helps-with-transfer))
+- "New skill vs. new adapter" decisions (see [Visual Skills §11](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#11-how-the-synthesis-reflection-agent-helps-with-transfer))
 
-All of these are treated as **candidate proposals**, not ground truth. They enter the bank only after passing the acceptance gate. The Skill Bank does not blindly trust the 32B/72B — it verifies, replays, and gates every output. See [Skill Crafter §2](PLAN-SKILL-CRAFTER.md#2-architecture) for the frozen teacher design rationale.
+All of these are treated as **candidate proposals**, not ground truth. They enter the bank only after passing the acceptance gate. The Skill Bank does not blindly trust the 32B/72B — it verifies, replays, and gates every output. See [Skill Crafter §2](../04-skill-crafter/PLAN-SKILL-CRAFTER.md#2-architecture) for the frozen teacher design rationale.
 
 ---
 
 ## 7a. Unified skill lifecycle and promotion ownership
 
-The acceptance-gate sketch in §7 above is concretized by the **Unified Skill Gate** plan ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) — that file is the canonical specification of the lifecycle, the canonical record types, and the cross-module ownership boundary. This subsection is a pointer plus the ownership commitments the Skill Bank carries.
+The acceptance-gate sketch in §7 above is concretized by the **Unified Skill Gate** plan ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) — that file is the canonical specification of the lifecycle, the canonical record types, and the cross-module ownership boundary. This subsection is a pointer plus the ownership commitments the Skill Bank carries.
 
 ### 7a.1 Lifecycle (the only path into the bank)
 
@@ -692,7 +692,7 @@ draft → candidate → rejected
 active → deprecated / rolled_back
 ```
 
-Every skill — regardless of source (`mined / crafted / repaired / transferred / teacher_proposed / human_seeded`) — enters at `draft` and follows the same path. There is no fast path for frozen 32B/72B teacher outputs (see [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs)).
+Every skill — regardless of source (`mined / crafted / repaired / transferred / teacher_proposed / human_seeded`) — enters at `draft` and follows the same path. There is no fast path for frozen 32B/72B teacher outputs (see [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs)).
 
 ### 7a.2 What the Skill Bank Agent owns
 
@@ -707,8 +707,8 @@ Every skill — regardless of source (`mined / crafted / repaired / transferred 
 
 ### 7a.3 What the Skill Bank Agent does NOT own
 
-- **Runtime gate execution** — the Harness owns it ([PLAN-HARNESS.md §10b](PLAN-HARNESS.md#10b-gate-execution-runtime)). The bank calls `GateRunner` only via the Orchestrator; it does not embed replay / shadow / transfer / non-regression code itself.
-- **Promotion *transactions*** — the Orchestrator owns them ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)). The bank applies the state transition under transaction control; it does not move snapshot pointers itself.
+- **Runtime gate execution** — the Harness owns it ([PLAN-HARNESS.md §10b](../05-harness/PLAN-HARNESS.md#10b-gate-execution-runtime)). The bank calls `GateRunner` only via the Orchestrator; it does not embed replay / shadow / transfer / non-regression code itself.
+- **Promotion *transactions*** — the Orchestrator owns them ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)). The bank applies the state transition under transaction control; it does not move snapshot pointers itself.
 
 ### 7a.4 Storage split (mechanical enforcement)
 
@@ -721,12 +721,12 @@ The bank is physically split into four stores so that the "no write to active wi
 | `active_store`    | `ACTIVE`                                | `SkillHarness.run_active` |
 | `archive_store`   | `DEPRECATED`, `REJECTED`, `ROLLED_BACK` | rollback target lookup; crafter repair input |
 
-See [PLAN-UNIFIED-SKILL-GATE.md §6](PLAN-UNIFIED-SKILL-GATE.md#6-storage-split) for the full retrieval-policy table and [§8.2](PLAN-UNIFIED-SKILL-GATE.md#82-action-agent-and-skillharnessrun_active) for what the Action Agent sees.
+See [PLAN-UNIFIED-SKILL-GATE.md §6](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#6-storage-split) for the full retrieval-policy table and [§8.2](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#82-action-agent-and-skillharnessrun_active) for what the Action Agent sees.
 
 ### 7a.5 Component reorganization (delta against §12)
 
 - `SkillBankAgent` keeps its pipeline orchestrator role but delegates lifecycle writes to a new `SkillLifecycleManager` subcomponent.
-- `TransferManager` (the existing §12 entry, which is a *proposer* of cross-domain mappings) is renamed to `LegacyTransferProposer` to avoid name collision with the runtime [PLAN-HARNESS.md §5.4 `TransferManager`](PLAN-HARNESS.md#54-transfermanager). The proposer emits `TransferProposal` records that flow through `register_draft`; the runtime transfer validation lives in the Harness.
+- `TransferManager` (the existing §12 entry, which is a *proposer* of cross-domain mappings) is renamed to `LegacyTransferProposer` to avoid name collision with the runtime [PLAN-HARNESS.md §5.4 `TransferManager`](../05-harness/PLAN-HARNESS.md#54-transfermanager). The proposer emits `TransferProposal` records that flow through `register_draft`; the runtime transfer validation lives in the Harness.
 
 ---
 
@@ -734,7 +734,7 @@ See [PLAN-UNIFIED-SKILL-GATE.md §6](PLAN-UNIFIED-SKILL-GATE.md#6-storage-split)
 
 ### Effect families
 
-Skills organized by the kind of state change they create — the primary axis for cross-domain transfer. See [Visual Skills §4](PLAN-VISUAL-SKILLS.md#4-effect-families) for the full taxonomy.
+Skills organized by the kind of state change they create — the primary axis for cross-domain transfer. See [Visual Skills §4](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#4-effect-families) for the full taxonomy.
 
 | Family | State change | Game example | Browser example | Video example | Embodied example |
 |--------|-------------|--------------|-----------------|---------------|------------------|
@@ -749,7 +749,7 @@ Skills organized by the kind of state change they create — the primary axis fo
 
 ### Three-layer skill hierarchy
 
-The bank organizes into three layers to support both transfer and domain-specific robustness. See [Visual Skills §8](PLAN-VISUAL-SKILLS.md#8-three-layer-skill-bank-hierarchy) for the full design.
+The bank organizes into three layers to support both transfer and domain-specific robustness. See [Visual Skills §8](../01-visual-grounding/PLAN-VISUAL-SKILLS.md#8-three-layer-skill-bank-hierarchy) for the full design.
 
 **Layer 1: Abstract transferable skills** — shared across all domains, defined by semantic contracts only.
 
@@ -828,7 +828,7 @@ Stage D: Transferability scoring     — domain coverage × slot coverage × pro
 Stage E: Export                      — transferable_skills.jsonl + transfer_index.json + families
 ```
 
-**Extension to grounding skills:** The extraction pipeline also applies to visual grounding strategies — multi-step grounding patterns (disambiguation, target recovery, evidence collection) can be extracted as transferable grounding skills with belief/binding-effect contracts. See [Visual Skills](PLAN-VISUAL-SKILLS.md) for the full grounding skill format and how grounding segments integrate into Stages A–D.
+**Extension to grounding skills:** The extraction pipeline also applies to visual grounding strategies — multi-step grounding patterns (disambiguation, target recovery, evidence collection) can be extracted as transferable grounding skills with belief/binding-effect contracts. See [Visual Skills](../01-visual-grounding/PLAN-VISUAL-SKILLS.md) for the full grounding skill format and how grounding segments integrate into Stages A–D.
 
 ### Usage
 
@@ -916,7 +916,7 @@ Used for: SFT cold-start for Qwen3-8B, reference outputs for GRPO reward compari
 | Task | Priority | Status |
 |------|----------|--------|
 | Transferable skill template + extraction pipeline | P0 | **Done** |
-| Unified skill gate (canonical lifecycle + ownership) — see [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) | P0 | Not started — broken into the sub-items below |
+| Unified skill gate (canonical lifecycle + ownership) — see [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | P0 | Not started — broken into the sub-items below |
 |   ↳ `SkillStatus` + `SkillSourceType` enums (`gate/gate_types.py`) | P0 | Not started |
 |   ↳ `SkillRecord` (`skill_bank/skill_record.py`) | P0 | Not started |
 |   ↳ `SkillEvaluationRecord` + `GateVerdictPayload` (`gate/gate_record.py`) | P0 | Not started |

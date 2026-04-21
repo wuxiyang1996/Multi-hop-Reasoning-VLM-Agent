@@ -1,7 +1,7 @@
 """Structured ``<state>…</state>`` schema parser for the Actor Agent.
 
 The Visual Grounding pipeline (``vlm_wrapper``) emits a tagged text schema
-(see ``plans/PLAN-VISUAL-GROUNDING.md`` §3).  The Actor Agent consumes
+(see ``plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md`` §3).  The Actor Agent consumes
 that schema as its *state representation* — not as raw text.  This module
 is the decision-agent-facing bridge: it parses the tag soup into a
 typed :class:`StateSchema` that the per-step loop reads with dot-access

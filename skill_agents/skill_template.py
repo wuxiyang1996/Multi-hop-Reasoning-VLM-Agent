@@ -15,9 +15,9 @@ Extends the existing ``Skill`` schema with cross-domain abstractions:
 Design constraints:
   - Compatible with existing ``Skill`` / ``SkillBankMVP`` serialisation.
   - Uses shared slot names from the canonical ``<state>`` schema
-    (see ``plans/PLAN-VISUAL-GROUNDING.md`` §3).
+    (see ``plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md`` §3).
   - Inner MDP action vocabulary from
-    ``plans/PLAN-ACTION-AGENT.md`` §5.
+    ``plans/02-action-agent/PLAN-ACTION-AGENT.md`` §5.
 
 Usage::
 

@@ -8,14 +8,14 @@
 > - `PLAN-ACTION-AGENT.md §5.3-bis` pins the inner-hop ↔ `evidence_role` contract; skill-role mismatches are raised by the Harness.
 > - `PLAN-VISUAL-SKILLS.md §2` maps visual/grounding skills to `GATHER` / `VERIFY`; `PLAN-VISUAL-GROUNDING.md §3a` declares `GroundingRecord` the canonical `evidence_out` for `GATHER` skills.
 > - `PLAN-PIPELINE-ORCHESTRATOR.md §2.2` promotes `SkillEpisode` to a first-class artifact and carries the new fields; `§4` references the invariant as the *reason* for evidence bookkeeping.
-> - `README.md` lists the two invariants (general-protocol + evidence-driven) up front.
+> - `../README.md` lists the two invariants (general-protocol + evidence-driven) up front.
 >
 > The P2 Harness Contract, P4 Typed Proposal Outputs, and P5 `GroundingRecord` drafts below should be read with these applied edits in mind — any proposal contract, action-agent output record, or grounding record they describe now also carries `evidence_role` / `evidence_in` / `evidence_out` / `evidence_warrant` as applicable. Where the drafts below and the applied text disagree, the applied text wins.
 
 > **Revision note 1 (episode-local trajectory + broad ontology, short-video-first).** The repo's only state-keeping surface is the orchestrator's **episode-local trajectory** — current `<state>`, short typed hop trace, intermediate belief state, within-episode evidence references — over a **broad, cross-domain skill ontology** (game / webagent / os-agent / video-understanding / visual reasoning). The corresponding edits have been applied directly to the live plan files on this same pass:
 >
 > - `PLAN-PIPELINE-ORCHESTRATOR.md §4` is the canonical **Episode-local evidence & trace bookkeeping** section (current `<state>`, short typed hop trace, intermediate belief state, within-episode evidence references, claim–evidence links, transfer diagnostics).
-> - `PLAN-ACTION-AGENT.md`, `PLAN-SKILL-BANK.md`, `PLAN-SKILL-CRAFTER.md`, `PLAN-HARNESS.md`, and `README.md` consistently describe state-keeping as episode-local trajectory bookkeeping plus a "broad ontology, short-video first" framing.
+> - `../02-action-agent/PLAN-ACTION-AGENT.md`, `../03-skill-bank/PLAN-SKILL-BANK.md`, `../04-skill-crafter/PLAN-SKILL-CRAFTER.md`, `../05-harness/PLAN-HARNESS.md`, and `../README.md` consistently describe state-keeping as episode-local trajectory bookkeeping plus a "broad ontology, short-video first" framing.
 > - `PLAN-HARNESS.md §10a` adds **domain-specific transfer-failure diagnostics** (`slot_binding_failed`, `adapter_execution_mismatch`, `evidence_insufficient`, `temporal_mismatch`, `ui_grounding_mismatch`, `desktop_object_mismatch`, `overconfident_commit`, `contract_mismatch`).
 > - `PLAN-SKILL-BANK.md §4.3a / §4.3b` add **lineage/provenance** and **negative-knowledge** fields on every skill.
 >
@@ -23,13 +23,13 @@
 
 **Scope.** This is a *plan of edits* to the existing plan files, not a new module plan. It turns the earlier diagnosis ("the harness is a core contribution, not glue") into a concrete, ordered, Cursor-executable refactor of:
 
-- `PLAN-PIPELINE-ORCHESTRATOR.md`
-- `PLAN-ACTION-AGENT.md`
-- `PLAN-SKILL-BANK.md`
-- `PLAN-SKILL-CRAFTER.md`
-- `PLAN-HARNESS.md` (terminology reconciliation only)
-- `PLAN-VISUAL-GROUNDING.md` (integration section only)
-- `README.md` (pipeline overview + three-agent framing)
+- `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`
+- `../02-action-agent/PLAN-ACTION-AGENT.md`
+- `../03-skill-bank/PLAN-SKILL-BANK.md`
+- `../04-skill-crafter/PLAN-SKILL-CRAFTER.md`
+- `../05-harness/PLAN-HARNESS.md` (terminology reconciliation only)
+- `../01-visual-grounding/PLAN-VISUAL-GROUNDING.md` (integration section only)
+- `../README.md` (pipeline overview + three-agent framing)
 
 **Thesis to enforce across all edits.**
 
@@ -50,26 +50,26 @@ The repo currently has **two files both using "harness"** for different things:
 
 | File | Current role | Under the new framing |
 |------|--------------|-----------------------|
-| `PLAN-PIPELINE-ORCHESTRATOR.md` | Macro DAG runner ("glue") | **Harness = control plane** (this is what the directive upgrades) |
-| `PLAN-HARNESS.md` | Per-invocation **skill** runtime (`SkillHarness`, `SkillEpisode`) | A component *inside* the control plane: the **Skill-Invocation Runtime** |
+| `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md` | Macro DAG runner ("glue") | **Harness = control plane** (this is what the directive upgrades) |
+| `../05-harness/PLAN-HARNESS.md` | Per-invocation **skill** runtime (`SkillHarness`, `SkillEpisode`) | A component *inside* the control plane: the **Skill-Invocation Runtime** |
 
 **Resolution (chosen to minimize churn).** Keep both files. Add a one-paragraph disambiguation block at the top of each, and consistently call the control plane **"the Harness"** (capital H) in prose, while keeping the class name `SkillHarness` for the per-invocation runtime.
 
 **Action items (terminology only, before any content edits):**
 
-1. In `PLAN-PIPELINE-ORCHESTRATOR.md`, immediately below the H1 title, add:
+1. In `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`, immediately below the H1 title, add:
 
-   > **Terminology.** This document defines **the Harness** — the system-level control plane. The class `SkillHarness` ([PLAN-HARNESS.md](PLAN-HARNESS.md)) is a component *inside* the Harness, specifically the per-invocation runtime for skill use. Macro vs. micro: Harness (this plan) = control plane; `SkillHarness` = skill-invocation runtime.
+   > **Terminology.** This document defines **the Harness** — the system-level control plane. The class `SkillHarness` ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) is a component *inside* the Harness, specifically the per-invocation runtime for skill use. Macro vs. micro: Harness (this plan) = control plane; `SkillHarness` = skill-invocation runtime.
 
-2. In `PLAN-HARNESS.md`, update the existing "Relation to Pipeline Orchestrator" paragraph (already in §intro) to:
+2. In `../05-harness/PLAN-HARNESS.md`, update the existing "Relation to Pipeline Orchestrator" paragraph (already in §intro) to:
 
-   > **Relation to the Harness (control plane).** The system-level **Harness** ([PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md)) is the control plane. The `SkillHarness` defined here is its **skill-invocation runtime** — the micro-layer the control plane calls at every `inner_mdp` step where a skill is invoked. Terms: Harness = macro, control plane; `SkillHarness` = micro, per-invocation skill runtime.
+   > **Relation to the Harness (control plane).** The system-level **Harness** ([PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)) is the control plane. The `SkillHarness` defined here is its **skill-invocation runtime** — the micro-layer the control plane calls at every `inner_mdp` step where a skill is invoked. Terms: Harness = macro, control plane; `SkillHarness` = micro, per-invocation skill runtime.
 
-3. In `README.md` row 6 of the plan table, change the "Scope" cell for `PLAN-PIPELINE-ORCHESTRATOR.md` from the current "End-to-end harness — ..." to:
+3. In `../README.md` row 6 of the plan table, change the "Scope" cell for `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md` from the current "End-to-end harness — ..." to:
 
    > **The Harness (control plane)** — single top-level DAG, typed trajectory interface, acceptance gate, promotion economy, cross-domain transfer protocol, episode-local evidence & trace bookkeeping, budget contracts, full-system evaluation, harness-level ablations.
 
-4. In `README.md` row 7 for `PLAN-HARNESS.md`, rename the display title from "Skill Harness" to **"Skill-Invocation Runtime (micro-harness)"** in the "Plan" cell; leave the file path unchanged.
+4. In `../README.md` row 7 for `../05-harness/PLAN-HARNESS.md`, rename the display title from "Skill Harness" to **"Skill-Invocation Runtime (micro-harness)"** in the "Plan" cell; leave the file path unchanged.
 
 **Verification.** After steps 1–4, grep for the bare word `harness` across `plans/*.md` and confirm each occurrence is either (a) the control-plane sense, (b) the class name `SkillHarness`, or (c) the phrase "skill-invocation runtime". Fix any ambiguous usage.
 
@@ -82,19 +82,19 @@ The edits are ordered so that each later phase can link to stable anchors establ
 | Phase | Target file(s) | Why this order |
 |-------|----------------|----------------|
 | **P0** | Terminology reconciliation (§0) | Removes ambiguity before any cross-file linking. |
-| **P1** | `PLAN-PIPELINE-ORCHESTRATOR.md` | Establishes the canonical definitions (Why-it-matters, Three Layers, Promotion Economy, Transfer Protocol, Ablations). All later files link here. |
-| **P2** | `PLAN-ACTION-AGENT.md` | Adds **Harness Contract** (consumer side), **Failure Taxonomy**, tightens 8B/72B split, elevates inner MDP as stable reasoning API. |
-| **P3** | `PLAN-SKILL-BANK.md` | Reframes as harness-governed; adds Transfer Readiness, Dual Storage, Lifecycle Under Harness, Shared Primitives as transfer substrate. |
-| **P4** | `PLAN-SKILL-CRAFTER.md` | Narrows scope to three jobs (patch/compose/transfer), standardizes typed proposal outputs. |
-| **P5** | `PLAN-VISUAL-GROUNDING.md` | Enriches `GroundingRecord` output contract so the evidence harness can log unresolved entities / ambiguity. |
-| **P6** | `README.md` | Updates pipeline-overview framing, scope cells, and adds a one-paragraph "Harness as control plane" blurb. |
+| **P1** | `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md` | Establishes the canonical definitions (Why-it-matters, Three Layers, Promotion Economy, Transfer Protocol, Ablations). All later files link here. |
+| **P2** | `../02-action-agent/PLAN-ACTION-AGENT.md` | Adds **Harness Contract** (consumer side), **Failure Taxonomy**, tightens 8B/72B split, elevates inner MDP as stable reasoning API. |
+| **P3** | `../03-skill-bank/PLAN-SKILL-BANK.md` | Reframes as harness-governed; adds Transfer Readiness, Dual Storage, Lifecycle Under Harness, Shared Primitives as transfer substrate. |
+| **P4** | `../04-skill-crafter/PLAN-SKILL-CRAFTER.md` | Narrows scope to three jobs (patch/compose/transfer), standardizes typed proposal outputs. |
+| **P5** | `../01-visual-grounding/PLAN-VISUAL-GROUNDING.md` | Enriches `GroundingRecord` output contract so the evidence harness can log unresolved entities / ambiguity. |
+| **P6** | `../README.md` | Updates pipeline-overview framing, scope cells, and adds a one-paragraph "Harness as control plane" blurb. |
 | **P7** | Verification pass | Cross-link check, terminology grep, ablation-table sanity. |
 
 Each phase below specifies exact section headers to add, insertion points, and verbatim text to paste.
 
 ---
 
-## 2. P1 — Edits to `PLAN-PIPELINE-ORCHESTRATOR.md`
+## 2. P1 — Edits to `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`
 
 **File state check.** Current section map (verified): `# title`, `## 1. Rollout DAG`, `## 2. Artifact / log schema`, `## 3. Promotion / rollback rules`, `## 4. Episode-local evidence & trace bookkeeping`, `## 5. Training cadence by timescale`, `## 6. Evaluation matrix`, `## 7. Budget controller`, `## 8. Failure escalation / human audit points`, `## 9. Implementation checklist`, `## 10. Related documents`.
 
@@ -102,7 +102,7 @@ Each phase below specifies exact section headers to add, insertion points, and v
 
 **Replace** the current `**Scope:**` line (which calls the file "glue" and "not a new research module") with:
 
-> **Scope.** Define **the Harness** — the system-level control plane for cross-domain reasoning and control. The Harness maps heterogeneous observations and traces into a shared typed trajectory interface, coordinates grounding, episode-local evidence & trace bookkeeping, skill retrieval, action execution, verification, promotion, rollback, and training, and makes skill transfer and self-evolution **measurable and safe**. The orchestrator's only state-keeping surface is the episode-local trajectory in [`PLAN-PIPELINE-ORCHESTRATOR.md §4`](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping).
+> **Scope.** Define **the Harness** — the system-level control plane for cross-domain reasoning and control. The Harness maps heterogeneous observations and traces into a shared typed trajectory interface, coordinates grounding, episode-local evidence & trace bookkeeping, skill retrieval, action execution, verification, promotion, rollback, and training, and makes skill transfer and self-evolution **measurable and safe**. The orchestrator's only state-keeping surface is the episode-local trajectory in [`PLAN-PIPELINE-ORCHESTRATOR.md §4`](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping).
 
 **Replace** the `**Problem statement:**` paragraph with:
 
@@ -183,7 +183,7 @@ Cross-domain transfer is a first-class harness workflow, not an implicit Crafter
 
 1. **Source discovery.** Identify reusable skills in a source domain using bank telemetry (support, contract validity, transfer-readiness score).
 2. **Canonicalization.** Rewrite the skill using shared typed slots and shared inner primitives (`GROUND | CHECK | RETRIEVE | COMMIT | EXECUTE`). Strip domain-specific surface.
-3. **Adapter binding.** Resolve target-domain entities, actions, and observations via the `AdapterRegistry` ([PLAN-HARNESS.md](PLAN-HARNESS.md)).
+3. **Adapter binding.** Resolve target-domain entities, actions, and observations via the `AdapterRegistry` ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)).
 4. **Target replay.** Run the transferred skill against frozen target-domain traces under deterministic settings.
 5. **Promotion or quarantine.** Apply the promotion economy (§3a) scoped to the *target* domain. Only verified transfers enter the target bank snapshot.
 
@@ -214,11 +214,11 @@ The Harness is itself a manipulated variable. The evaluation matrix must include
 Each ablation must report the §6.1–§6.3 metric suite and the §6.4 slice breakdown. Results live under `artifacts/runs/{run_id}/ablation/{variant}/summary.json`.
 ```
 
-### 2.7 Update §10 (Related documents) cross-link to `PLAN-HARNESS.md`
+### 2.7 Update §10 (Related documents) cross-link to `../05-harness/PLAN-HARNESS.md`
 
 Add a row to the §10 table:
 
-| `PLAN-HARNESS.md` | Skill-invocation runtime (micro-harness); used by §1.1 `inner_mdp` for every skill invocation |
+| `../05-harness/PLAN-HARNESS.md` | Skill-invocation runtime (micro-harness); used by §1.1 `inner_mdp` for every skill invocation |
 
 ### 2.8 Verification for P1
 
@@ -229,7 +229,7 @@ Add a row to the §10 table:
 
 ---
 
-## 3. P2 — Edits to `PLAN-ACTION-AGENT.md`
+## 3. P2 — Edits to `../02-action-agent/PLAN-ACTION-AGENT.md`
 
 **File state check.** Current section map (verified): `## 1. Architecture overview`, `## 2. Tiered model architecture`, `## 3. Skill-guided decision making`, `## 4. Reward computation`, `## 5. Two-level MDP`, `## 6. Co-evolution & GRPO decomposition`, `## 7. Integration with Visual Grounding`, `## 8. Two pipeline variants`, `## 9. Supported environments`, `## 10. Uncertainty-driven GROUND triggering`, `## 11. TODO`, `## 12. Implementation`.
 
@@ -240,7 +240,7 @@ Add a row to the §10 table:
 ```markdown
 ## 1a. Harness contract
 
-The Action Agent is a component *inside* the Harness ([PLAN-PIPELINE-ORCHESTRATOR.md §0](PLAN-PIPELINE-ORCHESTRATOR.md)). It consumes a typed input bundle and emits typed records. This section defines that contract.
+The Action Agent is a component *inside* the Harness ([PLAN-PIPELINE-ORCHESTRATOR.md §0](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)). It consumes a typed input bundle and emits typed records. This section defines that contract.
 
 ### 1a.1 Inputs from the Harness
 
@@ -249,8 +249,8 @@ The Action Agent is a component *inside* the Harness ([PLAN-PIPELINE-ORCHESTRATO
 | `structured_state` | Visual Grounding (`<state>` schema) | Typed observation |
 | `schema_hash` | Grounding | Detect schema drift; pin retrieval |
 | `bank_snapshot_id` | Harness promotion pointer | Freeze which skills are available this step |
-| `budget_state` | [Orchestrator §7](PLAN-PIPELINE-ORCHESTRATOR.md#7-budget-controller) | Remaining tokens / hops / tool calls |
-| `evidence_refs` (within-episode) | [Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping) | Clip/frame / DOM / desktop-object / tool-call IDs carried on `<state>` |
+| `budget_state` | [Orchestrator §7](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#7-budget-controller) | Remaining tokens / hops / tool calls |
+| `evidence_refs` (within-episode) | [Orchestrator §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping) | Clip/frame / DOM / desktop-object / tool-call IDs carried on `<state>` |
 | `allowed_skill_scope` | Harness policy | Domain filter, quarantine filter |
 
 ### 1a.2 Outputs to the Harness
@@ -322,7 +322,7 @@ Do not modify the rest of §5.
 
 ---
 
-## 4. P3 — Edits to `PLAN-SKILL-BANK.md`
+## 4. P3 — Edits to `../03-skill-bank/PLAN-SKILL-BANK.md`
 
 **File state check.** Current section map (verified): `## 0`, `## 0.5`, `## 1`, `## 1.5`, `## 2`–`## 14`.
 
@@ -330,7 +330,7 @@ Do not modify the rest of §5.
 
 **Prepend** a new paragraph to `## 0. Goal` (before the existing text):
 
-> **Framing.** The Skill Bank is **not an autonomous store**. It is a **Harness-governed asset base** whose contents, versions, transfers, promotions, and retirements are controlled by verified orchestration policies ([PLAN-PIPELINE-ORCHESTRATOR.md §3, §3a, §3b](PLAN-PIPELINE-ORCHESTRATOR.md)). Everything below describes the internal structure of that asset base; the *governance* is centralized in the Harness.
+> **Framing.** The Skill Bank is **not an autonomous store**. It is a **Harness-governed asset base** whose contents, versions, transfers, promotions, and retirements are controlled by verified orchestration policies ([PLAN-PIPELINE-ORCHESTRATOR.md §3, §3a, §3b](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)). Everything below describes the internal structure of that asset base; the *governance* is centralized in the Harness.
 
 ### 4.2 Insert "Transfer Readiness" as §4a
 
@@ -339,7 +339,7 @@ Do not modify the rest of §5.
 ```markdown
 ## 4a. Transfer readiness
 
-Every `SkillProfile` carries a `transfer_readiness` block consumed by the Harness transfer protocol ([Orchestrator §3b](PLAN-PIPELINE-ORCHESTRATOR.md#3b-harness-native-transfer-protocol)).
+Every `SkillProfile` carries a `transfer_readiness` block consumed by the Harness transfer protocol ([Orchestrator §3b](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3b-harness-native-transfer-protocol)).
 
 | Field | Meaning |
 |-------|---------|
@@ -427,7 +427,7 @@ This is a *refinement* of the existing staging/maintenance flow (§7, §8); it i
 
 ---
 
-## 5. P4 — Edits to `PLAN-SKILL-CRAFTER.md`
+## 5. P4 — Edits to `../04-skill-crafter/PLAN-SKILL-CRAFTER.md`
 
 **File state check.** Current section map (verified): `## 1. Motivation`, `## 2. Architecture`, `## 3. Skill Composer`, `## 4. Skill Generalizer`, `## 5. Skill Hypothesizer`, `## 6. Failure Reflection`, `## 7–12`.
 
@@ -444,7 +444,7 @@ This is a *refinement* of the existing staging/maintenance flow (§7, §8); it i
 ```markdown
 ## 2a. Typed proposal outputs
 
-Every Crafter run emits **exactly one** of four typed proposals, consumed by the Harness acceptance gate ([Orchestrator §3, §3a](PLAN-PIPELINE-ORCHESTRATOR.md)).
+Every Crafter run emits **exactly one** of four typed proposals, consumed by the Harness acceptance gate ([Orchestrator §3, §3a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)).
 
 | Proposal | Job | Produced by |
 |----------|-----|-------------|
@@ -479,7 +479,7 @@ The acceptance gate in orchestrator §3.1 is parameterized by proposal type: `Pa
 
 ---
 
-## 6. P5 — Edits to `PLAN-VISUAL-GROUNDING.md`
+## 6. P5 — Edits to `../01-visual-grounding/PLAN-VISUAL-GROUNDING.md`
 
 **Goal.** Enrich `GroundingRecord` so the Evidence Harness (L2) can log ambiguity and escalation signals that §10a of the Action Agent depends on.
 
@@ -501,14 +501,14 @@ The acceptance gate in orchestrator §3.1 is parameterized by proposal type: `Pa
 
 ---
 
-## 7. P6 — Edits to `README.md`
+## 7. P6 — Edits to `../README.md`
 
 ### 7.1 Pipeline overview diagram
 
 Under `## Pipeline overview`, append (do not replace the existing ASCII diagram):
 
 ```markdown
-**The Harness wraps this pipeline.** All four stages (Grounding, Action Agent, Skill Bank, Skill Crafter) run under a single control plane that owns the typed trajectory interface, the acceptance gate, the promotion economy, and the transfer protocol. See [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md).
+**The Harness wraps this pipeline.** All four stages (Grounding, Action Agent, Skill Bank, Skill Crafter) run under a single control plane that owns the typed trajectory interface, the acceptance gate, the promotion economy, and the transfer protocol. See [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md).
 ```
 
 ### 7.2 New one-paragraph blurb "Harness as the control plane"
@@ -518,7 +518,7 @@ Insert **immediately before** the `## Plan documents` section:
 ```markdown
 ### Harness as the control plane
 
-The harness is the **unit of generalization** (one typed decision process across domains), the **unit of verification** (no skill or protocol change reaches production without passing the gate), and the **unit of attribution** (typed artifacts localize gains and regressions). The tier split (8B online, 32B/72B offline) is a harness decision, not a model choice. The full specification is [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md); the per-invocation skill runtime ([PLAN-HARNESS.md](PLAN-HARNESS.md)) is one component inside it.
+The harness is the **unit of generalization** (one typed decision process across domains), the **unit of verification** (no skill or protocol change reaches production without passing the gate), and the **unit of attribution** (typed artifacts localize gains and regressions). The tier split (8B online, 32B/72B offline) is a harness decision, not a model choice. The full specification is [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md); the per-invocation skill runtime ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) is one component inside it.
 ```
 
 ### 7.3 Updated scope cells
@@ -555,16 +555,16 @@ Every hit must be one of:
 
 For each new section anchor, verify that every cross-file link resolves. Manually check this list:
 
-- `PLAN-PIPELINE-ORCHESTRATOR.md#0-why-the-harness-matters`
-- `PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-economy`
-- `PLAN-PIPELINE-ORCHESTRATOR.md#3b-harness-native-transfer-protocol`
-- `PLAN-PIPELINE-ORCHESTRATOR.md#6a-harness-ablations`
-- `PLAN-ACTION-AGENT.md#1a-harness-contract`
-- `PLAN-ACTION-AGENT.md#10a-failure-taxonomy`
-- `PLAN-SKILL-BANK.md#4a-transfer-readiness`
-- `PLAN-SKILL-BANK.md#4b-dual-storage-model`
-- `PLAN-SKILL-BANK.md#4c-lifecycle-under-the-harness`
-- `PLAN-SKILL-CRAFTER.md#2a-typed-proposal-outputs`
+- `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0-why-the-harness-matters`
+- `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-economy`
+- `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3b-harness-native-transfer-protocol`
+- `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#6a-harness-ablations`
+- `../02-action-agent/PLAN-ACTION-AGENT.md#1a-harness-contract`
+- `../02-action-agent/PLAN-ACTION-AGENT.md#10a-failure-taxonomy`
+- `../03-skill-bank/PLAN-SKILL-BANK.md#4a-transfer-readiness`
+- `../03-skill-bank/PLAN-SKILL-BANK.md#4b-dual-storage-model`
+- `../03-skill-bank/PLAN-SKILL-BANK.md#4c-lifecycle-under-the-harness`
+- `../04-skill-crafter/PLAN-SKILL-CRAFTER.md#2a-typed-proposal-outputs`
 
 ### 8.3 Record-type consistency
 

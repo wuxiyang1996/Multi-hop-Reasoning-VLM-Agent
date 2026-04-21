@@ -54,9 +54,9 @@ those belong in a separate extension layer.
 
 ## 2. What is still missing at the system-contract level
 
-Across `PLAN-PIPELINE-ORCHESTRATOR.md`, `PLAN-HARNESS.md`,
-`PLAN-VISUAL-GROUNDING.md`, `PLAN-SKILL-BANK.md`, `PLAN-SKILL-CRAFTER.md`, and
-`PLAN-UNIFIED-SKILL-GATE.md`, the same five gaps recur:
+Across `../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`, `../05-harness/PLAN-HARNESS.md`,
+`../01-visual-grounding/PLAN-VISUAL-GROUNDING.md`, `../03-skill-bank/PLAN-SKILL-BANK.md`, `../04-skill-crafter/PLAN-SKILL-CRAFTER.md`, and
+`../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`, the same five gaps recur:
 
 | Gap | What is missing | Why the substrate cannot host it |
 |-----|-----------------|----------------------------------|
@@ -533,15 +533,15 @@ plus all sidecars as a `RunBundle` namespace.
 
 - `data_structure/experience.py` — the substrate this plan extends without touching.
 - `data_structure/README.md` §1–§5 — substrate field reference and invariants.
-- `plans/PLAN-PIPELINE-ORCHESTRATOR.md` §0a, §2.2, §4 — Actor/Harness/Bank/Orchestrator
+- `plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md` §0a, §2.2, §4 — Actor/Harness/Bank/Orchestrator
   boundary; `SkillEpisode` first-class artifact; episode-local evidence & trace bookkeeping.
-- `plans/PLAN-HARNESS.md` §5.1, §10, §10a — `SkillEpisode` extension; six-gate stack;
+- `plans/05-harness/PLAN-HARNESS.md` §5.1, §10, §10a — `SkillEpisode` extension; six-gate stack;
   domain-specific transfer-failure diagnostics consumed by `FailureRoutingRecord.failure_type`.
-- `plans/PLAN-VISUAL-GROUNDING.md` §3a — `GroundingRecord` as canonical `evidence_out`
+- `plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md` §3a — `GroundingRecord` as canonical `evidence_out`
   for `GATHER` skills; Path A/B/C routing.
-- `plans/PLAN-SKILL-BANK.md` §0.3, §4 — evidence-driven invariant + skill record fields
+- `plans/03-skill-bank/PLAN-SKILL-BANK.md` §0.3, §4 — evidence-driven invariant + skill record fields
   the `SkillInvocationRecord` references by id.
-- `plans/PLAN-SKILL-CRAFTER.md` §2.5, §6.2 — typed proposals + `evidence_starved`
+- `plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md` §2.5, §6.2 — typed proposals + `evidence_starved`
   failure category that `FailureRoutingRecord` routes to the Crafter.
-- `plans/PLAN-UNIFIED-SKILL-GATE.md` — gate execution / promotion / rollback that
+- `plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md` — gate execution / promotion / rollback that
   consumes `RunRecord` and `SkillInvocationRecord`.

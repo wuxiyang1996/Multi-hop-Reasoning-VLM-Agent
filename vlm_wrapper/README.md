@@ -2,7 +2,7 @@
 
 Converts screenshots, video frames, and environment observations into a shared structured text schema (`<state>…</state>`), which plugs into the COS-PLAY pipeline for skill retrieval and decision-making. Supports multi-hop tool-calling reasoning where a VLM gathers grounded evidence from specialised vision models before producing the final schema.
 
-**Full plan:** [`plans/PLAN-VISUAL-GROUNDING.md`](../plans/PLAN-VISUAL-GROUNDING.md) • Skill-context schema fields come from [`plans/PLAN-VISUAL-SKILLS.md`](../plans/PLAN-VISUAL-SKILLS.md) and [`plans/PLAN-SKILL-BANK.md`](../plans/PLAN-SKILL-BANK.md).
+**Full plan:** [`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md`](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md) • Skill-context schema fields come from [`plans/01-visual-grounding/PLAN-VISUAL-SKILLS.md`](../plans/01-visual-grounding/PLAN-VISUAL-SKILLS.md) and [`plans/03-skill-bank/PLAN-SKILL-BANK.md`](../plans/03-skill-bank/PLAN-SKILL-BANK.md).
 
 ---
 
@@ -88,7 +88,7 @@ python scripts/label_rollouts.py \
     --out data/schemas/
 ```
 
-The `scripts/collect_*_rollouts.py` data-collection helpers are Phase-0 TODOs in the milestones plan — see [`plans/PLAN-VISUAL-GROUNDING-MILESTONES.md`](../plans/PLAN-VISUAL-GROUNDING-MILESTONES.md) §7. While they're pending, you can exercise every part of `vlm_wrapper` from the bundled fixtures under `vlm_wrapper/real_*.png` without any runtime env:
+The `scripts/collect_*_rollouts.py` data-collection helpers are Phase-0 TODOs in the milestones plan — see [`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md`](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) §7. While they're pending, you can exercise every part of `vlm_wrapper` from the bundled fixtures under `vlm_wrapper/real_*.png` without any runtime env:
 
 ```bash
 conda activate vlm_benchmarks
@@ -161,7 +161,7 @@ This table is the quick answer to *"does the inference pipeline work end-to-end 
 - Dual-teacher data collection scripts (`labeling/teachers.py`, `labeling/collect_*.py`).
 - Schema-vs-teacher cross-validation harness and ablation-study evaluation harness.
 
-See [`plans/PLAN-VISUAL-GROUNDING-MILESTONES.md §7`](../plans/PLAN-VISUAL-GROUNDING-MILESTONES.md) for the canonical status list.
+See [`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md §7`](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) for the canonical status list.
 
 ### Adapter vs. `cascaded_ground` — when to use which
 
@@ -178,7 +178,7 @@ Internally, `cascaded_ground → _attempt_vlm → generate_label` for `gymv` / `
 
 ## Schema structure
 
-Every head emits the same `<state>…</state>` block. Beyond the classic `<entities>` / `<attributes>` / `<relations>` / `<state_flags>` / `<targets>` / `<uncertainty>` / `<actions>` / `<evidence>` / `<answer>` sections, the schema now carries **skill-context fields** that let downstream skill discovery (see [`PLAN-SKILL-BANK`](../plans/PLAN-SKILL-BANK.md)) mine reusable reasoning-and-control programs:
+Every head emits the same `<state>…</state>` block. Beyond the classic `<entities>` / `<attributes>` / `<relations>` / `<state_flags>` / `<targets>` / `<uncertainty>` / `<actions>` / `<evidence>` / `<answer>` sections, the schema now carries **skill-context fields** that let downstream skill discovery (see [`PLAN-SKILL-BANK`](../plans/03-skill-bank/PLAN-SKILL-BANK.md)) mine reusable reasoning-and-control programs:
 
 | Field | Where | Purpose |
 |---|---|---|
@@ -481,7 +481,7 @@ python scripts/run_vlm_parser.py video_holmes \
 
 ### Schema completeness guarantee — validator + cascaded escalation + reconciliation
 
-Implements [`PLAN-VISUAL-GROUNDING` §12 Layers 1 & 2](../plans/PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract). `semantic_validate` goes beyond tag-presence checks — it verifies slot population, entity minima, uncertainty budget, section content, relation coverage, coordinate bounds, entity-reference integrity, **and the skill-context fields above** (ontology coverage, canonical affordance operators, inner-MDP `abstract_op` on every hop, `scene_type`, `history_anchor`). Missing skill-context fields emit warnings so pre-existing callers keep working.
+Implements [`PLAN-VISUAL-GROUNDING` §12 Layers 1 & 2](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guarantee-grounding--reasoning-contract). `semantic_validate` goes beyond tag-presence checks — it verifies slot population, entity minima, uncertainty budget, section content, relation coverage, coordinate bounds, entity-reference integrity, **and the skill-context fields above** (ontology coverage, canonical affordance operators, inner-MDP `abstract_op` on every hop, `scene_type`, `history_anchor`). Missing skill-context fields emit warnings so pre-existing callers keep working.
 
 `cascaded_ground` runs the domain's VLM-first escalation chain (e.g. `vlm → tool_loop` for gymv, `vlm → omniparser → tool_loop` for browser) and returns the first schema that passes validation, with `ValidationResult` and `escalation_trace` attached for telemetry. The obs-text / AXTree heuristic is opt-in and not on the default path. The same validation now also runs inside `ground()` and every adapter (`gymv_adapter.generate_label`, `browser_adapter.generate_label`, `osworld_adapter.generate_label`), which all return a `validation` dict.
 
@@ -570,7 +570,7 @@ Each case writes `<state>` text to `out/schemas/<case>.schema.txt` and the full 
 
 ### Re-observation (Option B) — zoom into a region between hops
 
-Implements [`PLAN-VISUAL-GROUNDING` §4 Option B](../plans/PLAN-VISUAL-GROUNDING.md#4-three-grounding-heads). The VLM can call `zoom_region(x, y, w, h, zoom)` — the harness crops and upscales the frame, appends the new image as a user-side message on the next turn, and the VLM re-perceives the region with fresh visual focus. Defaults to ON for `image_qa` / `video_qa`, OFF for `gymv` / `browser` / `desktop` (Option A, schema-only updates between hops). Override with `GroundingRequest.allow_reobservation=True|False`.
+Implements [`PLAN-VISUAL-GROUNDING` §4 Option B](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md#4-three-grounding-heads). The VLM can call `zoom_region(x, y, w, h, zoom)` — the harness crops and upscales the frame, appends the new image as a user-side message on the next turn, and the VLM re-perceives the region with fresh visual focus. Defaults to ON for `image_qa` / `video_qa`, OFF for `gymv` / `browser` / `desktop` (Option A, schema-only updates between hops). Override with `GroundingRequest.allow_reobservation=True|False`.
 
 ```python
 from vlm_wrapper import ground, GroundingRequest

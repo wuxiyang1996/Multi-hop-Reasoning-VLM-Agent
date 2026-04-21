@@ -2,8 +2,8 @@
 
 **Scope:** VLM visual parser — pixels → structured `<state>` schema — across games, browser, desktop, images, and video. Includes grounding heads, observation schema, adapters, training pipeline, benchmark evaluation, and multi-hop tool-calling reasoning.
 
-**Upstream:** Raw observations from three interactive runtimes — [Gym-V](https://github.com/ModalMinds/gym-v) (179 procedurally-generated visual environments with a Gymnasium-compatible API, across single-turn reasoning / multi-turn games / spatial navigation / retro arcade), [BrowserGym](https://github.com/ServiceNow/BrowserGym) (MiniWoB++ / WebArena / VisualWebArena / AssistantBench), [OSWorld](https://github.com/xlang-ai/OSWorld) (desktop tasks over Office/Daily/Professional suites) — plus two offline image/video benchmarks (CLEVR / Video-Holmes). Each runtime is installed in its own conda env because of hard-pinned dependency conflicts (gymnasium 1.2+ for Gym-V vs 0.28 for OSWorld, transformers 4.35 for OSWorld vs 4.51+ for the grounding pipeline); see [`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md).
-**Downstream:** [Action Agent](PLAN-ACTION-AGENT.md) consumes the structured schema; [Skill Bank](PLAN-SKILL-BANK.md) uses schemas for contract learning and retrieval.
+**Upstream:** Raw observations from three interactive runtimes — [Gym-V](https://github.com/ModalMinds/gym-v) (179 procedurally-generated visual environments with a Gymnasium-compatible API, across single-turn reasoning / multi-turn games / spatial navigation / retro arcade), [BrowserGym](https://github.com/ServiceNow/BrowserGym) (MiniWoB++ / WebArena / VisualWebArena / AssistantBench), [OSWorld](https://github.com/xlang-ai/OSWorld) (desktop tasks over Office/Daily/Professional suites) — plus two offline image/video benchmarks (CLEVR / Video-Holmes). Each runtime is installed in its own conda env because of hard-pinned dependency conflicts (gymnasium 1.2+ for Gym-V vs 0.28 for OSWorld, transformers 4.35 for OSWorld vs 4.51+ for the grounding pipeline); see [`install/INSTALL_BENCHMARKS.md`](../../install/INSTALL_BENCHMARKS.md).
+**Downstream:** [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) consumes the structured schema; [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) uses schemas for contract learning and retrieval.
 
 ---
 
@@ -120,9 +120,9 @@ a2={action_string}
 - No nested braces/brackets beyond one level — critical for 8B model reliability.
 - Total token count for a typical web page: ~400–600 tokens. For a game frame: ~200–400 tokens.
 
-**Schema as inner MDP state:** Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), this schema is the state representation for the inner reasoning MDP. Each GROUND/CHECK hop updates entities, relations, or uncertainty. The `<targets>` and `<uncertainty>` sections drive the agent's decision to continue reasoning (more hops) or act (EXECUTE). Shared slot names (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`) are the vocabulary that makes reasoning skills transferable across domains.
+**Schema as inner MDP state:** Under the two-level MDP (see [Action Agent §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), this schema is the state representation for the inner reasoning MDP. Each GROUND/CHECK hop updates entities, relations, or uncertainty. The `<targets>` and `<uncertainty>` sections drive the agent's decision to continue reasoning (more hops) or act (EXECUTE). Shared slot names (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`) are the vocabulary that makes reasoning skills transferable across domains.
 
-**`GroundingRecord` as canonical `evidence_out`.** Under the evidence-driven invariant ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)), a `GroundingRecord` emitted by any grounding head (§4 Head 1 / Head 2 / Head 3, or by a tool-calling loop) is the **canonical `evidence_out`** for a `GATHER`-role skill ([PLAN-VISUAL-SKILLS.md §2](PLAN-VISUAL-SKILLS.md#2-two-kinds-of-skill-effects)). It carries:
+**`GroundingRecord` as canonical `evidence_out`.** Under the evidence-driven invariant ([PLAN-SKILL-BANK.md §0.3](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)), a `GroundingRecord` emitted by any grounding head (§4 Head 1 / Head 2 / Head 3, or by a tool-calling loop) is the **canonical `evidence_out`** for a `GATHER`-role skill ([PLAN-VISUAL-SKILLS.md §2](PLAN-VISUAL-SKILLS.md#2-two-kinds-of-skill-effects)). It carries:
 
 - `evidence_id` — fresh unique ID appended to `<state>.evidence_refs` (new `<evidence_refs>` section; additive to the schema above)
 - `source` — `heuristic | vision | omniparser | tool:<tool_id>`
@@ -188,7 +188,7 @@ Uses Microsoft's OmniParser-v2 (YOLO icon detector + Florence-2 icon captioner +
 
 VLM sees screenshot + system prompt + tool definitions → calls tools to gather ground-truth data → produces final schema. The trace becomes SFT data.
 
-Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), each tool call in the loop maps to an inner MDP action:
+Under the two-level MDP (see [Action Agent §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), each tool call in the loop maps to an inner MDP action:
 
 | Tool call pattern | Inner MDP action | Schema update |
 |-------------------|-----------------|---------------|
@@ -539,7 +539,7 @@ hop3: EXECUTE(action)
 
 The `<uncertainty>` section is the communication channel between grounding and reasoning.  Grounding flags what it's unsure about; reasoning decides whether to investigate or act despite uncertainty.  **This is why grounding doesn't need skills** — the reasoning skills already include GROUND as their first hop when information is missing.
 
-The `hop_select` LoRA adapter (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)) learns this trade-off end-to-end via GRPO: when is more grounding worth the cost versus acting on partial info?
+The `hop_select` LoRA adapter (see [Action Agent §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)) learns this trade-off end-to-end via GRPO: when is more grounding worth the cost versus acting on partial info?
 
 ### Layer 4 — Skill-level slot coverage (before skill execution)
 
@@ -554,7 +554,7 @@ When `SkillQueryEngine.select()` computes applicability, it checks whether the s
 | **Outer MDP action** | **Yes** | Skills + GRPO | Strategic action selection guided by skills |
 | **Grounding → reasoning evidence** | Yes (indirect) | Extraction pipeline | Mine hop patterns from grounding traces into reasoning skill templates |
 
-Grounding tool-loop traces (e.g. `detect_objects → spatial_query → count_objects` on CLEVR) are mined as evidence for reasoning skill templates via the transferable skill extraction pipeline (see [Skill Bank §9](PLAN-SKILL-BANK.md#9-transferable-skill-extraction)), but the templates are consumed by the reasoning layer, not the grounding layer.
+Grounding tool-loop traces (e.g. `detect_objects → spatial_query → count_objects` on CLEVR) are mined as evidence for reasoning skill templates via the transferable skill extraction pipeline (see [Skill Bank §9](../03-skill-bank/PLAN-SKILL-BANK.md#9-transferable-skill-extraction)), but the templates are consumed by the reasoning layer, not the grounding layer.
 
 **Optional extension — grounding strategies as skills:** Multi-step grounding patterns (disambiguation, target recovery, evidence collection) that recur across domains can optionally be captured as transferable grounding skills. These sit between perception tools and reasoning skills and use belief/binding-effect contracts rather than world-effect contracts. See [Visual Skills](PLAN-VISUAL-SKILLS.md) for the full design. This extension does not change the core principle above — atomic perception tools remain tools, not skills.
 
@@ -691,4 +691,4 @@ Core = entities, attributes, relations, state_flags, targets, uncertainty, **evi
 ## 17. Reference
 
 - vlm_wrapper repo: https://github.com/wuxiyang1996/Multi-hop-Reasoning-VLM-Agent/tree/main/vlm_wrapper
-- System plan index: [`plans/README.md`](README.md)
+- System plan index: [`plans/README.md`](../README.md)

@@ -1,7 +1,7 @@
 """Shared schema definition, system prompts, and image-encoding helpers.
 
 This is the single source of truth for the structured-state schema
-(see plans/PLAN-VISUAL-GROUNDING.md §3).  Both the Gym-V and BrowserGym adapters import from here.
+(see plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md §3).  Both the Gym-V and BrowserGym adapters import from here.
 The adaptive prompt builder supports all domains (game, browser, desktop,
 image QA, video QA) through configurable schema sections.
 """

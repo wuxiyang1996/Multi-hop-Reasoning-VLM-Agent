@@ -2,7 +2,7 @@
 
 **Purpose:** Turn the design in [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) into a concrete week-by-week build-out with routing rules, training order, and ablation checkpoints. This document answers "what do we actually build next and in what order."
 
-**Depends on:** [Visual Grounding](PLAN-VISUAL-GROUNDING.md) (design), [Action Agent](PLAN-ACTION-AGENT.md) (consumer), [Skill Bank](PLAN-SKILL-BANK.md) (consumer).
+**Depends on:** [Visual Grounding](PLAN-VISUAL-GROUNDING.md) (design), [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) (consumer), [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) (consumer).
 
 ---
 
@@ -121,7 +121,7 @@ Escalation outputs are stored as training examples and fed back into the next SF
 ### Environment / data status (snapshot 2026-04-20)
 
 Tracks runtime readiness for the five domains. See
-[`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for
+[`install/INSTALL_BENCHMARKS.md`](../../install/INSTALL_BENCHMARKS.md) for
 setup commands. Each runtime is cloned from source and lives in its own
 conda env because their transitive pins conflict (see table note below).
 
@@ -279,11 +279,11 @@ Output: [tool_call: detect_objects(...)] ... [tool_call: spatial_query(...)] ...
 **Prerequisite:** Phase 2 schema quality is good enough that the actor rarely sees broken schemas.
 
 **What to train:**
-- `hop_select` LoRA: typed next-hop router — schema + short typed trace → `(NEXT_HOP, TARGET)` from `{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}`, with a 0–3 hop cap (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control))
+- `hop_select` LoRA: typed next-hop router — schema + short typed trace → `(NEXT_HOP, TARGET)` from `{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}`, with a 0–3 hop cap (see [Action Agent §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control))
 - `skill_select` LoRA: schema → which skill to invoke
 - GRPO with trajectory-level reward: `r_env + r_follow + r_cost`
 
-**Integration path (from [Action Agent §7](PLAN-ACTION-AGENT.md)):**
+**Integration path (from [Action Agent §7](../02-action-agent/PLAN-ACTION-AGENT.md)):**
 1. `get_state_summary()` receives `<state>` schema directly from VLM grounding
 2. Entity-referenced actions: `click(e5)` instead of `click(400,510)`
 3. `<uncertainty>` section drives GROUND hop insertion
@@ -311,7 +311,7 @@ Next SFT round for schema_gen incorporates hard-case labels
 Repeat
 ```
 
-**Timescale separation (from [Action Agent §6](PLAN-ACTION-AGENT.md)):**
+**Timescale separation (from [Action Agent §6](../02-action-agent/PLAN-ACTION-AGENT.md)):**
 - Fast: Actor GRPO every training iteration
 - Medium: Skill-bank operational updates every few iterations
 - Slow: Synthesis-reflection proposals every N episodes, acceptance-gated

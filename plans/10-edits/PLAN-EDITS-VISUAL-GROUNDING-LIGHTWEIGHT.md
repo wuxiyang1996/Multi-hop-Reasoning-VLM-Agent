@@ -17,9 +17,9 @@
 - Visual grounding is **not** trained with GRPO in the first version.
 - There is **no** large standalone grounding evaluation framework in the core training loop.
 - Grounding is **not** the center of the project; it is a support layer for the Actor, Skill Bank, Crafter, and failure analysis.
-- No new agent, no new gate, no new state-keeping surface beyond the orchestrator's episode-local trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
+- No new agent, no new gate, no new state-keeping surface beyond the orchestrator's episode-local trajectory ([PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 
-**Compatibility.** The two existing invariants enforced at the Harness gate are preserved: the **general-protocol invariant** ([PLAN-SKILL-BANK.md §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)) and the **evidence-driven invariant** ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)). Phase A typed `SkillIR` and Phase B `HopTrace` from [PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md](PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md) consume the `GroundingRecord` defined here.
+**Compatibility.** The two existing invariants enforced at the Harness gate are preserved: the **general-protocol invariant** ([PLAN-SKILL-BANK.md §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)) and the **evidence-driven invariant** ([PLAN-SKILL-BANK.md §0.3](../03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)). Phase A typed `SkillIR` and Phase B `HopTrace` from [PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md](PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md) consume the `GroundingRecord` defined here.
 
 ---
 
@@ -55,7 +55,7 @@ There is no "grounding GRPO" head in the first version. Optional future RL is re
 
 ## 2. Adapter / module layout (no ambiguity)
 
-The LoRA adapter table in [README §LoRA adapter layout](README.md#lora-adapter-layout) is restated explicitly so that `schema_gen` is never read as "just another GRPO LoRA".
+The LoRA adapter table in [README §LoRA adapter layout](../README.md#lora-adapter-layout) is restated explicitly so that `schema_gen` is never read as "just another GRPO LoRA".
 
 **Non-GRPO (perception / schema generation):**
 
@@ -117,7 +117,7 @@ GroundingRecord = {
 
 The record is the only thing passed downstream from the perception layer. Everything in the plans that previously said "the Actor reads the schema" should be updated to "the Actor reads the `GroundingRecord`."
 
-`evidence_refs` is the canonical `evidence_out` for `GATHER` skills as already declared in [PLAN-VISUAL-GROUNDING.md §3a](PLAN-VISUAL-GROUNDING.md) and [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](PLAN-EDITS-HARNESS-CONTROL-PLANE.md) (P5 draft).
+`evidence_refs` is the canonical `evidence_out` for `GATHER` skills as already declared in [PLAN-VISUAL-GROUNDING.md §3a](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) and [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](PLAN-EDITS-HARNESS-CONTROL-PLANE.md) (P5 draft).
 
 ---
 
@@ -130,7 +130,7 @@ The Actor consumes `GroundingRecord` as its primary perceptual input. The connec
   - low confidence on a referenced entity → `GROUND`,
   - low confidence on a relation / state predicate → `CHECK`,
   - claim under review → `VERIFY`.
-  Mapping rules live in [PLAN-ACTION-AGENT.md §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control) and [PLAN-ACTION-AGENT.md §10](PLAN-ACTION-AGENT.md) (uncertainty-driven `GROUND` triggering already exists; this plan pins it to `GroundingRecord` fields).
+  Mapping rules live in [PLAN-ACTION-AGENT.md §5](../02-action-agent/PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control) and [PLAN-ACTION-AGENT.md §10](../02-action-agent/PLAN-ACTION-AGENT.md) (uncertainty-driven `GROUND` triggering already exists; this plan pins it to `GroundingRecord` fields).
 - **`skill_select` precondition.** `skill_select` may only depend on slots that are present and at or above a slot-specific confidence threshold (recorded on each `SkillIR.input_slots` entry). Slots below threshold are treated as unbound.
 - **`action_execute` discipline.** `action_execute` must not treat unsupported / low-confidence fields as reliable facts. Acting on an unsupported field is logged as `unsupported_reasoning` (see §8 metric).
 - **No assumption of perfect grounding.** The Actor uses uncertainty-aware state; grounding errors are first-class and bounded by `uncertainty_flags`, not silently ignored.
@@ -139,7 +139,7 @@ The Actor consumes `GroundingRecord` as its primary perceptual input. The connec
 
 ## 6. How grounding connects to the Skill Bank / Harness
 
-Grounding affects skill use through a small, typed set of mechanisms — all already named in [PLAN-HARNESS.md](PLAN-HARNESS.md) and [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md), pinned here:
+Grounding affects skill use through a small, typed set of mechanisms — all already named in [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) and [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md), pinned here:
 
 - **Slot availability** — does the `GroundingRecord` carry the slot the skill needs?
 - **Slot confidence** — is `slot_confidence` above the skill's per-slot threshold?
@@ -150,7 +150,7 @@ Grounding affects skill use through a small, typed set of mechanisms — all alr
 Operational rules:
 
 - Skills requiring missing or unreliable slots are **filtered or vetoed** at the Harness candidate-selection layer (existing `SkillHarness` veto path).
-- Harness / runtime validation can **reject skill invocations** when grounding support is insufficient, surfaced as a typed diagnostic `grounding_support_insufficient` (parallel to existing `slot_binding_failed` / `evidence_insufficient` in [PLAN-HARNESS.md §10a](PLAN-HARNESS.md)).
+- Harness / runtime validation can **reject skill invocations** when grounding support is insufficient, surfaced as a typed diagnostic `grounding_support_insufficient` (parallel to existing `slot_binding_failed` / `evidence_insufficient` in [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md)).
 - Evidence-carrying grounding outputs (`evidence_refs`) are the canonical input to **`VERIFY`-role skills**; a `VERIFY` skill is not invokable when its required evidence is absent from `GroundingRecord.evidence_refs`.
 
 This keeps Harness as the control-plane gate for grounding-driven feasibility — no new component is added.
@@ -176,7 +176,7 @@ GroundingFailureRecord = {
 
 **Consumers.**
 
-- **Failure analysis** — orchestrator-level failure attribution; counted alongside the existing transfer-failure diagnostics in [PLAN-HARNESS.md §10a](PLAN-HARNESS.md).
+- **Failure analysis** — orchestrator-level failure attribution; counted alongside the existing transfer-failure diagnostics in [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md).
 - **Crafter repair input** — `GroundingFailureRecord` joins `FailureDiagnosis` as Crafter input (cf. Phase C §4.7 of [PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md](PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md)). Crafter does not edit `schema_gen`; it only adjusts skills whose feasibility depends on grounding signals it should not have trusted.
 - **Hard-case relabeling** — failed grounding instances are routed back through the frozen teacher for relabeling and added to the next `schema_gen` SFT batch.
 - **Future `schema_gen` data improvement** — aggregated failure clusters drive what the teacher should be asked to relabel next.
@@ -211,7 +211,7 @@ These diagnostics are computed offline on held-out slices and are not gated by; 
 
 The following are the actual gaps in visual grounding. The list is deliberately **not** "GRPO training is missing", because GRPO training is intentionally out of scope.
 
-1. **Benchmark loaders** — unified loaders for the benchmark slices already named in [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) (CLEVR / GQA / SIV-Bench / Video-Holmes plus Gym-V / BrowserGym / OSWorld paired data).
+1. **Benchmark loaders** — unified loaders for the benchmark slices already named in [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) (CLEVR / GQA / SIV-Bench / Video-Holmes plus Gym-V / BrowserGym / OSWorld paired data).
 2. **`schema_gen` training pipeline** — SFT / distillation pipeline driven by frozen-teacher labels, with a hard-case relabeling lane.
 3. **Grounding evaluation harness** — small, downstream-oriented eval (the four core metrics in §8) plus the offline diagnostics appendix.
 4. **Grounding output contract** — `GroundingRecord` (§4) implemented and adopted by all downstream consumers.
@@ -228,7 +228,7 @@ A simple, four-stage roadmap. Stage 4 is explicitly optional and is the only pla
 
 - Use frozen high-capacity teacher inference (frozen 72B / GPT-4o-style) to generate structured labels.
 - Build benchmark loaders.
-- Define the canonical `<state>` schema output (cf. [PLAN-VISUAL-GROUNDING.md §3](PLAN-VISUAL-GROUNDING.md)).
+- Define the canonical `<state>` schema output (cf. [PLAN-VISUAL-GROUNDING.md §3](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md)).
 - Define `GroundingRecord` (§4).
 
 **Stage 2 — Distill and integrate.**
@@ -260,13 +260,13 @@ A single table of every section to add or update, by file. Section numbers are a
 
 | File | Updates |
 |------|---------|
-| [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) | Reposition entire document as **SFT / distillation-based perception**: explicit "no GRPO for `schema_gen`" statement (§1); restated module split (§2); minimal-role section (§3); add §3a-bis `GroundingRecord` definition (§4); add §6a Grounding evaluation — lightweight only (§8); add §7a `GroundingFailureRecord` and feedback path (§7); add §11 missing-pieces list (§9); add §12 staged roadmap (§10). Remove or qualify any wording that suggests `schema_gen` is GRPO-trained. |
-| [PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md) | Rewrite milestone backbone as **teacher → distill → integrate → hard-case-improve**. Drop GRPO-training milestones for `schema_gen`. Add Stage 4 as explicitly optional and grounding-control-only. |
-| [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) | Add §5.7 *Consuming `GroundingRecord`*: uncertainty-aware state, uncertainty-triggered `GROUND`/`CHECK`/`VERIFY` hops (§5), `skill_select` confidence-threshold rule, `action_execute` `unsupported_reasoning` rule. Cross-link from existing §10 (uncertainty-driven `GROUND` triggering). |
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | Add §10e *Grounding-driven eligibility / binding / veto*: slot availability, slot confidence, evidence availability, adapter feasibility, binding success (§6). Add `grounding_support_insufficient` to the §10a transfer-failure diagnostic taxonomy. |
-| [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) | Add §6a *Slot confidence and evidence availability as part of skill usability*: per-slot confidence thresholds on `SkillIR.input_slots`; `VERIFY`-role skills require coverage by `GroundingRecord.evidence_refs`. |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | Add §2.4 *`GroundingRecord` artifact schema*; add §6a *Grounding as a tracked module with snapshots and fixed lightweight evaluation* — pins the §8 core metrics into the cadence and adds `schema_gen_ckpt` to the snapshot store; treat grounding as a tracked module, not an evaluation framework. |
-| [README.md](README.md) | Update §pipeline overview and §LoRA adapter layout: add a "Training" column to the LoRA table with values `{SFT/distillation, GRPO}`; mark `schema_gen` as `SFT/distillation`. Add the §13 guiding paragraph (below) to the §key-shared-concepts area. |
+| [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) | Reposition entire document as **SFT / distillation-based perception**: explicit "no GRPO for `schema_gen`" statement (§1); restated module split (§2); minimal-role section (§3); add §3a-bis `GroundingRecord` definition (§4); add §6a Grounding evaluation — lightweight only (§8); add §7a `GroundingFailureRecord` and feedback path (§7); add §11 missing-pieces list (§9); add §12 staged roadmap (§10). Remove or qualify any wording that suggests `schema_gen` is GRPO-trained. |
+| [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) | Rewrite milestone backbone as **teacher → distill → integrate → hard-case-improve**. Drop GRPO-training milestones for `schema_gen`. Add Stage 4 as explicitly optional and grounding-control-only. |
+| [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) | Add §5.7 *Consuming `GroundingRecord`*: uncertainty-aware state, uncertainty-triggered `GROUND`/`CHECK`/`VERIFY` hops (§5), `skill_select` confidence-threshold rule, `action_execute` `unsupported_reasoning` rule. Cross-link from existing §10 (uncertainty-driven `GROUND` triggering). |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | Add §10e *Grounding-driven eligibility / binding / veto*: slot availability, slot confidence, evidence availability, adapter feasibility, binding success (§6). Add `grounding_support_insufficient` to the §10a transfer-failure diagnostic taxonomy. |
+| [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | Add §6a *Slot confidence and evidence availability as part of skill usability*: per-slot confidence thresholds on `SkillIR.input_slots`; `VERIFY`-role skills require coverage by `GroundingRecord.evidence_refs`. |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | Add §2.4 *`GroundingRecord` artifact schema*; add §6a *Grounding as a tracked module with snapshots and fixed lightweight evaluation* — pins the §8 core metrics into the cadence and adds `schema_gen_ckpt` to the snapshot store; treat grounding as a tracked module, not an evaluation framework. |
+| [README.md](../README.md) | Update §pipeline overview and §LoRA adapter layout: add a "Training" column to the LoRA table with values `{SFT/distillation, GRPO}`; mark `schema_gen` as `SFT/distillation`. Add the §13 guiding paragraph (below) to the §key-shared-concepts area. |
 
 ---
 
@@ -290,7 +290,7 @@ Apply the edits in this order:
 
 ## 13. Guiding paragraph (drop-in)
 
-Add the following paragraph to [README.md](README.md) §key-shared-concepts and to the top of [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md):
+Add the following paragraph to [README.md](../README.md) §key-shared-concepts and to the top of [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md):
 
 > We treat visual grounding as a structured perception layer rather than a main GRPO-trained policy. Its job is to convert multi-domain visual input into a usable schema with confidence, evidence references, and uncertainty flags that downstream modules can consume. In the first version, grounding is improved primarily through teacher inference, distillation, and hard-case relabeling, while GRPO is reserved for policy and skill-related decision modules.
 
@@ -298,12 +298,12 @@ Add the following paragraph to [README.md](README.md) §key-shared-concepts and 
 
 ## 14. Related plans
 
-- [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) — primary target of this edit pass; repositioned as SFT/distillation-based perception.
-- [PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md) — milestone backbone rewritten to teacher → distill → integrate → hard-case-improve.
-- [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) — Actor consumes `GroundingRecord`; uncertainty-aware state and uncertainty-triggered hops land here.
-- [PLAN-HARNESS.md](PLAN-HARNESS.md) — grounding-driven eligibility / binding / veto land here.
-- [PLAN-SKILL-BANK.md](PLAN-SKILL-BANK.md) — slot confidence and evidence availability as skill-usability constraints land here.
-- [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) — `GroundingRecord` artifact schema, snapshot tracking, and lightweight evaluation cadence land here.
-- [README.md](README.md) — LoRA training-method column, simplified grounding role, guiding paragraph land here.
+- [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) — primary target of this edit pass; repositioned as SFT/distillation-based perception.
+- [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) — milestone backbone rewritten to teacher → distill → integrate → hard-case-improve.
+- [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) — Actor consumes `GroundingRecord`; uncertainty-aware state and uncertainty-triggered hops land here.
+- [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) — grounding-driven eligibility / binding / veto land here.
+- [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) — slot confidence and evidence availability as skill-usability constraints land here.
+- [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) — `GroundingRecord` artifact schema, snapshot tracking, and lightweight evaluation cadence land here.
+- [README.md](../README.md) — LoRA training-method column, simplified grounding role, guiding paragraph land here.
 - [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](PLAN-EDITS-HARNESS-CONTROL-PLANE.md) — sibling edit-plan; this document follows its style and respects its terminology reconciliation.
 - [PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md](PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md) — sibling edit-plan; `GroundingRecord` is the canonical `evidence_out` for `GATHER`-role skills in that plan's typed `SkillIR`.

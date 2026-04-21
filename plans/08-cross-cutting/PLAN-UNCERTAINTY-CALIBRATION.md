@@ -2,7 +2,7 @@
 
 **Status:** Cross-cutting contract for uncertainty across grounding, actor, harness, orchestrator, and evaluation.
 **Owner:** Pipeline Orchestrator (defines the contract); Visual Grounding + Action Agent + Harness (produce / consume).
-**Companions:** [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) (per-field `<uncertainty>`), [PLAN-VISUAL-GROUNDING-MILESTONES.md](PLAN-VISUAL-GROUNDING-MILESTONES.md) (Path A / B / C routing), [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) (uncertainty-driven GROUND), [PLAN-HARNESS.md](PLAN-HARNESS.md) (gating), [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) (replay + promotion), [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md) (evaluation slices).
+**Companions:** [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) (per-field `<uncertainty>`), [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md) (Path A / B / C routing), [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) (uncertainty-driven GROUND), [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) (gating), [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) (replay + promotion), [PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md) (evaluation slices).
 
 ---
 
@@ -10,9 +10,9 @@
 
 Today, "uncertainty" appears in several plans but means different things:
 
-- Visual Grounding emits a per-field `<uncertainty>` block that the staged pipeline already uses to choose Path A (accept), Path B (tool repair), or Path C (offline escalation) ([PLAN-VISUAL-GROUNDING-MILESTONES.md §Path A/B/C](PLAN-VISUAL-GROUNDING-MILESTONES.md)).
+- Visual Grounding emits a per-field `<uncertainty>` block that the staged pipeline already uses to choose Path A (accept), Path B (tool repair), or Path C (offline escalation) ([PLAN-VISUAL-GROUNDING-MILESTONES.md §Path A/B/C](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md)).
 - The Action Agent uses an `uncertainty` flag to decide whether to fire an extra `GROUND` / `CHECK` hop inside the inner MDP.
-- The first-target evaluation contract carries a single self-reported `uncertainty: float` field on the `support_package` ([PLAN-EVAL-FIRST-TARGET.md §2.3](PLAN-EVAL-FIRST-TARGET.md)).
+- The first-target evaluation contract carries a single self-reported `uncertainty: float` field on the `support_package` ([PLAN-EVAL-FIRST-TARGET.md §2.3](../00-system/PLAN-EVAL-FIRST-TARGET.md)).
 - The Harness uses ad hoc thresholds inside individual gates.
 
 These are five different signals, on different scopes (field / entity / state / evidence / answer), produced by different components, and consumed without a shared meaning. There is no shared definition of what "0.7 confidence" means, no calibration check, no per-domain tuning, and no rule that ties confidence to compute spend.
@@ -96,7 +96,7 @@ Routing is **threshold on a calibrated confidence band**, not on a single number
 
 Mapping into the existing staged grounding pipeline:
 
-| Band | Visual Grounding routing ([Milestones §Path A/B/C](PLAN-VISUAL-GROUNDING-MILESTONES.md)) | Inner MDP behavior | Harness behavior |
+| Band | Visual Grounding routing ([Milestones §Path A/B/C](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md)) | Inner MDP behavior | Harness behavior |
 |---|---|---|---|
 | `high` | **Path A** — accept direct parse | Skip extra GROUND/CHECK hops; allow COMMIT | Accept without extra checks |
 | `medium` | **Path B (selective)** — tool-repair only the low-confidence fields/entities | Fire one targeted GROUND or CHECK on the weakest entity | Run lightweight gates only |
@@ -145,7 +145,7 @@ Once uncertainty is calibrated and split by scope/source, every downstream consu
 
 **6.2 Harness gating**
 
-- Gates already configurable per skill ([PLAN-HARNESS.md §10](PLAN-HARNESS.md)); add a per-gate **confidence floor**.
+- Gates already configurable per skill ([PLAN-HARNESS.md §10](../05-harness/PLAN-HARNESS.md)); add a per-gate **confidence floor**.
 - `state_confidence` band selects which gates run: `high` → static + replay only; `medium` → + shadow on the suspect slice; `low` → full stack including non-regression on adjacent slices.
 - Vetoes record `confidence_at_veto` so we can later ask "did we veto too aggressively in well-calibrated bands?"
 
@@ -156,12 +156,12 @@ Once uncertainty is calibrated and split by scope/source, every downstream consu
 
 **6.4 Promotion / rollback decisions**
 
-- Skill promotion ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) reads not just gate pass-rate but **confidence-conditioned pass-rate**. A skill that passes at `high` confidence but tanks at `low` confidence is promoted with a routing constraint ("usable only on `high` snapshots") rather than rejected outright.
+- Skill promotion ([PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) reads not just gate pass-rate but **confidence-conditioned pass-rate**. A skill that passes at `high` confidence but tanks at `low` confidence is promoted with a routing constraint ("usable only on `high` snapshots") rather than rejected outright.
 - Rollback triggers on calibration drift: if ECE on a domain doubles week-over-week without other regressions, freeze promotions for that domain until investigated.
 
 **6.5 Evaluation slices**
 
-- The first-target eval ([PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md)) reports Joint Success Rate **bucketed by reported confidence band**. We need to see "JSR @ high / medium / low" separately, not only the pooled number.
+- The first-target eval ([PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md)) reports Joint Success Rate **bucketed by reported confidence band**. We need to see "JSR @ high / medium / low" separately, not only the pooled number.
 - Add a **selective JSR**: accuracy on the subset where the system reported `high`. This is the metric most tied to user trust.
 - Keep the existing single self-reported `uncertainty` field on `support_package`, but back it with `answer_confidence` from this contract; add `state_confidence` and `evidence_confidence` summaries as optional fields for richer slicing.
 
@@ -207,7 +207,7 @@ Things this plan deliberately **does not** do, and why:
 - **Do not require perfect calibration before use.** Routing reads bands first, raw scores second. A miscalibrated score still routes correctly if the band cutoffs are tuned (Phase 3) — we use calibration to *tune the cutoffs*, not as a precondition for using the signal at all. ECE targets are aspirational, not gating, until Phase 3.
 - **Do not overload a single `evidence_confidence` field with everything.** It is tempting to roll parser, validator, tool, cross-view, missing-field, and answer-correctness probability into one number. This collapses sources we need separately for repair (§3), and collapses scopes we need separately for routing (§4) and for calibration (§5). Keep the five scopes and the source dict distinct even when most consumers only read one of them.
 - **No uncertainty-driven *training* in v1.** Confidence-weighted loss, selective annotation, active learning — all out of scope until Phase 3 lands. The first job is to make the signal trustworthy enough to gate compute; using it to gate gradients is later.
-- **No abstention-as-default.** Abstention is allowed only on slices that explicitly support it ([PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md)). The contract is "spend more when uncertain," not "answer less when uncertain."
+- **No abstention-as-default.** Abstention is allowed only on slices that explicitly support it ([PLAN-EVAL-FIRST-TARGET.md](../00-system/PLAN-EVAL-FIRST-TARGET.md)). The contract is "spend more when uncertain," not "answer less when uncertain."
 - **No single global threshold.** Cutoffs are per (scope, domain), and the source-aware override (§4) can force a band downward. Anyone proposing "let's just set τ = 0.7 everywhere" is asking for a regression.
 
 ---

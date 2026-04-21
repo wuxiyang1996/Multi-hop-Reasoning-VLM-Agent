@@ -27,7 +27,7 @@ What the tracker does NOT own:
   is X"; the actor decides whether to follow it.
 * Reward computation — that lives in ``reward_func.py``.
 
-See ``plans/PLAN-ACTION-AGENT.md`` §1 step 3 and §10 for the full spec
+See ``plans/02-action-agent/PLAN-ACTION-AGENT.md`` §1 step 3 and §10 for the full spec
 these rules implement.
 """
 

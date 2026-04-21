@@ -2,13 +2,13 @@
 
 **Status:** First end-to-end evaluation contract for the project.
 **Owner:** Pipeline Orchestrator + Harness (consumers of `EpisodeTrace` / `SkillEpisode`).
-**Companions:** [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) §6, [PLAN-HARNESS.md](PLAN-HARNESS.md), [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md), [README.md](README.md).
+**Companions:** [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) §6, [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md), [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md), [README.md](../README.md).
 
 ---
 
 ## 1. Scope and motivation
 
-The project's first execution focus is **short-video evidence-grounded reasoning** ([README §Current execution focus](README.md#current-execution-focus)). Every other plan describes *what the system is*; this plan describes *how we judge whether it works* on its first arena.
+The project's first execution focus is **short-video evidence-grounded reasoning** ([README §Current execution focus](../README.md#current-execution-focus)). Every other plan describes *what the system is*; this plan describes *how we judge whether it works* on its first arena.
 
 Existing module-level metrics (grounding accuracy, gate pass rate, contract validity) are necessary but not sufficient: they do not tell us whether the assembled system answers a video question correctly **and** can show why. This plan defines that joint contract.
 
@@ -17,7 +17,7 @@ The protocol here is the **task-level evaluation contract**. All other evaluatio
 Concrete goals:
 
 1. Pin the input/output contract for short-video evidence-grounded reasoning.
-2. Define a small set of axes that separately measure Actor quality, Harness filtering/veto quality, system performance, skill-use efficiency, reasoning-step usefulness, and transfer robustness ([PLAN-PIPELINE-ORCHESTRATOR.md §0a.5](PLAN-PIPELINE-ORCHESTRATOR.md#0a5-evaluation-implication)).
+2. Define a small set of axes that separately measure Actor quality, Harness filtering/veto quality, system performance, skill-use efficiency, reasoning-step usefulness, and transfer robustness ([PLAN-PIPELINE-ORCHESTRATOR.md §0a.5](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a5-evaluation-implication)).
 3. Give one canonical reported number — **Joint Success Rate** — that cannot be gamed by either answer-only or evidence-only optimization.
 4. Specify a minimal, easy-to-follow judge protocol.
 5. Ship a benchmark-slice plan small enough to run weekly and detailed enough to localize regressions.
@@ -46,7 +46,7 @@ The system MUST emit:
 | `final_answer` | string \| option_id | The committed answer. |
 | `answer_type` | enum {`mcq`, `open_short`, `open_free`} | Determines the automatic-evaluation rule (§7.1). |
 | `support_package` | object | Minimal artifact backing the answer; see §2.3. |
-| `evidence_refs` | list of `EvidenceRef` | Within-episode references (frame ids, time spans, region ids, tool-call ids) per [PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping). |
+| `evidence_refs` | list of `EvidenceRef` | Within-episode references (frame ids, time spans, region ids, tool-call ids) per [PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping). |
 | `reasoning_trace_summary` | object | Minimal typed summary of the inner-MDP hops that led to the answer. |
 
 ### 2.3 `support_package` (minimal contract)
@@ -63,7 +63,7 @@ support_package = {
 
 `reasoning_trace_summary` is the same `reasoning_steps` list rolled up to one record per hop, kept short (one line per hop) so it is human-skimmable.
 
-The contract ties directly to existing typed records ([PLAN-PIPELINE-ORCHESTRATOR.md §2.2](PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types)): `evidence_warrant` reuses `ActionRecord.evidence_warrant`; `reasoning_steps` is built from `InnerHopRecord`. Nothing new needs to be stored on disk — the eval driver projects existing trace fields into this view.
+The contract ties directly to existing typed records ([PLAN-PIPELINE-ORCHESTRATOR.md §2.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#22-required-record-types)): `evidence_warrant` reuses `ActionRecord.evidence_warrant`; `reasoning_steps` is built from `InnerHopRecord`. Nothing new needs to be stored on disk — the eval driver projects existing trace fields into this view.
 
 ---
 
@@ -94,7 +94,7 @@ The eval driver consumes one JSONL record per instance:
 }
 ```
 
-`actor_skill_decisions`, `harness_filter_events`, and `harness_veto_events` are required so the §4 axes can attribute behavior to the Actor vs. the Harness ([PLAN-PIPELINE-ORCHESTRATOR.md §0a](PLAN-PIPELINE-ORCHESTRATOR.md#0a-actorharnessskill-bankorchestrator-boundary)).
+`actor_skill_decisions`, `harness_filter_events`, and `harness_veto_events` are required so the §4 axes can attribute behavior to the Actor vs. the Harness ([PLAN-PIPELINE-ORCHESTRATOR.md §0a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a-actorharnessskill-bankorchestrator-boundary)).
 
 Records missing `support_package`, `evidence_refs`, or `final_answer` are auto-scored as **failure** on every axis except answer correctness — they are not silently dropped.
 
@@ -208,7 +208,7 @@ EvidenceVerdict = {
 EvidenceValid := exists AND supports AND covers_claim AND defects == []
 ```
 
-The judge prompt is fixed per release; its hash is logged with `eval_suite_id` ([PLAN-PIPELINE-ORCHESTRATOR.md §3a.2](PLAN-PIPELINE-ORCHESTRATOR.md#3a2-batch-evaluation-schedule)) so verdicts are reproducible.
+The judge prompt is fixed per release; its hash is logged with `eval_suite_id` ([PLAN-PIPELINE-ORCHESTRATOR.md §3a.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a2-batch-evaluation-schedule)) so verdicts are reproducible.
 
 ### 7.3 Optional human audit subset
 
@@ -309,14 +309,14 @@ Three phases, smallest viable first.
 - Add `open_short` and `open_free` answer types to §7.1.
 - Add hop-structure and evidence-type slices.
 - Add the canonical table (§9) and the secondary axes (Actor / Harness / transfer).
-- Wire `eval_suite_id` into [PLAN-PIPELINE-ORCHESTRATOR.md §3a.2](PLAN-PIPELINE-ORCHESTRATOR.md#3a2-batch-evaluation-schedule) so non-regression checks reference this suite.
+- Wire `eval_suite_id` into [PLAN-PIPELINE-ORCHESTRATOR.md §3a.2](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#3a2-batch-evaluation-schedule) so non-regression checks reference this suite.
 - Goal: this plan is fully realized end-to-end.
 
 ### Phase E2 — Audit + transfer hardening
 
 - Add §7.3 human audit subset and judge-agreement tracking.
 - Add per-skill transfer rows (skills exercised on video that were originally crafted for game / web / os / visual reasoning) to surface transfer robustness.
-- Wire failure-class distribution into the Crafter failure-cluster export ([PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md)).
+- Wire failure-class distribution into the Crafter failure-cluster export ([PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 - Goal: the eval becomes a closed loop with self-improvement signals.
 
 Subsequent expansions (additional benchmarks, long-video, memory) are explicitly out of scope here; see §11.
@@ -327,7 +327,7 @@ Subsequent expansions (additional benchmarks, long-video, memory) are explicitly
 
 Stated to prevent scope drift in the first version of this evaluation:
 
-- **No memory evaluation.** Cross-episode memory, persistent stores, and long-term retention are not measured. The orchestrator's only state-keeping surface is episode-local ([PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
+- **No memory evaluation.** Cross-episode memory, persistent stores, and long-term retention are not measured. The orchestrator's only state-keeping surface is episode-local ([PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 - **No long-video setting.** Hour-scale or multi-session video is out of scope. Clips are short by construction (§8.1).
 - **No multi-benchmark sprawl.** First version pins to one source benchmark family (Video-Holmes-style) plus light internal annotation. Adding more benchmarks is an explicit later phase, not a default.
 - **No leaderboard chasing.** Slice sizes are intentionally small (§8.4) so this can run weekly. Larger runs are a later concern.
@@ -339,9 +339,9 @@ Stated to prevent scope drift in the first version of this evaluation:
 
 | Document | Relationship |
 |----------|--------------|
-| [README.md](README.md) | Project framing; pins short-video as first arena. |
-| [PLAN-PIPELINE-ORCHESTRATOR.md](PLAN-PIPELINE-ORCHESTRATOR.md) | §6 evaluation matrix; §0a four-way separation; §4 episode-local bookkeeping. |
-| [PLAN-HARNESS.md](PLAN-HARNESS.md) | `SkillEpisode` records that feed Actor / Harness / transfer secondary axes. |
-| [PLAN-ACTION-AGENT.md](PLAN-ACTION-AGENT.md) | Inner-MDP records that populate `reasoning_trace_summary` and Avg Hops. |
-| [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md) | Consumes failure taxonomy distributions for repair and synthesis. |
-| [PLAN-VISUAL-GROUNDING.md](PLAN-VISUAL-GROUNDING.md) | Source of `EvidenceRef` objects underlying §7.2. |
+| [README.md](../README.md) | Project framing; pins short-video as first arena. |
+| [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | §6 evaluation matrix; §0a four-way separation; §4 episode-local bookkeeping. |
+| [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md) | `SkillEpisode` records that feed Actor / Harness / transfer secondary axes. |
+| [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) | Inner-MDP records that populate `reasoning_trace_summary` and Avg Hops. |
+| [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | Consumes failure taxonomy distributions for repair and synthesis. |
+| [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) | Source of `EvidenceRef` objects underlying §7.2. |
