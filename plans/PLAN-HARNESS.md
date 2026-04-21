@@ -10,7 +10,9 @@
 
 **Relation to Pipeline Orchestrator.** The Pipeline Orchestrator is the **system-level DAG** that runs grounding → action → bank → crafter → gates across many episodes and runs. The Skill Harness is the **per-invocation runtime** for a single skill call. Pipeline Orchestrator = macro scheduler; Skill Harness = micro runtime for skill use. They compose: the orchestrator calls the Harness at every `inner_mdp` step where a skill is invoked.
 
-**Non-goals:** Replacing the Action Agent, Skill Bank, or Skill Crafter. Introducing a fourth agent. Making the 32B/72B teacher the default online controller. Adding new trainable models before the execution + validation loop works.
+**Non-goals:** Replacing the Action Agent, Skill Bank, or Skill Crafter. Introducing a fourth agent. Making the 32B/72B teacher the default online controller. Adding new trainable models before the execution + validation loop works. **Narrowing the Harness to a single domain, or admitting domain-specific skills.** Every skill the Harness binds, runs, and validates is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning) — see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families). The Harness is the *domain-general transfer runtime*; short-video evidence-grounded reasoning is the first proving ground where that broad transfer is *validated*, not the definition of the Harness's scope.
+
+**No memory subsystem assumption.** This repo has no memory subsystem (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract)). The Harness reads skills from the bank and within-episode evidence from the structured `<state>`; it never assumes a cross-episode memory read path.
 
 ---
 
@@ -121,12 +123,26 @@ class SkillEpisode:
     skill_id: str
     skill_version: str
     skill_type: str              # reasoning | action | grounding | mixed
+    evidence_role: str           # GATHER | VERIFY | REASON | COMMIT
+                                 # must match the declared evidence_role of the skill in
+                                 # the bank; see PLAN-SKILL-BANK §0.3 Clause B
     source_domain: str
     target_domain: str
     adapter_id: str | None
     slot_bindings: dict          # typed slots → concrete entity IDs
     protocol_trace: list         # inner-hop sequence actually executed
-    evidence_trace: list         # grounding / tool-call evidence
+
+    # ── Evidence-driven interface (PLAN-SKILL-BANK §0.3 Clause A) ──
+    # Opaque episodes (evidence_in ∪ evidence_out == ∅ and no evidence_warrant)
+    # are rejected at Gate G0 regardless of reward.
+    evidence_in:       list        # EvidenceRef list read from <state>.evidence_refs or prior inner hops
+    evidence_out:      list        # EvidenceRef list written by this skill (grounding, verdicts, hypotheses)
+    evidence_warrant:  list | None # required and non-empty iff evidence_role == COMMIT
+    verify_verdict:    str | None  # PASS | FAIL | INSUFFICIENT; required iff evidence_role == VERIFY
+    reason_warrant:    list | None # subset of evidence_in cited as warrant; required iff evidence_role == REASON
+    # ─────────────────────────────────────────────────────────────
+
+    evidence_trace: list         # chronological grounding / tool-call evidence (superset of evidence_in/out)
     contract_progress: dict      # per-effect progress in [0,1]
     outcome: str                 # success | fail | abort | stall
     abort_reason: str | None
@@ -141,7 +157,19 @@ Purpose:
 - unify execution logging,
 - support replay-based validation,
 - measure transfer success,
+- enforce the evidence-driven invariant (Gate G0) at promotion time,
 - generate reward signals for later GRPO on `skill_select` / `continue_vs_switch` / `accept_transfer`.
+
+**Evidence-role field requirements (checked at `finalize_episode` time).**
+Any episode that violates these requirements is marked `outcome = fail` with `abort_reason = "opaque-skill-violation"` or `"skill-role-mismatch"` and is not eligible for promotion:
+
+| `evidence_role` | must hold |
+|-----|-----|
+| `GATHER` | `evidence_out ≠ ∅` |
+| `VERIFY` | `evidence_in ≠ ∅` and `verify_verdict ∈ {PASS, FAIL, INSUFFICIENT}` |
+| `REASON` | `evidence_in ≠ ∅` and `reason_warrant ⊆ evidence_in`, `reason_warrant ≠ ∅` |
+| `COMMIT` | `evidence_warrant ≠ ∅` |
+| *any* | `evidence_in ∪ evidence_out ≠ ∅` (opacity precondition) |
 
 ### 5.2 `SkillHarness`
 
@@ -355,17 +383,49 @@ The Harness must default to 7B/8B and escalate to the teacher only when an expli
 
 ## 10. Promotion gates
 
-A transferred skill is only promoted to active use when it passes **all five** gate categories. Verdicts are recorded in `GateVerdict` ([Pipeline Orchestrator §2.2](PLAN-PIPELINE-ORCHESTRATOR.md)).
+A transferred (or newly promoted) skill is only admitted to active use when it passes **all six** gate categories, in order. Gate **G0 precedes all others** and is evaluated on every `SkillEpisode`, not only at transfer time — a skill that stops touching evidence in production is demoted. Verdicts are recorded in `GateVerdict` ([Pipeline Orchestrator §2.2](PLAN-PIPELINE-ORCHESTRATOR.md)).
 
 | Gate | Check | Source |
 |------|-------|--------|
-| **Binding** | target slots ground; abstract predicates map to target ontology | `SkillHarness.bind_skill` |
-| **Adapter** | adapter exists (or synthesized adapter is valid); passes domain syntax / execution sanity | `AdapterRegistry.validate` |
-| **Replay** | expected effects match held-out transitions; protocol does not contradict observed data | `ReplayValidator` |
-| **Shadow** | shadow pass rate ≥ threshold; no severe instability / repeated stalls | `TransferManager.shadow_run_transfer` |
-| **Non-regression** | enabling transfer does not degrade prior source-domain competence beyond tolerance | cross-run eval on frozen source slice |
+| **G0 — Evidence-driven contract** | For every episode used as evidence for promotion: `evidence_in ∪ evidence_out ≠ ∅`; `evidence_role` matches the skill's declared role ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)); role-specific fields are populated (GATHER⇒`evidence_out`; VERIFY⇒`verify_verdict`; REASON⇒`reason_warrant ⊆ evidence_in`; COMMIT⇒`evidence_warrant ≠ ∅`). Failure rejects the skill as `opaque-skill-violation` or `skill-role-mismatch`, independent of reward or success rate. | `SkillHarness.finalize_episode` |
+| **G1 — Binding** | target slots ground; abstract predicates map to target ontology | `SkillHarness.bind_skill` |
+| **G2 — Adapter** | adapter exists (or synthesized adapter is valid); passes domain syntax / execution sanity | `AdapterRegistry.validate` |
+| **G3 — Replay** | expected effects match held-out transitions; protocol does not contradict observed data | `ReplayValidator` |
+| **G4 — Shadow** | shadow pass rate ≥ threshold; no severe instability / repeated stalls | `TransferManager.shadow_run_transfer` |
+| **G5 — Non-regression** | enabling transfer does not degrade prior source-domain competence beyond tolerance | cross-run eval on frozen source slice |
 
-Any failing gate → rejection with reason; candidate returns to the crafter for revision or is quarantined.
+Any failing gate → rejection with reason; candidate returns to the crafter for revision or is quarantined. G0 failures are routed to the crafter's `evidence-starved skill` failure cluster (see [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md)).
+
+---
+
+## 10a. Transfer-failure diagnostics (domain-specific)
+
+Because the Harness is the place where safe broad transfer is actually validated, every gate rejection and every shadow abort is labeled with a **typed diagnostic** that names *why* transfer failed. This is what makes cross-domain transfer auditable when the target domains span very different observation/action spaces.
+
+Each `GateVerdict` carries zero or more of the following labels; each label is populated by a specific Harness component.
+
+| Label | Meaning | Producing component |
+|-------|---------|---------------------|
+| `evidence_interface_mismatch` | The target-domain adapter cannot produce or consume the evidence kinds declared in the skill's `evidence_interface` (e.g., protocol expects `frame_span` but target domain only emits `dom_node`), so the episode would violate Gate G0 even if slots bound | `AdapterRegistry.validate` + `ReplayValidator` |
+| `opaque_skill_violation` | A shadow or replay episode produced `evidence_in ∪ evidence_out == ∅` or missed the `evidence_role`-specific fields ([§5.1](#51-skillepisode)); the skill is not actually assisting reasoning in the target domain | `SkillHarness.finalize_episode` (Gate G0) |
+| `slot_binding_failed` | Required typed slots do not ground from the target `<state>` (missing `target`, empty `candidate_set`, no `blocker` to anchor, ...) | `SkillHarness.bind_skill` |
+| `adapter_execution_mismatch` | Adapter exists but its execution surface disagrees with the skill's abstract predicates (e.g., `select($target)` is not realizable with the adapter's action set) | `AdapterRegistry.validate` |
+| `evidence_insufficient` | Skill's `evidence_required` cannot be filled from the target domain's within-episode `evidence_refs` (no clip/frame/DOM/desktop-object pointer of the required kind) | `ReplayValidator` |
+| `temporal_mismatch` | Video-understanding transfer: temporal `candidate_set` members do not align with the claim's time anchor, or evidence frames are out of order vs. protocol | `ReplayValidator` (video path) |
+| `ui_grounding_mismatch` | Webagent transfer: UI elements expected by the protocol (e.g., a "submit" control) are not grounded or are ambiguous in the DOM / screenshot state | `SkillHarness.bind_skill` (browser adapter) |
+| `desktop_object_mismatch` | OS-agent transfer: required desktop objects (windows, files, tray icons) are not grounded or belong to a different application | `SkillHarness.bind_skill` (desktop adapter) |
+| `overconfident_commit` | Shadow mode: the skill's `COMMIT` fires despite anti-preconditions / `do_not_transfer_if` predicates holding in the target state | `TransferManager.shadow_run_transfer` |
+| `contract_mismatch` | Replay: the realized effects diverge from `eff_add` / `eff_del` beyond tolerance, or belief-effects do not hold after execution | `ReplayValidator` |
+
+### 10a.1 Consumers
+
+- The [Skill Bank](PLAN-SKILL-BANK.md) appends each label to the target skill's `known_failure_modes` (§4.3b) and, if a pattern recurs, to `do_not_transfer_if` / `false_binding_patterns`.
+- The [Skill Crafter](PLAN-SKILL-CRAFTER.md) uses the labels to route patch / compose / transfer-adaptation proposals to the right failure cluster.
+- The [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) tallies labels into per-domain dashboards so that "transfer is safe in domain X" is a claim backed by diagnostic distributions, not just aggregate success rates.
+
+### 10a.2 First validation arena (for the diagnostics, not for the skills)
+
+The diagnostic labels above are defined for **all five target domains from day one**, and every skill passing through the Harness is a general protocol expected to be feasible in all of them. The **first arena** in which these diagnostics are *exercised and tuned* is short-video evidence-grounded reasoning: `evidence_insufficient`, `temporal_mismatch`, and `opaque_skill_violation` are the highest-signal labels there, followed by `overconfident_commit` (claims made without adequate frame-level backing) and `evidence_interface_mismatch` (adapter cannot supply the declared evidence kinds). As the webagent / os-agent / game adapters come online, `ui_grounding_mismatch`, `desktop_object_mismatch`, and `adapter_execution_mismatch` start firing against the same general protocols — the protocols do not change, only the diagnostics that happen to trigger on them. Gate G0 (`opaque_skill_violation`) fires uniformly across all domains and is the primary defense against a skill *silently ceasing to assist reasoning* after a transfer.
 
 ---
 

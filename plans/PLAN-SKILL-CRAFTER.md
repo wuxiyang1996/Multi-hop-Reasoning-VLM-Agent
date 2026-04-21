@@ -2,6 +2,8 @@
 
 **Scope:** Compose, create, and refine new skills from existing Skill Bank primitives. The Skill Crafter is the creative layer that discovers higher-order strategies by combining existing skills, generalizing across games/domains, and proposing novel skill hypotheses that the [Skill Bank](PLAN-SKILL-BANK.md) can test and adopt.
 
+**Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five target domains** — game / webagent / os-agent / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate; it does not become a "short-video-only skill" or a "browser-only skill". The Crafter's **first evaluation arena** is no-memory short-video (Video-Holmes-style) — that is where `verified_domains` entries are filled in first and where transfer-failure diagnostics ([PLAN-HARNESS.md §10a](PLAN-HARNESS.md)) are exercised first, **not** where a separate class of skills is synthesized. This repo has **no memory subsystem**: the Crafter-private `FailureMemory` (§6.7) is a *pattern-aggregation store for failure diagnoses*, not a system-level memory, and is never read by the online actor.
+
 **Upstream:** Existing skill bank (contracts, protocols, execution traces); structured schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); episode trajectories from [Action Agent](PLAN-ACTION-AGENT.md).
 **Downstream:** New/refined skills injected into the Skill Bank; cross-domain skill transfer proposals.
 
@@ -41,12 +43,12 @@ This multi-run design costs ~3–6× the tokens of a single 32B/72B call per tas
 The synthesis-reflection agent (32B/72B) improves over time WITHOUT weight updates through five channels:
 
 1. **Better input distribution** — as the 8B actor and skill bank improve through GRPO, the Skill Crafter receives cleaner trajectories, more reusable segments, better failure logs, and richer skill statistics. The same frozen model produces much better outputs when reasoning over better evidence.
-2. **Better memory / artifact store** — the Skill Crafter is: frozen LLM + failure memory (§6.7) + skill bank snapshots + verification logs + proposal archive. As these external stores grow and improve, the Crafter's reasoning context improves.
+2. **Better evidence serialization & transfer diagnostics** — Crafter context improves as the artifact stores that feed it get better at their jobs: (a) *evidence serialization* (how within-episode `evidence_refs`, tool traces, and claim–evidence links are laid out for the teacher), (b) *transfer diagnostics* (typed labels from the Harness, see [PLAN-HARNESS.md §10a](PLAN-HARNESS.md)), (c) *replay slices* (frozen trace selection pipelines), (d) *skill clustering* (how failure clusters and transfer-candidate groups are indexed), and (e) *verification prompts* (templates for Stage-4 acceptance). The Crafter-private `FailureMemory` (§6.7) is one of these artifact stores; it is not a system memory and is never read by the online actor.
 3. **Better inference procedure** — improve the multi-pass reasoning without touching weights: better decomposition, proposal-then-verify chains, best-of-N with smarter selection, counterfactual replay, stricter acceptance filters. This is where most early "improvement" should come from.
 4. **Better verification and selection** — as the actor and bank mature, downstream usefulness can be measured more reliably. A frozen model that emits many candidate skills becomes much more useful when the system can better select which candidates to keep.
 5. **Distillation into smaller specialized modules** — train smaller adapters or submodules on outputs that pass verification: a small failure-localizer, a contract writer, a protocol patch ranker, a transfer-mapping scorer. This builds a synthesis pipeline that improves over time without changing the main teacher.
 
-**Principle:** The thing that improves is the synthesis *system*, not necessarily the frozen model weights. Think of improvement as: frozen LLM + improving (data, memory, prompts, search, acceptance rules).
+**Principle:** The thing that improves is the synthesis *system*, not necessarily the frozen model weights. Think of improvement as: frozen LLM + improving (data, evidence serialization, transfer diagnostics, replay slices, skill clustering, verification prompts, acceptance rules).
 
 ### Phased teacher adaptation policy
 
@@ -126,6 +128,68 @@ The 32B/72B teacher should NOT be fine-tuned from day one. Follow this phased ap
 | **Composer** | 2+ existing skills | Compound skill (chain/branch/loop) | Sequence planning + effect chaining |
 | **Generalizer** | 1 skill + different domain | Transferred skill with adapted contract | Structural analogy via shared schema slots |
 | **Hypothesizer** | Game description + failure patterns | Novel skill proposal | LLM reasoning over rules + failure analysis |
+
+---
+
+## 2.5 Typed proposal outputs (evidence-driven, domain-general)
+
+Every Crafter output is one of the four typed proposals below. All four carry the **evidence-driven fields** required by [Skill Bank §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills); proposals missing them are gate-rejected before they reach replay. Evidence fields are **declarations of intent** on the proposal — the Harness confirms them empirically at Gate G0 after shadow / replay runs.
+
+```python
+class EvidenceInterfaceDecl:
+    evidence_inputs_spec:   list     # typed EvidenceRef kinds the proposed skill expects to read
+    evidence_outputs_or_warrant_spec: dict
+                                     # role-dependent spec (see Skill Bank §4.2):
+                                     #   GATHER  -> evidence_out kinds
+                                     #   VERIFY  -> verdict domain + referenced evidence kinds
+                                     #   REASON  -> hypothesis schema + warrant shape
+                                     #   COMMIT  -> decision schema + evidence_warrant shape
+
+class _BaseProposal:
+    proposal_id: str
+    proposer:    str                 # "composer" | "generalizer" | "hypothesizer" | "reflector"
+    evidence_role: str               # GATHER | VERIFY | REASON | COMMIT  (Skill Bank §0.3 Clause B)
+    evidence_interface: EvidenceInterfaceDecl
+    target_domains: list             # MUST include all 5: game, webagent, os-agent, video, visual_reasoning
+    adapter_plan:   dict             # per-domain adapter strategy (even if stub)
+    replay_slice_ids: list           # replay traces the harness should use for G0+G3
+    rationale: str                   # short English justification (teacher output)
+
+class PatchProposal(_BaseProposal):
+    target_skill_id: str
+    patch_kind: str                  # "precondition" | "protocol" | "contract" | "warrant-strengthen"
+    patch_body:  dict
+
+class ComposeProposal(_BaseProposal):
+    components: list                 # ordered list of sub-skill_ids (evidence-driven, already in the bank)
+    compose_op: str                  # "sequence" | "branch" | "loop" | "while-insufficient"
+    # If the composed macro would have no evidence_in/out of its own, this MUST be realized
+    # as a ComposeProposal over evidence-driven sub-skills, NEVER as a standalone PLAN-family
+    # skill (which does not exist under §0.3 Clause B).
+
+class TransferProposal(_BaseProposal):
+    source_skill_id: str
+    new_adapter:     dict            # target-domain adapter spec
+    evidence_interface_remap: dict   # how source-domain EvidenceRef kinds map to target-domain kinds
+                                     # (if this is empty and source/target evidence kinds differ,
+                                     #  the harness will reject with `evidence_interface_mismatch`)
+
+class RetireProposal(_BaseProposal):
+    target_skill_id: str
+    retire_reason: str               # "opaque" | "evidence-starved" | "subsumed" | "unsafe"
+                                     # | "regressing" | "superseded"
+    evidence_stats: dict             # recent episodes' evidence_in/out coverage, to justify retirement
+```
+
+**Gate-time rejection rules (applied before the proposal reaches Stage-4 staging):**
+
+- `evidence_role` missing or outside `{GATHER, VERIFY, REASON, COMMIT}` → reject.
+- `evidence_interface.evidence_inputs_spec` and `evidence_outputs_or_warrant_spec` both empty → reject (opaque-skill violation, §0.3 Clause A).
+- `target_domains` not covering all five → reject (general-protocol invariant, §0.1).
+- `TransferProposal` with differing source/target evidence kinds and empty `evidence_interface_remap` → reject (anticipated `evidence_interface_mismatch`).
+- `ComposeProposal` whose components are not all themselves evidence-driven (any `component.evidence_role` missing) → reject.
+
+These rules make "ALL skills are evidence-driven" a property the Crafter cannot violate by construction: any proposal that would create an opaque skill is blocked before it ever gets replayed.
 
 ---
 
@@ -340,6 +404,7 @@ Not all failures are the same. The reflector classifies each failure into a cate
 | **stale_context** | Relied on outdated state information | Board changed between GROUND and EXECUTE | Re-observe before acting |
 | **logical_error** | Reasoning step drew wrong conclusion from correct inputs | Chose wrong merge direction despite seeing the board correctly | Revise reasoning rule / protocol |
 | **missing_information** | Needed data the agent didn't have | Couldn't infer hidden tile from history | Add RETRIEVE hop or request more context |
+| **evidence_starved** | Skill executed with empty `evidence_in ∪ evidence_out`, or `evidence_role`-required fields unset, across ≥ N recent episodes — skill is no longer assisting reasoning (Gate G0 violation, [PLAN-HARNESS.md §10](PLAN-HARNESS.md#10-promotion-gates)) | A `REASON` skill that stopped citing any `evidence_in` after a slot-binding drift; a `COMMIT` skill with empty `evidence_warrant` | Emit a `PatchProposal{patch_kind: "warrant-strengthen"}` requiring citation of specific evidence kinds, or a `RetireProposal{retire_reason: "evidence-starved"}` if the pattern persists |
 | **cascading_failure** | Earlier soft error amplified into hard failure at later step | Slightly wrong grounding → wrong CHECK → wrong EXECUTE | Trace back to root cause step |
 | **resource_exhaustion** | Ran out of hops / time / tokens before completion | Complex chain exceeded hop budget | Simplify protocol or increase budget |
 

@@ -1,6 +1,8 @@
 # PLAN: Pipeline Orchestrator (End-to-End Harness)
 
-**Scope:** Define the **single top-level runner** that closes the loop across [Visual Grounding](PLAN-VISUAL-GROUNDING.md), [Action Agent](PLAN-ACTION-AGENT.md), [Skill Bank](PLAN-SKILL-BANK.md), and [Skill Crafter](PLAN-SKILL-CRAFTER.md). This plan is **glue**: schedulers, artifacts, gates, budgets, memory contracts, and full-system evaluation — not a new research module.
+**Scope:** Define the **single top-level runner** that closes the loop across [Visual Grounding](PLAN-VISUAL-GROUNDING.md), [Action Agent](PLAN-ACTION-AGENT.md), [Skill Bank](PLAN-SKILL-BANK.md), and [Skill Crafter](PLAN-SKILL-CRAFTER.md). The orchestrator is the **domain-general control plane** for grounding → reasoning → skill retrieval → action → verification → promotion → rollback, with **evidence & trace bookkeeping** (not a memory subsystem) plus budgets, artifacts, gates, and full-system evaluation.
+
+**Scope boundaries (deliberate).** The orchestrator is domain-general across game / webagent / os-agent / video-understanding / visual reasoning. Its **first evaluation track** is **no-memory short-video evidence-grounded reasoning** (Video-Holmes-style). This repo does **not** include a memory subsystem and does **not** target long-horizon video; the orchestrator carries no memory APIs and makes no assumption that skills depend on a separate memory layer.
 
 **Problem statement:** Sub-plans already specify module orchestrators (e.g., bank maintenance, grounding evaluation harness). What is missing is one **executable DAG** that repeatedly: collects rollouts → grounds → runs inner-hop reasoning → acts → logs traces → updates the bank → runs the crafter → **verifies** → promotes or rolls back → schedules training → re-evaluates — with explicit **acceptance gates**, **budget control**, and **observability**.
 
@@ -85,13 +87,14 @@ The harness is only as debuggable as its **unified telemetry**. Treat logs as **
 ### 2.2 Required record types
 
 1. **`EpisodeMeta`** — domain, task, goal, seed, model adapters, budget snapshot at episode start.
-2. **`GroundingRecord`** — raw routing (Path A/B/C if applicable), latency, escalation reason, optional tool traces.
+2. **`GroundingRecord`** — raw routing (Path A/B/C if applicable), latency, escalation reason, optional tool traces; **canonical `evidence_out`** for `GATHER`-role skills (see [PLAN-VISUAL-GROUNDING.md §3a](PLAN-VISUAL-GROUNDING.md#3a-shared-output-schema-both-domains-emit-this)): carries `evidence_id`, `source`, `kind`, `anchor`, `confidence`, `verified_by`.
 3. **`InnerHopRecord`** — sequence of inner actions; slot coverage flags; uncertainty scores; re-ground triggers.
-4. **`ActionRecord`** — chosen env action, parse path, valid-set constraints.
+4. **`ActionRecord`** — chosen env action, parse path, valid-set constraints, **`evidence_warrant: List[EvidenceRef]`** (non-empty for any committed env action or final answer, per [PLAN-ACTION-AGENT.md §5.3-bis](PLAN-ACTION-AGENT.md)).
 5. **`RewardRecord`** — `r_env`, `r_follow`, `r_cost`, and components.
-6. **`BankMutationProposal`** — segmented spans, contract deltas, merge/split ops — **staged**, not live until gate.
-7. **`GateVerdict`** — pass/fail, failing checks list, replay diffs, non-regression metrics.
-8. **`TrainJobSpec`** — which LoRA/timescale, data snapshot IDs, seed, cluster target.
+6. **`SkillEpisode`** — per-skill-invocation record from the Harness (see [PLAN-HARNESS.md §5.1](PLAN-HARNESS.md#51-skillepisode)); carries `evidence_role`, `evidence_in`, `evidence_out`, `evidence_warrant`, `verify_verdict`, `reason_warrant`, `contract_progress`, `outcome`, and transfer-diagnostic labels. This is the record Gate G0 operates on.
+7. **`BankMutationProposal`** — segmented spans, contract deltas, merge/split ops — **staged**, not live until gate. Typed subclasses: `PatchProposal | ComposeProposal | TransferProposal | RetireProposal` (see [PLAN-SKILL-CRAFTER.md §2.5](PLAN-SKILL-CRAFTER.md)); every subclass declares `evidence_role` and `evidence_interface`.
+8. **`GateVerdict`** — pass/fail, failing checks list, replay diffs, non-regression metrics; carries zero or more typed diagnostic labels including `opaque_skill_violation`, `evidence_interface_mismatch`, `skill_role_mismatch` (see [PLAN-HARNESS.md §10a](PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific)).
+9. **`TrainJobSpec`** — which LoRA/timescale, data snapshot IDs, seed, cluster target.
 
 ### 2.3 Storage layout (logical)
 
@@ -144,35 +147,41 @@ Frozen 32B/72B proposals remain **candidates** until they pass the same gate sta
 
 ---
 
-## 4. Memory interfaces
+## 4. Evidence & trace bookkeeping (no-memory contract)
 
-Long-horizon video and social reasoning need a **first-class memory subsystem**; this section defines **orchestrator-facing interfaces** so memory is not an implicit side channel.
+This repo has **no memory subsystem** — no episodic/semantic store, no long-term write/query layer. What the orchestrator does maintain is a **within-episode evidence & trace contract** that is sufficient for short-video evidence-grounded reasoning and for web / os / game / visual-reasoning skills. Anything beyond within-episode is out of scope here.
 
-### 4.1 Stores (logical)
+The contract is richer than a plain "log all tool calls" contract because of the **evidence-driven invariant** ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)): every skill is required to either consume or produce addressable evidence. If `<state>.evidence_refs` and the claim–evidence link store below are not preserved episode-wide and rolled up into `SkillEpisode` records, Gate G0 cannot be evaluated, and skills would silently drift away from actually assisting reasoning. The bookkeeping below is the substrate that lets the Harness enforce "ALL skills are evidence-driven" mechanically rather than by convention.
 
-Align with existing three-store framing referenced across plans:
+### 4.1 What the orchestrator maintains per episode
 
-| Store | Role | Orchestrator hooks |
-|-------|------|---------------------|
-| **Episodic** | Time-indexed observations, events, dialogue | `memory.write_episode_span`, `memory.query_temporal` |
-| **Semantic** | Facts, entity summaries, relational generalizations | `memory.assert_fact`, `memory.query_graph` |
-| **State / working** | Current beliefs, open subgoals, slot fillers | `memory.snapshot`, `memory.apply_hop_update` |
+| Slice | Contents | Lifetime |
+|-------|----------|----------|
+| **Current structured state** | Latest `<state>` from grounding (entities, attributes, relations, targets, uncertainty) | Replaced every outer step |
+| **Short typed trace** | Ordered `InnerHopRecord` + `ActionRecord` from this episode | Cleared at episode boundary |
+| **Evidence references** | Domain-appropriate pointers: clip/frame IDs for video, DOM-node + screenshot region IDs for web, desktop object + window IDs for os, tool-call IDs for visual reasoning | Episode-scoped |
+| **Claim–evidence links** | `(claim_id → evidence_ref[])` produced by `CHECK` / `COMMIT` inner actions | Episode-scoped |
+| **Transfer diagnostics** | For any reused skill: `(skill_id, source_domain, target_domain, binding_verdict, replay_pass)` | Episode-scoped, rolled up into §6a metrics |
 
-### 4.2 Grounding alignment
+No store is persisted across episodes as "memory". Skill-bank snapshots (§3) and the evidence logs in §2 are the only durable artifacts.
 
-Every memory read/write must record **`schema_hash` alignment**: if grounding revises entities, memory operations must either **re-anchor** or **version** entries. The harness logs **alignment events** for debugging drift.
+### 4.2 Evidence references, not memory reads
 
-### 4.3 Retrieval contract
+`RETRIEVE` inner actions retrieve **skills** from the bank (read-only against the active `bank_snapshot_id`). They do **not** query a memory store. Evidence that the agent wants to cite in subsequent hops must appear as an `evidence_ref` in the current state — which is produced by grounding or by a tool call, not by a memory API.
 
-`RETRIEVE` inner actions call a single **`MemoryRetrievalRequest`** shape: query type, scope (episode vs corpus), budget (tokens + latency), and **evidence pointers** returned for `CHECK`.
+### 4.3 Grounding alignment
 
-### 4.4 Compression & eviction
+When grounding revises entities mid-episode (schema drift), the orchestrator:
 
-Policies (summarize, merge, drop low utility) run on **scheduled jobs**, not the hot path, unless the budget controller (§7) requests an emergency summarize. Eviction is **audited** — tombstone records remain in logs.
+1. Records a `schema_revision_notice` on the next `GroundingRecord` (see [PLAN-VISUAL-GROUNDING.md §`GroundingRecord`]).
+2. Invalidates claim–evidence links whose entity anchors no longer resolve.
+3. Re-issues `GROUND` for any affected slot before the next `COMMIT` / `EXECUTE`.
 
-### 4.5 Relation to other docs
+There is no memory re-anchoring step because there is no cross-episode memory to re-anchor.
 
-Detailed memory algorithms may live in a future `PLAN-MEMORY-SUBSYSTEM.md` or external design notes; until then, this section is the **integration contract** the orchestrator enforces.
+### 4.4 Relation to other docs
+
+An eventual long-horizon / multi-session memory layer is **out of scope** for this repo and intentionally deferred. If it is ever reintroduced it must arrive as a separate `PLAN-MEMORY-SUBSYSTEM.md` with its own acceptance-gate contract; until then the current evidence-and-trace contract above is the orchestrator's authoritative surface for "what the agent remembers within an episode."
 
 ---
 
@@ -228,12 +237,14 @@ Visual grounding has strong module metrics; the orchestrator adds **full-pipelin
 | **Gate pass rate** | Proposals accepted / total proposals |
 | **Bank churn** | Promotions + rollbacks per 1k episodes |
 
-### 6.3 Memory (when enabled)
+### 6.3 Evidence & trace quality (no-memory contract)
 
 | Metric | Definition |
 |--------|------------|
-| **Retrieval precision@k** | Human or automatic label on evidence usefulness |
-| **Anchor consistency** | Contradiction rate after re-ground |
+| **Evidence sufficiency** | Fraction of `CHECK` / `COMMIT` hops whose claim is backed by at least one valid `evidence_ref` |
+| **Anchor consistency** | Fraction of claim–evidence links that still resolve after the next `GroundingRecord` (zero schema drift = 1.0) |
+| **Short-video chain validity** | On Video-Holmes-style tasks: fraction of final answers whose full evidence chain replays successfully on frozen frames |
+| **Cross-domain evidence coverage** | For reused skills: fraction of `evidence_refs` populated by the target-domain adapter (vs. empty / stubbed) |
 
 ### 6.4 Slices
 
@@ -268,7 +279,7 @@ BudgetController.state(episode_id) → remaining budgets
 BudgetController.consume(span_id, cost_vector) → ok | deny | degrade
 ```
 
-`degrade` must map to **explicit** behaviors (e.g., skip optional `CHECK`, summarize memory) — never silent omission without logging.
+`degrade` must map to **explicit** behaviors (e.g., skip optional `CHECK`, drop an `evidence_ref` enrichment, shorten the typed trace) — never silent omission without logging.
 
 ---
 

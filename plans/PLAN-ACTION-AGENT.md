@@ -2,6 +2,8 @@
 
 **Scope:** The decision-making agent that consumes structured `<state>` schemas from the [Visual Grounding](PLAN-VISUAL-GROUNDING.md) pipeline and selects/executes environment actions guided by skills from the [Skill Bank](PLAN-SKILL-BANK.md).
 
+**Scope boundaries (deliberate).** The Action Agent is **domain-general** across game / webagent / os-agent / video-understanding / visual reasoning — the inner-action alphabet and the three-layer actor (§5) carry across all of them (see [§5.3a Cross-domain semantics](#53a-cross-domain-semantics-of-inner-actions)). The skills it invokes are **general protocols feasible across all five target domains** ([Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)); the agent does not consume domain-specific skill families. The **first evaluation arena** for the agent and its retrieved protocols is **no-memory short-video evidence-grounded reasoning** (Video-Holmes-style) — that determines which adapters and eval slices are wired first, not what kind of skills exist. This repo has no memory subsystem; `RETRIEVE` targets only the skill bank, and within-episode evidence lives in the structured `<state>`.
+
 **Upstream:** Structured schema from visual grounding (vlm_wrapper heads); skill guidance from Skill Bank.
 **Downstream:** Environment actions; experience trajectories fed back to Skill Bank and GRPO training.
 
@@ -342,8 +344,8 @@ If Layer A produces a confident action path (e.g. high-confidence state + high-c
 
 **Layer B — Lightweight inner MDP** (only when local uncertainty remains).
 Resolves local uncertainty via short typed hops:
-- do I need to verify a condition? → CHECK
-- do I need to fetch memory / evidence? → RETRIEVE
+- do I need to verify a condition against current evidence? → CHECK
+- do I need a reusable skill / protocol? → RETRIEVE (from the skill bank — no memory store in this repo)
 - is the state stale or insufficient? → GROUND (optional)
 - can I commit this local sub-decision? → COMMIT
 
@@ -360,11 +362,39 @@ The inner action space is a small, fixed, typed vocabulary — no free-form oper
 |---|---|---|
 | `GROUND` *(optional)* | Refresh or refine the structured state | `entity_query`, `scene`, `region:e5` |
 | `CHECK` | Verify a condition relevant to the current skill or subgoal | `can_continue_current_skill`, predicate name |
-| `RETRIEVE` | Query skill bank / episodic memory / evidence | `skill_bank:<intention>`, `episodic_memory:recent_similar_failure` |
+| `RETRIEVE` | Fetch a reusable skill / protocol from the skill bank (no memory store in this repo) | `skill_bank:<intention>`, `skill_bank:locate_filter_select` |
 | `COMMIT` | Finalize the local sub-decision (internal state update) | subgoal id |
 | `EXECUTE` | Choose and emit the environment action; exits the inner loop | env action |
 
 `EXECUTE` is always the terminal hop of Layer B; everything else is non-terminal. `COMMIT` replaces the older, looser `CONCLUDE` token — the name makes clear it is a local finalization, not a free-form conclusion.
+
+#### 5.3-bis Inner-hop ↔ `evidence_role` contract (enforced by the Harness)
+
+Every skill in the bank declares an `evidence_role` ([PLAN-SKILL-BANK.md §0.3 Clause B](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)). The Action Agent **may not** invoke a skill whose `evidence_role` does not match the inner hop under which it is being invoked; mismatches are raised as `contract-violation: skill-role-mismatch` by the Harness (see [PLAN-HARNESS.md §10 Gate G0](PLAN-HARNESS.md#10-promotion-gates)).
+
+| Inner hop | Allowed `evidence_role` | Required episode fields at hop exit |
+|-----|-----|-----|
+| `GROUND` | `GATHER` | `evidence_out ≠ ∅` (new grounding records written to `<state>.evidence_refs`) |
+| `RETRIEVE` | `GATHER` | `evidence_out ≠ ∅` (retrieved skill/protocol record treated as evidence-of-selection; empty retrieval ⇒ `INSUFFICIENT` and no COMMIT) |
+| `CHECK` | `VERIFY` | `evidence_in ≠ ∅`; `verify_verdict ∈ {PASS, FAIL, INSUFFICIENT}` written back to `<state>` |
+| `COMMIT` | `REASON` or `COMMIT` | `REASON` ⇒ `reason_warrant ⊆ evidence_in`, non-empty; `COMMIT` ⇒ `evidence_warrant ≠ ∅` |
+| `EXECUTE` | `COMMIT` | `evidence_warrant ≠ ∅`; the environment action (or final answer for QA domains) must be paired with this warrant in `ActionRecord` |
+
+This is the Action Agent side of the evidence-driven invariant: it guarantees that every hop in a trace leaves an evidence footprint — empty `evidence_in ∪ evidence_out` at the end of an inner episode is a contract violation, not merely a low-reward episode.
+
+### 5.3a. Cross-domain semantics of inner actions
+
+The inner-action alphabet is domain-general: the same five hops carry different surface forms across target domains while keeping one typed meaning. This is what makes inner traces transferable (see [Skill Bank §1.5](PLAN-SKILL-BANK.md#15-cross-task-transfer-objective)).
+
+| Hop | Cross-domain semantics | Game | Webagent | OS-agent | Video understanding | Visual reasoning |
+|-----|------------------------|------|----------|----------|----------------------|-------------------|
+| `GROUND` | Localize the relevant entity / region / control / frame / moment | unit / tile / legal-move object | UI control / DOM node | window / file / desktop object | clip frame / temporal moment | object / region / text span |
+| `CHECK` | Verify a claim or constraint against grounded evidence | predicate on game state | attribute on DOM element | attribute on desktop object | predicate on frame contents | predicate on region contents |
+| `RETRIEVE` | Fetch a reusable skill / protocol from the bank | skill over game entities | skill over UI elements | skill over desktop objects | skill over temporal evidence | skill over visual evidence |
+| `COMMIT` | Lock an intermediate belief or answer candidate | subgoal / chosen move | chosen control | chosen window / object | chosen evidence frame | chosen answer candidate |
+| `EXECUTE` | Emit a domain action — or, for QA domains, emit the final answer | env action | click / type / navigate | invoke / click / keystroke | emit answer with evidence chain | emit answer with region citation |
+
+**Implication.** Online the actor stays domain-general at the *hop level*; domain specialization lives only in (a) the adapter that resolves `TARGET` and (b) Layer C's final action/answer head.
 
 ### 5.4 Hop depth policy (strict caps)
 
@@ -393,7 +423,7 @@ or
 
 ```
 NEXT_HOP = RETRIEVE
-TARGET   = episodic_memory:recent_similar_failure
+TARGET   = skill_bank:locate_filter_select
 ```
 
 This keeps the inner MDP compatible with 8B and avoids the drift risk noted in §2 (borderline table). No free-form natural-language reasoning trace is emitted online; the online trace is short, typed, and targeted. Long-form natural-language reasoning is reserved for the offline tier.
@@ -543,7 +573,7 @@ All three agents must NOT co-evolve at full speed simultaneously — that create
 The synthesis-reflection agent (32B/72B) can improve over time WITHOUT weight updates through five channels:
 
 1. **Better input distribution** — as the 8B actor and skill bank improve, the synthesis agent sees cleaner trajectories, more reusable segments, better failure logs, and richer skill statistics.
-2. **Better memory / artifact store** — the system is: frozen LLM + failure memory + skill bank snapshots + verification logs + proposal archive. As external memories improve, the agent improves.
+2. **Better evidence organization, replay validation, and transfer routing** — the system is: frozen LLM + failure-pattern store (Crafter-private, not a system memory) + skill bank snapshots + replay slices + verification logs + proposal archive. As these artifact stores get better at *organizing evidence*, *validating replay*, and *routing transfer candidates*, the teacher improves without weight updates.
 3. **Better inference procedure** — upgrade the multi-pass reasoning procedure: better decomposition, proposal-then-verify, best-of-N, counterfactual replay, stricter acceptance filters.
 4. **Better verification and selection** — as the actor and bank mature, downstream usefulness can be measured more reliably. The teacher doesn't need to be smarter if the gatekeeping becomes smarter.
 5. **Distillation into smaller specialized modules** — train smaller adapters or submodules on the outputs that pass verification: a small failure-localizer, a contract writer, a protocol patch ranker, a transfer-mapping scorer.
@@ -669,7 +699,7 @@ See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guar
 | File | Purpose |
 |------|---------|
 | `decision_agents/agent.py` | `VLMDecisionAgent`, `run_tool()`, `run_episode_vlm_agent()` |
-| `decision_agents/agent_helper.py` | `get_state_summary()`, `infer_intention()`, `select_skill_from_bank()`, `EpisodicMemoryStore` |
+| `decision_agents/agent_helper.py` | `get_state_summary()`, `infer_intention()`, `select_skill_from_bank()` (no cross-episode memory store in this repo) |
 | `decision_agents/reward_func.py` | `RewardComputer`, `compute_reward()` |
 | `decision_agents/dummy_agent.py` | Baseline agent for comparison |
 | `scripts/qwen3_decision_agent.py` | Pipeline A (full skill lifecycle) |

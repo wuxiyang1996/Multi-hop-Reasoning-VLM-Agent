@@ -2,6 +2,15 @@
 
 **Goal:** Train a VLM as a visual parser that converts pixels into structured summaries, and build a full skill-based agent pipeline on top of it — from visual grounding through skill-guided action selection.
 
+**Primary transfer objective.** This project learns **transferable reasoning, grounding, and control skills across game, webagent, os-agent, video-understanding, and visual reasoning tasks**. Two invariants are enforced at the Harness gate, not just in prose:
+
+1. **General-protocol invariant.** Every skill in the bank is a general protocol feasible across all five domains — no domain-specific skill families, no "short-video-only" skills. See [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families).
+2. **Evidence-driven invariant.** Every skill is evidence-driven and exists only to assist reasoning / decision-making. Every skill declares one of four roles — `GATHER | VERIFY | REASON | COMMIT` — and records a non-empty evidence interface (`evidence_in` or `evidence_out`, plus role-specific fields like `evidence_warrant` for `COMMIT`) on every successful episode. Opaque skills (empty evidence on both sides) are rejected by Gate G0. See [Skill Bank §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills) and [Harness §10](PLAN-HARNESS.md#10-promotion-gates).
+
+See [Visual Skills](PLAN-VISUAL-SKILLS.md) and [Harness](PLAN-HARNESS.md) for the transfer machinery that enforces both invariants.
+
+**Near-term execution focus.** The first evaluation and deployment target is **no-memory short-video evidence-grounded reasoning** (Video-Holmes-style). Short-video is the first **arena** in which general protocols are exercised — it is not a separate class of skills. See [Current execution focus](#current-execution-focus) for what this repo does and does not include.
+
 ---
 
 ## Pipeline overview
@@ -32,7 +41,7 @@ Pixels (game frame / screenshot / video)
 | 3 | **[Skill Bank](PLAN-SKILL-BANK.md)** | **Cross-task** skill bank for reasoning and control across games, web, video, visual reasoning, and embodied tasks. Skill as structured-state program (§0.5), shared inner primitives + adapter-based binding (§1.5), unified structured state interface with entity ontology (§3), typed slots + domain adapters in data model (§4), 5-stage pipeline, effect families + 3-layer hierarchy (§8), 6 transferable skill families (§9), **asymmetric GRPO co-evolution with acceptance gates (§7)**, phase detection across domains (§5), query/select API with cross-domain retrieval (§6) |
 | 4 | **[Skill Crafter](PLAN-SKILL-CRAFTER.md)** | Skill composition (effect chaining + hop protocol chaining), cross-domain generalization (schema-slot transfer), transferable skill families (4 cross-domain families), novel skill hypothesis, **frozen teacher design with phased adaptation policy (§2)**, **frozen teacher improvement channels (§2)**, failure reflection & counterfactual reasoning, integration with visual grounding tool traces |
 | 5 | **[Visual Skills](PLAN-VISUAL-SKILLS.md)** *(optional)* | Transferable visual grounding strategies as skills — unified skill format for cross-domain transfer (preconditions/effects/slots/adapters), two kinds of effects (world vs belief/grounding), effect families, cross-domain entity ontology, three-layer skill bank hierarchy, automatic skill discovery from state transitions |
-| 6 | **[Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md)** | End-to-end harness — rollout DAG (online + offline), unified artifact/log schema, centralized acceptance gate with promotion/rollback, memory integration contracts, training cadence by timescale, full-system evaluation matrix, budget controller, failure escalation and human audit points |
+| 6 | **[Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md)** | End-to-end harness — rollout DAG (online + offline), unified artifact/log schema, centralized acceptance gate with promotion/rollback, **evidence & trace bookkeeping contracts** (no separate memory subsystem), training cadence by timescale, full-system evaluation matrix, budget controller, failure escalation and human audit points |
 | 7 | **[Skill Harness](PLAN-HARNESS.md)** | Per-invocation runtime for skill use, validation, and transfer — `SkillEpisode`, `SkillHarness`, `AdapterRegistry`, `TransferManager`, `ReplayValidator`, `RewardLogger`; semantic-skill vs. domain-adapter separation; two-phase shadow→active transfer protocol; five-gate promotion (binding / adapter / replay / shadow / non-regression); Phase 0+1 as the immediate implementation target; composes with Pipeline Orchestrator (macro DAG) as its micro runtime |
 
 **Design reference:** [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md) — the two-level MDP framing that unifies the component plans (grounding through bank/crafter); the [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) specifies cross-cutting execution and gates.
@@ -113,7 +122,7 @@ The system decomposes into three logical agents with distinct model assignments 
 **Key design principles:**
 - The 32B/72B teacher is frozen first. Its outputs are *candidate proposals*, admitted only after multi-pass verification and held-out replay checks.
 - Co-evolution is asymmetric: fast GRPO for the actor, selective GRPO for skill-side operational decisions, slow verified large-model reflection for synthesis.
-- The frozen teacher improves via better input data, better memory, better inference procedures, better verification, and optional distillation — not weight updates (initially).
+- The frozen teacher improves via better input data, better **evidence organization**, better **replay validation**, better **transfer routing**, better inference procedures, better verification, and optional distillation — not weight updates (initially).
 - See [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition) for the full co-evolution design and training schedule.
 
 ### LoRA adapter layout
@@ -149,6 +158,20 @@ The system decomposes into three logical agents with distinct model assignments 
 
 ---
 
+## Current execution focus
+
+The skill ontology is cross-domain and transferable across **game / webagent / os-agent / video-understanding / visual reasoning**, and **every skill in the bank is a general protocol feasible across all five** ([Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). The current repo narrows the *execution target* — not the skill ontology — to keep scope tractable:
+
+- **No memory subsystem in this repo.** There is no episodic or semantic store, no memory APIs, no long-term write/query/summarize layer. Everything the agent uses within an episode flows through the structured `<state>`, the short typed trace, and adapter-provided evidence references.
+- **No long-video reasoning in this repo.** Hour-scale video, long-horizon dialogue memory, and multi-session continuity are out of scope.
+- **First benchmark target:** **short-video multi-hop reasoning** with evidence chaining (Video-Holmes-style).
+- **What short-video exercises:** general protocols such as `collect_evidence_chain`, `disambiguate_target`, `locate_filter_select`, `actor_action_binding`, and `verify_constraint` — each of which carries five-domain adapter bindings from day one. Short-video is the first arena where these protocols earn their `verified_domains` entry; it is not a separate skill family.
+- **Skill ontology is fixed across phases:** every protocol's adapters for game / webagent / os-agent / visual reasoning exist alongside the video adapter and are exercised in a staggered order, but the protocols themselves are the same.
+
+See [PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md) for the evidence & trace bookkeeping contract that replaces the earlier memory-subsystem framing.
+
+---
+
 ## One-sentence framing
 
-We train a VLM as a visual parser — supervised by the text state that game and web environments already provide for free — that converts pixels into structured summaries for a skill-based agent pipeline, and learns to call environment APIs for information it cannot see. Online execution uses 8B models with GRPO; offline skill synthesis and reflection use a frozen 32B/72B teacher whose outputs are verified before admission.
+This project builds a no-memory, skill-centric agent that learns **transferable reasoning, grounding, and control skills as general protocols feasible across game, webagent, os-agent, video-understanding, and visual reasoning** — with **short-video evidence-grounded reasoning** as the first arena where those protocols are exercised and verified. Online execution uses 8B models with GRPO; offline skill synthesis and reflection use a frozen 32B/72B teacher whose outputs are verified before admission.

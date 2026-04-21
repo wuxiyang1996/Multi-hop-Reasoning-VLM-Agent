@@ -133,6 +133,26 @@ evidence_chain=[hop1,hop2]
 confidence={high|medium|low}
 """
 
+# PLAN-VISUAL-GROUNDING §3a — `<evidence_refs>` is the canonical
+# `evidence_out` channel that satisfies Skill-Bank Gate G0.  Each line
+# is one ``GroundingRecord`` produced by a grounding head or tool call
+# and addressable by `evidence_id`.  A grounding call that updates only
+# `<entities>` / `<attributes>` without emitting a corresponding
+# `<evidence_refs>` row does NOT satisfy Gate G0, because downstream
+# REASON / COMMIT skills cannot cite it as warrant.
+_SECTION_EVIDENCE_REFS = """\
+<evidence_refs>
+ev1.evidence_id={short_id}
+ev1.source={heuristic|vision|omniparser|tool:<tool_id>}
+ev1.kind={entity|region|frame|temporal_window|text_span|dom_node|desktop_object}
+ev1.anchor={eid|bid|frame=<idx>|bbox=x,y,w,h|text_span=...}
+ev1.confidence={high|medium|low}
+ev1.verified_by={ev_id of a VERIFY-role record, or null}
+(one block per addressable evidence record — emit at least one
+ evidence_refs row for every grounding tool call so downstream skills
+ can cite it; reuse `ev_id` instead of recomputing the same evidence.)
+"""
+
 _SECTION_FOOTER = "</state>"
 
 _SECTION_MAP: dict[str, str] = {
@@ -145,6 +165,7 @@ _SECTION_MAP: dict[str, str] = {
     "uncertainty": _SECTION_UNCERTAINTY,
     "actions": _SECTION_ACTIONS,
     "evidence": _SECTION_EVIDENCE,
+    "evidence_refs": _SECTION_EVIDENCE_REFS,
     "answer": _SECTION_ANSWER,
 }
 
@@ -665,7 +686,7 @@ def parse_answer_block(schema_text: str) -> dict[str, str | None]:
 
 _SECTION_RE = re.compile(
     r"<(?P<name>entities|attributes|affordances|relations|state_flags|targets|"
-    r"uncertainty|actions|evidence|answer)>(?P<body>.*?)"
+    r"uncertainty|actions|evidence|evidence_refs|answer)>(?P<body>.*?)"
     r"(?=<\w+>|</state>)",
     re.DOTALL,
 )
@@ -1493,6 +1514,266 @@ def reconcile_evidence_with_tool_trace(
             warnings.append(
                 f"tool {tool_name} was called {len(records)}x with positive "
                 f"results but is not referenced in any hop (evidence gap)"
+            )
+
+    return warnings
+
+
+# ── GroundingRecord — canonical evidence_out (PLAN-VISUAL-GROUNDING §3a) ─
+
+# Allowed enum values for ``GroundingRecord.source`` and ``.kind``.  The
+# `tool:<tool_id>` form is also accepted for `source`, with the suffix
+# being any registered tool name.
+GROUNDING_SOURCES_ATOMIC: tuple[str, ...] = (
+    "heuristic", "vision", "omniparser",
+)
+GROUNDING_KINDS: tuple[str, ...] = (
+    "entity", "region", "frame", "temporal_window",
+    "text_span", "dom_node", "desktop_object",
+)
+GROUNDING_CONFIDENCES: tuple[str, ...] = ("high", "medium", "low")
+
+
+@dataclass
+class GroundingRecord:
+    """Canonical ``evidence_out`` emitted by any grounding head / tool.
+
+    A ``GroundingRecord`` is what the Skill-Bank Harness counts at
+    Gate G0 (PLAN-SKILL-BANK §0.3 evidence-driven invariant): a
+    GATHER-role skill must put one row per produced piece of evidence
+    into ``<state>.<evidence_refs>`` so a downstream REASON / COMMIT
+    skill can cite it as warrant.
+
+    Attributes
+    ----------
+    evidence_id : str
+        Short stable id (``"ev1"``, ``"ev2"`` …).  Sequential within a
+        single ``<state>`` block; reused across hops if the same record
+        is referenced again.
+    source : str
+        ``"heuristic"`` | ``"vision"`` | ``"omniparser"`` | ``"tool:<id>"``.
+    kind : str
+        What the record is anchored to.  One of ``GROUNDING_KINDS``.
+    anchor : str
+        Free-form anchor descriptor — typically ``eN``, ``bid=...``,
+        ``frame=N``, ``bbox=x,y,w,h``, or ``text_span=...``.  The
+        downstream skill consults `kind` to know how to interpret it.
+    confidence : str
+        ``"high"`` | ``"medium"`` | ``"low"`` — mirrors the per-entity
+        ``<uncertainty>`` value for this record.
+    verified_by : str or None
+        Optional back-reference to a VERIFY-role evidence id that
+        checked this record (PLAN-SKILL-BANK §1.2 verification chain).
+    """
+
+    evidence_id: str
+    source: str
+    kind: str
+    anchor: str
+    confidence: str = "medium"
+    verified_by: str | None = None
+
+    def to_lines(self) -> list[str]:
+        """Render this record as the ``evN.<key>=<value>`` lines used
+        inside the ``<evidence_refs>`` block."""
+        ev = self.evidence_id
+        return [
+            f"{ev}.evidence_id={self.evidence_id}",
+            f"{ev}.source={self.source}",
+            f"{ev}.kind={self.kind}",
+            f"{ev}.anchor={self.anchor}",
+            f"{ev}.confidence={self.confidence}",
+            f"{ev}.verified_by={self.verified_by or 'null'}",
+        ]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "evidence_id": self.evidence_id,
+            "source": self.source,
+            "kind": self.kind,
+            "anchor": self.anchor,
+            "confidence": self.confidence,
+            "verified_by": self.verified_by,
+        }
+
+    def is_valid(self) -> tuple[bool, list[str]]:
+        """Return ``(ok, errors)`` after enforcing the §3a contract."""
+        errors: list[str] = []
+        if not re.fullmatch(r"ev\d+", self.evidence_id):
+            errors.append(
+                f"evidence_id={self.evidence_id!r} must match `ev\\d+`"
+            )
+        valid_source = (
+            self.source in GROUNDING_SOURCES_ATOMIC
+            or self.source.startswith("tool:")
+        )
+        if not valid_source:
+            errors.append(
+                f"source={self.source!r} must be one of "
+                f"{GROUNDING_SOURCES_ATOMIC} or `tool:<id>`"
+            )
+        if self.kind not in GROUNDING_KINDS:
+            errors.append(
+                f"kind={self.kind!r} must be one of {GROUNDING_KINDS}"
+            )
+        if self.confidence not in GROUNDING_CONFIDENCES:
+            errors.append(
+                f"confidence={self.confidence!r} must be one of "
+                f"{GROUNDING_CONFIDENCES}"
+            )
+        if not self.anchor.strip():
+            errors.append("anchor must be non-empty")
+        if self.verified_by is not None and not re.fullmatch(
+            r"ev\d+", self.verified_by,
+        ):
+            errors.append(
+                f"verified_by={self.verified_by!r} must match `ev\\d+` "
+                f"or be null"
+            )
+        return (not errors, errors)
+
+
+# Per-record line patterns inside ``<evidence_refs>``.
+_EV_REF_FIELD_RE = re.compile(
+    r"^(ev\d+)\.(evidence_id|source|kind|anchor|confidence|verified_by)\s*=\s*(.+?)\s*$",
+    re.MULTILINE,
+)
+
+
+def parse_evidence_refs(
+    schema_text: str,
+) -> list[GroundingRecord]:
+    """Parse ``<evidence_refs>`` rows out of a schema string.
+
+    Returns an ordered list of ``GroundingRecord`` (one per ``evN``).
+    Missing fields fall back to safe defaults so a partially-emitted
+    block still yields usable records — call ``record.is_valid()`` to
+    reject malformed ones at Gate G0.
+    """
+    sections = _split_sections(schema_text)
+    body = sections.get("evidence_refs")
+    if not body:
+        return []
+
+    by_id: dict[str, dict[str, str]] = {}
+    for m in _EV_REF_FIELD_RE.finditer(body):
+        ev_id, key, val = m.group(1), m.group(2), m.group(3).strip()
+        by_id.setdefault(ev_id, {})[key] = val
+
+    records: list[GroundingRecord] = []
+    for ev_id in sorted(by_id, key=lambda x: int(x[2:] or "0")):
+        fields = by_id[ev_id]
+        verified = fields.get("verified_by", "null")
+        records.append(
+            GroundingRecord(
+                evidence_id=fields.get("evidence_id", ev_id),
+                source=fields.get("source", "heuristic"),
+                kind=fields.get("kind", "entity"),
+                anchor=fields.get("anchor", ""),
+                confidence=fields.get("confidence", "medium"),
+                verified_by=None if verified.lower() == "null" else verified,
+            )
+        )
+    return records
+
+
+def render_evidence_refs(
+    records: list[GroundingRecord],
+) -> str:
+    """Render a list of ``GroundingRecord`` as an ``<evidence_refs>`` block.
+
+    Intended for tools / heuristic adapters that build the schema
+    programmatically rather than letting the VLM write it — the result
+    is a drop-in replacement for the placeholder section in the system
+    prompt template.
+    """
+    if not records:
+        return ""
+    lines = ["<evidence_refs>"]
+    for rec in records:
+        lines.extend(rec.to_lines())
+    return "\n".join(lines) + "\n"
+
+
+def validate_evidence_refs(
+    schema_text: str,
+    *,
+    require_for_tool_calls: list[str] | None = None,
+) -> list[str]:
+    """Check that ``<evidence_refs>`` satisfies Gate G0.
+
+    Parameters
+    ----------
+    schema_text : str
+        Full ``<state>…</state>`` block.
+    require_for_tool_calls : list[str], optional
+        If given, every tool name in this list must appear as the suffix
+        of a ``source=tool:<id>`` row.  Use this from the Harness when
+        you know which grounding tools were actually invoked and want to
+        flag schemas that updated entities silently without recording
+        the warrant.
+
+    Returns
+    -------
+    list[str]
+        Warnings (empty = OK).  These are warnings, not errors, because
+        the upstream ``<evidence>`` (per-hop trace) is still useful even
+        when ``<evidence_refs>`` is missing — but Gate G0 callers should
+        treat any non-empty result as a contract violation.
+    """
+    warnings: list[str] = []
+    records = parse_evidence_refs(schema_text)
+
+    if not records:
+        if "<evidence_refs>" in schema_text:
+            warnings.append(
+                "<evidence_refs> section present but contains no parseable "
+                "ev_id rows"
+            )
+        if require_for_tool_calls:
+            warnings.append(
+                "<evidence_refs> is empty but required_for_tool_calls="
+                f"{require_for_tool_calls!r} — Gate G0 violation: "
+                "downstream skills cannot cite this grounding"
+            )
+        return warnings
+
+    seen_ids: set[str] = set()
+    for rec in records:
+        ok, errors = rec.is_valid()
+        if not ok:
+            warnings.append(
+                f"{rec.evidence_id} is malformed: {'; '.join(errors)}"
+            )
+        if rec.evidence_id in seen_ids:
+            warnings.append(
+                f"duplicate evidence_id={rec.evidence_id} in <evidence_refs>"
+            )
+        seen_ids.add(rec.evidence_id)
+
+    if require_for_tool_calls:
+        recorded_tools = {
+            rec.source.split("tool:", 1)[1].strip()
+            for rec in records
+            if rec.source.startswith("tool:")
+        }
+        missing = [
+            t for t in require_for_tool_calls
+            if t not in recorded_tools
+        ]
+        if missing:
+            warnings.append(
+                "tools called but not recorded in <evidence_refs> "
+                f"(Gate G0): {missing}"
+            )
+
+    # verified_by must point at a known ev_id within the same block
+    known = {rec.evidence_id for rec in records}
+    for rec in records:
+        if rec.verified_by and rec.verified_by not in known:
+            warnings.append(
+                f"{rec.evidence_id}.verified_by={rec.verified_by} points "
+                f"at unknown record (not declared in <evidence_refs>)"
             )
 
     return warnings

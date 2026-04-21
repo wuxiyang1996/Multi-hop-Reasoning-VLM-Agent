@@ -454,6 +454,24 @@ Return best attempt + high uncertainty flags (Path C candidate)
 
 ## 10. Implementation status (from [Visual Grounding §16](PLAN-VISUAL-GROUNDING.md))
 
+Snapshot 2026-04-21.  Newly-completed rows (this iteration) link to
+their source files so the next pair of eyes can audit them quickly:
+
+- Benchmark loaders → `vlm_wrapper/benchmarks/{gqa.py, siv_bench.py}`
+  (registered in `vlm_wrapper/benchmarks/__init__.py`).
+- Evaluation harness → `vlm_wrapper/eval/{metrics.py, harness.py, run_eval.py}`,
+  CLI: `python -m vlm_wrapper.eval.run_eval --benchmark clevr|gqa|video_holmes|siv_bench`.
+- Phase-0 data collection → `labeling/grounding/{collect_gymv.py,
+  collect_browser.py, cross_validate.py}` — outputs land in
+  `labeling/output/grounding/{gymv,browser}/triples.jsonl` with
+  `hard_cases.jsonl` next to them.
+- `schema_gen` LoRA scaffolding →
+  `trainer/SFT/schema_gen/{config.py, data_loader.py, train.py}`; run
+  `python -m trainer.SFT.schema_gen.train --inspect_only` to dry-run
+  the dataset assembly, drop `--inspect_only` to launch the real SFT.
+- `<evidence_refs>` + `GroundingRecord` → `vlm_wrapper/schema.py`
+  (`_SECTION_EVIDENCE_REFS`, `parse_evidence_refs`, `validate_evidence_refs`).
+
 | Component | Status | Milestone target |
 |-----------|--------|:----------------:|
 | Unified pipeline `ground()` | **Done** | — |
@@ -471,12 +489,14 @@ Return best attempt + high uncertainty flags (Path C candidate)
 | **Cascaded head escalation** | **Done** | Week 2 |
 | **Benchmark loaders** — CLEVR | **Done** | Week 6 |
 | **Benchmark loaders** — Video-Holmes | **Done** | Week 6 |
-| **Benchmark loaders** — GQA, SIV-Bench | **TODO** | Week 6 |
-| **Evaluation harness** | **TODO** | Week 4 |
+| **Benchmark loaders** — GQA, SIV-Bench | **Done** | Week 6 |
+| **Evaluation harness** | **Done** | Week 4 |
 | **Re-observation (Option B) for GROUND hops** | **Done** | Week 8 |
-| **Qwen3-VL-8B training pipeline** | **TODO** | Week 3 |
-| **Data collection scripts** (Gym-V, BrowserGym) | **TODO** | Week 1 |
+| **Qwen3-VL-8B training pipeline** | **Scaffolded** | Week 3 |
+| **Data collection scripts** (Gym-V, BrowserGym) | **Done** | Week 1 |
 | **Actor schema integration** | **Done** | Week 7 |
+| **`<evidence_refs>` schema section + `GroundingRecord`** | **Done** | Week 1 |
+| **Heuristic ↔ vision cross-validation harness** | **Done** | Week 2 |
 
 ### Five-domain pipeline feasibility (snapshot 2026-04-19)
 

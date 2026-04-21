@@ -122,6 +122,17 @@ a2={action_string}
 
 **Schema as inner MDP state:** Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)), this schema is the state representation for the inner reasoning MDP. Each GROUND/CHECK hop updates entities, relations, or uncertainty. The `<targets>` and `<uncertainty>` sections drive the agent's decision to continue reasoning (more hops) or act (EXECUTE). Shared slot names (`target`, `blocker`, `constraint`, `candidate_set`, `history_anchor`) are the vocabulary that makes reasoning skills transferable across domains.
 
+**`GroundingRecord` as canonical `evidence_out`.** Under the evidence-driven invariant ([PLAN-SKILL-BANK.md §0.3](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)), a `GroundingRecord` emitted by any grounding head (§4 Head 1 / Head 2 / Head 3, or by a tool-calling loop) is the **canonical `evidence_out`** for a `GATHER`-role skill ([PLAN-VISUAL-SKILLS.md §2](PLAN-VISUAL-SKILLS.md#2-two-kinds-of-skill-effects)). It carries:
+
+- `evidence_id` — fresh unique ID appended to `<state>.evidence_refs` (new `<evidence_refs>` section; additive to the schema above)
+- `source` — `heuristic | vision | omniparser | tool:<tool_id>`
+- `kind` — `entity | region | frame | temporal_window | text_span | dom_node | desktop_object`
+- `anchor` — what the grounding is anchored to (image bbox, clip frame id, DOM bid, etc.)
+- `confidence` — mirrors `<uncertainty>` for this record
+- `verified_by` — optional back-reference to a `VERIFY`-role episode that checked this record
+
+A `GroundingRecord` that is written to `<state>.evidence_refs` is what the Harness counts as `evidence_out` at Gate G0. A grounding call that updates only `<entities>` / `<attributes>` without emitting a corresponding `evidence_refs` entry **does not** satisfy Gate G0, because downstream `REASON` / `COMMIT` skills cannot cite it as warrant. This is deliberate: it forces grounding to be addressable evidence, not ambient state mutation.
+
 ### 3b. Design constraints for small VLM (Qwen3-VL-8B)
 
 - Target structured summary: **300–800 tokens** (output side).

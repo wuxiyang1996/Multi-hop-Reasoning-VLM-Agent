@@ -17,6 +17,30 @@ A skill should be a state-transition program with evidence — not a text instru
 
 For cross-domain transfer to work, the skill format must be grounded in the shared state schema rather than in domain-specific action names.
 
+### 0.1 Implementation priority (skills stay general protocols)
+
+Every visual / grounding skill in this plan is a **general protocol feasible across game, webagent, os-agent, video-understanding, and visual reasoning** (see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). The skill format, the effect families (§4), and the cross-domain ontology (§5) apply to all five target domains, and no protocol in this plan is admitted unless it is feasible across all of them via adapter binding.
+
+What narrows is **implementation order for adapters and replay slices**, not skill content:
+
+- Short-video (Video-Holmes-style) is the first **evaluation arena** where general protocols like `collect_evidence_chain`, `disambiguate_target`, `locate_filter_select`, and `actor_action_binding` get their first `verified_domains` entry.
+- Adapters for game / webagent / os-agent / visual reasoning exist from day one (each protocol carries the full five-domain adapter contract); they are populated and replay-verified in a staggered order, but the protocols themselves do not change.
+- A protocol that turns out to only work on short video is not kept as a "short-video skill" — it is flagged as a failed transfer candidate and recorded in the originating skill's `known_failure_modes` / `do_not_transfer_if` (see [Skill Bank §4.3b](PLAN-SKILL-BANK.md)).
+
+### 0.2 Cross-domain `candidate_set` — one abstraction, five bindings
+
+The shared slot `candidate_set` is the canonical example of how a single semantic skill carries across all target domains. The *slot* does not change; only its adapter-provided members do.
+
+| Domain | Typical `candidate_set` members | "Select among candidates" looks like |
+|--------|---------------------------------|--------------------------------------|
+| Game | Legal moves / units / tiles at the current state | Choose the relevant move given goal + constraints |
+| Webagent | UI controls discovered in the DOM / screenshot | Select the relevant control (button, link, input) |
+| OS-agent | Windows / files / desktop objects in focus | Isolate the relevant window or object among desktop entities |
+| Video understanding | Temporal moments / frames / clip segments | Pick the key moment for a claim (evidence frame) |
+| Visual reasoning | Objects / regions / text spans in the image | Isolate the answer-bearing object/region |
+
+A skill written over `candidate_set` plus a filter/role criterion works in all five without rewriting its protocol — the adapter supplies the set and the domain-specific effect realization.
+
 ---
 
 ## 1. Why extend skills to visual grounding?
@@ -66,6 +90,15 @@ A grounding skill's "effect" is not a world state change — it is a cognitive s
 
 This distinction matters for contracts: grounding skill contracts use predicates like `binding()`, `confidence()`, `candidate_count()`, `evidence_chain_length()` rather than `selected()`, `opened()`, `moved()`.
 
+**`evidence_role` mapping ([PLAN-SKILL-BANK.md §0.3 Clause B](PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills)).** Visual / grounding skills fall into two evidence roles and only two:
+
+| Skill kind | `evidence_role` | Required episode fields |
+|-----|-----|-----|
+| Grounding / localization / inspection / segmentation / temporal-window discovery | `GATHER` | `evidence_out ≠ ∅` — the produced [`GroundingRecord`](PLAN-VISUAL-GROUNDING.md) is the canonical `evidence_out` |
+| Anchor / consistency / constraint / sufficiency checks over grounded evidence | `VERIFY` | `evidence_in ≠ ∅`; `verify_verdict ∈ {PASS, FAIL, INSUFFICIENT}` |
+
+A visual skill that selects an answer with a cited evidence chain is not a `GATHER`/`VERIFY` skill in this plan — it is a `COMMIT` skill living in the main [Skill Bank](PLAN-SKILL-BANK.md) that *consumes* `evidence_in` produced by the `GATHER`/`VERIFY` skills here. This separation keeps visual-skill semantics cleanly on the evidence-production side and prevents opaque "look-then-act" macros from entering this plan.
+
 ---
 
 ## 3. Unified skill format for cross-domain transfer
@@ -79,8 +112,9 @@ Domain-agnostic identity:
 ```yaml
 skill_id: acquire_target
 name: Acquire Target
-category: acquisition          # effect family (§4)
-intent_tag: bind_and_focus     # what the skill is trying to achieve
+evidence_role: GATHER           # §2 mapping; required by Skill Bank §0.3
+category: acquisition           # task-effect family (§4); must be consistent with evidence_role
+intent_tag: bind_and_focus      # what the skill is trying to achieve
 ```
 
 Names should be domain-agnostic: `acquire_target`, `open_container`, `navigate_to_region`, `disambiguate_candidate`, `verify_goal_state` — not `click_submit_button`, `double_click_icon`, `jump_over_pipe`.

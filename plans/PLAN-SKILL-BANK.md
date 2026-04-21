@@ -1,8 +1,10 @@
 # PLAN: Cross-Task Skill Bank for Reasoning and Control
 
-**Scope:** Build and maintain a Skill Bank from long-horizon structured trajectories across **games, web agents, long videos, visual reasoning, and embodied tasks**. The Skill Bank discovers reusable skills, learns their protocols and symbolic contracts, and exposes them to the [Action Agent](PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
+**Scope:** Build and maintain a cross-domain Skill Bank from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The bank stores **transferable reasoning, grounding, and control skills** defined over shared state abstractions and verified outcome contracts, and exposes them to the [Action Agent](PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
 
-**Upstream:** Structured episode trajectories from the Action Agent; structured schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); intermediate reasoning traces; visual grounding outputs; memory retrieval traces; execution outcomes / verification signals. These inputs may come from multiple domains, but are converted into a shared typed structured representation before skill discovery and maintenance.
+**Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **no-memory short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions and no dependency on a memory subsystem (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract)).
+
+**Upstream:** Structured episode trajectories from the Action Agent; structured schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); intermediate reasoning traces; visual grounding outputs; within-episode evidence references (clip/frame / DOM / desktop / tool-call IDs); execution outcomes / verification signals. These inputs may come from multiple domains, but are converted into a shared typed structured representation before skill discovery and maintenance.
 **Downstream:** Skill guidance consumed by the Action Agent and the Reasoning Agent; skill contracts used for reward shaping; bank curation consumed by GRPO-based training loops.
 **Co-evolves with:** [Skill Crafter](PLAN-SKILL-CRAFTER.md) (which composes and creates new skills); [Visual Skills](PLAN-VISUAL-SKILLS.md) (optional grounding strategy layer).
 
@@ -10,9 +12,67 @@
 
 ## 0. Goal
 
-Build and maintain a **Skill Bank** from long-horizon structured trajectories across **games, web agents, long videos, visual reasoning, and embodied tasks**. The Skill Bank should discover reusable skills, learn their protocols and symbolic contracts, and expose them to the Action Agent through retrieval and selection APIs.
+Build and maintain a **Skill Bank** from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The Skill Bank should discover reusable skills, learn their protocols and symbolic contracts, and expose them to the Action Agent through retrieval and selection APIs.
 
-The key design goal is to store **transferable reasoning-and-control skills**, not only environment-specific action motifs. A skill should be reusable across tasks through shared state abstractions, shared inner primitives, and verifiable outcome contracts.
+The key design goal is to store **transferable reasoning, grounding, and control skills**, not only environment-specific action motifs. A skill should be reusable across tasks through shared state abstractions, shared inner primitives, and verifiable outcome contracts.
+
+### 0.1 General-protocol invariant (no domain-specific skill families)
+
+**Every skill in the bank is a general protocol** written over the shared `<state>` schema (§3) and the shared inner primitives (§1.5). A skill is only admitted if its protocol is **feasible across all five target domains** — game, webagent, os-agent, video-understanding, visual reasoning — through adapter binding (§4.3). There is no "short-video skill family," no "browser-only skill family," no per-domain sub-bank.
+
+Examples of general protocols (the bank's actual content):
+
+| General protocol | What it *means* (domain-independent) |
+|------------------|--------------------------------------|
+| `locate_filter_select` | Find-and-pick among typed candidates using a role / filter criterion |
+| `blocker_prerequisite_replan` | Detect a blocker, resolve its prerequisite, then resume the original target |
+| `disambiguate_target` | Resolve reference ambiguity from surrounding evidence and relations |
+| `collect_evidence_chain` | Assemble a claim-backing evidence set until a sufficiency criterion is met |
+| `verify_constraint` | Check a typed predicate against grounded evidence before committing |
+| `actor_action_binding` | Bind an actor entity to an action entity via relations in `<state>` |
+
+Each protocol instantiates across every target domain via the same `candidate_set` / `target` / `blocker` / `constraint` / `history_anchor` slots (see [Visual Skills §0.2](PLAN-VISUAL-SKILLS.md#02-cross-domain-candidate_set--one-abstraction-five-bindings) for the five-domain binding table).
+
+### 0.2 What "execution priority" does and does not mean
+
+Narrowing the **execution/evaluation target** to no-memory short-video (Video-Holmes-style) is a **deployment and measurement choice**, not a skill-ontology choice. Concretely:
+
+- **What narrows:** which adapters are implemented first, which replay slices are built first, which transfer-failure diagnostics are exercised first (see [PLAN-HARNESS.md §10a.2](PLAN-HARNESS.md)), which `DomainEvalMatrix` slice is populated first.
+- **What does not narrow:** the skill format, the protocol vocabulary, the effect families, the typed slots, the promotion gates, or which protocols the Crafter is allowed to synthesize. A skill that only works on short video is, by construction, *not a skill* for this bank — it is a failed transfer candidate and belongs in `known_failure_modes` / `do_not_transfer_if` (see §4.3b).
+
+When short-video evaluation exercises `collect_evidence_chain` first, it is exercising a **general protocol** whose adapter bindings for game / webagent / os-agent / visual reasoning exist from day one; the short-video arena is simply where the first `verified_domains` entry is written.
+
+### 0.3 Evidence-driven invariant (no opaque skills)
+
+**Every skill in the bank is evidence-driven and exists only to assist reasoning / decision-making.** Together with [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families), this is a hard admission rule enforced by the Harness gate (see [PLAN-HARNESS.md §10 Gate G0](PLAN-HARNESS.md)); it is not a stylistic guideline. A skill is admitted only if it satisfies **both** clauses below.
+
+**Clause A — Evidence interface (mechanically enforced).**
+Every successful `SkillEpisode e(s)` must record at least one of:
+
+- `evidence_in: List[EvidenceRef]` — references read by `s` from `<state>.evidence_refs` (clip/frame IDs, DOM node IDs, desktop element IDs, tool-call IDs, or prior inner-hop outputs in the same outer step);
+- `evidence_out: List[EvidenceRef]` — the evidence delta written by `s` (new grounding records, new claim–evidence links, new verification outcomes, new hypothesis-with-warrant entries).
+
+An episode whose `evidence_in ∪ evidence_out = ∅` is an **opaque-skill violation** and rejects the skill at promotion. `evidence_in ∪ evidence_out ≠ ∅` is a hard precondition for entering the bank.
+
+**Clause B — Evidence role (declared, typed, checked).**
+Every skill declares exactly one `evidence_role` drawn from the closed set below. This is **orthogonal to** the task-effect taxonomy in [§8](#8-effect-families-and-skill-hierarchy) (Acquisition / Verification / Tracking / …): §8 is about *what state change* a skill produces in the world or belief; `evidence_role` is about *what role* the skill plays in the evidence-and-decision contract. Both fields are carried on every skill; §8's label must be consistent with `evidence_role` (e.g., a §8 `Verification` skill has `evidence_role = VERIFY`).
+
+`evidence_role` determines which evidence fields are required at episode time and which inner-MDP action may invoke the skill (see [PLAN-ACTION-AGENT.md §5](PLAN-ACTION-AGENT.md#5-lightweight-inner-mdp-typed-local-control)).
+
+| `evidence_role` | Purpose | Required episode fields | Invokable under inner action |
+|-----|-----|-----|-----|
+| `GATHER` | produce new evidence (grounding, retrieval, inspection, segmentation) | `evidence_out ≠ ∅` | `GROUND`, `RETRIEVE` |
+| `VERIFY` | check evidence against a typed predicate (anchor, constraint, consistency) | `evidence_in ≠ ∅`; `verdict ∈ {PASS, FAIL, INSUFFICIENT}` | `CHECK` |
+| `REASON` | derive a new hypothesis, ranking, or sufficiency judgment warranted by a recorded evidence subset | `evidence_in ≠ ∅`; `warrant: List[EvidenceRef]` (subset of `evidence_in`) | `CONCLUDE` |
+| `COMMIT` | emit a decision / action / answer with explicit evidence backing | `evidence_warrant: List[EvidenceRef]` (non-empty, required) | `COMMIT`, `EXECUTE` |
+
+No other `evidence_role` is admissible. In particular:
+
+- **Pure motor macros** (action sequences with no evidence warrant) are **not** skills.
+- **Pure templates** (e.g., prompt templates that don't touch `<state>`) are **not** skills.
+- **Pure planners / decomposers** that don't themselves cite what they conditioned on are **not** skills as a standalone entry; if they condition on `<state>` they become `REASON` skills with the conditioning evidence as `evidence_in`; otherwise they belong in the Crafter's `ComposeProposal` path as a composition of evidence-driven sub-skills (see [PLAN-SKILL-CRAFTER.md](PLAN-SKILL-CRAFTER.md)).
+
+The right-most column is part of the Action Agent contract: the Action Agent MAY NOT invoke a skill whose `evidence_role` does not match the inner-MDP action it is instantiating. Mismatches are raised as `contract-violation: skill-role-mismatch` events by the Harness.
 
 ---
 
@@ -29,8 +89,9 @@ Instead of defining skills as raw environment-dependent action macros, we define
 
 This lets the same high-level skill transfer across:
 - games
-- web/UI environments
-- long-video reasoning settings
+- web / UI environments
+- desktop / OS agent environments
+- short-video reasoning settings (first eval target)
 - visual reasoning tasks
 - embodied / robotics tasks
 
@@ -66,7 +127,7 @@ The Skill Bank consumes:
 - structured episode trajectories
 - intermediate reasoning traces (inner MDP hop chains)
 - visual grounding outputs (entities, relations, evidence)
-- memory retrieval traces
+- within-episode evidence references (clip / frame / DOM / desktop-object / tool-call IDs)
 - execution outcomes / verification signals
 
 These inputs may come from multiple domains, but are converted into a shared typed structured representation before skill discovery and maintenance.
@@ -76,8 +137,9 @@ These inputs may come from multiple domains, but are converted into a shared typ
 The Skill Bank serves:
 - the Action Agent (skill selection, protocol following, active skill tracking)
 - the Reasoning Agent (hop chain templates, evidence strategies)
-- the Memory / Retrieval controller (skill-relevant memory queries)
 - bank curation and GRPO-based training loops
+
+The bank does **not** serve a memory subsystem (there is none in this repo); evidence references are carried inside the structured `<state>` within an episode (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract)).
 
 ---
 
@@ -97,7 +159,7 @@ Skills are written using reusable reasoning/control primitives from the inner MD
 |-----------|---------|
 | `GROUND` | Locate / bind entities from visual or structured input |
 | `CHECK` | Verify a relation, attribute, or constraint |
-| `RETRIEVE` | Query skill bank, memory, or prior observations |
+| `RETRIEVE` | Query the skill bank (by `bank_snapshot_id`) for a reusable skill/protocol; within-episode evidence is already in `<state>.evidence_refs` |
 | `COMMIT` | Commit an intermediate result or subgoal |
 | `ACT` / `EXECUTE` | Emit an environment action (exits inner loop) |
 | `VERIFY` | Confirm that expected effects hold after execution |
@@ -128,8 +190,7 @@ Signals may include:
 - phase transitions (see §5)
 - action-mode switches (grounding → reasoning → action)
 - intention / subgoal changes
-- memory handoffs
-- evidence handoffs
+- evidence handoffs (claim → supporting `evidence_refs`)
 - grounding failures or uncertainty spikes reported by adapters
 - tool usage pattern changes
 
@@ -266,8 +327,7 @@ state:
     history_anchor: eid | null
 
   uncertainty: dict[eid, str]    # per-entity confidence (high | medium | low)
-  memory_refs: list[str]         # references to episodic memory entries
-  evidence_refs: list[str]       # references to collected evidence chains
+  evidence_refs: list[str]       # within-episode evidence pointers (clip/frame, DOM node, desktop object, tool-call id) — no cross-episode memory
   action_candidates: list[str]   # valid actions in the current state
 ```
 
@@ -307,21 +367,30 @@ Each skill has three logical parts:
 
 - `skill_id`, `name`, `strategic_description`, `tags`
 - `skill_type`: `"reasoning"` | `"action"` | `"grounding"` | `"mixed"`
-- `category`: effect family (see §8)
+- `evidence_role` **(required, §0.3 Clause B)**: one of `GATHER | VERIFY | REASON | COMMIT`. Determines which inner-MDP action may invoke the skill and which evidence fields are required at episode time.
+- `category`: task-effect family label used for retrieval/tagging (see §8); must be consistent with `evidence_role` (e.g., §8 `Verification` ⇒ `evidence_role = VERIFY`).
 - `protocol`: steps (using shared inner primitives), preconditions, success_criteria, abort_criteria, expected_duration
 - `typed_slots`: slot variables with ontology types (§3.2)
 - `confidence`
 - Used by `skill_bank_to_text()`, `query_skill_bank()`, and to set `active_skill_plan`
 
-### 4.2. Contract (what the reward system uses)
+### 4.2. Contract (what the reward system and the Harness gate use)
 
 - `eff_add`: predicates that should become true (world-effects + belief-effects)
 - `eff_del`: predicates that should become false
 - `eff_event`: event predicates
-- `evidence_required`: what evidence must be collected for the effects to be verifiable
-- Used for segmentation verification, reward shaping (r_follow), and stage 2↔3 feedback
+- `evidence_interface` **(required, §0.3 Clause A)**:
+  - `evidence_inputs_spec`: typed description of `EvidenceRef` kinds the skill expects to read (may be empty only if `evidence_role == GATHER`)
+  - `evidence_outputs_or_warrant_spec`: typed description of what the skill is expected to write, per its `evidence_role`:
+    - `GATHER` → declared `evidence_out` kinds (grounding records, retrieved items, segmentation spans)
+    - `VERIFY` → declared `verdict` domain and referenced evidence kinds
+    - `REASON` → declared hypothesis schema plus `warrant` shape (which `evidence_in` subset is cited)
+    - `COMMIT` → declared decision/action schema plus `evidence_warrant` shape (non-empty, required)
+  - `opacity_check`: the Harness rejects any episode whose recorded `evidence_in ∪ evidence_out = ∅` (opaque-skill violation, §0.3 Clause A).
+- `evidence_required` (legacy field, kept for reward shaping): which `evidence_out` entries must be present for a reward signal to fire; a subset of `evidence_outputs_or_warrant_spec`.
+- Used for segmentation verification, reward shaping (r_follow), stage 2↔3 feedback, and **the Gate G0 evidence-driven contract check** in [PLAN-HARNESS.md §10](PLAN-HARNESS.md).
 
-**The agent plans from protocols and is rewarded for making progress on the contract's eff_add predicates.**
+**The agent plans from protocols, is rewarded for making progress on the contract's eff_add predicates, and is gated on the evidence interface: a skill whose episodes do not touch evidence is not promoted regardless of its reward.**
 
 ### 4.3. Transfer interface (what enables cross-domain reuse)
 
@@ -330,6 +399,33 @@ Each skill has three logical parts:
 - `domain_adapters`: per-domain execution realizations (how abstract operators map to concrete tools/actions)
 - `transfer_hints`: domains where this skill has been validated
 - `reasoning_protocol`: hop chain template using inner MDP actions
+
+### 4.3a. Lineage / provenance
+
+Every skill carries its own audit trail so the acceptance gate and the transfer protocol can reason about *why* it exists and *where* it has been proven to work.
+
+| Field | Meaning |
+|-------|---------|
+| `origin_trace_ids` | Episode + step IDs of the trajectories from which the skill was mined or composed |
+| `source_domains` | Domains the skill was originally extracted from |
+| `verified_domains` | Domains where the skill has passed replay + promotion (subset of target domains) |
+| `failure_clusters` | IDs of failure clusters (see [Skill Crafter §6.7](PLAN-SKILL-CRAFTER.md)) this skill was intended to patch |
+| `promotion_reason` | Short text + pointer to the `GateVerdict` that last promoted the current version |
+| `rollback_reason` | Present only for retired/quarantined skills; short text + pointer to the triggering regression |
+| `adapter_history` | List of `(target_domain, adapter_id, verdict)` binding attempts in reverse chronological order |
+
+### 4.3b. Negative knowledge
+
+The bank broadens transfer risk as it broadens domain coverage; negative knowledge bounds that risk.
+
+| Field | Meaning |
+|-------|---------|
+| `anti_preconditions` | Typed predicates that, if true in `<state>`, make this skill *unsafe* to invoke (short-circuit negatives, the dual of `preconditions`) |
+| `known_failure_modes` | Named failure patterns observed in replay / rollouts, each with a short signature (state predicates + trace shape) |
+| `do_not_transfer_if` | Target-domain predicates that block the transfer protocol from attempting to bind this skill (e.g., `domain == video_qa AND requires_actuation`) |
+| `false_binding_patterns` | Slot-binding patterns that historically looked plausible but produced contract failures (e.g., `candidate_set` from visual similarity without role filter) |
+
+These fields are populated by: (a) failure reflection in the Crafter (see [PLAN-SKILL-CRAFTER.md §6](PLAN-SKILL-CRAFTER.md)), (b) gate rollbacks in the orchestrator (§3.3), and (c) transfer-protocol quarantines in the Harness (see [PLAN-HARNESS.md §6](PLAN-HARNESS.md)).
 
 ### 4.4. Reasoning skills (inner MDP hop chain templates)
 
@@ -340,7 +436,13 @@ Under the two-level MDP (see [Action Agent §5](PLAN-ACTION-AGENT.md#5-lightweig
 ```
 skill: constraint_satisfaction
 skill_type: reasoning
+evidence_role: REASON        # derives a blocker-resolution hypothesis from cited evidence
 category: verification
+evidence_interface:
+  evidence_inputs_spec:  [blocker_grounding_record, constraint_check_result, retrieved_past_resolution]
+  evidence_outputs_or_warrant_spec:
+    hypothesis: {subgoal: str, blocker_id: EvidenceRef}
+    warrant:    [blocker_grounding_record, constraint_check_result]   # non-empty subset of evidence_in
 trigger: state_flags.error != null OR target.blocker != null
 slots:
   blocker: blocking_entity
@@ -365,7 +467,13 @@ domain_adapters:
 ```
 skill: locate_filter_select
 skill_type: mixed
+evidence_role: COMMIT          # emits a target selection with non-empty evidence_warrant
 category: acquisition
+evidence_interface:
+  evidence_inputs_spec:  [candidate_grounding_records, filter_check_results]
+  evidence_outputs_or_warrant_spec:
+    decision: {selected_target: EvidenceRef}
+    evidence_warrant: [filter_check_results, candidate_grounding_records]   # non-empty
 trigger: candidate_set is non-empty AND target is unresolved
 slots:
   target: selectable_entity
