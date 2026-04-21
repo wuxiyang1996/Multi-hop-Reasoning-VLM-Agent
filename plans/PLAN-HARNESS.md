@@ -783,3 +783,127 @@ We introduce a **Skill Harness** as a unified runtime and evaluation orchestrati
 ## 19. Immediate next target
 
 **Phase 0 + Phase 1.** Build `SkillEpisode`, `SkillHarness`, and `AdapterRegistry`, then route all current skill usage through them **before** implementing transfer promotion. That is the cleanest starting point; everything else (TransferManager, ReplayValidator, promotion gates, eval harness, trainable LoRAs) stacks cleanly on top once the Harness owns the execution surface.
+
+---
+
+## 20. (Optional) Harness Ablations
+
+**Status:** Optional appendix. Run once Phase 0–4 (§14) are functional and the joint task evaluation contract ([PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md)) reports stable numbers. Skip this section if the project is still pre-MVP.
+
+This appendix defines a **minimal ablation suite** for the Harness itself: what the Harness contributes *beyond the Actor* and *beyond the skill bank*. It is intentionally small. The default development loop should not wait on it; it exists so that, when the Harness is shipped, we can defend the claim that the Harness — not just the Actor or the skill bank — is doing measurable work.
+
+### 20.1 Why Harness needs explicit ablations
+
+The Harness sits between the Actor (trainable, 7B/8B) and the Skill Bank (storage + retrieval). A naive read of the architecture invites two failure modes:
+
+- **"The Actor did it."** A skeptic can argue that any improvement attributed to the Harness is really the Actor learning to call good skills, and the Harness is just plumbing.
+- **"The bank did it."** A skeptic can argue that retrieval alone (with no binding/precondition/evidence/adapter checks) already returns the right skill most of the time, so the Harness's filtering / veto / scoring add nothing.
+
+Without explicit ablations these claims cannot be refuted. Module-level metrics (§15) measure *Harness internals* (slot binding rate, adapter pass rate) but they do not isolate the Harness's *contribution to system outcome*. The orchestrator-level eval ([PLAN-PIPELINE-ORCHESTRATOR.md §6](PLAN-PIPELINE-ORCHESTRATOR.md), [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md)) explicitly requires separate analysis of actor quality, harness filtering/veto quality, system performance, skill-use efficiency, reasoning-step usefulness, and transfer robustness — this appendix supplies the experimental design that makes those axes separable.
+
+The suite is also the place where the **frozen-72B-as-runtime-validator** claim ([§1a](#1a-harness-role-as-frozen-72b-runtime-layer)) is checked: ablation **A0** answers the converse — does the Actor still improve when the validation layer is removed?
+
+### 20.2 Core evaluation questions
+
+The suite must answer at least these four questions. Every ablation cell exists to move one of them. Anything that doesn't is dropped.
+
+| Q | Question | Primary signal |
+|---|----------|----------------|
+| **Q1** | Does the Harness improve **skill invocation validity**? | invalid invocation rate ↓; slot binding success rate ↑; precondition pass rate ↑; evidence pass rate ↑ |
+| **Q2** | Does the Harness improve **transfer safety**? | shadow→active promotion precision ↑; regression rate after transfer ↓; `opaque_skill_violation` / `evidence_insufficient` rates ↓ on cross-domain slices |
+| **Q3** | Does the Harness **reduce harmful or low-value skill execution**? | veto precision / veto recall (where ground truth available); avg skill-use cost / latency for unsuccessful invocations ↓; abort rate on bad candidates ↑ before side effects |
+| **Q4** | Does the **Actor itself** still improve, or is the frozen validation layer doing all the work? | actor decision quality (top-1 / top-k accuracy on the Harness-eligible set) over training time; gap between A0 and A4 attributable to the *trained Actor* vs. *frozen validation* |
+
+Q4 is the load-bearing question. If A0 (no Harness) shows the Actor failing to improve while A4 (full system) succeeds, **and** the Actor's standalone decision quality on the eligible set is rising, then both the Harness *and* the Actor are doing real work. If A0 and A4 differ but Actor decision quality on eligible sets is flat, the system is a 72B-driven policy in disguise ([§1a.5](#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor)) and the architecture story has failed.
+
+### 20.3 Ablation matrix
+
+A staged matrix. Each row removes or adds exactly one Harness capability vs. its neighbor, so deltas are attributable.
+
+| Cell | What is enabled | What is disabled | Purpose |
+|------|-----------------|------------------|---------|
+| **A0 — No Harness** | Actor + Skill Bank retrieval only. Actor calls retrieved skill directly; no binding/precondition/evidence/adapter checks; no veto. `SkillEpisode` still logged for measurement. | All Harness validation, scoring, veto, transfer gating. | Baseline. Isolates "Actor + bank alone." Answers Q4. |
+| **A1 — Harness-lite** | A0 + slot binding check + precondition check (G1 + applicability part of §7.1). Veto on bind/precondition failure only. | Evidence-role checks (G0), adapter validation (G2), replay (G3), shadow (G4), non-regression (G5), runtime veto on evidence/adapter, transfer gating. | Cheapest validation. Measures the contribution of *structural* checks alone. |
+| **A2 — Harness-core** | A1 + evidence-role / Gate G0 checks ([§5.1](#51-skillepisode)) + adapter validation (G2) + runtime veto on any failed check + advisory scoring ([§1a.6](#1a6-harness-as-teacher-like-advisor)). | Replay validation (G3), shadow execution (G4), non-regression (G5), promotion/rollback. | The core "filter + veto + advise" runtime. Measures Q1 and Q3. |
+| **A3 — Harness-transfer** | A2 + replay validation (G3) + shadow execution (G4) + transfer-aware ranking (§7.2). Cross-domain skills are admitted only after replay+shadow. | Promotion/rollback transactions, non-regression gate (G5). | Adds the transfer safety layer. Measures Q2 and the `opaque_skill_violation` / `evidence_insufficient` reductions on cross-domain slices. |
+| **A4 — Full system** | A3 + non-regression gate (G5) + promotion/rollback hooks ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)). Sustained G0 failures trigger demotion. | nothing. | Reference configuration. The shipped Harness. |
+
+**Constants across cells.** Same Actor checkpoint, same Skill Bank snapshot, same retrieval index, same evaluation slices, same seeds, same teacher escalation policy. Only the Harness configuration changes between cells.
+
+**Cell pairs that matter.**
+
+- **A0 → A1**: contribution of structural validation alone.
+- **A1 → A2**: contribution of evidence-driven invariant + veto (the part that defends [§1a.5](#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor)).
+- **A2 → A3**: contribution of replay+shadow to transfer safety.
+- **A3 → A4**: contribution of promotion/rollback (defense against silent regressions).
+- **A0 vs. A4**: total Harness contribution.
+
+### 20.4 Metrics
+
+Recorded for every (cell × slice) pair. Numbers come from `SkillEpisode` ([§5.1](#51-skillepisode)) plus the orchestrator's task-level eval ([PLAN-EVAL-FIRST-TARGET.md §6–7](PLAN-EVAL-FIRST-TARGET.md)).
+
+| Group | Metric | Source |
+|-------|--------|--------|
+| **System outcome** | task success / answer accuracy | task eval (joint success rate where defined) |
+| **System outcome** | evidence support rate | `support_package.evidence_warrant` non-empty + judge pass |
+| **Validity (Q1)** | invalid invocation rate | fraction of invocations with any of `binding_ok=False`, `precondition_ok=False`, `evidence_ok=False`, `adapter_ok=False` reaching execution |
+| **Validity (Q1)** | slot binding success rate | `SkillHarness.bind_skill` pass / attempts |
+| **Validity (Q1)** | precondition pass rate | `Skill.preconditions` pass / attempts |
+| **Validity (Q1)** | evidence pass rate | Gate G0 pass / `finalize_episode` calls |
+| **Validity (Q1)** | adapter pass rate | `AdapterRegistry.validate` pass / attempts |
+| **Veto quality (Q3)** | veto precision | vetoed-and-truly-bad / vetoed (ground truth from logged outcomes when veto is overridden in a sweep cell, plus replay) |
+| **Veto quality (Q3)** | veto recall | vetoed-and-truly-bad / all-truly-bad attempts |
+| **Veto quality (Q3)** | avg skill-use cost / latency | per `SkillEpisode`, broken down by outcome |
+| **Transfer (Q2)** | transfer pass rate | shadow → active promotion fraction |
+| **Transfer (Q2)** | regression rate after transfer | `source_domain_non_regression` (§15) flipped to a rate |
+| **Actor (Q4)** | actor top-1 / top-k accuracy on eligible set | Actor's choice vs. ground-truth-best skill *within* the Harness-eligible set, per cell |
+
+Veto precision/recall is only computable when truth is available (replay slices with logged outcomes, or sweep runs in cells where the veto is logged but not enforced). Where it is not, mark as `n/a` rather than fabricate.
+
+### 20.5 Dataset slices
+
+Same instance pool as the joint eval, partitioned along the four axes below. Every cell × slice combination is measured; do not collapse slices into a single grand mean.
+
+| Slice axis | Values | Purpose |
+|------------|--------|---------|
+| **Domain reuse** | `in_domain_reuse` (skill ran ≥1× in the source domain), `cross_domain_transfer` (skill is being applied to a domain it has not run in) | Separates Q1 (validity) from Q2 (transfer safety). |
+| **Promotion stage** | `before_promotion` (skill in shadow / pre-G4), `after_promotion` (skill ACTIVE) | Verifies that the gates actually filter — `after_promotion` numbers must dominate `before_promotion` numbers in A3/A4. |
+| **Difficulty** | `easy`, `hard` (per [PLAN-EVAL-FIRST-TARGET.md](PLAN-EVAL-FIRST-TARGET.md) `difficulty` metadata) | Detects ceilings: if A0 already saturates `easy`, the Harness's value will only show on `hard`. |
+| **Domain** | the five target domains ([§13.1](#131-what-stays-where), bank §0.1) | Required to back the "transfer is safe in domain X" claim with diagnostic distributions, not just aggregates. |
+
+Minimum slice budget per cell × slice: large enough that a 5-point absolute change in task success is distinguishable from noise at the slice level. Below that, mark the slice as under-powered and report the cell × slice number with an explicit confidence note rather than dropping the slice.
+
+### 20.6 Analysis templates
+
+Three reports per ablation run. Keep them short — one page each. They must keep the three signals **separated**; do not merge "actor decision quality" and "harness filtering quality" into a single chart.
+
+**(a) Actor decision quality — per cell.**
+For each cell, plot Actor top-1 accuracy on the Harness-eligible set over training steps. Same Actor, different upstream filters. The question is whether the Actor's *choice quality on a fixed eligible set* improves; if it does, the Actor is learning real skill-use policy and is not just a passenger.
+
+**(b) Harness filtering quality — per cell × slice.**
+Per cell, report the Validity and Veto metrics from §20.4. Compute the A0→A1, A1→A2, A2→A3 deltas with confidence intervals. This is the report that defends "the Harness reduces harmful or low-value skill execution."
+
+**(c) Overall system outcome — per cell × slice.**
+Task success / answer accuracy / evidence support rate per cell × slice, plus the Joint Success Rate from [PLAN-EVAL-FIRST-TARGET.md §7](PLAN-EVAL-FIRST-TARGET.md). Cross-domain rows here are how Q2 is settled.
+
+A run is reported as **"Harness contributes"** only if all three reports tell consistent stories: Actor decision quality is non-flat across cells, Harness filtering metrics improve monotonically A0→A4, and overall system outcome rises with the same shape — especially on `cross_domain_transfer` and `hard` slices.
+
+### 20.7 Minimal rollout order
+
+Run cells in the order that buys the most diagnostic value per unit of compute. Do not start at A4.
+
+1. **A0 and A4 first**, on a single small slice (one domain, mixed difficulty). Establishes that there is *any* gap to explain. If `A4 − A0 ≈ 0`, the rest of the suite is not worth running yet — go fix the Harness or the Actor first.
+2. **A2** on the same slice. Tells whether the gap is mostly the core filter+veto layer (A2≈A4) or mostly the transfer machinery (A2≪A4).
+3. **A1 and A3** to fill in the staircase, on the same slice.
+4. **All five cells × all four slice axes**, only after the staircase looks coherent on the small slice.
+5. **Cross-domain re-run** for A2/A3/A4 on the `cross_domain_transfer` slice with diagnostic-label breakdowns ([§10a](#10a-transfer-failure-diagnostics-domain-specific)).
+
+Stop early at any step whose result invalidates the next step's premise.
+
+### 20.8 Anti-goals
+
+- **Do not build a massive benchmark matrix in v1.** Five cells × four slice axes × five domains is the ceiling for the first version. Anything more belongs in a successor plan.
+- **Do not rely on one giant teacher model to "solve everything" during ablations.** The 72B is the frozen runtime validator ([§1a](#1a-harness-role-as-frozen-72b-runtime-layer)) and may be escalated to per the existing rules ([§9.2](#92-slow-loop--3272b-frozen-teacher)); it must not be promoted to *online policy* inside any ablation cell, including A0. The point of the suite is to attribute outcome to Harness components, not to the teacher.
+- **Do not redefine gate semantics, thresholds, or `SkillEpisode` schema inside this appendix.** Those live in [§5.1](#51-skillepisode), [§10](#10-promotion-gates), and [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md). The ablation suite *consumes* them; if it needs to change them, that is a signal to update the upstream plans first.
+- **Do not introduce new trainable models** to make a cell run. Cells differ only in which Harness capabilities are enabled, not in model identity or weights.
+- **Do not collapse Q1, Q2, Q3, Q4 into one number.** The point of the suite is that they are separable; merging them re-creates the ambiguity the suite was built to remove.
