@@ -12,14 +12,14 @@
 >
 > The P2 Harness Contract, P4 Typed Proposal Outputs, and P5 `GroundingRecord` drafts below should be read with these applied edits in mind — any proposal contract, action-agent output record, or grounding record they describe now also carries `evidence_role` / `evidence_in` / `evidence_out` / `evidence_warrant` as applicable. Where the drafts below and the applied text disagree, the applied text wins.
 
-> **Revision note 1 (supersedes memory-related sections below).** The repo is explicitly **no-memory + short-video-first**, with a **broad, cross-domain skill ontology** (game / webagent / os-agent / video-understanding / visual reasoning). Sections in this edit plan that assume a three-store memory subsystem (notably P1 §2.5's "Memory interfaces" framing, P2 §3.1's `memory_retrieval_interface` input, P5 §6's "memory alignment" integration note, and P7 §8.5's "three memory stores" guardrail) are **superseded** by the direct edits applied to the plan files on this same pass:
+> **Revision note 1 (episode-local trajectory + broad ontology, short-video-first).** The repo's only state-keeping surface is the orchestrator's **episode-local trajectory** — current `<state>`, short typed hop trace, intermediate belief state, within-episode evidence references — over a **broad, cross-domain skill ontology** (game / webagent / os-agent / video-understanding / visual reasoning). The corresponding edits have been applied directly to the live plan files on this same pass:
 >
-> - `PLAN-PIPELINE-ORCHESTRATOR.md §4` is rewritten as **Evidence & trace bookkeeping (no-memory contract)** — no episodic/semantic stores, no `MemoryRetrievalRequest`, just within-episode evidence references and a short typed trace.
-> - `PLAN-ACTION-AGENT.md`, `PLAN-SKILL-BANK.md`, `PLAN-SKILL-CRAFTER.md`, `PLAN-HARNESS.md`, and `README.md` carry the same no-memory stance plus a "broad ontology, short-video first" framing.
+> - `PLAN-PIPELINE-ORCHESTRATOR.md §4` is the canonical **Episode-local evidence & trace bookkeeping** section (current `<state>`, short typed hop trace, intermediate belief state, within-episode evidence references, claim–evidence links, transfer diagnostics).
+> - `PLAN-ACTION-AGENT.md`, `PLAN-SKILL-BANK.md`, `PLAN-SKILL-CRAFTER.md`, `PLAN-HARNESS.md`, and `README.md` consistently describe state-keeping as episode-local trajectory bookkeeping plus a "broad ontology, short-video first" framing.
 > - `PLAN-HARNESS.md §10a` adds **domain-specific transfer-failure diagnostics** (`slot_binding_failed`, `adapter_execution_mismatch`, `evidence_insufficient`, `temporal_mismatch`, `ui_grounding_mismatch`, `desktop_object_mismatch`, `overconfident_commit`, `contract_mismatch`).
 > - `PLAN-SKILL-BANK.md §4.3a / §4.3b` add **lineage/provenance** and **negative-knowledge** fields on every skill.
 >
-> Everything else in this document (P0 terminology reconciliation, P1 Why-it-Matters / Three Layers / Promotion Economy / Transfer Protocol / Ablations, P2 Harness Contract and Failure Taxonomy minus the memory input, P3 Transfer Readiness / Dual Storage / Lifecycle, P4 Typed Proposal Outputs, P5 enriched `GroundingRecord` minus the memory-alignment bullet, P6 README updates, P7 verification) still applies as written.
+> Where any draft below talks about cross-episode storage / retrieval interfaces / alignment integrations, the applied text in the orchestrator §4 and the other plan files wins. The applied text uses `RETRIEVE` for the skill bank only; everything the agent needs in subsequent hops must already exist in the episode-local trajectory.
 
 **Scope.** This is a *plan of edits* to the existing plan files, not a new module plan. It turns the earlier diagnosis ("the harness is a core contribution, not glue") into a concrete, ordered, Cursor-executable refactor of:
 
@@ -67,7 +67,7 @@ The repo currently has **two files both using "harness"** for different things:
 
 3. In `README.md` row 6 of the plan table, change the "Scope" cell for `PLAN-PIPELINE-ORCHESTRATOR.md` from the current "End-to-end harness — ..." to:
 
-   > **The Harness (control plane)** — single top-level DAG, typed trajectory interface, acceptance gate, promotion economy, cross-domain transfer protocol, evidence & trace bookkeeping (no-memory contract), budget contracts, full-system evaluation, harness-level ablations.
+   > **The Harness (control plane)** — single top-level DAG, typed trajectory interface, acceptance gate, promotion economy, cross-domain transfer protocol, episode-local evidence & trace bookkeeping, budget contracts, full-system evaluation, harness-level ablations.
 
 4. In `README.md` row 7 for `PLAN-HARNESS.md`, rename the display title from "Skill Harness" to **"Skill-Invocation Runtime (micro-harness)"** in the "Plan" cell; leave the file path unchanged.
 
@@ -96,13 +96,13 @@ Each phase below specifies exact section headers to add, insertion points, and v
 
 ## 2. P1 — Edits to `PLAN-PIPELINE-ORCHESTRATOR.md`
 
-**File state check.** Current section map (verified): `# title`, `## 1. Rollout DAG`, `## 2. Artifact / log schema`, `## 3. Promotion / rollback rules`, `## 4. Memory interfaces`, `## 5. Training cadence by timescale`, `## 6. Evaluation matrix`, `## 7. Budget controller`, `## 8. Failure escalation / human audit points`, `## 9. Implementation checklist`, `## 10. Related documents`.
+**File state check.** Current section map (verified): `# title`, `## 1. Rollout DAG`, `## 2. Artifact / log schema`, `## 3. Promotion / rollback rules`, `## 4. Episode-local evidence & trace bookkeeping`, `## 5. Training cadence by timescale`, `## 6. Evaluation matrix`, `## 7. Budget controller`, `## 8. Failure escalation / human audit points`, `## 9. Implementation checklist`, `## 10. Related documents`.
 
 ### 2.1 Rewrite the opening (Scope + Problem statement)
 
 **Replace** the current `**Scope:**` line (which calls the file "glue" and "not a new research module") with:
 
-> **Scope.** Define **the Harness** — the system-level control plane for cross-domain reasoning and control. The Harness maps heterogeneous observations and traces into a shared typed trajectory interface, coordinates grounding, within-episode evidence bookkeeping, skill retrieval, action execution, verification, promotion, rollback, and training, and makes skill transfer and self-evolution **measurable and safe**. (There is no memory subsystem in this repo — see [`PLAN-PIPELINE-ORCHESTRATOR.md §4`](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract).)
+> **Scope.** Define **the Harness** — the system-level control plane for cross-domain reasoning and control. The Harness maps heterogeneous observations and traces into a shared typed trajectory interface, coordinates grounding, episode-local evidence & trace bookkeeping, skill retrieval, action execution, verification, promotion, rollback, and training, and makes skill transfer and self-evolution **measurable and safe**. The orchestrator's only state-keeping surface is the episode-local trajectory in [`PLAN-PIPELINE-ORCHESTRATOR.md §4`](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping).
 
 **Replace** the `**Problem statement:**` paragraph with:
 
@@ -250,7 +250,7 @@ The Action Agent is a component *inside* the Harness ([PLAN-PIPELINE-ORCHESTRATO
 | `schema_hash` | Grounding | Detect schema drift; pin retrieval |
 | `bank_snapshot_id` | Harness promotion pointer | Freeze which skills are available this step |
 | `budget_state` | [Orchestrator §7](PLAN-PIPELINE-ORCHESTRATOR.md#7-budget-controller) | Remaining tokens / hops / tool calls |
-| `evidence_refs` (within-episode) | [Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract) | Clip/frame / DOM / desktop-object / tool-call IDs carried on `<state>` (no cross-episode memory reads) |
+| `evidence_refs` (within-episode) | [Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping) | Clip/frame / DOM / desktop-object / tool-call IDs carried on `<state>` |
 | `allowed_skill_scope` | Harness policy | Domain filter, quarantine filter |
 
 ### 1a.2 Outputs to the Harness
@@ -301,7 +301,7 @@ Every step-level or episode-level failure emits one or more labels on the `Failu
 | `protocol_following_failure` | Inner-hop chain deviated from retrieved skill's protocol | Actor GRPO negative reward |
 | `execution_failure` | Env rejected the action despite protocol compliance | Adapter registry, domain-level debug |
 | `reward_shaping_mismatch` | `r_env` / `r_follow` / `r_cost` produced misleading signal | Reward-shaping audit |
-| `schema_drift` | `schema_hash` changed mid-episode; previously grounded claim–evidence links no longer resolve | Re-issue `GROUND` for affected slots; orchestrator alert (no memory re-anchoring — this repo has no cross-episode memory) |
+| `schema_drift` | `schema_hash` changed mid-episode; previously grounded claim–evidence links no longer resolve | Re-issue `GROUND` for affected slots; orchestrator alert (the episode-local trajectory in §4 is the only state-keeping surface, so re-grounding rebuilds the affected slice directly) |
 
 Labels are attached to the replay slice used by the acceptance gate so that Crafter proposals targeting a label are evaluated against exactly the failures they claim to fix.
 ```
@@ -495,7 +495,7 @@ The acceptance gate in orchestrator §3.1 is parameterized by proposal type: `Pa
 
 **Additionally**, at the end of the section, add:
 
-> These fields are consumed by (a) Action Agent §10a failure taxonomy (to label grounding failures precisely), (b) Orchestrator §4 evidence & trace bookkeeping (to re-issue `GROUND` for affected slots on schema revisions — no memory re-anchoring because the repo has no cross-episode memory), and (c) the promotion economy §3a (as inputs to the uncertainty-reduction score).
+> These fields are consumed by (a) Action Agent §10a failure taxonomy (to label grounding failures precisely), (b) Orchestrator §4 episode-local evidence & trace bookkeeping (to re-issue `GROUND` for affected slots on schema revisions — re-grounding rebuilds the affected slice of current context directly, since the episode-local trajectory is the only state-keeping surface), and (c) the promotion economy §3a (as inputs to the uncertainty-reduction score).
 
 **Verification for P5.** Grep `GroundingRecord` across the plans; every reference should be consistent with the enriched schema.
 
@@ -583,7 +583,7 @@ Every ablation in orchestrator §6a must be *toggleable* via an existing config 
 Confirm that none of the edits added:
 - New trainable heads
 - New agents beyond the three in README §Three-agent role split
-- Any cross-episode memory store (this repo is no-memory — orchestrator §4 is evidence-and-trace bookkeeping only)
+- Any cross-episode storage layer (orchestrator §4 is the only state-keeping surface and is strictly episode-local)
 - New inner primitives beyond `GROUND | CHECK | RETRIEVE | COMMIT | EXECUTE`
 
 If any did, revert to the authoritative definition and link.
@@ -597,7 +597,7 @@ To keep the refactor tight and reviewable:
 - **No new plan files.** Every change is an in-place edit of an existing file, except this edit plan itself.
 - **No algorithm changes.** Grounding routing, MDP action set, GRPO losses, bank pipeline stages, and Crafter mechanisms are untouched.
 - **No renaming of files.** Terminology is reconciled by disambiguation blocks (§0), not by moving files.
-- **No memory subsystem, period.** The previous "three-store model" framing is removed; orchestrator §4 is now evidence-and-trace bookkeeping with within-episode `evidence_refs` only. All enrichment happens via the enriched `GroundingRecord` (P5) and the claim–evidence links carried on `<state>`.
+- **Episode-local trajectory is the only state-keeping surface.** Orchestrator §4 carries the current `<state>`, short typed hop trace, intermediate belief state, within-episode evidence references, and claim–evidence links — and nothing else. All enrichment happens via the enriched `GroundingRecord` (P5) and the claim–evidence links carried on `<state>`.
 - **No promotion-economy numerics.** Weights and thresholds are deferred to implementation; this plan only fixes the *dimensions* scored.
 
 ---

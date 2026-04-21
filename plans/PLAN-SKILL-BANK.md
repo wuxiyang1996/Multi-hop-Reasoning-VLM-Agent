@@ -2,7 +2,7 @@
 
 **Scope:** Build and maintain a cross-domain Skill Bank from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The bank stores **transferable reasoning, grounding, and control skills** defined over shared state abstractions and verified outcome contracts, and exposes them to the [Action Agent](PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
 
-**Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **no-memory short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions and no dependency on a memory subsystem (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract)).
+**Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions; everything it consumes and emits is grounded in the orchestrator's episode-local trajectory (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 
 **Upstream:** Structured episode trajectories from the Action Agent; structured schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); intermediate reasoning traces; visual grounding outputs; within-episode evidence references (clip/frame / DOM / desktop / tool-call IDs); execution outcomes / verification signals. These inputs may come from multiple domains, but are converted into a shared typed structured representation before skill discovery and maintenance.
 **Downstream:** Skill guidance consumed by the Action Agent and the Reasoning Agent; skill contracts used for reward shaping; bank curation consumed by GRPO-based training loops.
@@ -35,7 +35,7 @@ Each protocol instantiates across every target domain via the same `candidate_se
 
 ### 0.2 What "execution priority" does and does not mean
 
-Narrowing the **execution/evaluation target** to no-memory short-video (Video-Holmes-style) is a **deployment and measurement choice**, not a skill-ontology choice. Concretely:
+Narrowing the **execution/evaluation target** to short-video (Video-Holmes-style) is a **deployment and measurement choice**, not a skill-ontology choice. Concretely:
 
 - **What narrows:** which adapters are implemented first, which replay slices are built first, which transfer-failure diagnostics are exercised first (see [PLAN-HARNESS.md §10a.2](PLAN-HARNESS.md)), which `DomainEvalMatrix` slice is populated first.
 - **What does not narrow:** the skill format, the protocol vocabulary, the effect families, the typed slots, the promotion gates, or which protocols the Crafter is allowed to synthesize. A skill that only works on short video is, by construction, *not a skill* for this bank — it is a failed transfer candidate and belongs in `known_failure_modes` / `do_not_transfer_if` (see §4.3b).
@@ -139,7 +139,7 @@ The Skill Bank serves:
 - the Reasoning Agent (hop chain templates, evidence strategies)
 - bank curation and GRPO-based training loops
 
-The bank does **not** serve a memory subsystem (there is none in this repo); evidence references are carried inside the structured `<state>` within an episode (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract)).
+The bank's only persistent surface is its own snapshots; everything else — entity references, evidence pointers, intermediate belief state — is read from and written to the orchestrator's episode-local trajectory (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 
 ---
 
@@ -327,7 +327,7 @@ state:
     history_anchor: eid | null
 
   uncertainty: dict[eid, str]    # per-entity confidence (high | medium | low)
-  evidence_refs: list[str]       # within-episode evidence pointers (clip/frame, DOM node, desktop object, tool-call id) — no cross-episode memory
+  evidence_refs: list[str]       # within-episode evidence pointers (clip/frame, DOM node, desktop object, tool-call id)
   action_candidates: list[str]   # valid actions in the current state
 ```
 
@@ -680,6 +680,56 @@ All of these are treated as **candidate proposals**, not ground truth. They ente
 
 ---
 
+## 7a. Unified skill lifecycle and promotion ownership
+
+The acceptance-gate sketch in §7 above is concretized by the **Unified Skill Gate** plan ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) — that file is the canonical specification of the lifecycle, the canonical record types, and the cross-module ownership boundary. This subsection is a pointer plus the ownership commitments the Skill Bank carries.
+
+### 7a.1 Lifecycle (the only path into the bank)
+
+```
+draft → candidate → shadow → provisional → active
+draft → candidate → rejected
+active → deprecated / rolled_back
+```
+
+Every skill — regardless of source (`mined / crafted / repaired / transferred / teacher_proposed / human_seeded`) — enters at `draft` and follows the same path. There is no fast path for frozen 32B/72B teacher outputs (see [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs)).
+
+### 7a.2 What the Skill Bank Agent owns
+
+| Responsibility | Where it lives |
+|----------------|----------------|
+| `SkillStatus` state machine | `gate/gate_types.py` (definition); enforced by `skill_bank/skill_lifecycle_manager.py` |
+| `SkillRecord` (canonical bank object) | `skill_bank/skill_record.py` |
+| Versioning + lineage / provenance | `skill_bank/skill_versioning.py` (consumes [§4.3a](#43a-lineage--provenance)) |
+| Candidate registration (the only entry point) | `SkillLifecycleManager.register_draft` |
+| Promotion *recommendation* (per-stage `mark_*` calls) | `SkillLifecycleManager.mark_candidate / mark_shadow / mark_provisional / promote_active / reject / deprecate / rollback` |
+| Final writes for each `SkillStatus` | `SkillLifecycleManager` (no other module writes any skill store) |
+
+### 7a.3 What the Skill Bank Agent does NOT own
+
+- **Runtime gate execution** — the Harness owns it ([PLAN-HARNESS.md §10b](PLAN-HARNESS.md#10b-gate-execution-runtime)). The bank calls `GateRunner` only via the Orchestrator; it does not embed replay / shadow / transfer / non-regression code itself.
+- **Promotion *transactions*** — the Orchestrator owns them ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)). The bank applies the state transition under transaction control; it does not move snapshot pointers itself.
+
+### 7a.4 Storage split (mechanical enforcement)
+
+The bank is physically split into four stores so that the "no write to active without gate" invariant cannot be bypassed by a buggy module call:
+
+| Store | Holds | Visible to |
+|-------|-------|------------|
+| `draft_store`     | `DRAFT`                                 | `SkillCrafter`, gate Stage 0 |
+| `candidate_store` | `CANDIDATE`, `SHADOW`, `PROVISIONAL`    | gate Stages 1–4, `SkillHarness.run_shadow`, `run_active` (PROVISIONAL only, downweighted) |
+| `active_store`    | `ACTIVE`                                | `SkillHarness.run_active` |
+| `archive_store`   | `DEPRECATED`, `REJECTED`, `ROLLED_BACK` | rollback target lookup; crafter repair input |
+
+See [PLAN-UNIFIED-SKILL-GATE.md §6](PLAN-UNIFIED-SKILL-GATE.md#6-storage-split) for the full retrieval-policy table and [§8.2](PLAN-UNIFIED-SKILL-GATE.md#82-action-agent-and-skillharnessrun_active) for what the Action Agent sees.
+
+### 7a.5 Component reorganization (delta against §12)
+
+- `SkillBankAgent` keeps its pipeline orchestrator role but delegates lifecycle writes to a new `SkillLifecycleManager` subcomponent.
+- `TransferManager` (the existing §12 entry, which is a *proposer* of cross-domain mappings) is renamed to `LegacyTransferProposer` to avoid name collision with the runtime [PLAN-HARNESS.md §5.4 `TransferManager`](PLAN-HARNESS.md#54-transfermanager). The proposer emits `TransferProposal` records that flow through `register_draft`; the runtime transfer validation lives in the Harness.
+
+---
+
 ## 8. Effect families and skill hierarchy
 
 ### Effect families
@@ -866,7 +916,16 @@ Used for: SFT cold-start for Qwen3-8B, reference outputs for GRPO reward compari
 | Task | Priority | Status |
 |------|----------|--------|
 | Transferable skill template + extraction pipeline | P0 | **Done** |
-| Acceptance gate pipeline (contract check, replay verification, non-regression filter) | P0 | Not started |
+| Unified skill gate (canonical lifecycle + ownership) — see [PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md) | P0 | Not started — broken into the sub-items below |
+|   ↳ `SkillStatus` + `SkillSourceType` enums (`gate/gate_types.py`) | P0 | Not started |
+|   ↳ `SkillRecord` (`skill_bank/skill_record.py`) | P0 | Not started |
+|   ↳ `SkillEvaluationRecord` + `GateVerdictPayload` (`gate/gate_record.py`) | P0 | Not started |
+|   ↳ `SkillLifecycleManager` (`skill_bank/skill_lifecycle_manager.py`) — only writer to any skill store | P0 | Not started |
+|   ↳ Storage split (`draft_store / candidate_store / active_store / archive_store`) + `version_history` / `gate_history` / `rollback_links` indices | P0 | Not started |
+|   ↳ `GatePolicy` + `configs/skill_gate.yaml` (centralized thresholds) | P0 | Not started |
+|   ↳ Static contract check (Stage 0, `gate/static_checker.py`) | P0 | Not started |
+|   ↳ Replay validation gate (Stage 1, `gate/replay_gate.py`, wraps `harness/replay_validator.py`) | P0 | Not started |
+|   ↳ Non-regression gate (Stage 4, `gate/non_regression_gate.py`) | P0 | Not started |
 | Implement timescale separation for bank update cadence (medium timescale) | P0 | Not started |
 | Extend segmentation to inner MDP hop traces | P1 | Not started |
 | Reasoning skill discovery (hop chain templates) | P1 | Not started |

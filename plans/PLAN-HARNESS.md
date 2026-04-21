@@ -12,7 +12,7 @@
 
 **Non-goals:** Replacing the Action Agent, Skill Bank, or Skill Crafter. Introducing a fourth agent. Making the 32B/72B teacher the default online controller. Adding new trainable models before the execution + validation loop works. **Narrowing the Harness to a single domain, or admitting domain-specific skills.** Every skill the Harness binds, runs, and validates is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning) — see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families). The Harness is the *domain-general transfer runtime*; short-video evidence-grounded reasoning is the first proving ground where that broad transfer is *validated*, not the definition of the Harness's scope.
 
-**No memory subsystem assumption.** This repo has no memory subsystem (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-evidence--trace-bookkeeping-no-memory-contract)). The Harness reads skills from the bank and within-episode evidence from the structured `<state>`; it never assumes a cross-episode memory read path.
+**Episode-local state surface.** The Harness reads skills from the bank and reads its episode-local trajectory — current `<state>`, short typed hop trace, intermediate belief state, and within-episode evidence references — directly from the orchestrator (see [Pipeline Orchestrator §4](PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)). It maintains no other lookup channel.
 
 ---
 
@@ -28,6 +28,139 @@ Make skills **executable units** — not static objects in the bank — that can
 - transferred across domains safely.
 
 The Harness should become the **default path** for all skill invocation and should produce standardized execution records (`SkillEpisode`) that feed the acceptance gates ([Pipeline Orchestrator §3](PLAN-PIPELINE-ORCHESTRATOR.md)) and the reward logger.
+
+---
+
+## 1a. Harness Role as Frozen 72B Runtime Layer
+
+In this project, the Harness is a **frozen 72B model** wrapped by the orchestration layer described above. It should **not** replace the [Action Agent](PLAN-ACTION-AGENT.md) as the online policy. Instead, it should serve as a high-capacity **runtime verifier, candidate filter, veto layer, and teacher-like advisor**.
+
+Its role is to make skill usage safer, more executable, and more transferable at runtime, **without taking over the final policy decision**.
+
+This distinction is critical. If the Harness directly makes final online skill choices, then the system effectively becomes a 72B-driven policy with an 8B execution shell. That would weaken the role of the Actor and blur the architectural story of the project.
+
+### 1a.1 What the Harness should do
+
+The Harness should be responsible for:
+
+- **candidate filtering**
+  - evaluate retrieved skills,
+  - discard invalid or unsafe candidates,
+  - keep only runtime-eligible skills.
+- **binding validation**
+  - check slot binding feasibility,
+  - validate schema-to-skill alignment,
+  - verify required arguments are grounded.
+- **precondition checking**
+  - determine whether the candidate skill is actually applicable now.
+- **evidence and contract checking**
+  - verify that the required evidence interface is available,
+  - ensure invocation satisfies runtime evidence requirements ([§5.1 Evidence-role field requirements](#51-skillepisode)),
+  - check protocol-level constraints.
+- **adapter / transfer feasibility**
+  - verify domain adapter compatibility,
+  - reject cross-domain invocation when mapping is invalid.
+- **runtime veto**
+  - reject an Actor-proposed skill if binding, evidence, precondition, or runtime safety fails.
+- **advisory scoring**
+  - provide fit score,
+  - provide risk score,
+  - provide evidence sufficiency score,
+  - optionally rank eligible candidates.
+
+### 1a.2 What the Harness should not do
+
+The Harness should **not** become the final online policy. It should not directly decide:
+
+- whether the system should definitely continue the current skill,
+- whether the Actor must switch skill,
+- whether no-skill mode is preferable,
+- whether a reasoning step should be emitted,
+- which primitive action should be taken.
+
+Those remain Actor decisions ([PLAN-ACTION-AGENT.md §1a.2](PLAN-ACTION-AGENT.md#1a2-actor-decision-scope)).
+
+The Harness may **advise, filter, rank, or veto**, but it should not fully replace policy-level choice.
+
+### 1a.3 Harness output contract
+
+The Harness should transform raw retrieved candidates into a constrained **eligible set**:
+
+```python
+eligible_skills = [
+    {
+        "skill_id": str,
+        "binding_ok": bool,
+        "precondition_ok": bool,
+        "evidence_ok": bool,
+        "adapter_ok": bool,
+        "fit_score": float,
+        "risk_score": float,
+        "veto": bool,
+        "veto_reason": str | None,
+    },
+    ...
+]
+```
+
+This output is then consumed by the Actor.
+
+The key design principle is:
+
+> **The Harness narrows the choice space; the Actor makes the final choice.**
+
+### 1a.4 Actor proposal, Harness veto
+
+At invocation time, the interaction should follow:
+
+1. Actor proposes:
+   - continue current skill,
+   - switch to skill X,
+   - no skill,
+   - reasoning step,
+   - primitive action.
+2. If the Actor proposes a skill invocation, the Harness validates:
+   - binding,
+   - preconditions,
+   - evidence,
+   - adapter compatibility,
+   - runtime constraints.
+3. If validation passes, execution continues.
+4. If validation fails, the Harness returns a veto reason, and the Actor must fallback to:
+   - another eligible skill,
+   - no-skill mode,
+   - a reasoning step,
+   - or a primitive action.
+
+This gives the system a clear control pattern:
+
+> **Actor proposes; Harness constrains or vetoes.**
+
+### 1a.5 Why the frozen 72B Harness should not replace the Actor
+
+Because the Harness is frozen and high-capacity, it is attractive to let it choose skills directly. However, doing so would create several problems:
+
+- the trainable Actor would stop learning core skill-use policy,
+- the Harness would become a hidden policy model,
+- reasoning-step choice and skill choice would become fragmented,
+- the architecture would drift away from the intended COS-PLAY-style Decision Agent ([PLAN-ACTION-AGENT.md §1a](PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary)),
+- the final system would rely too heavily on the frozen large model.
+
+Therefore, the Harness should remain a **runtime support and verification layer** rather than the main policy.
+
+### 1a.6 Harness as teacher-like advisor
+
+The Harness may still produce strong **advisory signals**, such as:
+
+- ranked eligible skills,
+- top-1 recommended skill,
+- invocation risk,
+- evidence sufficiency warnings,
+- transfer confidence,
+- binding confidence.
+
+These signals can be given to the Actor as extra inputs.
+However, they should remain **advisory rather than fully controlling** — the trainable Actor decides whether to follow them.
 
 ---
 
@@ -429,6 +562,58 @@ The diagnostic labels above are defined for **all five target domains from day o
 
 ---
 
+## 10b. Gate Execution Runtime
+
+The six per-episode gates G0–G5 in §10 are the *what*. The **Gate Execution Runtime** is the *how*: a single `GateRunner` entry point — owned by the Harness — that the [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) calls to execute the unified skill gate ([PLAN-UNIFIED-SKILL-GATE.md](PLAN-UNIFIED-SKILL-GATE.md)) over a candidate `SkillRecord`.
+
+This subsection defines `GateRunner`, the per-stage entry points, and where each stage delegates inside the existing Harness. It does **not** redefine the gate semantics or thresholds — those are pinned in [PLAN-UNIFIED-SKILL-GATE.md §7](PLAN-UNIFIED-SKILL-GATE.md#7-gate-stages-the-canonical-pipeline) and `configs/skill_gate.yaml` ([PLAN-UNIFIED-SKILL-GATE.md §9](PLAN-UNIFIED-SKILL-GATE.md#9-threshold-policy)).
+
+### 10b.1 `GateRunner` (`harness/gate_runner.py`)
+
+```python
+class GateRunner:
+    def run_static_check(self,    skill: SkillRecord) -> GateVerdictPayload: ...
+    def run_replay(self,          skill: SkillRecord, datasets: list[str]) -> GateVerdictPayload: ...
+    def run_shadow(self,          skill: SkillRecord, rollout_batch: list[dict]) -> GateVerdictPayload: ...
+    def run_transfer(self,        skill: SkillRecord, target_domains: list[str]) -> GateVerdictPayload: ...
+    def run_non_regression(self,  skill: SkillRecord, eval_suite: dict) -> GateVerdictPayload: ...
+
+    def assemble_evaluation(
+        self, skill: SkillRecord, payloads: list[GateVerdictPayload]
+    ) -> SkillEvaluationRecord: ...
+```
+
+`GateRunner` is the **only** Harness-side entry point the Orchestrator may call to evaluate a candidate. It does not move bank pointers or mutate skill status — it produces `GateVerdictPayload` and `SkillEvaluationRecord` artifacts that the Orchestrator hands to `SkillLifecycleManager` under transaction control ([PLAN-PIPELINE-ORCHESTRATOR.md §3a](PLAN-PIPELINE-ORCHESTRATOR.md#3a-promotion-transaction-and-rollback-protocol)).
+
+### 10b.2 Per-stage delegation table
+
+| Unified-gate stage | `GateRunner` method | Delegates to | Per-episode gate (§10) |
+|--------------------|--------------------|--------------|------------------------|
+| Stage 0 — Static sanity        | `run_static_check`     | `gate/static_checker.py` (schema, slot types, contract); calls into `SkillBank.skill_record` validators | G1 (binding feasibility) at the schema level |
+| Stage 1 — Offline replay       | `run_replay`           | `harness/replay_validator.py` ([§5.5](#55-replayvalidator)) | G3 (Replay) |
+| Stage 2 — Shadow execution     | `run_shadow`           | `SkillHarness.run_shadow` ([§5.2](#52-skillharness)); MUST set `SkillEpisode.shadow = True`; respects [§6.1](#61-phase-a--shadow-mode) constraints | G4 (Shadow) |
+| Stage 3 — Transfer validation  | `run_transfer`         | `harness/transfer_manager.py` ([§5.4](#54-transfermanager)); per-target-domain `SkillHarness.run_shadow` + `AdapterRegistry.validate` | G2 (Adapter) + G3 (Replay) on target domain |
+| Stage 4 — Non-regression       | `run_non_regression`   | `harness/eval_harness.py` (existing) over the orchestrator-supplied frozen eval suite | G5 (Non-regression) |
+| Continuous (every episode)     | n/a — runs in `SkillHarness.finalize_episode` regardless of source | `SkillHarness.finalize_episode` per [§5.1](#51-skillepisode) | **G0 (Evidence-driven contract)** |
+
+**G0 is orthogonal to the batch lifecycle.** It is checked on every `SkillEpisode` produced by `run_active` *and* `run_shadow`, and a sustained pattern of G0 failures in production triggers `ACTIVE → DEPRECATED` via [PLAN-UNIFIED-SKILL-GATE.md §7 Stage 6](PLAN-UNIFIED-SKILL-GATE.md#stage-6--rollback--deprecation-orchestratorrollback_managerpy).
+
+### 10b.3 Diagnostic-label routing
+
+Each `GateVerdictPayload` carries the [§10a](#10a-transfer-failure-diagnostics-domain-specific) diagnostic labels. `assemble_evaluation` rolls them up into `SkillEvaluationRecord.diagnostic_labels`, which the Orchestrator forwards to:
+
+- the bank for `known_failure_modes` / `do_not_transfer_if` updates ([PLAN-SKILL-BANK.md §4.3b](PLAN-SKILL-BANK.md#43b-negative-knowledge)),
+- the [Skill Crafter](PLAN-SKILL-CRAFTER.md) for failure-cluster routing,
+- the orchestrator dashboards for per-domain transfer-safety distributions ([PLAN-PIPELINE-ORCHESTRATOR.md §6.4](PLAN-PIPELINE-ORCHESTRATOR.md#64-slices)).
+
+### 10b.4 What stays out of `GateRunner`
+
+- **Status mutation.** `GateRunner` does not call `SkillLifecycleManager`; the Orchestrator does, under transaction.
+- **Bank-pointer moves and snapshot creation.** Owned by `orchestrator/snapshot_manager.py`.
+- **Threshold *interpretation*.** `GatePolicy` (`gate/gate_policy.py`) loads thresholds and turns numeric metrics into `GateVerdict` enum values; `GateRunner` only emits raw metrics + the policy-rendered verdict.
+
+---
+
 ## 11. No new trainable model required at first
 
 Phase 0 implementation is **inference-only**. It uses:
@@ -463,6 +648,7 @@ harness/
   replay_validator.py       # offline validation on held-out transitions
   reward_logger.py          # unified r_env / r_follow / r_cost / r_transfer
   eval_harness.py           # reuse + transfer benchmarks
+  gate_runner.py            # §10b — single entry point for the unified skill gate
   adapters/
     gymv.py
     browser.py
@@ -482,6 +668,7 @@ harness/
 | `replay_validator.py` | held-out replay checks (effects, protocol, evidence) |
 | `reward_logger.py` | central reward emission + metric collation |
 | `eval_harness.py` | reuse + transfer benchmark runner (metrics from §15) |
+| `gate_runner.py` | `GateRunner` (§10b) — `run_static_check`, `run_replay`, `run_shadow`, `run_transfer`, `run_non_regression`, `assemble_evaluation`; single entry point the [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md) calls to execute the [Unified Skill Gate](PLAN-UNIFIED-SKILL-GATE.md) |
 
 ---
 

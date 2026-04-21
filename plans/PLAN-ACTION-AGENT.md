@@ -2,7 +2,7 @@
 
 **Scope:** The decision-making agent that consumes structured `<state>` schemas from the [Visual Grounding](PLAN-VISUAL-GROUNDING.md) pipeline and selects/executes environment actions guided by skills from the [Skill Bank](PLAN-SKILL-BANK.md).
 
-**Scope boundaries (deliberate).** The Action Agent is **domain-general** across game / webagent / os-agent / video-understanding / visual reasoning — the inner-action alphabet and the three-layer actor (§5) carry across all of them (see [§5.3a Cross-domain semantics](#53a-cross-domain-semantics-of-inner-actions)). The skills it invokes are **general protocols feasible across all five target domains** ([Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)); the agent does not consume domain-specific skill families. The **first evaluation arena** for the agent and its retrieved protocols is **no-memory short-video evidence-grounded reasoning** (Video-Holmes-style) — that determines which adapters and eval slices are wired first, not what kind of skills exist. This repo has no memory subsystem; `RETRIEVE` targets only the skill bank, and within-episode evidence lives in the structured `<state>`.
+**Scope boundaries (deliberate).** The Action Agent is **domain-general** across game / webagent / os-agent / video-understanding / visual reasoning — the inner-action alphabet and the three-layer actor (§5) carry across all of them (see [§5.3a Cross-domain semantics](#53a-cross-domain-semantics-of-inner-actions)). The skills it invokes are **general protocols feasible across all five target domains** ([Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)); the agent does not consume domain-specific skill families. The **first evaluation arena** for the agent and its retrieved protocols is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that determines which adapters and eval slices are wired first, not what kind of skills exist. The agent operates entirely over an episode-local trajectory: `RETRIEVE` targets only the skill bank, and any evidence the agent cites lives inside the current episode's structured `<state>`, hop trace, and intermediate belief state.
 
 **Upstream:** Structured schema from visual grounding (vlm_wrapper heads); skill guidance from Skill Bank.
 **Downstream:** Environment actions; experience trajectories fed back to Skill Bank and GRPO training.
@@ -66,6 +66,159 @@ Concretely, each step executes:
 11. **Build `Experience`** — state, action, reward, next_state, done, intentions, tasks, sub_tasks (active skill), summary_state, available_actions.
 
 **Boundary rule.** Heavy reasoning tasks — failure diagnosis, counterfactual analysis, skill composition, cross-domain transfer mapping, new skill invention, reflective repair planning — **never** run inside this per-step loop. They are reserved for the offline 32B/72B synthesis/reflection tier (see §2, §6). The inner MDP is the actor's guardrail, not its brain.
+
+---
+
+## 1a. Actor Role and Boundary
+
+The Actor Agent should follow the COS-PLAY Decision Agent pattern rather than introducing a separate controller. It takes schema-based state as input, builds a compact state summary and intention, optionally retrieves or continues a skill, and then outputs either a primitive action, a skill-conditioned action, or a typed reasoning step. Reasoning steps are bounded intermediate decisions within the same online control loop rather than a separate long-horizon planner.
+
+For this project, the Actor remains the **online policy**. It is responsible for deciding, at each step, whether to continue the current skill, switch to another eligible skill, act without a skill, or emit a typed reasoning step before acting. This responsibility should not be delegated entirely to the [Harness](PLAN-HARNESS.md), even when the Harness is stronger.
+
+The main reason is that skill continuation, skill switching, no-skill fallback, reasoning-step emission, and primitive action selection all belong to the same policy space. Moving final skill choice into the Harness would break the COS-PLAY-style decision loop and turn the Harness into a hidden policy model rather than a runtime support module.
+
+### 1a.1 Actor input / output contract
+
+The Actor takes schema-based state as the primary input. Textual rendering may be used only as an auxiliary prompt representation.
+
+Suggested actor input:
+
+```python
+ActorInput = {
+    "episode_id": str,
+    "step_idx": int,
+    "schema_state": dict,
+    "state_text": str,
+    "valid_actions": list[str],
+    "recent_actions": list[str],
+    "recent_rewards": list[float],
+    "task_spec": dict,
+    "active_skill": dict | None,
+    "eligible_skills": list[dict],   # filtered by Harness
+    "local_reasoning_trace": list[dict],
+}
+```
+
+The Actor output should allow three step types:
+
+```python
+ActorOutput = {
+    "step_type": "primitive_action" | "skill_conditioned_action" | "reasoning_step",
+    "state_summary": str,
+    "intention": str,
+    "selected_skill_id": str | None,
+    "reasoning_step": dict | None,
+    "action": str | None,
+    "evidence_warrant": list[str],
+    "notes": dict,
+}
+```
+
+### 1a.2 Actor decision scope
+
+The Actor is the **final policy-level decision maker** for:
+
+- whether to continue the current skill,
+- whether to switch to another eligible skill,
+- whether to act without a skill,
+- whether to emit a typed reasoning step first,
+- which final primitive action to take.
+
+The Actor should **not** directly perform:
+
+- skill promotion,
+- bank mutation,
+- transfer validation,
+- replay validation,
+- rollback,
+- long-horizon reflection,
+- memory retrieval.
+
+Those belong to other modules (see [Skill Bank](PLAN-SKILL-BANK.md), [Harness](PLAN-HARNESS.md), [Pipeline Orchestrator](PLAN-PIPELINE-ORCHESTRATOR.md), [Skill Crafter](PLAN-SKILL-CRAFTER.md)).
+
+### 1a.3 Why final skill selection stays in the Actor
+
+Although the system uses a strong frozen Harness, **final online skill choice should remain in the Actor**.
+
+Reasons:
+
+- The Actor is the trainable policy, so it must learn skill continuation, switching, no-skill fallback, and reasoning/action coordination.
+- Skill choice and reasoning-step choice are coupled. Separating them across different controllers would fragment the online policy space.
+- If final skill choice is fully delegated to the frozen Harness, the Actor becomes a weak executor instead of a real decision agent. This would create train-test mismatch if the goal is to improve the Actor itself.
+
+Therefore, the Actor must remain the final decider over:
+
+- continue skill,
+- switch skill,
+- no skill,
+- reasoning step,
+- primitive action.
+
+### 1a.4 Typed reasoning step as a first-class Actor output
+
+To support schema-based multimodal reasoning, the Actor may emit a **typed reasoning step** before action. This extends the COS-PLAY decision pattern without replacing it.
+
+Supported reasoning step types align with the inner-hop vocabulary in [§5.3](#53-reduced-hop-vocabulary):
+
+- `GROUND`
+- `CHECK`
+- `COMPARE`
+- `VERIFY`
+- `RETRIEVE`
+- `COMMIT`
+
+These reasoning steps must be:
+
+- bounded,
+- structured,
+- episode-local,
+- validator-friendly,
+- non-memory-based.
+
+A reasoning step should never become unrestricted free-form long reasoning.
+
+### 1a.5 Actor runtime loop
+
+The Actor loop should follow:
+
+1. summarize schema state,
+2. infer current intention,
+3. consult tracker for continue / reselect / no-skill,
+4. **receive eligible skill candidates filtered by the Harness**,
+5. choose among:
+   - continue current skill,
+   - switch to an eligible skill,
+   - no skill,
+   - reasoning step,
+   - primitive action,
+6. if a reasoning step is chosen, update local context and loop once more (subject to the §5.4 hop cap),
+7. if an action is chosen, execute and log experience.
+
+This preserves the COS-PLAY decision skeleton while extending it to typed reasoning steps.
+
+### 1a.6 Actor–Harness interaction
+
+The Actor should **not** query the raw [Skill Bank](PLAN-SKILL-BANK.md) directly for unrestricted online use. Instead:
+
+- Skill Bank retrieves top-k candidate skills.
+- Harness filters and validates them into `eligible_skills`.
+- Actor performs final policy choice over those eligible skills.
+
+Thus the Actor consumes a **constrained candidate set** rather than an unconstrained bank.
+
+This preserves Actor flexibility while using the Harness to enforce runtime safety and feasibility. The Harness may additionally veto an Actor-proposed skill at invocation time (see [PLAN-HARNESS.md §1a](PLAN-HARNESS.md#1a-harness-role-as-frozen-72b-runtime-layer)); on veto, the Actor must fall back to another eligible skill, no-skill mode, a reasoning step, or a primitive action.
+
+### 1a.7 Training implication
+
+The trainable Actor should still learn:
+
+- when to continue a skill,
+- when to switch,
+- when to avoid skill use,
+- when to issue a reasoning step,
+- how to choose final actions.
+
+This is essential if the project's central policy is meant to live in the smaller trainable model rather than in the frozen Harness.
 
 ---
 
@@ -216,7 +369,7 @@ The 32B/72B never enters the per-step loop. Per-step operations (schema_gen, ski
 |---|---|---|
 | Failure Reflection (localize, diagnose) | After a failed episode ends | ~1× per failed episode |
 | Skill Composition (effect chaining) | Periodic batch job | Every N episodes |
-| Skill Hypothesis (from failure patterns) | When failure memory accumulates | Rare |
+| Skill Hypothesis (from failure patterns) | When the failure-pattern store accumulates | Rare |
 | Cross-domain transfer | When adding a new domain | One-time |
 | Cold-start trajectory generation | Before GRPO training begins | One-time |
 
@@ -345,7 +498,7 @@ If Layer A produces a confident action path (e.g. high-confidence state + high-c
 **Layer B — Lightweight inner MDP** (only when local uncertainty remains).
 Resolves local uncertainty via short typed hops:
 - do I need to verify a condition against current evidence? → CHECK
-- do I need a reusable skill / protocol? → RETRIEVE (from the skill bank — no memory store in this repo)
+- do I need a reusable skill / protocol? → RETRIEVE (from the skill bank)
 - is the state stale or insufficient? → GROUND (optional)
 - can I commit this local sub-decision? → COMMIT
 
@@ -362,7 +515,7 @@ The inner action space is a small, fixed, typed vocabulary — no free-form oper
 |---|---|---|
 | `GROUND` *(optional)* | Refresh or refine the structured state | `entity_query`, `scene`, `region:e5` |
 | `CHECK` | Verify a condition relevant to the current skill or subgoal | `can_continue_current_skill`, predicate name |
-| `RETRIEVE` | Fetch a reusable skill / protocol from the skill bank (no memory store in this repo) | `skill_bank:<intention>`, `skill_bank:locate_filter_select` |
+| `RETRIEVE` | Fetch a reusable skill / protocol from the skill bank | `skill_bank:<intention>`, `skill_bank:locate_filter_select` |
 | `COMMIT` | Finalize the local sub-decision (internal state update) | subgoal id |
 | `EXECUTE` | Choose and emit the environment action; exits the inner loop | env action |
 
@@ -541,7 +694,7 @@ All three agents must NOT co-evolve at full speed simultaneously — that create
 **Concrete schedule:**
 - 5–10 actor GRPO update cycles, then 1 offline skill-bank update cycle.
 - Skill-bank refinement batch runs after the actor's update converges enough that traces are meaningful.
-- Synthesis-reflection runs after failed episodes, periodically for effect chaining, when failure memory accumulates, when adding new domains, and before GRPO for cold-start trajectory generation.
+- Synthesis-reflection runs after failed episodes, periodically for effect chaining, when the failure-pattern store accumulates, when adding new domains, and before GRPO for cold-start trajectory generation.
 
 ### Training schedule
 
@@ -573,7 +726,7 @@ All three agents must NOT co-evolve at full speed simultaneously — that create
 The synthesis-reflection agent (32B/72B) can improve over time WITHOUT weight updates through five channels:
 
 1. **Better input distribution** — as the 8B actor and skill bank improve, the synthesis agent sees cleaner trajectories, more reusable segments, better failure logs, and richer skill statistics.
-2. **Better evidence organization, replay validation, and transfer routing** — the system is: frozen LLM + failure-pattern store (Crafter-private, not a system memory) + skill bank snapshots + replay slices + verification logs + proposal archive. As these artifact stores get better at *organizing evidence*, *validating replay*, and *routing transfer candidates*, the teacher improves without weight updates.
+2. **Better evidence organization, replay validation, and transfer routing** — the system is: frozen LLM + Crafter-private failure-pattern store + skill bank snapshots + replay slices + verification logs + proposal archive. As these artifact stores get better at *organizing evidence*, *validating replay*, and *routing transfer candidates*, the teacher improves without weight updates.
 3. **Better inference procedure** — upgrade the multi-pass reasoning procedure: better decomposition, proposal-then-verify, best-of-N, counterfactual replay, stricter acceptance filters.
 4. **Better verification and selection** — as the actor and bank mature, downstream usefulness can be measured more reliably. The teacher doesn't need to be smarter if the gatekeeping becomes smarter.
 5. **Distillation into smaller specialized modules** — train smaller adapters or submodules on the outputs that pass verification: a small failure-localizer, a contract writer, a protocol patch ranker, a transfer-mapping scorer.
@@ -699,7 +852,7 @@ See [Visual Grounding §12](PLAN-VISUAL-GROUNDING.md#12-schema-completeness-guar
 | File | Purpose |
 |------|---------|
 | `decision_agents/agent.py` | `VLMDecisionAgent`, `run_tool()`, `run_episode_vlm_agent()` |
-| `decision_agents/agent_helper.py` | `get_state_summary()`, `infer_intention()`, `select_skill_from_bank()` (no cross-episode memory store in this repo) |
+| `decision_agents/agent_helper.py` | `get_state_summary()`, `infer_intention()`, `select_skill_from_bank()` |
 | `decision_agents/reward_func.py` | `RewardComputer`, `compute_reward()` |
 | `decision_agents/dummy_agent.py` | Baseline agent for comparison |
 | `scripts/qwen3_decision_agent.py` | Pipeline A (full skill lifecycle) |

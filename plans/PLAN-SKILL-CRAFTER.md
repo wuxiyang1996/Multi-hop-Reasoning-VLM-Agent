@@ -2,7 +2,7 @@
 
 **Scope:** Compose, create, and refine new skills from existing Skill Bank primitives. The Skill Crafter is the creative layer that discovers higher-order strategies by combining existing skills, generalizing across games/domains, and proposing novel skill hypotheses that the [Skill Bank](PLAN-SKILL-BANK.md) can test and adopt.
 
-**Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five target domains** — game / webagent / os-agent / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate; it does not become a "short-video-only skill" or a "browser-only skill". The Crafter's **first evaluation arena** is no-memory short-video (Video-Holmes-style) — that is where `verified_domains` entries are filled in first and where transfer-failure diagnostics ([PLAN-HARNESS.md §10a](PLAN-HARNESS.md)) are exercised first, **not** where a separate class of skills is synthesized. This repo has **no memory subsystem**: the Crafter-private `FailureMemory` (§6.7) is a *pattern-aggregation store for failure diagnoses*, not a system-level memory, and is never read by the online actor.
+**Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five target domains** — game / webagent / os-agent / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate; it does not become a "short-video-only skill" or a "browser-only skill". The Crafter's **first evaluation arena** is short-video (Video-Holmes-style) — that is where `verified_domains` entries are filled in first and where transfer-failure diagnostics ([PLAN-HARNESS.md §10a](PLAN-HARNESS.md)) are exercised first, **not** where a separate class of skills is synthesized. The Crafter-private `FailurePatternStore` (§6.7) is an offline pattern-aggregation index over `FailureDiagnosis` records; it is never read by the online actor and never extends the agent's episode-local trajectory.
 
 **Upstream:** Existing skill bank (contracts, protocols, execution traces); structured schemas from [Visual Grounding](PLAN-VISUAL-GROUNDING.md); episode trajectories from [Action Agent](PLAN-ACTION-AGENT.md).
 **Downstream:** New/refined skills injected into the Skill Bank; cross-domain skill transfer proposals.
@@ -43,7 +43,7 @@ This multi-run design costs ~3–6× the tokens of a single 32B/72B call per tas
 The synthesis-reflection agent (32B/72B) improves over time WITHOUT weight updates through five channels:
 
 1. **Better input distribution** — as the 8B actor and skill bank improve through GRPO, the Skill Crafter receives cleaner trajectories, more reusable segments, better failure logs, and richer skill statistics. The same frozen model produces much better outputs when reasoning over better evidence.
-2. **Better evidence serialization & transfer diagnostics** — Crafter context improves as the artifact stores that feed it get better at their jobs: (a) *evidence serialization* (how within-episode `evidence_refs`, tool traces, and claim–evidence links are laid out for the teacher), (b) *transfer diagnostics* (typed labels from the Harness, see [PLAN-HARNESS.md §10a](PLAN-HARNESS.md)), (c) *replay slices* (frozen trace selection pipelines), (d) *skill clustering* (how failure clusters and transfer-candidate groups are indexed), and (e) *verification prompts* (templates for Stage-4 acceptance). The Crafter-private `FailureMemory` (§6.7) is one of these artifact stores; it is not a system memory and is never read by the online actor.
+2. **Better evidence serialization & transfer diagnostics** — Crafter context improves as the artifact stores that feed it get better at their jobs: (a) *evidence serialization* (how within-episode `evidence_refs`, tool traces, and claim–evidence links are laid out for the teacher), (b) *transfer diagnostics* (typed labels from the Harness, see [PLAN-HARNESS.md §10a](PLAN-HARNESS.md)), (c) *replay slices* (frozen trace selection pipelines), (d) *skill clustering* (how failure clusters and transfer-candidate groups are indexed), and (e) *verification prompts* (templates for Stage-4 acceptance). The Crafter-private `FailurePatternStore` (§6.7) is one of these artifact stores; it is offline-only and never read by the online actor.
 3. **Better inference procedure** — improve the multi-pass reasoning without touching weights: better decomposition, proposal-then-verify chains, best-of-N with smarter selection, counterfactual replay, stricter acceptance filters. This is where most early "improvement" should come from.
 4. **Better verification and selection** — as the actor and bank mature, downstream usefulness can be measured more reliably. A frozen model that emits many candidate skills becomes much more useful when the system can better select which candidates to keep.
 5. **Distillation into smaller specialized modules** — train smaller adapters or submodules on outputs that pass verification: a small failure-localizer, a contract writer, a protocol patch ranker, a transfer-mapping scorer. This builds a synthesis pipeline that improves over time without changing the main teacher.
@@ -237,7 +237,7 @@ Composed: sequence(A, B)
 4. **Comparative evaluation** (counterfactual ranking)**:**
    - Before submitting to Stage 4, compare alternative compositions against each other.
    - For each skill A where multiple valid continuations exist (e.g., `sequence(A, B)`, `sequence(A, C)`, `sequence(A, D)` all pass effect chaining), run a composition-level counterfactual:
-     - Draw representative state snapshots from Failure Memory (§6.7) where skill A was recently active.
+     - Draw representative state snapshots from the Failure Pattern Store (§6.7) where skill A was recently active.
      - For each candidate composition, predict cumulative effect coverage: how many of the composed skill's `eff_add` predicates would be satisfied starting from that state?
      - Rank compositions by predicted coverage × historical pass rate of the component skills.
    - Submit only the top-K compositions (default K=3 per skill A) rather than all valid ones. This reduces Stage 4 verification load while prioritizing the most promising combinations.
@@ -310,7 +310,7 @@ Proposes entirely new skills that don't exist in the bank, based on:
 ### Hypothesis generation
 
 1. **Failure analysis** (informed by Failure Reflector §6)**:**
-   - Query the Failure Memory (§6.7) for skills with high abort rates, recurring failure patterns, or retired skills.
+   - Query the Failure Pattern Store (§6.7) for skills with high abort rates, recurring failure patterns, or retired skills.
    - Use `FailureDiagnosis` records — specifically the `violated_assumption` and `suggested_fix` fields — as structured input rather than raw failure counts.
    - Ask LLM: "Given these diagnosed failures and their root causes, what strategy would avoid them?"
    - Propose the LLM's suggestion as a proto-skill, linking back to the failure patterns it addresses.
@@ -327,11 +327,11 @@ Proposes entirely new skills that don't exist in the bank, based on:
    - Instantiate archetype-specific skill templates.
 
 4. **Counterfactual synthesis** (informed by §6.9)**:**
-   - Query the Failure Memory (§6.7) for `CounterfactualTrace` entries with high regret (`regret_estimate > threshold`).
+   - Query the Failure Pattern Store (§6.7) for `CounterfactualTrace` entries with high regret (`regret_estimate > threshold`).
    - Cluster by `best_alternative` patterns: if the same type of alternative repeatedly appears as the "better choice" across different episodes, that recurring pattern is a candidate skill.
    - Ask LLM: "These N episodes all would have benefited from {alternative_pattern}. Generalize this into a reusable skill with a contract and protocol."
    - Produces proto-skills with higher initial confidence (`0.5` vs. `0.3` for other sources) because they are grounded in specific counterfactual evidence rather than abstract failure patterns.
-   - **Synthesis trigger:** Automatic when a `(skill, decision_level, best_alternative)` tuple accumulates 3+ occurrences in Failure Memory's `high_regret_patterns` (see §6.7).
+   - **Synthesis trigger:** Automatic when a `(skill, decision_level, best_alternative)` tuple accumulates 3+ occurrences in the Failure Pattern Store's `high_regret_patterns` (see §6.7).
    - **Advantage over failure analysis (source 1):** Failure analysis asks "what strategy would avoid this failure?" — a speculative question. Counterfactual synthesis asks "this specific alternative was predicted to work N times — generalize it" — a grounded question. The resulting proto-skills have tighter contracts because the counterfactual traces provide concrete precondition/postcondition examples.
 
 ### Hypothesis format
@@ -551,9 +551,9 @@ Skill Bank               Skill Crafter
  confidence)        or retire skill)
 ```
 
-### 6.7 Failure Memory & Pattern Aggregation
+### 6.7 Failure Pattern Store & Pattern Aggregation
 
-Individual failure diagnoses are stored in a **Failure Memory** that enables pattern-level learning:
+Individual failure diagnoses are stored in a Crafter-private, offline-only **Failure Pattern Store** that enables pattern-level learning. It is an aggregation index over `FailureDiagnosis` records, never an episode-spanning lookup channel for the online actor:
 
 - **Recurrence detection:** If the same `(skill, failure_type, root_cause_step)` tuple appears N+ times, escalate from "patch" to "redesign."
 - **Cross-skill patterns:** If multiple skills fail with the same `failure_type` (e.g., many skills have `stale_context` errors), propose a systemic fix (e.g., add re-grounding checkpoints to all long-chain protocols).
@@ -561,7 +561,7 @@ Individual failure diagnoses are stored in a **Failure Memory** that enables pat
 - **Improvement tracking:** For each recovery action applied, track whether it reduced the failure rate. Recovery actions with low success rates are themselves subject to reflection.
 
 ```python
-FailureMemory(
+FailurePatternStore(
     entries=[FailureDiagnosis, ...],
     
     # Aggregated patterns
@@ -625,7 +625,7 @@ Counterfactual reasoning applies at every level of the two-level MDP:
 
 **Skill-level counterfactuals** operate on the skill selection decision points logged by `_SkillTracker`. They require the state schema at the selection moment plus the set of candidate skills that were scored but not chosen — both already available from `select_skill_from_bank()` scoring (see [Action Agent §3](PLAN-ACTION-AGENT.md#3-skill-guided-decision-making)). For each runner-up skill, the LLM predicts whether its protocol would have avoided the failure, given the state at that moment.
 
-**Composition-level counterfactuals** operate during the Composer's batch jobs (§3). When the Composer proposes `sequence(A, B)`, it also evaluates `sequence(A, C)`, `sequence(A, D)`, etc. against representative state snapshots drawn from Failure Memory. This ranks alternative compositions by predicted cumulative effect coverage before submitting them to Stage 4, reducing verification load.
+**Composition-level counterfactuals** operate during the Composer's batch jobs (§3). When the Composer proposes `sequence(A, B)`, it also evaluates `sequence(A, C)`, `sequence(A, D)`, etc. against representative state snapshots drawn from the Failure Pattern Store. This ranks alternative compositions by predicted cumulative effect coverage before submitting them to Stage 4, reducing verification load.
 
 #### Data structures
 
@@ -761,7 +761,7 @@ Each family is a reusable multi-step reasoning policy whose protocol maps to inn
 Skill composition (§2) gains a new dimension: composing *reasoning hops* rather than just environment actions.
 
 - **Sequence composition** now chains hop protocols: Skill A's COMMIT feeds Skill B's GROUND trigger.
-- **Fallback composition** tries alternative reasoning strategies: if GROUND fails to locate the entity, fall back to RETRIEVE from memory.
+- **Fallback composition** tries alternative reasoning strategies: if GROUND fails to locate the entity, fall back to RETRIEVE from the skill bank.
 - **Nested composition**: an inner RETRIEVE hop can invoke a sub-skill's entire reasoning protocol.
 
 ### Transfer via shared reasoning vocabulary
@@ -843,7 +843,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 
 ## 10. Rollout order
 
-> **Co-evolution alignment:** The Skill Crafter operates on the **slow timescale** within the three-agent co-evolution framework (see [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Crafter proposals run after failed episodes, periodically for effect chaining, when failure memory accumulates, when adding new domains, and before GRPO for cold-start trajectory generation. They are gated by the acceptance pipeline before entering the skill bank or training buffer.
+> **Co-evolution alignment:** The Skill Crafter operates on the **slow timescale** within the three-agent co-evolution framework (see [Action Agent §6](PLAN-ACTION-AGENT.md#6-co-evolution--grpo-decomposition)). Crafter proposals run after failed episodes, periodically for effect chaining, when the Failure Pattern Store accumulates, when adding new domains, and before GRPO for cold-start trajectory generation. They are gated by the acceptance pipeline before entering the skill bank or training buffer.
 
 **Phase 0 — Frozen teacher bootstrap**
 1. Deploy 32B/72B frozen, inference-only.
@@ -870,7 +870,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 4. Measure: does transfer reduce cold-start time in new domains?
 
 **Phase 4 — Failure Reflection Loop**
-1. Implement `FailureTrace` capture and `FailureMemory` storage.
+1. Implement `FailureTrace` capture and `FailurePatternStore` storage.
 2. Implement backward trace analysis for failure localization.
 3. Implement LLM-based failure diagnosis with structured output.
 4. Implement recovery strategy selection and application.
@@ -880,7 +880,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 **Phase 4b — Counterfactual Reasoning & Regret-Driven Synthesis**
 1. Implement `CounterfactualTrace` generation (Pass 4 of failure diagnosis, §6.4/§6.9).
 2. Implement `AlternativeOutcome` prediction pipeline (LLM prompting + structured output).
-3. Integrate counterfactual traces into `FailureMemory` — regret accumulation and `high_regret_patterns` indexing.
+3. Integrate counterfactual traces into the `FailurePatternStore` — regret accumulation and `high_regret_patterns` indexing.
 4. Implement regret-driven synthesis trigger in Hypothesizer (§5, source 4).
 5. Implement comparative composition ranking in Composer (§3, step 4).
 6. Measure: counterfactual prediction accuracy, regret-driven skill utility, regret reduction rate.
@@ -912,7 +912,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | Failure classification taxonomy implementation | P1 | Not started |
 | LLM-based failure diagnosis with structured output | P1 | Not started |
 | Recovery strategy selector & applicator | P1 | Not started |
-| FailureMemory store & pattern aggregation | P1 | Not started |
+| FailurePatternStore & pattern aggregation | P1 | Not started |
 | Frozen teacher inference procedure optimization (prompt engineering, best-of-N, decomposition) | P1 | Not started |
 | Escalation policy engine | P2 | Not started |
 | Archetype library for hypothesis matching | P2 | Not started |
@@ -923,7 +923,7 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | Failure reflection metrics & dashboarding | P2 | Not started |
 | CounterfactualTrace generation (Pass 4 of failure diagnosis) | P1 | Not started |
 | AlternativeOutcome prediction pipeline & LLM prompting | P1 | Not started |
-| Regret accumulation & high_regret_patterns indexing in FailureMemory | P1 | Not started |
+| Regret accumulation & high_regret_patterns indexing in FailurePatternStore | P1 | Not started |
 | Regret-driven synthesis trigger in Hypothesizer | P1 | Not started |
 | Comparative composition ranking in Composer | P2 | Not started |
 | Counterfactual prediction accuracy evaluation harness | P2 | Not started |
@@ -945,9 +945,9 @@ The Skill Crafter leverages multi-hop visual reasoning from the vlm_wrapper:
 | `skill_agents/crafter/failure_reflector.py` | Backward trace analysis, failure localization & classification |
 | `skill_agents/crafter/failure_diagnosis.py` | LLM-based diagnosis prompt construction & structured output |
 | `skill_agents/crafter/recovery.py` | Recovery strategy selection, application, and feedback |
-| `skill_agents/crafter/failure_memory.py` | Persistent failure memory, pattern aggregation, escalation |
+| `skill_agents/crafter/failure_patterns.py` | Persistent FailurePatternStore: aggregation index over FailureDiagnosis records, escalation |
 | `skill_agents/crafter/counterfactual.py` | CounterfactualTrace / AlternativeOutcome generation, regret estimation, alternative enumeration |
 
-Note: counterfactual reasoning also integrates into existing planned files — `failure_diagnosis.py` (Pass 4 prompt), `failure_memory.py` (regret aggregation), `hypothesizer.py` (counterfactual synthesis mode), `composer.py` (comparative composition ranking).
+Note: counterfactual reasoning also integrates into existing planned files — `failure_diagnosis.py` (Pass 4 prompt), `failure_patterns.py` (regret aggregation), `hypothesizer.py` (counterfactual synthesis mode), `composer.py` (comparative composition ranking).
 
 Currently no implementation exists — this is the newest component of the pipeline.
