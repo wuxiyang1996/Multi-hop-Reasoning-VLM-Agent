@@ -81,7 +81,7 @@ from .skill_tracker import SkillTracker
 # Module-level constants
 # ──────────────────────────────────────────────────────────────────────
 
-DEFAULT_MODEL: str = "gpt-4o-mini"
+DEFAULT_MODEL: str = "gpt-4o"  # project-wide backbone; see common/models.py
 MAX_LAST_ACTIONS: int = 5
 MAX_PROGRESS_NOTES: int = 3
 MAX_VALID_ACTIONS_IN_PROMPT: int = 16

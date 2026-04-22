@@ -23,7 +23,7 @@ Usage with AvalonNLWrapper (single-agent):
 
   env = AvalonNLWrapper(num_players=5, controlled_player=0)
   obs, info = env.reset()
-  action = language_agent_action(obs, model="gpt-4o-mini")
+  action = language_agent_action(obs, model="gpt-4o")
   obs, reward, term, trunc, info = env.step(action)
 
 Usage with AvalonNLWrapper (multi-agent):
@@ -34,7 +34,7 @@ Usage with AvalonNLWrapper (multi-agent):
   env = AvalonNLWrapper(num_players=5)
   obs, info = env.reset()         # obs: {player_id: nl_str}
   actions = {
-      pid: language_agent_action(obs_str, model="gpt-4o-mini")
+      pid: language_agent_action(obs_str, model="gpt-4o")
       for pid, obs_str in obs.items()
   }
   obs, rewards, term, trunc, info = env.step(actions)
@@ -46,7 +46,7 @@ Usage with DiplomacyNLWrapper (single-agent):
 
   env = DiplomacyNLWrapper(controlled_power="FRANCE")
   obs, info = env.reset()
-  action = language_agent_action(obs, model="gpt-4o-mini")
+  action = language_agent_action(obs, model="gpt-4o")
   obs, reward, term, trunc, info = env.step(action)
 
 Usage with DiplomacyNLWrapper (multi-agent):
@@ -57,7 +57,7 @@ Usage with DiplomacyNLWrapper (multi-agent):
   env = DiplomacyNLWrapper()
   obs, info = env.reset()         # obs: {power_name: nl_str}
   actions = {
-      power: language_agent_action(obs_str, model="gpt-4o-mini")
+      power: language_agent_action(obs_str, model="gpt-4o")
       for power, obs_str in obs.items()
   }
   obs, rewards, term, trunc, info = env.step(actions)
@@ -1062,7 +1062,7 @@ def _build_diplomacy_tools() -> list:
 def ask_gpt_function_action(
     state_nl: str,
     game: Optional[str] = None,
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-4o",
     temperature: float = 0.3,
 ) -> Union[str, List[str]]:
     """
@@ -1203,7 +1203,7 @@ def language_agent_action(
         return ask_gpt_function_action(
             state_nl,
             game=game,
-            model=model or "gpt-4o-mini",
+            model=model or "gpt-4o",
             temperature=temperature,
         )
     return ask_model_action(

@@ -21,7 +21,7 @@ except ImportError:
 # Summary budget constants
 # ---------------------------------------------------------------------------
 
-DEFAULT_LLM_MODEL: str = "gpt-4o-mini"
+DEFAULT_LLM_MODEL: str = "gpt-4o"  # project-wide backbone; see common/models.py
 """Fallback LLM model when none is explicitly provided by the caller.
 Both GPT and Qwen inference paths should always pass an explicit model;
 this constant only guards against accidental None."""

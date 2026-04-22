@@ -88,7 +88,7 @@ class VLMDecisionAgent:
     follows the protocol to execute.
     """
 
-    DEFAULT_MODEL = "gpt-4o-mini"
+    DEFAULT_MODEL = "gpt-4o"  # project-wide backbone; see common/models.py
 
     def __init__(
         self,
