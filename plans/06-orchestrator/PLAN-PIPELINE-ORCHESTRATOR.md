@@ -22,10 +22,10 @@ The system follows a **four-way separation of responsibilities**. The orchestrat
 
 | Module | Responsibilities |
 |--------|------------------|
-| **Skill Bank** ([PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md)) | stores skill objects; retrieves top-k candidates; manages lifecycle states; receives promotion / rollback results. |
-| **Harness** ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) | filters retrieved candidates; validates binding and evidence; checks runtime feasibility; provides advisory scores; performs veto when necessary. Frozen 72B; **never** the online policy. |
-| **Actor** ([PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md)) | remains the online policy; decides continue / switch / no-skill / reasoning / action; consumes only Harness-filtered eligible candidates; produces online trajectories and experience. |
-| **Orchestrator** (this document) | manages batch evaluation; runs promotion / rollback; schedules validation; maintains snapshots and experiments; owns the audit trail. |
+| **Skill Bank** ([PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md)) | stores skill objects (with `source_domains` / `transfer_target_domains` / `verified_domains`, see [§0.4](../03-skill-bank/PLAN-SKILL-BANK.md#04-source-domain--transfer-target-asymmetry)); retrieves top-k candidates; manages lifecycle states; receives promotion / rollback results. **Never** writes `verified_domains` itself — that field is owned by the gate. |
+| **Harness** ([PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md)) | filters retrieved candidates; validates binding and evidence; runs the [`FewShotAdapter`](../05-harness/PLAN-HARNESS.md#542-fewshotadapter-stage-3a-runtime) for Stage 3a target-binding probes; provides advisory scores; performs veto when necessary. Frozen 72B; **never** the online policy. |
+| **Actor** ([PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md)) | remains the online policy; decides continue / switch / no-skill / reasoning / action; consumes only Harness-filtered eligible candidates; produces online trajectories and experience (in the source domain — game — by default; target-domain inference happens through the slow loop, see [§5](#5-training-cadence-by-timescale)). |
+| **Orchestrator** (this document) | manages batch evaluation; runs promotion / rollback; schedules validation; **schedules the source / target asymmetric cadence ([§5](#5-training-cadence-by-timescale))**; maintains snapshots and experiments; owns the audit trail; is the only writer of `SkillRecord.verified_domains` (via `GateService`'s Stage 3a, see [PLAN-UNIFIED-SKILL-GATE Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)). |
 
 This separation prevents any single module from becoming overloaded or semantically ambiguous. In particular, the orchestrator does **not** reach inside the Actor's policy choices, the Harness does **not** mutate the bank, and the Bank does **not** decide which candidate the Actor should run.
 
@@ -252,7 +252,8 @@ Promotion **creates a new bank snapshot**; pointers (`current_production`) move 
 | Trigger | Action |
 |---------|--------|
 | Gate failure | Discard proposal; optionally file **failure artifact** for crafter learning. |
-| Post-promotion regression | Revert pointer to last good `snapshot_id`; quarantine offending skills. |
+| Post-promotion regression on the **source-domain** (game) frozen slice | Revert pointer to last good `snapshot_id`; quarantine offending skills. The source-domain regression is treated as a system-level rollback because it indicates the foundry's hardening signal has degraded. |
+| Post-promotion regression on **one transfer-target** domain only | **Partial deprecation**: drop the offending entry from `SkillRecord.verified_domains`, append the diagnostic to `adapter_history` and (if the failure pattern recurs) to `false_binding_patterns` (PLAN-SKILL-BANK §4.3a/b). The skill *stays ACTIVE* if at least one other verified target remains; otherwise the skill falls back to PROVISIONAL pending a fresh Stage 3a run. The source-domain (game) lineage is never revoked by a target-domain regression. |
 | Data corruption / schema drift | Halt scheduled training; require manual audit (§8). |
 
 ### 3.4 Asymmetric teacher outputs
@@ -395,26 +396,33 @@ Re-issuing `GROUND` rebuilds the affected slice of current context directly; not
 
 ## 5. Training cadence by timescale
 
-Map jobs to the three-agent separation ([README § Three-agent role split](../README.md)) with explicit **triggers** and **data dependencies**.
+Map jobs to the three-agent separation ([README § Three-agent role split](../README.md)) with explicit **triggers** and **data dependencies**. The cadence is asymmetric in the same way the bank is (PLAN-SKILL-BANK §0.4): the **fast loop runs in the source domain (game)**, where rollouts are cheap and verification is dense; the **slow loop runs the few-shot transfer machinery against target domains**, where each rollout is expensive and the only thing being asked is "does this game-learned protocol bind here?"
 
-### 5.1 Fast (Actor — every iteration / continuous)
+### 5.0 Source / target asymmetry of the cadence
+
+- **Fast loop = game rollouts only.** The Actor's GRPO updates and skill mining feed off `gymv` rollouts. This is where new candidate skills are *born* and where the bulk of training compute goes.
+- **Medium loop = mining + single-domain replay validation.** Bank-ops jobs operate over the source-domain trace pool only.
+- **Slow loop = few-shot transfer.** Target-domain rollouts (`browser`, `osworld`, `video`, `visual_reasoning`) are scheduled explicitly through the few-shot adapter (PLAN-UNIFIED-SKILL-GATE Stage 3a, [PLAN-HARNESS §5.4.2](../05-harness/PLAN-HARNESS.md)) and are budgeted in *demos per skill per target* rather than continuous rollouts.
+- **Non-regression is measured on the source-domain frozen slice** (gate G5, see [PLAN-HARNESS §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates)). Target-domain regressions trigger only the partial-deprecation path in §3.3.
+
+### 5.1 Fast (Actor — every iteration / continuous, **source domain only**)
 
 - **Targets:** `hop_select`, `skill_select`, action execution adapters tied to GRPO.
-- **Inputs:** Fresh trajectories from `EpisodeTrace`, reward streams.
+- **Inputs:** Fresh `gymv` trajectories from `EpisodeTrace`, reward streams.
 - **Trigger:** Buffer full, KL stable, or wall-clock micro-batch.
 - **Blocking:** Must not wait on slow teacher; uses last **promoted** bank snapshot.
 
-### 5.2 Medium (Skill Bank ops — every few iterations)
+### 5.2 Medium (Skill Bank ops — every few iterations, **source domain only**)
 
 - **Targets:** segmentation, contract heads, curator policy.
-- **Inputs:** Segmented traces + gate-verified labels where available.
+- **Inputs:** Segmented `gymv` traces + gate-verified labels where available.
 - **Trigger:** N new episodes or drift in segmentation loss proxy.
 
-### 5.3 Slow (Synthesis / reflection — batched)
+### 5.3 Slow (Synthesis / reflection + **few-shot transfer to target domains** — batched)
 
-- **Targets:** composition, hypothesis, counterfactuals, protocol patches (frozen teacher).
-- **Inputs:** Failure clusters, gate failures, curated slices.
-- **Trigger:** every N episodes **or** backlog threshold; always passes through **acceptance gate** before affecting production pointers.
+- **Targets:** composition, hypothesis, counterfactuals, protocol patches (frozen teacher), and **per-(skill, target_domain) `FewShotAdapter.adapt()` runs** that earn `verified_domains` entries.
+- **Inputs:** Failure clusters, gate failures, curated slices, target-domain demonstration sets indexed by `(target_domain, slot_signature)`.
+- **Trigger:** every N episodes **or** backlog threshold **or** a new `GeneralizeProposal` carrying a few-shot recipe. Always passes through the **unified gate** (Stage 3a is the transfer-specific stage) before affecting production pointers.
 
 ### 5.4 Grounding (its own schedule)
 
@@ -444,6 +452,19 @@ Visual grounding has strong module metrics; the orchestrator adds **full-pipelin
 | **Transfer lift** | Cross-domain slices: same skill_id usage → outcome delta |
 | **Gate pass rate** | Proposals accepted / total proposals |
 | **Bank churn** | Promotions + rollbacks per 1k episodes |
+
+### 6.2a Few-shot transfer (target-domain only)
+
+These metrics measure the project's **central thesis** — that game-mined skills generalize to other domains under K-shot adaptation — and **must be reported per `target_domain ∈ TRANSFER_TARGET_DOMAINS`**. They are computed from the artifacts written by `GateService._run_transfer` (Stage 3a) and the per-target `verified_domains` log.
+
+| Metric | Definition | Target |
+|--------|------------|--------|
+| **K-shot pass rate** | Fraction of `(skill_id, target_domain)` pairs that earn a `verified_domains` entry on first Stage 3a run, given `K = few_shot.k_shot_default` demonstrations | Per target ≥ `transfer_min_target_domains_verified` policy; report curve over K ∈ {1, 5, k_shot_max} |
+| **Transfer skill coverage** | Fraction of `ACTIVE` skills that have at least one target-domain entry in `verified_domains` | Should rise monotonically as the bank matures |
+| **Multi-target generalization** | For skills with ≥1 verified target, the mean number of target domains they verify on | Skills generalizing across many targets are the high-value subset |
+| **Adaptation cost** | Mean tokens consumed per successful Stage 3a `adapt()` call | Bounded above by `few_shot.adaptation_cost_max_tokens` |
+| **Target-domain regression rate** | Frequency at which a previously-verified `(skill, target)` is dropped from `verified_domains` (partial deprecation, §3.3) | Tracked separately from full bank rollback |
+| **Source-vs-target gap** | Source-domain (game) success rate of a skill minus its mean target-domain success rate after adaptation | Large positive gap = the few-shot path is the bottleneck, not the underlying skill |
 
 ### 6.3 Evidence & trace quality
 

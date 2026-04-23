@@ -2,14 +2,51 @@
 
 The Decision Agent module from the **COS-PLAY** co-evolution framework (COLM 2026). Implements the three-stage decision loop described in Section 4.1 of the paper: **skill retrieval** → **intention update** → **action execution**, with composite reward shaping (r_total = r_env + λ_f · r_follow + r_cost).
 
-Two agents ship in this package:
+Three actor flavours and one legacy agent ship here:
 
-| Agent | Input | Use when |
-|-------|-------|----------|
-| `ActorAgent` (new, schema-native) | Parsed `<state>…</state>` schema from `vlm_wrapper` | You have visual-grounding output. This is the **Agent 1 (Actor)** target from [`plans/02-action-agent/PLAN-ACTION-AGENT.md`](../plans/02-action-agent/PLAN-ACTION-AGENT.md) §2.3 and the future GRPO training target (Phase 1). |
-| `VLMDecisionAgent` (legacy, text-native) | Raw observation text | You don't yet have VLM grounding wired in (Pipeline A / B below). Kept for backward compatibility with `scripts/qwen3_decision_agent.py` and `inference/run_qwen3_8b_eval.py`. |
+| Agent | Backbone | Input | Use when |
+|-------|----------|-------|----------|
+| `ActorAgent` (base, schema-native) | text-only via `API_func.ask_model` (defaults to `gpt-4o`) | Parsed `<state>…</state>` schema from `vlm_wrapper` | You want the unmodified loop from [`plans/02-action-agent/PLAN-ACTION-AGENT.md`](../plans/02-action-agent/PLAN-ACTION-AGENT.md) §2.3 — no images, no recorder. Kept stable so the existing test suite and offline rollouts keep working. |
+| `GPT4oCollectorActor` ([`SFT/`](SFT/)) | **GPT-4o** with multimodal chat completions | Schema + screenshot | You're **gathering SFT data** to fine-tune the Qwen3-VL student. Writes per-step rows in the exact layout `trainer/SFT/data_loader.py` consumes. |
+| `QwenVLActor` ([`grpo/`](grpo/)) | **`Qwen/Qwen3-VL-8B-Instruct`** via `trainer.coevolution.vllm_client.AsyncVLLMClient` (multi-LoRA hot-swap) | Schema + screenshot | You're running **online inference or GRPO+LoRA training**. Emits `trainer.common.metrics.RolloutStep` records the GRPO trainer ingests directly. |
+| `VLMDecisionAgent` (legacy, text-native) | text-only | Raw observation text | You don't yet have VLM grounding wired in. Kept for backward compatibility with `scripts/qwen3_decision_agent.py` and `inference/run_qwen3_8b_eval.py`. |
 
-Both run the same decision loop shape; the actor just consumes a richer, pre-parsed state and exposes the inner-MDP / skill-interface seams the plan calls out.
+The two new flavours **subclass `ActorAgent`** and override exactly one
+seam (`_call_llm`) plus a bit of bookkeeping. They reuse the entire
+schema-parse → intention → reselect → inner-MDP → action prompt →
+entity-resolve → anti-repetition pipeline unchanged. There is **no
+fork** of the per-step contract; only the LLM backend and the per-step
+artefact differ.
+
+Why split this way: the SFT collector and the GRPO actor have
+fundamentally different deployment shapes (sync OpenAI vs async vLLM,
+filesystem JSONL vs in-memory `RolloutRecord`), and the
+`vlm_wrapper/README.md` distillation plan keeps them strictly
+separate (GPT-4o teacher → Qwen3-VL-8B student). Folding them under one
+class would force every caller to depend on both stacks.
+
+Sub-package map:
+
+```
+decision_agents/
+├─ actor_agent.py        ← legacy/base ActorAgent (unchanged contract)
+├─ agent.py              ← VLMDecisionAgent / LLMDecisionAgent (text-only)
+├─ schema_parser.py      ← shared StateSchema / Entity / parse_state_schema
+├─ skill_interface.py    ← SkillProvider seam
+├─ skill_tracker.py      ← SkillTracker (slot coverage, reselect-on-stall)
+├─ inner_mdp.py          ← HopPolicy, HeuristicHopPolicy
+├─ reward_func.py        ← RewardComputer (r_env + r_follow + r_cost)
+├─ agent_helper.py       ← infer_intention, EpisodicMemoryStore
+├─ core/                 ← shared multimodal scaffolding
+│   ├─ multimodal.py        VisualInput, build_*_messages, load_image_as_data_url
+├─ SFT/                  ← GPT-4o data-collection actor (see SFT/README.md)
+│   ├─ actor_gpt4o.py
+│   ├─ sft_recorder.py
+│   └─ run_collect.py
+└─ grpo/                 ← Qwen3-VL-8B + GRPO + LoRA (see grpo/README.md)
+    ├─ actor_qwen_vl.py
+    └─ rollout_logger.py
+```
 
 ---
 
@@ -89,13 +126,214 @@ The runner expects the env (or a wrapper around it) to place the `<state>` text 
 
 ### Files
 
-| File | What it does |
-|------|--------------|
-| `actor_agent.py` | `ActorAgent`, `ActorDecision`, `ActorState`, `run_actor_episode` |
+| File / sub-package | What it does |
+|--------------------|--------------|
+| `actor_agent.py` | `ActorAgent`, `ActorDecision`, `ActorState`, `run_actor_episode`. Owns the per-step pipeline; exposes a single `_call_llm(prompt, images=None, ...)` seam that the SFT and GRPO actors override. |
 | `schema_parser.py` | `StateSchema`, `Entity`, `Targets`, `StateFlags`, `Relation`, `Hop`, `Answer`, `ResolvedAction`, `parse_state_schema`, `resolve_entity_action` |
 | `skill_interface.py` | `SkillProvider` protocol, `SkillGuidance`, `NullSkillProvider`, `SkillBankProvider` |
 | `skill_tracker.py` | `SkillTracker`, `ActivationCheck`, `TrackerState` — lifecycle + slot-coverage (PLAN §10) |
 | `inner_mdp.py` | `HopAction`, `HopStep`, `HopTrace`, `HopPolicy`, `HeuristicHopPolicy` — inner-MDP scaffold (PLAN §5) |
+| [`core/`](core/) | `VisualInput`, `build_openai_vision_messages`, `build_qwen_vl_messages`, `load_image_as_data_url` — multimodal scaffolding shared by the SFT/GRPO actors. |
+| [`SFT/`](SFT/) | `GPT4oCollectorActor`, `SFTRecorder`, `SFTRecord`, `run_collect` CLI — see [`SFT/README.md`](SFT/README.md). |
+| [`grpo/`](grpo/) | `QwenVLActor`, `GRPORolloutLogger`, `DEFAULT_QWEN_VL_MODEL` — see [`grpo/README.md`](grpo/README.md). |
+
+---
+
+## Two specialised flavours (SFT collection ⇄ GRPO inference/training)
+
+The two sub-packages [`SFT/`](SFT/) and [`grpo/`](grpo/) implement the
+distillation pipeline laid out in [`vlm_wrapper/README.md`](../vlm_wrapper/README.md):
+**GPT-4o teacher → SFT cold-start → Qwen3-VL-8B-Instruct student → GRPO+LoRA**.
+Both subclass [`ActorAgent`](actor_agent.py); they reuse the entire
+schema-parse → intention → reselect → inner-MDP → action prompt →
+entity-resolve → anti-repetition pipeline unchanged. Only the LLM
+backend and the per-step artefact differ.
+
+### Pipeline at a glance
+
+```
+   ┌─────────────────────────────────────────────────────────────┐
+   │ Stage 1 — Data collection (offline, GPT-4o teacher)         │
+   │                                                             │
+   │   env  ──► GPT4oCollectorActor.step(image, schema, valid)   │
+   │              │    ▲                                         │
+   │              │    └── _call_llm = OpenAI chat completions   │
+   │              │           (multimodal: [text, image_url, …]) │
+   │              ▼                                              │
+   │         SFTRecorder.record_action_taking(...)               │
+   │              │                                              │
+   │              ▼                                              │
+   │   <out>/<game>/{skill_selection,action_taking}.jsonl        │
+   │   exact format trainer/SFT/data_loader.py reads             │
+   └────────────────────────────┬────────────────────────────────┘
+                                │
+                                ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │ Stage 2 — Cold-start SFT (trainer/SFT/train.py)             │
+   │   trains LoRA adapters: skill_selection, action_taking      │
+   │   on top of Qwen/Qwen3-VL-8B-Instruct                       │
+   │   output: runs/sft_coldstart/decision/<adapter>/            │
+   └────────────────────────────┬────────────────────────────────┘
+                                │
+                                ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │ Stage 3 — Online GRPO (trainer/coevolution/grpo_training.py)│
+   │                                                             │
+   │   env  ──► QwenVLActor.step(image, schema, valid)           │
+   │              │    ▲                                         │
+   │              │    └── _call_llm = AsyncVLLMClient.generate_chat │
+   │              │            adapter="action_taking"           │
+   │              ▼                                              │
+   │         GRPORolloutLogger.log_step(decision, reward_result) │
+   │              │                                              │
+   │              ▼                                              │
+   │   RolloutRecord (trainer.common.metrics)                    │
+   │   → DecisionGRPOTrainer                                     │
+   └─────────────────────────────────────────────────────────────┘
+```
+
+The same `<state>` schema, the same `valid_actions`, the same prompt
+shape flow through both flavours. That guarantees the SFT records the
+GPT-4o teacher writes are 1:1 alignable with the rollouts the
+Qwen3-VL student produces — which is the whole point of the
+distillation: **what the student saw at GRPO time and what the teacher
+saw at labeling time must come from the same actor pipeline**.
+
+### Flavour comparison
+
+| Aspect | `GPT4oCollectorActor` ([`SFT/`](SFT/)) | `QwenVLActor` ([`grpo/`](grpo/)) |
+|--------|---------------------------------------|----------------------------------|
+| Backbone | GPT-4o (OpenAI / OpenRouter) | `Qwen/Qwen3-VL-8B-Instruct` (vLLM) |
+| LLM call | sync `openai.chat.completions.create(...)` | async `AsyncVLLMClient.generate_chat(...)` |
+| LoRA adapters | n/a (frozen teacher) | multi-LoRA hot-swap; `adapter="action_taking"` |
+| Per-step artefact | JSONL row → `<out>/<game>/<adapter>.jsonl` | `RolloutStep` → `RolloutRecord` |
+| Consumed by | `trainer.SFT.data_loader.load_decision_adapter_data` | `trainer.coevolution.grpo_training.DecisionGRPOTrainer` |
+| Vision input | optional but recommended | optional but recommended |
+| Inference cost | API-billed; teacher only | self-hosted; rollout-rate friendly (≈5–8 s/step on A100) |
+| Where it lives at runtime | data-collection notebooks / batch scripts | online co-evolution loop, eval drivers |
+| When to use | bootstrapping the SFT corpus, gold-label cross-validation | every online rollout once SFT cold-start has converged |
+
+### `GPT4oCollectorActor` quick start
+
+```python
+from decision_agents import GPT4oCollectorActor, SFTRecorder, VisualInput
+
+recorder = SFTRecorder()                     # default path → trainer/SFT
+actor = GPT4oCollectorActor(
+    recorder=recorder,
+    game="tetris",
+    model="gpt-4o",
+)
+
+obs, info = env.reset()
+done = False
+while not done:
+    decision = actor.step(
+        observation=str(obs),
+        schema_text=info.get("schema_text"),
+        valid_actions=info.get("valid_actions"),
+        task="Clear lines as fast as possible.",
+        images=[VisualInput(image_path=info["screenshot"])],   # optional
+    )
+    obs, reward, term, trunc, info = env.step(decision.action)
+    done = bool(term or trunc)
+    actor.observe_result(decision, reward=reward, done=done)
+recorder.write_manifest()                    # _manifest.json with row counts
+```
+
+CLI entrypoint:
+
+```bash
+python -m decision_agents.SFT.run_collect \
+    --env-factory my_envs.tetris:make_env \
+    --game tetris --episodes 50 --max-steps 200 \
+    --image-info-key screenshot --schema-info-key schema_text
+```
+
+The output JSONL row matches `trainer/SFT/data_loader.py` field by
+field (`prompt`, `completion`, `intention`, `active_skill`) plus an
+extra `image` block silently passed through, so the existing
+cold-start trainer ingests these artefacts without any conversion. See
+[`SFT/README.md`](SFT/README.md) for the full row schema and the
+GPT-4o vision routing logic.
+
+### `QwenVLActor` quick start
+
+```python
+from decision_agents import (
+    QwenVLActor, GRPORolloutLogger, DEFAULT_QWEN_VL_MODEL, VisualInput,
+)
+from trainer.coevolution.vllm_client import AsyncVLLMClient
+
+vllm = AsyncVLLMClient(
+    base_url="http://localhost:8000/v1",
+    model=DEFAULT_QWEN_VL_MODEL,             # "Qwen/Qwen3-VL-8B-Instruct"
+)
+logger = GRPORolloutLogger(env_name="tetris", game_name="tetris")
+
+actor = QwenVLActor(
+    vllm_client=vllm,
+    rollout_logger=logger,
+    adapter="action_taking",                 # LoRA from runs/sft_coldstart/
+)
+
+obs, info = env.reset()
+logger.start_episode(seed=42)
+done = False
+while not done:
+    decision = actor.step(
+        observation=str(obs),
+        schema_text=info.get("schema_text"),
+        valid_actions=info.get("valid_actions"),
+        images=[VisualInput(image_path=info["screenshot"])],
+    )
+    obs, reward, term, trunc, info = env.step(decision.action)
+    done = bool(term or trunc)
+    actor.observe_result(decision, reward=reward, done=done)
+record = logger.finalize_episode(score=info.get("score", 0.0), won=info.get("won", False))
+# record is a trainer.common.metrics.RolloutRecord ready for DecisionGRPOTrainer.
+```
+
+For runners already on an event loop (e.g. the async co-evolution
+collector), use `await actor.step_async(...)` instead — the LLM call
+stays non-blocking. See [`grpo/README.md`](grpo/README.md) for the
+LoRA adapter routing and the full `RolloutStep` field mapping.
+
+### Multimodal scaffolding ([`core/`](core/))
+
+Both flavours go through the same `VisualInput` and message builders,
+so the screenshot the teacher sees and the screenshot the student sees
+are byte-identical (after data-URL normalisation):
+
+```python
+from decision_agents import VisualInput, build_qwen_vl_messages
+
+img = VisualInput(image_path="rollouts/.../step_0007.png",
+                  caption="browser viewport @ 1280x720")
+
+messages = build_qwen_vl_messages(
+    prompt="<full action prompt with schema + valid actions>",
+    images=[img],
+    system="You are an Actor Agent ...",
+)
+# → [{"role": "system", ...},
+#    {"role": "user", "content": [
+#         {"type": "text", "text": "<prompt>"},
+#         {"type": "text", "text": "browser viewport @ 1280x720"},
+#         {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+#    ]}]
+```
+
+`build_openai_vision_messages` is a thin alias kept separate so future
+GPT-4o-only tweaks don't bleed into the Qwen path (and vice versa).
+
+### Lazy imports
+
+`from decision_agents import GPT4oCollectorActor` (or `QwenVLActor`)
+goes through a PEP 562 `__getattr__` shim, so plain
+`import decision_agents` does **not** pull in `openai` or
+`trainer.coevolution.vllm_client`. Existing offline tests keep
+running with neither dependency installed.
 
 ---
 
@@ -324,13 +562,16 @@ Skills are sorted by confidence and top-k returned as `SkillSelectionResult` obj
 
 ## Files
 
-| File | What it does |
-|------|-------------|
+| File / sub-package | What it does |
+|--------------------|--------------|
 | `agent.py` | `VLMDecisionAgent` (LLM decision agent), `run_tool()`, `run_episode_vlm_agent()`, tool handlers (e.g. `TOOL_SELECT_SKILL` → `active_skill_plan` from protocol steps) |
 | `agent_helper.py` | `get_state_summary()`, `build_rag_summary()`, `extract_game_facts()`, `infer_intention()`, `EpisodicMemoryStore`, `skill_bank_to_text()`, `query_skill_bank()` / `select_skill_from_bank()`, `_get_protocol_for_skill()` |
 | `reward_func.py` | `RewardConfig`, `RewardResult`, `RewardComputer`, `compute_reward()` (r_follow uses skill contract `eff_add`) |
 | `dummy_agent.py` | Baseline `language_agent_action()` + game detection + action extraction for all 6 supported games (LMGame-Bench, AgentEvolver, Orak) |
-| `__init__.py` | Re-exports the above |
+| `__init__.py` | Re-exports the above; lazy `__getattr__` for `GPT4oCollectorActor` / `QwenVLActor` etc. |
+| [`core/`](core/) | Multimodal scaffolding (`VisualInput`, `build_*_messages`) — used by the SFT / GRPO actors above. |
+| [`SFT/`](SFT/) | GPT-4o data-collection actor that writes `trainer/SFT`-compatible JSONL. See [`SFT/README.md`](SFT/README.md). |
+| [`grpo/`](grpo/) | Qwen3-VL-8B online actor + GRPO rollout logger. See [`grpo/README.md`](grpo/README.md). |
 
 ---
 

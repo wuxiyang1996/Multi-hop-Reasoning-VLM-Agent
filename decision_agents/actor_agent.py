@@ -680,25 +680,18 @@ class ActorAgent:
             if exact is not None:
                 return exact, "inner-MDP EXECUTE", "hop_execute"
 
-        # 3. LLM prompt path.
-        if ask_model is not None:
-            prompt = self._build_action_prompt(
-                schema=schema,
-                summary=summary,
-                task=task,
-                valid_actions=valid_actions,
-                observation=observation,
-            )
-            try:
-                reply = ask_model(
-                    prompt,
-                    model=self.model,
-                    temperature=0.3,
-                    max_tokens=200,
-                )
-            except Exception:
-                reply = ""
-            reply = reply or ""
+        # 3. LLM prompt path — routed through the ``_call_llm`` seam so
+        #    subclasses can swap backend (e.g. Qwen3-VL via vLLM) and
+        #    attach images without touching this pipeline.
+        prompt = self._build_action_prompt(
+            schema=schema,
+            summary=summary,
+            task=task,
+            valid_actions=valid_actions,
+            observation=observation,
+        )
+        reply = self._call_llm(prompt, temperature=0.3, max_tokens=200) or ""
+        if reply:
             action_text, parse_path = _extract_action_from_reply(reply, valid_actions)
             if action_text:
                 return action_text, reply[:400], f"llm:{parse_path}"
@@ -787,6 +780,61 @@ class ActorAgent:
             "ACTION: <one of the valid actions, or its 1-based number>",
         ])
         return "\n".join(parts)
+
+    # ── LLM seam ─────────────────────────────────────────────────────
+    #
+    # ``_call_llm`` is the single point of contact between the actor's
+    # per-step pipeline and a language model.  The default uses the
+    # text-only ``API_func.ask_model`` so existing callers (and the
+    # offline test suite that monkeypatches ``ask_model = None``) keep
+    # working unchanged.
+    #
+    # Two specialised subclasses live alongside this module:
+    #
+    # * :class:`decision_agents.SFT.GPT4oCollectorActor` — keeps GPT-4o,
+    #   sends the screenshot as a vision content part, and writes
+    #   per-step SFT records that ``trainer/SFT/data_loader.py`` can
+    #   consume directly.
+    # * :class:`decision_agents.grpo.QwenVLActor` — routes the prompt
+    #   through :class:`trainer.coevolution.vllm_client.AsyncVLLMClient`
+    #   against ``Qwen/Qwen3-VL-8B-Instruct`` with hot-swappable LoRA
+    #   adapters, and emits :class:`trainer.common.metrics.RolloutStep`
+    #   records for the GRPO trainer.
+    #
+    # Subclasses MUST keep this contract:
+    #   - return a *string* (empty string on failure, never None);
+    #   - never raise — the ``_pick_action`` pipeline expects to fall
+    #     through to the deterministic fallback when the LLM is silent.
+    #
+    def _call_llm(
+        self,
+        prompt: str,
+        *,
+        images: Optional[List[Any]] = None,
+        temperature: float = 0.3,
+        max_tokens: int = 200,
+    ) -> str:
+        """Default text-only LLM call via :func:`API_func.ask_model`.
+
+        ``images`` is accepted for forward compatibility — the default
+        impl ignores it because the GPT-4o text path predates the
+        multimodal split.  The vision-aware subclasses
+        (``GPT4oCollectorActor``, ``QwenVLActor``) override this method
+        and consume the list of :class:`~decision_agents.core.VisualInput`
+        objects.
+        """
+        if ask_model is None:
+            return ""
+        try:
+            reply = ask_model(
+                prompt,
+                model=self.model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        except Exception:
+            return ""
+        return reply or ""
 
     def _infer_intention(self, summary: str, task: str) -> str:
         """Wrapper around :func:`agent_helper.infer_intention`."""

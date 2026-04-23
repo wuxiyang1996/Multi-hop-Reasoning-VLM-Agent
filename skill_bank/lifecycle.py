@@ -14,9 +14,15 @@ External callers go through this method exclusively; direct
 from __future__ import annotations
 
 import threading
-from typing import Dict, FrozenSet, Iterable, Optional
+import time
+from typing import Any, Dict, FrozenSet, Iterable, Mapping, Optional, Sequence
 
-from common.enums import SkillStatus
+from common.enums import (
+    DOMAINS,
+    SOURCE_DOMAINS,
+    TRANSFER_TARGET_DOMAINS,
+    SkillStatus,
+)
 from data_structure.extensions.skill_record import SkillRecord
 from skill_bank.repository import SkillRepository
 from skill_bank.stores import SkillStore, StoreName, store_for_status
@@ -149,6 +155,74 @@ class SkillLifecycleManager:
                         orig_store.put(record, token=self._token)
                 raise
 
+    # -- few-shot transfer bookkeeping (PLAN-UNIFIED-SKILL-GATE Stage 3a) --
+
+    def record_transfer_verification(
+        self,
+        skill_id: str,
+        *,
+        verified_targets: Sequence[str],
+        evaluation_id: Optional[str] = None,
+        per_target_metrics: Optional[Mapping[str, Mapping[str, float]]] = None,
+        rationale: str = "",
+    ) -> SkillRecord:
+        """Append `verified_targets` to `SkillRecord.verified_domains`.
+
+        This is the *only* sanctioned writer of `verified_domains` and
+        `adapter_history`. Called by `PromotionOrchestrator.promote` once
+        per transition whose gate verdict carried Stage 3a verifications.
+
+        Per PLAN-UNIFIED-SKILL-GATE §7, each call appends one
+        `adapter_history` entry per target — these accumulate across
+        re-evaluations so the Crafter / orchestrator can reconstruct the
+        full transfer lineage of a skill.
+        """
+        if not rationale:
+            raise LifecycleError(
+                "record_transfer_verification requires a non-empty rationale."
+            )
+        with self._mutex:
+            record = self._repo.get(skill_id)
+            if record is None:
+                raise LifecycleError(f"Unknown skill {skill_id!r}")
+            unique_targets: list[str] = []
+            seen: set[str] = set()
+            for t in verified_targets:
+                if t in seen:
+                    continue
+                seen.add(t)
+                if t not in TRANSFER_TARGET_DOMAINS:
+                    raise LifecycleError(
+                        f"record_transfer_verification: {t!r} is not in "
+                        f"TRANSFER_TARGET_DOMAINS={TRANSFER_TARGET_DOMAINS}."
+                    )
+                if t not in DOMAINS:
+                    raise LifecycleError(
+                        f"record_transfer_verification: {t!r} is not in DOMAINS."
+                    )
+                unique_targets.append(t)
+
+            current = list(record.verified_domains)
+            now = time.time()
+            metrics = per_target_metrics or {}
+            for t in unique_targets:
+                if t not in current:
+                    current.append(t)
+                entry: Dict[str, Any] = {
+                    "target_domain": t,
+                    "evaluation_id": evaluation_id,
+                    "verified_at": now,
+                    "rationale": rationale,
+                }
+                if t in metrics:
+                    entry["metrics"] = dict(metrics[t])
+                record.adapter_history.append(entry)
+            record.verified_domains = current
+            store = self._store_for(record.status)
+            with store._unlocked(self._token):
+                store.put(record, token=self._token)
+            return record
+
     # -- internals -------------------------------------------------------
 
     def _store_for(self, status: SkillStatus) -> SkillStore:
@@ -189,6 +263,27 @@ class SkillLifecycleManager:
                 f"Cannot promote {record.skill_id!r} to ACTIVE: "
                 f"contract.expected_evidence_roles is empty (G0 violation)."
             )
+        # PLAN-SKILL-BANK §0.4 / PLAN-UNIFIED-SKILL-GATE Stage 3a — source/target
+        # asymmetry. We enforce this *only* when the record actually declares
+        # source-/transfer-target metadata; legacy records (with empty
+        # source_domains) fall back to the older 2-domain check above. New
+        # records produced by the crafter / mining flow MUST populate these
+        # fields, so the strict path applies to them.
+        if to_status == SkillStatus.ACTIVE and record.source_domains:
+            if not any(d in SOURCE_DOMAINS for d in record.source_domains):
+                raise LifecycleError(
+                    f"Cannot promote {record.skill_id!r} to ACTIVE: "
+                    f"source-domain (game-foundry) lineage required, got "
+                    f"source_domains={sorted(set(record.source_domains))} "
+                    f"(SOURCE_DOMAINS={SOURCE_DOMAINS})."
+                )
+            if not any(d in TRANSFER_TARGET_DOMAINS for d in record.verified_domains):
+                raise LifecycleError(
+                    f"Cannot promote {record.skill_id!r} to ACTIVE: "
+                    f"few-shot transfer gate (G3a) requires ≥1 verified target "
+                    f"domain, got verified_domains={sorted(set(record.verified_domains))} "
+                    f"(TRANSFER_TARGET_DOMAINS={TRANSFER_TARGET_DOMAINS})."
+                )
 
 
 __all__ = ["LifecycleError", "SkillLifecycleManager"]

@@ -86,6 +86,46 @@ from .actor_agent import (
     run_actor_episode,
 )
 
+# ── New flavours of the Actor Agent (PLAN-ACTION-AGENT.md §2.3) ──
+#
+# Two specialised subclasses live in their own sub-packages so the
+# GPT-4o data-collection path stays cleanly separated from the
+# Qwen3-VL inference + GRPO path.  They are imported lazily through
+# attribute access below so that ``import decision_agents`` does not
+# pull in ``openai`` / ``trainer.coevolution.vllm_client`` /
+# ``trainer.common.metrics`` unless the caller actually asks for them.
+from .core import (
+    VisualInput,
+    build_openai_vision_messages,
+    build_qwen_vl_messages,
+    load_image_as_data_url,
+)
+
+# PEP 562 lazy attribute access so importing ``decision_agents`` stays
+# light: ``openai`` (SFT actor) and ``trainer.coevolution.vllm_client``
+# (GRPO actor) are pulled in only when the matching symbol is touched.
+_LAZY_ATTRS = {
+    "GPT4oCollectorActor": ("decision_agents.SFT", "GPT4oCollectorActor"),
+    "SFTRecorder":         ("decision_agents.SFT", "SFTRecorder"),
+    "SFTRecord":           ("decision_agents.SFT", "SFTRecord"),
+    "QwenVLActor":         ("decision_agents.grpo", "QwenVLActor"),
+    "GRPORolloutLogger":   ("decision_agents.grpo", "GRPORolloutLogger"),
+    "DEFAULT_QWEN_VL_MODEL": ("decision_agents.grpo", "DEFAULT_QWEN_VL_MODEL"),
+}
+
+
+def __getattr__(name: str):  # pragma: no cover — thin shim
+    """Lazy import for the SFT / GRPO actor flavours."""
+    if name in _LAZY_ATTRS:
+        import importlib
+        mod_name, attr = _LAZY_ATTRS[name]
+        mod = importlib.import_module(mod_name)
+        value = getattr(mod, attr)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module 'decision_agents' has no attribute {name!r}")
+
+
 __all__ = [
     "language_agent_action",
     "detect_game",
@@ -151,4 +191,17 @@ __all__ = [
     "ActorDecision",
     "ActorState",
     "run_actor_episode",
+    # Multimodal scaffolding (decision_agents/core/)
+    "VisualInput",
+    "build_openai_vision_messages",
+    "build_qwen_vl_messages",
+    "load_image_as_data_url",
+    # SFT collection flavour (decision_agents/SFT/) — lazy-loaded
+    "GPT4oCollectorActor",
+    "SFTRecorder",
+    "SFTRecord",
+    # GRPO + LoRA flavour (decision_agents/grpo/) — lazy-loaded
+    "QwenVLActor",
+    "GRPORolloutLogger",
+    "DEFAULT_QWEN_VL_MODEL",
 ]

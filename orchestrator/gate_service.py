@@ -2,15 +2,16 @@
 
 Spec: PLAN-UNIFIED-SKILL-GATE §7.
 
-  Stage 0 — Static          (this module, syntax / contract sanity)
-  Stage 1 — Replay          (delegates to harness.ReplayValidator)
-  Stage 2 — Shadow          (read-only check — orchestrator runs SHADOW
-                             skills in production and we read their stats
-                             from the reward log)
-  Stage 3 — Transfer        (verify ≥ N domains pass)
-  Stage 4 — Non-regression  (compare new bank against last release)
-  Stage 5 — Promotion       (handed to PromotionOrchestrator on PASS)
-  Stage 6 — Rollback/depr.  (handed to PromotionOrchestrator on regression)
+  Stage 0  — Static          (this module, syntax / contract sanity)
+  Stage 1  — Replay          (delegates to harness.ReplayValidator)
+  Stage 2  — Shadow          (read-only check — orchestrator runs SHADOW
+                              skills in production and we read their stats
+                              from the reward log)
+  Stage 3a — Transfer        (few-shot adaptation against TRANSFER_TARGET_DOMAINS
+                              via harness.FewShotAdapter; PLAN-SKILL-BANK §0.4)
+  Stage 4  — Non-regression  (compare new bank against last release)
+  Stage 5  — Promotion       (handed to PromotionOrchestrator on PASS)
+  Stage 6  — Rollback/depr.  (handed to PromotionOrchestrator on regression)
 
 This module owns Stages 0–4. Stages 5 and 6 are *promotion actions*, not
 verdicts, and live in `promotion_orchestrator`.
@@ -20,9 +21,15 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence
 
-from common.enums import DOMAINS, GateStage, GateVerdict
+from common.enums import (
+    DOMAINS,
+    SOURCE_DOMAINS,
+    TRANSFER_TARGET_DOMAINS,
+    GateStage,
+    GateVerdict,
+)
 from common.ids import new_proposal_id, schema_hash
 from data_structure.extensions.bank_mutation_proposal import (
     BankMutationProposal,
@@ -37,6 +44,7 @@ from data_structure.extensions.skill_episode import SkillEpisode
 from data_structure.extensions.skill_evaluation import SkillEvaluationRecord
 from data_structure.extensions.skill_record import SkillRecord
 from harness import SkillHarness
+from harness.few_shot_adapter import AdaptResult, FewShotAdapter, FewShotDemo
 from harness.reward_logger import RewardLogger
 from orchestrator.config import GateThresholds
 
@@ -65,9 +73,18 @@ class GateService:
         *,
         harness: SkillHarness,
         thresholds: Optional[GateThresholds] = None,
+        few_shot_adapter: Optional[FewShotAdapter] = None,
     ) -> None:
         self._harness = harness
         self._thresholds = thresholds or GateThresholds()
+        fs_cfg = self._thresholds.few_shot
+        self._few_shot = few_shot_adapter or FewShotAdapter(
+            harness=harness,
+            k_shot_default=fs_cfg.k_shot_default,
+            k_shot_max=fs_cfg.k_shot_max,
+            target_domain_pass_rate_min=fs_cfg.target_domain_pass_rate_min,
+            adaptation_cost_max_tokens=fs_cfg.adaptation_cost_max_tokens,
+        )
 
     # -- public API --------------------------------------------------------
 
@@ -80,6 +97,7 @@ class GateService:
         shadow_log: Optional[RewardLogger] = None,
         baseline_score: Optional[float] = None,
         post_score: Optional[float] = None,
+        few_shot_demos: Optional[Mapping[str, Sequence[FewShotDemo]]] = None,
     ) -> SkillEvaluationRecord:
         evaluation_id = f"eval-{new_proposal_id().split('-', 1)[1]}"
         verdicts: List[StageVerdict] = []
@@ -87,10 +105,15 @@ class GateService:
         verdicts.append(self._run_static(skill, proposal))
         verdicts.append(self._run_replay(skill, list(replay_seeds)))
         verdicts.append(self._run_shadow(skill, shadow_log))
-        verdicts.append(self._run_transfer(skill))
+        transfer_verdict, verified_targets = self._run_transfer(
+            skill, few_shot_demos=few_shot_demos
+        )
+        verdicts.append(transfer_verdict)
         verdicts.append(self._run_non_regression(baseline_score, post_score))
 
-        rationale, final_verdict, eligible = self._aggregate(verdicts, skill)
+        rationale, final_verdict, eligible = self._aggregate(
+            verdicts, skill, verified_targets=verified_targets
+        )
 
         verdict_payload = GateVerdictPayload(
             proposal_id=proposal.proposal_id,
@@ -191,23 +214,136 @@ class GateService:
             metrics={"shadow_pass_rate": rate, "n_shadow_episodes": float(len(entries))},
         )
 
-    # -- stage 3 -----------------------------------------------------------
+    # -- stage 3a (few-shot transfer) -------------------------------------
 
-    def _run_transfer(self, skill: SkillRecord) -> StageVerdict:
-        n = len(set(skill.feasible_domains))
-        verdict = (
-            GateVerdict.PASS
-            if n >= self._thresholds.transfer_min_domains
-            else GateVerdict.LIMITED_PASS
+    def _run_transfer(
+        self,
+        skill: SkillRecord,
+        *,
+        few_shot_demos: Optional[Mapping[str, Sequence[FewShotDemo]]] = None,
+    ) -> tuple[StageVerdict, List[str]]:
+        """Stage 3a — few-shot adaptation against TRANSFER_TARGET_DOMAINS.
+
+        Returns the StageVerdict plus the list of target domains that
+        actually verified (so the caller can decide whether to promote
+        and what to write into `SkillRecord.verified_domains`).
+
+        Asymmetric path (PLAN-SKILL-BANK §0.4): if the skill carries
+        any source/target metadata, we run the few-shot adapter against
+        each declared transfer target. Otherwise we fall back to the
+        legacy "≥ N feasible domains" check so historical proposals
+        keep evaluating.
+        """
+
+        thresholds = self._thresholds
+        targets = self._infer_targets(skill)
+
+        if not skill.source_domains and not targets:
+            # Legacy fallback — preserves PLAN-UNIFIED-SKILL-GATE pre-asymmetry.
+            n = len(set(skill.feasible_domains))
+            verdict = (
+                GateVerdict.PASS
+                if n >= thresholds.transfer_min_domains
+                else GateVerdict.LIMITED_PASS
+            )
+            return (
+                StageVerdict(
+                    stage=GateStage.TRANSFER,
+                    verdict=verdict,
+                    metrics={
+                        "n_domains": float(n),
+                        "min_domains": float(thresholds.transfer_min_domains),
+                    },
+                    notes="legacy_path:no source/target metadata",
+                ),
+                [],
+            )
+
+        if not targets:
+            return (
+                StageVerdict(
+                    stage=GateStage.TRANSFER,
+                    verdict=GateVerdict.FAIL,
+                    failures=["no transfer_target_domains declared"],
+                    notes="few_shot_skipped:no_targets",
+                ),
+                [],
+            )
+
+        if not any(d in SOURCE_DOMAINS for d in skill.source_domains):
+            return (
+                StageVerdict(
+                    stage=GateStage.TRANSFER,
+                    verdict=GateVerdict.FAIL,
+                    failures=[
+                        f"source_domains={sorted(set(skill.source_domains))} "
+                        f"has no game-foundry lineage (SOURCE_DOMAINS={SOURCE_DOMAINS})"
+                    ],
+                ),
+                [],
+            )
+
+        adapt_results: List[AdaptResult] = []
+        for tgt in targets:
+            shots = (few_shot_demos or {}).get(tgt, ())
+            adapt_results.append(
+                self._few_shot.adapt(skill=skill, target_domain=tgt, demos=shots)
+            )
+
+        verified = [
+            r.target_domain
+            for r in adapt_results
+            if r.n_total > 0 and r.pass_rate >= thresholds.few_shot.target_domain_pass_rate_min
+        ]
+        diagnostics = sorted(
+            {r.diagnostic_label for r in adapt_results if r.diagnostic_label}
         )
-        return StageVerdict(
-            stage=GateStage.TRANSFER,
-            verdict=verdict,
-            metrics={
-                "n_domains": float(n),
-                "min_domains": float(self._thresholds.transfer_min_domains),
-            },
+
+        metrics: Dict[str, float] = {
+            "n_targets": float(len(targets)),
+            "n_verified_targets": float(len(verified)),
+            "min_verified_targets": float(thresholds.transfer_min_target_domains_verified),
+        }
+        for r in adapt_results:
+            metrics[f"pass_rate.{r.target_domain}"] = float(r.pass_rate)
+            metrics[f"k_used.{r.target_domain}"] = float(r.k_used)
+
+        if len(verified) >= thresholds.transfer_min_target_domains_verified:
+            verdict = GateVerdict.PASS
+        elif len(verified) >= 1:
+            verdict = GateVerdict.LIMITED_PASS
+        else:
+            verdict = GateVerdict.FAIL
+
+        return (
+            StageVerdict(
+                stage=GateStage.TRANSFER,
+                verdict=verdict,
+                metrics=metrics,
+                failures=(
+                    [f"transfer_diagnostic:{d}" for d in diagnostics]
+                    if verdict == GateVerdict.FAIL
+                    else []
+                ),
+                notes=(
+                    f"verified_targets={verified}; "
+                    f"diagnostics={diagnostics}"
+                ),
+            ),
+            verified,
         )
+
+    def _infer_targets(self, skill: SkillRecord) -> List[str]:
+        declared = list(skill.transfer_target_domains)
+        if declared:
+            return [d for d in declared if d in TRANSFER_TARGET_DOMAINS]
+        # Fallback: any feasible_domain that is a transfer target and
+        # not yet verified.
+        return [
+            d
+            for d in skill.feasible_domains
+            if d in TRANSFER_TARGET_DOMAINS and d not in skill.verified_domains
+        ]
 
     # -- stage 4 -----------------------------------------------------------
 
@@ -229,16 +365,29 @@ class GateService:
     # -- aggregate ---------------------------------------------------------
 
     def _aggregate(
-        self, verdicts: List[StageVerdict], skill: SkillRecord
+        self,
+        verdicts: List[StageVerdict],
+        skill: SkillRecord,
+        *,
+        verified_targets: Optional[List[str]] = None,
     ) -> tuple[str, GateVerdict, List[str]]:
         any_fail = any(v.verdict == GateVerdict.FAIL for v in verdicts)
         any_limited = any(v.verdict == GateVerdict.LIMITED_PASS for v in verdicts)
+        # Eligible-domain set: source_domains (game lineage) plus the
+        # subset of target domains that just verified through Stage 3a.
+        eligible: List[str] = []
+        if skill.source_domains or verified_targets:
+            eligible.extend(skill.source_domains)
+            eligible.extend(verified_targets or [])
+            eligible = sorted({d for d in eligible if d in DOMAINS})
+        else:
+            eligible = list(skill.feasible_domains)
         if any_fail:
             failing = [v.stage.value for v in verdicts if v.verdict == GateVerdict.FAIL]
             return f"failed_stages={failing}", GateVerdict.FAIL, []
         if any_limited:
-            return "promotion_to_provisional_only", GateVerdict.LIMITED_PASS, list(skill.feasible_domains)
-        return "all_stages_pass", GateVerdict.PASS, list(skill.feasible_domains)
+            return "promotion_to_provisional_only", GateVerdict.LIMITED_PASS, eligible
+        return "all_stages_pass", GateVerdict.PASS, eligible
 
 
 __all__ = ["GateService", "NonRegressionResult"]

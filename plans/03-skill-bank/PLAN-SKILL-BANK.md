@@ -16,9 +16,11 @@ Build and maintain a **Skill Bank** from structured trajectories across **games,
 
 The key design goal is to store **transferable reasoning, grounding, and control skills**, not only environment-specific action motifs. A skill should be reusable across tasks through shared state abstractions, shared inner primitives, and verifiable outcome contracts.
 
-### 0.1 General-protocol invariant (no domain-specific skill families)
+### 0.1 General-protocol invariant (games as the foundry, other domains as few-shot transfer targets)
 
 **Every skill in the bank is a general protocol** written over the shared `<state>` schema (§3) and the shared inner primitives (§1.5). A skill is only admitted if its protocol is **feasible across all five target domains** — game, webagent, os-agent, video-understanding, visual reasoning — through adapter binding (§4.3). There is no "short-video skill family," no "browser-only skill family," no per-domain sub-bank.
+
+The five domains are *not symmetric*. Games (the `gymv` adapter, see [§0.4](#04-source-domain--transfer-target-asymmetry)) are the **source domain** in which skills are first mined, abstracted, and stress-tested under dense verifiable reward. Webagent, os-agent, video, and visual reasoning are **transfer targets**: their adapter bindings are *claimed* up front (so we never approve a skill that is structurally inadmissible elsewhere) but only become *verified* after the skill passes the few-shot adaptation stage of the gate ([Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md), see also [PLAN-HARNESS.md `FewShotAdapter`](../05-harness/PLAN-HARNESS.md)). A "general protocol" therefore means: *one typed protocol over evidence; adapter bindings to all five domains; lineage in the source domain; verified entries in target domains earned shot-by-shot*.
 
 Examples of general protocols (the bank's actual content):
 
@@ -73,6 +75,31 @@ No other `evidence_role` is admissible. In particular:
 - **Pure planners / decomposers** that don't themselves cite what they conditioned on are **not** skills as a standalone entry; if they condition on `<state>` they become `REASON` skills with the conditioning evidence as `evidence_in`; otherwise they belong in the Crafter's `ComposeProposal` path as a composition of evidence-driven sub-skills (see [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 
 The right-most column is part of the Action Agent contract: the Action Agent MAY NOT invoke a skill whose `evidence_role` does not match the inner-MDP action it is instantiating. Mismatches are raised as `contract-violation: skill-role-mismatch` events by the Harness.
+
+### 0.4 Source-domain / transfer-target asymmetry
+
+The five canonical domains split into two roles:
+
+| Role | Members (`common.enums.SOURCE_DOMAINS` / `TRANSFER_TARGET_DOMAINS`) | What the bank does here |
+|------|--------------------------------------------------------------------|-------------------------|
+| **Source domain (foundry)** | `gymv` (game) | Mine candidate skills, run the bulk of training rollouts, harden under dense verifiable reward, stress-test contracts, populate `false_binding_patterns`. *Every active skill must have a source-domain lineage.* |
+| **Transfer target** | `browser`, `osworld`, `video`, `visual_reasoning` | Receive skills *via few-shot adaptation only*. Each skill must declare an adapter binding here, but the binding is **provisional** until it passes [Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) on a small budget of target-domain demonstrations. |
+
+The asymmetry shows up on every `SkillRecord` (see [§4.3a](#43a-lineage--provenance)) as three required fields:
+
+| Field | Constraint | Set by |
+|-------|------------|--------|
+| `source_domains` | ⊆ `SOURCE_DOMAINS`; non-empty for any record that ever reaches `ACTIVE` | Mining + Crafter |
+| `transfer_target_domains` | ⊆ `TRANSFER_TARGET_DOMAINS`; the bindings the skill *claims* | Crafter (`GeneralizeProposal`) |
+| `verified_domains` | ⊆ `DOMAINS`; populated when Stage 3a passes for a target. **Written only by `SkillLifecycleManager.record_transfer_verification(...)`**, called from `PromotionOrchestrator.promote(...)` based on the `GateVerdictPayload`. | `SkillLifecycleManager` (sole writer), driven by `GateService` outputs. Never the Crafter, Harness, Actor, or any direct bank caller. |
+
+**Hard rules enforced by `SkillLifecycleManager` ([§7a](#7a-unified-skill-lifecycle-and-promotion-ownership)):**
+
+1. A skill cannot be promoted to `ACTIVE` if `source_domains` does not intersect `SOURCE_DOMAINS` — i.e. without a game-foundry lineage. (Legacy records produced before this invariant was introduced fall back to the older "≥2 feasible_domains" check; see `skill_bank/lifecycle.py::_validate_invariants`.)
+2. A skill cannot be promoted to `ACTIVE` if `verified_domains` does not contain at least one element of `TRANSFER_TARGET_DOMAINS` — i.e. without a few-shot transfer success in at least one non-game arena.
+3. `SkillLifecycleManager.record_transfer_verification(...)` is the **only** writer of `verified_domains` and `adapter_history`; it is invoked by `PromotionOrchestrator.promote(...)` *before* the status transition so the ACTIVE invariant sees the just-written list. The Crafter, Harness, and Actor are read-only on these fields.
+
+Why this asymmetry: games are the only domain where we cheaply get all four properties needed to *learn* multi-hop reasoning skills — dense rewards, deterministic resets, hard-to-game verification, and rich evidence chains over a controllable visual state. Other domains are excellent *evaluators* of the resulting skills (and excellent sources of failure modes that drive Crafter repairs) but are not where the skills are first discovered. The gate's [Stage 3a few-shot adaptation](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) is the bridge.
 
 ---
 
@@ -402,17 +429,18 @@ Each skill has three logical parts:
 
 ### 4.3a. Lineage / provenance
 
-Every skill carries its own audit trail so the acceptance gate and the transfer protocol can reason about *why* it exists and *where* it has been proven to work.
+Every skill carries its own audit trail so the acceptance gate and the transfer protocol can reason about *why* it exists and *where* it has been proven to work. The starred fields are **required** under the source/target asymmetry (§0.4) and are validated by the `SkillLifecycleManager`'s ACTIVE-promotion check.
 
-| Field | Meaning |
-|-------|---------|
-| `origin_trace_ids` | Episode + step IDs of the trajectories from which the skill was mined or composed |
-| `source_domains` | Domains the skill was originally extracted from |
-| `verified_domains` | Domains where the skill has passed replay + promotion (subset of target domains) |
-| `failure_clusters` | IDs of failure clusters (see [Skill Crafter §6.7](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) this skill was intended to patch |
-| `promotion_reason` | Short text + pointer to the `GateVerdict` that last promoted the current version |
-| `rollback_reason` | Present only for retired/quarantined skills; short text + pointer to the triggering regression |
-| `adapter_history` | List of `(target_domain, adapter_id, verdict)` binding attempts in reverse chronological order |
+| Field | Required for ACTIVE? | Meaning |
+|-------|---------------------|---------|
+| `origin_trace_ids` | yes | Episode + step IDs of the trajectories from which the skill was mined or composed |
+| `source_domains` ★ | **yes** | Foundry domains the skill was originally extracted from. Must intersect `SOURCE_DOMAINS = ("gymv",)`. |
+| `transfer_target_domains` ★ | **yes** | The non-game adapter bindings the skill *claims*. Must be ⊆ `TRANSFER_TARGET_DOMAINS = ("browser", "osworld", "video", "visual_reasoning")`. |
+| `verified_domains` ★ | **yes** (≥1 target) | Domains where the skill has passed replay **and** Stage 3a few-shot adaptation. Mutated *only* via `SkillLifecycleManager.record_transfer_verification(...)`, which `PromotionOrchestrator.promote(...)` calls based on the `GateVerdictPayload.eligible_domains` produced by `GateService`. |
+| `failure_clusters` | no | IDs of failure clusters (see [Skill Crafter §6.7](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) this skill was intended to patch |
+| `promotion_reason` | yes | Short text + pointer to the `GateVerdict` that last promoted the current version |
+| `rollback_reason` | conditional | Present only for retired/quarantined skills; short text + pointer to the triggering regression |
+| `adapter_history` ★ | yes | List of `{target_domain, evaluation_id, verified_at, rationale, metrics: {pass_rate, k_used}}` binding attempts in append order; written exclusively by `SkillLifecycleManager.record_transfer_verification(...)` (one entry per verified target per Stage 3a run, accumulating across re-evaluations so the full transfer lineage is reconstructible). |
 
 ### 4.3b. Negative knowledge
 

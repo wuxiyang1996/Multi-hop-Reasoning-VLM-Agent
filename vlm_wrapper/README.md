@@ -665,17 +665,72 @@ OmniParser-v2 weights are downloaded automatically from HuggingFace (`microsoft/
 
 ## End goal
 
-Train Qwen3-VL-8B via SFT distillation from GPT-4o labels so that at inference time the 8B model sees **only a screenshot** and produces the structured schema. The tool-calling traces from the multi-hop loop become additional training data: the model learns *when* to call tools and *how* to chain evidence.
+Distil the GPT-4o-driven cascade into a **Qwen3-VL-8B student** with two LoRA adapters, so at inference time the 8B model sees only a screenshot (or frame stack), decides whether to emit the schema directly or to call tools, and produces the structured `<state>` itself — with a larger Qwen3-VL teacher (235B-A22B MoE, or 32B dense) reserved as an escalation rung for hard cases.
 
-**Training sequence:**
+Both teacher and student stay inside the **Qwen3-VL family** (2B / 4B / 8B / 32B dense + 30B-A3B / 235B-A22B MoE, all in Instruct + Thinking editions, with FP8 checkpoints).  Single tokenizer, single chat template, single image-preprocessing pipeline — labels distil cleanly between any two sizes.  Once the Qwen3.5-VL multimodal sibling lands as a public release, the same cascade swaps in by changing the model id; nothing in `vlm_wrapper` is tied to a specific Qwen version.
 
-1. **Gym-V games first** (2048, Sokoban, Minesweeper) — grid layouts, limited entities, clean labels.
-2. **Validate with heuristic head** — flag GPT-4o hallucinations before they enter training data.
-3. **Add tool-use training** — teach the model to emit tool calls for position queries and relation checks.
-4. **Browser: MiniWoB++ → WebArena** — simple pages, then complex real-web pages.
-5. **Benchmark evaluation** — CLEVR, GQA (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning skills.
+### Why 8B is the student (not 32B / 235B-A22B)
 
-**Expected data budget:** ~3-5K labeled examples per domain. At ~$0.01/example with GPT-4o, that's $30-50 per domain.
+The point of training is to escape GPT-4o's per-call cost and latency.  A 235B-A22B student would just swap one expensive backend for another:
+
+| Qwen3-VL size | VRAM (fp16, FP8 in parens) | Tool-loop step (~5 turns) | Fits A100-80G? |
+|---|---|---|---|
+| 8B  (dense) | ~16 GB (~10 GB) | ~5–8 s | yes, with KV/batch headroom |
+| 32B (dense) | ~64 GB (~36 GB) | ~15–20 s | yes (FP8) / tight (fp16) |
+| 30B-A3B (MoE, 3B active) | ~60 GB weights, ~3B active compute | ~6–10 s | yes (FP8) / tight (fp16) |
+| 235B-A22B (MoE, 22B active) | ~470 GB (~240 GB FP8) | ~30–50 s | no (needs 4×H100 / 8×A100) |
+
+`gymv` / `browser` / `desktop` need step-rate inference for RL rollouts and live agents — the 235B MoE kills that, and even the 32B dense gets uncomfortable.  The ~3–5K labels × 5 domains data budget is sized for 8B LoRA; at 32B+ you'd mostly be nudging an already-strong base model in noisy directions and wouldn't be able to attribute gains to the training data.
+
+Bump to **Qwen3-VL-32B** (or the **30B-A3B MoE** if you want similar quality at lower active-compute cost) only if `semantic_validate` pass-rate on `browser` / `desktop` stays under ~70% after the two-stage SFT below.  235B-A22B as the deployed model is almost never the right call — see the escalation rung.
+
+### Two-stage SFT pipeline (replaces the original single-stage plan)
+
+| Stage | Teacher | Student | What it learns | Pipeline |
+|---|---|---|---|---|
+| **A. Schema-only** | Local Qwen3-VL-235B-A22B-Thinking (or Qwen3-VL-32B-Thinking on a single H100; GPT-4o only while bootstrapping) | Qwen3-VL-8B + LoRA | Single-shot screenshot → `<state>` for `gymv` / `browser` / `desktop` / `image_qa` | `trainer/SFT/schema_gen/train.py` (already implemented; consumes `target_schema` from `labeling/grounding/collect_*.py` and benchmark parsers) |
+| **B. Tool trajectories** | Local Qwen3-VL-235B-A22B-Thinking + `tool_loop` against the full `tools_visual` / `tools_browser` / `tools_video_visual` registries | Qwen3-VL-8B + LoRA | *When* to call tools, *which* tool to pick, *how* to chain evidence into `<evidence>` hops with `abstract_op=GROUND/CHECK/...` | **TODO** — extend `data_loader.py` to consume `tool_trace` from `cascaded_ground` runs as `(image, prior_schema_attempt) → tool_call → tool_result → next_turn → final_schema` turns |
+
+Both stages keep teacher and student in the **same family**, which matters more than it sounds: the 8B already understands the 235B's chat template, system-prompt conventions, and image-token layout, so distillation is a fine-tune in the literal sense — not a cross-family transfer.  The Qwen3-VL **Thinking** editions are preferred as teachers because the long chain-of-thought they emit before the final schema is itself useful supervision for Stage B (the student learns to plan tool calls in the same way).
+
+Stage A swaps the label source in `labeling/grounding/collect_*.py` from GPT-4o to the local Qwen3-VL teacher — equivalent quality on grounding-style schemas, free per-call, no API ratelimits.  Stage B doesn't exist yet; it's the one new training pipeline to add and the lever that makes the 8B student behave like the cascade after training, instead of needing the cascade at inference time.
+
+### Inference cascade (post-training)
+
+The cascade collapses from "many heads, mostly GPT-4o" to one Qwen3-VL family with three rungs:
+
+```
+Qwen3-VL-8B (Stage A LoRA)             ── single-shot schema, default path
+    │ semantic_validate fails?
+    ▼
+Qwen3-VL-8B (Stage B LoRA) + tools     ── self-escalate to tool_loop
+    │ semantic_validate still fails?
+    ▼
+Qwen3-VL-235B-A22B-Thinking + tools    ── long-tail hard cases only (~5–10%)
+   (or Qwen3-VL-32B-Thinking on a
+    single-H100 deployment)
+```
+
+p50 latency stays on 8B; only the tail pays the teacher cost.  GPT-4o leaves the production cascade entirely (kept around for cross-validation only).  When Qwen3.5-VL ships a checkpoint at a comparable size, the rungs upgrade in place — `cascaded_ground` already auto-loads whatever model id `SCHEMA_GEN_ADAPTER_DIR` / `VLM_LABEL_MODEL` point at.
+
+### Why tool-calling stays first-class
+
+- **It's the differentiator.**  Single-shot VLMs give a schema but no `<evidence>` chain — there's nothing for downstream skill mining (`plans/03-skill-bank/`) to learn from.  Tool hops with `abstract_op` are the protocol primitives.
+- **It fixes pixel-coordinate hallucination.**  GPT-4o (and 8B students) are poor at exact bboxes and at counting on cluttered pages.  `detect_objects`, `grounded_detect`, `spatial_query`, `count_objects`, `read_text_region` return ground truth — the validator's `reconcile_evidence_with_tool_trace` already promotes fabricated grounding to a hard error.
+- **`video_qa` is impossible without it.**  A single pass over a frame grid can't answer "when does X first appear" — it needs `sample_frames` / `find_moment` / `track_object`.  The cascade already enforces this (`video_qa: ["tool_loop"]`).
+- **Qwen3-VL ships native tool-calling.**  All sizes in the family expose the OpenAI-compatible function-call interface, so `tool_loop.py` can drive teacher and student through the exact same code path — no per-model glue.
+
+### Training sequence
+
+1. **Stage A on Gym-V first** (2048, Sokoban, Minesweeper) — grid layouts, limited entities, cleanest labels.  Bring up the local Qwen3-VL teacher here too, validated against GPT-4o on a held-out slice.
+2. **Heuristic head as hallucination filter** — `labeling/grounding/cross_validate.py` flags samples where the heuristic and the Qwen3-VL teacher disagree; those are dropped from Stage-A training and routed to Stage-B trajectory collection (the hard cases that need tools).
+3. **Stage A on browser** — MiniWoB++ → WebArena, simple pages first.
+4. **Stage B on gymv + browser** — collect `tool_trace` from `cascaded_ground` runs where the cascade actually escalated to `tool_loop` (these are the cases where tool use was *necessary*, not gratuitous).  Train the same LoRA (or a sibling adapter) on those trajectories.
+5. **Benchmark evaluation** — CLEVR, GQA (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning skills.  Stage B is mandatory for the video benchmark.
+
+### Expected data budget
+
+~3–5K Stage-A labels per domain, ~1–2K Stage-B trajectories per domain (tool trajectories are ~5× more expensive per example).  With the local Qwen3-VL teacher the per-example cost is GPU-time only — no API spend.  Bootstrap labels from GPT-4o cost ~$30–50 per domain at $0.01/example.
 
 ---
 
@@ -683,8 +738,11 @@ Train Qwen3-VL-8B via SFT distillation from GPT-4o labels so that at inference t
 
 | Challenge | Mitigation |
 |-----------|------------|
-| Entity position accuracy from pixels | Tool-use delegation: VLM identifies entities, tools return exact coordinates |
-| Entity coverage on cluttered web pages | Cascaded approach: 8B model first, escalate to API on low coverage (<10% escalation rate) |
-| Format compliance at 8B scale | Flat tagged format + constrained decoding (vLLM) → ~98% compliance |
+| Entity position accuracy from pixels | Stage-B tool-use SFT: Qwen3-VL-8B student learns to call `detect_objects` / `query_entity_pos` instead of guessing coordinates |
+| Entity coverage on cluttered web pages | Three-rung cascade: 8B single-shot → 8B + tools → Qwen3-VL-235B-A22B + tools (target ≤10% reach the teacher rung) |
+| Format compliance at 8B scale | Flat tagged format + constrained decoding (vLLM, native Qwen3-VL backend) → ~98% compliance |
 | Relations require game semantics | Game rules in prompt context + tool delegation for non-visual logic |
-| Video temporal reasoning | Multi-hop tool loop: navigate time → detect per-frame → chain evidence |
+| Video temporal reasoning | Stage-B tool trajectories on `tools_video_visual`: navigate time → detect per-frame → chain evidence |
+| GPT-4o cost / ratelimits at scale | Local Qwen3-VL-235B-A22B-Thinking (or 32B-Thinking) replaces GPT-4o for both Stage-A labels and Stage-B trajectory generation |
+| Long-tail failures of the 8B student | Qwen3-VL teacher + tools as the final escalation rung, gated by `semantic_validate` so it only fires on hard cases |
+| Qwen-version churn (Qwen3 → 3.5 → …) | Same chat template + tool-call interface across the family; cascade reads model ids from env vars (`VLM_LABEL_MODEL`, `SCHEMA_GEN_ADAPTER_DIR`) so upgrades are config-only |

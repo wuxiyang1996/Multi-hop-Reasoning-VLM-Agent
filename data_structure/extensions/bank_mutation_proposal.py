@@ -45,15 +45,37 @@ class ComposeProposal(_ProposalBase):
 
 @dataclass
 class GeneralizeProposal(_ProposalBase):
-    """Generalize a domain-specific skill to additional domains."""
+    """Generalize a source-domain (game) skill to additional target domains
+    via few-shot adaptation.
+
+    PLAN-SKILL-BANK §0.4 / PLAN-UNIFIED-SKILL-GATE Stage 3a — the
+    crafter no longer hand-asserts that a skill is "transferable"; it
+    instead emits an explicit few-shot recipe (source → target domain,
+    K-shot budget, slot remap, demo selection criteria) that the gate
+    runs through `harness.FewShotAdapter` before any new
+    `verified_domains` entry is granted. The crafter is therefore
+    responsible for *proposing the binding*, not *asserting it works*.
+    """
 
     name: str = ""
     base_skill_id: str = ""
     abstracted_protocol: List[Dict[str, Any]] = field(default_factory=list)
     contract: SkillContract = field(default_factory=SkillContract)
+    # Few-shot adaptation recipe (PLAN-UNIFIED-SKILL-GATE §7 Stage 3a).
+    source_domain: str = ""                                  # ⊆ SOURCE_DOMAINS
+    target_domain: str = ""                                  # ⊆ TRANSFER_TARGET_DOMAINS
+    slot_remap: Dict[str, str] = field(default_factory=dict)  # base_slot → target_slot
+    demo_selection: Dict[str, Any] = field(default_factory=dict)  # criteria for picking demos
+    demo_episode_ids: List[str] = field(default_factory=list)     # explicit demo seed IDs
+    k_shot_budget: int = 5
 
     @property
     def source_type(self) -> SkillSourceType:
+        # If the proposal carries a concrete source/target binding it
+        # is a few-shot adaptation; otherwise it is a generic
+        # cross-domain transfer (legacy path).
+        if self.source_domain and self.target_domain:
+            return SkillSourceType.FEW_SHOT_ADAPTED
         return SkillSourceType.TRANSFERRED
 
 
@@ -132,6 +154,12 @@ def proposal_to_json(p: BankMutationProposal) -> Dict[str, Any]:
             base_skill_id=p.base_skill_id,
             abstracted_protocol=list(p.abstracted_protocol),
             contract=p.contract.to_json(),
+            source_domain=p.source_domain,
+            target_domain=p.target_domain,
+            slot_remap=dict(p.slot_remap),
+            demo_selection=dict(p.demo_selection),
+            demo_episode_ids=list(p.demo_episode_ids),
+            k_shot_budget=p.k_shot_budget,
         )
     elif isinstance(p, HypothesisProposal):
         out.update(

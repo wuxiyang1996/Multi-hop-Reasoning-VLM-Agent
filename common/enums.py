@@ -20,6 +20,22 @@ DOMAINS: Tuple[str, ...] = (
 )
 
 
+# Source-domain / transfer-target asymmetry
+# (PLAN-SKILL-BANK §0.4, PLAN-UNIFIED-SKILL-GATE Stage 3a).
+#
+# Games are the foundry where skills are first mined, hardened, and
+# stress-tested under dense verifiable reward. Every other domain is a
+# **transfer target** that earns its `verified_domains` entry only after
+# passing the few-shot adaptation gate (G3a) on a handful of episodes.
+SOURCE_DOMAINS: Tuple[str, ...] = ("gymv",)
+TRANSFER_TARGET_DOMAINS: Tuple[str, ...] = (
+    "browser",
+    "osworld",
+    "video",
+    "visual_reasoning",
+)
+
+
 # Evidence-role taxonomy (PLAN-SKILL-BANK §0.3 Clause B).
 EVIDENCE_ROLES: Tuple[str, ...] = ("GATHER", "VERIFY", "REASON", "COMMIT")
 
@@ -61,6 +77,7 @@ class SkillSourceType(str, Enum):
     CRAFTED = "crafted_by_composition"
     REPAIRED = "repaired_from_failure"
     TRANSFERRED = "transferred_from_other_domain"
+    FEW_SHOT_ADAPTED = "few_shot_adapted_from_source"
     TEACHER = "teacher_proposed"
     SEEDED = "human_seeded"
 
@@ -112,7 +129,9 @@ __all__ = [
     "GateVerdict",
     "InnerAction",
     "RecoveryStrategy",
+    "SOURCE_DOMAINS",
     "SkillSourceType",
     "SkillStatus",
     "SkillType",
+    "TRANSFER_TARGET_DOMAINS",
 ]

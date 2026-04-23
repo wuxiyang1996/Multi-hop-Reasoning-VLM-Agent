@@ -48,15 +48,19 @@ src/
     skill_episode.py    # PLAN-HARNESS §5.1
     skill_harness.py    # PLAN-HARNESS §5.2
     adapter_registry.py # PLAN-HARNESS §5.3
-    transfer_manager.py # PLAN-HARNESS §5.4 (Phase D)
+    transfer_manager.py # PLAN-HARNESS §5.4.1 (Phase D)  — lifecycle bookkeeping
+    few_shot_adapter.py # PLAN-HARNESS §5.4.2 (Phase D)  — Stage 3a K-shot machinery
     replay_validator.py # PLAN-HARNESS §5.5 (Phase D)
     reward_logger.py    # PLAN-HARNESS §5.6
     gate_runner.py      # PLAN-HARNESS §10b (Phase D)
     policies.py         # ranking weights, shadow-origin penalty
     adapters/
-      gymv.py
-      browser.py
-      # osworld.py, video.py, visual_reasoning.py — added later
+      _stub_base.py     # shared scaffolding for transfer-target stub adapters
+      gymv.py           # SOURCE_DOMAINS adapter (game, real)
+      browser.py        # TRANSFER_TARGET_DOMAINS adapter (stub in Phase A)
+      osworld.py        # TRANSFER_TARGET_DOMAINS adapter (stub)
+      video.py          # TRANSFER_TARGET_DOMAINS adapter (stub) — first transfer arena
+      visual_reasoning.py # TRANSFER_TARGET_DOMAINS adapter (stub)
 
   crafter/
     proposal_types.py   # ComposeProposal, GeneralizeProposal, HypothesisProposal, RetireProposal
@@ -167,7 +171,7 @@ class AdapterRegistry:
     def request_synthesis(self, skill: SkillSpec, domain: str) -> AdapterProposal: ...  # calls 72B
 ```
 
-**Phase 1 wiring:** register only `gymv` and `browser` adapters. Other domains (`osworld`, `video`, `visual_reasoning`) come online in later phases as adapters are written; the registry interface itself does not change.
+**Phase 1 wiring (asymmetric).** Register the *real* `gymv` adapter (`SOURCE_DOMAINS`) and **stub** adapters for every domain in `TRANSFER_TARGET_DOMAINS` (`browser`, `osworld`, `video`, `visual_reasoning`). Stub adapters share `harness/adapters/_stub_base.py` and produce deterministic short hop-loops; they are sufficient for Stage 3a few-shot adaptation runs to exercise the gate end-to-end before any of those domains has a real backend. Real adapters replace the stubs domain-by-domain in later phases without changing the `AdapterRegistry` interface or the gate.
 
 ### 2.3 `harness/skill_harness.py`
 
@@ -367,9 +371,19 @@ class ComposeProposal(BaseProposal):
 
 class GeneralizeProposal(BaseProposal):
     source_skill_id: str
-    target_domain: str
-    slot_mapping: dict
+    source_domain: str | None = None     # must be in SOURCE_DOMAINS when set (currently {"gymv"})
+    target_domain: str                    # must be in TRANSFER_TARGET_DOMAINS when source_domain set
+    slot_mapping: dict                    # legacy in-bank rewrite
+    slot_remap: dict | None = None        # few-shot recipe: source-slot → target-slot
+    demo_episode_ids: list[str] = []      # K demos consumed by FewShotAdapter
+    demo_selection: Literal["random", "diverse", "hardest", "manual"] = "diverse"
+    k_shot_budget: int | None = None      # ≤ few_shot.k_shot_max; defaults to few_shot.k_shot_default
     adapter_proposal: dict | None = None
+    # When source_domain + target_domain + slot_remap + demo_episode_ids are all set,
+    # the proposal becomes a *few-shot transfer recipe* and source_type resolves to
+    # SkillSourceType.FEW_SHOT_ADAPTED. Otherwise it falls back to legacy
+    # SkillSourceType.TRANSFERRED. See PLAN-SKILL-CRAFTER §4 and
+    # PLAN-UNIFIED-SKILL-GATE §7 (Stage 3a).
 
 class HypothesisProposal(BaseProposal):
     failure_cluster_id: str

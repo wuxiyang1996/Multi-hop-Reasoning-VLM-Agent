@@ -250,7 +250,19 @@ Composed: sequence(A, B)
 
 ### What it does
 
-Takes a skill learned in one game/domain and proposes an analogue for a different game/domain by mapping through the shared schema.
+The Generalizer is the **few-shot transfer engine** of the Crafter ([PLAN-UNIFIED-SKILL-GATE.md Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#7-stage-3a--few-shot-transfer-validation), [PLAN-HARNESS.md §5.4.2](../05-harness/PLAN-HARNESS.md#542-fewshotadapter-stage-3a-runtime)). It takes a skill that was **mined from the source domain (game)** and proposes a *recipe* for adapting it to a specific **transfer-target domain** (`browser` / `osworld` / `video` / `visual_reasoning`) using a small number (`K = few_shot.k_shot_default`) of target-domain demonstrations.
+
+The recipe is what eventually becomes a `GeneralizeProposal` carrying:
+
+- `source_domain` (must be in `SOURCE_DOMAINS`, currently `{"gymv"}`),
+- `target_domain` (must be in `TRANSFER_TARGET_DOMAINS`),
+- `slot_remap` (slot-level rewrite of the source-domain protocol into target-domain slot names),
+- `demo_episode_ids` + `demo_selection` (which K demos the FewShotAdapter should consume),
+- `k_shot_budget` (≤ `few_shot.k_shot_max`).
+
+The Generalizer is **not** the verifier — it does not decide whether the skill works in the target domain. That decision is made offline by `GateService._run_transfer` invoking the `FewShotAdapter`. The Generalizer's job ends when a well-formed recipe is emitted; the recipe earns a `verified_domains` entry only after Stage 3a passes.
+
+When the Generalizer is invoked **without** explicit source/target metadata, it falls back to a legacy in-bank generalization (slot-level rewrite without a target-domain probe), produces a `TRANSFERRED` proposal, and that proposal does **not** earn a `verified_domains` entry until Stage 3a runs separately.
 
 ### Transfer via shared schema slots
 

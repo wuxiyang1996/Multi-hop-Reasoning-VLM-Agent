@@ -9,10 +9,34 @@ from common.models import BACKBONE_JUDGE_MODEL, BACKBONE_MODEL, BACKBONE_TEACHER
 
 
 @dataclass
+class FewShotConfig:
+    """K-shot adaptation budget for the Stage 3a transfer gate.
+
+    PLAN-UNIFIED-SKILL-GATE §7 Stage 3a + §9. The few-shot adapter is
+    given a *small* budget of target-domain demonstrations; if the skill
+    cannot reach `target_domain_pass_rate_min` within `k_shot_max`
+    shots, the target binding fails and the skill cannot earn a
+    `verified_domains` entry for that domain.
+    """
+
+    k_shot_default: int = 5
+    k_shot_max: int = 16
+    target_domain_pass_rate_min: float = 0.5
+    adaptation_cost_max_tokens: int = 8_000
+
+
+@dataclass
 class GateThresholds:
     replay_pass_rate: float = 0.8
     shadow_pass_rate: float = 0.7
+    # Legacy (PLAN-UNIFIED-SKILL-GATE pre-asymmetry). Kept so callers
+    # that still inspect it keep working; the real gate now consults
+    # `transfer_min_target_domains_verified` + `few_shot` below.
     transfer_min_domains: int = 2
+    # New: a skill must clear the few-shot adapter on at least this
+    # many target domains (one of TRANSFER_TARGET_DOMAINS) to be ACTIVE.
+    transfer_min_target_domains_verified: int = 1
+    few_shot: FewShotConfig = field(default_factory=FewShotConfig)
     non_regression_max_delta: float = 0.02
 
 
@@ -67,6 +91,7 @@ class OrchestratorConfig:
 
 __all__ = [
     "BudgetLimits",
+    "FewShotConfig",
     "GateThresholds",
     "JudgeConfig",
     "OrchestratorConfig",

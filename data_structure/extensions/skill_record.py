@@ -10,7 +10,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from common.enums import DOMAINS, EVIDENCE_ROLES, SkillSourceType, SkillStatus, SkillType
+from common.enums import (
+    DOMAINS,
+    EVIDENCE_ROLES,
+    SOURCE_DOMAINS,
+    TRANSFER_TARGET_DOMAINS,
+    SkillSourceType,
+    SkillStatus,
+    SkillType,
+)
 from common.ids import new_skill_id, schema_hash
 
 
@@ -68,6 +76,16 @@ class SkillRecord:
     status: SkillStatus
     version: str = "v1"
     feasible_domains: List[str] = field(default_factory=list)   # subset of common.enums.DOMAINS
+    # Source/target asymmetry (PLAN-SKILL-BANK §0.4 / PLAN-UNIFIED-SKILL-GATE §7 Stage 3a).
+    # `source_domains` ⊆ SOURCE_DOMAINS and is the foundry where the skill was
+    # mined and hardened. `transfer_target_domains` ⊆ TRANSFER_TARGET_DOMAINS
+    # are the bindings the skill *claims* to support; `verified_domains` is
+    # the subset that has actually passed the few-shot adaptation gate.
+    source_domains: List[str] = field(default_factory=list)
+    transfer_target_domains: List[str] = field(default_factory=list)
+    verified_domains: List[str] = field(default_factory=list)
+    adapter_history: List[Dict[str, Any]] = field(default_factory=list)        # PLAN-SKILL-BANK §4.3a
+    false_binding_patterns: List[Dict[str, Any]] = field(default_factory=list)  # PLAN-SKILL-BANK §4.3b
     protocol: List[Dict[str, Any]] = field(default_factory=list)  # ordered hop list
     contract: SkillContract = field(default_factory=SkillContract)
     parent_skill_ids: List[str] = field(default_factory=list)     # composition / repair lineage
@@ -83,6 +101,24 @@ class SkillRecord:
             if d not in DOMAINS:
                 raise ValueError(
                     f"SkillRecord.feasible_domains contains {d!r}, "
+                    f"not in canonical DOMAINS={DOMAINS}."
+                )
+        for d in self.source_domains:
+            if d not in SOURCE_DOMAINS:
+                raise ValueError(
+                    f"SkillRecord.source_domains contains {d!r}, "
+                    f"not in canonical SOURCE_DOMAINS={SOURCE_DOMAINS}."
+                )
+        for d in self.transfer_target_domains:
+            if d not in TRANSFER_TARGET_DOMAINS:
+                raise ValueError(
+                    f"SkillRecord.transfer_target_domains contains {d!r}, "
+                    f"not in canonical TRANSFER_TARGET_DOMAINS={TRANSFER_TARGET_DOMAINS}."
+                )
+        for d in self.verified_domains:
+            if d not in DOMAINS:
+                raise ValueError(
+                    f"SkillRecord.verified_domains contains {d!r}, "
                     f"not in canonical DOMAINS={DOMAINS}."
                 )
         # General-protocol invariant (PLAN-SKILL-BANK §0.1): at least 2 domains.
@@ -104,6 +140,9 @@ class SkillRecord:
         protocol: Optional[List[Dict[str, Any]]] = None,
         proposal_id: Optional[str] = None,
         parent_skill_ids: Optional[List[str]] = None,
+        source_domains: Optional[List[str]] = None,
+        transfer_target_domains: Optional[List[str]] = None,
+        verified_domains: Optional[List[str]] = None,
     ) -> "SkillRecord":
         return cls(
             skill_id=new_skill_id(),
@@ -112,6 +151,9 @@ class SkillRecord:
             source_type=source_type,
             status=SkillStatus.DRAFT,
             feasible_domains=list(feasible_domains),
+            source_domains=list(source_domains or []),
+            transfer_target_domains=list(transfer_target_domains or []),
+            verified_domains=list(verified_domains or []),
             protocol=list(protocol or []),
             contract=contract or SkillContract(),
             parent_skill_ids=list(parent_skill_ids or []),
@@ -144,6 +186,11 @@ class SkillRecord:
             "status": self.status.value,
             "version": self.version,
             "feasible_domains": list(self.feasible_domains),
+            "source_domains": list(self.source_domains),
+            "transfer_target_domains": list(self.transfer_target_domains),
+            "verified_domains": list(self.verified_domains),
+            "adapter_history": [dict(x) for x in self.adapter_history],
+            "false_binding_patterns": [dict(x) for x in self.false_binding_patterns],
             "protocol": list(self.protocol),
             "contract": self.contract.to_json(),
             "parent_skill_ids": list(self.parent_skill_ids),

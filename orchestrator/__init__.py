@@ -29,6 +29,7 @@ from orchestrator.artifact_store import ArtifactStore
 from orchestrator.budget import BudgetController, BudgetExceeded
 from orchestrator.config import (
     BudgetLimits,
+    FewShotConfig,
     GateThresholds,
     JudgeConfig,
     OrchestratorConfig,
@@ -50,6 +51,7 @@ __all__ = [
     "BudgetLimits",
     "EpisodeResult",
     "EpisodeRunner",
+    "FewShotConfig",
     "GateService",
     "GateThresholds",
     "JudgeConfig",

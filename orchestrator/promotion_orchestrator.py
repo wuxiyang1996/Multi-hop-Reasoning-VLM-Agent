@@ -14,7 +14,12 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from common.enums import GateVerdict, SkillStatus
+from common.enums import (
+    TRANSFER_TARGET_DOMAINS,
+    GateStage,
+    GateVerdict,
+    SkillStatus,
+)
 from data_structure.extensions.run_release import RunRelease
 from data_structure.extensions.skill_evaluation import SkillEvaluationRecord
 from data_structure.extensions.skill_record import SkillRecord
@@ -104,6 +109,19 @@ class PromotionOrchestrator:
         for _, _, evaluation, _ in plan.transitions:
             self._artifacts.put_evaluation(evaluation)
 
+        # PLAN-UNIFIED-SKILL-GATE Stage 3a: write any verified target
+        # domains into the SkillRecord *before* the status transition, so
+        # the lifecycle manager's ACTIVE invariant (PLAN-SKILL-BANK §0.4)
+        # sees the up-to-date `verified_domains`. The gate is the only
+        # producer of these entries; the lifecycle manager is the only
+        # writer.
+        for skill, target, evaluation, rationale in plan.transitions:
+            self._record_transfer_verifications(
+                skill=skill,
+                evaluation=evaluation,
+                rationale=rationale,
+            )
+
         # Apply transitions atomically via the lifecycle manager.
         transitions = [
             (skill.skill_id, target, rationale)
@@ -186,6 +204,54 @@ class PromotionOrchestrator:
         )
 
     # -- helpers -----------------------------------------------------------
+
+    def _record_transfer_verifications(
+        self,
+        *,
+        skill: SkillRecord,
+        evaluation: SkillEvaluationRecord,
+        rationale: str,
+    ) -> None:
+        """Mirror the gate's Stage 3a outcome into the bank record.
+
+        Reads the TRANSFER stage verdict from the evaluation, extracts the
+        per-target pass-rate metrics emitted by `GateService._run_transfer`
+        (`pass_rate.<target>` / `k_used.<target>`), intersects them with
+        `eligible_domains ∩ TRANSFER_TARGET_DOMAINS`, and asks the
+        lifecycle manager to persist the result.
+        """
+        verdict = evaluation.verdict
+        if verdict is None:
+            return
+        stage = verdict.stage_for(GateStage.TRANSFER)
+        if stage is None or stage.verdict == GateVerdict.FAIL:
+            return
+        verified = [
+            d
+            for d in verdict.eligible_domains
+            if d in TRANSFER_TARGET_DOMAINS and d not in skill.verified_domains
+        ]
+        if not verified:
+            return
+        per_target_metrics: Dict[str, Dict[str, float]] = {}
+        for tgt in verified:
+            pr = stage.metrics.get(f"pass_rate.{tgt}")
+            ku = stage.metrics.get(f"k_used.{tgt}")
+            if pr is None and ku is None:
+                continue
+            metrics: Dict[str, float] = {}
+            if pr is not None:
+                metrics["pass_rate"] = float(pr)
+            if ku is not None:
+                metrics["k_used"] = float(ku)
+            per_target_metrics[tgt] = metrics
+        self._lifecycle.record_transfer_verification(
+            skill.skill_id,
+            verified_targets=verified,
+            evaluation_id=evaluation.evaluation_id,
+            per_target_metrics=per_target_metrics,
+            rationale=f"stage_3a:{rationale}" if rationale else "stage_3a",
+        )
 
     def _latest_release_id(self) -> Optional[str]:
         rels = self._artifacts.list_releases()

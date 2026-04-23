@@ -111,6 +111,7 @@ Directly below the canonical table, in this order, the report prints:
 1. **Failure taxonomy distribution** — per [PLAN-EVAL-FIRST-TARGET.md §6](PLAN-EVAL-FIRST-TARGET.md#6-failure-taxonomy), `F1`–`F7` counts and percentages, on the `overall` row at minimum.
 2. **Module quality strip** — three numbers, one row each: Actor decision quality (top-1 on Harness-eligible set), Harness filter precision and veto precision/recall ([PLAN-HARNESS.md §20.4](../05-harness/PLAN-HARNESS.md#204-metrics)), schema completeness ([Layer 2 §2.2](#22-layer-2--mechanism-metrics-why-the-system-delivers)). These are the orchestrator's required separated axes ([PLAN-PIPELINE-ORCHESTRATOR.md §0a.5](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a5-evaluation-implication)) projected into the scoreboard.
 3. **Promotion / rollback ledger** — per the reporting window: promotions count, rollbacks count, promotion precision, top three rollback reasons.
+4. **Few-shot transfer table** — per [PLAN-PIPELINE-ORCHESTRATOR.md §6.2a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#62a-few-shot-transfer-target-domain-only). One row per `target_domain ∈ TRANSFER_TARGET_DOMAINS` ([common/enums.py](../03-skill-bank/PLAN-SKILL-BANK.md#04-source-domain--transfer-target-asymmetry)), columns: K-shot pass rate at `K = few_shot.k_shot_default`, transfer skill coverage, multi-target generalization, adaptation cost, target-domain regression rate, source-vs-target gap. This table is the **operational scoreboard for the project's central thesis** (game → other-domain transfer); a release that improves Joint Success on `direct_visual` while regressing every row of this table is **not** a transfer release.
 
 ### 4.3 Reporting rules
 
@@ -172,7 +173,7 @@ The canonical table (§4) is reported **every release in every phase** — its s
 | **Phase 0–1 — Grounding + Harness MVP** | Schema completeness; Path A acceptance rate | Layer 3 cost; binding success | Path A and schema completeness reach the targets in [PLAN-VISUAL-GROUNDING-MILESTONES.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md); every skill invocation flows through the Harness ([PLAN-HARNESS.md §14 Phase 0](../05-harness/PLAN-HARNESS.md#14-phased-implementation-plan)). Joint Success is *measured* but not yet the gating signal. |
 | **Phase 2 — Evidence-driven loop** | Evidence Support Rate; Evidence pass rate (Gate G0) | Answer Accuracy; Layer 3 cost | Evidence Support Rate is non-trivial on the `overall` row and `F3` / `F4` are below their initial values. The eval triple ([PLAN-EVAL-FIRST-TARGET.md §5.1](PLAN-EVAL-FIRST-TARGET.md#51-other-required-headline-numbers)) becomes the headline. |
 | **Phase 3 — System integration** | **Joint Success Rate** (primary headline) | All Layer 2; all Layer 3 | Joint Success Rate is the gating number. §5.1 starts being enforced strictly: mechanism wins without Joint Success movement do not justify releases. |
-| **Phase 4 — Transfer hardening** | Transfer pass rate; Promotion precision; Rollback rate | Joint Success Rate on in-domain slices; Layer 3 cost | The `cross_domain_transfer` row of the canonical table is healthy; §5.2 is enforced strictly; rollback rate trends down release over release. |
+| **Phase 4 — Transfer hardening** | Few-shot transfer table (§4.2 #4): per-target K-shot pass rate, transfer skill coverage, multi-target generalization; promotion precision; rollback rate | Joint Success Rate on the source-domain (`gymv`) slice; Layer 3 cost; source-vs-target gap shrinking | The `cross_domain_transfer` row of the canonical table is healthy **and** every row of the few-shot transfer companion table is non-trivial (no target domain stuck at zero coverage); §5.2 is enforced strictly; rollback rate (full-system, not partial-deprecation) trends down release over release. |
 
 Phase exit requires the primary-emphasis columns to move *and* the secondary-emphasis columns to stay within their noise bands. A phase is **not** exited by improving the primary at the cost of the secondary.
 
@@ -211,6 +212,7 @@ Each column on the canonical table has exactly one **producing module** and one 
 | Module quality strip — Harness row | Harness eval (filter precision, veto precision/recall) |
 | Module quality strip — Grounding row | grounding validator (schema completeness) |
 | Promotion / rollback ledger | Orchestrator |
+| Few-shot transfer table | Orchestrator (assembles from `GateService._run_transfer` Stage 3a verdicts + per-target `verified_domains` log; see [PLAN-PIPELINE-ORCHESTRATOR.md §6.2a](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#62a-few-shot-transfer-target-domain-only)) |
 
 ### 7.3 Automation contract
 

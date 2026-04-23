@@ -29,21 +29,33 @@ Public surface (what `decision_agents/` and `orchestrator/` import):
 
 from harness.adapter_registry import AdapterRegistry
 from harness.eligibility import EligibleSkill, EligibilityFilter
+from harness.few_shot_adapter import (
+    AdaptResult,
+    FewShotAdapter,
+    FewShotAdapterError,
+    FewShotDemo,
+    default_success_fn,
+)
 from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
 from harness.skill_adapter import SkillAdapter, AdapterRunContext, AdapterRunResult
 from harness.skill_harness import HarnessConfig, SkillHarness
 
 __all__ = [
+    "AdaptResult",
     "AdapterRegistry",
     "AdapterRunContext",
     "AdapterRunResult",
     "EligibilityFilter",
     "EligibleSkill",
+    "FewShotAdapter",
+    "FewShotAdapterError",
+    "FewShotDemo",
     "HarnessConfig",
     "ReplayResult",
     "ReplayValidator",
     "RewardLogger",
     "SkillAdapter",
     "SkillHarness",
+    "default_success_fn",
 ]

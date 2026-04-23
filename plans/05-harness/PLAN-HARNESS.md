@@ -359,29 +359,44 @@ Responsibilities:
 - validate adapter availability / syntactic sanity,
 - optionally call the **slow teacher** (32B/72B, frozen) to refine or propose a new adapter.
 
-### 5.4 `TransferManager`
+### 5.4 Transfer subsystem (`TransferProposer` + `FewShotAdapter`)
 
-Transfer **does not** happen inside the Skill Bank. It happens inside the Harness, because it requires execution-level evidence that only the Harness can produce.
+Transfer **does not** happen inside the Skill Bank. It happens inside the Harness, because it requires execution-level evidence that only the Harness can produce. Under the source/target asymmetry ([PLAN-SKILL-BANK §0.4](../03-skill-bank/PLAN-SKILL-BANK.md#04-source-domain--transfer-target-asymmetry)) the responsibilities split into two cleanly separable units:
+
+#### 5.4.1 `TransferProposer` (lifecycle)
+
+Proposes transfer attempts and manages their lifecycle. Owned by the Crafter / Orchestrator side of the Harness.
 
 ```python
-class TransferManager:
+class TransferProposer:
     def propose_transfer(self, skill, target_domain) -> TransferProposal: ...
-    def bind_to_target(self, skill, target_state) -> BoundSkill | BindFailure: ...
     def select_or_synthesize_adapter(self, skill, target_domain) -> Adapter: ...
     def dry_run_transfer(self, proposal, replay_slice) -> ReplayVerdict: ...
     def shadow_run_transfer(self, proposal, live_states) -> ShadowVerdict: ...
-    def promote(self, proposal) -> None: ...
     def reject(self, proposal, reason) -> None: ...
+```
+
+Responsibilities: propose transfer, pick the right target adapter, run replay-based dry checks, run shadow-mode online checks. The proposer **never** writes `verified_domains` and never promotes — that path goes through the gate's Stage 3a (below) and the orchestrator's `PromotionOrchestrator`.
+
+#### 5.4.2 `FewShotAdapter` (Stage 3a runtime)
+
+The K-shot adaptation engine — this is the actual realisation of [PLAN-UNIFIED-SKILL-GATE Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md). Lives at `harness/few_shot_adapter.py`.
+
+```python
+class FewShotAdapter:
+    def adapt(self, *, skill, target_domain, demos=(), k=None) -> AdaptResult: ...
+    def adapt_many(self, *, skill, target_domains, demos_by_domain=None, k=None) -> List[AdaptResult]: ...
 ```
 
 Responsibilities:
 
-- propose transfer,
-- bind transferred skill to the target state,
-- select or synthesize the target adapter,
-- run replay-based dry checks,
-- run shadow-mode online checks,
-- promote or reject skills for active use.
+- Validate `(skill.source_domains ⊆ SOURCE_DOMAINS, target_domain ∈ TRANSFER_TARGET_DOMAINS)`.
+- For each `(skill, target_domain)` pair, take up to `k_shot_max` `FewShotDemo`s, re-tag each demo's `<state>.domain` to the target, apply the proposal's `slot_remap`, and execute the skill through `SkillHarness.run_skill()` against the registered target adapter.
+- Score each shot via a pluggable `success_fn` (default: `outcome.success ∧ outcome.contract_satisfied`).
+- Honour the `adaptation_cost_max_tokens` budget; abort the run with diagnostic `few_shot_budget_exceeded` if exceeded.
+- Return per-target `AdaptResult { k_used, pass_rate, n_success, n_total, aborted, cost_*, diagnostic_label, episode_ids }`.
+
+The adapter is **stateless** across calls: it never mutates `SkillRecord`, never writes `verified_domains` itself, and never logs to the long-term artifact store. The `GateService._run_transfer` consumes the `AdaptResult`s and is the sole writer of `verified_domains`.
 
 ### 5.5 `ReplayValidator`
 
@@ -524,8 +539,9 @@ A transferred (or newly promoted) skill is only admitted to active use when it p
 | **G1 — Binding** | target slots ground; abstract predicates map to target ontology | `SkillHarness.bind_skill` |
 | **G2 — Adapter** | adapter exists (or synthesized adapter is valid); passes domain syntax / execution sanity | `AdapterRegistry.validate` |
 | **G3 — Replay** | expected effects match held-out transitions; protocol does not contradict observed data | `ReplayValidator` |
-| **G4 — Shadow** | shadow pass rate ≥ threshold; no severe instability / repeated stalls | `TransferManager.shadow_run_transfer` |
-| **G5 — Non-regression** | enabling transfer does not degrade prior source-domain competence beyond tolerance | cross-run eval on frozen source slice |
+| **G3a — Few-shot adaptation** | for each declared `target_domain`, the skill binds to the target adapter and reaches `pass_rate ≥ target_domain_pass_rate_min` within `k_shot_max` shots; ≥1 verified target required for ACTIVE | `FewShotAdapter` ([§5.4.2](#542-fewshotadapter-stage-3a-runtime)) → consumed by `GateService._run_transfer` ([PLAN-UNIFIED-SKILL-GATE Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) |
+| **G4 — Shadow** | shadow pass rate ≥ threshold; no severe instability / repeated stalls | `TransferProposer.shadow_run_transfer` |
+| **G5 — Non-regression** | enabling transfer does not degrade prior source-domain competence beyond tolerance, **measured on the source-domain (game) frozen slice** | cross-run eval on frozen source slice |
 
 Any failing gate → rejection with reason; candidate returns to the crafter for revision or is quarantined. G0 failures are routed to the crafter's `evidence-starved skill` failure cluster (see [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)).
 
@@ -547,8 +563,11 @@ Each `GateVerdict` carries zero or more of the following labels; each label is p
 | `temporal_mismatch` | Video-understanding transfer: temporal `candidate_set` members do not align with the claim's time anchor, or evidence frames are out of order vs. protocol | `ReplayValidator` (video path) |
 | `ui_grounding_mismatch` | Webagent transfer: UI elements expected by the protocol (e.g., a "submit" control) are not grounded or are ambiguous in the DOM / screenshot state | `SkillHarness.bind_skill` (browser adapter) |
 | `desktop_object_mismatch` | OS-agent transfer: required desktop objects (windows, files, tray icons) are not grounded or belong to a different application | `SkillHarness.bind_skill` (desktop adapter) |
-| `overconfident_commit` | Shadow mode: the skill's `COMMIT` fires despite anti-preconditions / `do_not_transfer_if` predicates holding in the target state | `TransferManager.shadow_run_transfer` |
+| `overconfident_commit` | Shadow mode: the skill's `COMMIT` fires despite anti-preconditions / `do_not_transfer_if` predicates holding in the target state | `TransferProposer.shadow_run_transfer` |
 | `contract_mismatch` | Replay: the realized effects diverge from `eff_add` / `eff_del` beyond tolerance, or belief-effects do not hold after execution | `ReplayValidator` |
+| `few_shot_budget_exceeded` | Stage 3a: cumulative `cost_tokens > adaptation_cost_max_tokens` before the K-shot run completes for `(skill, target_domain)` — adapter aborts with this label | `FewShotAdapter` |
+| `target_domain_demo_unavailable` | Stage 3a: no target-domain `FewShotDemo`s available for the candidate (or no adapter registered for the target). Adapter returns an empty `AdaptResult` so the gate can flag the target binding as untested rather than failed | `FewShotAdapter` |
+| `adaptation_overfitting` | Stage 3a: per-shot `pass_rate < target_domain_pass_rate_min` despite reaching `k_shot_max`. The skill binds syntactically but does not generalize over the target-domain demos | `FewShotAdapter` |
 
 ### 10a.1 Consumers
 

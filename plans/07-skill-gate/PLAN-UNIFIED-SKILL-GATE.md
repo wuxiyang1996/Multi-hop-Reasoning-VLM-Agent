@@ -54,13 +54,19 @@ class SkillStatus(str, Enum):
 
 ```python
 class SkillSourceType(str, Enum):
-    MINED       = "mined_from_trace"
-    CRAFTED     = "crafted_by_composition"
-    REPAIRED    = "repaired_from_failure"
-    TRANSFERRED = "transferred_from_other_domain"
-    TEACHER     = "teacher_proposed"          # frozen 32B/72B output
-    SEEDED      = "human_seeded"
+    MINED            = "mined_from_trace"
+    CRAFTED          = "crafted_by_composition"
+    REPAIRED         = "repaired_from_failure"
+    TRANSFERRED      = "transferred_from_other_domain"        # legacy generic transfer
+    FEW_SHOT_ADAPTED = "few_shot_adapted_from_source"         # PLAN-SKILL-BANK §0.4
+    TEACHER          = "teacher_proposed"                     # frozen 32B/72B output
+    SEEDED           = "human_seeded"
 ```
+
+`FEW_SHOT_ADAPTED` is the source type emitted by the Crafter's
+`GeneralizeProposal` whenever the proposal carries an explicit
+`(source_domain, target_domain, k_shot_budget, slot_remap)` recipe
+(see [PLAN-SKILL-CRAFTER.md §5.2](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) and `data_structure/extensions/bank_mutation_proposal.py::GeneralizeProposal`). The legacy `TRANSFERRED` value is retained so historical proposals still round-trip; new proposals that bind a game-foundry skill to a transfer-target adapter must use `FEW_SHOT_ADAPTED`.
 
 **Hard rule.** All source types share *the same* gate; there is no fast path based on model size, lineage, or human authorship. This makes the "frozen 32B/72B proposals stay candidates until they pass the same gate stack" rule from [PLAN-PIPELINE-ORCHESTRATOR.md §3.4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#34-asymmetric-teacher-outputs) mechanical rather than aspirational.
 
@@ -350,16 +356,22 @@ This stack is the unified specification of what [PLAN-SKILL-BANK.md §7](../03-s
 | **Maps to existing gate** | [PLAN-HARNESS.md G4 Shadow](../05-harness/PLAN-HARNESS.md#10-promotion-gates) |
 | **Transition** | `pass → Stage 3`; `fail → REJECTED`; `borderline → remain SHADOW with more trials` |
 
-### Stage 3 — Transfer validation (`gate/transfer_gate.py` → `harness/transfer_manager.py`)
+### Stage 3a — Few-shot transfer validation (`gate/transfer_gate.py` → `harness/few_shot_adapter.py`)
+
+This is the asymmetric realisation of the old "Stage 3 — Transfer validation". The skill being evaluated has, by construction, a game-foundry lineage (`source_domains ⊆ SOURCE_DOMAINS`); Stage 3a verifies that the *same protocol* binds to the declared transfer-target adapters using only a handful of target-domain demonstrations. This is what earns each entry in `SkillRecord.verified_domains`.
 
 | Item | Value |
 |------|-------|
-| **Goal** | Verify that the skill is not merely an in-domain trick — i.e., the [PLAN-SKILL-BANK.md §0.1 general-protocol invariant](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families) actually holds |
-| **Inputs** | source-domain `SkillRecord`, target-domain adapters, target ontology mapping, held-out target tasks |
-| **Tests** | same domain / different task; nearby domain; cross-domain with slot remapping |
-| **Metrics** | slot-rebinding success; adapter validation pass rate; ontology remap consistency; transfer success rate; degradation ratio vs source; evidence compatibility; failure-mode drift |
-| **Diagnostic labels** | populates [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific) labels (`evidence_interface_mismatch`, `slot_binding_failed`, `adapter_execution_mismatch`, `evidence_insufficient`, `temporal_mismatch`, `ui_grounding_mismatch`, `desktop_object_mismatch`, `overconfident_commit`, `contract_mismatch`) |
-| **Transition** | `strong pass → Stage 4 (all approved domains)`; `partial pass → PROVISIONAL for approved domains only (LIMITED_PASS)`; `fail → REJECTED or local-only candidate` |
+| **Goal** | Verify that the skill is not merely a game-foundry trick — for each declared `target_domain`, prove the abstract protocol binds to the target adapter under a *small* demo budget (PLAN-SKILL-BANK §0.4). |
+| **Inputs** | source-domain `SkillRecord` (with `source_domains`, `transfer_target_domains`); target-domain adapters from the `AdapterRegistry`; an optional `few_shot_demos: Dict[target_domain, Sequence[FewShotDemo]]` mapping; the [`FewShotConfig`](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) thresholds. |
+| **K-shot adaptation protocol** | For each `target_domain ∈ skill.transfer_target_domains`: (i) take up to `k_shot_default` demonstrations (capped at `k_shot_max`); (ii) re-tag each demo's `<state>.domain` to the target; (iii) apply the proposal's `slot_remap`; (iv) invoke `harness.SkillHarness.run_skill(...)` through the target adapter; (v) score each shot via `success_fn` (default: `outcome.success ∧ outcome.contract_satisfied`). The adapter aborts the budget if cumulative `cost_tokens > adaptation_cost_max_tokens`. |
+| **Per-target output** | `AdaptResult { target_domain, k_used, pass_rate, n_success, n_total, aborted, cost_tokens, cost_ms, diagnostic_label, episode_ids }`. Diagnostics: `target_domain_demo_unavailable`, `few_shot_budget_exceeded`, `adaptation_overfitting`. |
+| **Per-target verdict** | `PASS` iff `n_total > 0 ∧ pass_rate ≥ target_domain_pass_rate_min`; otherwise the target *does not earn* a `verified_domains` entry on this run. |
+| **Stage verdict** | `PASS` if `# verified targets ≥ transfer_min_target_domains_verified`; `LIMITED_PASS` if ≥1 verified but below threshold; `FAIL` otherwise. |
+| **Side-effect on the bank** | `GateService` *produces* the verified-target list (carried in the `SkillEvaluationRecord` and exposed via `GateVerdictPayload.eligible_domains ∩ TRANSFER_TARGET_DOMAINS`). The actual mutation of `SkillRecord.verified_domains` and `SkillRecord.adapter_history` is performed by `SkillLifecycleManager.record_transfer_verification(...)`, called from `PromotionOrchestrator.promote(...)` *before* the status transition so the ACTIVE invariant (PLAN-SKILL-BANK §0.4) sees the updated list. The lifecycle manager is the only sanctioned writer of either field; no other component (Crafter, Harness, Bank query path) may mutate them. On `FAIL`, no verification is recorded; diagnostic labels propagate through the gate verdict only. |
+| **Diagnostic labels** | populates [PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md#10a-transfer-failure-diagnostics-domain-specific) labels, plus the three new few-shot-specific labels above. |
+| **Transition** | `strong pass → Stage 4 (all verified target domains)`; `partial pass → PROVISIONAL for verified target domains only (LIMITED_PASS)`; `fail → REJECTED or back to DRAFT for repair`. |
+| **Backward compatibility** | If a candidate carries no source/target metadata (legacy proposals from before the asymmetry), `GateService._run_transfer` falls back to the older "≥ `transfer_min_domains` feasible domains" check; the new path takes precedence as soon as `source_domains` is populated. |
 
 ### Stage 4 — Non-regression (`gate/non_regression_gate.py`)
 
@@ -453,9 +465,17 @@ shadow:
   contradiction_rate_max: 0.10
 
 transfer:
+  # Asymmetric, few-shot-driven (PLAN-SKILL-BANK §0.4).
+  min_target_domains_verified: 1       # minimum |verified_domains ∩ TRANSFER_TARGET_DOMAINS|
   per_domain_pass_rate_min: 0.65       # lower than source-domain initially
   degradation_ratio_max: 0.20
   ontology_remap_consistency_min: 0.75
+
+few_shot:                              # per-(skill, target_domain) adaptation budget
+  k_shot_default: 5                    # default shots per target
+  k_shot_max: 16                       # cap; enforced by FewShotAdapter
+  target_domain_pass_rate_min: 0.50    # minimum pass_rate to verify a target
+  adaptation_cost_max_tokens: 8000     # abort the few-shot run if exceeded
 
 non_regression:
   source_drop_max: 0.02                # ε from PLAN-PIPELINE-ORCHESTRATOR §3.1.4
