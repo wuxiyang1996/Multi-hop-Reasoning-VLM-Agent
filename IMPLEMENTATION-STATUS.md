@@ -18,7 +18,9 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 | Phase A | Harness MVP | `harness/{skill_adapter,adapter_registry,eligibility,reward_logger,replay_validator,skill_harness}.py`, `harness/adapters/{_common,gymv_adapter,browser_adapter}.py` |
 | Phase B | Orchestrator MVP | `orchestrator/{config,artifact_store,budget,snapshot_manager,gate_service,promotion_orchestrator,runner}.py` |
 | Phase C | Crafter MVP | `crafter/{failure_memory,failure_diagnoser,composer,generalizer,hypothesizer,service}.py` |
-| Tests | Invariant + smoke + backbone-model | `tests/{conftest,test_invariants,test_smoke,test_backbone_model}.py` (29 passing) |
+| Crafter Phase D | `Repairer` + `PatchProposal` plumbing (`SkillCrafterService.propose_repair`, repair-first dispatch in `cycle()`) | `crafter/repairer.py`, `crafter/service.py` |
+| Crafter Phase F | Frozen Qwen3-VL-32B / 235B-A22B teacher registry + `SkillCrafterService.{with_qwen3_vl_teacher, from_env, set_teacher_model}` (default still GPT-4o) | `common/models.py`, `crafter/service.py` |
+| Tests | Invariant + smoke + backbone-model + crafter Phase D/F | `tests/{conftest,test_invariants,test_smoke,test_backbone_model,test_crafter_repair,test_few_shot_transfer}.py` (60 passing) |
 
 ### Backbone model
 
@@ -84,9 +86,11 @@ Live defaults flipped in this pass:
 - **Legacy bridge**: one-way migration of `skill_agents/skill_bank`
   Stage-3 records into the new `SkillRecord` (planned in
   `skill_bank/legacy_bridge.py`).
-- **`PatchProposal` plumbing in the crafter cycle** (currently composer,
-  generalizer, hypothesizer, retire are wired; patch is defined but
-  needs an explicit `propose_repair` entrypoint).
+- **Live frozen-teacher inference for Qwen3-VL** — the `SkillCrafterService`
+  surface for swapping to `Qwen/Qwen3-VL-{32B,235B-A22B}` is wired
+  (`with_qwen3_vl_teacher`, `from_env`, `set_teacher_model`), but the
+  actual model invocation path through `API_func.ask_model` for these
+  IDs still needs provider-side routing (vLLM / HF endpoint).
 
 ## How to run the tests
 

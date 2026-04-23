@@ -36,6 +36,7 @@ The point: the crafter can dream up anything, but the lifecycle manager + the ga
 | `composer.py` | `Composer` — builds `ComposeProposal`s by chaining N existing ACTIVE skills whose evidence outputs match the next skill's evidence inputs. The chain itself becomes a typed inner-MDP protocol |
 | `generalizer.py` | `Generalizer` — builds `GeneralizeProposal`s by lifting concrete slot bindings to slot variables. Often emitted when `FailureDiagnoser` flags `slot_binding_failed` patterns across multiple domains |
 | `hypothesizer.py` | `Hypothesizer` — builds `HypothesisProposal`s for novel skills suggested by the teacher. Used when no compose / generalise route closes the failure pattern |
+| `repairer.py` | `Repairer` — builds `PatchProposal`s for **existing** bank skills. Maps each `RecoveryStrategy` (HOP_INSERTION, PRECONDITION_STRENGTHENING, FALLBACK_INJECTION, REGROUNDING_TRIGGER, PROTOCOL_PATCH, SKILL_DECOMPOSITION) to a deterministic protocol/contract edit; teacher-LLM hook (`set_llm_repairer`) replaces the rule path when present |
 | `service.py` | `SkillCrafterService` — the **only** public entry point. Single-method facade `process(...)` that pulls failures from `FailureMemory`, runs `FailureDiagnoser`, dispatches to the right proposer, persists via `ArtifactStore.put_proposal`, and ingests the resulting draft `SkillRecord`s via `SkillLifecycleManager.ingest_draft` |
 
 ---
@@ -96,8 +97,46 @@ runtime episodes ─────────────────► FailureT
 | Phase | What this package contains | Status |
 |---|---|---|
 | C (MVP) | `FailureMemory`, `FailureDiagnoser`, `Composer`, `Generalizer`, `Hypothesizer`, `SkillCrafterService` | **Delivered** — covered by `tests/test_smoke.py` (failure → DRAFT cycle) |
-| D | `PatchProposal` repair plumbing exposed via `SkillCrafterService.propose_repair` | Pending — see root README |
-| F | Replace teacher backbone (currently `gpt-4o` via `BACKBONE_TEACHER_MODEL`) with frozen Qwen3-VL-32B / 235B-A22B | Pending |
+| D | `Repairer` + `PatchProposal` repair plumbing exposed via `SkillCrafterService.propose_repair`; the failure-driven `cycle()` now dispatches **repair > retire > hypothesize** for failures whose `skill_id` resolves to an existing bank skill | **Delivered** — covered by `tests/test_crafter_repair.py::TestPhaseDRepair` |
+| F | Frozen Qwen3-VL-32B / 235B-A22B teacher backbones registered in `common.models.QWEN3_VL_TEACHERS`; activate via `SkillCrafterService.with_qwen3_vl_teacher(...)`, `SkillCrafterService.set_teacher_model(...)`, or the `VLM_AGENT_PHASE_F_TEACHER` env switch read by `SkillCrafterService.from_env(...)` | **Wiring delivered** — covered by `tests/test_crafter_repair.py::TestPhaseFFrozenTeacher`. The project-wide `BACKBONE_TEACHER_MODEL` default remains `gpt-4o`; Phase-F is opt-in until the inference plumbing for the frozen teacher lands |
+
+### Phase-D dispatch order (failure-driven `cycle()`)
+
+```
+hot FailurePattern
+        │
+        ▼
+   FailureDiagnoser.diagnose(representative trace)
+        │
+        ├── pattern.skill_id ∈ bank? ──── yes ──┐
+        │                                       ▼
+        │                               strategy = SKILL_RETIREMENT?
+        │                                       │
+        │                                yes ───┼─── propose_retirement → RetireProposal
+        │                                       │
+        │                                no ────┴─── propose_repair → PatchProposal
+        │
+        └── unknown skill_id ──────────────── Hypothesizer.propose → HypothesisProposal
+```
+
+### Phase-F teacher swap
+
+```python
+from common.models import qwen3_vl_teacher
+from crafter import SkillCrafterService
+
+# 1) Construct with the frozen teacher.
+crafter = SkillCrafterService.with_qwen3_vl_teacher(
+    lifecycle=lifecycle, artifact_store=artifacts, size="32b",
+)
+
+# 2) Or swap mid-run.
+crafter.set_teacher_model(qwen3_vl_teacher("235b-a22b"))
+
+# 3) Or flip via env-var, no code edits.
+#    VLM_AGENT_PHASE_F_TEACHER=qwen3-vl-32b
+crafter = SkillCrafterService.from_env(lifecycle=lifecycle, artifact_store=artifacts)
+```
 
 ---
 

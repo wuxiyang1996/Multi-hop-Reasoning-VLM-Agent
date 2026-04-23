@@ -8,6 +8,27 @@ explicitly **deferred**: they remain reachable through dedicated
 entrypoints under `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`,
 and `skill_agents/lora/`, but no library-level default points at them.
 
+Phase-F frozen Qwen3-VL teachers
+--------------------------------
+
+Per the crafter README's Phase F entry, the Skill Crafter is designed
+to swap its frozen teacher backbone from GPT-4o to a frozen Qwen3-VL
+(``Qwen/Qwen3-VL-32B`` or the larger MoE ``Qwen/Qwen3-VL-235B-A22B``)
+once the inference plumbing is in place.  We expose those names as
+canonical constants and as a ``QWEN3_VL_TEACHERS`` registry so
+``SkillCrafterService(teacher_model=...)`` can be wired without string
+literals scattered across the codebase, *while keeping the project-wide
+``BACKBONE_TEACHER_MODEL`` default at GPT-4o* (so the existing
+test_backbone_model invariants still pass).
+
+Two opt-in env-vars activate the Phase-F teacher without code edits:
+
+* ``VLM_AGENT_BACKBONE_TEACHER_MODEL=Qwen/Qwen3-VL-32B`` — full override
+  (works today for any phase).
+* ``VLM_AGENT_PHASE_F_TEACHER=qwen3-vl-32b`` (or ``qwen3-vl-235b-a22b``)
+  — Phase-F flag.  Read by ``crafter.SkillCrafterService.from_phase_f``
+  (no implicit mutation of ``BACKBONE_TEACHER_MODEL``).
+
 Rules
 -----
 
@@ -33,6 +54,7 @@ explicit `model=` arguments and never mutate `BACKBONE_MODEL`.
 from __future__ import annotations
 
 import os
+from typing import Mapping
 
 # ---- canonical defaults ------------------------------------------------
 
@@ -54,17 +76,61 @@ BACKBONE_JUDGE_MODEL: str = os.environ.get(
 )
 
 
+# ---- Phase-F frozen Qwen3-VL teacher registry --------------------------
+
+#: Frozen Qwen3-VL teacher model identifiers (PLAN-SKILL-CRAFTER §2,
+#: "Frozen-first design").  Map of `size_key` → canonical HF model name.
+#: New entries are additive; nothing here is a *default*.
+QWEN3_VL_TEACHERS: Mapping[str, str] = {
+    "32b": "Qwen/Qwen3-VL-32B",
+    "235b-a22b": "Qwen/Qwen3-VL-235B-A22B",
+}
+
+
+def qwen3_vl_teacher(size: str = "32b") -> str:
+    """Return the canonical HF id for a frozen Qwen3-VL teacher.
+
+    ``size`` is matched case-insensitively against the keys of
+    :data:`QWEN3_VL_TEACHERS`.  Raises :class:`ValueError` for unknown
+    sizes so a typo can't silently fall back to GPT-4o.
+    """
+    key = size.lower().strip()
+    if key not in QWEN3_VL_TEACHERS:
+        raise ValueError(
+            f"Unknown Qwen3-VL teacher size {size!r}; "
+            f"valid options: {sorted(QWEN3_VL_TEACHERS)}."
+        )
+    return QWEN3_VL_TEACHERS[key]
+
+
+def phase_f_teacher_from_env() -> str | None:
+    """Resolve the Phase-F teacher from ``VLM_AGENT_PHASE_F_TEACHER``.
+
+    Returns the canonical HF model id when the env-var is set to a
+    recognized size, or ``None`` when unset.  Unknown sizes raise so
+    misconfiguration surfaces at the entry point, not silently as a
+    GPT-4o fallback.
+    """
+    raw = os.environ.get("VLM_AGENT_PHASE_F_TEACHER")
+    if not raw:
+        return None
+    return qwen3_vl_teacher(raw)
+
+
 # ---- deferred-track registry ------------------------------------------
 
 #: Canonical model names that are *deferred* — mentioned in plans but
 #: not part of the current default surface. Tests check that no live
-#: code path defaults to one of these.
+#: code path defaults to one of these.  The Qwen3-VL Phase-F teachers
+#: are deferred-by-default too: they're opt-in via
+#: ``SkillCrafterService(teacher_model=qwen3_vl_teacher(...))``.
 DEFERRED_MODELS: frozenset[str] = frozenset(
     {
         "Qwen/Qwen3-8B",
         "Qwen/Qwen2.5-32B",
         "Qwen/Qwen2.5-72B",
         "Qwen/Qwen2.5-VL-72B",
+        *QWEN3_VL_TEACHERS.values(),
     }
 )
 
@@ -72,6 +138,11 @@ DEFERRED_MODELS: frozenset[str] = frozenset(
 def is_deferred(model: str) -> bool:
     """True if `model` is one of the deferred Qwen tracks."""
     return model in DEFERRED_MODELS
+
+
+def is_frozen_qwen_teacher(model: str) -> bool:
+    """True if `model` is one of the Phase-F frozen Qwen3-VL teachers."""
+    return model in set(QWEN3_VL_TEACHERS.values())
 
 
 def assert_default_is_gpt4o() -> None:
@@ -89,6 +160,10 @@ __all__ = [
     "BACKBONE_MODEL",
     "BACKBONE_TEACHER_MODEL",
     "DEFERRED_MODELS",
+    "QWEN3_VL_TEACHERS",
     "assert_default_is_gpt4o",
     "is_deferred",
+    "is_frozen_qwen_teacher",
+    "phase_f_teacher_from_env",
+    "qwen3_vl_teacher",
 ]

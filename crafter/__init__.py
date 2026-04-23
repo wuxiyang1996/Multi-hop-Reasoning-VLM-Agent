@@ -22,6 +22,7 @@ Public surface:
         Composer,
         Generalizer,
         Hypothesizer,
+        Repairer,
         FailureDiagnoser,
         FailureMemory,
     )
@@ -32,6 +33,7 @@ from crafter.failure_diagnoser import FailureDiagnoser
 from crafter.failure_memory import FailureMemory, FailurePattern
 from crafter.generalizer import Generalizer
 from crafter.hypothesizer import Hypothesizer
+from crafter.repairer import Repairer
 from crafter.service import SkillCrafterService
 
 __all__ = [
@@ -41,5 +43,6 @@ __all__ = [
     "FailurePattern",
     "Generalizer",
     "Hypothesizer",
+    "Repairer",
     "SkillCrafterService",
 ]
