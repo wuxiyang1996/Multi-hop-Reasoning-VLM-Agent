@@ -23,46 +23,110 @@ from orchestrator import (
 
 | File | Role |
 |---|---|
-| `runner.py` | `EpisodeRunner` — drives one outer-env episode end-to-end: resets the env, repeatedly asks the Actor to pick from `SkillHarness.select_eligible_skills`, executes via the harness, logs `SkillEpisode` to `ArtifactStore`. Returns `EpisodeResult(outcome, episodes, evidence_summary, budget_used)` |
-| `artifact_store.py` | `ArtifactStore` — atomic JSONL writes for every artefact type: `episodes/`, `proposals/`, `failures/`, `evaluations/`, `releases/`. Atomic = write-to-tmp + rename, with per-stream advisory locks. The orchestrator's only side-effect on disk |
-| `budget.py` | `BudgetController` — caps tokens, dollars, wallclock, and inner-hop count per episode. Reads the per-step `r_cost` written by `harness.RewardLogger`. Raises `BudgetExceeded` from inside the runner so partial work is still flushed to the artefact store |
-| `gate_service.py` | `GateService` — composes the seven canonical stages from [`PLAN-UNIFIED-SKILL-GATE`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) §7: `Stage 0 static` (contract + invariant checks), `Stage 1 replay` (deterministic re-execution), `Stage 2 shadow` (parallel run alongside ACTIVE), `Stage 3a transfer` (calls `harness.FewShotAdapter`), `Stage 3b non-regression` (eval-suite delta), `Stage 4 provisional`, `Stage 5 active`. Emits `GateVerdictPayload` with per-stage `StageVerdict`s and an `eligible_domains` list (the `verified_domains` source of truth) |
-| `promotion_orchestrator.py` | `PromotionOrchestrator` — atomic promotion / rollback. `promote(plan: PromotionPlan)` (1) snapshots the current bank+adapter+config via `SnapshotManager`, (2) refuses on FAIL or content-hash drift, (3) refuses ACTIVE on `LIMITED_PASS` (invariant 5), (4) calls `lifecycle.record_transfer_verification(...)` *before* the status transition (invariant 8 — `verified_domains` is gate-owned), (5) invokes `lifecycle.promote(...)` to physically move the JSON. Rollback restores the snapshot atomically |
-| `snapshot_manager.py` | `SnapshotManager` — packs `(bank state ⊕ adapter weights ⊕ config)` into a `RunRelease`. Used by the promotion orchestrator on every promotion to enable atomic rollback, and by eval drivers to pin a specific frozen system version |
-| `config.py` | `OrchestratorConfig` and its sub-configs: `BudgetLimits`, `GateThresholds`, `TeacherConfig` (Synthesis-Reflection / Crafter teacher — currently `gpt-4o`), `JudgeConfig` (eval-driver judge), `FewShotConfig` (K, max-iters for `FewShotAdapter`). Single source of truth for tunable knobs; loaded from YAML/JSON or constructed directly in tests |
+| `runner.py` | `EpisodeRunner` — drives one outer-env episode end-to-end: resets the env, repeatedly asks the Actor to pick from `SkillHarness.select_eligible_skills`, executes via the harness, logs `SkillEpisode` to `ArtifactStore`. Returns `EpisodeResult(run_id, outer_steps, skill_episodes, final_state, budget_snapshot, aborted, abort_reason)` |
+| `artifact_store.py` | `ArtifactStore` — atomic, file-backed storage for every artefact type: `episodes/`, `skill_episodes/`, `proposals/`, `failures/`, `evaluations/`, `snapshots/`, `releases/`, plus an append-only `audit.jsonl`. Atomic = write-to-tmp + `os.replace`; one JSON file per record (the audit log is the only JSONL stream). The orchestrator's only side-effect on disk |
+| `budget.py` | `BudgetController` — caps outer steps, inner steps, skill invocations, tokens, wallclock-ms, grounding escalations, and teacher calls per episode. Raises `BudgetExceeded` from inside the runner so partial work is still flushed to the artefact store. Hard-cap-only today; the `degrade` path from `PLAN-PIPELINE-ORCHESTRATOR §7.3` is not yet wired |
+| `gate_service.py` | `GateService` — composes the canonical gate stages from [`PLAN-UNIFIED-SKILL-GATE`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) §7: `Stage 0 static` (contract + invariant checks), `Stage 1 replay` (delegates to `harness.ReplayValidator`), `Stage 2 shadow` (reads `harness.RewardLogger`), `Stage 3a transfer` (drives `harness.FewShotAdapter` against `TRANSFER_TARGET_DOMAINS`), `Stage 4 non-regression` (baseline-vs-post score delta). Emits `SkillEvaluationRecord` whose `GateVerdictPayload` carries per-stage `StageVerdict`s and an `eligible_domains` list — the verified-targets source of truth for invariant 8. Stages 5 (promotion) and 6 (rollback) are *actions*, owned by `PromotionOrchestrator` |
+| `promotion_orchestrator.py` | `PromotionOrchestrator` — promotion / rollback transactions. `promote(plan: PromotionPlan)`: (1) refuses on FAIL verdict, content-hash drift, or `LIMITED_PASS → ACTIVE`; (2) writes evaluations to the audit trail; (3) calls `lifecycle.record_transfer_verification(...)` *before* the status transition (invariant 8); (4) calls `lifecycle.transition_many(...)` for the atomic store move; (5) takes a snapshot via `SnapshotManager` and mints a `RunRelease`. `rollback(skill_id, reason)`: walks the lifecycle through `DEPRECATED → ROLLED_BACK` and writes an audit record |
+| `snapshot_manager.py` | `SnapshotManager` — content-addressed JSON snapshots of the active bank state + adapter signature + config payload. Used by every successful `promote(...)` so the resulting `RunRelease` can pin a frozen system version |
+| `config.py` | `OrchestratorConfig` and its sub-configs: `BudgetLimits`, `GateThresholds`, `FewShotConfig` (K, max-tokens, per-target pass-rate floor for `FewShotAdapter`), `TeacherConfig` (Synthesis-Reflection / Crafter teacher — currently `gpt-4o`), `JudgeConfig` (eval-driver judge). Single source of truth for tunable knobs; loaded from YAML/JSON or constructed directly in tests |
 
 ---
 
-## Episode → promotion data flow
+## Pipeline
+
+The orchestrator runs **two loops on different timescales**. They share artefacts through `ArtifactStore` but never block each other.
+
+### Hot path — per-episode rollout (`EpisodeRunner.run`)
 
 ```
-EpisodeRunner.run(env, actor, budget)
-  ├── for step in env:
-  │     ├── eligible = harness.select_eligible_skills(state)
-  │     ├── skill    = actor.choose(state, eligible)
-  │     ├── result   = harness.run_skill(skill, state, env)        # SkillEpisode
-  │     ├── artifact_store.put_episode(result.episode)
-  │     └── budget.charge(result.cost)  # raises BudgetExceeded
-  └── return EpisodeResult(...)
-
-# Offline (separate run, slow timescale):
-PromotionOrchestrator.promote(plan)
-  ├── snapshot_manager.create_release(bank, adapter, config)
-  ├── verdict = gate_service.evaluate(skill, eval_suite_id)
-  │     ├── Stage 0  static
-  │     ├── Stage 1  replay   (harness.ReplayValidator over recorded episodes)
-  │     ├── Stage 2  shadow   (parallel runs)
-  │     ├── Stage 3a transfer (harness.FewShotAdapter; emits eligible_domains)
-  │     ├── Stage 3b non-regression (eval suite delta)
-  │     └── Stage 4 / 5
-  ├── if verdict.fail: rollback; return REJECTED
-  ├── if verdict.limited_pass and target == ACTIVE: refuse; return BLOCKED
-  ├── lifecycle.record_transfer_verification(skill, verdict.eligible_domains)
-  ├── lifecycle.promote(skill, target_status)             # physical store move
-  └── artifact_store.put_evaluation(SkillEvaluationRecord)
+env.reset()                                       ─── env adapter
+  │  state
+  ▼
+loop until done OR BudgetExceeded:
+  budget.add_outer_step()
+  candidates = bank.runnable()                    ─── skill_bank/repository.py
+  eligible   = harness.select_eligible_skills(    ─── harness  (EligibilityFilter)
+                   candidates, state)
+  choice     = actor.choose_action(state, eligible)── decision_agents  (Actor: gpt-4o)
+  if choice is not None:
+      budget.add_skill_invocation()
+      ep = harness.run_skill(choice.skill,        ─── harness + per-domain adapter
+                             state, parent_run_id, bindings)
+      artifact_store.put_skill_episode(ep)        ─── orchestrator/artifact_store.py
+  next_state, done = env.step(ep)
+                                                   on BudgetExceeded → catch, flush, return
+artifact_store.put_episode(meta)                   ─── episode-level meta
+artifact_store.append_audit({"kind":"episode_done"})
 ```
 
-The `record_transfer_verification → lifecycle.promote` ordering is **load-bearing**: it's the one place invariant 8 (`verified_domains` is gate-owned) becomes a runtime guarantee. The `tests/test_invariants.py` suite has a dedicated test for this ordering.
+Three rules are baked into this code path, not into convention:
+- The Actor never sees the raw bank — it only sees the *harness-narrowed* `EligibleSkill[]`. (`PLAN-PIPELINE-ORCHESTRATOR §0a.2`.)
+- The orchestrator never executes a skill itself — it always delegates to `harness.run_skill(...)` and gets back a `SkillEpisode`.
+- All artefacts are written through `ArtifactStore`; the orchestrator has no other disk side-effect.
+
+### Warm path — gate + promotion (`GateService` + `PromotionOrchestrator`)
+
+This loop is invoked separately from the rollout — typically every N episodes or when the candidate backlog is full. It turns DRAFTs (produced by `crafter/`) into ACTIVE skills.
+
+```
+crafter.SkillCrafterService.cycle(failures)         ─── crafter/service.py
+  ├── FailureMemory clusters → FailureDiagnoser
+  ├── builds BankMutationProposal
+  ├── ArtifactStore.put_proposal(p)
+  └── SkillLifecycleManager.ingest_draft(skill)     ─── DRAFT lands in draft_store
+              │
+              ▼
+GateService.evaluate(proposal=, skill=,             ─── orchestrator/gate_service.py
+                     replay_seeds=, shadow_log=,
+                     baseline_score=, post_score=,
+                     few_shot_demos=)
+  Stage 0  static          (in-module: feasible_domains, evidence role, lineage, source-type)
+  Stage 1  replay          → harness.replay_validate(skill, seeds)
+  Stage 2  shadow          → reads harness.RewardLogger.filter(skill_id=...)
+  Stage 3a transfer        → for each tgt ∈ skill.transfer_target_domains ∩ TRANSFER_TARGET_DOMAINS:
+                                FewShotAdapter.adapt(skill, target_domain=tgt, demos=...)
+                             → emits verified_targets + diagnostic labels
+  Stage 4  non-regression  (in-module: post_score − baseline_score ≥ −max_delta)
+        ▼
+SkillEvaluationRecord(verdict ∈ {PASS, LIMITED_PASS, FAIL},
+                      eligible_domains = source_domains ∪ verified_targets)
+
+PromotionOrchestrator.promote(plan)                 ─── orchestrator/promotion_orchestrator.py
+  │  for each (skill, target_status, evaluation, rationale):
+  ├── refuse on FAIL  /  content-hash drift  /  LIMITED_PASS → ACTIVE
+  ├── artifact_store.put_evaluation(ev)             (audit trail first)
+  ├── lifecycle.record_transfer_verification(...)   ─── ★ load-bearing
+  │      writes verified_domains + adapter_history BEFORE the status flip
+  ├── lifecycle.transition_many([(id, target_status, rationale), ...])
+  │      ─── physical store move via SkillLifecycleManager
+  ├── snapshot_manager.take(active_records, adapter_signature, config_payload)
+  ├── artifact_store.put_release(RunRelease)
+  └── artifact_store.append_audit({"kind":"release", ...})
+```
+
+The `record_transfer_verification → transition_many` ordering is **load-bearing**: it's the one place invariant 8 (`verified_domains` is gate-owned) becomes a runtime guarantee. Without it, `SkillLifecycleManager._validate_invariants` would refuse the ACTIVE transition for any source-tagged skill (invariant 7), since `verified_domains` would still be empty.
+
+---
+
+## Sub-agent interaction
+
+The orchestrator is the only place that touches all four sub-agents. Every other module exposes a narrow API and trusts the orchestrator to compose them.
+
+| Sub-agent | What the orchestrator calls | What flows back | Where written |
+|---|---|---|---|
+| **Visual Grounding** ([`vlm_wrapper/`](../vlm_wrapper/), today via env adapters) | Indirect — `env.reset()` / `env.step()` returns the structured `<state>` (`StateSchema`). The orchestrator never calls grounding directly | `StateSchema` (entities, evidence_refs) | None — episode-local, lives inside `EpisodeRunner.run` |
+| **Action Agent / Actor** ([`decision_agents/`](../decision_agents/), gpt-4o) | `actor.choose_action(state, eligible) → ActorChoice \| None` (`runner.py:116`). Minimal `ActorLike` protocol — anything implementing it is drivable | `ActorChoice(skill, bindings, rationale)` or `None` (no-skill tick) | Choice is implicit in the resulting `SkillEpisode` (skill_id + bindings) |
+| **Skill Harness** ([`harness/`](../harness/)) | Hot-path: `harness.select_eligible_skills(candidates, state)` → `harness.run_skill(skill, state, parent_run_id, bindings)`. Gate: `harness.replay_validate(skill, seeds)` and `FewShotAdapter.adapt(skill, target_domain, demos)` (which calls `harness.run_skill` again under the target adapter) | `EligibleSkill[]`, `SkillEpisode`, `ReplayResult`, `AdaptResult` | `SkillEpisode` → `artifact_store.put_skill_episode`; reward-log entries written by `RewardLogger` inside the harness |
+| **Skill Bank** ([`skill_bank/`](../skill_bank/)) | Read: `bank.runnable()` for online retrieval. Write: only via `SkillLifecycleManager` — the orchestrator never touches `SkillStore` directly. Specifically: `lifecycle.transition_many(...)`, `lifecycle.record_transfer_verification(...)`, `lifecycle.transition(skill_id, to=DEPRECATED/ROLLED_BACK, ...)` | `SkillRecord[]` for retrieval; `SkillRecord` after each transition | `skill_bank/{draft,candidate,active,archive}` stores |
+| **Skill Crafter** ([`crafter/`](../crafter/)) | The orchestrator does **not** call the crafter. The crafter calls *into* `ArtifactStore.put_proposal(...)` and `SkillLifecycleManager.ingest_draft(...)`. The orchestrator's gate then consumes the resulting DRAFTs | `BankMutationProposal` (read from `ArtifactStore` or `SkillRepository.draft.all()`) | `artifact_store/proposals/`, `skill_bank/draft/` |
+
+Specific contracts worth pinning:
+
+1. **The Actor never sees the bank.** `bank.runnable()` is only called by the orchestrator inside `EpisodeRunner.run`, and the result is *immediately* fed into `harness.select_eligible_skills(...)`. The Actor receives only `EligibleSkill[]`. This is the "harness narrows + may veto, actor decides" boundary made executable.
+2. **The Crafter never writes ACTIVE.** Architectural rules at the top of [`crafter/README.md`](../crafter/README.md) are mechanically enforced — the package can't import `skill_bank.stores`. The only path from a crafter proposal to ACTIVE goes `ingest_draft → GateService.evaluate → PromotionOrchestrator.promote → SkillLifecycleManager.transition_many`.
+3. **`verified_domains` has exactly one writer.** `GateService._run_transfer` *produces* the verified-target list (carried in `GateVerdictPayload.eligible_domains`). `PromotionOrchestrator._record_transfer_verifications` *mirrors* it via `SkillLifecycleManager.record_transfer_verification(...)`. The lifecycle manager is the only function that physically extends `verified_domains` and `adapter_history`.
+4. **The Harness is shared between the two loops.** The same `SkillHarness` instance is used by `EpisodeRunner` (online execution), `GateService._run_replay` (deterministic re-execution), and `FewShotAdapter.adapt` (target-domain probes). That's why a skill's behavior on a target domain at gate time matches what it would do online — the adapter, eligibility, and execution code paths are identical.
 
 ---
 
@@ -70,15 +134,34 @@ The `record_transfer_verification → lifecycle.promote` ordering is **load-bear
 
 | Phase | What this package contains | Status |
 |---|---|---|
-| B (MVP) | `EpisodeRunner`, atomic `ArtifactStore`, `BudgetController`, `GateService` (stages 0–4), `PromotionOrchestrator`, `SnapshotManager` | **Delivered** — covered by `tests/test_smoke.py::test_smoke_end_to_end` |
-| D (transfer + replay) | Full Stage 1 deterministic replay; Stage 3a wired to all four target-domain adapters; Stage 3b non-regression with `eval_suite_id` | Pending |
-| E (eval suite + dashboards) | `eval_suite.py`, slice/label dashboards, `eval_suite_id` wiring across releases | Pending |
+| B (MVP) | `EpisodeRunner`, file-backed `ArtifactStore`, `BudgetController`, `GateService` (Stages 0 / 1 / 2 / 3a / 4), `PromotionOrchestrator`, `SnapshotManager` | **Delivered** — covered by `tests/test_smoke.py::test_smoke_end_to_end` |
+| D (transfer + replay) | Action-level deterministic replay (Stage 1); Stage 3a wired to real (non-stub) executors for all four `TRANSFER_TARGET_DOMAINS`; per-skill `evaluate_candidate` / `promote_if_passed` / `rollback_if_needed` API as in `PLAN-PIPELINE-ORCHESTRATOR §3a.1` | Pending |
+| E (eval suite + dashboards) | `eval_suite.py` (frozen non-regression slice with `eval_suite_id` pinned across releases); slice / label dashboards | Pending |
+
+---
+
+## Known gaps vs. the plans
+
+These are honest deltas between this package and `plans/06-orchestrator/` + `plans/07-skill-gate/`. Nothing here breaks the smoke test, but they should be closed before this package can be trusted in a real promotion loop.
+
+1. **Promotion is not snapshot-restoring on partial failure.** `PromotionOrchestrator.promote` runs `transition_many()` *before* `snapshot_manager.take()` and `put_release()`. If snapshot or release writing fails, the bank has already moved and there is no snapshot to revert to. `transition_many` does best-effort rollback inside its own call, but cross-call atomicity (snapshot + release + lifecycle as one transaction) is not enforced. `PLAN-PIPELINE-ORCHESTRATOR §3a.3` requires snapshot-create *before* the lifecycle apply.
+2. **`rollback()` does not restore a prior snapshot.** It only walks the lifecycle through `DEPRECATED → ROLLED_BACK`. The "atomically advance `current_production` to a previous snapshot" semantics from `PLAN §3a.4` step 3-4 is not present.
+3. **API surface differs from `PLAN-PIPELINE-ORCHESTRATOR §3a.1`.** The plan specifies `evaluate_candidate(skill_id) → SkillEvaluationRecord`, `promote_if_passed(skill_id) → bool`, `rollback_if_needed(skill_id) → bool`, `batch_evaluate_candidates(...)`. The implementation instead exposes `promote(plan: PromotionPlan)` and `rollback(*, skill_id, reason)`. Invariants are preserved; named entry points differ.
+4. **No `eval_suite.py` and no `rollback_manager.py`.** Both are named in `PLAN-UNIFIED-SKILL-GATE §4` and `PLAN-PIPELINE-ORCHESTRATOR §9`. Tracked under Phase E.
+5. **Stage 0 only partially covers `PLAN-UNIFIED-SKILL-GATE §7 Stage 0`.** `_run_static` validates feasible-domains, evidence-role presence, protocol non-empty, source-type match, and lineage. It does *not* check `evidence_role` consistency with the §8 effect family or "no environment-specific hardcoding."
+6. **Online retrieval policy not enforced here.** `EpisodeRunner.run` calls `bank.runnable()` (default `include_shadow=True`), so `SHADOW`/`PROVISIONAL` skills can reach the eligibility filter. Per `PLAN-UNIFIED-SKILL-GATE §6`, online retrieval should see `ACTIVE` + `PROVISIONAL` only (latter with the shadow-origin penalty). The filter must do the right thing downstream; the orchestrator does not yet make a `run_active` vs `run_shadow` distinction.
+7. **`EpisodeRunner` double-bumps `state.outer_step`.** Env adapters return a `next_state` (test env sets `outer_step=tick`), then the runner does `state.outer_step += 1` (`runner.py:131`). Today's smoke env happens to be idempotent under this; a real adapter that sets its own `outer_step` will be off-by-one.
+8. **`BudgetController` has no `degrade` path** — it's hard-cap-only. `PLAN §7.3` specifies an explicit graceful-degradation behavior (skip optional `CHECK`, drop optional evidence enrichment, etc.).
+9. **`ArtifactStore` is one-JSON-file-per-record, not JSONL streams** as `PLAN §2.3` describes (only `audit.jsonl` is a stream). Functionally equivalent for current consumers; stream consumers will break.
 
 ---
 
 ## Cross-references
 
-- Root [`readme.md`](../readme.md) §"Architecture" / §"Implementation status".
-- [`../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) §0a — the actor / harness / skill-bank / orchestrator boundary.
-- [`../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) §7 — canonical gate-stage spec.
-- [`../skill_bank/README.md`](../skill_bank/README.md) — invariants this orchestrator must respect on every `promote(...)`.
+- Root [`readme.md`](../readme.md) §"Architecture" / §"Implementation status" / §"Skill transfer layer".
+- [`../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) §0a — the actor / harness / skill-bank / orchestrator boundary; §3a — the canonical promotion / rollback transaction.
+- [`../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) §7 — canonical gate-stage spec; §9 — `configs/skill_gate.yaml` thresholds mirrored in `config.py`.
+- [`../harness/README.md`](../harness/README.md) — the four call points the orchestrator depends on (`select_eligible_skills`, `run_skill`, `replay_validate`, `FewShotAdapter.adapt`).
+- [`../skill_bank/README.md`](../skill_bank/README.md) — invariants this orchestrator must respect on every `promote(...)`, in particular invariants 7 (source / target asymmetry) and 8 (`verified_domains` is gate-owned).
+- [`../crafter/README.md`](../crafter/README.md) — proposal taxonomy fed into `GateService.evaluate` via `SkillLifecycleManager.ingest_draft`.
+- [`../tests/test_smoke.py`](../tests/test_smoke.py) — runnable end-to-end wiring example for both loops.
