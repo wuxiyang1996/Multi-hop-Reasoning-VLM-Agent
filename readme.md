@@ -13,6 +13,7 @@ This repo supersedes the COS-PLAY codebase that lives alongside it under `decisi
 - [Why this project](#why-this-project)
 - [Architecture](#architecture)
 - [Mechanically-enforced invariants](#mechanically-enforced-invariants)
+- [Skill transfer layer](#skill-transfer-layer)
 - [Backbone model — GPT-4o for now](#backbone-model--gpt-4o-for-now)
 - [Repository layout](#repository-layout)
 - [Implementation status](#implementation-status)
@@ -97,6 +98,151 @@ The plan calls out six invariants that must hold across *every* phase. Each is e
 | 6 | **Crafter scope**: the crafter materialises only `DRAFT` records and never touches `active_store`. | `SkillCrafterService._persist` calls `SkillLifecycleManager.ingest_draft`; static dependency rule keeps `crafter/` from importing `skill_bank/stores`. |
 | 7 | **Source-domain / transfer-target asymmetry**: every `ACTIVE` skill must declare at least one `source_domains` entry from `SOURCE_DOMAINS` (currently `{"gymv"}`) **and** at least one `verified_domains` entry from `TRANSFER_TARGET_DOMAINS` (`{browser, osworld, video, visual_reasoning}`). Game-only or transfer-only skills cannot be active. | `SkillLifecycleManager._validate_invariants` raises on ACTIVE promotion when either side is empty (additive to invariant 3, back-compat for legacy records). |
 | 8 | **`verified_domains` is gate-owned**: the `verified_domains` field (and the matching `adapter_history` entries) reflect Stage 3a outcomes only. The pipeline is: `GateService._run_transfer` runs `FewShotAdapter.adapt()` on K demos, the verified targets are emitted in `GateVerdictPayload.eligible_domains`, and `PromotionOrchestrator.promote(...)` mirrors them into the `SkillRecord` via `SkillLifecycleManager.record_transfer_verification(...)` *before* the status transition. The lifecycle manager is the only writer; any other component is forbidden. | `SkillLifecycleManager.record_transfer_verification` is the sole mutator of `verified_domains` / `adapter_history`; `PromotionOrchestrator._record_transfer_verifications` calls it from the pre-transition step. |
+
+---
+
+## Skill transfer layer
+
+The "games as foundry, other domains as transfer targets" thesis from [§Why this project](#why-this-project) is implemented end-to-end as a stack of seven concrete components. None of them is a placeholder — they all run today as part of the gate stack and the test suite (`tests/test_few_shot_transfer.py`).
+
+### Source / target asymmetry — the substrate
+
+Two hard-coded tuples in [`common/enums.py`](common/enums.py) encode the asymmetry. They are imported everywhere a domain string is interpreted, so "is this a foundry domain?" / "is this a transfer arena?" is one constant lookup, never a free string:
+
+```30:36:common/enums.py
+SOURCE_DOMAINS: Tuple[str, ...] = ("gymv",)
+TRANSFER_TARGET_DOMAINS: Tuple[str, ...] = (
+    "browser",
+    "osworld",
+    "video",
+    "visual_reasoning",
+)
+```
+
+A skill that only ever ran in `gymv` carries `source_domains={"gymv"}` and an empty `verified_domains`; it cannot reach `ACTIVE` (invariants 7 & 8). A skill that earned a transfer-gate pass on, say, `video` gets `"video"` appended to `verified_domains` *and* a `TransferAdapterEvent` appended to `adapter_history` — both writes go through `SkillLifecycleManager.record_transfer_verification(...)` and nowhere else.
+
+### Generalizer — proposing transferable templates
+
+[`crafter/generalizer.py`](crafter/generalizer.py) consumes per-domain skills and emits `GeneralizeProposal` records that strip away domain-specific predicates, replacing them with the canonical inner-MDP vocabulary (`GROUND / CHECK / RETRIEVE / COMMIT / EXECUTE`) and shared schema slots. The output is always a `DRAFT` record with `source_domains={"gymv"}` and `verified_domains=()` — the gate stack is the only path that can extend either field.
+
+The bridging types `TransferableSkill`, `SlotBinding`, `ReasoningProtocol`, `HopStep`, `AbstractPredicate`, and the `FAMILY_PROTOCOLS` registry live in [`skill_agents/skill_template.py`](skill_agents/skill_template.py); the discovery pipeline that produces them from legacy episodes is [`skill_agents/extract_transferable.py`](skill_agents/extract_transferable.py). See [`skill_agents/README.md`](skill_agents/README.md) for the legacy-bridge details.
+
+### Few-Shot Adapter — the transferability probe
+
+[`harness/few_shot_adapter.py`](harness/few_shot_adapter.py) is the single place where "does this skill bind to a new domain?" is decided. It is stateless: given a `SkillRecord`, a target domain, and a sequence of `FewShotDemo`s, it
+
+1. Validates eligibility (`SkillType` ∈ adapter's supported types, source-domain check),
+2. Coerces each demo's `state` into a target-domain `StateSchema`,
+3. Runs the skill via `SkillHarness.run_skill(...)` against the registered adapter for the target domain,
+4. Scores each shot with a pluggable `success_fn` (default: episode outcome + contract satisfaction),
+5. Returns an `AdaptResult{success_rate, n_success, n_total, episodes, …}`.
+
+Critically it never mutates the bank — it is a read-only probe used by the gate stack and by ad-hoc transferability tests.
+
+### Stub adapters — common scaffolding for the four target domains
+
+[`harness/adapters/_stub_base.py`](harness/adapters/_stub_base.py) defines `StubTransferTargetAdapter`, the shared hop-loop scaffolding for `browser`, `osworld`, `video`, and `visual_reasoning`. Each concrete adapter (e.g. [`harness/adapters/browser.py`](harness/adapters/browser.py)) is just a name + a default `HopExecutor`. The executor is pluggable (`adapter.set_executor(real_executor)`), so today's deterministic stubs let the gate stack be exercised end-to-end while the real `vlm_wrapper/<domain>_adapter.py` executors are wired up independently.
+
+### Gate stage 3a — wiring the probe into promotion
+
+[`orchestrator/gate_service.py`](orchestrator/gate_service.py) composes the canonical gate stack `static → replay → shadow → transfer → non-regression`. Stage 3a (`_run_transfer`) is the only stage that calls `FewShotAdapter.adapt(...)`:
+
+```219:316:orchestrator/gate_service.py
+def _run_transfer(
+    self,
+    skill: SkillRecord,
+    *,
+    few_shot_demos: Optional[Mapping[str, Sequence[FewShotDemo]]] = None,
+) -> tuple[StageVerdict, List[str]]:
+    # ... infer targets from TRANSFER_TARGET_DOMAINS ∩ adapter registry ...
+    adapt_results: List[AdaptResult] = []
+    for tgt in targets:
+        shots = (few_shot_demos or {}).get(tgt, ())
+        adapt_results.append(
+            self._few_shot.adapt(skill=skill, target_domain=tgt, demos=shots)
+        )
+    # ...
+    if len(verified) >= thresholds.transfer_min_target_domains_verified:
+        verdict = GateVerdict.PASS
+    elif len(verified) >= 1:
+        verdict = GateVerdict.LIMITED_PASS
+    else:
+        verdict = GateVerdict.FAIL
+```
+
+The verified target-domain list is emitted as `GateVerdictPayload.eligible_domains` and passed back to the orchestrator. The verdict is `PASS` if ≥ `transfer_min_target_domains_verified` targets succeed, `LIMITED_PASS` if at least one does, otherwise `FAIL`.
+
+### Promotion Orchestrator — mirroring results into the bank
+
+[`orchestrator/promotion_orchestrator.py`](orchestrator/promotion_orchestrator.py) extracts the Stage-3a verdict from the `SkillEvaluationRecord`, converts it into per-target metrics, and calls the lifecycle manager **before** the status transition:
+
+```208:254:orchestrator/promotion_orchestrator.py
+self._lifecycle.record_transfer_verification(
+    skill.skill_id,
+    verified_targets=verified,
+    evaluation_id=evaluation.evaluation_id,
+    per_target_metrics=per_target_metrics,
+    rationale=f"stage_3a:{rationale}" if rationale else "stage_3a",
+)
+```
+
+This is the only call site outside the lifecycle manager itself that touches the transfer-verification path.
+
+### Lifecycle Manager — the only writer + the ACTIVE-promotion invariant
+
+[`skill_bank/lifecycle.py`](skill_bank/lifecycle.py) is the sanctioned writer. `record_transfer_verification(...)` extends `verified_domains` and appends a `TransferAdapterEvent` to `adapter_history` atomically; `_validate_invariants(...)` then refuses any `ACTIVE` promotion of a source-tagged skill that has not yet earned at least one verified target domain:
+
+```272:283:skill_bank/lifecycle.py
+if to_status == SkillStatus.ACTIVE and record.source_domains:
+    if not any(d in SOURCE_DOMAINS for d in record.source_domains):
+        raise LifecycleError(
+            f"Cannot promote {record.skill_id!r} to ACTIVE: "
+            f"source-domain (game-foundry) lineage required, …"
+        )
+    if not any(d in TRANSFER_TARGET_DOMAINS for d in record.verified_domains):
+        raise LifecycleError(
+            f"Cannot promote {record.skill_id!r} to ACTIVE: "
+            f"few-shot transfer gate (G3a) requires ≥1 verified target "
+            f"domain, …"
+        )
+```
+
+This is the mechanical realisation of invariants 7 and 8: source-domain lineage and gate-owned `verified_domains` are not conventions — they are preconditions on the only function that can mark a skill `ACTIVE`.
+
+### TL;DR call graph
+
+```
+crafter/generalizer.py        → DRAFT SkillRecord (source_domains={"gymv"}, verified_domains=())
+        ↓
+orchestrator/gate_service._run_transfer
+        ↓ for each target ∈ TRANSFER_TARGET_DOMAINS ∩ AdapterRegistry
+harness/few_shot_adapter.adapt
+        ↓ runs skill via SkillHarness.run_skill against StubTransferTargetAdapter
+        ↓ scores K demos → AdaptResult
+        ↓
+orchestrator/gate_service       → GateVerdictPayload(eligible_domains=verified[, …])
+        ↓
+orchestrator/promotion_orchestrator._record_transfer_verifications
+        ↓
+skill_bank/lifecycle.record_transfer_verification
+        ↓ extends verified_domains + appends adapter_history
+skill_bank/lifecycle._validate_invariants
+        ↓ allows ACTIVE iff source ∩ SOURCE_DOMAINS ≠ ∅ and verified ∩ TRANSFER_TARGET_DOMAINS ≠ ∅
+ACTIVE SkillRecord (transferable, evidence-driven, gate-bound)
+```
+
+End-to-end coverage lives in [`tests/test_few_shot_transfer.py`](tests/test_few_shot_transfer.py): it exercises the `SkillRecord` persistence path, the lifecycle invariants, the `FewShotAdapter` execution loop, and the `GateService` verdict shape in a single fixture set.
+
+### What's still pending (transfer-side)
+
+| Item | Owning module |
+| --- | --- |
+| Two-phase **shadow → active** transfer protocol on top of Stage 3a | `harness/transfer_manager.py` |
+| Unified six-gate runner (`G0–G5`) consuming `gate_service` stages | `harness/gate_runner.py` |
+| Real (non-stub) executors for each transfer-target adapter | `vlm_wrapper/<domain>_adapter.py` |
+| Held-out replay seeds for Stage 1 | `harness/replay_validator.py` |
+
+These are tracked under Phase D in [`IMPLEMENTATION-STATUS.md`](IMPLEMENTATION-STATUS.md) and in the [Pending](#pending-next-sessions) row above.
 
 ---
 
