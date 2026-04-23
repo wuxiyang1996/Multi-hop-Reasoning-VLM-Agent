@@ -44,11 +44,11 @@ from decision_agents.actor_agent import (
     ActorDecision,
     DEFAULT_MODEL as _LEGACY_DEFAULT_MODEL,
 )
+from decision_agents.core.harness import Harness
 from decision_agents.core.multimodal import (
     VisualInput,
     build_openai_vision_messages,
 )
-from decision_agents.inner_mdp import HopPolicy
 from decision_agents.reward_func import RewardConfig
 from decision_agents.schema_parser import StateSchema
 from decision_agents.skill_interface import SkillProvider
@@ -134,19 +134,22 @@ class GPT4oCollectorActor(ActorAgent):
         vision_system_prompt: str = DEFAULT_VISION_SYSTEM_PROMPT,
         openai_client: Optional[Any] = None,
         skill_provider: Optional[SkillProvider] = None,
-        hop_policy: Optional[HopPolicy] = None,
+        harness: Optional[Harness] = None,
         reward_config: Optional[RewardConfig] = None,
         model: str = DEFAULT_GPT4O_MODEL,
-        max_hops_per_step: int = 4,
         stall_window: int = 4,
+        # Deprecated kwargs forwarded to ActorAgent (which warns + ignores).
+        hop_policy: Any = None,
+        max_hops_per_step: Optional[int] = None,
     ) -> None:
         super().__init__(
             model=model,
             skill_provider=skill_provider,
-            hop_policy=hop_policy,
+            harness=harness,
             reward_config=reward_config,
-            max_hops_per_step=max_hops_per_step,
             stall_window=stall_window,
+            hop_policy=hop_policy,
+            max_hops_per_step=max_hops_per_step,
         )
         self.recorder = recorder
         self.game = game

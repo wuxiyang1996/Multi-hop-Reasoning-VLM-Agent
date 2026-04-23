@@ -13,10 +13,12 @@ Three actor flavours and one legacy agent ship here:
 
 The two new flavours **subclass `ActorAgent`** and override exactly one
 seam (`_call_llm`) plus a bit of bookkeeping. They reuse the entire
-schema-parse → intention → reselect → inner-MDP → action prompt →
+schema-parse → intention → reselect → harness-driven action selection →
 entity-resolve → anti-repetition pipeline unchanged. There is **no
 fork** of the per-step contract; only the LLM backend and the per-step
-artefact differ.
+artefact differ. The MDP itself is **single-level** — one COS-PLAY-style
+loop, the per-task `Harness` decides what an action *is* and what
+`step(action)` *does* (game env, browser, OS, scratchpad, frame cursor).
 
 Why split this way: the SFT collector and the GRPO actor have
 fundamentally different deployment shapes (sync OpenAI vs async vLLM,
@@ -29,16 +31,22 @@ Sub-package map:
 
 ```
 decision_agents/
-├─ actor_agent.py        ← legacy/base ActorAgent (unchanged contract)
+├─ actor_agent.py        ← unified single-MDP ActorAgent (Harness-driven)
 ├─ agent.py              ← VLMDecisionAgent / LLMDecisionAgent (text-only)
 ├─ schema_parser.py      ← shared StateSchema / Entity / parse_state_schema
 ├─ skill_interface.py    ← SkillProvider seam
 ├─ skill_tracker.py      ← SkillTracker (slot coverage, reselect-on-stall)
-├─ inner_mdp.py          ← HopPolicy, HeuristicHopPolicy
-├─ reward_func.py        ← RewardComputer (r_env + r_follow + r_cost)
+├─ reward_func.py        ← RewardComputer (r_env + r_follow + r_cost,
+│                          incl. per-action-kind costs for VR/Video)
 ├─ agent_helper.py       ← infer_intention, EpisodicMemoryStore
-├─ core/                 ← shared multimodal scaffolding
+├─ core/                 ← shared scaffolding for the unified MDP
 │   ├─ multimodal.py        VisualInput, build_*_messages, load_image_as_data_url
+│   ├─ harness.py           Harness Protocol, HarnessState, ACTION_KIND_* tags
+│   ├─ harness_gym.py       GymHarness (game / Gymnasium-shaped envs)
+│   ├─ harness_browser.py   BrowserHarness (Playwright / BrowserGym; step stub)
+│   ├─ harness_osworld.py   OSWorldHarness (desktop primitives + bash; step stub)
+│   ├─ harness_vr.py        VRHarness (visual reasoning; LOOK/RETRIEVE/NOTE/ANSWER)
+│   └─ harness_video.py     VideoHarness (frame cursor + VR ops + NEXT_FRAME/JUMP/...)
 ├─ SFT/                  ← GPT-4o data-collection actor (see SFT/README.md)
 │   ├─ actor_gpt4o.py
 │   ├─ sft_recorder.py
@@ -47,6 +55,172 @@ decision_agents/
     ├─ actor_qwen_vl.py
     └─ rollout_logger.py
 ```
+
+> **Removed:** `inner_mdp.py` (HopAction / HopPolicy / HeuristicHopPolicy /
+> HopStep / HopTrace / parse_hop_action) was deleted in the unified-harness
+> migration — its operators relocated into `VRHarness` / `VideoHarness` action
+> vocabularies. Importing the old names emits a `DeprecationWarning` via
+> `decision_agents.__getattr__` for one release.
+
+---
+
+## How the actor agent works
+
+`ActorAgent` is the **single** schema-native decision class shared
+across the GPT-4o SFT collector ([`SFT/`](SFT/)) and the Qwen3-VL-8B
+GRPO actor ([`grpo/`](grpo/)), and shared across **all five task
+families** the project targets: game agents, web agents, OS agents,
+visual reasoning, and video understanding. It implements **one** MDP
+— the COS-PLAY skill-augmented decision loop, generalised so the
+"environment" each task plugs in is just another **harness**.
+
+### Single MDP, five tasks, one harness contract
+
+The actor's MDP signature is task-independent:
+
+```
+state_t   = (observation_t, intention_t, active_skill_t, scratchpad_t,
+             valid_actions_t)
+action_t  ~  π(state_t)                          # ActorAgent._pick_action
+(obs_{t+1}, r_t, done_t, info_{t+1}) = harness.step(action_t)
+r_total_t = r_env_t  +  w · r_follow_t  +  r_cost_t
+```
+
+Per-step pipeline (uniform across all 5 tasks — exactly the COS-PLAY
+recipe `select_skill → update_intention → take_action`):
+
+```
+┌──────────── ActorAgent.step (one MDP step, every task) ─────────────┐
+│ 1. parse_observation       → schema_t           (vlm_wrapper)       │
+│ 2. compact_summary                                                  │
+│ 3. infer_intention         → "[TAG] subgoal"   (SUBGOAL_TAGS)       │
+│ 4. should_reselect?        → skill_provider.select(state, harness)  │
+│ 5. _pick_action(harness.valid_actions(state))   ← LLM (_call_llm)   │
+│ 6. resolve_entity_action + anti-repetition                          │
+│ 7. harness.step(action_t)  → (obs, reward, done, info)              │
+│ 8. observe_result          → r_env+r_follow+r_cost,                 │
+│                              memory.add, tracker.update             │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+What changes between tasks is **only the harness** — which decides
+what an `observation` looks like, what `valid_actions` are, and what
+`harness.step(action)` does to the world (or to the scratchpad).
+
+### The five task harnesses
+
+| Task | Harness | Observation | `valid_actions(state)` | `harness.step` mutates | Terminal reward |
+|------|---------|-------------|-----------------------|-----------------------|-----------------|
+| **Game agent** | `LMGameHarness` / `OrakHarness` / `AgentEvolverHarness` | game frame + structured state | env primitives (`up`, `down`, `key:A`, `click(e5)`, …) | game state | env score |
+| **Web agent** | `BrowserHarness` (Playwright + BrowserGym) | DOM + viewport screenshot | `click(bid)`, `type(bid, str)`, `scroll(dy)`, `goto(url)`, `key(...)`, `ANSWER(str)` | live page | task success |
+| **OS agent** | `OSWorldHarness` | desktop screenshot + a11y tree | `xdotool click`, `key(...)`, `bash(cmd)`, `read(path)`, `ANSWER(str)` | OS state | task success |
+| **Visual reasoning** | `VRHarness(image, question)` | image + scratchpad | `LOOK(region)`, `CROP(bbox)`, `COUNT(class, region)`, `COMPARE(a,b,attr)`, `READ_TEXT(bbox)`, `RETRIEVE(query)`, `ANSWER(str)` | scratchpad only (image is read-only) | answer correctness |
+| **Video understanding** | `VideoHarness(clip, question)` | current frame(s) + scratchpad + cursor `t` | `NEXT_FRAME`, `JUMP(t)`, `WINDOW(t1,t2)`, `FOCUS(bbox,t)`, `TRACK(eid)`, `RETRIEVE(query)`, `ANSWER(str)` | scratchpad + frame cursor (clip is read-only) | answer correctness |
+
+Game / web / OS are **mutable-world** harnesses (50–500 steps,
+dense + terminal reward). VR / video are **read-only-world**
+harnesses (5–30 steps, sparse + terminal reward) where the harness
+actions are reasoning operators that grow the scratchpad until the
+agent emits `ANSWER`. To `ActorAgent`, both look identical: pick one
+action from `valid_actions_t`, get back `(obs, reward, done)`, repeat.
+
+### One vocabulary (`SUBGOAL_TAGS`), task-defined action set
+
+Only **one** small fixed vocabulary is universal across tasks — the
+COS-PLAY `SUBGOAL_TAGS` used to label the agent's intention every
+step. The action vocabulary is defined per task by the harness.
+
+| Vocabulary | Tokens | Source | Used by |
+|------------|--------|--------|---------|
+| `SUBGOAL_TAGS` (universal) | `SETUP / CLEAR / MERGE / ATTACK / DEFEND / NAVIGATE / POSITION / COLLECT / BUILD / SURVIVE / OPTIMIZE / EXPLORE / EXECUTE` (13) | `agent_helper.infer_intention` | The `[TAG]` prefix on `intention`; conditioning for the action prompt and the skill-bank query; SFT/GRPO training labels for `action_taking` |
+| Action set (per-task) | enumerated by `harness.valid_actions(state)` | the harness | The candidate set passed to `_call_llm` and matched against by the multi-strategy action parser |
+
+### What happens on a single MDP step
+
+1. **Parse** `harness.parse_observation(obs)` → schema (entities, relations, targets, uncertainty).
+2. **Compactify** to a `summary` line (key=value, capped length).
+3. **`infer_intention(summary, task)`** → `"[TAG] subgoal phrase"`, tag constrained to `SUBGOAL_TAGS`.
+4. **Skill tracking** — `SkillTracker.should_reselect(schema)` decides whether to keep the active skill or query the `SkillProvider` (skill bank with the current harness in scope). Reselects are charged `query_skill_cost`.
+5. **Action selection** (`_pick_action(valid_actions)`) — strict priority:
+   1. The active skill's current protocol step, if it matches a valid action.
+   2. **`_call_llm(prompt, images=…)`** — text-only by default; vision-aware in the SFT/GRPO subclasses. The reply is decoded by a multi-strategy parser (`exact → numbered → entity_ref → edit_distance → token_overlap → loose → trailing-digit`) and the chosen branch is logged as `parse_path`.
+   3. Deterministic fallback (first valid action, else `"no-op"`).
+6. **Resolve entity references** (`click(e5) → click(bid_42)`) via the schema.
+7. **Anti-repetition** — if the last *N* actions are identical and all rewards ≤ 0, swap to a different valid action.
+8. **`harness.step(action_t)`** → `(obs, reward, done, info)`. For mutable-world harnesses this advances the env; for VR/video it updates the scratchpad (and possibly the frame cursor).
+9. Return an `ActorDecision` (action, resolved action, intention, summary, parse path, `queried_skill`, `queried_mem`, …).
+
+After the harness step the runner calls `observe_result(...)`, which:
+
+- updates `last_actions` / `last_rewards` / `progress_notes`,
+- forwards the step to `SkillTracker.record_step` and `RewardComputer.compute_reward` (`r_env + w_follow · r_follow + r_cost` shaping; per-action-type costs come from `RewardConfig`),
+- writes `(state_summary, action, next_state_summary, done)` into `EpisodicMemoryStore` so future `RETRIEVE` actions in any task can hit this transition,
+- finalizes the active skill on episode end with `success` / `timeout` so the `SkillProvider` can update its statistics.
+
+This is the **same** loop COS-PLAY runs — there is no second MDP, no
+"inner hop" phase. What COS-PLAY did for one game environment, this
+project does for any harness that implements the seven-method
+contract: `reset`, `step`, `valid_actions`, `parse_observation`,
+`is_done`, `compute_reward`, `summarize_state`.
+
+### What's trained vs hand-coded
+
+| Component | State today | Trained how |
+|-----------|-------------|-------------|
+| Schema parser, skill tracker, scratchpad, anti-repetition, reward computer, harness contract | Hand-coded | n/a (deterministic) |
+| `infer_intention` (subgoal labelling) | LLM call constrained to `SUBGOAL_TAGS` | rides on top of the action LoRA's intention-conditioned training data |
+| `SkillProvider` (skill retrieval) | `SkillBankProvider` over the live skill bank | `skill_selection` LoRA (SFT cold-start → GRPO); the bank itself is co-evolved by the Skill Bank agent (`segment` / `contract` / `curator` LoRAs) |
+| Action selection (`_pick_action` LLM branch) | GPT-4o (SFT collector) or Qwen3-VL-8B (GRPO student) | `action_taking` LoRA — SFT cold-starts → GRPO refines on harness reward (env score for game/web/OS; correctness for VR/video) |
+| Per-task harness (game / web / OS / VR / video) | Hand-coded action set + step rules | n/a (the harness *defines* the MDP; it isn't trained) |
+| Episodic memory | Embedder-backed `EpisodicMemoryStore` | Frozen embedder (Qwen3-Embedding-0.6B); store is filled at runtime |
+
+So inside the actor agent **GRPO trains exactly two LoRA adapters** —
+`skill_selection` and `action_taking` — both cold-started by SFT on
+GPT-4o teacher data. The same two LoRAs serve all five task families;
+only the harness (and therefore the `valid_actions`) changes.
+
+### Migration status (shipped)
+
+The unified-MDP design above is **shipped** as of 2026-04. The
+two-MDP framing (outer `env.step` + inner `HopPolicy`) has been
+collapsed into a single COS-PLAY-style loop whose action vocabulary
+and `step(action)` semantics are owned by an injected `Harness`.
+What landed:
+
+| Module | What changed |
+|--------|--------------|
+| `actor_agent.py` `step` | `_run_inner_mdp` deleted; `_pick_action` chooses directly from `harness.valid_actions(state)`. Legacy `hop_policy=` / `max_hops_per_step=` kwargs are still accepted (with a `DeprecationWarning`) so existing constructors compile unchanged. |
+| `inner_mdp.py` | **Deleted.** Operators relocated: `GROUND` → `VRHarness.step(LOOK)`, `RETRIEVE` → `VRHarness.step(RETRIEVE)`, `CONCLUDE` → `VRHarness.step(NOTE)`, `EXECUTE` → folded into the env-action loop. `HopAction` / `HopPolicy` / etc. raise `AttributeError` with a `DeprecationWarning` via the package shim. |
+| `core/` | + `Harness` protocol + `HarnessState` + 5 reference impls (`GymHarness`, `BrowserHarness`, `OSWorldHarness`, `VRHarness`, `VideoHarness`) + `parse_op_call` helper. |
+| `info["valid_actions"]` source | `harness.valid_actions(state)` is the single source of truth (legacy `info["valid_actions"]` / `schema.actions` still feed `GymHarness.valid_actions` so the back-compat path is byte-identical). |
+| `reward_func.RewardConfig` | + `vr_look_cost / vr_retrieve_cost / vr_note_cost / vr_answer_cost` and `video_next_frame_cost / video_jump_cost / video_focus_cost / video_track_cost` (all default `0.0`, looked up via `harness.action_kind(action)`). |
+| GRPO LoRAs | Two only (`skill_selection`, `action_taking`). The earmarked `hop_select` LoRA is dropped — hop decisions are now action decisions and roll into `action_taking`. |
+
+#### Migration of inner-MDP operators
+
+| Old hop op (`inner_mdp.HopAction`) | New harness action | Side effect |
+|---|---|---|
+| `GROUND(slot)`     | `VRHarness.step(LOOK(region))`     | `scratchpad.grounded_slots[slot] = "observed"`; `tracker.clear_ground_flag` |
+| `RETRIEVE(query)`  | `VRHarness.step(RETRIEVE(query))`  | `memory.query(query)` → top-3 hits into `scratchpad.memory_hits` |
+| `CONCLUDE(text)`   | `VRHarness.step(NOTE(text))`       | `scratchpad.notes.append(text)` |
+| `EXECUTE(action)`  | (folded into env action loop)      | n/a — env action goes straight through `_pick_action` |
+| `CHECK / VERIFY`   | `VRHarness.step(COUNT(arg))` / `VRHarness.step(COMPARE(arg))` | recorded as a diagnostic note on the scratchpad |
+| n/a                | `VRHarness.step(ANSWER(text))`     | `done=True`; `r_env = +1` iff `text == gold_answer` |
+
+`VideoHarness` adds `NEXT_FRAME / JUMP(t) / WINDOW(t1,t2) / FOCUS(bbox,t) / TRACK(eid)` on top of the same scratchpad ops.
+
+### TL;DR
+
+One MDP. One per-step pipeline (`select_skill → update_intention →
+take_action`, COS-PLAY style). Five task families, each plugged in
+through a `Harness` that decides what an action is and what
+`step(action)` does. One universal vocabulary (`SUBGOAL_TAGS`). Two
+GRPO LoRAs (`skill_selection`, `action_taking`). One LLM seam
+(`_call_llm`) that swaps GPT-4o (SFT collection) for Qwen3-VL-8B
+(GRPO inference / training). Everything else — schema parsing, skill
+tracking, reward shaping, anti-repetition, episodic memory, entity
+resolution — is deterministic scaffolding that the LoRA never has to
+relearn.
 
 ---
 
@@ -67,17 +241,15 @@ SkillProvider.select(query, schema, ...)  # decision_agents/skill_interface.py
     ↓
 SkillTracker.activate → slot coverage     # PLAN §10
     ↓
-HopPolicy.select_next_hop × N             # decision_agents/inner_mdp.py
-    ↓ (EXECUTE)
-action prompt → LLM                       # schema + skill + valid actions
-    ↓
+action prompt → LLM                       # schema + skill +
+    ↓                                       harness.valid_actions(state)
 resolve_entity_action(click(e5))          # PLAN §7 Phase 3
     ↓
 anti-repetition guard
     ↓
-env.step(action)                          # driven by the runner
-    ↓
-SkillTracker.record_step + RewardComputer
+harness.step(action)                      # GymHarness / VRHarness / ...
+    ↓                                       (driven by the runner)
+SkillTracker.record_step + RewardComputer  # incl. harness.action_kind cost
     ↓
 SkillProvider.record_outcome (on skill end)
 ```
@@ -89,8 +261,8 @@ Every piece with a `…Provider` / `…Policy` name is injectable so later phase
 | Interface | Default | Swap-in for |
 |-----------|---------|-------------|
 | `SkillProvider` | `NullSkillProvider` (skill-free) or `SkillBankProvider(bank)` (RAG) | Trained Skill-Use Agent (Agent 2) |
-| `HopPolicy` | `HeuristicHopPolicy` (rule-based over schema uncertainty + slot coverage) | `hop_select` LoRA adapter (PLAN §5) |
-| `RewardComputer` | Existing `reward_func.RewardComputer` | Extended reward decomposition (PLAN §6) |
+| `Harness` (see "How the actor agent works" above) | `GymHarness` / `BrowserHarness` / `OSWorldHarness` / `VRHarness` / `VideoHarness` (all shipped under `core/`; the browser + OSWorld `step()` raises `NotImplementedError` until the env layer is plugged in, but their `valid_actions` are real) | Per-task action sets and `step` semantics across all 5 task families |
+| `RewardComputer` | `reward_func.RewardComputer` (now reads `Harness.action_kind(action)` so VR/video per-action costs flow into `r_cost`) | Extended reward decomposition (PLAN §6) |
 
 ### Skill interface contract
 
@@ -132,8 +304,7 @@ The runner expects the env (or a wrapper around it) to place the `<state>` text 
 | `schema_parser.py` | `StateSchema`, `Entity`, `Targets`, `StateFlags`, `Relation`, `Hop`, `Answer`, `ResolvedAction`, `parse_state_schema`, `resolve_entity_action` |
 | `skill_interface.py` | `SkillProvider` protocol, `SkillGuidance`, `NullSkillProvider`, `SkillBankProvider` |
 | `skill_tracker.py` | `SkillTracker`, `ActivationCheck`, `TrackerState` — lifecycle + slot-coverage (PLAN §10) |
-| `inner_mdp.py` | `HopAction`, `HopStep`, `HopTrace`, `HopPolicy`, `HeuristicHopPolicy` — inner-MDP scaffold (PLAN §5) |
-| [`core/`](core/) | `VisualInput`, `build_openai_vision_messages`, `build_qwen_vl_messages`, `load_image_as_data_url` — multimodal scaffolding shared by the SFT/GRPO actors. |
+| [`core/`](core/) | `Harness` Protocol + `HarnessState` + 5 reference impls (`GymHarness`, `BrowserHarness`, `OSWorldHarness`, `VRHarness`, `VideoHarness`); `parse_op_call`; `VisualInput`, `build_openai_vision_messages`, `build_qwen_vl_messages`, `load_image_as_data_url` — multimodal scaffolding shared by the SFT/GRPO actors. |
 | [`SFT/`](SFT/) | `GPT4oCollectorActor`, `SFTRecorder`, `SFTRecord`, `run_collect` CLI — see [`SFT/README.md`](SFT/README.md). |
 | [`grpo/`](grpo/) | `QwenVLActor`, `GRPORolloutLogger`, `DEFAULT_QWEN_VL_MODEL` — see [`grpo/README.md`](grpo/README.md). |
 
@@ -145,7 +316,7 @@ The two sub-packages [`SFT/`](SFT/) and [`grpo/`](grpo/) implement the
 distillation pipeline laid out in [`vlm_wrapper/README.md`](../vlm_wrapper/README.md):
 **GPT-4o teacher → SFT cold-start → Qwen3-VL-8B-Instruct student → GRPO+LoRA**.
 Both subclass [`ActorAgent`](actor_agent.py); they reuse the entire
-schema-parse → intention → reselect → inner-MDP → action prompt →
+schema-parse → intention → reselect → harness-driven action selection →
 entity-resolve → anti-repetition pipeline unchanged. Only the LLM
 backend and the per-step artefact differ.
 
@@ -155,14 +326,18 @@ backend and the per-step artefact differ.
    ┌─────────────────────────────────────────────────────────────┐
    │ Stage 1 — Data collection (offline, GPT-4o teacher)         │
    │                                                             │
-   │   env  ──► GPT4oCollectorActor.step(image, schema, valid)   │
-   │              │    ▲                                         │
-   │              │    └── _call_llm = OpenAI chat completions   │
-   │              │           (multimodal: [text, image_url, …]) │
-   │              ▼                                              │
-   │         SFTRecorder.record_action_taking(...)               │
-   │              │                                              │
-   │              ▼                                              │
+   │   harness  ──► GPT4oCollectorActor.step(image, schema)      │
+   │     │           │    ▲                                      │
+   │     │           │    └─ _call_llm = OpenAI chat completions │
+   │     │           │        (multimodal: [text, image_url, …]) │
+   │     │           ▼                                           │
+   │     │      SFTRecorder.record_action_taking(...)            │
+   │     │           │                                           │
+   │     ▼           ▼                                           │
+   │  harness.step(action)                                       │
+   │  (GymHarness for game, BrowserHarness for web,              │
+   │   VRHarness for visual reasoning, …)                        │
+   │                                                             │
    │   <out>/<game>/{skill_selection,action_taking}.jsonl        │
    │   exact format trainer/SFT/data_loader.py reads             │
    └────────────────────────────┬────────────────────────────────┘
@@ -179,25 +354,31 @@ backend and the per-step artefact differ.
    ┌─────────────────────────────────────────────────────────────┐
    │ Stage 3 — Online GRPO (trainer/coevolution/grpo_training.py)│
    │                                                             │
-   │   env  ──► QwenVLActor.step(image, schema, valid)           │
-   │              │    ▲                                         │
-   │              │    └── _call_llm = AsyncVLLMClient.generate_chat │
-   │              │            adapter="action_taking"           │
-   │              ▼                                              │
-   │         GRPORolloutLogger.log_step(decision, reward_result) │
-   │              │                                              │
-   │              ▼                                              │
-   │   RolloutRecord (trainer.common.metrics)                    │
+   │   harness  ──► QwenVLActor.step(image, schema)              │
+   │     │           │    ▲                                      │
+   │     │           │    └─ _call_llm = AsyncVLLMClient.        │
+   │     │           │         generate_chat                     │
+   │     │           │         adapter="action_taking"           │
+   │     │           ▼                                           │
+   │     │      GRPORolloutLogger.log_step(decision, rr)         │
+   │     ▼           │                                           │
+   │  harness.step(action) ──► (obs, reward, done, info)         │
+   │                                                             │
+   │   RolloutStep[r_env, r_follow, r_cost, r_total,             │
+   │               action_kind ← harness.action_kind(action),    │
+   │               parse_path, queried_skill, queried_mem, …]    │
+   │   → RolloutRecord (trainer.common.metrics)                  │
    │   → DecisionGRPOTrainer                                     │
    └─────────────────────────────────────────────────────────────┘
 ```
 
-The same `<state>` schema, the same `valid_actions`, the same prompt
-shape flow through both flavours. That guarantees the SFT records the
-GPT-4o teacher writes are 1:1 alignable with the rollouts the
-Qwen3-VL student produces — which is the whole point of the
-distillation: **what the student saw at GRPO time and what the teacher
-saw at labeling time must come from the same actor pipeline**.
+The same `<state>` schema, the same `harness.valid_actions(state)`,
+and the same prompt shape flow through both flavours. That guarantees
+the SFT records the GPT-4o teacher writes are 1:1 alignable with the
+rollouts the Qwen3-VL student produces — which is the whole point of
+the distillation: **what the student saw at GRPO time and what the
+teacher saw at labeling time must come from the same actor pipeline,
+binding the same Harness**.
 
 ### Flavour comparison
 
@@ -337,52 +518,41 @@ running with neither dependency installed.
 
 ---
 
-## ActorAgent — planned improvements (gaps vs PLAN-ACTION-AGENT.md)
+## ActorAgent — open work (post-harness migration)
 
-A deep review of `actor_agent.py` against `plans/02-action-agent/PLAN-ACTION-AGENT.md` surfaced a handful of places where the code silently diverges from the plan or leaves a plan-promised feature un-wired. This section is the running TODO for closing those gaps. Everything below is additive — existing callers should not need to change.
+The unified-MDP / `Harness` migration (patch #13 below) closed most
+of the original gap list against `plans/02-action-agent/PLAN-ACTION-AGENT.md`.
+What remains is a short list of additive, non-breaking improvements.
 
 **Status legend:** ✅ shipped · 🟡 partial · ⬜ pending.
 
-### P0 — genuine divergences from the plan
-
-| # | Status | Gap | Plan ref | Fix (shipped or proposed) |
-|---|--------|-----|----------|---------------------------|
-| 1 | 🟡 | **Inner-MDP hops are logged, not executed.** `_run_inner_mdp` emitted `HopStep`s with no side effects. | §5 (Option A/B), §7 Phase 2 | **Shipped (Option A):** added `InnerScratchpad` on `ActorState`; `_run_inner_mdp` now dispatches through `_apply_hop_side_effect` — `GROUND` updates scratchpad + calls `tracker.clear_ground_flag`, `RETRIEVE` calls `self.memory.query` and stores top-3 hits, `CONCLUDE` appends to `scratchpad.notes`. **Deferred:** Option B visual-tool re-observation between hops. |
-| 2 | ✅ | **`ActivationCheck` is discarded / `clear_ground_flag` never called.** | §10 | **Shipped.** On activation the tracker's `missing_slots` seed `scratchpad.pending_ground_slots`; after every `GROUND` hop the actor calls `tracker.clear_ground_flag(schema)` so the LoRA doesn't have to re-derive Agent 2's deterministic slot-coverage rule. |
-| 3 | ✅ | **`r_cost` never fires for `QUERY_SKILL` / `QUERY_MEM`.** | §4, PLAN-PIPELINE-ORCHESTRATOR §7 | **Shipped.** `ActorDecision` now carries `queried_skill` / `queried_mem`; `observe_result` passes both into `RewardComputer.compute_reward`, which was extended with orthogonal `queried_skill=` / `queried_mem=` kwargs that add the per-event cost on top of the primary `action_type` bucket. |
-| 4 | ✅ | **Intention inference runs _after_ action selection.** | §1 step 2 | **Shipped.** `ActorAgent.step` was re-ordered: `_infer_intention` now runs right after `compact_summary` and before both the reselect decision and `_pick_action`, so the skill-bank query and the action prompt see the current step's intention. |
-| 5 | 🟡 | **Action parsing lacks the multi-strategy fallbacks.** | §1 step 6 | **Shipped:** `_extract_action_from_reply` now returns `(action, parse_path)` and implements exact → numbered (`"1."`/`"2)"`/`"3:"`) → entity-ref → edit distance (`difflib`, case-sensitive + caseless) → token overlap → loose substring → trailing-digit fallback. `parse_path` is logged on `ActorDecision` + `Experience.extras`. **Deferred:** lift into a shared `ActionParser` consumed by `VLMDecisionAgent` + optional RAG-embedding `ActionEmbeddingMatcher`. |
-| 6 | ⬜ | **`r_follow` uses text substring matching even when a schema is present.** | §4 r_follow | **Pending.** Next step: thread an optional `schema` into `RewardComputer.compute_reward` and match `eff_add` against `state_flags` / `entities_by_ontology` / `relations`. |
-
-### P1 — plan-named features the code doesn't expose
+### Still open
 
 | # | Status | Gap | Plan ref | Fix |
 |---|--------|-----|----------|-----|
-| 7 | ⬜ | **No `ContinueSwitchPolicy` seam for Agent 2 GRPO.** | §6 | Abstract `SkillTracker.should_reselect` into a pluggable policy, symmetric with `HopPolicy`. |
-| 8 | ⬜ | **Hop trace is not used for reward shaping.** | §5 "Reward for inner hops" | Cheap online signal: `-cost_per_inner_hop` + bonus when a `GROUND` hop reduces `schema.missing_slots`. Defer full GPT-4o-judged hop-quality reward to offline GRPO. |
-| 9 | ⬜ | **Pipeline-orchestrator log shapes are missing.** | PLAN-PIPELINE-ORCHESTRATOR §2.1/§2.2 | Accept a `TraceContext` dataclass in `ActorAgent.step`; thread `run_id` / `episode_id` / `step_id` / `span_id` / `schema_hash` through `decision.to_dict()` and each `HopStep`. |
-| 10 | ⬜ | **Budget control is only a hop cap.** | PLAN-PIPELINE-ORCHESTRATOR §7 | Accept an optional `BudgetCounter`; decrement in `_select_skill`, `_pick_action`, `_run_inner_mdp`, `memory.query`. On exhaustion, degrade to the deterministic fallbacks already present. |
-| 11 | ✅ | **`progress_notes` are written and never read.** | §1 step 5 | **Shipped.** `_build_action_prompt` now emits `Recent progress: …` from the last 3 notes alongside `Recent actions` / `Recent rewards`. |
-| 12 | ⬜ | **Entity-referenced actions aren't prompted for browser/OSWorld.** | §7 Phase 3 | When the domain is `browser` / `osworld`, append an "Entity-referenced actions you may also emit" section to the prompt, enumerated from `schema.interactive_entities()`. |
+| 1 | ⬜ | **`r_follow` uses text substring matching even when a schema is present.** | §4 r_follow | Thread an optional `schema` into `RewardComputer.compute_reward` and match `eff_add` against `state_flags` / `entities_by_ontology` / `relations`. |
+| 2 | 🟡 | **Action parsing fallbacks aren't shared with `VLMDecisionAgent`.** | §1 step 6 | Lift `_extract_action_from_reply` into a shared `ActionParser` and add an optional RAG-embedding `ActionEmbeddingMatcher` (already used in `scripts/qwen3_decision_agent.py`). |
+| 3 | ⬜ | **No `ContinueSwitchPolicy` seam for Agent 2 GRPO.** | §6 | Abstract `SkillTracker.should_reselect` into a pluggable policy so the trained Skill-Use Agent can replace the rule-based default. |
+| 4 | ⬜ | **Pipeline-orchestrator log shapes are missing.** | PLAN-PIPELINE-ORCHESTRATOR §2.1/§2.2 | Accept a `TraceContext` dataclass in `ActorAgent.step`; thread `run_id` / `episode_id` / `step_id` / `span_id` / `schema_hash` through `decision.to_dict()`. |
+| 5 | ⬜ | **Budget control is only a step cap.** | PLAN-PIPELINE-ORCHESTRATOR §7 | Accept an optional `BudgetCounter`; decrement in `_select_skill`, `_pick_action`, `harness.step`, `memory.query`. On exhaustion, degrade to the deterministic fallbacks already present. |
+| 6 | ⬜ | **Entity-referenced actions aren't prompted for browser/OSWorld.** | §7 Phase 3 | When `harness.domain in {"browser", "osworld"}`, append an "Entity-referenced actions you may also emit" section to the prompt, enumerated from `schema.interactive_entities()`. |
+| 7 | ⬜ | **Anti-repetition is deterministic** — plan §1 step 7 says "randomly pick". | §1 step 7 | Seed with `Random(hash(episode_id))` or rotate by `len(last_actions)` to avoid 2-action limit cycles. |
 
-### P2 — code-hygiene / smaller items
+### Already shipped (recap)
 
-- ✅ **`ActorDecision.to_dict` dropped `reasoning`** — now emitted alongside `queried_skill`, `queried_mem`, and `parse_path`.
-- ✅ **`_build_default_memory` silently returned `None`** — now logs `DEBUG` / `WARNING` so the missing-memory mode is traceable.
-- ✅ **`_ = json` sentinel at the bottom of `actor_agent.py`** — removed (and the unused `json` import with it).
-- ✅ **`skill_interface.py:506` `f"get_slot_bindings"`** — f-string prefix dropped.
-- ⬜ **`HopAction.VERIFY` is declared but never emitted or consumed.** The dispatcher in `_apply_hop_side_effect` handles it as a logged-only op, so it is now safe to leave in the action space for the future `hop_select` LoRA. Semantics (`VERIFY = re-check after CONCLUDE`) still need to be pinned.
-- ⬜ **Anti-repetition is deterministic** — plan §1 step 7 says "randomly pick". Seed with `Random(hash(episode_id))` or rotate by `len(last_actions)` to avoid 2-action limit cycles.
-- ✅ **Schema's own `task` / `goal` were ignored** — `_build_action_prompt` now falls back to `schema.goal or schema.task` when the caller-supplied `task` is empty.
+The bullets below were closed during the harness migration and earlier
+patch sets; the patch-set log at the bottom of this README has the full
+diffs.
 
-### Plan-side clarifications the code surfaces
-
-The review also exposed four places where `PLAN-ACTION-AGENT.md` is vaguer than it should be; these will be proposed as plan patches in parallel with the code changes:
-
-1. **§10 slot-coverage insertion responsibility** — currently the plan says `SkillTracker` inserts hop 0, but the code puts the rule in `HopPolicy`. The shipped `_apply_hop_side_effect` now routes the deterministic `clear_ground_flag` call through the tracker so the LoRA does **not** have to relearn the rule; the plan should codify this ownership.
-2. **§5 "scratchpad"** — the word appears once with no definition. The shipped `InnerScratchpad` dataclass (`pending_ground_slots` / `grounded_slots` / `memory_hits` / `notes`) is a concrete proposal; the plan should adopt it.
-3. **§4 cost accounting** — add a table specifying which step emits which cost (reselect → `query_skill_cost`; `RETRIEVE` hop that calls `memory.query` → `query_mem_cost`; `skill_switch_cost` fires iff `active_skill_id` changes). This matches the shipped behaviour.
-4. **§1 step ordering** — explicitly pin intention inference to run *before* reselect/action, matching both the plan's written prose and the shipped code.
+- ✅ Multi-strategy action parser with `parse_path` logging.
+- ✅ Intention inference re-ordered to run **before** reselect / action.
+- ✅ `r_cost` events for `QUERY_SKILL` / `QUERY_MEM` / `CALL_SKILL` / `SKILL_SWITCH`.
+- ✅ Per-action-kind costs (VR/Video) via `RewardConfig.cost_for_action_kind` + `Harness.action_kind(action)`.
+- ✅ `progress_notes` rendered into the action prompt.
+- ✅ `ActorDecision.to_dict` re-exposes `reasoning` + `parse_path` + `queried_*`.
+- ✅ Schema's own `goal` / `task` falls through `_build_action_prompt`.
+- ✅ Slot-coverage seeding from `ActivationCheck.missing_slots`; `tracker.clear_ground_flag` called by `VRHarness.step(LOOK)`.
+- ✅ Inner-MDP hops folded into harness actions (deleted `inner_mdp.py`, ~430 LOC).
 
 ### Patch-set log
 
@@ -399,8 +569,10 @@ Shipped so far (all additive — no existing-caller API breaks):
 9. ✅ `observe_result` + `run_actor_episode` thread the new flags into `Experience.extras` (`queried_skill`, `queried_mem`, `parse_path`, `scratchpad`, `reasoning`).
 10. ✅ Removed the dead `_ = json` sentinel; logged the `_build_default_memory` fallback path.
 11. ✅ Tests: 13 new cases covering reselect cost, scratchpad grounding, RETRIEVE-hop memory wiring, `to_dict` shape, and the parser pipeline.
+12. ✅ **`HopPolicy` now consumes the outer-step intention.** The `SUBGOAL_TAGS` `[TAG]` from `infer_intention` is forwarded to `select_next_hop(... intention=...)` via signature introspection (backward-compatible with policies that pre-date the kwarg). `HeuristicHopPolicy` adds one intention-aware rule (`EXPLORE` on an empty trace → one `GROUND("scene")` before `EXECUTE`); the rest of the heuristic stays schema-driven. 4 new tests in `decision_agents/tests/test_intention_dispatch.py` lock in the contract. *(Now superseded by the unified-harness pivot — see #13.)*
+13. ✅ **Unified single-MDP / per-task-harness pivot — shipped.** Collapsed the two-MDP framing (`outer env-step MDP + inner HopPolicy MDP`) into a single COS-PLAY-style MDP whose action set is defined by a per-task `Harness`. Five harnesses ship under `decision_agents/core/`: `GymHarness` (game), `BrowserHarness` (web; `step` stub), `OSWorldHarness` (OS; `step` stub), `VRHarness` (visual reasoning), `VideoHarness` (video understanding). `inner_mdp.py` (HopAction / HopPolicy / HopStep / HopTrace / HeuristicHopPolicy / parse_hop_action — ~430 LOC) was deleted; its operators relocated as first-class actions inside `VRHarness` / `VideoHarness` (`LOOK / RETRIEVE / NOTE / ANSWER` and `NEXT_FRAME / JUMP / WINDOW / FOCUS / TRACK`). `ActorAgent.step` now consumes `harness.valid_actions(state)` directly; `_run_inner_mdp` + `_apply_hop_side_effect` deleted. `RewardConfig` gained 8 optional per-action-kind cost fields (defaults `0.0`) looked up via `harness.action_kind(action)` so VR / video tasks can shape away over-deliberation without affecting game / web / OS `r_total`. The legacy `run_actor_episode(env, agent)` path keeps working byte-identical — it auto-binds a `GymHarness` over the env. Deprecated `hop_policy=` / `max_hops_per_step=` kwargs and the `decision_agents.HopAction` / `HopPolicy` / etc. names emit a one-shot `DeprecationWarning` for one release of grace. The `hop_select` LoRA is dropped — GRPO trains exactly two LoRAs (`skill_selection`, `action_taking`) for all 5 tasks. Tests: deleted `test_intention_dispatch.py` (4 cases) + 6 inner-MDP cases in `test_actor_agent.py`; added `test_harness.py` (32 cases across all 5 harnesses + `parse_op_call`), `test_actor_with_vr_harness.py` (5 end-to-end cases), and `test_actor_back_compat.py` (12 cases pinning the legacy entry point + the deprecation contract). 79 tests total, all passing.
 
-Still open (see tables above): #1-OptionB, #5-sharedActionParser, #6, #7, #8, #9, #10, #12, VERIFY semantics, anti-repetition randomness.
+Still open (see tables above): #5-sharedActionParser, #6, #7, #9, #10, VERIFY semantics, anti-repetition randomness. (Items #1-OptionB / #8 / `hop_select` LoRA are now obsolete — superseded by #13.)
 
 ---
 

@@ -41,12 +41,12 @@ from decision_agents.actor_agent import (
     ActorAgent,
     ActorDecision,
 )
+from decision_agents.core.harness import Harness
 from decision_agents.core.multimodal import (
     VisualInput,
     build_qwen_vl_messages,
 )
 from decision_agents.grpo.rollout_logger import GRPORolloutLogger
-from decision_agents.inner_mdp import HopPolicy
 from decision_agents.reward_func import RewardConfig, RewardResult
 from decision_agents.schema_parser import StateSchema
 from decision_agents.skill_interface import SkillProvider
@@ -119,19 +119,22 @@ class QwenVLActor(ActorAgent):
         adapter: Optional[str] = ACTION_ADAPTER,
         system_prompt: str = DEFAULT_QWEN_VL_SYSTEM_PROMPT,
         skill_provider: Optional[SkillProvider] = None,
-        hop_policy: Optional[HopPolicy] = None,
+        harness: Optional[Harness] = None,
         reward_config: Optional[RewardConfig] = None,
         model: str = DEFAULT_QWEN_VL_MODEL,
-        max_hops_per_step: int = 4,
         stall_window: int = 4,
+        # Deprecated kwargs forwarded to ActorAgent (which warns + ignores).
+        hop_policy: Any = None,
+        max_hops_per_step: Optional[int] = None,
     ) -> None:
         super().__init__(
             model=model,
             skill_provider=skill_provider,
-            hop_policy=hop_policy,
+            harness=harness,
             reward_config=reward_config,
-            max_hops_per_step=max_hops_per_step,
             stall_window=stall_window,
+            hop_policy=hop_policy,
+            max_hops_per_step=max_hops_per_step,
         )
         self.vllm_client = vllm_client
         self.rollout_logger = rollout_logger

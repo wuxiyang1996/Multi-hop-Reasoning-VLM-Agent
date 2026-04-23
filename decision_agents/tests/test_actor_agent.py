@@ -1,12 +1,17 @@
 """Smoke tests for the schema-native Actor Agent stack.
 
-Covers the four new modules:
+Covers the new modules (post unified-harness migration):
 
 * ``schema_parser`` — ``<state>`` → :class:`StateSchema`
 * ``skill_interface`` — ``NullSkillProvider`` + custom stub provider
 * ``skill_tracker`` — reselect triggers + slot coverage (PLAN §10)
-* ``inner_mdp`` — heuristic hop policy priorities
 * ``actor_agent`` — end-to-end step + run_actor_episode over a stub env
+
+End-to-end coverage of the per-task :class:`Harness` lives in
+``test_harness.py`` (per-harness ``valid_actions`` / ``step``),
+``test_actor_with_vr_harness.py`` (VR rollout), and
+``test_actor_back_compat.py`` (legacy ``run_actor_episode(env, agent)``
+auto-binds a :class:`GymHarness`).
 
 The tests run offline (no LLM / API calls).  When ``API_func.ask_model``
 is unavailable the actor falls back to "first valid action" which keeps
@@ -33,11 +38,6 @@ from decision_agents.skill_interface import (
     SkillGuidance,
 )
 from decision_agents.skill_tracker import SkillTracker
-from decision_agents.inner_mdp import (
-    HeuristicHopPolicy,
-    HopAction,
-    HopTrace,
-)
 from decision_agents.actor_agent import (
     ActorAgent,
     ActorDecision,
@@ -45,7 +45,6 @@ from decision_agents.actor_agent import (
     _extract_action_from_reply,
     run_actor_episode,
 )
-from decision_agents.inner_mdp import HopStep
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -422,79 +421,6 @@ class TestSkillTracker:
 
 
 # ══════════════════════════════════════════════════════════════════════
-# Inner MDP — heuristic hop policy priorities
-# ══════════════════════════════════════════════════════════════════════
-
-
-class TestHeuristicHopPolicy:
-    def test_execute_when_slots_ok(self) -> None:
-        policy = HeuristicHopPolicy(max_hops=4)
-        schema = parse_state_schema(GYMV_SCHEMA)
-        guidance = SkillGuidance(
-            skill_id="merge",
-            required_slots=["target"],
-        )
-        trace = HopTrace()
-        step = policy.select_next_hop(
-            schema=schema, guidance=guidance, trace=trace, max_hops=4
-        )
-        assert step is not None
-        assert step.action is HopAction.EXECUTE
-
-    def test_ground_when_required_slot_missing(self) -> None:
-        policy = HeuristicHopPolicy(max_hops=4)
-        schema = parse_state_schema(GYMV_SCHEMA)
-        guidance = SkillGuidance(
-            skill_id="merge",
-            required_slots=["target", "blocker"],
-        )
-        trace = HopTrace()
-        step = policy.select_next_hop(
-            schema=schema, guidance=guidance, trace=trace, max_hops=4
-        )
-        assert step is not None
-        assert step.action is HopAction.GROUND
-        assert step.arg == "blocker"
-
-    def test_ground_when_target_high_uncertainty(self) -> None:
-        policy = HeuristicHopPolicy(max_hops=4)
-        schema = parse_state_schema(GYMV_SCHEMA)
-        assert schema is not None
-        # Flip target's uncertainty high for the test.
-        tgt = schema.get_entity(schema.targets.target)  # type: ignore[arg-type]
-        assert tgt is not None
-        tgt.uncertainty["label"] = "high"
-        guidance = SkillGuidance(skill_id="demo")
-        trace = HopTrace()
-        step = policy.select_next_hop(
-            schema=schema, guidance=guidance, trace=trace, max_hops=4
-        )
-        assert step is not None
-        assert step.action is HopAction.GROUND
-        assert step.arg == tgt.eid
-
-    def test_cap_enforced(self) -> None:
-        policy = HeuristicHopPolicy(max_hops=2)
-        schema = parse_state_schema(GYMV_SCHEMA)
-        trace = HopTrace()
-        trace.append(
-            step1 := policy.select_next_hop(  # noqa: F841 — run once
-                schema=schema, guidance=None, trace=trace, max_hops=2
-            )
-        )
-        trace.append(
-            step2 := policy.select_next_hop(  # noqa: F841
-                schema=schema, guidance=None, trace=trace, max_hops=2
-            )
-        )
-        step3 = policy.select_next_hop(
-            schema=schema, guidance=None, trace=trace, max_hops=2
-        )
-        assert step3 is not None
-        assert step3.action is HopAction.EXECUTE
-
-
-# ══════════════════════════════════════════════════════════════════════
 # ActorAgent end-to-end (stub env, no LLM calls)
 # ══════════════════════════════════════════════════════════════════════
 
@@ -538,10 +464,7 @@ class _StubEnv:
 
 class TestActorAgent:
     def test_single_step_with_null_provider(self) -> None:
-        agent = ActorAgent(
-            skill_provider=NullSkillProvider(),
-            hop_policy=HeuristicHopPolicy(max_hops=2),
-        )
+        agent = ActorAgent(skill_provider=NullSkillProvider())
         agent.reset()
         decision = agent.step(
             observation="obs",
@@ -552,8 +475,9 @@ class TestActorAgent:
         assert isinstance(decision, ActorDecision)
         assert decision.action in {"[Up]", "[Down]", "[Left]", "[Right]"}
         assert decision.summary
-        assert len(decision.hop_trace) >= 1
-        assert decision.hop_trace.terminated
+        # The unified single-MDP loop no longer emits a hop trace; it picks
+        # an action directly from ``harness.valid_actions(state)``.
+        assert decision.parse_path  # non-empty parse-strategy tag
 
     def test_skill_provider_is_consulted_on_first_step(self) -> None:
         g = SkillGuidance(
@@ -579,24 +503,6 @@ class TestActorAgent:
         assert decision.action == "[Up]"
         assert provider.select_calls == 1
 
-    def test_slot_missing_triggers_ground_hop(self) -> None:
-        g = SkillGuidance(
-            skill_id="clear_blocker",
-            protocol_steps=["[Up]"],
-            required_slots=["blocker"],  # blocker is null in the fixture
-        )
-        provider = _StubSkillProvider(g)
-        agent = ActorAgent(skill_provider=provider, hop_policy=HeuristicHopPolicy(max_hops=3))
-        agent.reset()
-        decision = agent.step(
-            observation="obs",
-            schema_text=GYMV_SCHEMA,
-            task="Reach 2048",
-            valid_actions=["[Up]", "[Down]", "[Left]", "[Right]"],
-        )
-        actions_used = {s.action for s in decision.hop_trace.steps}
-        assert HopAction.GROUND in actions_used
-
     def test_episode_runner_produces_experiences(self) -> None:
         env = _StubEnv(
             schemas=[GYMV_SCHEMA, GYMV_SCHEMA, GYMV_SCHEMA],
@@ -604,10 +510,7 @@ class TestActorAgent:
         )
         episode = run_actor_episode(
             env,
-            agent=ActorAgent(
-                skill_provider=NullSkillProvider(),
-                hop_policy=HeuristicHopPolicy(max_hops=2),
-            ),
+            agent=ActorAgent(skill_provider=NullSkillProvider()),
             task="Reach 2048",
             max_steps=10,
         )
@@ -618,7 +521,9 @@ class TestActorAgent:
             assert hasattr(exp, "reward_details")
             assert "r_total" in exp.reward_details
             assert hasattr(exp, "extras")
-            assert "hop_trace" in exp.extras
+            # Unified loop replaces the ``hop_trace`` extra with the
+            # per-action ``action_kind`` tag from the bound harness.
+            assert "action_kind" in exp.extras
 
     def test_reselect_sets_queried_skill_and_adds_cost(self) -> None:
         """PLAN §4 — a reselect event fires ``query_skill_cost``."""
@@ -641,104 +546,8 @@ class TestActorAgent:
         # query_skill_cost is -0.01 by default, so r_cost <= that.
         assert rr.r_cost <= agent.reward_computer.cfg.query_skill_cost + 1e-9
 
-    def test_ground_hop_clears_tracker_flag(self) -> None:
-        """PLAN §10 — a GROUND hop tells the tracker the slot was handled.
-
-        Even with the target slot still null in the *schema* (Option A),
-        the tracker's ``needs_ground`` should flip off once the actor
-        has emitted a GROUND hop for that step — otherwise the LoRA
-        would be asked to re-learn a rule the scaffold already enforces.
-        """
-        g = SkillGuidance(
-            skill_id="clear_blocker",
-            protocol_steps=["[Up]"],
-            required_slots=["blocker"],
-        )
-        provider = _StubSkillProvider(g)
-        agent = ActorAgent(
-            skill_provider=provider, hop_policy=HeuristicHopPolicy(max_hops=3)
-        )
-        agent.reset()
-        # blocker is null in the fixture — tracker should start wanting a GROUND.
-        decision = agent.step(
-            observation="obs",
-            schema_text=GYMV_SCHEMA,
-            task="Reach 2048",
-            valid_actions=["[Up]", "[Down]", "[Left]", "[Right]"],
-        )
-        assert any(
-            s.action is HopAction.GROUND for s in decision.hop_trace.steps
-        ), "expected at least one GROUND hop for the missing blocker slot"
-        # After at least one GROUND hop, the scratchpad records it.
-        assert "blocker" in agent.state.scratchpad.grounded_slots
-
-    def test_retrieve_hop_calls_memory_and_marks_queried_mem(self) -> None:
-        """RETRIEVE hops wire into ``memory.query`` + incur ``query_mem_cost``."""
-
-        class _RetrieveThenExecutePolicy:
-            """Emits exactly one RETRIEVE then EXECUTE."""
-
-            def __init__(self) -> None:
-                self.calls = 0
-
-            def select_next_hop(
-                self, *, schema, guidance, trace, max_hops
-            ) -> HopStep:
-                self.calls += 1
-                if self.calls == 1:
-                    return HopStep(
-                        action=HopAction.RETRIEVE,
-                        arg="merge corner strategy",
-                        note="test",
-                    )
-                return HopStep(action=HopAction.EXECUTE, arg="[Up]", note="test")
-
-        class _FakeMemory:
-            """Returns a single canned hit so we can assert it landed."""
-
-            def __init__(self) -> None:
-                self.queries: List[str] = []
-
-            def query(self, q: str, k: int = 3) -> List[Dict[str, Any]]:
-                self.queries.append(q)
-                return [{"summary": "prev: [Up] worked", "action": "[Up]"}]
-
-            def add_experience(self, **kw: Any) -> None:
-                pass
-
-        mem = _FakeMemory()
-        agent = ActorAgent(
-            skill_provider=NullSkillProvider(),
-            hop_policy=_RetrieveThenExecutePolicy(),
-            memory=mem,
-        )
-        agent.reset()
-        decision = agent.step(
-            observation="obs",
-            schema_text=GYMV_SCHEMA,
-            task="Reach 2048",
-            valid_actions=["[Up]", "[Down]", "[Left]", "[Right]"],
-        )
-        assert decision.queried_mem is True
-        assert any(
-            s.action is HopAction.RETRIEVE for s in decision.hop_trace.steps
-        )
-        assert mem.queries, "memory.query should have been invoked on RETRIEVE"
-        assert agent.state.scratchpad.memory_hits, (
-            "scratchpad should record memory hits from RETRIEVE"
-        )
-
-        rr = agent.observe_result(
-            decision, reward=0.0, next_schema_text=GYMV_SCHEMA
-        )
-        # query_mem_cost adds -0.005 (default).
-        assert rr.r_cost <= agent.reward_computer.cfg.query_mem_cost + 1e-9
-
     def test_decision_to_dict_is_self_describing(self) -> None:
-        agent = ActorAgent(
-            skill_provider=NullSkillProvider(),
-            hop_policy=HeuristicHopPolicy(max_hops=1),
-        )
+        agent = ActorAgent(skill_provider=NullSkillProvider())
         agent.reset()
         decision = agent.step(
             observation="obs",
@@ -753,15 +562,17 @@ class TestActorAgent:
             "queried_skill",
             "queried_mem",
             "parse_path",
-            "hop_trace",
+            "action_kind",
             "intention",
         ):
             assert key in d, f"ActorDecision.to_dict is missing {key}"
+        # ``hop_trace`` is gone post-unified-MDP migration; document the
+        # invariant so we don't regress.
+        assert "hop_trace" not in d
 
     def test_anti_repetition_switches_action(self) -> None:
         agent = ActorAgent(
             skill_provider=NullSkillProvider(),
-            hop_policy=HeuristicHopPolicy(max_hops=1),
             anti_repetition_window=2,
         )
         agent.reset()

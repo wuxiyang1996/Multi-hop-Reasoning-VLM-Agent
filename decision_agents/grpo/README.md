@@ -43,7 +43,7 @@ new.
        │         ├─ parse <state> schema                 │
        │         ├─ infer_intention                      │
        │         ├─ SkillTracker.should_reselect         │
-       │         ├─ HopPolicy.select_next_hop × N        │
+       │         ├─ harness.valid_actions(state)         │
        │         └─ _pick_action → _call_llm(...) ───────┘
        │
        │  observe_result(reward, done) ───┐

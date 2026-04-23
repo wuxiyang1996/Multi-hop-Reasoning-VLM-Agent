@@ -1,5 +1,7 @@
 # Decision agents: dummy language agent and LLM decision-making agent.
 
+from typing import Dict
+
 from .dummy_agent import (
     language_agent_action,
     detect_game,
@@ -71,14 +73,6 @@ from .skill_tracker import (
     SkillTracker,
     TrackerState,
 )
-from .inner_mdp import (
-    HeuristicHopPolicy,
-    HopAction,
-    HopPolicy,
-    HopStep,
-    HopTrace,
-    parse_hop_action,
-)
 from .actor_agent import (
     ActorAgent,
     ActorDecision,
@@ -95,10 +89,20 @@ from .actor_agent import (
 # pull in ``openai`` / ``trainer.coevolution.vllm_client`` /
 # ``trainer.common.metrics`` unless the caller actually asks for them.
 from .core import (
+    BrowserHarness,
+    GymHarness,
+    Harness,
+    HarnessState,
+    OSWorldHarness,
+    VIDEO_OPS,
+    VR_OPS,
+    VRHarness,
+    VideoHarness,
     VisualInput,
     build_openai_vision_messages,
     build_qwen_vl_messages,
     load_image_as_data_url,
+    parse_op_call,
 )
 
 # PEP 562 lazy attribute access so importing ``decision_agents`` stays
@@ -113,9 +117,29 @@ _LAZY_ATTRS = {
     "DEFAULT_QWEN_VL_MODEL": ("decision_agents.grpo", "DEFAULT_QWEN_VL_MODEL"),
 }
 
+# ── Deprecation shim for the removed inner-MDP scaffold ──────────────
+#
+# Phase 3 of the unified-harness migration deletes
+# ``decision_agents/inner_mdp.py`` (HopAction / HopPolicy /
+# HeuristicHopPolicy / HopStep / HopTrace / parse_hop_action).  Their
+# semantics now live inside :class:`VRHarness` / :class:`VideoHarness`
+# action vocabularies (see ``decision_agents/README.md`` "Migration of
+# inner-MDP operators" table).  We keep the names reachable for one
+# release so out-of-tree imports get a clear deprecation warning
+# pointing at the new harness symbols instead of an ``ImportError``.
+
+_DEPRECATED_INNER_MDP: Dict[str, str] = {
+    "HopAction":           "Use harness action strings (e.g. VRHarness LOOK / RETRIEVE / NOTE / ANSWER) instead.",
+    "HopPolicy":           "The inner-MDP loop has been removed; per-task action vocabularies live on Harness implementations.",
+    "HopStep":             "Removed with the inner-MDP loop; harness ``step`` returns gym-shaped tuples instead.",
+    "HopTrace":            "Removed with the inner-MDP loop; per-step traces are recorded by GRPORolloutLogger / SFTRecorder.",
+    "HeuristicHopPolicy":  "Removed; VRHarness / VideoHarness encode the equivalent operators as first-class actions.",
+    "parse_hop_action":    "Use ``decision_agents.core.harness.parse_op_call`` for ``OP(arg)`` action strings.",
+}
+
 
 def __getattr__(name: str):  # pragma: no cover — thin shim
-    """Lazy import for the SFT / GRPO actor flavours."""
+    """Lazy import for SFT / GRPO actors + deprecation shim for inner-MDP names."""
     if name in _LAZY_ATTRS:
         import importlib
         mod_name, attr = _LAZY_ATTRS[name]
@@ -123,6 +147,19 @@ def __getattr__(name: str):  # pragma: no cover — thin shim
         value = getattr(mod, attr)
         globals()[name] = value
         return value
+    if name in _DEPRECATED_INNER_MDP:
+        import warnings
+        warnings.warn(
+            f"decision_agents.{name} has been removed in the unified-harness "
+            f"migration. {_DEPRECATED_INNER_MDP[name]} See decision_agents/"
+            f"README.md \u201cMigration of inner-MDP operators\u201d.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raise AttributeError(
+            f"decision_agents.{name} has been removed; see decision_agents/README.md "
+            f"\u201cMigration of inner-MDP operators\u201d for the harness equivalent."
+        )
     raise AttributeError(f"module 'decision_agents' has no attribute {name!r}")
 
 
@@ -179,18 +216,22 @@ __all__ = [
     "ActivationCheck",
     "SkillTracker",
     "TrackerState",
-    # Inner MDP
-    "HeuristicHopPolicy",
-    "HopAction",
-    "HopPolicy",
-    "HopStep",
-    "HopTrace",
-    "parse_hop_action",
     # Actor agent
     "ActorAgent",
     "ActorDecision",
     "ActorState",
     "run_actor_episode",
+    # Harness family (decision_agents/core/) — unified single-MDP contract
+    "Harness",
+    "HarnessState",
+    "GymHarness",
+    "BrowserHarness",
+    "OSWorldHarness",
+    "VRHarness",
+    "VideoHarness",
+    "VR_OPS",
+    "VIDEO_OPS",
+    "parse_op_call",
     # Multimodal scaffolding (decision_agents/core/)
     "VisualInput",
     "build_openai_vision_messages",

@@ -4,8 +4,7 @@ This module implements **Agent 1** from ``plans/02-action-agent/PLAN-ACTION-AGEN
 §2.3: the trained actor that consumes a structured ``<state>…</state>``
 schema from the Visual Grounding pipeline (``vlm_wrapper``), selects a
 skill via an injected :class:`~decision_agents.skill_interface.SkillProvider`,
-runs a short inner-MDP reasoning loop over the schema, and finally
-emits an environment action.
+and emits one environment action per outer step.
 
 Design goals (per the plan):
 
@@ -17,14 +16,33 @@ Design goals (per the plan):
   :class:`~decision_agents.skill_interface.SkillProvider` interface.
   The actor never imports from ``skill_agents`` directly.  That keeps
   Agent 1 and Agent 2 (Skill-Use) loosely coupled, per PLAN §2.3.
-* **Inner MDP scaffold** — the per-step loop runs a short inner-MDP
-  sequence (GROUND / CHECK / RETRIEVE / CONCLUDE / EXECUTE) governed by
-  a pluggable :class:`~decision_agents.inner_mdp.HopPolicy`.  The
-  default :class:`HeuristicHopPolicy` is rule-based; the long-term plan
-  (§5) is to swap in a trained ``hop_select`` LoRA.
-* **Reward-aware** — forwards through the existing
+* **Single-MDP / Harness-driven** — the action vocabulary and the
+  semantics of ``step(action)`` are owned by an injected
+  :class:`~decision_agents.core.harness.Harness`.  Five reference
+  harnesses ship under ``decision_agents/core/`` (game / web / OS /
+  visual-reasoning / video-understanding); the actor stays
+  task-agnostic.  This replaces the old two-level outer/inner MDP
+  framing — see ``decision_agents/README.md`` "How the actor agent
+  works" for the migration rationale.
+* **Reward-aware** — forwards through
   :class:`~decision_agents.reward_func.RewardComputer` so the
   ``r_env + r_follow + r_cost`` shaping keeps working unchanged.
+  When a harness is bound, ``observe_result`` consults
+  ``harness.action_kind(action)`` so per-action-kind costs (VR
+  ``LOOK`` / ``RETRIEVE``, video ``JUMP`` / ``FOCUS``) flow into
+  ``r_cost`` correctly.
+
+Backward compatibility
+----------------------
+Callers that pre-date the harness contract keep working unchanged:
+when no ``harness=`` is supplied the actor auto-binds a
+:class:`~decision_agents.core.harness_gym.GymHarness` over the env /
+``info`` it receives.  The legacy ``hop_policy=`` and
+``max_hops_per_step=`` kwargs are still accepted (and silently
+ignored, with a one-shot :class:`DeprecationWarning`) so existing
+``decision_agents.SFT.GPT4oCollectorActor`` and
+``decision_agents.grpo.QwenVLActor`` constructors compile without
+edits — see PHASE-7 entry in the patch-set log.
 
 Relationship to :class:`~decision_agents.agent.VLMDecisionAgent`: the
 older ``VLMDecisionAgent`` is a *text-observation* agent kept for
@@ -39,6 +57,7 @@ from __future__ import annotations
 import difflib
 import logging
 import re
+import warnings
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -54,13 +73,8 @@ from .agent_helper import (
     HARD_SUMMARY_CHAR_LIMIT,
     infer_intention,
 )
-from .inner_mdp import (
-    HeuristicHopPolicy,
-    HopAction,
-    HopPolicy,
-    HopStep,
-    HopTrace,
-)
+from .core.harness import Harness, HarnessState
+from .core.harness_gym import GymHarness
 from .reward_func import RewardComputer, RewardConfig, RewardResult
 from .schema_parser import (
     Entity,
@@ -111,13 +125,13 @@ class ActorDecision:
     active_skill_id: Optional[str] = None
     reselected: bool = False
     reselect_reason: str = ""
-    hop_trace: HopTrace = field(default_factory=HopTrace)
     anti_repetition_triggered: bool = False
     valid_actions: List[str] = field(default_factory=list)
     reasoning: str = ""                                     # raw LLM reasoning (best-effort)
     queried_skill: bool = False                             # this step ran skill_provider.select
-    queried_mem: bool = False                               # this step ran memory.query (via RETRIEVE hop)
+    queried_mem: bool = False                               # last harness.step was a RETRIEVE-class action
     parse_path: str = ""                                    # which strategy produced the action
+    action_kind: str = ""                                   # harness.action_kind(action) — drives r_cost
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -131,13 +145,13 @@ class ActorDecision:
             "active_skill_id": self.active_skill_id,
             "reselected": self.reselected,
             "reselect_reason": self.reselect_reason,
-            "hop_trace": self.hop_trace.to_dict(),
             "anti_repetition_triggered": self.anti_repetition_triggered,
             "valid_actions": list(self.valid_actions),
             "reasoning": self.reasoning,
             "queried_skill": self.queried_skill,
             "queried_mem": self.queried_mem,
             "parse_path": self.parse_path,
+            "action_kind": self.action_kind,
         }
 
 
@@ -148,32 +162,37 @@ class ActorDecision:
 
 @dataclass
 class InnerScratchpad:
-    """Option-A inner-MDP scratchpad (PLAN-ACTION-AGENT §5).
+    """Per-step / per-skill scratchpad shared across the harness loop.
 
-    Accumulated across the hops of a single outer step (and, for memory
-    hits, across a whole skill period).  Hops share the same ``<state>``
-    schema but deposit their side effects here so the action prompt can
-    read them without calling vision tools.
+    Accumulated across outer steps (memory hits + notes persist across a
+    skill period; ``grounded_slots`` is reset on skill re-select).  In
+    the unified single-MDP design the harness owns the side-effect
+    semantics: VR / Video harnesses write into this scratchpad from
+    their ``step()`` (``LOOK`` → ``grounded_slots``, ``RETRIEVE`` →
+    ``memory_hits``, ``NOTE`` → ``notes``), and the actor's prompt
+    builder renders the cumulative content on the next step.  Game /
+    web / OS harnesses leave it untouched — their world-mutating
+    actions don't need the scratchpad.
 
     Fields
     ------
     pending_ground_slots
-        Slots the tracker said were missing at activation time.  The
-        actor uses this as a forced prefix of ``GROUND`` hops so the
-        scaffold (not the LoRA) owns the slot-coverage guarantee from
-        PLAN §10.
+        Slots the :class:`SkillTracker` flagged as missing at skill
+        activation time.  Surfaced into the action prompt so the LLM
+        knows what to ``LOOK`` at first when running against
+        :class:`~decision_agents.core.harness_vr.VRHarness`.
     grounded_slots
-        Slots that were GROUND-ed in the current outer step, mapped to
-        a best-effort resolved value.  Under Option A this value is a
-        placeholder (``"best_effort"``) because the schema is already
-        the grounding output — Option B will fold in actual tool
-        results once the visual grounding handlers are wired.
+        Slots that have been observed during this skill period, mapped
+        to a best-effort resolved value (``"observed"`` from the VR
+        harness; arbitrary tool output once Option B's visual-grounding
+        handlers are wired).
     memory_hits
-        Top-k hits from the last ``RETRIEVE`` hop.  Rendered into the
-        action prompt and logged on the Experience so Skill-Bank mining
-        can see which memories mattered.
+        Top-k hits from the most recent ``RETRIEVE`` actions.
+        Rendered into the action prompt and logged on each
+        :class:`Experience` so Skill-Bank mining can see which memories
+        mattered.
     notes
-        ``CONCLUDE(subgoal)`` arguments committed during this step —
+        ``NOTE(text)`` arguments committed during this skill period —
         free-form strings the LLM can use as intermediate lemmas.
     """
 
@@ -224,19 +243,30 @@ class ActorAgent:
     skill_provider
         Implementation of :class:`SkillProvider`.  Defaults to
         :class:`NullSkillProvider` (skill-free baseline).
-    hop_policy
-        Implementation of :class:`HopPolicy`.  Defaults to
-        :class:`HeuristicHopPolicy`.  Plug in the trained ``hop_select``
-        LoRA adapter here when it becomes available.
+    harness
+        Optional :class:`~decision_agents.core.harness.Harness`
+        instance.  When supplied it owns the per-step action vocabulary
+        (``valid_actions``) and the cost bucket for reward shaping
+        (``action_kind``).  When ``None`` the actor stays compatible
+        with legacy callers: :func:`run_actor_episode` will auto-bind
+        a :class:`~decision_agents.core.harness_gym.GymHarness` over
+        the supplied env.
     reward_config
         Optional :class:`RewardConfig` — uses defaults if omitted.
     memory
-        Optional :class:`EpisodicMemoryStore` for the ``RETRIEVE`` hop.
-        Defaults to an in-memory store with auto-detected embedder.
+        Optional :class:`EpisodicMemoryStore` for retrieval-class
+        actions (e.g. ``VRHarness.step(RETRIEVE(q))``).  Defaults to
+        an in-memory store with auto-detected embedder.
     intention_model
         Optional separate model for ``infer_intention`` calls, e.g. if
         you want a cheaper model for the tag prediction.  Falls back to
         *model* when None.
+    hop_policy / max_hops_per_step
+        **Deprecated** — accepted for backward compatibility with the
+        pre-harness API but silently ignored.  The unified single-MDP
+        loop replaces the inner-MDP scaffold; emit a one-shot
+        :class:`DeprecationWarning` when supplied so callers know to
+        drop them.  See ``decision_agents/README.md`` migration notes.
     """
 
     def __init__(
@@ -244,35 +274,74 @@ class ActorAgent:
         *,
         model: Optional[str] = None,
         skill_provider: Optional[SkillProvider] = None,
-        hop_policy: Optional[HopPolicy] = None,
+        harness: Optional[Harness] = None,
         reward_config: Optional[RewardConfig] = None,
         memory: Optional[EpisodicMemoryStore] = None,
         intention_model: Optional[str] = None,
-        max_hops_per_step: int = 4,
         stall_window: int = 4,
         anti_repetition_window: int = ANTI_REPETITION_WINDOW,
+        # ── deprecated kwargs (kept for back-compat) ─────────────────
+        hop_policy: Any = None,
+        max_hops_per_step: Optional[int] = None,
     ) -> None:
+        if hop_policy is not None or max_hops_per_step is not None:
+            warnings.warn(
+                "ActorAgent: 'hop_policy' and 'max_hops_per_step' are "
+                "deprecated and ignored — the inner-MDP scaffold has been "
+                "replaced by the per-task Harness contract. See "
+                "decision_agents/README.md (migration status).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.model = model or DEFAULT_MODEL
         self.intention_model = intention_model or self.model
         self.skill_provider: SkillProvider = skill_provider or NullSkillProvider()
-        self.hop_policy: HopPolicy = hop_policy or HeuristicHopPolicy(
-            max_hops=max_hops_per_step
-        )
         self.reward_config = reward_config or RewardConfig()
         self.reward_computer = RewardComputer(self.reward_config)
         self.tracker = SkillTracker(stall_window=stall_window)
         self.memory = memory if memory is not None else _build_default_memory()
-        self.max_hops_per_step = max(1, int(max_hops_per_step))
         self.anti_repetition_window = max(1, int(anti_repetition_window))
         self.state = ActorState()
 
+        # Harness binding — None means "auto-bind GymHarness in
+        # run_actor_episode".  When supplied we wire the side-effect
+        # channels (scratchpad / memory / tracker) into the harness
+        # immediately so VR / Video harnesses can mutate the actor's
+        # scratchpad from their step().
+        self.harness: Optional[Harness] = None
+        if harness is not None:
+            self.bind_harness(harness)
+
     # ── Episode lifecycle ────────────────────────────────────────────
+
+    def bind_harness(self, harness: Harness) -> None:
+        """Attach (or replace) the harness driving this actor.
+
+        Wires the harness's optional side-effect channels into the
+        actor's scratchpad / memory / tracker.  Safe to call repeatedly
+        — :func:`run_actor_episode` calls it on every reset to refresh
+        the scratchpad reference (it's rebuilt on skill re-select).
+        """
+        self.harness = harness
+        bind_actor = getattr(harness, "bind_actor", None)
+        if callable(bind_actor):
+            try:
+                bind_actor(
+                    scratchpad=self.state.scratchpad,
+                    memory=self.memory,
+                    tracker=self.tracker,
+                )
+            except Exception as exc:  # pragma: no cover — defensive
+                _LOGGER.warning("harness.bind_actor failed: %s", exc)
 
     def reset(self) -> None:
         """Forget episode-local state.  Call before each episode."""
         self.state = ActorState()
         self.tracker.reset()
         self.reward_computer.reset()
+        # Re-seat the harness binding so it points at the fresh scratchpad.
+        if self.harness is not None:
+            self.bind_harness(self.harness)
 
     # ── Main per-step entry point ────────────────────────────────────
 
@@ -285,8 +354,9 @@ class ActorAgent:
         task: str = "",
         valid_actions: Optional[List[str]] = None,
         info: Optional[Dict[str, Any]] = None,
+        harness: Optional[Harness] = None,
     ) -> ActorDecision:
-        """Run one outer-MDP step.
+        """Run one MDP step.
 
         The caller supplies the structured schema (either pre-parsed via
         *schema* or as text via *schema_text*); when neither is given the
@@ -294,11 +364,20 @@ class ActorAgent:
         callers that have not yet integrated the VLM grounding head
         (PLAN §7 Phase 1).
 
-        Returns an :class:`ActorDecision` the runner feeds to ``env.step``.
-        The actor does NOT call the env — keeping it side-effect-free
-        makes it trivially testable and GRPO-compatible.
+        ``harness`` (per-step override) lets a runner inject a different
+        :class:`Harness` mid-episode (rare — typically you bind once via
+        the constructor or :meth:`bind_harness`).  When the actor has
+        no harness bound and none is supplied here, ``valid_actions`` /
+        ``schema`` / ``info`` drive the legacy fallback in
+        :func:`_resolve_valid_actions`.
+
+        Returns an :class:`ActorDecision` the runner feeds to
+        ``harness.step``.  The actor does NOT call the env — keeping it
+        side-effect-free makes it trivially testable and
+        GRPO-compatible.
         """
         info = info or {}
+        active_harness = harness or self.harness
 
         # 1. Parse schema (Phase 2 input).
         parsed = schema or (parse_state_schema(schema_text) if schema_text else None)
@@ -318,8 +397,18 @@ class ActorAgent:
         intention = self._infer_intention(summary, task)
         self.state.current_intention = intention
 
-        # 4. Determine the valid-action list.  Prefer schema <actions>.
-        valid = _resolve_valid_actions(valid_actions, parsed, observation)
+        # 4. Determine the valid-action list.  Prefer the harness when
+        #    bound — that's the unified MDP's source of truth.  Otherwise
+        #    fall back to the legacy info / schema lookup so callers that
+        #    haven't migrated yet keep working.
+        valid = self._resolve_valid_actions(
+            valid_actions=valid_actions,
+            schema=parsed,
+            observation=observation,
+            info=info,
+            harness=active_harness,
+            intention=intention,
+        )
 
         # 5. Re-selection check (PLAN §1 step 3).
         reselected = False
@@ -349,11 +438,14 @@ class ActorAgent:
                 reselected = True
                 reselect_reason = reason or "reselect"
                 # PLAN §10 — the tracker owns slot-coverage.  Seed the
-                # scratchpad with its missing_slots so _run_inner_mdp can
-                # treat them as a forced GROUND prefix.
+                # scratchpad with its missing_slots so the harness can
+                # treat them as observed-slot priors.
                 self.state.scratchpad = InnerScratchpad(
                     pending_ground_slots=list(check.missing_slots),
                 )
+                # Re-seat the harness's scratchpad reference too.
+                if active_harness is not None and active_harness is self.harness:
+                    self.bind_harness(active_harness)
         # On non-reselect steps, keep last step's scratchpad but forget
         # transient bookkeeping — memory hits are the one thing worth
         # carrying across steps so the LLM can keep citing them.
@@ -362,38 +454,37 @@ class ActorAgent:
                 memory_hits=list(self.state.scratchpad.memory_hits[-3:]),
                 notes=list(self.state.scratchpad.notes[-3:]),
             )
+            if active_harness is not None and active_harness is self.harness:
+                self.bind_harness(active_harness)
 
-        # 6. Inner-MDP reasoning (PLAN §5).  Applies side effects against
-        #    the scratchpad (GROUND → tracker.clear_ground_flag; RETRIEVE →
-        #    memory.query; CONCLUDE → scratchpad.notes).
-        trace = self._run_inner_mdp(parsed)
-        queried_mem = any(s.action is HopAction.RETRIEVE for s in trace.steps)
-
-        # 7. If the inner loop terminated with an EXECUTE, use its arg
-        #    as the candidate action; otherwise prompt the LLM.
-        candidate_from_hop = (
-            trace.last().arg
-            if trace.last() is not None
-               and trace.last().action is HopAction.EXECUTE
-               and trace.last().arg
-            else ""
-        )
-
+        # 6. Action selection — single LLM call against the unified
+        #    valid-action vocabulary the harness (or legacy fallback)
+        #    just produced.
         action_text, reasoning, parse_path = self._pick_action(
             schema=parsed,
             summary=summary,
             task=task,
             valid_actions=valid,
-            candidate_from_hop=candidate_from_hop,
             observation=observation,
         )
 
-        # 8. Resolve entity references in the action (PLAN §7 Phase 3).
+        # 7. Resolve entity references in the action (PLAN §7 Phase 3).
         resolved = resolve_entity_action(action_text, parsed)
         final_action = resolved.resolved or action_text
 
-        # 9. Anti-repetition guard.
+        # 8. Anti-repetition guard.
         final_action, anti_rep = self._anti_repetition(final_action, valid)
+
+        # 9. Look up the cost bucket from the harness when available so
+        #    observe_result can fold it into r_cost.  The legacy game /
+        #    web / OS path returns "primitive" — same as today's r_cost
+        #    semantics, so r_total stays unchanged for those tasks.
+        kind = ""
+        if active_harness is not None:
+            try:
+                kind = active_harness.action_kind(final_action) or ""
+            except Exception:  # pragma: no cover — defensive
+                kind = ""
 
         decision = ActorDecision(
             action=final_action,
@@ -403,13 +494,13 @@ class ActorAgent:
             active_skill_id=self.tracker.active_skill_id,
             reselected=reselected,
             reselect_reason=reselect_reason,
-            hop_trace=trace,
             anti_repetition_triggered=anti_rep,
             valid_actions=valid,
             reasoning=reasoning,
             queried_skill=queried_skill,
-            queried_mem=queried_mem,
+            queried_mem=("retrieve" in (kind or "").lower()),
             parse_path=parse_path,
+            action_kind=kind,
         )
         return decision
 
@@ -471,6 +562,7 @@ class ActorAgent:
             skill_contract=contract,
             queried_skill=bool(decision.queried_skill),
             queried_mem=bool(decision.queried_mem),
+            action_kind=decision.action_kind or "",
         )
 
         # Push to memory so RETRIEVE hops get a grounded store.
@@ -530,114 +622,44 @@ class ActorAgent:
         )
         return results[0] if results else None
 
-    def _run_inner_mdp(
+    def _resolve_valid_actions(
         self,
+        *,
+        valid_actions: Optional[List[str]],
         schema: Optional[StateSchema],
-    ) -> HopTrace:
-        """Roll the inner-MDP until EXECUTE (or the cap).
+        observation: str,
+        info: Dict[str, Any],
+        harness: Optional[Harness],
+        intention: str,
+    ) -> List[str]:
+        """Pick the actor's action vocabulary for this step.
 
-        Unlike the earlier "hops are logged only" behaviour, each hop now
-        produces a side effect on ``self.state.scratchpad`` so the next
-        iteration sees an updated belief state.  This closes the PLAN §5
-        Option-A gap where the plan promised a scratchpad but the code
-        kept discarding it.
+        Priority:
 
-        Side effects per hop:
-
-        * ``GROUND(slot)``  — record a best-effort resolution in the
-          scratchpad and call ``tracker.clear_ground_flag(schema)`` so
-          :class:`HeuristicHopPolicy` stops demanding the same slot on the
-          next iteration (PLAN §10 slot-coverage insertion).
-        * ``RETRIEVE(query)`` — call ``self.memory.query`` (when memory is
-          wired) and attach hits to the scratchpad + ``HopStep.result``.
-        * ``CONCLUDE(subgoal)`` — commit to the scratchpad's notes list.
-        * ``CHECK`` / ``VERIFY`` — purely logged (the heuristic policy
-          doesn't emit these yet; the LoRA can learn them later).
-        * ``EXECUTE``       — terminates the loop, arg consumed by
-          :meth:`_pick_action`.
+        1. Bound :class:`Harness` (the unified MDP source of truth).
+        2. Explicit *valid_actions* argument.
+        3. ``info["valid_actions"]`` / ``info["available_actions"]``.
+        4. ``schema.actions`` from the parsed schema.
+        5. Regex over *observation* (legacy fallback for the
+           text-observation gymv runner).
         """
-        trace = HopTrace()
-        for _ in range(self.max_hops_per_step):
-            step = self.hop_policy.select_next_hop(
-                schema=schema,
-                guidance=self.tracker.active_guidance,
-                trace=trace,
-                max_hops=self.max_hops_per_step,
-            )
-            if step is None:
-                trace.append(
-                    HopStep(
-                        action=HopAction.EXECUTE,
-                        arg="",
-                        note="hop policy returned None",
-                    )
-                )
-                break
-            self._apply_hop_side_effect(step, schema)
-            trace.append(step)
-            if step.action is HopAction.EXECUTE:
-                break
-        return trace
-
-    def _apply_hop_side_effect(
-        self,
-        step: HopStep,
-        schema: Optional[StateSchema],
-    ) -> None:
-        """Mutate the actor scratchpad / tracker according to ``step``.
-
-        Kept as a dedicated method so a future ``HopPolicy`` LoRA can
-        emit any of {GROUND, RETRIEVE, CONCLUDE, CHECK, VERIFY} without
-        changing the hop-execution contract.
-        """
-        sp = self.state.scratchpad
-
-        if step.action is HopAction.GROUND:
-            if step.arg:
-                # Option A: the schema IS the grounding output, so we
-                # only record that this slot has been considered.  Option B
-                # (visual-tool call) will replace "best_effort" with the
-                # actual tool result.
-                sp.grounded_slots.setdefault(step.arg, "best_effort")
-            # Deterministic rule: once we've emitted a GROUND hop for
-            # an activation's pending slot, tell the tracker so it doesn't
-            # re-trigger the reselect-on-missing-slot rule.
-            if schema is not None:
-                self.tracker.clear_ground_flag(schema)
-
-        elif step.action is HopAction.RETRIEVE:
-            if self.memory is None:
-                step.note = (step.note + " | memory unavailable").strip(" |")
-                return
-            query = (
-                step.arg
-                or self.state.current_intention
-                or self.state.last_summary
-                or ""
-            )
-            if not query:
-                return
+        if harness is not None:
             try:
-                hits = self.memory.query(query, k=3)
-            except Exception as exc:  # pragma: no cover — defensive
-                _LOGGER.warning("memory.query failed: %s", exc)
-                hits = []
-            if hits:
-                rendered = [_stringify_memory_hit(h) for h in hits]
-                sp.memory_hits.extend(
-                    {"query": query[:80], "hit": r} for r in rendered
+                state = HarnessState(
+                    observation=observation,
+                    schema=schema,
+                    info=dict(info or {}),
+                    intention=intention or "",
+                    t=len(self.state.last_actions),
                 )
-                # Keep scratchpad bounded — only the most recent 5 hits
-                # are rendered into the prompt.
-                sp.memory_hits = sp.memory_hits[-5:]
-                step.result = rendered
-
-        elif step.action is HopAction.CONCLUDE:
-            if step.arg:
-                sp.notes.append(step.arg[:140])
-                sp.notes = sp.notes[-5:]
-
-        # CHECK / VERIFY / EXECUTE: no scratchpad mutation.
+                actions = list(harness.valid_actions(state))
+                if actions:
+                    return actions[:MAX_VALID_ACTIONS_IN_PROMPT]
+            except Exception as exc:  # pragma: no cover — defensive
+                _LOGGER.warning("harness.valid_actions failed: %s", exc)
+        return _resolve_valid_actions_legacy(
+            valid_actions, schema, observation, info
+        )
 
     def _pick_action(
         self,
@@ -646,7 +668,6 @@ class ActorAgent:
         summary: str,
         task: str,
         valid_actions: List[str],
-        candidate_from_hop: str,
         observation: str,
     ) -> Tuple[str, str, str]:
         """Return ``(action_text, reasoning, parse_path)``.
@@ -655,12 +676,11 @@ class ActorAgent:
 
         1. Active skill's current protocol step (when it is a literal
            action and present in *valid_actions*).
-        2. *candidate_from_hop* if it is in *valid_actions*.
-        3. LLM over the compact prompt (when ``ask_model`` is available).
+        2. LLM over the compact prompt (when ``ask_model`` is available).
            The reply is decoded via the multi-strategy pipeline in
            :func:`_extract_action_from_reply` (exact → numbered →
            entity-ref → edit distance → token overlap).
-        4. Deterministic fallback — first valid action or ``"no-op"``.
+        3. Deterministic fallback — first valid action or ``"no-op"``.
 
         ``parse_path`` is a short tag identifying which branch produced
         the action; it's logged on ``ActorDecision`` to let the GRPO
@@ -674,13 +694,7 @@ class ActorAgent:
             if exact is not None:
                 return exact, f"protocol step: {current_step}", "protocol"
 
-        # 2. Respect the inner-MDP EXECUTE argument when it's a valid action.
-        if candidate_from_hop:
-            exact = _match_valid_action(candidate_from_hop, valid_actions)
-            if exact is not None:
-                return exact, "inner-MDP EXECUTE", "hop_execute"
-
-        # 3. LLM prompt path — routed through the ``_call_llm`` seam so
+        # 2. LLM prompt path — routed through the ``_call_llm`` seam so
         #    subclasses can swap backend (e.g. Qwen3-VL via vLLM) and
         #    attach images without touching this pipeline.
         prompt = self._build_action_prompt(
@@ -696,7 +710,7 @@ class ActorAgent:
             if action_text:
                 return action_text, reply[:400], f"llm:{parse_path}"
 
-        # 4. Deterministic fallback.
+        # 3. Deterministic fallback.
         if valid_actions:
             return valid_actions[0], "fallback: first valid action", "fallback_first"
         return "no-op", "fallback: no valid actions", "fallback_noop"
@@ -910,38 +924,70 @@ def run_actor_episode(
     agent: Optional[ActorAgent] = None,
     model: Optional[str] = None,
     skill_provider: Optional[SkillProvider] = None,
-    hop_policy: Optional[HopPolicy] = None,
+    harness: Optional[Harness] = None,
     reward_config: Optional[RewardConfig] = None,
     task: str = "",
     max_steps: int = 200,
     schema_from_info: Callable[[Dict[str, Any]], Optional[str]] = None,
     verbose: bool = False,
+    # Deprecated kwargs preserved for back-compat.
+    hop_policy: Any = None,
 ) -> "Episode":
     """End-to-end runner that drives :class:`ActorAgent` against an env.
 
-    Assumes the env returns ``(obs, info)`` from ``reset()`` and
-    ``(obs, reward, term, trunc, info)`` from ``step()``.  The structured
-    schema is expected under ``info["schema"]`` (override via
-    *schema_from_info*).  When the schema is absent the actor falls back
-    to the text-observation path so this runner works with both Phase 1
-    (text) and Phase 2 (schema) environments (PLAN §7).
+    The runner auto-binds a
+    :class:`~decision_agents.core.harness_gym.GymHarness` over *env*
+    when no explicit ``harness=`` is supplied (and the agent has none
+    bound yet).  This keeps every legacy caller —
+    ``scripts/qwen3_decision_agent.py``, the unit tests, the SFT /
+    GRPO runners — working byte-identically against the unified
+    single-MDP loop.
+
+    Both 4-tuple and 5-tuple ``env.step`` returns are accepted; the
+    GymHarness folds ``terminated or truncated`` into a single
+    ``done`` bool.
+
+    The structured schema is expected under ``info["schema"]``
+    (override via *schema_from_info*).  When the schema is absent the
+    actor falls back to the text-observation path so this runner
+    works with both Phase 1 (text) and Phase 2 (schema) environments
+    (PLAN §7).
     """
     from data_structure.experience import Experience, Episode
+
+    if hop_policy is not None:
+        warnings.warn(
+            "run_actor_episode: 'hop_policy' is deprecated and ignored.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     if agent is None:
         agent = ActorAgent(
             model=model,
             skill_provider=skill_provider,
-            hop_policy=hop_policy,
+            harness=harness,
             reward_config=reward_config,
         )
+
+    # Bind a harness if neither the actor nor the caller supplied one
+    # (the legacy contract).  GymHarness's ``valid_actions`` mirrors
+    # the priority used by the pre-harness ``_resolve_valid_actions``
+    # so the action vocabulary the actor sees is unchanged.
+    bound_harness = harness or agent.harness
+    if bound_harness is None:
+        bound_harness = GymHarness(env)
+        agent.bind_harness(bound_harness)
+    elif agent.harness is not bound_harness:
+        agent.bind_harness(bound_harness)
+
     agent.reset()
 
     if schema_from_info is None:
         schema_from_info = lambda info: (info or {}).get("schema") or \
             (info or {}).get("schema_text")
 
-    obs, info = env.reset()
+    obs, info = bound_harness.reset()
     observation = str(obs) if obs is not None else ""
     info = dict(info or {})
     episode_task = task or info.get("task", "")
@@ -967,8 +1013,7 @@ def run_actor_episode(
             if decision.resolved is not None
             else decision.action
         )
-        next_obs, reward, term, trunc, next_info = env.step(env_action)
-        done = bool(term or trunc)
+        next_obs, reward, done, next_info = bound_harness.step(env_action)
 
         next_observation = str(next_obs) if next_obs is not None else ""
         next_info = dict(next_info or {})
@@ -1002,13 +1047,13 @@ def run_actor_episode(
         extras = getattr(exp, "extras", None)
         if extras is None:
             extras = {}
-        extras["hop_trace"] = decision.hop_trace.to_dict()
         extras["reselected"] = decision.reselected
         extras["reselect_reason"] = decision.reselect_reason
         extras["anti_repetition_triggered"] = decision.anti_repetition_triggered
         extras["queried_skill"] = decision.queried_skill
         extras["queried_mem"] = decision.queried_mem
         extras["parse_path"] = decision.parse_path
+        extras["action_kind"] = decision.action_kind
         extras["scratchpad"] = agent.state.scratchpad.to_dict()
         if decision.reasoning:
             extras["reasoning"] = decision.reasoning[:400]
@@ -1018,7 +1063,8 @@ def run_actor_episode(
         if verbose:
             print(
                 f"  step {step_count}: action={decision.action!r} "
-                f"skill={decision.active_skill_id} hops={len(decision.hop_trace)} "
+                f"kind={decision.action_kind} "
+                f"skill={decision.active_skill_id} "
                 f"{rr}"
             )
 
@@ -1065,18 +1111,27 @@ def _compact_from_text(observation: str) -> str:
     return compact_text_observation(observation, max_chars=HARD_SUMMARY_CHAR_LIMIT)
 
 
-def _resolve_valid_actions(
+def _resolve_valid_actions_legacy(
     valid_actions: Optional[List[str]],
     schema: Optional[StateSchema],
     observation: str,
+    info: Optional[Dict[str, Any]] = None,
 ) -> List[str]:
-    """Pick the actor's action vocabulary for this step.
+    """Pre-harness valid-action resolution (used as the safety net).
 
-    Priority: explicit *valid_actions* argument → schema ``<actions>`` →
-    regex over ``observation`` (legacy fallback for gymv).
+    Priority: explicit *valid_actions* argument →
+    ``info["valid_actions"]`` / ``info["available_actions"]`` →
+    schema ``<actions>`` → regex over ``observation``.
+
+    Used when the actor has no harness bound — the unified-MDP path
+    prefers ``Harness.valid_actions(state)`` instead.
     """
     if valid_actions:
         return [str(a) for a in valid_actions][:MAX_VALID_ACTIONS_IN_PROMPT]
+    info = info or {}
+    candidate = info.get("valid_actions") or info.get("available_actions")
+    if candidate:
+        return [str(a) for a in candidate][:MAX_VALID_ACTIONS_IN_PROMPT]
     if schema and schema.actions:
         return schema.actions[:MAX_VALID_ACTIONS_IN_PROMPT]
 
@@ -1290,27 +1345,6 @@ _NOOP_PATTERNS = ("no-op", "noop", "stay", "wait")
 def _is_noop_action(action: str) -> bool:
     a = (action or "").lower().strip()
     return any(p == a for p in _NOOP_PATTERNS)
-
-
-def _stringify_memory_hit(hit: Any) -> str:
-    """Render an :class:`EpisodicMemoryStore` result compactly.
-
-    Memory hits are ``dict``s with keys like ``summary`` / ``action`` /
-    ``outcome``; we emit a single ``key=value | key=value`` line that is
-    cheap to tokenize and easy for the LLM to cite.  Non-dict hits fall
-    back to ``str(hit)``.
-    """
-    if isinstance(hit, dict):
-        ordered_keys = ("summary", "action", "outcome", "key")
-        parts = []
-        for k in ordered_keys:
-            v = hit.get(k)
-            if v:
-                parts.append(f"{k}={str(v)[:60]}")
-        if not parts:
-            parts = [f"{k}={str(v)[:60]}" for k, v in list(hit.items())[:3] if v]
-        return " | ".join(parts) if parts else "(empty)"
-    return str(hit)[:120]
 
 
 def _format_scratchpad(sp: Optional[InnerScratchpad]) -> str:
