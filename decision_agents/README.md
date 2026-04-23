@@ -306,16 +306,16 @@ foundation: every other tool consumes their output.
 
 | Op | Backing model | Returns | Schema side effect | `action_kind` | Status |
 |----|---------------|---------|--------------------|---------------|--------|
-| `LOOK(text)` / `REFER(text)` | Grounding-DINO 1.5 Edge (open weights, Apache-2.0) — early text↔image fusion handles referring expressions; OWLv2 fallback for low-resource | `{bbox, conf}` | adds `Entity(kind="region", bbox=…, parent="image")` | `vr_look` | 🟡 stub |
-| `CROP(bbox)` | pillow / torchvision | `image_crop` | appends crop to `obs_{t+1}.images`; logs `Entity(kind="crop", parent_bbox=…)` | `vr_look` | 🟡 stub |
-| `SEGMENT(target)` | SAM-2 / SEEM | pixel mask + bbox | `Entity(kind="mask", area_px=…, mask_id=…)` | `vr_look` | ⬜ |
-| `READ_TEXT(bbox)` | PaddleOCR / TrOCR | text + per-char conf | `Entity.attrs["text"] = …` | `vr_look` | 🟡 stub |
+| `LOOK(text)` / `REFER(text)` | Grounding-DINO 1.5 Edge (open weights, Apache-2.0) — early text↔image fusion handles referring expressions; OWLv2 fallback for low-resource | `{bbox, conf}` | adds `Entity(label=text, pos=bbox, extra={"source_op":"LOOK","conf":…})` | `vr_look` | ✅ plumbing (Mock backend; real model lazy-loads in Phase 8.1) |
+| `CROP(bbox)` | pillow / torchvision | `image_crop` | appends crop to `info["images"]`; mints `Entity(label=…, pos=bbox, extra={"source_op":"CROP"})` | `vr_look` | ✅ plumbing |
+| `SEGMENT(target)` | SAM-2 / SEEM | pixel mask + bbox | `Entity.attributes["area_px"] / ["seg_score"]`; bbox refined to mask extent | `vr_look` | ✅ plumbing (Mock backend; real model lazy-loads in Phase 8.1) |
+| `READ_TEXT(bbox)` | PaddleOCR / TrOCR | text + per-char conf | `Entity.value=text`; `Entity.attributes["text"] / ["ocr_score"]` | `vr_look` | ✅ plumbing (Mock backend; real model lazy-loads in Phase 8.1) |
 | `DEPTH(bbox\|point)` | Depth-Anything-V2 | scalar depth | `Entity.attrs["depth_m"] = …` | `vr_look` | ⬜ |
 | `POSE(person_id)` | ViTPose / HMR2 | 17 kpts (2D) / SMPL (3D) | `Entity.attrs["pose_kpts"] = …` | `vr_look` | ⬜ |
 | `GAZE(person_id)` | Gaze360 / MCGaze | 3D gaze vector | `Entity.attrs["gaze_dir"] = …` | `vr_look` | ⬜ |
 | `ATTRIBUTES(bbox)` | CLIP / SigLIP zero-shot | `{color, material, texture, …}` dict | merges into `Entity.attrs` | `vr_look` | ⬜ |
 | `CLASSIFY(bbox, taxonomy)` | CLIP / fine-grained head | top-k labels + probs | `Entity.attrs["class_topk"] = …` | `vr_look` | ⬜ |
-| `COUNT(class, region)` | Grounding-DINO 1.5 Edge + class-agnostic NMS | integer | `Entity(kind="count", value=N, scope=region)` | `vr_look` | 🟡 stub |
+| `COUNT(class, region)` | Grounding-DINO 1.5 Edge + class-agnostic NMS | integer | `Entity(label="count(query)", attributes={"count":N,"query":…})`; also `info["count"]` | `vr_look` | ✅ plumbing (Mock backend; real model lazy-loads in Phase 8.1) |
 | `READ_CHART(bbox)` | DePlot / ChartQA-VLM | structured table (CSV-ish) | `Entity(kind="chart", table=…)` | `vr_look` | ⬜ |
 | `MEASURE(bbox_a, bbox_b)` | pure geometry (cached bboxes) | `{px_dist, ratio_h, ratio_w, IoU}` | `Entity(kind="measurement", …)` | `vr_look` | ⬜ |
 | `OPTICAL_FLOW(t1, t2)` | RAFT / SEA-RAFT | dense flow tensor (downsampled) | `Entity(kind="flow", t1, t2, magnitude)` | `video_focus` | ⬜ video |
@@ -774,6 +774,31 @@ What remains is a short list of additive, non-breaking improvements.
 | 6 | ⬜ | **Entity-referenced actions aren't prompted for browser/OSWorld.** | §7 Phase 3 | When `harness.domain in {"browser", "osworld"}`, append an "Entity-referenced actions you may also emit" section to the prompt, enumerated from `schema.interactive_entities()`. |
 | 7 | ⬜ | **Anti-repetition is deterministic** — plan §1 step 7 says "randomly pick". | §1 step 7 | Seed with `Random(hash(episode_id))` or rotate by `len(last_actions)` to avoid 2-action limit cycles. |
 
+### Harness `step()` implementations (primary-scorecard blockers)
+
+Three of the five harnesses currently raise `NotImplementedError` from
+`step()` (or rely on a pre-wired Gym env). Until they actually drive
+their respective environments end-to-end, the unification thesis only
+covers two of the five legs in practice (game + VR). These items
+unblock the **primary scorecards** (WebArena, OSWorld) and are the
+real long pole for "best-unified-agent across five task families".
+
+| # | Status | Item | Estimate | Notes |
+|---|--------|------|----------|-------|
+| H1 | ⬜ | **`BrowserHarness.step` over Playwright + BrowserGym.** Wire `click(bid)` / `type(bid, str)` / `scroll(dy)` / `goto(url)` / `key(...)` / `ANSWER(str)` to BrowserGym primitives. Surface DOM + viewport screenshot in observations. | 3-5 days | Unblocks WebArena / VisualWebArena / MiniWoB++ rollouts. Use `bid` from a11y tree first; perception fallback (H4) is a refinement. |
+| H2 | ⬜ | **`OSWorldHarness.step` over OSWorld + xdotool.** Wire `xdotool click(x,y)` / `key(...)` / `bash(cmd)` / `read(path)` / `ANSWER(str)` to the OSWorld VM. Surface desktop screenshot + a11y tree. | 3-5 days | Unblocks OSWorld benchmark. Same shape as H1. |
+| H3 | ⬜ | **`VideoHarness.JUMP / WINDOW / TRACK` actually rerender frames.** Today `NEXT_FRAME` advances an integer cursor but the next prompt still sees whatever the caller passed. Plug a frame-cache class so `JUMP(t)` swaps the rendered image and `WINDOW(t1, t2)` returns sub-sampled keyframes. | 2-3 days | Prerequisite for any video smoke-test that's better than fat-context CoT. |
+| H4 | ⬜ | **Perception fallback for `BrowserHarness.valid_actions` / `OSWorldHarness.valid_actions`.** When a target has no `bid` (image-only button, captcha) or sparse a11y tree, run `LOOK("submit button")` + `READ_TEXT` and synthesize click targets from detector bboxes. | 1-2 days *after* H1 / H2 land and the perception package (Phase 8.0) is shipped | This is "perception earning its keep on a primary scorecard" — the actual cross-cutting payoff. |
+
+Build order chosen for the current sprint:
+
+1. **Phase 8.0 (in progress)** — perception package + `VRHarness.step` rewire. Lands the cross-cutting infrastructure (Protocols / `EvidenceCache` / Mocks / schema-delta merge) with VR as the only consumer for now. Honest scope: only advances the weak leg, but the package is reused by H4.
+2. **H1 (next)** — `BrowserHarness.step` over Playwright + BrowserGym. First mutable-world leg beyond game; unblocks the web scorecard.
+3. **H2** — `OSWorldHarness.step`. Second mutable-world leg.
+4. **H4** — perception fallback wired into Browser / OSWorld `valid_actions`. Now perception ops earn their cost on three legs (VR + web + OS), validating the cross-cutting claim.
+5. **Phase 8.1** — replace mock backends with real `GroundingDINODetector` / `SAM2Segmenter` / `PaddleOCREngine`, gated behind lazy imports.
+6. **H3** — video frame-cache + rerender. Lower priority since video is explicitly the weak leg.
+
 ### Already shipped (recap)
 
 The bullets below were closed during the harness migration and earlier
@@ -807,8 +832,9 @@ Shipped so far (all additive — no existing-caller API breaks):
 11. ✅ Tests: 13 new cases covering reselect cost, scratchpad grounding, RETRIEVE-hop memory wiring, `to_dict` shape, and the parser pipeline.
 12. ✅ **`HopPolicy` now consumes the outer-step intention.** The `SUBGOAL_TAGS` `[TAG]` from `infer_intention` is forwarded to `select_next_hop(... intention=...)` via signature introspection (backward-compatible with policies that pre-date the kwarg). `HeuristicHopPolicy` adds one intention-aware rule (`EXPLORE` on an empty trace → one `GROUND("scene")` before `EXECUTE`); the rest of the heuristic stays schema-driven. 4 new tests in `decision_agents/tests/test_intention_dispatch.py` lock in the contract. *(Now superseded by the unified-harness pivot — see #13.)*
 13. ✅ **Unified single-MDP / per-task-harness pivot — shipped.** Collapsed the two-MDP framing (`outer env-step MDP + inner HopPolicy MDP`) into a single COS-PLAY-style MDP whose action set is defined by a per-task `Harness`. Five harnesses ship under `decision_agents/core/`: `GymHarness` (game), `BrowserHarness` (web; `step` stub), `OSWorldHarness` (OS; `step` stub), `VRHarness` (visual reasoning), `VideoHarness` (video understanding). `inner_mdp.py` (HopAction / HopPolicy / HopStep / HopTrace / HeuristicHopPolicy / parse_hop_action — ~430 LOC) was deleted; its operators relocated as first-class actions inside `VRHarness` / `VideoHarness` (`LOOK / RETRIEVE / NOTE / ANSWER` and `NEXT_FRAME / JUMP / WINDOW / FOCUS / TRACK`). `ActorAgent.step` now consumes `harness.valid_actions(state)` directly; `_run_inner_mdp` + `_apply_hop_side_effect` deleted. `RewardConfig` gained 8 optional per-action-kind cost fields (defaults `0.0`) looked up via `harness.action_kind(action)` so VR / video tasks can shape away over-deliberation without affecting game / web / OS `r_total`. The legacy `run_actor_episode(env, agent)` path keeps working byte-identical — it auto-binds a `GymHarness` over the env. Deprecated `hop_policy=` / `max_hops_per_step=` kwargs and the `decision_agents.HopAction` / `HopPolicy` / etc. names emit a one-shot `DeprecationWarning` for one release of grace. The `hop_select` LoRA is dropped — GRPO trains exactly two LoRAs (`skill_selection`, `action_taking`) for all 5 tasks. Tests: deleted `test_intention_dispatch.py` (4 cases) + 6 inner-MDP cases in `test_actor_agent.py`; added `test_harness.py` (32 cases across all 5 harnesses + `parse_op_call`), `test_actor_with_vr_harness.py` (5 end-to-end cases), and `test_actor_back_compat.py` (12 cases pinning the legacy entry point + the deprecation contract). 79 tests total, all passing.
+14. ✅ **Phase 8.0 — perception plumbing + VR harness rewire.** Added `decision_agents/core/perception/` sub-package: `RegionDetector` / `Segmenter` / `OCREngine` Protocols (`runtime_checkable`), `Detection` / `Segmentation` / `OCRResult` frozen dataclasses, `MockRegionDetector` / `MockSegmenter` / `MockOCR` deterministic stand-ins (no GPU / no `transformers` dep), and a per-episode LRU `EvidenceCache` keyed by `(image_hash, op, args_blob)` with hit/miss stats. `VRHarness` constructor now accepts optional `detector / segmenter / ocr / cache`; `LOOK / CROP / READ_TEXT / COUNT / SEGMENT` actually call the backends, mint `Entity` rows, and surface them on `info["schema_delta"]`; `CROP` additionally appends the cropped region as a `VisualInput` on `info["images"]`. `ActorAgent.step` gained `_merge_schema_delta` (accepts `list[Entity]` *or* `list[dict]`) which folds harness-emitted entities into the current schema *before* `_pick_action` so the next prompt sees the fresh entity. New `SEGMENT(eid)` op surfaced in `valid_actions`. The harness keeps Phase-7 backward compatibility — when no backends are bound, all ops degrade gracefully into the original scratchpad-only behaviour. Real backends (Grounding-DINO 1.5 Edge, SAM-2, PaddleOCR) are deferred to Phase 8.1 and will load lazily so `import decision_agents` stays fast. New tests: `test_perception.py` (27 cases — Protocols + Mocks + cache hit/miss/eviction + bbox geometry), `test_vr_harness_with_perception.py` (27 cases — image-byte loading, schema_delta emission per op, cache reuse, ANSWER scoring, schema-delta merge semantics including dict coercion + affords dedup). Total: 133 tests, all passing.
 
-Still open (see tables above): #5-sharedActionParser, #6, #7, #9, #10, VERIFY semantics, anti-repetition randomness. (Items #1-OptionB / #8 / `hop_select` LoRA are now obsolete — superseded by #13.)
+Still open (see tables above): #5-sharedActionParser, #6, #7, #9, #10, VERIFY semantics, anti-repetition randomness, plus H1–H4 (Browser/OSWorld `step()` implementations, video frame-cache, perception fallback for sparse a11y trees), and Phase 8.1 (real Grounding-DINO / SAM-2 / PaddleOCR backends behind lazy imports). (Items #1-OptionB / #8 / `hop_select` LoRA are now obsolete — superseded by #13.)
 
 ---
 

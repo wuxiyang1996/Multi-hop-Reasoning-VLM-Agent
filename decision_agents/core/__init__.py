@@ -39,6 +39,18 @@ from decision_agents.core.multimodal import (
     build_qwen_vl_messages,
     load_image_as_data_url,
 )
+from decision_agents.core.perception import (
+    Detection,
+    EvidenceCache,
+    MockOCR,
+    MockRegionDetector,
+    MockSegmenter,
+    OCREngine,
+    OCRResult,
+    RegionDetector,
+    Segmentation,
+    Segmenter,
+)
 
 __all__ = [
     # Multimodal scaffolding
@@ -57,4 +69,15 @@ __all__ = [
     "VR_OPS",
     "VIDEO_OPS",
     "parse_op_call",
+    # Perception (Phase 8.0)
+    "RegionDetector",
+    "Segmenter",
+    "OCREngine",
+    "MockRegionDetector",
+    "MockSegmenter",
+    "MockOCR",
+    "Detection",
+    "Segmentation",
+    "OCRResult",
+    "EvidenceCache",
 ]

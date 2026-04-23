@@ -381,6 +381,17 @@ class ActorAgent:
 
         # 1. Parse schema (Phase 2 input).
         parsed = schema or (parse_state_schema(schema_text) if schema_text else None)
+
+        # 1b. Apply any in-step schema delta produced by the previous
+        #     ``harness.step`` call (Phase 8.0).  Perception ops like
+        #     ``LOOK("close button")`` write a new entity into
+        #     ``info["schema_delta"]`` instead of having to re-emit the
+        #     full ``<state>…</state>`` text.  The merge runs *before*
+        #     ``compact_summary`` / ``_pick_action`` so the next action
+        #     prompt sees the freshly-grounded entity.
+        delta = info.get("schema_delta")
+        if delta:
+            parsed = self._merge_schema_delta(parsed, delta)
         self.state.last_schema = parsed
 
         # 2. Compact summary — either from the schema or from raw text.
@@ -503,6 +514,124 @@ class ActorAgent:
             action_kind=kind,
         )
         return decision
+
+    # ── Schema-delta merge (Phase 8.0) ───────────────────────────────
+
+    @staticmethod
+    def _merge_schema_delta(
+        schema: Optional[StateSchema],
+        delta: Any,
+    ) -> StateSchema:
+        """Merge a list of in-step entity additions/updates into ``schema``.
+
+        Called from :meth:`step` when the previous ``harness.step``
+        attached ``info["schema_delta"]``.  Two acceptable input shapes:
+
+        * ``list[Entity]`` — fully-typed entities (preferred; what
+          ``VRHarness`` produces).
+        * ``list[dict]``   — raw dicts with at least an ``eid`` key;
+          unknown keys are stashed in ``Entity.extra`` so the parser
+          contract isn't broken.  Used by lightweight harnesses that
+          don't want a hard dep on ``schema_parser``.
+
+        Merge semantics:
+
+        * **New eid** → appended to ``entities`` and ``entity_order``.
+        * **Existing eid** → fields with non-empty new values overwrite
+          the old ones; ``attributes`` and ``extra`` dicts are merged
+          (delta wins on key collision).  Lists (``affords``) are
+          de-duplicated, preserving original order then appending new
+          items.
+
+        When ``schema`` is ``None`` (no ``schema_text`` was supplied),
+        a fresh empty :class:`StateSchema` is created so callers always
+        get a usable object back.  This matters for VR / Video where
+        the actor may rely entirely on perception ops to populate the
+        entity table.
+        """
+        if not delta:
+            return schema if schema is not None else StateSchema()
+
+        out = schema if schema is not None else StateSchema()
+        for raw in delta:
+            entity = ActorAgent._coerce_entity(raw)
+            if entity is None:
+                continue
+            existing = out.entities.get(entity.eid)
+            if existing is None:
+                out.entities[entity.eid] = entity
+                if entity.eid not in out.entity_order:
+                    out.entity_order.append(entity.eid)
+                continue
+
+            # In-place field-wise merge (delta wins on non-empty).
+            for fname in ("type", "label", "ontology"):
+                new_val = getattr(entity, fname, "")
+                if new_val:
+                    setattr(existing, fname, new_val)
+            if entity.bid is not None:
+                existing.bid = entity.bid
+            if entity.pos is not None:
+                existing.pos = entity.pos
+            if entity.state is not None:
+                existing.state = entity.state
+            if entity.value is not None:
+                existing.value = entity.value
+            if entity.attributes:
+                existing.attributes.update(entity.attributes)
+            if entity.uncertainty:
+                existing.uncertainty.update(entity.uncertainty)
+            if entity.extra:
+                existing.extra.update(entity.extra)
+            if entity.affords:
+                seen = set(existing.affords)
+                for aff in entity.affords:
+                    if aff not in seen:
+                        existing.affords.append(aff)
+                        seen.add(aff)
+        return out
+
+    @staticmethod
+    def _coerce_entity(raw: Any) -> Optional[Entity]:
+        """Return a typed :class:`Entity` from either an Entity or a dict.
+
+        Returns ``None`` for malformed input (no ``eid``) — callers
+        skip such rows rather than raise so a sloppy harness never
+        crashes the actor mid-rollout.
+        """
+        if isinstance(raw, Entity):
+            return raw
+        if not isinstance(raw, dict):
+            return None
+        eid = raw.get("eid")
+        if not isinstance(eid, str) or not eid:
+            return None
+
+        # Pull the fields the parser knows about; rest go to ``extra``.
+        known = {
+            "eid", "type", "label", "bid", "pos", "ontology",
+            "state", "value", "attributes", "affords", "uncertainty",
+            "extra",
+        }
+        extra = dict(raw.get("extra") or {})
+        for k, v in raw.items():
+            if k not in known:
+                extra[k] = v
+
+        return Entity(
+            eid=eid,
+            type=str(raw.get("type", "") or ""),
+            label=str(raw.get("label", "") or ""),
+            bid=raw.get("bid"),
+            pos=tuple(raw["pos"]) if raw.get("pos") is not None else None,  # type: ignore[arg-type]
+            ontology=str(raw.get("ontology", "") or ""),
+            extra=extra,
+            state=raw.get("state"),
+            value=raw.get("value"),
+            attributes=dict(raw.get("attributes") or {}),
+            affords=list(raw.get("affords") or []),
+            uncertainty=dict(raw.get("uncertainty") or {}),
+        )
 
     # ── Update after env.step ────────────────────────────────────────
 
