@@ -224,6 +224,242 @@ relearn.
 
 ---
 
+## Honest assessment — does this actually do multi-hop reasoning?
+
+The MDP shape and the seams are right. The hop *bodies* are not. Today
+`VRHarness.step(LOOK(...))` performs a dict write
+(`scratchpad.grounded_slots[slot] = "observed"`); it does not call a
+detector or a segmenter and it does not return new pixels into the
+next prompt. The same is true for `CROP / READ_TEXT / COUNT / COMPARE`.
+Concretely:
+
+| Op (today) | What `step` does | New visual evidence in `obs_{t+1}`? |
+|---|---|---|
+| `LOOK(slot)` / `CROP(arg)` / `READ_TEXT(arg)` | `scratchpad.grounded_slots[slot] = "observed"` | **No** |
+| `COUNT(arg)` / `COMPARE(arg)` | `scratchpad.notes.append(f"{op}({arg})")` (echoes the action back) | **No** |
+| `RETRIEVE(query)` | `EpisodicMemoryStore.query(query, k=3)` | Only if the store was pre-populated; for a fresh VR episode it's empty |
+| `NOTE(text)` | `scratchpad.notes.append(text)` | **No** — records the LLM's own text |
+| `ANSWER(text)` | exact-match against `gold_answer` for `r=+1` | n/a (terminal) |
+| `NEXT_FRAME / JUMP(t)` (video) | advances an integer cursor | **No** — the next prompt still sees the clip the caller passed in |
+
+So at 8 hops × 1 LLM call per hop, you're paying 8× inference for one
+chain-of-thought pass — that's CoT in MDP clothing, not multi-hop
+reasoning in the sense the QA literature uses it. We document this
+plainly so we don't fool ourselves with the framing.
+
+**What's right** (so the next mile is short): one hop = one MDP step
+(credit can attach per hop), the scratchpad is the only mutable state
+(perfect anchor for tool-output caching), `harness.step` is the single
+chokepoint (swapping the body for real tool calls doesn't touch
+`ActorAgent`, the LoRA, or the prompt builder), `action_kind → cost`
+plumbing already exists (real tools cost real reward), and
+`bind_actor` already wires tool outputs onto the actor's scratchpad.
+
+**Four concrete pieces still missing** to make hops carry real
+evidence:
+
+1. **`harness.step` must call real vision tools and feed bytes back.**
+   `LOOK("red cup")` should run an open-vocab detector
+   (Grounding-DINO 1.5 Edge), crop, and append the cropped image to
+   the next prompt's `images=[…]`; `READ_TEXT(bbox)` should run OCR;
+   `COUNT(class)` should run a detector and return an integer;
+   `COMPARE(a,b,attr)` should compute on cached attributes. The
+   `vlm_wrapper/` tool-calling scaffold is ready — it isn't wired in.
+2. **The schema must grow per hop, not be frozen at episode start.**
+   After `LOOK`, the new entity (with `bbox` + attrs from the tool)
+   should be appended so step `t+1`'s prompt can reference it by `e_42`.
+   Today the schema is parsed once; the LLM has to redo grounding
+   from words on every call.
+3. **Hop-credit reward shaping.** Today only `ANSWER` produces
+   `r_env`; costs are flat negatives. GRPO will mostly learn "answer
+   fast". Partial credit on intermediate hops (`+0.2` when `LOOK`'s
+   bbox IoU with the gold-region > 0.5; `+0.2` when `RETRIEVE`
+   returns the gold passage in top-3; `+0.1` for a connected
+   evidence chain) is needed for the LoRA to actually learn the hop
+   policy. GQA / CLEVR / ScienceQA-IMG / NExT-QA all ship the
+   region/event-level annotations to supervise this.
+4. **Video-specific: a frame backbone.** Pre-computed per-frame
+   embeddings (CLIP / SigLIP / InternVideo) cached in the harness so
+   `JUMP(t)` actually swaps the rendered image, `WINDOW(t1,t2)`
+   returns sub-sampled keyframes, and `TRACK(eid)` runs SAM-Track /
+   DEVA between frames. Without this, video understanding degrades
+   to "show all frames, run CoT, answer".
+
+Items #1–#2 are entirely inside `core/harness_vr.py` and
+`core/harness_video.py` — no actor / LoRA / GRPO churn. #3 is one new
+field on `RewardComputer.compute_reward`. #4 is a frame-cache class.
+
+### Proposed extended tool catalog (Phase 8)
+
+To make multi-hop genuinely earn its name, we group tools into three
+roles. Each row is a candidate harness op; each carries the backing
+model, side-effect on the scratchpad / schema, the action kind for
+cost lookup, and where it applies (VR / Video / both). "Status"
+shows whether the op exists today (✅), is a stub (🟡), or is a
+proposed addition (⬜).
+
+#### A. Perception — turn pixels into structured evidence
+
+These ops produce **new bytes** (crops, masks, OCR strings, depth,
+pose) and append a typed `Entity` to the schema. They are the
+foundation: every other tool consumes their output.
+
+| Op | Backing model | Returns | Schema side effect | `action_kind` | Status |
+|----|---------------|---------|--------------------|---------------|--------|
+| `LOOK(text)` / `REFER(text)` | Grounding-DINO 1.5 Edge (open weights, Apache-2.0) — early text↔image fusion handles referring expressions; OWLv2 fallback for low-resource | `{bbox, conf}` | adds `Entity(kind="region", bbox=…, parent="image")` | `vr_look` | 🟡 stub |
+| `CROP(bbox)` | pillow / torchvision | `image_crop` | appends crop to `obs_{t+1}.images`; logs `Entity(kind="crop", parent_bbox=…)` | `vr_look` | 🟡 stub |
+| `SEGMENT(target)` | SAM-2 / SEEM | pixel mask + bbox | `Entity(kind="mask", area_px=…, mask_id=…)` | `vr_look` | ⬜ |
+| `READ_TEXT(bbox)` | PaddleOCR / TrOCR | text + per-char conf | `Entity.attrs["text"] = …` | `vr_look` | 🟡 stub |
+| `DEPTH(bbox\|point)` | Depth-Anything-V2 | scalar depth | `Entity.attrs["depth_m"] = …` | `vr_look` | ⬜ |
+| `POSE(person_id)` | ViTPose / HMR2 | 17 kpts (2D) / SMPL (3D) | `Entity.attrs["pose_kpts"] = …` | `vr_look` | ⬜ |
+| `GAZE(person_id)` | Gaze360 / MCGaze | 3D gaze vector | `Entity.attrs["gaze_dir"] = …` | `vr_look` | ⬜ |
+| `ATTRIBUTES(bbox)` | CLIP / SigLIP zero-shot | `{color, material, texture, …}` dict | merges into `Entity.attrs` | `vr_look` | ⬜ |
+| `CLASSIFY(bbox, taxonomy)` | CLIP / fine-grained head | top-k labels + probs | `Entity.attrs["class_topk"] = …` | `vr_look` | ⬜ |
+| `COUNT(class, region)` | Grounding-DINO 1.5 Edge + class-agnostic NMS | integer | `Entity(kind="count", value=N, scope=region)` | `vr_look` | 🟡 stub |
+| `READ_CHART(bbox)` | DePlot / ChartQA-VLM | structured table (CSV-ish) | `Entity(kind="chart", table=…)` | `vr_look` | ⬜ |
+| `MEASURE(bbox_a, bbox_b)` | pure geometry (cached bboxes) | `{px_dist, ratio_h, ratio_w, IoU}` | `Entity(kind="measurement", …)` | `vr_look` | ⬜ |
+| `OPTICAL_FLOW(t1, t2)` | RAFT / SEA-RAFT | dense flow tensor (downsampled) | `Entity(kind="flow", t1, t2, magnitude)` | `video_focus` | ⬜ video |
+
+Design rules: every perception op writes a typed entity into the
+schema with a stable `eid`, so subsequent ops (and the LLM) can refer
+to it by name; raw tensors are kept in the harness's per-episode
+`_evidence_cache` keyed by `eid` and only the lightweight summary
+(bbox, conf, attrs) goes into the prompt.
+
+#### B. Evidence finding — locate, retrieve, compare cached evidence
+
+These ops never touch raw pixels themselves; they query what the
+perception ops already cached, retrieve external knowledge, or check
+similarity / coreference.
+
+| Op | Backend | Returns | Side effect | `action_kind` | Status |
+|----|---------|---------|-------------|---------------|--------|
+| `RETRIEVE(query)` | `EpisodicMemoryStore` (cosine + keyword) | top-k memory rows | `scratchpad.memory_hits ←` | `vr_retrieve` | ✅ |
+| `MATCH(eid_a, eid_b)` | SigLIP cos-sim on cached crops | similarity ∈ [0,1] | note + `Entity.attrs["match_with"]` | `vr_retrieve` | ⬜ |
+| `KB_LOOKUP(entity, attr)` | Wikidata SPARQL / Wikipedia RAG | structured fact | `Entity.attrs[attr] = value, source=…` | `vr_retrieve` | ⬜ |
+| `SEARCH_WEB(query)` | Tavily / SerpAPI | top-k snippets | `scratchpad.memory_hits ←` (with `source=web`) | `vr_retrieve` | ⬜ |
+| `LOCATE(scene_text)` | CLIP-text → region heatmap argmax | bbox or `None` | `Entity(kind="region")` | `vr_look` | ⬜ |
+| `COREF(question_phrase)` | sentence-transformer over schema entities | `eid` or `None` | `scratchpad.coref[phrase] = eid` | `vr_retrieve` | ⬜ |
+| `COMPARE(eid_a, eid_b, attr)` | symbolic over cached attrs | `>`, `<`, `==`, `unknown` | `Entity(kind="comparison", outcome=…)` | `vr_look` | 🟡 stub |
+| `RECALL_FRAME(t)` | scratchpad temporal index | rerenders frame `t` | re-attaches frame to `obs_{t+1}.images` | `video_focus` | ⬜ video |
+| `FIND_EVENT(predicate)` | Moment-DETR / UniVTG | `(t_start, t_end)` | `Entity(kind="event", span=…)` | `video_jump` | ⬜ video |
+
+Design rules: every retrieval op writes a *traceable* evidence row
+(`{source, query, hit, conf}`) so reward shaping can credit the right
+hop and post-hoc analysis can show provenance for each ANSWER.
+
+#### C. Reasoning-inspire — compose, verify, gate the answer
+
+These ops manipulate evidence rather than acquire it. They are what
+turns a pile of detected entities into a defensible answer chain.
+
+| Op | What it does | Side effect | `action_kind` | Status |
+|----|--------------|-------------|---------------|--------|
+| `NOTE(text)` | append free-form claim | `scratchpad.notes ←` | `vr_note` | ✅ |
+| `PLAN(subgoal)` | decompose remaining hops into a checklist | `scratchpad.plan = [step, …]`; `tracker` consumes for skill alignment | `vr_note` | ⬜ |
+| `HYPOTHESIZE(prop)` | post a candidate answer for testing | `scratchpad.hypotheses.append({prop, status="open"})` | `vr_note` | ⬜ |
+| `VERIFY(prop)` | check `prop` against scratchpad evidence (NLI / symbolic) | flips hypothesis status to `confirmed / refuted / undetermined` | `vr_note` | ⬜ |
+| `CONTRAST(eid_a, eid_b)` | enumerate diffs from cached attrs | `scratchpad.notes ←` "diff: color, size" | `vr_note` | ⬜ |
+| `EXPLAIN()` | generate justification chain from notes + grounded slots | `scratchpad.justification ←` | `vr_note` | ⬜ |
+| `COMPUTE(expr)` | sandboxed Python `eval` for arithmetic / IoU / area | result note; `Entity(kind="computed", value=…)` | `vr_note` | ⬜ |
+| `BACKTRACK(k)` | undo last `k` notes / hypotheses (when `VERIFY` rejects) | rolls back scratchpad slice | `vr_note` | ⬜ |
+| `CONFIDENCE_GATE(τ)` | refuse `ANSWER` until mean(grounded conf) ≥ τ | sets `scratchpad.gate_open = bool` | `vr_note` | ⬜ |
+| `CAUSAL(event_a, event_b)` | infer "before/after/causes" between two grounded events | note with relation tag | `vr_note` | ⬜ video |
+| `TIMELINE()` | sort grounded events by frame index | `scratchpad.timeline = [(t, eid), …]` | `vr_note` | ⬜ video |
+| `SUMMARIZE_WINDOW(t1,t2)` | one-line caption per window from cached frames | `Entity(kind="window_summary", span, text)` | `video_focus` | ⬜ video |
+| `EVENT_SEGMENT()` | divide clip into events (Mask2Former-VOS / TAL) | `Entity(kind="event", span)` × N | `video_jump` | ⬜ video |
+| `TRACK(eid)` | SAM-Track / DEVA across frames | `Entity.attrs["trajectory"] = [(t, bbox), …]` | `video_track` | 🟡 stub |
+| `BEFORE / AFTER(event_eid)` | grab frame immediately before/after a grounded event | re-attaches frame to `obs_{t+1}.images` | `video_focus` | ⬜ video |
+
+Design rules: reasoning ops never produce new pixels — they
+**combine** existing evidence. `VERIFY` and `CONFIDENCE_GATE` are
+what turn the agent from "answer when token budget runs out" into
+"answer when the evidence supports it".
+
+#### Credit-assignment hooks per role
+
+Each role aligns naturally with one reward signal:
+
+| Role | Reward shaping signal | Where to wire it |
+|------|----------------------|------------------|
+| **Perception** | IoU(bbox, gold_region) > τ → `+δ_perceive` | `RewardComputer.compute_reward(perception_iou=…)` |
+| **Evidence** | `gold_passage ∈ retrieved_topk` → `+δ_retrieve` | `RewardComputer.compute_reward(retrieval_hit=bool)` |
+| **Reasoning** | `VERIFY` confirms before `ANSWER`, OR `EXPLAIN` chain covers all gold predicates → `+δ_reason` | `RewardComputer.compute_reward(verified=bool, chain_coverage=float)` |
+| **Terminal** | exact / fuzzy match on `ANSWER(text)` → `r_env=+1` | unchanged |
+
+The four signals are independent so GRPO can credit each hop
+separately. Without per-role signals, the LoRA only ever sees the
+terminal reward and falls back to "skip the hops, answer fast".
+
+#### What stays universal vs what specialises
+
+Even with this expanded catalog, **only the harness changes per task
+family**. `ActorAgent`, the schema parser, the skill tracker, the
+prompt builder, the action parser, the SFT recorder, the GRPO
+rollout logger, the two LoRAs — all stay byte-identical. The
+`Harness` protocol absorbs the entire perception/evidence/reasoning
+expansion via:
+
+- `harness.valid_actions(state)` — enumerates the per-task subset of
+  the catalog above (e.g. `BrowserHarness` won't expose `DEPTH`).
+- `harness.step(action)` — owns the tool calls + cache + schema
+  augmentation.
+- `harness.action_kind(action)` — maps every new op to one of the
+  existing `vr_look / vr_retrieve / vr_note / vr_answer / video_*`
+  cost buckets so `RewardConfig` doesn't need an entry per tool.
+
+So Phase 8 is bounded: ~600 LOC of harness extensions + a frame-cache
+class + 3 new optional fields on `RewardComputer`. Everything else
+already exists.
+
+### Design choice — VR / Video are the weak leg by construction
+
+This project optimises for **best-unified-agent across five task
+families**, not for best-on-any-one-benchmark. The Harness contract
+fits perception–action loops with mutable worlds (game / web / OS)
+naturally; it fits narrative inference (VR / video) only loosely.
+Rather than fork the architecture per task family — which would buy
+points on one benchmark at the cost of the unification thesis — we
+accept VR / video as the **weakest of the five legs by design**.
+
+Concretely:
+
+- VR / Video keep first-class harness support and the full action
+  vocabularies; they prove the unified contract works for read-only
+  worlds.
+- They get the **cross-cutting** perception ops
+  (`LOOK / READ_TEXT / SEGMENT / CROP`) when those land — those four
+  also serve OS / web / game grounding so they earn their cost on
+  every leg, not just two.
+- They **do not** get the Video-Holmes-tuned additions (audio
+  modality, person Re-ID, action recognition, camera-language ops,
+  abduction / induction / counterfactual). Those would let a
+  specialist climb the Video-Holmes leaderboard but would not
+  generalise to the other four legs, so they're out of scope here.
+- We measure VR / Video against a small smoke-test slice (~200
+  questions per benchmark — GQA / NExT-QA / Video-Holmes), not the
+  full leaderboards. The bar is **"within 5pts of the same backbone
+  in fat-context mode"** — i.e. prove the harness overhead doesn't
+  actively hurt — not "top the board".
+
+The full perception / evidence / reasoning catalog above stays in
+this README as a documented frontier for whoever wants to build a
+video-specialist fork. It is explicitly **not** on this project's
+build path. Phase 8 ships the four cross-cutting perception ops and
+stops there.
+
+#### Primary scorecards (where we actually claim numbers)
+
+| Leg | Primary benchmark | Bar |
+|-----|-------------------|-----|
+| Game | LMGame-Bench (2048 / Tetris / Candy Crush), AgentEvolver (Avalon / Diplomacy), Orak (Mario) | Match Qwen3-8B baseline at lower inference cost |
+| Web | WebArena / VisualWebArena / BrowserGym MiniWoB++ | Match GPT-4o-Web on a multi-step subset |
+| OS | OSWorld (subset) | Beat Qwen2.5-VL baseline; match GPT-4o-OS on common workflows |
+| VR (smoke) | GQA / CLEVR (~500 q) | Within 5pts of Qwen3-VL-8B fat-context on the same questions |
+| Video (smoke) | NExT-QA / Video-Holmes (~200 q each) | Within 5pts of fat-context — *not* leaderboard-chasing |
+
+---
+
 ## ActorAgent — schema-native decision agent
 
 `ActorAgent` implements §1 of `PLAN-ACTION-AGENT.md` end-to-end:
