@@ -4,10 +4,10 @@
 Drives one or more Gym-V environments for a fixed number of steps each,
 captures the rendered frame plus the text observation, and produces:
 
-1. The **heuristic schema** via ``vlm_wrapper.gymv_heuristic.text_to_schema``
+1. The **heuristic schema** via ``gymv_wrapper.heuristic.text_to_schema``
    — the cheap, deterministic parse of ``obs.text`` + ``env.description``.
 2. The **GPT-4o vision schema** via
-   ``vlm_wrapper.gymv_adapter.generate_label`` — the slow, expensive
+   ``gymv_wrapper.adapter.generate_label`` — the slow, expensive
    teacher that grounds purely from pixels.
 
 Both schemas are stored alongside the saved frame so cross-validation
@@ -50,7 +50,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from vlm_wrapper.gymv_heuristic import text_to_schema  # noqa: E402
+from gymv_wrapper.heuristic import text_to_schema  # noqa: E402
 
 
 # ----------------------------------------------------------------------
@@ -181,7 +181,7 @@ def collect_one_episode(
             t0 = time.time()
             if not skip_vision:
                 try:
-                    from vlm_wrapper.gymv_adapter import generate_label
+                    from gymv_wrapper.adapter import generate_label
                     out = generate_label(
                         image=image,
                         goal="",

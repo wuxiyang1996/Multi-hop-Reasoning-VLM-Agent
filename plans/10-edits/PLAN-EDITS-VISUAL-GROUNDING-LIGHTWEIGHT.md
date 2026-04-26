@@ -211,7 +211,7 @@ These diagnostics are computed offline on held-out slices and are not gated by; 
 
 The following are the actual gaps in visual grounding. The list is deliberately **not** "GRPO training is missing", because GRPO training is intentionally out of scope.
 
-1. **Benchmark loaders** — unified loaders for the benchmark slices already named in [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) (CLEVR / GQA / SIV-Bench / Video-Holmes plus Gym-V / BrowserGym / OSWorld paired data).
+1. **Benchmark loaders** — unified loaders for the benchmark slices already named in [PLAN-VISUAL-GROUNDING.md](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md) (VisualToolBench / TIR-Bench / SIV-Bench / Video-Holmes plus Gym-V / BrowserGym / OSWorld paired data).
 2. **`schema_gen` training pipeline** — SFT / distillation pipeline driven by frozen-teacher labels, with a hard-case relabeling lane.
 3. **Grounding evaluation harness** — small, downstream-oriented eval (the four core metrics in §8) plus the offline diagnostics appendix.
 4. **Grounding output contract** — `GroundingRecord` (§4) implemented and adopted by all downstream consumers.

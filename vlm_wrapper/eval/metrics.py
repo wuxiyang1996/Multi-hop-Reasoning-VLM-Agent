@@ -8,7 +8,7 @@ these into per-sample reports and an aggregated ``EvalMetrics``.
 
 All metrics are 0–1 floats unless noted; "n_*" fields are absolute
 counts so the harness can compute weighted averages over heterogeneous
-benchmarks (CLEVR + GQA + Video-Holmes + …).
+benchmarks (VisualToolBench + TIR-Bench + Video-Holmes + …).
 """
 
 from __future__ import annotations
@@ -448,7 +448,7 @@ def compute_tool_precision(
 
     The oracle is the set of tools the heuristic / scene-graph adapter
     decided would have been needed to derive the gold schema (e.g. for
-    a CLEVR question with 3 spheres the oracle includes ``count_objects``).
+    an image-QA item with 3 spheres the oracle includes ``count_objects``).
     Returns ``(None, None)`` when no oracle is provided.
     """
     if oracle_needed_tools is None:

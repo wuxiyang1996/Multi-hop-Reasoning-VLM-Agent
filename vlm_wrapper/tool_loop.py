@@ -18,7 +18,7 @@ to emit the right tool calls.
 Usage::
 
     from vlm_wrapper.tool_loop import run_tool_loop
-    from vlm_wrapper.tools_gymv import build_gymv_registry
+    from gymv_wrapper.tools import build_gymv_registry
 
     registry = build_gymv_registry(obs_text=obs.text, description=env.description)
     result = run_tool_loop(
@@ -516,7 +516,7 @@ def gymv_generate_label_with_tools(
     Builds the gymv registry from obs_text/description, then runs the
     multi-turn tool loop.
     """
-    from .tools_gymv import build_gymv_registry
+    from gymv_wrapper.tools import build_gymv_registry
     registry = build_gymv_registry(obs_text=obs_text, description=description, step=step)
 
     extra_parts = []
@@ -620,7 +620,7 @@ def video_generate_label_with_tools(
     query other frames to build multi-hop understanding.
     """
     import numpy as np
-    from .tools_video import build_video_registry
+    from .visual_reasoning_wrapper.tools_video import build_video_registry
 
     registry = build_video_registry(frames=frames, fps=fps, current_index=current_index)
 
@@ -671,7 +671,7 @@ def visual_generate_label_with_tools(
     vision models before producing the final schema.
     """
     import numpy as np
-    from .tools_visual import build_visual_registry
+    from .visual_reasoning_wrapper.tools_visual import build_visual_registry
 
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
@@ -718,7 +718,7 @@ def video_visual_generate_label_with_tools(
     reason spatially, all via tool calling.
     """
     import numpy as np
-    from .tools_video_visual import build_video_visual_registry
+    from .visual_reasoning_wrapper.tools_video_visual import build_video_visual_registry
 
     registry = build_video_visual_registry(
         frames=frames, fps=fps, current_index=current_index,

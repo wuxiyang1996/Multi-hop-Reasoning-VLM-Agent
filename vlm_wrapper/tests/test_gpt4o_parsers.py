@@ -86,7 +86,7 @@ def _assert_valid_schema(schema: str | None, case: str) -> None:
 # ======================================================================
 
 def test_offline_gymv_adapter_import() -> None:
-    from vlm_wrapper.gymv_adapter import generate_label
+    from gymv_wrapper.adapter import generate_label
     assert callable(generate_label)
 
 
@@ -100,20 +100,25 @@ def test_offline_osworld_adapter_import() -> None:
     assert callable(generate_label)
 
 
-def test_offline_clevr_loader_yields_samples() -> None:
-    from vlm_wrapper.benchmarks.clevr import iter_clevr_samples, CLEVRSample
+def test_offline_tir_bench_loader_yields_samples() -> None:
+    pytest.importorskip("datasets")
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+        TIRBenchSample,
+        iter_tir_bench_samples,
+    )
 
-    samples = list(iter_clevr_samples(split="val", limit=2))
-    assert len(samples) == 2
-    for s in samples:
-        assert isinstance(s, CLEVRSample)
-        assert s.question and s.image_filename
-        assert s.image_path and s.image_path.exists(), (
-            f"CLEVR image missing on disk: {s.image_path}")
+    try:
+        samples = list(iter_tir_bench_samples(split="test", limit=1))
+    except Exception as exc:
+        pytest.skip(f"TIR-Bench HF load skipped: {exc}")
+    assert samples
+    s = samples[0]
+    assert isinstance(s, TIRBenchSample)
+    assert s.prompt and s.sample_id
 
 
 def test_offline_video_holmes_loader_yields_samples() -> None:
-    from vlm_wrapper.benchmarks.video_holmes import (
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, VideoHolmesSample,
     )
 
@@ -141,7 +146,7 @@ def test_offline_synthesizers_produce_rgb_images() -> None:
 @live
 @needs_api
 def test_live_gymv_schema() -> None:
-    from vlm_wrapper.gymv_adapter import generate_label
+    from gymv_wrapper.adapter import generate_label
 
     image = _synthesize_2048_board()
     result = generate_label(
@@ -369,30 +374,35 @@ def test_live_gymv_tool_loop_schema() -> None:
 
 @live
 @needs_api
-def test_live_clevr_schema() -> None:
-    from vlm_wrapper.benchmarks.clevr import (
-        iter_clevr_samples, parse_clevr_sample,
+def test_live_tir_bench_schema() -> None:
+    pytest.importorskip("datasets")
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+        iter_tir_bench_samples,
+        parse_tir_bench_sample,
     )
 
-    sample = next(iter_clevr_samples(split="val", limit=1))
-    out = parse_clevr_sample(
+    try:
+        sample = next(iter_tir_bench_samples(split="test", limit=1))
+    except Exception as exc:
+        pytest.skip(f"TIR-Bench HF load skipped: {exc}")
+    out = parse_tir_bench_sample(
         sample,
         model=MODEL,
         api_key=API_KEY,
         max_entities=10,
-        max_rounds=2,
+        max_rounds=4,
     )
     schema = out.get("schema")
-    _assert_valid_schema(schema, "clevr")
-    assert "<answer>" in schema, "CLEVR schema must contain <answer>"
-    assert out.get("answer"), "CLEVR parser returned empty answer"
-    _save_schema("clevr", schema)
+    _assert_valid_schema(schema, "tir_bench")
+    assert "<answer>" in schema, "TIR-Bench schema must contain <answer>"
+    assert out.get("answer"), "TIR-Bench parser returned empty answer"
+    _save_schema("tir_bench", schema)
 
 
 @live
 @needs_api
 def test_live_video_holmes_schema() -> None:
-    from vlm_wrapper.benchmarks.video_holmes import (
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_sample,
     )
 

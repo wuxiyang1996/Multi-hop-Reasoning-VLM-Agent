@@ -1,6 +1,6 @@
 # Installation Guide
 
-> **Visual-grounding benchmarks (BrowserGym, OSWorld, CLEVR, Video-Holmes):**
+> **Visual-grounding benchmarks (BrowserGym, OSWorld, VisualToolBench, TIR-Bench, Video-Holmes):**
 > see [`INSTALL_BENCHMARKS.md`](INSTALL_BENCHMARKS.md). This file covers the
 > training / actor / skill-bank stack only.
 
@@ -240,7 +240,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 install/
 ├── README.md                       # This file (training / actor stack)
-├── INSTALL_BENCHMARKS.md           # Visual-grounding benchmarks (BrowserGym, OSWorld, CLEVR, Video-Holmes)
+├── INSTALL_BENCHMARKS.md           # Visual-grounding benchmarks (BrowserGym, OSWorld, VTB, TIR-Bench, Video-Holmes)
 ├── install_main_env.sh             # Main environment installer
 ├── install_orak_mario.sh           # Super Mario environment installer
 ├── requirements.txt                # Main env pip dependencies

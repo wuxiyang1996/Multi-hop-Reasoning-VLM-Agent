@@ -2,7 +2,7 @@
 
 **Scope:** VLM visual parser — pixels → structured `<state>` schema — across games, browser, desktop, images, and video. Includes grounding heads, observation schema, adapters, training pipeline, benchmark evaluation, and multi-hop tool-calling reasoning.
 
-**Upstream:** Raw observations from three interactive runtimes — [Gym-V](https://github.com/ModalMinds/gym-v) (179 procedurally-generated visual environments with a Gymnasium-compatible API, across single-turn reasoning / multi-turn games / spatial navigation / retro arcade), [BrowserGym](https://github.com/ServiceNow/BrowserGym) (MiniWoB++ / WebArena / VisualWebArena / AssistantBench), [OSWorld](https://github.com/xlang-ai/OSWorld) (desktop tasks over Office/Daily/Professional suites) — plus two offline image/video benchmarks (CLEVR / Video-Holmes). Each runtime is installed in its own conda env because of hard-pinned dependency conflicts (gymnasium 1.2+ for Gym-V vs 0.28 for OSWorld, transformers 4.35 for OSWorld vs 4.51+ for the grounding pipeline); see [`install/INSTALL_BENCHMARKS.md`](../../install/INSTALL_BENCHMARKS.md).
+**Upstream:** Raw observations from three interactive runtimes — [Gym-V](https://github.com/ModalMinds/gym-v) (179 procedurally-generated visual environments with a Gymnasium-compatible API, across single-turn reasoning / multi-turn games / spatial navigation / retro arcade), [BrowserGym](https://github.com/ServiceNow/BrowserGym) (MiniWoB++ / WebArena / VisualWebArena / AssistantBench), [OSWorld](https://github.com/xlang-ai/OSWorld) (desktop tasks over Office/Daily/Professional suites) — plus image benchmarks on HuggingFace (**VisualToolBench**, **TIR-Bench**) and local video benchmarks (**Video-Holmes**, **SIV-Bench**). Each runtime is installed in its own conda env because of hard-pinned dependency conflicts (gymnasium 1.2+ for Gym-V vs 0.28 for OSWorld, transformers 4.35 for OSWorld vs 4.51+ for the grounding pipeline); see [`install/INSTALL_BENCHMARKS.md`](../../install/INSTALL_BENCHMARKS.md).
 **Downstream:** [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) consumes the structured schema; [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) uses schemas for contract learning and retrieval.
 
 ---
@@ -287,7 +287,7 @@ For each episode step in {Gym-V, BrowserGym}:
 2. **Validate with heuristic head** — for every GPT-4o label, run the heuristic head on the same observation. Flag disagreements to catch GPT-4o hallucinations before they enter training data.
 3. **Add tool-use training** — after basic SFT, add a second stage where the model learns to emit tool calls for position queries and relation checks.
 4. **Browser: MiniWoB++ → WebArena** — simple pages first, validate schema and entity prioritization, then scale to complex real-web pages. Use API escalation for the hard tail during data collection.
-5. **Benchmark evaluation** — CLEVR, GQA (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning skills, not tool orchestration.
+5. **Benchmark evaluation** — VisualToolBench, TIR-Bench (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning + tool use, not passive VQA alone.
 6. **Expected data budget:** ~3-5K labeled examples per domain. At ~$0.01/example with GPT-4o, that's $30-50 per domain.
 
 ### Can Qwen3-VL-8B learn this task?
@@ -343,7 +343,7 @@ Each hop forces explicit grounding with source attribution. Hallucination failur
 | Backend | Model | Detects | Best for | Tool |
 |---------|-------|---------|----------|------|
 | OmniParser-v2 | YOLO + Florence-2 + OCR | UI elements: buttons, icons, text fields, menus | GUI screenshots (games, browser, desktop) | `detect_objects` |
-| GroundingDINO | `IDEA-Research/grounding-dino-base` | Arbitrary objects from text query | Natural images (CLEVR, GQA, photos, video frames) | `grounded_detect` |
+| GroundingDINO | `IDEA-Research/grounding-dino-base` | Arbitrary objects from text query | Natural images (VTB, TIR-Bench, photos, video frames) | `grounded_detect` |
 
 **`detect_objects`** runs OmniParser by default (GUI domains) or GroundingDINO (natural-image domains, controlled by `prefer_gdino` flag — set automatically by `ground()` based on domain).
 
@@ -408,30 +408,24 @@ The 4 remaining benchmarks were chosen because every skill they test maps direct
 
 | Visual reasoning skill | Learned from | Transfers to |
 |------------------------|-------------|-------------|
-| Entity grounding (find things in pixels) | CLEVR (shapes), GQA (real objects) | Game tiles, browser buttons, desktop icons |
-| Spatial reasoning (left-of, above, between, contains) | CLEVR (compositional programs), GQA (scene graphs) | Game board layouts, web page structure, OS window arrangement |
-| Attribute recognition (color, material, state, value) | GQA (attributes per entity) | Element state (disabled, checked, focused), tile values, score displays |
-| Relation identification (blocks, contains, adjacent) | GQA (scene-graph relations), CLEVR (functional programs) | Same relation verbs in `<state>` schema across all domains |
+| Entity grounding (find things in pixels) | TIR-Bench tasks, VTB crops | Game tiles, browser buttons, desktop icons |
+| Spatial reasoning (left-of, above, between, contains) | TIR spatial / math / jigsaw families | Game board layouts, web page structure, OS window arrangement |
+| Attribute recognition (color, material, state, value) | VTB + TIR attribute probes | Element state (disabled, checked, focused), tile values, score displays |
+| Relation identification (blocks, contains, adjacent) | TIR compositional items | Same relation verbs in `<state>` schema across all domains |
 | Temporal entity tracking (track across frames) | SIV-Bench (people across video clips) | Game replays, browser session recordings, OS task execution |
 | Multi-hop evidence chaining (clue → clue → answer) | Video-Holmes (suspense film reasoning) | Multi-step task decomposition, skill-bank retrieval chains |
 
-**The `<state>` schema is the transfer mechanism.**  If the VLM learns to produce correct entities/relations/evidence from CLEVR, that same skill produces correct entities/relations/evidence from browser screenshots — because the schema is identical.
+**The `<state>` schema is the transfer mechanism.**  If the VLM learns to produce correct entities/relations/evidence from TIR-Bench / VisualToolBench, that same skill produces correct entities/relations/evidence from browser screenshots — because the schema is identical.
 
 ### Image-based
 
-**CLEVR** — Synthetic, compositional visual reasoning with functional programs.
-- Skills trained: entity grounding, spatial reasoning, attribute filtering, counting, compositional logic.
-- Why transferable: the compositional structure (detect → filter → relate → count) is the same multi-hop chain used in game and web grounding.
-- Download: https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip
-- Official page: https://cs.stanford.edu/people/jcjohns/clevr/
+**VisualToolBench** — Tool-enabled perception, transformation, and reasoning (arXiv:2510.12712). HuggingFace `ScaleAI/VisualToolBench`.
+- Skills trained: when to crop/zoom, chain detectors with edits, answer under rubric-style constraints.
+- Dataset card: https://huggingface.co/datasets/ScaleAI/VisualToolBench
 
-**GQA** — Real-image visual reasoning with scene graphs, structured question semantics.
-- Skills trained: entity grounding on real images, attribute recognition, relation identification, scene-graph traversal.
-- Why transferable: real-world entities and relations → bridges from synthetic (CLEVR) to the visual complexity of browser pages and desktop screenshots.
-- Scene graphs: https://downloads.cs.stanford.edu/nlp/data/gqa/sceneGraphs.zip
-- Questions: https://downloads.cs.stanford.edu/nlp/data/gqa/questions1.2.zip
-- Images: https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip
-- Official page: https://cs.stanford.edu/people/dorarad/gqa/download.html
+**TIR-Bench** — Thirteen thinking-with-images task families (arXiv:2511.01833). HuggingFace `Agents-X/TIR-Bench`.
+- Skills trained: spatial, symbolic, OCR, jigsaw, contrast, and other agentic image manipulations.
+- Dataset card: https://huggingface.co/datasets/Agents-X/TIR-Bench
 
 ### Video-based
 
@@ -464,8 +458,8 @@ All benchmarks use the unified `ground()` entry point.  Image benchmarks auto-se
 
 | Benchmark | Modality | `ground()` domain | Detection backend | Multi-hop tool chain |
 |-----------|:--------:|:-----------------:|:-----------------:|----------------------|
-| CLEVR | Image | `"image_qa"` | GroundingDINO | `grounded_detect` → `spatial_query` → `count_objects` → `extract_colors` |
-| GQA | Image | `"image_qa"` | GroundingDINO | `grounded_detect` → `spatial_query` → `describe_region` + gold scene-graph IoU eval |
+| VisualToolBench | Image | `"image_qa"` | GroundingDINO + tools | `zoom_region` / `grounded_detect` / `describe_region` chains (rubric gold) |
+| TIR-Bench | Image | `"image_qa"` | GroundingDINO | `grounded_detect` → `spatial_query` → task-specific tools |
 | SIV-Bench | Video | `"video_qa"` | GroundingDINO | `grounded_detect` → `track_object` → `find_moment` → `detect_activity` |
 | Video-Holmes | Video | `"video_qa"` | GroundingDINO | `detect_scene_changes` → `grounded_detect` → `track_object` → `describe_region` |
 
@@ -554,7 +548,7 @@ When `SkillQueryEngine.select()` computes applicability, it checks whether the s
 | **Outer MDP action** | **Yes** | Skills + GRPO | Strategic action selection guided by skills |
 | **Grounding → reasoning evidence** | Yes (indirect) | Extraction pipeline | Mine hop patterns from grounding traces into reasoning skill templates |
 
-Grounding tool-loop traces (e.g. `detect_objects → spatial_query → count_objects` on CLEVR) are mined as evidence for reasoning skill templates via the transferable skill extraction pipeline (see [Skill Bank §9](../03-skill-bank/PLAN-SKILL-BANK.md#9-transferable-skill-extraction)), but the templates are consumed by the reasoning layer, not the grounding layer.
+Grounding tool-loop traces (e.g. `detect_objects → spatial_query → count_objects` on image QA) are mined as evidence for reasoning skill templates via the transferable skill extraction pipeline (see [Skill Bank §9](../03-skill-bank/PLAN-SKILL-BANK.md#9-transferable-skill-extraction)), but the templates are consumed by the reasoning layer, not the grounding layer.
 
 **Optional extension — grounding strategies as skills:** Multi-step grounding patterns (disambiguation, target recovery, evidence collection) that recur across domains can optionally be captured as transferable grounding skills. These sit between perception tools and reasoning skills and use belief/binding-effect contracts rather than world-effect contracts. See [Visual Skills](PLAN-VISUAL-SKILLS.md) for the full design. This extension does not change the core principle above — atomic perception tools remain tools, not skills.
 
@@ -592,7 +586,7 @@ All domains share a single code path: `ground(GroundingRequest) → GroundingRes
 ```python
 from vlm_wrapper import ground, GroundingRequest
 
-# Image QA (CLEVR, GQA)
+# Image QA (VisualToolBench, TIR-Bench)
 result = ground(GroundingRequest(
     images=pil_image,
     goal="How many red spheres are left of the blue cube?",
@@ -638,7 +632,7 @@ result.answer   # "at 14.0 seconds"
 result.evidence # [HopTrace(tool='find_moment', frame=42, timestamp=14.0, ...)]
 ```
 
-**All tasks are interactive multi-hop reasoning.** The tool-calling loop IS the interaction — a CLEVR question where the VLM calls `detect_objects` → `spatial_query` → `count_objects` → emits answer is structurally identical to a game agent calling `list_entities` → `check_relation` → emitting action. Every domain gets the same core schema (entities, attributes, relations, state_flags, targets, uncertainty, evidence). The only variation is the terminal section: `<actions>` for env tasks, `<answer>` for QA, or both.
+**All tasks are interactive multi-hop reasoning.** The tool-calling loop IS the interaction — an image-QA item where the VLM calls `detect_objects` → `spatial_query` → `count_objects` → emits answer is structurally identical to a game agent calling `list_entities` → `check_relation` → emitting action. Every domain gets the same core schema (entities, attributes, relations, state_flags, targets, uncertainty, evidence). The only variation is the terminal section: `<actions>` for env tasks, `<answer>` for QA, or both.
 
 **How it works:**
 
@@ -668,10 +662,10 @@ Core = entities, attributes, relations, state_flags, targets, uncertainty, **evi
 |-----------|--------|--------|
 | **Unified pipeline** | `vlm_wrapper/ground.py` | **Done** |
 | Adaptive schema (evidence + answer) | `vlm_wrapper/schema.py` | **Done** |
-| **GroundingDINO backend** | `vlm_wrapper/tools_visual.py` | **Done** (`grounded_detect` + dual-backend `detect_objects`) |
-| Visual tool registry | `vlm_wrapper/tools_visual.py` | Done (10 tools) |
-| Video tool registry | `vlm_wrapper/tools_video.py` | Done (8 tools) |
-| Cross-frame registry | `vlm_wrapper/tools_video_visual.py` | Done (6 tools) |
+| **GroundingDINO backend** | `vlm_wrapper/visual_reasoning_wrapper/tools_visual.py` | **Done** (`grounded_detect` + dual-backend `detect_objects`) |
+| Visual tool registry | `vlm_wrapper/visual_reasoning_wrapper/tools_visual.py` | Done (10 tools) |
+| Video tool registry | `vlm_wrapper/visual_reasoning_wrapper/tools_video.py` | Done (8 tools) |
+| Cross-frame registry | `vlm_wrapper/visual_reasoning_wrapper/tools_video_visual.py` | Done (6 tools) |
 | OmniParser grounding | `vlm_wrapper/grounding.py` | Done |
 | BrowserGym grounding adapter | `vlm_wrapper/grounding_browsergym.py` | Done |
 | Tool-calling loop | `vlm_wrapper/tool_loop.py` | Done |

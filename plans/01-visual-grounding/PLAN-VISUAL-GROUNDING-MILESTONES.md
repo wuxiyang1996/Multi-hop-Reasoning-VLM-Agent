@@ -130,7 +130,7 @@ conda env because their transitive pins conflict (see table note below).
 | gymv       | `gymv`           | [ModalMinds/gym-v](https://github.com/ModalMinds/gym-v)                   | **Ready**    | 179 procedurally-generated visual envs (single-turn / games / spatial / temporal) | bundled in the repo |
 | browser    | `browsergym`     | [ServiceNow/BrowserGym](https://github.com/ServiceNow/BrowserGym)         | **Ready**    | MiniWoB++ / WebArena / VisualWebArena / AssistantBench | tasks bundled; WebArena/VWA need self-hosted sites |
 | desktop    | `osworld`        | [xlang-ai/OSWorld](https://github.com/xlang-ai/OSWorld)                   | **Ready**    | OSWorld (Office, Daily, Professional) | Docker image / VMware VM pulled separately |
-| image_qa   | `vlm_benchmarks` | pip-installed CLEVR/GQA loaders + HF `datasets`                           | **Ready**    | CLEVR v1.0                 | **Downloaded** — 100 000 images + 1 M questions + scene graphs at `data/CLEVR/CLEVR_v1.0/` |
+| image_qa   | `vlm_benchmarks` | HF VisualToolBench + TIR-Bench via `datasets`                             | **Ready**    | HF cache                   | Pull `ScaleAI/VisualToolBench` + `Agents-X/TIR-Bench` (see INSTALL_BENCHMARKS.md §4) |
 | video_qa   | `vlm_benchmarks` | pip-installed Video-Holmes/SIV-Bench loaders + `decord`/`av`              | **Ready**    | Video-Holmes               | **Downloaded** — 503 cropped clips + 1 837 test Qs at `data/Video-Holmes/Benchmark/` |
 
 **Why three runtime envs, not one?** The three interactive runtimes have
@@ -223,7 +223,7 @@ The same `ground()` entry point handles both; the domain field selects the tool 
 | 1 | Gym-V games (2048, Sokoban, Minesweeper) | Grid layouts, ≤20 entities, clean heuristic labels | 3–5 K |
 | 2 | MiniWoB++ (simple browser) | Small pages, clear elements, easy validation | 3–5 K |
 | 3 | WebArena (complex browser) | Cluttered real-web pages, many entities | 3–5 K |
-| 4 | Image QA (CLEVR, GQA) | Synthetic + real images, no env context | 3–5 K |
+| 4 | Image QA (VisualToolBench, TIR-Bench) | HF image benchmarks, no env context | 3–5 K |
 | 5 | Video QA (SIV-Bench, Video-Holmes) | Temporal, multi-frame — hardest | 2–3 K |
 
 **What to train:**
@@ -412,7 +412,7 @@ Return best attempt + high uncertainty flags (Path C candidate)
 |---|------|--------|-------------|
 | 4.1 | Collect tool-loop traces for failed direct-parse examples | `labeling/` | Tool-trace SFT dataset |
 | 4.2 | Train tool-calling on top of Phase 1 checkpoint | `trainer/SFT/` | Checkpoint with tool precision ≥85 % |
-| 4.3 | Add image QA data (CLEVR + GQA) | `labeling/` | Benchmark loader + dataset |
+| 4.3 | Add image QA data (VTB + TIR-Bench) | `labeling/` | Benchmark loader + dataset |
 | 4.4 | Add video QA data (SIV-Bench + Video-Holmes) | `labeling/` | Benchmark loader + dataset |
 | 4.5 | **Ablation A3:** tool-use vs direct-only parse | `ablation_study/` | Path B recovery rate |
 | 4.6 | **Ablation A4:** GroundingDINO vs OmniParser for natural images | `ablation_study/` | Detection backend comparison |
@@ -445,7 +445,7 @@ Return best attempt + high uncertainty flags (Path C candidate)
 | A1 | Does structured schema improve skill retrieval? | Schema input vs raw `obs.text` for `SkillQueryEngine.select()` | Week 4 | Retrieval relevance (cosine sim), applicability score |
 | A2 | Does multi-domain SFT help or hurt? | Gym-V only vs Gym-V + browser joint training | Week 5 | Per-domain field accuracy, cross-domain transfer |
 | A3 | Does tool-use training improve schema quality? | Direct-only 8B vs direct + tool-repair 8B | Week 7 | Path A/B acceptance rates, entity coverage |
-| A4 | Which detection backend for natural images? | GroundingDINO vs OmniParser on CLEVR/GQA | Week 6 | mAP, entity grounding accuracy |
+| A4 | Which detection backend for natural images? | GroundingDINO vs OmniParser on VTB/TIR-Bench | Week 6 | mAP, entity grounding accuracy |
 | A5 | Does grounded schema improve the actor? | Actor + schema vs actor + raw text (same GRPO budget) | Week 9 | Task success rate, reward per episode, hop efficiency |
 | A6 | How much does cascaded escalation cost? | Single-head only vs cascaded chain | Week 3 | Schema completeness, avg latency per step |
 | A7 | Is the 8B VLM sufficient or do we need larger? | 8B direct parse vs 32B direct parse (offline eval) | Week 5 | Field accuracy ceiling, format compliance |
@@ -457,10 +457,10 @@ Return best attempt + high uncertainty flags (Path C candidate)
 Snapshot 2026-04-21.  Newly-completed rows (this iteration) link to
 their source files so the next pair of eyes can audit them quickly:
 
-- Benchmark loaders → `vlm_wrapper/benchmarks/{gqa.py, siv_bench.py}`
-  (registered in `vlm_wrapper/benchmarks/__init__.py`).
+- Benchmark loaders → `vlm_wrapper/visual_reasoning_wrapper/benchmarks/{visual_toolbench.py, tir_bench.py, siv_bench.py}`
+  (registered in `vlm_wrapper/visual_reasoning_wrapper/benchmarks/__init__.py`).
 - Evaluation harness → `vlm_wrapper/eval/{metrics.py, harness.py, run_eval.py}`,
-  CLI: `python -m vlm_wrapper.eval.run_eval --benchmark clevr|gqa|video_holmes|siv_bench`.
+  CLI: `python -m vlm_wrapper.eval.run_eval --benchmark visual_toolbench|tir_bench|video_holmes|siv_bench`.
 - Phase-0 data collection → `labeling/grounding/{collect_gymv.py,
   collect_browser.py, cross_validate.py}` — outputs land in
   `labeling/output/grounding/{gymv,browser}/triples.jsonl` with
@@ -487,9 +487,9 @@ their source files so the next pair of eyes can audit them quickly:
 | Demo script | **Done** | — |
 | **Semantic schema validator** | **Done** | Week 1 |
 | **Cascaded head escalation** | **Done** | Week 2 |
-| **Benchmark loaders** — CLEVR | **Done** | Week 6 |
+| **Benchmark loaders** — VisualToolBench / TIR-Bench | **Done** | Week 6 |
 | **Benchmark loaders** — Video-Holmes | **Done** | Week 6 |
-| **Benchmark loaders** — GQA, SIV-Bench | **Done** | Week 6 |
+| **Benchmark loaders** — SIV-Bench | **Done** | Week 6 |
 | **Evaluation harness** | **Done** | Week 4 |
 | **Re-observation (Option B) for GROUND hops** | **Done** | Week 8 |
 | **Qwen3-VL-8B training pipeline** | **Scaffolded** | Week 3 |
@@ -507,7 +507,7 @@ Inference-time pipeline is green on all five milestone tasks. Each row is wired 
 | `gymv` | `vlm → tool_loop` | `tools_visual + tools_gymv` | `entities, attributes, state_flags, targets, actions` | 3 | env-provided | `test_live_gymv_schema`, `test_live_gymv_tool_loop_schema` |
 | `browser` | `vlm → omniparser → tool_loop` | `tools_visual + tools_browser` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `test_live_browser_schema` |
 | `desktop` | `omniparser → vlm → tool_loop` | `tools_visual + tools_osworld` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `test_live_desktop_schema` |
-| `image_qa` | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | `data/CLEVR/CLEVR_v1.0/` ✅ | `test_live_clevr_schema` |
+| `image_qa` | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | HF VTB + TIR-Bench ✅ | `test_live_tir_bench_schema` |
 | `video_qa` | `tool_loop` | `tools_video_visual` (temporal + visual + cross-frame) | `entities, state_flags, targets, evidence, answer` | 1 | `data/Video-Holmes/Benchmark/` ✅ | `test_live_video_holmes_schema` |
 
 **Design choices locked in (by code + test, not just plan):**
@@ -540,7 +540,7 @@ Inference-time pipeline is green on all five milestone tasks. Each row is wired 
 | GPT-4o / GPT-5.4 API access | Phase 0 label generation, Phase 0 cross-validation | Available |
 | Gym-V environment installation | Phase 0 collection | Assumed ready |
 | BrowserGym environment installation | Phase 0 collection | Assumed ready |
-| CLEVR / GQA / SIV-Bench / Video-Holmes datasets | Phase 2 benchmark eval | Download needed (URLs in [Visual Grounding §10](PLAN-VISUAL-GROUNDING.md)) |
+| VTB / TIR-Bench / SIV-Bench / Video-Holmes datasets | Phase 2 benchmark eval | HF + local video paths (INSTALL_BENCHMARKS.md) |
 
 ---
 

@@ -1,7 +1,7 @@
 """End-to-end visual grounding runner with rich per-case artifacts.
 
 Runs the tool-calling grounding pipeline over all five domains (gymv,
-browser, desktop, image_qa/CLEVR, video_qa/Video-Holmes) with GPT-4o and
+browser, desktop, image_qa/TIR-Bench, video_qa/Video-Holmes) with GPT-4o and
 writes a self-contained artifact bundle per run:
 
   out/grounding_runs/<timestamp>/
@@ -23,7 +23,7 @@ scorecard exactly — this script only adds visualisation.
 Usage::
 
     python scripts/visualize_grounding.py \\
-        --cases gymv browser desktop clevr video_holmes \\
+        --cases gymv browser desktop tir_bench video_holmes \\
         --gymv-head tool_loop --browser-head tool_loop --desktop-head tool_loop \\
         --model gpt-4o --max-rounds 8
 
@@ -181,20 +181,13 @@ def _case_input_path(case: str, capture_dir: Path) -> Path | None:
     return None
 
 
-def _copy_clevr_input(case_result: dict[str, Any], dst: Path) -> bool:
-    """CLEVR samples reference an image by filename; re-resolve the
-    path via the benchmark module so we can mirror it into the bundle."""
-    fname = case_result.get("image_filename")
-    if not fname:
+def _copy_tir_bench_input(case_result: dict[str, Any], dst: Path) -> bool:
+    """``test_vlm_parsers`` saves the decoded frame to ``out/captures``."""
+    src_s = case_result.get("input_image_path")
+    if not src_s:
         return False
-    try:
-        from vlm_wrapper.benchmarks.clevr import (
-            _image_path, default_clevr_root,
-        )
-        src = _image_path(default_clevr_root(), "val", fname)
-    except Exception:
-        src = None
-    if src and src.exists():
+    src = Path(src_s)
+    if src.is_file():
         shutil.copy(src, dst)
         return True
     return False
@@ -208,7 +201,7 @@ def _copy_video_first_frame(case_result: dict[str, Any], dst: Path) -> bool:
     if not video_id:
         return False
     try:
-        from vlm_wrapper.benchmarks.video_holmes import (
+        from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
             _video_path, default_video_holmes_root,
         )
         video = _video_path(default_video_holmes_root(), video_id)
@@ -473,8 +466,8 @@ def _run_all(args: argparse.Namespace, run_dir: Path) -> list[dict[str, Any]]:
             if src:
                 shutil.copy(src, input_dst)
                 copied = True
-        elif case == "clevr":
-            copied = _copy_clevr_input(case_result, input_dst)
+        elif case == "tir_bench":
+            copied = _copy_tir_bench_input(case_result, input_dst)
         elif case == "video_holmes":
             copied = _copy_video_first_frame(case_result, input_dst)
 

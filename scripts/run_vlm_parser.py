@@ -2,14 +2,14 @@
 """Unified GPT-4o VLM parser CLI.
 
 Runs the ``vlm_wrapper`` GPT-4o (Head-2 / tool-loop) pipeline across
-all five supported domains:
+supported domains:
 
-  * ``gymv``         — video game frames (2048, Sokoban, Minesweeper).
-  * ``browser``      — BrowserGym / MiniWoB++ / WebArena screenshots.
-  * ``desktop``      — OSWorld screenshots (via osworld_adapter).
-  * ``clevr``        — CLEVR image-QA benchmark under ``data/CLEVR``.
-  * ``video_holmes`` — Video-Holmes video-QA benchmark under
-    ``data/Video-Holmes``.
+  * ``gymv``              — video game frames (2048, Sokoban, Minesweeper).
+  * ``browser``           — BrowserGym / MiniWoB++ / WebArena screenshots.
+  * ``desktop``           — OSWorld screenshots (via osworld_adapter).
+  * ``tir_bench``         — TIR-Bench image QA (HF ``Agents-X/TIR-Bench``).
+  * ``visual_toolbench``  — VisualToolBench (HF ``ScaleAI/VisualToolBench``).
+  * ``video_holmes``      — Video-Holmes video-QA under ``data/Video-Holmes``.
 
 The ``OPENAI_API_KEY`` is read from the environment (``.env`` is
 auto-sourced when present). Override the model with ``--model`` or
@@ -25,9 +25,9 @@ for testing)::
         --image vlm_wrapper/real_Games_Game2048-v0_step0.png \
         --goal "Reach 2048"
 
-Parse one CLEVR val question::
+Parse one TIR-Bench test question::
 
-    python scripts/run_vlm_parser.py clevr --split val --limit 1
+    python scripts/run_vlm_parser.py tir_bench --limit 1
 
 Parse 3 Video-Holmes test questions restricted to suspense-reasoning
 (``SR``) type, saving results as JSONL::
@@ -105,7 +105,7 @@ def _print_schema_block(label: str, schema: str | None) -> None:
 
 def _parse_gymv(args: argparse.Namespace) -> int:
     from PIL import Image
-    from vlm_wrapper.gymv_adapter import generate_label
+    from gymv_wrapper.adapter import generate_label
 
     image = Image.open(args.image).convert("RGB")
     result = generate_label(
@@ -191,30 +191,26 @@ def _parse_desktop(args: argparse.Namespace) -> int:
     return 0 if result["schema"] else 1
 
 
-def _parse_clevr(args: argparse.Namespace) -> int:
-    from vlm_wrapper.benchmarks.clevr import (
-        iter_clevr_samples, parse_clevr_batch, parse_clevr_sample,
+def _parse_tir_bench(args: argparse.Namespace) -> int:
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+        iter_tir_bench_samples, parse_tir_bench_batch, parse_tir_bench_sample,
     )
 
-    samples = list(iter_clevr_samples(
+    samples = list(iter_tir_bench_samples(
         split=args.split,
-        clevr_root=args.clevr_root,
         limit=args.limit,
     ))
     if not samples:
-        print("No CLEVR samples matched the filter.")
+        print("No TIR-Bench samples matched the filter.")
         return 1
 
     if args.dry_run:
         for s in samples:
-            print(
-                f"{s.image_filename}  Q: {s.question[:80]}  "
-                f"A: {s.answer}"
-            )
+            print(f"id={s.sample_id} task={s.task}  Q: {s.prompt[:80]}…  A: {s.answer}")
         return 0
 
     if len(samples) == 1 and not args.output:
-        out = parse_clevr_sample(
+        out = parse_tir_bench_sample(
             samples[0],
             model=args.model,
             api_key=args.api_key,
@@ -222,14 +218,14 @@ def _parse_clevr(args: argparse.Namespace) -> int:
             max_entities=args.max_entities,
             max_rounds=args.max_rounds,
         )
-        print(f"Question:     {samples[0].question}")
+        print(f"Question:     {samples[0].prompt}")
         print(f"Prediction:   {out['answer']}")
         print(f"Ground truth: {out['ground_truth']}")
         print(f"Correct:      {out['correct']}")
-        _print_schema_block(f"CLEVR schema ({out['model']})", out["schema"])
+        _print_schema_block(f"TIR-Bench schema ({out['model']})", out["schema"])
         return 0 if out["schema"] else 1
 
-    results = parse_clevr_batch(
+    results = parse_tir_bench_batch(
         samples,
         output_jsonl=args.output,
         model=args.model,
@@ -241,14 +237,65 @@ def _parse_clevr(args: argparse.Namespace) -> int:
     correct = sum(1 for r in results if r.get("correct") is True)
     scored = sum(1 for r in results if r.get("correct") is not None)
     print(
-        f"CLEVR {args.split}: {correct}/{scored} correct "
+        f"TIR-Bench: {correct}/{scored} correct "
         f"(out of {len(results)} attempted)"
     )
     return 0
 
 
+def _parse_visual_toolbench(args: argparse.Namespace) -> int:
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.visual_toolbench import (
+        iter_visual_toolbench_samples,
+        parse_visual_toolbench_batch,
+        parse_visual_toolbench_sample,
+    )
+
+    samples = list(iter_visual_toolbench_samples(limit=args.limit))
+    if not samples:
+        print("No VisualToolBench samples matched the filter.")
+        return 1
+
+    if args.dry_run:
+        for s in samples:
+            print(f"id={s.sample_id}  Q: {s.question[:80]}…")
+        return 0
+
+    if len(samples) == 1 and not args.output:
+        out = parse_visual_toolbench_sample(
+            samples[0],
+            model=args.model,
+            api_key=args.api_key,
+            base_url=args.base_url,
+            max_entities=args.max_entities,
+            max_rounds=args.max_rounds,
+        )
+        print(f"Question:     {samples[0].question}")
+        print(f"Prediction:   {out['answer']}")
+        print(f"Ground truth: {out['ground_truth']}")
+        print(f"Correct:      {out['correct']}")
+        _print_schema_block(f"VisualToolBench schema ({out['model']})", out["schema"])
+        return 0 if out["schema"] else 1
+
+    results = parse_visual_toolbench_batch(
+        samples,
+        output_jsonl=args.output,
+        model=args.model,
+        api_key=args.api_key,
+        base_url=args.base_url,
+        max_entities=args.max_entities,
+        max_rounds=args.max_rounds,
+    )
+    correct = sum(1 for r in results if r.get("correct") is True)
+    scored = sum(1 for r in results if r.get("correct") is not None)
+    print(
+        f"VisualToolBench: {correct}/{scored} matched "
+        f"(out of {len(results)} attempted; official eval uses rubrics)"
+    )
+    return 0
+
+
 def _parse_video_holmes(args: argparse.Namespace) -> int:
-    from vlm_wrapper.benchmarks.video_holmes import (
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_batch,
         parse_video_holmes_sample,
     )
@@ -336,7 +383,7 @@ def _add_common_vlm_args(p: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description="Run the vlm_wrapper GPT-4o parser across "
-                    "gymv / browser / desktop / CLEVR / Video-Holmes.",
+                    "gymv / browser / desktop / tir_bench / visual_toolbench / video_holmes.",
     )
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -378,15 +425,21 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_vlm_args(desktop)
     desktop.set_defaults(func=_parse_desktop)
 
-    clevr = sub.add_parser("clevr", help="Parse CLEVR image-QA samples.")
-    clevr.add_argument("--split", default="val", choices=["train", "val", "test"])
-    clevr.add_argument("--limit", type=int, default=3)
-    clevr.add_argument("--clevr-root", default=None,
-                       help="Override data/CLEVR/CLEVR_v1.0 path.")
-    clevr.add_argument("--dry-run", action="store_true",
-                       help="List samples without calling GPT-4o.")
-    _add_common_vlm_args(clevr)
-    clevr.set_defaults(func=_parse_clevr)
+    tir = sub.add_parser("tir_bench", help="Parse TIR-Bench image-QA (HF).")
+    tir.add_argument("--split", default="test", choices=["test"],
+                     help="TIR-Bench only ships the test split.")
+    tir.add_argument("--limit", type=int, default=3)
+    tir.add_argument("--dry-run", action="store_true",
+                     help="List samples without calling the VLM.")
+    _add_common_vlm_args(tir)
+    tir.set_defaults(func=_parse_tir_bench)
+
+    vtb = sub.add_parser("visual_toolbench", help="Parse VisualToolBench (HF).")
+    vtb.add_argument("--limit", type=int, default=3)
+    vtb.add_argument("--dry-run", action="store_true",
+                     help="List samples without calling the VLM.")
+    _add_common_vlm_args(vtb)
+    vtb.set_defaults(func=_parse_visual_toolbench)
 
     vh = sub.add_parser("video_holmes", help="Parse Video-Holmes samples.")
     vh.add_argument("--split", default="test", choices=["test", "train"])

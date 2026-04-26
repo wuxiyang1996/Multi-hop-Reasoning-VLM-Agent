@@ -6,7 +6,7 @@ emits a corresponding `SkillEpisodeStep`. In `dry_run=True` mode it
 short-circuits to a deterministic deterministic outcome derived from the
 seed state's stored facts (used by the gate's replay validator).
 
-Real env wiring (gymnasium / gym-v) belongs in `vlm_wrapper.gymv_adapter`;
+Real env wiring (gymnasium / gym-v) belongs in `gymv_wrapper.adapter`;
 this adapter calls into that module via a late import so the harness
 package remains importable in a unit-test environment.
 """
@@ -26,7 +26,7 @@ from harness.skill_adapter import AdapterRunContext, AdapterRunResult, SkillAdap
 # Pluggable executor: a callable `(action_type, payload, ctx) -> dict`.
 # The default executor is a deterministic stub useful for tests and
 # the gate's dry-run path. Real env binding (gymnasium step()) is plugged
-# in by `vlm_wrapper.gymv_adapter` at runtime via `set_executor`.
+# in by `gymv_wrapper.adapter` at runtime via `set_executor`.
 HopExecutor = Callable[[str, Dict[str, Any], AdapterRunContext], Dict[str, Any]]
 
 

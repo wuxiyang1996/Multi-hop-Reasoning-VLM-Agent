@@ -90,10 +90,10 @@ print()
 
 # ------- Domain 4: image_qa -------
 print("Domain 4 — image_qa:")
-def _clevr_loader() -> str:
-    from vlm_wrapper.benchmarks.clevr import iter_clevr_samples, parse_clevr_sample  # type: ignore  # noqa: F401
-    return "vlm_wrapper.benchmarks.clevr importable"
-check("CLEVR loader",                 _clevr_loader)
+def _tir_bench_loader() -> str:
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks import tir_bench as _tb  # type: ignore  # noqa: F401
+    return "vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench importable"
+check("TIR-Bench loader",             _tir_bench_loader)
 check("openai client",                lambda: __import__('openai').__version__)
 check("anthropic client",             lambda: __import__('anthropic').__version__)
 check("google.genai client",          lambda: (__import__('google.genai', fromlist=['*']), "imported")[-1])
@@ -102,8 +102,8 @@ print()
 # ------- Domain 5: video_qa -------
 print("Domain 5 — video_qa:")
 def _videoholmes_loader() -> str:
-    from vlm_wrapper.benchmarks import video_holmes as _vh  # type: ignore  # noqa: F401
-    return "vlm_wrapper.benchmarks.video_holmes importable"
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks import video_holmes as _vh  # type: ignore  # noqa: F401
+    return "vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes importable"
 check("Video-Holmes loader",          _videoholmes_loader)
 def _decord_readable() -> str:
     import decord, numpy as np
@@ -128,14 +128,12 @@ print("Benchmark data on disk:")
 from pathlib import Path
 ROOT = Path("/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/data")
 
-def _clevr_data() -> str:
-    img_dir = ROOT / "CLEVR" / "CLEVR_v1.0" / "images" / "val"
-    q_file = ROOT / "CLEVR" / "CLEVR_v1.0" / "questions" / "CLEVR_val_questions.json"
-    n_images = len(list(img_dir.glob("*.png"))) if img_dir.is_dir() else 0
-    if n_images == 0 or not q_file.exists():
-        raise FileNotFoundError(f"images={n_images} questions_present={q_file.exists()}")
-    return f"{n_images} val images, questions.json present"
-check("CLEVR data",                   _clevr_data, required=False)
+def _tir_bench_hf_data() -> str:
+    from datasets import load_dataset
+
+    ds = load_dataset("Agents-X/TIR-Bench", split="test", trust_remote_code=True)
+    return f"TIR-Bench HF test rows={len(ds)}"
+check("TIR-Bench HF data",            _tir_bench_hf_data, required=False)
 
 def _videoholmes_data() -> str:
     bench = ROOT / "Video-Holmes" / "Benchmark"

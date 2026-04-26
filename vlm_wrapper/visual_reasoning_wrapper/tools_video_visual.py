@@ -12,7 +12,7 @@ detections across multiple frames.
 
 Usage::
 
-    from vlm_wrapper.tools_video_visual import build_video_visual_registry
+    from vlm_wrapper.visual_reasoning_wrapper.tools_video_visual import build_video_visual_registry
 
     # From pre-decoded frames
     registry = build_video_visual_registry(frames=pil_frames, fps=2.0)
@@ -34,7 +34,7 @@ from typing import Any, Callable
 import numpy as np
 from PIL import Image
 
-from .tools import ToolDef, ToolRegistry
+from ..tools import ToolDef, ToolRegistry
 from .tools_video import _VideoState, _decode_video, build_video_registry
 from .tools_visual import _VisualState, build_visual_registry
 

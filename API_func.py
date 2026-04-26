@@ -1,19 +1,89 @@
 # API calling functions for the agent — routes to GPT, Claude, Gemini, or vLLM.
-# All API keys are read from environment variables.  See .env.example for the list.
+# Keys are sourced (in order) from:
+#   1. Process environment variables (OPENAI_API_KEY, ANTHROPIC_API_KEY, ...).
+#   2. ``keys.py`` checked into the repo root one level above this file
+#      (``/.../vlm-robot/keys.py``), exposing ``openai = "sk-..."`` etc.
+#   3. ``.env.example`` documentation (not auto-loaded).
 
+import importlib.util as _importlib_util
 import itertools as _itertools
 import os
+import pathlib as _pathlib
 import time as _time_mod
 import threading as _threading
 
 import openai
-from anthropic import Anthropic
-from google import genai
 
-openai_api_key = os.environ.get("OPENAI_API_KEY", "")
-claude_api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
-open_router_api_key = os.environ.get("OPENROUTER_API_KEY", "")
+try:  # Anthropic / Gemini SDKs are optional for users who only call OpenAI.
+    from anthropic import Anthropic  # type: ignore
+except ImportError:  # pragma: no cover
+    Anthropic = None  # type: ignore[assignment]
+
+try:
+    from google import genai  # type: ignore
+except ImportError:  # pragma: no cover
+    genai = None  # type: ignore[assignment]
+
+
+def _load_repo_keys_module():
+    """Best-effort import of ``keys.py`` from the parent of this repo.
+
+    The keys file lives at ``<vlm-robot>/keys.py`` (one directory above
+    ``Multi-hop-Reasoning-VLM-Agent``). Returns the loaded module or ``None``.
+    """
+    here = _pathlib.Path(__file__).resolve()
+    candidates = [
+        here.parent.parent / "keys.py",   # /vlm-robot/keys.py
+        here.parent / "keys.py",          # local override (rare)
+    ]
+    extra = os.environ.get("VLM_ROBOT_KEYS_FILE", "").strip()
+    if extra:
+        candidates.insert(0, _pathlib.Path(extra))
+    for path in candidates:
+        try:
+            if not path.is_file():
+                continue
+            spec = _importlib_util.spec_from_file_location("_vlm_robot_keys", str(path))
+            if spec is None or spec.loader is None:
+                continue
+            mod = _importlib_util.module_from_spec(spec)
+            spec.loader.exec_module(mod)  # type: ignore[union-attr]
+            return mod
+        except Exception:
+            continue
+    return None
+
+
+_REPO_KEYS = _load_repo_keys_module()
+
+
+def _key_from_repo(*attrs: str) -> str:
+    """Return the first non-empty attribute value from ``keys.py``."""
+    if _REPO_KEYS is None:
+        return ""
+    for a in attrs:
+        v = getattr(_REPO_KEYS, a, None)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    return ""
+
+
+openai_api_key = (
+    os.environ.get("OPENAI_API_KEY", "").strip()
+    or _key_from_repo("openai", "OPENAI_API_KEY", "openai_api_key")
+)
+claude_api_key = (
+    os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    or _key_from_repo("anthropic", "ANTHROPIC_API_KEY", "claude", "claude_api_key")
+)
+gemini_api_key = (
+    os.environ.get("GEMINI_API_KEY", "").strip()
+    or _key_from_repo("gemini", "GEMINI_API_KEY", "google", "gemini_api_key")
+)
+open_router_api_key = (
+    os.environ.get("OPENROUTER_API_KEY", "").strip()
+    or _key_from_repo("openrouter", "OPENROUTER_API_KEY", "open_router_api_key")
+)
 
 OPENROUTER_BASE = "https://openrouter.ai/api/v1"
 
@@ -86,6 +156,72 @@ def _probe_vllm() -> bool:
     return _vllm_reachable
 
 
+def make_openai_client(
+    api_key: str | None = None,
+    base_url: str | None = None,
+    *,
+    prefer: str = "auto",
+) -> "openai.OpenAI | None":
+    """Build a configured ``openai.OpenAI`` client routed for this repo.
+
+    Routing precedence:
+      1. Explicit ``api_key`` / ``base_url`` arguments win.
+      2. ``prefer='openrouter'`` forces OpenRouter (requires ``OPENROUTER_API_KEY``).
+      3. ``prefer='openai'`` forces direct OpenAI (requires ``OPENAI_API_KEY``).
+      4. ``prefer='auto'`` (default): use OpenRouter if ``OPENROUTER_API_KEY``
+         is set, else fall back to direct OpenAI.
+
+    Returns ``None`` if no usable credentials were found, matching the pattern
+    used by ``cold_start/generate_cold_start_orak.py``.
+    """
+    if api_key:
+        kwargs: dict = {"api_key": api_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        return openai.OpenAI(**kwargs)
+
+    if prefer not in ("auto", "openai", "openrouter"):
+        prefer = "auto"
+
+    or_key = (open_router_api_key or "").strip()
+    oai_key = (openai_api_key or "").strip()
+
+    use_openrouter = (
+        prefer == "openrouter"
+        or (prefer == "auto" and bool(or_key))
+    )
+    if use_openrouter and or_key:
+        return openai.OpenAI(
+            api_key=or_key,
+            base_url=base_url or OPENROUTER_BASE,
+        )
+    if oai_key:
+        kwargs = {"api_key": oai_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        return openai.OpenAI(**kwargs)
+    if or_key:
+        return openai.OpenAI(
+            api_key=or_key,
+            base_url=base_url or OPENROUTER_BASE,
+        )
+    return None
+
+
+def effective_openai_model(model: str, *, prefer: str = "auto") -> str:
+    """Return a model id with the ``openai/`` prefix when routing via OpenRouter.
+
+    Mirrors the ``_effective_model`` helper used by the cold-start scripts so
+    callers can reuse it instead of duplicating string logic.
+    """
+    or_key = (open_router_api_key or "").strip()
+    if prefer == "openai":
+        return model
+    if prefer == "openrouter" or (prefer == "auto" and or_key):
+        return model if "/" in model else f"openai/{model}"
+    return model
+
+
 def ask_openrouter(question, model="openai/gpt-4o-mini", temperature=0.7, max_tokens=2000):
     """
     Ask a question via OpenRouter (unified API for GPT, Claude, Gemini, etc.).
@@ -140,6 +276,9 @@ def ask_claude(question, model="claude-3-5-sonnet-20241022", temperature=0.7, ma
     Returns:
         str: The generated answer
     """
+    if Anthropic is None:
+        return ("Error: anthropic SDK not installed. "
+                "`pip install anthropic` to use Claude models.")
     try:
         client = Anthropic(api_key=claude_api_key)
         
@@ -169,6 +308,9 @@ def ask_gemini(question, model="gemini-2.5-flash", temperature=0.7, max_tokens=2
     Returns:
         str: The generated answer
     """
+    if genai is None:
+        return ("Error: google-genai SDK not installed. "
+                "`pip install google-genai` to use Gemini models.")
     try:
         client = genai.Client(api_key=gemini_api_key)
         

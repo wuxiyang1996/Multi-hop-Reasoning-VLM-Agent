@@ -29,7 +29,7 @@ re-exported version.  Required columns:
 
 Usage::
 
-    from vlm_wrapper.benchmarks.siv_bench import (
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.siv_bench import (
         iter_siv_bench_samples, parse_siv_bench_sample,
     )
 
@@ -52,7 +52,7 @@ from typing import Any, Iterable, Iterator, Sequence
 
 from PIL import Image
 
-from ..ground import GroundingRequest, cascaded_ground
+from ...ground import GroundingRequest, cascaded_ground
 from .video_holmes import sample_video_frames
 
 logger = logging.getLogger(__name__)
@@ -165,7 +165,7 @@ def default_siv_bench_root(
 ) -> Path:
     """Return the canonical SIV-Bench root on this workspace."""
     if workspace_root is None:
-        workspace_root = Path(__file__).resolve().parents[2]
+        workspace_root = Path(__file__).resolve().parents[3]
     return Path(workspace_root) / "data" / "SIV-Bench"
 
 

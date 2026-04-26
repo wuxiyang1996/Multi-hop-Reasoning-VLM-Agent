@@ -59,11 +59,12 @@ from vlm_wrapper.schema import (
 )
 
 # ── Head 1: Heuristic (text-in → schema-out) ─────────────────────────
-from vlm_wrapper.gymv_heuristic import text_to_schema as gymv_heuristic_schema
+# NOTE: ``gymv_*`` symbols are exposed lazily via ``__getattr__`` (PEP 562)
+# below, so importing ``gymv_wrapper.adapter`` first does not create a
+# circular import through this package's eager re-exports.
 from vlm_wrapper.browser_heuristic import obs_to_schema as browser_heuristic_schema
 
-# ── Head 2: Vision (image-in → schema-out via GPT-4o) ────────────────
-from vlm_wrapper.gymv_adapter import generate_label as gymv_generate_label
+# ── Head 2: Vision (image-in → schema-out via GPT-5.5/GPT-4o) ────────
 from vlm_wrapper.browser_adapter import generate_label as browser_generate_label
 from vlm_wrapper.browser_adapter import browser_obs_to_schema
 from vlm_wrapper.osworld_adapter import generate_label as osworld_generate_label
@@ -99,11 +100,28 @@ __all__ = [
     "osworld_obs_to_schema",
 ]
 
-try:
-    from vlm_wrapper.gymv_adapter import GymVSchemaWrapper
-    __all__.append("GymVSchemaWrapper")
-except (ImportError, TypeError):
-    pass
+__all__.append("GymVSchemaWrapper")
+
+
+# PEP 562 lazy re-exports for the gymv_wrapper symbols. Defining these here
+# (instead of eager top-level imports) breaks the circular dependency that
+# would otherwise occur when ``gymv_wrapper.adapter`` is imported first and
+# its ``from vlm_wrapper.schema import ...`` triggers this module before
+# ``gymv_wrapper.adapter`` has finished initialising.
+def __getattr__(name):  # noqa: D401
+    if name == "gymv_heuristic_schema":
+        from gymv_wrapper.heuristic import text_to_schema as _f
+        return _f
+    if name == "gymv_generate_label":
+        from gymv_wrapper.adapter import generate_label as _f
+        return _f
+    if name == "GymVSchemaWrapper":
+        from gymv_wrapper.adapter import GymVSchemaWrapper as _cls
+        return _cls
+    if name == "build_gymv_registry":
+        from gymv_wrapper.tools import build_gymv_registry as _f
+        return _f
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 # ── Head 3: Grounding (image-in → OmniParser-v2 → schema-out) ────────
 try:
@@ -128,12 +146,13 @@ except ImportError:
 # ── Tool-calling infrastructure ──────────────────────────────────────
 from vlm_wrapper.tools import ToolRegistry, ToolDef, ToolResult
 
-# Domain-specific registries
-from vlm_wrapper.tools_gymv import build_gymv_registry
+# Domain-specific registries (gymv lazily re-exported via __getattr__)
 from vlm_wrapper.tools_browser import build_browser_registry, build_osworld_registry
-from vlm_wrapper.tools_video import build_video_registry
-from vlm_wrapper.tools_visual import build_visual_registry
-from vlm_wrapper.tools_video_visual import build_video_visual_registry
+from vlm_wrapper.visual_reasoning_wrapper.tools_video import build_video_registry
+from vlm_wrapper.visual_reasoning_wrapper.tools_visual import build_visual_registry
+from vlm_wrapper.visual_reasoning_wrapper.tools_video_visual import (
+    build_video_visual_registry,
+)
 
 # Tool-calling loop + convenience wrappers
 from vlm_wrapper.tool_loop import (
@@ -166,35 +185,54 @@ __all__ += [
     "video_visual_generate_label_with_tools",
 ]
 
-# ── Benchmark loaders + GPT-4o parsers (CLEVR, Video-Holmes) ─────────
+# ── Benchmark loaders + parsers (TIR-Bench / VTB / Video-Holmes) ──────
 try:
-    from vlm_wrapper.benchmarks import (
-        CLEVRSample,
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks import (
+        TIRBenchSample,
         VideoHolmesSample,
-        default_clevr_root,
+        VisualToolBenchSample,
+        default_tir_bench_root,
         default_video_holmes_root,
-        iter_clevr_samples,
+        default_visual_toolbench_root,
+        iter_tir_bench_samples,
         iter_video_holmes_samples,
-        load_clevr_image,
-        load_clevr_questions,
+        iter_visual_toolbench_samples,
+        load_tir_bench_image,
         load_video_holmes_questions,
-        parse_clevr_sample,
+        load_visual_toolbench_image,
+        parse_tir_bench_sample,
         parse_video_holmes_sample,
+        parse_visual_toolbench_sample,
         sample_video_frames,
     )
     __all__ += [
-        "CLEVRSample",
+        "TIRBenchSample",
         "VideoHolmesSample",
-        "default_clevr_root",
+        "VisualToolBenchSample",
+        "default_tir_bench_root",
         "default_video_holmes_root",
-        "iter_clevr_samples",
+        "default_visual_toolbench_root",
+        "iter_tir_bench_samples",
         "iter_video_holmes_samples",
-        "load_clevr_image",
-        "load_clevr_questions",
+        "iter_visual_toolbench_samples",
+        "load_tir_bench_image",
         "load_video_holmes_questions",
-        "parse_clevr_sample",
+        "load_visual_toolbench_image",
+        "parse_tir_bench_sample",
         "parse_video_holmes_sample",
+        "parse_visual_toolbench_sample",
         "sample_video_frames",
     ]
 except ImportError:
     pass
+
+# ── Visual reasoning (design notes + standard 2×2 benchmark matrix) ─
+from vlm_wrapper.visual_reasoning_wrapper import (
+    PRIMARY_VISUAL_REASONING_BENCHMARKS,
+    VisualReasoningBenchmark,
+)
+
+__all__ += [
+    "PRIMARY_VISUAL_REASONING_BENCHMARKS",
+    "VisualReasoningBenchmark",
+]

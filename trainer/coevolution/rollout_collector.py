@@ -18,9 +18,6 @@ from trainer.coevolution.config import (
     CoEvolutionConfig,
     GAME_DURATION_ORDER,
     GAME_MAX_STEPS,
-    AVALON_ROLES,
-    AVALON_SIDES,
-    DIPLOMACY_POWERS,
     resolve_bank_key,
 )
 from trainer.coevolution.episode_runner import EpisodeResult, run_episode_async
@@ -104,9 +101,8 @@ def build_lpt_schedule(
     the entire collection window (enabling cross-system overlap with the
     skill bank pipeline).
 
-    When *unified_role_rollouts* is ``True``, Avalon and Diplomacy episodes
-    cycle through roles deterministically so each rollout covers a
-    different role / power.
+    When *unified_role_rollouts* is ``True``, per-game episode counts follow
+    ``episodes_per_game_overrides`` when set.
     """
     overrides = episodes_per_game_overrides or {}
     sorted_games = sorted(
@@ -130,13 +126,6 @@ def build_lpt_schedule(
                 game=g, max_steps=ms, episode_idx=i,
                 estimated_duration_s=est,
             )
-            if unified_role_rollouts:
-                if g == "avalon":
-                    spec.assigned_role_index = i % len(AVALON_ROLES)
-                    spec.assigned_role = AVALON_ROLES[spec.assigned_role_index]
-                elif g == "diplomacy":
-                    spec.assigned_role_index = i % len(DIPLOMACY_POWERS)
-                    spec.assigned_role = DIPLOMACY_POWERS[spec.assigned_role_index]
             specs.append(spec)
 
         buckets[g] = specs
@@ -211,7 +200,7 @@ async def collect_rollouts(
                 key = resolve_bank_key(
                     spec.game,
                     spec.assigned_role or "",
-                    AVALON_SIDES.get(spec.assigned_role, spec.assigned_role or ""),
+                    "",
                 )
                 bank = skill_banks.get(key)
                 if bank is not None:
@@ -243,8 +232,8 @@ async def collect_rollouts(
                         assigned_role=spec.assigned_role,
                         assigned_role_index=spec.assigned_role_index,
                         step_sync=step_sync,
-                        opponent_model=_opp_model if spec.game in ("avalon", "diplomacy") else None,
-                        opponent_api_base=_opp_base if spec.game in ("avalon", "diplomacy") else None,
+                        opponent_model=None,
+                        opponent_api_base=None,
                     )
                     break
                 except Exception as exc:

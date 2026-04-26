@@ -9,7 +9,7 @@ Reads the three input flavours produced by Phase-0 collection
 2. **BrowserGym triples** — output of
    ``labeling/grounding/collect_browser.py`` (same shape).
 3. **Image-QA / Video-QA labels** — JSONL emitted by
-   ``vlm_wrapper.benchmarks.<bench>.parse_*_batch`` (one row per QA
+   ``vlm_wrapper.visual_reasoning_wrapper.benchmarks.<bench>.parse_*_batch`` (one row per QA
    sample, with ``schema`` populated by the GPT-4o teacher).
 
 Every loader yields a ``SchemaGenSample`` dataclass with a uniform
@@ -299,7 +299,7 @@ def iter_image_qa_triples(
     *,
     limit: Optional[int] = None,
 ) -> Iterator[SchemaGenSample]:
-    """Yield ``SchemaGenSample`` rows from a parse_clevr/gqa_batch JSONL.
+    """Yield ``SchemaGenSample`` rows from image-QA batch JSONL (e.g. TIR-Bench / VTB parsers).
 
     Required keys per row: ``schema`` (gold), ``sample.image_path``,
     and either ``sample.question`` or ``sample.goal``.

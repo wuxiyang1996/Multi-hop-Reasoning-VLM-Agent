@@ -39,8 +39,6 @@ _IMPORTS_CACHE: Dict[str, Any] = {}
 ORAK_GAMES_SET = {"super_mario"}
 # Orak games that MUST use SubprocessEnv (nes_py / NumPy 2.x incompatibility)
 ORAK_SUBPROCESS_GAMES = {"super_mario"}
-# Games that use AgentEvolver wrappers (env_wrappers)
-EVOLVER_GAMES_SET = {"diplomacy", "avalon"}
 # Games that use GamingAgent make_gaming_env
 GAMINGAGENT_GAMES = {
     "twenty_forty_eight", "candy_crush", "tetris",
@@ -62,16 +60,6 @@ def _lazy_imports():
 
         from env_wrappers.subprocess_env import SubprocessEnv
 
-        # Evolver wrappers (Diplomacy, Avalon)
-        try:
-            from env_wrappers.diplomacy_nl_wrapper import DiplomacyNLWrapper
-        except ImportError:
-            DiplomacyNLWrapper = None
-        try:
-            from env_wrappers.avalon_nl_wrapper import AvalonNLWrapper
-        except ImportError:
-            AvalonNLWrapper = None
-
         from decision_agents.agent_helper import (
             build_rag_summary,
             compact_text_observation,
@@ -92,8 +80,6 @@ def _lazy_imports():
             "make_orak_env": make_orak_env,
             "SubprocessEnv": SubprocessEnv,
             "GamingAgentNLWrapper": GamingAgentNLWrapper,
-            "DiplomacyNLWrapper": DiplomacyNLWrapper,
-            "AvalonNLWrapper": AvalonNLWrapper,
             "build_rag_summary": build_rag_summary,
             "compact_text_observation": compact_text_observation,
             "extract_game_facts": extract_game_facts,
@@ -159,127 +145,6 @@ def _infer_tag_from_text(text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Adapters for multi-agent / complex-action games
-# ---------------------------------------------------------------------------
-
-class _AvalonAdapter:
-    """Wraps AvalonNLWrapper (single-agent) to provide discrete action_names."""
-
-    def __init__(self, env):
-        self._env = env
-        self._last_info: dict = {}
-
-    def reset(self):
-        obs, info = self._env.reset()
-        info["action_names"] = self._build_actions(info)
-        return obs, info
-
-    def step(self, action_str: str):
-        real = self._convert(action_str, self._last_info)
-        obs, reward, term, trunc, info = self._env.step(real)
-        info["action_names"] = self._build_actions(info)
-        self._last_info = info
-        return obs, reward, term, trunc, info
-
-    def _build_actions(self, info):
-        self._last_info = info
-        phase = info.get("phase", -1)
-        if phase == 1:
-            return ["approve", "reject"]
-        if phase == 2:
-            return ["pass", "fail"]
-        if phase == 0:
-            team_size = info.get("team_size", 2)
-            n = self._env.num_players
-            from itertools import combinations
-            combos = list(combinations(range(n), team_size))
-            return [",".join(str(p) for p in c) for c in combos[:15]]
-        if phase == 3:
-            return [str(i) for i in range(self._env.num_players)]
-        return ["wait"]
-
-    def _convert(self, action_str: str, info):
-        phase = info.get("phase", -1)
-        if phase == 0:
-            try:
-                return [int(x) for x in action_str.split(",")]
-            except ValueError:
-                ts = info.get("team_size", 2)
-                return list(range(ts))
-        if phase == 3:
-            try:
-                return int(action_str)
-            except ValueError:
-                return 0
-        return action_str
-
-    def close(self):
-        if hasattr(self._env, "close"):
-            self._env.close()
-
-    @property
-    def done(self):
-        return self._env.done
-
-
-class _DiplomacyAdapter:
-    """Wraps DiplomacyNLWrapper (single-agent) to provide discrete action_names.
-
-    Presents each unit's possible orders as flat choices.  The LLM picks one
-    order; unmentioned units use random valid orders.
-    """
-
-    def __init__(self, env):
-        self._env = env
-        self._last_info = {}
-
-    def reset(self):
-        obs, info = self._env.reset()
-        info["action_names"] = self._build_actions(info)
-        self._last_info = info
-        return obs, info
-
-    def step(self, action_str: str):
-        orders = self._make_orders(action_str)
-        obs, reward, term, trunc, info = self._env.step(orders)
-        info["action_names"] = self._build_actions(info)
-        self._last_info = info
-        return obs, reward, term, trunc, info
-
-    def _build_actions(self, info):
-        cp = self._env._controlled_power
-        possible = info.get("possible_orders", {}).get(cp, {})
-        flat: List[str] = []
-        for loc, orders in possible.items():
-            flat.extend(orders[:8])
-        if not flat:
-            return ["hold"]
-        return flat[:20]
-
-    def _make_orders(self, action_str: str) -> list:
-        cp = self._env._controlled_power
-        possible = self._last_info.get("possible_orders", {}).get(cp, {})
-        orders: List[str] = []
-        used = False
-        for loc, loc_orders in possible.items():
-            if not used and action_str in loc_orders:
-                orders.append(action_str)
-                used = True
-            else:
-                if loc_orders:
-                    orders.append(random.choice(loc_orders))
-        return orders
-
-    def close(self):
-        if hasattr(self._env, "close"):
-            self._env.close()
-
-    @property
-    def done(self):
-        return self._env.done
-
-
-# ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
 
@@ -314,43 +179,6 @@ class EpisodeResult:
     role: str = ""          # e.g. "Merlin", "FRANCE"
     side: str = ""          # e.g. "good", "evil", or power name
     role_index: int = -1    # player index (Avalon) or power ordinal
-
-
-# ---------------------------------------------------------------------------
-# Stage / side inference for multi-role games
-# ---------------------------------------------------------------------------
-
-def _detect_avalon_stage(step: int, max_steps: int, info: dict) -> str:
-    """Return Avalon game stage based on quest progress and phase."""
-    phase = info.get("phase", -1)
-    if phase == 3:
-        return "assassination"
-    quest = info.get("quest", info.get("current_quest", 0))
-    if quest <= 1:
-        return "early_quests"
-    if quest <= 3:
-        return "mid_quests"
-    return "late_quests"
-
-
-def _detect_diplomacy_stage(step: int, max_steps: int, info: dict) -> str:
-    """Return Diplomacy game stage based on phase progression."""
-    phase_name = info.get("phase_name", "")
-    if phase_name:
-        year_match = re.search(r"(\d{4})", phase_name)
-        if year_match:
-            year = int(year_match.group(1))
-            if year <= 1902:
-                return "opening"
-            if year <= 1907:
-                return "midgame"
-            return "endgame"
-    ratio = step / max(max_steps, 1)
-    if ratio < 0.25:
-        return "opening"
-    if ratio < 0.65:
-        return "midgame"
-    return "endgame"
 
 
 # ---------------------------------------------------------------------------
@@ -533,10 +361,6 @@ async def _generate_intention(
         "  candy_crush, moves=4, target=500 → [CLEAR] maximize cascade combos now\n"
         "  candy_crush, special candy available → [EXECUTE] activate combo for big score\n"
         "  candy_crush, board cluttered → [OPTIMIZE] clear blockers to open matches\n"
-        "  avalon, suspicious player → [DEFEND] block suspected spy from mission\n"
-        "  avalon, team forming → [ATTACK] push to lead the next mission\n"
-        "  diplomacy, ally requesting support → [BUILD] strengthen alliance for next turn\n"
-        "  diplomacy, unexplored border → [EXPLORE] scout neighbor's intentions\n"
     )
 
     prompt = (
@@ -970,10 +794,9 @@ async def run_episode_async(
     model_name : str | None
         Model name for LLM opponent policy requests.
     assigned_role : str | None
-        Explicit role/power to control (unified-role mode).  When
-        *None* the legacy random-role selection is used.
+        Reserved for multi-role games (unused for current game set).
     assigned_role_index : int | None
-        Explicit player index (Avalon) or power ordinal (Diplomacy).
+        Reserved for multi-role games (unused for current game set).
     opponent_model : str | None
         External API model for opponents (e.g. ``"gpt-5-mini"``).
         When set, non-controlled players use this model via API
@@ -986,8 +809,6 @@ async def run_episode_async(
     make_gaming_env = imp["make_gaming_env"]
     make_orak_env = imp["make_orak_env"]
     GamingAgentNLWrapper = imp["GamingAgentNLWrapper"]
-    DiplomacyNLWrapper = imp["DiplomacyNLWrapper"]
-    AvalonNLWrapper = imp["AvalonNLWrapper"]
     HARD_SUMMARY_CHAR_LIMIT = imp["HARD_SUMMARY_CHAR_LIMIT"]
     extract_game_facts = imp["extract_game_facts"]
     compact_text_observation = imp["compact_text_observation"]
@@ -1023,48 +844,6 @@ async def run_episode_async(
         else:
             env = make_orak_env(game, max_steps=max_steps)
 
-    elif game == "diplomacy":
-        if DiplomacyNLWrapper is None:
-            raise ImportError("DiplomacyNLWrapper not available")
-        _ALL_POWERS = ["AUSTRIA", "ENGLAND", "FRANCE", "GERMANY", "ITALY", "RUSSIA", "TURKEY"]
-        if assigned_role is not None:
-            power = assigned_role
-        else:
-            power = random.choice(_ALL_POWERS)
-        _role_idx = _ALL_POWERS.index(power) if power in _ALL_POWERS else 0
-        logger.info("Diplomacy: controlling %s this episode", power)
-        env = _DiplomacyAdapter(DiplomacyNLWrapper(
-            controlled_power=power, max_phases=20,
-            vllm_base_urls=vllm_base_urls, model_name=model_name,
-            skill_bank=skill_bank,
-            opponent_model=opponent_model,
-            opponent_api_base=opponent_api_base,
-        ))
-
-    elif game == "avalon":
-        if AvalonNLWrapper is None:
-            raise ImportError("AvalonNLWrapper not available")
-        _AVALON_ROLE_NAMES = ["Merlin", "Servant", "Servant", "Minion", "Assassin"]
-        _AVALON_SIDE_MAP = {
-            "Merlin": "good", "Percival": "good", "Servant": "good",
-            "Mordred": "evil", "Morgana": "evil", "Oberon": "evil",
-            "Minion": "evil", "Assassin": "evil",
-        }
-        if assigned_role_index is not None:
-            player = assigned_role_index
-        else:
-            player = random.randint(0, 4)
-        _role_name = _AVALON_ROLE_NAMES[player] if player < len(_AVALON_ROLE_NAMES) else "Servant"
-        _role_side = _AVALON_SIDE_MAP.get(_role_name, "good")
-        logger.info("Avalon: controlling player %d (%s/%s) this episode", player, _role_name, _role_side)
-        env = _AvalonAdapter(AvalonNLWrapper(
-            num_players=5, controlled_player=player,
-            vllm_base_urls=vllm_base_urls, model_name=model_name,
-            skill_bank=skill_bank,
-            opponent_model=opponent_model,
-            opponent_api_base=opponent_api_base,
-        ))
-
     else:
         if exe:
             base_env = await loop.run_in_executor(
@@ -1074,12 +853,8 @@ async def run_episode_async(
             base_env = make_gaming_env(game=game, max_steps=max_steps)
 
         if game == "tetris":
-            try:
-                from env_wrappers.tetris_macro_wrapper import TetrisMacroActionWrapper
-                env = TetrisMacroActionWrapper(GamingAgentNLWrapper(base_env))
-            except ImportError:
-                logger.warning("TetrisMacroActionWrapper unavailable, using primitive actions")
-                env = GamingAgentNLWrapper(base_env)
+            from env_wrappers.tetris_macro_wrapper import TetrisMacroActionWrapper
+            env = TetrisMacroActionWrapper(GamingAgentNLWrapper(base_env))
         else:
             env = GamingAgentNLWrapper(base_env)
 
@@ -1087,14 +862,6 @@ async def run_episode_async(
     _ep_role = ""
     _ep_side = ""
     _ep_role_idx = -1
-    if game == "diplomacy":
-        _ep_role = power
-        _ep_side = power          # each power is its own "side"
-        _ep_role_idx = _role_idx
-    elif game == "avalon":
-        _ep_role = _role_name
-        _ep_side = _role_side
-        _ep_role_idx = player
 
     if exe:
         obs_nl, info = await loop.run_in_executor(exe, env.reset)
@@ -1442,14 +1209,6 @@ async def run_episode_async(
         if _ep_role:
             _exp_dict["role"] = _ep_role
             _exp_dict["side"] = _ep_side
-            if game == "avalon":
-                _exp_dict["stage"] = _detect_avalon_stage(
-                    step_count, max_steps, next_info,
-                )
-            elif game == "diplomacy":
-                _exp_dict["stage"] = _detect_diplomacy_stage(
-                    step_count, max_steps, next_info,
-                )
         experiences.append(_exp_dict)
 
         prev_summary_state = summary_state
@@ -1467,10 +1226,7 @@ async def run_episode_async(
             break
 
         # Early termination: stuck detection
-        # Skip for games with sparse rewards (reward only at game end).
-        _STUCK_EXEMPT_GAMES = {"avalon", "diplomacy"}
-        if (game not in _STUCK_EXEMPT_GAMES
-                and step_count >= min_steps_before_stuck
+        if (step_count >= min_steps_before_stuck
                 and len(recent_rewards) >= stuck_window
                 and sum(recent_rewards[-stuck_window:]) <= 0):
             logger.debug("Episode %s stuck at step %d, terminating early", episode_id, step_count)

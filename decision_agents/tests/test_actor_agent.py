@@ -113,7 +113,7 @@ a4=[Right]
 IMAGE_QA_SCHEMA = """\
 <state>
 domain=image_qa
-task=clevr-q1
+task=tir_bench-q1
 goal=What color is the cube?
 step=0
 

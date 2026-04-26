@@ -17,15 +17,16 @@ on each domain.
 The three interactive runtimes have hard-pinned dependency sets that
 cannot co-resolve (gymnasium 0.28 vs 1.2+, transformers 4.35 vs 4.51+,
 playwright pinned to 1.44 for BrowserGym-core). They each get their own
-env. The two offline benchmarks (CLEVR + Video-Holmes) and the
-`vlm_wrapper` grounding pipeline share a fourth env.
+env. Offline **video** benchmarks (Video-Holmes / SIV-Bench on disk) plus
+**image** benchmarks pulled from HuggingFace (VisualToolBench, TIR-Bench)
+share the same `vlm_benchmarks` env as the `vlm_wrapper` grounding pipeline.
 
 | Domain     | Conda env        | Upstream source                                                     | Purpose                                                             |
 |------------|------------------|---------------------------------------------------------------------|---------------------------------------------------------------------|
 | `gymv`     | `gymv`           | [ModalMinds/gym-v](https://github.com/ModalMinds/gym-v)             | 179 procedurally-generated visual envs                              |
 | `browser`  | `browsergym`     | [ServiceNow/BrowserGym](https://github.com/ServiceNow/BrowserGym)   | MiniWoB++ / WebArena / VisualWebArena / AssistantBench              |
 | `desktop`  | `osworld`        | [xlang-ai/OSWorld](https://github.com/xlang-ai/OSWorld)             | Desktop tasks + `desktop-env` runtime                               |
-| `image_qa` | `vlm_benchmarks` | —                                                                   | CLEVR loader + grounding pipeline                                   |
+| `image_qa` | `vlm_benchmarks` | HF `datasets` + cache                                                 | VisualToolBench + TIR-Bench loaders + grounding pipeline              |
 | `video_qa` | `vlm_benchmarks` | —                                                                   | Video-Holmes loader + grounding pipeline                            |
 
 ### Incompatibility matrix (why four envs, not one)
@@ -186,8 +187,8 @@ does not require a VM.
 
 Single env that covers:
 
-* CLEVR / GQA loaders (`vlm_wrapper.benchmarks.clevr`)
-* Video-Holmes / SIV-Bench loaders (`vlm_wrapper.benchmarks.video_holmes`)
+* VisualToolBench / TIR-Bench loaders (`vlm_wrapper.visual_reasoning_wrapper.benchmarks.{visual_toolbench,tir_bench}`)
+* Video-Holmes / SIV-Bench loaders (`vlm_wrapper.visual_reasoning_wrapper.benchmarks.{video_holmes,siv_bench}`)
 * The full `vlm_wrapper` grounding pipeline (GroundingDINO, OmniParser-v2, Florence-2, EasyOCR, YOLO, decord)
 * OpenAI / Anthropic / Google-Genai API clients for Head 2 labeling
 
@@ -201,24 +202,47 @@ pip install -e .                           # makes vlm_wrapper importable
 python install/vlm_benchmarks_smoke.py
 ```
 
-### CLEVR data (~18 GB)
+### Image QA — HuggingFace (VisualToolBench + TIR-Bench)
+
+CLEVR / GQA are **not** used anymore; image QA is **VisualToolBench** + **TIR-Bench** only.
+
+**A. Cache-only (smallest disk footprint)** — warms the HuggingFace datasets cache on first import:
 
 ```bash
-dst=/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/data/CLEVR
-mkdir -p "$dst"
-curl -L -o "$dst/CLEVR_v1.0.zip" https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip
-unzip -q "$dst/CLEVR_v1.0.zip" -d "$dst"
-rm "$dst/CLEVR_v1.0.zip"
+conda activate vlm_benchmarks
+python - <<'PY'
+from datasets import load_dataset
+load_dataset("Agents-X/TIR-Bench", split="test", trust_remote_code=True)
+load_dataset("ScaleAI/VisualToolBench", split="test", streaming=True, trust_remote_code=True)
+print("HF caches warmed — image benchmarks ready.")
+PY
 ```
 
-After extraction:
+**B. Full copy under `data/datasets/`** (repo `data/` is gitignored — safe for large files):
 
+```bash
+cd /fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent
+mkdir -p data/datasets
+pip install -U "huggingface_hub[cli]"
+hf download Agents-X/TIR-Bench       --repo-type dataset --local-dir data/datasets/TIR-Bench
+hf download ScaleAI/VisualToolBench  --repo-type dataset --local-dir data/datasets/VisualToolBench
 ```
-data/CLEVR/CLEVR_v1.0/
-├── images/{train,val,test}/CLEVR_*_NNNNNN.png
-├── questions/CLEVR_{train,val,test}_questions.json
-└── scenes/CLEVR_{train,val}_scenes.json       # ground-truth scene graphs
+
+The `vlm_wrapper` loaders still resolve rows through `datasets.load_dataset(...)` (Hub + cache). The on-disk copy is for backups, air-gapped transfer, or tooling that expects a folder tree.
+
+Set `HF_TOKEN` / `HUGGING_FACE_HUB_TOKEN` if either dataset is gated for your org.
+
+If `hf download` fails with **permission denied** under a shared default cache, point Hugging Face at the repo-local cache (gitignored):
+
+```bash
+cd /path/to/Multi-hop-Reasoning-VLM-Agent
+export HF_HOME="$(pwd)/.hf_cache"
+export HF_HUB_CACHE="$HF_HOME/hub"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_DISABLE_XET=1
 ```
+
+Then re-run the `hf download` commands above.
 
 ### Video-Holmes data (~8 GB)
 
@@ -264,11 +288,11 @@ Each script prints one `[OK] / [FAIL] / [WARN]` line per check.
 | §3 escalation chain — `gymv`                                                    | Runtime ready (`gymv` env)  |
 | §3 escalation chain — `browser`                                                 | Runtime ready (`browsergym` env) |
 | §3 escalation chain — `desktop`                                                 | Runtime ready (`osworld` env); VM backend pulled separately |
-| §3 escalation chain — `image_qa`                                                | Runtime ready (`vlm_benchmarks` env); CLEVR data optional download |
+| §3 escalation chain — `image_qa`                                                | Runtime ready (`vlm_benchmarks` env); HF image benchmarks via `datasets` |
 | §3 escalation chain — `video_qa`                                                | Runtime ready (`vlm_benchmarks` env); Video-Holmes data on disk |
 | Phase 0 — Gym-V data collection                                                 | Unblocked                   |
 | Phase 0 — BrowserGym data collection                                            | Unblocked                   |
-| Phase 1 — image-QA SFT                                                          | Unblocked after CLEVR download |
+| Phase 1 — image-QA SFT                                                          | Unblocked after HF cache / `datasets` smoke |
 | Phase 1 — video-QA SFT                                                          | Unblocked                   |
 
 ---

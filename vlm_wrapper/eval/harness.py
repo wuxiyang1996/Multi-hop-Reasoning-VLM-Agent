@@ -9,23 +9,26 @@ aggregation.
 Typical use::
 
     from vlm_wrapper.eval import run_eval
-    from vlm_wrapper.benchmarks.clevr import iter_clevr_samples, parse_clevr_sample
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+        iter_tir_bench_samples,
+        parse_tir_bench_sample,
+    )
 
     def grounder(sample):
-        return parse_clevr_sample(sample, model="gpt-4o", api_key=KEY)
+        return parse_tir_bench_sample(sample, model="gpt-4o", api_key=KEY)
 
     report = run_eval(
-        samples=iter_clevr_samples(split="val", limit=200),
+        samples=iter_tir_bench_samples(split="test", limit=200),
         grounder=grounder,
         domain="image_qa",
         gold_extractor=lambda s: {
             "answer": s.answer,
-            "schema": None,           # CLEVR doesn't ship a schema-format gold
-            "entities": None,         # could be derived from scenes/CLEVR_*_scenes.json
+            "schema": None,
+            "entities": None,
             "needed_tools": None,
         },
-        sample_id_fn=lambda s: f"{s.split}.{s.image_index}",
-        output_jsonl="runs/eval/clevr_val.jsonl",
+        sample_id_fn=lambda s: s.sample_id,
+        output_jsonl="runs/eval/tir_bench.jsonl",
     )
     print(report.metrics.to_dict())
 """
@@ -96,7 +99,7 @@ def _normalise_grounder_output(out: Any) -> dict[str, Any]:
     """Coerce whatever the per-benchmark parser returns into a uniform dict.
 
     All ``parse_<benchmark>_sample`` helpers in
-    ``vlm_wrapper.benchmarks.*`` already return dicts with the same key
+    ``vlm_wrapper.visual_reasoning_wrapper.benchmarks.*`` already return dicts with the same key
     set we need (``schema``, ``answer``, ``tool_trace``, ``head_used``,
     ``escalation_trace``, ``warnings``).  This wrapper just guards
     against the harness being pointed at a custom grounder that returns

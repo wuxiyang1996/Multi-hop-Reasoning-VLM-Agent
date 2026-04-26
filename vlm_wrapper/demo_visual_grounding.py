@@ -217,7 +217,7 @@ def run_vlm_tool_loop(image: Image.Image, args) -> dict:
         print("      Use: --api-key sk-... or set OPENAI_API_KEY")
         return {}
 
-    from vlm_wrapper.tools_visual import build_visual_registry
+    from vlm_wrapper.visual_reasoning_wrapper.tools_visual import build_visual_registry
     from vlm_wrapper.tool_loop import run_tool_loop
 
     registry = build_visual_registry(image)
@@ -359,7 +359,7 @@ def save_annotated(image: Image.Image, path: str):
         annotated.save(path)
         print(f"\n  Annotated image saved: {path}")
     except ImportError:
-        from vlm_wrapper.tools_visual import _VisualState
+        from vlm_wrapper.visual_reasoning_wrapper.tools_visual import _VisualState
         state = _VisualState(image)
         dets = state.detect()
         from PIL import ImageDraw

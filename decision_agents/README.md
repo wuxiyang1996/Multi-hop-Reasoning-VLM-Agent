@@ -276,7 +276,7 @@ evidence:
    bbox IoU with the gold-region > 0.5; `+0.2` when `RETRIEVE`
    returns the gold passage in top-3; `+0.1` for a connected
    evidence chain) is needed for the LoRA to actually learn the hop
-   policy. GQA / CLEVR / ScienceQA-IMG / NExT-QA all ship the
+   policy. VisualToolBench / TIR-Bench / ScienceQA-IMG / NExT-QA all ship the
    region/event-level annotations to supervise this.
 4. **Video-specific: a frame backbone.** Pre-computed per-frame
    embeddings (CLIP / SigLIP / InternVideo) cached in the harness so
@@ -437,7 +437,7 @@ Concretely:
   specialist climb the Video-Holmes leaderboard but would not
   generalise to the other four legs, so they're out of scope here.
 - We measure VR / Video against a small smoke-test slice (~200
-  questions per benchmark — GQA / NExT-QA / Video-Holmes), not the
+  questions per benchmark — TIR-Bench / NExT-QA / Video-Holmes), not the
   full leaderboards. The bar is **"within 5pts of the same backbone
   in fat-context mode"** — i.e. prove the harness overhead doesn't
   actively hurt — not "top the board".
@@ -455,7 +455,7 @@ stops there.
 | Game | LMGame-Bench (2048 / Tetris / Candy Crush), AgentEvolver (Avalon / Diplomacy), Orak (Mario) | Match Qwen3-8B baseline at lower inference cost |
 | Web | WebArena / VisualWebArena / BrowserGym MiniWoB++ | Match GPT-4o-Web on a multi-step subset |
 | OS | OSWorld (subset) | Beat Qwen2.5-VL baseline; match GPT-4o-OS on common workflows |
-| VR (smoke) | GQA / CLEVR (~500 q) | Within 5pts of Qwen3-VL-8B fat-context on the same questions |
+| VR (smoke) | TIR-Bench / VisualToolBench (~500 q) | Within 5pts of Qwen3-VL-8B fat-context on the same questions |
 | Video (smoke) | NExT-QA / Video-Holmes (~200 q each) | Within 5pts of fat-context — *not* leaderboard-chasing |
 
 ---

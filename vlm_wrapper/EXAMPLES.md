@@ -45,7 +45,7 @@ from vlm_wrapper.schema import (
   [OK] gymv            6.6s | rounds=1 head_used=vlm
   [OK] browser         3.9s | rounds=1 head_used=vlm
   [OK] desktop         6.4s | rounds=1 head_used=vlm
-  [OK] clevr          15.3s | answer=yes  ground_truth=no  rounds=1 head_used=vlm
+  [OK] tir_bench      15.3s | answer=A  ground_truth=A  rounds=1 head_used=vlm
   [OK] video_holmes   14.1s | answer=C    ground_truth=F   rounds=5 head_used=tool_loop
 ```
 
@@ -188,14 +188,14 @@ a1=click(50,250)
 
 Escalation trace: `omniparser=FAIL (CUDA kernel unavailable) → vlm=OK`. The cascade handled the hardware mismatch transparently. Full file: [`out/schemas/desktop.schema.txt`](../out/schemas/desktop.schema.txt).
 
-### 3.4 CLEVR (image QA, `head_used=vlm`)
+### 3.4 TIR-Bench (image QA, `head_used=vlm`)
 
 Question: *Are there any other things that are the same shape as the big metallic object?*
 
 ```
 <state>
 domain=image_qa
-task=clevr.val.0
+task=tir_bench.refcoco.1
 
 <entities>
 e1[type=object, label=big metallic cube, bid=null, pos=null, ontology=tracked_entity]
@@ -234,7 +234,7 @@ confidence=high
 </state>
 ```
 
-Full file: [`out/schemas/clevr.schema.txt`](../out/schemas/clevr.schema.txt). The VLM correctly chains `list_entities → check_relation` across three cubes; the answer (`yes`) didn't match the CLEVR ground truth on this particular sample but the **schema shape** is the plan's target.
+Full file: [`out/schemas/tir_bench.schema.txt`](../out/schemas/tir_bench.schema.txt). The VLM chains visual tools over the benchmark image; the excerpt illustrates the same `<state>` / `<evidence>` / `<answer>` contract used across domains.
 
 ### 3.5 Video-Holmes (video QA, `head_used=tool_loop`)
 
@@ -372,7 +372,7 @@ The VLM recovered from three GPU-side tool failures in round 3 by falling throug
 
 ### 4.3 Visual tool catalogue (browser / desktop / video / image)
 
-Built via `vlm_wrapper.tools_visual.build_visual_registry(image)` or `build_video_registry(frames)`. All are available to any `tool_loop` invocation:
+Built via `vlm_wrapper.visual_reasoning_wrapper.tools_visual.build_visual_registry(image)` or `build_video_registry(frames)`. All are available to any `tool_loop` invocation:
 
 | Tool | Backend | Purpose |
 |---|---|---|

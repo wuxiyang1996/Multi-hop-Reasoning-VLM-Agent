@@ -6,8 +6,6 @@ Gymnasium-compatible adapters, game configurations, and benchmark runners
 for all supported environments.
 
 NL Wrappers:
-  - AvalonNLWrapper:       Avalon hidden-role deduction (5-10 agents)
-  - DiplomacyNLWrapper:    Diplomacy strategic negotiation (7 agents / powers)
   - GamingAgentNLWrapper:  GamingAgent / LMGame-Bench (2048, Candy Crush, Tetris)
   - OrakNLWrapper:         Orak environments (Super Mario)
   - OSWorldNLWrapper:      OSWorld desktop automation (Ubuntu/Windows VMs)
@@ -20,22 +18,6 @@ Evaluation helpers:
   - run_benchmark:         CLI benchmark runner for LMGame-Bench
   - run_orak_benchmark:    CLI benchmark runner for Orak games
 """
-
-from env_wrappers.avalon_nl_wrapper import (
-    AvalonNLWrapper,
-    state_to_natural_language as avalon_state_to_nl,
-    state_to_natural_language_for_all as avalon_state_to_nl_all,
-    parse_vote as avalon_parse_vote,
-    parse_team as avalon_parse_team,
-    parse_target as avalon_parse_target,
-)
-
-from env_wrappers.diplomacy_nl_wrapper import (
-    DiplomacyNLWrapper,
-    state_to_natural_language as diplomacy_state_to_nl,
-    state_to_natural_language_for_all as diplomacy_state_to_nl_all,
-    parse_orders as diplomacy_parse_orders,
-)
 
 from env_wrappers.gamingagent_nl_wrapper import (
     GamingAgentNLWrapper,
@@ -68,19 +50,9 @@ from env_wrappers.game_configs import (
 
 from env_wrappers.gym_like import make_gaming_env, list_games
 
+from env_wrappers.visual_utils import get_obs_image, get_obs_pil_image
+
 __all__ = [
-    # Avalon
-    "AvalonNLWrapper",
-    "avalon_state_to_nl",
-    "avalon_state_to_nl_all",
-    "avalon_parse_vote",
-    "avalon_parse_team",
-    "avalon_parse_target",
-    # Diplomacy
-    "DiplomacyNLWrapper",
-    "diplomacy_state_to_nl",
-    "diplomacy_state_to_nl_all",
-    "diplomacy_parse_orders",
     # GamingAgent
     "GamingAgentNLWrapper",
     "gamingagent_state_to_nl",
@@ -105,4 +77,7 @@ __all__ = [
     "AVAILABLE_GAMES",
     "make_gaming_env",
     "list_games",
+    # Visual helpers (cross-env)
+    "get_obs_image",
+    "get_obs_pil_image",
 ]

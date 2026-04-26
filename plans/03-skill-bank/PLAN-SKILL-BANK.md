@@ -566,7 +566,7 @@ compound:     opening:MERGE  midgame:MERGE  endgame:MERGE   ← 3 distinct skill
 | Browser | WebArena | Task completion % + page depth | exploration, form_filling, verification |
 | Browser | MiniWoB++ | Element count + interaction history | identification, interaction, confirmation |
 | Desktop | OSWorld | Window/app state | navigation, configuration, verification |
-| Image QA | CLEVR/GQA | Evidence chain length | grounding, reasoning, answering |
+| Image QA | VisualToolBench/TIR-Bench | Evidence chain length | grounding, reasoning, answering |
 | Video QA | SIV-Bench | Timeline position + evidence count | scanning, focusing, concluding |
 | Video QA | Video-Holmes | Clue chain length + scene coverage | exploration, investigation, synthesis |
 
@@ -863,7 +863,7 @@ Stage E: Export                      — transferable_skills.jsonl + transfer_in
 ```python
 # From the SkillBankAgent
 templates = agent.extract_transferable_skills(
-    other_banks={"tetris": bank_tetris, "webarena": bank_webarena, "clevr": bank_clevr},
+    other_banks={"tetris": bank_tetris, "webarena": bank_webarena, "image_qa": bank_image_qa},
     output_dir="output/transferable",
 )
 

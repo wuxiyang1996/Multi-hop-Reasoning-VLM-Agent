@@ -14,13 +14,11 @@ with the ``escalation_trace`` that shows which head produced it.
   1. ``gymv``         — interactive game frame
   2. ``browser``      — browser screenshot
   3. ``desktop``      — desktop screenshot
-  4. ``clevr``        — image-QA multi-hop reasoning
+  4. ``tir_bench``    — image-QA (HF TIR-Bench; needs ``datasets`` + cache)
   5. ``video_holmes`` — video-QA multi-hop temporal reasoning
 
-Each case uses a real input that already ships with the repo (bundled
-PNGs for the three interactive domains, ``data/CLEVR`` and
-``data/Video-Holmes`` for the two benchmarks), so the script can be run
-without any extra setup besides ``OPENAI_API_KEY`` in ``.env``.
+Interactive cases use bundled PNGs under ``out/captures``.  Benchmarks
+need local video data (Video-Holmes) or a HuggingFace cache (TIR-Bench).
 
 Outputs per case::
 
@@ -31,9 +29,9 @@ Outputs per case::
 
 Usage::
 
-    python scripts/test_vlm_parsers.py                 # run all five
+    python scripts/test_vlm_parsers.py                 # run all default cases
     python scripts/test_vlm_parsers.py --cases gymv browser
-    python scripts/test_vlm_parsers.py --max-rounds 2  # cheaper CLEVR/VH
+    python scripts/test_vlm_parsers.py --max-rounds 2  # cheaper TIR/VH
     python scripts/test_vlm_parsers.py --dry-run       # no API calls
 """
 
@@ -57,11 +55,11 @@ from scripts.run_vlm_parser import _load_dotenv  # noqa: E402
 DEFAULT_OUT_DIR = REPO_ROOT / "out" / "schemas"
 DEFAULT_CAPTURE_DIR = REPO_ROOT / "out" / "captures"
 
-CASES = ("gymv", "browser", "desktop", "clevr", "video_holmes")
+CASES = ("gymv", "browser", "desktop", "tir_bench", "video_holmes")
 
 # Interactive-case heads you can force via `--head`.  `auto` means
 # "use the domain's default escalation chain" (PLAN-VISUAL-GROUNDING
-# §12 Layer 2).  Benchmarks (clevr / video_holmes) always use their
+# §12 Layer 2).  Benchmarks (tir_bench / video_holmes) always use their
 # own default chain.
 HEAD_CHOICES = ("auto", "heuristic", "vlm", "omniparser", "tool_loop")
 
@@ -490,19 +488,30 @@ def _run_desktop(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
     return case, result.schema
 
 
-def _run_clevr(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
-    from vlm_wrapper.benchmarks.clevr import (
-        iter_clevr_samples, parse_clevr_sample,
+def _run_tir_bench(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+        iter_tir_bench_samples,
+        load_tir_bench_image,
+        parse_tir_bench_sample,
     )
 
-    samples = list(iter_clevr_samples(split="val", limit=1))
-    if not samples:
+    DEFAULT_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+    capture_png = DEFAULT_CAPTURE_DIR / "tir_bench_input.png"
+    try:
+        sample = next(iter_tir_bench_samples(split="test", limit=1))
+    except Exception as exc:
         return (
-            {"case": "clevr", "error": "no CLEVR samples found"},
+            {"case": "tir_bench", "error": f"no TIR-Bench sample: {exc}"},
             None,
         )
-    sample = samples[0]
-    out = parse_clevr_sample(
+    try:
+        load_tir_bench_image(sample).save(capture_png)
+    except Exception as exc:
+        return (
+            {"case": "tir_bench", "error": f"image decode failed: {exc}"},
+            None,
+        )
+    out = parse_tir_bench_sample(
         sample,
         model=args.model,
         api_key=args.api_key,
@@ -511,9 +520,10 @@ def _run_clevr(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
     )
     return (
         {
-            "case": "clevr",
-            "question": sample.question,
-            "image_filename": sample.image_filename,
+            "case": "tir_bench",
+            "question": sample.prompt,
+            "task": sample.task,
+            "input_image_path": str(capture_png),
             "ground_truth": out.get("ground_truth"),
             "answer": out.get("answer"),
             "correct": out.get("correct"),
@@ -533,7 +543,7 @@ def _run_clevr(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
 def _run_video_holmes(
     args: argparse.Namespace,
 ) -> tuple[dict[str, Any], str | None]:
-    from vlm_wrapper.benchmarks.video_holmes import (
+    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_sample,
     )
 
@@ -598,7 +608,7 @@ _CASE_RUNNERS: dict[str, Callable[[argparse.Namespace], tuple[dict[str, Any], st
     "gymv": _run_gymv,
     "browser": _run_browser,
     "desktop": _run_desktop,
-    "clevr": _run_clevr,
+    "tir_bench": _run_tir_bench,
     "video_holmes": _run_video_holmes,
 }
 
@@ -753,7 +763,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--api-key", default=None,
                    help="OpenAI API key (default: $OPENAI_API_KEY).")
     p.add_argument("--max-rounds", type=int, default=3,
-                   help="VLM tool-call rounds for CLEVR / Video-Holmes.")
+                   help="VLM tool-call rounds for TIR-Bench / Video-Holmes.")
     p.add_argument("--num-frames", type=int, default=6,
                    help="Frame count for Video-Holmes.")
     p.add_argument("--dry-run", action="store_true",

@@ -66,7 +66,7 @@ GAME_CONFIGS: Dict[str, GameConfig] = {
         max_steps=200,
         episodes=3,
         description="Place falling tetrominoes to clear lines",
-        notes="Reward per piece placed; hard_drop ends turns quickly",
+        notes="Benchmark uses TetrisMacroActionWrapper (placement-level actions)",
     ),
     "doom": GameConfig(
         name="doom",

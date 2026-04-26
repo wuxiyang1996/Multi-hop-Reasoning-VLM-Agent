@@ -14,10 +14,8 @@ os.environ.setdefault("HF_HUB_CACHE", os.path.join(os.environ["HF_HOME"], "hub")
 
 
 SKILL_BANK_GAMES = [
-    "diplomacy",
     "twenty_forty_eight",
     "tetris",
-    "avalon",
     "candy_crush",
     "super_mario",
 ]
@@ -26,10 +24,8 @@ SKILL_BANK_GAMES = [
 EVAL_ONLY_GAMES: List[str] = []
 
 GAME_MAX_STEPS: Dict[str, int] = {
-    "diplomacy": 20,
     "twenty_forty_eight": 200,
     "tetris": 200,
-    "avalon": 50,
     "candy_crush": 50,
     "super_mario": 500,
 }
@@ -41,40 +37,19 @@ EMULATOR_GAMES: set = set()
 # plays ALL roles and each rollout is tagged with role / side metadata.
 # Per-game episode overrides ensure sufficient role coverage.
 
-EPISODES_PER_GAME_MULTIROLE: Dict[str, int] = {
-    "avalon": 5,
-    "diplomacy": 7,
-}
-
-AVALON_ROLES: List[str] = ["Merlin", "Servant", "Servant", "Minion", "Assassin"]
-AVALON_SIDES: Dict[str, str] = {
-    "Merlin": "good", "Percival": "good", "Servant": "good",
-    "Mordred": "evil", "Morgana": "evil", "Oberon": "evil",
-    "Minion": "evil", "Assassin": "evil",
-}
-DIPLOMACY_POWERS: List[str] = [
-    "AUSTRIA", "ENGLAND", "FRANCE", "GERMANY", "ITALY", "RUSSIA", "TURKEY",
-]
+EPISODES_PER_GAME_MULTIROLE: Dict[str, int] = {}
 
 
 def resolve_bank_key(game: str, role: str = "", side: str = "") -> str:
     """Return the skill-bank routing key for an episode.
 
-    In unified-role mode the key encodes the role dimension so each
-    side (Avalon) or power (Diplomacy) gets its own bank.  For all
-    other games the key is just the game name.
+    In unified-role mode the key may encode a role dimension. For standard
+    games the key is just the game name.
 
     Examples::
 
-        resolve_bank_key("avalon", "Merlin", "good")   -> "avalon/good"
-        resolve_bank_key("avalon", "Assassin", "evil")  -> "avalon/evil"
-        resolve_bank_key("diplomacy", "FRANCE", "FRANCE") -> "diplomacy/FRANCE"
-        resolve_bank_key("tetris")                      -> "tetris"
+        resolve_bank_key("tetris") -> "tetris"
     """
-    if game == "avalon" and side:
-        return f"avalon/{side}"
-    if game == "diplomacy" and role:
-        return f"diplomacy/{role}"
     return game
 
 
@@ -83,18 +58,12 @@ def bank_keys_for_game(game: str) -> List[str]:
 
     Used by ``PerGameSkillBankManager`` to pre-create sub-bank pipelines.
     """
-    if game == "avalon":
-        return ["avalon/good", "avalon/evil"]
-    if game == "diplomacy":
-        return [f"diplomacy/{p}" for p in DIPLOMACY_POWERS]
     return [game]
 
 
 GAME_DURATION_ORDER = [
-    "diplomacy",
     "twenty_forty_eight",
     "tetris",
-    "avalon",
     "candy_crush",
     "super_mario",
 ]
@@ -113,13 +82,10 @@ ADAPTER_NAMES = [
 CURRICULUM_GRADUAL: Dict[int, List[str]] = {
     0: ["twenty_forty_eight", "tetris", "candy_crush"],
     10: ["twenty_forty_eight", "tetris", "candy_crush", "super_mario"],
-    15: ["twenty_forty_eight", "tetris", "candy_crush", "super_mario", "avalon"],
-    20: ["twenty_forty_eight", "tetris", "candy_crush", "super_mario", "avalon", "diplomacy"],
 }
 
 CURRICULUM_FOCUSED: Dict[int, List[str]] = {
     0: ["twenty_forty_eight", "tetris", "candy_crush", "super_mario"],
-    40: ["avalon", "diplomacy"],
 }
 
 CURRICULUM_PRESETS: Dict[str, Optional[Dict[int, List[str]]]] = {
@@ -159,14 +125,8 @@ class CoEvolutionConfig:
     eval_episodes_per_game: int = 3
 
     # ── Unified multi-role rollout mode ──────────────────────────
-    # When True, Avalon and Diplomacy use a single shared decision
-    # agent for all roles.  Rollouts are tagged with role / side /
-    # stage metadata so the skill bank can segment skills along
-    # those dimensions.  Episode counts follow per-game overrides
-    # (default: 5 for Avalon, 7 for Diplomacy).  Other games are
-    # unaffected.
-    # When False (default), the legacy random-role behaviour is used
-    # and ``episodes_per_game`` applies uniformly to every game.
+    # When True, per-game episode counts follow ``episodes_per_game_overrides``.
+    # When False (default), ``episodes_per_game`` applies uniformly to every game.
     unified_role_rollouts: bool = False
     episodes_per_game_overrides: Dict[str, int] = field(
         default_factory=lambda: dict(EPISODES_PER_GAME_MULTIROLE),
@@ -203,11 +163,7 @@ class CoEvolutionConfig:
     # (persistent instances on vllm_gpu_ids, hot-reload after GRPO).
     manage_vllm: bool = True
 
-    # External opponent for multi-agent games (Avalon, Diplomacy).
-    # When set, non-controlled players/powers use this API model
-    # instead of self-play via the local vLLM model.  This breaks the
-    # symmetric-weakness problem where both sides share the same bugs.
-    # Example: "gpt-5-mini" (routed through OpenRouter).
+    # External opponent API (reserved for future multi-agent games).
     opponent_model: Optional[str] = None
     opponent_api_base: Optional[str] = "https://openrouter.ai/api/v1"
 

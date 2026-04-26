@@ -12,7 +12,7 @@ Layout::
 
 The trainer reads triples produced by
 ``labeling/grounding/collect_{gymv,browser}.py`` plus the per-benchmark
-parsers under ``vlm_wrapper/benchmarks/`` and emits a LoRA adapter at
+parsers under ``vlm_wrapper/visual_reasoning_wrapper/benchmarks/`` and emits a LoRA adapter at
 ``runs/sft_schema_gen/<run_id>/`` that the inference cascade
 (``vlm_wrapper.ground.cascaded_ground``) can plug straight into the
 Path-A "vision head".

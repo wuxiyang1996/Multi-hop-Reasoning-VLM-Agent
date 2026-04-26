@@ -38,7 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from api_keys import open_router_api_key
 from vlm_wrapper.schema import parse_schema_output, validate_schema
-from vlm_wrapper.gymv_adapter import generate_label as gymv_generate_label
+from gymv_wrapper.adapter import generate_label as gymv_generate_label
 from vlm_wrapper.browser_adapter import generate_label as browser_generate_label
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")

@@ -2,19 +2,21 @@
 
 Converts screenshots, video frames, and environment observations into a shared structured text schema (`<state>…</state>`), which plugs into the COS-PLAY pipeline for skill retrieval and decision-making. Supports multi-hop tool-calling reasoning where a VLM gathers grounded evidence from specialised vision models before producing the final schema.
 
+**Submodule readmes:** [`visual_reasoning_wrapper/README.md`](visual_reasoning_wrapper/README.md) (image/video tools + benchmarks) · [`visual_reasoning_wrapper/benchmarks/README.md`](visual_reasoning_wrapper/benchmarks/README.md) (dataset loaders) · [`eval/README.md`](eval/README.md) (batch harness + CLI) · [`tests/README.md`](tests/README.md) (pytest).
+
 **Full plan:** [`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md`](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md) • Skill-context schema fields come from [`plans/01-visual-grounding/PLAN-VISUAL-SKILLS.md`](../plans/01-visual-grounding/PLAN-VISUAL-SKILLS.md) and [`plans/03-skill-bank/PLAN-SKILL-BANK.md`](../plans/03-skill-bank/PLAN-SKILL-BANK.md).
 
 ---
 
 ## Quick setup
 
-`vlm_wrapper` itself runs inside a single **grounding** env that bundles torch / transformers / OmniParser-v2 / OCR / GroundingDINO / decord plus the CLEVR and Video-Holmes benchmark loaders. For **live data collection** from the three interactive runtimes (Gym-V, BrowserGym, OSWorld), each runtime has its own env because their transitive pins conflict — see [`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for the full incompatibility matrix.
+`vlm_wrapper` itself runs inside a single **grounding** env that bundles torch / transformers / OmniParser-v2 / OCR / GroundingDINO / decord plus HuggingFace **VisualToolBench** / **TIR-Bench** image loaders and local **Video-Holmes** / **SIV-Bench** video loaders. For **live data collection** from the three interactive runtimes (Gym-V, BrowserGym, OSWorld), each runtime has its own env because their transitive pins conflict — see [`install/INSTALL_BENCHMARKS.md`](../install/INSTALL_BENCHMARKS.md) for the full incompatibility matrix.
 
 ### The four conda envs
 
 | Env | YAML | Role | What's in it |
 |-----|------|------|--------------|
-| `vlm_benchmarks` | [`install/vlm_benchmarks.environment.yml`](../install/vlm_benchmarks.environment.yml) | **Grounding pipeline + offline benchmarks.** Use this to run `cascaded_ground`, Head 1/2/3, the tool loop, CLEVR, Video-Holmes, and all `scripts/` entry points. | torch 2.4.1+cu121, transformers 4.51–4.56, timm, ultralytics, easyocr, decord, supervision, openai, anthropic, google-genai, datasets, Pillow, playwright |
+| `vlm_benchmarks` | [`install/vlm_benchmarks.environment.yml`](../install/vlm_benchmarks.environment.yml) | **Grounding pipeline + offline benchmarks.** Use this to run `cascaded_ground`, Head 1/2/3, the tool loop, VisualToolBench / TIR-Bench / Video-Holmes / SIV-Bench, and all `scripts/` entry points. | torch 2.4.1+cu121, transformers 4.51–4.56, timm, ultralytics, easyocr, decord, supervision, openai, anthropic, google-genai, datasets, Pillow, playwright |
 | `gymv` | [`install/gymv.environment.yml`](../install/gymv.environment.yml) | **Gym-V env runtime** — drive [ModalMinds/gym-v](https://github.com/ModalMinds/gym-v) to capture `(frame, obs.text, info)` tuples. | gymnasium ≥1.2.2, gym-v editable install with `[games,spatial]`, textarena, pettingzoo, minigrid, miniworld |
 | `browsergym` | [`install/browsergym.environment.yml`](../install/browsergym.environment.yml) | **BrowserGym env runtime** — drive [ServiceNow/BrowserGym](https://github.com/ServiceNow/BrowserGym) to capture screenshots + AXTrees. | playwright 1.44, browsergym-core + miniwob + webarena + visualwebarena + assistantbench + experiments, libwebarena, libvisualwebarena |
 | `osworld` | [`install/osworld.environment.yml`](../install/osworld.environment.yml) | **OSWorld desktop runtime** — drive [xlang-ai/OSWorld](https://github.com/xlang-ai/OSWorld) to capture screenshots + a11y trees. | gymnasium ~0.28.1, transformers ~4.35.2, desktop-env 1.0.x, docker SDK, pyautogui |
@@ -38,7 +40,7 @@ pytest vlm_wrapper/tests -q
 python install/vlm_benchmarks_smoke.py
 
 # Live end-to-end parse across all five domains (requires OPENAI_API_KEY)
-python scripts/test_vlm_parsers.py --cases gymv browser desktop clevr video_holmes
+python scripts/test_vlm_parsers.py --cases gymv browser desktop tir_bench video_holmes
 ```
 
 ### Build the runtime envs (only if you need to *step* real environments)
@@ -105,7 +107,7 @@ conda activate vlm_wrapper
 pip install -e . --no-deps
 ```
 
-Everything documented below works in either `vlm_benchmarks` or `vlm_wrapper`; the CLEVR / Video-Holmes examples only work in `vlm_benchmarks`.
+Everything documented below works in either `vlm_benchmarks` or `vlm_wrapper`; HF image benchmarks and Video-Holmes need `vlm_benchmarks` (or equivalent) with `datasets` + cache / local video data.
 
 If you just want the vision back-ends on top of an already-existing env, the same stack is exposed as the `[vision]` pyproject extra: `pip install -e ".[vision]"` (pulls `timm`, `easyocr`, `ultralytics`, `opencv-python`, `decord`, `supervision`).
 
@@ -145,8 +147,8 @@ This table is the quick answer to *"does the inference pipeline work end-to-end 
 | `gymv` (Gym-V) | `vlm → tool_loop` | `tools_visual` + `tools_gymv` | `entities, attributes, state_flags, targets, actions` | 3 | N/A — env-provided frames | `test_live_gymv_schema`, `test_live_gymv_tool_loop_schema` |
 | `browser` (BrowserGym) | `vlm → omniparser → tool_loop` | `tools_visual` + `tools_browser` | `entities, attributes, state_flags, targets, actions` | 5 | N/A — env-provided obs | `test_live_browser_schema` |
 | `desktop` (OSWorld) | `omniparser → vlm → tool_loop` | `tools_visual` + `tools_osworld` | `entities, attributes, state_flags, targets, actions` | 5 | N/A — env-provided obs | `test_live_desktop_schema` |
-| `image_qa` (CLEVR) | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | `data/CLEVR/CLEVR_v1.0/` ✅ | `test_live_clevr_schema` |
-| `video_qa` (Video-Holmes) | `tool_loop` only | `tools_video_visual` (temporal + visual + cross-frame) | `entities, state_flags, targets, evidence, answer` | 1 | `data/Video-Holmes/Benchmark/` ✅ | `test_live_video_holmes_schema` |
+| `image_qa` (VTB, TIR-Bench) | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | HF `ScaleAI/VisualToolBench` + `Agents-X/TIR-Bench` ✅ when cached | `test_live_tir_bench_schema` |
+| `video_qa` (Video-Holmes, SIV-Bench) | `tool_loop` only | `tools_video_visual` (temporal + visual + cross-frame) | `entities, state_flags, targets, evidence, answer` | 1 | Video-Holmes `data/Video-Holmes/Benchmark/` ✅; SIV `data/SIV-Bench/` ✅ when installed | `test_live_video_holmes_schema` |
 
 **Intentional design choices (not bugs):**
 
@@ -155,9 +157,9 @@ This table is the quick answer to *"does the inference pipeline work end-to-end 
 - **`browser` OmniParser fallback is observable** — when `context["obs"]` is missing (e.g. raw screenshot only), `_attempt_omniparser` falls back to image-only grounding and appends an explicit warning to the `GroundingResult.warnings` list so the cascade telemetry records the degraded mode.
 - **Head 2 is a single code path** — `_attempt_vlm` for `gymv` / `browser` / `desktop` delegates to the same `generate_label` adapter that data-collection scripts call directly. No prompt drift between "Head 2 inside cascade" and "Head 2 at labeling time".
 
-**Not yet wired (Phase-0 TODOs, not feasibility blockers):**
+**Still open (Phase-0 TODOs, not feasibility blockers):**
 
-- GQA and SIV-Bench loaders under `benchmarks/` — follow the `clevr.py` / `video_holmes.py` pattern and they drop straight into the `image_qa` / `video_qa` chains.
+- VisualToolBench / TIR-Bench / SIV-Bench are **wired** (`visual_reasoning_wrapper/benchmarks/{visual_toolbench,tir_bench,siv_bench}.py`, `eval/run_eval.py`); extend `vlm_wrapper/tests/test_gpt4o_parsers.py` when adding new live cases.
 - Dual-teacher data collection scripts (`labeling/teachers.py`, `labeling/collect_*.py`).
 - Schema-vs-teacher cross-validation harness and ablation-study evaluation harness.
 
@@ -264,22 +266,34 @@ vlm_wrapper/
 ├── browser_adapter.py         # BrowserGym: screenshot → GPT-4o → schema
 ├── osworld_adapter.py         # OSWorld: desktop screenshot → GPT-4o → schema
 │
-│  ── Benchmark loaders + GPT-4o parsers ──
-├── benchmarks/
-│   ├── clevr.py               # CLEVR v1.0 image-QA → GPT-4o → answer
-│   └── video_holmes.py        # Video-Holmes video-QA → GPT-4o → A–F letter
+│  ── Visual reasoning (image/video tools + benchmark loaders) ──
+├── visual_reasoning_wrapper/
+│   ├── __init__.py            # XSkill-aligned design notes + 2×2 benchmark matrix
+│   ├── README.md              # package overview (tools + benchmarks together)
+│   ├── tools_visual.py        # Vision-model-backed tools (detect_objects, spatial_query, etc.)
+│   ├── tools_video.py         # Video temporal navigation tools (get_frame, compare_frames, etc.)
+│   ├── tools_video_visual.py  # Cross-frame tools (track_object, find_moment, etc.)
+│   └── benchmarks/
+│       ├── README.md          # four-benchmark matrix, disk layout, API entry points
+│       ├── visual_toolbench.py# HF VisualToolBench → VLM → answer
+│       ├── tir_bench.py       # HF TIR-Bench → VLM → answer
+│       ├── _hf_images.py      # shared HF image decode helpers
+│       ├── video_holmes.py    # Video-Holmes video-QA → MC letter
+│       └── siv_bench.py       # SIV-Bench social video QA
+├── eval/
+│   ├── README.md              # run_eval CLI + programmatic harness
+│   ├── harness.py             # benchmark-agnostic batch driver + metrics
+│   ├── metrics.py
+│   └── run_eval.py            # python -m vlm_wrapper.eval.run_eval
 │
 │  ── Head 3: OmniParser-v2 Grounding (image-in → local models → schema-out) ──
 ├── grounding.py               # YOLO icon detector + Florence-2 captioner + OCR → ScreenElement list
 ├── grounding_browsergym.py    # BrowserGym/OSWorld adapter: ScreenElements → <state> schema
 │
-│  ── Tool infrastructure ──
+│  ── Tool infrastructure (shared) ──
 ├── tools.py                   # ToolDef, ToolRegistry, ToolResult (shared base)
 ├── tools_gymv.py              # Gym-V tool implementations (list_entities, query_entity_pos, etc.)
 ├── tools_browser.py           # BrowserGym + OSWorld tool implementations
-├── tools_visual.py            # Vision-model-backed tools (detect_objects, spatial_query, etc.)
-├── tools_video.py             # Video temporal navigation tools (get_frame, compare_frames, etc.)
-├── tools_video_visual.py      # Cross-frame tools (track_object, find_moment, etc.)
 │
 │  ── Tool-calling loop ──
 ├── tool_loop.py               # Multi-turn VLM tool-calling loop + convenience wrappers
@@ -288,6 +302,12 @@ vlm_wrapper/
 ├── example_browsergym.py      # Synthetic BrowserGym observation for testing
 ├── example_grounding.py       # Example: OmniParser grounding pipeline
 ├── demo_visual_grounding.py   # Demo: Mode A (direct), Mode B (VLM+tools), Mode C (comparison)
+│
+│  ── Tests ──
+├── tests/
+│   ├── README.md              # how to run pytest + live markers
+│   ├── conftest.py
+│   └── test_gpt4o_parsers.py
 │
 │  ── Other ──
 ├── test_schema_gen.py         # Schema generation tests
@@ -298,7 +318,7 @@ vlm_wrapper/
 
 ## Quick start
 
-See also: [**EXAMPLES.md**](EXAMPLES.md) — fully worked schemas and tool-calling traces for all five domains (gymv, browser, desktop, CLEVR, Video-Holmes).
+See also: [**EXAMPLES.md**](EXAMPLES.md) — fully worked schemas and tool-calling traces for all five domains (gymv, browser, desktop, TIR-Bench, Video-Holmes).
 
 ### Head 1 — Vision (screenshot → VLM → schema)  *(default)*
 
@@ -411,33 +431,34 @@ result = osworld_generate_label(
 result = osworld_obs_to_schema(obs, step=1, task_id="osworld.install-spotify")
 ```
 
-### Image-QA benchmark — CLEVR
+### Image-QA benchmarks — TIR-Bench & VisualToolBench
 
-Streams questions from `data/CLEVR/CLEVR_v1.0`, runs each through the `image_qa` tool loop (GPT-4o + visual tools), and returns the predicted answer alongside the ground truth.
+Both load from HuggingFace via ``datasets`` (see ``install/INSTALL_BENCHMARKS.md`` §4). Example — TIR-Bench:
 
 ```python
-from vlm_wrapper.benchmarks.clevr import (
-    iter_clevr_samples, parse_clevr_sample, parse_clevr_batch,
+from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+    iter_tir_bench_samples, parse_tir_bench_sample, parse_tir_bench_batch,
 )
 
-for sample in iter_clevr_samples(split="val", limit=5):
-    out = parse_clevr_sample(sample, model="gpt-4o", api_key=KEY)
-    print(sample.question, "→", out["answer"], "gt:", out["ground_truth"])
+for sample in iter_tir_bench_samples(split="test", limit=5):
+    out = parse_tir_bench_sample(sample, model="gpt-4o", api_key=KEY)
+    print(sample.prompt[:80], "→", out["answer"], "gt:", out["ground_truth"])
 
-# Batch run with resumable JSONL output
-results = parse_clevr_batch(
-    iter_clevr_samples(split="val", limit=100),
-    output_jsonl="out/clevr_val_100.jsonl",
+results = parse_tir_bench_batch(
+    iter_tir_bench_samples(split="test", limit=100),
+    output_jsonl="out/tir_bench_100.jsonl",
     api_key=KEY,
 )
 ```
+
+VisualToolBench: ``from vlm_wrapper.visual_reasoning_wrapper.benchmarks.visual_toolbench import iter_visual_toolbench_samples, parse_visual_toolbench_sample``.
 
 ### Video-QA benchmark — Video-Holmes
 
 Uniformly samples frames from `data/Video-Holmes/Benchmark/videos/videos_cropped/<video_id>.mp4` and routes them through the `video_qa` tool loop. Answers are normalised to the benchmark's A–F letter so they can be scored against `Answer` from `test_Video-Holmes.json`.
 
 ```python
-from vlm_wrapper.benchmarks.video_holmes import (
+from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
     iter_video_holmes_samples, parse_video_holmes_sample,
 )
 
@@ -453,7 +474,7 @@ Requires either `decord` (recommended) or `opencv-python` for video decoding.
 
 ### Unified CLI — `scripts/run_vlm_parser.py`
 
-A single entry point for all five domains. Reads `OPENAI_API_KEY` from `.env` when present.
+A single entry point for gymv / browser / desktop / image QA / video QA. Reads `OPENAI_API_KEY` from `.env` when present.
 
 ```bash
 # One gym-v game frame
@@ -470,8 +491,8 @@ python scripts/run_vlm_parser.py browser \
 python scripts/run_vlm_parser.py desktop \
     --image desktop.png --goal "Install Spotify"
 
-# List 5 CLEVR val samples (no API call)
-python scripts/run_vlm_parser.py clevr --split val --limit 5 --dry-run
+# List 5 TIR-Bench test samples (no API call)
+python scripts/run_vlm_parser.py tir_bench --limit 5 --dry-run
 
 # Parse 3 Video-Holmes SR questions, saving JSONL
 python scripts/run_vlm_parser.py video_holmes \
@@ -653,7 +674,7 @@ pip install -e ".[vision]"
 
 ### Common install gotchas (now handled automatically)
 
-- **GroundingDINO API rename** (`box_threshold=` → `threshold=` in `transformers 4.50+`). `tools_visual.py` now picks the right keyword at call time via `inspect.signature`, so both old and new wheels work.
+- **GroundingDINO API rename** (`box_threshold=` → `threshold=` in `transformers 4.50+`). `visual_reasoning_wrapper/tools_visual.py` now picks the right keyword at call time via `inspect.signature`, so both old and new wheels work.
 - **Florence-2 missing `timm`.** `grounding.py::_load_caption` now raises an actionable `ImportError` telling you to install the `vision` extra — instead of dying deep inside `modeling_florence2.py`.
 - **GPU compute-capability mismatches.** If `detect_objects_at_frame` fails with `CUDA error: no kernel image is available for execution on the device`, your GPU is newer than torch 2.4.1+cu121 supports (common on RTX 50-series). Upgrade by editing `install/vlm_benchmarks.environment.yml` to `torch==2.5.x` + `--extra-index-url …/cu124`.
 - **Wrong env activated.** Running `pytest vlm_wrapper/tests` or `scripts/test_vlm_parsers.py` from the `gymv` / `browsergym` / `osworld` env will fail with `ModuleNotFoundError: vlm_wrapper` or `No module named 'transformers.models.grounding_dino'`. Activate `vlm_benchmarks` (or the legacy `vlm_wrapper` env) first — the runtime envs intentionally don't include the grounding stack.
@@ -726,7 +747,7 @@ p50 latency stays on 8B; only the tail pays the teacher cost.  GPT-4o leaves the
 2. **Heuristic head as hallucination filter** — `labeling/grounding/cross_validate.py` flags samples where the heuristic and the Qwen3-VL teacher disagree; those are dropped from Stage-A training and routed to Stage-B trajectory collection (the hard cases that need tools).
 3. **Stage A on browser** — MiniWoB++ → WebArena, simple pages first.
 4. **Stage B on gymv + browser** — collect `tool_trace` from `cascaded_ground` runs where the cascade actually escalated to `tool_loop` (these are the cases where tool use was *necessary*, not gratuitous).  Train the same LoRA (or a sibling adapter) on those trajectories.
-5. **Benchmark evaluation** — CLEVR, GQA (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning skills.  Stage B is mandatory for the video benchmark.
+5. **Benchmark evaluation** — VisualToolBench, TIR-Bench (image), SIV-Bench, Video-Holmes (video).  Selected for transferable visual reasoning + tool use.  Stage B is mandatory for the video benchmark.
 
 ### Expected data budget
 

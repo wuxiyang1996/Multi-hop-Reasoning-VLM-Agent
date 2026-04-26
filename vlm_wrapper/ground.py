@@ -5,7 +5,7 @@ across ALL task domains: video games, web agents, OS agents, image QA,
 and video understanding.
 
 **All tasks are interactive.**  The multi-hop tool-calling loop IS the
-interaction — whether the VLM is reasoning about a CLEVR scene, playing
+interaction — whether the VLM is reasoning about an image-QA benchmark, playing
 2048, or answering a video question.  Every task follows the same
 interactive pattern:
 
@@ -24,7 +24,7 @@ Usage::
 
     from vlm_wrapper.ground import ground, GroundingRequest
 
-    # Image QA (CLEVR, GQA) — interactive multi-hop reasoning
+    # Image QA (VisualToolBench, TIR-Bench, …) — interactive multi-hop reasoning
     result = ground(GroundingRequest(
         images=pil_image,
         goal="How many red spheres are left of the blue cube?",
@@ -275,14 +275,14 @@ def _build_registry(
     primary_image: Image.Image,
 ) -> ToolRegistry:
     """Auto-compose the right tool registry from domain + context."""
-    from .tools_visual import build_visual_registry
+    from .visual_reasoning_wrapper.tools_visual import build_visual_registry
 
     use_gdino = domain in _NATURAL_IMAGE_DOMAINS
     visual_reg = build_visual_registry(primary_image, prefer_gdino=use_gdino)
     registries: list[ToolRegistry] = [visual_reg]
 
     if domain == "gymv":
-        from .tools_gymv import build_gymv_registry
+        from gymv_wrapper.tools import build_gymv_registry
         gymv_reg = build_gymv_registry(
             obs_text=req.context.get("obs_text", ""),
             description=req.context.get("description", ""),
@@ -305,8 +305,8 @@ def _build_registry(
         ))
 
     elif domain in ("video_qa", "video") and isinstance(req.images, list):
-        from .tools_video import build_video_registry
-        from .tools_video_visual import (
+        from .visual_reasoning_wrapper.tools_video import build_video_registry
+        from .visual_reasoning_wrapper.tools_video_visual import (
             build_video_visual_registry, make_openai_describer,
         )
         # Natural video → GroundingDINO for detection, and a VLM-backed
@@ -531,7 +531,7 @@ def ground(req: GroundingRequest) -> GroundingResult:
 
     # Even non-cascaded calls should get the semantic + skill-context
     # checks and the tool-trace reconciliation.  Without this the
-    # benchmark scripts (CLEVR, Video-Holmes) never see the warnings the
+    # benchmark scripts (image QA, Video-Holmes) never see the warnings the
     # plan demands (PLAN-VISUAL-GROUNDING-MILESTONES §6 / §12).
     if schema:
         try:
@@ -683,7 +683,7 @@ def _attempt_heuristic(req: GroundingRequest, domain: str) -> GroundingResult:
 
     try:
         if domain == "gymv":
-            from .gymv_heuristic import text_to_schema
+            from gymv_wrapper.heuristic import text_to_schema
             schema = text_to_schema(
                 obs_text=req.context.get("obs_text", ""),
                 description=req.context.get("description", ""),
@@ -839,7 +839,7 @@ def _attempt_vlm_via_adapter(
 
     try:
         if domain == "gymv":
-            from .gymv_adapter import generate_label as gymv_generate_label
+            from gymv_wrapper.adapter import generate_label as gymv_generate_label
             # ``show_obs_text=False`` (used by --gymv-head tool_loop) must
             # also zero out obs_text in the single-shot VLM path — otherwise
             # the VLM would still see the ground-truth grid and we'd be

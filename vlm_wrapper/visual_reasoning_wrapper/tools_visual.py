@@ -9,7 +9,7 @@ Two registries are available:
 
   * ``build_visual_registry(image)`` — tools that operate on a single frame.
   * Tools can also be merged with the video registry for temporal+visual
-    understanding (see tools_video_visual.py).
+    understanding (see ``tools_video_visual`` in this package).
 
 Designed for multi-hop reasoning: the VLM sees a screenshot, calls
 ``detect_objects`` to get precise elements, then ``describe_region`` to
@@ -18,7 +18,7 @@ building a chain of grounded evidence before producing the final schema.
 
 Usage::
 
-    from vlm_wrapper.tools_visual import build_visual_registry
+    from vlm_wrapper.visual_reasoning_wrapper.tools_visual import build_visual_registry
 
     registry = build_visual_registry(pil_image)
     # merge with video tools if needed:
@@ -37,7 +37,7 @@ from typing import Any, Sequence
 import numpy as np
 from PIL import Image
 
-from .tools import ToolDef, ToolRegistry
+from ..tools import ToolDef, ToolRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -290,7 +290,7 @@ TOOL_GROUNDED_DETECT = ToolDef(
         "Detect objects matching a natural-language query in the image. "
         "Uses open-vocabulary grounding (GroundingDINO) — works on ANY "
         "image content: natural scenes, photos, diagrams, synthetic "
-        "scenes (CLEVR), video frames, etc.  Returns bounding boxes, "
+        "scenes (synthetic QA, photos), video frames, etc.  Returns bounding boxes, "
         "labels, and confidence scores for every match.  Unlike "
         "detect_objects (which finds UI elements), this finds arbitrary "
         "objects described in plain English.  Example queries: 'red "
@@ -366,7 +366,7 @@ class _VisualState:
       screenshots (buttons, icons, text fields).  The default for
       ``domain in ("gymv", "browser", "desktop")``.
     - **GroundingDINO**: open-vocabulary object detection — handles
-      natural images (CLEVR shapes, GQA real-world objects, video
+      natural images (benchmark photos, UI crops, video
       frames with people/cars/animals).  Used for ``image_qa``,
       ``video_qa``, and any domain where OmniParser would fail.
 
