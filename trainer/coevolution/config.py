@@ -108,7 +108,7 @@ def _model_short_name(model_name: str) -> str:
 def _generate_run_dir(model_name: str) -> str:
     """Generate a unique run directory name from model name + timestamp.
 
-    Example: ``runs/Qwen3-8B_20260315_143022``
+    Example: ``runs/Qwen3.5-9B_20260427_131800``
     """
     short = _model_short_name(model_name)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -146,18 +146,33 @@ class CoEvolutionConfig:
         default_factory=lambda: [4, 5, 6, 7],
     )
 
-    # vLLM inference
-    model_name: str = "Qwen/Qwen3-8B"
+    # vLLM inference — base model that GRPO trains and that vLLM serves.
+    # ``Qwen/Qwen3.5-9B`` is the multimodal hybrid Gated-DeltaNet + Gated-Attention
+    # text decoder we LoRA-tune on.  For text-only rollouts the vision tower
+    # is skipped via ``--language-model-only`` (see vllm_server.py).
+    model_name: str = "Qwen/Qwen3.5-9B"
     temperature: float = 0.5
     max_tokens: int = 512
     vllm_base_url: str = "http://localhost:8000/v1"  # used only when manage_vllm=False
     vllm_base_port: int = 8000
     vllm_gpu_util: float = 0.95
 
-    # Speculative decoding — use a small draft model to propose tokens
-    # that the main model verifies in parallel (~2-3x generation speedup).
-    speculative_model: Optional[str] = "Qwen/Qwen3-0.6B"
-    num_speculative_tokens: int = 5
+    # Speculative decoding.  Two methods are supported:
+    #   "mtp"          — use the model's built-in Multi-Token-Prediction head
+    #                    (Qwen3.5-9B / Qwen3.5-MoE / Qwen3-Next ship one).
+    #                    No draft model needed.  Recommended for Qwen3.5.
+    #   "draft_model"  — use a small external model (e.g. Qwen3-0.6B) as the
+    #                    drafter.  Required for plain Qwen3 (no MTP head).
+    speculative_method: str = "mtp"
+    speculative_model: Optional[str] = None
+    num_speculative_tokens: int = 1
+
+    # Inference-only secondary model (e.g. ``Qwen/Qwen3.5-35B-A3B``) — NOT
+    # trained, served separately for evaluation, baselines, or as a teacher.
+    # See ``inference/serve_qwen35_35b_a3b.sh`` for the standalone launcher;
+    # this field is purely informational so config snapshots record which
+    # inference model the run was paired with.
+    inference_only_model: Optional[str] = "Qwen/Qwen3.5-35B-A3B"
 
     # When True, the orchestrator manages vLLM server lifecycle
     # (persistent instances on vllm_gpu_ids, hot-reload after GRPO).
@@ -282,7 +297,7 @@ class CoEvolutionConfig:
         """Rebase all directory paths under ``run_dir``.
 
         If ``run_dir`` is ``None``, generates one from the model name
-        and current timestamp (e.g. ``runs/Qwen3-8B_20260315_143022``).
+        and current timestamp (e.g. ``runs/Qwen3.5-9B_20260427_131800``).
 
         Idempotent — calling twice is safe.
         """
@@ -475,6 +490,12 @@ def prepare_adapters(config: CoEvolutionConfig) -> Dict[str, str]:
     import torch
     from peft import LoraConfig, TaskType, get_peft_model
     from transformers import AutoConfig, AutoModelForCausalLM
+    try:
+        # transformers 5.x exposes the multimodal "image-text-to-text" auto class
+        # used by Qwen3.5 / Qwen3-VL.  Fall back gracefully for text-only setups.
+        from transformers import AutoModelForImageTextToText  # type: ignore
+    except ImportError:  # pragma: no cover — older transformers
+        AutoModelForImageTextToText = None  # type: ignore
 
     logger = logging.getLogger(__name__)
     force = config.start_mode == "from_scratch"
@@ -549,13 +570,40 @@ def prepare_adapters(config: CoEvolutionConfig) -> Dict[str, str]:
         return result
 
     # ── Resolve target_modules from model architecture ────────────
+    model_cfg = AutoConfig.from_pretrained(
+        config.model_name, trust_remote_code=True,
+    )
+    # Multimodal Qwen3.5 / Qwen3-VL configs nest the language-model spec under
+    # ``text_config``.  Use it for arch-detection so we identify the LM type
+    # (e.g. ``qwen3_5_text``) rather than the umbrella multimodal type.
+    text_cfg = getattr(model_cfg, "text_config", model_cfg)
+    text_arch = (getattr(text_cfg, "model_type", "") or "").lower()
+    is_multimodal = hasattr(model_cfg, "text_config") or hasattr(model_cfg, "vision_config")
+
     target_modules = config.lora_target_modules
     if target_modules is None:
-        model_cfg = AutoConfig.from_pretrained(
-            config.model_name, trust_remote_code=True,
-        )
-        arch = getattr(model_cfg, "model_type", "")
-        if "qwen" in arch.lower():
+        if "qwen3_5_moe" in text_arch:
+            # Qwen3.5-MoE (e.g. 35B-A3B) — DO NOT LoRA the experts (router copy
+            # explosion); target attention + shared MLP only.
+            target_modules = [
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "in_proj_qkv", "out_proj",
+            ]
+        elif "qwen3_5" in text_arch:
+            # Qwen3.5 dense (e.g. 9B) — alternating Gated-DeltaNet (linear)
+            # and Gated-Attention (full) layers + per-layer dense MLP:
+            #   • full attention every 4th layer:  q_proj, k_proj, v_proj, o_proj
+            #   • Gated-DeltaNet otherwise:        in_proj_qkv, out_proj
+            #     (skip the tiny in_proj_a/b/z gating projections — output dim
+            #     == num_v_heads, so LoRA on them is mostly noise)
+            #   • dense MLP in every layer:        gate_proj, up_proj, down_proj
+            target_modules = [
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "in_proj_qkv", "out_proj",
+                "gate_proj", "up_proj", "down_proj",
+            ]
+        elif "qwen" in text_arch:
+            # Qwen2 / Qwen3 dense decoder
             target_modules = [
                 "q_proj", "k_proj", "v_proj", "o_proj",
                 "gate_proj", "up_proj",
@@ -580,11 +628,21 @@ def prepare_adapters(config: CoEvolutionConfig) -> Dict[str, str]:
     )
     logger.info(
         "Loading base model '%s' on CPU to initialise %d adapter(s) "
-        "[init=%s, r=%d, alpha=%d]: %s",
+        "[init=%s, r=%d, alpha=%d, arch=%s, multimodal=%s]: %s",
         config.model_name, len(need_init), init_desc,
-        config.lora_r, config.lora_alpha, need_init,
+        config.lora_r, config.lora_alpha,
+        text_arch or "unknown", is_multimodal, need_init,
     )
-    base_model = AutoModelForCausalLM.from_pretrained(
+    # For multimodal Qwen3.5 / Qwen3-VL the umbrella ``Qwen3_5Config`` lacks
+    # ``vocab_size`` (lives under ``text_config``), so ``AutoModelForCausalLM``
+    # crashes when fed the outer config.  Use ``AutoModelForImageTextToText``
+    # in that case — the LoRA target_modules above still only match text
+    # decoder linears, leaving the (frozen) vision tower untouched.
+    if is_multimodal and AutoModelForImageTextToText is not None:
+        loader_cls = AutoModelForImageTextToText
+    else:
+        loader_cls = AutoModelForCausalLM
+    base_model = loader_cls.from_pretrained(
         config.model_name,
         torch_dtype=torch.bfloat16,
         device_map="cpu",

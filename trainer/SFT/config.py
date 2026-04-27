@@ -67,7 +67,7 @@ class SFTConfig:
     """Configuration for SFT cold-start training of all 5 LoRA adapters."""
 
     # Base model — must match what co-evolution uses
-    model_name: str = "Qwen/Qwen3-8B"
+    model_name: str = "Qwen/Qwen3.5-9B"
 
     # Data sources
     decision_data_dir: str = str(DECISION_DATA_DIR)
@@ -117,15 +117,31 @@ class SFTConfig:
     )
 
     def resolve_target_modules(self) -> List[str]:
-        """Return target_modules, auto-detecting for Qwen if unset."""
+        """Return target_modules, auto-detecting for Qwen if unset.
+
+        Mirrors :func:`trainer.coevolution.config.prepare_adapters` so SFT
+        cold-start adapters share the same shape as the GRPO loop reloads.
+        """
         if self.lora_target_modules is not None:
             return self.lora_target_modules
         from transformers import AutoConfig
         model_cfg = AutoConfig.from_pretrained(
             self.model_name, trust_remote_code=True,
         )
-        arch = getattr(model_cfg, "model_type", "")
-        if "qwen" in arch.lower():
+        text_cfg = getattr(model_cfg, "text_config", model_cfg)
+        text_arch = (getattr(text_cfg, "model_type", "") or "").lower()
+        if "qwen3_5_moe" in text_arch:
+            return [
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "in_proj_qkv", "out_proj",
+            ]
+        if "qwen3_5" in text_arch:
+            return [
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "in_proj_qkv", "out_proj",
+                "gate_proj", "up_proj", "down_proj",
+            ]
+        if "qwen" in text_arch:
             return ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj"]
         return ["q_proj", "v_proj"]
 

@@ -104,9 +104,12 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             log_dir=vllm_log_dir,
             speculative_model=config.speculative_model,
             num_speculative_tokens=config.num_speculative_tokens,
+            speculative_method=config.speculative_method,
         )
         spec_info = ""
-        if config.speculative_model:
+        if config.speculative_method == "mtp" and config.num_speculative_tokens > 0:
+            spec_info = f"  |  spec_decode=MTP ({config.num_speculative_tokens} tokens)"
+        elif config.speculative_model:
             spec_info = f"  |  spec_decode={config.speculative_model} ({config.num_speculative_tokens} tokens)"
         logger.info(
             "vLLM managed mode: %d × TP=1 instances on GPUs %s, "

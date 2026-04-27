@@ -40,7 +40,14 @@ pip install -e "${BG_DIR}/browsergym/core" \
             -e "${BG_DIR}/browsergym/assistantbench" \
             -e "${BG_DIR}/browsergym/experiments"
 
-echo "[4/5] Installing Playwright chromium ..."
+echo "[4/5] Installing Playwright system deps + chromium ..."
+# `install-deps` apt-installs libnspr4/libnss3/libatk*/libcups2/etc. on Linux.
+# On hosts without sudo, this is a no-op + warning; the next line will still
+# fetch the Chromium binary, but headless launches will fail until the libs
+# are installed manually (see install/INSTALL_BENCHMARKS.md §Troubleshooting).
+python -m playwright install-deps chromium || {
+    echo "      ⚠ playwright install-deps failed (no sudo?). Install libs manually if Chromium fails to launch."
+}
 python -m playwright install chromium
 
 echo "[5/5] Running smoke test ..."
@@ -49,3 +56,5 @@ python "$SCRIPT_DIR/browsergym_smoke.py"
 echo
 echo "Done. Activate with:  conda activate $ENV_NAME"
 echo "WorkArena (optional):  pip install --no-deps browsergym-workarena"
+echo "Task counts (expected ~2,063 total):"
+echo "  conda run -n $ENV_NAME python -c \"import browsergym.miniwob, browsergym.webarena, browsergym.visualwebarena, browsergym.assistantbench; import gymnasium; print(sum(1 for k in gymnasium.envs.registry if k.startswith('browsergym/')))\""

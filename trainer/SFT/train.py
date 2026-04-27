@@ -62,7 +62,7 @@ def parse_args() -> argparse.Namespace:
         description="SFT cold-start training for decision + skill-bank LoRA adapters",
     )
     p.add_argument(
-        "--model_name", type=str, default="Qwen/Qwen3-8B",
+        "--model_name", type=str, default="Qwen/Qwen3.5-9B",
         help="Base model (must match co-evolution config)",
     )
     p.add_argument(

@@ -17,20 +17,35 @@ benchmark-side adapters and live in a separate layer.
 
 ## TL;DR
 
-```bash
-# 1. Install gym-v as usual.
-bash install/install_gymv.sh
+> **Recommended path (unified `game-ai-agent` env):** the patch is applied
+> automatically when you pass a ROM zip to `install_main_env.sh`:
+>
+> ```bash
+> bash install/install_main_env.sh "" /path/to/Mega_Drive_Mini_Full_Set.zip
+> ```
+>
+> The standalone `gymv` env path below still works — use it for
+> VLM-eval-only setups that don't need the full training stack.
 
-# 2. Drop the multimodal upgrades onto it (idempotent).
+```bash
+# Standalone path (env: gymv)
+bash install/install_gymv.sh
 bash install/gymv_temporal_patch/apply_patch.sh \
      /fs/gamma-projects/vlm-robot/gym-v \
      /fs/gamma-projects/vlm-robot/ROMs/Mega_Drive_Mini_Full_Set.zip
+
+# Unified path (env: game-ai-agent) — manually re-running the patch later
+conda activate game-ai-agent
+bash install/gymv_temporal_patch/apply_patch.sh \
+     /path/to/parent/gym-v \
+     /path/to/Mega_Drive_Mini_Full_Set.zip
 ```
 
 The script will: install `stable-retro` if missing, extract+import the 12
-commercial Mega Drive Mini ROMs, copy four files into the `gym-v` source
-tree, fix the `Airstriker-Genesis` ↔ `Airstriker-Genesis-v0` mismatch,
-and run a smoke test on all 13 retro envs.
+commercial Mega Drive Mini ROMs (plus the bundled `Airstriker-Genesis-v0`),
+copy four files into the `gym-v` source tree, fix the
+`Airstriker-Genesis` ↔ `Airstriker-Genesis-v0` mismatch, and run a smoke
+test on all 13 retro envs.
 
 ---
 
@@ -159,10 +174,26 @@ env to `examples/temporal_smoketest_out/`.
 
 ## Future installation workflow
 
-The clean path on a brand-new machine looks like this:
+There are two clean paths on a brand-new machine, depending on whether
+you want the full training stack or a slim env for VLM-eval only.
+
+### A. Unified path — recommended (env: `game-ai-agent`)
 
 ```bash
-# 0. Workspace
+cd /path/to/parent
+
+# install_main_env.sh installs gym-v + clones it + applies this patch in one shot.
+bash Multi-hop-Reasoning-VLM-Agent/install/install_main_env.sh \
+     ""                                                                \
+     /path/to/Mega_Drive_Mini_Full_Set.zip
+```
+
+This is what we ship for the COS-PLAY pipeline because everything (GRPO,
+vLLM, GamingAgent, gym-v Games/Spatial/Temporal) ends up in one env.
+
+### B. Standalone path (env: `gymv`)
+
+```bash
 cd /fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent
 
 # 1. Install the gymv conda env + clone gym-v editable.
@@ -177,11 +208,13 @@ bash install/gymv_temporal_patch/apply_patch.sh
 #      $2 = /fs/gamma-projects/vlm-robot/ROMs/Mega_Drive_Mini_Full_Set.zip
 ```
 
-After both run, `python -c "import gym_v; print(sorted(e for e in gym_v.registry if e.startswith('Temporal/')))"` lists all 13 retro envs and they are usable end-to-end.
+After either path, `python -c "import gym_v, gym_v.envs; print(sorted(e for e in gym_v.registry if e.startswith('Temporal/')))"` lists all 13 retro envs and they are usable end-to-end.
 
 ### One-shot integration into `install_gymv.sh` (optional)
 
-If you want a single command, append a call to the patcher at the bottom of [`install_gymv.sh`](../install_gymv.sh):
+If you only use the standalone env and want a single command, append a
+call to the patcher at the bottom of
+[`install_gymv.sh`](../install_gymv.sh):
 
 ```bash
 echo "[5/4] Applying Temporal/* multimodal patch ..."
@@ -191,6 +224,9 @@ bash "${SCRIPT_DIR}/gymv_temporal_patch/apply_patch.sh" "$GYMV_DIR"
 `apply_patch.sh` is idempotent (it greps before sed-ing, checks ROM
 presence before importing, etc.), so re-running `install_gymv.sh` stays
 safe.
+
+> The unified `install_main_env.sh` already does this when invoked with a
+> ROM zip — no manual patch step needed.
 
 ---
 
@@ -274,7 +310,7 @@ and ends with `All envs passed.`. A representative line for
 
 ## Compatibility notes
 
-* Tested with `stable-retro==1.0.0`, `gymnasium>=1.2.2` (the gym-v env's pin), Python 3.11.
+* Tested with `stable-retro==1.0.0`, `gymnasium 1.3.0` (matches `game-ai-agent`'s pin) or `gymnasium>=1.2.2` (standalone `gymv` env), Python 3.11. Works on `numpy 1.26` *and* `numpy 2.x`.
 * `RetroGymVEnv.reset(seed=...)` forwards seeds to stable-retro,
   which is deterministic at the emulator level. The text representation
   is identical for identical action sequences across Python sessions.

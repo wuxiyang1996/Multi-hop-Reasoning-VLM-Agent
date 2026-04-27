@@ -45,7 +45,7 @@ class AsyncSkillBankPipeline:
     def __init__(
         self,
         bank_dir: str = "runs/skillbank",
-        model_name: str = "Qwen/Qwen3-8B",
+        model_name: str = "Qwen/Qwen3.5-9B",
         executor: Optional[ThreadPoolExecutor] = None,
         report_dir: Optional[str] = None,
         game_name: str = "generic",
@@ -488,7 +488,7 @@ class PerGameSkillBankManager:
         self,
         games: List[str],
         bank_dir: str = "runs/skillbank",
-        model_name: str = "Qwen/Qwen3-8B",
+        model_name: str = "Qwen/Qwen3.5-9B",
         executor: Optional[ThreadPoolExecutor] = None,
         grpo_group_size: int = 4,
         seed_bank_dir: Optional[str] = None,

@@ -3,24 +3,28 @@
 
 Usage (from Game-AI-Agent root):
 
-    # 1. Start vLLM server (on GPUs 0-3 with 5 LoRA adapters):
-    python -m vllm.entrypoints.openai.api_server \\
-        --model Qwen/Qwen3-8B \\
-        --tensor-parallel-size 4 \\
-        --gpu-memory-utilization 0.90 \\
-        --enable-lora \\
-        --max-loras 5 \\
-        --max-lora-rank 64 \\
-        --lora-modules \\
-            skill_selection=runs/lora_adapters/decision/skill_selection \\
-            action_taking=runs/lora_adapters/decision/action_taking \\
-            segment=runs/lora_adapters/skillbank/segment \\
-            contract=runs/lora_adapters/skillbank/contract \\
-            curator=runs/lora_adapters/skillbank/curator \\
-        --enable-prefix-caching \\
-        --enable-chunked-prefill \\
-        --max-num-seqs 128 \\
-        --port 8000
+    # 1. Managed mode (default): the orchestrator launches one TP=1
+    #    vLLM-serve instance per --vllm-gpus entry with the right
+    #    Qwen3.5 flags (--language-model-only, --reasoning-parser qwen3,
+    #    --speculative_config '{"method":"mtp","num_speculative_tokens":1}',
+    #    plus all 5 LoRA adapters).  Skip step 1 entirely.
+    #
+    #    External / unmanaged mode:
+    #    python -m vllm.entrypoints.openai.api_server \\
+    #        --model Qwen/Qwen3.5-9B \\
+    #        --tensor-parallel-size 4 \\
+    #        --gpu-memory-utilization 0.90 \\
+    #        --enable-lora --max-loras 5 --max-lora-rank 64 \\
+    #        --language-model-only --reasoning-parser qwen3 \\
+    #        --speculative_config '{"method":"mtp","num_speculative_tokens":1}' \\
+    #        --lora-modules \\
+    #            skill_selection=runs/lora_adapters/decision/skill_selection \\
+    #            action_taking=runs/lora_adapters/decision/action_taking \\
+    #            segment=runs/lora_adapters/skillbank/segment \\
+    #            contract=runs/lora_adapters/skillbank/contract \\
+    #            curator=runs/lora_adapters/skillbank/curator \\
+    #        --enable-prefix-caching --enable-chunked-prefill \\
+    #        --max-num-seqs 128 --port 8000
 
     # 2. Run co-evolution (GRPO on GPUs 4-7):
     export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
@@ -36,7 +40,7 @@ Usage (from Game-AI-Agent root):
 
     # Explicit run directory (otherwise auto-generated from model+timestamp):
     python scripts/run_coevolution.py \\
-        --run-dir runs/Qwen3-8B_20260315_143022
+        --run-dir runs/Qwen3.5-9B_20260427_131800
 
     # Specific games only:
     python scripts/run_coevolution.py \\
@@ -57,7 +61,7 @@ os.environ.setdefault("PYGLET_HEADLESS", "1")
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 # HuggingFace cache — point to /workspace/huggingface so models
-# (Qwen3-8B etc.) are not re-downloaded.
+# (Qwen3.5-9B etc.) are not re-downloaded.
 os.environ.setdefault("HF_HOME", "/workspace/huggingface")
 os.environ.setdefault("HF_HUB_CACHE", os.path.join(os.environ["HF_HOME"], "hub"))
 
@@ -135,8 +139,10 @@ def parse_args() -> argparse.Namespace:
 
     # Model
     parser.add_argument(
-        "--model", type=str, default="Qwen/Qwen3-8B",
-        help="Base model name (default: Qwen/Qwen3-8B)",
+        "--model", type=str, default="Qwen/Qwen3.5-9B",
+        help="Base model name (default: Qwen/Qwen3.5-9B). The model that "
+             "vLLM serves AND that GRPO LoRA-tunes. For inference-only "
+             "Qwen3.5-35B-A3B see inference/serve_qwen35_35b_a3b.sh.",
     )
     parser.add_argument(
         "--temperature", type=float, default=0.3,
@@ -177,13 +183,24 @@ def parse_args() -> argparse.Namespace:
         help="GPU memory utilization for vLLM (default: 0.90)",
     )
     parser.add_argument(
-        "--speculative-model", type=str, default="Qwen/Qwen3-0.6B",
-        help="Draft model for speculative decoding (default: Qwen/Qwen3-0.6B). "
-             "Set to empty string to disable.",
+        "--speculative-method", type=str, default="mtp",
+        choices=["mtp", "draft_model", "none"],
+        help="Speculative decoding method (default: mtp). "
+             "'mtp' uses the model's built-in multi-token-prediction head "
+             "(Qwen3.5 / Qwen3-Next / DeepSeek-V3); 'draft_model' uses "
+             "an external small model passed via --speculative-model; "
+             "'none' disables speculative decoding.",
     )
     parser.add_argument(
-        "--num-speculative-tokens", type=int, default=5,
-        help="Number of tokens the draft model proposes per step (default: 5)",
+        "--speculative-model", type=str, default="",
+        help="Draft model for --speculative-method=draft_model "
+             "(e.g. Qwen/Qwen3-0.6B for plain Qwen3). Ignored when "
+             "method=mtp. Default: empty (no external drafter).",
+    )
+    parser.add_argument(
+        "--num-speculative-tokens", type=int, default=1,
+        help="Number of tokens the drafter proposes per step. "
+             "Default: 1 (good for MTP); 4–5 for draft_model.",
     )
 
     # External opponent (Avalon / Diplomacy)
@@ -419,6 +436,8 @@ def main() -> None:
         vllm_base_url=args.vllm_url,
         vllm_base_port=args.vllm_base_port,
         vllm_gpu_util=args.vllm_gpu_util,
+        speculative_method=("none" if args.speculative_method == "none"
+                            else args.speculative_method),
         speculative_model=args.speculative_model or None,
         num_speculative_tokens=args.num_speculative_tokens,
         model_name=args.model,

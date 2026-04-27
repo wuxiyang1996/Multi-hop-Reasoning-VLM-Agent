@@ -1,4 +1,4 @@
-# Conda env for Gym-V (ModalMinds/gym-v).
+# Conda env for Gym-V (ModalMinds/gym-v) — STANDALONE / OPTIONAL.
 #
 # Gym-V is a unified platform of 179 procedurally generated visual
 # environments with a Gymnasium-compatible API, across single-turn
@@ -6,7 +6,17 @@
 #
 # Upstream:  https://github.com/ModalMinds/gym-v
 #
-# Why a separate env?
+# WHEN TO USE THIS ENV
+#   Most users do NOT need this env. The unified `game-ai-agent` env
+#   (created by install/install_main_env.sh) already installs gym-v
+#   editable with [games,spatial] extras and — if you pass a ROM zip —
+#   the 13 Temporal/* Sega Genesis envs. See ../README.md §1.
+#
+#   Use this standalone `gymv` env only when you want a slim env for
+#   VLM-eval-only setups, ablation studies, or when you cannot run the
+#   full Qwen3.5/vLLM stack on your machine.
+#
+# Why a separate env at all?
 #   gym-v requires `gymnasium>=1.2.2`; OSWorld/desktop-env hard-pin
 #   `gymnasium~=0.28.1`.  The two APIs are not compatible (0.29+ has
 #   breaking changes), so gym-v and OSWorld cannot coexist in one env.
