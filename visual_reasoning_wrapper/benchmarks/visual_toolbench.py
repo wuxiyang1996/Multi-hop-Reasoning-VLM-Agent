@@ -160,19 +160,34 @@ def parse_visual_toolbench_sample(
     temperature: float | None = None,
     max_entities: int = 20,
     max_rounds: int = 6,
+    chain: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Run ``cascaded_ground`` on one VTB task (``domain=image_qa``)."""
+    """Run ``cascaded_ground`` on one VTB task (``domain=image_qa``).
+
+    The default ``chain=["tool_loop"]`` skips the single-shot ``vlm``
+    head: VisualToolBench is explicitly a *tool-enabled* image benchmark
+    (paper §3 "Beyond Seeing"), so we force the multi-hop tool loop and
+    refuse to accept a schema that hasn't actually grounded with
+    ``crop`` / ``detect_objects`` / ``read_text_in_region`` / etc.  Pass
+    ``chain=["vlm", "tool_loop"]`` for the cheaper escalating cascade
+    (e.g. for sanity runs) and ``["vlm"]`` to bypass tools entirely.
+    """
     if image is None:
         image = load_visual_toolbench_image(sample)
 
     task_id = f"visual_toolbench.{sample.sample_id}"
     goal = (
         f"{sample.question}\n"
-        "This is a VisualToolBench item: use visual tools (crop, detect, "
-        "read_text, …) when pixel evidence matters. Put the final response "
-        "in <answer> as a concise string. Official scoring uses rubrics; "
-        "align your wording with the gold reference when possible. "
-        "Each <evidence> hop must cite the real `tool=` you called."
+        "This is a VisualToolBench item — you MUST exercise the visual "
+        "tools (detect_objects, grounded_detect, zoom_region, "
+        "read_text_region, describe_region, count_objects, "
+        "spatial_query, measure_distance, …) before answering. "
+        "Single-shot answers without tool evidence will be rejected. "
+        "Each <evidence> hop must cite the real `tool=` you called and "
+        "the entity IDs the tool produced (e.g. `result_ref=e1,e2`). "
+        "Put the final response in <answer> as a concise string; align "
+        "wording with the gold reference when possible (official "
+        "scoring uses rubrics)."
     )
     req = GroundingRequest(
         images=image,
@@ -193,7 +208,11 @@ def parse_visual_toolbench_sample(
         base_url=base_url,
         temperature=temperature,
     )
-    result = cascaded_ground(req, image_size=image.size)
+    result = cascaded_ground(
+        req,
+        image_size=image.size,
+        chain=list(chain) if chain else ["tool_loop"],
+    )
     predicted = (result.answer or "").strip()
     gt = (sample.gold_answer or "").strip() if sample.gold_answer else None
 
@@ -229,6 +248,7 @@ def parse_visual_toolbench_batch(
     max_rounds: int = 6,
     temperature: float | None = None,
     progress: bool = True,
+    chain: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     fh = None
@@ -248,6 +268,7 @@ def parse_visual_toolbench_batch(
                     max_entities=max_entities,
                     max_rounds=max_rounds,
                     temperature=temperature,
+                    chain=chain,
                 )
             except Exception as exc:
                 logger.warning("VTB sample %s failed: %s", sample.sample_id, exc)

@@ -178,6 +178,7 @@ def _parse_visual_toolbench(sample: Any, args: argparse.Namespace) -> dict[str, 
         temperature=args.temperature,
         max_entities=args.max_entities,
         max_rounds=args.max_rounds,
+        chain=args.image_chain or None,
     )
 
 
@@ -202,6 +203,7 @@ def _parse_tir_bench(sample: Any, args: argparse.Namespace) -> dict[str, Any]:
         temperature=args.temperature,
         max_entities=args.max_entities,
         max_rounds=args.max_rounds,
+        chain=args.image_chain or None,
     )
 
 
@@ -470,6 +472,19 @@ def parse_args() -> argparse.Namespace:
         help="Include VisualToolBench multi-turn rows. Default keeps single-turn only.",
     )
     parser.add_argument("--tir_task_filter", default=None)
+    parser.add_argument(
+        "--image_chain",
+        nargs="+",
+        default=None,
+        choices=("vlm", "tool_loop", "omniparser", "heuristic"),
+        help=(
+            "Cascade chain for VisualToolBench / TIR-Bench. "
+            "Default (None) lets each parser pick its own — currently "
+            "['tool_loop'] for both, since both papers expect tool use. "
+            "Pass 'vlm tool_loop' for the cheap escalating chain or "
+            "'vlm' to bypass tools entirely."
+        ),
+    )
     parser.add_argument("--video_holmes_root", default=None)
     parser.add_argument("--video_holmes_question_types", nargs="*", default=None)
     parser.add_argument("--siv_root", default=None)

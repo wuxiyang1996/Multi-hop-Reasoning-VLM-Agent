@@ -132,17 +132,32 @@ def parse_tir_bench_sample(
     temperature: float | None = None,
     max_entities: int = 20,
     max_rounds: int = 4,
+    chain: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Run ``cascaded_ground`` on one TIR-Bench question (``domain=image_qa``)."""
+    """Run ``cascaded_ground`` on one TIR-Bench question (``domain=image_qa``).
+
+    TIR-Bench's whole framing is *agentic thinking-with-images* — the
+    model is supposed to crop / zoom / re-detect across ≥ 2 hops.  We
+    therefore default ``chain=["tool_loop"]`` so the single-shot ``vlm``
+    head doesn't short-circuit the cascade with a hallucinated schema.
+    Override with ``chain=["vlm", "tool_loop"]`` for the cheaper
+    escalating chain.
+    """
     if image is None:
         image = load_tir_bench_image(sample)
 
     task_id = f"tir_bench.{sample.task}.{sample.sample_id}"
     goal = (
         f"{sample.prompt}\n"
-        "Answer concisely in <answer> (MCQ: single letter A–J or digits/text "
-        "exactly as the question requests). Each <evidence> hop must cite the "
-        "real `tool=` you called. scene_type=image_qa."
+        "TIR-Bench is an agentic thinking-with-images benchmark — you "
+        "MUST ground your answer with at least one tool call "
+        "(detect_objects / grounded_detect / zoom_region / "
+        "read_text_region / describe_region / spatial_query / "
+        "count_objects / measure_distance) before emitting <answer>. "
+        "Each <evidence> hop must cite the real `tool=` you called and "
+        "reference the entity IDs it produced (e.g. `result_ref=e1,e2`). "
+        "Answer concisely (MCQ: single letter A–J, otherwise digits or "
+        "text exactly as the question requests). scene_type=image_qa."
     )
     req = GroundingRequest(
         images=image,
@@ -163,7 +178,11 @@ def parse_tir_bench_sample(
         base_url=base_url,
         temperature=temperature,
     )
-    result = cascaded_ground(req, image_size=image.size)
+    result = cascaded_ground(
+        req,
+        image_size=image.size,
+        chain=list(chain) if chain else ["tool_loop"],
+    )
     predicted = (result.answer or "").strip()
     gt = (sample.answer or "").strip() if sample.answer else None
     correct: bool | None = None
@@ -197,6 +216,7 @@ def parse_tir_bench_batch(
     max_rounds: int = 4,
     temperature: float | None = None,
     progress: bool = True,
+    chain: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Batch driver — append each result to optional JSONL."""
     results: list[dict[str, Any]] = []
@@ -217,6 +237,7 @@ def parse_tir_bench_batch(
                     max_entities=max_entities,
                     max_rounds=max_rounds,
                     temperature=temperature,
+                    chain=chain,
                 )
             except Exception as exc:
                 logger.warning("TIR-Bench sample %s failed: %s", sample.sample_id, exc)
