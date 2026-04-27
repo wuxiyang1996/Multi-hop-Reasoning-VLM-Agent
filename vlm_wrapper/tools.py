@@ -103,6 +103,15 @@ class ToolRegistry:
             merged.register(tdef, self._handlers[name])
         for name, tdef in other._tools.items():
             merged.register(tdef, other._handlers[name])
+        # Preserve auxiliary attributes (e.g. ``derivation_log`` from
+        # the reasoning sub-registry) so callers can fish them out of
+        # the merged registry.  Last-one-wins so a registry deeper in
+        # the merge chain can replace an earlier value.
+        for src in (self, other):
+            for k, v in vars(src).items():
+                if k.startswith("_") or k == "domain":
+                    continue
+                setattr(merged, k, v)
         return merged
 
 

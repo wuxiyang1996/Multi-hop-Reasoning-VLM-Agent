@@ -293,11 +293,11 @@ def _build_registry(
     elif domain == "browser":
         obs = req.context.get("obs")
         if obs and isinstance(obs, dict):
-            from .tools_browser import build_browser_registry
+            from browsergym_wrapper.tools import build_browser_registry
             registries.append(build_browser_registry(obs))
 
     elif domain == "desktop":
-        from .tools_browser import build_osworld_registry
+        from osworld_wrapper.tools import build_osworld_registry
         registries.append(build_osworld_registry(
             a11y_tree_xml=req.context.get("a11y_tree_xml", ""),
             instruction=req.context.get("instruction", req.goal),
@@ -482,6 +482,7 @@ def ground(req: GroundingRequest) -> GroundingResult:
 
     # 3. Auto-compose registry
     registry = _build_registry(req, domain, primary_image)
+    derivation_log = getattr(registry, "derivation_log", None)
 
     # 4. Build extra context
     extra_context = _build_extra_context(req, domain)
@@ -519,6 +520,14 @@ def ground(req: GroundingRequest) -> GroundingResult:
     schema = loop_result.get("schema")
     raw = loop_result.get("raw", "")
     tool_trace = loop_result.get("tool_trace", [])
+
+    # Stitch the typed-derivation log (from reasoning tool calls) into
+    # the schema if the model forgot to render the <derivations>
+    # block.  The log is the source of truth — even when the model
+    # narrates the derivation in <evidence>, we want the typed rows in
+    # <derivations> for downstream skill mining.
+    if schema and derivation_log is not None and len(derivation_log) > 0:
+        schema = _ensure_derivations_block(schema, derivation_log)
 
     answer = None
     evidence: list[HopTrace] = []
@@ -565,6 +574,26 @@ def ground(req: GroundingRequest) -> GroundingResult:
         output_mode=output_mode,
         validation=validation,
     )
+
+
+def _ensure_derivations_block(schema: str, derivation_log: Any) -> str:
+    """Stitch the typed-derivation log into the schema block.
+
+    If the model already rendered ``<derivations>…</derivations>`` we
+    leave it alone.  Otherwise we insert a freshly rendered block right
+    before ``<answer>`` (or before ``</state>`` if there is no
+    ``<answer>``).  The schema validator can then reward the typed
+    rows the model would have had to invent inline anyway.
+    """
+    if "<derivations>" in schema:
+        return schema
+    rendered = derivation_log.render_section()
+    if not rendered.strip():
+        return schema
+    block = f"<derivations>\n{rendered}\n"
+    if "<answer>" in schema:
+        return schema.replace("<answer>", block + "<answer>", 1)
+    return schema.replace("</state>", block + "</state>", 1)
 
 
 def _parse_evidence_hops(schema: str) -> list[HopTrace]:
@@ -642,8 +671,8 @@ def _parse_evidence_hops(schema: str) -> list[HopTrace]:
 # parsing for gymv, AXTree/DOM walk for browsergym) are **NOT** on the
 # default path — they short-circuit perception and would hide any VLM
 # grounding bug.  They remain implemented (see ``_attempt_heuristic``
-# and ``gymv_heuristic`` / ``browser_heuristic``) and can be requested
-# explicitly via ``chain=["heuristic", "vlm", "tool_loop"]`` or the
+# and ``gymv_wrapper.heuristic`` / ``browsergym_wrapper.heuristic``) and
+# can be requested explicitly via ``chain=["heuristic", "vlm", "tool_loop"]`` or the
 # ``--gymv-head heuristic`` / ``--browser-head heuristic`` CLI flags
 # for text-only smoke tests, offline regressions, and CI sanity runs.
 #
@@ -692,7 +721,7 @@ def _attempt_heuristic(req: GroundingRequest, domain: str) -> GroundingResult:
                 max_entities=req.max_entities,
             )
         elif domain == "browser":
-            from .browser_heuristic import obs_to_schema
+            from browsergym_wrapper.heuristic import obs_to_schema
             obs = req.context.get("obs") or {}
             if not isinstance(obs, dict):
                 warnings.append("browser heuristic requires context['obs'] dict")
@@ -729,7 +758,7 @@ def _attempt_omniparser(req: GroundingRequest, domain: str,
 
     try:
         if domain == "browser":
-            from .grounding_browsergym import grounding_obs_to_schema
+            from browsergym_wrapper.grounding import grounding_obs_to_schema
             obs = req.context.get("obs") or {}
             if isinstance(obs, dict) and obs.get("screenshot") is not None:
                 out = grounding_obs_to_schema(
@@ -751,7 +780,7 @@ def _attempt_omniparser(req: GroundingRequest, domain: str,
                 )
                 logger.warning("omniparser fallback: %s", why)
                 warnings.append(why)
-                from .grounding_browsergym import grounding_image_to_schema
+                from browsergym_wrapper.grounding import grounding_image_to_schema
                 out = grounding_image_to_schema(
                     primary_image,
                     goal=req.goal,
@@ -761,7 +790,7 @@ def _attempt_omniparser(req: GroundingRequest, domain: str,
                     max_entities=req.max_entities,
                 )
         elif domain == "desktop":
-            from .grounding_browsergym import grounding_image_to_schema
+            from browsergym_wrapper.grounding import grounding_image_to_schema
             out = grounding_image_to_schema(
                 primary_image,
                 goal=req.context.get("instruction", req.goal),
@@ -860,7 +889,7 @@ def _attempt_vlm_via_adapter(
                 temperature=req.temperature,
             )
         elif domain == "browser":
-            from .browser_adapter import generate_label as browser_generate_label
+            from browsergym_wrapper.adapter import generate_label as browser_generate_label
             obs = ctx.get("obs") or {}
             url = obs.get("url", "") if isinstance(obs, dict) else ""
             axtree_text = ctx.get("axtree_text", "")
@@ -884,7 +913,7 @@ def _attempt_vlm_via_adapter(
                 temperature=req.temperature,
             )
         elif domain == "desktop":
-            from .osworld_adapter import generate_label as osworld_generate_label
+            from osworld_wrapper.adapter import generate_label as osworld_generate_label
             out = osworld_generate_label(
                 primary_image,
                 instruction=ctx.get("instruction", req.goal),

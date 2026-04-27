@@ -81,6 +81,47 @@ from visual_reasoning_wrapper.benchmarks import (
 
 Docstrings in `__init__.py` list exports and dependencies (`Pillow`, `datasets` for image HF rows; `decord` or `opencv-python` for video).
 
+## Reasoning-tool integration
+
+Each `parse_*_sample` now wires the question through
+`visual_reasoning_wrapper.question_router.classify_question` before
+calling `cascaded_ground`. The router classifies the prompt into one
+or more *question classes* — `count`, `ratio`, `compare`, `spatial`,
+`ocr`, `identity`, `temporal`, `social`, `verify`, plus the always-on
+`answer` — and maps each class onto the reasoning tools the model
+must call before emitting `<answer>`:
+
+| Class | Required reasoning tool | Derivation `kind=` |
+|-------|-------------------------|---------------------|
+| `count`   | `count_value`     | `COUNT`   |
+| `ratio`   | `compute_ratio`   | `RATIO`   |
+| `compare` | `compare_values`  | `COMPARE` |
+| `verify`  | `verify_claim`    | `VERIFY`  |
+| `answer`  | `verify_claim`    | `VERIFY`  |
+
+The router also surfaces an "observation tools to ground inputs"
+suggestion so the prompt nudges the VLM toward the right perception
+primitive (e.g. `read_text_region` for OCR questions,
+`measure_distance` for spatial comparisons).
+
+The selected tools, classes, and derivation kinds flow into the
+returned schema as:
+
+* a `<derivations>` block whose `dN.kind=` matches one of
+  `COUNT | RATIO | COMPARE | VERIFY` (added automatically by
+  `vlm_wrapper.ground._ensure_derivations_block` if the VLM forgets
+  it),
+* `<answer> evidence_chain=[hop1,d1,d2,…]` referencing the typed
+  derivation rows,
+* `result["sample"]["meta_data"]` plus the per-sample `context`
+  recording `question_classes`, `required_reasoning_tools`, and
+  `derivation_kinds` for downstream analysis.
+
+`vlm_wrapper.schema.semantic_validate` cross-checks that every `dN`
+cited in `evidence_chain=` exists in `<derivations>`; a missing block
+when the answer references one is a hard error and triggers
+escalation.
+
 ## CLI evaluation
 
 Batch scoring and JSONL logging: [`../../vlm_wrapper/eval/run_eval.py`](../../vlm_wrapper/eval/run_eval.py) (see [`../../vlm_wrapper/eval/README.md`](../../vlm_wrapper/eval/README.md)).

@@ -1,11 +1,22 @@
 """`visual_reasoning` adapter — image-QA / visual reasoning execution path.
 
-Stub for the fifth transfer-target domain
-(PLAN-COMPONENTS-IMPLEMENTATION Phase A.5 / Phase D). Real env
-binding (single-image VLM tools, structured visual question answering)
-is plugged in via `set_executor()`; the deterministic stub satisfies
-the evidence-driven invariant so few-shot adapter binding attempts can
-be exercised end-to-end at the gate.
+The fifth transfer-target domain
+(PLAN-COMPONENTS-IMPLEMENTATION Phase A.5 / Phase D).  Two executor
+options are available:
+
+* The deterministic stub inherited from
+  :class:`StubTransferTargetAdapter` — used by the gate's dry-run
+  replay path to satisfy the evidence-driven invariant without
+  touching pixels.
+* A real executor backed by the visual + reasoning tool registries in
+  :mod:`visual_reasoning_wrapper.tools_visual` and
+  :mod:`visual_reasoning_wrapper.tools_reasoning`.  Callers wire it in
+  with :func:`bind_visual_reasoning_executor` (an alias of
+  :func:`visual_reasoning_wrapper.skill_executor.bind_executor`).
+
+The harness keeps both paths interchangeable so the few-shot
+adaptation gate (G3a) can binding-test a transferred ``SkillRecord``
+on a real benchmark sample without changing the harness contract.
 """
 
 from __future__ import annotations
@@ -23,4 +34,21 @@ class VisualReasoningAdapter(StubTransferTargetAdapter):
     )
 
 
-__all__ = ["HopExecutor", "VisualReasoningAdapter"]
+def bind_visual_reasoning_executor(adapter: VisualReasoningAdapter, *, image, **kwargs):
+    """Wire a real visual + reasoning tool executor into ``adapter``.
+
+    Thin re-export of
+    :func:`visual_reasoning_wrapper.skill_executor.bind_executor` so
+    callers do not need to know the wrapper module exists if they only
+    have the harness in scope.  Returns the constructed executor.
+    """
+    from visual_reasoning_wrapper.skill_executor import bind_executor
+
+    return bind_executor(adapter, image=image, **kwargs)
+
+
+__all__ = [
+    "HopExecutor",
+    "VisualReasoningAdapter",
+    "bind_visual_reasoning_executor",
+]

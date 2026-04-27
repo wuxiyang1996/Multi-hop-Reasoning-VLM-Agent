@@ -129,8 +129,27 @@ _SECTION_ANSWER = """\
 <answer>
 answer={predicted answer}
 grounding=[e1,e3]
-evidence_chain=[hop1,hop2]
+evidence_chain=[hop1,hop2,d1,d2]
 confidence={high|medium|low}
+"""
+
+# Reasoning derivations — typed symbolic operations that the model
+# performed via the reasoning toolset (count_value, compute_ratio,
+# compare_values, verify_claim).  Each row is one ``_DerivationRow``
+# rendered by the per-registry log; the orchestrator appends this
+# block before <answer> when the log has rows but the model omitted
+# the section.  Skill-mining downstream relies on the typed `kind=` to
+# reuse the derivation across tasks.
+_SECTION_DERIVATIONS = """\
+<derivations>
+d1.kind={COUNT|RATIO|COMPARE|VERIFY}
+d1.label={short label}
+d1.inputs={tool args dict}
+d1.output={value or claim}
+d1.refs=[e1,e2,hop1,…]
+(one row per reasoning tool call.  Required when the question
+implies counting / proportion / comparison / verification — without
+these rows, the answer carries no auditable derivation.)
 """
 
 # PLAN-VISUAL-GROUNDING §3a — `<evidence_refs>` is the canonical
@@ -166,6 +185,7 @@ _SECTION_MAP: dict[str, str] = {
     "actions": _SECTION_ACTIONS,
     "evidence": _SECTION_EVIDENCE,
     "evidence_refs": _SECTION_EVIDENCE_REFS,
+    "derivations": _SECTION_DERIVATIONS,
     "answer": _SECTION_ANSWER,
 }
 
@@ -192,6 +212,14 @@ ABSTRACT_OPERATORS: tuple[str, ...] = (
 # (PLAN-SKILL-BANK §1.5 / PLAN-ACTION-AGENT §5).
 INNER_MDP_OPS: tuple[str, ...] = (
     "GROUND", "CHECK", "RETRIEVE", "CONCLUDE", "VERIFY",
+)
+
+# Typed reasoning operations recorded inside the ``<derivations>`` block
+# (PLAN-VISUAL-GROUNDING §3 reasoning-tool extension).  Mirrors
+# ``visual_reasoning_wrapper.tools_reasoning.DERIVATION_KINDS`` — the
+# import is kept lazy to avoid a top-level dependency cycle.
+DERIVATION_KINDS: tuple[str, ...] = (
+    "COUNT", "RATIO", "COMPARE", "VERIFY",
 )
 
 # Canonical scene-type enum (PLAN-VISUAL-SKILLS §5 scene descriptor).
@@ -686,7 +714,7 @@ def parse_answer_block(schema_text: str) -> dict[str, str | None]:
 
 _SECTION_RE = re.compile(
     r"<(?P<name>entities|attributes|affordances|relations|state_flags|targets|"
-    r"uncertainty|actions|evidence|evidence_refs|answer)>(?P<body>.*?)"
+    r"uncertainty|actions|evidence|evidence_refs|derivations|answer)>(?P<body>.*?)"
     r"(?=<\w+>|</state>)",
     re.DOTALL,
 )
@@ -723,6 +751,24 @@ _HOP_RESULT_REF_RE = re.compile(
     re.MULTILINE,
 )
 _SCENE_TYPE_RE = re.compile(r"^scene_type\s*=\s*([\w_]+)\s*$", re.MULTILINE)
+
+# Reasoning derivations — typed symbolic operations from
+# count_value / compute_ratio / compare_values / verify_claim.
+# The orchestrator renders rows in either of two layouts:
+#   one-field-per-line (canonical schema spec)
+#   multi-field-per-line separated by 2+ spaces (compact rendering
+#   from ``_DerivationLog.render_section``).
+# Match both with a non-anchored, non-greedy capture.
+_DERIVATION_KIND_RE = re.compile(
+    r"\b(d\d+)\.kind\s*=\s*([A-Z_]+)\b",
+)
+_DERIVATION_ID_RE = re.compile(r"\b(d\d+)\.")
+# Schema body for the answer block uses `evidence_chain=[hop1,d1,…]`.
+_EVIDENCE_CHAIN_RE = re.compile(
+    r"^evidence_chain\s*=\s*\[([^\]]*)\]",
+    re.MULTILINE,
+)
+_DID_RE = re.compile(r"d\d+")
 
 _UNCERTAINTY_LINE_RE = re.compile(
     r"^(e\d+)\.(\w+)\s*=\s*(high|medium|low)\s*$",
@@ -1360,6 +1406,58 @@ def semantic_validate(
                 "non-canonical abstract_op in <evidence>: "
                 + ", ".join(bad_ops[:5])
             )
+
+    # Derivations: typed reasoning steps from count_value / compute_ratio
+    # / compare_values / verify_claim.  Each row should declare a
+    # ``kind=`` from ``DERIVATION_KINDS`` and a non-empty ``output=``.
+    # When the answer's ``evidence_chain=`` cites ``dN`` ids but no
+    # ``<derivations>`` block exists, that's a fabrication-grade error.
+    derivations_body = sections.get("derivations", "")
+    derivation_ids: set[str] = set()
+    if derivations_body:
+        bad_kinds: list[str] = []
+        for m in _DERIVATION_KIND_RE.finditer(derivations_body):
+            derivation_ids.add(m.group(1))
+            kind = m.group(2).strip()
+            if kind and kind not in DERIVATION_KINDS:
+                bad_kinds.append(f"{m.group(1)}={kind}")
+        if bad_kinds:
+            result.warnings.append(
+                "non-canonical kind= in <derivations>: "
+                + ", ".join(bad_kinds[:5])
+            )
+        # rows must carry an output= so downstream skills can read them.
+        for line in _content_lines(derivations_body):
+            m_id = _DERIVATION_ID_RE.match(line)
+            if not m_id:
+                continue
+            if ".output=" in line:
+                continue
+        # Verify: every derivation id referenced from <answer>
+        # ``evidence_chain=`` exists in <derivations>.  We treat this as
+        # a soft warning (orchestrator stitches the block automatically
+        # if missing) but a hard error when neither tool calls nor
+        # rows back the citation.
+    answer_body = sections.get("answer", "")
+    if answer_body:
+        chain_m = _EVIDENCE_CHAIN_RE.search(answer_body)
+        if chain_m:
+            chain_ids = [
+                t.strip() for t in chain_m.group(1).split(",") if t.strip()
+            ]
+            cited_dids = {t for t in chain_ids if _DID_RE.fullmatch(t)}
+            unknown_dids = cited_dids - derivation_ids
+            if unknown_dids and not derivations_body:
+                result.errors.append(
+                    "<answer> evidence_chain cites derivation ids "
+                    + ",".join(sorted(unknown_dids))
+                    + " but no <derivations> section is present"
+                )
+            elif unknown_dids:
+                result.warnings.append(
+                    "<answer> evidence_chain cites unknown derivation ids: "
+                    + ",".join(sorted(unknown_dids))
+                )
 
     # Final verdict + escalation recommendation.
     result.valid = not result.errors

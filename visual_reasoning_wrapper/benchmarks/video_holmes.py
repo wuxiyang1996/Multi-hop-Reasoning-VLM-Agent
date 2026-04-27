@@ -45,6 +45,7 @@ import numpy as np
 from PIL import Image
 
 from vlm_wrapper.ground import GroundingRequest, cascaded_ground
+from ..question_router import classify_question
 
 logger = logging.getLogger(__name__)
 
@@ -497,7 +498,19 @@ def parse_video_holmes_sample(
 
     current_index = len(frames) // 2
     task_id = f"video_holmes.{sample.split}.{sample.video_id}.Q{sample.question_id}"
+    routing = classify_question(sample.question, modality="video")
+    routing_block = routing.to_prompt_block()
     question_prompt = sample.format_question()
+    if routing_block:
+        question_prompt = (
+            f"{question_prompt}\n\n"
+            "Reasoning tools available: count_value, compute_ratio, "
+            "compare_values, verify_claim — use them to RECORD any "
+            "counts / ratios / comparisons you derive across frames, "
+            "and cite the resulting `derivation_id` (d1, d2, …) inside "
+            "<derivations> and <answer>.\n"
+            f"{routing_block}"
+        )
 
     # Derive an *effective* fps for the downsampled frame list so the
     # video tools (sample_frames / detect_scene_changes / get_video_info)
@@ -528,6 +541,9 @@ def parse_video_holmes_sample(
             "current_index": current_index,
             "question_type": sample.question_type,
             "options": dict(sample.options),
+            "question_classes": routing.classes,
+            "required_reasoning_tools": routing.required_tools,
+            "derivation_kinds": routing.derivation_kinds,
         },
         max_entities=max_entities,
         max_rounds=max_rounds,

@@ -1193,6 +1193,7 @@ def build_visual_registry(
     image: Image.Image | np.ndarray,
     *,
     prefer_gdino: bool = False,
+    include_reasoning: bool = True,
 ) -> ToolRegistry:
     """Create a ToolRegistry with all vision-model-backed tools.
 
@@ -1206,13 +1207,25 @@ def build_visual_registry(
         images (image QA, video QA).  Regardless of this flag,
         ``grounded_detect`` is always available as an explicit
         query-driven tool.
+    include_reasoning : bool
+        If True (default), also register the symbolic reasoning tools
+        (``count_value``, ``compute_ratio``, ``compare_values``,
+        ``verify_claim``) defined in :mod:`.tools_reasoning`.  These
+        produce typed derivation rows the schema can cite inside the
+        ``<derivations>`` block.  The associated ``_DerivationLog`` is
+        attached to the registry as ``reg.derivation_log`` so callers
+        (e.g. the cascading grounding head) can render it onto the
+        final schema.
 
     Returns
     -------
     ToolRegistry
-        Registry with tools: detect_objects, grounded_detect,
-        describe_region, visual_search, count_objects, classify_scene,
-        spatial_query, measure_distance, extract_colors, read_text_region.
+        Registry with observation tools (detect_objects,
+        grounded_detect, describe_region, visual_search, count_objects,
+        classify_scene, spatial_query, measure_distance,
+        extract_colors, read_text_region) and — when
+        ``include_reasoning=True`` — derivation tools (count_value,
+        compute_ratio, compare_values, verify_claim).
     """
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
@@ -1231,5 +1244,12 @@ def build_visual_registry(
     reg.register(TOOL_MEASURE_DISTANCE, lambda **kw: _h_measure_distance(state, **kw))
     reg.register(TOOL_EXTRACT_COLORS, lambda **kw: _h_extract_colors(state, **kw))
     reg.register(TOOL_READ_TEXT_REGION, lambda **kw: _h_read_text_region(state, **kw))
+
+    if include_reasoning:
+        from .tools_reasoning import build_reasoning_registry
+
+        reasoning_reg, derivation_log = build_reasoning_registry()
+        reg = reg.merge(reasoning_reg)
+        reg.derivation_log = derivation_log  # type: ignore[attr-defined]
 
     return reg

@@ -59,16 +59,11 @@ from vlm_wrapper.schema import (
 )
 
 # ── Head 1: Heuristic (text-in → schema-out) ─────────────────────────
-# NOTE: ``gymv_*`` symbols are exposed lazily via ``__getattr__`` (PEP 562)
-# below, so importing ``gymv_wrapper.adapter`` first does not create a
-# circular import through this package's eager re-exports.
-from vlm_wrapper.browser_heuristic import obs_to_schema as browser_heuristic_schema
-
-# ── Head 2: Vision (image-in → schema-out via GPT-5.5/GPT-4o) ────────
-from vlm_wrapper.browser_adapter import generate_label as browser_generate_label
-from vlm_wrapper.browser_adapter import browser_obs_to_schema
-from vlm_wrapper.osworld_adapter import generate_label as osworld_generate_label
-from vlm_wrapper.osworld_adapter import osworld_obs_to_schema
+# NOTE: the ``gymv_*`` / ``browser_*`` / ``osworld_*`` symbols are exposed
+# lazily via ``__getattr__`` (PEP 562) below.  This is what lets
+# ``browsergym_wrapper.adapter`` / ``osworld_wrapper.adapter`` do
+# ``from vlm_wrapper.schema import …`` without tripping a circular import
+# through this package's re-exports.
 
 __all__ = [
     # unified pipeline
@@ -103,11 +98,12 @@ __all__ = [
 __all__.append("GymVSchemaWrapper")
 
 
-# PEP 562 lazy re-exports for the gymv_wrapper symbols. Defining these here
-# (instead of eager top-level imports) breaks the circular dependency that
-# would otherwise occur when ``gymv_wrapper.adapter`` is imported first and
-# its ``from vlm_wrapper.schema import ...`` triggers this module before
-# ``gymv_wrapper.adapter`` has finished initialising.
+# PEP 562 lazy re-exports for the gymv_wrapper / browsergym_wrapper /
+# osworld_wrapper symbols. Defining these here (instead of eager top-level
+# imports) breaks the circular dependency that would otherwise occur when
+# any of those sibling packages is imported first and their
+# ``from vlm_wrapper.schema import ...`` triggers this module before the
+# sibling has finished initialising.
 def __getattr__(name):  # noqa: D401
     if name == "gymv_heuristic_schema":
         from gymv_wrapper.heuristic import text_to_schema as _f
@@ -121,6 +117,30 @@ def __getattr__(name):  # noqa: D401
     if name == "build_gymv_registry":
         from gymv_wrapper.tools import build_gymv_registry as _f
         return _f
+    # ── BrowserGym ────────────────────────────────────────────────
+    if name == "browser_heuristic_schema":
+        from browsergym_wrapper.heuristic import obs_to_schema as _f
+        return _f
+    if name == "browser_generate_label":
+        from browsergym_wrapper.adapter import generate_label as _f
+        return _f
+    if name == "browser_obs_to_schema":
+        from browsergym_wrapper.adapter import browser_obs_to_schema as _f
+        return _f
+    if name == "build_browser_registry":
+        from browsergym_wrapper.tools import build_browser_registry as _f
+        return _f
+    # ── OSWorld ───────────────────────────────────────────────────
+    if name == "osworld_generate_label":
+        from osworld_wrapper.adapter import generate_label as _f
+        return _f
+    if name == "osworld_obs_to_schema":
+        from osworld_wrapper.adapter import osworld_obs_to_schema as _f
+        return _f
+    if name == "build_osworld_registry":
+        from osworld_wrapper.tools import build_osworld_registry as _f
+        return _f
+    # ── visual_reasoning_wrapper ──────────────────────────────────
     if name == "build_video_registry":
         from visual_reasoning_wrapper.tools_video import build_video_registry as _f
         return _f
@@ -132,35 +152,49 @@ def __getattr__(name):  # noqa: D401
             build_video_visual_registry as _f,
         )
         return _f
+    # ── OmniParser-v2 grounding (lazy because of torch / transformers) ──
+    if name in _GROUNDING_EXPORTS:
+        return _load_grounding_export(name)
     if name in _VISUAL_REASONING_EXPORTS:
         return _load_visual_reasoning_export(name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 # ── Head 3: Grounding (image-in → OmniParser-v2 → schema-out) ────────
-try:
-    from vlm_wrapper.grounding import parse_screen, parse_screen_annotated, ScreenElement, BBox
-    from vlm_wrapper.grounding_browsergym import (
-        grounding_image_to_schema,
-        grounding_obs_to_schema,
-        grounding_osworld_obs_to_schema,
-    )
-    __all__ += [
-        "parse_screen",
-        "parse_screen_annotated",
-        "ScreenElement",
-        "BBox",
-        "grounding_image_to_schema",
-        "grounding_obs_to_schema",
-        "grounding_osworld_obs_to_schema",
-    ]
-except ImportError:
-    pass
+# Lazy-loaded to avoid pulling torch / transformers on every ``import vlm_wrapper``.
+_GROUNDING_EXPORTS = {
+    "parse_screen",
+    "parse_screen_annotated",
+    "ScreenElement",
+    "BBox",
+    "grounding_image_to_schema",
+    "grounding_obs_to_schema",
+    "grounding_osworld_obs_to_schema",
+}
+
+
+def _load_grounding_export(name):
+    if name in {"parse_screen", "parse_screen_annotated", "ScreenElement", "BBox"}:
+        from vlm_wrapper import grounding as _g
+        return getattr(_g, name)
+    if name in {"grounding_image_to_schema", "grounding_obs_to_schema"}:
+        from browsergym_wrapper import grounding as _g
+        return getattr(_g, name)
+    if name == "grounding_osworld_obs_to_schema":
+        from osworld_wrapper.grounding import grounding_osworld_obs_to_schema as _f
+        return _f
+    raise AttributeError(name)
+
+
+__all__ += sorted(_GROUNDING_EXPORTS)
 
 # ── Tool-calling infrastructure ──────────────────────────────────────
 from vlm_wrapper.tools import ToolRegistry, ToolDef, ToolResult
 
-# Domain-specific registries (gymv lazily re-exported via __getattr__)
-from vlm_wrapper.tools_browser import build_browser_registry, build_osworld_registry
+# Domain-specific registries — gymv / browser / osworld are all lazily
+# re-exported via __getattr__ above so that importing
+# ``browsergym_wrapper.adapter`` first does not trigger an eager
+# ``vlm_wrapper.tools_browser`` load (which would in turn pull every
+# heavy sibling).
 
 # Tool-calling loop + convenience wrappers
 from vlm_wrapper.tool_loop import (

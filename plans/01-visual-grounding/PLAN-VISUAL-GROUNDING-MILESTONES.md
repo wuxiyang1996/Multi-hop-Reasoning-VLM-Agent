@@ -502,13 +502,13 @@ their source files so the next pair of eyes can audit them quickly:
 
 Inference-time pipeline is green on all five milestone tasks. Each row is wired end-to-end into `vlm_wrapper.ground.cascaded_ground()` and covered by a live test.
 
-| Domain | Chain (`_ESCALATION_CHAINS`) | Tool registry | Required sections | Entity min | Benchmark data | Live test (in `vlm_wrapper/tests/test_gpt4o_parsers.py`) |
+| Domain | Chain (`_ESCALATION_CHAINS`) | Tool registry | Required sections | Entity min | Benchmark data | Live test |
 |---|---|---|---|---:|---|---|
-| `gymv` | `vlm → tool_loop` | `tools_visual + tools_gymv` | `entities, attributes, state_flags, targets, actions` | 3 | env-provided | `test_live_gymv_schema`, `test_live_gymv_tool_loop_schema` |
-| `browser` | `vlm → omniparser → tool_loop` | `tools_visual + tools_browser` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `test_live_browser_schema` |
-| `desktop` | `omniparser → vlm → tool_loop` | `tools_visual + tools_osworld` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `test_live_desktop_schema` |
-| `image_qa` | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | HF VTB + TIR-Bench ✅ | `test_live_tir_bench_schema` |
-| `video_qa` | `tool_loop` | `tools_video_visual` (temporal + visual + cross-frame) | `entities, state_flags, targets, evidence, answer` | 1 | `data/Video-Holmes/Benchmark/` ✅ | `test_live_video_holmes_schema` |
+| `gymv` | `vlm → tool_loop` | `tools_visual + tools_gymv` | `entities, attributes, state_flags, targets, actions` | 3 | env-provided | `gymv_wrapper/tests/test_gpt4o_parsers.py::test_live_gymv_schema` + `vlm_wrapper/tests/test_gpt4o_parsers.py::test_live_gymv_tool_loop_schema` |
+| `browser` | `vlm → omniparser → tool_loop` | `tools_visual + tools_browser` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `browsergym_wrapper/tests/test_gpt4o_parsers.py::test_live_browser_schema` |
+| `desktop` | `omniparser → vlm → tool_loop` | `tools_visual + tools_osworld` | `entities, attributes, state_flags, targets, actions` | 5 | env-provided | `osworld_wrapper/tests/test_gpt4o_parsers.py::test_live_desktop_schema` |
+| `image_qa` | `vlm → tool_loop` | `tools_visual` (GroundingDINO-preferred) | `entities, attributes, state_flags, targets, evidence, answer` | 1 | HF VTB + TIR-Bench ✅ | `visual_reasoning_wrapper/tests/test_gpt4o_parsers.py::test_live_tir_bench_schema` |
+| `video_qa` | `tool_loop` | `tools_video_visual` (temporal + visual + cross-frame) | `entities, state_flags, targets, evidence, answer` | 1 | `data/Video-Holmes/Benchmark/` ✅ | `visual_reasoning_wrapper/tests/test_gpt4o_parsers.py::test_live_video_holmes_schema` |
 
 **Design choices locked in (by code + test, not just plan):**
 - `desktop` has no text-heuristic head (a11y trees are too noisy; OmniParser + VLM covers it).

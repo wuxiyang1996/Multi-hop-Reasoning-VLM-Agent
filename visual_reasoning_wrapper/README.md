@@ -8,11 +8,19 @@ BrowserGym, OSWorld) reuses these tools — they are not benchmark-private.
 
 ```
 visual_reasoning_wrapper/
-├── __init__.py          # XSkill-aligned design notes + PRIMARY_VISUAL_REASONING_BENCHMARKS
-├── tools_visual.py      # Single-frame tools (detect_objects, describe_region, …)
-├── tools_video.py       # Temporal navigation tools (get_frame, scene_changes, …)
-├── tools_video_visual.py# Cross-frame tools (track_object, find_moment, summarize_clip)
-└── benchmarks/          # Loaders + parse_*_sample for the standard 2×2 set
+├── __init__.py            # XSkill-aligned design notes + PRIMARY_VISUAL_REASONING_BENCHMARKS
+├── tools_visual.py        # Single-frame observation tools (detect_objects, describe_region, …)
+├── tools_video.py         # Temporal navigation tools (get_frame, detect_scene_changes, …)
+├── tools_video_visual.py  # Cross-frame tools (track_object, find_moment, summarize_clip)
+├── tools_reasoning.py     # Symbolic reasoning tools (count_value, compute_ratio,
+│                          # compare_values, verify_claim) + the per-registry
+│                          # _DerivationLog that renders <derivations>
+├── question_router.py     # Question-class router that injects required reasoning
+│                          # tools into the goal text per benchmark sample
+├── skill_executor.py      # VisualReasoningExecutor: HopExecutor that wires the
+│                          # visual + reasoning tool registries into
+│                          # harness.adapters.VisualReasoningAdapter
+└── benchmarks/            # Loaders + parse_*_sample for the standard 2×2 set
     ├── README.md
     ├── _hf_images.py
     ├── visual_toolbench.py   # HF ScaleAI/VisualToolBench
@@ -41,15 +49,109 @@ re-exported at the top level via `vlm_wrapper/__init__.py`.
 
 ## Tools
 
-* **`tools_visual.build_visual_registry(image, *, prefer_gdino=False)`** — single
-  frame: `detect_objects`, `grounded_detect`, `describe_region`, `read_text`,
-  `spatial_query`, `crop_and_zoom`, etc.
+The registries split cleanly into **observation tools** (look at pixels)
+and **reasoning tools** (consume already-grounded values and record a typed
+derivation step).  Both registry builders expose `include_reasoning=True`
+by default so every benchmark gets the symbolic-derivation suite for free.
+
+* **`tools_visual.build_visual_registry(image, *, prefer_gdino=False, include_reasoning=True)`**
+  — single frame observation: `detect_objects`, `grounded_detect`,
+  `describe_region`, `zoom_region`, `visual_search`, `count_objects`,
+  `classify_scene`, `spatial_query`, `measure_distance`, `extract_colors`,
+  `read_text_region`. With `include_reasoning=True` the registry also
+  carries the four reasoning tools and a fresh `derivation_log` attribute.
 * **`tools_video.build_video_registry(frames=…, fps=…, current_index=…)`** —
-  temporal navigation: `get_frame`, `compare_frames`, `detect_scene_changes`,
-  `sample_frames`, `read_text_in_frame`, …
-* **`tools_video_visual.build_video_visual_registry(frames=…, …)`** — superset
-  that adds cross-frame tools (`track_object`, `find_moment`,
-  `summarize_clip`, …) on top of the merged video + visual registries.
+  temporal navigation: `get_frame`, `compare_frames`,
+  `detect_scene_changes`, `sample_frames`, `read_text_in_frame`,
+  `find_moment`, `summarize_clip`, …
+* **`tools_video_visual.build_video_visual_registry(frames=…, …, include_reasoning=True)`**
+  — cross-frame superset (`track_object`, `find_moment`,
+  `summarize_clip`, `detect_objects_at_frame`, `describe_frame`, …) merged
+  on top of the merged video + visual registries; the reasoning toolset
+  is appended once at the top so derivations are not double-registered.
+* **`tools_reasoning.build_reasoning_registry(log=None)`** — domain-agnostic
+  symbolic tools the VLM uses to *commit* a numeric step instead of
+  describing it inline:
+
+  | Tool | When to call | Records |
+  |------|--------------|---------|
+  | `count_value(value, label, refs)` | "how many", "count of …" | `kind=COUNT` row |
+  | `compute_ratio(numerator, denominator, label, refs, unit)` | "what proportion / fraction / percent" | `kind=RATIO` row |
+  | `compare_values(a, b, op, label_a, label_b)` | "which is larger / closer / earlier" | `kind=COMPARE` row |
+  | `verify_claim(claim, evidence_refs, confidence)` | final reasoning step before `<answer>` | `kind=VERIFY` row |
+
+  Each call appends to a per-registry `_DerivationLog` and returns a
+  stable `derivation_id` (`d1`, `d2`, …) the model cites in
+  `evidence_chain=` and `<derivations>`.
+
+* **`question_router.classify_question(question, *, modality)`** — assigns
+  the prompt to one or more classes (`count`, `ratio`, `compare`,
+  `spatial`, `ocr`, `identity`, `temporal`, `social`, `verify`,
+  `answer`) and emits a small bullet-list block that the benchmark
+  parsers append to the goal so the VLM is told which reasoning tools
+  it MUST call before writing `<answer>`.
+
+### How the loop fits together
+
+1. Benchmark parser builds the goal text and calls
+   `cascaded_ground` with `chain=["tool_loop"]` for image benches and
+   the default `["tool_loop"]` for video benches.
+2. `vlm_wrapper.ground._build_registry` constructs the per-domain
+   registry with the reasoning tools merged in. The merged registry
+   carries a `derivation_log` attribute (preserved by
+   `ToolRegistry.merge`).
+3. The VLM grounds entities with observation tools, then calls one or
+   more reasoning tools to commit each numeric / verbal derivation.
+4. After the loop, `ground()` reads `registry.derivation_log` and
+   stitches a `<derivations>` block into the schema if the model
+   omitted it. The validator then cross-checks `<answer>
+   evidence_chain=` against the derivation ids.
+
+The new schema section is documented in
+[`vlm_wrapper/schema.py`](../vlm_wrapper/schema.py) — search for
+`_SECTION_DERIVATIONS` / `DERIVATION_KINDS` / `_DERIVATION_KIND_RE`.
+
+## Executing transferred skills (`skill_executor.py`)
+
+The wrapper does not just *generate* schemas — it also serves as a
+real `HopExecutor` for the harness `VisualReasoningAdapter`, so a
+`SkillRecord` mined on `gymv` can be re-run on a `visual_reasoning`
+sample without going through the LLM tool-loop a second time.
+
+Inner-MDP action → tool mapping:
+
+| `hop["action"]` | Tool dispatched | Evidence role |
+|-----------------|-----------------|---------------|
+| `GROUND` (with `query`) | `grounded_detect` | `GATHER` |
+| `GROUND` (no `query`) | `detect_objects` | `GATHER` |
+| `RETRIEVE` (bbox / `entity_index`) | `describe_region` (or `read_text_region` if `use_ocr=True`) | `GATHER` |
+| `CHECK` with `kind=COUNT/RATIO/COMPARE` | `count_value` / `compute_ratio` / `compare_values` | `REASON` |
+| `CHECK` with `element_a/element_b` | `spatial_query` | `REASON` |
+| `VERIFY` | `verify_claim` | `VERIFY` |
+| `COMMIT` | `verify_claim` (final) | `VERIFY` + `COMMIT` |
+| `EXECUTE` | no-op (image QA has no env effects) | `COMMIT` |
+
+Wiring it onto an adapter:
+
+```python
+from PIL import Image
+from harness.adapters.visual_reasoning_adapter import (
+    VisualReasoningAdapter,
+    bind_visual_reasoning_executor,
+)
+
+adapter = VisualReasoningAdapter()
+img = Image.open("frame.png")
+executor = bind_visual_reasoning_executor(adapter, image=img)
+
+# adapter.run(skill, ctx) now dispatches each hop to a real tool;
+# executor.derivation_log carries every typed derivation row.
+```
+
+The executor reads ``${slot}`` substitutions performed by
+``HopBindings.resolve_dict`` and surfaces unbound slots as a hop
+failure (``ok=False``) so the harness aborts rather than silently
+sending placeholder strings to a tool.
 
 ## Benchmarks
 

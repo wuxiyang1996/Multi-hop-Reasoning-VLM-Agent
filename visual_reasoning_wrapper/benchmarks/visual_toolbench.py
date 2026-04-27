@@ -22,6 +22,7 @@ from typing import Any, Iterable, Iterator
 from PIL import Image
 
 from vlm_wrapper.ground import GroundingRequest, cascaded_ground
+from ..question_router import classify_question
 from ._hf_images import decode_hf_image
 
 logger = logging.getLogger(__name__)
@@ -176,6 +177,8 @@ def parse_visual_toolbench_sample(
         image = load_visual_toolbench_image(sample)
 
     task_id = f"visual_toolbench.{sample.sample_id}"
+    routing = classify_question(sample.question, modality="image")
+    routing_block = routing.to_prompt_block()
     goal = (
         f"{sample.question}\n"
         "This is a VisualToolBench item — you MUST exercise the visual "
@@ -184,7 +187,12 @@ def parse_visual_toolbench_sample(
         "spatial_query, measure_distance, …) before answering. "
         "Single-shot answers without tool evidence will be rejected. "
         "Each <evidence> hop must cite the real `tool=` you called and "
-        "the entity IDs the tool produced (e.g. `result_ref=e1,e2`). "
+        "the entity IDs the tool produced (e.g. `result_ref=e1,e2`).\n"
+        "Reasoning tools available: count_value, compute_ratio, "
+        "compare_values, verify_claim — use them to RECORD computations "
+        "(not just describe them), and cite the resulting "
+        "`derivation_id` (d1, d2, …) inside <derivations> and <answer>.\n"
+        f"{routing_block}\n"
         "Put the final response in <answer> as a concise string; align "
         "wording with the gold reference when possible (official "
         "scoring uses rubrics)."
@@ -200,6 +208,9 @@ def parse_visual_toolbench_sample(
             "benchmark": "visual_toolbench",
             "prompt_category": sample.prompt_category,
             "eval_focus": sample.eval_focus,
+            "question_classes": routing.classes,
+            "required_reasoning_tools": routing.required_tools,
+            "derivation_kinds": routing.derivation_kinds,
         },
         max_entities=max_entities,
         max_rounds=max_rounds,

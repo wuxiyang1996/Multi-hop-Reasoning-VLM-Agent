@@ -912,6 +912,7 @@ def build_video_visual_registry(
     prefer_gdino: bool = False,
     vlm_describer: Callable[..., str] | None = None,
     sample_timestamps: list[float] | None = None,
+    include_reasoning: bool = True,
 ) -> ToolRegistry:
     """Create a ToolRegistry with video nav + visual + cross-frame tools.
 
@@ -964,7 +965,9 @@ def build_video_visual_registry(
 
     if current_frame is not None:
         visual_reg = build_visual_registry(
-            current_frame, prefer_gdino=prefer_gdino,
+            current_frame,
+            prefer_gdino=prefer_gdino,
+            include_reasoning=False,
         )
     else:
         visual_reg = ToolRegistry(domain="visual")
@@ -980,4 +983,13 @@ def build_video_visual_registry(
     cross_reg.register(TOOL_DETECT_OBJECTS_AT_FRAME, lambda **kw: _h_detect_objects_at_frame(vv_state, **kw))
     cross_reg.register(TOOL_DESCRIBE_FRAME, lambda **kw: _h_describe_frame(vv_state, **kw))
 
-    return combined.merge(cross_reg)
+    final = combined.merge(cross_reg)
+
+    if include_reasoning:
+        from .tools_reasoning import build_reasoning_registry
+
+        reasoning_reg, derivation_log = build_reasoning_registry()
+        final = final.merge(reasoning_reg)
+        final.derivation_log = derivation_log  # type: ignore[attr-defined]
+
+    return final

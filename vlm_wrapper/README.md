@@ -140,7 +140,7 @@ Opt-in legacy chains that start with the heuristic are exposed via `vlm_wrapper.
 
 ### Five-domain feasibility snapshot
 
-This table is the quick answer to *"does the inference pipeline work end-to-end for every domain in the milestones plan?"*  Each row is wired into `cascaded_ground()` today, validated by `semantic_validate` with domain-specific rules, and covered by a live test in `vlm_wrapper/tests/test_gpt4o_parsers.py`.
+This table is the quick answer to *"does the inference pipeline work end-to-end for every domain in the milestones plan?"*  Each row is wired into `cascaded_ground()` today, validated by `semantic_validate` with domain-specific rules, and covered by a live test in the matching wrapper's `tests/test_gpt4o_parsers.py` (the cross-domain `cascaded_ground` tool-loop smoke lives in `vlm_wrapper/tests/test_gpt4o_parsers.py`).
 
 | Domain (plan name) | `cascaded_ground` chain | Tool registry composed | Required schema sections | Entity min | Benchmark data on disk | Live test |
 |---|---|---|---|---|---|---|
@@ -159,7 +159,7 @@ This table is the quick answer to *"does the inference pipeline work end-to-end 
 
 **Still open (Phase-0 TODOs, not feasibility blockers):**
 
-- VisualToolBench / TIR-Bench / SIV-Bench are **wired** (`visual_reasoning_wrapper/benchmarks/{visual_toolbench,tir_bench,siv_bench}.py`, `eval/run_eval.py`); extend `vlm_wrapper/tests/test_gpt4o_parsers.py` when adding new live cases.
+- VisualToolBench / TIR-Bench / SIV-Bench are **wired** (`visual_reasoning_wrapper/benchmarks/{visual_toolbench,tir_bench,siv_bench}.py`, `eval/run_eval.py`); extend `visual_reasoning_wrapper/tests/test_gpt4o_parsers.py` when adding new live cases.
 - Dual-teacher data collection scripts (`labeling/teachers.py`, `labeling/collect_*.py`).
 - Schema-vs-teacher cross-validation harness and ablation-study evaluation harness.
 
@@ -252,55 +252,85 @@ Combines all video + visual tools, plus 6 cross-frame tools:
 
 ## File layout
 
+Cross-domain code (schema, prompts, OmniParser detector, tool base classes, the
+unified `cascaded_ground` driver, the tool-calling loop, the eval harness, and
+the cross-domain `cascaded_ground` smoke test) lives in `vlm_wrapper/`.
+Everything that depends on a specific runtime (Gym-V, BrowserGym, OSWorld,
+visual-reasoning benchmarks) has been moved into a sibling `*_wrapper/` package.
+Thin compatibility shims at the legacy `vlm_wrapper.*` paths keep existing
+imports (`vlm_wrapper.browser_adapter`, `vlm_wrapper.osworld_adapter`,
+`vlm_wrapper.tools_browser`, `vlm_wrapper.grounding_browsergym`,
+`vlm_wrapper.example_browsergym`, `vlm_wrapper.example_grounding`,
+`vlm_wrapper.demo_visual_grounding`) working.
+
 ```
-vlm_wrapper/
-├── __init__.py                # exports all heads, tools, registries
+vlm_wrapper/                    # cross-domain core
+├── __init__.py                # exports all heads, tools, registries (lazy)
 ├── schema.py                  # shared schema spec, system prompt, image encoding, parsing, validation
-│
-│  ── Head 1: Heuristic (text-in → schema-out) ──
-├── gymv_heuristic.py          # Gym-V: obs.text → schema
-├── browser_heuristic.py       # BrowserGym: AXTree/DOM → schema
-│
-│  ── Head 2: Vision (image-in → VLM API → schema-out) ──
-├── gymv_adapter.py            # Gym-V: screenshot → GPT-4o → schema
-├── browser_adapter.py         # BrowserGym: screenshot → GPT-4o → schema
-├── osworld_adapter.py         # OSWorld: desktop screenshot → GPT-4o → schema
-│
-├── eval/
-│   ├── README.md              # run_eval CLI + programmatic harness
-│   ├── harness.py             # benchmark-agnostic batch driver + metrics
+├── ground.py                  # cascaded_ground driver — the unified entry point
+├── tools.py                   # ToolDef, ToolRegistry, ToolResult (shared base)
+├── tool_loop.py               # Multi-turn VLM tool-calling loop + convenience wrappers
+├── grounding.py               # OmniParser-v2: YOLO icon detector + Florence-2 captioner + OCR → ScreenElement list
+├── eval/                      # Batch eval harness + run_eval CLI
+│   ├── harness.py
 │   ├── metrics.py
 │   └── run_eval.py            # python -m vlm_wrapper.eval.run_eval
+├── tests/                     # cross-domain cascaded_ground smoke (live tests)
+├── test_schema_gen.py         # legacy combined gymv+browser runner — delegates to per-wrapper variants
+├── EXAMPLES.md                # worked schemas + tool-calling traces for every domain
+├── PLAN_GROUNDING.md          # design doc for Head 3 (OmniParser-v2)
 │
-│  ── Head 3: OmniParser-v2 Grounding (image-in → local models → schema-out) ──
-├── grounding.py               # YOLO icon detector + Florence-2 captioner + OCR → ScreenElement list
-├── grounding_browsergym.py    # BrowserGym/OSWorld adapter: ScreenElements → <state> schema
-│
-│  ── Tool infrastructure (shared) ──
-├── tools.py                   # ToolDef, ToolRegistry, ToolResult (shared base)
-├── tools_gymv.py              # Gym-V tool implementations (list_entities, query_entity_pos, etc.)
-├── tools_browser.py           # BrowserGym + OSWorld tool implementations
-│
-│  ── Tool-calling loop ──
-├── tool_loop.py               # Multi-turn VLM tool-calling loop + convenience wrappers
-│
-│  ── Examples and demos ──
-├── example_browsergym.py      # Synthetic BrowserGym observation for testing
-├── example_grounding.py       # Example: OmniParser grounding pipeline
-├── demo_visual_grounding.py   # Demo: Mode A (direct), Mode B (VLM+tools), Mode C (comparison)
-│
-│  ── Tests ──
-├── tests/
-│   ├── README.md              # how to run pytest + live markers
-│   ├── conftest.py
-│   └── test_gpt4o_parsers.py
-│
-│  ── Other ──
-├── test_schema_gen.py         # Schema generation tests
-└── PLAN_GROUNDING.md          # Legacy grounding design doc
+│  ── Compatibility shims (re-export sibling wrappers) ──
+├── gymv_adapter.py            # → gymv_wrapper.adapter
+├── gymv_heuristic.py          # → gymv_wrapper.heuristic
+├── tools_gymv.py              # → gymv_wrapper.tools
+├── browser_adapter.py         # → browsergym_wrapper.adapter
+├── browser_heuristic.py       # → browsergym_wrapper.heuristic
+├── osworld_adapter.py         # → osworld_wrapper.adapter
+├── tools_browser.py           # → browsergym_wrapper.tools + osworld_wrapper.tools
+├── grounding_browsergym.py    # → browsergym_wrapper.grounding + osworld_wrapper.grounding
+├── example_browsergym.py      # → browsergym_wrapper.example
+├── example_grounding.py       # → browsergym_wrapper.example_grounding
+└── demo_visual_grounding.py   # → browsergym_wrapper.demo_visual_grounding
 ```
 
-Visual reasoning tools and benchmark loaders now live beside `vlm_wrapper/`:
+Domain-specific implementations live next to `vlm_wrapper/`:
+
+```
+gymv_wrapper/                   # Gym-V: 179 procedurally-generated envs + 13 stable-retro Genesis games
+├── __init__.py
+├── adapter.py                 # screenshot → vision LLM → schema (Head 2)
+├── heuristic.py               # obs.text → schema (Head 1)
+├── tools.py                   # build_gymv_registry — entity / spatial / merge tools
+├── temporal_visual_grounding.py
+├── test_schema_gen.py         # capture real Gym-V observations and send to GPT-4o
+├── tests/                     # offline + live pytest cases
+└── real_Games_*.png           # captured Gym-V frames (Game2048-v0, Minesweeper-v0)
+
+browsergym_wrapper/             # BrowserGym (AXTree, set_of_marks, browsergym_id)
+├── __init__.py
+├── adapter.py                 # screenshot → vision LLM → schema (Head 2)
+├── heuristic.py               # AXTree → schema (Head 1)
+├── grounding.py               # screenshot → OmniParser-v2 → schema (Head 3) — also hosts the shared `_elements_to_schema` helper
+├── tools.py                   # build_browser_registry
+├── example.py                 # synthetic shopping-page obs (no BrowserGym install required)
+├── example_grounding.py       # Head 3 demo on a screenshot
+├── demo_visual_grounding.py   # Mode A (direct), Mode B (VLM+tools), Mode C (comparison)
+├── test_schema_gen.py         # capture real BrowserGym pages and send to GPT-4o
+├── tests/                     # offline + live pytest cases
+├── example_screenshot.png     # synthetic shopping-page rendering
+├── demo_annotated.png         # annotated demo output
+└── real_browser_*.png         # captured browser pages (Wikipedia, Google)
+
+osworld_wrapper/                # OSWorld (pyautogui actions, OS a11y trees, terminal)
+├── __init__.py
+├── adapter.py                 # screenshot → vision LLM → schema (Head 2; default)
+├── grounding.py               # screenshot → OmniParser-v2 → schema (Head 3; delegates to browsergym_wrapper.grounding with domain="desktop")
+├── tools.py                   # build_osworld_registry — accessibility-tree helpers
+└── tests/                     # offline + live pytest cases
+```
+
+Visual reasoning tools and benchmark loaders also live beside `vlm_wrapper/`:
 
 ```
 visual_reasoning_wrapper/
@@ -309,6 +339,10 @@ visual_reasoning_wrapper/
 ├── tools_visual.py            # Vision-model-backed tools (detect_objects, spatial_query, etc.)
 ├── tools_video.py             # Video temporal navigation tools (get_frame, compare_frames, etc.)
 ├── tools_video_visual.py      # Cross-frame tools (track_object, find_moment, etc.)
+├── tools_reasoning.py         # higher-level reasoning helpers used by the question router
+├── question_router.py         # picks the right benchmark parser for a free-form prompt
+├── skill_executor.py          # XSkill-aligned skill executor
+├── tests/                     # offline + live pytest cases (TIR-Bench, Video-Holmes, synthesizers)
 └── benchmarks/
     ├── README.md              # four-benchmark matrix, disk layout, API entry points
     ├── visual_toolbench.py    # HF VisualToolBench -> VLM -> answer
@@ -483,7 +517,7 @@ A single entry point for gymv / browser / desktop / image QA / video QA. Reads `
 ```bash
 # One gym-v game frame
 python scripts/run_vlm_parser.py gymv \
-    --image vlm_wrapper/real_Games_Game2048-v0_step0.png \
+    --image gymv_wrapper/real_Games_Game2048-v0_step0.png \
     --goal "Reach 2048" --task-id Game2048-v0
 
 # One browser screenshot + AXTree
@@ -616,18 +650,22 @@ for hop in result.tool_trace:
 
 ## Demo script
 
+The demo lives in `browsergym_wrapper/` now (the legacy
+`python -m vlm_wrapper.demo_visual_grounding` path still works via a
+re-export shim).
+
 ```bash
 # Mode A — direct grounding only (no API key needed)
-python -m vlm_wrapper.demo_visual_grounding
+python -m browsergym_wrapper.demo_visual_grounding
 
 # Mode B — VLM tool-calling loop (multi-hop reasoning)
-python -m vlm_wrapper.demo_visual_grounding --vlm-tools --api-key sk-... --model gpt-4o
+python -m browsergym_wrapper.demo_visual_grounding --vlm-tools --api-key sk-... --model gpt-4o
 
 # Mode C — compare all heads side-by-side
-python -m vlm_wrapper.demo_visual_grounding --compare-all --api-key sk-...
+python -m browsergym_wrapper.demo_visual_grounding --compare-all --api-key sk-...
 
 # Custom screenshot + save annotated output
-python -m vlm_wrapper.demo_visual_grounding --image screenshot.png --save-annotated out.png
+python -m browsergym_wrapper.demo_visual_grounding --image screenshot.png --save-annotated out.png
 ```
 
 ---

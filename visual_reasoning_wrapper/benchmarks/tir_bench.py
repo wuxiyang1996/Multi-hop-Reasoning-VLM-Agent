@@ -20,6 +20,7 @@ from typing import Any, Iterable, Iterator
 from PIL import Image
 
 from vlm_wrapper.ground import GroundingRequest, cascaded_ground
+from ..question_router import classify_question
 from ._hf_images import decode_hf_image
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,19 @@ def default_tir_bench_root(workspace_root: str | Path | None = None) -> Path:
 
 
 def _load_dataset():
+    """Load TIR-Bench rows.
+
+    Prefers the local mirror at ``data/datasets/TIR-Bench/TIR-Bench.json``
+    (a plain list of dicts produced by ``hf snapshot_download``) so we
+    don't require network access or ``datasets`` features that newer
+    library versions have removed (e.g. ``trust_remote_code``).
+    """
+    repo_root = Path(__file__).resolve().parents[2]
+    local_json = repo_root / "data" / "datasets" / "TIR-Bench" / "TIR-Bench.json"
+    if local_json.exists():
+        with local_json.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
     try:
         from datasets import load_dataset
     except ImportError as exc:  # pragma: no cover
@@ -66,7 +80,7 @@ def _load_dataset():
         ) from exc
     try:
         return load_dataset(_HF_ID, split="test", trust_remote_code=True)
-    except ValueError as exc:
+    except (ValueError, TypeError) as exc:
         if "trust_remote_code" not in str(exc):
             raise
         return load_dataset(_HF_ID, split="test")
@@ -147,6 +161,8 @@ def parse_tir_bench_sample(
         image = load_tir_bench_image(sample)
 
     task_id = f"tir_bench.{sample.task}.{sample.sample_id}"
+    routing = classify_question(sample.prompt, modality="image")
+    routing_block = routing.to_prompt_block()
     goal = (
         f"{sample.prompt}\n"
         "TIR-Bench is an agentic thinking-with-images benchmark — you "
@@ -155,7 +171,13 @@ def parse_tir_bench_sample(
         "read_text_region / describe_region / spatial_query / "
         "count_objects / measure_distance) before emitting <answer>. "
         "Each <evidence> hop must cite the real `tool=` you called and "
-        "reference the entity IDs it produced (e.g. `result_ref=e1,e2`). "
+        "reference the entity IDs it produced (e.g. `result_ref=e1,e2`).\n"
+        "Reasoning tools available: count_value, compute_ratio, "
+        "compare_values, verify_claim — call them to RECORD numeric "
+        "computations (counts, ratios, comparisons) before claiming "
+        "the answer.  Cite the resulting `derivation_id` (d1, d2, …) "
+        "inside <derivations> and <answer>.\n"
+        f"{routing_block}\n"
         "Answer concisely (MCQ: single letter A–J, otherwise digits or "
         "text exactly as the question requests). scene_type=image_qa."
     )
@@ -170,6 +192,9 @@ def parse_tir_bench_sample(
             "benchmark": "tir_bench",
             "task": sample.task,
             "meta_data": sample.meta_data,
+            "question_classes": routing.classes,
+            "required_reasoning_tools": routing.required_tools,
+            "derivation_kinds": routing.derivation_kinds,
         },
         max_entities=max_entities,
         max_rounds=max_rounds,

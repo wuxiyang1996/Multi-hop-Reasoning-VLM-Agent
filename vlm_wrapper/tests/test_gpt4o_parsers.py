@@ -1,53 +1,39 @@
-"""Test cases for the five GPT-4o VLM parsers shipped in ``vlm_wrapper``.
+"""Cross-domain ``cascaded_ground`` smoke test.
 
-Two tiers of tests:
+Each per-domain adapter contract test now lives next to its wrapper:
 
-* **offline** — always run; import every adapter / loader, instantiate
-  a synthetic sample, and verify the public contracts (dataclass
-  fields, iterator pagination, required kwargs).  These protect
-  against dependency or refactor regressions without burning API
-  credits.
+* :mod:`gymv_wrapper.tests.test_gpt4o_parsers`             — Gym-V
+* :mod:`browsergym_wrapper.tests.test_gpt4o_parsers`       — BrowserGym
+* :mod:`osworld_wrapper.tests.test_gpt4o_parsers`          — OSWorld (desktop)
+* :mod:`visual_reasoning_wrapper.tests.test_gpt4o_parsers` — TIR-Bench, Video-Holmes, synthesizers
 
-* **live**    — marked ``@pytest.mark.live``; skipped unless
-  ``OPENAI_API_KEY`` (or ``VLM_TEST_API_KEY``) is set.  Each live test
-  actually calls GPT-4o once and asserts that a parseable
-  ``<state>…</state>`` schema comes back.  Schemas are saved under
-  ``out/schemas/<case>.schema.txt`` so you can eyeball the output.
+What stays in ``vlm_wrapper/tests`` is the ONE end-to-end test that
+exercises the cross-domain :func:`vlm_wrapper.ground.cascaded_ground`
+driver itself — multi-hop tool-calling, head escalation, the
+``<evidence>`` block — which is genuinely owned by the cross-domain
+core.
 
-Run offline only (default)::
+Run offline (the test below is ``@pytest.mark.live`` so it is skipped
+unless an API key is present)::
 
-    pytest vlm_wrapper/tests/test_gpt4o_parsers.py
+    pytest vlm_wrapper/tests/test_gpt4o_parsers.py -q
 
-Run everything including live GPT-4o calls::
+Run including the live GPT-4o call::
 
-    pytest -m "live or not live" vlm_wrapper/tests/test_gpt4o_parsers.py
-
-Run only live tests::
-
-    pytest -m live vlm_wrapper/tests/test_gpt4o_parsers.py
+    pytest -m "live or not live" vlm_wrapper/tests/test_gpt4o_parsers.py -q
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 import pytest
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-# We reuse the runner's synthesizers so the live cases exercise the
-# *same* inputs a user would get from ``scripts/test_vlm_parsers.py``.
-from scripts.test_vlm_parsers import (  # noqa: E402
-    _synthesize_2048_board,
-    _synthesize_desktop,
-    _synthesize_wiki_page,
-)
 
 SCHEMAS_DIR = REPO_ROOT / "out" / "schemas"
 API_KEY = os.environ.get("VLM_TEST_API_KEY") or os.environ.get("OPENAI_API_KEY")
@@ -65,9 +51,6 @@ def _save_schema(case: str, schema: str) -> None:
 
 
 def _assert_valid_schema(schema: str | None, case: str) -> None:
-    """Structural sanity: presence of ``<state>`` block and either
-    ``<entities>`` (interactive/image-QA domains) or
-    ``<events>``/``<answer>`` (video domain)."""
     assert schema, f"{case}: parser returned no schema"
     assert "<state>" in schema and "</state>" in schema, (
         f"{case}: missing <state>…</state>:\n{schema[:400]}"
@@ -79,135 +62,6 @@ def _assert_valid_schema(schema: str | None, case: str) -> None:
         f"{case}: schema lacks any of <entities>/<events>/<answer>:\n"
         f"{schema[:400]}"
     )
-
-
-# ======================================================================
-# Offline contract tests
-# ======================================================================
-
-def test_offline_gymv_adapter_import() -> None:
-    from gymv_wrapper.adapter import generate_label
-    assert callable(generate_label)
-
-
-def test_offline_browser_adapter_import() -> None:
-    from vlm_wrapper.browser_adapter import generate_label
-    assert callable(generate_label)
-
-
-def test_offline_osworld_adapter_import() -> None:
-    from vlm_wrapper.osworld_adapter import generate_label
-    assert callable(generate_label)
-
-
-def test_offline_tir_bench_loader_yields_samples() -> None:
-    pytest.importorskip("datasets")
-    from visual_reasoning_wrapper.benchmarks.tir_bench import (
-        TIRBenchSample,
-        iter_tir_bench_samples,
-    )
-
-    try:
-        samples = list(iter_tir_bench_samples(split="test", limit=1))
-    except Exception as exc:
-        pytest.skip(f"TIR-Bench HF load skipped: {exc}")
-    assert samples
-    s = samples[0]
-    assert isinstance(s, TIRBenchSample)
-    assert s.prompt and s.sample_id
-
-
-def test_offline_video_holmes_loader_yields_samples() -> None:
-    from visual_reasoning_wrapper.benchmarks.video_holmes import (
-        iter_video_holmes_samples, VideoHolmesSample,
-    )
-
-    samples = list(iter_video_holmes_samples(split="test", limit=3))
-    assert samples, "Video-Holmes loader returned no samples"
-    for s in samples:
-        assert isinstance(s, VideoHolmesSample)
-        assert s.question and s.question_id
-        assert s.options, "each Video-Holmes question should carry options"
-
-
-def test_offline_synthesizers_produce_rgb_images() -> None:
-    for fn in (_synthesize_2048_board, _synthesize_wiki_page,
-               _synthesize_desktop):
-        img = fn()
-        assert isinstance(img, Image.Image)
-        assert img.mode == "RGB"
-        assert min(img.size) > 64
-
-
-# ======================================================================
-# Live GPT-4o schema tests (one per domain)
-# ======================================================================
-
-@live
-@needs_api
-def test_live_gymv_schema() -> None:
-    from gymv_wrapper.adapter import generate_label
-
-    image = _synthesize_2048_board()
-    result = generate_label(
-        image,
-        goal="Reach 2048",
-        task_id="Game2048-v0",
-        step=0,
-        game_rules="2048 — slide tiles [Up]/[Down]/[Left]/[Right]; equal tiles merge.",
-        obs_text="| 2 | 4 | 0 | 0 |\n| 0 | 0 | 0 | 0 |\n"
-                 "| 0 | 0 | 0 | 0 |\n| 0 | 0 | 0 | 0 |",
-        max_entities=12,
-        model=MODEL,
-        api_key=API_KEY,
-    )
-    schema = result.get("schema")
-    _assert_valid_schema(schema, "gymv")
-    assert "<actions>" in schema, (
-        "gymv schema should include an <actions> block for move proposals")
-    _save_schema("gymv", schema)
-
-
-@live
-@needs_api
-def test_live_browser_schema() -> None:
-    from vlm_wrapper.browser_adapter import generate_label
-
-    image = _synthesize_wiki_page()
-    result = generate_label(
-        image,
-        goal="Identify the first section heading on the Wikipedia main page.",
-        task_id="wiki.main_page.demo",
-        step=0,
-        url="https://en.wikipedia.org",
-        max_entities=15,
-        model=MODEL,
-        api_key=API_KEY,
-    )
-    schema = result.get("schema")
-    _assert_valid_schema(schema, "browser")
-    assert "<entities>" in schema
-    _save_schema("browser", schema)
-
-
-@live
-@needs_api
-def test_live_desktop_schema() -> None:
-    from vlm_wrapper.osworld_adapter import generate_label
-
-    image = _synthesize_desktop()
-    result = generate_label(
-        image,
-        instruction="Open the Files application.  What pyautogui action would you take first?",
-        task_id="osworld.demo",
-        step=0,
-        max_entities=15,
-        model=MODEL,
-        api_key=API_KEY,
-    )
-    schema = result.get("schema")
-    _assert_valid_schema(schema, "desktop")
-    _save_schema("desktop", schema)
 
 
 @live
@@ -233,8 +87,6 @@ def test_live_gymv_tool_loop_schema() -> None:
       6. an <evidence> block records the reasoning hops so downstream
          skill learning can cite them.
     """
-    from PIL import ImageDraw, ImageFont
-
     from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 
     # Hand-drawn mid-game 2048 board (richer than the early-game
@@ -330,8 +182,6 @@ def test_live_gymv_tool_loop_schema() -> None:
         "GPT-4o did not invoke any tools — tool_loop should produce "
         "at least one call in the trace"
     )
-    # Every recorded call must dispatch to a real registered tool
-    # (not GPT-4o's internal meta-names like `multi_tool_use.parallel`).
     gymv_tool_names = {
         "query_entity_pos", "list_entities", "check_relation",
         "get_state_flags", "list_valid_actions", "get_grid_state",
@@ -352,7 +202,6 @@ def test_live_gymv_tool_loop_schema() -> None:
         f"expected at least one call to a gymv or visual tool"
     )
 
-    # Prompt guarantees: actions must come from the env vocabulary.
     for action in valid_actions:
         if action in schema:
             break
@@ -366,65 +215,6 @@ def test_live_gymv_tool_loop_schema() -> None:
         "the valid-actions instruction"
     )
 
-    # Multi-hop reasoning trace should be preserved in the schema too.
     assert "<evidence>" in schema, (
         "tool_loop schema should record reasoning hops in <evidence>"
     )
-
-
-@live
-@needs_api
-def test_live_tir_bench_schema() -> None:
-    pytest.importorskip("datasets")
-    from visual_reasoning_wrapper.benchmarks.tir_bench import (
-        iter_tir_bench_samples,
-        parse_tir_bench_sample,
-    )
-
-    try:
-        sample = next(iter_tir_bench_samples(split="test", limit=1))
-    except Exception as exc:
-        pytest.skip(f"TIR-Bench HF load skipped: {exc}")
-    out = parse_tir_bench_sample(
-        sample,
-        model=MODEL,
-        api_key=API_KEY,
-        max_entities=10,
-        max_rounds=4,
-    )
-    schema = out.get("schema")
-    _assert_valid_schema(schema, "tir_bench")
-    assert "<answer>" in schema, "TIR-Bench schema must contain <answer>"
-    assert out.get("answer"), "TIR-Bench parser returned empty answer"
-    _save_schema("tir_bench", schema)
-
-
-@live
-@needs_api
-def test_live_video_holmes_schema() -> None:
-    from visual_reasoning_wrapper.benchmarks.video_holmes import (
-        iter_video_holmes_samples, parse_video_holmes_sample,
-    )
-
-    chosen = None
-    for s in iter_video_holmes_samples(split="test", limit=50):
-        if s.video_path and s.video_path.exists():
-            chosen = s
-            break
-    if chosen is None:
-        pytest.skip(
-            "No Video-Holmes video clips on disk — see "
-            "install/INSTALL_BENCHMARKS.md §5 to download them.")
-
-    out = parse_video_holmes_sample(
-        chosen,
-        num_frames=4,
-        max_rounds=2,
-        max_entities=12,
-        model=MODEL,
-        api_key=API_KEY,
-    )
-    schema = out.get("schema")
-    _assert_valid_schema(schema, "video_holmes")
-    assert "<answer>" in schema, "Video-Holmes schema must contain <answer>"
-    _save_schema("video_holmes", schema)

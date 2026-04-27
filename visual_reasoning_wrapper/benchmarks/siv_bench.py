@@ -54,6 +54,7 @@ from typing import Any, Iterable, Iterator, Sequence
 from PIL import Image
 
 from vlm_wrapper.ground import GroundingRequest, cascaded_ground
+from ..question_router import classify_question
 from .video_holmes import sample_video_frames
 
 logger = logging.getLogger(__name__)
@@ -571,7 +572,19 @@ def parse_siv_bench_sample(
     task_id = (
         f"siv_bench.{sample.subtitle}.{sample.video_id}.Q{sample.question_id}"
     )
+    routing = classify_question(sample.question, modality="video")
+    routing_block = routing.to_prompt_block()
     question_prompt = sample.format_question()
+    if routing_block:
+        question_prompt = (
+            f"{question_prompt}\n\n"
+            "Reasoning tools available: count_value, compute_ratio, "
+            "compare_values, verify_claim — use them to RECORD any "
+            "counts / ratios / comparisons you derive across frames, "
+            "and cite the resulting `derivation_id` (d1, d2, …) inside "
+            "<derivations> and <answer>.\n"
+            f"{routing_block}"
+        )
 
     duration_s = video_meta.get("duration_s") or 0.0
     if duration_s and len(frames) > 0:
@@ -597,6 +610,9 @@ def parse_siv_bench_sample(
             "subtask": sample.subtask,
             "subtitle": sample.subtitle,
             "options": dict(sample.options),
+            "question_classes": routing.classes,
+            "required_reasoning_tools": routing.required_tools,
+            "derivation_kinds": routing.derivation_kinds,
         },
         max_entities=max_entities,
         max_rounds=max_rounds,
