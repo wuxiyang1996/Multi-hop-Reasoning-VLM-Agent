@@ -2,7 +2,7 @@
 
 ## Role
 
-- **`harness.py`** — `run_eval()` iterates a sample stream, calls your **grounder** (usually `parse_*_sample` from `vlm_wrapper.visual_reasoning_wrapper.benchmarks`), records per-sample results, optional JSONL, and aggregates [`metrics`](metrics.py) (answer accuracy, format compliance, entity IoU when gold boxes exist, tool-related stats).
+- **`harness.py`** — `run_eval()` iterates a sample stream, calls your **grounder** (usually `parse_*_sample` from `visual_reasoning_wrapper.benchmarks`), records per-sample results, optional JSONL, and aggregates [`metrics`](metrics.py) (answer accuracy, format compliance, entity IoU when gold boxes exist, tool-related stats).
 - **`run_eval.py`** — CLI front-end: picks a benchmark via `--benchmark`, builds the iterator + grounder, prints a JSON summary and optional report file.
 - **`metrics.py`** — Pure helpers used by the harness; safe to import for custom eval scripts.
 
@@ -38,7 +38,7 @@ Common flags:
 
 ```python
 from vlm_wrapper.eval.harness import run_eval
-from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+from visual_reasoning_wrapper.benchmarks.tir_bench import (
     iter_tir_bench_samples,
     parse_tir_bench_sample,
 )

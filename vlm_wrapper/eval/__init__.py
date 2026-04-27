@@ -22,7 +22,7 @@ Layout::
     run_eval.py    # CLI entry point: ``python -m vlm_wrapper.eval.run_eval``
 
 Designed to plug straight into the benchmark loaders
-(``vlm_wrapper.visual_reasoning_wrapper.benchmarks.*``) and the cascaded grounding pipeline
+(``visual_reasoning_wrapper.benchmarks.*``) and the cascaded grounding pipeline
 (``vlm_wrapper.ground.cascaded_ground``) — no benchmark-specific
 branching in the harness itself.
 """

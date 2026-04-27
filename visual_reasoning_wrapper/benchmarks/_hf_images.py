@@ -26,4 +26,14 @@ def decode_hf_image(value: Any) -> Image.Image:
         p = Path(value)
         if p.is_file():
             return Image.open(p).convert("RGB")
+        if not p.is_absolute():
+            repo_root = Path(__file__).resolve().parents[2]
+            for root in (
+                repo_root,
+                repo_root / "data" / "datasets" / "TIR-Bench",
+                repo_root / "data" / "datasets" / "VisualToolBench",
+            ):
+                candidate = root / p
+                if candidate.is_file():
+                    return Image.open(candidate).convert("RGB")
     raise TypeError(f"Unsupported image payload type: {type(value)!r}")

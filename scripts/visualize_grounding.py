@@ -201,7 +201,7 @@ def _copy_video_first_frame(case_result: dict[str, Any], dst: Path) -> bool:
     if not video_id:
         return False
     try:
-        from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+        from visual_reasoning_wrapper.benchmarks.video_holmes import (
             _video_path, default_video_holmes_root,
         )
         video = _video_path(default_video_holmes_root(), video_id)

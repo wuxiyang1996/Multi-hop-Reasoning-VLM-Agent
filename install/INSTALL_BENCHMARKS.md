@@ -187,8 +187,8 @@ does not require a VM.
 
 Single env that covers:
 
-* VisualToolBench / TIR-Bench loaders (`vlm_wrapper.visual_reasoning_wrapper.benchmarks.{visual_toolbench,tir_bench}`)
-* Video-Holmes / SIV-Bench loaders (`vlm_wrapper.visual_reasoning_wrapper.benchmarks.{video_holmes,siv_bench}`)
+* VisualToolBench / TIR-Bench loaders (`visual_reasoning_wrapper.benchmarks.{visual_toolbench,tir_bench}`)
+* Video-Holmes / SIV-Bench loaders (`visual_reasoning_wrapper.benchmarks.{video_holmes,siv_bench}`)
 * The full `vlm_wrapper` grounding pipeline (GroundingDINO, OmniParser-v2, Florence-2, EasyOCR, YOLO, decord)
 * OpenAI / Anthropic / Google-Genai API clients for Head 2 labeling
 

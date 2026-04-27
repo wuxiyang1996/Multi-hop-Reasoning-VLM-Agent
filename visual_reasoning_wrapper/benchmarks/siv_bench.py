@@ -29,7 +29,7 @@ re-exported version.  Required columns:
 
 Usage::
 
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.siv_bench import (
+    from visual_reasoning_wrapper.benchmarks.siv_bench import (
         iter_siv_bench_samples, parse_siv_bench_sample,
     )
 
@@ -46,13 +46,14 @@ import csv
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Sequence
 
 from PIL import Image
 
-from ...ground import GroundingRequest, cascaded_ground
+from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 from .video_holmes import sample_video_frames
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ _VIDEO_SUBDIRS = ("origin", "w_sub", "wo_sub")
 _FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "video_id":   ("video_id", "video", "videoid", "id", "vid"),
     "question":   ("question", "q", "query"),
-    "answer":     ("answer", "gt", "label", "correct", "correct_answer"),
+    "answer":     ("correct_answer_index", "correct_answer", "answer_letter", "gt", "label", "correct", "answer"),
     "options":    ("options", "choices"),
     "dimension":  ("dimension", "category", "core_task", "main_task"),
     "subtask":    ("subtask", "sub_task", "fine_grained_task", "task"),
@@ -165,7 +166,7 @@ def default_siv_bench_root(
 ) -> Path:
     """Return the canonical SIV-Bench root on this workspace."""
     if workspace_root is None:
-        workspace_root = Path(__file__).resolve().parents[3]
+        workspace_root = Path(__file__).resolve().parents[2]
     return Path(workspace_root) / "data" / "SIV-Bench"
 
 
@@ -271,6 +272,7 @@ def iter_siv_bench_samples(
     dimensions: Iterable[str] | None = None,
     subtasks: Iterable[str] | None = None,
     video_ids: Iterable[str] | None = None,
+    require_video: bool = True,
 ) -> Iterator[SIVBenchSample]:
     """Yield ``SIVBenchSample`` objects.
 
@@ -345,12 +347,23 @@ def iter_siv_bench_samples(
             )
             continue
 
-        answer = (
-            str(row[field_idx["answer"]]).strip().upper()
-            if "answer" in field_idx else None
-        )
-        if answer:
-            answer = answer[:1] if answer[:1] in _ANSWER_LETTERS else answer
+        answer = None
+        if "answer" in field_idx:
+            raw_ans = str(row[field_idx["answer"]]).strip()
+            if raw_ans:
+                upper = raw_ans.upper()
+                if upper[:1] in _ANSWER_LETTERS:
+                    answer = upper[:1]
+                elif raw_ans.isdigit():
+                    idx = int(raw_ans)
+                    if 0 <= idx < len(_ANSWER_LETTERS):
+                        answer = _ANSWER_LETTERS[idx]
+                    elif 1 <= idx <= len(_ANSWER_LETTERS):
+                        answer = _ANSWER_LETTERS[idx - 1]
+                    else:
+                        answer = upper
+                else:
+                    answer = upper
 
         explanation = (
             row.get(field_idx["explanation"])
@@ -367,6 +380,8 @@ def iter_siv_bench_samples(
                 actual_pref = cell
 
         vpath, used_sub = _resolve_video_path(root, vid, actual_pref)
+        if require_video and vpath is None:
+            continue
 
         sample = SIVBenchSample(
             video_id=vid,
@@ -392,11 +407,17 @@ def _parse_options(
 ) -> dict[str, str]:
     """Extract MCQ options from a row.
 
-    Supports two formats:
+    Supports three formats observed across SIV-Bench releases:
 
-    * a single ``options`` column holding either a JSON object
-      (``{"A": "...", ...}``) or a JSON array (``["...", "...", ...]``).
-    * one column per letter (``A``, ``B``, …).
+    * JSON object: ``{"A": "...", "B": "...", ...}``
+    * JSON array:  ``["A. ...", "B. ...", ...]``
+    * Flat string: ``"A. ..., B. ..., C. ..., D. ..., E. ..."`` —
+      the upstream Hugging Face TSV ships this format inside a single
+      ``options`` cell.  We split on letter-prefix boundaries so commas
+      inside an answer (e.g. "Yes, because ...") don't break parsing.
+
+    Falls back to per-letter columns (``A``…``E``) if no ``options``
+    cell is available.
     """
     if "options" in field_idx:
         cell = row.get(field_idx["options"])
@@ -417,6 +438,9 @@ def _parse_options(
                     letter: str(opt).strip()
                     for letter, opt in zip(_ANSWER_LETTERS, parsed)
                 }
+            flat = _split_letter_prefixed_options(cell_str)
+            if flat:
+                return flat
 
     out: dict[str, str] = {}
     for letter in _ANSWER_LETTERS:
@@ -428,6 +452,35 @@ def _parse_options(
             continue
         out[letter] = str(val).strip()
     return out
+
+
+_LETTER_PREFIX_RE = re.compile(r"(?:^|[\s,;])([A-Z])[.)\]:]\s+")
+
+
+def _split_letter_prefixed_options(text: str) -> dict[str, str]:
+    """Parse a single string like ``"A. foo, B. bar, C. baz"``.
+
+    The upstream SIV-Bench TSV uses this concatenated format so the
+    whole option list lives inside one TSV cell.  We anchor on letter
+    prefixes (``A.``, ``B)``, ``C:`` etc.) and slice the string between
+    consecutive anchors so commas inside an answer body are safe.
+    Letters outside ``A``…``E`` are recorded too — the caller restricts
+    to the canonical MCQ set so over-long lists (some sub-tasks ship
+    14 categories in one row) parse cleanly without polluting the last
+    valid option.
+    """
+    matches = list(_LETTER_PREFIX_RE.finditer(text))
+    if not matches:
+        return {}
+    out: dict[str, str] = {}
+    for i, m in enumerate(matches):
+        letter = m.group(1)
+        body_start = m.end()
+        body_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[body_start:body_end].strip().rstrip(",;").strip()
+        if body:
+            out[letter] = body
+    return {k: v for k, v in out.items() if k in _ANSWER_LETTERS}
 
 
 # ======================================================================

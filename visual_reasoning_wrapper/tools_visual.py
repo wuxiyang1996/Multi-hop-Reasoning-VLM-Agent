@@ -18,7 +18,7 @@ building a chain of grounded evidence before producing the final schema.
 
 Usage::
 
-    from vlm_wrapper.visual_reasoning_wrapper.tools_visual import build_visual_registry
+    from visual_reasoning_wrapper.tools_visual import build_visual_registry
 
     registry = build_visual_registry(pil_image)
     # merge with video tools if needed:
@@ -37,7 +37,7 @@ from typing import Any, Sequence
 import numpy as np
 from PIL import Image
 
-from ..tools import ToolDef, ToolRegistry
+from vlm_wrapper.tools import ToolDef, ToolRegistry
 
 logger = logging.getLogger(__name__)
 

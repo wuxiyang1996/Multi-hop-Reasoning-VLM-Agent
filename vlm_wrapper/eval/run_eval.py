@@ -77,7 +77,7 @@ def _vtb_gold(sample: Any) -> dict[str, Any]:
 
 
 def _make_visual_toolbench(args: argparse.Namespace) -> dict[str, Any]:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.visual_toolbench import (
+    from visual_reasoning_wrapper.benchmarks.visual_toolbench import (
         iter_visual_toolbench_samples, parse_visual_toolbench_sample,
     )
 
@@ -98,7 +98,7 @@ def _make_visual_toolbench(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def _make_tir_bench(args: argparse.Namespace) -> dict[str, Any]:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+    from visual_reasoning_wrapper.benchmarks.tir_bench import (
         iter_tir_bench_samples, parse_tir_bench_sample,
     )
 
@@ -119,7 +119,7 @@ def _make_tir_bench(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def _make_video_holmes(args: argparse.Namespace) -> dict[str, Any]:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+    from visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_sample,
     )
 
@@ -143,7 +143,7 @@ def _make_video_holmes(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def _make_siv_bench(args: argparse.Namespace) -> dict[str, Any]:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.siv_bench import (
+    from visual_reasoning_wrapper.benchmarks.siv_bench import (
         iter_siv_bench_samples, parse_siv_bench_sample,
     )
 

@@ -121,6 +121,19 @@ def __getattr__(name):  # noqa: D401
     if name == "build_gymv_registry":
         from gymv_wrapper.tools import build_gymv_registry as _f
         return _f
+    if name == "build_video_registry":
+        from visual_reasoning_wrapper.tools_video import build_video_registry as _f
+        return _f
+    if name == "build_visual_registry":
+        from visual_reasoning_wrapper.tools_visual import build_visual_registry as _f
+        return _f
+    if name == "build_video_visual_registry":
+        from visual_reasoning_wrapper.tools_video_visual import (
+            build_video_visual_registry as _f,
+        )
+        return _f
+    if name in _VISUAL_REASONING_EXPORTS:
+        return _load_visual_reasoning_export(name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 # ── Head 3: Grounding (image-in → OmniParser-v2 → schema-out) ────────
@@ -148,11 +161,6 @@ from vlm_wrapper.tools import ToolRegistry, ToolDef, ToolResult
 
 # Domain-specific registries (gymv lazily re-exported via __getattr__)
 from vlm_wrapper.tools_browser import build_browser_registry, build_osworld_registry
-from vlm_wrapper.visual_reasoning_wrapper.tools_video import build_video_registry
-from vlm_wrapper.visual_reasoning_wrapper.tools_visual import build_visual_registry
-from vlm_wrapper.visual_reasoning_wrapper.tools_video_visual import (
-    build_video_visual_registry,
-)
 
 # Tool-calling loop + convenience wrappers
 from vlm_wrapper.tool_loop import (
@@ -185,49 +193,41 @@ __all__ += [
     "video_visual_generate_label_with_tools",
 ]
 
-# ── Benchmark loaders + parsers (TIR-Bench / VTB / Video-Holmes) ──────
-try:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks import (
-        TIRBenchSample,
-        VideoHolmesSample,
-        VisualToolBenchSample,
-        default_tir_bench_root,
-        default_video_holmes_root,
-        default_visual_toolbench_root,
-        iter_tir_bench_samples,
-        iter_video_holmes_samples,
-        iter_visual_toolbench_samples,
-        load_tir_bench_image,
-        load_video_holmes_questions,
-        load_visual_toolbench_image,
-        parse_tir_bench_sample,
-        parse_video_holmes_sample,
-        parse_visual_toolbench_sample,
-        sample_video_frames,
-    )
-    __all__ += [
-        "TIRBenchSample",
-        "VideoHolmesSample",
-        "VisualToolBenchSample",
-        "default_tir_bench_root",
-        "default_video_holmes_root",
-        "default_visual_toolbench_root",
-        "iter_tir_bench_samples",
-        "iter_video_holmes_samples",
-        "iter_visual_toolbench_samples",
-        "load_tir_bench_image",
-        "load_video_holmes_questions",
-        "load_visual_toolbench_image",
-        "parse_tir_bench_sample",
-        "parse_video_holmes_sample",
-        "parse_visual_toolbench_sample",
-        "sample_video_frames",
-    ]
-except ImportError:
-    pass
+# ── Benchmark loaders + parsers (lazily re-exported from visual_reasoning_wrapper)
+_VISUAL_REASONING_EXPORTS = {
+    "SIVBenchSample",
+    "TIRBenchSample",
+    "VideoHolmesSample",
+    "VisualToolBenchSample",
+    "default_siv_bench_root",
+    "default_tir_bench_root",
+    "default_video_holmes_root",
+    "default_visual_toolbench_root",
+    "iter_siv_bench_samples",
+    "iter_tir_bench_samples",
+    "iter_video_holmes_samples",
+    "iter_visual_toolbench_samples",
+    "load_siv_bench_questions",
+    "load_tir_bench_image",
+    "load_video_holmes_questions",
+    "load_visual_toolbench_image",
+    "parse_siv_bench_sample",
+    "parse_tir_bench_sample",
+    "parse_video_holmes_sample",
+    "parse_visual_toolbench_sample",
+    "sample_video_frames",
+}
+
+
+def _load_visual_reasoning_export(name):
+    from visual_reasoning_wrapper import benchmarks as _benchmarks
+    return getattr(_benchmarks, name)
+
+
+__all__ += sorted(_VISUAL_REASONING_EXPORTS)
 
 # ── Visual reasoning (design notes + standard 2×2 benchmark matrix) ─
-from vlm_wrapper.visual_reasoning_wrapper import (
+from visual_reasoning_wrapper import (
     PRIMARY_VISUAL_REASONING_BENCHMARKS,
     VisualReasoningBenchmark,
 )

@@ -457,8 +457,8 @@ Return best attempt + high uncertainty flags (Path C candidate)
 Snapshot 2026-04-21.  Newly-completed rows (this iteration) link to
 their source files so the next pair of eyes can audit them quickly:
 
-- Benchmark loaders → `vlm_wrapper/visual_reasoning_wrapper/benchmarks/{visual_toolbench.py, tir_bench.py, siv_bench.py}`
-  (registered in `vlm_wrapper/visual_reasoning_wrapper/benchmarks/__init__.py`).
+- Benchmark loaders → `visual_reasoning_wrapper/benchmarks/{visual_toolbench.py, tir_bench.py, siv_bench.py}`
+  (registered in `visual_reasoning_wrapper/benchmarks/__init__.py`).
 - Evaluation harness → `vlm_wrapper/eval/{metrics.py, harness.py, run_eval.py}`,
   CLI: `python -m vlm_wrapper.eval.run_eval --benchmark visual_toolbench|tir_bench|video_holmes|siv_bench`.
 - Phase-0 data collection → `labeling/grounding/{collect_gymv.py,

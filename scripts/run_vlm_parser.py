@@ -192,7 +192,7 @@ def _parse_desktop(args: argparse.Namespace) -> int:
 
 
 def _parse_tir_bench(args: argparse.Namespace) -> int:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+    from visual_reasoning_wrapper.benchmarks.tir_bench import (
         iter_tir_bench_samples, parse_tir_bench_batch, parse_tir_bench_sample,
     )
 
@@ -244,7 +244,7 @@ def _parse_tir_bench(args: argparse.Namespace) -> int:
 
 
 def _parse_visual_toolbench(args: argparse.Namespace) -> int:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.visual_toolbench import (
+    from visual_reasoning_wrapper.benchmarks.visual_toolbench import (
         iter_visual_toolbench_samples,
         parse_visual_toolbench_batch,
         parse_visual_toolbench_sample,
@@ -295,7 +295,7 @@ def _parse_visual_toolbench(args: argparse.Namespace) -> int:
 
 
 def _parse_video_holmes(args: argparse.Namespace) -> int:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+    from visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_batch,
         parse_video_holmes_sample,
     )

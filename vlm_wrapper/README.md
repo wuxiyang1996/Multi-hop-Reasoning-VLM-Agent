@@ -2,7 +2,7 @@
 
 Converts screenshots, video frames, and environment observations into a shared structured text schema (`<state>…</state>`), which plugs into the COS-PLAY pipeline for skill retrieval and decision-making. Supports multi-hop tool-calling reasoning where a VLM gathers grounded evidence from specialised vision models before producing the final schema.
 
-**Submodule readmes:** [`visual_reasoning_wrapper/README.md`](visual_reasoning_wrapper/README.md) (image/video tools + benchmarks) · [`visual_reasoning_wrapper/benchmarks/README.md`](visual_reasoning_wrapper/benchmarks/README.md) (dataset loaders) · [`eval/README.md`](eval/README.md) (batch harness + CLI) · [`tests/README.md`](tests/README.md) (pytest).
+**Submodule readmes:** [`visual_reasoning_wrapper/README.md`](../visual_reasoning_wrapper/README.md) (image/video tools + benchmarks) · [`visual_reasoning_wrapper/benchmarks/README.md`](../visual_reasoning_wrapper/benchmarks/README.md) (dataset loaders) · [`eval/README.md`](eval/README.md) (batch harness + CLI) · [`tests/README.md`](tests/README.md) (pytest).
 
 **Full plan:** [`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md`](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md) • Skill-context schema fields come from [`plans/01-visual-grounding/PLAN-VISUAL-SKILLS.md`](../plans/01-visual-grounding/PLAN-VISUAL-SKILLS.md) and [`plans/03-skill-bank/PLAN-SKILL-BANK.md`](../plans/03-skill-bank/PLAN-SKILL-BANK.md).
 
@@ -266,20 +266,6 @@ vlm_wrapper/
 ├── browser_adapter.py         # BrowserGym: screenshot → GPT-4o → schema
 ├── osworld_adapter.py         # OSWorld: desktop screenshot → GPT-4o → schema
 │
-│  ── Visual reasoning (image/video tools + benchmark loaders) ──
-├── visual_reasoning_wrapper/
-│   ├── __init__.py            # XSkill-aligned design notes + 2×2 benchmark matrix
-│   ├── README.md              # package overview (tools + benchmarks together)
-│   ├── tools_visual.py        # Vision-model-backed tools (detect_objects, spatial_query, etc.)
-│   ├── tools_video.py         # Video temporal navigation tools (get_frame, compare_frames, etc.)
-│   ├── tools_video_visual.py  # Cross-frame tools (track_object, find_moment, etc.)
-│   └── benchmarks/
-│       ├── README.md          # four-benchmark matrix, disk layout, API entry points
-│       ├── visual_toolbench.py# HF VisualToolBench → VLM → answer
-│       ├── tir_bench.py       # HF TIR-Bench → VLM → answer
-│       ├── _hf_images.py      # shared HF image decode helpers
-│       ├── video_holmes.py    # Video-Holmes video-QA → MC letter
-│       └── siv_bench.py       # SIV-Bench social video QA
 ├── eval/
 │   ├── README.md              # run_eval CLI + programmatic harness
 │   ├── harness.py             # benchmark-agnostic batch driver + metrics
@@ -312,6 +298,24 @@ vlm_wrapper/
 │  ── Other ──
 ├── test_schema_gen.py         # Schema generation tests
 └── PLAN_GROUNDING.md          # Legacy grounding design doc
+```
+
+Visual reasoning tools and benchmark loaders now live beside `vlm_wrapper/`:
+
+```
+visual_reasoning_wrapper/
+├── __init__.py                # XSkill-aligned design notes + 2x2 benchmark matrix
+├── README.md                  # package overview (tools + benchmarks together)
+├── tools_visual.py            # Vision-model-backed tools (detect_objects, spatial_query, etc.)
+├── tools_video.py             # Video temporal navigation tools (get_frame, compare_frames, etc.)
+├── tools_video_visual.py      # Cross-frame tools (track_object, find_moment, etc.)
+└── benchmarks/
+    ├── README.md              # four-benchmark matrix, disk layout, API entry points
+    ├── visual_toolbench.py    # HF VisualToolBench -> VLM -> answer
+    ├── tir_bench.py           # HF TIR-Bench -> VLM -> answer
+    ├── _hf_images.py          # shared HF image decode helpers
+    ├── video_holmes.py        # Video-Holmes video-QA -> MC letter
+    └── siv_bench.py           # SIV-Bench social video QA
 ```
 
 ---
@@ -436,7 +440,7 @@ result = osworld_obs_to_schema(obs, step=1, task_id="osworld.install-spotify")
 Both load from HuggingFace via ``datasets`` (see ``install/INSTALL_BENCHMARKS.md`` §4). Example — TIR-Bench:
 
 ```python
-from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+from visual_reasoning_wrapper.benchmarks.tir_bench import (
     iter_tir_bench_samples, parse_tir_bench_sample, parse_tir_bench_batch,
 )
 
@@ -451,14 +455,14 @@ results = parse_tir_bench_batch(
 )
 ```
 
-VisualToolBench: ``from vlm_wrapper.visual_reasoning_wrapper.benchmarks.visual_toolbench import iter_visual_toolbench_samples, parse_visual_toolbench_sample``.
+VisualToolBench: ``from visual_reasoning_wrapper.benchmarks.visual_toolbench import iter_visual_toolbench_samples, parse_visual_toolbench_sample``.
 
 ### Video-QA benchmark — Video-Holmes
 
 Uniformly samples frames from `data/Video-Holmes/Benchmark/videos/videos_cropped/<video_id>.mp4` and routes them through the `video_qa` tool loop. Answers are normalised to the benchmark's A–F letter so they can be scored against `Answer` from `test_Video-Holmes.json`.
 
 ```python
-from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+from visual_reasoning_wrapper.benchmarks.video_holmes import (
     iter_video_holmes_samples, parse_video_holmes_sample,
 )
 

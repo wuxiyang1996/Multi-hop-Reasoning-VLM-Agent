@@ -372,7 +372,7 @@ The VLM recovered from three GPU-side tool failures in round 3 by falling throug
 
 ### 4.3 Visual tool catalogue (browser / desktop / video / image)
 
-Built via `vlm_wrapper.visual_reasoning_wrapper.tools_visual.build_visual_registry(image)` or `build_video_registry(frames)`. All are available to any `tool_loop` invocation:
+Built via `visual_reasoning_wrapper.tools_visual.build_visual_registry(image)` or `build_video_registry(frames)`. All are available to any `tool_loop` invocation:
 
 | Tool | Backend | Purpose |
 |---|---|---|

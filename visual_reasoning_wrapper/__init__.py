@@ -25,7 +25,7 @@ from rollouts.  Our stack instantiates a *single-episode* slice of that idea:
 
 Any benchmark that provides (image or video) + question + verifiable answer fits
 this pattern; the four below are **already wired** in
-:mod:`vlm_wrapper.visual_reasoning_wrapper.benchmarks` and
+:mod:`visual_reasoning_wrapper.benchmarks` and
 :mod:`vlm_wrapper.eval.run_eval`.
 
 Primary benchmark quartet (2 image + 2 video)

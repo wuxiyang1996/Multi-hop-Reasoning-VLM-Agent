@@ -21,7 +21,7 @@ Disk layout expected at ``default_video_holmes_root()``:
 
 Usage::
 
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+    from visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_sample,
     )
 
@@ -44,7 +44,7 @@ from typing import Any, Iterable, Iterator, Sequence
 import numpy as np
 from PIL import Image
 
-from ...ground import GroundingRequest, cascaded_ground
+from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ def default_video_holmes_root(
 ) -> Path:
     """Return the canonical Video-Holmes root on this workspace."""
     if workspace_root is None:
-        workspace_root = Path(__file__).resolve().parents[3]
+        workspace_root = Path(__file__).resolve().parents[2]
     return Path(workspace_root) / "data" / "Video-Holmes"
 
 

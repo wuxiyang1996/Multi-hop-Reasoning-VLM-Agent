@@ -662,10 +662,10 @@ Core = entities, attributes, relations, state_flags, targets, uncertainty, **evi
 |-----------|--------|--------|
 | **Unified pipeline** | `vlm_wrapper/ground.py` | **Done** |
 | Adaptive schema (evidence + answer) | `vlm_wrapper/schema.py` | **Done** |
-| **GroundingDINO backend** | `vlm_wrapper/visual_reasoning_wrapper/tools_visual.py` | **Done** (`grounded_detect` + dual-backend `detect_objects`) |
-| Visual tool registry | `vlm_wrapper/visual_reasoning_wrapper/tools_visual.py` | Done (10 tools) |
-| Video tool registry | `vlm_wrapper/visual_reasoning_wrapper/tools_video.py` | Done (8 tools) |
-| Cross-frame registry | `vlm_wrapper/visual_reasoning_wrapper/tools_video_visual.py` | Done (6 tools) |
+| **GroundingDINO backend** | `visual_reasoning_wrapper/tools_visual.py` | **Done** (`grounded_detect` + dual-backend `detect_objects`) |
+| Visual tool registry | `visual_reasoning_wrapper/tools_visual.py` | Done (10 tools) |
+| Video tool registry | `visual_reasoning_wrapper/tools_video.py` | Done (8 tools) |
+| Cross-frame registry | `visual_reasoning_wrapper/tools_video_visual.py` | Done (6 tools) |
 | OmniParser grounding | `vlm_wrapper/grounding.py` | Done |
 | BrowserGym grounding adapter | `vlm_wrapper/grounding_browsergym.py` | Done |
 | Tool-calling loop | `vlm_wrapper/tool_loop.py` | Done |

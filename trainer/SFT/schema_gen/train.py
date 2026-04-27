@@ -342,7 +342,7 @@ def main() -> int:
             for path in ex["images"]:
                 if path.lower().endswith((".mp4", ".mov", ".webm", ".avi")):
                     # Sample frames at train time for video samples.
-                    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+                    from visual_reasoning_wrapper.benchmarks.video_holmes import (
                         sample_video_frames,
                     )
                     frames, _, _ = sample_video_frames(

@@ -9,7 +9,7 @@ aggregation.
 Typical use::
 
     from vlm_wrapper.eval import run_eval
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+    from visual_reasoning_wrapper.benchmarks.tir_bench import (
         iter_tir_bench_samples,
         parse_tir_bench_sample,
     )
@@ -99,7 +99,7 @@ def _normalise_grounder_output(out: Any) -> dict[str, Any]:
     """Coerce whatever the per-benchmark parser returns into a uniform dict.
 
     All ``parse_<benchmark>_sample`` helpers in
-    ``vlm_wrapper.visual_reasoning_wrapper.benchmarks.*`` already return dicts with the same key
+    ``visual_reasoning_wrapper.benchmarks.*`` already return dicts with the same key
     set we need (``schema``, ``answer``, ``tool_trace``, ``head_used``,
     ``escalation_trace``, ``warnings``).  This wrapper just guards
     against the harness being pointed at a custom grounder that returns

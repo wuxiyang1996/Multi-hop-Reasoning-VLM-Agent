@@ -12,7 +12,7 @@ Designed for two use cases:
 
 Usage::
 
-    from vlm_wrapper.visual_reasoning_wrapper.tools_video import build_video_registry
+    from visual_reasoning_wrapper.tools_video import build_video_registry
 
     # From a list of PIL frames (game replay, BrowserGym recording)
     registry = build_video_registry(frames=pil_frames, fps=2.0)
@@ -31,7 +31,7 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-from ..tools import (
+from vlm_wrapper.tools import (
     TOOL_GET_STATE_FLAGS,
     TOOL_LIST_ENTITIES,
     TOOL_LIST_VALID_ACTIONS,

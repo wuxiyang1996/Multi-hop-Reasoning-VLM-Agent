@@ -489,7 +489,7 @@ def _run_desktop(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
 
 
 def _run_tir_bench(args: argparse.Namespace) -> tuple[dict[str, Any], str | None]:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+    from visual_reasoning_wrapper.benchmarks.tir_bench import (
         iter_tir_bench_samples,
         load_tir_bench_image,
         parse_tir_bench_sample,
@@ -543,7 +543,7 @@ def _run_tir_bench(args: argparse.Namespace) -> tuple[dict[str, Any], str | None
 def _run_video_holmes(
     args: argparse.Namespace,
 ) -> tuple[dict[str, Any], str | None]:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+    from visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_sample,
     )
 

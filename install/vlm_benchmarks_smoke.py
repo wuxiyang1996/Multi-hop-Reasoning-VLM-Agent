@@ -91,8 +91,8 @@ print()
 # ------- Domain 4: image_qa -------
 print("Domain 4 — image_qa:")
 def _tir_bench_loader() -> str:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks import tir_bench as _tb  # type: ignore  # noqa: F401
-    return "vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench importable"
+    from visual_reasoning_wrapper.benchmarks import tir_bench as _tb  # type: ignore  # noqa: F401
+    return "visual_reasoning_wrapper.benchmarks.tir_bench importable"
 check("TIR-Bench loader",             _tir_bench_loader)
 check("openai client",                lambda: __import__('openai').__version__)
 check("anthropic client",             lambda: __import__('anthropic').__version__)
@@ -102,8 +102,8 @@ print()
 # ------- Domain 5: video_qa -------
 print("Domain 5 — video_qa:")
 def _videoholmes_loader() -> str:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks import video_holmes as _vh  # type: ignore  # noqa: F401
-    return "vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes importable"
+    from visual_reasoning_wrapper.benchmarks import video_holmes as _vh  # type: ignore  # noqa: F401
+    return "visual_reasoning_wrapper.benchmarks.video_holmes importable"
 check("Video-Holmes loader",          _videoholmes_loader)
 def _decord_readable() -> str:
     import decord, numpy as np

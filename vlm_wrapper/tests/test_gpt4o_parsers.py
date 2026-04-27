@@ -102,7 +102,7 @@ def test_offline_osworld_adapter_import() -> None:
 
 def test_offline_tir_bench_loader_yields_samples() -> None:
     pytest.importorskip("datasets")
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+    from visual_reasoning_wrapper.benchmarks.tir_bench import (
         TIRBenchSample,
         iter_tir_bench_samples,
     )
@@ -118,7 +118,7 @@ def test_offline_tir_bench_loader_yields_samples() -> None:
 
 
 def test_offline_video_holmes_loader_yields_samples() -> None:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+    from visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, VideoHolmesSample,
     )
 
@@ -376,7 +376,7 @@ def test_live_gymv_tool_loop_schema() -> None:
 @needs_api
 def test_live_tir_bench_schema() -> None:
     pytest.importorskip("datasets")
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+    from visual_reasoning_wrapper.benchmarks.tir_bench import (
         iter_tir_bench_samples,
         parse_tir_bench_sample,
     )
@@ -402,7 +402,7 @@ def test_live_tir_bench_schema() -> None:
 @live
 @needs_api
 def test_live_video_holmes_schema() -> None:
-    from vlm_wrapper.visual_reasoning_wrapper.benchmarks.video_holmes import (
+    from visual_reasoning_wrapper.benchmarks.video_holmes import (
         iter_video_holmes_samples, parse_video_holmes_sample,
     )
 

@@ -275,7 +275,7 @@ def _build_registry(
     primary_image: Image.Image,
 ) -> ToolRegistry:
     """Auto-compose the right tool registry from domain + context."""
-    from .visual_reasoning_wrapper.tools_visual import build_visual_registry
+    from visual_reasoning_wrapper.tools_visual import build_visual_registry
 
     use_gdino = domain in _NATURAL_IMAGE_DOMAINS
     visual_reg = build_visual_registry(primary_image, prefer_gdino=use_gdino)
@@ -305,8 +305,8 @@ def _build_registry(
         ))
 
     elif domain in ("video_qa", "video") and isinstance(req.images, list):
-        from .visual_reasoning_wrapper.tools_video import build_video_registry
-        from .visual_reasoning_wrapper.tools_video_visual import (
+        from visual_reasoning_wrapper.tools_video import build_video_registry
+        from visual_reasoning_wrapper.tools_video_visual import (
             build_video_visual_registry, make_openai_describer,
         )
         # Natural video → GroundingDINO for detection, and a VLM-backed

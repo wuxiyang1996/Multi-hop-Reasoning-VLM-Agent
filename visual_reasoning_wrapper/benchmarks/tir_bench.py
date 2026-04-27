@@ -19,7 +19,7 @@ from typing import Any, Iterable, Iterator
 
 from PIL import Image
 
-from ...ground import GroundingRequest, cascaded_ground
+from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 from ._hf_images import decode_hf_image
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class TIRBenchSample:
 def default_tir_bench_root(workspace_root: str | Path | None = None) -> Path:
     """Optional local mirror root (``data/TIR-Bench``); HF cache is the default source."""
     if workspace_root is None:
-        workspace_root = Path(__file__).resolve().parents[3]
+        workspace_root = Path(__file__).resolve().parents[2]
     return Path(workspace_root) / "data" / "TIR-Bench"
 
 
@@ -64,7 +64,12 @@ def _load_dataset():
             "Install HuggingFace `datasets` to use TIR-Bench "
             "(see pyproject optional / vlm_benchmarks env)."
         ) from exc
-    return load_dataset(_HF_ID, split="test", trust_remote_code=True)
+    try:
+        return load_dataset(_HF_ID, split="test", trust_remote_code=True)
+    except ValueError as exc:
+        if "trust_remote_code" not in str(exc):
+            raise
+        return load_dataset(_HF_ID, split="test")
 
 
 def iter_tir_bench_samples(

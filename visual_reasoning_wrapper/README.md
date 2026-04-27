@@ -1,4 +1,4 @@
-# `vlm_wrapper.visual_reasoning_wrapper`
+# `visual_reasoning_wrapper`
 
 Visual-reasoning slice of the wrapper: image / video tool registries **and** the
 public benchmarks the agent is evaluated on. Every other adapter (Gym-V,
@@ -26,11 +26,11 @@ The package's `__init__.py` only carries documentation and the
 tuple. Tool registries and benchmark loaders are imported directly:
 
 ```python
-from vlm_wrapper.visual_reasoning_wrapper.tools_visual import build_visual_registry
-from vlm_wrapper.visual_reasoning_wrapper.tools_video_visual import (
+from visual_reasoning_wrapper.tools_visual import build_visual_registry
+from visual_reasoning_wrapper.tools_video_visual import (
     build_video_visual_registry,
 )
-from vlm_wrapper.visual_reasoning_wrapper.benchmarks.tir_bench import (
+from visual_reasoning_wrapper.benchmarks.tir_bench import (
     iter_tir_bench_samples, parse_tir_bench_sample,
 )
 ```
@@ -53,12 +53,22 @@ re-exported at the top level via `vlm_wrapper/__init__.py`.
 
 ## Benchmarks
 
-| Key | Modality | Loader | Source |
-|-----|----------|--------|--------|
-| `visual_toolbench` | image | `benchmarks/visual_toolbench.py` | HF `ScaleAI/VisualToolBench` |
-| `tir_bench`        | image | `benchmarks/tir_bench.py`        | HF `Agents-X/TIR-Bench` (test split) |
-| `video_holmes`     | video | `benchmarks/video_holmes.py`     | `data/Video-Holmes/Benchmark/` |
-| `siv_bench`        | video | `benchmarks/siv_bench.py`        | `data/SIV-Bench/` |
+The standard coverage is a 2 image + 2 video set chosen to exercise the
+agent's actual action space (`inspect`, `crop`, `zoom`, `compare`, `track`,
+`OCR`, `verify`, `answer`) instead of only static visual-question answering.
+
+| Key | Modality | Loader | Source links | Why it is covered |
+|-----|----------|--------|--------------|-------------------|
+| `visual_toolbench` | image | `benchmarks/visual_toolbench.py` | [HF dataset](https://huggingface.co/datasets/ScaleAI/VisualToolBench), [paper](https://arxiv.org/abs/2510.12712) | Tool-enabled image perception, transformation, and reasoning; closer to "think with images" than CLEVR/GQA-style QA. |
+| `tir_bench` | image | `benchmarks/tir_bench.py` | [repo](https://github.com/agents-x-project/TIR-Bench), [HF dataset](https://huggingface.co/datasets/Agents-X/TIR-Bench), [paper](https://arxiv.org/abs/2511.01833) | Agentic thinking-with-images across 13 task families; stresses image operations inside a reasoning chain. |
+| `video_holmes` | video | `benchmarks/video_holmes.py` | [repo](https://github.com/TencentARC/Video-Holmes), [project page](https://video-holmes.github.io/Page.github.io/), [HF dataset](https://huggingface.co/datasets/TencentARC/Video-Holmes), [paper](https://arxiv.org/abs/2505.21374) | Short-video multi-hop evidence-chain reasoning over clues scattered across clips. |
+| `siv_bench` | video | `benchmarks/siv_bench.py` | [project page](https://kfq20.github.io/sivbench/), [HF dataset](https://huggingface.co/datasets/Fancylalala/SIV-Bench), [paper](https://arxiv.org/abs/2506.05425) | Social scene, state, intent, and interaction reasoning; complements Video-Holmes with social/latent-state tasks. |
+
+The image pair intentionally replaces CLEVR + GQA for this wrapper: CLEVR/GQA are
+useful static VQA checks, but they do not directly evaluate whether the agent
+selects and uses visual tools during reasoning. For video, SIV-Bench is preferred
+over a generic Video-MME short subset because it tests interaction, intent, and
+social-state inference rather than broad video QA alone.
 
 Download instructions and HF cache tips: [`benchmarks/README.md`](benchmarks/README.md).
 
@@ -67,7 +77,7 @@ Download instructions and HF cache tips: [`benchmarks/README.md`](benchmarks/REA
 XSkill (arXiv:2603.12056) frames a multimodal agent as **observation → reasoning
 + tool calls → structured state**.  The tool registries and the benchmarks that
 exercise them are two halves of the same loop, so they live together; pulling
-either side into the agent is one import (`vlm_wrapper.visual_reasoning_wrapper`).
+either side into the agent is one import (`visual_reasoning_wrapper`).
 
 The rest of `vlm_wrapper/` (`tool_loop.py`, `ground.py`, `schema.py`, the env
 adapters and the heuristic / OmniParser heads) plugs into these registries —
@@ -78,6 +88,6 @@ e.g. `tool_loop.visual_generate_label_with_tools` calls
 
 ## Evaluation
 
-Wired up in [`../eval/run_eval.py`](../eval/run_eval.py) — pass
+Wired up in [`../vlm_wrapper/eval/run_eval.py`](../vlm_wrapper/eval/run_eval.py) — pass
 `--benchmark {visual_toolbench,tir_bench,video_holmes,siv_bench}`. See
-[`../eval/README.md`](../eval/README.md) for the harness API and metrics.
+[`../vlm_wrapper/eval/README.md`](../vlm_wrapper/eval/README.md) for the harness API and metrics.

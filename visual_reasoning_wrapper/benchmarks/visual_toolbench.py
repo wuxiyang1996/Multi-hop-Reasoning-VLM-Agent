@@ -21,7 +21,7 @@ from typing import Any, Iterable, Iterator
 
 from PIL import Image
 
-from ...ground import GroundingRequest, cascaded_ground
+from vlm_wrapper.ground import GroundingRequest, cascaded_ground
 from ._hf_images import decode_hf_image
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ class VisualToolBenchSample:
 def default_visual_toolbench_root(workspace_root: str | Path | None = None) -> Path:
     """Optional local export path; HF cache is the default."""
     if workspace_root is None:
-        workspace_root = Path(__file__).resolve().parents[3]
+        workspace_root = Path(__file__).resolve().parents[2]
     return Path(workspace_root) / "data" / "VisualToolBench"
 
 
@@ -94,7 +94,12 @@ def _load_streaming():
         raise ImportError(
             "Install HuggingFace `datasets` to use VisualToolBench."
         ) from exc
-    return load_dataset(_HF_ID, split="test", streaming=True, trust_remote_code=True)
+    try:
+        return load_dataset(_HF_ID, split="test", streaming=True, trust_remote_code=True)
+    except ValueError as exc:
+        if "trust_remote_code" not in str(exc):
+            raise
+        return load_dataset(_HF_ID, split="test", streaming=True)
 
 
 def iter_visual_toolbench_samples(

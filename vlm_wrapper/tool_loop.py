@@ -620,7 +620,7 @@ def video_generate_label_with_tools(
     query other frames to build multi-hop understanding.
     """
     import numpy as np
-    from .visual_reasoning_wrapper.tools_video import build_video_registry
+    from visual_reasoning_wrapper.tools_video import build_video_registry
 
     registry = build_video_registry(frames=frames, fps=fps, current_index=current_index)
 
@@ -671,7 +671,7 @@ def visual_generate_label_with_tools(
     vision models before producing the final schema.
     """
     import numpy as np
-    from .visual_reasoning_wrapper.tools_visual import build_visual_registry
+    from visual_reasoning_wrapper.tools_visual import build_visual_registry
 
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
@@ -718,7 +718,7 @@ def video_visual_generate_label_with_tools(
     reason spatially, all via tool calling.
     """
     import numpy as np
-    from .visual_reasoning_wrapper.tools_video_visual import build_video_visual_registry
+    from visual_reasoning_wrapper.tools_video_visual import build_video_visual_registry
 
     registry = build_video_visual_registry(
         frames=frames, fps=fps, current_index=current_index,
