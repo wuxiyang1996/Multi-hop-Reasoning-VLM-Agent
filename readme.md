@@ -467,7 +467,40 @@ The `decision_agents/`, `skill_agents/`, `vlm_wrapper/`, `trainer/`, `inference/
 
 The COS-PLAY entrypoints (`scripts/run_coevolution.py`, `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`, `bash scripts/run_2048.sh`, etc.) and the corresponding documentation in their per-module READMEs remain valid — they are retained as the **deferred 8B/32B/72B Qwen tracks**. They do not run by default; the new build under `common/`, `harness/`, `orchestrator/`, `crafter/`, `skill_bank/` defaults to GPT-4o end-to-end.
 
-Two pieces of glue are scheduled to land in the next sessions:
+### Schema → predicate bridge ([`skill_agents/schema_predicates.py`](skill_agents/schema_predicates.py))
+
+The unified visual grounding head ([`visual_grounding_tests/generate_gymv_image_schema.py`](visual_grounding_tests/generate_gymv_image_schema.py)) emits `<state>...</state>` blocks built by [`vlm_wrapper.schema`](vlm_wrapper/schema.py). The legacy Stage-3 contract learner ([`skill_agents/stage3_mvp/`](skill_agents/stage3_mvp)) consumes a flat predicate-probability map (`Dict[str, float]`). [`skill_agents/schema_predicates.py`](skill_agents/schema_predicates.py) is the pure-Python adapter between them — it lets game and `env_wrappers` rollouts produced by the unified grounding head feed the legacy COS-PLAY skill-mining pipeline (boundary proposal → segmentation → contract learning → bank maintenance) without re-implementing per-domain extractors.
+
+Predicate keys are flat strings encoding the source section, so the cross-domain skill templates in [`skill_agents/skill_template.py`](skill_agents/skill_template.py) match them directly:
+
+| Section | Predicate key shape |
+| --- | --- |
+| `<entities>` | `entity:<eid>:exists`, `entity:<eid>:type:<t>`, `entity:<eid>:ontology:<role>` |
+| `<attributes>` | `attr:<eid>:<key>=<value>` |
+| `<affordances>` | `afford:<eid>:<verb>` |
+| `<relations>` | `rel:<verb>:<eA>:<eB>[:<eC>...]` |
+| `<state_flags>` | `flag:<name>` (boolean) / `flag:<name>=<bucket>` (categorical) |
+| `<targets>` | `target:eid=<eid>`, `target:blocker=<eid>`, `target:candidate:<eid>`, `target:history_anchor=<eid>` |
+
+The `<uncertainty>` block attenuates per-(eid, field) probabilities to `0.4` for `high`, `0.6` for `medium`, `1.0` for `low`. Stage 3 booleanises predicates at ~0.5, so a `high`-uncertainty entity flips to *absent* in the contract learner — exactly the desired behaviour.
+
+Plug it in as a source on the existing predicate extractor:
+
+```python
+from skill_agents.stage3_mvp.extract_predicates import CompositePredicateExtractor
+from skill_agents.stage3_mvp.predicate_vocab import PredicateVocab
+from skill_agents.schema_predicates import schema_to_predicates
+
+vocab = PredicateVocab()
+extractor = CompositePredicateExtractor(vocab)
+extractor.add_source(schema_to_predicates)
+
+preds = extractor(experience.summary_state)  # accepts str / dict / Experience-like
+```
+
+Coverage lives in [`tests/test_schema_predicates.py`](tests/test_schema_predicates.py) (entity / attribute / affordance / relation / target / state-flag / uncertainty / input-coercion / robustness — including a real `CompositePredicateExtractor` integration check).
+
+### Other glue scheduled to land in the next sessions
 
 - A `decision_agents.skill_interface.HarnessSkillProvider` so the COS-PLAY Actor can consume `SkillHarness.select_eligible_skills` instead of querying the legacy bank directly.
 - A one-way `skill_bank/legacy_bridge.py` that migrates Stage-3 `skill_agents/skill_bank` records into the new `SkillRecord` format.

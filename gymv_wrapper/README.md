@@ -276,22 +276,27 @@ Available gymv-specific tools: `query_entity_pos`, `list_entities`,
 
 ---
 
-## Driver script: visual-grounding rollouts (cold-start style)
+## Driver script: visual-grounding rollouts (unified image head)
 
-End-to-end batch driver (mirrors `cold_start/generate_cold_start_orak.py`):
+End-to-end batch driver. The gymv-specific
+`generate_gymv_visual_schema.py` was retired in favour of the cross-domain
+visual grounding head `generate_gymv_image_schema.py`, which is the
+unified entry point for every visual grounding task (gymv, env wrappers,
+benchmark image-QA, …). The old script still exists as a thin
+deprecation shim that forwards to the new one with identical CLI flags.
 
 ```bash
 # rollout 1 episode of 3 NOOP frames, GPT-5.5 by default
 export OPENROUTER_API_KEY=...   # or OPENAI_API_KEY
-python visual_grounding_tests/generate_gymv_visual_schema.py \
+python visual_grounding_tests/generate_gymv_image_schema.py \
     --envs Temporal/Airstriker-v0 --episodes 1 --max_steps 3 -v
 
-# dry run: no API; only heuristic grounding + image size
-python visual_grounding_tests/generate_gymv_visual_schema.py --dry_run \
+# dry run: no API; only heuristic grounding + saved frames
+python visual_grounding_tests/generate_gymv_image_schema.py --dry_run \
     --envs Temporal/Airstriker-v0 --episodes 1 --max_steps 2
 
 # all 13 games
-python visual_grounding_tests/generate_gymv_visual_schema.py \
+python visual_grounding_tests/generate_gymv_image_schema.py \
     --envs Temporal/Airstriker-v0 Temporal/AlteredBeast-v0 \
            Temporal/CastleOfIllusion-v0 Temporal/CastlevaniaBloodlines-v0 \
            Temporal/Columns-v0 Temporal/DynamiteHeaddy-v0 \
@@ -302,10 +307,17 @@ python visual_grounding_tests/generate_gymv_visual_schema.py \
 ```
 
 Outputs land in
-`visual_grounding_tests/output/gpt55_gymv/<env_id_sanitized>/<run_id>_ep<NNN>/`:
+`visual_grounding_tests/output/gymv_image/<env_id_sanitized>/<run_id>_ep<NNN>/`:
 
-* `steps.jsonl` — one JSON object per step (heuristic grounding + VLM label).
-* `run_summary.json` — model id, timing, parse-OK / parse-fail counts.
+* `images/step_NNN.png` — the rendered frame the VLM was grounded against.
+* `steps.jsonl` — one JSON object per step (heuristic grounding + VLM
+  schema under `schema_image_llm`, with `head: "image"` tagging).
+* `run_summary.json` — model id, timing, `image_schema_ok` /
+  `image_schema_fail` counts.
+
+> **Migration note:** the legacy output tag was `gpt55_gymv` and the
+> per-step VLM key was `vlm_label` / `vlm_schema_parsed_ok`. Update any
+> downstream readers to the unified keys above.
 
 A batch summary `batch_<run_id>.json` is written at the output root.
 
