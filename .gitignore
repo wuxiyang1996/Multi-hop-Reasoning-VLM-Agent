@@ -29,6 +29,10 @@ output/
 **/Qwen3-8B/
 *.log
 
+# ── OSWorld VM disk image (~23 GB Ubuntu.qcow2 from HuggingFace) ─
+docker_vm_data/
+**/docker_vm_data/
+
 # ── Cold-start cache ────────────────────────────────────────────
 cold_start/cache/
 cold_start/backup/

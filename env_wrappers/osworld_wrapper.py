@@ -104,17 +104,56 @@ def load_task_catalog(
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
+    examples_root = path.parent / "examples"
+
+    def _resolve_entry(entry, default_domain: str | None) -> Dict[str, Any] | None:
+        """Resolve one catalog entry into a full task-config dict.
+
+        Catalog files such as ``test_small.json`` enumerate task *IDs*
+        (strings) grouped by domain. The full configuration for each task
+        lives at ``evaluation_examples/examples/<domain>/<id>.json``. This
+        helper accepts either raw dicts (already-inlined tasks) or strings
+        (IDs to look up on disk) and returns a usable task dict.
+        """
+        if isinstance(entry, dict):
+            return entry
+        if not isinstance(entry, str):
+            return None
+        candidates = []
+        if default_domain:
+            candidates.append(examples_root / default_domain / f"{entry}.json")
+        candidates.extend(examples_root.glob(f"*/{entry}.json"))
+        for cand in candidates:
+            if cand.exists():
+                try:
+                    with open(cand, "r", encoding="utf-8") as fh:
+                        return json.load(fh)
+                except Exception:
+                    continue
+        return None
+
     if isinstance(data, dict):
-        tasks = []
+        tasks: List[Dict[str, Any]] = []
         for domain_name, domain_tasks in data.items():
             if domain and domain_name != domain:
                 continue
+            entries = []
             if isinstance(domain_tasks, list):
-                tasks.extend(domain_tasks)
+                entries = list(domain_tasks)
             elif isinstance(domain_tasks, dict):
-                tasks.extend(domain_tasks.values())
+                entries = list(domain_tasks.values())
+            for entry in entries:
+                resolved = _resolve_entry(entry, domain_name)
+                if resolved is not None:
+                    tasks.append(resolved)
         data = tasks
     elif isinstance(data, list):
+        resolved_list: List[Dict[str, Any]] = []
+        for entry in data:
+            r = _resolve_entry(entry, None)
+            if r is not None:
+                resolved_list.append(r)
+        data = resolved_list
         if domain:
             data = [t for t in data if t.get("domain", "") == domain]
 
@@ -289,10 +328,31 @@ class OSWorldGymWrapper:
 
     @staticmethod
     def _normalize_obs(raw_obs: Dict[str, Any]) -> Dict[str, Any]:
-        """Normalize OSWorld observation into a clean dict."""
+        """Normalize OSWorld observation into a clean dict.
+
+        OSWorld's :meth:`PythonController.get_screenshot` returns the raw
+        PNG bytes of the VM's framebuffer (body of the ``GET /screenshot``
+        response), not a numpy array. We decode the PNG with PIL into an
+        ``HxWx3`` uint8 ``np.ndarray`` so downstream callers can treat
+        ``obs["screenshot"]`` like any other gym frame.
+        """
         screenshot = raw_obs.get("screenshot")
-        if screenshot is not None and not isinstance(screenshot, np.ndarray):
-            screenshot = np.array(screenshot)
+        if isinstance(screenshot, (bytes, bytearray)):
+            try:
+                from io import BytesIO
+
+                from PIL import Image as _PILImage
+
+                img = _PILImage.open(BytesIO(screenshot)).convert("RGB")
+                screenshot = np.asarray(img, dtype=np.uint8)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Failed to decode screenshot bytes: %s", exc)
+                screenshot = None
+        elif screenshot is not None and not isinstance(screenshot, np.ndarray):
+            try:
+                screenshot = np.asarray(screenshot)
+            except Exception:
+                screenshot = None
 
         return {
             "screenshot": screenshot,

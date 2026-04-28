@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 import textwrap
 import time
@@ -38,14 +39,19 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from api_keys import open_router_api_key  # noqa: E402
+import api_keys  # noqa: E402
 from browsergym_wrapper.adapter import generate_label as browser_generate_label  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 log = logging.getLogger(__name__)
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-API_KEY = open_router_api_key
+API_KEY = (
+    getattr(api_keys, "open_router_api_key", None)
+    or getattr(api_keys, "openrouter_api_key", None)
+    or os.environ.get("OPENROUTER_API_KEY")
+    or os.environ.get("OPENAI_API_KEY")
+)
 MODEL = "openai/gpt-4.1"  # via OpenRouter; swap to "openai/gpt-5.4" when available
 
 DEFAULT_URLS: list[tuple[str, str]] = [

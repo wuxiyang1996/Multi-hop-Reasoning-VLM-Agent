@@ -20,14 +20,22 @@ Usage::
 
 from __future__ import annotations
 
-import re
-from typing import Any
+import xml.etree.ElementTree as ET
+from typing import Any, List
 
 from vlm_wrapper.tools import (
     TOOL_GET_STATE_FLAGS,
     TOOL_QUERY_ENTITY_POS,
     ToolDef,
     ToolRegistry,
+)
+
+from osworld_wrapper.heuristic import (
+    _FLAG_NAMES,
+    _NS_STATE,
+    _bbox_from,
+    _ns_attr,
+    _strip_ns,
 )
 
 
@@ -60,49 +68,76 @@ TOOL_QUERY_OS_ELEMENT = ToolDef(
 
 # ── Handler implementation ───────────────────────────────────────────
 
-_ATTR_RE = re.compile(r'(\w+)="([^"]*)"')
+
+def _element_states(el: ET.Element) -> List[str]:
+    """Collect ``st:flag="true"`` boolean states (lowercase names)."""
+    out: List[str] = []
+    for flag in _FLAG_NAMES:
+        v = _ns_attr(el, _NS_STATE, flag)
+        if v is not None and v.strip().lower() == "true":
+            out.append(flag)
+    return out
 
 
-def _h_query_os_element(a11y_tree_xml: str, *, name: str, role: str = "") -> dict:
-    """Search OS accessibility tree XML for matching elements."""
-    name_lower = name.lower()
-    role_lower = role.lower() if role else ""
+def _h_query_os_element(
+    a11y_tree_xml: str,
+    *,
+    name: str,
+    role: str = "",
+    max_results: int = 10,
+) -> dict:
+    """Search the OS accessibility tree XML for matching elements.
 
-    matches = []
-    for line in a11y_tree_xml.splitlines():
-        attrs = dict(_ATTR_RE.findall(line))
-        el_name = attrs.get("name", "")
-        el_role = attrs.get("roleName", attrs.get("role", ""))
-        el_text = attrs.get("text", "")
+    Walks the namespaced AT-SPI / UI-Automation tree (the same XML
+    OSWorld returns from ``GET /accessibility``) and returns the first
+    ``max_results`` elements whose ``name`` or text contains *name*
+    case-insensitively, optionally filtered to a given role (= element
+    tag).  Each match carries its pixel ``x, y, width, height`` (read
+    from ``cp:screencoord`` + ``cp:size``) plus a list of boolean state
+    flags so the VLM can convert a visual identification into a
+    pyautogui click target.
+    """
+    name_lower = (name or "").lower()
+    role_lower = (role or "").lower()
 
-        if name_lower not in el_name.lower() and name_lower not in el_text.lower():
+    if not a11y_tree_xml or not a11y_tree_xml.strip():
+        return {"found": False, "message": "empty accessibility tree"}
+
+    try:
+        root = ET.fromstring(a11y_tree_xml)
+    except ET.ParseError as exc:
+        return {"found": False, "message": f"xml_parse_failed: {exc}"}
+
+    matches: List[dict[str, Any]] = []
+    for el in root.iter():
+        el_role = _strip_ns(el.tag).lower()
+        if not el_role or el_role == "root":
             continue
-        if role_lower and role_lower not in el_role.lower():
+
+        el_name = (el.get("name") or "").strip()
+        el_text = (el.text or "").strip()
+
+        if name_lower:
+            if (
+                name_lower not in el_name.lower()
+                and name_lower not in el_text.lower()
+            ):
+                continue
+        if role_lower and role_lower not in el_role:
             continue
 
-        coord = attrs.get("screencoord", "")
-        size = attrs.get("size", "")
         entry: dict[str, Any] = {
             "name": el_name,
             "role": el_role,
             "text": el_text[:80] if el_text else None,
         }
-        if coord:
-            parts = coord.strip("()").split(",")
-            if len(parts) == 2:
-                entry["x"], entry["y"] = int(parts[0].strip()), int(parts[1].strip())
-        if size:
-            parts = size.strip("()").split(",")
-            if len(parts) == 2:
-                entry["width"], entry["height"] = int(parts[0].strip()), int(parts[1].strip())
-
-        states = []
-        for flag in ("showing", "visible", "enabled", "editable", "expandable", "checkable"):
-            if attrs.get(flag) == "True":
-                states.append(flag)
-        entry["states"] = states
+        bbox = _bbox_from(el)
+        if bbox is not None:
+            entry["x"], entry["y"], entry["width"], entry["height"] = bbox
+            entry["center"] = [bbox[0] + bbox[2] // 2, bbox[1] + bbox[3] // 2]
+        entry["states"] = _element_states(el)
         matches.append(entry)
-        if len(matches) >= 10:
+        if len(matches) >= max_results:
             break
 
     if not matches:
