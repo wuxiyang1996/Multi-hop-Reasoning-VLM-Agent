@@ -140,6 +140,59 @@ crafter = SkillCrafterService.from_env(lifecycle=lifecycle, artifact_store=artif
 
 ---
 
+## Teacher-LLM integration — state and roadmap
+
+### Current state (the dormant teacher)
+
+Phase F is wired but the teacher backbone is **dormant** — `BACKBONE_TEACHER_MODEL = "gpt-4o"` (`common/models.py`) is stamped on every proposal as provenance metadata, but no LLM call is made today:
+
+- `FailureDiagnoser._llm`, `Hypothesizer._llm`, and `Repairer._llm` default to `None`.
+- The `set_llm_diagnoser` / `set_llm_proposer` / `set_llm_repairer` setters are exercised only in `tests/test_crafter_repair.py` (lambda mocks).
+- Every `cycle()` invocation runs through the deterministic rule path; on any LLM exception or `None` return the hooks silently fall through to the same rule path (see `failure_diagnoser.diagnose`, `hypothesizer.propose`, `repairer.repair`).
+
+This is intentional — the rule path is the tested baseline (60 passing tests, Phases C/D/F green) and forms the safety net beneath any future teacher. The dormant hooks are an integration point, not a half-built feature.
+
+### Capability assessment for a 32–35B-class frozen teacher
+
+`Qwen3-VL-32B` is the registered Phase-F candidate (`common.models.qwen3_vl_teacher("32b")`). Per-hook complexity for a 32B-class VL teacher:
+
+| Hook | Effective LLM task | Vocabulary scope | Single-pass 32B fit |
+|---|---|---|---|
+| `FailureDiagnoser` | 7-way `RecoveryStrategy` classification + free-text `root_cause` over a compact `FailureTrace` | 7 enum values | Strong — well below the model's ceiling |
+| `Repairer` | Edit `protocol` / `SkillContract` per a strategy already chosen by the diagnoser | 6 actions × 4 evidence roles × 5 domains | Strong — templated code-edit task |
+| `Composer` | Verify evidence handoff (skill A's outputs ↔ skill B's `expected_evidence_roles`) | Pairwise compatibility check | Strong |
+| `Generalizer` | Pick a `slot_remap` over `_DOMAIN_TOKENS` (`bbox|dom_id|css_selector|xpath|cell|grid_xy|tile_id|frame_index`) | Constrained mapping | Strong with VL evidence; weaker text-only |
+| `Hypothesizer` | Generate a novel 2–10-hop protocol + 8-field `SkillContract` for an unmatched failure pattern | Constrained generative synthesis | Adequate single-pass, **strong with Best-of-N=4** |
+
+[`PLAN-SKILL-CRAFTER`](../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md) §2 ("Multi-run reasoning requirement") explicitly assumes a 32B/72B teacher and budgets 3–6× tokens for proposal-then-verify, Best-of-N, and counterfactual passes. The unified gate ([`PLAN-UNIFIED-SKILL-GATE`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md)) eats teacher noise: a noisier teacher means more proposals are rejected at Stage 0/1, not that bad skills land in `active_store/`.
+
+### Prospective failure modes (only bite once a hook is live)
+
+1. **Counterfactual synthesis** ([PLAN-SKILL-CRAFTER §6.9](../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md)) — the Hypothesizer / Failure-Reflector chain. The most reasoning-heavy call; a 32B single-pass lags GPT-4o by ~15–25%, single-digit gap with the spec's Pass 1–4 scaffolding.
+2. **Cross-domain analogy in `Generalizer`** — text-only 32B is the configuration that degrades meaningfully on `osworld` / `browser` / `video` evidence. Mitigation: use a VL variant (`Qwen3-VL-32B` is already registered).
+3. **Strict typed JSON** — bare 32B emits ~5–15% malformed JSON against the typed `BankMutationProposal` schema; constrained decoding (vLLM + xgrammar / outlines) drops this to ~0.1%. Pure engineering, model-agnostic.
+
+### Integration roadmap (gated by telemetry between steps)
+
+| Step | What | Why this slot | Effort |
+|---|---|---|---|
+| **0 (prerequisite)** | Wire one concrete hook (start with `Repairer`) calling `API_func.ask_model` on GPT-4o through a new `crafter/_llm_runtime.py` | Failure modes 1–3 are moot until a hook actually runs. Smallest unit that activates the integration point and produces telemetry. | 1–2 days |
+| **1 (now)** | Failure mode 3 — constrained-JSON decoding + retry + audit telemetry (`crafter.llm.calls`, `crafter.llm.parse_failures`, `crafter.llm.fallthrough_to_rule`, `crafter.llm.exceptions`, fed through `ArtifactStore.append_audit`) | Zero design risk, prerequisite for any teacher swap. Without it, JSON parse failures dominate the noise floor and mask everything else. | 3–5 days |
+| **2 (after Step 1 telemetry)** | Failure mode 1 — multi-pass scaffolding for `Hypothesizer` + `FailureDiagnoser` per [PLAN-SKILL-CRAFTER §2](../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md). Ship Step 1's hook as `_call_once(prompt)` so it's trivial to swap for `_call_with_passes([symptom, root_cause, counterfactual])` later. | Defer until telemetry shows single-pass quality is the bottleneck — `(LLM-proposed valid skill rate)` vs `(rule-path fallthrough rate)` vs `(gate Stage-0 rejection rate)`. | 1–2 weeks |
+| **3 (parallel track)** | Failure mode 2 — flip teacher to `Qwen3-VL-32B` via `SkillCrafterService.with_qwen3_vl_teacher(...)` once `FailureTrace.pre_state` carries visual evidence from `osworld_wrapper`, `browser_adapter`, etc. | Switching the teacher is one line; making the *evidence* visual is a system-wide change cutting across `harness/`, `env_wrappers/`, and `orchestrator/artifact_store.py`. | Cross-cutting; tracked in [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md) / [`PLAN-FAILURE-ROUTING`](../plans/08-cross-cutting/PLAN-FAILURE-ROUTING.md) |
+
+### Explicitly deferred
+
+- `CounterfactualTrace` accumulation + regret-driven Hypothesizer source 4 ([`PLAN-SKILL-CRAFTER`](../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md) §6.9). Requires both a working teacher *and* a measurable-regret policy; revisit after Step 2.
+- Per-hook Best-of-N tuning beyond the spec's N=4 default. Add as a knob in `LLMHookConfig`; do not over-engineer the selection function before Step 1 telemetry exists.
+- Phase-F frozen-teacher inference plumbing for the 235B-A22B variant. The constants are registered (`QWEN3_VL_TEACHERS["235b-a22b"]`); the serving stack lands later.
+
+### Anti-pattern to avoid
+
+Do not optimize the multi-pass / counterfactual / VL paths *speculatively* before Step 0 ships. The gate-bound architecture means the rule path is always a safe fallback, so the sequence "wire one hook → measure → improve the failing slot" dominates "design the perfect teacher up front." A noisy GPT-4o hook with telemetry beats a perfectly designed Qwen3-VL-32B hook that hasn't been measured against real failure traces.
+
+---
+
 ## Cross-references
 
 - Root [`readme.md`](../readme.md) §"Architecture" — where the crafter sits in the four-stage pipeline.
