@@ -17,6 +17,16 @@ from orchestrator import (
 )
 ```
 
+> **Not the only "orchestrator" in this repo.** This package is the *runtime* control plane (rollout / gate / lifecycle / promotion). Two unrelated *training-side* orchestrators live elsewhere — same word, different jobs, no model training happens in this folder.
+>
+> | Path | Symbol | Job | Plane |
+> |---|---|---|---|
+> | `orchestrator/` *(this package)* | `EpisodeRunner` + `GateService` + `PromotionOrchestrator` | Episode rollouts, gate evaluation, atomic skill promote / rollback | runtime / data |
+> | [`../trainer/coevolution/orchestrator.py`](../trainer/coevolution/orchestrator.py) | `co_evolution_loop` | Three-phase co-evolution loop: rollouts ↔ skill-bank mining ↔ GRPO LoRA training, with vLLM adapter hot-reload | training |
+> | [`../skill_agents/grpo/orchestrator.py`](../skill_agents/grpo/orchestrator.py) | `GRPOOrchestrator` | Wraps the GRPO buffer + trainer for the `segment` / `contract` / `curator` skill-bank stages | training |
+>
+> Inside this package the only class literally named `*Orchestrator` is `PromotionOrchestrator` (atomic promotion transactions); the rest are sibling components the README composes into "the Pipeline Orchestrator."
+
 ---
 
 ## Module map
@@ -165,3 +175,5 @@ These are honest deltas between this package and `plans/06-orchestrator/` + `pla
 - [`../skill_bank/README.md`](../skill_bank/README.md) — invariants this orchestrator must respect on every `promote(...)`, in particular invariants 7 (source / target asymmetry) and 8 (`verified_domains` is gate-owned).
 - [`../crafter/README.md`](../crafter/README.md) — proposal taxonomy fed into `GateService.evaluate` via `SkillLifecycleManager.ingest_draft`.
 - [`../tests/test_smoke.py`](../tests/test_smoke.py) — runnable end-to-end wiring example for both loops.
+- [`../trainer/coevolution/orchestrator.py`](../trainer/coevolution/orchestrator.py) — sibling *training* orchestrator (`co_evolution_loop`); see top-of-file callout. Disjoint from this package — it owns model weights and adapters, not skill-record lifecycle.
+- [`../skill_agents/grpo/orchestrator.py`](../skill_agents/grpo/orchestrator.py) — sibling GRPO training helper (`GRPOOrchestrator`); wraps the GRPO buffer + trainer for the segment / contract / curator stages used by the co-evolution loop.
