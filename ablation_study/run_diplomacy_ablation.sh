@@ -2,7 +2,7 @@
 # ======================================================================
 #  Diplomacy ablation: adapter × skill bank evaluation vs GPT-5.4
 #
-#  Adapter options:   base  — vanilla Qwen3-8B, no LoRA
+#  Adapter options:   base  — vanilla Qwen/Qwen3.5-9B, no LoRA
 #                     sft   — SFT cold-start LoRA
 #                     coevo — co-evolution best LoRA (step 17)
 #
@@ -57,10 +57,10 @@ export PYTHONPATH="${PROJECT_ROOT}:${PROJECT_ROOT}/../GamingAgent:${PROJECT_ROOT
 
 # ── Checkpoint paths ─────────────────────────────────────────────────
 RUNS_DIR="${RUNS_DIR:-${PROJECT_ROOT}/runs}"
-COEVO_RUN_DIR="${RUNS_DIR}/Qwen3-8B_20260327_062035"
+COEVO_RUN_DIR="${RUNS_DIR}/Qwen3.5-9B_20260327_062035"
 COEVO_BEST_STEP="step_0017"
 
-BASE_MODEL="${BASE_MODEL:-Qwen/Qwen3-8B}"
+BASE_MODEL="${BASE_MODEL:-Qwen/Qwen3.5-9B}"
 NUM_POWERS=7
 EPISODES_PER_POWER="${EPISODES_PER_POWER:-4}"
 EPISODES=$((NUM_POWERS * EPISODES_PER_POWER))

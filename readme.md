@@ -246,27 +246,36 @@ These are tracked under Phase D in [`IMPLEMENTATION-STATUS.md`](IMPLEMENTATION-S
 
 ---
 
-## Backbone model — GPT-4o for now
+## Backbone models — three-tier stack
 
-The single source of truth is [`common/models.py`](common/models.py). For the current phase, every library default points at GPT-4o:
+The single source of truth is [`common/models.py`](common/models.py).  The
+project ships a **three-tier backbone stack**, one model per tier:
 
 ```python
 from common.models import (
-    BACKBONE_MODEL,          # "gpt-4o" — actor / policy / harness default
-    BACKBONE_TEACHER_MODEL,  # "gpt-4o" — crafter / Synthesis-Reflection default
-    BACKBONE_JUDGE_MODEL,    # "gpt-4o" — eval-driver judge default
+    BACKBONE_MODEL,               # "Qwen/Qwen3.5-9B"        — actor + skill-bank (trained)
+    BACKBONE_TEACHER_MODEL,       # "Qwen/Qwen3.5-35B-A3B"   — crafter / harness / orchestrator
+    BACKBONE_JUDGE_MODEL,         # "gpt-5.5"                — eval driver / validation
+    BACKBONE_SFT_TEACHER_MODEL,   # "gpt-5.5"                — SFT cold-start data generation
 )
 ```
 
-The **8B / 32B / 72B Qwen tracks** (LoRA, GRPO, frozen-teacher) referenced throughout the plans are **deferred**. They remain reachable through dedicated entrypoints — `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`, `inference/run_academic_benchmarks.py`, `skill_agents/lora/` — but no library default points at them. Override at process start with one of:
+| Tier | Model | Used by | Trained? |
+|---|---|---|---|
+| Actor + Skill-Bank | `Qwen/Qwen3.5-9B` | `decision_agents/`, `skill_agents/`, `trainer/` | LoRA-trained (5 adapters: `skill_selection`, `action_taking`, `segment`, `contract`, `curator`) |
+| Control plane | `Qwen/Qwen3.5-35B-A3B` (35B-total / 3B-active MoE) | `crafter/`, `harness/`, `orchestrator/` | Frozen — served via [`inference/serve_qwen35_35b_a3b.sh`](inference/serve_qwen35_35b_a3b.sh) |
+| Validation / SFT teacher | `gpt-5.5` | `orchestrator.JudgeConfig`, `cold_start/`, `labeling/` | External frontier model (no fine-tuning) |
+
+The **Qwen3-VL Phase-F teachers** (`Qwen/Qwen3-VL-32B`, `Qwen/Qwen3-VL-235B-A22B`) and the older 8B / 32B / 72B Qwen tracks remain reachable through dedicated entrypoints — `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`, `inference/run_academic_benchmarks.py`, `skill_agents/lora/`, and `SkillCrafterService.with_qwen3_vl_teacher(...)` — but no library default points at them. Override at process start with one of:
 
 ```bash
-export VLM_AGENT_BACKBONE_MODEL=...           # actor / harness
-export VLM_AGENT_BACKBONE_TEACHER_MODEL=...   # crafter
-export VLM_AGENT_BACKBONE_JUDGE_MODEL=...     # eval driver
+export VLM_AGENT_BACKBONE_MODEL=...                # actor / skill-bank policy
+export VLM_AGENT_BACKBONE_TEACHER_MODEL=...        # crafter / harness / orchestrator
+export VLM_AGENT_BACKBONE_JUDGE_MODEL=...          # eval-driver judge
+export VLM_AGENT_BACKBONE_SFT_TEACHER_MODEL=...    # SFT cold-start data
 ```
 
-Test coverage for the GPT-4o pin lives in [`tests/test_backbone_model.py`](tests/test_backbone_model.py) (13 tests).
+Test coverage for the three-tier pin lives in [`tests/test_backbone_model.py`](tests/test_backbone_model.py).
 
 ---
 

@@ -19,19 +19,26 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 | Phase B | Orchestrator MVP | `orchestrator/{config,artifact_store,budget,snapshot_manager,gate_service,promotion_orchestrator,runner}.py` |
 | Phase C | Crafter MVP | `crafter/{failure_memory,failure_diagnoser,composer,generalizer,hypothesizer,service}.py` |
 | Crafter Phase D | `Repairer` + `PatchProposal` plumbing (`SkillCrafterService.propose_repair`, repair-first dispatch in `cycle()`) | `crafter/repairer.py`, `crafter/service.py` |
-| Crafter Phase F | Frozen Qwen3-VL-32B / 235B-A22B teacher registry + `SkillCrafterService.{with_qwen3_vl_teacher, from_env, set_teacher_model}` (default still GPT-4o) | `common/models.py`, `crafter/service.py` |
+| Crafter Phase F | Frozen Qwen3-VL-32B / 235B-A22B teacher registry + `SkillCrafterService.{with_qwen3_vl_teacher, from_env, set_teacher_model}` (default `Qwen/Qwen3.5-35B-A3B`; Qwen3-VL is an opt-in upgrade path) | `common/models.py`, `crafter/service.py` |
 | Tests | Invariant + smoke + backbone-model + crafter Phase D/F | `tests/{conftest,test_invariants,test_smoke,test_backbone_model,test_crafter_repair,test_few_shot_transfer}.py` (60 passing) |
 
-### Backbone model
+### Backbone models — three-tier stack
 
 Single source of truth: `common/models.py`.
 
-  - `BACKBONE_MODEL = "gpt-4o"` — actor / policy / harness default.
-  - `BACKBONE_TEACHER_MODEL = "gpt-4o"` — crafter / Synthesis-Reflection
-    Agent default.
-  - `BACKBONE_JUDGE_MODEL = "gpt-4o"` — eval driver judge default.
+  - `BACKBONE_MODEL = "Qwen/Qwen3.5-9B"` — actor (`decision_agents`) +
+    skill-bank (`skill_agents`) trained policy. LoRA-adapter target for
+    `trainer/SFT/` and `trainer/coevolution/`.
+  - `BACKBONE_TEACHER_MODEL = "Qwen/Qwen3.5-35B-A3B"` — frozen
+    control-plane backbone shared by the crafter, harness, and
+    orchestrator. Served separately via
+    `inference/serve_qwen35_35b_a3b.sh`.
+  - `BACKBONE_JUDGE_MODEL = "gpt-5.5"` — eval-driver judge / validation.
+  - `BACKBONE_SFT_TEACHER_MODEL = "gpt-5.5"` — cold-start data
+    generation (`cold_start/`, `labeling/`) consumed by `trainer/SFT/`.
 
-The 8B / 32B / 72B Qwen tracks (LoRA / GRPO / frozen-teacher) are
+The Qwen3-VL Phase-F teachers (`Qwen/Qwen3-VL-32B`,
+`Qwen/Qwen3-VL-235B-A22B`) and the older 8B / 32B / 72B Qwen tracks are
 **deferred**. They remain reachable through dedicated entrypoints:
 
   - `scripts/qwen3_decision_agent.py`
@@ -39,21 +46,25 @@ The 8B / 32B / 72B Qwen tracks (LoRA / GRPO / frozen-teacher) are
   - `inference/run_qwen3_8b_eval.py`
   - `inference/run_academic_benchmarks.py`
   - `skill_agents/lora/` (training-time only)
+  - `SkillCrafterService.with_qwen3_vl_teacher(...)`
 
 No library default points at them. To re-enable a deferred track,
-either pass `model="..."` explicitly or set
+either pass `model="..."` explicitly or set one of
 `VLM_AGENT_BACKBONE_MODEL` / `VLM_AGENT_BACKBONE_TEACHER_MODEL` /
-`VLM_AGENT_BACKBONE_JUDGE_MODEL`.
+`VLM_AGENT_BACKBONE_JUDGE_MODEL` / `VLM_AGENT_BACKBONE_SFT_TEACHER_MODEL`
+at process start.
 
-Live defaults flipped in this pass:
+Live defaults flipped in the 2026-04-28 model-stack migration:
 
-  - `decision_agents/agent.py` `VLMDecisionAgent.DEFAULT_MODEL`: `gpt-4o-mini` → `gpt-4o`
-  - `decision_agents/actor_agent.py` `DEFAULT_MODEL`: `gpt-4o-mini` → `gpt-4o`
-  - `decision_agents/agent_helper.py` `DEFAULT_LLM_MODEL`: `gpt-4o-mini` → `gpt-4o`
-  - `decision_agents/dummy_agent.py` example/default args: `gpt-4o-mini` → `gpt-4o`
-  - `orchestrator/config.py` `TeacherConfig.model_name`: `None` → `BACKBONE_TEACHER_MODEL`
-  - `orchestrator/config.py` `JudgeConfig` (new) and `OrchestratorConfig.backbone_model` (new): default `BACKBONE_MODEL`
-  - `crafter/service.py` `SkillCrafterService._teacher`: `None` → `BACKBONE_TEACHER_MODEL`
+  - `decision_agents/agent.py` `VLMDecisionAgent.DEFAULT_MODEL`: `gpt-4o` → `Qwen/Qwen3.5-9B`
+  - `decision_agents/actor_agent.py` `DEFAULT_MODEL`: `gpt-4o` → `Qwen/Qwen3.5-9B`
+  - `decision_agents/agent_helper.py` `DEFAULT_LLM_MODEL`: `gpt-4o` → `Qwen/Qwen3.5-9B`
+  - `API_func.ask_model(model=None, ...)` default: `gpt-4o` → `Qwen/Qwen3.5-9B`
+  - `orchestrator/config.py` `TeacherConfig.model_name`: `gpt-4o` → `Qwen/Qwen3.5-35B-A3B`
+  - `orchestrator/config.py` `JudgeConfig.model_name`: `gpt-4o` → `gpt-5.5`
+  - `crafter/service.py` `SkillCrafterService._teacher`: `gpt-4o` → `Qwen/Qwen3.5-35B-A3B`
+  - `cold_start/` and `labeling/` `MODEL_GPT54` / `--label_model`: `gpt-5.4` / `gpt-5-mini` → `gpt-5.5`
+  - `skill_agents/lora/config.py` `MultiLoraConfig.base_model_name_or_path`: `Qwen/Qwen3-8B` → `Qwen/Qwen3.5-9B`
 
 ### Invariants enforced (mechanical, with tests)
 

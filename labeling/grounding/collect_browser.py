@@ -6,7 +6,7 @@ AXTree, then produce:
 
 1. The **heuristic schema** via ``vlm_wrapper.browser_heuristic.obs_to_schema``
    (deterministic AXTree → schema parse).
-2. The **GPT-4o vision schema** via
+2. The **GPT-5.5 vision schema** via
    ``vlm_wrapper.browser_adapter.browser_obs_to_schema`` (vision-first
    teacher).
 
@@ -15,7 +15,7 @@ This is the BrowserGym counterpart to ``collect_gymv.py``.
 Usage::
 
     export OPENAI_API_KEY=sk-...
-    export VLM_LABEL_MODEL=gpt-4o
+    export VLM_LABEL_MODEL=gpt-5.5
     conda activate browsergym
 
     python -m labeling.grounding.collect_browser \\
@@ -213,7 +213,7 @@ def collect_one_episode(
                 except Exception as exc:
                     error = f"{type(exc).__name__}: {exc}"
                     logger.warning(
-                        "%s ep%d step%d: gpt-4o failed: %s",
+                        "%s ep%d step%d: vision-LLM call failed: %s",
                         task_id, episode_idx, step_idx, error,
                     )
 
@@ -300,13 +300,13 @@ def parse_args() -> argparse.Namespace:
         "--output_root", default="labeling/output/grounding/browser",
     )
     p.add_argument(
-        "--model", default=os.environ.get("VLM_LABEL_MODEL", "gpt-4o"),
+        "--model", default=os.environ.get("VLM_LABEL_MODEL", "gpt-5.5"),
     )
     p.add_argument("--api_key", default=os.environ.get("OPENAI_API_KEY"))
     p.add_argument("--base_url", default=os.environ.get("OPENAI_BASE_URL"))
     p.add_argument(
         "--skip_vision", action="store_true",
-        help="Only emit heuristic schemas (no GPT-4o calls).",
+        help="Only emit heuristic schemas (no vision-LLM calls).",
     )
     p.add_argument(
         "--no_headless", action="store_true",

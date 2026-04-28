@@ -56,10 +56,14 @@ class TeacherConfig:
     """All teacher models must be frozen — no fine-tuning is allowed
     against them inside the loop (PLAN-SKILL-CRAFTER §3).
 
-    The current phase pins the teacher to GPT-4o (see `common.models`).
-    The 32B / 72B Qwen tracks remain reachable by setting
-    `model_name="Qwen/Qwen2.5-72B"` (or the `VLM_AGENT_BACKBONE_TEACHER_MODEL`
-    env var) once that track is enabled.
+    The current phase pins the teacher to ``Qwen/Qwen3.5-35B-A3B`` —
+    the project-wide control-plane backbone shared by the crafter,
+    harness, and orchestrator (see ``common.models.BACKBONE_TEACHER_MODEL``).
+    The Phase-F frozen Qwen3-VL teachers (``Qwen/Qwen3-VL-32B`` /
+    ``Qwen/Qwen3-VL-235B-A22B``) remain reachable via
+    ``SkillCrafterService.with_qwen3_vl_teacher(...)`` or the
+    ``VLM_AGENT_BACKBONE_TEACHER_MODEL`` env var when that track is
+    enabled.
     """
 
     model_name: str = BACKBONE_TEACHER_MODEL
@@ -69,7 +73,12 @@ class TeacherConfig:
 
 @dataclass
 class JudgeConfig:
-    """Default LLM judge for the eval driver (E0 / E1 / E2)."""
+    """Default LLM judge for the eval driver (E0 / E1 / E2).
+
+    The judge is held outside the trained-model distribution on purpose —
+    it acts as an independent oracle.  Defaults to ``gpt-5.5`` per
+    ``common.models.BACKBONE_JUDGE_MODEL``.
+    """
 
     model_name: str = BACKBONE_JUDGE_MODEL
     frozen: bool = True
@@ -83,7 +92,7 @@ class OrchestratorConfig:
     budget: BudgetLimits = field(default_factory=BudgetLimits)
     teacher: TeacherConfig = field(default_factory=TeacherConfig)
     judge: JudgeConfig = field(default_factory=JudgeConfig)
-    backbone_model: str = BACKBONE_MODEL  # actor / policy default
+    backbone_model: str = BACKBONE_MODEL  # actor / policy default — Qwen/Qwen3.5-9B
     enabled_domains: List[str] = field(default_factory=lambda: ["gymv", "browser"])
     seed: Optional[int] = None
     metadata: Dict[str, str] = field(default_factory=dict)

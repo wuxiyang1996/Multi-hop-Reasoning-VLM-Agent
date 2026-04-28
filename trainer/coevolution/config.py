@@ -98,7 +98,7 @@ CURRICULUM_PRESETS: Dict[str, Optional[Dict[int, List[str]]]] = {
 def _model_short_name(model_name: str) -> str:
     """Extract a filesystem-safe short name from a model identifier.
 
-    ``"Qwen/Qwen3-8B"`` → ``"Qwen3-8B"``
+    ``"Qwen/Qwen3.5-9B"`` → ``"Qwen3.5-9B"``
     ``"meta-llama/Llama-3-8B"`` → ``"Llama-3-8B"``
     """
     short = model_name.rsplit("/", 1)[-1]

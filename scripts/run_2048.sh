@@ -54,7 +54,7 @@ mkdir -p "${HF_HUB_CACHE}"
 export PYTHONPATH="${PROJECT_ROOT}:${PROJECT_ROOT}/../GamingAgent:${PROJECT_ROOT}/../AgentEvolver:${PROJECT_ROOT}/../AI_Diplomacy:${PROJECT_ROOT}/../Orak:${PYTHONPATH:-}"
 
 # ── Configurable parameters ──────────────────────────────────────────
-MODEL="${VLLM_MODEL:-Qwen/Qwen3-8B}"
+MODEL="${VLLM_MODEL:-Qwen/Qwen3.5-9B}"
 PORT="${VLLM_PORT:-8000}"
 GPU_UTIL="${VLLM_GPU_UTIL:-0.90}"
 
@@ -85,7 +85,7 @@ fi
 
 # ── New run directory for 2048 ───────────────────────────────────────
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_DIR="${RUN_DIR:-/workspace/game_agent/Game-AI-Agent/runs/Qwen3-8B_2048_${TIMESTAMP}}"
+RUN_DIR="${RUN_DIR:-/workspace/game_agent/Game-AI-Agent/runs/Qwen3.5-9B_2048_${TIMESTAMP}}"
 mkdir -p "${RUN_DIR}/checkpoints"
 
 # ── Cleanup on exit ──────────────────────────────────────────────────

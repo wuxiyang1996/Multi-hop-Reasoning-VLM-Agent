@@ -10,7 +10,7 @@ Reads the three input flavours produced by Phase-0 collection
    ``labeling/grounding/collect_browser.py`` (same shape).
 3. **Image-QA / Video-QA labels** — JSONL emitted by
    ``visual_reasoning_wrapper.benchmarks.<bench>.parse_*_batch`` (one row per QA
-   sample, with ``schema`` populated by the GPT-4o teacher).
+   sample, with ``schema`` populated by the SFT vision teacher (``gpt-5.5``).
 
 Every loader yields a ``SchemaGenSample`` dataclass with a uniform
 ``(image, prompt, target_schema, domain, source)`` shape, plus the
@@ -99,7 +99,7 @@ def _select_target(
     """Return ``(target_schema, source_label)`` or ``None`` if invalid.
 
     ``target_source`` decides the priority:
-      * ``"vision"``    → prefer GPT-4o vision schema; skip if missing
+      * ``"vision"``    → prefer the gpt-5.5 vision schema; skip if missing
       * ``"heuristic"`` → always use the deterministic heuristic schema
       * ``"auto"``      → prefer vision; fall back to heuristic
     """

@@ -6,9 +6,9 @@ Three actor flavours and one legacy agent ship here:
 
 | Agent | Backbone | Input | Use when |
 |-------|----------|-------|----------|
-| `ActorAgent` (base, schema-native) | text-only via `API_func.ask_model` (defaults to `gpt-4o`) | Parsed `<state>…</state>` schema from `vlm_wrapper` | You want the unmodified loop from [`plans/02-action-agent/PLAN-ACTION-AGENT.md`](../plans/02-action-agent/PLAN-ACTION-AGENT.md) §2.3 — no images, no recorder. Kept stable so the existing test suite and offline rollouts keep working. |
-| `GPT4oCollectorActor` ([`SFT/`](SFT/)) | **GPT-4o** with multimodal chat completions | Schema + screenshot | You're **gathering SFT data** to fine-tune the Qwen3-VL student. Writes per-step rows in the exact layout `trainer/SFT/data_loader.py` consumes. |
-| `QwenVLActor` ([`grpo/`](grpo/)) | **`Qwen/Qwen3-VL-8B-Instruct`** via `trainer.coevolution.vllm_client.AsyncVLLMClient` (multi-LoRA hot-swap) | Schema + screenshot | You're running **online inference or GRPO+LoRA training**. Emits `trainer.common.metrics.RolloutStep` records the GRPO trainer ingests directly. |
+| `ActorAgent` (base, schema-native) | text-only via `API_func.ask_model` (defaults to `Qwen/Qwen3.5-9B`) | Parsed `<state>…</state>` schema from `vlm_wrapper` | You want the unmodified loop from [`plans/02-action-agent/PLAN-ACTION-AGENT.md`](../plans/02-action-agent/PLAN-ACTION-AGENT.md) §2.3 — no images, no recorder. Kept stable so the existing test suite and offline rollouts keep working. |
+| `GPT4oCollectorActor` ([`SFT/`](SFT/)) | **`gpt-5.5`** (the SFT teacher; class name retained for back-compat) with multimodal chat completions | Schema + screenshot | You're **gathering SFT data** to fine-tune the Qwen3.5-9B student. Writes per-step rows in the exact layout `trainer/SFT/data_loader.py` consumes. |
+| `QwenVLActor` ([`grpo/`](grpo/)) | **`Qwen/Qwen3.5-9B`** (LoRA-trained actor) via `trainer.coevolution.vllm_client.AsyncVLLMClient` (multi-LoRA hot-swap) | Schema + screenshot | You're running **online inference or GRPO+LoRA training**. Emits `trainer.common.metrics.RolloutStep` records the GRPO trainer ingests directly. |
 | `VLMDecisionAgent` (legacy, text-native) | text-only | Raw observation text | You don't yet have VLM grounding wired in. Kept for backward compatibility with `scripts/qwen3_decision_agent.py` and `inference/run_qwen3_8b_eval.py`. |
 
 The two new flavours **subclass `ActorAgent`** and override exactly one
@@ -24,8 +24,8 @@ Why split this way: the SFT collector and the GRPO actor have
 fundamentally different deployment shapes (sync OpenAI vs async vLLM,
 filesystem JSONL vs in-memory `RolloutRecord`), and the
 `vlm_wrapper/README.md` distillation plan keeps them strictly
-separate (GPT-4o teacher → Qwen3-VL-8B student). Folding them under one
-class would force every caller to depend on both stacks.
+separate (`gpt-5.5` SFT teacher → `Qwen/Qwen3.5-9B` student). Folding
+them under one class would force every caller to depend on both stacks.
 
 Sub-package map:
 
@@ -47,11 +47,11 @@ decision_agents/
 │   ├─ harness_osworld.py   OSWorldHarness (desktop primitives + bash; step stub)
 │   ├─ harness_vr.py        VRHarness (visual reasoning; LOOK/RETRIEVE/NOTE/ANSWER)
 │   └─ harness_video.py     VideoHarness (frame cursor + VR ops + NEXT_FRAME/JUMP/...)
-├─ SFT/                  ← GPT-4o data-collection actor (see SFT/README.md)
-│   ├─ actor_gpt4o.py
+├─ SFT/                  ← gpt-5.5 (SFT teacher) data-collection actor (see SFT/README.md)
+│   ├─ actor_gpt4o.py        ← class kept under historical name; `model="gpt-5.5"` by default
 │   ├─ sft_recorder.py
 │   └─ run_collect.py
-└─ grpo/                 ← Qwen3-VL-8B + GRPO + LoRA (see grpo/README.md)
+└─ grpo/                 ← Qwen/Qwen3.5-9B + GRPO + LoRA (see grpo/README.md)
     ├─ actor_qwen_vl.py
     └─ rollout_logger.py
 ```
@@ -521,7 +521,7 @@ bank = SkillBankMVP("path/to/bank.jsonl"); bank.load()
 engine = SkillQueryEngine(bank=bank)
 
 agent = ActorAgent(
-    model="Qwen/Qwen3-8B",
+    model="Qwen/Qwen3.5-9B",                    # = BACKBONE_MODEL
     skill_provider=SkillBankProvider(engine),   # or NullSkillProvider() for baseline
 )
 
@@ -842,8 +842,13 @@ Still open (see tables above): #5-sharedActionParser, #6, #7, #9, #10, VERIFY se
 
 **Two model backends:**
 
-- **GPT-5.4** (training-free) — used for cold-start data generation and labeling via OpenRouter / OpenAI API.
-- **Qwen3-8B** (GRPO-trained with LoRA adapters) — served via vLLM for decision agent inference and evaluation.
+- **`gpt-5.5`** (training-free; previously called `gpt-5.4`/`gpt-4o`) — used
+  for cold-start data generation and labeling via OpenRouter / OpenAI API.
+  Tracks `BACKBONE_SFT_TEACHER_MODEL` from `common/models.py`.
+- **`Qwen/Qwen3.5-9B`** (GRPO-trained with LoRA adapters) — served via vLLM
+  for decision agent inference and evaluation.  Tracks `BACKBONE_MODEL`.
+  The deferred Qwen3-8B track remains reachable through
+  `inference/run_qwen3_8b_eval.{py,sh}` and `scripts/qwen3_*.py`.
 
 Both share the same code path; `API_func.ask_model` routes to the correct API based on the model name. Skill bank loading and querying are identical for both backends.
 
@@ -1018,7 +1023,8 @@ from decision_agents import VLMDecisionAgent, run_episode_vlm_agent, RewardConfi
 
 episode = run_episode_vlm_agent(
     env,
-    model="Qwen/Qwen3-8B",   # or "gpt-5.4" for training-free cold-start
+    model="Qwen/Qwen3.5-9B",  # = BACKBONE_MODEL; pass "gpt-5.5" for the
+                              # training-free SFT-teacher cold-start path
     task="Complete level 1",
     max_steps=200,
     verbose=True,
@@ -1063,7 +1069,7 @@ reward_cfg = RewardConfig(
 )
 
 agent = VLMDecisionAgent(
-    model="Qwen/Qwen3-8B",
+    model="Qwen/Qwen3.5-9B",       # = BACKBONE_MODEL
     skill_bank=bank,
     memory=memory,
     reward_config=reward_cfg,
@@ -1081,7 +1087,7 @@ episode = run_episode_vlm_agent(env, agent=agent, task="Clear all boxes", max_st
 ```python
 from decision_agents import VLMDecisionAgent
 
-agent = VLMDecisionAgent(model="Qwen/Qwen3-8B")
+agent = VLMDecisionAgent(model="Qwen/Qwen3.5-9B")  # = BACKBONE_MODEL
 obs, info = env.reset()
 
 last_tool_name = None
@@ -1279,7 +1285,7 @@ from decision_agents import language_agent_action
 action = language_agent_action(
     state_nl=observation_text,
     game="gamingagent",
-    model="Qwen/Qwen3-8B",    # or "gpt-5.4"
+    model="Qwen/Qwen3.5-9B",  # = BACKBONE_MODEL; or "gpt-5.5"
 )
 ```
 

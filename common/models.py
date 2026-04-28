@@ -1,54 +1,84 @@
-"""Single source of truth for the project's backbone LLM model.
+"""Single source of truth for the project's backbone LLM models.
 
-Decision (2026-04-21): all live code paths in this project default to
-**GPT-4o** as the backbone reasoning/policy/teacher model.
+Decision (2026-04-28): the project ships a **three-tier backbone stack**:
 
-The 8B / 32B / 72B Qwen tracks (LoRA / GRPO / frozen-teacher) are
-explicitly **deferred**: they remain reachable through dedicated
-entrypoints under `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`,
-and `skill_agents/lora/`, but no library-level default points at them.
+* **Actor + Skill-Bank** — ``Qwen/Qwen3.5-9B`` (LoRA-trained policy + the
+  GRPO-trained ``segment`` / ``contract`` / ``curator`` skill-bank
+  adapters).  Lives behind ``BACKBONE_MODEL``.
+* **Crafter / Harness / Orchestrator** — ``Qwen/Qwen3.5-35B-A3B`` (frozen
+  35B-total / 3B-active MoE control-plane backbone, served separately
+  via ``inference/serve_qwen35_35b_a3b.sh``).  Lives behind
+  ``BACKBONE_TEACHER_MODEL``.
+* **Validation / SFT data generation** — ``gpt-5.5`` (frontier judge for
+  the eval driver, and the teacher model used to label cold-start data
+  consumed by the SFT trainer).  Lives behind
+  ``BACKBONE_JUDGE_MODEL`` and ``BACKBONE_SFT_TEACHER_MODEL``.
+
+Mapping summary
+---------------
+
+============================ =========================== =====================================
+Symbol                       Default                     Used by
+============================ =========================== =====================================
+``BACKBONE_MODEL``           ``Qwen/Qwen3.5-9B``         Actor (``decision_agents``) +
+                                                         Skill-Bank (``skill_agents``) — the
+                                                         LoRA-trained policy.
+``BACKBONE_TEACHER_MODEL``   ``Qwen/Qwen3.5-35B-A3B``    Skill Crafter teacher (``crafter``),
+                                                         Skill Harness control logic
+                                                         (``harness``), Pipeline Orchestrator
+                                                         (``orchestrator``).
+``BACKBONE_JUDGE_MODEL``     ``gpt-5.5``                 LLM-as-judge for the eval driver
+                                                         (validation / E0–E2).
+``BACKBONE_SFT_TEACHER_MODEL`` ``gpt-5.5``               SFT cold-start data generation
+                                                         (``cold_start``, ``labeling``)
+                                                         that feeds ``trainer/SFT/``.
+============================ =========================== =====================================
 
 Phase-F frozen Qwen3-VL teachers
 --------------------------------
 
-Per the crafter README's Phase F entry, the Skill Crafter is designed
-to swap its frozen teacher backbone from GPT-4o to a frozen Qwen3-VL
-(``Qwen/Qwen3-VL-32B`` or the larger MoE ``Qwen/Qwen3-VL-235B-A22B``)
-once the inference plumbing is in place.  We expose those names as
-canonical constants and as a ``QWEN3_VL_TEACHERS`` registry so
-``SkillCrafterService(teacher_model=...)`` can be wired without string
-literals scattered across the codebase, *while keeping the project-wide
-``BACKBONE_TEACHER_MODEL`` default at GPT-4o* (so the existing
-test_backbone_model invariants still pass).
+The Skill Crafter is wired to optionally swap its frozen teacher to a
+larger Qwen3-VL backbone (``Qwen/Qwen3-VL-32B`` or the MoE
+``Qwen/Qwen3-VL-235B-A22B``).  Those identifiers stay registered under
+:data:`QWEN3_VL_TEACHERS` and are reachable via
+``SkillCrafterService(teacher_model=qwen3_vl_teacher(...))``.  They are
+*opt-in*; the project-wide default for the crafter teacher is
+``BACKBONE_TEACHER_MODEL = Qwen/Qwen3.5-35B-A3B``.
 
 Two opt-in env-vars activate the Phase-F teacher without code edits:
 
 * ``VLM_AGENT_BACKBONE_TEACHER_MODEL=Qwen/Qwen3-VL-32B`` — full override
-  (works today for any phase).
+  (works for any phase / call site).
 * ``VLM_AGENT_PHASE_F_TEACHER=qwen3-vl-32b`` (or ``qwen3-vl-235b-a22b``)
-  — Phase-F flag.  Read by ``crafter.SkillCrafterService.from_phase_f``
-  (no implicit mutation of ``BACKBONE_TEACHER_MODEL``).
+  — Phase-F flag, read by ``crafter.SkillCrafterService.from_phase_f``.
+  No implicit mutation of ``BACKBONE_TEACHER_MODEL``.
 
 Rules
 -----
 
-1.  Every new module in `harness/`, `orchestrator/`, `crafter/`,
-    `skill_bank/`, and `evaluation/` MUST import `BACKBONE_MODEL` from
-    here when picking a default model.
-2.  Existing modules (`decision_agents/`, `skill_agents/`,
-    `vlm_wrapper/`, `inference/`) have been migrated where it changes a
-    *runtime* default. Documentation strings retaining the old model
-    names are kept as historical context.
-3.  Routing is unchanged: the central LLM caller `API_func.ask_model`
-    already routes `"gpt-4o"` to OpenAI / OpenRouter, so no code path
-    needs to know about the underlying provider.
+1. Every new module in ``harness/``, ``orchestrator/``, ``crafter/``,
+   ``skill_bank/``, and ``evaluation/`` MUST import the relevant constant
+   from here when picking a default model.  Do NOT hardcode model
+   strings.
+2. Existing modules (``decision_agents/``, ``skill_agents/``,
+   ``vlm_wrapper/``, ``inference/``) have been migrated where it changes
+   a *runtime* default.  Documentation strings retaining historical
+   model names are kept as historical context.
+3. Routing is unchanged: the central LLM caller ``API_func.ask_model``
+   already routes ``"gpt-*"`` → OpenAI/OpenRouter, ``"Qwen/..."`` → vLLM.
 
 Switching the backbone in the future
 ------------------------------------
 
-Set the environment variable `VLM_AGENT_BACKBONE_MODEL` to override the
-default at process start. Programmatic overrides should be passed as
-explicit `model=` arguments and never mutate `BACKBONE_MODEL`.
+Set the following environment variables to override defaults at process
+start.  Programmatic overrides should be passed as explicit ``model=``
+arguments and never mutate the module-level constants.
+
+* ``VLM_AGENT_BACKBONE_MODEL`` — actor / skill-bank policy.
+* ``VLM_AGENT_BACKBONE_TEACHER_MODEL`` — crafter / harness / orchestrator.
+* ``VLM_AGENT_BACKBONE_JUDGE_MODEL`` — validation / eval driver.
+* ``VLM_AGENT_BACKBONE_SFT_TEACHER_MODEL`` — SFT cold-start data
+  generation.
 """
 
 from __future__ import annotations
@@ -58,28 +88,46 @@ from typing import Mapping
 
 # ---- canonical defaults ------------------------------------------------
 
-#: The default backbone reasoning / policy model for the entire project.
-BACKBONE_MODEL: str = os.environ.get("VLM_AGENT_BACKBONE_MODEL", "gpt-4o")
-
-#: The default *teacher* / Synthesis-Reflection-Agent model used by the
-#: Skill Crafter (PLAN-SKILL-CRAFTER §3 "Frozen-first design"). For the
-#: GPT-4o-only phase this is the same model. Keep them as separate
-#: symbols so a later "frozen 72B teacher" rollout only flips one knob.
-BACKBONE_TEACHER_MODEL: str = os.environ.get(
-    "VLM_AGENT_BACKBONE_TEACHER_MODEL", BACKBONE_MODEL
+#: Actor (decision_agents) and Skill-Bank (skill_agents) policy backbone.
+#: This is the LoRA-trained model — Qwen3.5-9B dense decoder shared by
+#: the ``skill_selection`` / ``action_taking`` decision adapters and the
+#: ``segment`` / ``contract`` / ``curator`` skill-bank adapters.
+BACKBONE_MODEL: str = os.environ.get(
+    "VLM_AGENT_BACKBONE_MODEL", "Qwen/Qwen3.5-9B"
 )
 
-#: The default *judge* model used by the eval driver (E0 / E1 / E2).
-#: Same as backbone for now.
+#: Crafter / Harness / Orchestrator control-plane backbone.  Frozen MoE
+#: 35B-total / 3B-active served via ``inference/serve_qwen35_35b_a3b.sh``.
+#: Used by ``crafter.SkillCrafterService`` (teacher), the harness control
+#: logic, and the orchestrator's ``TeacherConfig``.  No fine-tuning runs
+#: against this backbone inside the loop (PLAN-SKILL-CRAFTER §3
+#: "Frozen-first design").
+BACKBONE_TEACHER_MODEL: str = os.environ.get(
+    "VLM_AGENT_BACKBONE_TEACHER_MODEL", "Qwen/Qwen3.5-35B-A3B"
+)
+
+#: LLM-as-judge for the eval driver (E0 / E1 / E2 + replay validation).
+#: The gpt-5.x family is preferred so the judge stays *outside* the
+#: training distribution and acts as an independent oracle.
 BACKBONE_JUDGE_MODEL: str = os.environ.get(
-    "VLM_AGENT_BACKBONE_JUDGE_MODEL", BACKBONE_MODEL
+    "VLM_AGENT_BACKBONE_JUDGE_MODEL", "gpt-5.5"
+)
+
+#: SFT cold-start data generation teacher.  Used by ``cold_start/`` and
+#: ``labeling/`` to produce the labeled trajectories that
+#: ``trainer/SFT/`` then trains the actor + skill-bank adapters on.
+#: Distinct from ``BACKBONE_TEACHER_MODEL`` (which is the *runtime*
+#: crafter teacher) so the SFT data pipeline can be retargeted
+#: independently of the live control plane.
+BACKBONE_SFT_TEACHER_MODEL: str = os.environ.get(
+    "VLM_AGENT_BACKBONE_SFT_TEACHER_MODEL", "gpt-5.5"
 )
 
 
 # ---- Phase-F frozen Qwen3-VL teacher registry --------------------------
 
 #: Frozen Qwen3-VL teacher model identifiers (PLAN-SKILL-CRAFTER §2,
-#: "Frozen-first design").  Map of `size_key` → canonical HF model name.
+#: "Frozen-first design").  Map of ``size_key`` → canonical HF model id.
 #: New entries are additive; nothing here is a *default*.
 QWEN3_VL_TEACHERS: Mapping[str, str] = {
     "32b": "Qwen/Qwen3-VL-32B",
@@ -92,7 +140,7 @@ def qwen3_vl_teacher(size: str = "32b") -> str:
 
     ``size`` is matched case-insensitively against the keys of
     :data:`QWEN3_VL_TEACHERS`.  Raises :class:`ValueError` for unknown
-    sizes so a typo can't silently fall back to GPT-4o.
+    sizes so a typo can't silently fall back to a different model.
     """
     key = size.lower().strip()
     if key not in QWEN3_VL_TEACHERS:
@@ -109,7 +157,7 @@ def phase_f_teacher_from_env() -> str | None:
     Returns the canonical HF model id when the env-var is set to a
     recognized size, or ``None`` when unset.  Unknown sizes raise so
     misconfiguration surfaces at the entry point, not silently as a
-    GPT-4o fallback.
+    fallback to the default teacher.
     """
     raw = os.environ.get("VLM_AGENT_PHASE_F_TEACHER")
     if not raw:
@@ -120,7 +168,7 @@ def phase_f_teacher_from_env() -> str | None:
 # ---- deferred-track registry ------------------------------------------
 
 #: Canonical model names that are *deferred* — mentioned in plans but
-#: not part of the current default surface. Tests check that no live
+#: not part of the current default surface.  Tests check that no live
 #: code path defaults to one of these.  The Qwen3-VL Phase-F teachers
 #: are deferred-by-default too: they're opt-in via
 #: ``SkillCrafterService(teacher_model=qwen3_vl_teacher(...))``.
@@ -136,31 +184,51 @@ DEFERRED_MODELS: frozenset[str] = frozenset(
 
 
 def is_deferred(model: str) -> bool:
-    """True if `model` is one of the deferred Qwen tracks."""
+    """True if ``model`` is one of the deferred Qwen tracks."""
     return model in DEFERRED_MODELS
 
 
 def is_frozen_qwen_teacher(model: str) -> bool:
-    """True if `model` is one of the Phase-F frozen Qwen3-VL teachers."""
+    """True if ``model`` is one of the Phase-F frozen Qwen3-VL teachers."""
     return model in set(QWEN3_VL_TEACHERS.values())
 
 
-def assert_default_is_gpt4o() -> None:
-    """Used by tests; raises if the backbone has been silently changed."""
-    if not BACKBONE_MODEL.startswith("gpt-4o"):
+def assert_default_backbone() -> None:
+    """Used by tests; raises if the actor backbone has been silently changed.
+
+    Pinned to ``Qwen/Qwen3.5-9B`` for the current phase.  Set
+    ``VLM_AGENT_BACKBONE_MODEL`` to override only when explicitly
+    enabling a different actor backbone.
+    """
+    if BACKBONE_MODEL != "Qwen/Qwen3.5-9B":
         raise AssertionError(
-            f"BACKBONE_MODEL must start with 'gpt-4o' for the current "
+            f"BACKBONE_MODEL must be 'Qwen/Qwen3.5-9B' for the current "
             f"phase; got {BACKBONE_MODEL!r}. Set VLM_AGENT_BACKBONE_MODEL "
-            f"to override only when explicitly enabling a deferred track."
+            f"to override only when explicitly enabling a different "
+            f"actor backbone."
         )
+
+
+# Backward-compatible alias kept for callers / tests that still import
+# the older name.  New code should prefer :func:`assert_default_backbone`.
+def assert_default_is_gpt4o() -> None:  # pragma: no cover — legacy shim
+    """Deprecated: use :func:`assert_default_backbone` instead.
+
+    The historical ``gpt-4o`` pin was retired in 2026-04 when the actor
+    backbone moved to ``Qwen/Qwen3.5-9B``.  This shim now delegates to
+    :func:`assert_default_backbone` so legacy callers keep working.
+    """
+    assert_default_backbone()
 
 
 __all__ = [
     "BACKBONE_JUDGE_MODEL",
     "BACKBONE_MODEL",
+    "BACKBONE_SFT_TEACHER_MODEL",
     "BACKBONE_TEACHER_MODEL",
     "DEFERRED_MODELS",
     "QWEN3_VL_TEACHERS",
+    "assert_default_backbone",
     "assert_default_is_gpt4o",
     "is_deferred",
     "is_frozen_qwen_teacher",

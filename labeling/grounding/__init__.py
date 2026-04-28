@@ -6,7 +6,8 @@ parser:
 
 * ``collect_gymv.py``    — Gym-V environments
 * ``collect_browser.py`` — BrowserGym environments
-* ``cross_validate.py``  — score the heuristic vs the GPT-4o teacher
+* ``cross_validate.py``  — score the heuristic vs the vision-LLM teacher
+  (``gpt-5.5`` by default; ``VLM_LABEL_MODEL`` to override)
                             on the collected triples
 
 Each script writes JSONL to a stable layout::

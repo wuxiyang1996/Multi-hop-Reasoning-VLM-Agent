@@ -81,10 +81,10 @@ class SchemaGenConfig:
     video_qa_jsonl: str = str(DEFAULT_VIDEO_QA_JSONL)
 
     # When both heuristic and vision schemas are present we default to
-    # the GPT-4o vision schema as the SFT target — it's what Phase-1
+    # the gpt-5.5 vision schema as the SFT target — it's what Phase-1
     # is teaching the student to mimic.  Setting this to ``"heuristic"``
     # is useful for an ablation that measures how much extra signal the
-    # GPT-4o teacher contributes.
+    # SFT vision teacher contributes.
     target_source: str = "vision"  # "vision" | "heuristic" | "auto"
 
     # Filter out triples flagged as Path-B / Path-C hard cases by

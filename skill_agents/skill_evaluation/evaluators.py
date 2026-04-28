@@ -54,7 +54,7 @@ def _get_ask_model(config: LLMJudgeConfig) -> Callable:
     """
     from skill_agents._llm_compat import wrap_ask_for_reasoning_models
 
-    _hint = "Qwen/Qwen3-8B"
+    _hint = "Qwen/Qwen3.5-9B"
     if config.ask_model_fn is not None:
         return wrap_ask_for_reasoning_models(config.ask_model_fn, model_hint=_hint)
     from API_func import ask_model

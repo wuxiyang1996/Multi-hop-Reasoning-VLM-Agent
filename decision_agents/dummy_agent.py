@@ -1014,7 +1014,7 @@ def _build_diplomacy_tools() -> list:
 def ask_gpt_function_action(
     state_nl: str,
     game: Optional[str] = None,
-    model: str = "gpt-4o",
+    model: str = "gpt-5.5",
     temperature: float = 0.3,
 ) -> Union[str, List[str]]:
     """
@@ -1155,7 +1155,7 @@ def language_agent_action(
         return ask_gpt_function_action(
             state_nl,
             game=game,
-            model=model or "gpt-4o",
+            model=model or "gpt-5.5",
             temperature=temperature,
         )
     return ask_model_action(

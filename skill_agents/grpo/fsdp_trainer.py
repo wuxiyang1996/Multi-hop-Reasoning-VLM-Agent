@@ -19,7 +19,7 @@ Usage::
 
     stats = run_fsdp_grpo(
         gpu_ids=[4, 5, 6, 7],
-        model_name="Qwen/Qwen3-8B",
+        model_name="Qwen/Qwen3.5-9B",
         adapter_dir="runs/lora_adapters/decision/skill_selection",
         adapter_name="skill_selection",
         prompts=prompts,
@@ -1434,7 +1434,7 @@ def run_fsdp_grpo(
     gpu_ids : list[int]
         Physical GPU indices (e.g. ``[4, 5, 6, 7]``).
     model_name : str
-        HuggingFace model id (e.g. ``"Qwen/Qwen3-8B"``).
+        HuggingFace model id (e.g. ``"Qwen/Qwen3.5-9B"``).
     adapter_dir : str
         Directory containing the LoRA adapter (or where a fresh one
         will be created).

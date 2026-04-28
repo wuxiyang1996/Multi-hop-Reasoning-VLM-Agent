@@ -1,18 +1,23 @@
 # Cold-Start Data Generation
 
 Cold-start data generation for the **COS-PLAY** co-evolution framework
-(COLM 2026, Section 5).  GPT-5.4 generates seed trajectories per game,
-bootstrapping the co-evolution training loop between the Decision Agent and
-Skill Bank Agent.
+(COLM 2026, Section 5).  The SFT teacher (``gpt-5.5`` by default — pulled
+from ``common.models.BACKBONE_SFT_TEACHER_MODEL``) generates seed
+trajectories per game, bootstrapping the co-evolution training loop
+between the Decision Agent and the Skill Bank Agent.
+
+> **Model mapping (current phase):** SFT teacher = ``gpt-5.5``; trained
+> actor + skill-bank backbone = ``Qwen/Qwen3.5-9B``; frozen control plane
+> = ``Qwen/Qwen3.5-35B-A3B``.  See [`../common/models.py`](../common/models.py).
 
 ## Directory Contents
 
 | File | Purpose |
 |------|---------|
 | `generate_cold_start.py` | Core module: game registry, env wrapper, episode runners, labeling |
-| `generate_cold_start_gpt54.py` | GPT-5.4 agent for LMGame-Bench (2048, Candy Crush, Tetris) |
-| `generate_cold_start_evolver.py` | GPT-5.4 agent for Avalon & Diplomacy |
-| `generate_cold_start_orak.py` | GPT-5.4 agent for Super Mario (Orak env) |
+| `generate_cold_start_gpt54.py` | SFT-teacher (``gpt-5.5``) agent for LMGame-Bench (2048, Candy Crush, Tetris).  Filename retained for path compatibility. |
+| `generate_cold_start_evolver.py` | SFT-teacher (``gpt-5.5``) agent for Avalon & Diplomacy |
+| `generate_cold_start_orak.py` | SFT-teacher (``gpt-5.5``) agent for Super Mario (Orak env) |
 | `load_rollouts.py` | Utility: load rollout outputs into Episode / RolloutRecord |
 | `run_coldstart_gpt54.sh` | Shell launcher for LMGame-Bench rollouts |
 | `run_coldstart_evolver.sh` | Shell launcher for Avalon & Diplomacy rollouts |

@@ -2,7 +2,7 @@
 # ======================================================================
 #  Avalon ablation: adapter × skill bank evaluation vs GPT-5.4
 #
-#  Adapter options:   base  — vanilla Qwen3-8B, no LoRA
+#  Adapter options:   base  — vanilla Qwen/Qwen3.5-9B, no LoRA
 #                     sft   — SFT cold-start LoRA
 #                     coevo — co-evolution best LoRA (step 18)
 #
@@ -57,10 +57,10 @@ export PYTHONPATH="${PROJECT_ROOT}:${PROJECT_ROOT}/../GamingAgent:${PROJECT_ROOT
 
 # ── Checkpoint paths ─────────────────────────────────────────────────
 RUNS_DIR="${RUNS_DIR:-${PROJECT_ROOT}/runs}"
-COEVO_RUN_DIR="${RUNS_DIR}/Qwen3-8B_20260326_215431"
+COEVO_RUN_DIR="${RUNS_DIR}/Qwen3.5-9B_20260326_215431"
 COEVO_BEST_STEP="step_0018"
 
-BASE_MODEL="${BASE_MODEL:-Qwen/Qwen3-8B}"
+BASE_MODEL="${BASE_MODEL:-Qwen/Qwen3.5-9B}"
 NUM_PLAYERS=5
 EPISODES_PER_PLAYER="${EPISODES_PER_PLAYER:-8}"
 EPISODES=$((NUM_PLAYERS * EPISODES_PER_PLAYER))

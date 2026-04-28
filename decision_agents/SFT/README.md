@@ -143,7 +143,7 @@ trainer expects.
 ## Why a separate flavour?
 
 The plan in `plans/02-action-agent/PLAN-ACTION-AGENT.md` distinguishes
-between (a) the **online, trainable** Actor (Qwen3-8B + GRPO LoRA, see
+between (a) the **online, trainable** Actor (Qwen/Qwen3.5-9B + GRPO LoRA, see
 `decision_agents/grpo/`) and (b) an **offline, frozen** teacher used
 only for label generation. GPT-4o fills role (b) for now:
 

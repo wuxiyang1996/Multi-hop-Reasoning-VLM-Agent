@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 """
-Cold-start base agent using GPT-5.4 for LM-Game Bench (GamingAgent).
+Cold-start base agent using the SFT teacher model for LM-Game Bench (GamingAgent).
 
-Generates decision-making trajectories using GPT-5.4 as the backbone model.
+Generates decision-making trajectories using ``BACKBONE_SFT_TEACHER_MODEL``
+(``gpt-5.5`` by default — see ``common/models.py``) as the backbone model.
 The base agent uses structured chain-of-thought reasoning before each action,
 producing richer Experience data (with reasoning traces stored in intentions)
 suitable for downstream skill extraction and co-evolution training.
+
+Note: file name ``generate_cold_start_gpt54.py`` and the constant
+``MODEL_GPT54`` are kept for backwards-compatibility with existing
+import paths and shell scripts; the *value* now points at the current
+SFT teacher (``gpt-5.5``).
 
 Output structure (cold_start/output/gpt54/<game_name>/):
   - episode_NNN.json        Individual episode (Episode.to_dict())
@@ -80,12 +86,20 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# GPT-5.4 model constant
+# SFT teacher model (project-wide default: gpt-5.5).  Kept as ``MODEL_GPT54``
+# under the original symbol name for backwards-compatibility with any
+# downstream caller that imports it; the *value* is the current
+# ``BACKBONE_SFT_TEACHER_MODEL`` (see ``common/models.py``).
 # ---------------------------------------------------------------------------
-MODEL_GPT54 = "gpt-5.4"
+try:
+    from common.models import BACKBONE_SFT_TEACHER_MODEL as _SFT_TEACHER_MODEL
+except Exception:  # pragma: no cover — keeps the script runnable in isolation
+    _SFT_TEACHER_MODEL = "gpt-5.5"
+
+MODEL_GPT54 = _SFT_TEACHER_MODEL  # historical alias; new code should import the constant
 
 # ---------------------------------------------------------------------------
-# System prompt: enhanced for GPT-5.4 with chain-of-thought reasoning
+# System prompt: enhanced for the SFT teacher with chain-of-thought reasoning
 # ---------------------------------------------------------------------------
 SYSTEM_PROMPT = (
     "You are an expert game-playing agent competing in LM-Game Bench.\n"
@@ -561,8 +575,8 @@ def main():
                         help="Sampling temperature (default: 0.4)")
     parser.add_argument("--no_label", action="store_true",
                         help="Skip trajectory labeling (faster, unlabeled only)")
-    parser.add_argument("--label_model", type=str, default="gpt-5-mini",
-                        help="Model used for trajectory labeling (default: gpt-5-mini)")
+    parser.add_argument("--label_model", type=str, default="gpt-5.5",
+                        help="Model used for trajectory labeling (default: gpt-5.5)")
     parser.add_argument("--resume", action="store_true",
                         help="Resume interrupted run (skip completed episodes)")
     parser.add_argument("--verbose", "-v", action="store_true",

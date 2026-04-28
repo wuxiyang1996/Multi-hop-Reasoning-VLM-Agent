@@ -7,8 +7,9 @@ action prompt → entity resolution → anti-repetition) and overrides
 exactly two seams:
 
 1. :meth:`_call_llm` — sends the action prompt as a chat-completion
-   with optional ``image_url`` content parts so GPT-4o sees the same
-   screenshot the future Qwen3-VL student will.
+   with optional ``image_url`` content parts so the SFT teacher
+   (``gpt-5.5``) sees the same screenshot the
+   ``Qwen/Qwen3.5-9B`` student will.
 2. :meth:`step` — after the parent populates the
    :class:`~decision_agents.actor_agent.ActorDecision`, it writes a
    per-step row through :class:`~decision_agents.SFT.sft_recorder.SFTRecorder`
@@ -66,12 +67,20 @@ except ImportError:  # pragma: no cover
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_GPT4O_MODEL = "gpt-4o"
-"""SFT collection always uses GPT-4o; the cheaper variants
-(``gpt-4o-mini``) noticeably degrade label quality on the schema +
-action-taking tasks.  Override only via the constructor *model* arg."""
+try:
+    from common.models import BACKBONE_SFT_TEACHER_MODEL as _SFT_TEACHER_MODEL
+except Exception:  # pragma: no cover
+    _SFT_TEACHER_MODEL = "gpt-5.5"
 
-# Default GPT-4o vision system prompt.  Kept short — the per-step
+DEFAULT_GPT4O_MODEL = _SFT_TEACHER_MODEL
+"""SFT collection uses ``BACKBONE_SFT_TEACHER_MODEL`` (``gpt-5.5`` by
+default — see ``common/models.py``).  The constant name
+``DEFAULT_GPT4O_MODEL`` is preserved for backward compatibility with
+callers that import it; cheaper variants (``gpt-5.5-mini`` etc.) tend
+to degrade label quality on the schema + action-taking tasks.
+Override only via the constructor *model* arg."""
+
+# Default vision system prompt.  Kept short — the per-step
 # action prompt already contains the schema, valid actions, skill
 # block, and inner-MDP scratchpad, so the system prompt only has to
 # nudge the model into the strict ``SUBGOAL/REASONING/ACTION`` format

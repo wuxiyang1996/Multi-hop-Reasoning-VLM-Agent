@@ -9,7 +9,8 @@
   `common.models`, are deferred-by-default, and surface through both
   `SkillCrafterService.with_qwen3_vl_teacher` and the
   `VLM_AGENT_PHASE_F_TEACHER` env-var path. The project-wide
-  `BACKBONE_TEACHER_MODEL` invariant (still GPT-4o) is preserved.
+  `BACKBONE_TEACHER_MODEL` invariant (Qwen/Qwen3.5-35B-A3B by default)
+  is preserved.
 """
 
 from __future__ import annotations
@@ -156,7 +157,7 @@ class TestPhaseDRepair:
             base=base,
             pattern=_pattern(base.skill_id),
             diagnosis=_diagnosis(strategy),
-            teacher_model="gpt-4o",
+            teacher_model=BACKBONE_TEACHER_MODEL,
         )
         assert isinstance(patch, PatchProposal)
         assert patch.base_skill_id == base.skill_id
@@ -345,10 +346,11 @@ class TestPhaseFFrozenTeacher:
         for m in QWEN3_VL_TEACHERS.values():
             assert m in DEFERRED_MODELS
             assert is_frozen_qwen_teacher(m)
-        # GPT-4o is not classified as a frozen Qwen teacher.
+        # GPT-style judges are not classified as a frozen Qwen teacher.
+        assert not is_frozen_qwen_teacher("gpt-5.5")
         assert not is_frozen_qwen_teacher("gpt-4o")
-        # Backbone default is unchanged (Phase-F is opt-in).
-        assert BACKBONE_TEACHER_MODEL == "gpt-4o"
+        # Default crafter teacher is the project-wide control-plane backbone.
+        assert BACKBONE_TEACHER_MODEL == "Qwen/Qwen3.5-35B-A3B"
 
     def test_with_qwen3_vl_teacher_constructor(self, tmp_path) -> None:
         repo = _new_repo(str(tmp_path / "bank"))

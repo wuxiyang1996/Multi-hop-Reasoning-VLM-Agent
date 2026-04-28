@@ -30,8 +30,10 @@ from common.ids import (
 from common.models import (
     BACKBONE_JUDGE_MODEL,
     BACKBONE_MODEL,
+    BACKBONE_SFT_TEACHER_MODEL,
     BACKBONE_TEACHER_MODEL,
     DEFERRED_MODELS,
+    assert_default_backbone,
     assert_default_is_gpt4o,
     is_deferred,
 )
@@ -45,6 +47,7 @@ from common.typing import JSONDict
 __all__ = [
     "BACKBONE_JUDGE_MODEL",
     "BACKBONE_MODEL",
+    "BACKBONE_SFT_TEACHER_MODEL",
     "BACKBONE_TEACHER_MODEL",
     "DEFERRED_MODELS",
     "DOMAINS",
@@ -60,6 +63,7 @@ __all__ = [
     "SkillType",
     "StateSchema",
     "StateTargets",
+    "assert_default_backbone",
     "assert_default_is_gpt4o",
     "is_deferred",
     "new_episode_id",

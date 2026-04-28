@@ -242,7 +242,7 @@ def ask_openrouter(question, model="openai/gpt-4o-mini", temperature=0.7, max_to
         return f"Error calling OpenRouter API: {str(e)}"
 
 
-def ask_gpt(question, model="gpt-4o", temperature=0.7, max_tokens=2000):
+def ask_gpt(question, model="gpt-5.5", temperature=0.7, max_tokens=2000):
     """
     Ask a question to GPT models. Uses OpenRouter when open_router_api_key is set (default in this repo).
     """
@@ -432,23 +432,29 @@ def ask_model(question, model=None, temperature=0.7, max_tokens=2000):
     """
     General function to ask any AI model a question.
     Automatically routes to the appropriate API based on the model name.
-    
+
     Args:
         question (str): The question to ask
         model (str): The model to use. Can be:
-            - GPT models: "gpt-4o", "gpt-4", "gpt-3.5-turbo", etc.
-            - Claude models: "claude-3-5-sonnet-20241022", "claude-3-opus-20240229", etc.
-            - Gemini models: "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash", etc.
-            - If None, defaults to "gpt-4o"
+            - Qwen actor / skill-bank: "Qwen/Qwen3.5-9B" (default — routed
+              to vLLM via ``ask_vllm``).
+            - Qwen control-plane: "Qwen/Qwen3.5-35B-A3B" (crafter /
+              harness / orchestrator — also routed to vLLM).
+            - GPT judge / SFT teacher: "gpt-5.5", "gpt-5.5-mini", etc.
+            - Claude models: "claude-3-5-sonnet-20241022", ...
+            - Gemini models: "gemini-2.5-pro", "gemini-2.0-flash", ...
+            - If None, defaults to "Qwen/Qwen3.5-9B" (the actor backbone;
+              see ``common/models.py`` ``BACKBONE_MODEL``).
         temperature (float): Sampling temperature (default: 0.7)
         max_tokens (int): Maximum tokens in response (default: 2000)
-    
+
     Returns:
         str: The generated answer
     """
-    # Default model if none specified (routed via OpenRouter when key is set)
+    # Default model if none specified — the actor backbone (Qwen/Qwen3.5-9B)
+    # routes through ``ask_vllm`` via the "qwen" branch below.
     if model is None:
-        model = "gpt-4o"
+        model = "Qwen/Qwen3.5-9B"
     model_lower = model.lower()
 
     # GPT-style models: use ask_gpt (which uses OpenRouter when open_router_api_key is set)

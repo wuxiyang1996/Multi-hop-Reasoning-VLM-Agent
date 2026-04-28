@@ -1,4 +1,11 @@
-# Labeling — Episode Annotation with GPT-5.4
+# Labeling — Episode Annotation with the SFT Teacher
+
+> **Model mapping (current phase):** SFT teacher = `gpt-5.5` (the default
+> for every script in this folder; resolved from
+> `common.models.BACKBONE_SFT_TEACHER_MODEL`).  Trained actor / skill-bank
+> backbone = `Qwen/Qwen3.5-9B`.  Frozen control plane = `Qwen/Qwen3.5-35B-A3B`.
+> The historical `MODEL_GPT54` constant remains as an alias for backward
+> compatibility, but its *value* now points at the current SFT teacher.
 
 Skill labeling pipeline for the **COS-PLAY** co-evolution framework (COLM 2026). Annotates cold-start episode trajectories with concise labels suitable for RAG retrieval, the Decision Agent, and downstream skill extraction by the Skill Bank Agent.
 
@@ -117,7 +124,7 @@ step 49/50 (endgame — final move):
 
 | File                                   | Purpose |
 |----------------------------------------|---------|
-| `label_episodes_gpt54.py`             | Labels-only script. Reads episode JSONs, calls GPT-5.4, writes labeled output with `skills=null`. |
+| `label_episodes_gpt54.py`             | Labels-only script. Reads episode JSONs, calls gpt-5.5, writes labeled output with `skills=null`. |
 | `label_episodes_with_skills.py`       | **Labels + Skill Selection + GRPO Cold-Start**. Loads a pre-built skill bank, runs top-k skill selection per step, exports GRPO training data for action-taking and skill-selection LoRA adapters. |
 | `extract_skillbank_gpt54.py`          | **Skills only**: reads already-labeled rollouts, runs SkillBankAgent pipeline, writes skill bank and catalogs. No labeling. |
 | `run_labeling.sh`                      | Shell wrapper for `label_episodes_gpt54.py`. |
@@ -228,7 +235,7 @@ The `grpo_coldstart/` directory contains two JSONL files per game, designed for 
 
 #### `action_taking.jsonl` — one row per step
 
-Each row contains the full action-selection prompt (state + available actions + active skill guidance) and the expert action chosen by GPT-5.4.
+Each row contains the full action-selection prompt (state + available actions + active skill guidance) and the expert action chosen by gpt-5.5.
 
 ```json
 {
@@ -249,7 +256,7 @@ Each row contains the full action-selection prompt (state + available actions + 
 
 #### `skill_selection.jsonl` — one row per step with ≥ 2 skill candidates
 
-Each row contains the skill-selection prompt (state + intention + numbered candidate menu) and the GPT-5.4 expert skill choice.
+Each row contains the skill-selection prompt (state + intention + numbered candidate menu) and the gpt-5.5 expert skill choice.
 
 ```json
 {
@@ -270,7 +277,7 @@ Each row contains the skill-selection prompt (state + intention + numbered candi
 
 ### How to Use GRPO Cold-Start Data for LoRA Training
 
-The cold-start data provides expert demonstrations (from GPT-5.4) that seed the GRPO training loop. The typical workflow is:
+The cold-start data provides expert demonstrations (from gpt-5.5) that seed the GRPO training loop. The typical workflow is:
 
 ```
 Step 1: Generate cold-start episodes
@@ -297,7 +304,7 @@ Step 4: Train LoRA adapters via GRPO
 
 **GRPO training loop (per adapter):**
 
-1. **Cold-start phase**: Load JSONL, treat GPT-5.4 completions as expert demonstrations. Fine-tune the LoRA adapter using supervised loss on `(prompt, completion)` pairs, weighted by `reward`.
+1. **Cold-start phase**: Load JSONL, treat gpt-5.5 completions as expert demonstrations. Fine-tune the LoRA adapter using supervised loss on `(prompt, completion)` pairs, weighted by `reward`.
 2. **Rollout phase**: Generate G completions per prompt at higher temperature. Evaluate each completion with the reward function (step reward, or a learned reward model).
 3. **Training phase**: Compute GRPO advantages from the G-sample rewards. Update LoRA weights via policy gradient with clipping.
 
@@ -411,7 +418,7 @@ bash labeling/run_extract_skillbank.sh --dry_run
 | `--input_file`    | —                                 | Label a single file instead of scanning a directory |
 | `--output_dir`    | `labeling/output/gpt54` or `gpt54_skills` | Output directory for labeled episodes |
 | `--games`         | all found                         | Filter to specific game(s) |
-| `--model`         | `gpt-5.4`                        | LLM model for labeling |
+| `--model`         | `gpt-5.5`                        | LLM model for labeling |
 | `--max_episodes`  | all                               | Cap episodes per game |
 | `--one_per_game`  | off                               | Process only the first episode for each game |
 | `--delay`         | `0.1`                            | Seconds between API calls (rate limiting) |
@@ -428,7 +435,7 @@ bash labeling/run_extract_skillbank.sh --dry_run
 | `--input_dir`       | `labeling/output/gpt54`          | Directory with **labeled** game sub-folders (`<game>/episode_*.json`). Episodes must have `summary_state`, `summary`, `intentions`. |
 | `--output_dir`      | `labeling/output/gpt54_skillbank`| Root for per-game skill banks, catalogs, sub_episodes, archetypes. |
 | `--games`           | all found                         | Only process these games. |
-| `--model`           | `gpt-5.4`                        | LLM model for skill naming/description. |
+| `--model`           | `gpt-5.5`                        | LLM model for skill naming/description. |
 | `--max_episodes`    | all                               | Cap episodes per game. |
 | `--one_per_game`    | off                               | Process only the first episode per game. |
 | `--resegment`       | off                               | Re-run pipeline against seeded bank (second pass). |
@@ -496,12 +503,12 @@ Phase 2 — Skill Extraction (per game, via SkillBankAgent)
   ├─ Stage 2: Skill decoding (preference-learned scorer + Viterbi DP)
   ├─ Stage 3: Contract learning (eff_add / eff_del / eff_event)
   ├─ Materialize NEW: promote __NEW__ segments to named skills
-  ├─ GPT-5.4 naming: generate skill_name + RAG summary per skill
+  ├─ gpt-5.5 naming: generate skill_name + RAG summary per skill
   └─ Annotate: populate skills field on each experience
 
 Phase 3 — Cross-Game Archetype Aggregation (runs after all games)
   ├─ Group skills by dominant SUBGOAL_TAG across all games
-  ├─ GPT-5.4: generate archetype name, description, transfer summary
+  ├─ gpt-5.5: generate archetype name, description, transfer summary
   ├─ skill_archetypes.json         # archetype → game instances
   └─ skill_rag_index.json          # flat index for vector store
 
@@ -537,7 +544,7 @@ The `skill_catalog.json` is designed for easy ingestion into a vector store:
 ```json
 {
   "game": "tetris",
-  "model": "gpt-5.4",
+  "model": "gpt-5.5",
   "n_skills": 5,
   "skills": [
     {
@@ -704,14 +711,14 @@ main()
   │    │    └─ infer_segmentation (Stage 2)           # preference-learned decoding
   │    ├─ SkillBankAgent.run_contract_learning()      # Stage 3 effects contracts
   │    ├─ SkillBankAgent.materialize_new_skills()     # promote __NEW__ → named skills
-  │    ├─ generate_skill_name()                       # GPT-5.4 name + RAG summary
-  │    ├─ generate_skill_description()                # GPT-5.4 description
+  │    ├─ generate_skill_name()                       # gpt-5.5 name + RAG summary
+  │    ├─ generate_skill_description()                # gpt-5.5 description
   │    └─ annotate_episodes_with_skills()             # populate skills field
   │
   ├─ Phase 3: aggregate_cross_game_archetypes()      # runs AFTER all games
   │    ├─ extract_dominant_tag()                      # classify by SUBGOAL_TAG
   │    ├─ Group skills by tag across games            # SURVIVE, CLEAR, etc.
-  │    ├─ GPT-5.4: archetype name + transfer summary  # cross-game RAG text
+  │    ├─ gpt-5.5: archetype name + transfer summary  # cross-game RAG text
   │    ├─ skill_archetypes.json                       # structured archetypes
   │    └─ skill_rag_index.json                        # flat vector-store index
   │
@@ -806,7 +813,7 @@ result = agent.query_skill("clear bottom rows to reduce holes")
 | `extract_game_facts()` | `agent_helper.py` | Game-specific parsers (Tetris holes, 2048 tiles, Candy score, etc.) |
 | `compact_text_observation()` | `agent_helper.py` | Fallback state pre-compression when game-specific extraction is sparse |
 | `get_state_summary()` | `agent_helper.py` | Structured/text state summarisation backbone |
-| `infer_intention()` | `agent_helper.py` | Fallback intention inference when GPT-5.4 call fails |
+| `infer_intention()` | `agent_helper.py` | Fallback intention inference when gpt-5.5 call fails |
 | `strip_think_tags()` | `agent_helper.py` | Strip `<think>` blocks from reasoning model output |
 | `SUBGOAL_TAGS` | `agent_helper.py` | Canonical list of 13 subgoal tag categories |
 | `HARD_SUMMARY_CHAR_LIMIT` | `agent_helper.py` | Maximum character limit for summary strings |

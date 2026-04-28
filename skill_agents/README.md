@@ -1,15 +1,21 @@
 # skill_agents (GRPO Skill Bank Pipeline) — **LEGACY COS-PLAY TRACK**
 
-> **Status — legacy / deferred.** This module is the **COS-PLAY co-evolution
-> Qwen3-8B GRPO skill-bank pipeline** retained for reference and for the
-> deferred 8B/32B/72B tracks. **It is no longer the live skill-agent
-> implementation.** The canonical, plan-driven pipeline now lives at the repo
-> root under [`harness/`](../harness/), [`orchestrator/`](../orchestrator/),
-> [`crafter/`](../crafter/), and the new top-level
-> [`skill_bank/`](../skill_bank/) (split-storage + `SkillLifecycleManager`).
-> Library defaults point at **GPT-4o** via [`common/models.py`](../common/models.py);
-> nothing in this folder runs by default. See the top-level
-> [`readme.md`](../readme.md), the plan corpus in [`plans/`](../plans/), and
+> **Status — legacy / reference.** This module is the **COS-PLAY co-evolution
+> Qwen GRPO skill-bank pipeline** retained for reference and for the
+> deferred Qwen3-8B / 32B / 72B tracks. **It is no longer the live
+> skill-agent implementation.** The canonical, plan-driven pipeline now
+> lives at the repo root under [`harness/`](../harness/),
+> [`orchestrator/`](../orchestrator/), [`crafter/`](../crafter/), and the
+> new top-level [`skill_bank/`](../skill_bank/) (split-storage +
+> `SkillLifecycleManager`).  Library defaults now follow the project-wide
+> three-tier stack from [`common/models.py`](../common/models.py): the
+> trained skill-bank backbone is `Qwen/Qwen3.5-9B`
+> (`BACKBONE_MODEL`), the frozen control-plane backbone is
+> `Qwen/Qwen3.5-35B-A3B` (`BACKBONE_TEACHER_MODEL`), and the eval
+> judge / SFT teacher is `gpt-5.5`
+> (`BACKBONE_JUDGE_MODEL` / `BACKBONE_SFT_TEACHER_MODEL`). See the
+> top-level [`readme.md`](../readme.md), the plan corpus in
+> [`plans/`](../plans/), and
 > [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) for the live build.
 >
 > Read this README only if you are working on the deferred Qwen GRPO track
@@ -34,7 +40,7 @@ mechanical invariants are different:
 | End-to-end control plane | `extract_skillbank_grpo_gpt54.py` driver script | [`orchestrator/`](../orchestrator/) — `EpisodeRunner`, atomic `ArtifactStore`, `BudgetController`, `GateService` (stages 0–4), `PromotionOrchestrator`, `SnapshotManager` |
 | Promotion control | `min_instances_per_skill` + verification rate | **Unified Skill Gate** — canonical `SkillStatus` (`draft → candidate → shadow → provisional → active`, plus `deprecated / rejected / rolled_back`), six-gate stack `static → replay → shadow → transfer → non-regression`. See [`plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md). |
 | Skill records | `SkillEffectsContract` + `VerificationReport` (effects-only) | `SkillRecord` + `SkillEpisode` + `GateVerdict` + `SkillEvaluationRecord` + `BankMutationProposal` + `FailureTrace` + `RunRelease` in [`data_structure/extensions/`](../data_structure/extensions/) |
-| Backbone model | Qwen3-8B + 3 GRPO LoRA adapters (CONTRACT, CURATOR, SEGMENT) | **GPT-4o** pinned via `BACKBONE_MODEL` / `BACKBONE_TEACHER_MODEL` / `BACKBONE_JUDGE_MODEL`. Qwen LoRA / GRPO / 32B-72B teacher tracks deferred (overridable with `VLM_AGENT_BACKBONE_*` env vars). |
+| Backbone model | Qwen3-8B + 3 GRPO LoRA adapters (CONTRACT, CURATOR, SEGMENT) | **`Qwen/Qwen3.5-9B`** for the trained actor + skill-bank adapters (`BACKBONE_MODEL`), **`Qwen/Qwen3.5-35B-A3B`** for the frozen crafter / harness / orchestrator backbone (`BACKBONE_TEACHER_MODEL`), and **`gpt-5.5`** for validation + SFT cold-start data (`BACKBONE_JUDGE_MODEL` / `BACKBONE_SFT_TEACHER_MODEL`). The Qwen3-VL Phase-F teachers + 32B / 72B tracks remain deferred (overridable via `VLM_AGENT_BACKBONE_*` env vars). |
 
 ### Mechanically-enforced invariants the new pipeline adds
 
@@ -197,9 +203,14 @@ gate.
 
 Build and maintain a **Skill Bank** from long-horizon game trajectories: segment trajectories into skills, learn symbolic contracts (effects), and serve queries for the [decision_agents](../decision_agents/README.md) VLM agent. The pipeline supports **GRPO-trained LoRA adapters** that wrap existing LLM call points: each call produces G samples, is scored with CPU-only rewards, and the best sample is returned so the EM pipeline runs unchanged while adapters improve over time.
 
-**Model convention:** This module uses **Qwen3-8B** for all skill-bank components (vLLM serving, LoRA adapters, boundary/protocol/contract/curator calls). All configs and code references use Qwen3-8B. The live build uses GPT-4o instead — see the banner at the top of this file.
+**Model convention (legacy section):** The deferred GRPO track described
+below uses **Qwen3-8B** for all skill-bank components (vLLM serving, LoRA
+adapters, boundary/protocol/contract/curator calls). All configs and code
+references in this section keep `Qwen3-8B` for back-compat. The live build
+uses **`Qwen/Qwen3.5-9B`** (`BACKBONE_MODEL`) instead — see the banner at
+the top of this file.
 
-**Model-agnostic design:** The pipeline and decision agent use the same skill-bank functions regardless of LLM backend. GPT and Qwen differ only in which API `ask_model` calls; set `PipelineConfig.llm_model` and/or `extractor_model` (e.g. `Qwen/Qwen3-8B` or `gpt-4o-mini`) for protocol synthesis and boundary proposal.
+**Model-agnostic design:** The pipeline and decision agent use the same skill-bank functions regardless of LLM backend. GPT and Qwen differ only in which API `ask_model` calls; set `PipelineConfig.llm_model` and/or `extractor_model` (e.g. `Qwen/Qwen3.5-9B` for the live actor backbone, `Qwen/Qwen3-8B` for the deferred track, or `gpt-5.5-mini` for an SFT-teacher path) for protocol synthesis and boundary proposal.
 
 **Reasoning-model compatibility:** When using Qwen3 or other reasoning models that emit `<think>` blocks, all LLM call sites are wrapped via [`_llm_compat.py`](_llm_compat.py): prompts get `/no_think` appended and responses are stripped of think tags. See [Reasoning-model compatibility](#reasoning-model-compatibility) below.
 

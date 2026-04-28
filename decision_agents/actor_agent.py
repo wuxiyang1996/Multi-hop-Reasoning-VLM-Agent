@@ -95,7 +95,7 @@ from .skill_tracker import SkillTracker
 # Module-level constants
 # ──────────────────────────────────────────────────────────────────────
 
-DEFAULT_MODEL: str = "gpt-4o"  # project-wide backbone; see common/models.py
+DEFAULT_MODEL: str = "Qwen/Qwen3.5-9B"  # project-wide actor backbone; see common/models.py BACKBONE_MODEL
 MAX_LAST_ACTIONS: int = 5
 MAX_PROGRESS_NOTES: int = 3
 MAX_VALID_ACTIONS_IN_PROMPT: int = 16
@@ -238,8 +238,11 @@ class ActorAgent:
     ----------
     model
         LLM used for intention inference and action selection.  Any
-        model reachable through ``API_func.ask_model`` works (GPT-4o,
-        Claude Sonnet, Qwen3-8B via vLLM).
+        model reachable through ``API_func.ask_model`` works
+        (``Qwen/Qwen3.5-9B`` via vLLM by default — see
+        ``common/models.py`` ``BACKBONE_MODEL``; ``gpt-5.5``, Claude
+        Sonnet, and the deferred Qwen3-8B / Qwen3-VL tracks are
+        reachable too).
     skill_provider
         Implementation of :class:`SkillProvider`.  Defaults to
         :class:`NullSkillProvider` (skill-free baseline).
@@ -824,8 +827,8 @@ class ActorAgent:
                 return exact, f"protocol step: {current_step}", "protocol"
 
         # 2. LLM prompt path — routed through the ``_call_llm`` seam so
-        #    subclasses can swap backend (e.g. Qwen3-VL via vLLM) and
-        #    attach images without touching this pipeline.
+        #    subclasses can swap backend (e.g. Qwen/Qwen3.5-9B via vLLM)
+        #    and attach images without touching this pipeline.
         prompt = self._build_action_prompt(
             schema=schema,
             summary=summary,
@@ -934,15 +937,16 @@ class ActorAgent:
     #
     # Two specialised subclasses live alongside this module:
     #
-    # * :class:`decision_agents.SFT.GPT4oCollectorActor` — keeps GPT-4o,
+    # * :class:`decision_agents.SFT.GPT4oCollectorActor` — uses the SFT
+    #   teacher (``gpt-5.5``; class name retained for back-compat),
     #   sends the screenshot as a vision content part, and writes
     #   per-step SFT records that ``trainer/SFT/data_loader.py`` can
     #   consume directly.
     # * :class:`decision_agents.grpo.QwenVLActor` — routes the prompt
     #   through :class:`trainer.coevolution.vllm_client.AsyncVLLMClient`
-    #   against ``Qwen/Qwen3-VL-8B-Instruct`` with hot-swappable LoRA
-    #   adapters, and emits :class:`trainer.common.metrics.RolloutStep`
-    #   records for the GRPO trainer.
+    #   against ``Qwen/Qwen3.5-9B`` with hot-swappable LoRA adapters,
+    #   and emits :class:`trainer.common.metrics.RolloutStep` records
+    #   for the GRPO trainer.
     #
     # Subclasses MUST keep this contract:
     #   - return a *string* (empty string on failure, never None);

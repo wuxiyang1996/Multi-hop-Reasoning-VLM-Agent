@@ -107,20 +107,20 @@ echo "  Codebase root:   $CODEBASE_ROOT"
 echo "  AgentEvolver:    $AGENTEVOLVER_ROOT"
 [ -n "$AI_DIPLOMACY_ROOT" ] && echo "  AI_Diplomacy:    $AI_DIPLOMACY_ROOT" || echo "  AI_Diplomacy:    (not found — diplomacy will be skipped)"
 echo "  Available games: $AVAIL_GAMES"
-echo "  Model:           gpt-5.4"
+echo "  Model:           gpt-5.5"
 [ -n "${OPENROUTER_API_KEY:-}" ] && echo "  API key:         ${OPENROUTER_API_KEY:0:12}... (OpenRouter)" || echo "  API key:         ${OPENAI_API_KEY:0:12}..."
 echo "================================================================"
 echo ""
 
 # ── Run rollouts ───────────────────────────────────────────────────────────
-# Defaults: --episodes 20 --model gpt-5.4 --no_label --resume
+# Defaults: --episodes 20 --model gpt-5.5 --no_label --resume
 # Both games use their natural end conditions (no artificial max_steps cap):
 #   avalon:    engine.done (3 quest fails or assassination resolves)
 #   diplomacy: game.is_game_done or phases >= 20 (DiplomacyConfig.max_phases)
 EXTRA_ARGS=("$@")
 
 if [ ${#EXTRA_ARGS[@]} -eq 0 ]; then
-    EXTRA_ARGS=(--episodes 20 --model gpt-5.4 --no_label --resume)
+    EXTRA_ARGS=(--episodes 20 --model gpt-5.5 --no_label --resume)
 fi
 
 python3 "${SCRIPT_DIR}/generate_cold_start_evolver.py" "${EXTRA_ARGS[@]}"

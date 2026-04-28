@@ -76,9 +76,15 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# Constants
+# Constants — SFT teacher pulled from ``common.models``.  ``MODEL_GPT54``
+# stays as a historical alias.
 # ---------------------------------------------------------------------------
-MODEL_GPT54 = "gpt-5.4"
+try:
+    from common.models import BACKBONE_SFT_TEACHER_MODEL as _SFT_TEACHER_MODEL
+except Exception:  # pragma: no cover
+    _SFT_TEACHER_MODEL = "gpt-5.5"
+
+MODEL_GPT54 = _SFT_TEACHER_MODEL
 
 ORAK_COLD_START_GAMES: Dict[str, Dict[str, Any]] = {
     "super_mario": {
@@ -411,7 +417,7 @@ def _save_episode_result(
     episode_buffer: Episode_Buffer,
     io_lock: Lock,
     label: bool = False,
-    label_model: str = "gpt-5-mini",
+    label_model: str = "gpt-5.5",
 ):
     """Save a completed episode to disk (thread-safe)."""
     if label and label_trajectory is not None:
@@ -486,7 +492,7 @@ def run_game_rollouts(
                         episode, stats, ep_idx, game_dir, jsonl_path,
                         episode_buffer, io_lock,
                         label=args.label and not args.no_label,
-                        label_model=getattr(args, "label_model", "gpt-5-mini"),
+                        label_model=getattr(args, "label_model", "gpt-5.5"),
                     )
                     all_stats.append(stats)
                 except Exception as e:
@@ -587,8 +593,8 @@ Examples:
                         help="Label trajectories with LLM (default: off; use labeling/ for that)")
     parser.add_argument("--no_label", action="store_true",
                         help="Skip trajectory labeling")
-    parser.add_argument("--label_model", type=str, default="gpt-5-mini",
-                        help="Model for labeling (default: gpt-5-mini)")
+    parser.add_argument("--label_model", type=str, default="gpt-5.5",
+                        help="Model for labeling (default: gpt-5.5)")
     parser.add_argument("--resume", action="store_true",
                         help="Resume interrupted run (skip completed episodes)")
     parser.add_argument("--workers", type=int, default=1,

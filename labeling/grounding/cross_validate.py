@@ -1,17 +1,17 @@
 #!/usr/bin/env python
-"""Cross-validate heuristic vs GPT-4o vision schemas in collected triples.
+"""Cross-validate heuristic vs vision-LLM schemas in collected triples.
 
 Reads all ``triples.jsonl`` files under a collected output directory
 (e.g. ``labeling/output/grounding/gymv``) and computes per-section
-agreement between the deterministic heuristic schema and the GPT-4o
-vision schema.
+agreement between the deterministic heuristic schema and the vision-LLM
+schema (``gpt-5.5`` by default; set ``VLM_LABEL_MODEL`` to override).
 
 Why this matters
 ----------------
 The Phase-1 SFT plan (PLAN-VISUAL-GROUNDING-MILESTONES §5.1) treats the
 heuristic schema as the gold for **structural fidelity** (it knows the
-exact entity list from ``obs.text`` / AXTree) and the GPT-4o schema as
-the gold for **visual richness** (it sees the actual pixels).  Phase-1
+exact entity list from ``obs.text`` / AXTree) and the vision-LLM schema
+as the gold for **visual richness** (it sees the actual pixels).  Phase-1
 training requires that the two agree on entities + targets within a
 tolerance — disagreements above the threshold mark a frame as a
 "hard case" routed to human review or to the inner-MDP tool loop for

@@ -113,7 +113,12 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-MODEL_GPT54 = "gpt-5.4"
+try:
+    from common.models import BACKBONE_SFT_TEACHER_MODEL as _SFT_TEACHER_MODEL
+except Exception:  # pragma: no cover
+    _SFT_TEACHER_MODEL = "gpt-5.5"
+
+MODEL_GPT54 = _SFT_TEACHER_MODEL  # historical alias; new code: import the constant
 
 DEFAULT_INPUT_DIR = SCRIPT_DIR / "output" / "gpt54"
 DEFAULT_OUTPUT_DIR = SCRIPT_DIR / "output" / "gpt54_skillbank"

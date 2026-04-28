@@ -98,7 +98,7 @@ runtime episodes ─────────────────► FailureT
 |---|---|---|
 | C (MVP) | `FailureMemory`, `FailureDiagnoser`, `Composer`, `Generalizer`, `Hypothesizer`, `SkillCrafterService` | **Delivered** — covered by `tests/test_smoke.py` (failure → DRAFT cycle) |
 | D | `Repairer` + `PatchProposal` repair plumbing exposed via `SkillCrafterService.propose_repair`; the failure-driven `cycle()` now dispatches **repair > retire > hypothesize** for failures whose `skill_id` resolves to an existing bank skill | **Delivered** — covered by `tests/test_crafter_repair.py::TestPhaseDRepair` |
-| F | Frozen Qwen3-VL-32B / 235B-A22B teacher backbones registered in `common.models.QWEN3_VL_TEACHERS`; activate via `SkillCrafterService.with_qwen3_vl_teacher(...)`, `SkillCrafterService.set_teacher_model(...)`, or the `VLM_AGENT_PHASE_F_TEACHER` env switch read by `SkillCrafterService.from_env(...)` | **Wiring delivered** — covered by `tests/test_crafter_repair.py::TestPhaseFFrozenTeacher`. The project-wide `BACKBONE_TEACHER_MODEL` default remains `gpt-4o`; Phase-F is opt-in until the inference plumbing for the frozen teacher lands |
+| F | Frozen Qwen3-VL-32B / 235B-A22B teacher backbones registered in `common.models.QWEN3_VL_TEACHERS`; activate via `SkillCrafterService.with_qwen3_vl_teacher(...)`, `SkillCrafterService.set_teacher_model(...)`, or the `VLM_AGENT_PHASE_F_TEACHER` env switch read by `SkillCrafterService.from_env(...)` | **Wiring delivered** — covered by `tests/test_crafter_repair.py::TestPhaseFFrozenTeacher`. The project-wide `BACKBONE_TEACHER_MODEL` default is `Qwen/Qwen3.5-35B-A3B`; the Qwen3-VL Phase-F teachers are an opt-in upgrade path |
 
 ### Phase-D dispatch order (failure-driven `cycle()`)
 
@@ -144,7 +144,7 @@ crafter = SkillCrafterService.from_env(lifecycle=lifecycle, artifact_store=artif
 
 ### Current state (the dormant teacher)
 
-Phase F is wired but the teacher backbone is **dormant** — `BACKBONE_TEACHER_MODEL = "gpt-4o"` (`common/models.py`) is stamped on every proposal as provenance metadata, but no LLM call is made today:
+The teacher backbone has migrated to the project-wide control-plane model `BACKBONE_TEACHER_MODEL = "Qwen/Qwen3.5-35B-A3B"` (`common/models.py`).  It is stamped on every proposal as provenance metadata, but the LLM-call hooks are still dormant today (the rule path is the tested baseline; the hooks are an integration point):
 
 - `FailureDiagnoser._llm`, `Hypothesizer._llm`, and `Repairer._llm` default to `None`.
 - The `set_llm_diagnoser` / `set_llm_proposer` / `set_llm_repairer` setters are exercised only in `tests/test_crafter_repair.py` (lambda mocks).

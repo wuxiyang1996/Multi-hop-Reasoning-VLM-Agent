@@ -6,7 +6,7 @@ captures the rendered frame plus the text observation, and produces:
 
 1. The **heuristic schema** via ``gymv_wrapper.heuristic.text_to_schema``
    — the cheap, deterministic parse of ``obs.text`` + ``env.description``.
-2. The **GPT-4o vision schema** via
+2. The **GPT-5.5 vision schema** via
    ``gymv_wrapper.adapter.generate_label`` — the slow, expensive
    teacher that grounds purely from pixels.
 
@@ -16,7 +16,7 @@ can run later without burning more API quota.
 Usage::
 
     export OPENAI_API_KEY=sk-...
-    export VLM_LABEL_MODEL=gpt-4o
+    export VLM_LABEL_MODEL=gpt-5.5
     conda activate vlm_benchmarks   # (or gymv if you prefer)
 
     python -m labeling.grounding.collect_gymv \\
@@ -62,7 +62,7 @@ class GymVTriple:
     """One ``(frame, heuristic, vision)`` triple from a Gym-V step.
 
     ``frame_path`` is repo-relative for portability across hosts;
-    ``error`` is non-empty when the GPT-4o call failed (we still keep
+    ``error`` is non-empty when the vision-LLM call failed (we still keep
     the frame + heuristic so cross-validation can compute heuristic-only
     coverage).
     """
@@ -201,7 +201,7 @@ def collect_one_episode(
                 except Exception as exc:
                     error = f"{type(exc).__name__}: {exc}"
                     logger.warning(
-                        "%s ep%d step%d: gpt-4o failed: %s",
+                        "%s ep%d step%d: vision-LLM call failed: %s",
                         env_id, episode_idx, step_idx, error,
                     )
 
@@ -285,7 +285,7 @@ def parse_args() -> argparse.Namespace:
         help="Root directory for the collected triples + frames",
     )
     p.add_argument(
-        "--model", default=os.environ.get("VLM_LABEL_MODEL", "gpt-4o"),
+        "--model", default=os.environ.get("VLM_LABEL_MODEL", "gpt-5.5"),
     )
     p.add_argument("--api_key", default=os.environ.get("OPENAI_API_KEY"))
     p.add_argument("--base_url", default=os.environ.get("OPENAI_BASE_URL"))

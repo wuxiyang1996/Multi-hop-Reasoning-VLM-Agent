@@ -3,8 +3,9 @@
 Cold-start data generation for Game-AI-Agent.
 
 Generates unlabeled trajectories using the prompt decision agent (VLMDecisionAgent)
-and/or the dummy language agent, then labels them with GPT-5-mini to produce
-initial seed data for the skill database.
+and/or the dummy language agent, then labels them with the SFT teacher
+(``gpt-5.5`` by default — see ``common.models.BACKBONE_SFT_TEACHER_MODEL``)
+to produce initial seed data for the skill database.
 
 Usage (from Game-AI-Agent root):
 
@@ -15,7 +16,7 @@ Usage (from Game-AI-Agent root):
     # Generate cold-start data for 2048
     python cold_start/generate_cold_start.py \
         --game twenty_forty_eight \
-        --episodes 3 --max_steps 50 --model gpt-5-mini
+        --episodes 3 --max_steps 50 --model gpt-5.5
 
     # Generate for all supported games
     python cold_start/generate_cold_start.py --all_games --episodes 2 --max_steps 40
@@ -500,8 +501,8 @@ def main():
                         help="Number of episodes per game")
     parser.add_argument("--max_steps", type=int, default=50,
                         help="Max steps per episode")
-    parser.add_argument("--model", type=str, default="gpt-5-mini",
-                        help="LLM model to use for agent and labeling")
+    parser.add_argument("--model", type=str, default="gpt-5.5",
+                        help="LLM model to use for agent and labeling (SFT teacher)")
     parser.add_argument("--agent_type", type=str, default="dummy",
                         choices=["dummy", "vlm"],
                         help="Agent type: 'dummy' (language_agent_action) or 'vlm' (VLMDecisionAgent)")
