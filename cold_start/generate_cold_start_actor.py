@@ -252,7 +252,17 @@ _HISTORY_WINDOW = 5
 # Pixel cap when sending the frame to the VLM (cost control).
 _VLM_IMAGE_MAX_SIDE = 1024
 # Default token budget for the action call.
-_ACTION_MAX_TOKENS = 350
+# With the strict-enum-only `choose_action` schema (see
+# `_build_action_tools`), the tool_call payload is `{"action": "<name>"}`
+# — typically 7–14 tokens.  Setting this to 128 gives ~10× safety
+# headroom while staying tiny relative to the input prompt: dense
+# late-game boards (tetris 20×10 with many filled cells, candy_crush
+# 8×8) can reach ~7.9 K input tokens, and the 9B vLLM is served at
+# --max-model-len 8192, so anything bigger here trips
+# `BadRequestError: This model's maximum context length is 8192`.
+# Reasoning models (gpt-5.x, o1/o3/o4) use the `max(6000, max_tokens*4)`
+# ceiling in `_chat_completion`, so they remain unaffected.
+_ACTION_MAX_TOKENS = 128
 # Default token budget for the schema (vision) call. Reasoning models burn
 # many internal tokens — this is the *output* cap, not the prompt budget.
 # 1500 was too tight for dense boards (candy_crush 8×8, tetris 20×10): the
@@ -496,6 +506,22 @@ def _chat_completion(
         kwargs["tools"] = tools
     if tool_choice is not None:
         kwargs["tool_choice"] = tool_choice
+
+    # vLLM-served thinking models (Qwen3*, Qwen3.5*, DeepSeek-R1-distill, etc.)
+    # emit a free-form `<think>...</think>` block before the tool call.  We
+    # detect vLLM endpoints by the model id containing a slash
+    # (HuggingFace `<org>/<name>` form, e.g. "Qwen/Qwen3.5-9B") vs
+    # managed-API ids (`gpt-4o`, `claude-3.5-sonnet`, `o3-mini`) and
+    # instruct the chat template to skip the thinking block via
+    # `chat_template_kwargs.enable_thinking=False` — vLLM passes this
+    # through to the Jinja chat template so no `<think>...</think>` block
+    # is generated.  This pairs with the strict `enum`-only action tool
+    # schema (see `_build_action_tools`) to keep tool_call output tightly
+    # bounded (~10 tokens), well below the cap.
+    if "/" in model:
+        kwargs["extra_body"] = {
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
 
     try:
         return client.chat.completions.create(**kwargs)
@@ -763,7 +789,29 @@ _ACTOR_SYSTEM_PROMPT = (
 
 
 def _build_action_tools(action_names: List[str]) -> list:
-    """OpenAI function-calling tool definition for action selection."""
+    """OpenAI function-calling tool definition for action selection.
+
+    The schema is intentionally minimal — just the ``action`` field with
+    a strict ``enum`` — so the model cannot generate free-form text that
+    blows past the token budget.
+
+    Earlier iterations carried an optional ``reasoning`` (chain-of-thought)
+    field, but on vLLM-served thinking models (Qwen3 / Qwen3.5,
+    DeepSeek-R1-distill, …) the model would write multi-paragraph
+    reasoning into that field — exceeding ``_ACTION_MAX_TOKENS`` and
+    truncating the JSON mid-string ("Unterminated string starting at:
+    line N column M").  Reasoning was only ever used for log diagnostics,
+    not for downstream metrics or training data, so dropping it is the
+    cleaner fix.
+
+    Backends that perform constrained / guided generation (vLLM with
+    ``--enable-auto-tool-choice --tool-call-parser hermes`` plus the
+    default outlines/lm-format-enforcer backend) honor the ``enum`` and
+    refuse to emit tokens outside the valid set.  Backends that don't
+    (raw OpenAI, Anthropic) still get the description as a hint and the
+    actor's downstream ``_canonicalize_action`` accepts any reasonable
+    spelling.
+    """
     return [
         {
             "type": "function",
@@ -773,15 +821,9 @@ def _build_action_tools(action_names: List[str]) -> list:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "reasoning": {
-                            "type": "string",
-                            "description": (
-                                "Brief chain-of-thought (≤3 sentences) "
-                                "grounded in the schema entities."
-                            ),
-                        },
                         "action": {
                             "type": "string",
+                            "enum": action_names,
                             "description": (
                                 "EXACT verbatim string from the valid actions list. "
                                 f"Allowed: {', '.join(action_names[:25])}"
@@ -789,6 +831,7 @@ def _build_action_tools(action_names: List[str]) -> list:
                         },
                     },
                     "required": ["action"],
+                    "additionalProperties": False,
                 },
             },
         }
@@ -1383,7 +1426,7 @@ def run_game_rollouts(
                 temperature_action=args.temperature_action,
                 temperature_schema=args.temperature_schema,
                 frames_dir=frames_dir,
-                seed=42 + ep_idx,
+                seed=args.seed_base + ep_idx,
                 verbose=args.verbose,
                 step_stream_path=step_stream_path,
                 ep_idx=ep_idx,
@@ -1534,6 +1577,12 @@ def main():
     parser.add_argument(
         "--verbose", "-v", action="store_true",
         help="Print per-step details (action, reward, schema source).",
+    )
+    parser.add_argument(
+        "--seed_base", type=int, default=42,
+        help="Base env seed; per-episode seed = seed_base + ep_idx. "
+             "Bumping this lets parallel shard processes use disjoint env "
+             "seeds while still numbering their episodes from 0 locally.",
     )
 
     args = parser.parse_args()
