@@ -920,9 +920,30 @@ def run_actor_episode(
     frames_dir: Optional[Path],
     seed: Optional[int],
     verbose: bool,
+    step_stream_path: Optional[Path] = None,
+    ep_idx: int = 0,
 ) -> Tuple[Episode, Dict[str, Any]]:
-    """Run one episode end-to-end and return ``(Episode, stats)``."""
+    """Run one episode end-to-end and return ``(Episode, stats)``.
+
+    If ``step_stream_path`` is provided, every completed step is flushed to
+    that path as a single JSON line *immediately* after the env step. This
+    makes the rollout crash-safe: a SIGTERM / OOM / API outage mid-episode
+    will preserve every step that finished before the failure. The stream is
+    truncated at episode start so a re-run via ``--resume`` cannot mix old
+    partial data into a fresh attempt.
+    """
     gym_v, _, build_temporal_visual_schema = _import_gymv_stack()
+
+    # Truncate any stale partial stream from a previous crashed attempt so
+    # we never blend old half-data with the fresh re-run.
+    if step_stream_path is not None:
+        step_stream_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            step_stream_path.write_text("", encoding="utf-8")
+        except OSError as exc:
+            logger.warning(
+                "Could not truncate step stream %s: %s", step_stream_path, exc
+            )
 
     env = gym_v.make(env_id)
     try:
@@ -1178,6 +1199,32 @@ def run_actor_episode(
         exp.metadata = existing_meta
         experiences.append(exp)
 
+        # Crash-safe per-step persistence: flush this step (frame_path, schema,
+        # action, reward, reasoning, raw VLM/LLM responses, valid_actions, etc.)
+        # to the streaming JSONL *before* taking the next env step. A kill
+        # between here and the next env.step() loses zero step-level data.
+        if step_stream_path is not None:
+            try:
+                step_record = exp.to_dict()
+                step_record["env_id"] = env_id
+                step_record["episode_index"] = ep_idx
+                step_record["step"] = step
+                step_record["frame_path"] = img_path
+                with open(step_stream_path, "a", encoding="utf-8") as _sf:
+                    _sf.write(
+                        json.dumps(step_record, ensure_ascii=False, default=str) + "\n"
+                    )
+                    _sf.flush()
+                    try:
+                        os.fsync(_sf.fileno())
+                    except OSError:
+                        pass
+            except Exception as _stream_exc:
+                logger.warning(
+                    "step_stream write failed (env=%s ep=%d step=%d): %s",
+                    env_id, ep_idx, step, _stream_exc,
+                )
+
         if verbose:
             r_short = (reasoning[:80] + "...") if reasoning and len(reasoning) > 80 else reasoning
             tag = " [NOOP]" if is_noop else ""
@@ -1285,6 +1332,12 @@ def run_env_rollouts(
     all_stats: List[Dict[str, Any]] = []
     t_env = time.time()
 
+    # Per-env streaming dir: one append-only JSONL per episode is enough
+    # for crash-safety (we always know which episode was in flight by the
+    # mtime). Goes alongside the sealed episode_NNN.json for easy diffing.
+    steps_stream_dir = env_dir / "steps_stream"
+    steps_stream_dir.mkdir(parents=True, exist_ok=True)
+
     for ep_idx in range(start_idx, target_episodes):
         print(f"\n  [{env_id}] Episode {ep_idx + 1}/{target_episodes}")
         try:
@@ -1292,6 +1345,7 @@ def run_env_rollouts(
                 env_dir / "frames" / f"ep_{ep_idx:03d}"
                 if args.save_frames else None
             )
+            step_stream_path = steps_stream_dir / f"ep_{ep_idx:03d}.jsonl"
 
             episode, stats = run_actor_episode(
                 env_id=env_id,
@@ -1307,6 +1361,8 @@ def run_env_rollouts(
                 frames_dir=frames_dir,
                 seed=42 + ep_idx,
                 verbose=args.verbose,
+                step_stream_path=step_stream_path,
+                ep_idx=ep_idx,
             )
             stats["episode_index"] = ep_idx
             print(

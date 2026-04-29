@@ -292,29 +292,28 @@ declare -A RC
 START_TS="$(date +%s)"
 if [ "$PARALLEL" -eq 1 ]; then
     declare -A PIDS
-    declare -a INFLIGHT
-    INFLIGHT=()
+    declare -a INFLIGHT_DOMAINS
+    INFLIGHT_DOMAINS=()
+    wait_for_next_domain() {
+        local done_domain="${INFLIGHT_DOMAINS[0]}"
+        INFLIGHT_DOMAINS=("${INFLIGHT_DOMAINS[@]:1}")
+        wait "${PIDS[$done_domain]}"
+        local rc=$?
+        RC[$done_domain]=$rc
+        printf "  [DONE]   %-22s rc=%d\n" "$done_domain" "$rc"
+    }
     echo
     echo "Dispatching ${#DOMAINS[@]} domain(s) in parallel:"
     for domain in "${DOMAINS[@]}"; do
         if [ "$MAX_PARALLEL" -gt 0 ]; then
-            while [ "${#INFLIGHT[@]}" -ge "$MAX_PARALLEL" ]; do
-                NEW=()
-                for p in "${INFLIGHT[@]}"; do
-                    if kill -0 "$p" 2>/dev/null; then
-                        NEW+=("$p")
-                    fi
-                done
-                INFLIGHT=("${NEW[@]}")
-                if [ "${#INFLIGHT[@]}" -ge "$MAX_PARALLEL" ]; then
-                    sleep 2
-                fi
+            while [ "${#INFLIGHT_DOMAINS[@]}" -ge "$MAX_PARALLEL" ]; do
+                wait_for_next_domain
             done
         fi
 
         run_domain "$domain" &
         PIDS[$domain]=$!
-        INFLIGHT+=("$!")
+        INFLIGHT_DOMAINS+=("$domain")
         printf "  [START]  %-22s pid=%-8s log=%s\n" \
             "$domain" "${PIDS[$domain]}" "${LOG_DIR}/${domain}.log"
     done
@@ -325,11 +324,8 @@ if [ "$PARALLEL" -eq 1 ]; then
     done
     echo
     echo "Waiting for completion ..."
-    for domain in "${DOMAINS[@]}"; do
-        wait "${PIDS[$domain]}"
-        rc=$?
-        RC[$domain]=$rc
-        printf "  [DONE]   %-22s rc=%d\n" "$domain" "$rc"
+    while [ "${#INFLIGHT_DOMAINS[@]}" -gt 0 ]; do
+        wait_for_next_domain
     done
 else
     for domain in "${DOMAINS[@]}"; do

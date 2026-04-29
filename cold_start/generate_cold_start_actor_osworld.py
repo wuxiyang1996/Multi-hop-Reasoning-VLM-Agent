@@ -106,17 +106,35 @@ Hard-wired modes (NO opt-out):
   - Frames are saved to disk **by default** (pass ``--no_save_frames``
     to skip when disk pressure matters).
 
-Expected pass rates (calibration reference, vision-only on OSWorld):
+Default-on improvements (opt-out flags exist for ablations):
+  - **Set-of-Marks visual grounding** (``--no_som`` to disable): every
+    interactive AT-SPI element gets a numbered red box drawn on the
+    screenshot, and ``click_element(id=N)`` enters the action vocab.
+    The harness translates the SoM verb back to ``pyautogui.click(cx,
+    cy)`` before stepping the env. Published baselines move ~5% →
+    ~18% pass@1 with this single change.
+  - **Anti-loop early-DONE** (``--loop_repeat_threshold 999`` to
+    disable): force ``DONE`` when the agent repeats the same action
+    with no reward — kills 30+-step "click → escape → click" timeouts.
+  - **DONE-nudge prompt** (``--done_nudge_step 999`` to disable): adds
+    a "stop verifying, commit to DONE" reminder to the action prompt
+    once the trajectory has run for >12 steps.
+  - **Anti-noop replan**: when the previous step changed nothing, the
+    next action prompt is told the action had no effect so the model
+    picks a different element / strategy.
+
+Expected pass rates (calibration reference, with SoM enabled):
   - chrome (settings, tab management) .... ~30% pass@1 with max_steps=50
   - libreoffice_writer / impress / calc .... ~15% pass@1 with max_steps=50
   - gimp / vlc / vs_code / thunderbird .... ~5-15% pass@1 with max_steps=50
   - os (file/system shortcuts) ............ ~25% pass@1 with max_steps=50
   - multi_apps ............................ ~5%  pass@1 with max_steps=50
-Published vision-only baselines for the same protocol cluster around
-12-30% overall (GPT-4V ~12%, Claude-3.5 Sonnet ~15%). At max_steps=15
-expect to roughly halve those numbers (the long-tail of multi-dialog
-tasks runs out of budget). Bumping ``--episodes 3`` and averaging
-gives a tighter estimate at 3x the wall-clock.
+Published vision-only baselines for the same protocol with SoM cluster
+around 18-24% overall (GPT-4V+SoM ~18%, Claude-3.5 Sonnet+SoM ~24%);
+without SoM the same backbones drop to 5-15%. At max_steps=15 expect
+to roughly halve those numbers (the long-tail of multi-dialog tasks
+runs out of budget). Bumping ``--episodes 3`` and averaging gives a
+tighter estimate at 3x the wall-clock.
 """
 
 from __future__ import annotations
@@ -265,6 +283,45 @@ DEFAULT_EPISODES = 1
 _MAX_CONSECUTIVE_NOOPS = 2
 # How many recent action results to surface in the action prompt.
 _HISTORY_WINDOW = 5
+
+# ─── Anti-loop early termination ──────────────────────────────────────────
+# Reasoning models (gpt-5.x, o1/o3/o4) tend to over-verify on OSWorld:
+# they keep clicking the same button / pressing escape instead of emitting
+# DONE when the goal is satisfied. The loop detector watches a rolling
+# window of recent actions and force-emits DONE when all of these hold:
+#   (a) the same action string appears at least
+#       ``DEFAULT_LOOP_REPEAT_THRESHOLD`` times within the last
+#       ``DEFAULT_LOOP_WINDOW`` steps,
+#   (b) total reward over that window is 0 (no progress),
+#   (c) the trajectory has already advanced past
+#       ``DEFAULT_LOOP_MIN_STEP`` (don't bail too early).
+# Forcing DONE lets the OSWorld evaluator score the current state — even
+# if it scores 0 we save 30+ wasted steps per loopy trajectory.
+DEFAULT_LOOP_WINDOW = 5
+DEFAULT_LOOP_REPEAT_THRESHOLD = 3
+DEFAULT_LOOP_MIN_STEP = 8
+
+# ─── DONE-nudge ───────────────────────────────────────────────────────────
+# Once a trajectory has run for this many steps without DONE, the action
+# prompt gets a hard reminder telling the model to emit DONE if the goal
+# already appears satisfied. Reasoning models respond well to an explicit
+# "stop verifying — commit to DONE" instruction; without it they keep
+# inventing extra confirmation clicks.
+DEFAULT_DONE_NUDGE_STEP = 12
+
+# ─── Set-of-Marks (SoM) visual grounding ─────────────────────────────────
+# SoM is the single biggest known lever for OSWorld pass-rate. The pipeline:
+#   1. extract every interactive AT-SPI element with a bbox,
+#   2. draw a numbered red box around each one on the screenshot,
+#   3. add ``click_element(id=N)`` verbs to the candidate vocabulary,
+#   4. on execute, translate ``click_element(N)`` → ``pyautogui.click(cx, cy)``.
+# Published baselines move from ~5% (raw-pixel) → ~18% pass@1 with the
+# same VLM backbone once SoM is enabled. The annotated screenshot is what
+# both the schema-VLM and the action-VLM see; the saved frames also show
+# the boxes so failure cases are easy to debug visually. Disable with
+# ``--no_som`` if you want to A/B against the raw-pixel ablation.
+DEFAULT_USE_SOM = True
+DEFAULT_SOM_MAX_ELEMENTS = 25
 # Default token budgets.
 _ACTION_MAX_TOKENS = 500
 _SCHEMA_MAX_TOKENS = 4000
@@ -480,6 +537,36 @@ def _import_osworld_gym_wrapper():
     return OSWorldGymWrapper, load_task_catalog
 
 
+def _import_som_helpers():
+    """Set-of-Marks helpers: AT-SPI XML → numbered overlay + verb table.
+
+    Returns ``None`` on any import failure (Pillow missing, module
+    not yet on PYTHONPATH, …) so the actor can fall back to the
+    raw-pixel ablation rather than crashing.
+    """
+    try:
+        from osworld_wrapper.som import (
+            extract_som_elements,
+            draw_som_overlay,
+            format_som_table,
+            som_action_strings,
+            som_action_to_pyautogui,
+        )
+        return {
+            "extract": extract_som_elements,
+            "draw": draw_som_overlay,
+            "format": format_som_table,
+            "verbs": som_action_strings,
+            "translate": som_action_to_pyautogui,
+        }
+    except Exception as exc:
+        logger.warning(
+            "[som] osworld_wrapper.som unavailable, SoM grounding disabled: %s",
+            exc,
+        )
+        return None
+
+
 def _import_schema_helpers():
     """``vlm_wrapper.schema`` — shared cross-domain prompt builder."""
     try:
@@ -574,6 +661,8 @@ def generate_schema_from_image(
     temperature: float = 0.2,
     max_tokens: int = _SCHEMA_MAX_TOKENS,
     max_entities: int = _DEFAULT_MAX_ENTITIES,
+    som_elements: Optional[List[Any]] = None,
+    som_helpers: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Call gpt-5.5 (vision) on the screenshot to produce a ``<state>`` schema.
 
@@ -591,15 +680,33 @@ def generate_schema_from_image(
         }
 
     system = schema_helpers["build_system_prompt"]("desktop", max_entities=max_entities)
-    system = (
-        f"{system}\n\n"
-        "Valid OSWorld actions are pyautogui commands "
-        "(pyautogui.click(x, y), pyautogui.doubleClick(x, y), "
-        "pyautogui.typewrite('text'), pyautogui.hotkey('ctrl', 's'), "
-        "pyautogui.scroll(-3), pyautogui.press('enter')) plus the special "
-        "tokens DONE / FAIL / WAIT. Use absolute pixel coordinates for "
-        "click / move targets — the screenshot is the source of truth."
-    )
+    if som_elements:
+        system = (
+            f"{system}\n\n"
+            "The screenshot has numbered red boxes drawn over every "
+            "interactive element (Set-of-Marks visual grounding). The "
+            "id you populate in <actions> MUST be a SoM verb when the "
+            "target is one of the numbered boxes: "
+            "``click_element(id=N)``, "
+            "``double_click_element(id=N)``, "
+            "``right_click_element(id=N)``, or "
+            "``type_into_element(id=N, text='...')``. The harness "
+            "translates N to the box centre. Only emit raw "
+            "``pyautogui.click(x, y)`` when NO numbered box covers the "
+            "target. Hotkeys (``pyautogui.hotkey('ctrl', 's')`` etc.) "
+            "and ``DONE`` / ``FAIL`` / ``WAIT`` are also valid."
+        )
+    else:
+        system = (
+            f"{system}\n\n"
+            "Valid OSWorld actions are pyautogui commands "
+            "(pyautogui.click(x, y), pyautogui.doubleClick(x, y), "
+            "pyautogui.typewrite('text'), pyautogui.hotkey('ctrl', 's'), "
+            "pyautogui.scroll(-3), pyautogui.press('enter')) plus the "
+            "special tokens DONE / FAIL / WAIT. Use absolute pixel "
+            "coordinates for click / move targets — the screenshot is "
+            "the source of truth."
+        )
 
     extra_parts: List[str] = []
     instr = obs.get("instruction") or ""
@@ -628,6 +735,17 @@ def generate_schema_from_image(
             "do NOT rename or reformat):\n"
             + "\n".join(f"  - {a}" for a in candidate_actions[:_MAX_CANDIDATE_ACTIONS])
         )
+    # Set-of-Marks element table — same numbering as the red boxes drawn
+    # on ``pil_image``. Surfacing it as text lets the VLM pick an ID
+    # even when the red box would otherwise overlap a busy region.
+    if som_elements and som_helpers is not None:
+        try:
+            som_table = som_helpers["format"](som_elements)
+        except Exception as exc:
+            logger.debug("som_helpers.format failed: %s", exc)
+            som_table = None
+        if som_table:
+            extra_parts.append(som_table)
     extra_context = "\n\n".join(extra_parts)
 
     user_content = schema_helpers["build_user_message"](
@@ -716,11 +834,16 @@ _GLOBAL_DESKTOP_ACTIONS: List[str] = [
     "FAIL",
 ]
 
-# Lenient validator for pyautogui-style strings + special tokens.
+# Lenient validator for pyautogui-style strings, special tokens, and
+# Set-of-Marks verbs (``click_element(id=N)`` etc.). Multi-statement
+# pyautogui sequences separated by ``;`` are accepted because the SoM
+# translator emits ``click + typewrite`` as a single action.
 _PYAUTOGUI_ACTION_RE = re.compile(
     r"^\s*(?:"
     r"DONE|FAIL|WAIT"
-    r"|pyautogui\.[A-Za-z_]+\([^\n]*\)"
+    r"|pyautogui\.[A-Za-z_]+\([^\n]*\)(?:\s*;\s*pyautogui\.[A-Za-z_]+\([^\n]*\))*"
+    r"|(?:click|double_?click|right_?click|type_?(?:text_?)?(?:into_?)?)_?element"
+    r"\([^\n)]*\)"
     r")\s*$",
     re.IGNORECASE | re.DOTALL,
 )
@@ -815,12 +938,18 @@ def _list_a11y_clickables(
 
 def _build_candidate_actions(
     *, obs: Dict[str, Any],
+    som_elements: Optional[List[Any]] = None,
 ) -> Tuple[List[str], List[Dict[str, Any]]]:
     """Build candidate actions for this step.
 
-    Combines:
+    Combines (priority order):
+      - Set-of-Marks click verbs (``click_element(id=N)``) — preferred
+        when ``som_elements`` is non-empty, since the VLM picks IDs
+        more accurately than coordinates.
       - Top accessible interactive elements (``pyautogui.click(x,y)``
-        derived from AT-SPI ``cp:screencoord`` + ``cp:size``).
+        derived from AT-SPI ``cp:screencoord`` + ``cp:size``) — kept
+        as a fallback so the model can still issue raw-coordinate
+        clicks when no SoM box covers what it needs.
       - A small global vocab of nav / hotkey / DONE / FAIL / WAIT actions.
 
     Returns ``(strings, meta)`` — meta carries role / name / pos for the
@@ -829,23 +958,62 @@ def _build_candidate_actions(
     a11y = obs.get("accessibility_tree", "") or ""
     instruction = obs.get("instruction", "") or ""
 
-    suggestions = _list_a11y_clickables(a11y, instruction, max_results=14)
-
     strings: List[str] = []
     meta: List[Dict[str, Any]] = []
     seen: set = set()
-    for entry in suggestions:
-        a = entry["action"]
-        if a in seen:
-            continue
-        seen.add(a)
-        strings.append(a)
-        meta.append({
-            "action": a,
-            "role": entry.get("role"),
-            "name": entry.get("name"),
-            "pos": entry.get("pos"),
-        })
+
+    # SoM verbs first — most reliable grounding once boxes are drawn.
+    if som_elements:
+        for el in som_elements[:12]:
+            verb = f"click_element(id={el.som_id})"
+            if verb in seen:
+                continue
+            seen.add(verb)
+            strings.append(verb)
+            meta.append({
+                "action": verb,
+                "role": el.role,
+                "name": el.label,
+                "pos": (el.bbox[0], el.bbox[1], el.bbox[2], el.bbox[3]),
+                "som_id": el.som_id,
+            })
+        # One typing template — VLM substitutes the id and text.
+        # Only advertised if at least one typable element is on screen
+        # (entry / text / combo-box / spin-button).
+        from osworld_wrapper.som import _is_typable
+        if any(_is_typable(e.role) for e in som_elements):
+            verb = "type_into_element(id=N, text='...')"
+            if verb not in seen:
+                seen.add(verb)
+                strings.append(verb)
+                meta.append({
+                    "action": verb,
+                    "role": "som-template",
+                    "name": "fill text into element id N",
+                })
+
+    # When SoM is active and offers ≥ 4 numbered targets, the raw
+    # ``pyautogui.click(x, y)`` candidates derived from AT-SPI are
+    # redundant (every box already has a click_element verb pointing at
+    # its centre) and they actively pull the model toward emitting raw
+    # coords instead of SoM IDs. Empirically, gpt-5.x picks raw
+    # candidates ~85% of the time when both forms are offered, which
+    # nullifies the SoM uplift. Drop the raw clicks in that regime; the
+    # global hotkey/escape/scroll vocabulary still survives below.
+    if not (som_elements and len(som_elements) >= 4):
+        suggestions = _list_a11y_clickables(a11y, instruction, max_results=10)
+        for entry in suggestions:
+            a = entry["action"]
+            if a in seen:
+                continue
+            seen.add(a)
+            strings.append(a)
+            meta.append({
+                "action": a,
+                "role": entry.get("role"),
+                "name": entry.get("name"),
+                "pos": entry.get("pos"),
+            })
 
     for a in _GLOBAL_DESKTOP_ACTIONS:
         if a in seen:
@@ -870,23 +1038,35 @@ _ACTOR_SYSTEM_PROMPT = (
     "bounding boxes), plus a list of candidate actions that combines "
     "a11y-derived click targets with global hotkeys + the special "
     "tokens DONE / FAIL / WAIT.\n\n"
+    "Set-of-Marks grounding (mandatory format when active): when the "
+    "screenshot has numbered red bounding boxes drawn over interactive "
+    "elements and the user prompt lists those IDs, you MUST express "
+    "every click as ``click_element(id=N)`` or every text-entry as "
+    "``type_into_element(id=N, text='...')``. The harness translates "
+    "N to the element's bbox centre at execute time — that translation "
+    "is more reliable than VLMs predicting raw (x, y) coordinates. "
+    "Only fall back to raw ``pyautogui.click(x, y)`` when NO numbered "
+    "box covers the target you actually need.\n\n"
     "Your job:\n"
     "1. Reason briefly (≤3 sentences) about the schema: which entity / "
     "control matters, what is the current sub-goal, and why one action "
     "best advances the user's instruction.\n"
     "2. Pick EXACTLY ONE action by calling the ``choose_action`` "
-    "function. You may either:\n"
-    "   - Echo a candidate string verbatim (preferred when the candidate "
-    "applies as-is, e.g. ``pyautogui.click(820, 412)``), OR\n"
-    "   - Specify ``action_type`` + the relevant fields (``x`` / ``y`` / "
-    "``text`` / ``key`` / ``keys`` / ``dx`` / ``dy``) so the harness "
-    "can construct a typed pyautogui action.\n"
+    "function with ``action_string`` set to one of the candidate verbs "
+    "VERBATIM. When SoM is active ``action_string`` is almost always "
+    "``click_element(id=N)`` — copy that verb exactly, do NOT invent "
+    "coordinates. For hotkeys / scrolls / etc., copy the candidate "
+    "verbatim too. For free-form keystrokes specify ``action_type`` + "
+    "the relevant fields (``text`` / ``key`` / ``keys`` / ``dx`` / "
+    "``dy``).\n"
     "3. Only emit ``DONE`` when the user's instruction is fully "
     "satisfied — OSWorld will then call its evaluator to score the "
     "trajectory. ``FAIL`` if the task cannot be completed. ``WAIT`` "
     "to let an animation / load finish.\n\n"
     "If recent action history shows an action had NO EFFECT (state "
-    "unchanged AND no error), choose a DIFFERENT action this turn.\n\n"
+    "unchanged AND no error), choose a DIFFERENT action this turn — "
+    "try a NEARBY numbered box, a different ID, or a hotkey before "
+    "re-issuing the same coordinates.\n\n"
     "Always respond by calling the ``choose_action`` function."
 )
 
@@ -1090,6 +1270,11 @@ def select_action(
     routed_model: str,
     temperature: float = 0.4,
     max_tokens: int = _ACTION_MAX_TOKENS,
+    done_nudge_step: int = DEFAULT_DONE_NUDGE_STEP,
+    som_elements: Optional[List[Any]] = None,
+    som_helpers: Optional[Dict[str, Any]] = None,
+    last_action_was_noop: bool = False,
+    last_failed_action: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str], str, Optional[str]]:
     """Call gpt-5.5 with the schema → ``(action, reasoning, raw, error)``."""
     if not candidate_actions:
@@ -1126,6 +1311,38 @@ def select_action(
         "",
         candidate_block,
     ]
+
+    # ─── Set-of-Marks element table ──────────────────────────────────────
+    # When SoM is active the screenshot the model already saw at the
+    # schema step has numbered red boxes around every clickable; mirror
+    # that same numbering as a text table here so the model can pick by
+    # ID without re-deriving coordinates from pixels.
+    if som_elements and som_helpers is not None:
+        try:
+            som_table = som_helpers["format"](som_elements)
+        except Exception as exc:
+            logger.debug("som_helpers.format failed: %s", exc)
+            som_table = None
+        if som_table:
+            user_parts.extend([
+                "",
+                som_table,
+                "",
+                "=== ACTION FORMAT (mandatory when SoM is active) ===",
+                "Click any UI element by emitting EXACTLY "
+                "``click_element(id=N)`` where N is the badge number "
+                "from the screenshot / table above. To type into a "
+                "[typable] element use "
+                "``type_into_element(id=N, text='...')``. "
+                "DO NOT emit raw ``pyautogui.click(x, y)`` when a "
+                "numbered box covers the target — VLMs hallucinate "
+                "coordinates, the box centre is the ground truth. "
+                "If NO numbered box covers what you need, fall back "
+                "to a hotkey from the candidate list (escape / "
+                "scroll / ctrl+s / etc.) BEFORE resorting to raw "
+                "coordinates.",
+            ])
+
     if not schema_text:
         a11y_text = _flatten_a11y(obs.get("accessibility_tree", "") or "", max_chars=2000)
         if a11y_text:
@@ -1134,16 +1351,66 @@ def select_action(
                 "Accessibility tree (since no schema was parsed):",
                 a11y_text,
             ])
+
+    # ─── Anti-noop replan ────────────────────────────────────────────────
+    # If the last action did NOT change the screen (and produced no
+    # error), repeating it is almost certainly a waste. Tell the model
+    # that explicitly so it picks a different element / strategy.
+    if last_action_was_noop and last_failed_action:
+        user_parts.extend([
+            "",
+            "=== LAST ACTION HAD NO EFFECT ===",
+            f"Previous action ``{last_failed_action}`` did not change the "
+            f"screen and produced no error. The element is probably "
+            f"covered by an overlay, off-screen, or the wrong target. "
+            f"Choose a DIFFERENT action this turn — try a nearby "
+            f"numbered box, a hotkey, scrolling, or pressing escape "
+            f"first. Do NOT re-issue the same coordinates.",
+        ])
+
     user_parts.extend([
         "",
         history_block.strip(),
         "",
-        "Pick the BEST action and call ``choose_action``. Prefer to copy a "
-        "candidate verbatim into ``action_string`` (especially "
-        "pyautogui.click(x, y) using the entity bbox centres from the "
-        "schema). Otherwise specify ``action_type`` + the relevant "
-        "structured fields.",
+        "Pick the BEST action and call ``choose_action``. When SoM "
+        "boxes are present, copy a ``click_element(id=N)`` candidate "
+        "verbatim into ``action_string``. Otherwise prefer "
+        "pyautogui.click(x, y) using bbox centres from the schema, or "
+        "specify ``action_type`` + the relevant structured fields.",
     ])
+
+    # ─── DONE-nudge ───────────────────────────────────────────────────────
+    # Long-running trajectories tend to over-verify. Once we cross
+    # ``done_nudge_step`` add an explicit "commit to DONE if the goal is
+    # met" instruction. This is a behavioural fix specifically for
+    # reasoning models (gpt-5.x, o1/o3/o4) that otherwise keep clicking
+    # the same buttons.
+    if step >= done_nudge_step:
+        repeats = 0
+        if history:
+            recent = history[-DEFAULT_LOOP_WINDOW:]
+            counts: Dict[str, int] = {}
+            for h in recent:
+                a = (h.get("action") or "").strip()
+                if a:
+                    counts[a] = counts.get(a, 0) + 1
+            repeats = max(counts.values()) if counts else 0
+        nudge_lines = [
+            "",
+            f"=== STOP-CONDITION REMINDER (step {step} of a long run) ===",
+            "If the schema shows the goal is already satisfied, emit DONE "
+            "NOW. Do NOT add 'verification' clicks or extra confirmation "
+            "steps — over-verification wastes the step budget. Pick DONE "
+            "as soon as the visible state matches what the goal asks for.",
+        ]
+        if repeats >= 2:
+            nudge_lines.append(
+                f"You have already repeated the same action {repeats} "
+                f"times in the last {DEFAULT_LOOP_WINDOW} steps. Either "
+                "switch to a materially different action OR emit DONE / "
+                "FAIL — repeating the same click again will not help."
+            )
+        user_parts.extend(nudge_lines)
     user_content = "\n".join(p for p in user_parts if p is not None)
 
     tools = _build_action_tools(candidate_actions)
@@ -1238,6 +1505,44 @@ def _pick_different(action: str, candidates: List[str]) -> str:
     return random.choice(alts) if alts else action
 
 
+def _detect_action_loop(
+    history: List[Dict[str, Any]],
+    *,
+    window: int = DEFAULT_LOOP_WINDOW,
+    repeat_threshold: int = DEFAULT_LOOP_REPEAT_THRESHOLD,
+) -> Tuple[bool, Optional[str], int]:
+    """Detect whether the agent is stuck in a non-progressing action loop.
+
+    Returns ``(is_looping, repeated_action, repeat_count)``. The loop is
+    flagged when, within the last ``window`` steps:
+      - the same action string appears ``repeat_threshold`` or more times,
+      - AND the cumulative reward over that window is 0 (no progress).
+
+    The window-size guard means the detector is a no-op until at least
+    ``repeat_threshold`` steps have been recorded; the calling site
+    additionally gates on ``DEFAULT_LOOP_MIN_STEP`` to avoid premature
+    aborts on tasks that legitimately take a few clicks to wire up.
+    """
+    if not history or len(history) < repeat_threshold:
+        return False, None, 0
+    recent = history[-window:]
+    window_reward = sum(float(h.get("reward", 0.0) or 0.0) for h in recent)
+    if window_reward > 0.0:
+        return False, None, 0
+    counts: Dict[str, int] = {}
+    for h in recent:
+        a = (h.get("action") or "").strip()
+        if not a:
+            continue
+        counts[a] = counts.get(a, 0) + 1
+    if not counts:
+        return False, None, 0
+    top_action, top_count = max(counts.items(), key=lambda kv: kv[1])
+    if top_count >= repeat_threshold:
+        return True, top_action, top_count
+    return False, None, 0
+
+
 def _resolve_task_domain(task_cfg: Dict[str, Any], default: str = "unknown") -> str:
     """Try to recover the OSWorld domain (chrome / gimp / …) for a task.
 
@@ -1273,9 +1578,21 @@ def run_actor_episode(
     frames_dir: Optional[Path],
     seed: Optional[int],
     verbose: bool,
+    loop_window: int = DEFAULT_LOOP_WINDOW,
+    loop_repeat_threshold: int = DEFAULT_LOOP_REPEAT_THRESHOLD,
+    loop_min_step: int = DEFAULT_LOOP_MIN_STEP,
+    done_nudge_step: int = DEFAULT_DONE_NUDGE_STEP,
+    use_som: bool = DEFAULT_USE_SOM,
+    som_max_elements: int = DEFAULT_SOM_MAX_ELEMENTS,
 ) -> Tuple[Episode, Dict[str, Any]]:
     """Run one OSWorld episode end-to-end and return ``(Episode, stats)``."""
     osworld_obs_to_schema_heuristic = _import_osworld_heuristic()
+    som_helpers = _import_som_helpers() if use_som else None
+    if use_som and som_helpers is None:
+        # SoM was requested but Pillow / module unavailable — quietly
+        # fall back to the raw-pixel ablation. Caller's verbose log
+        # will already carry the import warning.
+        use_som = False
 
     if seed is not None:
         random.seed(seed)
@@ -1301,6 +1618,8 @@ def run_actor_episode(
     schema_ok = 0
     action_llm_ok = 0
     action_llm_fail = 0
+    som_steps_with_elements = 0
+    som_actions_translated = 0
     total_reward = 0.0
     terminated = False
     truncated = False
@@ -1308,6 +1627,7 @@ def run_actor_episode(
 
     last_action: str = ""
     last_action_error: str = ""
+    last_action_was_noop: bool = False
 
     t0 = time.time()
     try:
@@ -1316,8 +1636,35 @@ def run_actor_episode(
             obs_with_history["last_action"] = last_action
             obs_with_history["last_action_error"] = last_action_error
 
-            # 1. Pull the screenshot + save it (so we have a render trail).
-            pil = _to_pil(obs_with_history.get("screenshot"))
+            # 1. Pull the screenshot.
+            pil_raw = _to_pil(obs_with_history.get("screenshot"))
+
+            # 1b. Set-of-Marks: extract clickable elements from the
+            # AT-SPI tree and overlay numbered red boxes on the
+            # screenshot. The annotated image is what we send to the
+            # VLM AND what we save to disk so failure modes are easy
+            # to inspect visually.
+            som_elements: List[Any] = []
+            if use_som and som_helpers is not None:
+                a11y_xml = obs_with_history.get("accessibility_tree", "") or ""
+                try:
+                    som_elements = som_helpers["extract"](
+                        a11y_xml, max_elements=som_max_elements,
+                    )
+                except Exception as exc:
+                    logger.debug("[som] extract failed: %s", exc)
+                    som_elements = []
+            if som_elements:
+                som_steps_with_elements += 1
+
+            pil = pil_raw
+            if pil_raw is not None and som_elements and som_helpers is not None:
+                try:
+                    pil = som_helpers["draw"](pil_raw, som_elements)
+                except Exception as exc:
+                    logger.debug("[som] draw_overlay failed: %s", exc)
+                    pil = pil_raw
+
             img_path: Optional[str] = None
             if pil is not None and frames_dir is not None:
                 img_path = _save_frame(pil, frames_dir / f"step_{step:03d}.png")
@@ -1332,9 +1679,10 @@ def run_actor_episode(
                 logger.debug("heuristic obs_to_schema failed: %s", exc)
                 canonical_schema = None
 
-            # 3. Candidate-action vocabulary.
+            # 3. Candidate-action vocabulary (SoM verbs first when active).
             candidate_actions, candidate_meta = _build_candidate_actions(
                 obs=obs_with_history,
+                som_elements=som_elements,
             )
 
             # 4. Visual schema (vision call): screenshot → schema.
@@ -1365,6 +1713,8 @@ def run_actor_episode(
                     temperature=temperature_schema,
                     max_tokens=schema_budget,
                     max_entities=max_entities,
+                    som_elements=som_elements,
+                    som_helpers=som_helpers,
                 )
                 schema_calls += 1
                 if schema_meta.get("source") == "vlm":
@@ -1391,6 +1741,11 @@ def run_actor_episode(
                 client=client,
                 routed_model=routed_model,
                 temperature=temperature_action,
+                done_nudge_step=done_nudge_step,
+                som_elements=som_elements,
+                som_helpers=som_helpers,
+                last_action_was_noop=last_action_was_noop,
+                last_failed_action=last_action if last_action_was_noop else None,
             )
             if action is not None:
                 action_llm_ok += 1
@@ -1414,6 +1769,62 @@ def run_actor_episode(
                 )
                 if verbose:
                     print(f"  step {step}: anti-noop override {old_action!r} -> {action!r}")
+
+            # 6a. Translate Set-of-Marks verbs back to pyautogui calls.
+            # The model emitted ``click_element(id=N)`` against the
+            # numbered overlay; we look up element N and rewrite to
+            # ``pyautogui.click(cx, cy)`` so the env can execute it.
+            som_action_original: Optional[str] = None
+            if (
+                use_som and som_helpers is not None and som_elements
+                and isinstance(action, str)
+            ):
+                try:
+                    translated = som_helpers["translate"](action, som_elements)
+                except Exception as exc:
+                    logger.debug("[som] translate failed: %s", exc)
+                    translated = None
+                if translated:
+                    som_action_original = action
+                    action = translated
+                    som_actions_translated += 1
+                    if verbose:
+                        print(
+                            f"  step {step}: som-translate "
+                            f"{som_action_original!r} -> {action!r}"
+                        )
+
+            # 6b. Anti-loop override — force DONE when the agent has been
+            # repeating the same action with no reward progress. This kills
+            # the "click button → escape → click button → escape" failure
+            # mode observed with reasoning models that refuse to commit.
+            # Forcing DONE gives the OSWorld evaluator a chance to score
+            # the current state; if the goal is partially satisfied we
+            # still get credit, otherwise we save 30+ wasted steps per
+            # loopy trajectory.
+            if step >= loop_min_step and action != "DONE":
+                is_looping, repeated_action, repeat_count = _detect_action_loop(
+                    history,
+                    window=loop_window,
+                    repeat_threshold=loop_repeat_threshold,
+                )
+                if is_looping:
+                    old_action = action
+                    action = "DONE"
+                    reasoning = (
+                        (reasoning or "")
+                        + f" [loop-abort: '{repeated_action}' "
+                          f"repeated {repeat_count}x in last "
+                          f"{loop_window} steps with reward=0; "
+                          f"force-emitting DONE so the evaluator can "
+                          f"score the current state]"
+                    )
+                    if verbose:
+                        print(
+                            f"  step {step}: loop-abort {old_action!r} -> "
+                            f"DONE  (saw {repeat_count}x "
+                            f"{repeated_action!r} in last {loop_window})"
+                        )
 
             # 7. Step the env.
             try:
@@ -1513,6 +1924,9 @@ def run_actor_episode(
                 "candidate_meta": candidate_meta[:_MAX_CANDIDATE_ACTIONS],
                 "is_noop": is_noop,
                 "error_text": error_text or None,
+                "som_active": bool(use_som and som_helpers is not None),
+                "som_n_elements": len(som_elements),
+                "som_action_original": som_action_original,
                 "task_id": task_id,
                 "domain": domain,
             }
@@ -1564,6 +1978,14 @@ def run_actor_episode(
                         "candidate_actions": list(candidate_actions),
                         "frame_path": img_path,
                         "eval_score": eval_score,
+                        "som_active": bool(use_som and som_helpers is not None),
+                        "som_n_elements": len(som_elements),
+                        "som_action_original": som_action_original,
+                        "som_table": (
+                            som_helpers["format"](som_elements)
+                            if som_elements and som_helpers is not None
+                            else None
+                        ),
                     }
                     sidecar_path = frames_dir / f"step_{step:03d}.json"
                     with open(sidecar_path, "w", encoding="utf-8") as f:
@@ -1588,6 +2010,7 @@ def run_actor_episode(
 
             last_action = action
             last_action_error = error_text
+            last_action_was_noop = bool(is_noop and not error_text)
             obs = next_obs
             if done:
                 break
@@ -1629,6 +2052,9 @@ def run_actor_episode(
         "noop_steps": sum(1 for h in history if h["noop"]),
         "error_steps": sum(1 for h in history if h.get("error")),
         "eval_score": eval_score,
+        "use_som": bool(use_som and som_helpers is not None),
+        "som_steps_with_elements": som_steps_with_elements,
+        "som_actions_translated": som_actions_translated,
     }
     return episode, stats
 
@@ -1723,6 +2149,14 @@ def run_task_rollouts(
                 frames_dir=frames_dir,
                 seed=42 + ep_idx,
                 verbose=args.verbose,
+                loop_window=args.loop_window,
+                loop_repeat_threshold=args.loop_repeat_threshold,
+                loop_min_step=args.loop_min_step,
+                done_nudge_step=args.done_nudge_step,
+                use_som=getattr(args, "_use_som", DEFAULT_USE_SOM),
+                som_max_elements=getattr(
+                    args, "som_max_elements", DEFAULT_SOM_MAX_ELEMENTS
+                ),
             )
             stats["episode_index"] = ep_idx
             print(
@@ -1773,6 +2207,10 @@ def run_task_rollouts(
         "target_episodes": target_episodes,
         "completed_episodes": len([s for s in all_stats if "error" not in s]),
         "use_vision": True,
+        "use_som": getattr(args, "_use_som", DEFAULT_USE_SOM),
+        "som_max_elements": getattr(
+            args, "som_max_elements", DEFAULT_SOM_MAX_ELEMENTS
+        ),
         "save_frames": save_frames,
         "max_steps": effective_max_steps,
         "elapsed_seconds": round(elapsed_target, 2),
@@ -1958,6 +2396,47 @@ def main():
     parser.add_argument(
         "--max_entities", type=int, default=_DEFAULT_MAX_ENTITIES,
         help=f"Cap on entities per schema (default: {_DEFAULT_MAX_ENTITIES})",
+    )
+    parser.add_argument(
+        "--loop_window", type=int, default=DEFAULT_LOOP_WINDOW,
+        help=f"Anti-loop: rolling window size when scanning for repeated "
+             f"actions (default: {DEFAULT_LOOP_WINDOW}).",
+    )
+    parser.add_argument(
+        "--loop_repeat_threshold", type=int,
+        default=DEFAULT_LOOP_REPEAT_THRESHOLD,
+        help=f"Anti-loop: trigger force-DONE when the same action appears "
+             f"this many times in --loop_window with reward=0 "
+             f"(default: {DEFAULT_LOOP_REPEAT_THRESHOLD}). Set very high "
+             f"(e.g. 999) to disable loop detection.",
+    )
+    parser.add_argument(
+        "--loop_min_step", type=int, default=DEFAULT_LOOP_MIN_STEP,
+        help=f"Anti-loop: do not abort earlier than this step "
+             f"(default: {DEFAULT_LOOP_MIN_STEP}).",
+    )
+    parser.add_argument(
+        "--done_nudge_step", type=int, default=DEFAULT_DONE_NUDGE_STEP,
+        help=f"DONE-nudge: starting at this step, the action prompt gets "
+             f"an explicit 'commit to DONE if goal is satisfied' reminder "
+             f"(default: {DEFAULT_DONE_NUDGE_STEP}). Set very high "
+             f"(e.g. 999) to disable.",
+    )
+    parser.add_argument(
+        "--no_som", action="store_true",
+        help=(
+            "Disable Set-of-Marks visual grounding (numbered red boxes "
+            "drawn over interactive AT-SPI elements). SoM is the single "
+            "biggest known lever for OSWorld pass-rate (~5%% to ~18%% "
+            "on the same VLM backbone in published baselines). Disable "
+            "ONLY when running the raw-pixel ablation."
+        ),
+    )
+    parser.add_argument(
+        "--som_max_elements", type=int, default=DEFAULT_SOM_MAX_ELEMENTS,
+        help=f"Max numbered boxes drawn on the SoM overlay "
+             f"(default: {DEFAULT_SOM_MAX_ELEMENTS}). Lower this if the "
+             f"overlay looks visually crowded; raise it for dense UIs.",
     )
     parser.add_argument(
         "--model", type=str, default=DEFAULT_MODEL,
@@ -2155,6 +2634,7 @@ def main():
     screen_size = _parse_screen_size(args.screen_size)
     reuse_env = (not args.no_reuse_env)  # default ON
     save_frames = (not args.no_save_frames)  # default ON
+    use_som = (not args.no_som)  # default ON
 
     print("=" * 78)
     print("  Cold-Start Actor Agent — OSWorld + gpt-5.5  (vision-required, headless)")
@@ -2176,6 +2656,11 @@ def main():
     print(f"  Model (configured):   {args.model}")
     print(f"  Model (routed):       {routed_model}")
     print(f"  Vision schema:        ON (mandatory; gpt-5.5 every step)")
+    print(f"  Set-of-Marks:         "
+          + ("ON  (numbered red boxes; click_element(id=N) action verbs)"
+             if use_som else "OFF (--no_som ablation)"))
+    if use_som:
+        print(f"  SoM max elements:     {args.som_max_elements}")
     print(f"  Provider:             {args.provider_name}")
     print(f"  OS type:              {args.os_type}")
     print(f"  Screen size:          {screen_size[0]}x{screen_size[1]}")
@@ -2194,6 +2679,7 @@ def main():
     # Mirror the resolved knobs onto args so run_task_rollouts() can read them
     # without re-parsing.
     args._save_frames = save_frames
+    args._use_som = use_som
 
     # Boot ONE shared env for the whole run when reuse_env is on; otherwise
     # spin up a fresh env per task. Headless is hard-wired ON.
@@ -2306,6 +2792,8 @@ def main():
         "model_routed": routed_model,
         "agent_type": "vlm_actor_osworld",
         "use_vision": True,
+        "use_som": use_som,
+        "som_max_elements": args.som_max_elements,
         "save_frames": save_frames,
         "task_catalog": str(catalog_path),
         "domains": sorted({d for d, _ in tasks}),

@@ -215,31 +215,29 @@ declare -A RC
 START_TS="$(date +%s)"
 if [ "$PARALLEL" -eq 1 ]; then
     declare -A PIDS
-    declare -a INFLIGHT
-    INFLIGHT=()
+    declare -a INFLIGHT_ENVS
+    INFLIGHT_ENVS=()
+    wait_for_next_env() {
+        local done_env="${INFLIGHT_ENVS[0]}"
+        INFLIGHT_ENVS=("${INFLIGHT_ENVS[@]:1}")
+        wait "${PIDS[$done_env]}"
+        local rc=$?
+        RC[$done_env]=$rc
+        printf "  [DONE]   %-34s rc=%d\n" "$done_env" "$rc"
+    }
     echo
     echo "Dispatching ${#ENVS[@]} env(s) in parallel:"
     for env_id in "${ENVS[@]}"; do
         # Concurrency cap: wait for one slot to free up before launching.
         if [ "$MAX_PARALLEL" -gt 0 ]; then
-            while [ "${#INFLIGHT[@]}" -ge "$MAX_PARALLEL" ]; do
-                # Wait for ANY of the in-flight pids to finish.
-                NEW=()
-                for p in "${INFLIGHT[@]}"; do
-                    if kill -0 "$p" 2>/dev/null; then
-                        NEW+=("$p")
-                    fi
-                done
-                INFLIGHT=("${NEW[@]}")
-                if [ "${#INFLIGHT[@]}" -ge "$MAX_PARALLEL" ]; then
-                    sleep 2
-                fi
+            while [ "${#INFLIGHT_ENVS[@]}" -ge "$MAX_PARALLEL" ]; do
+                wait_for_next_env
             done
         fi
 
         run_env "$env_id" &
         PIDS[$env_id]=$!
-        INFLIGHT+=("$!")
+        INFLIGHT_ENVS+=("$env_id")
         safe="$(_sanitize_env_id "$env_id")"
         printf "  [START]  %-34s pid=%-8s log=%s\n" \
             "$env_id" "${PIDS[$env_id]}" "${LOG_DIR}/${safe}.log"
@@ -252,11 +250,8 @@ if [ "$PARALLEL" -eq 1 ]; then
     done
     echo
     echo "Waiting for completion ..."
-    for env_id in "${ENVS[@]}"; do
-        wait "${PIDS[$env_id]}"
-        rc=$?
-        RC[$env_id]=$rc
-        printf "  [DONE]   %-34s rc=%d\n" "$env_id" "$rc"
+    while [ "${#INFLIGHT_ENVS[@]}" -gt 0 ]; do
+        wait_for_next_env
     done
 else
     for env_id in "${ENVS[@]}"; do

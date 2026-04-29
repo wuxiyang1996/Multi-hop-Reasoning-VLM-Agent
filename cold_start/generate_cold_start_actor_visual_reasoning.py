@@ -1264,6 +1264,7 @@ def _run_one_sample(
     schema_helpers: Optional[Dict[str, Any]],
     frames_dir: Optional[Path],
     judge_cache_dir: Optional[Path] = None,
+    judge_routed_model: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run the (vision -> schema -> action) pipeline on one sample."""
     task_id = f"{sample.benchmark}.{sample.sample_id}"
@@ -1347,7 +1348,7 @@ def _run_one_sample(
             predicted=answer,
             benchmark=sample.benchmark,
             client=client,
-            routed_model=routed_model,
+            routed_model=(judge_routed_model or routed_model),
             cache_dir=judge_cache_dir,
             sample_id=sample.sample_id,
         )
@@ -1395,6 +1396,7 @@ def run_benchmark(
     client: Any,
     routed_model: str,
     schema_helpers: Optional[Dict[str, Any]],
+    judge_routed_model: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run the configured number of test cases for one benchmark."""
     bench_dir = output_dir / benchmark
@@ -1459,6 +1461,7 @@ def run_benchmark(
                     args=args,
                     client=client,
                     routed_model=routed_model,
+                    judge_routed_model=judge_routed_model,
                     schema_helpers=schema_helpers,
                     frames_dir=frames_dir,
                     judge_cache_dir=judge_cache_dir,
@@ -1622,10 +1625,18 @@ def main() -> int:
     parser.add_argument(
         "--judge", action="store_true",
         help=(
-            "Use gpt-5.5 as an LLM-as-judge for free-form scoring on "
+            "Enable LLM-as-judge for free-form scoring on "
             "VisualToolBench / TIR-Bench (substring match is too "
             "strict for these benchmarks).  Verdicts cached on disk "
             "under <benchmark>/judge_cache/, so re-runs are free."
+        ),
+    )
+    parser.add_argument(
+        "--judge_model", "--judge-model", type=str, default=None,
+        help=(
+            "Model used for --judge calls.  Defaults to --model.  "
+            "A small reasoning model (e.g. gpt-5.4-mini, gpt-5-mini) "
+            "is usually sufficient and cuts judge cost ~70-90%%."
         ),
     )
     parser.add_argument(
@@ -1689,6 +1700,15 @@ def main() -> int:
     if client is None:
         print("[WARNING] No OpenAI/OpenRouter client could be built — pipeline will run with empty results.")
 
+    # Resolve the judge routing target.  When ``--judge_model`` is
+    # unset we route the judge through ``args.model``; otherwise we
+    # pass the override through ``effective_openai_model`` so that
+    # OpenRouter routing (``openai/<slug>``) is applied consistently.
+    judge_model_cfg = (args.judge_model or args.model)
+    _, judge_routed_model = _build_client_and_route(
+        model=judge_model_cfg, api_key=args.api_key, base_url=args.base_url,
+    )
+
     schema_helpers = _import_schema_helpers()
 
     print("=" * 78)
@@ -1705,7 +1725,13 @@ def main() -> int:
     print(f"  Model (configured): {args.model}")
     print(f"  Model (routed):     {routed_model}")
     print(f"  Vision schema:      {'OFF (--no_vision)' if args.no_vision else 'ON'}")
-    print(f"  LLM-as-judge:       {'ON  (free-form benchmarks only)' if args.judge else 'OFF'}")
+    if args.judge:
+        if judge_routed_model != routed_model:
+            print(f"  LLM-as-judge:       ON  (model: {judge_model_cfg} -> {judge_routed_model})")
+        else:
+            print(f"  LLM-as-judge:       ON  (model: same as actor)")
+    else:
+        print(f"  LLM-as-judge:       OFF")
     print(f"  Save frames:        {args.save_frames}")
     print(f"  Output:             {output_dir}")
     print("=" * 78)
@@ -1722,6 +1748,7 @@ def main() -> int:
             output_dir=output_dir,
             client=client,
             routed_model=routed_model,
+            judge_routed_model=judge_routed_model,
             schema_helpers=schema_helpers,
         )
         per_benchmark.append(summary)
@@ -1754,6 +1781,8 @@ def main() -> int:
         "model_routed": routed_model,
         "use_vision": not args.no_vision,
         "judge_enabled": bool(args.judge),
+        "judge_model": (args.judge_model or args.model) if args.judge else None,
+        "judge_model_routed": judge_routed_model if args.judge else None,
         "num_test_cases": args.num_test_cases,
         "num_frames": args.num_frames,
         "benchmarks": list(benchmarks),
