@@ -193,3 +193,120 @@ e.g. `tool_loop.visual_generate_label_with_tools` calls
 Wired up in [`../vlm_wrapper/eval/run_eval.py`](../vlm_wrapper/eval/run_eval.py) — pass
 `--benchmark {visual_toolbench,tir_bench,video_holmes,siv_bench}`. See
 [`../vlm_wrapper/eval/README.md`](../vlm_wrapper/eval/README.md) for the harness API and metrics.
+
+## Cold-start actor pipeline
+
+A second consumer of these benchmarks lives under
+[`../cold_start/generate_cold_start_actor_visual_reasoning.py`](../cold_start/generate_cold_start_actor_visual_reasoning.py).
+It runs a **two-stage gpt-5.5 pipeline** that mirrors the env-rollout
+cold-start (`generate_cold_start_actor.py` family) but on the four
+visual-reasoning benchmarks:
+
+1. **Visual schema (vision call)** — gpt-5.5 consumes the image (or
+   ``--num_frames`` uniformly-sampled video frames) and emits a
+   ``<state>...</state>`` schema using ``vlm_wrapper.schema``
+   (`build_system_prompt(domain="image_qa"|"video_qa")` +
+   `build_user_message`).
+2. **Actor agent (text call)** — gpt-5.5 reads the schema + the
+   question + the valid action space and picks one answer via OpenAI
+   function calling (`choose_answer`):
+   * MCQ video benchmarks → letter `A..F` (Holmes) / `A..L` (SIV);
+   * free-form image benchmarks → concise answer string.
+
+Per-sample records (schema + raw VLM output + actor answer + gold +
+correctness) land under
+``<repo>/Cold-start-out-visual-reasoning/<run_id>/<benchmark>/``.
+
+### Running it
+
+```bash
+# All four benchmarks, 5 test cases each (the canonical sweep)
+bash cold_start/run_coldstart_actor_visual_reasoning.sh
+
+# Free-form benchmarks (visual_toolbench, tir_bench) graded by an
+# LLM-as-judge (gpt-5.5).  Verdicts cached on disk under
+# <benchmark>/judge_cache/, so re-runs are free.
+bash cold_start/run_coldstart_actor_visual_reasoning.sh \
+    --num_test_cases 5 --judge -v
+
+# Video-only sweep with extra frames per clip (helps temporal-ordering
+# questions on Video-Holmes)
+bash cold_start/run_coldstart_actor_visual_reasoning.sh \
+    --benchmarks video_holmes siv_bench \
+    --num_frames 12 --num_test_cases 5 -v
+```
+
+### LLM-as-judge (`--judge`, free-form benchmarks only)
+
+Naïve substring matching is too strict for VTB / TIR-Bench: VTB ships
+multi-paragraph rubric-style golds and TIR-Bench occasionally asks for
+numeric answers expressed differently from the gold (e.g. `"1.14%"`
+vs `"1.15%"`).  Officially VTB grades by rubric and TIR-Bench by
+task-specific metric — both use a judge model under the hood.  When
+`--judge` is passed:
+
+* For each sample on `visual_toolbench` / `tir_bench` (free-form only),
+  a small gpt-5.5 judge call grades `(question, gold, predicted)` with
+  a `correct | incorrect | unscoreable` verdict + a 2-sentence reason.
+* The verdict is cached at
+  ``<output_dir>/<benchmark>/judge_cache/<sample_id>.<key>.json``,
+  keyed by `sha256(gold || predicted || judge_model)`.  Re-runs that
+  hit the same `(gold, predicted, judge_model)` triple skip the API
+  call entirely.
+* Per-sample JSON keeps both signals: `correct` (judge-derived when
+  enabled, otherwise string-match) and `correct_strmatch` (always
+  the diagnostic substring match), plus the full `judge: {…}` block
+  with verdict / reason / cached / model.
+* MCQ benchmarks (`video_holmes`, `siv_bench`) skip the judge — letter
+  equality already grades exactly and a judge call adds zero signal.
+
+Empirically this lifts VTB accuracy on a 5-sample sweep from `0/5`
+(string-match) to roughly `1–2/5` (judge), matching the rate at which
+gpt-5.5 actually answers the multi-fact rubric prompts correctly.
+
+### SIV-Bench MCQ width (A..L, not A..E)
+
+Heads-up for anyone consuming `iter_siv_bench_samples`: the loader was
+previously hard-coded to a 5-letter option set (`A..E`) per the paper,
+but the released TSV ships some sub-tasks (notably **Relation
+Inference**) with up to **12 options** (`A. service, B. grandparent-
+child, … L. boss-employee`).  The cold-start sweep surfaced this as a
+silent gold-truncation: rows whose `correct_answer_index='L'` looked
+like 5-option rows whose gold was an unreachable letter, and the
+actor was mathematically forced to pick wrong.
+
+`benchmarks/siv_bench.py` now carries the full `A..L` letter span end-
+to-end (`_ANSWER_LETTERS`, `_parse_options`, `_split_letter_prefixed_options`,
+`_normalise_answer_letter`).  Existing 4–5-option rows still parse
+identically; over-wide rows (10–12 options) now expose the full
+candidate set on `SIVBenchSample.options`.
+
+If you are downstream of `SIVBenchSample.options` and previously
+assumed the dict had at most 5 keys (e.g. when iterating MCQ buttons
+in a UI), update the upper bound to 12.
+
+### Per-sample JSON shape
+
+```jsonc
+{
+  "benchmark": "visual_toolbench",
+  "sample_id": "68658a711603983919432621",
+  "question": "How many rebars …",
+  "gold_answer": "There are 6 rebar locations …",
+  "answer": "5 rebars; ~4021 mm²",
+  "correct": false,                  // judge-derived when --judge, else string-match
+  "correct_strmatch": false,         // always the diagnostic substring match
+  "judge": {                         // only present when --judge fired on this sample
+    "verdict": "incorrect",
+    "reason": "Pred says 5 rebars at 32 mm; gold says 6 rebars at 25 mm.",
+    "cached": false,
+    "judge_model": "openai/gpt-5.5"
+  },
+  "schema": "<state> … </state>",    // raw VLM output from the vision stage
+  "schema_source": "vlm",            // 'vlm' | 'fenced' | 'truncated' | 'untagged' | 'no_image'
+  "schema_recovery": "strict",
+  "schema_finish_reason": "stop",
+  "frames_saved": [...],
+  "video_meta": {...}                // only on video benchmarks
+}
+```

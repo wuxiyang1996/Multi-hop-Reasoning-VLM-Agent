@@ -434,11 +434,11 @@ def _h_list_valid_actions(state: _BrowserState) -> dict:
         name = node.get("name", {}).get("value", "")[:40]
 
         if role in ("textbox", "searchbox", "combobox"):
-            actions.append({"action": f'fill({bid}, "...")', "role": role, "name": name})
+            actions.append({"action": f'fill("{bid}", "...")', "role": role, "name": name})
         elif role in ("checkbox", "radio", "switch"):
-            actions.append({"action": f"check({bid})", "role": role, "name": name})
+            actions.append({"action": f'check("{bid}")', "role": role, "name": name})
         else:
-            actions.append({"action": f"click({bid})", "role": role, "name": name})
+            actions.append({"action": f'click("{bid}")', "role": role, "name": name})
 
         if len(actions) >= 20:
             break

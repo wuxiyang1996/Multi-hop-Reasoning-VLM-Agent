@@ -350,14 +350,14 @@ def _suggest_actions(
         bid = target_ent.bid
         role = target_ent.role.lower()
         if role in ("textbox", "searchbox", "combobox"):
-            actions.append(f'fill({bid}, "...")')
+            actions.append(f'fill("{bid}", "...")')
         else:
-            actions.append(f"click({bid})")
+            actions.append(f'click("{bid}")')
 
     clickable = [e for e in entities if "clickable" in e.states and e.eid != target_eid]
     for e in clickable[:4]:
         if e.bid:
-            actions.append(f"click({e.bid})")
+            actions.append(f'click("{e.bid}")')
 
     if not actions:
         actions.append("scroll(down)")

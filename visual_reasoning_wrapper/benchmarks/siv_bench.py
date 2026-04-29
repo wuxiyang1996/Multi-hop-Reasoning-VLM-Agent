@@ -59,10 +59,19 @@ from .video_holmes import sample_video_frames
 
 logger = logging.getLogger(__name__)
 
-# Up to 5 MCQ options (1 correct + 4 distractors per the SIV-Bench
-# paper §B.2).  Some sub-tasks ship with 4 options — the loader handles
-# either count.
-_ANSWER_LETTERS = ("A", "B", "C", "D", "E")
+# Variable MCQ width.  The SIV-Bench *paper* describes 5-way MCQ
+# (1 correct + 4 distractors, §B.2), but the released TSV ships some
+# sub-tasks (notably "Relation Inference") with up to **12 options**
+# (e.g. "A. service, B. grandparent-child, … L. boss-employee").
+# Truncating to A..E silently dropped the gold answer for those rows
+# (cold-start sweep observed gold='L' against a 5-option set),
+# leaving the actor mathematically forced to pick a wrong letter.
+# We carry the full A..L letter span end-to-end and let downstream
+# code skip rows with too-few or too-many options.
+_ANSWER_LETTERS = (
+    "A", "B", "C", "D", "E", "F",
+    "G", "H", "I", "J", "K", "L",
+)
 
 _VIDEO_SUBDIRS = ("origin", "w_sub", "wo_sub")
 
@@ -465,10 +474,10 @@ def _split_letter_prefixed_options(text: str) -> dict[str, str]:
     whole option list lives inside one TSV cell.  We anchor on letter
     prefixes (``A.``, ``B)``, ``C:`` etc.) and slice the string between
     consecutive anchors so commas inside an answer body are safe.
-    Letters outside ``A``…``E`` are recorded too — the caller restricts
-    to the canonical MCQ set so over-long lists (some sub-tasks ship
-    14 categories in one row) parse cleanly without polluting the last
-    valid option.
+    Letters in the canonical span ``A``…``L`` (12 options) are kept;
+    earlier releases truncated to ``A``…``E`` which silently dropped
+    the gold answer for sub-tasks that ship with up to 12 options
+    (e.g. Relation Inference).
     """
     matches = list(_LETTER_PREFIX_RE.finditer(text))
     if not matches:

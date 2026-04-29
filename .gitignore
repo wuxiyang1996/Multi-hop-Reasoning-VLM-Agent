@@ -33,10 +33,17 @@ output/
 docker_vm_data/
 **/docker_vm_data/
 
-# ── Cold-start cache ────────────────────────────────────────────
+# ── Cold-start cache + outputs ──────────────────────────────────
 cold_start/cache/
 cold_start/backup/
 cold_start/output/
+# Actor cold-start outputs (browsergym / gymv / osworld / visual-reasoning / smoke)
+Cold-start-out/
+Cold-start-out-*/
+/Cold-start-out/
+/Cold-start-out-*/
+# Top-level cache produced by cold-start runs
+/cache/
 
 # ── Labeling outputs ────────────────────────────────────────────
 labeling/backup/
