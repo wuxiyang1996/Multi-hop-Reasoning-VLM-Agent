@@ -52,11 +52,15 @@ qwen-baselines-out/
 # ── Labeling outputs ────────────────────────────────────────────
 labeling/backup/
 labeling/output/
+# Per-run intention-label dumps (label_intentions_gpt54.py output)
+labeling/intentions_out/
 
 # ── Skill bank extraction outputs ───────────────────────────────
 skill_agents/extract_skillbank/output/
 skill_agents/extract_skillbank/backup/
 skill_agents/extract_skillbank/backup_2/
+# Top-level cold-start labeling skill-bank dump
+skill_bank_sft/
 
 # ── Evaluation / test outputs ───────────────────────────────────
 test_rollout/

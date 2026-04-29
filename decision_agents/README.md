@@ -124,16 +124,50 @@ actions are reasoning operators that grow the scratchpad until the
 agent emits `ANSWER`. To `ActorAgent`, both look identical: pick one
 action from `valid_actions_t`, get back `(obs, reward, done)`, repeat.
 
-### One vocabulary (`SUBGOAL_TAGS`), task-defined action set
+### Dual-axis intention vocabulary (current canonical)
 
-Only **one** small fixed vocabulary is universal across tasks — the
-COS-PLAY `SUBGOAL_TAGS` used to label the agent's intention every
-step. The action vocabulary is defined per task by the harness.
+The runtime agent and the offline labeler share a single **dual-axis**
+labeling scheme.  Each step is annotated along **two orthogonal axes**
+exported from `decision_agents.agent_helper`:
 
-| Vocabulary | Tokens | Source | Used by |
-|------------|--------|--------|---------|
-| `SUBGOAL_TAGS` (universal) | `SETUP / CLEAR / MERGE / ATTACK / DEFEND / NAVIGATE / POSITION / COLLECT / BUILD / SURVIVE / OPTIMIZE / EXPLORE / EXECUTE` (13) | `agent_helper.infer_intention` | The `[TAG]` prefix on `intention`; conditioning for the action prompt and the skill-bank query; SFT/GRPO training labels for `action_taking` |
-| Action set (per-task) | enumerated by `harness.valid_actions(state)` | the harness | The candidate set passed to `_call_llm` and matched against by the multi-strategy action parser |
+| Axis | Vocabulary | Tokens | Purpose |
+|------|------------|--------|---------|
+| `operator` | `INTENT_OPERATORS` | `INSPECT / TRACK / COMPARE / COMMIT / VERIFY / RECOVER` (6) | Cognitive mode — *what is the agent doing with attention this step?*  Domain-agnostic transfer signal. Future-aligned with the two-MDP inner-hop alphabet `{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}` from `plans/02-action-agent/PLAN-ACTION-AGENT.md §5.3`. |
+| `subgoal`  | `UNIFIED_SUBGOALS` | `SETUP / NAVIGATE / POSITION / CLEAR / MERGE / COLLECT / BUILD / ATTACK / DEFEND / EVADE / OPTIMIZE / SURVIVE / EXPLORE / EXECUTE` (14) | Game achievement — *what concrete goal is being pursued this step?*  Domain anchor.  One alphabet for both `gym_v` (action games) and `env_wrappers` (puzzle / strategy). |
+| Action set (per-task) | enumerated by `harness.valid_actions(state)` | (variable) | Candidate set passed to `_call_llm` and matched against by the multi-strategy action parser. |
+
+The two axes are written into `Experience.intentions` as
+`"[OPERATOR/SUBGOAL] note"` (e.g. `"[COMMIT/EVADE] sidestep left to
+avoid bullets"`).  The downstream `parse_intention_tag` returns the
+operator (cross-domain transfer signal); the new `parse_intention_tags`
+returns both axes.  Legacy single-tag intentions
+(`[CLEAR] match three reds`, `[COMMIT] advance toward orb`) are still
+accepted — the missing axis is reconstructed via the
+`SUBGOAL_TO_OPERATOR` / `OPERATOR_TO_SUBGOAL` alias maps in
+`agent_helper.py`, so older banks load unchanged.
+
+For backward compatibility, the legacy 13-tag `SUBGOAL_TAGS` is kept as
+an alias of `UNIFIED_SUBGOALS` minus `EVADE` (which is split out from
+`DEFEND` to give dodge-style movement a discriminative anchor for
+shoot-em-ups and fighting games).
+
+| Outer step (used today)            | ↔   | Inner hop (planned, two-MDP)             |
+|------------------------------------|-----|------------------------------------------|
+| `INSPECT` (parse / RAG)             | ~   | `GROUND`, `RETRIEVE`                      |
+| `VERIFY`  (check result)            | ~   | `CHECK`                                   |
+| `COMMIT`  (act on goal)             | ~   | `COMMIT`, `EXECUTE`                       |
+| `COMPARE` (weigh options)           | —   | (outer-step only)                         |
+| `TRACK`   (follow change)           | —   | (outer-step only)                         |
+| `RECOVER` (defensive react)         | —   | (outer-step only)                         |
+
+**VERIFY discipline.** VERIFY is reserved for steps with **no new
+directional intent** (NOOP / idle / repeating the same input only to
+confirm registration).  The "X had no effect, try Y" pattern is COMMIT
+(a *new* directional decision), with `EXPLORE` as the typical subgoal.
+Without this discipline the labeller collapses to ~85 % VERIFY on retro
+action games — see
+[`labeling/readme.md`](../labeling/readme.md#vocabularies--dual-axis-one-alphabet-for-both-corpora)
+for the full diagnosis and the smoke-test calibration that fixes it.
 
 ### What happens on a single MDP step
 
@@ -1179,11 +1213,12 @@ Uses `extract_game_facts()` internally — game-specific parsers for Tetris (sta
 
 ### `infer_intention(summary_or_observation, game=None, model=None, context=None)`
 
-Returns a `[TAG] subgoal phrase` (≤15 words) describing the agent's current subgoal. Tags:
+Returns a `[TAG] subgoal phrase` (≤15 words) describing the agent's
+current subgoal. Constrained to the legacy game-tactical vocabulary:
 
 ```
-SETUP | CLEAR | MERGE | ATTACK | DEFEND | NAVIGATE | POSITION |
-COLLECT | BUILD | SURVIVE | OPTIMIZE | EXPLORE | EXECUTE
+SUBGOAL_TAGS = SETUP | CLEAR | MERGE | ATTACK | DEFEND | NAVIGATE | POSITION |
+               COLLECT | BUILD | SURVIVE | OPTIMIZE | EXPLORE | EXECUTE   (13)
 ```
 
 ```python
@@ -1199,6 +1234,31 @@ intention = infer_intention(
 )
 # e.g. "[NAVIGATE] Push remaining box right toward goal tile"
 ```
+
+For the cross-domain `INTENT_OPERATORS` vocabulary (gym-v / future
+two-MDP), use the data-layer labeler `labeling/label_intentions_gpt54.py`
+instead — it consumes `(metadata.schema, action)` and emits a
+`[OPERATOR] note` rewrite of `Experience.intentions` so the segmenter
+sees a real categorical signal.
+
+```
+INTENT_OPERATORS = INSPECT | TRACK | COMPARE | COMMIT | VERIFY | RECOVER  (6)
+```
+
+| Outer-step operator | Cognitive mode |
+|---------------------|----------------|
+| `INSPECT`           | parse / understand current state — menus, transitions, opening screens, RAG retrieval |
+| `TRACK`             | follow or wait on a state change you do not control |
+| `COMPARE`           | explicitly weigh options before commit |
+| `COMMIT`            | take the chosen action with goal-progressing intent |
+| `VERIFY`            | check the result of a recent action against expectation |
+| `RECOVER`           | reactive / defensive response to surprise or failure |
+
+Both vocabularies live in `agent_helper.py` and are bridged by the
+alias maps `SUBGOAL_TO_OPERATOR` / `OPERATOR_TO_SUBGOAL` and by the
+segmenter's `parse_intention_tag` (in
+`skill_agents/boundary_proposal/signal_extractors.py`), so a unified
+consumer can normalise either prefix to either alphabet.
 
 ### `EpisodicMemoryStore`
 

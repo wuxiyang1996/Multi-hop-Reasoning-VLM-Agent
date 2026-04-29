@@ -639,6 +639,46 @@ The `game_name` field in `PipelineConfig` controls which game-specific extractor
 | Candy Crush | 1 skill | 2 skills |
 | Tetris | 4 skills | 4 skills (maintained) |
 
+### Two-vocabulary segmentation (legacy `[CLEAR]` + cross-domain `[COMMIT]`)
+
+The `[TAG]` parser at `boundary_proposal/signal_extractors.py::parse_intention_tag`
+recognises **both** intention vocabularies side-by-side, with no
+config flag or per-corpus switch:
+
+* `SUBGOAL_TAGS` — the legacy 13-token game-tactical alphabet
+  (`SETUP / CLEAR / MERGE / ATTACK / DEFEND / NAVIGATE / POSITION /
+  COLLECT / BUILD / SURVIVE / OPTIMIZE / EXPLORE / EXECUTE`) emitted by
+  `decision_agents.agent_helper.infer_intention` for env_wrappers
+  episodes.
+* `INTENT_OPERATORS` — the new 6-token cross-domain alphabet
+  (`INSPECT / TRACK / COMPARE / COMMIT / VERIFY / RECOVER`) emitted by
+  `labeling/label_intentions_gpt54.py` for gym-v Temporal ROMs and any
+  other corpus where the actor writes free-form English without a
+  `[TAG]` prefix. Future-aligned with the two-MDP inner-hop alphabet
+  (see `decision_agents/README.md`).
+
+Concretely:
+
+* `parse_intention_tag(intention)` returns the canonical token from
+  whichever vocabulary matched (so a 2048 episode produces
+  `"endgame:MERGE"` compound labels while a gym-v episode produces
+  `"opening:COMMIT"` / `"endgame:RECOVER"`); the rest of the pipeline
+  treats them identically.
+* `extract_skillbank_grpo_gpt54.py` accepts both via the union frozenset
+  `_SUBGOAL_TAG_SET = frozenset(SUBGOAL_TAGS) | frozenset(INTENT_OPERATORS)`,
+  so a single skill bank can mix segments tagged in either vocabulary.
+* `labeling/unify_skill_index.py` aggregates over both corpora and
+  records the originating `corpus` (`gym_v` vs `env_wrappers`) on every
+  skill row, so the cross-corpus consumer can filter or rebalance by
+  vocabulary if needed.
+
+Phase × tag compounding still works for either vocabulary
+(`temporal_thirds` is the generic fallback when the corpus lacks a
+game-specific phase extractor — gym-v Temporal ROMs always hit this
+path), so a gym-v skill seed looks like `early:INSPECT`,
+`mid:COMMIT`, `late:RECOVER` and slots into the same decoder
+machinery.
+
 ---
 
 ## Reasoning-model compatibility

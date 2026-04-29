@@ -96,6 +96,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 import time
 import traceback
@@ -163,14 +164,76 @@ def _pick_schema(metadata: Dict[str, Any]) -> str:
     return ""
 
 
+# ---------------------------------------------------------------------------
+# Predicate-noise filter
+# ---------------------------------------------------------------------------
+#
+# The per-frame ``<state>`` schema entity lines look like
+#
+#     e1=type=object, label=player ship, bid=null, pos=18,9,1,1, ontology=tracked_entity
+#
+# The skill_agents pipeline parses ``key=value`` pairs from
+# ``summary_state`` and emits ``world.{key}={value}`` predicates.
+# Because ``pos=`` changes every frame, every step ends up with a
+# distinct ``world.e1=...`` predicate, which (a) drowns the contract
+# verifier in noise (every step looks "different"), (b) makes
+# ``event.eX_changed`` fire every step, and (c) destroys cross-segment
+# discrimination.
+#
+# We strip the high-noise fields (``pos``, ``bid``, ``ontology``) and
+# leave the stable identity fields (``type``, ``label``).  This is
+# applied **only to the gym-v summary builder** — env_wrappers
+# extractors are unaffected.
+# ---------------------------------------------------------------------------
+
+# Inline ``key=value`` segments inside an entity line that change every
+# frame and offer no skill-discrimination signal.  Stripped before the
+# line is forwarded to the segmenter / contract learner.
+#
+# These come in three shapes:
+#   * tuple-valued positional/size  ``pos=18,9,1,1`` (any number of
+#     comma-separated numbers, possibly negative / float)
+#   * scalar-valued                 ``bid=null``, ``ontology=tracked_entity``
+#   * already-bracketed             ``[pos=(18,9,1,1)]``
+#
+# The regex matches:
+#   1. an optional leading comma + whitespace,
+#   2. the noisy key,
+#   3. an ``=`` sign,
+#   4. its value — either a parenthesised group or a run of
+#      digits/commas/dots/dashes/whitespace OR a single non-comma
+#      non-bracket token (so we capture both numeric tuples and
+#      identifier-valued scalars without nibbling into the next field).
+_NOISY_INLINE_KEYS = ("pos", "bid", "ontology", "rect", "bbox", "size")
+_NOISY_INLINE_RE = re.compile(
+    r"\s*,?\s*(?:" + "|".join(re.escape(k) for k in _NOISY_INLINE_KEYS) + r")\s*=\s*"
+    r"(?:\([^)]*\)|[\d.\-,\s]+(?=,\s*\w+\s*=|\]|$|\s*\|)|[^,\]]*)",
+    re.IGNORECASE,
+)
+
+
+def _strip_noisy_inline_kvs(line: str) -> str:
+    """Drop per-frame positional / id / ontology fields from one schema line."""
+    cleaned = _NOISY_INLINE_RE.sub("", line)
+    # Tidy any double commas / dangling commas the substitution leaves behind.
+    cleaned = re.sub(r",\s*,", ",", cleaned)
+    cleaned = re.sub(r"\[\s*,", "[", cleaned)
+    cleaned = re.sub(r",\s*\]", "]", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned.strip()
+
+
 def _compact_summary_from_schema(schema: str, *, limit: int = _SUMMARY_HARD_LIMIT) -> str:
     """Single-line ``key=value | key=value`` view of a ``<state>`` block.
 
-    The Stage 2 segmentation scorer reads ``Experience.summary_state`` for
-    intention-fit + boundary-preference terms; an over-long blob bloats
-    every preference-learning prompt. We strip the XML wrapper, drop the
-    affordance / intentions / state_flags tail (least useful for skill
-    discrimination) and join the remaining lines with ``|``.
+    Two passes:
+
+    1. Strip XML wrappers + affordance/intentions tails so the prompt
+       budget stays small.
+    2. Apply :func:`_strip_noisy_inline_kvs` to drop ``pos``/``bid``/
+       ``ontology``/``rect``/``bbox``/``size`` fields that change every
+       frame — these otherwise spawn one-off ``world.eX=...`` predicates
+       per step, which destroys contract discrimination across segments.
     """
     if not schema:
         return ""
@@ -190,11 +253,162 @@ def _compact_summary_from_schema(schema: str, *, limit: int = _SUMMARY_HARD_LIMI
             continue
         if low.startswith("<affordances>") or low.startswith("</affordances>"):
             break  # rest of the schema is verbose enumeration
+        # Strip per-frame noisy fields.
+        s = _strip_noisy_inline_kvs(s)
+        if not s:
+            continue
         lines.append(s)
         if sum(len(x) for x in lines) > limit:
             break
     summary = " | ".join(lines)
     return summary[:limit]
+
+
+# ---------------------------------------------------------------------------
+# Intent-operator classifier (gym-v only)
+# ---------------------------------------------------------------------------
+#
+# The gym-v cold-start actor writes free-form English reasoning into
+# ``Experience.intentions`` — no bracketed ``[TAG]`` prefix.  The
+# skill_agents segmenter therefore sees ``UNKNOWN`` for every step
+# (``parse_intention_tag`` requires a leading ``[TAG]``), and the
+# Stage-2 intention-fit term collapses to zero — at which point the
+# only remaining signal is the LLM behavior_fit, which is too weak
+# to produce more than 1-3 skills/env.
+#
+# We fix this **post-hoc** by deriving a categorical operator from
+# ``(schema_text, intent_text, action)`` and prepending ``[OPERATOR]``
+# to ``intentions`` so ``parse_intention_tag`` returns a real tag.
+#
+# The operator alphabet is :data:`decision_agents.agent_helper.INTENT_OPERATORS`
+# — chosen to align with the future two-MDP inner-hop alphabet from
+# ``PLAN-ACTION-AGENT.md §5.3`` so banks extracted today survive the
+# eventual move to the typed-hop architecture.
+# ---------------------------------------------------------------------------
+
+# Phrase patterns ordered by specificity (most specific first).
+# Each entry is (compiled_regex, operator).  The first match wins.
+_OP_PHRASE_PATTERNS: List[Tuple[Any, str]] = []  # populated below
+
+
+def _build_op_phrase_patterns() -> None:
+    """Compile the intent-operator phrase patterns once at import time."""
+
+    spec: List[Tuple[str, str]] = [
+        # RECOVER — defensive / reactive cues fire first so they don't
+        # get swallowed by COMMIT (avoid > attack when both appear).
+        (r"\b(?:dodge|evade|avoid being|retreat|back off|block|guard|defend|recover|escape|flee)\b", "RECOVER"),
+        (r"\bavoid\b(?!\s+(?:cover|covering|the\s+center))", "RECOVER"),
+        (r"\b(?:no\s+health|low\s+health|health\s+critical|near\s+death|topping\s+out|game\s+over|lose\s+a\s+life)\b", "RECOVER"),
+
+        # VERIFY — strict definition (post-2026-04-29 calibration).
+        # ONLY fires when the agent is taking NO new directional action,
+        # i.e. an explicit observe / confirm phrase WITHOUT an
+        # accompanying directional verb like "try", "test", "press".
+        # The legacy "X had no effect" cue is intentionally NOT a VERIFY
+        # trigger any more — that pattern is a retry-after-fail and the
+        # right operator for the *new* attempt is COMMIT.
+        (r"\b(?:confirm|verify|validate|ensure)\b\s+(?:that|whether|if|the)", "VERIFY"),
+        (r"\b(?:check\s+(?:that|whether|if))\b", "VERIFY"),
+        (r"\b(?:idle\s+(?:to|and)\s+(?:see|wait)|wait\s+(?:to\s+see|and\s+see))\b", "VERIFY"),
+
+        # COMPARE — explicit weighing of options.
+        (r"\b(?:weigh(?:ing)?|consider(?:ing)?\s+(?:between|either)|alternative|either\s+\w+\s+or\b)\b", "COMPARE"),
+        (r"\b(?:option\s+[ab1-9]|choice\s+between|trade-?off)\b", "COMPARE"),
+
+        # TRACK — passive following / waiting.
+        (r"\b(?:wait(?:ing)?\s+for|track(?:ing)?|follow(?:ing)?\s+the|watch(?:ing)?\s+(?:the|for))\b", "TRACK"),
+        (r"\b(?:animation|opponent\s+(?:is\s+)?(?:moving|advancing|approaching))\b", "TRACK"),
+
+        # INSPECT — opening / setup / parsing scene.
+        (r"\b(?:get\s+ready|press\s+start|round\s+1\b|level\s+1\b|stage\s+select|title\s+screen|menu\b|loading|intro|opening\s+(?:state|move|frame|screen))\b", "INSPECT"),
+        (r"\b(?:gameplay\s+(?:has(?:n't|\s+not)?\s+)?(?:fully\s+)?(?:started|begun))\b", "INSPECT"),
+        (r"\b(?:identify|inspect|examine|parse|understand|survey|look\s+(?:at|for))\b", "INSPECT"),
+        (r"\b(?:no\s+(?:enemies|opponents|targets)\s+(?:visible|present|yet))\b", "INSPECT"),
+
+        # COMMIT — the default goal-progressing intent.  Includes the
+        # retry-after-fail pattern: when the actor says "X had no
+        # effect, try Y" the operator for *this* step is COMMIT (a new
+        # directional decision), not VERIFY.
+        (r"\b(?:try|test|attempt|switch\s+to|press\b\s+\w+\s+to)\b", "COMMIT"),
+        (r"\b(?:engage|attack|strike|advance|progress|push\s+forward|fire|shoot|hit\s+the|punch|kick|combo|rotate|drop|place|advance\s+toward|score|collect|pickup)\b", "COMMIT"),
+        (r"\b(?:continue|maintain|press\b)\s+(?:close-?range|the\s+pressure|offense)\b", "COMMIT"),
+    ]
+    for pat, op in spec:
+        _OP_PHRASE_PATTERNS.append((re.compile(pat, re.IGNORECASE), op))
+
+
+_build_op_phrase_patterns()
+
+
+# Action categorisation — used as a tie-breaker when no phrase matches.
+_ACTION_NOOP = {"NOOP", "NO_OP", "NONE", "NULL", ""}
+_ACTION_MENU = {"START", "SELECT", "PAUSE", "RESET"}
+
+
+def _classify_intent_operator(
+    intent_text: str,
+    schema_text: str,
+    action: str,
+    step_idx: int = 0,
+) -> str:
+    """Return one of the six :data:`INTENT_OPERATORS` for one step.
+
+    Priority order:
+
+    1. Phrase patterns over ``intent_text`` (highest precision).
+    2. Schema event signals (``event.score_changed``, ``event.health``).
+    3. Action heuristics (NOOP/menu actions, primitive movement).
+    4. Default → ``COMMIT``.
+
+    The classifier is deterministic and runs in microseconds per step.
+    """
+    intent_lower = (intent_text or "").lower()
+    schema_lower = (schema_text or "").lower()
+
+    # 1. Phrase patterns.
+    for regex, op in _OP_PHRASE_PATTERNS:
+        if regex.search(intent_lower):
+            return op
+
+    # 2. Schema event signals — high-precision categorical evidence.
+    if "event.score_changed" in schema_lower or "event.point" in schema_lower:
+        return "VERIFY"  # something we did paid off — we're checking results
+    if (
+        "event.health" in schema_lower
+        or "event.damage" in schema_lower
+        or "event.life_lost" in schema_lower
+    ):
+        return "RECOVER"
+    if "event.goal_changed" in schema_lower:
+        return "INSPECT"  # task surface just changed — we're re-orienting
+
+    # 3. Action heuristics.
+    a = (action or "").upper()
+    if a in _ACTION_MENU:
+        return "INSPECT"
+    if a in _ACTION_NOOP:
+        return "TRACK"
+
+    # Early steps with little reasoning typically inspect the scene.
+    if step_idx < 3 and len(intent_lower) < 80:
+        return "INSPECT"
+
+    # 4. Default — most outer-step commits emit a primitive game action
+    #    with goal-progressing intent.
+    return "COMMIT"
+
+
+def _prepend_operator_to_intentions(operator: str, original: str) -> str:
+    """Inject ``[OPERATOR] `` at the head of an intentions string.
+
+    Idempotent — if the original already starts with a ``[TAG]`` in
+    either vocabulary the original is returned unchanged.
+    """
+    src = (original or "").strip()
+    if src.startswith("[") and "]" in src[:24]:
+        return src  # already tagged (legacy SUBGOAL_TAG or new operator)
+    return f"[{operator}] {src}" if src else f"[{operator}]"
 
 
 def _normalize_gymv_episode_dict(ep_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -241,6 +455,28 @@ def _normalize_gymv_episode_dict(ep_data: Dict[str, Any]) -> Dict[str, Any]:
             new_exp["summary"] = summary_state
         new_exp["raw_state"] = (exp.get("raw_state") or "")[:1000]
         new_exp["raw_next_state"] = (exp.get("raw_next_state") or "")[:1000]
+
+        # Inject an [OPERATOR] tag onto ``intentions`` so the segmenter's
+        # ``parse_intention_tag`` returns a real categorical signal
+        # (gym-v actor writes free-form English with no [TAG] prefix).
+        # Mirror the un-tagged original to ``raw_intentions`` so the
+        # SFT/teacher I/O can recover the natural-language reasoning.
+        original_intent = exp.get("intentions") or ""
+        operator = _classify_intent_operator(
+            intent_text=original_intent,
+            schema_text=schema,
+            action=str(new_exp.get("action") or ""),
+            step_idx=i,
+        )
+        tagged_intent = _prepend_operator_to_intentions(operator, original_intent)
+        new_exp["intentions"] = tagged_intent
+        new_exp["raw_intentions"] = original_intent
+        # Mirror the operator into metadata so per-step JSONL streams
+        # carry it without re-parsing the intentions field.
+        meta = dict(new_exp.get("metadata") or {})
+        meta["intent_operator"] = operator
+        new_exp["metadata"] = meta
+
         new_exps.append(new_exp)
 
     out["experiences"] = new_exps

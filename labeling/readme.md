@@ -55,14 +55,36 @@ For **each experience step** in an episode:
 | `intentions`    | `[TAG] subgoal phrase` | Yes (≤40 tokens) | Tagged subgoal with delta-aware tag evolution. Tag shifts when the game situation changes significantly. |
 | `skills`        | `{skill_id, skill_name, skill_summary, ...}` or `null` | Yes (when using skill extraction) | Skill assignment from the SkillBankAgent pipeline. Contains RAG-friendly summaries, effects contracts, and segment boundaries. Null when using labels-only pipeline. |
 
-### Subgoal Tags
+### Intention scheme — dual-axis (current canonical)
 
-Intentions use one of these categorical tags for skill segmentation:
+Every step is labelled along **two orthogonal axes**.  The two are
+written into `Experience.intentions` as `"[OPERATOR/SUBGOAL] note"`
+(e.g. `"[COMMIT/EVADE] sidestep left to avoid bullets"`).
 
-```
-SETUP | CLEAR | MERGE | ATTACK | DEFEND | NAVIGATE | POSITION |
-COLLECT | BUILD | SURVIVE | OPTIMIZE | EXPLORE | EXECUTE
-```
+| Axis | Vocabulary | Purpose |
+|---|---|---|
+| `operator` (cognitive mode) | `INSPECT`, `TRACK`, `COMPARE`, `COMMIT`, `VERIFY`, `RECOVER` (6) | Domain-agnostic transfer signal — what is the agent *doing with attention* this step? Future-aligned with the two-level MDP inner-hop alphabet (`plans/02-action-agent/PLAN-ACTION-AGENT.md §5.3`). |
+| `subgoal` (game achievement) | `SETUP, NAVIGATE, POSITION, CLEAR, MERGE, COLLECT, BUILD, ATTACK, DEFEND, EVADE, OPTIMIZE, SURVIVE, EXPLORE, EXECUTE` (14) | Domain anchor — what concrete goal is being pursued? Same alphabet for both `gym_v` and `env_wrappers`. |
+
+**Why two axes?** A single tag set is forced to choose between
+*cross-domain transferability* and *domain richness*. The 6-tag operator
+alphabet gives the segmenter a cross-game reasoning-mode signal; the
+14-tag subgoal alphabet gives skill discovery a concrete domain anchor.
+The same primitive button press can map to very different
+`(operator, subgoal)` pairs depending on context (e.g. `[RECOVER/EVADE]
+sidestep` vs `[COMMIT/EXPLORE] try LEFT after RIGHT failed` vs
+`[VERIFY/SETUP] idle to confirm menu cleared`).
+
+**VERIFY discipline.** VERIFY is reserved for steps with **no new
+directional intent** (NOOP / idle / repeating the same input only to
+confirm registration).  The `"X had no effect, try Y"` pattern is
+COMMIT (the agent is making a *new* directional decision).  Without
+this discipline the labeller collapses to `~85% VERIFY` on retro action
+games, which produces a single segment per episode and very few skills.
+
+Both `parse_intention_tag` (returns operator) and `parse_intention_tags`
+(returns the full pair) accept the dual format and gracefully fall back
+on legacy single-tag intentions for older banks.
 
 ### Design Principles
 
@@ -153,6 +175,8 @@ step 49/50 (endgame — final move):
 |----------------------------------------|---------|
 | `label_episodes_gpt54.py`             | Labels-only script. Reads episode JSONs, calls gpt-5.5, writes labeled output with `skills=null`. |
 | `label_episodes_with_skills.py`       | **Labels + Skill Selection + GRPO Cold-Start**. Loads a pre-built skill bank, runs top-k skill selection per step, exports GRPO training data for action-taking and skill-selection LoRA adapters. |
+| `label_intentions_gpt54.py`           | **Dual-axis step-level intention labeler**. Takes only `(schema, action)` per step and emits `(operator, subgoal, note)` with one unified vocabulary across both corpora. Operators: `INSPECT/TRACK/COMPARE/COMMIT/VERIFY/RECOVER` (cognitive mode). Subgoals: `SETUP/NAVIGATE/POSITION/CLEAR/MERGE/COLLECT/BUILD/ATTACK/DEFEND/EVADE/OPTIMIZE/SURVIVE/EXPLORE/EXECUTE` (game achievement). Stores result as `[OPERATOR/SUBGOAL] note` in `Experience.intentions`. LLM (gpt-5.4) with 12 few-shot examples + decision rules + VERIFY-overuse guard + prior-step (op, sg) hint; falls back to rule classifier. |
+| `run_label_intentions.sh`             | Parallel dispatcher for `label_intentions_gpt54.py` (one worker per env / game across both corpora; rolls up tag distribution per bucket). |
 | `extract_skillbank_gpt54.py`          | **Skills only**: reads already-labeled rollouts, runs SkillBankAgent pipeline, writes skill bank and catalogs. No labeling. env_wrappers games. |
 | `extract_skillbank_gymv_gpt54.py`     | **gym-v skills**: reads raw `Cold-start-out-gymv/<run>/Temporal_*/episode_*.json`, maps `metadata.schema → state`, runs SkillBankAgent pipeline. |
 | `unify_skill_index.py`                | **Cross-corpus aggregator** — walks any mix of env_wrappers + gym-v output roots and emits a single canonical, corpus-tagged skill index under `<output_dir>/_unified/`. |
@@ -192,6 +216,149 @@ python labeling/label_episodes_gpt54.py --in_place
 # Or use the shell wrapper:
 bash labeling/run_labeling.sh --games tetris -v
 ```
+
+## Usage — Step-level Intention Labels from `(schema, action)` (`label_intentions_gpt54.py`)
+
+A **lightweight, corpus-agnostic** alternative to `label_episodes_gpt54.py`.
+Where the latter rebuilds a full RAG-style summary from game-specific extractors
+(no support for retro Genesis ROMs), this script reads only the per-step
+`(metadata.schema, action)` pair already present in every cold-start episode
+and emits a **dual-axis** intention label per step: an `operator` (cognitive
+mode) plus a `subgoal` (game achievement).
+
+It is the data-layer companion to the segmenter fix in
+[`extract_skillbank_gymv_gpt54.py`](#usage--gym-v-skill-extraction-extract_skillbank_gymv_gpt54py):
+the cold-start actor writes free-form English into `Experience.intentions` with
+no `[TAG]` prefix, so the skill-bank segmenter sees `UNKNOWN` for every step
+and Stage-2 intention-fit collapses to zero. This labeler rewrites
+`intentions = "[OPERATOR/SUBGOAL] note"` so the existing pipeline picks up the
+signal without any code changes downstream.
+
+### Vocabularies — dual-axis (one alphabet for both corpora)
+
+The labeler produces both axes for *every* step (gym_v and env_wrappers
+share the same prompt and vocabularies):
+
+| Axis      | Vocabulary                | Tags                                                                                                |
+|-----------|---------------------------|-----------------------------------------------------------------------------------------------------|
+| operator  | `INTENT_OPERATORS` (6)    | `INSPECT, TRACK, COMPARE, COMMIT, VERIFY, RECOVER` — cognitive mode (universal)                     |
+| subgoal   | `UNIFIED_SUBGOALS` (14)   | `SETUP, NAVIGATE, POSITION, CLEAR, MERGE, COLLECT, BUILD, ATTACK, DEFEND, EVADE, OPTIMIZE, SURVIVE, EXPLORE, EXECUTE` — domain anchor |
+
+`INTENT_OPERATORS` is future-aligned with the two-level MDP inner-hop
+alphabet from `plans/02-action-agent/PLAN-ACTION-AGENT.md §5.3`
+(`{GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE}`) so banks labelled today
+survive the eventual move to the typed-hop architecture.
+
+`UNIFIED_SUBGOALS` is the legacy `SUBGOAL_TAGS` alphabet enriched with
+`EVADE` (split out from `DEFEND` so dodge-style movement gets a
+discriminative anchor for shoot-em-ups and fighting games).
+
+### Per-step prompt design
+
+Each step prompt carries:
+
+* the **operator definitions** (6 entries) plus the **subgoal definitions** (14 entries) — one shared alphabet across all corpora;
+* 6 numbered **decision rules** (priority order: THREAT → RETRY-AFTER-FAIL → PURE-OBSERVE → WEIGH-OPTIONS → OPENING/MENU → DEFAULT-COMMIT);
+* a **VERIFY-overuse guard** that explicitly tells the model to ask "is the agent picking a NEW direction this step?" — if yes, the correct operator is COMMIT, not VERIFY;
+* 12 **few-shot examples** drawn from both gym-v and env_wrappers, demonstrating that the same primitive button press can map to very different `(operator, subgoal)` pairs depending on context;
+* the truncated `<state>` schema block (`pos=`/`bid=`/`ontology=` stripped via the same noise filter as the gym-v extractor);
+* the chosen action;
+* a 5-key state delta from the prior step;
+* the actor's free-form `intentions` text (the original natural-language reasoning) as a "reasoning hint";
+* the prior step's `(operator, subgoal)` rule-classifier guess as a "trajectory" anchor.
+
+Output is a strict JSON object: `{"operator":"…","subgoal":"…","note":"…"}`.
+
+### VERIFY discipline (why VERIFY does not dominate)
+
+The previous single-axis labeller collapsed to ~85 % VERIFY on gym-v
+trajectories because the cold-start actor's reasoning is a trial-and-error
+monologue ("RIGHT had no effect, try UP") that *looks* like verification.
+The dual-axis prompt fixes this by stating:
+
+> VERIFY is **only** the cognitive mode of observing the outcome of an
+> already-completed prior action **with no new directional intent**.
+> The "X had no effect, try Y" pattern is COMMIT (a new directional
+> decision) — and the subgoal is usually `EXPLORE` (probing unknowns).
+
+Empirical post-fix distribution on Airstriker (smoke test, 100 steps):
+`COMMIT 47 % / RECOVER 40 % / INSPECT 13 %`, **0 % VERIFY** — and
+subgoals are spread across `EVADE 39 / EXPLORE 27 / SETUP 26 / ATTACK 6`.
+
+### Outputs
+
+For each labelled episode the original JSON is preserved and five new
+fields per step are added:
+
+```json
+{
+  "intention_tag":     "RECOVER",
+  "intention_subgoal": "EVADE",
+  "intention_note":    "Sidestep left to dodge incoming center-lane bullets.",
+  "intentions":        "[RECOVER/EVADE] Sidestep left to dodge incoming center-lane bullets.",
+  "raw_intentions":    "Bullets approaching center; move left to evade …",
+  "metadata": {
+    "intent_operator":      "RECOVER",
+    "intent_subgoal":       "EVADE",
+    "intent_label_source":  "llm"
+  }
+}
+```
+
+A `_intentions_summary.json` per (corpus, env/game) records the
+operator distribution, subgoal distribution, joint
+`pair_distribution` (`OP/SG` counts), and the
+`(llm | rule_classifier | fallback_default)` source counts so you can
+see at a glance how often the LLM agreed with the rule classifier or
+fell back.
+
+### Output layout
+
+```text
+labeling/intentions_out/<run>/
+├── gym_v/
+│   └── Temporal_Airstriker-v0/
+│       ├── episode_000.json
+│       ├── ...
+│       └── _intentions_summary.json
+├── env_wrappers/
+│   └── tetris/
+│       ├── episode_000.json
+│       ├── ...
+│       └── _intentions_summary.json
+└── _intentions_run_summary.json
+```
+
+### CLI
+
+```bash
+# Both corpora at once (defaults pick up the most recent gpt-5.4 stream runs)
+bash labeling/run_label_intentions.sh \
+    --output_dir  labeling/intentions_out/run_$(date '+%Y%m%d') \
+    --parallel 6 --workers 8
+
+# Single env smoke test (gym-v only, 1 episode)
+python labeling/label_intentions_gpt54.py \
+    --gymv_input  Cold-start-out-gymv/<run>/Temporal_Airstriker-v0 \
+    --output_dir  labeling/intentions_out/airstriker_test \
+    --max_episodes 1 --workers 4 -v
+
+# Specific env_wrappers games only
+bash labeling/run_label_intentions.sh \
+    --no_gymv \
+    --games tetris super_mario \
+    --output_dir labeling/intentions_out/envw_only
+
+# Resume a partially completed run
+bash labeling/run_label_intentions.sh --resume \
+    --output_dir labeling/intentions_out/run_20260429
+```
+
+After this labeler completes, the per-env `extract_skillbank_*` drivers
+can either **read directly from** the labelled output (point
+`--input_dir` at e.g. `labeling/intentions_out/run_*/gym_v/`), or you
+can copy the `intentions` field back over the original cold-start JSONs
+and use those as input.
 
 ## Usage — Labels + Skill Selection + GRPO Cold-Start (`label_episodes_with_skills.py`)
 
@@ -452,10 +619,29 @@ ROMs, so this script consumes the raw cold-start output directly:
   `<state>` block at `metadata.schema` plus the chosen action.
 * **Mapping** — for each step the script sets
   `state = next_state(prev) = metadata.schema`, builds a compact
-  `key=value | ...` view (≤600 chars) for `summary_state`, and leaves
-  `intentions` (already populated with gpt-5.4's per-step reasoning)
-  untouched. The skills the bank pipeline produces therefore come from
-  `(schema, action)` pairs.
+  `key=value | ...` view (≤600 chars) for `summary_state`, and prepends
+  an `[OPERATOR]` tag onto `intentions` via the rule classifier
+  `_classify_intent_operator(intent_text, schema_text, action, step_idx)`
+  so the segmenter's `parse_intention_tag` returns a real categorical
+  signal (not `UNKNOWN`).  The skills the bank pipeline produces
+  therefore come from `(schema, action, [OPERATOR] note)` triples.
+* **Predicate-noise filter** — the same compact-summary builder strips
+  per-frame fields (`pos=`, `bid=`, `ontology=`, `rect=`, `bbox=`,
+  `size=`) from each entity line via `_strip_noisy_inline_kvs(line)`
+  before forwarding to the segmenter / contract learner.  Without
+  this, every frame produces a distinct `world.eX={…, pos=18,9,1,1, …}`
+  predicate, every step looks "different", and the contract verifier
+  cannot distinguish skills.  Stripping leaves the stable identity
+  fields (`type`, `label`) so contracts aggregate cleanly across
+  segments.
+* **Tag injection vs. dedicated labeler** — the rule classifier is the
+  fast, deterministic, in-line tag injector that runs as part of
+  `_normalize_gymv_episode_dict`. For higher-quality categorical
+  labels driven by gpt-5.4 with few-shot + decision-rule prompts and
+  prior-tag context, run the standalone
+  [`label_intentions_gpt54.py`](#usage--step-level-intention-labels-from-schema-action-label_intentions_gpt54py)
+  first and point this script's `--input_dir` at
+  `labeling/intentions_out/<run>/gym_v/`.
 * **Pipeline** — delegates verbatim to the canonical
   `skill_agents.extract_skillbank.extract_skillbank_grpo_gpt54.extract_skills_for_game`,
   so all three LoRA targets (SEGMENT / CONTRACT / CURATOR) record their
