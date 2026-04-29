@@ -1,4 +1,4 @@
-# Labeling — Episode Annotation with the SFT Teacher
+# Labeling — Episode Annotation, Skill Extraction & Cross-Corpus Index
 
 > **Model mapping (current phase):** SFT teacher = `gpt-5.5` (the default
 > for every script in this folder; resolved from
@@ -7,15 +7,42 @@
 > The historical `MODEL_GPT54` constant remains as an alias for backward
 > compatibility, but its *value* now points at the current SFT teacher.
 
-Skill labeling pipeline for the **COS-PLAY** co-evolution framework (COLM 2026). Annotates cold-start episode trajectories with concise labels suitable for RAG retrieval, the Decision Agent, and downstream skill extraction by the Skill Bank Agent.
+This folder bundles four offline pipelines plus a cross-corpus aggregator
+for the **COS-PLAY** co-evolution framework (COLM 2026). Together they
+turn cold-start episodes into labeled trajectories, per-source skill
+banks, per-LoRA cold-start corpora, and a single corpus-tagged skill
+index — the inputs the deferred Skill-Bank GRPO trainer (and the
+downstream Harness gate stack from
+[`plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md))
+will consume.
 
-There are **three pipelines** available:
+| Pipeline | Stage | Corpus | Outputs |
+|----------|-------|--------|---------|
+| `label_episodes_gpt54.py` | **Labels only** — adds `summary_state`, `summary`, `intentions` (skills=null). | env_wrappers | labeled episode JSONs |
+| `label_episodes_with_skills.py` | Labels **+ skill selection + decision-agent GRPO cold-start**. Loads a pre-built bank, runs top-k selection per step, emits `action_taking.jsonl` + `skill_selection.jsonl`. | env_wrappers | labeled episodes + decision-agent GRPO data |
+| `extract_skillbank_gpt54.py` | **Skill extraction** from already-labeled rollouts; runs the full SkillBankAgent pipeline. | env_wrappers | per-game skill bank, catalog, per-LoRA I/O, cross-game archetypes |
+| `extract_skillbank_gymv_gpt54.py` | **Skill extraction** for `Temporal/<Title>-v0` envs. Maps `metadata.schema → state` and runs the canonical SkillBankAgent pipeline (per-stage I/O, per-episode snapshots). Parallel dispatcher: `run_extract_skillbank_gymv.sh`. | gym-v | per-env skill bank, catalog, per-LoRA I/O, per-stage I/O, per-episode snapshots |
+| `unify_skill_index.py` | **Cross-corpus aggregator**. Walks any mix of env_wrappers + gym-v output roots and emits a corpus-tagged `_unified/` tree. | both | flat skill index, grouped catalog, RAG index |
 
-| Script | Purpose |
-|--------|---------|
-| `label_episodes_gpt54.py` | **Labels only** — annotates episodes with `summary_state`, `summary`, `intentions` (leaves `skills` null). |
-| `label_episodes_with_skills.py` | **Labels + Skill Selection + GRPO Cold-Start** — same annotations as above, **plus** loads a pre-built skill bank, runs top-k skill selection at each step, and exports GRPO cold-start training data for both action-taking and skill-selection LoRA adapters. |
-| `extract_skillbank_gpt54.py` | **Skills only** — reads **already-labeled** rollouts (e.g. from `labeling/output/gpt54/`), runs the full SkillBankAgent pipeline, and writes the skill bank and catalogs. No labeling step. |
+Both extractors and the aggregator share **one canonical per-skill /
+per-source schema** (see
+[Unified cross-corpus skill index](#unified-cross-corpus-skill-index-unify_skill_indexpy)),
+so per-source folders are interchangeable inputs to any downstream
+consumer that walks `<root>/<source>/skill_bank.jsonl` +
+`skill_catalog.json`.
+
+### Where this sits in the lifecycle
+
+The bank, catalog, and per-LoRA I/O written here are
+**`draft_store`-equivalent** under
+[`PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md):
+the Skill Bank Agent (Agent 2 + Crafter) is the **content producer** at
+this stage. Nothing in this folder promotes a skill into the active
+bank — that requires the Harness `GateRunner` (static / replay / shadow
+/ transfer / non-regression) and the Orchestrator's
+`PromotionOrchestrator` transaction. See
+[`plans/00-system/DISCUSSION-COMPONENT-RESPONSIBILITIES.md`](../plans/00-system/DISCUSSION-COMPONENT-RESPONSIBILITIES.md)
+for the four-way ownership boundary.
 
 ## What Gets Labeled
 
@@ -126,10 +153,13 @@ step 49/50 (endgame — final move):
 |----------------------------------------|---------|
 | `label_episodes_gpt54.py`             | Labels-only script. Reads episode JSONs, calls gpt-5.5, writes labeled output with `skills=null`. |
 | `label_episodes_with_skills.py`       | **Labels + Skill Selection + GRPO Cold-Start**. Loads a pre-built skill bank, runs top-k skill selection per step, exports GRPO training data for action-taking and skill-selection LoRA adapters. |
-| `extract_skillbank_gpt54.py`          | **Skills only**: reads already-labeled rollouts, runs SkillBankAgent pipeline, writes skill bank and catalogs. No labeling. |
+| `extract_skillbank_gpt54.py`          | **Skills only**: reads already-labeled rollouts, runs SkillBankAgent pipeline, writes skill bank and catalogs. No labeling. env_wrappers games. |
+| `extract_skillbank_gymv_gpt54.py`     | **gym-v skills**: reads raw `Cold-start-out-gymv/<run>/Temporal_*/episode_*.json`, maps `metadata.schema → state`, runs SkillBankAgent pipeline. |
+| `unify_skill_index.py`                | **Cross-corpus aggregator** — walks any mix of env_wrappers + gym-v output roots and emits a single canonical, corpus-tagged skill index under `<output_dir>/_unified/`. |
 | `run_labeling.sh`                      | Shell wrapper for `label_episodes_gpt54.py`. |
 | `run_label_with_skills.sh`            | Shell wrapper for `label_episodes_with_skills.py`. |
 | `run_extract_skillbank.sh`            | Shell wrapper for `extract_skillbank_gpt54.py`. |
+| `run_extract_skillbank_gymv.sh`       | Parallel dispatcher for `extract_skillbank_gymv_gpt54.py` (one Python worker per env); calls `unify_skill_index.py` after all workers finish. |
 | `readme.md`                            | This file. |
 
 ---
@@ -408,15 +438,231 @@ bash labeling/run_extract_skillbank.sh --games tetris -v
 bash labeling/run_extract_skillbank.sh --dry_run
 ```
 
+## Usage — gym-v Skill Extraction (`extract_skillbank_gymv_gpt54.py`)
+
+Counterpart to `extract_skillbank_gpt54.py` for the `gym-v Temporal/<Title>-v0`
+envs (retro Genesis ROMs). The env_wrappers labeler relies on the per-game
+fact extractors in `decision_agents/agent_helper.py` to populate
+`summary_state` / `intentions`; no such extractors exist for the gym-v
+ROMs, so this script consumes the raw cold-start output directly:
+
+* **Input** — a `Cold-start-out-gymv/<run>/` dir produced by
+  `cold_start/generate_cold_start_actor_gymv.py`. Each
+  `Temporal_<env>-v0/episode_*.json` carries a per-step VLM-emitted
+  `<state>` block at `metadata.schema` plus the chosen action.
+* **Mapping** — for each step the script sets
+  `state = next_state(prev) = metadata.schema`, builds a compact
+  `key=value | ...` view (≤600 chars) for `summary_state`, and leaves
+  `intentions` (already populated with gpt-5.4's per-step reasoning)
+  untouched. The skills the bank pipeline produces therefore come from
+  `(schema, action)` pairs.
+* **Pipeline** — delegates verbatim to the canonical
+  `skill_agents.extract_skillbank.extract_skillbank_grpo_gpt54.extract_skills_for_game`,
+  so all three LoRA targets (SEGMENT / CONTRACT / CURATOR) record their
+  prompts/responses, and a per-episode skill-bank snapshot is written
+  after every episode.
+
+```bash
+# From Game-AI-Agent root
+export PYTHONPATH="$(pwd):$(pwd)/../GamingAgent:$PYTHONPATH"
+
+# All envs in a cold-start run, gpt-5.4 teacher
+python labeling/extract_skillbank_gymv_gpt54.py \
+    --input_dir Cold-start-out-gymv/<run_dir> \
+    --output_dir skill_bank_sft \
+    --model gpt-5.4 -v
+
+# Smoke test: one env, one episode
+python labeling/extract_skillbank_gymv_gpt54.py \
+    --input_dir Cold-start-out-gymv/<run_dir> \
+    --envs Temporal_Airstriker-v0 \
+    --max_episodes 1 --cache_normalized -v
+
+# Parallel dispatcher (one Python worker per env, capped by --parallel)
+bash labeling/run_extract_skillbank_gymv.sh \
+    --input_dir Cold-start-out-gymv/<run_dir> \
+    --output_dir skill_bank_sft \
+    --parallel 4
+
+# Resume an interrupted run (driven by _extraction_checkpoint.json)
+bash labeling/run_extract_skillbank_gymv.sh --resume
+
+# Just enumerate envs / episodes, do not run the pipeline
+python labeling/extract_skillbank_gymv_gpt54.py \
+    --input_dir Cold-start-out-gymv/<run_dir> --dry_run
+```
+
+### Key flags
+
+`extract_skillbank_gymv_gpt54.py`
+
+| Flag | Default | Notes |
+|---|---|---|
+| `--input_dir` | required | Path to a `Cold-start-out-gymv/<run>/` dir. |
+| `--output_dir` | `skill_bank_sft` | One subfolder per env beneath this. |
+| `--envs` | all `Temporal_*` | Restrict to a subset of env folder names. |
+| `--model` | `gpt-5.4` | SFT teacher passed through to the LoRA stages. |
+| `--max_episodes` | all | Cap per env (useful for debugging). |
+| `--cache_normalized` | off | Persist the schema-as-state-rewritten copies under `<output_dir>/_normalized_episodes/`. |
+| `--resume` | off | Honor `_extraction_checkpoint.json`. |
+| `--dry_run` | off | Just print the discovery summary. |
+| `-v / --verbose` | off | Per-step pipeline prints. |
+
+`run_extract_skillbank_gymv.sh`
+
+| Flag | Default | Notes |
+|---|---|---|
+| `--parallel` | `4` | At most this many env workers concurrently. |
+| `--envs <a> <b> ...` | all | Limit to a subset of envs. |
+| `--max_episodes` | all | Forwarded to every worker. |
+| `--resume` | off | Forwarded to every worker. |
+| `--no-cache-norm` | off | Skip caching the normalised episode JSONs. |
+| `--dry_run`, `-v` | off | |
+
+### gym-v output layout
+
+```
+skill_bank_sft/
+├── _run_meta.json                              # top-level run summary
+├── _dispatch_<stamp>.log                       # parallel launcher log
+├── _dispatch_logs/<env>.log                    # per-env stdout/stderr
+├── _normalized_episodes/<env>/episode_*.json   # only with --cache_normalized
+└── Temporal_<env>-v0/
+    ├── skill_bank.jsonl                        # FINAL bank (one row per skill)
+    ├── skill_catalog.json                      # RAG-friendly catalog
+    ├── extraction_summary.json
+    ├── stage_io_log.json                       # every stage's I/O record
+    ├── coldstart_io_all.jsonl                  # CONTRACT + CURATOR LoRA I/O
+    ├── teacher_io_coldstart.jsonl              # SEGMENT LoRA I/O
+    ├── _env_summary.json
+    ├── episode_snapshots/episode_<i>/          # per-episode bank state
+    │   ├── skill_bank.jsonl
+    │   ├── stage_io_log.json
+    │   └── llm_calls.json
+    ├── per_episode_bank_management/episode_<i>/
+    │   ├── bank_management_io.json
+    │   └── skill_bank.jsonl
+    └── reports/
+```
+
+`coldstart_io_all.jsonl`, `teacher_io_coldstart.jsonl`, and the per-stage
+`StageIORecord` entries in `stage_io_log.json` collectively capture every
+LoRA target's input and output. The bank pipeline operates at episode
+granularity, so the "bank state at each timestep" is materialised as
+`episode_snapshots/episode_<i>/skill_bank.jsonl` (one snapshot per
+processed episode).
+
+## Unified cross-corpus skill index (`unify_skill_index.py`)
+
+Both extractors store their output **segmented by env / game** (one
+folder per `Temporal_<env>-v0` for gym-v, one per game for
+env_wrappers). The aggregator walks any mix of those roots and produces
+a single, **corpus-tagged**, canonical skill index suitable for
+downstream RAG, gate-stack inputs, or the unified Skill Bank views from
+[`plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md).
+
+### Canonical schema (shared by both extractors)
+
+Every per-source folder writes:
+
+* **`skill_bank.jsonl`** — produced by `SkillBankMVP.save()`. One
+  `{"skill": <Skill>, "report": <VerificationReport>|null}` JSON object
+  per line. The `Skill` dataclass is the canonical per-skill record
+  (see [`skill_agents/skill_template.py`](../skill_agents/skill_template.py)).
+  Identical between corpora.
+* **`skill_catalog.json`** — RAG-friendly summary view. Top-level shape:
+
+  ```jsonc
+  {
+    "corpus":      "gym_v" | "env_wrappers",
+    "source_name": "Temporal_Airstriker-v0" | "tetris",
+    "game":        "tetris",            // env_wrappers only — back-compat alias
+    "model":       "gpt-5.4",
+    "pipeline":    "skill_agents",
+    "timestamp":   "...",
+    "n_skills":    <int>,
+    "skills": [
+      {"skill_id": "...", "name": "...", "summary": "...",
+       "description": "...", "tag": "...", "eff_add": [...],
+       "eff_del": [...], "eff_event": [...],
+       "n_instances": <int>, "version": <int>}
+    ]
+  }
+  ```
+
+  Both extractors write the same key set with explicit `corpus` +
+  `source_name` headers. The legacy `"game"` alias is kept on the
+  env_wrappers writer for any existing readers that key on it; new
+  readers should rely on `source_name`.
+* **`extraction_summary.json`** — per-source run statistics; same key
+  set across both corpora (`corpus`, `source_name`, `model`,
+  `pipeline`, `episodes_processed`, `skills_extracted`, `sub_episodes`,
+  `elapsed_seconds`).
+* **`coldstart_io_all.jsonl`** — every CONTRACT (Stage 3) and CURATOR
+  (Stage 4) LoRA call plus auxiliary modules
+  (`boundary_proposal`, `skill_retrieval`, `pipeline`). Captured via
+  [`skill_agents.coldstart_io`](../skill_agents/coldstart_io.py).
+* **`teacher_io_coldstart.jsonl`** — every SEGMENT (Stage 2) teacher
+  call (segment ranking, transition ranking, pairwise choice, skill
+  naming). Captured via
+  [`skill_agents.infer_segmentation.llm_teacher`](../skill_agents/infer_segmentation/llm_teacher.py).
+
+The two `*_io*.jsonl` files together form the canonical **per-module
+input/output corpus** consumed by the deferred Skill Bank GRPO trainer
+(one row per training example per LoRA target). They are reset at the
+start of each game/env and flushed at the end, so even when one Python
+process processes multiple games sequentially, no records leak across
+sources.
+
+> Additional artifacts the gym-v extractor produces (it routes through
+> the more recent
+> `skill_agents/extract_skillbank/extract_skillbank_grpo_gpt54.py::extract_skills_for_game`):
+> `stage_io_log.json` (per-stage `StageIORecord`),
+> `episode_snapshots/episode_<i>/skill_bank.jsonl` (per-episode bank
+> snapshot), and `per_episode_bank_management/episode_<i>/`. The
+> env_wrappers extractor uses an older inline pipeline; bringing those
+> three artifacts to env_wrappers parity is a separate refactor.
+
+### Aggregator outputs (`<output_dir>/_unified/`)
+
+| File | Format | Purpose |
+|---|---|---|
+| `skill_index.jsonl` | one row per skill | Flat, RAG-ingest-ready. Each row carries `corpus`, `source_name`, `source_path`, plus the canonical entry fields. |
+| `skill_catalog_all.json` | grouped tree | `{corpora: {gym_v: {<env>: [...]}, env_wrappers: {<game>: [...]}}}` — for human inspection / programmatic walking by corpus → source. |
+| `skill_rag_index.json` | flat list with `id`/`type`/`text` | Drop-in replacement for the existing env_wrappers RAG index, but spans both corpora. |
+
+### Usage
+
+```bash
+# Aggregate just the gym-v output root (auto-run by the gym-v dispatcher
+# at the end of every parallel run, written to skill_bank_sft/_unified/)
+python labeling/unify_skill_index.py --root skill_bank_sft
+
+# Merge env_wrappers + gym-v into one index
+python labeling/unify_skill_index.py \
+    --root labeling/output/gpt54_skillbank \
+    --root skill_bank_sft \
+    --output_dir labeling/output/_unified_skills
+
+# Verbose
+python labeling/unify_skill_index.py --root skill_bank_sft -v
+```
+
+The aggregator is idempotent — re-running on the same roots overwrites
+the unified outputs but never mutates the per-source folders. It also
+gracefully handles older runs that pre-date the canonical
+`skill_catalog.json` schema by reconstructing entries from the
+`skill_bank.jsonl` rows directly.
+
 ## CLI Options
 
-### Common Options (both scripts)
+### Labelers (`label_episodes_gpt54.py`, `label_episodes_with_skills.py`)
 
 | Flag              | Default                           | Description |
 |-------------------|-----------------------------------|-------------|
 | `--input_dir`     | `cold_start/output/gpt54`        | Input directory with `<game>/episode_*.json` |
 | `--input_file`    | —                                 | Label a single file instead of scanning a directory |
-| `--output_dir`    | `labeling/output/gpt54` or `gpt54_skills` | Output directory for labeled episodes |
+| `--output_dir`    | `labeling/output/gpt54` (labels-only) or `labeling/output/gpt54_skill_labeled` (with skills) | Output directory for labeled episodes |
 | `--games`         | all found                         | Filter to specific game(s) |
 | `--model`         | `gpt-5.5`                        | LLM model for labeling |
 | `--max_episodes`  | all                               | Cap episodes per game |
@@ -427,8 +673,10 @@ bash labeling/run_extract_skillbank.sh --dry_run
 | `--dry_run`       | off                               | Preview without saving |
 | `--verbose / -v`  | off                               | Print per-step details |
 
+`label_episodes_with_skills.py` adds the skill-selection options listed in
+[Skill Selection Options](#skill-selection-options).
 
-### Skills-only script (`extract_skillbank_gpt54.py`)
+### env_wrappers extractor (`extract_skillbank_gpt54.py`)
 
 | Flag                | Default                           | Description |
 |---------------------|-----------------------------------|-------------|
@@ -444,9 +692,41 @@ bash labeling/run_extract_skillbank.sh --dry_run
 | `--dry_run`         | off                               | Preview games/episodes without running extraction. |
 | `--verbose / -v`   | off                               | Per-step details. |
 
+### gym-v extractor (`extract_skillbank_gymv_gpt54.py`)
+
+| Flag                  | Default                           | Description |
+|-----------------------|-----------------------------------|-------------|
+| `--input_dir`         | required                          | A `Cold-start-out-gymv/<run>/` dir containing `Temporal_*/episode_*.json`. |
+| `--output_dir`        | `skill_bank_sft`                  | Root for per-env skill banks, catalogs, per-LoRA I/O, snapshots. |
+| `--envs`              | all `Temporal_*`                  | Restrict to a subset of env folder names. |
+| `--model`             | `gpt-5.4`                         | SFT teacher passed through to all LoRA stages. |
+| `--max_episodes`      | all                               | Cap per env (debugging). |
+| `--cache_normalized`  | off                               | Persist the schema-as-state-rewritten copies under `<output_dir>/_normalized_episodes/`. |
+| `--resume`            | off                               | Honor `_extraction_checkpoint.json`. |
+| `--dry_run`           | off                               | Just print the discovery summary. |
+| `--verbose / -v`      | off                               | Per-step pipeline prints. |
+
+Parallel dispatcher `run_extract_skillbank_gymv.sh` adds:
+
+| Flag                 | Default | Notes |
+|----------------------|---------|-------|
+| `--parallel`         | `4`     | At most this many env workers concurrently. |
+| `--no-cache-norm`    | off     | Skip caching the normalised episode JSONs. |
+
+Plus all the gym-v extractor flags above are forwarded.
+
+### Cross-corpus aggregator (`unify_skill_index.py`)
+
+| Flag           | Default        | Description |
+|----------------|----------------|-------------|
+| `--root`       | required (≥1)  | One or more skill-extraction output roots. Repeat to merge env_wrappers + gym-v. |
+| `--output_dir` | first `--root` | Where to write the `_unified/` tree. |
+| `--pipeline`   | `skill_agents` | Tag stamped on the grouped catalog. |
+| `--verbose / -v` | off          | Print every per-source folder discovered. |
+
 ## Output Structure
 
-### Labels Only (`labeling/output/gpt54/`)
+### Labels only (`labeling/output/gpt54/`)
 
 ```
 labeling/output/gpt54/
@@ -459,37 +739,102 @@ labeling/output/gpt54/
 └── labeling_batch_summary.json   # overall run stats
 ```
 
-### Skills Only — from Labeled Rollouts (`extract_skillbank_gpt54.py`)
+### env_wrappers skills (`labeling/output/gpt54_skillbank/`)
 
-**Input:** Already-labeled episode JSONs with `summary_state`, `summary`, and `intentions` populated (e.g. from `label_episodes_gpt54.py` or the labels-only phase). Default input directory: `labeling/output/gpt54/` with layout `<input_dir>/<game>/episode_*.json`.
-
-**Output:** Default output directory: `labeling/output/gpt54_skillbank/`. No episode JSONs are written unless `--save_annotated` is used.
+Default output directory of `extract_skillbank_gpt54.py`. No episode
+JSONs are written unless `--save_annotated` is used.
 
 ```
 labeling/output/gpt54_skillbank/
 ├── tetris/
-│   ├── skill_bank.jsonl          # persistent skill bank (contracts)
-│   ├── skill_catalog.json        # RAG-friendly skill catalog (per-game)
-│   ├── sub_episodes.json         # SubTask_Experience instances
-│   ├── extraction_summary.json   # per-game stats (episodes, skills, sub_episodes)
-│   └── reports/                  # skill extraction diagnostics (if any)
+│   ├── skill_bank.jsonl              # persistent skill bank (canonical)
+│   ├── skill_catalog.json            # RAG-friendly catalog (canonical, corpus-tagged)
+│   ├── extraction_summary.json       # per-game run stats (canonical)
+│   ├── sub_episodes.json             # SubTask_Experience instances
+│   ├── coldstart_io_all.jsonl        # CONTRACT + CURATOR LoRA I/O + aux modules
+│   ├── teacher_io_coldstart.jsonl    # SEGMENT teacher I/O
+│   └── reports/                      # extraction diagnostics
 ├── candy_crush/
 │   └── ...
-├── skill_archetypes.json         # cross-game archetype aggregation
-├── skill_rag_index.json          # flat RAG index (archetypes + instances)
-├── extraction_batch_summary.json # overall run stats
-└── skill_catalog_all.json        # combined per-game catalog
+├── skill_archetypes.json             # cross-game archetype aggregation
+├── skill_rag_index.json              # flat RAG index (archetypes + instances)
+├── extraction_batch_summary.json     # overall run stats
+├── skill_catalog_all.json            # combined per-game catalog (legacy shape)
+└── _unified/                         # NEW — auto-run by main(); see below
+    ├── skill_index.jsonl
+    ├── skill_catalog_all.json
+    └── skill_rag_index.json
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| **Input** | `labeling/output/gpt54` | Directory with game sub-folders; each game folder contains `episode_*.json` (labeled, with `intentions`). |
-| **Output** | `labeling/output/gpt54_skillbank` | Root for per-game skill banks, catalogs, sub_episodes, and cross-game archetypes. |
-| `--save_annotated` | off | If set, writes episode JSONs with the `skills` field populated into the per-game output folder. |
+### gym-v skills (`skill_bank_sft/`)
+
+Default output directory of `extract_skillbank_gymv_gpt54.py` and the
+parallel dispatcher. Routes through the more recent
+`skill_agents/extract_skillbank/extract_skillbank_grpo_gpt54.py::extract_skills_for_game`,
+so per-env folders carry strictly more artifacts than the env_wrappers
+extractor (per-stage `StageIORecord`, per-episode bank snapshots,
+per-episode bank-management I/O).
+
+```
+skill_bank_sft/
+├── _run_meta.json                              # top-level run summary
+├── _dispatch_<stamp>.log                       # parallel launcher log
+├── _dispatch_logs/<env>.log                    # per-env stdout/stderr
+├── _normalized_episodes/<env>/episode_*.json   # only with --cache_normalized
+├── _unified/                                   # cross-env unified index
+│   ├── skill_index.jsonl
+│   ├── skill_catalog_all.json
+│   └── skill_rag_index.json
+└── Temporal_<env>-v0/
+    ├── skill_bank.jsonl                        # FINAL bank (canonical)
+    ├── skill_catalog.json                      # canonical catalog (corpus=gym_v)
+    ├── extraction_summary.json
+    ├── stage_io_log.json                       # every stage's StageIORecord
+    ├── llm_calls_log.json                      # every LLM call (timings + sizes)
+    ├── coldstart_io_all.jsonl                  # CONTRACT + CURATOR LoRA I/O
+    ├── teacher_io_coldstart.jsonl              # SEGMENT LoRA I/O
+    ├── sub_episodes.json
+    ├── _env_summary.json
+    ├── episode_snapshots/episode_<i>/          # per-episode bank state
+    │   ├── skill_bank.jsonl
+    │   ├── stage_io_log.json
+    │   └── llm_calls.json
+    ├── per_episode_bank_management/episode_<i>/
+    │   ├── bank_management_io.json
+    │   └── skill_bank.jsonl
+    └── reports/
+```
+
+The user-facing contract _"snapshot the skill bank at each timestep"_
+is materialised at episode granularity:
+`episode_snapshots/episode_<i>/skill_bank.jsonl` is the bank state
+*after* the `i`-th episode is processed. Re-running the extractor with
+`--resume` continues from where the snapshot lineage left off.
+
+### Cross-corpus unified index (`<root>/_unified/`)
+
+Both extractors auto-run `unify_skill_index.py` at the end of `main()`
+(and the gym-v dispatcher invokes it once after parallel workers
+finish), so every output root carries a corpus-tagged unified view
+without any manual step:
+
+```
+<root>/_unified/
+├── skill_index.jsonl       # flat: 1 row per skill, fields = canonical entry + corpus/source_name/source_path
+├── skill_catalog_all.json  # grouped: {corpora: {gym_v: {<env>: [...]}, env_wrappers: {<game>: [...]}}}
+└── skill_rag_index.json    # flat list with id/type/text fields, vector-store ready
+```
+
+To merge env_wrappers + gym-v outputs into a *single* unified index
+spanning both corpora, run the aggregator manually with two `--root`
+flags — see
+[Unified cross-corpus skill index](#unified-cross-corpus-skill-index-unify_skill_indexpy).
 
 ## Skill Extraction Pipeline
 
-The `extract_skillbank_gpt54.py` script (and the equivalent pipeline in `label_episodes_with_skills.py`) runs four phases:
+The `extract_skillbank_gpt54.py` script (and the equivalent pipeline in
+`label_episodes_with_skills.py`) runs four phases over already-labeled
+env_wrappers episodes:
 
 ```
 Phase 1 — Annotation (same as label_episodes_gpt54.py)
@@ -513,11 +858,40 @@ Phase 3 — Cross-Game Archetype Aggregation (runs after all games)
   └─ skill_rag_index.json          # flat index for vector store
 
 Phase 4 — Persistence
-  ├─ <game>/skill_bank.jsonl       # per-game JSONL skill bank
-  ├─ <game>/skill_catalog.json     # per-game RAG catalog
-  ├─ skill_catalog_all.json        # combined per-game catalog
-  └─ labeling_batch_summary.json   # run statistics
+  ├─ <game>/skill_bank.jsonl       # per-game JSONL skill bank (canonical)
+  ├─ <game>/skill_catalog.json     # canonical, corpus-tagged RAG catalog
+  ├─ <game>/coldstart_io_all.jsonl # CONTRACT + CURATOR LoRA I/O
+  ├─ <game>/teacher_io_coldstart.jsonl  # SEGMENT LoRA I/O
+  ├─ skill_catalog_all.json        # combined per-game catalog (legacy)
+  ├─ extraction_batch_summary.json # run statistics
+  └─ _unified/                     # auto cross-corpus index (unify_skill_index.py)
 ```
+
+### gym-v variant — richer per-stage logging
+
+`extract_skillbank_gymv_gpt54.py` does not run Phase 1 (the per-step
+VLM `<state>` already plays the role of `summary_state`). Instead it
+delegates verbatim to
+`skill_agents.extract_skillbank.extract_skillbank_grpo_gpt54.extract_skills_for_game`,
+which runs the more recent six-stage pipeline shown in
+[`skill_agents/extract_skillbank/`](../skill_agents/extract_skillbank/):
+
+```
+Stage 1: Boundary proposal
+Stage 2: Skill decoding (SEGMENT LoRA teacher)
+Stage 3: Contract learning (CONTRACT LoRA teacher)
+Stage 4: Quality check + bank maintenance (CURATOR LoRA teacher)
+Stage 5: Proto-skill formation + execution-hint distillation
+Stage 6: Protocol updates, per-episode bank snapshot, per-episode bank-management I/O
+```
+
+Every stage call writes a `StageIORecord` to `stage_io_log.json`, every
+LLM call appears in `llm_calls_log.json`, and after each processed
+episode the bank is snapshotted to
+`episode_snapshots/episode_<i>/skill_bank.jsonl`. The two LoRA-target
+JSONLs (`coldstart_io_all.jsonl`, `teacher_io_coldstart.jsonl`) are
+written with the same schema as the env_wrappers extractor — see
+[Per-LoRA I/O for the deferred Skill-Bank GRPO trainer](#per-lora-io-for-the-deferred-skill-bank-grpo-trainer).
 
 ### Skill Field Format
 
@@ -539,19 +913,25 @@ When skill extraction is enabled, each experience gets a `skills` dict:
 
 ### Skill Catalog (for RAG)
 
-The `skill_catalog.json` is designed for easy ingestion into a vector store:
+The `skill_catalog.json` is designed for easy ingestion into a vector
+store. Both extractors emit the canonical, corpus-tagged shape:
 
 ```json
 {
-  "game": "tetris",
-  "model": "gpt-5.5",
-  "n_skills": 5,
+  "corpus":      "env_wrappers",
+  "source_name": "tetris",
+  "game":        "tetris",
+  "model":       "gpt-5.4",
+  "pipeline":    "skill_agents",
+  "timestamp":   "2026-04-29T12:00:00",
+  "n_skills":    5,
   "skills": [
     {
       "skill_id": "S_new_1741779200_0",
       "name": "Clear Bottom Rows",
       "summary": "game=tetris | skill=clear_bottom | effects=rows_cleared,stack_lowered | context=holes in lower half",
       "description": "Targets bottom-row line clears when holes accumulate below row 10.",
+      "tag": "CLEAR",
       "eff_add": ["rows_cleared", "stack_lowered"],
       "eff_del": ["holes_bottom"],
       "eff_event": ["line_clear"],
@@ -562,9 +942,12 @@ The `skill_catalog.json` is designed for easy ingestion into a vector store:
 }
 ```
 
-Each skill's `summary` field uses the same `key=value` format as `summary_state`,
-optimised for RAG embedding retrieval. The `description` field provides natural
-language for human readability and broader semantic matching.
+Each skill's `summary` field uses the same `key=value` format as
+`summary_state`, optimised for RAG embedding retrieval. The
+`description` field provides natural language for human readability
+and broader semantic matching. The top-level `corpus` /
+`source_name` fields make every catalog file self-describing for the
+[cross-corpus aggregator](#unified-cross-corpus-skill-index-unify_skill_indexpy).
 
 ### Skill Bank (`skill_bank.jsonl`) — Schema and Decision-Agent Usage
 
@@ -739,7 +1122,7 @@ from data_structure.experience import Episode
 import json
 
 # Load labeled episode (with or without skills)
-with open("labeling/output/gpt54_skills/tetris/episode_000.json") as f:
+with open("labeling/output/gpt54/tetris/episode_000.json") as f:
     ep = Episode.from_dict(json.load(f))
 
 for exp in ep.experiences:
@@ -754,7 +1137,7 @@ for exp in ep.experiences:
 ```python
 import json
 
-with open("labeling/output/gpt54_skills/tetris/skill_catalog.json") as f:
+with open("labeling/output/gpt54_skillbank/tetris/skill_catalog.json") as f:
     catalog = json.load(f)
 
 for skill in catalog["skills"]:
@@ -770,7 +1153,7 @@ for skill in catalog["skills"]:
 import json
 
 # Load the flat RAG index — ready for vector store ingestion
-with open("labeling/output/gpt54_skills/skill_rag_index.json") as f:
+with open("labeling/output/gpt54_skillbank/skill_rag_index.json") as f:
     index = json.load(f)
 
 for entry in index["entries"]:
@@ -782,7 +1165,7 @@ for entry in index["entries"]:
         print(f"  [{entry['game']}] {entry['name']}: {entry['text']}")
 
 # Or load the structured archetypes for programmatic access
-with open("labeling/output/gpt54_skills/skill_archetypes.json") as f:
+with open("labeling/output/gpt54_skillbank/skill_archetypes.json") as f:
     archetypes = json.load(f)
 
 for arch in archetypes["archetypes"]:
@@ -798,12 +1181,81 @@ from skill_agents.pipeline import SkillBankAgent, PipelineConfig
 from skill_agents.skill_bank.bank import SkillBankMVP
 
 # Load the extracted skill bank
-bank = SkillBankMVP(path="labeling/output/gpt54_skills/tetris/skill_bank.jsonl")
+bank = SkillBankMVP(path="labeling/output/gpt54_skillbank/tetris/skill_bank.jsonl")
 bank.load()
 
 agent = SkillBankAgent(bank=bank)
 result = agent.query_skill("clear bottom rows to reduce holes")
 ```
+
+### Per-LoRA I/O for the deferred Skill-Bank GRPO trainer
+
+Both extractors (env_wrappers and gym-v) write **one prompt/response
+record per LoRA call**, segregated by which LoRA target produced it.
+This is the canonical training corpus for the `segment` / `contract` /
+`curator` adapters listed in
+[`skill_agents/lora/skill_function.py`](../skill_agents/lora/skill_function.py).
+
+| File | Per-source location | Recorder | LoRA target(s) | Stage |
+|------|--------------------|----------|----------------|-------|
+| `teacher_io_coldstart.jsonl` | `<root>/<source>/` | [`skill_agents.infer_segmentation.llm_teacher`](../skill_agents/infer_segmentation/llm_teacher.py) | **SEGMENT** | Stage 2 (segment ranking, transition ranking, pairwise choice, skill naming) |
+| `coldstart_io_all.jsonl` | `<root>/<source>/` | [`skill_agents.coldstart_io`](../skill_agents/coldstart_io.py) | **CONTRACT** + **CURATOR** | Stage 3 (contract learning) + Stage 4 (bank maintenance), plus aux: `boundary_proposal`, `skill_retrieval`, `pipeline` |
+| `stage_io_log.json` | `<root>/<source>/` (gym-v only) | [`skill_agents.extract_skillbank.io_logging`](../skill_agents/extract_skillbank/io_logging.py) | — (audit trail) | All stages — one `StageIORecord` per stage call |
+| `episode_snapshots/episode_<i>/skill_bank.jsonl` | `<root>/<source>/` (gym-v only) | extractor | — | Bank state after every processed episode |
+
+**Reset/flush contract.** Every per-source folder is independently
+captured. The extractor calls
+`coldstart_io.reset()` and
+`llm_teacher.reset_teacher_io_records()` at the start of each
+game/env, drains the in-memory recorders into the two JSONL files at
+the end (success or failure), and never lets records cross between
+sources — even when one Python process processes multiple games
+sequentially.
+
+**Loading and routing by LoRA target.** Each row in
+`coldstart_io_all.jsonl` carries a `module_name` field
+(`"contract_learning"`, `"bank_management"`, etc.) and a
+`function_name` field (e.g. `"contract_learn"`,
+`"select_skill_for_segment"`, `"name_skill"`). The deferred
+GRPO trainer can shard records by `module_name` to feed the right
+adapter:
+
+```python
+import json
+from collections import defaultdict
+from pathlib import Path
+
+per_source = Path("skill_bank_sft/Temporal_Airstriker-v0")
+
+# Stage 2 — SEGMENT LoRA
+with open(per_source / "teacher_io_coldstart.jsonl") as f:
+    segment_rows = [json.loads(line) for line in f]
+
+# Stage 3 + Stage 4 — CONTRACT and CURATOR LoRAs (and aux)
+by_module = defaultdict(list)
+with open(per_source / "coldstart_io_all.jsonl") as f:
+    for line in f:
+        rec = json.loads(line)
+        by_module[rec["module_name"]].append(rec)
+
+contract_rows = by_module["contract_learning"]
+curator_rows  = by_module["bank_management"]
+
+print(f"SEGMENT  rows: {len(segment_rows)}")
+print(f"CONTRACT rows: {len(contract_rows)}")
+print(f"CURATOR  rows: {len(curator_rows)}")
+```
+
+The same files exist under every `<root>/<source>/` folder, so the
+trainer simply globs over the unified roots
+(`labeling/output/gpt54_skillbank/*/`,
+`skill_bank_sft/Temporal_*-v0/`) to assemble corpus-spanning training
+sets.
+
+> The decision-agent (action / skill-select) GRPO data is a separate
+> corpus, written by `label_episodes_with_skills.py` under
+> `grpo_coldstart/<game>/{action_taking,skill_selection}.jsonl` —
+> see [GRPO Cold-Start Data Format](#grpo-cold-start-data-format).
 
 ## Functions Used from `decision_agents`
 
