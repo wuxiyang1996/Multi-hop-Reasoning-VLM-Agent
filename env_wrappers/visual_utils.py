@@ -16,12 +16,17 @@ can write::
 
     frame = get_obs_image(obs_or_info)   # np.ndarray (H, W, 3) uint8 | None
     pil   = get_obs_pil_image(obs_or_info)  # PIL.Image.Image | None
+
+When callers explicitly pass ``allow_replay_fallback=True``, these helpers can
+also reconstruct a frame from text observations using ``replay`` renderers.
+That path is intentionally opt-in because direct wrapper pixels are faster and
+better represent the live environment.
 """
 
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import numpy as np
 
@@ -91,12 +96,127 @@ _PIL_KEYS = ("image_pil", "pil_image")
 _PATH_KEYS = ("img_path", "image_path", "screenshot_path")
 
 
-def get_obs_image(obs_or_info: Any) -> Optional[np.ndarray]:
+def _as_mapping(value: Any) -> Optional[dict]:
+    return value if isinstance(value, dict) else None
+
+
+def _first_present(mapping: dict, keys: Tuple[str, ...]) -> Any:
+    for key in keys:
+        value = mapping.get(key)
+        if value is not None:
+            return value
+    return None
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        if isinstance(value, (tuple, list)) and value:
+            value = value[0]
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _normalise_game_name(name: Any) -> Optional[str]:
+    if not name:
+        return None
+    normalised = str(name).strip().lower().replace("-", "_").replace(" ", "_")
+    aliases = {
+        "2048": "twenty_forty_eight",
+        "twenty_fourty_eight": "twenty_forty_eight",
+        "orak_twenty_fourty_eight": "twenty_forty_eight",
+        "orak_super_mario": "super_mario",
+    }
+    return aliases.get(normalised, normalised)
+
+
+def _replay_fallback_fields(obs_or_info: Any) -> Tuple[Optional[str], str, int, float, float, str]:
+    """Extract replay renderer arguments from a wrapper ``info``/``obs`` dict."""
+    mapping = _as_mapping(obs_or_info)
+    if mapping is None:
+        return None, "", 0, 0.0, 0.0, ""
+
+    raw = mapping.get("raw_obs") if isinstance(mapping.get("raw_obs"), dict) else {}
+    raw = raw or {}
+
+    game = _normalise_game_name(
+        _first_present(mapping, ("game_name", "game", "env_name"))
+        or _first_present(raw, ("game_name", "game", "env_name"))
+    )
+    state = _first_present(
+        mapping,
+        (
+            "state_natural_language",
+            "state",
+            "text",
+            "textual_representation",
+            "processed_visual_description",
+        ),
+    )
+    if state is None:
+        state = _first_present(
+            raw,
+            (
+                "state_natural_language",
+                "state",
+                "text",
+                "textual_representation",
+                "processed_visual_description",
+            ),
+        )
+
+    step = _safe_int(_first_present(mapping, ("step", "step_count", "timestep")), 0)
+    reward = _safe_float(_first_present(mapping, ("reward", "last_reward", "raw_env_reward")), 0.0)
+    total_reward = _safe_float(
+        _first_present(
+            mapping,
+            ("total_reward", "score_value", "score_normalised", "score", "perf_score"),
+        ),
+        reward,
+    )
+    action = _first_present(mapping, ("action", "last_action", "agent_action")) or ""
+
+    return game, str(state or ""), step, reward, total_reward, str(action)
+
+
+def _render_replay_fallback(obs_or_info: Any) -> Optional[np.ndarray]:
+    game, state, step, reward, total_reward, action = _replay_fallback_fields(obs_or_info)
+    if not game or not state:
+        return None
+
+    try:
+        from replay.generate_replay_gifs import RENDERERS
+    except Exception:
+        return None
+
+    renderer = RENDERERS.get(game)
+    if renderer is None:
+        return None
+
+    try:
+        image = renderer(state, step, reward, total_reward, action)
+    except Exception:
+        return None
+    return _from_pil(image)
+
+
+def get_obs_image(obs_or_info: Any, *, allow_replay_fallback: bool = False) -> Optional[np.ndarray]:
     """Return the current frame as a ``(H, W, 3)`` ``uint8`` array, or ``None``.
 
     Accepts an obs dict, an info dict, or anything with a ``raw_obs``
     sub-dictionary (GamingAgent NL wrapper, Orak NL wrapper, OSWorld NL
     wrapper). PIL images and paths to PNGs are resolved transparently.
+
+    Set ``allow_replay_fallback=True`` to reconstruct a frame from text state
+    with ``replay.generate_replay_gifs`` when no live pixels are exposed.
+    The replay renderer is imported lazily and never used on the default path.
     """
     if obs_or_info is None:
         return None
@@ -115,7 +235,7 @@ def get_obs_image(obs_or_info: Any) -> Optional[np.ndarray]:
 
     raw = obs_or_info.get("raw_obs")
     if isinstance(raw, dict):
-        nested = get_obs_image(raw)
+        nested = get_obs_image(raw, allow_replay_fallback=False)
         if nested is not None:
             return nested
 
@@ -137,10 +257,13 @@ def get_obs_image(obs_or_info: Any) -> Optional[np.ndarray]:
             if arr is not None:
                 return arr
 
+    if allow_replay_fallback:
+        return _render_replay_fallback(obs_or_info)
+
     return None
 
 
-def get_obs_pil_image(obs_or_info: Any):
+def get_obs_pil_image(obs_or_info: Any, *, allow_replay_fallback: bool = False):
     """Return the current frame as a ``PIL.Image.Image`` in RGB, or ``None``."""
     try:
         from PIL import Image
@@ -157,7 +280,7 @@ def get_obs_pil_image(obs_or_info: Any):
                 if key in raw and isinstance(raw[key], Image.Image):
                     return raw[key]
 
-    arr = get_obs_image(obs_or_info)
+    arr = get_obs_image(obs_or_info, allow_replay_fallback=allow_replay_fallback)
     if arr is None:
         return None
     return Image.fromarray(arr, mode="RGB")
