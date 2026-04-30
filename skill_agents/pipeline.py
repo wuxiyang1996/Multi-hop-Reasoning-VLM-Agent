@@ -312,7 +312,7 @@ class SkillBankAgent:
         for exp, phase in zip(exps, phases):
             intent = getattr(exp, "intentions", None)
             if intent:
-                tag = parse_intention_tag(intent)
+                tag = parse_intention_tag(intent, mode="composite")
                 if tag != "UNKNOWN":
                     labels.add(make_compound_label(phase, tag))
 

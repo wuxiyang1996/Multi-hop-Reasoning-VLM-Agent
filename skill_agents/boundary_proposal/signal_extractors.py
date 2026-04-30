@@ -352,25 +352,51 @@ def parse_intention_tag(
     intention: str,
     tags: tuple = _SUBGOAL_TAGS_DEFAULT,
     extra_tags: tuple = _INTENT_OPERATORS_DEFAULT,
+    *,
+    mode: str = "operator",
 ) -> str:
     """Extract and normalise the primary ``[TAG]`` from an intention string.
 
     Accepts three input shapes:
 
     * ``"[OP/SG] note"``  — dual-axis (current canonical labeling format).
-                            Returns the **operator** half (which is the
-                            cross-domain transferable signal).
     * ``"[TAG] note"``    — legacy single-tag form.  TAG may belong to
                             ``tags``, ``extra_tags``, or
                             ``_UNIFIED_SUBGOALS_DEFAULT``.
     * ``"<bare phrase>"`` — no bracket.  Returns ``"UNKNOWN"``.
 
-    Returns the canonical tag (e.g. ``"CLEAR"``, ``"COMMIT"``,
-    ``"EVADE"``) or ``"UNKNOWN"`` if no recognised tag is found.
+    The ``mode`` parameter controls which axis is returned:
 
-    Note: callers that need *both* axes should use
+    * ``"operator"`` (default, backward compatible) — return the operator
+      half from a dual-axis tag, the canonical tag from a single-tag
+      input.  This is what every legacy caller expects.
+    * ``"composite"`` — return the joined ``"OP/SG"`` form (e.g.
+      ``"COMMIT/EXPLORE"``).  Intended for callsites that drive the bank
+      segmenter / scorer, where the subgoal axis is required to keep
+      same-operator transitions (``[COMMIT/EXPLORE]`` ↔
+      ``[COMMIT/ATTACK]``) as distinct categorical signals.
+      For single-tag legacy input the missing axis is reconstructed via
+      :data:`_OPERATOR_TO_SUBGOAL` / :data:`_SUBGOAL_TO_OPERATOR` so
+      pre-dual-axis banks still produce a usable composite key.
+    * ``"subgoal"`` — return the subgoal half only (rarely useful;
+      provided for symmetry).
+
+    Callers that need *both* axes as a tuple should use
     :func:`parse_intention_tags` instead.
     """
+    if mode not in ("operator", "composite", "subgoal"):
+        raise ValueError(f"parse_intention_tag: unknown mode={mode!r}")
+
+    if mode in ("composite", "subgoal"):
+        op, sg = parse_intention_tags(intention, extra_tags, _UNIFIED_SUBGOALS_DEFAULT)
+        if op == "UNKNOWN" and sg == "UNKNOWN":
+            return "UNKNOWN"
+        if mode == "subgoal":
+            return sg if sg != "UNKNOWN" else "EXECUTE"
+        op = op if op != "UNKNOWN" else "COMMIT"
+        sg = sg if sg != "UNKNOWN" else _OPERATOR_TO_SUBGOAL.get(op, "EXECUTE")
+        return f"{op}/{sg}"
+
     s = (intention or "").strip()
     if not s.startswith("["):
         return "UNKNOWN"
@@ -492,7 +518,7 @@ class IntentionSignalExtractor(SignalExtractorBase):
         predicates: List[Optional[dict]] = []
         for exp in experiences:
             intent = getattr(exp, "intentions", None) or ""
-            tag = parse_intention_tag(intent, self._tags)
+            tag = parse_intention_tag(intent, self._tags, mode="composite")
 
             preds: dict = {f"tag_{t.lower()}": float(t == tag) for t in self._tags}
 
@@ -505,11 +531,17 @@ class IntentionSignalExtractor(SignalExtractorBase):
         return predicates
 
     def _extract_tag_sequence(self, experiences: list) -> List[str]:
-        """Extract the tag at each timestep."""
+        """Extract the composite ``OP/SG`` tag at each timestep.
+
+        Composite mode is required so adjacent steps with identical
+        operator but different subgoals (``[COMMIT/EXPLORE]`` followed by
+        ``[COMMIT/ATTACK]``) register as a boundary candidate rather than
+        collapsing into a single ``COMMIT`` run.
+        """
         tags = []
         for exp in experiences:
             intent = getattr(exp, "intentions", None) or ""
-            tags.append(parse_intention_tag(intent, self._tags))
+            tags.append(parse_intention_tag(intent, self._tags, mode="composite"))
         return tags
 
     def score_boundary_candidates(self, experiences: list) -> List:

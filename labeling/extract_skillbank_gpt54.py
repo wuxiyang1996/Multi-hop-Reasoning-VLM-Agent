@@ -138,6 +138,22 @@ _TAG_ALIASES: Dict[str, str] = {
 
 _TAG_RE = re.compile(r"\[(\w+)\]\s*")
 
+# ``[OPERATOR/SUBGOAL] note`` — current canonical labelling form.
+# The local fallback segmenter (``intention_based_segmentation``) reads the
+# composite ``OP/SG`` so adjacent steps with the same operator but different
+# subgoals do not collapse into one ``COMMIT`` segment.
+_DUAL_TAG_RE = re.compile(r"\[\s*([A-Za-z]+)\s*/\s*([A-Za-z]+)\s*\]")
+
+
+def _sanitize_skill_id_fragment(fragment: str) -> str:
+    """Make a tag string safe for skill_id construction.
+
+    The composite ``OP/SG`` form contains ``/``; we replace it with ``_``
+    so the resulting ``skill_id`` is filesystem-friendly even though no
+    current path uses it directly.
+    """
+    return (fragment or "").lower().replace("/", "_")
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # LLM helpers
@@ -691,10 +707,19 @@ def intention_based_segmentation(
 
         for i, exp in enumerate(exps):
             intent = exp.get("intentions", "")
-            m = _TAG_RE.match(intent.strip())
-            tag = m.group(1).upper() if m else "EXECUTE"
-            if tag not in _SUBGOAL_TAG_SET:
-                tag = _TAG_ALIASES.get(tag, "EXECUTE")
+            stripped = intent.strip()
+            md = _DUAL_TAG_RE.match(stripped)
+            if md:
+                op = md.group(1).upper()
+                sg = md.group(2).upper()
+                tag = f"{op}/{sg}"
+            else:
+                m = _TAG_RE.match(stripped)
+                raw = m.group(1).upper() if m else "EXECUTE"
+                if raw in _SUBGOAL_TAG_SET:
+                    tag = raw
+                else:
+                    tag = _TAG_ALIASES.get(raw, raw if raw else "EXECUTE")
 
             if tag != current_tag:
                 if current_tag is not None and i > seg_start:
@@ -753,7 +778,7 @@ def intention_based_segmentation(
     skill_idx = 0
 
     for tag, segs in sorted(by_tag.items()):
-        skill_id = f"skill_{game_name}_{tag.lower()}_{skill_idx}"
+        skill_id = f"skill_{game_name}_{_sanitize_skill_id_fragment(tag)}_{skill_idx}"
         skill_idx += 1
 
         total_steps = sum(s["end"] - s["start"] for s in segs)
@@ -791,11 +816,12 @@ def intention_based_segmentation(
                 if cnt / n_pred_segs >= min_freq:
                     real_eff_del.add(k)
 
+        _tag_safe = _sanitize_skill_id_fragment(tag)
         contract = SkillEffectsContract(
             skill_id=skill_id,
-            eff_add=real_eff_add if real_eff_add else {f"{tag.lower()}_completed"},
+            eff_add=real_eff_add if real_eff_add else {f"{_tag_safe}_completed"},
             eff_del=real_eff_del,
-            eff_event=agg_event if agg_event else {f"tag_{tag.lower()}"},
+            eff_event=agg_event if agg_event else {f"tag_{_tag_safe}"},
             n_instances=len(segs),
         )
 
