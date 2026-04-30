@@ -66,6 +66,13 @@ labeling/skill_bank_out/
 # Per-run skill-conditioned action labels (run_label_skill_actions.sh output)
 labeling/skill_actions_out/
 
+# ── Skill Crafter offline mirror outputs ────────────────────────
+# Per-run output directories of labeling_supplement/{decide_skill_crafting,
+# reflect_per_episode}_gpt54.py — proposals.jsonl + decision_trace.json +
+# reflection.json artefacts produced by the offline Crafter mirror.
+labeling_supplement/crafter_proposals_out/
+labeling_supplement/episode_reflections_out/
+
 # ── Evaluation / test outputs ───────────────────────────────────
 test_rollout/
 baselines/output/

@@ -25,6 +25,7 @@ from data_structure.extensions.bank_mutation_proposal import (
     PatchProposal,
     RetireProposal,
 )
+from data_structure.extensions.episode_reflection import EpisodeReflection
 from data_structure.extensions.failure_trace import FailureDiagnosis, FailureTrace
 from data_structure.extensions.gate_verdict import (
     GateVerdictPayload,
@@ -42,6 +43,7 @@ from data_structure.extensions.skill_record import SkillRecord, SkillContract
 __all__ = [
     "BankMutationProposal",
     "ComposeProposal",
+    "EpisodeReflection",
     "FailureDiagnosis",
     "FailureTrace",
     "GateVerdictPayload",

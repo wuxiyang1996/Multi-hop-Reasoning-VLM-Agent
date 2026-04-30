@@ -37,7 +37,8 @@ The point: the crafter can dream up anything, but the lifecycle manager + the ga
 | `generalizer.py` | `Generalizer` — builds `GeneralizeProposal`s by lifting concrete slot bindings to slot variables. Often emitted when `FailureDiagnoser` flags `slot_binding_failed` patterns across multiple domains |
 | `hypothesizer.py` | `Hypothesizer` — builds `HypothesisProposal`s for novel skills suggested by the teacher. Used when no compose / generalise route closes the failure pattern |
 | `repairer.py` | `Repairer` — builds `PatchProposal`s for **existing** bank skills. Maps each `RecoveryStrategy` (HOP_INSERTION, PRECONDITION_STRENGTHENING, FALLBACK_INJECTION, REGROUNDING_TRIGGER, PROTOCOL_PATCH, SKILL_DECOMPOSITION) to a deterministic protocol/contract edit; teacher-LLM hook (`set_llm_repairer`) replaces the rule path when present |
-| `service.py` | `SkillCrafterService` — the **only** public entry point. Single-method facade `process(...)` that pulls failures from `FailureMemory`, runs `FailureDiagnoser`, dispatches to the right proposer, persists via `ArtifactStore.put_proposal`, and ingests the resulting draft `SkillRecord`s via `SkillLifecycleManager.ingest_draft` |
+| `service.py` | `SkillCrafterService` — the **only** public entry point. Two cadenced entry points: `reflect_on_episode(EpisodeReflection)` (per-episode reactive) and `cycle()` (per-batch reflective). Both pull failures from `FailureMemory`, run `FailureDiagnoser`, dispatch to the right proposer, persist via `ArtifactStore.put_proposal`, and ingest the resulting draft `SkillRecord`s via `SkillLifecycleManager.ingest_draft` |
+| `_bank_view.py` | `BankView` — frozen, read-only multi-store snapshot (active ∪ candidate ∪ draft) built only by `SkillCrafterService._take_bank_view`. Exposes `subsumed_pairs(candidate_ids=...)` so the per-episode pass can detect when a freshly-minted candidate strictly covers an existing active skill (subsumption-retire path) |
 
 ---
 
@@ -57,38 +58,51 @@ The crafter never decides the *outcome* — it only proposes. The orchestrator's
 
 ---
 
-## Failure-driven loop
+## Failure-driven loop (two-tier trigger)
+
+The crafter is invoked at two cadences. See `implementation_notes/crafter-harness-orchestrator-roles.md` §"Two-tier trigger" for the rationale.
 
 ```
-runtime episodes ─────────────────► FailureTrace ─► FailureMemory
-                                                         │
-                                                         ▼ (clustered)
-                                                    FailurePattern
-                                                         │
-                                                         ▼
-                              ┌──────────► FailureDiagnoser (teacher = gpt-4o)
-                              │                        │
-                              │                        ▼
-                              │           one of {compose, generalize,
-                              │                    hypothesise, patch, retire}
-                              │                        │
-                              │                        ▼
-                              │                 BankMutationProposal
-                              │                        │
-                              │                        ▼
-                              │   SkillCrafterService.process
-                              │     ├── ArtifactStore.put_proposal
-                              │     └── SkillLifecycleManager.ingest_draft
-                              │                        │
-                              │                        ▼
-                              │                  draft_store/  (DRAFT)
-                              │                        │
-                              │                        ▼ (offline gate)
-                              │                  GateService → PromotionOrchestrator
-                              │                                       │
-                              ◄────────────────────────────────────────┘
-                                            new ACTIVE skill enters runtime
+                    PER-EPISODE REACTIVE                       PER-BATCH REFLECTIVE
+                    (every episode end)                        (every K episodes)
+
+runtime episode ───┬──► FailureTrace[]  (this episode)         FailureTrace[]    (last K eps)
+                   │           │                                       │
+                   ▼           ▼                                       ▼
+   bank-mgmt agent ──► new candidate skill_ids                FailureMemory.hot_patterns
+              │              + bank_agent_actions                       │
+              │                                                         │ (count ≥ hot_pattern_threshold)
+              ▼                                                         ▼
+     EpisodeReflection                                       repair > retire > hypothesise
+              │                                                         │
+              ▼                                                         │
+  SkillCrafterService.reflect_on_episode                                │
+   ├── ingest_failures(reflection.failure_traces)                       │
+   ├── _run_failure_dispatch(min_count=1)  ◄────── shared dispatch ────►├── _run_failure_dispatch(min_count=hot_pattern_threshold)
+   ├── _take_bank_view()                                                │
+   └── subsumed_pairs(new_candidate_skill_ids) → RetireProposal[]       │
+              │                                                         │
+              ▼                                                         ▼
+                       BankMutationProposal[]
+                                │
+                                ▼
+                  SkillCrafterService persistence
+                   ├── ArtifactStore.put_proposal
+                   └── SkillLifecycleManager.ingest_draft
+                                │
+                                ▼
+                          draft_store/  (DRAFT)
+                                │
+                                ▼ (offline gate)
+                       GateService → PromotionOrchestrator
+                                │
+                                ▼
+                       new ACTIVE skill enters runtime
 ```
+
+Threshold split: per-episode pass uses `min_count=1` so a single failure or a single fresh candidate is enough to act on; per-batch pass keeps the original `hot_pattern_threshold` (default 3) so cross-episode noise has to repeat before the gate stack sees it. The dispatch chain itself (repair → retire → hypothesise) is identical on both paths — the only difference is which failure patterns reach it.
+
+`Composer` and `Generalizer` belong on the per-batch path (they need multi-episode statistics); the per-episode path deliberately runs neither.
 
 ---
 
