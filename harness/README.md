@@ -6,12 +6,21 @@ The harness is the *frozen verifier* in the role split (root README §"Three-age
 
 > The Skill Bank provides candidates, the **Harness narrows + may veto**, the Actor decides, the Orchestrator handles offline promotion.
 
-Concretely, the harness's job for one skill invocation is four steps:
+Concretely, the harness's job for one skill invocation is six steps:
 
 1. **Filter** the bank's candidate set to a domain- and contract-eligible subset (`select_eligible_skills`).
-2. **Execute** one chosen skill via the right `SkillAdapter` (`run_skill`).
-3. **Record** everything as a `SkillEpisode` + reward-log entry — this is where invariant **G0 (evidence-driven)** bites via `SkillEpisode.finalize()`.
-4. **Provide replay validation** for the gate (Stage 1, [`PLAN-UNIFIED-SKILL-GATE`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) §7).
+2. **Score** every kept skill with `fit_score` + `risk_score` and per-check booleans (`binding_ok / precondition_ok / evidence_ok / adapter_ok`). _Currently absent — see [§9](#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)._
+3. **Validate the invocation** — once the Actor has bound slots and proposed a skill, the harness re-checks and may veto (`validate_invocation`). _Currently absent — see [§9](#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)._
+4. **Execute** one chosen skill via the right `SkillAdapter` (`run_skill`).
+5. **Record** everything as a `SkillEpisode` + reward-log entry — this is where invariant **G0 (evidence-driven)** bites via `SkillEpisode.finalize()`.
+6. **Provide replay validation** for the gate (Stage 1, [`PLAN-UNIFIED-SKILL-GATE`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) §7).
+
+The harness has **two surfaces** sharing this module:
+
+| Surface | When it runs | Public API |
+|---|---|---|
+| **Online runtime** | Per actor decision (steps 1–5 above). Inputs: `(schema_state, intention, retrieved_skills, active_skill, local_reasoning_trace)`. Outputs: `eligible_skills` + `invocation_veto` + `SkillEpisode`. | `select_eligible_skills`, _`validate_invocation` (pending)_, `run_skill` |
+| **Offline `GateRunner`** | Per Crafter `BankMutationProposal`. Inputs: `(proposal, candidate_skill, replay_seeds, shadow_log/rollout_batch, target_domains, FewShotDemo[], frozen_eval_suite)`. Outputs: per-stage `GateVerdictPayload` + roll-up `SkillEvaluationRecord`. | Today composed in `orchestrator/gate_service.py` — a harness-side aggregator (`harness/gate_runner.py`) is owed (see [§3](#3-the-six-gate-runner-and-the-transfer-manager-dont-exist-yet)) |
 
 It does **NOT**:
 - Choose which skill to commit to — that's the Actor.
@@ -136,6 +145,93 @@ In a multi-hop adapter run the failing step isn't necessarily the tail. The adap
 
 Both branches of the `if self._config.fail_on_missing_adapter:` guard inside `run_skill` currently `return episode`. Either the flag should drive distinct behavior (e.g. raise vs. return a failed episode) or be removed.
 
+---
+
+## Spec-contract gaps (audit: 2026-04-30)
+
+Items 1–8 above are runtime/execution holes inside files that already exist. Items 9–14 below are gaps in the **API surface and persisted-artefact shapes** between [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md) / [`PLAN-UNIFIED-SKILL-GATE`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) and what the live code actually exposes. They were surfaced while scoping a `labeling_supplement/dump_harness_io_gpt54.py` driver that exercises the live harness against the cold-start corpus.
+
+### 9. Online-surface API gaps (`validate_invocation`, scoring, intention/active_skill inputs)
+
+The README intro lists the harness as "narrows + may veto", but only the narrowing exists. Concretely:
+
+  - **`SkillHarness.validate_invocation` is missing entirely.** A `grep validate_invocation` across the package returns zero hits in any `.py` file (only plan documents). `run_skill` (`skill_harness.py:82`) goes straight from `(skill, state, bindings)` to `adapter.run` with no second-pass check. Slot-binding errors (e.g. `MERGE` adapter on non-adjacent tiles, `VERIFY_EVIDENCE` without an evidence span) only surface as adapter-level `abort_reason` — too late to refuse the invocation.
+  - **No scoring path.** `EligibilityFilter` is explicit at `eligibility.py:16` ("we never *score* skills here"). Spec asks for `fit_score` + `risk_score` per kept skill; neither exists.
+  - **`select_eligible_skills(candidates, state, *, skill_type_hint)` (`skill_harness.py:73`) ships only a strict subset of the spec'd inputs:**
+
+| Spec input | Current parameter | Status |
+|---|---|---|
+| `schema_state` | `state: StateSchema` | ✓ |
+| `retrieved_skills` | `candidates` | ✓ |
+| `intention` | — | missing |
+| `active_skill` | — | missing |
+| `local_reasoning_trace` | — | missing |
+
+  - **`EligibleSkill.to_json()` (`eligibility.py:44–52`) emits only** `{skill_id, skill_name, skill_status, adapter_name, shadow_only, reasons}` — missing the per-skill check booleans (`binding_ok / precondition_ok / evidence_ok / adapter_ok`) and the rejected-skill `veto / veto_reason` channel. Rejected candidates are silently dropped today, so the actor cannot reason about why a skill was excluded.
+
+### 10. `SkillEpisode` artefact field gaps
+
+The harness's most visible artefact (`data_structure/extensions/skill_episode.py`) is missing fields that the gate, the Crafter, and any future I/O dump need:
+
+| Spec field | Status | Gap |
+|---|---|---|
+| `evidence_role` | ✓ | on `SkillEpisodeOutcome.evidence_role` (line 67) |
+| `evidence_in / evidence_out` split | ❌ | only one uni-directional `SkillEpisodeStep.evidence: List[EvidenceRef]` (line 37). Crafter / GateRunner cannot tell "what did the skill consume?" from "what did it produce?" |
+| `evidence_warrant` / `verify_verdict` / `reason_warrant` | ❌ | no citation slots on outcome or step |
+| `protocol_trace` (mapping `episode.steps[i] → skill.protocol[k]`) | ❌ | `steps` is the adapter's raw step record, not a structured trace against `skill.protocol[]`. The Repairer can therefore only patch in the dark — this is the §7.1 mismatch #2 in [`../implementation_notes/crafter-harness-orchestrator-roles.md`](../implementation_notes/crafter-harness-orchestrator-roles.md) made concrete |
+| `contract_progress` (per-key) | ❌ | only `outcome.contract_satisfied: bool` (line 65). No per-key (effects_add fired, effects_del fired, expected_evidence_role fired) granularity |
+| `reward_components` | ❌ | only scalar `outcome.score: Optional[float]` (line 69). `cost: Dict[str, float]` (line 114) carries token/hop/ms but is not the multi-component reward the spec implies |
+| `shadow` flag on episode | 🟡 | `EligibleSkill.shadow_only: bool` (`eligibility.py:43`) is set at filter time but never propagates into `SkillEpisode` or `RewardLogEntry`. Stage 2 therefore cannot distinguish shadow-mode failures from real-mode failures when reading back the log |
+| `diagnostic_labels` (list) | 🟡 | only a single `transfer_label: Optional[str]` (line 115). G0-violation tagging is currently routed to a separate `FailureTrace` via `SkillHarness._record_failure` (line 219), not to the episode itself |
+
+### 11. `SkillEvaluationRecord` reproducibility-anchor gaps
+
+The roll-up the orchestrator reads (`data_structure/extensions/skill_evaluation.py`) does not pin the run to a reproducible context:
+
+| Spec field | Status | Gap |
+|---|---|---|
+| `skill_id`, `final_decision`, `decision_reason`, per-stage payloads | ✓ | via `verdict.{stages, final_verdict, rationale}` |
+| `version` | 🟡 | only `skill_content_hash` (a fingerprint, not a version string) |
+| `status_before` / `status_after` | ❌ | not recorded |
+| `approved_domains` | 🟡 | recorded as `verdict.eligible_domains` (renamed) |
+| `rejected_domains` | ❌ | not recorded; consumer must compute `target_domains \ eligible_domains` |
+| `rollback_target` | ❌ | not recorded |
+| `bank_snapshot_id` | ❌ | **the most important gap** — the gate evaluation is not snapshot-pinned. `SnapshotManager` exists (`orchestrator/snapshot_manager.py`) and `RunRelease.bank_snapshot_path` is recorded *on promotion* (`orchestrator/promotion_orchestrator.py:146`), but two evaluations against different snapshots are indistinguishable on disk today |
+| `eval_suite_id`, `adapter_versions`, `ontology_version` | ❌ | no record of which eval suite, which adapter versions, or which schema/ontology version the verdict was emitted against — blocks reproducible audit |
+| `diagnostic_labels` (flat list) | 🟡 | only `transfer_labels: Dict[str, int]` (a histogram). Per-stage `StageVerdict.failures: List[str]` is the closest stand-in |
+
+### 12. `GateService` stage I/O signatures don't match the spec
+
+`orchestrator/gate_service.py:91 GateService.evaluate(...)` composes all five stages, but two diverge from what the spec calls out:
+
+  - **Stage 2 shadow** (`_run_shadow`, line 193) takes `Optional[RewardLogger]` — *not* a `rollout_batch[]`. It reads via `log.filter(skill_id=...)` from the in-process logger.
+  - **Stage 4 non-regression** (`_run_non_regression`, line 350) takes scalar `baseline_score` / `post_score` — *not* a frozen `eval_suite[]` reference. There is no `eval_suite_id` recorded anywhere.
+
+Both are additive fixes (overload to accept the new shapes), but they need to be acknowledged or any I/O-dump driver will trip on them.
+
+### 13. `GateService` lives under `orchestrator/`, not `harness/` — naming mismatch with the spec
+
+The spec calls it the "Harness `GateRunner`". The live composition lives in [`../orchestrator/gate_service.py`](../orchestrator/gate_service.py); the harness only owns the leaf primitives (`ReplayValidator`, `FewShotAdapter`). Item 3 above already names `harness/gate_runner.py` as missing. The architectural choice is defensible (the orchestrator owns stage composition), but consumers reading the spec will look in `harness/` and find nothing — the rename / relocate is the remaining cosmetic fix once items 9–12 land.
+
+### 14. No I/O dump driver — live harness behaviour against the cold-start corpus is unverified
+
+Nothing today drives the live `SkillHarness` against `labeling/skill_actions_out/` to validate that:
+
+  - the eligibility narrowing agrees with the cold-start actor's bound `skill_query.selected_skill_id`,
+  - `run_skill` produces non-empty `SkillEpisode`s on the gymv adapter for the existing `(corpus, source)` pairs,
+  - `replay_validate` round-trips synthesized seeds from `labeling/skill_bank_out/.../sub_episodes.json`.
+
+Verifying these is the prerequisite for the actor rewire (`HarnessSkillProvider` per [`../IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet delivered"): we need numerical evidence that the harness behaves as designed before it goes in front of the actor.
+
+The natural fit is a sibling driver under [`../labeling_supplement/`](../labeling_supplement/) that mirrors the existing `decide_skill_crafting_gpt54.py` / `reflect_per_episode_gpt54.py` pattern. Data plumbing per surface:
+
+| Driver surface | Bank | Per-step / per-rollout | Proposals |
+|---|---|---|---|
+| **Online dump** (eligibility, validate_invocation, run_skill, SkillEpisode) | `labeling/skill_bank_out/run_<ts>/<corpus>/<source>/skill_bank.jsonl` | `labeling/skill_actions_out/run_<ts>/<corpus>/<source>/episode_*.json` (state, intention, retrieved_skills, active_skill, raw_intentions, ground-truth `skill_query.selected_skill_id` for agreement metric) | n/a |
+| **Offline GateRunner dump** (Stage 0–4, `SkillEvaluationRecord`) | `labeling/skill_bank_out/...` (skill the proposal mutates) | `labeling/skill_actions_out/...` (replay seeds + shadow log + cross-source few-shot demos + `_skill_actions_summary.json` non-regression baseline) | `labeling_supplement/crafter_proposals_out/run_<ts>/...` and `labeling_supplement/episode_reflections_out/run_<ts>/...` |
+
+Note the layering: `labeling_supplement/` only contains *what to verify* (Crafter proposals); the rollouts the harness consumes — replay seeds, shadow logs, transfer demos, non-regression baselines — all still live in `labeling/`.
+
 ### Outside this package, but blocking its value
 
 - **Actor rewire.** `decision_agents.skill_interface.SkillBankProvider` still queries the bank directly. Until it is replaced by a `HarnessSkillProvider` that wraps `SkillHarness.select_eligible_skills`, the "harness narrows + may veto" rule is not in force at runtime. Tracked in [`../IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet delivered".
@@ -143,15 +239,22 @@ Both branches of the `if self._config.fail_on_missing_adapter:` guard inside `ru
 
 ### Suggested work-order
 
-Smallest cost / highest value first:
+Smallest cost / highest value first. The reordering below puts the audit's [§9–§14](#spec-contract-gaps-audit-2026-04-30) items ahead of items 1–8 because they are pure additive contract fixes (no behavioural break) and they unblock the I/O-dump driver that validates everything else.
 
-1. Plug a real domain-aware `success_fn` into `FewShotAdapter`.
-2. Wire the legacy actor to `HarnessSkillProvider`.
-3. Implement action-level `ReplayValidator` (walk `seed.steps`, compare actions + evidence).
-4. Stand up `harness/gate_runner.py` over `gate_service` stages.
-5. Add `harness/transfer_manager.py` for shadow → active.
-6. Wire `vlm_wrapper/<domain>_adapter.py` executors via `set_executor()` — `browser` → `osworld` → `video` → `visual_reasoning`.
-7. Phase-F LoRA heads in `select_eligible_skills`.
+  1. Add `SkillHarness.validate_invocation(skill, state, bindings, *, intention, reasoning_trace) -> {veto, veto_reason, diagnostic_labels}` and propagate `EligibleSkill.shadow_only` into `SkillEpisode` / `RewardLogEntry` ([§9](#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs), [§10](#10-skillepisode-artefact-field-gaps) shadow row).
+  2. Extend `EligibleSkill` with the per-skill check booleans (`binding_ok / precondition_ok / evidence_ok / adapter_ok`), `fit_score`, `risk_score`, and `veto / veto_reason` for rejected candidates ([§9](#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)). Pure additive on `eligibility.py`.
+  3. Extend `SkillEpisode` with `evidence_in / evidence_out` split, `evidence_warrant / verify_verdict / reason_warrant`, `protocol_trace` (index from `episode.steps[i]` to `skill.protocol[k]`), per-key `contract_progress`, structured `reward_components`, and a list-typed `diagnostic_labels` ([§10](#10-skillepisode-artefact-field-gaps)). Pure additive on `data_structure/extensions/skill_episode.py`.
+  4. Extend `SkillEvaluationRecord` with the reproducibility anchors `bank_snapshot_id`, `eval_suite_id`, `adapter_versions`, `ontology_version`, plus `status_before / status_after / rejected_domains / rollback_target` ([§11](#11-skillevaluationrecord-reproducibility-anchor-gaps)). Wire `bank_snapshot_id` through `GateService.evaluate(...)`.
+  5. Stand up `labeling_supplement/dump_harness_io_gpt54.py` (online surface only) per [§14](#14-no-io-dump-driver--live-harness-behaviour-against-the-cold-start-corpus-is-unverified). Doubles as the integration test for items 1–4.
+  6. Plug a real domain-aware `success_fn` into `FewShotAdapter` (existing item 4).
+  7. Wire the legacy actor to `HarnessSkillProvider`.
+  8. Implement action-level `ReplayValidator` (walk `seed.steps`, compare actions + evidence) — existing item 2.
+  9. Stand up `harness/gate_runner.py` over `gate_service` stages — existing item 3 + [§13](#13-gateservice-lives-under-orchestrator-not-harness--naming-mismatch-with-the-spec) relocate.
+  10. Extend the dump driver to the offline GateRunner surface (Stage 0–4 + `SkillEvaluationRecord` per Crafter proposal) — second half of [§14](#14-no-io-dump-driver--live-harness-behaviour-against-the-cold-start-corpus-is-unverified).
+  11. Add `rollout_batch[]` overload on `_run_shadow` and `eval_suite[]` overload on `_run_non_regression` ([§12](#12-gateservice-stage-io-signatures-dont-match-the-spec)).
+  12. Add `harness/transfer_manager.py` for shadow → active — existing item 3 second half.
+  13. Wire `vlm_wrapper/<domain>_adapter.py` executors via `set_executor()` — `browser` → `osworld` → `video` → `visual_reasoning` (existing item 1).
+  14. Phase-F LoRA heads in `select_eligible_skills` (existing item 5).
 
 ---
 
@@ -159,5 +262,8 @@ Smallest cost / highest value first:
 
 - Root [`readme.md`](../readme.md) §"Architecture" — where the harness sits in the four-stage pipeline.
 - [`../plans/05-harness/PLAN-HARNESS.md`](../plans/05-harness/PLAN-HARNESS.md) — full spec, gate stack G0–G5.
+- [`../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) — `GateRunner` stages and aggregation contract that drives [§11–§13](#11-skillevaluationrecord-reproducibility-anchor-gaps).
 - [`../skill_bank/README.md`](../skill_bank/README.md) — invariant 8 ties `FewShotAdapter` to `SkillLifecycleManager.record_transfer_verification`.
+- [`../implementation_notes/crafter-harness-orchestrator-roles.md`](../implementation_notes/crafter-harness-orchestrator-roles.md) — three-role I/O contract; §3 cheat sheet enumerates the artefact families [§10–§11](#10-skillepisode-artefact-field-gaps) extend; §7.1 mismatch #2 motivates [§10](#10-skillepisode-artefact-field-gaps)'s `protocol_trace` row.
+- [`../labeling_supplement/`](../labeling_supplement/) — sibling location for the `dump_harness_io_gpt54.py` driver in [§14](#14-no-io-dump-driver--live-harness-behaviour-against-the-cold-start-corpus-is-unverified).
 - [`../tests/test_smoke.py`](../tests/test_smoke.py) — runnable end-to-end wiring example.
