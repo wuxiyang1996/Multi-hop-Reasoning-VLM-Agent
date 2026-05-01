@@ -15,10 +15,11 @@ Core types:
 
 from __future__ import annotations
 
+import json
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Dict, List, Optional, Set
+from typing import Any, ClassVar, Dict, List, Mapping, Optional, Set
 
 
 @dataclass
@@ -330,12 +331,23 @@ class Protocol:
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> Protocol:
+    def from_dict(cls, d) -> Protocol:
+        # Accept three on-disk shapes:
+        #   * ``None`` / falsy → empty Protocol
+        #   * ``Mapping`` (legacy cold-start) → keys "preconditions",
+        #     "steps", "success_criteria", "abort_criteria", …
+        #   * ``list`` (Day-2-lifted bank) → list of typed hops
+        #     ``[{"action": ..., "payload": {...}, "notes": ...}, …]``;
+        #     we collapse to NL strings so downstream consumers (which
+        #     do ``" → ".join(skill.protocol.steps)``) keep working,
+        #     and the ancillary fields default to empty.
         if not d:
             return cls()
+        if isinstance(d, list):
+            return cls(steps=_lifted_hops_to_nl_steps(d))
         return cls(
             preconditions=d.get("preconditions", []),
-            steps=d.get("steps", []),
+            steps=_coerce_protocol_steps_to_str(d.get("steps", [])),
             success_criteria=d.get("success_criteria", []),
             abort_criteria=d.get("abort_criteria", []),
             expected_duration=d.get("expected_duration", 10),
@@ -345,6 +357,52 @@ class Protocol:
             action_vocab=d.get("action_vocab", []),
             source=d.get("source", "template"),
         )
+
+
+def _coerce_protocol_steps_to_str(raw) -> List[str]:
+    """Normalise a ``protocol.steps`` payload to ``List[str]``.
+
+    Day-2 lifted banks may emit each step as ``{"action", "payload",
+    "notes"}``; legacy cold-start banks emit prose strings. The rest of
+    ``stage3_mvp`` does ``" → ".join(skill.protocol.steps)``, so we
+    collapse to strings here.
+    """
+
+    if not raw:
+        return []
+    out: List[str] = []
+    for s in raw:
+        if isinstance(s, str):
+            out.append(s)
+        elif isinstance(s, Mapping):
+            out.append(_lifted_hop_to_nl(s))
+        else:
+            out.append(str(s))
+    return out
+
+
+def _lifted_hops_to_nl_steps(hops) -> List[str]:
+    return [
+        _lifted_hop_to_nl(h) if isinstance(h, Mapping) else str(h)
+        for h in hops or []
+    ]
+
+
+def _lifted_hop_to_nl(hop: Mapping[str, Any]) -> str:
+    """Mirror of :func:`skill_bank.legacy_writeback._typed_protocol_to_nl_steps`
+    on a single hop; lives here so stage3_mvp doesn't pull the writeback
+    module just to coerce a list."""
+
+    notes = hop.get("notes")
+    if isinstance(notes, str) and notes.strip():
+        return notes.strip()
+    action = hop.get("action")
+    if isinstance(action, str) and action.strip():
+        payload = hop.get("payload")
+        if isinstance(payload, Mapping) and payload:
+            return f"{action.strip()} {json.dumps(payload, sort_keys=True)}"
+        return action.strip()
+    return json.dumps(dict(hop), sort_keys=True)
 
 
 @dataclass

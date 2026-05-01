@@ -252,6 +252,21 @@ def seed_lifecycle(
 #    The on-disk `metadata.schema_canonical` is a small DSL; we extract
 #    the fields the harness adapter dispatch + eligibility filter
 #    actually look at (domain, task, elements, facts).
+#
+#    Day-3 (harness/README §22): we additionally fold the `<attributes>`
+#    and `<state_flags>` blocks into `state.facts` so the gymv
+#    success_fn can evaluate per-hop effect predicates
+#    (entity_value_increased, cumulative_reward_increased,
+#    phase_transitioned, …) against pre/post state without re-parsing
+#    the raw schema text. Hot-path keys:
+#      facts["score"]              — score entity value (numeric if parseable)
+#      facts["highest_tile"]       — highest-tile entity value
+#      facts["lines_cleared"]      — lines-cleared entity value (tetris)
+#      facts["phase"]              — <state_flags> phase (e.g. "gameover")
+#      facts["progress"]           — <state_flags> progress (numeric ∈ [0,1])
+#      facts["entity_attrs"]       — {label → {field → value}}
+#      facts["entity_label_count"] — {label → count}  (entity_count_changed)
+#      facts["goal"]               — preserved from pre-Day-3 contract
 # ─────────────────────────────────────────────────────────────────────────
 
 
@@ -262,6 +277,44 @@ _GOAL_LINE = re.compile(r"^goal=(.*)$", re.M)
 _ENTITY_LINE = re.compile(
     r"^([a-zA-Z_][\w]*)\[type=([\w\-]+)(?:,\s*([^\]]+))?\]\s*$", re.M
 )
+_SECTION_BLOCK = re.compile(
+    r"<(?P<name>entities|attributes|affordances|relations|state_flags|"
+    r"targets|uncertainty|actions|evidence|answer)>"
+    r"(?P<body>.*?)(?=<\w+>|</state>|\Z)",
+    re.DOTALL,
+)
+_ATTR_LINE = re.compile(r"^([a-zA-Z_]\w*)\.(\w+)\s*=\s*(.+?)\s*$", re.M)
+_STATE_FLAG_LINE = re.compile(r"^(\w+)\s*=\s*(.+?)\s*$", re.M)
+
+
+def _maybe_number(value: str) -> Any:
+    """Parse a stringified attribute value into the cheapest numeric form.
+
+    Used by the gymv success_fn so predicate evaluation can compare
+    `score` / `highest_tile` numerically without each caller redoing
+    the int/float dance. Returns the original string when neither int
+    nor float parse succeeds.
+    """
+    s = (value or "").strip()
+    if not s or s.lower() in {"null", "none"}:
+        return None
+    try:
+        if "." not in s and "e" not in s.lower():
+            return int(s)
+    except ValueError:
+        pass
+    try:
+        return float(s)
+    except ValueError:
+        return s
+
+
+def _split_canonical_sections(text: str) -> Dict[str, str]:
+    out: Dict[str, str] = {}
+    haystack = text if "</state>" in text else text + "</state>"
+    for m in _SECTION_BLOCK.finditer(haystack):
+        out[m.group("name")] = m.group("body").strip()
+    return out
 
 
 def parse_schema_canonical(
@@ -273,7 +326,10 @@ def parse_schema_canonical(
     Always returns a `StateSchema` (never raises) — parse failures
     degrade to a minimal schema with what we could recover. Sufficient
     for the eligibility filter (which only needs `state.domain` and
-    `state.elements` for slot-binding sanity checks).
+    `state.elements` for slot-binding sanity checks) AND for the
+    gymv success_fn (which reads `state.facts["score"]` /
+    `state.facts["highest_tile"]` / `state.facts["entity_attrs"]` /
+    `state.facts["entity_label_count"]` / `state.facts["phase"]`).
     """
     text = text or ""
     domain = default_domain
@@ -290,9 +346,15 @@ def parse_schema_canonical(
     if m := _GOAL_LINE.search(text):
         goal = m.group(1).strip()
 
+    sections = _split_canonical_sections(text)
+
+    # ── entities ────────────────────────────────────────────────────────
     elements: List[Dict[str, Any]] = []
-    for m in _ENTITY_LINE.finditer(text):
+    eid_to_index: Dict[str, int] = {}
+    for m in _ENTITY_LINE.finditer(sections.get("entities", "") or text):
         eid, etype = m.group(1), m.group(2)
+        if eid in eid_to_index:
+            continue
         attrs_blob = (m.group(3) or "").strip()
         elem: Dict[str, Any] = {"id": eid, "type": etype}
         for kv in attrs_blob.split(","):
@@ -300,13 +362,79 @@ def parse_schema_canonical(
             if "=" in kv:
                 k, v = kv.split("=", 1)
                 elem[k.strip()] = v.strip()
+        eid_to_index[eid] = len(elements)
         elements.append(elem)
+
+    # ── attributes (e1.value=2 / e2.state=visible / …) ──────────────────
+    # Decorate each element with its attribute key/value pairs and build
+    # a label-keyed roll-up so the success_fn can read
+    # `facts["entity_attrs"]["highest_tile"]["value"]` regardless of
+    # which `e<N>` slot the schema happened to assign.
+    entity_attrs: Dict[str, Dict[str, Any]] = {}
+    for m in _ATTR_LINE.finditer(sections.get("attributes", "")):
+        eid, field_name, value = m.group(1), m.group(2), m.group(3).strip()
+        idx = eid_to_index.get(eid)
+        if idx is None:
+            continue
+        elem = elements[idx]
+        elem[field_name] = value
+        label = elem.get("label")
+        if label:
+            entity_attrs.setdefault(label, {})[field_name] = _maybe_number(value)
+
+    # ── label counts (entity_count_changed predicate) ───────────────────
+    label_count: Dict[str, int] = {}
+    for elem in elements:
+        lbl = elem.get("label")
+        if lbl:
+            label_count[lbl] = label_count.get(lbl, 0) + 1
+
+    # ── <state_flags> block (phase / progress / …) ──────────────────────
+    state_flags: Dict[str, Any] = {}
+    for m in _STATE_FLAG_LINE.finditer(sections.get("state_flags", "")):
+        key, raw = m.group(1).strip(), m.group(2).strip()
+        # Skip stray tag remnants that the regex picked up before the
+        # next section opener (defensive — `<state_flags>\nphase=play`
+        # is fine; we only ever land here on actual `key=value` rows).
+        if key in {"state", "entities", "attributes", "affordances",
+                   "relations", "targets", "uncertainty",
+                   "actions", "evidence", "answer"}:
+            continue
+        state_flags[key] = _maybe_number(raw) if raw.lower() not in {
+            "null", "none", ""
+        } else None
+
+    facts: Dict[str, Any] = {}
+    if goal:
+        facts["goal"] = goal
+    if entity_attrs:
+        facts["entity_attrs"] = entity_attrs
+    if label_count:
+        facts["entity_label_count"] = label_count
+    # Hot-path scalars used by the gymv success_fn (kept as top-level
+    # `facts` keys so callers don't have to re-traverse `entity_attrs`).
+    for hot_label in ("score", "highest_tile", "lines_cleared",
+                      "tetris_score", "moves_remaining"):
+        rec = entity_attrs.get(hot_label)
+        if rec is None:
+            continue
+        if "value" in rec:
+            facts[hot_label] = rec["value"]
+        elif "state" in rec:
+            facts[hot_label] = rec["state"]
+    if state_flags:
+        # Promote the two flags the gymv predicates care about.
+        if "phase" in state_flags and state_flags["phase"] is not None:
+            facts["phase"] = state_flags["phase"]
+        if "progress" in state_flags and state_flags["progress"] is not None:
+            facts["progress"] = state_flags["progress"]
+        facts["state_flags"] = state_flags
 
     return StateSchema(
         task=task or goal,
         domain=domain,
         elements=elements,
-        facts={"goal": goal} if goal else {},
+        facts=facts,
         extra={},
     )
 

@@ -36,27 +36,53 @@ from harness.few_shot_adapter import (
     FewShotDemo,
     default_success_fn,
 )
+from harness.gymv_executor import (
+    ACTION_ALIAS_MAP,
+    GymvExecutorState,
+    initial_state_from_env,
+    make_gymv_executor,
+)
+from harness.gymv_success import (
+    EFFECT_PREDICATE_TYPES,
+    HopEffectResult,
+    PredicateResult,
+    evaluate_episode_effects,
+    evaluate_hop_effects,
+    evaluate_predicate,
+    make_per_step_success_fn,
+)
 from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
 from harness.skill_adapter import SkillAdapter, AdapterRunContext, AdapterRunResult
 from harness.skill_harness import HarnessConfig, SkillHarness
 
 __all__ = [
+    "ACTION_ALIAS_MAP",
     "AdaptResult",
     "AdapterRegistry",
     "AdapterRunContext",
     "AdapterRunResult",
+    "EFFECT_PREDICATE_TYPES",
     "EligibilityFilter",
     "EligibleSkill",
     "FewShotAdapter",
     "FewShotAdapterError",
     "FewShotDemo",
+    "GymvExecutorState",
     "HarnessConfig",
+    "HopEffectResult",
+    "PredicateResult",
     "ReplayResult",
     "ReplayValidator",
     "RewardLogger",
     "SkillAdapter",
     "SkillHarness",
     "default_success_fn",
+    "evaluate_episode_effects",
+    "evaluate_hop_effects",
+    "evaluate_predicate",
+    "initial_state_from_env",
+    "make_gymv_executor",
+    "make_per_step_success_fn",
     "task_id_from_state",
 ]

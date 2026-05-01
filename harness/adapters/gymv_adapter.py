@@ -3,12 +3,21 @@
 This is a *minimal* but real adapter: it walks `skill.protocol` hop by
 hop, treats each hop as `{action: <tool_name>, payload: {...}}`, and
 emits a corresponding `SkillEpisodeStep`. In `dry_run=True` mode it
-short-circuits to a deterministic deterministic outcome derived from the
-seed state's stored facts (used by the gate's replay validator).
+short-circuits to a deterministic outcome derived from the seed
+state's stored facts (used by the gate's replay validator).
 
-Real env wiring (gymnasium / gym-v) belongs in `gymv_wrapper.adapter`;
-this adapter calls into that module via a late import so the harness
-package remains importable in a unit-test environment.
+Real env wiring (gymnasium / gym-v) lives in `harness.gymv_executor`
+(`make_gymv_executor`); the executor is plugged in via `set_executor`
+so the harness package stays importable in a unit-test environment
+without dragging in `env_wrappers` / `gym_v`.
+
+Day-3 (PLAN-HARNESS §22): the adapter additionally captures per-hop
+pre/post `StateSchema` snapshots (when the executor surfaces them via
+`hop_result["post_state"]`) and rolls up the protocol's typed
+`effects_add` predicates against those snapshots. The roll-up is
+attached to `AdapterRunResult.extra["per_hop_effects"]` so the
+`FewShotAdapter`'s `success_fn` can score on real effect satisfaction
+rather than on "ran without raising".
 """
 
 from __future__ import annotations
@@ -82,6 +91,12 @@ class GymvAdapter(SkillAdapter):
         evidence: List[EvidenceRef] = []
         executor = self._executor if not ctx.dry_run else _deterministic_executor
 
+        # Day-3 §22: every hop records its pre/post StateSchema so the
+        # success_fn can evaluate `effects_add` predicates against
+        # consecutive snapshots. The pre-state for hop 0 is `ctx.state`;
+        # subsequent pre-states chain off the previous post.
+        prev_post_serialized: Optional[Dict[str, Any]] = None
+
         for i, hop in iter_hops(skill):
             abort = budget.check(i)
             if abort:
@@ -95,6 +110,10 @@ class GymvAdapter(SkillAdapter):
                 )
             action_type = normalize_hop_action(hop)
             payload = bindings.resolve_dict(hop.get("payload", {}))
+            pre_state_serialized = (
+                prev_post_serialized if prev_post_serialized is not None
+                else ctx.state.to_json()
+            )
             try:
                 hop_result = executor(action_type, payload, ctx)
             except Exception as exc:                          # noqa: BLE001
@@ -107,16 +126,35 @@ class GymvAdapter(SkillAdapter):
                 )
             step_evidence: List[EvidenceRef] = list(hop_result.get("evidence", []))
             evidence.extend(step_evidence)
+
+            # Executor may surface a post-state dict via
+            # `hop_result["post_state"]` (the gymv executor in
+            # `harness.gymv_executor` always does). Fallback to a
+            # facts-only echo so the success_fn at least sees the
+            # cumulative reward / terminal flag.
+            post_state_serialized = hop_result.get("post_state")
+            if post_state_serialized is None:
+                obs = hop_result.get("observation") or {}
+                post_state_serialized = dict(pre_state_serialized)
+                post_state_serialized["facts"] = {
+                    **(post_state_serialized.get("facts") or {}),
+                    "last_observation": {
+                        k: v for k, v in obs.items()
+                        if isinstance(v, (str, int, float, bool, type(None)))
+                    },
+                }
+
             steps.append(
                 {
                     "action_type": action_type,
                     "payload": payload,
-                    "pre_state": ctx.state.to_json() if i == 0 else None,
-                    "post_state": None,
+                    "pre_state": pre_state_serialized,
+                    "post_state": post_state_serialized,
                     "evidence": step_evidence,
                     "notes": hop.get("notes", ""),
                 }
             )
+            prev_post_serialized = post_state_serialized
             ctx.state.inner_step += 1
             if not hop_result.get("ok", True):
                 return AdapterRunResult(
@@ -126,6 +164,9 @@ class GymvAdapter(SkillAdapter):
                     steps=steps,
                     new_evidence=evidence,
                 )
+
+        # ── Day-3 §22 effect-predicate roll-up ─────────────────────────
+        per_hop_effects = self._evaluate_effects(skill, steps)
 
         return AdapterRunResult(
             success=True,
@@ -138,7 +179,64 @@ class GymvAdapter(SkillAdapter):
                 "hops": float(len(steps)),
                 "ms": (time.time() - budget.started_at) * 1000,
             },
+            extra={"per_hop_effects": per_hop_effects} if per_hop_effects else {},
         )
+
+    @staticmethod
+    def _evaluate_effects(
+        skill: SkillRecord, steps: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Roll up per-hop `effects_add` against the recorded pre/post
+        snapshots. Returns None when the protocol carries no typed
+        effects (pre-lift skills) so the AdapterRunResult.extra stays
+        clean for callers that don't care about the gymv-shape contract.
+        """
+
+        protocol = list(getattr(skill, "protocol", None) or [])
+        has_any_effects = any(
+            isinstance(h, dict) and h.get("effects_add") for h in protocol
+        )
+        if not has_any_effects:
+            return None
+        # Local import — `harness.gymv_success` lives in this package and
+        # only depends on `common.state_schema`, so the cost is just the
+        # one-time module load.
+        from harness.gymv_success import (
+            evaluate_hop_effects,
+            _hydrate_state,
+        )
+
+        per_hop: List[Dict[str, Any]] = []
+        n_total = 0
+        n_pass = 0
+        for i, step in enumerate(steps):
+            if i >= len(protocol):
+                break
+            hop = protocol[i] if isinstance(protocol[i], dict) else {}
+            if not hop.get("effects_add"):
+                continue
+            pre = step.get("pre_state")
+            post = step.get("post_state")
+            if pre is None or post is None:
+                continue
+            res = evaluate_hop_effects(
+                {**hop, "hop_index": i},
+                _hydrate_state(pre),
+                _hydrate_state(post),
+            )
+            per_hop.append(res.to_json())
+            n_total += 1
+            if res.passed:
+                n_pass += 1
+
+        if n_total == 0:
+            return None
+        return {
+            "n_hops_evaluated": n_total,
+            "n_hops_passed": n_pass,
+            "pass_rate": n_pass / n_total,
+            "per_hop": per_hop,
+        }
 
 
 __all__ = ["GymvAdapter", "HopExecutor"]

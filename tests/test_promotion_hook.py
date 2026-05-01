@@ -472,4 +472,15 @@ def test_run_promotion_step_live_end_to_end(tmp_path: Path):
         env = json.loads(line)
         assert isinstance(env.get("skill"), dict)
         assert env["skill"].get("skill_id")
-        assert isinstance(env["skill"].get("protocol", {}).get("steps", []), list)
+        # Two on-disk shapes for ``protocol`` are accepted by every
+        # downstream loader (see Day-2 lift work):
+        #   * legacy cold-start: ``{"steps": [<NL>], "preconditions":
+        #     [...], …}``
+        #   * Day-2-lifted: a list of typed hops
+        #     ``[{"action", "payload", "notes"}, …]``
+        proto = env["skill"].get("protocol", {})
+        if isinstance(proto, list):
+            assert all(isinstance(h, dict) for h in proto), proto
+        else:
+            assert isinstance(proto, dict)
+            assert isinstance(proto.get("steps", []), list)

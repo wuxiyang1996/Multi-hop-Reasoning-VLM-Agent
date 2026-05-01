@@ -403,13 +403,27 @@ def _record_from_bank_entry(
     # source/target metadata.  Phase 2 (when target adapters land) will
     # populate these fields from a real harness probe.
 
-    protocol_blob = skill.get("protocol") or {}
+    # Day-2 lift can emit ``protocol`` either as the legacy dict
+    # ``{"steps":[<NL>], "preconditions":[…], …}`` or as a list of
+    # typed hops ``[{"action", "payload", "notes"}, …]``. Mirror the
+    # `_record_from_bank_entry` shim in ``trainer/coevolution/_crafter_hook.py``.
+    raw_protocol = skill.get("protocol")
+    if isinstance(raw_protocol, list):
+        protocol_steps = list(raw_protocol)
+        protocol_blob: Mapping[str, Any] = {}
+    elif isinstance(raw_protocol, Mapping):
+        protocol_blob = raw_protocol
+        protocol_steps = list(protocol_blob.get("steps") or [])
+    else:
+        protocol_blob = {}
+        protocol_steps = []
+
     rec = SkillRecord.new(
         name=skill.get("name", skill.get("skill_id", "_unknown")),
         skill_type=skill_type,
         source_type=SkillSourceType.MINED,
         feasible_domains=feasible,
-        protocol=_wrap_protocol_steps(protocol_blob.get("steps") or []),
+        protocol=_wrap_protocol_steps(protocol_steps),
         contract=SkillContract(
             preconditions=list(protocol_blob.get("preconditions") or []),
             effects_add=list(contract.get("eff_add") or []),

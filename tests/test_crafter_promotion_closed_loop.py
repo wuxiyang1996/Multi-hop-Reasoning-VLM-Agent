@@ -159,10 +159,18 @@ def test_phase1_closed_loop_grows_bank(tmp_path: Path):
         assert isinstance(env.get("skill"), dict)
         assert env["skill"].get("skill_id")
         proto = env["skill"].get("protocol", {})
-        # Legacy reader contract: protocol.steps must be List[str].
-        assert isinstance(proto.get("steps", []), list)
-        for step_str in proto.get("steps", []):
-            assert isinstance(step_str, str)
+        # Legacy reader contract: ``protocol.steps`` must be ``List[str]``
+        # under the dict shape; the Day-2 lift can also emit a list of
+        # typed hops directly. Accept either, but enforce the shape we
+        # got is well-formed.
+        if isinstance(proto, list):
+            for hop in proto:
+                assert isinstance(hop, dict), hop
+        else:
+            assert isinstance(proto, dict)
+            assert isinstance(proto.get("steps", []), list)
+            for step_str in proto.get("steps", []):
+                assert isinstance(step_str, str)
 
 
 def test_phase1_closed_loop_idempotent_on_second_pass(tmp_path: Path):

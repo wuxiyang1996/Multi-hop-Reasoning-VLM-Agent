@@ -69,7 +69,7 @@ import os
 import re
 import tempfile
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
@@ -569,14 +569,35 @@ def _record_from_bank_entry(
     skill_type = _ROLE_TO_SKILL_TYPE.get(role, SkillType.MIXED)
     contract = skill.get("contract") or {}
     feasible = list(skill.get("applicable_domains") or []) or [default_domain]
-    protocol_blob = skill.get("protocol") or {}
 
-    rec = SkillRecord.new(
+    # Two on-disk shapes for ``protocol``:
+    #   * legacy cold-start (pre-Day-2 lift) — a dict
+    #     ``{"steps": [<NL prose strings>], "preconditions": [...], …}``
+    #   * Day-2-lifted bank — a list of typed hops
+    #     ``[{"action": "SLIDE", "payload": {…}, "notes": …}, …]``
+    # The hop-list shape carries no companion preconditions/success_criteria
+    # — those move into the lifted ``SkillContract`` upstream — so when we
+    # see a list we just hand it to ``_wrap_protocol_steps`` and treat the
+    # ancillary contract fields as empty.
+    raw_protocol = skill.get("protocol")
+    if isinstance(raw_protocol, list):
+        protocol_steps = list(raw_protocol)
+        protocol_blob: Mapping[str, Any] = {}
+    elif isinstance(raw_protocol, Mapping):
+        protocol_blob = raw_protocol
+        protocol_steps = list(protocol_blob.get("steps") or [])
+    else:
+        protocol_blob = {}
+        protocol_steps = []
+
+    feasible_tasks = list(skill.get("feasible_tasks") or [])
+    verified_tasks = list(skill.get("verified_tasks") or [])
+    new_kwargs: Dict[str, Any] = dict(
         name=skill.get("name", str(raw_id)),
         skill_type=skill_type,
         source_type=SkillSourceType.MINED,
         feasible_domains=feasible,
-        protocol=_wrap_protocol_steps(protocol_blob.get("steps") or []),
+        protocol=_wrap_protocol_steps(protocol_steps),
         contract=SkillContract(
             preconditions=list(protocol_blob.get("preconditions") or []),
             effects_add=list(contract.get("eff_add") or []),
@@ -586,6 +607,16 @@ def _record_from_bank_entry(
             abort_criteria=list(protocol_blob.get("abort_criteria") or []),
         ),
     )
+    # ``feasible_tasks`` / ``verified_tasks`` are Day-2 additive fields on
+    # ``SkillRecord``; older callers (and ``SkillRecord.new`` signatures
+    # that pre-date Day-2) won't accept the kwargs, so we splice in only
+    # if the dataclass actually has them.
+    rec_fields = {f.name for f in fields(SkillRecord)}
+    if "feasible_tasks" in rec_fields and feasible_tasks:
+        new_kwargs["feasible_tasks"] = feasible_tasks
+    if "verified_tasks" in rec_fields and verified_tasks:
+        new_kwargs["verified_tasks"] = verified_tasks
+    rec = SkillRecord.new(**new_kwargs)
     # Force the bank-given skill_id (overrides the freshly-minted UUID)
     # so ``parent_skill_ids`` references resolve.
     object.__setattr__(rec, "skill_id", _safe_skill_id(str(raw_id)))
