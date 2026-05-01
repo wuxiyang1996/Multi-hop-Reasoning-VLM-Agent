@@ -464,6 +464,10 @@ understanding step by step before producing the final answer in
 
 _DOMAIN_CONTEXT: dict[str, str] = {
     "gymv": GYMV_CONTEXT,
+    # env_wrappers (tetris / candy_crush / super_mario / twenty_forty_eight)
+    # are interactive game environments — they share the gymv schema
+    # template (entities + actions + grid-style state).
+    "env_wrappers": GYMV_CONTEXT,
     "browser": BROWSER_CONTEXT,
     "desktop": DESKTOP_CONTEXT,
     "image_qa": IMAGE_QA_CONTEXT,

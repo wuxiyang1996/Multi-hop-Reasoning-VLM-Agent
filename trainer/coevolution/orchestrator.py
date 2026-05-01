@@ -741,12 +741,111 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         phase_b_time = time.monotonic() - phase_b_t0
         logger.info("Phase B finalize: %.1fs (%d game banks)", phase_b_time, len(sb_update_results))
 
+        # ── Phase B′: Crafter + Promotion (one-way write-back) ───────
+        # Off by default; controlled by `config.crafter_promotion_enabled`.
+        # Spec: implementation_notes/harness-usability-and-intra-gymv-transfer.md §3
+        # The hook runs *alongside* the legacy Stage-4 curator: legacy
+        # mining still writes per-game `skill_bank.jsonl`, this hook just
+        # appends promoted skills on top via `skill_bank.legacy_writeback`.
+        crafter_report: Optional[Dict[str, Any]] = None
+        promotion_report: Optional[Dict[str, Any]] = None
+        if config.crafter_promotion_enabled:
+            phase_bp_t0 = time.monotonic()
+            try:
+                from trainer.coevolution._crafter_hook import run_crafter_step
+                from trainer.coevolution._promotion_hook import run_promotion_step
+
+                bank_paths = sb_manager.bank_paths(simple_only=True)
+                # ``bank_was_available`` gates the NO_SKILL_BOUND F2 signal —
+                # we only want it to fire when the actor *could* have bound
+                # a skill but didn't.  Just gating on ``step > 0`` is wrong
+                # whenever the run was launched with ``--seed-bank-dir`` (or
+                # otherwise resumes from a pre-populated bank dir) because
+                # the actor on step 0 has skills available.  Probe the
+                # on-disk file directly: if *any* per-game bank has ≥1
+                # byte, there were skills to bind.
+                bank_was_available = any(
+                    p.is_file() and p.stat().st_size > 0
+                    for p in bank_paths.values()
+                )
+                crafter_step = run_crafter_step(
+                    step=step,
+                    run_dir=Path(config.run_dir),
+                    rollout_results=rollout_results,
+                    legacy_bank_paths=bank_paths,
+                    bank_was_available=bank_was_available,
+                    cycle_every_k_steps=config.crafter_cycle_every_k_steps,
+                    outcome_failure_threshold=config.crafter_outcome_failure_threshold,
+                )
+                crafter_report = crafter_step.to_dict()
+
+                if crafter_step.n_proposals > 0:
+                    promotion_step = run_promotion_step(
+                        step=step,
+                        run_dir=Path(config.run_dir),
+                        proposals_run_dir=crafter_step.run_dir,
+                        legacy_bank_paths=bank_paths,
+                        driver_timeout_s=config.crafter_promotion_timeout_s,
+                    )
+                    promotion_report = promotion_step.to_dict()
+
+                    # Critical: hot-reload the in-memory bank for any game
+                    # whose on-disk skill_bank.jsonl was just mutated by
+                    # legacy_writeback. Without this, AsyncSkillBankPipeline
+                    # keeps serving the cached SkillBankMVP._skills from
+                    # before the writeback (and its cached SkillQueryEngine
+                    # never re-indexes), so the actor's *next* rollout
+                    # would not observe the promoted skills. See
+                    # implementation_notes/harness-usability-and-intra-gymv-transfer.md
+                    # §"actor read path" for the trace.
+                    keys_to_reload = [
+                        game for game, wb in (
+                            promotion_step.writeback_per_game or {}
+                        ).items()
+                        if int(wb.get("n_inserted", 0)) > 0
+                        or int(wb.get("n_updated", 0)) > 0
+                    ]
+                    reload_report: Dict[str, Any] = {}
+                    if keys_to_reload:
+                        reload_report = sb_manager.reload_banks_from_disk(
+                            keys_to_reload,
+                        )
+                    if promotion_report is not None:
+                        promotion_report["bank_reload_per_game"] = reload_report
+                    logger.info(
+                        "Phase B′ Crafter+Promotion: %d proposals → "
+                        "PROMOTE=%d REJECT=%d (writeback +%d skills, "
+                        "reloaded %d bank(s))",
+                        crafter_step.n_proposals,
+                        promotion_step.n_promote, promotion_step.n_reject,
+                        promotion_step.n_writeback_inserted,
+                        sum(1 for r in reload_report.values()
+                            if r.get("reloaded")),
+                    )
+                else:
+                    logger.info(
+                        "Phase B′ Crafter: %d episodes reflected, no proposals → "
+                        "promotion skipped",
+                        crafter_step.n_episodes_reflected,
+                    )
+            except Exception as exc:                          # noqa: BLE001
+                logger.error(
+                    "Phase B′ Crafter+Promotion failed at step=%d: %s",
+                    step, exc, exc_info=True,
+                )
+            phase_bp_time = time.monotonic() - phase_bp_t0
+        else:
+            phase_bp_time = 0.0
+
         # ── Snapshot step context for deferred finalization ─────────
         step_ctx = {
             'step': step,
             'mode': mode,
             'phase_ab_time': phase_ab_time,
             'phase_b_time': phase_b_time,
+            'phase_bp_time': phase_bp_time,
+            'crafter_report': crafter_report,
+            'promotion_report': promotion_report,
             'episode_metrics': compute_episode_metrics(rollout_results),
             'sb_update_results': sb_update_results,
             'total_new_skills': total_new_skills,

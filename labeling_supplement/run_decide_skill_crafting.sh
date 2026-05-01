@@ -273,7 +273,7 @@ ELAPSED=$((T1 - T0))
 python - <<PY
 import json, sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import Counter
 
 OUT = Path("${OUTPUT_DIR}")
@@ -308,7 +308,7 @@ summary = {
     "by_kind":          dict(by_kind),
     "by_proposer":      dict(by_proposer),
     "per_pair":         results,
-    "completed_at":     datetime.utcnow().isoformat() + "Z",
+    "completed_at":     datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
     "elapsed_sec":      ${ELAPSED},
 }
 out = OUT / "_run_summary.json"

@@ -15,7 +15,7 @@ import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 from trainer.coevolution.episode_runner import EpisodeResult
 
@@ -113,6 +113,105 @@ class AsyncSkillBankPipeline:
         agent = self._ensure_agent()
         if hasattr(agent, "bank") and bank is not None:
             agent.bank = bank
+
+    def reload_bank_from_disk(self) -> Dict[str, Any]:
+        """Refresh ``self._agent.bank`` from the on-disk
+        ``<bank_dir>/skill_bank.jsonl`` *and* clear every cached
+        ``SkillQueryEngine`` so the next ``get_bank()`` call returns an
+        index that observes the new on-disk state.
+
+        Required after the Phase B′ Crafter+Promotion writeback (see
+        ``skill_bank.legacy_writeback``) — without this call the live
+        actor would still see the pre-writeback bank because
+        ``SkillBankMVP._skills`` is held in memory and
+        ``SkillQueryEngine._build_index()`` snapshots ``skill_ids`` at
+        construction time (it never re-indexes).
+
+        Returns
+        -------
+        dict
+            ``{"reloaded": bool, "n_before": int, "n_after": int,
+               "bank_path": str, "agent_initialised": bool,
+               "query_engine_invalidated": bool}``
+            — useful for the orchestrator's step_log.
+        """
+        bank_path = str(Path(self.bank_dir) / "skill_bank.jsonl")
+        n_before = 0
+        agent_initialised = self._agent is not None
+        if not agent_initialised:
+            return {
+                "reloaded": False,
+                "n_before": 0, "n_after": 0,
+                "bank_path": bank_path,
+                "agent_initialised": False,
+                "query_engine_invalidated": False,
+                "skipped_reason": "agent not yet initialised — disk file is the source of truth",
+            }
+
+        try:
+            n_before = len(self._agent.bank)
+        except Exception:                                            # noqa: BLE001
+            n_before = 0
+
+        # Path may not exist on a brand-new run — that's fine, treat as
+        # "no skills" rather than raising. The actor will see an empty
+        # bank, which is the correct cold-start behaviour.
+        path_obj = Path(bank_path)
+        if not path_obj.is_file():
+            return {
+                "reloaded": False,
+                "n_before": n_before, "n_after": n_before,
+                "bank_path": bank_path,
+                "agent_initialised": True,
+                "query_engine_invalidated": False,
+                "skipped_reason": "bank file missing on disk",
+            }
+
+        try:
+            self._agent.load()
+        except Exception as exc:                                     # noqa: BLE001
+            logger.warning(
+                "AsyncSkillBankPipeline.reload_bank_from_disk: "
+                "agent.load() failed for %s: %s",
+                bank_path, exc,
+            )
+            return {
+                "reloaded": False,
+                "n_before": n_before, "n_after": n_before,
+                "bank_path": bank_path,
+                "agent_initialised": True,
+                "query_engine_invalidated": False,
+                "skipped_reason": f"agent.load() failed: {exc}",
+            }
+
+        # Invalidate BOTH query-engine caches:
+        #   * pipeline-level: returned by AsyncSkillBankPipeline.get_bank()
+        #     — this is what the actor's rollout loop reads from.
+        #   * agent-level: used internally by the segmentation pipeline
+        #     (see SkillBankAgent._get_query_engine, line ~225); calling
+        #     the existing _invalidate_query_engine() is the documented way.
+        self._query_engine = None
+        invalidated_agent_engine = False
+        try:
+            self._agent._invalidate_query_engine()
+            invalidated_agent_engine = True
+        except Exception as exc:                                     # noqa: BLE001
+            logger.debug(
+                "agent._invalidate_query_engine() failed (non-fatal): %s", exc,
+            )
+
+        try:
+            n_after = len(self._agent.bank)
+        except Exception:                                            # noqa: BLE001
+            n_after = n_before
+
+        return {
+            "reloaded": True,
+            "n_before": n_before, "n_after": n_after,
+            "bank_path": bank_path,
+            "agent_initialised": True,
+            "query_engine_invalidated": invalidated_agent_engine,
+        }
 
     def _convert_episode_result(self, result: EpisodeResult) -> Any:
         """Convert ``EpisodeResult`` to the ``Episode`` format for the pipeline.
@@ -691,6 +790,81 @@ class PerGameSkillBankManager:
             key: pipe.get_agent()
             for key, pipe in self._pipelines.items()
         }
+
+    def reload_banks_from_disk(
+        self,
+        keys: Optional[Iterable[str]] = None,
+    ) -> Dict[str, Dict[str, Any]]:
+        """Reload the in-memory skill bank for one or more pipelines from
+        disk, invalidating their query-engine caches.
+
+        Required after the Phase B′ Crafter+Promotion writeback so the
+        actor's next-step rollout observes the freshly-promoted skills.
+
+        Parameters
+        ----------
+        keys
+            Iterable of pipeline keys to reload.  Defaults to *every*
+            pipeline.  Unknown keys are ignored with a debug log line.
+
+        Returns
+        -------
+        dict
+            ``{key: AsyncSkillBankPipeline.reload_bank_from_disk()}``
+            — one entry per key actually reloaded.
+        """
+        target_keys = list(keys) if keys is not None else list(self._pipelines.keys())
+        out: Dict[str, Dict[str, Any]] = {}
+        for key in target_keys:
+            pipe = self._pipelines.get(key)
+            if pipe is None:
+                logger.debug(
+                    "PerGameSkillBankManager.reload_banks_from_disk: "
+                    "unknown key %s — skipping", key,
+                )
+                continue
+            try:
+                out[key] = pipe.reload_bank_from_disk()
+            except Exception as exc:                                  # noqa: BLE001
+                logger.warning(
+                    "reload_banks_from_disk: pipeline %s raised: %s",
+                    key, exc,
+                )
+                out[key] = {
+                    "reloaded": False,
+                    "skipped_reason": f"reload raised: {exc}",
+                }
+        return out
+
+    def bank_paths(self, *, simple_only: bool = True) -> Dict[str, "Path"]:
+        """Return ``{key: <bank_dir>/<key>/skill_bank.jsonl}`` for every
+        per-game pipeline.
+
+        Used by the per-step Crafter/Promotion hooks
+        (``trainer/coevolution/_crafter_hook.py``,
+        ``trainer/coevolution/_promotion_hook.py``) to resolve the
+        on-disk per-game ``skill_bank.jsonl`` they read/writeback.
+
+        Parameters
+        ----------
+        simple_only
+            When ``True`` (default), composite keys like ``"avalon/good"``
+            from ``unified_role_rollouts=True`` are filtered out — those
+            don't round-trip through the offline-mirror's
+            ``<corpus>/<source>/`` layout cleanly. The keystone-Phase-1
+            integration only targets simple-keyed games (the 13 retro
+            ``Temporal_*-v0`` games + tetris / 2048 / candy_crush /
+            super_mario), which all satisfy this. Pass ``simple_only=False``
+            once the offline mirror gains a unified-role corpus split.
+        """
+        from pathlib import Path
+
+        out: Dict[str, "Path"] = {}
+        for key, pipe in self._pipelines.items():
+            if simple_only and "/" in key:
+                continue
+            out[key] = Path(pipe.bank_dir) / "skill_bank.jsonl"
+        return out
 
     def reset_for_step(self) -> None:
         for pipe in self._pipelines.values():

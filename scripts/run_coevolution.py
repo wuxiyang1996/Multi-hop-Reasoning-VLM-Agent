@@ -363,6 +363,31 @@ def parse_args() -> argparse.Namespace:
              "Skills are only copied when the game's bank is empty.",
     )
 
+    # Phase B′: Crafter + Promotion (one-way writeback to legacy bank)
+    parser.add_argument(
+        "--crafter-promotion-enabled", action="store_true",
+        help="Enable Phase B′: per-step Crafter (reflect on episodes → "
+             "BankMutationProposals) + offline-synthetic Promotion driver "
+             "(decide_promotion_gpt54.py) that writes promoted skills back "
+             "into the live skill_bank.jsonl. Off by default. See "
+             "implementation_notes/harness-usability-and-intra-gymv-transfer.md.",
+    )
+    parser.add_argument(
+        "--crafter-cycle-every-k-steps", type=int, default=0,
+        help="If >0, only run the Crafter every K steps "
+             "(otherwise: every step). Default 0 = every step.",
+    )
+    parser.add_argument(
+        "--crafter-outcome-failure-threshold", type=float, default=0.0,
+        help="Per-episode reward below this threshold is treated as "
+             "OUTCOME_FAILURE for Crafter failure synthesis. Default 0.0.",
+    )
+    parser.add_argument(
+        "--crafter-promotion-timeout-s", type=float, default=300.0,
+        help="Subprocess timeout for the offline-synthetic promotion "
+             "driver (decide_promotion_gpt54.py). Default 300s.",
+    )
+
     # Debug
     parser.add_argument(
         "--debug-io", action="store_true",
@@ -494,6 +519,17 @@ def main() -> None:
     if args.seed_bank_dir is not None:
         config_kwargs["seed_bank_dir"] = args.seed_bank_dir
 
+    if args.crafter_promotion_enabled:
+        config_kwargs["crafter_promotion_enabled"] = True
+    if args.crafter_cycle_every_k_steps:
+        config_kwargs["crafter_cycle_every_k_steps"] = args.crafter_cycle_every_k_steps
+    if args.crafter_outcome_failure_threshold != 0.0:
+        config_kwargs["crafter_outcome_failure_threshold"] = (
+            args.crafter_outcome_failure_threshold
+        )
+    if args.crafter_promotion_timeout_s != 300.0:
+        config_kwargs["crafter_promotion_timeout_s"] = args.crafter_promotion_timeout_s
+
     if args.run_dir is not None:
         config_kwargs["run_dir"] = args.run_dir
     if args.bank_dir is not None:
@@ -543,6 +579,14 @@ def main() -> None:
     print(f"  TensorBoard:  {config.tensorboard_dir}")
     print(f"  Log dir:      {config.log_dir}")
     print(f"  W&B:          {'enabled' if config.wandb_enabled else 'disabled'}")
+    if config.crafter_promotion_enabled:
+        every = (config.crafter_cycle_every_k_steps
+                 if config.crafter_cycle_every_k_steps > 0 else 1)
+        print(f"  Crafter+Prom: enabled (every {every} step(s), "
+              f"fail<{config.crafter_outcome_failure_threshold:.2f}, "
+              f"timeout {config.crafter_promotion_timeout_s:.0f}s)")
+    else:
+        print("  Crafter+Prom: disabled")
     print(f"  Debug I/O:    {'enabled → ' + config.debug_io_dir if config.debug_io else 'disabled'}")
     print(f"  Curriculum:   {config.curriculum_description()}")
     if config.start_mode == "from_scratch":

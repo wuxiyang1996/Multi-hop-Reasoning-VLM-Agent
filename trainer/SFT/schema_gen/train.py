@@ -79,12 +79,23 @@ def parse_args() -> argparse.Namespace:
         description="Train the Qwen3-VL-8B schema_gen LoRA adapter",
     )
     p.add_argument("--model_name", default=None,
-                   help="Override base VLM (default Qwen/Qwen3-VL-8B-Instruct)")
+                   help=(
+                       "Override base VLM (default = SchemaGenConfig.model_name "
+                       "= Qwen/Qwen3.5-35B-A3B, the unified vision-language MoE).  "
+                       "Pass Qwen/Qwen3-VL-8B-Instruct for fast single-A100 "
+                       "smoke runs, Qwen/Qwen3-VL-32B for the dense sibling, or "
+                       "Qwen/Qwen3-VL-235B-A22B for the larger MoE teacher."
+                   ))
     p.add_argument("--output_dir", default=None)
     p.add_argument("--run_id", default=None)
     p.add_argument(
         "--domains", nargs="+", default=None,
-        choices=["gymv", "browser", "image_qa", "video_qa"],
+        choices=["gymv", "env_wrappers", "browser", "image_qa", "video_qa"],
+        help=(
+            "Subset of domains to train on.  Default (from SchemaGenConfig) "
+            "is gymv + env_wrappers — the two corpora populated from the "
+            "current cold-start rollouts."
+        ),
     )
     p.add_argument(
         "--target_source", default="vision",
@@ -182,11 +193,19 @@ def _to_chat_record(
     for path in sample.images:
         user_content.append({"type": "image", "image": path})
     user_content.append({"type": "text", "text": sample.prompt})
+    # Wrap *every* turn's content as a list of typed parts.  Mixing
+    # plain str + list inside the same ``messages`` column makes
+    # pyarrow's ``Dataset.from_list`` raise
+    # ``ArrowInvalid: cannot mix list and non-list, non-null values``.
+    # Qwen3-VL's processor.apply_chat_template handles either form, so
+    # uniform list-of-parts is safe at train and eval time.
     return {
         "messages": [
-            {"role": "system", "content": sys_prompt},
+            {"role": "system",
+             "content": [{"type": "text", "text": sys_prompt}]},
             {"role": "user", "content": user_content},
-            {"role": "assistant", "content": sample.target_schema},
+            {"role": "assistant",
+             "content": [{"type": "text", "text": sample.target_schema}]},
         ],
         "images": sample.images,
         "domain": sample.domain,
@@ -260,19 +279,22 @@ def main() -> int:
         import torch
         from datasets import Dataset
         from peft import LoraConfig, get_peft_model
-        from transformers import (
-            AutoProcessor,
-            AutoModelForVision2Seq,
-            BitsAndBytesConfig,
-            TrainingArguments,
-        )
-        from trl import SFTTrainer
+        from transformers import AutoProcessor
+        # Vision auto-class was renamed in transformers 5.x:
+        #   transformers >=5.0 → ``AutoModelForImageTextToText``
+        #   transformers  4.x → ``AutoModelForVision2Seq``
+        # Try the new name first, fall back to the legacy alias so old
+        # envs keep working.
+        try:
+            from transformers import AutoModelForImageTextToText as _AutoVisionModel
+        except ImportError:  # transformers <5
+            from transformers import AutoModelForVision2Seq as _AutoVisionModel
+        from trl import SFTConfig, SFTTrainer
     except ImportError as exc:
         logger.error(
             "Training dependencies missing (%s).  Activate the "
-            "`vlm_benchmarks` env (install/INSTALL_BENCHMARKS.md §4) or "
-            "`pip install -U trl peft transformers accelerate datasets "
-            "bitsandbytes`.",
+            "`game-ai-agent` env (INSTALL.md §) or run "
+            "`pip install -U trl peft transformers accelerate datasets`.",
             exc,
         )
         return 2
@@ -303,13 +325,32 @@ def main() -> int:
     processor = AutoProcessor.from_pretrained(
         cfg.model_name, trust_remote_code=cfg.trust_remote_code,
     )
-    model = AutoModelForVision2Seq.from_pretrained(
+    # Resolve attention implementation with a graceful fallback chain:
+    #   1. flash_attention_2  — fastest, but requires `flash-attn` which
+    #      lacks a prebuilt wheel for torch 2.11+cu130 at the moment.
+    #   2. sdpa               — PyTorch's built-in scaled-dot-product
+    #      attention (uses Hopper-optimised Flash kernels under the hood
+    #      on H200 with bf16); no extra dep.
+    #   3. eager              — last-resort reference implementation.
+    def _resolve_attn_impl() -> str:
+        if cfg.use_flash_attention:
+            try:
+                import flash_attn  # noqa: F401
+                return "flash_attention_2"
+            except ImportError:
+                logger.warning(
+                    "flash-attn not installed; falling back to "
+                    "attn_implementation='sdpa' (fast on H200/bf16)."
+                )
+        return "sdpa"
+
+    attn_impl = _resolve_attn_impl()
+    logger.info("Using attn_implementation=%s", attn_impl)
+    model = _AutoVisionModel.from_pretrained(
         cfg.model_name,
         torch_dtype=torch.bfloat16 if cfg.bf16 else torch.float16,
         trust_remote_code=cfg.trust_remote_code,
-        attn_implementation=(
-            "flash_attention_2" if cfg.use_flash_attention else "eager"
-        ),
+        attn_implementation=attn_impl,
     )
     if cfg.gradient_checkpointing:
         model.gradient_checkpointing_enable()
@@ -329,12 +370,36 @@ def main() -> int:
     # Collator: format messages → tokenised input ids (mask the user
     # tokens out of the loss so we only train on the schema completion).
     # ------------------------------------------------------------------
+    def _clean_msgs(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Strip pyarrow-injected null fields from message content.
+
+        ``Dataset.from_list`` unions all dict keys across rows, so a row
+        like ``{"type": "text", "text": "..."}`` becomes
+        ``{"type": "text", "text": "...", "image": None}``.  Qwen3-VL's
+        chat template then sees ``'image' in item`` and (if the role is
+        ``system``) raises *"System message cannot contain images."*.
+        Drop the null keys so the template sees the original shape.
+        """
+        cleaned: list[dict[str, Any]] = []
+        for msg in messages:
+            content = msg.get("content")
+            if isinstance(content, list):
+                content = [
+                    {k: v for k, v in part.items() if v is not None}
+                    if isinstance(part, dict)
+                    else part
+                    for part in content
+                ]
+            cleaned.append({**msg, "content": content})
+        return cleaned
+
     def collate(batch: list[dict[str, Any]]) -> dict[str, Any]:
         texts: list[str] = []
         images_per_sample: list[list[Any]] = []
         for ex in batch:
             text = processor.apply_chat_template(
-                ex["messages"], tokenize=False, add_generation_prompt=False,
+                _clean_msgs(ex["messages"]),
+                tokenize=False, add_generation_prompt=False,
             )
             texts.append(text)
             from PIL import Image as _Image
@@ -380,7 +445,14 @@ def main() -> int:
     with (out_dir / "train_config.json").open("w", encoding="utf-8") as f:
         json.dump(cfg.to_dict(), f, indent=2)
 
-    train_args = TrainingArguments(
+    # NOTE: We construct an `SFTConfig` directly (rather than a plain
+    # `TrainingArguments`) because TRL 0.17.x's `SFTTrainer.__init__` runs a
+    # legacy compatibility branch when it receives `TrainingArguments` that
+    # calls `.pop("push_to_hub_token")` — a field that no longer exists in
+    # transformers 5.x, raising `KeyError: 'push_to_hub_token'`.  Passing
+    # `SFTConfig` skips that branch entirely.  `SFTConfig` is a subclass of
+    # `TrainingArguments` so all standard fields below are still valid.
+    train_args = SFTConfig(
         output_dir=str(out_dir),
         learning_rate=cfg.lr,
         per_device_train_batch_size=cfg.batch_size,
@@ -395,10 +467,30 @@ def main() -> int:
         eval_steps=cfg.eval_steps if eval_ds is not None else None,
         bf16=cfg.bf16,
         gradient_checkpointing=cfg.gradient_checkpointing,
+        # Qwen3.5-MoE expert routing produces different per-expert
+        # token counts on the forward pass vs the backward recompute.
+        # The default ``use_reentrant=False`` checkpoint then fails the
+        # strict shape-match sanity check with
+        #   ``torch.utils.checkpoint.CheckpointError: Recomputed values
+        #     for the following tensors have different metadata...``
+        # Switching to legacy reentrant mode skips that check.
+        gradient_checkpointing_kwargs={"use_reentrant": True},
         report_to=cfg.report_to,
         seed=cfg.seed,
         remove_unused_columns=False,
         dataloader_num_workers=2,
+        # ---------------------------------------------------------------
+        # Skip TRL's built-in dataset preprocessing.  TRL 0.17.x would
+        # otherwise call ``tokenizer.apply_chat_template`` on every row,
+        # which trips Qwen3-VL's chat template:
+        #   ``System message cannot contain images.``
+        # PyArrow unifies the dict schema across all ``content`` items in
+        # the ``messages`` column; that union adds a (null) ``image``
+        # field to the system text dict, which the Jinja template
+        # interprets as "this system message has an image".
+        # We already build inputs ourselves in ``collate``, so we simply
+        # opt out of TRL's preprocessing.
+        dataset_kwargs={"skip_prepare_dataset": True},
     )
 
     trainer = SFTTrainer(

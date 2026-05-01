@@ -146,9 +146,20 @@ import sys
 import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
+
+
+def _utcnow_iso() -> str:
+    """Timezone-aware UTC ISO-8601 stamp (avoids the deprecated
+    ``datetime.utcnow()``)."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+def _utc_run_stamp() -> str:
+    """Compact UTC stamp used in run-directory names."""
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
 # ---------------------------------------------------------------------------
 # Path setup so the script runs from any cwd (mirror sibling drivers).
@@ -187,11 +198,19 @@ ALL_FIVE_DOMAINS: Tuple[str, ...] = (
     "gymv", "browser", "osworld", "video", "visual_reasoning",
 )
 
-# The Skill Crafter is "synthesis-reflection agent" running on Tier-1
-# (frozen 32B/72B). Phase 1 is rule-based + frozen teacher only — no
-# trainable updates. We keep the model identifier in the run meta for
-# downstream auditing.
-DEFAULT_TEACHER_MODEL = "gpt-5.4"
+# The Skill Crafter is the "synthesis-reflection agent" running on the
+# control-plane teacher backbone. Phase 1 is rule-based + frozen teacher
+# only (no trainable updates) — we still log the teacher identifier in
+# the run meta for downstream auditing. Source of truth:
+# ``common.models.BACKBONE_TEACHER_MODEL`` (set by the 2026-04-28
+# model-stack migration to ``Qwen/Qwen3.5-35B-A3B``); the historical
+# ``gpt-5.4`` literal that lived here is stale.
+try:
+    from common.models import BACKBONE_TEACHER_MODEL as _CRAFTER_TEACHER_MODEL
+except Exception:  # pragma: no cover — fallback for very old checkouts
+    _CRAFTER_TEACHER_MODEL = "Qwen/Qwen3.5-35B-A3B"
+
+DEFAULT_TEACHER_MODEL = _CRAFTER_TEACHER_MODEL
 
 # Rule thresholds (Phase-1 conservative defaults — see PLAN-SKILL-CRAFTER §10).
 DEFAULTS = dict(
@@ -1169,7 +1188,7 @@ def _write_results_for_source(out_root: Path, res: CrafterRunResult,
         "by_kind": dict(res.by_kind),
         "by_proposer": dict(res.by_proposer),
         "elapsed_sec": round(res.elapsed_sec, 3),
-        "completed_at": datetime.utcnow().isoformat() + "Z",
+        "completed_at": _utcnow_iso(),
     }, indent=2))
 
     return out_dir
@@ -1277,7 +1296,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     output_dir: Path = (
         args.output_dir.resolve() if args.output_dir
-        else (DEFAULT_OUTPUT_ROOT / f"run_{datetime.utcnow():%Y%m%d_%H%M%S}").resolve()
+        else (DEFAULT_OUTPUT_ROOT / f"run_{_utc_run_stamp()}").resolve()
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1314,7 +1333,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"  {c} / {s}")
         return 0
 
-    started_at = datetime.utcnow().isoformat() + "Z"
+    started_at = _utcnow_iso()
 
     # Run.
     per_pair_summaries: List[Dict[str, Any]] = []
@@ -1379,7 +1398,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "by_proposer":          dict(by_proposer_total),
         "per_pair":             per_pair_summaries,
         "started_at":           started_at,
-        "completed_at":         datetime.utcnow().isoformat() + "Z",
+        "completed_at":         _utcnow_iso(),
     }, indent=2))
 
     logger.info("DONE: %d pair(s), %d skill(s) in, %d proposal(s) out",

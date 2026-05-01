@@ -200,6 +200,99 @@ def iter_gymv_triples(
                     return
 
 
+def iter_env_wrappers_triples(
+    triple_root: str | Path,
+    *,
+    target_source: str = "vision",
+    drop_hard_cases: bool = True,
+    hard_cases_jsonl: Optional[str | Path] = None,
+    limit: Optional[int] = None,
+) -> Iterator[SchemaGenSample]:
+    """Yield ``SchemaGenSample`` rows from env_wrappers triples on disk.
+
+    The on-disk shape is identical to gymv triples (one row per
+    ``(frame_path, vision_schema, env_id, episode, step, …)``); we
+    just label the domain ``env_wrappers`` and adapt the prompt header
+    to use ``game`` instead of ``env_id``.
+    """
+    root = Path(triple_root)
+    if not root.exists():
+        logger.warning(
+            "env_wrappers triple root %s does not exist; skipping.", root,
+        )
+        return
+
+    hard = _load_hard_case_set(
+        Path(hard_cases_jsonl) if hard_cases_jsonl
+        else root / "hard_cases.jsonl",
+    ) if drop_hard_cases else set()
+
+    count = 0
+    for triples_path in root.rglob("triples.jsonl"):
+        with triples_path.open("r", encoding="utf-8") as f:
+            for ln in f:
+                ln = ln.strip()
+                if not ln:
+                    continue
+                try:
+                    triple = json.loads(ln)
+                except json.JSONDecodeError:
+                    continue
+                if triple.get("error"):
+                    continue
+                frame_path = triple.get("frame_path")
+                if not frame_path:
+                    continue
+                if frame_path in hard:
+                    continue
+                target = _select_target(triple, target_source)
+                if target is None:
+                    continue
+                target_schema, source_label = target
+
+                # ``env_id`` is repurposed to carry the game name in
+                # the env_wrappers triples.
+                game = triple.get("env_id") or triple.get("game") or ""
+                step = triple.get("step", 0)
+                episode = triple.get("episode", 0)
+                description = triple.get("description", "")
+                obs_text = triple.get("obs_text", "")
+                valid_actions = triple.get("valid_actions") or []
+
+                prompt_lines = [
+                    f"Domain: env_wrappers ({game})",
+                    f"Step: {step}",
+                ]
+                if description:
+                    prompt_lines.append(f"Game rules:\n{description}")
+                if obs_text:
+                    prompt_lines.append(
+                        f"Environment text state (for reference):\n{obs_text}"
+                    )
+                if valid_actions:
+                    prompt_lines.append(
+                        "Valid actions (copy verbatim into <actions>): "
+                        + ", ".join(map(str, valid_actions))
+                    )
+                prompt = "\n\n".join(prompt_lines)
+
+                yield SchemaGenSample(
+                    sample_id=f"env_wrappers.{game}.ep{episode}.s{step}",
+                    domain="env_wrappers",
+                    source=source_label,
+                    images=[frame_path],
+                    prompt=prompt,
+                    target_schema=target_schema,
+                    extra_context={
+                        "game": game,
+                        "valid_actions": valid_actions,
+                    },
+                )
+                count += 1
+                if limit is not None and count >= limit:
+                    return
+
+
 def iter_browser_triples(
     triple_root: str | Path,
     *,
@@ -425,6 +518,14 @@ def load_schema_gen_dataset(
             hard_cases_jsonl=cfg.hard_cases_jsonl,
             limit=cap,
         )))
+    if "env_wrappers" in domains:
+        out.extend(list(iter_env_wrappers_triples(
+            cfg.env_wrappers_triple_root,
+            target_source=cfg.target_source,
+            drop_hard_cases=cfg.drop_hard_cases,
+            hard_cases_jsonl=cfg.hard_cases_jsonl,
+            limit=cap,
+        )))
     if "browser" in domains:
         out.extend(list(iter_browser_triples(
             cfg.browser_triple_root,
@@ -453,6 +554,7 @@ def load_schema_gen_dataset(
 __all__ = [
     "SchemaGenSample",
     "iter_gymv_triples",
+    "iter_env_wrappers_triples",
     "iter_browser_triples",
     "iter_image_qa_triples",
     "iter_video_qa_triples",

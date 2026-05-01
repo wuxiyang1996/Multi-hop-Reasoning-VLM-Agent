@@ -208,6 +208,33 @@ def _is_reasoning_model(model: str) -> bool:
     return bool(_REASONING_MODEL_RE.search(model))
 
 
+# Models that secretly burn tokens on hidden chain-of-thought *before* the
+# tool_call payload but still accept the standard ``max_tokens`` /
+# ``temperature`` knobs.  Matches Anthropic Claude 4.x+ (extended thinking
+# enabled by default on Sonnet 4.5+, Opus 4.x) and Google Gemini 2.5/3.x
+# (always-on hidden reasoning on Pro tier).  Without bumping the output
+# budget here, an action call with the strict-enum tool_choice will return
+# ``finish_reason=length`` and an empty ``tool_calls`` once the hidden
+# reasoning trace fills 128 tokens, silently degrading to the random-action
+# fallback (observed on google/gemini-3.1-pro-preview).
+_THINKING_MODEL_RE = re.compile(
+    r"(?:^|/)("
+    r"claude-(?:sonnet-|opus-|haiku-)?(?:[4-9]|\d{2,})"  # claude-4.x+, claude-sonnet-4.x+
+    r"|gemini-(?:[2-9]|\d{2,})"                          # gemini-2.x+, gemini-3.x+
+    r")",
+    re.IGNORECASE,
+)
+
+
+def _is_thinking_model(model: str) -> bool:
+    """Return True for hosted thinking-class models that need a wide
+    output budget but otherwise behave like classic OpenAI-style chat APIs.
+    """
+    if not model:
+        return False
+    return bool(_THINKING_MODEL_RE.search(model))
+
+
 def _sanitize_env_id(env_id: str) -> str:
     """Filesystem-safe rendering of a Gym-V env id."""
     return re.sub(r"[^\w\-.]+", "_", env_id)
@@ -323,11 +350,20 @@ def _chat_completion(
             kwargs["tool_choice"] = tool_choice
         return client.chat.completions.create(**kwargs)
 
+    # Thinking-class hosted models (Claude 4.x+, Gemini 2.x+/3.x+) emit a
+    # hidden chain-of-thought *before* the tool_call.  Bump max_tokens so
+    # that hidden trace cannot truncate the tool_call (otherwise we get
+    # finish_reason=length, tool_calls=None, and silent random fallback).
+    # Temperature is preserved — these models accept it normally.
+    effective_max_tokens = max_tokens
+    if _is_thinking_model(model):
+        effective_max_tokens = max(6000, max_tokens * 4)
+
     kwargs = {
         "model": model,
         "messages": messages,
         "temperature": temperature,
-        "max_tokens": max_tokens,
+        "max_tokens": effective_max_tokens,
     }
     if tools is not None:
         kwargs["tools"] = tools

@@ -1,0 +1,809 @@
+"""Per-step Crafter hook for the trainer's co-evolution loop.
+
+Splices into ``trainer/coevolution/orchestrator.py::co_evolution_loop``
+between ``sb_manager.finalize_all()`` and the ``_pending_grpo`` setup.
+For every (game, episode) tuple in the just-finished step:
+
+  1. Hydrate an ephemeral ``SkillRepository`` from the per-game
+     ``<bank_dir>/<game>/skill_bank.jsonl`` that the trainer's actor
+     reads (the legacy 4-stage pipeline produces this file).
+  2. Synthesize ``FailureTrace`` records from the ``EpisodeResult.experiences``
+     dicts using a *narrow* heuristic — see "F2 — failure synthesis" below.
+  3. Wrap them in an ``EpisodeReflection`` and call
+     :meth:`crafter.service.SkillCrafterService.reflect_on_episode`.
+  4. Optionally run the per-batch :meth:`SkillCrafterService.cycle` once
+     per K steps over the accumulated failures.
+  5. Translate the resulting live ``BankMutationProposal`` objects into
+     the *offline-mirror JSONL row* schema and write
+     ``<step_dir>/<corpus>/<source>/proposals.jsonl`` so the next stage
+     (the Promotion hook, which subprocess-invokes
+     ``decide_promotion_gpt54.py``) can read them via the documented
+     ``--proposals-run`` CLI surface.
+
+Strict trainer-mode contract
+----------------------------
+* No live env. No live LLM call. Pure JSON-in / JSON-out + the
+  shipped ``crafter.service.SkillCrafterService`` (Phase-1 rule-based path).
+* No import of ``skill_agents`` (preserves D8 Option A).
+* No mutation of the input legacy bank — that's the Promotion hook's job
+  via :func:`skill_bank.legacy_writeback.writeback_promotion`.
+
+F2 — failure synthesis (narrower than the offline mirror's 4-signal set)
+------------------------------------------------------------------------
+The trainer's :class:`trainer.coevolution.episode_runner.EpisodeResult`
+carries a per-step ``experiences: List[Dict[str, Any]]`` whose keys are
+limited to ``{step, state, action, reward, raw_env_reward, next_state,
+done, intention, summary_state, skill_id}`` plus an optional
+``board_stats``. It does *not* yet carry ``skill_query.empty``,
+``skills.applicability``, or ``skills.missing_effects`` — those would
+require a live Harness emitting ``SkillEpisode`` records, which is out
+of scope per the implementation note ("F2: ``EpisodeReflection.skill_episodes
+= []`` because no Harness emits them").
+
+So this module synthesizes *only* the two signals the trainer's
+experiences dict actually supports:
+
+* **OUTCOME_FAILURE** — episode-level: ``total_reward <= threshold``.
+  Maps to ``FailureTrace(failure_class="INVARIANT_VIOLATION")``.
+* **NO_SKILL_BOUND** — per-step: the bank was non-empty going into
+  this episode but the actor's skill_selection LoRA returned no
+  ``skill_id``. Maps to ``FailureTrace(failure_class="MISSING_ADAPTER",
+  abort_reason="no_skill_bound")``. This is a loose proxy for the
+  offline mirror's ``EMPTY_QUERY`` signal.
+
+Cross-refs
+----------
+* `implementation_notes/harness-usability-and-intra-gymv-transfer.md` §3
+  (D8 Option A, F2 limitation, alongside-Stage-4 posture).
+* `crafter-harness-orchestrator-roles.md` §2.1 (Crafter input contract),
+  §6.3 ("No driver imports another driver's code").
+* `labeling_supplement/decide_promotion_gpt54.py::_OfflineProposal` /
+  ``_translate_proposal`` — the consumer schema this hook writes to.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+import re
+import tempfile
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+
+from common.enums import SkillSourceType, SkillStatus, SkillType
+from data_structure.extensions.bank_mutation_proposal import (
+    BankMutationProposal,
+    ComposeProposal,
+    GeneralizeProposal,
+    HypothesisProposal,
+    PatchProposal,
+    RetireProposal,
+)
+from data_structure.extensions.episode_reflection import EpisodeReflection
+from data_structure.extensions.failure_trace import FailureTrace
+from data_structure.extensions.skill_record import SkillContract, SkillRecord
+from skill_bank.lifecycle import SkillLifecycleManager
+from skill_bank.repository import SkillRepository
+from skill_bank.stores import SkillStore, StoreName
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Tunables — picked to match the offline mirror's defaults so that running
+# on the same data produces a comparable proposal stream.
+# ---------------------------------------------------------------------------
+
+DEFAULT_OUTCOME_FAILURE_THRESHOLD: float = 0.0
+DEFAULT_MAX_FAILURES_PER_EPISODE: int = 8
+DEFAULT_HOT_PATTERN_THRESHOLD: int = 3
+DEFAULT_COOLDOWN_PASSES: int = 5
+
+# All five domains every BankMutationProposal must declare — PLAN-SKILL-CRAFTER
+# §0.1 / §2.5. Mirrored from labeling_supplement/decide_skill_crafting_gpt54.py
+# verbatim so a writeback round-trip is consistent.
+ALL_FIVE_DOMAINS: Tuple[str, ...] = (
+    "gymv", "browser", "osworld", "video", "visual_reasoning",
+)
+
+# Trainer game-name → offline-mirror corpus bucket.  This is the same split
+# decide_skill_crafting_gpt54.py walks under ``--proposals-run``.
+_GYMV_PREFIX_RE = re.compile(r"^Temporal_.*-v0$")
+
+
+def corpus_for_game(game: str) -> str:
+    """Map a trainer game name to the offline-mirror corpus name.
+
+    * ``Temporal_*-v0`` → ``gym_v`` (the 13 retro envs).
+    * Everything else (tetris, twenty_forty_eight, candy_crush,
+      super_mario, …) → ``env_wrappers``.
+    """
+    return "gym_v" if _GYMV_PREFIX_RE.match(game) else "env_wrappers"
+
+
+# ---------------------------------------------------------------------------
+# Hook surface
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class CrafterStepReport:
+    """What the Crafter hook produced for one trainer step."""
+
+    step: int
+    run_dir: Path
+    n_episodes_reflected: int
+    n_failure_traces: int
+    n_proposals: int
+    proposals_per_game: Dict[str, int] = field(default_factory=dict)
+    proposals_jsonl_paths: Dict[str, Path] = field(default_factory=dict)
+    n_patches_coalesced: int = 0
+    n_patches_skipped_cooldown: int = 0
+    cycle_ran: bool = False                # True iff per-batch cycle() fired
+    n_cycle_proposals: int = 0
+    wall_time_s: float = 0.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "step": self.step,
+            "run_dir": str(self.run_dir),
+            "n_episodes_reflected": self.n_episodes_reflected,
+            "n_failure_traces": self.n_failure_traces,
+            "n_proposals": self.n_proposals,
+            "proposals_per_game": dict(self.proposals_per_game),
+            "proposals_jsonl_paths": {
+                k: str(v) for k, v in self.proposals_jsonl_paths.items()
+            },
+            "n_patches_coalesced": self.n_patches_coalesced,
+            "n_patches_skipped_cooldown": self.n_patches_skipped_cooldown,
+            "cycle_ran": self.cycle_ran,
+            "n_cycle_proposals": self.n_cycle_proposals,
+            "wall_time_s": self.wall_time_s,
+        }
+
+
+# Trainer's EpisodeResult lives in a sibling module; we accept any object
+# with the required attributes (so this hook is unit-testable without
+# importing episode_runner's heavy deps).
+class _EpisodeResultLike:                                    # pragma: no cover
+    game: str
+    episode_id: str
+    steps: int
+    total_reward: float
+    terminated: bool
+    truncated: bool
+    experiences: List[Dict[str, Any]]
+
+
+def run_crafter_step(
+    *,
+    step: int,
+    run_dir: Path,
+    rollout_results: Sequence[Any],                # _EpisodeResultLike per game
+    legacy_bank_paths: Mapping[str, Path],         # game → skill_bank.jsonl
+    bank_was_available: bool,
+    cycle_every_k_steps: int = 0,                  # 0 = never run cycle()
+    outcome_failure_threshold: float = DEFAULT_OUTCOME_FAILURE_THRESHOLD,
+    max_failures_per_episode: int = DEFAULT_MAX_FAILURES_PER_EPISODE,
+    hot_pattern_threshold: int = DEFAULT_HOT_PATTERN_THRESHOLD,
+    cooldown_passes: int = DEFAULT_COOLDOWN_PASSES,
+    teacher_model: Optional[str] = None,
+) -> CrafterStepReport:
+    """Run the per-step Crafter pass for one trainer step.
+
+    Parameters
+    ----------
+    step
+        Current trainer step index (0-based). Used for output dir naming.
+    run_dir
+        Trainer's run root (e.g. ``CoEvolutionConfig.run_dir``). Output
+        JSONL goes under ``<run_dir>/crafter_proposals_out/step_<step>/<corpus>/<source>/``.
+    rollout_results
+        The list of ``EpisodeResult`` records the orchestrator collected
+        in Phase A+B. Sentinel entries (``game == "__SENTINEL__"``) are
+        skipped silently.
+    legacy_bank_paths
+        Map from trainer game name to the per-game ``skill_bank.jsonl``
+        the trainer's actor reads. The hook hydrates an ephemeral
+        ``SkillRepository`` from these so the live ``SkillCrafterService``
+        has skills to repair / patch.
+    bank_was_available
+        ``True`` iff the actor was running with skill_selection enabled
+        for this step. ``False`` short-circuits the NO_SKILL_BOUND
+        signal — on cold-start step 0 the actor *always* runs without a
+        bank and we shouldn't synthesize a "missing adapter" trace for
+        it.
+    cycle_every_k_steps
+        If >0, run ``cycle()`` whenever ``(step + 1) % k == 0``. The
+        result's proposals are concatenated with the per-episode ones in
+        the JSONL output but tagged ``proposer="composer/generalizer"``
+        so the downstream gate can tell them apart.
+    """
+    t0 = time.monotonic()
+
+    # Lazy: keep the heavy crafter / orchestrator imports inside the
+    # function so the trainer's import graph doesn't pull them in until
+    # the hook actually fires. This matters for ``--no-grpo`` smoke
+    # tests that want to run a single co-evolution step without paying
+    # for the full crafter dep tree on import.
+    from crafter.service import SkillCrafterService
+    from orchestrator.artifact_store import ArtifactStore
+
+    # Group rollouts by game.
+    by_game: Dict[str, List[Any]] = {}
+    for ep in rollout_results:
+        game = getattr(ep, "game", "")
+        if not game or game == "__SENTINEL__":
+            continue
+        if getattr(ep, "steps", 0) <= 0:
+            continue
+        by_game.setdefault(game, []).append(ep)
+
+    out_root = Path(run_dir) / "crafter_proposals_out" / f"step_{step:04d}"
+    out_root.mkdir(parents=True, exist_ok=True)
+
+    # We co-locate the artifact store in the same step dir so per-proposal
+    # JSONs from `crafter.put_proposal` are auditable, but the contract
+    # the Promotion hook reads is the JSONL summary written below — same
+    # split as the offline mirror.
+    artifact_root = out_root / "_artifacts"
+    artifact_root.mkdir(exist_ok=True)
+    artifact_store = ArtifactStore(str(artifact_root))
+
+    n_proposals_total = 0
+    n_failures_total = 0
+    n_episodes_total = 0
+    proposals_per_game: Dict[str, int] = {}
+    proposals_jsonl_paths: Dict[str, Path] = {}
+    n_coalesced_total = 0
+    n_cooldown_total = 0
+    n_cycle_proposals_total = 0
+    cycle_ran = (
+        cycle_every_k_steps > 0 and ((step + 1) % cycle_every_k_steps == 0)
+    )
+
+    for game, episodes in by_game.items():
+        bank_path = legacy_bank_paths.get(game)
+        if bank_path is None:
+            logger.warning(
+                "crafter_hook: no legacy bank path for game=%s, skipping", game,
+            )
+            continue
+        bank_path = Path(bank_path)
+
+        # Each game gets its own ephemeral SkillRepository, rooted at a
+        # temp dir we tear down after writing the JSONL — same pattern as
+        # the offline mirror at
+        # ``labeling_supplement/reflect_per_episode_gpt54.py:707-718``.
+        with tempfile.TemporaryDirectory(prefix=f"crafter-step{step}-{game}-") as tmpdir:
+            tmp_root = Path(tmpdir)
+            repo = SkillRepository(
+                draft_store=SkillStore(StoreName.DRAFT, str(tmp_root / "draft")),
+                candidate_store=SkillStore(StoreName.CANDIDATE, str(tmp_root / "candidate")),
+                active_store=SkillStore(StoreName.ACTIVE, str(tmp_root / "active")),
+                archive_store=SkillStore(StoreName.ARCHIVE, str(tmp_root / "archive")),
+            )
+            lifecycle = SkillLifecycleManager(repo)
+
+            n_seeded = _seed_repo_from_legacy_jsonl(
+                lifecycle=lifecycle, bank_path=bank_path, default_domain="gymv",
+            )
+            if n_seeded == 0:
+                logger.debug(
+                    "crafter_hook: %s bank has zero seedable entries; "
+                    "skipping reflection (cold-start)", game,
+                )
+
+            service = SkillCrafterService(
+                lifecycle=lifecycle,
+                artifact_store=artifact_store,
+                teacher_model=teacher_model,
+                hot_pattern_threshold=hot_pattern_threshold,
+                cooldown_passes=cooldown_passes,
+            )
+
+            game_proposals: List[BankMutationProposal] = []
+            game_failures: List[FailureTrace] = []
+            domain_for_proposal = "gymv"
+
+            for ep in episodes:
+                n_episodes_total += 1
+                failures = _synthesize_failures(
+                    episode=ep,
+                    domain=domain_for_proposal,
+                    outcome_failure_threshold=outcome_failure_threshold,
+                    max_failures=max_failures_per_episode,
+                    bank_was_available=bank_was_available,
+                )
+                game_failures.extend(failures)
+                n_failures_total += len(failures)
+
+                if not failures:
+                    # No signal → reflect_on_episode short-circuits to a
+                    # no-op (`EpisodeReflection.has_signal` is False).
+                    continue
+
+                reflection = EpisodeReflection(
+                    episode_id=getattr(ep, "episode_id", "") or f"step{step}-{game}-anon",
+                    domain=domain_for_proposal,
+                    failure_traces=failures,
+                    skill_episodes=[],                                  # F2: no Harness
+                    new_candidate_skill_ids=[],                         # no Bank Agent in trainer
+                    bank_agent_actions={},
+                    outcome_summary={
+                        "total_reward": float(getattr(ep, "total_reward", 0.0)),
+                        "steps": int(getattr(ep, "steps", 0)),
+                        "terminated": bool(getattr(ep, "terminated", False)),
+                        "truncated": bool(getattr(ep, "truncated", False)),
+                        "trainer_step": step,
+                        "game": game,
+                    },
+                )
+                try:
+                    result = service.reflect_on_episode(reflection)
+                except Exception as exc:                                # noqa: BLE001
+                    logger.exception(
+                        "crafter_hook: reflect_on_episode failed for "
+                        "step=%d game=%s episode=%s: %s",
+                        step, game, reflection.episode_id, exc,
+                    )
+                    continue
+                game_proposals.extend(result.proposals)
+                n_coalesced_total += getattr(result, "n_patches_coalesced", 0) or 0
+                n_cooldown_total += getattr(result, "n_patches_skipped_cooldown", 0) or 0
+
+            if cycle_ran and game_failures:
+                try:
+                    cyc = service.cycle(new_failures=[])  # failures already ingested
+                except Exception as exc:                                # noqa: BLE001
+                    logger.exception(
+                        "crafter_hook: cycle() failed for step=%d game=%s: %s",
+                        step, game, exc,
+                    )
+                else:
+                    game_proposals.extend(cyc.proposals)
+                    n_cycle_proposals_total += len(cyc.proposals)
+
+            # Write per-game JSONL in the offline-mirror schema.
+            jsonl_path = _write_proposals_jsonl(
+                step_root=out_root,
+                game=game,
+                proposals=game_proposals,
+                domain=domain_for_proposal,
+            )
+            proposals_per_game[game] = len(game_proposals)
+            n_proposals_total += len(game_proposals)
+            proposals_jsonl_paths[game] = jsonl_path
+
+    elapsed = time.monotonic() - t0
+
+    # Per-step summary file mirrors the offline mirror's _run_summary.json
+    # so dashboards can consume both interchangeably.
+    summary = {
+        "step": step,
+        "n_games": len(by_game),
+        "n_episodes_reflected": n_episodes_total,
+        "n_failure_traces": n_failures_total,
+        "n_proposals": n_proposals_total,
+        "proposals_per_game": proposals_per_game,
+        "n_patches_coalesced": n_coalesced_total,
+        "n_patches_skipped_cooldown": n_cooldown_total,
+        "cycle_ran": cycle_ran,
+        "n_cycle_proposals": n_cycle_proposals_total,
+        "wall_time_s": elapsed,
+        "params": {
+            "outcome_failure_threshold": outcome_failure_threshold,
+            "max_failures_per_episode": max_failures_per_episode,
+            "hot_pattern_threshold": hot_pattern_threshold,
+            "cooldown_passes": cooldown_passes,
+            "cycle_every_k_steps": cycle_every_k_steps,
+            "teacher_model": teacher_model,
+        },
+    }
+    try:
+        (out_root / "_step_summary.json").write_text(
+            json.dumps(summary, indent=2, default=str), encoding="utf-8",
+        )
+    except OSError as exc:
+        logger.warning("crafter_hook: could not write _step_summary.json: %s", exc)
+
+    return CrafterStepReport(
+        step=step,
+        run_dir=out_root,
+        n_episodes_reflected=n_episodes_total,
+        n_failure_traces=n_failures_total,
+        n_proposals=n_proposals_total,
+        proposals_per_game=proposals_per_game,
+        proposals_jsonl_paths=proposals_jsonl_paths,
+        n_patches_coalesced=n_coalesced_total,
+        n_patches_skipped_cooldown=n_cooldown_total,
+        cycle_ran=cycle_ran,
+        n_cycle_proposals=n_cycle_proposals_total,
+        wall_time_s=elapsed,
+    )
+
+
+# ---------------------------------------------------------------------------
+# F2 — failure synthesis (narrow trainer-mode subset)
+# ---------------------------------------------------------------------------
+
+
+def _synthesize_failures(
+    *,
+    episode: Any,
+    domain: str,
+    outcome_failure_threshold: float,
+    max_failures: int,
+    bank_was_available: bool,
+) -> List[FailureTrace]:
+    """Synthesize ``FailureTrace``s from a trainer ``EpisodeResult``.
+
+    Two signals (the only two the trainer's experience dict supports —
+    see module docstring "F2"):
+
+    1. **OUTCOME_FAILURE** — episode-level. ``total_reward <= threshold``.
+    2. **NO_SKILL_BOUND** — per-step. ``skill_id`` was missing on a
+       step where the bank was non-empty going into the episode.
+    """
+    out: List[FailureTrace] = []
+    episode_id = getattr(episode, "episode_id", "") or "anon"
+    total_reward = float(getattr(episode, "total_reward", 0.0))
+    n_steps = int(getattr(episode, "steps", 0) or 0)
+    experiences = list(getattr(episode, "experiences", []) or [])
+    truncated = bool(getattr(episode, "truncated", False))
+
+    # ── 1. OUTCOME_FAILURE ────────────────────────────────────────────
+    if total_reward <= outcome_failure_threshold:
+        # Pick a representative skill id: the most-frequently-bound one
+        # this episode (or empty if no skill ever bound).
+        bound_counts: Dict[str, int] = {}
+        for exp in experiences:
+            sid = exp.get("skill_id")
+            if isinstance(sid, str) and sid:
+                bound_counts[sid] = bound_counts.get(sid, 0) + 1
+        rep_skill = (
+            max(bound_counts.items(), key=lambda kv: kv[1])[0]
+            if bound_counts
+            else ""
+        )
+        out.append(FailureTrace(
+            skill_id=rep_skill,
+            skill_episode_id=f"{episode_id}#outcome",
+            domain=domain,
+            failed_step_index=n_steps - 1 if n_steps else None,
+            failure_class="INVARIANT_VIOLATION",
+            abort_reason=(
+                f"episode_total_reward={total_reward:.3f}"
+                f" <= threshold={outcome_failure_threshold:.3f}"
+                + (" (truncated)" if truncated else "")
+            ),
+            extra={
+                "synthesis_signal": "OUTCOME_FAILURE",
+                "episode_id": episode_id,
+                "n_steps": n_steps,
+                "total_reward": total_reward,
+                "truncated": truncated,
+            },
+        ))
+
+    # ── 2. NO_SKILL_BOUND (only meaningful when the bank exists) ──────
+    if bank_was_available:
+        for i, exp in enumerate(experiences):
+            sid = exp.get("skill_id")
+            if sid:
+                continue
+            # Treat as failure only when there *was* a bank to consult.
+            out.append(FailureTrace(
+                skill_id="",
+                skill_episode_id=f"{episode_id}#no_skill@{i}",
+                domain=domain,
+                failed_step_index=i,
+                failure_class="MISSING_ADAPTER",
+                abort_reason="no_skill_bound",
+                extra={
+                    "synthesis_signal": "NO_SKILL_BOUND",
+                    "step_index": i,
+                    "step_reward": float(exp.get("reward") or 0.0),
+                },
+            ))
+
+    if len(out) > max_failures:
+        out = out[:max_failures]
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Bank seeding — read legacy JSONL → SkillRepository as CANDIDATE
+# ---------------------------------------------------------------------------
+
+
+_ROLE_TO_SKILL_TYPE = {
+    "GATHER": SkillType.GROUNDING,
+    "VERIFY": SkillType.REASONING,
+    "REASON": SkillType.REASONING,
+    "COMMIT": SkillType.ACTION,
+}
+
+
+def _safe_skill_id(skill_id: str) -> str:
+    """Filename-safe form for skill ids that contain ``/`` (the legacy
+    cold-start convention is ``OPERATOR/SUBGOAL`` like ``COMMIT/ATTACK``,
+    which collides with ``SkillStore``'s flat-filename layout)."""
+    return (skill_id or "").replace("/", "__")
+
+
+def _wrap_protocol_steps(raw_steps: Iterable[Any]) -> List[Dict[str, Any]]:
+    """Convert NL-string ``protocol.steps`` from the legacy bank into the
+    typed ``[{"action": ..., "payload": {}, "notes": ...}]`` shape that
+    ``Repairer._rule_repair`` and friends expect.
+
+    Mirrors the inverse of
+    :func:`skill_bank.legacy_writeback._typed_protocol_to_nl_steps`.
+    """
+    out: List[Dict[str, Any]] = []
+    for s in raw_steps or []:
+        if isinstance(s, dict):
+            out.append(dict(s))
+        elif isinstance(s, str):
+            out.append({"action": "EXEC", "payload": {}, "notes": s})
+        else:
+            out.append({"action": "EXEC", "payload": {}, "notes": str(s)})
+    return out
+
+
+def _record_from_bank_entry(
+    entry: Mapping[str, Any], default_domain: str,
+) -> Optional[SkillRecord]:
+    """Hydrate one ``SkillRecord`` from one legacy ``skill_bank.jsonl``
+    line. Returns ``None`` if the entry is malformed."""
+    skill = entry.get("skill") or {}
+    if not isinstance(skill, Mapping):
+        return None
+    raw_id = skill.get("skill_id")
+    if not raw_id:
+        return None
+    role = (skill.get("evidence_role") or "COMMIT").upper()
+    skill_type = _ROLE_TO_SKILL_TYPE.get(role, SkillType.MIXED)
+    contract = skill.get("contract") or {}
+    feasible = list(skill.get("applicable_domains") or []) or [default_domain]
+    protocol_blob = skill.get("protocol") or {}
+
+    rec = SkillRecord.new(
+        name=skill.get("name", str(raw_id)),
+        skill_type=skill_type,
+        source_type=SkillSourceType.MINED,
+        feasible_domains=feasible,
+        protocol=_wrap_protocol_steps(protocol_blob.get("steps") or []),
+        contract=SkillContract(
+            preconditions=list(protocol_blob.get("preconditions") or []),
+            effects_add=list(contract.get("eff_add") or []),
+            effects_del=list(contract.get("eff_del") or []),
+            expected_evidence_roles=[role] if role else [],
+            success_criteria=list(protocol_blob.get("success_criteria") or []),
+            abort_criteria=list(protocol_blob.get("abort_criteria") or []),
+        ),
+    )
+    # Force the bank-given skill_id (overrides the freshly-minted UUID)
+    # so ``parent_skill_ids`` references resolve.
+    object.__setattr__(rec, "skill_id", _safe_skill_id(str(raw_id)))
+    return rec
+
+
+def _seed_repo_from_legacy_jsonl(
+    *,
+    lifecycle: SkillLifecycleManager,
+    bank_path: Path,
+    default_domain: str,
+) -> int:
+    """Seed a fresh ``SkillRepository`` as ``CANDIDATE`` from a legacy
+    ``skill_bank.jsonl``. Returns the count of successfully-seeded skills.
+
+    Malformed lines are skipped with a debug log line; this matches the
+    offline mirror's tolerance because the legacy bank is a *running*
+    artefact and we'd rather seed N-1 skills than refuse to fire.
+    """
+    if not bank_path.is_file():
+        return 0
+    n_seeded = 0
+    with bank_path.open("r", encoding="utf-8") as f:
+        for line_no, raw in enumerate(f, start=1):
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                entry = json.loads(raw)
+            except json.JSONDecodeError as exc:
+                logger.debug(
+                    "crafter_hook: skipping malformed bank line %d in %s: %s",
+                    line_no, bank_path, exc,
+                )
+                continue
+            rec = _record_from_bank_entry(entry, default_domain)
+            if rec is None:
+                continue
+            try:
+                lifecycle.ingest_draft(rec)
+                lifecycle.transition(
+                    rec.skill_id,
+                    to_status=SkillStatus.CANDIDATE,
+                    rationale="trainer-crafter-hook seed",
+                )
+                n_seeded += 1
+            except Exception as exc:                                # noqa: BLE001
+                logger.debug(
+                    "crafter_hook: skip seed %s: %s",
+                    rec.skill_id, exc,
+                )
+    return n_seeded
+
+
+# ---------------------------------------------------------------------------
+# Live BankMutationProposal → offline-mirror JSONL row
+# ---------------------------------------------------------------------------
+
+
+def _to_offline_row(
+    proposal: BankMutationProposal,
+    *,
+    domain: str,
+) -> Dict[str, Any]:
+    """Project one live ``BankMutationProposal`` into the JSONL row
+    schema that ``decide_promotion_gpt54.py::_OfflineProposal.from_json``
+    accepts.
+
+    The offline schema is intentionally flatter than the live dataclass —
+    we only emit the fields ``_translate_proposal`` re-reads, plus
+    ``adapter_plan`` (mirrored across all five domains so the live
+    ``ALL_FIVE_DOMAINS`` check at the gate's Stage-0 passes).
+    """
+    # PLAN-SKILL-CRAFTER §0.1 / §2.5 — every proposal in the offline
+    # mirror schema MUST enumerate all five target domains so the gate
+    # stack can verify general feasibility. The live Repairer narrows
+    # ``target_domains`` to the source domain only (it's working against
+    # a single game's skill bank), but for the on-disk JSONL contract we
+    # always expand to all five — the gate decides per-domain whether to
+    # honor the proposal.
+    base = {
+        "proposal_id": proposal.proposal_id,
+        "rationale": proposal.rationale,
+        "proposer": _proposer_for(proposal),
+        "target_domains": list(ALL_FIVE_DOMAINS),
+        "adapter_plan": _default_adapter_plan(domain),
+    }
+
+    if isinstance(proposal, PatchProposal):
+        base["proposal_kind"] = "patch"
+        base["target_skill_id"] = proposal.base_skill_id
+        base["patch_kind"] = proposal.recovery_strategy or "protocol_patch"
+        base["evidence_role"] = _evidence_role_from_contract(proposal.patched_contract)
+        base["seed_failure_ids"] = list(proposal.seed_failure_ids)
+    elif isinstance(proposal, RetireProposal):
+        base["proposal_kind"] = "retire"
+        base["target_skill_id"] = proposal.target_skill_id
+        base["retire_reason"] = proposal.reason or "evidence-starved"
+        base["evidence_role"] = ""
+    elif isinstance(proposal, ComposeProposal):
+        base["proposal_kind"] = "compose"
+        base["components"] = list(proposal.component_skill_ids)
+        base["compose_op"] = "sequence"
+        base["evidence_role"] = _evidence_role_from_contract(proposal.contract)
+    elif isinstance(proposal, GeneralizeProposal):
+        base["proposal_kind"] = "transfer"
+        base["source_skill_id"] = proposal.base_skill_id
+        base["source_domain"] = proposal.source_domain or "gymv"
+        base["new_adapter_per_target"] = {proposal.target_domain: True} if proposal.target_domain else {}
+        base["slot_remap_per_target"] = {proposal.target_domain: dict(proposal.slot_remap)} if proposal.target_domain else {}
+        base["evidence_role"] = _evidence_role_from_contract(proposal.contract)
+    elif isinstance(proposal, HypothesisProposal):
+        base["proposal_kind"] = "hypothesize"
+        base["new_skill_name"] = proposal.name
+        base["evidence_role"] = _evidence_role_from_contract(proposal.contract)
+    else:
+        base["proposal_kind"] = type(proposal).__name__.lower()
+
+    return base
+
+
+def _proposer_for(p: BankMutationProposal) -> str:
+    """Map proposal class → offline-mirror ``proposer`` enum."""
+    if isinstance(p, (PatchProposal, RetireProposal)):
+        return "reflector"
+    if isinstance(p, ComposeProposal):
+        return "composer"
+    if isinstance(p, GeneralizeProposal):
+        return "generalizer"
+    if isinstance(p, HypothesisProposal):
+        return "hypothesizer"
+    return "reflector"
+
+
+def _evidence_role_from_contract(contract: Any) -> str:
+    if contract is None:
+        return ""
+    roles = getattr(contract, "expected_evidence_roles", None)
+    if not roles:
+        return ""
+    return str(roles[0]).upper()
+
+
+def _default_adapter_plan(source_domain: str) -> Dict[str, Dict[str, Any]]:
+    """Default adapter plan: ``reuse`` on the source domain, marked as
+    ``synthesize_from_slot_ontology`` on the four transfer targets.
+
+    Mirrors the shape `decide_skill_crafting_gpt54.py` writes verbatim
+    so a downstream reader doesn't need to special-case trainer output.
+    """
+    out: Dict[str, Dict[str, Any]] = {}
+    for d in ALL_FIVE_DOMAINS:
+        if d == source_domain:
+            out[d] = {
+                "needs_72b_synthesis": False,
+                "source_domain": source_domain,
+                "strategy": "reuse",
+            }
+        else:
+            out[d] = {
+                "needs_72b_synthesis": True,
+                "source_domain": source_domain,
+                "strategy": "synthesize_from_slot_ontology",
+            }
+    return out
+
+
+# ---------------------------------------------------------------------------
+# JSONL writer
+# ---------------------------------------------------------------------------
+
+
+def _write_proposals_jsonl(
+    *,
+    step_root: Path,
+    game: str,
+    proposals: Sequence[BankMutationProposal],
+    domain: str,
+) -> Path:
+    """Write per-game ``proposals.jsonl`` under ``<step_root>/<corpus>/<source>/``.
+
+    Always creates the file (even when ``proposals`` is empty), so the
+    Promotion hook's ``--proposals-run`` walk doesn't silently skip a
+    game with zero proposals — empty file = "we looked, found nothing".
+    """
+    corpus = corpus_for_game(game)
+    pair_dir = step_root / corpus / game
+    pair_dir.mkdir(parents=True, exist_ok=True)
+    out_path = pair_dir / "proposals.jsonl"
+    # Write atomically — the Promotion hook may iterate concurrently.
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{out_path.name}.", suffix=".tmp", dir=str(pair_dir),
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as tmp:
+            for p in proposals:
+                row = _to_offline_row(p, domain=domain)
+                tmp.write(json.dumps(row, ensure_ascii=False, sort_keys=True, default=str))
+                tmp.write("\n")
+            tmp.flush()
+            os.fsync(tmp.fileno())
+        os.replace(tmp_name, out_path)
+    except Exception:
+        try:
+            os.unlink(tmp_name)
+        except OSError:
+            pass
+        raise
+    return out_path
+
+
+__all__ = [
+    "ALL_FIVE_DOMAINS",
+    "CrafterStepReport",
+    "DEFAULT_COOLDOWN_PASSES",
+    "DEFAULT_HOT_PATTERN_THRESHOLD",
+    "DEFAULT_MAX_FAILURES_PER_EPISODE",
+    "DEFAULT_OUTCOME_FAILURE_THRESHOLD",
+    "corpus_for_game",
+    "run_crafter_step",
+]

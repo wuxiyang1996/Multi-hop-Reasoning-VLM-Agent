@@ -22,13 +22,57 @@ DECISION_ADAPTERS = ["skill_selection", "action_taking"]
 SKILLBANK_ADAPTERS = ["segment", "contract", "curator"]
 ALL_ADAPTERS = DECISION_ADAPTERS + SKILLBANK_ADAPTERS
 
-DECISION_DATA_DIR = REPO_ROOT / "labeling" / "output" / "gpt54_skill_labeled" / "grpo_coldstart"
-SKILLBANK_DATA_DIR = REPO_ROOT / "skill_agents" / "extract_skillbank" / "output" / "gpt54_skillbank_grpo"
+# ── Default data sources (current dual-axis SFT corpus) ──────────────
+#
+# Decision adapters consume the per-game JSONLs produced by
+# ``labeling/build_decision_sft_jsonl.py`` (output dir is timestamped;
+# the auto-resolver below picks the most recent run).
+DECISION_DATA_DIR = REPO_ROOT / "labeling" / "decision_sft_jsonl"
 
+# Skill-bank adapters consume the per-game artefacts produced by
+# ``labeling/run_skill_discovery.sh`` (skill_bank.jsonl,
+# teacher_io_coldstart.jsonl, coldstart_io_all.jsonl).  The new layout
+# inserts a ``<corpus>`` level (``gym_v`` / ``env_wrappers``) between
+# the run dir and the game dir; ``data_loader.py`` walks it.
+SKILLBANK_DATA_DIR = REPO_ROOT / "labeling" / "skill_bank_out"
+
+
+def _latest_run(parent: Path, prefix: str = "run_") -> Path | None:
+    """Return the most-recently-modified ``run_*`` dir under *parent*."""
+    if not parent.is_dir():
+        return None
+    runs = [p for p in parent.iterdir() if p.is_dir() and p.name.startswith(prefix)]
+    return max(runs, key=lambda p: p.stat().st_mtime) if runs else None
+
+
+# The two SFT corpora are timestamped (``run_<ts>``).  When the user
+# does not pin a specific run via ``--decision_data_dir`` /
+# ``--skillbank_data_dir`` we resolve to the latest one available.
+DEFAULT_DECISION_DATA_DIR = _latest_run(DECISION_DATA_DIR) or DECISION_DATA_DIR
+DEFAULT_SKILLBANK_DATA_DIR = _latest_run(SKILLBANK_DATA_DIR) or SKILLBANK_DATA_DIR
+
+
+# All 17 games covered by the dual-axis SFT corpus
+# (13 Gym-V Temporal envs + 4 env_wrappers games).  data_loader.py
+# auto-skips games missing data so this list is forward-compatible
+# with future adds.
 COLDSTART_GAMES = [
-    "avalon",
+    # Gym-V (stable-retro / Genesis ROMs)
+    "Temporal_Airstriker-v0",
+    "Temporal_AlteredBeast-v0",
+    "Temporal_CastleOfIllusion-v0",
+    "Temporal_CastlevaniaBloodlines-v0",
+    "Temporal_Columns-v0",
+    "Temporal_DynamiteHeaddy-v0",
+    "Temporal_GoldenAxe-v0",
+    "Temporal_KidChameleon-v0",
+    "Temporal_MortalKombatII-v0",
+    "Temporal_SpaceHarrierII-v0",
+    "Temporal_StreetsOfRage2-v0",
+    "Temporal_Strider-v0",
+    "Temporal_ThunderForceIII-v0",
+    # env_wrappers (game-ai-agent + orak-mario)
     "candy_crush",
-    "diplomacy",
     "super_mario",
     "tetris",
     "twenty_forty_eight",
@@ -69,9 +113,12 @@ class SFTConfig:
     # Base model — must match what co-evolution uses
     model_name: str = "Qwen/Qwen3.5-9B"
 
-    # Data sources
-    decision_data_dir: str = str(DECISION_DATA_DIR)
-    skillbank_data_dir: str = str(SKILLBANK_DATA_DIR)
+    # Data sources — point at the latest dual-axis SFT corpus by default.
+    # Both paths can be overridden on the CLI; ``data_loader.py`` walks
+    # both legacy ``<root>/<game>/`` and the new ``<root>/<corpus>/<game>/``
+    # layout so old corpora remain consumable.
+    decision_data_dir: str = str(DEFAULT_DECISION_DATA_DIR)
+    skillbank_data_dir: str = str(DEFAULT_SKILLBANK_DATA_DIR)
     games: List[str] = field(default_factory=lambda: list(COLDSTART_GAMES))
 
     # Output — adapters written to decision/ and skillbank/ subdirs
@@ -102,16 +149,27 @@ class SFTConfig:
     adapters: Optional[List[str]] = None
 
     # Per-adapter overrides (adapter_name → {param: value}).
-    # Defaults scale epochs inversely with dataset size so small-data
-    # adapters (curator ~216, contract ~1.6k, segment ~2.7k) get enough
-    # gradient steps to converge, while large decision adapters (~34k
-    # each) don't over-train.
+    # Tuned for an ~12 h H200 budget: bigger micro-batch + fewer
+    # accumulation steps to amortise data-loader / kernel-launch
+    # overhead, with epoch counts scaled to the dataset size.
+    # Effective batch size is held at 16 across all decision/skill-bank
+    # adapters so loss curves stay comparable to the previous schedule.
     adapter_overrides: Dict[str, Dict[str, Any]] = field(
         default_factory=lambda: {
-            "skill_selection": {"epochs": 3},
-            "action_taking":   {"epochs": 3},
-            "segment":         {"epochs": 8, "batch_size": 2, "grad_accum": 8},
-            "contract":        {"epochs": 10, "batch_size": 2, "grad_accum": 8},
+            # Big decision LoRAs (~31 k samples): 2 epochs is still a
+            # standard SFT budget for cold-start; bs=16, ga=1 saturates
+            # the H200 BF16 path with the 9 B base model.
+            "skill_selection": {"epochs": 2, "batch_size": 16, "grad_accum": 1},
+            "action_taking":   {"epochs": 2, "batch_size": 16, "grad_accum": 1},
+            # Segment has the longest sequences in the corpus; keep
+            # bs=4 to stay well under H200 memory and bump ga=4 to
+            # preserve the effective-16 batch.  Halve epochs (8 → 4).
+            "segment":         {"epochs": 4, "batch_size": 4, "grad_accum": 4},
+            # Contract / boundary-proposal data is short.  bs=8 ga=2
+            # saturates compute without OOM risk.  Halve epochs (10 → 5).
+            "contract":        {"epochs": 5, "batch_size": 8, "grad_accum": 2},
+            # curator: already finished in the previous run; keep the
+            # historical schedule for reproducibility if it gets retrained.
             "curator":         {"epochs": 15, "lr": 1e-4},
         }
     )

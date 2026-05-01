@@ -36,6 +36,38 @@ EPISODES=16 bash baselines/run_tetris_baseline.sh --model gpt-5.4
 EPISODES_PER_POWER=4 bash baselines/run_diplomacy_baseline.sh --model gpt-5.4
 ```
 
+## Frontier sweep via OpenRouter (Claude 4.6 Sonnet + Gemini 3.1 Pro + Qwen3.5 Plus)
+
+`run_openrouter_baselines.sh` runs the same COS-PLAY actor cold-start pipeline used by `run_qwen_vllm_baselines.sh`, but routes every call through **OpenRouter** so no GPUs are required. It dispatches all three frontier multimodal backbones across **all 17 games** (3 env_wrappers + super_mario + 13 gym-v Temporal envs) at **16 episodes per (model × env)** with **16 jobs in flight**.
+
+Total work: 3 backbones × 17 games × 16 episodes = **816 episodes**. Estimated total spend: **≈ $2.1k** (≈ $1094 Claude + $817 Gemini + $164 Qwen3.5 Plus, vision ON).
+
+| Backbone | Slug | Input ($/M) | Output ($/M) |
+|----------|------|-------------|--------------|
+| Claude Sonnet 4.6 | `anthropic/claude-4.6-sonnet-20260217` | 3.00 | 15.00 |
+| Gemini 3.1 Pro    | `google/gemini-3.1-pro-preview`        | 2.00 | 12.00 |
+| Qwen3.5 Plus      | `qwen/qwen3.5-plus-20260420`           | 0.40 |  2.40 |
+
+```bash
+# All 3 models × 17 games × 16 episodes, vision ON
+bash baselines/run_openrouter_baselines.sh
+
+# Drop a model from the sweep
+bash baselines/run_openrouter_baselines.sh --models claude gemini
+
+# Smoke run: 4 episodes, 2 gym-v envs only
+bash baselines/run_openrouter_baselines.sh --episodes 4 \
+    --gymv Temporal/Airstriker-v0 Temporal/Columns-v0 --skip_envwrappers
+
+# Skip super_mario (no orak-mario conda env)
+bash baselines/run_openrouter_baselines.sh --skip_mario
+
+# Resume an interrupted run
+bash baselines/run_openrouter_baselines.sh --run_id myrun --resume
+```
+
+Outputs land under `<codebase_root>/openrouter-baselines-out/<run_id>/<model_tag>/{env_wrappers,gymv}/<env>/` (mirrors the `qwen-baselines-out` layout). The `OPENROUTER_API_KEY` is auto-loaded from `<workspace>/api_keys.py` if not already in the environment.
+
 ## Qwen via vLLM (Qwen3.5-9B + Qwen3.5-35B-A3B)
 
 `run_qwen_vllm_baselines.sh` reuses the COS-PLAY actor cold-start pipeline (visual grounding + schema-driven action selection) from `cold_start/generate_cold_start_actor.py` and `cold_start/generate_cold_start_actor_gymv.py`, but routes every call through a **vLLM OpenAI-compatible endpoint** instead of OpenAI / OpenRouter.
@@ -155,5 +187,6 @@ python baselines/analyze_baselines.py
 | `run_super_mario_baseline.sh` | Super Mario baseline (Xvfb + orak-mario env) |
 | `run_gpt54_tetris_macro.py` | Python backend for Tetris (shared by all models) |
 | `run_qwen_vllm_baselines.sh` | Qwen3.5-{9B, 35B-A3B} baselines via vLLM (env_wrappers + gym-v, parallel, 16 eps) |
+| `run_openrouter_baselines.sh` | Claude-4.6-Sonnet + Gemini-3.1-Pro + Qwen3.5-Plus baselines via OpenRouter (all 17 games, parallel, 16 eps) |
 | `summarize_qwen_vllm_baselines.py` | Aggregate per-(model × env) Qwen vLLM stats |
 | `analyze_baselines.py` | Post-hoc analysis: win rates, CIs |

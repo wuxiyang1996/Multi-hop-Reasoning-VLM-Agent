@@ -25,6 +25,16 @@ between the Decision Agent and the Skill Bank Agent.
 | `run_coldstart_orak_mario.sh` | Shell launcher for Super Mario (conda + Xvfb) |
 | `run_coldstart_actor.sh` | Shell launcher for the actor-agent rollouts (env_wrappers + gpt-5.5 visual schema → action). |
 | `run_coldstart_actor_all_games.sh` | **Multi-env wrapper** — runs `run_coldstart_actor.sh` twice in one command: 2048 / Candy Crush / Tetris under `game-ai-agent`, then Super Mario under `orak-mario` (with Xvfb).  Use this when you want all 4 games in one shot. |
+| `generate_cold_start_actor_gymv.py` | Actor-agent rollouts on the **`gymv` source domain** (13 retro/Temporal envs: Airstriker, Columns, …). |
+| `run_coldstart_actor_gymv.sh` / `run_coldstart_actor_gymv_all.sh` | Single-env / parallel-all-envs launchers for `gymv`. |
+| `generate_cold_start_actor_browsergym.py` | Actor-agent rollouts on **BrowserGym** (MiniWoB / WebArena / VisualWebArena / AssistantBench). Auto-sources `webarena_env.sh` / `visualwebarena_env.sh` per task. |
+| `run_coldstart_actor_browsergym.sh` | BrowserGym launcher; supports `--tasks`, `--tasks_file`, `--urls`. |
+| `generate_cold_start_actor_osworld.py` | Actor-agent rollouts on **OSWorld** desktop tasks (KVM guest, AT-SPI accessibility tree). |
+| `run_coldstart_actor_osworld.sh` / `run_coldstart_actor_osworld_all.sh` | Single-guest / parallel-multi-guest launchers for OSWorld. |
+| `generate_cold_start_actor_visual_reasoning.py` | Actor-agent rollouts on **visual reasoning** benchmarks (VisualToolBench, TIR-Bench, Video-Holmes, SIV-Bench). Supports `--sample_ids_dir` for held-out splits. |
+| `run_coldstart_actor_visual_reasoning.sh` | Visual-reasoning launcher (image + video MCQ). |
+| `task_samples/` | Stratified pool / held-out manifests + sampler scripts (`build_browsergym_diverse_200.py`, `build_visual_reasoning_diverse_1000.py`). |
+| `webarena_env.sh` / `visualwebarena_env.sh` | Auto-generated `WA_*` / `VWA_*` exports from `install/install_*_sites.sh`; auto-sourced by the BrowserGym launcher. |
 
 ## Games Covered (6 total)
 
@@ -262,6 +272,179 @@ API keys are auto-loaded from `<workspace>/api_keys.py` (or
 `generate_cold_start_actor.py::_bootstrap_api_keys_from_file` for the
 lookup order.
 
+## Multi-domain Cold-Start (Lean Plan)
+
+The cold-start pipeline also seeds trajectories across the four
+**transfer-target domains** of the project (see [`../readme.md`](../readme.md)
+for the full architecture). Per the project README, games (`gymv`)
+are the *source* domain and the four others are *transfer probes*
+consumed at gate Stage 3a (`harness/few_shot_adapter.py`,
+`k_shot_default=5`, `k_shot_max=16` per skill per domain). Volume is
+sized for a **diverse pool**, not a full benchmark sweep.
+
+### Recommended pool sizes
+
+Stratified manifests live under `task_samples/` (built by the
+`build_*` scripts). Sizes are tuned for: (1) supplying K∈[5,16]
+diverse few-shot demos per skill at gate Stage 3a, (2) covering the
+SFT cold-start corpus for the actor on each target schema, (3)
+leaving a disjoint held-out slice for the E0/E1/E2 scoreboard.
+
+| Domain | Bucket | Pool (used in this run) | Held-out (reserved for eval) | Sampler |
+|---|---|---:|---:|---|
+| `gymv` (**source**) | 13 retro envs × ~10 ep × 20 steps | ~130 episodes | n/a | `run_coldstart_actor_gymv_all.sh --episodes 10` |
+| `browser` | **VisualWebArena** (multimodal core) | 200 | + 50 | `task_samples/build_browsergym_diverse_200.py` |
+| `browser` | MiniWoB++ (atomic primitives) | 125 | + 25 | same |
+| `browser` | AssistantBench (open web, no infra) | 180 | + 30 | same |
+| `browser` | WebArena | *drop* — VWA already covers shopping/reddit/wiki; gitlab+admin overlap not worth the cost | — | — |
+| `osworld` | OSWorld desktop tasks | 250 stratified | + 50 | TBD |
+| `visual_reasoning` | VisualToolBench (image) | 300 stratified | + 100 | `task_samples/build_visual_reasoning_diverse_1000.py` |
+| `visual_reasoning` | TIR-Bench (image, tool-use) | 300 stratified | + 100 | same |
+| `video` (**headline**) | Video-Holmes | 1,000 | + 200 | same |
+| `video` | SIV-Bench | 400 stratified | + 100 | same |
+
+Total pool: ~3,200 step-equivalents from env trajectories + ~2,000
+visual-reasoning samples, all stratified to keep diversity per
+slot-binding axis (site / question-type / dimension / …) high
+enough that any candidate skill probed at Stage 3a finds K relevant
+demos. The reasoning is documented in `task_samples/build_*` scripts.
+
+### Pool vs. held-out separation
+
+Few-shot demos at gate Stage 3a are read-only probes
+(`FewShotAdapter` is stateless), but the pool they're drawn from
+**must be disjoint** from the eval slice or the E0 scoreboard is
+contaminated. The `task_samples/build_*` scripts emit both files in
+one pass — generate cold-start data on `<benchmark>_pool.txt`,
+freeze `<benchmark>_holdout.txt` for end-of-phase eval.
+
+### `reasoning_effort` per pipeline
+
+The actor pipeline auto-detects `gpt-5.x` / `o1` / `o3` and routes
+to `max_completion_tokens` with a 12 k cap (see
+[Token budgets and reasoning models](#token-budgets-and-reasoning-models)),
+but **does not currently set `reasoning_effort`**, so OpenAI's
+default `medium` applies. For cold-start data generation this is
+wasted budget: the SFT student (`Qwen3.5-9B`) only learns from the
+visible `<state>` block and action JSON — hidden thinking tokens are
+never transferred to the trained policy.
+
+| Pipeline | Recommended `reasoning_effort` | Why |
+|---|---|---|
+| `gymv` (source-domain trajectories) | `minimal` | structured extraction; student can't use thinking |
+| BrowserGym (all suites) | `minimal` | schema + constrained action; structured |
+| OSWorld | `minimal` | same — schema is the planning surface, not hidden thought |
+| Visual reasoning (image + video MCQ) | `medium` | teacher answer correctness is the bottleneck on multi-hop QA |
+
+Switching to `minimal` on the structured pipelines drops per-step
+cost from ~$0.045 to ~$0.013 (≈ 3.5× cheaper) and per-call latency
+from ~15 s to ~5 s. Empirical visible output from
+`Cold-start-out-browsergym/` confirms this: schema responses median
+~2.9 KB / ~740 tokens, action responses median ~370 chars / ~95
+tokens — the rest of today's bill is hidden thinking.
+
+#### Smoke-test calibration (`gpt-5.4`, n = 5 paired MiniWoB tasks)
+
+To replace extrapolation with a measurement we ran a paired smoke
+test on five mid-difficulty MiniWoB tasks (`use-spinner`, `guess-number`,
+`simple-arithmetic`, `click-checkboxes`, `simple-algebra`) at
+`reasoning_effort=minimal` and `medium`, same seed, same task list,
+8-step cap, `gpt-5.4` (saved under `Cold-start-out-smoke-effort/`):
+
+| Metric | `minimal` | `medium` | Delta |
+|---|---|---|---|
+| Task success | **5/5 (100 %)** | 4/5 (80 %) | `medium` failed `guess-number` |
+| Schema parse rate | 100 % | 100 % | tied |
+| Action LLM ok | 100 % | 100 % | tied |
+| Avg steps / episode | 4.6 | 4.4 | tied |
+| Wall per step | 14.8 s | 31.5 s | **`medium` 2.1× slower** |
+| Total wall (5 tasks) | 339 s | 693 s | `medium` 2.0× slower |
+
+Concrete failure mode: on `guess-number` (binary search 0–9), `minimal`
+correctly picked the midpoint first (`5 → 7 → 8 → 9`, classic binary
+search) and won at step 8. `medium` started at 0 and incremented
+linearly (`0 → 1 → 5 → 6`), exhausting the 8-step budget on the same
+feedback signal. With more hidden thinking the model converged on a
+*worse* policy on this task — concrete evidence that more reasoning ≠
+better behavior on structured-action tasks.
+
+Caveat: n = 5 is small. The wall-clock 2× delta is robust; the +20 pp
+success-rate delta is suggestive but not statistically significant on
+its own. The structural argument (`Qwen3.5-9B` cannot consume hidden
+thinking, regardless) does not depend on the success-rate result.
+
+Reproduce:
+
+```bash
+bash cold_start/run_coldstart_actor_browsergym.sh \
+    --tasks browsergym/miniwob.use-spinner browsergym/miniwob.guess-number \
+            browsergym/miniwob.simple-arithmetic browsergym/miniwob.click-checkboxes \
+            browsergym/miniwob.simple-algebra \
+    --episodes 1 --max_steps 8 --model gpt-5.4 \
+    --reasoning_effort minimal \
+    --output_dir Cold-start-out-smoke-effort/minimal --resume
+
+# Then again with --reasoning_effort medium → Cold-start-out-smoke-effort/medium/
+```
+
+### Cost & wall-clock for one full pass
+
+GPT-5 reasoning class pricing ($1.25 / M input, $10 / M output incl.
+thinking):
+
+| Setting | Total cost | Wall-clock @ realistic per-bucket parallelism |
+|---|---:|---:|
+| Original full plan (706 BG + full OSWorld + 1 k each visual), `medium` everywhere | ~$1,500 – $1,800 | ~12 – 15 h |
+| **Lean plan, `minimal` for env / `medium` for visual reasoning** ← recommended | **~$260 – $280** | **~3 – 6 h** (set by OSWorld KVM concurrency) |
+| Lean plan, `gpt-5.4-mini` everywhere except Video-Holmes | ~$70 – $100 | ~3 – 6 h |
+
+Where the lean-plan budget goes (≈ $260 baseline):
+
+| Bucket | Share | Cost |
+|---|---:|---:|
+| OSWorld | 45 % | ~$110 |
+| gymv | 14 % | ~$36 |
+| BrowserGym (VWA + MiniWoB + AB) | 24 % | ~$62 |
+| Visual reasoning (4 benchmarks @ `medium`) | 17 % | ~$45 |
+
+The two dominant levers:
+
+1. **`reasoning_effort`** — `medium` → `minimal` on env pipelines saves ~70 % of the bill.
+2. **OSWorld KVM concurrency** — 2 → 4 → 8 guests collapses wall-clock from ~6 h to ~1.6 h.
+
+### Quick start (lean plan)
+
+```bash
+# 1. Build stratified manifests (idempotent; emits *_pool.txt + *_holdout.txt)
+python cold_start/task_samples/build_browsergym_diverse_200.py
+python cold_start/task_samples/build_visual_reasoning_diverse_1000.py
+
+# 2. gymv (source) — 13 envs in parallel
+bash cold_start/run_coldstart_actor_gymv_all.sh \
+    --episodes 10 --max_steps 20 --save_frames -v
+
+# 3. BrowserGym (VWA + MiniWoB + AssistantBench from the manifest)
+bash cold_start/run_coldstart_actor_browsergym.sh \
+    --tasks_file cold_start/task_samples/browsergym_all_diverse.txt \
+    --episodes 1 --max_steps 12 --save_frames -v
+
+# 4. OSWorld (250 stratified — bump KVM guests to taste)
+bash cold_start/run_coldstart_actor_osworld_all.sh \
+    --tasks_file cold_start/task_samples/osworld_diverse_250.txt \
+    --max_steps 30 --num_guests 4 -v
+
+# 5. Visual reasoning (use --sample_ids_dir to point at the pool manifests)
+bash cold_start/run_coldstart_actor_visual_reasoning.sh \
+    --benchmarks visual_toolbench tir_bench video_holmes siv_bench \
+    --sample_ids_dir cold_start/task_samples/ \
+    --num_test_cases 1000 --num_frames 6 -v
+```
+
+The `task_samples/<benchmark>_holdout.txt` files are *not* consumed
+by these commands — they stay frozen for the eval driver
+(`evaluation/`, Phase E) so the SFT-trained policy can be scored on
+unseen tasks.
+
 ## Output Structure
 
 All generators produce the same per-game layout:
@@ -325,6 +508,18 @@ The lenient parser (`_lenient_parse_schema`) is a defence-in-depth
 backstop: it strips markdown code fences, closes a missing `</state>`
 tag (`recovery=truncated`), and wraps loose `<entities>` blocks
 (`recovery=untagged`).
+
+**Note on `reasoning_effort`.** The 12 k cap accommodates *thinking +
+visible schema*; it does **not** mean every call has to *use* that
+much thinking. The pipeline currently passes no `reasoning_effort`
+flag, so OpenAI's default `medium` applies — silently billing
+~2–4 k thinking tokens per call. For cold-start data generation
+those thinking tokens are wasted (the SFT student never sees them);
+prefer `reasoning_effort="minimal"` on `gymv` / browser / OSWorld
+pipelines and reserve `medium` for the visual-reasoning benchmarks
+where teacher answer correctness matters. See
+[Multi-domain Cold-Start (Lean Plan) → `reasoning_effort` per pipeline](#reasoning_effort-per-pipeline)
+for the full table and cost impact.
 
 ## Loading Rollouts into the Training Pipeline
 

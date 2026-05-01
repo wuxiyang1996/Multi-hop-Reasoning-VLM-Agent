@@ -192,6 +192,35 @@ class CoEvolutionConfig:
     grpo_decision_devices: List[int] = field(default_factory=list)
     grpo_skillbank_devices: List[int] = field(default_factory=list)
 
+    # ── Crafter + Promotion online hooks (Phase 1, off by default) ─────
+    # Spec: implementation_notes/harness-usability-and-intra-gymv-transfer.md §3
+    # When enabled, after every co-evolution step's Phase B finalize() the
+    # trainer additionally runs:
+    #   1. ``trainer.coevolution._crafter_hook.run_crafter_step`` —
+    #      synthesizes FailureTraces from the just-finished EpisodeResults,
+    #      calls SkillCrafterService.reflect_on_episode, dumps proposals
+    #      in the offline-mirror JSONL schema.
+    #   2. ``trainer.coevolution._promotion_hook.run_promotion_step`` —
+    #      subprocess-invokes ``decide_promotion_gpt54.py --gate-mode
+    #      offline-synthetic`` over those proposals, then writes the
+    #      promoted (PROVISIONAL) skills back into each per-game
+    #      ``skill_bank.jsonl`` via ``skill_bank.legacy_writeback``.
+    # The hook is one-way (D8 Option A): the legacy 4-stage skill_agents
+    # pipeline keeps writing to per-game banks unchanged, the new path
+    # only *appends* promoted skills.
+    crafter_promotion_enabled: bool = False
+    # Per-batch Crafter cycle cadence. ``0`` disables cycle() entirely
+    # (per-episode reactive pass still runs).  Recommend 5-10 in steady
+    # state — runs Composer / Generalizer over accumulated failures.
+    crafter_cycle_every_k_steps: int = 0
+    # Total reward at/below this threshold counts as OUTCOME_FAILURE.
+    # ``0.0`` matches the offline mirror's default.
+    crafter_outcome_failure_threshold: float = 0.0
+    # Hard wall-clock cap on the decide_promotion subprocess invocation.
+    # Phase-0 Airstriker baseline is ~0.3s; 300s leaves room for the
+    # 13-game sweep + future Stage-1 replay overhead.
+    crafter_promotion_timeout_s: float = 300.0
+
     # Run directory — all other dirs are relative to this.
     # Auto-generated from model_name + timestamp if None.
     run_dir: Optional[str] = None

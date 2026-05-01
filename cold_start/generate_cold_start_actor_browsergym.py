@@ -611,6 +611,9 @@ def _build_client_and_route(
     return client, model
 
 
+_VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high")
+
+
 def _chat_completion(
     client: Any,
     *,
@@ -620,6 +623,7 @@ def _chat_completion(
     max_tokens: int,
     tools: Optional[list] = None,
     tool_choice: Any = None,
+    reasoning_effort: Optional[str] = None,
 ):
     """Cross-model chat-completion wrapper.
 
@@ -628,6 +632,12 @@ def _chat_completion(
     that budget on hidden thinking tokens.  Detect reasoning models up front
     and route them through with a generous output cap; classic models keep
     the legacy path with a single fallback retry.
+
+    ``reasoning_effort`` (one of ``minimal`` / ``low`` / ``medium`` / ``high``)
+    is forwarded only for reasoning models; ignored otherwise.  Setting
+    ``minimal`` suppresses hidden thinking tokens — the right default for
+    cold-start data generation, where the SFT student never consumes the
+    teacher's hidden chain anyway.
     """
     if _is_reasoning_model(model):
         kwargs: Dict[str, Any] = {
@@ -635,6 +645,13 @@ def _chat_completion(
             "messages": messages,
             "max_completion_tokens": max(6000, max_tokens * 4),
         }
+        if reasoning_effort:
+            if reasoning_effort not in _VALID_REASONING_EFFORTS:
+                raise ValueError(
+                    f"reasoning_effort must be one of {_VALID_REASONING_EFFORTS}, "
+                    f"got {reasoning_effort!r}"
+                )
+            kwargs["reasoning_effort"] = reasoning_effort
         if tools is not None:
             kwargs["tools"] = tools
         if tool_choice is not None:
@@ -775,6 +792,7 @@ def generate_schema_from_image(
     max_entities: int = _DEFAULT_MAX_ENTITIES,
     use_som: bool = True,
     goal_images: Optional[List[Any]] = None,
+    reasoning_effort: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Call gpt-5.5 (vision) on the screenshot to produce a ``<state>`` schema.
 
@@ -900,6 +918,7 @@ def generate_schema_from_image(
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            reasoning_effort=reasoning_effort,
         )
         if resp.choices:
             choice = resp.choices[0]
@@ -1388,6 +1407,7 @@ def select_action(
     routed_model: str,
     temperature: float = 0.4,
     max_tokens: int = _ACTION_MAX_TOKENS,
+    reasoning_effort: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str], str, Optional[str]]:
     """Call gpt-5.5 with the schema → ``(action, reasoning, raw, error)``."""
     if not candidate_actions:
@@ -1459,6 +1479,7 @@ def select_action(
             max_tokens=max_tokens,
             tools=tools,
             tool_choice={"type": "function", "function": {"name": "choose_action"}},
+            reasoning_effort=reasoning_effort,
         )
         choice = resp.choices[0]
         msg = choice.message
@@ -1702,6 +1723,7 @@ def run_actor_episode(
     frames_dir: Optional[Path],
     seed: Optional[int],
     verbose: bool,
+    reasoning_effort: Optional[str] = None,
 ) -> Tuple[Episode, Dict[str, Any]]:
     """Run one BrowserGym episode end-to-end and return ``(Episode, stats)``."""
     bg_obs_to_schema = _import_browsergym_heuristic()
@@ -1808,6 +1830,7 @@ def run_actor_episode(
                     max_entities=max_entities,
                     use_som=True,
                     goal_images=goal_imgs,
+                    reasoning_effort=reasoning_effort,
                 )
                 schema_calls += 1
                 if schema_meta.get("source") == "vlm":
@@ -1856,6 +1879,7 @@ def run_actor_episode(
                     client=client,
                     routed_model=routed_model,
                     temperature=temperature_action,
+                    reasoning_effort=reasoning_effort,
                 )
                 if action is not None:
                     action_llm_ok += 1
@@ -2230,6 +2254,7 @@ def run_target_rollouts(
                 frames_dir=frames_dir,
                 seed=42 + ep_idx,
                 verbose=args.verbose,
+                reasoning_effort=getattr(args, "reasoning_effort", None),
             )
             stats["episode_index"] = ep_idx
             print(
@@ -2401,6 +2426,21 @@ def main():
     parser.add_argument(
         "--verbose", "-v", action="store_true",
         help="Print per-step details (action, reward, schema source).",
+    )
+    parser.add_argument(
+        "--reasoning_effort", "--reasoning-effort",
+        type=str, default=None,
+        choices=list(_VALID_REASONING_EFFORTS),
+        help=(
+            "OpenAI reasoning_effort knob for gpt-5.x / o1 / o3 / o4. "
+            "One of {minimal, low, medium, high}. Default: unset (= "
+            "OpenAI default 'medium'). Recommended for cold-start data "
+            "generation: 'minimal' — the SFT student never consumes the "
+            "teacher's hidden thinking, so the higher tiers are pure "
+            "wasted budget on structured-extraction + constrained-action "
+            "tasks. Reserve 'medium' for benchmarks where teacher answer "
+            "correctness is the bottleneck (visual reasoning MCQ)."
+        ),
     )
 
     args = parser.parse_args()

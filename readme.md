@@ -279,6 +279,80 @@ Test coverage for the three-tier pin lives in [`tests/test_backbone_model.py`](t
 
 ---
 
+## Cold-start data generation — lean plan + `reasoning_effort` policy
+
+The SFT cold-start corpus is built by `cold_start/` (`gpt-5.5` teacher → trajectories
+fine-tuning `Qwen/Qwen3.5-9B`). Two design choices drive both cost and correctness;
+the full per-benchmark sizing tables live in [`cold_start/readme.md`](cold_start/readme.md#multi-domain-cold-start-lean-plan).
+
+### Asymmetric volume — source vs. transfer targets
+
+The cold-start runner respects the source-/transfer-target asymmetry from
+[`common/enums.py`](common/enums.py): `gymv` is the **foundry** (volume should be
+heaviest), while `browser` / `osworld` / `video` / `visual_reasoning` are
+**transfer probes** consumed at gate Stage 3a (`harness/few_shot_adapter.py`,
+`k_shot_default=5`, `k_shot_max=16` per skill per domain). Volumes are therefore
+sized for *diverse pool* coverage, not full-benchmark sweeps:
+
+| Domain (role) | Pool size (used in this run) | Held-out (frozen for E0/E1/E2 eval) |
+|---|---:|---:|
+| `gymv` (**source**, 13 retro envs) | ~130 episodes (~10 ep × 20 steps each) | n/a |
+| `browser` — VisualWebArena (multimodal core) | 200 stratified | + 50 |
+| `browser` — MiniWoB++ (atomic primitives) | 125 | + 25 |
+| `browser` — AssistantBench (open web, no infra) | 180 | + 30 |
+| `browser` — WebArena | *dropped* — VWA already covers shopping/reddit/wiki | — |
+| `osworld` | 250 stratified | + 50 |
+| `visual_reasoning` — VisualToolBench / TIR-Bench (image MCQ) | 300 + 300 | + 100 each |
+| `video` — Video-Holmes (**headline arena**) | 1,000 | + 200 |
+| `video` — SIV-Bench | 400 | + 100 |
+
+The pool/holdout split is critical: few-shot demos at Stage 3a must be
+**disjoint** from the eval slice or the E0 scoreboard is contaminated. The
+samplers in `cold_start/task_samples/build_*.py` emit both files in one pass.
+
+### `reasoning_effort` policy
+
+A `--reasoning_effort` CLI flag (lives on `cold_start/generate_cold_start_actor_*.py`,
+threaded through to the OpenAI client; one of `{minimal, low, medium, high}`)
+governs the teacher's hidden-thinking budget. Without it, OpenAI defaults
+to `medium` for `gpt-5.x` reasoning models, silently billing 1–4 k thinking
+tokens per call. **For cold-start data generation that's pure waste** —
+`Qwen/Qwen3.5-9B` only learns from the visible `<state>` and action JSON;
+hidden tokens never reach the trained policy.
+
+| Pipeline | Recommended effort | Rationale |
+|---|---|---|
+| `gymv` source-domain trajectories | `minimal` | Structured extraction; student can't use thinking |
+| BrowserGym / OSWorld trajectories | `minimal` | Schema + constrained action; the schema *is* the planning surface |
+| Visual reasoning MCQ (image + video) | `medium` | Teacher answer correctness is the bottleneck on multi-hop QA |
+
+A paired smoke test (`gpt-5.4`, 5 mid-difficulty MiniWoB tasks,
+`Cold-start-out-smoke-effort/`) confirmed this empirically: `minimal`
+hit **5/5 task success** vs. `medium`'s 4/5, with **2.1× lower wall-clock
+per step** (14.8 s vs. 31.5 s). On `guess-number`, `medium` chose a
+linear-search policy (0, 1, 5, 6) and exhausted the step budget while
+`minimal` chose binary search (5, 7, 8, 9) and won — a concrete case of
+more hidden thinking *worsening* policy on a structured-action task.
+Full numbers + reproduction recipe in
+[`cold_start/readme.md#smoke-test-calibration`](cold_start/readme.md#smoke-test-calibration-gpt-54-n--5-paired-miniwob-tasks).
+
+Cost & wall-clock impact for one full cold-start pass on the lean plan above
+(GPT-5 reasoning class pricing, $1.25 / M input, $10 / M output):
+
+| Setting | API spend | Wall-clock @ realistic per-bucket parallelism |
+|---|---:|---:|
+| Original full sweep, default `medium` everywhere (today's behavior) | ~$1,500 – $1,800 | ~12 – 15 h |
+| **Lean plan, `minimal` for env / `medium` for visual reasoning** ← recommended | **~$260 – $280** | **~3 – 6 h** (set by OSWorld KVM concurrency) |
+| Lean plan, `gpt-5.4-mini` everywhere except Video-Holmes | ~$70 – $100 | ~3 – 6 h |
+
+The two dominant levers are **`reasoning_effort`** (cost: `medium` → `minimal`
+on env pipelines saves ~70 %) and **OSWorld KVM concurrency** (wall-clock:
+2 → 8 guests collapses the run from ~6 h to ~1.6 h). See
+[`cold_start/readme.md#multi-domain-cold-start-lean-plan`](cold_start/readme.md#multi-domain-cold-start-lean-plan)
+for the full breakdown, sampler scripts, and quick-start commands.
+
+---
+
 ## Repository layout
 
 ### New modules (canonical build, this plan)

@@ -144,9 +144,72 @@ Specific contracts worth pinning:
 
 | Phase | What this package contains | Status |
 |---|---|---|
-| B (MVP) | `EpisodeRunner`, file-backed `ArtifactStore`, `BudgetController`, `GateService` (Stages 0 / 1 / 2 / 3a / 4), `PromotionOrchestrator`, `SnapshotManager` | **Delivered** — covered by `tests/test_smoke.py::test_smoke_end_to_end` |
+| B (MVP) | `EpisodeRunner`, file-backed `ArtifactStore`, `BudgetController`, `GateService` (Stages 0 / 1 / 2 / 3a / 4), `PromotionOrchestrator`, `SnapshotManager` | **Delivered in isolation** — covered by `tests/test_smoke.py::test_smoke_end_to_end`. Live-runtime integration is partial; see "Live-runtime integration status" below |
 | D (transfer + replay) | Action-level deterministic replay (Stage 1); Stage 3a wired to real (non-stub) executors for all four `TRANSFER_TARGET_DOMAINS`; per-skill `evaluate_candidate` / `promote_if_passed` / `rollback_if_needed` API as in `PLAN-PIPELINE-ORCHESTRATOR §3a.1` | Pending |
 | E (eval suite + dashboards) | `eval_suite.py` (frozen non-regression slice with `eval_suite_id` pinned across releases); slice / label dashboards | Pending |
+
+---
+
+## Live-runtime integration status
+
+This package is internally consistent and the smoke wiring test passes, but **no live-runtime entry point currently drives it**. The hot-path (`EpisodeRunner`) and warm-path (`GateService` + `PromotionOrchestrator`) are exercised today only by the offline mirrors under [`../labeling_supplement/`](../labeling_supplement/) and the unit / smoke tests under [`../tests/`](../tests/).
+
+### Who imports `orchestrator/*` today
+
+Outside this package and the test suite, only four files import anything from `orchestrator`:
+
+| Importer | Pulls | Plane |
+|---|---|---|
+| [`../crafter/service.py`](../crafter/service.py) | `ArtifactStore` (audit log sink) | live |
+| [`../labeling_supplement/decide_promotion_gpt54.py`](../labeling_supplement/decide_promotion_gpt54.py) | `ArtifactStore`, `GateService`, `OrchestratorConfig`, `PromotionOrchestrator`, `PromotionPlan`, `SnapshotManager` | offline mirror |
+| [`../labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py) | `GateService` | offline mirror |
+| [`../labeling_supplement/reflect_per_episode_gpt54.py`](../labeling_supplement/reflect_per_episode_gpt54.py) | `ArtifactStore` | offline mirror |
+
+Notably absent: `decision_agents/`, `cold_start/`, `inference/`, `trainer/`, `baselines/`, `scripts/qwen3_*.py`. The only `EpisodeRunner` instantiation in the repo is `tests/test_smoke.py`.
+
+### Wiring gaps (in dependency order)
+
+Each row is independent of the next; closing them in order is the cheapest sequence.
+
+| # | Gap | Where it surfaces | Fix shape | Status |
+|---|---|---|---|---|
+| 1 | **Two disjoint `Harness` types share the name.** [`../decision_agents/core/harness.py`](../decision_agents/core/harness.py) `Harness` (env-step: `reset / step(action) / valid_actions(state)`) is what the live actor consumes; `harness/skill_harness.py` `SkillHarness` (skill-exec: `select_eligible_skills / run_skill / replay_validate`) is what `EpisodeRunner` requires. No bridge module exists | `runner.py:81-84` requires both an `EnvLike` *and* a `SkillHarness` simultaneously | Adapter that lifts `decision_agents.core.Harness.step(action_string)` into something `SkillHarness.run_skill(skill, state)` can consume per hop | Pending |
+| 2 | **`ActorLike.choose_action` is not implemented by the live actor.** `EpisodeRunner` calls `actor.choose_action(state, eligible: List[EligibleSkill]) → ActorChoice \| None` (`runner.py:38-46`). The live `ActorAgent.step(observation, schema, valid_actions, …) → ActorDecision` ([`../decision_agents/actor_agent.py:351`](../decision_agents/actor_agent.py)) has a different signature, return type, and abstraction (primitive actions vs skills) | First call inside `EpisodeRunner.run` after `harness.select_eligible_skills(...)` | `RunnerActorAdapter(ActorLike)` that wraps `ActorAgent` and renders `EligibleSkill[]` into a guidance pack before calling `step(...)` | Pending |
+| 3 | **Bank duality with no bridge.** This package reads from `skill_bank.SkillRepository` (the new four-store, lifecycle-locked bank). The live actor and every cold-start / inference / trainer entry point reads from `skill_agents.skill_bank.bank.SkillBankMVP` (legacy Stage-3 single-JSONL bank). The orchestrator cannot see legacy mining output; the actor cannot see the new lifecycle bank | `runner.py:113` (`bank.runnable()`) expects `SkillRepository` | `skill_bank/legacy_bridge.py` — one-way migration listed in [`../IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet delivered" | Pending |
+| 4 | **`AdapterRegistry` has no live registrations.** [`../harness/adapter_registry.py`](../harness/adapter_registry.py) is instantiated only in tests and offline mirrors. The shipped per-domain adapters (`harness/adapters/{gymv,browser,osworld,video,visual_reasoning}_adapter.py`) use `make_deterministic_executor` ([`../harness/adapters/_stub_base.py:36`](../harness/adapters/_stub_base.py)) — emits one `GATHER` evidence per hop, sufficient for gate Stage-3a dry-run only. No live `set_executor(real_executor)` exists | `harness.run_skill(...)` would only generate stub evidence in production | Per-domain real `HopExecutor` registration after `AdapterRegistry()`, wired into the cold-start / inference path. Largest piece of work — domain-by-domain action grammar alignment | Pending |
+| 5 | **No live `SkillEpisode` emission.** Gate Stage-1 (Replay) needs `SkillEpisode` seeds; Stage-2 (Shadow) reads `harness.RewardLogger`. The live cold-start emits `Episode` (its own format) with no skill-id attribution. [`../implementation_notes/crafter-harness-orchestrator-roles.md`](../implementation_notes/crafter-harness-orchestrator-roles.md) §7.4 calls this out as the strict prerequisite for both lanes | `gate_service.py` Stages 1 + 2 fall back to `LIMITED_PASS` for lack of inputs | Add a `SkillEpisode` emitter to the actor's `observe_result` path (or wrap it) and log to `RewardLogger`. Schema already exists in `data_structure/extensions/skill_episode.py` | Pending |
+| 6 | **No subscriber to `RunRelease`.** `PromotionOrchestrator.promote` writes a frozen `RunRelease` (snapshot + adapter signature + config payload) but no live consumer watches for it. The actor's skill provider does not pin to or reload from a release | `promotion_orchestrator.py` after `put_release(...)`; effect is invisible to a running actor | Either (a) actor pins `release_id` at episode start and rebuilds its `SkillProvider` from `bank_snapshot_path`, or (b) a watcher reloads the in-memory `SkillRepository` view on `release.json` change | Pending |
+
+### What is wireable today, no changes required
+
+- **`ArtifactStore`** — pure file I/O, schema-clean. Already used by `crafter/service.py` and the three offline mirrors.
+- **`SnapshotManager`** — pure JSON, content-addressed.
+- **`PromotionOrchestrator`** — fully transactional and gate-bound. Consumes `(SkillRecord, SkillEvaluationRecord)` pairs; the offline mirror in `decide_promotion_gpt54.py` already proves the path end-to-end.
+- **`SkillRepository` + `SkillLifecycleManager`** (sibling package) — the four-store bank with locked writes. Crafter and orchestrator already write through it; only the actor read path is missing.
+- **`BudgetController`** — pure accounting, drop-in.
+- **`GateService` Stages 0, 4, and 3a (with stub adapters)** — LLM-free, run today against any `SkillRecord`. Stages 1 + 2 wait on Gap 5.
+
+### The offline mirror as the de-facto producer
+
+`labeling_supplement/decide_promotion_gpt54.py` exercises the full warm path against synthesised inputs. It deliberately bypasses every live edge:
+
+- Reads `SkillRecord`s seeded by `cold_start_labeling/build_skill_bank_gymv.py` (Gap 3 sidestepped).
+- Reads `BankMutationProposal`s from `decide_skill_crafting_gpt54.py` outputs (no live Crafter call).
+- Defaults to `--gate-mode offline-synthetic`: Stage 0 runs rule-based, Stages 1 / 2 / 3a / 4 receive `LIMITED_PASS` (Gaps 4, 5 sidestepped).
+- Loads actor-batch metrics from `_skill_actions_summary.json` for the post-promotion regression check (no live `RewardLogger`).
+- Writes `RunRelease` to disk where the next offline pass can consume it (Gap 6 sidestepped).
+
+This is the model called out at [`../implementation_notes/crafter-harness-orchestrator-roles.md`](../implementation_notes/crafter-harness-orchestrator-roles.md) line 337: deterministic, replay-only, no live components, before any of these gets wired into the live runtime.
+
+### Recommended sequencing if/when the live wire happens
+
+1. **Gap 5 first** — without live `SkillEpisode` emission, every gate decision is synthetic and the §7.1 closed-loop synthesis pathology in the implementation notes applies.
+2. **Gaps 1 + 2 together** (`HarnessSkillProvider` + `RunnerActorAdapter`) — one logical unit: making the live actor drivable by `EpisodeRunner` against the new bank.
+3. **Gap 3** (`legacy_bridge`). Cheap once 1 + 2 are in. Most legacy skills will fail the G0 invariant on ACTIVE promotion (intentional — the bank starts ~empty under the new lifecycle).
+4. **Gap 6** (`RunRelease` subscriber). Cheap.
+5. **Gap 4** (real domain executors). Largest effort; do per-domain incrementally — gymv → browser → osworld, etc.
+
+Until at least Gap 5 lands, closing the earlier gaps gives no operational benefit: the orchestrator would run, but on synthesised inputs equivalent to what the offline mirrors already produce.
 
 ---
 
