@@ -157,6 +157,67 @@ class SkillLifecycleManager:
 
     # -- few-shot transfer bookkeeping (PLAN-UNIFIED-SKILL-GATE Stage 3a) --
 
+    def record_false_binding_pattern(
+        self,
+        skill_id: str,
+        *,
+        veto: str,
+        veto_reason: str,
+        domain: Optional[str] = None,
+        task: Optional[str] = None,
+        observed_at: Optional[float] = None,
+        max_patterns: int = 64,
+    ) -> SkillRecord:
+        """Day-9c (PLAN-SKILL-BANK §4.3b): append a `RejectedSkill` to
+        the skill's `false_binding_patterns` list.
+
+        The eligibility filter's `RejectedSkill` channel records *why*
+        a candidate was excluded (`veto`, `veto_reason`, plus the
+        per-check booleans). This function aggregates those into the
+        durable `SkillRecord.false_binding_patterns` list the Crafter
+        reads to surface "this skill keeps getting vetoed for reason
+        X — patch it / retire it" hot patterns. Same pattern is
+        idempotently deduped on ``(veto, domain, task)``; the count
+        on the existing entry is incremented instead of duplicating.
+
+        ``max_patterns`` caps the list so a misconfigured filter loop
+        can't unbounded-grow the record. The oldest entry is dropped
+        when the cap is hit (FIFO).
+        """
+        with self._mutex:
+            record = self._repo.get(skill_id)
+            if record is None:
+                raise LifecycleError(f"Unknown skill {skill_id!r}")
+            now = observed_at if observed_at is not None else time.time()
+            patterns = list(record.false_binding_patterns or [])
+            key = (veto, domain or "", task or "")
+            for entry in patterns:
+                if (
+                    entry.get("veto") == key[0]
+                    and (entry.get("domain") or "") == key[1]
+                    and (entry.get("task") or "") == key[2]
+                ):
+                    entry["count"] = int(entry.get("count", 0)) + 1
+                    entry["last_observed_at"] = now
+                    break
+            else:
+                patterns.append({
+                    "veto": veto,
+                    "veto_reason": veto_reason,
+                    "domain": domain,
+                    "task": task,
+                    "count": 1,
+                    "first_observed_at": now,
+                    "last_observed_at": now,
+                })
+            if len(patterns) > max_patterns:
+                patterns = patterns[-max_patterns:]
+            record.false_binding_patterns = patterns
+            store = self._store_for(record.status)
+            with store._unlocked(self._token):
+                store.put(record, token=self._token)
+            return record
+
     def record_task_verification(
         self,
         skill_id: str,

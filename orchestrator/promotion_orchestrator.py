@@ -80,6 +80,7 @@ class PromotionOrchestrator:
         adapter_signature: List[str],
         config_payload: Dict[str, Any],
         notes: str = "",
+        bank_snapshot_id: Optional[str] = None,
     ) -> PromotionResult:
         # Enforce the gate-binding invariant: each transition's evaluation
         # must (a) PASS or LIMITED_PASS, (b) match the skill's content hash.
@@ -104,6 +105,14 @@ class PromotionOrchestrator:
                     f"(eval={evaluation.skill_content_hash[:10]}, "
                     f"current={skill.content_hash()[:10]})."
                 )
+
+        # Day-9a: capture pre-transition status_before on every
+        # evaluation. Done before persisting so the audit trail is
+        # internally consistent: the row that names a skill's
+        # transition records what status it was leaving.
+        for skill, _target, evaluation, _ in plan.transitions:
+            if evaluation.status_before is None:
+                evaluation.status_before = skill.status
 
         # Persist evaluations first (audit trail).
         for _, _, evaluation, _ in plan.transitions:
@@ -138,6 +147,18 @@ class PromotionOrchestrator:
             notes=notes,
         )
 
+        # Day-9a: post-transition anchor pin —
+        #   * `status_after`     ← target_status from the plan
+        #   * `bank_snapshot_id` ← caller-supplied or the just-minted snapshot
+        # then re-persist so the audit row reflects the final shape.
+        effective_snapshot_id = bank_snapshot_id or snapshot.get("snapshot_id")
+        for _skill, target, evaluation, _ in plan.transitions:
+            if evaluation.status_after is None:
+                evaluation.status_after = target
+            if evaluation.bank_snapshot_id is None:
+                evaluation.bank_snapshot_id = effective_snapshot_id
+            self._artifacts.put_evaluation(evaluation)
+
         # Mint release.
         promoted_ids = [s.skill_id for s, t, _e, _r in plan.transitions if t in {SkillStatus.ACTIVE, SkillStatus.PROVISIONAL, SkillStatus.SHADOW}]
         deprecated_ids = [s.skill_id for s, t, _e, _r in plan.transitions if t in {SkillStatus.DEPRECATED, SkillStatus.ROLLED_BACK, SkillStatus.REJECTED}]
@@ -153,6 +174,26 @@ class PromotionOrchestrator:
             created_at=time.time(),
         )
         self._artifacts.put_release(release)
+        # Day-9a: surface the GateRunner reproducibility-anchor union
+        # in the audit row so the timeline of "(snapshot, eval_suite,
+        # adapter_versions) → release" is searchable.
+        anchor_union: Dict[str, Any] = {}
+        adapter_versions_union: Dict[str, str] = {}
+        eval_suite_ids: set[str] = set()
+        ontology_versions: set[str] = set()
+        for _s, _t, ev, _r in plan.transitions:
+            if ev.eval_suite_id:
+                eval_suite_ids.add(ev.eval_suite_id)
+            if ev.ontology_version:
+                ontology_versions.add(ev.ontology_version)
+            for k, v in (ev.adapter_versions or {}).items():
+                adapter_versions_union.setdefault(k, v)
+        if eval_suite_ids:
+            anchor_union["eval_suite_ids"] = sorted(eval_suite_ids)
+        if ontology_versions:
+            anchor_union["ontology_versions"] = sorted(ontology_versions)
+        if adapter_versions_union:
+            anchor_union["adapter_versions"] = adapter_versions_union
         self._artifacts.append_audit(
             {
                 "kind": "release",
@@ -160,6 +201,7 @@ class PromotionOrchestrator:
                 "snapshot_id": snapshot["snapshot_id"],
                 "promoted_skill_ids": promoted_ids,
                 "deprecated_skill_ids": deprecated_ids,
+                "reproducibility_anchors": anchor_union,
             }
         )
         return PromotionResult(

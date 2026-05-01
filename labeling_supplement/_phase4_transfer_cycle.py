@@ -21,8 +21,9 @@ What this driver does:
         make_per_step_success_fn(skill))`.
     5. Aggregate `(skill_id × target_task)` verdicts; on PASS /
        LIMITED_PASS, append `target_task` to `verified_tasks` (held in
-       memory — persistence requires a SkillLifecycleManager and is
-       Day-7 work).
+       memory by default; with ``--persist`` also write through a
+       `SkillLifecycleManager.record_task_verification` so the change
+       lands on disk — Day-9b).
     6. Re-run the cross-eligibility probe to demonstrate that skills
        with newly-broadened `verified_tasks` get admitted on the
        target task.
@@ -32,6 +33,11 @@ Usage::
     cd Multi-hop-Reasoning-VLM-Agent
     python labeling_supplement/_phase4_transfer_cycle.py \\
         --source twenty_forty_eight --target tetris --k 4 --seed 0
+
+    # Day-9b: persist verified_tasks to disk via the lifecycle manager.
+    python labeling_supplement/_phase4_transfer_cycle.py \\
+        --source twenty_forty_eight --target tetris --persist \\
+        --persist-bank-root /tmp/lift-test-bank
 
 Defaults to ``2048 → tetris``. Pass ``--source tetris --target
 twenty_forty_eight`` for the reverse direction. Same-task probes
@@ -291,6 +297,51 @@ def _run_transfer(
     return verdicts, mutated
 
 
+def _seed_lifecycle_for_persistence(
+    bank_root: Path,
+    records: List[SkillRecord],
+) -> Tuple[Any, Dict[str, Any]]:
+    """Day-9b helper: build a `SkillLifecycleManager` against
+    `bank_root`, seed `records` as DRAFT (idempotent), and promote
+    each to PROVISIONAL so `record_task_verification` runs against a
+    runnable status.
+
+    Returns ``(lifecycle, seeded_by_id)`` where ``seeded_by_id`` maps
+    each input skill_id to the on-disk `SkillRecord` reference (which
+    may be the same object if it was already in the bank).
+    """
+    from skill_bank import SkillLifecycleManager, SkillRepository, SkillStore  # noqa: E402
+    from skill_bank.stores import StoreName                                    # noqa: E402
+
+    bank_root.mkdir(parents=True, exist_ok=True)
+    repo = SkillRepository(
+        draft_store=SkillStore(StoreName.DRAFT, str(bank_root / "draft")),
+        candidate_store=SkillStore(StoreName.CANDIDATE, str(bank_root / "candidate")),
+        active_store=SkillStore(StoreName.ACTIVE, str(bank_root / "active")),
+        archive_store=SkillStore(StoreName.ARCHIVE, str(bank_root / "archive")),
+    )
+    lifecycle = SkillLifecycleManager(repo)
+    seeded_by_id: Dict[str, Any] = {}
+    for r in records:
+        existing = repo.get(r.skill_id)
+        if existing is None:
+            object.__setattr__(r, "status", SkillStatus.DRAFT)
+            lifecycle.ingest_draft(r)
+            lifecycle.transition(
+                r.skill_id,
+                to_status=SkillStatus.CANDIDATE,
+                rationale="phase4_transfer_cycle:persist-bootstrap",
+            )
+            lifecycle.transition(
+                r.skill_id,
+                to_status=SkillStatus.PROVISIONAL,
+                rationale="phase4_transfer_cycle:persist-bootstrap",
+            )
+            existing = repo.get(r.skill_id)
+        seeded_by_id[r.skill_id] = existing
+    return lifecycle, seeded_by_id
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--source", default="twenty_forty_eight",
@@ -322,8 +373,37 @@ def main() -> int:
     p.add_argument("--out-dir",
                    default=str(REPO_ROOT / "labeling_supplement"
                                / "harness_io_out"))
+    p.add_argument(
+        "--persist",
+        action="store_true",
+        help=(
+            "Day-9b: on PASS, also call "
+            "`SkillLifecycleManager.record_task_verification` so the "
+            "verified_tasks change is persisted to disk (rather than "
+            "just held in-memory). Requires --persist-bank-root pointing "
+            "at a writable per-source bank (e.g. a copy of "
+            "labeling/skill_bank_out/run_<ts>/env_wrappers/<source>/)."
+        ),
+    )
+    p.add_argument(
+        "--persist-bank-root",
+        default=None,
+        help=(
+            "Writable per-source bank root. The driver expects "
+            "<root>/draft, <root>/candidate, <root>/active, <root>/archive "
+            "(SkillRepository's standard layout). On first run with "
+            "--persist, the source skills are seeded as DRAFT and "
+            "promoted to PROVISIONAL so subsequent runs find them."
+        ),
+    )
     p.add_argument("-v", "--verbose", action="store_true")
     args = p.parse_args()
+
+    if args.persist and not args.persist_bank_root:
+        raise SystemExit(
+            "--persist requires --persist-bank-root <path> "
+            "(a writable per-source SkillRepository root)."
+        )
 
     bindings_overrides: Dict[str, str] = {}
     for kv in args.bindings:
@@ -382,6 +462,74 @@ def main() -> int:
     )
     elapsed_s = time.time() - started_at
 
+    # Day-9b: --persist writes the in-memory verified_tasks promotions
+    # through a `SkillLifecycleManager` so they land on disk. Only
+    # promoted skills are touched; idempotent against already-verified
+    # tasks. Persistence failures are logged per-skill but do NOT abort
+    # the rest of the run — empirical evidence (the verdict JSON) is
+    # the headline output.
+    n_persisted = 0
+    persist_errors: List[Dict[str, Any]] = []
+    if args.persist:
+        bank_root = Path(args.persist_bank_root)
+        try:
+            lifecycle, seeded_by_id = _seed_lifecycle_for_persistence(
+                bank_root, source_records,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.error(
+                "persist setup failed (bank_root=%s): %r", bank_root, exc,
+            )
+            persist_errors.append({
+                "skill_id": None,
+                "stage": "lifecycle_seed",
+                "error": repr(exc),
+            })
+        else:
+            promoted_skills = [s for s in mutated if s.skill_id in seeded_by_id]
+            for skill in promoted_skills:
+                v = next(
+                    (vd for vd in verdicts
+                     if vd.skill_id == skill.skill_id and vd.verified_task_promoted),
+                    None,
+                )
+                if v is None:
+                    continue
+                metrics = {
+                    args.target: {
+                        "pass_rate": float(v.pass_rate),
+                        "k_used": float(v.n_demos_used),
+                    },
+                }
+                try:
+                    lifecycle.record_task_verification(
+                        skill.skill_id,
+                        verified_tasks=[args.target],
+                        evaluation_id=f"phase4-{args.source}-to-{args.target}",
+                        per_task_metrics=metrics,
+                        rationale=(
+                            f"phase4_transfer_cycle: {args.source} → "
+                            f"{args.target} pass_rate={v.pass_rate:.2f} "
+                            f"k_used={v.n_demos_used}"
+                        ),
+                    )
+                    n_persisted += 1
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "persist failed for skill=%s: %r",
+                        skill.skill_id, exc,
+                    )
+                    persist_errors.append({
+                        "skill_id": skill.skill_id,
+                        "stage": "record_task_verification",
+                        "error": repr(exc),
+                    })
+        logger.info(
+            "Day-9b persistence: %d skill(s) had verified_tasks=[%r] "
+            "appended on disk (errors=%d, bank_root=%s)",
+            n_persisted, args.target, len(persist_errors), args.persist_bank_root,
+        )
+
     # Eligibility AFTER: rerun with the in-memory updated records.
     admit_after = _eligibility_admit_set(
         source_records, domain="gymv", task=args.target,
@@ -407,6 +555,10 @@ def main() -> int:
         "n_skills": len(verdicts),
         "n_passed_target_pass_rate": sum(1 for v in verdicts if v.success),
         "n_verified_tasks_promoted": n_promoted,
+        "n_verified_tasks_persisted": n_persisted,
+        "persist_enabled": bool(args.persist),
+        "persist_bank_root": args.persist_bank_root,
+        "persist_errors": persist_errors,
         "eligibility_before_admit_count": n_admit_before,
         "eligibility_after_admit_count": n_admit_after,
         "eligibility_admit_delta": n_admit_after - n_admit_before,
@@ -437,6 +589,12 @@ def main() -> int:
         f"(Δ = {n_admit_after - n_admit_before:+d})"
     )
     print(f"verified_tasks promotions: {n_promoted}")
+    if args.persist:
+        print(
+            f"verified_tasks persisted to disk: {n_persisted} "
+            f"(bank_root={args.persist_bank_root}, "
+            f"errors={len(persist_errors)})"
+        )
     print(f"full verdict json: {out_path}")
     return 0
 

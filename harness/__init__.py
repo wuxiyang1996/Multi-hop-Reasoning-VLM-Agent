@@ -64,6 +64,7 @@ from harness.gymv_success import (
     registered_success_fn_domains,
     success_fn_for_domain,
 )
+from harness.rejected_skill_sink import FlushReport, RejectedSkillSink
 from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
 from harness.skill_adapter import SkillAdapter, AdapterRunContext, AdapterRunResult
@@ -105,8 +106,10 @@ __all__ = [
     "ReplayValidator",
     "RewardLogger",
     "EvalSuite",
+    "FlushReport",
     "GateRunner",
     "GateRunnerConfig",
+    "RejectedSkillSink",
     "SchemaProducer",
     "SkillAdapter",
     "SkillHarness",

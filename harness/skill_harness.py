@@ -285,7 +285,9 @@ class SkillHarness:
             return episode
 
         # Translate adapter steps -> SkillEpisodeSteps (lossy but
-        # invariant-preserving).
+        # invariant-preserving). Day-7d: surface the
+        # `evidence_in / evidence_out / protocol_index` fields the
+        # adapter shim now emits.
         for i, raw in enumerate(result.steps):
             step = SkillEpisodeStep(
                 step_index=i,
@@ -294,6 +296,9 @@ class SkillHarness:
                 pre_state=raw.get("pre_state"),
                 post_state=raw.get("post_state"),
                 evidence=list(raw.get("evidence", [])),
+                evidence_in=list(raw.get("evidence_in", [])),
+                evidence_out=list(raw.get("evidence_out", [])),
+                protocol_index=raw.get("protocol_index"),
                 notes=str(raw.get("notes", "")),
             )
             episode.add_step(step)

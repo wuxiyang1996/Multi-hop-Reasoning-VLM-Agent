@@ -159,6 +159,7 @@ from harness.adapters import (                                         # noqa: E
     VideoAdapter,
     VisualReasoningAdapter,
 )
+from harness.gate_runner import EvalSuite, GateRunner, GateRunnerConfig  # noqa: E402
 from orchestrator.gate_service import GateService                      # noqa: E402
 from skill_bank import SkillLifecycleManager, SkillRepository, SkillStore  # noqa: E402
 from skill_bank.stores import StoreName                                # noqa: E402
@@ -238,28 +239,28 @@ def _infer_domain(corpus: str, source: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────
 
 
-def _validate_invocation_stub(
-    *, skill, state, bindings: Optional[Dict[str, Any]]
+def _validate_invocation_real(
+    *, harness: "SkillHarness", skill, state, bindings: Optional[Dict[str, Any]],
+    eligible: Optional[Any] = None,
 ) -> Dict[str, Any]:
-    """Stub for the missing `SkillHarness.validate_invocation` method.
-
-    Until §9.1 lands, we approximate the veto check with the same
-    surface the eligibility filter already exposes:
-      * adapter must exist for ``(state.domain, skill.skill_type)``
-      * adapter.can_handle must return True
-      * (placeholder) precondition / evidence checks default to True
-
-    The returned record is shaped like the spec'd output
-    ``{veto: bool, veto_reason: str, source: "stub"}`` so the dump
-    consumer (and the eventual real `validate_invocation` test) sees
-    the right schema today.
+    """Day-7e: real call into `SkillHarness.validate_invocation` (§9.1
+    closed). Returns the `ValidateInvocationResult.to_json()` payload
+    plus the legacy ``{veto, veto_reason, source}`` keys so the dump
+    schema is back-compat with previous runs.
     """
-    return {
-        "veto": False,
-        "veto_reason": None,
-        "source": "stub_pending_harness_§9.1",
-        "status": "pending_harness_fix",
-    }
+    res = harness.validate_invocation(
+        skill, state, bindings=bindings or {}, eligible=eligible,
+    )
+    j = res.to_json()
+    j.update({
+        "veto": not res.ok,
+        "veto_reason": (
+            "; ".join(res.veto_reasons) if res.veto_reasons else None
+        ),
+        "source": "harness.validate_invocation",
+        "status": "ok",
+    })
+    return j
 
 
 def _process_online_episode(
@@ -352,14 +353,35 @@ def _process_online_episode(
         agreement = diagnose_agreement(eligible_ids, inputs.selected_skill_id)
         agreement_hist[agreement["agreement"]] += 1
 
-        # Online surface §2: validate_invocation (stub — see §9.1).
+        # Online surface §2: validate_invocation (Day-7e real call —
+        # harness/README §9.1 closed). Picks up the matching
+        # EligibleSkill so `shadow_only` propagates faithfully.
         validate_payload: Optional[Dict[str, Any]] = None
         if inputs.selected_skill_id and inputs.selected_skill_id in skills_by_id:
-            validate_payload = _validate_invocation_stub(
-                skill=skills_by_id[inputs.selected_skill_id],
-                state=inputs.state,
-                bindings=None,
+            matching_eligible = next(
+                (es for es in eligible
+                 if es.skill.skill_id == inputs.selected_skill_id),
+                None,
             )
+            try:
+                validate_payload = _validate_invocation_real(
+                    harness=harness,
+                    skill=skills_by_id[inputs.selected_skill_id],
+                    state=inputs.state,
+                    bindings=None,
+                    eligible=matching_eligible,
+                )
+            except Exception as exc:                                    # noqa: BLE001
+                logger.debug(
+                    "validate_invocation failed at step %d: %s",
+                    inputs.step_idx, exc,
+                )
+                validate_payload = {
+                    "veto": True,
+                    "veto_reason": f"call_raised: {exc!r}",
+                    "source": "harness.validate_invocation",
+                    "status": "error",
+                }
             if validate_payload.get("veto"):
                 n_validate_vetoed += 1
 
@@ -501,7 +523,7 @@ def _process_online_surface(
         "run_skill_outcomes": dict(grand_run_skill),
         "candidate_miss_count": total_misses,
         "n_validate_vetoed": total_vetoed,
-        "validate_invocation_status": "stub_pending_harness_§9.1",
+        "validate_invocation_status": "real_harness_validate_invocation",
         "select_eligible_intention_threading": "not_plumbed_pending_harness_§9.2",
         "per_episode": rows,
     }
@@ -835,6 +857,7 @@ def _process_source(
     max_shadow_episodes: int,
     run_skill_enabled: bool,
     promote_status: SkillStatus,
+    gate_runner_enabled: bool = False,
 ) -> Dict[str, Any]:
     t0 = time.time()
     src_actions = actions_run / corpus / source
@@ -884,7 +907,26 @@ def _process_source(
 
         registry = _build_registry()
         harness = SkillHarness(registry=registry)
-        gate = GateService(harness=harness)
+        # Day-7e: switch to GateRunner so the persisted
+        # SkillEvaluationRecords carry the §11 reproducibility anchors
+        # (bank_snapshot_id, eval_suite_id, adapter_versions,
+        # ontology_version). Old behaviour (no anchors) is preserved
+        # when --gate-runner is off; with the flag, a default
+        # GateRunnerConfig is constructed from the dump driver's run
+        # context (snapshot id derived from the bank path stem; eval
+        # suite id derived from the actions dir stem).
+        if gate_runner_enabled:
+            gr_config = GateRunnerConfig(
+                bank_snapshot_id=f"dump:{Path(bank_path).parent.name}",
+                eval_suite_id=f"cold_start:{src_actions.parent.name}",
+                adapter_versions={a.name: "v1" for a in registry.all()},
+                ontology_version="cold_start_v1",
+                seed=0,
+                judge_model="dump_driver",
+            )
+            gate: Any = GateRunner(harness=harness, config=gr_config)
+        else:
+            gate = GateService(harness=harness)
 
         run_summary: Dict[str, Any] = {
             "corpus": corpus,
@@ -1043,6 +1085,18 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Leave seeded skills at CANDIDATE (default: PROVISIONAL). "
                         "Useful to surface 'all CANDIDATE → 0 eligible' "
                         "as a diagnostic instead of bypassing it.")
+    p.add_argument(
+        "--gate-runner",
+        action="store_true",
+        help=(
+            "Day-7e: switch the offline surface from "
+            "`orchestrator.GateService` to `harness.GateRunner` so the "
+            "persisted SkillEvaluationRecords carry §11 reproducibility "
+            "anchors (bank_snapshot_id, eval_suite_id, adapter_versions, "
+            "ontology_version). Default off — back-compat with prior "
+            "dump runs."
+        ),
+    )
 
     p.add_argument("-v", "--verbose", action="count", default=0,
                    help="-v INFO; -vv DEBUG.")
@@ -1138,6 +1192,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 max_shadow_episodes=args.max_shadow_episodes,
                 run_skill_enabled=args.run_skill,
                 promote_status=promote_status,
+                gate_runner_enabled=args.gate_runner,
             )
         except Exception as exc:                                   # noqa: BLE001
             logger.error(
@@ -1161,13 +1216,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         "n_pairs_failed": sum(1 for r in rows if r.get("status") not in ("ok",)),
         "per_source": rows,
         "harness_known_gaps": [
-            "§9.1 — SkillHarness.validate_invocation not implemented (dump uses stub)",
-            "§9.2 — select_eligible_skills doesn't accept intention/active_skill/local_reasoning_trace",
-            "§9.3 — EligibleSkill missing fit_score/risk_score/binding_ok/precondition_ok/evidence_ok/adapter_ok/veto/veto_reason",
-            "§10  — SkillEpisode missing evidence_in/out, warrants, protocol_trace, contract_progress, reward_components, shadow flag, list-typed diagnostic_labels",
-            "§11  — SkillEvaluationRecord missing bank_snapshot_id, eval_suite_id, adapter_versions, ontology_version, status_before/after, rejected_domains, rollback_target",
-            "§12  — GateService stage signatures (Stage 2 wants RewardLogger, Stage 4 wants scalars; rollout_batch[] / eval_suite[] overloads pending)",
-            "§13  — GateService still under orchestrator/, not harness/gate_runner.py",
+            "§9.1 — SkillHarness.validate_invocation: CLOSED in Day-8a; dump driver wired Day-7e.",
+            "§9.2 — select_eligible_skills doesn't accept intention/active_skill/local_reasoning_trace (still pending — Day-10+, requires planner-context plumb)",
+            "§9.3 — EligibleSkill: per-check booleans CLOSED in Day-8a; fit_score/risk_score still pending (Day-10+, LoRA scoring head)",
+            "§10  — SkillEpisode: evidence_in/out, warrants, protocol_trace, contract_progress, reward_components, shadow, diagnostic_labels CLOSED in Day-8b",
+            "§11  — SkillEvaluationRecord: anchors CLOSED in Day-8c; populated when --gate-runner is set on this driver",
+            "§12  — GateService stage signatures: rollout_batch / eval_suite overloads CLOSED in Day-7a (use --gate-runner)",
+            "§13  — GateService relocated under harness.GateRunner alias in Day-7a (use --gate-runner to opt in)",
         ],
     }
     (out_root / "_run_summary.json").write_text(
