@@ -127,6 +127,7 @@ def _decorate_skill_dict(
     source_name: str,
     schema_index: Optional[GameSchemaIndex] = None,
     lift_stats: Optional[LiftStats] = None,
+    force_relift: bool = False,
 ) -> Tuple[Dict[str, Any], bool]:
     """Add SkillRecord-shape fields to one skill dict. Returns (entry, mutated).
 
@@ -182,6 +183,18 @@ def _decorate_skill_dict(
     # onto the contract. Skipped silently if no schema_index is available
     # (caller passed `--skip-protocol-lift` or no `--actions_root`).
     if schema_index is not None:
+        # Day-4: `--force_relift` restores `protocol` from the
+        # preserved `protocol_raw` *before* the lift fires, so a
+        # trigger-set or verb-table update sweeps the bank cleanly.
+        # Old `eff_add` / `eff_del` are dropped on the same pass so the
+        # contract roll-up reflects the v3 mining without union'ing in
+        # stale predicates from the v1 pass.
+        if force_relift and isinstance(skill.get("protocol_raw"), dict):
+            skill["protocol"] = skill["protocol_raw"]
+            contract = skill.get("contract")
+            if isinstance(contract, dict):
+                contract["eff_add"] = []
+                contract["eff_del"] = []
         typed, contract_add, contract_del = lift_protocol_to_typed_hops(
             skill, schema_index=schema_index, stats=lift_stats,
         )
@@ -229,6 +242,7 @@ def _decorate_skill_bank_jsonl(
     source_name: str,
     schema_index: Optional[GameSchemaIndex] = None,
     lift_stats: Optional[LiftStats] = None,
+    force_relift: bool = False,
 ) -> Tuple[int, int]:
     """Rewrite a skill_bank.jsonl in place, adding fields. Returns (n_rows, n_decorated)."""
     if not path.exists():
@@ -251,6 +265,7 @@ def _decorate_skill_bank_jsonl(
             source_name=source_name,
             schema_index=schema_index,
             lift_stats=lift_stats,
+            force_relift=force_relift,
         )
         if mutated:
             n_decorated += 1
@@ -269,6 +284,7 @@ def _decorate_skill_catalog_json(
     source_name: str,
     schema_index: Optional[GameSchemaIndex] = None,
     lift_stats: Optional[LiftStats] = None,
+    force_relift: bool = False,
 ) -> Tuple[int, int]:
     """Rewrite a skill_catalog.json in place. Returns (n_skills, n_decorated)."""
     if not path.exists():
@@ -297,6 +313,7 @@ def _decorate_skill_catalog_json(
             source_name=source_name,
             schema_index=schema_index,
             lift_stats=lift_stats,
+            force_relift=force_relift,
         )
         if mutated:
             n_decorated += 1
@@ -370,6 +387,7 @@ def decorate_corpus_tree(
     cold_start_run: Optional[str],
     model: Optional[str],
     actions_root: Optional[Path] = None,
+    force_relift: bool = False,
 ) -> Dict[str, Any]:
     """Walk root/<source_name>/ and decorate each env's outputs.
 
@@ -416,6 +434,7 @@ def decorate_corpus_tree(
             source_name=env_dir.name,
             schema_index=schema_index,
             lift_stats=lift_stats,
+            force_relift=force_relift,
         )
         # The catalog re-runs the lift on the same skill bodies — share the
         # stats counter so we don't double-count.
@@ -426,6 +445,7 @@ def decorate_corpus_tree(
             source_name=env_dir.name,
             schema_index=schema_index,
             lift_stats=cat_lift_stats,
+            force_relift=force_relift,
         )
         n_skills = max(n_rows, n_cat)
         schema_size = (
@@ -488,6 +508,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         "--skip_protocol_lift", action="store_true",
         help="Force-skip the protocol lift even if --actions_root is given.",
     )
+    p.add_argument(
+        "--force_relift", action="store_true",
+        help=(
+            "Re-run the protocol lift even on rows whose `protocol` is "
+            "already a list of typed hops. Restores the original prose "
+            "from `protocol_raw` (kept by an earlier lift run) before "
+            "re-lifting — so trigger-set updates and verb-table "
+            "extensions sweep the bank without manual surgery. No-op on "
+            "rows that have no `protocol_raw`."
+        ),
+    )
     p.add_argument("--intentions_run", type=str, default=None)
     p.add_argument("--cold_start_run", type=str, default=None)
     p.add_argument("--model", type=str, default=None)
@@ -532,6 +563,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             cold_start_run=args.cold_start_run,
             model=args.model,
             actions_root=actions_root,
+            force_relift=args.force_relift,
         )
         for env in s["envs"]:
             line = (

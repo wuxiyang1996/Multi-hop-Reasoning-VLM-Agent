@@ -204,6 +204,110 @@ def test_all_predicate_types_are_in_taxonomy() -> None:
         assert e["type"] in EFFECT_PREDICATE_TYPES
 
 
+# ───────────── Day-4 trigger expansion (lift v2) ─────────────
+#
+# Phase-2 surfaced two miss patterns that block the success_fn from
+# producing a strong verdict:
+#
+#   1. 2048 `Commit/Merge`'s success_criteria include "Any valid merges
+#      were applied correctly", which should imply a score increase but
+#      under v1 only fired the catch-all `attribute_changed`.
+#
+#   2. tetris `Commit/Optimize`'s "small line clear or queue advancement
+#      … completed" should fire `cumulative_reward_increased` (lines
+#      clear award score) on top of the existing `entity_count_changed`.
+#
+# These tests pin the Day-4 fix so v2 can't regress on real-bank prose.
+
+
+def test_mine_effects_2048_valid_merges_fires_reward() -> None:
+    """The 2048 success criterion 'Any valid merges were applied
+    correctly according to 2048 rules' should mine
+    `cumulative_reward_increased` — the Day-3 Phase-2 smoke saw only
+    `attribute_changed` here, leaving the reward signal undecidable."""
+
+    add, _ = mine_effects(
+        success_criteria=[
+            "Any valid merges were applied correctly according to 2048 rules, "
+            "with no tile merged more than once in the same move.",
+        ],
+        abort_criteria=[],
+        schema_index=_make_schema_index({}),
+    )
+    types = [e["type"] for e in add]
+    assert "cumulative_reward_increased" in types
+
+
+def test_mine_effects_does_not_overfire_on_disjunctive_merge() -> None:
+    """The 2048 phrase 'differs from the previous board by at least one
+    tile movement or one merge' is disjunctive — a movement without a
+    merge means no score, so we must NOT fire
+    `cumulative_reward_increased` here. The catch-all `attribute_changed`
+    is the right verdict."""
+
+    add, _ = mine_effects(
+        success_criteria=[
+            "The resulting board differs from the previous board by at "
+            "least one tile movement or one merge.",
+        ],
+        abort_criteria=[],
+        schema_index=_make_schema_index({}),
+    )
+    types = [e["type"] for e in add]
+    assert "cumulative_reward_increased" not in types
+    assert "attribute_changed" in types
+
+
+def test_mine_effects_candy_crush_score_higher_fires_reward() -> None:
+    add, _ = mine_effects(
+        success_criteria=["The score is higher than before the move resolved."],
+        abort_criteria=[],
+        schema_index=_make_schema_index({}),
+    )
+    types = [e["type"] for e in add]
+    assert "cumulative_reward_increased" in types
+
+
+def test_mine_effects_tetris_topout_fires_phase_transition() -> None:
+    add, dele = mine_effects(
+        success_criteria=[],
+        abort_criteria=[
+            "Placing vertically on the far left would cause immediate top-out.",
+        ],
+        schema_index=_make_schema_index({}),
+    )
+    assert add == []
+    types = [e["type"] for e in dele]
+    assert "phase_transitioned" in types
+
+
+def test_mine_effects_candy_crush_moves_decreased_fires_value_decrease() -> None:
+    add, _ = mine_effects(
+        success_criteria=[
+            "The moves remaining count has decreased appropriately for the committed move.",
+        ],
+        abort_criteria=[],
+        schema_index=_make_schema_index({"moves_remaining": "goal_indicator"}),
+    )
+    types = [e["type"] for e in add]
+    assert "entity_value_decreased" in types
+
+
+def test_mine_effects_does_not_overfire_on_movement_only_phrase() -> None:
+    """'The selected slide direction was executed without error' must
+    NOT fire any predicate — it's an execution acknowledgement, not a
+    state-delta claim."""
+
+    add, _ = mine_effects(
+        success_criteria=[
+            "The selected slide direction was executed without error.",
+        ],
+        abort_criteria=[],
+        schema_index=_make_schema_index({}),
+    )
+    assert add == []
+
+
 # ───────────── lift orchestrator ─────────────
 
 

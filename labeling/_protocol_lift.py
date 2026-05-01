@@ -162,41 +162,83 @@ EFFECT_PREDICATE_TYPES: Tuple[str, ...] = (
     "phase_transitioned",
 )
 
-# Predicate-trigger ⇒ predicate mapping. Order matters (more specific first).
+# Predicate-trigger ⇒ predicate mapping. Order matters (more specific first):
+# cumulative_reward_increased and phase_transitioned are checked before
+# entity-typed predicates and the catch-all `attribute_changed` so that
+# game-rule outcomes ("merges were applied" → reward, in 2048) win over
+# the generic "the board differs" → attribute_changed catch-all.
+#
+# Triggers are matched literally (lower-cased substring); they should be
+# narrow enough that bare phrasings like "or one merge" inside a
+# disjunction do NOT trigger reward (which would mean over-claiming).
+# See `_phase2_report.md` §3 for the empirical motivation behind each
+# Day-4 addition.
 _PREDICATE_TRIGGERS: List[Tuple[str, Tuple[str, ...]]] = [
     # cumulative reward
     ("cumulative_reward_increased",
+        # Direct reward / score phrasings.
         ("reward increases", "reward improves", "score increases",
-         "score improves", "scoring", "earn points", "earn score",
-         "reward goes up", "score goes up")),
+         "score improves", "score is higher", "score higher than",
+         "scoring", "earn points", "earn score", "earns points",
+         "earns score", "points awarded", "reward goes up",
+         "score goes up",
+         # 2048-style merges always award score; gate on "applied" /
+         # "resolved" / "valid" so the disjunctive phrasing
+         # "tile movement or one merge" does NOT trigger.
+         "valid merges", "valid merge", "merges were applied",
+         "merges are applied", "merges applied", "merge resolved",
+         "merges resolved", "merges produce", "merge produces",
+         # Tetris / candy-crush — line / match clears award score.
+         "small line clear", "small line clears",
+         "line clear award", "line-clear award",
+         "match awards", "match awarded")),
     # phase
     ("phase_transitioned",
         ("game over", "gameover", "phase changes", "phase transitions",
-         "game ends")),
+         "game ends",
+         # Tetris top-out is the canonical phase transition.
+         "top out", "top-out", "topping out", "topped out",
+         # Mario-style failure modes the prose actually uses.
+         "non-recoverable state")),
     # entity appeared / disappeared
     ("entity_appeared",
-        ("appears", "spawns", "is created", "shows up", "becomes visible")),
+        ("appears", "spawns", "is created", "shows up", "becomes visible",
+         "is visible", "newly visible", "new terrain", "new section",
+         "new piece", "new pieces")),
     ("entity_disappeared",
         ("disappears", "is removed", "vanishes", "becomes invisible",
          "is cleared")),
     # entity count changed
     ("entity_count_changed",
         ("count changes", "fewer", "more of", "decrement", "increment",
-         "tile count", "block count", "lines clear", "row clears",
-         "row clears", "rows clear", "lines cleared", "row cleared",
-         "candy clears", "candies clear", "match clears")),
+         "tile count", "block count",
+         "lines clear", "lines cleared", "line cleared",
+         "row clears", "rows clear", "row cleared", "rows cleared",
+         "candy clears", "candies clear", "match clears", "matches clear",
+         # Holes / cavities are tracked by count in tetris prose.
+         "hole count", "holes increase", "holes decrease",
+         "no lines are cleared", "no line is cleared")),
     # value increased
     ("entity_value_increased",
         ("highest tile", "value increases", "increases by", "grows by",
-         "score goes up", "lines increase", "level up")),
+         "score goes up", "lines increase", "level up",
+         # Generic "increased from N to M" used in tetris prose.
+         "increases from")),
     # value decreased
     ("entity_value_decreased",
-        ("decreases by", "shrinks", "drops by", "value drops")),
+        ("decreases by", "shrinks", "drops by", "value drops",
+         # Candy-crush "moves remaining has decreased"; tetris column
+         # heights "decreased from N to M".
+         "has decreased", "count has decreased", "count decreased",
+         "decreases from", "decreased from")),
     # generic attribute changed (last because it's the catch-all)
     ("attribute_changed",
         ("position changes", "moves to", "shifts to", "state changes",
          "attribute changes", "board changes", "differs from",
-         "differs by", "different from")),
+         "differs by", "different from",
+         # Cold-start prose phrasings discovered in Phase-2 corpus.
+         "remains the same", "remains approximately", "stays the same",
+         "is preserved")),
 ]
 
 

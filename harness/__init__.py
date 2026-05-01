@@ -36,6 +36,13 @@ from harness.few_shot_adapter import (
     FewShotDemo,
     default_success_fn,
 )
+from harness.gym_schema_producer import (
+    SchemaProducer,
+    make_gaming_env_producer,
+    render_state_block,
+    tetris_producer,
+    twenty_forty_eight_producer,
+)
 from harness.gymv_executor import (
     ACTION_ALIAS_MAP,
     GymvExecutorState,
@@ -75,6 +82,7 @@ __all__ = [
     "ReplayResult",
     "ReplayValidator",
     "RewardLogger",
+    "SchemaProducer",
     "SkillAdapter",
     "SkillHarness",
     "default_success_fn",
@@ -82,7 +90,11 @@ __all__ = [
     "evaluate_hop_effects",
     "evaluate_predicate",
     "initial_state_from_env",
+    "make_gaming_env_producer",
     "make_gymv_executor",
     "make_per_step_success_fn",
+    "render_state_block",
     "task_id_from_state",
+    "tetris_producer",
+    "twenty_forty_eight_producer",
 ]

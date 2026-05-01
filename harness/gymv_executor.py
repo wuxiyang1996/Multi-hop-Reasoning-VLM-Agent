@@ -47,9 +47,39 @@ from typing import (
 
 from common.state_schema import EvidenceRef, StateSchema
 from harness.adapters.gymv_adapter import HopExecutor
+from harness.gym_schema_producer import SchemaProducer
 from harness.skill_adapter import AdapterRunContext
 
 logger = logging.getLogger("harness.gymv_executor")
+
+
+def _adapt_schema_producer(
+    producer: SchemaProducer,
+    *,
+    domain: str,
+    task: str,
+) -> Callable[[Any, Mapping[str, Any]], Optional[str]]:
+    """Adapt a Day-4 `SchemaProducer` (`(info, obs, *, step, task, goal)
+    -> str`) into the legacy `schema_builder` signature
+    (`(obs, info) -> Optional[str]`) the executor's internal call sites
+    expect. Domain/task/step/goal are closed over at adapter time so the
+    producer keeps a clean signature even when the executor doesn't own
+    those values."""
+
+    state = {"step": 0}  # mutable counter so each call advances
+
+    def _builder(observation: Any, info: Mapping[str, Any]) -> Optional[str]:
+        try:
+            block = producer(info, observation, step=state["step"], task=task)
+        except Exception as exc:                                        # noqa: BLE001
+            logger.debug(
+                "schema_producer raised (%s); reverting to text obs", exc,
+            )
+            return None
+        state["step"] += 1
+        return block or None
+
+    return _builder
 
 
 # ---------------------------------------------------------------------------
@@ -337,6 +367,7 @@ def initial_state_from_env(
     domain: str = "gymv",
     task: str = "",
     schema_builder: Optional[Callable[[Any, Mapping[str, Any]], Optional[str]]] = None,
+    schema_producer: Optional[SchemaProducer] = None,
     seed: Optional[int] = None,
 ) -> StateSchema:
     """Build a `StateSchema` from the env's *current* (post-reset) observation.
@@ -367,6 +398,11 @@ def initial_state_from_env(
     if obs is None:
         # Fall back to a fresh reset — the env has not been observed.
         obs, info = env.reset()
+    builder = schema_builder
+    if builder is None and schema_producer is not None:
+        builder = _adapt_schema_producer(
+            schema_producer, domain=domain, task=task,
+        )
     return _state_from_env_obs(
         observation=obs,
         info=info,
@@ -377,7 +413,7 @@ def initial_state_from_env(
         truncated=False,
         inner_step=0,
         outer_step=0,
-        schema_builder=schema_builder,
+        schema_builder=builder,
     )
 
 
@@ -387,6 +423,7 @@ def make_gymv_executor(
     domain: str = "gymv",
     task: Optional[str] = None,
     schema_builder: Optional[Callable[[Any, Mapping[str, Any]], Optional[str]]] = None,
+    schema_producer: Optional[SchemaProducer] = None,
     action_names: Optional[Sequence[str]] = None,
     alias_map: Mapping[str, Mapping[str, Mapping[str, List[str]]]] = ACTION_ALIAS_MAP,
     state_holder: Optional[GymvExecutorState] = None,
@@ -438,6 +475,19 @@ def make_gymv_executor(
             f"on_unresolved={on_unresolved!r} must be 'skip' or 'abort'"
         )
     holder = state_holder or GymvExecutorState(last_info={})
+
+    # If the caller passed a Day-4 SchemaProducer, adapt it to the
+    # legacy schema_builder shape. Explicit `schema_builder` always
+    # wins over `schema_producer` (caller knows best).
+    builder: Optional[Callable[[Any, Mapping[str, Any]], Optional[str]]]
+    if schema_builder is not None:
+        builder = schema_builder
+    elif schema_producer is not None:
+        builder = _adapt_schema_producer(
+            schema_producer, domain=domain, task=task or "",
+        )
+    else:
+        builder = None
 
     def _action_vocab() -> List[str]:
         if action_names:
@@ -535,7 +585,7 @@ def make_gymv_executor(
             truncated=truncated,
             inner_step=ctx.state.inner_step + 1,
             outer_step=holder.outer_step,
-            schema_builder=schema_builder,
+            schema_builder=builder,
         )
         holder.last_post_state = post_state
 
