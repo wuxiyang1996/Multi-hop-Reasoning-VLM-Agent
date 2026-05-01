@@ -193,12 +193,19 @@ def _exec_phase_b_prime_splice(
             from trainer.coevolution._promotion_hook import run_promotion_step
 
             bank_paths = sb_manager.bank_paths(simple_only=True)
+            # Mirror orchestrator.py: probe disk to handle --seed-bank-dir
+            # at step 0.  Plain ``step > 0`` would silently disable
+            # NO_SKILL_BOUND on a seeded cold-start run.
+            bank_was_available = any(
+                p.is_file() and p.stat().st_size > 0
+                for p in bank_paths.values()
+            )
             crafter_step = run_crafter_step(
                 step=step,
                 run_dir=config_run_dir,
                 rollout_results=rollout_results,
                 legacy_bank_paths=bank_paths,
-                bank_was_available=(step > 0),
+                bank_was_available=bank_was_available,
                 cycle_every_k_steps=crafter_cycle_every_k_steps,
                 outcome_failure_threshold=crafter_outcome_failure_threshold,
             )
@@ -455,6 +462,133 @@ def test_phase_b_prime_splice_disabled_is_noop(tmp_path: Path):
 
         # On-disk file untouched.
         assert bank_path.stat().st_size == size_before
+    finally:
+        executor.shutdown(wait=True)
+
+
+@pytest.mark.skipif(not _has_fixtures(), reason="Phase-0 fixtures missing")
+def test_phase_b_prime_step_zero_with_seeded_bank_synthesises_failures(
+    tmp_path: Path,
+):
+    """Regression test for the ``bank_was_available=(step > 0)`` bug.
+
+    When a run is launched with ``--seed-bank-dir`` (or otherwise resumes
+    from a pre-populated bank) the actor on step 0 has skills available,
+    so NO_SKILL_BOUND F2 synthesis SHOULD fire on episodes where the
+    actor failed to bind one.  The original splice gated on ``step > 0``
+    which silently dropped that signal on the very first step of every
+    seeded run.
+
+    This test pins the fix: even at ``step=0``, if the on-disk bank file
+    has non-zero size, the Crafter must observe ``bank_was_available=True``
+    and emit ≥1 failure trace from a NO_SKILL_BOUND-style episode."""
+    from trainer.coevolution.skillbank_pipeline import PerGameSkillBankManager
+
+    game = "Temporal_Airstriker-v0"
+    bank_root = tmp_path / "skillbank"
+    run_dir = tmp_path / "run_dir"
+    run_dir.mkdir()
+
+    executor = ThreadPoolExecutor(max_workers=1)
+    try:
+        sb_manager = PerGameSkillBankManager(
+            games=[game],
+            bank_dir=str(bank_root),
+            executor=executor,
+            seed_bank_dir=str(_coldstart_bank_dir()),
+        )
+        # Sanity: seed wrote a real, non-empty file before any agent init.
+        bank_path = bank_root / game / "skill_bank.jsonl"
+        assert bank_path.is_file()
+        assert bank_path.stat().st_size > 0
+
+        # Successful episode (positive reward) where the actor failed to
+        # bind a skill on every step. Critical: reward must stay > 0 so
+        # OUTCOME_FAILURE does NOT fire — otherwise this test would pass
+        # for the wrong reason and not actually catch the
+        # ``bank_was_available=(step > 0)`` regression.
+        ep = _make_failed_episode(bound_skill_id="COMMIT/ATTACK")
+        for e in ep.experiences:
+            e["skill_id"] = None                  # actor couldn't bind
+            e["reward"] = 0.5                     # positive: no OUTCOME_FAILURE
+            e["raw_env_reward"] = 0.5
+        ep.total_reward = 2.0                     # well above threshold (0.0)
+        ep.terminated = False
+        ep.truncated = False
+
+        result = _exec_phase_b_prime_splice(
+            step=0,                               # the regressed case
+            config_run_dir=run_dir,
+            sb_manager=sb_manager,
+            rollout_results=[ep],
+        )
+        assert result["error"] is None
+        crafter = result["crafter_report"]
+        assert isinstance(crafter, dict)
+        # The ONLY signal that can fire here is NO_SKILL_BOUND, gated on
+        # bank_was_available. With the buggy ``step > 0`` heuristic this
+        # would have been 0 traces. Post-fix, the disk probe sees the
+        # seeded bank and at least one trace synthesises.
+        assert crafter["n_failure_traces"] >= 1, (
+            f"NO_SKILL_BOUND F2 signal regressed: bank was seeded but "
+            f"no failure traces synthesised at step=0 ({crafter})"
+        )
+    finally:
+        executor.shutdown(wait=True)
+
+
+@pytest.mark.skipif(not _has_fixtures(), reason="Phase-0 fixtures missing")
+def test_phase_b_prime_step_zero_without_bank_skips_no_skill_bound(
+    tmp_path: Path,
+):
+    """Complement to the regression above: a TRUE cold-start (no
+    ``--seed-bank-dir``, empty bank) at step 0 must still NOT fire
+    NO_SKILL_BOUND traces — the actor literally couldn't bind because
+    the bank was empty, so this is not a failure of the actor."""
+    from trainer.coevolution.skillbank_pipeline import PerGameSkillBankManager
+
+    game = "Temporal_Airstriker-v0"
+    bank_root = tmp_path / "skillbank"
+    run_dir = tmp_path / "run_dir"
+    run_dir.mkdir()
+
+    executor = ThreadPoolExecutor(max_workers=1)
+    try:
+        sb_manager = PerGameSkillBankManager(
+            games=[game],
+            bank_dir=str(bank_root),
+            executor=executor,
+            seed_bank_dir=None,                  # no seed
+        )
+        bank_path = bank_root / game / "skill_bank.jsonl"
+        # File may or may not exist; if it does, it must be empty.
+        assert (not bank_path.is_file()) or bank_path.stat().st_size == 0
+
+        ep = _make_failed_episode()
+        for e in ep.experiences:
+            e["skill_id"] = None                  # actor couldn't bind
+            e["reward"] = 0.5                     # positive: no OUTCOME_FAILURE
+            e["raw_env_reward"] = 0.5
+        ep.total_reward = 1.0                     # > threshold (0.0)
+        ep.terminated = False
+        ep.truncated = False
+
+        result = _exec_phase_b_prime_splice(
+            step=0,
+            config_run_dir=run_dir,
+            sb_manager=sb_manager,
+            rollout_results=[ep],
+        )
+        assert result["error"] is None
+        crafter = result["crafter_report"]
+        assert isinstance(crafter, dict)
+        # OUTCOME_FAILURE didn't fire (reward > threshold) and
+        # NO_SKILL_BOUND didn't fire either (bank had nothing to bind to).
+        # Net: 0 failure traces.
+        assert crafter["n_failure_traces"] == 0, (
+            f"cold-start with empty bank should not synthesise "
+            f"NO_SKILL_BOUND, got {crafter['n_failure_traces']} traces"
+        )
     finally:
         executor.shutdown(wait=True)
 
