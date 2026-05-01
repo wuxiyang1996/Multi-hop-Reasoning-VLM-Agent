@@ -559,6 +559,16 @@ decision below and pays back in any future state:
 
 ### 7.3 The lane decision: what *is* a skill?
 
+> **Status: closed (2026-05-01) — lane (a), Context-only skills.**
+> Authoritative record: [`skill-lane-decision.md`](skill-lane-decision.md);
+> readiness audit: [`pre-training-readiness-audit.md`](pre-training-readiness-audit.md) §0.4 (T1.3 closed → lane (a)).
+> The two-lane comparison below stays in tree as the rationale for the
+> decision; downstream work (Crafter modes, audit, gate stack)
+> follows the lane-(a) implications listed in §3 of the lane-decision
+> doc, not §7.4 below. Lane-(b) machinery remains in tree as offline
+> diagnostic tooling — gated by `SkillCrafterService(enable_protocol_patching=…)` (default `False`,
+> per T1.3a).
+
 The deepest unresolved question is one of definition. The Crafter
 makes sense in two coherent regimes; we are currently in neither.
 Pick before adding more Crafter logic.
@@ -680,6 +690,13 @@ infrastructure catches up to it.
 
 ### 7.5 Until a lane is picked
 
+> **Superseded by §7.3 box (lane closed → lane (a), 2026-05-01).**
+> The "until" stance below was the operating rule from 2026-04-23 to
+> 2026-04-30; it landed two-tier-trigger / coalesce / cooldown without
+> committing a lane. The lane is now closed: future Crafter work is
+> either (i) lane-neutral plumbing or (ii) explicitly lane-(a) work,
+> per [`skill-lane-decision.md`](skill-lane-decision.md) §3.
+
 Don't add more Crafter modes or proposers. The current code is the
 right shape for lane (b) and the wrong shape for lane (a); growing it
 in either direction commits a lane choice by accident. The
@@ -688,6 +705,33 @@ control and that's why it landed cleanly. Future Crafter additions
 should be either (i) lane-neutral plumbing (audit-trail extensions,
 new metric surfaces), or (ii) explicit lane-(a) / lane-(b) work behind
 a flag with the choice documented here.
+
+#### Post-decision rule (2026-05-01 onward)
+
+* **Lane (a) is the live default.** Crafter additions land *as* lane-(a)
+  features unless explicitly justified otherwise. New modes that only
+  make sense for protocol-edit work (HOP_INSERTION, PROTOCOL_PATCH,
+  FALLBACK_INJECTION, REGROUNDING_TRIGGER, SKILL_DECOMPOSITION) belong
+  behind the `enable_protocol_patching` feature flag, which is `False`
+  by default in `SkillCrafterService.__init__` and threaded through
+  `CoEvolutionConfig.crafter_enable_protocol_patching` /
+  `scripts/run_coevolution.py --enable-protocol-patching`.
+* **Lane (b) machinery is "offline diagnostics," not "deferred."** The
+  Repairer, `RecoveryStrategy.PROTOCOL_PATCH`, the typed protocol
+  hop registry, and `harness/skill_adapter.run_skill` are kept in tree
+  but only fire from `labeling_supplement/` drivers (which opt
+  `enable_protocol_patching=True`). Removing them is *not* on the
+  roadmap — they are the rollback target if `skill-lane-decision.md`
+  §4 trips.
+* **The lane-(a) closed-loop signal flows through the Hypothesizer.**
+  When the Repairer is parked, the dispatcher's existing
+  `_STATUS_NO_OP` fall-through routes any "known skill, recurring
+  failure" pattern to the Hypothesizer (mint a sibling skill rather
+  than edit the protocol of the consulted one). This is the only
+  Crafter behaviour change that ships as part of T1.3 closure.
+* **No new lanes.** If a Crafter mode doesn't fit retrieval-payload
+  edits *or* protocol edits, it doesn't fit at all — escalate to the
+  lane-decision doc before writing code.
 
 ---
 

@@ -818,6 +818,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     cycle_every_k_steps=config.crafter_cycle_every_k_steps,
                     outcome_failure_threshold=config.crafter_outcome_failure_threshold,
                     harness_hooks=harness_hooks if harness_hooks else None,
+                    enable_protocol_patching=config.crafter_enable_protocol_patching,
                 )
                 crafter_report = crafter_step.to_dict()
 

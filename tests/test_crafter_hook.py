@@ -492,6 +492,11 @@ def test_run_crafter_step_outcome_failure_emits_proposals(tmp_path: Path):
         rollout_results=[ep],
         legacy_bank_paths={"Temporal_Airstriker-v0": bank_path},
         bank_was_available=True,
+        # Lane-(b) opt-in: this test asserts a PatchProposal lands;
+        # under the lane-(a) default (T1.3a) the dispatch falls through
+        # to the Hypothesizer instead. Both paths are exercised: see
+        # test_run_crafter_step_lane_a_default_routes_to_hypothesizer.
+        enable_protocol_patching=True,
     )
     assert report.n_episodes_reflected == 1
     assert report.n_failure_traces >= 1                  # at least OUTCOME_FAILURE

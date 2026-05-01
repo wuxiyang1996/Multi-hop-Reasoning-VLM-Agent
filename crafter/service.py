@@ -155,6 +155,7 @@ class SkillCrafterService:
         teacher_model: Optional[str] = None,
         hot_pattern_threshold: int = 3,
         cooldown_passes: int = 5,
+        enable_protocol_patching: bool = False,
     ) -> None:
         self._lifecycle = lifecycle
         self._artifacts = artifact_store
@@ -164,6 +165,15 @@ class SkillCrafterService:
         self._repairer = repairer or Repairer()
         self._diagnoser = diagnoser or FailureDiagnoser()
         self._failures = failure_memory or FailureMemory()
+        # Lane-(a) feature flag — see ``implementation_notes/skill-lane-decision.md``.
+        # Default ``False`` parks the Repairer / protocol-edit path: skills
+        # are retrieval payloads, not runnable programs, so PatchProposal
+        # mints would be edits to a contract no live runtime executes.
+        # The dispatcher's existing ``_STATUS_NO_OP`` → Hypothesizer fall-
+        # through (``_run_failure_dispatch``) carries the signal through.
+        # Set ``True`` only on the offline diagnostic stack
+        # (labeling_supplement) or in lane-(b) experiments.
+        self._enable_protocol_patching = bool(enable_protocol_patching)
         # Default teacher = project-wide backbone (currently GPT-4o); see
         # `common/models.py`. The 8B / 32B / 72B Qwen tracks plus the
         # Phase-F frozen Qwen3-VL teachers are deferred and may be
@@ -195,6 +205,16 @@ class SkillCrafterService:
     def teacher_model(self) -> str:
         """The frozen-teacher backbone the crafter stamps on every proposal."""
         return self._teacher
+
+    @property
+    def enable_protocol_patching(self) -> bool:
+        """Whether the Repairer / PatchProposal mint path is live.
+
+        Lane (a) — skills are retrieval payloads — defaults to ``False``;
+        lane (b) / offline diagnostic drivers may pass ``True``. See
+        ``implementation_notes/skill-lane-decision.md`` for the verdict.
+        """
+        return self._enable_protocol_patching
 
     @property
     def is_phase_f_active(self) -> bool:
@@ -368,6 +388,14 @@ class SkillCrafterService:
         diagnosis: Optional[FailureDiagnosis] = None,
         rationale: Optional[str] = None,
     ) -> Tuple[Optional[PatchProposal], str]:
+        # Lane-(a) gate (T1.3a). When protocol patching is disabled, the
+        # Repairer never mints a PatchProposal and the dispatcher's
+        # `_STATUS_NO_OP` fall-through routes the signal to the
+        # Hypothesizer instead — the bank-gap response under the
+        # "skill = retrieval payload" lane.
+        if not self._enable_protocol_patching:
+            return None, self._STATUS_NO_OP
+
         base = base or self._resolve_base(base_skill_id)
         if base is None:
             raise ValueError(

@@ -558,6 +558,20 @@ The "Suggested work-order" in [§Suggested work-order](#suggested-work-order) ab
 
 ## §22 Trainer integration (Day-10) — what's wired into the co-evolution loop
 
+> **Lane decision: closed (T1.3, lane (a) — skill = retrieval payload).**
+> Spec: [`../implementation_notes/skill-lane-decision.md`](../implementation_notes/skill-lane-decision.md).
+> The harness's role in the live trainer is exactly the **eligibility +
+> `validate_invocation`** surface described in this section — i.e. it
+> filters / vetoes which retrieval payload the actor LLM consults; it
+> does **not** call `run_skill` and it does **not** execute typed
+> protocols. Lane-(b) machinery in this README (action-level
+> `ReplayValidator`, `GateRunner` Stages 1-4, the few-shot adapter)
+> remains live in the **offline diagnostic** stack
+> (`labeling_supplement/`, `tests/`) but does not fire on the
+> live-trainer hot path. To re-enable the lane-(b) protocol-edit path
+> in the live Crafter, pass `--enable-protocol-patching` to
+> `scripts/run_coevolution.py` (default off — see T1.3a).
+
 The runtime in [`../orchestrator/runner.py`](../orchestrator/runner.py) is one of two consumers of this harness; the other is the **co-evolution training loop** in [`../trainer/coevolution/orchestrator.py`](../trainer/coevolution/orchestrator.py). Day-10 plugs the harness's two **LLM-free** surfaces into the live training rollouts and feeds the resulting rejection signal back into the existing Crafter hook so the offline-mirror loop now has a *live-trainer* counterpart.
 
 ### 22.1 Topology — what's connected today
@@ -634,7 +648,13 @@ Both flags default off / permissive, so existing runs are byte-identical.
 
 - §9.2 planner-context (`intention / active_skill / local_reasoning_trace`) is *plumbed* into `state.extra` but not yet a typed first-class param of `select_eligible_skills` — the harness API still takes `state` only.
 - §9.3 numeric `fit_score / risk_score` head — still pending (LoRA scoring, PLAN-SKILL-BANK §0.3 Clause D).
-- §16.1–§16.5 — unchanged. `run_skill` integration is the next milestone after this one.
+- §16.1–§16.5 — unchanged under lane (a). The `run_skill` / typed
+  executor work is no longer on the critical path because skills
+  are retrieval payloads (no inner-MDP execution by the runtime).
+  The §16 work remains in tree as **offline diagnostic** for the
+  Stage-3a transfer cycle and the lane-(b) regression suite; flip
+  it back to "next milestone" only if the rollback condition in
+  [`../implementation_notes/skill-lane-decision.md`](../implementation_notes/skill-lane-decision.md) §4 fires (retrieval ceiling hit *and* MCTS / tool-augmented escalations exhausted).
 
 ---
 

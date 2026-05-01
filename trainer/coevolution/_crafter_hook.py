@@ -192,6 +192,7 @@ def run_crafter_step(
     cooldown_passes: int = DEFAULT_COOLDOWN_PASSES,
     teacher_model: Optional[str] = None,
     harness_hooks: Optional[Mapping[str, Any]] = None,
+    enable_protocol_patching: bool = False,
 ) -> CrafterStepReport:
     """Run the per-step Crafter pass for one trainer step.
 
@@ -333,6 +334,7 @@ def run_crafter_step(
                 teacher_model=teacher_model,
                 hot_pattern_threshold=hot_pattern_threshold,
                 cooldown_passes=cooldown_passes,
+                enable_protocol_patching=enable_protocol_patching,
             )
 
             game_proposals: List[BankMutationProposal] = []
@@ -431,6 +433,7 @@ def run_crafter_step(
             "cooldown_passes": cooldown_passes,
             "cycle_every_k_steps": cycle_every_k_steps,
             "teacher_model": teacher_model,
+            "enable_protocol_patching": enable_protocol_patching,
         },
     }
     try:

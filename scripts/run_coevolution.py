@@ -408,6 +408,21 @@ def parse_args() -> argparse.Namespace:
     )
     parser.set_defaults(harness_allow_shadow=True)
 
+    # Lane-(a) feature flag (T1.3a): the live trainer Crafter never mints
+    # PatchProposals by default — see implementation_notes/skill-lane-decision.md.
+    # The dispatcher's existing `_STATUS_NO_OP` → Hypothesizer fall-through
+    # carries the failure signal through. Set this only for explicit
+    # lane-(b) experiments.
+    parser.add_argument(
+        "--enable-protocol-patching", dest="crafter_enable_protocol_patching",
+        action="store_true",
+        help="Lane-(b) override: enable the Crafter Repairer / "
+             "PatchProposal mint path in the live trainer. Off by "
+             "default per the lane-(a) decision (skills are retrieval "
+             "payloads). See implementation_notes/skill-lane-decision.md.",
+    )
+    parser.set_defaults(crafter_enable_protocol_patching=False)
+
     # Debug
     parser.add_argument(
         "--debug-io", action="store_true",
@@ -554,6 +569,8 @@ def main() -> None:
         config_kwargs["harness_enabled"] = True
     if not args.harness_allow_shadow:
         config_kwargs["harness_allow_shadow"] = False
+    if args.crafter_enable_protocol_patching:
+        config_kwargs["crafter_enable_protocol_patching"] = True
 
     if args.run_dir is not None:
         config_kwargs["run_dir"] = args.run_dir
@@ -616,6 +633,11 @@ def main() -> None:
         print(f"  Harness:      enabled (allow_shadow={config.harness_allow_shadow})")
     else:
         print("  Harness:      disabled")
+    if config.crafter_enable_protocol_patching:
+        print("  Repairer:     ENABLED (lane-(b) — protocol patching live)")
+    else:
+        print("  Repairer:     parked (lane-(a) — patches gated off; "
+              "Hypothesizer carries failure signal)")
     print(f"  Debug I/O:    {'enabled → ' + config.debug_io_dir if config.debug_io else 'disabled'}")
     print(f"  Curriculum:   {config.curriculum_description()}")
     if config.start_mode == "from_scratch":

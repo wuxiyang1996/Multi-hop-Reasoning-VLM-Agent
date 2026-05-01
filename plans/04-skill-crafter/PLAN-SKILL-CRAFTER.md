@@ -1,5 +1,38 @@
 # PLAN: Skill Crafter Agent
 
+> **Lane decision (2026-05-01) — lane (a), Context-only skills.** A
+> skill is a *retrieval payload + procedural guidance the actor LLM
+> consults*, **not** a runnable program executed by the harness. See
+> the canonical record:
+> [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md).
+> Practical implications for this plan:
+>
+> * The Crafter ships with **Repairer parked behind
+>   `SkillCrafterService(enable_protocol_patching=False)`** in the
+>   live trainer (T1.3a). `RecoveryStrategy.{HOP_INSERTION,
+>   PROTOCOL_PATCH, FALLBACK_INJECTION, REGROUNDING_TRIGGER,
+>   SKILL_DECOMPOSITION}` and the `PatchProposal` mint path stay in
+>   tree as **offline / lane-(b) diagnostic infrastructure**;
+>   `labeling_supplement/` drivers opt them back on with
+>   `enable_protocol_patching=True`.
+> * The live failure taxonomy is the lane-(a) one (`BANK_GAP`,
+>   `RETRIEVAL_MISLEAD`, `STALE_DESCRIPTION`); see
+>   [`configs/failure_routing.yaml`](../../configs/failure_routing.yaml).
+> * The Crafter's primary mode under lane (a) is the **Hypothesizer**
+>   (mint a sibling retrieval payload). When a "known skill, recurring
+>   failure" arrives with the Repairer parked, the dispatcher's
+>   existing `_STATUS_NO_OP` fall-through routes the signal to the
+>   Hypothesizer — no Crafter rewrite required.
+> * **Single-MDP architecture (T3.6):** the actor is one MDP with two
+>   GRPO LoRAs (`skill_selection` + `action_taking`). `hop_select` is
+>   a non-target — references to a separate hop-selection LoRA below
+>   are obsolete. Companion record:
+>   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md).
+>
+> Sections below were authored under the lane-(b) assumption; treat
+> protocol-edit machinery as lane-(b) / offline unless the section is
+> tagged otherwise.
+
 **Scope:** Compose, create, and refine new skills from existing Skill Bank primitives. The Skill Crafter is the creative layer that discovers higher-order strategies by combining existing skills, generalizing across games/domains, and proposing novel skill hypotheses that the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) can test and adopt.
 
 **Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five target domains** — game / webagent / os-agent / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate; it does not become a "short-video-only skill" or a "browser-only skill". The Crafter's **first evaluation arena** is short-video (Video-Holmes-style) — that is where `verified_domains` entries are filled in first and where transfer-failure diagnostics ([PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md)) are exercised first, **not** where a separate class of skills is synthesized. The Crafter-private `FailurePatternStore` (§6.7) is an offline pattern-aggregation index over `FailureDiagnosis` records; it is never read by the online actor and never extends the agent's episode-local trajectory.

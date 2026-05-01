@@ -119,12 +119,18 @@ def test_phase1_closed_loop_grows_bank(tmp_path: Path):
     legacy_paths = {"Temporal_Airstriker-v0": bank_air}
 
     # 3. Crafter hook (emits proposals.jsonl).
+    # Lane-(b) opt-in: this closed-loop test exercises the legacy
+    # PatchProposal → promotion → writeback path. The live trainer
+    # default (T1.3a) is False, which would route to the Hypothesizer
+    # instead and exercise a different lane. Keep both regression
+    # surfaces covered.
     crafter = run_crafter_step(
         step=0,
         run_dir=tmp_path,
         rollout_results=[ep],
         legacy_bank_paths=legacy_paths,
         bank_was_available=True,
+        enable_protocol_patching=True,
     )
     assert crafter.n_failure_traces >= 1, "F2 synthesizer should fire on outcome failure"
     assert crafter.n_proposals >= 1, "Crafter should produce ≥1 proposal for a known-broken skill"
@@ -213,6 +219,7 @@ def test_phase1_closed_loop_idempotent_on_second_pass(tmp_path: Path):
             rollout_results=[ep],
             legacy_bank_paths=legacy_paths,
             bank_was_available=True,
+            enable_protocol_patching=True,             # lane-(b) regression
         )
         if crafter.n_proposals == 0:
             return 0

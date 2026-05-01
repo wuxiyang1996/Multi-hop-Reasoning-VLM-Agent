@@ -137,6 +137,10 @@ class TestReflectOnEpisode:
             lifecycle=lifecycle,
             artifact_store=artifacts,
             hot_pattern_threshold=3,           # batch threshold left at default
+            # Lane-(b) opt-in: this test asserts a PatchProposal is
+            # emitted, which only happens with the Repairer path live.
+            # Live trainer default is False (T1.3a).
+            enable_protocol_patching=True,
         )
         base = _seed_active_skill(lifecycle)
 
@@ -275,7 +279,11 @@ class TestReflectOnEpisode:
         repo = _new_repo(str(tmp_path / "bank"))
         lifecycle = SkillLifecycleManager(repo)
         artifacts = ArtifactStore(str(tmp_path / "art"))
-        crafter = SkillCrafterService(lifecycle=lifecycle, artifact_store=artifacts)
+        # Lane-(b) opt-in — assertion below requires the Repairer path.
+        crafter = SkillCrafterService(
+            lifecycle=lifecycle, artifact_store=artifacts,
+            enable_protocol_patching=True,
+        )
         base = _seed_active_skill(lifecycle)
 
         first_failure = FailureTrace(

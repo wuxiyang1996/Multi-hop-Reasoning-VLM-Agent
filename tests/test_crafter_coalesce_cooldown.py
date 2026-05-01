@@ -98,6 +98,10 @@ def _build_service(tmp_path, *, cooldown_passes: int = 5) -> tuple:
         lifecycle=lifecycle,
         artifact_store=artifacts,
         cooldown_passes=cooldown_passes,
+        # Coalesce/cooldown lives on the Repairer path; opt into lane-(b)
+        # patching for these unit tests (live trainer default is False
+        # under the lane-(a) decision — see T1.3a).
+        enable_protocol_patching=True,
     )
     return repo, lifecycle, artifacts, crafter
 

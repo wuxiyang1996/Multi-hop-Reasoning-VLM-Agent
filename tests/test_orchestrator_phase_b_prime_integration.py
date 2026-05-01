@@ -208,6 +208,12 @@ def _exec_phase_b_prime_splice(
                 bank_was_available=bank_was_available,
                 cycle_every_k_steps=crafter_cycle_every_k_steps,
                 outcome_failure_threshold=crafter_outcome_failure_threshold,
+                # Lane-(b) opt-in: integration test exercises the
+                # closed-loop PatchProposal → Promotion path that was
+                # the original wire-up. Lane-(a) default (T1.3a) routes
+                # to Hypothesizer instead — covered by
+                # test_run_crafter_step_lane_a_default_routes_to_hypothesizer.
+                enable_protocol_patching=True,
             )
             crafter_report = crafter_step.to_dict()
 

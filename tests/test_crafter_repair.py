@@ -203,7 +203,13 @@ class TestPhaseDRepair:
         repo = _new_repo(str(tmp_path / "bank"))
         lifecycle = SkillLifecycleManager(repo)
         artifacts = ArtifactStore(str(tmp_path / "art"))
-        crafter = SkillCrafterService(lifecycle=lifecycle, artifact_store=artifacts)
+        # Lane-(b) opt-in — this test asserts the public propose_repair
+        # entry point returns a PatchProposal. Live trainer default is
+        # False (T1.3a / skill-lane-decision.md).
+        crafter = SkillCrafterService(
+            lifecycle=lifecycle, artifact_store=artifacts,
+            enable_protocol_patching=True,
+        )
 
         base = _seed_active_skill(lifecycle)
         # FailureMemory must contain the trace the diagnoser will look up.
@@ -279,10 +285,12 @@ class TestPhaseDRepair:
         repo = _new_repo(str(tmp_path / "bank"))
         lifecycle = SkillLifecycleManager(repo)
         artifacts = ArtifactStore(str(tmp_path / "art"))
+        # Lane-(b) opt-in — asserts the cycle dispatch emits a PatchProposal.
         crafter = SkillCrafterService(
             lifecycle=lifecycle,
             artifact_store=artifacts,
             hot_pattern_threshold=2,
+            enable_protocol_patching=True,
         )
         base = _seed_active_skill(lifecycle)
         n_before = len(repo.draft.all())
@@ -411,8 +419,12 @@ class TestPhaseFFrozenTeacher:
         repo = _new_repo(str(tmp_path / "bank"))
         lifecycle = SkillLifecycleManager(repo)
         artifacts = ArtifactStore(str(tmp_path / "art"))
+        # Lane-(b) opt-in: this test checks the teacher slot stamps on
+        # the emitted PatchProposal, which requires the Repairer path
+        # live. Live trainer default (T1.3a) is False.
         crafter = SkillCrafterService.with_qwen3_vl_teacher(
-            lifecycle=lifecycle, artifact_store=artifacts, size="32b"
+            lifecycle=lifecycle, artifact_store=artifacts, size="32b",
+            enable_protocol_patching=True,
         )
         base = _seed_active_skill(lifecycle)
         # Inject the failure pattern directly so the test doesn't depend

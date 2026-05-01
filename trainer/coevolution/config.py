@@ -220,6 +220,15 @@ class CoEvolutionConfig:
     # Phase-0 Airstriker baseline is ~0.3s; 300s leaves room for the
     # 13-game sweep + future Stage-1 replay overhead.
     crafter_promotion_timeout_s: float = 300.0
+    # Lane-(a) feature flag. ``False`` (default) parks the Repairer /
+    # PatchProposal mint path: under
+    # ``implementation_notes/skill-lane-decision.md`` skills are
+    # retrieval payloads, not runnable programs, so live protocol-edit
+    # proposals would be edits to a contract no live runtime executes.
+    # The Crafter dispatcher's existing ``_STATUS_NO_OP`` →
+    # Hypothesizer fall-through carries the failure signal through.
+    # Set ``True`` only when running explicit lane-(b) experiments.
+    crafter_enable_protocol_patching: bool = False
 
     # ── Harness wire-up (Day-10) ────────────────────────────────────
     # When enabled, the trainer wires the harness's two LLM-free

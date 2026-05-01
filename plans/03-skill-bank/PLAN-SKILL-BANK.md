@@ -1,5 +1,41 @@
 # PLAN: Cross-Task Skill Bank for Reasoning and Control
 
+> **Lane decision (2026-05-01) — lane (a), Context-only skills.** A
+> skill in this bank is a *retrieval payload* — name, summary,
+> strategic description, contract (preconditions / effects /
+> evidence-roles), tags, optional NL or typed protocol consumed *as
+> guidance text* — that the actor LLM consults during decision-making.
+> Skills are **not** runnable programs at training time. Authoritative
+> record: [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md).
+> Practical implications for this plan:
+>
+> * **Multi-domain `ACTIVE` invariant (`feasible_domains ≥ 2`) is
+>   replaced by `min_retrievals_per_skill`** under lane (a) (T1.3d, S2). The
+>   §0.1 "general protocol" framing stays — it remains the *source-of-
+>   truth* for cross-domain transfer evidence — but cold-start single-
+>   domain skills are now eligible for `ACTIVE` once they meet a
+>   retrieval-utility floor. The lane-(b) invariant is preserved in
+>   tree as the lane-(b) rollback path.
+> * **Typed protocols and effect predicates** are gate evidence, not
+>   runtime substrate. The harness's offline `gate_runner.py`,
+>   `replay_validator.py`, `gymv_executor.py`, and `few_shot_adapter.py`
+>   continue to consume them; the live actor only reads NL surfaces
+>   from the retrieval payload.
+> * **`SkillRepository.runnable()`** still gates which records the live
+>   trainer sees (`ACTIVE` ∪ `SHADOW`). The §17 keystone (T1.2) is to
+>   run the offline promotion loop once so the runnable set is
+>   non-empty at trainer launch.
+> * **Single-MDP companion decision (T3.6):** the actor consumes
+>   skills from this bank with one MDP and two GRPO LoRAs
+>   (`skill_selection` + `action_taking`). `hop_select` is a
+>   non-target. Companion record:
+>   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md).
+>
+> Sections below were authored under the lane-(b) assumption. Where
+> they describe protocol dispatch / executable invocation, treat that
+> as the *offline gate / diagnostic* surface unless the section is
+> tagged otherwise.
+
 **Scope:** Build and maintain a cross-domain Skill Bank from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The bank stores **transferable reasoning, grounding, and control skills** defined over shared state abstractions and verified outcome contracts, and exposes them to the [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
 
 **Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions; everything it consumes and emits is grounded in the orchestrator's episode-local trajectory (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).

@@ -1,12 +1,19 @@
 # Implementation status — P0, Phase A, B, C MVP
 
-Last updated: 2026-04-21.
+Last updated: 2026-05-01 (S0 sprint — lane-(a) decision shipped, SFT
+checkpoints reconciled, pre-flight tooling landed).
 
 This document tracks what has been implemented from
 [`plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md`](plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md)
 and where each module lives. It coexists with — and does not replace —
 the legacy code under `decision_agents/`, `skill_agents/`,
 `vlm_wrapper/`, and `data_structure/`.
+
+> **Cross-references for the current readiness audit**:
+> - [`implementation_notes/pre-training-readiness-audit.md`](implementation_notes/pre-training-readiness-audit.md) — open / closed items by sprint (S0–S4).
+> - [`implementation_notes/skill-lane-decision.md`](implementation_notes/skill-lane-decision.md) — T1.3 closed: skill = retrieval payload (lane (a)).
+> - [`implementation_notes/single-vs-two-mdp-tradeoff.md`](implementation_notes/single-vs-two-mdp-tradeoff.md) — T3.6 decided + shipped: single-MDP (no `hop_select` LoRA, no `inner_mdp.py`).
+> - [`runs/sft_coldstart/sft_summary_all.json`](runs/sft_coldstart/sft_summary_all.json) — run-wide manifest of all six trained SFT adapters (T2.9).
 
 ## Delivered
 
@@ -20,7 +27,13 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 | Phase C | Crafter MVP | `crafter/{failure_memory,failure_diagnoser,composer,generalizer,hypothesizer,service}.py` |
 | Crafter Phase D | `Repairer` + `PatchProposal` plumbing (`SkillCrafterService.propose_repair`, repair-first dispatch in `cycle()`) | `crafter/repairer.py`, `crafter/service.py` |
 | Crafter Phase F | Frozen Qwen3-VL-32B / 235B-A22B teacher registry + `SkillCrafterService.{with_qwen3_vl_teacher, from_env, set_teacher_model}` (default `Qwen/Qwen3.5-35B-A3B`; Qwen3-VL is an opt-in upgrade path) | `common/models.py`, `crafter/service.py` |
-| Tests | Invariant + smoke + backbone-model + crafter Phase D/F | `tests/{conftest,test_invariants,test_smoke,test_backbone_model,test_crafter_repair,test_few_shot_transfer}.py` (60 passing) |
+| Harness Day 7-9 | `GateRunner` (offline gate surface), action-level `ReplayValidator`, `validate_invocation`, `RejectedSkillSink`, expanded `SkillEpisode*` / `SkillEvaluationRecord` fields, `PromotionOrchestrator` reproducibility anchors, `--persist` writeback for the Stage-3a transfer cycle | `harness/{gate_runner,replay_validator,skill_harness,eligibility,rejected_skill_sink}.py`, `data_structure/extensions/{skill_episode,skill_evaluation}.py`, `orchestrator/promotion_orchestrator.py`, `labeling_supplement/_phase4_transfer_cycle.py` |
+| Trainer Day 10 | `SkillHarnessHook` wires the harness's two LLM-free surfaces into the co-evolution loop: pre-LLM eligibility filter + post-LLM `validate_invocation` veto in Phase A, and `RejectedSkillSink → record_false_binding_pattern` drain in Phase B′. Opt-in via `--harness-enabled` / `crafter_promotion_enabled`. | `trainer/coevolution/{_harness_hook,_crafter_hook,episode_runner,rollout_collector,orchestrator,config}.py`, `scripts/run_coevolution.py` |
+| Lane-(a) flag (T1.3a, S0) | `SkillCrafterService(enable_protocol_patching=False)` default — Repairer / `PatchProposal` mint path is parked under the lane-(a) decision; dispatcher's existing `_STATUS_NO_OP` → Hypothesizer fall-through carries the failure signal. Threaded through `_crafter_hook → CoEvolutionConfig → run_coevolution.py --enable-protocol-patching`. | `crafter/service.py`, `trainer/coevolution/{_crafter_hook,config,orchestrator}.py`, `scripts/run_coevolution.py` |
+| Threshold YAMLs (T2.5, S0) | `configs/skill_gate.yaml` (single source of truth for G0–G5 thresholds + drift annotations) and `configs/failure_routing.yaml` (FailureClass → Crafter mode dispatch table, including the new lane-(a) `BANK_GAP / RETRIEVAL_MISLEAD / STALE_DESCRIPTION` taxonomy). Both carry `policy_version` for audit-log drift attribution. | `configs/{skill_gate,failure_routing}.yaml` |
+| SFT manifest + tools (T2.9 / T2.10 / T1.1′, S0) | Run-wide manifest for all six trained adapters; load-smoke and exact-match probes for pre-flight verification before launching co-evolution. | `scripts/build_sft_manifest.py`, `runs/sft_coldstart/sft_summary_all.json`, `evaluation/{smoke_load_sft_adapters,probe_schema_gen_exact_match}.py` |
+| Offline promotion cycle (T1.2, S1) | One-shot wrapper for the §17 keystone — drives `decide_promotion_gpt54.py` + `legacy_writeback.writeback_promotion` once to flip cold-start banks from CANDIDATE to ACTIVE/PROVISIONAL/SHADOW so `bank.runnable() != []`. Asserts the post-condition before exiting. | `scripts/run_offline_promotion_cycle.sh`, `labeling_supplement/decide_promotion_gpt54.py`, `skill_bank/legacy_writeback.py` |
+| Tests | Invariant + smoke + backbone-model + crafter Phase D/F + lane-(a) flag + harness Day 7-10 + trainer Day 10 hook | `tests/{conftest,test_invariants,test_smoke,test_backbone_model,test_crafter_*,test_few_shot_transfer,test_gate_runner,test_replay_validator_action_walk,test_lifecycle_*,test_validate_invocation,test_skill_episode_field_expansion,test_promotion_orchestrator_anchors,test_phase4_persist,test_stub_executor_typed_hops,test_rejected_skill_sink,test_trainer_harness_hook,test_crafter_lane_a_flag}.py` (433 passing as of S0 close; one pre-existing unrelated failure in `test_schema_predicates::test_extra_whitespace_tolerated`) |
 
 ### Backbone models — three-tier stack
 
@@ -86,6 +99,63 @@ Live defaults flipped in the 2026-04-28 model-stack migration:
 
 ## Not yet delivered (next sessions)
 
+> Single source of truth for sprint sequencing:
+> [`implementation_notes/pre-training-readiness-audit.md`](implementation_notes/pre-training-readiness-audit.md)
+> §6 — five-sprint plan (S0–S4). The list below mirrors the
+> still-open items there; flip an entry to "Delivered" *and* tick
+> the audit row when you ship.
+
+### S0 — pre-flight (✅ shipped 2026-05-01; outstanding = GPU-bound execution only)
+
+- ☑ **T1.3a** — `SkillCrafterService(enable_protocol_patching=False)` default,
+  threaded through `_crafter_hook → CoEvolutionConfig → run_coevolution.py
+  --enable-protocol-patching`. Tests in `tests/test_crafter_lane_a_flag.py`.
+- ☑ **T2.5** — `configs/{skill_gate,failure_routing}.yaml` shipped (policy
+  v1.0.0; lane-(a) failure taxonomy with `lane_b_primary_mode` overrides;
+  drift annotations).
+- ☑ **T2.9** — `runs/sft_coldstart/sft_summary_all.json` regenerable via
+  `python scripts/build_sft_manifest.py`.
+- ☑ **T2.6** — This file refreshed to point at the Day-7→10 hooks, the
+  `runs/sft_*` corpus, the lane-(a) flag, the threshold YAMLs, the SFT
+  manifest, and the offline-promotion driver.
+- ☑ **T1.3e + T1.3f + T3.6** — Lane-(a) banner blocks shipped on
+  `harness/README.md` §22, `implementation_notes/crafter-harness-orchestrator-roles.md`
+  §7.3 / §7.5 (with new "Post-decision rule" sub-section), and the four
+  PLAN docs (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS,
+  PLAN-COMPONENTS-IMPLEMENTATION). Each banner explicitly marks
+  `hop_select` / `inner_mdp` references obsolete and points at
+  `single-vs-two-mdp-tradeoff.md`.
+
+Outstanding = run-the-script-on-a-GPU only:
+
+- ⏳ **T1.1′ (script ready)** — Run `evaluation/probe_schema_gen_exact_match.py`
+  against `runs/sft_schema_gen/schema_gen_20260430_091831` to confirm
+  PLAN-VISUAL-GROUNDING-MILESTONES §13 thresholds (field-acc ≥0.85,
+  Path-A ≥0.70). The script exits non-zero on miss.
+- ⏳ **T2.10 (script ready)** — Run `evaluation/smoke_load_sft_adapters.py`
+  once on a GPU node to confirm none of the six adapters has a torn
+  `*.partial_*` shard.
+
+### S1 — fire offline once (the §17 keystone) — ✅ wrapper shipped 2026-05-01
+
+- ⏳ **T1.2 (wrapper ready)** — Run `bash scripts/run_offline_promotion_cycle.sh`
+  once to convert `bank.runnable() == []` into non-empty. The wrapper drives
+  `decide_promotion_gpt54.py` + an inline call to
+  `skill_bank.legacy_writeback.writeback_promotion`, then asserts the
+  `bank.runnable() != []` post-condition before exiting.
+
+### S2 / S3 / S4 (later sprints)
+
+- **S2 — Live + audit guards.** Enable `crafter_promotion_enabled=True`,
+  begin one-game GRPO smoke, wire `curator_weight` early-stage knob (T2.7),
+  add `policy_version` audit drift rows.
+- **S3 — Curriculum + scale-out.** Multi-game GRPO; integrate the audit's
+  curriculum-graduation thresholds.
+- **S4 — Full eval + co-evolution.** Eval E0 / E1 / E2 drivers; cross-task
+  transfer using the `evaluation_dataset/` pool + holdout manifests.
+
+### Cross-cutting items not yet sprinted
+
 - **P1 — Visual-grounding stabilisation** under `vlm_wrapper/grounding.py`.
 - **P2 — Eval E0 driver** (`evaluation/driver.py`,
   `evaluation/answer_evaluator.py`, slice/report scaffolds).
@@ -93,7 +163,10 @@ Live defaults flipped in the 2026-04-28 model-stack migration:
   (training cadence, multi-domain rollout, full eval).
 - **Actor rewire**: replace `decision_agents.skill_interface
   .SkillBankProvider` with a `HarnessSkillProvider` that wraps
-  `SkillHarness.select_eligible_skills`.
+  `SkillHarness.select_eligible_skills`. (Note: the Day-10
+  `SkillHarnessHook` already covers this for the trainer's
+  co-evolution loop, but the `decision_agents` library API has not
+  yet been ported.)
 - **Legacy bridge**: one-way migration of `skill_agents/skill_bank`
   Stage-3 records into the new `SkillRecord` (planned in
   `skill_bank/legacy_bridge.py`).
@@ -110,7 +183,9 @@ cd Multi-hop-Reasoning-VLM-Agent
 python -m pytest tests/ -v
 ```
 
-Expected: `29 passed`.
+Expected as of S0 close: `433 passed, 1 deselected` (the deselected test is
+the pre-existing `test_schema_predicates::test_extra_whitespace_tolerated`
+which is unrelated to the readiness audit and tracked separately).
 
 ## Module dependency graph
 

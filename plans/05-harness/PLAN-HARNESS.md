@@ -1,5 +1,47 @@
 # PLAN: Skill Harness — Unified Runtime for Skill Use, Validation, and Transfer
 
+> **Lane decision (2026-05-01) — lane (a), Context-only skills.** In
+> the live trainer the Harness is an **eligibility filter and
+> validator**, *not* a skill executor. The Day-10 trainer integration
+> calls only `harness.select_eligible_skills(...)` and
+> `harness.validate_invocation(...)` — never `harness.run_skill(...)`.
+> Authoritative record: [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md);
+> see also [`harness/README.md` §22](../../harness/README.md).
+> Practical implications for this plan:
+>
+> * **§16 (Skill executor / `run_skill` / inner-MDP dispatch) and the
+>   typed-hop dispatch surface stay in tree as offline diagnostic
+>   infrastructure**, not as the live runtime substrate. They are
+>   exercised only by `labeling_supplement/_phase4_transfer_cycle.py`
+>   and `labeling_supplement/_phase2_real_env_skill_smoke.py`, plus
+>   the offline `GateRunner` (Stage-1 replay, Stage-2 shadow).
+> * The §1 framing "skills are *executable units*" describes the
+>   **offline gate's view** of a skill, not the live actor's view. The
+>   live actor consumes a skill as **prompt context** (one env action
+>   per LLM call) and emits one `SkillEpisode` per skill consultation.
+> * The §11 relationship "the orchestrator calls the Harness at every
+>   `inner_mdp` step where a skill is invoked" is **superseded**: there
+>   is no inner-MDP step in the live trainer (single-MDP companion
+>   decision, T3.6 — see
+>   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md)).
+>   The trainer calls the Harness once per actor decision, as filter +
+>   validator only.
+> * **`SkillEpisode` is still emitted** — once per skill consultation,
+>   with `evidence_in / evidence_out / role` slots populated. The G0
+>   evidence-driven invariant is preserved (set-containment of
+>   `expected_evidence_roles ⊆ state.evidence`).
+> * **Replay validation, few-shot adaptation (G3a), and shadow gating**
+>   remain the *gate*'s evidence base for promotion decisions — they
+>   produce `verified_tasks` entries that the live eligibility filter
+>   then consults via `feasible_tasks` / F2′. The promotion machinery
+>   (`PromotionOrchestrator`) is the only path that flips a record's
+>   lifecycle status; the Harness never promotes.
+>
+> Sections below were authored under the lane-(b) assumption that the
+> Harness is also the live executor. Treat invocation / dispatch
+> language as the *offline* surface unless a section is explicitly
+> tagged "live."
+
 **Scope:** Define a **Skill Harness** that sits on top of the existing framework as a unified runtime orchestration layer for skill retrieval, binding, execution, validation, and cross-domain transfer. The Harness is **not a new agent** — it is a thin orchestration layer that wraps the [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md), the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md), and the [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md), and provides a single entry point for every skill invocation in the system.
 
 **Problem statement:** Today, skills live in the Skill Bank and are called by the Action Agent, but there is no shared execution surface that (a) normalizes state into slots, (b) attaches domain-specific adapters, (c) records standardized execution traces, and (d) gates transferred skills behind replay + shadow validation. Without this layer, skill transfer risks destabilizing rollouts, cross-domain metrics are inconsistent, and there is no uniform reward signal for later GRPO on skill-use decisions.

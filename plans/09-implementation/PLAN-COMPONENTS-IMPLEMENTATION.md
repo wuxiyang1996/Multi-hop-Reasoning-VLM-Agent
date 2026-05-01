@@ -1,5 +1,46 @@
 # PLAN: Components Implementation — Skill Harness, Skill Crafter, Pipeline Orchestrator (Cursor-Ready)
 
+> **Lane decision (2026-05-01) — lane (a), Context-only skills.** This
+> implementation plan was authored under the lane-(b) assumption
+> (skills as runnable programs); the lane was closed in favour of
+> retrieval-payload semantics. Authoritative record:
+> [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md).
+> Practical implications for the build sheet:
+>
+> * **The mental-model row "Skill Harness — *Can this skill run here
+>   right now?*"** is now interpreted as *"is this retrieval payload
+>   eligible for the actor right now?"* (G0/G2 invariants + F2′ task
+>   axis). The Harness in the live trainer never invokes
+>   `run_skill(...)`.
+> * **Phase ordering for §16 (executor) and `inner_mdp` integration
+>   stays in tree** but ships as **offline / lane-(b) diagnostic
+>   tooling**, not as a launch-blocker for the live trainer. The
+>   live trainer's Crafter / Harness wires landed at Day-10 without it
+>   (see `IMPLEMENTATION-STATUS.md` "Delivered" rows for Day-7→10).
+> * **Single-MDP companion decision (T3.6):** every reference to
+>   `inner_mdp` / `hop_select` / a separate hop-selection LoRA in the
+>   ordered build sheet below is **obsolete**. The actor is one MDP
+>   with two GRPO LoRAs (`skill_selection` + `action_taking`); the
+>   warm-start adapters listed in
+>   `runs/sft_coldstart/sft_summary_all.json` correspond to that
+>   architecture. Companion record:
+>   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md).
+> * **Crafter `enable_protocol_patching` flag (T1.3a)** is the single
+>   source of truth for whether a build target is live or
+>   offline-diagnostic. `False` (default) → live trainer; `True` →
+>   `labeling_supplement/` drivers and lane-(b) regression suites.
+> * **`PatchProposal` / `RecoveryStrategy.{HOP_INSERTION,
+>   PROTOCOL_PATCH, FALLBACK_INJECTION, REGROUNDING_TRIGGER,
+>   SKILL_DECOMPOSITION}` proposal types** stay in the typed proposal
+>   union for binary compatibility but are minted only behind the
+>   protocol-patching flag.
+>
+> Sections below remain useful as the *full lane-(b) build sheet* — the
+> escalation target if the rollback condition in
+> [`skill-lane-decision.md` §4](../../implementation_notes/skill-lane-decision.md) trips. Treat them as the build
+> sheet for the offline gate / diagnostic stack unless a row is
+> explicitly tagged "live."
+
 **Scope.** This is a **Cursor-ready implementation plan** that turns the three component-level design plans into a concrete, ordered coding sequence. It does **not** replace the design plans; it is the build sheet that tells Cursor *what files to create, in what order, and where to stop each phase*.
 
 **Inputs (canonical specs — do not duplicate, link instead).**

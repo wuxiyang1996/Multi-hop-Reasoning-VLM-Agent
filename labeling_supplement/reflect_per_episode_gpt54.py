@@ -715,7 +715,15 @@ def _process_source(
         )
         lifecycle = SkillLifecycleManager(repo)
         artifacts = ArtifactStore(str(temp_root / "artifacts"))
-        crafter = SkillCrafterService(lifecycle=lifecycle, artifact_store=artifacts)
+        # Offline diagnostic driver — keep the Repairer path live so the
+        # JSONL captures every proposal kind for inspection, even though
+        # the live trainer's default lane-(a) flag is ``False`` (T1.3a /
+        # ``implementation_notes/skill-lane-decision.md``).
+        crafter = SkillCrafterService(
+            lifecycle=lifecycle,
+            artifact_store=artifacts,
+            enable_protocol_patching=True,
+        )
 
         n_seeded, n_seed_skipped = _seed_bank(lifecycle, bank_path, domain)
 
