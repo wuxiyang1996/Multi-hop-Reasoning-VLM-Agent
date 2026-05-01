@@ -3,13 +3,19 @@ skills that are actually runnable *now*.
 
 PLAN-HARNESS §5.2 (`select_eligible_skills`).
 
-The harness applies four kinds of filters, in order:
+The harness applies five kinds of filters, in order:
 
   F1  status       : only ACTIVE / SHADOW / PROVISIONAL skills are returned
                      to the Actor; CANDIDATE / DRAFT / DEPRECATED never are
                      (PLAN-UNIFIED-SKILL-GATE §6 GateRunner / "no shadow ⇒
                      no active" invariant).
   F2  domain       : `state.domain` must be in `skill.feasible_domains`.
+  F2′ task         : if `skill.feasible_tasks` is non-empty, the task token
+                     extracted from `state.task` must be in it. Skills with
+                     `feasible_tasks=[]` are *task-agnostic* and pass this
+                     filter unconditionally — back-compat for skills
+                     decorated before the task axis landed.
+                     See `harness/README.md` §22.
   F3  adapter      : there must be a registered adapter for (domain, type).
   F4  applicability: adapter `can_handle()` returns True.
 
@@ -32,6 +38,26 @@ _RUNNABLE_STATUSES = frozenset(
 )
 
 
+def task_id_from_state(state: StateSchema) -> Optional[str]:
+    """Extract the bare task identifier from `state.task`.
+
+    The cold-start corpus emits `state.task = "make_gaming_env/<game>"`
+    (e.g. `"make_gaming_env/twenty_forty_eight"`). Other domains may
+    use bare strings (`"<game>"`) or different prefixes. We take the
+    last `/`-separated segment, which collapses both shapes onto the
+    same canonical form. Returns `None` for unset or whitespace-only
+    `state.task` so the F2′ filter degrades gracefully (admit, don't
+    veto) rather than silently dropping every skill.
+    """
+
+    raw = (state.task or "").strip()
+    if not raw:
+        return None
+    if "/" in raw:
+        return raw.rsplit("/", 1)[-1].strip() or None
+    return raw
+
+
 @dataclass
 class EligibleSkill:
     """A skill the harness deems runnable right now, with provenance."""
@@ -40,6 +66,13 @@ class EligibleSkill:
     adapter_name: str
     reasons: List[str] = field(default_factory=list)
     shadow_only: bool = False    # SHADOW skills must not affect outer-env actions
+    # F2′ task-axis classification (harness/README §22). Three values:
+    #   "agnostic"  — skill.feasible_tasks is empty (back-compat)
+    #   "same_task" — state task ∈ skill.feasible_tasks
+    #   "verified"  — state task ∈ skill.verified_tasks (subset of same_task)
+    # `task_match == "agnostic"` is admitted to preserve behaviour for
+    # cold-start banks decorated before this field landed.
+    task_match: str = "agnostic"
 
     def to_json(self) -> dict:
         return {
@@ -48,6 +81,7 @@ class EligibleSkill:
             "skill_status": self.skill.status.value,
             "adapter_name": self.adapter_name,
             "shadow_only": self.shadow_only,
+            "task_match": self.task_match,
             "reasons": list(self.reasons),
         }
 
@@ -70,6 +104,7 @@ class EligibilityFilter:
         skill_type_hint: Optional[SkillType] = None,
     ) -> List[EligibleSkill]:
         out: List[EligibleSkill] = []
+        state_task = task_id_from_state(state)
         for skill in candidates:
             reasons: List[str] = []
             if skill.status not in _RUNNABLE_STATUSES:
@@ -78,6 +113,27 @@ class EligibilityFilter:
                 continue
             if state.domain not in skill.feasible_domains:
                 continue
+            # F2′ task-axis veto (harness/README §22). When the skill
+            # advertises a non-empty `feasible_tasks`, only states whose
+            # task matches are admitted. Two cases pass:
+            #   (a) `feasible_tasks=[]` (task-agnostic, back-compat),
+            #   (b) state's bare task token ∈ skill.feasible_tasks.
+            # If state has no task tag, we admit (degraded) rather than
+            # veto blindly so single-step adapters / synthesised states
+            # without a `state.task` continue to work.
+            if skill.feasible_tasks:
+                if state_task is None:
+                    task_match = "agnostic"  # state-side missing → can't enforce
+                elif state_task in skill.feasible_tasks:
+                    task_match = (
+                        "verified"
+                        if state_task in skill.verified_tasks
+                        else "same_task"
+                    )
+                else:
+                    continue
+            else:
+                task_match = "agnostic"
             if skill_type_hint is not None and skill.skill_type != skill_type_hint and skill.skill_type != SkillType.MIXED:
                 continue
             adapter = self._registry.get(state.domain, skill.skill_type)
@@ -92,6 +148,7 @@ class EligibilityFilter:
                 continue
             reasons.append(
                 f"status={skill.status.value} domain={state.domain} "
+                f"task={state_task or '<unset>'}/match={task_match} "
                 f"adapter={adapter.name} type={skill.skill_type.value}"
             )
             out.append(
@@ -100,9 +157,10 @@ class EligibilityFilter:
                     adapter_name=adapter.name,
                     reasons=reasons,
                     shadow_only=skill.status == SkillStatus.SHADOW,
+                    task_match=task_match,
                 )
             )
         return out
 
 
-__all__ = ["EligibilityFilter", "EligibleSkill"]
+__all__ = ["EligibilityFilter", "EligibleSkill", "task_id_from_state"]

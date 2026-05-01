@@ -55,7 +55,15 @@ SuccessFn = Callable[[SkillEpisode, FewShotDemo], float]
 
 @dataclass
 class AdaptResult:
-    """Per `(skill, target_domain)` outcome of the few-shot adapter."""
+    """Per `(skill, target_domain[, target_task])` outcome of the few-shot
+    adapter.
+
+    `target_task` is the intra-domain task axis (harness/README §22). When
+    set, the synthesized demo state and `_coerce_state_to_target` propagate
+    it into `state.task` so the eligibility filter and adapter dispatch see
+    the right task; the field is also recorded here for downstream lifecycle
+    bookkeeping (`SkillRecord.verified_tasks` append on PASS / LIMITED_PASS).
+    """
 
     skill_id: str
     target_domain: str
@@ -70,6 +78,7 @@ class AdaptResult:
     episode_ids: List[str] = field(default_factory=list)
     started_at: float = 0.0
     finished_at: float = 0.0
+    target_task: Optional[str] = None
 
     @property
     def success(self) -> bool:
@@ -79,6 +88,7 @@ class AdaptResult:
         return {
             "skill_id": self.skill_id,
             "target_domain": self.target_domain,
+            "target_task": self.target_task,
             "k_used": self.k_used,
             "pass_rate": self.pass_rate,
             "n_success": self.n_success,
@@ -146,8 +156,17 @@ class FewShotAdapter:
         target_domain: str,
         demos: Sequence[FewShotDemo] = (),
         k: Optional[int] = None,
+        target_task: Optional[str] = None,
     ) -> AdaptResult:
-        """Try to bind `skill` to `target_domain` using up to `k` shots.
+        """Try to bind `skill` to `(target_domain[, target_task])` using
+        up to `k` shots.
+
+        `target_task` (harness/README §22) is the intra-domain task axis.
+        When set, the synthesized demo state and `_coerce_state_to_target`
+        retag `state.task` so the harness's eligibility filter sees the
+        right task; the value is also propagated into `AdaptResult` so
+        the lifecycle path can append it to `verified_tasks` on success.
+        Pass `None` to fall back to pre-task-axis behaviour.
 
         Returns an `AdaptResult` in all cases — even when the
         configuration prevents real execution (e.g. no adapter
@@ -166,6 +185,7 @@ class FewShotAdapter:
             return AdaptResult(
                 skill_id=skill.skill_id,
                 target_domain=target_domain,
+                target_task=target_task,
                 k_used=0,
                 pass_rate=0.0,
                 n_success=0,
@@ -179,11 +199,18 @@ class FewShotAdapter:
         if not demos:
             # No demonstrations available → produce a synthetic empty
             # state so we still exercise the adapter. The diagnostic
-            # makes it clear why the verdict is LIMITED.
+            # makes it clear why the verdict is LIMITED. When
+            # `target_task` is set, tag the synthetic state with it so
+            # an F2′-aware filter sees the right task.
+            synth_task = (
+                f"few_shot_probe/{target_task}"
+                if target_task
+                else f"few_shot_probe:{skill.name}"
+            )
             demos = [
                 FewShotDemo(
                     state=StateSchema(
-                        task=f"few_shot_probe:{skill.name}",
+                        task=synth_task,
                         domain=target_domain,
                     )
                 )
@@ -204,7 +231,9 @@ class FewShotAdapter:
             diagnostic = "target_domain_demo_unavailable"
 
         for shot in used:
-            shot_state = self._coerce_state_to_target(shot.state, target_domain)
+            shot_state = self._coerce_state_to_target(
+                shot.state, target_domain, target_task=target_task
+            )
             episode = self._harness.run_skill(
                 skill,
                 shot_state,
@@ -230,6 +259,7 @@ class FewShotAdapter:
         return AdaptResult(
             skill_id=skill.skill_id,
             target_domain=target_domain,
+            target_task=target_task,
             k_used=n_total,
             pass_rate=pass_rate,
             n_success=n_success,
@@ -250,11 +280,17 @@ class FewShotAdapter:
         target_domains: Sequence[str],
         demos_by_domain: Optional[Dict[str, Sequence[FewShotDemo]]] = None,
         k: Optional[int] = None,
+        target_task_by_domain: Optional[Dict[str, str]] = None,
     ) -> List[AdaptResult]:
         results: List[AdaptResult] = []
         for d in target_domains:
             shots = (demos_by_domain or {}).get(d, ())
-            results.append(self.adapt(skill=skill, target_domain=d, demos=shots, k=k))
+            t_task = (target_task_by_domain or {}).get(d)
+            results.append(
+                self.adapt(
+                    skill=skill, target_domain=d, demos=shots, k=k, target_task=t_task
+                )
+            )
         return results
 
     @property
@@ -290,19 +326,32 @@ class FewShotAdapter:
         _ = skill.skill_type  # silence linter
 
     def _coerce_state_to_target(
-        self, state: StateSchema, target_domain: str
+        self,
+        state: StateSchema,
+        target_domain: str,
+        *,
+        target_task: Optional[str] = None,
     ) -> StateSchema:
-        """Return a copy of `state` whose `.domain` matches `target_domain`.
+        """Return a copy of `state` whose `.domain` matches `target_domain`
+        and (optionally) whose `.task` matches `target_task`.
 
-        Demonstrations may carry their own domain tag (e.g. when reused
-        from prior bank evidence); we re-tag them so the harness's
-        adapter dispatch goes through the *target* adapter.
+        Demonstrations may carry their own domain / task tag (e.g. when
+        reused from prior bank evidence); we re-tag them so the harness's
+        adapter dispatch goes through the *target* adapter and so the
+        F2′ task-axis filter sees the intended task identifier.
         """
 
-        if state.domain == target_domain:
+        if state.domain == target_domain and (
+            target_task is None or state.task == target_task
+        ):
             return state
+        # Use the bare task token unmodified — `task_id_from_state`
+        # extracts the trailing path-segment, so a bare `"tetris"` and
+        # a fully-qualified `"make_gaming_env/tetris"` both project to
+        # `"tetris"`. We prefer the bare form for synthesised states.
+        new_task = state.task if target_task is None else target_task
         return StateSchema(
-            task=state.task,
+            task=new_task,
             domain=target_domain,
             targets=state.targets,
             elements=list(state.elements),

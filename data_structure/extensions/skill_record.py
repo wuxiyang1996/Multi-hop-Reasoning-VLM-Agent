@@ -84,6 +84,17 @@ class SkillRecord:
     source_domains: List[str] = field(default_factory=list)
     transfer_target_domains: List[str] = field(default_factory=list)
     verified_domains: List[str] = field(default_factory=list)
+    # Task axis (intra-domain granularity, harness/README §22). `feasible_domains`
+    # answers "which environment family does this skill claim to apply to?";
+    # `feasible_tasks` answers "which specific task within that family?". For
+    # gymv, feasible_domains=["gymv"] but feasible_tasks=["twenty_forty_eight"]
+    # (or ["tetris"], etc.). Free-form strings — there is no task enum because
+    # tasks are open-ended (every new env/game/website is one). The
+    # `EligibilityFilter` and `FewShotAdapter` honour these only when non-empty,
+    # so existing skills (decorated before this field landed) remain admissible
+    # everywhere their domain admits them.
+    feasible_tasks: List[str] = field(default_factory=list)
+    verified_tasks: List[str] = field(default_factory=list)
     adapter_history: List[Dict[str, Any]] = field(default_factory=list)        # PLAN-SKILL-BANK §4.3a
     false_binding_patterns: List[Dict[str, Any]] = field(default_factory=list)  # PLAN-SKILL-BANK §4.3b
     protocol: List[Dict[str, Any]] = field(default_factory=list)  # ordered hop list
@@ -143,6 +154,8 @@ class SkillRecord:
         source_domains: Optional[List[str]] = None,
         transfer_target_domains: Optional[List[str]] = None,
         verified_domains: Optional[List[str]] = None,
+        feasible_tasks: Optional[List[str]] = None,
+        verified_tasks: Optional[List[str]] = None,
     ) -> "SkillRecord":
         return cls(
             skill_id=new_skill_id(),
@@ -154,6 +167,8 @@ class SkillRecord:
             source_domains=list(source_domains or []),
             transfer_target_domains=list(transfer_target_domains or []),
             verified_domains=list(verified_domains or []),
+            feasible_tasks=list(feasible_tasks or []),
+            verified_tasks=list(verified_tasks or []),
             protocol=list(protocol or []),
             contract=contract or SkillContract(),
             parent_skill_ids=list(parent_skill_ids or []),
@@ -166,6 +181,10 @@ class SkillRecord:
         The gate binds its `SkillEvaluationRecord` to this hash so the
         promotion path can detect if the skill body was edited *after*
         evaluation.
+
+        `feasible_tasks` / `verified_tasks` are deliberately *excluded*
+        from the hash — they are eligibility metadata, not skill body.
+        Adding a verified task should not invalidate a prior evaluation.
         """
         return schema_hash(
             {
@@ -189,6 +208,8 @@ class SkillRecord:
             "source_domains": list(self.source_domains),
             "transfer_target_domains": list(self.transfer_target_domains),
             "verified_domains": list(self.verified_domains),
+            "feasible_tasks": list(self.feasible_tasks),
+            "verified_tasks": list(self.verified_tasks),
             "adapter_history": [dict(x) for x in self.adapter_history],
             "false_binding_patterns": [dict(x) for x in self.false_binding_patterns],
             "protocol": list(self.protocol),

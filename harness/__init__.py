@@ -28,7 +28,7 @@ Public surface (what `decision_agents/` and `orchestrator/` import):
 """
 
 from harness.adapter_registry import AdapterRegistry
-from harness.eligibility import EligibleSkill, EligibilityFilter
+from harness.eligibility import EligibleSkill, EligibilityFilter, task_id_from_state
 from harness.few_shot_adapter import (
     AdaptResult,
     FewShotAdapter,
@@ -58,4 +58,5 @@ __all__ = [
     "SkillAdapter",
     "SkillHarness",
     "default_success_fn",
+    "task_id_from_state",
 ]

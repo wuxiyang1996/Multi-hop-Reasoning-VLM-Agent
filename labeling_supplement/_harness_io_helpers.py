@@ -100,28 +100,85 @@ def _wrap_protocol_steps(raw_steps: Iterable[Any]) -> List[Dict[str, Any]]:
 
 
 def record_from_bank_entry(entry: Dict[str, Any], default_domain: str) -> SkillRecord:
-    """Hydrate a `SkillRecord` from one ``skill_bank.jsonl`` line."""
+    """Hydrate a `SkillRecord` from one ``skill_bank.jsonl`` line.
+
+    Task-axis seeding (harness/README §22): cold-start banks decorated by
+    `labeling/_decorate_skill_records.py` carry `feasible_tasks` /
+    `verified_tasks` directly. Older banks (decorator_version <= v1) only
+    carry `provenance.source_name` (the env / game name), which we use
+    as a fallback seed for `feasible_tasks=[source_name]`. Both shapes
+    end up at the same `SkillRecord.feasible_tasks` after this call.
+
+    Protocol shape (harness/README §21):
+
+    * **v2 lifted bank** — `skill["protocol"]` is `List[Dict]` (typed
+      hops). The decorator preserves the original prose body under
+      `skill["protocol_raw"]: Dict` for diffing / re-lifting. Contract
+      `preconditions / success_criteria / abort_criteria` are read from
+      `protocol_raw` if present.
+    * **v1 / pre-lift bank** — `skill["protocol"]` is `Dict` with prose
+      `steps`, `preconditions`, etc. We `_wrap_protocol_steps` to get
+      shape-only typed hops (every op is `"EXEC"`).
+    * **dump-driver shape-lift output** — already `List[Dict]` but every
+      hop is `{"action": "EXEC", "notes": "<prose>"}`. Pass through.
+
+    All three load to a usable `SkillRecord`; the F2′ task-axis filter
+    only depends on the new `feasible_tasks` field, not the protocol.
+    """
     skill = entry.get("skill") or {}
     contract = skill.get("contract") or {}
     role = (skill.get("evidence_role") or "COMMIT").upper()
     skill_type = _ROLE_TO_SKILL_TYPE.get(role, SkillType.MIXED)
 
     feasible = list(skill.get("applicable_domains") or []) or [default_domain]
-    protocol_blob = skill.get("protocol") or {}
+
+    # Prefer explicit `feasible_tasks` from the decorator; fall back to
+    # `provenance.source_name` (always set by `_decorate_skill_records`).
+    raw_feasible_tasks = skill.get("feasible_tasks")
+    if isinstance(raw_feasible_tasks, list) and raw_feasible_tasks:
+        feasible_tasks = [str(t) for t in raw_feasible_tasks if t]
+    else:
+        provenance = skill.get("provenance") or {}
+        src_name = provenance.get("source_name") if isinstance(provenance, dict) else None
+        feasible_tasks = [str(src_name)] if src_name else []
+    raw_verified_tasks = skill.get("verified_tasks")
+    verified_tasks = (
+        [str(t) for t in raw_verified_tasks if t]
+        if isinstance(raw_verified_tasks, list)
+        else []
+    )
+
+    # Protocol body — accept all three on-disk shapes.
+    proto_field = skill.get("protocol")
+    proto_raw_field = skill.get("protocol_raw")
+    proto_meta: Dict[str, Any] = {}
+    if isinstance(proto_field, list):
+        # Already typed (v2 lifted, or dump-driver shape-lifted).
+        protocol_hops: List[Dict[str, Any]] = [dict(h) for h in proto_field if isinstance(h, dict)]
+        if isinstance(proto_raw_field, dict):
+            proto_meta = proto_raw_field
+    elif isinstance(proto_field, dict):
+        # Pre-lift prose dict — shape-lift via `_wrap_protocol_steps`.
+        protocol_hops = _wrap_protocol_steps(proto_field.get("steps") or [])
+        proto_meta = proto_field
+    else:
+        protocol_hops = []
 
     sk = SkillRecord.new(
         name=skill.get("name", skill.get("skill_id", "_unknown")),
         skill_type=skill_type,
         source_type=SkillSourceType.MINED,
         feasible_domains=feasible,
-        protocol=_wrap_protocol_steps(protocol_blob.get("steps") or []),
+        feasible_tasks=feasible_tasks,
+        verified_tasks=verified_tasks,
+        protocol=protocol_hops,
         contract=SkillContract(
-            preconditions=list(protocol_blob.get("preconditions") or []),
+            preconditions=list(proto_meta.get("preconditions") or []),
             effects_add=list(contract.get("eff_add") or []),
             effects_del=list(contract.get("eff_del") or []),
             expected_evidence_roles=[role] if role else [],
-            success_criteria=list(protocol_blob.get("success_criteria") or []),
-            abort_criteria=list(protocol_blob.get("abort_criteria") or []),
+            success_criteria=list(proto_meta.get("success_criteria") or []),
+            abort_criteria=list(proto_meta.get("abort_criteria") or []),
         ),
     )
     raw_id = skill.get("skill_id") or sk.skill_id

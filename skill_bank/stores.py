@@ -198,6 +198,8 @@ def _record_from_json(data: Dict[str, Any]) -> SkillRecord:
         source_domains=list(data.get("source_domains", [])),
         transfer_target_domains=list(data.get("transfer_target_domains", [])),
         verified_domains=list(data.get("verified_domains", [])),
+        feasible_tasks=list(data.get("feasible_tasks", [])),
+        verified_tasks=list(data.get("verified_tasks", [])),
         adapter_history=[dict(x) for x in data.get("adapter_history", [])],
         false_binding_patterns=[dict(x) for x in data.get("false_binding_patterns", [])],
         protocol=list(data.get("protocol", [])),
