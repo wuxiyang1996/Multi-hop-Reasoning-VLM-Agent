@@ -24,8 +24,10 @@ from typing import Any, Dict
 import pytest
 
 from harness.gym_schema_producer import (
+    candy_crush_producer,
     make_gaming_env_producer,
     render_state_block,
+    super_mario_producer,
     tetris_producer,
     twenty_forty_eight_producer,
 )
@@ -263,16 +265,150 @@ def test_tetris_producer_handles_empty_text_obs() -> None:
 
 
 def test_make_gaming_env_producer_known_games() -> None:
-    p_2048 = make_gaming_env_producer("twenty_forty_eight")
-    assert p_2048 is twenty_forty_eight_producer
-    p_tetris = make_gaming_env_producer("tetris")
-    assert p_tetris is tetris_producer
+    assert make_gaming_env_producer("twenty_forty_eight") is twenty_forty_eight_producer
+    assert make_gaming_env_producer("tetris") is tetris_producer
+    # Day-6 producers.
+    assert make_gaming_env_producer("candy_crush") is candy_crush_producer
+    assert make_gaming_env_producer("super_mario") is super_mario_producer
 
 
 def test_make_gaming_env_producer_unknown_returns_none() -> None:
-    assert make_gaming_env_producer("candy_crush") is None
-    assert make_gaming_env_producer("super_mario") is None
     assert make_gaming_env_producer("nonsense") is None
+
+
+# ---------------------------------------------------------------------------
+# candy_crush producer (Day-6)
+# ---------------------------------------------------------------------------
+
+
+_CANDY_OBS = (
+    "Board:\n"
+    "0| R C G C P P C R\n"
+    "1| P C R R C G P P\n"
+    "2| R G C G P R G C\n"
+    "3| G R C P C C R G\n"
+    "4| P C R G C G C R\n"
+    "5| R R G G R G R C\n"
+    "6| R C C P G P P R\n"
+    "7| P G P P R P C R\n"
+    "Score: 0\n"
+    "Moves Left: 50"
+)
+
+
+def test_candy_crush_producer_round_trips() -> None:
+    info = {"action_names": ["((0,0),(1,0))", "((0,1),(1,1))"]}
+    block = candy_crush_producer(info, {"text": _CANDY_OBS}, step=0)
+    state = parse_schema_canonical(block, default_domain="gymv")
+    assert state.facts.get("phase") == "play"
+    assert state.facts.get("score") == 0
+    assert state.facts.get("moves_remaining") == 50
+    eattrs = state.facts.get("entity_attrs") or {}
+    # Per-color aggregate counts.
+    assert "candy_red" in eattrs
+    assert "candy_green" in eattrs
+    assert "candy_purple" in eattrs
+    assert "candy_cyan" in eattrs
+    # Goal indicators.
+    assert "score" in eattrs
+    assert "moves_remaining" in eattrs
+
+
+def test_candy_crush_producer_prefers_info_over_text() -> None:
+    """When ``info`` carries explicit ``score`` / ``moves_remaining``,
+    they override the text-parsed values."""
+    info = {"score": 100, "moves_remaining": 12}
+    block = candy_crush_producer(info, {"text": _CANDY_OBS}, step=0)
+    state = parse_schema_canonical(block, default_domain="gymv")
+    assert state.facts.get("score") == 100
+    assert state.facts.get("moves_remaining") == 12
+
+
+def test_candy_crush_producer_phase_gameover_when_no_moves() -> None:
+    obs = _CANDY_OBS.replace("Moves Left: 50", "Moves Left: 0")
+    block = candy_crush_producer({}, {"text": obs}, step=0)
+    state = parse_schema_canonical(block, default_domain="gymv")
+    assert state.facts.get("phase") == "gameover"
+
+
+def test_candy_crush_score_increase_is_decidable() -> None:
+    pre = parse_schema_canonical(
+        candy_crush_producer({"score": 0, "moves_remaining": 50},
+                             {"text": _CANDY_OBS}, step=0),
+        default_domain="gymv")
+    post = parse_schema_canonical(
+        candy_crush_producer({"score": 30, "moves_remaining": 49},
+                             {"text": _CANDY_OBS}, step=1),
+        default_domain="gymv")
+    r = evaluate_predicate(
+        {"type": "cumulative_reward_increased", "args": {}}, pre, post,
+    )
+    assert r.passed is True, r.detail
+
+
+# ---------------------------------------------------------------------------
+# super_mario producer (Day-6)
+# ---------------------------------------------------------------------------
+
+
+_MARIO_OBS = (
+    "Position of Mario: (122, 45)\n"
+    "Positions of all objects\n"
+    "- Bricks: None\n"
+    "- Question Blocks: (214, 96)\n"
+    "- Inactivated Blocks: None\n"
+    "- Monster Goomba: (300, 100)\n"
+    "- Monster Koopas: None\n"
+    "- Pit: None\n"
+    "- Warp Pipe: None\n"
+    "- Item Mushrooms: None\n"
+    "- Stair Blocks: None\n"
+    "- Flag: None\n"
+)
+
+
+def test_super_mario_producer_round_trips() -> None:
+    info = {"score": 200, "lives": 3,
+            "action_names": [f"Jump Level: {i}" for i in range(7)]}
+    block = super_mario_producer(info, {"text": _MARIO_OBS}, step=0)
+    state = parse_schema_canonical(block, default_domain="gymv")
+    eattrs = state.facts.get("entity_attrs") or {}
+    assert "mario" in eattrs
+    # Visible world objects from the text obs.
+    assert "question_blocks" in eattrs
+    assert "monster_goomba" in eattrs
+    # Goal-indicator scalars.
+    assert "score" in eattrs and int(eattrs["score"]["value"]) == 200
+    assert "lives" in eattrs and int(eattrs["lives"]["value"]) == 3
+    assert "scroll_x" in eattrs and int(eattrs["scroll_x"]["value"]) == 122
+
+
+def test_super_mario_progress_advances_with_scroll_x() -> None:
+    pre_obs = _MARIO_OBS
+    post_obs = _MARIO_OBS.replace(
+        "Position of Mario: (122, 45)",
+        "Position of Mario: (500, 45)",
+    )
+    pre = parse_schema_canonical(
+        super_mario_producer({"score": 100}, {"text": pre_obs}, step=0),
+        default_domain="gymv")
+    post = parse_schema_canonical(
+        super_mario_producer({"score": 100}, {"text": post_obs}, step=1),
+        default_domain="gymv")
+    r = evaluate_predicate(
+        {"type": "entity_value_increased",
+         "args": {"entity_label": "scroll_x"}}, pre, post,
+    )
+    assert r.passed is True, r.detail
+
+
+def test_super_mario_producer_handles_no_objects() -> None:
+    obs = "Position of Mario: (50, 100)\nPositions of all objects\n"
+    block = super_mario_producer({"score": 0, "lives": 3}, {"text": obs}, step=0)
+    state = parse_schema_canonical(block, default_domain="gymv")
+    eattrs = state.facts.get("entity_attrs") or {}
+    assert "mario" in eattrs
+    assert "score" in eattrs
 
 
 # ---------------------------------------------------------------------------

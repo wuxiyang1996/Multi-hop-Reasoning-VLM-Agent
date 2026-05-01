@@ -308,6 +308,80 @@ def test_mine_effects_does_not_overfire_on_movement_only_phrase() -> None:
     assert add == []
 
 
+# ───────────── Day-5 schema-index whitelist ─────────────
+
+
+def test_schema_index_whitelist_binds_tetris_holes() -> None:
+    """The Day-5 per-game whitelist registers ``holes`` /
+    ``stack_height`` / ``filled_cells`` even when cold-start
+    schema_canonical didn't enumerate them — so prose like
+    ``"Hole count increases from 3 to 4"`` mines an entity_label that
+    matches the producer's canonical emission."""
+
+    from labeling._protocol_lift import build_schema_index_for_game
+
+    idx = build_schema_index_for_game(
+        actions_root=None,            # no cold-start data → whitelist only
+        corpus="env_wrappers",
+        game="tetris",
+    )
+    assert "holes" in idx.entity_labels
+    assert "stack_height" in idx.entity_labels
+    assert "filled_cells" in idx.entity_labels
+    assert "lines_cleared" in idx.entity_labels
+
+
+def test_first_entity_label_singular_to_plural_fold() -> None:
+    """`"Hole count"` (singular) must bind to label `holes` (plural,
+    the producer's canonical emission)."""
+
+    from labeling._protocol_lift import _first_entity_label
+
+    idx = _make_schema_index({"holes": "goal_indicator", "hole": "goal_indicator"})
+    # Longest form wins → 'holes' (5 > 4 chars), aligned with producer.
+    assert _first_entity_label("Hole count increases from 3 to 4", idx) == "holes"
+
+
+def test_first_entity_label_underscore_to_space_fold() -> None:
+    from labeling._protocol_lift import _first_entity_label
+
+    idx = _make_schema_index({"lines_cleared": "goal_indicator"})
+    # Both `lines_cleared` and `lines cleared` substrings should bind.
+    assert _first_entity_label(
+        "lines cleared by the placement: 2", idx
+    ) == "lines_cleared"
+
+
+def test_mine_effects_tetris_hole_count_binds_label() -> None:
+    """End-to-end: the Day-4 prose phrase ``"Hole count increases from
+    3 to 4"`` was mined as ``entity_count_changed`` with ``args={}``
+    under Day-3/4. Day-5 whitelist + plural fold makes the lift bind
+    ``entity_label="holes"`` so the runtime predicate evaluator can
+    look up ``entity_label_count["holes"]`` on the producer's
+    output."""
+
+    from labeling._protocol_lift import build_schema_index_for_game
+
+    idx = build_schema_index_for_game(
+        actions_root=None,
+        corpus="env_wrappers",
+        game="tetris",
+    )
+    add, _ = mine_effects(
+        success_criteria=[
+            "Hole count increases from 3 to 4, with no worse unintended "
+            "damage elsewhere.",
+        ],
+        abort_criteria=[],
+        schema_index=idx,
+    )
+    types_to_args = {e["type"]: e["args"] for e in add}
+    # Trigger order is most-specific-first: 'hole count' fires
+    # entity_count_changed before the catch-all attribute_changed.
+    assert "entity_count_changed" in types_to_args
+    assert types_to_args["entity_count_changed"].get("entity_label") == "holes"
+
+
 # ───────────── lift orchestrator ─────────────
 
 

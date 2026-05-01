@@ -3,6 +3,13 @@
 Spec: PLAN-UNIFIED-SKILL-GATE §3.2 — owned by the harness/gate,
 NOT by the bank. The bank persists *references* to evaluation records
 (via `SkillRecord.last_evaluation_id`) but never mutates them.
+
+Day-8 (PLAN-UNIFIED-SKILL-GATE §3.2 + harness/README §11): the record
+gained a reproducibility-anchor block so two evaluations against
+different bank snapshots / eval suites / adapter versions /
+ontology revisions are distinguishable on disk. None of the new
+fields are mandatory; callers that don't set them get the legacy
+behaviour.
 """
 
 from __future__ import annotations
@@ -10,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from common.enums import SkillStatus
 from data_structure.extensions.gate_verdict import GateVerdictPayload
 
 
@@ -28,6 +36,18 @@ class SkillEvaluationRecord:
     seed: Optional[int] = None
     started_at: Optional[float] = None
     finished_at: Optional[float] = None
+    # Day-8: reproducibility anchors. Each is None when the evaluator
+    # didn't pin it — the GateRunner does so by default.
+    bank_snapshot_id: Optional[str] = None
+    eval_suite_id: Optional[str] = None
+    adapter_versions: Dict[str, str] = field(default_factory=dict)
+    ontology_version: Optional[str] = None
+    version: Optional[str] = None              # skill version at evaluation time
+    status_before: Optional[SkillStatus] = None
+    status_after: Optional[SkillStatus] = None
+    rejected_domains: List[str] = field(default_factory=list)
+    rollback_target: Optional[str] = None
+    diagnostic_labels: List[str] = field(default_factory=list)
 
     def to_json(self) -> Dict[str, Any]:
         return {
@@ -44,6 +64,18 @@ class SkillEvaluationRecord:
             "seed": self.seed,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
+            # Day-8 anchors — emitted unconditionally so consumers can
+            # depend on them being present (None when unset).
+            "bank_snapshot_id": self.bank_snapshot_id,
+            "eval_suite_id": self.eval_suite_id,
+            "adapter_versions": dict(self.adapter_versions),
+            "ontology_version": self.ontology_version,
+            "version": self.version,
+            "status_before": self.status_before.value if self.status_before else None,
+            "status_after": self.status_after.value if self.status_after else None,
+            "rejected_domains": list(self.rejected_domains),
+            "rollback_target": self.rollback_target,
+            "diagnostic_labels": list(self.diagnostic_labels),
         }
 
 

@@ -74,6 +74,11 @@ DEFAULT_BANK_ROOT = (
     REPO_ROOT / "labeling" / "skill_bank_out" / "run_20260430_030637"
               / "env_wrappers"
 )
+# Day-5 transfer cycle (`_phase4_transfer_cycle.py`) needs the matching
+# cold-start actions root to harvest target-task FewShotDemos from.
+DEFAULT_ACTIONS_ROOT = (
+    REPO_ROOT / "labeling" / "skill_actions_out" / "run_20260430_064325"
+)
 
 
 # ---------------------------------------------------------------------------

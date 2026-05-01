@@ -283,6 +283,58 @@ def _parse_schema_block_entities(text: str) -> Iterable[Tuple[str, str]]:
             yield label, ontology
 
 
+# Day-5: per-game label whitelists to extend the auto-mined schema
+# vocabulary. Cold-start `schema_canonical` blocks are produced by a
+# VLM and only enumerate entities the prompt nudged the model toward —
+# tetris's schema, for instance, surfaces `board`, `next_pieces`,
+# `current_piece` but NOT `holes`, `stack_height`, `filled_cells`,
+# even though the lifted protocols' success_criteria reference all of
+# them by name (`"Hole count increases from 3 to 4"`).
+#
+# The Day-4B deterministic schema producers
+# (`harness.gym_schema_producer`) DO emit those entities at runtime, so
+# the predicate evaluator can decide them. The miss is only on the
+# **lift side**: `_first_entity_label` looks the phrase up against the
+# schema_index, doesn't find `holes`, and the predicate ends up with
+# `args={}` → undecidable at runtime.
+#
+# Whitelist keyed by ``(corpus, game)``; merged into the auto-mined
+# vocabulary. Add new envs as their producers ship.
+_SCHEMA_INDEX_LABEL_WHITELIST: Dict[Tuple[str, str], Dict[str, str]] = {
+    # corpus, game → label → ontology. Only canonical (producer-emitted)
+    # labels listed; the Day-5 word-set matcher binds prose phrases like
+    # ``"hole count"`` / ``"no lines are cleared"`` to the canonical
+    # label without needing aliases in the whitelist.
+    ("env_wrappers", "tetris"): {
+        "holes": "goal_indicator",
+        "stack_height": "goal_indicator",
+        "filled_cells": "goal_indicator",
+        "level": "goal_indicator",
+        "lines_cleared": "goal_indicator",
+        "score": "goal_indicator",
+    },
+    ("env_wrappers", "twenty_forty_eight"): {
+        # The auto-mine already gets these from the cold-start schema;
+        # listing them defensively in case a future producer changes
+        # output without re-running the schema-index build.
+        "highest_tile": "goal_indicator",
+        "score": "goal_indicator",
+        "empty_cells": "navigable_region",
+    },
+    ("env_wrappers", "candy_crush"): {
+        "score": "goal_indicator",
+        "moves_remaining": "goal_indicator",
+        "moves remaining": "goal_indicator",
+    },
+    ("env_wrappers", "super_mario"): {
+        "mario": "selectable_entity",
+        "scroll_x": "goal_indicator",
+        "lives": "goal_indicator",
+        "life": "goal_indicator",
+    },
+}
+
+
 def build_schema_index_for_game(
     actions_root: Optional[Path],
     *,
@@ -299,26 +351,36 @@ def build_schema_index_for_game(
     typed slot. Returns an empty index when `actions_root` is None or
     no episodes exist (the lift then degrades gracefully — slot_types
     are recorded as `"unknown"`, predicates are not type-checked).
+
+    The Day-5 per-game whitelist (``_SCHEMA_INDEX_LABEL_WHITELIST``) is
+    folded in on top of whatever the cold-start corpus produced, so
+    runtime-only entities the producer emits (tetris ``holes``,
+    ``stack_height``, …) bind cleanly during prose-mining without
+    waiting for the cold-start labeler to be re-run.
     """
 
-    idx = GameSchemaIndex.empty(game)
-    if actions_root is None:
-        return idx
-    src = actions_root / corpus / game
-    if not src.exists():
-        return idx
-
     label_to_ontology: Dict[str, str] = {}
-    for ep_path in sorted(src.glob("episode_*.json"))[:max_episodes]:
-        try:
-            data = json.loads(ep_path.read_text())
-        except Exception:                                          # noqa: BLE001
-            continue
-        for step in (data.get("experiences") or [])[:max_steps_per_episode]:
-            md = step.get("metadata") or {}
-            sc = md.get("schema_canonical") or ""
-            for label, ontology in _parse_schema_block_entities(sc):
-                label_to_ontology.setdefault(label, ontology)
+    if actions_root is not None:
+        src = actions_root / corpus / game
+        if src.exists():
+            for ep_path in sorted(src.glob("episode_*.json"))[:max_episodes]:
+                try:
+                    data = json.loads(ep_path.read_text())
+                except Exception:                                  # noqa: BLE001
+                    continue
+                for step in (data.get("experiences") or [])[:max_steps_per_episode]:
+                    md = step.get("metadata") or {}
+                    sc = md.get("schema_canonical") or ""
+                    for label, ontology in _parse_schema_block_entities(sc):
+                        label_to_ontology.setdefault(label, ontology)
+
+    # Day-5: overlay the per-game whitelist. Cold-start labels win on
+    # collision — the whitelist is the *fallback* vocabulary, not an
+    # override.
+    whitelist = _SCHEMA_INDEX_LABEL_WHITELIST.get((corpus, game), {})
+    for label, ontology in whitelist.items():
+        label_to_ontology.setdefault(label, ontology)
+
     return GameSchemaIndex(
         game=game,
         entity_labels=frozenset(label_to_ontology.keys()),
@@ -496,14 +558,71 @@ def _first_entity_label(
     `active_piece_S`); cold-start prose uses spaces (`highest tile`).
     We match on the de-snake-cased label so `highest tile` in prose
     finds the `highest_tile` schema entity.
+
+    Day-5 generalisations:
+
+    1. Tolerate singular ↔ plural drift (`"Hole count"` → `holes`).
+    2. Word-set match for multi-word labels (`lines_cleared` matches
+       ``"no lines are cleared by the placement"`` because every
+       word of the label appears in the phrase — substring matching
+       wouldn't because of the intervening "are").
+    3. Iteration is *sorted* and stable, longest-label-wins on ties so
+       producer-canonical labels are preferred (`lines_cleared` over
+       bare `lines`, `holes` over `hole`).
     """
 
     p = phrase.lower()
-    for lbl in schema_index.entity_labels:
-        norm = lbl.lower().replace("_", " ")
-        if norm in p or lbl.lower() in p:
-            return lbl
-    return None
+    p_words = set(_PHRASE_WORD_RX.findall(p))
+    candidates: List[str] = []
+    for lbl in sorted(schema_index.entity_labels):
+        if _label_matches_phrase(lbl, p, p_words):
+            candidates.append(lbl)
+    if not candidates:
+        return None
+    # Prefer the longest match so `lines_cleared` wins over `lines`,
+    # and `holes` wins over `hole` (which both appear in the tetris
+    # whitelist).
+    return max(candidates, key=lambda x: (len(x), x))
+
+
+_PHRASE_WORD_RX = re.compile(r"[a-z0-9]+")
+
+
+def _label_matches_phrase(label: str, phrase_lower: str, phrase_words: set) -> bool:
+    """Return True if any of these is true:
+
+    1. The label (or its underscore→space form) is a substring of the
+       phrase.
+    2. The label has a singular/plural fold that's a substring.
+    3. The label is multi-word (`lines_cleared`, `highest tile`) and
+       *every* token (after singular/plural fold) appears as a word in
+       the phrase. This handles real cold-start prose like ``"no
+       lines are cleared by the placement"`` where the label's words
+       are present but not adjacent.
+    """
+
+    lbl = label.lower()
+    forms = [
+        lbl,
+        lbl.replace("_", " "),
+        lbl.rstrip("s") if lbl.endswith("s") else lbl,
+        (lbl.replace("_", " ").rstrip("s") if lbl.endswith("s")
+         else lbl.replace("_", " ")),
+    ]
+    if any(f and f in phrase_lower for f in forms):
+        return True
+    # Word-set match for multi-word labels.
+    label_tokens = [t for t in lbl.replace("_", " ").split() if t]
+    if len(label_tokens) <= 1:
+        return False
+    folded_tokens = []
+    for tok in label_tokens:
+        if tok.endswith("s") and len(tok) > 2:
+            # Both singular and plural forms count as a hit.
+            folded_tokens.append({tok, tok.rstrip("s")})
+        else:
+            folded_tokens.append({tok})
+    return all(any(tok in phrase_words for tok in alts) for alts in folded_tokens)
 
 
 # ---------------------------------------------------------------------------

@@ -41,6 +41,7 @@ Cross-refs:
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Callable, List, Mapping, Optional, Sequence, Tuple
 
 # Public type alias. Importable from ``harness`` directly.
@@ -49,10 +50,12 @@ SchemaProducer = Callable[..., str]
 
 __all__ = [
     "SchemaProducer",
+    "candy_crush_producer",
     "make_gaming_env_producer",
     "render_state_block",
-    "twenty_forty_eight_producer",
+    "super_mario_producer",
     "tetris_producer",
+    "twenty_forty_eight_producer",
 ]
 
 
@@ -513,6 +516,350 @@ def _count_tetris_holes(rows: Sequence[Sequence[str]]) -> int:
 
 
 # ---------------------------------------------------------------------------
+# candy_crush — Day-6
+# ---------------------------------------------------------------------------
+
+
+_CANDY_GOAL = (
+    "Match-3 puzzle on an 8x8 colored grid. Swap two adjacent candies "
+    "to form lines of 3+ same colors, which clear them and earn points. "
+    "Limited number of moves per episode."
+)
+
+
+_CANDY_COLOR_LABELS = {
+    "R": "candy_red",
+    "C": "candy_cyan",
+    "G": "candy_green",
+    "P": "candy_purple",
+    "Y": "candy_yellow",
+    "B": "candy_blue",
+    "O": "candy_orange",
+}
+
+
+_RX_CANDY_BOARD_ROW = re.compile(r"^\s*(\d+)\s*\|\s*(.+?)\s*$")
+_RX_CANDY_SCORE = re.compile(r"Score:\s*(-?\d+)")
+_RX_CANDY_MOVES = re.compile(r"Moves\s*Left\s*:\s*(\d+)")
+
+
+def _parse_candy_text_obs(text: str) -> Tuple[List[List[str]], int, int]:
+    """Best-effort parse of GamingAgent's candy_crush text obs.
+
+    Returns ``(board_rows, score, moves_remaining)``. ``board_rows`` is
+    a list of single-letter color codes (``R``, ``C``, ``G``, ``P``,
+    …); empty list on shape mismatch.
+    """
+    rows: List[List[str]] = []
+    score = 0
+    moves = 0
+    if not text:
+        return rows, score, moves
+    for line in text.splitlines():
+        m = _RX_CANDY_BOARD_ROW.match(line)
+        if m:
+            cells = [c for c in m.group(2).split() if c]
+            rows.append(cells)
+            continue
+        m_s = _RX_CANDY_SCORE.search(line)
+        if m_s:
+            score = int(m_s.group(1))
+            continue
+        m_m = _RX_CANDY_MOVES.search(line)
+        if m_m:
+            moves = int(m_m.group(1))
+    return rows, score, moves
+
+
+def candy_crush_producer(
+    info: Mapping[str, Any],
+    obs: Any,
+    *,
+    step: int = 0,
+    task: str = "make_gaming_env/candy_crush",
+    goal: str = _CANDY_GOAL,
+    domain: str = "gymv",
+) -> str:
+    """Render a ``<state>`` block for ``custom_05_candy_crush`` from the
+    textual obs (the env's primary observation channel).
+
+    Parses ``obs["text"]`` (or ``obs`` directly when it's a string) for:
+
+      * an 8×8 ``board`` of single-letter color codes,
+      * ``Score: <int>`` and ``Moves Left: <int>``,
+
+    plus ``info["score"]`` / ``info["moves_remaining"]`` if surfaced
+    structurally. Each non-empty cell becomes a ``candy_<color>`` entity
+    so ``entity_count_changed`` predicates can read per-color counts;
+    aggregate ``score`` and ``moves_remaining`` text entities are also
+    emitted as ``goal_indicator``s.
+    """
+    if isinstance(obs, Mapping):
+        text = str(obs.get("text") or obs.get("textual_representation") or "")
+    elif isinstance(obs, str):
+        text = obs
+    else:
+        text = ""
+
+    rows, score_text, moves_text = _parse_candy_text_obs(text)
+    score = int(_coerce_number(info.get("score", score_text), score_text))
+    moves = int(_coerce_number(
+        info.get("moves_remaining", moves_text), moves_text,
+    ))
+    n_rows = len(rows)
+    n_cols = max((len(r) for r in rows), default=0)
+
+    # Per-color counts.
+    color_counts: dict = {}
+    for row in rows:
+        for ch in row:
+            if ch and ch != ".":
+                color_counts[ch] = color_counts.get(ch, 0) + 1
+
+    entities: List[Mapping[str, Any]] = []
+    attributes: dict = {}
+    affordances: dict = {}
+
+    # e1: board container.
+    entities.append({
+        "id": "e1", "type": "region", "label": "board", "bid": "null",
+        "pos": f"0,0,{n_cols},{n_rows}", "ontology": "container_entity",
+    })
+    attributes["e1"] = {"state": "visible"}
+    affordances["e1"] = ["inspect"]
+
+    # One aggregate text entity per color so downstream predicates can
+    # read e.g. "candy_red count decreased" cleanly.
+    next_eid = 2
+    for ch, n in sorted(color_counts.items()):
+        label = _CANDY_COLOR_LABELS.get(ch, f"candy_{ch.lower()}")
+        eid = f"e{next_eid}"; next_eid += 1
+        entities.append({
+            "id": eid, "type": "text", "label": label,
+            "bid": "null", "pos": "null", "ontology": "selectable_entity",
+        })
+        attributes[eid] = {"state": "visible", "value": n}
+        affordances[eid] = ["select", "swap", "compare"]
+
+    # Goal-indicator scalars.
+    eid_score = f"e{next_eid}"; next_eid += 1
+    entities.append({
+        "id": eid_score, "type": "text", "label": "score",
+        "bid": "null", "pos": "null", "ontology": "goal_indicator",
+    })
+    attributes[eid_score] = {"value": int(score)}
+    affordances[eid_score] = ["read"]
+
+    eid_moves = f"e{next_eid}"; next_eid += 1
+    entities.append({
+        "id": eid_moves, "type": "text", "label": "moves_remaining",
+        "bid": "null", "pos": "null", "ontology": "goal_indicator",
+    })
+    attributes[eid_moves] = {"value": int(moves)}
+    affordances[eid_moves] = ["read"]
+
+    phase = "gameover" if moves <= 0 else "play"
+    state_flags = {
+        "phase": phase,
+        "progress": 0.0,
+        "scene_type": "game_play",
+        "error": "null",
+        "dialog_open": "false",
+        "input_pending": "true",
+        "cumulative_reward": float(score),
+        "moves_remaining": int(moves),
+    }
+
+    actions = info.get("action_names") or info.get("available_actions") or []
+    return render_state_block(
+        domain=domain, task=task, goal=goal, step=step,
+        entities=entities, attributes=attributes,
+        state_flags=state_flags, affordances=affordances,
+        relations=None, actions=[str(a) for a in actions],
+    )
+
+
+# ---------------------------------------------------------------------------
+# super_mario — Day-6
+# ---------------------------------------------------------------------------
+
+
+_MARIO_GOAL = (
+    "Super Mario Bros (NES, world 1-1). Move Mario right, jump over "
+    "enemies (goombas, koopas) and pits, reach the flag at the end."
+)
+
+
+_RX_MARIO_POS = re.compile(
+    r"Position\s*of\s*Mario:\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)",
+    re.IGNORECASE,
+)
+_RX_MARIO_OBJ = re.compile(
+    r"-\s*([A-Za-z][\w\s]*?):\s*(.+?)\s*$",
+    re.M,
+)
+
+
+def _parse_mario_text_obs(text: str) -> Tuple[
+    Optional[Tuple[int, int]], dict
+]:
+    """Parse super_mario's text obs for ``mario_pos`` and the
+    ``Positions of all objects`` table. Each object kind (``Bricks``,
+    ``Question Blocks``, ``Monster Goomba``, …) maps to a list of
+    ``(x, y)`` tuples or ``None`` when the kind isn't on screen.
+    """
+    mario_pos: Optional[Tuple[int, int]] = None
+    objects: dict = {}
+    if not text:
+        return mario_pos, objects
+    m = _RX_MARIO_POS.search(text)
+    if m:
+        mario_pos = (int(m.group(1)), int(m.group(2)))
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith("-"):
+            continue
+        mo = _RX_MARIO_OBJ.search(line)
+        if not mo:
+            continue
+        kind = mo.group(1).strip().lower().replace(" ", "_")
+        rhs = mo.group(2).strip()
+        if rhs.lower() in ("none", "n/a", "-"):
+            objects[kind] = []
+            continue
+        # Extract every (x, y) pair from the rhs.
+        coords = re.findall(r"\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)", rhs)
+        objects[kind] = [(int(x), int(y)) for x, y in coords]
+    return mario_pos, objects
+
+
+def super_mario_producer(
+    info: Mapping[str, Any],
+    obs: Any,
+    *,
+    step: int = 0,
+    task: str = "make_orak_env/super_mario",
+    goal: str = _MARIO_GOAL,
+    domain: str = "gymv",
+) -> str:
+    """Render a ``<state>`` block for the orak super_mario env.
+
+    Parses ``obs["text"]`` for mario's position and the per-kind
+    object positions; falls back to ``info["mario_pos"]``,
+    ``info["score"]``, ``info["lives"]`` when surfaced. Emits one
+    entity per visible enemy / item plus aggregate ``score`` /
+    ``lives`` / ``scroll_x`` (= mario.x) text entities so downstream
+    predicates can decide ``entity_value_increased`` against forward
+    progress.
+    """
+    if isinstance(obs, Mapping):
+        text = str(obs.get("text") or obs.get("textual_representation") or "")
+    elif isinstance(obs, str):
+        text = obs
+    else:
+        text = ""
+
+    mario_pos_text, objects_text = _parse_mario_text_obs(text)
+    info_mario = info.get("mario_pos")
+    if info_mario and isinstance(info_mario, (tuple, list)) and len(info_mario) >= 2:
+        mario_pos: Optional[Tuple[int, int]] = (
+            int(_coerce_number(info_mario[0], 0)),
+            int(_coerce_number(info_mario[1], 0)),
+        )
+    else:
+        mario_pos = mario_pos_text
+    objects = info.get("entities") if isinstance(info.get("entities"), dict) \
+        else objects_text
+
+    score = int(_coerce_number(info.get("score", 0)))
+    lives = int(_coerce_number(info.get("lives", info.get("life", 0))))
+    cumulative_reward = _coerce_number(info.get("cumulative_reward", score))
+    scroll_x = int(mario_pos[0]) if mario_pos else 0
+
+    entities: List[Mapping[str, Any]] = []
+    attributes: dict = {}
+    affordances: dict = {}
+
+    # e1: world/screen container (the mario env doesn't have a
+    # well-defined "board" but a screen anchor is useful for spatial
+    # entities).
+    entities.append({
+        "id": "e1", "type": "region", "label": "screen", "bid": "null",
+        "pos": "0,0,256,240", "ontology": "container_entity",
+    })
+    attributes["e1"] = {"state": "visible"}
+    affordances["e1"] = ["inspect"]
+
+    next_eid = 2
+
+    # Mario himself.
+    if mario_pos is not None:
+        eid = f"e{next_eid}"; next_eid += 1
+        entities.append({
+            "id": eid, "type": "object", "label": "mario",
+            "bid": "null",
+            "pos": f"{mario_pos[0]},{mario_pos[1]},16,16",
+            "ontology": "tracked_entity",
+        })
+        attributes[eid] = {
+            "state": "visible",
+            "value": f"{mario_pos[0]},{mario_pos[1]}",
+        }
+        affordances[eid] = ["move_left", "move_right", "jump", "track"]
+
+    # One entity per detected world object.
+    for kind, coords in (objects or {}).items():
+        if not coords:
+            continue
+        for i, c in enumerate(coords):
+            eid = f"e{next_eid}"; next_eid += 1
+            x, y = (int(c[0]), int(c[1])) if isinstance(c, (tuple, list)) and len(c) >= 2 else (0, 0)
+            entities.append({
+                "id": eid, "type": "object", "label": kind,
+                "bid": "null", "pos": f"{x},{y},16,16",
+                "ontology": "selectable_entity",
+            })
+            attributes[eid] = {"state": "visible", "value": f"{x},{y}"}
+            affordances[eid] = ["track", "compare"]
+
+    # Goal-indicator scalars: score, lives, scroll_x.
+    for label, value in (
+        ("score", score),
+        ("lives", lives),
+        ("scroll_x", scroll_x),
+    ):
+        eid = f"e{next_eid}"; next_eid += 1
+        entities.append({
+            "id": eid, "type": "text", "label": label, "bid": "null",
+            "pos": "null", "ontology": "goal_indicator",
+        })
+        attributes[eid] = {"value": int(value)}
+        affordances[eid] = ["read"]
+
+    phase = "gameover" if lives < 0 else "play"
+    state_flags = {
+        "phase": phase,
+        "progress": min(1.0, max(0.0, scroll_x / 3168.0)),  # world 1-1 ≈ 3168 px
+        "scene_type": "game_play",
+        "error": "null",
+        "dialog_open": "false",
+        "input_pending": "true",
+        "cumulative_reward": float(cumulative_reward),
+        "scroll_x": int(scroll_x),
+    }
+
+    actions = info.get("action_names") or info.get("available_actions") or [
+        f"Jump Level: {i}" for i in range(7)
+    ]
+    return render_state_block(
+        domain=domain, task=task, goal=goal, step=step,
+        entities=entities, attributes=attributes,
+        state_flags=state_flags, affordances=affordances,
+        relations=None, actions=[str(a) for a in actions],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
@@ -520,6 +867,8 @@ def _count_tetris_holes(rows: Sequence[Sequence[str]]) -> int:
 _PRODUCERS: dict = {
     "twenty_forty_eight": twenty_forty_eight_producer,
     "tetris": tetris_producer,
+    "candy_crush": candy_crush_producer,
+    "super_mario": super_mario_producer,
 }
 
 
@@ -527,9 +876,9 @@ def make_gaming_env_producer(game: str) -> Optional[SchemaProducer]:
     """Look up a deterministic schema producer for one
     ``env_wrappers.gym_like.make_gaming_env`` game name.
 
-    Returns ``None`` for envs we haven't built a producer for yet
-    (candy_crush, super_mario, …) so callers can fall back gracefully
-    to the executor's plain-text path. Day-4 ships 2048 + tetris;
-    Day-5+ extends to the rest as the lift coverage expands.
+    Returns ``None`` for envs we haven't built a producer for yet so
+    callers can fall back gracefully to the executor's plain-text
+    path. Day-4 shipped 2048 + tetris; Day-6 adds candy_crush +
+    super_mario.
     """
     return _PRODUCERS.get(game)

@@ -38,8 +38,10 @@ from harness.few_shot_adapter import (
 )
 from harness.gym_schema_producer import (
     SchemaProducer,
+    candy_crush_producer,
     make_gaming_env_producer,
     render_state_block,
+    super_mario_producer,
     tetris_producer,
     twenty_forty_eight_producer,
 )
@@ -53,15 +55,35 @@ from harness.gymv_success import (
     EFFECT_PREDICATE_TYPES,
     HopEffectResult,
     PredicateResult,
+    SuccessFnFactory,
     evaluate_episode_effects,
     evaluate_hop_effects,
     evaluate_predicate,
     make_per_step_success_fn,
+    register_success_fn,
+    registered_success_fn_domains,
+    success_fn_for_domain,
 )
 from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
 from harness.skill_adapter import SkillAdapter, AdapterRunContext, AdapterRunResult
 from harness.skill_harness import HarnessConfig, SkillHarness
+
+# Day-7: GateRunner is the spec-named offline gate surface (PLAN-UNIFIED-SKILL-GATE §6).
+# Import after `SkillHarness` to keep the import order stable; the
+# `orchestrator.gate_service` dependency is loaded lazily on first
+# attribute access via `__getattr__` to avoid an import cycle for
+# consumers that don't need the gate (e.g. the cold-start labelers).
+def __getattr__(name: str):  # noqa: D401
+    if name in {"EvalSuite", "GateRunner", "GateRunnerConfig"}:
+        from harness.gate_runner import EvalSuite, GateRunner, GateRunnerConfig
+        globals().update(
+            EvalSuite=EvalSuite,
+            GateRunner=GateRunner,
+            GateRunnerConfig=GateRunnerConfig,
+        )
+        return globals()[name]
+    raise AttributeError(f"module 'harness' has no attribute {name!r}")
 
 __all__ = [
     "ACTION_ALIAS_MAP",
@@ -82,9 +104,14 @@ __all__ = [
     "ReplayResult",
     "ReplayValidator",
     "RewardLogger",
+    "EvalSuite",
+    "GateRunner",
+    "GateRunnerConfig",
     "SchemaProducer",
     "SkillAdapter",
     "SkillHarness",
+    "SuccessFnFactory",
+    "candy_crush_producer",
     "default_success_fn",
     "evaluate_episode_effects",
     "evaluate_hop_effects",
@@ -93,7 +120,11 @@ __all__ = [
     "make_gaming_env_producer",
     "make_gymv_executor",
     "make_per_step_success_fn",
+    "register_success_fn",
+    "registered_success_fn_domains",
     "render_state_block",
+    "success_fn_for_domain",
+    "super_mario_producer",
     "task_id_from_state",
     "tetris_producer",
     "twenty_forty_eight_producer",

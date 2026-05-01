@@ -157,6 +157,75 @@ class SkillLifecycleManager:
 
     # -- few-shot transfer bookkeeping (PLAN-UNIFIED-SKILL-GATE Stage 3a) --
 
+    def record_task_verification(
+        self,
+        skill_id: str,
+        *,
+        verified_tasks: Sequence[str],
+        evaluation_id: Optional[str] = None,
+        per_task_metrics: Optional[Mapping[str, Mapping[str, float]]] = None,
+        rationale: str = "",
+    ) -> SkillRecord:
+        """Append `verified_tasks` to `SkillRecord.verified_tasks`.
+
+        Day-7 (PLAN-HARNESS §22 task axis) analog of
+        `record_transfer_verification` for the **intra-domain task
+        axis**. Called by the Stage 3a transfer-cycle driver
+        (`labeling_supplement/_phase4_transfer_cycle.py --persist`)
+        after a target-task probe passes the FewShotAdapter pass-rate
+        threshold. This is the *only* sanctioned writer of
+        `verified_tasks` and the matching `adapter_history` entries.
+
+        Per PLAN-UNIFIED-SKILL-GATE §7, each task verification appends
+        one `adapter_history` entry tagged ``kind="task_verification"``
+        so the downstream lineage tooling can distinguish task-axis
+        verifications from cross-domain ones. ``verified_tasks`` are
+        free-form strings (every new env / website is a task) so we
+        don't enforce a closed enum the way ``verified_domains`` does
+        — but we do require the rationale.
+        """
+        if not rationale:
+            raise LifecycleError(
+                "record_task_verification requires a non-empty rationale."
+            )
+        if not verified_tasks:
+            raise LifecycleError(
+                "record_task_verification requires non-empty verified_tasks."
+            )
+        with self._mutex:
+            record = self._repo.get(skill_id)
+            if record is None:
+                raise LifecycleError(f"Unknown skill {skill_id!r}")
+            unique_tasks: list[str] = []
+            seen: set[str] = set()
+            for t in verified_tasks:
+                key = (t or "").strip()
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                unique_tasks.append(key)
+            current = list(record.verified_tasks)
+            now = time.time()
+            metrics = per_task_metrics or {}
+            for t in unique_tasks:
+                if t not in current:
+                    current.append(t)
+                entry: Dict[str, Any] = {
+                    "kind": "task_verification",
+                    "target_task": t,
+                    "evaluation_id": evaluation_id,
+                    "verified_at": now,
+                    "rationale": rationale,
+                }
+                if t in metrics:
+                    entry["metrics"] = dict(metrics[t])
+                record.adapter_history.append(entry)
+            record.verified_tasks = current
+            store = self._store_for(record.status)
+            with store._unlocked(self._token):
+                store.put(record, token=self._token)
+            return record
+
     def record_transfer_verification(
         self,
         skill_id: str,

@@ -73,6 +73,14 @@ class EligibleSkill:
     # `task_match == "agnostic"` is admitted to preserve behaviour for
     # cold-start banks decorated before this field landed.
     task_match: str = "agnostic"
+    # Day-8: per-check booleans (PLAN-UNIFIED §3.4 / harness/README §9).
+    # The filter sets these *for skills it admits*; rejected skills are
+    # surfaced via the sibling `RejectedSkill` channel returned from
+    # `EligibilityFilter.filter_with_rejections`.
+    binding_ok: bool = True
+    precondition_ok: bool = True
+    evidence_ok: bool = True
+    adapter_ok: bool = True
 
     def to_json(self) -> dict:
         return {
@@ -83,6 +91,46 @@ class EligibleSkill:
             "shadow_only": self.shadow_only,
             "task_match": self.task_match,
             "reasons": list(self.reasons),
+            "binding_ok": self.binding_ok,
+            "precondition_ok": self.precondition_ok,
+            "evidence_ok": self.evidence_ok,
+            "adapter_ok": self.adapter_ok,
+        }
+
+
+@dataclass
+class RejectedSkill:
+    """A skill the eligibility filter rejected, with the reason.
+
+    Day-8: closes harness/README §9 — rejected candidates were
+    silently dropped before. With this channel the actor can render a
+    veto log the planner can reason about (``why was this skill not
+    available?``) and the Crafter can surface as
+    ``false_binding_patterns`` evidence.
+
+    Vetoes carry the *same* per-check booleans `EligibleSkill` does so
+    consumers don't need a parallel decoding path.
+    """
+
+    skill: SkillRecord
+    veto: str                  # short tag, e.g. "no_adapter" / "task_mismatch"
+    veto_reason: str = ""      # human-readable explanation
+    binding_ok: bool = True
+    precondition_ok: bool = True
+    evidence_ok: bool = True
+    adapter_ok: bool = True
+
+    def to_json(self) -> dict:
+        return {
+            "skill_id": self.skill.skill_id,
+            "skill_name": self.skill.name,
+            "skill_status": self.skill.status.value,
+            "veto": self.veto,
+            "veto_reason": self.veto_reason,
+            "binding_ok": self.binding_ok,
+            "precondition_ok": self.precondition_ok,
+            "evidence_ok": self.evidence_ok,
+            "adapter_ok": self.adapter_ok,
         }
 
 
@@ -103,15 +151,52 @@ class EligibilityFilter:
         *,
         skill_type_hint: Optional[SkillType] = None,
     ) -> List[EligibleSkill]:
+        admitted, _rejected = self.filter_with_rejections(
+            candidates, state, skill_type_hint=skill_type_hint,
+        )
+        return admitted
+
+    def filter_with_rejections(
+        self,
+        candidates: Iterable[SkillRecord],
+        state: StateSchema,
+        *,
+        skill_type_hint: Optional[SkillType] = None,
+    ) -> tuple[List[EligibleSkill], List["RejectedSkill"]]:
+        """Day-8 (PLAN-UNIFIED §3.4 / harness/README §9): same as
+        ``filter`` but also returns the per-skill rejection channel.
+
+        Both lists are returned in candidate iteration order. The
+        rejection list lets the actor render a veto log
+        (``why was X not available?``) and the Crafter surface
+        ``false_binding_patterns`` evidence — concerns the original
+        ``filter()`` API silently dropped.
+        """
         out: List[EligibleSkill] = []
+        rejected: List["RejectedSkill"] = []
         state_task = task_id_from_state(state)
         for skill in candidates:
             reasons: List[str] = []
             if skill.status not in _RUNNABLE_STATUSES:
+                rejected.append(RejectedSkill(
+                    skill=skill,
+                    veto="status_not_runnable",
+                    veto_reason=f"status={skill.status.value!r} not in {sorted(s.value for s in _RUNNABLE_STATUSES)}",
+                ))
                 continue
             if skill.status == SkillStatus.SHADOW and not self._allow_shadow:
+                rejected.append(RejectedSkill(
+                    skill=skill,
+                    veto="shadow_disallowed",
+                    veto_reason="harness allow_shadow=False",
+                ))
                 continue
             if state.domain not in skill.feasible_domains:
+                rejected.append(RejectedSkill(
+                    skill=skill,
+                    veto="domain_mismatch",
+                    veto_reason=f"state.domain={state.domain!r} not in feasible_domains={list(skill.feasible_domains)!r}",
+                ))
                 continue
             # F2′ task-axis veto (harness/README §22). When the skill
             # advertises a non-empty `feasible_tasks`, only states whose
@@ -131,20 +216,56 @@ class EligibilityFilter:
                         else "same_task"
                     )
                 else:
+                    rejected.append(RejectedSkill(
+                        skill=skill,
+                        veto="task_mismatch",
+                        veto_reason=(
+                            f"state task={state_task!r} not in "
+                            f"feasible_tasks={list(skill.feasible_tasks)!r}"
+                        ),
+                    ))
                     continue
             else:
                 task_match = "agnostic"
             if skill_type_hint is not None and skill.skill_type != skill_type_hint and skill.skill_type != SkillType.MIXED:
+                rejected.append(RejectedSkill(
+                    skill=skill,
+                    veto="skill_type_mismatch",
+                    veto_reason=(
+                        f"skill_type={skill.skill_type.value!r} != "
+                        f"hint={skill_type_hint.value!r}"
+                    ),
+                ))
                 continue
             adapter = self._registry.get(state.domain, skill.skill_type)
             if adapter is None:
+                rejected.append(RejectedSkill(
+                    skill=skill,
+                    veto="no_adapter",
+                    veto_reason=(
+                        f"no adapter registered for ({state.domain},"
+                        f"{skill.skill_type.value})"
+                    ),
+                    adapter_ok=False,
+                ))
                 continue
             try:
                 ok = adapter.can_handle(skill, state)
             except Exception as exc:                        # noqa: BLE001
-                reasons.append(f"adapter raised in can_handle: {exc!r}")
+                rejected.append(RejectedSkill(
+                    skill=skill,
+                    veto="adapter_raised",
+                    veto_reason=f"adapter.can_handle raised: {exc!r}",
+                    adapter_ok=False,
+                ))
                 continue
             if not ok:
+                rejected.append(RejectedSkill(
+                    skill=skill,
+                    veto="adapter_cannot_handle",
+                    veto_reason=f"adapter={adapter.name} returned can_handle=False",
+                    adapter_ok=False,
+                ))
                 continue
             reasons.append(
                 f"status={skill.status.value} domain={state.domain} "
@@ -160,7 +281,12 @@ class EligibilityFilter:
                     task_match=task_match,
                 )
             )
-        return out
+        return out, rejected
 
 
-__all__ = ["EligibilityFilter", "EligibleSkill", "task_id_from_state"]
+__all__ = [
+    "EligibilityFilter",
+    "EligibleSkill",
+    "RejectedSkill",
+    "task_id_from_state",
+]

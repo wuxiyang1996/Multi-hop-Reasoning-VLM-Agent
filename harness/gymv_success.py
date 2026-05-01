@@ -470,12 +470,99 @@ def make_per_step_success_fn(
     return _score
 
 
+# ---------------------------------------------------------------------------
+# Day-6: domain-keyed success_fn registry.
+#
+# `make_per_step_success_fn` is the gymv-specific scorer that reads the
+# per-hop `effects_add` predicates the lift mines and the GymvAdapter
+# rolls into `episode.outcome.extra["per_hop_effects"]`. Other transfer
+# targets (browser, osworld, video, visual_reasoning) need their *own*
+# success_fns; the FewShotAdapter currently takes one fixed scorer at
+# construction time.
+#
+# This registry lets the orchestrator say "give me the right scorer for
+# `target_domain`" without wiring per-target callables manually:
+#
+#     success_fn = success_fn_for_domain("gymv")
+#     adapter = FewShotAdapter(harness=h, success_fn=success_fn)
+#
+# Per-target scorers register via `register_success_fn(domain, factory)`
+# at import time. Until they're written they fall back to
+# `default_success_fn` (success ⇔ episode.outcome.success +
+# contract_satisfied), so the lifecycle path stays well-defined.
+# ---------------------------------------------------------------------------
+
+
+# A "factory" is a zero-arg (or kwargs-only) callable that returns a
+# concrete SuccessFn. Wrapping in a factory (rather than registering a
+# bare SuccessFn) keeps callers from accidentally sharing per-skill
+# state — the gymv scorer is stateless, but a future
+# Stage-2 contract scorer might cache thresholds.
+SuccessFnFactory = Callable[..., "Callable[[SkillEpisode, Any], float]"]
+
+
+_DOMAIN_SUCCESS_FN_FACTORIES: Dict[str, SuccessFnFactory] = {}
+
+
+def register_success_fn(domain: str, factory: SuccessFnFactory) -> None:
+    """Register a domain-specific `SuccessFn` factory.
+
+    Calling twice overwrites — explicitly intentional so test
+    fixtures can swap a scorer without mutating module state.
+    """
+    _DOMAIN_SUCCESS_FN_FACTORIES[domain] = factory
+
+
+def success_fn_for_domain(
+    domain: str,
+    *,
+    pass_rate_threshold: float = 0.5,
+    require_episode_success: bool = True,
+    fallback: Optional["Callable[[SkillEpisode, Any], float]"] = None,
+) -> "Callable[[SkillEpisode, Any], float]":
+    """Look up the registered scorer for ``domain`` and instantiate it.
+
+    Returns ``fallback`` (default: `default_success_fn` from
+    `harness.few_shot_adapter`) when no scorer is registered. The
+    factory is called with the standard kwargs every gymv-style scorer
+    accepts (`pass_rate_threshold`, `require_episode_success`); a
+    domain-specific factory that doesn't take those simply ignores
+    them.
+    """
+    factory = _DOMAIN_SUCCESS_FN_FACTORIES.get(domain)
+    if factory is None:
+        if fallback is not None:
+            return fallback
+        # Late import to avoid the harness/init cycle (few_shot_adapter
+        # imports from gymv_success indirectly via __init__).
+        from harness.few_shot_adapter import default_success_fn
+        return default_success_fn
+    return factory(
+        pass_rate_threshold=pass_rate_threshold,
+        require_episode_success=require_episode_success,
+    )
+
+
+def registered_success_fn_domains() -> Tuple[str, ...]:
+    """Sorted view of currently-registered domains (mostly for tests
+    and the diagnostic banner)."""
+    return tuple(sorted(_DOMAIN_SUCCESS_FN_FACTORIES.keys()))
+
+
+# Bootstrap: gymv is always registered (it's the source domain).
+register_success_fn("gymv", make_per_step_success_fn)
+
+
 __all__ = [
     "EFFECT_PREDICATE_TYPES",
     "HopEffectResult",
     "PredicateResult",
+    "SuccessFnFactory",
     "evaluate_episode_effects",
     "evaluate_hop_effects",
     "evaluate_predicate",
     "make_per_step_success_fn",
+    "register_success_fn",
+    "registered_success_fn_domains",
+    "success_fn_for_domain",
 ]

@@ -7,10 +7,16 @@ Public API (PLAN-HARNESS §5.2 & §8 unified skill interface):
     # 1. Narrow the bank-supplied candidate list to runnable skills.
     eligible = h.select_eligible_skills(candidates, state, skill_type_hint=...)
 
-    # 2. Execute one chosen skill (chosen by the Actor, not by us).
+    # 2. Day-8: second-pass invocation validation (PLAN-UNIFIED §3.4)
+    invoc = h.validate_invocation(skill, state, bindings=…)
+    if not invoc.ok:
+        # Veto with structured reason — actor can pick another skill.
+        ...
+
+    # 3. Execute one chosen skill (chosen by the Actor, not by us).
     episode = h.run_skill(skill, state, parent_run_id=..., bindings=...)
 
-    # 3. Replay-validate a proposed skill against stored seeds (gate Stage 1).
+    # 4. Replay-validate a proposed skill against stored seeds (gate Stage 1).
     result = h.replay_validate(skill, seeds=...)
 
 The harness writes nothing to the bank. It writes SkillEpisodes to the
@@ -20,6 +26,7 @@ returns failure traces when execution aborts.
 
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional
@@ -51,6 +58,61 @@ class HarnessConfig:
     seed: Optional[int] = None
 
 
+@dataclass
+class ValidateInvocationResult:
+    """Day-8: structured second-pass veto result.
+
+    Closes harness/README §9. The eligibility filter narrows the
+    candidate list (cheap predicate filters); `validate_invocation`
+    runs *after* the actor has picked one, on the actually-bound
+    invocation, and produces a structured pass/veto verdict the actor
+    can route back into its own decision log.
+
+    Per-check booleans:
+      * ``adapter_ok``      — registered adapter exists
+      * ``binding_ok``      — every ``${slot}`` in skill.protocol is filled
+      * ``precondition_ok`` — skill.contract.preconditions all hold
+      * ``evidence_ok``     — required ``evidence_in`` references are present
+      * ``shadow_only``     — propagated from the eligibility filter
+
+    The veto reason channel is the union of *which* checks failed,
+    formatted so the actor can render it in its veto log without
+    string-parsing the per-check fields.
+    """
+
+    ok: bool
+    skill_id: str
+    adapter_name: Optional[str]
+    adapter_ok: bool
+    binding_ok: bool
+    precondition_ok: bool
+    evidence_ok: bool
+    shadow_only: bool = False
+    veto_reasons: List[str] = field(default_factory=list)
+    missing_bindings: List[str] = field(default_factory=list)
+    missing_evidence_in: List[str] = field(default_factory=list)
+    failed_preconditions: List[str] = field(default_factory=list)
+
+    def to_json(self) -> Dict[str, Any]:
+        return {
+            "ok": self.ok,
+            "skill_id": self.skill_id,
+            "adapter_name": self.adapter_name,
+            "adapter_ok": self.adapter_ok,
+            "binding_ok": self.binding_ok,
+            "precondition_ok": self.precondition_ok,
+            "evidence_ok": self.evidence_ok,
+            "shadow_only": self.shadow_only,
+            "veto_reasons": list(self.veto_reasons),
+            "missing_bindings": list(self.missing_bindings),
+            "missing_evidence_in": list(self.missing_evidence_in),
+            "failed_preconditions": list(self.failed_preconditions),
+        }
+
+
+_RX_SLOT = re.compile(r"\$\{([a-zA-Z_][\w]*)\}")
+
+
 class SkillHarness:
     """Per-invocation runtime for skill execution and verification."""
 
@@ -79,6 +141,80 @@ class SkillHarness:
     ) -> List[EligibleSkill]:
         return self._eligibility.filter(candidates, state, skill_type_hint=skill_type_hint)
 
+    def validate_invocation(
+        self,
+        skill: SkillRecord,
+        state: StateSchema,
+        *,
+        bindings: Optional[Dict[str, Any]] = None,
+        eligible: Optional[EligibleSkill] = None,
+    ) -> ValidateInvocationResult:
+        """Day-8: structured second-pass invocation veto (PLAN-UNIFIED §3.4).
+
+        Runs *after* the actor has picked a skill from the eligibility
+        filter and bound its slots, but *before* `run_skill` mutates
+        state. Returns a `ValidateInvocationResult` whose per-check
+        booleans + veto_reasons let the actor decide whether to fall
+        through to a different skill or to surface the veto.
+
+        Three checks are wired today; a fourth (numeric `fit_score` /
+        `risk_score`) is roadmapped for Day-10+ once the LoRA scoring
+        head lands.
+
+        Pass `eligible=…` (the corresponding `EligibleSkill` from
+        `select_eligible_skills`) so the result can propagate
+        `shadow_only` faithfully into downstream `SkillEpisode`
+        artifacts.
+        """
+        bindings = dict(bindings or {})
+        veto_reasons: List[str] = []
+
+        adapter = self._registry.get(state.domain, skill.skill_type)
+        adapter_ok = adapter is not None
+        if not adapter_ok:
+            veto_reasons.append(
+                f"missing_adapter({state.domain},{skill.skill_type.value})"
+            )
+
+        missing_bindings = _check_protocol_slots(skill.protocol, bindings)
+        binding_ok = not missing_bindings
+        if not binding_ok:
+            veto_reasons.append(
+                f"missing_bindings={missing_bindings}"
+            )
+
+        failed_preconditions = _check_preconditions(skill, state, bindings)
+        precondition_ok = not failed_preconditions
+        if not precondition_ok:
+            veto_reasons.append(
+                f"preconditions_violated={failed_preconditions}"
+            )
+
+        missing_evidence_in = _check_evidence_in(skill, state)
+        evidence_ok = not missing_evidence_in
+        if not evidence_ok:
+            veto_reasons.append(
+                f"missing_evidence_in={missing_evidence_in}"
+            )
+
+        shadow_only = bool(eligible.shadow_only) if eligible is not None else False
+        ok = adapter_ok and binding_ok and precondition_ok and evidence_ok
+
+        return ValidateInvocationResult(
+            ok=ok,
+            skill_id=skill.skill_id,
+            adapter_name=adapter.name if adapter is not None else None,
+            adapter_ok=adapter_ok,
+            binding_ok=binding_ok,
+            precondition_ok=precondition_ok,
+            evidence_ok=evidence_ok,
+            shadow_only=shadow_only,
+            veto_reasons=veto_reasons,
+            missing_bindings=missing_bindings,
+            missing_evidence_in=missing_evidence_in,
+            failed_preconditions=failed_preconditions,
+        )
+
     def run_skill(
         self,
         skill: SkillRecord,
@@ -88,6 +224,7 @@ class SkillHarness:
         bindings: Optional[Dict[str, Any]] = None,
         budget: Optional[Dict[str, float]] = None,
         parent_episode_id: Optional[str] = None,
+        eligible: Optional[EligibleSkill] = None,
     ) -> SkillEpisode:
         adapter = self._registry.get(state.domain, skill.skill_type)
         episode = SkillEpisode.begin(
@@ -98,6 +235,15 @@ class SkillHarness:
             parent_run_id=parent_run_id,
             initial_state=state,
             parent_episode_id=parent_episode_id,
+        )
+        # Day-8: propagate shadow_only into the episode artifact so
+        # Stage-2 readers can distinguish shadow vs. real failures.
+        # Defaults to skill.status==SHADOW when no `eligible` is
+        # supplied — keeps prior callers' SkillEpisodes correctly
+        # tagged.
+        episode.shadow = (
+            bool(eligible.shadow_only) if eligible is not None
+            else (skill.status == SkillStatus.SHADOW)
         )
         episode.started_at = time.time()
 
@@ -234,6 +380,91 @@ class SkillHarness:
         self._failure_sink.append(trace)
 
 
+def _check_protocol_slots(
+    protocol: List[Dict[str, Any]],
+    bindings: Dict[str, Any],
+) -> List[str]:
+    """Return the sorted list of `${slot}` placeholders that appear in
+    `protocol` but are not filled by `bindings`.
+
+    The protocol's slot syntax is ``${name}`` (matching
+    `harness/adapters/_common.py::resolve_slot`). We scan every hop's
+    string-valued payload entries and collect every unique slot name.
+    Bindings are *case-sensitive* and must exactly match the slot
+    name; alternative-name aliasing is the actor's responsibility.
+    """
+    found: set = set()
+    for hop in protocol or []:
+        if not isinstance(hop, dict):
+            continue
+        payload = hop.get("payload") or hop.get("args") or {}
+        for v in (payload or {}).values():
+            if isinstance(v, str):
+                for m in _RX_SLOT.finditer(v):
+                    found.add(m.group(1))
+    missing = sorted(s for s in found if s not in bindings)
+    return missing
+
+
+def _check_preconditions(
+    skill: SkillRecord,
+    state: StateSchema,
+    bindings: Dict[str, Any],
+) -> List[str]:
+    """Return the sorted list of `skill.contract.preconditions` strings
+    we *cannot prove* hold against `state` + `bindings`.
+
+    Preconditions are free-form strings in the cold-start corpus
+    (e.g. ``"a slidable direction exists"``); we don't have a logic
+    checker for them yet. The Day-8 stub does the syntactic check
+    every PLAN-UNIFIED §3.4 implementation must do as a baseline:
+
+      1. Slot-references in preconditions (``${X}``) must be in
+         bindings.
+      2. The empty-string precondition is silently ignored.
+
+    This is the conservative-pass policy — when we *can't* check, we
+    pass. The formal-precondition checker is Day-9+ work and lands
+    when the lift starts emitting typed predicate ASTs (the same lift
+    that emits typed effects today).
+    """
+    failures: List[str] = []
+    for raw in skill.contract.preconditions or []:
+        cond = (raw or "").strip()
+        if not cond:
+            continue
+        for m in _RX_SLOT.finditer(cond):
+            if m.group(1) not in bindings:
+                failures.append(f"unbound_slot_in_precondition:{m.group(1)}")
+    return sorted(set(failures))
+
+
+def _check_evidence_in(skill: SkillRecord, state: StateSchema) -> List[str]:
+    """Return the sorted list of evidence roles the contract advertises
+    as ``expected_evidence_roles`` but the current `state.evidence`
+    doesn't surface.
+
+    PLAN-HARNESS §10's spec calls this `evidence_in` (vs. `evidence_out`
+    which the episode adds). For the Day-8 baseline we read the contract's
+    `expected_evidence_roles` as the input requirement — the lift will
+    eventually split these into in/out roles, at which point this check
+    tightens to the input subset only.
+
+    REASONING / GROUNDING / MIXED skills *always* require non-empty
+    evidence by G0; ACTION skills are exempt — they consume world-state
+    rather than evidence. We honour that here so the Day-8 veto doesn't
+    block the gymv ACTION path.
+    """
+    if skill.skill_type == SkillType.ACTION:
+        return []
+    required = list(skill.contract.expected_evidence_roles or [])
+    if not required:
+        return []
+    present_roles = {ev.role for ev in (state.evidence or []) if getattr(ev, "role", None)}
+    missing = sorted(set(required) - present_roles)
+    return missing
+
+
 def _classify_abort(reason: Optional[str]) -> str:
     if not reason:
         return "UNKNOWN"
@@ -251,4 +482,4 @@ def _classify_abort(reason: Optional[str]) -> str:
     return "OTHER"
 
 
-__all__ = ["HarnessConfig", "SkillHarness"]
+__all__ = ["HarnessConfig", "SkillHarness", "ValidateInvocationResult"]

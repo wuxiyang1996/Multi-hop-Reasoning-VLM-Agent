@@ -168,6 +168,12 @@ class FewShotAdapter:
         the lifecycle path can append it to `verified_tasks` on success.
         Pass `None` to fall back to pre-task-axis behaviour.
 
+        Day-5: when ``target_task`` is set AND ``target_domain`` is in
+        ``SOURCE_DOMAINS`` (e.g. ``gymv``), this is an **intra-domain
+        task transfer** — the milestone PLAN-HARNESS §22 was scoped
+        for. The cross-domain validation (which would reject ``gymv``
+        as a target) is relaxed in that case.
+
         Returns an `AdaptResult` in all cases — even when the
         configuration prevents real execution (e.g. no adapter
         registered for `target_domain`). The diagnostic_label encodes
@@ -175,7 +181,11 @@ class FewShotAdapter:
         `false_binding_patterns` (PLAN-SKILL-BANK §4.3b).
         """
 
-        self._validate(skill=skill, target_domain=target_domain)
+        self._validate(
+            skill=skill,
+            target_domain=target_domain,
+            target_task=target_task,
+        )
 
         k_use = self._clip_k(k)
         started = time.time()
@@ -230,6 +240,16 @@ class FewShotAdapter:
         if synthetic:
             diagnostic = "target_domain_demo_unavailable"
 
+        # Day-6: when the orchestrator left ``self._success_fn`` at the
+        # default (`default_success_fn`) AND a domain-specific scorer
+        # is registered for `target_domain`, use the registered one.
+        # Explicit overrides still win — passing a custom scorer at
+        # FewShotAdapter construction time bypasses the registry.
+        scorer = self._success_fn
+        if scorer is default_success_fn:
+            from harness.gymv_success import success_fn_for_domain
+            scorer = success_fn_for_domain(target_domain, fallback=scorer)
+
         for shot in used:
             shot_state = self._coerce_state_to_target(
                 shot.state, target_domain, target_task=target_task
@@ -243,7 +263,7 @@ class FewShotAdapter:
             episode_ids.append(episode.episode_id)
             cost_tokens += float(episode.cost.get("tokens", 0.0))
             cost_ms += float(episode.cost.get("ms", 0.0))
-            score = self._success_fn(episode, shot)
+            score = scorer(episode, shot)
             if score >= 1.0:
                 n_success += 1
             elif episode.outcome is None or not episode.outcome.success:
@@ -306,11 +326,27 @@ class FewShotAdapter:
             raise FewShotAdapterError("k must be ≥ 1")
         return min(k, self._k_shot_max)
 
-    def _validate(self, *, skill: SkillRecord, target_domain: str) -> None:
-        if target_domain not in TRANSFER_TARGET_DOMAINS:
+    def _validate(
+        self,
+        *,
+        skill: SkillRecord,
+        target_domain: str,
+        target_task: Optional[str] = None,
+    ) -> None:
+        # Day-5: intra-source-domain task transfer (e.g. gymv→gymv with
+        # target_task="tetris") is allowed when target_task is set and
+        # target_domain is a source domain. This is the PLAN-HARNESS
+        # §22 task-axis milestone — the cross-domain transfer set is a
+        # separate concern that doesn't apply here.
+        intra_domain_task_transfer = (
+            target_task is not None
+            and target_domain in SOURCE_DOMAINS
+        )
+        if not intra_domain_task_transfer and target_domain not in TRANSFER_TARGET_DOMAINS:
             raise FewShotAdapterError(
                 f"target_domain={target_domain!r} is not in "
-                f"TRANSFER_TARGET_DOMAINS={TRANSFER_TARGET_DOMAINS}"
+                f"TRANSFER_TARGET_DOMAINS={TRANSFER_TARGET_DOMAINS} "
+                f"(intra-domain task transfer requires target_task)"
             )
         if skill.source_domains and not any(
             d in SOURCE_DOMAINS for d in skill.source_domains
