@@ -509,7 +509,189 @@ Open design questions, in rough order of priority:
 
 ---
 
-## 7. TL;DR
+## 7. Gap analysis: where the Crafter doesn't yet fit our setting
+
+The two-tier trigger + coalesce + cooldown work landed because the
+Crafter's *plumbing* was correct but its *operational regime* was noisy.
+Stepping back further: the Crafter is built for the steady-state
+(actor → harness → SkillEpisode → Crafter → gate → orchestrator)
+multi-domain pipeline that the four PLAN documents converge on. We are
+not in that regime today. This section captures, on the record, the
+five mismatches between Crafter assumptions and the actual data plane,
+and offers a binary lane decision the next contributor needs to make
+before adding more Crafter logic.
+
+### 7.1 Five mismatches between Crafter assumptions and current state
+
+| # | Crafter assumes | Current reality | Evidence in this repo |
+|---|---|---|---|
+| 1 | `EpisodeReflection.skill_episodes` is populated by a live Harness emitting one record per skill invocation | No live Harness wired (`Actor rewire` still pending in [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet delivered"). Cold-start data has zero `SkillEpisode`s | The offline mirror under [`labeling_supplement/reflect_per_episode_gpt54.py`](../labeling_supplement/reflect_per_episode_gpt54.py) passes `skill_episodes=[]` and **synthesizes** `FailureTrace`s from per-step heuristics (`OUTCOME_FAILURE`, `EMPTY_QUERY`, `LOW_APPLICABILITY`, `MISSING_EFFECTS`). Failures aren't *observed*, they're *synthesized post-hoc* |
+| 2 | The actor invokes a skill — its protocol drives a span of action choices, and a "skill failure" means the protocol's claimed effects didn't materialize | The actor *consults* skills as retrieval context (`decision_agents.skill_interface.SkillBankProvider`); it never delegates control flow to a skill protocol. The actor still picks every action itself | A failed step labelled with a selected skill is at best correlated with that skill, not caused by it. The Repairer's protocol-patch logic is therefore patching a skill that had no agency over the failure |
+| 3 | Skills carry typed protocols (ordered list of `{action, payload}` hops) and structured contracts (effects_add/del, expected_evidence_roles) | Cold-start "skills" are intention-axis labels (`COMMIT/ATTACK`, `RECOVER/EVADE`) with NL-string protocols emitted by the teacher | The mirror has [`_wrap_protocol_steps`](../labeling_supplement/reflect_per_episode_gpt54.py) wrapping NL strings as `{"action": "EXEC", "notes": <string>}` just to keep `Repairer._rule_repair`'s `[dict(h) for h in base.protocol]` from crashing. The wrap is a band-aid; an inserted `VERIFY` hop next to NL transcript steps is semantically incoherent |
+| 4 | Skills declare `feasible_domains ⊆ {gymv, browser, osworld, video, visual_reasoning}` with ≥2 for ACTIVE; Generalizer / Composer / subsumption-retire all rely on multi-domain reach | Cold-start bank ships every skill with `feasible_domains=["gymv"]` (single domain) | On the real cold-start corpus (340 episodes, 17 sources): `n_subsumption_retires=0`; `Composer` / `Generalizer` are not wired into the per-episode path and the per-batch path has no cross-domain co-occurrence to chew on. All 23 fresh `PatchProposal`s in the post-fix run were `recovery_strategy=hop_insertion` — the exact same canned edit, applied N times across N skills |
+| 5 | The diagnoser → repairer chain extracts new information from a failure (root cause, recommended strategy, concrete edit) | With `_llm=None` defaults (the Phase-1 baseline), the chain is rule-based and deterministic | The closed loop is `synthesizer-label → diagnoser-rule → repairer-rule`. No new analysis enters: my `LOW_APPLICABILITY` heuristic mechanically becomes a `PRECONDITION_STRENGTHENING` patch with `contract.preconditions += ["preconditions_strengthened"]`. The Crafter is currently a relabeling function over the synthesizer's output |
+
+The Crafter is not broken. It is **operating downstream of an empty
+data plane**, with synthesized inputs and rule-based proposers, on a
+single-domain cold-start bank whose atomic unit doesn't shape-match
+its protocol expectations.
+
+### 7.2 What's working — preserve through any redesign
+
+Some of the work landed in this slice is independent of the lane
+decision below and pays back in any future state:
+
+* **Two-tier trigger model + coalesce + cooldown** (§"Two-tier trigger
+  model"). The 11.3× → 1.0× collapse is real and the noise filters
+  scale to the steady state too — they're not cold-start patches,
+  they're permanent gates against per-episode write amplification.
+* **Lifecycle invariants** — bank-write isolation, ≥2 domains for
+  ACTIVE, status-mutation-only-via-lifecycle (PLAN-SKILL-BANK §0.4 +
+  `IMPLEMENTATION-STATUS.md` §"Invariants enforced"). These are the
+  guards the gate stack rests on; do not relax them under any lane.
+* **Architectural invariants** — Crafter never imports
+  `skill_bank.stores`, only `SkillCrafterService` may build a
+  `BankView`. These prevent a future contributor from accidentally
+  growing a back-channel into the active store.
+* **Audit trail / artifact-store / proposal schema** — `put_proposal`,
+  `append_audit`, the typed `BankMutationProposal` union. The
+  serialization story is solid and reusable.
+
+### 7.3 The lane decision: what *is* a skill?
+
+The deepest unresolved question is one of definition. The Crafter
+makes sense in two coherent regimes; we are currently in neither.
+Pick before adding more Crafter logic.
+
+| | **Lane (a) — Context-only skills** | **Lane (b) — Executable skills** |
+|---|---|---|
+| **What is a skill?** | A semantic retrieval payload: name, description, preconditions/effects/role labels. Used by the actor for *reasoning context* during action choice | A runnable program: ordered, typed protocol hops dispatched via `harness.skill_adapter`. A skill invocation owns N actor steps until success/abort |
+| **Who picks the action?** | Actor, every step, with retrieved skills as context | Skill protocol while invoked; actor only picks when no skill is invoked or the active skill aborts |
+| **What does failure mean?** | Bank gap (no skill matched) or retrieval-quality failure (the matched skill misled reasoning) | Skill protocol failure (a hop's claimed effect didn't materialize, or the contract's abort criterion fired) |
+| **Crafter modes that retain meaning** | Hypothesizer (mint a skill for a recurring uncovered situation), partial Composer (synthesize a better retrieval payload from co-firing labels), Retire (drop low-utility retrievers) | All five modes (Compose / Generalize / Hypothesize / Patch / Retire) work as designed in PLAN-SKILL-CRAFTER §6.5 |
+| **Crafter modes that go dark** | **Repairer is largely dead code.** Patching a non-executable retrieval payload is a no-op — there is no protocol to patch. `RecoveryStrategy.{HOP_INSERTION, PROTOCOL_PATCH, FALLBACK_INJECTION, REGROUNDING_TRIGGER, SKILL_DECOMPOSITION}` lose meaning | None — every mode has a target |
+| **What `FailureTrace.skill_id` means** | The retrieved skill that was *consulted* during the failed step. Attribution is correlational; needs a `skill_fault_confidence` to be actionable | The skill that *owned* the failed step. Attribution is causal; the existing `failed_step_index` + `contract_violation` fields are sufficient |
+| **What `protocol` looks like** | Optional. Could be NL guidance for the actor or empty | Required. List of typed `{action, payload}` hops dispatched through an adapter |
+| **Cold-start fit** | High — current bank ships exactly this shape (NL protocol steps consumed as guidance) | Low — would require a second cold-start pipeline that mints adapter-compatible action sequences, not NL transcripts |
+| **Multi-domain story** | Skills generalise via *retrieval embeddings*; Generalizer's role becomes "this skill's retrieval profile matches situations in domain Y" | Skills generalise via *adapter binding*; Generalizer emits few-shot adaptation recipes (the current `GeneralizeProposal.{source_domain, target_domain, slot_remap, demo_*}` fields) |
+| **Gate stack changes** | G0 needs to redefine "evidence" for a non-executable skill (replay no longer applicable). G3/G5 need new metrics on retrieval quality | Gate stack runs as designed; replay validation = re-execute the patched protocol against the original episode |
+
+#### Honest read
+
+We are de-facto in lane (a) today (the actor reasons over retrieved
+skills) but the Crafter is built for lane (b) (it patches protocols).
+The misalignment is what produces the symptoms in §7.1. Forcing the
+codebase to lane (b) is the bigger lift but matches the four PLAN
+documents' intent. Embracing lane (a) shrinks the Crafter sharply but
+matches the cold-start data shape.
+
+### 7.4 Phased path forward, by lane
+
+Both lanes share one strict prerequisite: **wire the Harness →
+SkillEpisode pipeline first**. Until rollouts emit live `SkillEpisode`s
+(and therefore live `FailureTrace`s with causal attribution), every
+Crafter pass is operating on synthesized inputs and the §7.1 closed-
+loop determinism applies.
+
+#### Common (do this first regardless of lane)
+
+1. **Actor rewire** — replace `decision_agents.skill_interface.SkillBankProvider`
+   with a `HarnessSkillProvider` per `IMPLEMENTATION-STATUS.md`
+   §"Not yet delivered". Source: `harness/skill_harness.py` already
+   exposes `select_eligible_skills`; the wrapper is small.
+2. **Live `SkillEpisode` emission** — the actor (or harness) logs one
+   record per skill invocation/consultation, with the skill_id,
+   step indices, and outcome. Schema already exists in
+   `data_structure/extensions/skill_episode.py`.
+3. **`FailureTrace` from real signals** — emit `FailureTrace` from the
+   Harness when a skill's contract is violated *during execution*, not
+   from offline heuristics. Add `skill_fault_confidence ∈ [0,1]` to
+   the trace so the Crafter can filter actor-fault failures out.
+
+After this prereq, both lanes have something real to consume.
+
+#### Lane (a) — context-only skills (smaller Crafter scope)
+
+If we accept that skills are retrieval payloads and not runnable
+programs:
+
+1. **Quarantine the Repairer.** Move `crafter/repairer.py` and the
+   `PatchProposal` mint path behind a feature flag
+   (`SkillCrafterService(enable_protocol_patching=False)` default).
+   Cold-start tests stay green; live runs default to the Repairer
+   being inert.
+2. **Reshape `FailureClass` taxonomy.** The current six recovery
+   strategies are protocol-edit operations. Replace with a
+   retrieval-centric taxonomy: `BANK_GAP`, `RETRIEVAL_MISLEAD`,
+   `STALE_DESCRIPTION`. The Crafter's job becomes "tell the bank
+   curator what to mint, retire, or rewrite."
+3. **Strengthen the Hypothesizer.** Without protocol patching, the
+   Hypothesizer is the primary mode. Wire the LLM hook
+   (`set_llm_hypothesizer`) and route through the Phase-F frozen
+   teacher (`SkillCrafterService.set_teacher_model`).
+4. **Repurpose `Composer`.** From "compose protocols" to "compose
+   retrieval payloads": merge two skills with overlapping retrieval
+   profiles into a single richer payload. Concrete proposal type:
+   `MergeProposal{absorbed_ids, merged_description, merged_tags}`.
+5. **Drop the multi-domain ACTIVE invariant for retrieval skills.**
+   Replace with a `min_retrievals_per_skill` threshold (a skill that
+   never gets retrieved is dead, regardless of domain count).
+
+Effort estimate: 2-3 sessions. Most of the existing Crafter code
+becomes dead but stays in tree behind the flag for a possible future
+lane-(b) flip.
+
+#### Lane (b) — executable skills (full PLAN intent)
+
+If we commit to the four PLAN documents' vision:
+
+1. **Replace the cold-start protocol shape.** Today's NL transcript
+   steps need to become typed action sequences compatible with
+   `harness/adapters/{gymv_adapter, browser_adapter}.py`. This
+   probably means a new cold-start labeling pass that converts
+   `Press fire button to initiate enemy volley` → `{"action":
+   "PRESS_KEY", "payload": {"key": "FIRE"}}`. Source: an extension to
+   `cold_start_labeling/build_skill_bank_gymv.py`.
+2. **Two-domain bootstrap for cold-start.** Every cold-start skill
+   ships with at least one source domain and one *stub* target
+   domain (e.g. `feasible_domains=["gymv", "_pending_transfer"]`)
+   that the few-shot adaptation gate eventually replaces with a real
+   binding. Unblocks ACTIVE promotion + subsumption-retire.
+3. **Wire the LLM hooks on `FailureDiagnoser`, `Hypothesizer`,
+   `Repairer`.** Phase-F frozen teacher routing is partially in
+   (`SkillCrafterService.with_qwen3_vl_teacher`,
+   `phase_f_teacher_from_env`); the missing piece is provider-side
+   routing per `IMPLEMENTATION-STATUS.md` line 100-104. Until those
+   hooks are live, the rule path produces the §7.1 closed-loop output.
+4. **Activate Composer + Generalizer on the per-batch path.** Both
+   need cross-episode statistics from real `SkillEpisode`s; once the
+   prereq pipe is wired, expose them as failure-driven dispatchers
+   alongside the Repairer (the existing `_run_failure_dispatch`
+   already accommodates them, the per-batch entry point just needs to
+   call them).
+5. **Real failure tests.** Replace the synthesized-failure offline
+   mirror tests with rollout-fed integration tests once the live
+   Harness is wired. Keep `labeling_supplement/` as the deterministic-
+   replay sibling.
+
+Effort estimate: 4-6 sessions, plus a fresh cold-start labeling pass.
+The Crafter code stays approximately as-is; the surrounding
+infrastructure catches up to it.
+
+### 7.5 Until a lane is picked
+
+Don't add more Crafter modes or proposers. The current code is the
+right shape for lane (b) and the wrong shape for lane (a); growing it
+in either direction commits a lane choice by accident. The
+two-tier-trigger + coalesce + cooldown work was lane-neutral noise
+control and that's why it landed cleanly. Future Crafter additions
+should be either (i) lane-neutral plumbing (audit-trail extensions,
+new metric surfaces), or (ii) explicit lane-(a) / lane-(b) work behind
+a flag with the choice documented here.
+
+---
+
+## 8. TL;DR
 
 * **Three roles, three responsibilities, three artefact families.** The
   Crafter writes proposals, the Harness writes gate verdicts, the
@@ -545,3 +727,10 @@ Open design questions, in rough order of priority:
   directory. The on-disk JSONL is the only shared API. This is what
   makes the mirror replaceable — when the live Harness ships, swap
   the driver, keep the JSONL contract.
+* **Open question (§7).** The Crafter is built for the steady-state
+  pipeline (live Harness → `SkillEpisode` → typed protocol patching →
+  multi-domain ACTIVE), but we are operating on synthesized
+  per-step heuristics, a single-domain cold-start bank, and an actor
+  that *consults* skills rather than *executing* their protocols.
+  Read §7 before adding new Crafter modes — the lane decision (skills
+  as retrieval payloads vs. runnable programs) needs to land first.
