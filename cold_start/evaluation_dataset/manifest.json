@@ -1,0 +1,269 @@
+{
+  "kind": "cold_start.evaluation_dataset",
+  "version": 1,
+  "seed": 0,
+  "built_at_utc": "2026-05-01T04:53:47+00:00",
+  "builder": {
+    "script": "cold_start/evaluation_dataset/build_pool_and_holdout.py",
+    "python": "3.11.15"
+  },
+  "args": {
+    "osworld_pool": 250,
+    "osworld_holdout": 50,
+    "vtb_pool": 300,
+    "vtb_holdout": 100,
+    "tir_pool": 300,
+    "tir_holdout": 100,
+    "vh_pool": 1000,
+    "vh_holdout": 200,
+    "siv_pool": 400,
+    "siv_holdout": 100
+  },
+  "sizes": {
+    "osworld": {
+      "pool": 250,
+      "holdout": 50
+    },
+    "visual_toolbench": {
+      "pool": 300,
+      "holdout": 100
+    },
+    "tir_bench": {
+      "pool": 300,
+      "holdout": 100
+    },
+    "video_holmes": {
+      "pool": 1000,
+      "holdout": 200
+    },
+    "siv_bench": {
+      "pool": 400,
+      "holdout": 100
+    }
+  },
+  "axis_distribution": {
+    "osworld": {
+      "pool": {
+        "size": 250,
+        "axis_distribution": {
+          "gimp": 27,
+          "libreoffice_calc": 35,
+          "thunderbird": 16,
+          "chrome": 36,
+          "vs_code": 25,
+          "os": 26,
+          "libreoffice_impress": 36,
+          "libreoffice_writer": 26,
+          "vlc": 3,
+          "base_setup": 9,
+          "multi_apps": 11
+        }
+      },
+      "holdout": {
+        "size": 50,
+        "axis_distribution": {
+          "gimp": 5,
+          "chrome": 7,
+          "libreoffice_impress": 7,
+          "thunderbird": 4,
+          "vs_code": 5,
+          "libreoffice_calc": 7,
+          "vlc": 1,
+          "os": 5,
+          "libreoffice_writer": 5,
+          "base_setup": 2,
+          "multi_apps": 2
+        }
+      }
+    },
+    "visual_toolbench": {
+      "pool": {
+        "size": 300,
+        "axis_distribution": {
+          "physics": 16,
+          "biology": 18,
+          "finance": 53,
+          "sports": 54,
+          "maths": 18,
+          "medical": 54,
+          "chemistry": 16,
+          "generalist": 53,
+          "engineering": 18
+        }
+      },
+      "holdout": {
+        "size": 100,
+        "axis_distribution": {
+          "maths": 6,
+          "medical": 17,
+          "finance": 18,
+          "engineering": 6,
+          "sports": 17,
+          "generalist": 18,
+          "chemistry": 6,
+          "biology": 6,
+          "physics": 6
+        }
+      }
+    },
+    "tir_bench": {
+      "pool": {
+        "size": 300,
+        "axis_distribution": {
+          "spot_difference": 23,
+          "instrument": 24,
+          "ocr": 23,
+          "color": 24,
+          "maze": 23,
+          "jigsaw": 22,
+          "word_search": 24,
+          "rotation_game": 22,
+          "symbolic": 23,
+          "math": 23,
+          "contrast": 23,
+          "refcoco": 23,
+          "visual_search": 23
+        }
+      },
+      "holdout": {
+        "size": 100,
+        "axis_distribution": {
+          "jigsaw": 8,
+          "contrast": 8,
+          "refcoco": 8,
+          "symbolic": 8,
+          "math": 7,
+          "color": 7,
+          "word_search": 7,
+          "ocr": 8,
+          "maze": 8,
+          "rotation_game": 8,
+          "visual_search": 8,
+          "instrument": 7,
+          "spot_difference": 8
+        }
+      }
+    },
+    "video_holmes": {
+      "pool": {
+        "size": 1000,
+        "axis_distribution": {
+          "PAR": 143,
+          "TA": 142,
+          "CTI": 143,
+          "IMC": 143,
+          "SR": 143,
+          "TCI": 142,
+          "MHR": 144
+        }
+      },
+      "holdout": {
+        "size": 200,
+        "axis_distribution": {
+          "CTI": 29,
+          "TA": 29,
+          "TCI": 29,
+          "SR": 29,
+          "IMC": 28,
+          "MHR": 27,
+          "PAR": 29
+        }
+      }
+    },
+    "siv_bench": {
+      "pool": {
+        "size": 400,
+        "axis_distribution": {
+          "Factual Prediction": 40,
+          "Facial Expression Recognition": 40,
+          "Counterfactual Prediction": 40,
+          "Environment Perception": 40,
+          "Human Attribute Identification": 40,
+          "Attitude Inference": 40,
+          "Emotion Inference": 40,
+          "Action Recognition": 40,
+          "Relation Inference": 40,
+          "Intent Inference": 40
+        }
+      },
+      "holdout": {
+        "size": 100,
+        "axis_distribution": {
+          "Attitude Inference": 10,
+          "Action Recognition": 10,
+          "Factual Prediction": 10,
+          "Emotion Inference": 10,
+          "Human Attribute Identification": 10,
+          "Intent Inference": 10,
+          "Facial Expression Recognition": 10,
+          "Counterfactual Prediction": 10,
+          "Environment Perception": 10,
+          "Relation Inference": 10
+        }
+      }
+    }
+  },
+  "files": {
+    "pool/osworld.txt": {
+      "sha256": "9eb2cd139e2d4bb9d844431f20667fd20f36ca0f03e4a38956cb3d1613066cff",
+      "bytes": 9489,
+      "ids": 250
+    },
+    "pool/osworld_catalog.json": {
+      "sha256": "a2537cf648f74f5a70ae93579b35a71eb69f1b28014b379dc8b086dd2321fad9",
+      "bytes": 11218,
+      "ids": 250
+    },
+    "pool/siv_bench.txt": {
+      "sha256": "bd08671c506bd2f893f3b4e7a4f35ed91c0c73fdd571200eb41bfbc6540a2b94",
+      "bytes": 11437,
+      "ids": 400
+    },
+    "pool/tir_bench.txt": {
+      "sha256": "5395d0d6b11a6e85b6cb9dd1ac91179c4457ba2e8436e121385fb52bd34d1b62",
+      "bytes": 1480,
+      "ids": 300
+    },
+    "pool/video_holmes.txt": {
+      "sha256": "54f9bfa7ced5a3173d4b0be8e6a4da31a6e4f7c94624e82791a0f5b7996d72b6",
+      "bytes": 17547,
+      "ids": 1000
+    },
+    "pool/visual_toolbench.txt": {
+      "sha256": "27e1ae2378eeeaa27502ccbf58e0ada98863074df8df3c55e551f69e114a9583",
+      "bytes": 7703,
+      "ids": 300
+    },
+    "holdout/osworld.txt": {
+      "sha256": "83e46243c3d56cf0d2e859b600ce0d6ab4d31c0561d06d047ec8e8035d259b43",
+      "bytes": 2097,
+      "ids": 50
+    },
+    "holdout/osworld_catalog.json": {
+      "sha256": "3b0cf378c2de29c6f42b7ae419742aaee94867d059ded9d8911b8227655ec9d3",
+      "bytes": 2418,
+      "ids": 50
+    },
+    "holdout/siv_bench.txt": {
+      "sha256": "c2968481ff208cc12632fd6c29d41dfbc16b41d3e119a10e8dcd4dce147f36d5",
+      "bytes": 3110,
+      "ids": 100
+    },
+    "holdout/tir_bench.txt": {
+      "sha256": "db6a113ec6e4da425f727f67bf0886dec67bc0d6b26b2d3d4cace8b3ae54c3fb",
+      "bytes": 670,
+      "ids": 100
+    },
+    "holdout/video_holmes.txt": {
+      "sha256": "7402a4dda3593207ac489d98b9fc0fc454d2a6e5e8f32476b382c3a7b8d2672f",
+      "bytes": 3636,
+      "ids": 200
+    },
+    "holdout/visual_toolbench.txt": {
+      "sha256": "b142125e9ec930815b6a3112f45f397e5bf8b44294381068b7babf23c89e8dde",
+      "bytes": 2717,
+      "ids": 100
+    }
+  },
+  "notes": "Pool/holdout disjoint by construction; per-bucket proportional split guarantees every category in pool also appears in holdout when bucket has >=2 sampled items. Re-run build_pool_and_holdout.py at any time \u2014 manifests are byte-stable for fixed seed + dataset versions."
+}

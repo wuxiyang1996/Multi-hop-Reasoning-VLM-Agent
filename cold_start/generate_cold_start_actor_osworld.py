@@ -461,6 +461,9 @@ def _build_client_and_route(
     return client, model
 
 
+_VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high")
+
+
 def _chat_completion(
     client: Any,
     *,
@@ -470,14 +473,29 @@ def _chat_completion(
     max_tokens: int,
     tools: Optional[list] = None,
     tool_choice: Any = None,
+    reasoning_effort: Optional[str] = None,
 ):
-    """Cross-model chat-completion wrapper (handles gpt-5.x / o1/o3/o4)."""
+    """Cross-model chat-completion wrapper (handles gpt-5.x / o1/o3/o4).
+
+    ``reasoning_effort`` ∈ {minimal, low, medium, high} is forwarded only
+    for reasoning models; ignored otherwise.  ``minimal`` suppresses
+    hidden thinking tokens — recommended default for cold-start data
+    generation since the SFT student only learns from the visible
+    ``<state>`` and action JSON.
+    """
     if _is_reasoning_model(model):
         kwargs: Dict[str, Any] = {
             "model": model,
             "messages": messages,
             "max_completion_tokens": max(6000, max_tokens * 4),
         }
+        if reasoning_effort:
+            if reasoning_effort not in _VALID_REASONING_EFFORTS:
+                raise ValueError(
+                    f"reasoning_effort must be one of {_VALID_REASONING_EFFORTS}, "
+                    f"got {reasoning_effort!r}"
+                )
+            kwargs["reasoning_effort"] = reasoning_effort
         if tools is not None:
             kwargs["tools"] = tools
         if tool_choice is not None:
@@ -663,6 +681,7 @@ def generate_schema_from_image(
     max_entities: int = _DEFAULT_MAX_ENTITIES,
     som_elements: Optional[List[Any]] = None,
     som_helpers: Optional[Dict[str, Any]] = None,
+    reasoning_effort: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Call gpt-5.5 (vision) on the screenshot to produce a ``<state>`` schema.
 
@@ -773,6 +792,7 @@ def generate_schema_from_image(
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            reasoning_effort=reasoning_effort,
         )
         if resp.choices:
             choice = resp.choices[0]
@@ -1275,6 +1295,7 @@ def select_action(
     som_helpers: Optional[Dict[str, Any]] = None,
     last_action_was_noop: bool = False,
     last_failed_action: Optional[str] = None,
+    reasoning_effort: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str], str, Optional[str]]:
     """Call gpt-5.5 with the schema → ``(action, reasoning, raw, error)``."""
     if not candidate_actions:
@@ -1429,6 +1450,7 @@ def select_action(
             max_tokens=max_tokens,
             tools=tools,
             tool_choice={"type": "function", "function": {"name": "choose_action"}},
+            reasoning_effort=reasoning_effort,
         )
         choice = resp.choices[0]
         msg = choice.message
@@ -1584,6 +1606,7 @@ def run_actor_episode(
     done_nudge_step: int = DEFAULT_DONE_NUDGE_STEP,
     use_som: bool = DEFAULT_USE_SOM,
     som_max_elements: int = DEFAULT_SOM_MAX_ELEMENTS,
+    reasoning_effort: Optional[str] = None,
 ) -> Tuple[Episode, Dict[str, Any]]:
     """Run one OSWorld episode end-to-end and return ``(Episode, stats)``."""
     osworld_obs_to_schema_heuristic = _import_osworld_heuristic()
@@ -1715,6 +1738,7 @@ def run_actor_episode(
                     max_entities=max_entities,
                     som_elements=som_elements,
                     som_helpers=som_helpers,
+                    reasoning_effort=reasoning_effort,
                 )
                 schema_calls += 1
                 if schema_meta.get("source") == "vlm":
@@ -1746,6 +1770,7 @@ def run_actor_episode(
                 som_helpers=som_helpers,
                 last_action_was_noop=last_action_was_noop,
                 last_failed_action=last_action if last_action_was_noop else None,
+                reasoning_effort=reasoning_effort,
             )
             if action is not None:
                 action_llm_ok += 1
@@ -2157,6 +2182,7 @@ def run_task_rollouts(
                 som_max_elements=getattr(
                     args, "som_max_elements", DEFAULT_SOM_MAX_ELEMENTS
                 ),
+                reasoning_effort=getattr(args, "reasoning_effort", None),
             )
             stats["episode_index"] = ep_idx
             print(
@@ -2392,6 +2418,19 @@ def main():
     parser.add_argument(
         "--max_steps", type=int, default=DEFAULT_MAX_STEPS,
         help=f"Max outer steps per episode (default: {DEFAULT_MAX_STEPS})",
+    )
+    parser.add_argument(
+        "--reasoning_effort", "--reasoning-effort",
+        type=str, default=None,
+        choices=list(_VALID_REASONING_EFFORTS),
+        help=(
+            "OpenAI reasoning_effort knob for gpt-5.x / o1 / o3 / o4. "
+            "One of {minimal, low, medium, high}. Default: unset (= "
+            "OpenAI default 'medium'). Recommended for cold-start data "
+            "generation: 'minimal' — the SFT student only learns from "
+            "the visible <state> and pyautogui action, so hidden "
+            "thinking is wasted spend."
+        ),
     )
     parser.add_argument(
         "--max_entities", type=int, default=_DEFAULT_MAX_ENTITIES,

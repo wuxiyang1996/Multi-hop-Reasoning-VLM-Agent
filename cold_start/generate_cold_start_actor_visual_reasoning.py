@@ -417,6 +417,9 @@ def _build_client_and_route(
     return client, model
 
 
+_VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high")
+
+
 def _chat_completion(
     client: Any,
     *,
@@ -426,14 +429,30 @@ def _chat_completion(
     max_tokens: int,
     tools: Optional[list] = None,
     tool_choice: Any = None,
+    reasoning_effort: Optional[str] = None,
 ):
-    """Cross-model chat-completion wrapper (handles gpt-5.x reasoning models)."""
+    """Cross-model chat-completion wrapper (handles gpt-5.x reasoning models).
+
+    ``reasoning_effort`` ∈ {minimal, low, medium, high} is forwarded only
+    for reasoning models; ignored otherwise.  Visual MCQ benchmarks
+    benefit more from hidden chain-of-thought than the env pipelines
+    (multi-hop social-causal inference, tool-use composition) — set
+    ``medium`` if teacher answer correctness is the bottleneck;
+    ``minimal`` if you've measured equal accuracy at lower spend.
+    """
     if _is_reasoning_model(model):
         kwargs: Dict[str, Any] = {
             "model": model,
             "messages": messages,
             "max_completion_tokens": max(6000, max_tokens * 4),
         }
+        if reasoning_effort:
+            if reasoning_effort not in _VALID_REASONING_EFFORTS:
+                raise ValueError(
+                    f"reasoning_effort must be one of {_VALID_REASONING_EFFORTS}, "
+                    f"got {reasoning_effort!r}"
+                )
+            kwargs["reasoning_effort"] = reasoning_effort
         if tools is not None:
             kwargs["tools"] = tools
         if tool_choice is not None:
@@ -531,6 +550,7 @@ def generate_schema_from_visual(
     schema_helpers: Dict[str, Any],
     temperature: float = 0.2,
     max_tokens: int = _SCHEMA_MAX_TOKENS,
+    reasoning_effort: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Call gpt-5.5 (vision) -> ``<state>...</state>`` schema for one sample.
 
@@ -612,6 +632,7 @@ def generate_schema_from_visual(
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            reasoning_effort=reasoning_effort,
         )
         if resp.choices:
             choice = resp.choices[0]
@@ -759,6 +780,7 @@ def select_action_from_schema(
     routed_model: str,
     temperature: float = 0.4,
     max_tokens: int = _ACTION_MAX_TOKENS,
+    reasoning_effort: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str], str, Optional[str]]:
     """Call gpt-5.5 with the schema -> ``(answer, reasoning, raw, error)``."""
     if client is None:
@@ -816,6 +838,7 @@ def select_action_from_schema(
             max_tokens=max_tokens,
             tools=tools,
             tool_choice={"type": "function", "function": {"name": "choose_answer"}},
+            reasoning_effort=reasoning_effort,
         )
         choice = resp.choices[0]
         msg = choice.message
@@ -1339,6 +1362,7 @@ def _run_one_sample(
             schema_helpers=schema_helpers,
             temperature=args.temperature_schema,
             max_tokens=budget,
+            reasoning_effort=getattr(args, "reasoning_effort", None),
         )
     else:
         schema_meta = {
@@ -1364,6 +1388,7 @@ def _run_one_sample(
         client=client,
         routed_model=routed_model,
         temperature=args.temperature_action,
+        reasoning_effort=getattr(args, "reasoning_effort", None),
     )
     correct_strmatch = _is_correct(answer, sample.gold_answer, is_mcq=sample.is_mcq)
 
@@ -1680,6 +1705,20 @@ def main() -> int:
     parser.add_argument(
         "--temperature_action", type=float, default=0.4,
         help="Sampling temperature for the actor call (default: 0.4).",
+    )
+    parser.add_argument(
+        "--reasoning_effort", "--reasoning-effort",
+        type=str, default=None,
+        choices=list(_VALID_REASONING_EFFORTS),
+        help=(
+            "OpenAI reasoning_effort knob for gpt-5.x / o1 / o3 / o4. "
+            "One of {minimal, low, medium, high}. Default: unset (= "
+            "OpenAI default 'medium'). For visual MCQ benchmarks, "
+            "'medium' is the safer default since hidden CoT helps "
+            "multi-hop social-causal inference and tool-use composition. "
+            "Drop to 'minimal' only if a paired smoke test confirms no "
+            "accuracy regression."
+        ),
     )
     parser.add_argument(
         "--no_vision", action="store_true",
