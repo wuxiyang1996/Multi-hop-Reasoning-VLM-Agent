@@ -48,6 +48,15 @@ Cold-start-out-*/
 # ── Qwen vLLM baseline outputs (run_qwen_vllm_baselines.sh) ─────
 qwen-baselines-out/
 /qwen-baselines-out/
+qwen-baselines-out-transfer/
+/qwen-baselines-out-transfer/
+openrouter-transfer-baselines-out/
+/openrouter-transfer-baselines-out/
+
+# ── Local symlinks into out-of-tree assets (evaluation_dataset / latest) ─
+/latest
+cold_start/evaluation_dataset/holdout/examples
+cold_start/evaluation_dataset/pool/examples
 
 # ── OpenRouter baseline outputs (run_openrouter_baselines.sh) ───
 openrouter-baselines-out/

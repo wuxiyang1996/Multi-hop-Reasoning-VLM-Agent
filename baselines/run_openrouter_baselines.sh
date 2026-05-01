@@ -120,7 +120,25 @@ OPENROUTER_BASE_URL_DEFAULT="https://openrouter.ai/api/v1"
 #     env_wrappers visual utils) feeds the action call directly, no VLM round-trip.
 MODEL_CLAUDE_SLUG="${MODEL_CLAUDE:-anthropic/claude-4.6-sonnet-20260217}"
 MODEL_GEMINI_SLUG="${MODEL_GEMINI:-google/gemini-3.1-pro-preview}"
-MODEL_QWEN_SLUG="${MODEL_QWEN:-qwen/qwen3-max}"
+# Default: Qwen3.5-Plus (Apr 2026 multimodal flagship — text + image + video,
+# 1M context). Alibaba positions it as Qwen3-Max-class on text + GUI-agent-tuned
+# multimodal. Set MODEL_QWEN=qwen/qwen3-max + MODEL_QWEN_VISION=0 to revert to
+# the text-only Qwen3-Max (game pixels are then bypassed via the heuristic
+# schema fallback in temporal_visual_grounding / env_wrappers utils).
+# Qwen3-VL-235B-A22B-Instruct: multimodal Qwen3 flagship in Instruct (non-
+# thinking) variant.  We deliberately pick the Instruct over the Thinking
+# variant because OpenRouter strips ``extra_body.enable_thinking=False``
+# before forwarding to Alibaba, so Qwen3.5-Plus / qwen3-vl-*-Thinking models
+# reject the strict ``tool_choice={"type":"function",...}`` payload our
+# actor pipeline depends on (HTTP 400 "InvalidParameter ... in thinking
+# mode").  Instruct variants have no thinking layer and accept strict
+# tool_choice cleanly.
+#
+# Override examples:
+#   MODEL_QWEN=qwen/qwen3-vl-30b-a3b-instruct   # cheaper, ~1/4 the cost
+#   MODEL_QWEN=qwen/qwen3.5-plus-20260420       # NEEDS tool_choice=auto, see _chat_completion
+MODEL_QWEN_SLUG="${MODEL_QWEN:-qwen/qwen3-vl-235b-a22b-instruct}"
+MODEL_QWEN_VISION="${MODEL_QWEN_VISION:-1}"
 
 ENVWRAPPERS_DEFAULT=(twenty_forty_eight candy_crush tetris)
 GYMV_DEFAULT=(
@@ -316,8 +334,8 @@ for tag in "${MODEL_TAGS[@]}"; do
             MODELS+=("claude|${MODEL_CLAUDE_SLUG}|1") ;;
         gemini|gemini-3.1|gemini-3.1-pro|pro)
             MODELS+=("gemini|${MODEL_GEMINI_SLUG}|1") ;;
-        qwen|qwen3|qwen3-max|max)
-            MODELS+=("qwen|${MODEL_QWEN_SLUG}|0") ;;
+        qwen|qwen3|qwen3-max|qwen3.5-plus|qwen3.5|max|plus)
+            MODELS+=("qwen|${MODEL_QWEN_SLUG}|${MODEL_QWEN_VISION}") ;;
         *)
             echo "[ERROR] Unknown model tag '$tag' (allowed: claude, gemini, qwen)" >&2
             exit 2 ;;

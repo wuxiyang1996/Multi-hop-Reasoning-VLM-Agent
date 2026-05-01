@@ -617,84 +617,93 @@ policy for each row:
 | **Lean plan, `minimal` everywhere** ← cheapest safe default | **~$200 – $220** | **~3 – 5 h** (set by OSWorld KVM concurrency) |
 | Lean plan, `gpt-5.4-mini` everywhere except Video-Holmes | ~$70 – $100 | ~3 – 5 h |
 
-Per-domain wall-clock under realistic parallelism (`gpt-5.4`,
-`reasoning_effort=minimal`, source video frames pre-extracted on disk):
+#### Per-domain parallelism — what each launcher actually does
+
+Three of the four Python launchers are single-process loops; parallelism
+comes from one of three layered mechanisms:
+
+| Domain | Concurrency primitive | How to scale | Hard ceiling |
+|---|---|---|---|
+| `gymv` | shell wrapper, one process / env | `run_coldstart_actor_gymv_all.sh --parallel` (already default) | 13 envs (= one process / env, retro emulator binds the process) |
+| BrowserGym | shell-level **shard wrapper** (NEW) | `run_coldstart_actor_browsergym_shard.sh --num_shards N` | RAM (Chromium ≈ 500 MB / shard) + WebArena/VWA self-host QPS — practical sweet spot **8–12** |
+| OSWorld | shell wrapper, domain-level dispatch | `run_coldstart_actor_osworld_all.sh --parallel --max_parallel N` (default **8**, was 3) | KVM RAM (≈ 6 GB / guest) — **8** on 64 GB host, **10+** on ≥ 96 GB |
+| Visual reasoning | Python **`--num_workers N`** (ThreadPoolExecutor, NEW) | `--num_workers 32` on the launcher | OpenAI tier RPM — **16–32** on tier 4 (10 k RPM), **32–64** on tier 5 (30 k RPM) |
+
+Per-domain wall-clock at the recommended parallelism (`gpt-5.4`,
+`reasoning_effort=minimal` for env / `medium` for visual MCQ, source
+video frames pre-extracted):
 
 | Domain | Volume | Per-unit | Parallelism | Wall-clock |
 |---|---|---|---:|---:|
 | `gymv` (source) | 13 envs × 10 ep × ~20 steps ≈ 2.6 k steps | ~10 s / step | 13 (one process / env) | **~30–40 min** |
-| BrowserGym | 505 tasks (200 VWA + 125 MiniWoB + 180 AB) | ~70 s / task | 4–8 headless Chromium | **~1.5–2.5 h** |
-| OSWorld ⬅ critical path | 250 tasks × 30 steps | ~10 s / step | 1–8 KVM guests | **~2.5 h @ 8 KVMs · ~5 h @ 4 KVMs** |
-| Visual reasoning (image) | 600 (VTB 300 + TIR 300) | ~6 s / sample | 16+ pure API | **~4 min** |
-| Visual reasoning (video) | 1,400 (VH 1,000 + SIV 400) | ~10 s / sample | 16+ pure API | **~15 min** |
+| BrowserGym | 506 tasks (200 VWA + 125 MiniWoB + 181 AB) | ~70 s / task | 8 shards | **~1.2–1.5 h** (was ~10 h serial) |
+| OSWorld ⬅ critical path | 250 tasks × 30 steps | ~10 s / step | 8 KVM guests | **~1.6–2.5 h** (was ~12 h @ 1 KVM) |
+| Visual reasoning (image) | 600 (VTB 300 + TIR 300) | ~6 s / sample | 32 workers | **~2 min** (was ~1 h serial) |
+| Visual reasoning (video) | 1,400 (VH 1,000 + SIV 400) | ~10 s / sample | 32 workers | **~8 min** (was ~4 h serial) |
 
-The two dominant levers are **`reasoning_effort`** (cost: `medium` → `minimal`
-saves ~30–70 % depending on pipeline) and **OSWorld KVM concurrency**
-(wall-clock: 2 → 8 guests collapses the run from ~6 h to ~1.6 h).
+**End-to-end: ~1.6–2.5 h** at recommended parallelism (set by OSWorld KVM
+count + BrowserGym Chromium count). Two dominant levers stay the same:
+`reasoning_effort` for cost and OSWorld KVM concurrency for wall-clock.
 
 #### Quick start — run on all tasks with `gpt-5.4`
 
-The four pipelines are independent (Playwright vs. KVM vs. pure-API vs.
-retro-game emulators), so you can launch them in parallel terminals.
+The four pipelines are independent (retro-emulator vs. Chromium vs.
+KVM vs. pure-API), so you can launch them in parallel terminals.
 Manifests live in [`cold_start/task_samples/`](cold_start/task_samples/)
 (BrowserGym) and
 [`cold_start/evaluation_dataset/pool/`](cold_start/evaluation_dataset/)
-(OSWorld + visual reasoning). Output goes to
-`Cold-start-out-<domain>/` by default.
+(OSWorld + visual reasoning). Output goes to `Cold-start-out-<domain>/`.
 
 ```bash
 cd /workspace/Multi-hop-Reasoning-VLM-Agent
 export OPENAI_API_KEY=...   # or set in /workspace/api_keys.py (auto-loaded)
 
-# 1. gymv — source domain (13 retro envs × 10 episodes)
-python cold_start/generate_cold_start_actor_gymv.py \
-  --episodes 10 --max_steps 60 \
-  --model gpt-5.4 --reasoning_effort minimal \
-  --output_dir Cold-start-out-gymv -v
+# 1. gymv (~30-40 min) — wrapper dispatches one process per env, parallel default
+bash cold_start/run_coldstart_actor_gymv_all.sh --parallel \
+  -- --episodes 10 --max_steps 60 \
+     --model gpt-5.4 --reasoning_effort minimal -v
 
-# 2. BrowserGym — VisualWebArena + MiniWoB++ + AssistantBench (505 tasks)
-#    The launcher auto-sources webarena_env.sh / visualwebarena_env.sh
-#    when those suites are in --tasks.
-TASKS=$(grep -hv '^#' \
-  cold_start/task_samples/browsergym_visualwebarena_200.txt \
-  cold_start/task_samples/browsergym_miniwob_200.txt \
-  cold_start/task_samples/browsergym_assistantbench_200.txt \
-  | sort -u)
-python cold_start/generate_cold_start_actor_browsergym.py \
-  --tasks $TASKS \
-  --episodes 1 --max_steps 12 \
+# 2. BrowserGym (~1.2-1.5 h @ 8 shards) — auto-loads the lean-plan task pools,
+#    auto-sources webarena_env.sh / visualwebarena_env.sh when relevant.
+bash cold_start/run_coldstart_actor_browsergym_shard.sh \
+  --num_shards 8 \
   --model gpt-5.4 --reasoning_effort minimal \
-  --output_dir Cold-start-out-browsergym -v
+  -- --episodes 1 --max_steps 12 -v
 
-# 3. OSWorld — pool catalog (250 tasks across 10 apps) — set KVM_COUNT=8
-#    via run_coldstart_actor_osworld_all.sh for max parallelism.
-python cold_start/generate_cold_start_actor_osworld.py \
-  --task_catalog cold_start/evaluation_dataset/pool/osworld_catalog.json \
-  --episodes 1 --max_steps 30 \
-  --model gpt-5.4 --reasoning_effort minimal \
-  --output_dir Cold-start-out-osworld -v
+# 3. OSWorld (~1.6-2.5 h @ 8 KVMs) — defaults to --max_parallel 8;
+#    drop to 3-4 on hosts with < 64 GB RAM.
+bash cold_start/run_coldstart_actor_osworld_all.sh --parallel --max_parallel 8 \
+  -- --task_catalog cold_start/evaluation_dataset/pool/osworld_catalog.json \
+     --episodes 1 --max_steps 30 \
+     --model gpt-5.4 --reasoning_effort minimal -v
 
-# 4. Visual reasoning — 4 benchmarks, 2,000 samples total
-#    --reasoning_effort medium is the SAFER default (visual MCQ benefits
-#    from hidden CoT); switch to minimal only after the paired smoke test
-#    confirms no accuracy regression — see "reasoning_effort policy" above.
+# 4. Visual reasoning (~10 min @ 32 workers) — pure-API ThreadPoolExecutor.
+#    --reasoning_effort medium is the SAFER default for visual MCQ
+#    (multi-hop CoT helps); flip to minimal only after a paired smoke test
+#    confirms no accuracy regression.
 python cold_start/generate_cold_start_actor_visual_reasoning.py \
   --benchmarks visual_toolbench tir_bench video_holmes siv_bench \
   --sample_ids_dir cold_start/evaluation_dataset/pool \
   --model gpt-5.4 --reasoning_effort medium \
+  --num_workers 32 \
   --output_dir Cold-start-out-visual_reasoning -v
 ```
 
-Resume is on by default for gymv / BrowserGym (skip episodes that
+If you'd rather run BrowserGym serial (single Chromium, no shard log
+churn), the original `python cold_start/generate_cold_start_actor_browsergym.py
+--tasks $(grep -hv '^#' cold_start/task_samples/browsergym_*.txt | sort -u) ...`
+form still works — it just takes ~10 h instead of ~1.5 h.
+
+Resume is on by default for `gymv` / BrowserGym (skip episodes that
 already have an `episode_NNN.json` on disk). OSWorld + visual reasoning
 write per-task / per-sample summaries; re-running with the same
-`--output_dir` skips finished work.
+`--output_dir` skips finished work. The shard wrapper writes per-shard
+logs and task-list audits to `Cold-start-out-browsergym/_shard_logs/`.
 
 See
 [`cold_start/readme.md#multi-domain-cold-start-lean-plan`](cold_start/readme.md#multi-domain-cold-start-lean-plan)
-for the full breakdown, sampler scripts, alternate model knobs (mini
-vs. full), and the OSWorld 8-KVM launcher
-(`run_coldstart_actor_osworld_all.sh`).
+for sampler scripts, alternate model knobs (mini vs. full), and host-sizing
+guidance for OSWorld KVM counts.
 
 ---
 

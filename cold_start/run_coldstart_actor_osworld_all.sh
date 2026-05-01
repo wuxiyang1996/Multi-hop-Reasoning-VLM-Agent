@@ -84,7 +84,8 @@
 # Wrapper-only flags (consumed here, NOT forwarded to the python launcher):
 #   --parallel | -P             dispatch domains concurrently (default)
 #   --sequential                dispatch domains one at a time
-#   --max_parallel N            cap concurrency (default: 3 — Docker friendly)
+#   --max_parallel N            cap concurrency (default: 8 — assumes ~64 GB RAM;
+#                                drop to 3-4 on smaller hosts, raise to 10+ on >=96 GB)
 #   --domains <name>...         restrict to a subset (default: all 10)
 #   --run_id <id>               override auto-timestamped run id
 #   --output_dir <path>         override base dir
@@ -110,7 +111,11 @@ DEFAULT_BASE_DIR="${CODEBASE_ROOT}/Cold-start-out-osworld"
 DEFAULT_CONDA_ENV="osworld"
 DEFAULT_TASK_CATALOG="/workspace/OSWorld/evaluation_examples/test_small.json"
 DEFAULT_VM_DATA_DIR="${CODEBASE_ROOT}/docker_vm_data"
-DEFAULT_MAX_PARALLEL=3        # OSWorld VMs are RAM-hungry; default conservative
+# Each KVM guest is ~6 GB RAM + 1-2 vCPU.  Default 8 matches the 10-domain
+# spread (one extra slot for a re-queue on a flake) and assumes a 64 GB /
+# 16-vCPU host.  Drop to 3-4 on a 32 GB box, raise to 10+ on >= 96 GB.
+# Real wall-clock at 8: ~2.5 h for 250 tasks @ 30 steps each.
+DEFAULT_MAX_PARALLEL=8
 
 # All 10 registered OSWorld domains (must match ALL_OSWORLD_DOMAINS in the
 # python launcher).
@@ -162,6 +167,11 @@ while [ $# -gt 0 ]; do
             while [ $# -gt 0 ] && [[ "$1" != --* ]]; do
                 DOMAINS+=("$1"); shift
             done ;;
+        # Eat the literal `--` separator. argparse in the python launcher
+        # rejects bare `--` followed by `--flag value`, so swallow it
+        # silently and forward everything that follows.
+        --)
+            shift; USER_ARGS+=("$@"); break ;;
         *)
             USER_ARGS+=("$1"); shift ;;
     esac

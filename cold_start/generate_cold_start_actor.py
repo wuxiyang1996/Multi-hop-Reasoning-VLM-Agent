@@ -543,19 +543,32 @@ def _chat_completion(
     if tool_choice is not None:
         kwargs["tool_choice"] = tool_choice
 
-    # vLLM-served thinking models (Qwen3*, Qwen3.5*, DeepSeek-R1-distill, etc.)
-    # emit a free-form `<think>...</think>` block before the tool call.  We
-    # detect vLLM endpoints by the model id containing a slash
-    # (HuggingFace `<org>/<name>` form, e.g. "Qwen/Qwen3.5-9B") vs
-    # managed-API ids (`gpt-4o`, `claude-3.5-sonnet`, `o3-mini`) and
-    # instruct the chat template to skip the thinking block via
-    # `chat_template_kwargs.enable_thinking=False` — vLLM passes this
-    # through to the Jinja chat template so no `<think>...</think>` block
-    # is generated.  This pairs with the strict `enum`-only action tool
-    # schema (see `_build_action_tools`) to keep tool_call output tightly
-    # bounded (~10 tokens), well below the cap.
+    # Thinking-mode-class models (Qwen3*, Qwen3.5*, DeepSeek-R1-distill,
+    # qwen3.5-plus / qwen3.6-* on DashScope/OpenRouter, etc.) emit a
+    # free-form `<think>...</think>` block before the tool call AND, when
+    # served by Alibaba DashScope (or proxied through OpenRouter), reject
+    # strict `tool_choice={"type":"function",...}` payloads with HTTP 400
+    # ("InvalidParameter ... in thinking mode").  We disable thinking via
+    # *both* recognised parameter names so the same payload works whether
+    # the endpoint is local-vLLM or DashScope/OpenRouter:
+    #
+    #   - vLLM-OpenAI-compatible: ``extra_body.chat_template_kwargs
+    #     .enable_thinking=False`` is forwarded to the Jinja chat template
+    #     so no ``<think>`` block is emitted.
+    #   - DashScope (and OpenRouter when it proxies Alibaba upstream):
+    #     ``extra_body.enable_thinking=False`` at the root, per Alibaba's
+    #     OpenAI-compat spec.  Each server silently ignores the key it
+    #     does not recognise.
+    #
+    # Heuristic: model id contains a slash (HuggingFace ``<org>/<name>``
+    # for vLLM **or** OpenRouter ``<provider>/<slug>``).  Managed APIs
+    # like ``gpt-4o`` / ``claude-3.5-sonnet`` / ``o3-mini`` do not.  This
+    # pairs with the strict `enum`-only action tool schema (see
+    # ``_build_action_tools``) to keep tool_call output tightly bounded
+    # (~10 tokens), well below the cap.
     if "/" in model:
         kwargs["extra_body"] = {
+            "enable_thinking": False,
             "chat_template_kwargs": {"enable_thinking": False},
         }
 

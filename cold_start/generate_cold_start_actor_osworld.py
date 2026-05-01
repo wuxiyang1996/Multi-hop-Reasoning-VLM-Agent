@@ -464,6 +464,42 @@ def _build_client_and_route(
 _VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high")
 
 
+def _maybe_disable_thinking_kwargs(model: Any, tool_choice: Any) -> Dict[str, Any]:
+    """Return ``extra_body`` kwargs to disable Qwen ``thinking`` mode.
+
+    Qwen3/3.5/3.6 multimodal flagships (e.g. ``qwen/qwen3.5-plus-20260420``,
+    ``qwen/qwen3.6-plus``) ship with thinking-mode ON.  When a strict
+    ``tool_choice={"type":"function",...}`` payload is sent, the upstream
+    DashScope endpoint rejects it with HTTP 400
+    (``InvalidParameter ... in thinking mode``).  Our actor pipeline
+    relies on strict tool-choice to force structured action JSON, so the
+    only safe option is to turn thinking OFF.
+
+    We forward both supported parameter names so the same payload works
+    whether the endpoint is local-vLLM or DashScope/OpenRouter:
+
+      - DashScope / OpenRouter:    ``extra_body.enable_thinking = False``
+      - vLLM-OpenAI-compat:        ``extra_body.chat_template_kwargs
+                                     .enable_thinking = False``
+
+    Each server silently ignores the parameter it does not recognise, so
+    the payload is portable.  No-ops for non-Qwen models and for calls
+    that don't set ``tool_choice``.
+    """
+    if not isinstance(model, str):
+        return {}
+    if "qwen" not in model.lower():
+        return {}
+    if tool_choice is None:
+        return {}
+    return {
+        "extra_body": {
+            "enable_thinking": False,
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+    }
+
+
 def _chat_completion(
     client: Any,
     *,
@@ -500,6 +536,7 @@ def _chat_completion(
             kwargs["tools"] = tools
         if tool_choice is not None:
             kwargs["tool_choice"] = tool_choice
+        kwargs.update(_maybe_disable_thinking_kwargs(model, tool_choice))
         return client.chat.completions.create(**kwargs)
 
     kwargs = {
@@ -512,6 +549,7 @@ def _chat_completion(
         kwargs["tools"] = tools
     if tool_choice is not None:
         kwargs["tool_choice"] = tool_choice
+    kwargs.update(_maybe_disable_thinking_kwargs(model, tool_choice))
 
     try:
         return client.chat.completions.create(**kwargs)

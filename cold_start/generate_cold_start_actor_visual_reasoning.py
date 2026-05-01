@@ -57,8 +57,10 @@ import logging
 import os
 import re
 import sys
+import threading
 import time
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -420,6 +422,42 @@ def _build_client_and_route(
 _VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high")
 
 
+def _maybe_disable_thinking_kwargs(model: Any, tool_choice: Any) -> Dict[str, Any]:
+    """Return ``extra_body`` kwargs to disable Qwen ``thinking`` mode.
+
+    Qwen3/3.5/3.6 multimodal flagships (e.g. ``qwen/qwen3.5-plus-20260420``,
+    ``qwen/qwen3.6-plus``) ship with thinking-mode ON.  When a strict
+    ``tool_choice={"type":"function",...}`` payload is sent, the upstream
+    DashScope endpoint rejects it with HTTP 400
+    (``InvalidParameter ... in thinking mode``).  Our actor pipeline
+    relies on strict tool-choice to force structured action JSON, so the
+    only safe option is to turn thinking OFF.
+
+    We forward both supported parameter names so the same payload works
+    whether the endpoint is local-vLLM or DashScope/OpenRouter:
+
+      - DashScope / OpenRouter:    ``extra_body.enable_thinking = False``
+      - vLLM-OpenAI-compat:        ``extra_body.chat_template_kwargs
+                                     .enable_thinking = False``
+
+    Each server silently ignores the parameter it does not recognise, so
+    the payload is portable.  No-ops for non-Qwen models and for calls
+    that don't set ``tool_choice``.
+    """
+    if not isinstance(model, str):
+        return {}
+    if "qwen" not in model.lower():
+        return {}
+    if tool_choice is None:
+        return {}
+    return {
+        "extra_body": {
+            "enable_thinking": False,
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+    }
+
+
 def _chat_completion(
     client: Any,
     *,
@@ -457,6 +495,7 @@ def _chat_completion(
             kwargs["tools"] = tools
         if tool_choice is not None:
             kwargs["tool_choice"] = tool_choice
+        kwargs.update(_maybe_disable_thinking_kwargs(model, tool_choice))
         return client.chat.completions.create(**kwargs)
 
     kwargs = {
@@ -469,6 +508,7 @@ def _chat_completion(
         kwargs["tools"] = tools
     if tool_choice is not None:
         kwargs["tool_choice"] = tool_choice
+    kwargs.update(_maybe_disable_thinking_kwargs(model, tool_choice))
 
     try:
         return client.chat.completions.create(**kwargs)
@@ -1516,52 +1556,57 @@ def run_benchmark(
     errors = 0
     started = time.time()
 
-    with jsonl_path.open("w", encoding="utf-8") as jfh:
-        idx = 0
-        while True:
-            try:
-                sample = next(samples_iter)
-            except StopIteration:
-                break
-            except Exception as exc:
-                errors += 1
-                logger.error("[%s] sample iteration failed: %s", benchmark, exc)
-                if args.verbose:
-                    traceback.print_exc()
-                break
+    # ----- Per-sample worker (used by both serial and threadpool paths) -----
+    def _process_sample(idx: int, sample: BenchmarkSample) -> Dict[str, Any]:
+        """Run one sample end-to-end and return the record dict.
 
-            print(f"  [{benchmark}] sample {idx + 1}/{args.num_test_cases}: {sample.sample_id}")
-            frames_dir = bench_dir / "frames" / f"sample_{idx:03d}" if args.save_frames else None
+        ``idx`` is the *input order* index — used for the
+        ``sample_NNN.json`` filename so artifacts stay deterministic
+        even when results arrive out-of-order from a thread pool.
+        """
+        frames_dir = (
+            bench_dir / "frames" / f"sample_{idx:03d}" if args.save_frames else None
+        )
+        t0 = time.time()
+        try:
+            record = _run_one_sample(
+                sample,
+                args=args,
+                client=client,
+                routed_model=routed_model,
+                judge_routed_model=judge_routed_model,
+                schema_helpers=schema_helpers,
+                frames_dir=frames_dir,
+                judge_cache_dir=judge_cache_dir,
+            )
+        except Exception as exc:
+            logger.error("[%s] sample %s pipeline failed: %s",
+                         benchmark, sample.sample_id, exc)
+            if args.verbose:
+                traceback.print_exc()
+            record = {
+                "benchmark": benchmark,
+                "modality": modality,
+                "sample_id": sample.sample_id,
+                "error": repr(exc),
+                "raw_sample": sample.raw_sample,
+            }
+        record["sample_index"] = idx
+        record["elapsed_seconds"] = round(time.time() - t0, 3)
+        # Per-sample JSON is written from the worker — paths are
+        # idx-keyed so there's no inter-thread contention.
+        with (bench_dir / f"sample_{idx:03d}.json").open(
+            "w", encoding="utf-8"
+        ) as fh:
+            json.dump(record, fh, indent=2, ensure_ascii=False, default=str)
+        return record
 
-            t0 = time.time()
-            try:
-                record = _run_one_sample(
-                    sample,
-                    args=args,
-                    client=client,
-                    routed_model=routed_model,
-                    judge_routed_model=judge_routed_model,
-                    schema_helpers=schema_helpers,
-                    frames_dir=frames_dir,
-                    judge_cache_dir=judge_cache_dir,
-                )
-            except Exception as exc:
-                errors += 1
-                logger.error("[%s] sample %s pipeline failed: %s",
-                             benchmark, sample.sample_id, exc)
-                if args.verbose:
-                    traceback.print_exc()
-                record = {
-                    "benchmark": benchmark,
-                    "modality": modality,
-                    "sample_id": sample.sample_id,
-                    "error": repr(exc),
-                    "raw_sample": sample.raw_sample,
-                }
+    # ----- Aggregator: shared by both paths -----
+    write_lock = threading.Lock()  # serializes JSONL appends + counter updates
 
-            record["sample_index"] = idx
-            record["elapsed_seconds"] = round(time.time() - t0, 3)
-
+    def _aggregate(record: Dict[str, Any], jfh) -> None:
+        nonlocal schema_ok, answer_ok, correct_ok, correct_total, errors
+        with write_lock:
             if record.get("schema"):
                 schema_ok += 1
             if record.get("answer") is not None:
@@ -1572,13 +1617,11 @@ def run_benchmark(
                 correct_total += 1
             elif corr is False:
                 correct_total += 1
-
+            if "error" in record:
+                errors += 1
             records.append(record)
-            with (bench_dir / f"sample_{idx:03d}.json").open("w", encoding="utf-8") as fh:
-                json.dump(record, fh, indent=2, ensure_ascii=False, default=str)
             jfh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
             jfh.flush()
-
             if args.verbose:
                 ans = record.get("answer")
                 src = record.get("schema_source")
@@ -1596,14 +1639,87 @@ def run_benchmark(
                     if v:
                         judge_tag = f" judge={v}{'(cached)' if cached else ''}"
                 print(
-                    f"     -> answer={ans!r:<20} gold={gold!r:<14} "
+                    f"  [{benchmark}] sample {record.get('sample_index')+1}: "
+                    f"{record.get('sample_id')!r:<24} "
+                    f"-> answer={ans!r:<20} gold={gold!r:<14} "
                     f"correct={tag} schema={src}{judge_tag} "
                     f"({record['elapsed_seconds']:.1f}s)"
                 )
 
-            idx += 1
-            if idx >= args.num_test_cases:
-                break
+    num_workers = max(1, int(getattr(args, "num_workers", 1) or 1))
+
+    with jsonl_path.open("w", encoding="utf-8") as jfh:
+        if num_workers == 1:
+            # ----- Serial path (backward-compatible) -----
+            idx = 0
+            while True:
+                try:
+                    sample = next(samples_iter)
+                except StopIteration:
+                    break
+                except Exception as exc:
+                    errors += 1
+                    logger.error("[%s] sample iteration failed: %s", benchmark, exc)
+                    if args.verbose:
+                        traceback.print_exc()
+                    break
+                if not args.verbose:
+                    print(f"  [{benchmark}] sample {idx + 1}/{args.num_test_cases}: "
+                          f"{sample.sample_id}")
+                record = _process_sample(idx, sample)
+                _aggregate(record, jfh)
+                idx += 1
+                if idx >= args.num_test_cases:
+                    break
+        else:
+            # ----- Threadpool path -----
+            # Materialize the (capped) sample list first.  Iterators in
+            # ``BENCHMARK_ITERATORS`` are lazy and may be backed by HF
+            # ``streaming=True`` datasets, so this is the only place
+            # we eagerly pull samples.  Memory footprint stays bounded
+            # by ``num_test_cases`` (≤ 1,000 in the lean plan).
+            #
+            # Iteration is wrapped because a streaming HF dataset can
+            # raise mid-pull (corrupt video, network blip, S3 throttle).
+            # Mirror the serial path: count the failure as an error and
+            # stop pulling — already-pulled samples are still dispatched.
+            materialized: List[Tuple[int, BenchmarkSample]] = []
+            iterator_failed = False
+            while not iterator_failed and len(materialized) < args.num_test_cases:
+                try:
+                    s = next(samples_iter)
+                except StopIteration:
+                    break
+                except Exception as exc:
+                    errors += 1
+                    iterator_failed = True
+                    logger.error(
+                        "[%s] sample iteration failed after %d samples: %s",
+                        benchmark, len(materialized), exc,
+                    )
+                    if args.verbose:
+                        traceback.print_exc()
+                    break
+                materialized.append((len(materialized), s))
+            print(f"  [{benchmark}] dispatching {len(materialized)} samples "
+                  f"to {num_workers} workers")
+            with ThreadPoolExecutor(max_workers=num_workers) as pool:
+                futures = [
+                    pool.submit(_process_sample, idx, s) for idx, s in materialized
+                ]
+                completed = 0
+                for fut in as_completed(futures):
+                    completed += 1
+                    try:
+                        record = fut.result()
+                    except Exception as exc:
+                        with write_lock:
+                            errors += 1
+                        logger.error("[%s] worker raised: %s", benchmark, exc)
+                        continue
+                    _aggregate(record, jfh)
+                    if not args.verbose and completed % max(1, len(materialized) // 20) == 0:
+                        print(f"  [{benchmark}] {completed}/{len(materialized)} done")
 
     elapsed = time.time() - started
     judge_used = sum(1 for r in records if r.get("judge"))
@@ -1718,6 +1834,19 @@ def main() -> int:
             "multi-hop social-causal inference and tool-use composition. "
             "Drop to 'minimal' only if a paired smoke test confirms no "
             "accuracy regression."
+        ),
+    )
+    parser.add_argument(
+        "--num_workers", "--num-workers", "-w",
+        type=int, default=1,
+        help=(
+            "Number of concurrent samples to dispatch to the OpenAI API. "
+            "Each sample is a pure-API workflow with no shared local "
+            "state, so a ThreadPoolExecutor is safe and embarrassingly "
+            "parallel. Default 1 (serial). Recommended for the lean "
+            "plan: 16-32 for tier-4 OpenAI accounts (~10 k RPM), 32-64 "
+            "for tier-5 (~30 k RPM). Set to 1 to debug or when the "
+            "judge cache is being warmed."
         ),
     )
     parser.add_argument(

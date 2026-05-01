@@ -287,6 +287,11 @@ def sample_osworld(args, rng) -> dict | None:
         # <domain> is the on-disk directory name (matches the launcher's
         # ``examples/<domain>/<uuid>.json`` glob). Use ``_app_dir`` rather
         # than the (sometimes-noisy) ``snapshot`` field.
+        # NOTE: the python launcher resolves task UUIDs at
+        #     <catalog_path.parent>/examples/<domain>/<uuid>.json
+        # so we ALSO drop a symlink to OSWorld's ``examples/`` next to the
+        # catalog.  Without this, the launcher reports "No tasks resolved".
+        osworld_examples_src = Path("/workspace/OSWorld/evaluation_examples/examples")
         for split_name, split_rows, dest in (
             ("pool", pool, POOL_DIR / "osworld_catalog.json"),
             ("holdout", holdout, HOLDOUT_DIR / "osworld_catalog.json"),
@@ -297,9 +302,20 @@ def sample_osworld(args, rng) -> dict | None:
             for k in catalog:
                 catalog[k].sort()
             dest.write_text(json.dumps(dict(sorted(catalog.items())), indent=2))
+            link = dest.parent / "examples"
+            if osworld_examples_src.is_dir():
+                if link.is_symlink() or link.exists():
+                    link.unlink()
+                link.symlink_to(osworld_examples_src)
+            else:
+                print(f"  [WARN] {osworld_examples_src} not found — "
+                      f"OSWorld launcher will fail to resolve tasks. "
+                      f"Install OSWorld eval examples at that path.")
             print(f"  -> {dest.relative_to(OUT_DIR)}: "
                   f"{sum(len(v) for v in catalog.values())} ids "
-                  f"across {len(catalog)} domains ({split_name})")
+                  f"across {len(catalog)} domains ({split_name})  "
+                  f"(examples/ symlink: "
+                  f"{'OK' if link.is_symlink() else 'MISSING'})")
 
     return _emit(
         "osworld",
