@@ -570,6 +570,46 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         if config.debug_io:
             vllm_client.set_io_step(step)
 
+        # ── Build per-game SkillHarnessHook (PLAN-HARNESS §5.2 + §3.4)
+        # The hook reads the per-game ``skill_bank.jsonl`` once per step
+        # and exposes :meth:`SkillHarnessHook.filter_candidates` /
+        # :meth:`SkillHarnessHook.validate_choice` to the episode runner.
+        # The aggregated rejection sink is drained by the Phase B′
+        # Crafter hook into ``SkillRecord.false_binding_patterns``.
+        # Off by default; controlled by ``config.harness_enabled``.
+        harness_hooks: Dict[str, Any] = {}
+        if getattr(config, "harness_enabled", False):
+            try:
+                from trainer.coevolution._harness_hook import SkillHarnessHook
+                _hook_bank_paths = sb_manager.bank_paths(simple_only=True)
+                _allow_shadow = bool(getattr(config, "harness_allow_shadow", True))
+                for _g, _bp in _hook_bank_paths.items():
+                    try:
+                        harness_hooks[_g] = SkillHarnessHook.for_game(
+                            game=_g,
+                            bank_path=Path(_bp),
+                            allow_shadow=_allow_shadow,
+                        )
+                    except Exception as _hexc:                  # noqa: BLE001
+                        logger.warning(
+                            "harness_hook build failed for game=%s: %s",
+                            _g, _hexc,
+                        )
+                logger.info(
+                    "Phase A: harness enabled — %d hook(s) built (%s)",
+                    len(harness_hooks),
+                    ", ".join(
+                        f"{g}={h.n_records()}" for g, h in harness_hooks.items()
+                    ) or "empty",
+                )
+            except Exception as _hexc:                          # noqa: BLE001
+                logger.warning(
+                    "Phase A: harness setup failed at step=%d: %s — "
+                    "falling back to harness-disabled rollout",
+                    step, _hexc,
+                )
+                harness_hooks = {}
+
         # ── Phase A + B: Rollout collection with cross-system overlap ──
         phase_ab_t0 = time.monotonic()
 
@@ -642,6 +682,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 skill_banks=skill_banks if bank_available else None,
                 on_episode_done=on_episode_done,
                 thread_executor=thread_executor,
+                harness_hooks=harness_hooks if harness_hooks else None,
             )
         )
         consumer_task = asyncio.create_task(skill_bank_consumer())
@@ -776,6 +817,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     bank_was_available=bank_was_available,
                     cycle_every_k_steps=config.crafter_cycle_every_k_steps,
                     outcome_failure_threshold=config.crafter_outcome_failure_threshold,
+                    harness_hooks=harness_hooks if harness_hooks else None,
                 )
                 crafter_report = crafter_step.to_dict()
 
@@ -812,16 +854,31 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                         )
                     if promotion_report is not None:
                         promotion_report["bank_reload_per_game"] = reload_report
-                    logger.info(
-                        "Phase B′ Crafter+Promotion: %d proposals → "
-                        "PROMOTE=%d REJECT=%d (writeback +%d skills, "
-                        "reloaded %d bank(s))",
-                        crafter_step.n_proposals,
-                        promotion_step.n_promote, promotion_step.n_reject,
-                        promotion_step.n_writeback_inserted,
-                        sum(1 for r in reload_report.values()
-                            if r.get("reloaded")),
-                    )
+                    # Surface driver subprocess failures loudly — without
+                    # this branch a non-zero returncode looks identical to
+                    # a clean "no eligible promotions" outcome in the log.
+                    if promotion_step.skipped or promotion_step.driver_returncode != 0:
+                        logger.warning(
+                            "Phase B′ Promotion driver did not complete "
+                            "cleanly at step=%d: returncode=%d, skipped=%s, "
+                            "reason=%r — see %s/_step_summary.json",
+                            step,
+                            promotion_step.driver_returncode,
+                            promotion_step.skipped,
+                            promotion_step.skipped_reason,
+                            promotion_step.promotion_run_dir,
+                        )
+                    else:
+                        logger.info(
+                            "Phase B′ Crafter+Promotion: %d proposals → "
+                            "PROMOTE=%d REJECT=%d (writeback +%d skills, "
+                            "reloaded %d bank(s))",
+                            crafter_step.n_proposals,
+                            promotion_step.n_promote, promotion_step.n_reject,
+                            promotion_step.n_writeback_inserted,
+                            sum(1 for r in reload_report.values()
+                                if r.get("reloaded")),
+                        )
                 else:
                     logger.info(
                         "Phase B′ Crafter: %d episodes reflected, no proposals → "

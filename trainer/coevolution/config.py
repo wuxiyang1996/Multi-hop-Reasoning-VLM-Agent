@@ -221,6 +221,27 @@ class CoEvolutionConfig:
     # 13-game sweep + future Stage-1 replay overhead.
     crafter_promotion_timeout_s: float = 300.0
 
+    # ── Harness wire-up (Day-10) ────────────────────────────────────
+    # When enabled, the trainer wires the harness's two LLM-free
+    # surfaces into Phase A rollouts:
+    #   1. ``SkillHarness.select_eligible_skills`` filters the cold-
+    #      start RAG candidates *before* the skill_selection LLM picks.
+    #   2. ``SkillHarness.validate_invocation`` second-pass-vetoes the
+    #      LLM's chosen skill, falling back to the next eligible one
+    #      when vetoed.
+    # The aggregated rejection patterns ride into Phase B′ via
+    # ``RejectedSkillSink → SkillLifecycleManager.record_false_binding_pattern``
+    # so the Crafter's Repairer sees richer evidence on each
+    # ``SkillRecord.false_binding_patterns`` (PLAN-SKILL-BANK §4.3b).
+    # See ``trainer/coevolution/_harness_hook.py`` for the full
+    # contract; ``harness/README.md`` §22 for the spec gap this closes.
+    harness_enabled: bool = False
+    # Whether SHADOW skills are admitted by the eligibility filter.
+    # Trainer default ``True`` mirrors ``HarnessConfig.allow_shadow``.
+    # Disable with ``--no-harness-allow-shadow`` for runs that must
+    # bind only fully-validated (ACTIVE / PROVISIONAL) skills.
+    harness_allow_shadow: bool = True
+
     # Run directory — all other dirs are relative to this.
     # Auto-generated from model_name + timestamp if None.
     run_dir: Optional[str] = None

@@ -191,6 +191,7 @@ def run_crafter_step(
     hot_pattern_threshold: int = DEFAULT_HOT_PATTERN_THRESHOLD,
     cooldown_passes: int = DEFAULT_COOLDOWN_PASSES,
     teacher_model: Optional[str] = None,
+    harness_hooks: Optional[Mapping[str, Any]] = None,
 ) -> CrafterStepReport:
     """Run the per-step Crafter pass for one trainer step.
 
@@ -296,6 +297,35 @@ def run_crafter_step(
                     "crafter_hook: %s bank has zero seedable entries; "
                     "skipping reflection (cold-start)", game,
                 )
+
+            # ── Drain the harness rejection sink (Day-9c) ────────────
+            # Before the Crafter reflects, fold the per-step harness
+            # rejections into ``SkillRecord.false_binding_patterns`` so
+            # the Repairer's patch-or-retire path sees them on the
+            # *same* skill records it owns (PLAN-SKILL-BANK §4.3b /
+            # harness/README §22). The hook drained nothing in the
+            # cold-start case (sink is empty) — pure no-op then.
+            game_hook = (harness_hooks or {}).get(game)
+            if game_hook is not None:
+                try:
+                    flush_report = game_hook.flush_to_lifecycle(
+                        lifecycle, min_count=1, reset=True,
+                    )
+                    if flush_report.n_patterns_written:
+                        logger.debug(
+                            "crafter_hook: %s harness sink → %d patterns on "
+                            "%d skill record(s); %d unknown skill_id(s) skipped",
+                            game,
+                            flush_report.n_patterns_written,
+                            flush_report.n_skills_touched,
+                            len(flush_report.skipped_unknown_skill_ids),
+                        )
+                except Exception as exc:                                # noqa: BLE001
+                    logger.warning(
+                        "crafter_hook: harness sink flush failed for "
+                        "step=%d game=%s: %s",
+                        step, game, exc,
+                    )
 
             service = SkillCrafterService(
                 lifecycle=lifecycle,

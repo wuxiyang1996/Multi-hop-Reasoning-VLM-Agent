@@ -779,6 +779,7 @@ async def run_episode_async(
     step_sync: Any = None,
     opponent_model: Optional[str] = None,
     opponent_api_base: Optional[str] = None,
+    harness_hook: Any = None,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -962,6 +963,35 @@ async def run_episode_async(
                 top_k=3,
             )
 
+            # Pre-LLM harness eligibility filter (PLAN-HARNESS §5.2). When
+            # `harness_hook` is supplied, candidates the harness vetoes
+            # (status / domain / task / adapter / can_handle) are dropped
+            # *before* the skill_selection LLM sees them, and their veto
+            # reason is observed by the hook's RejectedSkillSink for the
+            # Crafter to consume in Phase B′. See
+            # `trainer/coevolution/_harness_hook.py` for the full
+            # contract.
+            harness_filter_diag: Optional[Dict[str, Any]] = None
+            if harness_hook is not None:
+                try:
+                    _hstate = harness_hook.state_for_step(
+                        game=game,
+                        summary_state=summary_state,
+                        intention=current_intention,
+                        inner_step=step_count,
+                        outer_step=step_count,
+                    )
+                    candidates, harness_filter_diag = harness_hook.filter_candidates(
+                        list(candidates), _hstate,
+                    )
+                except Exception as _hexc:                       # noqa: BLE001
+                    logger.debug(
+                        "harness_hook.filter_candidates failed at step=%d: %s — "
+                        "falling back to unfiltered candidates",
+                        step_count, _hexc,
+                    )
+                    harness_filter_diag = {"harness_error": repr(_hexc)}
+
             if candidates and len(candidates) >= 2:
                 candidates_text = _format_candidates_for_selection(candidates)
                 user_content = (
@@ -1000,31 +1030,111 @@ async def run_episode_async(
         current_summary = f"{summary_state} | note={note}" if note else summary_state
         current_summary = current_summary[:HARD_SUMMARY_CHAR_LIMIT]
 
+        # Post-LLM harness validate_invocation (PLAN-UNIFIED §3.4).
+        # Wraps the LLM's chosen skill in a structured second-pass veto.
+        # When vetoed we walk to the next candidate; when no eligible
+        # candidate survives, we drop guidance and run unguided.
+        harness_validate_diag: Optional[Dict[str, Any]] = None
+
+        def _harness_validate(_idx: int) -> Tuple[bool, Optional[Dict[str, Any]]]:
+            """Validate `candidates[_idx]` via the harness.
+
+            Returns ``(ok, diag)``. ``ok=True`` when no harness hook is
+            configured or when validation admits.
+            """
+            if harness_hook is None:
+                return True, None
+            try:
+                _sid = (candidates[_idx] or {}).get("skill_id")
+                _hstate2 = harness_hook.state_for_step(
+                    game=game,
+                    summary_state=summary_state,
+                    intention=current_intention,
+                    inner_step=step_count,
+                    outer_step=step_count,
+                )
+                _ok, _d = harness_hook.validate_choice(_sid, _hstate2)
+                return bool(_ok), _d
+            except Exception as _vexc:                          # noqa: BLE001
+                logger.debug(
+                    "harness_hook.validate_choice failed at step=%d "
+                    "idx=%d: %s — admitting",
+                    step_count, _idx, _vexc,
+                )
+                return True, {"status": "harness_error", "error": repr(_vexc)}
+
         # Process skill selection result
         if bank_available and (need_reselect or last_guidance is None):
             if sk_result is not None and candidates and len(candidates) >= 2:
                 chosen_idx, skill_reasoning = _parse_skill_selection(
                     sk_result.text, len(candidates), candidates,
                 )
-                guidance = candidates[chosen_idx]
-                if skill_reasoning:
-                    guidance["why_selected"] = skill_reasoning
-                last_candidates = candidates
-                last_chosen_idx = chosen_idx
-                last_skill_reasoning = skill_reasoning
-                skill_tracker.set_protocol(guidance.get("protocol"))
-                _chosen_sid = guidance.get("skill_id")
-                if _chosen_sid and hasattr(skill_bank, "selection_tracker"):
-                    skill_bank.selection_tracker.increment(_chosen_sid)
+                # Walk through candidates starting at the LLM's pick; if
+                # the harness vetoes it, fall through to the next one.
+                _scan_order = [chosen_idx] + [
+                    i for i in range(len(candidates)) if i != chosen_idx
+                ]
+                _picked: Optional[int] = None
+                _last_v: Optional[Dict[str, Any]] = None
+                for _i in _scan_order:
+                    _ok, _d = _harness_validate(_i)
+                    if _ok:
+                        _picked = _i
+                        _last_v = _d
+                        if _i != chosen_idx:
+                            skill_reasoning = (
+                                f"{skill_reasoning or 'LLM-selected'} "
+                                f"(harness re-routed from idx={chosen_idx} "
+                                f"→ idx={_i})"
+                            )
+                        break
+                    _last_v = _d
+                harness_validate_diag = _last_v
+                if _picked is None:
+                    guidance = None
+                    last_candidates = candidates
+                    last_chosen_idx = chosen_idx
+                    last_skill_reasoning = "harness vetoed all candidates"
+                else:
+                    chosen_idx = _picked
+                    guidance = candidates[chosen_idx]
+                    if skill_reasoning:
+                        guidance["why_selected"] = skill_reasoning
+                    last_candidates = candidates
+                    last_chosen_idx = chosen_idx
+                    last_skill_reasoning = skill_reasoning
+                    skill_tracker.set_protocol(guidance.get("protocol"))
+                    _chosen_sid = guidance.get("skill_id")
+                    if _chosen_sid and hasattr(skill_bank, "selection_tracker"):
+                        skill_bank.selection_tracker.increment(_chosen_sid)
             elif candidates:
-                guidance = candidates[0]
-                last_candidates = candidates
-                last_chosen_idx = 0
-                last_skill_reasoning = "only one candidate"
-                skill_tracker.set_protocol(guidance.get("protocol"))
-                _chosen_sid = guidance.get("skill_id")
-                if _chosen_sid and hasattr(skill_bank, "selection_tracker"):
-                    skill_bank.selection_tracker.increment(_chosen_sid)
+                _picked2: Optional[int] = None
+                _last_v2: Optional[Dict[str, Any]] = None
+                for _i in range(len(candidates)):
+                    _ok, _d = _harness_validate(_i)
+                    if _ok:
+                        _picked2 = _i
+                        _last_v2 = _d
+                        break
+                    _last_v2 = _d
+                harness_validate_diag = _last_v2
+                if _picked2 is None:
+                    guidance = None
+                    last_candidates = candidates
+                    last_chosen_idx = 0
+                    last_skill_reasoning = "harness vetoed all candidates"
+                else:
+                    guidance = candidates[_picked2]
+                    last_candidates = candidates
+                    last_chosen_idx = _picked2
+                    last_skill_reasoning = (
+                        "only one candidate" if _picked2 == 0
+                        else f"harness re-routed to idx={_picked2}"
+                    )
+                    skill_tracker.set_protocol(guidance.get("protocol"))
+                    _chosen_sid = guidance.get("skill_id")
+                    if _chosen_sid and hasattr(skill_bank, "selection_tracker"):
+                        skill_bank.selection_tracker.increment(_chosen_sid)
             else:
                 guidance = None
                 last_candidates = []
@@ -1209,6 +1319,15 @@ async def run_episode_async(
         if _ep_role:
             _exp_dict["role"] = _ep_role
             _exp_dict["side"] = _ep_side
+        # Harness diagnostics — surfaces eligibility filter / validate_invocation
+        # output for the Crafter hook (Phase B′) to drain into
+        # `SkillRecord.false_binding_patterns` via `RejectedSkillSink`.
+        # Empty dict when the harness wasn't enabled this step.
+        if harness_filter_diag is not None or harness_validate_diag is not None:
+            _exp_dict["harness"] = {
+                "filter": harness_filter_diag,
+                "validate": harness_validate_diag,
+            }
         experiences.append(_exp_dict)
 
         prev_summary_state = summary_state

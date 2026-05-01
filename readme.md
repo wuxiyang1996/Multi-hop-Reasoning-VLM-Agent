@@ -14,6 +14,7 @@ This repo supersedes the COS-PLAY codebase that lives alongside it under `decisi
 - [Architecture](#architecture)
 - [Mechanically-enforced invariants](#mechanically-enforced-invariants)
 - [Skill transfer layer](#skill-transfer-layer)
+- [Trainer integration — co-evolution loop wires the harness](#trainer-integration--co-evolution-loop-wires-the-harness)
 - [Backbone model — GPT-4o for now](#backbone-model--gpt-4o-for-now)
 - [Repository layout](#repository-layout)
 - [Implementation status](#implementation-status)
@@ -246,6 +247,134 @@ These are tracked under Phase D in [`IMPLEMENTATION-STATUS.md`](IMPLEMENTATION-S
 
 ---
 
+## Trainer integration — co-evolution loop wires the harness
+
+The runtime in [`orchestrator/runner.py`](orchestrator/runner.py) is one of two
+consumers of the harness; the other is the **co-evolution training loop** in
+[`trainer/coevolution/orchestrator.py`](trainer/coevolution/orchestrator.py).
+The trainer already runs the **Crafter** + **Promotion Orchestrator** in a
+Phase B′ that fires once per training step (after rollout collection, before
+GRPO). The Day-10 wire-up additionally plugs the harness's two **LLM-free,
+deterministic** surfaces — `select_eligible_skills` and
+`validate_invocation` — into Phase A's live rollout, and feeds the resulting
+rejection signal back into the existing Crafter pipeline.
+
+### Per-step phase map
+
+| Phase | What runs | Harness role |
+|---|---|---|
+| **A** — Rollout collection ([`rollout_collector.py`](trainer/coevolution/rollout_collector.py) → [`episode_runner.run_episode_async`](trainer/coevolution/episode_runner.py)) | Per env step: cold-start RAG → `skill_selection` LoRA → `action_taking` LoRA → `env.step()` | **Pre-LLM eligibility filter + post-LLM `validate_invocation` veto** (both LLM-free; opt-in via `--harness-enabled`). |
+| **B** — Legacy 4-stage skill mining | `sb_manager.finalize_all()` writes per-game `skill_bank.jsonl` | n/a (orthogonal). |
+| **B′** — Crafter + Promotion ([`_crafter_hook.py`](trainer/coevolution/_crafter_hook.py) + [`_promotion_hook.py`](trainer/coevolution/_promotion_hook.py)) | Seeds ephemeral `SkillRepository` from each `skill_bank.jsonl`, synthesizes `FailureTrace`, calls `SkillCrafterService.reflect_on_episode`, subprocesses `decide_promotion_gpt54.py`, writes promoted skills back via `skill_bank.legacy_writeback` | **Drains the per-game `RejectedSkillSink`** → `SkillLifecycleManager.record_false_binding_pattern` so the Repairer sees live veto evidence on `SkillRecord.false_binding_patterns` (PLAN-SKILL-BANK §4.3b). |
+| **C** — GRPO | `run_grpo_training` over rollout records + skill-bank GRPO data | n/a. |
+
+### How the harness rides Phase A
+
+```
+Phase A (live rollout)
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  episode_runner.run_episode_async(... harness_hook=hook)        │
+  │     │                                                           │
+  │     ├─ get_top_k_skill_candidates(...)              (RAG)       │
+  │     │           │                                               │
+  │     ├─ hook.filter_candidates(records, state)                   │
+  │     │     └── EligibilityFilter.filter_with_rejections          │
+  │     │             ├── admitted ─▶ skill_selection LoRA picks    │
+  │     │             └── rejected ─▶ RejectedSkillSink.observe()   │
+  │     │                                                           │
+  │     ├─ hook.validate_choice(skill_id, state)                    │
+  │     │     └── SkillHarness.validate_invocation                  │
+  │     │             ├── ok=True   ─▶ proceed                      │
+  │     │             └── ok=False  ─▶ fall back to next eligible   │
+  │     │                                                           │
+  │     └─ env.step(...)                                            │
+  └─────────────────────────────────────────────────────────────────┘
+                  │
+                  ▼
+Phase B′ (Crafter)
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  _crafter_hook.run_crafter_step(... harness_hooks=hooks)        │
+  │     │                                                           │
+  │     ├─ _seed_repo_from_legacy_jsonl  →  ephemeral lifecycle     │
+  │     │                                                           │
+  │     ├─ harness_hook.flush_to_lifecycle(lifecycle)               │
+  │     │     └── RejectedSkillSink.flush_to                        │
+  │     │             └── lifecycle.record_false_binding_pattern    │
+  │     │                     ↳ writes SkillRecord.false_binding_   │
+  │     │                       patterns                            │
+  │     │                                                           │
+  │     ├─ SkillCrafterService.reflect_on_episode (existing)        │
+  │     │     └── Repairer reads false_binding_patterns ──▶ emits   │
+  │     │         PatchProposal records that previously had no      │
+  │     │         live signal to fire on                            │
+  │     │                                                           │
+  │     └─ writes proposals.jsonl ─▶ Phase B′ Promotion subprocess  │
+  └─────────────────────────────────────────────────────────────────┘
+```
+
+### CLI surface
+
+```bash
+python scripts/run_coevolution.py \
+    --crafter-promotion-enabled \
+    --harness-enabled \
+    [--no-harness-allow-shadow]
+```
+
+`--harness-enabled` is **off** by default, so existing runs are byte-identical.
+`--no-harness-allow-shadow` forces the eligibility filter to refuse SHADOW
+skills (matches `HarnessConfig.allow_shadow=False`).
+
+### Cost — zero added LLM calls
+
+Both `EligibilityFilter` and `validate_invocation` are deterministic CPU
+paths (microseconds per step). The trainer's existing **3 LLM calls per env
+step** (intention + skill-selection + action) are unchanged.
+
+### What the wire-up does *not* do (deliberate)
+
+1. **No `harness.run_skill(...)` from the trainer.** The episode runner still
+   drives the env directly via primitive actions through the `action_taking`
+   LoRA. Plumbing `run_skill` requires a real `gymv` `set_executor(env_step_fn)`
+   plus an `EnvLike` shim per env wrapper — multi-day env-binding work tracked
+   in [`harness/README.md`](harness/README.md) §16.1–§16.5.
+2. **No status persistence.** Skills hydrated from the live `skill_bank.jsonl`
+   are mounted as a *runtime view* with `status=PROVISIONAL` (so the F1 status
+   check admits them); the `SkillLifecycleManager` remains the only authority
+   that may write status to disk (PLAN-SKILL-BANK §0.5). Only
+   `false_binding_patterns` flows back, via the lifecycle's existing write
+   surface inside the Crafter hook.
+3. **No new training signal for GRPO.** Phase C consumes the same rollout
+   records + skill-bank GRPO data as before; the eligibility veto only
+   reshapes which skills the `skill_selection` LoRA sees as candidates.
+
+### Spec gaps this closes
+
+| Gap (see [`harness/README.md`](harness/README.md)) | Trainer status |
+| --- | --- |
+| §9.1 second-pass `validate_invocation` | **closed** in trainer's live rollout (per-step) |
+| §9.3 per-check booleans on `EligibleSkill` | **closed** (logged into `experiences[].harness.filter[].rejected[]`) |
+| §22 task-axis F2′ | **closed** for trainer Phase A (`state.task = game name`) |
+| PLAN-SKILL-BANK §4.3b `false_binding_patterns` from live signal | **closed** via `RejectedSkillSink → record_false_binding_pattern` in Phase B′ |
+
+### Module map for the wire-up
+
+| File | Role |
+|---|---|
+| [`trainer/coevolution/_harness_hook.py`](trainer/coevolution/_harness_hook.py) | `SkillHarnessHook` — per-game façade exposing `filter_candidates`, `validate_choice`, `flush_to_lifecycle`. Hydrates `skill_bank.jsonl` → `SkillRecord` cache via [`_record_from_bank_entry`](trainer/coevolution/_crafter_hook.py). |
+| [`trainer/coevolution/episode_runner.py`](trainer/coevolution/episode_runner.py) | Calls the hook before / after the `skill_selection` LLM; logs `experiences[].harness = {filter, validate}`. |
+| [`trainer/coevolution/rollout_collector.py`](trainer/coevolution/rollout_collector.py) | Threads the per-game `harness_hooks` dict through to each episode. |
+| [`trainer/coevolution/orchestrator.py`](trainer/coevolution/orchestrator.py) | Builds one hook per game per step (gated by `config.harness_enabled`) and passes the same dict into the Phase B′ Crafter hook. |
+| [`trainer/coevolution/_crafter_hook.py`](trainer/coevolution/_crafter_hook.py) | After seeding, calls `hook.flush_to_lifecycle(lifecycle)` so the Repairer's `false_binding_patterns` signal is non-empty. |
+| [`trainer/coevolution/config.py`](trainer/coevolution/config.py) | Adds `harness_enabled: bool = False` and `harness_allow_shadow: bool = True`. |
+| [`scripts/run_coevolution.py`](scripts/run_coevolution.py) | `--harness-enabled` and `--no-harness-allow-shadow` CLI flags. |
+| [`tests/test_trainer_harness_hook.py`](tests/test_trainer_harness_hook.py) | 21 unit tests: filter admit/veto by status / domain / task, sink → lifecycle drainage, bank hydration, graceful degradation, factory, stats. |
+
+For the full topology diagram + closed/open-gap table, see
+[`harness/README.md`](harness/README.md) §22.
+
+---
+
 ## Backbone models — three-tier stack
 
 The single source of truth is [`common/models.py`](common/models.py).  The
@@ -294,21 +423,160 @@ heaviest), while `browser` / `osworld` / `video` / `visual_reasoning` are
 `k_shot_default=5`, `k_shot_max=16` per skill per domain). Volumes are therefore
 sized for *diverse pool* coverage, not full-benchmark sweeps:
 
-| Domain (role) | Pool size (used in this run) | Held-out (frozen for E0/E1/E2 eval) |
-|---|---:|---:|
-| `gymv` (**source**, 13 retro envs) | ~130 episodes (~10 ep × 20 steps each) | n/a |
-| `browser` — VisualWebArena (multimodal core) | 200 stratified | + 50 |
-| `browser` — MiniWoB++ (atomic primitives) | 125 | + 25 |
-| `browser` — AssistantBench (open web, no infra) | 180 | + 30 |
-| `browser` — WebArena | *dropped* — VWA already covers shopping/reddit/wiki | — |
-| `osworld` | 250 stratified | + 50 |
-| `visual_reasoning` — VisualToolBench / TIR-Bench (image MCQ) | 300 + 300 | + 100 each |
-| `video` — Video-Holmes (**headline arena**) | 1,000 | + 200 |
-| `video` — SIV-Bench | 400 | + 100 |
+| Domain (role) | Bucket | Total in benchmark | Pool (this run) | Holdout (frozen for E0/E1/E2 eval) | Sampler |
+|---|---|---:|---:|---:|---|
+| `gymv` (**source**) | 13 retro envs (Temporal/Airstriker, Columns, …) | 13 envs | ~130 ep (~10 ep / env × 20 steps) | n/a | `run_coldstart_actor_gymv_all.sh --episodes 10` |
+| `browser` | VisualWebArena (multimodal core) | 910 tasks | **200 stratified** | + 50 | `cold_start/task_samples/build_browsergym_diverse_200.py` |
+| `browser` | MiniWoB++ (atomic primitives) | 125 tasks | **125 (full)** | + 25 | same |
+| `browser` | AssistantBench (open web, no infra) | 215 tasks | **180 stratified** | + 30 | same |
+| `browser` | WebArena | 812 tasks | *dropped* — VWA covers shopping/reddit/wiki; gitlab+admin overlap not worth the cost | — | — |
+| `osworld` | OSWorld desktop tasks | 369 tasks | **250 stratified** | + 50 | `cold_start/evaluation_dataset/build_pool_and_holdout.py` |
+| `visual_reasoning` | VisualToolBench (image, single-turn) | 603 samples | **300 stratified** | + 100 | same |
+| `visual_reasoning` | TIR-Bench (image, tool-use) | 1,215 samples | **300 stratified** | + 100 | same |
+| `video` (**headline**) | Video-Holmes | 1,837 questions | **1,000** | + 200 | same |
+| `video` | SIV-Bench | 8,728 questions | **400 stratified** | + 100 | same |
 
 The pool/holdout split is critical: few-shot demos at Stage 3a must be
 **disjoint** from the eval slice or the E0 scoreboard is contaminated. The
-samplers in `cold_start/task_samples/build_*.py` emit both files in one pass.
+samplers in `cold_start/task_samples/build_*.py` (BrowserGym row) and
+`cold_start/evaluation_dataset/build_pool_and_holdout.py` (rows 4–8 above)
+emit both files in one pass.
+
+#### How IDs are chosen and stored — `cold_start/evaluation_dataset/`
+
+For each transfer-target benchmark we ship a deterministic
+(seed = 0) **stratified** sample organized into two sibling subdirs so
+the pool and the eval holdout never cross-contaminate at run time:
+
+```text
+cold_start/evaluation_dataset/
+├── build_pool_and_holdout.py        # one-shot regenerator (seed=0, byte-stable)
+├── load_manifests.py                # Python API + integrity check (consumers go here)
+├── manifest.json                    # locked snapshot: per-file SHA-256, sizes, build provenance
+├── _axis_distribution.json          # measured per-axis counts (diagnostic)
+├── pool/                            # 2,250 ids — used by cold-start actor
+│   ├── osworld.txt                  # 250 UUIDs
+│   ├── osworld_catalog.json         # OSWorld --task_catalog format
+│   ├── visual_toolbench.txt         # 300 HF row ids (single-turn only)
+│   ├── tir_bench.txt                # 300 HF row ids
+│   ├── video_holmes.txt             # 1000 "{video_id}.Q{qid}"
+│   └── siv_bench.txt                # 400 "{video_id}.Q{tsv_row_index}"
+└── holdout/                         # 550 ids — frozen for E0/E1/E2 eval
+    ├── osworld.txt                  # 50 UUIDs
+    ├── osworld_catalog.json         # same format as pool/
+    ├── visual_toolbench.txt         # 100
+    ├── tir_bench.txt                # 100
+    ├── video_holmes.txt             # 200
+    └── siv_bench.txt                # 100
+```
+
+One sample id per line; comment header records `count`, `seed`, and the
+per-axis distribution. Re-run `python
+cold_start/evaluation_dataset/build_pool_and_holdout.py` (or pass
+`--<bench>_pool / --<bench>_holdout N` to override) to regenerate all
+12 manifest files in one pass.
+
+Sampling axis, ID format, and exact bucket distribution per file
+(measured, seed = 0):
+
+| Benchmark | Sizes (pool / holdout) | Stratification axis | Pool axis distribution | Holdout axis distribution | ID format |
+|---|---:|---|---|---|---|
+| `osworld` | 250 / 50 | `(snapshot × possibility_of_env_change)`; report per `snapshot` (11 normalized apps) | base_setup=9, chrome=36, gimp=27, libreoffice_calc=36, libreoffice_impress=34, libreoffice_writer=26, multi_apps=11, os=26, thunderbird=17, vlc=3, vs_code=25 | base_setup=2, chrome=7, gimp=5, libreoffice_calc=7, libreoffice_impress=8, libreoffice_writer=5, multi_apps=2, os=5, thunderbird=3, vlc=1, vs_code=5 | task UUID (matches `OSWorld/evaluation_examples/examples/<app>/<uuid>.json`) |
+| `visual_toolbench` | 300 / 100 (single-turn only, 603 of 1,204 raw rows) | `prompt_category` (9 STEM / business categories) | biology=18, chemistry=16, engineering=18, finance=55, generalist=53, maths=18, medical=53, physics=16, sports=53 | biology=6, chemistry=6, engineering=6, finance=16, generalist=18, maths=6, medical=18, physics=6, sports=18 | HF row id (`row['id']`) |
+| `tir_bench` | 300 / 100 | `task` (13 tool-use families) | each of {color, contrast, instrument, jigsaw, math, maze, ocr, refcoco, rotation_game, spot_difference, symbolic, visual_search, word_search} ≈ 22–24 | each family ≈ 7–8 | HF row id (`row['id']`) |
+| `video_holmes` | 1000 / 200 | `Question Type` (7 reasoning skills: CTI / IMC / MHR / PAR / SR / TA / TCI) | each ≈ 142–144 | each ≈ 27–29 | `"{video_id}.Q{question_id}"` |
+| `siv_bench` | 400 / 100 | `category` (10 social-intelligence dimensions) | each of {Action Recognition, Attitude Inference, Counterfactual Prediction, Emotion Inference, Environment Perception, Facial Expression Recognition, Factual Prediction, Human Attribute Identification, Intent Inference, Relation Inference} = 40 | each category = 10 | `"{video_id}.Q{tsv_row_index}"` |
+
+Diversity guarantees:
+
+1. **Every category that appears in the pool also appears in the holdout**
+   (proportional within-bucket split at ratio `pool / (pool + holdout)`,
+   tie-broken so any bucket with ≥ 2 sampled items contributes to both
+   halves). For OSWorld this means all 11 normalized snapshots and all
+   3 `possibility_of_env_change` tiers (low / medium / high) reach the
+   eval slice; vlc-only contributes 1 holdout item because the bucket
+   itself has only 4 sampled tasks total.
+2. **Round-robin equal-bucket sampling** over-samples rare categories
+   relative to natural frequency — exactly what we want for a few-shot
+   probe that aims to characterize per-category transfer rather than
+   estimate population accuracy.
+3. **Disjoint by construction** — `pool ∩ holdout = ∅` is asserted at
+   build time for every benchmark; `_axis_distribution.json` records
+   the per-axis counts as a checked-in diagnostic.
+4. **Seed = 0**, deterministic across machines and re-runs (per-benchmark
+   sub-seeding so adding/removing one benchmark does not reshuffle the
+   others).
+
+Wire-up at run time:
+
+```bash
+# BrowserGym: pool manifests already in cold_start/task_samples/
+python cold_start/generate_cold_start_actor_browsergym.py \
+  --tasks_file cold_start/task_samples/browsergym_visualwebarena_200.txt \
+  --reasoning_effort minimal ...
+
+# OSWorld: --task_catalog reads the JSON catalog directly
+python cold_start/generate_cold_start_actor_osworld.py \
+  --task_catalog cold_start/evaluation_dataset/pool/osworld_catalog.json \
+  --reasoning_effort minimal ...
+
+# Visual reasoning (image + video): point --sample_ids_dir at the pool
+# subdir; the launcher autoglobs <benchmark>.txt for each enabled bench.
+python cold_start/generate_cold_start_actor_visual_reasoning.py \
+  --benchmarks visual_toolbench tir_bench video_holmes siv_bench \
+  --sample_ids_dir cold_start/evaluation_dataset/pool \
+  --reasoning_effort medium ...
+```
+
+The `holdout/` mirror is consumed only by the gate / few-shot adapter
+(`harness/few_shot_adapter.py` at gate Stage 3a, plus the E0/E1/E2
+benches) and **never** loaded during cold-start data generation —
+keeping the eval scoreboard honest.
+
+**Reusing the IDs from Python.** Every consumer in the project (gate,
+few-shot adapter, baselines, eval harnesses) should read these ID lists
+through `cold_start/evaluation_dataset/load_manifests.py` rather than
+re-parsing the text files inline:
+
+```python
+from cold_start.evaluation_dataset.load_manifests import (
+    load_ids, load_osworld_catalog, verify_integrity, load_manifest,
+)
+pool_ids = load_ids("video_holmes", split="pool")     # list[str], 1000 ids
+held_ids = load_ids("osworld",       split="holdout") #            50 ids
+catalog  = load_osworld_catalog("pool")               # {domain: [uuid, ...]}
+verify_integrity()                                    # raises on hash drift
+load_manifest()                                       # full provenance dict
+```
+
+`manifest.json` records seed, build timestamp, Python version, per-file
+SHA-256, and per-benchmark size. `verify_integrity()` re-hashes every
+file and fails loudly if any consumer (or a stray `sed`) silently edited
+a manifest. The build script is byte-stable: re-running it on the same
+dataset versions reproduces the same bytes (verified at build time).
+
+### Per-pipeline runtime settings
+
+Per-step token budgets are calibrated for `gpt-5.x` reasoning models (which
+charge hidden thinking against the same `max_completion_tokens` cap as the
+visible response); non-reasoning fallbacks use the smaller `_SCHEMA_MAX_TOKENS`
+budget. Defaults below apply unless overridden via CLI flag.
+
+| Pipeline | Episodes / task | Max steps / episode | Schema cap (non-reasoning / reasoning) | Action cap | Vision input | Parallelism unit |
+|---|---:|---:|---|---:|---|---|
+| `gymv` (`generate_cold_start_actor_gymv.py`) | 1 | 60 (cap; natural end usually earlier) | 4 k / 12 k | 128 | rendered frame | one process per env (13×) |
+| BrowserGym (`generate_cold_start_actor_browsergym.py`) | 1 | 8 (default) — bump to 12 for VWA / AssistantBench | 4 k / 12 k | 400 | screenshot + AXTree | 4–8 headless Chromium / Playwright |
+| OSWorld (`generate_cold_start_actor_osworld.py`) | 1 | 50 (cap) — recommend 30 for cold-start | 4 k / 12 k | 500 | screenshot + AT-SPI tree | 1–8 KVM guests (dominant wall-clock lever) |
+| Visual reasoning (`generate_cold_start_actor_visual_reasoning.py`) | 1 sample / call (no env) | 1 | 4 k / 12 k | 350 | image OR 6 sampled frames per video | 16+ pure API workers |
+
+Other invariants of the actor pipeline:
+
+- **Headless by default** for BrowserGym (Xvfb-backed Chromium) and OSWorld (KVM guest); pass `--no_headless` to render visibly when debugging.
+- **Frames** are NOT saved by default; pass `--save_frames` to persist the PNGs sent to the VLM under `<run>/<task>/frames/ep_NNN/step_NNN.png`.
+- **API keys** are auto-loaded from `<workspace>/api_keys.py` on import (no `export` needed).
+- **Self-hosted site env files** (`webarena_env.sh`, `visualwebarena_env.sh`) are auto-sourced by the BrowserGym launcher when the relevant tasks are in `--tasks`.
+- **`gpt-5.x` detection** is regex-based (`_is_reasoning_model`); matches route to `max_completion_tokens` automatically and accept `--reasoning_effort`.
+- **Resume** is on by default (skip episodes that already have an `episode_NNN.json` on disk); pass `--no_resume` (or omit `--resume` on launchers that opt-in) to overwrite.
 
 ### `reasoning_effort` policy
 
@@ -337,19 +605,96 @@ Full numbers + reproduction recipe in
 [`cold_start/readme.md#smoke-test-calibration`](cold_start/readme.md#smoke-test-calibration-gpt-54-n--5-paired-miniwob-tasks).
 
 Cost & wall-clock impact for one full cold-start pass on the lean plan above
-(GPT-5 reasoning class pricing, $1.25 / M input, $10 / M output):
+(GPT-5 reasoning class pricing, $1.25 / M input, $10 / M output). All four
+launchers now accept `--reasoning_effort {minimal,low,medium,high}` (added
+in this revision); the column "API spend" reflects the cheapest **safe**
+policy for each row:
 
 | Setting | API spend | Wall-clock @ realistic per-bucket parallelism |
 |---|---:|---:|
-| Original full sweep, default `medium` everywhere (today's behavior) | ~$1,500 – $1,800 | ~12 – 15 h |
-| **Lean plan, `minimal` for env / `medium` for visual reasoning** ← recommended | **~$260 – $280** | **~3 – 6 h** (set by OSWorld KVM concurrency) |
-| Lean plan, `gpt-5.4-mini` everywhere except Video-Holmes | ~$70 – $100 | ~3 – 6 h |
+| Original full sweep, default `medium` everywhere | ~$1,500 – $1,800 | ~12 – 15 h |
+| Lean plan, `minimal` for env / `medium` for visual reasoning | ~$260 – $280 | ~3 – 6 h |
+| **Lean plan, `minimal` everywhere** ← cheapest safe default | **~$200 – $220** | **~3 – 5 h** (set by OSWorld KVM concurrency) |
+| Lean plan, `gpt-5.4-mini` everywhere except Video-Holmes | ~$70 – $100 | ~3 – 5 h |
+
+Per-domain wall-clock under realistic parallelism (`gpt-5.4`,
+`reasoning_effort=minimal`, source video frames pre-extracted on disk):
+
+| Domain | Volume | Per-unit | Parallelism | Wall-clock |
+|---|---|---|---:|---:|
+| `gymv` (source) | 13 envs × 10 ep × ~20 steps ≈ 2.6 k steps | ~10 s / step | 13 (one process / env) | **~30–40 min** |
+| BrowserGym | 505 tasks (200 VWA + 125 MiniWoB + 180 AB) | ~70 s / task | 4–8 headless Chromium | **~1.5–2.5 h** |
+| OSWorld ⬅ critical path | 250 tasks × 30 steps | ~10 s / step | 1–8 KVM guests | **~2.5 h @ 8 KVMs · ~5 h @ 4 KVMs** |
+| Visual reasoning (image) | 600 (VTB 300 + TIR 300) | ~6 s / sample | 16+ pure API | **~4 min** |
+| Visual reasoning (video) | 1,400 (VH 1,000 + SIV 400) | ~10 s / sample | 16+ pure API | **~15 min** |
 
 The two dominant levers are **`reasoning_effort`** (cost: `medium` → `minimal`
-on env pipelines saves ~70 %) and **OSWorld KVM concurrency** (wall-clock:
-2 → 8 guests collapses the run from ~6 h to ~1.6 h). See
+saves ~30–70 % depending on pipeline) and **OSWorld KVM concurrency**
+(wall-clock: 2 → 8 guests collapses the run from ~6 h to ~1.6 h).
+
+#### Quick start — run on all tasks with `gpt-5.4`
+
+The four pipelines are independent (Playwright vs. KVM vs. pure-API vs.
+retro-game emulators), so you can launch them in parallel terminals.
+Manifests live in [`cold_start/task_samples/`](cold_start/task_samples/)
+(BrowserGym) and
+[`cold_start/evaluation_dataset/pool/`](cold_start/evaluation_dataset/)
+(OSWorld + visual reasoning). Output goes to
+`Cold-start-out-<domain>/` by default.
+
+```bash
+cd /workspace/Multi-hop-Reasoning-VLM-Agent
+export OPENAI_API_KEY=...   # or set in /workspace/api_keys.py (auto-loaded)
+
+# 1. gymv — source domain (13 retro envs × 10 episodes)
+python cold_start/generate_cold_start_actor_gymv.py \
+  --episodes 10 --max_steps 60 \
+  --model gpt-5.4 --reasoning_effort minimal \
+  --output_dir Cold-start-out-gymv -v
+
+# 2. BrowserGym — VisualWebArena + MiniWoB++ + AssistantBench (505 tasks)
+#    The launcher auto-sources webarena_env.sh / visualwebarena_env.sh
+#    when those suites are in --tasks.
+TASKS=$(grep -hv '^#' \
+  cold_start/task_samples/browsergym_visualwebarena_200.txt \
+  cold_start/task_samples/browsergym_miniwob_200.txt \
+  cold_start/task_samples/browsergym_assistantbench_200.txt \
+  | sort -u)
+python cold_start/generate_cold_start_actor_browsergym.py \
+  --tasks $TASKS \
+  --episodes 1 --max_steps 12 \
+  --model gpt-5.4 --reasoning_effort minimal \
+  --output_dir Cold-start-out-browsergym -v
+
+# 3. OSWorld — pool catalog (250 tasks across 10 apps) — set KVM_COUNT=8
+#    via run_coldstart_actor_osworld_all.sh for max parallelism.
+python cold_start/generate_cold_start_actor_osworld.py \
+  --task_catalog cold_start/evaluation_dataset/pool/osworld_catalog.json \
+  --episodes 1 --max_steps 30 \
+  --model gpt-5.4 --reasoning_effort minimal \
+  --output_dir Cold-start-out-osworld -v
+
+# 4. Visual reasoning — 4 benchmarks, 2,000 samples total
+#    --reasoning_effort medium is the SAFER default (visual MCQ benefits
+#    from hidden CoT); switch to minimal only after the paired smoke test
+#    confirms no accuracy regression — see "reasoning_effort policy" above.
+python cold_start/generate_cold_start_actor_visual_reasoning.py \
+  --benchmarks visual_toolbench tir_bench video_holmes siv_bench \
+  --sample_ids_dir cold_start/evaluation_dataset/pool \
+  --model gpt-5.4 --reasoning_effort medium \
+  --output_dir Cold-start-out-visual_reasoning -v
+```
+
+Resume is on by default for gymv / BrowserGym (skip episodes that
+already have an `episode_NNN.json` on disk). OSWorld + visual reasoning
+write per-task / per-sample summaries; re-running with the same
+`--output_dir` skips finished work.
+
+See
 [`cold_start/readme.md#multi-domain-cold-start-lean-plan`](cold_start/readme.md#multi-domain-cold-start-lean-plan)
-for the full breakdown, sampler scripts, and quick-start commands.
+for the full breakdown, sampler scripts, alternate model knobs (mini
+vs. full), and the OSWorld 8-KVM launcher
+(`run_coldstart_actor_osworld_all.sh`).
 
 ---
 

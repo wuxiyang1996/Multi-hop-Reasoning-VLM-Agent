@@ -388,6 +388,26 @@ def parse_args() -> argparse.Namespace:
              "driver (decide_promotion_gpt54.py). Default 300s.",
     )
 
+    # Harness wire-up (Day-10): hook the harness's eligibility +
+    # validate_invocation surfaces into Phase A, and drain the rejection
+    # sink into Phase B′ Crafter. See harness/README.md §22.
+    parser.add_argument(
+        "--harness-enabled", action="store_true",
+        help="Enable Phase-A harness integration: pre-LLM "
+             "select_eligible_skills filter + post-LLM "
+             "validate_invocation veto, with rejection sink drained "
+             "into the Crafter hook's lifecycle. Adds 0 LLM calls. "
+             "Off by default. See harness/README.md §22.",
+    )
+    parser.add_argument(
+        "--no-harness-allow-shadow", dest="harness_allow_shadow",
+        action="store_false",
+        help="Refuse to admit SHADOW skills via the harness eligibility "
+             "filter. Default: SHADOW skills are admitted (matches "
+             "HarnessConfig.allow_shadow=True).",
+    )
+    parser.set_defaults(harness_allow_shadow=True)
+
     # Debug
     parser.add_argument(
         "--debug-io", action="store_true",
@@ -530,6 +550,11 @@ def main() -> None:
     if args.crafter_promotion_timeout_s != 300.0:
         config_kwargs["crafter_promotion_timeout_s"] = args.crafter_promotion_timeout_s
 
+    if args.harness_enabled:
+        config_kwargs["harness_enabled"] = True
+    if not args.harness_allow_shadow:
+        config_kwargs["harness_allow_shadow"] = False
+
     if args.run_dir is not None:
         config_kwargs["run_dir"] = args.run_dir
     if args.bank_dir is not None:
@@ -587,6 +612,10 @@ def main() -> None:
               f"timeout {config.crafter_promotion_timeout_s:.0f}s)")
     else:
         print("  Crafter+Prom: disabled")
+    if config.harness_enabled:
+        print(f"  Harness:      enabled (allow_shadow={config.harness_allow_shadow})")
+    else:
+        print("  Harness:      disabled")
     print(f"  Debug I/O:    {'enabled → ' + config.debug_io_dir if config.debug_io else 'disabled'}")
     print(f"  Curriculum:   {config.curriculum_description()}")
     if config.start_mode == "from_scratch":

@@ -556,6 +556,88 @@ The "Suggested work-order" in [§Suggested work-order](#suggested-work-order) ab
 
 ---
 
+## §22 Trainer integration (Day-10) — what's wired into the co-evolution loop
+
+The runtime in [`../orchestrator/runner.py`](../orchestrator/runner.py) is one of two consumers of this harness; the other is the **co-evolution training loop** in [`../trainer/coevolution/orchestrator.py`](../trainer/coevolution/orchestrator.py). Day-10 plugs the harness's two **LLM-free** surfaces into the live training rollouts and feeds the resulting rejection signal back into the existing Crafter hook so the offline-mirror loop now has a *live-trainer* counterpart.
+
+### 22.1 Topology — what's connected today
+
+```
+  ┌── Phase A (rollout) ───────────────────────────────────────────┐
+  │   episode_runner.run_episode_async(... harness_hook=hook)      │
+  │     │                                                          │
+  │     ├─ get_top_k_skill_candidates(...)            (RAG)        │
+  │     │           │                                              │
+  │     ├─ hook.filter_candidates(records, state)                  │
+  │     │     └── EligibilityFilter.filter_with_rejections         │
+  │     │             ├── admitted ─▶ skill_selection LLM picks    │
+  │     │             └── rejected ─▶ RejectedSkillSink.observe()  │
+  │     │                                                          │
+  │     ├─ hook.validate_choice(skill_id, state)                   │
+  │     │     └── SkillHarness.validate_invocation                 │
+  │     │             ├── ok=True   ─▶ proceed                     │
+  │     │             └── ok=False  ─▶ fall back to next eligible  │
+  │     │                                                          │
+  │     └─ env.step(...) (unchanged)                               │
+  └────────────────────────────────────────────────────────────────┘
+                  │
+                  ▼
+  ┌── Phase B′ (Crafter) ──────────────────────────────────────────┐
+  │   _crafter_hook.run_crafter_step(... harness_hooks=hooks)      │
+  │     │                                                          │
+  │     ├─ _seed_repo_from_legacy_jsonl  →  ephemeral lifecycle    │
+  │     │                                                          │
+  │     ├─ harness_hook.flush_to_lifecycle(lifecycle)              │
+  │     │     └── RejectedSkillSink.flush_to                       │
+  │     │             └── lifecycle.record_false_binding_pattern   │
+  │     │                     ↳ writes SkillRecord.false_binding_  │
+  │     │                       patterns                           │
+  │     │                                                          │
+  │     ├─ SkillCrafterService.reflect_on_episode (existing)       │
+  │     │     └── Repairer reads false_binding_patterns ──▶ emits  │
+  │     │         PatchProposal records that previously had no     │
+  │     │         live signal to fire on                           │
+  │     │                                                          │
+  │     └─ writes proposals.jsonl ─▶ Phase B′ Promotion subprocess │
+  └────────────────────────────────────────────────────────────────┘
+```
+
+### 22.2 What this *does not* do
+
+This wire-up deliberately stops at the eligibility + validate surfaces. Specifically, it does **not**:
+
+1. Call `harness.run_skill(...)` from the trainer. The episode runner still drives the env directly via primitive actions through `action_taking` LoRA (see [§16.1 / §16.2](#161-adapter-executors-are-stubs-so-run_skill-is-a-black-hole)). Plumbing `run_skill` requires a real `gymv` `set_executor(env_step_fn)` plus an `EnvLike` shim per env wrapper — the same multi-day env-binding work tracked in §16.
+2. Persist any status mutation. Skills hydrated from the live `skill_bank.jsonl` are mounted as a *runtime view* with `status=PROVISIONAL` (so the F1 status check admits them); the `SkillLifecycleManager` remains the only authority that may write status to disk (PLAN-SKILL-BANK §0.5).
+3. Add LLM calls. Both `EligibilityFilter` and `validate_invocation` are deterministic CPU paths (microseconds per step). The trainer's existing 2-LLM-calls-per-env-step budget (intention + skill-selection + action) is unchanged.
+
+### 22.3 CLI surface
+
+```
+python scripts/run_coevolution.py \
+    --crafter-promotion-enabled \
+    --harness-enabled \
+    [--no-harness-allow-shadow]
+```
+
+Both flags default off / permissive, so existing runs are byte-identical.
+
+### 22.4 Spec gaps this closes for the *trainer* (subset of §9 / §22)
+
+| Gap | Trainer status |
+| --- | --- |
+| §9.1 second-pass `validate_invocation` | **closed** in trainer's live rollout (per-step) |
+| §9.3 per-check booleans on `EligibleSkill` | **closed** (logged into `experiences[].harness.filter[].rejected[]`) |
+| §22 task-axis F2′ | **closed** for trainer Phase A (state.task = game name) |
+| PLAN-SKILL-BANK §4.3b `false_binding_patterns` from live signal | **closed** via `RejectedSkillSink → record_false_binding_pattern` in Phase B′ |
+
+### 22.5 What the trainer integration leaves for §9 / §16 / §22
+
+- §9.2 planner-context (`intention / active_skill / local_reasoning_trace`) is *plumbed* into `state.extra` but not yet a typed first-class param of `select_eligible_skills` — the harness API still takes `state` only.
+- §9.3 numeric `fit_score / risk_score` head — still pending (LoRA scoring, PLAN-SKILL-BANK §0.3 Clause D).
+- §16.1–§16.5 — unchanged. `run_skill` integration is the next milestone after this one.
+
+---
+
 ## Cross-references
 
 - Root [`readme.md`](../readme.md) §"Architecture" — where the harness sits in the four-stage pipeline.
