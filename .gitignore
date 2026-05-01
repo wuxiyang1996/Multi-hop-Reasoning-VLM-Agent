@@ -73,6 +73,15 @@ labeling/skill_actions_out/
 labeling_supplement/crafter_proposals_out/
 labeling_supplement/episode_reflections_out/
 
+# ── Harness I/O dump per-run artifacts ──────────────────────────
+# Per-run dumps from labeling_supplement/dump_harness_io_gpt54.py and
+# the cross-eligibility bypass probe. Keep _phase0_report.md and
+# _phase0_cross_eligibility_probe.json checked in (small, canonical
+# Phase-0 numbers); ignore the bulky per-step JSON dumps and the
+# scratch fused-bank dir used to drive the probe.
+labeling_supplement/harness_io_out/run_*/
+labeling_supplement/harness_io_out/_fused_bank_*/
+
 # ── Evaluation / test outputs ───────────────────────────────────
 test_rollout/
 baselines/output/
