@@ -96,7 +96,9 @@ class BrowserAdapter(SkillAdapter):
                     "action_type": action_type,
                     "payload": payload,
                     "pre_state": ctx.state.to_json() if i == 0 else None,
-                    "post_state": None,
+                    "post_state": (
+                        hop_result.get("post_state") or ctx.state.to_json()
+                    ),
                     "evidence": step_evidence,
                     "notes": hop.get("notes", ""),
                 }

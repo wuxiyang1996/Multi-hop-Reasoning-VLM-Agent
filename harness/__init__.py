@@ -65,6 +65,15 @@ from harness.gymv_success import (
     success_fn_for_domain,
 )
 from harness.qa_success import make_qa_success_fn, qa_answer_matches  # noqa: F401
+from harness.browsergym_executor import (  # noqa: F401
+    BrowserExecutorState,
+    make_browsergym_executor,
+)
+from harness.browser_schema_producer import (  # noqa: F401
+    browsergym_canonical_producer,
+    make_browsergym_producer,
+)
+from harness.browser_success import make_browser_per_step_success_fn  # noqa: F401
 from harness.osworld_executor import make_osworld_executor  # noqa: F401
 from harness.osworld_schema_producer import make_osworld_producer  # noqa: F401
 from harness.osworld_success import make_osworld_per_step_success_fn  # noqa: F401
@@ -120,8 +129,13 @@ __all__ = [
     "SkillAdapter",
     "SkillHarness",
     "SuccessFnFactory",
+    "BrowserExecutorState",
+    "browsergym_canonical_producer",
     "candy_crush_producer",
     "default_success_fn",
+    "make_browser_per_step_success_fn",
+    "make_browsergym_executor",
+    "make_browsergym_producer",
     "evaluate_episode_effects",
     "evaluate_hop_effects",
     "evaluate_predicate",

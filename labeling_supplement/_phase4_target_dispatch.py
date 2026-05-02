@@ -461,10 +461,93 @@ def _build_osworld_target(args: argparse.Namespace) -> TargetBuild:
     )
 
 
-# Placeholder until Stage 4 lands `_build_browser_target`.
-_build_browser_target: TargetBuilder = _stage_not_shipped(
-    "Stage 4 (browsergym)", "browser", "Section 7",
-)
+def _build_browser_target(args: argparse.Namespace) -> TargetBuild:
+    """BrowserGym (browser) transfer cell — Stage 4.
+
+    Mirrors `_build_gymv_target`'s shape: deferred imports,
+    deterministic-stub executor (rollout memo §6.1), demos loaded
+    from ``Cold-start-out-browsergym/<task_prefix>.*/episode_*.json``,
+    and the per-domain ``"browser"`` success_fn factory registered
+    via ``harness.browser_success`` at import time.
+
+    The first cut does NOT drive a real Playwright browser — the
+    deterministic stub executor exercises the dispatch + per-hop
+    predicate evaluator end-to-end so Stage 4 acceptance can confirm
+    the chain runs without raising. Real browser binding lands in a
+    follow-up by replacing the closure
+    `make_browsergym_executor` returns.
+    """
+    from common.enums import SkillType
+    from harness import (
+        AdapterRegistry,
+        HarnessConfig,
+        SkillHarness,
+        make_browsergym_executor,
+        make_browsergym_producer,
+    )
+    from harness.adapters.browser_adapter import BrowserAdapter
+    import harness.browser_success  # noqa: F401  (registers success_fn factory)
+    from harness.browser_success import make_browser_per_step_success_fn
+    from harness.few_shot_demos_browsergym import (
+        build_demos_from_browsergym_episodes,
+    )
+
+    cold_start_root = Path(
+        args.cold_start_root or "Cold-start-out-browsergym"
+    )
+    if not cold_start_root.exists():
+        raise SystemExit(
+            f"cold_start_root missing: {cold_start_root} "
+            f"(expected Cold-start-out-browsergym/{args.target}.*/episode_*.json)"
+        )
+
+    task_prefix = args.target  # e.g. "assistantbench"
+    schema_producer = make_browsergym_producer(task_prefix)
+    executor, _holder = make_browsergym_executor(
+        domain="browser",
+        task=task_prefix,
+        on_unresolved="skip",
+        schema_producer=schema_producer,
+    )
+
+    adapter = BrowserAdapter()
+    # NB: BrowserAdapter is its own SkillAdapter subclass (NOT a
+    # StubTransferTargetAdapter), so we widen `supported_types` on
+    # the instance directly. The class default already includes all
+    # four types but we re-assert defensively in case a future cut
+    # tightens the class default.
+    adapter.supported_types = (
+        SkillType.ACTION, SkillType.MIXED,
+        SkillType.GROUNDING, SkillType.REASONING,
+    )
+    adapter.set_executor(executor)
+
+    registry = AdapterRegistry()
+    registry.register(adapter)
+    harness_obj = SkillHarness(registry, config=HarnessConfig(
+        seed=0,
+        default_budget_hops=12,
+        default_budget_ms=30_000.0,
+    ))
+
+    demos = build_demos_from_browsergym_episodes(
+        cold_start_root,
+        task_prefix=task_prefix,
+        max_episodes=int(getattr(args, "max_episodes", 3)),
+        max_demos_per_episode=int(getattr(args, "max_demos_per_episode", 2)),
+    )
+    logger.info(
+        "loaded %d browsergym demo(s) from %s/%s.*/",
+        len(demos), cold_start_root, task_prefix,
+    )
+
+    return TargetBuild(
+        target_domain="browser",
+        adapter=adapter,
+        harness=harness_obj,
+        demos=demos,
+        success_fn_factory=make_browser_per_step_success_fn,
+    )
 
 
 # ---------------------------------------------------------------------------

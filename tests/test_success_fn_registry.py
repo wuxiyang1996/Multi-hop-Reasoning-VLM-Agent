@@ -70,10 +70,16 @@ def test_success_fn_for_domain_gymv_runs() -> None:
 
 
 def test_success_fn_for_domain_unknown_falls_back_to_default() -> None:
-    """No browser scorer registered yet → falls back to
+    """An unregistered target domain falls back to
     `default_success_fn` (success ⇔ outcome.success +
-    contract_satisfied)."""
-    fn = success_fn_for_domain("browser")
+    contract_satisfied).
+
+    Phase-5 Stages 1-4 registered scorers for ``visual_reasoning`` /
+    ``video`` / ``osworld`` / ``browser``, so this test now uses a
+    deliberately-unknown name (``__no_such_domain__``) to keep
+    asserting the registry's fallback contract.
+    """
+    fn = success_fn_for_domain("__no_such_domain__")
     assert fn is default_success_fn
 
 
