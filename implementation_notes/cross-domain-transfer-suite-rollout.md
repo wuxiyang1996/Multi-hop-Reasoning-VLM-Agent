@@ -858,7 +858,17 @@ numbers should not be quoted as evidence of mechanism strength. The
 numbers respect the Stage 0 cap (G6) only on cross-domain-source rows
 where the stub bypass doesn't fire.
 
-See [`phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md) §12 for the canonical, severity-ranked inventory of code-level gaps that block §11.5.4 / §11.5.6 from becoming measurements rather than projections. Status as of 2026-05-02 PM: Tier 1 items 1-2 (image-VR + video per-sample binding via `TaskAware{Visual,Video}ReasoningExecutor`), Tier 2 (`vlm_wrapper/<domain>_adapter.py` shims + `VideoReasoningExecutor`), and Tier 3 (`harness/predicate_translator.py` with target-vocab-validated game->cross-domain mappings) are all **CLOSED**. Remaining open work is just Tier 1 items 3-4 (osworld + browser real-env executors, gated on CI sandbox provisioning).
+See [`phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md) §12 for the canonical, severity-ranked inventory of code-level gaps that block §11.5.4 / §11.5.6 from becoming measurements rather than projections. Status as of 2026-05-02 PM: **all** Tier 1 items 1-4 (image-VR, video, osworld, and browser per-sample binding via `TaskAware{Visual,Video,Osworld,Browser}*Executor`), Tier 2 (`vlm_wrapper/<domain>_adapter.py` shims + `VideoReasoningExecutor`), and Tier 3 (`harness/predicate_translator.py` with target-vocab-validated game->cross-domain mappings) are **CLOSED**. The OSWorld real-env binding talks HTTP to the live `happysixd/osworld-docker` container fleet via [`harness/_executor_helpers/osworld_client.py`](../harness/_executor_helpers/osworld_client.py); the browser real-env binding spawns a JSON-RPC subprocess in the `browsergym` conda env via [`harness/_executor_helpers/browser_helper.py`](../harness/_executor_helpers/browser_helper.py). The remaining open work is empirical re-measurement -- regenerating `cross_domain_results/_final/run_*Z/_report.md` against the now-fully-wired pipeline.
+
+> **Retraction note (2026-05-02):** A prior revision of this section
+> classified items 3-4 as "infra-blocked, deferred -- gated on CI
+> sandbox provisioning". That framing was wrong: the workspace already
+> ships dedicated `osworld` and `browsergym` conda envs with all
+> dependencies (`pyautogui`+`desktop_env` and `playwright`+
+> `browsergym-{core,miniwob,webarena,...}` respectively), `Xvfb` on
+> PATH, 13 pre-warmed `happysixd/osworld-docker` containers, and the
+> WebArena Docker stack. The actual gating constraint was code-side
+> wiring, not infra.
 
 ### 11.5.1 Vocabulary alignment between game and cross-domain banks
 

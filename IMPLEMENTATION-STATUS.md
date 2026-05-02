@@ -264,11 +264,11 @@ T2.11 + T2.12 follow-ups (2026-05-02):
   2026-05-02 (T2.3).** See above.
 - **Phase D / E / F** of `PLAN-COMPONENTS-IMPLEMENTATION.md`
   (training cadence, multi-domain rollout, full eval).
-- **Phase-5/6 real-env binding (just Tier 1 items 3-4 remain)** -- the
+- **Phase-5/6 real-env binding (all 4 Tier 1 + Tier 2 + Tier 3 closed 2026-05-02)** -- the
   deterministic-stub tier of Phase-5/6 (see Delivered table) provides
-  infrastructure validation only; mechanism validation requires:
-  - **Tier 1**: 4 harness executors needed real-env binders -- status as of
-    2026-05-02 PM:
+  infrastructure validation only; mechanism validation now closed end-to-end:
+  - **Tier 1**: 4 harness executors needed real-env binders -- all 4
+    closed as of 2026-05-02 PM:
     * `harness/visual_reasoning` per-sample image loading -- **CLOSED**
       via `harness/_vr_per_sample_executor.py`'s
       `TaskAwareVisualReasoningExecutor` + dispatcher rewire in
@@ -280,11 +280,40 @@ T2.11 + T2.12 follow-ups (2026-05-02):
       against `Cold-start-out-visual-reasoning-video/video_holmes/`).
       Verb-routing keeps both InnerAction and legacy video-domain
       verb sets exercising end-to-end.
-    * `harness/osworld_executor.py` (real `pyautogui`) -- still open,
-      ~3-5 days + a real-desktop CI sandbox (the gate is operational,
-      not LOC).
-    * `harness/browsergym_executor.py` (real BrowserGym/Playwright) --
-      still open, ~3-5 days + Playwright in CI.
+    * `harness/osworld_executor.py` (real `pyautogui`) -- **CLOSED**
+      via `harness/_osworld_per_sample_executor.py`'s
+      `TaskAwareOsworldExecutor` + `discover_task_to_osworld_meta` +
+      `harness/_executor_helpers/osworld_client.py`'s `OsworldClient`
+      and `OsworldContainerPool` (HTTP client over the
+      `happysixd/osworld-docker` Flask server). Smoke-verified
+      end-to-end: `pyautogui.click(x=100, y=100, button='left',
+      clicks=1)` actually executed in container `recursing_wilson`.
+      516 task->meta entries discovered across 14 OSWorld domains
+      (chrome, vlc, gimp, libreoffice_*, ...). 13-container fleet
+      preloaded.
+    * `harness/browsergym_executor.py` (real BrowserGym/Playwright)
+      -- **CLOSED** via `harness/_browser_per_sample_executor.py`'s
+      `TaskAwareBrowserExecutor` + `discover_task_to_browser_meta` +
+      `harness/_executor_helpers/browser_helper.py` (JSON-RPC
+      subprocess hosting `gym.make("browsergym/<task>")` in the
+      `browsergym` conda env). Smoke-verified end-to-end against
+      `Cold-start-out-browsergym/miniwob.email-inbox-star-reply/`:
+      real `click("47")` returned `terminated=True` (task completed)
+      in 13.4s including helper boot. 125 unique miniwob tasks
+      discovered.
+
+    **Retraction 2026-05-02:** A prior revision of this section
+    framed items 3-4 as "infra-blocked, deferred -- needs an OSWorld
+    VM in CI / Playwright in CI". That was wrong: the workspace
+    already shipped dedicated `osworld` and `browsergym` conda envs
+    with all dependencies, the upstream OSWorld + BrowserGym sources
+    (editable installs), `Xvfb` + `xvfb-run` on PATH, 13
+    pre-warmed `happysixd/osworld-docker` containers running for
+    >35h, and the WebArena Docker stack. The actual gating
+    constraint was code-side wiring, not infra. With per-sample
+    executors + helper plumbing now landed, both items shipped
+    without a CI sandbox change.
+
     See
     [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md)
     §12.1.
@@ -308,10 +337,9 @@ T2.11 + T2.12 follow-ups (2026-05-02):
     sibling memo `implementation_notes/cross-domain-transfer-suite-rollout.md`
     §11.5.0.
   - Closing measurement: re-run Stage 6 NxN driver
-    (`labeling_supplement/_phase4_transfer_matrix.py`) once the
-    remaining Tier 1 items 3-4 land; expect G6 to pass and §11.5.4's
-    15-35% / 15-30% bands to become measured admit rates rather than
-    projections across all 25 cells.
+    (`labeling_supplement/_phase4_transfer_matrix.py`) on the now-fully-wired
+    pipeline; expect G6 to pass and §11.5.4's 15-35% / 15-30% bands to
+    become measured admit rates rather than projections across all 25 cells.
 - **Actor rewire**: replace `decision_agents.skill_interface
   .SkillBankProvider` with a `HarnessSkillProvider` that wraps
   `SkillHarness.select_eligible_skills`. (Note: the Day-10

@@ -6,12 +6,39 @@ Spec: [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md), [`PLAN-COMPONENTS-I
 > registered and dispatchable: `gymv` (canonical), `visual_reasoning`,
 > `video`, `osworld`, `browser`. Routing happens via
 > [`labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py).
-> The 4 cross-domain executors (`video_executor`, `osworld_executor`,
-> `browsergym_executor`, plus the inherited `visual_reasoning` stub) are
-> **deterministic stubs** -- they identity-pass the rebound contract's
-> predicates rather than calling a real env or VLM.
+> The 4 cross-domain harness executors (`video_executor`, `osworld_executor`,
+> `browsergym_executor`, `visual_reasoning_executor`) ship as deterministic
+> stubs at the module level, but the dispatcher binds **real-env per-sample
+> wrappers** when cold-start data + runtime infra are available (which they
+> are in this workspace, see below).
 >
-> **Tier 2 + Tier 3 + image-VR + video real-env binding (all closed 2026-05-02):** image-VR and video Stage 1/2 cells now exercise real VLM tools via [`harness/_vr_per_sample_executor.py`](_vr_per_sample_executor.py) and [`harness/_video_per_sample_executor.py`](_video_per_sample_executor.py). The per-domain runtime predicate-translator that game->cross-domain transfers depend on for non-zero admit rates ships as [`harness/predicate_translator.py`](predicate_translator.py) and is wired into all 4 cross-domain target builders. The two `vlm_wrapper/<domain>_adapter.py` shims (`visual_reasoning_adapter.py` + `video_adapter.py`) re-export the underlying `HopExecutor` classes that ship under [`visual_reasoning_wrapper/`](../visual_reasoning_wrapper/) (461 + ~470 LOC). Only Tier 1 items 3-4 (osworld + browser real-env executors, gated on CI sandbox provisioning) remain open. See [`../implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md) §12 for the updated inventory.
+> **All 4 Tier 1 + Tier 2 + Tier 3 closed 2026-05-02.** Image-VR + video Stage
+> 1/2 cells exercise real VLM tools via
+> [`harness/_vr_per_sample_executor.py`](_vr_per_sample_executor.py) and
+> [`harness/_video_per_sample_executor.py`](_video_per_sample_executor.py).
+> OSWorld Stage 3 cells exercise real `pyautogui` against the live
+> `happysixd/osworld-docker` container fleet via
+> [`harness/_osworld_per_sample_executor.py`](_osworld_per_sample_executor.py)
+> + [`harness/_executor_helpers/osworld_client.py`](_executor_helpers/osworld_client.py)
+> (HTTP client over the container's Flask server). BrowserGym Stage 4 cells
+> exercise a real Playwright browser via
+> [`harness/_browser_per_sample_executor.py`](_browser_per_sample_executor.py)
+> + [`harness/_executor_helpers/browser_helper.py`](_executor_helpers/browser_helper.py)
+> (JSON-RPC subprocess hosting `gym.make("browsergym/<task>")` in the
+> `browsergym` conda env). The per-domain runtime predicate-translator
+> that game->cross-domain transfers depend on for non-zero admit rates
+> ships as [`harness/predicate_translator.py`](predicate_translator.py)
+> and is wired into all 4 cross-domain target builders. See
+> [`../implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md) §12 for the updated inventory.
+>
+> **Retraction note:** A prior revision of this README and the §12.1 doc
+> classified Tier 1 items 3-4 as "infra-blocked, deferred -- needs an OSWorld
+> VM in CI / Playwright in CI". That framing was wrong: the workspace already
+> ships dedicated `osworld` and `browsergym` conda envs with all
+> dependencies, the upstream OSWorld + BrowserGym sources (editable installs),
+> `Xvfb` + `xvfb-run` on PATH, 13 pre-warmed `happysixd/osworld-docker`
+> containers, and the WebArena Docker stack. The actual gating constraint was
+> code-side wiring, not infra.
 >
 > Numbers measured against
 > these executors (e.g. Stage 6's `_phase4_transfer_report.py` G1-G6 verdicts)
