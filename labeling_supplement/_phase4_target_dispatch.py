@@ -28,7 +28,7 @@ domain, this module provides:
 Phase-5 sub-agents (Stages 1-4) add their per-domain builder here.
 The gymv builder is the canonical reference; mirror its shape.
 
-See ``implementation_notes/phase5-cross-domain-measurement.md`` for
+See ``implementation_notes/legacy/phase5-cross-domain-measurement.md`` for
 the per-stage scope (which target_domain each sub-agent owns).
 """
 from __future__ import annotations
@@ -102,7 +102,7 @@ def build_target(target_domain: str, args: argparse.Namespace) -> TargetBuild:
       UnsupportedTargetDomain: if no builder is registered.
       NotImplementedError: if the builder is the placeholder stub for
         a stage that hasn't shipped yet (Stages 1-4 land progressively
-        per ``implementation_notes/phase5-cross-domain-measurement.md``).
+        per ``implementation_notes/legacy/phase5-cross-domain-measurement.md``).
     """
     builder = _TARGET_BUILDERS.get(target_domain)
     if builder is None:
@@ -220,7 +220,7 @@ def _stage_not_shipped(stage: str, target_domain: str, sub_section: str) -> Call
     def _stub(args: argparse.Namespace) -> TargetBuild:  # noqa: ARG001
         raise NotImplementedError(
             f"{stage} ({target_domain!r}) not implemented yet -- see "
-            f"implementation_notes/phase5-cross-domain-measurement.md "
+            f"implementation_notes/legacy/phase5-cross-domain-measurement.md "
             f"{sub_section}. Land the per-domain builder by replacing "
             f"_TARGET_BUILDERS[{target_domain!r}] with a real "
             f"`_build_{target_domain}_target` callable that mirrors "
@@ -231,17 +231,34 @@ def _stage_not_shipped(stage: str, target_domain: str, sub_section: str) -> Call
 
 
 def _build_visual_reasoning_target(args: argparse.Namespace) -> TargetBuild:
-    """Stage-1 image-VR transfer cell — VTB + TIR-Bench.
+    """Stage-1 image-VR transfer cell -- VTB + TIR-Bench.
 
-    Adapter is left on its inherited stub executor;
-    `bind_visual_reasoning_executor` requires a per-sample PIL.Image
-    we don't yet load. The stub still exercises dispatch + success_fn
-    end-to-end so the chain runs without raising.
+    Per-sample image binding shipped 2026-05-02 (Phase-5/6 §12.1 Tier 1
+    follow-up). The dispatcher now:
+
+    1. Discovers ``{task_id: image_path}`` from
+       ``<cold_start_root>/<run>/<sub_corpus>/sample_*.json`` cross-referenced
+       with ``frames/sample_NNN/frame_00.png`` siblings (see
+       :func:`harness._vr_per_sample_executor.discover_task_to_image`).
+    2. Wires a :class:`~harness._vr_per_sample_executor.TaskAwareVisualReasoningExecutor`
+       wrapper into the adapter that lazily binds (and caches) one real
+       :class:`~visual_reasoning_wrapper.skill_executor.VisualReasoningExecutor`
+       per image. Falls back to the deterministic stub on tasks where no
+       frame is on disk.
+
+    When the discovery returns an empty map (cold-start tree has no
+    timestamped run with frames), the adapter is left on the inherited
+    stub executor -- the chain still runs but every hop identity-passes
+    its predicates, mirroring the pre-2026-05-02 behaviour.
     """
     from common.enums import SkillType
     from harness import AdapterRegistry, HarnessConfig, SkillHarness
     from harness.adapters.visual_reasoning_adapter import VisualReasoningAdapter
     from harness.few_shot_demos_vr import build_demos_from_vr_samples
+    from harness._vr_per_sample_executor import (
+        TaskAwareVisualReasoningExecutor,
+        discover_task_to_image,
+    )
     import harness.qa_success  # noqa: F401  (registers success_fn factory)
     from harness.qa_success import make_qa_success_fn
 
@@ -267,6 +284,33 @@ def _build_visual_reasoning_target(args: argparse.Namespace) -> TargetBuild:
         SkillType.ACTION, SkillType.MIXED,
         SkillType.GROUNDING, SkillType.REASONING,
     )
+
+    # Discover per-sample images and bind a real executor wrapper. If
+    # nothing is found, we leave the adapter on its inherited stub so
+    # the chain still runs (matches pre-Tier-1 behaviour).
+    task_to_image = discover_task_to_image(
+        cold_start_root, sub_corpus=sub_corpus,
+    )
+    if task_to_image:
+        prefer_gdino = bool(getattr(args, "vr_prefer_gdino", False))
+        adapter.set_executor(
+            TaskAwareVisualReasoningExecutor(
+                task_to_image,
+                prefer_gdino=prefer_gdino,
+            )
+        )
+        logger.info(
+            "bound TaskAwareVisualReasoningExecutor with %d task->image "
+            "mapping(s) for sub_corpus=%s (prefer_gdino=%s)",
+            len(task_to_image), sub_corpus, prefer_gdino,
+        )
+    else:
+        logger.warning(
+            "no per-sample frames discovered under %s/<run>/%s/frames/; "
+            "leaving adapter on inherited deterministic stub (chain will "
+            "run but predicates identity-pass)",
+            cold_start_root, sub_corpus,
+        )
 
     registry = AdapterRegistry()
     registry.register(adapter)
