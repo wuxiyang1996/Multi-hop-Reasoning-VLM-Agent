@@ -242,7 +242,183 @@ See [`cross-domain-transfer-suite-rollout.md`](cross-domain-transfer-suite-rollo
 
 ---
 
-## 12. Output layout
+## 12. Code-level implementation gaps post-Stage 6
+
+Phase-5/6 Stages 0-6 all shipped 2026-05-02 -- the infrastructure runs
+end-to-end (NxN matrix driver + report generator + 6 acceptance gates
+across 5 target domains). However, post-ship analysis exposed that the
+*actual transfer mechanism* is not yet measured: 4 of 5 target-domain
+executors are deterministic stubs that identity-pass the rebound
+contract's predicates rather than touching real envs / VLMs, so every
+admit-rate number in `cross_domain_results/_final/run_*/_report.md` is
+mechanism-trivial.
+
+This section is the canonical, severity-ranked inventory of code-level
+gaps that block §11.5.4 / §11.5.6 transferability bands of the sibling
+memo [`cross-domain-transfer-suite-rollout.md`](cross-domain-transfer-suite-rollout.md)
+from becoming measurements rather than projections. Other docs back-link
+to §12.X anchors below.
+
+### 12.1 Tier 1 -- The 4 deterministic-stub executors (critical)
+
+| # | Module | Status | What's missing | Acceptance impact |
+|---|---|---|---|---|
+| 1 | `harness/visual_reasoning` (Stage 1) | Bind helper + 461-LOC `VisualReasoningExecutor` ship; dispatcher does NOT call them | Per-sample `PIL.Image` loading is not wired ([`labeling_supplement/_phase4_target_dispatch.py:236-239`](../labeling_supplement/_phase4_target_dispatch.py): *"Adapter is left on its inherited stub executor; bind_visual_reasoning_executor requires a per-sample PIL.Image we don't yet load"*) | Stage 1 G3 cell measures 0% via stub identity-pass |
+| 2 | [`harness/video_executor.py`](../harness/video_executor.py) (Stage 2) | Stub | Doesn't decode video frames or call a VLM. File docstring: *"deterministic -- does not actually decode video frames or call a VLM yet"* | Stage 2 within-video G2 = FAIL (0% across all 4 cells in Stage 5 4x4) |
+| 3 | [`harness/osworld_executor.py`](../harness/osworld_executor.py) (Stage 3) | Stub | Doesn't invoke `pyautogui` against a real desktop. File docstring (line 1): *"deterministic-stub binding for the OsworldAdapter"*; line 71: *"deterministic stub doesn't actually step a desktop"* | Stage 3 G3 = 0% on game->osworld for all 13 game corpora |
+| 4 | [`harness/browsergym_executor.py`](../harness/browsergym_executor.py) (Stage 4) | Stub | Doesn't call BrowserGym/Playwright. File docstring (line 1): *"deterministic-stub stage-1 cut"* | Stage 4 G3 = 0% on game->browser |
+
+Empirical Stage 6 verdict on the latest run
+(`cross_domain_results/_final/run_20260502T085239Z/_report.md`):
+
+```
+G1 (diagonal >=80%)              FAIL    4 violators (visual_toolbench->visual_toolbench=0%, tir_bench->tir_bench=0%, plus 2 game->game cells admitting 100% via stub identity-pass)
+G2 (within-cluster off-diag>=30%) FAIL    4 violators
+G3 (game<->image-VR in [15,35])  FAIL    8 violators
+G4 (game<->video-VR in [15,30])  N-A     0 cells in smoke
+G5 (QA->game <5%, informative)   soft-FAIL  max=100% (QA->game stub-pathology)
+G6 (measured <= upper_bound+slack) FAIL  16 violators (game->game cells measure 100% vs Stage 0 upper bound of 0-18%)
+```
+
+All 6 G-gates either FAIL or are N-A on the latest Stage 6 smoke. The
+infrastructure is not the bug; the stubs are.
+
+### 12.2 Tier 2 -- Missing `vlm_wrapper/<domain>_adapter.py` files (critical)
+
+The `harness/README.md` §"Suggested work-order" item 16 envisions wiring
+real `vlm_wrapper/<domain>_adapter.py` executors into the harness via
+`set_executor()`. Reality on disk (`ls vlm_wrapper/`):
+
+```
+vlm_wrapper/
++-- gymv_adapter.py       # ships
++-- osworld_adapter.py    # ships (real env)
++-- browser_adapter.py    # ships (real env)
++-- (no video_adapter.py, no visual_reasoning_adapter.py)
+```
+
+Even if Tier 1 stubs were swapped out tomorrow, **2 of 4 transfer target
+domains have no real-env adapter to swap in**. Video and visual_reasoning
+real adapters need to be authored from scratch in `vlm_wrapper/` before
+Tier 1 work is meaningful for those targets.
+
+Estimated effort: ~600-800 LOC each (mirroring the shape of
+`vlm_wrapper/osworld_adapter.py` and `vlm_wrapper/browser_adapter.py`),
+plus a VLM-quality eval harness for verification.
+
+### 12.3 Tier 3 -- Per-domain runtime predicate-translators (critical, design-level)
+
+Section 11.5.0 of the sibling memo
+[`cross-domain-transfer-suite-rollout.md`](cross-domain-transfer-suite-rollout.md)
+introduces the concept and admits no implementation exists:
+
+> §11.5.4's 15-35% / 15-30% bands assume the harness ships a per-domain
+> runtime predicate-translator that bridges the predicate-name mismatch
+> (e.g. `score_increased` becomes `answer_emitted` when the target is
+> image-VR).
+
+Without these translators, even a real (Tier 1 + Tier 2) executor will
+reject every game->VR contract because `score_increased` isn't in
+[`harness/qa_success.py`](../harness/qa_success.py)'s vocabulary.
+Stage 0 records `upper_bound_admit_rate=0.0` for these cells precisely
+because the static-vocab check fires before any executor runs.
+
+**Status:** not designed, not specced. There is no module for predicate
+translation anywhere in the tree as of 2026-05-02. The likely shape is
+either (a) per-target-domain alias tables in
+`harness/<domain>_success.py` or (b) a new `harness/predicate_translator.py`
+module called as a pre-pass to `success_fn`. Tier 3 is a hard blocker
+for §11.5.4's projected 15-35% / 15-30% bands becoming measured numbers
+on game->VR cells -- without it, those cells continue to admit at 0%
+even with real Tier 1+2 work shipped.
+
+### 12.4 Tier 4 -- Open `skill_transfer_test/TODO.md` items (medium)
+
+Per [`skill_transfer_test/TODO.md`](../skill_transfer_test/TODO.md):
+
+- **TODO-2 -- `extract/_unify.py`** (open, ~50 LOC). Emits
+  `_unified/{skill_index.jsonl, skill_catalog_all.json,
+  skill_rag_index.json}` with all 6 corpora tagged distinctly. No blockers.
+- **TODO-3 -- `extract/tests/test_corpus_specs.py`** (open, ~50 LOC).
+  Validates each `CorpusSpec`. No blockers.
+- **TODO-4 -- `extract/tests/test_single_shot_lift.py`** (open, ~150 LOC).
+  Golden-file replay across 4 benchmarks. Needs fixtures.
+- **TODO-5 -- `extract/tests/test_runner_smoke.py`** (open, ~120 LOC).
+  End-to-end smoke. **Blocked on TODO-2.**
+
+Closed by Phase-5/6 ship: TODO-1 (archetype_aggregator, Stage 5), TODO-6
+(Stage 0 audits). Cancelled: TODO-7 (run_extract.sh, superseded by Python
+CLI).
+
+### 12.5 Tier 5 -- Stage 5 archetype-bank G3 partial-FAIL (low)
+
+[`extract/archetype_aggregator.py`](../skill_transfer_test/extract/archetype_aggregator.py)
+ships only the `direct` strategy. VTB has just 2 distinct `eval_focus`
+values, so it ships 2 archetypes (acceptance gate requires >=3 -> FAIL
+for VTB). The fallback strategy:
+
+> **LLM-clustered** -- call `gpt-5.5` with the sample question + extracted
+> protocol, ask for a topic tag, then cluster by tag. **Not shipped**;
+> required only when `direct` produces fewer than 3 archetypes (currently
+> only VTB).
+
+Tracked as Phase-2 enhancement, gated on API access.
+[`labeling_supplement/_phase5_matrix.py`](../labeling_supplement/_phase5_matrix.py)
+handles 2-archetype VTB transparently (cells with VTB-as-source contribute
+2 verdicts each), so this is non-blocking for the broader Stage 5/6
+pipeline.
+
+### 12.6 Tier 6 -- Workspace-wide "Not yet delivered" (pre-existing, unrelated to Phase-5/6)
+
+These predate Phase-5/6 and are tracked in
+[`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet
+delivered" and `harness/README.md` §"Suggested work-order":
+
+- **`HarnessSkillProvider`** --
+  `decision_agents.skill_interface.SkillBankProvider` still queries the
+  legacy bank directly. The "harness narrows + may veto" contract is not
+  in force at runtime in the `decision_agents` library API. (Note: Day-10
+  `SkillHarnessHook` already covers this for the trainer's co-evolution
+  loop.)
+- **`skill_bank/legacy_bridge.py`** -- closes the legacy `SkillBankMVP`
+  ↔ new `SkillRepository` gap.
+- **Numeric `fit_score / risk_score` LoRA head** -- Day-9+; per-check
+  booleans shipped Day-8a, the numeric scoring head is still a placeholder.
+- **Day-10+ first-class planner-context params** -- `intention /
+  active_skill / local_reasoning_trace` plumbed via `state.extra`, not
+  yet typed first-class params of `select_eligible_skills`.
+- **`transfer_manager.py` shadow -> active quarantine** -- Phase-D row
+  pending (per `harness/README.md`).
+- **gymv real adapter wiring** -- `gymv_wrapper.set_executor()` exists
+  but nothing in production calls it; deterministic-stub fallback hasn't
+  been replaced with explicit ABORT.
+- **Protocol lift (cold-start prose -> typed hops)** -- design locked +
+  21-verb taxonomy + 92.5% coverage measured (per
+  [`protocol-lift-design.md`](protocol-lift-design.md)),
+  but implementation in `labeling/_decorate_skill_records.py` pending.
+  Pre-requires gymv adapter wiring.
+
+### 12.7 Severity-ranked summary
+
+| Tier | Severity | Item count | Headline | Estimated effort |
+|---|---|---|---|---|
+| 1 | **critical** | 4 stub executors | every Stage 6 admit-rate number is currently mechanism-trivial | ~3-5 days per executor + per-domain real-env tests |
+| 2 | critical | 2 missing `vlm_wrapper/` adapters | no real env to bind to for video / visual_reasoning | ~1 week per adapter + VLM eval harness |
+| 3 | critical (design-level) | predicate translator | game->VR cells will admit at 0% without it even if Tier 1+2 land | design-and-spec sprint, then ~200-400 LOC |
+| 4 | medium | TODO-2/3/4/5 | mostly missing tests; TODO-2 is a 50-LOC quality-of-life gap | ~2-3 days |
+| 5 | low | LLM-clustered archetype fallback | VTB-only G3 FAIL; workaround in Stage 5 driver exists | ~150 LOC + API budget |
+| 6 | medium-to-critical | pre-Phase-5/6 backlog | runtime "harness in-the-loop" rule still not enforced in `decision_agents` library API | tracked separately in `IMPLEMENTATION-STATUS.md` and `pre-training-readiness-audit.md` |
+
+Tiers 1 + 2 + 3 collectively are why the Phase-5/6 *measurement*
+infrastructure shipped in 4 commits today but **does not yet measure
+anything**. Closing them is a multi-week effort: roughly 2-3 weeks for
+real `vlm_wrapper` adapters + Tier 1 executor swaps + Tier 3 per-domain
+predicate-translators + a few-hundred-sample re-run of Stage 6 to retire
+G6.
+
+---
+
+## 13. Output layout
 
 `cross_domain_results/` (gitignored alongside `skill_bank_local/`):
 
@@ -256,8 +432,10 @@ See [`cross-domain-transfer-suite-rollout.md`](cross-domain-transfer-suite-rollo
 
 ---
 
-## 13. TL;DR
+## 14. TL;DR
 
 Six stages over ~10 days. Stage 0 ships now (~530 LOC of static audits, no harness wiring). Sprint 1 (Days 2-4) parallelises image-VR and video-VR measurement (~750-800 LOC; cheapest because the tool registry is already the env). Sprint 2 (Days 5-7) parallelises OSWorld and BrowserGym (~1450 LOC; needs full executor + schema producer per target). Sprint 3 (Days 8-10) closes within-VR/video 4x4 + emits the final transfer matrix.
 
 Stage 0's upper bounds are the oracle every later Stage's measured admit rate must respect - violations indicate either a wrong vocabulary table or an over-permissive success_fn.
+
+**Post-ship reality check:** all 6 stages shipped on 2026-05-02 with deterministic-stub executors -- the infrastructure runs end-to-end but the underlying mechanism is not yet measured. See §12 for the canonical, severity-ranked inventory of what's still unimplemented (Tier 1: 4 stub executors; Tier 2: 2 missing `vlm_wrapper/<domain>_adapter.py`; Tier 3: per-domain runtime predicate-translators).
