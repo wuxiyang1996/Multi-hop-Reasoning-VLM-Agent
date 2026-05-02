@@ -1564,6 +1564,23 @@ def run_benchmark(
         ``sample_NNN.json`` filename so artifacts stay deterministic
         even when results arrive out-of-order from a thread pool.
         """
+        out_path = bench_dir / f"sample_{idx:03d}.json"
+        # Idempotent skip: if a successful per-sample JSON already exists for
+        # this sample_id, reuse it instead of paying the LLM cost again. This
+        # makes external relaunches into the same dir cheap and lets a later
+        # FIFO-dispatched leg short-circuit when the work was done out-of-band.
+        if out_path.exists():
+            try:
+                with out_path.open("r", encoding="utf-8") as fh:
+                    cached = json.load(fh)
+                same_id = str(cached.get("sample_id")) == str(sample.sample_id)
+                successful = "error" not in cached and cached.get("answer") is not None
+                if same_id and successful:
+                    cached["sample_index"] = idx
+                    cached["resumed"] = True
+                    return cached
+            except Exception:
+                pass  # fall through and re-run
         frames_dir = (
             bench_dir / "frames" / f"sample_{idx:03d}" if args.save_frames else None
         )
@@ -1593,11 +1610,7 @@ def run_benchmark(
             }
         record["sample_index"] = idx
         record["elapsed_seconds"] = round(time.time() - t0, 3)
-        # Per-sample JSON is written from the worker — paths are
-        # idx-keyed so there's no inter-thread contention.
-        with (bench_dir / f"sample_{idx:03d}.json").open(
-            "w", encoding="utf-8"
-        ) as fh:
+        with out_path.open("w", encoding="utf-8") as fh:
             json.dump(record, fh, indent=2, ensure_ascii=False, default=str)
         return record
 
