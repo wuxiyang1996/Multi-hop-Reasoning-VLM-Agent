@@ -2,6 +2,20 @@
 
 Spec: [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md), [`PLAN-COMPONENTS-IMPLEMENTATION`](../plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md) §4 (Phase A).
 
+> **Current state (post-Phase-5/6, 2026-05-02):** All 5 target domains are
+> registered and dispatchable: `gymv` (canonical), `visual_reasoning`,
+> `video`, `osworld`, `browser`. Routing happens via
+> [`labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py).
+> The 4 cross-domain executors (`video_executor`, `osworld_executor`,
+> `browsergym_executor`, plus the inherited `visual_reasoning` stub) are
+> **deterministic stubs** -- they identity-pass the rebound contract's
+> predicates rather than calling a real env or VLM. Numbers measured against
+> these executors (e.g. Stage 6's `_phase4_transfer_report.py` G1-G6 verdicts)
+> are infrastructure-validating, not mechanism-validating. See
+> [`implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md)
+> for the per-target rollout status; that memo's §11.5.0 reconciles the
+> stub-pathology with the §11.5.4 aspirational transferability bands.
+
 The harness is the *frozen verifier* in the role split (root README §"Three-agent role split" / §"Architecture"):
 
 > The Skill Bank provides candidates, the **Harness narrows + may veto**, the Actor decides, the Orchestrator handles offline promotion.
@@ -9,8 +23,8 @@ The harness is the *frozen verifier* in the role split (root README §"Three-age
 Concretely, the harness's job for one skill invocation is six steps:
 
 1. **Filter** the bank's candidate set to a domain- and contract-eligible subset (`select_eligible_skills`).
-2. **Score** every kept skill with `fit_score` + `risk_score` and per-check booleans (`binding_ok / precondition_ok / evidence_ok / adapter_ok`). _Currently absent — see [§9](#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)._
-3. **Validate the invocation** — once the Actor has bound slots and proposed a skill, the harness re-checks and may veto (`validate_invocation`). _Currently absent — see [§9](#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)._
+2. **Score** every kept skill with `fit_score` + `risk_score` and per-check booleans (`binding_ok / precondition_ok / evidence_ok / adapter_ok`). _Per-check booleans shipped Day-8a on `EligibleSkill.to_json()`; numeric `fit_score / risk_score` LoRA head still pending — see [§9](#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)._
+3. **Validate the invocation** — once the Actor has bound slots and proposed a skill, the harness re-checks and may veto (`validate_invocation`). _Shipped Day-8a as `SkillHarness.validate_invocation(skill, state, bindings=…) → ValidateInvocationResult`._
 4. **Execute** one chosen skill via the right `SkillAdapter` (`run_skill`).
 5. **Record** everything as a `SkillEpisode` + reward-log entry — this is where invariant **G0 (evidence-driven)** bites via `SkillEpisode.finalize()`.
 6. **Provide replay validation** for the gate (Stage 1, [`PLAN-UNIFIED-SKILL-GATE`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) §7).
@@ -19,8 +33,8 @@ The harness has **two surfaces** sharing this module:
 
 | Surface | When it runs | Public API |
 |---|---|---|
-| **Online runtime** | Per actor decision (steps 1–5 above). Inputs: `(schema_state, intention, retrieved_skills, active_skill, local_reasoning_trace)`. Outputs: `eligible_skills` + `invocation_veto` + `SkillEpisode`. | `select_eligible_skills`, _`validate_invocation` (pending)_, `run_skill` |
-| **Offline `GateRunner`** | Per Crafter `BankMutationProposal`. Inputs: `(proposal, candidate_skill, replay_seeds, shadow_log/rollout_batch, target_domains, FewShotDemo[], frozen_eval_suite)`. Outputs: per-stage `GateVerdictPayload` + roll-up `SkillEvaluationRecord`. | Today composed in `orchestrator/gate_service.py` — a harness-side aggregator (`harness/gate_runner.py`) is owed (see [§3](#3-the-six-gate-runner-and-the-transfer-manager-dont-exist-yet)) |
+| **Online runtime** | Per actor decision (steps 1–5 above). Inputs: `(schema_state, intention, retrieved_skills, active_skill, local_reasoning_trace)`. Outputs: `eligible_skills` + `invocation_veto` + `SkillEpisode`. | `select_eligible_skills`, `validate_invocation` (Day-8a), `run_skill` |
+| **Offline `GateRunner`** | Per Crafter `BankMutationProposal`. Inputs: `(proposal, candidate_skill, replay_seeds, shadow_log/rollout_batch, target_domains, FewShotDemo[], frozen_eval_suite)`. Outputs: per-stage `GateVerdictPayload` + roll-up `SkillEvaluationRecord`. | `GateRunner` (Day-7a) at [`gate_runner.py`](gate_runner.py); subclasses `orchestrator/gate_service.GateService` so all old callers keep working unchanged |
 
 It does **NOT**:
 - Choose which skill to commit to — that's the Actor.
@@ -44,20 +58,77 @@ from harness import (
 
 ## Module map
 
-| File | Role |
+Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source files). Grouped by role.
+
+### Core runtime
+
+| Symbol / file | Role |
 |---|---|
-| `skill_harness.py` | `SkillHarness` — the public entry point. `select_eligible_skills(state, candidates)` and `run_skill(skill, state, env, …)`. Owns the per-invocation lifecycle: eligibility filter → adapter run → tracing → `SkillEpisode` → replay validation |
-| `eligibility.py` | `EligibilityFilter` — matches `SkillRecord.contract` (typed input slots, pre-conditions, domain) against the current `StateSchema`; returns `EligibleSkill[]` annotated with the slot bindings the adapter will need |
-| `skill_adapter.py` | `SkillAdapter` base class + `AdapterRunContext` / `AdapterRunResult`. The contract every per-domain adapter must implement |
-| `adapter_registry.py` | `AdapterRegistry` — domain → `SkillAdapter` lookup. Adapters self-register on `register(adapter)` |
-| `adapters/` | Per-domain implementations: `gymv_adapter.py` (Gym-V games), `browser_adapter.py` (BrowserGym), `osworld_adapter.py` (OSWorld desktop), `video_adapter.py`, `visual_reasoning_adapter.py`. Plus `_common.py` (shared slot-binding helpers) and `_stub_base.py` (test scaffolding) |
-| `replay_validator.py` | `ReplayValidator` — replays a `SkillEpisode` against a frozen environment snapshot; returns `ReplayResult` for Stage 1 of the gate. Currently a Phase-A stub; the full deterministic-replay path lands in Phase D |
-| `reward_logger.py` | `RewardLogger` — append-only JSONL of per-step `r_env / r_follow / r_cost / r_total`. The orchestrator's `BudgetController` reads `r_cost` to enforce per-episode budgets |
-| `few_shot_adapter.py` | `FewShotAdapter.adapt(skill, demos)` — Stage 3a (transfer) of the gate. Takes K target-domain demos, runs them, and emits the `eligible_domains` list that gets mirrored into `SkillRecord.verified_domains` (invariant 8). Currently the only path that legitimately produces `verified_domains` evidence |
-| `gymv_executor.py` | `make_gymv_executor(env, …)` — Day-3 real-env wiring. Returns a `(HopExecutor, GymvExecutorState)` pair to plug into `GymvAdapter.set_executor`; maps each typed hop op to a concrete env action via `ACTION_ALIAS_MAP` (SLIDE/MOVE → up/down/left/right, ROTATE → rotate_cw/ccw, …) plus a payload-value rescue clause and op-level fallbacks. Observational ops (INSPECT/READ/EVALUATE/COMPARE/VERIFY/…) generate evidence without stepping the env. `on_unresolved="skip"` (default) treats unresolvable env-mutating hops as evidence-only no-ops; `"abort"` is the strict gate-hardening mode. `initial_state_from_env(env, …)` builds the hop-0 pre-state from the env's actual reset observation so `cumulative_reward_increased` etc. have a numeric baseline. **Day-4B**: `make_gymv_executor(..., schema_producer=…)` accepts a `SchemaProducer` (the deterministic `<state>` renderer from `gym_schema_producer.py`) and applies it after each step so the post-state's `entity_attrs` / `entity_label_count` / hot-path scalars are decidable for the success_fn |
-| `gymv_success.py` | `evaluate_predicate(predicate, pre, post)` / `evaluate_hop_effects(hop, pre, post)` — Day-3 runtime evaluators for every predicate type in the protocol-lift taxonomy (`entity_value_increased`, `cumulative_reward_increased`, `phase_transitioned`, `entity_count_changed`, `entity_appeared`, `entity_disappeared`, `entity_value_decreased`, `attribute_changed`). Undecidable (label not surfaced, value not parseable) is non-blocking. `make_per_step_success_fn(...)` returns a `SuccessFn` ready to plug into `FewShotAdapter`. `evaluate_episode_effects(skill, episode)` is the per-episode roll-up |
-| `gym_schema_producer.py` | **Day-4B / Day-6** deterministic `<state>...</state>` producer for live `make_gaming_env(...)` envs. `make_gaming_env_producer(game)` returns a pure `(info, obs, *, step, task, goal) -> str` function for known games (Day-4: `twenty_forty_eight`, `tetris`; **Day-6**: `candy_crush`, `super_mario`); falls back to `None` so callers can keep the plain-text obs path. Producers read `env.info` (and the textual obs when `info` doesn't surface enough) directly — no VLM. Output round-trips through `parse_schema_canonical`, so `attribute_changed`, `entity_value_*`, `entity_count_*` predicates become decidable end-to-end. `render_state_block(...)` is the shared scaffolding so adding a per-game producer is ~50 lines |
-| `few_shot_demos_gymv.py` | **Day-5** demo-loader for the Stage 3a transfer cycle. `build_demos_from_episodes(actions_root, game, …) -> List[FewShotDemo]` walks `labeling/skill_actions_out/<run>/env_wrappers/<game>/episode_*.json`, parses each step's `metadata.schema_canonical` into a `StateSchema`, populates `bindings={direction, target}` from the recorded action token, and records the per-step reward in `expected`. The transfer driver `_phase4_transfer_cycle.py` consumes these to feed `FewShotAdapter.adapt(..., demos=…, target_task=<game>)` |
+| `skill_harness.py` (`SkillHarness`, `HarnessConfig`) | The public entry point. `select_eligible_skills(candidates, state)`, `validate_invocation(skill, state, bindings=…)` (Day-8a), `run_skill(skill, state, …)`, `replay_validate(skill, seeds=…)`. Owns the per-invocation lifecycle: eligibility filter → invocation veto → adapter run → tracing → `SkillEpisode` → replay validation |
+| `eligibility.py` (`EligibilityFilter`, `EligibleSkill`, `task_id_from_state`) | Matches `SkillRecord.contract` (typed input slots, pre-conditions, domain, F2′ task) against the current `StateSchema`; returns `EligibleSkill[]` with per-check booleans. Day-8 added `filter_with_rejections(...) → (admitted, rejected)` so the actor can render a veto log |
+| `skill_adapter.py` (`SkillAdapter`, `AdapterRunContext`, `AdapterRunResult`) | Base class + run context every per-domain adapter implements |
+| `adapter_registry.py` (`AdapterRegistry`) | Domain → `SkillAdapter` lookup. Adapters self-register on `register(adapter)` |
+| `replay_validator.py` (`ReplayValidator`, `ReplayResult`) | Day-7b action-level walk over `seed.steps[i]`; emits per-step `StepDiff` (action_type equality, payload equality, evidence-role non-worsening). Adapter-level mode remains the default |
+| `reward_logger.py` (`RewardLogger`) | Append-only JSONL of per-step `r_env / r_follow / r_cost / r_total` |
+| `few_shot_adapter.py` (`FewShotAdapter`, `FewShotDemo`, `AdaptResult`, `FewShotAdapterError`, `default_success_fn`) | Stage 3a (transfer) of the gate. Takes K target-domain demos, runs them, emits the `eligible_domains` list mirrored into `SkillRecord.verified_domains` (invariant 8) |
+
+### Adapters (one per domain, registered via `AdapterRegistry`)
+
+| Symbol / file | Role |
+|---|---|
+| `adapters/gymv_adapter.py` (`GymvAdapter`) | Canonical source domain. Real env via `gymv_executor.set_executor(...)` |
+| `adapters/visual_reasoning_adapter.py` (`VisualReasoningAdapter`, `bind_visual_reasoning_executor`) | Image-QA / visual reasoning. Inherits `StubTransferTargetAdapter`; bind helper re-exports `visual_reasoning_wrapper.skill_executor.bind_executor` |
+| `adapters/video_adapter.py` (`VideoAdapter`, `bind_video_executor`) | Short-video evidence-grounded reasoning. Inherits `StubTransferTargetAdapter`; bind helper re-exports `harness.video_executor.make_video_executor` |
+| `adapters/osworld_adapter.py` (`OsworldAdapter`) | OSWorld desktop. Inherits `StubTransferTargetAdapter` |
+| `adapters/browser_adapter.py` (`BrowserAdapter`) | BrowserGym / webagent. Its **own** `SkillAdapter` subclass (not `StubTransferTargetAdapter`) but uses the same hop-loop shape |
+| `adapters/_common.py`, `adapters/_stub_base.py` | Shared slot-binding helpers; `StubTransferTargetAdapter` + `make_deterministic_executor` (Day-7d typed verb-→-role table with `evidence_in` / `evidence_out` split) |
+
+### Per-target executors (deterministic stubs at the harness level — see top-of-file "Current state" callout)
+
+| Symbol / file | Role |
+|---|---|
+| `gymv_executor.py` (`make_gymv_executor`, `initial_state_from_env`, `GymvExecutorState`, `ACTION_ALIAS_MAP`) | **Real** Day-3 env wiring. Plugs into `GymvAdapter.set_executor`; maps typed hop ops to concrete env actions; threads a `schema_producer=…` for decidable post-states |
+| `video_executor.py` (`make_video_executor`) | Phase-5 typed deterministic stub. Identity-passes rebound contract predicates against a `video_meta` payload (no real frame loader / VLM) |
+| `osworld_executor.py` (`make_osworld_executor`) | Phase-5 typed deterministic stub. No real OSWorld VM call |
+| `browsergym_executor.py` (`make_browsergym_executor`, `BrowserExecutorState`) | Phase-5 typed deterministic stub. No real BrowserGym / Playwright call |
+| (`visual_reasoning` has no dedicated executor module — uses `StubTransferTargetAdapter._default_executor()`) | — |
+
+### Schema producers (deterministic `<state>...</state>` renderers — no VLM)
+
+| Symbol / file | Role |
+|---|---|
+| `gym_schema_producer.py` (`make_gaming_env_producer`, `twenty_forty_eight_producer`, `tetris_producer`, `candy_crush_producer`, `super_mario_producer`, `render_state_block`, `SchemaProducer`) | Day-4B / Day-6 producer for `make_gaming_env(...)` envs. Round-trips through `parse_schema_canonical` so predicates are decidable end-to-end |
+| `osworld_schema_producer.py` (`make_osworld_producer`) | Phase-5 producer for the OSWorld stub-executor input shape |
+| `browser_schema_producer.py` (`browsergym_canonical_producer`, `make_browsergym_producer`) | Phase-5 producer for the BrowserGym stub-executor input shape |
+
+### Success-fn registrations (`register_success_fn(domain)` from `harness.gymv_success`)
+
+| Domain | Module | Factory |
+|---|---|---|
+| `gymv` | `gymv_success.py` (`make_per_step_success_fn`, `evaluate_predicate`, `evaluate_hop_effects`, `evaluate_episode_effects`) | `make_per_step_success_fn` — registered at import |
+| `visual_reasoning` | `qa_success.py` (`make_qa_success_fn`, `qa_answer_matches`) | QA-style answer-equality scorer |
+| `video` | `video_qa_success.py` (`make_video_qa_success_fn`) | Video-QA answer-equality scorer |
+| `osworld` | `osworld_success.py` (`make_osworld_per_step_success_fn`) | OSWorld desktop predicate scorer |
+| `browser` | `browser_success.py` (`make_browser_per_step_success_fn`) | BrowserGym-shape predicate scorer |
+
+### Few-shot demo loaders (one per target domain)
+
+| File | Builds `FewShotDemo[]` from |
+|---|---|
+| `few_shot_demos_gymv.py` | `labeling/skill_actions_out/.../<game>/episode_*.json` |
+| `few_shot_demos_vr.py` | `Cold-start-out-visual-reasoning/{visual_toolbench,tir_bench}/sample_*.json` (re-tagged `state.domain="visual_reasoning"`) |
+| `few_shot_demos_video.py` | Cold-start video samples |
+| `few_shot_demos_osworld.py` | Cold-start OSWorld samples |
+| `few_shot_demos_browsergym.py` | Cold-start BrowserGym samples |
+
+### Gate / runner
+
+| Symbol / file | Role |
+|---|---|
+| `gate_runner.py` (`GateRunner`, `GateRunnerConfig`, `EvalSuite`) | Day-7a spec-named offline gate surface (PLAN-UNIFIED-SKILL-GATE §6). Subclasses `orchestrator.gate_service.GateService`; threads reproducibility anchors (`bank_snapshot_id`, `eval_suite_id`, `adapter_versions`, `ontology_version`, `seed`, `judge_model`) into every emitted `SkillEvaluationRecord`. Adds `rollout_batch: Sequence[SkillEpisode]` (Stage 2) and `eval_suite: EvalSuite` (Stage 4) shapes that close §12. Lazy `__getattr__` import to avoid circular orchestrator dep |
+| `rejected_skill_sink.py` (`RejectedSkillSink`, `FlushReport`) | Day-9c in-process aggregator between the harness and the Crafter. `observe(rejected, domain=…, task=…)` after every `filter.filter_with_rejections(...)`; `flush_to(lifecycle, min_count=…)` writes `false_binding_patterns` evidence via `lifecycle.record_false_binding_pattern` |
+| `eligibility.task_id_from_state` | Helper used by F2′ to canonicalise `state.task` (`"make_gaming_env/<game>"` → `"<game>"`) |
+| `validate_invocation` (on `SkillHarness`) | Day-8a second-pass invocation veto. Returns `ValidateInvocationResult` with per-check booleans + `veto_reasons / missing_bindings / missing_evidence_in / failed_preconditions` |
 
 ---
 
@@ -84,7 +155,7 @@ class SkillAdapter(ABC):
 | Phase | What this package contains | Status |
 |---|---|---|
 | A (MVP) | `SkillHarness`, eligibility filter, gymv + browser adapters, reward log, replay-validator stub | **Delivered** — covered by `tests/test_smoke.py` and `tests/test_invariants.py` |
-| D (transfer + replay) | Full deterministic `ReplayValidator`; six-gate `GateRunner` (G0–G5); `transfer_manager.py`; osworld / video / visual_reasoning adapters | Pending — see root README §"Pending" |
+| D (transfer + replay) | Action-level `ReplayValidator` (Day-7b); six-gate `GateRunner` G0–G5 (Day-7a at [`gate_runner.py`](gate_runner.py)); `osworld / video / visual_reasoning / browser` adapters (Phase-5/6, deterministic stubs at the harness level — see top-of-file "Current state" callout); `transfer_manager.py` shadow → active still pending | **Partial** — adapters / executors / schema producers / success_fns / few-shot demo loaders shipped 2026-05-02 as deterministic stubs; full deterministic `ReplayValidator` snapshot path and shadow → active quarantine still pending. See root README §"Pending" |
 | F (trainable extensions) | LoRA heads `skill_select`, `continue_vs_switch`, `accept_transfer`, `adapter_refine` consumed by `SkillHarness.select_eligible_skills` | Pending |
 
 ---
@@ -95,7 +166,7 @@ Grouped by impact. Items 1–4 are blocking the "harness as gate verifier" story
 
 ### 1. Transfer-target adapters are deterministic stubs
 
-Only `gymv_adapter.py` is real. `browser`, `osworld`, `video`, and `visual_reasoning` all inherit `StubTransferTargetAdapter` (`adapters/_stub_base.py`) and run `make_deterministic_executor`, which never touches a real environment — it echoes the action back and emits one synthetic `GATHER` evidence ref per hop just to keep G0 satisfied. Real env binding is owed by `vlm_wrapper/<domain>_adapter.py` and must be plugged in via `adapter.set_executor(real_executor)`.
+Five target domains are registered: `gymv` (canonical, real env via `gymv_executor.py`), `visual_reasoning`, `video`, `osworld`, `browser`. Of these, only `gymv_adapter.py` drives a real environment. `osworld_adapter.py`, `video_adapter.py`, and `visual_reasoning_adapter.py` inherit `StubTransferTargetAdapter` (`adapters/_stub_base.py`); `browser_adapter.py` is its own `SkillAdapter` subclass with the same shape but a separate hop loop. All four transfer-target adapters fall back to `make_deterministic_executor` when no real executor is registered. Day-7d typed the stub: `make_deterministic_executor(...)` now emits a verb-→-role-table-keyed evidence role (`GATHER / VERIFY / REASON / COMMIT` plus common synonyms) with a directional `evidence_in / evidence_out` split rather than a single synthetic `GATHER` per hop. The harness-side cross-domain executors (`harness/video_executor.py`, `harness/osworld_executor.py`, `harness/browsergym_executor.py`) shipped Phase-5/6 as **typed deterministic stubs** that identity-pass the rebound contract's predicates rather than calling a real env or VLM — numbers measured against them are infrastructure-validating, not mechanism-validating (see top-of-file "Current state" callout). Real env binding (BrowserGym / Playwright / OSWorld VM / video frame indexer / VR pixel tools) is still owed by `vlm_wrapper/<domain>_adapter.py` and must be plugged in via `adapter.set_executor(real_executor)`. Helpers: `bind_visual_reasoning_executor` (in `visual_reasoning_adapter`) and `bind_video_executor` (in `video_adapter`) re-export the wire-up from the harness-side stub modules so callers don't have to import the executor module directly.
 
 ### 2. `ReplayValidator` is a "dry-run rerun", not a real replay
 
@@ -157,65 +228,23 @@ Items 1–8 above are runtime/execution holes inside files that already exist. I
 
 ### 9. Online-surface API gaps (`validate_invocation`, scoring, intention/active_skill inputs)
 
-The README intro lists the harness as "narrows + may veto", but only the narrowing exists. Concretely:
-
-  - **`SkillHarness.validate_invocation` is missing entirely.** A `grep validate_invocation` across the package returns zero hits in any `.py` file (only plan documents). `run_skill` (`skill_harness.py:82`) goes straight from `(skill, state, bindings)` to `adapter.run` with no second-pass check. Slot-binding errors (e.g. `MERGE` adapter on non-adjacent tiles, `VERIFY_EVIDENCE` without an evidence span) only surface as adapter-level `abort_reason` — too late to refuse the invocation.
-  - **No scoring path.** `EligibilityFilter` is explicit at `eligibility.py:16` ("we never *score* skills here"). Spec asks for `fit_score` + `risk_score` per kept skill; neither exists.
-  - **`select_eligible_skills(candidates, state, *, skill_type_hint)` (`skill_harness.py:73`) ships only a strict subset of the spec'd inputs:**
-
-| Spec input | Current parameter | Status |
-|---|---|---|
-| `schema_state` | `state: StateSchema` | ✓ |
-| `retrieved_skills` | `candidates` | ✓ |
-| `intention` | — | missing |
-| `active_skill` | — | missing |
-| `local_reasoning_trace` | — | missing |
-
-  - **`EligibleSkill.to_json()` (`eligibility.py:44–52`) emits only** `{skill_id, skill_name, skill_status, adapter_name, shadow_only, reasons}` — missing the per-skill check booleans (`binding_ok / precondition_ok / evidence_ok / adapter_ok`) and the rejected-skill `veto / veto_reason` channel. Rejected candidates are silently dropped today, so the actor cannot reason about why a skill was excluded.
+*Shipped per Day-7/8/9 status block at the top of §22 — see §22.5 Day-8a and the source files [`eligibility.py`](eligibility.py) (`filter_with_rejections`, `RejectedSkill`, per-check booleans on `EligibleSkill.to_json()`) and [`skill_harness.py`](skill_harness.py) (`validate_invocation` returning `ValidateInvocationResult`) for the live API. Remaining structural gaps: §9.2 `intention / active_skill / local_reasoning_trace` plumbed via `state.extra` but not yet typed first-class params (Day-10+); §9.3 numeric `fit_score / risk_score` LoRA head still pending.*
 
 ### 10. `SkillEpisode` artefact field gaps
 
-The harness's most visible artefact (`data_structure/extensions/skill_episode.py`) is missing fields that the gate, the Crafter, and any future I/O dump need:
-
-| Spec field | Status | Gap |
-|---|---|---|
-| `evidence_role` | ✓ | on `SkillEpisodeOutcome.evidence_role` (line 67) |
-| `evidence_in / evidence_out` split | ❌ | only one uni-directional `SkillEpisodeStep.evidence: List[EvidenceRef]` (line 37). Crafter / GateRunner cannot tell "what did the skill consume?" from "what did it produce?" |
-| `evidence_warrant` / `verify_verdict` / `reason_warrant` | ❌ | no citation slots on outcome or step |
-| `protocol_trace` (mapping `episode.steps[i] → skill.protocol[k]`) | ❌ | `steps` is the adapter's raw step record, not a structured trace against `skill.protocol[]`. The Repairer can therefore only patch in the dark — this is the §7.1 mismatch #2 in [`../implementation_notes/crafter-harness-orchestrator-roles.md`](../implementation_notes/crafter-harness-orchestrator-roles.md) made concrete. **Also depends on [§21](#21-cold-start-protocol-is-natural-language-prose-not-typed-hops)** — there is no `skill.protocol[k]` to index against until cold-start protocols are lifted to typed hops |
-| `contract_progress` (per-key) | ❌ | only `outcome.contract_satisfied: bool` (line 65). No per-key (effects_add fired, effects_del fired, expected_evidence_role fired) granularity |
-| `reward_components` | ❌ | only scalar `outcome.score: Optional[float]` (line 69). `cost: Dict[str, float]` (line 114) carries token/hop/ms but is not the multi-component reward the spec implies |
-| `shadow` flag on episode | 🟡 | `EligibleSkill.shadow_only: bool` (`eligibility.py:43`) is set at filter time but never propagates into `SkillEpisode` or `RewardLogEntry`. Stage 2 therefore cannot distinguish shadow-mode failures from real-mode failures when reading back the log |
-| `diagnostic_labels` (list) | 🟡 | only a single `transfer_label: Optional[str]` (line 115). G0-violation tagging is currently routed to a separate `FailureTrace` via `SkillHarness._record_failure` (line 219), not to the episode itself |
+*Shipped per Day-7/8/9 status block at the top of §22 — see §22.5 Day-8b/c and [`../data_structure/extensions/skill_episode.py`](../data_structure/extensions/skill_episode.py) for the live shape. The expansion added `shadow: bool`, `diagnostic_labels: List[str]`, `protocol_trace: List[Optional[int]]`, per-step `evidence_in / evidence_out / protocol_index / evidence_warrant / verify_verdict / reason_warrant`, and `outcome.contract_progress: Dict[str, bool]` + `outcome.reward_components: Dict[str, float]`. All additions are additive (legacy callers see identical JSON for legacy fields plus None / [] for new ones).*
 
 ### 11. `SkillEvaluationRecord` reproducibility-anchor gaps
 
-The roll-up the orchestrator reads (`data_structure/extensions/skill_evaluation.py`) does not pin the run to a reproducible context:
-
-| Spec field | Status | Gap |
-|---|---|---|
-| `skill_id`, `final_decision`, `decision_reason`, per-stage payloads | ✓ | via `verdict.{stages, final_verdict, rationale}` |
-| `version` | 🟡 | only `skill_content_hash` (a fingerprint, not a version string) |
-| `status_before` / `status_after` | ❌ | not recorded |
-| `approved_domains` | 🟡 | recorded as `verdict.eligible_domains` (renamed) |
-| `rejected_domains` | ❌ | not recorded; consumer must compute `target_domains \ eligible_domains` |
-| `rollback_target` | ❌ | not recorded |
-| `bank_snapshot_id` | ❌ | **the most important gap** — the gate evaluation is not snapshot-pinned. `SnapshotManager` exists (`orchestrator/snapshot_manager.py`) and `RunRelease.bank_snapshot_path` is recorded *on promotion* (`orchestrator/promotion_orchestrator.py:146`), but two evaluations against different snapshots are indistinguishable on disk today |
-| `eval_suite_id`, `adapter_versions`, `ontology_version` | ❌ | no record of which eval suite, which adapter versions, or which schema/ontology version the verdict was emitted against — blocks reproducible audit |
-| `diagnostic_labels` (flat list) | 🟡 | only `transfer_labels: Dict[str, int]` (a histogram). Per-stage `StageVerdict.failures: List[str]` is the closest stand-in |
+*Shipped per Day-7/8/9 status block at the top of §22 — see §22.5 Day-8b/c and [`../data_structure/extensions/skill_evaluation.py`](../data_structure/extensions/skill_evaluation.py) for the live shape; [`gate_runner.py`](gate_runner.py) (`GateRunnerConfig`) is the writer that pins anchors at construction. Day-9a wires `PromotionOrchestrator.promote(...)` to record `status_before` / `status_after` / `bank_snapshot_id` plus a `reproducibility_anchors` block on every persisted record.*
 
 ### 12. `GateService` stage I/O signatures don't match the spec
 
-`orchestrator/gate_service.py:91 GateService.evaluate(...)` composes all five stages, but two diverge from what the spec calls out:
-
-  - **Stage 2 shadow** (`_run_shadow`, line 193) takes `Optional[RewardLogger]` — *not* a `rollout_batch[]`. It reads via `log.filter(skill_id=...)` from the in-process logger.
-  - **Stage 4 non-regression** (`_run_non_regression`, line 350) takes scalar `baseline_score` / `post_score` — *not* a frozen `eval_suite[]` reference. There is no `eval_suite_id` recorded anywhere.
-
-Both are additive fixes (overload to accept the new shapes), but they need to be acknowledged or any I/O-dump driver will trip on them.
+*Shipped per Day-7/8/9 status block at the top of §22 — see §22.5 Day-7a and [`gate_runner.py`](gate_runner.py) for the live API. `GateRunner` adds `rollout_batch: Sequence[SkillEpisode]` (Stage 2 replacement for `RewardLogger`-only) and `eval_suite: EvalSuite` (Stage 4 replacement for scalar `baseline_score / post_score`). Mixing old + new shapes for the same stage is a `ValueError`.*
 
 ### 13. `GateService` lives under `orchestrator/`, not `harness/` — naming mismatch with the spec
 
-The spec calls it the "Harness `GateRunner`". The live composition lives in [`../orchestrator/gate_service.py`](../orchestrator/gate_service.py); the harness only owns the leaf primitives (`ReplayValidator`, `FewShotAdapter`). Item 3 above already names `harness/gate_runner.py` as missing. The architectural choice is defensible (the orchestrator owns stage composition), but consumers reading the spec will look in `harness/` and find nothing — the rename / relocate is the remaining cosmetic fix once items 9–12 land.
+*Shipped per Day-7/8/9 status block at the top of §22 — see §22.5 Day-7a. [`gate_runner.py`](gate_runner.py) is the spec-named offline gate surface; subclasses `orchestrator.gate_service.GateService` so all old callers keep working unchanged. Importable from `harness` via lazy `__getattr__` to avoid a circular orchestrator dep.*
 
 ### 14. No I/O dump driver — live harness behaviour against the cold-start corpus is unverified
 
@@ -241,6 +270,8 @@ The natural fit is a sibling driver under [`../labeling_supplement/`](../labelin
 Note the layering: `labeling_supplement/` only contains *what to verify* (Crafter proposals); the rollouts the harness consumes — replay seeds, shadow logs, transfer demos, non-regression baselines — all still live in `labeling/`.
 
 ### 21. Cold-start `protocol` is natural-language prose, not typed hops
+
+> **Navigation note:** §21 and §22 are numbered out of order — they precede §15-§20 below in the file but logically depend on the runtime-topology picture in §15-§20. If you haven't read §15-§20 yet, the [§16.1 stub-executor](#161-adapter-executors-are-stubs-so-run_skill-is-a-black-hole) framing is what makes §21's "no executor call ever happens" claim concrete.
 
 > **Status (2026-04-30):** Day-1 design lock for the lift landed at [`../implementation_notes/protocol-lift-design.md`](../implementation_notes/protocol-lift-design.md). Two-loaded-shapes nuance discovered: the audit's "zero hops" framing is correct only for the direct-from-jsonl load path. The dump-driver / probe path already passes prose through [`../labeling_supplement/_harness_io_helpers.py:_wrap_protocol_steps`](../labeling_supplement/_harness_io_helpers.py), which emits `[{"action": "EXEC", "payload": {}, "notes": "<prose>"}, …]` — `iter_hops` yields N hops per skill, but every hop normalises to `"EXEC"` with empty payload. **The shape gap is closed via this workaround; the semantic gap (real verbs, populated `${slot}` placeholders, typed effects) is open.** Empirical sweep across all 80 prose steps in `run_20260430_030637`: a 21-verb gymv-only taxonomy mined from the schema's `<affordances>` block plus subordinator-stripping + downstream-walk classifier covers **74 / 80 = 92.5 %** of prose steps. Implementation lands in [`../labeling/_decorate_skill_records.py`](../labeling/_decorate_skill_records.py) (Day 2). One small pre-existing bug in the schema parser surfaced en route — [`../labeling_supplement/_harness_io_helpers.py:parse_schema_canonical`](../labeling_supplement/_harness_io_helpers.py) does not parse the `<attributes>` block, so `state.facts` only carries `{"goal": ...}`; the success-fn (Day 4–5) needs either a parser extension (Option A) or a direct read from `step.state` (Option B). Tracked in §5.1 of the design doc.
 
@@ -410,15 +441,22 @@ Smallest cost / highest value first. The reordering below puts the audit's [§9�
   8. **[done — Day 3, 2026-05-01]** First intra-gymv real-env execution cycle — wired `GymvAdapter.set_executor(real_step)` via [`gymv_executor.py`](gymv_executor.py), and plugged a gymv-shape `success_fn` keyed on `schema_canonical`-derived `<attributes>` / `<state_flags>` facts via [`gymv_success.py`](gymv_success.py). Phase-2 smoke ([`../labeling_supplement/_phase2_real_env_skill_smoke.py`](../labeling_supplement/_phase2_real_env_skill_smoke.py)) confirms `harness.run_skill(skill, state)` actually steps `make_gaming_env("twenty_forty_eight")` / `make_gaming_env("tetris")` and surfaces a per-hop predicate verdict on `outcome.extra["per_hop_effects"]`. Full report: [`../labeling_supplement/harness_io_out/_phase2_report.md`](../labeling_supplement/harness_io_out/_phase2_report.md). Stage 3a transfer cycle (build `FewShotDemo`s from `labeling/skill_actions_out/.../<game>/episode_*.json`, run `(2048 ↔ tetris)` transfer probes) and lift v2 / VLM schema wrapper are Day-4/5 follow-ups.
   8a. **[done — Day 4, 2026-05-01]** Lift v2 — broadened `_PREDICATE_TRIGGERS` in [`labeling/_protocol_lift.py`](../labeling/_protocol_lift.py) to cover indirect phrasings real cold-start prose uses (`"valid merges were applied"` → `cumulative_reward_increased`, `"top-out"` → `phase_transitioned`, etc.). [`labeling/_decorate_skill_records.py`](../labeling/_decorate_skill_records.py) gained `--force_relift` to sweep the bank in place. Coverage delta: 2 / 12 → 9 / 12 skills with mined effects.
   8b. **[done — Day 4, 2026-05-01]** Deterministic `<state>...</state>` producer for live gym envs — [`gym_schema_producer.py`](gym_schema_producer.py) renders a structured block from `env.info` (no VLM); 2048 + tetris ship; opt-in via `make_gymv_executor(env, …, schema_producer=…)` and `initial_state_from_env(env, …, schema_producer=…)`. A/B on Phase-2 smoke (2048 `Commit/Merge`, 8 deterministic seeds): without producer best_pass_rate=0.67 (undecidable predicates inflate); with producer best_pass_rate=0.33 (only seeds where `up` produces a legal merge actually pass). The drop is the empirical signature of newly-decidable predicates. Full write-up: [`../labeling_supplement/harness_io_out/_phase3_report.md`](../labeling_supplement/harness_io_out/_phase3_report.md).
-  9. Plug a real domain-aware `success_fn` into `FewShotAdapter` for cross-domain (existing item 4) — generalises item 8's gymv scorer.
-  10. Wire the legacy actor to `HarnessSkillProvider`.
-  11. Implement action-level `ReplayValidator` (walk `seed.steps`, compare actions + evidence) — existing item 2.
-  12. Stand up `harness/gate_runner.py` over `gate_service` stages — existing item 3 + [§13](#13-gateservice-lives-under-orchestrator-not-harness--naming-mismatch-with-the-spec) relocate.
-  13. Extend the dump driver to the offline GateRunner surface (Stage 0–4 + `SkillEvaluationRecord` per Crafter proposal) — second half of [§14](#14-no-io-dump-driver--live-harness-behaviour-against-the-cold-start-corpus-is-unverified).
-  14. Add `rollout_batch[]` overload on `_run_shadow` and `eval_suite[]` overload on `_run_non_regression` ([§12](#12-gateservice-stage-io-signatures-dont-match-the-spec)).
-  15. Add `harness/transfer_manager.py` for shadow → active — existing item 3 second half.
-  16. Wire `vlm_wrapper/<domain>_adapter.py` executors via `set_executor()` — `browser` → `osworld` → `video` → `visual_reasoning` (existing item 1). Cross-domain transfer follows the path validated by item 8.
-  17. Phase-F LoRA heads in `select_eligible_skills` (existing item 5).
+  9. ~~Plug a real domain-aware `success_fn` into `FewShotAdapter` for cross-domain (existing item 4) — generalises item 8's gymv scorer.~~ — **shipped 2026-05-02** as the 4 cross-domain success-fn modules registered against `harness.gymv_success.register_success_fn(domain)`: [`qa_success.py`](qa_success.py) (`visual_reasoning`), [`video_qa_success.py`](video_qa_success.py) (`video`), [`osworld_success.py`](osworld_success.py) (`osworld`), [`browser_success.py`](browser_success.py) (`browser`). Companion few-shot demo loaders shipped at [`few_shot_demos_vr.py`](few_shot_demos_vr.py), [`few_shot_demos_video.py`](few_shot_demos_video.py), [`few_shot_demos_osworld.py`](few_shot_demos_osworld.py), [`few_shot_demos_browsergym.py`](few_shot_demos_browsergym.py).
+  10. Wire the legacy actor to `HarnessSkillProvider`. *(Note: under the T1.3 lane-(a) decision the live trainer instead consumes the eligibility + `validate_invocation` surface directly via `harness_hook` — see §22.1.)*
+  11. ~~Implement action-level `ReplayValidator` (walk `seed.steps`, compare actions + evidence) — existing item 2.~~ — **shipped 2026-05-01** Day-7b at [`replay_validator.py`](replay_validator.py) (`mode="action_level"` emits per-step `StepDiff`).
+  12. ~~Stand up `harness/gate_runner.py` over `gate_service` stages — existing item 3 + [§13](#13-gateservice-lives-under-orchestrator-not-harness--naming-mismatch-with-the-spec) relocate.~~ — **shipped 2026-05-01** Day-7a at [`gate_runner.py`](gate_runner.py) (`GateRunner`, `GateRunnerConfig`, `EvalSuite`).
+  13. ~~Extend the dump driver to the offline GateRunner surface (Stage 0–4 + `SkillEvaluationRecord` per Crafter proposal) — second half of [§14](#14-no-io-dump-driver--live-harness-behaviour-against-the-cold-start-corpus-is-unverified).~~ — **shipped 2026-05-01** Day-7e via the `--gate-runner` flag on [`../labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py).
+  14. ~~Add `rollout_batch[]` overload on `_run_shadow` and `eval_suite[]` overload on `_run_non_regression` ([§12](#12-gateservice-stage-io-signatures-dont-match-the-spec)).~~ — **shipped 2026-05-01** Day-7a as part of [`gate_runner.py`](gate_runner.py)'s `evaluate(...)` shape.
+  15. Add `harness/transfer_manager.py` for shadow → active — existing item 3 second half. *(Still pending — no shadow → active two-phase quarantine yet; under lane (a) this is offline-diagnostic only.)*
+  16. Wire `vlm_wrapper/<domain>_adapter.py` executors via `set_executor()` — `browser` → `osworld` → `video` → `visual_reasoning` (existing item 1). Cross-domain transfer follows the path validated by item 8. *(Partial: the harness-side **deterministic stubs** at [`video_executor.py`](video_executor.py), [`osworld_executor.py`](osworld_executor.py), [`browsergym_executor.py`](browsergym_executor.py) — plus matching schema producers [`osworld_schema_producer.py`](osworld_schema_producer.py) and [`browser_schema_producer.py`](browser_schema_producer.py) — **shipped 2026-05-02** as Phase-5/6. They identity-pass rebound contract predicates rather than calling a real env / VLM, so numbers measured against them are infrastructure-validating, not mechanism-validating — see top-of-file "Current state" callout. Real `vlm_wrapper/<domain>_adapter.py` env binding is still pending.)*
+  17. Phase-F LoRA heads in `select_eligible_skills` (existing item 5). *(Still pending.)*
+
+### Additional Day-7/8/9/10 surfaces shipped (not on the original work-order)
+
+  - `harness/gate_runner.py` (`GateRunner` + `GateRunnerConfig` + `EvalSuite`) — Day-7a; threads reproducibility anchors into every `SkillEvaluationRecord`.
+  - `harness/rejected_skill_sink.py` (`RejectedSkillSink`, `FlushReport`) — Day-9c; in-process aggregator that flushes `false_binding_patterns` evidence into `SkillLifecycleManager.record_false_binding_pattern` (PLAN-SKILL-BANK §4.3b).
+  - `SkillHarness.validate_invocation` + `EligibilityFilter.filter_with_rejections` — Day-8a; second-pass invocation veto + structured `RejectedSkill` channel.
+  - `bind_video_executor` (in `harness/adapters/video_adapter.py`) and `bind_visual_reasoning_executor` (in `harness/adapters/visual_reasoning_adapter.py`) — Phase-5 helper re-exports so callers wire executors without importing the executor module directly.
 
 ---
 
@@ -429,6 +467,8 @@ Smallest cost / highest value first. The reordering below puts the audit's [§9�
 Short answer: **no for the live online runtime, yes for the offline promotion loop.** The asymmetry is structural — see [§17](#17-the-keystone-bankrunnable-is-empty-until-the-offline-loop-fires-once) for why the offline loop is a hard prerequisite for the online one.
 
 ### 15. Topology — what's already connected vs not
+
+> **Navigation note:** §15-§20 logically precede §21-§22 (which were originally drafted in the "Spec-contract gaps" section above and grew the Day-7/8/9 status blocks during the post-Phase-5/6 status pass). Read the runtime-topology framing here *first* if you came in through the table of contents; §21 (cold-start protocol lift) and §22 (task-axis + Day-7/8/9 status) layer on top of the §16 / §17 / §18 wire-up picture below. The numerical ordering has been left as-is to avoid breaking deep links from the audit memos.
 
 The wiring code I expected to be missing is already there. `EpisodeRunner.run` is an end-to-end harness driver:
 
@@ -550,9 +590,11 @@ The "Suggested work-order" in [§Suggested work-order](#suggested-work-order) ab
 
 ### 20. Bottom line
 
+> **Reconciliation note (post-Day-10, T1.3 lane decision):** This section was written for the lane-(b) world where the harness's `run_skill` / typed-executor surface is on the live trainer's critical path. Day-10's [`../implementation_notes/skill-lane-decision.md`](../implementation_notes/skill-lane-decision.md) closed lane (a) — skill = retrieval payload — so the live trainer wires the **eligibility + `validate_invocation`** surface only (see §22.1 / §22.5). The "offline loop is the keystone" framing below is still correct *for the lane-(b) regression suite and the offline diagnostic stack* (`labeling_supplement/`, `tests/`), and §22.5 explicitly preserves §16 work as offline diagnostic to be flipped back to "next milestone" only if the rollback condition in §4 of the lane decision fires. Read the bullets below as: "for any consumer that *does* invoke `run_skill` (the gate, the dump driver, the lane-(b) regression suite), the offline promotion loop is the keystone." For the live trainer hot path, §22.5's lane-based framing supersedes — `run_skill` is off the critical path.
+
   - **The hard part of harness wiring is already in [`../orchestrator/runner.py`](../orchestrator/runner.py) and [`../orchestrator/gate_service.py`](../orchestrator/gate_service.py).** Those code paths are correct in shape, exercised by [`../tests/test_smoke.py`](../tests/test_smoke.py) and the dump driver, and were the riskiest thing to get right.
   - **What's missing is not the wiring but the things on either end** — a real adapter executor (so `run_skill` advances the env), a populated `active` store (so `bank.runnable()` returns anything), and a typed `EnvLike` shim per environment.
-  - **The offline promotion loop is the keystone.** Until it fires once on real data, the online runtime is *structurally* skill-starved. Flipping the harness in today would just make every actor step a no-op (best case) or a stub-driven black hole (worst case, if `run_skill` is invoked).
+  - **For lane-(b) consumers, the offline promotion loop is the keystone.** Until it fires once on real data, those consumers are *structurally* skill-starved. Flipping the lane-(b) harness in today would just make every actor step a no-op (best case) or a stub-driven black hole (worst case, if `run_skill` is invoked). Lane-(a) consumers (the live co-evolution trainer) are unaffected — they read the bank directly via the eligibility filter without invoking `run_skill`.
 
 ---
 
@@ -667,3 +709,12 @@ Both flags default off / permissive, so existing runs are byte-identical.
 - [`../implementation_notes/crafter-harness-orchestrator-roles.md`](../implementation_notes/crafter-harness-orchestrator-roles.md) — three-role I/O contract; §3 cheat sheet enumerates the artefact families [§10–§11](#10-skillepisode-artefact-field-gaps) extend; §7.1 mismatch #2 motivates [§10](#10-skillepisode-artefact-field-gaps)'s `protocol_trace` row.
 - [`../labeling_supplement/`](../labeling_supplement/) — sibling location for the `dump_harness_io_gpt54.py` driver in [§14](#14-no-io-dump-driver--live-harness-behaviour-against-the-cold-start-corpus-is-unverified).
 - [`../tests/test_smoke.py`](../tests/test_smoke.py) — runnable end-to-end wiring example.
+
+### Phase-5/6 cross-domain dispatch and measurement
+
+- [`../labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py) — central per-target dispatcher (Stage 4 / Phase-5/6); routes `gymv → {visual_reasoning, video, osworld, browser}` through the matching adapter + executor + schema producer + success_fn quad.
+- [`../labeling_supplement/_phase5_matrix.py`](../labeling_supplement/_phase5_matrix.py) — Stage 5 within-VR / within-video 4×4 driver.
+- [`../labeling_supplement/_phase4_transfer_matrix.py`](../labeling_supplement/_phase4_transfer_matrix.py) — Stage 6 NxN cross-domain transfer driver.
+- [`../labeling_supplement/_phase4_transfer_report.py`](../labeling_supplement/_phase4_transfer_report.py) — Stage 6 report generator (G1-G6 verdicts).
+- [`../implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md) — Phase-5/6 plan memo; §11.5.0 reconciles the deterministic-stub pathology with the §11.5.4 aspirational transferability bands. **Required reading** for any consumer interpreting the Stage 5 / Stage 6 numerical outputs.
+- [`../implementation_notes/cross-domain-transfer-suite-rollout.md`](../implementation_notes/cross-domain-transfer-suite-rollout.md) §11.5 — transferability assessment across the 5-domain matrix.
