@@ -15,9 +15,12 @@
 >
 > **Status legend:** `[ ]` open · `[~]` in progress · `[x]` shipped · `[-]` cancelled (superseded).
 >
-> **Last updated:** 2026-05-02 (file created; consolidates the seven items
+> **Last updated:** 2026-05-02 (file created consolidating the seven items
 > previously scattered across §5.5.4a, §5.5.7a, and §11.5.1 of the rollout
-> memo).
+> memo; later same-day, the rollout memo §11.5.4 estimates were revised
+> upward for game→VR/video transfer after a `visual_reasoning_wrapper`
+> audit — no new TODO items here, but the `Out of scope` block below now
+> points at the evolving Phase-5/6 measurement plan).
 
 ---
 
@@ -170,6 +173,17 @@ Not tracked in this file:
   *new* workstreams (executors, harness producers, transfer matrix),
   not Phase 1.5 follow-ups. They live in the design memo §4 / §5 /
   §6 / §7 / §8 / §9 / §10 with their own acceptance gates.
+- **Phase-5/6 cross-domain measurement plan (game→{osworld, browser,
+  image-VR, video-VR}, plus within-VR/video transfer)** — being
+  designed in chat as of 2026-05-02; will land as a separate memo
+  (`implementation_notes/phase5-cross-domain-measurement.md`). The
+  measurement-blocker LOC subset is ~310 (image-VR) / ~310-380
+  (video-VR) / ~500 (browser) / ~470 (osworld) per the revised rollout
+  memo §11.5.5; image-VR has no adapter work because
+  `bind_visual_reasoning_executor` already wires the real
+  `VisualReasoningExecutor` (461 LOC). TODO-1 (`archetype_aggregator`)
+  is a hard prerequisite for the cross-corpus VR/video transfer cells
+  but NOT for the within-corpus or game→VR cells.
 - **Workspace-wide "Not yet delivered"** — see
   [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) and
   [`harness/README.md`](../harness/README.md) §"Suggested work-order".

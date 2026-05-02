@@ -817,18 +817,21 @@ ever used that label.
     v           v           v           v           v
   gymv        browser    osworld     video      visual_reasoning
  adapter     adapter    adapter     adapter      adapter
-  (real)     (stub)     (stub)      (stub)       (stub)
+  (real)     (stub)     (stub)     (stub*)       (real)
     |           |           |           |           |
     v           v           v           v           v
  dpad/btn    click(bid)   pyautogui   QA-emit     QA-emit
  + schema    + schema    + schema    + schema     + schema
  producer    producer    producer    producer     producer
- (real)      (Phase 2)  (Phase 5)   (Phase 4)    (Phase 3)
+ (real)      (Phase 2)  (Phase 5)   (N/A: state  (N/A: state
+                                     is frames)   is image)
     |           |           |           |           |
     v           v           v           v           v
  success_fn  success_fn  success_fn  success_fn  success_fn
  (real)     (default)   (default)   (default)   (default)
 ```
+
+> *(`*` = `harness/adapters/video_adapter.py` is a 28-LOC stub with `set_executor()` plug-point; the `VideoExecutor` mirror of `VisualReasoningExecutor` is the only missing piece — see §11.5.5.)*
 
 Four pluggable per-domain surfaces, all keyed off the universal
 slot-type ontology:
@@ -881,18 +884,14 @@ each kind of mismatch):
 | `gym_v` games → `osworld` | **30-50%** | `entity_appeared{label=dialog}`, `attribute_changed{label=window_focus}`, `phase_transitioned{phase=running→saved}` are natural OSWorld observables once the desktop producer emits them. Reactive sensorimotor priors generalise — the same INSPECT→MOVE→VERIFY shape covers Sonic AND "click VLC and play". |
 | `env_wrappers:tetris` / `candy_crush` → `osworld` | 15-30% | Tile-clearing priors are very specific. |
 | `gym_v` games → `browsergym` | 15-30% | Same shape transfers; action space (AXTree bid) is more specific than gym joystick. |
-| `gym_v` games → `siv_bench` / `video_holmes` / `tir_bench` / `visual_toolbench` | **0-5%** | These corpora are pure declarative QA — there's no environment to step, no entity to make appear, no reward to maximise. The only transfer would be at the meta-protocol-shape level, which is too generic to count. |
+| `gym_v` games → `tir_bench` / `visual_toolbench` (image-VR) | **15-35%** | The `visual_reasoning_wrapper` tool registry IS the env — hops dispatch to live tool calls (`grounded_detect`, `describe_region`, `count_value`, `compute_ratio`, `compare_values`, `verify_claim`). Predicates fire on derivation-log entries + grounded-entity changes (`entity_appeared` ↔ new `grounded_detect` hit; `entity_value_increased` ↔ `count_value` derivation N+1 > N; `phase_transitioned` ↔ first `verify_claim`). The image-VR path is fully wired today via `bind_visual_reasoning_executor(adapter, image=img)`. |
+| `gym_v` games → `video_holmes` / `siv_bench` (video-VR) | **15-30%** | Same mechanism as image-VR via `tools_video_visual.build_video_visual_registry(frames=...)` — a strict superset of the image registry (every image tool plus temporal ones: `get_frame`, `find_moment`, `track_object`, `compare_frames`). Only missing piece is a ~120-200 LOC `VideoExecutor` mirroring `VisualReasoningExecutor` against the video registry. |
 
-**This means**: the four single-shot QA corpora are best understood as
-**skill *sources*** (their reasoning chains can be banked and replayed
-against new QA tasks via the harness) rather than as transfer
-*destinations* for game skills. Phase 6's transfer matrix should
-therefore be reported as **two distinct experiments** rather than one
-6×6 grid:
+**This means** (revised 2026-05-02): the four single-shot QA corpora are step-able transfer destinations after all — the `visual_reasoning_wrapper` tool registry is the env, and game-skill predicate types map onto live tool-call observations (`entity_grounded` ↔ `grounded_detect` hit, `entity_value_increased` ↔ `count_value` increase, `phase_transitioned` ↔ first `verify_claim`). Image-VR is the **cheapest** of the five cross-domain probes (no replay executor, no schema producer, no live VM). Video-VR is the second-cheapest once the small `VideoExecutor` port lands (rollout memo §8 is over-spec'd; only ~310-380 LOC of that file table is on the measurement critical path — see §11.5.5). Phase 6's transfer matrix can still be reported as the three-experiment partition below, but with **revised admit-rate expectations**:
 
 - **Experiment A — sensorimotor transfer (5×5)**: `env_wrappers + gym_v + browsergym + osworld + video` as both sources and targets. Mechanism applies; expect 15-50% admit rates depending on source/target similarity.
-- **Experiment B — declarative-reasoning transfer (4×4 within VR/video)**: `siv_bench + tir_bench + video_holmes + visual_toolbench` as both sources and targets. Different mechanism — the predicates that transfer are `entity_grounded` / `answer_matches_gold` rather than `entity_appeared` / `phase_transitioned`. Phase 1.5's effect-miner already populates the right vocabulary; Phase 6 needs a `qa_success_fn` registered at `register_success_fn("visual_reasoning", make_qa_success_fn)`.
-- **Experiment C — cross-cluster (1×9)** (sensorimotor → declarative or vice versa): expected near-zero, **report as a negative-result baseline** for honesty.
+- **Experiment B — declarative-reasoning transfer (4×4 within VR/video)**: `siv_bench + tir_bench + video_holmes + visual_toolbench` as both sources and targets. Same predicate-firing mechanism as Experiment A but evaluated against the tool-registry derivation log; needs `register_success_fn("visual_reasoning", make_qa_success_fn)` to plug MCQ exact-match + LLM-judge scoring.
+- **Experiment C — cross-cluster (game ↔ VR/video)**: previously framed as a negative-result baseline; **the tool-registry mechanism flips this expectation upward to 15-35% (image) / 15-30% (video)** because the predicate evaluators run against `_DerivationLog` and grounded-entity tables rather than against pre/post env-state diffs. Game-source → VR-destination cells are now folded into Experiment A's expected range; only QA-source → game-destination cells remain as a genuinely-mismatched cross-cluster cell.
 
 ### 11.5.5 What would unblock the measurement
 
@@ -903,7 +902,9 @@ For each pending target adapter, the deliverable is concretely:
 | `harness/adapters/osworld_adapter.py` real surface | `set_executor(make_osworld_executor(env))` analogous to `make_gymv_executor` | Phase 5 | ~150 |
 | `harness/osworld_schema_producer.py` (or extend `gym_schema_producer.py`) | Emit `entity_label_count[window]`, `attribute_changed[focused_app]`, `phase=running\|saved\|aborted`, etc. from OSWorld step info | Phase 5 | ~200 |
 | `harness/few_shot_demos_osworld.py` | Walk `Cold-start-out-osworld/` to produce `FewShotDemo[]` with `state` parsed from the desktop schema producer + `bindings` extracted from the actor's emitted `pyautogui` action heads | Phase 5 | ~120 |
-| (analogous trio for browser / video / VR) | per Phases 2-4 | Phases 2-4 | ~470 each |
+| `harness/browsergym_executor.py` + `browser_schema_producer.py` + `few_shot_demos_browsergym.py` + browser_adapter `set_executor()` wiring + `register_success_fn("browser", ...)` | enable game→browser measurement | Phase 2 | ~500 |
+| `harness/few_shot_demos_vr.py` + `harness/qa_success.py` (`register_success_fn("visual_reasoning", make_qa_success_fn)`) + `_phase4_transfer_cycle.py --target visual_reasoning` extension | enable game→{VTB, TIR-Bench} measurement. **NO adapter work** — `harness.adapters.visual_reasoning_adapter.bind_visual_reasoning_executor` is already shipped against the real `VisualReasoningExecutor` (461 LOC). **NO schema producer** — state IS the image+question envelope (`vlm_wrapper.schema(domain="image_qa")`). | Phase 3 (mostly already shipped) | ~310 |
+| `harness/video_executor.py` (~120-200 LOC port from `VisualReasoningExecutor` against `build_video_visual_registry(frames=...)`) + `harness/few_shot_demos_video.py` + `bind_video_executor(adapter, frames)` helper in `harness/adapters/video_adapter.py` (~10 LOC) + `qa_success_fn` extension for video MCQ + `_phase4_transfer_cycle.py --target video` extension | enable game→{Video-Holmes, SIV-Bench} measurement. The rollout memo §8.2 ~1100 LOC estimate is **measurement-over-specified** — schema producer / session module / dedicated test suite are not measurement blockers (image-VR doesn't have them either) | Phase 4 (measurement-blocker subset) | ~310-380 |
 
 Once these land, [`labeling_supplement/_phase4_transfer_cycle.py`](../labeling_supplement/_phase4_transfer_cycle.py)
 runs end-to-end with `--source castlevania --target osworld
@@ -923,6 +924,7 @@ table-of-numbers:
 - Cross-cluster off-diagonal (sensorimotor ↔ declarative): may
   legitimately be 0-10%; **report as a negative-result baseline**, not
   a failure of Phase 6.
+- **Cross-cluster cells (game ↔ VR/video) revised expectation:** previously listed as 0-10% negative-result baseline; revised 2026-05-02 to **15-35% (image-VR) / 15-30% (video-VR) mechanism-bound** based on the `visual_reasoning_wrapper` tool registry providing a live predicate-firing surface. See §11.5.4 revised "Implication" passage.
 
 If the cross-cluster rates land at the optimistic end (>10%), that is
 itself a publishable finding ("verb-shape priors transfer across
