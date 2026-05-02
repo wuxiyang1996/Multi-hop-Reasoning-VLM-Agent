@@ -78,10 +78,12 @@ Cheapest mechanism-bound probe. **No adapter work, no schema producer** - `bind_
 | `harness/few_shot_demos_vr.py` | Walks `Cold-start-out-visual-reasoning/<run>/{visual_toolbench,tir_bench}/` to produce `FewShotDemo[]`; `state = {image, question, choices}`; `bindings` extracted from the actor's emitted entity refs | ~150 |
 | `labeling_supplement/_phase4_transfer_cycle.py` | Add `--target visual_reasoning` branch | ~40 |
 
-**Acceptance**:
-- `2048 -> tir_bench` produces a non-empty admit/reject decision matrix (>=1 admit, >=1 reject)
-- Within-image-VR `vtb -> tir_bench` >=30% admit rate
-- Game->image-VR cell produces a measured rate in [10%, 50%]; flag if outside Stage 0's upper bound + slack
+**Acceptance** (measured 2026-05-02 via Stage 5/6 smoke runs against the shipped stub-tier executor):
+- `2048 -> tir_bench` produces a non-empty admit/reject decision matrix (>=1 admit, >=1 reject) -- **PASS** (Stage 5's smoke produced 4 cells with verdicts each)
+- Within-image-VR `vtb -> tir_bench` >=30% admit rate -- **FAIL** (0% via stub identity-pass; expected with the Stage 1 stub executor which returns identity-mapped predicates)
+- Game->image-VR cell produces a measured rate in [10%, 50%]; flag if outside Stage 0's upper bound + slack -- **FAIL** (Stage 6's smoke measured 100% on game->tetris stub-pathology vs Stage 0 cap of 18%; the flagging mechanism G6 fired correctly)
+
+Stage 1 ships a deterministic-stub executor at runtime: `bind_visual_reasoning_executor` is wired but the per-sample image-loading is not (per `labeling_supplement/_phase4_target_dispatch.py::_build_visual_reasoning_target`: *"Adapter is left on its inherited stub executor; bind_visual_reasoning_executor requires a per-sample PIL.Image we don't yet load."*), so the FAIL verdicts above are about stub-tier behaviour rather than infrastructure bugs. Stage 0's `cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv` row `tetris,game,visual_reasoning` caps the admit rate at 14.29% (slack-extended to ~24%); the stub's measured 100% is exactly the kind of upper-bound violation G6 was built to catch, and will resolve once a real per-sample image-loading executor lands.
 
 **Total**: ~340 LOC, ~2 days.
 
@@ -99,9 +101,11 @@ Second-cheapest. Only missing piece is a `VideoExecutor` mirror - `tools_video_v
 | `harness/qa_success.py` *(extension from S1)* | `register_success_fn("video", ...)` reusing MCQ + LLM-judge helpers; adds video-specific predicates (`temporal_ordering_correct`, `frame_referent_grounded`) | ~50 |
 | `labeling_supplement/_phase4_transfer_cycle.py` | Add `--target video` branch | ~40 |
 
-**Acceptance**:
-- Within-video-VR `video_holmes -> siv_bench` >=30% admit rate
-- Game->video-VR cross-cluster in [10%, 50%]
+**Acceptance** (measured 2026-05-02 via Stage 5/6 smoke runs against the shipped stub-tier executor):
+- Within-video-VR `video_holmes -> siv_bench` >=30% admit rate -- **FAIL** (0% via stub identity-pass; expected with Stage 2's deterministic-stub executor which mirrors the image executor and does not decode video frames or call a VLM)
+- Game->video-VR cross-cluster in [10%, 50%] -- **N-A in the 4x4 smoke** (Stage 6 G4 explicitly notes "N/A in the smoke (no video cells); evaluable when video corpora are passed"); will FAIL by the same stub-pathology as Stage 1's game->image-VR row when video corpora are exercised.
+
+Stage 2 ships a deterministic-stub video executor (`harness/video_executor.py` -- the docstring frames it as keeping "the executor *deterministic* -- it does not actually decode video frames or call a VLM yet"), so the FAIL verdict above is about stub-tier behaviour rather than infrastructure bugs. Stage 0's `cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv` row `tetris,game,video` caps the admit rate at 14.29%; the [10%, 50%] criterion is a post-translation-layer aspirational target (cross-ref Section 11.5.4 of the rollout memo) that requires a real frame-decoding executor to evaluate.
 
 **Dependencies**: shares `qa_success.py` scaffolding from S1 (start S1 first to avoid file conflict).
 
@@ -121,10 +125,12 @@ First real-env target. Heaviest of the four because the desktop ontology needs a
 | `harness/osworld_success.py` | `register_success_fn("osworld", ...)` with predicate evaluators for the desktop ontology | ~120 |
 | `labeling_supplement/_phase4_transfer_cycle.py` | Add `--target osworld` branch | ~40 |
 
-**Acceptance**:
-- `castlevania -> chrome` (or analogous game->osworld pair) produces a real admit rate, end-to-end live (no stub echoes)
-- Within-osworld task transfer (`vlc -> chrome`) >=40% admit rate
-- Game->osworld in [20%, 60%]
+**Acceptance** (measured 2026-05-02 via Stage 6 smoke against the shipped stub-tier executor):
+- `castlevania -> chrome` (or analogous game->osworld pair) produces a real admit rate, end-to-end live (no stub echoes) -- **FAIL** (directly violated by `harness/osworld_executor.py`'s shipped "deterministic-stub binding for the OsworldAdapter ... we do not actually invoke pyautogui or any real desktop tool"; the chain runs end-to-end but the rate is stub-echoed, not real)
+- Within-osworld task transfer (`vlc -> chrome`) >=40% admit rate -- **FAIL** (0% via stub identity-pass; the executor returns `ok: True` plus a placeholder `EvidenceRef` regardless of action verb)
+- Game->osworld in [20%, 60%] -- **FAIL** (Stage 0 caps every `<game>,game,osworld` cell at <=18% in `upper_bounds.csv`; the [20%, 60%] band is a post-translation-layer aspirational target, not a feasibility upper bound -- see Section 11.5.4 of the rollout memo)
+
+Stage 3 ships a deterministic-stub OSWorld executor (`harness/osworld_executor.py` docstring: *"deterministic-stub binding for the OsworldAdapter ... Real OSWorld binding lands in a later cut via OsworldAdapter.set_executor"*), so the FAIL verdicts above are about stub-tier behaviour rather than infrastructure bugs. Stage 0's `cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv` rows for game->osworld already cap the feasibility upper bound at 0-18% across all 13 game corpora -- which is why the [20%, 60%] criterion needs Section 11.5.4's post-translation-layer reading rather than the Stage 0 oracle reading.
 
 **Risk**: A11y tree dumps may not be in the cold-start trace; schema producer would then need to inspect live VM state on every step. Budget +1 day if so.
 
@@ -144,7 +150,11 @@ Second real-env target. Slightly cheaper than OSWorld because AXTree state is st
 | `harness/browser_success.py` | `register_success_fn("browser", ...)` | ~100 |
 | `labeling_supplement/_phase4_transfer_cycle.py` | Add `--target browsergym` branch | ~40 |
 
-**Acceptance**: same shape as S3. Game->browsergym cross-cluster in [15%, 45%].
+**Acceptance** (measured 2026-05-02 via Stage 6 smoke against the shipped stub-tier executor):
+- Same shape as S3 (real admit rate end-to-end / within-cluster >=40%) -- **FAIL** (`harness/browsergym_executor.py` ships as "BrowserGym hop executor -- deterministic-stub stage-1 cut" and "does **not** drive a real browser via Playwright"; same stub-pathology as Stage 3)
+- Game->browsergym cross-cluster in [15%, 45%] -- **FAIL** (Stage 0 caps `<game>,game,browser` at 0-18% in `upper_bounds.csv`; the [15%, 45%] band is a post-translation-layer aspirational target, not a feasibility upper bound -- see Section 11.5.4 of the rollout memo)
+
+Stage 4 ships a deterministic-stub BrowserGym executor (`harness/browsergym_executor.py` docstring: *"deterministic-stub stage-1 cut"*; Playwright wiring is deferred to "later by replacing the closure `make_browsergym_executor` returns"), so the FAIL verdicts above are about stub-tier behaviour rather than infrastructure bugs. Same caveat as Stage 3: Stage 0's `cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv` already caps game-source rows on browser targets at 0-18%, well below the [15%, 45%] aspirational band; replacing the stub flips the gates.
 
 **Total**: ~640 LOC, ~3 days.
 
@@ -198,6 +208,8 @@ The 0% admit rates do **not** indicate a bug in the matrix infrastructure -- the
 
 The G6 verdict is precisely the Stage 0 oracle catching the stub-pathological cells, exactly as designed. Stages 1-4 currently ship reproduction-quality stub executors; replacing them with reality-grounded implementations will flip G1/G2 to PASS for the diagonal, drop G3-G5 into the floor bands, and make G6 PASS by construction (real predicates respect the upper-bound cap).
 
+See [`cross-domain-transfer-suite-rollout.md`](cross-domain-transfer-suite-rollout.md) Section 11.5.0 for the Stage 0 oracle vs Section 11.5.4 runtime estimate asymmetry that explains why G6 fires on stub-pathological cells while Section 11.5.4 still projects 15-35% / 15-30% bands -- the two measure different quantities (vocab feasibility vs post-translation-layer runtime).
+
 **Dependencies**: Stages 0-5 (all shipped).
 
 **Total**: ~1500 LOC shipped (vs ~450 estimated -- the report generator was bigger than budgeted because it carries 7 markdown sections + Stage 0 join logic + 6 acceptance-gate evaluators each with diagnostic notes; the matrix driver was bigger because it spans 3 heterogeneous bank layouts (env_wrappers / gym_v aggregated / cross-domain `<bank-kind>`) instead of a single layout).
@@ -216,6 +228,8 @@ The G6 verdict is precisely the Stage 0 oracle catching the stub-pathological ce
 | Stage 5 (within-VR + archetype) | ~850 *(shipped)* | 1 | Phase 1.5b (TODO-1) + Phase 6 |
 | Stage 6 (matrix + report) | ~1500 *(shipped)* | 2 | Phase 6 |
 | **Total** | **~3510-3560** est / ~5500 shipped | **~10** | - |
+
+**LOC reconciliation note**: the ~5500 shipped vs ~3510-3560 estimated overage (~+1900 LOC, ~+55%) is concentrated in Stages 5 and 6, both of which carry inline per-stage explanations: Stage 5 (Section 8) explains the matrix-driver overage as "the matrix driver was bigger than budgeted because it also handles markdown rendering + per-cell error capture; ships as a separate sibling module rather than inlined in `_phase4_transfer_cycle.py` to keep both CLIs single-purpose"; Stage 6 (Section 9) explains the report-generator overage as "carries 7 markdown sections + Stage 0 join logic + 6 acceptance-gate evaluators each with diagnostic notes; the matrix driver was bigger because it spans 3 heterogeneous bank layouts (env_wrappers / gym_v aggregated / cross-domain `<bank-kind>`) instead of a single layout". Stages 0-4 shipped within their estimates. The total-row figure is intentionally non-rebudgeted -- the estimate column documents the original sprint plan; the shipped column documents reality after the per-stage scope expansions described in Section 8 and Section 9.
 
 ---
 
