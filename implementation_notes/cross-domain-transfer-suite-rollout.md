@@ -1,6 +1,13 @@
 # Cross-domain transfer suite — rollout plan
 
-> **Status (current state, 2026-05-02):**
+> **Status (current state, 2026-05-02):** 🟡 **PARTIAL — measurement infra DONE, real-env binding OPEN.**
+> Phase 1.5 + Phase-5/6 measurement Stages 0-6 shipped (see banner below);
+> per-target executors run as deterministic identity-pass stubs.
+> **Still genuinely planned:** real-env binding for the
+> browsergym / osworld / video executors (replace the stub identity-pass
+> with reality-grounded predicate evaluation against live envs / VLMs)
+> + Phase-1.5b open items TODO-2 / TODO-3 / TODO-4 / TODO-5 in
+> [`skill_transfer_test/TODO.md`](../skill_transfer_test/TODO.md).
 >
 > *Phase 1.5* shipped 2026-05-01 (LLM-free path; `skill_transfer_test/extract/`, 1,083 records / 885 verified across 6 corpora -- see `skill_transfer_test/extract/README.md`).
 >
@@ -850,6 +857,8 @@ numbers should not be quoted as evidence of mechanism strength. The
 §11.5.6 floors below are the post-real-binder targets; current measured
 numbers respect the Stage 0 cap (G6) only on cross-domain-source rows
 where the stub bypass doesn't fire.
+
+See [`phase5-cross-domain-measurement.md`](phase5-cross-domain-measurement.md) §12 for the canonical, severity-ranked inventory of code-level gaps that block §11.5.4 / §11.5.6 from becoming measurements rather than projections (Tier 1: 4 stub executors; Tier 2: 2 missing `vlm_wrapper/<domain>_adapter.py` files; Tier 3: per-domain runtime predicate-translators not yet designed).
 
 ### 11.5.1 Vocabulary alignment between game and cross-domain banks
 

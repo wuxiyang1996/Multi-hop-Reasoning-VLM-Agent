@@ -3,7 +3,9 @@
 Last updated: 2026-05-02 (S0+S1 — lane-(a) decision shipped, SFT
 checkpoints reconciled, pre-flight tooling landed; **T2.11 LoRA
 target-modules recipe fix + T2.12 SFT throughput uplift** landed today,
-pending SFT re-run on the corrected recipe).
+pending SFT re-run on the corrected recipe; **Phase-5/6 measurement
+Stages 0-6 shipped (deterministic-stub tier; see Phase-5/6 §12 gap
+inventory at `implementation_notes/legacy/phase5-cross-domain-measurement.md`)**).
 
 This document tracks what has been implemented from
 [`plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md`](plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md)
@@ -13,8 +15,8 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 
 > **Cross-references for the current readiness audit**:
 > - [`implementation_notes/pre-training-readiness-audit.md`](implementation_notes/pre-training-readiness-audit.md) — open / closed items by sprint (S0–S4).
-> - [`implementation_notes/skill-lane-decision.md`](implementation_notes/skill-lane-decision.md) — T1.3 closed: skill = retrieval payload (lane (a)).
-> - [`implementation_notes/single-vs-two-mdp-tradeoff.md`](implementation_notes/single-vs-two-mdp-tradeoff.md) — T3.6 decided + shipped: single-MDP (no `hop_select` LoRA, no `inner_mdp.py`).
+> - [`implementation_notes/legacy/skill-lane-decision.md`](implementation_notes/legacy/skill-lane-decision.md) — T1.3 closed: skill = retrieval payload (lane (a)).
+> - [`implementation_notes/legacy/single-vs-two-mdp-tradeoff.md`](implementation_notes/legacy/single-vs-two-mdp-tradeoff.md) — T3.6 decided + shipped: single-MDP (no `hop_select` LoRA, no `inner_mdp.py`).
 > - [`runs/sft_coldstart/sft_summary_all.json`](runs/sft_coldstart/sft_summary_all.json) — run-wide manifest of all six trained SFT adapters (T2.9).
 
 ## Delivered
@@ -35,6 +37,7 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 | Threshold YAMLs (T2.5, S0) | `configs/skill_gate.yaml` (single source of truth for G0–G5 thresholds + drift annotations) and `configs/failure_routing.yaml` (FailureClass → Crafter mode dispatch table, including the new lane-(a) `BANK_GAP / RETRIEVAL_MISLEAD / STALE_DESCRIPTION` taxonomy). Both carry `policy_version` for audit-log drift attribution. | `configs/{skill_gate,failure_routing}.yaml` |
 | SFT manifest + tools (T2.9 / T2.10 / T1.1′, S0) | Run-wide manifest for all six trained adapters; load-smoke and exact-match probes for pre-flight verification before launching co-evolution. | `scripts/build_sft_manifest.py`, `runs/sft_coldstart/sft_summary_all.json`, `evaluation/{smoke_load_sft_adapters,probe_schema_gen_exact_match}.py` |
 | Offline promotion cycle (T1.2, S1) | One-shot wrapper for the §17 keystone — drives `decide_promotion_gpt54.py` + `legacy_writeback.writeback_promotion` once to flip cold-start banks from CANDIDATE to ACTIVE/PROVISIONAL/SHADOW so `bank.runnable() != []`. Asserts the post-condition before exiting. | `scripts/run_offline_promotion_cycle.sh`, `labeling_supplement/decide_promotion_gpt54.py`, `skill_bank/legacy_writeback.py` |
+| Phase-5/6 measurement (Stages 0-6) — **deterministic-stub tier** | Cross-domain transfer measurement infrastructure: Stage 0 audit oracle (vocab Jaccard / predicate firing / slot binding), Stage 1-4 cross-domain executors + success_fns + schema producers + few-shot demo loaders, Stage 5 archetype aggregator + within-VR/video 4x4 matrix driver, Stage 6 NxN matrix driver + unified report generator with G1-G6 acceptance gates. Numbers measured against this infrastructure are infrastructure-validating, not mechanism-validating; see [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md) §12 for the canonical gap inventory (Tier 1: 4 stub executors; Tier 2: 2 missing `vlm_wrapper/` adapters; Tier 3: per-domain runtime predicate-translators). | `skill_transfer_test/extract/audits/`, `harness/{qa,video_qa,osworld,browser}_success.py`, `harness/{video,osworld,browsergym}_executor.py`, `harness/{osworld,browser}_schema_producer.py`, `harness/few_shot_demos_{vr,video,osworld,browsergym}.py`, `labeling_supplement/{_phase4_target_dispatch,_phase5_matrix,_phase4_transfer_matrix,_phase4_transfer_report}.py`, `skill_transfer_test/extract/archetype_aggregator.py` |
 | Tests | Invariant + smoke + backbone-model + crafter Phase D/F + lane-(a) flag + harness Day 7-10 + trainer Day 10 hook | `tests/{conftest,test_invariants,test_smoke,test_backbone_model,test_crafter_*,test_few_shot_transfer,test_gate_runner,test_replay_validator_action_walk,test_lifecycle_*,test_validate_invocation,test_skill_episode_field_expansion,test_promotion_orchestrator_anchors,test_phase4_persist,test_stub_executor_typed_hops,test_rejected_skill_sink,test_trainer_harness_hook,test_crafter_lane_a_flag}.py` (433 passing as of S0 close; one pre-existing unrelated failure in `test_schema_predicates::test_extra_whitespace_tolerated`) |
 
 ### Backbone models — three-tier stack
@@ -121,7 +124,7 @@ Live defaults flipped in the 2026-04-28 model-stack migration:
   `runs/sft_*` corpus, the lane-(a) flag, the threshold YAMLs, the SFT
   manifest, and the offline-promotion driver.
 - ☑ **T1.3e + T1.3f + T3.6** — Lane-(a) banner blocks shipped on
-  `harness/README.md` §22, `implementation_notes/crafter-harness-orchestrator-roles.md`
+  `harness/README.md` §22, `implementation_notes/legacy/crafter-harness-orchestrator-roles.md`
   §7.3 / §7.5 (with new "Post-decision rule" sub-section), and the four
   PLAN docs (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS,
   PLAN-COMPONENTS-IMPLEMENTATION). Each banner explicitly marks
@@ -243,7 +246,7 @@ T2.11 + T2.12 follow-ups (2026-05-02):
     outer step from `run_training_loop_async`; `_dynamic_curator_reward`
     multiplies the base reward by the linear ramp.
   - **T2.8** — split-base vLLM topology documented in
-    `implementation_notes/vllm-topology.md`.
+    `implementation_notes/legacy/vllm-topology.md`.
   - **Outstanding for S2:** launch fast-loop GRPO on `gymv` only
     (Phase 1 of `PLAN-ACTION-AGENT.md` §6); enable
     `crafter_promotion_enabled=True`; add `policy_version` audit
@@ -261,6 +264,31 @@ T2.11 + T2.12 follow-ups (2026-05-02):
   2026-05-02 (T2.3).** See above.
 - **Phase D / E / F** of `PLAN-COMPONENTS-IMPLEMENTATION.md`
   (training cadence, multi-domain rollout, full eval).
+- **Phase-5/6 real-env binding (Tier 1 + Tier 2 + Tier 3)** -- the
+  deterministic-stub tier of Phase-5/6 (see Delivered table) provides
+  infrastructure validation only; mechanism validation requires:
+  - **Tier 1**: replace 4 harness executors with real-env binders --
+    `harness/visual_reasoning` per-sample image loading +
+    `harness/video_executor.py` (frame decode + VLM call) +
+    `harness/osworld_executor.py` (real `pyautogui`) +
+    `harness/browsergym_executor.py` (real BrowserGym/Playwright). Each
+    ~3-5 days. See
+    [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md)
+    §12.1.
+  - **Tier 2**: author `vlm_wrapper/video_adapter.py` and
+    `vlm_wrapper/visual_reasoning_adapter.py` from scratch -- the
+    `vlm_wrapper/` directory only ships `gymv_adapter.py`,
+    `osworld_adapter.py`, `browser_adapter.py` today. ~600-800 LOC each
+    + VLM-quality eval harness. See §12.2.
+  - **Tier 3**: design and ship per-domain runtime
+    predicate-translators (e.g. `score_increased` -> `answer_emitted`
+    when target=image-VR). Not yet specced. See §12.3 and the sibling
+    memo `implementation_notes/cross-domain-transfer-suite-rollout.md`
+    §11.5.0.
+  - Closing measurement: re-run Stage 6 NxN driver
+    (`labeling_supplement/_phase4_transfer_matrix.py`) once Tier 1+2+3
+    lands; expect G6 to pass and §11.5.4's 15-35% / 15-30% bands to
+    become measured admit rates rather than projections.
 - **Actor rewire**: replace `decision_agents.skill_interface
   .SkillBankProvider` with a `HarnessSkillProvider` that wraps
   `SkillHarness.select_eligible_skills`. (Note: the Day-10

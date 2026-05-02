@@ -450,6 +450,14 @@ what it should. Replacing the Stage 1-4 stubs with reality-grounded
 executors is the next step; admit rates measured before then are
 upper-bounded by what stubs can echo.
 
+For the canonical, severity-ranked code-level gap inventory (Tier 1: 4
+stub executors; Tier 2: 2 missing `vlm_wrapper/<domain>_adapter.py` files
+for video / visual_reasoning; Tier 3: per-domain runtime
+predicate-translators; plus Tiers 4-6 covering Phase-1.5b TODOs, Stage 5
+LLM-clustered fallback, and pre-Phase-5/6 backlog), see
+[`../implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md)
+§12.
+
 ---
 
 ## 10. Anti-goals (mirrors `PLAN-HARNESS.md` §20.8)
