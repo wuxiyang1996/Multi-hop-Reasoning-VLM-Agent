@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence
+from typing import Dict, Iterable, List, Mapping, Optional, Protocol, Sequence
 
 from common.enums import (
     DOMAINS,
@@ -38,6 +38,7 @@ from data_structure.extensions.bank_mutation_proposal import (
     HypothesisProposal,
     PatchProposal,
     RetireProposal,
+    RewriteProposal,
 )
 from data_structure.extensions.gate_verdict import GateVerdictPayload, StageVerdict
 from data_structure.extensions.skill_episode import SkillEpisode
@@ -47,6 +48,20 @@ from harness import SkillHarness
 from harness.few_shot_adapter import AdaptResult, FewShotAdapter, FewShotDemo
 from harness.reward_logger import RewardLogger
 from orchestrator.config import GateThresholds
+
+
+class _EvalSuiteLike(Protocol):
+    """Structural shape of :class:`harness.gate_runner.EvalSuite`.
+
+    Declared here as a Protocol so :class:`GateService` can accept the
+    runtime payload without importing the concrete dataclass at module
+    load time. Any object with ``suite_id`` / ``pre_score`` /
+    ``post_score`` (and optionally ``metrics``) satisfies it.
+    """
+
+    suite_id: str
+    pre_score: float
+    post_score: float
 
 
 @dataclass
@@ -97,8 +112,25 @@ class GateService:
         shadow_log: Optional[RewardLogger] = None,
         baseline_score: Optional[float] = None,
         post_score: Optional[float] = None,
+        eval_suite: Optional["_EvalSuiteLike"] = None,
         few_shot_demos: Optional[Mapping[str, Sequence[FewShotDemo]]] = None,
     ) -> SkillEvaluationRecord:
+        # Stage-4 input normalisation: caller may pass either a frozen
+        # ``EvalSuite`` (preferred — produced by orchestrator/eval_suite.py)
+        # or the legacy (baseline, post) scalar pair, never both.
+        if eval_suite is not None and (
+            baseline_score is not None or post_score is not None
+        ):
+            raise ValueError(
+                "GateService.evaluate: pass either eval_suite=… OR "
+                "(baseline_score, post_score)=…, not both."
+            )
+        eff_baseline = baseline_score
+        eff_post = post_score
+        if eval_suite is not None:
+            eff_baseline = float(eval_suite.pre_score)
+            eff_post = float(eval_suite.post_score)
+
         evaluation_id = f"eval-{new_proposal_id().split('-', 1)[1]}"
         verdicts: List[StageVerdict] = []
 
@@ -109,7 +141,7 @@ class GateService:
             skill, few_shot_demos=few_shot_demos
         )
         verdicts.append(transfer_verdict)
-        verdicts.append(self._run_non_regression(baseline_score, post_score))
+        verdicts.append(self._run_non_regression(eff_baseline, eff_post))
 
         rationale, final_verdict, eligible = self._aggregate(
             verdicts, skill, verified_targets=verified_targets
@@ -147,9 +179,14 @@ class GateService:
         self, skill: SkillRecord, proposal: BankMutationProposal
     ) -> StageVerdict:
         failures: List[str] = []
-        # General-protocol invariant
-        if len(set(skill.feasible_domains)) < 2:
-            failures.append("feasible_domains < 2 (general-protocol invariant)")
+        # T1.3d: dropped legacy "feasible_domains ≥ 2 (general-protocol
+        # invariant)" Stage-0 echo. The lane-(a) replacement
+        # (``min_retrievals_per_skill``) is enforced by the lifecycle
+        # manager at the ACTIVE transition only, since Stage 0 fires
+        # for every proposal (incl. DRAFT→CANDIDATE, where retrievals
+        # are necessarily 0). See
+        # ``SkillLifecycleManager._validate_invariants`` and
+        # ``OrchestratorConfig.gate_thresholds.min_retrievals_per_skill``.
         for d in skill.feasible_domains:
             if d not in DOMAINS:
                 failures.append(f"unknown_domain={d!r}")
@@ -159,16 +196,17 @@ class GateService:
         # Protocol non-empty (except retirements)
         if not isinstance(proposal, RetireProposal) and not skill.protocol:
             failures.append("skill.protocol is empty")
-        # Source-type sanity
-        if proposal.source_type != skill.source_type:
+        # Source-type sanity. RewriteProposal is exempt: by construction
+        # it does not change the underlying skill's source_type (T1.3b).
+        if not isinstance(proposal, RewriteProposal) and proposal.source_type != skill.source_type:
             failures.append(
                 f"source_type mismatch: proposal={proposal.source_type.value}, "
                 f"skill={skill.source_type.value}"
             )
-        # Lineage check (composition / repair must reference parents)
+        # Lineage check (composition / repair / rewrite must reference parents)
         if isinstance(proposal, (ComposeProposal,)) and not proposal.component_skill_ids:
             failures.append("ComposeProposal.component_skill_ids is empty")
-        if isinstance(proposal, (GeneralizeProposal, PatchProposal)) and not getattr(proposal, "base_skill_id", ""):
+        if isinstance(proposal, (GeneralizeProposal, PatchProposal, RewriteProposal)) and not getattr(proposal, "base_skill_id", ""):
             failures.append("base_skill_id is empty")
         verdict = GateVerdict.PASS if not failures else GateVerdict.FAIL
         return StageVerdict(stage=GateStage.STATIC, verdict=verdict, failures=failures)

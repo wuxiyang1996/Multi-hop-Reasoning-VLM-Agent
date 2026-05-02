@@ -246,7 +246,8 @@ class TestGateTransferStage:
         )
         ev = gate.evaluate(proposal=proposal, skill=skill, replay_seeds=[])
         assert ev.verdict is not None
-        # static stage will pass (≥2 feasible_domains, evidence roles set);
+        # static stage will pass (T1.3d dropped the ≥2 feasible_domains
+        # check; only domain-validity + evidence roles are gated at G0);
         # transfer stage will FAIL because no target verified.
         stage_verdicts = {s.stage.value: s.verdict for s in ev.verdict.stages}
         assert stage_verdicts["transfer"] == GateVerdict.FAIL

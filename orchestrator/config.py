@@ -36,6 +36,19 @@ class GateThresholds:
     # New: a skill must clear the few-shot adapter on at least this
     # many target domains (one of TRANSFER_TARGET_DOMAINS) to be ACTIVE.
     transfer_min_target_domains_verified: int = 1
+    # T1.3d (lane-(a) replacement for the symmetric 2-domain ACTIVE
+    # invariant): a skill graduates to ACTIVE only after the actor's
+    # filter_candidates pipeline has *retrieved* it at least this many
+    # times. Single-domain gymv banks ARE allowed to promote — the gate
+    # is repeated retrieval, not domain breadth. Counted via
+    # ``SkillRecord.metrics["retrievals"]``; updated by the harness on
+    # every successful skill invocation. The lifecycle manager applies
+    # this threshold only when constructed with
+    # ``min_retrievals_per_skill=...`` — the orchestrator wires this
+    # field into ``SkillLifecycleManager`` from
+    # ``OrchestratorConfig.gate_thresholds.min_retrievals_per_skill``;
+    # standalone tests / drivers default to ``0`` (no enforcement).
+    min_retrievals_per_skill: int = 3
     few_shot: FewShotConfig = field(default_factory=FewShotConfig)
     non_regression_max_delta: float = 0.02
 

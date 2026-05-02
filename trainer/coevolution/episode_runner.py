@@ -780,6 +780,7 @@ async def run_episode_async(
     opponent_model: Optional[str] = None,
     opponent_api_base: Optional[str] = None,
     harness_hook: Any = None,
+    reward_logger: Any = None,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -1245,23 +1246,47 @@ async def run_episode_async(
             else:
                 action_completion = f"{subgoal_line}REASONING: {reasoning or 'Expert play.'}\nACTION: {action_num}"
                 _action_reward = float(reward) + skill_tracker._intrinsic_bonus + 1.0
+            _action_meta = {
+                "chosen_action": str(action),
+                "available_actions": list(step_actions),
+                "summary_state": summary_state,
+                "intention": current_intention,
+                "assigned_intention": assigned_subgoal,
+                "intention_source": "base_model",
+                "active_skill": skill_id,
+                "intrinsic_bonus": skill_tracker._intrinsic_bonus,
+                "raw_env_reward": raw_env_reward,
+                "placement_metrics": next_info.get("placement_metrics"),
+                "board_stats": next_info.get("board_stats"),
+            }
             grpo_records.append(GRPORecord(
                 adapter="action_taking", game=game, episode_id=episode_id, step=step_count,
                 prompt=action_prompt, completion=action_completion, reward=_action_reward,
-                metadata={
-                    "chosen_action": str(action),
-                    "available_actions": list(step_actions),
-                    "summary_state": summary_state,
-                    "intention": current_intention,
-                    "assigned_intention": assigned_subgoal,
-                    "intention_source": "base_model",
-                    "active_skill": skill_id,
-                    "intrinsic_bonus": skill_tracker._intrinsic_bonus,
-                    "raw_env_reward": raw_env_reward,
-                    "placement_metrics": next_info.get("placement_metrics"),
-                    "board_stats": next_info.get("board_stats"),
-                },
+                metadata=_action_meta,
             ))
+            # T2.4 single-sink: mirror the same scalar + metadata into
+            # ``RewardLogger`` so eval and training read from one source.
+            # Logger errors are non-fatal — we never let a logging hiccup
+            # break a rollout. Metadata is kept *minimal* (chosen_action +
+            # raw_env_reward) to avoid bloating the JSONL; full per-step
+            # metadata stays on the in-memory ``GRPORecord``.
+            if reward_logger is not None:
+                try:
+                    reward_logger.log_grpo_record(
+                        episode_id=episode_id,
+                        adapter="action_taking",
+                        step=step_count,
+                        reward=_action_reward,
+                        game=game,
+                        metadata={
+                            "chosen_action": _action_meta["chosen_action"],
+                            "raw_env_reward": _action_meta["raw_env_reward"],
+                            "active_skill": _action_meta["active_skill"],
+                            "intrinsic_bonus": _action_meta["intrinsic_bonus"],
+                        },
+                    )
+                except Exception:  # pragma: no cover  (defensive)
+                    logger.exception("reward_logger.log_grpo_record(action_taking) failed")
 
         if skill_select_prompt and last_candidates and len(last_candidates) >= 2:
             sk_completion = (
@@ -1286,21 +1311,39 @@ async def run_episode_async(
                 )
             else:
                 sk_reward = min(1.0, max(0.0, float(reward)))
+            _sk_meta = {
+                "chosen_idx": last_chosen_idx,
+                "skill_candidates": [c.get("skill_id") for c in last_candidates],
+                "chosen_skill_id": (
+                    last_candidates[last_chosen_idx].get("skill_id")
+                    if last_chosen_idx < len(last_candidates) else None
+                ),
+                "summary_state": summary_state,
+                "intention": current_intention,
+                "reselect_reason": skill_tracker._reselect_reason,
+            }
             grpo_records.append(GRPORecord(
                 adapter="skill_selection", game=game, episode_id=episode_id, step=step_count,
                 prompt=skill_select_prompt, completion=sk_completion, reward=sk_reward,
-                metadata={
-                    "chosen_idx": last_chosen_idx,
-                    "skill_candidates": [c.get("skill_id") for c in last_candidates],
-                    "chosen_skill_id": (
-                        last_candidates[last_chosen_idx].get("skill_id")
-                        if last_chosen_idx < len(last_candidates) else None
-                    ),
-                    "summary_state": summary_state,
-                    "intention": current_intention,
-                    "reselect_reason": skill_tracker._reselect_reason,
-                },
+                metadata=_sk_meta,
             ))
+            # T2.4 single-sink mirror — see the action_taking branch.
+            if reward_logger is not None:
+                try:
+                    reward_logger.log_grpo_record(
+                        episode_id=episode_id,
+                        adapter="skill_selection",
+                        step=step_count,
+                        reward=sk_reward,
+                        game=game,
+                        metadata={
+                            "chosen_skill_id": _sk_meta["chosen_skill_id"],
+                            "reselect_reason": _sk_meta["reselect_reason"],
+                            "n_candidates": len(_sk_meta["skill_candidates"]),
+                        },
+                    )
+                except Exception:  # pragma: no cover  (defensive)
+                    logger.exception("reward_logger.log_grpo_record(skill_selection) failed")
 
         _exp_dict: Dict[str, Any] = {
             "step": step_count,

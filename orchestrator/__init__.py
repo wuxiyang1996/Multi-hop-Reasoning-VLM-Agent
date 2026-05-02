@@ -35,6 +35,16 @@ from orchestrator.config import (
     OrchestratorConfig,
     TeacherConfig,
 )
+from orchestrator.eval_suite import (
+    EvalSuite,
+    EvalSuiteLoader,
+    EvalSuiteSpec,
+    Scoreboard,
+    default_suites_root,
+    load_eval_suite,
+    load_eval_suite_spec,
+    load_scoreboard,
+)
 from orchestrator.gate_service import GateService, NonRegressionResult
 from orchestrator.promotion_orchestrator import (
     PromotionOrchestrator,
@@ -51,6 +61,9 @@ __all__ = [
     "BudgetLimits",
     "EpisodeResult",
     "EpisodeRunner",
+    "EvalSuite",
+    "EvalSuiteLoader",
+    "EvalSuiteSpec",
     "FewShotConfig",
     "GateService",
     "GateThresholds",
@@ -58,8 +71,13 @@ __all__ = [
     "NonRegressionResult",
     "OrchestratorConfig",
     "PromotionOrchestrator",
+    "Scoreboard",
     "TeacherConfig",
     "PromotionPlan",
     "PromotionResult",
     "SnapshotManager",
+    "default_suites_root",
+    "load_eval_suite",
+    "load_eval_suite_spec",
+    "load_scoreboard",
 ]

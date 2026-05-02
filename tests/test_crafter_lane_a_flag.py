@@ -46,8 +46,12 @@ def _new_repo(root: str) -> SkillRepository:
 def _seed_active_skill(lifecycle: SkillLifecycleManager) -> SkillRecord:
     """Seed an ACTIVE multi-domain skill into the lifecycle.
 
-    The lifecycle's general-protocol invariant requires ≥2 feasible
-    domains for ACTIVE — see ``skill_bank/lifecycle.py:380-388``.
+    Historical note: the legacy ``feasible_domains < 2`` invariant was
+    dropped in T1.3d (lane-(a)). This helper still seeds a multi-domain
+    skill because the test fixture pre-dates the change; the behaviour
+    is unaffected because the new ``min_retrievals_per_skill`` gate
+    defaults to 0 (no enforcement) when the lifecycle is constructed
+    without a threshold.
     """
     skill = SkillRecord.new(
         name="press_then_check",

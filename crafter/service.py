@@ -67,7 +67,12 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from common.enums import RecoveryStrategy, SkillStatus, SkillType
+from common.enums import (
+    LANE_A_RECOVERY_STRATEGIES,
+    RecoveryStrategy,
+    SkillStatus,
+    SkillType,
+)
 from common.ids import new_skill_id
 from common.models import (
     BACKBONE_TEACHER_MODEL,
@@ -707,41 +712,60 @@ class SkillCrafterService:
                     )
                     continue
 
-                # Coalesce always wins over cooldown — appending
-                # evidence to an in-flight DRAFT is free and is what
-                # the gate wants to see (richer seed_failure_ids =
-                # better diagnosis quality).
-                coalesce_key = (base.skill_id, diagnosis.recommended_strategy.value)
-                has_open = self._lookup_open_patch(coalesce_key) is not None
-
-                if not has_open and self._is_under_cooldown(base.skill_id):
-                    n_cooldown_skipped += 1
+                # T1.3c — lane-(a) retrieval-centric strategies are NOT
+                # protocol edits; the Repairer is skipped entirely and
+                # the dispatch falls through to the Hypothesizer below
+                # (the bank-gap response under the "skill = retrieval
+                # payload" lane). This is the live-trainer behaviour
+                # regardless of whether ``enable_protocol_patching`` is
+                # True or False — protocol patching only governs the
+                # *protocol-edit* taxonomy, not the new lane-(a)
+                # signals.
+                if diagnosis.recommended_strategy in LANE_A_RECOVERY_STRATEGIES:
                     self._artifacts.append_audit({
-                        "kind": "patch_skipped_cooldown",
+                        "kind": "lane_a_dispatch",
                         "base_skill_id": base.skill_id,
-                        "recovery_strategy": coalesce_key[1],
+                        "recovery_strategy": diagnosis.recommended_strategy.value,
                         "pattern_id": pattern.pattern_id,
-                        "passes_since_last_patch": (
-                            self._pass_counter
-                            - self._patch_last_pass.get(base.skill_id, 0)
-                        ),
-                        "cooldown_passes": self._cooldown_passes,
+                        "primary_route": "hypothesizer",
                     })
-                    continue
+                    # Fall through to the hypothesizer block below.
+                else:
+                    # Coalesce always wins over cooldown — appending
+                    # evidence to an in-flight DRAFT is free and is what
+                    # the gate wants to see (richer seed_failure_ids =
+                    # better diagnosis quality).
+                    coalesce_key = (base.skill_id, diagnosis.recommended_strategy.value)
+                    has_open = self._lookup_open_patch(coalesce_key) is not None
 
-                patch, status = self._propose_repair_internal(
-                    base=base, pattern=pattern, diagnosis=diagnosis
-                )
-                if status == self._STATUS_MINTED and patch is not None:
-                    proposals.append(patch)
-                    self._patch_last_pass[base.skill_id] = self._pass_counter
-                    continue
-                if status == self._STATUS_COALESCED:
-                    n_coalesced += 1
-                    continue
-                # _STATUS_NO_OP — Repairer/diagnoser short-circuited.
-                # Fall through to the hypothesizer below as the original
-                # PLAN-SKILL-CRAFTER §6.5 dispatch chain prescribes.
+                    if not has_open and self._is_under_cooldown(base.skill_id):
+                        n_cooldown_skipped += 1
+                        self._artifacts.append_audit({
+                            "kind": "patch_skipped_cooldown",
+                            "base_skill_id": base.skill_id,
+                            "recovery_strategy": coalesce_key[1],
+                            "pattern_id": pattern.pattern_id,
+                            "passes_since_last_patch": (
+                                self._pass_counter
+                                - self._patch_last_pass.get(base.skill_id, 0)
+                            ),
+                            "cooldown_passes": self._cooldown_passes,
+                        })
+                        continue
+
+                    patch, status = self._propose_repair_internal(
+                        base=base, pattern=pattern, diagnosis=diagnosis
+                    )
+                    if status == self._STATUS_MINTED and patch is not None:
+                        proposals.append(patch)
+                        self._patch_last_pass[base.skill_id] = self._pass_counter
+                        continue
+                    if status == self._STATUS_COALESCED:
+                        n_coalesced += 1
+                        continue
+                    # _STATUS_NO_OP — Repairer/diagnoser short-circuited.
+                    # Fall through to the hypothesizer below as the original
+                    # PLAN-SKILL-CRAFTER §6.5 dispatch chain prescribes.
 
             hypothesis = self._hypothesizer.propose(
                 pattern=pattern,

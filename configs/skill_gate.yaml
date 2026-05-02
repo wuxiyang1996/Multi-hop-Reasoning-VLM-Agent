@@ -115,6 +115,17 @@ promotion:
   provisional_active_window_episodes: 200
   provisional_min_pass_rate: 0.70
   shadow_origin_penalty: 0.30
+  # T1.3d: lane-(a) replacement for the legacy "feasible_domains ≥ 2"
+  # ACTIVE invariant (PLAN-SKILL-BANK §0.1, now superseded). A skill
+  # graduates to ACTIVE only after it has been *retrieved* (selected
+  # by the actor's filter_candidates pipeline) at least this many
+  # times — single-domain gymv banks ARE allowed. Counted via
+  # ``SkillRecord.metrics["retrievals"]`` (incremented by the harness
+  # on every successful skill invocation); enforced by
+  # ``SkillLifecycleManager._validate_invariants`` when the lifecycle
+  # is constructed with this threshold (orchestrator does so via
+  # ``OrchestratorConfig.gate_thresholds.min_retrievals_per_skill``).
+  min_retrievals_per_skill: 3
 
 # ── Audit / drift policy ────────────────────────────────────────────
 # When set to `strict`, the GateRunner refuses to start if the live

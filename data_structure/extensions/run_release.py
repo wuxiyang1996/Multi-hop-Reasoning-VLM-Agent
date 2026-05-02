@@ -25,6 +25,8 @@ class RunRelease:
     promoted_skill_ids: List[str] = field(default_factory=list)
     deprecated_skill_ids: List[str] = field(default_factory=list)
     gate_evaluation_ids: List[str] = field(default_factory=list)
+    eval_suite_id: str = ""
+    scoreboard_path: str = ""
     notes: str = ""
     created_at: Optional[float] = None
 
@@ -36,6 +38,8 @@ class RunRelease:
                 "config_snapshot_path": self.config_snapshot_path,
                 "promoted_skill_ids": sorted(self.promoted_skill_ids),
                 "deprecated_skill_ids": sorted(self.deprecated_skill_ids),
+                "eval_suite_id": self.eval_suite_id,
+                "scoreboard_path": self.scoreboard_path,
             }
         )
 
@@ -49,6 +53,8 @@ class RunRelease:
             "promoted_skill_ids": list(self.promoted_skill_ids),
             "deprecated_skill_ids": list(self.deprecated_skill_ids),
             "gate_evaluation_ids": list(self.gate_evaluation_ids),
+            "eval_suite_id": self.eval_suite_id,
+            "scoreboard_path": self.scoreboard_path,
             "notes": self.notes,
             "created_at": self.created_at,
             "content_hash": self.content_hash(),

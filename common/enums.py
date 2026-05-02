@@ -1,6 +1,6 @@
 """Canonical enums shared across the Harness / Orchestrator / Crafter / Bank.
 
-All values are normative — see the cited canonical specs.
+All values are normative ? see the cited canonical specs.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from typing import Tuple
 
 
 # The five general target domains every skill must be feasible in
-# (PLAN-SKILL-BANK §0.1 general-protocol invariant).
+# (PLAN-SKILL-BANK ?0.1 general-protocol invariant).
 DOMAINS: Tuple[str, ...] = (
     "gymv",                # game (gym-v adapter)
     "browser",             # webagent
@@ -21,7 +21,7 @@ DOMAINS: Tuple[str, ...] = (
 
 
 # Source-domain / transfer-target asymmetry
-# (PLAN-SKILL-BANK §0.4, PLAN-UNIFIED-SKILL-GATE Stage 3a).
+# (PLAN-SKILL-BANK ?0.4, PLAN-UNIFIED-SKILL-GATE Stage 3a).
 #
 # Games are the foundry where skills are first mined, hardened, and
 # stress-tested under dense verifiable reward. Every other domain is a
@@ -36,14 +36,14 @@ TRANSFER_TARGET_DOMAINS: Tuple[str, ...] = (
 )
 
 
-# Evidence-role taxonomy (PLAN-SKILL-BANK §0.3 Clause B).
+# Evidence-role taxonomy (PLAN-SKILL-BANK ?0.3 Clause B).
 EVIDENCE_ROLES: Tuple[str, ...] = ("GATHER", "VERIFY", "REASON", "COMMIT")
 
 
 class SkillType(str, Enum):
     """Skill categorical type used by the Harness for adapter dispatch.
 
-    See PLAN-HARNESS §5.1 (`SkillEpisode.skill_type`) and §8 (unified skill
+    See PLAN-HARNESS ?5.1 (`SkillEpisode.skill_type`) and ?8 (unified skill
     interface).
     """
 
@@ -54,7 +54,7 @@ class SkillType(str, Enum):
 
 
 class SkillStatus(str, Enum):
-    """Canonical lifecycle (PLAN-UNIFIED-SKILL-GATE §2.1)."""
+    """Canonical lifecycle (PLAN-UNIFIED-SKILL-GATE ?2.1)."""
 
     DRAFT = "draft"
     CANDIDATE = "candidate"
@@ -67,7 +67,7 @@ class SkillStatus(str, Enum):
 
 
 class SkillSourceType(str, Enum):
-    """Where the skill came from (PLAN-UNIFIED-SKILL-GATE §2.2).
+    """Where the skill came from (PLAN-UNIFIED-SKILL-GATE ?2.2).
 
     All sources share the same gate; there is no fast path based on
     model size, lineage, or human authorship.
@@ -83,7 +83,7 @@ class SkillSourceType(str, Enum):
 
 
 class GateStage(str, Enum):
-    """Unified gate stages (PLAN-UNIFIED-SKILL-GATE §7)."""
+    """Unified gate stages (PLAN-UNIFIED-SKILL-GATE ?7)."""
 
     STATIC = "static"
     REPLAY = "replay"
@@ -93,7 +93,7 @@ class GateStage(str, Enum):
 
 
 class GateVerdict(str, Enum):
-    """Per-stage and final verdicts (PLAN-UNIFIED-SKILL-GATE §3.3)."""
+    """Per-stage and final verdicts (PLAN-UNIFIED-SKILL-GATE ?3.3)."""
 
     PASS = "pass"
     FAIL = "fail"
@@ -101,7 +101,7 @@ class GateVerdict(str, Enum):
 
 
 class InnerAction(str, Enum):
-    """Inner-MDP action vocabulary (PLAN-ACTION-AGENT §5)."""
+    """Inner-MDP action vocabulary (PLAN-ACTION-AGENT ?5)."""
 
     GROUND = "GROUND"
     CHECK = "CHECK"
@@ -111,7 +111,28 @@ class InnerAction(str, Enum):
 
 
 class RecoveryStrategy(str, Enum):
-    """Recovery strategies (PLAN-SKILL-CRAFTER §6.5)."""
+    """Recovery strategies (PLAN-SKILL-CRAFTER S6.5).
+
+    The first six values (``PROTOCOL_PATCH`` ... ``REGROUNDING_TRIGGER``)
+    are *protocol-edit* strategies -- they correspond to lane-(b)
+    Repairer mints (``PatchProposal`` with the strategy attached) and
+    are gated off by default in the live trainer
+    (``CoEvolutionConfig.crafter_enable_protocol_patching=False``).
+
+    ``SKILL_RETIREMENT`` is the lane-spanning retirement signal -- both
+    lanes emit ``RetireProposal`` for it.
+
+    The final three values (``BANK_GAP`` / ``RETRIEVAL_MISLEAD`` /
+    ``STALE_DESCRIPTION``) are the **lane-(a) retrieval-centric**
+    additions (T1.3c). They are *not* protocol edits -- they are
+    routed by ``crafter/service.py::_run_failure_dispatch`` directly
+    to the Hypothesizer (BANK_GAP), the Composer + Hypothesizer
+    (RETRIEVAL_MISLEAD), or a Rewrite/Hypothesizer pair
+    (STALE_DESCRIPTION). These never persist as
+    ``PatchProposal.recovery_strategy`` because the dispatcher skips
+    the Repairer for them. The string values mirror
+    ``configs/failure_routing.yaml``'s ``lane_a_taxonomy`` block.
+    """
 
     PROTOCOL_PATCH = "protocol_patch"
     PRECONDITION_STRENGTHENING = "precondition_strengthening"
@@ -120,6 +141,22 @@ class RecoveryStrategy(str, Enum):
     SKILL_DECOMPOSITION = "skill_decomposition"
     REGROUNDING_TRIGGER = "regrounding_trigger"
     SKILL_RETIREMENT = "skill_retirement"
+    # T1.3c -- lane-(a) retrieval taxonomy (skill = retrieval payload).
+    BANK_GAP = "bank_gap"
+    RETRIEVAL_MISLEAD = "retrieval_mislead"
+    STALE_DESCRIPTION = "stale_description"
+
+
+# T1.3c -- convenience set used by ``crafter/service.py`` to short-circuit
+# Repairer-bound strategies and route the lane-(a) signal directly to
+# the Hypothesizer / Composer / Rewriter. Membership tests against this
+# set are cheaper than enum chains and they keep the Repairer's
+# branch table unchanged.
+LANE_A_RECOVERY_STRATEGIES = frozenset({
+    RecoveryStrategy.BANK_GAP,
+    RecoveryStrategy.RETRIEVAL_MISLEAD,
+    RecoveryStrategy.STALE_DESCRIPTION,
+})
 
 
 __all__ = [
@@ -128,6 +165,7 @@ __all__ = [
     "GateStage",
     "GateVerdict",
     "InnerAction",
+    "LANE_A_RECOVERY_STRATEGIES",
     "RecoveryStrategy",
     "SOURCE_DOMAINS",
     "SkillSourceType",

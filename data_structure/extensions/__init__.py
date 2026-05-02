@@ -22,8 +22,10 @@ from data_structure.extensions.bank_mutation_proposal import (
     ComposeProposal,
     GeneralizeProposal,
     HypothesisProposal,
+    MergeProposal,
     PatchProposal,
     RetireProposal,
+    RewriteProposal,
 )
 from data_structure.extensions.episode_reflection import EpisodeReflection
 from data_structure.extensions.failure_trace import FailureDiagnosis, FailureTrace
@@ -49,8 +51,10 @@ __all__ = [
     "GateVerdictPayload",
     "GeneralizeProposal",
     "HypothesisProposal",
+    "MergeProposal",
     "PatchProposal",
     "RetireProposal",
+    "RewriteProposal",
     "RunRelease",
     "SkillContract",
     "SkillEpisode",

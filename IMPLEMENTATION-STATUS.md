@@ -208,9 +208,46 @@ T2.11 + T2.12 follow-ups (2026-05-02):
 
 ### S2 / S3 / S4 (later sprints)
 
-- **S2 — Live + audit guards.** Enable `crafter_promotion_enabled=True`,
-  begin one-game GRPO smoke, wire `curator_weight` early-stage knob (T2.7),
-  add `policy_version` audit drift rows.
+- **S2 — Live + audit guards** ✅ **code items closed 2026-05-02.**
+  - **T1.3b** — `RewriteProposal` + `MergeProposal` alias landed in
+    `data_structure/extensions/bank_mutation_proposal.py`; gate
+    `_run_static` accepts both (`source_type` bypass + `base_skill_id`
+    lineage check).
+  - **T1.3c** — `BANK_GAP` / `RETRIEVAL_MISLEAD` / `STALE_DESCRIPTION`
+    in `common/enums.py` (`LANE_A_RECOVERY_STRATEGIES`); the live
+    `_run_failure_dispatch` short-circuits the Repairer for those and
+    routes to the Hypothesizer (legacy `INVARIANT_VIOLATION → HOP_INSERTION`
+    backward-compat preserved).
+  - **T1.3d** — `min_retrievals_per_skill` knob on `GateThresholds` +
+    `configs/skill_gate.yaml`; `SkillLifecycleManager` enforces it at
+    the `ACTIVE` transition.
+  - **T2.2** — `orchestrator/eval_suite.py` (canonical home of
+    `EvalSuite`, plus `EvalSuiteSpec` / `Scoreboard` / `EvalSuiteLoader`);
+    `GateService.evaluate(eval_suite=)` consumes the loader output
+    directly. Starter suite at `evaluation/suites/gymv-smoke-v1/`.
+  - **T2.3** — `evaluation/{answer_evaluator, scoreboard, driver}.py`.
+    `AnswerEvaluator` emits F1–F7 in spec priority; `ScoreboardAssembler`
+    builds the canonical 10×10 table + 4 companion tables;
+    `EvalDriver` writes per-instance JSONL + suite-level scoreboard JSON
+    consumed by T2.2; `RunRelease` carries `eval_suite_id` +
+    `scoreboard_path` (folded into `content_hash`).
+  - **T2.4** — `RewardLogger.log_grpo_record(...)` is the single
+    JSONL sink (kind discriminator: `grpo_step` vs. `skill_episode`).
+    Wired through `episode_runner.run_episode_async` (both
+    `action_taking` and `skill_selection` `GRPORecord` append sites)
+    → `rollout_collector.collect_rollouts` →
+    `orchestrator.run_training_loop_async`. `CoEvolutionConfig.reward_log_path`
+    auto-resolves under the rewards dir when blank.
+  - **T2.7** — `curator_weight` + `curator_warmup_steps` on
+    `CoEvolutionConfig`; `set_curator_warmup(...)` called once per
+    outer step from `run_training_loop_async`; `_dynamic_curator_reward`
+    multiplies the base reward by the linear ramp.
+  - **T2.8** — split-base vLLM topology documented in
+    `implementation_notes/vllm-topology.md`.
+  - **Outstanding for S2:** launch fast-loop GRPO on `gymv` only
+    (Phase 1 of `PLAN-ACTION-AGENT.md` §6); enable
+    `crafter_promotion_enabled=True`; add `policy_version` audit
+    drift rows.
 - **S3 — Curriculum + scale-out.** Multi-game GRPO; integrate the audit's
   curriculum-graduation thresholds.
 - **S4 — Full eval + co-evolution.** Eval E0 / E1 / E2 drivers; cross-task
@@ -219,8 +256,9 @@ T2.11 + T2.12 follow-ups (2026-05-02):
 ### Cross-cutting items not yet sprinted
 
 - **P1 — Visual-grounding stabilisation** under `vlm_wrapper/grounding.py`.
-- **P2 — Eval E0 driver** (`evaluation/driver.py`,
-  `evaluation/answer_evaluator.py`, slice/report scaffolds).
+- ~~**P2 — Eval E0 driver** (`evaluation/driver.py`,
+  `evaluation/answer_evaluator.py`, slice/report scaffolds).~~ → **shipped
+  2026-05-02 (T2.3).** See above.
 - **Phase D / E / F** of `PLAN-COMPONENTS-IMPLEMENTATION.md`
   (training cadence, multi-domain rollout, full eval).
 - **Actor rewire**: replace `decision_agents.skill_interface

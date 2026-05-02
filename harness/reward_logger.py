@@ -32,9 +32,15 @@ class RewardLogEntry:
     parent_run_id: Optional[str] = None
     transfer_label: Optional[str] = None
     timestamp: float = 0.0
+    # Discriminator for the multi-kind JSONL (T2.4). ``"skill_episode"``
+    # is the original aggregate-per-episode entry shape; ``GRPOStepLogEntry``
+    # carries ``"grpo_step"`` and is emitted by the trainer at the per-step
+    # reward attach site (``trainer/coevolution/episode_runner.py``).
+    kind: str = "skill_episode"
 
     def to_json(self) -> Dict[str, Any]:
         return {
+            "kind": self.kind,
             "episode_id": self.episode_id,
             "skill_id": self.skill_id,
             "skill_version": self.skill_version,
@@ -48,8 +54,50 @@ class RewardLogEntry:
         }
 
 
+@dataclass
+class GRPOStepLogEntry:
+    """Per-step training-reward entry (T2.4 single-sink invariant).
+
+    The trainer's GRPO emit site (``episode_runner.py`` action_taking
+    + skill_selection branches) attaches a scalar reward to a
+    ``GRPORecord``; the same scalar — together with the adapter,
+    step index, and metadata — is mirrored here so eval and training
+    read from one source. This entry is *additive*: existing
+    ``RewardLogger.entries()`` continue to return only
+    ``skill_episode`` rows; ``grpo_step_entries()`` returns the new
+    rows. Both share the same JSONL file (kind-discriminated).
+    """
+
+    kind: str = "grpo_step"
+    episode_id: str = ""
+    game: str = ""
+    adapter: str = ""           # "action_taking" | "skill_selection"
+    step: int = 0
+    reward: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    timestamp: float = 0.0
+
+    def to_json(self) -> Dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "episode_id": self.episode_id,
+            "game": self.game,
+            "adapter": self.adapter,
+            "step": self.step,
+            "reward": self.reward,
+            "metadata": dict(self.metadata),
+            "timestamp": self.timestamp,
+        }
+
+
 class RewardLogger:
-    """Append-only JSONL sink. Thread-safe via a single mutex."""
+    """Append-only JSONL sink. Thread-safe via a single mutex.
+
+    Two record kinds share one log: per-``SkillEpisode`` aggregates
+    (the original) and per-step GRPO training rewards (T2.4). They
+    are kind-discriminated in JSONL but live in separate in-memory
+    buffers for fast typed reads.
+    """
 
     def __init__(
         self,
@@ -63,6 +111,7 @@ class RewardLogger:
         self._clock = clock
         self._lock = threading.Lock()
         self._memory: List[RewardLogEntry] = []
+        self._grpo_memory: List[GRPOStepLogEntry] = []
         if log_path:
             os.makedirs(os.path.dirname(log_path) or ".", exist_ok=True)
         if episode_dir:
@@ -95,11 +144,52 @@ class RewardLogger:
                     json.dump(episode.to_json(), fh, indent=2)
         return entry
 
+    def log_grpo_record(
+        self,
+        *,
+        episode_id: str,
+        adapter: str,
+        step: int,
+        reward: float,
+        game: str = "",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> GRPOStepLogEntry:
+        """Mirror a per-step GRPO reward into the unified JSONL sink.
+
+        Called from ``trainer.coevolution.episode_runner`` immediately
+        after ``grpo_records.append(GRPORecord(...))`` so eval and
+        training share the same source of truth (T2.4 single-sink
+        invariant). Primitives only — ``GRPORecord`` is *not* imported
+        here so ``harness/`` keeps zero dependence on ``trainer/``.
+        """
+
+        entry = GRPOStepLogEntry(
+            episode_id=episode_id,
+            game=game,
+            adapter=adapter,
+            step=int(step),
+            reward=float(reward),
+            metadata=dict(metadata or {}),
+            timestamp=self._clock(),
+        )
+        with self._lock:
+            self._grpo_memory.append(entry)
+            if self._log_path:
+                with open(self._log_path, "a", encoding="utf-8") as fh:
+                    fh.write(json.dumps(entry.to_json()) + "\n")
+        return entry
+
     # -- reads -------------------------------------------------------------
 
     def entries(self) -> List[RewardLogEntry]:
         with self._lock:
             return list(self._memory)
+
+    def grpo_step_entries(self) -> List[GRPOStepLogEntry]:
+        """All per-step GRPO entries written via ``log_grpo_record``."""
+
+        with self._lock:
+            return list(self._grpo_memory)
 
     def filter(
         self,
@@ -115,4 +205,4 @@ class RewardLogger:
             yield e
 
 
-__all__ = ["RewardLogEntry", "RewardLogger"]
+__all__ = ["GRPOStepLogEntry", "RewardLogEntry", "RewardLogger"]

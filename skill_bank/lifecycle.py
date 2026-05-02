@@ -59,10 +59,30 @@ class SkillLifecycleManager:
     bank state is always internally consistent at quiesce.
     """
 
-    def __init__(self, repository: SkillRepository) -> None:
+    def __init__(
+        self,
+        repository: SkillRepository,
+        *,
+        min_retrievals_per_skill: int = 0,
+    ) -> None:
+        """Construct a lifecycle manager.
+
+        Args:
+            repository: the skill repository this manager owns.
+            min_retrievals_per_skill: lane-(a) ACTIVE invariant
+                (T1.3d). When > 0, ACTIVE transitions require
+                ``record.metrics["retrievals"] >=
+                min_retrievals_per_skill``. Defaults to ``0`` (no
+                enforcement) so unit tests and standalone drivers
+                are unaffected; the orchestrator wires the configured
+                threshold from
+                ``OrchestratorConfig.gate_thresholds.min_retrievals_per_skill``.
+        """
+
         self._repo = repository
         self._mutex = threading.RLock()
         self._token: object = object()
+        self._min_retrievals_per_skill = max(0, int(min_retrievals_per_skill))
 
     # -- read-through helpers -------------------------------------------
 
@@ -379,13 +399,23 @@ class SkillLifecycleManager:
     ) -> None:
         if not rationale:
             raise LifecycleError("Transition requires a non-empty rationale.")
-        # PLAN-SKILL-BANK §0.1: cannot become ACTIVE single-domain.
-        if to_status == SkillStatus.ACTIVE and len(set(record.feasible_domains)) < 2:
-            raise LifecycleError(
-                f"Cannot promote {record.skill_id!r} to ACTIVE: "
-                f"general-protocol invariant requires ≥2 feasible_domains "
-                f"(got {sorted(set(record.feasible_domains))})."
-            )
+        # T1.3d: lane-(a) replacement for the legacy "feasible_domains
+        # ≥ 2" ACTIVE invariant (PLAN-SKILL-BANK §0.1, superseded).
+        # ACTIVE requires ``min_retrievals_per_skill`` retrievals when
+        # the manager was constructed with a non-zero threshold; the
+        # orchestrator wires
+        # ``OrchestratorConfig.gate_thresholds.min_retrievals_per_skill``
+        # at construction time. Standalone tests / drivers default to
+        # ``0`` (no enforcement) so existing call-sites remain green.
+        if to_status == SkillStatus.ACTIVE and self._min_retrievals_per_skill > 0:
+            n_retrievals = int(record.metrics.get("retrievals", 0.0))
+            if n_retrievals < self._min_retrievals_per_skill:
+                raise LifecycleError(
+                    f"Cannot promote {record.skill_id!r} to ACTIVE: "
+                    f"min_retrievals_per_skill requires "
+                    f"≥{self._min_retrievals_per_skill} retrievals "
+                    f"(got {n_retrievals})."
+                )
         # PLAN-UNIFIED-SKILL-GATE §3: ACTIVE requires non-empty
         # expected_evidence_roles.
         if to_status == SkillStatus.ACTIVE and not record.contract.expected_evidence_roles:

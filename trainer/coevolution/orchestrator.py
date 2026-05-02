@@ -230,6 +230,27 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     for d in dirs_to_create:
         Path(d).mkdir(parents=True, exist_ok=True)
 
+    # ── T2.4: single reward sink ──────────────────────────────────
+    # One ``RewardLogger`` per orchestrator instance; threaded through
+    # every rollout via ``collect_rollouts(..., reward_logger=...)`` so
+    # eval and training read from one source. Disable by setting
+    # ``CoEvolutionConfig.reward_log_path = None`` (or empty after
+    # ``resolve_paths()`` post-process).
+    reward_logger = None
+    if config.reward_log_path:
+        try:
+            from harness.reward_logger import RewardLogger as _RewardLogger
+            reward_logger = _RewardLogger(log_path=config.reward_log_path)
+            logger.info("Reward sink (T2.4): %s", config.reward_log_path)
+        except Exception as exc:
+            logger.warning(
+                "Reward sink init failed (T2.4): %s — proceeding without "
+                "the single-sink mirror; GRPO records still attach reward "
+                "inline. Eval will fall back to per-checkpoint scoreboards.",
+                exc,
+            )
+            reward_logger = None
+
     # ── Initialize TensorBoard ────────────────────────────────────
     tb_writer = None
     try:
@@ -566,6 +587,24 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         )
 
         sb_manager.reset_for_step()
+        # T2.7 — refresh the curator warmup ramp once per outer step so
+        # the GRPO wrapper scales ``curator_reward`` by the configured
+        # weight × min(1, step / warmup_steps). Defaults
+        # (curator_warmup_steps=0, curator_weight=1.0) are a no-op,
+        # preserving pre-T2.7 behaviour.
+        try:
+            from skill_agents.bank_maintenance.llm_curator import (
+                set_curator_warmup as _set_curator_warmup,
+            )
+            _set_curator_warmup(
+                weight=config.curator_weight,
+                warmup_steps=config.curator_warmup_steps,
+                current_step=step,
+            )
+        except Exception as _curator_warmup_exc:  # noqa: BLE001
+            logger.warning(
+                "T2.7 curator warmup setter failed: %s", _curator_warmup_exc,
+            )
         vllm_client.reset_stats()
         if config.debug_io:
             vllm_client.set_io_step(step)
@@ -683,6 +722,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 on_episode_done=on_episode_done,
                 thread_executor=thread_executor,
                 harness_hooks=harness_hooks if harness_hooks else None,
+                reward_logger=reward_logger,
             )
         )
         consumer_task = asyncio.create_task(skill_bank_consumer())

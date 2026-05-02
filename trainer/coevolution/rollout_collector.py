@@ -149,6 +149,7 @@ async def collect_rollouts(
     on_episode_done: Optional[Callable[[EpisodeResult], None]] = None,
     thread_executor: Optional[ThreadPoolExecutor] = None,
     harness_hooks: Optional[Dict[str, Any]] = None,
+    reward_logger: Any = None,
 ) -> List[EpisodeResult]:
     """Collect rollouts for all games with LPT scheduling and concurrency cap.
 
@@ -245,6 +246,7 @@ async def collect_rollouts(
                         opponent_model=None,
                         opponent_api_base=None,
                         harness_hook=game_harness_hook,
+                        reward_logger=reward_logger,
                     )
                     break
                 except Exception as exc:

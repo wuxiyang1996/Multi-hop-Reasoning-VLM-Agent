@@ -40,6 +40,41 @@ class FailureDiagnoser:
 
     def _rule_diagnose(self, trace: FailureTrace) -> FailureDiagnosis:
         cls = trace.failure_class.upper()
+
+        # T1.3c — lane-(a) retrieval-centric classes (canonical names
+        # from ``configs/failure_routing.yaml::lane_a_taxonomy``). These
+        # come from the synthesis layer (``_crafter_hook.
+        # _synthesize_failures`` and ``reflect_per_episode_gpt54``), not
+        # from ``harness/skill_harness.py::_classify_abort``.
+        if cls == "BANK_GAP":
+            return FailureDiagnosis(
+                failure_id=trace.failure_id,
+                locus="retrieval",
+                root_cause="bank does not contain a skill matching the situation",
+                recommended_strategy=RecoveryStrategy.BANK_GAP,
+                confidence=0.7,
+                notes="route to Hypothesizer; consider Composer for adjacent merges",
+            )
+        if cls == "RETRIEVAL_MISLEAD":
+            return FailureDiagnosis(
+                failure_id=trace.failure_id,
+                locus="retrieval",
+                root_cause="retrieved skill matched contract but ran inappropriately for context",
+                recommended_strategy=RecoveryStrategy.RETRIEVAL_MISLEAD,
+                confidence=0.6,
+                notes="route to Composer (primary) / Hypothesizer (fallback)",
+            )
+        if cls == "STALE_DESCRIPTION":
+            return FailureDiagnosis(
+                failure_id=trace.failure_id,
+                locus="retrieval",
+                root_cause="skill description / NLI fields drifted from contract",
+                recommended_strategy=RecoveryStrategy.STALE_DESCRIPTION,
+                confidence=0.6,
+                notes="route to Rewriter (primary) / Hypothesizer (fallback)",
+            )
+
+        # Harness-derived classes (existing).
         if cls == "PRECONDITION_VIOLATION":
             return FailureDiagnosis(
                 failure_id=trace.failure_id,
@@ -81,6 +116,39 @@ class FailureDiagnoser:
                 recommended_strategy=RecoveryStrategy.FALLBACK_INJECTION,
                 confidence=0.5,
             )
+
+        # T1.3c — synthesis-signal aliases from
+        # ``configs/failure_routing.yaml::synthesis_signals``. Consulted
+        # only when the harness class wasn't matched above (so the
+        # closed-loop "INVARIANT_VIOLATION → HOP_INSERTION" mapping
+        # used by ``_synthesize_failures`` keeps working). Lane-(a) mode
+        # opts in by *writing* ``failure_class`` directly as one of
+        # BANK_GAP / RETRIEVAL_MISLEAD / STALE_DESCRIPTION (matched at
+        # the top of this method).
+        signal = ""
+        try:
+            signal = str(trace.extra.get("synthesis_signal", "")).upper()
+        except Exception:  # noqa: BLE001
+            signal = ""
+        if signal in {"OUTCOME_FAILURE", "NO_SKILL_BOUND", "LOW_APPLICABILITY"}:
+            return FailureDiagnosis(
+                failure_id=trace.failure_id,
+                locus="retrieval",
+                root_cause=f"synthesis signal {signal!r} -> bank gap",
+                recommended_strategy=RecoveryStrategy.BANK_GAP,
+                confidence=0.65,
+                notes="lane-(a) alias from configs/failure_routing.yaml",
+            )
+        if signal == "MISSING_EFFECTS":
+            return FailureDiagnosis(
+                failure_id=trace.failure_id,
+                locus="retrieval",
+                root_cause="claimed effects not realized -> stale description",
+                recommended_strategy=RecoveryStrategy.STALE_DESCRIPTION,
+                confidence=0.6,
+                notes="lane-(a) alias from configs/failure_routing.yaml",
+            )
+
         return FailureDiagnosis(
             failure_id=trace.failure_id,
             locus="unknown",

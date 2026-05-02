@@ -50,30 +50,10 @@ from data_structure.extensions.skill_evaluation import SkillEvaluationRecord
 from data_structure.extensions.skill_record import SkillRecord
 from harness.few_shot_adapter import FewShotDemo
 from harness.reward_logger import RewardLogger
+from orchestrator.eval_suite import EvalSuite  # canonical home (T2.2); re-exported here
 from orchestrator.gate_service import GateService
 
-
-@dataclass(frozen=True)
-class EvalSuite:
-    """Frozen evaluation-suite reference for Stage-4 non-regression.
-
-    PLAN-UNIFIED-SKILL-GATE §7 Stage-4 expects the gate to compare the
-    proposed bank against the last release on a *named, frozen* suite
-    so re-evaluations are reproducible. `suite_id` is the canonical
-    name (e.g. ``"gymv-smoke-v1"``); `pre_score` / `post_score` are the
-    per-suite aggregate metrics; `metrics` may carry per-task breakdowns.
-
-    Equivalent to PLAN-HARNESS spec field #5 in §7.4 of the project's
-    work-order list.
-    """
-
-    suite_id: str
-    pre_score: float
-    post_score: float
-    metrics: Mapping[str, float] = field(default_factory=dict)
-
-    def delta(self) -> float:
-        return float(self.post_score) - float(self.pre_score)
+__all__ = ["EvalSuite", "GateRunner", "GateRunnerConfig"]
 
 
 @dataclass(frozen=True)

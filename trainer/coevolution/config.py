@@ -265,6 +265,29 @@ class CoEvolutionConfig:
     tensorboard_dir: str = "tensorboard"
     debug_io_dir: str = "debug_io"
 
+    # T2.4 — single reward sink. When set (auto-resolved by
+    # ``resolve_paths`` to ``{rewards_dir}/reward_log.jsonl`` if left
+    # empty), the orchestrator constructs a ``harness.RewardLogger``
+    # against this path and threads it through every rollout. Each
+    # ``GRPORecord`` written by the trainer is mirrored into the same
+    # JSONL (``kind="grpo_step"``) so eval and training read from one
+    # source. Set to ``""`` to disable.
+    reward_log_path: str = ""
+
+    # T2.7 — curator overfit mitigation. The CURATOR LoRA receives a
+    # scaled GRPO reward equal to ``base * min(1, step / warmup) *
+    # curator_weight``. With ``curator_warmup_steps=0`` (default) the
+    # ramp is disabled and the scalar reward passes through unchanged
+    # (``curator_weight`` still applies as a constant). Set
+    # ``curator_warmup_steps`` to a small positive integer (e.g. 50)
+    # to dampen early-training noise; set ``curator_weight`` < 1.0
+    # for a permanent down-weight (the curator becomes a tie-breaker
+    # rather than a hard gate). Wired via
+    # ``skill_agents.bank_maintenance.llm_curator.set_curator_warmup``
+    # at the start of every outer-loop step.
+    curator_weight: float = 1.0
+    curator_warmup_steps: int = 0
+
     # Debug: log every LLM I/O and GRPO sample to disk for inspection
     debug_io: bool = False
 
@@ -383,6 +406,14 @@ class CoEvolutionConfig:
         self.rewards_dir = _rebase(self.rewards_dir)
         self.tensorboard_dir = _rebase(self.tensorboard_dir)
         self.debug_io_dir = _rebase(self.debug_io_dir)
+        # T2.4 — auto-place the unified reward log under ``rewards_dir``
+        # when the field was left at its default empty string. Explicit
+        # ``""`` after ``resolve_paths()`` means the user disabled the
+        # sink (already-resolved paths are not re-rebased).
+        if self.reward_log_path == "":
+            self.reward_log_path = str(Path(self.rewards_dir) / "reward_log.jsonl")
+        elif not Path(self.reward_log_path).is_absolute():
+            self.reward_log_path = str(root / self.reward_log_path)
 
         self._resolved = True
         return self

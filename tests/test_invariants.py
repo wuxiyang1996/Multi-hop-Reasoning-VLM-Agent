@@ -184,7 +184,16 @@ class TestBankWriteIsolation:
         assert repo.candidate.get(skill.skill_id) is not None
         assert repo.draft.get(skill.skill_id) is None
 
-    def test_active_promotion_requires_two_domains(self, tmp_path) -> None:
+    def test_active_promotion_allows_single_domain_when_no_retrievals_threshold(
+        self, tmp_path
+    ) -> None:
+        """T1.3d: lane-(a) drops the legacy 2-domain ACTIVE invariant.
+
+        Default ``min_retrievals_per_skill=0`` means no enforcement, so
+        a single-domain skill (e.g. gymv-only) MAY now transition
+        DRAFT→CANDIDATE→SHADOW→ACTIVE provided the other invariants
+        (evidence-roles, source/target asymmetry) hold.
+        """
         repo = _new_repo(str(tmp_path))
         lifecycle = SkillLifecycleManager(repo)
         single_domain = _new_skill(domains=("gymv",))
@@ -192,10 +201,44 @@ class TestBankWriteIsolation:
         lifecycle.transition(
             single_domain.skill_id, to_status=SkillStatus.CANDIDATE, rationale="ok"
         )
-        with pytest.raises(Exception, match="general-protocol invariant"):
+        lifecycle.transition(
+            single_domain.skill_id, to_status=SkillStatus.SHADOW, rationale="shadow"
+        )
+        lifecycle.transition(
+            single_domain.skill_id, to_status=SkillStatus.ACTIVE, rationale="lane-a"
+        )
+        assert repo.get(single_domain.skill_id).status == SkillStatus.ACTIVE
+
+    def test_active_promotion_requires_min_retrievals_when_threshold_set(
+        self, tmp_path
+    ) -> None:
+        """T1.3d: the lane-(a) replacement gate.
+
+        When the lifecycle is constructed with
+        ``min_retrievals_per_skill=N``, ACTIVE is rejected until the
+        record carries ``metrics['retrievals'] >= N``. Replaces the
+        legacy ``feasible_domains < 2`` check.
+        """
+        repo = _new_repo(str(tmp_path))
+        lifecycle = SkillLifecycleManager(repo, min_retrievals_per_skill=3)
+        skill = _new_skill(domains=("gymv",))
+        lifecycle.ingest_draft(skill)
+        lifecycle.transition(
+            skill.skill_id, to_status=SkillStatus.CANDIDATE, rationale="ok"
+        )
+        lifecycle.transition(
+            skill.skill_id, to_status=SkillStatus.SHADOW, rationale="shadow"
+        )
+        with pytest.raises(Exception, match="min_retrievals_per_skill"):
             lifecycle.transition(
-                single_domain.skill_id, to_status=SkillStatus.ACTIVE, rationale="try"
+                skill.skill_id, to_status=SkillStatus.ACTIVE, rationale="too-soon"
             )
+        # Bump retrievals past the threshold; promotion now succeeds.
+        skill.metrics["retrievals"] = 3.0
+        lifecycle.transition(
+            skill.skill_id, to_status=SkillStatus.ACTIVE, rationale="ready"
+        )
+        assert repo.get(skill.skill_id).status == SkillStatus.ACTIVE
 
     def test_active_promotion_requires_evidence_roles(self, tmp_path) -> None:
         repo = _new_repo(str(tmp_path))

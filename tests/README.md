@@ -30,7 +30,7 @@ No GPU required, no network access required (GPT-4o calls are mocked).
 |---|---|---|
 | 1 | G0 evidence-driven (`SkillEpisode.finalize` raises on empty evidence; lifecycle rejects ACTIVE on empty `expected_evidence_roles`) | `test_invariants.py::test_g0_evidence_driven` |
 | 2 | No-memory (`SkillEpisodeStep.__post_init__` rejects `QUERY_MEM` / `WRITE_MEM`) | `test_invariants.py::test_no_memory_step_kinds_rejected` |
-| 3 | General-protocol (lifecycle rejects ACTIVE on `feasible_domains < 2`) | `test_invariants.py::test_general_protocol_min_domains` |
+| 3 | T1.3d lane-(a) ACTIVE gate (lifecycle rejects ACTIVE when `metrics["retrievals"] < min_retrievals_per_skill`; default 0 = off, orchestrator wires `OrchestratorConfig.gate_thresholds.min_retrievals_per_skill`) | `test_invariants.py::test_active_promotion_requires_min_retrievals_when_threshold_set` |
 | 4 | Bank-write isolation (`SkillStore.put` raises `StoreLockedError` outside lifecycle) | `test_invariants.py::test_bank_write_isolation` |
 | 5 | Gate-bound promotion (`PromotionOrchestrator.promote` rejects FAIL + content-hash drift; refuses ACTIVE on `LIMITED_PASS`) | `test_invariants.py::test_gate_bound_promotion` |
 | 6 | Crafter scope (crafter writes only DRAFT; never imports `skill_bank.stores`; never touches `active_store`) | `test_invariants.py::test_crafter_scope` |
