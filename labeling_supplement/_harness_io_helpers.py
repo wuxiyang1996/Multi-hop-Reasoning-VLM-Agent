@@ -164,6 +164,17 @@ def record_from_bank_entry(entry: Dict[str, Any], default_domain: str) -> SkillR
     else:
         protocol_hops = []
 
+    # Effect contracts: legacy game banks emit `eff_add` / `eff_del`;
+    # cross-domain banks (skill_transfer_test/skill_bank_local/full_v5/)
+    # emit `effects_add` / `effects_del`. Read both, preferring the
+    # cross-domain spelling when present.
+    eff_add_raw = contract.get("effects_add")
+    if eff_add_raw is None:
+        eff_add_raw = contract.get("eff_add")
+    eff_del_raw = contract.get("effects_del")
+    if eff_del_raw is None:
+        eff_del_raw = contract.get("eff_del")
+
     sk = SkillRecord.new(
         name=skill.get("name", skill.get("skill_id", "_unknown")),
         skill_type=skill_type,
@@ -174,8 +185,8 @@ def record_from_bank_entry(entry: Dict[str, Any], default_domain: str) -> SkillR
         protocol=protocol_hops,
         contract=SkillContract(
             preconditions=list(proto_meta.get("preconditions") or []),
-            effects_add=list(contract.get("eff_add") or []),
-            effects_del=list(contract.get("eff_del") or []),
+            effects_add=list(eff_add_raw or []),
+            effects_del=list(eff_del_raw or []),
             expected_evidence_roles=[role] if role else [],
             success_criteria=list(proto_meta.get("success_criteria") or []),
             abort_criteria=list(proto_meta.get("abort_criteria") or []),

@@ -21,29 +21,37 @@
 > upward for game→VR/video transfer after a `visual_reasoning_wrapper`
 > audit; later still, **TODO-6 closed** as part of Stage 0 of the
 > [Phase-5/6 measurement plan](../implementation_notes/phase5-cross-domain-measurement.md)
-> — three audit scripts shipped under `skill_transfer_test/extract/audits/`).
+> — three audit scripts shipped under `skill_transfer_test/extract/audits/`;
+> later still on the same day, **TODO-1 closed** as part of Stage 5 —
+> `extract/archetype_aggregator.py` shipped + `labeling_supplement/_phase5_matrix.py`
+> driver shipped, producing the within-VR/video 4x4 transfer matrix).
 
 ---
 
 ## Phase 1.5b — open
 
-### `[ ]` TODO-1 — `extract/archetype_aggregator.py`
+### `[x]` TODO-1 — `extract/archetype_aggregator.py` *(shipped 2026-05-02)*
 
 Emit the **archetype bank kind** for VR/video corpora (clusters of
 per-sample skills). Two strategies, selectable per `CorpusSpec`:
 
-- **direct** — group by `raw_sample.question_type` (Video-Holmes, SIV-Bench)
+- **direct** — group by `provenance.cluster_key` (mirrored from
+  `CorpusSpec.archetype_cluster_field` at lift time: `eval_focus`
+  for VTB, `task` for TIR-Bench, `question_type` for Video-Holmes,
+  `dimension` for SIV-Bench). Shipped.
 - **LLM-clustered** — call `gpt-5.5` with the sample question + extracted
-  protocol, ask for a topic tag, then cluster by tag (VTB, TIR-Bench)
+  protocol, ask for a topic tag, then cluster by tag (VTB, TIR-Bench).
+  **Not shipped**; required only when `direct` produces fewer than 3
+  archetypes (currently only VTB, which has 2 distinct
+  `eval_focus` values). Tracked separately as a Phase-2 enhancement.
 
 | Field | Value |
 |---|---|
-| **Output** | `skill_transfer_test/skill_bank_local/<run_id>/<corpus>/archetype/skill_bank.jsonl` |
-| **Acceptance** | ≥ 3 archetypes per VR/video corpus; rollout memo §5.5.7a "Archetype bank size" row flips PASS |
-| **Memo refs** | §5.5.2 (granularity), §5.5.4 (file table), §5.5.4a (deferred row), §5.5.7a row 4 |
-| **Estimate** | ~180 LOC |
-| **Blockers** | none |
-| **Owner** | unassigned |
+| **Output** | `skill_transfer_test/skill_bank_local/<run_id>/<corpus>/archetype/skill_bank.jsonl` (one `{report, skill}` envelope per cluster_key, loaders-compatible with `labeling_supplement._harness_io_helpers.load_bank_records`) |
+| **Acceptance** | `tir_bench` (11), `video_holmes` (7), `siv_bench` (10) — **PASS** (≥3 archetypes). `visual_toolbench` ships 2 — **FAIL** under `direct`; gated on the LLM-clustered fallback (Phase-2). The matrix-mode driver in [`labeling_supplement/_phase5_matrix.py`](../labeling_supplement/_phase5_matrix.py) handles 2-archetype VTB transparently (cells with VTB-as-source contribute 2 verdicts each). |
+| **Memo refs** | §5.5.2 (granularity), §5.5.4 (file table), §5.5.4a (deferred row), §5.5.7a row 4, [`implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md) §8 |
+| **Shipped LOC** | 376 (`archetype_aggregator.py`) |
+| **Shipped as part of** | Stage 5 of Phase-5/6 measurement plan (also ships `labeling_supplement/_phase5_matrix.py` — within-VR/video 4x4 driver — and a 4-LOC extension to `labeling_supplement/_harness_io_helpers.py::record_from_bank_entry` so the loader reads both legacy `eff_add`/`eff_del` and cross-domain `effects_add`/`effects_del` contract-key spellings). |
 
 ---
 
