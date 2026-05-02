@@ -57,7 +57,61 @@ output, not raw pixels.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal
+
+# Re-exports of the executor + registry surface so callers can do
+# ``from visual_reasoning_wrapper import bind_executor`` / ``...build_visual_registry``
+# instead of reaching into the sub-modules directly. These match the
+# pattern already used by ``osworld_wrapper`` and ``browsergym_wrapper``.
+# Lazy via ``__getattr__`` so importing this top-level module remains
+# cheap (no PIL / torch / decord pull-in just to read the benchmark
+# constants below).
+_EXECUTOR_EXPORTS: dict[str, tuple[str, str]] = {
+    # name in this namespace          (sub-module,             attr)
+    "VisualReasoningExecutor":        (".skill_executor",      "VisualReasoningExecutor"),
+    "bind_executor":                  (".skill_executor",      "bind_executor"),
+    "make_visual_reasoning_executor": (".skill_executor",      "make_visual_reasoning_executor"),
+    "VideoReasoningExecutor":         (".video_skill_executor", "VideoReasoningExecutor"),
+    "bind_video_executor":            (".video_skill_executor", "bind_executor"),
+    "make_video_reasoning_executor":  (".video_skill_executor", "make_video_reasoning_executor"),
+    "build_visual_registry":          (".tools_visual",         "build_visual_registry"),
+    "build_video_registry":           (".tools_video",          "build_video_registry"),
+    "build_video_visual_registry":    (".tools_video_visual",   "build_video_visual_registry"),
+    "build_reasoning_registry":       (".tools_reasoning",      "build_reasoning_registry"),
+}
+
+if TYPE_CHECKING:  # pragma: no cover - import-time hints for IDEs only
+    from .skill_executor import (  # noqa: F401
+        VisualReasoningExecutor,
+        bind_executor,
+        make_visual_reasoning_executor,
+    )
+    from .video_skill_executor import (  # noqa: F401
+        VideoReasoningExecutor,
+        bind_executor as bind_video_executor,
+        make_video_reasoning_executor,
+    )
+    from .tools_visual import build_visual_registry  # noqa: F401
+    from .tools_video import build_video_registry  # noqa: F401
+    from .tools_video_visual import build_video_visual_registry  # noqa: F401
+    from .tools_reasoning import build_reasoning_registry  # noqa: F401
+
+
+def __getattr__(name: str) -> Any:
+    if name in _EXECUTOR_EXPORTS:
+        from importlib import import_module
+
+        mod_name, attr = _EXECUTOR_EXPORTS[name]
+        module = import_module(mod_name, package=__name__)
+        value = getattr(module, attr)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted({*globals().keys(), *_EXECUTOR_EXPORTS.keys()})
+
 
 Modality = Literal["image", "video"]
 
@@ -104,4 +158,16 @@ __all__ = [
     "PRIMARY_VISUAL_REASONING_BENCHMARKS",
     "VisualReasoningBenchmark",
     "Modality",
+    # Executors + binding helpers (lazy via ``__getattr__``).
+    "VisualReasoningExecutor",
+    "bind_executor",
+    "make_visual_reasoning_executor",
+    "VideoReasoningExecutor",
+    "bind_video_executor",
+    "make_video_reasoning_executor",
+    # Tool registries for direct use outside the harness.
+    "build_visual_registry",
+    "build_video_registry",
+    "build_video_visual_registry",
+    "build_reasoning_registry",
 ]
