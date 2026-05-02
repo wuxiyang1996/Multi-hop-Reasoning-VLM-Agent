@@ -37,7 +37,7 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 | Threshold YAMLs (T2.5, S0) | `configs/skill_gate.yaml` (single source of truth for G0–G5 thresholds + drift annotations) and `configs/failure_routing.yaml` (FailureClass → Crafter mode dispatch table, including the new lane-(a) `BANK_GAP / RETRIEVAL_MISLEAD / STALE_DESCRIPTION` taxonomy). Both carry `policy_version` for audit-log drift attribution. | `configs/{skill_gate,failure_routing}.yaml` |
 | SFT manifest + tools (T2.9 / T2.10 / T1.1′, S0) | Run-wide manifest for all six trained adapters; load-smoke and exact-match probes for pre-flight verification before launching co-evolution. | `scripts/build_sft_manifest.py`, `runs/sft_coldstart/sft_summary_all.json`, `evaluation/{smoke_load_sft_adapters,probe_schema_gen_exact_match}.py` |
 | Offline promotion cycle (T1.2, S1) | One-shot wrapper for the §17 keystone — drives `decide_promotion_gpt54.py` + `legacy_writeback.writeback_promotion` once to flip cold-start banks from CANDIDATE to ACTIVE/PROVISIONAL/SHADOW so `bank.runnable() != []`. Asserts the post-condition before exiting. | `scripts/run_offline_promotion_cycle.sh`, `labeling_supplement/decide_promotion_gpt54.py`, `skill_bank/legacy_writeback.py` |
-| Phase-5/6 measurement (Stages 0-6) — **deterministic-stub tier** | Cross-domain transfer measurement infrastructure: Stage 0 audit oracle (vocab Jaccard / predicate firing / slot binding), Stage 1-4 cross-domain executors + success_fns + schema producers + few-shot demo loaders, Stage 5 archetype aggregator + within-VR/video 4x4 matrix driver, Stage 6 NxN matrix driver + unified report generator with G1-G6 acceptance gates. Numbers measured against this infrastructure are infrastructure-validating, not mechanism-validating; see [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md) §12 for the canonical gap inventory (Tier 1: 4 stub executors; Tier 2: 2 missing `vlm_wrapper/` adapters; Tier 3: per-domain runtime predicate-translators). | `skill_transfer_test/extract/audits/`, `harness/{qa,video_qa,osworld,browser}_success.py`, `harness/{video,osworld,browsergym}_executor.py`, `harness/{osworld,browser}_schema_producer.py`, `harness/few_shot_demos_{vr,video,osworld,browsergym}.py`, `labeling_supplement/{_phase4_target_dispatch,_phase5_matrix,_phase4_transfer_matrix,_phase4_transfer_report}.py`, `skill_transfer_test/extract/archetype_aggregator.py` |
+| Phase-5/6 measurement (Stages 0-6) — **deterministic-stub tier; image-VR + Tier 2 closed 2026-05-02** | Cross-domain transfer measurement infrastructure: Stage 0 audit oracle (vocab Jaccard / predicate firing / slot binding), Stage 1-4 cross-domain executors + success_fns + schema producers + few-shot demo loaders, Stage 5 archetype aggregator + within-VR/video 4x4 matrix driver, Stage 6 NxN matrix driver + unified report generator with G1-G6 acceptance gates. After 2026-05-02 follow-ups, image-VR (Stage 1) measures real admit-rates via `harness/_vr_per_sample_executor.py`'s `TaskAwareVisualReasoningExecutor`, and Tier 2 `vlm_wrapper/{visual_reasoning,video}_adapter.py` shims ship; remaining gaps are dispatcher-side video binding + osworld/browser executors + Tier 3 predicate translators. See [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md) §12 for the updated inventory. | `skill_transfer_test/extract/audits/`, `harness/{qa,video_qa,osworld,browser}_success.py`, `harness/{video,osworld,browsergym}_executor.py`, `harness/{osworld,browser}_schema_producer.py`, `harness/few_shot_demos_{vr,video,osworld,browsergym}.py`, `labeling_supplement/{_phase4_target_dispatch,_phase5_matrix,_phase4_transfer_matrix,_phase4_transfer_report}.py`, `skill_transfer_test/extract/archetype_aggregator.py` |
 | Tests | Invariant + smoke + backbone-model + crafter Phase D/F + lane-(a) flag + harness Day 7-10 + trainer Day 10 hook | `tests/{conftest,test_invariants,test_smoke,test_backbone_model,test_crafter_*,test_few_shot_transfer,test_gate_runner,test_replay_validator_action_walk,test_lifecycle_*,test_validate_invocation,test_skill_episode_field_expansion,test_promotion_orchestrator_anchors,test_phase4_persist,test_stub_executor_typed_hops,test_rejected_skill_sink,test_trainer_harness_hook,test_crafter_lane_a_flag}.py` (433 passing as of S0 close; one pre-existing unrelated failure in `test_schema_predicates::test_extra_whitespace_tolerated`) |
 
 ### Backbone models — three-tier stack
@@ -264,31 +264,45 @@ T2.11 + T2.12 follow-ups (2026-05-02):
   2026-05-02 (T2.3).** See above.
 - **Phase D / E / F** of `PLAN-COMPONENTS-IMPLEMENTATION.md`
   (training cadence, multi-domain rollout, full eval).
-- **Phase-5/6 real-env binding (Tier 1 + Tier 2 + Tier 3)** -- the
+- **Phase-5/6 real-env binding (Tier 1 partial + Tier 3)** -- the
   deterministic-stub tier of Phase-5/6 (see Delivered table) provides
   infrastructure validation only; mechanism validation requires:
-  - **Tier 1**: replace 4 harness executors with real-env binders --
-    `harness/visual_reasoning` per-sample image loading +
-    `harness/video_executor.py` (frame decode + VLM call) +
-    `harness/osworld_executor.py` (real `pyautogui`) +
-    `harness/browsergym_executor.py` (real BrowserGym/Playwright). Each
-    ~3-5 days. See
+  - **Tier 1**: 4 harness executors needed real-env binders -- status as of
+    2026-05-02:
+    * `harness/visual_reasoning` per-sample image loading -- **CLOSED**
+      via `harness/_vr_per_sample_executor.py`'s
+      `TaskAwareVisualReasoningExecutor` + dispatcher rewire in
+      `labeling_supplement/_phase4_target_dispatch.py`.
+    * `harness/video_executor.py` -- half-closed: the underlying
+      `VideoReasoningExecutor` (~470 LOC) now ships under
+      `visual_reasoning_wrapper/video_skill_executor.py`; what remains is
+      a ~50-100 LOC `TaskAwareVideoReasoningExecutor` wrapper +
+      dispatcher binding analogous to the image case.
+    * `harness/osworld_executor.py` (real `pyautogui`) -- still open,
+      ~3-5 days + a real-desktop CI sandbox.
+    * `harness/browsergym_executor.py` (real BrowserGym/Playwright) --
+      still open, ~3-5 days + Playwright in CI.
+    See
     [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md)
     §12.1.
-  - **Tier 2**: author `vlm_wrapper/video_adapter.py` and
-    `vlm_wrapper/visual_reasoning_adapter.py` from scratch -- the
-    `vlm_wrapper/` directory only ships `gymv_adapter.py`,
-    `osworld_adapter.py`, `browser_adapter.py` today. ~600-800 LOC each
-    + VLM-quality eval harness. See §12.2.
+  - **Tier 2**: ~~author `vlm_wrapper/video_adapter.py` and
+    `vlm_wrapper/visual_reasoning_adapter.py` from scratch~~ -- **CLOSED
+    2026-05-02.** Both shims ship as ~25-LOC re-exports over
+    `visual_reasoning_wrapper.{skill_executor, video_skill_executor}`;
+    original ~600-800-LOC-per-adapter estimate was ~10x off because the
+    heavy machinery (registries, OmniParser-v2, Florence-2, video
+    decode, cross-frame analysis) already shipped under
+    `visual_reasoning_wrapper/`. See §12.2.
   - **Tier 3**: design and ship per-domain runtime
     predicate-translators (e.g. `score_increased` -> `answer_emitted`
     when target=image-VR). Not yet specced. See §12.3 and the sibling
     memo `implementation_notes/cross-domain-transfer-suite-rollout.md`
     §11.5.0.
   - Closing measurement: re-run Stage 6 NxN driver
-    (`labeling_supplement/_phase4_transfer_matrix.py`) once Tier 1+2+3
-    lands; expect G6 to pass and §11.5.4's 15-35% / 15-30% bands to
-    become measured admit rates rather than projections.
+    (`labeling_supplement/_phase4_transfer_matrix.py`) once the
+    remaining Tier 1 items + Tier 3 land; expect G6 to pass and
+    §11.5.4's 15-35% / 15-30% bands to become measured admit rates
+    rather than projections.
 - **Actor rewire**: replace `decision_agents.skill_interface
   .SkillBankProvider` with a `HarnessSkillProvider` that wraps
   `SkillHarness.select_eligible_skills`. (Note: the Day-10

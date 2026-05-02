@@ -11,16 +11,16 @@
 >
 > *Phase 1.5* shipped 2026-05-01 (LLM-free path; `skill_transfer_test/extract/`, 1,083 records / 885 verified across 6 corpora -- see `skill_transfer_test/extract/README.md`).
 >
-> *Phase-5/6 measurement Stages 0-6* all shipped 2026-05-02 under the sibling memo [`implementation_notes/phase5-cross-domain-measurement.md`](phase5-cross-domain-measurement.md). The shipped artefact bundle is: **7 audit files** under `skill_transfer_test/extract/audits/` (Stage 0 oracle: `vocab_jaccard.py`, `predicate_firing_static.py`, `slot_binding_feasibility.py`, `_runner.py`, `_loaders.py`, `_target_vocabularies.py`, `__init__.py` -- emits `cross_domain_results/_phase0/<run_id>/upper_bounds.csv`); **4 success_fns** (`harness/qa_success.py`, `harness/video_qa_success.py`, `harness/osworld_success.py`, `harness/browser_success.py`); **3 executors** (`harness/video_executor.py`, `harness/osworld_executor.py`, `harness/browsergym_executor.py`); **2 schema producers** (`harness/osworld_schema_producer.py`, `harness/browser_schema_producer.py`); **4 demo loaders** (`harness/few_shot_demos_vr.py`, `harness/few_shot_demos_video.py`, `harness/few_shot_demos_osworld.py`, `harness/few_shot_demos_browsergym.py`); **1 dispatcher** (`labeling_supplement/_phase4_target_dispatch.py`); **3 driver scripts** (`labeling_supplement/_phase5_matrix.py` for the Stage 5 within-VR/video 4x4, `labeling_supplement/_phase4_transfer_matrix.py` for the Stage 6 NxN, `labeling_supplement/_phase4_transfer_report.py` for the Stage 6 unified report); **1 archetype aggregator** (`skill_transfer_test/extract/archetype_aggregator.py`). **Deterministic-stub caveat:** the executors run end-to-end but identity-pass the rebound contract's predicates rather than touching real envs / VLMs. Stage 6 measured admit rates are bounded by Stage 0's upper-bound oracle -- see §11.5.0 for the asymmetry between Stage 0 (oracle), §11.5.4 (post-translation aspirational), and Stage 6 (current measured-but-stub).
+> *Phase-5/6 measurement Stages 0-6* all shipped 2026-05-02 under the sibling memo [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md). The shipped artefact bundle is: **7 audit files** under `skill_transfer_test/extract/audits/` (Stage 0 oracle: `vocab_jaccard.py`, `predicate_firing_static.py`, `slot_binding_feasibility.py`, `_runner.py`, `_loaders.py`, `_target_vocabularies.py`, `__init__.py` -- emits `cross_domain_results/_phase0/<run_id>/upper_bounds.csv`); **4 success_fns** (`harness/qa_success.py`, `harness/video_qa_success.py`, `harness/osworld_success.py`, `harness/browser_success.py`); **3 executors** (`harness/video_executor.py`, `harness/osworld_executor.py`, `harness/browsergym_executor.py`); **2 schema producers** (`harness/osworld_schema_producer.py`, `harness/browser_schema_producer.py`); **4 demo loaders** (`harness/few_shot_demos_vr.py`, `harness/few_shot_demos_video.py`, `harness/few_shot_demos_osworld.py`, `harness/few_shot_demos_browsergym.py`); **1 dispatcher** (`labeling_supplement/_phase4_target_dispatch.py`); **3 driver scripts** (`labeling_supplement/_phase5_matrix.py` for the Stage 5 within-VR/video 4x4, `labeling_supplement/_phase4_transfer_matrix.py` for the Stage 6 NxN, `labeling_supplement/_phase4_transfer_report.py` for the Stage 6 unified report); **1 archetype aggregator** (`skill_transfer_test/extract/archetype_aggregator.py`). **Deterministic-stub caveat:** the executors run end-to-end but identity-pass the rebound contract's predicates rather than touching real envs / VLMs. Stage 6 measured admit rates are bounded by Stage 0's upper-bound oracle -- see §11.5.0 for the asymmetry between Stage 0 (oracle), §11.5.4 (post-translation aspirational), and Stage 6 (current measured-but-stub).
 >
 > *Still genuinely planned:* real-env binding for the browsergym / osworld / video executors (replace the deterministic-stub identity-pass with reality-grounded predicate evaluation against live envs / VLMs), plus the Phase-1.5b open items tracked as TODO-2 / TODO-3 / TODO-4 / TODO-5 in [`skill_transfer_test/TODO.md`](../skill_transfer_test/TODO.md).
 >
-> Builds on [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](harness-usability-and-intra-gymv-transfer.md) (which pinned cells / questions / phasing for the *intra-gymv* first milestone). This memo extends that to the *full* **six-source x six-target** transfer matrix on the fused **`env_wrappers` + `gym_v` + `browsergym` + `osworld` + `vr_image` (VTB + TIR-Bench) + `vr_video` (Video-Holmes + SIV-Bench)** GPT-5.4 cold-start banks, and pins the executor work that unblocks each cross-domain cell.
+> Builds on [`implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md`](legacy/harness-usability-and-intra-gymv-transfer.md) (which pinned cells / questions / phasing for the *intra-gymv* first milestone). This memo extends that to the *full* **six-source x six-target** transfer matrix on the fused **`env_wrappers` + `gym_v` + `browsergym` + `osworld` + `vr_image` (VTB + TIR-Bench) + `vr_video` (Video-Holmes + SIV-Bench)** GPT-5.4 cold-start banks, and pins the executor work that unblocks each cross-domain cell.
 >
 > **Last reviewed:** 2026-05-02 (revised after Phase-5/6 measurement Stages 0-6 shipped under sibling memo `phase5-cross-domain-measurement.md`; supersedes the 2026-05-01 review of §2.1 wrapper-reuse audit and §5.5 Phase-1.5 design).
 
 > **Cross-refs (Phase-5/6 measurement, 2026-05-02):**
-> - Sibling memo: [`implementation_notes/phase5-cross-domain-measurement.md`](phase5-cross-domain-measurement.md)
+> - Sibling memo: [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md)
 > - Stage 0 oracle (upper-bound admit rates): [`cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv`](../cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv)
 > - Stage 0 vocab-Jaccard audit (closes §11.5.1 caveat): [`cross_domain_results/_phase0/phase0_canonical/vocab_jaccard.md`](../cross_domain_results/_phase0/phase0_canonical/vocab_jaccard.md), [`...vocab_jaccard.json`](../cross_domain_results/_phase0/phase0_canonical/vocab_jaccard.json)
 > - Stage 6 unified report (NxN transfer matrix + 7-section verdict): [`cross_domain_results/_final/<run_id>/_report.md`](../cross_domain_results/_final/)
@@ -43,9 +43,9 @@
 > status banners, §"Suggested work-order"),
 > [`skill_transfer_test/README.md`](../skill_transfer_test/README.md)
 > (target folder spec — runner / cell_configs / metrics / reports),
-> [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](harness-usability-and-intra-gymv-transfer.md)
+> [`implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md`](legacy/harness-usability-and-intra-gymv-transfer.md)
 > (the design memo this rollout executes against),
-> [`implementation_notes/protocol-lift-design.md`](protocol-lift-design.md)
+> [`implementation_notes/legacy/protocol-lift-design.md`](legacy/protocol-lift-design.md)
 > (the gymv lift the SEGA games inherit),
 > [`labeling_supplement/_phase4_transfer_cycle.py`](../labeling_supplement/_phase4_transfer_cycle.py)
 > (the Day-5b transfer engine the rollout reuses).
@@ -174,7 +174,7 @@ This memo does **not** re-litigate cell or research-question
 definitions. They live in
 [`PLAN-HARNESS.md` §20.2 / §20.3 / §20.5 / §20.6](../plans/05-harness/PLAN-HARNESS.md#202-core-evaluation-questions)
 and are restated in
-[`harness-usability-and-intra-gymv-transfer.md` §1](harness-usability-and-intra-gymv-transfer.md#1-what-harness-usability-test-means-here).
+[`harness-usability-and-intra-gymv-transfer.md` §1](legacy/harness-usability-and-intra-gymv-transfer.md#1-what-harness-usability-test-means-here).
 For navigation:
 
 - Cells **A0 / A1 / A2 / A3 / A4** at increasing harness fidelity
@@ -858,7 +858,7 @@ numbers should not be quoted as evidence of mechanism strength. The
 numbers respect the Stage 0 cap (G6) only on cross-domain-source rows
 where the stub bypass doesn't fire.
 
-See [`phase5-cross-domain-measurement.md`](phase5-cross-domain-measurement.md) §12 for the canonical, severity-ranked inventory of code-level gaps that block §11.5.4 / §11.5.6 from becoming measurements rather than projections (Tier 1: 4 stub executors; Tier 2: 2 missing `vlm_wrapper/<domain>_adapter.py` files; Tier 3: per-domain runtime predicate-translators not yet designed).
+See [`phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md) §12 for the canonical, severity-ranked inventory of code-level gaps that block §11.5.4 / §11.5.6 from becoming measurements rather than projections. Status as of 2026-05-02: Tier 1 item 1 (image-VR per-sample binding) and Tier 2 (missing `vlm_wrapper/<domain>_adapter.py` shims + the `VideoReasoningExecutor` they depend on) both **CLOSED**; remaining open work is Tier 1 items 2-4 (video dispatcher + osworld + browser) and Tier 3 (per-domain runtime predicate-translators not yet designed).
 
 ### 11.5.1 Vocabulary alignment between game and cross-domain banks
 
@@ -915,7 +915,7 @@ ever used that label.
  (real)     (default)   (default)   (default)   (default)
 ```
 
-> *(`*` = `harness/adapters/video_adapter.py` is a 28-LOC stub with `set_executor()` plug-point; the `VideoExecutor` mirror of `VisualReasoningExecutor` is the only missing piece — see §11.5.5.)*
+> *(`*` = `harness/adapters/video_adapter.py` is a 28-LOC stub with `set_executor()` plug-point; the `VideoExecutor` mirror of `VisualReasoningExecutor` shipped 2026-05-02 as [`visual_reasoning_wrapper/video_skill_executor.py`](../visual_reasoning_wrapper/video_skill_executor.py) (~470 LOC, reachable via `vlm_wrapper.video_adapter.bind_executor`). What now remains is the dispatcher-side per-sample binding analogue of `harness/_vr_per_sample_executor.py` — see §11.5.5 and `phase5-cross-domain-measurement.md` §12.1 item 2.)*
 
 Four pluggable per-domain surfaces, all keyed off the universal
 slot-type ontology:
@@ -1094,7 +1094,7 @@ critical path they unblock.
 | R3 | **Per-domain `success_fn` semantics** | How each phase decides "skill succeeded" — `browser`: `episode.outcome.success` from cold-start ground-truth replay vs env reward; `osworld`: `env.evaluate()` float ∈ {0.0, 1.0}; `vr`: MCQ exact-match vs `gpt-5.5` LLM-judge; `video`: letter-grade exact-match. Different choices materially change the transfer pass-rate numbers reported in Phase 6. Lands as new §11.1 inside the risks section (because the choice has a downstream regression implication). | Phases 2-5 | ~1 page, ~1 hour |
 | R4 | **Reports a/b/c templates expanded** | Exact markdown shape per report — column list per slice, which fields come from which artefact, how the §8 limitations preamble is rendered. Mirrors [`PLAN-HARNESS.md` §20.6](../plans/05-harness/PLAN-HARNESS.md#206-analysis-templates) but writes out the rendered shape so the report-writers have a fixed target. Lands as a new §10.4. | Phase 6 | ~1.5 pages, ~1.5 hours |
 | R5 | **Test fixtures plan** | Which cold-start episodes become golden-file fixtures (specific `episode_*.json` paths under `Cold-start-out-*/`); how `FakeBrowserEnv` / mocked `OSWorldGymWrapper` are constructed; what data lives in `tests/fixtures/cross_domain_transfer/`. De-risks each phase's test deliverable. Lands as a new §13 (before "Out of scope"). | Phases 0-5 | ~1.5 pages, ~1.5 hours |
-| R6 | **Cross-ref doc updates** | Edit (a) [`harness/README.md`](../harness/README.md) §"Suggested work-order" item 16 to point at this memo; (b) [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet delivered" to flip "Real domain executors" to a per-phase pointer; (c) [`harness-usability-and-intra-gymv-transfer.md`](harness-usability-and-intra-gymv-transfer.md) §8 to either flesh out D4-D7 or rewrite the README's "D1-D7" cross-ref to match the existing 3 decisions. Pure documentation hygiene; prevents drift between the four canonical docs. | Anytime | ~30 min |
+| R6 | **Cross-ref doc updates** | Edit (a) [`harness/README.md`](../harness/README.md) §"Suggested work-order" item 16 to point at this memo; (b) [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet delivered" to flip "Real domain executors" to a per-phase pointer; (c) [`harness-usability-and-intra-gymv-transfer.md`](legacy/harness-usability-and-intra-gymv-transfer.md) §8 to either flesh out D4-D7 or rewrite the README's "D1-D7" cross-ref to match the existing 3 decisions. Pure documentation hygiene; prevents drift between the four canonical docs. | Anytime | ~30 min |
 
 These refinements do **not** require any code changes; they are
 plan-document edits only. When picking up the rollout, the natural
@@ -1187,7 +1187,7 @@ any of 5 domains and the §20.6 reports render."*
   Docker + qcow2 + WebArena/VWA/GitLab containers all running. Live
   smoke is in scope for every phase, not deferred.
 - This memo executes against
-  [`harness-usability-and-intra-gymv-transfer.md`](harness-usability-and-intra-gymv-transfer.md);
+  [`harness-usability-and-intra-gymv-transfer.md`](legacy/harness-usability-and-intra-gymv-transfer.md);
   it does not redefine cells, questions, slices, or report templates.
   Those live in
   [`PLAN-HARNESS.md` §20](../plans/05-harness/PLAN-HARNESS.md).
