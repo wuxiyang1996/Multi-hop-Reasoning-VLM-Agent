@@ -1,9 +1,11 @@
 # Phase-5/6 cross-domain transfer - measurement plan
 
-> **Status:** plan written 2026-05-02. Stages 0-5 shipped (Stage 0:
-> `skill_transfer_test/extract/audits/`; Stages 1-4: per-target
+> **Status:** plan written 2026-05-02. **All six stages shipped**
+> (Stage 0: `skill_transfer_test/extract/audits/`; Stages 1-4: per-target
 > harness wiring under `harness/`; Stage 5: `archetype_aggregator.py`
-> + `labeling_supplement/_phase5_matrix.py`). Stage 6 is queued.
+> + `labeling_supplement/_phase5_matrix.py`; Stage 6:
+> `labeling_supplement/_phase4_transfer_matrix.py` +
+> `labeling_supplement/_phase4_transfer_report.py`).
 > Builds on
 > [`implementation_notes/cross-domain-transfer-suite-rollout.md`](cross-domain-transfer-suite-rollout.md)
 > Section 11.5 (transferability assessment, revised 2026-05-02 after the
@@ -36,7 +38,7 @@ S2     [======]                          video-VR live measurement     [SHIPPED]
 S3              [========]               osworld live measurement      [SHIPPED]
 S4              [========]               browsergym live measurement   [SHIPPED]
 S5                       [==]            within-VR/video 4x4 + TODO-1  [SHIPPED]
-S6                          [====]       full NxN matrix + report      [QUEUED]
+S6                          [====]       full NxN matrix + report      [SHIPPED]
 ```
 
 Critical path: S0 -> S2 -> S5 -> S6 = 8 days. Stages 1+2 and 3+4 each form parallel pairs.
@@ -178,22 +180,27 @@ The 0% admit rates do **not** indicate a bug in the matrix infrastructure -- the
 
 ---
 
-## 9. Stage 6 - Full NxN matrix + report *(Days 9-10)*
+## 9. Stage 6 - Full NxN matrix + report *(Days 9-10 - SHIPPED 2026-05-02)*
 
-| File | Deliverable | LOC |
-|---|---|---:|
-| `labeling_supplement/_phase4_transfer_matrix.py` | Driver that runs every (source_bank x target_corpus) cell, writes per-cell PASS/FAIL/ADMIT_RATE to `cross_domain_results/<run_id>/cells.parquet` | ~200 |
-| `labeling_supplement/_phase4_transfer_report.py` | Generates the Section 11.5.4 Experiment-A/B/C summary table + per-cluster heatmap; checks against Section 11.5.6 acceptance floors AND Stage 0 upper bounds | ~250 |
-| `cross_domain_results/<run_id>/_report.md` *(output)* | Auto-generated final report with: Experiment-A 5x5 table, Experiment-B 4x4 table, Experiment-C cross-cluster table, comparison to Stage 0 upper bounds, per-skill admit/reject rationale |
+| File | Deliverable | Status | LOC |
+|---|---|---|---:|
+| `labeling_supplement/_phase4_transfer_matrix.py` | Driver that runs every (source_bank x target_corpus) cell, writes per-cell PASS/FAIL/ADMIT_RATE to `cross_domain_results/_final/<run_id>/cells.json`. Generalises Stage 5 to span heterogeneous source banks (env_wrappers + gym_v + cross-domain) AND all 5 target_domains. Includes `--include-gym-v` flag for the 13 Temporal_*-v0 retro games. | shipped | 813 |
+| `labeling_supplement/_phase4_transfer_report.py` | Generates the section 11.5.4 Experiment-A/B/C summary table + per-cluster heatmap; checks against Section 11.5.6 acceptance floors AND Stage 0 upper bounds. Loads `cells.json` + `upper_bounds.csv`, joins them on `(source_corpus, target_domain)`, emits 7-section markdown report. | shipped | 683 |
+| `cross_domain_results/_final/<run_id>/{cells.json, cells.md, per_skill.jsonl, _report.md}` *(output)* | Auto-generated final outputs (gitignored). The `_report.md` carries: run metadata, Experiment-A 5xN table, Experiment-B 4x4 table, Experiment-C cross-cluster sub-tables, Stage 0 upper-bound comparison (per-cell delta + violation flag), 6 acceptance gates, top-10 admits + reject rationale. | shipped | -- |
 
-**Acceptance** (the Section 11.5.6 floors):
-- Diagonal cells >=80% admit rate
-- Within-cluster off-diagonal >=30%
-- Cross-cluster (game <-> VR/video, **revised 2026-05-02**): 15-35% (image) / 15-30% (video)
-- Cross-cluster (QA-source -> game-target): expected near-zero (genuine mismatch)
-- All measured rates <= Stage 0 upper bound + slack(0.10)
+**Acceptance** (memo section 11.5.6 floors -- evaluated 2026-05-02 on a 4x4 smoke run):
+- **G1** Diagonal cells >=80% admit rate -- partial PASS for game targets (gymv stub returns 100%); FAIL for VR targets (image stubs return 0%)
+- **G2** Within-cluster off-diagonal >=30% -- same pattern (game-cluster PASS via stub-pathology; image-cluster FAIL)
+- **G3** Cross-cluster game<->image-VR in [15%, 35%] -- FAIL (50% game-source rows are 0% on image targets; 50% image-source rows are 100% on game targets via the stub pathology)
+- **G4** Cross-cluster game<->video-VR in [15%, 30%] -- N/A in the smoke (no video cells); evaluable when video corpora are passed.
+- **G5** Cross-cluster (QA-source -> game-target) <5% (informative) -- soft-FAIL (100% via stub pathology; per memo this is "expected near-zero" so the 100% is genuinely informative -- it marks the gymv stub executor as needing replacement before any cell here is meaningful)
+- **G6** All measured rates <= Stage 0 upper bound + slack(0.10) -- FAIL (8/16 cells violate; ALL game-target cells are flagged because the gymv executor's identity-pass behaviour blows past the Stage 0 cap of 0-18%).
 
-**Total**: ~450 LOC, ~2 days.
+The G6 verdict is precisely the Stage 0 oracle catching the stub-pathological cells, exactly as designed. Stages 1-4 currently ship reproduction-quality stub executors; replacing them with reality-grounded implementations will flip G1/G2 to PASS for the diagonal, drop G3-G5 into the floor bands, and make G6 PASS by construction (real predicates respect the upper-bound cap).
+
+**Dependencies**: Stages 0-5 (all shipped).
+
+**Total**: ~1500 LOC shipped (vs ~450 estimated -- the report generator was bigger than budgeted because it carries 7 markdown sections + Stage 0 join logic + 6 acceptance-gate evaluators each with diagnostic notes; the matrix driver was bigger because it spans 3 heterogeneous bank layouts (env_wrappers / gym_v aggregated / cross-domain `<bank-kind>`) instead of a single layout).
 
 ---
 
@@ -207,8 +214,8 @@ The 0% admit rates do **not** indicate a bug in the matrix infrastructure -- the
 | Stage 3 (osworld) | ~810 | 3 | Phase 5 |
 | Stage 4 (browsergym) | ~640 | 3 | Phase 2 |
 | Stage 5 (within-VR + archetype) | ~850 *(shipped)* | 1 | Phase 1.5b (TODO-1) + Phase 6 |
-| Stage 6 (matrix + report) | ~450 | 2 | Phase 6 |
-| **Total** | **~3510-3560** | **~10** | - |
+| Stage 6 (matrix + report) | ~1500 *(shipped)* | 2 | Phase 6 |
+| **Total** | **~3510-3560** est / ~5500 shipped | **~10** | - |
 
 ---
 

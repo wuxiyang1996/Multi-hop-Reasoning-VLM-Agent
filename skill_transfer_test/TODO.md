@@ -24,7 +24,11 @@
 > — three audit scripts shipped under `skill_transfer_test/extract/audits/`;
 > later still on the same day, **TODO-1 closed** as part of Stage 5 —
 > `extract/archetype_aggregator.py` shipped + `labeling_supplement/_phase5_matrix.py`
-> driver shipped, producing the within-VR/video 4x4 transfer matrix).
+> driver shipped, producing the within-VR/video 4x4 transfer matrix; later
+> still on the same day, **all 6 stages of the Phase-5/6 plan shipped** —
+> Stage 6 added `labeling_supplement/_phase4_transfer_matrix.py` (full NxN
+> driver) + `labeling_supplement/_phase4_transfer_report.py` (Experiment-A/B/C
+> + Stage 0 upper-bound comparison + 6 acceptance gates)).
 
 ---
 
