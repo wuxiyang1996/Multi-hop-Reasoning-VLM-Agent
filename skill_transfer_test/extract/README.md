@@ -15,7 +15,10 @@
 > ```
 > **Cross-refs (design rationale lives there, not here):**
 > [`implementation_notes/cross-domain-transfer-suite-rollout.md`](../../implementation_notes/cross-domain-transfer-suite-rollout.md)
-> §5.5 (cross-corpus skill bank lift),
+> §5.5 (cross-corpus skill bank lift)
+> and §11.5 (empirical transferability assessment, mirrored as
+> `skill_transfer_test/README.md` §9.3) for whether these skills transfer
+> across domains,
 > [`labeling/readme.md`](../../labeling/readme.md) (env_wrappers + gym_v
 > extractors this package generalises),
 > [`labeling/_protocol_lift.py`](../../labeling/_protocol_lift.py) (the
@@ -58,10 +61,9 @@ skill_transfer_test/extract/
 │                                --output-root <path> --run-id <name>
 ├── single_shot_lift.py       ← VTB / TIR-Bench / Video-Holmes / SIV-Bench
 │                                lift driver (LLM-free, rule-based)
-├── sequence_lift.py          ← browsergym / osworld lift driver. Two paths:
-│                                lift_corpus_per_episode  (LLM-free; ships today)
-│                                lift_corpus_with_agent   (canonical, NotImplementedError)
-└── tests/                    ← (planned) golden-file tests per corpus
+└── sequence_lift.py          ← browsergym / osworld lift driver. Two paths:
+                                 lift_corpus_per_episode  (LLM-free; ships today)
+                                 lift_corpus_with_agent   (canonical, NotImplementedError)
 ```
 
 ### Output layout
@@ -171,6 +173,8 @@ Two parallel runs both completed 2026-05-01:
 2. **`full_v5`** — `--corpora all` (full coverage over all GPT 5.4 cold-start tasks)
 
 ### 5.0 Full GPT 5.4 cold-start coverage
+
+> *Yield = % of cold-start tasks producing a record. Sequence corpora lift every episode (yield → 100%); single-shot corpora drop `correct=False` samples by default, so single-shot yield ≈ actor accuracy on that benchmark.*
 
 ```
 Corpus           | Cold-start | Lifted | Yield  | Effects | Real-bound | Fallback | Mean hops
@@ -399,19 +403,20 @@ deliverable in
 [`cross-domain-transfer-suite-rollout.md`](../../implementation_notes/cross-domain-transfer-suite-rollout.md)),
 limitations 1, 3, 4 lift mechanically.
 
-1. **Empty effects contracts.** `effects_add` / `effects_del` are
-   always `[]`. The lift's `mine_effects` matches against a
-   gaming-centric `_PREDICATE_TRIGGERS` table (`entity_value_increased`,
-   `phase_transitioned`, …) which doesn't fire on QA-style criteria.
-   Effects-aware transfer matching is therefore disabled until a
-   single-shot effect miner shipped in v4 — the **canonical**
-   `mine_effects` is still empty for QA/browser/desktop, but
-   v4's `mine_single_shot_effects` and `mine_sequence_episode_effects`
-   now populate every record's `effects_add` / `effects_del` with
-   episode-level predicates (`task_status`, `last_action`,
-   `actor_used_action`, `visited_entity`, `answer_emitted`,
-   `answer_matches_gold`, `entity_grounded`). Phase-2 will replace
-   these with learned predicate miners over reasoning chains.
+1. **Effects contracts are now populated, but with episode-level
+   predicates only.** v4 ships per-corpus effect miners
+   (`mine_single_shot_effects`, `mine_sequence_episode_effects`) so
+   `effects_add` / `effects_del` are no longer empty — every record
+   carries `task_status`, `last_action`, `actor_used_action`,
+   `visited_entity` (sequence) or `answer_emitted`,
+   `answer_matches_gold`, `entity_grounded` (single-shot). The
+   canonical `mine_effects` from `labeling/_protocol_lift.py` still
+   doesn't fire on QA / browser / desktop reasoning prose because its
+   `_PREDICATE_TRIGGERS` table is gaming-centric; **per-hop**
+   predicate mining (vs the per-record / contract-level miners
+   shipped today) is a Phase-2 deliverable. Effects-aware transfer
+   matching is therefore enabled for episode-level scoring but not
+   yet for hop-level rigor.
 
 2. **`"any"`-typed slots are post-bound heuristically.** The
    canonical lift deliberately leaves EVALUATE.subject /
@@ -498,7 +503,14 @@ fields below are stable; downstream consumers may rely on them.
       // ...
     ],
     "protocol_raw": {"steps": [...], "success_criteria": [...], "abort_criteria": []},
-    "contract": {"effects_add": [], "effects_del": []},  // §7 limitation 1
+    "contract": {
+      "effects_add": [
+        {"predicate_type": "answer_emitted", "args": {"value": "D"}},
+        {"predicate_type": "answer_matches_gold", "args": {"gold": "D"}},
+        {"predicate_type": "entity_grounded", "args": {"e": "e1", "ontology": "tracked_entity"}}
+      ],
+      "effects_del": []
+    },  // §7 limitation 1 — episode-level only; per-hop predicates pending
     "provenance": {
       "corpus": "siv_bench",
       "benchmark": "siv_bench",
@@ -540,17 +552,27 @@ fields below are stable; downstream consumers may rely on them.
 - **Six corpora, two architectures, ~700 LOC, no canonical-lift
   fork.** Single-shot for VR/video QA; sequence-segment per-episode
   for browser/osworld.
-- **Smoke v3 (2026-05-01) is reasonable**: fallback rates 0.0%-5.9%
-  (env_wrappers gold ≈ 3%, gym_v ≈ 45.8%); slot-binding 31-50%;
-  records carry the canonical `{report, skill}` shape.
-- **Eight bugs found by the post-smoke audit; six fixed, two
-  deferred.** Empty effects contracts and per-episode granularity are
-  v0 trade-offs that lift when the canonical SkillBankAgent path is
-  wired.
+- **Headline result: full GPT 5.4 cold-start coverage** —
+  1,083 records (885 verified) across env_wrappers, gym_v,
+  browsergym, osworld, vr_image (VTB + TIR-Bench), vr_video
+  (Video-Holmes + SIV-Bench).
+- **smoke_v5 + full_v5 (2026-05-01)** cover all 2,334 GPT 5.4
+  cold-start tasks across 6 corpora; 1,083 records / 885 verified;
+  fallback rates 0.0%-5.9% (env_wrappers gold ≈ 3%, gym_v ≈ 45.8%);
+  real-bound payloads 53-66% on sequence corpora; records carry the
+  canonical `{report, skill}` shape.
+- **Eighteen issues found by three post-smoke audit rounds; sixteen
+  fixed (Bugs 1-13, 15, 17, 18), one confirmed-not-a-bug (#14
+  PENALIZE residuals = true positives), one documented as a v0 limit
+  (#16 visual_toolbench low yield = actor accuracy floor).** Per-hop
+  effect predicates and per-episode sequence-corpus granularity
+  remain v0 trade-offs that lift when the canonical SkillBankAgent
+  path is wired.
 - **Run with**
-  `python -m skill_transfer_test.extract.runner --corpora all --max-samples 100`.
+  `python -m skill_transfer_test.extract.runner --corpora all --run-id full_v5`.
   Output lands in `skill_transfer_test/skill_bank_local/<run_id>/`.
 - **Don't read this folder as Phase-6 ground truth.** It's a
-  measurement layer for transfer experiments. Bug 7 (OSWorld success
-  heuristic), §7 limitation 7, and the empty-contract trade-off must
-  be quoted in any report that consumes these records.
+  measurement layer for transfer experiments. §7 limitation 7
+  (episode-level effect predicates only) and the OSWorld success
+  heuristic (Bug 7 / §7 limitation 6) must be quoted in any report
+  that consumes these records.
