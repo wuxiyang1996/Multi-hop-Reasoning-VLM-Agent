@@ -307,9 +307,13 @@ for corpus, source, pair_dir in _walk_pairs(PROMOTION_OUT):
         })
         continue
 
-    n_ins = int(report.get("n_inserted", 0))
-    n_upd = int(report.get("n_updated", 0))
-    n_skip = int(report.get("n_skipped_status", 0))
+    # ``writeback_promotion`` returns a ``WritebackReport`` dataclass —
+    # use ``to_dict()`` for the JSON-serialisable view and attribute
+    # access for the counters.
+    report_dict = report.to_dict()
+    n_ins = int(report.n_inserted)
+    n_upd = int(report.n_updated)
+    n_skip = int(report.n_skipped_status)
     summary["n_pairs_writeback_ok"] += 1
     summary["n_inserted_total"] += n_ins
     summary["n_updated_total"] += n_upd
@@ -320,7 +324,7 @@ for corpus, source, pair_dir in _walk_pairs(PROMOTION_OUT):
         "snapshot": str(snap),
         "legacy_bank": str(legacy_path),
         "status": "dry_run" if DRY_RUN else "ok",
-        "report": report,
+        "report": report_dict,
     })
     tag = "DRY" if DRY_RUN else "OK "
     print(
@@ -360,9 +364,19 @@ WB_RC=$?
 PYTHONPATH="${WORKSPACE_ROOT}:${REPO_ROOT}:${PYTHONPATH:-}" \
 BANK_RUN_DIR="${WRITEBACK_BANK_RUN}" \
 python - <<'PY' 2>&1 | tee -a "${RUN_LOG}"
-"""Probe each ``skill_bank.jsonl`` for at least one entry with
-``report.status in {active, provisional, shadow}`` — the
-``SkillRepository.runnable()`` filter."""
+"""Probe each ``skill_bank.jsonl`` for at least one entry with a
+runnable promotion marker — the §17 keystone post-condition.
+
+The lifecycle status emitted by ``legacy_writeback._project_to_legacy_envelope``
+lives at ``row['skill']['_writeback_status']`` (a round-trip-safe
+annotation; the legacy ``SkillBankMVP.load()`` round-trips ``report``
+through ``VerificationReport.from_dict`` which would reject any extra
+field). When the trainer hydrates a ``SkillRepository`` from this
+JSONL, ``_writeback_status`` is the field that drives whether a
+record lands in the active store / shadow shelf vs. the candidate /
+draft stores. So this is the field we probe to assert
+``bank.runnable() != []`` after promotion.
+"""
 
 from __future__ import annotations
 
@@ -377,6 +391,7 @@ RUNNABLE_STATUSES = {"active", "provisional", "shadow"}
 n_pairs = 0
 n_runnable = 0
 n_total = 0
+status_counter: dict[str, int] = {}
 for corpus_dir in sorted(p for p in BANK_RUN_DIR.iterdir() if p.is_dir()):
     for source_dir in sorted(p for p in corpus_dir.iterdir() if p.is_dir()):
         bank = source_dir / "skill_bank.jsonl"
@@ -394,7 +409,16 @@ for corpus_dir in sorted(p for p in BANK_RUN_DIR.iterdir() if p.is_dir()):
                 row = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            status = (row.get("report") or {}).get("status", "").lower()
+            skill = row.get("skill") or {}
+            # Promotion-projected entries carry ``_writeback_status``;
+            # cold-start originals carry only ``status`` (typically
+            # "draft"). Prefer the promotion marker when present so a
+            # post-promotion run reflects the new lifecycle even when
+            # the legacy ``status`` slot is unmodified.
+            status = str(
+                skill.get("_writeback_status") or skill.get("status") or ""
+            ).lower()
+            status_counter[status] = status_counter.get(status, 0) + 1
             if status in RUNNABLE_STATUSES:
                 n_runnable_here += 1
         n_runnable += n_runnable_here
@@ -411,6 +435,7 @@ print(
     f"§17 keystone status: {n_runnable}/{n_total} runnable across "
     f"{n_pairs} pair(s) under {BANK_RUN_DIR}"
 )
+print(f"  status breakdown: {status_counter}")
 sys.exit(0 if n_runnable > 0 else 5)
 PY
 POST_RC=$?
