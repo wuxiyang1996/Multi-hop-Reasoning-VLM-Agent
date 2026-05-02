@@ -639,36 +639,20 @@ def prepare_adapters(config: CoEvolutionConfig) -> Dict[str, str]:
     text_arch = (getattr(text_cfg, "model_type", "") or "").lower()
     is_multimodal = hasattr(model_cfg, "text_config") or hasattr(model_cfg, "vision_config")
 
-    target_modules = config.lora_target_modules
-    if target_modules is None:
-        if "qwen3_5_moe" in text_arch:
-            # Qwen3.5-MoE (e.g. 35B-A3B) — DO NOT LoRA the experts (router copy
-            # explosion); target attention + shared MLP only.
-            target_modules = [
-                "q_proj", "k_proj", "v_proj", "o_proj",
-                "in_proj_qkv", "out_proj",
-            ]
-        elif "qwen3_5" in text_arch:
-            # Qwen3.5 dense (e.g. 9B) — alternating Gated-DeltaNet (linear)
-            # and Gated-Attention (full) layers + per-layer dense MLP:
-            #   • full attention every 4th layer:  q_proj, k_proj, v_proj, o_proj
-            #   • Gated-DeltaNet otherwise:        in_proj_qkv, out_proj
-            #     (skip the tiny in_proj_a/b/z gating projections — output dim
-            #     == num_v_heads, so LoRA on them is mostly noise)
-            #   • dense MLP in every layer:        gate_proj, up_proj, down_proj
-            target_modules = [
-                "q_proj", "k_proj", "v_proj", "o_proj",
-                "in_proj_qkv", "out_proj",
-                "gate_proj", "up_proj", "down_proj",
-            ]
-        elif "qwen" in text_arch:
-            # Qwen2 / Qwen3 dense decoder
-            target_modules = [
-                "q_proj", "k_proj", "v_proj", "o_proj",
-                "gate_proj", "up_proj",
-            ]
-        else:
-            target_modules = ["q_proj", "v_proj"]
+    # ── T2.11 closure: single-source-of-truth target_modules resolver ──
+    # SFT and GRPO must write/read the same LoRA shape, otherwise legs
+    # missing in one recipe silently drop deltas at the boundary.  We
+    # therefore delegate to ``trainer.SFT.lora_targets`` for both
+    # pipelines — see ``implementation_notes/pre-training-readiness-audit.md``
+    # §0.3.  Qwen3.5 hybrid stack reaches ALL GatedDeltaNet legs incl.
+    # ``in_proj_z/b/a`` (``in_proj_z`` is hidden×value_dim, NOT tiny — the
+    # earlier "skip the gating legs" rationale undercounted it).
+    from trainer.SFT.lora_targets import resolve_target_modules as _resolve_targets
+
+    target_modules = _resolve_targets(
+        text_arch=text_arch,
+        explicit=config.lora_target_modules,
+    )
 
     lora_cfg = LoraConfig(
         r=config.lora_r,

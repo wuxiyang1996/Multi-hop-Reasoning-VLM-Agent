@@ -121,6 +121,39 @@ def parse_args() -> argparse.Namespace:
              "target) to this JSONL and exit.  Useful for prompt review "
              "before launching a real run.",
     )
+    # ── Speed / kernel knobs (T2.11 closure) ─────────────────────────
+    p.add_argument(
+        "--use_liger_kernel", dest="use_liger_kernel",
+        action="store_true", default=True,
+        help="Apply liger-kernel fused Qwen3.5 patches (default: True).",
+    )
+    p.add_argument(
+        "--no_liger_kernel", dest="use_liger_kernel", action="store_false",
+        help="Disable liger-kernel even if installed.",
+    )
+    p.add_argument(
+        "--no_gradient_checkpointing", dest="no_gradient_checkpointing",
+        action="store_true", default=False,
+        help="Disable activation checkpointing (faster, more memory).",
+    )
+    p.add_argument(
+        "--optim", type=str, default=None,
+        help=(
+            "HF Trainer optim string (default: 'paged_adamw_8bit' if "
+            "bitsandbytes is installed, else 'adamw_torch_fused')."
+        ),
+    )
+    p.add_argument(
+        "--dataloader_workers", type=int, default=4,
+        help="DataLoader worker count (default: 4).",
+    )
+    p.add_argument(
+        "--strict_lora_coverage", action="store_true", default=False,
+        help=(
+            "Abort if any required projection has zero LoRA-wrapped layers "
+            "(catches T2.11-style recipe drift)."
+        ),
+    )
     return p.parse_args()
 
 
@@ -152,6 +185,17 @@ def make_config(args: argparse.Namespace) -> SchemaGenConfig:
         cfg.max_seq_length = args.max_seq_length
     if args.seed is not None:
         cfg.seed = args.seed
+    # ── Speed knobs ──────────────────────────────────────────────────
+    if hasattr(args, "use_liger_kernel"):
+        cfg.use_liger_kernel = args.use_liger_kernel
+    if getattr(args, "no_gradient_checkpointing", False):
+        cfg.gradient_checkpointing = False
+    if args.optim is not None:
+        cfg.optim = args.optim
+    if hasattr(args, "dataloader_workers") and args.dataloader_workers is not None:
+        cfg.dataloader_num_workers = args.dataloader_workers
+    if getattr(args, "strict_lora_coverage", False):
+        cfg.strict_lora_coverage = True
     return cfg
 
 
@@ -325,6 +369,40 @@ def main() -> int:
     processor = AutoProcessor.from_pretrained(
         cfg.model_name, trust_remote_code=cfg.trust_remote_code,
     )
+
+    # ── T2.11 speed-up scaffolding ────────────────────────────────────
+    # TF32 + liger-kernel must be wired *before* the model loads since
+    # liger-kernel monkey-patches class-level methods.
+    from trainer.SFT.speed_utils import (
+        apply_liger_kernel,
+        enable_tf32,
+        pick_optim,
+    )
+    enable_tf32()
+    if cfg.use_liger_kernel:
+        try:
+            from transformers import AutoConfig as _AutoCfg
+            _probe_cfg = _AutoCfg.from_pretrained(
+                cfg.model_name, trust_remote_code=cfg.trust_remote_code,
+            )
+            _probe_arch = (
+                getattr(getattr(_probe_cfg, "text_config", _probe_cfg),
+                        "model_type", "") or ""
+            ).lower()
+            # ``fused_loss=False`` because schema_gen uses TRL's
+            # ``SFTTrainer`` whose ``compute_loss`` reads
+            # ``outputs.logits[..., :-1, :]`` directly — liger's
+            # default ``fused_linear_cross_entropy=True`` patch
+            # nullifies ``outputs.logits`` and trips a TypeError
+            # at the first training step.  RMSNorm + SwiGLU fusions
+            # still fire, retaining the bulk of the speedup.
+            apply_liger_kernel(_probe_arch, fused_loss=False)
+        except Exception as exc:
+            logger.warning(
+                "liger-kernel probe failed: %s — proceeding without it.",
+                exc,
+            )
+
     # Resolve attention implementation with a graceful fallback chain:
     #   1. flash_attention_2  — fastest, but requires `flash-attn` which
     #      lacks a prebuilt wheel for torch 2.11+cu130 at the moment.
@@ -355,16 +433,37 @@ def main() -> int:
     if cfg.gradient_checkpointing:
         model.gradient_checkpointing_enable()
 
+    # ── Resolve target_modules for the *actual* base model ────────────
+    # Single source of truth in ``trainer.SFT.lora_targets`` — the
+    # Qwen3.5 hybrid stack needs ``in_proj_z/b/a`` legs that the older
+    # classic-7 list silently missed (T2.11).
+    resolved_targets = cfg.resolve_target_modules()
+    logger.info(
+        "LoRA target_modules (resolved for %s): %s",
+        cfg.model_name, resolved_targets,
+    )
+
     lora_config = LoraConfig(
         r=cfg.lora_r,
         lora_alpha=cfg.lora_alpha,
         lora_dropout=cfg.lora_dropout,
         bias="none",
-        target_modules=cfg.lora_target_modules,
+        target_modules=resolved_targets,
         task_type="CAUSAL_LM",
     )
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
+
+    # ── T2.11 fail-fast on recipe drift ───────────────────────────────
+    from trainer.SFT.lora_targets import assert_lora_coverage
+    text_cfg = getattr(model.config, "text_config", model.config)
+    text_arch = (getattr(text_cfg, "model_type", "") or "").lower()
+    assert_lora_coverage(
+        model,
+        model_arch=text_arch,
+        require_strict=cfg.strict_lora_coverage,
+        logger_=logger,
+    )
 
     # ------------------------------------------------------------------
     # Collator: format messages → tokenised input ids (mask the user
@@ -452,6 +551,12 @@ def main() -> int:
     # transformers 5.x, raising `KeyError: 'push_to_hub_token'`.  Passing
     # `SFTConfig` skips that branch entirely.  `SFTConfig` is a subclass of
     # `TrainingArguments` so all standard fields below are still valid.
+    resolved_optim = cfg.optim or pick_optim(prefer_8bit=True)
+    logger.info(
+        "Trainer optimizer = %s, gradient_checkpointing=%s, dataloader_workers=%d",
+        resolved_optim, cfg.gradient_checkpointing, cfg.dataloader_num_workers,
+    )
+
     train_args = SFTConfig(
         output_dir=str(out_dir),
         learning_rate=cfg.lr,
@@ -475,10 +580,12 @@ def main() -> int:
         #     for the following tensors have different metadata...``
         # Switching to legacy reentrant mode skips that check.
         gradient_checkpointing_kwargs={"use_reentrant": True},
+        optim=resolved_optim,
         report_to=cfg.report_to,
         seed=cfg.seed,
         remove_unused_columns=False,
-        dataloader_num_workers=2,
+        dataloader_num_workers=cfg.dataloader_num_workers,
+        dataloader_pin_memory=True,
         # ---------------------------------------------------------------
         # Skip TRL's built-in dataset preprocessing.  TRL 0.17.x would
         # otherwise call ``tokenizer.apply_chat_template`` on every row,

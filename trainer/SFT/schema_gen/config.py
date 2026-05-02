@@ -79,10 +79,25 @@ DEFAULT_VIDEO_QA_JSONL = REPO_ROOT / "labeling" / "output" / "grounding" / "vide
 # ---------------------------------------------------------------------------
 # LoRA target modules
 # ---------------------------------------------------------------------------
-# Default LoRA targets: the seven LM-side linears found in every
-# Qwen3-family transformer block (attention + MLP).  In a MoE such as
-# Qwen3.5-35B-A3B PEFT matches by suffix, so each named projection is
-# adapted across *all* experts of every layer.
+# We delegate the architecture-specific list to
+# :mod:`trainer.SFT.lora_targets` (single source of truth across the
+# cold-start adapters and the visual-grounding ``schema_gen`` adapter).
+#
+# **History of T2.11.**  Earlier Phase-1 runs hardcoded the seven LM-side
+# linears (``q_proj/k_proj/v_proj/o_proj/gate_proj/up_proj/down_proj``)
+# as the default.  That list is correct for Qwen3-VL / Qwen3-VL-MoE /
+# any Qwen2/3 dense or MoE variant — but it is **wrong for Qwen3.5**,
+# whose hybrid stack carries ``Qwen3_5GatedDeltaNet`` linear-attention
+# layers with ``linear_attn.{in_proj_qkv, in_proj_z, in_proj_b,
+# in_proj_a, out_proj}``.  None of those substrings match the classic
+# list, so on Qwen3.5-35B-A3B only ~23 % of the LoRA delta gets wrapped
+# (only the few full-attention layers + every MLP).  See §0.3 of
+# ``pre-training-readiness-audit.md``.
+#
+# As of the T2.11 closure we resolve the list at config-build time from
+# ``model_name`` so swapping bases between Qwen3-VL-8B / -32B / -235B-A22B
+# (full-attention) and Qwen3.5-35B-A3B (hybrid) gets the right recipe
+# automatically.
 #
 # The vision tower stays frozen — pre-training gives strong visual
 # features and we only need the LM to learn the schema dialect.  To
@@ -90,12 +105,21 @@ DEFAULT_VIDEO_QA_JSONL = REPO_ROOT / "labeling" / "output" / "grounding" / "vide
 # ``lora_target_modules`` after inspecting the loaded model's
 # ``named_modules()`` (the projector path differs across Qwen-VL minor
 # versions, e.g. ``visual.merger.mlp.{0,2}`` on Qwen3-VL-8B).
-QWEN3_LM_LORA_TARGETS: List[str] = [
-    "q_proj", "k_proj", "v_proj", "o_proj",
-    "gate_proj", "up_proj", "down_proj",
-]
-# Backwards-compat alias — older configs imported this name.
-QWEN3_VL_LORA_TARGETS: List[str] = list(QWEN3_LM_LORA_TARGETS)
+
+# Legacy aliases — kept for backwards compatibility with older callers
+# that imported these names directly.  ``QWEN3_LM_LORA_TARGETS`` reflects
+# the classic Qwen3-VL list; ``QWEN3_5_LM_LORA_TARGETS`` is the Qwen3.5
+# hybrid list.  New code should call ``SchemaGenConfig.resolve_target_modules``
+# instead so the right list is picked by introspection.
+from trainer.SFT.lora_targets import (  # noqa: E402
+    QWEN3_5_LORA_TARGETS as _QWEN3_5_LORA_TARGETS,
+    QWEN_CLASSIC_LORA_TARGETS as _QWEN_CLASSIC_LORA_TARGETS,
+    resolve_target_modules as _resolve_target_modules,
+)
+
+QWEN3_LM_LORA_TARGETS: List[str] = list(_QWEN_CLASSIC_LORA_TARGETS)
+QWEN3_VL_LORA_TARGETS: List[str] = list(_QWEN_CLASSIC_LORA_TARGETS)
+QWEN3_5_LM_LORA_TARGETS: List[str] = list(_QWEN3_5_LORA_TARGETS)
 
 
 @dataclass
@@ -169,9 +193,11 @@ class SchemaGenConfig:
     lora_r: int = 16
     lora_alpha: int = 32
     lora_dropout: float = 0.05
-    lora_target_modules: List[str] = field(
-        default_factory=lambda: list(QWEN3_LM_LORA_TARGETS),
-    )
+    # When None (default) the list is auto-resolved at training time
+    # from ``model_name`` via ``resolve_target_modules()``.  Pass an
+    # explicit list to override (e.g. when adapting vision-projector
+    # weights in addition to the LM tower).
+    lora_target_modules: Optional[List[str]] = None
 
     # ── Vision pre-processing ─────────────────────────────────────────
     image_max_side: int = 1024
@@ -192,11 +218,30 @@ class SchemaGenConfig:
     # H200/bf16 and needs no extra dependency.  Set to False to skip the
     # flash-attn import probe entirely.
     use_flash_attention: bool = True
+    # ── T2.11 speed knobs (defaults sized for H200 + bf16) ───────────
+    use_liger_kernel: bool = True
+    optim: Optional[str] = None  # None → speed_utils.pick_optim()
+    dataloader_num_workers: int = 4
+    strict_lora_coverage: bool = False
 
     # ------------------------------------------------------------------
     def adapter_output_dir(self) -> Path:
         """Resolved output directory for the adapter checkpoint."""
         return Path(self.output_dir) / self.run_id
+
+    def resolve_target_modules(self) -> List[str]:
+        """Return the LoRA ``target_modules`` list for ``model_name``.
+
+        Mirrors :meth:`trainer.SFT.config.SFTConfig.resolve_target_modules`.
+        Routes through :mod:`trainer.SFT.lora_targets` so the Qwen3.5
+        hybrid recipe (incl. the GatedDeltaNet gating legs ``in_proj_z/b/a``)
+        is automatically picked when ``model_name`` is a 3.5 base.  Any
+        explicit list set on the config wins.
+        """
+        return _resolve_target_modules(
+            model_name_or_arch=self.model_name,
+            explicit=self.lora_target_modules,
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -221,7 +266,7 @@ class SchemaGenConfig:
             "lora_r": self.lora_r,
             "lora_alpha": self.lora_alpha,
             "lora_dropout": self.lora_dropout,
-            "lora_target_modules": list(self.lora_target_modules),
+            "lora_target_modules": self.resolve_target_modules(),
             "image_max_side": self.image_max_side,
             "video_num_frames": self.video_num_frames,
             "bf16": self.bf16,

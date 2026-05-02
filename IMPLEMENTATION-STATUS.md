@@ -1,7 +1,9 @@
 # Implementation status — P0, Phase A, B, C MVP
 
-Last updated: 2026-05-01 (S0 sprint — lane-(a) decision shipped, SFT
-checkpoints reconciled, pre-flight tooling landed).
+Last updated: 2026-05-02 (S0+S1 — lane-(a) decision shipped, SFT
+checkpoints reconciled, pre-flight tooling landed; **T2.11 LoRA
+target-modules recipe fix + T2.12 SFT throughput uplift** landed today,
+pending SFT re-run on the corrected recipe).
 
 This document tracks what has been implemented from
 [`plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md`](plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md)
@@ -126,23 +128,83 @@ Live defaults flipped in the 2026-04-28 model-stack migration:
   `hop_select` / `inner_mdp` references obsolete and points at
   `single-vs-two-mdp-tradeoff.md`.
 
-Outstanding = run-the-script-on-a-GPU only:
+Pre-flight execution results (2026-05-02):
 
-- ⏳ **T1.1′ (script ready)** — Run `evaluation/probe_schema_gen_exact_match.py`
-  against `runs/sft_schema_gen/schema_gen_20260430_091831` to confirm
-  PLAN-VISUAL-GROUNDING-MILESTONES §13 thresholds (field-acc ≥0.85,
-  Path-A ≥0.70). The script exits non-zero on miss.
-- ⏳ **T2.10 (script ready)** — Run `evaluation/smoke_load_sft_adapters.py`
-  once on a GPU node to confirm none of the six adapters has a torn
-  `*.partial_*` shard.
+- ☑ **T2.10** — `evaluation/smoke_load_sft_adapters.py` ran on all six adapters
+  under the live vLLM tower (~40 GB free per GPU; cold-start 9B adapters on a
+  single GPU, schema_gen 35B-A3B sharded across GPUs 0-3). Every adapter
+  loaded, ran one forward pass, and produced finite logits on the expected
+  shape. **No torn `*.partial_*` shards detected.** Report:
+  `runs/sft_coldstart/_smoke/smoke_all.json`.
+- ☒ **T1.1′** — `evaluation/probe_schema_gen_exact_match.py` ran end-to-end on
+  `n=5` held-out gymv triples (1241 s wall-clock under CPU offload pressure).
+  **Both §13 thresholds missed**: `exact_match=0/5`, `path_a=0/5`,
+  `overall_field_acc=0.000`. Report: `runs/sft_coldstart/_probe/probe_schema_gen_n5.json`.
+  **Diagnosed root cause:** LoRA target-modules drift (T2.11 — see
+  `pre-training-readiness-audit.md` §0.3). The smoke loader warned about
+  "missing adapter keys" on every adapter; quantitatively, schema_gen loaded
+  only **8.36 M** LoRA parameters where the SFT-time delta should have been
+  ~36 M (≈ 23 % loaded), and the cold-start 9B adapters loaded 36.96 M of an
+  expected ~42 M (≈ 87 %). **T2.11 (NEW) blocks T1.1′ re-pass.**
 
-### S1 — fire offline once (the §17 keystone) — ✅ wrapper shipped 2026-05-01
+T2.11 + T2.12 follow-ups (2026-05-02):
 
-- ⏳ **T1.2 (wrapper ready)** — Run `bash scripts/run_offline_promotion_cycle.sh`
-  once to convert `bank.runnable() == []` into non-empty. The wrapper drives
-  `decide_promotion_gpt54.py` + an inline call to
-  `skill_bank.legacy_writeback.writeback_promotion`, then asserts the
-  `bank.runnable() != []` post-condition before exiting.
+- ☑ **T2.11 — recipe fix landed.** New single-source-of-truth helper
+  [`trainer/SFT/lora_targets.py`](trainer/SFT/lora_targets.py) defines the
+  full Qwen3.5 hybrid-stack `target_modules` (12 entries: `q,k,v,o_proj` +
+  `in_proj_{qkv,z,b,a}` + `out_proj` + `gate,up,down_proj`) and a
+  `assert_lora_coverage(...)` post-`get_peft_model` sanity check that
+  fail-fasts when any architecturally-required projection has zero
+  wrapped layers. All three LoRA recipe sites now delegate to this
+  helper: `trainer/SFT/config.py`, `trainer/SFT/schema_gen/config.py`
+  (the hardcoded classic-7 default that caused the bug is removed),
+  `trainer/coevolution/config.py::prepare_adapters`, and
+  `configs/skillbank_lora.yaml`. The previously-claimed "skip the tiny
+  `in_proj_a/b/z` gating projections" rationale was incorrect about
+  `in_proj_z` (whose output dim is `value_dim`, not `num_v_heads`); it is
+  the same size as `out_proj`, so dropping it cost ~13 % of cold-start
+  coverage. New tests at [`tests/test_lora_targets.py`](tests/test_lora_targets.py)
+  (7 tests, all passing) lock in the leg-presence invariants. **Open
+  follow-up:** re-run the six SFT jobs against the corrected recipe;
+  on-disk weights from the first run cannot be salvaged because the
+  dropped legs were never trained → no on-disk tensor exists to
+  rewrite into the new namespace (option (b) "key-rewriter" from §0.3
+  is therefore ruled out).
+- ☑ **T2.12 — SFT throughput uplift landed.** New helper
+  [`trainer/SFT/speed_utils.py`](trainer/SFT/speed_utils.py) wires three
+  drop-in upgrades into both train scripts:
+  *(a)* `apply_liger_kernel(arch)` — picks the right
+  `apply_liger_kernel_to_qwen3_5{,_moe}` patch and applies it before
+  the model loads (fused CE / RMSNorm / RoPE; ~30–40 % uplift).
+  *(b)* `pick_optim()` — defaults to `paged_adamw_8bit` when
+  `bitsandbytes` is available (cuts optimizer memory ~4×), else
+  `adamw_torch_fused`.
+  *(c)* `enable_tf32()` — H200/Hopper-safe TF32 for residual fp32 ops.
+  Both train scripts also now pass `group_by_length=True`,
+  `dataloader_pin_memory=True`, `dataloader_num_workers=4`, and expose
+  `--no_gradient_checkpointing` / `--use_liger_kernel` /
+  `--no_liger_kernel` / `--optim` / `--strict_lora_coverage` /
+  `--dataloader_workers` flags. **Still blocked on infra**: `flash-attn`
+  and `mamba_ssm` / `causal_conv1d` (the GatedDeltaNet CUDA kernels) need
+  a CUDA-13 host toolkit installed (current host is 12.8; torch was
+  built against 13.0). The Python recurrence fallback for
+  `linear_attention` layers is the single biggest remaining throughput
+  hole — once the toolkit is installed, expect another 2–3× on the 35B-A3B
+  schema_gen run.
+
+### S1 — fire offline once (the §17 keystone) — ✅ shipped + executed 2026-05-02
+
+- ☑ **T1.2** — `bash scripts/run_offline_promotion_cycle.sh` ran end-to-end
+  on the latest cold-start corpus (17 pair banks under
+  `labeling/skill_bank_out/run_20260430_030637`). 224 proposals across 17
+  pairs, 186 PROMOTE decisions (limited_pass), 38 ROLLBACK. After the
+  legacy-writeback step the §17 post-condition fires green:
+  **375 / 489 entries flagged `_writeback_status ∈ {active, provisional,
+  shadow}` across all 17 pairs** (writeback exit_code = 0,
+  `bank.runnable() != []` → trainer launch unblocked). Wrapper bug fix
+  (WritebackReport attribute access + correct post-condition field
+  `skill._writeback_status`) shipped in this same pass. Artefacts under
+  `labeling_supplement/promotion_decisions_out/run_offline_cycle_20260501_235935/`.
 
 ### S2 / S3 / S4 (later sprints)
 

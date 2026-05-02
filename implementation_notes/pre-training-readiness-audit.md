@@ -124,11 +124,76 @@ each.
 
 ### 0.3 New / promoted action items from the SFT discovery
 
-* **T1.1′ (closed-pending-verification)** — write a 30-min exact-match probe script that loads `schema_gen` over Qwen3.5-35B-A3B, runs it on a held-out slice of `labeling/output/grounding/{gymv,env_wrappers,browser}/` triples, and reports the schema-match rate against the milestone thresholds. Target file: `evaluation/probe_schema_gen_exact_match.py`.
+* **T1.1′ (executed 2026-05-02 — both §13 thresholds missed; root cause is target-modules drift on the LoRA, see T2.11 below).** Probe at `evaluation/probe_schema_gen_exact_match.py` ran end-to-end on `n=5` held-out gymv triples with `--max-new-tokens 768` against `runs/sft_schema_gen/schema_gen_20260430_091831/`. Result: `exact_match_rate = 0.000 (0/5)`, `path_a_accept_rate = 0.000 (0/5)`, `overall_field_acc = 0.000`, elapsed = 1241 s. Report at `runs/sft_coldstart/_probe/probe_schema_gen_n5.json`. **The thresholds are missed *because the LoRA delta isn't being applied*, not because the SFT under-learned** — see T2.11.
 * **T2.7 (curator overfit mitigation)** — see §3.7.
 * **T2.8 (vLLM topology check)** — see §3.8.
 * **T2.9 (run-wide SFT manifest)** — see §3.9.
-* **T2.10 (audit `*.partial_*` shards)** — see §3.10.
+* **T2.10 (audit `*.partial_*` shards)** — **closed 2026-05-02.** `evaluation/smoke_load_sft_adapters.py` ran on all six adapters (5× Qwen3.5-9B + 1× Qwen3.5-35B-A3B) with `device_map="auto"`, dtype=bfloat16, sharded across GPUs 0-3 under the active vLLM tower (~40 GB free per GPU). Every adapter loaded, ran one forward pass, and produced finite logits on the expected shape `(1, 2, 248320)`. **No torn `*.partial_*` shards detected.** Report at `runs/sft_coldstart/_smoke/smoke_all.json`.
+* **T2.12 (NEW — SFT throughput uplift, 2026-05-02).** Re-running the six SFT jobs (T2.11 remedy) needs the slow-loop scaffold to actually be fast. Audited the kernel/optimizer stack and landed three drop-in upgrades + flagged two CUDA-toolkit-bound items:
+
+    | Win | Status | Where |
+    |---|---|---|
+    | **liger-kernel** Qwen3.5 / Qwen3.5-MoE / Qwen3-VL fused patches (CE / RMSNorm / RoPE) | ✅ installed (`liger-kernel`); auto-applied via `trainer/SFT/speed_utils.py::apply_liger_kernel`. Both train scripts call it before model load. | new `trainer/SFT/speed_utils.py` |
+    | **Paged AdamW 8-bit** optimizer (cuts optimizer memory ~4×) | ✅ installed (`bitsandbytes` 0.49.2); `pick_optim()` defaults to `"paged_adamw_8bit"` when bnb is available, else `"adamw_torch_fused"`. Plumbed into both train scripts via `--optim` (or auto-pick). | `trainer/SFT/{train,schema_gen/train}.py` |
+    | **TF32 + group-by-length + dataloader workers + pin-memory** (no-deps wins) | ✅ default-on. Both train scripts call `enable_tf32()` and pass `group_by_length=True`, `dataloader_pin_memory=True`, `dataloader_num_workers=4` (override via `--dataloader_workers`). | both train scripts |
+    | **flash-attn 2** (full-attention layer fast path) | ❌ *blocked*: torch built against CUDA 13.0 but only the 12.8 host toolkit is installed (`/usr/local/cuda → cuda-12.8`, no `nvcc`). Need CUDA-13 toolkit (or matching pre-built wheel) before `pip install flash-attn` can build. | infra task |
+    | **mamba_ssm + causal_conv1d** (linear-attention CUDA kernels — biggest single Qwen3.5 win, ~5–10× on the GatedDeltaNet path) | ❌ *blocked* on the same CUDA-toolkit mismatch. Without these the linear-attention layers fall back to a Python recurrence loop. | infra task |
+
+    **Batch-size / gradient-checkpoint defaults (Levers A + C).** Audited the per-adapter overrides in `trainer/SFT/config.py` and bumped them so every cold-start adapter now uses **`batch_size=16, grad_accum=1`** (effective batch held at 16 for loss-curve continuity with the previous schedule):
+
+    | Adapter | Before | After | Same effective batch? |
+    |---|---|---|---|
+    | `skill_selection` / `action_taking` | bs=16 ga=1 | bs=16 ga=1 | yes (already optimal) |
+    | `segment` | bs=4 ga=4 | **bs=16 ga=1** | yes — ~25 % wall-clock gain |
+    | `contract` | bs=8 ga=2 | **bs=16 ga=1** | yes |
+    | `curator` | bs=4 ga=4 | **bs=16 ga=1** | yes — biggest wall-clock win (15 epochs × small corpus) |
+
+    Cold-start `gradient_checkpointing` default flipped from `True` → **`False`** — at bs=16, seq=2048, paged_adamw_8bit, the 9B base + ungated activations land around ~35 GB on the H200's 143 GB. Buys another ~30–40 % throughput. The 35B-A3B `schema_gen` path keeps `gradient_checkpointing=True` (separate `SchemaGenConfig` field; that base genuinely needs it).
+
+    **Lever B exposed via CLI.** Added `--scale_effective_batch <factor>` and `--scale_lr <factor>` flags to `trainer/SFT/train.py` so a caller can opt past effective-16 with the linear-LR-scale rule baked in (e.g. `--scale_effective_batch 2.0 --scale_lr 2.0` → effective-32 + 4e-4). Defaults stay at 1.0 so loss curves don't drift silently.
+
+    **Multi-GPU per adapter (Lever D — 8× H200 utilisation).** The earlier parallel launcher pinned one adapter to one GPU; with 8 H200s and 5 cold-start adapters, three GPUs sat idle. Added `--gpus_per_adapter N` to `trainer/SFT/train.py`: when `>1`, each adapter is launched under `accelerate launch --num_processes N` so HF Trainer data-parallels via DDP. Effective batch becomes `per_device_bs × N × grad_accum` so the call should be paired with `--scale_lr N` (linear-scale rule). Schedule examples on 8 H200s:
+
+    | Recipe | Adapters / chunk | Wall-clock vs. 1-GPU-each baseline |
+    |---|---|---|
+    | `--gpus_per_adapter 1` (default) | 5 chunks of 1 GPU; 3 GPUs idle | 1.0× (baseline) |
+    | `--gpus_per_adapter 2 --scale_lr 2.0` | 4 chunks of 2 GPUs; 5 adapters round-robined → chunk[0] gets two adapters | ~1.7× faster (each adapter ~2× via DDP, but chunk[0] does two sequentially) |
+    | `--gpus_per_adapter 4 --scale_lr 4.0` | 2 chunks of 4 GPUs; chunks get 3 + 2 adapters sequentially | ~2-3× faster — biggest single jump |
+    | `--gpus_per_adapter 8 --scale_lr 8.0` | 1 chunk of 8 GPUs; adapters trained sequentially under DDP | ~2× faster vs. 1-GPU-each baseline; useful when wanting tightest LR re-tune |
+
+    For the **`schema_gen` 35B-A3B path** the existing
+    `bash trainer/SFT/schema_gen/run_schema_gen.sh --num-gpus N` launcher already
+    wraps DeepSpeed ZeRO-3 (config at
+    `trainer/SFT/schema_gen/configs/ds_zero3.yaml`). With 4× H200 the 70 GB bf16
+    base shards into ~18 GB chunks per GPU, leaving ~125 GB headroom — `bs=4 ga=4`
+    is comfortably feasible (was `bs=1 ga=16`). All T2.11/T2.12 changes (correct
+    LoRA recipe, liger-kernel, paged-AdamW) flow through transparently because
+    they're model-side, not launcher-side.
+
+    **Expected uplift on the SFT re-run (no CUDA-toolkit unblock):**
+    * Lever A (collapse grad_accum into bs): ~10–25 %
+    * Lever C (no gradient_checkpointing): ~30–40 %
+    * Liger-kernel + paged-8bit + tf32 + group-by-length: ~30–40 % (on top, partially overlapping)
+
+    Combined: **~1.7–2.2× wall-clock on the 9B cold-start path** before any CUDA-13 toolkit work. **With toolkit unblock (flash-attn + mamba_ssm):** another 2–3× on the linear-attention-heavy 35B-A3B `schema_gen` run.
+
+* **T2.11 (LoRA target-modules drift between SFT-time and load-time) — *recipe fix landed 2026-05-02; SFT re-run still required*.** During T2.10 the smoke transformers warned about "missing adapter keys" on every adapter — `linear_attn.{out_proj, in_proj_qkv}` and `mlp.{gate_proj, up_proj, down_proj}` for many layers. Quantitatively the LoRA params actually loaded into the cold-start 9B adapters total **36.96 M** and the schema_gen 35B-A3B total **8.36 M**. Expected order-of-magnitude (r=16 × hidden×2 × n_target_modules × n_layers) is ~42 M for the 9B adapters (≈87 % loaded — borderline) and ~36 M for schema_gen (only ≈23 % loaded — three quarters of the LoRA delta is silently dropped).
+
+    **Root cause (confirmed by inspecting `transformers/models/qwen3_5/modeling_qwen3_5.py`).** Qwen3.5's `Qwen3_5DecoderLayer` is a *hybrid* block: each layer is one of two types selected by `config.layer_types[i]`. `"full_attention"` layers expose the classic `q_proj/k_proj/v_proj/o_proj`; `"linear_attention"` layers expose `linear_attn.{in_proj_qkv, in_proj_z, in_proj_b, in_proj_a, out_proj}` (a Mamba-style GatedDeltaNet). Both layer types share `mlp.{gate_proj, up_proj, down_proj}`. The classic seven-projection `target_modules` carried forward from Qwen2/Qwen3 recipes matches *zero* GatedDeltaNet legs, so on Qwen3.5-35B-A3B (mostly linear-attention layers) only the few full-attention layers + every MLP got a LoRA. PEFT's substring matching is silent on a miss, so the trainer never noticed. Empirically: schema_gen recipe used the classic-7 → 23 % coverage; cold-start recipes added only `in_proj_qkv` + `out_proj` → 87 % coverage (the missing 13 % is `in_proj_z` + `in_proj_b` + `in_proj_a`).
+
+    **Remedy landed (2026-05-02).** New module [`trainer/SFT/lora_targets.py`](../trainer/SFT/lora_targets.py) is the single source of truth for Qwen-family `target_modules`:
+    * `QWEN3_5_LORA_TARGETS` — full hybrid-stack list, **12 entries**: `q,k,v,o_proj` + `in_proj_{qkv,z,b,a}` + `out_proj` + `gate,up,down_proj`. Resolver returns this for any `text_arch` containing `qwen3_5` (covers `qwen3_5`, `qwen3_5_moe`, `qwen3_5_text`).
+    * `QWEN_CLASSIC_LORA_TARGETS` — classic-7, returned for every other Qwen family (Qwen2/2.5/3 dense and MoE, Qwen3-VL, Qwen3-VL-MoE).
+    * `assert_lora_coverage(peft_model, model_arch, …)` — post-`get_peft_model` sanity check that counts wrapped layers per projection name; aborts in strict mode when any required leg has zero matches. **Eliminates the silent-miss class of bugs.**
+
+    All three SFT pipelines now resolve through this module:
+    * `trainer/SFT/config.py::SFTConfig.resolve_target_modules` → delegates.
+    * `trainer/SFT/schema_gen/config.py::SchemaGenConfig.resolve_target_modules` (new method) → delegates; the hardcoded classic-7 default that caused the bug has been removed.
+    * `trainer/coevolution/config.py::prepare_adapters` → delegates (the live GRPO loop now writes/reads the same LoRA shape as SFT, fixing a second silent drift at the SFT→GRPO boundary). The earlier "skip the tiny `in_proj_a/b/z` gating projections" comment was wrong about `in_proj_z` (whose output dim is `value_dim`, not `num_v_heads` — it's the same size as `out_proj`).
+    * `configs/skillbank_lora.yaml` — updated to the 12-entry list.
+    * Tests: [`tests/test_lora_targets.py`](../tests/test_lora_targets.py) — 7 new tests cover Qwen3.5 leg presence, classic-Qwen list shape, explicit-override priority, fallback for unknown archs, and both passing + failing branches of `assert_lora_coverage`. All pass.
+
+    **Outstanding work — re-run the six SFT jobs against the corrected recipe.** The on-disk weights from the previous run *cannot* be salvaged (the dropped legs were never trained → no on-disk tensor to rewrite into the new namespace; option (b) "key-rewriter" from §0.3 is therefore ruled out). Options (a) re-train and (c) transformers downgrade remain; (a) is the chosen path because it both fixes the recipe and aligns SFT-time with GRPO-time forever. **T1.1′ remains blocked until SFT re-runs complete.**
 
 ### 0.4 New action items from the lane decision (T1.3 closed → lane (a))
 
