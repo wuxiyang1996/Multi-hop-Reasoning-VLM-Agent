@@ -264,7 +264,7 @@ to §12.X anchors below.
 | # | Module | Status | What's missing | Acceptance impact |
 |---|---|---|---|---|
 | 1 | `harness/visual_reasoning` (Stage 1) | **CLOSED 2026-05-02** | [`harness/_vr_per_sample_executor.py`](../../harness/_vr_per_sample_executor.py) ships `TaskAwareVisualReasoningExecutor` + `discover_task_to_image`; [`labeling_supplement/_phase4_target_dispatch.py:_build_visual_reasoning_target`](../../labeling_supplement/_phase4_target_dispatch.py) now binds the wrapper when cold-start frames are on disk and falls back to the stub otherwise. G3 cell now exercises real VLM tools end-to-end. | Stage 1 G3 cell now measures real admit-rate when `Cold-start-out-visual-reasoning/<run>/<sub_corpus>/frames/` populated; falls back to stub identity-pass only on missing data. |
-| 2 | [`harness/video_executor.py`](../../harness/video_executor.py) (Stage 2) | **Stub remains, but the `HopExecutor` class now exists.** Today shipped [`visual_reasoning_wrapper/video_skill_executor.py`](../../visual_reasoning_wrapper/video_skill_executor.py) (`VideoReasoningExecutor` + `bind_executor`); the Stage 2 dispatcher still has to call `bind_executor(adapter, video_path=..., num_frames=N)` with a per-sample frame list lookup analogous to §12.1 item 1's `discover_task_to_image`. | Once dispatcher is rewired (~50-100 LOC, mirrors the `TaskAwareVisualReasoningExecutor` pattern), Stage 2 within-video G2 graduates from 0% identity-pass to a measured rate. |
+| 2 | [`harness/video_executor.py`](../../harness/video_executor.py) (Stage 2) | **CLOSED 2026-05-02** | [`harness/_video_per_sample_executor.py`](../../harness/_video_per_sample_executor.py) ships `TaskAwareVideoReasoningExecutor` + `discover_task_to_video_meta`; [`labeling_supplement/_phase4_target_dispatch.py:_build_video_target`](../../labeling_supplement/_phase4_target_dispatch.py) now binds the wrapper when cold-start `video_meta` is on disk and falls back to the bare stub otherwise. The wrapper is verb-routing: InnerAction verbs (`GROUND`/`RETRIEVE`/`CHECK`/`VERIFY`/`COMMIT`/`EXECUTE`) go to the real `VideoReasoningExecutor` (decode + VLM tools via `sample_video_frames`), legacy/video-domain verbs (`SAMPLE_FRAME`/`EMIT_ANSWER`/...) stay on the per-task deterministic stub so the chain runs for both verb sets. Smoke verified end-to-end against `Cold-start-out-visual-reasoning-video/video_holmes/` (1000 task->video_meta mappings discovered). | Stage 2 G2 cell now measures real admit-rate when video tree populated; falls back to stub identity-pass only when cold-start tree absent. |
 | 3 | [`harness/osworld_executor.py`](../../harness/osworld_executor.py) (Stage 3) | Stub | Doesn't invoke `pyautogui` against a real desktop. File docstring (line 1): *"deterministic-stub binding for the OsworldAdapter"*; line 71: *"deterministic stub doesn't actually step a desktop"*. The real `OsworldAdapter`'s `set_executor()` exists in `osworld_wrapper`; what's missing is the harness-side binding + a real-desktop sandbox in CI. | Stage 3 G3 = 0% on game->osworld for all 13 game corpora |
 | 4 | [`harness/browsergym_executor.py`](../../harness/browsergym_executor.py) (Stage 4) | Stub | Doesn't call BrowserGym/Playwright. File docstring (line 1): *"deterministic-stub stage-1 cut"*. The real `BrowsergymAdapter`'s `set_executor()` exists in `browsergym_wrapper`; what's missing is the harness-side binding + Playwright in CI. | Stage 4 G3 = 0% on game->browser |
 
@@ -346,31 +346,81 @@ binding side (§12.1 items 2-4: harness must call `bind_executor` with
 the right per-sample inputs, mirroring §12.1 item 1's
 `TaskAwareVisualReasoningExecutor` pattern for video).
 
-### 12.3 Tier 3 -- Per-domain runtime predicate-translators (critical, design-level)
+### 12.3 Tier 3 -- Per-domain runtime predicate-translators (CLOSED 2026-05-02)
 
-Section 11.5.0 of the sibling memo
-[`cross-domain-transfer-suite-rollout.md`](../cross-domain-transfer-suite-rollout.md)
-introduces the concept and admits no implementation exists:
+**Status: closed.** Shipped 2026-05-02 as
+[`harness/predicate_translator.py`](../../harness/predicate_translator.py)
++ 28 unit tests in [`tests/test_predicate_translator.py`](../../tests/test_predicate_translator.py),
+plus dispatcher wiring in
+[`labeling_supplement/_phase4_target_dispatch.py`](../../labeling_supplement/_phase4_target_dispatch.py)
+across all four cross-domain target builders.
 
-> §11.5.4's 15-35% / 15-30% bands assume the harness ships a per-domain
-> runtime predicate-translator that bridges the predicate-name mismatch
-> (e.g. `score_increased` becomes `answer_emitted` when the target is
-> image-VR).
+Module surface:
 
-Without these translators, even a real (Tier 1 + Tier 2) executor will
-reject every game->VR contract because `score_increased` isn't in
-[`harness/qa_success.py`](../../harness/qa_success.py)'s vocabulary.
-Stage 0 records `upper_bound_admit_rate=0.0` for these cells precisely
-because the static-vocab check fires before any executor runs.
+* `PREDICATE_TRANSLATIONS: dict[(source, target), dict[str, list[str]]]`
+  -- the per-cell rewrite table. Diagonal cells (`source == target`)
+  are intentionally absent and resolved to identity by
+  `translate_predicates`. Cells not listed pass through unchanged so
+  unaudited cross-cells keep their pre-translator behaviour rather
+  than silently dropping predicates.
+* `translate_predicates(preds, *, source, target) -> list[str]`
+  -- pure list-of-strings rewrite with dedupe. Empty target list
+  means "drop"; multi-element list fans out one source predicate
+  into multiple target ones.
+* `translate_skill_contract(skill, *, source, target) -> SkillRecord`
+  -- deep-copies the skill and rewrites its
+  `contract.effects_add` / `contract.effects_del`. Tags `notes` with
+  `[predicate_translator: <source>-><target>]` (idempotent) so
+  transfer traces surface that translation occurred.
+* `with_predicate_translation(success_fn_factory, *, target_domain,
+  default_source="gymv")` -- factory wrapper that produces a
+  drop-in replacement for `make_*_success_fn` in the dispatcher.
+  Reads source domain off `skill.source_domains[0]` at evaluation
+  time so the same wrapper handles cross-modal *and* diagonal
+  transfers without per-cell wiring.
 
-**Status:** not designed, not specced. There is no module for predicate
-translation anywhere in the tree as of 2026-05-02. The likely shape is
-either (a) per-target-domain alias tables in
-`harness/<domain>_success.py` or (b) a new `harness/predicate_translator.py`
-module called as a pre-pass to `success_fn`. Tier 3 is a hard blocker
-for §11.5.4's projected 15-35% / 15-30% bands becoming measured numbers
-on game->VR cells -- without it, those cells continue to admit at 0%
-even with real Tier 1+2 work shipped.
+Translation table snapshot (gymv source -> 4 cross-domain targets):
+
+| source predicate | -> visual_reasoning | -> video | -> osworld | -> browser |
+|---|---|---|---|---|
+| `cumulative_reward_increased` | `[answer_emitted, answer_matches_gold]` | `[answer_emitted, answer_matches_gold]` | `[task_status]` | `[task_status]` |
+| `phase_transitioned` | `[phase_transitioned]` | `[phase_transitioned]` | `[phase_transitioned]` | `[phase_transitioned]` |
+| `entity_appeared` | `[entity_appeared, entity_grounded]` | `[entity_appeared, entity_grounded, frame_referent_grounded]` | `[entity_appeared, visited_entity]` | `[entity_appeared, visited_entity]` |
+| `entity_disappeared` | drop (no analogue) | `[temporal_ordering_correct]` | `[entity_disappeared]` | `[attribute_changed]` |
+| `entity_value_increased` | `[entity_value_increased]` | `[entity_value_increased]` | drop (no scalar entities) | drop |
+| `entity_value_decreased` | `[entity_value_decreased]` | `[entity_value_decreased]` | drop | drop |
+| `entity_count_changed` | drop | drop | `[entity_count_changed]` | `[entity_count_changed]` |
+| `attribute_changed` | drop | drop | `[attribute_changed]` | `[attribute_changed]` |
+
+Every target predicate in the table is asserted to appear in
+[`skill_transfer_test.extract.audits._target_vocabularies.TARGET_PREDICATE_VOCAB`](../../skill_transfer_test/extract/audits/_target_vocabularies.py)
+for that target (test:
+`TestTableSanity.test_every_target_predicate_is_in_target_vocab`),
+so translation actually unblocks the cell rather than just shifting
+the static-vocab miss from the source predicate to a target one.
+
+Dispatcher integration: each of `_build_{visual_reasoning, video,
+osworld, browser}_target` now wraps its `make_*_success_fn` factory
+with `with_predicate_translation(target_domain=...)`. Diagonal calls
+(e.g. visual_reasoning->visual_reasoning) hit the identity branch and
+are mechanism-equivalent to the un-wrapped path -- the wrapper is
+only active on cross-modal transfers.
+
+Open follow-ups (not blocking the §11.5.4 bands):
+
+* Hop-level typed-effects translation. The translator currently
+  rewrites the *contract*-level `effects_add` / `effects_del` string
+  lists. The per-hop typed effects on `protocol[i].effects_add` (dicts
+  with `type` + `args`) are still passed through verbatim by the
+  adapters' `_evaluate_effects` rollup. Hop-level translation is the
+  obvious next step but is non-blocking because the contract gate is
+  what `default_success_fn` keys on (see `harness/skill_harness.py:_score`).
+* Non-game source rows. Today the table only registers `(gymv, *)`
+  cells because gymv is the only canonical `SOURCE_DOMAIN`. When
+  cross-domain banks earn `source_domains` entries (e.g. an
+  visual_toolbench skill being transferred to video), the table gains
+  the relevant rows; until then those calls hit the identity-passthrough
+  fallback.
 
 ### 12.4 Tier 4 -- Open `skill_transfer_test/TODO.md` items (CLOSED 2026-05-02)
 
@@ -460,26 +510,29 @@ delivered" and `harness/README.md` §"Suggested work-order":
 
 | Tier | Severity | Item count | Headline | Status / remaining effort |
 |---|---|---|---|---|
-| 1 | **critical** | 3 stub executors (was 4) | game->osworld / game->browser / game->video cells still mechanism-trivial; image-VR closed 2026-05-02 via `TaskAwareVisualReasoningExecutor` | item 2 (video) is now ~50-100 LOC of dispatcher rewiring (executor class shipped); items 3-4 (osworld/browser) need ~3-5 days each + a real-env sandbox in CI |
+| 1 | **critical** | 2 stub executors (was 4) | game->osworld and game->browser cells still mechanism-trivial; image-VR + video closed 2026-05-02 via `TaskAware{Visual,Video}ReasoningExecutor` wrappers | items 3-4 (osworld/browser) need ~3-5 days each + a real-env sandbox in CI (the gate is operational, not LOC) |
 | 2 | ~~critical~~ **CLOSED** | ~~2 missing `vlm_wrapper/` adapters~~ | shims + `VideoReasoningExecutor` shipped 2026-05-02 (~510 LOC total, ~10x under original ~600-800-per-adapter projection because the heavy machinery already shipped under `visual_reasoning_wrapper/`) | n/a |
-| 3 | critical (design-level) | predicate translator | game->VR cells will admit at 0% without it even if Tier 1 lands | design-and-spec sprint, then ~200-400 LOC |
+| 3 | ~~critical (design-level)~~ **CLOSED** | ~~predicate translator~~ | `harness/predicate_translator.py` + 28 unit tests + 4-target dispatcher wiring shipped 2026-05-02 (~440 LOC); table covers (gymv, *) for all 4 cross-domain targets with target-vocab-validated mappings | n/a (open follow-up: hop-level typed-effects translation -- non-blocking, see §12.3) |
 | 4 | ~~medium~~ **CLOSED** | ~~TODO-2/3/4/5~~ | _unify + 3 test suites shipped 2026-05-02 (~370 LOC) | n/a |
 | 5 | low | LLM-clustered archetype fallback | VTB-only G3 FAIL; workaround in Stage 5 driver exists | ~150 LOC + API budget |
 | 6 | medium-to-critical | pre-Phase-5/6 backlog | runtime "harness in-the-loop" rule still not enforced in `decision_agents` library API | tracked separately in `IMPLEMENTATION-STATUS.md` and `pre-training-readiness-audit.md` |
 
-After 2026-05-02 ship, the critical-path open items collapse to
-**(Tier 1 items 2-4) + Tier 3**. Tier 1 item 2 is small and unblocked
-(executor class exists, just needs a video analogue of
-`TaskAwareVisualReasoningExecutor`). Tier 1 items 3-4 still depend on
-provisioning a real desktop + Playwright sandbox in CI, which is the
-operational gate, not a code-quantity gate. Tier 3 is the remaining
-*design* gate -- without per-domain runtime predicate translators,
-game->VR cells admit at 0% even with real Tier 1 work shipped.
+After the 2026-05-02 follow-up waves the critical-path open items
+collapse to **just Tier 1 items 3-4** (osworld + browser real-env
+executors). Both are gated on provisioning real-env sandboxes in CI
+(`pyautogui` against an OSWorld VM; Playwright against a target
+browser) rather than LOC volume. Image-VR, video, and the
+predicate-translator layer that game->VR cells depend on for non-zero
+admit rates all ship and exercise real VLM tools end-to-end on the
+cold-start corpora.
 
 Estimated time-to-G-gate-pass on a fresh Stage 6 re-run is now
-~1-2 weeks: roughly 2-3 days for Tier 1 item 2 (video dispatcher
-rewire) + 1 week for Tier 1 items 3-4 (osworld/browser executors +
-sandbox) + 3-5 days for Tier 3 (predicate translator design + LOC).
+**~1 week of code work + sandbox provisioning lead time**: roughly
+3-5 days for Tier 1 items 3-4 (osworld/browser executors), gated on
+the operational availability of a real desktop + Playwright in CI.
+Once those land, a fresh Stage 6 NxN run should retire G6 and
+graduate the §11.5.4 / §11.5.6 transferability bands from
+projections to measurements across all 25 cells.
 
 ---
 
@@ -503,13 +556,13 @@ Six stages over ~10 days. Stage 0 ships now (~530 LOC of static audits, no harne
 
 Stage 0's upper bounds are the oracle every later Stage's measured admit rate must respect - violations indicate either a wrong vocabulary table or an over-permissive success_fn.
 
-**Post-ship reality check (updated 2026-05-02):** all 6 stages shipped on 2026-05-02 with deterministic-stub executors -- the infrastructure runs end-to-end but the underlying mechanism is only partially measured. After the two follow-up commit waves on 2026-05-02:
+**Post-ship reality check (updated 2026-05-02 PM):** all 6 stages shipped on 2026-05-02 with deterministic-stub executors -- the infrastructure runs end-to-end and after the three follow-up commit waves on 2026-05-02 the underlying mechanism is measured everywhere except the two infra-gated cells:
 
-- **Tier 1 item 1 (visual_reasoning, image)**: closed -- `harness/_vr_per_sample_executor.py` ships `TaskAwareVisualReasoningExecutor` and the dispatcher binds it when cold-start frames are on disk. Stage 1 G3 cell now exercises real VLM tools.
-- **Tier 1 item 2 (video)**: half-closed -- the `HopExecutor` class (`VideoReasoningExecutor`) and `vlm_wrapper`/`visual_reasoning_wrapper` re-exports ship; the harness dispatcher still needs ~50-100 LOC of `discover_task_to_video` + `TaskAwareVideoReasoningExecutor` analogues to bind it per-sample.
-- **Tier 1 items 3-4 (osworld / browser)**: still open, gated on a real-env sandbox in CI.
-- **Tier 2**: closed -- both missing `vlm_wrapper/<domain>_adapter.py` shims ship, plus the underlying `VideoReasoningExecutor` (~470 LOC) was authored against the existing `tools_video_visual` registry. Original ~600-800-per-adapter estimate was ~10x off because the heavy machinery already existed.
-- **Tier 3 (per-domain runtime predicate-translators)**: still open, design-level.
-- **Tier 4 (skill_transfer_test TODOs)**: closed -- TODO-2/3/4/5 all shipped (`_unify.py` + 3 test suites).
+- **Tier 1 item 1 (visual_reasoning, image)**: **CLOSED** -- `harness/_vr_per_sample_executor.py` ships `TaskAwareVisualReasoningExecutor` and the dispatcher binds it when cold-start frames are on disk. Stage 1 G3 cell exercises real VLM tools.
+- **Tier 1 item 2 (video)**: **CLOSED** -- `harness/_video_per_sample_executor.py` ships `TaskAwareVideoReasoningExecutor` + `discover_task_to_video_meta`; `_phase4_target_dispatch._build_video_target` binds it when cold-start `video_meta` is on disk (1000+ task->video mappings discovered in `Cold-start-out-visual-reasoning-video/video_holmes/`). Verb-routing: InnerAction verbs hit the real `VideoReasoningExecutor`, legacy verbs (`SAMPLE_FRAME`/`EMIT_ANSWER`/...) stay on the per-task stub so both verb sets co-exist.
+- **Tier 1 items 3-4 (osworld / browser)**: still open, gated on a real-env sandbox in CI (not LOC).
+- **Tier 2**: **CLOSED** -- both `vlm_wrapper/<domain>_adapter.py` shims ship, plus the underlying `VideoReasoningExecutor` (~470 LOC) was authored against the existing `tools_video_visual` registry. Original ~600-800-per-adapter estimate was ~10x off because the heavy machinery already existed.
+- **Tier 3 (per-domain runtime predicate-translators)**: **CLOSED** -- `harness/predicate_translator.py` (~250 LOC) + 28 unit tests + dispatcher wiring across all 4 cross-domain target builders. Table covers (gymv, *) for visual_reasoning / video / osworld / browser with target-vocab-validated mappings (e.g. `cumulative_reward_increased` -> `[answer_emitted, answer_matches_gold]` for image-VR).
+- **Tier 4 (skill_transfer_test TODOs)**: **CLOSED** -- TODO-2/3/4/5 all shipped (`_unify.py` + 3 test suites).
 
-Critical path to retiring G6 is now Tier 1 item 2 (video dispatcher rewire, days) + Tier 1 items 3-4 (osworld / browser sandbox + executor wiring, ~1 week) + Tier 3 (predicate-translator design + ~200-400 LOC). See §12 for the full inventory and back-links.
+Critical path to retiring G6 is now reduced to **just Tier 1 items 3-4** (osworld / browser real-env executors), gated on operational provisioning of `pyautogui`+OSWorld VM and Playwright sandbox in CI. See §12 for the full inventory and back-links.

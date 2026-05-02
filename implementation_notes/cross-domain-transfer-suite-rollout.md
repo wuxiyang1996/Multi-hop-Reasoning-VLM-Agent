@@ -858,7 +858,7 @@ numbers should not be quoted as evidence of mechanism strength. The
 numbers respect the Stage 0 cap (G6) only on cross-domain-source rows
 where the stub bypass doesn't fire.
 
-See [`phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md) §12 for the canonical, severity-ranked inventory of code-level gaps that block §11.5.4 / §11.5.6 from becoming measurements rather than projections. Status as of 2026-05-02: Tier 1 item 1 (image-VR per-sample binding) and Tier 2 (missing `vlm_wrapper/<domain>_adapter.py` shims + the `VideoReasoningExecutor` they depend on) both **CLOSED**; remaining open work is Tier 1 items 2-4 (video dispatcher + osworld + browser) and Tier 3 (per-domain runtime predicate-translators not yet designed).
+See [`phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md) §12 for the canonical, severity-ranked inventory of code-level gaps that block §11.5.4 / §11.5.6 from becoming measurements rather than projections. Status as of 2026-05-02 PM: Tier 1 items 1-2 (image-VR + video per-sample binding via `TaskAware{Visual,Video}ReasoningExecutor`), Tier 2 (`vlm_wrapper/<domain>_adapter.py` shims + `VideoReasoningExecutor`), and Tier 3 (`harness/predicate_translator.py` with target-vocab-validated game->cross-domain mappings) are all **CLOSED**. Remaining open work is just Tier 1 items 3-4 (osworld + browser real-env executors, gated on CI sandbox provisioning).
 
 ### 11.5.1 Vocabulary alignment between game and cross-domain banks
 
@@ -915,7 +915,7 @@ ever used that label.
  (real)     (default)   (default)   (default)   (default)
 ```
 
-> *(`*` = `harness/adapters/video_adapter.py` is a 28-LOC stub with `set_executor()` plug-point; the `VideoExecutor` mirror of `VisualReasoningExecutor` shipped 2026-05-02 as [`visual_reasoning_wrapper/video_skill_executor.py`](../visual_reasoning_wrapper/video_skill_executor.py) (~470 LOC, reachable via `vlm_wrapper.video_adapter.bind_executor`). What now remains is the dispatcher-side per-sample binding analogue of `harness/_vr_per_sample_executor.py` — see §11.5.5 and `phase5-cross-domain-measurement.md` §12.1 item 2.)*
+> *(`*` = `harness/adapters/video_adapter.py` is a 28-LOC stub with `set_executor()` plug-point; the `VideoReasoningExecutor` mirror of `VisualReasoningExecutor` shipped 2026-05-02 as [`visual_reasoning_wrapper/video_skill_executor.py`](../visual_reasoning_wrapper/video_skill_executor.py) (~470 LOC, reachable via `vlm_wrapper.video_adapter.bind_executor`); the dispatcher-side per-sample binding then shipped as [`harness/_video_per_sample_executor.py`](../harness/_video_per_sample_executor.py) (`TaskAwareVideoReasoningExecutor` + `discover_task_to_video_meta`) and is wired into `_phase4_target_dispatch._build_video_target`. Both image-VR and video Stage cells now exercise real VLM tools end-to-end -- see `phase5-cross-domain-measurement.md` §12.1.)*
 
 Four pluggable per-domain surfaces, all keyed off the universal
 slot-type ontology:
