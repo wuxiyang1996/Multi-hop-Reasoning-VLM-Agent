@@ -533,7 +533,51 @@ def _build_osworld_target(args: argparse.Namespace) -> TargetBuild:
         SkillType.ACTION, SkillType.MIXED,
         SkillType.GROUNDING, SkillType.REASONING,
     )
-    adapter.set_executor(executor)
+    # Try to bind the real-env wrapper that talks to a live
+    # ``happysixd/osworld-docker`` container fleet over HTTP. The
+    # fleet is a pool of N containers (typically 13) discovered via
+    # ``docker ps``; each task_id hash-pins to one container so a
+    # hot loop of hops on the same task hits the same desktop state.
+    # Falls back to the deterministic stub when (a) the cold-start
+    # tree lacks task->meta entries, (b) the docker daemon is
+    # unreachable, or (c) no containers are running.
+    from harness._executor_helpers.osworld_client import OsworldContainerPool
+    from harness._osworld_per_sample_executor import (
+        TaskAwareOsworldExecutor, discover_task_to_osworld_meta,
+    )
+    task_to_osworld_meta = discover_task_to_osworld_meta(
+        cold_start_root, domain_filter=domain_name,
+    )
+    osworld_pool = OsworldContainerPool.from_discovery()
+    if task_to_osworld_meta and osworld_pool is not None:
+        prefer_gdino = bool(getattr(args, "vr_prefer_gdino", False))
+        adapter.set_executor(
+            TaskAwareOsworldExecutor(
+                task_to_osworld_meta,
+                osworld_pool,
+                prefer_gdino=prefer_gdino,
+            )
+        )
+        logger.info(
+            "bound TaskAwareOsworldExecutor with %d task->meta entries "
+            "and %d-container pool (domain=%s, prefer_gdino=%s)",
+            len(task_to_osworld_meta), osworld_pool.size,
+            domain_name, prefer_gdino,
+        )
+    else:
+        adapter.set_executor(executor)
+        if not task_to_osworld_meta:
+            logger.warning(
+                "no cold-start task_meta discovered under %s/<run>/%s/; "
+                "falling back to deterministic stub",
+                cold_start_root, domain_name,
+            )
+        else:
+            logger.warning(
+                "no happysixd/osworld-docker containers running; "
+                "falling back to deterministic stub (start the OSWorld "
+                "container fleet to enable real-env binding)",
+            )
 
     registry = AdapterRegistry()
     registry.register(adapter)
@@ -631,7 +675,47 @@ def _build_browser_target(args: argparse.Namespace) -> TargetBuild:
         SkillType.ACTION, SkillType.MIXED,
         SkillType.GROUNDING, SkillType.REASONING,
     )
-    adapter.set_executor(executor)
+    # Try to bind the real-env wrapper that hosts a Playwright-driven
+    # BrowserGym ``gym.Env`` in a subprocess running in the
+    # ``browsergym`` conda env. The wrapper translates harness-shaped
+    # verbs (``CLICK``/``FILL``/...) into BrowserGym high-level
+    # actions (``click("47")`` etc.) and dispatches InnerAction
+    # verbs (``GROUND``/``CHECK``/...) to a VisualReasoningExecutor
+    # built from each step's screenshot. Falls back to the
+    # deterministic stub when (a) cold-start data lacks the task,
+    # (b) the helper subprocess fails to spawn (missing conda env,
+    # missing playwright, etc.), or (c) ``gym.make`` raises.
+    from harness._browser_per_sample_executor import (
+        TaskAwareBrowserExecutor, discover_task_to_browser_meta,
+    )
+    task_to_browser_meta = discover_task_to_browser_meta(
+        cold_start_root,
+        task_prefix=(task_prefix + "." if task_prefix else None),
+    )
+    if task_to_browser_meta:
+        prefer_gdino = bool(getattr(args, "vr_prefer_gdino", False))
+        browser_conda_env = str(getattr(args, "browser_conda_env", "browsergym"))
+        adapter.set_executor(
+            TaskAwareBrowserExecutor(
+                task_to_browser_meta,
+                conda_env=browser_conda_env,
+                prefer_gdino=prefer_gdino,
+            )
+        )
+        logger.info(
+            "bound TaskAwareBrowserExecutor with %d task->meta entries "
+            "(conda_env=%s, prefer_gdino=%s); helper will spawn lazily "
+            "on first hop",
+            len({m['task_id'] for m in task_to_browser_meta.values()}),
+            browser_conda_env, prefer_gdino,
+        )
+    else:
+        adapter.set_executor(executor)
+        logger.warning(
+            "no cold-start browser_meta discovered under %s/%s.*/; "
+            "falling back to deterministic stub",
+            cold_start_root, task_prefix,
+        )
 
     registry = AdapterRegistry()
     registry.register(adapter)
