@@ -6,6 +6,14 @@
 > triaged, 16 fixed, 1 confirmed-not-a-bug, 1 documented-as-v0-limit.
 > Canonical `SkillBankAgent` path stubbed; gated on API budget.
 >
+> Stage-0 static audits (`audits/vocab_jaccard.py`, `audits/predicate_firing_static.py`,
+> `audits/slot_binding_feasibility.py`, `audits/_runner.py`) shipped 2026-05-02
+> (closes TODO-6); per-corpus `archetype/skill_bank.jsonl` bank kind
+> (`archetype_aggregator.py`) shipped 2026-05-02 (closes TODO-1). All six
+> stages of the Phase-5/6 measurement plan
+> ([`implementation_notes/phase5-cross-domain-measurement.md`](../../implementation_notes/phase5-cross-domain-measurement.md))
+> on `main`.
+>
 > **Quick reproduce:**
 >
 > ```bash
@@ -64,9 +72,33 @@ skill_transfer_test/extract/
 │                                --output-root <path> --run-id <name>
 ├── single_shot_lift.py       ← VTB / TIR-Bench / Video-Holmes / SIV-Bench
 │                                lift driver (LLM-free, rule-based)
-└── sequence_lift.py          ← browsergym / osworld lift driver. Two paths:
-                                 lift_corpus_per_episode  (LLM-free; ships today)
-                                 lift_corpus_with_agent   (canonical, NotImplementedError)
+├── sequence_lift.py          ← browsergym / osworld lift driver. Two paths:
+│                                lift_corpus_per_episode  (LLM-free; ships today)
+│                                lift_corpus_with_agent   (canonical, NotImplementedError)
+├── archetype_aggregator.py   ← 519 LOC. Clusters per-sample skills by
+│                                provenance.cluster_key; emits
+│                                archetype/skill_bank.jsonl (closes TODO-1).
+│                                Shipped 2026-05-02.
+└── audits/                   ← Stage 0 static-feasibility oracle (Phase-5/6
+    │                           plan). Shipped 2026-05-02. Closes TODO-6.
+    ├── __init__.py
+    ├── _loaders.py           ← 292 LOC. Shared bank discovery walks both
+    │                           labeling/skill_bank_out and skill_bank_local.
+    ├── _target_vocabularies.py ← 112 LOC. Aspirational predicate vocabularies
+    │                           per target_domain (visual_reasoning, video,
+    │                           osworld, browser).
+    ├── vocab_jaccard.py      ← 369 LOC. Reproduces §11.5.1 Jaccard tables
+    │                           (game vs cross-domain protocol_ops / slot_types
+    │                           / predicates) at vocab_jaccard.{md,json}.
+    ├── predicate_firing_static.py ← 230 LOC. Per-skill predicate-firing
+    │                           feasibility against target schema.
+    ├── slot_binding_feasibility.py ← 199 LOC. Per-skill slot-type
+    │                           feasibility (which `${slot}` patterns can a
+    │                           given target schema bind?).
+    └── _runner.py            ← 218 LOC. Orchestrates the three audits;
+                                emits cross_domain_results/_phase0/<run_id>/
+                                upper_bounds.csv consumed as the G6 ceiling
+                                by labeling_supplement/_phase4_transfer_report.py.
 ```
 
 ### Output layout
@@ -82,17 +114,26 @@ skill_transfer_test/skill_bank_local/<run_id>/
 │   └── per_episode/skill_bank.jsonl
 ├── siv_bench/
 │   ├── extraction_summary.json
-│   └── per_sample/skill_bank.jsonl                      ← single-shot output
+│   ├── per_sample/skill_bank.jsonl                      ← single-shot output
+│   └── archetype/skill_bank.jsonl                       ← archetype-aggregator output
 ├── tir_bench/
 │   ├── extraction_summary.json
-│   └── per_sample/skill_bank.jsonl
+│   ├── per_sample/skill_bank.jsonl
+│   └── archetype/skill_bank.jsonl
 ├── video_holmes/
 │   ├── extraction_summary.json
-│   └── per_sample/skill_bank.jsonl
+│   ├── per_sample/skill_bank.jsonl
+│   └── archetype/skill_bank.jsonl
 └── visual_toolbench/
     ├── extraction_summary.json
-    └── per_sample/skill_bank.jsonl
+    ├── per_sample/skill_bank.jsonl
+    └── archetype/skill_bank.jsonl
 ```
+
+Three valid output flavours: `per_sample/` (single-shot lift),
+`per_episode/` (sequence lift), and `archetype/` (per-cluster aggregation
+emitted by `archetype_aggregator.py`; provenance carries
+`bank_kind="archetype"` + `n_members` + `member_skill_ids`).
 
 ---
 
@@ -140,8 +181,14 @@ correct          → verified_status / report.overall_pass_rate
 ```
 
 Records are tagged with the corpus's native `archetype_cluster_field`
-when one exists (Video-Holmes `question_type`, SIV-Bench `dimension`,
-VTB `eval_focus`); TIR-Bench has none and ships with `cluster_key=None`.
+(Video-Holmes `question_type`, SIV-Bench `dimension`, VTB `eval_focus`,
+TIR-Bench `raw_sample.task`). TIR-Bench's `archetype_cluster_field`
+landed in v4 per §6.2 Bug 11 (the v3 audit found `raw_sample.{task_type,
+subset, category, ...}` were all None and only `raw_sample.task`
+carried the categorical info); the full_v5 emitted records ship with
+**10-11 distinct task families** (`refcoco`, `rotation_game`, `math`,
+`maze`, `contrast`, `word_search`, `color`, `symbolic`,
+`visual_search`, `instrument`, `ocr`).
 
 ---
 
@@ -356,6 +403,21 @@ two previously-deferred items.
 | 17 | OSWorld action-verb head extraction collapsed every `pyautogui.click(...)` / `pyautogui.hotkey(...)` / `pyautogui.typewrite(...)` to head `pyautogui` (split on the FIRST dot, not the last) — the actually-useful verbs were lost. Same bug in `last_action`. v4 distribution was `{pyautogui:30, DONE:11, WAIT:8, FAIL:4}` — a constant, not a fingerprint | **High** | **fixed v5** — `_action_verb_head` keeps the last dotted segment before the call paren; v5 distribution is `{click:30, press:28, hotkey:19, DONE:11, WAIT:8, doubleClick:5, typewrite:4, FAIL:4, rightClick:1, double_click:1}` |
 | 18 | `skill_id` collisions on cold-start rerun records (1 each in tir_bench / visual_toolbench): re-runs of the same task produced duplicate `skill_id` values | Low | **fixed v5** — `lift_corpus` / `lift_corpus_per_episode` track `seen_skill_ids` and append `#run<N>` suffix on collision; original task_id preserved in `provenance.base_task_id` |
 
+### 6.3a Round 4 (2026-05-02) — Phase-5/6 Stage 0 audit suite
+
+Not a code-bug round: on 2026-05-02 the
+[Phase-5/6 measurement plan](../../implementation_notes/phase5-cross-domain-measurement.md)'s
+Stage 0 oracle shipped, reproducing the §11.5.1 / `skill_transfer_test/README.md` §9.3.1
+Jaccard numbers programmatically and adding two new static-feasibility
+checks. All four scripts live under `extract/audits/`:
+
+| # | Script | What it does |
+|---|---|---|
+| A1 | `audits/vocab_jaccard.py` (369 LOC) | Walks every bank under `labeling/skill_bank_out/` + `skill_transfer_test/skill_bank_local/full_v5/`; computes per-cluster (game vs cross-domain) `protocol_ops` / `slot_types` / `hop_predicates` / `contract_predicates` / `predicates_combined` Jaccard; emits `vocab_jaccard.{md,json}`. Reproduces 0.82 / 1.00 / 0.00 / 0.00 / 0.00 against §11.5.1. |
+| A2 | `audits/predicate_firing_static.py` (~150 LOC) | Per-skill predicate-firing feasibility: which target schemas can satisfy each skill's contract predicates? Emits `predicate_firing_per_skill.jsonl` + `predicate_firing_static.json`. |
+| A3 | `audits/slot_binding_feasibility.py` (~150 LOC) | Per-skill slot-type feasibility: can each `${slot}` placeholder bind under each target's entity vocabulary? Emits `slot_binding_per_skill.jsonl` + `slot_binding_feasibility.json`. |
+| A4 | `audits/_runner.py` (~150 LOC) | Orchestrates A1-A3; emits `cross_domain_results/_phase0/<run_id>/upper_bounds.csv` consumed by `labeling_supplement/_phase4_transfer_report.py` as the G6 acceptance-gate ceiling (`measured <= upper_bound + 0.10`). |
+
 ### 6.4 Round-3 final probe (v5) — checks that came back clean
 
 | Probe | Result |
@@ -508,17 +570,26 @@ fields below are stable; downstream consumers may rely on them.
     "protocol_raw": {"steps": [...], "success_criteria": [...], "abort_criteria": []},
     "contract": {
       "effects_add": [
-        {"predicate_type": "answer_emitted", "args": {"value": "D"}},
-        {"predicate_type": "answer_matches_gold", "args": {"gold": "D"}},
-        {"predicate_type": "entity_grounded", "args": {"e": "e1", "ontology": "tracked_entity"}}
+        {"type": "answer_emitted", "args": {"value": "D"},
+         "from_phrase": "agent emitted answer: D"},
+        {"type": "answer_matches_gold", "args": {"gold": "D"},
+         "from_phrase": "answer matches gold: D"},
+        {"type": "entity_grounded", "args": {"e": "e1", "ontology": "tracked_entity"},
+         "from_phrase": "reasoning chain cites schema entity e1"}
       ],
       "effects_del": []
-    },  // §7 limitation 1 — episode-level only; per-hop predicates pending
+    },  // §7 limitation 1 — episode-level only; per-hop predicates pending.
+        // The discriminator field is "type"; each entry carries a
+        // human-readable "from_phrase" recording which sentence/clause
+        // triggered the predicate (audit aid).
     "provenance": {
       "corpus": "siv_bench",
       "benchmark": "siv_bench",
       "modality": "video",
-      "bank_kind": "per_sample" | "episode",
+      "bank_kind": "per_sample" | "episode" | "archetype",
+      // archetype records add: "n_members": int, "member_skill_ids": [...],
+      // "representative_skill_id": "...", "aggregation": "direct",
+      // "aggregator_version": "v1", "aggregated_at": "...".
       "cluster_key": "Relation Inference" | null,
       // ... (corpus-specific extras)
     },
@@ -552,13 +623,23 @@ fields below are stable; downstream consumers may rely on them.
 
 ## 10. TL;DR
 
-- **Six corpora, two architectures, ~700 LOC, no canonical-lift
+- **Six corpora, two architectures, ~3,820 LOC total, no canonical-lift
   fork.** Single-shot for VR/video QA; sequence-segment per-episode
-  for browser/osworld.
-- **Headline result: full GPT 5.4 cold-start coverage** —
-  1,083 records (885 verified) across env_wrappers, gym_v,
-  browsergym, osworld, vr_image (VTB + TIR-Bench), vr_video
-  (Video-Holmes + SIV-Bench).
+  for browser/osworld. Breakdown: ~1,870 LOC `extract/` lift drivers
+  (`single_shot_lift.py` 792 + `sequence_lift.py` 816 + `runner.py` 108 +
+  `_corpus_specs.py` 124 + `__init__.py` 27 + `tests/`), 519 LOC
+  `archetype_aggregator.py` (clusterer; closes TODO-1; shipped
+  2026-05-02), ~1,440 LOC `audits/` subpackage (Stage 0
+  static-feasibility oracle for the Phase-5/6 measurement plan;
+  shipped 2026-05-02).
+- **Headline result: full GPT 5.4 cold-start coverage** for the four
+  corpora this package owns —
+  1,083 records (885 verified) across **`browsergym + osworld + 4
+  VR/video corpora`** (VTB, TIR-Bench, Video-Holmes, SIV-Bench).
+  Note: the env_wrappers + gym_v records are emitted by
+  [`labeling/extract_skillbank_gpt54.py`](../../labeling/extract_skillbank_gpt54.py),
+  not by this package; this README's scope is the **non-game** half
+  of the unified bank.
 - **smoke_v5 + full_v5 (2026-05-01)** cover all 2,334 GPT 5.4
   cold-start tasks across 6 corpora; 1,083 records / 885 verified;
   fallback rates 0.0%-5.9% (env_wrappers gold ≈ 3%, gym_v ≈ 45.8%);
@@ -579,3 +660,22 @@ fields below are stable; downstream consumers may rely on them.
   (episode-level effect predicates only) and the OSWorld success
   heuristic (Bug 7 / §7 limitation 6) must be quoted in any report
   that consumes these records.
+
+---
+
+## 11. Stage 0 oracle (Phase-5/6 measurement plan)
+
+The four audit scripts in `audits/` ship the static feasibility oracle
+that Stage 1-6 of the
+[Phase-5/6 measurement plan](../../implementation_notes/phase5-cross-domain-measurement.md)
+validates against. Run them via:
+
+```bash
+python -m skill_transfer_test.extract.audits._runner
+```
+
+Outputs land at `cross_domain_results/_phase0/<run_id>/upper_bounds.csv`
+(gitignored). Every later stage's measured admit rate must satisfy
+`measured <= upper_bound + slack(0.10)` (the G6 acceptance gate
+evaluated by
+[`labeling_supplement/_phase4_transfer_report.py`](../../labeling_supplement/_phase4_transfer_report.py)).

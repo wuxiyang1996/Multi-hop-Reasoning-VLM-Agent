@@ -21,10 +21,10 @@
 >
 > | Folder | Path | What | Skills | Coverage |
 > |---|---|---|---:|---|
-> | `labeling/` | `skill_bank_out/run_20260430_030637/` | LLM-driven `SkillBankAgent` lift | ~451 | 4 `env_wrappers` ROMs + 12 `gym_v` ROMs |
+> | `labeling/` | `skill_bank_out/run_20260430_030637/` | LLM-driven `SkillBankAgent` lift | 489 | 4 `env_wrappers` ROMs + 12 `gym_v` ROMs |
 > | `labeling_supplement/` | (ablation pipeline; not a skill-bank emitter) | Crafter proposals / harness IO / per-episode reflections / promotion decisions | n/a | gym_v ablation experiments |
 > | `skill_transfer_test/extract/` | `skill_bank_local/full_v5/` | LLM-free per-corpus lift | **1,083** (885 verified) | All 6 cross-domain corpora |
-> | **TOTAL** | | | **~1,534** | env_wrappers + gym_v + browsergym + osworld + 4 VR/video benchmarks |
+> | **TOTAL** | | | **1,572** | env_wrappers + gym_v + browsergym + osworld + 4 VR/video benchmarks |
 >
 > **Per-corpus full_v5 yield (lifted / cold-start):**
 > browsergym 301/301, osworld 30/30, siv_bench 220/382, tir_bench
@@ -36,10 +36,16 @@
 >   no code yet. Phase 0 is reversible and can start once
 >   [D1–D7](#8-decisions-locked-elsewhere) are confirmed.
 >
-> **Last reviewed:** 2026-05-01.
+> **Last reviewed:** 2026-05-02.
 > **Cross-refs (design rationale lives there, not here):**
 > [`implementation_notes/cross-domain-transfer-suite-rollout.md`](../implementation_notes/cross-domain-transfer-suite-rollout.md) §5.5 (cross-corpus skill bank lift — Phase 1.5),
 > [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](../implementation_notes/harness-usability-and-intra-gymv-transfer.md) (intra-gymv ablation roots),
+> [`implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md) (Phase-5/6 measurement plan; Stages 0-6 shipped 2026-05-02),
+> [`skill_transfer_test/TODO.md`](./TODO.md) (Phase-1.5b status tracker),
+> [`skill_transfer_test/extract/audits/`](./extract/audits/) (Stage 0 oracle subfolder — vocab Jaccard, predicate firing, slot binding feasibility),
+> [`skill_transfer_test/extract/archetype_aggregator.py`](./extract/archetype_aggregator.py) (closes TODO-1; per-corpus archetype bank emitter),
+> [`labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py) (central per-target dispatcher),
+> [`labeling_supplement/_phase5_matrix.py`](../labeling_supplement/_phase5_matrix.py) + [`_phase4_transfer_matrix.py`](../labeling_supplement/_phase4_transfer_matrix.py) + [`_phase4_transfer_report.py`](../labeling_supplement/_phase4_transfer_report.py) (Stage 5/6 NxN matrix driver + report),
 > [`plans/05-harness/PLAN-HARNESS.md`](../plans/05-harness/PLAN-HARNESS.md) §20 (ablations),
 > [`harness/README.md`](../harness/README.md) §16, §17, §21, §22 (audit + suggested work-order),
 > [`labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py) (the driver this folder wraps),
@@ -285,7 +291,7 @@ restated here as work items.
 | **3** gymv real executor | Suggested-work-order #8 (first half) + harness/README §16.1 | smoke through `tests/test_smoke_a0_a4_one_source.py` once executor wired | A0, A1, A2 honest; A3 transferable | needs `GymvAdapter.set_executor` plumbed from `cold_start/generate_cold_start_actor_gymv.py` |
 | **4** Stage 3a probe | Suggested-work-order #8 (second half) | gymv-shape `success_fn` + `FewShotDemo` builder over `labeling/skill_actions_out/.../episode_*.json` | A3 transfer cell active | depends on Phase 2 + Phase 3 |
 | **5** Full sweep + reports | Suggested-work-order #5 (offline half) | `runner.py --cells all --sources <13 games>` + §20.6(a)(b)(c) reports. **This is the first offline promotion cycle** ([`harness/README.md` §17](../harness/README.md)). | A4 reference cell | depends on Phases 1–4 |
-| **6** Cross-domain follow-up | Suggested-work-order #16 | swap `--probe intra_gymv` → `--probe cross_domain` once per-domain executors land; consume Phase-1.5 records as transfer sources | future arena | depends on Phase 5 + Phase 1.5 + each transfer-target adapter |
+| **6** Cross-domain follow-up | Suggested-work-order #16 | swap `--probe intra_gymv` -> `--probe cross_domain`; consume Phase-1.5 records as transfer sources via `python -m labeling_supplement._phase4_transfer_matrix` (NxN matrix driver + G1-G6 acceptance gates) | **shipped 2026-05-02 (deterministic stub)** — Stage 1-4 executors identity-pass predicates rather than touching real envs; G6 fires on game-target cells precisely because the gymv stub identity-passes | depends on Phase 1.5 + reality-grounded executors (deferred follow-up) |
 
 ---
 
@@ -352,6 +358,14 @@ Game banks (489 skills, env_wrappers + gym_v) vs cross-domain bank (1,083 skills
 | Hop-level `effects_add` predicate types | 0.00 surface | **operationally bridgeable** via per-domain schema producers — see §9.3.2 |
 | Contract-level effect predicates | 0.00 surface | same — disjoint vocabularies are an artefact of two effect miners running over two corpora, not a transfer barrier |
 
+> **Reproducible.** This table is regenerated programmatically via
+> `python -m skill_transfer_test.extract.audits.vocab_jaccard` (shipped
+> 2026-05-02); output lands at
+> [`cross_domain_results/_phase0/phase0_canonical/vocab_jaccard.json`](../cross_domain_results/_phase0/phase0_canonical/vocab_jaccard.json)
+> + `vocab_jaccard.md` (44 banks discovered: 38 game, 6 cross-domain;
+> protocol_ops Jaccard=0.82, slot_types=1.00, predicates_combined=0.00 —
+> matches the table above).
+
 Naive read ("0 Jaccard on predicates → no transfer") is **wrong**. The harness does not match predicates by string equality; it calls `evaluate_predicate(predicate_type, pre_state, post_state)` against a per-domain `SchemaProducer` output. `entity_appeared{label='dialog'}` fires when a modal pops up in OSWorld iff the desktop schema producer surfaces a `dialog`-labelled entity attribute — independent of whether any game skill ever used that label.
 
 ### 9.3.2 The harness IS the predicate-translation layer
@@ -377,13 +391,26 @@ Four pluggable per-domain surfaces, all keyed off the universal slot-type ontolo
 
 Real cross-task transfers via `FewShotAdapter`, with both correct admits AND correct rejects (predicates require source-task surface absent in target). **Mechanism works at the within-source-domain task axis.**
 
-### 9.3.4 What's NOT measured yet — calibrated estimates
+### 9.3.4 What's measured today (with stub-tier caveat)
 
-Cross-source-target transfer (game → OSWorld / browser / video / VR) needs three things per target before Phase 6 produces a real number:
-
-1. **Real adapter** for that target (`StubTransferTargetAdapter` echoes today)
-2. **Per-domain schema producer**
-3. **Per-domain `success_fn` registration** + `FewShotDemo` loader
+All three previously-listed Phase-6 prerequisites — real adapter,
+per-domain schema producer, per-domain `success_fn` + `FewShotDemo`
+loader — shipped 2026-05-02 for **all four target domains**
+(`visual_reasoning`, `video`, `osworld`, `browser`); see §9.3.5 for
+the per-target file inventory. **Caveat:** the Stage 1-4 executors
+landed as **deterministic stubs** that identity-pass predicates
+rather than touching real envs — the tool-registry mechanism is
+exercised end-to-end (predicate evaluators run against the
+`_DerivationLog` / schema-producer output) but the executors don't
+yet step a real BrowserGym / OSWorld / VR-tool / video-frame env.
+Replacing them with reality-grounded executors is the next step;
+until then, measured admit rates are upper-bound by what the stub
+can echo. Cross-link:
+[`implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md)
+(measurement-plan memo) +
+[`cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv`](../cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv)
+(Stage 0 static-feasibility upper-bounds; G6 acceptance gate
+evaluates `measured <= upper_bound + 0.10`).
 
 Calibrated estimates (informed by the 67-83% within-gymv admit rate, with mechanism-level discounts):
 
@@ -401,18 +428,27 @@ Calibrated estimates (informed by the 67-83% within-gymv admit rate, with mechan
 - **Experiment B — declarative-reasoning transfer (4×4 within VR/video)**: siv_bench + tir_bench + video_holmes + visual_toolbench as both sources and targets. Same predicate-firing mechanism as Experiment A but evaluated against the tool-registry derivation log; needs `register_success_fn("visual_reasoning", make_qa_success_fn)` to plug MCQ exact-match + LLM-judge scoring.
 - **Experiment C — cross-cluster (game ↔ VR/video)**: previously framed as a negative-result baseline; **the tool-registry mechanism flips this expectation upward to 15-35% (image) / 15-30% (video)** because predicate evaluators run against `_DerivationLog` and grounded-entity tables rather than pre/post env-state diffs. Game-source → VR-destination cells now fold into Experiment A's expected range; only QA-source → game-destination cells remain a genuinely-mismatched cross-cluster cell.
 
-### 9.3.5 What would unblock the measurement
+### 9.3.5 What unblocked the measurement (shipped 2026-05-02)
 
-| File | Deliverable | Phase | LOC |
-|---|---|---|---:|
-| `harness/adapters/osworld_adapter.py` real surface | `set_executor(make_osworld_executor(env))` analogous to `make_gymv_executor` | Phase 5 | ~150 |
-| `harness/desktop_schema_producer.py` (or extension) | Emit `entity_label_count[window]`, `attribute_changed[focused_app]`, `phase=running\|saved\|aborted` from OSWorld step info | Phase 5 | ~200 |
-| `harness/few_shot_demos_osworld.py` | Walk `Cold-start-out-osworld/` to `FewShotDemo[]` with `state` from desktop producer + `bindings` from `pyautogui` action heads | Phase 5 | ~120 |
-| `harness/browsergym_executor.py` + `browser_schema_producer.py` + `few_shot_demos_browsergym.py` + browser_adapter `set_executor()` + `register_success_fn("browser", ...)` | enable game→browser measurement | Phase 2 | ~500 |
-| `harness/few_shot_demos_vr.py` + `harness/qa_success.py` (registers `make_qa_success_fn` for `visual_reasoning`) + `_phase4_transfer_cycle.py --target visual_reasoning` extension | enable game→{VTB, TIR-Bench} measurement. **No adapter work** — `bind_visual_reasoning_executor` already wired to a real 461-LOC `VisualReasoningExecutor`. **No schema producer** — state IS the image+question envelope. | Phase 3 (mostly already shipped) | ~310 |
-| `harness/video_executor.py` (~120-200 LOC port from `VisualReasoningExecutor` against `build_video_visual_registry(frames=...)`) + `harness/few_shot_demos_video.py` + `bind_video_executor` helper in `video_adapter.py` (~10 LOC) + `qa_success_fn` MCQ extension + `_phase4_transfer_cycle.py --target video` extension | enable game→{Video-Holmes, SIV-Bench} measurement. Rollout memo §8.2 ~1100 LOC estimate is measurement-over-specified — schema producer / session module / dedicated test suite are not measurement blockers (image-VR doesn't have them either) | Phase 4 (measurement-blocker subset) | ~310-380 |
+| Owed deliverable | Shipped path | LOC | Caveat |
+|---|---|---:|---|
+| osworld real adapter | `harness/osworld_executor.py` + `harness/osworld_success.py` | ~380 | deterministic stub |
+| osworld schema producer | `harness/osworld_schema_producer.py` | 226 | -- |
+| osworld few-shot demos | `harness/few_shot_demos_osworld.py` | 217 | -- |
+| browser executor + producer + demos + adapter `set_executor` + `register_success_fn` | `harness/browsergym_executor.py` + `harness/browser_schema_producer.py` + `harness/few_shot_demos_browsergym.py` + `harness/browser_success.py` + `harness/adapters/browser_adapter.py` patch | ~700 across 5 | deterministic stub |
+| VR demos + qa_success + cycle `--target visual_reasoning` | `harness/few_shot_demos_vr.py` + `harness/qa_success.py` + `labeling_supplement/_phase4_target_dispatch.py::_build_visual_reasoning_target` | ~310 | bind helper shipped but per-sample image-loading not wired |
+| video executor + demos + bind + qa_success + cycle `--target video` | `harness/video_executor.py` + `harness/few_shot_demos_video.py` + `harness/adapters/video_adapter.py::bind_video_executor` + `harness/video_qa_success.py` + dispatcher branch | ~471 | deterministic mirror of image executor; doesn't decode frames |
 
-Then [`labeling_supplement/_phase4_transfer_cycle.py`](../labeling_supplement/_phase4_transfer_cycle.py) runs end-to-end with `--source castlevania --target osworld --target_task chrome` and produces a real number.
+The unified Stage 6 driver
+`python -m labeling_supplement._phase4_transfer_matrix` runs the full
+NxN matrix today and emits
+`cross_domain_results/_final/<run_id>/_report.md` carrying the G1-G6
+acceptance gates ([`labeling_supplement/_phase4_transfer_report.py`](../labeling_supplement/_phase4_transfer_report.py)).
+Stub-pathology caveat: G6 fires on game-target cells precisely because
+the gymv stub identity-passes predicates — the gate is doing exactly
+what it should. Replacing the Stage 1-4 stubs with reality-grounded
+executors is the next step; admit rates measured before then are
+upper-bounded by what stubs can echo.
 
 ---
 
