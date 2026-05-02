@@ -327,12 +327,23 @@ def _build_visual_reasoning_target(args: argparse.Namespace) -> TargetBuild:
     logger.info("loaded %d VR demo(s) from %s/%s",
                 len(demos), cold_start_root, sub_corpus)
 
+    # Wrap the QA success_fn factory with the per-domain runtime
+    # predicate translator (Phase-5/6 §12.3 / §11.5.0). For game->VR
+    # transfers, the wrapper rewrites the source skill's
+    # contract.effects_{add,del} from game vocabulary
+    # (e.g. cumulative_reward_increased) to VR vocabulary
+    # (answer_emitted, answer_matches_gold) before make_qa_success_fn
+    # evaluates it. Diagonal (visual_reasoning->visual_reasoning) calls
+    # are an identity passthrough.
+    from harness.predicate_translator import with_predicate_translation
     return TargetBuild(
         target_domain="visual_reasoning",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=make_qa_success_fn,
+        success_fn_factory=with_predicate_translation(
+            make_qa_success_fn, target_domain="visual_reasoning",
+        ),
     )
 
 def _build_video_target(args: argparse.Namespace) -> TargetBuild:
@@ -350,6 +361,10 @@ def _build_video_target(args: argparse.Namespace) -> TargetBuild:
     """
     from common.enums import SkillType
     from harness import AdapterRegistry, HarnessConfig, SkillHarness
+    from harness._video_per_sample_executor import (
+        TaskAwareVideoReasoningExecutor,
+        discover_task_to_video_meta,
+    )
     from harness.adapters.video_adapter import VideoAdapter, bind_video_executor
     from harness.few_shot_demos_video import build_demos_from_video_samples
     import harness.video_qa_success  # noqa: F401  registers success_fn factory
@@ -379,7 +394,42 @@ def _build_video_target(args: argparse.Namespace) -> TargetBuild:
         SkillType.GROUNDING,
         SkillType.REASONING,
     )
-    bind_video_executor(adapter, video_meta=None)
+    # Mirror the Stage 1 (image-VR) per-sample binding pattern: discover
+    # the cold-start task->video_meta map and bind a real
+    # TaskAwareVideoReasoningExecutor when at least one mapping is
+    # found. The wrapper routes InnerAction verbs to the real
+    # VideoReasoningExecutor (decode + VLM tools) while legacy
+    # video-domain verbs (SAMPLE_FRAME / EMIT_ANSWER / ...) stay on the
+    # per-task deterministic stub so both verb sets co-exist. When the
+    # cold-start tree is missing (CI without video data) we fall back
+    # to the bare deterministic stub via bind_video_executor so the
+    # chain still runs.
+    task_to_video_meta = discover_task_to_video_meta(
+        cold_start_root, sub_corpus=sub_corpus,
+    )
+    if task_to_video_meta:
+        prefer_gdino = bool(getattr(args, "vr_prefer_gdino", False))
+        num_frames = int(getattr(args, "video_num_frames", 8))
+        adapter.set_executor(
+            TaskAwareVideoReasoningExecutor(
+                task_to_video_meta,
+                num_frames=num_frames,
+                prefer_gdino=prefer_gdino,
+            )
+        )
+        logger.info(
+            "bound TaskAwareVideoReasoningExecutor with %d task->video_meta "
+            "mapping(s) for sub_corpus=%s (num_frames=%d, prefer_gdino=%s)",
+            len(task_to_video_meta), sub_corpus, num_frames, prefer_gdino,
+        )
+    else:
+        bind_video_executor(adapter, video_meta=None)
+        logger.warning(
+            "no cold-start video_meta found under %s/%s/sample_*.json; "
+            "falling back to bare deterministic stub (chain will run "
+            "but InnerAction hops identity-pass)",
+            cold_start_root, sub_corpus,
+        )
 
     registry = AdapterRegistry()
     registry.register(adapter)
@@ -405,12 +455,20 @@ def _build_video_target(args: argparse.Namespace) -> TargetBuild:
         len(demos), cold_start_root, sub_corpus,
     )
 
+    # See _build_visual_reasoning_target for the rationale; video uses
+    # the same translator with target_domain="video" (which has the
+    # full visual_reasoning vocab plus temporal_ordering_correct +
+    # frame_referent_grounded -- so e.g. entity_disappeared maps to
+    # temporal_ordering_correct here vs. dropped for image-VR).
+    from harness.predicate_translator import with_predicate_translation
     return TargetBuild(
         target_domain="video",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=make_video_qa_success_fn,
+        success_fn_factory=with_predicate_translation(
+            make_video_qa_success_fn, target_domain="video",
+        ),
     )
 
 def _build_osworld_target(args: argparse.Namespace) -> TargetBuild:
@@ -496,12 +554,21 @@ def _build_osworld_target(args: argparse.Namespace) -> TargetBuild:
         len(demos), cold_start_root, domain_name,
     )
 
+    # Per-step OSWorld success_fn wrapped with the per-domain
+    # predicate translator (Phase-5/6 §12.3). gymv->osworld is mostly
+    # identity (osworld's vocab covers most game predicates by name)
+    # plus cumulative_reward_increased -> task_status and dropping
+    # entity_value_increased / decreased (no scalar-value entities on
+    # the desktop).
+    from harness.predicate_translator import with_predicate_translation
     return TargetBuild(
         target_domain="osworld",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=make_osworld_per_step_success_fn,
+        success_fn_factory=with_predicate_translation(
+            make_osworld_per_step_success_fn, target_domain="osworld",
+        ),
     )
 
 
@@ -585,12 +652,19 @@ def _build_browser_target(args: argparse.Namespace) -> TargetBuild:
         len(demos), cold_start_root, task_prefix,
     )
 
+    # See _build_osworld_target for the rationale; browser uses the
+    # same translator with target_domain="browser" (which lacks
+    # entity_disappeared in its vocab -> remapped to attribute_changed,
+    # the closest DOM-level analogue).
+    from harness.predicate_translator import with_predicate_translation
     return TargetBuild(
         target_domain="browser",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=make_browser_per_step_success_fn,
+        success_fn_factory=with_predicate_translation(
+            make_browser_per_step_success_fn, target_domain="browser",
+        ),
     )
 
 
