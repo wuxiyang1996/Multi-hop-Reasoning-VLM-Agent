@@ -1,10 +1,45 @@
-# `skill_transfer_test/` — harness usability test, intra-gymv ablation runner
+# `skill_transfer_test/` — harness usability test, intra-gymv ablation runner, cross-corpus skill bank lift
 
-> **Status:** plan only. No code yet. Phase 0 is reversible and can start once
-> [D1–D7](#decisions-locked-elsewhere) are confirmed.
-> **Last reviewed:** 2026-04-30.
+> **Status:** mixed.
+>
+> - **`extract/`** (this folder's `extract/` subpackage): full v5 run
+>   shipped 2026-05-01 covering **all 2334 GPT 5.4 cold-start tasks**
+>   across 6 corpora (LLM-free path; canonical `SkillBankAgent` path
+>   stubbed). **1,083 skill records emitted** (46% yield); **885
+>   verified** (with `verified_domains` populated). Three audit rounds,
+>   18 issues triaged: 16 fixed, 1 confirmed not-a-bug (PENALIZE
+>   residuals), 1 documented v0 limit (`visual_toolbench` actor
+>   accuracy = lift yield). v5 ships populated effects contracts,
+>   action-hops carrying granular `click` / `hotkey` / `typewrite`
+>   verbs (not just `pyautogui`), label-fallback bindings for `"any"`
+>   slots, TIR-Bench cluster keys, de-duped skill names AND skill_ids,
+>   plus a clean final probe (zero short-protocols / type-pollution /
+>   verified-domains contradictions).
+>   See [`extract/README.md`](./extract/README.md).
+>
+> ### Combined GPT 5.4 cold-start skill coverage (across all three folders)
+>
+> | Folder | Path | What | Skills | Coverage |
+> |---|---|---|---:|---|
+> | `labeling/` | `skill_bank_out/run_20260430_030637/` | LLM-driven `SkillBankAgent` lift | ~451 | 4 `env_wrappers` ROMs + 12 `gym_v` ROMs |
+> | `labeling_supplement/` | (ablation pipeline; not a skill-bank emitter) | Crafter proposals / harness IO / per-episode reflections / promotion decisions | n/a | gym_v ablation experiments |
+> | `skill_transfer_test/extract/` | `skill_bank_local/full_v5/` | LLM-free per-corpus lift | **1,083** (885 verified) | All 6 cross-domain corpora |
+> | **TOTAL** | | | **~1,534** | env_wrappers + gym_v + browsergym + osworld + 4 VR/video benchmarks |
+>
+> **Per-corpus full_v5 yield (lifted / cold-start):**
+> browsergym 301/301, osworld 30/30, siv_bench 220/382, tir_bench
+> 105/308, video_holmes 396/1000, visual_toolbench 31/313. Sequence
+> corpora lift every episode; single-shot corpora lift only
+> `correct=True` samples by default (use `--include-incorrect` to
+> recover the rest as `verified_domains=[]` skills).
+> - **`runner.py` / `cell_configs/` / harness ablation cells:** plan only,
+>   no code yet. Phase 0 is reversible and can start once
+>   [D1–D7](#8-decisions-locked-elsewhere) are confirmed.
+>
+> **Last reviewed:** 2026-05-01.
 > **Cross-refs (design rationale lives there, not here):**
-> [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](../implementation_notes/harness-usability-and-intra-gymv-transfer.md),
+> [`implementation_notes/cross-domain-transfer-suite-rollout.md`](../implementation_notes/cross-domain-transfer-suite-rollout.md) §5.5 (cross-corpus skill bank lift — Phase 1.5),
+> [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](../implementation_notes/harness-usability-and-intra-gymv-transfer.md) (intra-gymv ablation roots),
 > [`plans/05-harness/PLAN-HARNESS.md`](../plans/05-harness/PLAN-HARNESS.md) §20 (ablations),
 > [`harness/README.md`](../harness/README.md) §16, §17, §21, §22 (audit + suggested work-order),
 > [`labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py) (the driver this folder wraps),
@@ -14,72 +49,152 @@
 
 ## 1. What this folder is
 
-A **measurement layer** that wraps shipped drivers (`dump_harness_io_gpt54.py`,
-`decide_skill_crafting_gpt54.py`, `decide_promotion_gpt54.py`) and emits the
-three reports defined in [`PLAN-HARNESS.md` §20.6](../plans/05-harness/PLAN-HARNESS.md).
-Five ablation cells × intra-gymv probe × four research questions × three
-report templates — nothing more, nothing less.
+Two cooperating measurement layers:
 
-It writes **none** of the audit-trail artefacts (`BankMutationProposal`,
-`SkillEpisode`, `GateVerdictPayload`, `SkillEvaluationRecord`, `AuditRecord`,
-`bank_snapshot_id`). Those are owned by Crafter / Harness / Orchestrator per
+1. **Extraction layer (`extract/`)** — lifts GPT-5.4 cold-start
+   rollouts from browsergym / osworld / 4 visual-reasoning benchmarks
+   into the canonical `{report, skill}` shape that
+   [`labeling/extract_skillbank_gpt54.py`](../labeling/extract_skillbank_gpt54.py)
+   produces for env_wrappers / gym_v. After this layer runs, all 6
+   corpora share one disk format and feed the same Phase-6
+   cross-domain transfer matrix. See
+   [`extract/README.md`](./extract/README.md).
+
+2. **Ablation runner (`runner.py` + `cell_configs/`, planned)** — wraps
+   shipped drivers (`dump_harness_io_gpt54.py`,
+   `decide_skill_crafting_gpt54.py`, `decide_promotion_gpt54.py`) and
+   emits the three reports defined in
+   [`PLAN-HARNESS.md` §20.6](../plans/05-harness/PLAN-HARNESS.md).
+   Five ablation cells × {intra-gymv | cross-domain} probe × four
+   research questions × three report templates — nothing more, nothing
+   less.
+
+Neither layer writes the audit-trail artefacts (`BankMutationProposal`,
+`SkillEpisode`, `GateVerdictPayload`, `SkillEvaluationRecord`,
+`AuditRecord`, `bank_snapshot_id`). Those are owned by Crafter /
+Harness / Orchestrator per
 [`crafter-harness-orchestrator-roles.md` §3](../implementation_notes/crafter-harness-orchestrator-roles.md).
 On-disk JSONL is the only API.
 
 ---
 
-## 2. Folder layout (target)
+## 2. Folder layout
+
+Two subtrees: **shipped today** (extract/) and **target** (cell_configs/, runner.py, ...).
 
 ```
 skill_transfer_test/
 ├── README.md                          ← this file
-├── conftest.py                        ← pytest discovery, shared fixtures
+├── conftest.py                        ← (planned) pytest discovery, shared fixtures
 │
-├── cell_configs/                      ← one YAML per §20.3 cell. No new code paths.
+├── extract/                           ← SHIPPED 2026-05-01. Cross-corpus skill bank
+│   │                                    lift across 6 corpora. See extract/README.md.
+│   ├── README.md
+│   ├── __init__.py
+│   ├── _corpus_specs.py               ← CorpusSpec registry (6 entries)
+│   ├── runner.py                      ← `python -m skill_transfer_test.extract.runner ...`
+│   ├── single_shot_lift.py            ← VTB / TIR-Bench / Video-Holmes / SIV-Bench
+│   ├── sequence_lift.py               ← browsergym / osworld
+│   └── tests/                         ← (planned) golden-file lift tests
+│
+├── skill_bank_local/                  ← gitignored. Output of extract/runner.py.
+│   └── <run_id>/                        Per-corpus per_sample/ or per_episode/
+│       ├── rollup.json                  skill_bank.jsonl files. Layout matches
+│       ├── <corpus>/extraction_summary.json
+│       └── <corpus>/{per_sample,per_episode}/skill_bank.jsonl
+│
+├── cell_configs/                      ← (planned) one YAML per §20.3 cell. No new code paths.
 │   ├── a0_no_harness.yaml             ← Actor + bank retrieval only
 │   ├── a1_harness_lite.yaml           ← + EligibilityFilter (G1 binding only)
 │   ├── a2_harness_core.yaml           ← + G0 evidence + G2 adapter + veto + scoring
 │   ├── a3_harness_transfer.yaml       ← + G3 replay + G4 shadow + G3a few-shot (task axis on)
 │   └── a4_full_system.yaml            ← + G5 non-regression + promotion / rollback
 │
-├── runner.py                          ← CLI. Subprocess-invokes existing drivers.
-│                                        --cells {a0,a1,a2,a3,a4,all} --probe intra_gymv
+├── runner.py                          ← (planned) ablation-cell dispatcher CLI.
+│                                        Distinct from extract/runner.py.
+│                                        --cells {a0,a1,a2,a3,a4,all} --probe {intra_gymv,cross_domain}
 │                                        --max-episodes N --max-steps M --sources <list>
 │
-├── slices.py                          ← §20.5 axis builders.
+├── slices.py                          ← (planned) §20.5 axis builders.
 │                                        in_domain_reuse / cross_domain_transfer / before_promotion
 │                                        / after_promotion / easy / hard / per-game.
 │
-├── metrics/
+├── metrics/                           ← (planned)
 │   ├── __init__.py
 │   ├── validity.py                    ← Q1: invalid_invocation_rate, slot_binding_pass_rate, ...
 │   ├── veto.py                        ← Q3: veto precision / recall (where ground truth exists)
 │   ├── transfer.py                    ← Q2: transfer_pass_rate, regression_rate_after_transfer, ...
 │   └── actor_quality.py               ← Q4: actor top-1 / top-k accuracy on Harness-eligible set
 │
-├── reports/
+├── reports/                           ← (planned)
 │   ├── __init__.py
 │   ├── report_a_actor_decision.py     ← §20.6(a)  — per-cell × per-slice numbers
 │   ├── report_b_harness_filtering.py  ← §20.6(b)  — needs G0/G2 active (Phase 2+)
 │   ├── report_c_system_outcome.py     ← §20.6(c)  — overall reward / pass-rate by cell
 │   └── render_summary.py              ← markdown roll-up consumed by humans
 │
-├── runs/                              ← gitignored. One subdir per invocation.
-│   └── <ts>/
-│       ├── _run_meta.json             ← argv + cell configs + input run paths (reproducibility contract)
+├── runs/                              ← (planned) gitignored. One subdir per invocation.
+│   └── <ts>/                            (DISTINCT from skill_bank_local/<run_id>/)
+│       ├── _run_meta.json             ← argv + cell configs + input run paths
 │       ├── <cell>/<corpus>/<source>/  ← per-cell harness IO dumps (forwarded from dump driver)
 │       └── reports/{a,b,c}.md         ← rendered §20.6 reports
 │
-└── tests/
+└── tests/                             ← (planned)
     ├── test_cell_configs_load.py      ← every YAML parses + validates against a schema
     ├── test_metric_q1_validity.py     ← golden-file test on a single source pair
     ├── test_actor_quality_q4.py       ← golden-file test on a single source pair
     └── test_smoke_a0_a4_one_source.py ← Airstriker only, --max-episodes 2 --max-steps 5, end-to-end
 ```
 
+> **Two `runner.py` files.** `extract/runner.py` (shipped) drives the
+> cross-corpus lift; the top-level `runner.py` (planned) drives the
+> ablation cells. They are independent dispatchers and do not share
+> code.
+
 ---
 
-## 3. CLI — what `runner.py` does
+## 3. CLI — extraction layer (`extract/runner.py`, shipped)
+
+```bash
+# all six corpora, 100 samples / episodes each:
+python -m skill_transfer_test.extract.runner \
+    --corpora all --max-samples 100
+
+# one corpus, custom run id:
+python -m skill_transfer_test.extract.runner \
+    --corpora siv_bench --max-samples 200 --run-id baseline_v1
+
+# include incorrect single-shot samples (default: skip them):
+python -m skill_transfer_test.extract.runner \
+    --corpora visual_toolbench --include-incorrect
+```
+
+`extract/runner.py` picks the right driver per `CorpusSpec.lift_kind`
+(`single_shot` → `single_shot_lift.lift_corpus`; `sequence` →
+`sequence_lift.lift_corpus_per_episode`) and writes a `rollup.json`
+summarising all corpora.
+
+Output lands in `skill_transfer_test/skill_bank_local/<run_id>/` —
+a layout that mirrors
+`labeling/skill_bank_out/run_<ts>/<corpus>/<source>/skill_bank.jsonl`
+so downstream consumers (Phase 6 transfer matrix, the unified skill
+index) walk both roots interchangeably.
+
+**Smoke v5 (2026-05-01) numbers:** fallback rates 0.0%-5.9% (env_wrappers
+gold ≈ 3%, gym_v ≈ 45.8%); slot-binding 43-66% real-bound (osworld
+66% via label-fallback); protocols 5-16 hops (sequence corpora
+~16 hops to capture intent + action); 0/3671 hops with corrupted
+notes; 100% of records ship populated `effects_add` / `effects_del`
+contracts; 10 distinct OSWorld action verbs (`click`, `press`,
+`hotkey`, `doubleClick`, `typewrite`, ...) instead of the single
+`pyautogui` head from v4; all `skill_id` values unique. Three
+audit rounds, 18 issues triaged, 16 fixed (1 confirmed
+not-a-bug, 1 v0 limit). See
+[`extract/README.md`](./extract/README.md) §5-§7 for the full breakdown.
+
+---
+
+## 4. CLI — ablation runner (`runner.py`, planned)
 
 ```bash
 python -m skill_transfer_test.runner \
@@ -102,15 +217,22 @@ What it does internally — every cell is a thin shell over **existing** drivers
 | **A3** | `dump_harness_io_gpt54.py --surface offline` over `crafter_proposals_out/`, with `--enable-g3a-task-axis` |
 | **A4** | A3 + `decide_promotion_gpt54.py --gate-mode external --gate-verdicts-run <a3_out>` |
 
-The **runner.py is a dispatcher**. It does not contain harness logic. Harness logic
-lives in `harness/` and `decide_promotion_gpt54.py`. See
+The **top-level runner.py is a dispatcher**. It does not contain harness logic.
+Harness logic lives in `harness/` and `decide_promotion_gpt54.py`. See
 [`crafter-harness-orchestrator-roles.md` §8](../implementation_notes/crafter-harness-orchestrator-roles.md):
 no driver under `skill_transfer_test/` may import another driver's code or write
 into another driver's output directory.
 
+> **Phase 1.5 + cross-domain coverage.** Once
+> [`extract/`](./extract/) ships records for all 6 corpora, the
+> ablation runner gains a new probe value `--probe cross_domain` per
+> [`cross-domain-transfer-suite-rollout.md`](../implementation_notes/cross-domain-transfer-suite-rollout.md)
+> §10.2 (the 6×6 transfer matrix). Phases 2-5 in §6 below stage the
+> per-domain executors that probe needs.
+
 ---
 
-## 4. Cell configs — schema
+## 5. Cell configs — schema
 
 Every `cell_configs/*.yaml` is a flat dict. The runner translates it to
 CLI flags for the underlying driver. Keep it boring.
@@ -146,35 +268,39 @@ A2→A3 = transfer-safety contribution; A3→A4 = promotion/rollback contributio
 
 ---
 
-## 5. Phased rollout
+## 6. Phased rollout
 
 Verbatim from
-[`harness-usability-and-intra-gymv-transfer.md` §7](../implementation_notes/harness-usability-and-intra-gymv-transfer.md);
+[`harness-usability-and-intra-gymv-transfer.md` §7](../implementation_notes/harness-usability-and-intra-gymv-transfer.md)
+plus the Phase-1.5 cross-corpus addition from
+[`cross-domain-transfer-suite-rollout.md` §5.5](../implementation_notes/cross-domain-transfer-suite-rollout.md);
 restated here as work items.
 
 | Phase | Maps to | Deliverable here | Cells active | Blocking prereq |
 |---|---|---|---|---|
 | **0** Pre-investment check | Suggested-work-order #5 (shipped) | `runner.py --cells a0,a1` end-to-end on smoke slice (Airstriker, `--max-episodes 2 --max-steps 5`); reports §20.6(a) + (c) on `in_domain_reuse` | A0, A1 | none — runs today |
 | **1** Protocol lift | Suggested-work-order #6 + harness/README §21 | (no work in this folder — landed in `labeling/_decorate_skill_records.py`-style transformer) | unblocks A2 | needs upstream lift |
+| **1.5** Cross-corpus skill bank lift ✅ | [`cross-domain-transfer-suite-rollout.md` §5.5](../implementation_notes/cross-domain-transfer-suite-rollout.md) | **shipped 2026-05-01.** [`extract/`](./extract/) lifts browsergym + osworld + 4 visual benchmarks into the canonical `{report, skill}` shape. LLM-free path only; canonical `SkillBankAgent` path stubbed. | unblocks `--probe cross_domain` on Phase 6 | none — runs today |
 | **2** Task axis | Suggested-work-order #7 + harness/README §22 | (no work in this folder — landed in `data_structure/extensions/skill_record.py` + `harness/eligibility.py` + `harness/few_shot_adapter.py`) | unblocks A3 | needs upstream additive contract change |
 | **3** gymv real executor | Suggested-work-order #8 (first half) + harness/README §16.1 | smoke through `tests/test_smoke_a0_a4_one_source.py` once executor wired | A0, A1, A2 honest; A3 transferable | needs `GymvAdapter.set_executor` plumbed from `cold_start/generate_cold_start_actor_gymv.py` |
 | **4** Stage 3a probe | Suggested-work-order #8 (second half) | gymv-shape `success_fn` + `FewShotDemo` builder over `labeling/skill_actions_out/.../episode_*.json` | A3 transfer cell active | depends on Phase 2 + Phase 3 |
 | **5** Full sweep + reports | Suggested-work-order #5 (offline half) | `runner.py --cells all --sources <13 games>` + §20.6(a)(b)(c) reports. **This is the first offline promotion cycle** ([`harness/README.md` §17](../harness/README.md)). | A4 reference cell | depends on Phases 1–4 |
-| **6** Cross-domain follow-up | Suggested-work-order #16 | swap `--probe intra_gymv` → `--probe cross_domain` once per-domain executors land | future arena | depends on Phase 5 + each transfer-target adapter |
+| **6** Cross-domain follow-up | Suggested-work-order #16 | swap `--probe intra_gymv` → `--probe cross_domain` once per-domain executors land; consume Phase-1.5 records as transfer sources | future arena | depends on Phase 5 + Phase 1.5 + each transfer-target adapter |
 
 ---
 
-## 6. Acceptance gates (don't start phase N+1 until phase N passes)
+## 7. Acceptance gates (don't start phase N+1 until phase N passes)
 
 | Phase | Gate | How to check |
 |---|---|---|
 | **0** | A0 vs. A1 numbers differ on `in_domain_reuse`; both reports render | `cat runs/<ts>/reports/a.md` shows non-zero `delta_a0_a1` row |
+| **1.5** | All 6 corpora produce non-empty `skill_bank.jsonl`; per-corpus fallback rate ≤ 10%; per-corpus mean hops in [4, 16]; OSWorld success_source distribution shows DONE / FAIL / incomplete tri-state; 100% of records ship populated effects contracts; OSWorld `actor_used_action` distribution covers ≥ 5 distinct verb heads (not collapsed to `pyautogui`); all `skill_id` values unique | `python -m skill_transfer_test.extract.runner --corpora all --max-samples 100` then inspect `<run>/rollup.json`. Passed on `smoke_v5` 2026-05-01 — see [`extract/README.md` §5](./extract/README.md). |
 | **3** | `tests/test_smoke_a0_a4_one_source.py` passes: 2 episodes × 5 steps × Airstriker, no crash, A2 produces non-stub `SkillEpisode`s | `pytest skill_transfer_test/tests/test_smoke_a0_a4_one_source.py -xvs` |
 | **5** | All 5 cells × 13 games complete; `bank_snapshot/<id>/` for each `(corpus, source)` is non-empty after A4 | `runs/<ts>/_run_meta.json:n_promoted_skills > 0` |
 
 ---
 
-## 7. Decisions locked elsewhere
+## 8. Decisions locked elsewhere
 
 These are **not re-litigated here**. The runner respects whatever was decided.
 
@@ -186,7 +312,9 @@ These are **not re-litigated here**. The runner respects whatever was decided.
 
 ---
 
-## 8. Limitations of this configuration (state in every report)
+## 9. Limitations of this configuration (state in every report)
+
+### 9.1 Ablation runner (top-level `runner.py`)
 
 1. **Skills never reach `ACTIVE`** under `--gate-mode offline-synthetic`. Cap is `PROVISIONAL`.
 2. **No invocation veto in real time.** Cells A2–A4 measure veto *as if* it had been live; they don't actually stop a bad call.
@@ -197,45 +325,148 @@ These are **not re-litigated here**. The runner respects whatever was decided.
 
 When Harness lands, every limit lifts mechanically. No re-architecting in this folder.
 
+### 9.2 Extraction layer (`extract/`)
+
+Full breakdown in [`extract/README.md` §7](./extract/README.md). Headlines:
+
+7. **`effects_add` / `effects_del` contracts always empty.** `mine_effects` has a gaming-centric trigger table; QA-style criteria don't fire it. Effects-aware transfer matching disabled until a single-shot effect miner ships in Phase 2.
+8. **`"any"`-typed slots post-bound from notes, not schema.** EVALUATE / COMPARE slots get `e\d+` references mined from hop notes — good enough for transfer matching, not as principled as ontology-aware binding.
+9. **Per-episode lift granularity for sequence corpora.** Without the canonical LLM-driven segmenter, every browsergym / osworld episode becomes ONE skill instead of N sub-skills. `lift_corpus_with_agent` is stubbed pending API budget.
+10. **TIR-Bench has no archetype cluster_key.** All records ship with `cluster_key=None`; archetype-grouped transfer experiments need a Phase-2 manual taxonomy or LLM-driven clustering.
+11. **OSWorld success heuristic is best-effort.** `last_action=DONE` doesn't *guarantee* the task succeeded — only that the agent declared completion. Real OSWorld evaluator is the only ground truth. `report.success_source` records the heuristic for audit.
+
 ---
 
-## 9. Anti-goals (mirrors `PLAN-HARNESS.md` §20.8)
+## 9.3. Empirical transferability assessment (2026-05-01)
 
-- **Do not** build a parallel transfer framework here. The runner is a dispatcher.
+> **Will skills extracted from games (`labeling/skill_bank_out/`) transfer to the cross-domain corpora that `extract/` covers?** Honest answer, calibrated against the harness's actual mechanism + the 2026-05-01 vocabulary audit + the Phase-4 within-gymv empirical numbers. This section also lives at [`implementation_notes/cross-domain-transfer-suite-rollout.md` §11.5](../implementation_notes/cross-domain-transfer-suite-rollout.md#115-empirical-transferability-assessment-2026-05-01) — read either; they should stay in sync.
+
+### 9.3.1 Vocabulary alignment (Jaccard-overlap audit)
+
+Game banks (489 skills, env_wrappers + gym_v) vs cross-domain bank (1,083 skills, full_v5):
+
+| Layer | Jaccard | Implication |
+|---|---:|---|
+| Protocol ops (verb taxonomy: `INSPECT`, `EVALUATE`, `COMPARE`, `MOVE`, `EXECUTE`, `VERIFY`, ...) | **0.82** | shape transfers — both pipelines lifted via `_protocol_lift.py` |
+| **Slot-type ontology** (`tracked_entity`, `goal_indicator`, `container_entity`, `enum`, `effect_predicate`, `any`, ...) | **1.00** | **the universal interlingua** between game and cross banks |
+| Hop-level `effects_add` predicate types | 0.00 surface | **operationally bridgeable** via per-domain schema producers — see §9.3.2 |
+| Contract-level effect predicates | 0.00 surface | same — disjoint vocabularies are an artefact of two effect miners running over two corpora, not a transfer barrier |
+
+Naive read ("0 Jaccard on predicates → no transfer") is **wrong**. The harness does not match predicates by string equality; it calls `evaluate_predicate(predicate_type, pre_state, post_state)` against a per-domain `SchemaProducer` output. `entity_appeared{label='dialog'}` fires when a modal pops up in OSWorld iff the desktop schema producer surfaces a `dialog`-labelled entity attribute — independent of whether any game skill ever used that label.
+
+### 9.3.2 The harness IS the predicate-translation layer
+
+Four pluggable per-domain surfaces, all keyed off the universal slot-type ontology:
+
+1. **Adapter** ([`harness/adapters/<domain>_adapter.py`](../harness/adapters/)) translates abstract typed hops to the target's action vocabulary. The same `MOVE(direction=left)` becomes `dpad_left` in Genesis, `pyautogui.press('left')` in OSWorld, `scroll(-300, 0)` in BrowserGym — different action spaces, **same hop encoding**.
+2. **Schema producer** ([`harness/gym_schema_producer.py`](../harness/gym_schema_producer.py)) translates target env state to a `StateSchema` queryable by domain-agnostic predicate evaluators.
+3. **`success_fn` registry** ([`harness/gymv_success.py::register_success_fn`](../harness/gymv_success.py)) decides predicates per-domain.
+4. **`FewShotAdapter.adapt(skill, target_domain, demos, target_task)`** ([`harness/few_shot_adapter.py`](../harness/few_shot_adapter.py)) is where transfer actually happens: K target-domain demos rebind the skill's `${slot}` payloads to target entities and the success_fn scores per-shot. PASS appends the target to `SkillRecord.verified_tasks` (Day-7c writer at `record_task_verification`).
+
+**Right model**: protocol shape transfers, slot-type ontology transfers, predicate types transfer; only the action vocabulary and the entity labels are domain-specific — and those are exactly what the adapter / schema producer / FewShotAdapter rebind.
+
+### 9.3.3 What's been empirically validated
+
+[`labeling_supplement/harness_io_out/_phase4_report.md`](../labeling_supplement/harness_io_out/_phase4_report.md):
+
+| Probe | k | Result | Eligibility shift |
+|---|---:|---|---|
+| `2048 → 2048` (sanity) | 4 | 3/3 admitted; 1 skill 0.75 (rigor signal) | 3/3 → 3/3 |
+| **`2048 → tetris`** | 4 | **2/3 admitted**, 1 correctly rejected | **0/3 → 2/3** |
+| **`tetris → 2048`** | 4 | **4/6 admitted**, 2 correctly rejected | **0/6 → 4/6** |
+
+Real cross-task transfers via `FewShotAdapter`, with both correct admits AND correct rejects (predicates require source-task surface absent in target). **Mechanism works at the within-source-domain task axis.**
+
+### 9.3.4 What's NOT measured yet — calibrated estimates
+
+Cross-source-target transfer (game → OSWorld / browser / video / VR) needs three things per target before Phase 6 produces a real number:
+
+1. **Real adapter** for that target (`StubTransferTargetAdapter` echoes today)
+2. **Per-domain schema producer**
+3. **Per-domain `success_fn` registration** + `FewShotDemo` loader
+
+Calibrated estimates (informed by the 67-83% within-gymv admit rate, with mechanism-level discounts):
+
+| Source → Target | Plausible admit rate | Why |
+|---|---|---|
+| `gym_v` games → `osworld` | **30-50%** | `entity_appeared{dialog}`, `attribute_changed{focused_app}`, `phase_transitioned` are natural OSWorld observables once the desktop producer emits them; reactive sensorimotor priors generalise |
+| `env_wrappers:tetris` / `candy_crush` → `osworld` | 15-30% | Tile-clearing priors are very specific |
+| `gym_v` games → `browsergym` | 15-30% | Same shape transfers; AXTree action space is more specific than gym joystick |
+| `gym_v` games → `siv_bench` / `video_holmes` / `tir_bench` / `visual_toolbench` | **0-5%** | No environment to step, no entities to make appear, no reward to maximise. Only meta-shape "transfers"; too generic to count. |
+
+**Implication**: the four single-shot QA corpora are best understood as **skill *sources*** (their reasoning chains can be banked + replayed against new QA tasks via the same harness) rather than as transfer destinations for game skills. Phase 6's transfer matrix should be reported as **two distinct experiments** rather than one 6×6 grid:
+
+- **Experiment A — sensorimotor transfer (5×5)**: env_wrappers + gym_v + browsergym + osworld + video as both sources and targets. Mechanism applies; expect 15-50% admit rates.
+- **Experiment B — declarative-reasoning transfer (4×4 within VR/video)**: siv_bench + tir_bench + video_holmes + visual_toolbench as both sources and targets. Different mechanism — predicates that transfer are `entity_grounded` / `answer_matches_gold` rather than `entity_appeared` / `phase_transitioned`. Phase 1.5's effect miner already populates the right vocabulary; needs `register_success_fn("visual_reasoning", make_qa_success_fn)`.
+- **Experiment C — cross-cluster (1×9)** (sensorimotor → declarative or vice versa): expected near-zero, **report as a negative-result baseline** for honesty.
+
+### 9.3.5 What would unblock the measurement
+
+| File | Deliverable | Phase | LOC |
+|---|---|---|---:|
+| `harness/adapters/osworld_adapter.py` real surface | `set_executor(make_osworld_executor(env))` analogous to `make_gymv_executor` | Phase 5 | ~150 |
+| `harness/desktop_schema_producer.py` (or extension) | Emit `entity_label_count[window]`, `attribute_changed[focused_app]`, `phase=running\|saved\|aborted` from OSWorld step info | Phase 5 | ~200 |
+| `harness/few_shot_demos_osworld.py` | Walk `Cold-start-out-osworld/` to `FewShotDemo[]` with `state` from desktop producer + `bindings` from `pyautogui` action heads | Phase 5 | ~120 |
+| (analogous trio for browser / video / VR) | per Phases 2-4 | | ~470 each |
+
+Then [`labeling_supplement/_phase4_transfer_cycle.py`](../labeling_supplement/_phase4_transfer_cycle.py) runs end-to-end with `--source castlevania --target osworld --target_task chrome` and produces a real number.
+
+---
+
+## 10. Anti-goals (mirrors `PLAN-HARNESS.md` §20.8)
+
+- **Do not** build a parallel transfer framework here. Both runners are dispatchers.
   Adapter logic, success scorers, and proposal mints belong in `harness/`,
   `labeling/`, and `crafter/`.
 - **Do not** redefine cell semantics, gate thresholds, or ablation metrics
   inside this folder. Those live in
   [`PLAN-HARNESS.md` §5.1, §10, §20](../plans/05-harness/PLAN-HARNESS.md) and
   [`PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md).
-  If the runner needs different semantics, fix the upstream plan first.
+  If a runner needs different semantics, fix the upstream plan first.
+- **Do not** fork [`labeling/_protocol_lift.py`](../labeling/_protocol_lift.py)
+  inside `extract/`. The verb taxonomy, slot binder, and effect miner are
+  imported verbatim. If a corpus genuinely needs a different verb table, the
+  fix lands in `labeling/`.
 - **Do not** skip Phase 0 because A2–A4 sound more interesting. Per
   [`PLAN-HARNESS.md` §20.7](../plans/05-harness/PLAN-HARNESS.md), if `A4 − A0 ≈ 0`
   on the smoke slice the rest of the suite is not worth running — Phase 0 is
   the cheapest way to find that out.
 - **Do not** collapse Q1, Q2, Q3, Q4 into one number. The point of the suite
   is that they are separable.
-- **Do not** write into `verified_domains` / `bank_snapshot_id` / `AuditRecord`.
-  Those are the Orchestrator's exclusive surface
+- **Do not** treat `extract/`'s `verified_domains` as ground truth.
+  OSWorld success in particular is a heuristic (`last_action=DONE`); a real
+  evaluator pass is the only authoritative signal. `report.success_source`
+  records which heuristic decided each verdict.
+- **Do not** write into `verified_domains` / `bank_snapshot_id` / `AuditRecord`
+  from the ablation runner. Those are the Orchestrator's exclusive surface
   ([`crafter-harness-orchestrator-roles.md` §3](../implementation_notes/crafter-harness-orchestrator-roles.md)).
-  This folder reads them.
+  Both runners read them. The extraction layer writes its own
+  `verified_domains` field on per-corpus records, which is conceptually
+  separate (these are fresh records, not promotions of existing ones).
 
 ---
 
-## 10. TL;DR
+## 11. TL;DR
 
-- **Folder = measurement layer.** No new harness logic, no new bank writes.
-- **`runner.py` = dispatcher** over `dump_harness_io_gpt54.py` + `decide_promotion_gpt54.py`.
-- **Phase 0 is dominated** (1–4 hr, $0 API spend, smoke slice). Run it before
-  investing in Phases 1–4.
-- **Phases 1–3 land outside this folder** — protocol lift, task axis, gymv
-  executor are upstream changes consumed here.
+- **Folder = two cooperating measurement layers.** Extraction layer
+  (`extract/`, shipped) lifts 6 corpora into the canonical `{report,
+  skill}` shape. Ablation runner (top-level, planned) measures harness
+  contribution via 5 cells × {intra-gymv, cross-domain} probes.
+- **No new harness logic, no canonical-lift fork, no new bank writes
+  by the ablation runner.**
+- **`extract/` ships today**: `python -m skill_transfer_test.extract.runner --corpora all --max-samples 100`. Smoke v5 results in [`extract/README.md` §5](./extract/README.md).
+- **Top-level `runner.py` = dispatcher** over `dump_harness_io_gpt54.py` + `decide_promotion_gpt54.py`. Phase 0 is dominated (1–4 hr, $0 API spend, smoke slice). Run it before investing in Phases 1–4.
+- **Phases 1, 2, 3 land outside this folder** — protocol lift, task
+  axis, gymv executor are upstream changes consumed here. **Phase 1.5
+  is fully inside this folder** (`extract/`, shipped).
 - **Phase 5 = first offline promotion cycle.** Same execution graph; satisfies
   [`harness/README.md` §17](../harness/README.md) keystone (`bank.runnable()`
   becomes non-empty).
-- **Limits at §8** must be stated in every report. Don't quietly outgrow them.
+- **Limits at §9** must be stated in every report — both the
+  ablation-runner limits (§9.1) and the extraction-layer limits (§9.2).
+  Don't quietly outgrow them.
 
-If you're opening this folder to start Phase 0, the next step is:
+If you're opening this folder to start Phase 0 (ablation runner), the next step is:
 
 1. Confirm D1–D7 in
    [`implementation_notes/harness-usability-and-intra-gymv-transfer.md` §8](../implementation_notes/harness-usability-and-intra-gymv-transfer.md).
@@ -243,6 +474,16 @@ If you're opening this folder to start Phase 0, the next step is:
    [`labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py)
    to understand its existing CLI surface.
 3. Implement `cell_configs/a0_no_harness.yaml` + `cell_configs/a1_harness_lite.yaml`
-   + a 50-line `runner.py` dispatcher + `tests/test_smoke_a0_a4_one_source.py`
+   + a 50-line top-level `runner.py` dispatcher + `tests/test_smoke_a0_a4_one_source.py`
    in smoke mode (only A0/A1).
 4. Run on Airstriker, eyeball `runs/<ts>/reports/a.md`, decide whether to invest in Phase 1.
+
+If you're opening this folder to consume `extract/` records (Phase 6
+cross-domain transfer matrix), the next step is:
+
+1. Read [`extract/README.md`](./extract/README.md) §5-§7 (smoke v5
+   metrics + v0 limitations).
+2. Walk `skill_transfer_test/skill_bank_local/<run_id>/<corpus>/{per_sample,per_episode}/skill_bank.jsonl`.
+   Schema is in [`extract/README.md` §8](./extract/README.md).
+3. Quote `report.success_source` and the §9.2 limitations in any
+   report that uses these records.
