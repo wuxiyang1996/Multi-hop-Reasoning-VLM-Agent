@@ -65,6 +65,9 @@ from harness.gymv_success import (
     success_fn_for_domain,
 )
 from harness.qa_success import make_qa_success_fn, qa_answer_matches  # noqa: F401
+from harness.osworld_executor import make_osworld_executor  # noqa: F401
+from harness.osworld_schema_producer import make_osworld_producer  # noqa: F401
+from harness.osworld_success import make_osworld_per_step_success_fn  # noqa: F401
 from harness.rejected_skill_sink import FlushReport, RejectedSkillSink
 from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
@@ -125,6 +128,9 @@ __all__ = [
     "initial_state_from_env",
     "make_gaming_env_producer",
     "make_gymv_executor",
+    "make_osworld_executor",
+    "make_osworld_per_step_success_fn",
+    "make_osworld_producer",
     "make_per_step_success_fn",
     "make_video_executor",
     "make_video_qa_success_fn",

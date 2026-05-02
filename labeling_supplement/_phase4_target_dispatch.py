@@ -369,10 +369,96 @@ def _build_video_target(args: argparse.Namespace) -> TargetBuild:
         success_fn_factory=make_video_qa_success_fn,
     )
 
-# Placeholder until Stage 3 lands `_build_osworld_target`.
-_build_osworld_target: TargetBuilder = _stage_not_shipped(
-    "Stage 3 (osworld)", "osworld", "Section 6",
-)
+def _build_osworld_target(args: argparse.Namespace) -> TargetBuild:
+    """OSWorld desktop transfer cell.
+
+    Mirror of :func:`_build_gymv_target` for the OSWorld target. The
+    deterministic-stub executor (no real ``pyautogui``) keeps the
+    dispatch chain firing so the per-hop success_fn evaluates
+    effects against the producer-emitted facts. Real desktop binding
+    is a later cut (rollout memo §6.1, §11.5.5).
+
+    Builder shape (matches gymv's eight-step recipe):
+
+      1. Resolve the cold-start root (``Cold-start-out-osworld/``).
+      2. Build the OSWorld schema producer for ``args.target``.
+      3. Build the deterministic-stub executor.
+      4. Construct the adapter; widen ``supported_types`` so
+         REASONING / GROUNDING skills also dispatch.
+      5. Wire ``adapter.set_executor(executor)``.
+      6. Build the harness around the adapter via ``AdapterRegistry``.
+      7. Build target-task demos via
+         :func:`build_demos_from_osworld_episodes`.
+      8. Return the per-domain success_fn factory.
+    """
+    from common.enums import SkillType
+    from harness import (
+        AdapterRegistry,
+        HarnessConfig,
+        SkillHarness,
+        make_osworld_executor,
+        make_osworld_producer,
+    )
+    from harness.adapters.osworld_adapter import OsworldAdapter
+    from harness.few_shot_demos_osworld import build_demos_from_osworld_episodes
+    # Importing the module also registers the success_fn factory at
+    # import time so ``success_fn_for_domain('osworld')`` resolves
+    # downstream even if the caller never imports it directly.
+    import harness.osworld_success  # noqa: F401
+    from harness.osworld_success import make_osworld_per_step_success_fn
+
+    cold_start_root = Path(
+        getattr(args, "cold_start_root", None) or "Cold-start-out-osworld"
+    )
+    if not cold_start_root.exists():
+        raise SystemExit(
+            f"cold_start_root missing: {cold_start_root} "
+            f"(expected Cold-start-out-osworld/<ts>/{args.target}/"
+            f"<task-uuid>/episode_*.json)"
+        )
+
+    domain_name = args.target  # e.g. "vlc"
+    schema_producer = make_osworld_producer(domain_name)
+    executor, _holder = make_osworld_executor(
+        domain="osworld",
+        task=domain_name,
+        on_unresolved="skip",
+        schema_producer=schema_producer,
+    )
+
+    adapter = OsworldAdapter()
+    adapter.supported_types = (
+        SkillType.ACTION, SkillType.MIXED,
+        SkillType.GROUNDING, SkillType.REASONING,
+    )
+    adapter.set_executor(executor)
+
+    registry = AdapterRegistry()
+    registry.register(adapter)
+    harness_obj = SkillHarness(registry, config=HarnessConfig(
+        seed=0,
+        default_budget_hops=12,
+        default_budget_ms=30_000.0,
+    ))
+
+    demos = build_demos_from_osworld_episodes(
+        cold_start_root,
+        domain=domain_name,
+        max_episodes=int(getattr(args, "max_episodes", 3)),
+        max_demos_per_episode=int(getattr(args, "max_demos_per_episode", 2)),
+    )
+    logger.info(
+        "loaded %d osworld demo(s) from %s/*/%s/",
+        len(demos), cold_start_root, domain_name,
+    )
+
+    return TargetBuild(
+        target_domain="osworld",
+        adapter=adapter,
+        harness=harness_obj,
+        demos=demos,
+        success_fn_factory=make_osworld_per_step_success_fn,
+    )
 
 
 # Placeholder until Stage 4 lands `_build_browser_target`.
