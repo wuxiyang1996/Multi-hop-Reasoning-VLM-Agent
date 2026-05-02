@@ -70,6 +70,8 @@ from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
 from harness.skill_adapter import SkillAdapter, AdapterRunContext, AdapterRunResult
 from harness.skill_harness import HarnessConfig, SkillHarness
+from harness.video_executor import make_video_executor  # noqa
+from harness.video_qa_success import make_video_qa_success_fn  # noqa
 
 # Day-7: GateRunner is the spec-named offline gate surface (PLAN-UNIFIED-SKILL-GATE §6).
 # Import after `SkillHarness` to keep the import order stable; the
@@ -124,6 +126,8 @@ __all__ = [
     "make_gaming_env_producer",
     "make_gymv_executor",
     "make_per_step_success_fn",
+    "make_video_executor",
+    "make_video_qa_success_fn",
     "make_qa_success_fn",
     "qa_answer_matches",
     "register_success_fn",

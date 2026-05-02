@@ -291,10 +291,83 @@ def _build_visual_reasoning_target(args: argparse.Namespace) -> TargetBuild:
         success_fn_factory=make_qa_success_fn,
     )
 
-# Placeholder until Stage 2 lands `_build_video_target`.
-_build_video_target: TargetBuilder = _stage_not_shipped(
-    "Stage 2 (video-VR)", "video", "Section 5",
-)
+def _build_video_target(args: argparse.Namespace) -> TargetBuild:
+    """Video-VR transfer cell — Video-Holmes + SIV-Bench (Phase 5 §11.5).
+
+    Mirrors :func:`_build_gymv_target`'s shape:
+      1. Resolve the cold-start sub-corpus name from ``args.target``.
+      2. Build the (deterministic) video executor and bind it into a
+         ``VideoAdapter`` via :func:`bind_video_executor`.
+      3. Construct a ``SkillHarness`` around an ``AdapterRegistry``
+         that has the adapter registered.
+      4. Harvest target-task demos from the cold-start corpus.
+      5. Return the bundle plus the video QA success-fn factory the
+         driver instantiates per skill.
+    """
+    from common.enums import SkillType
+    from harness import AdapterRegistry, HarnessConfig, SkillHarness
+    from harness.adapters.video_adapter import VideoAdapter, bind_video_executor
+    from harness.few_shot_demos_video import build_demos_from_video_samples
+    import harness.video_qa_success  # noqa: F401  registers success_fn factory
+    from harness.video_qa_success import make_video_qa_success_fn
+
+    cold_start_root = Path(
+        args.cold_start_root or "Cold-start-out-visual-reasoning-video"
+    )
+    if not cold_start_root.exists():
+        raise SystemExit(
+            f"cold_start_root missing: {cold_start_root} "
+            f"(expected Cold-start-out-visual-reasoning-video/"
+            f"{args.target}/sample_*.json)"
+        )
+
+    sub_corpus = args.target
+    if sub_corpus not in ("video_holmes", "siv_bench"):
+        raise SystemExit(
+            f"--target {sub_corpus!r} not a known video sub-corpus; "
+            f"expected one of: video_holmes, siv_bench"
+        )
+
+    adapter = VideoAdapter()
+    adapter.supported_types = (
+        SkillType.ACTION,
+        SkillType.MIXED,
+        SkillType.GROUNDING,
+        SkillType.REASONING,
+    )
+    bind_video_executor(adapter, video_meta=None)
+
+    registry = AdapterRegistry()
+    registry.register(adapter)
+    harness_obj = SkillHarness(
+        registry,
+        config=HarnessConfig(
+            seed=0,
+            default_budget_hops=8,
+            default_budget_ms=30_000.0,
+        ),
+    )
+
+    max_demos = int(getattr(args, "max_episodes", 8)) * int(
+        getattr(args, "max_demos_per_episode", 1) or 1
+    )
+    demos = build_demos_from_video_samples(
+        cold_start_root,
+        sub_corpus=sub_corpus,
+        max_demos=max(1, max_demos),
+    )
+    logger.info(
+        "loaded %d video demo(s) from %s/%s",
+        len(demos), cold_start_root, sub_corpus,
+    )
+
+    return TargetBuild(
+        target_domain="video",
+        adapter=adapter,
+        harness=harness_obj,
+        demos=demos,
+        success_fn_factory=make_video_qa_success_fn,
+    )
 
 # Placeholder until Stage 3 lands `_build_osworld_target`.
 _build_osworld_target: TargetBuilder = _stage_not_shipped(
