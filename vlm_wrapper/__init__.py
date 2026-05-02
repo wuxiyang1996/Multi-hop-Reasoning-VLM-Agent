@@ -1,37 +1,78 @@
-"""VLM structured-state wrappers for Gym-V and BrowserGym.
+"""VLM structured-state wrappers + skill executors for the five supported domains.
 
-Two heads produce the same <state>…</state> schema (see plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md §3):
+Five domain-specific sibling packages produce the same ``<state>...</state>``
+schema (see ``plans/01-visual-grounding/PLAN-VISUAL-GROUNDING.md`` §3):
 
-**Head 1 — Heuristic (text-in → schema-out)**
+* :mod:`gymv_wrapper`            — Atari / classic-control, single PIL frame
+* :mod:`browsergym_wrapper`      — BrowserGym (WebArena, MiniWoB), DOM/AXTree + screenshot
+* :mod:`osworld_wrapper`         — OSWorld desktop, A11y tree + screenshot
+* :mod:`visual_reasoning_wrapper` (image head)
+                                — VisualToolBench / TIR-Bench, single image + question
+* :mod:`visual_reasoning_wrapper` (video head)
+                                — Video-Holmes / SIV-Bench, frame list + question
+
+This package (``vlm_wrapper``) is the central re-export hub: it exposes a
+flat namespace of schema generators, tool registries, the ``cascaded_ground``
+pipeline, and now the **per-domain skill executors** that wire the harness
+adapters to the same tool registries.
+
+Three heads produce the schema, all five domains support at least head 1+3,
+and ``visual_reasoning`` adds the multi-frame video flavour of head 3:
+
+**Head 1 - Heuristic (text-in -> schema-out)**
   Fast, free, deterministic.  Parses native text state (obs.text,
   AXTree/DOM) into the schema with regex/tree-walking.
   Good for: real-time RL rollouts, cheap baselines, validation.
 
-**Head 2 — Vision (image-in → schema-out)**
+**Head 2 - Vision LLM (image-in -> schema-out)**
   Sends the screenshot to GPT-4o (or any vision LLM) and receives
   the schema.  The image is the primary input; native text is
   optional grounding context.
   Good for: training-label generation, Qwen3-VL-8B distillation.
 
+**Head 3 - OmniParser-v2 grounding (image-in -> schema-out)**
+  Runs OmniParser-v2 on the screenshot to extract structured screen
+  elements (boxes + roles + captions) and converts those into the
+  schema deterministically.  Good for: ablation against head 2,
+  hybrid pipelines (Florence-2 captions + LLM glue), and any setting
+  where you want to gate on detector confidence.
+
+Skill executors (``visual_reasoning_adapter`` / ``video_adapter`` /
+``browser_adapter`` / ``osworld_adapter`` shims in this package) bind the
+domain's tool registry (``build_*_registry``) to the matching harness
+adapter and dispatch ``InnerAction`` hops onto concrete tool calls.  The
+unified entry point :func:`vlm_wrapper.ground.cascaded_ground` exercises
+the same registries from the *labeling* side; together they share one set
+of tools across cold-start labelling and harness replay.
+
 Gym-V examples::
 
-    # Heuristic head
-    from vlm_wrapper import gymv_heuristic_schema
+    from vlm_wrapper import gymv_heuristic_schema  # head 1
     schema = gymv_heuristic_schema(obs_text="...", description="...", task_id="Game2048-v0")
 
-    # Vision head
-    from vlm_wrapper import gymv_generate_label
+    from vlm_wrapper import gymv_generate_label  # head 2
     result = gymv_generate_label(frame, goal="Reach 2048", task_id="Game2048-v0")
 
 BrowserGym examples::
 
-    # Heuristic head
-    from vlm_wrapper import browser_heuristic_schema
+    from vlm_wrapper import browser_heuristic_schema  # head 1
     schema = browser_heuristic_schema(obs, step=3, task_id="webarena.shopping.143")
 
-    # Vision head
-    from vlm_wrapper import browser_obs_to_schema
+    from vlm_wrapper import browser_obs_to_schema  # head 2
     result = browser_obs_to_schema(obs, step=3, task_id="webarena.shopping.143")
+
+Visual reasoning examples (image + video heads of head 3)::
+
+    # Image head: bind the harness VisualReasoningAdapter to the merged
+    # OmniParser-v2 / detection / reasoning registry for one PIL.Image.
+    from vlm_wrapper.visual_reasoning_adapter import bind_executor
+    executor = bind_executor(adapter, image=pil_frame)
+
+    # Video head: ditto for the harness VideoAdapter, against a frame list
+    # or a video file path -- builds the merged video + visual + reasoning
+    # registry under the hood.
+    from vlm_wrapper.video_adapter import bind_executor as bind_video_executor
+    executor = bind_video_executor(adapter, video_path="clip.mp4", num_frames=8)
 """
 
 # ── Unified grounding pipeline ────────────────────────────────────────
@@ -152,6 +193,29 @@ def __getattr__(name):  # noqa: D401
             build_video_visual_registry as _f,
         )
         return _f
+    # ── visual_reasoning_wrapper (skill executors -- harness binding) ──
+    if name == "VisualReasoningExecutor":
+        from visual_reasoning_wrapper.skill_executor import VisualReasoningExecutor as _cls
+        return _cls
+    if name == "bind_visual_executor":
+        from visual_reasoning_wrapper.skill_executor import bind_executor as _f
+        return _f
+    if name == "make_visual_reasoning_executor":
+        from visual_reasoning_wrapper.skill_executor import (
+            make_visual_reasoning_executor as _f,
+        )
+        return _f
+    if name == "VideoReasoningExecutor":
+        from visual_reasoning_wrapper.video_skill_executor import VideoReasoningExecutor as _cls
+        return _cls
+    if name == "bind_video_executor":
+        from visual_reasoning_wrapper.video_skill_executor import bind_executor as _f
+        return _f
+    if name == "make_video_reasoning_executor":
+        from visual_reasoning_wrapper.video_skill_executor import (
+            make_video_reasoning_executor as _f,
+        )
+        return _f
     # ── OmniParser-v2 grounding (lazy because of torch / transformers) ──
     if name in _GROUNDING_EXPORTS:
         return _load_grounding_export(name)
@@ -225,6 +289,13 @@ __all__ += [
     "video_generate_label_with_tools",
     "visual_generate_label_with_tools",
     "video_visual_generate_label_with_tools",
+    # skill executors -- harness binding for the visual_reasoning + video heads
+    "VisualReasoningExecutor",
+    "bind_visual_executor",
+    "make_visual_reasoning_executor",
+    "VideoReasoningExecutor",
+    "bind_video_executor",
+    "make_video_reasoning_executor",
 ]
 
 # ── Benchmark loaders + parsers (lazily re-exported from visual_reasoning_wrapper)
