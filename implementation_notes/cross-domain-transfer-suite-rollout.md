@@ -1,12 +1,18 @@
 # Cross-domain transfer suite — rollout plan
 
-> **Status (current state, 2026-05-02):** 🟡 **PARTIAL — measurement infra DONE, real-env binding OPEN.**
-> Phase 1.5 + Phase-5/6 measurement Stages 0-6 shipped (see banner below);
-> per-target executors run as deterministic identity-pass stubs.
-> **Still genuinely planned:** real-env binding for the
-> browsergym / osworld / video executors (replace the stub identity-pass
-> with reality-grounded predicate evaluation against live envs / VLMs)
-> + Phase-1.5b open items TODO-2 / TODO-3 / TODO-4 / TODO-5 in
+> **Status (current state, 2026-05-02 PM):** 🟢 **DONE — measurement infra
+> + real-env binding both shipped.**
+> Phase 1.5 + Phase-5/6 measurement Stages 0-6 shipped (see banner below).
+> Per-target executors bind real-env wrappers when cold-start data + runtime
+> infra are present (image-VR + video drive real VLM tools; osworld drives
+> real `pyautogui` against the live `happysixd/osworld-docker` container
+> fleet over HTTP; browser drives a real Playwright `gym.Env` via JSON-RPC
+> subprocess in the `browsergym` conda env). Tier 2 + Tier 3 + all 4 Tier 1
+> items closed 2026-05-02 (see [§12](legacy/phase5-cross-domain-measurement.md#12-prioritized-implementation-gaps-after-stage-6)).
+> **Still open:** empirical re-measurement -- regenerate
+> `cross_domain_results/_final/run_*Z/_report.md` against the now
+> fully-wired pipeline; plus Phase-1.5b open items TODO-2 / TODO-3 /
+> TODO-4 / TODO-5 in
 > [`skill_transfer_test/TODO.md`](../skill_transfer_test/TODO.md).
 >
 > *Phase 1.5* shipped 2026-05-01 (LLM-free path; `skill_transfer_test/extract/`, 1,083 records / 885 verified across 6 corpora -- see `skill_transfer_test/extract/README.md`).
@@ -31,7 +37,7 @@
 > - Stage 0 audit suite (`_target_vocabularies.py`, `upper_bounds.py`, `vocab_jaccard.py`, ...): [`skill_transfer_test/extract/audits/`](../skill_transfer_test/extract/audits/)
 > - Archetype aggregator (closes TODO-1): [`skill_transfer_test/extract/archetype_aggregator.py`](../skill_transfer_test/extract/archetype_aggregator.py)
 > - Per-target success_fns: [`harness/qa_success.py`](../harness/qa_success.py), [`harness/video_qa_success.py`](../harness/video_qa_success.py), [`harness/osworld_success.py`](../harness/osworld_success.py), [`harness/browser_success.py`](../harness/browser_success.py)
-> - Per-target executors (deterministic stubs): [`harness/video_executor.py`](../harness/video_executor.py), [`harness/osworld_executor.py`](../harness/osworld_executor.py), [`harness/browsergym_executor.py`](../harness/browsergym_executor.py)
+> - Per-target executors (typed deterministic stubs at module level; dispatcher binds real-env per-sample wrappers when cold-start data + runtime infra present): [`harness/video_executor.py`](../harness/video_executor.py), [`harness/osworld_executor.py`](../harness/osworld_executor.py), [`harness/browsergym_executor.py`](../harness/browsergym_executor.py); real-env wrappers at [`harness/_{vr,video,osworld,browser}_per_sample_executor.py`](../harness/) + [`harness/_executor_helpers/`](../harness/_executor_helpers/)
 > - Per-target schema producers: [`harness/osworld_schema_producer.py`](../harness/osworld_schema_producer.py), [`harness/browser_schema_producer.py`](../harness/browser_schema_producer.py)
 > - Per-target few-shot demo loaders: [`harness/few_shot_demos_vr.py`](../harness/few_shot_demos_vr.py), [`harness/few_shot_demos_video.py`](../harness/few_shot_demos_video.py), [`harness/few_shot_demos_osworld.py`](../harness/few_shot_demos_osworld.py), [`harness/few_shot_demos_browsergym.py`](../harness/few_shot_demos_browsergym.py)
 
@@ -1024,20 +1030,21 @@ shipped path:
 
 | Original deliverable | Shipped path | Actual LOC | Phase | Notes |
 |---|---|---:|---|---|
-| `harness/adapters/osworld_adapter.py` real surface (`set_executor(make_osworld_executor(env))`) | `harness/osworld_executor.py` + adapter wiring | ~shipped (deterministic stub) | Phase 5 (Stage 3) | identity-pass executor; real OSWorld env binding still planned |
+| `harness/adapters/osworld_adapter.py` real surface (`set_executor(make_osworld_executor(env))`) | `harness/osworld_executor.py` + adapter wiring | ~shipped | Phase 5 (Stage 3) | upgraded 2026-05-02 PM: dispatcher binds [`harness/_osworld_per_sample_executor.py:TaskAwareOsworldExecutor`](../harness/_osworld_per_sample_executor.py) over [`harness/_executor_helpers/osworld_client.py`](../harness/_executor_helpers/osworld_client.py) (HTTP to live `happysixd/osworld-docker` fleet) when cold-start tree + container fleet present |
 | `harness/osworld_schema_producer.py` (emit `entity_label_count[window]`, `attribute_changed[focused_app]`, etc.) | [`harness/osworld_schema_producer.py`](../harness/osworld_schema_producer.py) (`make_osworld_producer` factory) | **226** | Phase 5 (Stage 3) | wraps `osworld_wrapper.heuristic.obs_to_schema` head 1 + cascade |
 | `harness/few_shot_demos_osworld.py` (walk `Cold-start-out-osworld/`) | [`harness/few_shot_demos_osworld.py`](../harness/few_shot_demos_osworld.py) | shipped | Phase 5 (Stage 3) | `FewShotDemo[]` from cold-start replays |
-| `harness/browsergym_executor.py` + `browser_schema_producer.py` + `few_shot_demos_browsergym.py` + browser_adapter wiring + `register_success_fn("browser", ...)` | [`harness/browsergym_executor.py`](../harness/browsergym_executor.py), [`harness/browser_schema_producer.py`](../harness/browser_schema_producer.py) (191 LOC, `make_browser_producer` factory), [`harness/few_shot_demos_browsergym.py`](../harness/few_shot_demos_browsergym.py), [`harness/browser_success.py`](../harness/browser_success.py) | **~500+ across 4 files** | Phase 2 (Stage 4) | identity-pass executor; real browsergym env binding still planned |
-| `harness/few_shot_demos_vr.py` + `harness/qa_success.py` + `_phase4_transfer_cycle.py --target visual_reasoning` extension | [`harness/few_shot_demos_vr.py`](../harness/few_shot_demos_vr.py), [`harness/qa_success.py`](../harness/qa_success.py); dispatch via [`labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py) | shipped | Phase 3 (Stage 1) | image-VR uses the **real** 461-LOC `VisualReasoningExecutor`; no stub |
-| `harness/video_executor.py` (port from `VisualReasoningExecutor` against `build_video_visual_registry`) + `harness/few_shot_demos_video.py` + `bind_video_executor` + `qa_success_fn` extension for video MCQ | [`harness/video_executor.py`](../harness/video_executor.py), [`harness/few_shot_demos_video.py`](../harness/few_shot_demos_video.py), [`harness/video_qa_success.py`](../harness/video_qa_success.py) | shipped | Phase 4 (Stage 2) | identity-pass executor; real video registry binding still planned |
+| `harness/browsergym_executor.py` + `browser_schema_producer.py` + `few_shot_demos_browsergym.py` + browser_adapter wiring + `register_success_fn("browser", ...)` | [`harness/browsergym_executor.py`](../harness/browsergym_executor.py), [`harness/browser_schema_producer.py`](../harness/browser_schema_producer.py) (191 LOC, `make_browser_producer` factory), [`harness/few_shot_demos_browsergym.py`](../harness/few_shot_demos_browsergym.py), [`harness/browser_success.py`](../harness/browser_success.py) | **~500+ across 4 files** | Phase 2 (Stage 4) | upgraded 2026-05-02 PM: dispatcher binds [`harness/_browser_per_sample_executor.py:TaskAwareBrowserExecutor`](../harness/_browser_per_sample_executor.py) (JSON-RPC subprocess hosting real Playwright `gym.Env` in `browsergym` conda env via [`harness/_executor_helpers/browser_helper.py`](../harness/_executor_helpers/browser_helper.py)) when cold-start tree present |
+| `harness/few_shot_demos_vr.py` + `harness/qa_success.py` + `_phase4_transfer_cycle.py --target visual_reasoning` extension | [`harness/few_shot_demos_vr.py`](../harness/few_shot_demos_vr.py), [`harness/qa_success.py`](../harness/qa_success.py); dispatch via [`labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py) | shipped | Phase 3 (Stage 1) | image-VR uses the **real** 461-LOC `VisualReasoningExecutor` via [`harness/_vr_per_sample_executor.py:TaskAwareVisualReasoningExecutor`](../harness/_vr_per_sample_executor.py); no stub |
+| `harness/video_executor.py` (port from `VisualReasoningExecutor` against `build_video_visual_registry`) + `harness/few_shot_demos_video.py` + `bind_video_executor` + `qa_success_fn` extension for video MCQ | [`harness/video_executor.py`](../harness/video_executor.py), [`harness/few_shot_demos_video.py`](../harness/few_shot_demos_video.py), [`harness/video_qa_success.py`](../harness/video_qa_success.py) | shipped | Phase 4 (Stage 2) | upgraded 2026-05-02: dispatcher binds [`harness/_video_per_sample_executor.py:TaskAwareVideoReasoningExecutor`](../harness/_video_per_sample_executor.py) over `visual_reasoning_wrapper.video_skill_executor.VideoReasoningExecutor` for real frame decode + VLM tools when cold-start `video_meta` present |
 
-**Footnote on stubs:** the browsergym / osworld / video executors run
-end-to-end through the dispatcher but identity-pass the rebound
-contract's predicates rather than touching real envs / VLMs. Image-VR
-is the exception -- it routes through the real `VisualReasoningExecutor`
-(461 LOC) via `bind_visual_reasoning_executor`. Stage 6 measured admit
-rates are bounded by the Stage 0 upper-bound oracle; see §11.5.0 for
-the asymmetry.
+**Footnote on real-env binding (updated 2026-05-02 PM):** all four
+cross-domain executors now bind real-env wrappers via the dispatcher
+when cold-start data + runtime infra are present. The
+deterministic-stub paths remain in the codebase as the fallback when
+either is missing. Stage 6 measured admit rates against the
+fully-wired pipeline are no longer mechanism-trivial; see §11.5.0
+for the historical context and §12 of the sibling memo for the
+canonical inventory of closed gaps.
 
 The Stage 6 driver
 [`labeling_supplement/_phase4_transfer_matrix.py`](../labeling_supplement/_phase4_transfer_matrix.py)

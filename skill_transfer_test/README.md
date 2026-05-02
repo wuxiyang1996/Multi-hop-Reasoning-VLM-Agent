@@ -39,8 +39,8 @@
 > **Last reviewed:** 2026-05-02.
 > **Cross-refs (design rationale lives there, not here):**
 > [`implementation_notes/cross-domain-transfer-suite-rollout.md`](../implementation_notes/cross-domain-transfer-suite-rollout.md) §5.5 (cross-corpus skill bank lift — Phase 1.5),
-> [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](../implementation_notes/harness-usability-and-intra-gymv-transfer.md) (intra-gymv ablation roots),
-> [`implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md) (Phase-5/6 measurement plan; Stages 0-6 shipped 2026-05-02),
+> [`implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md`](../implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md) (intra-gymv ablation roots),
+> [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md) (Phase-5/6 measurement plan; Stages 0-6 shipped 2026-05-02),
 > [`skill_transfer_test/TODO.md`](./TODO.md) (Phase-1.5b status tracker),
 > [`skill_transfer_test/extract/audits/`](./extract/audits/) (Stage 0 oracle subfolder — vocab Jaccard, predicate firing, slot binding feasibility),
 > [`skill_transfer_test/extract/archetype_aggregator.py`](./extract/archetype_aggregator.py) (closes TODO-1; per-corpus archetype bank emitter),
@@ -79,7 +79,7 @@ Neither layer writes the audit-trail artefacts (`BankMutationProposal`,
 `SkillEpisode`, `GateVerdictPayload`, `SkillEvaluationRecord`,
 `AuditRecord`, `bank_snapshot_id`). Those are owned by Crafter /
 Harness / Orchestrator per
-[`crafter-harness-orchestrator-roles.md` §3](../implementation_notes/crafter-harness-orchestrator-roles.md).
+[`crafter-harness-orchestrator-roles.md` §3](../implementation_notes/legacy/crafter-harness-orchestrator-roles.md).
 On-disk JSONL is the only API.
 
 ---
@@ -225,7 +225,7 @@ What it does internally — every cell is a thin shell over **existing** drivers
 
 The **top-level runner.py is a dispatcher**. It does not contain harness logic.
 Harness logic lives in `harness/` and `decide_promotion_gpt54.py`. See
-[`crafter-harness-orchestrator-roles.md` §8](../implementation_notes/crafter-harness-orchestrator-roles.md):
+[`crafter-harness-orchestrator-roles.md` §8](../implementation_notes/legacy/crafter-harness-orchestrator-roles.md):
 no driver under `skill_transfer_test/` may import another driver's code or write
 into another driver's output directory.
 
@@ -277,7 +277,7 @@ A2→A3 = transfer-safety contribution; A3→A4 = promotion/rollback contributio
 ## 6. Phased rollout
 
 Verbatim from
-[`harness-usability-and-intra-gymv-transfer.md` §7](../implementation_notes/harness-usability-and-intra-gymv-transfer.md)
+[`harness-usability-and-intra-gymv-transfer.md` §7](../implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md)
 plus the Phase-1.5 cross-corpus addition from
 [`cross-domain-transfer-suite-rollout.md` §5.5](../implementation_notes/cross-domain-transfer-suite-rollout.md);
 restated here as work items.
@@ -291,7 +291,7 @@ restated here as work items.
 | **3** gymv real executor | Suggested-work-order #8 (first half) + harness/README §16.1 | smoke through `tests/test_smoke_a0_a4_one_source.py` once executor wired | A0, A1, A2 honest; A3 transferable | needs `GymvAdapter.set_executor` plumbed from `cold_start/generate_cold_start_actor_gymv.py` |
 | **4** Stage 3a probe | Suggested-work-order #8 (second half) | gymv-shape `success_fn` + `FewShotDemo` builder over `labeling/skill_actions_out/.../episode_*.json` | A3 transfer cell active | depends on Phase 2 + Phase 3 |
 | **5** Full sweep + reports | Suggested-work-order #5 (offline half) | `runner.py --cells all --sources <13 games>` + §20.6(a)(b)(c) reports. **This is the first offline promotion cycle** ([`harness/README.md` §17](../harness/README.md)). | A4 reference cell | depends on Phases 1–4 |
-| **6** Cross-domain follow-up | Suggested-work-order #16 | swap `--probe intra_gymv` -> `--probe cross_domain`; consume Phase-1.5 records as transfer sources via `python -m labeling_supplement._phase4_transfer_matrix` (NxN matrix driver + G1-G6 acceptance gates) | **shipped 2026-05-02 (deterministic stub)** — Stage 1-4 executors identity-pass predicates rather than touching real envs; G6 fires on game-target cells precisely because the gymv stub identity-passes | depends on Phase 1.5 + reality-grounded executors (deferred follow-up) |
+| **6** Cross-domain follow-up | Suggested-work-order #16 | swap `--probe intra_gymv` -> `--probe cross_domain`; consume Phase-1.5 records as transfer sources via `python -m labeling_supplement._phase4_transfer_matrix` (NxN matrix driver + G1-G6 acceptance gates) | **shipped 2026-05-02 (real-env)** — Stage 1-4 executors all bind real-env wrappers when cold-start data + runtime infra are present: image-VR + video drive real VLM tools (`harness/_{vr,video}_per_sample_executor.py`); osworld drives real `pyautogui` against the live `happysixd/osworld-docker` container fleet (`harness/_osworld_per_sample_executor.py`); browser drives a real Playwright `gym.Env` via JSON-RPC subprocess in the `browsergym` conda env (`harness/_browser_per_sample_executor.py`). Stub fallback only triggers on missing cold-start data or runtime errors. Predicate translator (`harness/predicate_translator.py`) bridges game-vocab -> target-vocab effects so non-zero game->cross-domain admit rates are achievable. Outstanding work: re-run Stage 6 NxN against the now-fully-wired pipeline and regenerate `cross_domain_results/_final/run_*Z/_report.md`. | depends on Phase 1.5 (closed) + reality-grounded executors (closed 2026-05-02) |
 
 ---
 
@@ -312,7 +312,7 @@ These are **not re-litigated here**. The runner respects whatever was decided.
 
 | ID | Decision | Pinned in |
 |---|---|---|
-| D1–D7 | bridge direction, status filter, K, N, compose-reject default, failure-synth home, reflection-builder home | [`implementation_notes/harness-usability-and-intra-gymv-transfer.md` §8](../implementation_notes/harness-usability-and-intra-gymv-transfer.md) |
+| D1–D7 | bridge direction, status filter, K, N, compose-reject default, failure-synth home, reflection-builder home | [`implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md` §8](../implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md) |
 | D8 | one-way `legacy_writeback.py` (Promotion → per-game `skill_bank.jsonl`) | trainer wire-up convo (next plan to write up) |
 | D9 | Crafter alongside Stage 4 curator (not replacing yet) | trainer wire-up convo |
 
@@ -325,7 +325,7 @@ These are **not re-litigated here**. The runner respects whatever was decided.
 1. **Skills never reach `ACTIVE`** under `--gate-mode offline-synthetic`. Cap is `PROVISIONAL`.
 2. **No invocation veto in real time.** Cells A2–A4 measure veto *as if* it had been live; they don't actually stop a bad call.
 3. **No transfer probes** until Phase 2+3 land. Cells A3/A4 numbers are not meaningful before then.
-4. **`EpisodeReflection.skill_episodes = []`** because no Harness emits them ([`§7.1` mismatch #1](../implementation_notes/crafter-harness-orchestrator-roles.md)). Q1/Q4 are computed against the synthesized `FailureTrace`s, not observed `SkillEpisode`s.
+4. **`EpisodeReflection.skill_episodes = []`** because no Harness emits them ([`§7.1` mismatch #1](../implementation_notes/legacy/crafter-harness-orchestrator-roles.md)). Q1/Q4 are computed against the synthesized `FailureTrace`s, not observed `SkillEpisode`s.
 5. **`ROLLBACK` cannot fire** without batch metrics from a real gate stack. A4 reports promotion-precision only, not rollback-reactivity.
 6. **Compose / Transfer / Generalize proposals are auto-rejected** in Phase 0 per D5 (cold-start `feasible_domains=["gymv"]` ⇒ Stage-0 fails). Don't read the zero count as a regression.
 
@@ -397,17 +397,21 @@ All three previously-listed Phase-6 prerequisites — real adapter,
 per-domain schema producer, per-domain `success_fn` + `FewShotDemo`
 loader — shipped 2026-05-02 for **all four target domains**
 (`visual_reasoning`, `video`, `osworld`, `browser`); see §9.3.5 for
-the per-target file inventory. **Caveat:** the Stage 1-4 executors
-landed as **deterministic stubs** that identity-pass predicates
-rather than touching real envs — the tool-registry mechanism is
-exercised end-to-end (predicate evaluators run against the
-`_DerivationLog` / schema-producer output) but the executors don't
-yet step a real BrowserGym / OSWorld / VR-tool / video-frame env.
-Replacing them with reality-grounded executors is the next step;
-until then, measured admit rates are upper-bound by what the stub
-can echo. Cross-link:
-[`implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md)
-(measurement-plan memo) +
+the per-target file inventory. **Update (2026-05-02 PM):** the four
+Stage 1-4 executors that originally landed as deterministic stubs
+have all been retired in favour of real-env per-sample wrappers
+(`harness/_{vr,video,osworld,browser}_per_sample_executor.py`).
+Image-VR + video drive real VLM tools (OmniParser-v2 / Florence-2 /
+video frame decode); osworld drives real `pyautogui` against the
+live `happysixd/osworld-docker` container fleet over HTTP
+(`harness/_executor_helpers/osworld_client.py`); browser drives a
+real Playwright `gym.Env` via JSON-RPC subprocess in the
+`browsergym` conda env (`harness/_executor_helpers/browser_helper.py`).
+Stub fallback only triggers on missing cold-start data or runtime
+errors. The remaining open work is empirical re-measurement of the
+G1-G6 gates against the now-fully-wired pipeline. Cross-link:
+[`implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md)
+§12 (full inventory of closed gaps) +
 [`cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv`](../cross_domain_results/_phase0/phase0_canonical/upper_bounds.csv)
 (Stage 0 static-feasibility upper-bounds; G6 acceptance gate
 evaluates `measured <= upper_bound + 0.10`).
@@ -432,12 +436,12 @@ Calibrated estimates (informed by the 67-83% within-gymv admit rate, with mechan
 
 | Owed deliverable | Shipped path | LOC | Caveat |
 |---|---|---:|---|
-| osworld real adapter | `harness/osworld_executor.py` + `harness/osworld_success.py` | ~380 | deterministic stub |
+| osworld real adapter | `harness/osworld_executor.py` + `harness/osworld_success.py` | ~380 | upgraded 2026-05-02 PM: dispatcher binds `harness/_osworld_per_sample_executor.py:TaskAwareOsworldExecutor` over `harness/_executor_helpers/osworld_client.py` (HTTP to live `happysixd/osworld-docker` fleet) when cold-start tree + container fleet present; falls back to the stub otherwise |
 | osworld schema producer | `harness/osworld_schema_producer.py` | 226 | -- |
 | osworld few-shot demos | `harness/few_shot_demos_osworld.py` | 217 | -- |
-| browser executor + producer + demos + adapter `set_executor` + `register_success_fn` | `harness/browsergym_executor.py` + `harness/browser_schema_producer.py` + `harness/few_shot_demos_browsergym.py` + `harness/browser_success.py` + `harness/adapters/browser_adapter.py` patch | ~700 across 5 | deterministic stub |
-| VR demos + qa_success + cycle `--target visual_reasoning` | `harness/few_shot_demos_vr.py` + `harness/qa_success.py` + `labeling_supplement/_phase4_target_dispatch.py::_build_visual_reasoning_target` | ~310 | bind helper shipped but per-sample image-loading not wired |
-| video executor + demos + bind + qa_success + cycle `--target video` | `harness/video_executor.py` + `harness/few_shot_demos_video.py` + `harness/adapters/video_adapter.py::bind_video_executor` + `harness/video_qa_success.py` + dispatcher branch | ~471 | deterministic mirror of image executor; doesn't decode frames |
+| browser executor + producer + demos + adapter `set_executor` + `register_success_fn` | `harness/browsergym_executor.py` + `harness/browser_schema_producer.py` + `harness/few_shot_demos_browsergym.py` + `harness/browser_success.py` + `harness/adapters/browser_adapter.py` patch | ~700 across 5 | upgraded 2026-05-02 PM: dispatcher binds `harness/_browser_per_sample_executor.py:TaskAwareBrowserExecutor` (JSON-RPC subprocess hosting real Playwright `gym.Env` in `browsergym` conda env via `harness/_executor_helpers/browser_helper.py`) when cold-start tree present; falls back to the stub otherwise |
+| VR demos + qa_success + cycle `--target visual_reasoning` | `harness/few_shot_demos_vr.py` + `harness/qa_success.py` + `labeling_supplement/_phase4_target_dispatch.py::_build_visual_reasoning_target` | ~310 | upgraded 2026-05-02: dispatcher binds `harness/_vr_per_sample_executor.py:TaskAwareVisualReasoningExecutor` for real per-sample image loading + VLM tool dispatch when cold-start frames present |
+| video executor + demos + bind + qa_success + cycle `--target video` | `harness/video_executor.py` + `harness/few_shot_demos_video.py` + `harness/adapters/video_adapter.py::bind_video_executor` + `harness/video_qa_success.py` + dispatcher branch | ~471 | upgraded 2026-05-02: dispatcher binds `harness/_video_per_sample_executor.py:TaskAwareVideoReasoningExecutor` for real frame decode + VLM tool dispatch when cold-start `video_meta` present |
 
 The unified Stage 6 driver
 `python -m labeling_supplement._phase4_transfer_matrix` runs the full
@@ -455,7 +459,7 @@ stub executors; Tier 2: 2 missing `vlm_wrapper/<domain>_adapter.py` files
 for video / visual_reasoning; Tier 3: per-domain runtime
 predicate-translators; plus Tiers 4-6 covering Phase-1.5b TODOs, Stage 5
 LLM-clustered fallback, and pre-Phase-5/6 backlog), see
-[`../implementation_notes/phase5-cross-domain-measurement.md`](../implementation_notes/phase5-cross-domain-measurement.md)
+[`../implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md)
 §12.
 
 ---
@@ -486,7 +490,7 @@ LLM-clustered fallback, and pre-Phase-5/6 backlog), see
   records which heuristic decided each verdict.
 - **Do not** write into `verified_domains` / `bank_snapshot_id` / `AuditRecord`
   from the ablation runner. Those are the Orchestrator's exclusive surface
-  ([`crafter-harness-orchestrator-roles.md` §3](../implementation_notes/crafter-harness-orchestrator-roles.md)).
+  ([`crafter-harness-orchestrator-roles.md` §3](../implementation_notes/legacy/crafter-harness-orchestrator-roles.md)).
   Both runners read them. The extraction layer writes its own
   `verified_domains` field on per-corpus records, which is conceptually
   separate (these are fresh records, not promotions of existing ones).
@@ -516,7 +520,7 @@ LLM-clustered fallback, and pre-Phase-5/6 backlog), see
 If you're opening this folder to start Phase 0 (ablation runner), the next step is:
 
 1. Confirm D1–D7 in
-   [`implementation_notes/harness-usability-and-intra-gymv-transfer.md` §8](../implementation_notes/harness-usability-and-intra-gymv-transfer.md).
+   [`implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md` §8](../implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md).
 2. Skim
    [`labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py)
    to understand its existing CLI surface.

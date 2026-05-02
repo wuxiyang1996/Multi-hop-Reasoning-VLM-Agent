@@ -40,12 +40,14 @@ Spec: [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md), [`PLAN-COMPONENTS-I
 > containers, and the WebArena Docker stack. The actual gating constraint was
 > code-side wiring, not infra.
 >
-> Numbers measured against
-> these executors (e.g. Stage 6's `_phase4_transfer_report.py` G1-G6 verdicts)
-> are infrastructure-validating, not mechanism-validating. See
+> Numbers measured against the **dispatcher-bound real-env wrappers** (the
+> default path when cold-start data + runtime infra are present, see callout
+> above) are mechanism-validating; numbers measured against the bare
+> deterministic-stub fallback path (when cold-start data / runtime infra is
+> missing) remain infrastructure-validating only. See
 > [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md)
-> for the per-target rollout status; that memo's §11.5.0 reconciles the
-> stub-pathology with the §11.5.4 aspirational transferability bands.
+> §12 for the per-target rollout status; that memo's §11.5.0 reconciles the
+> historical stub-pathology with the §11.5.4 aspirational transferability bands.
 
 The harness is the *frozen verifier* in the role split (root README §"Three-agent role split" / §"Architecture"):
 
@@ -119,10 +121,10 @@ Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source fi
 | Symbol / file | Role |
 |---|---|
 | `gymv_executor.py` (`make_gymv_executor`, `initial_state_from_env`, `GymvExecutorState`, `ACTION_ALIAS_MAP`) | **Real** Day-3 env wiring. Plugs into `GymvAdapter.set_executor`; maps typed hop ops to concrete env actions; threads a `schema_producer=…` for decidable post-states |
-| `video_executor.py` (`make_video_executor`) | Phase-5 typed deterministic stub. Identity-passes rebound contract predicates against a `video_meta` payload (no real frame loader / VLM) |
-| `osworld_executor.py` (`make_osworld_executor`) | Phase-5 typed deterministic stub. No real OSWorld VM call |
-| `browsergym_executor.py` (`make_browsergym_executor`, `BrowserExecutorState`) | Phase-5 typed deterministic stub. No real BrowserGym / Playwright call |
-| (`visual_reasoning` has no dedicated executor module — uses `StubTransferTargetAdapter._default_executor()`) | — |
+| `video_executor.py` (`make_video_executor`) | Phase-5 typed deterministic stub at the module level (identity-passes rebound contract predicates against a `video_meta` payload). The dispatcher binds [`_video_per_sample_executor.py:TaskAwareVideoReasoningExecutor`](_video_per_sample_executor.py) over `visual_reasoning_wrapper.video_skill_executor.VideoReasoningExecutor` for real frame decode + VLM tools when cold-start `video_meta` is on disk |
+| `osworld_executor.py` (`make_osworld_executor`) | Phase-5 typed deterministic stub at the module level. The dispatcher binds [`_osworld_per_sample_executor.py:TaskAwareOsworldExecutor`](_osworld_per_sample_executor.py) over [`_executor_helpers/osworld_client.py:OsworldClient`](_executor_helpers/osworld_client.py) for real `pyautogui` against the live `happysixd/osworld-docker` container fleet (HTTP) when cold-start tree + container fleet are both present |
+| `browsergym_executor.py` (`make_browsergym_executor`, `BrowserExecutorState`) | Phase-5 typed deterministic stub at the module level. The dispatcher binds [`_browser_per_sample_executor.py:TaskAwareBrowserExecutor`](_browser_per_sample_executor.py) over [`_executor_helpers/browser_helper.py`](_executor_helpers/browser_helper.py) (JSON-RPC subprocess hosting real Playwright `gym.Env` in the `browsergym` conda env) when cold-start tree present |
+| (`visual_reasoning` has no dedicated executor module — uses `StubTransferTargetAdapter._default_executor()` at module level; dispatcher binds [`_vr_per_sample_executor.py:TaskAwareVisualReasoningExecutor`](_vr_per_sample_executor.py) for real per-sample image loading + VLM tool dispatch when cold-start frames present) | — |
 
 ### Schema producers (deterministic `<state>...</state>` renderers — no VLM)
 

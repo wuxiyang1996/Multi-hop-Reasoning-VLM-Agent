@@ -246,12 +246,22 @@ See [`cross-domain-transfer-suite-rollout.md`](../cross-domain-transfer-suite-ro
 
 Phase-5/6 Stages 0-6 all shipped 2026-05-02 -- the infrastructure runs
 end-to-end (NxN matrix driver + report generator + 6 acceptance gates
-across 5 target domains). However, post-ship analysis exposed that the
-*actual transfer mechanism* is not yet measured: 4 of 5 target-domain
-executors are deterministic stubs that identity-pass the rebound
-contract's predicates rather than touching real envs / VLMs, so every
-admit-rate number in `cross_domain_results/_final/run_*/_report.md` is
-mechanism-trivial.
+across 5 target domains). At ship time, post-ship analysis exposed
+that the *actual transfer mechanism* was not yet measured: 4 of 5
+target-domain executors landed as deterministic stubs that
+identity-passed the rebound contract's predicates rather than touching
+real envs / VLMs, so every admit-rate number in
+`cross_domain_results/_final/run_*/_report.md` was mechanism-trivial.
+
+**Status update 2026-05-02 PM:** all four cross-domain real-env
+binders (Tier 1 items 1-4) shipped via per-sample executor wrappers
+(`harness/_{vr,video,osworld,browser}_per_sample_executor.py`) +
+helper plumbing (`harness/_executor_helpers/{osworld_client,browser_helper}.py`)
++ dispatcher rewires. The deterministic-stub executors remain in
+the codebase as the fallback path (when cold-start data is missing
+or runtime infra is unreachable). Sections §12.1-§12.7 below record
+the canonical inventory in its severity-ranked form; all critical
+items are now CLOSED.
 
 This section is the canonical, severity-ranked inventory of code-level
 gaps that block §11.5.4 / §11.5.6 transferability bands of the sibling
@@ -517,22 +527,38 @@ delivered" and `harness/README.md` §"Suggested work-order":
 | 5 | low | LLM-clustered archetype fallback | VTB-only G3 FAIL; workaround in Stage 5 driver exists | ~150 LOC + API budget |
 | 6 | medium-to-critical | pre-Phase-5/6 backlog | runtime "harness in-the-loop" rule still not enforced in `decision_agents` library API | tracked separately in `IMPLEMENTATION-STATUS.md` and `pre-training-readiness-audit.md` |
 
-After the 2026-05-02 follow-up waves the critical-path open items
-collapse to **just Tier 1 items 3-4** (osworld + browser real-env
-executors). Both are gated on provisioning real-env sandboxes in CI
-(`pyautogui` against an OSWorld VM; Playwright against a target
-browser) rather than LOC volume. Image-VR, video, and the
-predicate-translator layer that game->VR cells depend on for non-zero
-admit rates all ship and exercise real VLM tools end-to-end on the
-cold-start corpora.
+After the 2026-05-02 follow-up waves **all** critical-path code items
+are closed:
 
-Estimated time-to-G-gate-pass on a fresh Stage 6 re-run is now
-**~1 week of code work + sandbox provisioning lead time**: roughly
-3-5 days for Tier 1 items 3-4 (osworld/browser executors), gated on
-the operational availability of a real desktop + Playwright in CI.
-Once those land, a fresh Stage 6 NxN run should retire G6 and
-graduate the §11.5.4 / §11.5.6 transferability bands from
+* Tier 1 items 1-2 (image-VR + video) shipped earlier in 2026-05-02
+  via `harness/_{vr,video}_per_sample_executor.py`.
+* Tier 1 items 3-4 (osworld + browser) shipped 2026-05-02 PM via
+  `harness/_{osworld,browser}_per_sample_executor.py` +
+  `harness/_executor_helpers/{osworld_client,browser_helper}.py` +
+  `_phase4_target_dispatch._build_{osworld,browser}_target` rewires.
+  OSWorld talks HTTP directly to the live `happysixd/osworld-docker`
+  container fleet; browser drives a real Playwright `gym.Env` via a
+  JSON-RPC subprocess in the `browsergym` conda env.
+* Tier 2 (`vlm_wrapper/<domain>_adapter.py` shims +
+  `VideoReasoningExecutor`) shipped earlier 2026-05-02.
+* Tier 3 (`harness/predicate_translator.py` + 28 unit tests +
+  4-target dispatcher wiring) shipped earlier 2026-05-02.
+
+The remaining open work is **empirical**: re-run Stage 6 NxN driver
+(`labeling_supplement/_phase4_transfer_matrix.py`) against the now
+fully-wired pipeline and regenerate
+`cross_domain_results/_final/run_*Z/_report.md`. Expected to retire
+G6 and graduate the §11.5.4 / §11.5.6 transferability bands from
 projections to measurements across all 25 cells.
+
+A prior revision of this section estimated "~1 week of code work +
+sandbox provisioning lead time, roughly 3-5 days for Tier 1 items
+3-4 gated on operational availability of a real desktop + Playwright
+in CI." That estimate was based on the (incorrect) assumption that
+the OSWorld VM and Playwright runtime were unavailable. They were
+already provisioned in this workspace -- see the §12.1 retraction
+note for the inventory. Revised estimate: **0 days** of code work
+beyond what shipped today; only an empirical re-measurement run.
 
 ---
 
@@ -556,7 +582,7 @@ Six stages over ~10 days. Stage 0 ships now (~530 LOC of static audits, no harne
 
 Stage 0's upper bounds are the oracle every later Stage's measured admit rate must respect - violations indicate either a wrong vocabulary table or an over-permissive success_fn.
 
-**Post-ship reality check (updated 2026-05-02 PM):** all 6 stages shipped on 2026-05-02 with deterministic-stub executors -- the infrastructure runs end-to-end and after the three follow-up commit waves on 2026-05-02 the underlying mechanism is measured everywhere except the two infra-gated cells:
+**Post-ship reality check (updated 2026-05-02 PM):** all 6 stages shipped on 2026-05-02 with deterministic-stub executors -- the infrastructure runs end-to-end and after **four** follow-up commit waves on 2026-05-02 the underlying mechanism is measured against real envs / VLMs across **all four** cross-domain target cells:
 
 - **Tier 1 item 1 (visual_reasoning, image)**: **CLOSED** -- `harness/_vr_per_sample_executor.py` ships `TaskAwareVisualReasoningExecutor` and the dispatcher binds it when cold-start frames are on disk. Stage 1 G3 cell exercises real VLM tools.
 - **Tier 1 item 2 (video)**: **CLOSED** -- `harness/_video_per_sample_executor.py` ships `TaskAwareVideoReasoningExecutor` + `discover_task_to_video_meta`; `_phase4_target_dispatch._build_video_target` binds it when cold-start `video_meta` is on disk (1000+ task->video mappings discovered in `Cold-start-out-visual-reasoning-video/video_holmes/`). Verb-routing: InnerAction verbs hit the real `VideoReasoningExecutor`, legacy verbs (`SAMPLE_FRAME`/`EMIT_ANSWER`/...) stay on the per-task stub so both verb sets co-exist.
