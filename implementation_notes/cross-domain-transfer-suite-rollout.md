@@ -364,6 +364,8 @@ runs do not pollute the canonical bank promotion path.
 
 #### 5.5.4a Shipped vs deferred (2026-05-01)
 
+> **Live status of the deferred rows:** [`skill_transfer_test/TODO.md`](../skill_transfer_test/TODO.md). When a deferred row ships, flip the checkbox there and link the commit; do NOT delete the row from this table (the table records the original spec).
+
 | File | Status |
 |---|---|
 | `extract/__init__.py` | shipped |
@@ -464,7 +466,7 @@ Per-corpus minimums on the `gpt54-pilot-25per-bench` data:
 | Unified index | 6 distinct corpus tags | n/a — `_unify.py` deferred | DEFERRED |
 | All 3 unit-test files pass | exists + green | n/a — tests deferred | DEFERRED |
 
-The lift-quality gates passed by 1-2 orders of magnitude; the deferred items are non-blocking for Phase 6 because Phase 6 reads per-corpus `skill_bank.jsonl` directly.
+The lift-quality gates passed by 1-2 orders of magnitude; the deferred items are non-blocking for Phase 6 because Phase 6 reads per-corpus `skill_bank.jsonl` directly. **Live status of the DEFERRED rows above:** [`skill_transfer_test/TODO.md`](../skill_transfer_test/TODO.md).
 
 ---
 
@@ -797,7 +799,7 @@ depends on whether the desktop schema producer surfaces a
 `dialog`-labelled entity attribute — not on whether any game skill
 ever used that label.
 
-*Note: the Jaccard numbers above are an analytical estimate, computed by hand against `labeling/skill_bank_out/run_20260430_030637/{env_wrappers,gym_v}/*` (489 game skills) and `skill_transfer_test/skill_bank_local/full_v5/*` (1,083 cross-domain skills) on 2026-05-01. A reproducible audit script (`skill_transfer_test/extract/audits/vocab_jaccard.py`) is queued as a Phase-1.5b deliverable; the order-of-magnitude conclusions ("protocol/slot vocab universal; predicate vocab disjoint at the surface") will not change once it lands.*
+*Note: the Jaccard numbers above are an analytical estimate, computed by hand against `labeling/skill_bank_out/run_20260430_030637/{env_wrappers,gym_v}/*` (489 game skills) and `skill_transfer_test/skill_bank_local/full_v5/*` (1,083 cross-domain skills) on 2026-05-01. A reproducible audit script (`skill_transfer_test/extract/audits/vocab_jaccard.py`) is queued as a Phase-1.5b deliverable — tracked as TODO-6 in [`skill_transfer_test/TODO.md`](../skill_transfer_test/TODO.md); the order-of-magnitude conclusions ("protocol/slot vocab universal; predicate vocab disjoint at the surface") will not change once it lands.*
 
 ### 11.5.2 The harness IS the predicate-translation layer
 

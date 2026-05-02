@@ -19,6 +19,9 @@
 > and §11.5 (empirical transferability assessment, mirrored as
 > `skill_transfer_test/README.md` §9.3) for whether these skills transfer
 > across domains,
+> [`skill_transfer_test/TODO.md`](../TODO.md) (single source of truth for
+> open Phase-1.5b follow-ups — archetype bank, unified index, vocab-Jaccard
+> audit, three test files),
 > [`labeling/readme.md`](../../labeling/readme.md) (env_wrappers + gym_v
 > extractors this package generalises),
 > [`labeling/_protocol_lift.py`](../../labeling/_protocol_lift.py) (the
