@@ -64,6 +64,7 @@ from harness.gymv_success import (
     registered_success_fn_domains,
     success_fn_for_domain,
 )
+from harness.qa_success import make_qa_success_fn, qa_answer_matches  # noqa: F401
 from harness.rejected_skill_sink import FlushReport, RejectedSkillSink
 from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
@@ -123,6 +124,8 @@ __all__ = [
     "make_gaming_env_producer",
     "make_gymv_executor",
     "make_per_step_success_fn",
+    "make_qa_success_fn",
+    "qa_answer_matches",
     "register_success_fn",
     "registered_success_fn_domains",
     "render_state_block",

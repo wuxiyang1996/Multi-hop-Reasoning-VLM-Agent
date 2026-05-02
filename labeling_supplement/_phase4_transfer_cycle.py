@@ -62,25 +62,18 @@ if str(REPO_ROOT) not in sys.path:
 
 from common.enums import SkillStatus, SkillType                          # noqa: E402
 from data_structure.extensions.skill_record import SkillRecord           # noqa: E402
-from harness import (                                                     # noqa: E402
-    AdapterRegistry,
-    FewShotAdapter,
-    HarnessConfig,
-    SkillHarness,
-    initial_state_from_env,
-    make_gaming_env_producer,
-    make_gymv_executor,
-    make_per_step_success_fn,
-)
-from harness.adapters.gymv_adapter import GymvAdapter                    # noqa: E402
-from harness.few_shot_demos_gymv import build_demos_from_episodes        # noqa: E402
+from harness import FewShotAdapter                                       # noqa: E402
 
 # Reuse the Phase-2 driver's bank-loader and env-builder.
 from labeling_supplement._phase2_real_env_skill_smoke import (           # noqa: E402
     DEFAULT_BANK_ROOT,
     DEFAULT_ACTIONS_ROOT,
-    build_env,
     load_bank_records,
+)
+from labeling_supplement._phase4_target_dispatch import (                # noqa: E402
+    TargetBuild,
+    build_target,
+    registered_target_domains,
 )
 
 logger = logging.getLogger("phase4_transfer_cycle")
@@ -144,51 +137,24 @@ def _run_transfer(
     source_game: str,
     target_game: str,
     source_records: List[SkillRecord],
-    target_demos_factory,
+    target_build: TargetBuild,
     pass_rate_min: float = 0.5,
     k: int = 4,
     bindings_overrides: Optional[Dict[str, str]] = None,
 ) -> Tuple[List[TransferVerdict], List[SkillRecord]]:
-    """Drive the FewShotAdapter through every source skill on every
-    available target-task demo. Returns ``(verdicts, mutated_records)``
+    """Drive the FewShotAdapter through every source skill on the
+    pre-built target cell. Returns ``(verdicts, mutated_records)``
     — the records carry an updated ``verified_tasks`` (in-memory only)
-    so the eligibility-probe diff is visible end-to-end."""
+    so the eligibility-probe diff is visible end-to-end.
 
-    # Build the target env + producer + executor once.
-    target_env, target_env_source = build_env(target_game)
-    logger.info("target env: %s (source=%s)", target_game, target_env_source)
-    schema_producer = make_gaming_env_producer(target_game)
-    executor, _holder = make_gymv_executor(
-        target_env,
-        domain="gymv",
-        task=target_game,
-        on_unresolved="skip",
-        schema_producer=schema_producer,
-    )
-    adapter = GymvAdapter()
-    # Widen so REASONING / GROUNDING skills reach the gymv adapter
-    # too — the executor's OBSERVATIONAL_OPS handler renders them as
-    # safe no-step evidence hops.
-    adapter.supported_types = (
-        SkillType.ACTION, SkillType.MIXED,
-        SkillType.GROUNDING, SkillType.REASONING,
-    )
-    adapter.set_executor(executor)
+    The ``target_build`` carries the per-domain adapter, harness,
+    demos, and ``success_fn_factory``. See
+    ``_phase4_target_dispatch.build_target`` for how it's constructed.
+    """
 
-    registry = AdapterRegistry()
-    registry.register(adapter)
-    harness = SkillHarness(registry, config=HarnessConfig(
-        seed=0,
-        default_budget_hops=12,
-        default_budget_ms=30_000.0,
-    ))
-
-    # Load target-task demos (StateSchema + bindings + reward).
-    demos = target_demos_factory()
-    logger.info(
-        "loaded %d target-task demo(s) from %s cold-start episodes",
-        len(demos), target_game,
-    )
+    target_domain = target_build.target_domain
+    harness = target_build.harness
+    demos = target_build.demos
 
     verdicts: List[TransferVerdict] = []
     mutated: List[SkillRecord] = []
@@ -203,11 +169,14 @@ def _run_transfer(
         # DRAFT by default; promote on the in-memory copy.
         object.__setattr__(skill, "status", SkillStatus.PROVISIONAL)
 
-        # The success_fn keys on the per-hop effect predicates that
-        # the GymvAdapter rolls into `extra["per_hop_effects"]` — same
-        # machinery the Day-3 / Day-4B Phase-2 smoke uses, just
-        # plumbed through FewShotAdapter.
-        success_fn = make_per_step_success_fn(pass_rate_threshold=0.5)
+        # Per-domain success_fn instance. For gymv this scores per-hop
+        # effect predicates; for VR / video it scores answer match
+        # against the demo's `expected.gold_answer`; for osworld /
+        # browser it mirrors the gymv per-hop effect-predicate path
+        # against the producer-emitted facts.
+        success_fn = target_build.success_fn_factory(
+            pass_rate_threshold=0.5,
+        )
 
         # Build a per-skill FewShotAdapter with this success_fn.
         few_shot = FewShotAdapter(
@@ -231,7 +200,7 @@ def _run_transfer(
         try:
             r = few_shot.adapt(
                 skill=skill,
-                target_domain="gymv",
+                target_domain=target_domain,
                 target_task=target_game,
                 demos=target_demos,
                 k=k,
@@ -243,7 +212,7 @@ def _run_transfer(
                 skill_type=skill.skill_type.value,
                 source_task=source_game,
                 target_task=target_game,
-                target_domain="gymv",
+                target_domain=target_domain,
                 n_demos=len(target_demos),
                 n_demos_used=0,
                 n_success=0,
@@ -273,7 +242,7 @@ def _run_transfer(
             skill_type=skill.skill_type.value,
             source_task=source_game,
             target_task=target_game,
-            target_domain="gymv",
+            target_domain=target_domain,
             n_demos=len(target_demos),
             n_demos_used=r.k_used,
             n_success=r.n_success,
@@ -347,9 +316,32 @@ def main() -> int:
     p.add_argument("--source", default="twenty_forty_eight",
                    help="Source game (skill-bank task)")
     p.add_argument("--target", default="tetris",
-                   help="Target game (target_task / demo source)")
+                   help=("Target task / target_task. For target_domain=gymv "
+                         "this is a game name (tetris, twenty_forty_eight, "
+                         "...); for visual_reasoning a sub-corpus "
+                         "(visual_toolbench, tir_bench); for video "
+                         "(video_holmes, siv_bench); for osworld a domain "
+                         "(vlc, vs_code, gimp, ...); for browser a "
+                         "task-id-prefix (assistantbench, miniwob, ...)."))
+    p.add_argument(
+        "--target-domain",
+        default="gymv",
+        choices=registered_target_domains(),
+        help=("Transfer-target domain. 'gymv' (default) is the "
+              "within-game baseline; the four cross-domain stages "
+              "land progressively per "
+              "implementation_notes/phase5-cross-domain-measurement.md."),
+    )
     p.add_argument("--bank-root", default=str(DEFAULT_BANK_ROOT))
     p.add_argument("--actions-root", default=str(DEFAULT_ACTIONS_ROOT))
+    p.add_argument(
+        "--cold-start-root",
+        default=None,
+        help=("Root of cold-start corpus for the cross-domain target. "
+              "Defaults to Cold-start-out-<target-domain>/ for "
+              "visual_reasoning / video / osworld / browser. Ignored "
+              "for target_domain=gymv (uses --actions-root instead)."),
+    )
     p.add_argument("--max-skills", type=int, default=10)
     p.add_argument("--k", type=int, default=4,
                    help="Max demos per skill (FewShotAdapter k_shot)")
@@ -420,7 +412,7 @@ def main() -> int:
     if not bank_path.exists():
         raise SystemExit(f"bank_jsonl missing: {bank_path}")
     actions_root = Path(args.actions_root)
-    if not actions_root.exists():
+    if args.target_domain == "gymv" and not actions_root.exists():
         raise SystemExit(f"actions_root missing: {actions_root}")
 
     source_records = load_bank_records(bank_path, default_domain="gymv")
@@ -431,7 +423,10 @@ def main() -> int:
 
     # Eligibility BEFORE: probe whether each source skill admits on
     # the target task. Should be False unless the bank already records
-    # cross-task feasibility (it doesn't, by design).
+    # cross-task feasibility (it doesn't, by design). For cross-domain
+    # the eligibility probe still keys on 'gymv' (the source domain
+    # the F2 / F2' filters use) — the target_task axis is what
+    # _phase4_transfer_cycle measures the delta on.
     admit_before = _eligibility_admit_set(
         source_records, domain="gymv", task=args.target,
     )
@@ -441,21 +436,17 @@ def main() -> int:
         n_admit_before, len(source_records), "gymv", args.target,
     )
 
-    def demos_factory():
-        return build_demos_from_episodes(
-            actions_root,
-            corpus="env_wrappers",
-            game=args.target,
-            max_episodes=args.max_episodes,
-            max_demos_per_episode=args.max_demos_per_episode,
-        )
+    # Per-target-domain dispatch. The gymv builder uses the existing
+    # Day-5b path (env_wrappers cold-start episodes); cross-domain
+    # builders (Stages 1-4) load demos from Cold-start-out-<domain>/.
+    target_build = build_target(args.target_domain, args)
 
     started_at = time.time()
     verdicts, mutated = _run_transfer(
         source_game=args.source,
         target_game=args.target,
         source_records=source_records,
-        target_demos_factory=demos_factory,
+        target_build=target_build,
         pass_rate_min=args.pass_rate_min,
         k=args.k,
         bindings_overrides=bindings_overrides or None,
@@ -541,12 +532,17 @@ def main() -> int:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = out_dir / f"_phase4_transfer_{args.source}_to_{args.target}_{ts}.json"
+    out_path = (
+        out_dir
+        / f"_phase4_transfer_{args.source}_to_{args.target_domain}__{args.target}_{ts}.json"
+    )
     out_path.write_text(json.dumps({
         "source_game": args.source,
+        "target_domain": args.target_domain,
         "target_game": args.target,
         "bank_path": str(bank_path),
         "actions_root": str(actions_root),
+        "cold_start_root": args.cold_start_root,
         "k": args.k,
         "pass_rate_min": args.pass_rate_min,
         "max_skills": args.max_skills,
@@ -570,7 +566,10 @@ def main() -> int:
 
     # Compact summary.
     print()
-    print(f"=== Phase-4 transfer: {args.source} → {args.target} (k={args.k}) ===")
+    print(
+        f"=== Phase-4 transfer: {args.source} -> "
+        f"{args.target_domain}:{args.target} (k={args.k}) ==="
+    )
     print(f"{'skill_id':<24} {'type':<10} {'demos':>5} {'pass':>4} "
           f"{'rate':>5} {'ok':>3} {'promoted':>9} {'diag':<35}")
     for v in verdicts:
@@ -583,10 +582,10 @@ def main() -> int:
         )
     print()
     print(
-        f"eligibility on (gymv, {args.target}): "
+        f"eligibility on ({args.target_domain}, {args.target}): "
         f"BEFORE={n_admit_before}/{len(verdicts)}  "
         f"AFTER={n_admit_after}/{len(verdicts)}  "
-        f"(Δ = {n_admit_after - n_admit_before:+d})"
+        f"(delta = {n_admit_after - n_admit_before:+d})"
     )
     print(f"verified_tasks promotions: {n_promoted}")
     if args.persist:
