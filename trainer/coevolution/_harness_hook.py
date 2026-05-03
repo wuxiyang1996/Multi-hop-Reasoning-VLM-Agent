@@ -183,6 +183,96 @@ def _hydrate_records_from_bank(
 
 
 # ---------------------------------------------------------------------------
+# Refinement B — adaptation score helpers
+# ---------------------------------------------------------------------------
+#
+# Closes the "harness *informs* the LLM picker, not replace it" loop the
+# user asked for: each admitted candidate carries an
+# ``_harness_adaptation_score`` in ``[0.0, 1.0]`` summarising how well
+# the harness expects the skill to adapt to the current ``(domain,
+# task)`` axis. The LLM's skill_selection prompt surfaces this score so
+# the LLM picks with a structured prior rather than text-only RAG
+# guidance. See ``harness/README.md`` §22.5 for the full design memo.
+#
+# Components (all in [0, 1], simple arithmetic mean):
+#
+# * **task-axis match** — was this skill verified / mined for this
+#   exact task? Mirrors the ``task_match`` field on
+#   :class:`harness.eligibility.EligibleSkill`. ``verified`` is the
+#   strongest signal (the skill has *succeeded* on this task at
+#   foundry time); ``same_task`` is feasibility-only; ``agnostic``
+#   is the back-compat catch-all.
+# * **adapter native to target** — does the chosen adapter natively
+#   speak the state's domain? When the only available adapter is one
+#   transitively bridging a different source domain, the predicate
+#   translator had to rewrite the contract — that's a softer signal
+#   than a same-domain adapter would be.
+# * **predicate translation provenance** — diagonal cells get full
+#   credit; successful cross-domain rewrites get partial credit; an
+#   identity-fallback (translator raised) is the weakest signal —
+#   the harness admitted but the contract may not be perfectly
+#   grounded in the target's predicate vocabulary.
+
+_TASK_MATCH_WEIGHTS: Dict[str, float] = {
+    "verified": 1.0,
+    "same_task": 0.85,
+    "agnostic": 0.60,
+}
+_ADAPTER_NATIVE_SCORE: float = 1.0
+_ADAPTER_BRIDGED_SCORE: float = 0.70
+_TRANSLATION_DIAGONAL_SCORE: float = 1.0
+_TRANSLATION_REWRITTEN_SCORE: float = 0.85
+_TRANSLATION_FAILED_SCORE: float = 0.55
+
+
+def _adapter_native_score(adapter_name: str, target_domain: str) -> float:
+    """Heuristic: 1.0 when the chosen adapter natively speaks the target
+    domain, else :data:`_ADAPTER_BRIDGED_SCORE`.
+
+    The :class:`AdapterRegistry` doesn't return adapter→domain
+    associations on the verdict, so we fall back to a name match —
+    e.g. adapter_name ``"gymv"`` × target ``"gymv"`` ⇒ native;
+    adapter_name ``"video"`` × target ``"gymv"`` ⇒ bridged. This is
+    intentionally conservative: when in doubt about provenance, the
+    bridged score still admits the skill but with a softer prior.
+    """
+    if not adapter_name or not target_domain:
+        return _ADAPTER_BRIDGED_SCORE
+    return _ADAPTER_NATIVE_SCORE if adapter_name == target_domain else _ADAPTER_BRIDGED_SCORE
+
+
+def _compute_adaptation_score(
+    eligible: EligibleSkill,
+    *,
+    target_domain: str,
+    translation_status: str,
+) -> Tuple[float, Dict[str, float]]:
+    """Combine task-match, adapter, and translation signals into a
+    single :math:`[0,1]` score. Returns ``(score, breakdown)`` so the
+    diagnostic dict can render the components for debugging.
+
+    ``translation_status`` is one of ``{"diagonal", "rewritten",
+    "failed"}`` (corresponding to the ``rewrote`` / ``failed`` flags
+    returned by :func:`_translate_record_for_target`). Unknown values
+    default to the diagonal score (no translation evidence).
+    """
+    s_task = _TASK_MATCH_WEIGHTS.get(eligible.task_match, _TASK_MATCH_WEIGHTS["agnostic"])
+    s_adapter = _adapter_native_score(eligible.adapter_name, target_domain)
+    if translation_status == "rewritten":
+        s_trans = _TRANSLATION_REWRITTEN_SCORE
+    elif translation_status == "failed":
+        s_trans = _TRANSLATION_FAILED_SCORE
+    else:
+        s_trans = _TRANSLATION_DIAGONAL_SCORE
+    score = (s_task + s_adapter + s_trans) / 3.0
+    return score, {
+        "task_match": s_task,
+        "adapter": s_adapter,
+        "translation": s_trans,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Layer C — predicate translator integration helpers
 # ---------------------------------------------------------------------------
 
@@ -514,6 +604,9 @@ class SkillHarnessHook:
         records_for_filter: List[SkillRecord] = []
         unknown_idx: List[int] = []
         sid_to_cand: Dict[str, Dict[str, Any]] = {}
+        # Refinement B: per-skill translation status, consumed below
+        # when we compute the adaptation_score for each admitted skill.
+        sid_to_translation_status: Dict[str, str] = {}
         n_translated = 0
         n_translation_errs = 0
         target_domain = getattr(state, "domain", None) or self._domain
@@ -532,6 +625,12 @@ class SkillHarnessHook:
                 n_translated += 1
             if failed:
                 n_translation_errs += 1
+            if failed:
+                sid_to_translation_status[sid] = "failed"
+            elif rewrote:
+                sid_to_translation_status[sid] = "rewritten"
+            else:
+                sid_to_translation_status[sid] = "diagonal"
             records_for_filter.append(translated_rec)
             sid_to_cand[sid] = cand
 
@@ -575,6 +674,7 @@ class SkillHarnessHook:
         filtered: List[Dict[str, Any]] = []
         eligible_ids: List[str] = []
         task_match_dist: Dict[str, int] = {}
+        adaptation_scores: List[float] = []
         for e in admitted:
             cand = sid_to_cand.get(e.skill.skill_id)
             if cand is None:
@@ -583,6 +683,25 @@ class SkillHarnessHook:
             # downstream logging / GRPO records can reason about it.
             cand2 = dict(cand)
             cand2["_harness_eligible"] = e.to_json()
+            # Refinement B: emit the adaptation score so the
+            # skill_selection prompt can render it for the LLM. The
+            # breakdown is included for offline inspection but isn't
+            # surfaced to the LLM by default (it's redundant with
+            # the headline score).
+            translation_status = sid_to_translation_status.get(
+                e.skill.skill_id, "diagonal",
+            )
+            score, breakdown = _compute_adaptation_score(
+                e,
+                target_domain=target_domain,
+                translation_status=translation_status,
+            )
+            cand2["_harness_adaptation_score"] = float(score)
+            cand2["_harness_adaptation_breakdown"] = {
+                **breakdown,
+                "translation_status": translation_status,
+            }
+            adaptation_scores.append(float(score))
             filtered.append(cand2)
             eligible_ids.append(e.skill.skill_id)
             task_match_dist[e.task_match] = task_match_dist.get(e.task_match, 0) + 1
@@ -598,6 +717,19 @@ class SkillHarnessHook:
         diag["eligible_ids"] = eligible_ids
         diag["rejected"] = [r.to_json() for r in rejected]
         diag["task_match_distribution"] = task_match_dist
+        # Refinement B summary stats — let the orchestrator log
+        # adaptation-score moments without re-iterating over the
+        # filtered candidate dicts.
+        if adaptation_scores:
+            diag["adaptation_score_min"] = min(adaptation_scores)
+            diag["adaptation_score_max"] = max(adaptation_scores)
+            diag["adaptation_score_mean"] = (
+                sum(adaptation_scores) / len(adaptation_scores)
+            )
+        else:
+            diag["adaptation_score_min"] = None
+            diag["adaptation_score_max"] = None
+            diag["adaptation_score_mean"] = None
 
         # Step stats (per-episode rollup).
         self._stats.n_candidates_in += n_in

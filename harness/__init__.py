@@ -78,6 +78,10 @@ from harness.osworld_executor import make_osworld_executor  # noqa: F401
 from harness.osworld_schema_producer import make_osworld_producer  # noqa: F401
 from harness.osworld_success import make_osworld_per_step_success_fn  # noqa: F401
 from harness.rejected_skill_sink import FlushReport, RejectedSkillSink
+from harness.rejection_deboost import (  # noqa: F401
+    apply_deboost_to_candidates,
+    compute_deboost,
+)
 from harness.replay_validator import ReplayValidator, ReplayResult
 from harness.reward_logger import RewardLogger
 from harness.skill_adapter import SkillAdapter, AdapterRunContext, AdapterRunResult
@@ -125,6 +129,8 @@ __all__ = [
     "GateRunner",
     "GateRunnerConfig",
     "RejectedSkillSink",
+    "apply_deboost_to_candidates",
+    "compute_deboost",
     "SchemaProducer",
     "SkillAdapter",
     "SkillHarness",

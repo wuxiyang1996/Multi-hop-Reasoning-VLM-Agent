@@ -597,3 +597,237 @@ def test_predicate_translation_counters_in_step_stats_to_json():
     j = h.stats.to_json()
     assert j["n_predicate_translations_applied"] == 0
     assert j["n_predicate_translations_failed"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Refinement B — adaptation score on admitted candidates
+# ---------------------------------------------------------------------------
+#
+# Asserts every admitted candidate carries a numeric
+# ``_harness_adaptation_score`` in [0,1] composed from the task-axis
+# match, the adapter native-vs-bridged signal, and the predicate
+# translation provenance. The diagnostic dict additionally surfaces the
+# adaptation_score min/max/mean so the orchestrator can log moments to
+# wandb / TB without re-iterating the candidate list.
+#
+# Vetoed candidates do NOT receive the score (they're absent from the
+# filtered list); unknown-to-cache candidates pass through unchanged
+# and explicitly do not get the score (we have no opinion).
+
+
+def test_adaptation_score_diagonal_runnable_is_one():
+    """Same-domain skill mined from gymv, no rewrite needed, native
+    adapter, agnostic task — score is dominated by task-match's
+    'agnostic' weight (0.60) but adapter and translation are both
+    1.0; expect ((0.60 + 1.0 + 1.0) / 3) = 0.867."""
+    rec = _mk_record(
+        skill_id="diag",
+        domain="gymv",
+        source_domains=["gymv"],
+    )
+    h = SkillHarnessHook(records={"diag": rec})
+    out, diag = h.filter_candidates([_cand("diag")], _state())
+    assert len(out) == 1
+    score = out[0]["_harness_adaptation_score"]
+    assert 0.85 < score < 0.90
+    breakdown = out[0]["_harness_adaptation_breakdown"]
+    assert breakdown["adapter"] == 1.0
+    assert breakdown["translation"] == 1.0
+    assert breakdown["translation_status"] == "diagonal"
+
+
+def test_adaptation_score_same_task_higher_than_agnostic():
+    """When the skill names the current task in feasible_tasks the
+    eligibility filter stamps task_match='same_task' -- which weights
+    higher than 'agnostic' -- so the headline score should rise."""
+    rec_agnostic = _mk_record(skill_id="agn", domain="gymv", source_domains=["gymv"])
+    rec_same = _mk_record(
+        skill_id="same",
+        domain="gymv",
+        source_domains=["gymv"],
+        feasible_tasks=["twenty_forty_eight"],
+    )
+    h = SkillHarnessHook(records={"agn": rec_agnostic, "same": rec_same})
+    out, _ = h.filter_candidates(
+        [_cand("agn"), _cand("same")],
+        _state(task="twenty_forty_eight"),
+    )
+    by_id = {c["skill_id"]: c for c in out}
+    assert by_id["same"]["_harness_adaptation_score"] > by_id["agn"]["_harness_adaptation_score"]
+
+
+def test_adaptation_score_dropped_when_skill_vetoed():
+    """A vetoed skill doesn't appear in the filtered list at all, so
+    the prompt never sees an adaptation_score for it -- the LLM only
+    picks among admitted candidates."""
+    rec = _mk_record(skill_id="bad", domain="gymv", source_domains=["gymv"])
+    object.__setattr__(rec, "status", SkillStatus.DRAFT)
+    h = SkillHarnessHook(records={"bad": rec})
+    out, _ = h.filter_candidates([_cand("bad")], _state())
+    assert out == []
+
+
+def test_adaptation_score_omitted_for_unknown_skill():
+    """Skills the cache doesn't know are passed through unchanged --
+    we have no opinion, so no score."""
+    h = SkillHarnessHook(records={})
+    out, _ = h.filter_candidates([_cand("unknown")], _state())
+    assert len(out) == 1
+    assert "_harness_adaptation_score" not in out[0]
+    assert "_harness_adaptation_breakdown" not in out[0]
+
+
+def test_adaptation_score_summary_in_diag():
+    """The diagnostic dict surfaces min/max/mean of the per-candidate
+    adaptation_scores so the orchestrator can log moments to
+    wandb / TB without scanning the filtered list."""
+    rec_a = _mk_record(skill_id="a", domain="gymv", source_domains=["gymv"])
+    rec_b = _mk_record(
+        skill_id="b",
+        domain="gymv",
+        source_domains=["gymv"],
+        feasible_tasks=["twenty_forty_eight"],
+    )
+    h = SkillHarnessHook(records={"a": rec_a, "b": rec_b})
+    _, diag = h.filter_candidates(
+        [_cand("a"), _cand("b")],
+        _state(task="twenty_forty_eight"),
+    )
+    assert diag["adaptation_score_min"] is not None
+    assert diag["adaptation_score_max"] is not None
+    assert diag["adaptation_score_mean"] is not None
+    assert (
+        diag["adaptation_score_min"]
+        <= diag["adaptation_score_mean"]
+        <= diag["adaptation_score_max"]
+    )
+
+
+def test_adaptation_score_summary_none_when_no_admitted():
+    """When every candidate is vetoed the summary fields are None
+    (rather than e.g. ``0.0`` which would imply 'admitted but bad')."""
+    rec = _mk_record(skill_id="bad", domain="gymv", source_domains=["gymv"])
+    object.__setattr__(rec, "status", SkillStatus.DRAFT)
+    h = SkillHarnessHook(records={"bad": rec})
+    _, diag = h.filter_candidates([_cand("bad")], _state())
+    assert diag["adaptation_score_min"] is None
+    assert diag["adaptation_score_max"] is None
+    assert diag["adaptation_score_mean"] is None
+
+
+def test_adaptation_score_translation_failure_lowers_score():
+    """Translator crash → identity fallback. The skill is still
+    admitted (gymv adapter handles the original record) but the
+    translation slot drops to the failed-fallback weight, pulling
+    the headline score below the diagonal baseline."""
+    from trainer.coevolution import _harness_hook as hh_mod
+
+    def _boom(skill, *, source, target):
+        raise RuntimeError("synthetic translator bug")
+
+    rec_clean = _mk_record(
+        skill_id="clean",
+        domain="gymv",
+        source_domains=["gymv"],   # diagonal
+    )
+    rec_failed = _mk_record(
+        skill_id="failed",
+        domain="gymv",
+        source_domains=["visual_reasoning"],   # forces translator path
+        contract=SkillContract(effects_add=["any_predicate"]),
+    )
+    h = SkillHarnessHook(records={"clean": rec_clean, "failed": rec_failed})
+
+    import pytest as _pytest
+    monkeypatch = _pytest.MonkeyPatch()
+    try:
+        monkeypatch.setattr(hh_mod, "translate_skill_contract", _boom)
+        out, _ = h.filter_candidates(
+            [_cand("clean"), _cand("failed")], _state(),
+        )
+    finally:
+        monkeypatch.undo()
+
+    by_id = {c["skill_id"]: c for c in out}
+    assert by_id["failed"]["_harness_adaptation_breakdown"]["translation_status"] == "failed"
+    assert by_id["clean"]["_harness_adaptation_score"] > by_id["failed"]["_harness_adaptation_score"]
+
+
+def test_adaptation_score_in_range():
+    """All emitted scores must lie in [0, 1] regardless of input."""
+    rec = _mk_record(skill_id="a", domain="gymv", source_domains=["gymv"])
+    h = SkillHarnessHook(records={"a": rec})
+    out, _ = h.filter_candidates([_cand("a")], _state())
+    score = out[0]["_harness_adaptation_score"]
+    assert 0.0 <= score <= 1.0
+
+
+# ---------------------------------------------------------------------------
+# Prompt formatter — surfaces the score and the deboost rate
+# ---------------------------------------------------------------------------
+#
+# Two parallel `_format_candidates_for_selection` definitions:
+# * scripts/qwen3_decision_agent.py — standalone agent
+# * trainer/coevolution/episode_runner.py — trainer-side mirror
+# Both must surface the harness signals when present, and degrade
+# silently when they're absent (callers without the harness path
+# should still be able to render candidate menus).
+
+
+def test_prompt_formatter_includes_adaptation_when_present():
+    from scripts.qwen3_decision_agent import _format_candidates_for_selection
+
+    out = _format_candidates_for_selection(
+        [{
+            "skill_id": "x", "skill_name": "x",
+            "execution_hint": "do x", "protocol": {},
+            "confidence": 0.5,
+            "_harness_adaptation_score": 0.83,
+        }],
+    )
+    assert "Adaptation: 0.83" in out
+
+
+def test_prompt_formatter_omits_adaptation_when_absent():
+    from scripts.qwen3_decision_agent import _format_candidates_for_selection
+
+    out = _format_candidates_for_selection(
+        [{"skill_id": "x", "skill_name": "x", "execution_hint": "h",
+          "protocol": {}, "confidence": 0.5}],
+    )
+    assert "Adaptation" not in out
+
+
+def test_prompt_formatter_renders_recent_veto_rate_only_when_meaningful():
+    from scripts.qwen3_decision_agent import _format_candidates_for_selection
+
+    # Below the 0.95 threshold ⇒ rendered.
+    rendered = _format_candidates_for_selection(
+        [{"skill_id": "x", "skill_name": "x", "execution_hint": "h",
+          "protocol": {}, "confidence": 0.5,
+          "_harness_deboost": 0.5}],
+    )
+    assert "Recent veto rate" in rendered
+
+    # Above the threshold ⇒ skipped (clean skill).
+    rendered_clean = _format_candidates_for_selection(
+        [{"skill_id": "x", "skill_name": "x", "execution_hint": "h",
+          "protocol": {}, "confidence": 0.5,
+          "_harness_deboost": 1.0}],
+    )
+    assert "Recent veto rate" not in rendered_clean
+
+
+def test_trainer_prompt_formatter_mirrors_standalone():
+    """The trainer's mirror in `episode_runner._format_candidates_for_selection`
+    must surface the same signals as the standalone agent."""
+    from trainer.coevolution.episode_runner import _format_candidates_for_selection
+
+    rendered = _format_candidates_for_selection(
+        [{"skill_id": "x", "skill_name": "x", "execution_hint": "h",
+          "protocol": {}, "confidence": 0.5,
+          "_harness_adaptation_score": 0.42,
+          "_harness_deboost": 0.6}],
+    )
+    assert "Adaptation: 0.42" in rendered
+    assert "Recent veto rate" in rendered

@@ -48,6 +48,21 @@ Spec: [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md), [`PLAN-COMPONENTS-I
 > [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md)
 > §12 for the per-target rollout status; that memo's §11.5.0 reconciles the
 > historical stub-pathology with the §11.5.4 aspirational transferability bands.
+>
+> **Skill-selection design (2026-05-02):** the live trainer +
+> standalone agent both run a four-stage pipeline — **RAG retrieves
+> top-K → harness adapts (predicate translator) + filters
+> (eligibility) → `skill_selection` LLM picks one → harness validates
+> the pick**. The harness *informs* the LLM picker via two refinement
+> signals it stamps onto each candidate dict: `_harness_deboost`
+> (RAG-time veto-history multiplier from
+> [`rejection_deboost.py`](rejection_deboost.py)) and
+> `_harness_adaptation_score` (filter-time `[0, 1]` summary of
+> task-axis match × adapter native-vs-bridged × predicate translation
+> provenance). Both are surfaced to the LLM in the `skill_selection`
+> prompt as `Adaptation:` / `Recent veto rate:` lines. See
+> [§22.5](#225-skill-selection-design--rag-retrieves-harness-informs-llm-picks-harness-validates)
+> for the design memo.
 
 The harness is the *frozen verifier* in the role split (root README §"Three-agent role split" / §"Architecture"):
 
@@ -160,6 +175,8 @@ Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source fi
 |---|---|
 | `gate_runner.py` (`GateRunner`, `GateRunnerConfig`, `EvalSuite`) | Day-7a spec-named offline gate surface (PLAN-UNIFIED-SKILL-GATE §6). Subclasses `orchestrator.gate_service.GateService`; threads reproducibility anchors (`bank_snapshot_id`, `eval_suite_id`, `adapter_versions`, `ontology_version`, `seed`, `judge_model`) into every emitted `SkillEvaluationRecord`. Adds `rollout_batch: Sequence[SkillEpisode]` (Stage 2) and `eval_suite: EvalSuite` (Stage 4) shapes that close §12. Lazy `__getattr__` import to avoid circular orchestrator dep |
 | `rejected_skill_sink.py` (`RejectedSkillSink`, `FlushReport`) | Day-9c in-process aggregator between the harness and the Crafter. `observe(rejected, domain=…, task=…)` after every `filter.filter_with_rejections(...)`; `flush_to(lifecycle, min_count=…)` writes `false_binding_patterns` evidence via `lifecycle.record_false_binding_pattern` |
+| `rejection_deboost.py` (`compute_deboost`, `apply_deboost_to_candidates`) | Refinement A of [§22.5](#225-skill-selection-design--rag-retrieves-harness-informs-llm-picks-harness-validates) — turns `SkillRecord.false_binding_patterns` into a multiplicative deboost on the RAG candidate list. Pure CPU, count + recency + on-axis weighting, deboost factor stamped onto each candidate as `_harness_deboost`. Wired into [`scripts/qwen3_decision_agent.get_top_k_skill_candidates`](../scripts/qwen3_decision_agent.py) |
+| `predicate_translator.py` (`translate_skill_contract`, `PREDICATE_TRANSLATIONS`) | Layer C of the cross-domain integration — rewrites a `SkillRecord.contract`'s `effects_add` / `effects_del` predicates between source and target domain vocabularies. Spliced into `SkillHarnessHook.filter_candidates` so cross-domain skills present a target-grounded contract to the eligibility filter; identity / diagonal cells short-circuit |
 | `eligibility.task_id_from_state` | Helper used by F2′ to canonicalise `state.task` (`"make_gaming_env/<game>"` → `"<game>"`) |
 | `validate_invocation` (on `SkillHarness`) | Day-8a second-pass invocation veto. Returns `ValidateInvocationResult` with per-check booleans + `veto_reasons / missing_bindings / missing_evidence_in / failed_preconditions` |
 
@@ -719,7 +736,152 @@ Both flags default off / permissive, so existing runs are byte-identical.
 | §22 task-axis F2′ | **closed** for trainer Phase A (state.task = game name) |
 | PLAN-SKILL-BANK §4.3b `false_binding_patterns` from live signal | **closed** via `RejectedSkillSink → record_false_binding_pattern` in Phase B′ |
 
-### 22.5 What the trainer integration leaves for §9 / §16 / §22
+### 22.5 Skill-selection design — RAG retrieves, **harness** *informs*, LLM picks, harness validates
+
+> **Status (2026-05-02): both refinements landed.** The four-stage
+> selection pipeline below is what runs in the live trainer + the
+> standalone `qwen3_decision_agent`; the two harness-derived signals
+> (`_harness_deboost`, `_harness_adaptation_score`) are decorated onto
+> the candidate dicts the `skill_selection` LLM sees.
+
+A recurring design question: *should we let the harness (with its
+deterministic predicate checks) replace the RAG retriever and pick
+skills directly, or should we keep RAG as the picker and let the
+harness only veto?* Neither extreme is right.
+
+* **RAG-only** is what the legacy stack did. It retrieves on dense
+  state-text similarity, which is excellent for "which existing skill
+  resembles this state". But RAG can't see the skill's runtime
+  contract (predicates, `feasible_tasks`, adapter availability), so
+  it routinely top-Ks skills the harness will veto microseconds
+  later — wasting the LLM's `skill_selection` budget on dead options.
+* **Harness-as-picker** is appealing — the harness has perfect
+  ground-truth on contract validity — but it has no notion of
+  *strategic relevance*. A skill that's runnable on every state is
+  not the right pick on every state; the LLM is the only component
+  in the loop that can read a state's narrative ("the player is
+  trapped in a corner") and match it to a skill's strategic
+  description. The harness is also far less expressive than RAG's
+  embedding search at scale (≥10⁴ skills).
+
+The right division of labour is the **four-stage pipeline**:
+
+```
+   state ──▶ RAG retriever (top-K)        # scalable similarity
+              │
+              ▼
+         Harness eligibility filter       # deterministic vetoes
+              │     ├─ predicate translator (Layer C)
+              │     ├─ task / domain / adapter / can_handle checks
+              │     └─ veto sink ─▶ false_binding_patterns (durable)
+              ▼
+         skill_selection LLM picks ONE    # interpretive, with priors
+              │
+              ▼
+         Harness.validate_invocation       # post-pick second pass
+              │     ├─ ok=True  ─▶ proceed
+              │     └─ ok=False ─▶ next eligible candidate
+              ▼
+            env.step
+```
+
+The harness is the **referee**, not the picker. The two refinements
+below are how the referee teaches the picker without replacing it.
+
+#### Refinement A — `false_binding_patterns` deboost the RAG ranker
+
+Module: [`harness/rejection_deboost.py`](rejection_deboost.py).
+Wired into [`scripts/qwen3_decision_agent.get_top_k_skill_candidates`](../scripts/qwen3_decision_agent.py).
+
+When the harness vetoes a skill, the rejection sink already aggregates
+the `(veto, domain, task)` triple onto
+`SkillRecord.false_binding_patterns` (PLAN-SKILL-BANK §4.3b). Refinement
+A reads that durable history at retrieval time and multiplies the
+candidate's `confidence` / `relevance` by a deboost factor in
+`[0.10, 1.0]` derived from:
+
+* On-axis count vs. half-life (default 3 vetoes ⇒ 0.5×).
+* Recency weighting (default 1-day half-life — ancient vetoes weigh
+  less so a rehabilitated skill can rebound).
+* An off-axis discount (vetoes from a *different* `(domain, task)`
+  contribute at 0.25× by default — they're weak evidence on the
+  current axis).
+
+The factor is also stamped on the candidate dict as
+`_harness_deboost`, so downstream consumers (the prompt formatter,
+audit logs, GRPO records) can see how aggressively a skill was
+deboosted. Configurable via the `apply_rejection_deboost=False`
+opt-out on `get_top_k_skill_candidates`.
+
+Test surface: [`tests/test_rejection_deboost.py`](../tests/test_rejection_deboost.py)
+(27 unit tests covering pure scoring, end-to-end through
+`get_top_k_skill_candidates`, fetcher errors, opt-out, and floor
+clamping).
+
+#### Refinement B — Adaptation score injected into the prompt
+
+Module: [`trainer/coevolution/_harness_hook.py`](../trainer/coevolution/_harness_hook.py)
+(`_compute_adaptation_score`). Surfaced in both copies of
+`_format_candidates_for_selection` (the standalone agent and the
+trainer's mirror).
+
+Each admitted candidate now carries a numeric
+`_harness_adaptation_score ∈ [0, 1]` that summarises *how well the
+harness expects this skill to adapt to the current `(domain, task)`*.
+The score is the arithmetic mean of three components:
+
+| Component | 1.0 case | Weakened case |
+| --- | --- | --- |
+| **Task-axis match** | `task_match == "verified"` | `same_task = 0.85`, `agnostic = 0.60` |
+| **Adapter-target fit** | `adapter_name == state.domain` (native) | bridged adapter ⇒ 0.70 |
+| **Predicate translation** | diagonal cell — no rewrite needed | rewritten ⇒ 0.85, identity-fallback (translator crash) ⇒ 0.55 |
+
+The score appears in the `skill_selection` prompt as `Adaptation: 0.83`
+between the candidate's `Confidence:` line and (when meaningful) a
+`Recent veto rate: 0.45` line derived from `1 - _harness_deboost`. The
+LLM sees both signals as a structured prior — it's free to override
+them, but it now picks with more information than dense embeddings
+alone provide.
+
+Vetoed candidates do not appear in the filtered list at all (the
+harness already removed them); unknown-to-cache candidates pass
+through unchanged with no score (the harness has no opinion). The
+candidate-level breakdown (per-component scores + translation status)
+is written to `_harness_adaptation_breakdown` for offline inspection
+but is *not* surfaced in the prompt — it would be redundant noise.
+
+Per-step summary stats land in the `experiences[].harness` payload:
+`adaptation_score_min / max / mean` so wandb / TB can trend the
+moments.
+
+Test surface: 11 new tests in [`tests/test_trainer_harness_hook.py`](../tests/test_trainer_harness_hook.py)
+covering the score range, monotonicity (`verified > same_task >
+agnostic`), diagonal-vs-translated-vs-failed translation status,
+absent-on-unknown-skills, prompt-formatter rendering, and the
+trainer/standalone formatter parity.
+
+#### What this design preserves
+
+* **Single picker.** The LLM is still the only component that picks.
+  The harness emits *priors*, not decisions.
+* **Architectural composability.** Refinements A and B work
+  independently — the deboost is a RAG-time signal, the adaptation
+  score is a filter-time signal. Either can be opted out without
+  affecting the other (though they're complementary in practice).
+* **Backwards-compatible prompts.** Both signals are best-effort:
+  candidates assembled outside the harness path simply omit the
+  fields and the prompt formatter degrades silently. No regression
+  for callers that don't run the harness hook.
+* **No new LLM calls.** Both refinements are pure CPU. The trainer's
+  per-step LLM budget is unchanged (intention + skill-selection +
+  action).
+
+The Crafter loop's [`_crafter_hook → flush_to_lifecycle`](../trainer/coevolution/_crafter_hook.py)
+remains the canonical writer for `false_binding_patterns`, so the
+deboost in Refinement A automatically picks up on-the-fly veto
+history within the same trainer step.
+
+### 22.6 What the trainer integration leaves for §9 / §16 / §22
 
 - §9.2 planner-context (`intention / active_skill / local_reasoning_trace`) is *plumbed* into `state.extra` but not yet a typed first-class param of `select_eligible_skills` — the harness API still takes `state` only.
 - §9.3 numeric `fit_score / risk_score` head — still pending (LoRA scoring, PLAN-SKILL-BANK §0.3 Clause D).

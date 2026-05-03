@@ -451,6 +451,15 @@ def _format_skill_guidance_for_prompt(
 
 
 def _format_candidates_for_selection(candidates: List[Dict[str, Any]]) -> str:
+    """Trainer-side mirror of
+    :func:`scripts.qwen3_decision_agent._format_candidates_for_selection`.
+
+    Renders ``_harness_adaptation_score`` (Refinement B) and the
+    ``_harness_deboost`` recent-veto rate (Refinement A) when those
+    fields are present on the candidate dict. Both fields are best-
+    effort and omitted silently when the harness path didn't decorate
+    the candidate. See ``harness/README.md`` §22.5 for the design.
+    """
     lines: List[str] = []
     for i, c in enumerate(candidates, 1):
         name = c.get("skill_name") or c.get("skill_id", f"strategy_{i}")
@@ -468,6 +477,12 @@ def _format_candidates_for_selection(candidates: List[Dict[str, Any]]) -> str:
         confidence = c.get("confidence")
         if confidence is not None:
             lines.append(f"     Confidence: {confidence:.2f}")
+        adapt = c.get("_harness_adaptation_score")
+        if isinstance(adapt, (int, float)):
+            lines.append(f"     Adaptation: {float(adapt):.2f}")
+        deboost = c.get("_harness_deboost")
+        if isinstance(deboost, (int, float)) and float(deboost) < 0.95:
+            lines.append(f"     Recent veto rate: {1.0 - float(deboost):.2f}")
     return "\n".join(lines)
 
 
