@@ -255,6 +255,18 @@ _MAX_CONSECUTIVE_NOOPS = 2
 # Anti-error: force a different action_type/bid after this many consecutive
 # steps that hit ``last_action_error`` with the same action.
 _MAX_CONSECUTIVE_ERRORS = 2
+# Anti-thrash: when the agent has done ``_MAX_CONSECUTIVE_NAV`` actions in a
+# row from the navigation-only set ({scroll, go_back, go_forward, noop}) AND
+# the current page surfaces a ``fill(...)`` candidate, force the next
+# action to be that fill with a goal-derived query. Catches the post-
+# search blocked-page recovery pattern surfaced in the May-3 VWA
+# visualwebarena.92 diagnostic, where gpt-5.5 low looped through 28 nav-
+# only steps without realising the bid for the search box had been re-
+# numbered after the Magento interstitial. Set to 3 — small enough to fire
+# fast on real thrashing, large enough to not interrupt legitimate scroll-
+# to-find loops on pages without input candidates.
+_MAX_CONSECUTIVE_NAV = 3
+_NAV_ONLY_PREFIXES = ("scroll(", "go_back(", "go_forward(", "noop(")
 # Number of recent action results to surface in the action-selection prompt.
 _HISTORY_WINDOW = 5
 # Substrings (case-insensitive) on a node's text/role that mark it as a
@@ -1680,6 +1692,95 @@ def _pick_different(action: str, candidates: List[str]) -> str:
     return "noop()"
 
 
+def _is_nav_only_action(action: str) -> bool:
+    """Return True iff ``action`` belongs to the navigation-only set.
+
+    Used by the anti-thrash override (#6d) to detect the
+    ``scroll/go_back/go_forward/noop`` loops that gpt-5.x low keeps falling
+    into on VWA after a single failed search submission.
+    """
+    if not action:
+        return False
+    stripped = action.strip()
+    return stripped.startswith(_NAV_ONLY_PREFIXES)
+
+
+_FILL_ACTION_RE = re.compile(r'^fill\(\s*"([^"]+)"\s*,')
+_STOP_GOAL_TOKENS = frozenset({
+    "find", "get", "locate", "show", "tell", "navigate", "subscribe",
+    "buy", "search", "help", "the", "a", "an", "of", "to", "for", "from",
+    "on", "in", "at", "by", "with", "and", "or", "is", "are", "be", "this",
+    "that", "me", "my", "our", "your", "their", "his", "her", "its",
+    "please", "list", "all", "most", "least", "best", "worst",
+})
+
+
+def _extract_search_query(goal: str, max_words: int = 4) -> str:
+    """Heuristic keyword extraction from the task goal for anti-thrash.
+
+    Order of preference:
+      1. The first quoted phrase ("..." or '...') — VWA goals frequently
+         quote the literal item name ("the most expensive TV").
+      2. The longest run of capitalised content words (e.g. ``Maryland NFL``).
+      3. The 2-4 longest non-stopword tokens.
+
+    Returns an empty string when nothing usable is extractable; callers
+    should treat that as "anti-thrash cannot help, fall through".
+    """
+    if not goal:
+        return ""
+
+    quoted = re.search(r'["\'\u201c\u2018]([^"\'\u201d\u2019]{2,80})["\'\u201d\u2019]', goal)
+    if quoted:
+        candidate = quoted.group(1).strip()
+        if 2 <= len(candidate) <= 80:
+            return candidate
+
+    tokens = re.findall(r"[A-Za-z][A-Za-z0-9\-]+", goal)
+    cap_run: List[str] = []
+    best_run: List[str] = []
+    for tok in tokens:
+        if tok[0].isupper() and tok.lower() not in _STOP_GOAL_TOKENS:
+            cap_run.append(tok)
+            if len(cap_run) > len(best_run):
+                best_run = list(cap_run)
+        else:
+            cap_run = []
+    if best_run:
+        return " ".join(best_run[:max_words])
+
+    content = [
+        t for t in tokens
+        if t.lower() not in _STOP_GOAL_TOKENS and len(t) >= 4
+    ]
+    content.sort(key=len, reverse=True)
+    if content:
+        return " ".join(content[:max_words])
+    return ""
+
+
+def _build_anti_thrash_action(
+    candidate_actions: List[str], goal: str,
+) -> Optional[str]:
+    """Return a ``fill(<bid>, <query>)`` action when one is feasible.
+
+    Picks the *first* fill candidate (matches the order produced by
+    ``browsergym_wrapper.tools._h_list_valid_actions`` which surfaces
+    searchbox/textbox roles before generic textboxes), then substitutes
+    a goal-derived query for the placeholder string.
+    """
+    query = _extract_search_query(goal)
+    if not query:
+        return None
+    for cand in candidate_actions:
+        m = _FILL_ACTION_RE.match(cand)
+        if m:
+            bid = m.group(1)
+            safe = query.replace("\\", "\\\\").replace('"', '\\"')
+            return f'fill("{bid}", "{safe}")'
+    return None
+
+
 _SCHEMA_ENTITY_RE = re.compile(
     r"^(e\d+)\[[^]]*\blabel=([^,\]]+?)(?:,[^]]*\bbid=([A-Za-z0-9_-]+))?",
     re.MULTILINE,
@@ -1867,6 +1968,8 @@ def run_actor_episode(
     consecutive_errors = 0
     last_error_bid: Optional[str] = None
     bad_bids: List[str] = []        # bids that errored at any point this ep
+    consecutive_nav_actions = 0    # for anti-thrash override (#6d)
+    anti_thrash_fires = 0          # diagnostic counter
     consent_dismissed = False  # only auto-click cookie accept once per episode
     schema_calls = 0
     schema_ok = 0
@@ -2052,6 +2155,38 @@ def run_actor_episode(
                 if verbose:
                     print(f"  step {step}: anti-error override {old_action!r} -> {action!r} (bad bid {chosen_bid})")
 
+            # 6d. Anti-THRASH override — if the agent has just emitted
+            #     ``_MAX_CONSECUTIVE_NAV`` navigation-only actions in a row
+            #     (scroll/go_back/go_forward/noop) AND the *current* chosen
+            #     action is again nav-only AND the page surfaces a
+            #     ``fill(...)`` candidate, force a fill with a goal-derived
+            #     query. Catches the post-search blocked-page recovery
+            #     pattern surfaced in the May-3 visualwebarena.92 diagnostic
+            #     where gpt-5.5 low looped through 28 nav-only steps.
+            if (
+                consecutive_nav_actions >= _MAX_CONSECUTIVE_NAV
+                and _is_nav_only_action(action)
+            ):
+                forced = _build_anti_thrash_action(candidate_actions, goal)
+                if forced is not None and forced != action:
+                    old_action = action
+                    prior_nav_run = consecutive_nav_actions
+                    action = forced
+                    anti_thrash_fires += 1
+                    consecutive_nav_actions = 0
+                    reasoning = (
+                        (reasoning or "")
+                        + f" [auto-override: anti-thrash after "
+                        + f"{prior_nav_run} nav-only actions, "
+                        + f"forcing {forced!r}]"
+                    )
+                    if verbose:
+                        print(
+                            f"  step {step}: anti-thrash override "
+                            f"{old_action!r} -> {action!r} "
+                            f"(consecutive_nav was {prior_nav_run})"
+                        )
+
             # 6c. Last-mile defense: quote any unquoted bid that slipped
             #     through (no-op for already-quoted candidate strings).
             #     ``click(12)`` becomes ``click("12")`` automatically.
@@ -2111,6 +2246,15 @@ def run_actor_episode(
             else:
                 consecutive_errors = 0
                 last_error_bid = None
+
+            # Anti-thrash counter: count the *executed* action against the
+            # nav-only run. A successful fill/click/check resets it; an
+            # anti-thrash override already reset to 0 above and the synth
+            # action is a fill, so this branch keeps the reset stable.
+            if _is_nav_only_action(action):
+                consecutive_nav_actions += 1
+            else:
+                consecutive_nav_actions = 0
 
             # 8. Build the Experience record (use compact text observations
             #    that summarise the page; raw obs is too large to serialize).
@@ -2278,6 +2422,7 @@ def run_actor_episode(
         "noop_steps": sum(1 for h in history if h["noop"]),
         "error_steps": sum(1 for h in history if h.get("error")),
         "som_telemetry": som_telemetry,
+        "anti_thrash_fires": anti_thrash_fires,
     }
     return episode, stats
 
@@ -2497,6 +2642,24 @@ def run_target_rollouts(
                     f"``BrowserGym.utils.obs.overlay_som`` integration with "
                     f"this BrowserGym version."
                 )
+
+    # Anti-thrash watchdog: how often did override #6d fire across the run?
+    # Useful for tuning ``_MAX_CONSECUTIVE_NAV`` and confirming the search-
+    # first heuristic is no longer needed once the agent reliably picks
+    # ``fill(...)`` on its own. ``fires=0`` on a run that included
+    # search-heavy tasks indicates either the agent is already breaking out
+    # of nav-loops on its own, or the threshold is too high.
+    _at_eps = [s for s in all_stats if "anti_thrash_fires" in s]
+    if _at_eps:
+        _total_fires = sum(s.get("anti_thrash_fires", 0) for s in _at_eps)
+        _eps_with_fire = sum(
+            1 for s in _at_eps if s.get("anti_thrash_fires", 0) > 0
+        )
+        print(
+            f"  [ANTI-THRASH] {label}: eps={len(_at_eps)} "
+            f"total_fires={_total_fires} "
+            f"eps_with_fire={_eps_with_fire}/{len(_at_eps)}"
+        )
 
     summary: Dict[str, Any] = {
         "target_kind": target_kind,

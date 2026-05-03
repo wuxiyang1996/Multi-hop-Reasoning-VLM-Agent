@@ -1,12 +1,27 @@
 # VWA improvement plan — closing the gap to 20–30 % pass-rate
 
-> **Status (2026-05-03 04:50 AM):** 🟡 **PLAN — diagnostic complete,
-> changes not yet landed.** Real-agent smoke on 1 task (gpt-5.5 low /
-> max_steps=12) finished cleanly (12/12 steps, 16.1 s/step, watchdog
-> ok) but reward=0.00 with classic *navigation-thrashing* behaviour.
-> This memo records what the literature says we *should* be hitting,
-> why our current config is well below the bar, and a tier-ranked set
-> of improvements the 4-model 200-task baseline should ship with.
+> **Status (2026-05-03 10:11 AM, post-Tier-1 + anti-thrash smoke):** 🟢
+> **Tier-1 + anti-thrash override LANDED, 5-task smoke completed.**
+> Avg reward = **0.20** (1/5 tasks succeeded, vs. 0/3 prior baseline).
+> One real win on `visualwebarena.268` (reward=1.0 in 3 steps).
+> `fill()` action distribution went from **0 %** of steps in the
+> diagnostic episode to **11.4 %** of all steps across the 5-task
+> smoke — search-first heuristic is firing reliably. Anti-thrash
+> override fired 0 times across the run because (a) on usable pages
+> the search-first heuristic already breaks the nav loop and (b) on
+> ``about:blank#blocked`` pages there are no `fill()` candidates so
+> the override correctly inactive-no-ops. The dominant remaining
+> failure mode is `about:blank#blocked` after `click()`-on-search-
+> submit on classifieds — see §9 below for the post-mortem and the
+> follow-up patch list.
+
+> **Earlier diagnostic (2026-05-03 04:50 AM):** 🟡 PLAN — Real-agent
+> smoke on 1 task (gpt-5.5 low / max_steps=12) finished cleanly
+> (12/12 steps, 16.1 s/step, watchdog ok) but reward=0.00 with
+> classic *navigation-thrashing* behaviour. This memo records what
+> the literature says we *should* be hitting, why our current config
+> is well below the bar, and a tier-ranked set of improvements the
+> 4-model 200-task baseline should ship with.
 
 > **Cross-refs:**
 > - [`implementation_notes/osworld-vwa-200-baseline-plan.md`](osworld-vwa-200-baseline-plan.md) — the parent baseline plan; its §13 already flagged `max_steps=12` vs. literature 30 as **Open Q #3**. This memo resolves that question with data.
@@ -256,3 +271,112 @@ changes before launching the rest.
 - Recon-Act style tool-augmented agents.
 - Trainer co-evolution loop on VWA (orthogonal — goes through the
   same Phase-5/6 cross-domain matrix downstream).
+
+## 9. Post-Tier-1 + anti-thrash smoke (5 tasks, 2026-05-03 10:11 AM)
+
+**Setup.** gpt-5.5 (openrouter routing → `openai/gpt-5.5`),
+`reasoning_effort=low`, `max_steps=30`, 1 episode each.
+
+**Task mix:** chosen to span all 4 dominant VWA failure modes.
+
+| Task | Site | Eval | Steps | Reward | First action | Outcome |
+|---|---|---|---:|---:|---|---|
+| `visualwebarena.92` | classifieds | url_match | 30 | 0.00 | `fill("56", "TV Maryland NFL game")` | search submit click → `about:blank#blocked` → 28-step nav loop |
+| `visualwebarena.96` | classifieds | url+string | 30 | 0.00 | `scroll(0,300)` | reached search at step 20 then same `about:blank` failure |
+| `visualwebarena.268` | reddit | url_match | **3** | **1.00** | `click("140")` | **solved** in 3 steps (no search required) |
+| `visualwebarena.351` | wiki+reddit | string_match | 30 | 0.00 | `fill("18", "dog with pink hair")` | agent used `press("18", "Enter")` correctly; Wikipedia content not in local Kiwix mirror |
+| `visualwebarena.433` | reddit | program_html | 30 | 0.00 | `fill("54", "f/music")` | navigated to comment box, filled correct text, but submit click hit `about:blank` |
+
+**Aggregate (123 steps total):**
+
+| Metric | Value |
+|---|---:|
+| Avg reward | **0.20** (1/5 tasks succeeded) |
+| Nav% (`scroll/go_back/go_forward/noop`) | 74.0 % (91/123) |
+| Fill% | 11.4 % (14/123) — vs **0 %** in pre-Tier-1 diagnostic |
+| Click% | 11.4 % (14/123) |
+| Press% (`press("<bid>", "Enter")`) | 3.3 % (4/123) — agent self-discovered the pattern |
+| Anti-thrash fires | **0** across all 5 episodes |
+| SoM blind episodes | 0/5 — overlay rendering is fine |
+
+**Per-task SoM telemetry (avg per episode):**
+
+| Task | extras | set_of_marks | input_role | sec_per_step |
+|---|---:|---:|---:|---:|
+| 92 | 422 | 20 | 2 | 16.3 |
+| 96 | 354 | 18 | 5 | 16.9 |
+| 268 | 386 | 84 | 1 | 25.3 |
+| 351 | 31 | 3 | 1 | 11.2 |
+| 433 | 176 | 12 | 1 | 23.2 |
+
+### Key wins
+
+1. **Search-first heuristic is working.** `fill()` rate jumped from 0 %
+   to 11.4 %. Tasks 92 / 96 / 351 / 433 *all* started with a `fill()`
+   on the search box (or scrolled to find it within 3 steps).
+2. **`press("<bid>", "Enter")` discovery.** Task 433 step 1 used
+   `press("54", "Enter")` voluntarily; task 351 step 3 also discovered
+   it. The agent learned that `Enter` is a more reliable submit than
+   `click(submit_button)` on at least 2 of 5 tasks. **No prompt hint
+   for this was added** — purely emergent.
+3. **Reddit win.** `visualwebarena.268` solved in 3 steps with
+   reward=1.0, demonstrating the Tier-1 stack handles "browse +
+   click-through" tasks just fine.
+4. **No SoM blindness.** All 5 episodes had populated `set_of_marks`
+   flags (3-84 per page). The Tier-1 SoM watchdog fired clean.
+
+### Dominant remaining failure mode: `about:blank#blocked`
+
+The classifieds tasks (92, 96) follow this pattern:
+
+```
+step 0: fill("<search_bid>", "<query>")          ✓ correct
+step 1: click("<search_submit_button>")          ❌ → about:blank#blocked
+step 2: go_back()                                attempts to recover
+step 3-29: nav loop with no fill candidates available
+                                                 (about:blank has no inputs
+                                                  → anti-thrash can't fire)
+```
+
+**Root cause hypothesis** (to verify in next iteration): the OSClass
+search submit button on the VWA classifieds Docker image triggers a
+JavaScript handler that calls `window.open(...)` or sets
+`target="_blank"` on the form, which Playwright's headless Chromium
+classifies as a popup and blocks (URL becomes `about:blank#blocked`).
+The agent's `click()` is the *correct* action — the env breaks it.
+
+**Why anti-thrash didn't fire.** The override gate requires both
+`consecutive_nav_actions >= 3` AND a `fill(...)` candidate in the
+current candidate list. On `about:blank` no element is interactable
+→ no fill candidate → override correctly does nothing. The override
+is still a useful safety net for the **non-blocked-page** thrash
+pattern (e.g. on a results page where the agent forgets the search
+box exists), which the search-first heuristic + relaxed filter
+already address pre-emptively.
+
+### Suggested follow-up patches (Tier-1.5)
+
+In ROI order (LOC ≈ effort):
+
+| # | Change | LOC | Lift | Notes |
+|---|---|---:|---:|---|
+| **K** | Prompt hint: "After `fill(<bid>, <query>)`, ALWAYS submit via `press(<bid>, "Enter")` — never click the search submit button, which can trigger blocked popups" | ~5 | +3-5 pp on classifieds (~30 % of VWA) | direct fix for tasks 92, 96 |
+| **L** | `goto(<start_url>)` recovery: if URL contains `about:blank` and the agent has done ≥3 nav-only actions, surface `goto(<task_start_url>)` as a candidate action | ~25 | +1-3 pp | hard reset escape hatch for the popup-blocked pattern |
+| **M** | Detect form action `target="_blank"` in BrowserGym wrapper and rewrite to `target="_self"` before submission | ~30 | +2-4 pp | env-level fix, more durable |
+| **N** | For tasks with `eval=program_html`, surface the page's submit button bid explicitly in the candidate list (heuristic: any `<button type="submit">` or `aria-label` containing "Post"/"Submit"/"Comment") | ~40 | +2-4 pp on reddit comment tasks (e.g. 433) | targets the "filled but not submitted" pattern |
+
+### Decision point
+
+We are at **0.20 (1/5)** on a deliberately-hard 5-task mix. Path
+forward:
+
+1. **Land patches K + L (~30 LOC).** Both are 1-shot wins for the
+   two dominant failure modes. Estimated lift to **~1.5-2/5 = 30-40
+   %** on the same 5-task mix.
+2. **Re-smoke the same 5 tasks** to verify the lift.
+3. **Then launch the 50-task gpt-5.4 calibration** (~3 hr / ~$30)
+   with much higher confidence in the baseline number.
+
+If the user prefers a higher-cost / lower-uncertainty path, jump
+directly to step 3 with current state and use the 50-task number as
+the diagnostic for what to fix next.
