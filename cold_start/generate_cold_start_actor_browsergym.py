@@ -267,6 +267,29 @@ _MAX_CONSECUTIVE_ERRORS = 2
 # to-find loops on pages without input candidates.
 _MAX_CONSECUTIVE_NAV = 3
 _NAV_ONLY_PREFIXES = ("scroll(", "go_back(", "go_forward(", "noop(")
+# Anti-repetition (#6e): track action signatures in a sliding window and
+# discourage any signature that has appeared ``_MAX_REPEATS_BEFORE_DISCOURAGE``
+# times in the last ``_REPEAT_WINDOW`` steps. Discouraged actions are dropped
+# from the candidate-action list shown to the action LLM; if the LLM still
+# picks one (off-list), the rollout-loop swap-fallback (#6e) substitutes a
+# non-discouraged candidate. Catches the May-3 ``visualwebarena.96`` pattern
+# (``click("211")`` repeated 7× → ``go_back()`` repeated 10× → 73 % of steps
+# wasted on repeats) and the ``visualwebarena.433`` pattern
+# (``fill("54", "f/music")`` + ``press("54", "Enter")`` repeated 4× each).
+#
+# **Protected** action types (NOT discouraged even if they exceed the
+# threshold): ``go_back``, ``go_forward``, ``noop``. These are the agent's
+# recovery escape hatches — discouraging them removes its only path back
+# from a dead-end click. ``scroll`` IS discouraged (the existing
+# consecutive-NOOP override at #6 handles back-to-back identical scrolls;
+# this window-based mechanism additionally catches ``scroll(+) → click →
+# scroll(+) → click → scroll(+)`` interleaved loops).
+_REPEAT_WINDOW = 8
+_MAX_REPEATS_BEFORE_DISCOURAGE = 2
+_REPEAT_PROTECTED_PREFIXES = ("go_back(", "go_forward(", "noop(")
+# Minimum candidates to keep after filtering — backs off discouragement if
+# every candidate would be filtered out.
+_MIN_CANDIDATES_AFTER_FILTER = 3
 # Number of recent action results to surface in the action-selection prompt.
 _HISTORY_WINDOW = 5
 # Substrings (case-insensitive) on a node's text/role that mark it as a
@@ -755,7 +778,32 @@ def _chat_completion(
             "messages": messages,
             "max_completion_tokens": max(6000, max_tokens * 4),
         }
-        if reasoning_effort:
+        # OpenAI hard-rejects ``reasoning_effort`` together with ``tools`` on
+        # /v1/chat/completions for the gpt-5.x family (HTTP 400: "Function
+        # tools with reasoning_effort are not supported for gpt-5.x in
+        # /v1/chat/completions. Please use /v1/responses instead."). The
+        # /v1/responses migration is a much bigger refactor; for now we
+        # silently drop ``reasoning_effort`` whenever the call ships
+        # tools so the action-LLM step does not 400-fail and degrade to
+        # the candidate-list fallback. Schema-VLM calls (which are tool-
+        # less) keep ``reasoning_effort`` and benefit from it.
+        # Detection: gpt-5.x model + tools/tool_choice present + the
+        # routed model id contains no provider prefix (i.e. direct
+        # OpenAI Chat Completions). OpenRouter tunnels the same model
+        # under ``openai/gpt-5.x`` and historically accepts the
+        # parameter — only strip on direct OpenAI.
+        is_direct_openai_gpt5 = (
+            isinstance(model, str)
+            and model.lower().startswith("gpt-5")
+            and "/" not in model  # OpenRouter ids contain a "/"
+        )
+        tools_present = (tools is not None) or (tool_choice is not None)
+        suppress_reasoning = (
+            reasoning_effort is not None
+            and is_direct_openai_gpt5
+            and tools_present
+        )
+        if reasoning_effort and not suppress_reasoning:
             if reasoning_effort not in _VALID_REASONING_EFFORTS:
                 raise ValueError(
                     f"reasoning_effort must be one of {_VALID_REASONING_EFFORTS}, "
@@ -1199,6 +1247,13 @@ _ACTOR_SYSTEM_PROMPT = (
     "typing the goal's noun-phrase into the search box converges in 1–2 "
     "actions. Only fall back to scroll/click navigation when no search "
     "box or filter control is visible.\n\n"
+    "ANTI-REPETITION HINT: If a fill / click signature in your recent "
+    "history made no page progress (no URL change, no new content), "
+    "try a DIFFERENT bid or DIFFERENT query value rather than "
+    "repeating the same one. Repeating the same fill query yields the "
+    "same empty page; clicking the same dead-end listing yields the "
+    "same dead-end page. Vary the query (synonyms, shorter phrase) or "
+    "pick a different visible candidate.\n\n"
     "Always respond by calling the ``choose_action`` function."
 )
 
@@ -1759,6 +1814,85 @@ def _extract_search_query(goal: str, max_words: int = 4) -> str:
     return ""
 
 
+def _action_signature(action: str) -> str:
+    """Return the canonical signature for repeat detection.
+
+    Normalises whitespace + quotes inside the argument list so that
+    ``click("211")``, ``click( "211" )`` and ``click(211)`` all hash to
+    the same key. Argument-less actions like ``go_back()`` collapse to
+    ``go_back``.
+    """
+    if not action:
+        return ""
+    s = action.strip()
+    if s.endswith("()"):
+        return s[:-2]
+    m = re.match(r"^(\w+)\((.*)\)$", s)
+    if not m:
+        return s
+    op, args = m.group(1), m.group(2)
+    args_norm = re.sub(r"\s+", "", args).replace('"', "").replace("'", "")
+    return f"{op}({args_norm})"
+
+
+def _is_repeat_protected(action: str) -> bool:
+    """Return True for action types that are exempt from #6e discouragement.
+
+    ``go_back / go_forward / noop`` are kept available even when over-used
+    so the agent always has a recovery escape hatch. ``scroll`` is NOT
+    protected here — back-to-back identical scrolls are already caught by
+    the consecutive-NOOP override (#6); the windowed mechanism adds the
+    interleaved-scroll case (e.g. ``scroll → click → scroll → click``).
+    """
+    if not action:
+        return False
+    return action.strip().startswith(_REPEAT_PROTECTED_PREFIXES)
+
+
+def _build_discouraged_signatures(
+    sig_history: List[str], window: int = _REPEAT_WINDOW,
+    threshold: int = _MAX_REPEATS_BEFORE_DISCOURAGE,
+) -> Dict[str, int]:
+    """Return ``{sig: count}`` for signatures with count >= ``threshold`` in
+    the last ``window`` history entries. The count helps callers print
+    informative override reasons (e.g. ``[anti-repeat: tried 3x]``).
+    """
+    if not sig_history:
+        return {}
+    recent = sig_history[-window:]
+    counts: Dict[str, int] = {}
+    for s in recent:
+        counts[s] = counts.get(s, 0) + 1
+    return {s: c for s, c in counts.items() if c >= threshold}
+
+
+def _filter_repeat_candidates(
+    candidate_actions: List[str], discouraged: Dict[str, int],
+) -> List[str]:
+    """Drop discouraged action signatures from the candidate list while
+    preserving protected types (go_back/go_forward/noop) and backing off
+    if the resulting list would be too small to give the LLM choice.
+
+    Strategy:
+      1. Mark each candidate ``a`` as discouraged iff
+         ``_action_signature(a) in discouraged AND not _is_repeat_protected(a)``.
+      2. If the surviving candidates ≥ ``_MIN_CANDIDATES_AFTER_FILTER``,
+         use the filtered list (the agent must pick something else).
+      3. Otherwise, fall back to the original list — running out of
+         candidates is worse than letting the agent retry an unproductive
+         click.
+    """
+    if not discouraged:
+        return candidate_actions
+    survivors = [
+        a for a in candidate_actions
+        if _is_repeat_protected(a) or _action_signature(a) not in discouraged
+    ]
+    if len(survivors) >= _MIN_CANDIDATES_AFTER_FILTER:
+        return survivors
+    return candidate_actions
+
+
 def _build_anti_thrash_action(
     candidate_actions: List[str], goal: str,
 ) -> Optional[str]:
@@ -1970,6 +2104,9 @@ def run_actor_episode(
     bad_bids: List[str] = []        # bids that errored at any point this ep
     consecutive_nav_actions = 0    # for anti-thrash override (#6d)
     anti_thrash_fires = 0          # diagnostic counter
+    action_sig_history: List[str] = []  # for anti-repetition override (#6e)
+    anti_repeat_fires = 0           # diagnostic counter
+    anti_repeat_drops = 0           # # of candidates dropped from prompts
     consent_dismissed = False  # only auto-click cookie accept once per episode
     schema_calls = 0
     schema_ok = 0
@@ -2017,6 +2154,39 @@ def run_actor_episode(
             candidate_actions, candidate_meta = _build_candidate_actions(
                 obs=obs, registry=registry,
             )
+
+            # 3b. Anti-REPETITION filter (#6e) — drop candidate actions whose
+            #     signature has already been tried >= ``_MAX_REPEATS_BEFORE_DISCOURAGE``
+            #     times in the last ``_REPEAT_WINDOW`` steps. The filtered list
+            #     is what the action LLM and schema VLM see. ``go_back`` /
+            #     ``go_forward`` / ``noop`` are always kept (recovery path).
+            #     If the filter would leave fewer than
+            #     ``_MIN_CANDIDATES_AFTER_FILTER`` choices, it backs off to the
+            #     unfiltered list. Catches the May-3 ``visualwebarena.96``
+            #     ``click("211")`` 7x loop and the ``.433`` ``fill+press``
+            #     loops that the per-step anti-NOOP / anti-error overrides
+            #     missed.
+            discouraged_signatures = _build_discouraged_signatures(
+                action_sig_history,
+            )
+            if discouraged_signatures:
+                pre_filter_n = len(candidate_actions)
+                candidate_actions = _filter_repeat_candidates(
+                    candidate_actions, discouraged_signatures,
+                )
+                dropped_now = pre_filter_n - len(candidate_actions)
+                if dropped_now > 0:
+                    anti_repeat_drops += dropped_now
+                    if verbose:
+                        avoid_str = ", ".join(
+                            f"{sig}({c}x)" for sig, c in
+                            sorted(discouraged_signatures.items())
+                        )
+                        print(
+                            f"  step {step}: anti-repeat dropped "
+                            f"{dropped_now}/{pre_filter_n} candidates — "
+                            f"discouraged: {avoid_str}"
+                        )
 
             # 4. Visual grounding (vision call): screenshot → schema.
             schema_text: Optional[str] = None
@@ -2155,6 +2325,43 @@ def run_actor_episode(
                 if verbose:
                     print(f"  step {step}: anti-error override {old_action!r} -> {action!r} (bad bid {chosen_bid})")
 
+            # 6c2. Anti-REPETITION override (post-LLM swap) — if the LLM
+            #      picked an action whose signature is in the discouraged
+            #      set despite the candidate-list filtering at #3b (some
+            #      models ignore the suggested list), swap to a non-
+            #      discouraged candidate. ``go_back/go_forward/noop`` are
+            #      protected — never swapped away. Skipped silently if no
+            #      non-discouraged alternative exists.
+            chosen_sig = _action_signature(action)
+            if (
+                chosen_sig in discouraged_signatures
+                and not _is_repeat_protected(action)
+                and candidate_actions
+            ):
+                alt_pool = [
+                    a for a in candidate_actions
+                    if (_action_signature(a) not in discouraged_signatures
+                        or _is_repeat_protected(a))
+                    and a != action
+                ]
+                if alt_pool:
+                    old_action = action
+                    repeat_count = discouraged_signatures.get(chosen_sig, 0)
+                    action = _pick_different(action, alt_pool)
+                    anti_repeat_fires += 1
+                    reasoning = (
+                        (reasoning or "")
+                        + f" [auto-override: anti-repeat — {chosen_sig} "
+                        + f"already tried {repeat_count}x in last "
+                        + f"{_REPEAT_WINDOW} steps, switched to {action!r}]"
+                    )
+                    if verbose:
+                        print(
+                            f"  step {step}: anti-repeat override "
+                            f"{old_action!r} -> {action!r} "
+                            f"({chosen_sig} tried {repeat_count}x)"
+                        )
+
             # 6d. Anti-THRASH override — if the agent has just emitted
             #     ``_MAX_CONSECUTIVE_NAV`` navigation-only actions in a row
             #     (scroll/go_back/go_forward/noop) AND the *current* chosen
@@ -2255,6 +2462,14 @@ def run_actor_episode(
                 consecutive_nav_actions += 1
             else:
                 consecutive_nav_actions = 0
+
+            # Anti-repetition history: append the *executed* action signature
+            # (post-overrides) so the next step's #3b filter and #6c2 swap
+            # see the action that really happened, not the LLM's first
+            # picks. Cap memory at 3x window to bound the per-episode
+            # tracking footprint.
+            action_sig_history.append(_action_signature(action))
+            action_sig_history = action_sig_history[-(_REPEAT_WINDOW * 3):]
 
             # 8. Build the Experience record (use compact text observations
             #    that summarise the page; raw obs is too large to serialize).
@@ -2423,6 +2638,8 @@ def run_actor_episode(
         "error_steps": sum(1 for h in history if h.get("error")),
         "som_telemetry": som_telemetry,
         "anti_thrash_fires": anti_thrash_fires,
+        "anti_repeat_fires": anti_repeat_fires,
+        "anti_repeat_drops": anti_repeat_drops,
     }
     return episode, stats
 
@@ -2659,6 +2876,29 @@ def run_target_rollouts(
             f"  [ANTI-THRASH] {label}: eps={len(_at_eps)} "
             f"total_fires={_total_fires} "
             f"eps_with_fire={_eps_with_fire}/{len(_at_eps)}"
+        )
+
+    # Anti-repetition watchdog (#6e): how many candidates were filtered
+    # out across the run, and how often did the post-LLM swap fire?
+    # ``drops`` measures how often the agent saw a *smaller* candidate list
+    # because of repeat history; ``fires`` only counts the off-list-pick
+    # fallback. Healthy run on a complex task: drops > 0 (filter is doing
+    # work), fires near 0 (LLM respects the suggested list). Pathological:
+    # drops > 0, fires > 0 (LLM is ignoring the filter — suggests the
+    # suggested-list mechanism in ``select_action`` should be made
+    # stricter).
+    _ar_eps = [s for s in all_stats if "anti_repeat_fires" in s]
+    if _ar_eps:
+        _total_fires = sum(s.get("anti_repeat_fires", 0) for s in _ar_eps)
+        _total_drops = sum(s.get("anti_repeat_drops", 0) for s in _ar_eps)
+        _eps_with_drop = sum(
+            1 for s in _ar_eps if s.get("anti_repeat_drops", 0) > 0
+        )
+        print(
+            f"  [ANTI-REPEAT] {label}: eps={len(_ar_eps)} "
+            f"total_drops={_total_drops} "
+            f"total_swaps={_total_fires} "
+            f"eps_with_drop={_eps_with_drop}/{len(_ar_eps)}"
         )
 
     summary: Dict[str, Any] = {

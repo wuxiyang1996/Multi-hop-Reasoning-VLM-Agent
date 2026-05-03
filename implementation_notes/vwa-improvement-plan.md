@@ -504,3 +504,131 @@ focus on **content / agent capability**:
    and shopping (multi-constraint), keep low for reddit (single-hop).
 3. Then the 50-task gpt-5.4 calibration becomes a representative
    number on a clean baseline.
+
+---
+
+## 11. Anti-repetition mechanism (#6e) — implemented & smoke-tested
+
+**Status (2026-05-03 PM):** ✅ Mechanism implemented + 20 regression tests
++ 5-task smoke. **Not yet a clean win** — mixed action-quality signal,
+provider-switch confound (see §11.2). Mechanism stays in (it's the
+right primitive); follow-ups in §11.4.
+
+### 11.1 Motivation — repeat-rate diagnostic
+
+Hard count over the §10 post-env-fix smoke (gpt-5.4, 5 tasks, 30 steps):
+
+| Task | Steps | Top repeated | Count | Repeat-rate |
+|---|---|---|---|---|
+| 92  | 30 | `go_back()` | 5  | **33 %** |
+| 96  | 30 | `go_back()` | 10 | **73 %** |
+| 268 | 17 | `go_back()` | 4  | 47 % (✅ solved) |
+| 351 | 30 | `go_back()` | 11 | **63 %** |
+| 433 | 30 | `go_back()` | 8  | **70 %** |
+
+Across 137 steps total, **80 (58 %)** were sliding-window-repeats of an
+earlier action signature. The agent was largely re-litigating the same
+choice. Specific patterns observed:
+
+* `visualwebarena.96`: `click("211")` 7× alternating with `go_back()` 10×.
+  Same dead-end listing, no learning.
+* `visualwebarena.433`: `fill("54","f/music")` 4× and `press("54","Enter")`
+  4×. Same query that returned no results.
+
+### 11.2 Implementation
+
+Three additions to `cold_start/generate_cold_start_actor_browsergym.py`,
+all guarded by 20 unit tests (`tests/test_browsergym_anti_repeat.py`):
+
+1. **`_action_signature(action)`** — canonical signature normalising
+   whitespace + quote style. `click("211")`, `click('211')`,
+   `click(211)`, `click( "211" )` all hash to `click(211)`.
+
+2. **#3b candidate-list filter** — runs after `_build_candidate_actions`,
+   *before* the action LLM is called:
+   * Build sliding window of last `_REPEAT_WINDOW = 8` executed
+     signatures.
+   * Discourage any sig with count ≥ `_MAX_REPEATS_BEFORE_DISCOURAGE = 2`.
+   * Drop discouraged sigs from the candidate list **but**:
+     * `go_back / go_forward / noop` are protected (escape hatches).
+     * If filtering would leave < `_MIN_CANDIDATES_AFTER_FILTER = 3`
+       options, back off and use the unfiltered list.
+
+3. **#6c2 post-LLM swap override** — fires only if the LLM picks an
+   off-list discouraged signature anyway. Picks a non-discouraged
+   alternative from the candidate pool. Logged as `anti_repeat_fires`.
+
+Plus telemetry: per-episode `anti_repeat_drops` (# candidates
+filtered) and `anti_repeat_fires` (# off-list swaps), aggregated
+into a parent `[ANTI-REPEAT]` watchdog log.
+
+System prompt got a brief 1-paragraph "anti-repetition hint" — the
+earlier 4-bullet expanded version was **trimmed** after the §11.3
+smoke showed it biased the agent toward `noop / go_back` escape
+hatches (over-cautious about retries).
+
+### 11.3 Smoke results — what the data does and does not show
+
+5-task smoke (`visualwebarena.{92,96,268,351,433}`, gpt-5.4, low
+reasoning, 30 max-steps, classifieds env-fix in place):
+
+| Run | Provider | reasoning | AR? | Steps | Solved | Bad-repeats* | Good-repeats* | Unique clicks | Unique fills |
+|---|---|---|---|---|---|---|---|---|---|
+| §10 post-envfix | OpenRouter | low (fwd) | OFF | 137 | 1/5 | 41 | 39 | 20 | 13 |
+| §11 post-AR     | **OpenAI direct** | **suppressed*** | ON  | 150 | 0/5 | 44 | 57 | 14 |  9 |
+
+\* "Bad-repeats" = repeats of `click/fill/press/scroll` signatures
+(things the dedup mechanism actually targets). "Good-repeats" =
+repeats of protected `go_back/go_forward/noop` (legitimate recovery
+loops). "Unique clicks/fills" = # distinct action signatures used
+in the run (higher = more exploration).
+
+\*\* OpenRouter ran out of credits during the smoke; switched to OpenAI
+direct. OpenAI rejects `reasoning_effort` together with `tools` on
+`/v1/chat/completions` for gpt-5.x, so we silently suppress the param
+and the action LLM runs at OpenAI's default (~"medium") reasoning.
+This is a **provider/effort confound** that prevents a clean A/B.
+
+What the data *does* show:
+* The mechanism fires reliably: 7-9 candidate drops per episode,
+  0-1 swap per episode (the LLM mostly respects the filtered list).
+* Bad-repeats are ~unchanged (41 → 44) — the mechanism is doing what
+  it's supposed to do (preventing pathological loops) but isn't
+  *unlocking* solves on its own.
+
+What the data *does not* show (yet):
+* A definitive Nav% reduction. Nav% went *up* (52 → 73 %) but that
+  reflects the provider/effort switch + N=1 stochastic variance, not
+  the AR mechanism per se. "Good-repeats" (protected nav) tripled
+  (39 → 57); "bad-repeats" (the mechanism's actual target) barely
+  moved (41 → 44).
+
+### 11.4 Honest assessment + follow-ups
+
+Three things conflated in this iteration:
+1. AR mechanism (silent filter + override + telemetry).
+2. Provider switch (OpenRouter → OpenAI direct) due to OpenRouter
+   credits running out mid-smoke.
+3. Effort drop (low → suppressed/default) on the action LLM.
+
+**To get a clean win** we need to control #2 and #3:
+* (Cheapest) Top up OpenRouter credits, re-run the same 5-task smoke
+  with **only** the AR mechanism toggled — that cleanly attributes
+  the delta.
+* (Stronger) Bump samples to `--episodes 3` per task (15-task smoke,
+  ~3-4 h on gpt-5.4 low) so per-task success is statistically
+  meaningful instead of N=1.
+* (Independent) **Ship Tier-2 patch E (image captioning)** — task 96
+  is bottlenecked by the agent not seeing the goal image's content,
+  *not* by repetition. Anti-repeat can't recover from "I don't know
+  what I'm looking for". Patch E should be the next ROI move.
+
+Filed as deferred follow-ups, not blockers. The AR mechanism stays
+in main because:
+* It's the correct primitive (silent candidate-list filter is the
+  established pattern that pairs with #6, #6b, #6d).
+* It is well-tested (`tests/test_browsergym_anti_repeat.py`
+  9 helper tests + bound checks).
+* On the *one* metric it should move (bad-repeats), it stayed flat
+  while the agent's exploration distribution shifted — neutral, not
+  harmful, in the absence of a controlled provider environment.
