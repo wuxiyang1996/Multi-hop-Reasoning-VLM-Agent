@@ -226,6 +226,13 @@ each.
 
     **Why this wasn't caught earlier.** The T2.10 smoke ran a forward pass and asserted finite logits — both pass on a base-only model with zero LoRA delta. The T2.11 audit caught a *related* recipe-side drift (`target_modules` coverage) and (correctly) ruled out a key-rewriter as a remedy *for that specific bug*, since the dropped legs had no on-disk tensors. T2.13 is the inverse situation: the tensors exist, only the structural-prefix names disagree, so a key rewriter is the right tool here.
 
+* **T2.13′ (NEW — 1-shot ICL wiring closed in production callers, 2026-05-03).** Sibling task to T2.13 surfaced during the same sweep: while [`evaluation/smoke_schema_gen_5tasks.py`](../evaluation/smoke_schema_gen_5tasks.py) explicitly threads `get_few_shot_examples → build_adaptive_system_prompt(few_shot_examples=…)` (and the probe shows *prefix-match* climbing from ~0.2 % zero-shot → ~38 % 1-shot on the post-T2.11 schema_gen adapter), three production callers were still issuing zero-shot prompts:
+    * [`vlm_wrapper/tool_loop.py`](../vlm_wrapper/tool_loop.py) — used by every gym-v / browsergym / image-qa / video-qa adapter (the main production VLM tool loop).
+    * [`osworld_wrapper/adapter.py`](../osworld_wrapper/adapter.py) — `generate_label` for OSWorld desktop frames.
+    * [`visual_grounding_tests/generate_osworld_text_schema.py`](../visual_grounding_tests/generate_osworld_text_schema.py) — text-only schema head used to validate the cascaded ground baseline.
+
+    All three now look up the curated example block via `get_few_shot_examples(domain, n=N, task_id=…, fallback_domain=…)` and pass `few_shot_examples=…` into `build_adaptive_system_prompt`. Default `N=1` (env-overridable via `VLM_FEW_SHOT_N`; set `0` for zero-shot). For env_wrappers / gymv `task_id` we let it cascade through `{domain}.{task_slug}.txt → {domain}.txt → gymv.txt`, matching the cold-start labeler's resolution order. Fast-loop GRPO is unaffected (those four games (`twenty_forty_eight, tetris, candy_crush, super_mario`) are wrapped via `env_wrappers/gamingagent_nl_wrapper.py`'s text-only path and never touch `build_adaptive_system_prompt`); the change matters for cross-domain Stage-2 inference, the Phase-5/6 measurement matrix, and any base-VLM eval that runs *without* the schema_gen LoRA stitched in.
+
 ### 0.4 New action items from the lane decision (T1.3 closed → lane (a))
 
 The lane decision recorded in [`skill-lane-decision.md`](legacy/skill-lane-decision.md)

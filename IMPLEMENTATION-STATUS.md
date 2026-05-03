@@ -4,13 +4,16 @@ Last updated: 2026-05-03 (S0+S1 — lane-(a) decision shipped, SFT
 checkpoints reconciled, pre-flight tooling landed; **T2.11 LoRA
 target-modules recipe fix + T2.12 SFT throughput uplift** landed
 2026-05-02; **T2.12 CUDA-13 toolkit unblock (flash-attn 2.8.3 +
-causal_conv1d 1.6.1 + mamba_ssm 2.3.1)** and **T2.13 SFT/GRPO
-loader-class key-remap fix (cold-start LoRA keys now carry
-`language_model.` prefix to match vLLM's multimodal loader; permanent
-loader-class fix landed in `trainer/SFT/train.py`,
-`skill_agents/grpo/fsdp_trainer.py` (both `_train_one_adapter` +
-`_fsdp_train_worker_multi`), and `skill_agents/lora/model.py`; T2.11
-random-init fallback drift in the same files also closed)** landed
+causal_conv1d 1.6.1 + mamba_ssm 2.3.1)**, **T2.13 SFT/GRPO loader-class
+key-remap fix (cold-start LoRA keys now carry `language_model.` prefix
+to match vLLM's multimodal loader; permanent loader-class fix landed in
+`trainer/SFT/train.py`, `skill_agents/grpo/fsdp_trainer.py` (both
+`_train_one_adapter` + `_fsdp_train_worker_multi`), and
+`skill_agents/lora/model.py`; T2.11 random-init fallback drift in the
+same files also closed)**, and **T2.13′ 1-shot ICL wiring in production
+schema-gen callers (`vlm_wrapper/tool_loop.py`,
+`osworld_wrapper/adapter.py`,
+`visual_grounding_tests/generate_osworld_text_schema.py`)** landed
 today; **Phase-5/6 measurement Stages 0-6 shipped (deterministic-stub
 tier; see Phase-5/6 §12 gap inventory at
 `implementation_notes/legacy/phase5-cross-domain-measurement.md`)**).

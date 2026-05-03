@@ -29,6 +29,7 @@ import numpy as np
 import openai
 from PIL import Image
 
+from vlm_wrapper.few_shot_library import get_few_shot_examples
 from vlm_wrapper.schema import (
     build_adaptive_system_prompt,
     build_user_message,
@@ -125,11 +126,24 @@ def generate_label(
         client_kwargs["base_url"] = base_url
     client = openai.OpenAI(**client_kwargs)
 
+    # 1-shot ICL wiring (T2.13', 2026-05-03): inject the curated desktop
+    # example so base-VLM and base-Qwen3.5 inference both see the canonical
+    # ``<state>`` ontology — closes the gap to the schema_gen-LoRA-tuned
+    # variant without per-domain SFT.  Off via ``VLM_FEW_SHOT_N=0``.
+    try:
+        _few_shot_n = int(os.environ.get("VLM_FEW_SHOT_N", "1"))
+    except ValueError:
+        _few_shot_n = 1
+    _examples = get_few_shot_examples(
+        "desktop", n=_few_shot_n, task_id=task_id,
+    ) if _few_shot_n > 0 else []
+
     system = build_adaptive_system_prompt(
         "desktop",
         sections=_DESKTOP_SECTIONS,
         task_type="interactive",
         max_entities=max_entities,
+        few_shot_examples=_examples or None,
     )
     system = f"{system}\n\n{_DESKTOP_ACTION_HINT}"
 
