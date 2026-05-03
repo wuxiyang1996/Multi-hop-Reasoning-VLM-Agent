@@ -235,7 +235,18 @@ _OPTIONAL_TASK_SUITE_MODULES: List[str] = [
 # ---------------------------------------------------------------------------
 
 # How many outer steps per episode.
-DEFAULT_MAX_STEPS = 8
+#
+# Bumped from 8 to 30 on 2026-05-03 to match the VWA / WebArena
+# literature default. ``max_steps=8`` was a mini-WoB-era number that
+# starves multi-constraint search-and-filter tasks (e.g. classifieds
+# "find the most expensive TV from Maryland that displays an ongoing
+# NFL game") of action budget — the canonical solve path is 5 actions
+# of real work, plus 5 of recovery, plus 2 of verification. Empirical
+# diagnostic on 2026-05-03 (visualwebarena.92, gpt-5.5 low) showed the
+# agent thrashing through ``scroll/go_back/go_forward`` for 11 of 12
+# steps under the old budget. See ``implementation_notes/
+# vwa-improvement-plan.md`` §3 (Tier-1 change A).
+DEFAULT_MAX_STEPS = 30
 # Default episode count per URL/target when ``--episodes`` is not given.
 DEFAULT_EPISODES = 1
 # Anti-noop: force a different action after this many consecutive steps
@@ -534,6 +545,57 @@ def _extract_goal_images(obs: Dict[str, Any]) -> List[Any]:
             continue
         images.append(img)
     return images
+
+
+def _count_som_telemetry(obs: Dict[str, Any]) -> Dict[str, int]:
+    """Cheap, allocation-free probe of how rich the SoM annotation is.
+
+    The Set-of-Marks overlay only matters for the actor if the
+    underlying ``extra_element_properties`` actually flags interactable
+    elements with ``set_of_marks=True``. Empirically (VWA diagnostic
+    2026-05-03) some pages — especially fallback ``about:blank`` and
+    a few VWA classifieds list views — return populated extras with
+    **zero** ``set_of_marks`` flags, which silently degrades SoM-on
+    behaviour to the same as SoM-off plus an unnecessary overlay
+    render. We surface this as per-episode telemetry so a parent run
+    can ``grep '\\[SOM WARN\\]'`` and immediately tell whether to
+    investigate the agent's poor pass-rate on a given task.
+    """
+    extras = obs.get("extra_element_properties") or {}
+    n_total = len(extras)
+    n_som = 0
+    n_clickable = 0
+    for v in extras.values():
+        if not isinstance(v, dict):
+            continue
+        if v.get("set_of_marks"):
+            n_som += 1
+        if v.get("clickable"):
+            n_clickable += 1
+
+    # Role lives on the AXTree node, NOT in ``extra_element_properties``,
+    # so cross-reference the two by browsergym_id. Skip silently if either
+    # side is missing/malformed.
+    n_input = 0
+    axtree = obs.get("axtree_object") or {}
+    nodes = axtree.get("nodes", []) if isinstance(axtree, dict) else []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        bid = node.get("browsergym_id")
+        if not bid or bid not in extras:
+            continue
+        role_field = node.get("role") or {}
+        role = role_field.get("value") if isinstance(role_field, dict) else ""
+        if role in ("textbox", "searchbox", "combobox", "spinbutton"):
+            n_input += 1
+
+    return {
+        "n_extras": n_total,
+        "n_set_of_marks": n_som,
+        "n_clickable": n_clickable,
+        "n_input_role": n_input,
+    }
 
 
 def _render_som_screenshot(obs: Dict[str, Any]) -> Optional[Any]:
@@ -1116,6 +1178,15 @@ _ACTOR_SYSTEM_PROMPT = (
     "correctly quoted; copy them verbatim.\n\n"
     "If recent action history shows an action had NO EFFECT (URL/state did "
     "not change and no error), choose a DIFFERENT action this turn.\n\n"
+    "SEARCH-FIRST HEURISTIC: When the goal asks you to FIND, LOCATE, GET, "
+    "or NAVIGATE TO a specific item / listing / post / product on a page "
+    "that has a search box, your FIRST action should almost always be "
+    "``fill(\"<search_box_bid>\", \"<query>\")`` followed by ``press("
+    "\"<bid>\", \"Enter\")`` — NOT ``scroll`` or ``go_back``. Scrolling "
+    "blindly through a marketplace / listings page rarely converges; "
+    "typing the goal's noun-phrase into the search box converges in 1–2 "
+    "actions. Only fall back to scroll/click navigation when no search "
+    "box or filter control is visible.\n\n"
     "Always respond by calling the ``choose_action`` function."
 )
 
@@ -1804,10 +1875,20 @@ def run_actor_episode(
     total_reward = 0.0
     terminated = False
     truncated = False
+    som_telemetry: Dict[str, int] = {
+        "n_extras": 0, "n_set_of_marks": 0, "n_clickable": 0, "n_input_role": 0,
+    }
 
     t0 = time.time()
     try:
         for step in range(max_steps):
+            # Step-0: snapshot SoM telemetry from the initial obs so the
+            # parent run can detect SoM-blind episodes (extras populated
+            # but no ``set_of_marks=True`` flags) without scanning the
+            # whole rollout dump. See ``_count_som_telemetry`` doc.
+            if step == 0:
+                som_telemetry = _count_som_telemetry(obs)
+
             # 1. Pull the screenshot for the VLM and (optionally) save it.
             pil = _to_pil(obs.get("screenshot"))
             img_path: Optional[str] = None
@@ -2196,6 +2277,7 @@ def run_actor_episode(
         "action_llm_fail": action_llm_fail,
         "noop_steps": sum(1 for h in history if h["noop"]),
         "error_steps": sum(1 for h in history if h.get("error")),
+        "som_telemetry": som_telemetry,
     }
     return episode, stats
 
@@ -2367,6 +2449,54 @@ def run_target_rollouts(
                 f"compare with the May-3 OSWorld watchdog table in the "
                 f"implementation_notes/ memo."
             )
+
+    # ── SoM watchdog (added 2026-05-03) ──────────────────────────────────
+    # Surface SoM-blind episodes: cases where ``--use_som`` is on (the
+    # default) and ``extra_element_properties`` came back populated, BUT
+    # zero elements actually carried ``set_of_marks=True``. In that case
+    # the overlay renders a passthrough with no bid-tagged boxes, which
+    # silently downgrades the actor to a "raw screenshot + AXTree" agent
+    # — the same configuration that under-performs the GPT-4V SoM
+    # baseline (16.4 %) in the VWA paper. See
+    # ``implementation_notes/vwa-improvement-plan.md`` Tier-1 D.
+    # SoM overlay is unconditionally on when vision is on (driver hard-codes
+    # ``use_som=True`` in its action-LLM call site). Skip the watchdog when
+    # ``--no_vision`` short-circuited the whole VLM path.
+    use_som_active = not getattr(args, "no_vision", False)
+    if use_som_active:
+        _som_eps = [s for s in all_stats if "som_telemetry" in s]
+        if _som_eps:
+            _som_blind = [
+                s for s in _som_eps
+                if s["som_telemetry"].get("n_extras", 0) > 0
+                and s["som_telemetry"].get("n_set_of_marks", 0) == 0
+            ]
+            _avg_extras = sum(
+                s["som_telemetry"].get("n_extras", 0) for s in _som_eps
+            ) / max(1, len(_som_eps))
+            _avg_som = sum(
+                s["som_telemetry"].get("n_set_of_marks", 0) for s in _som_eps
+            ) / max(1, len(_som_eps))
+            _avg_input = sum(
+                s["som_telemetry"].get("n_input_role", 0) for s in _som_eps
+            ) / max(1, len(_som_eps))
+            print(
+                f"  [SOM] {label}: eps={len(_som_eps)} "
+                f"avg_extras={_avg_extras:.1f} "
+                f"avg_set_of_marks={_avg_som:.1f} "
+                f"avg_input_role={_avg_input:.1f} "
+                f"blind_eps={len(_som_blind)}/{len(_som_eps)}"
+            )
+            if _som_blind:
+                print(
+                    f"  [SOM WARN] {len(_som_blind)}/{len(_som_eps)} episodes "
+                    f"had populated extras but zero set_of_marks flags. "
+                    f"The actor saw a passthrough screenshot rather than a "
+                    f"bid-tagged overlay; expect VWA-style multi-constraint "
+                    f"tasks to thrash. Investigate "
+                    f"``BrowserGym.utils.obs.overlay_som`` integration with "
+                    f"this BrowserGym version."
+                )
 
     summary: Dict[str, Any] = {
         "target_kind": target_kind,

@@ -43,17 +43,19 @@
 #   # List the registered BrowserGym task ids per suite (no rollout)
 #   bash cold_start/run_coldstart_actor_browsergym.sh --list_tasks
 #
-#   # Real benchmark tasks (1 episode each, 12 steps, save frames)
+#   # Real benchmark tasks (1 episode each, 30 steps — VWA literature
+#   # default; bumped from 12 on 2026-05-03 after the multi-constraint
+#   # search-task diagnostic).
 #   bash cold_start/run_coldstart_actor_browsergym.sh \
 #       --tasks browsergym/miniwob.click-button \
 #               browsergym/miniwob.enter-text \
 #               browsergym/assistantbench.test.0 \
-#       --episodes 1 --max_steps 12 --save_frames -v
+#       --episodes 1 --max_steps 30 --save_frames -v
 #
-#   # Custom URL on browsergym/openended, 2 episodes, 12 steps
+#   # Custom URL on browsergym/openended, 2 episodes, 30 steps
 #   bash cold_start/run_coldstart_actor_browsergym.sh \
 #       --urls https://en.wikipedia.org/wiki/Reinforcement_learning \
-#       --episodes 2 --max_steps 12 --save_frames -v
+#       --episodes 2 --max_steps 30 --save_frames -v
 #
 #   # Cheap baseline: skip the vision call (heuristic schema only) but
 #   # still render real Chromium pages

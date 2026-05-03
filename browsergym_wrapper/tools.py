@@ -418,34 +418,78 @@ def _h_get_state_flags(state: _BrowserState) -> dict:
     }
 
 
+_INPUT_ROLES = {"textbox", "searchbox", "combobox", "spinbutton"}
+_TOGGLE_ROLES = {"checkbox", "radio", "switch", "menuitemcheckbox", "menuitemradio"}
+_PRESS_ROLES = {
+    "button", "link", "menuitem", "menuitemcheckbox", "menuitemradio",
+    "tab", "option", "treeitem", "row", "listitem", "cell",
+}
+
+
 def _h_list_valid_actions(state: _BrowserState) -> dict:
-    actions = []
+    """Surface the per-page valid action shortlist for the actor.
+
+    Bug fix (2026-05-03 — VWA diagnostic on visualwebarena.92): the prior
+    filter required ``props.get("set_of_marks") or
+    props.get("clickable")`` to even consider a node, which silently
+    dropped EVERY ``fill(...)`` candidate on pages where BrowserGym had
+    not populated those flags (about-blank fallbacks, dynamically
+    rendered pages, classifieds search pages where ``set_of_marks=True``
+    is only set on a small subset of obviously-clickable nodes). The
+    actor then only saw 5 navigation-only actions and thrashed via
+    ``scroll/go_back/go_forward``. Fix: surface ``fill(...)`` for any
+    visible textbox/searchbox/combobox role regardless of the SoM/
+    clickable flags, and only require those flags for click/check
+    candidates (which truly need them to disambiguate from background
+    spans). See ``implementation_notes/vwa-improvement-plan.md`` §3
+    Tier-1 change B.
+    """
+    actions: list[dict] = []
+    n_input = 0
+    n_toggle = 0
+    n_click = 0
     for node in state.nodes:
         bid = node.get("browsergym_id")
         if not bid:
             continue
         props = state._extra.get(bid, {})
-        if not props.get("set_of_marks") and not props.get("clickable"):
-            continue
         if props.get("visibility", 0) < 0.5:
             continue
 
         role = node.get("role", {}).get("value", "")
         name = node.get("name", {}).get("value", "")[:40]
 
-        if role in ("textbox", "searchbox", "combobox"):
+        if role in _INPUT_ROLES:
+            # Always surface ``fill(...)`` for visible input-like elements.
+            # ``set_of_marks`` / ``clickable`` flags are unreliable for
+            # ``<input>`` / ``<textarea>`` / ``<select>`` nodes.
             actions.append({"action": f'fill("{bid}", "...")', "role": role, "name": name})
-        elif role in ("checkbox", "radio", "switch"):
+            n_input += 1
+        elif role in _TOGGLE_ROLES:
+            if not (props.get("set_of_marks") or props.get("clickable")):
+                continue
             actions.append({"action": f'check("{bid}")', "role": role, "name": name})
+            n_toggle += 1
         else:
+            # Click candidates: require either SoM flag or clickable signal
+            # to avoid surfacing the entire page DOM.
+            if not (props.get("set_of_marks") or props.get("clickable")):
+                continue
             actions.append({"action": f'click("{bid}")', "role": role, "name": name})
+            n_click += 1
 
-        if len(actions) >= 20:
+        if len(actions) >= 25:
             break
 
     actions.append({"action": "scroll(down)", "role": "page", "name": "scroll"})
     actions.append({"action": "go_back()", "role": "navigation", "name": "back"})
-    return {"actions": actions, "count": len(actions)}
+    return {
+        "actions": actions,
+        "count": len(actions),
+        "fill_candidates": n_input,
+        "click_candidates": n_click,
+        "toggle_candidates": n_toggle,
+    }
 
 
 def _h_get_page_info(state: _BrowserState) -> dict:
