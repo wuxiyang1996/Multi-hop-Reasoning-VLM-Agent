@@ -10,12 +10,22 @@ to match vLLM's multimodal loader; permanent loader-class fix landed in
 `trainer/SFT/train.py`, `skill_agents/grpo/fsdp_trainer.py` (both
 `_train_one_adapter` + `_fsdp_train_worker_multi`), and
 `skill_agents/lora/model.py`; T2.11 random-init fallback drift in the
-same files also closed)**, and **T2.13′ 1-shot ICL wiring in production
+same files also closed)**, **T2.13′ 1-shot ICL wiring in production
 schema-gen callers (`vlm_wrapper/tool_loop.py`,
 `osworld_wrapper/adapter.py`,
-`visual_grounding_tests/generate_osworld_text_schema.py`)** landed
-today; **Phase-5/6 measurement Stages 0-6 shipped (deterministic-stub
-tier; see Phase-5/6 §12 gap inventory at
+`visual_grounding_tests/generate_osworld_text_schema.py`)**, **T2.14
+vLLM 0.20 `deep_gemm_warmup` hard-fail unblock (orchestrator now sets
+`VLLM_USE_DEEP_GEMM=0` for spawned `vllm serve` instances on bf16/fp16
+weights — `trainer/coevolution/vllm_server.py`)**, and **T2.15
+`harness_filter_diag` UnboundLocalError when bank empty / sticky-
+guidance (init hoisted to per-step scope in
+`trainer/coevolution/episode_runner.py`)** all landed today; the same
+day a 1-step `scripts/run_coevolution.py` dry-run ran end-to-end on
+candy_crush — `Step 0 complete: 154.6s | 1 eps | mean_reward=561.00 |
+2 skills (+2) | 150 vLLM calls`, GRPO action_taking 50 samples in
+111.2 s on 4 GPUs, 20/20 LoRA hot-reloads — **co-evolution loop
+greenlit for Stage-1 launch**; **Phase-5/6 measurement Stages 0-6
+shipped (deterministic-stub tier; see Phase-5/6 §12 gap inventory at
 `implementation_notes/legacy/phase5-cross-domain-measurement.md`)**).
 
 This document tracks what has been implemented from
