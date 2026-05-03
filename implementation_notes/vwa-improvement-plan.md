@@ -632,3 +632,169 @@ in main because:
 * On the *one* metric it should move (bad-repeats), it stayed flat
   while the agent's exploration distribution shifted — neutral, not
   harmful, in the absence of a controlled provider environment.
+
+---
+
+## 12. AssistantBench terminal-action fix — root cause + plumbing (2026-05-03)
+
+**Status:** ✅ Driver bug identified + fixed across 5 sites + 42 unit
+tests + smoke-validated. Re-runnable on the existing 181-task
+AssistantBench corpus.
+
+### 12.1 The 0/181 anomaly
+
+The 2026-05-01 AssistantBench dataset run (`Cold-start-out-browsergym/
+assistantbench.test.*/`, gpt-5.4, 181 tasks, max_steps=16) produced:
+
+```
+Total episodes:   181
+Reward:           min=0.0, max=0.0, avg=0.0  (NO non-zero anywhere)
+Steps:            avg=15.6, median=16.0, max=16
+(terminated, truncated): {(False, False): 181}    ← critical signal
+```
+
+**No episode ever terminated.** That's a structural giveaway — for an
+env where the agent is supposed to call a *terminal* action to score,
+zero terminations means the action never fired.
+
+Verified by counting action types across all 2816 executed actions:
+
+| Action type | Count | % |
+|---|---|---|
+| go_back        | 812 | 28.8 |
+| go_forward     | 583 | 20.7 |
+| click          | 443 | 15.7 |
+| scroll         | 411 | 14.6 |
+| fill           | 344 | 12.2 |
+| noop           | 135 |  4.8 |
+| press          |  87 |  3.1 |
+| **send_msg_to_user** | **0** | **0.0** |
+| **report_infeasible**| **0** | **0.0** |
+
+`send_msg_to_user("<answer>")` is the single action AssistantBench
+scores on — the env extracts the message text and matches it against
+the reference with F1/exact match. Without it the episode is forced to
+hit `max_steps` and `truncated=False, terminated=False, reward=0`.
+
+### 12.2 Why no episode emitted the terminal action
+
+Five places in the BrowserGym actor were missing the plumbing:
+
+1. **Validator regex** `_BROWSERGYM_ACTION_RE` — silently rejected
+   `send_msg_to_user(...)` and `report_infeasible(...)`. Even if the
+   LLM had emitted them, they were dropped before reaching `env.step`.
+2. **Action-tool enum** in `_build_action_tools` — `send_msg_to_user`
+   and `report_infeasible` were not in the function-calling enum, so
+   the LLM had no structured slot to use them either.
+3. **Structured fallback** `_structured_to_action_string` — no `atype`
+   handler for either terminal name; even if reached, returned `None`.
+4. **Candidate-list seeder** `_build_candidate_actions` — never put a
+   placeholder terminal in the candidate list, so the action LLM
+   literally never saw the option in any prompt.
+5. **System prompt** `_ACTOR_SYSTEM_PROMPT` — no instruction on when /
+   how / what payload to emit, so even if the LLM somehow knew the
+   action existed it had no causal mental model of why to use it.
+
+**Net effect:** the action LLM, on every step, picked from {click, fill,
+scroll, go_back, go_forward, noop, press} — exactly the distribution we
+observe. The 181 zero-rewards aren't a "bad agent", they're a
+"the action surface didn't include the scoring action".
+
+### 12.3 The fix (commit f739a71+)
+
+All five sites patched in `cold_start/generate_cold_start_actor_browsergym.py`:
+
+1. **`_BROWSERGYM_ACTION_RE`** gains
+   `send_msg_to_user\(.+\)|report_infeasible\(.+\)`. Argument-less
+   forms `send_msg_to_user()` are still rejected (see test).
+2. **`_build_action_tools`** enum extended with the two terminals plus a
+   new `answer` parameter slot in the function schema, with usage
+   guidance in the description.
+3. **`_structured_to_action_string`** handles
+   `atype in {"send_msg_to_user", "report_infeasible"}`, accepting
+   either the new `answer` field or `text` as the payload, escaping
+   embedded quotes and backslashes for the BrowserGym parser, and
+   returning `None` when the payload is empty (so the episode falls
+   through to the `noop()` fallback rather than terminating with a
+   definitively-wrong empty answer).
+4. **`_build_candidate_actions`** gains keyword args `task_id` and
+   `goal`. When `_is_information_extraction_task(task_id, goal)`
+   returns True, the placeholder candidates
+   `send_msg_to_user("<your answer here>")` and
+   `report_infeasible("<reason ...>")` are seeded BEFORE the global
+   navigation set — so they don't get truncated off the prompt on
+   heavy pages.
+5. **`_ACTOR_SYSTEM_PROMPT`** gains a "TERMINAL ACTIONS" section
+   calling out AssistantBench by name, prescribing the answer payload
+   format (minimal — just the fact, exact units, no wrapping
+   sentence), and warning that NOT calling the terminal action means
+   `reward=0`.
+
+### 12.4 The QA-vs-page-state classifier
+
+The hard part of the seeding is *not* over-seeding on side-effect
+tasks. VWA "Find a TV listing in Maryland" is a navigation task — if
+the agent emits `send_msg_to_user("a Sony TV listing")` on step 3 it
+short-circuits a multi-step page interaction with reward=0 (wrong
+answer, episode over).
+
+Solution: three-tier classifier `_is_information_extraction_task`:
+
+| Tier | Condition | Action |
+|---|---|---|
+| 1 | task-id matches `assistantbench.*` | always seed |
+| 2 | task-id matches `visualwebarena.*` / `webarena.*` / `miniwob.*` / `workarena.*` | seed only if goal ends with `?` or starts with `what/who/when/where/how/why/which/whose/whom` |
+| 3 | unknown task-id | tier-2 rule |
+
+Empirical calibration on the 176 May-1 AB goals: 89 % match the
+tier-2 question rule via `?` or wh-lead; the other 11 % are caught by
+the tier-1 task-id prefix. Imperative leads like "Find" / "Compute" /
+"Tell me" are NOT in the question regex — they collide with VWA
+navigation goals and the false-positive cost (terminating early with
+a wrong answer) is much higher than the false-negative cost (not
+seeding on an obvious AB task that is *also* caught by the task-id
+prefix).
+
+### 12.5 Smoke validation
+
+Re-ran 3 small AB tasks with the same gpt-5.4 / `max_steps=25`
+config (`/tmp/ab_3task_terminal_fix/`):
+
+| Task | Pre-fix steps | Pre-fix terminal? | Post-fix steps | Post-fix terminal? |
+|---|---|---|---|---|
+| `assistantbench.test.122` | 16 | ❌ none | **1**  | ✅ `report_infeasible("...cookie consent...")` |
+| `assistantbench.test.116` | 16 | ❌ none | **1**  | ✅ `report_infeasible("...cookie consent...")` |
+| `assistantbench.test.180` | 16 | ❌ none | **2**  | ✅ `report_infeasible("...cookie consent...")` |
+
+The terminal-action plumbing works end-to-end. All three episodes
+score 0 — but that's because of a DIFFERENT bug surfaced by the fix
+(the agent gives up on Google's cookie wall on step 0 because the
+existing `_detect_consent_button_bid` heuristic didn't match Google's
+specific button text inside their consent iframe).
+
+### 12.6 Follow-ups
+
+1. **Patch the consent detector.** The ~89 % of AB tasks that boot on
+   `https://google.com` need the cookie wall dismissed before any
+   other action is meaningful. Three options ranked by effort:
+   * (cheapest) Extend `_CONSENT_ACCEPT_KEYWORDS` with Google's
+     specific button labels ("Accept all", "I agree", "Reject all")
+     across the 30 locales.
+   * (medium) Switch the consent detector from keyword-match to a
+     dedicated VLM call that asks "is this a cookie wall, and which
+     bid is the dismiss button?". One extra schema call per episode
+     (≤ 5 % overhead).
+   * (most general) Pre-warm: launch each episode with a one-shot
+     `goto("https://google.com")` + auto-accept-cookies via Playwright
+     CDP `setCookie` for the consent banner's storage key, so the
+     consent wall is gone before the agent ever runs.
+2. **Re-run the 181-task AB corpus** with the terminal fix landed and
+   cookie-wall dismissed. Expected uplift to non-zero: **substantial**.
+   Literature baseline GPT-4o ~26 %, Claude 3.5 ~25 % on AB; even at
+   half that we'd be in a different regime than 0/181.
+3. **Promote AssistantBench to first-class.** Per the §11 follow-ups
+   discussion, AB has 0 of the 10 VWA infrastructure bugs (no Docker,
+   no LLM judge per step, real-Internet driven) — once these two
+   driver bugs are gone, it's the cheapest reliable benchmark in the
+   pipeline. Add it to the same 4-model launcher matrix as OSWorld /
+   VWA so the paper headline number doesn't depend solely on VWA.

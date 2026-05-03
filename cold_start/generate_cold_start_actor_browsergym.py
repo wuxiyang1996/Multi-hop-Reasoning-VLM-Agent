@@ -1134,7 +1134,102 @@ _GLOBAL_BROWSER_ACTIONS: List[str] = [
     "noop()",
 ]
 
+# Heuristic match for *information-extraction* goals (questions whose
+# scoring requires the agent to call ``send_msg_to_user("<answer>")``
+# rather than affect page state). Used by ``_build_candidate_actions``
+# to seed a placeholder ``send_msg_to_user`` candidate so the action LLM
+# always sees the terminal action as an option.
+#
+# The classifier is split into THREE regimes by task-id prefix because
+# VWA "Find a TV listing in Maryland" (page-state task) collides
+# textually with AssistantBench "Find the GDP of Japan" (QA task). The
+# task-id is the only reliable disambiguator:
+#
+#   * QA suites → always seed unconditionally (covers the 11 % of AB
+#     goals that don't start with a wh-word or end with ``?``, e.g.
+#     "Compute the average annual temperature in Arizona ...").
+#   * Page-state suites → seed *only* if the goal is grammatically a
+#     question (ends with ``?`` or starts with a wh-word). Avoids
+#     mis-seeding side-effect tasks where ``send_msg_to_user`` would
+#     short-circuit a multi-step page interaction.
+#   * Unknown / no task-id → fall back to the page-state rule. False
+#     positives are cheap (one extra candidate slot); false negatives
+#     are expensive (the May-1 AB regression).
+#
+# Empirical calibration on the 176 AB goals from the 2026-05-01 run:
+#   135/176 (77 %) end with ``?``
+#   124/176 (70 %) start with a wh-word
+#   157/176 (89 %) match either rule
+#   The remaining 19 are caught by the QA-suite prefix.
+_QUESTION_LEAD_RE = re.compile(
+    r"^\s*(what|who|when|where|how|why|which|whose|whom)\b",
+    re.IGNORECASE,
+)
+_QA_TASK_ID_PREFIXES = (
+    "assistantbench.",
+    "browsergym/assistantbench.",
+)
+_PAGE_STATE_TASK_ID_PREFIXES = (
+    "visualwebarena.", "browsergym/visualwebarena.",
+    "webarena.", "browsergym/webarena.",
+    "miniwob.", "browsergym/miniwob.",
+    "workarena.", "browsergym/workarena.",
+)
+
+
+def _looks_like_question(goal: Optional[str]) -> bool:
+    """Cheap textual classifier: ``?`` ending or wh-word lead."""
+    if not goal:
+        return False
+    g = str(goal).strip()
+    return bool(g.endswith("?") or _QUESTION_LEAD_RE.match(g))
+
+
+def _is_information_extraction_task(
+    *, task_id: Optional[str], goal: Optional[str],
+) -> bool:
+    """Return True when the goal looks like a free-form QA task that
+    requires the agent to emit a ``send_msg_to_user("<answer>")``
+    terminal action to score (vs. a side-effect-on-page task scored
+    by URL / DOM state).
+    """
+    if task_id:
+        tid = str(task_id).lower()
+        if any(tid.startswith(p) for p in _QA_TASK_ID_PREFIXES):
+            return True
+        if any(tid.startswith(p) for p in _PAGE_STATE_TASK_ID_PREFIXES):
+            return _looks_like_question(goal)
+    return _looks_like_question(goal)
+
+
+# Placeholder string the candidate-list seeder uses for the answer slot.
+# The action LLM is expected to overwrite the placeholder with the
+# real grounded answer (via the ``action_string`` field copied verbatim,
+# OR via the structured ``action_type=send_msg_to_user`` + ``answer``
+# slot). We pick a placeholder long enough to pass the validator regex
+# (which requires ``send_msg_to_user(.+)``) but obviously-wrong enough
+# that an agent that copies it verbatim still scores 0 and we can
+# notice in telemetry.
+_SEND_MSG_PLACEHOLDER = 'send_msg_to_user("<your answer here>")'
+_REPORT_INFEASIBLE_PLACEHOLDER = (
+    'report_infeasible("<reason this task cannot be answered>")'
+)
+
 # Validates the action string we intend to send to ``env.step(...)``.
+#
+# ``send_msg_to_user(...)`` and ``report_infeasible(...)`` are the two
+# *terminal* actions used by AssistantBench (and accepted by webarena /
+# visualwebarena / workarena under the same names — see
+# ``BrowserGym/browsergym/core/src/browsergym/core/action/highlevel.py``).
+# AssistantBench scores **only** when the agent calls
+# ``send_msg_to_user("<final answer>")``: the env extracts the message
+# argument and matches it against the reference answer with F1 / exact
+# match. Without this terminal action the episode hits ``max_steps``
+# with reward=0 — which is exactly what we saw in the May-1 181-task
+# AssistantBench run (0/2816 actions were ``send_msg_to_user``, 100 %
+# reward=0). Allowing them through the validator is step 1; the
+# action-tool enum, structured-fallback path, candidate seed, and
+# system prompt also have to be taught about them in tandem.
 _BROWSERGYM_ACTION_RE = re.compile(
     r"^\s*("
     r"click\([^)]*\)"
@@ -1153,6 +1248,8 @@ _BROWSERGYM_ACTION_RE = re.compile(
     r"|tab_focus\([^)]*\)"
     r"|goto\([^)]*\)"
     r"|noop\([^)]*\)"
+    r"|send_msg_to_user\(.+\)"
+    r"|report_infeasible\(.+\)"
     r")\s*$",
     re.IGNORECASE | re.DOTALL,
 )
@@ -1175,6 +1272,7 @@ def _list_clickable_bids(
 
 def _build_candidate_actions(
     *, obs: Dict[str, Any], registry,
+    task_id: Optional[str] = None, goal: Optional[str] = None,
 ) -> Tuple[List[str], List[Dict[str, Any]]]:
     """Build a list of candidate action strings + structured metadata.
 
@@ -1183,6 +1281,14 @@ def _build_candidate_actions(
         (each interactive bid → ``click(bid)`` / ``fill(bid, "...")`` /
         ``check(bid)``) when the registry resolves.
       - A small set of standard navigation actions (always available).
+      - For *information-extraction* tasks (assistantbench.* and any
+        question-form goal — see ``_is_information_extraction_task``):
+        a placeholder ``send_msg_to_user("<your answer here>")``
+        candidate plus a ``report_infeasible(...)`` companion. Without
+        this seed the action LLM never learns the terminal action
+        exists, hits ``max_steps``, and the env scores 0 (verified
+        empirically on the May-1 181-task AssistantBench run, 0/2816
+        actions were ``send_msg_to_user``).
 
     Returns ``(strings, meta_list)`` where ``meta_list`` carries the parsed
     role/name/bid for each interactive entry (used by the actor LLM prompt).
@@ -1203,6 +1309,22 @@ def _build_candidate_actions(
             "role": (entry or {}).get("role"),
             "name": (entry or {}).get("name"),
         })
+
+    # Seed terminal actions for QA-style tasks. These come BEFORE the
+    # global navigation set so the action LLM sees them next to the
+    # interactive candidates rather than buried at the end (the
+    # candidate list is truncated to ``_MAX_CANDIDATE_ACTIONS`` — we
+    # don't want the answer action to fall off the cliff on a heavy
+    # page with 25+ interactive bids).
+    if _is_information_extraction_task(task_id=task_id, goal=goal):
+        for a, role in (
+            (_SEND_MSG_PLACEHOLDER, "terminal_answer"),
+            (_REPORT_INFEASIBLE_PLACEHOLDER, "terminal_infeasible"),
+        ):
+            if a not in seen:
+                seen.add(a)
+                strings.append(a)
+                meta.append({"action": a, "role": role, "name": None})
 
     for a in _GLOBAL_BROWSER_ACTIONS:
         if a not in seen:
@@ -1254,6 +1376,27 @@ _ACTOR_SYSTEM_PROMPT = (
     "same empty page; clicking the same dead-end listing yields the "
     "same dead-end page. Vary the query (synonyms, shorter phrase) or "
     "pick a different visible candidate.\n\n"
+    "TERMINAL ACTIONS (CRITICAL for question-answering benchmarks like "
+    "AssistantBench): if the goal is a QUESTION (starts with what / "
+    "who / when / where / how / why / which, or ends with ``?``) and "
+    "you have GROUNDED EVIDENCE on the current page for the answer, "
+    "your final action MUST be "
+    "``send_msg_to_user(\"<concise answer>\")`` — this is what the "
+    "eval harness scores against the reference. Without it the "
+    "episode hits max_steps with reward=0 even if you found the "
+    "answer in the page text. Rules for the answer payload:\n"
+    "  • Be MINIMAL: just the requested fact (a number, a name, a "
+    "date, a list separated by commas) — NOT a sentence wrapping it. "
+    "If the goal asks 'how many X?', answer ``42`` not ``There are "
+    "42 X.``\n"
+    "  • Use the EXACT format the goal asks (units, capitalisation, "
+    "ISO date if implied).\n"
+    "  • If after exhausting reasonable navigation you genuinely "
+    "cannot find the information on the available sites, call "
+    "``report_infeasible(\"<short reason>\")`` instead of guessing.\n"
+    "  • Use the structured ``action_type=send_msg_to_user`` + "
+    "``answer=<your answer>`` slot when convenient — the harness will "
+    "build the action string for you and properly escape quotes.\n\n"
     "Always respond by calling the ``choose_action`` function."
 )
 
@@ -1273,6 +1416,13 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
         "click", "fill", "check", "press", "hover", "select_option",
         "focus", "clear", "scroll_down", "scroll_up", "go_back",
         "go_forward", "new_tab", "tab_close", "noop",
+        # Terminal actions (AssistantBench / webarena / VWA scoring).
+        # ``send_msg_to_user`` returns the final answer to the user and
+        # triggers the eval harness; ``report_infeasible`` is the
+        # explicit "task is impossible" stop equivalent to STOP "N/A"
+        # in the visualwebarena paper. Both consume the ``answer``
+        # parameter (see below).
+        "send_msg_to_user", "report_infeasible",
     ]
     return [
         {
@@ -1343,6 +1493,21 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
                                 "if action_string is missing."
                             ),
                         },
+                        "answer": {
+                            "type": "string",
+                            "description": (
+                                "Final answer string for "
+                                "action_type=send_msg_to_user (the answer "
+                                "you want the user / eval harness to "
+                                "receive — keep it concise, grounded in "
+                                "page evidence, and exactly the form the "
+                                "goal asks for, e.g. a number, a name, a "
+                                "date) or the reason for "
+                                "action_type=report_infeasible (a brief "
+                                "explanation of why the goal cannot be "
+                                "achieved on the current page set)."
+                            ),
+                        },
                     },
                     "required": [],
                 },
@@ -1407,6 +1572,7 @@ def _structured_to_action_string(args: Dict[str, Any]) -> Optional[str]:
     bid = (args.get("bid") or "").strip()
     text = args.get("text", "")
     key = (args.get("key") or "").strip()
+    answer = args.get("answer", "")
     dy = args.get("scroll_dy")
     if isinstance(dy, str):
         try:
@@ -1455,6 +1621,21 @@ def _structured_to_action_string(args: Dict[str, Any]) -> Optional[str]:
         return "tab_close()"
     if atype == "noop":
         return "noop()"
+    # Terminal actions — the answer / reason is wrapped in double quotes
+    # with embedded quotes/backslashes escaped so the BrowserGym parser
+    # round-trips it through ``exec`` cleanly. We accept ``text`` as a
+    # fallback name for ``answer`` because some LLM call sites reuse
+    # ``text`` for any free-form string payload.
+    if atype in ("send_msg_to_user", "report_infeasible"):
+        payload = answer if answer else (text or "")
+        if not payload:
+            return None
+        payload_str = (
+            str(payload)
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        )
+        return f'{atype}("{payload_str}")'
     return None
 
 
@@ -2153,6 +2334,7 @@ def run_actor_episode(
                     logger.debug("build_browser_registry failed: %s", exc)
             candidate_actions, candidate_meta = _build_candidate_actions(
                 obs=obs, registry=registry,
+                task_id=task_id, goal=goal,
             )
 
             # 3b. Anti-REPETITION filter (#6e) — drop candidate actions whose
