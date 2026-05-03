@@ -824,7 +824,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
 
         # ── Phase B′: Crafter + Promotion (one-way write-back) ───────
         # Off by default; controlled by `config.crafter_promotion_enabled`.
-        # Spec: implementation_notes/harness-usability-and-intra-gymv-transfer.md §3
+        # Spec: implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md §3
         # The hook runs *alongside* the legacy Stage-4 curator: legacy
         # mining still writes per-game `skill_bank.jsonl`, this hook just
         # appends promoted skills on top via `skill_bank.legacy_writeback`.
@@ -872,14 +872,81 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     )
                     promotion_report = promotion_step.to_dict()
 
+                    # ── Layer A: cross-domain transfer gate ──────────
+                    # Re-evaluates each just-promoted skill's admit rate
+                    # against the configured transfer targets. Skills
+                    # failing crafter_transfer_admit_band[0] on every
+                    # target are rolled back (dropped from the per-game
+                    # skill_bank.jsonl) before the bank reload below.
+                    # Off by default; conservative on any failure
+                    # (subprocess crash / timeout / parse error ⇒ no
+                    # demotions, full report still surfaced).
+                    transfer_gate_report: Optional[Dict[str, Any]] = None
+                    if (
+                        config.crafter_transfer_gate_enabled
+                        and config.crafter_transfer_targets
+                        and not promotion_step.skipped
+                        and promotion_step.driver_returncode == 0
+                    ):
+                        try:
+                            from trainer.coevolution._transfer_hook import (
+                                run_transfer_gate_step,
+                            )
+                            transfer_step = run_transfer_gate_step(
+                                step=step,
+                                run_dir=Path(config.run_dir),
+                                promotion_writeback_per_game=(
+                                    promotion_step.writeback_per_game or {}
+                                ),
+                                legacy_bank_paths=bank_paths,
+                                transfer_targets=tuple(
+                                    config.crafter_transfer_targets,
+                                ),
+                                transfer_admit_band=tuple(
+                                    config.crafter_transfer_admit_band,
+                                ),
+                                transfer_min_targets_in_band=(
+                                    config.crafter_transfer_min_targets_in_band
+                                ),
+                                transfer_max_skills_per_cell=(
+                                    config.crafter_transfer_max_skills_per_cell
+                                ),
+                                transfer_driver_timeout_s=(
+                                    config.crafter_transfer_timeout_s
+                                ),
+                            )
+                            transfer_gate_report = transfer_step.to_dict()
+                            if transfer_step.n_demote > 0:
+                                logger.info(
+                                    "Phase B′ transfer gate: %d/%d skills "
+                                    "demoted (cross-domain admit floor)",
+                                    transfer_step.n_demote,
+                                    transfer_step.n_skills_in,
+                                )
+                            elif transfer_step.skipped:
+                                logger.info(
+                                    "Phase B′ transfer gate: skipped (%s)",
+                                    transfer_step.skipped_reason,
+                                )
+                            if promotion_report is not None:
+                                promotion_report["transfer_gate"] = (
+                                    transfer_gate_report
+                                )
+                        except Exception as exc:  # noqa: BLE001
+                            logger.error(
+                                "Phase B′ transfer gate failed at step=%d: %s",
+                                step, exc, exc_info=True,
+                            )
+
                     # Critical: hot-reload the in-memory bank for any game
                     # whose on-disk skill_bank.jsonl was just mutated by
-                    # legacy_writeback. Without this, AsyncSkillBankPipeline
+                    # legacy_writeback OR by the transfer gate's demotion
+                    # rollback. Without this, AsyncSkillBankPipeline
                     # keeps serving the cached SkillBankMVP._skills from
                     # before the writeback (and its cached SkillQueryEngine
                     # never re-indexes), so the actor's *next* rollout
                     # would not observe the promoted skills. See
-                    # implementation_notes/harness-usability-and-intra-gymv-transfer.md
+                    # implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md
                     # §"actor read path" for the trace.
                     keys_to_reload = [
                         game for game, wb in (

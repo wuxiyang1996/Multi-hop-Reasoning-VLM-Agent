@@ -7,7 +7,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 os.environ.setdefault("HF_HOME", "/workspace/huggingface")
 os.environ.setdefault("HF_HUB_CACHE", os.path.join(os.environ["HF_HOME"], "hub"))
@@ -193,7 +193,7 @@ class CoEvolutionConfig:
     grpo_skillbank_devices: List[int] = field(default_factory=list)
 
     # ── Crafter + Promotion online hooks (Phase 1, off by default) ─────
-    # Spec: implementation_notes/harness-usability-and-intra-gymv-transfer.md §3
+    # Spec: implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md §3
     # When enabled, after every co-evolution step's Phase B finalize() the
     # trainer additionally runs:
     #   1. ``trainer.coevolution._crafter_hook.run_crafter_step`` —
@@ -222,13 +222,54 @@ class CoEvolutionConfig:
     crafter_promotion_timeout_s: float = 300.0
     # Lane-(a) feature flag. ``False`` (default) parks the Repairer /
     # PatchProposal mint path: under
-    # ``implementation_notes/skill-lane-decision.md`` skills are
+    # ``implementation_notes/legacy/skill-lane-decision.md`` skills are
     # retrieval payloads, not runnable programs, so live protocol-edit
     # proposals would be edits to a contract no live runtime executes.
     # The Crafter dispatcher's existing ``_STATUS_NO_OP`` →
     # Hypothesizer fall-through carries the failure signal through.
     # Set ``True`` only when running explicit lane-(b) experiments.
     crafter_enable_protocol_patching: bool = False
+
+    # ── Cross-domain transfer gate (Layer A) ────────────────────────
+    # When ``True`` (and ``crafter_promotion_enabled=True``), the
+    # trainer inserts ``trainer.coevolution._transfer_hook.run_transfer_gate_step``
+    # after the promotion writeback. The gate re-evaluates each
+    # just-promoted skill's cross-domain admit rate against the
+    # configured ``crafter_transfer_targets`` and rolls back
+    # promotions that fall below ``crafter_transfer_admit_band[0]``
+    # on every target.
+    #
+    # The matrix subprocess is the same
+    # ``labeling_supplement/_phase4_transfer_matrix.py`` driver the
+    # Stage-6 measurement uses. Per-step gating only makes sense when
+    # ``crafter_promotion_enabled`` already runs at low cadence (e.g.
+    # every K steps); see
+    # ``implementation_notes/coevolution-cross-domain-integration.md``
+    # §4 for the full contract + acceptance criteria.
+    crafter_transfer_gate_enabled: bool = False
+    # Target corpora the matrix driver evaluates against. Subset of
+    # the canonical Stage-6 cluster set (video / visual_reasoning /
+    # osworld / browser). Empty list disables the gate at runtime
+    # without flipping the master flag.
+    crafter_transfer_targets: Tuple[str, ...] = ("video", "visual_reasoning")
+    # ``(lower, upper)`` admit-rate band per §11.5.4 of the cross-
+    # domain measurement plan. Skills failing ``admit_rate < lower``
+    # on every target are DEMOTED. ``upper`` is informational (Layer
+    # D dashboard surfaces it for the Generalizer's signal).
+    crafter_transfer_admit_band: Tuple[float, float] = (0.15, 0.60)
+    # Minimum number of targets a skill must clear ``band[0]`` on to
+    # KEEP. ``1`` is the most permissive: a single transferable
+    # target is enough to keep the promotion.
+    crafter_transfer_min_targets_in_band: int = 1
+    # Forwarded to ``_phase4_transfer_matrix.py --max-skills``. The
+    # synthetic bank-run is already filtered to just-promoted skills
+    # so this caps the per-cell sweep within that subset.
+    crafter_transfer_max_skills_per_cell: int = 5
+    # Hard wall-clock cap on the matrix subprocess. The driver loads
+    # 1-2 demos per cell; conda-env helpers (browser) cold-boot
+    # adds ~30s; 1800s is a generous ceiling for K=4 targets × N=5
+    # skills.
+    crafter_transfer_timeout_s: float = 1800.0
 
     # ── Harness wire-up (Day-10) ────────────────────────────────────
     # When enabled, the trainer wires the harness's two LLM-free
