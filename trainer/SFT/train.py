@@ -445,7 +445,11 @@ def train_all_adapters(config=None, gpu: Optional[int] = None, **kwargs) -> dict
         ``{adapter_name: output_path}`` for each trained adapter.
     """
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+    try:
+        from transformers import AutoModelForImageTextToText  # type: ignore
+    except ImportError:  # pragma: no cover — older transformers <5
+        AutoModelForImageTextToText = None  # type: ignore
     from trainer.SFT.config import SFTConfig
     from trainer.SFT.data_loader import load_all_adapter_datasets
 
@@ -490,8 +494,33 @@ def train_all_adapters(config=None, gpu: Optional[int] = None, **kwargs) -> dict
         tokenizer.pad_token = tokenizer.eos_token
 
     dtype = torch.bfloat16 if config.bf16 else torch.float32
-    logger.info("Loading base model '%s' (dtype=%s) …", config.model_name, dtype)
-    base_model = AutoModelForCausalLM.from_pretrained(
+    # T2.13 fix (2026-05-03): on multimodal Qwen3.5 the umbrella config has
+    # ``text_config`` + ``vision_config`` and the architecture is
+    # ``Qwen3_5ForConditionalGeneration``.  ``AutoModelForCausalLM`` returns
+    # the language-only sub-model (``Qwen3_5ForCausalLM``) and PEFT saves
+    # LoRA keys without the ``language_model.`` prefix — but
+    # ``trainer/coevolution/prepare_adapters`` and the vLLM serve path load
+    # the full multimodal model where the LM lives under
+    # ``model.language_model.layers.*``.  The structural prefix mismatch
+    # silently zero-inits the LoRA at load time (lora_B = 0 → delta = 0),
+    # dropping the cold-start signal at the SFT→GRPO/vLLM boundary.  Match
+    # the production loader so saved keys carry the ``language_model.``
+    # prefix natively.  See ``evaluation/fix_lora_keys_for_vlm_loader.py``
+    # for a one-shot remap of legacy LM-only-keyed checkpoints.
+    _probe_cfg2 = AutoConfig.from_pretrained(config.model_name, trust_remote_code=True)
+    is_multimodal = hasattr(_probe_cfg2, "text_config") or hasattr(_probe_cfg2, "vision_config")
+    if is_multimodal and AutoModelForImageTextToText is not None:
+        loader_cls = AutoModelForImageTextToText
+        logger.info(
+            "Multimodal Qwen3.5 detected (text_config+vision_config) — using "
+            "AutoModelForImageTextToText to keep LoRA keys in lock-step with "
+            "vLLM/GRPO production loaders."
+        )
+    else:
+        loader_cls = AutoModelForCausalLM
+    logger.info("Loading base model '%s' (dtype=%s, loader=%s) …",
+                config.model_name, dtype, loader_cls.__name__)
+    base_model = loader_cls.from_pretrained(
         config.model_name,
         torch_dtype=dtype,
         trust_remote_code=True,

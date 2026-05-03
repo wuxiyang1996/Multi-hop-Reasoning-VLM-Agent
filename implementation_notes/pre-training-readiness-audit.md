@@ -136,8 +136,8 @@ each.
     | **liger-kernel** Qwen3.5 / Qwen3.5-MoE / Qwen3-VL fused patches (CE / RMSNorm / RoPE) | ✅ installed (`liger-kernel`); auto-applied via `trainer/SFT/speed_utils.py::apply_liger_kernel`. Both train scripts call it before model load. | new `trainer/SFT/speed_utils.py` |
     | **Paged AdamW 8-bit** optimizer (cuts optimizer memory ~4×) | ✅ installed (`bitsandbytes` 0.49.2); `pick_optim()` defaults to `"paged_adamw_8bit"` when bnb is available, else `"adamw_torch_fused"`. Plumbed into both train scripts via `--optim` (or auto-pick). | `trainer/SFT/{train,schema_gen/train}.py` |
     | **TF32 + group-by-length + dataloader workers + pin-memory** (no-deps wins) | ✅ default-on. Both train scripts call `enable_tf32()` and pass `group_by_length=True`, `dataloader_pin_memory=True`, `dataloader_num_workers=4` (override via `--dataloader_workers`). | both train scripts |
-    | **flash-attn 2** (full-attention layer fast path) | ❌ *blocked*: torch built against CUDA 13.0 but only the 12.8 host toolkit is installed (`/usr/local/cuda → cuda-12.8`, no `nvcc`). Need CUDA-13 toolkit (or matching pre-built wheel) before `pip install flash-attn` can build. | infra task |
-    | **mamba_ssm + causal_conv1d** (linear-attention CUDA kernels — biggest single Qwen3.5 win, ~5–10× on the GatedDeltaNet path) | ❌ *blocked* on the same CUDA-toolkit mismatch. Without these the linear-attention layers fall back to a Python recurrence loop. | infra task |
+    | **flash-attn 2** (full-attention layer fast path) | ✅ **closed 2026-05-03.** Host CUDA-13.0 toolkit was installed (`/usr/local/cuda → cuda-13.0`, `nvcc` 13.0.88 on PATH). `flash_attn==2.8.3` already in `game-ai-agent`; `flash_attn_func` smoke-tested on H200 bf16. | env: `game-ai-agent` |
+    | **mamba_ssm + causal_conv1d** (linear-attention CUDA kernels — biggest single Qwen3.5 win, ~5–10× on the GatedDeltaNet path) | ✅ **closed 2026-05-03.** `causal_conv1d 1.6.1` was already present; `pip install --no-build-isolation mamba-ssm` now succeeds against torch 2.11.0+cu130 (3 min source build, 350 MB wheel, `mamba_ssm 2.3.1`). End-to-end smoke at `/tmp/smoke_mamba.py`: `Mamba` block forward + `selective_scan_fn` + `selective_state_update` + `rmsnorm_fn` + `causal_conv1d_fn` + `flash_attn_func` all green. | env: `game-ai-agent` |
 
     **Batch-size / gradient-checkpoint defaults (Levers A + C).** Audited the per-adapter overrides in `trainer/SFT/config.py` and bumped them so every cold-start adapter now uses **`batch_size=16, grad_accum=1`** (effective batch held at 16 for loss-curve continuity with the previous schedule):
 
@@ -175,7 +175,7 @@ each.
     * Lever C (no gradient_checkpointing): ~30–40 %
     * Liger-kernel + paged-8bit + tf32 + group-by-length: ~30–40 % (on top, partially overlapping)
 
-    Combined: **~1.7–2.2× wall-clock on the 9B cold-start path** before any CUDA-13 toolkit work. **With toolkit unblock (flash-attn + mamba_ssm):** another 2–3× on the linear-attention-heavy 35B-A3B `schema_gen` run.
+    Combined: **~1.7–2.2× wall-clock on the 9B cold-start path** before any CUDA-13 toolkit work. **With toolkit unblock (flash-attn + mamba_ssm) — now landed 2026-05-03:** another 2–3× on the linear-attention-heavy 35B-A3B `schema_gen` run, plus ~10–20 % on the 9B GatedDeltaNet path (was running a Python recurrence fallback).
 
 * **T2.11 (LoRA target-modules drift between SFT-time and load-time) — *recipe fix landed 2026-05-02; SFT re-run still required*.** During T2.10 the smoke transformers warned about "missing adapter keys" on every adapter — `linear_attn.{out_proj, in_proj_qkv}` and `mlp.{gate_proj, up_proj, down_proj}` for many layers. Quantitatively the LoRA params actually loaded into the cold-start 9B adapters total **36.96 M** and the schema_gen 35B-A3B total **8.36 M**. Expected order-of-magnitude (r=16 × hidden×2 × n_target_modules × n_layers) is ~42 M for the 9B adapters (≈87 % loaded — borderline) and ~36 M for schema_gen (only ≈23 % loaded — three quarters of the LoRA delta is silently dropped).
 
@@ -186,14 +186,45 @@ each.
     * `QWEN_CLASSIC_LORA_TARGETS` — classic-7, returned for every other Qwen family (Qwen2/2.5/3 dense and MoE, Qwen3-VL, Qwen3-VL-MoE).
     * `assert_lora_coverage(peft_model, model_arch, …)` — post-`get_peft_model` sanity check that counts wrapped layers per projection name; aborts in strict mode when any required leg has zero matches. **Eliminates the silent-miss class of bugs.**
 
-    All three SFT pipelines now resolve through this module:
+    All five LoRA-creating pipelines now resolve through this module:
     * `trainer/SFT/config.py::SFTConfig.resolve_target_modules` → delegates.
     * `trainer/SFT/schema_gen/config.py::SchemaGenConfig.resolve_target_modules` (new method) → delegates; the hardcoded classic-7 default that caused the bug has been removed.
     * `trainer/coevolution/config.py::prepare_adapters` → delegates (the live GRPO loop now writes/reads the same LoRA shape as SFT, fixing a second silent drift at the SFT→GRPO boundary). The earlier "skip the tiny `in_proj_a/b/z` gating projections" comment was wrong about `in_proj_z` (whose output dim is `value_dim`, not `num_v_heads` — it's the same size as `out_proj`).
+    * `skill_agents/grpo/fsdp_trainer.py::_train_one_adapter` and `_fsdp_train_worker_multi` (2026-05-03 follow-up) → both random-init LoRA fallback branches were still using the legacy 6-leg list `[q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj]` (also missing `down_proj`). Now resolve through `lora_targets`.
+    * `skill_agents/lora/model.py::LoraModel.prepare_for_training` (2026-05-03 follow-up) → same legacy-7 list (had `down_proj` but missing the GatedDeltaNet legs); now resolves through `lora_targets`.
     * `configs/skillbank_lora.yaml` — updated to the 12-entry list.
-    * Tests: [`tests/test_lora_targets.py`](../tests/test_lora_targets.py) — 7 new tests cover Qwen3.5 leg presence, classic-Qwen list shape, explicit-override priority, fallback for unknown archs, and both passing + failing branches of `assert_lora_coverage`. All pass.
+    * Tests: [`tests/test_lora_targets.py`](../tests/test_lora_targets.py) — 7 new tests cover Qwen3.5 leg presence, classic-Qwen list shape, explicit-override priority, fallback for unknown archs, and both passing + failing branches of `assert_lora_coverage`. All pass (36/36 in the lora_targets/few_shot/smoke/invariants suite as of 2026-05-03 post-fix).
 
     **Outstanding work — re-run the six SFT jobs against the corrected recipe.** The on-disk weights from the previous run *cannot* be salvaged (the dropped legs were never trained → no on-disk tensor to rewrite into the new namespace; option (b) "key-rewriter" from §0.3 is therefore ruled out). Options (a) re-train and (c) transformers downgrade remain; (a) is the chosen path because it both fixes the recipe and aligns SFT-time with GRPO-time forever. **T1.1′ remains blocked until SFT re-runs complete.**
+
+    **2026-05-03 update — SFT re-run completed (`runs/sft_coldstart_20260502_025737/` + `runs/sft_schema_gen/schema_gen_20260502_025751/`).** All six adapters now carry the 12-leg `target_modules` in `adapter_config.json` and are referenced by the run-wide manifest at `runs/sft_coldstart/sft_summary_all.json`. *However,* the post-rerun smoke surfaced a **second, independent SFT→GRPO/vLLM boundary bug** — see T2.13 below.
+
+* **T2.13 (NEW — SFT/GRPO loader-class mismatch caused silent LoRA no-op at the SFT→vLLM boundary; closed 2026-05-03).** While re-running the post-T2.11 smoke under `evaluation/smoke_load_sft_adapters.py`, the load was 5/5 OK on a forward pass *but* PEFT emitted `Found missing adapter keys` warnings for **every** layer in **every** cold-start adapter — symptom: `lora_B` slots stayed at zero-init, so `BAx = 0` and the cold-start delta was a silent no-op when stitched into the live GRPO/vLLM tower. The 35B-A3B `schema_gen` adapter was unaffected.
+
+    **Root cause.** Qwen3.5 ships an umbrella `Qwen3_5ForConditionalGeneration` config with `text_config` + `vision_config`. Two different transformers auto-classes return two different module trees:
+    * `AutoModelForCausalLM` → `Qwen3_5ForCausalLM` (LM-only sub-model). LoRA attaches at `model.layers.<i>.…`, saved keys: `base_model.model.model.layers.<i>.…lora_A.weight`.
+    * `AutoModelForImageTextToText` → `Qwen3_5ForConditionalGeneration` (full multimodal model with frozen vision tower). LoRA attaches at `model.language_model.layers.<i>.…`, saved/expected keys: `base_model.model.model.language_model.layers.<i>.…lora_A.weight`.
+
+    `trainer/SFT/train.py` loaded via `AutoModelForCausalLM` (LM-only keys), but **every production loader** — `trainer/coevolution/prepare_adapters`, `evaluation/smoke_load_sft_adapters`, the `vllm serve --model Qwen/Qwen3.5-9B` server, and `trainer/SFT/schema_gen/train.py` — uses `AutoModelForImageTextToText` (VLM keys with `language_model.` prefix). PEFT's substring-key matching is silent on a structural-prefix mismatch; the LoRA modules were instantiated empty in the live tower, the warning was treated as noise, and the cold-start signal was being dropped at the SFT→GRPO/vLLM boundary.
+
+    **Remedy landed 2026-05-03 (two-part fix).**
+    1. **One-shot key remap** of all five legacy LM-only-keyed cold-start adapters via [`evaluation/fix_lora_keys_for_vlm_loader.py`](../evaluation/fix_lora_keys_for_vlm_loader.py). Rewrites `base_model.model.model.layers.<i>.` → `base_model.model.model.language_model.layers.<i>.` in `adapter_model.safetensors` (496 keys per adapter), leaves `adapter_config.json` untouched (`target_modules` are leaf-name patterns, not full paths), and writes a `.pre_vlm_remap` backup of the original. Applied in-place to:
+       * `runs/sft_coldstart_20260502_025737/decision/{action_taking,skill_selection}/<name>/`
+       * `runs/sft_coldstart_20260502_025737/skillbank/{segment,contract,curator}/<name>/`
+
+       The 35B-A3B `schema_gen` adapter was already VLM-keyed (its training script uses `AutoModelForImageTextToText`) and was correctly skipped by the remapper.
+
+    2. **Permanent fix across every base-model loader used by SFT, GRPO, and runtime LoRA inference** (2026-05-03):
+       * [`trainer/SFT/train.py`](../trainer/SFT/train.py) — flipped to `AutoModelForImageTextToText` on multimodal configs (was `AutoModelForCausalLM`).
+       * [`skill_agents/grpo/fsdp_trainer.py`](../skill_agents/grpo/fsdp_trainer.py) — both `_train_one_adapter` (single-adapter FSDP path) and `_fsdp_train_worker_multi` (multi-adapter persistent FSDP path used by the production co-evolution loop via `run_fsdp_grpo_multi`) now mirror the same loader-class selection. Without this, **every GRPO step would have written its trained LoRA delta with LM-only-keyed safetensors**, which would have re-introduced T2.13 at every checkpoint.
+       * [`skill_agents/lora/model.py`](../skill_agents/lora/model.py) `LoraModel._load_base_model` — same fix.
+       * Logged at INFO in every site so future re-trains surface the loader choice next to the model name.
+
+       Selection is identical everywhere: `hasattr(cfg, "text_config") or hasattr(cfg, "vision_config")` ⇒ `AutoModelForImageTextToText`, else `AutoModelForCausalLM`. Mirrors `evaluation/probe_schema_gen_exact_match.py` and `evaluation/smoke_load_sft_adapters.py`.
+
+    **Verification (2026-05-03).** Re-ran `evaluation/smoke_load_sft_adapters.py --skip schema_gen --device auto` against the post-remap manifest. 5/5 OK with `n_loaded_params=43,278,336` per adapter, **0 missing-key warnings**, finite logits on `(1, 2, 248320)`. Out-of-band PEFT load against `Qwen3_5ForConditionalGeneration` confirmed `22,831,104` non-zero `lora_B` params (≈ 50 % of total LoRA budget — the SFT-trained delta is now actually live). Report at `runs/sft_coldstart/_smoke/smoke_all_post_remap.json`. Per-adapter remap log at `runs/sft_coldstart_20260502_025737/_remap_report.json`.
+
+    **Why this wasn't caught earlier.** The T2.10 smoke ran a forward pass and asserted finite logits — both pass on a base-only model with zero LoRA delta. The T2.11 audit caught a *related* recipe-side drift (`target_modules` coverage) and (correctly) ruled out a key-rewriter as a remedy *for that specific bug*, since the dropped legs had no on-disk tensors. T2.13 is the inverse situation: the tensors exist, only the structural-prefix names disagree, so a key rewriter is the right tool here.
 
 ### 0.4 New action items from the lane decision (T1.3 closed → lane (a))
 
