@@ -340,6 +340,20 @@ T2.11 + T2.12 follow-ups (2026-05-02):
     (`labeling_supplement/_phase4_transfer_matrix.py`) on the now-fully-wired
     pipeline; expect G6 to pass and §11.5.4's 15-35% / 15-30% bands to
     become measured admit rates rather than projections across all 25 cells.
+  - **Co-evolution-loop integration (NEW 2026-05-02 PM, design-only)**:
+    today's cross-domain real-env stack is OFFLINE-only — verified by
+    grep against `trainer/coevolution/`, `scripts/run_coevolution.py`:
+    zero references to `_phase4_target_dispatch`, `TaskAware*Executor`,
+    `predicate_translator`, or `_phase4_transfer_matrix`. The live
+    co-evolution loop's harness integration
+    (`trainer/coevolution/_harness_hook.py:SkillHarnessHook`) only
+    touches the within-domain `GymvAdapter` deterministic stub. Design
+    memo for the four-layer integration plan
+    (C: predicate translator into hook; A: cross-domain admit-rate
+    promotion gate; D: periodic offline pass / dashboard; B:
+    cross-domain reward channel) is at
+    [`implementation_notes/coevolution-cross-domain-integration.md`](implementation_notes/coevolution-cross-domain-integration.md).
+    Implementation deferred to a follow-up session.
 - **Actor rewire**: replace `decision_agents.skill_interface
   .SkillBankProvider` with a `HarnessSkillProvider` that wraps
   `SkillHarness.select_eligible_skills`. (Note: the Day-10
