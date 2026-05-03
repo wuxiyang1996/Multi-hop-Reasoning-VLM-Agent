@@ -93,6 +93,7 @@ def _import_heuristic():
 
 
 def _import_schema_helpers():
+    from vlm_wrapper.few_shot_library import get_few_shot_examples
     from vlm_wrapper.schema import (
         build_adaptive_system_prompt,
         count_entities,
@@ -106,6 +107,7 @@ def _import_schema_helpers():
         "parse_schema_output": parse_schema_output,
         "semantic_validate": semantic_validate,
         "validate_schema": validate_schema,
+        "get_few_shot_examples": get_few_shot_examples,
     }
 
 
@@ -460,11 +462,24 @@ def generate_text_schema_llm(
             tlines = ["…[truncated]"] + tlines[-20:]
         terminal = "\n".join(tlines)
 
+    # 1-shot ICL wiring (T2.13', 2026-05-03): mirror the desktop production
+    # adapter so the text-LLM head sees the same canonical example block as
+    # the vision head.  Disable via ``VLM_FEW_SHOT_N=0``.
+    try:
+        _few_shot_n = int(os.environ.get("VLM_FEW_SHOT_N", "1"))
+    except ValueError:
+        _few_shot_n = 1
+    _examples = (
+        helpers["get_few_shot_examples"]("desktop", n=_few_shot_n, task_id=task_id)
+        if _few_shot_n > 0
+        else []
+    )
     system = helpers["build_adaptive_system_prompt"](
         "desktop",
         sections=_DESKTOP_SECTIONS,
         task_type="interactive",
         max_entities=max_entities,
+        few_shot_examples=_examples or None,
     )
     system = f"{system}\n\n{_DESKTOP_ACTION_HINT}"
 
