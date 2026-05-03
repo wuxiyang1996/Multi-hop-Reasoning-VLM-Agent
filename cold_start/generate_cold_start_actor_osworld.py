@@ -269,13 +269,20 @@ ALL_OSWORLD_DOMAINS: List[str] = [
 # Default task catalog — ships with OSWorld; ~84 tasks across all 10 domains.
 DEFAULT_TASK_CATALOG = "/workspace/OSWorld/evaluation_examples/test_small.json"
 
-# How many outer steps per episode. Set to 50 to match the published
-# OSWorld evaluation cap (https://github.com/xlang-ai/OSWorld). Lower
-# caps are fine for smoke testing the pipeline (the schema-from-vision
-# and tool-call action loop runs identically), but they truncate the
-# long-tail of multi-dialog office/gimp tasks that need 20-40 steps to
-# reach the evaluator.
-DEFAULT_MAX_STEPS = 50
+# How many outer steps per episode. The OSWorld-Verified protocol
+# allows up to ~150 steps for the hardest tasks; 50 was the original
+# default but it truncates a large fraction of the long-tail multi-app
+# / multi-menu LibreOffice / GIMP / VLC tasks that need 30-60 steps to
+# reach the evaluator. The May-2026 cold-start run had 46% of episodes
+# truncate at step 50 with eval_score=None — i.e. nearly half of all
+# pipeline cost was wasted on tasks where the agent ran out of budget
+# before it could declare DONE. 75 is a balance: enough headroom for
+# the mid-horizon tasks (file operations, format conversions, multi-
+# dialog wizards) while keeping the worst-case wall-clock per task
+# bounded. Bump higher (e.g. 100-150) only when running the full
+# OSWorld-Verified leaderboard eval; the schema-from-vision call is
+# the dominant cost so doubling steps roughly doubles per-task spend.
+DEFAULT_MAX_STEPS = 75
 # Episodes per task when ``--episodes`` is unset.
 DEFAULT_EPISODES = 1
 # Anti-noop: force a different action after this many consecutive steps
@@ -307,7 +314,16 @@ DEFAULT_LOOP_MIN_STEP = 8
 # already appears satisfied. Reasoning models respond well to an explicit
 # "stop verifying — commit to DONE" instruction; without it they keep
 # inventing extra confirmation clicks.
-DEFAULT_DONE_NUDGE_STEP = 12
+#
+# Calibration note (2026-05-01 cold-start run, max_steps=50): firing at
+# step 12 caused 123/250 episodes to emit DONE-but-failed (49% of all
+# episodes). The nudge interacts badly with the LLM-generated
+# ``progress=0.X`` schema field — the same model writes a hallucinated
+# "progress 0.9" and then the prompt asks it to commit. Pushing the
+# threshold past the typical solve length (most successful episodes
+# DONE between step 9 and 30; only the tail past 35 is genuine "stuck")
+# eliminates the premature-DONE wave while keeping the loop-breaker.
+DEFAULT_DONE_NUDGE_STEP = 35
 
 # ─── Set-of-Marks (SoM) visual grounding ─────────────────────────────────
 # SoM is the single biggest known lever for OSWorld pass-rate. The pipeline:
@@ -413,6 +429,28 @@ def _save_frame(image: Any, path: Path) -> Optional[str]:
         pil.save(str(path), format="PNG")
         return str(path)
     except Exception:
+        return None
+
+
+def _pil_to_data_url(pil: Any) -> Optional[str]:
+    """PIL image → data:image/png;base64,... URL, for VLM ``image_url`` parts.
+
+    Used by the opt-in SelfVerifier (improvement #6); not used on
+    every step (the schema-VLM caller has its own image-encoding
+    path that lives in vlm_wrapper.schema). Returns None if the
+    image cannot be encoded.
+    """
+    if pil is None:
+        return None
+    try:
+        from io import BytesIO
+        import base64
+        buf = BytesIO()
+        pil.save(buf, format="PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/png;base64,{b64}"
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("[verify] _pil_to_data_url failed: %s", exc)
         return None
 
 
@@ -525,7 +563,32 @@ def _chat_completion(
             "messages": messages,
             "max_completion_tokens": max(6000, max_tokens * 4),
         }
-        if reasoning_effort:
+        # OpenAI hard-rejects ``reasoning_effort`` together with
+        # ``tools`` on /v1/chat/completions for the gpt-5.x family
+        # (returns HTTP 400: "Function tools with reasoning_effort
+        # are not supported for gpt-5.4 in /v1/chat/completions.
+        # Please use /v1/responses instead."). The /v1/responses
+        # migration is a much bigger refactor; for now we silently
+        # drop ``reasoning_effort`` whenever the call ships tools so
+        # the action-LLM step does not 400-fail and degrade to the
+        # candidate-list fallback. Schema-VLM calls (which are
+        # tool-less) keep ``reasoning_effort`` and benefit from it.
+        # Detection: any tool field set + an OpenAI gpt-5.x model
+        # routed via the Chat Completions API. OpenRouter tunnels
+        # the same model under ``openai/gpt-5.x`` and historically
+        # accepts the parameter — only strip on direct OpenAI.
+        is_direct_openai_gpt5 = (
+            isinstance(model, str)
+            and model.lower().startswith("gpt-5")
+            and "/" not in model  # OpenRouter ids contain a "/"
+        )
+        tools_present = (tools is not None) or (tool_choice is not None)
+        suppress_reasoning = (
+            reasoning_effort is not None
+            and is_direct_openai_gpt5
+            and tools_present
+        )
+        if reasoning_effort and not suppress_reasoning:
             if reasoning_effort not in _VALID_REASONING_EFFORTS:
                 raise ValueError(
                     f"reasoning_effort must be one of {_VALID_REASONING_EFFORTS}, "
@@ -591,6 +654,48 @@ def _import_osworld_gym_wrapper():
     """Gymnasium-style wrapper around OSWorld's DesktopEnv."""
     from env_wrappers.osworld_wrapper import OSWorldGymWrapper, load_task_catalog
     return OSWorldGymWrapper, load_task_catalog
+
+
+def _import_osworld_steering():
+    """Lazy import of the opt-in steering helpers (improvements #3/#4/#6).
+
+    Lives in a separate module so the OSWorld actor's main loop is
+    unchanged when the corresponding flags are off. ``None`` here
+    means the user did not enable any of the three subsystems — every
+    call site treats ``None`` as "feature disabled, skip the hook".
+    """
+    try:
+        from cold_start.osworld_steering import (
+            MemorySummary,
+            ReflexionTrigger,
+            SelfVerifier,
+        )
+        return {
+            "MemorySummary": MemorySummary,
+            "ReflexionTrigger": ReflexionTrigger,
+            "SelfVerifier": SelfVerifier,
+        }
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[steering] cold_start.osworld_steering unavailable; "
+            "advanced steering flags will be silently ignored: %s",
+            exc,
+        )
+        return None
+
+
+def _import_osworld_skill_retrieval():
+    """Lazy import of the opt-in skill-bank retrieval helper (improvement #7)."""
+    try:
+        from cold_start.osworld_skill_retrieval import SkillBankRetriever
+        return {"SkillBankRetriever": SkillBankRetriever}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[retrieval] cold_start.osworld_skill_retrieval unavailable; "
+            "--skill_bank_path will be silently ignored: %s",
+            exc,
+        )
+        return None
 
 
 def _import_som_helpers():
@@ -1096,35 +1201,55 @@ _ACTOR_SYSTEM_PROMPT = (
     "bounding boxes), plus a list of candidate actions that combines "
     "a11y-derived click targets with global hotkeys + the special "
     "tokens DONE / FAIL / WAIT.\n\n"
-    "Set-of-Marks grounding (mandatory format when active): when the "
-    "screenshot has numbered red bounding boxes drawn over interactive "
-    "elements and the user prompt lists those IDs, you MUST express "
-    "every click as ``click_element(id=N)`` or every text-entry as "
-    "``type_into_element(id=N, text='...')``. The harness translates "
-    "N to the element's bbox centre at execute time — that translation "
-    "is more reliable than VLMs predicting raw (x, y) coordinates. "
-    "Only fall back to raw ``pyautogui.click(x, y)`` when NO numbered "
-    "box covers the target you actually need.\n\n"
+    "EVERY ``choose_action`` call MUST include a short ``subgoal`` "
+    "string naming the immediate intent in 5-10 words "
+    "(e.g. 'open File menu', 'locate Export PDF entry', "
+    "'type query into address bar', 'confirm save dialog'). The "
+    "subgoal is the unit of *plan decomposition* — it should change "
+    "as you progress through the task. Two consecutive steps with "
+    "the *same* subgoal mean the previous step did not advance you, "
+    "so the second step should try a different action. The harness "
+    "uses the subgoal sequence as the segmentation anchor when it "
+    "lifts your trajectory into reusable Skills, so be precise.\n\n"
+    "Set-of-Marks grounding (preferred when a numbered box covers the "
+    "target): when the screenshot has numbered red bounding boxes "
+    "drawn over interactive elements and the user prompt lists those "
+    "IDs, prefer ``click_element(id=N)`` or "
+    "``type_into_element(id=N, text='...')`` — the harness translates "
+    "N to the element's bbox centre at execute time. SoM IS NOT "
+    "EXHAUSTIVE: it only labels the AT-SPI elements the heuristic "
+    "could enumerate. Many real targets (deeply-nested menu entries, "
+    "text inside a document body, image regions, file-manager files) "
+    "have no SoM ID. When the target you need has no numbered box, "
+    "DO NOT give up — issue a raw ``pyautogui.click(x, y)`` using the "
+    "bbox centre from the schema's ``<entities>`` block, or a "
+    "``pyautogui.hotkey(...)`` that achieves the same effect (e.g. "
+    "``Ctrl+Shift+E`` for LibreOffice 'Export as PDF', ``Alt+F`` to "
+    "open the File menu).\n\n"
     "Your job:\n"
     "1. Reason briefly (≤3 sentences) about the schema: which entity / "
     "control matters, what is the current sub-goal, and why one action "
     "best advances the user's instruction.\n"
     "2. Pick EXACTLY ONE action by calling the ``choose_action`` "
-    "function with ``action_string`` set to one of the candidate verbs "
-    "VERBATIM. When SoM is active ``action_string`` is almost always "
-    "``click_element(id=N)`` — copy that verb exactly, do NOT invent "
-    "coordinates. For hotkeys / scrolls / etc., copy the candidate "
-    "verbatim too. For free-form keystrokes specify ``action_type`` + "
-    "the relevant fields (``text`` / ``key`` / ``keys`` / ``dx`` / "
-    "``dy``).\n"
-    "3. Only emit ``DONE`` when the user's instruction is fully "
-    "satisfied — OSWorld will then call its evaluator to score the "
-    "trajectory. ``FAIL`` if the task cannot be completed. ``WAIT`` "
-    "to let an animation / load finish.\n\n"
+    "function. Order of preference:\n"
+    "   (a) a SoM ``click_element(id=N)`` candidate that matches the "
+    "       intended target;\n"
+    "   (b) a raw ``pyautogui.click(x, y)`` at the schema bbox centre, "
+    "       or a ``pyautogui.hotkey(...)`` keyboard equivalent — both "
+    "       are valid even when not in the candidate list;\n"
+    "   (c) ``WAIT`` to let an animation / load finish.\n"
+    "3. Only emit ``DONE`` when the user's instruction is FULLY and "
+    "OBJECTIVELY satisfied — what the user can verify on-screen, NOT "
+    "what the schema's ``progress=`` field claims (that field is "
+    "generated by the same model and is not a reliable signal). "
+    "``FAIL`` is a LAST RESORT — only use it after you have exhausted "
+    "menu navigation, hotkeys, AND raw-coordinate clicks. Emitting "
+    "FAIL because 'no SoM id matches' is incorrect; the SoM is "
+    "advisory, not exhaustive.\n\n"
     "If recent action history shows an action had NO EFFECT (state "
     "unchanged AND no error), choose a DIFFERENT action this turn — "
-    "try a NEARBY numbered box, a different ID, or a hotkey before "
-    "re-issuing the same coordinates.\n\n"
+    "try a NEARBY numbered box, a different ID, a keyboard shortcut, "
+    "or a raw click at a NEW (x, y) before giving up.\n\n"
     "Always respond by calling the ``choose_action`` function."
 )
 
@@ -1148,6 +1273,22 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "subgoal": {
+                            "type": "string",
+                            "description": (
+                                "REQUIRED. 5-10 word naming of the "
+                                "immediate intent driving this step "
+                                "(e.g. 'open File menu', "
+                                "'locate Export PDF entry', "
+                                "'type query into address bar'). "
+                                "Used as the segmentation anchor when "
+                                "the harness lifts the trajectory into "
+                                "reusable Skills. Two consecutive steps "
+                                "with the same subgoal mean the prior "
+                                "step did not advance progress — switch "
+                                "to a different action this turn."
+                            ),
+                        },
                         "reasoning": {
                             "type": "string",
                             "description": (
@@ -1162,8 +1303,14 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
                                 "Examples: 'pyautogui.click(820, 412)', "
                                 "'pyautogui.typewrite(\"hello\", interval=0.05)', "
                                 "'pyautogui.hotkey(\"ctrl\", \"s\")', "
-                                "'DONE', 'FAIL', 'WAIT'. Prefer copying one "
-                                "of the candidate actions: "
+                                "'DONE', 'FAIL', 'WAIT'. Prefer a SoM "
+                                "candidate when one matches; otherwise a "
+                                "raw 'pyautogui.click(x, y)' / 'pyautogui."
+                                "hotkey(...)' is also valid. Do NOT emit "
+                                "FAIL just because no SoM id matches — "
+                                "fall back to raw coordinates from the "
+                                "schema's <entities> bboxes. Candidate "
+                                "list (advisory): "
                                 + ", ".join(candidate_actions[:_MAX_CANDIDATE_ACTIONS])
                             ),
                         },
@@ -1334,8 +1481,20 @@ def select_action(
     last_action_was_noop: bool = False,
     last_failed_action: Optional[str] = None,
     reasoning_effort: Optional[str] = None,
-) -> Tuple[Optional[str], Optional[str], str, Optional[str]]:
-    """Call gpt-5.5 with the schema → ``(action, reasoning, raw, error)``."""
+    prior_subgoals: Optional[List[str]] = None,
+    memory_block: Optional[str] = None,
+    reflection_block: Optional[str] = None,
+    retrieved_skills_block: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[str], str, Optional[str], Optional[str]]:
+    """Call gpt-5.5 with the schema → ``(action, reasoning, raw, error, subgoal)``.
+
+    The four optional ``*_block`` args are opt-in steering text that
+    the caller (``run_actor_episode``) builds when the corresponding
+    feature flags are on. Each is rendered as a clearly-tagged
+    section in the user prompt; passing ``None`` (the default) means
+    the section is omitted and the prompt matches the pre-feature
+    template byte-for-byte.
+    """
     if not candidate_actions:
         candidate_actions = list(_GLOBAL_DESKTOP_ACTIONS)
         candidate_meta = [
@@ -1343,7 +1502,7 @@ def select_action(
             for a in _GLOBAL_DESKTOP_ACTIONS
         ]
     if client is None:
-        return None, None, "", "no_client"
+        return None, None, "", "no_client", None
 
     history_block = _format_history_block(history)
     schema_block = (
@@ -1370,6 +1529,37 @@ def select_action(
         "",
         candidate_block,
     ]
+
+    # ─── Opt-in retrieved skills (improvement #7) ────────────────────────
+    # Rendered just below the candidate-action list so the actor sees
+    # the demonstrations in the same scope where it picks the action.
+    if retrieved_skills_block:
+        user_parts.extend([
+            "",
+            "=== RETRIEVED SKILLS (in-context demos) ===",
+            retrieved_skills_block,
+            "Use the retrieved protocols as REFERENCES for action "
+            "shape and ordering, not as literal copy-paste. The "
+            "current task's UI may have moved/renamed elements.",
+        ])
+
+    # ─── Opt-in memory summary (improvement #3) ──────────────────────────
+    if memory_block:
+        user_parts.extend([
+            "",
+            "=== MEMORY (running summary of recent steps) ===",
+            memory_block,
+        ])
+
+    # ─── Opt-in reflection on consecutive no-ops (improvement #4) ───────
+    if reflection_block:
+        user_parts.extend([
+            "",
+            "=== REFLECTION (last action streak failed) ===",
+            reflection_block,
+            "Pick ONE of the proposed alternatives this turn — do "
+            "NOT re-issue the action that just failed.",
+        ])
 
     # ─── Set-of-Marks element table ──────────────────────────────────────
     # When SoM is active the screenshot the model already saw at the
@@ -1435,15 +1625,46 @@ def select_action(
         "boxes are present, copy a ``click_element(id=N)`` candidate "
         "verbatim into ``action_string``. Otherwise prefer "
         "pyautogui.click(x, y) using bbox centres from the schema, or "
-        "specify ``action_type`` + the relevant structured fields.",
+        "specify ``action_type`` + the relevant structured fields. "
+        "Always include a ``subgoal`` (5-10 words) describing the "
+        "immediate intent.",
     ])
 
+    # ─── Subgoal trail ──────────────────────────────────────────────────
+    # Show the last few subgoals back to the model so it knows what
+    # plan-level steps have been declared. If the same subgoal has
+    # appeared 2+ times recently it's a strong signal the previous
+    # action did not advance — the prompt nudges the model to either
+    # change the action OR change the subgoal (re-decompose).
+    if prior_subgoals:
+        recent_sg = [s for s in prior_subgoals[-5:] if s]
+        if recent_sg:
+            user_parts.extend([
+                "",
+                "Recent subgoals (newest last): "
+                + " → ".join(s[:60] for s in recent_sg),
+            ])
+            tail = recent_sg[-3:] if len(recent_sg) >= 3 else recent_sg
+            if len(tail) >= 2 and len(set(tail)) == 1:
+                user_parts.append(
+                    "WARNING: the last "
+                    f"{len(tail)} subgoals are identical — either the "
+                    "previous attempts did not advance progress (so "
+                    "pick a MATERIALLY different action this turn) or "
+                    "the subgoal is too coarse (so refine it into a "
+                    "more specific sub-step before acting)."
+                )
+
     # ─── DONE-nudge ───────────────────────────────────────────────────────
-    # Long-running trajectories tend to over-verify. Once we cross
-    # ``done_nudge_step`` add an explicit "commit to DONE if the goal is
-    # met" instruction. This is a behavioural fix specifically for
-    # reasoning models (gpt-5.x, o1/o3/o4) that otherwise keep clicking
-    # the same buttons.
+    # Long-running stuck trajectories sometimes need a reminder, but the
+    # earlier "trust the LLM-generated progress field" wording caused
+    # 49% of the May-2026 run's episodes to emit a premature DONE.
+    # We now only fire the nudge late in the trajectory AND only when
+    # there is an objective signal that the agent is stuck (action
+    # repetition with reward=0). The text deliberately avoids citing
+    # the schema's ``progress=`` field — that value is hallucinated by
+    # the same VLM that's about to be asked to commit, so it's a
+    # circular signal.
     if step >= done_nudge_step:
         repeats = 0
         if history:
@@ -1454,22 +1675,21 @@ def select_action(
                 if a:
                     counts[a] = counts.get(a, 0) + 1
             repeats = max(counts.values()) if counts else 0
-        nudge_lines = [
-            "",
-            f"=== STOP-CONDITION REMINDER (step {step} of a long run) ===",
-            "If the schema shows the goal is already satisfied, emit DONE "
-            "NOW. Do NOT add 'verification' clicks or extra confirmation "
-            "steps — over-verification wastes the step budget. Pick DONE "
-            "as soon as the visible state matches what the goal asks for.",
-        ]
         if repeats >= 2:
-            nudge_lines.append(
-                f"You have already repeated the same action {repeats} "
-                f"times in the last {DEFAULT_LOOP_WINDOW} steps. Either "
-                "switch to a materially different action OR emit DONE / "
-                "FAIL — repeating the same click again will not help."
-            )
-        user_parts.extend(nudge_lines)
+            user_parts.extend([
+                "",
+                f"=== LOOP-BREAKER (step {step}) ===",
+                f"You have repeated the same action {repeats} times in the "
+                f"last {DEFAULT_LOOP_WINDOW} steps with reward=0. Pick a "
+                "MATERIALLY different action (different element, different "
+                "menu path, different keyboard shortcut). If you have "
+                "exhausted reasonable options for this goal, emit FAIL. "
+                "Only emit DONE if the on-screen result objectively "
+                "matches what the goal asked for — do NOT use the schema's "
+                "``progress=`` field as the trigger; it is generated by "
+                "the same model writing this turn's action and is not a "
+                "reliable verification signal.",
+            ])
     user_content = "\n".join(p for p in user_parts if p is not None)
 
     tools = _build_action_tools(candidate_actions)
@@ -1503,29 +1723,31 @@ def select_action(
             )
             args = json.loads(raw_args) if isinstance(raw_args, str) else (raw_args or {})
             reasoning = args.get("reasoning") or None
+            subgoal_raw = (args.get("subgoal") or "").strip()
+            subgoal = subgoal_raw[:120] if subgoal_raw else None
             action_string = (args.get("action_string") or "").strip()
             if action_string and _validate_action_string(action_string):
-                return action_string, reasoning, raw or json.dumps(args), None
+                return action_string, reasoning, raw or json.dumps(args), None, subgoal
             structured = _structured_to_action_string(args)
             if structured and _validate_action_string(structured):
-                return structured, reasoning, raw or json.dumps(args), None
+                return structured, reasoning, raw or json.dumps(args), None, subgoal
             cand = action_string.strip()
             m = re.match(r"^\s*(\d+)\s*\.?\s*$", cand)
             if m and 1 <= int(m.group(1)) <= len(candidate_actions):
                 return (
                     candidate_actions[int(m.group(1)) - 1], reasoning,
-                    raw or json.dumps(args), None,
+                    raw or json.dumps(args), None, subgoal,
                 )
 
         for cand in candidate_actions:
             if cand in raw:
-                return cand, None, raw, None
+                return cand, None, raw, None, None
 
     except Exception as exc:
         err = repr(exc)
         logger.warning("[action-LLM] step %d failed: %s", step, exc)
 
-    return None, None, raw, err
+    return None, None, raw, err, None
 
 
 # ---------------------------------------------------------------------------
@@ -1645,8 +1867,23 @@ def run_actor_episode(
     use_som: bool = DEFAULT_USE_SOM,
     som_max_elements: int = DEFAULT_SOM_MAX_ELEMENTS,
     reasoning_effort: Optional[str] = None,
+    steering: Optional[Dict[str, Any]] = None,
+    retriever: Optional[Any] = None,
+    retriever_top_k: int = 3,
 ) -> Tuple[Episode, Dict[str, Any]]:
-    """Run one OSWorld episode end-to-end and return ``(Episode, stats)``."""
+    """Run one OSWorld episode end-to-end and return ``(Episode, stats)``.
+
+    ``steering`` is an optional dict ``{"memory": ?, "reflector": ?,
+    "verifier": ?}`` carrying instances built in ``main()`` from the
+    opt-in flags ``--enable_memory`` / ``--enable_reflection`` /
+    ``--enable_self_verify``. Any key may be ``None`` independently;
+    when all three are ``None`` (or ``steering`` itself is ``None``)
+    this function executes the original main loop bit-for-bit.
+
+    ``retriever`` is the opt-in SkillBankRetriever from
+    ``--skill_bank_path``; ``None`` → no retrieval, no in-context
+    skill demos.
+    """
     osworld_obs_to_schema_heuristic = _import_osworld_heuristic()
     som_helpers = _import_som_helpers() if use_som else None
     if use_som and som_helpers is None:
@@ -1671,6 +1908,41 @@ def run_actor_episode(
     )
     goal = instruction or task_id
 
+    # ─── Opt-in steering instances (#3 / #4 / #6) ────────────────────────
+    # ``steering`` is a dict carrying optional MemorySummary,
+    # ReflexionTrigger, SelfVerifier. Each key may be missing or
+    # None → that subsystem is disabled. When all are None this
+    # block becomes a no-op and the loop matches the pre-feature
+    # path exactly.
+    memory = (steering or {}).get("memory")
+    reflector = (steering or {}).get("reflector")
+    verifier = (steering or {}).get("verifier")
+
+    # ─── Opt-in skill retrieval (#7) ─────────────────────────────────────
+    # Retrieval fires ONCE at episode start — the in-context demos do
+    # not change mid-episode. The block is reused on every step's
+    # action prompt. Empty string (or None) → no demos rendered.
+    retrieved_skills_block: Optional[str] = None
+    n_retrieved_skills = 0
+    if retriever is not None:
+        try:
+            skills = retriever.retrieve(
+                instruction=goal, domain=domain, top_k=retriever_top_k,
+            )
+            if skills:
+                retrieved_skills_block = retriever.format_for_prompt(skills)
+                n_retrieved_skills = len(skills)
+                if verbose:
+                    print(
+                        f"  [retrieve] {n_retrieved_skills} in-context "
+                        f"skills loaded for episode"
+                    )
+        except Exception as exc:
+            logger.warning(
+                "[retrieve] retrieval failed for task %s: %s",
+                task_id, exc,
+            )
+
     experiences: List[Experience] = []
     history: List[Dict[str, Any]] = []
     consecutive_noops = 0
@@ -1685,6 +1957,12 @@ def run_actor_episode(
     terminated = False
     truncated = False
     eval_score: Optional[float] = None
+    # Subgoal trail (P1) — populated step-by-step from the actor's
+    # ``choose_action(subgoal=...)`` arg. Persisted into each
+    # Experience.metadata so the skill-bank lift pipeline can use the
+    # subgoal as the segmentation anchor instead of re-deriving it
+    # from raw actions.
+    subgoals: List[str] = []
 
     last_action: str = ""
     last_action_error: str = ""
@@ -1791,8 +2069,38 @@ def run_actor_episode(
                     "error": None,
                 }
 
+            # 4b. Build opt-in steering blocks BEFORE the action call so
+            #     each can land in the same prompt. Each call is a
+            #     no-op when its subsystem is disabled (returns None).
+            memory_block: Optional[str] = None
+            if memory is not None:
+                try:
+                    memory_block = memory.maybe_refresh(
+                        step=step, task=task,
+                        history=history, subgoals=subgoals,
+                    )
+                except Exception as exc:
+                    logger.debug("[memory] maybe_refresh failed: %s", exc)
+                    memory_block = None
+
+            reflection_block: Optional[str] = None
+            if reflector is not None:
+                try:
+                    reflector.maybe_reflect(
+                        step=step,
+                        consecutive_noops=consecutive_noops,
+                        last_action=last_action,
+                        task=task,
+                        recent_subgoals=subgoals,
+                        recent_history=history,
+                    )
+                    reflection_block = reflector.consume_for(step)
+                except Exception as exc:
+                    logger.debug("[reflect] maybe_reflect failed: %s", exc)
+                    reflection_block = None
+
             # 5. Action selection (text-only call: schema → action).
-            action, reasoning, action_raw, action_err = select_action(
+            action, reasoning, action_raw, action_err, subgoal = select_action(
                 schema_text=schema_text,
                 obs=obs_with_history,
                 candidate_actions=candidate_actions,
@@ -1809,7 +2117,12 @@ def run_actor_episode(
                 last_action_was_noop=last_action_was_noop,
                 last_failed_action=last_action if last_action_was_noop else None,
                 reasoning_effort=reasoning_effort,
+                prior_subgoals=subgoals,
+                memory_block=memory_block,
+                reflection_block=reflection_block,
+                retrieved_skills_block=retrieved_skills_block,
             )
+            subgoals.append(subgoal or "")
             if action is not None:
                 action_llm_ok += 1
             else:
@@ -1889,6 +2202,48 @@ def run_actor_episode(
                             f"{repeated_action!r} in last {loop_window})"
                         )
 
+            # 6c. Opt-in self-verification (improvement #6).
+            # Before letting an actor-emitted DONE commit, ask a fresh
+            # vision LLM call whether the screenshot objectively
+            # satisfies the task. On NO, downgrade to ``WAIT`` so the
+            # episode loop continues and the actor gets one more
+            # chance. Skipped (no extra cost, no behaviour change)
+            # when ``--enable_self_verify`` is off.
+            self_verify_outcome: Optional[str] = None
+            self_verify_reason: Optional[str] = None
+            if (
+                verifier is not None
+                and isinstance(action, str)
+                and action.strip().upper() == "DONE"
+            ):
+                # Use the SAME annotated PIL frame the actor saw so
+                # the verifier judges the same evidence the actor did.
+                data_url = _pil_to_data_url(pil)
+                try:
+                    is_done, reason = verifier.verify_done(
+                        task=task, screenshot_data_url=data_url,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("[self-verify] crashed: %s", exc)
+                    is_done, reason = True, "verifier_crashed"
+                self_verify_reason = reason
+                if is_done:
+                    self_verify_outcome = "yes"
+                else:
+                    self_verify_outcome = "no"
+                    if verbose:
+                        print(
+                            f"  step {step}: self-verify rejected DONE "
+                            f"({reason[:60] if reason else '?'}) — "
+                            f"downgrading to WAIT"
+                        )
+                    action = "WAIT"
+                    reasoning = (
+                        (reasoning or "")
+                        + f" [self-verify: NO ({reason[:80]}); "
+                          f"downgraded DONE→WAIT]"
+                    )
+
             # 7. Step the env.
             try:
                 next_obs, reward, terminated, truncated, step_info = env.step(action)
@@ -1921,11 +2276,17 @@ def run_actor_episode(
                     error_text = str(step_info["step_error"])
                 elif step_info.get("error"):
                     error_text = str(step_info["error"])
-            if isinstance(action, str) and action.upper() == "DONE":
-                eval_score = (
-                    step_info.get("eval_score")
-                    if isinstance(step_info, dict) else None
-                )
+            # Pull the eval score whenever the wrapper auto-evaluated, not
+            # just on agent-emitted DONE. ``OSWorldGymWrapper.step()``
+            # already calls ``env.evaluate()`` on every ``terminated``
+            # return (which includes both DONE and FAIL), so reading it
+            # only on DONE silently dropped 23% of episodes (the FAIL
+            # ones) from ``mean_eval_score`` in the May-2026 cold-start
+            # run. Truncated episodes are handled after the loop below.
+            if isinstance(step_info, dict):
+                step_eval = step_info.get("eval_score")
+                if isinstance(step_eval, (int, float)):
+                    eval_score = float(step_eval)
 
             is_noop = _is_noop(obs_with_history, next_obs)
             history.append({
@@ -1992,7 +2353,22 @@ def run_actor_episode(
                 "som_action_original": som_action_original,
                 "task_id": task_id,
                 "domain": domain,
+                "subgoal": subgoal,
             }
+            # Opt-in steering provenance (only populated when the
+            # corresponding flag was on; otherwise these fields are
+            # absent so the on-disk shape matches the pre-feature
+            # path for default runs).
+            if memory_block:
+                extras["memory_block_used"] = True
+            if reflection_block:
+                extras["reflection_block_used"] = True
+            if retrieved_skills_block:
+                extras["retrieved_skills_used"] = True
+                extras["retrieved_skills_count"] = n_retrieved_skills
+            if self_verify_outcome:
+                extras["self_verify_outcome"] = self_verify_outcome
+                extras["self_verify_reason"] = self_verify_reason
             if schema_meta.get("finish_reason") is not None:
                 extras["schema_finish_reason"] = schema_meta.get("finish_reason")
             if schema_meta.get("recovery"):
@@ -2029,6 +2405,7 @@ def run_actor_episode(
                         "task_id": task_id,
                         "domain": domain,
                         "action": action,
+                        "subgoal": subgoal,
                         "action_raw": (action_raw or "")[:1000],
                         "action_error": action_err,
                         "reward": r,
@@ -2083,6 +2460,25 @@ def run_actor_episode(
         # multiple episodes by run_task_rollouts to amortise VM boot cost.
         pass
 
+    # If the episode ended in truncation (max_steps reached without an
+    # agent-emitted DONE / FAIL), the wrapper does NOT auto-evaluate.
+    # Force one final ``env.evaluate()`` so the metric covers ALL
+    # episodes — not just the agent's self-declared DONEs. In the
+    # May-2026 cold-start run this hid 17% of episodes from
+    # ``mean_eval_score``; the few that the env quietly already
+    # satisfied were silently scored as None.
+    if eval_score is None and truncated and not last_action_error:
+        try:
+            if hasattr(env, "evaluate"):
+                eval_score = float(env.evaluate())
+                if verbose:
+                    print(
+                        f"  [truncated] post-hoc env.evaluate() = "
+                        f"{eval_score}"
+                    )
+        except Exception as exc:
+            logger.debug("post-hoc env.evaluate() failed: %s", exc)
+
     elapsed = time.time() - t0
 
     episode = Episode(
@@ -2118,7 +2514,31 @@ def run_actor_episode(
         "use_som": bool(use_som and som_helpers is not None),
         "som_steps_with_elements": som_steps_with_elements,
         "som_actions_translated": som_actions_translated,
+        # P1 subgoal trail — one string per outer step, parallel-indexed
+        # to ``experiences``. Empty strings mean the actor failed to
+        # emit a subgoal that step (or the LLM call itself failed).
+        # The skill-bank lift uses this as the segmentation anchor.
+        "subgoal_trail": list(subgoals),
+        "subgoal_unique": len({s for s in subgoals if s}),
     }
+    # Opt-in steering provenance — present only when a flag was set.
+    if memory is not None:
+        try:
+            stats["memory_stats"] = memory.stats()
+        except Exception:  # noqa: BLE001
+            pass
+    if reflector is not None:
+        try:
+            stats["reflection_stats"] = reflector.stats()
+        except Exception:  # noqa: BLE001
+            pass
+    if verifier is not None:
+        try:
+            stats["self_verify_stats"] = verifier.stats()
+        except Exception:  # noqa: BLE001
+            pass
+    if retriever is not None:
+        stats["retrieved_skills_count"] = n_retrieved_skills
     return episode, stats
 
 
@@ -2221,6 +2641,12 @@ def run_task_rollouts(
                     args, "som_max_elements", DEFAULT_SOM_MAX_ELEMENTS
                 ),
                 reasoning_effort=getattr(args, "reasoning_effort", None),
+                # Opt-in features — None when the corresponding flag
+                # is off, in which case run_actor_episode runs the
+                # original main loop bit-for-bit.
+                steering=getattr(args, "_steering", None),
+                retriever=getattr(args, "_retriever", None),
+                retriever_top_k=getattr(args, "skill_retrieval_top_k", 3),
             )
             stats["episode_index"] = ep_idx
             print(
@@ -2282,9 +2708,10 @@ def run_task_rollouts(
     }
     rewards = [s["total_reward"] for s in all_stats if "error" not in s]
     steps_list = [s["steps"] for s in all_stats if "error" not in s]
+    valid_runs = [s for s in all_stats if "error" not in s]
     eval_scores = [
-        s.get("eval_score") for s in all_stats
-        if "error" not in s and isinstance(s.get("eval_score"), (int, float))
+        s.get("eval_score") for s in valid_runs
+        if isinstance(s.get("eval_score"), (int, float))
     ]
     if rewards:
         summary["mean_reward"] = sum(rewards) / len(rewards)
@@ -2292,8 +2719,23 @@ def run_task_rollouts(
         summary["min_reward"] = min(rewards)
     if steps_list:
         summary["mean_steps"] = sum(steps_list) / len(steps_list)
+    # Honest pass@1: count any episode with eval_score>0 as solved, and
+    # any unsigned (None) episode as 0. The ``mean_eval_score`` field
+    # is preserved for backward-compat (it averages only scored
+    # episodes), but ``pass_rate`` / ``solved`` / ``unscored`` give the
+    # full picture.
     if eval_scores:
         summary["mean_eval_score"] = sum(eval_scores) / len(eval_scores)
+    if valid_runs:
+        summary["solved"] = sum(
+            1 for s in valid_runs
+            if isinstance(s.get("eval_score"), (int, float))
+            and float(s["eval_score"]) > 0
+        )
+        summary["unscored"] = sum(
+            1 for s in valid_runs if s.get("eval_score") is None
+        )
+        summary["pass_rate"] = summary["solved"] / len(valid_runs)
 
     with open(task_dir / "rollout_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False, default=str)
@@ -2621,8 +3063,146 @@ def main():
         "--verbose", "-v", action="store_true",
         help="Print per-step details (action, reward, schema source).",
     )
+    # ─── Opt-in advanced steering (improvements #3 / #4 / #6) ────────────
+    # These three live in cold_start/osworld_steering.py so the main
+    # loop is unchanged when the flags are off. Each costs an extra
+    # LLM round-trip per fire and is OSWorld-specific (depends on
+    # AT-SPI / pyautogui / desktop semantics) — never enable on other
+    # corpora.
+    parser.add_argument(
+        "--enable_memory", "--enable-memory", action="store_true",
+        help=(
+            "OPT-IN (default off). Every K=5 steps, run a small LLM "
+            "summarisation call over the recent (subgoal, action, "
+            "reward) trail and inject the result as a <memory> block "
+            "on subsequent action prompts. Combats the long-horizon "
+            "'lost-in-trajectory' failure mode where the actor "
+            "forgets which subgoals it has already completed. "
+            "OSWorld-only — implemented in osworld_steering."
+            "MemorySummary."
+        ),
+    )
+    parser.add_argument(
+        "--memory_refresh_every", "--memory-refresh-every",
+        type=int, default=5,
+        help="K parameter for --enable_memory (default: 5 steps).",
+    )
+    parser.add_argument(
+        "--enable_reflection", "--enable-reflection", action="store_true",
+        help=(
+            "OPT-IN (default off). When the actor has 2+ consecutive "
+            "no-op steps (action did NOT change state and produced "
+            "no error), fire a one-shot 'why did this fail? give 3 "
+            "alternatives' LLM call and inject the result as a "
+            "<reflection> block on the next prompt. Per-streak; "
+            "does not re-fire until the streak breaks. OSWorld-only "
+            "— implemented in osworld_steering.ReflexionTrigger."
+        ),
+    )
+    parser.add_argument(
+        "--reflection_streak", "--reflection-streak",
+        type=int, default=2,
+        help=(
+            "Consecutive no-op count that triggers --enable_reflection "
+            "(default: 2). Lower = more reflections fired (more cost, "
+            "more recovery); higher = fewer (less cost, less rescue)."
+        ),
+    )
+    parser.add_argument(
+        "--enable_self_verify", "--enable-self-verify",
+        action="store_true",
+        help=(
+            "OPT-IN (default off). Before accepting an actor-emitted "
+            "DONE, fire a vision LLM call asking 'does this "
+            "screenshot objectively satisfy the task?'. Only commit "
+            "DONE on YES; on NO, downgrade to WAIT so the loop "
+            "continues. Catches premature-DONE hallucinations that "
+            "the schema's progress= field can also produce. "
+            "OSWorld-only — implemented in osworld_steering."
+            "SelfVerifier."
+        ),
+    )
+
+    # ─── Opt-in skill-bank retrieval (improvement #7) ────────────────────
+    parser.add_argument(
+        "--skill_bank_path", "--skill-bank-path",
+        type=str, default=None,
+        help=(
+            "OPT-IN (default unset). Path to a skill_bank.jsonl "
+            "produced by labeling/extract_skillbank_gpt54.py or "
+            "skill_transfer_test/extract/full_v5/<corpus>/. When "
+            "set, at the START of every episode the harness "
+            "retrieves the top-K most relevant skills (BM25 over "
+            "skill name + protocol summary against the task "
+            "instruction) and injects their compact protocol as "
+            "in-context demonstrations in the actor user prompt. "
+            "This is the eval-side hook for the skill-bank research "
+            "story (RQ3 transfer matrix)."
+        ),
+    )
+    parser.add_argument(
+        "--skill_retrieval_top_k", "--skill-retrieval-top-k",
+        type=int, default=3,
+        help=(
+            "Top-K parameter for --skill_bank_path (default: 3). "
+            "Larger K trades context budget for recall."
+        ),
+    )
+
+    parser.add_argument(
+        "--eval_mode", "--eval-mode",
+        type=str, nargs="?", const="medium", default=None,
+        choices=["off", "medium", "high", "max"],
+        help=(
+            "Switch to eval-grade defaults for benchmark numbers. "
+            "Three tiers (cost ↑ → score ↑):\n"
+            "  ``medium`` (default when --eval_mode is bare): "
+            "reasoning_effort=medium, temperature_action=0.0, "
+            "temperature_schema=0.0, done_nudge_step=999, "
+            "max_steps=75. Cheapest eval-grade preset.\n"
+            "  ``high``: same as ``medium`` plus reasoning_effort=high. "
+            "~2-3x token spend on the schema/action calls; expect "
+            "+3-5pp pass-rate over ``medium`` on multi-step tasks.\n"
+            "  ``max``: same as ``high`` plus max_steps=100. Use for "
+            "the long-tail GIMP / VLC / multi-app workflows that need "
+            "60+ steps. Highest spend, highest published number.\n"
+            "Without this flag the script keeps the cold-start data "
+            "generation defaults (minimal effort, temperature 0.4, "
+            "nudge at step 35) which intentionally trade pass-rate "
+            "for trajectory diversity. Individual flags still win — "
+            "use ``--eval_mode high --temperature_action 0.2`` to "
+            "layer one explicit override on top of a preset."
+        ),
+    )
 
     args = parser.parse_args()
+
+    # ``--eval_mode`` re-binds defaults BEFORE the rest of the file
+    # reads them; explicit user overrides (e.g. ``--reasoning_effort
+    # high`` passed alongside ``--eval_mode medium``) still take
+    # precedence because the user-supplied values were set on the
+    # namespace by argparse first and we only overwrite argparse's
+    # defaults below. The three tiers (medium / high / max) are
+    # documented in the --eval_mode help string.
+    eval_tier = getattr(args, "eval_mode", None)
+    if eval_tier and eval_tier != "off":
+        if args.reasoning_effort is None:
+            args.reasoning_effort = (
+                "high" if eval_tier in ("high", "max") else "medium"
+            )
+        # argparse defaults are 0.4 / 0.2 — only overwrite if the user
+        # left them at the defaults.
+        if args.temperature_action == 0.4:
+            args.temperature_action = 0.0
+        if args.temperature_schema == 0.2:
+            args.temperature_schema = 0.0
+        if args.done_nudge_step == DEFAULT_DONE_NUDGE_STEP:
+            args.done_nudge_step = 999
+        # ``max`` tier raises max_steps for long-horizon tasks. We
+        # only override the argparse default (75) — if the user
+        # explicitly set --max_steps, we keep their value.
+        if eval_tier == "max" and args.max_steps == DEFAULT_MAX_STEPS:
+            args.max_steps = 100
 
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
@@ -2713,6 +3293,79 @@ def main():
     save_frames = (not args.no_save_frames)  # default ON
     use_som = (not args.no_som)  # default ON
 
+    # ─── Build opt-in steering / retrieval (improvements #3/#4/#6/#7) ────
+    # The whole block is no-op when none of the four flags is set —
+    # ``args._steering`` ends up as ``None`` and ``args._retriever``
+    # stays ``None``, so ``run_actor_episode`` runs the original
+    # main loop bit-for-bit.
+    steering: Optional[Dict[str, Any]] = None
+    enabled_steering: List[str] = []
+    if (
+        getattr(args, "enable_memory", False)
+        or getattr(args, "enable_reflection", False)
+        or getattr(args, "enable_self_verify", False)
+    ):
+        steer_mod = _import_osworld_steering()
+        if steer_mod is None:
+            print(
+                "[WARNING] Advanced steering flags requested but "
+                "cold_start.osworld_steering could not be imported; "
+                "running with steering disabled."
+            )
+        else:
+            steering = {}
+            if getattr(args, "enable_memory", False):
+                steering["memory"] = steer_mod["MemorySummary"](
+                    client=client,
+                    routed_model=routed_model,
+                    chat_completion_fn=_chat_completion,
+                    refresh_every=getattr(args, "memory_refresh_every", 5),
+                )
+                enabled_steering.append("memory")
+            if getattr(args, "enable_reflection", False):
+                steering["reflector"] = steer_mod["ReflexionTrigger"](
+                    client=client,
+                    routed_model=routed_model,
+                    chat_completion_fn=_chat_completion,
+                    trigger_streak=getattr(args, "reflection_streak", 2),
+                )
+                enabled_steering.append("reflection")
+            if getattr(args, "enable_self_verify", False):
+                steering["verifier"] = steer_mod["SelfVerifier"](
+                    client=client,
+                    routed_model=routed_model,
+                    chat_completion_fn=_chat_completion,
+                )
+                enabled_steering.append("self_verify")
+    args._steering = steering
+
+    retriever = None
+    if getattr(args, "skill_bank_path", None):
+        retr_mod = _import_osworld_skill_retrieval()
+        if retr_mod is None:
+            print(
+                "[WARNING] --skill_bank_path set but "
+                "cold_start.osworld_skill_retrieval could not be "
+                "imported; running without retrieval."
+            )
+        else:
+            try:
+                retriever = retr_mod["SkillBankRetriever"](
+                    bank_path=args.skill_bank_path
+                )
+                print(
+                    f"  Skill retrieval:      ON  "
+                    f"({retriever.n_loaded} skills loaded, "
+                    f"top_k={args.skill_retrieval_top_k})"
+                )
+            except Exception as exc:
+                print(
+                    f"[WARNING] Skill bank load failed at "
+                    f"{args.skill_bank_path}: {exc} — disabling retrieval."
+                )
+                retriever = None
+    args._retriever = retriever
+
     print("=" * 78)
     print("  Cold-Start Actor Agent — OSWorld + gpt-5.5  (vision-required, headless)")
     print("=" * 78)
@@ -2746,6 +3399,12 @@ def main():
     print(f"  Terminal:             {not args.no_terminal}")
     print(f"  Auto-evaluate (DONE): {not args.no_auto_evaluate}")
     print(f"  Reuse env across tasks: {reuse_env}")
+    if enabled_steering:
+        print(
+            f"  Advanced steering:    ON  ({', '.join(enabled_steering)})"
+        )
+    else:
+        print(f"  Advanced steering:    OFF (default)")
     print(f"  Save frames:          "
           + ("ON  (PNG + step_NNN.json sidecar — default)"
              if save_frames else "OFF (--no_save_frames)"))

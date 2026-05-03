@@ -50,7 +50,7 @@ except Exception:  # pragma: no cover
 
 from .heuristic import (
     _collect_entities,
-    INTERACTIVE_ROLES,
+    SOM_CLICKABLE_ROLES,
 )
 
 
@@ -100,10 +100,19 @@ def extract_som_elements(
 ) -> List[SomElement]:
     """Parse AT-SPI XML and return a numbered list of click targets.
 
-    Filters to interactive roles (push-button, link, menu-item, …) with a
-    valid ``(x, y, w, h)`` bbox. Empty / off-screen / zero-area boxes are
-    dropped. The returned list is truncated to ``max_elements`` so the
-    overlay stays readable.
+    Filters to clickable roles (push-button, link, menu-item, top-level
+    ``menu`` / ``menu-button`` openers, …) with a valid ``(x, y, w, h)``
+    bbox. Empty / off-screen / zero-area boxes are dropped, as are
+    full-screen catch-all containers (boxes covering >70% of the
+    1920×1080 viewport — these correspond to the document body or the
+    application frame and waste a SoM slot). The returned list is
+    truncated to ``max_elements`` so the overlay stays readable.
+
+    The role set is :data:`SOM_CLICKABLE_ROLES` from ``heuristic.py``,
+    which is :data:`INTERACTIVE_ROLES` plus the classic-desktop menu
+    openers. Without those, every step in the May-2026 cold-start run
+    collapsed onto the GNOME dock + window decorations and the agent
+    had no way to open File / Edit / Filters menus at all.
     """
     if not accessibility_xml:
         return []
@@ -116,13 +125,20 @@ def extract_som_elements(
     out: List[SomElement] = []
     sid = 1
     seen_bboxes: set = set()
+    # Filter out catch-all containers that would occupy the entire
+    # screen — they are clickable in principle but the SoM badge would
+    # land on top of the document body and confuse the model.
+    _MAX_BBOX_FRAC = 0.70
+    _SCREEN_AREA_GUESS = 1920 * 1080  # OSWorld default, conservative upper
     for e in raw:
-        if e.role not in INTERACTIVE_ROLES:
+        if e.role not in SOM_CLICKABLE_ROLES:
             continue
         if e.bbox is None:
             continue
         x, y, w, h = e.bbox
         if w <= 1 or h <= 1:
+            continue
+        if (w * h) >= _MAX_BBOX_FRAC * _SCREEN_AREA_GUESS:
             continue
         # Drop near-duplicate bboxes (AT-SPI sometimes reports nested wrappers)
         key = (x // 4, y // 4, w // 4, h // 4)

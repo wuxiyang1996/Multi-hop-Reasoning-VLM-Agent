@@ -29,45 +29,84 @@
 #
 # Usage:
 #
-#   # Default: 1 episode of the smoke task on Docker, 50 steps, --resume
-#   # (50 = the published OSWorld evaluation cap; lower caps truncate the
-#   # long-tail of multi-dialog office/gimp tasks).
+#   # Default: 1 episode of the smoke task on Docker, 75 steps, --resume.
+#   # 75 is the new default (was 50) — the May-2026 cold-start audit
+#   # showed 46% of episodes truncated at step 50 with eval_score=None,
+#   # mostly office/gimp/vlc multi-dialog tasks that need 30-60 steps.
 #   bash cold_start/run_coldstart_actor_osworld.sh
+#
+#   # Eval-grade benchmark run — three tiers (cost ↑ → score ↑):
+#   #   medium: reasoning_effort=medium, temperature=0.0, no DONE-nudge,
+#   #           max_steps=75. Cheapest published-baseline-comparable run.
+#   #   high:   same as medium + reasoning_effort=high. ~2-3x token spend
+#   #           on the schema/action calls; +3-5pp pass-rate on multi-step.
+#   #   max:    high + max_steps=100. For long-tail GIMP / VLC / multi-app
+#   #           workflows. Highest spend, highest published number.
+#   bash cold_start/run_coldstart_actor_osworld.sh --eval_mode medium \
+#       --task_catalog /workspace/OSWorld/evaluation_examples/test_all.json \
+#       --episodes 1 --resume -v
+#   bash cold_start/run_coldstart_actor_osworld.sh --eval_mode high \
+#       --task_catalog /workspace/OSWorld/evaluation_examples/test_all.json \
+#       --episodes 1 --resume -v
+#
+#   # Advanced steering (opt-in, OSWorld-only — these flags are isolated
+#   # in cold_start/osworld_steering.py and do NOT touch the main loop
+#   # or other corpora when off). Each costs extra LLM calls but lifts
+#   # pass-rate on stuck/long trajectories:
+#   #   --enable_memory: every K steps, summarise recent actions and
+#   #                    inject as a <memory> block on the next prompt
+#   #                    (combat the "lost-in-trajectory" failure mode).
+#   #   --enable_reflection: when the agent has 2+ consecutive no-op
+#   #                        steps, fire a small reflection LLM call
+#   #                        ("why did the last action fail? give 3
+#   #                        alternatives") and inject the answer.
+#   #   --enable_self_verify: before accepting a DONE emission, verify
+#   #                         with one extra screenshot+a11y vision call
+#   #                         that the goal is objectively satisfied.
+#   bash cold_start/run_coldstart_actor_osworld.sh --eval_mode high \
+#       --enable_memory --enable_reflection --enable_self_verify \
+#       --task_catalog /workspace/OSWorld/evaluation_examples/test_all.json \
+#       --episodes 1 --resume -v
+#
+#   # In-context skill retrieval (opt-in). Loads a skill_bank.jsonl
+#   # produced by labeling/extract_skillbank_gpt54.py or
+#   # skill_transfer_test/extract/, and at the start of every episode
+#   # retrieves the top-K skills relevant to the task instruction.
+#   # The retrieved protocols are formatted as in-context demonstrations
+#   # in the actor's user prompt.
+#   bash cold_start/run_coldstart_actor_osworld.sh --eval_mode high \
+#       --skill_bank_path skill_transfer_test/skill_bank_local/full_v5/osworld/per_episode/skill_bank.jsonl \
+#       --skill_retrieval_top_k 3 \
+#       --task_catalog /workspace/OSWorld/evaluation_examples/test_all.json \
+#       --episodes 1 --resume -v
 #
 #   # List task domains/IDs in the catalog and exit
 #   bash cold_start/run_coldstart_actor_osworld.sh --list_tasks
 #
-#   # All 10 OSWorld domains, 1 episode per task, 50 steps, save frames
-#   bash cold_start/run_coldstart_actor_osworld.sh \
-#       --task_catalog /workspace/OSWorld/evaluation_examples/test_small.json \
-#       --episodes 1 --max_steps 50 --save_frames -v
-#
 #   # Restrict to two domains, cap to 2 tasks each
 #   bash cold_start/run_coldstart_actor_osworld.sh \
 #       --domains chrome os --tasks_per_domain 2 \
-#       --episodes 1 --max_steps 50 --save_frames -v
-#
-#   # Specific task IDs
-#   bash cold_start/run_coldstart_actor_osworld.sh \
-#       --task_ids 5ea617a3-0e86-4ba6-aab2-dac9aa2e8d57 \
-#       --max_steps 50 -v
+#       --episodes 1 --save_frames -v
 #
 #   # Quick pipeline check (lower budget — easy tasks still solve, but
-#   # office/gimp tasks may run out of steps; see smoke_test_osworld.sh):
+#   # office/gimp tasks may run out of steps):
 #   bash cold_start/run_coldstart_actor_osworld.sh \
 #       --task_ids 06fe7178-4491-4589-810f-2e2bc9502122 --max_steps 6 -v
 #
-#   # Skip frame persistence (saves disk; rollouts.jsonl still records
-#   # the schema and action — just no PNGs on disk)
-#   bash cold_start/run_coldstart_actor_osworld.sh --no_save_frames -v
-#
-#   # Full catalog with the larger test_all.json (proper eval protocol)
-#   bash cold_start/run_coldstart_actor_osworld.sh \
-#       --task_catalog /workspace/OSWorld/evaluation_examples/test_all.json \
-#       --episodes 1 --max_steps 50 -v --resume
-#
 #   # Show all options:
 #   bash cold_start/run_coldstart_actor_osworld.sh --help
+#
+#   # Multi-provider cross-machine eval (Claude / Gemini / Qwen3-VL):
+#   #   The same code path supports any OpenRouter-hosted vision+tool
+#   #   model — the only thing that changes is ``--model`` (full slash
+#   #   id like ``anthropic/claude-sonnet-4.6``) and which ``--eval_mode``
+#   #   tier is meaningful for that family. Use the wrapper:
+#   #     bash cold_start/run_osworld_multimodel.sh --provider claude-sonnet ...
+#   #     bash cold_start/run_osworld_multimodel.sh --provider gemini-pro ...
+#   #     bash cold_start/run_osworld_multimodel.sh --provider qwen3-vl ...
+#   #   For a 30-second LLM-only credentials/plumbing check before
+#   #   booting the VM, run:
+#   #     python cold_start/smoke_multimodel.py
 #
 # Hard-wired modes (NO opt-out):
 #   - VM is ALWAYS HEADLESS (Xvfb-backed; no GUI on the host).

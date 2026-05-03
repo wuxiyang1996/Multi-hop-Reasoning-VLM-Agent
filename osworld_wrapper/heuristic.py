@@ -115,6 +115,24 @@ CONTAINER_ROLES = frozenset({
     "document-frame", "document-web", "form",
 })
 
+# Roles that are clickable from the user's POV but are classified as
+# CONTAINER_ROLES above (because their *children* are usually what we
+# enumerate as entities). The SoM extractor needs to include these so
+# that classic-desktop-app menu bars (LibreOffice File/Edit, GIMP
+# Filters, VLC Tools, …) get a numbered click target — without them,
+# every step's SoM collapses onto the GNOME dock + window decorations
+# and the agent has no way to open a menu at all.
+#
+# Empirically (Cold-start-out-osworld/2026-05-01 run): with the old
+# filter every step had ~12 SoM elements, all dock/window-deco. After
+# adding ``menu`` / ``menu-button`` the same a11y trees expand to
+# 25-40 elements covering the actual app's menu bar.
+SOM_CLICKABLE_ROLES = INTERACTIVE_ROLES | frozenset({
+    "menu",          # top-level "File"/"Edit"/"View" openers
+    "menu-button",   # hamburger / dropdown buttons
+    "popup-menu",    # already-opened menus (anchor)
+})
+
 # Roles we surface for grounding even if they don't match the
 # interactive / container set, when they have a useful name.
 TEXTUAL_ROLES = frozenset({
