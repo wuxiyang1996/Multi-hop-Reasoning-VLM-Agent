@@ -277,6 +277,12 @@ class VLLMServerManager:
             env.setdefault("HF_HOME", "/workspace/huggingface")
             env.setdefault("HF_HUB_CACHE",
                            os.path.join(env["HF_HOME"], "hub"))
+            # T2.14: vLLM 0.20+ unconditionally enumerates FP8-eligible layers
+            # during kernel warmup (deep_gemm_warmup) and crashes if the
+            # `deep_gemm` package is missing — even on bf16 / fp16 weights
+            # like Qwen3.5-9B that have no FP8 path.  Disable by default;
+            # callers can re-enable by exporting VLLM_USE_DEEP_GEMM=1.
+            env.setdefault("VLLM_USE_DEEP_GEMM", "0")
 
             cmd = self._build_serve_cmd(port, lora_modules, shared_gpus)
 

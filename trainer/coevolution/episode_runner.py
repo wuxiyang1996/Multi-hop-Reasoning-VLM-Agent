@@ -965,6 +965,17 @@ async def run_episode_async(
         skill_select_prompt: Optional[str] = None
         skill_coro = None
 
+        # T2.15: pre-bind `harness_filter_diag` at the per-step scope.
+        # Previously initialized only inside the `if bank_available …:`
+        # block below, but read unconditionally at the experience-dict
+        # assembly site (~L1384) — when the skill bank was empty (cold-
+        # start step 0) or sticky-guidance kept us out of the inner
+        # block, we hit `UnboundLocalError: harness_filter_diag`, which
+        # collapsed every rollout in the wave (8/8 episodes ERR with 0
+        # GRPO records).  Mirror the existing `harness_validate_diag`
+        # outer init below.
+        harness_filter_diag: Optional[Dict[str, Any]] = None
+
         if bank_available and (need_reselect or last_guidance is None):
             facts = extract_game_facts(obs_nl, game)
             step_structured = {k: v for k, v in facts.items() if v}
@@ -987,7 +998,6 @@ async def run_episode_async(
             # Crafter to consume in Phase B′. See
             # `trainer/coevolution/_harness_hook.py` for the full
             # contract.
-            harness_filter_diag: Optional[Dict[str, Any]] = None
             if harness_hook is not None:
                 try:
                     _hstate = harness_hook.state_for_step(
