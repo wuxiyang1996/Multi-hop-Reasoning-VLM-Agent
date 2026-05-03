@@ -9,11 +9,35 @@
 # trained model — see scripts/run_coevolution.py).
 #
 # When to use it:
+#   • Live judge for skill evaluation + promotion gates (E0 / E1 / E2)
+#     during co-evolution training — REQUIRED whenever the skill_eval
+#     /orchestrator code paths fire, because both default to
+#     ``Qwen/Qwen3.5-35B-A3B`` (the project-wide judge backbone, see
+#     ``common/models.py`` and tests/test_backbone_model.py).
 #   • Post-training eval: kill the trainer, run this on the freed 8 H200s.
 #   • Side-by-side baseline: launch on a separate machine and point your
 #     eval harness at http://<host>:8001/v1.
 #   • Teacher labeling: use as the oracle for `inference/run_*_eval.sh` by
 #     setting `VLLM_BASE_URL` / `MODEL` in those scripts.
+#
+# Recommended live-training launch (35B judge alongside 9B trainer):
+#
+#       # GPU 0-3 → 9B actor (training), GPU 4-7 → 35B judge:
+#       CUDA_VISIBLE_DEVICES=4,5,6,7 TENSOR_PARALLEL=4 PORT=8001 \
+#           bash inference/serve_qwen35_35b_a3b.sh &
+#       source scripts/use_35b_judge.sh   # exports VLLM_BASE_URL_MAP
+#       bash scripts/run_2048.sh
+#
+#     The skill-evaluation judge (skill_agents/skill_evaluation) and
+#     orchestrator promotion gates (orchestrator.JudgeConfig) both
+#     pick up ``Qwen/Qwen3.5-35B-A3B`` from BACKBONE_JUDGE_MODEL by
+#     default — no env override required for the model name.  The only
+#     env var the trainer NEEDS is ``VLLM_BASE_URL_MAP`` (set by
+#     ``scripts/use_35b_judge.sh``) so the 35B requests dispatch to
+#     this server's :8001 instead of falling back to the 9B :8000.
+#     Routing is implemented in API_func._candidate_vllm_urls; contract
+#     is locked by tests/test_api_func_routing.py and
+#     tests/test_backbone_model.py::TestSkillEvalJudgeWiring.
 #
 # GPU layout (defaults, 8x H200 / 141GB):
 #   TENSOR_PARALLEL=8, EXPERT_PARALLEL=on  → ~5 GB weights/GPU + huge KV cache.

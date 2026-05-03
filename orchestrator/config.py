@@ -88,9 +88,14 @@ class TeacherConfig:
 class JudgeConfig:
     """Default LLM judge for the eval driver (E0 / E1 / E2).
 
-    The judge is held outside the trained-model distribution on purpose —
-    it acts as an independent oracle.  Defaults to ``gpt-5.5`` per
-    ``common.models.BACKBONE_JUDGE_MODEL``.
+    Defaults to ``Qwen/Qwen3.5-35B-A3B`` (the local control-plane
+    teacher) per ``common.models.BACKBONE_JUDGE_MODEL`` — same weights
+    as ``TeacherConfig.model_name``, different role. Sharing the
+    backbone keeps GPU footprint flat and removes judge API spend at
+    the cost of a within-Qwen-family bias.  Override to ``gpt-5.5``
+    via ``VLM_AGENT_BACKBONE_JUDGE_MODEL`` for formal eval / paper
+    runs where the off-distribution-oracle property matters — see
+    ``common.models`` "Judge family-bias spot-check" for the protocol.
     """
 
     model_name: str = BACKBONE_JUDGE_MODEL

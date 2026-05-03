@@ -1,18 +1,27 @@
 """Single source of truth for the project's backbone LLM models.
 
-Decision (2026-04-28): the project ships a **three-tier backbone stack**:
+Decision (2026-04-28, judge revised 2026-05-03): the project ships a
+**three-tier backbone stack** with judge consolidated onto the local
+35B-A3B teacher.
 
 * **Actor + Skill-Bank** — ``Qwen/Qwen3.5-9B`` (LoRA-trained policy + the
   GRPO-trained ``segment`` / ``contract`` / ``curator`` skill-bank
   adapters).  Lives behind ``BACKBONE_MODEL``.
-* **Crafter / Harness / Orchestrator** — ``Qwen/Qwen3.5-35B-A3B`` (frozen
-  35B-total / 3B-active MoE control-plane backbone, served separately
-  via ``inference/serve_qwen35_35b_a3b.sh``).  Lives behind
-  ``BACKBONE_TEACHER_MODEL``.
-* **Validation / SFT data generation** — ``gpt-5.5`` (frontier judge for
-  the eval driver, and the teacher model used to label cold-start data
-  consumed by the SFT trainer).  Lives behind
-  ``BACKBONE_JUDGE_MODEL`` and ``BACKBONE_SFT_TEACHER_MODEL``.
+* **Crafter / Harness / Orchestrator + LLM-as-judge** —
+  ``Qwen/Qwen3.5-35B-A3B`` (frozen 35B-total / 3B-active MoE
+  control-plane backbone, served separately via
+  ``inference/serve_qwen35_35b_a3b.sh``). Lives behind
+  ``BACKBONE_TEACHER_MODEL`` (control-plane role) and
+  ``BACKBONE_JUDGE_MODEL`` (eval-driver / promotion-gate role).
+  Same weights, two roles — saves a GPU group + eliminates judge API
+  spend at the cost of a within-Qwen-family bias the spot-check
+  protocol below covers.
+* **SFT data generation** — ``gpt-5.5`` (frontier teacher used to label
+  cold-start data consumed by the SFT trainer). Lives behind
+  ``BACKBONE_SFT_TEACHER_MODEL``. Kept on the frontier model because
+  cold-start labels are baked once into the SFT adapters and never
+  re-run during training, so paying API cost once for a stronger
+  teacher is the right trade.
 
 Mapping summary
 ---------------
@@ -27,12 +36,30 @@ Symbol                       Default                     Used by
                                                          Skill Harness control logic
                                                          (``harness``), Pipeline Orchestrator
                                                          (``orchestrator``).
-``BACKBONE_JUDGE_MODEL``     ``gpt-5.5``                 LLM-as-judge for the eval driver
-                                                         (validation / E0–E2).
+``BACKBONE_JUDGE_MODEL``     ``Qwen/Qwen3.5-35B-A3B``    LLM-as-judge for skill evaluation
+                                                         (``skill_evaluation``) and the eval
+                                                         driver promotion gates (E0–E2).
+                                                         Shares weights with
+                                                         ``BACKBONE_TEACHER_MODEL`` — same
+                                                         vLLM server, different role.
 ``BACKBONE_SFT_TEACHER_MODEL`` ``gpt-5.5``               SFT cold-start data generation
                                                          (``cold_start``, ``labeling``)
                                                          that feeds ``trainer/SFT/``.
 ============================ =========================== =====================================
+
+Judge family-bias spot-check (when paper-grade rigour is required)
+-------------------------------------------------------------------
+
+Because the default judge now shares the Qwen3.5 pretraining family
+with the actor, naive use creates a within-family self-preference risk.
+For formal eval / paper runs, periodically re-judge a 5% random sample
+with an off-distribution oracle (gpt-5.5) and log the disagreement
+rate. To run a one-shot judge override::
+
+    VLM_AGENT_BACKBONE_JUDGE_MODEL=gpt-5.5  python -m ...
+
+See ``implementation_notes/coevolution-cross-domain-integration.md``
+§"Judge family bias" for the full protocol.
 
 Phase-F frozen Qwen3-VL teachers
 --------------------------------
@@ -106,11 +133,16 @@ BACKBONE_TEACHER_MODEL: str = os.environ.get(
     "VLM_AGENT_BACKBONE_TEACHER_MODEL", "Qwen/Qwen3.5-35B-A3B"
 )
 
-#: LLM-as-judge for the eval driver (E0 / E1 / E2 + replay validation).
-#: The gpt-5.x family is preferred so the judge stays *outside* the
-#: training distribution and acts as an independent oracle.
+#: LLM-as-judge for skill evaluation + the eval driver promotion gates
+#: (E0 / E1 / E2 + replay validation).  Defaults to the local 35B-A3B
+#: teacher backbone (same weights as ``BACKBONE_TEACHER_MODEL``,
+#: different role) so judge calls hit the local vLLM server with no
+#: API spend.  Override to ``gpt-5.5`` (or another off-distribution
+#: oracle) when running formal eval where within-Qwen-family bias must
+#: be controlled — see the "Judge family-bias spot-check" section in
+#: this module's docstring.
 BACKBONE_JUDGE_MODEL: str = os.environ.get(
-    "VLM_AGENT_BACKBONE_JUDGE_MODEL", "gpt-5.5"
+    "VLM_AGENT_BACKBONE_JUDGE_MODEL", "Qwen/Qwen3.5-35B-A3B"
 )
 
 #: SFT cold-start data generation teacher.  Used by ``cold_start/`` and

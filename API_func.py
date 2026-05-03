@@ -93,11 +93,46 @@ VLLM_API_KEY = os.environ.get("VLLM_API_KEY", "EMPTY")
 _vllm_url_cycle = None
 _vllm_url_lock = _threading.Lock()
 _VLLM_URLS: list[str] = []
+_VLLM_URL_BY_MODEL: dict[str, str] = {}
+
+
+def _parse_url_map(raw: str) -> dict[str, str]:
+    """Parse a ``VLLM_BASE_URL_MAP`` entry of the form
+    ``model_id_1=url_1,model_id_2=url_2,...`` into a dict.
+
+    Tolerant of whitespace and trailing commas. Bad entries (no ``=`` or
+    empty model id) are silently skipped — the caller's round-robin
+    fallback handles unmapped models.
+    """
+    out: dict[str, str] = {}
+    for piece in raw.split(","):
+        piece = piece.strip()
+        if not piece or "=" not in piece:
+            continue
+        model, url = piece.split("=", 1)
+        model = model.strip()
+        url = url.strip()
+        if model and url:
+            out[model] = url
+    return out
 
 
 def _init_vllm_urls() -> None:
-    """Lazily read VLLM_BASE_URLS (or VLLM_BASE_URL) and set up round-robin."""
-    global _vllm_url_cycle, _VLLM_URLS
+    """Lazily read ``VLLM_BASE_URLS`` (or ``VLLM_BASE_URL``) and the
+    optional per-model ``VLLM_BASE_URL_MAP`` override.
+
+    ``VLLM_BASE_URL_MAP`` lets you run multiple vLLM servers (e.g. a 9B
+    actor on :8000 and a 35B-A3B teacher on :8001) and dispatch by
+    ``model=`` argument so a single ``ask_model(...)`` call lands on the
+    right endpoint. Format::
+
+        VLLM_BASE_URL_MAP="Qwen/Qwen3.5-9B=http://localhost:8000/v1,\\
+                           Qwen/Qwen3.5-35B-A3B=http://localhost:8001/v1"
+
+    Models not in the map fall back to the ``VLLM_BASE_URLS`` round-robin
+    pool, preserving prior single-endpoint behaviour.
+    """
+    global _vllm_url_cycle, _VLLM_URLS, _VLLM_URL_BY_MODEL
     raw = os.environ.get("VLLM_BASE_URLS", "")
     if raw:
         _VLLM_URLS = [u.strip() for u in raw.split(",") if u.strip()]
@@ -105,14 +140,43 @@ def _init_vllm_urls() -> None:
         _VLLM_URLS = [os.environ.get("VLLM_BASE_URL", VLLM_BASE_URL)]
     _vllm_url_cycle = _itertools.cycle(_VLLM_URLS)
 
+    map_raw = os.environ.get("VLLM_BASE_URL_MAP", "")
+    _VLLM_URL_BY_MODEL = _parse_url_map(map_raw) if map_raw else {}
 
-def _next_vllm_url() -> str:
-    """Return the next vLLM URL in round-robin order (thread-safe)."""
+
+def _next_vllm_url(model: str | None = None) -> str:
+    """Return the next vLLM URL.
+
+    If ``model`` is supplied and present in ``VLLM_BASE_URL_MAP``, returns
+    that endpoint directly (deterministic, no round-robin pollution).
+    Otherwise rotates through ``_VLLM_URLS`` for backwards compatibility.
+    """
     with _vllm_url_lock:
         global _vllm_url_cycle
         if _vllm_url_cycle is None:
             _init_vllm_urls()
+        if model and model in _VLLM_URL_BY_MODEL:
+            return _VLLM_URL_BY_MODEL[model]
         return next(_vllm_url_cycle)
+
+
+def _candidate_vllm_urls(model: str | None = None) -> list[str]:
+    """Return URLs to try for a given ``model``, preferring the per-model
+    map entry first then falling back to the round-robin pool. Used by
+    :func:`ask_vllm` to honour the per-model dispatch contract while
+    still surviving a dead mapped instance via the existing pool.
+    """
+    with _vllm_url_lock:
+        global _vllm_url_cycle
+        if _vllm_url_cycle is None:
+            _init_vllm_urls()
+        candidates: list[str] = []
+        if model and model in _VLLM_URL_BY_MODEL:
+            candidates.append(_VLLM_URL_BY_MODEL[model])
+        for url in _VLLM_URLS:
+            if url not in candidates:
+                candidates.append(url)
+        return candidates
 
 
 _vllm_reachable: bool | None = None
@@ -136,7 +200,12 @@ def _probe_vllm() -> bool:
             _init_vllm_urls()
 
     import socket
-    for url in _VLLM_URLS:
+    # Probe both the round-robin pool and any per-model mapped endpoints.
+    probe_urls: list[str] = list(_VLLM_URLS)
+    for url in _VLLM_URL_BY_MODEL.values():
+        if url not in probe_urls:
+            probe_urls.append(url)
+    for url in probe_urls:
         try:
             stripped = url.replace("http://", "").replace("https://", "").rstrip("/")
             host_port = stripped.split("/")[0]
@@ -151,7 +220,7 @@ def _probe_vllm() -> bool:
 
     _vllm_reachable = False
     _vllm_probe_ts = now
-    print(f"[API_func] vLLM at {_VLLM_URLS} unreachable — "
+    print(f"[API_func] vLLM at {probe_urls} unreachable — "
           "Qwen calls will be routed through OpenRouter.")
     return _vllm_reachable
 
@@ -353,15 +422,13 @@ def ask_vllm(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
             question, model=model, temperature=temperature, max_tokens=max_tokens,
         )
 
-    with _vllm_url_lock:
-        if not _VLLM_URLS:
-            _init_vllm_urls()
-        n_urls = len(_VLLM_URLS)
+    # Per-model URL dispatch (VLLM_BASE_URL_MAP wins for mapped models;
+    # everything else round-robins through VLLM_BASE_URLS as before).
+    candidate_urls = _candidate_vllm_urls(model)
 
     _max_retries = int(os.environ.get("VLLM_OPENAI_MAX_RETRIES", "3"))
     last_exc = None
-    for _ in range(n_urls):
-        url = _next_vllm_url()
+    for url in candidate_urls:
         try:
             client = openai.OpenAI(
                 base_url=url, api_key=VLLM_API_KEY, max_retries=max(0, _max_retries),
@@ -387,7 +454,10 @@ def ask_vllm(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
     )
     if not fallback.startswith("Error"):
         return fallback
-    return f"Error calling vLLM API (all {n_urls} URLs failed, last: {last_exc})"
+    return (
+        f"Error calling vLLM API (all {len(candidate_urls)} candidate URLs "
+        f"failed for model={model!r}, last: {last_exc})"
+    )
 
 
 def _ask_qwen_via_openrouter(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):

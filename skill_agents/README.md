@@ -10,10 +10,11 @@
 > `SkillLifecycleManager`).  Library defaults now follow the project-wide
 > three-tier stack from [`common/models.py`](../common/models.py): the
 > trained skill-bank backbone is `Qwen/Qwen3.5-9B`
-> (`BACKBONE_MODEL`), the frozen control-plane backbone is
-> `Qwen/Qwen3.5-35B-A3B` (`BACKBONE_TEACHER_MODEL`), and the eval
-> judge / SFT teacher is `gpt-5.5`
-> (`BACKBONE_JUDGE_MODEL` / `BACKBONE_SFT_TEACHER_MODEL`). See the
+> (`BACKBONE_MODEL`), the frozen control-plane backbone +
+> LLM-as-judge is `Qwen/Qwen3.5-35B-A3B`
+> (`BACKBONE_TEACHER_MODEL` = `BACKBONE_JUDGE_MODEL` — same weights,
+> two roles), and the SFT cold-start data teacher is `gpt-5.5`
+> (`BACKBONE_SFT_TEACHER_MODEL`). See the
 > top-level [`readme.md`](../readme.md), the plan corpus in
 > [`plans/`](../plans/), and
 > [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) for the live build.
@@ -40,7 +41,7 @@ mechanical invariants are different:
 | End-to-end control plane | `extract_skillbank_grpo_gpt54.py` driver script | [`orchestrator/`](../orchestrator/) — `EpisodeRunner`, atomic `ArtifactStore`, `BudgetController`, `GateService` (stages 0–4), `PromotionOrchestrator`, `SnapshotManager` |
 | Promotion control | `min_instances_per_skill` + verification rate | **Unified Skill Gate** — canonical `SkillStatus` (`draft → candidate → shadow → provisional → active`, plus `deprecated / rejected / rolled_back`), six-gate stack `static → replay → shadow → transfer → non-regression`. See [`plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md). |
 | Skill records | `SkillEffectsContract` + `VerificationReport` (effects-only) | `SkillRecord` + `SkillEpisode` + `GateVerdict` + `SkillEvaluationRecord` + `BankMutationProposal` + `FailureTrace` + `RunRelease` in [`data_structure/extensions/`](../data_structure/extensions/) |
-| Backbone model | Qwen3-8B + 3 GRPO LoRA adapters (CONTRACT, CURATOR, SEGMENT) | **`Qwen/Qwen3.5-9B`** for the trained actor + skill-bank adapters (`BACKBONE_MODEL`), **`Qwen/Qwen3.5-35B-A3B`** for the frozen crafter / harness / orchestrator backbone (`BACKBONE_TEACHER_MODEL`), and **`gpt-5.5`** for validation + SFT cold-start data (`BACKBONE_JUDGE_MODEL` / `BACKBONE_SFT_TEACHER_MODEL`). The Qwen3-VL Phase-F teachers + 32B / 72B tracks remain deferred (overridable via `VLM_AGENT_BACKBONE_*` env vars). |
+| Backbone model | Qwen3-8B + 3 GRPO LoRA adapters (CONTRACT, CURATOR, SEGMENT) | **`Qwen/Qwen3.5-9B`** for the trained actor + skill-bank adapters (`BACKBONE_MODEL`), **`Qwen/Qwen3.5-35B-A3B`** for both the frozen crafter / harness / orchestrator backbone AND the LLM-as-judge for skill evaluation / promotion gates (`BACKBONE_TEACHER_MODEL` = `BACKBONE_JUDGE_MODEL` — same weights, two roles), and **`gpt-5.5`** for SFT cold-start data labeling only (`BACKBONE_SFT_TEACHER_MODEL`). The Qwen3-VL Phase-F teachers + 32B / 72B tracks remain deferred (overridable via `VLM_AGENT_BACKBONE_*` env vars; e.g. `VLM_AGENT_BACKBONE_JUDGE_MODEL=gpt-5.5` to swap to an off-distribution oracle). |
 
 ### Mechanically-enforced invariants the new pipeline adds
 

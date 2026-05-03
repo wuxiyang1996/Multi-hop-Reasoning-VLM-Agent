@@ -4,10 +4,14 @@ Pins the project-wide three-tier backbone stack (current phase) and
 verifies every key surface defaults to the right tier:
 
 * Actor + Skill-Bank → ``Qwen/Qwen3.5-9B`` (``BACKBONE_MODEL``)
-* Crafter / Harness / Orchestrator → ``Qwen/Qwen3.5-35B-A3B``
-  (``BACKBONE_TEACHER_MODEL``)
-* Validation / SFT data generation → ``gpt-5.5`` (``BACKBONE_JUDGE_MODEL``
-  / ``BACKBONE_SFT_TEACHER_MODEL``)
+* Crafter / Harness / Orchestrator + LLM-as-judge →
+  ``Qwen/Qwen3.5-35B-A3B`` (``BACKBONE_TEACHER_MODEL`` and
+  ``BACKBONE_JUDGE_MODEL`` — same weights, different roles, see
+  ``common/models.py`` for the rationale).
+* SFT cold-start data generation → ``gpt-5.5``
+  (``BACKBONE_SFT_TEACHER_MODEL``) — kept on the frontier model
+  because cold-start labels are baked once into SFT adapters and
+  never re-run during training.
 
 The 8B / 32B / 72B Qwen tracks remain deferred and must not appear as a
 *runtime default* anywhere we control.
@@ -37,7 +41,11 @@ from common.models import (
 
 ACTOR_MODEL = "Qwen/Qwen3.5-9B"
 CONTROL_PLANE_MODEL = "Qwen/Qwen3.5-35B-A3B"
-JUDGE_MODEL = "gpt-5.5"
+SFT_TEACHER_MODEL = "gpt-5.5"
+# Off-distribution oracle used when overriding the judge for paper /
+# formal eval runs where within-Qwen-family bias must be controlled.
+# Never a runtime default — kept here only for the override-path test.
+OFF_DISTRIBUTION_JUDGE = "gpt-5.5"
 
 
 class TestBackboneModelDefaults:
@@ -50,20 +58,36 @@ class TestBackboneModelDefaults:
         """Crafter / harness / orchestrator control-plane backbone."""
         assert BACKBONE_TEACHER_MODEL == CONTROL_PLANE_MODEL, BACKBONE_TEACHER_MODEL
 
-    def test_judge_is_gpt5_5(self) -> None:
-        """LLM-as-judge for the eval driver."""
-        assert BACKBONE_JUDGE_MODEL == JUDGE_MODEL, BACKBONE_JUDGE_MODEL
+    def test_judge_is_qwen35_35b_a3b(self) -> None:
+        """LLM-as-judge for the eval driver — defaults to the local
+        35B-A3B teacher backbone (same weights as
+        ``BACKBONE_TEACHER_MODEL``, different role).  Eliminates judge
+        API spend at the cost of a within-Qwen-family bias the
+        spot-check protocol in ``common/models.py`` covers."""
+        assert BACKBONE_JUDGE_MODEL == CONTROL_PLANE_MODEL, BACKBONE_JUDGE_MODEL
 
     def test_sft_teacher_is_gpt5_5(self) -> None:
-        """Cold-start data generation teacher (feeds ``trainer/SFT``)."""
-        assert BACKBONE_SFT_TEACHER_MODEL == JUDGE_MODEL, BACKBONE_SFT_TEACHER_MODEL
+        """Cold-start data generation teacher (feeds ``trainer/SFT``).
 
-    def test_three_tiers_are_distinct_or_intentional(self) -> None:
-        """Actor / control-plane / judge tiers must each be set
-        explicitly — none of them should silently inherit each other."""
+        Stays on the frontier model because cold-start labels are baked
+        once into SFT adapters and never re-run during training; paying
+        API cost once for a stronger teacher is the right trade.
+        """
+        assert BACKBONE_SFT_TEACHER_MODEL == SFT_TEACHER_MODEL, BACKBONE_SFT_TEACHER_MODEL
+
+    def test_actor_distinct_from_teacher_and_judge(self) -> None:
+        """Actor must be distinct from the control plane / judge (the
+        actor is LoRA-trained, the others are frozen)."""
         assert BACKBONE_MODEL != BACKBONE_TEACHER_MODEL
-        assert BACKBONE_TEACHER_MODEL != BACKBONE_JUDGE_MODEL
         assert BACKBONE_MODEL != BACKBONE_JUDGE_MODEL
+
+    def test_teacher_and_judge_share_backbone(self) -> None:
+        """Pin the design decision (2026-05-03) that judge and teacher
+        share the same 35B-A3B backbone weights so a single vLLM server
+        can satisfy both roles. If you bump one, bump the other or
+        explicitly diverge them and update this test with the
+        rationale."""
+        assert BACKBONE_TEACHER_MODEL == BACKBONE_JUDGE_MODEL == CONTROL_PLANE_MODEL
 
     def test_deferred_models_are_not_default(self) -> None:
         assert BACKBONE_MODEL not in DEFERRED_MODELS
@@ -86,7 +110,7 @@ class TestOrchestratorConfigUsesBackbone:
     def test_judge_config_default(self) -> None:
         from orchestrator.config import JudgeConfig
 
-        assert JudgeConfig().model_name == BACKBONE_JUDGE_MODEL == JUDGE_MODEL
+        assert JudgeConfig().model_name == BACKBONE_JUDGE_MODEL == CONTROL_PLANE_MODEL
 
     def test_orchestrator_config_default(self) -> None:
         from orchestrator.config import OrchestratorConfig
@@ -96,8 +120,9 @@ class TestOrchestratorConfigUsesBackbone:
         assert cfg.backbone_model == BACKBONE_MODEL == ACTOR_MODEL
         # Teacher pulls from the control-plane backbone.
         assert cfg.teacher.model_name == BACKBONE_TEACHER_MODEL == CONTROL_PLANE_MODEL
-        # Judge pulls from the gpt-5.5 frontier.
-        assert cfg.judge.model_name == BACKBONE_JUDGE_MODEL == JUDGE_MODEL
+        # Judge shares the 35B-A3B control-plane backbone (same weights,
+        # different role) — see ``common/models.py``.
+        assert cfg.judge.model_name == BACKBONE_JUDGE_MODEL == CONTROL_PLANE_MODEL
 
 
 class TestCrafterUsesBackbone:
@@ -184,17 +209,78 @@ class TestEnvOverridePath:
             importlib.reload(m)
 
     def test_judge_override(self, monkeypatch) -> None:
-        monkeypatch.setenv("VLM_AGENT_BACKBONE_JUDGE_MODEL", "gpt-5.5-mini")
+        """Judge default is now ``Qwen/Qwen3.5-35B-A3B``;
+        ``VLM_AGENT_BACKBONE_JUDGE_MODEL`` is the documented escape
+        hatch back to an off-distribution oracle (e.g. ``gpt-5.5``)
+        for paper / formal eval runs."""
+        monkeypatch.setenv("VLM_AGENT_BACKBONE_JUDGE_MODEL", "gpt-5.5")
         import importlib
 
         import common.models as m
 
         importlib.reload(m)
         try:
-            assert m.BACKBONE_JUDGE_MODEL == "gpt-5.5-mini"
+            assert m.BACKBONE_JUDGE_MODEL == "gpt-5.5"
         finally:
             monkeypatch.delenv("VLM_AGENT_BACKBONE_JUDGE_MODEL", raising=False)
             importlib.reload(m)
+
+
+class TestSkillEvalJudgeWiring:
+    """``LLMJudgeConfig`` must default to the canonical
+    ``BACKBONE_JUDGE_MODEL`` (not ``None``, which silently falls back to
+    the 9B actor and produces a self-judging pathology). The
+    ``VLM_AGENT_BACKBONE_JUDGE_MODEL`` override must propagate end-to-end
+    so a single env var swaps the judge from the default local 35B-A3B
+    to an off-distribution oracle (gpt-5.5) without code changes —
+    see ``.env.example`` and ``skill_agents/skill_evaluation/config.py``.
+    """
+
+    def test_default_judge_is_canonical_backbone(self) -> None:
+        from skill_agents.skill_evaluation.config import LLMJudgeConfig
+
+        assert LLMJudgeConfig().model == BACKBONE_JUDGE_MODEL == CONTROL_PLANE_MODEL
+
+    def test_judge_override_to_off_distribution_oracle_skill_eval(
+        self, monkeypatch,
+    ) -> None:
+        monkeypatch.setenv(
+            "VLM_AGENT_BACKBONE_JUDGE_MODEL", OFF_DISTRIBUTION_JUDGE,
+        )
+        import importlib
+
+        import common.models as m
+        import skill_agents.skill_evaluation.config as cfg
+
+        importlib.reload(m)
+        importlib.reload(cfg)
+        try:
+            assert m.BACKBONE_JUDGE_MODEL == OFF_DISTRIBUTION_JUDGE
+            assert cfg.LLMJudgeConfig().model == OFF_DISTRIBUTION_JUDGE
+        finally:
+            monkeypatch.delenv("VLM_AGENT_BACKBONE_JUDGE_MODEL", raising=False)
+            importlib.reload(m)
+            importlib.reload(cfg)
+
+    def test_judge_override_to_off_distribution_oracle_orchestrator(
+        self, monkeypatch,
+    ) -> None:
+        monkeypatch.setenv(
+            "VLM_AGENT_BACKBONE_JUDGE_MODEL", OFF_DISTRIBUTION_JUDGE,
+        )
+        import importlib
+
+        import common.models as m
+        import orchestrator.config as ocfg
+
+        importlib.reload(m)
+        importlib.reload(ocfg)
+        try:
+            assert ocfg.JudgeConfig().model_name == OFF_DISTRIBUTION_JUDGE
+        finally:
+            monkeypatch.delenv("VLM_AGENT_BACKBONE_JUDGE_MODEL", raising=False)
+            importlib.reload(m)
+            importlib.reload(ocfg)
 
 
 if __name__ == "__main__":

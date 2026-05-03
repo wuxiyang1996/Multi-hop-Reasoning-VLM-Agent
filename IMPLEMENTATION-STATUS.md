@@ -72,9 +72,18 @@ Single source of truth: `common/models.py`.
     control-plane backbone shared by the crafter, harness, and
     orchestrator. Served separately via
     `inference/serve_qwen35_35b_a3b.sh`.
-  - `BACKBONE_JUDGE_MODEL = "gpt-5.5"` — eval-driver judge / validation.
+  - `BACKBONE_JUDGE_MODEL = "Qwen/Qwen3.5-35B-A3B"` (revised 2026-05-03)
+    — eval-driver judge / skill-evaluation judge / promotion gates
+    (E0 / E1 / E2). **Same weights as `BACKBONE_TEACHER_MODEL`,
+    different role**: a single `serve_qwen35_35b_a3b.sh` instance
+    services both. Per-model dispatch is wired via
+    `API_func._candidate_vllm_urls` + `VLLM_BASE_URL_MAP`. Override
+    to `gpt-5.5` via `VLM_AGENT_BACKBONE_JUDGE_MODEL` for paper /
+    formal eval where within-Qwen-family bias must be controlled.
   - `BACKBONE_SFT_TEACHER_MODEL = "gpt-5.5"` — cold-start data
     generation (`cold_start/`, `labeling/`) consumed by `trainer/SFT/`.
+    Stays on the frontier model because cold-start labels are baked
+    once into SFT adapters and never re-run during training.
 
 The Qwen3-VL Phase-F teachers (`Qwen/Qwen3-VL-32B`,
 `Qwen/Qwen3-VL-235B-A22B`) and the older 8B / 32B / 72B Qwen tracks are
@@ -104,6 +113,24 @@ Live defaults flipped in the 2026-04-28 model-stack migration:
   - `crafter/service.py` `SkillCrafterService._teacher`: `gpt-4o` → `Qwen/Qwen3.5-35B-A3B`
   - `cold_start/` and `labeling/` `MODEL_GPT54` / `--label_model`: `gpt-5.4` / `gpt-5-mini` → `gpt-5.5`
   - `skill_agents/lora/config.py` `MultiLoraConfig.base_model_name_or_path`: `Qwen/Qwen3-8B` → `Qwen/Qwen3.5-9B`
+
+Live defaults flipped in the 2026-05-03 judge consolidation:
+
+  - `common/models.py` `BACKBONE_JUDGE_MODEL`: `gpt-5.5` → `Qwen/Qwen3.5-35B-A3B`
+    (judge is now consolidated onto the local control-plane teacher,
+    saving judge API spend; `gpt-5.5` remains the documented override
+    for paper / formal eval via `VLM_AGENT_BACKBONE_JUDGE_MODEL=gpt-5.5`).
+  - `skill_agents/skill_evaluation/config.py` `LLMJudgeConfig.model`:
+    `None` → `BACKBONE_JUDGE_MODEL` (fixes a latent self-judging bug where
+    the judge silently fell back to the 9B actor).
+  - `orchestrator/config.py` `JudgeConfig.model_name` (default still
+    `BACKBONE_JUDGE_MODEL`): now resolves to `Qwen/Qwen3.5-35B-A3B`.
+  - `API_func.ask_vllm`: added `VLLM_BASE_URL_MAP` per-model URL
+    dispatch so a single call can route 35B requests to :8001 while
+    9B requests stay on :8000. Contract pinned by
+    `tests/test_api_func_routing.py`.
+  - `scripts/use_35b_judge.sh` (new): one-shot helper that exports the
+    URL map and the (now redundant but auditable) judge env var.
 
 ### Invariants enforced (mechanical, with tests)
 

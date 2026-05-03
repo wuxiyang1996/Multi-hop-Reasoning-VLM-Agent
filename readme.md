@@ -384,16 +384,17 @@ project ships a **three-tier backbone stack**, one model per tier:
 from common.models import (
     BACKBONE_MODEL,               # "Qwen/Qwen3.5-9B"        — actor + skill-bank (trained)
     BACKBONE_TEACHER_MODEL,       # "Qwen/Qwen3.5-35B-A3B"   — crafter / harness / orchestrator
-    BACKBONE_JUDGE_MODEL,         # "gpt-5.5"                — eval driver / validation
-    BACKBONE_SFT_TEACHER_MODEL,   # "gpt-5.5"                — SFT cold-start data generation
+    BACKBONE_JUDGE_MODEL,         # "Qwen/Qwen3.5-35B-A3B"   — eval driver / skill-eval judge
+                                  #                            (same weights as TEACHER, different role)
+    BACKBONE_SFT_TEACHER_MODEL,   # "gpt-5.5"                — SFT cold-start data generation only
 )
 ```
 
 | Tier | Model | Used by | Trained? |
 |---|---|---|---|
 | Actor + Skill-Bank | `Qwen/Qwen3.5-9B` | `decision_agents/`, `skill_agents/`, `trainer/` | LoRA-trained (5 adapters: `skill_selection`, `action_taking`, `segment`, `contract`, `curator`) |
-| Control plane | `Qwen/Qwen3.5-35B-A3B` (35B-total / 3B-active MoE) | `crafter/`, `harness/`, `orchestrator/` | Frozen — served via [`inference/serve_qwen35_35b_a3b.sh`](inference/serve_qwen35_35b_a3b.sh) |
-| Validation / SFT teacher | `gpt-5.5` | `orchestrator.JudgeConfig`, `cold_start/`, `labeling/` | External frontier model (no fine-tuning) |
+| Control plane + LLM-as-judge | `Qwen/Qwen3.5-35B-A3B` (35B-total / 3B-active MoE) | `crafter/`, `harness/`, `orchestrator/`, `skill_agents/skill_evaluation/`, `orchestrator.JudgeConfig` | Frozen — served via [`inference/serve_qwen35_35b_a3b.sh`](inference/serve_qwen35_35b_a3b.sh). One vLLM instance services both the control-plane teacher role and the eval-driver judge role; per-model dispatch is wired by `API_func._candidate_vllm_urls` + `VLLM_BASE_URL_MAP`. |
+| SFT cold-start teacher | `gpt-5.5` | `cold_start/`, `labeling/` | External frontier model — kept on the frontier because cold-start labels are baked once into SFT adapters and never re-run during training |
 
 The **Qwen3-VL Phase-F teachers** (`Qwen/Qwen3-VL-32B`, `Qwen/Qwen3-VL-235B-A22B`) and the older 8B / 32B / 72B Qwen tracks remain reachable through dedicated entrypoints — `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`, `inference/run_academic_benchmarks.py`, `skill_agents/lora/`, and `SkillCrafterService.with_qwen3_vl_teacher(...)` — but no library default points at them. Override at process start with one of:
 

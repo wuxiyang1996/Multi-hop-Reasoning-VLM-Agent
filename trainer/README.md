@@ -4,9 +4,12 @@ Training module for the **COS-PLAY** co-evolution framework (Section 4.3). Imple
 
 > **Model mapping (current phase).** Trained actor / skill-bank backbone =
 > `Qwen/Qwen3.5-9B` (this trainer's target).  Frozen control-plane backbone
-> (crafter / harness / orchestrator) = `Qwen/Qwen3.5-35B-A3B`.  Validation
-> judge + SFT cold-start data teacher = `gpt-5.5`.  See
-> [`../common/models.py`](../common/models.py) for the canonical constants.
+> (crafter / harness / orchestrator) AND in-loop LLM-as-judge =
+> `Qwen/Qwen3.5-35B-A3B` (same weights, two roles, served once).  SFT
+> cold-start data teacher = `gpt-5.5` (frontier).  See
+> [`../common/models.py`](../common/models.py) for the canonical constants
+> and `VLM_AGENT_BACKBONE_JUDGE_MODEL` for the override path back to a
+> gpt-5.5 off-distribution oracle when running formal eval.
 
 ## Quick Start — Co-Evolution Training
 
