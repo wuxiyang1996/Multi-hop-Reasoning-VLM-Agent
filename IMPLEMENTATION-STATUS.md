@@ -340,20 +340,46 @@ T2.11 + T2.12 follow-ups (2026-05-02):
     (`labeling_supplement/_phase4_transfer_matrix.py`) on the now-fully-wired
     pipeline; expect G6 to pass and §11.5.4's 15-35% / 15-30% bands to
     become measured admit rates rather than projections across all 25 cells.
-  - **Co-evolution-loop integration (NEW 2026-05-02 PM, design-only)**:
-    today's cross-domain real-env stack is OFFLINE-only — verified by
-    grep against `trainer/coevolution/`, `scripts/run_coevolution.py`:
-    zero references to `_phase4_target_dispatch`, `TaskAware*Executor`,
-    `predicate_translator`, or `_phase4_transfer_matrix`. The live
-    co-evolution loop's harness integration
-    (`trainer/coevolution/_harness_hook.py:SkillHarnessHook`) only
-    touches the within-domain `GymvAdapter` deterministic stub. Design
-    memo for the four-layer integration plan
-    (C: predicate translator into hook; A: cross-domain admit-rate
-    promotion gate; D: periodic offline pass / dashboard; B:
-    cross-domain reward channel) is at
-    [`implementation_notes/coevolution-cross-domain-integration.md`](implementation_notes/coevolution-cross-domain-integration.md).
-    Implementation deferred to a follow-up session.
+  - **Co-evolution-loop integration (UPDATED 2026-05-02 PM —
+    Layers C / A / D LANDED)**:
+    The four-layer plan in
+    [`implementation_notes/coevolution-cross-domain-integration.md`](implementation_notes/coevolution-cross-domain-integration.md)
+    is partially shipped. Today (2026-05-02 PM) Layers C, A, D were
+    implemented and tested:
+    - **Layer C (commit `bc07599`)** — predicate translator splice
+      into `SkillHarnessHook.filter_candidates`. Cross-domain skill
+      contracts get their `effects_{add,del}` rebound through
+      `harness.predicate_translator.translate_skill_contract` before
+      the eligibility filter — and the LLM — sees them. New
+      diagnostic counters `n_predicate_translations_applied/_failed`
+      ride on `HarnessStepStats.to_json()` for the wandb sink.
+      `tests/test_trainer_harness_hook.py` (5 new + 21 prior, 26
+      total).
+    - **Layer A (commit `10b23b3`)** —
+      `trainer/coevolution/_transfer_hook.py` (798 LOC) +
+      `crafter_transfer_*` config knobs +
+      `configs/failure_routing.yaml` `cross_domain_taxonomy:` block
+      + orchestrator wire. Re-evaluates each just-promoted skill's
+      cross-domain admit rate via subprocess to
+      `_phase4_transfer_matrix.py`; rolls back promotions failing
+      `crafter_transfer_admit_band[0]` on every target by atomic
+      JSONL row drop. `tests/test_transfer_hook.py` (28 tests).
+    - **Layer D (commit `bf83fec`)** —
+      `trainer/coevolution/_dashboard_hook.py` (649 LOC) +
+      `crafter_dashboard_*` config knobs + orchestrator
+      end-of-step wire. Periodic Stage-6 N×N matrix sweep on a bank
+      snapshot; emits G1-G5 acceptance gates + per-cluster admit
+      rates as wandb / TB scalars under the `cross_domain/...`
+      namespace. `tests/test_dashboard_hook.py` (39 tests).
+
+    All three CAD layers are off by default; flip
+    `crafter_transfer_gate_enabled` / `crafter_dashboard_enabled` to
+    opt in. Combined CAD test suite: 93 tests, 0 skipped, ~1.5s
+    wall-clock under pytest.
+
+    **Layer B** (cross-domain admit-rate as a GRPO reward channel)
+    remains DESIGN-only — out of CAD scope per the user's
+    instruction; deferred to a follow-up session.
 - **Actor rewire**: replace `decision_agents.skill_interface
   .SkillBankProvider` with a `HarnessSkillProvider` that wraps
   `SkillHarness.select_eligible_skills`. (Note: the Day-10

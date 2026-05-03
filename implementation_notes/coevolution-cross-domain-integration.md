@@ -1,12 +1,27 @@
 # Co-evolution × cross-domain transfer integration
 
-> **Status (2026-05-02 PM):** 🟡 **DESIGN — not yet implemented.**
-> All four cross-domain real-env executors landed in the harness today
-> (Phase-5 §12 Tier 1 items 1-4 closed; see commits `7cc83bd` →
-> `868f137`). However, none of that infrastructure is reachable from
-> the live co-evolution training loop in `trainer/coevolution/`. This
-> memo specifies how to merge them in dependency order. Implementation
-> deferred to a follow-up session.
+> **Status (2026-05-02 PM):** 🟢 **CAD LANDED — Layers C / A / D implemented.**
+> All four cross-domain real-env executors landed in the harness on
+> 2026-05-02 AM (Phase-5 §12 Tier 1 items 1-4 closed; see commits
+> `7cc83bd` → `868f137`). On 2026-05-02 PM, Layers **C** (predicate
+> translator splice into `SkillHarnessHook`), **A** (cross-domain
+> admit-rate as promotion gate), and **D** (periodic dashboard) of
+> this memo were implemented and tested:
+>
+> | Layer | Module | Tests | Commit |
+> |---|---|---|---|
+> | C | `trainer/coevolution/_harness_hook.py` (modified) | `tests/test_trainer_harness_hook.py` (5 new + 21 prior, 26 total) | `bc07599` |
+> | A | `trainer/coevolution/_transfer_hook.py` (new, 798 LOC) | `tests/test_transfer_hook.py` (28 tests) | `10b23b3` |
+> | D | `trainer/coevolution/_dashboard_hook.py` (new, 649 LOC) | `tests/test_dashboard_hook.py` (39 tests) | `bf83fec` |
+>
+> Layer **B** (cross-domain admit-rate as a GRPO reward channel)
+> remains DESIGN-only — see §6 for the deferred plan.
+>
+> All three landed CAD layers are off by default; flip the master
+> flags in `CoEvolutionConfig` (`crafter_transfer_gate_enabled`,
+> `crafter_dashboard_enabled`) to opt in. The combined
+> `tests/test_{trainer_harness_hook,transfer_hook,dashboard_hook}.py`
+> suite has 93 tests, 0 skipped, ~1.5s wall-clock under pytest.
 
 > **Cross-refs:**
 > - [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](legacy/phase5-cross-domain-measurement.md) §12 — full inventory of cross-domain code that landed
@@ -137,7 +152,31 @@ demonstrated the per-skill admit-rate signal is stable.
 
 ---
 
-## 3. Layer C — Predicate translator in `SkillHarnessHook`
+## 3. Layer C — Predicate translator in `SkillHarnessHook` 🟢 IMPLEMENTED 2026-05-02 PM (commit `bc07599`)
+
+> **Implementation summary.** `harness.predicate_translator.translate_skill_contract`
+> is now threaded into `SkillHarnessHook.filter_candidates` between
+> the candidate→record mapping and the eligibility filter. Diagonal
+> cells short-circuit the deep-copy. Cross-domain cells rewrite
+> `contract.effects_{add,del}` so the eligibility filter — and the
+> downstream success_fn — see predicates the target adapter can
+> actually ground. Translator crashes degrade to identity (the
+> original record) and bump a separate `n_predicate_translations_failed`
+> counter. The cached `SkillRecord` is never mutated (deep-copy
+> semantics enforced by the translator).
+>
+> New diagnostic counters surfaced both on the per-call `diag` dict
+> and the per-step `HarnessStepStats.to_json()` payload:
+>
+> * `n_predicate_translations_applied` — how many candidate
+>   contracts had their effects rewritten this step.
+> * `n_predicate_translations_failed` — translator-crash count
+>   (always identity-fallback; the rollout never breaks).
+>
+> Tests: 5 new cases in `tests/test_trainer_harness_hook.py`
+> covering diagonal no-op, cross-domain rebind (gymv→visual_reasoning
+> canonical cell), translator-crash fallback, eligibility-crash
+> counter preservation, and `to_json()` exposure.
 
 ### 3.1 Goal
 
@@ -227,7 +266,40 @@ def filter_candidates(self, candidates: List[SkillRecord], state: StateSchema, .
 
 ---
 
-## 4. Layer A — Cross-domain admit-rate as promotion gate
+## 4. Layer A — Cross-domain admit-rate as promotion gate 🟢 IMPLEMENTED 2026-05-02 PM (commit `10b23b3`)
+
+> **Implementation summary.** `trainer/coevolution/_transfer_hook.py`
+> (new, 798 LOC) and the orchestrator wire-up at the Phase B′ block
+> implement the gate. The hook runs **after** `run_promotion_step`
+> finishes its writeback, re-evaluates each just-promoted skill's
+> cross-domain admit rate against the configured target corpora,
+> and rolls back promotions that fall below
+> `crafter_transfer_admit_band[0]` on every requested target by
+> dropping the skill_id rows from the per-game `skill_bank.jsonl`
+> via atomic `<path>.tmp` + `os.replace`.
+>
+> *Architecture deviation from the design:* §4.2 sketched the gate
+> running **between** the promotion driver's decisions and the
+> writeback. The shipped version runs **after** writeback as a
+> rollback step. This avoids refactoring `_promotion_hook.py` and
+> makes the gate composable / opt-in. Functionally identical:
+> rolled-back skills are out of the trainer's bank either way.
+>
+> *Failure-routing taxonomy* (§4.5) shipped: `configs/failure_routing.yaml`
+> gained a `cross_domain_taxonomy:` block with
+> `CROSS_DOMAIN_ADMIT_FLOOR_VIOLATION` (→ generalizer / retirer)
+> and `CROSS_DOMAIN_PREDICATE_VOCAB_MISMATCH` (→ repairer / drop).
+>
+> *Config* (§4.4) shipped verbatim plus
+> `crafter_transfer_max_skills_per_cell` (default 5) for the
+> `--max-skills` flag.
+>
+> Tests (`tests/test_transfer_hook.py`, 28 cases): pure band
+> scoring, per-skill JSONL parsing (mean collapse, success-fallback,
+> malformed-line tolerance), synthetic bank-run materialisation,
+> atomic in-place demotion, end-to-end run with a `python -c` mock
+> subprocess, dry-run mode (`apply_demotions=False`),
+> subprocess-failure / timeout conservatism, summary file emission.
 
 ### 4.1 Goal
 
@@ -355,7 +427,47 @@ cross_domain_taxonomy:
 
 ---
 
-## 5. Layer D — Periodic offline pass (dashboard)
+## 5. Layer D — Periodic offline pass (dashboard) 🟢 IMPLEMENTED 2026-05-02 PM (commit `bf83fec`)
+
+> **Implementation summary.** `trainer/coevolution/_dashboard_hook.py`
+> (new, 649 LOC) and the orchestrator end-of-step wire-up implement
+> the dashboard. Every `crafter_dashboard_every_k_steps` trainer
+> steps the hook snapshots the trainer's per-game `skill_bank.jsonl`
+> files into a synthetic `--game-bank-root`, subprocess-invokes
+> `_phase4_transfer_matrix.py` against the configured target set,
+> parses `cells.json`, computes the G1-G5 acceptance gates inline
+> (memo §11.5.6), and emits a structured metrics dict the trainer
+> sinks alongside its existing wandb / TB log under the
+> `cross_domain/...` namespace.
+>
+> *G6 omission:* upper-bound conformance requires the offline
+> Stage-0 `upper_bounds.csv` artefact, which is not always available
+> during a live trainer run. Computing G6 in the dashboard is left
+> for a follow-up that pre-stages the CSV during run setup.
+>
+> *Snapshot semantics:* copies, not symlinks — the trainer's banks
+> are never mutated. The dashboard is a measurement layer, not a
+> gate.
+>
+> *Cadence isolation:* a separate cadence knob from Layer A. The
+> gate (Layer A) can run every K steps at high frequency while the
+> dashboard runs every M*K steps at low frequency, avoiding
+> subprocess load doubling.
+>
+> *Metrics shape:* `DashboardReport.to_metrics()` returns a flat
+> `{str: float}` dict with G1-G5 verdicts encoded as
+> `1.0=PASS / 0.5=soft-FAIL / 0.0=FAIL / -1.0=N-A` so wandb /
+> TensorBoard don't have to special-case strings. Empty dict on
+> skipped / disabled / failed runs ⇒ no metrics emitted that step.
+>
+> Tests (`tests/test_dashboard_hook.py`, 39 cases): cadence (8
+> parametrised), verdict-to-scalar mapping (7), pure summary
+> helpers, G1-G5 verdict computation across all PASS/FAIL/N-A/
+> soft-FAIL paths (10), `to_metrics()` shape + empty-on-skipped
+> behaviour, and end-to-end `run_dashboard_step` with mocked
+> subprocess covering happy-path, missing-banks, no-targets,
+> missing-cells.json, subprocess failure / timeout, and
+> no-mutation-of-trainer-banks invariant.
 
 ### 5.1 Goal
 
@@ -415,7 +527,13 @@ the dashboard from the training-step latency budget entirely.
 
 ---
 
-## 6. Layer B — Cross-domain admit-rate as reward channel
+## 6. Layer B — Cross-domain admit-rate as reward channel 🟡 DEFERRED (out of CAD scope)
+
+> **Status (2026-05-02 PM):** Not implemented. Layers C, A, D were
+> the user-requested CAD slice; Layer B remains the most ambitious
+> and risk-laden of the four (reward-shaping a live RL signal off
+> a measurement that cannot run on the GRPO hot path), and is
+> deferred to a follow-up session. The design below is unchanged.
 
 ### 6.1 Goal
 
