@@ -40,6 +40,15 @@ export VWA_WIKIPEDIA="http://localhost:8888/viewer#wikipedia_en_all_maxi_2022-05
 export VWA_CLASSIFIEDS="http://localhost:9980"
 export VWA_CLASSIFIEDS_RESET_TOKEN="4b61655535e7ed388f0d40a93600254c"
 
+# ── Judge model for ``llm_fuzzy_match`` / ``llm_ua_match`` ───────────────
+# The upstream ``visualwebarena`` package hardcodes the deprecated
+# ``gpt-4-1106-preview`` (2024-Q1) which most current OpenAI keys can no
+# longer reach. ``install/patch_vwa_judge_model.sh`` rewires those calls
+# to read ``VWA_JUDGE_MODEL`` instead; without this override 18/200 tasks
+# in the pinned subset would fail at ``env.step()`` when the evaluator
+# tries to score string_match / page_image_query refs.
+export VWA_JUDGE_MODEL="${VWA_JUDGE_MODEL:-gpt-4o}"
+
 # Optional full-stack reset endpoint (used by VisualWebArenaInstance
 # .full_reset() — ours is unset so the upstream code skips the call).
 # export VWA_FULL_RESET="http://localhost:7565"

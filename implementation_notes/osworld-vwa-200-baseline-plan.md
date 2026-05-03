@@ -19,8 +19,10 @@
 > - [`cold_start/visualwebarena_env.sh`](../cold_start/visualwebarena_env.sh) — sourceable VWA env file. Documents the 52-classifieds-task + 72-image-task partial-coverage limit when the upstream install hasn't been run.
 > - [`cold_start/task_samples/browsergym_visualwebarena_200.txt`](../cold_start/task_samples/browsergym_visualwebarena_200.txt) — pinned 200/910 subset, seed=0, stratified by `(site × has_image × overall_difficulty)`. Covers 116/152 templates.
 > - [`cold_start/task_samples/build_browsergym_diverse_200.py`](../cold_start/task_samples/build_browsergym_diverse_200.py) — generator script (already shipped).
-> - [`install/install_visualwebarena_sites.sh`](../install/install_visualwebarena_sites.sh) — Classifieds (OSClass+MySQL) installer (already shipped, not yet run on this machine).
+> - [`install/install_visualwebarena_sites.sh`](../install/install_visualwebarena_sites.sh) — Classifieds (OSClass+MySQL) installer; run-on-this-machine 2026-05-03 (containers up + DB seeded + patch hook integrated).
+> - [`install/patch_vwa_judge_model.sh`](../install/patch_vwa_judge_model.sh) — idempotent text-patch over the upstream ``visualwebarena/evaluation_harness/helper_functions.py`` to replace the deprecated ``gpt-4-1106-preview`` judge with ``$VWA_JUDGE_MODEL`` (default ``gpt-4o``). Without it, **18 / 200 pinned tasks fail at ``env.step()``** because VWA's ``task.validate()`` runs the evaluator every step, and 10 ``string_match+fuzzy_match`` + 8 ``page_image_query`` tasks need an LLM judge that current keys can no longer reach.
 > - 3-task smoke output: `Cold-start-out-browsergym/vwa_smoke3/` — 268/444/279 ran with the new defaults at ~21 s/step weighted, validating no `full7-smoke`-style inflation.
+> - Post-install 3-task re-smoke: tasks 433 (reddit+image, ``program_html`` evaluator), 92 (classifieds, ``url_match``), 135 (classifieds+image, ``string_match+fuzzy_match``). All three reset and step clean **after** the judge-model patch; before it, 135 hit ``NotFoundError: gpt-4-1106-preview does not exist or you do not have access to it``.
 
 ---
 
@@ -283,10 +285,17 @@ cd /workspace/Multi-hop-Reasoning-VLM-Agent
 #    openrouter_api_key (and openai_api_key for the gpt5 machine).
 ls /workspace/api_keys.py
 
-# 2. browsergym conda env is healthy and required imports succeed.
+# 2. browsergym conda env is healthy and required imports succeed,
+#    AND the upstream judge-model patch is in place.
 /workspace/miniconda3/envs/browsergym/bin/python -c \
     "import browsergym.core, browsergym.visualwebarena, playwright; \
      print('OK')"
+SP=$(/workspace/miniconda3/envs/browsergym/bin/python -c \
+    'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+grep -q '_VWA_JUDGE_MODEL' \
+    "${SP}/visualwebarena/evaluation_harness/helper_functions.py" \
+    && echo "  judge-model patch: OK" \
+    || { echo "  judge-model patch: MISSING — run install/patch_vwa_judge_model.sh"; exit 1; }
 
 # 3. Live WA stack is up. Specifically these 6 services serving HTTP 2xx:
 for url in \
@@ -383,6 +392,7 @@ The baseline is "done" when:
 | Per-provider pass-rate is statistically distinct | 95 % Wilson CIs on the global pass-rate either separate the providers visually OR the report explicitly says "within statistical noise". |
 | Watchdog showed no SLOW (>30 s/step) episodes | `grep '\[WATCHDOG SLOW\]' runs/vwa_baseline_200/*.log` returns 0 lines. If it returns >5 lines, investigate before publishing — the May-3 OSWorld `full7-smoke` lesson. |
 | reasoning_effort actually applied for gpt-5.5 | `runs/vwa_baseline_200/gpt5/<safe_id>/rollout_summary.json` has `reasoning_effort=low` in the metadata, and gpt-5.5 step latencies stay in the 18-25 s range (anything >40 s implies the param was ignored). |
+| Judge-model patch is in place | `grep _VWA_JUDGE_MODEL $(python -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")/visualwebarena/evaluation_harness/helper_functions.py` returns 2 hits. Otherwise 18/200 tasks (10 fuzzy_match + 8 page_image_query) will silently fail at `env.step()` and pollute the comparison. |
 
 If any check fails, debug before publishing. Do not publish a partial
 table.
@@ -392,6 +402,7 @@ table.
 | Risk | Likelihood | Mitigation |
 |---|---|---|
 | `gpt-5.5` direct API has the same tools-vs-`reasoning_effort` quirk gpt-5.4 had | Medium | The May-3 patch in `_chat_completion` (OSWorld driver) strips `reasoning_effort` for tool-bearing gpt-5.x calls. The BrowserGym driver inherits the same `_chat_completion` shape — verify the patch is also there before launch. **Open** [§13 #2]. |
+| Upstream judge-model patch gets reverted by `pip install` / env rebuild | Medium | `install/patch_vwa_judge_model.sh` is idempotent text-patch over `site-packages/visualwebarena/evaluation_harness/helper_functions.py`. **Add it to the conda-env bring-up runbook**, and run it as part of the pre-flight on every machine. The pre-flight check in §9 step 2 below verifies the sentinel `_VWA_JUDGE_MODEL` exists in the helper file. |
 | Gemini 2.5 Pro safety blip on vision calls (5 % empty `finish_reason=error`) | High | Driver fall-back already handles. Aggregator flags providers with > 10 % empty-content steps. |
 | OpenRouter quota / regional outage | Low–Medium | Stagger launches by ~30 s. Driver retries with 60 s back-off. |
 | Same WA stack mutate-contamination across 4 parallel workers | Medium | Postmill `vote/comment/post` and Magento `cart/checkout` are mutate-heavy; if all 4 workers happen to land on the same task at the same moment they can step on each other's session state. **Mitigation**: launcher already uses task-id-keyed working dirs, but the underlying DB state is shared. Practical fix: scheduling order = round-robin by site so 4 workers naturally hit different services. The 200-set is well-distributed; in practice only ≤2 workers will be on shopping at once. |
@@ -465,15 +476,18 @@ The prereqs are small enough (~280 LOC) and risk-free enough that
 landing them in one short session before kicking off the eval is
 strictly faster than launching, hitting an issue, restarting.
 
-## 16. What's already done as of 2026-05-03 03:30 AM
+## 16. What's already done as of 2026-05-03 04:30 AM
 
 | Item | Where | Status |
 |---|---|---|
 | Driver `--reasoning_effort` default `unset → low` | `cold_start/generate_cold_start_actor_browsergym.py` | ✓ commit `90628b8` |
 | Per-task `[WATCHDOG]` log | same | ✓ commit `90628b8` |
-| Sourceable `cold_start/visualwebarena_env.sh` | new | ✓ commit `90628b8` |
+| Sourceable `cold_start/visualwebarena_env.sh` | new | ✓ commit `e30c473` (post-install update) |
 | 200-task pinned subset | `cold_start/task_samples/browsergym_visualwebarena_200.txt` | ✓ pre-existing |
 | Real-rendering 3-task smoke (gpt-5.5 low) | `Cold-start-out-browsergym/vwa_smoke3` | ✓ ~21 s/step weighted, all watchdog ok/FAST |
+| Classifieds (OSClass + MySQL) on :9980 | live container | ✓ docker compose up, DB seeded |
+| VWA-specific homepage on :4400 | live container `vwa_homepage` | ✓ serves `static/input_images/{classifieds,reddit,shopping}/` |
+| Judge-model patch (gpt-4-1106-preview → $VWA_JUDGE_MODEL) | `install/patch_vwa_judge_model.sh` | ✓ idempotent text-patch + auto-applied by install script |
+| Post-install 3-task re-smoke (433 / 92 / 135) | inline | ✓ all three reset+step clean after judge-model patch |
 | Multi-provider router for BrowserGym | new | ⏳ not yet (§5) |
 | Aggregator | new | ⏳ not yet (§8) |
-| Classifieds + VWA-homepage install | upstream + DIY | ⏳ optional, see §10 step 2 |

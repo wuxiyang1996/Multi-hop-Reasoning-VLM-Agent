@@ -96,7 +96,16 @@ up_classifieds() {
         -e "s|CLASSIFIEDS_RESET_TOKEN=[A-Za-z0-9]*|CLASSIFIEDS_RESET_TOKEN=${VWA_CLASSIFIEDS_RESET_TOKEN}|g" \
         "$compose"
 
-    (cd "$CLASSIFIEDS_DIR" && docker compose up --build -d) 2>&1 | tail -20 | sed 's/^/    /'
+    # NOTE: ``--build`` is intentionally omitted here. The compose file uses
+    # the pre-built ``jykoh/classifieds:latest`` image (no Dockerfile build
+    # context), so ``--build`` is a no-op for service ``web`` BUT triggers
+    # docker to manifest-revalidate the ``:latest`` tag against the
+    # registry. On daemons with heavy garbage (lots of dangling volumes /
+    # reclaimable images) that revalidation can hang silently for tens of
+    # minutes. Plain ``up -d`` reuses the cached image and starts in
+    # seconds. (Symptom we hit on 2026-05-03: 22-min hang at ``Pulling fs
+    # layer`` against a daemon with 1458 dangling volumes.)
+    (cd "$CLASSIFIEDS_DIR" && docker compose up -d) 2>&1 | tail -20 | sed 's/^/    /'
 
     echo "    Waiting 30s for MySQL + OSClass to start..."
     sleep 30
@@ -154,6 +163,18 @@ assert_wa_running       || exit 1
 download_classifieds    || exit 1
 up_classifieds          || exit 1
 write_env_file
+
+# ── Step 4.5: patch upstream judge-model (gpt-4-1106-preview deprecated) ─
+echo ""
+echo "==> Patching upstream visualwebarena judge model (gpt-4-1106-preview"
+echo "    is deprecated; default to gpt-4o, override with VWA_JUDGE_MODEL)"
+if [ -x "${SCRIPT_DIR}/patch_vwa_judge_model.sh" ]; then
+    bash "${SCRIPT_DIR}/patch_vwa_judge_model.sh" 2>&1 | sed 's/^/    /' || \
+        echo "    [warn] judge-model patch failed; 18/200 tasks will fail at step()"
+else
+    echo "    [warn] ${SCRIPT_DIR}/patch_vwa_judge_model.sh missing; skipping"
+fi
+
 smoke_test
 
 echo ""
