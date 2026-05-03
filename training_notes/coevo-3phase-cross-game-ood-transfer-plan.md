@@ -1,14 +1,20 @@
 # Co-evolution 3-phase training plan — source GRPO → in-domain few-shot → OOD transfer
 
-> **Status (2026-05-03 AM):** 🟡 **PLAN — pending 3 disambiguation
-> decisions before launch.** Defines a curriculum that extends the
-> COS-PLAY paper's per-game training (Appendix C / Table 3) into a
-> cross-game skill-transfer + cross-domain few-shot adaptation
-> experiment. The per-game **step budget is paper-grounded**
-> (7–25 steps per game, average ~15); the **cross-game transfer**
-> protocol and **OOD few-shot adaptation** are explicitly identified
-> as open problems in the paper's Limitation / Future Work section
-> and are this plan's novel contribution.
+> **Status (2026-05-03 PM):** 🟢 **PLAN — game roster + curriculum
+> mechanism locked.** 2 decisions still pending pre-launch
+> (§11.1 hyperparam audit; §11.4 keep/drop the 5-step inference-only
+> Phase-2 baseline). Phase-1 curriculum is **6 games trained sequentially
+> at 15 GRPO steps each (90 steps total)** with bank + LoRA carry-over
+> between games — picks data-driven from the
+> [`baselines/README.md` § "Gym-V benchmark scope"](../baselines/README.md)
+> 4-backbone success-rate sweep landed on `fix/coevo-t2.14-t2.15-launch-unblockers`
+> (commit `4f97dd6`, 2026-05-03). Phase-2 / Phase-3 unchanged from the
+> initial draft. The plan extends the COS-PLAY paper's per-game training
+> (Appendix C / Table 3) into a cross-game skill-transfer + cross-domain
+> few-shot adaptation experiment; the **cross-game transfer** protocol
+> and **OOD few-shot adaptation** are explicitly identified as open
+> problems in the paper's Limitation / Future Work section and are this
+> plan's novel contribution.
 
 > **Cross-refs:**
 > - [COS-PLAY paper](https://arxiv.org/pdf/2604.20987) — Appendix C,
@@ -52,19 +58,25 @@ games, (3) measure how fast it adapts to entirely new domains
 
 In scope:
 
-* **Phase 1** — independent GRPO runs on six gymv source games using
-  the paper's per-game hyperparams (Table 3 below).
-* **Phase 2** — few-shot adaptation on six held-out gymv games seeded
-  with the merged Phase-1 bank, reported at two adaptation budgets
-  (5-step inference-only baseline + 15-step GRPO main result).
+* **Phase 1** — sequential GRPO curriculum across six source games
+  (4 gymv + `candy_crush` + `tetris`) at **15 steps each (90 total)**;
+  bank + LoRA carry over between games and a snapshot is dropped after
+  each game so any Phase-1 game can be re-evaluated post-hoc against
+  its own end-of-game checkpoint.
+* **Phase 2** — few-shot adaptation on six held-out games (the four
+  unused gymv benchmark games + `2048` + `super_mario_bros`) seeded
+  with the post-Phase-1 bank + LoRA, reported at two adaptation
+  budgets (5-step inference-only baseline + 15-step GRPO main result).
 * **Phase 3** — same two-budget few-shot protocol on the cross-domain
   targets `video` and `visual_reasoning` (cheap VLM-only envs);
   `browser` / `osworld` deferred behind a go/no-go gate after
   Phase-1 + Phase-2 results land.
-* A **bank merge + de-dup utility** that produces a single
-  `<source_merged>/skill_bank.jsonl` per game from the six independent
-  Phase-1 runs.
-* A **LoRA-merge policy** for warm-starting Phase-2 / Phase-3 actors.
+* A **per-game snapshot capture** at the end of each Phase-1 game so
+  the rolling-curriculum LoRA never strictly dominates per-game
+  best-checkpoint reporting (§4.4 below).
+* An **independent-runs-merge ablation** (kept as Option A in §11.2)
+  to back-stop the curriculum design if late-game LoRA drift erases
+  early-game competence; only triggered if §12 R6 fires.
 
 Out of scope:
 
@@ -95,99 +107,159 @@ This plan uses (1)–(3) verbatim, treats (4)–(5) as the novel
 contribution, and is careful **not** to conflate (6)'s "few-shot"
 with our Phase-2 / Phase-3 definition (see §7 below).
 
-## 4. Phase 1 — independent source GRPO runs
+## 4. Phase 1 — sequential source GRPO curriculum
 
-### 4.1 Game roster
+### 4.1 Game roster (locked 2026-05-03 PM)
 
-Four games come straight from the paper (so Phase-1 numbers can be
-sanity-checked against published rewards) and two are gymv held-in
-games we extend the setting with:
+Six games trained one after another at **15 GRPO steps each** (90
+steps total). Two come from COS-PLAY Table 3 (`tetris`, `candy_crush`)
+so the merge-rate of bank / reward against the paper still has an
+anchor; four come from the
+[`gymv_wrapper` 8-game benchmark scope](../baselines/README.md#gym-v-benchmark-scope)
+(commit `4f97dd6`) — picked for genre coverage and high
+non-trained-actor success-rate baseline so GRPO has a clean signal:
 
-| # | Game | Source | Phase-1 step budget | Phase-1 hyperparams |
-|---|---|---|---|---|
-| 1 | `tetris` | paper Table 3 | **7** | LR 2e-5 · KL 0.08 · clip 0.10 · max_ep 2 · adv-clip 3.0 · ep/step 8 |
-| 2 | `2048` | paper Table 3 | **10** | LR 5e-5 · KL 0.05 · clip 0.20 · max_ep 4 · no adv-clip · ep/step 8 |
-| 3 | `candy_crush` | paper Table 3 | **10** | LR 5e-5 · KL 0.05 · clip 0.20 · max_ep 4 · no adv-clip · ep/step 8 |
-| 4 | `super_mario_bros` | paper Table 3 | **20** | LR 3e-5 · KL 0.04 · clip 0.15 · max_ep 3 · adv-clip 5.0 · ep/step 8 |
-| 5 | `<gymv-A>` _(TBD — see §11.3)_ | new | 15 | defaults |
-| 6 | `<gymv-B>` _(TBD — see §11.3)_ | new | 15 | defaults |
+| # | Game | Source | Genre | Pre-train baseline | Hyperparams source |
+|---|---|---|---|---|---|
+| 1 | `Temporal/SpaceHarrierII-v0` | gymv benchmark | shmup | 100 % (4 / 4 backbones) | inherits `2048` row (dense reward, fast progression) |
+| 2 | `Temporal/StreetsOfRage2-v0` | gymv benchmark | beat-em-up | 100 % (4 / 4 backbones) | inherits `2048` row |
+| 3 | `Temporal/Columns-v0` | gymv benchmark | puzzle | 89 % (Claude / Q9 100 %) | inherits `tetris` row (sparse-line-clear reward) |
+| 4 | `Temporal/Strider-v0` | gymv benchmark | action | 78 % (Q9 100 %) | inherits `super_mario_bros` row (long traversal) |
+| 5 | `candy_crush` | paper Table 3 | match-3 | n/a (paper Figure 4) | LR 5e-5 · KL 0.05 · clip 0.20 · max_ep 4 · no adv-clip · ep/step 8 |
+| 6 | `tetris` | paper Table 3 | spatial puzzle | n/a (paper Figure 4) | LR 2e-5 · KL 0.08 · clip 0.10 · max_ep 2 · adv-clip 3.0 · ep/step 8 |
 
-Total Phase-1 step budget: **77 steps** spread across six independent
-runs. Wall-clock ~36 min/step ⇒ **~46 h sequentially / ~12 h with
-6× parallelism** (one run per GPU group, e.g. 1 game per single-GPU vLLM
-+ FSDP-2 trainer, or 3 games concurrent on an 8×H200 box with TP=2).
+Curriculum order is **as listed above** — high-density rewards first
+(shmup/beatemup) so the curator and skill-segmenter learn on clean
+positive signal before the puzzle/action games' sparser reward, then
+finishing on the two paper games as comparable terminal anchors.
+Re-ordering is a §11 deferred follow-up if R6 (LoRA drift) fires.
 
-### 4.2 Per-run output
+Total Phase-1 step budget: **6 × 15 = 90 steps**. Wall-clock
+~36 min/step ⇒ **~54 h sequentially**; the curriculum is sequential
+**by design** under the chosen Option C (§11.2) — bank + LoRA carry
+over between games, so Phase-1 cannot be parallelised across games.
 
-Each run writes to `runs/phase1_<game>_<timestamp>/` with the standard
-contents (`adapters/`, `checkpoints/`, `skillbank/<game>/skill_bank.jsonl`,
-`rewards/step_NNNN.jsonl`, wandb run tagged
-`phase1-source-<game>`).
+> The paper's per-game step budgets (`tetris`=7, `candy_crush`=10) are
+> **shorter** than 15. We over-budget here on purpose: paper-budgeted
+> single-game runs converge in a single LoRA, whereas curriculum-mode
+> 15-step plateaus give the curator + segmenter more rollouts to
+> consolidate skills before the next game arrives. If the post-curriculum
+> reward on either paper game lags Figure 4 by >20 %, switch the
+> ablation: rerun those two with paper budgets in the independent-runs
+> merge mode (§11.2 Option A back-stop).
+
+### 4.2 Per-game snapshot
+
+After each game's 15 steps complete, snapshot to
+`runs/phase1_curriculum_<timestamp>/snapshots/<NN>_<game>/` with
+`adapters/` (full 5-LoRA state), `skillbank/skill_bank.jsonl` (the
+single rolling bank — not a per-game bank, since curriculum-mode
+shares one bank across games), `_phase_meta.json`, and
+`rewards/step_NNNN.jsonl`. wandb run tagged
+`phase1-curriculum-step<N>-<game>`.
+
+The post-curriculum state — `snapshots/06_tetris/` — is the seed for
+Phase 2 / Phase 3 (no separate merge utility needed under Option C).
 
 ### 4.3 Sanity bar
 
-Reward at the final step within ±20% of the paper's Figure 4 endpoint
-for `tetris` / `2048` / `candy_crush` / `super_mario_bros`. Anything
-outside that band before merging means a hyperparam drift vs Table 3 —
-debug before proceeding to Phase 2.
+Two anchors:
 
-## 5. Bank-merge utility
+1. **Paper anchor (weak under curriculum mode):** end-of-`candy_crush`
+   reward and end-of-`tetris` reward within **±30 %** (loosened from
+   ±20 % in the original draft because curriculum mode adds
+   bank-borrowing across games, so absolute rewards don't have to
+   match Figure 4 strictly).
+2. **Per-game baseline anchor (strong):** end-of-game reward for each
+   gymv game ≥ the **4-backbone median baseline** from
+   `baselines/README.md` § "Gym-V benchmark scope". For `Columns`
+   that's ~89 % per-episode success; for the other three it's ≥ 78 %.
+   The trained-LoRA actor must clear the **un-trained-actor** bar by
+   construction or there is no reason to continue.
 
-Phase 2 / Phase 3 need a single seed bank, not six. We need
-`scripts/merge_banks.py` with this contract:
+If both anchors fail, abort and inspect; if only the paper anchor
+fails (i.e. paper games regress because curriculum carry-over erased
+their skills), trigger §11.2 Option A independent-runs ablation.
 
-```
-merge_banks.py \
-  --inputs runs/phase1_tetris_*/skillbank/tetris/skill_bank.jsonl \
-           runs/phase1_2048_*/skillbank/2048/skill_bank.jsonl \
-           ... (6 total)
-  --output runs/source_merged_<timestamp>/skill_bank.jsonl \
-  --dedupe-policy curator-score-keep-best \
-  --dedupe-threshold 0.85   # cosine sim on contract effects
-```
+## 5. Bank handling under sequential curriculum
 
-Behaviour:
+Under Option C (§11.2), all six Phase-1 games share **one rolling
+skill bank**. The bank is grown game-by-game by the live curator +
+crafter (atomic save per `SkillBankMVP.save()`); no separate offline
+merge step is required. The post-curriculum bank
+`runs/phase1_curriculum_<timestamp>/snapshots/06_tetris/skillbank/skill_bank.jsonl`
+is the single seed for Phase 2 / Phase 3.
 
-* Read every input as JSONL of `{"skill": …, "report": …}` records.
-* Group by **canonical contract signature** (`schema_hash` of
-  `(eff_add ∪ eff_del ∪ eff_event)`); within a group, keep the record
-  with the highest curator score (or the most recent contract version
-  if tied).
-* Cross-group dedupe: cosine similarity ≥ `--dedupe-threshold` on a
-  bag-of-effects embedding ⇒ collapse, again keeping the highest-scored.
-* Write atomically (tempfile + fsync + os.replace, mirroring the
-  `SkillBankMVP.save()` contract).
-* Emit `runs/source_merged_<timestamp>/_merge_meta.json` with
-  pre/post counts, per-input contribution, and the dedupe distribution
-  so the paper appendix can report bank composition.
+Expected post-curriculum size: ~30–60 unique skills (paper baselines
+imply 6 + 10 + 10 + 20 ≈ 46 across the four known games; the four
+gymv games typically add 5–15 each but with heavy overlap, so the
+rolling-bank curator dedupe should keep total growth tame).
 
-Expected post-merge size: ~40–80 unique skills (paper has 6+10+10+20=46
-across the four reproduced games; new gymv games add ~10–20 each).
+> **Independent-runs merge ablation (kept on the shelf).** If R6
+> (LoRA drift) fires and we need clean per-game baselines, the
+> independent-runs path produces six separate banks that need a
+> merge utility — see §11.2 Option A. The **`scripts/merge_banks.py`**
+> contract for that fallback path is:
+>
+> ```
+> merge_banks.py \
+>   --inputs runs/phase1_indep_<game>_*/skillbank/<game>/skill_bank.jsonl … (6 total) \
+>   --output runs/source_merged_<timestamp>/skill_bank.jsonl \
+>   --dedupe-policy curator-score-keep-best \
+>   --dedupe-threshold 0.85   # cosine sim on contract effects
+> ```
+>
+> Behaviour: group by canonical contract signature
+> (`schema_hash(eff_add ∪ eff_del ∪ eff_event)`); within a group keep
+> highest curator score; cross-group dedupe at the cosine threshold;
+> write atomically (mirroring `SkillBankMVP.save()`); emit
+> `_merge_meta.json` with pre/post counts and per-input contribution.
+> Only land this script if the ablation actually triggers.
 
-## 6. LoRA warm-start policy for Phase 2 / 3
+## 6. LoRA handling under sequential curriculum
 
-Three options, ranked by complexity:
+Option C carries one rolling LoRA state across all six games — the
+`adapters/` directory at the end of game N is the warm start for
+game N+1, and the post-curriculum state is the warm start for
+Phase 2 / Phase 3.
 
-| Option | Mechanism | Cost | Risk |
-|---|---|---|---|
-| **L1** — pick best | Use the single-game adapters from the **best-reward** Phase-1 run as cold start | $0 | source-distribution-specific; may not generalise |
-| **L2** — sequential warm-start | Load adapters from Phase-1 run #1, fine-tune through #2, …, #6 (curriculum-style) | extra ~46 h | catastrophic forgetting on early games (the §11.4 risk in this plan) |
-| **L3** — weight-merge | Average / SLERP-merge the six per-game adapters, optionally re-balanced by per-game reward | <1 h | empirically robust; paper §E shows merged-LoRA underperforms split-LoRA on a single game, but here we keep the split (5 adapters) and merge **across games** within each adapter slot |
+| Option | Mechanism | Status |
+|---|---|---|
+| **L2 — sequential warm-start (chosen)** | Load adapters from game N at end-of-N → continue GRPO on game N+1 → repeat | **Active path under §11.2 Option C.** Per-game snapshot in §4.2 lets us pick "post-curriculum" or "best-per-game" at eval time. |
+| **L1 — pick best** | Use the single-game adapters from the **best-reward** Phase-1 game as Phase-2 cold start | Kept as Phase-2 ablation. Cheap to add since we already snapshot per game. |
+| **L3 — weight-merge** | Average / SLERP-merge across six per-game adapters | **Only relevant if Option A back-stop fires** (independent-runs path). Implement `scripts/merge_adapters.py` only if R6 triggers it. |
 
-**Recommendation: L3** with uniform weighting as the default and
-reward-weighted as the ablation. Implement as
-`scripts/merge_adapters.py` with the same per-adapter slot semantics
-(merge `skill_selection` across the six runs into one
-`skill_selection`, etc.).
+The chosen path's risk — **late-game games dominate the LoRA gradient
+state and erase early-game competence** — is captured as R6 (§12) with
+two mitigations: per-game snapshot retention (§4.2) so we can always
+fall back to a per-game best-checkpoint, and a Phase-1 sanity bar
+(§4.3) that explicitly checks each game's end-of-game reward against
+its 4-backbone baseline.
 
 ## 7. Phase 2 — in-domain few-shot adaptation
 
-### 7.1 Held-out gymv roster
+### 7.1 Held-out roster (locked 2026-05-03 PM)
 
-Six gymv games **not** in the Phase-1 source set. Pre-screen for
-"at least 3 episodes complete in 2 min on the live actor" so we don't
-accidentally grade adaptation on an env where the actor can't even
-emit valid actions. Roster TBD with the user.
+Six games not seen in Phase 1 — four gymv benchmark leftovers and
+two paper Table-3 games we deliberately held back from Phase 1 to
+serve as in-domain probes for the puzzle / action transfer pairs:
+
+| # | Held-out game | Source | Genre | In-domain pair (Phase-1 source) | Why this pair tests transfer |
+|---|---|---|---|---|---|
+| 1 | `Temporal/AlteredBeast-v0` | gymv benchmark | beat-em-up | `StreetsOfRage2` | same genre, different ROM — pure within-genre lift |
+| 2 | `Temporal/Airstriker-v0` | gymv benchmark | shmup | `SpaceHarrierII` | same genre — shmup transfer |
+| 3 | `Temporal/DynamiteHeaddy-v0` | gymv benchmark | platformer | (Phase-1 has no platformer) | hardest probe — closest is `Strider` (action) |
+| 4 | `Temporal/ThunderForceIII-v0` | gymv benchmark | shmup | `SpaceHarrierII` (second-order via `Airstriker`) | tests bank composition |
+| 5 | `2048` | paper Table 3 | match / spatial | `tetris` | grid puzzles — strong in-domain pairing |
+| 6 | `super_mario_bros` | paper Table 3 | action / scrolling | `Strider` | action-scroller pairing |
+
+Pre-launch screen for each held-out game: "≥ 3 episodes complete in
+2 min on the **un-seeded** Qwen3.5-9B actor". For the four gymv
+games this is already satisfied by the
+[`baselines/README.md` § "Gym-V benchmark scope"](../baselines/README.md#gym-v-benchmark-scope)
+sweep (3-9 episodes per backbone in the table). For `2048` and
+`super_mario_bros` the GamingAgent / Orak wrappers ship 50 / 100 max
+steps and have been baseline-stable on the existing scripts.
 
 ### 7.2 Two-budget reporting protocol
 
@@ -252,79 +324,142 @@ gate from `_transfer_hook.py`.
 
 ## 9. Concrete launch sequence
 
-Three new orchestration scripts, plus reuse of existing
-`run_<game>.sh`:
+Two new orchestration scripts (curriculum + holdout) plus reuse /
+extension of existing `run_<game>.sh`:
 
 ```
 scripts/
-  run_phase1_source.sh        ← NEW · launches 6 Phase-1 runs (parallel or sequential)
-  merge_banks.py              ← NEW · §5
-  merge_adapters.py           ← NEW · §6 (L3 strategy)
-  run_phase2_holdout.sh       ← NEW · 6 held-out games × 2 budgets + no-seed control
+  run_phase1_curriculum.sh    ← NEW · single sequential 6-game run with
+                                 bank+LoRA carry-over, snapshots after
+                                 each game (mirrors run_all.sh phase
+                                 structure but uses the locked roster
+                                 from §4.1)
+  run_phase2_holdout.sh       ← NEW · 6 held-out games × 2 budgets
+                                 (5-step infer-only + 15-step GRPO)
+                                 + no-seed control per held-out game
   run_phase3_ood.sh           ← NEW · video + visual_reasoning × 2 budgets
-  run_candy_crush.sh          ← NEW · template'd from run_2048.sh, paper hyperparams
+  run_candy_crush.sh          ← NEW · template'd from run_2048.sh
+                                 (per-game wrapper still useful for
+                                 baseline / single-game smoke tests)
   run_2048.sh / tetris.sh /
    super_mario.sh             ← VERIFY paper hyperparams wired (§11.1)
+
+  merge_banks.py              ← DEFERRED · only land if Option A
+  merge_adapters.py             back-stop fires (R6 in §12)
 ```
+
+`run_phase1_curriculum.sh` is largely a parameter-swap on the existing
+`scripts/run_all.sh` (already implements snapshot-per-phase + 5-game
+sequential curriculum). Concretely we replace its `PHASES` array with:
+
+```bash
+PHASES=(
+    "1:gymv_temporal_space_harrier_ii:Space Harrier II"
+    "2:gymv_temporal_streets_of_rage_2:Streets of Rage 2"
+    "3:gymv_temporal_columns:Columns"
+    "4:gymv_temporal_strider:Strider"
+    "5:candy_crush:Candy Crush"
+    "6:tetris:Tetris"
+)
+ITERS_PER_PHASE=15
+```
+
+(Game-name slugs above are placeholders — actual names depend on the
+gymv adapter wiring landed in §11.1's hyperparam audit; today
+`trainer/coevolution/episode_runner.py` only registers
+`twenty_forty_eight / candy_crush / tetris / super_mario`, so the four
+gymv slugs need to land in `GAMINGAGENT_GAMES` or a sibling
+`GYMV_TEMPORAL_GAMES` set before launch — captured as §11.1 sub-task.)
 
 Recommended dual-stack runtime layout (8×H200):
 
 ```
-GPUs 0–3 → 9B trainer + actor vLLM :8000 (per-game Phase-1 run)
+GPUs 0–3 → 9B trainer + actor vLLM :8000
 GPUs 4–7 → 35B-A3B teacher + judge vLLM :8001
                                   (one instance shared across all phases)
 [optional] GPU 8 → scripts/dashboard_sidecar.py (Layer-D, opt-in)
 ```
 
-Phase-1 parallelisation requires either multi-machine deployment or
-sequential runs on a single 8×H200 node. Six concurrent Phase-1 runs
-on one node is **not** feasible (would need 6 × 4 GPU = 24 GPUs).
+Phase-1 is **strictly sequential** under Option C — the single rolling
+LoRA + bank cannot be parallelised across games. Phase 2 / Phase 3,
+however, can run six held-out games concurrently if a multi-machine
+deployment is available, since each held-out game starts from the same
+post-curriculum snapshot and writes to its own output directory.
 
 ## 10. Wall-clock & cost
 
 | Phase | Step budget | Sequential wall-clock | Parallel wall-clock |
 |---|---|---|---|
-| 1 — source GRPO | 77 (across 6 games) | ~46 h | ~12 h (6× single-GPU vLLM) |
-| Bank + LoRA merge | offline | <2 h | <2 h |
-| 2 — held-out adaptation | 6 × (5+15+15) = 210 | ~126 h | ~21 h (6× parallel) |
+| 1 — sequential curriculum | 6 × 15 = 90 | ~54 h | ~54 h (sequential by design — Option C cannot parallelise) |
+| Per-game snapshot capture | n/a — inline | inline | inline |
+| 2 — held-out adaptation | 6 × (5+15+15) = 210 | ~126 h | ~21 h (6× parallel — each holdout reads same Phase-1 snapshot) |
 | 3 — OOD (video + VR) | 2 × 20 = 40 | ~24 h | ~12 h (2× parallel) |
-| **Total (mandatory)** | **327 steps** | **~196 h ≈ 8.2 days** | **~47 h ≈ 2 days** |
+| **Total (mandatory)** | **340 steps** | **~204 h ≈ 8.5 days** | **~87 h ≈ 3.6 days** |
 
 OOD `browser` / `osworld` (gated): +14 h / +32 h respectively.
+
+The parallel column for Phase 1 collapses to sequential because the
+chosen Option C carries one rolling LoRA + bank across all six games.
+If R6 (LoRA drift) fires and we revert to Option A, Phase-1 parallel
+wall-clock recovers to ~12 h on 6× single-GPU vLLM (or a
+multi-machine deployment).
 
 LLM-as-judge spend: $0 (35B-A3B local). SFT teacher (gpt-5.5) is not
 re-invoked in this plan — the cold-start data is reused from the
 existing SFT adapters.
 
-## 11. Open decisions (block launch)
+## 11. Open decisions
 
-### 11.1 Existing per-game wrappers vs paper Table 3 hyperparams
+### 11.1 Per-game wrappers — paper hyperparam audit + new gymv wiring  🔴 OPEN
 
-The wrappers `run_2048.sh` / `run_tetris.sh` / `run_super_mario.sh`
-already exist but have not been audited against Table 3 since the
-35B-judge / atomic-save commits landed (2026-05-03). **Action**:
-diff each wrapper against Table 3 row before Phase-1 launch; record
-deltas (and rationale, if any) in this note's §13 changelog.
+Two sub-tasks before Phase-1 launch:
 
-### 11.2 Cross-game transfer mechanism (A vs B vs C)
+**(a) Hyperparam audit.** The wrappers `run_2048.sh` / `run_tetris.sh` /
+`run_super_mario.sh` already exist but have not been audited against
+Table 3 since the 35B-judge / atomic-save commits landed (2026-05-03).
+Diff each wrapper against the Table 3 row; record deltas (and rationale,
+if any) in this note's §13 changelog. `super_mario` only matters at
+Phase 2 now (see §7.1) but its wrapper is still the source of truth
+for the hyperparam row.
 
-| Option | Mechanism | Verdict |
+**(b) gymv adapter wiring.** `trainer/coevolution/episode_runner.py`
+currently only registers four games in `GAMINGAGENT_GAMES /
+ORAK_SUBPROCESS_GAMES` (`twenty_forty_eight / candy_crush / tetris /
+super_mario`). Phase-1 needs the four `Temporal/*` games wired in
+similarly so `--games <slug>` resolves end-to-end. Smallest plumb:
+- a `GYMV_TEMPORAL_GAMES` set in `episode_runner.py`;
+- a per-slug → `Temporal/<EnvId>` map (see `TEMPORAL_GAME_SPECS` in
+  `gymv_wrapper/temporal_visual_grounding.py`);
+- a make-env branch that wraps `gym_v.make(env_id)` with the new
+  `StochasticFrameSkip(n=8, stickprob=0)` wrapper landed in
+  commit `4f97dd6` and the `TemporalVisualGroundingWrapper`.
+
+### 11.2 Cross-game transfer mechanism (A vs B vs C)  🟢 RESOLVED 2026-05-03 PM
+
+| Option | Mechanism | Status |
 |---|---|---|
-| A | Independent runs · merge banks · merge adapters | **RECOMMENDED** — clean per-game baselines, novel-claim isolation |
-| B | Single run with `config.games=[6]` (default behaviour) | *games train concurrently every step — loses per-game step-budget control; rejected* |
-| C | Single run with `curriculum_schedule={0:[g1], 7:[g2], 17:[g3], …}` | *appealing but causes early-game LoRA drift as later games dominate gradient updates; rejected* |
+| A | Independent runs · merge banks · merge adapters | **Back-stop only** — kept as the recovery path if R6 (LoRA drift) fires; requires the `merge_banks.py` / `merge_adapters.py` scripts deferred in §9. |
+| B | Single run with `config.games=[6]` (default behaviour) | *Rejected* — concurrent training every step erases per-game step-budget control. |
+| **C** | **Sequential curriculum with bank + LoRA carry-over (`config.curriculum_schedule={0:[g1], 15:[g2], 30:[g3], …}`) and per-game snapshots** | **CHOSEN.** Matches user's intent ("one by one training, skill transfer when switching games"). Risk: late-game LoRA drift erases early-game competence — captured as R6 (§12). Mitigations: per-game snapshots in §4.2, per-game-baseline anchor in §4.3, Option A as documented back-stop. |
 
-Selection: **A**.
+### 11.3 Phase-1 source roster + Phase-2 held-out roster  🟢 RESOLVED 2026-05-03 PM
 
-### 11.3 Two new gymv games (`<gymv-A>` / `<gymv-B>`)
+* **Phase 1 (6 games, 15 steps each, sequential):** four gymv benchmark
+  picks (`SpaceHarrierII`, `StreetsOfRage2`, `Columns`, `Strider`) +
+  two paper Table-3 games (`candy_crush`, `tetris`).
+* **Phase 2 (6 held-out games, 5+15-step adaptation):** four gymv
+  benchmark leftovers (`AlteredBeast`, `Airstriker`, `DynamiteHeaddy`,
+  `ThunderForceIII`) + two paper Table-3 games (`2048`,
+  `super_mario_bros`).
 
-Pending user choice from the gymv catalog. Heuristic: pick one
-**deterministic / sparse-reward** game (clean contract learning) and
-one **dense / continuous-reward** game (harder binding, more
-transferable). Candidates: `sokoban`, `ace_attorney`, `doom`,
-`monopoly_deal`, `clue`. **Action**: user to confirm.
+Rationale: gymv picks come from `baselines/README.md` § "Gym-V benchmark
+scope" (commit `4f97dd6`) — high-success, genre-diverse for clean
+training signal in Phase 1, leftovers paired by genre for in-domain
+transfer probes in Phase 2 (§7.1). `2048 / super_mario_bros` deliberately
+deferred to Phase 2 to act as in-domain pairs for `tetris / Strider`.
+Full table in §4.1 (Phase 1) and §7.1 (Phase 2).
 
-### 11.4 Phase-2 budget — accept 5-step + 15-step or compress?
+### 11.4 Phase-2 budget — keep both budgets, or drop 5-step infer-only?  🔴 OPEN
 
 If wall-clock pressure forces compression, drop the 5-step
 inference-only baseline first (it's the cheapest to add later as a
@@ -334,35 +469,67 @@ control unconditionally — without it the lift claim is unfalsifiable.
 ## 12. Risks
 
 * **R1 — Phase 1 reward drift vs paper.** If our reproduction of
-  `tetris` / `2048` / `candy_crush` / `super_mario_bros` lands
-  outside ±20% of Figure 4 endpoints, the comparison story falls
-  apart at the start. Mitigation: §11.1 hyperparam audit; small (2-step)
-  smoke per game before committing the full 7–20 step run.
-* **R2 — Bank merge collapse.** If the cross-game dedupe collapses too
-  aggressively (threshold too low), the merged bank drops below ~30
-  skills and Phase-2 zero-shot has nothing to bind to. Mitigation:
-  emit `_merge_meta.json` per §5; sweep threshold ∈ {0.80, 0.85, 0.90}
-  if first attempt under-fires.
+  `tetris` / `candy_crush` lands outside **±30 %** of Figure 4
+  endpoints (loosened from ±20 % under curriculum mode — §4.3),
+  the comparison story is weakened. Mitigation: §11.1 hyperparam
+  audit; 2-step smoke per game before committing the full 15-step
+  run; trip to Option A (§11.2) if both paper games regress.
+* **R2 — Late-curriculum bank collapse / dilution.** Under Option C
+  the rolling bank can either (a) over-prune — curator
+  conservatively rejects new gymv skills because they overlap effects
+  with earlier paper-game skills — or (b) over-grow — late-game
+  skills accumulate without dedupe and bury earlier ones in
+  selection. Mitigation: monitor `bank_size` per Phase-1 step in
+  wandb; expect ~30–60 entries post-curriculum (§5); if bank size <
+  20 by step 30 or > 100 by step 75, abort and inspect curator scores.
 * **R3 — Phase-2 no-seed control beats seeded 15-step.** Plausible if
-  the gymv held-out games are too distant from Phase-1 source
-  distribution (e.g. switching from grid puzzles to fast-action games).
-  Mitigation: §11.3 game choice heuristic; report all six held-out
-  results, even negative.
-* **R4 — Cross-domain Phase-3 zero binding.** If no merged-bank skill
+  the held-out games are too distant from Phase-1 source distribution.
+  Mitigated structurally by the §7.1 in-domain pairing (every held-out
+  game pairs with a Phase-1 source game by genre). Report all six
+  held-out results even if negative.
+* **R4 — Cross-domain Phase-3 zero binding.** If no Phase-1 skill
   binds on `video` / `visual_reasoning`, the contract effects must be
   too gymv-grid-specific. Mitigation: paper §6 already calls this out
   as future work; partial result is publishable; skill-bridging
   abstraction (paper's PolySkill cross-ref) is the recovery path.
 * **R5 — 35B judge family bias inflates Phase-2 / Phase-3 admit rates.**
-  Mitigation: schedule a 5% gpt-5.5 spot-check over the final reports
+  Mitigation: schedule a 5 % gpt-5.5 spot-check over the final reports
   (per `common/models.py` "Judge family-bias spot-check"); flip
   `VLM_AGENT_BACKBONE_JUDGE_MODEL=gpt-5.5` for the spot-check pass.
+* **R6 — Sequential-curriculum LoRA drift (the cost of Option C).** The
+  late games (positions 5–6: `candy_crush`, `tetris`) dominate the
+  final LoRA gradient state; early-games (positions 1–2: `SpaceHarrierII`,
+  `StreetsOfRage2`) may regress 20–40 % in reward by end-of-curriculum.
+  Mitigations:
+  - **Per-game snapshots** (§4.2) — every game's end-of-15-step
+    LoRA + bank is captured; Phase-2 ablation can swap in the
+    per-game best instead of the post-curriculum state.
+  - **Per-game baseline anchor** (§4.3) — each game's end-of-its-own-15-steps
+    reward must clear its 4-backbone baseline; if game N regresses
+    below its baseline by end-of-curriculum, we report that as a
+    finding, not a bug.
+  - **Option A back-stop** (§11.2) — if R6 fires hard (>50 % regression
+    on ≥3 of 6 games), revert to independent-runs + offline
+    bank/adapter merge; cost is +12–46 h Phase-1 wall-clock and the
+    `merge_banks.py` / `merge_adapters.py` scripts deferred in §9.
 
 ## 13. Changelog
 
-* **2026-05-03**: initial draft. Per-game step budget grounded in
+* **2026-05-03 PM** — game roster + curriculum mechanism locked.
+  Phase-1 source: 4 gymv benchmark picks (`SpaceHarrierII`,
+  `StreetsOfRage2`, `Columns`, `Strider`) + 2 paper games
+  (`candy_crush`, `tetris`); Phase-2 holdout: 4 gymv leftovers +
+  `2048` + `super_mario_bros`. **15 steps each / 90 total**.
+  §11.2 Option C (sequential curriculum with bank+LoRA carry-over)
+  selected over the original Option A; §5 / §6 / §10 rewritten to
+  match. R6 added to §12 covering the LoRA-drift cost of Option C
+  with three mitigations. §11.1 expanded to cover the new gymv
+  adapter wiring task in `trainer/coevolution/episode_runner.py`.
+  Sanity bar in §4.3 loosened to ±30 % vs paper Figure 4 to account
+  for cross-game bank-borrowing under curriculum mode.
+* **2026-05-03 AM** — initial draft. Per-game step budget grounded in
   COS-PLAY paper Appendix C / Table 3. Plan structure, bank-merge
   utility, two-budget reporting protocol, OOD cost stratification,
-  and 5 risks captured. **3 open decisions** still block launch
+  and 5 risks captured. **3 open decisions** still blocked launch
   (§11.1 hyperparam audit, §11.3 two new gymv games, §11.4 budget
   trim if needed).
