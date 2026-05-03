@@ -60,7 +60,7 @@ The crafter never decides the *outcome* — it only proposes. The orchestrator's
 
 ## Failure-driven loop (two-tier trigger)
 
-The crafter is invoked at two cadences. See `implementation_notes/crafter-harness-orchestrator-roles.md` §"Two-tier trigger" for the rationale.
+The crafter is invoked at two cadences. See `implementation_notes/legacy/crafter-harness-orchestrator-roles.md` §"Two-tier trigger" for the rationale.
 
 ```
                     PER-EPISODE REACTIVE                       PER-BATCH REFLECTIVE

@@ -908,7 +908,7 @@ The main pipeline (`extract_skillbank_grpo_gpt54.py`):
 - [`../skill_bank/`](../skill_bank/) — New split-storage skill bank (`draft / candidate / active / archive`) with `SkillLifecycleManager` as the only writer. *Replaces this folder's `skill_bank/bank.py` for the live build.*
 - [`../common/`](../common/) — Canonical enums, ID helpers, `<state>` schema, `BACKBONE_MODEL` registry.
 - [`../data_structure/extensions/`](../data_structure/extensions/) — `SkillEpisode`, `SkillRecord`, `GateVerdict`, `SkillEvaluationRecord`, `BankMutationProposal`, `FailureTrace`, `RunRelease`.
-- [`../plans/README.md`](../plans/README.md) — Full plan corpus (`00-system` through `10-edits`) that the new pipeline implements.
+- [`../plans/README.md`](../plans/README.md) — Full plan corpus (`00-system` … `09-implementation`, plus **`legacy/`** for finished edit passes) that the new pipeline implements.
 - [`../IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) — Live delivered/pending tracker per Phase A → F.
 
 ---

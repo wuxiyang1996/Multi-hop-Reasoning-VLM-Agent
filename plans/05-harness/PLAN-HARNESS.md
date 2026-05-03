@@ -5,7 +5,7 @@
 > validator**, *not* a skill executor. The Day-10 trainer integration
 > calls only `harness.select_eligible_skills(...)` and
 > `harness.validate_invocation(...)` — never `harness.run_skill(...)`.
-> Authoritative record: [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md);
+> Authoritative record: [`implementation_notes/legacy/skill-lane-decision.md`](../../implementation_notes/legacy/skill-lane-decision.md);
 > see also [`harness/README.md` §22](../../harness/README.md).
 > Practical implications for this plan:
 >
@@ -23,7 +23,7 @@
 >   `inner_mdp` step where a skill is invoked" is **superseded**: there
 >   is no inner-MDP step in the live trainer (single-MDP companion
 >   decision, T3.6 — see
->   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md)).
+>   [`implementation_notes/legacy/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/legacy/single-vs-two-mdp-tradeoff.md)).
 >   The trainer calls the Harness once per actor decision, as filter +
 >   validator only.
 > * **`SkillEpisode` is still emitted** — once per skill consultation,

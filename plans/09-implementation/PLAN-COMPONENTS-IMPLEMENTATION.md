@@ -4,7 +4,7 @@
 > implementation plan was authored under the lane-(b) assumption
 > (skills as runnable programs); the lane was closed in favour of
 > retrieval-payload semantics. Authoritative record:
-> [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md).
+> [`implementation_notes/legacy/skill-lane-decision.md`](../../implementation_notes/legacy/skill-lane-decision.md).
 > Practical implications for the build sheet:
 >
 > * **The mental-model row "Skill Harness — *Can this skill run here
@@ -24,7 +24,7 @@
 >   warm-start adapters listed in
 >   `runs/sft_coldstart/sft_summary_all.json` correspond to that
 >   architecture. Companion record:
->   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md).
+>   [`implementation_notes/legacy/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/legacy/single-vs-two-mdp-tradeoff.md).
 > * **Crafter `enable_protocol_patching` flag (T1.3a)** is the single
 >   source of truth for whether a build target is live or
 >   offline-diagnostic. `False` (default) → live trainer; `True` →
@@ -37,7 +37,7 @@
 >
 > Sections below remain useful as the *full lane-(b) build sheet* — the
 > escalation target if the rollback condition in
-> [`skill-lane-decision.md` §4](../../implementation_notes/skill-lane-decision.md) trips. Treat them as the build
+> [`skill-lane-decision.md` §4](../../implementation_notes/legacy/skill-lane-decision.md) trips. Treat them as the build
 > sheet for the offline gate / diagnostic stack unless a row is
 > explicitly tagged "live."
 
@@ -392,7 +392,7 @@ Implement only three creation modes ([PLAN-SKILL-CRAFTER.md three creation modes
 
 ### 4.2 `crafter/proposal_types.py`
 
-Carry the evidence-driven invariant on every proposal (per the Revision Note in [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) and [PLAN-SKILL-CRAFTER.md §2.5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)):
+Carry the evidence-driven invariant on every proposal (per the Revision Note in [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../legacy/10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) and [PLAN-SKILL-CRAFTER.md §2.5](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)):
 
 ```python
 class BaseProposal(BaseModel):
@@ -660,7 +660,7 @@ That fits the existing plans: the Harness is the micro runtime, the Crafter is t
 | [PLAN-UNIFIED-SKILL-GATE.md](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | Canonical lifecycle + ownership split (`SkillLifecycleManager`, `GateRunner`, `PromotionOrchestrator`) and storage split |
 | [PLAN-SKILL-BANK.md](../03-skill-bank/PLAN-SKILL-BANK.md) | Skill object, retrieval API, lineage / negative-knowledge fields read by the Harness |
 | [PLAN-ACTION-AGENT.md §1a](../02-action-agent/PLAN-ACTION-AGENT.md#1a-actor-role-and-boundary) | Actor consumes `eligible_skills`, remains the online policy |
-| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Edit-plan that aligned existing plan files for the evidence-driven invariant |
+| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../legacy/10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Edit-plan that aligned existing plan files for the evidence-driven invariant |
 
 ---
 

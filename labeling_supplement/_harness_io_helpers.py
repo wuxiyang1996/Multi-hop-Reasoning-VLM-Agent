@@ -19,7 +19,7 @@ It is deliberately import-side-effect free: the dump driver may import
 selectively.
 
 PLAN refs: PLAN-UNIFIED-SKILL-GATE §§3, 7; PLAN-HARNESS §§5, 6;
-implementation_notes/crafter-harness-orchestrator-roles.md.
+implementation_notes/legacy/crafter-harness-orchestrator-roles.md.
 """
 
 from __future__ import annotations

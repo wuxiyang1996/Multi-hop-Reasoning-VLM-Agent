@@ -1,6 +1,6 @@
 """Per-episode reactive Crafter pass — coverage for the two-tier trigger.
 
-Spec: implementation_notes/crafter-harness-orchestrator-roles.md
+Spec: implementation_notes/legacy/crafter-harness-orchestrator-roles.md
 §"Two-tier trigger" + crafter/service.py::reflect_on_episode docstring.
 
 These tests cover four properties:

@@ -1,7 +1,7 @@
 """Skill Crafter — slow-timescale proposal layer.
 
 Spec: PLAN-SKILL-CRAFTER, PLAN-COMPONENTS-IMPLEMENTATION §4 (Phase C),
-``implementation_notes/crafter-harness-orchestrator-roles.md`` §"Two-tier
+``implementation_notes/legacy/crafter-harness-orchestrator-roles.md`` §"Two-tier
 trigger model".
 
 The crafter is the *creative* layer of the system: it proposes new skills

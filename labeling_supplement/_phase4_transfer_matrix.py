@@ -2,7 +2,7 @@
 """Phase-5/6 -- Stage 6 full NxN cross-domain transfer matrix driver.
 
 Closes the final cell of the Phase-5/6 cross-domain measurement plan
-(implementation_notes/phase5-cross-domain-measurement.md, section 9).
+(implementation_notes/legacy/phase5-cross-domain-measurement.md, section 9).
 Stages 0-5 are already shipped:
 
     Stage 0  -- pre-flight static audits (upper_bounds.csv).

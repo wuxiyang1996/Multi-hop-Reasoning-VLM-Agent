@@ -4,7 +4,7 @@
 > skill is a *retrieval payload + procedural guidance the actor LLM
 > consults*, **not** a runnable program executed by the harness. See
 > the canonical record:
-> [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md).
+> [`implementation_notes/legacy/skill-lane-decision.md`](../../implementation_notes/legacy/skill-lane-decision.md).
 > Practical implications for this plan:
 >
 > * The Crafter ships with **Repairer parked behind
@@ -27,7 +27,7 @@
 >   GRPO LoRAs (`skill_selection` + `action_taking`). `hop_select` is
 >   a non-target — references to a separate hop-selection LoRA below
 >   are obsolete. Companion record:
->   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md).
+>   [`implementation_notes/legacy/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/legacy/single-vs-two-mdp-tradeoff.md).
 >
 > Sections below were authored under the lane-(b) assumption; treat
 > protocol-edit machinery as lane-(b) / offline unless the section is

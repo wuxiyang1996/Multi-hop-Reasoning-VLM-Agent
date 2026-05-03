@@ -1,7 +1,7 @@
 # Harness usability test — intra-gymv ablation, and why the offline cycle is a wire-up prerequisite
 
 > **Status:** design captured. The test driver
-> [`labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py)
+> [`labeling_supplement/dump_harness_io_gpt54.py`](../../labeling_supplement/dump_harness_io_gpt54.py)
 > (online + offline surfaces) is the substrate. The
 > ablation runner under `skill_transfer_test/` is the *next* item; this
 > note pins its scope, its canonical anchors, and the question
@@ -11,13 +11,13 @@
 > not parallel work.
 > **Last reviewed:** 2026-04-30.
 > **Cross-refs:**
-> [`plans/05-harness/PLAN-HARNESS.md`](../plans/05-harness/PLAN-HARNESS.md) (§20 ablations, §10b GateRunner),
-> [`harness/README.md`](../harness/README.md) (audit §9–§22, wire-up §15–§18, suggested work-order),
-> [`implementation_notes/crafter-harness-orchestrator-roles.md`](crafter-harness-orchestrator-roles.md)
+> [`plans/05-harness/PLAN-HARNESS.md`](../../plans/05-harness/PLAN-HARNESS.md) (§20 ablations, §10b GateRunner),
+> [`harness/README.md`](../../harness/README.md) (audit §9–§22, wire-up §15–§18, suggested work-order),
+> [`implementation_notes/legacy/crafter-harness-orchestrator-roles.md`](crafter-harness-orchestrator-roles.md)
 > (§3 I/O contract, §6.1 pending Harness mirror),
-> [`labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py)
+> [`labeling_supplement/dump_harness_io_gpt54.py`](../../labeling_supplement/dump_harness_io_gpt54.py)
 > (the live driver this test wraps),
-> [`common/enums.py`](../common/enums.py)
+> [`common/enums.py`](../../common/enums.py)
 > (`SOURCE_DOMAINS = ("gymv",)`, `TRANSFER_TARGET_DOMAINS`).
 
 This memo records the design discussion behind testing the **usability
@@ -38,12 +38,12 @@ choice, and what was deliberately deferred.
 
 ## 1. What "harness usability test" means here
 
-Per [`PLAN-HARNESS.md` §1a](../plans/05-harness/PLAN-HARNESS.md#1a-harness-role-as-frozen-72b-runtime-layer)
+Per [`PLAN-HARNESS.md` §1a](../../plans/05-harness/PLAN-HARNESS.md#1a-harness-role-as-frozen-72b-runtime-layer)
 the Harness is a runtime *narrows + may veto* layer — it never picks
 the next action and never mutates the bank. The question
 "is the Harness usable?" therefore decomposes into the four research
 questions named in
-[`PLAN-HARNESS.md` §20.2](../plans/05-harness/PLAN-HARNESS.md#202-core-evaluation-questions):
+[`PLAN-HARNESS.md` §20.2](../../plans/05-harness/PLAN-HARNESS.md#202-core-evaluation-questions):
 
 | Q | Question | Primary signal |
 |---|---|---|
@@ -58,16 +58,16 @@ decision quality on the eligible set is rising, then both the Harness
 *and* the Actor are doing real work. If A0 and A4 differ but Actor
 decision quality on the eligible set is flat, the system is a
 72B-driven policy in disguise
-([`PLAN-HARNESS.md` §1a.5](../plans/05-harness/PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor))
+([`PLAN-HARNESS.md` §1a.5](../../plans/05-harness/PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor))
 and the architecture story has failed.
 
 The **answer-method** for these four questions is also pinned in §20:
 the five ablation cells A0–A4 in
-[`§20.3`](../plans/05-harness/PLAN-HARNESS.md#203-ablation-matrix), the
+[`§20.3`](../../plans/05-harness/PLAN-HARNESS.md#203-ablation-matrix), the
 three reports in
-[`§20.6`](../plans/05-harness/PLAN-HARNESS.md#206-analysis-templates),
+[`§20.6`](../../plans/05-harness/PLAN-HARNESS.md#206-analysis-templates),
 and the four slice axes in
-[`§20.5`](../plans/05-harness/PLAN-HARNESS.md#205-dataset-slices). We
+[`§20.5`](../../plans/05-harness/PLAN-HARNESS.md#205-dataset-slices). We
 inherit them verbatim — this note does **not** redefine cell semantics
 or thresholds.
 
@@ -75,23 +75,23 @@ or thresholds.
 
 ## 2. Where to run the test — intra-gymv first, by canon
 
-[`harness/README.md` §22](../harness/README.md#22-feasible_domains-granularity-collapses-gymv-games-into-a-single-bucket)
+[`harness/README.md` §22](../../harness/README.md#22-feasible_domains-granularity-collapses-gymv-games-into-a-single-bucket)
 makes the case that intra-gymv (game ↔ game inside `gymv`, e.g.
 `Airstriker → Strider`, `Columns → Tetris`) is the right *first* place
 to exercise transfer:
 
 | Cost axis | gymv → browser/osworld/video/vr | gymv → gymv (cross-game) |
 |---|---|---|
-| Adapter executors to wire ([`§1`](../harness/README.md#1-transfer-target-adapters-are-deterministic-stubs)/[`§16.1`](../harness/README.md#161-adapter-executors-are-stubs-so-run_skill-is-a-black-hole)) | 4 transfer + 1 source = 5 | **1** (`GymvAdapter`) |
+| Adapter executors to wire ([`§1`](../../harness/README.md#1-transfer-target-adapters-are-deterministic-stubs)/[`§16.1`](../../harness/README.md#161-adapter-executors-are-stubs-so-run_skill-is-a-black-hole)) | 4 transfer + 1 source = 5 | **1** (`GymvAdapter`) |
 | New env bindings | full browser DOM, VM control, frame indexer, MCQ resolver | **none** — `cold_start/generate_cold_start_actor*.py` already drives the envs; expose its `step()` |
-| Demo corpus ([`§4`](../harness/README.md#4-fewshotadapter-runs-but-the-scorer-is-a-placeholder)) | doesn't exist | **already on disk** — every `labeling/skill_actions_out/.../<game>/episode_*.json` is a real rollout with state, action, intention, ground-truth `skill_query.selected_skill_id` |
-| Domain-aware `success_fn` ([`§4`](../harness/README.md#4-fewshotadapter-runs-but-the-scorer-is-a-placeholder)) | per target (DOM diff, screen diff, video QA, …) | **single gymv-shape scorer** keyed on consecutive `schema_canonical` blocks + `cumulative_reward` |
+| Demo corpus ([`§4`](../../harness/README.md#4-fewshotadapter-runs-but-the-scorer-is-a-placeholder)) | doesn't exist | **already on disk** — every `labeling/skill_actions_out/.../<game>/episode_*.json` is a real rollout with state, action, intention, ground-truth `skill_query.selected_skill_id` |
+| Domain-aware `success_fn` ([`§4`](../../harness/README.md#4-fewshotadapter-runs-but-the-scorer-is-a-placeholder)) | per target (DOM diff, screen diff, video QA, …) | **single gymv-shape scorer** keyed on consecutive `schema_canonical` blocks + `cumulative_reward` |
 | Slot-binding ontology | cross-modal — `tile → DOM_node`, `direction → click`, … | gymv-internal — abstract verbs over `selectable_entity` / `container_entity` / `direction` |
-| Protocol lift ([`§21`](../harness/README.md#21-cold-start-protocol-is-natural-language-prose-not-typed-hops)) | needed | needed (same lift, but only over gymv-shaped skills) |
+| Protocol lift ([`§21`](../../harness/README.md#21-cold-start-protocol-is-natural-language-prose-not-typed-hops)) | needed | needed (same lift, but only over gymv-shaped skills) |
 
 Five out of six axes are dramatically smaller; only the protocol lift
 is identical work either way and is the hard prerequisite. The
-[`§22`](../harness/README.md#22-feasible_domains-granularity-collapses-gymv-games-into-a-single-bucket)
+[`§22`](../../harness/README.md#22-feasible_domains-granularity-collapses-gymv-games-into-a-single-bucket)
 callout therefore says, verbatim:
 
 > So the order is: first prove `harness.run_skill(COMMIT/MERGE,
@@ -111,12 +111,12 @@ experiment. We do not invent a parallel framework for it.
 |---|---|---|
 | **A0 — No Harness** | Actor + bank retrieval only, no `select_eligible_skills`, no `validate_invocation`, no `run_skill`. `SkillEpisode` still logged for measurement. | Baseline. Read `skill_query.selected_skill_id` from `labeling/skill_actions_out/.../<game>/episode_*.json` directly. |
 | **A1 — Harness-lite** | `EligibilityFilter` (binding + precondition checks; G1 only). No G0 evidence check, no adapter validation, no transfer gating. | `dump_harness_io_gpt54.py --surface online` with G0/G2/transfer disabled. Measures whether **structural slot binding** alone narrows cold-start retrieval. |
-| **A2 — Harness-core** | A1 + G0 evidence-role check ([`§5.1`](../plans/05-harness/PLAN-HARNESS.md#51-skillepisode)) + G2 adapter validation + invocation veto + advisory scoring (`fit_score` / `risk_score` per audit [`§9`](../harness/README.md#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)). | The "filter + veto + advise" cell. Defends [`PLAN-HARNESS.md` §1a.5](../plans/05-harness/PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor) (the trained Actor must still do work). |
+| **A2 — Harness-core** | A1 + G0 evidence-role check ([`§5.1`](../../plans/05-harness/PLAN-HARNESS.md#51-skillepisode)) + G2 adapter validation + invocation veto + advisory scoring (`fit_score` / `risk_score` per audit [`§9`](../../harness/README.md#9-online-surface-api-gaps-validate_invocation-scoring-intentionactive_skill-inputs)). | The "filter + veto + advise" cell. Defends [`PLAN-HARNESS.md` §1a.5](../../plans/05-harness/PLAN-HARNESS.md#1a5-why-the-frozen-72b-harness-should-not-replace-the-actor) (the trained Actor must still do work). |
 | **A3 — Harness-transfer** | A2 + Stage 1 replay (G3) + Stage 2 shadow (G4) + Stage 3a few-shot transfer (G3a) **with the §22 task axis active**. | `dump_harness_io_gpt54.py --surface offline` over the Crafter's `TransferProposal`s (which `decide_skill_crafting_gpt54.py` already mints — R5, ~29 of them on the live `skill_bank_out/run_20260430_030637` snapshot). Each `(source_game → target_game)` becomes one Stage-3a probe. |
 | **A4 — Full system** | A3 + G5 non-regression + promotion / rollback hooks. | Plug into the existing `decide_promotion_gpt54.py`. Sustained G0 failures trigger demotion. |
 
 Cell-pair deltas that matter (per
-[`§20.3`](../plans/05-harness/PLAN-HARNESS.md#203-ablation-matrix)):
+[`§20.3`](../../plans/05-harness/PLAN-HARNESS.md#203-ablation-matrix)):
 A0→A1 = structural validation alone; A1→A2 = G0 + veto contribution;
 A2→A3 = transfer-safety contribution; A3→A4 = promotion / rollback
 contribution. The intra-gymv slice populates the §20.5
@@ -127,7 +127,7 @@ gap §22 says we need to fill.
 
 ## 4. Hard prerequisites already named in the audit
 
-[`harness/README.md` §9–§22](../harness/README.md#spec-contract-gaps-audit-2026-04-30)
+[`harness/README.md` §9–§22](../../harness/README.md#spec-contract-gaps-audit-2026-04-30)
 enumerates the gaps that would produce silent garbage if we ran cells
 today. Three of them gate which cells are actually evaluable:
 
@@ -138,7 +138,7 @@ today. Three of them gate which cells are actually evaluable:
 | **§16.1 — adapter executors are stubs** | `run_skill` fabricates a plausible episode without touching the env. **Cell A2 is *also* degenerate** because the rollout never advances. | Wire `GymvAdapter.set_executor(real_step)` per Suggested-work-order #8 — `cold_start/generate_cold_start_actor_gymv.py` already drives the real env, so this is exposing its `step()`, not new infrastructure. |
 
 The order in
-[`harness/README.md` §"Suggested work-order"](../harness/README.md#suggested-work-order)
+[`harness/README.md` §"Suggested work-order"](../../harness/README.md#suggested-work-order)
 #6 → #7 → #8 is exactly the order required to make all five cells
 meaningful. The plan respects it.
 
@@ -237,7 +237,7 @@ The other recurring scoping question:
 > *"Can we skip the test and wire all modules together directly?"*
 
 The canonical answer is in
-[`harness/README.md` §15–§17](../harness/README.md#wire-up-status-audit-2026-04-30):
+[`harness/README.md` §15–§17](../../harness/README.md#wire-up-status-audit-2026-04-30):
 
 > **No for the live online runtime, yes for the offline promotion loop.
 > The asymmetry is structural — see §17 for why the offline loop is a
@@ -329,7 +329,7 @@ unnecessary.
 | Path | Cost if it works | Cost if it doesn't |
 |---|---|---|
 | **Wire online directly today** | Doesn't apply — §17 makes it a no-op runtime. Best case = silent no-op; "works" by accident only. | Silent regression on `cold_start/generate_cold_start_actor*.py` runs (~$1.5 K per full sweep) until someone notices the env didn't advance. Each bad sweep is multi-day, multi-hundred-dollar lost cycle. |
-| **Phase 0 of the test (A0/A1, existing dump driver, smoke slice)** | ~1 working session, $0 API spend, surfaces all of audit §9–§14 gaps as concrete numbers. Per [`§20.7`](../plans/05-harness/PLAN-HARNESS.md#207-minimal-rollout-order): if A0 ≈ A1 on the smoke slice, the rest of the suite isn't worth running yet — invaluable signal before investing in #6/#7/#8. | Worst case: discovers a deeper gap, saves us from doing #6/#7/#8 wrong. |
+| **Phase 0 of the test (A0/A1, existing dump driver, smoke slice)** | ~1 working session, $0 API spend, surfaces all of audit §9–§14 gaps as concrete numbers. Per [`§20.7`](../../plans/05-harness/PLAN-HARNESS.md#207-minimal-rollout-order): if A0 ≈ A1 on the smoke slice, the rest of the suite isn't worth running yet — invaluable signal before investing in #6/#7/#8. | Worst case: discovers a deeper gap, saves us from doing #6/#7/#8 wrong. |
 | **Phase 1–4 of the test (#6 protocol lift, #7 task axis, #8 gymv executor)** | ~3–5 working sessions, $0 API spend. Lands additive contract changes that any future wire-up needs anyway. Produces the first non-empty `bank.runnable()`. | Strictly additive — if a phase fails, the previous one still leaves the codebase in a strictly better state. |
 | **Phase 5 (full A0–A4 + reports) + §16.2/§16.3/§16.4/§16.5 + online wire-up** | Now safe to attempt. Cold-start runs see real `SkillEpisode`s, `bank.runnable()` is populated, gates have fired at least once. | Same risks as any live integration — but no longer compounded by the §16/§17 silent-failure modes. |
 
@@ -341,7 +341,7 @@ there is no scenario in which not running it is cheaper.
 ## 7. Recommended phased rollout
 
 Same numbering as
-[`harness/README.md` §"Suggested work-order"](../harness/README.md#suggested-work-order),
+[`harness/README.md` §"Suggested work-order"](../../harness/README.md#suggested-work-order),
 restated for the intra-gymv probe:
 
 | Phase | Maps to | Deliverable | Cell coverage |
@@ -370,10 +370,10 @@ value first".
 2. **Audit-fix ownership.** Items §21 (protocol lift) and §22
    (`feasible_tasks` field) are **not** in `skill_transfer_test/` —
    they touch
-   [`data_structure/extensions/skill_record.py`](../data_structure/extensions/skill_record.py),
-   [`harness/eligibility.py`](../harness/eligibility.py),
-   [`harness/few_shot_adapter.py`](../harness/few_shot_adapter.py),
-   [`labeling/`](../labeling/). They land as separate commits owned by
+   [`data_structure/extensions/skill_record.py`](../../data_structure/extensions/skill_record.py),
+   [`harness/eligibility.py`](../../harness/eligibility.py),
+   [`harness/few_shot_adapter.py`](../../harness/few_shot_adapter.py),
+   [`labeling/`](../../labeling/). They land as separate commits owned by
    their canonical homes (additive contract changes);
    `skill_transfer_test/` only consumes them.
 3. **Scope of Phase 0 reports.** Limit to §20.6(a) (Actor decision
@@ -393,15 +393,15 @@ value first".
   respectively.
 - **Do not redefine cell semantics, gate thresholds, or ablation
   metrics inside `skill_transfer_test/`.** Those live in
-  [`§5.1`](../plans/05-harness/PLAN-HARNESS.md#51-skillepisode),
-  [`§10`](../plans/05-harness/PLAN-HARNESS.md#10-promotion-gates),
-  [`§20`](../plans/05-harness/PLAN-HARNESS.md#20-optional-harness-ablations),
+  [`§5.1`](../../plans/05-harness/PLAN-HARNESS.md#51-skillepisode),
+  [`§10`](../../plans/05-harness/PLAN-HARNESS.md#10-promotion-gates),
+  [`§20`](../../plans/05-harness/PLAN-HARNESS.md#20-optional-harness-ablations),
   and
-  [`PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md).
+  [`PLAN-UNIFIED-SKILL-GATE.md`](../../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md).
   The test consumes them; if it needs to change them, that's a signal
   to update the upstream plan first.
 - **Do not skip Phase 0** because A2–A4 sound more interesting. Per
-  [`§20.7`](../plans/05-harness/PLAN-HARNESS.md#207-minimal-rollout-order),
+  [`§20.7`](../../plans/05-harness/PLAN-HARNESS.md#207-minimal-rollout-order),
   if `A4 − A0 ≈ 0` on the smoke slice the rest of the suite is not
   worth running — Phase 0 is the cheapest way to find that out.
 - **Do not collapse Q1, Q2, Q3, Q4 into one number.** The point of the
@@ -416,20 +416,20 @@ value first".
 
 ## 10. TL;DR
 
-- **"Test the harness" = run [`PLAN-HARNESS.md` §20](../plans/05-harness/PLAN-HARNESS.md#20-optional-harness-ablations)
+- **"Test the harness" = run [`PLAN-HARNESS.md` §20](../../plans/05-harness/PLAN-HARNESS.md#20-optional-harness-ablations)
   cells A0–A4 with the §20.6 reports, on the
-  [`harness/README.md` §22](../harness/README.md#intra-gymv-transfer-is-the-right-first-milestone)
+  [`harness/README.md` §22](../../harness/README.md#intra-gymv-transfer-is-the-right-first-milestone)
   intra-gymv probe.** Five cells, four research questions, three
   reports. Cell semantics and thresholds are pinned upstream.
 - **`skill_transfer_test/` is a measurement layer, not a parallel
   framework.** It wraps the existing
-  [`labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py)
+  [`labeling_supplement/dump_harness_io_gpt54.py`](../../labeling_supplement/dump_harness_io_gpt54.py)
   and writes only the §20.6 reports. It writes none of the
   audit-trail artefacts (proposals, episodes, gate verdicts, audit
   records).
 - **"Wire all modules directly" is not a safe alternative.**
-  [`harness/README.md` §16](../harness/README.md#16-hard-blockers--would-silently-break-the-runtime-if-flipped-today)
-  lists five hard blockers; [`§17`](../harness/README.md#17-the-keystone--bankrunnable-is-empty-until-the-offline-loop-fires-once)
+  [`harness/README.md` §16](../../harness/README.md#16-hard-blockers--would-silently-break-the-runtime-if-flipped-today)
+  lists five hard blockers; [`§17`](../../harness/README.md#17-the-keystone--bankrunnable-is-empty-until-the-offline-loop-fires-once)
   is the keystone — `bank.runnable()` is empty until the offline
   promotion loop fires once. The test **is** that offline loop.
 - **Test does not replace §16.2/§16.3/§16.4/§16.5 fixes.** Those are
@@ -448,5 +448,5 @@ value first".
 - **Trap to avoid.** `skill_transfer_test/` must not import another
   driver's code or write into another driver's output directory. The
   on-disk JSONL is the only shared API — same rule as
-  [`labeling_supplement/`](../labeling_supplement/) per
+  [`labeling_supplement/`](../../labeling_supplement/) per
   [`crafter-harness-orchestrator-roles.md` §8](crafter-harness-orchestrator-roles.md#8-tldr).

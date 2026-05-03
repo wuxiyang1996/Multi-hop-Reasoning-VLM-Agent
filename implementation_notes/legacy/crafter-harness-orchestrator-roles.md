@@ -1,24 +1,24 @@
 # Skill Crafter / Harness / Orchestrator — roles, I/O contracts, and the offline `labeling_supplement` mirror
 
 > **Status:** design captured. Live Crafter ships the two-tier trigger
-> in [`crafter/service.py`](../crafter/service.py)
+> in [`crafter/service.py`](../../crafter/service.py)
 > (`reflect_on_episode` per-episode reactive pass + `cycle` per-batch
-> reflective pass) plus a frozen [`BankView`](../crafter/_bank_view.py)
+> reflective pass) plus a frozen [`BankView`](../../crafter/_bank_view.py)
 > snapshot for the wider read-scope. The Phase-1 rule-based mirror
 > ships offline in
-> [`labeling_supplement/decide_skill_crafting_gpt54.py`](../labeling_supplement/decide_skill_crafting_gpt54.py).
+> [`labeling_supplement/decide_skill_crafting_gpt54.py`](../../labeling_supplement/decide_skill_crafting_gpt54.py).
 > Harness `GateRunner` mirror and Orchestrator `PromotionOrchestrator`
 > mirror are the next two scripts in the same folder; their I/O
 > contracts are fixed by this note so they can be implemented
 > independently.
 > **Last reviewed:** 2026-04-30.
 > **Cross-refs:**
-> [`plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md`](../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md),
-> [`plans/05-harness/PLAN-HARNESS.md`](../plans/05-harness/PLAN-HARNESS.md),
-> [`plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md),
-> [`plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md),
-> [`crafter/README.md`](../crafter/README.md) (live code overview),
-> [`labeling/readme.md`](../labeling/readme.md) (offline labelers it mirrors).
+> [`plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md`](../../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md),
+> [`plans/05-harness/PLAN-HARNESS.md`](../../plans/05-harness/PLAN-HARNESS.md),
+> [`plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`](../../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md),
+> [`plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md),
+> [`crafter/README.md`](../../crafter/README.md) (live code overview),
+> [`labeling/readme.md`](../../labeling/readme.md) (offline labelers it mirrors).
 
 This memo records the design discussion behind splitting Skill Crafter,
 Skill Harness, and Pipeline Orchestrator into three separate roles, why
@@ -97,8 +97,8 @@ to one of them:
 
 | Pass | Live entry point | Threshold | Modes that fire | Latency expectation |
 |---|---|---|---|---|
-| **Per-episode reactive** | [`SkillCrafterService.reflect_on_episode(EpisodeReflection)`](../crafter/service.py) | `min_count=1` (one signal is enough) | Failure-Reflector, per-episode Hypothesizer fall-through, **subsumption-retire** | one teacher call worst case; ms with rule path |
-| **Per-batch reflective** | [`SkillCrafterService.cycle(new_failures=...)`](../crafter/service.py) | `hot_pattern_threshold` (default 3) | Composer, Generalizer, statistical retires/patches | scheduled by the orchestrator every K episodes |
+| **Per-episode reactive** | [`SkillCrafterService.reflect_on_episode(EpisodeReflection)`](../../crafter/service.py) | `min_count=1` (one signal is enough) | Failure-Reflector, per-episode Hypothesizer fall-through, **subsumption-retire** | one teacher call worst case; ms with rule path |
+| **Per-batch reflective** | [`SkillCrafterService.cycle(new_failures=...)`](../../crafter/service.py) | `hot_pattern_threshold` (default 3) | Composer, Generalizer, statistical retires/patches | scheduled by the orchestrator every K episodes |
 
 The split exists because some Crafter modes have very different
 statistical demands. Failure-Reflector and Hypothesizer can act on a
@@ -113,14 +113,14 @@ Both surfaces share the *same* per-pattern dispatch chain
 (`repair > retire > hypothesise`, PLAN-SKILL-CRAFTER §6.5) — only the
 threshold and the post-dispatch surfaces (subsumption check, batch
 stats) differ. This is mechanically enforced in
-[`crafter/service.py::_run_failure_dispatch`](../crafter/service.py).
+[`crafter/service.py::_run_failure_dispatch`](../../crafter/service.py).
 
 #### Read scope — wider than active-only
 
 The per-episode pass needs to see *more* than the active store: it
 reads candidate skills the Bank Agent just minted and recent
 bank-mgmt actions for dedup. Live code exposes this through the frozen
-[`BankView`](../crafter/_bank_view.py) snapshot built at the start of
+[`BankView`](../../crafter/_bank_view.py) snapshot built at the start of
 every `reflect_on_episode` / `cycle` call:
 
 | Store | Surface in `BankView` | Used by |
@@ -145,19 +145,19 @@ automatically emits a `RetireProposal{reason: "subsumed_by=<cand_id> ..."}`.
 The check is conservative on purpose — false positives cost one
 gate-rejected `RetireProposal`, and the active gets to keep running
 until G3/G5 confirm it really is dominated. See
-[`crafter/_bank_view.py::_subsumes`](../crafter/_bank_view.py).
+[`crafter/_bank_view.py::_subsumes`](../../crafter/_bank_view.py).
 
 #### Early-training noise filters: coalesce + cooldown
 
 The per-episode reactive pass uses `min_count=1` (any single failure
 fires Repair) — that is the *whole point* of the per-episode tier, but
 in early training it produces severe write amplification. Empirically,
-the offline mirror under [`labeling_supplement/reflect_per_episode_gpt54.py`](../labeling_supplement/reflect_per_episode_gpt54.py)
+the offline mirror under [`labeling_supplement/reflect_per_episode_gpt54.py`](../../labeling_supplement/reflect_per_episode_gpt54.py)
 showed an **11.3× duplicate-mint factor** across 340 episodes
 (260 PatchProposals collapsing to only 23 unique
 `(base_skill_id, recovery_strategy)` tuples). To keep the gate stack,
 the artifact store, and the audit trail bounded in early training,
-[`SkillCrafterService`](../crafter/service.py) now applies two
+[`SkillCrafterService`](../../crafter/service.py) now applies two
 deterministic filters to the failure-driven dispatch chain. Both are
 on by default; both are observable on every `CrafterCycleResult`
 (`n_patches_coalesced`, `n_patches_skipped_cooldown`).
@@ -299,8 +299,8 @@ and `skill_bank_out` shapes. This is the single source of truth for the
 
 | Component / surface | Inputs (canonical names) | Outputs |
 |---|---|---|
-| **Crafter — per-episode reactive** ([`reflect_on_episode`](../crafter/service.py)) | [`EpisodeReflection`](../data_structure/extensions/episode_reflection.py) carrying `failure_traces`, `skill_episodes`, `new_candidate_skill_ids`, `bank_agent_actions`, `outcome_summary` + a frozen `BankView` snapshot (built by the service) | `PatchProposal` / `RetireProposal` / `HypothesisProposal` written to `draft_store` (plus subsumption `RetireProposal`s) |
-| **Crafter — per-batch reflective** ([`cycle`](../crafter/service.py)) | accumulated `FailureTrace[]` over the last K episodes, current bank state via `BankView` | same proposal taxonomy + Composer / Generalizer outputs |
+| **Crafter — per-episode reactive** ([`reflect_on_episode`](../../crafter/service.py)) | [`EpisodeReflection`](../../data_structure/extensions/episode_reflection.py) carrying `failure_traces`, `skill_episodes`, `new_candidate_skill_ids`, `bank_agent_actions`, `outcome_summary` + a frozen `BankView` snapshot (built by the service) | `PatchProposal` / `RetireProposal` / `HypothesisProposal` written to `draft_store` (plus subsumption `RetireProposal`s) |
+| **Crafter — per-batch reflective** ([`cycle`](../../crafter/service.py)) | accumulated `FailureTrace[]` over the last K episodes, current bank state via `BankView` | same proposal taxonomy + Composer / Generalizer outputs |
 | **Crafter** (offline mirror) | `bank_snapshot @ snapshot_id`, `skill_actions_run` (usage stats), recent `bank_management_io.json` updates | `PatchProposal \| ComposeProposal \| GeneralizeProposal \| RetireProposal` written to `draft_store` |
 | **Harness — online filter** | `(schema_state, intention, retrieved_skills, active_skill, local_trace)` | `eligible_skills (ranked)`, `invocation_veto/permit`, `SkillEpisode` |
 | **Harness — `GateRunner` (offline)** | `proposal`, `bank_snapshot_id`, stage-specific args (`replay_slice_ids`, `shadow_traces`, `batch_metrics`) | per-stage `GateVerdictPayload{stage, verdict, metrics, diagnostic_labels}` + roll-up `SkillEvaluationRecord{final_decision, approved_domains, rejected_domains, bank_snapshot_id}` |
@@ -324,7 +324,7 @@ and `skill_bank_out` shapes. This is the single source of truth for the
 ## 4. Why mirror these into `labeling_supplement/`?
 
 The repo already has a successful pattern:
-[`labeling/`](../labeling/) — frozen-teacher, deterministic, parallelised
+[`labeling/`](../../labeling/) — frozen-teacher, deterministic, parallelised
 offline labelers (`label_intentions_gpt54.py`,
 `extract_skillbank_gpt54.py`, `extract_skillbank_gymv_gpt54.py`,
 `label_skill_actions_gpt54.py`) that produce reproducible cold-start
@@ -525,9 +525,9 @@ before adding more Crafter logic.
 
 | # | Crafter assumes | Current reality | Evidence in this repo |
 |---|---|---|---|
-| 1 | `EpisodeReflection.skill_episodes` is populated by a live Harness emitting one record per skill invocation | No live Harness wired (`Actor rewire` still pending in [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §"Not yet delivered"). Cold-start data has zero `SkillEpisode`s | The offline mirror under [`labeling_supplement/reflect_per_episode_gpt54.py`](../labeling_supplement/reflect_per_episode_gpt54.py) passes `skill_episodes=[]` and **synthesizes** `FailureTrace`s from per-step heuristics (`OUTCOME_FAILURE`, `EMPTY_QUERY`, `LOW_APPLICABILITY`, `MISSING_EFFECTS`). Failures aren't *observed*, they're *synthesized post-hoc* |
+| 1 | `EpisodeReflection.skill_episodes` is populated by a live Harness emitting one record per skill invocation | No live Harness wired (`Actor rewire` still pending in [`IMPLEMENTATION-STATUS.md`](../../IMPLEMENTATION-STATUS.md) §"Not yet delivered"). Cold-start data has zero `SkillEpisode`s | The offline mirror under [`labeling_supplement/reflect_per_episode_gpt54.py`](../../labeling_supplement/reflect_per_episode_gpt54.py) passes `skill_episodes=[]` and **synthesizes** `FailureTrace`s from per-step heuristics (`OUTCOME_FAILURE`, `EMPTY_QUERY`, `LOW_APPLICABILITY`, `MISSING_EFFECTS`). Failures aren't *observed*, they're *synthesized post-hoc* |
 | 2 | The actor invokes a skill — its protocol drives a span of action choices, and a "skill failure" means the protocol's claimed effects didn't materialize | The actor *consults* skills as retrieval context (`decision_agents.skill_interface.SkillBankProvider`); it never delegates control flow to a skill protocol. The actor still picks every action itself | A failed step labelled with a selected skill is at best correlated with that skill, not caused by it. The Repairer's protocol-patch logic is therefore patching a skill that had no agency over the failure |
-| 3 | Skills carry typed protocols (ordered list of `{action, payload}` hops) and structured contracts (effects_add/del, expected_evidence_roles) | Cold-start "skills" are intention-axis labels (`COMMIT/ATTACK`, `RECOVER/EVADE`) with NL-string protocols emitted by the teacher | The mirror has [`_wrap_protocol_steps`](../labeling_supplement/reflect_per_episode_gpt54.py) wrapping NL strings as `{"action": "EXEC", "notes": <string>}` just to keep `Repairer._rule_repair`'s `[dict(h) for h in base.protocol]` from crashing. The wrap is a band-aid; an inserted `VERIFY` hop next to NL transcript steps is semantically incoherent |
+| 3 | Skills carry typed protocols (ordered list of `{action, payload}` hops) and structured contracts (effects_add/del, expected_evidence_roles) | Cold-start "skills" are intention-axis labels (`COMMIT/ATTACK`, `RECOVER/EVADE`) with NL-string protocols emitted by the teacher | The mirror has [`_wrap_protocol_steps`](../../labeling_supplement/reflect_per_episode_gpt54.py) wrapping NL strings as `{"action": "EXEC", "notes": <string>}` just to keep `Repairer._rule_repair`'s `[dict(h) for h in base.protocol]` from crashing. The wrap is a band-aid; an inserted `VERIFY` hop next to NL transcript steps is semantically incoherent |
 | 4 | Skills declare `feasible_domains ⊆ {gymv, browser, osworld, video, visual_reasoning}` with ≥2 for ACTIVE; Generalizer / Composer / subsumption-retire all rely on multi-domain reach | Cold-start bank ships every skill with `feasible_domains=["gymv"]` (single domain) | On the real cold-start corpus (340 episodes, 17 sources): `n_subsumption_retires=0`; `Composer` / `Generalizer` are not wired into the per-episode path and the per-batch path has no cross-domain co-occurrence to chew on. All 23 fresh `PatchProposal`s in the post-fix run were `recovery_strategy=hop_insertion` — the exact same canned edit, applied N times across N skills |
 | 5 | The diagnoser → repairer chain extracts new information from a failure (root cause, recommended strategy, concrete edit) | With `_llm=None` defaults (the Phase-1 baseline), the chain is rule-based and deterministic | The closed loop is `synthesizer-label → diagnoser-rule → repairer-rule`. No new analysis enters: my `LOW_APPLICABILITY` heuristic mechanically becomes a `PRECONDITION_STRENGTHENING` patch with `contract.preconditions += ["preconditions_strengthened"]`. The Crafter is currently a relabeling function over the synthesizer's output |
 
@@ -561,7 +561,7 @@ decision below and pays back in any future state:
 
 > **Status: closed (2026-05-01) — lane (a), Context-only skills.**
 > Authoritative record: [`skill-lane-decision.md`](skill-lane-decision.md);
-> readiness audit: [`pre-training-readiness-audit.md`](pre-training-readiness-audit.md) §0.4 (T1.3 closed → lane (a)).
+> readiness audit: [`pre-training-readiness-audit.md`](../pre-training-readiness-audit.md) §0.4 (T1.3 closed → lane (a)).
 > The two-lane comparison below stays in tree as the rationale for the
 > decision; downstream work (Crafter modes, audit, gate stack)
 > follows the lane-(a) implications listed in §3 of the lane-decision

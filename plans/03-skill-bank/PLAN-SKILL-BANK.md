@@ -6,7 +6,7 @@
 > evidence-roles), tags, optional NL or typed protocol consumed *as
 > guidance text* — that the actor LLM consults during decision-making.
 > Skills are **not** runnable programs at training time. Authoritative
-> record: [`implementation_notes/skill-lane-decision.md`](../../implementation_notes/skill-lane-decision.md).
+> record: [`implementation_notes/legacy/skill-lane-decision.md`](../../implementation_notes/legacy/skill-lane-decision.md).
 > Practical implications for this plan:
 >
 > * **Multi-domain `ACTIVE` invariant (`feasible_domains ≥ 2`) is
@@ -29,7 +29,7 @@
 >   skills from this bank with one MDP and two GRPO LoRAs
 >   (`skill_selection` + `action_taking`). `hop_select` is a
 >   non-target. Companion record:
->   [`implementation_notes/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/single-vs-two-mdp-tradeoff.md).
+>   [`implementation_notes/legacy/single-vs-two-mdp-tradeoff.md`](../../implementation_notes/legacy/single-vs-two-mdp-tradeoff.md).
 >
 > Sections below were authored under the lane-(b) assumption. Where
 > they describe protocol dispatch / executable invocation, treat that

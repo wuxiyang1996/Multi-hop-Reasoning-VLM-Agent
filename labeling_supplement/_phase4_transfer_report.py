@@ -5,7 +5,7 @@ Sibling of `labeling_supplement/_phase4_transfer_matrix.py`. Reads the
 matrix driver's `cells.json` AND Stage 0's `upper_bounds.csv`, and
 emits the unified `_report.md` that closes the Phase-5/6 cross-domain
 measurement plan
-(implementation_notes/phase5-cross-domain-measurement.md, sections 9
+(implementation_notes/legacy/phase5-cross-domain-measurement.md, sections 9
 and 11.5.4 / 11.5.6).
 
 I/O contract:

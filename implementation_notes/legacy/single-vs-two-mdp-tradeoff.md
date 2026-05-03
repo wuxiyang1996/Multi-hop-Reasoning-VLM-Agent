@@ -3,9 +3,9 @@
 > **Status:** decided. Single-MDP / Harness-driven design (shipped patch #13)
 > stays. Do **not** reintroduce the outer/inner-hop framing.
 > **Last reviewed:** 2026-04-29.
-> **Cross-refs:** [`decision_agents/README.md`](../decision_agents/README.md)
+> **Cross-refs:** [`decision_agents/README.md`](../../decision_agents/README.md)
 > ("How the actor agent works", "Honest assessment", "Migration status"),
-> [`decision_agents/actor_agent.py`](../decision_agents/actor_agent.py)
+> [`decision_agents/actor_agent.py`](../../decision_agents/actor_agent.py)
 > (`ActorAgent.step`, `_pick_action`, `_infer_intention`).
 
 This memo records the design discussion behind keeping the unified

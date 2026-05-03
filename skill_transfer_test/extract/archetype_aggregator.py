@@ -56,7 +56,7 @@ This walks every corpus directory under ``--bank-root`` and writes
 ``<corpus>/per_sample/skill_bank.jsonl`` it finds. Non-VR / non-video
 corpora are skipped silently (their cluster_key is not populated).
 
-See :mod:`implementation_notes/phase5-cross-domain-measurement.md`
+See :mod:`implementation_notes/legacy/phase5-cross-domain-measurement.md`
 section 8 for how Stage 5's matrix-mode loop consumes archetype
 banks (one row per (source_archetype, target_corpus) cell).
 """

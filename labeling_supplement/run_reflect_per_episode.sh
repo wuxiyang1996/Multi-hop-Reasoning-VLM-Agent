@@ -14,7 +14,7 @@
 #
 # This is the offline mirror of the **per-episode reactive pass** in
 # the live runtime (see crafter/__init__.py and
-# implementation_notes/crafter-harness-orchestrator-roles.md). It does
+# implementation_notes/legacy/crafter-harness-orchestrator-roles.md). It does
 # NOT run gates and does NOT mutate the bank: those are the Harness's
 # and Orchestrator's jobs respectively.
 #

@@ -1,7 +1,7 @@
 """`SkillCrafterService` — the crafter's outward-facing API.
 
 Spec: PLAN-SKILL-CRAFTER §4 + PLAN-COMPONENTS-IMPLEMENTATION §4 +
-``implementation_notes/crafter-harness-orchestrator-roles.md`` §"Two-tier
+``implementation_notes/legacy/crafter-harness-orchestrator-roles.md`` §"Two-tier
 trigger model".
 
 This is the **only** module the orchestrator calls into for crafter
@@ -170,7 +170,7 @@ class SkillCrafterService:
         self._repairer = repairer or Repairer()
         self._diagnoser = diagnoser or FailureDiagnoser()
         self._failures = failure_memory or FailureMemory()
-        # Lane-(a) feature flag — see ``implementation_notes/skill-lane-decision.md``.
+        # Lane-(a) feature flag — see ``implementation_notes/legacy/skill-lane-decision.md``.
         # Default ``False`` parks the Repairer / protocol-edit path: skills
         # are retrieval payloads, not runnable programs, so PatchProposal
         # mints would be edits to a contract no live runtime executes.
@@ -217,7 +217,7 @@ class SkillCrafterService:
 
         Lane (a) — skills are retrieval payloads — defaults to ``False``;
         lane (b) / offline diagnostic drivers may pass ``True``. See
-        ``implementation_notes/skill-lane-decision.md`` for the verdict.
+        ``implementation_notes/legacy/skill-lane-decision.md`` for the verdict.
         """
         return self._enable_protocol_patching
 

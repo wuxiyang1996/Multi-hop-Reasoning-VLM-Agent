@@ -32,7 +32,7 @@ Cross-refs
 ----------
 * `harness/README.md` §16.3 / §17 — the keystone problem this hook
   resolves (``bank.runnable()`` becomes non-empty after this fires).
-* `implementation_notes/harness-usability-and-intra-gymv-transfer.md`
+* `implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md`
   §3 D8 (Option A — one-way writeback) and F3 (gate-mode = synthetic
   caps at PROVISIONAL).
 * ``labeling_supplement/decide_promotion_gpt54.py`` — the driver this

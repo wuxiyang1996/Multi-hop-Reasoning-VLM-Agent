@@ -1,7 +1,7 @@
 """Tests for the protocol lift (`labeling/_protocol_lift.py`).
 
 Validates the design locked in
-`implementation_notes/protocol-lift-design.md` and the integration into
+`implementation_notes/legacy/protocol-lift-design.md` and the integration into
 `labeling/_decorate_skill_records.py`.
 """
 from __future__ import annotations
@@ -513,7 +513,7 @@ def _real_bank_root() -> Path:
     reason="cold-start bank not present in this checkout",
 )
 def test_real_bank_fallback_exec_under_threshold() -> None:
-    """`implementation_notes/protocol-lift-design.md` §8 acceptance gate:
+    """`implementation_notes/legacy/protocol-lift-design.md` §8 acceptance gate:
     `lift_fallback_exec_pct ≤ 10 %` over the real cold-start corpus
     (env_wrappers slice — gym_v arcade ROMs need an extended verb set,
     out of scope for v0 per design §9).

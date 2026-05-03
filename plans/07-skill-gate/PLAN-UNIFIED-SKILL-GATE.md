@@ -552,4 +552,4 @@ These edits are **link-only**: every cross-plan section points back to this file
 | [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) | Promotion / rollback transactions; snapshot management; audit |
 | [PLAN-SKILL-CRAFTER.md](../04-skill-crafter/PLAN-SKILL-CRAFTER.md) | Producer of `DRAFT` skills (mined / crafted / repaired / transferred); consumer of `REJECTED` records |
 | [PLAN-ACTION-AGENT.md](../02-action-agent/PLAN-ACTION-AGENT.md) | Retrieves only what `SkillHarness.run_active` returns |
-| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Predecessor edit pass; this plan extends its "control plane" framing with the explicit lifecycle |
+| [PLAN-EDITS-HARNESS-CONTROL-PLANE.md](../legacy/10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md) | Predecessor edit pass; this plan extends its "control plane" framing with the explicit lifecycle |

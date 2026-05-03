@@ -1,7 +1,7 @@
 """Protocol lift — prose → typed-hops.
 
 Implements the design locked in
-[`implementation_notes/protocol-lift-design.md`](../implementation_notes/protocol-lift-design.md).
+[`implementation_notes/legacy/protocol-lift-design.md`](../implementation_notes/legacy/protocol-lift-design.md).
 The lift transforms cold-start `protocol.steps: List[str]` (natural-language
 prose) into `protocol: List[Dict]` carrying:
 

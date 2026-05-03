@@ -148,8 +148,8 @@ class RewriteProposal(_ProposalBase):
     targeted edit (e.g. only ``rewritten_description``) without
     overwriting unrelated text.
 
-    See ``implementation_notes/skill-lane-decision.md`` and
-    ``implementation_notes/crafter-harness-orchestrator-roles.md`` for
+    See ``implementation_notes/legacy/skill-lane-decision.md`` and
+    ``implementation_notes/legacy/crafter-harness-orchestrator-roles.md`` for
     the broader lane partitioning.
     """
 

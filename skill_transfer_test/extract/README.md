@@ -11,7 +11,7 @@
 > (closes TODO-6); per-corpus `archetype/skill_bank.jsonl` bank kind
 > (`archetype_aggregator.py`) shipped 2026-05-02 (closes TODO-1). All six
 > stages of the Phase-5/6 measurement plan
-> ([`implementation_notes/phase5-cross-domain-measurement.md`](../../implementation_notes/phase5-cross-domain-measurement.md))
+> ([`implementation_notes/legacy/phase5-cross-domain-measurement.md`](../../implementation_notes/legacy/phase5-cross-domain-measurement.md))
 > on `main`.
 >
 > **Quick reproduce:**
@@ -406,7 +406,7 @@ two previously-deferred items.
 ### 6.3a Round 4 (2026-05-02) — Phase-5/6 Stage 0 audit suite
 
 Not a code-bug round: on 2026-05-02 the
-[Phase-5/6 measurement plan](../../implementation_notes/phase5-cross-domain-measurement.md)'s
+[Phase-5/6 measurement plan](../../implementation_notes/legacy/phase5-cross-domain-measurement.md)'s
 Stage 0 oracle shipped, reproducing the §11.5.1 / `skill_transfer_test/README.md` §9.3.1
 Jaccard numbers programmatically and adding two new static-feasibility
 checks. All four scripts live under `extract/audits/`:
@@ -667,7 +667,7 @@ fields below are stable; downstream consumers may rely on them.
 
 The four audit scripts in `audits/` ship the static feasibility oracle
 that Stage 1-6 of the
-[Phase-5/6 measurement plan](../../implementation_notes/phase5-cross-domain-measurement.md)
+[Phase-5/6 measurement plan](../../implementation_notes/legacy/phase5-cross-domain-measurement.md)
 validates against. Run them via:
 
 ```bash

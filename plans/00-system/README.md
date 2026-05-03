@@ -2,6 +2,11 @@
 
 Top-of-stack documents that govern how the rest of the corpus is read and how releases are judged. They do **not** implement modules — they pin invariants, scoreboards, and ownership.
 
+## Status (repo snapshot — 2026-05-02)
+
+**Shipped:** E0-style eval driver + canonical scoreboard assembler + eval suite loader (`evaluation/{driver,scoreboard,answer_evaluator}.py`, `orchestrator/eval_suite.py`) — see [`IMPLEMENTATION-STATUS.md`](../../IMPLEMENTATION-STATUS.md).  
+**Open:** NORTHSTAR §5 stop/go rules firing automatically off **live** GRPO scoreboards (operational once fast-loop runs); slice/regression policies remain governance-heavy — track [`implementation_notes/pre-training-readiness-audit.md`](../../implementation_notes/pre-training-readiness-audit.md) §2–§8.
+
 | Document | Purpose |
 |----------|---------|
 | [`PLAN-SYSTEM-NORTHSTAR.md`](PLAN-SYSTEM-NORTHSTAR.md) | The single canonical scoreboard (Layer 1 end-task / Layer 2 mechanism / Layer 3 cost), the headline metric (Joint Success Rate), and the binding go/no-go decision rules every other plan must report against. |

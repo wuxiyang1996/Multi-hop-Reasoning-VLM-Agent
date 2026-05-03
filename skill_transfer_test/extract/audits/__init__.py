@@ -1,6 +1,6 @@
 """Stage-0 pre-flight static audits for cross-domain transfer.
 
-See ``implementation_notes/phase5-cross-domain-measurement.md`` Section 3
+See ``implementation_notes/legacy/phase5-cross-domain-measurement.md`` Section 3
 for the design.
 
 Each audit is invokable as a module:

@@ -8,12 +8,12 @@
 > **Last reviewed:** 2026-05-02.
 > **Owner:** trainer / deployment.
 > **Cross-refs:**
-> [`trainer/coevolution/vllm_server.py`](../trainer/coevolution/vllm_server.py),
-> [`inference/serve_qwen35_35b_a3b.sh`](../inference/serve_qwen35_35b_a3b.sh),
-> [`trainer/coevolution/config.py`](../trainer/coevolution/config.py)
+> [`trainer/coevolution/vllm_server.py`](../../trainer/coevolution/vllm_server.py),
+> [`inference/serve_qwen35_35b_a3b.sh`](../../inference/serve_qwen35_35b_a3b.sh),
+> [`trainer/coevolution/config.py`](../../trainer/coevolution/config.py)
 > (`model_name`, `inference_only_model`, `vllm_gpu_ids`),
-> [`pre-training-readiness-audit.md` §0.1 T2.8](pre-training-readiness-audit.md),
-> [`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md` §13](../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md).
+> [`pre-training-readiness-audit.md` §0.1 T2.8](../pre-training-readiness-audit.md),
+> [`plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md` §13](../../plans/01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md).
 
 ---
 
@@ -49,7 +49,7 @@ choice is whether the second one runs concurrently with training.
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-Wired in [`trainer/coevolution/config.py`](../trainer/coevolution/config.py):
+Wired in [`trainer/coevolution/config.py`](../../trainer/coevolution/config.py):
 
 ```python
 @dataclass
@@ -77,7 +77,7 @@ during training** to host the 35B-A3B base. Three deployment options:
 
 * **Cold-start ingest** (`labeling/build_schema_gen_triples.py`,
   `labeling_supplement/decide_promotion_gpt54.py`): the script starts
-  [`inference/serve_qwen35_35b_a3b.sh`](../inference/serve_qwen35_35b_a3b.sh)
+  [`inference/serve_qwen35_35b_a3b.sh`](../../inference/serve_qwen35_35b_a3b.sh)
   on a free machine (or kills the trainer first), runs grounding once over
   the corpus, persists results to disk, then tears the server down.
 * **Post-training eval** (T1.1′ exact-match probe, T2.3 E0 driver): same —
@@ -128,7 +128,7 @@ resumes. Acceptable for debug; unacceptable for production (vLLM cold start
 | Reason | Implication |
 |---|---|
 | vLLM loads base weights at process start; the underlying class is decided then. | A worker started with `--model Qwen/Qwen3.5-9B` cannot accept a 35B-A3B request. |
-| `Qwen3_5MoeForConditionalGeneration` (35B-A3B) and `Qwen3_5ForCausalLM` (9B) have different layer types and different LoRA `target_modules` (see [`trainer/SFT/lora_targets.py`](../trainer/SFT/lora_targets.py) — T2.11). | A LoRA trained for 9B *will not* apply to a 35B-A3B base; the projection-name keys don't match. |
+| `Qwen3_5MoeForConditionalGeneration` (35B-A3B) and `Qwen3_5ForCausalLM` (9B) have different layer types and different LoRA `target_modules` (see [`trainer/SFT/lora_targets.py`](../../trainer/SFT/lora_targets.py) — T2.11). | A LoRA trained for 9B *will not* apply to a 35B-A3B base; the projection-name keys don't match. |
 | MoE expert-parallel (`--enable-expert-parallel`) needs `TENSOR_PARALLEL ≥ 2`. | The trainer's TP=1 / one-instance-per-GPU layout is incompatible with 35B-A3B; it would need TP=4 or TP=8. |
 
 ## 5. Hot-reload contract (training time)

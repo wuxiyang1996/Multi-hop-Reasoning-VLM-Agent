@@ -14,7 +14,7 @@
 #     + bank_snapshots/<id>.json + gate_verdicts.jsonl + a
 #     defer_followups.jsonl back-edge per (corpus, source).
 #
-# Spec: implementation_notes/crafter-harness-orchestrator-roles.md §6.2.
+# Spec: implementation_notes/legacy/crafter-harness-orchestrator-roles.md §6.2.
 # It does NOT call the Crafter and does NOT touch the source --bank-run
 # directory: those are the Crafter's job and the input snapshot
 # respectively.

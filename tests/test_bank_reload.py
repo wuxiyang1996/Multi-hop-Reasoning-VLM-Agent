@@ -5,7 +5,7 @@ These cover the Phase B′ correctness requirement that the live actor's
 read path observes writeback-promoted skills on the *next* step. Without
 the reload, ``SkillBankMVP._skills`` and ``SkillQueryEngine._skill_id_order``
 are both stale and the actor never sees the new skills — see
-``implementation_notes/harness-usability-and-intra-gymv-transfer.md``
+``implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md``
 §"actor read path" for the failure trace these tests guard against.
 
 We avoid initialising the heavyweight real ``SkillBankAgent`` (which

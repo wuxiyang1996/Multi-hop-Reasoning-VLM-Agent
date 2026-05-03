@@ -748,7 +748,7 @@ labeling/, cold_start/    # cold-start labeling and seed-trajectory generation
 plans/
 ├── 00-system/        north-star scoreboard, eval-first target, role walkthrough
 ├── 01-visual-grounding/ Stage 1 — VLM parser + milestones
-├── 02-action-agent/  Stage 2 — two-level MDP decision agent
+├── 02-action-agent/  Stage 2 — decision agent (single-MDP shipped; PLAN = inner-hop design)
 ├── 03-skill-bank/    Stage 3 — cross-task skill bank, retrieval, contracts
 ├── 04-skill-crafter/ Stage 4 — compose / generalize / hypothesize
 ├── 05-harness/       per-invocation runtime + gate stack
@@ -756,8 +756,7 @@ plans/
 ├── 07-skill-gate/    canonical lifecycle and gate spec
 ├── 08-cross-cutting/ failure routing, uncertainty calibration, experience ext.
 ├── 09-implementation/ Cursor-ready build sheet — Phase A → F + invariants
-├── 10-edits/         already-applied refactor edit plans
-└── 99-archive/       superseded discussions kept for provenance
+└── legacy/           DONE edit plans (`legacy/10-edits/`) + archive (`legacy/99-archive/`)
 ```
 
 See [`plans/README.md`](plans/README.md) for the full index.

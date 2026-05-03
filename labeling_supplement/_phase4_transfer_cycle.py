@@ -330,7 +330,7 @@ def main() -> int:
         help=("Transfer-target domain. 'gymv' (default) is the "
               "within-game baseline; the four cross-domain stages "
               "land progressively per "
-              "implementation_notes/phase5-cross-domain-measurement.md."),
+              "implementation_notes/legacy/phase5-cross-domain-measurement.md."),
     )
     p.add_argument("--bank-root", default=str(DEFAULT_BANK_ROOT))
     p.add_argument("--actions-root", default=str(DEFAULT_ACTIONS_ROOT))

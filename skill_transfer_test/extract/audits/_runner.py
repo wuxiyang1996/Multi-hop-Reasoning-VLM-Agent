@@ -8,7 +8,7 @@ per-cell outputs into a unified ``upper_bounds.csv``.
 The join is on ``(source_corpus, target_domain)``. ``upper_bound_admit_rate``
 for each row is ``min(predicate_can_fire_rate, slot_some_bind_rate)``.
 
-See ``implementation_notes/phase5-cross-domain-measurement.md`` Section 3.4.
+See ``implementation_notes/legacy/phase5-cross-domain-measurement.md`` Section 3.4.
 """
 
 from __future__ import annotations

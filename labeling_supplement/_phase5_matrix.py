@@ -2,7 +2,7 @@
 """Phase-5 -- within-VR/video 4x4 matrix transfer driver.
 
 Closes Experiment B (declarative-reasoning transfer) of the
-[Phase-5/6 cross-domain measurement plan](../implementation_notes/phase5-cross-domain-measurement.md)
+[Phase-5/6 cross-domain measurement plan](../implementation_notes/legacy/phase5-cross-domain-measurement.md)
 section 8. Iterates over the cross-product of source-corpus x
 target-corpus from the four VR/video corpora that ship with the
 cross-domain skill bank

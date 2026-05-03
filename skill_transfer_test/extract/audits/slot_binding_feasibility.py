@@ -8,7 +8,7 @@ have slot types the target's adapter + schema producer can bind values for.
 A skill with zero slot types is treated as trivially "fully bindable" (1.0):
 there is nothing to fail to bind.
 
-See ``implementation_notes/phase5-cross-domain-measurement.md`` Section 3.3.
+See ``implementation_notes/legacy/phase5-cross-domain-measurement.md`` Section 3.3.
 """
 
 from __future__ import annotations

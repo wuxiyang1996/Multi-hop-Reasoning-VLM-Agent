@@ -1,7 +1,7 @@
 """Video hop executor — bind `VideoAdapter` to a video-QA tool surface.
 
 Phase 5 / Stage 2 of the cross-domain transfer measurement plan
-(``implementation_notes/phase5-cross-domain-measurement.md`` §11.5.2 /
+(``implementation_notes/legacy/phase5-cross-domain-measurement.md`` §11.5.2 /
 §11.5.5). Stage 2's first cut keeps the executor *deterministic* —
 it does not actually decode video frames or call a VLM yet — but it
 emits typed evidence and propagates an answer the success_fn can

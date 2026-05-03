@@ -10,7 +10,7 @@ upserts the eligible skills into the legacy
 
 Why this module exists
 ----------------------
-Per ``implementation_notes/harness-usability-and-intra-gymv-transfer.md``
+Per ``implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md``
 **D8 (Option A)** — we deliberately do *not* build a bidirectional bridge
 between the legacy ``SkillBankMVP`` and the new ``SkillRepository``. Instead
 the trainer's actor keeps reading the legacy per-game JSONL, and the new

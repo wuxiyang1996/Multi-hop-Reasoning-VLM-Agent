@@ -20,7 +20,7 @@ Pixels (game frame / screenshot / video)
     ↓
 (1) Visual Grounding     — VLM parser → structured <state> schema
     ↓
-(2) Action Agent         — two-level MDP: inner reasoning hops → environment actions
+(2) Action Agent         — single-MDP actor (+ retrieval); PLAN still describes inner-hop design
     ↓                        ↑
 (3) Skill Bank           — trajectory segmentation → skill contracts → retrieval
     ↓                        ↑
@@ -42,7 +42,7 @@ plans/
 │                                    first eval contract, role walkthrough.
 ├── 01-visual-grounding/             Stage 1 — VLM parser, milestones, optional
 │                                    visual-grounding skills.
-├── 02-action-agent/                 Stage 2 — two-level MDP decision agent.
+├── 02-action-agent/                 Stage 2 — decision agent (single-MDP shipped; two-level narrative in PLAN).
 ├── 03-skill-bank/                   Stage 3 — cross-task skill bank, retrieval,
 │                                    contract learning.
 ├── 04-skill-crafter/                Stage 4 — composition / generalization /
@@ -58,14 +58,12 @@ plans/
 │                                    experience-extension records.
 ├── 09-implementation/               Cursor-ready build sheet for harness/
 │                                    crafter/ orchestrator/ phases A→F.
-├── 10-edits/                        Already-applied refactor edit plans
-│                                    (Harness control plane; transferable
-│                                    reasoning skills; lightweight grounding).
-└── 99-archive/                      Older / superseded discussions kept for
-                                     provenance.
+└── legacy/                          **DONE / superseded** corpus — applied
+                                     `10-edits/` refactor plans + `99-archive/`
+                                     discussions ([`legacy/README.md`](legacy/README.md)).
 ```
 
-The **canonical pipeline ordering** (Stage 1 → 2 → 3 → 4) is encoded in the folder prefixes `01-…` through `04-…`, and the **operational component ordering** (per-invocation runtime → control plane → lifecycle gate) in `05-…` through `07-…`. Everything from `08-…` onward is cross-cutting or meta and does not extend the pipeline numbering.
+The **canonical pipeline ordering** (Stage 1 → 2 → 3 → 4) is encoded in the folder prefixes `01-…` through `04-…`, and the **operational component ordering** (per-invocation runtime → control plane → lifecycle gate) in `05-…` through `07-…`. Everything from `08-…` onward is cross-cutting or meta and does not extend the pipeline numbering. The **`legacy/`** folder is audit-only (finished edit passes and archived notes).
 
 ### Quick index by category
 
@@ -81,8 +79,8 @@ The **canonical pipeline ordering** (Stage 1 → 2 → 3 → 4) is encoded in th
 | Component — Skill Gate | `07-skill-gate/` | `PLAN-UNIFIED-SKILL-GATE.md` |
 | Cross-cutting contracts | `08-cross-cutting/` | `PLAN-FAILURE-ROUTING.md`, `PLAN-UNCERTAINTY-CALIBRATION.md`, `PLAN-EXPERIENCE-EXTENSION.md` |
 | Implementation / build sheet | `09-implementation/` | `PLAN-COMPONENTS-IMPLEMENTATION.md` |
-| Applied refactor edits | `10-edits/` | `PLAN-EDITS-HARNESS-CONTROL-PLANE.md`, `PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md`, `PLAN-EDITS-VISUAL-GROUNDING-LIGHTWEIGHT.md` |
-| Archive | `99-archive/` | `DISCUSSION-MCP-VS-HARNESS.md` |
+| Applied refactor edits (DONE) | `legacy/10-edits/` | Same three `PLAN-EDITS-*.md` files — content folded into live `PLAN-*.md` |
+| Archive (superseded) | `legacy/99-archive/` | `DISCUSSION-MCP-VS-HARNESS.md` |
 
 ---
 
@@ -94,7 +92,7 @@ The numbered list below is the original narrative ordering (Stage 1 → 4, then 
 |---|------|-------|
 | 1 | **[Visual Grounding](01-visual-grounding/PLAN-VISUAL-GROUNDING.md)** | VLM parser, canonical schema, grounding heads (heuristic, vision, OmniParser, tool loop), domain adapters (Gym-V, BrowserGym, OSWorld), benchmark evaluation (VisualToolBench, TIR-Bench, SIV-Bench, Video-Holmes), schema completeness guarantee (§12), Qwen3-VL-8B training |
 | 1b | **[Visual Grounding Milestones](01-visual-grounding/PLAN-VISUAL-GROUNDING-MILESTONES.md)** | Concrete execution plan: 5-stage inference pipeline, routing policy (Path A/B/C), training phases 0–4, week-by-week schedule, 7 ablations, success criteria |
-| 2 | **[Action Agent](02-action-agent/PLAN-ACTION-AGENT.md)** | Two-level MDP (outer env + inner reasoning hops), decision loop, GROUND/CHECK/RETRIEVE/COMMIT/EXECUTE inner actions, **7B/8B capability assessment (§2)**, **three-agent role split (§2)**, **co-evolution & GRPO decomposition (§6)**, **training schedule & timescale separation (§6)**, uncertainty-driven GROUND triggering (§10), tiered model architecture (Tier 0/1/2), reward shaping (r_env + r_follow + r_cost) |
+| 2 | **[Action Agent](02-action-agent/PLAN-ACTION-AGENT.md)** | Historical two-level MDP narrative in PLAN; **shipped:** single-MDP + two GRPO LoRAs (`skill_selection`, `action_taking`). Decision loop, inner-hop vocabulary (GROUND/…/EXECUTE) for diagnostics, **7B/8B capability assessment (§2)**, **three-agent role split (§2)**, **co-evolution & GRPO decomposition (§6)**, **training schedule & timescale separation (§6)**, uncertainty-driven GROUND triggering (§10), tiered model architecture (Tier 0/1/2), reward shaping (r_env + r_follow + r_cost) |
 | 3 | **[Skill Bank](03-skill-bank/PLAN-SKILL-BANK.md)** | **Cross-task** skill bank for reasoning and control across games, web, video, visual reasoning, and embodied tasks. Skill as structured-state program (§0.5), shared inner primitives + adapter-based binding (§1.5), unified structured state interface with entity ontology (§3), typed slots + domain adapters in data model (§4), 5-stage pipeline, effect families + 3-layer hierarchy (§8), 6 transferable skill families (§9), **asymmetric GRPO co-evolution with acceptance gates (§7)**, phase detection across domains (§5), query/select API with cross-domain retrieval (§6) |
 | 4 | **[Skill Crafter](04-skill-crafter/PLAN-SKILL-CRAFTER.md)** | Skill composition (effect chaining + hop protocol chaining), cross-domain generalization (schema-slot transfer), transferable skill families (4 cross-domain families), novel skill hypothesis, **frozen teacher design with phased adaptation policy (§2)**, **frozen teacher improvement channels (§2)**, failure reflection & counterfactual reasoning, integration with visual grounding tool traces |
 | 5 | **[Visual Skills](01-visual-grounding/PLAN-VISUAL-SKILLS.md)** *(optional)* | Transferable visual grounding strategies as skills — unified skill format for cross-domain transfer (preconditions/effects/slots/adapters), two kinds of effects (world vs belief/grounding), effect families, cross-domain entity ontology, three-layer skill bank hierarchy, automatic skill discovery from state transitions |
@@ -115,12 +113,12 @@ These do not extend the pipeline numbering. They are read on demand from the rel
 | **[Failure Routing](08-cross-cutting/PLAN-FAILURE-ROUTING.md)** | `08-cross-cutting/` | Single canonical policy that converts every failure signal (Harness diagnostics, grounding verdicts, judge `F1`–`F7`, budget, escalation) into a typed `FailureRoutingRecord` with one downstream owner. |
 | **[Uncertainty Calibration](08-cross-cutting/PLAN-UNCERTAINTY-CALIBRATION.md)** | `08-cross-cutting/` | Cross-cutting uncertainty contract: scopes (field/entity/state/evidence/answer), sources, routing thresholds, calibration (ECE per slice). |
 | **[Experience Extension](08-cross-cutting/PLAN-EXPERIENCE-EXTENSION.md)** | `08-cross-cutting/` | Thin extension layer above `data_structure/` that adds `SkillEpisode` / `GateVerdict` / `SkillRecord` / `FailureRoutingRecord` side-tables without bloating the rollout substrate. |
-| **[Edit — Harness Control Plane](10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md)** | `10-edits/` | Already-applied refactor: terminology reconciliation (Harness as control plane vs. micro-runtime), promotion of evidence-driven invariant to Gate G0, episode-local trajectory enforcement. |
-| **[Edit — Transferable Reasoning Skills](10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md)** | `10-edits/` | Already-applied edit plan: typed `SkillIR`, inner-hop reasoning skill discovery, Crafter as verifiable synthesis / repair engine. |
-| **[Edit — Visual Grounding Lightweight](10-edits/PLAN-EDITS-VISUAL-GROUNDING-LIGHTWEIGHT.md)** | `10-edits/` | Already-applied edit plan: visual grounding as a perception support layer (no GRPO in v1), teacher-driven distillation, hard-case relabeling. |
-| **[Archive — MCP vs Harness](99-archive/DISCUSSION-MCP-VS-HARNESS.md)** | `99-archive/` | Historical comparison note (kept for provenance). |
+| **[Edit — Harness Control Plane](legacy/10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md)** | `legacy/10-edits/` | Already-applied refactor: terminology reconciliation (Harness as control plane vs. micro-runtime), promotion of evidence-driven invariant to Gate G0, episode-local trajectory enforcement. |
+| **[Edit — Transferable Reasoning Skills](legacy/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md)** | `legacy/10-edits/` | Already-applied edit plan: typed `SkillIR`, inner-hop reasoning skill discovery, Crafter as verifiable synthesis / repair engine. |
+| **[Edit — Visual Grounding Lightweight](legacy/10-edits/PLAN-EDITS-VISUAL-GROUNDING-LIGHTWEIGHT.md)** | `legacy/10-edits/` | Already-applied edit plan: visual grounding as a perception support layer (no GRPO in v1), teacher-driven distillation, hard-case relabeling. |
+| **[Archive — MCP vs Harness](legacy/99-archive/DISCUSSION-MCP-VS-HARNESS.md)** | `legacy/99-archive/` | Historical comparison note (kept for provenance). |
 
-**Design reference:** [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md) — the two-level MDP framing that unifies the component plans (grounding through bank/crafter); the [Pipeline Orchestrator](06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) specifies cross-cutting execution and gates.
+**Design reference:** [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md) — historical **two-level MDP** framing in prose (live stack: **single-MDP** actor — see [`02-action-agent/README.md`](02-action-agent/README.md)); the [Pipeline Orchestrator](06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) specifies cross-cutting execution and gates.
 
 ---
 
@@ -163,9 +161,9 @@ a1=click(e1)
 
 `target`, `blocker`, `constraint`, `candidate_set`, `history_anchor` — used by all four plans for downstream skill transfer.
 
-### Two-level MDP (with a lightweight inner loop)
+### Two-level MDP (design framing; shipped actor is single-MDP)
 
-Multi-hop visual reasoning is framed as a **two-level MDP** (see [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md)). The outer level is the environment; the inner level is a **lightweight typed control loop** — not a free-form reasoning generator:
+Multi-hop visual reasoning is framed as a **two-level MDP** in the design docs (see [`LONG_HORIZON_REASONING.md`](../LONG_HORIZON_REASONING.md)). **Runtime:** single-step actor with harness actions — see [`02-action-agent/README.md`](02-action-agent/README.md). Conceptually the outer level is the environment; the inner level is a **lightweight typed control loop** — not a free-form reasoning generator:
 
 ```
 ┌── OUTER MDP (environment level) ──────────────────────┐

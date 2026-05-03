@@ -12,7 +12,7 @@
 
 ## 0. Terminology note (read first)
 
-The repo has **two senses of "harness"** ([PLAN-EDITS-HARNESS-CONTROL-PLANE.md §0](../10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md#0-terminology-reconciliation-do-this-first)):
+The repo has **two senses of "harness"** ([PLAN-EDITS-HARNESS-CONTROL-PLANE.md §0](../legacy/10-edits/PLAN-EDITS-HARNESS-CONTROL-PLANE.md#0-terminology-reconciliation-do-this-first)):
 
 - **Skill-invocation runtime (micro-harness, `SkillHarness`)** — defined in [PLAN-HARNESS.md](../05-harness/PLAN-HARNESS.md). One skill call. Throughout this file, **"Harness"** means this micro-runtime.
 - **System-level control plane (the macro Harness)** — defined in [PLAN-PIPELINE-ORCHESTRATOR.md](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md). The DAG that runs many episodes, owns gates, snapshots, and lifecycle. Throughout this file, **"Orchestrator"** means this control plane.

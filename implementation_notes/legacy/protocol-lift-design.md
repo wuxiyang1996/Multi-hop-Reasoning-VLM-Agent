@@ -1,11 +1,11 @@
 # Protocol lift — design (Day 1, Phase 0)
 
 > **Status:** design only. Implementation lands in
-> [`labeling/_decorate_skill_records.py`](../labeling/_decorate_skill_records.py)
+> [`labeling/_decorate_skill_records.py`](../../labeling/_decorate_skill_records.py)
 > (extension, not replacement). Targets the
-> [`harness/README.md` §21](../harness/README.md) blocker called out by the
-> [`harness/README.md` audit](../harness/README.md), and unblocks the
-> [§Intra-gymv transfer](../harness/README.md) milestone.
+> [`harness/README.md` §21](../../harness/README.md) blocker called out by the
+> [`harness/README.md` audit](../../harness/README.md), and unblocks the
+> [§Intra-gymv transfer](../../harness/README.md) milestone.
 > **Last reviewed:** 2026-04-30.
 
 ## 1. Problem

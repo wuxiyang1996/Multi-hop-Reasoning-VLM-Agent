@@ -9,7 +9,7 @@
 > **Cross-refs:**
 > [`crafter-harness-orchestrator-roles.md` §7.3 / §7.4](crafter-harness-orchestrator-roles.md)
 > (where the lane choice was first surfaced),
-> [`pre-training-readiness-audit.md` §0.1 T1.3](pre-training-readiness-audit.md)
+> [`pre-training-readiness-audit.md` §0.1 T1.3](../pre-training-readiness-audit.md)
 > (the open audit item this doc closes),
 > [`single-vs-two-mdp-tradeoff.md`](single-vs-two-mdp-tradeoff.md)
 > (companion decision: one MDP, two LoRAs),
@@ -40,10 +40,10 @@ The actor architecture this entails is exactly what already ships:
   [`single-vs-two-mdp-tradeoff.md`](single-vs-two-mdp-tradeoff.md))
 * two GRPO LoRAs (`skill_selection` + `action_taking`) — already
   warm-started in
-  [`runs/sft_coldstart/decision/`](../runs/sft_coldstart/decision)
+  [`runs/sft_coldstart/decision/`](../../runs/sft_coldstart/decision)
 * harness used as an **eligibility filter and validator**, not as a
   skill executor — already wired by
-  [`trainer/coevolution/_harness_hook.py`](../trainer/coevolution/_harness_hook.py)
+  [`trainer/coevolution/_harness_hook.py`](../../trainer/coevolution/_harness_hook.py)
   (Day-10) which only calls
   `harness_hook.filter_candidates(...)` and
   `harness_hook.validate_choice(...)`, never `harness.run_skill(...)`
@@ -54,7 +54,7 @@ Each of the following points was independently surfaced in earlier
 audits and notes; the decision crystallises them:
 
 1. **Cold-start data shape matches lane (a) verbatim.** Every output
-   of [`labeling/extract_skillbank_*`](../labeling) ships skills as
+   of [`labeling/extract_skillbank_*`](../../labeling) ships skills as
    `(name, summary, strategic_description, contract.effects_*,
    expected_evidence_roles, NL protocol)` — the canonical RAG-friendly
    shape. Forcing lane (b) would require a second cold-start pipeline
@@ -64,7 +64,7 @@ audits and notes; the decision crystallises them:
 2. **Live decision loop is already lane (a).** The actor calls
    `select_skill → update_intention → take_action` and reads the
    retrieved skill *as context*; the harness is a guardrail
-   ([`decision_agents/README.md` §"TL;DR"](../decision_agents/README.md)).
+   ([`decision_agents/README.md` §"TL;DR"](../../decision_agents/README.md)).
 3. **Cross-task transfer rides on retrieval embeddings, not on
    adapter dispatch.** A Tetris `[CLEAR]` retrieval and a webform
    `[CLEAR]` retrieval share an embedding neighbourhood; that's the
@@ -166,7 +166,7 @@ curator what to mint, retire, or rewrite":
 | `STALE_DESCRIPTION` | Skill description is no longer accurate for the situations it's matching (drift from `verified_tasks`) | Rewrite or retire via `RewriteProposal` / `RetireProposal` |
 
 These are additive on top of the existing typed proposal hierarchy in
-[`data_structure/extensions/bank_mutation.py`](../data_structure/extensions/bank_mutation.py);
+[`data_structure/extensions/bank_mutation.py`](../../data_structure/extensions/bank_mutation.py);
 they do not require deleting the lane-(b) classes (which stay in tree
 under the quarantine flag).
 
@@ -266,7 +266,7 @@ ops on VR / video**. Lane (b) is the last resort, not the first.
 | T1.3b | Add `RewriteProposal` (and rename / repurpose `ComposeProposal` → `MergeProposal` if cleaner) in `data_structure/extensions/bank_mutation.py` | S2 |
 | T1.3c | Implement `BANK_GAP` / `RETRIEVAL_MISLEAD` / `STALE_DESCRIPTION` `FailureClass` taxonomy in the live (not offline-mirror) Crafter path | S2 |
 | T1.3d | Replace the multi-domain `ACTIVE` invariant with `min_retrievals_per_skill` in `PromotionOrchestrator` | S2 |
-| T1.3e | Update [`harness/README.md`](../harness/README.md) §22 + [`crafter-harness-orchestrator-roles.md`](crafter-harness-orchestrator-roles.md) §7.3 to mark the lane as decided | S0 (doc-only, alongside T2.6 + T3.6) |
+| T1.3e | Update [`harness/README.md`](../../harness/README.md) §22 + [`crafter-harness-orchestrator-roles.md`](crafter-harness-orchestrator-roles.md) §7.3 to mark the lane as decided | S0 (doc-only, alongside T2.6 + T3.6) |
 | T1.3f | Update plan documents (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS, PLAN-COMPONENTS-IMPLEMENTATION) to reflect the lane-(a) verdict (the four PLAN docs were written for lane (b)) | S0 (doc-only, alongside T2.6 + T3.6) |
 
 ## 9. Headline

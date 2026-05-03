@@ -2,6 +2,11 @@
 
 Pixels → structured `<state>` schema. The first stage of the canonical pipeline. Everything downstream consumes the schema produced here.
 
+## Status (repo snapshot — 2026-05-02)
+
+**Shipped:** Phase-1 `schema_gen` SFT weights on disk (`runs/sft_schema_gen/`); probe + smoke drivers (`evaluation/{probe_schema_gen_exact_match,smoke_load_sft_adapters}.py`); split-base vLLM governance — [`implementation_notes/legacy/vllm-topology.md`](../../implementation_notes/legacy/vllm-topology.md).  
+**Open:** Re-run **six SFT jobs** after [`trainer/SFT/lora_targets.py`](../../trainer/SFT/lora_targets.py) (T2.11), then re-pass **T1.1′** — see [`implementation_notes/pre-training-readiness-audit.md`](../../implementation_notes/pre-training-readiness-audit.md) §0.3.
+
 | Document | Purpose |
 |----------|---------|
 | [`PLAN-VISUAL-GROUNDING.md`](PLAN-VISUAL-GROUNDING.md) | Design of the VLM parser, canonical `<state>` schema, three grounding heads (heuristic / vision / OmniParser / tool loop), domain adapters (Gym-V, BrowserGym, OSWorld, video), schema completeness guarantee (§12), Qwen3-VL-8B training plan. |

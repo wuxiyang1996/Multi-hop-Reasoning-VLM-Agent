@@ -8,7 +8,7 @@ that the three Stage-0 audit scripts consume.
 Dataclass field names and function signatures are a hard contract for
 sub-agents B and C; do not rename or restructure.
 
-See ``implementation_notes/phase5-cross-domain-measurement.md`` Section 3 and
+See ``implementation_notes/legacy/phase5-cross-domain-measurement.md`` Section 3 and
 the ``audits/__init__.py`` docstring for the broader plan.
 """
 

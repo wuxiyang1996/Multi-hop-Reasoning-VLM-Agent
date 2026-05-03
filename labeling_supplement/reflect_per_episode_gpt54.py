@@ -6,7 +6,7 @@ Per-episode Skill Crafter driver — invokes the LIVE
 ``per_episode_bank_management/bank_management_io.json``.
 
 This is the cold-start *mirror* of the live two-tier trigger model
-(see ``implementation_notes/crafter-harness-orchestrator-roles.md``
+(see ``implementation_notes/legacy/crafter-harness-orchestrator-roles.md``
 §"Two-tier trigger"): the live runtime calls
 ``SkillCrafterService.reflect_on_episode(EpisodeReflection)`` immediately
 after the Skill Bank Agent finishes one episode. This script does the
@@ -718,7 +718,7 @@ def _process_source(
         # Offline diagnostic driver — keep the Repairer path live so the
         # JSONL captures every proposal kind for inspection, even though
         # the live trainer's default lane-(a) flag is ``False`` (T1.3a /
-        # ``implementation_notes/skill-lane-decision.md``).
+        # ``implementation_notes/legacy/skill-lane-decision.md``).
         crafter = SkillCrafterService(
             lifecycle=lifecycle,
             artifact_store=artifacts,

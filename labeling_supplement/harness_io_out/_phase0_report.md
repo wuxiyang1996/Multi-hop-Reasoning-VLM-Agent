@@ -1,7 +1,7 @@
 # Phase-0 baseline — twenty_forty_eight ↔ tetris (2026-04-30)
 
 > Day-1 deliverable per
-> [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](../../implementation_notes/harness-usability-and-intra-gymv-transfer.md)
+> [`implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md`](../../implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md)
 > §7 Phase 0. Drives the
 > [`harness/README.md` audit §22](../../harness/README.md) measurement
 > baseline.
@@ -57,7 +57,7 @@ The only skill that is ever *filtered out* across both games is `COMPARE/MERGE` 
 
 ## 3. What this means concretely
 
-1. **§22 is the right next thing to fix.** Adding `feasible_tasks` to `SkillRecord` and a `target_task` parameter to `EligibilityFilter` is sufficient to drive the cross-game admission rate to 0. The lift in [`implementation_notes/protocol-lift-design.md`](../../implementation_notes/protocol-lift-design.md) §9 explicitly defers this — they're separate Day-1 / Day-2 work items.
+1. **§22 is the right next thing to fix.** Adding `feasible_tasks` to `SkillRecord` and a `target_task` parameter to `EligibilityFilter` is sufficient to drive the cross-game admission rate to 0. The lift in [`implementation_notes/legacy/protocol-lift-design.md`](../../implementation_notes/legacy/protocol-lift-design.md) §9 explicitly defers this — they're separate Day-1 / Day-2 work items.
 2. **§21 (protocol prose → typed hops) is masked, not solved, by the dump driver's `_wrap_protocol_steps` workaround.** The workaround makes `iter_hops` yield N hops per skill, but every hop normalises to `"EXEC"` (no real verb). At eligibility time this doesn't matter — `EligibilityFilter.filter` doesn't read protocol semantics. At `harness.run_skill` time it would matter; we did not run `--run-skill` in Phase 0 because the result would be vacuous.
 3. **The same-game eligibility numbers are honest baselines, but their *interpretation* differs by game.** Per-step inspection of the dump output shows:
 

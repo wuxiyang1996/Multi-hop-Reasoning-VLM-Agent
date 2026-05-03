@@ -370,7 +370,7 @@ def parse_args() -> argparse.Namespace:
              "BankMutationProposals) + offline-synthetic Promotion driver "
              "(decide_promotion_gpt54.py) that writes promoted skills back "
              "into the live skill_bank.jsonl. Off by default. See "
-             "implementation_notes/harness-usability-and-intra-gymv-transfer.md.",
+             "implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md.",
     )
     parser.add_argument(
         "--crafter-cycle-every-k-steps", type=int, default=0,
@@ -409,7 +409,7 @@ def parse_args() -> argparse.Namespace:
     parser.set_defaults(harness_allow_shadow=True)
 
     # Lane-(a) feature flag (T1.3a): the live trainer Crafter never mints
-    # PatchProposals by default — see implementation_notes/skill-lane-decision.md.
+    # PatchProposals by default — see implementation_notes/legacy/skill-lane-decision.md.
     # The dispatcher's existing `_STATUS_NO_OP` → Hypothesizer fall-through
     # carries the failure signal through. Set this only for explicit
     # lane-(b) experiments.
@@ -419,7 +419,7 @@ def parse_args() -> argparse.Namespace:
         help="Lane-(b) override: enable the Crafter Repairer / "
              "PatchProposal mint path in the live trainer. Off by "
              "default per the lane-(a) decision (skills are retrieval "
-             "payloads). See implementation_notes/skill-lane-decision.md.",
+             "payloads). See implementation_notes/legacy/skill-lane-decision.md.",
     )
     parser.set_defaults(crafter_enable_protocol_patching=False)
 

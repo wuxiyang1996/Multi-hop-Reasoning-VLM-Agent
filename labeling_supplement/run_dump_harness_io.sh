@@ -23,7 +23,7 @@
 # This is the offline mirror of the **harness validation surfaces** in
 # the live runtime. It does NOT mutate the bank or write SkillStatus
 # (those are PromotionOrchestrator's jobs). Read alongside
-# implementation_notes/crafter-harness-orchestrator-roles.md and
+# implementation_notes/legacy/crafter-harness-orchestrator-roles.md and
 # harness/README.md.
 #
 # Usage (defaults pick the latest bank + actions runs):

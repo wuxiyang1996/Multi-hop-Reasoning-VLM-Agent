@@ -129,7 +129,7 @@ Task-axis contract change: **done.** Two follow-ups remaining for the
 intra-gymv transfer milestone:
 
 * **Protocol lift** (the second half of Day 2 per
-  [`implementation_notes/protocol-lift-design.md`](../../implementation_notes/protocol-lift-design.md))
+  [`implementation_notes/legacy/protocol-lift-design.md`](../../implementation_notes/legacy/protocol-lift-design.md))
   — replace prose `EXEC` hops with the 21-verb gymv taxonomy,
   populate `${slot}` placeholders, and mine `effects_add` /
   `effects_del` from `success_criteria` / `abort_criteria`. Lands in

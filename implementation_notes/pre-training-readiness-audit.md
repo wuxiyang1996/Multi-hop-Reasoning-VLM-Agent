@@ -6,7 +6,7 @@
 > cross-cutting visual-grounding and trainer scaffolds), reconciled
 > against the on-disk SFT inventory under [`runs/`](../runs/)
 > (revision 2), the recorded lane decision in
-> [`skill-lane-decision.md`](skill-lane-decision.md) (revision 3 —
+> [`skill-lane-decision.md`](legacy/skill-lane-decision.md) (revision 3 —
 > lane (a): skills are retrieval payloads), and the **2026-05-01
 > S0/S1 closure** (revision 4 — every S0 code/doc item shipped:
 > `enable_protocol_patching` flag, threshold YAMLs, SFT manifest +
@@ -23,17 +23,17 @@
 > [`runs/sft_coldstart/`](../runs/sft_coldstart)
 > (5 LoRA SFT seeds: `action_taking`, `skill_selection`, `segment`,
 > `contract`, `curator` — see §0.2),
-> [`implementation_notes/skill-lane-decision.md`](skill-lane-decision.md)
+> [`implementation_notes/legacy/skill-lane-decision.md`](legacy/skill-lane-decision.md)
 > (**decided 2026-05-01:** lane (a) — skills are retrieval payloads,
 > not runnable programs; closes T1.3),
-> [`implementation_notes/crafter-harness-orchestrator-roles.md`](crafter-harness-orchestrator-roles.md)
+> [`implementation_notes/legacy/crafter-harness-orchestrator-roles.md`](legacy/crafter-harness-orchestrator-roles.md)
 > (§7 — historical context for the lane decision; superseded by
 > `skill-lane-decision.md`),
-> [`implementation_notes/harness-usability-and-intra-gymv-transfer.md`](harness-usability-and-intra-gymv-transfer.md)
+> [`implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md`](legacy/harness-usability-and-intra-gymv-transfer.md)
 > (§6.2 keystone — `bank.runnable()` is empty until the offline loop fires once),
-> [`implementation_notes/protocol-lift-design.md`](protocol-lift-design.md)
+> [`implementation_notes/legacy/protocol-lift-design.md`](legacy/protocol-lift-design.md)
 > (lane (b) implementation hook — `labeling/_decorate_skill_records.py`),
-> [`implementation_notes/single-vs-two-mdp-tradeoff.md`](single-vs-two-mdp-tradeoff.md)
+> [`implementation_notes/legacy/single-vs-two-mdp-tradeoff.md`](legacy/single-vs-two-mdp-tradeoff.md)
 > (**decided + shipped:** no `hop_select` LoRA, no inner MDP — see T3.6;
 > remaining work is plan-doc cleanup only),
 > [`plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md`](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md) (§5.0 fast-loop = gymv only),
@@ -43,8 +43,8 @@
 > [`plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) (§4 eval-suite loader, §9 `skill_gate.yaml`),
 > [`plans/08-cross-cutting/PLAN-EXPERIENCE-EXTENSION.md`](../plans/08-cross-cutting/PLAN-EXPERIENCE-EXTENSION.md) (§3 five typed extension records),
 > [`plans/08-cross-cutting/PLAN-FAILURE-ROUTING.md`](../plans/08-cross-cutting/PLAN-FAILURE-ROUTING.md),
-> [`plans/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md`](../plans/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md) (§3.2 HopTrace, §4.7 Crafter input contract),
-> [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) (stale — refresh required, see T2.6).
+> [`plans/legacy/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md`](../plans/legacy/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md) (§3.2 HopTrace, §4.7 Crafter input contract),
+> [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) (kept in sync with this audit and S0–S2 closures).
 
 This memo records the synthesis of four parallel plan-vs-repo audits run
 on 2026-05-01 to answer one question: **"what are we still missing
@@ -71,8 +71,8 @@ showed all five SFT adapters (`schema_gen` + 4 cold-start LoRAs) are
 
 | ID | Sprint | Item | Why it blocks training | One-line fix |
 |---|---|---|---|---|
-| ~~T1.2~~ | ~~S1~~ | ~~`bank.runnable()` is empty~~ → **wrapper landed 2026-05-01.** Driver: [`scripts/run_offline_promotion_cycle.sh`](../scripts/run_offline_promotion_cycle.sh) (orchestrates `decide_promotion_gpt54.py` + inline `legacy_writeback.writeback_promotion` + `bank.runnable()` post-condition). **Outstanding:** one GPU-bound run on the labeled corpus to flip ≥1 record to `ACTIVE/SHADOW`. | — |
-| ~~T1.3~~ | ~~S0~~ | ~~Lane decision (retrieval payload vs. runnable program) is unrecorded~~ → **closed 2026-05-01: lane (a) — context-only skills.** See [`skill-lane-decision.md`](skill-lane-decision.md). Skills are RAG-style retrieval payloads / procedural guidance for the actor LLM; the harness is an eligibility filter + validator, not an executor. All six sub-items (T1.3a – T1.3f) shipped — see §0.4. | — |
+| ~~T1.2~~ | ~~S1~~ | ~~`bank.runnable()` is empty~~ → **wrapper landed 2026-05-01; executed 2026-05-02.** Driver: [`scripts/run_offline_promotion_cycle.sh`](../scripts/run_offline_promotion_cycle.sh). Post-condition green: **375 / 489** cold-start rows writeback-eligible (`ACTIVE` / `PROVISIONAL` / `SHADOW`) — see [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §S1. | — |
+| ~~T1.3~~ | ~~S0~~ | ~~Lane decision (retrieval payload vs. runnable program) is unrecorded~~ → **closed 2026-05-01: lane (a) — context-only skills.** See [`skill-lane-decision.md`](legacy/skill-lane-decision.md). Skills are RAG-style retrieval payloads / procedural guidance for the actor LLM; the harness is an eligibility filter + validator, not an executor. **All lane follow-ups T1.3a–T1.3f shipped S0; T1.3b–T1.3d shipped S2 (2026-05-02)** — see §0.4. | — |
 | **T1.4** | S3 | Real env executors for transfer-target adapters | `osworld` / `video` are pure stubs; `browser` / `visual_reasoning` have helpers but the trainer never calls them. Blocks G3a `min_target_domains_verified ≥ 1` ⇒ no skill ever leaves `CANDIDATE` even after promotion fires. | Pick one target (`browser` is plan default), bind `set_executor`, ship a few-shot demo file. |
 | **T2.1** | S3 | Few-shot demo libraries for the four transfer targets | Compounds with T1.4 — without target demos `FewShotAdapter.adapt(...)` returns `target_domain_demo_unavailable`. | Mirror `harness/few_shot_demos_gymv.py` for the chosen target. |
 | ~~T2.2~~ | ~~S2~~ | ~~`orchestrator/eval_suite.py` (G5 non-regression loader)~~ → **shipped 2026-05-02.** New module hosts canonical `EvalSuite` (re-exported by `harness.gate_runner` to avoid the import cycle) plus `EvalSuiteSpec` / `Scoreboard` / `EvalSuiteLoader`. `GateService.evaluate(eval_suite=)` consumes a frozen `EvalSuite` directly; mixing `eval_suite=` with `(baseline_score, post_score)` raises. Starter suite: [`evaluation/suites/gymv-smoke-v1/suite.yaml`](../evaluation/suites/gymv-smoke-v1/suite.yaml). | — |
@@ -85,7 +85,7 @@ showed all five SFT adapters (`schema_gen` + 4 cold-start LoRAs) are
 | T3.3 | S4 | `HopTrace` artefact + inner-hop logging | Phase B mining (typed `SkillIR`, transferable reasoning skills) has no input. Reconcile with the single-MDP decision (could be offline-only). | Add `HopTrace` as offline log on Action Agent; *do not* re-add online inner-hop LLM. |
 | T3.4 | S4 | Canonical cross-domain ontology types (`Agent`, `UIElement`, `EvidenceSpan`, …) | Same blocker as T1.3 lane (b); typed validators can't run. | Module + dataclasses derived from PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS §3.4. |
 | T3.5 | S4 | Online runtime adapters (`HarnessSkillProvider`, `RunnerActorAdapter`, `EnvLike`, `legacy_bridge`) | Day-10 `SkillHarnessHook` covers the trainer; these only block live-online deployment. | Defer until post-S2. |
-| ~~T3.6~~ | ~~S0 (doc-only)~~ | ~~`hop_select` LoRA absence~~ → **bundled with T1.3e/T1.3f and shipped 2026-05-01.** The four PLAN-doc lane-(a) banners (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS, PLAN-COMPONENTS-IMPLEMENTATION) explicitly mark `hop_select` / `inner_mdp` references obsolete and point at [`single-vs-two-mdp-tradeoff.md`](single-vs-two-mdp-tradeoff.md). PLAN-ACTION-AGENT §5 / §5.5 retain the historical `hop_select` rationale; the lane-(a) banner in the four downstream plans is sufficient governance. | — |
+| ~~T3.6~~ | ~~S0 (doc-only)~~ | ~~`hop_select` LoRA absence~~ → **bundled with T1.3e/T1.3f and shipped 2026-05-01.** The four PLAN-doc lane-(a) banners (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS, PLAN-COMPONENTS-IMPLEMENTATION) explicitly mark `hop_select` / `inner_mdp` references obsolete and point at [`single-vs-two-mdp-tradeoff.md`](legacy/single-vs-two-mdp-tradeoff.md). PLAN-ACTION-AGENT §5 / §5.5 retain the historical `hop_select` rationale; the lane-(a) banner in the four downstream plans is sufficient governance. | — |
 | T4.* | post-launch | 7 open questions (hop-vocab, Q4 ablation, Phase-2 SFT trigger, counterfactuals, K-thresholds, Stage-5 window, Crafter input contract) | Tuning, not blocking. | See §5. |
 
 ### 0.2 What's already done — reconciliation against `runs/`
@@ -112,15 +112,15 @@ each.
 * **`schema_gen` eval token-acc 0.9838 (eval loss 0.086).** PLAN-VISUAL-GROUNDING-MILESTONES §13 specifies *exact-match* schema accuracy thresholds (≥ 70 % `gymv`, ≥ 50 % `browser`); the trainer reports `mean_token_accuracy` (token-level CE-derived). The numbers strongly suggest the bar is met but **must be re-verified with an exact-match probe** before pinning `schema_gen_ckpt_id` into `RunRelease`. New T1.1 sub-item → §0.3.
 * **`segment` eval≈train (0.32 vs. 0.30).** Either Stage-2 boundary preference is high-entropy or the LR schedule is under-trained. Flag for Phase-F warm-up convergence test; not a blocker.
 * **`curator` eval 1.22 vs. train 0.49 over 15 epochs on 193 rows.** Severe overfit on a tiny corpus. Mitigations: (a) treat curator as a tie-breaker only in early GRPO; (b) regenerate corpus with more games; (c) stronger early stopping. **Now the top quality concern.** New T2.7 → §3.
-* **`schema_gen` is on the 35B-A3B control-plane base, not the 9B actor.** Matches PLAN-VISUAL-GROUNDING (frozen control-plane), but the 9B actor and 35B-A3B grounding LoRA cannot share a vLLM worker. Confirm the deployment topology (T2.8 → §3).
-* **`sft_summary.json` is per-GPU**, not run-wide. `runs/sft_coldstart/sft_summary.json` lists only `action_taking`. Standardise into a run-wide manifest so the offline-promotion driver knows where to find each adapter (T2.9 → §3).
-* **`*.partial_20260430_091054` log shards** suggest an earlier 5-GPU run was preempted/crashed. Confirm the recovered final checkpoints are the post-restart artefacts, not stale partials (T2.10 → §3).
+* ~~**`schema_gen` is on the 35B-A3B control-plane base, not the 9B actor.**~~ **T2.8 closed** — split-base topology documented in [`legacy/vllm-topology.md`](legacy/vllm-topology.md) (implicit option (ii): `schema_gen` offline / separate worker).
+* ~~**`sft_summary.json` is per-GPU**, not run-wide.~~ **T2.9 closed** — [`runs/sft_coldstart/sft_summary_all.json`](../runs/sft_coldstart/sft_summary_all.json) + [`scripts/build_sft_manifest.py`](../scripts/build_sft_manifest.py).
+* ~~**`*.partial_20260430_091054` log shards**~~ **T2.10 closed 2026-05-02** — smoke load on all six adapters; report `runs/sft_coldstart/_smoke/smoke_all.json` (§0.3).
 
 #### What this changes in the readiness ledger
 
 * T1.1 (perception SFT) is **closed — pending exact-match verification**.
 * All Phase-F GRPO LoRA targets (`skill_select` / `action_execute` / `CONTRACT` / `CURATOR` / `SEGMENT`) have **SFT warm-starts on disk**. Phase F is unblocked on weight inputs.
-* The single biggest remaining Tier-0 blocker is now **T1.2** (run the offline promotion loop once), not T1.1.
+* ~~The single biggest remaining Tier-0 blocker was **T1.2** (offline promotion once).~~ **Closed 2026-05-02** — see §0.1 row `T1.2` and [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §S1. The **training-critical verification path** is now **T1.1′ after T2.11 SFT re-run** (exact-match probe on freshly trained adapters) plus actually **launching** fast-loop GRPO (S2 outstanding).
 
 ### 0.3 New / promoted action items from the SFT discovery
 
@@ -197,55 +197,54 @@ each.
 
 ### 0.4 New action items from the lane decision (T1.3 closed → lane (a))
 
-The lane decision recorded in [`skill-lane-decision.md`](skill-lane-decision.md)
+The lane decision recorded in [`skill-lane-decision.md`](legacy/skill-lane-decision.md)
 opens six follow-ups that replace the original open-ended T1.3:
 
 | ID | Sprint | Item | One-line fix |
 |---|---|---|---|
 | ~~T1.3a~~ | ~~S0~~ | ~~Default-disable the Repairer in the live trainer Crafter~~ → **shipped 2026-05-01.** `SkillCrafterService(enable_protocol_patching=False)` default + `_crafter_hook.run_crafter_step(enable_protocol_patching=…)` plumb-through + `CoEvolutionConfig.crafter_enable_protocol_patching` + `scripts/run_coevolution.py --enable-protocol-patching` opt-in. New tests at [`tests/test_crafter_lane_a_flag.py`](../tests/test_crafter_lane_a_flag.py) verify the default fall-through to the Hypothesizer; offline driver [`labeling_supplement/reflect_per_episode_gpt54.py`](../labeling_supplement/reflect_per_episode_gpt54.py) opts back in. | — |
-| **T1.3b** | S2 | Add `RewriteProposal` (rename `ComposeProposal` → `MergeProposal` if cleaner) in `data_structure/extensions/bank_mutation.py` | New typed proposal subclasses for the lane-(a) Crafter taxonomy |
-| **T1.3c** | S2 | Implement `BANK_GAP` / `RETRIEVAL_MISLEAD` / `STALE_DESCRIPTION` `FailureClass` taxonomy in the *live* (not offline-mirror) Crafter path | Replaces the six protocol-edit `RecoveryStrategy` values for live use; the protocol-edit values stay for offline gate diagnostics |
-| **T1.3d** | S2 | Replace the multi-domain `ACTIVE` invariant with `min_retrievals_per_skill` in `PromotionOrchestrator` | Unblocks `ACTIVE` promotion on single-domain `gymv` banks |
-| ~~T1.3e~~ | ~~S0 (doc-only)~~ | ~~Update [`harness/README.md`](../harness/README.md) §22 + [`crafter-harness-orchestrator-roles.md`](crafter-harness-orchestrator-roles.md) §7.3 / §7.5~~ → **shipped 2026-05-01.** `harness/README.md` §22 lane block + `crafter-harness-orchestrator-roles.md` §7.3 banner + §7.5 supersedure note + new "Post-decision rule" sub-section. | — |
-| ~~T1.3f~~ | ~~S0 (doc-only)~~ | ~~Update plan documents (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS, PLAN-COMPONENTS-IMPLEMENTATION)~~ → **shipped 2026-05-01.** Lane-(a) banner blocks at the top of all four PLAN docs, each pointing at [`skill-lane-decision.md`](skill-lane-decision.md) + [`single-vs-two-mdp-tradeoff.md`](single-vs-two-mdp-tradeoff.md) and explicitly marking `hop_select` / `inner_mdp` references obsolete. | — |
+| ~~T1.3b~~ | ~~S2~~ | ~~Add `RewriteProposal` / `MergeProposal` alias~~ → **shipped 2026-05-02.** [`data_structure/extensions/bank_mutation_proposal.py`](../data_structure/extensions/bank_mutation_proposal.py) (`RewriteProposal`, `MergeProposal = ComposeProposal`); [`tests/test_rewrite_and_merge_proposal.py`](../tests/test_rewrite_and_merge_proposal.py); `GateService._run_static` accepts `RewriteProposal`. | — |
+| ~~T1.3c~~ | ~~S2~~ | ~~Lane-(a) `BANK_GAP` / `RETRIEVAL_MISLEAD` / `STALE_DESCRIPTION` live path~~ → **shipped 2026-05-02.** [`common/enums.py`](../common/enums.py) `LANE_A_RECOVERY_STRATEGIES`; [`crafter/service.py`](../crafter/service.py) `_run_failure_dispatch` routes past Repairer; [`tests/test_lane_a_failure_taxonomy.py`](../tests/test_lane_a_failure_taxonomy.py). | — |
+| ~~T1.3d~~ | ~~S2~~ | ~~`min_retrievals_per_skill` at ACTIVE~~ → **shipped 2026-05-02.** [`configs/skill_gate.yaml`](../configs/skill_gate.yaml) + [`GateThresholds`](../orchestrator/config.py); [`SkillLifecycleManager`](../skill_bank/lifecycle.py) enforces at ACTIVE promotion. | — |
+| ~~T1.3e~~ | ~~S0 (doc-only)~~ | ~~Update [`harness/README.md`](../harness/README.md) §22 + [`crafter-harness-orchestrator-roles.md`](legacy/crafter-harness-orchestrator-roles.md) §7.3 / §7.5~~ → **shipped 2026-05-01.** `harness/README.md` §22 lane block + archived roles memo §7.3 banner + §7.5 supersedure note + new "Post-decision rule" sub-section. | — |
+| ~~T1.3f~~ | ~~S0 (doc-only)~~ | ~~Update plan documents (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS, PLAN-COMPONENTS-IMPLEMENTATION)~~ → **shipped 2026-05-01.** Lane-(a) banner blocks at the top of all four PLAN docs, each pointing at [`skill-lane-decision.md`](legacy/skill-lane-decision.md) + [`single-vs-two-mdp-tradeoff.md`](legacy/single-vs-two-mdp-tradeoff.md) and explicitly marking `hop_select` / `inner_mdp` references obsolete. | — |
 
-S0 closed: every code item opened by the lane decision (T1.3a) and
-every doc item (T1.3e/f, T3.6, T2.6) is shipped. The remaining S2
-follow-ups (T1.3b/c/d) are scoped for fast-loop bring-up.
+**Lane closure:** **T1.3a–T1.3f** are all shipped (S0 governance + S2 Crafter/gate mechanics). Nothing remains open in this table.
 
 ---
 
 ## 1. TL;DR
 
-The trainer scaffolding runs end-to-end on `gymv`, all five SFT
-warm-starts are on disk
-(`schema_gen` + `action_taking` + `skill_selection` + `segment` +
-`contract` + `curator`; see §0.2), and the **lane decision** is now
-recorded — **lane (a): skills are retrieval payloads / procedural
-guidance for the actor LLM**, not runnable programs (see
-[`skill-lane-decision.md`](skill-lane-decision.md), §0.4). The
-remaining tight critical path is **`bank.runnable()` empty until the
-offline promotion loop fires once**, default-disabling the Repairer
-in the trainer Crafter (T1.3a), four config / policy artefacts, and
-the curator-overfit mitigation. Most other "missing" items are
-deliberately deferred per the cadence-asymmetry rule
-([`PLAN-PIPELINE-ORCHESTRATOR.md` §5.0](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md):
-fast loop = `gymv` only; transfer-target adapters land in the slow loop).
+The trainer scaffolding runs end-to-end on `gymv`, **six** SFT warm-start
+artefacts are on disk (`schema_gen` + five cold-start LoRAs; see §0.2),
+and **lane (a)** is decided and enforced in code — skills are retrieval
+payloads; live Crafter defaults with `enable_protocol_patching=False`
+(see [`skill-lane-decision.md`](legacy/skill-lane-decision.md)). **T1.3a–f
+are shipped** (S0 + S2 — §0.4). **T1.2 has executed** — offline promotion
+flipped hundreds of rows so `bank.runnable() != []` ([`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §S1).
+
+**S2 code items closed 2026-05-02:** eval suite + scoreboard driver +
+GRPO `RewardLogger`, lane-(a) proposals + failure taxonomy +
+`min_retrievals_per_skill`, curator warmup weighting, etc. (§6 table).
+
+The **remaining gate before trusting perception metrics** is **T2.11 →
+re-run all six SFT jobs**, then **re-run T1.1′** (`evaluation/probe_schema_gen_exact_match.py`)
+— the 2026-04-30 checkpoints were trained / loaded under incomplete LoRA
+coverage (see §0.3). **Outstanding product work:** actually **launch**
+fast-loop GRPO on `gymv` with `crafter_promotion_enabled` / audit knobs,
+then S3/S4 transfer + router + extension records per §0.1.
+
+Cadence rule unchanged:
+[`PLAN-PIPELINE-ORCHESTRATOR.md` §5.0](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)
+— fast loop stays `gymv`-first; cross-domain executors remain slow-loop.
 
 What we **can** already exercise:
 
-- Cascaded grounding, gate stages 0–4
-- Lifecycle / storage split, promotion + rollback transactions
-- G0 invariant on every `SkillEpisode`
-- `gymv` few-shot transfer
-- The typed `BankMutationProposal` family
-- The Day-10 trainer ↔ harness wire-up
-- **All five SFT warm-starts** for the Phase-F GRPO targets (`runs/sft_coldstart/{decision,skillbank}/`) plus the Phase-1 `schema_gen` checkpoint (`runs/sft_schema_gen/schema_gen_20260430_091831/`, eval token-acc 0.9838)
-
-The structural plumbing is real and the weight inputs to GRPO Phase F
-are trained. What's missing is mostly **wire-up content** (one offline
-promotion run, a lane decision, target-domain demos, a few config
-YAMLs) — not new architecture or new model training.
+- Cascaded grounding, gate stages 0–4; G0 on `SkillEpisode`
+- Lifecycle / split stores, promotion + rollback, offline promotion mirror
+- `gymv` few-shot transfer + typed `BankMutationProposal` / `RewriteProposal`
+- Day-10 trainer ↔ harness hook (`SkillHarnessHook`)
+- Phase-5/6 **measurement** stack (deterministic-stub tier — not mechanism validation)
 
 ---
 
@@ -301,7 +300,7 @@ graduates a batch `CANDIDATE → SHADOW`, the trainer's harness hook sees
 `[]` and every `filter_candidates` call admits the legacy bank by
 missing-fallback — i.e. the harness is silently bypassed. This is the
 keystone called out in
-[`harness-usability-and-intra-gymv-transfer.md` §6.2](harness-usability-and-intra-gymv-transfer.md).
+[`harness-usability-and-intra-gymv-transfer.md` §6.2](legacy/harness-usability-and-intra-gymv-transfer.md).
 
 **Fix:** run
 [`labeling_supplement/decide_promotion_gpt54.py`](../labeling_supplement/decide_promotion_gpt54.py)
@@ -311,7 +310,7 @@ have the trainer's first warm-up step gate on a non-empty `runnable()`.
 ### T1.3 Lane decision — **closed: lane (a), skills are retrieval payloads**
 
 > ✅ **Status flipped 2026-05-01 (revision 2).** Decision recorded in
-> [`skill-lane-decision.md`](skill-lane-decision.md). A skill is a
+> [`skill-lane-decision.md`](legacy/skill-lane-decision.md). A skill is a
 > *semantic retrieval payload* and *procedural guidance* for the
 > actor LLM — name, description, preconditions / effects / role
 > labels, optionally NL `protocol`. Skills are **not** runnable
@@ -347,7 +346,7 @@ have the trainer's first warm-up step gate on a non-empty `runnable()`.
 `skill_selection` LoRA + retrieval scoring saturates **and**
 (ii) NORTHSTAR §7.3 Joint Success Rate is still below the headline
 target after exhausting the
-[`single-vs-two-mdp-tradeoff.md` §"Escalation order"](single-vs-two-mdp-tradeoff.md)
+[`single-vs-two-mdp-tradeoff.md` §"Escalation order"](legacy/single-vs-two-mdp-tradeoff.md)
 (better `strategic_description`, pattern-tag abstraction layer,
 two-call inference inside one MDP). Even then the next escalation is
 MCTS-with-a-forward-model on games and tool-augmented harness ops on
@@ -405,33 +404,20 @@ the 10-column canonical table + 4 companion tables, all sharing one
 `eval_suite_id` + `bank_snapshot_id`. Without this the **Joint Success
 Rate** column has no producer and the GRPO loop has no headline.
 
-### T2.4 `harness/reward_logger.py` not wired into the GRPO buffer
+### ~~T2.4~~ `harness/reward_logger.py` not wired into the GRPO buffer — **closed 2026-05-02**
 
-Per
-[`PLAN-HARNESS.md` §17](../plans/05-harness/PLAN-HARNESS.md) the
-harness `RewardLogger` is the canonical sink for
-`r_env + r_follow + r_cost + r_transfer + r_adapter`. The actual reward
-flowing into `trainer/coevolution/grpo_training.py::_collect_grpo_records`
-comes from `decision_agents/reward_func.py::RewardComputer` — **no file
-under `trainer/coevolution/` imports `harness.reward_logger`**. The
-shaping is real, but the audit channel is forked.
+Per [`PLAN-HARNESS.md` §17](../plans/05-harness/PLAN-HARNESS.md) the harness `RewardLogger` is the canonical sink. **Shipped:** `RewardLogger.log_grpo_record(...)` (kind-discriminated JSONL: `grpo_step` vs. `skill_episode`); `episode_runner.run_episode_async` emits at both GRPO append sites; path through `rollout_collector` → `orchestrator.run_training_loop_async`; `CoEvolutionConfig.reward_log_path`. *(Historical note: shaping for policy gradients may still flow via `decision_agents/reward_func.py`; the audit sink is no longer forked from JSONL logging.)*
 
-### T2.5 Policy-as-config YAMLs
+### ~~T2.5~~ Policy-as-config YAMLs — **closed 2026-05-01**
 
 | Artefact | Required by | Status |
 |---|---|---|
-| `configs/skill_gate.yaml` | [`PLAN-UNIFIED-SKILL-GATE.md` §9](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | Missing — current thresholds live in `orchestrator/config.py::GateThresholds`; audit-log drift is invisible without the YAML diff |
-| `configs/failure_routing.yaml` | [`PLAN-FAILURE-ROUTING.md`](../plans/08-cross-cutting/PLAN-FAILURE-ROUTING.md) | Missing entirely |
+| `configs/skill_gate.yaml` | [`PLAN-UNIFIED-SKILL-GATE.md` §9](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) | **Shipped** — [`configs/skill_gate.yaml`](../configs/skill_gate.yaml) (`policy_version` + drift annotations) |
+| `configs/failure_routing.yaml` | [`PLAN-FAILURE-ROUTING.md`](../plans/08-cross-cutting/PLAN-FAILURE-ROUTING.md) | **Shipped** — [`configs/failure_routing.yaml`](../configs/failure_routing.yaml) (lane-(a) taxonomy + overrides) |
 
-### T2.6 `IMPLEMENTATION-STATUS.md` is stale
+### ~~T2.6~~ `IMPLEMENTATION-STATUS.md` is stale — **closed** (refreshed 2026-05-01, maintained 2026-05-02)
 
-Last updated 2026-04-21. Predates the `_crafter_hook` / `_promotion_hook`
-/ `_harness_hook` trio (Day-7 → 10),
-[`legacy_writeback.py`](../skill_bank/legacy_writeback.py),
-`cold_start/evaluation_dataset/`, the GRPO / vLLM lifecycle stack, **and
-the entire `runs/sft_*` SFT corpus** — all of which now exist.
-**Refresh it before a sprint planning call** so people don't
-re-implement what's already there.
+Previously lagged the Day-7 → 10 hook trio, `legacy_writeback`, `runs/sft_*`, and threshold YAMLs. **Now** co-maintained with this audit — see [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) header + §S0–S2.
 
 ### T2.7 `curator` SFT overfit mitigation (added 2026-05-01)
 
@@ -453,45 +439,17 @@ bank states the medium loop will fight the actor. **Mitigations
 3. Add early-stopping at `eval_loss` plateau detection (currently the
    trainer rides the full 15-epoch budget).
 
-### T2.8 vLLM topology check for split-base inference (added 2026-05-01)
+### ~~T2.8~~ vLLM topology check for split-base inference — **closed**
 
-`schema_gen` LoRA targets `Qwen3.5-35B-A3B`; the GRPO LoRAs target
-`Qwen3.5-9B`. They cannot share a vLLM worker. Confirm the deployment
-plan: (i) one vLLM worker per base, with the actor calling each in
-sequence, **or** (ii) `schema_gen` runs offline only on cold-start
-ingest and never live. The trainer config currently shows only the 9B
-backbone (`model_name = "Qwen/Qwen3.5-9B"` in
-[`trainer/coevolution/config.py`](../trainer/coevolution/config.py)), so
-option (ii) is the implicit default; document this explicitly so the
-visual-grounding plan and the trainer plan agree.
+**Documented** in [`legacy/vllm-topology.md`](legacy/vllm-topology.md): `schema_gen` on Qwen3.5-35B-A3B vs GRPO on Qwen3.5-9B — separate workers; trainer defaults align with offline / split-tower operation (`model_name` in [`trainer/coevolution/config.py`](../trainer/coevolution/config.py)).
 
-### T2.9 Run-wide SFT manifest (added 2026-05-01)
+### ~~T2.9~~ Run-wide SFT manifest — **closed**
 
-[`runs/sft_coldstart/sft_summary.json`](../runs/sft_coldstart) is a
-**per-GPU** summary (it lists only `action_taking`, the GPU-1 shard).
-The offline promotion driver and any future eval driver need a
-**run-wide** manifest pointing at all six adapter paths + their meta.
-Ship as `runs/sft_coldstart/sft_summary_all.json` (and an analogous
-`runs/sft_schema_gen/manifest.json`). Schema:
+[`runs/sft_coldstart/sft_summary_all.json`](../runs/sft_coldstart/sft_summary_all.json) emitted by [`scripts/build_sft_manifest.py`](../scripts/build_sft_manifest.py). *(Legacy `sft_summary.json` may remain per-GPU; drivers should prefer the run-wide manifest.)*
 
-```json
-{
-  "schema_gen": {"path": "...", "base": "...", "eval_loss": ...},
-  "decision":   {"action_taking": {...}, "skill_selection": {...}},
-  "skillbank":  {"segment": {...}, "contract": {...}, "curator": {...}}
-}
-```
+### ~~T2.10~~ Audit `*.partial_20260430_091054` shards — **closed 2026-05-02**
 
-### T2.10 Audit `*.partial_20260430_091054` shards (added 2026-05-01)
-
-Several `runs/sft_coldstart/*.log.partial_20260430_091054` files exist
-alongside the final logs, suggesting an earlier 5-GPU shard crashed or
-was preempted. Confirm the **final** checkpoints under
-`decision/{action_taking,skill_selection}` and
-`skillbank/{segment,contract,curator}` are the post-restart artefacts
-(timestamps Apr 30 21:39 / 21:22 / 13:37 / 10:37 / 08:53 respectively),
-not stale partials. Cheap probe: `peft.PeftModel.from_pretrained(...)`
-+ a single forward pass per adapter.
+Smoke load on all six adapters — **no torn partial shards**; report `runs/sft_coldstart/_smoke/smoke_all.json` (§0.3).
 
 ---
 
@@ -530,13 +488,13 @@ dropped, contradicting §10 anti-goal #4.
 ### T3.3 `HopTrace` artefact + inner-hop logging on the Action Agent
 
 `grep -n HopTrace decision_agents/` returns zero. Per
-[`PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md` §3.2](../plans/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md),
+[`PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md` §3.2](../plans/legacy/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md),
 Phase B mining (typed `SkillIR`, inner-hop reasoning skill discovery) has
 no input substrate until this lands. `SkillEpisodeStep` carries
 inner-step info but isn't logged as the typed `HopTrace` artefact
 required.
 
-**Note:** [`single-vs-two-mdp-tradeoff.md`](single-vs-two-mdp-tradeoff.md)
+**Note:** [`single-vs-two-mdp-tradeoff.md`](legacy/single-vs-two-mdp-tradeoff.md)
 deliberately retired the inner-MDP scaffold for latency reasons. The
 two notes need to be reconciled — either Phase B of the
 transferable-reasoning edits is deferred, or `HopTrace` is reintroduced
@@ -581,7 +539,7 @@ block any future "live online runtime" execution path.
 * GRPO LoRAs are exactly **two**: `skill_selection` + `action_taking`. The `hop_select` LoRA was explicitly dropped because hop decisions are now action decisions, both rolled into `action_taking`. **The on-disk SFT seed corpus at [`runs/sft_coldstart/decision/`](../runs/sft_coldstart/decision) confirms this — only `action_taking/` and `skill_selection/` are trained, no `hop_select/`.**
 
 **Why the single-MDP decision stands**
-([`single-vs-two-mdp-tradeoff.md` §"Escalation order"](single-vs-two-mdp-tradeoff.md)):
+([`single-vs-two-mdp-tradeoff.md` §"Escalation order"](legacy/single-vs-two-mdp-tradeoff.md)):
 
 1. Latency win — the actor has a non-trivial vLLM TTFT and an inner
    MDP doubles the call count without obvious return.
@@ -612,7 +570,7 @@ SFT-only `schema_gen` adapter on the 35B-A3B base. The list:
 **Effort:** ~30 min find-and-replace across 4 plan files. **No code
 changes required.** This is the same documentation-drift pattern as
 T3.6's S0 entry in §0.1; the cleanup belongs in the same governance
-slot as T2.6 (refresh `IMPLEMENTATION-STATUS.md`).
+slot as ongoing plan-doc hygiene (~~T2.6~~ status refresh is done; IMPLEMENTATION-STATUS still benefits when phases shift).
 
 ---
 
@@ -632,7 +590,7 @@ Settle before scaling, not before starting.
    probe, the architectural claim that the **Actor (not the 72B) is the
    policy** is unverified. The `skill_transfer_test/` framework is
    sketched in
-   [`harness-usability-and-intra-gymv-transfer.md` §5](harness-usability-and-intra-gymv-transfer.md).
+   [`harness-usability-and-intra-gymv-transfer.md` §5](legacy/harness-usability-and-intra-gymv-transfer.md).
 3. **Phase-2 teacher-SFT trigger is qualitative-only** ("if narrow
    failures persist"); no quantitative threshold.
 4. **Counterfactual prediction reliability** — Crafter §6.9
@@ -647,7 +605,7 @@ Settle before scaling, not before starting.
 7. **Crafter input contract** (`active_bank_skills`,
    `candidate_protocol_clusters`, `failed_hop_patterns`,
    `failure_cases`, `transfer_mismatch_reports`) per
-   [`PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md` §4.7](../plans/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md)
+   [`PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md` §4.7](../plans/legacy/10-edits/PLAN-EDITS-TRANSFERABLE-REASONING-SKILLS.md)
    — not present as a typed `CrafterInput` dataclass.
 
 ---
@@ -660,14 +618,14 @@ Settle before scaling, not before starting.
 
 | Sprint | Track | Items | Why now |
 |---|---|---|---|
-| **S0 — pre-flight** ✅ shipped 2026-05-01 | data | ~~**T1.1′**~~ — probe at [`evaluation/probe_schema_gen_exact_match.py`](../evaluation/probe_schema_gen_exact_match.py); **outstanding:** one GPU-bound run to pin the metric, but the script is complete | converts "0.9838 token-acc" into the spec's exact-match metric; gate for `RunRelease` pinning |
+| **S0 — pre-flight** ✅ shipped 2026-05-01 | data | ~~**T1.1′**~~ — probe [`evaluation/probe_schema_gen_exact_match.py`](../evaluation/probe_schema_gen_exact_match.py) **ran 2026-05-02 on legacy checkpoints — failed** (LoRA not applied — T2.11). **Outstanding:** **re-run six SFT jobs** under [`trainer/SFT/lora_targets.py`](../trainer/SFT/lora_targets.py), then **re-run T1.1′** | exact-match bar + RunRelease pinning |
 | | code | ~~**T1.3a**~~ — `enable_protocol_patching: bool = False` flag on `SkillCrafterService`, threaded through `_crafter_hook` / `CoEvolutionConfig` / `run_coevolution.py`; tests in [`tests/test_crafter_lane_a_flag.py`](../tests/test_crafter_lane_a_flag.py) | lane-(a) default — Repairer parked behind feature flag |
-| | governance | ~~T1.3~~ — **closed**, see [`skill-lane-decision.md`](skill-lane-decision.md). All six follow-ups (T1.3a/e/f shipped here; T1.3b/c/d scoped for S2). | — |
+| | governance | ~~T1.3~~ — **closed**, see [`skill-lane-decision.md`](legacy/skill-lane-decision.md). **All T1.3a–f shipped** (S0 + S2 — §0.4). | — |
 | | governance | ~~T2.6~~ — `IMPLEMENTATION-STATUS.md` refreshed to reference `runs/sft_*`, Day-7 → 10 hooks, lane-(a) decision, threshold YAMLs, SFT manifest, offline-promotion driver | — |
 | | governance | ~~**T1.3e + T1.3f + T3.6**~~ — `harness/README.md` §22 lane block + `crafter-harness-orchestrator-roles.md` §7.3 / §7.5 banner+supersedure + four PLAN docs banner (PLAN-SKILL-CRAFTER, PLAN-SKILL-BANK, PLAN-HARNESS, PLAN-COMPONENTS-IMPLEMENTATION); T3.6 obsoletes `hop_select` references in those banners | doc drift closed |
 | | governance | ~~**T2.9**~~ — [`scripts/build_sft_manifest.py`](../scripts/build_sft_manifest.py) emits [`runs/sft_coldstart/sft_summary_all.json`](../runs/sft_coldstart/sft_summary_all.json) | — |
-| | governance | ~~**T2.10**~~ — load-smoke driver at [`evaluation/smoke_load_sft_adapters.py`](../evaluation/smoke_load_sft_adapters.py); **outstanding:** one GPU run to confirm none of the six adapters has a torn `*.partial_*` shard | cheap, prevents Phase-F starting from a corrupt seed |
-| **S1 — fire offline once** ✅ wrapper shipped 2026-05-01 | data | ~~**T1.2**~~ — orchestration wrapper at [`scripts/run_offline_promotion_cycle.sh`](../scripts/run_offline_promotion_cycle.sh) (drives `decide_promotion_gpt54.py` + inline `legacy_writeback.writeback_promotion` + `bank.runnable()` post-condition); **outstanding:** one GPU/API run to flip ≥1 record to `ACTIVE/SHADOW` | converts `bank.runnable() == []` into non-empty; this is the §17 keystone |
+| | governance | ~~**T2.10**~~ — [`evaluation/smoke_load_sft_adapters.py`](../evaluation/smoke_load_sft_adapters.py) ran 2026-05-02 on all six adapters; **no torn `*.partial_*` shards** — report `runs/sft_coldstart/_smoke/smoke_all.json` | — |
+| **S1 — fire offline once** ✅ shipped + executed 2026-05-02 | data | ~~**T1.2**~~ — [`scripts/run_offline_promotion_cycle.sh`](../scripts/run_offline_promotion_cycle.sh) ran end-to-end; writeback green (**375 / 489** rows). §17 post-condition satisfied — see [`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §S1 | — |
 | | governance | ~~T2.5~~ — [`configs/skill_gate.yaml`](../configs/skill_gate.yaml) + [`configs/failure_routing.yaml`](../configs/failure_routing.yaml) shipped (policy v1.0.0; lane-(a) failure taxonomy + drift annotations) | — |
 | **S2 — fast loop launch** ✅ code items closed 2026-05-02 | code | ~~**T1.3b**~~ — `RewriteProposal` + `MergeProposal` alias landed in [`data_structure/extensions/bank_mutation_proposal.py`](../data_structure/extensions/bank_mutation_proposal.py); gate `_run_static` accepts both | — |
 | | code | ~~**T1.3c**~~ — `BANK_GAP` / `RETRIEVAL_MISLEAD` / `STALE_DESCRIPTION` shipped in [`common/enums.py`](../common/enums.py) (`LANE_A_RECOVERY_STRATEGIES`); `FailureDiagnoser` + `_run_failure_dispatch` route them past the Repairer to the Hypothesizer | — |
@@ -677,9 +635,9 @@ Settle before scaling, not before starting.
 | | training | Launch fast-loop GRPO on `gymv` only ([`PLAN-PIPELINE-ORCHESTRATOR.md` §5.0](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)) — actor + bank LoRAs at 5–10 : 1 cadence, all 5 LoRAs warm-started from `runs/sft_coldstart/` | Phase 1 of [`PLAN-ACTION-AGENT.md` §6](../plans/02-action-agent/PLAN-ACTION-AGENT.md) |
 | | governance | ~~**T2.2**~~ — [`orchestrator/eval_suite.py`](../orchestrator/eval_suite.py) loader + `EvalSuite` canonical home; `GateService.evaluate(eval_suite=)` consumes it directly. Starter suite at [`evaluation/suites/gymv-smoke-v1/`](../evaluation/suites/gymv-smoke-v1/) | — |
 | | governance | ~~**T2.3**~~ — [`evaluation/answer_evaluator.py`](../evaluation/answer_evaluator.py) (F1–F7), [`evaluation/scoreboard.py`](../evaluation/scoreboard.py) (canonical 10x10 + companion tables, markdown + JSON sidecar), [`evaluation/driver.py`](../evaluation/driver.py) (writes per-instance JSONL + suite scoreboard JSON consumed by T2.2). `RunRelease` carries `eval_suite_id` + `scoreboard_path` | — |
-| | governance | ~~**T2.8**~~ — split-base vLLM topology documented in [`implementation_notes/vllm-topology.md`](vllm-topology.md) | — |
+| | governance | ~~**T2.8**~~ — split-base vLLM topology documented in [`implementation_notes/legacy/vllm-topology.md`](legacy/vllm-topology.md) | — |
 | **S3 — first transfer probe** | data | T1.4 + T2.1 — pick one transfer target (probably `browser` per the plan's first-arena), build demo library, plug `set_executor` | unblocks G3a → first `ACTIVE` skill possible |
-| | governance | A0 vs A4 ablation on intra-`gymv` probe (Q4 + [`harness-usability-and-intra-gymv-transfer.md`](harness-usability-and-intra-gymv-transfer.md)) | answers Q4: is the Actor doing real work? |
+| | governance | A0 vs A4 ablation on intra-`gymv` probe (Q4 + [`harness-usability-and-intra-gymv-transfer.md`](legacy/harness-usability-and-intra-gymv-transfer.md)) | answers Q4: is the Actor doing real work? |
 | **S4 — multi-domain hardening** | architecture | T3.1 (extension records) + T3.2 (failure router) + T3.3 (`HopTrace`) + T3.4 (ontology types) | required for cross-domain claims, not for `gymv` |
 
 ---
@@ -688,7 +646,7 @@ Settle before scaling, not before starting.
 
 - **`hop_select` LoRA (T3.6)** — design has been deliberately rejected
   and **the single-MDP code has shipped**
-  ([`single-vs-two-mdp-tradeoff.md`](single-vs-two-mdp-tradeoff.md);
+  ([`single-vs-two-mdp-tradeoff.md`](legacy/single-vs-two-mdp-tradeoff.md);
   [`decision_agents/actor_agent.py`](../decision_agents/actor_agent.py)
   has no `_run_inner_mdp`; `inner_mdp.py` is deleted; SFT seeds in
   [`runs/sft_coldstart/decision/`](../runs/sft_coldstart/decision)
@@ -699,7 +657,7 @@ Settle before scaling, not before starting.
   for live deployment.
 - **Real executors for `osworld` / `video` / `visual_reasoning`** —
   fast loop is `gymv`-only; these are 4-week projects each per
-  [`harness-usability-and-intra-gymv-transfer.md` §2](harness-usability-and-intra-gymv-transfer.md).
+  [`harness-usability-and-intra-gymv-transfer.md` §2](legacy/harness-usability-and-intra-gymv-transfer.md).
 - **Phase B of transferable-reasoning edits** — defer until `HopTrace`
   design is reconciled with the single-MDP decision.
 
@@ -707,28 +665,26 @@ Settle before scaling, not before starting.
 
 ## 8. Verdict
 
-**Earliest safe training start = end of Sprint S2** (unchanged in
-absolute terms, but S0 is materially shorter now). The fast loop
-(`gymv` actor + bank GRPO) needs:
+**S0–S1 governance + drivers are shipped; S2 structural code items are
+shipped (2026-05-02).** What remains before calling the fast loop
+*"trustworthy end-to-end"* is mostly **execution + weights**:
 
-- ~~T1.1 (schema SFT to checkpoint)~~ → **closed; on disk at `runs/sft_schema_gen/schema_gen_20260430_091831/`** (T1.1′ exact-match probe is the only S0 verification step)
-- T1.2 (offline-loop fired once → non-empty `runnable()`)
-- ~~T1.3 (lane picked)~~ → **closed: lane (a)**, see [`skill-lane-decision.md`](skill-lane-decision.md). Only T1.3a (default-disable Repairer flag, S0) is left for fast-loop launch; T1.3b / T1.3c / T1.3d land in S2.
-- T2.4 (reward logger wired)
-- T2.5 (config YAMLs)
-- T2.7 (curator weight gate in early GRPO — mitigation for the 1.22 eval loss)
+- ~~T1.1 (schema SFT checkpoint on disk)~~ → **still true**, but **T1.1′
+  must be re-run after T2.11 SFT re-run** — old checkpoints load with
+  incomplete LoRA legs (§0.3).
+- ~~T1.2 (`bank.runnable()` non-empty)~~ → **closed 2026-05-02**
+  ([`IMPLEMENTATION-STATUS.md`](../IMPLEMENTATION-STATUS.md) §S1).
+- ~~T1.3 + T1.3a–f~~ → **closed** — lane (a), Repairer default-off, docs,
+  and **T1.3b/c/d** Crafter + gate mechanics ([`skill-lane-decision.md`](legacy/skill-lane-decision.md), §0.4).
+- ~~T2.4 / T2.5 / T2.7~~ → **shipped** (reward JSONL sink, threshold YAMLs,
+  curator warmup ramp — §6).
+- **Next operational step:** launch **fast-loop GRPO on `gymv`** with the
+  trainer harness + promotion hooks; treat **T2.11 SFT re-run** as blocking
+  any strong claim from `schema_gen`.
 
-Everything else can land asynchronously without poisoning the actor's
-gradient signal.
-
-The structural plumbing is real, **the SFT warm-starts for all six
-GRPO/SFT targets are trained**, and **the lane question is now
-decided**. What's missing is mostly **wire-up content** (one offline
-promotion run, the Repairer feature flag, a few config YAMLs,
-target-domain demos, one weighting knob). Day-7 → 10 work closed the
-trainer ↔ harness wire; revision-2 confirmed the weight inputs;
-revision-3 closed the lane question; the next sprint feeds runtime
-data into them.
+Everything else (T1.4/T2.1 transfer targets, T3.* router / extension
+records, live `HarnessSkillProvider`) can land asynchronously without
+blocking the first `gymv-only` GRPO epoch — see §7.
 
 ---
 
@@ -847,23 +803,22 @@ gaps before §6 launch:
   `action_taking` are in the GRPO / SFT corpus. Remaining work is
   plan-doc cleanup, not re-implementation.
 - `schema_gen` is SFT-only (intentional per
-  [`PLAN-EDITS-VISUAL-GROUNDING-LIGHTWEIGHT.md`](../plans/10-edits/PLAN-EDITS-VISUAL-GROUNDING-LIGHTWEIGHT.md))
+  [`PLAN-EDITS-VISUAL-GROUNDING-LIGHTWEIGHT.md`](../plans/legacy/10-edits/PLAN-EDITS-VISUAL-GROUNDING-LIGHTWEIGHT.md))
   and not in the GRPO `ADAPTER_MAP`. **Revision 2:** the SFT
   checkpoint is now on disk
   (`runs/sft_schema_gen/schema_gen_20260430_091831/`, base
-  Qwen3.5-35B-A3B); needs the exact-match probe + a vLLM topology
-  decision (T1.1′ + T2.8).
+  Qwen3.5-35B-A3B);   needs **T1.1′ after T2.11 SFT re-run** (exact-match probe); ~~T2.8~~ topology is documented.
 - `HarnessSkillProvider`, `RunnerActorAdapter`, and the `vlm_wrapper`
   `EnvLike` shim are unimplemented.
 - `skill_bank/legacy_bridge.py` is missing (one-way
   [`legacy_writeback.py`](../skill_bank/legacy_writeback.py) ships).
-- `harness/reward_logger.py` is **not** wired into GRPO (shaping flows
-  from `decision_agents.reward_func` instead).
+- ~~`harness/reward_logger.py` is **not** wired into GRPO~~ → **shipped**
+  (`RewardLogger.log_grpo_record` JSONL sink — §0.1 ~~T2.4~~).
 - Only `gymv` has a real adapter executor (`browser` / `osworld` /
   `video` / `visual_reasoning` ship as stubs with `set_executor` hooks).
 - `GateRunner` exposes 5 stages, not the plan's G0–G5.
-- `IMPLEMENTATION-STATUS.md` is stale relative to the delivered hook
-  trio + writeback **and the entire `runs/sft_*` SFT corpus**.
+- ~~`IMPLEMENTATION-STATUS.md` is stale~~ → **refreshed** (2026-05-02 —
+  §0.1 ~~T2.6~~).
 - **Revision 2 (added 2026-05-01):** the `curator` SFT eval loss
   (1.218) flags an overfit risk that needs gating in early GRPO (T2.7).
 
@@ -872,25 +827,19 @@ gaps before §6 launch:
 ## 10. Headline
 
 Training is **not** ready to start safely in the strict sense the plans
-require, but the gating items are smaller again than the first audit
-pass implied. Revision 2 (post-`runs/` discovery) dropped the
-`schema_gen` SFT + four cold-start LoRA seeds. Revision 3 (this
-update) closes the lane question — **lane (a): skills are retrieval
-payloads / procedural guidance for the actor LLM, not runnable
-programs** ([`skill-lane-decision.md`](skill-lane-decision.md)). The
-remaining S0–S2 critical path is:
+require until **`schema_gen` is re-verified after the T2.11 LoRA recipe
+fix** (six-way SFT re-run → **T1.1′** exact-match probe). Revision 3
+closed the lane question — **lane (a): skills are retrieval payloads /
+procedural guidance for the actor LLM, not runnable programs**
+([`skill-lane-decision.md`](legacy/skill-lane-decision.md)). **Closed since the prior headline draft:** ~~T1.3a~~ (Repairer default-off), ~~T1.2~~ (offline promotion executed), ~~T2.4~~ (reward JSONL sink), ~~T2.5~~ (threshold YAMLs), ~~T2.6~~ (IMPLEMENTATION-STATUS refresh), ~~T2.8–T2.10~~ (topology doc, run-wide manifest, smoke shards).
 
-1. Verify `schema_gen` exact-match against PLAN-VISUAL-GROUNDING-MILESTONES §13 (T1.1′)
-2. ~~Pick a skill lane~~ → done. **Default-disable the Repairer in the live trainer Crafter** (T1.3a)
-3. Fire the offline promotion loop once so `bank.runnable()` is non-empty (T1.2)
-4. Wire `harness/reward_logger.py` into the GRPO buffer (T2.4)
-5. Ship `configs/skill_gate.yaml` + `configs/failure_routing.yaml` (T2.5)
-6. Gate `curator` LoRA at low weight in early GRPO (T2.7)
+**Remaining S0–S2 critical path (condensed):**
 
-That's still 6 items, all content/wiring, none requiring new training
-or new architecture. The Day-7 → 10 work closed the structural wire;
-revision-2 confirmed the weights are trained; revision-3 confirmed
-the actor consumes skills as **retrieval context**, not as runnable
-programs; what's left is plumbing the warm-started LoRAs into a
-training step that won't silently bypass the harness, rely on an
-over-fit curator, or run a Repairer that has no protocol to repair.
+1. **Re-run six SFT jobs** on the corrected [`trainer/SFT/lora_targets.py`](../trainer/SFT/lora_targets.py) recipe (**T2.11**), then **T1.1′** (exact-match probe §13).
+2. **Launch fast-loop GRPO on `gymv`** ([`PLAN-PIPELINE-ORCHESTRATOR.md` §5.0](../plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md)) with warm-started adapters.
+3. **Gate `curator` LoRA** at low weight in early GRPO (**T2.7**) — mitigations §3.7.
+
+The Day-7 → 10 work closed the structural harness/orchestrator wire;
+what remains is **training-quality verification** (LoRA coverage +
+probe), actually **starting** GRPO, and **curator** risk management —
+not re-litigating lane (a) or offline promotion.

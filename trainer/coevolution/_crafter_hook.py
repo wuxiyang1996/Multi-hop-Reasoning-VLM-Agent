@@ -53,7 +53,7 @@ experiences dict actually supports:
 
 Cross-refs
 ----------
-* `implementation_notes/harness-usability-and-intra-gymv-transfer.md` §3
+* `implementation_notes/legacy/harness-usability-and-intra-gymv-transfer.md` §3
   (D8 Option A, F2 limitation, alongside-Stage-4 posture).
 * `crafter-harness-orchestrator-roles.md` §2.1 (Crafter input contract),
   §6.3 ("No driver imports another driver's code").

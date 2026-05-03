@@ -113,7 +113,7 @@ one worker per ``(corpus, source)``.
 Cross-refs
 ----------
 * ``harness/README.md``  §§9–14   (the gaps this driver surfaces)
-* ``implementation_notes/crafter-harness-orchestrator-roles.md``
+* ``implementation_notes/legacy/crafter-harness-orchestrator-roles.md``
                                   (component boundaries the driver mirrors)
 * ``labeling_supplement/reflect_per_episode_gpt54.py``
                                   (pattern this script copies for plumbing)

@@ -1,6 +1,6 @@
 """Lane-(a) feature flag (T1.3a) — `enable_protocol_patching`.
 
-Spec: ``implementation_notes/skill-lane-decision.md`` §3.4 (Crafter modes
+Spec: ``implementation_notes/legacy/skill-lane-decision.md`` §3.4 (Crafter modes
 that go dark) + ``implementation_notes/pre-training-readiness-audit.md``
 §0.4 (T1.3a row).
 
@@ -91,7 +91,7 @@ def test_default_disables_protocol_patching(tmp_path):
     assert crafter.enable_protocol_patching is False, (
         "Live trainer default must be False under the lane-(a) decision "
         "(skill = retrieval payload). See "
-        "implementation_notes/skill-lane-decision.md."
+        "implementation_notes/legacy/skill-lane-decision.md."
     )
 
 

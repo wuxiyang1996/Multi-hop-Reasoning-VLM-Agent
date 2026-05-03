@@ -2,6 +2,11 @@
 
 Contracts that touch every stage and every component but are not themselves modules. They define how failure signals, uncertainty signals, and runtime extension records flow across the system.
 
+## Status (repo snapshot — 2026-05-02)
+
+**Shipped:** Extension-record scaffolding under `data_structure/extensions/`; versioned [`configs/failure_routing.yaml`](../../configs/failure_routing.yaml) (lane-(a) failure taxonomy + `policy_version`).  
+**Open:** Full **R0–R5** failure-router implementation + typed `FailureRoutingRecord` parity — audit §4 (`T3.2`); uncertainty calibration mostly spec-level.
+
 | Document | Purpose |
 |----------|---------|
 | [`PLAN-FAILURE-ROUTING.md`](PLAN-FAILURE-ROUTING.md) | Single canonical policy that converts every observed failure (Harness diagnostics, grounding verdicts, judge `F1`–`F7`, budget events, human-audit triggers) into a typed [`FailureRoutingRecord`](PLAN-EXPERIENCE-EXTENSION.md#d-failureroutingrecord--making-failures-governable) with one downstream owner. |

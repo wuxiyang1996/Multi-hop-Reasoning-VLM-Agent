@@ -1,6 +1,6 @@
 """`BankView` — read-only snapshot of (active ∪ candidate ∪ draft) skills.
 
-Spec: implementation_notes/crafter-harness-orchestrator-roles.md §"Read
+Spec: implementation_notes/legacy/crafter-harness-orchestrator-roles.md §"Read
 scope". The Crafter's per-episode pass needs to reason across stores
 (e.g. "this candidate skill subsumes that active skill") without
 violating the two architectural invariants enforced on the package:

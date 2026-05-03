@@ -7,7 +7,7 @@ transactional promotion decisions, audit records, and a frozen
 This is the third sibling driver under ``labeling_supplement/`` (after
 ``decide_skill_crafting_gpt54.py`` for the Crafter and the still-pending
 Harness ``GateRunner`` mirror) called for in
-``implementation_notes/crafter-harness-orchestrator-roles.md`` §4 and
+``implementation_notes/legacy/crafter-harness-orchestrator-roles.md`` §4 and
 §6.2.  It replays the live offline ``PromotionOrchestrator`` semantics —
 the *transactional* component that takes a ``SkillEvaluationRecord``
 plus a candidate ``SkillRecord`` and decides among
@@ -97,7 +97,7 @@ For every ``(corpus, source)`` pair under ``--proposals-run``:
               to ``PROVISIONAL``.  This is the documented Phase-1
               outcome ("everything stops at PROVISIONAL until
               Phase-2"; see
-              ``implementation_notes/crafter-harness-orchestrator-roles.md``
+              ``implementation_notes/legacy/crafter-harness-orchestrator-roles.md``
               §7.1 mismatch #4).
             * ``live`` — calls the LIVE
               ``orchestrator.GateService.evaluate(...)`` end-to-end.
@@ -189,7 +189,7 @@ teacher** identifier (``Qwen/Qwen3.5-35B-A3B`` per
 
 What this driver explicitly does NOT do
 ---------------------------------------
-Per ``implementation_notes/crafter-harness-orchestrator-roles.md`` §6.3
+Per ``implementation_notes/legacy/crafter-harness-orchestrator-roles.md`` §6.3
 ("No driver imports another driver's code"):
 
   * No import of ``decide_skill_crafting_gpt54.py`` or
@@ -1841,7 +1841,7 @@ def _write_per_source(
     )
 
     # defer_followups.jsonl — empty in Phase 1; reserved per
-    # implementation_notes/crafter-harness-orchestrator-roles.md §6.2 #4.
+    # implementation_notes/legacy/crafter-harness-orchestrator-roles.md §6.2 #4.
     (out_src / "defer_followups.jsonl").write_text("")
 
     # _promotion_summary.json

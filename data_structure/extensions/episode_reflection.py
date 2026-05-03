@@ -2,7 +2,7 @@
 
 Spec: PLAN-SKILL-CRAFTER §6.4 (Failure-Reflector mode), PLAN-PIPELINE-
 ORCHESTRATOR §3a (online control plane), and the implementation note
-``implementation_notes/crafter-harness-orchestrator-roles.md`` §"Two-tier
+``implementation_notes/legacy/crafter-harness-orchestrator-roles.md`` §"Two-tier
 trigger" — the *per-episode reactive pass* fires immediately after the
 Skill Bank Agent has produced this episode's candidates / bank-mgmt
 updates, while the slower *per-batch reflective pass* (`cycle()`) runs

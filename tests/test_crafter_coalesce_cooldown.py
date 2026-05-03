@@ -11,7 +11,7 @@ the two-tier trigger model:
     is skipped; ``CrafterCycleResult.n_patches_skipped_cooldown`` is
     bumped and the failure still landed in ``FailureMemory``.
 
-Spec: implementation_notes/crafter-harness-orchestrator-roles.md
+Spec: implementation_notes/legacy/crafter-harness-orchestrator-roles.md
 §"Two-tier trigger" (early-training noise filters), and
 ``crafter/service.py::CrafterCycleResult`` docstring.
 """
