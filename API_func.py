@@ -24,6 +24,18 @@ try:
 except ImportError:  # pragma: no cover
     genai = None  # type: ignore[assignment]
 
+# Default model for ``ask_vllm`` / ``_ask_qwen_via_openrouter`` when the
+# caller doesn't pass an explicit ``model=`` kwarg.  Sourced from the
+# canonical actor backbone in ``common/models.py`` so any phase-flip
+# (e.g. swapping from Qwen3.5-9B to a future backbone) propagates here
+# without code edits.  Falls back to "Qwen/Qwen3.5-9B" if the import
+# graph hasn't loaded yet (the only realistic case is bootstrapping
+# tests that import ``API_func`` before ``common``).
+try:
+    from common.models import BACKBONE_MODEL as _DEFAULT_VLLM_MODEL  # type: ignore
+except Exception:  # pragma: no cover — defensive
+    _DEFAULT_VLLM_MODEL = "Qwen/Qwen3.5-9B"
+
 
 def _load_repo_keys_module():
     """Best-effort import of ``keys.py`` from the parent of this repo.
@@ -407,7 +419,7 @@ def _strip_think_tags(text: str) -> str:
     return text.strip()
 
 
-def ask_vllm(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
+def ask_vllm(question, model=None, temperature=0.7, max_tokens=2000):
     """
     Ask a question via a vLLM-served model using its OpenAI-compatible endpoint.
     Configure the endpoint via VLLM_BASE_URL env var (default: http://localhost:8000/v1).
@@ -416,7 +428,14 @@ def ask_vllm(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
 
     Tries each available vLLM URL before falling back to OpenRouter, so a
     single dead instance doesn't disable all local inference.
+
+    ``model`` defaults to ``common.models.BACKBONE_MODEL`` when not
+    supplied, so callers that don't pass ``model=`` automatically hit
+    the current actor backbone (Qwen3.5-9B) instead of the legacy
+    ``Qwen/Qwen3-8B`` placeholder.
     """
+    if model is None:
+        model = _DEFAULT_VLLM_MODEL
     if not _probe_vllm():
         return _ask_qwen_via_openrouter(
             question, model=model, temperature=temperature, max_tokens=max_tokens,
@@ -460,7 +479,7 @@ def ask_vllm(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
     )
 
 
-def _ask_qwen_via_openrouter(question, model="Qwen/Qwen3-8B", temperature=0.7, max_tokens=2000):
+def _ask_qwen_via_openrouter(question, model=None, temperature=0.7, max_tokens=2000):
     """Route a Qwen model call through OpenRouter as a fallback.
 
     Handles Qwen3 reasoning-model quirks:
@@ -468,7 +487,12 @@ def _ask_qwen_via_openrouter(question, model="Qwen/Qwen3-8B", temperature=0.7, m
         budget goes to actual content rather than thinking.
       - Falls back to the ``reasoning`` response field when ``content``
         is empty (some OpenRouter providers put thinking there).
+
+    ``model`` defaults to ``common.models.BACKBONE_MODEL`` (same logic
+    as ``ask_vllm``).
     """
+    if model is None:
+        model = _DEFAULT_VLLM_MODEL
     if not (open_router_api_key and open_router_api_key.strip()):
         return (f"Error: vLLM at {VLLM_BASE_URL} unreachable and no "
                 "OpenRouter API key configured for Qwen fallback.")

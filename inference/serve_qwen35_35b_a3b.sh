@@ -94,6 +94,17 @@ export HF_HUB_CACHE="${HF_HUB_CACHE:-${HF_HOME}/hub}"
 mkdir -p "$HF_HUB_CACHE"
 
 # ---------------------------------------------------------------------------
+# vLLM 0.20+ workarounds (mirrors trainer/coevolution/vllm_server.py
+# _launch_wave so managed and unmanaged servers behave identically).
+# ---------------------------------------------------------------------------
+# DeepGEMM warmup hard-fails on bf16 MoE/dense weights when the optional
+# `deep_gemm` package isn't installed (vLLM unconditionally probes the
+# FP8 fast path during engine init).  Disabling DeepGEMM is a no-op for
+# bf16 inference and lets the engine come up cleanly.  Override by
+# setting VLLM_USE_DEEP_GEMM=1 in the env if you've installed deep_gemm.
+export VLLM_USE_DEEP_GEMM="${VLLM_USE_DEEP_GEMM:-0}"
+
+# ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
 MODEL="${MODEL:-Qwen/Qwen3.5-35B-A3B}"

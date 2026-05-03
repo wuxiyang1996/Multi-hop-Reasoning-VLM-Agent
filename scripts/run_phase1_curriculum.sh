@@ -25,6 +25,39 @@
 #  so any per-game-best evaluation can re-load that snapshot independently
 #  of the post-curriculum state.
 #
+#  ── 8×H200 dual-stack layout (default, 2026-05-03) ──────────────────
+#  Hosts the 9B actor AND the 35B-A3B judge simultaneously so the live
+#  promotion gates (E0/E1/E2) and crafter / harness control plane hit
+#  the 35B endpoint instead of silently falling back to 9B-self-judging.
+#
+#    GPUs 0–3 → 4× Qwen3.5-9B vLLM (TP=1 each, ports 8000–8003)
+#    GPUs 4–5 → 1× Qwen3.5-35B-A3B vLLM (TP=2 + expert-parallel,
+#               port 8004) — judge / crafter / harness / orchestrator.
+#               Auto-launched in the background by this script when
+#               JUDGE_MODE=auto (the default).
+#    GPUs 6–7 → FSDP=2 GRPO trainer.
+#
+#  Why FSDP=2 not FSDP=4: GRPO trains LoRA only (~250 M params across
+#  5 adapters); the frozen 9B base is FSDP-sharded but does no
+#  backward, so per-GPU memory ≈ 12 GB on H200 141 GB.  The
+#  orchestrator pipelines GRPO(N) with rollout(N+1)
+#  (orchestrator.py L559/742/1093) so train_time hides inside the
+#  ~25-30 min/step rollout window — FSDP=2 ends up FREE wall-clock-wise
+#  while freeing 2 GPUs for the live 35B judge.
+#
+#  Layout overrides (env vars):
+#    LAYOUT=dual_stack       → default; 4×9B + 1×35B(TP=2) + FSDP=2
+#    LAYOUT=dual_stack_fsdp4 → 2×9B + 1×35B(TP=2) + FSDP=4 + EPISODES=16
+#                              (use only when train_time would exceed
+#                              rollout even after pipelining)
+#    LAYOUT=actor_only       → 4×9B + FSDP=4, no 35B server (legacy /
+#                              ablations; 9B-self-judges)
+#    JUDGE_MODE=auto|external|off
+#                            → control whether this script launches the
+#                              35B server itself.  external=already
+#                              running elsewhere (set JUDGE_URL).
+#                              off=no 35B routing wired (NOT recommended).
+#
 #  Prerequisites:
 #    conda activate game-ai-agent
 #    pip install wandb tensorboard peft         # one-time
@@ -48,12 +81,21 @@
 #    RESUME_PHASE=4 RUN_DIR=runs/Qwen3.5-9B_<ts>_phase1 \
 #      bash scripts/run_phase1_curriculum.sh
 #
-#    # Use external vLLM instead of MANAGED dual-stack:
+#    # 35B server already running on a 2nd box / port:
+#    JUDGE_MODE=external JUDGE_URL=http://otherhost:8001/v1 \
+#      bash scripts/run_phase1_curriculum.sh
+#
+#    # Single-stack (skip the 35B judge, max GRPO throughput):
+#    LAYOUT=actor_only JUDGE_MODE=off bash scripts/run_phase1_curriculum.sh
+#
+#    # Use external vLLM instead of MANAGED 9B (legacy):
 #    MANAGE_VLLM=0 VLLM_URL=http://localhost:8000/v1 \
 #      bash scripts/run_phase1_curriculum.sh
 #
 #  Cross-refs:
-#    - scripts/run_all.sh                    (5-phase Stage-0 script this is patterned on)
+#    - scripts/run_2048.sh                       (single-game variant of this layout)
+#    - scripts/use_35b_judge.sh                  (manual VLLM_BASE_URL_MAP wiring)
+#    - inference/serve_qwen35_35b_a3b.sh         (the 35B serve script this calls)
 #    - env_wrappers/gymv_temporal_nl_wrapper.py  (the 4 gymv_* slugs)
 #    - trainer/coevolution/episode_runner.py     (GYMV_TEMPORAL_GAMES_SET dispatch)
 #    - baselines/README.md § "Gym-V benchmark scope" (per-game baseline anchors for §4.3 sanity bar)
@@ -83,19 +125,59 @@ TP="${VLLM_TP:-4}"
 GPU_UTIL="${VLLM_GPU_UTIL:-0.90}"
 MANAGE_VLLM="${MANAGE_VLLM:-1}"
 
-# §4.1 lock: 15 steps per phase, 8 episodes per step, snapshot every 5
-# steps so a mid-phase failure doesn't lose more than ~3 h of work.
+# §4.1 lock: 15 steps per phase, snapshot every 5 steps so a mid-phase
+# failure doesn't lose more than ~3 h of work.  ``EPISODES`` default
+# is set per LAYOUT below (8 for FSDP=2, 16 for FSDP=4).
 ITERS_PER_PHASE="${ITERS_PER_PHASE:-15}"
-EPISODES="${EPISODES:-8}"
 CKPT_INTERVAL="${CKPT_INTERVAL:-5}"
 WANDB_PROJECT="${WANDB_PROJECT:-game-ai-coevolution-phase1}"
 RUN_DIR="${RUN_DIR:-}"
 DEBUG="${DEBUG:-}"
 RESUME_PHASE="${RESUME_PHASE:-1}"
-VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
-GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
 SPEC_MODEL="${SPEC_MODEL:-Qwen/Qwen3-0.6B}"
 SPEC_TOKENS="${SPEC_TOKENS:-5}"
+
+# 8×H200 layout selector (see banner above for full table).
+LAYOUT="${LAYOUT:-dual_stack}"
+JUDGE_MODE="${JUDGE_MODE:-auto}"
+
+case "${LAYOUT}" in
+    dual_stack)
+        VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
+        JUDGE_GPUS="${JUDGE_GPUS:-4,5}"
+        JUDGE_TP="${JUDGE_TP:-2}"
+        GRPO_GPUS="${GRPO_GPUS:-6 7}"
+        EPISODES="${EPISODES:-8}"
+        ;;
+    dual_stack_fsdp4)
+        VLLM_GPUS="${VLLM_GPUS:-0 1}"
+        JUDGE_GPUS="${JUDGE_GPUS:-2,3}"
+        JUDGE_TP="${JUDGE_TP:-2}"
+        GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
+        EPISODES="${EPISODES:-16}"
+        ;;
+    actor_only)
+        VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
+        JUDGE_GPUS=""
+        JUDGE_TP="0"
+        GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
+        EPISODES="${EPISODES:-8}"
+        if [ "${JUDGE_MODE}" = "auto" ]; then
+            JUDGE_MODE="off"
+        fi
+        ;;
+    *)
+        echo "ERROR: unknown LAYOUT=${LAYOUT}" \
+             "(expected dual_stack|dual_stack_fsdp4|actor_only)"
+        exit 1
+        ;;
+esac
+
+# 35B-A3B judge endpoint (used by the orchestrator + skill_eval gates).
+JUDGE_PORT="${JUDGE_PORT:-8004}"
+JUDGE_URL="${JUDGE_URL:-http://localhost:${JUDGE_PORT}/v1}"
+JUDGE_GPU_UTIL="${JUDGE_GPU_UTIL:-0.92}"
+JUDGE_MODEL="${JUDGE_MODEL:-Qwen/Qwen3.5-35B-A3B}"
 
 # Cold-start adapter paths (SFT-pretrained); same layout as run_all.sh
 COLDSTART_DIR="${COLDSTART_DIR:-runs/sft_coldstart}"
@@ -129,11 +211,21 @@ declare -A BASELINE_ANCHOR=(
     ["tetris"]="paper Figure 4 (±30%)"
 )
 
-# ── Cleanup on exit (only relevant in legacy mode) ───────────────────
+# ── Cleanup on exit ───────────────────────────────────────────────────
 VLLM_PID=""
+JUDGE_PID=""
 cleanup() {
     echo ""
     echo "[run_phase1] Shutting down..."
+    if [ -n "${JUDGE_PID}" ] && kill -0 "${JUDGE_PID}" 2>/dev/null; then
+        echo "[run_phase1] Stopping 35B judge (PID ${JUDGE_PID})..."
+        kill "${JUDGE_PID}" 2>/dev/null || true
+        for _ in $(seq 1 10); do
+            kill -0 "${JUDGE_PID}" 2>/dev/null || break
+            sleep 1
+        done
+        kill -9 "${JUDGE_PID}" 2>/dev/null || true
+    fi
     if [ -n "${VLLM_PID}" ] && kill -0 "${VLLM_PID}" 2>/dev/null; then
         echo "[run_phase1] Stopping vLLM server (PID ${VLLM_PID})..."
         kill "${VLLM_PID}" 2>/dev/null
@@ -142,6 +234,67 @@ cleanup() {
     echo "[run_phase1] Done."
 }
 trap cleanup EXIT INT TERM
+
+# ── 35B-A3B judge server (auto-launched in dual_stack*) ──────────────
+JUDGE_LOG=""
+
+start_35b_judge() {
+    if [ -z "${JUDGE_GPUS}" ] || [ "${JUDGE_TP}" = "0" ]; then
+        echo "[run_phase1] LAYOUT=${LAYOUT}: 35B server not part of layout — skipping."
+        return 0
+    fi
+    JUDGE_LOG="${RUN_DIR:-runs}/judge_35b.log"
+    mkdir -p "$(dirname "${JUDGE_LOG}")"
+    echo "[run_phase1] Auto-launching 35B-A3B judge:"
+    echo "  GPUs:   ${JUDGE_GPUS}  (TP=${JUDGE_TP}, expert-parallel ON)"
+    echo "  Port:   ${JUDGE_PORT}"
+    echo "  Model:  ${JUDGE_MODEL}"
+    echo "  Log:    ${JUDGE_LOG}"
+    GPUS="${JUDGE_GPUS}" \
+    TENSOR_PARALLEL="${JUDGE_TP}" \
+    EXPERT_PARALLEL=1 \
+    GPU_UTIL="${JUDGE_GPU_UTIL}" \
+    PORT="${JUDGE_PORT}" \
+    HOST="127.0.0.1" \
+    MODEL="${JUDGE_MODEL}" \
+        bash "${PROJECT_ROOT}/inference/serve_qwen35_35b_a3b.sh" \
+            > "${JUDGE_LOG}" 2>&1 &
+    JUDGE_PID=$!
+    echo "[run_phase1] 35B server PID: ${JUDGE_PID}"
+
+    echo "[run_phase1] Waiting for 35B server health on ${JUDGE_URL} ..."
+    for _ in $(seq 1 120); do
+        if curl -fs -m 3 "${JUDGE_URL}/models" >/dev/null 2>&1; then
+            echo "[run_phase1] 35B server is healthy."
+            return 0
+        fi
+        if ! kill -0 "${JUDGE_PID}" 2>/dev/null; then
+            echo "[run_phase1] 35B server died during startup — see ${JUDGE_LOG}"
+            return 1
+        fi
+        sleep 5
+    done
+    echo "[run_phase1] 35B server did not become healthy within 600s — see ${JUDGE_LOG}"
+    return 1
+}
+
+# Resolved later (after RUN_DIR is set) — wire JUDGE_MODE here so the
+# pre-flight banner can show the final URL/model values.
+case "${JUDGE_MODE}" in
+    auto|external)
+        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
+        ;;
+    off)
+        echo "[run_phase1] JUDGE_MODE=off → 35B routing NOT wired" \
+             "(judge will fall back to 9B; only safe for ablations)."
+        ;;
+    *)
+        echo "ERROR: unknown JUDGE_MODE=${JUDGE_MODE}" \
+             "(expected auto|external|off)"
+        exit 1
+        ;;
+esac
 
 # ======================================================================
 # Phase 0: Resolve run directory + ensure LoRA adapters
@@ -159,8 +312,19 @@ echo "  Resume phase:     ${RESUME_PHASE}"
 echo "  Cold-start:       ${COLDSTART_DIR}"
 if [ "${MANAGE_VLLM}" = "1" ]; then
     echo "  GPU mode:         MANAGED (persistent vLLM + FSDP)"
-    echo "  vLLM GPUs:        ${VLLM_GPUS}"
-    echo "  GRPO GPUs:        ${GRPO_GPUS}"
+    echo "  GPU layout:       LAYOUT=${LAYOUT}"
+    echo "    9B vLLM GPUs:   ${VLLM_GPUS}        (TP=1 each, ports ${PORT}+)"
+    if [ -n "${JUDGE_GPUS}" ]; then
+        echo "    35B judge GPUs: ${JUDGE_GPUS}      (TP=${JUDGE_TP}+EP, port ${JUDGE_PORT})"
+    else
+        echo "    35B judge:      OFF (LAYOUT=actor_only)"
+    fi
+    echo "    GRPO trainer:   ${GRPO_GPUS}        (FSDP=$(echo "${GRPO_GPUS}" | wc -w))"
+    echo "  Judge mode:       ${JUDGE_MODE}"
+    if [ "${JUDGE_MODE}" != "off" ]; then
+        echo "  Judge URL:        ${JUDGE_URL}"
+        echo "  Judge model:      ${JUDGE_MODEL}"
+    fi
     echo "  Spec decode:      ${SPEC_MODEL} (${SPEC_TOKENS} tokens)"
 else
     echo "  GPU mode:         LEGACY (external vLLM at port ${PORT})"
@@ -256,6 +420,29 @@ mkdir -p "${SNAPSHOT_DIR}"
 echo "[run_phase1] Run dir:      ${RUN_DIR}"
 echo "[run_phase1] Adapter dir:  ${ADAPTER_DIR}"
 echo "[run_phase1] Snapshot dir: ${SNAPSHOT_DIR}"
+
+# Start the 35B judge BEFORE the curriculum loop so its KV cache
+# allocation lands while no FSDP / vLLM-9B processes are competing
+# for HBM yet.  In external mode this is a no-op; in off mode it's
+# skipped entirely.
+if [ "${JUDGE_MODE}" = "auto" ]; then
+    if ! start_35b_judge; then
+        echo "[run_phase1] FATAL: cannot start 35B judge.  Re-run with" \
+             "JUDGE_MODE=external (point JUDGE_URL elsewhere) or" \
+             "JUDGE_MODE=off (disable 35B routing — ablation only)."
+        exit 1
+    fi
+elif [ "${JUDGE_MODE}" = "external" ]; then
+    echo "[run_phase1] JUDGE_MODE=external → assuming 35B server at ${JUDGE_URL}"
+    if command -v curl >/dev/null 2>&1; then
+        if curl -fs -m 3 "${JUDGE_URL}/models" >/dev/null 2>&1; then
+            echo "[run_phase1] 35B server is reachable."
+        else
+            echo "[run_phase1] WARNING: ${JUDGE_URL} not reachable — judge calls" \
+                 "will fail at runtime.  Start the 35B server before running."
+        fi
+    fi
+fi
 
 # ======================================================================
 # Helper: save a phase snapshot (LoRA + bank + checkpoint + metadata)

@@ -18,6 +18,14 @@ SKILL_BANK_GAMES = [
     "tetris",
     "candy_crush",
     "super_mario",
+    # Phase-1 cross-game curriculum: 4 Gym-V Temporal/* games dispatched
+    # via env_wrappers/gymv_temporal_nl_wrapper.py.  These games run at
+    # frame_skip=8 (StochasticFrameSkip), so each agent step ≈ 8 emulator
+    # frames and the per-episode cap below is in agent steps.
+    "gymv_space_harrier_ii",
+    "gymv_streets_of_rage_2",
+    "gymv_columns",
+    "gymv_strider",
 ]
 
 # Evaluation-only: rollouts collected for metrics but NOT fed into GRPO training.
@@ -28,6 +36,14 @@ GAME_MAX_STEPS: Dict[str, int] = {
     "tetris": 200,
     "candy_crush": 50,
     "super_mario": 500,
+    # Gym-V Temporal/* @ frame_skip=8.  200 agent steps ≈ 1600 emulator
+    # frames ≈ 27 s of in-game time at 60 Hz, which comfortably covers
+    # the ~100-step paper Table-3 anchor episodes for all 4 games while
+    # still bounding the worst case (long Streets-of-Rage 2 stages).
+    "gymv_space_harrier_ii": 200,
+    "gymv_streets_of_rage_2": 200,
+    "gymv_columns": 200,
+    "gymv_strider": 200,
 }
 
 EMULATOR_GAMES: set = set()
