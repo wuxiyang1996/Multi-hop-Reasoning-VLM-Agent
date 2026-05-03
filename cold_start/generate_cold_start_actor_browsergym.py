@@ -102,6 +102,7 @@ import re
 import sys
 import time
 import traceback
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -1275,6 +1276,15 @@ _BROWSERGYM_ACTION_RE = re.compile(
     r"|noop\([^)]*\)"
     r"|send_msg_to_user\(.+\)"
     r"|report_infeasible\(.+\)"
+    # ``search_web("query")`` is a *synthetic* action: the actor harness
+    # intercepts it before ``env.step()`` (see ``_intercept_search_web``),
+    # runs the search server-side via ``search_backends.search``, and
+    # injects a synthetic results page into the live page via
+    # ``page.goto("data:text/html;...")``. The substitute action passed
+    # to BrowserGym is ``noop()`` so the env's observation pipeline
+    # picks up the freshly-injected DOM. We need to allow it through
+    # the validator so the LLM can emit it.
+    r"|search_web\(.+\)"
     r")\s*$",
     re.IGNORECASE | re.DOTALL,
 )
@@ -1420,21 +1430,39 @@ _ACTOR_SYSTEM_PROMPT = (
     "textbox, and you can always ``goto(<url>)`` to navigate to a "
     "different site. Treat ``report_infeasible`` as the last resort "
     "after at least 4-5 real navigation/search attempts have failed.\n"
+    "  • For web research, **STRONGLY prefer ``search_web(\"...\")``** "
+    "over any goto-to-Google / goto-to-DDG strategy. ``search_web`` is "
+    "a synthetic action whose backing search runs SERVER-SIDE in the "
+    "harness (HTTP from Python, NOT via the browser), so it bypasses "
+    "the anti-bot walls (Google ``/sorry/index`` CAPTCHA, DDG "
+    "``static-pages/418`` teapot, consent dialogs) that BOTH Google "
+    "and DuckDuckGo throw at Playwright. After the call, the page "
+    "shows real result links you can ``click(...)``. Examples:\n"
+    "    – ``search_web(\"beluga whale GFF3 Ensembl 2020\")`` to "
+    "find the right bioinformatics database (Ensembl vs NCBI vs "
+    "UCSC) before navigating.\n"
+    "    – ``search_web(\"gyms Tompkins Square Park morning class "
+    "schedule\")`` to find listings without scrolling Yelp.\n"
+    "    – ``search_web(\"paintball karting Cologne walking distance"
+    "\")`` to find both venues in one shot rather than navigating "
+    "Google Maps manually.\n"
+    "  Use the structured ``action_type=search_web`` + ``query=...`` "
+    "slot when convenient. Use ``search_web`` as your FIRST action "
+    "on any AssistantBench-style 'find X about Y' goal — DO NOT "
+    "start with ``goto(google.com)`` or ``goto(duckduckgo.com)``: "
+    "those will hit anti-bot walls and waste 4–6 steps.\n"
     "  • If you hit a CAPTCHA / 'unusual traffic' / 'I'm a teapot' "
     "/ '418' / 'static-pages/' page (URLs containing ``/sorry/``, "
     "``recaptcha``, ``consent.``, ``static-pages/418``), do NOT report "
-    "infeasible. The default Google + DDG homepages BOTH anti-bot "
-    "Playwright. Instead, navigate DIRECTLY to the target site by URL "
-    "— most AssistantBench goals name the source explicitly:\n"
+    "infeasible. Switch to ``search_web(\"<query>\")`` (the harness "
+    "intercepts this and bypasses the anti-bot wall) — or, if the "
+    "goal explicitly names a source, navigate DIRECTLY by URL:\n"
     "    – \"on Wikipedia\" → ``goto(\"https://en.wikipedia.org/wiki/Special:Search?search=<terms>\")``\n"
     "    – \"on TripAdvisor\" → ``goto(\"https://www.tripadvisor.com/Search?q=<terms>\")``\n"
     "    – \"on Google Maps\" → ``goto(\"https://www.openstreetmap.org/search?query=<terms>\")``\n"
     "    – \"on TripAdvisor / Yelp / Google reviews\" → go to the canonical site\n"
-    "    – generic web search → ``goto(\"https://html.duckduckgo.com/html/?q=<URL-encoded query>\")`` "
-    "(this is DDG's NO-JS fallback that does NOT anti-bot Playwright; "
-    "always prefer this over ``duckduckgo.com``).\n"
-    "  When in doubt, prefer a direct URL to the named source over "
-    "any general-purpose search engine.\n"
+    "  When in doubt, prefer ``search_web`` over any general-purpose "
+    "search-engine goto: search_web is server-side and never blocked.\n"
     "  • When you DO have the answer, be MINIMAL in the payload: "
     "just the requested fact (a number, a name, a date, a list "
     "separated by commas) — NOT a sentence wrapping it. If the goal "
@@ -1467,6 +1495,14 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
         # default Google start hits the /sorry/index CAPTCHA — agent can
         # ``goto("https://duckduckgo.com/")`` to switch search engines.
         "goto",
+        # Server-side web search. The harness intercepts this action,
+        # runs the search via ``search_backends.search`` (HTTP from
+        # Python — bypasses Playwright TLS-fingerprint anti-bot), and
+        # injects the result page into the live Playwright page so the
+        # next obs shows clickable result links. STRONGLY preferred
+        # over ``goto(google.com)`` / ``goto(html.duckduckgo.com)``
+        # which both hit anti-bot walls. Consumes the ``query`` param.
+        "search_web",
         # Terminal actions (AssistantBench / webarena scoring).
         # ``send_msg_to_user`` returns the final answer to the user and
         # triggers the eval harness; ``report_infeasible`` is the
@@ -1570,6 +1606,23 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
                                 "destination instead of clicking through."
                             ),
                         },
+                        "query": {
+                            "type": "string",
+                            "description": (
+                                "Free-form search query for "
+                                "action_type=search_web. The harness runs "
+                                "the search server-side (HTTP from Python, "
+                                "not via the browser — bypasses anti-bot) "
+                                "and injects the result page into the "
+                                "live page. Prefer this over "
+                                "goto(google.com) / goto(duckduckgo.com): "
+                                "those URLs hit CAPTCHA / 418 walls and "
+                                "the agent ends up stuck. Examples: "
+                                "'beluga whale GFF3 Ensembl', 'gyms near "
+                                "Tompkins Square Park morning classes', "
+                                "'paintball karting Cologne'."
+                            ),
+                        },
                     },
                     "required": [],
                 },
@@ -1579,6 +1632,33 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
 
 
 _BID_RE = re.compile(r"\(\s*([A-Za-z0-9_-]+)")
+
+# Matches the synthetic ``search_web("query")`` action emitted by the LLM
+# when it wants to run a server-side web search (see
+# ``_intercept_search_web`` for the runtime intercept that turns this
+# into a real search + page injection). Captures the query argument
+# verbatim so the harness can pass it to ``search_backends.search``.
+# Accepts either double or single quotes around the query so the
+# autoquote shim doesn't break.
+_SEARCH_WEB_CALL_RE = re.compile(
+    r'^\s*search_web\(\s*(?:"([^"]*)"|\'([^\']*)\')\s*\)\s*$',
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _parse_search_web_query(action: str) -> Optional[str]:
+    """Return the query argument of a ``search_web("...")`` action, or
+    ``None`` if ``action`` is not a search_web call.
+
+    Used by the step-loop intercept to pull the query out before
+    handing the substitute ``noop()`` action to ``env.step()``.
+    """
+    if not action:
+        return None
+    m = _SEARCH_WEB_CALL_RE.match(action.strip())
+    if not m:
+        return None
+    return m.group(1) if m.group(1) is not None else m.group(2)
 
 
 def _bid_from_action(action: str) -> Optional[str]:
@@ -1692,6 +1772,18 @@ def _structured_to_action_string(args: Dict[str, Any]) -> Optional[str]:
             return None
         url_str = url.replace("\\", "\\\\").replace("\"", "\\\"")
         return f'goto("{url_str}")'
+    # Server-side web search. The actor harness intercepts this action
+    # in the step loop (see ``_intercept_search_web``) and rewrites it
+    # to ``noop()`` after injecting the search-results page into the
+    # live Playwright page. Accepts ``query`` (preferred) and falls
+    # back to ``text`` for callers that reuse ``text`` for any free-
+    # form string payload.
+    if atype == "search_web":
+        query = (args.get("query") or text or "").strip()
+        if not query:
+            return None
+        query_str = query.replace("\\", "\\\\").replace("\"", "\\\"")
+        return f'search_web("{query_str}")'
     # Terminal actions — the answer / reason is wrapped in double quotes
     # with embedded quotes/backslashes escaped so the BrowserGym parser
     # round-trips it through ``exec`` cleanly. We accept ``text`` as a
@@ -2377,6 +2469,143 @@ def _apply_stealth_init_script(env: Any, payload: str) -> None:
         cur = nxt
 
 
+def _get_active_browsergym_page(env: Any):
+    """Walk the gymnasium wrapper chain to find the active Playwright
+    page on the underlying ``BrowserEnv``. Returns ``None`` if no page
+    is reachable (env not yet reset, env type unknown, or chain bottoms
+    out before we hit a BrowserEnv).
+
+    Used by ``_intercept_search_web`` to inject the synthetic search-
+    results page directly into the live page (so the agent's next
+    observation contains the result links). Mirrors the wrapper-walk
+    in ``_apply_stealth_init_script`` but returns the page handle
+    instead of the context.
+    """
+    cur = env
+    for _ in range(10):  # bound to avoid infinite loop on cyclic wrappers
+        page = getattr(cur, "page", None)
+        if page is not None:
+            return page
+        nxt = getattr(cur, "env", None)
+        if nxt is None or nxt is cur:
+            break
+        cur = nxt
+    return None
+
+
+def _intercept_search_web(
+    env: Any, action: str, *, k: int = 8, timeout: float = 8.0,
+) -> Tuple[str, Optional[Dict[str, Any]]]:
+    """If ``action`` is a ``search_web("...")`` call, run the search
+    server-side and inject the result page into the live Playwright
+    page; return ``("noop()", search_meta)`` so the caller hands the
+    no-op to ``env.step()`` and the env's observation pipeline picks
+    up the freshly-injected DOM on the next step.
+
+    If ``action`` is NOT a search_web call, returns
+    ``(action, None)`` unchanged — the normal env.step path.
+
+    On any failure (no page handle, search backends all dead, page
+    injection rejected) we fall back to a real ``goto(...)`` against
+    DDG-HTML's NO-JS endpoint so the agent at least gets a chance to
+    parse a real (if rate-limited) results page. Both the ``noop()``
+    success path and the ``goto`` fallback are valid BrowserGym
+    actions that the parser accepts; the substitution is invisible
+    from the agent's history (it still sees ``search_web("...")``
+    as the chosen action).
+
+    Returns
+    -------
+    (substitute_action, search_meta)
+        ``substitute_action`` is the string to pass to ``env.step``;
+        ``search_meta`` is a dict with telemetry
+        (``query``, ``n_results``, ``backend_used``, ``intercepted``,
+        ``fallback``) to write into the experience's metadata, or
+        ``None`` if no interception happened.
+    """
+    query = _parse_search_web_query(action)
+    if query is None:
+        return action, None
+    # Lazy import keeps the search_backends module out of the import
+    # graph for non-AssistantBench runs.
+    try:
+        from cold_start import search_backends
+    except Exception:
+        try:
+            import search_backends  # type: ignore
+        except Exception as e:
+            logger.warning("search_backends import failed: %s", e)
+            search_backends = None  # type: ignore
+    page = _get_active_browsergym_page(env)
+    meta: Dict[str, Any] = {
+        "query": query,
+        "intercepted": False,
+        "n_results": 0,
+        "fallback": None,
+    }
+    # Run the server-side search regardless of page availability — the
+    # results dict is still useful telemetry, even if we end up
+    # falling back to a goto().
+    results: List[Dict[str, str]] = []
+    if search_backends is not None:
+        try:
+            results = search_backends.search(query, k=k, timeout=timeout)
+        except Exception as e:
+            logger.warning("search_backends.search(%r) failed: %s", query[:60], e)
+            results = []
+    meta["n_results"] = len(results)
+    if results:
+        meta["backend_used"] = sorted({r.get("source", "?") for r in results})
+    if page is None:
+        # No live page handle (shouldn't happen if env was reset, but
+        # handle defensively). Fall back to a real DDG-HTML goto so
+        # the agent sees *some* result page.
+        meta["fallback"] = "no_page_handle"
+        url = (
+            "https://html.duckduckgo.com/html/?q="
+            + urllib.parse.quote(query)
+        )
+        return f'goto("{url}")', meta
+    # Inject the synthetic results page. We use ``page.goto`` with a
+    # data: URL (rather than ``page.set_content``) so the URL field
+    # in the next observation reads ``data:text/html;...`` — a clear
+    # signal to the agent (and to log readers) that this is a
+    # synthetic page.
+    if search_backends is not None and results:
+        data_url = search_backends.results_to_data_url(query, results)
+    elif search_backends is not None:
+        # Empty result list — render an "empty" page anyway so the
+        # agent learns that the search ran but didn't produce hits.
+        data_url = search_backends.results_to_data_url(query, [])
+        meta["fallback"] = "empty_results"
+    else:
+        # search_backends import failed; fall back to a real goto.
+        meta["fallback"] = "import_failed"
+        url = (
+            "https://html.duckduckgo.com/html/?q="
+            + urllib.parse.quote(query)
+        )
+        return f'goto("{url}")', meta
+    try:
+        # Short navigation timeout — data: URLs load instantly so this
+        # only really times out if Chromium is stuck on a previous
+        # page transition. Failures fall through to the goto() path.
+        page.goto(data_url, wait_until="domcontentloaded", timeout=5000)
+        meta["intercepted"] = True
+        # After a successful injection we hand a noop() to env.step
+        # so the env's standard observation extraction runs against
+        # the new DOM without firing any extra browser action.
+        return "noop()", meta
+    except Exception as e:
+        logger.warning("search_web injection failed: %s", e)
+        meta["fallback"] = f"injection_failed: {type(e).__name__}"
+        url = (
+            "https://html.duckduckgo.com/html/?q="
+            + urllib.parse.quote(query)
+        )
+        return f'goto("{url}")', meta
+
+
 def _payload_likely_hits_google(payload: str) -> bool:
     """True if the env created from ``payload`` will probably load a Google
     property in the first few steps. Used to gate the consent-cookie
@@ -2826,19 +3055,52 @@ def run_actor_episode(
                 print(f"  step {step}: autoquote {action!r} -> {normalized_action!r}")
             action = normalized_action
 
+            # 6e. Synthetic ``search_web("...")`` interception. If the
+            #     LLM emitted a search_web call, run the search server-
+            #     side via ``search_backends.search`` (HTTP from Python,
+            #     bypasses the Playwright TLS-fingerprint anti-bot wall),
+            #     inject the result page into the live Playwright page,
+            #     and substitute ``noop()`` (or a goto fallback) for
+            #     ``env.step()``. The agent's history still records the
+            #     original ``search_web("...")`` so the SFT/GRPO
+            #     consumer sees the agent's logical action, not the
+            #     implementation detail.
+            search_meta: Optional[Dict[str, Any]] = None
+            if _parse_search_web_query(action) is not None:
+                action_for_history = action
+                substitute_action, search_meta = _intercept_search_web(env, action)
+                if verbose:
+                    print(
+                        f"  step {step}: search_web intercept "
+                        f"{action!r} -> step({substitute_action!r}) "
+                        f"meta={search_meta}"
+                    )
+                action_for_step = substitute_action
+            else:
+                action_for_history = action
+                action_for_step = action
+
             # 7. Step the env.
             try:
                 next_obs, reward, terminated, truncated, _next_info = _step_env(
-                    env, action,
+                    env, action_for_step,
                 )
             except Exception as exc:
                 logger.error(
                     "[%s] step %d env.step(%r) failed: %s",
-                    target_payload, step, action, exc,
+                    target_payload, step, action_for_step, exc,
                 )
                 if verbose:
                     traceback.print_exc()
                 break
+            # After env.step, pivot ``action`` back to the agent's
+            # *logical* action string so all downstream bookkeeping
+            # (history, anti-thrash, anti-repeat, sidecar JSON, the
+            # Experience record consumed by SFT/GRPO) sees what the
+            # agent chose — not the implementation-detail substitute
+            # we passed to env.step. For non-search_web actions this
+            # is a no-op (action_for_history == action_for_step).
+            action = action_for_history
             total_reward += reward
             done = bool(terminated) or bool(truncated)
             error_text = (next_obs.get("last_action_error") or "").strip()
@@ -2962,6 +3224,12 @@ def run_actor_episode(
                 extras["action_error"] = action_err
             if img_path:
                 extras["frame_path"] = img_path
+            # search_web telemetry: only present on intercepted steps.
+            # Captures the query, backend that returned results, count
+            # of results, and any fallback path taken — invaluable for
+            # post-hoc debugging of "did the search actually fire?".
+            if search_meta is not None:
+                extras["search_web_meta"] = dict(search_meta)
             exp.extras = extras
             existing_meta = getattr(exp, "metadata", None) or {}
             if isinstance(existing_meta, dict):

@@ -289,11 +289,24 @@ class TestCaptchaFallbackPrompt:
             "prompt must mention DDG's anti-bot endpoint(s) so the LLM avoids them"
         )
 
-    def test_prompt_recommends_html_ddg(self):
+    def test_prompt_recommends_search_web(self):
+        """May-2026 update: ``search_web`` (server-side, intercepted by
+        the harness) is now the primary search affordance; the legacy
+        ``goto("https://html.duckduckgo.com/html/...")`` fallback is
+        still mentioned in the prompt's anti-CAPTCHA paragraph but
+        ``search_web`` should be flagged as the *preferred* path."""
         prompt = drv._ACTOR_SYSTEM_PROMPT
-        assert "html.duckduckgo.com/html" in prompt, (
-            "prompt must point to DDG's NO-JS HTML endpoint as the search-engine fallback"
+        assert "search_web" in prompt, (
+            "prompt must mention ``search_web`` as the primary search affordance"
         )
+        # Both 'preferred' and 'STRONGLY prefer' are valid wordings;
+        # confirm the prompt explicitly recommends search_web over the
+        # legacy goto-based search-engine fallbacks.
+        assert (
+            "STRONGLY prefer" in prompt
+            or "preferred" in prompt.lower()
+            or "primary" in prompt.lower()
+        ), "prompt must explicitly recommend search_web over the goto fallbacks"
 
     def test_prompt_recommends_direct_site_navigation(self):
         prompt = drv._ACTOR_SYSTEM_PROMPT
