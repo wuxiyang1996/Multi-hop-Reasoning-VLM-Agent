@@ -150,23 +150,29 @@ provider_to_model() {
 }
 
 # ── Default eval_mode per provider (only applied if user didn't set one) ─
+#
+# Default flipped 2026-05-03: ``low`` is the new baseline tier across
+# all providers, picked for the cross-model OSWorld teacher comparison
+# use case where pass-rate parity (within ±2-3 pp of ``medium``) at
+# ~2x cost / wall-clock savings is preferred. Operators chasing the
+# leaderboard headline number can still pass ``--eval_mode high`` /
+# ``max`` explicitly. For Anthropic / Google / Qwen3-VL on OpenRouter
+# the ``reasoning_effort`` knob is silently dropped by the driver, so
+# the tier only changes temperature / done_nudge / max_steps for
+# those families — but we still pick ``low`` for consistency in
+# logged metadata.
 provider_default_eval_mode() {
     case "${1}" in
         claude-sonnet|claude|sonnet|claude-opus|opus)
-            # Anthropic ignores reasoning_effort; "high" still bumps
-            # max_steps and temperature so it's the right tier.
-            echo "high" ;;
+            echo "low" ;;
         gemini-pro|gemini|gemini-2.5|gemini-2.5-pro|gemini-3-pro|gemini-3.1|gemini-3.1-pro)
-            echo "high" ;;
+            echo "low" ;;
         qwen3-vl|qwen|qwen3vl|qwen3-vl-235b)
-            # Qwen3-VL instruct is not a reasoning model — "medium"
-            # is the meaningful tier (high/max only change non-LLM
-            # knobs for it).
-            echo "medium" ;;
+            echo "low" ;;
         gpt5|gpt5.4|gpt-5.4|gpt5-or|gpt5-openrouter)
-            echo "high" ;;
+            echo "low" ;;
         *)
-            echo "high" ;;
+            echo "low" ;;
     esac
 }
 
@@ -207,13 +213,13 @@ while [ $# -gt 0 ]; do
             cat <<EOF
 Provider               Model id                                       Default --eval_mode
 ---------------------  ---------------------------------------------  -------------------
-claude-sonnet          anthropic/claude-sonnet-4.6                    high
-claude-opus            anthropic/claude-opus-4.7                      high
-gemini-pro             google/gemini-2.5-pro                          high
-gemini-3-pro           google/gemini-3.1-pro-preview                  high
-qwen3-vl               qwen/qwen3-vl-235b-a22b-instruct               medium
-gpt5                   gpt-5.4 (OpenAI direct via --api_key)          high
-gpt5-or                openai/gpt-5.4 (via OpenRouter)                high
+claude-sonnet          anthropic/claude-sonnet-4.6                    low
+claude-opus            anthropic/claude-opus-4.7                      low
+gemini-pro             google/gemini-2.5-pro                          low
+gemini-3-pro           google/gemini-3.1-pro-preview                  low
+qwen3-vl               qwen/qwen3-vl-235b-a22b-instruct               low
+gpt5                   gpt-5.4 (OpenAI direct via --api_key)          low
+gpt5-or                openai/gpt-5.4 (via OpenRouter)                low
 EOF
             exit 0 ;;
         --print_resolved|--print-resolved)

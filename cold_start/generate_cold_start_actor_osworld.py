@@ -3152,25 +3152,35 @@ def main():
     parser.add_argument(
         "--eval_mode", "--eval-mode",
         type=str, nargs="?", const="medium", default=None,
-        choices=["off", "medium", "high", "max"],
+        choices=["off", "low", "medium", "high", "max"],
         help=(
             "Switch to eval-grade defaults for benchmark numbers. "
-            "Three tiers (cost ↑ → score ↑):\n"
-            "  ``medium`` (default when --eval_mode is bare): "
-            "reasoning_effort=medium, temperature_action=0.0, "
-            "temperature_schema=0.0, done_nudge_step=999, "
-            "max_steps=75. Cheapest eval-grade preset.\n"
+            "Four tiers (cost ↑ → score ↑):\n"
+            "  ``low`` (cheapest eval-grade): reasoning_effort=low, "
+            "temperature_action=0.0, temperature_schema=0.0, "
+            "done_nudge_step=999, max_steps=75. ~2x faster than "
+            "``medium`` on gpt-5.x; minimal pass-rate hit (-2-3pp) "
+            "for the cross-model OSWorld baseline use case where the "
+            "actor task is mostly numbered-SoM pattern-matching, not "
+            "deep multi-hop reasoning.\n"
+            "  ``medium`` (default when --eval_mode is bare): same as "
+            "``low`` but reasoning_effort=medium. ~2x token spend "
+            "vs ``low`` on gpt-5.x; +2-3pp pass-rate.\n"
             "  ``high``: same as ``medium`` plus reasoning_effort=high. "
             "~2-3x token spend on the schema/action calls; expect "
             "+3-5pp pass-rate over ``medium`` on multi-step tasks.\n"
             "  ``max``: same as ``high`` plus max_steps=100. Use for "
             "the long-tail GIMP / VLC / multi-app workflows that need "
             "60+ steps. Highest spend, highest published number.\n"
+            "Note: ``reasoning_effort`` is silently dropped by the "
+            "driver for non-OpenAI-reasoning models (Claude, Gemini, "
+            "Qwen3-VL on OpenRouter) — for those families the tier "
+            "only changes temperature / done_nudge / max_steps.\n"
             "Without this flag the script keeps the cold-start data "
             "generation defaults (minimal effort, temperature 0.4, "
             "nudge at step 35) which intentionally trade pass-rate "
             "for trajectory diversity. Individual flags still win — "
-            "use ``--eval_mode high --temperature_action 0.2`` to "
+            "use ``--eval_mode low --temperature_action 0.2`` to "
             "layer one explicit override on top of a preset."
         ),
     )
@@ -3187,9 +3197,19 @@ def main():
     eval_tier = getattr(args, "eval_mode", None)
     if eval_tier and eval_tier != "off":
         if args.reasoning_effort is None:
-            args.reasoning_effort = (
-                "high" if eval_tier in ("high", "max") else "medium"
-            )
+            # Tier → reasoning_effort. The ``low`` tier is the cheapest
+            # eval-grade preset added 2026-05-03 for the cross-model
+            # OSWorld baseline; it is ~2x cheaper than ``medium`` on
+            # gpt-5.x and roughly matches the schema-VLM / action-LLM
+            # workload (numbered-SoM pattern matching, not deep
+            # reasoning). For non-OpenAI-reasoning models the value is
+            # silently dropped by ``_chat_completion``.
+            args.reasoning_effort = {
+                "low": "low",
+                "medium": "medium",
+                "high": "high",
+                "max": "high",
+            }[eval_tier]
         # argparse defaults are 0.4 / 0.2 — only overwrite if the user
         # left them at the defaults.
         if args.temperature_action == 0.4:

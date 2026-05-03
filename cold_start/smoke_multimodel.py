@@ -105,7 +105,12 @@ def _action_tool_schema() -> Dict:
     }
 
 
-def _smoke_one(provider: str, *, verbose: bool = False) -> Tuple[bool, str]:
+def _smoke_one(
+    provider: str,
+    *,
+    verbose: bool = False,
+    reasoning_effort: str = "low",
+) -> Tuple[bool, str]:
     """Run a 1-call action smoke + a 1-call schema-VLM smoke.
 
     Returns ``(ok, message)``. ``ok`` is True only when both calls
@@ -159,9 +164,11 @@ def _smoke_one(provider: str, *, verbose: bool = False) -> Tuple[bool, str]:
             client, model=routed, messages=msgs_action,
             temperature=0.0, max_tokens=600,
             tools=[tool], tool_choice=tool_choice,
-            # eval_mode=high passes this — driver drops it for non-reasoning
-            # models, so a passing smoke proves the drop is silent.
-            reasoning_effort="high",
+            # Default ``low`` matches the production tier picked by
+            # ``run_osworld_multimodel.sh``. The driver drops the
+            # parameter for non-OpenAI-reasoning models, so a passing
+            # smoke proves the drop is silent.
+            reasoning_effort=reasoning_effort,
         )
     except Exception as exc:  # noqa: BLE001
         return False, f"action-LLM call failed: {exc!r}"
@@ -201,7 +208,7 @@ def _smoke_one(provider: str, *, verbose: bool = False) -> Tuple[bool, str]:
         resp = _chat_completion(
             client, model=routed, messages=msgs_schema,
             temperature=0.2, max_tokens=300,
-            reasoning_effort="high",
+            reasoning_effort=reasoning_effort,
         )
     except Exception as exc:  # noqa: BLE001
         return False, f"schema-VLM call failed: {exc!r}"
@@ -230,6 +237,17 @@ def main() -> int:
     p.add_argument("--verbose", "-v", action="store_true")
     p.add_argument("--skip", default="",
                    help="comma-separated list of providers to skip when --all")
+    p.add_argument(
+        "--reasoning-effort", "--reasoning_effort",
+        default="low",
+        choices=["minimal", "low", "medium", "high"],
+        help=(
+            "reasoning_effort to forward to the action + schema LLM "
+            "calls. Default ``low`` matches the production tier picked "
+            "by run_osworld_multimodel.sh. ``minimal`` is OpenRouter-"
+            "only — OpenAI direct gpt-5.x rejects it (HTTP 400)."
+        ),
+    )
     args = p.parse_args()
 
     skip = {s.strip() for s in args.skip.split(",") if s.strip()}
@@ -244,8 +262,12 @@ def main() -> int:
     rows: List[Tuple[str, bool, str]] = []
     for provider in targets:
         model_id, route = PROVIDER_BY_NAME[provider]
-        print(f"\n[{provider:<14}] {model_id}  ({route})")
-        ok, msg = _smoke_one(provider, verbose=args.verbose)
+        print(f"\n[{provider:<14}] {model_id}  ({route})  reasoning={args.reasoning_effort}")
+        ok, msg = _smoke_one(
+            provider,
+            verbose=args.verbose,
+            reasoning_effort=args.reasoning_effort,
+        )
         rows.append((provider, ok, msg))
         print(f"  {'PASS' if ok else 'FAIL'}: {msg}")
 
