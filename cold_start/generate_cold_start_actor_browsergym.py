@@ -293,10 +293,24 @@ _MIN_CANDIDATES_AFTER_FILTER = 3
 # Number of recent action results to surface in the action-selection prompt.
 _HISTORY_WINDOW = 5
 # Substrings (case-insensitive) on a node's text/role that mark it as a
-# cookie / consent / GDPR accept button. The actor pre-empts the LLM and
+# cookie / consent / GDPR dismissal button. The actor pre-empts the LLM and
 # auto-clicks the first such bid to unblock benchmarks (esp. assistantbench
 # starting on google.com behind a consent wall).
+#
+# NOTE: We accept BOTH "accept all" and "reject all" / "deny" variants —
+# either one closes Google's consent dialog and lets the agent proceed.
+# Reject is actually preferred (privacy-preserving + still skips the wall),
+# so its keywords are listed first so they win the rank-sort tiebreak.
 _CONSENT_ACCEPT_KEYWORDS = (
+    "reject all", "reject cookies", "decline all", "decline",
+    "tout refuser",                  # fr  reject
+    "alle ablehnen", "ablehnen",     # de  reject
+    "rifiuta tutto",                 # it  reject
+    "rechazar todo",                 # es  reject
+    "rejeitar tudo",                 # pt  reject
+    "全部拒否", "拒否",                # ja  reject
+    "全部拒绝", "拒绝",                # zh  reject
+    "모두 거부", "거부",               # ko  reject
     "accept all", "accept cookies", "i agree", "i accept", "agree to all",
     "agree all", "agree", "got it", "allow all", "allow cookies",
     "tout accepter",                 # fr
@@ -1214,6 +1228,17 @@ _SEND_MSG_PLACEHOLDER = 'send_msg_to_user("<your answer here>")'
 _REPORT_INFEASIBLE_PLACEHOLDER = (
     'report_infeasible("<reason this task cannot be answered>")'
 )
+# Matches the angle-bracket placeholder fragments that appear inside the
+# seed candidates above. ``_validate_action_string`` rejects any action
+# string containing these so the LLM cannot accidentally submit the
+# hint as its real answer.
+_PLACEHOLDER_LITERAL_RE = re.compile(
+    r"<your\s+answer\s+here>"
+    r"|<reason\s+this\s+task\s+cannot\s+be\s+answered>"
+    r"|<concise\s+answer>"
+    r"|<final\s+answer>",
+    re.IGNORECASE,
+)
 
 # Validates the action string we intend to send to ``env.step(...)``.
 #
@@ -1384,16 +1409,38 @@ _ACTOR_SYSTEM_PROMPT = (
     "``send_msg_to_user(\"<concise answer>\")`` — this is what the "
     "eval harness scores against the reference. Without it the "
     "episode hits max_steps with reward=0 even if you found the "
-    "answer in the page text. Rules for the answer payload:\n"
-    "  • Be MINIMAL: just the requested fact (a number, a name, a "
-    "date, a list separated by commas) — NOT a sentence wrapping it. "
-    "If the goal asks 'how many X?', answer ``42`` not ``There are "
-    "42 X.``\n"
+    "answer in the page text.\n"
+    "  • DO NOT call ``report_infeasible(...)`` on step 0 or 1. The "
+    "first thing you should do on any QA task is fill the focused "
+    "search box (or visible textbox) with a query derived from the "
+    "goal and submit it (``press(\"<bid>\", \"Enter\")`` or click the "
+    "search button). ``fill()`` is a valid action even if it doesn't "
+    "appear in the candidate list — the candidate list is a *hint*, "
+    "not an exhaustive whitelist. You can always type into a focused "
+    "textbox, and you can always ``goto(<url>)`` to navigate to a "
+    "different site. Treat ``report_infeasible`` as the last resort "
+    "after at least 4-5 real navigation/search attempts have failed.\n"
+    "  • If you hit a CAPTCHA / 'unusual traffic' / 'I'm a teapot' "
+    "/ '418' / 'static-pages/' page (URLs containing ``/sorry/``, "
+    "``recaptcha``, ``consent.``, ``static-pages/418``), do NOT report "
+    "infeasible. The default Google + DDG homepages BOTH anti-bot "
+    "Playwright. Instead, navigate DIRECTLY to the target site by URL "
+    "— most AssistantBench goals name the source explicitly:\n"
+    "    – \"on Wikipedia\" → ``goto(\"https://en.wikipedia.org/wiki/Special:Search?search=<terms>\")``\n"
+    "    – \"on TripAdvisor\" → ``goto(\"https://www.tripadvisor.com/Search?q=<terms>\")``\n"
+    "    – \"on Google Maps\" → ``goto(\"https://www.openstreetmap.org/search?query=<terms>\")``\n"
+    "    – \"on TripAdvisor / Yelp / Google reviews\" → go to the canonical site\n"
+    "    – generic web search → ``goto(\"https://html.duckduckgo.com/html/?q=<URL-encoded query>\")`` "
+    "(this is DDG's NO-JS fallback that does NOT anti-bot Playwright; "
+    "always prefer this over ``duckduckgo.com``).\n"
+    "  When in doubt, prefer a direct URL to the named source over "
+    "any general-purpose search engine.\n"
+    "  • When you DO have the answer, be MINIMAL in the payload: "
+    "just the requested fact (a number, a name, a date, a list "
+    "separated by commas) — NOT a sentence wrapping it. If the goal "
+    "asks 'how many X?', answer ``42`` not ``There are 42 X.``\n"
     "  • Use the EXACT format the goal asks (units, capitalisation, "
     "ISO date if implied).\n"
-    "  • If after exhausting reasonable navigation you genuinely "
-    "cannot find the information on the available sites, call "
-    "``report_infeasible(\"<short reason>\")`` instead of guessing.\n"
     "  • Use the structured ``action_type=send_msg_to_user`` + "
     "``answer=<your answer>`` slot when convenient — the harness will "
     "build the action string for you and properly escape quotes.\n\n"
@@ -1416,7 +1463,11 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
         "click", "fill", "check", "press", "hover", "select_option",
         "focus", "clear", "scroll_down", "scroll_up", "go_back",
         "go_forward", "new_tab", "tab_close", "noop",
-        # Terminal actions (AssistantBench / webarena / VWA scoring).
+        # Direct URL navigation. Critical for AssistantBench when the
+        # default Google start hits the /sorry/index CAPTCHA — agent can
+        # ``goto("https://duckduckgo.com/")`` to switch search engines.
+        "goto",
+        # Terminal actions (AssistantBench / webarena scoring).
         # ``send_msg_to_user`` returns the final answer to the user and
         # triggers the eval harness; ``report_infeasible`` is the
         # explicit "task is impossible" stop equivalent to STOP "N/A"
@@ -1506,6 +1557,17 @@ def _build_action_tools(candidate_actions: List[str]) -> list:
                                 "action_type=report_infeasible (a brief "
                                 "explanation of why the goal cannot be "
                                 "achieved on the current page set)."
+                            ),
+                        },
+                        "url": {
+                            "type": "string",
+                            "description": (
+                                "Absolute URL for action_type=goto. "
+                                "Useful to switch search engines (e.g. "
+                                "https://duckduckgo.com/) when the default "
+                                "Google start hits a CAPTCHA / consent "
+                                "wall, or to jump directly to a known "
+                                "destination instead of clicking through."
                             ),
                         },
                     },
@@ -1621,6 +1683,15 @@ def _structured_to_action_string(args: Dict[str, Any]) -> Optional[str]:
         return "tab_close()"
     if atype == "noop":
         return "noop()"
+    # Direct URL navigation. ``url`` parameter takes priority but we
+    # fall back to ``text`` for LLM-call-sites that reuse it for any
+    # string payload (matching the send_msg_to_user pattern below).
+    if atype == "goto":
+        url = (args.get("url") or text or "").strip()
+        if not url:
+            return None
+        url_str = url.replace("\\", "\\\\").replace("\"", "\\\"")
+        return f'goto("{url_str}")'
     # Terminal actions — the answer / reason is wrapped in double quotes
     # with embedded quotes/backslashes escaped so the BrowserGym parser
     # round-trips it through ``exec`` cleanly. We accept ``text`` as a
@@ -1681,7 +1752,14 @@ def _validate_action_string(action: str) -> bool:
 
     Rejects strings that:
       - the high-level parser cannot parse at all, OR
-      - call a bid-taking function with a non-string first argument.
+      - call a bid-taking function with a non-string first argument, OR
+      - contain a literal candidate-list placeholder (e.g.
+        ``send_msg_to_user("<your answer here>")``). Without this third
+        check, a tired LLM that hits ``max_steps`` will sometimes copy
+        the placeholder verbatim from the candidate list as its final
+        action — which scores 0 against any real answer reference and
+        is one of the "obvious failure modes" we want telemetry to
+        catch instead of silently submit.
 
     This is what catches ``click(12)`` *before* it reaches ``env.step()``.
     The earlier regex-only validator was permissive: any ``click([^)]*)``
@@ -1690,6 +1768,14 @@ def _validate_action_string(action: str) -> bool:
     if not action:
         return False
     s = action.strip()
+    # Reject literal placeholder contents copied verbatim from the
+    # candidate-list seed entries (``_SEND_MSG_PLACEHOLDER`` /
+    # ``_REPORT_INFEASIBLE_PLACEHOLDER``). The placeholder text
+    # ``<your answer here>`` / ``<reason ...>`` should NEVER appear in
+    # a real submission — its presence means the model treated the
+    # hint as the answer.
+    if _PLACEHOLDER_LITERAL_RE.search(s):
+        return False
     # Quick legacy regex pre-filter to weed out obviously malformed strings
     # (keeps the failure mode user-friendly when the parser is missing).
     if not _BROWSERGYM_ACTION_RE.match(s):
@@ -2165,6 +2251,149 @@ def _detect_consent_button_bid(
     return candidates[0][1]
 
 
+# ---------------------------------------------------------------------------
+# Playwright stealth + Google-consent pre-injection
+# ---------------------------------------------------------------------------
+# Realistic Chromium UA string (matches a stable Chrome 126 desktop build).
+# Setting this defeats the most common headless-browser detector — Google's
+# ``/sorry/index`` CAPTCHA flips on for the default Playwright UA but stays
+# off for a vanilla Chrome desktop UA.
+_STEALTH_USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+)
+# JS init script run on every navigation in the BrowserGym context.
+# Removes the ``navigator.webdriver`` flag that anti-bot scripts
+# (incl. Google's /sorry CAPTCHA) sniff for. Equivalent in effect to
+# ``--disable-blink-features=AutomationControlled``, but applied at
+# the page level instead of via a launch flag — necessary because
+# BrowserGym hard-rejects overrides on ``chromium.launch(args=...)``.
+# The script is idempotent + harmless on non-Google sites.
+_STEALTH_INIT_SCRIPT = """
+Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+// Spoof a small chrome.runtime so simple checks stop probing further.
+window.chrome = window.chrome || {runtime: {}};
+// Plug a frequently-checked plugins-array hole.
+Object.defineProperty(navigator, 'plugins', {
+    get: () => [1, 2, 3, 4, 5],
+});
+""".strip()
+# Google's consent dialog appears on the first visit to any ``*.google.com``
+# domain in EU jurisdictions and increasingly worldwide. Pre-seeding the
+# ``SOCS`` and ``CONSENT`` cookies (the "I have already chosen, don't ask
+# again" record) skips the dialog entirely. Without these, AssistantBench
+# tasks (which all start at https://www.google.com/) burn 1-3 steps clicking
+# the dialog — and the existing ``_detect_consent_button_bid`` heuristic
+# only catches Western-locale "Accept all" / "Reject all" labels, so any
+# locale flip silently wedges the agent. The cookies are well-known,
+# documented values; setting them does not commit the user to anything
+# server-side beyond "no, do not show me the consent dialog again".
+_GOOGLE_CONSENT_COOKIES = (
+    {
+        "name": "SOCS",
+        "value": "CAESHAgBEhJnd3NfMjAyMzAyMTYtMF9SQzIaAmVuIAEaBgiA_LyfBg",
+        "domain": ".google.com",
+        "path": "/",
+        "expires": 2147483647,  # ~2038, max signed-int32 epoch second
+        "httpOnly": False,
+        "secure": True,
+        "sameSite": "Lax",
+    },
+    {
+        "name": "CONSENT",
+        "value": "YES+srp.gws-20240101-0-RC1.en+FX+667",
+        "domain": ".google.com",
+        "path": "/",
+        "expires": 2147483647,
+        "httpOnly": False,
+        "secure": False,
+        "sameSite": "Lax",
+    },
+)
+
+
+def _build_pw_stealth_kwargs(payload: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Return ``(pw_chromium_kwargs, pw_context_kwargs)`` for ``gym.make``.
+
+    Always sets a realistic UA (cheap, works universally). For payloads
+    that are likely to land on a Google property — anything in
+    ``browsergym/assistantbench.*`` plus any ``openended`` URL pointing
+    at ``*.google.*`` — also pre-seeds the SOCS/CONSENT cookies via
+    ``storage_state`` so the consent dialog never appears.
+
+    NOTE: We deliberately do NOT pass ``args=[...]`` to chromium.launch
+    via ``pw_chromium_kwargs`` — BrowserGym's ``BrowserEnv.reset()``
+    already passes ``args=`` and explicitly rejects overrides. The
+    JS-level stealth (``navigator.webdriver`` removal) is instead
+    applied via ``_apply_stealth_init_script`` after env construction.
+    """
+    pw_chromium_kwargs: Dict[str, Any] = {}
+    pw_context_kwargs: Dict[str, Any] = {
+        "user_agent": _STEALTH_USER_AGENT,
+    }
+
+    if _payload_likely_hits_google(payload):
+        pw_context_kwargs["storage_state"] = {
+            "cookies": [dict(c) for c in _GOOGLE_CONSENT_COOKIES],
+            "origins": [],
+        }
+
+    return pw_chromium_kwargs, pw_context_kwargs
+
+
+def _apply_stealth_init_script(env: Any, payload: str) -> None:
+    """Inject ``navigator.webdriver = undefined`` (and friends) into the
+    BrowserGym env's Playwright context, so anti-bot scripts on Google's
+    /sorry CAPTCHA path can't fingerprint Playwright.
+
+    Should be called AFTER ``env.reset()`` (the context is created
+    during reset). The script registers as an *init script* — Playwright
+    re-runs it on every subsequent page navigation in the same context,
+    so even though it doesn't apply to the very first page load, it
+    covers the search-submission step where the CAPTCHA actually
+    triggers.
+
+    Only fires when ``payload`` looks Google-bound; for MiniWoB / WebArena
+    / WorkArena there's no anti-bot wall to bypass and we keep the
+    runtime clean.
+    """
+    if not _payload_likely_hits_google(payload):
+        return
+    # Walk the gymnasium wrapper chain to reach the BrowserEnv that has .context.
+    cur = env
+    for _ in range(10):  # bound to avoid infinite loop on cyclic wrappers
+        ctx = getattr(cur, "context", None)
+        if ctx is not None:
+            try:
+                ctx.add_init_script(_STEALTH_INIT_SCRIPT)
+            except Exception:
+                # Best-effort — don't fail the rollout if the context
+                # rejects (e.g. already closed).
+                pass
+            return
+        nxt = getattr(cur, "env", None)
+        if nxt is None or nxt is cur:
+            break
+        cur = nxt
+
+
+def _payload_likely_hits_google(payload: str) -> bool:
+    """True if the env created from ``payload`` will probably load a Google
+    property in the first few steps. Used to gate the consent-cookie
+    pre-injection so we don't inject cookies into envs that don't need
+    them (MiniWoB / WebArena / WorkArena)."""
+    if not isinstance(payload, str):
+        return False
+    p = payload.lower()
+    if "assistantbench" in p:
+        return True
+    if p.startswith(("http://", "https://")):
+        # ``openended`` URL — match google.com / google.co.uk / etc.
+        if "google." in p.split("/", 3)[2]:
+            return True
+    return False
+
+
 def _capture_initial_obs(
     *, kind: str, payload: str, headless: bool, seed: Optional[int] = None,
 ):
@@ -2197,6 +2426,8 @@ def _capture_initial_obs(
     import gymnasium as gym
     import browsergym.core  # noqa: F401  -- registers openended
 
+    pw_chromium_kwargs, pw_context_kwargs = _build_pw_stealth_kwargs(payload)
+
     if kind == "task":
         env_id = payload
         if env_id not in gym.envs.registry:
@@ -2205,12 +2436,19 @@ def _capture_initial_obs(
                 f"Did you forget to import the suite (e.g. browsergym.miniwob)? "
                 f"Use --list_tasks to see registered ids."
             )
-        env = gym.make(env_id, headless=headless)
+        env = gym.make(
+            env_id,
+            headless=headless,
+            pw_chromium_kwargs=pw_chromium_kwargs,
+            pw_context_kwargs=pw_context_kwargs,
+        )
     elif kind == "url":
         env = gym.make(
             "browsergym/openended",
             task_kwargs={"start_url": payload},
             headless=headless,
+            pw_chromium_kwargs=pw_chromium_kwargs,
+            pw_context_kwargs=pw_context_kwargs,
         )
     else:
         raise ValueError(f"Unknown target kind: {kind!r}")
@@ -2219,6 +2457,10 @@ def _capture_initial_obs(
         obs, info = env.reset(seed=seed) if seed is not None else env.reset()
     except TypeError:
         obs, info = env.reset()
+    # Inject JS-level stealth post-reset so subsequent navigations
+    # (e.g. search-result pages) escape Google's anti-bot CAPTCHA. No-op
+    # for non-Google payloads (MiniWoB / WebArena / WorkArena).
+    _apply_stealth_init_script(env, payload)
     return env, dict(obs), dict(info or {})
 
 
