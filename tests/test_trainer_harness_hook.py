@@ -58,6 +58,7 @@ def _mk_record(
     status: SkillStatus = SkillStatus.PROVISIONAL,
     protocol=None,
     contract: SkillContract = None,
+    source_domains=None,
 ) -> SkillRecord:
     rec = SkillRecord.new(
         name=name,
@@ -70,6 +71,12 @@ def _mk_record(
     )
     object.__setattr__(rec, "skill_id", skill_id)
     object.__setattr__(rec, "status", status)
+    # Backdoor `source_domains` past the SOURCE_DOMAINS=('gymv',)
+    # canonical-tuple validator. Mirrors what the orchestrator's
+    # bank-hydration path does for legacy entries that name a foundry
+    # corpus outside the trainer-facing canonical set.
+    if source_domains is not None:
+        object.__setattr__(rec, "source_domains", list(source_domains))
     return rec
 
 
@@ -421,3 +428,172 @@ def test_stats_aggregate_across_calls():
     assert s["n_candidates_rejected"] == 1
     assert "status_not_runnable" in s["veto_class_distribution"]
     assert s["n_validate_ok"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# Layer C — predicate translator splice
+# ---------------------------------------------------------------------------
+#
+# Asserts the trainer hook's filter_candidates picks up
+# `harness.predicate_translator.translate_skill_contract` and:
+#
+#   * Diagonal cells (source == target) skip the rewrite (fast path).
+#   * Cross-domain cells (e.g. source=visual_reasoning, target=gymv)
+#     rewrite contract.effects_{add,del} when the (src, tgt) pair has a
+#     registered translation table entry, and bump
+#     n_predicate_translations_applied.
+#   * The cached SkillRecord is NEVER mutated -- the translator returns
+#     a deep copy, so the bank-hydrated cache is preserved across calls.
+#   * A translator crash degrades to identity (the original record),
+#     bumps n_predicate_translations_failed, and keeps the eligibility
+#     filter running.
+
+
+def test_predicate_translation_diagonal_is_noop():
+    """Diagonal cell (source_domains == target == 'gymv'): no rewrite."""
+    contract = SkillContract(
+        effects_add=["cumulative_reward_increased"],
+        effects_del=[],
+    )
+    rec = _mk_record(
+        skill_id="diag",
+        contract=contract,
+        source_domains=["gymv"],
+    )
+    h = SkillHarnessHook(records={"diag": rec})
+
+    out, diag = h.filter_candidates([_cand("diag")], _state())
+
+    assert diag["n_predicate_translations_applied"] == 0
+    assert diag["n_predicate_translations_failed"] == 0
+    # Cached record's contract is untouched.
+    assert h._records["diag"].contract.effects_add == ["cumulative_reward_increased"]
+    assert h.stats.n_predicate_translations_applied == 0
+
+
+def test_predicate_translation_cross_domain_rewrites_contract():
+    """Cross-domain cell (source=gymv, target=visual_reasoning): the
+    PREDICATE_TRANSLATIONS table fires and the diagnostic counter
+    increments. The cached SkillRecord stays unchanged.
+
+    This exercises the forward direction of the translator's table
+    (gymv-mined skills retargeted onto a non-gymv adapter). The
+    eligibility filter will veto on ``no_adapter`` -- we don't have a
+    visual_reasoning adapter registered in the default hook -- but
+    Layer C runs *before* eligibility, so the translation counter
+    still bumps. That is exactly the behaviour the dashboard layer
+    (Layer D) needs to surface 'translator was exercised, executor
+    veto came after'."""
+    from harness.predicate_translator import PREDICATE_TRANSLATIONS
+
+    cell = PREDICATE_TRANSLATIONS.get(("gymv", "visual_reasoning"), {})
+    if not cell:
+        pytest.skip("(gymv, visual_reasoning) cell not registered")
+
+    # Find a source predicate whose target list is non-trivial
+    # (i.e. != [src_pred]). At least one such mapping exists in the
+    # canonical table -- 'cumulative_reward_increased' fans out to
+    # ['answer_emitted', 'answer_matches_gold'] in this cell.
+    src_pred = next(
+        (sp for sp, tgts in cell.items() if list(tgts) != [sp]),
+        None,
+    )
+    assert src_pred is not None, (
+        "(gymv, visual_reasoning) cell has only identity mappings -- "
+        "test needs a non-trivial rewrite to assert the counter bumps"
+    )
+
+    contract = SkillContract(
+        effects_add=[src_pred],
+        effects_del=[],
+    )
+    # Note: feasible_domains kept = [gymv] because backdoor-setting
+    # `feasible_domains` would also need to bypass the validator,
+    # and the translator runs off `source_domains` not feasible_domains.
+    rec = _mk_record(
+        skill_id="xd",
+        domain="gymv",
+        source_domains=["gymv"],
+        contract=contract,
+    )
+    # Override source_domains to the mined-foundry value.
+    object.__setattr__(rec, "source_domains", ["gymv"])
+    h = SkillHarnessHook(records={"xd": rec})
+
+    # Probe with a state whose domain is the *target* (visual_reasoning).
+    state = StateSchema(domain="visual_reasoning", task="xd_task", evidence=[])
+    out, diag = h.filter_candidates([_cand("xd")], state)
+
+    # The cached record's contract is preserved -- the translator
+    # returned a deep copy, never mutated the bank entry.
+    assert h._records["xd"].contract.effects_add == [src_pred]
+    # The translation fired and the counter incremented.
+    assert diag["n_predicate_translations_applied"] == 1
+    assert diag["n_predicate_translations_failed"] == 0
+    assert h.stats.n_predicate_translations_applied == 1
+
+
+def test_predicate_translation_failure_falls_back_to_identity(monkeypatch):
+    """A buggy translator must not break the trainer rollout."""
+    from trainer.coevolution import _harness_hook as hh_mod
+
+    def _boom(skill, *, source, target):
+        raise RuntimeError("synthetic translator bug")
+
+    monkeypatch.setattr(hh_mod, "translate_skill_contract", _boom)
+
+    rec = _mk_record(
+        skill_id="bug",
+        domain="gymv",
+        source_domains=["visual_reasoning"],   # forces the translator path
+        contract=SkillContract(effects_add=["any_predicate"]),
+    )
+    h = SkillHarnessHook(records={"bug": rec})
+
+    out, diag = h.filter_candidates([_cand("bug")], _state())
+
+    # Filter still ran on the original record (gymv adapter accepts it).
+    assert diag["n_predicate_translations_applied"] == 0
+    assert diag["n_predicate_translations_failed"] == 1
+    assert h.stats.n_predicate_translations_failed == 1
+    # The hook didn't crash and the rollout sees a sensible result.
+    assert isinstance(out, list)
+
+
+def test_predicate_translation_diag_includes_counters_on_filter_error(monkeypatch):
+    """Even when the eligibility filter itself raises, the per-step
+    diagnostic surfaces the translation counters (so dashboards can
+    still attribute the cell)."""
+    from trainer.coevolution import _harness_hook as hh_mod
+
+    rec = _mk_record(
+        skill_id="ok",
+        domain="gymv",
+        source_domains=["gymv"],   # diagonal -- translation skipped
+        contract=SkillContract(),
+    )
+    h = SkillHarnessHook(records={"ok": rec})
+
+    # Patch the eligibility filter to crash.
+    def _crash(*args, **kwargs):
+        raise RuntimeError("synthetic eligibility crash")
+
+    monkeypatch.setattr(
+        h._harness._eligibility, "filter_with_rejections", _crash,
+    )
+
+    out, diag = h.filter_candidates([_cand("ok")], _state())
+    # Pass-through degrades but the counters are still stamped.
+    assert "n_predicate_translations_applied" in diag
+    assert "n_predicate_translations_failed" in diag
+    assert "harness_error" in diag
+    assert len(out) == 1
+
+
+def test_predicate_translation_counters_in_step_stats_to_json():
+    """to_json() must surface the new counters so the orchestrator's
+    `experiences[].harness` payload exposes them to wandb / TB."""
+    h = SkillHarnessHook(records={})
+    j = h.stats.to_json()
+    assert j["n_predicate_translations_applied"] == 0
+    assert j["n_predicate_translations_failed"] == 0

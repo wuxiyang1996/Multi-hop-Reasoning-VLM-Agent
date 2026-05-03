@@ -67,6 +67,7 @@ from data_structure.extensions.skill_record import SkillRecord
 from harness.adapter_registry import AdapterRegistry
 from harness.adapters.gymv_adapter import GymvAdapter
 from harness.eligibility import EligibleSkill, RejectedSkill, task_id_from_state
+from harness.predicate_translator import translate_skill_contract
 from harness.rejected_skill_sink import FlushReport, RejectedSkillSink
 from harness.skill_harness import HarnessConfig, SkillHarness, ValidateInvocationResult
 
@@ -88,6 +89,13 @@ class HarnessStepStats:
     n_validate_ok: int = 0
     n_validate_veto: int = 0
     n_validate_skipped: int = 0   # candidate not in lifecycle cache
+    n_predicate_translations_applied: int = 0   # Layer C: how many candidate
+                                                # contracts had at least one
+                                                # effects_{add,del} predicate
+                                                # rewritten before eligibility.
+    n_predicate_translations_failed: int = 0    # translator threw -> identity
+                                                # fallback; counted but never
+                                                # propagated to the caller.
     veto_class_distribution: Dict[str, int] = field(default_factory=dict)
     last_eligible_ids: List[str] = field(default_factory=list)
     last_rejected: List[Dict[str, Any]] = field(default_factory=list)
@@ -101,6 +109,8 @@ class HarnessStepStats:
             "n_validate_ok": self.n_validate_ok,
             "n_validate_veto": self.n_validate_veto,
             "n_validate_skipped": self.n_validate_skipped,
+            "n_predicate_translations_applied": self.n_predicate_translations_applied,
+            "n_predicate_translations_failed": self.n_predicate_translations_failed,
             "veto_class_distribution": dict(self.veto_class_distribution),
             "last_eligible_ids": list(self.last_eligible_ids),
             "last_rejected": list(self.last_rejected),
@@ -170,6 +180,98 @@ def _hydrate_records_from_bank(
             "harness_hook: failed to read bank %s: %s", bank_path, exc,
         )
     return out
+
+
+# ---------------------------------------------------------------------------
+# Layer C — predicate translator integration helpers
+# ---------------------------------------------------------------------------
+
+
+def _resolve_record_source_domain(
+    rec: SkillRecord,
+    *,
+    fallback: str,
+) -> str:
+    """Pull the canonical *source* domain off a cached :class:`SkillRecord`.
+
+    Mirrors :func:`harness.predicate_translator._resolve_source_domain` but
+    inlined here so the hook stays decoupled from a private helper.
+
+    Order of preference (most specific first):
+
+    1. ``rec.source_domains[0]`` — the canonical foundry domain
+       (PLAN-SKILL-BANK §0.4). This is set when the cold-start mining
+       path stamps the skill's origin corpus on the record.
+    2. ``rec.feasible_domains[0]`` — the runtime adapter domain. For
+       trainer-side records this collapses to the hook's ``domain``,
+       which makes the translator's identity branch fire (no rewrite).
+    3. ``fallback`` — the hook's own ``self._domain``. Last-resort so the
+       translator always has a non-empty source string to reason about.
+    """
+    src = getattr(rec, "source_domains", None) or []
+    if isinstance(src, (list, tuple)) and src:
+        first = src[0]
+        if isinstance(first, str) and first:
+            return first
+    feas = getattr(rec, "feasible_domains", None) or []
+    if isinstance(feas, (list, tuple)) and feas:
+        first = feas[0]
+        if isinstance(first, str) and first:
+            return first
+    return fallback
+
+
+def _translate_record_for_target(
+    rec: SkillRecord,
+    *,
+    target_domain: str,
+    fallback_source_domain: str,
+) -> Tuple[SkillRecord, bool, bool]:
+    """Wrap :func:`harness.predicate_translator.translate_skill_contract`
+    for the hook's per-candidate loop.
+
+    Returns ``(out_record, was_rewritten, translator_failed)``.
+
+    * ``out_record`` — the (possibly translated) record. On a translator
+      crash this is the *original* ``rec``: the eligibility filter must
+      still run.
+    * ``was_rewritten`` — ``True`` only when the translator returned a
+      record whose ``contract.effects_add`` / ``effects_del`` differ
+      from the input. Used for the per-step counter only — diagonal /
+      identity translations don't bump it.
+    * ``translator_failed`` — ``True`` iff the translator raised. Tracked
+      separately so a buggy translation table can't masquerade as
+      "translation applied" in the dashboard.
+    """
+    src = _resolve_record_source_domain(rec, fallback=fallback_source_domain)
+    if not src or src == target_domain:
+        # Same-domain (diagonal) — translator would deep-copy and
+        # return the input unchanged. Skip the copy for the common
+        # case to keep the per-candidate cost ~free on the hot path.
+        return rec, False, False
+    try:
+        out = translate_skill_contract(rec, source=src, target=target_domain)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug(
+            "harness_hook: predicate translation %s->%s failed for %s: %s; "
+            "falling back to identity",
+            src, target_domain, getattr(rec, "skill_id", "?"), exc,
+        )
+        return rec, False, True
+
+    if out is None:
+        return rec, False, True
+
+    rewrote = False
+    in_contract = getattr(rec, "contract", None)
+    out_contract = getattr(out, "contract", None)
+    if in_contract is not None and out_contract is not None:
+        in_add = list(getattr(in_contract, "effects_add", []) or [])
+        in_del = list(getattr(in_contract, "effects_del", []) or [])
+        out_add = list(getattr(out_contract, "effects_add", []) or [])
+        out_del = list(getattr(out_contract, "effects_del", []) or [])
+        rewrote = (in_add != out_add) or (in_del != out_del)
+    return out, rewrote, False
 
 
 # ---------------------------------------------------------------------------
@@ -379,6 +481,8 @@ class SkillHarnessHook:
             "n_admitted": 0,
             "n_rejected": 0,
             "n_unknown": 0,
+            "n_predicate_translations_applied": 0,
+            "n_predicate_translations_failed": 0,
             "eligible_ids": [],
             "rejected": [],
             "task_match_distribution": {},
@@ -391,16 +495,44 @@ class SkillHarnessHook:
         # Unknowns are passed through (the harness has no opinion on
         # skills it doesn't know — that may happen in unit tests or
         # when the bank.jsonl was rotated mid-step).
+        #
+        # Layer C — predicate translator splice
+        # -------------------------------------
+        # Skills in the cache may have been mined in a *source* domain
+        # (e.g. ``visual_reasoning`` / ``video``) different from the
+        # trainer's current ``state.domain`` (typically ``gymv``). When
+        # the source and target diverge, the contract's effects_add /
+        # effects_del predicates need to be rewritten through
+        # :func:`harness.predicate_translator.translate_skill_contract`
+        # so the harness's eligibility filter — and the downstream
+        # success_fn — see predicates the target adapter can actually
+        # ground (PLAN-PHASE5 §11.5.0 / coevolution-cross-domain-
+        # integration.md Layer C). Diagonal / identity cells short-
+        # circuit and bypass the deep-copy cost. Translator crashes
+        # degrade to the original record so a buggy translation table
+        # can never starve the trainer.
         records_for_filter: List[SkillRecord] = []
         unknown_idx: List[int] = []
         sid_to_cand: Dict[str, Dict[str, Any]] = {}
+        n_translated = 0
+        n_translation_errs = 0
+        target_domain = getattr(state, "domain", None) or self._domain
         for i, cand in enumerate(candidates):
             sid = (cand or {}).get("skill_id")
             rec = self._records.get(sid) if sid else None
             if rec is None:
                 unknown_idx.append(i)
                 continue
-            records_for_filter.append(rec)
+            translated_rec, rewrote, failed = _translate_record_for_target(
+                rec,
+                target_domain=target_domain,
+                fallback_source_domain=self._domain,
+            )
+            if rewrote:
+                n_translated += 1
+            if failed:
+                n_translation_errs += 1
+            records_for_filter.append(translated_rec)
             sid_to_cand[sid] = cand
 
         try:
@@ -415,6 +547,8 @@ class SkillHarnessHook:
             return list(candidates), {
                 **diag,
                 "n_admitted": n_in,
+                "n_predicate_translations_applied": n_translated,
+                "n_predicate_translations_failed": n_translation_errs,
                 "harness_error": repr(exc),
             }
 
@@ -459,6 +593,8 @@ class SkillHarnessHook:
         diag["n_admitted"] = len(admitted)
         diag["n_rejected"] = len(rejected)
         diag["n_unknown"] = len(unknown_idx)
+        diag["n_predicate_translations_applied"] = n_translated
+        diag["n_predicate_translations_failed"] = n_translation_errs
         diag["eligible_ids"] = eligible_ids
         diag["rejected"] = [r.to_json() for r in rejected]
         diag["task_match_distribution"] = task_match_dist
@@ -467,6 +603,8 @@ class SkillHarnessHook:
         self._stats.n_candidates_in += n_in
         self._stats.n_candidates_admitted += len(admitted)
         self._stats.n_candidates_rejected += len(rejected)
+        self._stats.n_predicate_translations_applied += n_translated
+        self._stats.n_predicate_translations_failed += n_translation_errs
         for r in rejected:
             self._stats.veto_class_distribution[r.veto] = (
                 self._stats.veto_class_distribution.get(r.veto, 0) + 1
