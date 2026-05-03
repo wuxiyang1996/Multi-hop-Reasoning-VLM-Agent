@@ -313,6 +313,10 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         _vstats = ctx['vllm_stats']
         _sk_counts = ctx['skill_counts']
         _n_skills = sum(_sk_counts.values())
+        # Layer D: cross-domain dashboard metrics. Empty dict on
+        # disabled / skipped / fail — the wandb log call below is a
+        # no-op for empty inputs.
+        _dashboard_metrics: Dict[str, float] = ctx.get('dashboard_metrics') or {}
 
         if grpo_result:
             try:
@@ -415,6 +419,10 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 for adapter, game_counts in grpo_result.per_game_counts.items():
                     for game, count in game_counts.items():
                         log_dict[f"grpo/{adapter}/{game}/n_samples"] = count
+            # Layer D: fold the cross-domain dashboard metrics into
+            # the same wandb step. Empty dict when disabled/skipped.
+            for k, v in _dashboard_metrics.items():
+                log_dict[k] = v
             try:
                 wandb.log(log_dict, step=_step)
             except Exception as exc:
@@ -454,6 +462,10 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                         tb_writer.add_scalar(f"grpo/skillbank/{adapter}/loss", stats.mean_loss, _step)
                         tb_writer.add_scalar(f"grpo/skillbank/{adapter}/n_samples", stats.n_samples, _step)
                     tb_writer.add_scalar("grpo/wall_time_s", grpo_result.wall_time_s, _step)
+                # Layer D: emit cross-domain dashboard scalars to TB
+                # under the same `cross_domain/...` namespace as wandb.
+                for k, v in _dashboard_metrics.items():
+                    tb_writer.add_scalar(k, v, _step)
                 tb_writer.flush()
             except Exception as exc:
                 logger.warning("TensorBoard log failed: %s", exc)
@@ -1002,6 +1014,64 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         else:
             phase_bp_time = 0.0
 
+        # ── Layer D: cross-domain dashboard (periodic) ──────────────
+        # Off by default; cadence-controlled via
+        # `crafter_dashboard_every_k_steps`. Snapshots the trainer's
+        # banks and runs the full Stage-6 N×N transfer matrix to
+        # surface G1-G5 acceptance gates + per-cluster admit rates
+        # as wandb / TB scalars. Decoupled from Layer A so the
+        # dashboard cadence can be much lower than the per-step
+        # transfer gate (a single sweep is ~1-30 minutes).
+        dashboard_report: Optional[Dict[str, Any]] = None
+        dashboard_metrics: Dict[str, float] = {}
+        if config.crafter_dashboard_enabled:
+            try:
+                from trainer.coevolution._dashboard_hook import (
+                    run_dashboard_step,
+                    should_run_dashboard,
+                )
+                if should_run_dashboard(
+                    step=step,
+                    every_k_steps=config.crafter_dashboard_every_k_steps,
+                    enabled=config.crafter_dashboard_enabled,
+                ):
+                    dashboard_step = run_dashboard_step(
+                        step=step,
+                        run_dir=Path(config.run_dir),
+                        legacy_bank_paths=sb_manager.bank_paths(simple_only=True),
+                        dashboard_targets=tuple(
+                            config.crafter_dashboard_targets,
+                        ),
+                        dashboard_max_skills_per_cell=(
+                            config.crafter_dashboard_max_skills_per_cell
+                        ),
+                        dashboard_driver_timeout_s=(
+                            config.crafter_dashboard_timeout_s
+                        ),
+                    )
+                    dashboard_report = dashboard_step.to_dict()
+                    dashboard_metrics = dashboard_step.to_metrics()
+                    if dashboard_step.skipped:
+                        logger.info(
+                            "Cross-domain dashboard at step=%d: skipped (%s)",
+                            step, dashboard_step.skipped_reason,
+                        )
+                    else:
+                        logger.info(
+                            "Cross-domain dashboard at step=%d: %d cells, "
+                            "mean admit=%.1f%%, gates=%s, %.1fs",
+                            step,
+                            dashboard_step.n_cells_evaluated,
+                            dashboard_step.mean_admit_rate * 100,
+                            dashboard_step.gate_verdicts,
+                            dashboard_step.wall_time_s,
+                        )
+            except Exception as exc:  # noqa: BLE001
+                logger.error(
+                    "Cross-domain dashboard failed at step=%d: %s",
+                    step, exc, exc_info=True,
+                )
+
         # ── Snapshot step context for deferred finalization ─────────
         step_ctx = {
             'step': step,
@@ -1011,6 +1081,8 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             'phase_bp_time': phase_bp_time,
             'crafter_report': crafter_report,
             'promotion_report': promotion_report,
+            'dashboard_report': dashboard_report,
+            'dashboard_metrics': dashboard_metrics,
             'episode_metrics': compute_episode_metrics(rollout_results),
             'sb_update_results': sb_update_results,
             'total_new_skills': total_new_skills,

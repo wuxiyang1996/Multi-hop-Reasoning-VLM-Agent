@@ -271,6 +271,35 @@ class CoEvolutionConfig:
     # skills.
     crafter_transfer_timeout_s: float = 1800.0
 
+    # ── Cross-domain dashboard (Layer D) ────────────────────────────
+    # Periodic offline pass that snapshots the trainer's banks and
+    # runs the full N×N Stage-6 transfer matrix to surface the live
+    # cross-domain transfer health (G1-G5 acceptance gates, per-
+    # cluster admit rates) to wandb / TensorBoard. Decoupled from
+    # the per-step transfer gate (Layer A) so dashboards can run at
+    # low frequency (every 100 steps) while the gate runs at
+    # higher frequency without doubling the subprocess load.
+    #
+    # Spec:  implementation_notes/coevolution-cross-domain-integration.md §5
+    crafter_dashboard_enabled: bool = False
+    # Cadence: dashboard fires when ``step % crafter_dashboard_every_k_steps == 0``.
+    # ``0`` disables the dashboard via cadence (master flag stays
+    # untouched). Recommend 100-500 in steady state — a full N×N
+    # sweep takes ~1-30 minutes depending on bank size + N targets.
+    crafter_dashboard_every_k_steps: int = 0
+    # Target corpora the dashboard's matrix sweep evaluates against.
+    # Typically the full canonical Stage-6 set so the wandb dashboard
+    # shows complete G3-G5 verdicts.
+    crafter_dashboard_targets: Tuple[str, ...] = (
+        "video", "visual_reasoning", "osworld", "browser",
+    )
+    # Forwarded to ``_phase4_transfer_matrix.py --max-skills``.
+    crafter_dashboard_max_skills_per_cell: int = 5
+    # Hard wall-clock cap on the matrix subprocess. Default 1h leaves
+    # room for the full N×N sweep with conda-env helpers (browser)
+    # cold-booting.
+    crafter_dashboard_timeout_s: float = 3600.0
+
     # ── Harness wire-up (Day-10) ────────────────────────────────────
     # When enabled, the trainer wires the harness's two LLM-free
     # surfaces into Phase A rollouts:
