@@ -24,7 +24,9 @@
 #
 # Usage:
 #
-#   # PARALLEL (default), all 13 Temporal envs, full vision pipeline
+#   # PARALLEL (default), 8 retained Temporal envs, full vision pipeline
+#   # (5 games dropped 2026-05-03; see baselines/README.md §
+#   # "Gym-V benchmark scope").
 #   bash cold_start/run_coldstart_actor_gymv_all.sh \
 #       --episodes 1 --max_steps 20 --save_frames -v
 #
@@ -53,7 +55,9 @@
 #   --parallel | -P             dispatch envs concurrently (default)
 #   --sequential                dispatch envs one at a time
 #   --max_parallel N            cap concurrency (default: unlimited)
-#   --envs <id>...              restrict to a subset (default: all 13)
+#   --envs <id>...              restrict to a subset (default: 8 retained
+#                               Gym-V envs; see baselines/README.md §
+#                               "Gym-V benchmark scope")
 #   --run_id <id>               override auto-timestamped run id
 #   --output_dir <path>         override base dir
 #                               (default: <codebase_root>/Cold-start-out-gymv)
@@ -73,17 +77,28 @@ PY_LAUNCHER="${SCRIPT_DIR}/generate_cold_start_actor_gymv.py"
 DEFAULT_BASE_DIR="${CODEBASE_ROOT}/Cold-start-out-gymv"
 DEFAULT_CONDA_ENV="game-ai-agent"
 
-# All 13 registered Temporal envs (must match TEMPORAL_GAME_SPECS).
+# Default Gym-V benchmark suite: 8 of the 13 registered Temporal envs.
+#
+# We dropped 5 games (CastleOfIllusion, CastlevaniaBloodlines, GoldenAxe,
+# KidChameleon, MortalKombatII) after the 2026-05-03 frame_skip=8 sweep
+# showed they remain at ≤8 % per-episode success rate across all six
+# tested backbones (GPT-5.4, Claude-4.6, Gemini-3.1-Pro, Qwen3-VL-235B,
+# Qwen3.5-9B, Qwen3.5-35B-A3B). Their reward functions and save states
+# are sound — the failure mode is task design (precise platforming /
+# combat-block timing / multi-step combo input) that simply does not
+# emit reward density compatible with single-shot LLM rollouts at the
+# current ~640-frame budget. See `baselines/README.md` § "Gym-V
+# benchmark scope" for the full decision log + per-game numbers.
+#
+# To run the full 13-game registry pass `--envs Temporal/Airstriker-v0
+# Temporal/AlteredBeast-v0 ...` explicitly. The dropped games are still
+# available via `TEMPORAL_GAME_SPECS` in
+# `gymv_wrapper/temporal_visual_grounding.py`.
 DEFAULT_ENVS=(
     Temporal/Airstriker-v0
     Temporal/AlteredBeast-v0
-    Temporal/CastleOfIllusion-v0
-    Temporal/CastlevaniaBloodlines-v0
     Temporal/Columns-v0
     Temporal/DynamiteHeaddy-v0
-    Temporal/GoldenAxe-v0
-    Temporal/KidChameleon-v0
-    Temporal/MortalKombatII-v0
     Temporal/SpaceHarrierII-v0
     Temporal/StreetsOfRage2-v0
     Temporal/Strider-v0

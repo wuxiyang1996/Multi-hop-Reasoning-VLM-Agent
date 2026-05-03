@@ -35,7 +35,8 @@
 # Usage:
 #
 #   # End-to-end on an 8x H200 box: launch both vLLM servers (TP=4 each)
-#   # and run all 32 (model x env) combos with 16 concurrent jobs.
+#   # and run all 22 (model x env) combos with 16 concurrent jobs.
+#   # (3 env_wrappers + 8 gym-v retained envs) × 2 backbones = 22.
 #   bash baselines/run_qwen_vllm_baselines.sh --launch_servers
 #
 #   # Default: both models, all envs, 16 episodes, max_parallel=16
@@ -83,6 +84,7 @@
 #                            plenty of headroom).
 #   --max_steps_envw N       per-episode step cap for env_wrappers (default: backend per-game default)
 #   --max_steps_gymv N       per-episode step cap for gym-v (default: 60)
+#   --frame_skip_gymv N      emulator frames per agent step on gym-v (default: 1; recommended: 8)
 #   --envwrappers <g>...     restrict env_wrappers games (default: 2048, candy_crush, tetris)
 #   --gymv <id>...           restrict gym-v env ids (default: all 13 Temporal/* envs)
 #   --skip_envwrappers       skip the env_wrappers backend entirely
@@ -131,6 +133,7 @@ EPISODES_DEFAULT=16
 # margin and still keeps both GPU pools saturated.
 MAX_PARALLEL_DEFAULT=16
 MAX_STEPS_GYMV_DEFAULT=60
+FRAME_SKIP_GYMV_DEFAULT=1
 TEMP_ACTION_DEFAULT=0.4
 TEMP_SCHEMA_DEFAULT=0.2
 
@@ -149,16 +152,25 @@ MAX_MODEL_LEN_9B_DEFAULT=8192
 MAX_MODEL_LEN_35B_DEFAULT=8192
 
 ENVWRAPPERS_DEFAULT=(twenty_forty_eight candy_crush tetris)
+
+# Gym-V benchmark scope: 8 of the 13 registered Temporal envs.
+#
+# Dropped 2026-05-03 after the frame_skip=8 sweep showed all six tested
+# backbones (GPT-5.4, Claude-4.6, Gemini-3.1-Pro, Qwen3-VL-235B,
+# Qwen3.5-9B, Qwen3.5-35B-A3B) ≤8 % per-episode success on:
+#   CastleOfIllusion, CastlevaniaBloodlines, GoldenAxe, KidChameleon,
+#   MortalKombatII.
+# Reward functions and save states are sound — the failure mode is task
+# design (precise platforming / combat-block timing / multi-step combos)
+# that does not emit reward density compatible with single-shot LLM
+# rollouts at the current 640-frame budget. To run the full 13-game
+# registry pass `--gymv` with the explicit list. See README §
+# "Gym-V benchmark scope" for the full decision log.
 GYMV_DEFAULT=(
     Temporal/Airstriker-v0
     Temporal/AlteredBeast-v0
-    Temporal/CastleOfIllusion-v0
-    Temporal/CastlevaniaBloodlines-v0
     Temporal/Columns-v0
     Temporal/DynamiteHeaddy-v0
-    Temporal/GoldenAxe-v0
-    Temporal/KidChameleon-v0
-    Temporal/MortalKombatII-v0
     Temporal/SpaceHarrierII-v0
     Temporal/StreetsOfRage2-v0
     Temporal/Strider-v0
@@ -179,6 +191,7 @@ EPISODES="$EPISODES_DEFAULT"
 MAX_PARALLEL="$MAX_PARALLEL_DEFAULT"
 MAX_STEPS_ENVW=""
 MAX_STEPS_GYMV="$MAX_STEPS_GYMV_DEFAULT"
+FRAME_SKIP_GYMV="$FRAME_SKIP_GYMV_DEFAULT"
 TEMP_ACTION="$TEMP_ACTION_DEFAULT"
 TEMP_SCHEMA="$TEMP_SCHEMA_DEFAULT"
 INCLUDE_ENVWRAPPERS=1
@@ -236,6 +249,8 @@ while [ $# -gt 0 ]; do
             shift; MAX_STEPS_ENVW="${1:-}"; shift ;;
         --max_steps_gymv|--max-steps-gymv)
             shift; MAX_STEPS_GYMV="${1:-$MAX_STEPS_GYMV_DEFAULT}"; shift ;;
+        --frame_skip_gymv|--frame-skip-gymv)
+            shift; FRAME_SKIP_GYMV="${1:-$FRAME_SKIP_GYMV_DEFAULT}"; shift ;;
         --temperature_action|--temperature-action)
             shift; TEMP_ACTION="${1:-$TEMP_ACTION_DEFAULT}"; shift ;;
         --temperature_schema|--temperature-schema)
@@ -743,6 +758,7 @@ run_gymv_job() {
             --envs "$env_id" \
             --episodes "$EPISODES" \
             --max_steps "$MAX_STEPS_GYMV" \
+            --frame_skip "$FRAME_SKIP_GYMV" \
             --model "$model" \
             --api_key "$VLLM_API_KEY" \
             --base_url "$url" \
