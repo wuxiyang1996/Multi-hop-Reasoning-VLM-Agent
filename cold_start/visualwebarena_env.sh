@@ -1,38 +1,39 @@
 # cold_start/visualwebarena_env.sh — VisualWebArena URL endpoints.
 #
 # This file is the same shape as the one written by
-# ``install/install_visualwebarena_sites.sh``, but written by hand on
-# 2026-05-03 so the cross-model VWA baseline can launch without first
-# blocking on the (~10 GB / 30 min one-shot) Classifieds + VWA-homepage
-# install. As a result there are TWO known limitations versus the
-# fully-installed setup:
+# ``install/install_visualwebarena_sites.sh``. As of 2026-05-03 the
+# install IS complete on this machine — both the Classifieds stack
+# (:9980) and a VWA-specific homepage (:4400) are running, so all 200
+# tasks in ``cold_start/task_samples/browsergym_visualwebarena_200.txt``
+# are runnable end-to-end.
 #
-#   1. ``VWA_CLASSIFIEDS`` points at :9980 but no container is bound
-#      there yet, so the 232 ``classifieds``-only tasks (and 2
-#      ``classifieds`` + ``shopping`` mixes) will fail at reset.
-#      In our 200-task pinned subset that's 52 tasks. Filter them out
-#      with ``grep -v classifieds`` upstream, or accept the 52 errors.
+# Provenance of the two added containers:
 #
-#   2. ``VWA_HOMEPAGE`` is *aliased* onto the WebArena homepage at
-#      :4399. The shared shopping/reddit/wikipedia URLs (:7770/:9999/
-#      :8888) work fine — they're literally the same containers — but
-#      :4399 does NOT serve VWA's task-specific input images at
-#      ``/static/input_images/<site>/task_<id>/input_<i>.png``. So any
-#      task whose ``image`` config is non-empty (72/200 in the pinned
-#      subset) will 404 inside ``_build_goal``. Filter to image-free
-#      tasks for the smoke / first baseline.
+#   1. ``classifieds`` + ``classifieds_db`` — brought up by
+#      ``install/install_visualwebarena_sites.sh`` (OSClass + MySQL
+#      seeded from ``osclass_craigslist.sql``). Listens on :9980.
 #
-#   To LIFT both limitations, run:
-#       bash install/install_visualwebarena_sites.sh
-#       # plus a separate VWA-homepage container that mounts
-#       # ``static/input_images/`` (currently DIY, ~20 min).
+#   2. ``vwa_homepage`` — a manual one-liner running the
+#      ``webarena-homepage`` image with VWA's
+#      ``environment_docker/webarena-homepage/`` directory mounted at
+#      ``/app:ro``. That directory ships with all
+#      ``static/input_images/<site>/task_<id>/input_<i>.png`` assets
+#      VWA tasks need. Maps host :4400 → container :4399 to avoid
+#      colliding with the shared WebArena :4399 homepage.
+#
+#   Bring-up command (idempotent — re-run safely):
+#       VWA_APP=/workspace/visualwebarena_data/vwa-homepage/environment_docker/webarena-homepage
+#       docker run -d --name vwa_homepage \
+#           -v "$VWA_APP:/app:ro" -p 4400:4399 \
+#           --restart unless-stopped \
+#           webarena-homepage
 #
 # Source this from your shell or rely on
 # ``cold_start/run_coldstart_actor_browsergym.sh`` to source it
 # automatically when ``--tasks browsergym/visualwebarena.*`` is passed.
 
 # ── Required by ``browsergym.visualwebarena`` (VWA_*-prefixed names) ─────
-export VWA_HOMEPAGE="http://localhost:4399"
+export VWA_HOMEPAGE="http://localhost:4400"
 export VWA_SHOPPING="http://localhost:7770"
 export VWA_REDDIT="http://localhost:9999"
 export VWA_WIKIPEDIA="http://localhost:8888/viewer#wikipedia_en_all_maxi_2022-05/A/User:The_other_Kiwix_guy/Landing"
