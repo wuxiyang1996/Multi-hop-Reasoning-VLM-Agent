@@ -244,7 +244,7 @@ _OPTIONAL_TASK_SUITE_MODULES: List[str] = [
 # of real work, plus 5 of recovery, plus 2 of verification. Empirical
 # diagnostic on 2026-05-03 (visualwebarena.92, gpt-5.5 low) showed the
 # agent thrashing through ``scroll/go_back/go_forward`` for 11 of 12
-# steps under the old budget. See ``implementation_notes/
+# steps under the old budget. See ``legacy/visualwebarena/
 # vwa-improvement-plan.md`` §3 (Tier-1 change A).
 DEFAULT_MAX_STEPS = 30
 # Default episode count per URL/target when ``--episodes`` is not given.
@@ -3002,7 +3002,7 @@ def run_target_rollouts(
     # silently downgrades the actor to a "raw screenshot + AXTree" agent
     # — the same configuration that under-performs the GPT-4V SoM
     # baseline (16.4 %) in the VWA paper. See
-    # ``implementation_notes/vwa-improvement-plan.md`` Tier-1 D.
+    # ``legacy/visualwebarena/vwa-improvement-plan.md`` Tier-1 D.
     # SoM overlay is unconditionally on when vision is on (driver hard-codes
     # ``use_som=True`` in its action-LLM call site). Skip the watchdog when
     # ``--no_vision`` short-circuited the whole VLM path.

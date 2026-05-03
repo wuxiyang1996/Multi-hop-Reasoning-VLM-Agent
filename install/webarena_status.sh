@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 #
-# webarena_status.sh — one-shot status report for the WebArena / VWA install.
+# webarena_status.sh — one-shot status report for the WebArena install.
 #
 # Shows: tarball download progress, loaded Docker images, running
 # containers, HTTP health of each canonical port, and whether the
-# cold_start/{webarena,visualwebarena}_env.sh files are present and
-# source-able. Safe to run while the install scripts are still going.
+# cold_start/webarena_env.sh file is present and source-able. Safe
+# to run while the install scripts are still going.
+#
+# (Also probes the legacy VWA classifieds container + env file. VWA
+# was dropped 2026-05-03 — see legacy/visualwebarena/README.md — so
+# these probes will normally show ---- / missing on a clean install.
+# They remain here as a courtesy for anyone manually reviving VWA
+# from the legacy archive.)
 #
 # Usage:
 #   bash install/webarena_status.sh

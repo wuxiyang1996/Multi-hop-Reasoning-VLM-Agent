@@ -12,7 +12,7 @@ turn caused the actor to thrash through navigation actions
 
 See:
 * ``browsergym_wrapper/tools.py:_h_list_valid_actions`` — patched code.
-* ``implementation_notes/vwa-improvement-plan.md`` §3 Tier-1 change B
+* ``legacy/visualwebarena/vwa-improvement-plan.md`` §3 Tier-1 change B
     — full root-cause analysis and the diagnostic episode this test
     guards against regressing.
 """

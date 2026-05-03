@@ -10,7 +10,6 @@
 #   * --tasks <env_id>    Pre-registered BrowserGym task ids
 #                          (e.g. browsergym/miniwob.click-button,
 #                          browsergym/webarena.42,
-#                          browsergym/visualwebarena.0,
 #                          browsergym/assistantbench.test.0).
 #                          Each task ships with its own goal + reward.
 #   * --urls <url>        Open-ended browsing on top of
@@ -82,10 +81,14 @@
 #   miniwob          MINIWOB_URL=file:///path/to/miniwob-plusplus/html/miniwob/
 #   webarena         WA_HOMEPAGE / WA_SHOPPING / WA_REDDIT / WA_GITLAB / ...
 #                    (see github.com/web-arena-x/webarena)
-#   visualwebarena   VWA_HOMEPAGE / VWA_CLASSIFIEDS / VWA_SHOPPING / ...
-#                    (see github.com/web-arena-x/visualwebarena)
 #   assistantbench   no extra infra (loads from HuggingFace dataset cache)
 #   openended        no extra infra (any live URL works)
+#
+# NOTE: visualwebarena was DROPPED on 2026-05-03 — see
+# legacy/visualwebarena/README.md for the rationale and resurrection
+# instructions. The Python package and gym registrations remain
+# importable (the conda env still has them) but no driver-side
+# convenience scaffolding is wired up here.
 #
 # Optional environment variables:
 #   PYTHONPATH                            extra paths to prepend (the
@@ -138,10 +141,13 @@ if ! _python_has_browsergym; then
     fi
 fi
 
-# ── Auto-source self-hosted-site env files (WebArena / VisualWebArena) ───
-# Each install/install_*_sites.sh writes a sourceable env file in
-# cold_start/. If the file exists and the user requested tasks from that
-# suite, source it so WA_*/VWA_* are exported.
+# ── Auto-source self-hosted-site env files (WebArena) ────────────────────
+# install/install_webarena_sites.sh writes ``cold_start/webarena_env.sh``.
+# If the file exists and the user requested tasks from that suite, source
+# it so WA_* are exported.
+#
+# (Historical: a parallel ``visualwebarena_env.sh`` branch was here until
+# 2026-05-03. VWA was dropped; see legacy/visualwebarena/README.md.)
 _NEED_WEBARENA=0
 _NEED_VISUALWEBARENA=0
 for arg in "${EXTRA_ARGS[@]:-}"; do
@@ -155,10 +161,12 @@ if [ "$_NEED_WEBARENA" -eq 1 ] && [ -f "${SCRIPT_DIR}/webarena_env.sh" ]; then
     source "${SCRIPT_DIR}/webarena_env.sh"
     echo "[INFO] Sourced ${SCRIPT_DIR}/webarena_env.sh (WA_* exported)"
 fi
-if [ "$_NEED_VISUALWEBARENA" -eq 1 ] && [ -f "${SCRIPT_DIR}/visualwebarena_env.sh" ]; then
-    # shellcheck disable=SC1091
-    source "${SCRIPT_DIR}/visualwebarena_env.sh"
-    echo "[INFO] Sourced ${SCRIPT_DIR}/visualwebarena_env.sh (VWA_* exported)"
+if [ "$_NEED_VISUALWEBARENA" -eq 1 ]; then
+    echo "[WARN] VisualWebArena tasks requested, but VWA support was dropped"
+    echo "       on 2026-05-03. See legacy/visualwebarena/README.md for the"
+    echo "       rationale and resurrection steps. Tasks may still run if"
+    echo "       you manually source legacy/visualwebarena/visualwebarena_env.sh,"
+    echo "       but expect the 10 known infra issues documented there."
 fi
 
 # ── Auto-wire MINIWOB_URL if any --tasks is browsergym/miniwob.* ──────────

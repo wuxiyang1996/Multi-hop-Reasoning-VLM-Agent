@@ -441,7 +441,7 @@ def _h_list_valid_actions(state: _BrowserState) -> dict:
     visible textbox/searchbox/combobox role regardless of the SoM/
     clickable flags, and only require those flags for click/check
     candidates (which truly need them to disambiguate from background
-    spans). See ``implementation_notes/vwa-improvement-plan.md`` §3
+    spans). See ``legacy/visualwebarena/vwa-improvement-plan.md`` §3
     Tier-1 change B.
     """
     actions: list[dict] = []

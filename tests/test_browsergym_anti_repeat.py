@@ -25,7 +25,7 @@ These tests cover the four pure helpers in
   * ``_filter_repeat_candidates``
 
 See also:
-  * ``implementation_notes/vwa-improvement-plan.md`` §11
+  * ``legacy/visualwebarena/vwa-improvement-plan.md`` §11
     (anti-repetition mechanism — full root-cause and impact)
 """
 from __future__ import annotations

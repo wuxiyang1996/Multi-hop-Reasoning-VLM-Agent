@@ -27,14 +27,14 @@ between the Decision Agent and the Skill Bank Agent.
 | `run_coldstart_actor_all_games.sh` | **Multi-env wrapper** — runs `run_coldstart_actor.sh` twice in one command: 2048 / Candy Crush / Tetris under `game-ai-agent`, then Super Mario under `orak-mario` (with Xvfb).  Use this when you want all 4 games in one shot. |
 | `generate_cold_start_actor_gymv.py` | Actor-agent rollouts on the **`gymv` source domain** (13 retro/Temporal envs: Airstriker, Columns, …). |
 | `run_coldstart_actor_gymv.sh` / `run_coldstart_actor_gymv_all.sh` | Single-env / parallel-all-envs launchers for `gymv`. |
-| `generate_cold_start_actor_browsergym.py` | Actor-agent rollouts on **BrowserGym** (MiniWoB / WebArena / VisualWebArena / AssistantBench). Auto-sources `webarena_env.sh` / `visualwebarena_env.sh` per task. |
+| `generate_cold_start_actor_browsergym.py` | Actor-agent rollouts on **BrowserGym** (MiniWoB / WebArena / AssistantBench). Auto-sources `webarena_env.sh` per task. (VisualWebArena was dropped 2026-05-03 — see `legacy/visualwebarena/README.md`.) |
 | `run_coldstart_actor_browsergym.sh` | BrowserGym launcher; supports `--tasks`, `--tasks_file`, `--urls`. |
 | `generate_cold_start_actor_osworld.py` | Actor-agent rollouts on **OSWorld** desktop tasks (KVM guest, AT-SPI accessibility tree). |
 | `run_coldstart_actor_osworld.sh` / `run_coldstart_actor_osworld_all.sh` | Single-guest / parallel-multi-guest launchers for OSWorld. |
 | `generate_cold_start_actor_visual_reasoning.py` | Actor-agent rollouts on **visual reasoning** benchmarks (VisualToolBench, TIR-Bench, Video-Holmes, SIV-Bench). Supports `--sample_ids_dir` for held-out splits. |
 | `run_coldstart_actor_visual_reasoning.sh` | Visual-reasoning launcher (image + video MCQ). |
 | `task_samples/` | Stratified pool / held-out manifests + sampler scripts (`build_browsergym_diverse_200.py`, `build_visual_reasoning_diverse_1000.py`). |
-| `webarena_env.sh` / `visualwebarena_env.sh` | Auto-generated `WA_*` / `VWA_*` exports from `install/install_*_sites.sh`; auto-sourced by the BrowserGym launcher. |
+| `webarena_env.sh` | Auto-generated `WA_*` exports from `install/install_webarena_sites.sh`; auto-sourced by the BrowserGym launcher. |
 
 ## Games Covered (6 total)
 
@@ -293,10 +293,10 @@ leaving a disjoint held-out slice for the E0/E1/E2 scoreboard.
 | Domain | Bucket | Pool (used in this run) | Held-out (reserved for eval) | Sampler |
 |---|---|---:|---:|---|
 | `gymv` (**source**) | 13 retro envs × ~10 ep × 20 steps | ~130 episodes | n/a | `run_coldstart_actor_gymv_all.sh --episodes 10` |
-| `browser` | **VisualWebArena** (multimodal core) | 200 | + 50 | `task_samples/build_browsergym_diverse_200.py` |
+| `browser` | **AssistantBench** (open web, no infra; multimodal-friendly) | 180 | + 30 | `task_samples/build_browsergym_diverse_200.py` |
 | `browser` | MiniWoB++ (atomic primitives) | 125 | + 25 | same |
-| `browser` | AssistantBench (open web, no infra) | 180 | + 30 | same |
-| `browser` | WebArena | *drop* — VWA already covers shopping/reddit/wiki; gitlab+admin overlap not worth the cost | — | — |
+| `browser` | WebArena | *deferred* — overlaps AssistantBench coverage at much higher infra cost | — | — |
+| `browser` | ~~VisualWebArena~~ | *dropped 2026-05-03* — see `legacy/visualwebarena/README.md` | — | — |
 | `osworld` | OSWorld desktop tasks | 250 stratified | + 50 | TBD |
 | `visual_reasoning` | VisualToolBench (image) | 300 stratified | + 100 | `task_samples/build_visual_reasoning_diverse_1000.py` |
 | `visual_reasoning` | TIR-Bench (image, tool-use) | 300 stratified | + 100 | same |
@@ -404,7 +404,7 @@ Where the lean-plan budget goes (≈ $260 baseline):
 |---|---:|---:|
 | OSWorld | 45 % | ~$110 |
 | gymv | 14 % | ~$36 |
-| BrowserGym (VWA + MiniWoB + AB) | 24 % | ~$62 |
+| BrowserGym (MiniWoB + AssistantBench) | 24 % | ~$62 |
 | Visual reasoning (4 benchmarks @ `medium`) | 17 % | ~$45 |
 
 The two dominant levers:
@@ -423,7 +423,7 @@ python cold_start/task_samples/build_visual_reasoning_diverse_1000.py
 bash cold_start/run_coldstart_actor_gymv_all.sh \
     --episodes 10 --max_steps 20 --save_frames -v
 
-# 3. BrowserGym (VWA + MiniWoB + AssistantBench from the manifest)
+# 3. BrowserGym (MiniWoB + AssistantBench from the manifest)
 bash cold_start/run_coldstart_actor_browsergym.sh \
     --tasks_file cold_start/task_samples/browsergym_all_diverse.txt \
     --episodes 1 --max_steps 12 --save_frames -v

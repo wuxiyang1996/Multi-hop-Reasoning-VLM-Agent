@@ -18,7 +18,7 @@ plumbing:
      payload to emit.
 
 These tests cover all five paths. See
-``implementation_notes/vwa-improvement-plan.md`` §12 for the full
+``legacy/visualwebarena/vwa-improvement-plan.md`` §12 for the full
 story.
 """
 from __future__ import annotations

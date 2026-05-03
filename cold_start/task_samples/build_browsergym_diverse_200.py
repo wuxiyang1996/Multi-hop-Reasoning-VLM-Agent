@@ -7,9 +7,6 @@ Sampling strategy (deterministic, seed=0):
   webarena         200 / 812. Stratified by primary site (5 buckets), then
                    round-robin over intent_template_id within each bucket so
                    every distinct intent is covered before doubling up.
-  visualwebarena   200 / 910. Stratified by (primary_site x has_image x
-                   overall_difficulty). 14 strata; quota proportional to
-                   stratum size with a +1 floor so every cell is sampled.
   assistantbench   all 181 test rows (test_general + test_expert);
                    already < 200, full coverage.
 
@@ -17,15 +14,19 @@ Outputs (one file per suite, one task id per line):
 
   browsergym_miniwob_200.txt
   browsergym_webarena_200.txt
-  browsergym_visualwebarena_200.txt
   browsergym_assistantbench_200.txt
-  browsergym_all_diverse.txt    (concatenation of the above; ~706 tasks)
+  browsergym_all_diverse.txt    (concatenation of the above; ~506 tasks)
 
 Each file is consumable by ``run_coldstart_actor_browsergym.sh --tasks``
 via xargs:
 
     xargs -a browsergym_webarena_200.txt \\
         bash cold_start/run_coldstart_actor_browsergym.sh --tasks
+
+NOTE: The visualwebarena branch of this builder was retired on
+2026-05-03 — see ``legacy/visualwebarena/README.md``. The historical
+``sample_visualwebarena`` function and its 200/910 manifest are
+preserved unchanged in the legacy archive for reproducibility.
 """
 
 from __future__ import annotations
@@ -50,12 +51,6 @@ def _load_webarena_configs():
     import webarena
     raw = importlib.resources.files(webarena).joinpath("test.raw.json").read_text()
     return json.loads(raw)
-
-
-def _load_vwa_configs():
-    import visualwebarena
-    pkg_path = next(iter(visualwebarena.__path__))
-    return json.loads((Path(pkg_path) / "test_raw.json").read_text())
 
 
 def _load_miniwob_ids():
@@ -136,42 +131,6 @@ def sample_webarena(configs, k, seed):
     return sampled, quotas
 
 
-def sample_visualwebarena(configs, k, seed):
-    rng = random.Random(seed)
-
-    def stratum_key(c):
-        site = c["sites"][0] if c.get("sites") else "_other"
-        has_image = bool(c.get("image"))
-        diff = c.get("overall_difficulty") or "unknown"
-        return (site, has_image, diff)
-
-    strata = defaultdict(list)
-    for c in configs:
-        strata[stratum_key(c)].append(c)
-
-    # Proportional quotas with +1 floor for non-empty strata.
-    total = sum(len(v) for v in strata.values())
-    quotas = {s: max(1, round(k * len(v) / total)) for s, v in strata.items()}
-    while sum(quotas.values()) > k:
-        s = max(quotas, key=lambda x: quotas[x])
-        quotas[s] -= 1
-    while sum(quotas.values()) < k:
-        s = max(strata, key=lambda x: len(strata[x]))
-        quotas[s] += 1
-
-    sampled = []
-    for s, q in quotas.items():
-        chunk = _round_robin_by_key(
-            strata[s],
-            key_fn=lambda c: c.get("intent_template_id", -1),
-            k=q,
-            rng=rng,
-        )
-        sampled.extend(chunk)
-    rng.shuffle(sampled)
-    return sampled, quotas
-
-
 # ---------------------------------------------------------------------------
 # Output writers
 # ---------------------------------------------------------------------------
@@ -208,23 +167,6 @@ def main():
         f"webarena: 200/812 stratified by site × intent_template (covers {len(tmpl_dist)}/190 templates, all 5 sites)",
     )
 
-    print("\n=== visualwebarena ===")
-    vwa_cfg = _load_vwa_configs()
-    vwa_sampled, vwa_quotas = sample_visualwebarena(vwa_cfg, TARGET_PER_SUITE, SEED)
-    site_dist = Counter(c["sites"][0] for c in vwa_sampled)
-    diff_dist = Counter(c.get("overall_difficulty") for c in vwa_sampled)
-    img_dist = Counter(bool(c.get("image")) for c in vwa_sampled)
-    tmpl_dist = Counter(c.get("intent_template_id") for c in vwa_sampled)
-    print(f"  sampled: {len(vwa_sampled)}  sites: {dict(site_dist)}")
-    print(f"  difficulty: {dict(diff_dist)}  has_image: {dict(img_dist)}")
-    print(f"  distinct intent_templates covered: {len(tmpl_dist)} / 152")
-    vwa_ids = [f"browsergym/visualwebarena.{c['task_id']}" for c in vwa_sampled]
-    _write(
-        OUT_DIR / "browsergym_visualwebarena_200.txt",
-        vwa_ids,
-        f"visualwebarena: 200/910 stratified by site × has_image × difficulty (covers {len(tmpl_dist)}/152 templates)",
-    )
-
     print("\n=== assistantbench ===")
     ab_ids = _load_assistantbench_test_ids()
     print(f"  total test rows: {len(ab_ids)} (taking ALL — already below target of 200)")
@@ -235,11 +177,11 @@ def main():
     )
 
     print("\n=== combined manifest ===")
-    all_ids = miniwob_ids + wa_ids + vwa_ids + ab_ids
+    all_ids = miniwob_ids + wa_ids + ab_ids
     _write(
         OUT_DIR / "browsergym_all_diverse.txt",
         all_ids,
-        f"all four suites — diverse subsample (~200/suite); total={len(all_ids)}",
+        f"three suites (miniwob + webarena + assistantbench) — diverse subsample (~200/suite); total={len(all_ids)}",
     )
 
     print(f"\nDone. Outputs in: {OUT_DIR}")

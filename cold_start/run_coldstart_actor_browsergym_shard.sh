@@ -10,20 +10,21 @@
 # list across N independent Python processes (= N independent Chromium
 # instances), each handed a disjoint round-robin slice of tasks.
 #
-# The wrapper also auto-sources the WebArena / VisualWebArena env files
-# (``webarena_env.sh`` / ``visualwebarena_env.sh``) when those suites
-# appear in the task list — exactly mirroring the single-shot launcher.
+# The wrapper also auto-sources the WebArena env file
+# (``webarena_env.sh``) when that suite appears in the task list —
+# exactly mirroring the single-shot launcher. (VisualWebArena was
+# dropped 2026-05-03 — see legacy/visualwebarena/README.md.)
 #
 # Usage:
 #
-#   # Default: lean-plan pools (VWA 200 + MiniWoB 125 + AssistantBench 180),
+#   # Default: lean-plan pools (MiniWoB 125 + AssistantBench 180),
 #   # 8 shards, gpt-5.4 + reasoning_effort=minimal
 #   bash cold_start/run_coldstart_actor_browsergym_shard.sh
 #
 #   # 16 shards, custom tasks file, save frames
 #   bash cold_start/run_coldstart_actor_browsergym_shard.sh \
 #       --num_shards 16 \
-#       --tasks_file cold_start/task_samples/browsergym_visualwebarena_200.txt \
+#       --tasks_file cold_start/task_samples/browsergym_assistantbench_200.txt \
 #       -- --save_frames -v
 #
 #   # Pass any remaining flags after `--` straight to the Python launcher
@@ -89,10 +90,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Default to the lean-plan trio if no tasks files given.
+# Default to the lean-plan duo if no tasks files given.
+# (Was a trio that included visualwebarena_200; VWA dropped 2026-05-03 —
+# see legacy/visualwebarena/README.md.)
 if [[ ${#TASKS_FILES[@]} -eq 0 ]]; then
     TASKS_FILES=(
-        "${CODEBASE_ROOT}/cold_start/task_samples/browsergym_visualwebarena_200.txt"
         "${CODEBASE_ROOT}/cold_start/task_samples/browsergym_miniwob_200.txt"
         "${CODEBASE_ROOT}/cold_start/task_samples/browsergym_assistantbench_200.txt"
     )
@@ -142,6 +144,8 @@ if [[ $NUM_SHARDS -gt $N_TASKS ]]; then
 fi
 
 # ── Auto-source self-hosted-site env files when relevant ──────────────────
+# (VisualWebArena env auto-source removed 2026-05-03 — see
+#  legacy/visualwebarena/README.md.)
 NEEDS_WA=0
 NEEDS_VWA=0
 for t in "${TASKS_UNIQUE[@]}"; do
@@ -154,9 +158,9 @@ if [[ $NEEDS_WA -eq 1 ]] && [[ -f "${CODEBASE_ROOT}/cold_start/webarena_env.sh" 
     # shellcheck disable=SC1091
     source "${CODEBASE_ROOT}/cold_start/webarena_env.sh"
 fi
-if [[ $NEEDS_VWA -eq 1 ]] && [[ -f "${CODEBASE_ROOT}/cold_start/visualwebarena_env.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "${CODEBASE_ROOT}/cold_start/visualwebarena_env.sh"
+if [[ $NEEDS_VWA -eq 1 ]]; then
+    echo "[WARN] visualwebarena.* tasks detected, but VWA support was dropped" >&2
+    echo "       on 2026-05-03. See legacy/visualwebarena/README.md." >&2
 fi
 
 # ── Auto-wire MINIWOB_URL if any task is browsergym/miniwob.* ─────────────

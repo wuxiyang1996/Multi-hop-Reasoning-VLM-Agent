@@ -58,9 +58,16 @@ by the samplers in \texttt{cold\_start/task\_samples/} and
 \small
 \caption{Benchmark sample counts. ``Total'' is the upstream benchmark
 size; ``Pool'' / ``Held-out'' are the two disjoint stratified slices we
-release. WebArena is dropped because VisualWebArena already covers
-shopping/Reddit/wiki sites and the gitlab+admin overlap was not worth
-the self-host cost.}
+release. \textbf{Update (2026-05-03):} VisualWebArena was dropped
+from the active suite after a one-week diagnostic uncovered ten
+distinct upstream/infra bugs (deprecated judge model, broken
+\texttt{WEB\_PATH} in the classifieds container, eager OpenAI
+import at module load, etc.) — the agent improvements that VWA
+debugging motivated stayed in (anti-thrash, anti-repeat, terminal
+actions, search-first hint), but the suite itself was archived to
+\texttt{legacy/visualwebarena/} for reproducibility. AssistantBench
++ WebArena now carry the web-task share. WebArena's gitlab+admin
+sites remain unreleased on cost grounds.}
 \label{tab:bench-sizes}
 \renewcommand{\arraystretch}{1.10}
 \begin{tabular}{@{}llrrrl@{}}
@@ -71,7 +78,7 @@ the self-host cost.}
   & 13 retro envs (Airstriker, Columns, \ldots) & 13 envs        & $\sim$130 ep.        & ---  & rendered frame \\
 \midrule
 \multirow{4}{*}{\texttt{browser}}
-  & VisualWebArena (multimodal core)            & 910 tasks      & 200                  & 50   & screenshot $+$ AXTree \\
+  & \st{VisualWebArena} (\emph{dropped 2026-05-03}; archived in \texttt{legacy/visualwebarena/}) & \st{910 tasks} & \st{200} & \st{50} & \st{screenshot $+$ AXTree} \\
   & MiniWoB++ (atomic primitives)               & 125 tasks      & 125 (full)           & 25   & screenshot $+$ AXTree \\
   & AssistantBench (open web)                   & 215 tasks      & 180                  & 30   & screenshot $+$ AXTree \\
   & WebArena                                    & 812 tasks      & \emph{dropped}       & ---  & --- \\
@@ -161,7 +168,7 @@ Sec.~\ref{app:bench-parallelism}.}
 \textbf{Pipeline} & \textbf{Ep./task} & \textbf{Max steps/ep.} & \textbf{Schema cap (n/r)} & \textbf{Action cap} & \textbf{Vision input} & \textbf{Parallelism unit} \\
 \midrule
 \texttt{gymv}             & 1                       & 60 (cap)                          & 4k / 12k & 128 & frame              & 1 proc.\ per env (13$\times$) \\
-BrowserGym                & 1                       & 8 (12 for VWA/AB)                 & 4k / 12k & 400 & screenshot$+$AXTree & 4--8 headless Chromium \\
+BrowserGym                & 1                       & 30 (cold-start default)           & 4k / 12k & 400 & screenshot$+$AXTree & 4--8 headless Chromium \\
 OSWorld                   & 1                       & 50 (cap; 30 cold-start)           & 4k / 12k & 500 & screenshot$+$AT-SPI & 1--8 KVM guests \\
 Visual reasoning (img)    & 1 sample/call (no env)  & 1                                 & 4k / 12k & 350 & 1 image            & 16+ API workers \\
 Visual reasoning (video)  & 1 sample/call (no env)  & 1                                 & 4k / 12k & 350 & 6 sampled frames   & 16+ API workers \\

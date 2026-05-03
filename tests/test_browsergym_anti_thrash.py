@@ -21,7 +21,7 @@ would itself be nav-only.
 
 See:
 * ``cold_start/generate_cold_start_actor_browsergym.py`` — patched code.
-* ``implementation_notes/vwa-improvement-plan.md`` §3 Tier-1 change A
+* ``legacy/visualwebarena/vwa-improvement-plan.md`` §3 Tier-1 change A
     — full root-cause analysis.
 """
 from __future__ import annotations

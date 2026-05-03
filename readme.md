@@ -427,10 +427,10 @@ sized for *diverse pool* coverage, not full-benchmark sweeps:
 | Domain (role) | Bucket | Total in benchmark | Pool (this run) | Holdout (frozen for E0/E1/E2 eval) | Sampler |
 |---|---|---:|---:|---:|---|
 | `gymv` (**source**) | 13 retro envs (Temporal/Airstriker, Columns, …) | 13 envs | ~130 ep (~10 ep / env × 20 steps) | n/a | `run_coldstart_actor_gymv_all.sh --episodes 10` |
-| `browser` | VisualWebArena (multimodal core) | 910 tasks | **200 stratified** | + 50 | `cold_start/task_samples/build_browsergym_diverse_200.py` |
+| `browser` | AssistantBench (open web, no infra) | 215 tasks | **180 stratified** | + 30 | `cold_start/task_samples/build_browsergym_diverse_200.py` |
 | `browser` | MiniWoB++ (atomic primitives) | 125 tasks | **125 (full)** | + 25 | same |
-| `browser` | AssistantBench (open web, no infra) | 215 tasks | **180 stratified** | + 30 | same |
-| `browser` | WebArena | 812 tasks | *dropped* — VWA covers shopping/reddit/wiki; gitlab+admin overlap not worth the cost | — | — |
+| `browser` | WebArena | 812 tasks | *deferred* — overlaps AssistantBench coverage at much higher infra cost | — | — |
+| `browser` | ~~VisualWebArena~~ | 910 tasks | *dropped 2026-05-03* — see `legacy/visualwebarena/README.md` for the 10 infra bugs that motivated the cut | — | — |
 | `osworld` | OSWorld desktop tasks | 369 tasks | **250 stratified** | + 50 | `cold_start/evaluation_dataset/build_pool_and_holdout.py` |
 | `visual_reasoning` | VisualToolBench (image, single-turn) | 603 samples | **300 stratified** | + 100 | same |
 | `visual_reasoning` | TIR-Bench (image, tool-use) | 1,215 samples | **300 stratified** | + 100 | same |
@@ -513,7 +513,7 @@ Wire-up at run time:
 ```bash
 # BrowserGym: pool manifests already in cold_start/task_samples/
 python cold_start/generate_cold_start_actor_browsergym.py \
-  --tasks_file cold_start/task_samples/browsergym_visualwebarena_200.txt \
+  --tasks_file cold_start/task_samples/browsergym_assistantbench_200.txt \
   --reasoning_effort minimal ...
 
 # OSWorld: --task_catalog reads the JSON catalog directly
@@ -566,7 +566,7 @@ budget. Defaults below apply unless overridden via CLI flag.
 | Pipeline | Episodes / task | Max steps / episode | Schema cap (non-reasoning / reasoning) | Action cap | Vision input | Parallelism unit |
 |---|---:|---:|---|---:|---|---|
 | `gymv` (`generate_cold_start_actor_gymv.py`) | 1 | 60 (cap; natural end usually earlier) | 4 k / 12 k | 128 | rendered frame | one process per env (13×) |
-| BrowserGym (`generate_cold_start_actor_browsergym.py`) | 1 | 8 (default) — bump to 12 for VWA / AssistantBench | 4 k / 12 k | 400 | screenshot + AXTree | 4–8 headless Chromium / Playwright |
+| BrowserGym (`generate_cold_start_actor_browsergym.py`) | 1 | 30 (default) — covers MiniWoB / WebArena / AssistantBench | 4 k / 12 k | 400 | screenshot + AXTree | 4–8 headless Chromium / Playwright |
 | OSWorld (`generate_cold_start_actor_osworld.py`) | 1 | 50 (cap) — recommend 30 for cold-start | 4 k / 12 k | 500 | screenshot + AT-SPI tree | 1–8 KVM guests (dominant wall-clock lever) |
 | Visual reasoning (`generate_cold_start_actor_visual_reasoning.py`) | 1 sample / call (no env) | 1 | 4 k / 12 k | 350 | image OR 6 sampled frames per video | 16+ pure API workers |
 
@@ -575,7 +575,7 @@ Other invariants of the actor pipeline:
 - **Headless by default** for BrowserGym (Xvfb-backed Chromium) and OSWorld (KVM guest); pass `--no_headless` to render visibly when debugging.
 - **Frames** are NOT saved by default; pass `--save_frames` to persist the PNGs sent to the VLM under `<run>/<task>/frames/ep_NNN/step_NNN.png`.
 - **API keys** are auto-loaded from `<workspace>/api_keys.py` on import (no `export` needed).
-- **Self-hosted site env files** (`webarena_env.sh`, `visualwebarena_env.sh`) are auto-sourced by the BrowserGym launcher when the relevant tasks are in `--tasks`.
+- **Self-hosted site env files** (`webarena_env.sh`) are auto-sourced by the BrowserGym launcher when the relevant tasks are in `--tasks`. (`visualwebarena_env.sh` was dropped 2026-05-03 — see `legacy/visualwebarena/README.md`.)
 - **`gpt-5.x` detection** is regex-based (`_is_reasoning_model`); matches route to `max_completion_tokens` automatically and accept `--reasoning_effort`.
 - **Resume** is on by default (skip episodes that already have an `episode_NNN.json` on disk); pass `--no_resume` (or omit `--resume` on launchers that opt-in) to overwrite.
 
@@ -626,7 +626,7 @@ comes from one of three layered mechanisms:
 | Domain | Concurrency primitive | How to scale | Hard ceiling |
 |---|---|---|---|
 | `gymv` | shell wrapper, one process / env | `run_coldstart_actor_gymv_all.sh --parallel` (already default) | 13 envs (= one process / env, retro emulator binds the process) |
-| BrowserGym | shell-level **shard wrapper** (NEW) | `run_coldstart_actor_browsergym_shard.sh --num_shards N` | RAM (Chromium ≈ 500 MB / shard) + WebArena/VWA self-host QPS — practical sweet spot **8–12** |
+| BrowserGym | shell-level **shard wrapper** (NEW) | `run_coldstart_actor_browsergym_shard.sh --num_shards N` | RAM (Chromium ≈ 500 MB / shard) + WebArena self-host QPS — practical sweet spot **8–12** |
 | OSWorld | shell wrapper, domain-level dispatch | `run_coldstart_actor_osworld_all.sh --parallel --max_parallel N` (default **8**, was 3) | KVM RAM (≈ 6 GB / guest) — **8** on 64 GB host, **10+** on ≥ 96 GB |
 | Visual reasoning | Python **`--num_workers N`** (ThreadPoolExecutor, NEW) | `--num_workers 32` on the launcher | OpenAI tier RPM — **16–32** on tier 4 (10 k RPM), **32–64** on tier 5 (30 k RPM) |
 
@@ -637,7 +637,7 @@ video frames pre-extracted):
 | Domain | Volume | Per-unit | Parallelism | Wall-clock |
 |---|---|---|---:|---:|
 | `gymv` (source) | 13 envs × 10 ep × ~20 steps ≈ 2.6 k steps | ~10 s / step | 13 (one process / env) | **~30–40 min** |
-| BrowserGym | 506 tasks (200 VWA + 125 MiniWoB + 181 AB) | ~70 s / task | 8 shards | **~1.2–1.5 h** (was ~10 h serial) |
+| BrowserGym | 306 tasks (125 MiniWoB + 181 AssistantBench) | ~70 s / task | 8 shards | **~45–60 min** (was ~6 h serial) |
 | OSWorld ⬅ critical path | 250 tasks × 30 steps | ~10 s / step | 8 KVM guests | **~1.6–2.5 h** (was ~12 h @ 1 KVM) |
 | Visual reasoning (image) | 600 (VTB 300 + TIR 300) | ~6 s / sample | 32 workers | **~2 min** (was ~1 h serial) |
 | Visual reasoning (video) | 1,400 (VH 1,000 + SIV 400) | ~10 s / sample | 32 workers | **~8 min** (was ~4 h serial) |
@@ -664,8 +664,9 @@ bash cold_start/run_coldstart_actor_gymv_all.sh --parallel \
   -- --episodes 10 --max_steps 60 \
      --model gpt-5.4 --reasoning_effort minimal -v
 
-# 2. BrowserGym (~1.2-1.5 h @ 8 shards) — auto-loads the lean-plan task pools,
-#    auto-sources webarena_env.sh / visualwebarena_env.sh when relevant.
+# 2. BrowserGym (~45-60 min @ 8 shards) — auto-loads the lean-plan task
+#    pools (MiniWoB + AssistantBench) and auto-sources webarena_env.sh
+#    when relevant.
 bash cold_start/run_coldstart_actor_browsergym_shard.sh \
   --num_shards 8 \
   --model gpt-5.4 --reasoning_effort minimal \
