@@ -308,6 +308,45 @@ Rules:
 - If you cannot determine a field, write null.
 """
 
+# Hardened rule block — appended ONLY when ``few_shot_examples`` is
+# provided.  These rules sharpen the model on the format the worked
+# example just demonstrated; they intentionally are NOT shown in the
+# zero-shot variant because they shift the prompt distribution away
+# from what the schema_gen LoRA was trained against (empirically a
+# ~50 pp prefix-match regression for ``lora+0shot`` on in-distribution
+# tasks like candy_crush).
+_FEW_SHOT_HARDENING_RULES = """\
+
+Verbatim-preservation rules (CRITICAL — these affect downstream lookup keys):
+- `task=` MUST be reproduced VERBATIM from the user's `Task:` line,
+  INCLUDING any prefix path segments (e.g. `browsergym/`,
+  `make_gaming_env/`, `Temporal/`).  Do NOT shorten, rename, or strip
+  the prefix.  If no `Task:` line is supplied, copy the example's
+  `task=` format and substitute the right slug for the screenshot.
+- `goal=` MUST be reproduced VERBATIM from the user's `Goal:` line.  Do
+  NOT paraphrase, summarize, abbreviate, or rephrase — copy it exactly.
+- `step=` MUST be the integer the user provided; do NOT default to `0`
+  when a non-zero step is given.
+
+Completeness rules (CRITICAL for grid-based / gymv games):
+- For grid-based scenes (e.g. 8×8 candy_crush, 4×4 2048, multi-row
+  tetris) you MUST emit EVERY visually distinct cell as a separate
+  entity, in row-major order (row 0 first: (0,0),(0,1),(0,2)…; then
+  row 1).  Do NOT stop early.  Do NOT emit only a "sample" of cells.
+- An empty cell is still a cell — emit it (e.g. `label=empty` or the
+  appropriate domain ontology) unless the schema for the task
+  explicitly treats empties as background.
+- The `<entities>` cap of {max_entities} does NOT apply to in-game grid
+  cells: a 65-cell candy_crush board is required output.
+
+Anti-leakage rules (CRITICAL — worked examples are below):
+- The worked example is for STYLE only.  Do NOT copy its entity labels
+  (e.g. `tile_R_1`, `candy_P`), coordinates, ontology vocabulary, or
+  exact `goal=` string into your output unless they match the current
+  screenshot.  Use the example's *naming convention* and *section
+  ordering*, but ground all entities in the actual frame.
+"""
+
 # ── Legacy full spec (for backward compat with existing adapters) ─────
 SCHEMA_SPEC = """\
 You are a visual-state parser.  Given a screenshot, output a structured
@@ -497,6 +536,7 @@ def build_adaptive_system_prompt(
     sections: list[str] | None = None,
     task_type: str = "interactive",
     max_entities: int = 20,
+    few_shot_examples: list[str] | None = None,
 ) -> str:
     """Build a system prompt that includes only the requested schema sections.
 
@@ -517,6 +557,17 @@ def build_adaptive_system_prompt(
         Ignored (kept for backward compat).  All tasks are interactive.
     max_entities : int
         Entity cap.
+    few_shot_examples : list[str] or None
+        Optional list of canonical ``<state>...</state>`` example schemas
+        for this domain (typically loaded via
+        :func:`vlm_wrapper.few_shot_library.get_few_shot_examples`).  When
+        provided, they are inserted between the rules block and the domain
+        context block — anchoring the model on the gold's exact naming
+        conventions, ``task=`` format, ``goal=`` phrasing, and ontology
+        vocabulary.  Adds ~2 000 prompt tokens per example and roughly
+        closes the structural-fidelity gap between base-Qwen3.5-35B and
+        the schema_gen-LoRA-tuned variant *without* requiring per-domain
+        SFT.
     """
     if sections is None:
         sections = [
@@ -547,9 +598,26 @@ def build_adaptive_system_prompt(
     rules = _SCHEMA_RULES.replace("{max_entities}", str(max_entities))
     ctx = _DOMAIN_CONTEXT.get(domain, IMAGE_QA_CONTEXT)
 
+    examples_block = ""
+    hardening_rules = ""
+    if few_shot_examples:
+        from vlm_wrapper.few_shot_library import render_examples_block
+        examples_block = "\n\n" + render_examples_block(
+            few_shot_examples, domain=domain,
+        )
+        # The hardening rules (verbatim, completeness, anti-leakage) are
+        # designed to work in tandem with a worked example.  Including
+        # them in zero-shot mode regresses LoRA performance because the
+        # adapter was trained on the un-hardened prompt; in n-shot mode
+        # they re-anchor the model on the example's exact format.
+        hardening_rules = _FEW_SHOT_HARDENING_RULES.replace(
+            "{max_entities}", str(max_entities),
+        )
+
     return (
         f"schema_version={SCHEMA_VERSION}\n\n"
-        f"{preamble}{schema_template}\n\n{rules}\n{ctx}"
+        f"{preamble}{schema_template}\n\n{rules}{hardening_rules}\n"
+        f"{ctx}{examples_block}"
     )
 
 
