@@ -4,6 +4,14 @@ LLM API baselines for evaluating frontier models on the 6 game environments (Tab
 
 There is also a self-hosted **Qwen via vLLM** baseline that runs Qwen3.5-9B and Qwen3.5-35B-A3B over both the env_wrappers games and the gym-v Temporal envs (see `run_qwen_vllm_baselines.sh` below).
 
+> **Gym-V benchmark scope (updated 2026-05-03):** the canonical Gym-V suite
+> is **8 of the 13** registered Temporal envs. Five low-signal games
+> (CastleOfIllusion, CastlevaniaBloodlines, GoldenAxe, KidChameleon,
+> MortalKombatII) were dropped from the default rollouts after the
+> frame-skip-fix sweep failed to elicit reward across all 6 tested
+> backbones. See [§ Gym-V benchmark scope](#gym-v-benchmark-scope) for the
+> full decision log and per-game numbers.
+
 ## Supported Models
 
 | Model | Flag |
@@ -38,9 +46,9 @@ EPISODES_PER_POWER=4 bash baselines/run_diplomacy_baseline.sh --model gpt-5.4
 
 ## Frontier sweep via OpenRouter (Claude 4.6 Sonnet + Gemini 3.1 Pro + Qwen3.5 Plus)
 
-`run_openrouter_baselines.sh` runs the same COS-PLAY actor cold-start pipeline used by `run_qwen_vllm_baselines.sh`, but routes every call through **OpenRouter** so no GPUs are required. It dispatches all three frontier multimodal backbones across **all 17 games** (3 env_wrappers + super_mario + 13 gym-v Temporal envs) at **16 episodes per (model × env)** with **16 jobs in flight**.
+`run_openrouter_baselines.sh` runs the same COS-PLAY actor cold-start pipeline used by `run_qwen_vllm_baselines.sh`, but routes every call through **OpenRouter** so no GPUs are required. It dispatches all three frontier multimodal backbones across **12 games** (3 env_wrappers + super_mario + 8 retained gym-v Temporal envs — see [§ Gym-V benchmark scope](#gym-v-benchmark-scope)) at **16 episodes per (model × env)** with **16 jobs in flight**.
 
-Total work: 3 backbones × 17 games × 16 episodes = **816 episodes**. Estimated total spend: **≈ $2.1k** (≈ $1094 Claude + $817 Gemini + $164 Qwen3.5 Plus, vision ON).
+Total work: 3 backbones × 12 games × 16 episodes = **576 episodes**. Estimated total spend: **≈ $1.5k** (≈ $770 Claude + $575 Gemini + $115 Qwen3.5 Plus, vision ON, scaled from the 17-game spend by the 12/17 game-count ratio). To re-include the 5 dropped Gym-V games, pass them through `--gymv` explicitly.
 
 | Backbone | Slug | Input ($/M) | Output ($/M) |
 |----------|------|-------------|--------------|
@@ -49,7 +57,8 @@ Total work: 3 backbones × 17 games × 16 episodes = **816 episodes**. Estimated
 | Qwen3.5 Plus      | `qwen/qwen3.5-plus-20260420`           | 0.40 |  2.40 |
 
 ```bash
-# All 3 models × 17 games × 16 episodes, vision ON
+# All 3 models × 12 games × 16 episodes, vision ON
+# (3 env_wrappers + super_mario + 8 retained gym-v envs)
 bash baselines/run_openrouter_baselines.sh
 
 # Drop a model from the sweep
@@ -79,7 +88,7 @@ By default it runs **both backbones across both env families in parallel** with 
 | `Qwen/Qwen3.5-9B`     | `0,1,2,3`      | 4  | 8000 | `http://localhost:8000/v1`   |
 | `Qwen/Qwen3.5-35B-A3B`| `4,5,6,7`      | 4  | 8001 | `http://localhost:8001/v1`   |
 
-Total work: 2 backbones × (3 env_wrappers + 13 gym-v Temporal envs) × 16 episodes = **512 episodes**.
+Total work: 2 backbones × (3 env_wrappers + 8 retained gym-v Temporal envs) × 16 episodes = **352 episodes** (down from 512 after the 5-game Gym-V drop — see [§ Gym-V benchmark scope](#gym-v-benchmark-scope)).
 
 ### One-shot on an 8× H200 box: launch servers + run baselines
 
@@ -186,7 +195,103 @@ python baselines/analyze_baselines.py
 | `run_diplomacy_baseline.sh` | Diplomacy baseline (per-power cycling vs GPT-5.4) |
 | `run_super_mario_baseline.sh` | Super Mario baseline (Xvfb + orak-mario env) |
 | `run_gpt54_tetris_macro.py` | Python backend for Tetris (shared by all models) |
-| `run_qwen_vllm_baselines.sh` | Qwen3.5-{9B, 35B-A3B} baselines via vLLM (env_wrappers + gym-v, parallel, 16 eps) |
-| `run_openrouter_baselines.sh` | Claude-4.6-Sonnet + Gemini-3.1-Pro + Qwen3.5-Plus baselines via OpenRouter (all 17 games, parallel, 16 eps) |
+| `run_qwen_vllm_baselines.sh` | Qwen3.5-{9B, 35B-A3B} baselines via vLLM (env_wrappers + retained gym-v, parallel, 16 eps) |
+| `run_openrouter_baselines.sh` | Claude-4.6-Sonnet + Gemini-3.1-Pro + Qwen3.5-Plus baselines via OpenRouter (12 games default, parallel, 16 eps) |
 | `summarize_qwen_vllm_baselines.py` | Aggregate per-(model × env) Qwen vLLM stats |
 | `analyze_baselines.py` | Post-hoc analysis: win rates, CIs |
+
+## Gym-V benchmark scope
+
+The Gym-V wrapper (`gymv_wrapper/`) registers 13 stable-retro Sega Genesis
+games. The **canonical benchmark suite is 8 of those games**; the other 5
+are kept in the registry (still callable via `gym_v.make(...)` and
+`TEMPORAL_GAME_SPECS`) but excluded from the default runs in this folder
+and in `cold_start/run_coldstart_actor_gymv_all.sh`.
+
+### Decision log
+
+The 5 dropped games stayed at near-zero per-episode success across every
+backbone with completed data, even after the **2026-05-03 frame-skip fix**
+(`frame_skip=8` in the Gym-V cold-start pipeline — hold each LLM-selected
+action for 8 emulator frames so an 80-step episode covers ~10.7 s of
+Genesis time instead of 1.33 s). The frame-skip fix moved the suite from
+3-of-13 scoring games to 10-of-13; the remaining three never scored, and
+two of the already-poor games (CastleOfIllusion, MortalKombatII) recovered
+only at a mostly-zero or mostly-negative reward level.
+
+Numbers below are pooled per-episode success (`r > 0`) over the
+`frame_skip=8`, `max_steps=80` sweep on the four backbones whose runs had
+finished at the time of the decision (GPT-5.4 partial 5 eps/game, Claude
+4.6 Sonnet 3 eps/game, Qwen3.5-9B 3 eps/game, Qwen3.5-35B-A3B 3 eps/game;
+Gemini 3.1 Pro and Qwen3-VL-235B were still in flight and were checked
+later for sanity, with the same picture):
+
+**Dropped (5)**
+
+| Game | Genre | Per-episode success | Failure mode |
+|---|---|---|---|
+| `CastlevaniaBloodlines` | action       |  0 / 9  (0 %)   | Whip-combat timing + verticality. Title-screen → first hit window exceeds the 640-frame budget. |
+| `GoldenAxe`             | beat-em-up   |  0 / 14 (0 %)   | Player has to traverse to enemies + execute a combo before reward fires. |
+| `KidChameleon`          | platformer   |  0 / 9  (0 %)   | Long traversal segments; no pickups inside reachable area in 80 agent steps. |
+| `CastleOfIllusion`      | platformer   |  0 / 9  (0 %)   | Precise jump timing; no episode collected even the first apple. |
+| `MortalKombatII`        | fighting     |  1 / 14 (7 %)   | Reward = `enemy_health − player_health`; agent takes more damage than it lands. Mean rewards mostly negative (≈ −50 to −116 across backbones). |
+
+**Retained (8)** — best per-episode success across the same 4 backbones
+(every retained game scored on ≥1 backbone, and 6 of 8 hit 100 % on at
+least one):
+
+| Game | Genre | Pooled success | Best backbone |
+|---|---|---|---|
+| `Airstriker`      | shmup       |  4 / 9   (44 %)  | Claude 3/3 (100 %) |
+| `AlteredBeast`    | beat-em-up  |  6 / 9   (67 %)  | Claude / Q35 3/3 (100 %) |
+| `Columns`         | puzzle      |  8 / 9   (89 %)  | Claude / Q9 3/3 (100 %) |
+| `DynamiteHeaddy`  | platformer  |  3 / 9   (33 %)  | Claude 3/3 (100 %) |
+| `SpaceHarrierII`  | shmup       | 14 / 14 (100 %)  | every backbone 100 % |
+| `StreetsOfRage2`  | beat-em-up  |  9 / 9  (100 %)  | every backbone 100 % |
+| `Strider`         | action      |  7 / 9   (78 %)  | Q9 3/3 (100 %) |
+| `ThunderForceIII` | shmup       |  3 / 9   (33 %)  | Claude 3/3 (100 %) |
+
+### Why drop instead of patch further
+
+The reward functions and save states for the 5 dropped games are sound
+(verified by replaying GPT-5.4's recorded action traces against
+`stable_retro` directly with `frame_skip=8` — same 0 result). The failure
+mode is **task design**, not instrumentation: precise platforming,
+combat-block timing, and multi-step combo input do not emit reward density
+compatible with single-shot LLM rollouts at the current 640-emulator-frame
+budget. Plausible patches (longer horizons, save-state pre-loading past the
+title screen, dense shaped rewards) would each require per-game
+hand-tuning and would change the benchmark from "agent plays the game" to
+"agent picks up shaped rewards" — out of scope for the cold-start +
+baseline leaderboard story.
+
+### Re-running the dropped games
+
+The dropped games remain fully wired in `gymv_wrapper/temporal_visual_grounding.py::TEMPORAL_GAME_SPECS` and `gym_v/envs/__init__.py`. Pass them through `--gymv` to opt back in:
+
+```bash
+# Single dropped game on the OpenRouter sweep:
+bash baselines/run_openrouter_baselines.sh \
+    --gymv Temporal/CastlevaniaBloodlines-v0 \
+    --skip_envwrappers --episodes 4
+
+# All 13 games (full registry) on the Qwen vLLM sweep:
+bash baselines/run_qwen_vllm_baselines.sh \
+    --gymv Temporal/Airstriker-v0 Temporal/AlteredBeast-v0 \
+           Temporal/CastleOfIllusion-v0 Temporal/CastlevaniaBloodlines-v0 \
+           Temporal/Columns-v0 Temporal/DynamiteHeaddy-v0 \
+           Temporal/GoldenAxe-v0 Temporal/KidChameleon-v0 \
+           Temporal/MortalKombatII-v0 Temporal/SpaceHarrierII-v0 \
+           Temporal/StreetsOfRage2-v0 Temporal/Strider-v0 \
+           Temporal/ThunderForceIII-v0
+```
+
+### Reproducing the data behind the decision
+
+Aggregator: `/tmp/aggregate_skip8_leaderboard.py` walks the
+`Cold-start-out-gymv/`, `openrouter-baselines-out/`, and `qwen-baselines-out/`
+runs that carry `frame_skip=8` in their `_run_meta.json` /
+`rollout_summary.json`, then prints the mean reward + bootstrap CI and
+per-episode success rate per (game × backbone). Source `_run_meta.json`
+files for the 2026-05-03 sweep are tagged with
+`"frame_skip": 8` and `"max_steps": 80`.

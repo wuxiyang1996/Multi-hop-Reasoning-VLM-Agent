@@ -33,26 +33,32 @@ existing imports keep working.
 
 ## Game coverage
 
-13 stable-retro Sega Genesis games, all multimodal (image + text) in `RetroGymVEnv`.
-The full list is registered in
+13 stable-retro Sega Genesis games are registered in
 [`gym_v/envs/__init__.py`](https://github.com/ModalMinds/gym-v) and mirrored
-in `TEMPORAL_GAME_SPECS`:
+in `TEMPORAL_GAME_SPECS`. **Default benchmark scope is the 8 games marked
+"benchmark"** below; the other 5 (marked "registered") are still callable
+via `gym_v.make(...)` but are excluded from the canonical leaderboards
+(`run_coldstart_actor_gymv_all.sh`, `run_openrouter_baselines.sh`,
+`run_qwen_vllm_baselines.sh`). See `baselines/README.md` § "Gym-V
+benchmark scope" for the rationale and per-game data.
 
-| # | `gym_v.make(…)` | `stable-retro` integration | Genre | Grounding focus |
-|---|---|---|---|---|
-| 1  | `Temporal/Airstriker-v0`            | `Airstriker-Genesis-v0`            | shmup       | ships, bullets, scrolling playfield |
-| 2  | `Temporal/AlteredBeast-v0`          | `AlteredBeast-Genesis-v0`          | beatemup    | player avatar, beasts, power orbs |
-| 3  | `Temporal/CastleOfIllusion-v0`      | `CastleOfIllusion-Genesis-v0`      | platformer  | mickey, platforms, collectibles |
-| 4  | `Temporal/CastlevaniaBloodlines-v0` | `CastlevaniaBloodlines-Genesis-v0` | action      | whip combat, enemies, verticality |
-| 5  | `Temporal/Columns-v0`               | `Columns-Genesis-v0`               | puzzle      | jewel stacks, falling column, match clears |
-| 6  | `Temporal/DynamiteHeaddy-v0`        | `DynamiteHeaddy-Genesis-v0`        | platformer  | detachable head, bosses, platforms |
-| 7  | `Temporal/GoldenAxe-v0`             | `GoldenAxe-Genesis-v0`             | beatemup    | melee spacing, mounts, magic |
-| 8  | `Temporal/KidChameleon-v0`          | `KidChameleon-Genesis-v0`          | platformer  | helmets, transformations, hazards |
-| 9  | `Temporal/MortalKombatII-v0`        | `MortalKombatII-Genesis-v0`        | fighting    | two fighters, health, special moves |
-| 10 | `Temporal/SpaceHarrierII-v0`        | `SpaceHarrierII-Genesis-v0`        | shmup       | pseudo-3d rail, obstacles, projectiles |
-| 11 | `Temporal/StreetsOfRage2-v0`        | `StreetsOfRage2-Genesis-v0`        | beatemup    | combo chains, throws, crowd control |
-| 12 | `Temporal/Strider-v0`               | `Strider-Genesis-v0`               | action      | slash mobility, large sprites, bosses |
-| 13 | `Temporal/ThunderForceIII-v0`       | `ThunderForceIII-Genesis-v0`       | shmup       | weapon pickups, speed, bullet patterns |
+All envs are multimodal (image + text) in `RetroGymVEnv`:
+
+| # | `gym_v.make(…)` | `stable-retro` integration | Status | Genre | Grounding focus |
+|---|---|---|---|---|---|
+| 1  | `Temporal/Airstriker-v0`            | `Airstriker-Genesis-v0`            | benchmark | shmup       | ships, bullets, scrolling playfield |
+| 2  | `Temporal/AlteredBeast-v0`          | `AlteredBeast-Genesis-v0`          | benchmark | beatemup    | player avatar, beasts, power orbs |
+| 3  | `Temporal/CastleOfIllusion-v0`      | `CastleOfIllusion-Genesis-v0`      | registered | platformer  | mickey, platforms, collectibles |
+| 4  | `Temporal/CastlevaniaBloodlines-v0` | `CastlevaniaBloodlines-Genesis-v0` | registered | action      | whip combat, enemies, verticality |
+| 5  | `Temporal/Columns-v0`               | `Columns-Genesis-v0`               | benchmark | puzzle      | jewel stacks, falling column, match clears |
+| 6  | `Temporal/DynamiteHeaddy-v0`        | `DynamiteHeaddy-Genesis-v0`        | benchmark | platformer  | detachable head, bosses, platforms |
+| 7  | `Temporal/GoldenAxe-v0`             | `GoldenAxe-Genesis-v0`             | registered | beatemup    | melee spacing, mounts, magic |
+| 8  | `Temporal/KidChameleon-v0`          | `KidChameleon-Genesis-v0`          | registered | platformer  | helmets, transformations, hazards |
+| 9  | `Temporal/MortalKombatII-v0`        | `MortalKombatII-Genesis-v0`        | registered | fighting    | two fighters, health, special moves |
+| 10 | `Temporal/SpaceHarrierII-v0`        | `SpaceHarrierII-Genesis-v0`        | benchmark | shmup       | pseudo-3d rail, obstacles, projectiles |
+| 11 | `Temporal/StreetsOfRage2-v0`        | `StreetsOfRage2-Genesis-v0`        | benchmark | beatemup    | combo chains, throws, crowd control |
+| 12 | `Temporal/Strider-v0`               | `Strider-Genesis-v0`               | benchmark | action      | slash mobility, large sprites, bosses |
+| 13 | `Temporal/ThunderForceIII-v0`       | `ThunderForceIII-Genesis-v0`       | benchmark | shmup       | weapon pickups, speed, bullet patterns |
 
 Every env emits both modalities on every step (`Observation.image: PIL.Image`,
 `Observation.text: str`). The text channel always carries

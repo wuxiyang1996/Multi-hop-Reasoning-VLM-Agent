@@ -173,6 +173,16 @@ DEFAULT_ENVS: List[str] = [
 DEFAULT_MAX_STEPS = 60
 # Default episode count per env when ``--episodes`` is not given.
 DEFAULT_EPISODES = 1
+# Per-agent-step emulator frame budget. The Genesis runs at 60 fps; with
+# ``frame_skip=1`` (the original behaviour) every agent decision advances
+# the emulator by exactly one frame, which means a 100-step episode is
+# only 1.67 s of real game time — far too short for retro games whose
+# title-screen-to-first-reward window is 5–10 s. Setting ``frame_skip=8``
+# matches the standard Atari/Retro RL convention (Mnih+2015 used 4 for
+# Atari; Genesis games run faster and need 8). The agent's action mask
+# is held for ``frame_skip`` consecutive emulator frames and the per-frame
+# reward is summed before the next agent decision.
+DEFAULT_FRAME_SKIP = 1
 
 # Anti-noop: force a different action after this many consecutive steps
 # whose state is identical AND reward ≤ 0.
@@ -1061,6 +1071,7 @@ def run_actor_episode(
     step_stream_path: Optional[Path] = None,
     ep_idx: int = 0,
     reasoning_effort: Optional[str] = None,
+    frame_skip: int = DEFAULT_FRAME_SKIP,
 ) -> Tuple[Episode, Dict[str, Any]]:
     """Run one episode end-to-end and return ``(Episode, stats)``.
 
@@ -1085,6 +1096,21 @@ def run_actor_episode(
             )
 
     env = gym_v.make(env_id)
+    if frame_skip and frame_skip > 1:
+        # Hold every agent action for ``frame_skip`` emulator frames and
+        # sum the per-frame reward. ``stickprob=0.0`` makes the wrapper
+        # deterministic (no Atari-style sticky actions); we want the
+        # action selected by the LLM to apply uniformly across the skip
+        # window so the recorded `experiences` log stays coherent.
+        try:
+            from gym_v.wrappers import StochasticFrameSkip
+            env = StochasticFrameSkip(env, n=frame_skip, stickprob=0.0)
+        except Exception as exc:                                    # noqa: BLE001
+            logger.warning(
+                "frame_skip=%d requested but StochasticFrameSkip unavailable (%s); "
+                "falling back to skip=1.",
+                frame_skip, exc,
+            )
     try:
         odict, info_dict = env.reset(seed=seed) if seed is not None else env.reset()
     except TypeError:
@@ -1505,6 +1531,7 @@ def run_env_rollouts(
                 step_stream_path=step_stream_path,
                 ep_idx=ep_idx,
                 reasoning_effort=getattr(args, "reasoning_effort", None),
+                frame_skip=getattr(args, "frame_skip", DEFAULT_FRAME_SKIP),
             )
             stats["episode_index"] = ep_idx
             print(
@@ -1552,6 +1579,7 @@ def run_env_rollouts(
         "completed_episodes": len([s for s in all_stats if "error" not in s]),
         "use_vision": not args.no_vision,
         "max_steps": effective_max_steps,
+        "frame_skip": getattr(args, "frame_skip", DEFAULT_FRAME_SKIP),
         "elapsed_seconds": round(elapsed_env, 2),
         "episode_stats": all_stats,
     }
@@ -1596,6 +1624,18 @@ def main():
     parser.add_argument(
         "--max_steps", type=int, default=DEFAULT_MAX_STEPS,
         help=f"Max steps per episode (default: {DEFAULT_MAX_STEPS})",
+    )
+    parser.add_argument(
+        "--frame_skip", "--frame-skip",
+        type=int, default=DEFAULT_FRAME_SKIP,
+        help=(
+            "Number of emulator frames each agent action is held for. "
+            "Genesis runs at 60 fps, so frame_skip=1 (default for "
+            "back-compat) makes a 100-step episode only 1.67 s of real "
+            "game time and reward signal is starved on most retro games. "
+            "Recommended: 8 (matches standard Atari/Retro RL convention "
+            "and gives 100-step episodes ~13 s of game time)."
+        ),
     )
     parser.add_argument(
         "--model", type=str, default=DEFAULT_MODEL,
@@ -1740,6 +1780,7 @@ def main():
             print(f"  Skipped:            {env_id} ({reason})")
     print(f"  Episodes (per env): {args.episodes}")
     print(f"  Max steps:          {args.max_steps}")
+    print(f"  Frame skip:         {args.frame_skip}")
     print(f"  Model (configured): {args.model}")
     print(f"  Model (routed):     {routed_model}")
     print(f"  Vision schema:      {'OFF (--no_vision)' if args.no_vision else 'ON'}")
@@ -1776,6 +1817,7 @@ def main():
         "skipped_envs": [env_id for env_id, _ in skipped],
         "episodes_per_env": args.episodes,
         "max_steps": args.max_steps,
+        "frame_skip": args.frame_skip,
         "temperature_action": args.temperature_action,
         "temperature_schema": args.temperature_schema,
         "elapsed_seconds": round(overall_elapsed, 2),

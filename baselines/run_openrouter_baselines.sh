@@ -15,12 +15,14 @@
 #   cold_start/generate_cold_start_actor.py        (env_wrappers + super_mario)
 #   cold_start/generate_cold_start_actor_gymv.py   (gym-v Temporal)
 #
-# Game roster (17 total):
+# Game roster (12 total — 5 Gym-V games dropped 2026-05-03; see
+# `baselines/README.md` § "Gym-V benchmark scope" for the decision log):
 #   - env_wrappers (3): twenty_forty_eight, candy_crush, tetris
 #   - Orak (1):          super_mario        (uses --conda_orak)
-#   - gym-v (13):        all Temporal/<Title>-v0 envs
+#   - gym-v (8):         Airstriker, AlteredBeast, Columns, DynamiteHeaddy,
+#                        SpaceHarrierII, StreetsOfRage2, Strider, ThunderForceIII
 #
-# Total dispatched jobs: |MODELS| × 17  (default 3 × 17 = 51).
+# Total dispatched jobs: |MODELS| × 12  (default 3 × 12 = 36).
 #
 # Default budget: 16 episodes per (model × env), max 16 in flight.
 # Vision is ON for Claude/Gemini and forced OFF for Qwen3-Max (text-only
@@ -62,8 +64,10 @@
 #   --max_parallel N         concurrent jobs cap (default: 16)
 #   --max_steps_envw N       per-episode step cap for env_wrappers (default: per-game default)
 #   --max_steps_gymv N       per-episode step cap for gym-v (default: 60)
+#   --frame_skip_gymv N      emulator frames per agent step on gym-v (default: 1; recommended: 8)
 #   --envwrappers <g>...     restrict env_wrappers games (default: 2048, candy_crush, tetris)
-#   --gymv <id>...           restrict gym-v env ids (default: all 13 Temporal/* envs)
+#   --gymv <id>...           restrict gym-v env ids (default: 8 retained Temporal/* envs;
+#                            see baselines/README.md § "Gym-V benchmark scope")
 #   --skip_envwrappers       skip the env_wrappers backend entirely
 #   --skip_gymv              skip the gym-v backend entirely
 #   --skip_mario             drop super_mario from env_wrappers (default: included)
@@ -104,6 +108,7 @@ PY_GYMV="${CODEBASE_ROOT}/cold_start/generate_cold_start_actor_gymv.py"
 EPISODES_DEFAULT=16
 MAX_PARALLEL_DEFAULT=16
 MAX_STEPS_GYMV_DEFAULT=60
+FRAME_SKIP_GYMV_DEFAULT=1
 TEMP_ACTION_DEFAULT=0.4
 TEMP_SCHEMA_DEFAULT=0.2
 OPENROUTER_BASE_URL_DEFAULT="https://openrouter.ai/api/v1"
@@ -141,16 +146,25 @@ MODEL_QWEN_SLUG="${MODEL_QWEN:-qwen/qwen3-vl-235b-a22b-instruct}"
 MODEL_QWEN_VISION="${MODEL_QWEN_VISION:-1}"
 
 ENVWRAPPERS_DEFAULT=(twenty_forty_eight candy_crush tetris)
+
+# Gym-V benchmark scope: 8 of the 13 registered Temporal envs.
+#
+# Dropped 2026-05-03 after the frame_skip=8 sweep showed all six tested
+# backbones (GPT-5.4, Claude-4.6, Gemini-3.1-Pro, Qwen3-VL-235B,
+# Qwen3.5-9B, Qwen3.5-35B-A3B) ≤8 % per-episode success on:
+#   CastleOfIllusion, CastlevaniaBloodlines, GoldenAxe, KidChameleon,
+#   MortalKombatII.
+# Reward functions and save states are sound — the failure mode is task
+# design (precise platforming / combat-block timing / multi-step combos)
+# that does not emit reward density compatible with single-shot LLM
+# rollouts at the current 640-frame budget. To run the full 13-game
+# registry pass `--gymv` with the explicit list. See README §
+# "Gym-V benchmark scope" for the full decision log.
 GYMV_DEFAULT=(
     Temporal/Airstriker-v0
     Temporal/AlteredBeast-v0
-    Temporal/CastleOfIllusion-v0
-    Temporal/CastlevaniaBloodlines-v0
     Temporal/Columns-v0
     Temporal/DynamiteHeaddy-v0
-    Temporal/GoldenAxe-v0
-    Temporal/KidChameleon-v0
-    Temporal/MortalKombatII-v0
     Temporal/SpaceHarrierII-v0
     Temporal/StreetsOfRage2-v0
     Temporal/Strider-v0
@@ -165,6 +179,7 @@ EPISODES="$EPISODES_DEFAULT"
 MAX_PARALLEL="$MAX_PARALLEL_DEFAULT"
 MAX_STEPS_ENVW=""
 MAX_STEPS_GYMV="$MAX_STEPS_GYMV_DEFAULT"
+FRAME_SKIP_GYMV="$FRAME_SKIP_GYMV_DEFAULT"
 TEMP_ACTION="$TEMP_ACTION_DEFAULT"
 TEMP_SCHEMA="$TEMP_SCHEMA_DEFAULT"
 INCLUDE_ENVWRAPPERS=1
@@ -201,6 +216,8 @@ while [ $# -gt 0 ]; do
             shift; MAX_STEPS_ENVW="${1:-}"; shift ;;
         --max_steps_gymv|--max-steps-gymv)
             shift; MAX_STEPS_GYMV="${1:-$MAX_STEPS_GYMV_DEFAULT}"; shift ;;
+        --frame_skip_gymv|--frame-skip-gymv)
+            shift; FRAME_SKIP_GYMV="${1:-$FRAME_SKIP_GYMV_DEFAULT}"; shift ;;
         --temperature_action|--temperature-action)
             shift; TEMP_ACTION="${1:-$TEMP_ACTION_DEFAULT}"; shift ;;
         --temperature_schema|--temperature-schema)
@@ -441,6 +458,7 @@ run_gymv_job() {
             --envs "$env_id" \
             --episodes "$EPISODES" \
             --max_steps "$MAX_STEPS_GYMV" \
+            --frame_skip "$FRAME_SKIP_GYMV" \
             --model "$slug" \
             --api_key "$OPENROUTER_API_KEY" \
             --base_url "$OPENROUTER_BASE_URL" \
