@@ -2329,6 +2329,45 @@ def run_target_rollouts(
     buffer.save_to_json(str(target_dir / "episode_buffer.json"))
     print(f"\n  Saved {len(buffer)} episodes for {label} in {elapsed_target:.1f}s")
 
+    # ── Watchdog (added 2026-05-03) ──────────────────────────────────────
+    # Print per-task timing in a single grep-able line so a parent shell
+    # can ``grep '\[WATCHDOG\]' run.log | awk ...`` without scraping the
+    # whole rollout_summary.json. Compare against the OSWorld baseline
+    # ~24 s/step (gpt-5.4 default reasoning) measured 2026-04-29 from
+    # ``Cold-start-out-osworld/gpt5.4_3per_domain``. VWA's Playwright
+    # observation path is ~3× lighter than OSWorld's KVM-VM step, so
+    # >30 s/step on VWA almost always means we accidentally re-enabled
+    # a steering / high-reasoning knob — exactly the inflation pattern
+    # that pushed the May-3 ``full7-smoke`` to 95.6 s/step (see the
+    # OSWorld `bucketA-smoke` / `full7-smoke` run-comparison table).
+    _wd_total_steps = sum(
+        s.get("steps", 0) or 0 for s in all_stats if "error" not in s
+    )
+    _wd_total_eps = sum(1 for s in all_stats if "error" not in s)
+    if _wd_total_steps > 0 and elapsed_target > 0:
+        _wd_per_step = elapsed_target / _wd_total_steps
+        _wd_status = (
+            "SLOW " if _wd_per_step > 30.0
+            else "FAST " if _wd_per_step < 12.0
+            else "ok   "
+        )
+        print(
+            f"  [WATCHDOG {_wd_status}] {label}: "
+            f"eps={_wd_total_eps} steps={_wd_total_steps} "
+            f"elapsed={elapsed_target:.1f}s "
+            f"sec_per_step={_wd_per_step:.1f}s "
+            f"(reasoning_effort={getattr(args, 'reasoning_effort', None) or 'unset'})"
+        )
+        if _wd_per_step > 30.0:
+            print(
+                f"  [WATCHDOG WARN] {_wd_per_step:.1f}s/step > 30s red-line. "
+                f"Likely culprits: reasoning_effort=high/medium, steering "
+                f"modules enabled, or LLM provider routing latency. "
+                f"Cross-check ``rollout_summary.json:elapsed_seconds`` and "
+                f"compare with the May-3 OSWorld watchdog table in the "
+                f"implementation_notes/ memo."
+            )
+
     summary: Dict[str, Any] = {
         "target_kind": target_kind,
         "target_payload": target_payload,
@@ -2467,17 +2506,24 @@ def main():
     )
     parser.add_argument(
         "--reasoning_effort", "--reasoning-effort",
-        type=str, default=None,
+        type=str, default="low",
         choices=list(_VALID_REASONING_EFFORTS),
         help=(
             "OpenAI reasoning_effort knob for gpt-5.x / o1 / o3 / o4. "
-            "One of {minimal, low, medium, high}. Default: unset (= "
-            "OpenAI default 'medium'). Recommended for cold-start data "
-            "generation: 'minimal' — the SFT student never consumes the "
-            "teacher's hidden thinking, so the higher tiers are pure "
-            "wasted budget on structured-extraction + constrained-action "
-            "tasks. Reserve 'medium' for benchmarks where teacher answer "
-            "correctness is the bottleneck (visual reasoning MCQ)."
+            "One of {minimal, low, medium, high}. Default: 'low' "
+            "(2026-05-03). Why ``low`` and not ``minimal``: OpenAI "
+            "direct ``/v1/chat/completions`` rejects ``minimal`` for "
+            "gpt-5.x with HTTP-400 (``Unsupported value: 'reasoning_"
+            "effort' does not support 'minimal' with this model``); "
+            "``low`` is accepted on direct + OpenRouter + silently "
+            "dropped by the driver for non-OpenAI-reasoning models "
+            "(Claude / Gemini / Qwen3-VL). For SFT cold-start data "
+            "generation ``low`` is the right knob — the student never "
+            "consumes the teacher's hidden thinking, so anything above "
+            "``low`` is wasted budget on structured-extraction + "
+            "constrained-action tasks. Reserve ``medium`` / ``high`` "
+            "for the leaderboard chase where teacher answer correctness "
+            "is the bottleneck (visual reasoning MCQ, hard multi-hop)."
         ),
     )
 
