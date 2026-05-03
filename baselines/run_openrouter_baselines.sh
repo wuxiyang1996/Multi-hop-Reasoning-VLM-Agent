@@ -59,7 +59,10 @@
 #   bash baselines/run_openrouter_baselines.sh --run_id myrun --resume
 #
 # Flags:
-#   --models <list>          subset of {claude, gemini, qwen} (default: all 3)
+#   --models <list>          subset of {claude, gemini, qwen, qwen35-9b,
+#                            qwen35-35b-a3b} (default: claude gemini qwen).
+#                            See baselines/run_qwen_api_baselines.sh for a
+#                            wrapper preset to the two qwen3.5-* tags.
 #   --episodes N             episodes per (model × env) combo (default: 16)
 #   --max_parallel N         concurrent jobs cap (default: 16)
 #   --max_steps_envw N       per-episode step cap for env_wrappers (default: per-game default)
@@ -125,6 +128,14 @@ OPENROUTER_BASE_URL_DEFAULT="https://openrouter.ai/api/v1"
 #     env_wrappers visual utils) feeds the action call directly, no VLM round-trip.
 MODEL_CLAUDE_SLUG="${MODEL_CLAUDE:-anthropic/claude-4.6-sonnet-20260217}"
 MODEL_GEMINI_SLUG="${MODEL_GEMINI:-google/gemini-3.1-pro-preview}"
+# OpenRouter-hosted Qwen3.5-{9B, 35B-A3B} — same model IDs as the vLLM
+# self-host baseline (Qwen/Qwen3.5-9B + Qwen/Qwen3.5-35B-A3B), but routed
+# through the OpenRouter inference endpoint so no GPUs are needed. Both
+# slugs are multimodal (text + image), 262K-token ctx as of 2026-04-30.
+# Pricing (USD per 1M tokens): 9B $0.10/$0.15 in/out; 35B $0.16/$1.30.
+# Used by the dedicated wrapper baselines/run_qwen_api_baselines.sh.
+MODEL_QWEN35_9B_SLUG="${MODEL_QWEN35_9B:-qwen/qwen3.5-9b}"
+MODEL_QWEN35_35B_SLUG="${MODEL_QWEN35_35B:-qwen/qwen3.5-35b-a3b}"
 # Default: Qwen3.5-Plus (Apr 2026 multimodal flagship — text + image + video,
 # 1M context). Alibaba positions it as Qwen3-Max-class on text + GUI-agent-tuned
 # multimodal. Set MODEL_QWEN=qwen/qwen3-max + MODEL_QWEN_VISION=0 to revert to
@@ -351,10 +362,18 @@ for tag in "${MODEL_TAGS[@]}"; do
             MODELS+=("claude|${MODEL_CLAUDE_SLUG}|1") ;;
         gemini|gemini-3.1|gemini-3.1-pro|pro)
             MODELS+=("gemini|${MODEL_GEMINI_SLUG}|1") ;;
-        qwen|qwen3|qwen3-max|qwen3.5-plus|qwen3.5|max|plus)
+        qwen|qwen3|qwen3-max|qwen3.5-plus|max|plus)
             MODELS+=("qwen|${MODEL_QWEN_SLUG}|${MODEL_QWEN_VISION}") ;;
+        qwen35-9b|qwen3.5-9b|qwen-3.5-9b|9b)
+            # OpenRouter-hosted Qwen/Qwen3.5-9B (multimodal). Mirrors
+            # the vLLM-hosted 9B leg of run_qwen_vllm_baselines.sh.
+            MODELS+=("qwen3.5-9b|${MODEL_QWEN35_9B_SLUG}|1") ;;
+        qwen35-35b-a3b|qwen3.5-35b-a3b|qwen-3.5-35b-a3b|35b|35b-a3b)
+            # OpenRouter-hosted Qwen/Qwen3.5-35B-A3B (multimodal).
+            # Mirrors the vLLM-hosted 35B-A3B leg.
+            MODELS+=("qwen3.5-35b-a3b|${MODEL_QWEN35_35B_SLUG}|1") ;;
         *)
-            echo "[ERROR] Unknown model tag '$tag' (allowed: claude, gemini, qwen)" >&2
+            echo "[ERROR] Unknown model tag '$tag' (allowed: claude, gemini, qwen, qwen35-9b, qwen35-35b-a3b)" >&2
             exit 2 ;;
     esac
 done
