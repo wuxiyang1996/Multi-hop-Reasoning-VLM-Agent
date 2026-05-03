@@ -707,6 +707,100 @@ See
 for sampler scripts, alternate model knobs (mini vs. full), and host-sizing
 guidance for OSWorld KVM counts.
 
+#### AssistantBench full-eval workflow
+
+AssistantBench is the only browser-based benchmark in the lean plan with
+gradable rewards out-of-the-box (DROP F1 against shipped gold answers on
+the validation split). Treat it as the headline browser number; it
+exercises *open-web multi-hop research* in a way MiniWoB cannot.
+
+The full-eval pipeline has four pieces, each runnable in isolation:
+
+1.  **`search_web("…")` synthetic action**
+    ([`cold_start/search_backends.py`](cold_start/search_backends.py),
+     wired into the actor at
+     [`cold_start/generate_cold_start_actor_browsergym.py`](cold_start/generate_cold_start_actor_browsergym.py))
+
+    Search engines TLS-fingerprint Playwright and serve CAPTCHAs. The
+    harness intercepts `search_web(query)`, performs a server-side HTTP
+    fetch through a tiered backend chain
+    (Tavily / Serper / Brave → DDG-HTML → DDG-Lite → Yahoo →
+    Wikipedia), renders the results into a self-contained HTML page,
+    and injects them into the live page via a `data:text/html` URL.
+    The agent sees results without ever hitting the rate-limited TLS
+    surface. Paid-API keys are auto-detected from env (`TAVILY_API_KEY`,
+    `SERPER_API_KEY`, `BRAVE_API_KEY`); missing keys silently fall
+    through to the free chain.
+
+2.  **Feasibility filter**
+    ([`cold_start/filter_assistantbench_feasibility.py`](cold_start/filter_assistantbench_feasibility.py))
+
+    20 of the 181 AB test tasks are systematically out of reach for a
+    public-web agent (require login, require purchases, ask for
+    real-time data). A 10-second `gpt-4o-mini` pre-screen labels each
+    task `FEASIBLE / REQUIRES_LOGIN / REAL_TIME / TRANSACTIONAL /
+    OPEN_ENDED` and writes a filtered task list, dropping the
+    obvious-fail buckets so the eval doesn't waste 5 min × 20 tasks
+    chasing impossible answers.
+
+    ```bash
+    python cold_start/filter_assistantbench_feasibility.py \
+      --split test --classifier_model gpt-4o-mini
+    # writes:
+    #   cold_start/task_samples/assistantbench_feasibility_test.json
+    #   cold_start/task_samples/browsergym_assistantbench_test_feasible.txt
+    ```
+
+3.  **Sharded eval launch** (validation 33 + feasible test 161 = 194
+    tasks; ~5 h wall on 4 shards with `gpt-5.4 medium`):
+
+    ```bash
+    bash cold_start/run_coldstart_actor_browsergym_shard.sh \
+      --num_shards 4 \
+      --tasks_file cold_start/task_samples/browsergym_assistantbench_validation_all.txt \
+      --tasks_file cold_start/task_samples/browsergym_assistantbench_test_feasible.txt \
+      --output_dir Cold-start-out-browsergym/ab_full_eval_v1 \
+      --model gpt-5.4 --reasoning_effort medium \
+      -- --max_steps 16 -v
+    ```
+
+    Notes:
+    - 4 shards is the sweet spot — 8 shards halves wall time but
+      doubles DDG rate-limit pressure on the free search chain.
+    - Validation has gold answers (gradable locally); test has none
+      (predictions must be uploaded to AB's server for scoring).
+    - Resume is on by default — re-running with the same `--output_dir`
+      skips finished tasks.
+
+4.  **Grade + AB-server submission**
+    ([`cold_start/grade_assistantbench_eval.py`](cold_start/grade_assistantbench_eval.py))
+
+    Walks the rollout summaries, aggregates DROP F1 on validation, and
+    emits a JSONL keyed by AB's canonical `id` — exactly the format
+    the [AB leaderboard space](https://huggingface.co/spaces/AssistantBench/leaderboard)
+    accepts. Safe to run mid-eval (skips tasks that haven't completed).
+
+    ```bash
+    python cold_start/grade_assistantbench_eval.py \
+      --run_dir Cold-start-out-browsergym/ab_full_eval_v1
+    # writes:
+    #   grading_summary.json / .csv               (per-task table)
+    #   assistantbench_validation_score.json      (headline val number)
+    #   assistantbench_test_predictions.jsonl     (AB-server upload)
+    #   assistantbench_test_predictions_human.json (with task text)
+    ```
+
+    Reported numbers:
+    `mean_reward` (DROP F1 on val) · `perfect_rate` (=1.0) ·
+    `nonzero_rate` (>0) · `answered_rate` (emitted `send_msg_to_user`
+    vs. truncated/infeasible) · `mean_steps` · `search_web_calls/task`.
+
+Reproducing the v6 baseline (3-task smoke, gpt-5.4 medium, +0.370
+mean_reward — a 9× lift over the no-search v4 baseline) is documented
+in
+[`implementation_notes/assistantbench-search-web-baseline.md`](implementation_notes/assistantbench-search-web-baseline.md)
+once the full-eval results land.
+
 ---
 
 ## Repository layout
