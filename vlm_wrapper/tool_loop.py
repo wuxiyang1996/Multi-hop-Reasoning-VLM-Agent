@@ -42,6 +42,7 @@ from typing import Any
 import openai
 from PIL import Image
 
+from .few_shot_library import get_few_shot_examples
 from .schema import (
     build_adaptive_system_prompt,
     build_system_prompt,
@@ -212,6 +213,7 @@ def run_tool_loop(
     task_type: str = "interactive",
     allow_reobservation: bool = True,
     question_type: str | None = None,
+    few_shot_n: int | None = None,
 ) -> dict[str, Any]:
     """Run the multi-turn tool-calling loop.
 
@@ -279,12 +281,31 @@ def run_tool_loop(
         client_kwargs["base_url"] = base_url
     client = openai.OpenAI(**client_kwargs)
 
+    # 1-shot ICL wiring (T2.13', 2026-05-03): every adaptive-prompt caller
+    # should be able to inject curated examples without wiring all the
+    # plumbing themselves.  Default N depends on env (``VLM_FEW_SHOT_N``,
+    # default 1) so deployments can flip the production path to zero-shot
+    # by exporting ``VLM_FEW_SHOT_N=0``.  Looks up
+    # ``{domain}.{task_slug}.txt`` first, falls back to ``{domain}.txt``,
+    # then ``gymv`` for env_wrappers/gymv games.  See
+    # ``vlm_wrapper/few_shot_library.py``.
+    if few_shot_n is None:
+        try:
+            few_shot_n = int(os.environ.get("VLM_FEW_SHOT_N", "1"))
+        except ValueError:
+            few_shot_n = 1
+    fallback_domain = "gymv" if domain in ("env_wrappers", "gymv") else None
+    examples = get_few_shot_examples(
+        domain, n=few_shot_n, task_id=task_id, fallback_domain=fallback_domain,
+    ) if few_shot_n > 0 else []
+
     if sections is not None:
         system_prompt = build_adaptive_system_prompt(
             domain,
             sections=sections,
             task_type=task_type,
             max_entities=max_entities,
+            few_shot_examples=examples or None,
         )
     else:
         system_prompt = build_system_prompt(domain, max_entities=max_entities)
