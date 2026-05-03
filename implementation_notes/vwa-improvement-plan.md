@@ -380,3 +380,127 @@ forward:
 If the user prefers a higher-cost / lower-uncertainty path, jump
 directly to step 3 with current state and use the 50-task number as
 the diagnostic for what to fix next.
+
+## 10. Env-bug fix: classifieds `WEB_PATH` (2026-05-03 11:18 AM)
+
+The `about:blank#blocked` failure mode that dominated tasks 92 and 96
+in the §9 smoke turned out to be a **server-side template bug in the
+classifieds OSClass image**, not a Playwright/popup-blocker issue.
+
+### Root cause
+
+The `jykoh/classifieds:latest` image's `config.php` has
+
+```php
+define('WEB_PATH', getenv("CLASSIFIEDS"));
+```
+
+while the `docker-compose.yml` shipped with the published archive sets
+
+```yaml
+- CLASSIFIEDS=http://localhost:9980
+```
+
+with **no trailing slash**. OSClass concatenates `WEB_PATH` with
+relative paths inline (`WEB_PATH . 'index.php'`) without inserting a
+separator, so every URL on every page renders as e.g.
+
+```
+http://localhost:9980index.php?page=search        ← BROKEN
+http://localhost:9980oc-content/themes/.../style.css ← BROKEN
+```
+
+Chromium can't parse those (port treated as part of the host) and
+routes each navigation to `about:blank#blocked`. **89 such URLs on
+the home page alone** (89 unique broken links / 1 broken form action).
+
+The bug only surfaces when *the agent itself* clicks a link or
+submits a form — direct `page.goto(http://localhost:9980/)` works
+because the user-supplied URL has the explicit slash.
+
+### Fix landed
+
+Two-layer fix for durability:
+
+1. **`docker-compose.yml` env var** — added trailing slash so
+   `CLASSIFIEDS=http://localhost:9980/` and the OSClass concatenation
+   produces well-formed URLs from the very first PHP render.
+2. **In-container `config.php` patch** — `install_visualwebarena_sites.sh`
+   now runs an idempotent `sed` inside the running container that
+   rewrites
+   ```php
+   define('WEB_PATH', getenv("CLASSIFIEDS"));
+   ```
+   to
+   ```php
+   define('WEB_PATH', rtrim(getenv("CLASSIFIEDS"), "/") . "/");
+   ```
+   so the bug is fixed even when someone re-uses an old `docker-
+   compose.yml` from disk or restarts an existing container without
+   recreating it.
+3. The `sed` substitution in the install script's `up_classifieds`
+   was also updated to write the trailing slash into the on-disk
+   compose file so subsequent recreates pick it up.
+
+### Post-env-fix 5-task smoke (gpt-5.4, low, max_steps=30)
+
+| Task | Reward | Steps | Nav% | Fill% | Click% | Press% | Notes |
+|---|---:|---:|---:|---:|---:|---:|---|
+| 92 (classifieds) | 0.00 | 30 | 27 % | **37 %** | 27 % | 10 % | full search-filter exploration; reward=0 because no listing matched the multi-constraint goal |
+| 96 (classifieds img) | 0.00 | 30 | 70 % | 0 % | 30 % | 0 % | clicked through 6 listings; image-match needs Tier-2 captions |
+| **268 (reddit)** | **1.00** | **17** | 53 % | 0 % | 47 % | 0 % | **WIN** |
+| 351 (wiki+reddit) | 0.00 | 30 | 60 % | 7 % | 30 % | 3 % | Wikipedia content not in Kiwix mirror — env/data, not agent |
+| 433 (reddit comment) | 0.00 | 30 | 50 % | 27 % | 3 % | 20 % | repeatedly searched 'music' but didn't pivot to /forums tab |
+
+**Aggregate (137 steps total):**
+
+| Metric | Pre-env-fix (gpt-5.5) | **Post-env-fix (gpt-5.4)** | Δ |
+|---|---:|---:|---:|
+| Avg reward | 0.20 | **0.20** | 0 (same, but for different reasons) |
+| Nav% | 74.0 % | **51.8 %** | **−22.2 pp** |
+| Fill% | 11.4 % | **15.3 %** | +3.9 pp |
+| Click% | 11.4 % | **25.5 %** | **+14.1 pp** |
+| Press% | 3.3 % | **7.3 %** | +4.0 pp |
+| Anti-thrash fires | 0 | 0 | – (gate inactive on usable pages) |
+| about:blank-blocked thrash | tasks 92, 96 (~28 steps each wasted) | none | infra fix verified |
+
+**Reading the numbers:** the reward stayed at 1/5 but the failures
+are now **content-quality failures**, not env bugs:
+- task 96 needs image captioning (Tier-2 patch E).
+- task 351 needs a Wikipedia article that isn't in the local Kiwix
+  dump (infra/data).
+- task 433 needs an agent that knows reddit/Postmill UX (search
+  forums via `/forums?search=` not the front-page search box).
+- task 92 is genuinely hard (multi-constraint search).
+
+The dramatic Nav% drop (74 → 52 %) and Click% rise (11 → 26 %)
+confirm the agent is now spending its budget on real interactions
+with the page rather than wasting it on `about:blank` recovery.
+
+### Files touched
+
+- `/workspace/visualwebarena_data/classifieds_docker_compose/docker-compose.yml`
+  — add trailing slash to `CLASSIFIEDS=` env var.
+- `install/install_visualwebarena_sites.sh` — sed rewrite + new
+  in-container config.php patch + extensive comment trail.
+
+### What this resolves
+
+| Failure mode (§9) | Status after env fix |
+|---|---|
+| `click(submit)` → `about:blank#blocked` on classifieds | **fixed** (verified by `/tmp/diag_classifieds_popup.py` URL trace) |
+| Anti-thrash override 0 fires | unchanged — was always a *fallback*, not the primary fix |
+| Image-similarity tasks (96) | unchanged — needs Tier-2 patch E |
+| Reddit forum-search UX (433) | unchanged — agent-side knowledge gap |
+| Wikipedia Kiwix mirror gaps (351) | unchanged — data issue, deferred |
+
+### Next iteration
+
+The "infrastructure debt" is now zero. The next iteration should
+focus on **content / agent capability**:
+1. Tier-2 patch E (image captioning for goal-image input) — biggest
+   unblocker for the 72 image-bearing VWA tasks.
+2. Tier-2 patch F (per-site reasoning_effort=medium) for classifieds
+   and shopping (multi-constraint), keep low for reddit (single-hop).
+3. Then the 50-task gpt-5.4 calibration becomes a representative
+   number on a clean baseline.

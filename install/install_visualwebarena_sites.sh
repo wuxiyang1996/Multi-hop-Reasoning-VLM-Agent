@@ -91,8 +91,17 @@ up_classifieds() {
     # Edit the docker-compose.yml so the CLASSIFIEDS env var (consumed by the
     # OSClass image) points at the right host:port and uses our reset token.
     # Idempotent — re-running the sed is safe.
+    #
+    # IMPORTANT: the URL **must end with a trailing slash**. OSClass
+    # concatenates ``WEB_PATH`` with relative paths inline (e.g.
+    # ``WEB_PATH . "index.php"``) without inserting a separator, so a
+    # missing slash produces broken URLs like
+    # ``http://localhost:9980index.php`` which Chromium routes to
+    # ``about:blank#blocked``. The 2026-05-03 VWA classifieds smoke
+    # showed 89 such URLs on the home page alone, taking out tasks 92
+    # and 96 with ``reward=0`` after ``click(submit)``.
     sed -i.bak \
-        -e "s|CLASSIFIEDS=http://[^[:space:]]*|CLASSIFIEDS=http://${VWA_HOST}:9980|g" \
+        -e "s|CLASSIFIEDS=http://[^[:space:]]*|CLASSIFIEDS=http://${VWA_HOST}:9980/|g" \
         -e "s|CLASSIFIEDS_RESET_TOKEN=[A-Za-z0-9]*|CLASSIFIEDS_RESET_TOKEN=${VWA_CLASSIFIEDS_RESET_TOKEN}|g" \
         "$compose"
 
@@ -116,6 +125,32 @@ up_classifieds() {
         docker exec classifieds_db mysql -u root -ppassword osclass \
             -e 'source docker-entrypoint-initdb.d/osclass_craigslist.sql' \
             2>&1 | sed 's/^/      /' || true
+    fi
+
+    # Belt-and-suspenders WEB_PATH normalisation inside the running
+    # container. The compose env var should already be ``http://host:9980/``
+    # (with trailing slash) but this in-container patch makes the install
+    # robust against:
+    #   * older docker-compose.yml that someone has on disk pre-fix,
+    #   * `docker compose up` against an existing container that ignores the
+    #     env-var change without a recreate,
+    #   * future OSClass images where ``getenv("CLASSIFIEDS")`` returns the
+    #     env var verbatim.
+    # The sed transforms
+    #   define('WEB_PATH', getenv("CLASSIFIEDS"));
+    # into
+    #   define('WEB_PATH', rtrim(getenv("CLASSIFIEDS"), "/") . "/");
+    # which is a no-op on already-patched configs and idempotent on retries.
+    if docker ps --format '{{.Names}}' | grep -qx classifieds; then
+        echo "    [patch] normalising WEB_PATH in /usr/src/myapp/config.php"
+        docker exec classifieds bash -c '
+            grep -q "rtrim(getenv(\"CLASSIFIEDS\")" /usr/src/myapp/config.php && \
+                echo "      [skip] WEB_PATH already normalised" || \
+                sed -i "s|define('\''WEB_PATH'\'', getenv(\"CLASSIFIEDS\"));|define('\''WEB_PATH'\'', rtrim(getenv(\"CLASSIFIEDS\"), \"/\") . \"/\");|" \
+                    /usr/src/myapp/config.php && \
+                echo "      [ok] WEB_PATH normalised — see install_visualwebarena_sites.sh comment for rationale"
+        ' 2>&1 | sed 's/^/      /' || \
+            echo "      [warn] in-container WEB_PATH patch failed; fall back to env var"
     fi
 }
 
