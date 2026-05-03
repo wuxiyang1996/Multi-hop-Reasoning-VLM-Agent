@@ -43,11 +43,20 @@ ORAK_SUBPROCESS_GAMES = {"super_mario"}
 GAMINGAGENT_GAMES = {
     "twenty_forty_eight", "candy_crush", "tetris",
 }
+# Games that use Gym-V Temporal/* (stable-retro Genesis) via
+# env_wrappers.gymv_temporal_nl_wrapper.make_gymv_temporal_env. The set of
+# wired slugs lives in that module's GYMV_TEMPORAL_GAMES dict (8 games for
+# the default benchmark scope — the 4 Phase-1 source games plus the 4
+# Phase-2 holdouts from
+# training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1 / §7.1).
+# We import the dict lazily inside _lazy_imports() so module-import time
+# stays cheap when gym_v / stable-retro / ROMs aren't installed.
+GYMV_TEMPORAL_GAMES_SET: set = set()  # populated by _lazy_imports()
 
 
 def _lazy_imports():
     """Return project modules, imported once and cached."""
-    global _IMPORTS_CACHE
+    global _IMPORTS_CACHE, GYMV_TEMPORAL_GAMES_SET
     if not _IMPORTS_CACHE:
         from env_wrappers.game_configs import GAME_CONFIGS
         from env_wrappers.gym_like import make_gaming_env
@@ -59,6 +68,27 @@ def _lazy_imports():
             make_orak_env = None
 
         from env_wrappers.subprocess_env import SubprocessEnv
+
+        # Gym-V Temporal/* (stable-retro Genesis) — Phase-1 source +
+        # Phase-2 holdout games. Import is best-effort: if gym_v /
+        # stable-retro aren't installed, the slug set stays empty and
+        # any --games gymv_<slug> request falls through to the
+        # GAME_CONFIGS-not-found error instead of crashing the whole
+        # runner at import time.
+        try:
+            from env_wrappers.gymv_temporal_nl_wrapper import (
+                GYMV_TEMPORAL_GAMES,
+                make_gymv_temporal_env,
+            )
+            GYMV_TEMPORAL_GAMES_SET.update(GYMV_TEMPORAL_GAMES.keys())
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "env_wrappers.gymv_temporal_nl_wrapper unavailable (%s); "
+                "Gym-V Temporal/* games will not be runnable in this process.",
+                exc,
+            )
+            GYMV_TEMPORAL_GAMES = {}
+            make_gymv_temporal_env = None
 
         from decision_agents.agent_helper import (
             build_rag_summary,
@@ -78,6 +108,8 @@ def _lazy_imports():
             "GAME_CONFIGS": GAME_CONFIGS,
             "make_gaming_env": make_gaming_env,
             "make_orak_env": make_orak_env,
+            "make_gymv_temporal_env": make_gymv_temporal_env,
+            "GYMV_TEMPORAL_GAMES": GYMV_TEMPORAL_GAMES,
             "SubprocessEnv": SubprocessEnv,
             "GamingAgentNLWrapper": GamingAgentNLWrapper,
             "build_rag_summary": build_rag_summary,
@@ -860,6 +892,29 @@ async def run_episode_async(
             )
         else:
             env = make_orak_env(game, max_steps=max_steps)
+
+    elif game in GYMV_TEMPORAL_GAMES_SET:
+        # Gym-V Temporal/* (stable-retro Genesis) path. The wrapper does
+        # `gym_v.make + StochasticFrameSkip(n=8) + GymVTemporalNLWrapper`
+        # so the runner sees the same (obs_nl, info) contract as the
+        # GamingAgent path below. frame_skip=8 is the value that
+        # un-zeroed the 4-backbone success-rate sweep — see
+        # baselines/README.md § "Gym-V benchmark scope".
+        make_gymv_temporal_env = imp["make_gymv_temporal_env"]
+        if make_gymv_temporal_env is None:
+            raise RuntimeError(
+                f"Gym-V Temporal/* env requested ({game!r}) but gym_v / "
+                "stable-retro / Mega Drive ROMs are not installed; run "
+                "install/install_gymv.sh + install/gymv_temporal_patch/"
+                "apply_patch.sh and retry."
+            )
+        if exe:
+            env = await loop.run_in_executor(
+                exe,
+                lambda: make_gymv_temporal_env(game, max_steps=max_steps),
+            )
+        else:
+            env = make_gymv_temporal_env(game, max_steps=max_steps)
 
     else:
         if exe:
