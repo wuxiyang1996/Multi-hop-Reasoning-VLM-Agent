@@ -56,16 +56,17 @@ logger = logging.getLogger(__name__)
 # the §11.2-Option-A back-stop is invoked.
 
 GYMV_TEMPORAL_GAMES: Dict[str, str] = {
-    # Phase-1 source (4 games — see training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1)
-    "gymv_space_harrier_ii": "Temporal/SpaceHarrierII-v0",
-    "gymv_streets_of_rage_2": "Temporal/StreetsOfRage2-v0",
-    "gymv_columns": "Temporal/Columns-v0",
-    "gymv_strider": "Temporal/Strider-v0",
-    # Phase-2 holdouts (4 games — see §7.1)
-    "gymv_altered_beast": "Temporal/AlteredBeast-v0",
-    "gymv_airstriker": "Temporal/Airstriker-v0",
-    "gymv_dynamite_headdy": "Temporal/DynamiteHeaddy-v0",
+    # Phase-1 source (4 games — see training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1,
+    # refreshed 2026-05-03 PM from new Cold-start-out-gymv/latest 4-backbone teacher data)
     "gymv_thunder_force_iii": "Temporal/ThunderForceIII-v0",
+    "gymv_altered_beast": "Temporal/AlteredBeast-v0",
+    "gymv_columns": "Temporal/Columns-v0",
+    "gymv_dynamite_headdy": "Temporal/DynamiteHeaddy-v0",
+    # Phase-2 holdouts (4 games — see §7.1)
+    "gymv_streets_of_rage_2": "Temporal/StreetsOfRage2-v0",
+    "gymv_space_harrier_ii": "Temporal/SpaceHarrierII-v0",
+    "gymv_airstriker": "Temporal/Airstriker-v0",
+    "gymv_strider": "Temporal/Strider-v0",
 }
 
 

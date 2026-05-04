@@ -967,3 +967,426 @@ class PerGameSkillBankManager:
             else:
                 counts[game] = 0
         return counts
+
+
+# ---------------------------------------------------------------------------
+# Shared-bank manager (cross-game lifelong-learning mode)
+# ---------------------------------------------------------------------------
+
+class SharedSkillBankManager:
+    """One bank file shared across all curriculum games.
+
+    Drop-in alternative to :class:`PerGameSkillBankManager` for the
+    cross-game / lifelong-learning experiments described in
+    ``training_notes/coevo-3phase-cross-game-ood-transfer-plan.md``.
+
+    Design summary
+    --------------
+    * All games write to a single ``<bank_dir>/skill_bank.jsonl`` (no
+      per-game sub-directory). Storage / atomic-save semantics carry
+      over from :class:`skill_agents.skill_bank.bank.SkillBankMVP.save`.
+    * Every newly-mined skill is stamped with ``feasible_tasks=[<source_game>]``
+      so the harness :class:`harness.eligibility.EligibilityFilter` only
+      admits it on its source game *unless* the cross-game translator
+      (``skill_agents.skill_bank.translate_for_target``) emits a
+      derived record with ``feasible_tasks=[<target_game>]``. This is
+      the load-bearing invariant that prevents the §22 "100 % cross-
+      contamination" pathology measured in
+      ``labeling_supplement/_phase0_cross_eligibility_probe.py``.
+    * The external interface (``bank_paths``, ``get_banks``,
+      ``get_agents``, ``process_batch_async``, ``finalize_all``,
+      ``reload_banks_from_disk``, ``reset_for_step``, ``total_skills``,
+      ``skill_counts``, ``grpo_data``) matches
+      :class:`PerGameSkillBankManager` 1:1 so
+      :func:`trainer.coevolution.orchestrator.run_coevolution_loop`
+      can branch on ``config.bank_mode`` without further changes.
+
+    Per-game pipelines are *not* instantiated. Internally there is a
+    single :class:`AsyncSkillBankPipeline` whose ``game_name`` is
+    re-pointed to the active game whenever ``process_batch_async``
+    receives episodes from a new game (LLM prompts that branch on
+    ``game_name`` thus see the right context, identical to per-game
+    mode within a single phase).
+
+    Backward-compat: ``unified_role_rollouts=True`` is *not* supported
+    in shared mode (Avalon / Diplomacy per-side splits are tied to the
+    per-game layout). The constructor raises ``ValueError`` if both
+    are set so we fail fast at orchestrator startup rather than mid-
+    training.
+    """
+
+    def __init__(
+        self,
+        games: List[str],
+        bank_dir: str = "runs/skillbank",
+        model_name: str = "Qwen/Qwen3.5-9B",
+        executor: Optional[ThreadPoolExecutor] = None,
+        grpo_group_size: int = 4,
+        seed_bank_dir: Optional[str] = None,
+        process_executor: Optional[ProcessPoolExecutor] = None,
+        unified_role_rollouts: bool = False,
+    ):
+        if unified_role_rollouts:
+            raise ValueError(
+                "SharedSkillBankManager does not support unified_role_rollouts=True. "
+                "Use PerGameSkillBankManager (config.bank_mode='per_game') for "
+                "per-side / per-power Avalon / Diplomacy banks."
+            )
+
+        self._games = list(games)
+        self._bank_dir = bank_dir
+        self._process_executor = process_executor
+        self._grpo_group_size = grpo_group_size
+
+        Path(bank_dir).mkdir(parents=True, exist_ok=True)
+        self._shared_pipeline = AsyncSkillBankPipeline(
+            bank_dir=bank_dir,
+            model_name=model_name,
+            executor=executor,
+            report_dir=str(Path(bank_dir) / "reports"),
+            game_name=(games[0] if games else "shared"),
+        )
+        self._grpo_buffer: Optional[Any] = None
+        self._collected_grpo: Dict[str, List[Dict[str, Any]]] = {
+            "segment": [], "contract": [], "curator": [],
+        }
+        # Track which game we last finalized so ``finalize_all`` can
+        # stamp the right ``feasible_tasks`` on newly-minted skills.
+        self._last_processed_game: Optional[str] = None
+
+        logger.info(
+            "SharedSkillBankManager: 1 shared bank under %s for %d game(s) "
+            "(process_pool=%s)",
+            bank_dir, len(self._games), process_executor is not None,
+        )
+
+        if seed_bank_dir:
+            self._seed_from_coldstart(seed_bank_dir)
+
+    # ── Bank seeding ─────────────────────────────────────────────────
+
+    def _seed_from_coldstart(self, seed_dir: str) -> None:
+        """Seed the shared bank from a per-game cold-start directory.
+
+        Concatenates every ``<seed_dir>/<game>/skill_bank.jsonl`` we
+        find for the configured games into the shared bank, stamping
+        ``feasible_tasks=[<source_game>]`` on each entry so the harness
+        eligibility filter routes them correctly. Existing skills
+        already in the shared bank are preserved (no overwrites; we
+        only seed when the destination is empty, mirroring
+        :func:`PerGameSkillBankManager._seed_from_coldstart`).
+        """
+        from skill_agents.skill_bank.bank import SkillBankMVP
+
+        seed_path = Path(seed_dir)
+        if not seed_path.is_dir():
+            logger.warning("seed_bank_dir %s does not exist — skipping seed", seed_dir)
+            return
+
+        dest_file = Path(self._shared_pipeline.bank_dir) / "skill_bank.jsonl"
+        if dest_file.exists() and dest_file.stat().st_size > 0:
+            logger.info(
+                "SharedSkillBankManager seed skip: shared bank already exists at %s",
+                dest_file,
+            )
+            return
+
+        merged = SkillBankMVP(str(dest_file))
+        n_loaded_total = 0
+        for game in self._games:
+            candidate = seed_path / game / "skill_bank.jsonl"
+            if not candidate.exists():
+                continue
+            tmp = SkillBankMVP(str(candidate))
+            tmp.load(str(candidate))
+            for sid in tmp.skill_ids:
+                skill = tmp.get_skill(sid)
+                if skill is None:
+                    continue
+                # Stamp the source game on the seeded skill so the
+                # harness's task-axis veto (F2′) admits it only on
+                # ``state.task == game`` — the §22 invariant. Don't
+                # widen ``feasible_tasks`` even when the skill already
+                # carries an entry; the seed is *provenance*, the
+                # translator is what registers a wider eligibility.
+                if not skill.feasible_tasks:
+                    skill.feasible_tasks = [game]
+                merged.add_or_update_skill(skill)
+                n_loaded_total += 1
+
+        if n_loaded_total > 0:
+            merged.save()
+            logger.info(
+                "SharedSkillBankManager seeded %d skills from %s "
+                "(across %d game subdirs)",
+                n_loaded_total, seed_dir, len(self._games),
+            )
+        else:
+            logger.info("SharedSkillBankManager: no seed files found under %s", seed_dir)
+
+    # ── External-interface methods (mirror PerGameSkillBankManager) ──
+
+    def pipeline_for(self, key: str) -> Optional[AsyncSkillBankPipeline]:
+        """Return the shared pipeline regardless of *key*."""
+        return self._shared_pipeline
+
+    def get_bank(self, key: str) -> Any:
+        """Return the shared bank regardless of *key*."""
+        return self._shared_pipeline.get_bank()
+
+    def get_banks(self) -> Dict[str, Any]:
+        """Return ``{game: shared_bank}`` — every game key maps to the
+        single shared bank instance, so existing callers iterating per
+        game still work without modification."""
+        bank = self._shared_pipeline.get_bank()
+        if bank is None:
+            return {}
+        return {game: bank for game in self._games}
+
+    def get_agents(self) -> Dict[str, Any]:
+        """Return ``{game: shared_agent}`` — same shared agent for every
+        game. The agent's ``game_name`` is updated dynamically by
+        :meth:`process_batch_async` so per-game prompt branches still
+        receive the right context."""
+        agent = self._shared_pipeline.get_agent()
+        return {game: agent for game in self._games}
+
+    def reload_banks_from_disk(
+        self,
+        keys: Optional[Iterable[str]] = None,
+    ) -> Dict[str, Dict[str, Any]]:
+        """Reload the shared bank from disk. *keys* are accepted for
+        signature compatibility but only one reload occurs regardless;
+        we return the same result keyed under every requested game so
+        downstream loggers see one entry per game."""
+        target_keys = list(keys) if keys is not None else list(self._games)
+        try:
+            result = self._shared_pipeline.reload_bank_from_disk()
+        except Exception as exc:                                       # noqa: BLE001
+            logger.warning(
+                "SharedSkillBankManager.reload_banks_from_disk: %s", exc,
+            )
+            result = {"reloaded": False, "skipped_reason": f"reload raised: {exc}"}
+        return {key: dict(result) for key in target_keys}
+
+    def bank_paths(self, *, simple_only: bool = True) -> Dict[str, "Path"]:
+        """Return ``{game: shared_bank_path}`` for every configured game.
+
+        The shared mode has only one on-disk file but the per-step
+        hooks (``_crafter_hook``, ``_promotion_hook``, ``_dashboard_hook``,
+        ``_transfer_hook``) iterate the dict to read their per-game
+        view. Pointing every key at the same file makes the hooks
+        observe the union — which is exactly what shared mode wants.
+
+        Composite (``"avalon/good"``) keys are never produced in shared
+        mode (we forbid ``unified_role_rollouts=True`` in __init__),
+        so ``simple_only`` is a no-op here but accepted for signature
+        compatibility with :class:`PerGameSkillBankManager`.
+        """
+        from pathlib import Path
+
+        shared = Path(self._shared_pipeline.bank_dir) / "skill_bank.jsonl"
+        return {game: shared for game in self._games}
+
+    # ── GRPO wrapper management (identical to PerGameSkillBankManager) ──
+
+    def _enable_grpo_wrappers(self) -> None:
+        from skill_agents.grpo.buffer import GRPOBuffer
+        from skill_agents.stage3_mvp.llm_contract import enable_contract_grpo
+        from skill_agents.bank_maintenance.llm_curator import enable_curator_grpo
+        from skill_agents.infer_segmentation.llm_teacher import enable_segment_grpo
+        from skill_agents.infer_segmentation.episode_adapter import (
+            grpo_scorer_factory,
+            grpo_decode_fn,
+        )
+
+        self._grpo_buffer = GRPOBuffer()
+        gs = self._grpo_group_size
+        enable_segment_grpo(
+            buffer=self._grpo_buffer, group_size=gs, temperature=1.0,
+            scorer_factory=grpo_scorer_factory,
+            decode_fn=grpo_decode_fn,
+        )
+        enable_contract_grpo(buffer=self._grpo_buffer, group_size=gs, temperature=0.8)
+        enable_curator_grpo(buffer=self._grpo_buffer, group_size=gs, temperature=0.8)
+        logger.info("Skill-bank GRPO wrappers enabled (G=%d, shared bank)", gs)
+
+    def _disable_grpo_wrappers(self) -> None:
+        from skill_agents.stage3_mvp.llm_contract import disable_contract_grpo
+        from skill_agents.bank_maintenance.llm_curator import disable_curator_grpo
+        from skill_agents.infer_segmentation.llm_teacher import disable_segment_grpo
+
+        disable_segment_grpo()
+        disable_contract_grpo()
+        disable_curator_grpo()
+        logger.info("Skill-bank GRPO wrappers disabled (shared bank)")
+
+    def _collect_grpo_data(self) -> Dict[str, List[Dict[str, Any]]]:
+        from skill_agents.lora.skill_function import SkillFunction
+
+        collected: Dict[str, List[Dict[str, Any]]] = {
+            "segment": [], "contract": [], "curator": [],
+        }
+        if self._grpo_buffer is None:
+            return collected
+        adapter_map = {
+            SkillFunction.SEGMENT: "segment",
+            SkillFunction.CONTRACT: "contract",
+            SkillFunction.CURATOR: "curator",
+        }
+        for sf, key in adapter_map.items():
+            for sample in self._grpo_buffer.samples_for(sf):
+                if sample.prompt and sample.completions:
+                    collected[key].append({
+                        "prompt": sample.prompt,
+                        "completions": sample.completions,
+                        "rewards": sample.rewards,
+                        "metadata": sample.metadata,
+                    })
+        n_total = sum(len(v) for v in collected.values())
+        if n_total:
+            logger.info(
+                "Collected %d GRPO samples (shared): segment=%d, contract=%d, curator=%d",
+                n_total, len(collected["segment"]),
+                len(collected["contract"]), len(collected["curator"]),
+            )
+        return collected
+
+    def reset_for_step(self) -> None:
+        self._shared_pipeline.reset_for_step()
+        self._grpo_buffer = None
+        self._collected_grpo = {"segment": [], "contract": [], "curator": []}
+        try:
+            self._disable_grpo_wrappers()
+        except Exception:
+            pass
+        try:
+            self._enable_grpo_wrappers()
+        except Exception as exc:
+            logger.warning("Failed to enable GRPO wrappers (shared): %s", exc)
+
+    async def process_batch_async(
+        self, results: List[EpisodeResult],
+    ) -> None:
+        """Feed every episode to the shared pipeline.
+
+        Re-points the agent's ``game_name`` to the batch's dominant
+        game so per-game prompt branches receive the right context.
+        Almost always the dominant game is the *only* game (curriculum
+        runs one game per phase), but we resolve by majority vote so
+        a hybrid phase (e.g. ``--mixed`` curriculum) still works.
+        """
+        if not results:
+            return
+
+        # Majority-game vote for dynamic ``game_name`` re-pointing.
+        from collections import Counter
+        counts = Counter(r.game for r in results)
+        dominant_game, _ = counts.most_common(1)[0]
+        self._last_processed_game = dominant_game
+
+        # Re-point the agent + pipeline so contract / curator / segment
+        # prompts that branch on ``game_name`` see the right context.
+        self._shared_pipeline.game_name = dominant_game
+        agent = self._shared_pipeline.get_agent()
+        if agent is not None and hasattr(agent, "game_name"):
+            try:
+                object.__setattr__(agent, "game_name", dominant_game)
+            except Exception:                                          # noqa: BLE001
+                pass
+
+        await self._shared_pipeline.process_batch_async(results)
+
+    async def finalize_all(self) -> Dict[str, "SkillBankUpdateResult"]:
+        """Finalize the shared pipeline and stamp ``feasible_tasks``
+        on every freshly-minted skill.
+
+        Returned shape mirrors :meth:`PerGameSkillBankManager.finalize_all`
+        so the orchestrator's per-game logging keeps working — we
+        replicate the single result under every configured game key.
+        """
+        try:
+            shared_result = await self._shared_pipeline.finalize_update()
+        except Exception as exc:
+            logger.error("SharedSkillBankManager.finalize_all: %s", exc)
+            shared_result = SkillBankUpdateResult(accepted=False)
+
+        # Stamp ``feasible_tasks=[current_game]`` on every skill that
+        # doesn't already carry one. This is the §22 invariant: every
+        # skill must be admitted for *some* concrete task — empty
+        # ``feasible_tasks`` is back-compat task-agnostic and would
+        # silently re-introduce 100 % cross-contamination.
+        if self._last_processed_game is not None:
+            bank = self._shared_pipeline.get_raw_bank()
+            if bank is not None and hasattr(bank, "skill_ids"):
+                stamped = 0
+                for sid in list(bank.skill_ids):
+                    skill = bank.get_skill(sid) if hasattr(bank, "get_skill") else None
+                    if skill is None:
+                        continue
+                    if not getattr(skill, "feasible_tasks", None):
+                        try:
+                            skill.feasible_tasks = [self._last_processed_game]
+                            stamped += 1
+                        except Exception:                              # noqa: BLE001
+                            continue
+                if stamped > 0:
+                    try:
+                        bank.save()
+                        logger.info(
+                            "SharedSkillBankManager: stamped feasible_tasks=[%s] on %d skills",
+                            self._last_processed_game, stamped,
+                        )
+                    except Exception as exc:                           # noqa: BLE001
+                        logger.warning(
+                            "SharedSkillBankManager: feasible_tasks stamp save failed: %s",
+                            exc,
+                        )
+
+        try:
+            self._disable_grpo_wrappers()
+        except Exception as exc:
+            logger.warning("Failed to disable GRPO wrappers (shared): %s", exc)
+        self._collected_grpo = self._collect_grpo_data()
+
+        return {game: shared_result for game in self._games}
+
+    @property
+    def grpo_data(self) -> Dict[str, List[Dict[str, Any]]]:
+        return self._collected_grpo
+
+    def total_skills(self) -> int:
+        bank = self._shared_pipeline.get_raw_bank()
+        if bank and hasattr(bank, "skill_ids"):
+            return len(list(bank.skill_ids))
+        return 0
+
+    def skill_counts(self) -> Dict[str, int]:
+        """Return per-game skill counts derived from ``feasible_tasks``.
+
+        Unlike :meth:`PerGameSkillBankManager.skill_counts` (which
+        reports physical bank sizes), the shared-bank version reports
+        the *eligibility-relevant* count — how many skills the harness
+        would admit on each game. A skill stamped
+        ``feasible_tasks=["candy_crush", "Columns"]`` (after the
+        translator widens it) counts toward both games.
+        """
+        bank = self._shared_pipeline.get_raw_bank()
+        counts = {game: 0 for game in self._games}
+        if not bank or not hasattr(bank, "skill_ids"):
+            return counts
+        for sid in bank.skill_ids:
+            skill = bank.get_skill(sid) if hasattr(bank, "get_skill") else None
+            if skill is None:
+                continue
+            tasks = list(getattr(skill, "feasible_tasks", None) or [])
+            if not tasks:
+                # Task-agnostic: visible everywhere. Only legacy /
+                # pre-shared-mode skills should be in this branch.
+                for game in self._games:
+                    counts[game] += 1
+                continue
+            for game in tasks:
+                if game in counts:
+                    counts[game] += 1
+        return counts

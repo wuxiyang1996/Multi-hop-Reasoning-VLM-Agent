@@ -446,6 +446,23 @@ def _project_to_legacy_envelope(
         },
         "evidence_role": evidence_role,
         "applicable_domains": list(feasible),
+        # Task-axis fields (harness/README §22). When the upstream
+        # ``SkillRecord`` carries non-empty ``feasible_tasks`` /
+        # ``verified_tasks`` (e.g. set by the cross-game translator at
+        # ``skill_agents.skill_bank.translate_for_target`` or by the
+        # foundry's lifecycle gates), we round-trip them onto the legacy
+        # JSONL so ``trainer.coevolution._crafter_hook._record_from_bank_entry``
+        # rehydrates the same eligibility-relevant metadata. Empty lists
+        # remain task-agnostic — back-compat default.
+        "feasible_tasks": list(skill.get("feasible_tasks") or []),
+        "verified_tasks": list(skill.get("verified_tasks") or []),
+        # Cross-game translation provenance (shared-bank mode). When
+        # ``derived_from`` is set, the curator + retirement passes can
+        # find the lineage; when ``confidence_tag != "stable"``, the
+        # eligibility filter / skill_selection prompt may down-weight
+        # the candidate.
+        "derived_from": skill.get("derived_from"),
+        "confidence_tag": skill.get("confidence_tag") or "stable",
         # Round-trip metadata so a future bidirectional bridge can detect
         # writeback-projected entries and refuse to clobber the upstream
         # SkillRecord.

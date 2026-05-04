@@ -1,20 +1,34 @@
 # Co-evolution 3-phase training plan — source GRPO → in-domain few-shot → OOD transfer
 
-> **Status (2026-05-03 PM):** 🟢 **PLAN — game roster + curriculum
-> mechanism locked.** 2 decisions still pending pre-launch
+> **Status (2026-05-03 PM, refreshed):** 🟢 **PLAN — game roster
+> data-refreshed; curriculum mechanism + shared-bank pipeline locked.**
+> Phase-1 curriculum is **6 games trained sequentially at 15 GRPO steps
+> each (90 steps total)** with bank + LoRA carry-over between games.
+> The roster was **swapped 2026-05-03 PM** after the new
+> `Cold-start-out-gymv/latest` SFT teacher data showed that two of the
+> originally locked Phase-1 picks (`StreetsOfRage2`, `Strider`) had
+> very different teacher reward to what the older eval suggested
+> (Strider: GPT-5.4 = 0, Qwen3-VL = 0; SoR2 healthy at 200–400 across
+> all 4 frontier teachers but pairs more cleanly with `AlteredBeast` as
+> a Phase-2 in-genre transfer target than as a Phase-1 source). The
+> updated roster pulls the data-richest 4 gymv games into Phase 1
+> (`ThunderForceIII`, `AlteredBeast`, `Columns`, `DynamiteHeaddy`) and
+> uses the remaining 4 gymv games as Phase-2 transfer targets, each
+> paired in-genre with a Phase-1 source so the cross-game skill
+> translator (`skill_agents/skill_bank/translate_for_target.py`) has the
+> closest possible source vocabulary to re-ground onto. The shared-bank
+> + per-boundary translation pipeline (`config.bank_mode='shared'` +
+> `TRANSLATE_ON_BOUNDARY=1`) landed alongside this refresh and is the
+> default carrier for Phase-2 (§7) so the "shared bank rescues
+> partial-signal games" hypothesis becomes directly testable on
+> `Strider`. 2 decisions still pending pre-launch
 > (§11.1 hyperparam audit; §11.4 keep/drop the 5-step inference-only
-> Phase-2 baseline). Phase-1 curriculum is **6 games trained sequentially
-> at 15 GRPO steps each (90 steps total)** with bank + LoRA carry-over
-> between games — picks data-driven from the
-> [`baselines/README.md` § "Gym-V benchmark scope"](../baselines/README.md)
-> 4-backbone success-rate sweep landed on `fix/coevo-t2.14-t2.15-launch-unblockers`
-> (commit `4f97dd6`, 2026-05-03). Phase-2 / Phase-3 unchanged from the
-> initial draft. The plan extends the COS-PLAY paper's per-game training
-> (Appendix C / Table 3) into a cross-game skill-transfer + cross-domain
-> few-shot adaptation experiment; the **cross-game transfer** protocol
-> and **OOD few-shot adaptation** are explicitly identified as open
-> problems in the paper's Limitation / Future Work section and are this
-> plan's novel contribution.
+> Phase-2 baseline). The plan extends the COS-PLAY paper's per-game
+> training (Appendix C / Table 3) into a cross-game skill-transfer +
+> cross-domain few-shot adaptation experiment; the **cross-game
+> transfer** protocol and **OOD few-shot adaptation** are explicitly
+> identified as open problems in the paper's Limitation / Future Work
+> section and are this plan's novel contribution.
 
 > **Cross-refs:**
 > - [COS-PLAY paper](https://arxiv.org/pdf/2604.20987) — Appendix C,
@@ -109,30 +123,115 @@ with our Phase-2 / Phase-3 definition (see §7 below).
 
 ## 4. Phase 1 — sequential source GRPO curriculum
 
-### 4.1 Game roster (locked 2026-05-03 PM)
+### 4.1 Game roster (refreshed 2026-05-03 PM, data-driven from new SFT cold-start)
 
 Six games trained one after another at **15 GRPO steps each** (90
 steps total). Two come from COS-PLAY Table 3 (`tetris`, `candy_crush`)
 so the merge-rate of bank / reward against the paper still has an
 anchor; four come from the
 [`gymv_wrapper` 8-game benchmark scope](../baselines/README.md#gym-v-benchmark-scope)
-(commit `4f97dd6`) — picked for genre coverage and high
-non-trained-actor success-rate baseline so GRPO has a clean signal:
+(commit `4f97dd6`) — re-picked from the new `Cold-start-out-gymv/latest`
+4-backbone teacher table so the SFT cold-start LoRAs train on demos
+where every Phase-1 game has **non-zero teacher reward across all 4
+frontier teachers (GPT-5.4 / Claude-4.6-Sonnet / Gemini-3.1-Pro /
+Qwen3-VL-235B)**:
 
-| # | Game | Source | Genre | Pre-train baseline | Hyperparams source |
-|---|---|---|---|---|---|
-| 1 | `Temporal/SpaceHarrierII-v0` | gymv benchmark | shmup | 100 % (4 / 4 backbones) | inherits `2048` row (dense reward, fast progression) |
-| 2 | `Temporal/StreetsOfRage2-v0` | gymv benchmark | beat-em-up | 100 % (4 / 4 backbones) | inherits `2048` row |
-| 3 | `Temporal/Columns-v0` | gymv benchmark | puzzle | 89 % (Claude / Q9 100 %) | inherits `tetris` row (sparse-line-clear reward) |
-| 4 | `Temporal/Strider-v0` | gymv benchmark | action | 78 % (Q9 100 %) | inherits `super_mario_bros` row (long traversal) |
-| 5 | `candy_crush` | paper Table 3 | match-3 | n/a (paper Figure 4) | LR 5e-5 · KL 0.05 · clip 0.20 · max_ep 4 · no adv-clip · ep/step 8 |
-| 6 | `tetris` | paper Table 3 | spatial puzzle | n/a (paper Figure 4) | LR 2e-5 · KL 0.08 · clip 0.10 · max_ep 2 · adv-clip 3.0 · ep/step 8 |
+| # | Slug | Genre | Teacher band (min–max across 4 frontier rows) | Why Phase 1 (mining source) |
+|---|---|---|---|---|
+| 1 | `gymv_thunder_force_iii` | shmup | 269–750 (GPT 306, Claude 269, Gemini 725, Qwen3-VL 750) | Strong, varied teacher signal across all four teachers; weapon-switching mechanic mines diverse skills. Manageable scale (~hundreds). |
+| 2 | `gymv_altered_beast` | beat-em-up | 119–425 (GPT 119, Claude 294, Gemini 425, Qwen3-VL 263) | All teachers score; combat + transformations = rich action vocabulary. Genre-orthogonal to TF3 (different action patterns ⇒ different mined skills). |
+| 3 | `gymv_columns` | puzzle | 63–160 (GPT 154, Claude 63, Gemini 99, Qwen3-VL 132) | Only puzzle gymv we have; small healthy scale; spatial-reasoning genre ⇒ partial transfer to `tetris` / `candy_crush`. |
+| 4 | `gymv_dynamite_headdy` | action-platformer | 75–94 (GPT 94, Claude 94, Gemini 81, Qwen3-VL 75) | Most diverse mechanics in the gymv set (Headdy's modular abilities). In-genre source for `Strider` Phase-2 transfer test. |
+| 5 | `candy_crush` | match-3 | n/a (paper Figure 4) | LR 5e-5 · KL 0.05 · clip 0.20 · max_ep 4 · no adv-clip · ep/step 8 |
+| 6 | `tetris` | spatial puzzle | n/a (paper Figure 4) | LR 2e-5 · KL 0.08 · clip 0.10 · max_ep 2 · adv-clip 3.0 · ep/step 8 |
 
-Curriculum order is **as listed above** — high-density rewards first
-(shmup/beatemup) so the curator and skill-segmenter learn on clean
-positive signal before the puzzle/action games' sparser reward, then
-finishing on the two paper games as comparable terminal anchors.
-Re-ordering is a §11 deferred follow-up if R6 (LoRA drift) fires.
+Curriculum order is **as listed above** — start with the highest-signal
+shmup (`ThunderForceIII`, all 4 teachers ≥ 269), swap genre
+(`AlteredBeast` beat-em-up) to keep the curator from over-fitting one
+action vocabulary, swap again to puzzle (`Columns`) so the
+skill-segmenter learns sparse-reward grids, then `DynamiteHeaddy` for
+its richer action-platformer mechanics, and finish on the two paper
+Table-3 games (`candy_crush`, `tetris`) as terminal anchors comparable
+to Figure 4. The two intentionally-omitted gymv games are
+`SpaceHarrierII` (~30× larger reward scale than every other gymv game
+— moved to Phase 2 as a scale-invariance transfer test rather than
+letting it dominate Phase-1 cross-game aggregates) and
+`StreetsOfRage2` / `Airstriker` / `Strider` (paired in-genre as
+Phase-2 transfer targets — see §7.1). Re-ordering is a §11 deferred
+follow-up if R6 (LoRA drift) fires.
+
+> **Why this differs from the prior locked roster.** The earlier picks
+> (`SpaceHarrierII`, `StreetsOfRage2`, `Columns`, `Strider`) came from
+> a 4-backbone success-rate baseline that didn't reflect the
+> `frame_skip=8` cold-start data. In the new table:
+>
+> * `SpaceHarrierII` teacher reward sits at **14 469–29 431** — ~30×
+>   the next-largest gymv game (`ThunderForceIII` at 269–750). Even
+>   with per-game normalization (§4.5) the GRPO advantage variance
+>   during a SH2 phase would drown the signal-to-noise on per-step
+>   monitoring; moving it to Phase 2 turns the scale outlier into a
+>   *test* ("does TF3-mined shmup skill survive the 30× reward jump?")
+>   rather than a noise source.
+> * `Strider` is partial-signal (GPT-5.4 = 0, Qwen3-VL = 0; Claude /
+>   Gemini score 31 / 113). Mining skills from a poisoned 50 %-zero
+>   teacher distribution is exactly the SFT pathology we identified in
+>   the prior roster's SoR2 / Strider regression — moving Strider to
+>   Phase 2 lets the shared-bank + translation pipeline attempt the
+>   rescue rather than handicapping Phase 1 with poisoned demos.
+> * `StreetsOfRage2` is now healthy in this newer data (200–408 across
+>   all 4 teachers) but pairs more cleanly with `AlteredBeast` as the
+>   in-genre Phase-2 transfer target ("does AB-mined beat-em-up skill
+>   transfer to SoR2?") than as a parallel Phase-1 source.
+
+### 4.5 Reward normalization across phases
+
+Per-game raw rewards span ~3 orders of magnitude across the 8 gymv
+games (Strider 0–112 → SpaceHarrierII 14 k–29 k). Within a phase this
+is a non-issue — GRPO normalizes advantages inside the rollout group,
+so absolute reward magnitude doesn't reach the optimizer. **Across
+phases**, however, every aggregate metric (W&B mean, Layer-D
+dashboard transfer matrix, best-checkpoint selection, curriculum
+phase-success thresholds) is reward-magnitude-biased toward whichever
+phase has the largest absolute reward.
+
+The plan adds a **teacher-anchored, additive normalization layer**:
+
+```
+r_norm[game] = clip(r_raw[game] / r_teacher_anchor[game], 0.0, 2.0)
+```
+
+* **Anchors** — read from `Cold-start-out-gymv/latest/<game>/rollout_summary.json`
+  at orchestrator startup (auto-derived from the actual demos the SFT
+  trained on). Falls back to a hardcoded table baked from the new
+  4-backbone teacher data when the cold-start file is missing:
+
+| Game | Anchor source | Anchor (max across 4 frontier teachers) |
+|---|---|---|
+| `gymv_thunder_force_iii` | new SFT data | 750.0 (Qwen3-VL) |
+| `gymv_altered_beast` | new SFT data | 425.0 (Gemini) |
+| `gymv_columns` | new SFT data | 160.8 (GPT-5.4 upper-CI) |
+| `gymv_dynamite_headdy` | new SFT data | 100.0 (GPT-5.4 / Claude upper-CI) |
+| `gymv_space_harrier_ii` | new SFT data | 29 431.0 (Claude) |
+| `gymv_streets_of_rage_2` | new SFT data | 408.8 (Gemini) |
+| `gymv_airstriker` | new SFT data | 97.5 (Gemini) |
+| `gymv_strider` | new SFT data | 112.5 (Gemini) |
+| `candy_crush` / `tetris` / `super_mario` / `twenty_forty_eight` | paper Table 3 + run_<game>.sh baseline | TBD — populated from baselines on first run |
+
+* **Where it's applied** — additive to the existing
+  `harness.RewardLogger` JSONL: each `RewardLogEntry` and
+  `GRPOStepLogEntry` gets a `reward_normalized` field next to the raw
+  `score` / `reward`. W&B logs both:
+  * `reward/raw/{game}` — per-game raw, unchanged behaviour
+  * `reward/normalized/{game}` — per-game normalized, used by all
+    cross-phase aggregates and curriculum thresholds
+* **Where it's NOT applied** — GRPO advantage computation
+  (`grpo_training.py`) is untouched; the optimizer keeps reading raw
+  rewards because group normalization already handles within-batch
+  variance.
+* **Interpretation** — `r_norm = 1.0` ⟺ matches teacher; `0.5` ⟺ half
+  teacher; the 2.0 ceiling stops a lucky-spike episode from owning
+  the dashboard. `None` (when anchor missing or zero) ≠ `0` so
+  dashboards can distinguish "no anchor" from "scored zero".
 
 Total Phase-1 step budget: **6 × 15 = 90 steps**. Wall-clock
 ~36 min/step ⇒ **~54 h sequentially**; the curriculum is sequential
@@ -238,27 +337,33 @@ its 4-backbone baseline.
 
 ## 7. Phase 2 — in-domain few-shot adaptation
 
-### 7.1 Held-out roster (locked 2026-05-03 PM)
+### 7.1 Held-out roster (refreshed 2026-05-03 PM, paired in-genre with Phase-1 sources)
 
 Six games not seen in Phase 1 — four gymv benchmark leftovers and
-two paper Table-3 games we deliberately held back from Phase 1 to
-serve as in-domain probes for the puzzle / action transfer pairs:
+two paper Table-3 games. Each Phase-2 game is **paired with a
+Phase-1 source by genre**, so the cross-game skill translator
+(`skill_agents/skill_bank/translate_for_target.py`) has the closest
+possible source vocabulary to re-ground onto at the phase boundary.
+The translator + shared bank pipeline runs by default for Phase 2
+(`config.bank_mode='shared' + TRANSLATE_ON_BOUNDARY=1`), so the
+"shared bank rescues partial-signal games" hypothesis becomes
+directly testable on `Strider`:
 
-| # | Held-out game | Source | Genre | In-domain pair (Phase-1 source) | Why this pair tests transfer |
+| # | Slug | Genre | Teacher band (4-backbone min–max) | In-genre pair (Phase-1 source) | What this pair tests |
 |---|---|---|---|---|---|
-| 1 | `Temporal/AlteredBeast-v0` | gymv benchmark | beat-em-up | `StreetsOfRage2` | same genre, different ROM — pure within-genre lift |
-| 2 | `Temporal/Airstriker-v0` | gymv benchmark | shmup | `SpaceHarrierII` | same genre — shmup transfer |
-| 3 | `Temporal/DynamiteHeaddy-v0` | gymv benchmark | platformer | (Phase-1 has no platformer) | hardest probe — closest is `Strider` (action) |
-| 4 | `Temporal/ThunderForceIII-v0` | gymv benchmark | shmup | `SpaceHarrierII` (second-order via `Airstriker`) | tests bank composition |
-| 5 | `2048` | paper Table 3 | match / spatial | `tetris` | grid puzzles — strong in-domain pairing |
-| 6 | `super_mario_bros` | paper Table 3 | action / scrolling | `Strider` | action-scroller pairing |
+| 1 | `gymv_streets_of_rage_2` | beat-em-up | 202–408 | `gymv_altered_beast` (Phase-1 #2) | **Pure within-genre lift.** Same Genesis 6-button beat-em-up vocabulary; should be the cleanest cross-game transfer signal. Healthy teacher both sides. |
+| 2 | `gymv_space_harrier_ii` | shmup | 14 469–29 431 | `gymv_thunder_force_iii` (Phase-1 #1) | **Reward-scale invariance test.** Same shmup family but ~30× larger reward magnitude. Tests whether normalized-reward training transfers without rescaling skill scores. |
+| 3 | `gymv_airstriker` | shmup | 52–97 | `gymv_thunder_force_iii` (Phase-1 #1) | **Easier in-genre transfer.** Simpler vertical shmup; smaller reward scale than TF3. Sanity check — if this fails, none of the cross-game claims hold. |
+| 4 | `gymv_strider` | action-platformer | 0–112 | `gymv_dynamite_headdy` (Phase-1 #4) | **Hardest case — partial-signal rescue.** GPT-5.4 / Qwen3-VL teacher = 0; Claude / Gemini = 31 / 112. Direct test of "shared bank + translator rescues a poisoned-SFT game". Shared mode vs per_game mode here is the cleanest A/B for the whole pipeline. |
+| 5 | `twenty_forty_eight` | grid puzzle | n/a (paper Table 3) | `tetris` (Phase-1 #6) + `gymv_columns` (Phase-1 #3) | **Grid-puzzle pairing.** Two Phase-1 puzzle sources should give the translator richer material than a single source. |
+| 6 | `super_mario` | action / scrolling | n/a (paper Table 3) | (no direct Phase-1 pair; closest is `gymv_dynamite_headdy`) | **Hardest cross-genre.** No in-genre Phase-1 source — tests how far the translator can stretch when no analogue exists. Negative result here is publishable as a transfer-distance bound. |
 
 Pre-launch screen for each held-out game: "≥ 3 episodes complete in
 2 min on the **un-seeded** Qwen3.5-9B actor". For the four gymv
-games this is already satisfied by the
-[`baselines/README.md` § "Gym-V benchmark scope"](../baselines/README.md#gym-v-benchmark-scope)
-sweep (3-9 episodes per backbone in the table). For `2048` and
-`super_mario_bros` the GamingAgent / Orak wrappers ship 50 / 100 max
+games this is already satisfied by the new
+`Cold-start-out-gymv/latest/<game>/rollout_summary.json` sweep
+(`frame_skip=8`, 16 episodes per teacher). For `twenty_forty_eight` and
+`super_mario` the GamingAgent / Orak wrappers ship 50 / 100 max
 steps and have been baseline-stable on the existing scripts.
 
 ### 7.2 Two-budget reporting protocol
@@ -348,28 +453,47 @@ scripts/
   merge_adapters.py             back-stop fires (R6 in §12)
 ```
 
-`run_phase1_curriculum.sh` is largely a parameter-swap on the existing
-`scripts/run_all.sh` (already implements snapshot-per-phase + 5-game
-sequential curriculum). Concretely we replace its `PHASES` array with:
+`run_phase1_curriculum.sh` is the canonical orchestrator (lands
+2026-05-03; mirrors `run_all.sh`'s snapshot-per-phase pattern). Its
+`PHASES` array reflects the refreshed roster from §4.1:
 
 ```bash
 PHASES=(
-    "1:gymv_temporal_space_harrier_ii:Space Harrier II"
-    "2:gymv_temporal_streets_of_rage_2:Streets of Rage 2"
-    "3:gymv_temporal_columns:Columns"
-    "4:gymv_temporal_strider:Strider"
+    "1:gymv_thunder_force_iii:Thunder Force III"
+    "2:gymv_altered_beast:Altered Beast"
+    "3:gymv_columns:Columns"
+    "4:gymv_dynamite_headdy:Dynamite Headdy"
     "5:candy_crush:Candy Crush"
     "6:tetris:Tetris"
 )
 ITERS_PER_PHASE=15
 ```
 
-(Game-name slugs above are placeholders — actual names depend on the
-gymv adapter wiring landed in §11.1's hyperparam audit; today
-`trainer/coevolution/episode_runner.py` only registers
-`twenty_forty_eight / candy_crush / tetris / super_mario`, so the four
-gymv slugs need to land in `GAMINGAGENT_GAMES` or a sibling
-`GYMV_TEMPORAL_GAMES` set before launch — captured as §11.1 sub-task.)
+`scripts/run_phase2_holdout.sh` (NEW — lands alongside the refreshed
+roster) iterates over the §7.1 transfer roster:
+
+```bash
+PHASES=(
+    "1:gymv_streets_of_rage_2:Streets of Rage 2"
+    "2:gymv_space_harrier_ii:Space Harrier II"
+    "3:gymv_airstriker:Airstriker"
+    "4:gymv_strider:Strider"
+    "5:twenty_forty_eight:2048"
+    "6:super_mario:Super Mario Bros"
+)
+ITERS_PER_PHASE=15        # 15-step GRPO main result; 5-step infer-only is a separate driver
+BANK_MODE=shared           # default for Phase 2 — one shared bank
+TRANSLATE_ON_BOUNDARY=1    # auto-translate prior bank onto each target's action vocab
+```
+
+All 8 gymv slugs are wired in
+[`env_wrappers/gymv_temporal_nl_wrapper.py:GYMV_TEMPORAL_GAMES`](../env_wrappers/gymv_temporal_nl_wrapper.py)
+(`gymv_space_harrier_ii`, `gymv_streets_of_rage_2`, `gymv_columns`,
+`gymv_strider`, `gymv_altered_beast`, `gymv_airstriker`,
+`gymv_dynamite_headdy`, `gymv_thunder_force_iii`) and registered in
+[`trainer/coevolution/config.py:SKILL_BANK_GAMES`](../trainer/coevolution/config.py)
+plus `GAME_MAX_STEPS` (200 each) so `--games <slug>` resolves
+end-to-end without further plumbing.
 
 Recommended dual-stack runtime layout (8×H200):
 
@@ -442,22 +566,32 @@ similarly so `--games <slug>` resolves end-to-end. Smallest plumb:
 | B | Single run with `config.games=[6]` (default behaviour) | *Rejected* — concurrent training every step erases per-game step-budget control. |
 | **C** | **Sequential curriculum with bank + LoRA carry-over (`config.curriculum_schedule={0:[g1], 15:[g2], 30:[g3], …}`) and per-game snapshots** | **CHOSEN.** Matches user's intent ("one by one training, skill transfer when switching games"). Risk: late-game LoRA drift erases early-game competence — captured as R6 (§12). Mitigations: per-game snapshots in §4.2, per-game-baseline anchor in §4.3, Option A as documented back-stop. |
 
-### 11.3 Phase-1 source roster + Phase-2 held-out roster  🟢 RESOLVED 2026-05-03 PM
+### 11.3 Phase-1 source roster + Phase-2 held-out roster  🟢 RESOLVED 2026-05-03 PM (refreshed)
 
 * **Phase 1 (6 games, 15 steps each, sequential):** four gymv benchmark
-  picks (`SpaceHarrierII`, `StreetsOfRage2`, `Columns`, `Strider`) +
-  two paper Table-3 games (`candy_crush`, `tetris`).
+  picks (`gymv_thunder_force_iii`, `gymv_altered_beast`, `gymv_columns`,
+  `gymv_dynamite_headdy`) + two paper Table-3 games (`candy_crush`,
+  `tetris`). All 6 have non-zero teacher reward across **all 4
+  frontier teachers** in the new `Cold-start-out-gymv/latest` data
+  ⇒ no poisoned-SFT slot.
 * **Phase 2 (6 held-out games, 5+15-step adaptation):** four gymv
-  benchmark leftovers (`AlteredBeast`, `Airstriker`, `DynamiteHeaddy`,
-  `ThunderForceIII`) + two paper Table-3 games (`2048`,
-  `super_mario_bros`).
+  benchmark leftovers (`gymv_streets_of_rage_2`, `gymv_space_harrier_ii`,
+  `gymv_airstriker`, `gymv_strider`) + two paper Table-3 games
+  (`twenty_forty_eight`, `super_mario`). Each Phase-2 gymv game is
+  paired in-genre with a Phase-1 source so the cross-game translator
+  has the closest possible source vocabulary.
 
-Rationale: gymv picks come from `baselines/README.md` § "Gym-V benchmark
-scope" (commit `4f97dd6`) — high-success, genre-diverse for clean
-training signal in Phase 1, leftovers paired by genre for in-domain
-transfer probes in Phase 2 (§7.1). `2048 / super_mario_bros` deliberately
-deferred to Phase 2 to act as in-domain pairs for `tetris / Strider`.
-Full table in §4.1 (Phase 1) and §7.1 (Phase 2).
+Rationale: gymv picks are data-driven from the new 4-backbone teacher
+table (Cold-start-out-gymv/latest, `frame_skip=8`). The data showed
+that the previously locked Phase-1 set had two problems —
+`SpaceHarrierII` is a ~30× reward-scale outlier that biases every
+cross-phase aggregate, and `Strider` is partial-signal (GPT-5.4 = 0,
+Qwen3-VL = 0). Both moved to Phase 2 where the scale-jump and
+poisoned-rescue become *features* (testable hypotheses) rather than
+liabilities. The remaining Phase-1 picks have median teacher reward
+in 75–425 (TF3, AB, Columns, DH) — comparable order of magnitude, no
+single phase will dominate aggregates. Full picks + per-teacher
+numbers in §4.1 (Phase 1) and §7.1 (Phase 2).
 
 ### 11.4 Phase-2 budget — keep both budgets, or drop 5-step infer-only?  🔴 OPEN
 
@@ -498,8 +632,9 @@ control unconditionally — without it the lift claim is unfalsifiable.
   `VLM_AGENT_BACKBONE_JUDGE_MODEL=gpt-5.5` for the spot-check pass.
 * **R6 — Sequential-curriculum LoRA drift (the cost of Option C).** The
   late games (positions 5–6: `candy_crush`, `tetris`) dominate the
-  final LoRA gradient state; early-games (positions 1–2: `SpaceHarrierII`,
-  `StreetsOfRage2`) may regress 20–40 % in reward by end-of-curriculum.
+  final LoRA gradient state; early-games (positions 1–2:
+  `gymv_thunder_force_iii`, `gymv_altered_beast`) may regress 20–40 %
+  in reward by end-of-curriculum.
   Mitigations:
   - **Per-game snapshots** (§4.2) — every game's end-of-15-step
     LoRA + bank is captured; Phase-2 ablation can swap in the
@@ -515,7 +650,38 @@ control unconditionally — without it the lift claim is unfalsifiable.
 
 ## 13. Changelog
 
-* **2026-05-03 PM** — game roster + curriculum mechanism locked.
+* **2026-05-03 PM (refreshed)** — game roster swapped per the new
+  `Cold-start-out-gymv/latest` 4-backbone teacher table.
+  * **Phase 1** now `gymv_thunder_force_iii`, `gymv_altered_beast`,
+    `gymv_columns`, `gymv_dynamite_headdy`, `candy_crush`, `tetris`
+    (was: `SpaceHarrierII`, `StreetsOfRage2`, `Columns`, `Strider`,
+    `candy_crush`, `tetris`). All 6 Phase-1 games now have non-zero
+    teacher reward across **all 4 frontier teachers** in the new SFT
+    data ⇒ zero poisoned-SFT slots.
+  * **Phase 2** now `gymv_streets_of_rage_2`, `gymv_space_harrier_ii`,
+    `gymv_airstriker`, `gymv_strider`, `twenty_forty_eight`,
+    `super_mario` (was: `AlteredBeast`, `Airstriker`, `DynamiteHeaddy`,
+    `ThunderForceIII`, `2048`, `super_mario_bros`). Each Phase-2 gymv
+    game now has a Phase-1 in-genre source so the cross-game skill
+    translator has the closest possible vocabulary to re-ground onto.
+  * **§4.5 Reward normalization** added — teacher-anchored, additive
+    layer in `RewardLogger`. Anchors auto-derive from
+    `Cold-start-out-gymv/latest/<game>/rollout_summary.json` at
+    startup with a hardcoded fallback table baked from the new
+    4-backbone teacher data. Applied to W&B aggregates, curriculum
+    thresholds, and the Layer-D dashboard transfer matrix; **not**
+    applied to GRPO advantage (already group-normalized).
+  * **Shared bank + per-boundary translation pipeline** is now the
+    default Phase-2 carrier (`config.bank_mode='shared'` +
+    `TRANSLATE_ON_BOUNDARY=1`). Phase 4 of Phase 2 (`gymv_strider`)
+    becomes the cleanest A/B test of the whole pipeline:
+    per_game-mode reward (expected ~0 from poisoned SFT) vs
+    shared-mode reward (expected lift if cross-game translation
+    works). See `skill_agents/skill_bank/translate_for_target.py`.
+  * §9 PHASES arrays for both `run_phase1_curriculum.sh` and the new
+    `run_phase2_holdout.sh` updated; §11.3 lock entry refreshed.
+* **2026-05-03 PM (initial)** — game roster + curriculum mechanism
+  locked.
   Phase-1 source: 4 gymv benchmark picks (`SpaceHarrierII`,
   `StreetsOfRage2`, `Columns`, `Strider`) + 2 paper games
   (`candy_crush`, `tetris`); Phase-2 holdout: 4 gymv leftovers +
