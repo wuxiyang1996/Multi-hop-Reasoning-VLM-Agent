@@ -150,12 +150,15 @@ GPU_UTIL="${VLLM_GPU_UTIL:-0.90}"
 MANAGE_VLLM="${MANAGE_VLLM:-1}"
 
 # §4.1 lock (relaxed 2026-05-04 to 10 / phase after the v4 segmentation
-# wall-clock blow-up was diagnosed): 10 steps per phase, snapshot every
-# 5 steps so a mid-phase failure doesn't lose more than ~3 h of work.
-# ``EPISODES`` default is set per LAYOUT below (8 for FSDP=2, 16 for
-# FSDP=4).  Override via ``ITERS_PER_PHASE`` env var.
+# wall-clock blow-up was diagnosed): 10 steps per phase.  Checkpoint at
+# every step (CKPT_INTERVAL=1, was 5) so we have full per-step lineage
+# for skill-bank diff analysis + arbitrary-step resume.  At ~250 MB
+# LoRA + ~10 MB bank per checkpoint × 60 steps = ~15 GB total disk —
+# tractable on local NVMe.  Override via ``CKPT_INTERVAL=5`` to restore
+# coarser cadence.  ``EPISODES`` default is set per LAYOUT below (8 for
+# FSDP=2, 16 for FSDP=4).  Override via ``ITERS_PER_PHASE`` env var.
 ITERS_PER_PHASE="${ITERS_PER_PHASE:-10}"
-CKPT_INTERVAL="${CKPT_INTERVAL:-5}"
+CKPT_INTERVAL="${CKPT_INTERVAL:-1}"
 WANDB_PROJECT="${WANDB_PROJECT:-game-ai-coevolution-phase1}"
 RUN_DIR="${RUN_DIR:-}"
 DEBUG="${DEBUG:-}"
