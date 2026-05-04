@@ -7,7 +7,7 @@ plan" table:
 
   benchmark           pool   holdout   stratification axis
   ------------------  -----  -------   -------------------
-  osworld              250      50    snapshot (11 apps) × possibility_of_env_change
+  osworld              120      30    snapshot (11 apps) × possibility_of_env_change
   visual_toolbench     300     100    prompt_category (9)
   tir_bench            300     100    task family (13)
   video_holmes        1000     200    Question Type (7)
@@ -42,7 +42,7 @@ Run:
 
 Override sizes (any subset):
   python cold_start/evaluation_dataset/build_pool_and_holdout.py \
-    --osworld_pool 250 --osworld_holdout 50 \
+    --osworld_pool 120 --osworld_holdout 30 \
     --vtb_pool 300   --vtb_holdout 100 \
     --tir_pool 300   --tir_holdout 100 \
     --vh_pool 1000   --vh_holdout 200 \
@@ -83,7 +83,7 @@ SEED = 0
 # --- Default lean-plan sizes -------------------------------------------------
 
 DEFAULTS = {
-    "osworld":          (250,  50),
+    "osworld":          (120,  30),
     "visual_toolbench": (300, 100),
     "tir_bench":        (300, 100),
     "video_holmes":     (1000, 200),
@@ -454,6 +454,12 @@ def _emit_manifest_metadata(args, summary: dict) -> Path:
     files: dict = {}
     for split, base in (("pool", POOL_DIR), ("holdout", HOLDOUT_DIR)):
         for p in sorted(base.glob("*")):
+            # The OSWorld catalog writer drops a sibling ``examples/``
+            # symlink to the OSWorld eval-examples dir so the launcher
+            # can resolve task UUIDs; skip it (and any other directory)
+            # since the manifest only tracks regular file artefacts.
+            if not p.is_file():
+                continue
             rel = p.relative_to(OUT_DIR).as_posix()
             count = None
             if p.suffix == ".txt":

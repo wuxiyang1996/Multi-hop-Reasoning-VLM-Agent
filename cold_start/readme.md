@@ -297,7 +297,7 @@ leaving a disjoint held-out slice for the E0/E1/E2 scoreboard.
 | `browser` | MiniWoB++ (atomic primitives) | 125 | + 25 | same |
 | `browser` | WebArena | *deferred* — overlaps AssistantBench coverage at much higher infra cost | — | — |
 | `browser` | ~~VisualWebArena~~ | *dropped 2026-05-03* — see `legacy/visualwebarena/README.md` | — | — |
-| `osworld` | OSWorld desktop tasks | 250 stratified | + 50 | TBD |
+| `osworld` | OSWorld desktop tasks | 120 stratified | + 30 | `evaluation_dataset/build_pool_and_holdout.py` |
 | `visual_reasoning` | VisualToolBench (image) | 300 stratified | + 100 | `task_samples/build_visual_reasoning_diverse_1000.py` |
 | `visual_reasoning` | TIR-Bench (image, tool-use) | 300 stratified | + 100 | same |
 | `video` (**headline**) | Video-Holmes | 1,000 | + 200 | same |
@@ -428,9 +428,9 @@ bash cold_start/run_coldstart_actor_browsergym.sh \
     --tasks_file cold_start/task_samples/browsergym_all_diverse.txt \
     --episodes 1 --max_steps 12 --save_frames -v
 
-# 4. OSWorld (250 stratified — bump KVM guests to taste)
+# 4. OSWorld (120 stratified — bump KVM guests to taste)
 bash cold_start/run_coldstart_actor_osworld_all.sh \
-    --tasks_file cold_start/task_samples/osworld_diverse_250.txt \
+    --task_catalog cold_start/evaluation_dataset/pool/osworld_catalog.json \
     --max_steps 30 --num_guests 4 -v
 
 # 5. Visual reasoning (use --sample_ids_dir to point at the pool manifests)

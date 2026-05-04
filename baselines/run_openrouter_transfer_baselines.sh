@@ -24,7 +24,7 @@
 # Task families (lean-plan IDs from cold_start/evaluation_dataset/pool/):
 #
 #     browsergym  -> MiniWoB++ + AssistantBench   (305 tasks, 4 shards)
-#     osworld     -> 10 desktop domains            (250 stratified tasks)
+#     osworld     -> 10 desktop domains            (120 stratified tasks; cut from 250 on 2026-05-03)
 #     vr_image    -> VisualToolBench + TIR-Bench   (~2 × 1000 samples)
 #     vr_video    -> Video-Holmes + SIV-Bench      (~2 × 1000 samples)
 #

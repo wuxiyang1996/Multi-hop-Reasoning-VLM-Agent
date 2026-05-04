@@ -2,14 +2,14 @@
   "kind": "cold_start.evaluation_dataset",
   "version": 1,
   "seed": 0,
-  "built_at_utc": "2026-05-01T04:53:47+00:00",
+  "built_at_utc": "2026-05-03T20:41:00+00:00",
   "builder": {
     "script": "cold_start/evaluation_dataset/build_pool_and_holdout.py",
-    "python": "3.11.15"
+    "python": "3.13.12"
   },
   "args": {
-    "osworld_pool": 250,
-    "osworld_holdout": 50,
+    "osworld_pool": 120,
+    "osworld_holdout": 30,
     "vtb_pool": 300,
     "vtb_holdout": 100,
     "tir_pool": 300,
@@ -21,8 +21,8 @@
   },
   "sizes": {
     "osworld": {
-      "pool": 250,
-      "holdout": 50
+      "pool": 120,
+      "holdout": 30
     },
     "visual_toolbench": {
       "pool": 300,
@@ -44,35 +44,35 @@
   "axis_distribution": {
     "osworld": {
       "pool": {
-        "size": 250,
+        "size": 120,
         "axis_distribution": {
-          "gimp": 27,
-          "libreoffice_calc": 35,
-          "thunderbird": 16,
-          "chrome": 36,
-          "vs_code": 25,
-          "os": 26,
-          "libreoffice_impress": 36,
-          "libreoffice_writer": 26,
+          "vs_code": 12,
+          "chrome": 12,
+          "gimp": 12,
+          "libreoffice_impress": 13,
+          "thunderbird": 13,
+          "os": 12,
+          "libreoffice_calc": 12,
+          "multi_apps": 10,
+          "libreoffice_writer": 12,
           "vlc": 3,
-          "base_setup": 9,
-          "multi_apps": 11
+          "base_setup": 9
         }
       },
       "holdout": {
-        "size": 50,
+        "size": 30,
         "axis_distribution": {
-          "gimp": 5,
-          "chrome": 7,
-          "libreoffice_impress": 7,
-          "thunderbird": 4,
-          "vs_code": 5,
-          "libreoffice_calc": 7,
+          "os": 3,
+          "libreoffice_calc": 3,
+          "multi_apps": 3,
+          "libreoffice_impress": 3,
+          "chrome": 3,
           "vlc": 1,
-          "os": 5,
-          "libreoffice_writer": 5,
+          "vs_code": 3,
           "base_setup": 2,
-          "multi_apps": 2
+          "gimp": 3,
+          "libreoffice_writer": 3,
+          "thunderbird": 3
         }
       }
     },
@@ -205,14 +205,14 @@
   },
   "files": {
     "pool/osworld.txt": {
-      "sha256": "9eb2cd139e2d4bb9d844431f20667fd20f36ca0f03e4a38956cb3d1613066cff",
-      "bytes": 9489,
-      "ids": 250
+      "sha256": "c84619e7064c3a008075c1db8c723af8eecdc2355ce32ed1b76b1f39fc1ca296",
+      "bytes": 4679,
+      "ids": 120
     },
     "pool/osworld_catalog.json": {
-      "sha256": "a2537cf648f74f5a70ae93579b35a71eb69f1b28014b379dc8b086dd2321fad9",
-      "bytes": 11218,
-      "ids": 250
+      "sha256": "764d37fc7a9e156feb47122197fb4683cc2731a25352491a61090fbd2e28ce9d",
+      "bytes": 5498,
+      "ids": 120
     },
     "pool/siv_bench.txt": {
       "sha256": "bd08671c506bd2f893f3b4e7a4f35ed91c0c73fdd571200eb41bfbc6540a2b94",
@@ -235,14 +235,14 @@
       "ids": 300
     },
     "holdout/osworld.txt": {
-      "sha256": "83e46243c3d56cf0d2e859b600ce0d6ab4d31c0561d06d047ec8e8035d259b43",
-      "bytes": 2097,
-      "ids": 50
+      "sha256": "9d21a68efbaeb5570b1c0b0466c3c2a88dbcc27690ae52d3d330959c3d56ed05",
+      "bytes": 1357,
+      "ids": 30
     },
     "holdout/osworld_catalog.json": {
-      "sha256": "3b0cf378c2de29c6f42b7ae419742aaee94867d059ded9d8911b8227655ec9d3",
-      "bytes": 2418,
-      "ids": 50
+      "sha256": "dc39b90ab0add5804146fc53c9f719e4f86333c1b719c2747e1f652b5a14c940",
+      "bytes": 1538,
+      "ids": 30
     },
     "holdout/siv_bench.txt": {
       "sha256": "c2968481ff208cc12632fd6c29d41dfbc16b41d3e119a10e8dcd4dce147f36d5",

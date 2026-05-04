@@ -84,7 +84,7 @@ sites remain unreleased on cost grounds.}
   & WebArena                                    & 812 tasks      & \emph{dropped}       & ---  & --- \\
 \midrule
 \texttt{osworld}
-  & OSWorld desktop tasks                       & 369 tasks      & 250                  & 50   & screenshot $+$ AT-SPI tree \\
+  & OSWorld desktop tasks                       & 369 tasks      & 120                  & 30   & screenshot $+$ AT-SPI tree \\
 \midrule
 \multirow{2}{*}{\texttt{visual\_reasoning}}
   & VisualToolBench (image, single-turn)        & 603 samples    & 300                  & 100  & image \\
@@ -94,7 +94,7 @@ sites remain unreleased on cost grounds.}
   & Video-Holmes (\emph{headline})              & 1{,}837 q.     & \textbf{1{,}000}     & 200  & 6 sampled frames \\
   & SIV-Bench                                   & 8{,}728 q.     & 400                  & 100  & 6 sampled frames \\
 \midrule
-\textbf{Total}    &                              & ---            & \textbf{2{,}635 ids $+\sim\!130$ ep.} & \textbf{555 ids} & \\
+\textbf{Total}    &                              & ---            & \textbf{2{,}505 ids $+\sim\!130$ ep.} & \textbf{535 ids} & \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -269,8 +269,9 @@ Three of the four target-domain launchers are single-process loops;
 parallelism comes from one of three layered mechanisms
 (Table~\ref{tab:bench-parallel}). At the recommended per-bucket
 parallelism, end-to-end cold-start data generation completes in
-\textbf{$\sim$1.6--2.5\,h} (set by OSWorld KVM count + BrowserGym
-Chromium count).
+\textbf{$\sim$1.0--1.5\,h} (set by BrowserGym Chromium count, with
+OSWorld no longer the bottleneck after the 2026-05-03 pool cut from
+$250$ to $120$ tasks).
 
 \begin{table}[t]
 \centering
@@ -295,14 +296,21 @@ Visual reasoning  & \texttt{ThreadPoolExecutor}         & 32                   &
 \label{app:bench-cost}
 
 GPT-5 reasoning-class pricing ($\$1.25$ / M input, $\$10$ / M output
-incl.\ thinking). The lean plan above costs $\sim$$\$260$ per full pass
-and dominates as follows: OSWorld $\approx\!45\,\%$, BrowserGym
-$\approx\!24\,\%$, visual reasoning $\approx\!17\,\%$,
-\texttt{gymv} $\approx\!14\,\%$. The two largest levers are
+incl.\ thinking). The lean plan above costs $\sim$$\$200$ per full pass
+and dominates as follows: BrowserGym $\approx\!31\,\%$, OSWorld
+$\approx\!28\,\%$, visual reasoning $\approx\!22\,\%$,
+\texttt{gymv} $\approx\!18\,\%$. The two largest levers are
 (a) \texttt{reasoning\_effort} (\texttt{medium}$\!\to\!$\texttt{minimal}
 on env pipelines saves $\sim\!70\,\%$ of the bill) and (b) OSWorld KVM
 concurrency (2$\!\to\!$8 guests collapses wall-clock from
-$\sim\!6$\,h to $\sim\!1.6$\,h).
+$\sim\!6$\,h to $\sim\!0.8$\,h at the post-cut pool size).
+\textbf{Update (2026-05-03):} the OSWorld pool was reduced from $250$
+to $120$ stratified tasks (and the held-out from $50$ to $30$); all
+$11$ snapshot buckets remain represented in both halves. This drops
+the OSWorld cost share from $\approx\!45\,\%$ to $\approx\!28\,\%$
+and the per-pass total from $\approx\!\$260$ to $\approx\!\$200$,
+freeing budget for the WorkArena suite (browser-domain compositional
+tasks, queued for the next pass).
 
 \subsection{Reproducibility}
 \label{app:bench-repro}
