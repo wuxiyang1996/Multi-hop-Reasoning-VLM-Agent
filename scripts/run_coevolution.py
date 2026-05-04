@@ -422,6 +422,26 @@ def parse_args() -> argparse.Namespace:
              "be FAILed and rejected — routed via VLLM_BASE_URL_MAP. "
              "'live': calls GateService.evaluate end-to-end (diagnostic).",
     )
+    # Hypothesizer fallthrough gate (post-v11 audit).  Both gates default
+    # to active; lower these knobs if a workload genuinely benefits from
+    # more aggressive new-skill minting.  See CoEvolutionConfig docstring
+    # for the full rationale.
+    parser.add_argument(
+        "--crafter-hypothesize-min-recurrences", type=int, default=3,
+        help="Minimum FailureMemory recurrence count before the Crafter "
+             "dispatch chain falls through to the Hypothesizer "
+             "(default 3 — same as hot_pattern_threshold).  Set to 1 "
+             "to reproduce the pre-v11 behaviour where any single "
+             "orphan failure could mint a new skill.",
+    )
+    parser.add_argument(
+        "--crafter-hypothesize-related-skill-jaccard", type=float, default=0.30,
+        help="Jaccard threshold (0..1) above which an existing bank "
+             "skill is judged 'related' to the failure context, "
+             "blocking the Hypothesizer fallthrough (so Patch is "
+             "preferred). Default 0.30. Set to 0.0 to disable the "
+             "relatedness gate (recurrence gate stays).",
+    )
 
     # Harness wire-up (Day-10): hook the harness's eligibility +
     # validate_invocation surfaces into Phase A, and drain the rejection
@@ -492,9 +512,11 @@ def parse_args() -> argparse.Namespace:
              "→ BACKBONE_JUDGE_MODEL via VLLM_BASE_URL_MAP.",
     )
     parser.add_argument(
-        "--llm-crafter-k-max", type=int, default=5,
+        "--llm-crafter-k-max", type=int, default=2,
         help="Hard cap on parallel LLM Crafter calls per game per step "
-             "(default 5).",
+             "(default 2 post-v11; was 5 in v11 but the rewritten "
+             "last-resort prompt + recurrence/relatedness gates make a "
+             "smaller cap sufficient).",
     )
     parser.add_argument(
         "--llm-crafter-max-tokens", type=int, default=1024,
@@ -747,6 +769,18 @@ def main() -> None:
         config_kwargs["crafter_promotion_timeout_s"] = args.crafter_promotion_timeout_s
     if args.crafter_promotion_gate_mode != "offline-synthetic":
         config_kwargs["crafter_promotion_gate_mode"] = args.crafter_promotion_gate_mode
+    # Hypothesizer fallthrough gate (post-v11 audit) — only emit when
+    # the user explicitly diverges from the defaults so older smoke
+    # tests that snapshot config_kwargs aren't tripped by a noisy
+    # additive field.
+    if args.crafter_hypothesize_min_recurrences != 3:
+        config_kwargs["crafter_hypothesize_min_recurrences"] = (
+            args.crafter_hypothesize_min_recurrences
+        )
+    if args.crafter_hypothesize_related_skill_jaccard != 0.30:
+        config_kwargs["crafter_hypothesize_related_skill_jaccard"] = (
+            args.crafter_hypothesize_related_skill_jaccard
+        )
 
     if args.harness_enabled:
         config_kwargs["harness_enabled"] = True
@@ -769,7 +803,7 @@ def main() -> None:
         config_kwargs["llm_crafter_enabled"] = True
     if args.llm_crafter_model:
         config_kwargs["llm_crafter_model"] = args.llm_crafter_model
-    if args.llm_crafter_k_max != 5:
+    if args.llm_crafter_k_max != 2:
         config_kwargs["llm_crafter_k_max"] = args.llm_crafter_k_max
     if args.llm_crafter_max_tokens != 1024:
         config_kwargs["llm_crafter_max_tokens"] = args.llm_crafter_max_tokens

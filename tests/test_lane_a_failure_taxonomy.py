@@ -161,6 +161,13 @@ def test_dispatcher_lane_a_strategies_route_to_hypothesizer() -> None:
     svc._teacher = None
     svc._enable_protocol_patching = True
     svc._failures = MagicMock()
+    # Post-v11 hypothesizer-fallthrough gates: this test exercises
+    # the dispatch routing in isolation (no recurrence assertion, no
+    # bank lookup), so disable both gates by setting min_recurrences=1
+    # and jaccard=0.0. Production callers go through ``__init__``,
+    # which keeps the gate defaults (3 / 0.30).
+    svc._hypothesize_min_recurrences = 1
+    svc._hypothesize_related_jaccard = 0.0
 
     # Stub _resolve_base to return our skill, bypass the repository.
     svc._resolve_base = MagicMock(return_value=base_skill)
@@ -197,6 +204,7 @@ def test_dispatcher_lane_a_strategies_route_to_hypothesizer() -> None:
     pattern.skill_id = "sk-base"
     pattern.pattern_id = "p-1"
     pattern.failure_ids = ["f-1"]
+    pattern.count = 1  # post-v11 hypothesizer-fallthrough gate reads .count
 
     proposals, n_coalesced, n_cooldown = svc._run_failure_dispatch([pattern])
 
@@ -273,6 +281,7 @@ def test_dispatcher_protocol_edit_strategies_still_call_repairer() -> None:
     pattern.skill_id = "sk-base"
     pattern.pattern_id = "p-1"
     pattern.failure_ids = ["f-1"]
+    pattern.count = 1  # post-v11 hypothesizer-fallthrough gate reads .count
 
     proposals, _, _ = svc._run_failure_dispatch([pattern])
 

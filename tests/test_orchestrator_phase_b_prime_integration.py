@@ -214,6 +214,12 @@ def _exec_phase_b_prime_splice(
                 # to Hypothesizer instead — covered by
                 # test_run_crafter_step_lane_a_default_routes_to_hypothesizer.
                 enable_protocol_patching=True,
+                # Disable the post-v11 hypothesizer-fallthrough gates so
+                # this integration test exercises the closed-loop splice
+                # in isolation. Production callers keep the gate
+                # defaults (3 / 0.30) — see DEFAULT_HYPOTHESIZE_*.
+                hypothesize_min_recurrences=1,
+                hypothesize_related_skill_jaccard=0.0,
             )
             crafter_report = crafter_step.to_dict()
 

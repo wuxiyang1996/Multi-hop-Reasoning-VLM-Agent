@@ -426,8 +426,13 @@ class CoEvolutionConfig:
     llm_crafter_enabled: bool = False
     # Empty → defer to ``BACKBONE_JUDGE_MODEL`` (35B-A3B teacher).
     llm_crafter_model: str = ""
-    # Hard cap on parallel 35B calls per game per step.
-    llm_crafter_k_max: int = 5
+    # Hard cap on parallel 35B calls per game per step. Lowered from 5
+    # → 2 in the post-v11 fix (see ``crafter_hypothesize_*`` block
+    # above): with the rewritten last-resort prompt and the recurrence
+    # / relatedness gates, a small per-step volume cap is safe and
+    # keeps token budget predictable.  Override via
+    # ``--llm-crafter-k-max`` (env: ``LLM_CRAFTER_K_MAX``).
+    llm_crafter_k_max: int = 2
     # Token budget per LLM Crafter response.
     llm_crafter_max_tokens: int = 1024
     # Sampling temperature for LLM Crafter calls.
@@ -455,6 +460,39 @@ class CoEvolutionConfig:
     # ("think briefly", explicit JSON-first instruction, etc.)
     # before relying on the path.
     llm_crafter_enable_thinking: bool = False
+
+    # ── Hypothesizer fallthrough gate (post-v11 audit) ──────────────
+    # The crafter dispatch chain is `patch → retire → hypothesize`,
+    # with hypothesize as last-resort.  In v11 the trigger conditions
+    # were too loose: a single orphan failure (skill_id missing) fell
+    # straight through to the Hypothesizer, which minted an empty
+    # placeholder skill on every episode.  Result: 73-85% of the bank
+    # was boilerplate ``hypothesis__prop-...`` records that the actor
+    # never selected, contract GRPO collapsed (effect-literal learning
+    # rate fell from 70-85% → 6%), and TF3 step-0 reward dropped from
+    # 688 (5/3 baseline) to 62.
+    #
+    # Two gates restore the architectural intent that hypothesize fires
+    # only on genuinely hard cases:
+    #
+    #   * ``crafter_hypothesize_min_recurrences`` — same failure
+    #     pattern must recur ≥ N times in the FailureMemory window.
+    #     Default 3 mirrors the per-batch ``hot_pattern_threshold``,
+    #     so per-episode and per-batch dispatch share a recurrence
+    #     bar for the *new-skill* exit.  Set to 1 to reproduce v11
+    #     behaviour (test-only knob).
+    #   * ``crafter_hypothesize_related_skill_jaccard`` — minimum
+    #     token-Jaccard overlap (skill_id + name + strategic_description
+    #     vs failure pattern signature + diagnosis + abort_reason)
+    #     above which the gate decides "a related skill already
+    #     exists, prefer patch".  Default 0.30 — the same threshold
+    #     ``skill_agents.query._compute_relevance`` uses for
+    #     retrieval relevance, so the gate's notion of "related"
+    #     matches the actor's downstream selection signal.  Set
+    #     to 0.0 to disable the relatedness gate (recurrence gate
+    #     stays).
+    crafter_hypothesize_min_recurrences: int = 3
+    crafter_hypothesize_related_skill_jaccard: float = 0.30
 
     # ── Path 4 — LLM Harness validator (35B) ────────────────────────
     # Post-LLM second-pass validation by the 35B-A3B teacher,

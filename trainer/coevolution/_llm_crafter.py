@@ -66,10 +66,23 @@ logger = logging.getLogger("trainer.coevolution.llm_crafter")
 
 # ── Tunables ──────────────────────────────────────────────────────────
 
-DEFAULT_K_MAX_PER_STEP: int = 5
+# Lowered from 5 → 2 after v11 audit. With the prompt rewritten to
+# treat ``hypothesize`` as last-resort and the ``existing_skills``
+# block injected so the 35B can prefer ``patch``, we want a small
+# per-step volume cap as defence-in-depth: even if the teacher
+# regresses on prompt-following, we never mint more than 2 new
+# hypotheses per game per step. Override via
+# ``LLM_CRAFTER_K_MAX`` env var or ``--llm-crafter-k-max`` CLI arg.
+DEFAULT_K_MAX_PER_STEP: int = 2
 DEFAULT_MAX_TOKENS: int = 1024
 DEFAULT_TEMPERATURE: float = 0.3
 DEFAULT_TIMEOUT_S: float = 60.0
+# Hard cap on the number of existing skills we render into the
+# ``existing_skills`` prompt block. Keeps the per-call token budget
+# bounded for games whose bank has grown large; the most-recently
+# added skills are rendered first (they're the most likely match for
+# the current failure context).
+_MAX_EXISTING_SKILLS_IN_PROMPT: int = 12
 
 # Cap for any free-text field we copy *into* the prompt — keeps token
 # budgets bounded for chatty rationales / failed_step bodies.
@@ -162,16 +175,46 @@ def _summarize_game_profile(profile: Any) -> Dict[str, Any]:
     return out
 
 
+def _summarize_existing_skills(
+    existing_skills: Optional[Sequence[Mapping[str, Any]]],
+) -> List[Dict[str, Any]]:
+    """Compact view of the bank's current skills for the prompt.
+
+    Each entry is ``{skill_id, name, strategic_description}`` truncated
+    to ``_MAX_FIELD_CHARS//4`` so a 12-skill block stays under
+    ~600 tokens. The caller is responsible for ordering — we render
+    the slice it gives us as-is.
+    """
+    if not existing_skills:
+        return []
+    out: List[Dict[str, Any]] = []
+    for s in existing_skills[:_MAX_EXISTING_SKILLS_IN_PROMPT]:
+        sid = str(s.get("skill_id") or "").strip()
+        if not sid:
+            continue
+        entry = {
+            "skill_id": sid,
+            "name": str(s.get("name") or sid)[: _MAX_FIELD_CHARS // 4],
+        }
+        desc = s.get("strategic_description") or s.get("description") or ""
+        if desc:
+            entry["description"] = str(desc)[: _MAX_FIELD_CHARS // 4]
+        out.append(entry)
+    return out
+
+
 def _build_prompt(
     *,
     failure: FailureTrace,
     game: str,
     game_profile: Any = None,
+    existing_skills: Optional[Sequence[Mapping[str, Any]]] = None,
 ) -> str:
     summary = {
-        "game":         game,
-        "game_profile": _summarize_game_profile(game_profile),
-        "failure":      _summarize_failure(failure),
+        "game":             game,
+        "game_profile":     _summarize_game_profile(game_profile),
+        "existing_skills":  _summarize_existing_skills(existing_skills),
+        "failure":          _summarize_failure(failure),
     }
     summary_json = json.dumps(
         summary, ensure_ascii=False, indent=2, default=str,
@@ -183,24 +226,52 @@ def _build_prompt(
         "the bank so a future invocation under the same conditions "
         "succeeds.\n"
         "\n"
+        "DECISION POLICY (read this first — apply in order):\n"
+        "  1. Default to \"none\" when the failure looks like transient\n"
+        "     noise (game-over, time-cap, action latency) — a missed\n"
+        "     opportunity is cheaper than a polluted bank.\n"
+        "  2. Use \"patch\" if ANY entry in `existing_skills` could\n"
+        "     plausibly be modified to address this failure.  Look for\n"
+        "     tag overlap on skill_id (e.g. COMMIT/NAVIGATE matches a\n"
+        "     navigation failure) or token overlap on name /\n"
+        "     description.  Patch is the preferred kind whenever a\n"
+        "     related skill exists.\n"
+        "  3. Use \"retire\" if `failure.skill_id` is set and the skill\n"
+        "     is fundamentally broken (contradicts the game's\n"
+        "     win_signal, or has been observed to drive the agent into\n"
+        "     a death loop).\n"
+        "  4. Use \"hypothesize\" — last resort — ONLY when ALL of\n"
+        "     these hold simultaneously:\n"
+        "       (a) `existing_skills` is empty OR no entry has any\n"
+        "           plausible token overlap with the failure context.\n"
+        "       (b) You can supply a CONCRETE, GAME-SPECIFIC\n"
+        "           `new_skill_name` (e.g. \"AVOID/BULLET_VOLLEY\" not\n"
+        "           \"hypothesis_proto\") AND at least 2 SPECIFIC\n"
+        "           preconditions that reference game_profile vocabulary\n"
+        "           (no boilerplate like \"Action opportunity present\"\n"
+        "           or \"Evaluate best available action\").\n"
+        "       (c) The protocol has at least 2 steps each referencing\n"
+        "           a key_actions verb from `game_profile`.\n"
+        "     If any of (a)/(b)/(c) fail, return \"none\" instead.\n"
+        "\n"
         "Pick exactly one of these proposal kinds:\n"
-        "  - \"patch\":       repair an existing skill (modify protocol "
-        "or contract).  Use when the failure is contract-violation-"
-        "shaped and the failed skill is roughly correct but missing a "
-        "guard / step.\n"
-        "  - \"hypothesize\": propose a NEW skill that addresses the "
-        "failure pattern.  Use when no existing skill could plausibly "
-        "succeed in this state.\n"
-        "  - \"retire\":      mark the failed skill for deprecation.  "
-        "Use when the skill is incoherent, contradicts the game's "
-        "win_signal, or has no plausible repair.\n"
-        "  - \"none\":        no proposal — the failure is too "
-        "uninformative (transient noise, gameover, cap).\n"
+        "  - \"patch\":       repair an existing skill (modify protocol\n"
+        "                     or contract).  Preferred whenever a\n"
+        "                     related skill exists.\n"
+        "  - \"retire\":      mark the failed skill for deprecation.\n"
+        "                     Use when the skill is incoherent or\n"
+        "                     contradicts the game's win_signal.\n"
+        "  - \"hypothesize\": LAST RESORT — propose a NEW skill.  Subject\n"
+        "                     to the gates listed above; quality bar is\n"
+        "                     concrete game-specific content, not a\n"
+        "                     generic placeholder.\n"
+        "  - \"none\":        no proposal.  This is the right answer\n"
+        "                     for transient or uninformative failures.\n"
         "\n"
         "Respond with EXACTLY one JSON object on one or more lines, "
         "and nothing else (no ``` fences, no preamble):\n"
         "  {\n"
-        "    \"kind\":          \"patch\" | \"hypothesize\" | \"retire\" | \"none\",\n"
+        "    \"kind\":          \"patch\" | \"retire\" | \"hypothesize\" | \"none\",\n"
         "    \"rationale\":     \"<one-sentence why>\",\n"
         "    \"target_skill_id\": \"<skill_id to patch/retire, or empty>\",\n"
         "    \"new_skill_name\": \"<new skill name for hypothesize, or empty>\",\n"
@@ -211,10 +282,10 @@ def _build_prompt(
         "  }\n"
         "\n"
         "Constraints:\n"
-        "  - protocol/preconditions/effects can be empty arrays for "
-        "\"retire\" or \"none\".\n"
-        "  - Use the game_profile's key_actions vocabulary in protocol "
-        "steps when relevant.\n"
+        "  - protocol/preconditions/effects can be empty arrays for\n"
+        "    \"retire\" or \"none\".\n"
+        "  - Use the game_profile's key_actions vocabulary in protocol\n"
+        "    steps when relevant.\n"
         "  - Keep protocol ≤ "
         + str(_MAX_PROTOCOL_STEPS)
         + " steps; longer is wasted budget.\n"
@@ -402,6 +473,7 @@ async def _propose_one(
     executor: Optional[ThreadPoolExecutor],
     report: LLMCrafterReport,
     enable_thinking: bool = False,
+    existing_skills: Optional[Sequence[Mapping[str, Any]]] = None,
 ) -> Optional[BankMutationProposal]:
     """Run one ``API_func.ask_model`` call → typed proposal.
 
@@ -417,6 +489,7 @@ async def _propose_one(
     """
     prompt = _build_prompt(
         failure=failure, game=game, game_profile=game_profile,
+        existing_skills=existing_skills,
     )
     report.n_calls_attempted += 1
     raw = ""
@@ -500,6 +573,7 @@ async def run_llm_crafter_async(
     timeout_s: float = DEFAULT_TIMEOUT_S,
     executor: Optional[ThreadPoolExecutor] = None,
     enable_thinking: bool = False,
+    existing_skills: Optional[Sequence[Mapping[str, Any]]] = None,
 ) -> tuple[List[BankMutationProposal], LLMCrafterReport]:
     """Run up to ``k_max`` parallel 35B calls — one per failure trace —
     and return the resulting :class:`BankMutationProposal` list along
@@ -554,6 +628,7 @@ async def run_llm_crafter_async(
             model=model, max_tokens=max_tokens, temperature=temperature,
             timeout_s=timeout_s, executor=executor, report=report,
             enable_thinking=enable_thinking,
+            existing_skills=existing_skills,
         )
         for f in sliced
     ]
@@ -586,6 +661,7 @@ def run_llm_crafter(
     timeout_s: float = DEFAULT_TIMEOUT_S,
     executor: Optional[ThreadPoolExecutor] = None,
     enable_thinking: bool = False,
+    existing_skills: Optional[Sequence[Mapping[str, Any]]] = None,
 ) -> tuple[List[BankMutationProposal], LLMCrafterReport]:
     """Synchronous wrapper around :func:`run_llm_crafter_async`.
 
@@ -616,6 +692,7 @@ def run_llm_crafter(
         max_tokens=max_tokens, temperature=temperature,
         timeout_s=timeout_s, executor=executor,
         enable_thinking=enable_thinking,
+        existing_skills=existing_skills,
     )
     try:
         asyncio.get_running_loop()

@@ -101,6 +101,13 @@ DEFAULT_OUTCOME_FAILURE_THRESHOLD: float = 0.0
 DEFAULT_MAX_FAILURES_PER_EPISODE: int = 8
 DEFAULT_HOT_PATTERN_THRESHOLD: int = 3
 DEFAULT_COOLDOWN_PASSES: int = 5
+# Hypothesizer fallthrough gate (post-v11 audit).  Both gates also live
+# on ``crafter.service.SkillCrafterService`` so anyone instantiating the
+# service directly inherits the same defaults; we plumb them through
+# ``run_crafter_step`` so the orchestrator (and the launch-script CLI)
+# can tune them without poking at the inner constructor.
+DEFAULT_HYPOTHESIZE_MIN_RECURRENCES: int = 3
+DEFAULT_HYPOTHESIZE_RELATED_JACCARD: float = 0.30
 
 # Path 2 — supplemental LLM Crafter (35B-A3B teacher).  When enabled,
 # at most ``DEFAULT_LLM_CRAFTER_K_MAX`` failure traces *per game per
@@ -237,6 +244,17 @@ def run_crafter_step(
     # Stage 1 in-domain training keeps it ``False`` (current behaviour).
     llm_crafter_enable_thinking: bool = False,
     game_profiles: Optional[Mapping[str, Any]] = None,
+    # Hypothesizer fallthrough gate (post-v11 audit).  The dispatcher
+    # only mints a HypothesisProposal when (a) the same failure pattern
+    # has recurred at least N times in the current FailureMemory window
+    # AND (b) no existing bank skill plausibly covers the failure
+    # context (token Jaccard < threshold against active+candidate
+    # skills' name/description). Passing ``hypothesize_min_recurrences=1``
+    # AND ``hypothesize_related_skill_jaccard=0.0`` reproduces the v11
+    # behaviour (gates open) — used by integration tests that exercise
+    # the dispatch routing in isolation.
+    hypothesize_min_recurrences: int = DEFAULT_HYPOTHESIZE_MIN_RECURRENCES,
+    hypothesize_related_skill_jaccard: float = DEFAULT_HYPOTHESIZE_RELATED_JACCARD,
 ) -> CrafterStepReport:
     """Run the per-step Crafter pass for one trainer step.
 
@@ -389,6 +407,8 @@ def run_crafter_step(
                 hot_pattern_threshold=hot_pattern_threshold,
                 cooldown_passes=cooldown_passes,
                 enable_protocol_patching=enable_protocol_patching,
+                hypothesize_min_recurrences=hypothesize_min_recurrences,
+                hypothesize_related_skill_jaccard=hypothesize_related_skill_jaccard,
             )
 
             game_proposals: List[BankMutationProposal] = []
@@ -485,6 +505,15 @@ def run_crafter_step(
                         ).strip()
                         or "Qwen/Qwen3.5-35B-A3B"
                     )
+                    # Render the current bank as a compact list for the
+                    # 35B prompt's ``existing_skills`` block. The LLM
+                    # crafter uses this to prefer ``patch`` over
+                    # ``hypothesize`` whenever a related skill exists
+                    # (see _llm_crafter._build_prompt — added 2026-05-04
+                    # as part of the v11 hypothesis-pollution fix).
+                    existing_skills_for_prompt = _read_bank_summary_for_prompt(
+                        bank_path
+                    )
                     llm_proposals, llm_report = run_llm_crafter(
                         failures=game_failures,
                         game=game,
@@ -495,6 +524,7 @@ def run_crafter_step(
                         temperature=llm_crafter_temperature,
                         timeout_s=llm_crafter_timeout_s,
                         enable_thinking=llm_crafter_enable_thinking,
+                        existing_skills=existing_skills_for_prompt,
                     )
                     game_proposals.extend(llm_proposals)
                     for p in llm_proposals:
@@ -547,6 +577,36 @@ def run_crafter_step(
                         "deterministic proposals proceed unchanged",
                         step, game, exc,
                     )
+
+            # ── Quality gate (post-v11 fix) ──────────────────────────
+            # Defense-in-depth filter: even with the upstream fixes
+            # (service.py recurrence + relatedness gates,
+            # _llm_crafter.py last-resort prompt, k_max=2), occasional
+            # boilerplate hypotheses can still slip through if the 35B
+            # disregards prompt instructions or the deterministic
+            # Hypothesizer's diagnoser yields a degenerate template.
+            # We drop them at the JSONL boundary so the Promotion gate
+            # never even sees them — they don't waste a 35B judge call,
+            # don't pollute the audit stream's PROMOTE/REJECT counts,
+            # and don't (ever) reach the bank.
+            #
+            # Override via ``CRAFTER_ALLOW_BOILERPLATE_HYPOTHESIS=1``.
+            # Rejected proposals are summarised in
+            # ``_artifacts/audit.jsonl`` so the diagnostic dashboard
+            # can show "35B wanted to add a hypothesis but it failed
+            # the quality bar" — useful for tuning the prompt.
+            game_proposals, n_dropped_boilerplate = _filter_boilerplate_hypotheses(
+                game_proposals,
+                artifact_store=artifact_store,
+                step=step,
+                game=game,
+            )
+            if n_dropped_boilerplate:
+                logger.info(
+                    "crafter_hook: step=%d game=%s dropped %d boilerplate "
+                    "hypothesis proposal(s) at quality gate",
+                    step, game, n_dropped_boilerplate,
+                )
 
             # Write per-game JSONL in the offline-mirror schema.
             jsonl_path = _write_proposals_jsonl(
@@ -824,6 +884,240 @@ def _record_from_bank_entry(
     # so ``parent_skill_ids`` references resolve.
     object.__setattr__(rec, "skill_id", _safe_skill_id(str(raw_id)))
     return rec
+
+
+# ---------------------------------------------------------------------------
+# Quality gate — drop boilerplate hypothesis stubs at the JSONL boundary
+# ---------------------------------------------------------------------------
+
+# Words that are so generic they signal a placeholder protocol step
+# rather than a real, game-specific instruction. Curated from the v11
+# audit: every boilerplate ``hypothesis__prop-...`` skill in the TF3
+# bank had its ``protocol.steps`` consist entirely of these tokens
+# (e.g. "Evaluate best available action / Execute chosen action /
+# Observe result"). Each token alone is benign; the heuristic fires
+# only when EVERY step in the protocol is dominated by this set.
+_BOILERPLATE_PROTOCOL_TOKENS = frozenset({
+    "action", "actions", "available", "best", "chosen", "execute",
+    "execution", "evaluate", "observe", "observed", "perform",
+    "result", "results", "step", "steps", "verify", "verified",
+})
+
+# Same idea for preconditions: "Action opportunity present" /
+# "No active state-changing events are pending" / "Have target" all
+# tokenise into purely generic vocabulary.
+_BOILERPLATE_PRECONDITION_TOKENS = frozenset({
+    "action", "active", "available", "any", "appropriate", "events",
+    "have", "no", "opportunity", "pending", "present", "ready",
+    "state", "target",
+})
+
+
+def _is_boilerplate_protocol_step(step: Any) -> bool:
+    """True iff a single protocol step looks like a generic placeholder.
+
+    A step qualifies as boilerplate when its NL ``notes`` (or stringified
+    form) tokenises into ≥ 80% members of
+    :data:`_BOILERPLATE_PROTOCOL_TOKENS`. We require ≥ 2 tokens of signal
+    so 1-word actions ("MOVE_LEFT") never accidentally match — short
+    strings are *kept* by default.
+    """
+    if isinstance(step, dict):
+        text = step.get("notes") or step.get("payload") or ""
+    else:
+        text = step
+    text = str(text or "").strip()
+    if not text:
+        return True
+    tokens = re.findall(r"[a-zA-Z]{2,}", text.lower())
+    if len(tokens) < 2:
+        return False
+    n_boiler = sum(1 for t in tokens if t in _BOILERPLATE_PROTOCOL_TOKENS)
+    return (n_boiler / len(tokens)) >= 0.80
+
+
+def _is_boilerplate_precondition(pred: Any) -> bool:
+    """Same generic-token heuristic for preconditions."""
+    text = str(pred or "").strip()
+    if not text:
+        return True
+    tokens = re.findall(r"[a-zA-Z]{2,}", text.lower())
+    if len(tokens) < 2:
+        return False
+    n_boiler = sum(1 for t in tokens if t in _BOILERPLATE_PRECONDITION_TOKENS)
+    return (n_boiler / len(tokens)) >= 0.80
+
+
+def _classify_hypothesis_for_quality_gate(
+    proposal: HypothesisProposal,
+) -> Optional[str]:
+    """Decide whether a HypothesisProposal looks like a placeholder stub.
+
+    Returns:
+      * ``None`` — proposal looks legitimate, keep it.
+      * Otherwise, a short reason code suitable for audit logs (e.g.
+        ``"name_is_placeholder"``, ``"empty_protocol"``,
+        ``"all_steps_boilerplate"``, ``"empty_contract"``).
+
+    The heuristics deliberately err on the side of *keeping*
+    proposals when the signal is ambiguous (e.g. a 1-word step or a
+    short name): the upstream gates already filter on recurrence and
+    relatedness, so this layer's job is only to catch the
+    pathological case where the LLM / Hypothesizer emitted an
+    obvious template.
+    """
+    # 1. Name is the auto-generated placeholder — "hyp-XXXXXX" or
+    #    "hypothesis__prop-...".  These are precisely the names the
+    #    Hypothesizer / LLM crafter fall back to when they failed to
+    #    supply a concrete game-specific name.
+    name = (getattr(proposal, "name", "") or "").strip()
+    if not name or name.startswith(("hyp-", "hypothesis__")):
+        return "name_is_placeholder"
+
+    # 2. Protocol must have ≥ 2 steps; otherwise the proposal carries
+    #    no actionable instruction (the contract alone is not enough).
+    proto = getattr(proposal, "novel_protocol", None) or []
+    if len(proto) < 2:
+        return "protocol_too_short"
+
+    # 3. Every step must NOT be boilerplate. We flag the proposal only
+    #    when *all* steps are generic — a proposal with one boilerplate
+    #    "verify result" step among real ones is still useful.
+    if all(_is_boilerplate_protocol_step(s) for s in proto):
+        return "all_steps_boilerplate"
+
+    # 4. Contract must carry SOMETHING — at least one precondition
+    #    OR one effect literal. Proposals with an entirely empty
+    #    contract are pure speculation; the bank already has retire
+    #    + patch paths that handle "we don't know yet" cases.
+    contract = getattr(proposal, "contract", None)
+    has_signal = False
+    if contract is not None:
+        pre = list(getattr(contract, "preconditions", []) or [])
+        eff_a = list(getattr(contract, "effects_add", []) or [])
+        eff_d = list(getattr(contract, "effects_del", []) or [])
+        # ≥ 1 non-boilerplate precondition OR any effect literal.
+        non_boiler_pre = [p for p in pre if not _is_boilerplate_precondition(p)]
+        if non_boiler_pre or eff_a or eff_d:
+            has_signal = True
+    if not has_signal:
+        return "empty_contract"
+
+    return None
+
+
+def _filter_boilerplate_hypotheses(
+    proposals: List[BankMutationProposal],
+    *,
+    artifact_store: Any,
+    step: int,
+    game: str,
+) -> Tuple[List[BankMutationProposal], int]:
+    """Drop ``HypothesisProposal``s whose protocol/contract is generic
+    boilerplate. Returns ``(kept_proposals, n_dropped)``.
+
+    Each rejected proposal is summarised in the artifact store's
+    audit log so the dashboard can show ``35B wanted to add X but it
+    failed the quality bar`` alongside the standard PROMOTE/REJECT
+    breakdown.
+
+    Override via ``CRAFTER_ALLOW_BOILERPLATE_HYPOTHESIS=1`` — when
+    that env var is set we keep everything (audit log still records
+    the reason code so the diagnostic is preserved even when the
+    gate is off).
+    """
+    if os.environ.get("CRAFTER_ALLOW_BOILERPLATE_HYPOTHESIS", "0") in ("1", "true", "yes"):
+        return list(proposals), 0
+    kept: List[BankMutationProposal] = []
+    n_dropped = 0
+    for p in proposals:
+        if isinstance(p, HypothesisProposal):
+            reason = _classify_hypothesis_for_quality_gate(p)
+            if reason is not None:
+                n_dropped += 1
+                try:
+                    artifact_store.append_audit({
+                        "kind": "hypothesis_dropped_quality_gate",
+                        "step": step,
+                        "game": game,
+                        "proposal_id": getattr(p, "proposal_id", ""),
+                        "name": getattr(p, "name", ""),
+                        "reason": reason,
+                        "n_protocol_steps": len(getattr(p, "novel_protocol", []) or []),
+                    })
+                except Exception:  # noqa: BLE001
+                    # Audit-log failures never gate the trainer.
+                    pass
+                continue
+        kept.append(p)
+    return kept, n_dropped
+
+
+def _read_bank_summary_for_prompt(
+    bank_path: Path,
+    *,
+    max_skills: int = 12,
+) -> List[Dict[str, Any]]:
+    """Compact ``[{skill_id, name, strategic_description}]`` list for the
+    LLM Crafter's ``existing_skills`` prompt block.
+
+    Reads the legacy JSONL directly (cheaper than building a full
+    SkillRepository+BankView for read-only summary rendering — the
+    Path-2 LLM crafter is on the per-step hot path, so we avoid
+    redundant lifecycle ingestion).
+
+    Returns an empty list on cold-start (file missing / empty) or
+    parse failure; the prompt's ``existing_skills`` block is then just
+    empty, which the rewritten policy (``_build_prompt``) handles
+    correctly — clause 4(a) "existing_skills is empty" satisfies the
+    cold-start gate.
+
+    Skills are returned in *reverse-on-disk* order (newest first),
+    truncated to ``max_skills`` — the latest additions are most likely
+    to match a recent failure context. We deliberately exclude entries
+    whose name starts with ``hypothesis__`` or ``hyp-``: those are the
+    placeholder hypothesis stubs from prior runs, and rendering them
+    in the prompt would just teach the 35B that "hypothesize is fine"
+    via in-context biasing.
+    """
+    if not bank_path.is_file():
+        return []
+    out: List[Dict[str, Any]] = []
+    try:
+        with bank_path.open("r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError:
+        return []
+    for raw in reversed(lines):
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            entry = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        skill = entry.get("skill") or entry
+        if not isinstance(skill, Mapping):
+            continue
+        sid = str(skill.get("skill_id") or "").strip()
+        if not sid:
+            continue
+        name = str(skill.get("name") or sid)
+        if name.startswith(("hypothesis__", "hyp-")):
+            continue  # don't bias the prompt with prior placeholder stubs
+        desc = (
+            skill.get("strategic_description")
+            or skill.get("description")
+            or ""
+        )
+        out.append({
+            "skill_id": sid,
+            "name": name,
+            "strategic_description": str(desc or ""),
+        })
+        if len(out) >= max_skills:
+            break
+    return out
 
 
 def _seed_repo_from_legacy_jsonl(

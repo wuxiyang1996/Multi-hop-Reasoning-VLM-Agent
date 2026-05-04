@@ -161,6 +161,8 @@ class SkillCrafterService:
         hot_pattern_threshold: int = 3,
         cooldown_passes: int = 5,
         enable_protocol_patching: bool = False,
+        hypothesize_min_recurrences: int = 3,
+        hypothesize_related_skill_jaccard: float = 0.30,
     ) -> None:
         self._lifecycle = lifecycle
         self._artifacts = artifact_store
@@ -203,6 +205,28 @@ class SkillCrafterService:
         # `reflect_on_episode()` call. Used as the unit of cooldown.
         self._pass_counter: int = 0
         self._cooldown_passes = max(0, cooldown_passes)
+        # ── hypothesizer fallthrough gate (added 2026-05-04 after v11 audit) ──
+        # The dispatch chain (patch → retire → hypothesize) treats
+        # hypothesize as last-resort by design, but the trigger conditions
+        # were too loose: a single orphan failure (``pattern.skill_id is
+        # None``) bypassed the patch path entirely and minted an empty
+        # placeholder skill on every episode, polluting the bank with
+        # 73-85% boilerplate "hypothesis__prop-..." records and
+        # collapsing contract GRPO's effect-literal learning rate from
+        # 70-85% (5/3 baseline) to 6%. The two gates below restore the
+        # architectural intent that hypothesize fires only when:
+        #   (a) the same failure pattern has recurred ≥ N times within
+        #       the FailureMemory window (``hypothesize_min_recurrences``),
+        #       AND
+        #   (b) no existing bank skill is plausibly related to the
+        #       failure context (Jaccard token overlap with skill names
+        #       and strategic_descriptions below
+        #       ``hypothesize_related_skill_jaccard``).
+        # Rationale belongs in service.py (the dispatcher) so both
+        # ``cycle()`` and ``reflect_on_episode`` inherit the same gate
+        # without each surface having to remember to apply it.
+        self._hypothesize_min_recurrences = max(1, int(hypothesize_min_recurrences))
+        self._hypothesize_related_jaccard = float(hypothesize_related_skill_jaccard)
 
     # -- phase-F frozen teacher swap -------------------------------------
 
@@ -767,6 +791,44 @@ class SkillCrafterService:
                     # Fall through to the hypothesizer below as the original
                     # PLAN-SKILL-CRAFTER §6.5 dispatch chain prescribes.
 
+            # ── Hypothesizer fallthrough gate (post-v11 fix) ──
+            # Hypothesize is intended as a last-resort, not a per-episode
+            # default. Two conditions must hold before falling through:
+            #
+            #   1. ``pattern.count >= self._hypothesize_min_recurrences``
+            #      The same failure pattern has recurred ≥ N times. A
+            #      single orphan failure (e.g. one episode death) is
+            #      noise; minting a brand-new skill from it is what
+            #      caused 60-90 hypothesis stubs per phase in v11.
+            #
+            #   2. No existing bank skill is plausibly related to the
+            #      failure context (token Jaccard < threshold against
+            #      every active/candidate skill's name + description).
+            #      If a related skill exists, the right answer is to
+            #      patch it (or retire and re-mint via segmentation),
+            #      not invent a parallel placeholder.
+            #
+            # Both gates default to "open" semantics — a fresh
+            # ``FailureMemory`` always counts >= 1, and an empty bank
+            # has no related skills — so cold-start stays expressive.
+            if pattern.count < self._hypothesize_min_recurrences:
+                self._artifacts.append_audit({
+                    "kind": "hypothesize_skipped_recurrence_gate",
+                    "pattern_id": pattern.pattern_id,
+                    "pattern_count": pattern.count,
+                    "min_recurrences": self._hypothesize_min_recurrences,
+                })
+                continue
+
+            if self._has_related_bank_skill(pattern, diagnosis):
+                self._artifacts.append_audit({
+                    "kind": "hypothesize_skipped_related_skill_gate",
+                    "pattern_id": pattern.pattern_id,
+                    "pattern_count": pattern.count,
+                    "jaccard_threshold": self._hypothesize_related_jaccard,
+                })
+                continue
+
             hypothesis = self._hypothesizer.propose(
                 pattern=pattern,
                 diagnosis=diagnosis,
@@ -777,6 +839,87 @@ class SkillCrafterService:
             self._persist(hypothesis, skill_type=SkillType.MIXED, name=hypothesis.name)
             proposals.append(hypothesis)
         return proposals, n_coalesced, n_cooldown_skipped
+
+    # -- hypothesizer fallthrough gate helpers (post-v11 fix) -----------------
+
+    @staticmethod
+    def _tokenize_for_relatedness(text: Any) -> set:
+        """Lowercase token set used for related-skill Jaccard.
+
+        Mirrors :func:`skill_agents.query._tokenize` (length-2 alnum)
+        so the gate's relatedness signal is consistent with the
+        actor's downstream selection signal.
+        """
+        if not text:
+            return set()
+        import re as _re
+        return {
+            w for w in _re.split(r"[^a-zA-Z0-9]+", str(text).lower())
+            if len(w) >= 2
+        }
+
+    def _has_related_bank_skill(
+        self,
+        pattern: "FailurePattern",
+        diagnosis: Optional["FailureDiagnosis"],
+    ) -> bool:
+        """Return True iff some active/candidate skill plausibly covers
+        the failure context (Jaccard token overlap >= threshold).
+
+        We score against the union of the pattern's signature, the
+        diagnosis's root cause, and any free-text from the latest
+        failure trace — that's the same evidence the hypothesizer
+        itself sees, so the gate's notion of "related" matches the
+        proposer's.
+        """
+        if self._hypothesize_related_jaccard <= 0.0:
+            return False  # gate disabled by configuration
+
+        # Build a token signature for the failure context.
+        ctx_tokens: set = set()
+        ctx_tokens |= self._tokenize_for_relatedness(getattr(pattern, "signature", ""))
+        ctx_tokens |= self._tokenize_for_relatedness(getattr(pattern, "skill_id", ""))
+        if diagnosis is not None:
+            ctx_tokens |= self._tokenize_for_relatedness(
+                getattr(diagnosis, "root_cause", "")
+            )
+        if pattern.failure_ids:
+            trace = self._failures.trace(pattern.failure_ids[-1])
+            if trace is not None:
+                ctx_tokens |= self._tokenize_for_relatedness(
+                    getattr(trace, "abort_reason", "")
+                )
+                ctx_tokens |= self._tokenize_for_relatedness(
+                    getattr(trace, "contract_violation", "")
+                )
+
+        if len(ctx_tokens) < 2:
+            # Too little signal to make a defensible call — let the
+            # hypothesizer through (we still have the recurrence gate).
+            return False
+
+        # Walk every active + candidate skill; bail out as soon as we
+        # find a related match. ``BankView.all_iter`` covers active +
+        # candidate + draft (the three stores any actor / segmenter
+        # could have inserted into).
+        view = self._take_bank_view()
+        for rec in view.all_iter():
+            sk_tokens = (
+                self._tokenize_for_relatedness(getattr(rec, "skill_id", ""))
+                | self._tokenize_for_relatedness(getattr(rec, "name", ""))
+                | self._tokenize_for_relatedness(
+                    getattr(rec, "strategic_description", "")
+                )
+            )
+            if not sk_tokens:
+                continue
+            inter = len(ctx_tokens & sk_tokens)
+            if inter == 0:
+                continue
+            jaccard = inter / len(ctx_tokens | sk_tokens)
+            if jaccard >= self._hypothesize_related_jaccard:
+                return True
+        return False
 
     def _is_under_cooldown(self, base_skill_id: str) -> bool:
         if self._cooldown_passes <= 0:

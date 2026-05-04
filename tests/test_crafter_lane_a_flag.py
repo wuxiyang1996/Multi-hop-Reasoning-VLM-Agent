@@ -110,6 +110,14 @@ def test_lane_a_default_routes_known_skill_failure_to_hypothesizer(tmp_path):
         lifecycle=lifecycle, artifact_store=artifacts,
         # Explicit default — lane-(a).
         enable_protocol_patching=False,
+        # This test asserts the dispatcher routes to the Hypothesizer
+        # on a single failure when the patch path is parked. Disable
+        # the post-v11 hypothesizer-fallthrough gates (recurrence ≥ 3
+        # AND no related skill) so the test exercises the dispatch
+        # mechanic in isolation. Production runs use the gate
+        # defaults — see SkillCrafterService.__init__.
+        hypothesize_min_recurrences=1,
+        hypothesize_related_skill_jaccard=0.0,
     )
     base = _seed_active_skill(lifecycle)
 

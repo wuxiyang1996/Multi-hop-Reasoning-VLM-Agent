@@ -1069,6 +1069,20 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                         config, "llm_crafter_enable_thinking", False,
                     ),
                     game_profiles=game_profiles if game_profiles else None,
+                    # Hypothesizer fallthrough gate (post-v11 audit).
+                    # Defaults to (3, 0.30) — i.e. fire only on
+                    # recurring failures with no related bank skill —
+                    # so the bank doesn't fill up with placeholder
+                    # ``hypothesis__prop-...`` records the actor never
+                    # selects.  Override via CoEvolutionConfig fields
+                    # (added with the same getattr fallback in case an
+                    # older config object is in use).
+                    hypothesize_min_recurrences=getattr(
+                        config, "crafter_hypothesize_min_recurrences", 3,
+                    ),
+                    hypothesize_related_skill_jaccard=getattr(
+                        config, "crafter_hypothesize_related_skill_jaccard", 0.30,
+                    ),
                 )
                 crafter_report = crafter_step.to_dict()
 
