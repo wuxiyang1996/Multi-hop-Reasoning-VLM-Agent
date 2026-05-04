@@ -139,6 +139,11 @@ def run_promotion_step(
     driver_executable: Optional[Sequence[str]] = None,   # default = [sys.executable, decide_promotion_gpt54.py]
     driver_timeout_s: float = DEFAULT_DRIVER_TIMEOUT_S,
     extra_driver_args: Optional[Sequence[str]] = None,
+    # Stage 2 (cross-domain) opt-in.  Only consulted when
+    # ``gate_mode == "offline-with-llm-judge"`` because no other
+    # gate mode invokes the LLM judge.
+    judge_enable_thinking: bool = False,
+    judge_max_tokens: int = 256,
 ) -> PromotionStepReport:
     """Run the per-step Promotion pass for one trainer step.
 
@@ -217,7 +222,13 @@ def run_promotion_step(
             "--no-actions",                              # F5: no rollback signal in trainer
             "--gate-mode", gate_mode,
             "--output-dir", str(promotion_run_dir.resolve()),
+            # Stage 2 cross-domain knobs are only meaningful when the
+            # judge actually fires (gate_mode=="offline-with-llm-judge");
+            # for other modes the driver simply ignores them.
+            "--judge-max-tokens", str(int(judge_max_tokens)),
         ]
+        if judge_enable_thinking:
+            cmd += ["--enable-thinking"]
         if extra_driver_args:
             cmd += list(extra_driver_args)
 

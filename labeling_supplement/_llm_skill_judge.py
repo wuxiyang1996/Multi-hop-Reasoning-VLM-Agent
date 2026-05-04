@@ -237,12 +237,21 @@ def judge_proposal(
     game_hint: Optional[str] = None,
     temperature: float = 0.2,
     max_tokens: int = 256,
+    enable_thinking: bool = False,
 ) -> JudgeOutcome:
     """One LLM call → :class:`JudgeOutcome`.
 
     Always returns a value; the caller never has to wrap this in
     try/except.  On any failure path the verdict degrades gracefully to
     ``LIMITED_PASS`` so the offline-synthetic floor is preserved.
+
+    ``enable_thinking`` (default ``False``) toggles Qwen3 ``<think>``
+    chain-of-thought via ``API_func.ask_vllm``.  Stage 1 in-domain
+    promotion gating keeps it off (fast verdict, ≤256 tokens / call);
+    Stage 2 cross-domain runs opt in for higher-fidelity judgements,
+    in which case the caller must also bump ``max_tokens`` to ≥ 2048
+    so the ``<think>`` block has room to complete before the JSON
+    verdict.
     """
     prompt = _build_prompt(proposal=proposal, skill=skill, game_hint=game_hint)
     raw = ""
@@ -253,6 +262,7 @@ def judge_proposal(
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
+            enable_thinking=enable_thinking,
         ) or ""
     except Exception as exc:  # noqa: BLE001
         logger.warning(

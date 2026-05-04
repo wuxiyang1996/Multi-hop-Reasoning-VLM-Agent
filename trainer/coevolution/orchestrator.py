@@ -1064,6 +1064,10 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     llm_crafter_timeout_s=getattr(
                         config, "llm_crafter_timeout_s", 60.0,
                     ),
+                    # Stage 2 cross-domain knob — Stage 1 keeps False.
+                    llm_crafter_enable_thinking=getattr(
+                        config, "llm_crafter_enable_thinking", False,
+                    ),
                     game_profiles=game_profiles if game_profiles else None,
                 )
                 crafter_report = crafter_step.to_dict()
@@ -1079,6 +1083,19 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                             config,
                             "crafter_promotion_gate_mode",
                             "offline-synthetic",
+                        ),
+                        # Stage 2 cross-domain knobs — only consulted
+                        # when ``gate_mode == "offline-with-llm-judge"``;
+                        # for any other mode the driver ignores them.
+                        judge_enable_thinking=getattr(
+                            config,
+                            "crafter_promotion_judge_enable_thinking",
+                            False,
+                        ),
+                        judge_max_tokens=getattr(
+                            config,
+                            "crafter_promotion_judge_max_tokens",
+                            256,
                         ),
                     )
                     promotion_report = promotion_step.to_dict()

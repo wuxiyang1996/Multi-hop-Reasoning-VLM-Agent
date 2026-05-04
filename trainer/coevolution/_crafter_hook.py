@@ -228,6 +228,14 @@ def run_crafter_step(
     llm_crafter_max_tokens: int = DEFAULT_LLM_CRAFTER_MAX_TOKENS,
     llm_crafter_temperature: float = DEFAULT_LLM_CRAFTER_TEMPERATURE,
     llm_crafter_timeout_s: float = DEFAULT_LLM_CRAFTER_TIMEOUT_S,
+    # Stage 2 (cross-domain adaptation) opt-in: when ``True`` we
+    # forward ``enable_thinking=True`` into ``API_func.ask_vllm`` so
+    # Qwen3-A3B emits its ``<think>`` chain-of-thought.  Caller must
+    # also bump ``llm_crafter_max_tokens`` to ≥ 4096 and
+    # ``llm_crafter_timeout_s`` to ≥ 180 because the ``<think>`` block
+    # routinely consumes 1-3K tokens and adds 5-10× wall time.
+    # Stage 1 in-domain training keeps it ``False`` (current behaviour).
+    llm_crafter_enable_thinking: bool = False,
     game_profiles: Optional[Mapping[str, Any]] = None,
 ) -> CrafterStepReport:
     """Run the per-step Crafter pass for one trainer step.
@@ -486,6 +494,7 @@ def run_crafter_step(
                         max_tokens=llm_crafter_max_tokens,
                         temperature=llm_crafter_temperature,
                         timeout_s=llm_crafter_timeout_s,
+                        enable_thinking=llm_crafter_enable_thinking,
                     )
                     game_proposals.extend(llm_proposals)
                     for p in llm_proposals:
@@ -589,6 +598,7 @@ def run_crafter_step(
             "llm_crafter_max_tokens": llm_crafter_max_tokens,
             "llm_crafter_temperature": llm_crafter_temperature,
             "llm_crafter_timeout_s": llm_crafter_timeout_s,
+            "llm_crafter_enable_thinking": bool(llm_crafter_enable_thinking),
         },
     }
     try:

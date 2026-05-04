@@ -509,6 +509,43 @@ def parse_args() -> argparse.Namespace:
         help="Hard timeout per LLM Crafter call. On timeout the trace "
              "is dropped and the deterministic proposal stream continues.",
     )
+    parser.add_argument(
+        "--llm-crafter-enable-thinking", action="store_true",
+        help="Stage 2 (cross-domain adaptation) opt-in: forward "
+             "enable_thinking=True into the 35B Crafter ask_model "
+             "calls so Qwen3-A3B emits its <think> chain-of-thought "
+             "before the JSON proposal. EXPERIMENTAL — observed "
+             "Crafter prompts to consume >16K tokens of reasoning "
+             "without emitting a final answer; you should pair this "
+             "with --llm-crafter-max-tokens 16384+ AND a prompt-side "
+             "'think briefly' constraint. --llm-crafter-timeout-s "
+             "should also rise to >=180 s. Stage-1 in-domain "
+             "training (run_phase1_curriculum.sh) keeps this OFF.",
+    )
+
+    # Path 3 — Promotion judge (35B-A3B teacher; only fires when
+    # ``--crafter-promotion-gate-mode offline-with-llm-judge``).
+    parser.add_argument(
+        "--crafter-promotion-judge-enable-thinking",
+        action="store_true",
+        help="Stage 2 cross-domain opt-in for the LLM judge inside "
+             "decide_promotion_gpt54.py. Forwards --enable-thinking "
+             "to the driver, which threads through to "
+             "_llm_skill_judge.judge_proposal's ask_model call. Pair "
+             "with --crafter-promotion-judge-max-tokens 8192+ — "
+             "live 35B-A3B observed to spend ~5K tokens on the "
+             "<think> block before emitting the ~120-char JSON "
+             "verdict; 4K truncates, 8K+ completes in ~25-40 s. "
+             "No effect for any other gate mode (the driver simply "
+             "ignores the flag).",
+    )
+    parser.add_argument(
+        "--crafter-promotion-judge-max-tokens", type=int, default=256,
+        help="Token budget per llm-judge response. Default 256 fits a "
+             "tight JSON verdict; bump to 8192+ when --crafter-"
+             "promotion-judge-enable-thinking is set (observed 5K-"
+             "token <think> blocks before content emission).",
+    )
 
     # Path 4 — LLM Harness validator (35B-A3B teacher).
     parser.add_argument(
@@ -740,6 +777,19 @@ def main() -> None:
         config_kwargs["llm_crafter_temperature"] = args.llm_crafter_temperature
     if args.llm_crafter_timeout_s != 60.0:
         config_kwargs["llm_crafter_timeout_s"] = args.llm_crafter_timeout_s
+    # Stage 2 cross-domain opt-in for Path 2.
+    if args.llm_crafter_enable_thinking:
+        config_kwargs["llm_crafter_enable_thinking"] = True
+
+    # Path 3 — Promotion judge (Stage 2 cross-domain only).
+    if args.crafter_promotion_judge_enable_thinking:
+        config_kwargs[
+            "crafter_promotion_judge_enable_thinking"
+        ] = True
+    if args.crafter_promotion_judge_max_tokens != 256:
+        config_kwargs[
+            "crafter_promotion_judge_max_tokens"
+        ] = args.crafter_promotion_judge_max_tokens
 
     # Path 4 — LLM Harness validator (35B-A3B teacher).
     if args.llm_harness_validator_enabled:
@@ -827,14 +877,24 @@ def main() -> None:
         print("  GameProfile:  disabled")
     if getattr(config, "llm_crafter_enabled", False):
         _lcm = config.llm_crafter_model or "BACKBONE_JUDGE_MODEL (env)"
+        _lc_think = (
+            "  thinking=ON (Stage-2 cross-domain)"
+            if getattr(config, "llm_crafter_enable_thinking", False)
+            else "  thinking=OFF (Stage-1 in-domain)"
+        )
         print(
             f"  LLM Crafter:  enabled (≤{config.llm_crafter_k_max} parallel "
             f"35B/game/step via {_lcm}, "
             f"max_tokens={config.llm_crafter_max_tokens}, "
-            f"timeout={config.llm_crafter_timeout_s:.0f}s)"
+            f"timeout={config.llm_crafter_timeout_s:.0f}s){_lc_think}"
         )
     else:
         print("  LLM Crafter:  disabled")
+    if getattr(config, "crafter_promotion_judge_enable_thinking", False):
+        print(
+            f"  Promo Judge:  thinking=ON (Stage-2 cross-domain) "
+            f"max_tokens={config.crafter_promotion_judge_max_tokens}"
+        )
     if getattr(config, "llm_harness_validator_enabled", False):
         _lhm = config.llm_harness_model or "BACKBONE_JUDGE_MODEL (env)"
         print(

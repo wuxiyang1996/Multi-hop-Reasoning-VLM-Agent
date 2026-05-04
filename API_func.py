@@ -419,7 +419,14 @@ def _strip_think_tags(text: str) -> str:
     return text.strip()
 
 
-def ask_vllm(question, model=None, temperature=0.7, max_tokens=2000):
+def ask_vllm(
+    question,
+    model=None,
+    temperature=0.7,
+    max_tokens=2000,
+    *,
+    enable_thinking=False,
+):
     """
     Ask a question via a vLLM-served model using its OpenAI-compatible endpoint.
     Configure the endpoint via VLLM_BASE_URL env var (default: http://localhost:8000/v1).
@@ -433,12 +440,30 @@ def ask_vllm(question, model=None, temperature=0.7, max_tokens=2000):
     supplied, so callers that don't pass ``model=`` automatically hit
     the current actor backbone (Qwen3.5-9B) instead of the legacy
     ``Qwen/Qwen3-8B`` placeholder.
+
+    ``enable_thinking`` (default ``False``) toggles Qwen3-family
+    ``<think>...</think>`` reasoning blocks via the upstream chat
+    template kwarg.  Disabled by default because:
+
+      * actor / skill-bank / harness-validator paths want fast,
+        compact answers and the thinking budget would just inflate
+        ``completion_tokens``;
+      * the ``--reasoning-parser qwen3`` server-side flag still
+        splits ``reasoning_content`` from ``content`` even with
+        thinking off, so toggling here does NOT change response
+        shape — only token spend.
+
+    Cross-domain Crafter / Promotion-judge callers (Stage 2 training)
+    can opt in by passing ``enable_thinking=True``; they should also
+    bump ``max_tokens`` (≥ 4096) and call timeouts (≥ 180s) since the
+    ``<think>`` block routinely consumes 1-3K tokens on its own.
     """
     if model is None:
         model = _DEFAULT_VLLM_MODEL
     if not _probe_vllm():
         return _ask_qwen_via_openrouter(
             question, model=model, temperature=temperature, max_tokens=max_tokens,
+            enable_thinking=enable_thinking,
         )
 
     # Per-model URL dispatch (VLLM_BASE_URL_MAP wins for mapped models;
@@ -457,7 +482,7 @@ def ask_vllm(question, model=None, temperature=0.7, max_tokens=2000):
                 messages=[{"role": "user", "content": question}],
                 temperature=temperature,
                 max_tokens=max_tokens,
-                extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+                extra_body={"chat_template_kwargs": {"enable_thinking": bool(enable_thinking)}},
             )
             raw = response.choices[0].message.content or ""
             return _strip_think_tags(raw)
@@ -479,12 +504,22 @@ def ask_vllm(question, model=None, temperature=0.7, max_tokens=2000):
     )
 
 
-def _ask_qwen_via_openrouter(question, model=None, temperature=0.7, max_tokens=2000):
+def _ask_qwen_via_openrouter(
+    question,
+    model=None,
+    temperature=0.7,
+    max_tokens=2000,
+    *,
+    enable_thinking=False,
+):
     """Route a Qwen model call through OpenRouter as a fallback.
 
     Handles Qwen3 reasoning-model quirks:
       - Appends ``/no_think`` if not already present so the full token
-        budget goes to actual content rather than thinking.
+        budget goes to actual content rather than thinking
+        (skipped when ``enable_thinking=True`` so cross-domain
+        Crafter / Promotion-judge callers can still use Qwen's
+        chain-of-thought when the local 35B endpoint is down).
       - Falls back to the ``reasoning`` response field when ``content``
         is empty (some OpenRouter providers put thinking there).
 
@@ -497,7 +532,9 @@ def _ask_qwen_via_openrouter(question, model=None, temperature=0.7, max_tokens=2
         return (f"Error: vLLM at {VLLM_BASE_URL} unreachable and no "
                 "OpenRouter API key configured for Qwen fallback.")
 
-    if "/no_think" not in question:
+    # Qwen3 chat template: ``/no_think`` suppresses the ``<think>`` block.
+    # Skip it when callers explicitly opt-in to chain-of-thought.
+    if (not enable_thinking) and "/no_think" not in question:
         question = question.rstrip() + "\n/no_think"
 
     or_model = model.lower()
@@ -522,7 +559,14 @@ def _ask_qwen_via_openrouter(question, model=None, temperature=0.7, max_tokens=2
         return f"Error calling OpenRouter API (Qwen fallback): {str(e)}"
 
 
-def ask_model(question, model=None, temperature=0.7, max_tokens=2000):
+def ask_model(
+    question,
+    model=None,
+    temperature=0.7,
+    max_tokens=2000,
+    *,
+    enable_thinking=False,
+):
     """
     General function to ask any AI model a question.
     Automatically routes to the appropriate API based on the model name.
@@ -541,6 +585,16 @@ def ask_model(question, model=None, temperature=0.7, max_tokens=2000):
               see ``common/models.py`` ``BACKBONE_MODEL``).
         temperature (float): Sampling temperature (default: 0.7)
         max_tokens (int): Maximum tokens in response (default: 2000)
+        enable_thinking (bool, kw-only, default ``False``): Toggles
+            Qwen3-family ``<think>`` reasoning blocks.  Routed only
+            through the Qwen / vLLM branch — GPT / Claude / Gemini
+            ignore it.  When ``True``, callers should also bump
+            ``max_tokens`` to ≥ 4096 since the ``<think>`` block
+            routinely consumes 1-3K tokens before the final answer
+            starts.  Used by Stage 2 cross-domain Crafter +
+            Promotion-judge callers; defaults to ``False`` so all
+            Stage-1 / actor / skill-bank paths keep their current
+            fast-path behaviour.
 
     Returns:
         str: The generated answer
@@ -551,20 +605,23 @@ def ask_model(question, model=None, temperature=0.7, max_tokens=2000):
         model = "Qwen/Qwen3.5-9B"
     model_lower = model.lower()
 
-    # GPT-style models: use ask_gpt (which uses OpenRouter when open_router_api_key is set)
+    # GPT-style models: use ask_gpt (which uses OpenRouter when open_router_api_key is set).
+    # GPT / Claude / Gemini ignore ``enable_thinking`` — those upstream APIs
+    # surface reasoning via their own server-side switches we don't control here.
     if "gpt" in model_lower or model_lower.startswith("o1"):
         return ask_gpt(question, model=model, temperature=temperature, max_tokens=max_tokens)
-    
+
     elif "claude" in model_lower:
-        # Anthropic Claude models
         return ask_claude(question, model=model, temperature=temperature, max_tokens=max_tokens)
-    
+
     elif "gemini" in model_lower:
-        # Google Gemini models
         return ask_gemini(question, model=model, temperature=temperature, max_tokens=max_tokens)
-    
+
     elif "qwen" in model_lower or "vllm" in model_lower:
-        return ask_vllm(question, model=model, temperature=temperature, max_tokens=max_tokens)
+        return ask_vllm(
+            question, model=model, temperature=temperature,
+            max_tokens=max_tokens, enable_thinking=enable_thinking,
+        )
 
     else:
         return f"Error: Unknown model '{model}'. Please specify a GPT, Claude, Gemini, or Qwen model."

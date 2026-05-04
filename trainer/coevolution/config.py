@@ -292,6 +292,26 @@ class CoEvolutionConfig:
     # 35B endpoint is selected via ``VLLM_BASE_URL_MAP`` (handled by
     # ``API_func``); no extra plumbing required from the trainer side.
     crafter_promotion_gate_mode: str = "offline-synthetic"
+    # Stage 2 cross-domain knobs for the LLM judge that runs inside
+    # ``offline-with-llm-judge`` mode (no effect for any other gate
+    # mode).  When ``crafter_promotion_judge_enable_thinking=True``
+    # the orchestrator forwards ``--enable-thinking`` to
+    # ``decide_promotion_gpt54.py``, which threads through to
+    # ``_llm_skill_judge.judge_proposal``'s ``ask_model`` call.  We
+    # also expose ``crafter_promotion_judge_max_tokens`` separately
+    # so callers can pair the flag with the budget the ``<think>``
+    # block actually needs.
+    #
+    # Live probes against Qwen3.5-35B-A3B (judge prompt ~620 input
+    # tokens) observed the model spend ~5K tokens on the ``<think>``
+    # block before emitting the ~120-char JSON verdict.
+    # ``max_tokens=4096`` truncates inside the think block;
+    # ``max_tokens=8192`` completes in ~25-40 s; ``max_tokens=16384``
+    # is comfortable headroom.  Stage-1 in-domain training keeps
+    # both at their fast-path defaults (thinking off, 256 tokens /
+    # verdict ⇒ no <think> block, ~0.2 s / call).
+    crafter_promotion_judge_enable_thinking: bool = False
+    crafter_promotion_judge_max_tokens: int = 256
     # Lane-(a) feature flag. ``False`` (default) parks the Repairer /
     # PatchProposal mint path: under
     # ``implementation_notes/legacy/skill-lane-decision.md`` skills are
@@ -415,6 +435,26 @@ class CoEvolutionConfig:
     # Hard wall-time per individual 35B call.  On timeout we drop the
     # one trace and continue; a slow 35B can never block a step.
     llm_crafter_timeout_s: float = 60.0
+    # Stage 2 (cross-domain adaptation) opt-in.  When ``True``, the
+    # 35B Crafter calls in ``_crafter_hook`` forward
+    # ``enable_thinking=True`` into ``API_func.ask_vllm`` so Qwen3-A3B
+    # emits its ``<think>`` chain-of-thought before the final JSON
+    # proposal.  In Stage 1 (in-domain curriculum, all 6 phases of
+    # ``run_phase1_curriculum.sh``) this stays ``False`` because the
+    # rule-based proposals already cover the easy patches and the
+    # extra wall-time would dominate per-step latency.
+    #
+    # EXPERIMENTAL: live probes against Qwen3.5-35B-A3B observed the
+    # Crafter prompt induce >16K-token ``<think>`` blocks that never
+    # emitted a final JSON answer (the prompt's open-ended
+    # patch / hypothesize / retire dispatch invites runaway
+    # reasoning).  Stage-2 callers that flip this to ``True`` SHOULD
+    # therefore (a) bump ``llm_crafter_max_tokens`` to ≥ 16384,
+    # (b) bump ``llm_crafter_timeout_s`` to ≥ 180, AND (c) re-tune
+    # ``_llm_crafter._build_prompt`` to constrain reasoning length
+    # ("think briefly", explicit JSON-first instruction, etc.)
+    # before relying on the path.
+    llm_crafter_enable_thinking: bool = False
 
     # ── Path 4 — LLM Harness validator (35B) ────────────────────────
     # Post-LLM second-pass validation by the 35B-A3B teacher,

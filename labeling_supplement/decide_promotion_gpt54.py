@@ -1231,6 +1231,8 @@ def _evaluate_proposal_offline_with_llm_judge(
     judge_model: str,
     corpus_hint: Optional[str] = None,
     source_hint: Optional[str] = None,
+    enable_thinking: bool = False,
+    max_tokens: int = 256,
 ) -> SkillEvaluationRecord:
     """``offline-synthetic`` floor + one extra 35B LLM-judge stage.
 
@@ -1273,6 +1275,8 @@ def _evaluate_proposal_offline_with_llm_judge(
         skill=skill,
         model=judge_model,
         game_hint=game_hint,
+        max_tokens=max_tokens,
+        enable_thinking=enable_thinking,
     )
     extra_stage = build_stage_verdict(outcome)
 
@@ -1428,6 +1432,8 @@ def _decide_per_source(
     cfg: Dict[str, Any],
     teacher_model: str,
     judge_model: str,
+    enable_thinking: bool = False,
+    judge_max_tokens: int = 256,
 ) -> _SourceRunResult:
     t0 = time.time()
     res = _SourceRunResult(corpus=corpus, source=source, n_proposals=0)
@@ -1596,6 +1602,8 @@ def _decide_per_source(
                     judge_model=judge_model,
                     corpus_hint=corpus,
                     source_hint=source,
+                    enable_thinking=enable_thinking,
+                    max_tokens=judge_max_tokens,
                 )
             else:
                 ev = _build_synthetic_evaluation(
@@ -2080,6 +2088,21 @@ def _build_parser() -> argparse.ArgumentParser:
                         f"(logged into SkillEvaluationRecord.judge_model; "
                         f"default {BACKBONE_JUDGE_MODEL!r}).")
 
+    # ── Stage 2 cross-domain knobs (only meaningful with
+    # ``--gate-mode offline-with-llm-judge``).  Defaults preserve
+    # Stage-1 fast path: thinking off, 256 tokens / verdict.
+    p.add_argument("--enable-thinking", action="store_true",
+                   help="Forward enable_thinking=True into the LLM judge "
+                        "(Qwen3-A3B <think> chain-of-thought).  Bumps "
+                        "judge wall-time ~5-10x; combine with "
+                        "--judge-max-tokens >= 2048.  Stage-1 default OFF.")
+    p.add_argument("--judge-max-tokens", type=int, default=256,
+                   help="Token budget per llm-judge response.  Stage-1 "
+                        "default 256 (judge emits a tight JSON verdict).  "
+                        "Stage-2 with --enable-thinking should set this "
+                        "to 2048+ so the <think> block has room before "
+                        "the verdict tokens.")
+
     p.add_argument("--rollback-min-selections", type=int,
                    default=DEFAULTS["rollback_min_selections"])
     p.add_argument("--rollback-min-pass-rate", type=float,
@@ -2183,6 +2206,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             output_root=output_dir, cfg=cfg,
             teacher_model=args.teacher_model,
             judge_model=args.judge_model,
+            enable_thinking=bool(getattr(args, "enable_thinking", False)),
+            judge_max_tokens=int(getattr(args, "judge_max_tokens", 256)),
         )
         per_pair_summaries.append({
             "corpus":          res.corpus,

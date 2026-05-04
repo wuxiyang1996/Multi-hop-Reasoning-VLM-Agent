@@ -401,12 +401,19 @@ async def _propose_one(
     timeout_s: float,
     executor: Optional[ThreadPoolExecutor],
     report: LLMCrafterReport,
+    enable_thinking: bool = False,
 ) -> Optional[BankMutationProposal]:
     """Run one ``API_func.ask_model`` call → typed proposal.
 
     All exceptions degrade to ``None`` so ``asyncio.gather`` never sees
     a raised exception.  The ``report`` dataclass is mutated to carry
     the diagnostic counts.
+
+    ``enable_thinking`` (default ``False``) toggles Qwen3 ``<think>``
+    reasoning blocks via ``API_func.ask_vllm``'s
+    ``chat_template_kwargs={"enable_thinking": ...}``.  Stage 1
+    in-domain training keeps it off (fast path); Stage 2 cross-domain
+    Crafter callers opt in for higher-quality skill proposals.
     """
     prompt = _build_prompt(
         failure=failure, game=game, game_profile=game_profile,
@@ -424,6 +431,7 @@ async def _propose_one(
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                enable_thinking=enable_thinking,
             ) or ""
 
         try:
@@ -491,6 +499,7 @@ async def run_llm_crafter_async(
     temperature: float = DEFAULT_TEMPERATURE,
     timeout_s: float = DEFAULT_TIMEOUT_S,
     executor: Optional[ThreadPoolExecutor] = None,
+    enable_thinking: bool = False,
 ) -> tuple[List[BankMutationProposal], LLMCrafterReport]:
     """Run up to ``k_max`` parallel 35B calls — one per failure trace —
     and return the resulting :class:`BankMutationProposal` list along
@@ -544,6 +553,7 @@ async def run_llm_crafter_async(
             failure=f, game=game, game_profile=game_profile,
             model=model, max_tokens=max_tokens, temperature=temperature,
             timeout_s=timeout_s, executor=executor, report=report,
+            enable_thinking=enable_thinking,
         )
         for f in sliced
     ]
@@ -575,6 +585,7 @@ def run_llm_crafter(
     temperature: float = DEFAULT_TEMPERATURE,
     timeout_s: float = DEFAULT_TIMEOUT_S,
     executor: Optional[ThreadPoolExecutor] = None,
+    enable_thinking: bool = False,
 ) -> tuple[List[BankMutationProposal], LLMCrafterReport]:
     """Synchronous wrapper around :func:`run_llm_crafter_async`.
 
@@ -604,6 +615,7 @@ def run_llm_crafter(
         game_profile=game_profile, k_max=k_max,
         max_tokens=max_tokens, temperature=temperature,
         timeout_s=timeout_s, executor=executor,
+        enable_thinking=enable_thinking,
     )
     try:
         asyncio.get_running_loop()
