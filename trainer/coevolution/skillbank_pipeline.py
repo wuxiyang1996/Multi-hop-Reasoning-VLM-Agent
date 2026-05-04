@@ -277,17 +277,58 @@ class AsyncSkillBankPipeline:
     _MAX_CONCURRENT_SEGMENTATIONS = int(
         os.environ.get("SKILLBANK_MAX_CONCURRENT_SEGMENTATIONS", "8")
     )
-    # Per-episode segmentation timeout.  Default lowered from 600 → 180 s
-    # after the v4 Phase-1 run revealed segmentation cost growth from
-    # 25 s @ bank=0 to 600 s @ bank=19, with timed-out episodes
-    # leaving zombie executor threads that compounded across steps.
-    # The accompanying ``SKILLBANK_MAX_SKILL_NAMES`` cap (in
-    # ``skill_agents.pipeline.segment_episode``) bounds the per-call
-    # LLM cost so 180 s is now the realistic upper bound.  Override
-    # via env when running with a much larger configured bank.
-    _SEGMENT_TIMEOUT_S = int(
-        os.environ.get("SKILLBANK_SEGMENT_TIMEOUT_S", "180")
+    # Per-episode segmentation timeout — *dynamic* (v11, 2026-05-04 PM).
+    #
+    # Original v4 fix used a static 180 s ceiling (lowered from 600 s)
+    # with the assumption that ``SKILLBANK_MAX_SKILL_NAMES`` (in
+    # ``skill_agents.pipeline.segment_episode``) bounds per-call LLM
+    # cost.  That holds for short episodes (TF3 / AlteredBeast: 22-step
+    # mean → ~70 s segmentation) but breaks down for long-episode
+    # genres: v11 Phase-3 Columns has 130-step mean episodes and the
+    # static 180 s ceiling caused **0/8 episodes segmented** for 5 of
+    # the last 8 steps, starving the bank of evidence-driven skills
+    # and silently degrading the whole skill loop.
+    #
+    # New policy: ``timeout = base + per_step * n_steps`` (clamped to
+    # a configurable absolute ceiling to preserve the v4 zombie-thread
+    # safety net).  The defaults below sit just above measured cost on
+    # Columns (~3 s/step amortised) with ~50% headroom.  Both knobs
+    # are env-tunable so an operator can either lift the ceiling for
+    # very long episodes (e.g. WebShop) or tighten it for fast
+    # iteration on short games.
+    _SEGMENT_TIMEOUT_BASE_S = int(
+        os.environ.get("SKILLBANK_SEGMENT_TIMEOUT_BASE_S", "60")
     )
+    _SEGMENT_TIMEOUT_PER_STEP_S = float(
+        os.environ.get("SKILLBANK_SEGMENT_TIMEOUT_PER_STEP_S", "5.0")
+    )
+    _SEGMENT_TIMEOUT_MAX_S = int(
+        os.environ.get(
+            "SKILLBANK_SEGMENT_TIMEOUT_MAX_S",
+            os.environ.get("SKILLBANK_SEGMENT_TIMEOUT_S", "900"),
+        )
+    )
+
+    # Legacy single-knob alias kept for any caller that introspects the
+    # class attribute directly (no in-tree callers do, but external
+    # eval scripts might).  Reflects the *ceiling*, not the dynamic
+    # per-episode budget.
+    _SEGMENT_TIMEOUT_S = _SEGMENT_TIMEOUT_MAX_S
+
+    @classmethod
+    def _segment_timeout_for(cls, ep: Any) -> float:
+        """Compute the per-episode segmentation timeout (seconds).
+
+        Scales linearly with the number of recorded experiences in the
+        episode, capped at ``_SEGMENT_TIMEOUT_MAX_S``.  Falls back to
+        the base budget if ``ep`` doesn't expose ``experiences``.
+        """
+        try:
+            n_steps = len(getattr(ep, "experiences", ()) or ())
+        except Exception:  # noqa: BLE001
+            n_steps = 0
+        budget = cls._SEGMENT_TIMEOUT_BASE_S + cls._SEGMENT_TIMEOUT_PER_STEP_S * n_steps
+        return float(min(cls._SEGMENT_TIMEOUT_MAX_S, max(cls._SEGMENT_TIMEOUT_BASE_S, budget)))
 
     async def process_batch_async(
         self,
@@ -351,18 +392,21 @@ class AsyncSkillBankPipeline:
             async with sem:
                 fut = loop.run_in_executor(executor, _segment_one, ep)
                 in_flight[id(ep)] = fut
+                ep_timeout = self._segment_timeout_for(ep)
                 try:
                     res = await asyncio.wait_for(
                         asyncio.shield(fut),
-                        timeout=self._SEGMENT_TIMEOUT_S,
+                        timeout=ep_timeout,
                     )
                     return res
                 except asyncio.TimeoutError:
+                    n_steps = len(getattr(ep, "experiences", ()) or ())
                     logger.error(
-                        "Segmentation timed out after %ds for %s "
-                        "(cancelling future, dropping episode)",
-                        self._SEGMENT_TIMEOUT_S,
+                        "Segmentation timed out after %.0fs for %s "
+                        "(n_steps=%d, cancelling future, dropping episode)",
+                        ep_timeout,
                         getattr(ep, "episode_id", "?"),
+                        n_steps,
                     )
                     # Best-effort cancel; the executor may not actually
                     # interrupt the running thread (Python doesn't
