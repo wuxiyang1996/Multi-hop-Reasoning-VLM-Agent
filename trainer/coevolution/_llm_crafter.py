@@ -579,17 +579,59 @@ def run_llm_crafter(
     """Synchronous wrapper around :func:`run_llm_crafter_async`.
 
     Convenience entrypoint for callers that aren't already in an event
-    loop (notably ``_crafter_hook.run_crafter_step``, which is invoked
-    synchronously by the orchestrator's Phase B′ block).  When called
-    from inside a running loop this raises ``RuntimeError`` — the
-    caller should use the async entrypoint instead.
+    loop AND for callers that ARE inside a running loop (notably
+    ``_crafter_hook.run_crafter_step``, which is dispatched
+    synchronously from the orchestrator's outer ``co_evolution_loop``
+    coroutine).
+
+    Detection is two-stage:
+
+    1. Try ``asyncio.get_running_loop()``.  If it succeeds we're
+       inside a running loop and ``asyncio.run`` would raise
+       ``RuntimeError("asyncio.run() cannot be called from a running
+       event loop")``.  In that case we spawn a worker thread, run a
+       fresh event loop there, and join — this isolates the new loop
+       from the running one without disturbing it.
+    2. Otherwise (no running loop), use ``asyncio.run`` directly.
+
+    The thread-based fallback is the same idiom Jupyter uses for
+    nested ``asyncio.run`` calls.  It costs one short-lived thread
+    per invocation, which is negligible vs. the ≥ 35B-call latency
+    we're already paying.
     """
-    return asyncio.run(run_llm_crafter_async(
+    coro_args = dict(
         failures=failures, game=game, model=model,
         game_profile=game_profile, k_max=k_max,
         max_tokens=max_tokens, temperature=temperature,
         timeout_s=timeout_s, executor=executor,
-    ))
+    )
+    try:
+        asyncio.get_running_loop()
+        in_running_loop = True
+    except RuntimeError:
+        in_running_loop = False
+
+    if not in_running_loop:
+        return asyncio.run(run_llm_crafter_async(**coro_args))
+
+    import threading
+    result_holder: List[Any] = []
+    exc_holder: List[BaseException] = []
+
+    def _worker() -> None:
+        try:
+            result_holder.append(
+                asyncio.run(run_llm_crafter_async(**coro_args))
+            )
+        except BaseException as exc:  # noqa: BLE001
+            exc_holder.append(exc)
+
+    t = threading.Thread(target=_worker, name="llm_crafter_runner")
+    t.start()
+    t.join()
+    if exc_holder:
+        raise exc_holder[0]
+    return result_holder[0]
 
 
 __all__ = [

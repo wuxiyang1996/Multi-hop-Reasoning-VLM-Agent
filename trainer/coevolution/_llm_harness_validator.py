@@ -526,6 +526,12 @@ class LLMHarnessValidator:
                 cache_hit=False,
                 fired=True,
             )
+            logger.info(
+                "llm_harness_validator: VETO skill=%s episode=%s "
+                "reason=%r (trainer_step=%d, bootstrap=%s)",
+                skill_id, episode_id, outcome.rationale[:80],
+                self._trainer_step, self.in_bootstrap(),
+            )
         else:
             self._stats.n_admit_confirmed += 1
             outcome = LLMValidatorOutcome(
@@ -534,6 +540,12 @@ class LLMHarnessValidator:
                 raw_response=raw,
                 cache_hit=False,
                 fired=True,
+            )
+            logger.info(
+                "llm_harness_validator: KEEP skill=%s episode=%s "
+                "(trainer_step=%d, bootstrap=%s)",
+                skill_id, episode_id, self._trainer_step,
+                self.in_bootstrap(),
             )
         self._cache[cache_key] = outcome
         return outcome
