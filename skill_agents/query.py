@@ -225,6 +225,38 @@ class SkillQueryEngine:
         self._skill_id_order: List[str] = []
         self._build_index()
 
+    # ── Bank pass-throughs ───────────────────────────────────────────
+    # The orchestrator hands this engine to ``run_episode`` as the
+    # ``skill_bank`` argument. ``episode_runner.bank_available`` checks
+    # ``hasattr(skill_bank, "__len__")`` and ``hasattr(skill_bank,
+    # "skill_ids")`` to decide whether to fire the RAG → skill_selection
+    # → harness chain. Without these pass-throughs the engine looks
+    # "empty" to the actor (silent veto: 100% ``active_skill=None``,
+    # zero ``skill_selection`` GRPO records, ``intrinsic_bonus`` always
+    # zero), even when ``self._bank`` holds dozens of skills.
+
+    def __len__(self) -> int:
+        return len(self._bank)
+
+    @property
+    def skill_ids(self) -> List[str]:
+        return self._bank.skill_ids
+
+    def get_skill(self, skill_id: str) -> Any:
+        if hasattr(self._bank, "get_skill"):
+            return self._bank.get_skill(skill_id)
+        return None
+
+    def get_contract(self, skill_id: str) -> Any:
+        if hasattr(self._bank, "get_contract"):
+            return self._bank.get_contract(skill_id)
+        return None
+
+    def has_skill(self, skill_id: str) -> bool:
+        if hasattr(self._bank, "has_skill"):
+            return self._bank.has_skill(skill_id)
+        return skill_id in self._bank.skill_ids
+
     def _build_index(self) -> None:
         """Pre-tokenise skill IDs/effects and embed skill descriptions."""
         self._id_tokens: Dict[str, Set[str]] = {}
