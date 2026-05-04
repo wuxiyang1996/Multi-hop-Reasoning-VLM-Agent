@@ -132,6 +132,96 @@ def _summarize_skill(skill: SkillRecord) -> Dict[str, Any]:
     }
 
 
+_VERDICT_BLOCK = (
+    "Respond with EXACTLY one JSON object on a single line, with these\n"
+    "fields and nothing else:\n"
+    "  {\"verdict\": \"pass\" | \"limited_pass\" | \"fail\",\n"
+    "   \"reason\":  \"<one short sentence>\"}\n"
+    "\n"
+    "Verdict semantics:\n"
+    "  - \"pass\"          → the proposal is well-formed and likely useful;\n"
+    "  - \"limited_pass\"  → plausible but unproven (default for cold-start);\n"
+    "  - \"fail\"          → nonsensical, incoherent, contradictory, or\n"
+    "                      clearly redundant.\n"
+)
+
+
+# Kind-aware criteria — keyed by ``type(proposal).__name__``.  The default
+# (skill-mutation kinds: AddProposal/PatchProposal/ComposeProposal/
+# GeneralizeProposal/RewriteProposal) keeps the original "needs a sound
+# protocol" contract.  HypothesisProposal / RetireProposal use specialised
+# blocks because they are *not* skill-mutations:
+#   - HypothesisProposal is a probe asking the harness to collect evidence
+#     for a claimed effect; an empty ``novel_protocol`` is by-design and
+#     must NOT be treated as a fail reason (otherwise every cold-start
+#     hypothesis is auto-vetoed and Phase B′ never grows the bank).
+#   - RetireProposal targets an existing skill_id — the evaluation lives
+#     in "is the retirement justified?", not in protocol coherence.
+_CRITERIA_HYPOTHESIZE = (
+    "This proposal is a HYPOTHESIS — a probe that asks the harness to\n"
+    "collect evidence for a claimed effect on a future step.  It is *not*\n"
+    "expected to ship an executable protocol; an empty ``novel_protocol``\n"
+    "is normal for fresh hypotheses and MUST NOT be a fail reason.  Once\n"
+    "promoted, the hypothesis enters the bank as a low-confidence stub\n"
+    "(role=VERIFY) that the actor / harness can probe next step.\n"
+    "\n"
+    "Use these criteria:\n"
+    "  - Worth investigating: rationale points to a real, non-trivial\n"
+    "    open question (not a tautology, not an effect already settled).\n"
+    "  - Grounded in seed_failure_pattern_ids: the hypothesis ties to an\n"
+    "    actual failure pattern observed in this game / domain.\n"
+    "  - Target domains plausible: the hypothesis is meaningfully scoped,\n"
+    "    not 'applies to everything' boilerplate.\n"
+    "  - Non-redundant with subject_skill: the hypothesis doesn't simply\n"
+    "    restate what the parent skill's contract already promises.\n"
+    "  - Coherence (when populated): if novel_protocol / preconditions /\n"
+    "    effects_add ARE supplied, they are well-formed; missing or empty\n"
+    "    is fine and should grade as ``limited_pass`` not ``fail``.\n"
+)
+
+_CRITERIA_RETIRE = (
+    "This proposal RETIRES an existing skill from the bank.  Use these\n"
+    "criteria — *do not* require a protocol (retirements remove a skill,\n"
+    "they don't ship one):\n"
+    "  - Target validity: target_skill_id is non-empty and references a\n"
+    "    real skill in this bank.\n"
+    "  - Justification: the ``reason`` cites concrete evidence of\n"
+    "    obsolescence, harm, or persistent low admit-rate — not vague\n"
+    "    dislike or duplicate-of-a-better-skill without naming the better\n"
+    "    skill.\n"
+    "  - Non-circular: the retirement does not orphan dependent skills\n"
+    "    relied on elsewhere in the bank.\n"
+)
+
+_CRITERIA_DEFAULT = (
+    "Use these criteria:\n"
+    "  - Coherence: protocol steps are well-formed and consistent with\n"
+    "    the contract and the skill_type.\n"
+    "  - Generality: the proposal is plausibly useful in the listed\n"
+    "    target/feasible domains, not over-specialised to one trace.\n"
+    "  - Soundness: action vocabulary is sane, no contradictions, no\n"
+    "    obvious empty/garbage fields.\n"
+    "  - Novelty / non-redundancy: the proposal adds a meaningful\n"
+    "    capability rather than restating the parent skill.\n"
+)
+
+
+def _criteria_for(proposal: BankMutationProposal) -> str:
+    """Pick the criteria block matching the proposal's structural kind.
+
+    Skill-mutation proposals (Add/Patch/Compose/Generalize/Rewrite) reuse
+    the default "protocol must be sound" contract.  Hypothesize / Retire
+    bypass the protocol requirement because their semantics don't ship a
+    protocol — see the rationale on ``_CRITERIA_HYPOTHESIZE`` /
+    ``_CRITERIA_RETIRE``.
+    """
+    if isinstance(proposal, HypothesisProposal):
+        return _CRITERIA_HYPOTHESIZE
+    if isinstance(proposal, RetireProposal):
+        return _CRITERIA_RETIRE
+    return _CRITERIA_DEFAULT
+
+
 def _build_prompt(
     *, proposal: BankMutationProposal, skill: SkillRecord, game_hint: Optional[str],
 ) -> str:
@@ -141,33 +231,17 @@ def _build_prompt(
         "subject_skill": _summarize_skill(skill),
     }
     summary_json = json.dumps(summary, ensure_ascii=False, indent=2, default=str)
+    criteria = _criteria_for(proposal)
     return (
         "You are an offline judge for a multi-game RL agent's skill bank.\n"
-        "Decide whether the following skill PROPOSAL is sound enough to be\n"
+        "Decide whether the following PROPOSAL is sound enough to be\n"
         "PROMOTED into the agent's live shared skill bank, given the subject\n"
         "skill it would attach to.\n"
         "\n"
-        "Use these criteria:\n"
-        "  - Coherence: protocol steps are well-formed and consistent with\n"
-        "    the contract and the skill_type.\n"
-        "  - Generality: the proposal is plausibly useful in the listed\n"
-        "    target/feasible domains, not over-specialised to one trace.\n"
-        "  - Soundness: action vocabulary is sane, no contradictions, no\n"
-        "    obvious empty/garbage fields.\n"
-        "  - Novelty / non-redundancy: the proposal adds a meaningful\n"
-        "    capability rather than restating the parent skill.\n"
-        "\n"
-        "Respond with EXACTLY one JSON object on a single line, with these\n"
-        "fields and nothing else:\n"
-        "  {\"verdict\": \"pass\" | \"limited_pass\" | \"fail\",\n"
-        "   \"reason\":  \"<one short sentence>\"}\n"
-        "\n"
-        "Verdict semantics:\n"
-        "  - \"pass\"          → the proposal is well-formed and likely useful;\n"
-        "  - \"limited_pass\"  → plausible but unproven (default for cold-start);\n"
-        "  - \"fail\"          → nonsensical, incoherent, contradictory, or\n"
-        "                      clearly redundant.\n"
-        "\n"
+        + criteria
+        + "\n"
+        + _VERDICT_BLOCK
+        + "\n"
         "INPUT (JSON):\n"
         + summary_json
         + "\n"
