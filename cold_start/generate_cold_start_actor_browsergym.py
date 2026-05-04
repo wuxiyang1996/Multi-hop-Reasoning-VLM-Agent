@@ -220,6 +220,13 @@ _OPTIONAL_TASK_SUITE_MODULES: List[str] = [
     "browsergym.visualwebarena",
     "browsergym.assistantbench",
     "browsergym.workarena",
+    # In-tree bridge: WebShop's Flask server fronted as
+    # ``browsergym/webshop.<goal_idx>`` envs (see webshop_wrapper/README.md).
+    # Importing the package side-effect-registers the gym ids; if the
+    # WebShop server isn't running the import still succeeds, the
+    # WebShopTask just fails at reset() time with a clear connection
+    # error pointing at install/install_webshop.sh.
+    "webshop_wrapper",
 ]
 
 
