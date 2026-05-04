@@ -413,6 +413,62 @@ class CoEvolutionConfig:
     # bind only fully-validated (ACTIVE / PROVISIONAL) skills.
     harness_allow_shadow: bool = True
 
+    # ── Block B1 — harness ablation mode ──────────────────────────────
+    # Three-way switch for the §5.5 "w/o harness" ablation:
+    #   * ``"full"`` — eligibility filter + validate_invocation +
+    #     adaptation scoring fully active (default; same as
+    #     ``harness_enabled=True`` historically).
+    #   * ``"plain-text-skills"`` — skill candidates are still surfaced
+    #     to the actor (so few-shot prompt content matches the SkillBridge
+    #     run), but the eligibility filter and validate_invocation are
+    #     bypassed; the actor sees raw skill-bank content with no
+    #     grounding / precondition / admissibility check.  This is the
+    #     reviewer-requested "skills as plain-text few-shot" baseline.
+    #   * ``"off"`` — no skill candidates at all (cold-start mode).
+    # When ``harness_enabled=False`` this knob is ignored.
+    harness_mode: str = "full"
+
+    # ── Block B2 — w/o crafter ablation ───────────────────────────────
+    # When ``crafter_enabled=False``, the orchestrator skips
+    # ``run_crafter_step`` entirely (no patches, no LLM crafter, no
+    # hypotheses, no retire proposals).  Promotion + lifecycle still
+    # run on top of any pre-existing draft skills (so the bank can
+    # still grow from the legacy Stage-4 curator), but no new
+    # mutation evidence is produced.  This isolates the §4.3 crafter
+    # contribution from the §4.4 lifecycle.  Implies
+    # ``crafter_promotion_enabled=True`` (the cycler still runs in
+    # promotion mode).
+    crafter_enabled: bool = True
+
+    # ── Block B3 — promotion gate bypass ──────────────────────────────
+    # ``"gated"`` (default) routes proposals through
+    # ``GateService`` (offline-synthetic / offline-with-llm-judge / live).
+    # ``"permissive"`` auto-approves every proposal — DRAFT → ACTIVE
+    # straight through with no judge call.  Used to measure the
+    # §4.4 lifecycle gate contribution in isolation.
+    promotion_bypass_mode: str = "gated"
+
+    # ── Block B4 — intention trigger ablation ─────────────────────────
+    # Controls *when* a fresh ``intention`` LLM call happens inside the
+    # episode loop:
+    #   * ``"every-step"`` (default, matches historical SkillBridge
+    #     production behaviour pre-block-B): re-generate every inner
+    #     step.  Don't change the default without rerunning the full
+    #     §5.5 baseline.
+    #   * ``"sharp-shift"`` — re-generate only when the textual delta
+    #     or urgency signal indicates a meaningful state change.
+    #   * ``"disabled"`` — never re-generate; actor reuses the first
+    #     intention for the whole episode.
+    intention_trigger: str = "every-step"
+
+    # ── Block B5 — actor bank cap ─────────────────────────────────────
+    # Top-K cap applied at the actor's skill-query surface.  When
+    # ``actor_bank_cap_k > 0``, the actor sees only the top-K active
+    # skills (ranked by retrieval score).  ``0`` (default) disables
+    # the cap — historical behaviour, actor sees the full active bank.
+    # Used for the bank-size sweep K ∈ {10, 50, 200}.
+    actor_bank_cap_k: int = 0
+
     # ── Path 2 — supplemental LLM Crafter (35B) ─────────────────────
     # When enabled, ``_crafter_hook.run_crafter_step`` augments its
     # rule-based proposals with up to ``llm_crafter_k_max`` additional
@@ -493,6 +549,24 @@ class CoEvolutionConfig:
     #     stays).
     crafter_hypothesize_min_recurrences: int = 3
     crafter_hypothesize_related_skill_jaccard: float = 0.30
+
+    # ── Reviewer-facing instrumentation (block A) ─────────────────────
+    # Enable per-event JSONL streams used by the §4.3 / §5.3 / §5.5
+    # analysis scripts:
+    #   * ``run_dir/harness_log/rejections.jsonl`` — every veto code +
+    #     domain + skill_id (drives failure-mode pie chart).
+    #   * ``run_dir/harness_log/validate.jsonl`` — every per-event
+    #     ``validate_invocation`` diagnostic (drives case studies).
+    #   * ``run_dir/lifecycle_log/transitions.jsonl`` — every
+    #     ``SkillStatus`` transition (drives lifetime distribution +
+    #     promotion/deprecation curves).
+    #   * ``run_dir/intention_log/switches.jsonl`` — every per-step
+    #     intention update (drives intention-trigger ablation).
+    #   * ``run_dir/runtime_log/component_timings.jsonl`` — per-component
+    #     vLLM call counts + latency (drives runtime overhead Q8).
+    # I/O cost is ~1MB/step for a 6-game phase; disable for
+    # latency-sensitive ablation runs.
+    reviewer_instrumentation_enabled: bool = True
 
     # ── Path 4 — LLM Harness validator (35B) ────────────────────────
     # Post-LLM second-pass validation by the 35B-A3B teacher,

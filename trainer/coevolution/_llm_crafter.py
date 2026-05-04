@@ -495,17 +495,32 @@ async def _propose_one(
     raw = ""
     try:
         from API_func import ask_model
+        from trainer.coevolution._run_loggers import (  # noqa: WPS433
+            record_component_call,
+        )
 
         loop = asyncio.get_running_loop()
 
         def _call() -> str:
-            return ask_model(
-                prompt,
-                model=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                enable_thinking=enable_thinking,
-            ) or ""
+            t0 = time.monotonic()
+            try:
+                return ask_model(
+                    prompt,
+                    model=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    enable_thinking=enable_thinking,
+                ) or ""
+            finally:
+                # Block A5: attribute the wall-clock to the LLM crafter
+                # so §6 runtime overhead can split 35B traffic by purpose.
+                try:
+                    record_component_call(
+                        "crafter.llm",
+                        latency_ms=(time.monotonic() - t0) * 1000.0,
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
 
         try:
             raw = await asyncio.wait_for(

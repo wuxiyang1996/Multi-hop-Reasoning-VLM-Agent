@@ -15,7 +15,9 @@ This repo supersedes the COS-PLAY codebase that lives alongside it under `decisi
 - [Mechanically-enforced invariants](#mechanically-enforced-invariants)
 - [Skill transfer layer](#skill-transfer-layer)
 - [Trainer integration — co-evolution loop wires the harness](#trainer-integration--co-evolution-loop-wires-the-harness)
-- [Backbone model — GPT-4o for now](#backbone-model--gpt-4o-for-now)
+- [Backbone models — three-tier stack](#backbone-models--three-tier-stack)
+- [Cold-start data generation — lean plan + `reasoning_effort` policy](#cold-start-data-generation--lean-plan--reasoning_effort-policy)
+- [Running experiments — instrumentation, ablations, cross-domain eval, analysis](#running-experiments--instrumentation-ablations-cross-domain-eval-analysis)
 - [Repository layout](#repository-layout)
 - [Implementation status](#implementation-status)
 - [Quick start](#quick-start)
@@ -800,6 +802,285 @@ mean_reward — a 9× lift over the no-search v4 baseline) is documented
 in
 [`implementation_notes/assistantbench-search-web-baseline.md`](implementation_notes/assistantbench-search-web-baseline.md)
 once the full-eval results land.
+
+---
+
+## Running experiments — instrumentation, ablations, cross-domain eval, analysis
+
+This section is the one-stop guide for reproducing every figure /
+table the NeurIPS 2026 reviewers asked for.  It assumes the cold-start
+SFT corpus from the previous section is on disk and that one or more
+co-evolution training runs have produced a `run_dir` of the form
+
+```
+runs/skillbridge_<tag>/
+├── lora_adapters/                # per-LoRA adapter checkpoints
+├── skillbank/<game>/skill_bank.jsonl
+├── checkpoints/step_*/
+├── phase_snapshots/phase_<k>_<game>/   # per-phase frozen state (see §Trainer integration)
+├── reward_log.jsonl              # legacy per-step reward log
+├── audit.jsonl                   # crafter / promotion audit
+├── promotion_decisions_out/*_run_summary.json
+└── (instrumentation streams — see §1 below)
+```
+
+### 1. Reviewer instrumentation streams (Block A)
+
+The trainer's `_run_loggers.py` facade owns five append-only JSONL
+streams. They are **lazy-opened** on the first emit and disabled
+entirely when `config.reviewer_instrumentation_enabled = False`. All
+five live alongside the legacy `reward_log.jsonl` / `audit.jsonl`
+artifacts:
+
+| Stream                                             | Path                                          | Drives                                          |
+| -------------------------------------------------- | --------------------------------------------- | ----------------------------------------------- |
+| Per-event harness eligibility rejection            | `harness_log/rejections.jsonl`                | §5.2 failure-mode pie chart (E4)                |
+| Per-event `validate_invocation` diagnostic         | `harness_log/validate.jsonl`                  | §5.2 retrieval long tail (E2) + repair traces   |
+| Skill lifecycle transitions                        | `lifecycle_log/transitions.jsonl`             | §5.2 promotion / lifetime curves (E1, E3, E6)   |
+| Per-step intention switch (`z_t` updates)          | `intention_log/switches.jsonl`                | §4.1 intention-trigger ablation (B4)            |
+| Per-trainer-step component runtime                 | `runtime_log/component_timings.jsonl`         | §5.6 token / wall breakdown (E5)                |
+
+Schema and field-by-field meaning lives in
+[`trainer/coevolution/_run_loggers.py`](trainer/coevolution/_run_loggers.py).
+
+### 2. Ablation flags (Block B)
+
+Five CLI flags on [`scripts/run_coevolution.py`](scripts/run_coevolution.py)
+turn off / re-route individual SkillBridge components.  All defaults
+preserve the historical co-evolution behaviour, so adding the flag
+package is byte-identical to the previous full system unless an
+ablation flag is explicitly set.
+
+| Flag                                              | Default      | Effect                                                                                          |
+| ------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------- |
+| `--harness-mode {full, plain-text-skills, off}`   | `full`       | `plain-text-skills` strips bindings (LLM sees skills as text only); `off` bypasses the harness  |
+| `--no-crafter`                                    | crafter on   | Disables the LLM crafter step (deterministic crafter still runs); promotion + lifecycle stay on |
+| `--promotion-bypass-mode {gated, permissive}`     | `gated`      | `permissive` accepts every proposal (every gate stage forced to `PASS`)                         |
+| `--intention-trigger {sharp-shift, every-step, disabled}` | `every-step` | `sharp-shift` only re-picks `z_t` on a real subgoal switch; `disabled` freezes the initial intention |
+| `--actor-bank-cap-K K`                            | `0` (uncapped) | Cap how many top-K skills the `skill_selection` LoRA sees per step                              |
+
+Smoke-running each ablation:
+
+```bash
+# B1 — runtime layer ablation
+python scripts/run_coevolution.py --harness-mode plain-text-skills ...
+python scripts/run_coevolution.py --harness-mode off ...
+
+# B2 — disable LLM crafter
+python scripts/run_coevolution.py --no-crafter ...
+
+# B3 — strip the promotion gate
+python scripts/run_coevolution.py --promotion-bypass-mode permissive ...
+
+# B4 — intention switching
+python scripts/run_coevolution.py --intention-trigger sharp-shift ...
+python scripts/run_coevolution.py --intention-trigger disabled ...
+
+# B5 — actor bank-size sweep
+python scripts/run_coevolution.py --actor-bank-cap-K 8 ...
+```
+
+Each ablation run writes its own `run_dir` so the cross-domain eval
+in §3 can later compare them pairwise.  See
+[`tests/test_block_b_ablation_flags.py`](tests/test_block_b_ablation_flags.py)
+for unit coverage of every flag.
+
+### 3. Cross-domain evaluation pipeline (Block C)
+
+Five domain-specific drivers + an aggregator + a one-shot launcher
+live under [`scripts/skillbridge_eval/`](scripts/skillbridge_eval/).
+All five drivers reuse the existing `cold_start/generate_cold_start_actor_<domain>.py`
+scripts under the hood, just pointed at a vLLM endpoint where the
+trained LoRA adapters have been loaded.
+
+| Driver                                                     | Domain            | Underlying engine                                       |
+| ---------------------------------------------------------- | ----------------- | ------------------------------------------------------- |
+| `python -m scripts.skillbridge_eval.eval_browsergym`       | BrowserGym        | `cold_start/generate_cold_start_actor_browsergym.py`    |
+| `python -m scripts.skillbridge_eval.eval_osworld`          | OSWorld           | `cold_start/generate_cold_start_actor_osworld.py`       |
+| `python -m scripts.skillbridge_eval.eval_visual_reasoning` | Visual reasoning  | `cold_start/generate_cold_start_actor_visual_reasoning.py` (image benches) |
+| `python -m scripts.skillbridge_eval.eval_video`            | Video             | same script restricted to `video_holmes` + `siv_bench`  |
+| `python -m scripts.skillbridge_eval.eval_gymv`             | GymV              | `trainer.coevolution.episode_runner.run_episode_async`  |
+| `python -m scripts.skillbridge_eval.eval_aggregator`       | Aggregator        | scans `<run-dir>/eval/*_result_*.json` → CSV + Markdown |
+
+A common actor wrapper [`scripts/skillbridge_eval/eval_actor.py`](scripts/skillbridge_eval/eval_actor.py)
+encapsulates LoRA / skill-bank / harness loading and is reused by the
+GymV driver and the transfer-matrix runner (block D1).
+
+#### One-shot end-to-end eval
+
+```bash
+bash scripts/run_skillbridge_eval.sh \
+    --run-dir runs/skillbridge_v12 \
+    --vllm-base-url http://localhost:8000/v1 \
+    --model Qwen/Qwen3.5-9B \
+    --label skillbridge_full \
+    --episodes-per-task 1 --max-steps 50 \
+    [--skip osworld]              # comma-separated list of domains to skip
+    [--judge]                     # enable LLM-as-judge for VR / video
+    [--gymv-games crafter,procgen]
+```
+
+Each driver writes a uniform `<run-dir>/eval/<domain>_result_<ts>.json`
+with `domain`, `label`, `model`, `overall.{success_rate_macro|accuracy_micro|mean_reward_macro}`
+and a per-task / per-benchmark breakdown.  The aggregator picks the
+most-recent file per domain and emits:
+
+```
+<run-dir>/eval/aggregate.json    # full payload incl. per-row primary metric
+<run-dir>/eval/aggregate.csv     # one row per domain
+<run-dir>/eval/aggregate.md      # ready-to-paste paper table
+```
+
+#### Per-driver direct invocation
+
+If you only want one domain (e.g. for an ablation × domain cell) the
+driver CLIs are stand-alone:
+
+```bash
+python -m scripts.skillbridge_eval.eval_browsergym \
+    --run-dir runs/skillbridge_v12 \
+    --tasks-file cold_start/task_samples/browsergym_assistantbench_test_feasible.txt \
+    --episodes-per-task 1 --max-steps 30 \
+    --model Qwen/Qwen3.5-9B \
+    --vllm-base-url http://localhost:8000/v1 \
+    --label skillbridge_full \
+    --output runs/skillbridge_v12/eval/browsergym_result.json
+
+python -m scripts.skillbridge_eval.eval_visual_reasoning \
+    --run-dir runs/skillbridge_v12 \
+    --benchmarks visual_toolbench tir_bench \
+    --num-test-cases 200 --num-workers 32 \
+    --model Qwen/Qwen3.5-9B \
+    --vllm-base-url http://localhost:8000/v1 \
+    --judge --judge-model Qwen/Qwen3.5-35B-A3B
+```
+
+### 4. Cross-domain transfer matrix + few-shot scaling (Block D)
+
+Built on top of the per-domain drivers in §3:
+
+```bash
+# D1 — every phase snapshot × every held-out domain
+python -m scripts.skillbridge_eval.run_transfer_matrix \
+    --run-dir runs/skillbridge_v12 \
+    --domains visual_reasoning video gymv \
+    --vllm-base-url http://localhost:8000/v1 \
+    --model Qwen/Qwen3.5-9B \
+    --snapshot-loader 'curl -X POST http://localhost:8000/v1/load_lora -d {snapshot}/lora_adapters' \
+    --output runs/skillbridge_v12/eval/transfer_matrix.json
+
+# D2 — k ∈ {0, 1, 4, 16, 64} target-domain demonstrations
+python -m scripts.skillbridge_eval.run_few_shot_sweep \
+    --run-dir runs/skillbridge_v12 \
+    --domain visual_reasoning \
+    --ks 0 1 4 16 64 \
+    --vllm-base-url http://localhost:8000/v1 \
+    --enable-warmup \
+    --warmup-cmd-template 'python scripts/run_coevolution.py --target-domain {domain} --max-warmup-eps {k} --run-dir {run_dir}'
+```
+
+`run_transfer_matrix.py` automatically masks the snapshot's own
+training-domain cell (use `--include-self` to disable).  Both drivers
+expose hook flags (`--snapshot-loader`, `--warmup-cmd-template`) so
+the user can wire LoRA hot-swapping / warm-up to whatever vLLM
+deployment they run.
+
+### 5. Analysis + plotting (Block E)
+
+[`scripts/skillbridge_analysis/`](scripts/skillbridge_analysis/) ships
+eight stand-alone CLIs that consume the JSONL streams in §1.  Each
+writes both a JSON summary (paper-quotable numbers) and a PNG figure;
+pass `--no-plot` to skip the figure when matplotlib is unavailable.
+
+| Script                                                          | Source                                                      | Output                                                          |
+| --------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------- |
+| `plot_skill_dynamics.py`                                        | `lifecycle_log/transitions.jsonl` + `audit.jsonl`           | promotion / rejection / deprecation curves + mutation pie       |
+| `plot_skill_long_tail.py`                                       | `harness_log/validate.jsonl` (falls back to `reward_log.jsonl`) | per-skill retrieval frequency (linear + log-log)                |
+| `plot_skill_lifetime.py`                                        | `lifecycle_log/transitions.jsonl`                           | skill lifetime histogram + percentiles (right-censored)         |
+| `plot_failure_modes.py`                                         | `harness_log/{rejections,validate}.jsonl`                   | 8-class veto pie + 4-axis validate failure pie                  |
+| `plot_runtime_overhead.py`                                      | `runtime_log/component_timings.jsonl`                       | per-component wall + token bar chart                            |
+| `plot_skill_flow_map.py`                                        | `lifecycle_log/transitions.jsonl`                           | DRAFT → … → RETIRED flow diagram (Figure 2 candidate)           |
+| `compute_significance.py`                                       | two `*_result.json` files (paired tasks)                    | bootstrap CI95 + p-value (one- and two-sided)                   |
+| `case_study_skill_trace.py`                                     | every stream + `audit.jsonl`                                | Markdown provenance trail for a single `skill_id`               |
+
+Typical full analysis pass:
+
+```bash
+RUN=runs/skillbridge_v12
+
+for s in plot_skill_dynamics plot_skill_long_tail plot_skill_lifetime \
+         plot_failure_modes plot_runtime_overhead plot_skill_flow_map; do
+    python -m scripts.skillbridge_analysis.$s --run-dir $RUN
+done
+
+# pairwise significance (baseline vs. SkillBridge full) for each domain
+python -m scripts.skillbridge_analysis.compute_significance \
+    --domain browsergym \
+    --baseline runs/baseline/eval/browsergym_result_*.json \
+    --treatment $RUN/eval/browsergym_result_*.json \
+    --n-bootstrap 5000 \
+    --output $RUN/analysis/significance_browsergym.json
+
+# zoom in on a particular skill — provenance Markdown
+python -m scripts.skillbridge_analysis.case_study_skill_trace \
+    --run-dir $RUN --skill-id sk_collect_evidence_chain_v3 \
+    --out-path $RUN/analysis/case_study_sk_collect_evidence_chain_v3.md
+```
+
+All summary JSONs and PNGs land under `<run-dir>/analysis/` by
+default; pass `--out-dir` to redirect.
+
+### 6. Writing stubs (Block F)
+
+[`paper/stubs/`](paper/stubs/) maps each generator above to the paper
+section that consumes it.  When a number changes, re-run the matching
+script and re-paste the JSON — the stubs include the exact CLI for
+every figure so the paper provenance is reproducible.
+
+| Stub                                          | Paper section                                  | Generator |
+| --------------------------------------------- | ---------------------------------------------- | --------- |
+| [`paper/stubs/05.2_skill_dynamics.md`](paper/stubs/05.2_skill_dynamics.md)             | §5.2 Skill-bank dynamics                       | E1 + E2 + E3 + E4 |
+| [`paper/stubs/05.3_lifecycle_gating_ablation.md`](paper/stubs/05.3_lifecycle_gating_ablation.md) | §5.3 Lifecycle / intention ablations           | B1–B5 + C7 |
+| [`paper/stubs/05.5_cross_domain_transfer.md`](paper/stubs/05.5_cross_domain_transfer.md) | §5.5 Cross-domain transfer matrix              | D1 + D2 |
+| [`paper/stubs/05.6_runtime_overhead.md`](paper/stubs/05.6_runtime_overhead.md)         | §5.6 Runtime / token overhead                  | E5 |
+| [`paper/stubs/06_limitations.md`](paper/stubs/06_limitations.md)                       | §6 Limitations                                 | _(prose)_ |
+| [`paper/stubs/algorithms.md`](paper/stubs/algorithms.md)                               | Alg. 1 (episode step) + Alg. 2 (bank update)   | _(prose, source-cross-referenced)_ |
+| [`paper/stubs/_consistency_sweep.md`](paper/stubs/_consistency_sweep.md)               | F2 — paper cleanup checklist                   | `rg`-driven |
+
+### 7. End-to-end recipe — from a fresh `run_dir` to a NeurIPS table
+
+```bash
+# 0. Train. Produces runs/skillbridge_v12/{lora_adapters, skillbank, phase_snapshots, *.jsonl}.
+bash scripts/run_phase1_curriculum.sh   # 6 phases, with reviewer instrumentation on by default
+
+# 1. Cross-domain eval (block C).
+bash scripts/run_skillbridge_eval.sh \
+    --run-dir runs/skillbridge_v12 \
+    --vllm-base-url http://localhost:8000/v1 \
+    --model Qwen/Qwen3.5-9B \
+    --label skillbridge_full
+
+# 2. Transfer matrix + few-shot (block D).
+python -m scripts.skillbridge_eval.run_transfer_matrix \
+    --run-dir runs/skillbridge_v12 --domains visual_reasoning video gymv
+python -m scripts.skillbridge_eval.run_few_shot_sweep \
+    --run-dir runs/skillbridge_v12 --domain visual_reasoning --ks 0 1 4 16 64
+
+# 3. Analysis + plots (block E).
+for s in plot_skill_dynamics plot_skill_long_tail plot_skill_lifetime \
+         plot_failure_modes plot_runtime_overhead plot_skill_flow_map; do
+    python -m scripts.skillbridge_analysis.$s --run-dir runs/skillbridge_v12
+done
+
+# 4. Drop the resulting JSON / PNG / aggregate.md numbers into the
+#    matching paper/stubs/*.md stubs (block F).
+```
+
+The aggregate Markdown table at
+`runs/skillbridge_v12/eval/aggregate.md` is the headline cross-domain
+results table; the per-component runtime bar chart at
+`runs/skillbridge_v12/analysis/runtime_overhead_bar.png` is the
+NeurIPS Q8 compute disclosure.
 
 ---
 

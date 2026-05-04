@@ -320,6 +320,24 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     # ── Step history for logging ──────────────────────────────────
     step_log_path = Path(config.log_dir) / "step_log.jsonl"
 
+    # Reviewer-facing JSONL instrumentation streams (block A patches):
+    # harness rejections, validate_invocation, lifecycle transitions,
+    # intention switches, per-component runtime breakdown.  Disable by
+    # setting `config.reviewer_instrumentation_enabled = False`.
+    try:
+        from trainer.coevolution import _run_loggers as _rl_module  # noqa: WPS433
+        if bool(getattr(config, "reviewer_instrumentation_enabled", True)):
+            _rl_module.set_run_dir(Path(config.run_dir))
+            logger.info(
+                "Reviewer instrumentation enabled — writing to %s/{harness_log,"
+                "lifecycle_log,intention_log,runtime_log}/",
+                config.run_dir,
+            )
+        else:
+            _rl_module.set_run_dir(None)
+    except Exception as _rl_exc:  # noqa: BLE001
+        logger.debug("Reviewer instrumentation setup skipped: %s", _rl_exc)
+
     logger.info(
         "Starting co-evolution loop: steps %d→%d, %d games × %d eps/game",
         start_step, config.total_steps - 1,
@@ -557,6 +575,33 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 f.write(json.dumps(step_summary, default=str) + "\n")
         except Exception:
             pass
+
+        # Block A5: flush per-component runtime aggregates to JSONL.
+        # Sources:
+        #   * AsyncVLLMClient.snapshot_per_component() — actor traffic.
+        #   * record_component_call() aggregator — non-actor 35B traffic
+        #     (crafter LLM, promotion judge, harness validator, schema).
+        try:
+            from trainer.coevolution._run_loggers import (
+                log_component_timing,
+                flush_component_timings,
+            )
+            try:
+                actor_snap = vllm_client.snapshot_per_component(reset=True)
+            except Exception:  # noqa: BLE001
+                actor_snap = {}
+            for component, bucket in actor_snap.items():
+                log_component_timing(
+                    step=_step,
+                    component=str(component),
+                    n_calls=int(bucket.get("n_calls", 0)),
+                    total_ms=float(bucket.get("total_ms", 0.0)),
+                    prompt_tokens=int(bucket.get("prompt_tokens", 0)),
+                    completion_tokens=int(bucket.get("completion_tokens", 0)),
+                )
+            flush_component_timings(_step)
+        except Exception as _rl_exc:  # noqa: BLE001
+            logger.debug("component_timing flush failed: %s", _rl_exc)
 
         should_checkpoint = (
             (_step + 1) % config.checkpoint_interval == 0
@@ -799,6 +844,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 _llm_v_timeout = float(getattr(
                     config, "llm_harness_timeout_s", 30.0,
                 ))
+                _harness_mode = str(getattr(config, "harness_mode", "full") or "full")
                 for _g, _bp in _hook_bank_paths.items():
                     try:
                         harness_hooks[_g] = SkillHarnessHook.for_game(
@@ -813,6 +859,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                             llm_validator_temperature=_llm_v_temperature,
                             llm_validator_timeout_s=_llm_v_timeout,
                             game_profile=(game_profiles or {}).get(_g),
+                            mode=_harness_mode,
                         )
                     except Exception as _hexc:                  # noqa: BLE001
                         logger.warning(
@@ -1016,7 +1063,12 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         # appends promoted skills on top via `skill_bank.legacy_writeback`.
         crafter_report: Optional[Dict[str, Any]] = None
         promotion_report: Optional[Dict[str, Any]] = None
-        if config.crafter_promotion_enabled:
+        # Block B2 — when ``crafter_enabled=False`` the entire crafter
+        # phase is skipped.  Promotion/lifecycle still get a chance to
+        # run, but with zero new proposals to evaluate.  This isolates
+        # the crafter's contribution to the §5.5 ablation table.
+        _crafter_enabled = bool(getattr(config, "crafter_enabled", True))
+        if config.crafter_promotion_enabled and _crafter_enabled:
             phase_bp_t0 = time.monotonic()
             try:
                 from trainer.coevolution._crafter_hook import run_crafter_step
@@ -1110,6 +1162,10 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                             config,
                             "crafter_promotion_judge_max_tokens",
                             256,
+                        ),
+                        # Block B3 — w/o lifecycle gating ablation.
+                        bypass_mode=getattr(
+                            config, "promotion_bypass_mode", "gated",
                         ),
                     )
                     promotion_report = promotion_step.to_dict()

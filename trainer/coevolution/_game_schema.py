@@ -421,13 +421,27 @@ def _ask_judge(
     temperature: float,
     max_tokens: int,
 ) -> str:
+    import time as _t
     from API_func import ask_model
-    return ask_model(
-        prompt,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-    ) or ""
+    _t0 = _t.monotonic()
+    try:
+        return ask_model(
+            prompt,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        ) or ""
+    finally:
+        try:
+            from trainer.coevolution._run_loggers import (  # noqa: WPS433
+                record_component_call,
+            )
+            record_component_call(
+                "schema.profile",
+                latency_ms=(_t.monotonic() - _t0) * 1000.0,
+            )
+        except Exception:  # noqa: BLE001
+            pass
 
 
 # ── Public API: per-game generation and ensure-loop ───────────────────

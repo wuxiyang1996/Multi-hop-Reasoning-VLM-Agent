@@ -842,6 +842,19 @@ async def run_episode_async(
     harness_hook: Any = None,
     reward_logger: Any = None,
     game_profile: Any = None,
+    # Block B4 — intention trigger ablation:
+    #   * "every-step"  (default): historical behaviour, intention LLM
+    #     fires every inner step.
+    #   * "sharp-shift": fires only when state delta or urgency
+    #     indicates a meaningful shift; otherwise the prev intention
+    #     is reused verbatim.
+    #   * "disabled":   fires only at step 0; subsequent steps reuse
+    #     the bootstrapped intention.
+    intention_trigger: str = "every-step",
+    # Block B5 — actor-side bank cap.  ``0`` (default) = no cap.
+    # When >0, the SkillQueryEngine.select() restricts the candidate
+    # pool to the top-K skills by relevance.
+    actor_bank_cap_k: int = 0,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -1059,20 +1072,46 @@ async def run_episode_async(
             adapter="base", temperature=0.2, max_tokens=64,
         )
 
-        # Intention generation — base model, no LoRA, higher temp
-        intention_coro = _generate_intention(
-            vllm_client,
-            state_text=state_text,
-            game_name=game,
-            summary_state=summary_state,
-            prev_intention=prev_intention,
-            prev_summary_state=prev_summary_state,
-            delta=delta,
-            urgency=urgency,
-            skill_guidance=last_guidance,
-            last_action=recent_actions[-1] if recent_actions else "start",
-            tag_history=tag_history,
-        )
+        # Block B4 — intention trigger ablation.  When the trigger
+        # fires, we generate a fresh intention via the LLM; when it
+        # doesn't, we synthesise a coroutine that returns
+        # ``prev_intention`` so the downstream ``asyncio.gather`` shape
+        # stays unchanged.
+        def _should_regen_intention() -> bool:
+            if intention_trigger == "every-step":
+                return True
+            if intention_trigger == "disabled":
+                return step_count == 0 or not prev_intention
+            # "sharp-shift": fire on bootstrap, on detected urgency, or
+            # on a non-trivial state delta.  Heuristic chosen so the
+            # ablation matches the §4.1 definition without a separate
+            # 35B classifier.
+            if not prev_intention:
+                return True
+            if urgency:
+                return True
+            if delta and len(delta) >= 8:
+                return True
+            return False
+
+        if _should_regen_intention():
+            intention_coro = _generate_intention(
+                vllm_client,
+                state_text=state_text,
+                game_name=game,
+                summary_state=summary_state,
+                prev_intention=prev_intention,
+                prev_summary_state=prev_summary_state,
+                delta=delta,
+                urgency=urgency,
+                skill_guidance=last_guidance,
+                last_action=recent_actions[-1] if recent_actions else "start",
+                tag_history=tag_history,
+            )
+        else:
+            async def _passthrough_intention(_keep: str = prev_intention) -> str:
+                return _keep
+            intention_coro = _passthrough_intention()
 
         need_reselect = skill_tracker.should_reselect(
             last_guidance, state_text=summary_state or obs_nl,
@@ -1103,6 +1142,7 @@ async def run_episode_async(
                 intention=current_intention,
                 structured_state=step_structured if step_structured else structured_state,
                 top_k=3,
+                bank_cap_k=int(actor_bank_cap_k or 0),
             )
 
             # Pre-LLM harness eligibility filter (PLAN-HARNESS §5.2). When
@@ -1124,6 +1164,7 @@ async def run_episode_async(
                     )
                     candidates, harness_filter_diag = harness_hook.filter_candidates(
                         list(candidates), _hstate,
+                        episode_id=episode_id,
                     )
                 except Exception as _hexc:                       # noqa: BLE001
                     logger.debug(
@@ -1200,8 +1241,11 @@ async def run_episode_async(
                 )
                 # Path 4 — pass ``episode_id`` for per-episode LLM
                 # validator caching (no-op when validator is off).
+                # ``inner_step`` is plumbed for block A2 logging only.
                 _ok, _d = harness_hook.validate_choice(
-                    _sid, _hstate2, episode_id=episode_id,
+                    _sid, _hstate2,
+                    episode_id=episode_id,
+                    inner_step=step_count,
                 )
                 return bool(_ok), _d
             except Exception as _vexc:                          # noqa: BLE001
@@ -1355,6 +1399,50 @@ async def run_episode_async(
         )
         current_intention = parsed_intention or assigned_subgoal or prev_intention or f"[SETUP] {game}"
         action = _apply_anti_repetition(action, step_actions, recent_actions, recent_rewards, game=game)
+
+        # Block A4: stream the per-step intention update.  ``switched``
+        # = textual inequality;  ``sharp_shift`` = tag-prefix change OR
+        # high urgency (a working definition of §4.1's "sharp shift" we
+        # can sharpen post-hoc).  Drives intention-trigger ablation +
+        # the §4.1 method-section sharp-shift threshold definition.
+        try:
+            from trainer.coevolution._run_loggers import (  # noqa: WPS433
+                log_intention_switch,
+            )
+            _prev_tag_m = _TAG_RE.match(prev_intention) if prev_intention else None
+            _curr_tag_m = _TAG_RE.match(current_intention) if current_intention else None
+            _prev_tag = _prev_tag_m.group(1).upper() if _prev_tag_m else ""
+            _curr_tag = _curr_tag_m.group(1).upper() if _curr_tag_m else ""
+            _switched = bool(prev_intention) and (current_intention != prev_intention)
+            _sharp = (
+                bool(_prev_tag)
+                and bool(_curr_tag)
+                and _prev_tag != _curr_tag
+            ) or bool(urgency)
+            # Trainer outer step is best-effort: read from the harness
+            # hook when wired (orchestrator sets it via for_game).  When
+            # there is no hook (e.g. cold-start mode), emit step=-1 and
+            # post-hoc joiners can correlate via timestamp.
+            _outer = -1
+            if harness_hook is not None and hasattr(harness_hook, "_trainer_step"):
+                try:
+                    _outer = int(getattr(harness_hook, "_trainer_step", -1))
+                except Exception:
+                    _outer = -1
+            log_intention_switch(
+                step=_outer,
+                episode_id=episode_id,
+                game=game,
+                inner_step=step_count,
+                prev_intention=prev_intention,
+                new_intention=current_intention,
+                switched=_switched,
+                sharp_shift=_sharp,
+                summary_state_delta=delta or "",
+                urgency=urgency or "",
+            )
+        except Exception:  # noqa: BLE001
+            pass
 
         # ── 6. env.step() (in executor) ─────────────────────────
         try:

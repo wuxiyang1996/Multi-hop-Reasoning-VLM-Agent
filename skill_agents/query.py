@@ -542,6 +542,8 @@ class SkillQueryEngine:
         current_state: Optional[Dict[str, float]] = None,
         current_predicates: Optional[Dict[str, float]] = None,
         top_k: int = 3,
+        *,
+        bank_cap_k: int = 0,
     ) -> List[SkillSelectionResult]:
         """Rich skill selection combining retrieval relevance with execution
         applicability and structured guidance.
@@ -573,8 +575,24 @@ class SkillQueryEngine:
         state = current_state or current_predicates
         relevance_scores = self._compute_relevance(query)
 
+        # Block B5 — actor-bank-cap-K ablation.  When ``bank_cap_k > 0``
+        # we restrict the candidate pool to the top-K most relevant
+        # skills BEFORE applicability scoring runs.  This approximates
+        # "actor only sees K skills" without requiring lifecycle-level
+        # bank truncation; the §5.5 sweep K ∈ {10, 50, 200} therefore
+        # measures retrieval-side capacity, not bank-write capacity.
+        # ``bank_cap_k <= 0`` (default) preserves historical behaviour.
+        if bank_cap_k and bank_cap_k > 0 and len(self._skill_id_order) > bank_cap_k:
+            ranked_sids = sorted(
+                self._skill_id_order,
+                key=lambda s: -float(relevance_scores.get(s, 0.0)),
+            )[:bank_cap_k]
+            considered_order = ranked_sids
+        else:
+            considered_order = self._skill_id_order
+
         results: List[SkillSelectionResult] = []
-        for sid in self._skill_id_order:
+        for sid in considered_order:
             rel = relevance_scores.get(sid, 0.0)
             app, matched, missing = self._compute_applicability(sid, state)
             n_skill, n_total = self.selection_tracker.get(sid)

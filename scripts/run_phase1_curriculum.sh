@@ -845,8 +845,25 @@ build_train_args() {
         --bank-mode "${BANK_MODE}"
     )
 
-    if [ "${is_first_phase}" = "true" ]; then
-        # First phase only: load the cold-start SFT adapters.
+    # Mid-phase resume detection: if the run dir already has a
+    # checkpoint, we MUST use --resume regardless of phase number.
+    # This handles two flows:
+    #   * RESUME_PHASE=N with N>=2 — phase N starts fresh on top of
+    #     phase N-1's snapshot.  Launcher used to hard-code --resume
+    #     here.
+    #   * RESUME_PHASE=1 with the SFT-loaded run already partway
+    #     through phase 1 (e.g. instrumentation was added mid-run).
+    #     Without this branch the launcher would try to re-load SFT
+    #     and overwrite the trained LoRA.
+    has_existing_checkpoint=false
+    if [ -d "${RUN_DIR}/checkpoints" ] \
+        && ls "${RUN_DIR}/checkpoints"/step_* 1>/dev/null 2>&1; then
+        has_existing_checkpoint=true
+    fi
+
+    if [ "${is_first_phase}" = "true" ] \
+        && [ "${has_existing_checkpoint}" = "false" ]; then
+        # First phase, fresh start: load the cold-start SFT adapters.
         # Subsequent phases inherit the rolling LoRA from --run-dir
         # (Option C carry-over).
         if [ -d "${COLDSTART_DECISION}" ]; then
@@ -856,6 +873,7 @@ build_train_args() {
             args+=(--load-skillbank-adapters "${COLDSTART_SKILLBANK}")
         fi
     else
+        # Either later phase OR phase 1 with existing checkpoint.
         args+=(--resume)
     fi
 

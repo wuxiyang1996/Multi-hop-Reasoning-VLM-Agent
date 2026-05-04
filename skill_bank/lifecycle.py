@@ -131,11 +131,31 @@ class SkillLifecycleManager:
             from_store = self._store_for(record.status)
             to_store = self._store_for(to_status)
 
+            from_status = record.status
+
             with from_store._unlocked(self._token):
                 from_store.remove(record.skill_id, token=self._token)
             record.status = to_status
             with to_store._unlocked(self._token):
                 to_store.put(record, token=self._token)
+
+            # Block A3: stream lifecycle transition to reviewer-facing
+            # JSONL log so §5.3 skill-lifetime distribution / promotion
+            # / deprecation curves can be reconstructed post-hoc.
+            # Best-effort, non-fatal on import / I/O failure.
+            try:
+                from trainer.coevolution._run_loggers import (  # noqa: WPS433
+                    log_lifecycle_transition,
+                )
+                log_lifecycle_transition(
+                    skill_id=skill_id,
+                    from_status=from_status.value,
+                    to_status=to_status.value,
+                    reason=str(rationale or ""),
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
             return record
 
     # -- batch promotion (used by PromotionOrchestrator) -----------------

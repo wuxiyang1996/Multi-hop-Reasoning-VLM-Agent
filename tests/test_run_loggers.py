@@ -1,0 +1,171 @@
+"""Unit tests for ``trainer.coevolution._run_loggers``.
+
+Verifies the 5 reviewer-facing JSONL streams (block A1-A5) write in the
+correct shape and gracefully no-op when ``set_run_dir`` was not called.
+"""
+from __future__ import annotations
+
+import json
+import tempfile
+from pathlib import Path
+
+import pytest
+
+from trainer.coevolution import _run_loggers as rl
+
+
+@pytest.fixture(autouse=True)
+def _isolated_run_dir(tmp_path):
+    """Each test gets a fresh run dir + clean module state."""
+    rl.set_run_dir(None)  # reset
+    rl._component_agg.clear()  # reset aggregator
+    rl.set_run_dir(tmp_path)
+    yield tmp_path
+    rl.set_run_dir(None)
+
+
+def _read_lines(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    with open(path) as f:
+        return [json.loads(line) for line in f if line.strip()]
+
+
+def test_log_harness_rejection_writes_jsonl(_isolated_run_dir):
+    rl.log_harness_rejection(
+        step=42,
+        episode_id="ep-1",
+        game="gymv_columns",
+        domain="gymv",
+        task="cl_match_3",
+        skill_id="skill-abc",
+        veto="domain_mismatch",
+        veto_reason="state.domain='gymv' not in feasible_domains=['web']",
+    )
+    rows = _read_lines(_isolated_run_dir / "harness_log" / "rejections.jsonl")
+    assert len(rows) == 1
+    r = rows[0]
+    assert r["kind"] == "harness_rejection"
+    assert r["step"] == 42
+    assert r["episode_id"] == "ep-1"
+    assert r["veto"] == "domain_mismatch"
+    assert r["skill_id"] == "skill-abc"
+    assert "ts" in r
+
+
+def test_log_harness_validate_writes_diagnostic(_isolated_run_dir):
+    rl.log_harness_validate(
+        step=5,
+        episode_id="ep-2",
+        game="gymv_thunder_force_iii",
+        inner_step=12,
+        skill_id="skill-xyz",
+        ok=False,
+        binding_ok=True,
+        precondition_ok=False,
+        evidence_ok=True,
+        adapter_ok=True,
+        veto_reasons=["precondition_failed"],
+        missing_bindings=["target_enemy"],
+        failed_preconditions=["enemy_in_range"],
+    )
+    rows = _read_lines(_isolated_run_dir / "harness_log" / "validate.jsonl")
+    assert len(rows) == 1
+    r = rows[0]
+    assert r["ok"] is False
+    assert r["binding_ok"] is True
+    assert r["precondition_ok"] is False
+    assert r["missing_bindings"] == ["target_enemy"]
+    assert r["failed_preconditions"] == ["enemy_in_range"]
+
+
+def test_log_lifecycle_transition(_isolated_run_dir):
+    rl.log_lifecycle_transition(
+        skill_id="skill-1",
+        from_status="DRAFT",
+        to_status="PROVISIONAL",
+        reason="cold_start_seed",
+    )
+    rl.log_lifecycle_transition(
+        skill_id="skill-1",
+        from_status="PROVISIONAL",
+        to_status="ACTIVE",
+        reason="promotion:limited_pass",
+    )
+    rows = _read_lines(_isolated_run_dir / "lifecycle_log" / "transitions.jsonl")
+    assert len(rows) == 2
+    assert rows[0]["from_status"] == "DRAFT"
+    assert rows[1]["to_status"] == "ACTIVE"
+    assert all("ts" in r for r in rows)
+
+
+def test_log_intention_switch(_isolated_run_dir):
+    rl.log_intention_switch(
+        step=3,
+        episode_id="ep-x",
+        game="g",
+        inner_step=0,
+        prev_intention="",
+        new_intention="[SETUP] play",
+        switched=False,
+        sharp_shift=False,
+    )
+    rl.log_intention_switch(
+        step=3,
+        episode_id="ep-x",
+        game="g",
+        inner_step=1,
+        prev_intention="[SETUP] play",
+        new_intention="[ATTACK] target enemy",
+        switched=True,
+        sharp_shift=True,
+        urgency="high",
+    )
+    rows = _read_lines(_isolated_run_dir / "intention_log" / "switches.jsonl")
+    assert len(rows) == 2
+    assert rows[1]["switched"] is True
+    assert rows[1]["sharp_shift"] is True
+    assert rows[1]["urgency"] == "high"
+
+
+def test_component_timing_aggregator_flush(_isolated_run_dir):
+    rl.record_component_call("crafter.llm", latency_ms=1234.5)
+    rl.record_component_call("crafter.llm", latency_ms=2000.0)
+    rl.record_component_call("promotion.judge", latency_ms=500.0)
+    snap = rl.flush_component_timings(step=7)
+    assert snap["crafter.llm"]["n_calls"] == 2
+    assert snap["crafter.llm"]["total_ms"] == pytest.approx(3234.5)
+    assert snap["promotion.judge"]["n_calls"] == 1
+
+    # Aggregator is reset after flush.
+    snap2 = rl.flush_component_timings(step=8)
+    assert snap2 == {}
+
+    rows = _read_lines(_isolated_run_dir / "runtime_log" / "component_timings.jsonl")
+    # 2 components on step 7, none on step 8 (empty flush).
+    by_component = {(r["step"], r["component"]): r for r in rows}
+    assert (7, "crafter.llm") in by_component
+    assert (7, "promotion.judge") in by_component
+    assert by_component[(7, "crafter.llm")]["n_calls"] == 2
+
+
+def test_disabled_run_dir_is_noop(tmp_path):
+    rl.set_run_dir(None)
+    rl.log_harness_rejection(
+        step=0, episode_id="x", game="g", domain="d", task="",
+        skill_id="s", veto="v", veto_reason="",
+    )
+    # No file written anywhere.
+    assert not (tmp_path / "harness_log").exists()
+
+
+def test_measure_component_context_manager(_isolated_run_dir):
+    import time as _t
+    with rl.measure_component("schema.profile"):
+        _t.sleep(0.005)  # 5ms
+    snap = rl.flush_component_timings(step=1)
+    assert snap["schema.profile"]["n_calls"] == 1
+    assert snap["schema.profile"]["total_ms"] >= 4.0  # sleep is best-effort
+
+    rows = _read_lines(_isolated_run_dir / "runtime_log" / "component_timings.jsonl")
+    assert any(r["component"] == "schema.profile" for r in rows)

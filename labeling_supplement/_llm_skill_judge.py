@@ -330,7 +330,9 @@ def judge_proposal(
     prompt = _build_prompt(proposal=proposal, skill=skill, game_hint=game_hint)
     raw = ""
     try:
+        import time as _t
         from API_func import ask_model
+        _t0 = _t.monotonic()
         raw = ask_model(
             prompt,
             model=model,
@@ -338,6 +340,19 @@ def judge_proposal(
             max_tokens=max_tokens,
             enable_thinking=enable_thinking,
         ) or ""
+        # Block A5: attribute promotion-judge wall-time.  Best-effort
+        # import — the labeling_supplement module is also called outside
+        # the trainer (offline judge runs), so the import may fail.
+        try:
+            from trainer.coevolution._run_loggers import (  # noqa: WPS433
+                record_component_call,
+            )
+            record_component_call(
+                "promotion.judge",
+                latency_ms=(_t.monotonic() - _t0) * 1000.0,
+            )
+        except Exception:  # noqa: BLE001
+            pass
     except Exception as exc:  # noqa: BLE001
         logger.warning(
             "llm_skill_judge: ask_model raised; defaulting to LIMITED_PASS "

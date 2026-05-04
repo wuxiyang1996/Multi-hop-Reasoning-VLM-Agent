@@ -144,6 +144,12 @@ def run_promotion_step(
     # gate mode invokes the LLM judge.
     judge_enable_thinking: bool = False,
     judge_max_tokens: int = 256,
+    # Block B3 — promotion gate ablation.  ``"gated"`` (default)
+    # routes through the driver subprocess as historical.
+    # ``"permissive"`` bypasses the driver entirely and auto-promotes
+    # every proposal — used by the §5.5 "w/o lifecycle gating"
+    # ablation to measure the gate's contribution in isolation.
+    bypass_mode: str = "gated",
 ) -> PromotionStepReport:
     """Run the per-step Promotion pass for one trainer step.
 
@@ -206,6 +212,16 @@ def run_promotion_step(
             skipped=True,
             skipped_reason="no proposals on disk",
         )
+
+    # Block B3: permissive bypass — when ``bypass_mode == "permissive"``
+    # we rewrite ``gate_mode`` to ``"permissive"`` so the driver
+    # subprocess auto-PASSes every stage (DRAFT → ACTIVE).  Writeback
+    # still runs so the bank reflects the promoted skills; the only
+    # thing skipped is the judge / verdict computation.  Keeps the
+    # subprocess-based artifact layout intact so analysis scripts work
+    # without a special case.
+    if bypass_mode == "permissive":
+        gate_mode = "permissive"
 
     # Build the synthetic --bank-run directory that decide_promotion expects.
     with tempfile.TemporaryDirectory(prefix=f"promotion-step{step}-bankrun-") as bank_run_str:

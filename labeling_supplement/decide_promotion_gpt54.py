@@ -1025,6 +1025,12 @@ def _load_actor_batch_metrics(
 GATE_MODE_OFFLINE_SYNTHETIC = "offline-synthetic"
 GATE_MODE_LIVE = "live"
 GATE_MODE_EXTERNAL = "external"
+# Block B3 — "w/o lifecycle gating" ablation.  Auto-passes every
+# proposal at every stage (PASS, not LIMITED_PASS), driving DRAFT →
+# ACTIVE directly with no gate logic.  Keeps the rest of the
+# Promotion subprocess machinery (transactional release, audit,
+# writeback) intact so downstream analysis paths still work.
+GATE_MODE_PERMISSIVE = "permissive"
 # ``offline-with-llm-judge`` extends ``offline-synthetic`` with a single
 # 35B-A3B (BACKBONE_JUDGE_MODEL) call per proposal — the synthetic
 # stages still fire (so the verdict surface is unchanged for downstream
@@ -1192,6 +1198,77 @@ def _build_synthetic_evaluation(
         episode_ids=[],
         verdict=payload,
         metrics=flat_metrics,
+        failure_class_distribution={},
+        transfer_labels={},
+        judge_model=judge_model,
+        seed=None,
+        started_at=now,
+        finished_at=now,
+    )
+
+
+def _build_permissive_evaluation(
+    *,
+    proposal: BankMutationProposal,
+    skill: SkillRecord,
+    judge_model: str,
+) -> SkillEvaluationRecord:
+    """Block B3: auto-PASS every stage for the "w/o lifecycle gating"
+    ablation.  Drives DRAFT → ACTIVE directly so the §5.5 ablation
+    can isolate the gate's contribution from the crafter and harness.
+
+    Differs from ``_build_synthetic_evaluation`` in three ways:
+      * Stage 0 is auto-PASS (we don't even run ``_rule_stage_0_static``).
+      * Stages 1/2/3a/4 are PASS instead of LIMITED_PASS.
+      * The aggregate verdict is PASS — promotes to ACTIVE rather than
+        capping at PROVISIONAL.
+
+    This is intentionally lossy (skips static checks too) — the
+    ablation is "no gate at all", not "no LLM judge".
+    """
+    stages: List[StageVerdict] = [
+        StageVerdict(
+            stage=GateStage.STATIC,
+            verdict=GateVerdict.PASS,
+            notes="permissive: gate bypassed (block B3 ablation)",
+        ),
+        StageVerdict(
+            stage=GateStage.REPLAY, verdict=GateVerdict.PASS,
+            notes="permissive: gate bypassed",
+        ),
+        StageVerdict(
+            stage=GateStage.SHADOW, verdict=GateVerdict.PASS,
+            notes="permissive: gate bypassed",
+        ),
+        StageVerdict(
+            stage=GateStage.TRANSFER, verdict=GateVerdict.PASS,
+            notes="permissive: gate bypassed",
+        ),
+        StageVerdict(
+            stage=GateStage.NON_REGRESSION, verdict=GateVerdict.PASS,
+            notes="permissive: gate bypassed",
+        ),
+    ]
+    eligible = list(skill.source_domains) or list(skill.feasible_domains)
+    payload = GateVerdictPayload(
+        proposal_id=proposal.proposal_id,
+        skill_id=skill.skill_id,
+        skill_content_hash=skill.content_hash(),
+        stages=stages,
+        final_verdict=GateVerdict.PASS,
+        rationale="permissive_bypass",
+        eligible_domains=eligible,
+        notes="permissive:auto-promote",
+    )
+    now = time.time()
+    return SkillEvaluationRecord(
+        evaluation_id=f"eval-perm-{proposal.proposal_id[-12:]}-{int(now*1000)%10**8}",
+        proposal_id=proposal.proposal_id,
+        skill_id=skill.skill_id,
+        skill_content_hash=skill.content_hash(),
+        episode_ids=[],
+        verdict=payload,
+        metrics={},
         failure_class_distribution={},
         transfer_labels={},
         judge_model=judge_model,
@@ -1604,6 +1681,12 @@ def _decide_per_source(
                     source_hint=source,
                     enable_thinking=enable_thinking,
                     max_tokens=judge_max_tokens,
+                )
+            elif gate_mode == GATE_MODE_PERMISSIVE:
+                # Block B3 — w/o lifecycle gating ablation.
+                ev = _build_permissive_evaluation(
+                    proposal=live_proposal, skill=subject,
+                    judge_model=judge_model,
                 )
             else:
                 ev = _build_synthetic_evaluation(
@@ -2058,6 +2141,7 @@ def _build_parser() -> argparse.ArgumentParser:
                        GATE_MODE_OFFLINE_SYNTHETIC,
                        GATE_MODE_LIVE,
                        GATE_MODE_OFFLINE_LLM_JUDGE,
+                       GATE_MODE_PERMISSIVE,
                    ],
                    default=GATE_MODE_OFFLINE_SYNTHETIC,
                    help="How to compute SkillEvaluationRecord when "

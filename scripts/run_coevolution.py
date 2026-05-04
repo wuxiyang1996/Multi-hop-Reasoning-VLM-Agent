@@ -463,6 +463,57 @@ def parse_args() -> argparse.Namespace:
     )
     parser.set_defaults(harness_allow_shadow=True)
 
+    # ── Block B — §5.5 ablation flags ──────────────────────────────────
+    # Each flag is independently switchable; default values reproduce
+    # the production SkillBridge behaviour.  Combine them to reproduce
+    # the §5.5 ablation table without rebuilding the trainer image.
+    parser.add_argument(
+        "--harness-mode",
+        choices=["full", "plain-text-skills", "off"],
+        default="full",
+        help="Block B1: harness ablation. 'full' (default) keeps "
+             "eligibility filter + validate_invocation. "
+             "'plain-text-skills' bypasses both — actor sees raw "
+             "skill bank content as plain-text few-shot. 'off' "
+             "drops candidates entirely (cold-start mode). Only "
+             "consulted when --harness-enabled is set.",
+    )
+    parser.add_argument(
+        "--no-crafter", dest="crafter_enabled", action="store_false",
+        help="Block B2: w/o crafter ablation. Skips the Crafter step "
+             "entirely (no patches, no LLM crafter, no hypotheses, "
+             "no retire). Promotion + lifecycle still run on top of "
+             "any pre-existing draft skills.",
+    )
+    parser.set_defaults(crafter_enabled=True)
+    parser.add_argument(
+        "--promotion-bypass-mode",
+        choices=["gated", "permissive"],
+        default="gated",
+        help="Block B3: promotion gate ablation. 'gated' (default) "
+             "routes through the GateService driver. 'permissive' "
+             "auto-PASSes every proposal (DRAFT → ACTIVE) with no "
+             "judge call, isolating the gate's contribution.",
+    )
+    parser.add_argument(
+        "--intention-trigger",
+        choices=["every-step", "sharp-shift", "disabled"],
+        default="every-step",
+        help="Block B4: intention loop ablation. 'every-step' "
+             "(default, historical) regenerates intention LLM every "
+             "inner step. 'sharp-shift' fires only on detected state "
+             "delta or urgency. 'disabled' generates once at step 0 "
+             "and reuses for the rest of the episode.",
+    )
+    parser.add_argument(
+        "--actor-bank-cap-k", type=int, default=0,
+        help="Block B5: cap the actor's view of the bank at top-K "
+             "skills (0 = no cap, historical default). Used for the "
+             "bank-size sweep K ∈ {10, 50, 200}. Implemented as a "
+             "retrieval-side filter on SkillQueryEngine.select(); "
+             "does not truncate the on-disk bank file.",
+    )
+
     # Phase-start GameProfile (Path 1).  When enabled, the orchestrator
     # fires one BACKBONE_JUDGE_MODEL (35B) call per game per phase
     # boundary, parses a compact GameProfile + <state> exemplar, and
@@ -788,6 +839,18 @@ def main() -> None:
         config_kwargs["harness_allow_shadow"] = False
     if args.crafter_enable_protocol_patching:
         config_kwargs["crafter_enable_protocol_patching"] = True
+
+    # ── Block B — §5.5 ablation flags wire-up ─────────────────────────
+    if args.harness_mode != "full":
+        config_kwargs["harness_mode"] = args.harness_mode
+    if not args.crafter_enabled:
+        config_kwargs["crafter_enabled"] = False
+    if args.promotion_bypass_mode != "gated":
+        config_kwargs["promotion_bypass_mode"] = args.promotion_bypass_mode
+    if args.intention_trigger != "every-step":
+        config_kwargs["intention_trigger"] = args.intention_trigger
+    if args.actor_bank_cap_k > 0:
+        config_kwargs["actor_bank_cap_k"] = int(args.actor_bank_cap_k)
 
     if args.game_schema_enabled:
         config_kwargs["game_schema_enabled"] = True

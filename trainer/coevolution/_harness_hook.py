@@ -70,6 +70,10 @@ from harness.eligibility import EligibleSkill, RejectedSkill, task_id_from_state
 from harness.predicate_translator import translate_skill_contract
 from harness.rejected_skill_sink import FlushReport, RejectedSkillSink
 from harness.skill_harness import HarnessConfig, SkillHarness, ValidateInvocationResult
+from trainer.coevolution._run_loggers import (
+    log_harness_rejection,
+    log_harness_validate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -494,6 +498,18 @@ class SkillHarnessHook:
 
         self._stats = HarnessStepStats()
         self._llm_validator = llm_validator
+        # Outer trainer step + game name — used by the per-event
+        # reviewer-facing JSONL log (block A1/A2).  Set by ``for_game``;
+        # default to -1 / "" when constructed directly (tests).
+        self._trainer_step: int = -1
+        self._game: str = ""
+        # Block B1 — harness mode for the §5.5 ablation:
+        #   * ``"full"`` (default) — eligibility filter +
+        #     validate_invocation as historical.
+        #   * ``"plain-text-skills"`` — skills surfaced as-is to the
+        #     actor; eligibility filter and validate_invocation
+        #     bypassed.
+        self._mode: str = "full"
 
     # ── Construction helpers ─────────────────────────────────────────
 
@@ -518,6 +534,8 @@ class SkillHarnessHook:
         llm_validator_temperature: float = 0.2,
         llm_validator_timeout_s: float = 30.0,
         game_profile: Any = None,
+        # Block B1 — harness ablation mode (see ``self._mode`` docs).
+        mode: str = "full",
     ) -> "SkillHarnessHook":
         """Build a hook for one game, hydrating its bank.jsonl into the
         SkillRecord cache.
@@ -570,12 +588,21 @@ class SkillHarnessHook:
                 )
                 validator = None
 
-        return cls(
+        hook = cls(
             domain=domain,
             records=records,
             allow_shadow=allow_shadow,
             llm_validator=validator,
         )
+        hook._trainer_step = int(trainer_step)
+        hook._game = str(game)
+        # Block B1 — clamp to the three known modes; unknown values
+        # silently fall back to "full" so a config typo can never
+        # accidentally disable the harness mid-run.
+        hook._mode = (
+            mode if mode in ("full", "plain-text-skills", "off") else "full"
+        )
+        return hook
 
     # ── Properties ───────────────────────────────────────────────────
 
@@ -614,6 +641,10 @@ class SkillHarnessHook:
         self,
         candidates: List[Dict[str, Any]],
         state: StateSchema,
+        *,
+        episode_id: str = "",
+        outer_step: Optional[int] = None,
+        game: Optional[str] = None,
     ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """Pre-LLM eligibility filter (PLAN-HARNESS §5.2).
 
@@ -626,6 +657,18 @@ class SkillHarnessHook:
         diagnostic dict matches the
         ``HarnessStepStats.to_json()`` shape and is suitable for
         embedding in ``experiences[].harness``.
+
+        ``episode_id`` / ``outer_step`` / ``game`` are best-effort
+        context for the per-event rejection log (``run_dir/harness_log/
+        rejections.jsonl``).  Empty / -1 means "unknown" — the log row
+        still emits, just with empty context fields.
+
+        When :attr:`_mode` == ``"plain-text-skills"`` the eligibility
+        filter is bypassed entirely (block B1 ablation): all input
+        candidates pass through unchanged so the actor sees the raw
+        skill-bank content with no grounding / precondition /
+        admissibility check.  The diagnostic is still populated so
+        downstream logging stays consistent.
         """
         n_in = len(candidates or [])
         diag: Dict[str, Any] = {
@@ -642,6 +685,14 @@ class SkillHarnessHook:
 
         if not candidates:
             return [], diag
+
+        # Block B1: plain-text-skills bypass.  Skills are still surfaced
+        # to the actor but no eligibility check fires.  See the
+        # docstring above for ablation rationale.
+        if self._mode == "plain-text-skills":
+            diag["n_admitted"] = n_in
+            diag["mode"] = "plain-text-skills"
+            return list(candidates), diag
 
         # Map each candidate dict to its corresponding cached SkillRecord.
         # Unknowns are passed through (the harness has no opinion on
@@ -727,6 +778,34 @@ class SkillHarnessHook:
                     "harness_hook.filter_candidates: sink.observe raised %s",
                     exc,
                 )
+            # Block A1: also stream every rejection event to the
+            # reviewer-facing per-event JSONL log so the §4.3 failure-
+            # mode pie chart can be reconstructed post-hoc.  In-process
+            # sink only retains aggregated patterns; the per-event
+            # veto code + skill_id pair is otherwise discarded.
+            try:
+                _task = task_id_from_state(state)
+            except Exception:
+                _task = ""
+            _step = self._trainer_step if outer_step is None else int(outer_step)
+            _game = self._game if game is None else str(game)
+            for _r in rejected:
+                try:
+                    log_harness_rejection(
+                        step=_step,
+                        episode_id=episode_id,
+                        game=_game,
+                        domain=state.domain,
+                        task=_task,
+                        skill_id=getattr(_r.skill, "skill_id", ""),
+                        veto=_r.veto,
+                        veto_reason=_r.veto_reason,
+                    )
+                except Exception as _logexc:  # noqa: BLE001
+                    logger.debug(
+                        "harness_hook: log_harness_rejection raised %s",
+                        _logexc,
+                    )
 
         # Reconstruct the filtered candidate list, preserving the order
         # the LLM expects (admitted first, then unknowns — the LLM
@@ -815,6 +894,7 @@ class SkillHarnessHook:
         *,
         bindings: Optional[Dict[str, Any]] = None,
         episode_id: Optional[str] = None,
+        inner_step: int = 0,
     ) -> Tuple[bool, Dict[str, Any]]:
         """Post-LLM second-pass invocation veto (PLAN-UNIFIED §3.4).
 
@@ -833,6 +913,12 @@ class SkillHarnessHook:
         if not skill_id:
             self._stats.n_validate_skipped += 1
             return True, {"status": "no_skill_id_supplied"}
+
+        # Block B1: plain-text-skills mode bypasses all post-LLM
+        # validation — the actor's pick stands regardless.
+        if self._mode == "plain-text-skills":
+            self._stats.n_validate_skipped += 1
+            return True, {"status": "plain_text_skills_bypass", "skill_id": skill_id}
 
         rec = self._records.get(skill_id)
         if rec is None:
@@ -894,6 +980,35 @@ class SkillHarnessHook:
                 )
 
         self._stats.last_validate = dict(d)
+
+        # Block A2: stream the per-event validate_invocation diagnostic
+        # to the reviewer-facing JSONL log.  Without this row the
+        # binding/precondition/evidence/adapter booleans + missing-
+        # binding lists vanish at episode end (consumed transiently by
+        # Phase B' / GRPO record builder).
+        try:
+            log_harness_validate(
+                step=self._trainer_step,
+                episode_id=str(episode_id or ""),
+                game=self._game,
+                inner_step=int(inner_step),
+                skill_id=skill_id,
+                ok=bool(res.ok),
+                binding_ok=bool(getattr(res, "binding_ok", False)),
+                precondition_ok=bool(getattr(res, "precondition_ok", False)),
+                evidence_ok=bool(getattr(res, "evidence_ok", False)),
+                adapter_ok=bool(getattr(res, "adapter_ok", False)),
+                shadow_only=bool(getattr(res, "shadow_only", False)),
+                veto_reasons=list(getattr(res, "veto_reasons", []) or []),
+                missing_bindings=list(getattr(res, "missing_bindings", []) or []),
+                missing_evidence_in=list(getattr(res, "missing_evidence_in", []) or []),
+                failed_preconditions=list(getattr(res, "failed_preconditions", []) or []),
+            )
+        except Exception as _logexc:  # noqa: BLE001
+            logger.debug(
+                "harness_hook: log_harness_validate raised %s", _logexc,
+            )
+
         return res.ok, d
 
     # ── Drainage ─────────────────────────────────────────────────────

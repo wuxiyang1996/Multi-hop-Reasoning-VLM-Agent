@@ -769,6 +769,7 @@ def get_top_k_skill_candidates(
     top_k: int = 3,
     *,
     apply_rejection_deboost: bool = True,
+    bank_cap_k: int = 0,
 ) -> List[Dict[str, Any]]:
     """Retrieve *top_k* skill candidates from the skill bank.
 
@@ -815,12 +816,24 @@ def get_top_k_skill_candidates(
     # Preferred path: SkillQueryEngine.select() returns rich SkillSelectionResult list
     if hasattr(skill_bank, "select"):
         try:
-            results = skill_bank.select(
-                key,
+            _select_kwargs: Dict[str, Any] = dict(
                 current_state=state_for_scoring,
                 current_predicates=state_for_scoring,
                 top_k=top_k,
             )
+            # Block B5 — pass through actor-bank-cap-K when SkillQueryEngine
+            # supports it (post-block-B refactor).  Falls back silently
+            # for older engines so existing callers stay backward-
+            # compatible.
+            if bank_cap_k and bank_cap_k > 0:
+                try:
+                    import inspect as _inspect
+                    sig = _inspect.signature(skill_bank.select)
+                    if "bank_cap_k" in sig.parameters:
+                        _select_kwargs["bank_cap_k"] = int(bank_cap_k)
+                except Exception:
+                    pass
+            results = skill_bank.select(key, **_select_kwargs)
             for r in (results or []):
                 d = r.to_dict() if hasattr(r, "to_dict") else dict(r)
                 sid = d.get("skill_id")

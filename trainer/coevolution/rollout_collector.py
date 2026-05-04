@@ -250,6 +250,12 @@ async def collect_rollouts(
                         harness_hook=game_harness_hook,
                         reward_logger=reward_logger,
                         game_profile=game_profile,
+                        intention_trigger=str(getattr(
+                            config, "intention_trigger", "every-step",
+                        )),
+                        actor_bank_cap_k=int(getattr(
+                            config, "actor_bank_cap_k", 0,
+                        )),
                     )
                     break
                 except Exception as exc:

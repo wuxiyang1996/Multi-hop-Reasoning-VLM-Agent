@@ -456,6 +456,9 @@ class LLMHarnessValidator:
         raw = ""
         try:
             from API_func import ask_model
+            from trainer.coevolution._run_loggers import (  # noqa: WPS433
+                record_component_call,
+            )
             t0 = time.monotonic()
             raw = ask_model(
                 prompt,
@@ -464,6 +467,13 @@ class LLMHarnessValidator:
                 max_tokens=self._max_tokens,
             ) or ""
             elapsed = time.monotonic() - t0
+            try:
+                record_component_call(
+                    "harness.validator",
+                    latency_ms=elapsed * 1000.0,
+                )
+            except Exception:  # noqa: BLE001
+                pass
             if elapsed > self._timeout_s:
                 # ``API_func.ask_model`` is synchronous and doesn't
                 # carry a timeout knob; we observe the wall-time and
