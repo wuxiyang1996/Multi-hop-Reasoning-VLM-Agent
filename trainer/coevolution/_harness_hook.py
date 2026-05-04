@@ -541,8 +541,20 @@ class SkillHarnessHook:
                 from trainer.coevolution._llm_harness_validator import (
                     LLMHarnessValidator,
                 )
+                # Empty model slug → defer to the env-exported
+                # ``VLM_AGENT_BACKBONE_JUDGE_MODEL`` (set by the launch
+                # script in tandem with VLLM_BASE_URL_MAP).  Final
+                # fallback: the canonical 35B-A3B slug.
+                import os as _os
+                _resolved_validator_model = (
+                    (llm_validator_model or "").strip()
+                    or _os.environ.get(
+                        "VLM_AGENT_BACKBONE_JUDGE_MODEL", "",
+                    ).strip()
+                    or "Qwen/Qwen3.5-35B-A3B"
+                )
                 validator = LLMHarnessValidator(
-                    model=llm_validator_model,
+                    model=_resolved_validator_model,
                     trainer_step=trainer_step,
                     bootstrap_steps=bootstrap_steps,
                     max_tokens=llm_validator_max_tokens,

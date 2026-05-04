@@ -308,7 +308,10 @@ def run_crafter_step(
     n_llm_calls_attempted_total = 0
     n_llm_calls_succeeded_total = 0
     n_llm_calls_failed_total = 0
+    n_llm_timeouts_total = 0
+    n_llm_parse_failures_total = 0
     llm_proposals_per_kind_total: Dict[str, int] = {}
+    llm_sample_errors_total: List[str] = []
 
     for game, episodes in by_game.items():
         bank_path = legacy_bank_paths.get(game)
@@ -461,10 +464,23 @@ def run_crafter_step(
                         run_llm_crafter,
                     )
                     profile = (game_profiles or {}).get(game)
+                    # Empty `llm_crafter_model` → defer to the env-exported
+                    # ``VLM_AGENT_BACKBONE_JUDGE_MODEL`` (set by the launch
+                    # script in tandem with VLLM_BASE_URL_MAP).  Final
+                    # fallback: the canonical 35B-A3B slug.  This keeps
+                    # the Path-2 model in lockstep with whatever the
+                    # judge endpoint at port :8004 is actually serving.
+                    _resolved_crafter_model = (
+                        (llm_crafter_model or "").strip()
+                        or os.environ.get(
+                            "VLM_AGENT_BACKBONE_JUDGE_MODEL", "",
+                        ).strip()
+                        or "Qwen/Qwen3.5-35B-A3B"
+                    )
                     llm_proposals, llm_report = run_llm_crafter(
                         failures=game_failures,
                         game=game,
-                        model=llm_crafter_model,
+                        model=_resolved_crafter_model,
                         game_profile=profile,
                         k_max=llm_crafter_k_max,
                         max_tokens=llm_crafter_max_tokens,
@@ -480,20 +496,41 @@ def run_crafter_step(
                     n_llm_calls_attempted_total += llm_report.n_calls_attempted
                     n_llm_calls_succeeded_total += llm_report.n_calls_succeeded
                     n_llm_calls_failed_total += llm_report.n_calls_failed
+                    n_llm_timeouts_total += llm_report.n_timeouts
+                    n_llm_parse_failures_total += llm_report.n_parse_failures
                     for k, v in llm_report.proposals_per_kind.items():
                         llm_proposals_per_kind_total[k] = (
                             llm_proposals_per_kind_total.get(k, 0) + v
                         )
+                    for err in llm_report.sample_errors:
+                        if err not in llm_sample_errors_total:
+                            llm_sample_errors_total.append(err)
+                            if len(llm_sample_errors_total) >= 10:
+                                break
                     if llm_proposals or llm_report.n_calls_attempted:
                         logger.info(
                             "crafter_hook[llm]: step=%d game=%s "
-                            "n_calls=%d/%d → %d proposals (%.2fs)",
+                            "n_calls=%d/%d → %d proposals "
+                            "(timeouts=%d parse_fail=%d call_err=%d) "
+                            "in %.2fs",
                             step, game,
                             llm_report.n_calls_succeeded,
                             llm_report.n_calls_attempted,
                             len(llm_proposals),
+                            llm_report.n_timeouts,
+                            llm_report.n_parse_failures,
+                            llm_report.n_calls_failed
+                            - llm_report.n_timeouts
+                            - llm_report.n_parse_failures,
                             llm_report.wall_time_s,
                         )
+                        if llm_report.sample_errors:
+                            logger.warning(
+                                "crafter_hook[llm]: step=%d game=%s "
+                                "sample_errors=%r",
+                                step, game,
+                                llm_report.sample_errors[:3],
+                            )
                 except Exception as exc:  # noqa: BLE001
                     logger.warning(
                         "crafter_hook[llm]: run_llm_crafter raised for "
@@ -533,6 +570,9 @@ def run_crafter_step(
         "n_llm_calls_attempted": n_llm_calls_attempted_total,
         "n_llm_calls_succeeded": n_llm_calls_succeeded_total,
         "n_llm_calls_failed": n_llm_calls_failed_total,
+        "n_llm_timeouts": n_llm_timeouts_total,
+        "n_llm_parse_failures": n_llm_parse_failures_total,
+        "llm_sample_errors": llm_sample_errors_total[:10],
         "llm_proposals_per_kind": llm_proposals_per_kind_total,
         "wall_time_s": elapsed,
         "params": {
