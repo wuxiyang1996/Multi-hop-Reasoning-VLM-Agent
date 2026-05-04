@@ -286,7 +286,7 @@ GAME_SCHEMA_TIMEOUT_S="${GAME_SCHEMA_TIMEOUT_S:-60}"
 # present; auto-disabled when JUDGE_MODE=off.  See
 # trainer/coevolution/_llm_crafter.py.
 LLM_CRAFTER_ENABLED="${LLM_CRAFTER_ENABLED:-1}"
-LLM_CRAFTER_K_MAX="${LLM_CRAFTER_K_MAX:-5}"
+LLM_CRAFTER_K_MAX="${LLM_CRAFTER_K_MAX:-2}"
 LLM_CRAFTER_MAX_TOKENS="${LLM_CRAFTER_MAX_TOKENS:-1024}"
 LLM_CRAFTER_TIMEOUT_S="${LLM_CRAFTER_TIMEOUT_S:-60}"
 
@@ -893,7 +893,7 @@ build_train_args() {
     # Path 2: supplemental LLM Crafter (≤K parallel 35B / game / step).
     if [ "${LLM_CRAFTER_ENABLED}" = "1" ]; then
         args+=(--llm-crafter-enabled)
-        if [ "${LLM_CRAFTER_K_MAX}" != "5" ]; then
+        if [ "${LLM_CRAFTER_K_MAX}" != "2" ]; then
             args+=(--llm-crafter-k-max "${LLM_CRAFTER_K_MAX}")
         fi
         if [ "${LLM_CRAFTER_MAX_TOKENS}" != "1024" ]; then
