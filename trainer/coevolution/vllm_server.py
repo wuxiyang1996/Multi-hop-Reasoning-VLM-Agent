@@ -241,7 +241,14 @@ class VLLMServerManager:
             "--enable-prefix-caching",
             "--enable-chunked-prefill",
             "--max-num-seqs", str(self.max_num_seqs),
-            "--max-num-batched-tokens", "16384",
+            # batch-level token budget (sum across in-flight requests in
+            # one decode step).  Bumped 16384 → 32768 (v10, 2026-05-04)
+            # to let the engine pack more concurrent rollouts per step
+            # — H200 KV cache headroom is ~10 GB free per instance at
+            # gpu_util=0.9, well above the 32K bump.  This is per-batch,
+            # NOT per-request, so it cannot truncate any single
+            # completion (which is gated by ``max_tokens``).
+            "--max-num-batched-tokens", "32768",
             "--port", str(port),
             "--trust-remote-code",
         ]

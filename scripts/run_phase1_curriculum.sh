@@ -85,8 +85,9 @@
 #  Usage:
 #    bash scripts/run_phase1_curriculum.sh
 #
-#    # Override per-phase iteration count (default 10; was 15 pre-2026-05-04):
-#    ITERS_PER_PHASE=15 bash scripts/run_phase1_curriculum.sh
+#    # Override per-phase iteration count (default 15; was 10 between
+#    # 2026-05-04 v4 fix and v8 query-engine fix):
+#    ITERS_PER_PHASE=20 bash scripts/run_phase1_curriculum.sh
 #
 #    # Override episodes per step (default 8 — matches paper Table 3):
 #    EPISODES=4 bash scripts/run_phase1_curriculum.sh
@@ -149,15 +150,17 @@ TP="${VLLM_TP:-4}"
 GPU_UTIL="${VLLM_GPU_UTIL:-0.90}"
 MANAGE_VLLM="${MANAGE_VLLM:-1}"
 
-# §4.1 lock (relaxed 2026-05-04 to 10 / phase after the v4 segmentation
-# wall-clock blow-up was diagnosed): 10 steps per phase.  Checkpoint at
-# every step (CKPT_INTERVAL=1, was 5) so we have full per-step lineage
-# for skill-bank diff analysis + arbitrary-step resume.  At ~250 MB
-# LoRA + ~10 MB bank per checkpoint × 60 steps = ~15 GB total disk —
-# tractable on local NVMe.  Override via ``CKPT_INTERVAL=5`` to restore
-# coarser cadence.  ``EPISODES`` default is set per LAYOUT below (8 for
-# FSDP=2, 16 for FSDP=4).  Override via ``ITERS_PER_PHASE`` env var.
-ITERS_PER_PHASE="${ITERS_PER_PHASE:-10}"
+# §4.1 lock (relaxed 2026-05-04 to 15 / phase after the v8 query-engine
+# fix unblocked the actor-side skill loop): 15 steps per phase, giving
+# the skill_selection LoRA enough GRPO iterations to overcome cold-start
+# noise on each game.  Checkpoint at every step (CKPT_INTERVAL=1, was 5)
+# so we have full per-step lineage for skill-bank diff analysis +
+# arbitrary-step resume.  At ~250 MB LoRA + ~10 MB bank per checkpoint
+# × 90 steps = ~22 GB total disk — tractable on local NVMe.  Override
+# via ``CKPT_INTERVAL=5`` to restore coarser cadence.  ``EPISODES``
+# default is set per LAYOUT below (8 for FSDP=2, 16 for FSDP=4).
+# Override via ``ITERS_PER_PHASE`` env var.
+ITERS_PER_PHASE="${ITERS_PER_PHASE:-15}"
 CKPT_INTERVAL="${CKPT_INTERVAL:-1}"
 WANDB_PROJECT="${WANDB_PROJECT:-game-ai-coevolution-phase1}"
 RUN_DIR="${RUN_DIR:-}"
@@ -456,6 +459,13 @@ start_35b_judge() {
     echo "  Port:   ${JUDGE_PORT}"
     echo "  Model:  ${JUDGE_MODEL}"
     echo "  Log:    ${JUDGE_LOG}"
+    # NUM_SPEC_TOKENS=5 (v10, was 1): bumps the 35B's MTP speculative
+    # decoding depth.  Path 3 (promotion judge) and Path 4 (harness
+    # validator) emit short JSON verdicts (256-512 tok) and Path 2
+    # (LLM crafter) emits ~1K tok JSON proposals — all decode-bound
+    # workloads where speculation pays off.  Acceptance rate on
+    # Qwen3.5-35B-A3B with its native MTP head is empirically ~70%
+    # for short structured outputs, giving ~2-3x decode speedup.
     GPUS="${JUDGE_GPUS}" \
     TENSOR_PARALLEL="${JUDGE_TP}" \
     EXPERT_PARALLEL=1 \
@@ -463,6 +473,7 @@ start_35b_judge() {
     PORT="${JUDGE_PORT}" \
     HOST="127.0.0.1" \
     MODEL="${JUDGE_MODEL}" \
+    NUM_SPEC_TOKENS="${JUDGE_NUM_SPEC_TOKENS:-5}" \
         bash "${PROJECT_ROOT}/inference/serve_qwen35_35b_a3b.sh" \
             > "${JUDGE_LOG}" 2>&1 &
     JUDGE_PID=$!
@@ -486,12 +497,56 @@ start_35b_judge() {
 
 # Resolved later (after RUN_DIR is set) — wire JUDGE_MODE here so the
 # pre-flight banner can show the final URL/model values.
+#
+# vLLM URL routing (v10 fix, 2026-05-04):
+#   * VLLM_BASE_URLS:    pool of 4× 9B endpoints — unmapped requests
+#                        round-robin across them.  This is what the
+#                        skill_bank pipeline's API_func.ask_vllm()
+#                        calls (segmentation / contract / curator
+#                        teacher queries) use, balancing the load
+#                        evenly instead of hammering :8000 alone.
+#   * VLLM_BASE_URL_MAP: ONLY pin the 35B-A3B (single endpoint at
+#                        :8004).  Do NOT pin the 9B here — that would
+#                        route every ``ask_vllm(model="Qwen3.5-9B")``
+#                        deterministically to one port (the v9 bug).
 case "${JUDGE_MODE}" in
     auto|external)
-        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        # Build "http://localhost:PORT/v1" entries from VLLM_GPUS array.
+        # Whitespace-tolerant: VLLM_GPUS may be "0 1 2 3" or "0,1,2,3".
+        _VLLM_URLS_LIST=""
+        _i=0
+        for _g in ${VLLM_GPUS//,/ }; do
+            _p=$((PORT + _i))
+            if [ -z "${_VLLM_URLS_LIST}" ]; then
+                _VLLM_URLS_LIST="http://localhost:${_p}/v1"
+            else
+                _VLLM_URLS_LIST="${_VLLM_URLS_LIST},http://localhost:${_p}/v1"
+            fi
+            _i=$((_i + 1))
+        done
+        export VLLM_BASE_URLS="${_VLLM_URLS_LIST}"
+        export VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}"
         export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
+        unset _VLLM_URLS_LIST _i _g _p
         ;;
     off)
+        # Still build VLLM_BASE_URLS so the 9B pool round-robins
+        # across all ports (skill_bank pipeline's ask_vllm() honours
+        # this env var; without it, every call lands on :8000 — same
+        # imbalance as v9).
+        _VLLM_URLS_LIST=""
+        _i=0
+        for _g in ${VLLM_GPUS//,/ }; do
+            _p=$((PORT + _i))
+            if [ -z "${_VLLM_URLS_LIST}" ]; then
+                _VLLM_URLS_LIST="http://localhost:${_p}/v1"
+            else
+                _VLLM_URLS_LIST="${_VLLM_URLS_LIST},http://localhost:${_p}/v1"
+            fi
+            _i=$((_i + 1))
+        done
+        export VLLM_BASE_URLS="${_VLLM_URLS_LIST}"
+        unset _VLLM_URLS_LIST _i _g _p
         echo "[run_phase1] JUDGE_MODE=off → 35B routing NOT wired" \
              "(judge will fall back to 9B; only safe for ablations)."
         ;;
