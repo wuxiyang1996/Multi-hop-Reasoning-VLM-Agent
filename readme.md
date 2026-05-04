@@ -432,6 +432,7 @@ sized for *diverse pool* coverage, not full-benchmark sweeps:
 | `browser` | AssistantBench (open web, no infra) | 215 tasks | **180 stratified** | + 30 | `cold_start/task_samples/build_browsergym_diverse_200.py` |
 | `browser` | MiniWoB++ (atomic primitives) | 125 tasks | **125 (full)** | + 25 | same |
 | `browser` | WebArena | 812 tasks | *deferred* — overlaps AssistantBench coverage at much higher infra cost | — | — |
+| `browser` | WebShop (princeton-nlp) | 12,087 goals | **50 sampled** — `browsergym/webshop.0..49`, configurable via `WEBSHOP_NUM_GOALS` | — | `webshop_wrapper.register_webshop_tasks` (in-tree bridge; see [`webshop_wrapper/README.md`](webshop_wrapper/README.md)) |
 | `browser` | ~~VisualWebArena~~ | 910 tasks | *dropped 2026-05-03* — see `legacy/visualwebarena/README.md` for the 10 infra bugs that motivated the cut | — | — |
 | `osworld` | OSWorld desktop tasks | 369 tasks | **250 stratified** | + 50 | `cold_start/evaluation_dataset/build_pool_and_holdout.py` |
 | `visual_reasoning` | VisualToolBench (image, single-turn) | 603 samples | **300 stratified** | + 100 | same |
@@ -802,6 +803,63 @@ mean_reward — a 9× lift over the no-search v4 baseline) is documented
 in
 [`implementation_notes/assistantbench-search-web-baseline.md`](implementation_notes/assistantbench-search-web-baseline.md)
 once the full-eval results land.
+
+#### WebShop bridge — frontier-model 4-way comparison
+
+WebShop is the second graded browser benchmark in the lean plan and
+the simplest to spin up: a single Flask server with rule-based
+rewards in [0, 1], no Docker fleet, no LLM judge. The
+[`webshop_wrapper/`](webshop_wrapper/README.md) module fronts
+`princeton-nlp/WebShop` as `browsergym/webshop.<idx>` envs so the
+existing BrowserGym driver, schema generator, and tool registry all
+work unmodified.
+
+Three install levels (stub → lite → full); see
+[`webshop_wrapper/README.md`](webshop_wrapper/README.md) for the
+trade-offs and
+[`install/install_webshop.sh`](install/install_webshop.sh) for the
+automated lite installer (BM25 via `rank_bm25`, no Java / pyserini
+/ Lucene). The driver auto-discovers WebShop tasks because
+`webshop_wrapper` is registered in
+[`cold_start/generate_cold_start_actor_browsergym.py`](cold_start/generate_cold_start_actor_browsergym.py)'s
+`_OPTIONAL_TASK_SUITE_MODULES`.
+
+```bash
+# 0. one-shot install of the WebShop conda env + dataset (~10 min, lite mode)
+bash install/install_webshop.sh
+
+# 1. boot the WebShop server (separate terminal, separate conda env)
+conda activate webshop
+cd $WEBSHOP_DIR && python -m web_agent_site.app  # ⇒ http://127.0.0.1:3000
+
+# 2. from the agent env, run a 50-task eval with any OpenRouter slug
+conda activate browsergym
+cd /workspace/Multi-hop-Reasoning-VLM-Agent
+export WEBSHOP_BASE_URL=http://127.0.0.1:3000
+export WEBSHOP_NUM_GOALS=50
+TASKS=$(for i in $(seq 0 49); do echo -n "browsergym/webshop.$i "; done)
+
+python cold_start/generate_cold_start_actor_browsergym.py \
+  --tasks $TASKS --episodes 1 --max_steps 20 \
+  --model qwen/qwen3-vl-235b-a22b-instruct \
+  --output_dir Cold-start-out-browsergym/webshop_50task_qwen -v
+```
+
+**Validated on 4 frontier models (50 tasks each, 2026-05-04;** full
+report in
+[`Cold-start-out-browsergym/REPORT_4way_comparison.md`](Cold-start-out-browsergym/REPORT_4way_comparison.md)**):**
+
+| Model | Mean reward (95% CI) | SR pass (r≥0.5) | sec/task |
+|---|---|---|---:|
+| `qwen/qwen3-vl-235b-a22b-instruct` | **0.559** [0.483, 0.635] | **74%** | 319 |
+| `openai/gpt-5.4` (effort=low)      | 0.377 [0.272, 0.482]    | 48%     | 226 |
+| `anthropic/claude-sonnet-4.5`      | 0.330 [0.227, 0.433]    | 42%     | 335 |
+| `google/gemini-3.1-pro-preview`    | 0.289 [0.174, 0.404]    | 32%     | 559 |
+
+For reference: human expert ≈ 0.604, ReAct + GPT-4 ≈ 0.455, IL+RL ≈
+0.300 (Yao et al. 2022). Qwen3-VL-235B-instruct's lead over the other
+three frontier models is statistically significant (95% CIs do not
+overlap with any of GPT-5.4-low / Claude / Gemini).
 
 ---
 
