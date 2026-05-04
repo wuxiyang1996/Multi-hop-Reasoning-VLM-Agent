@@ -19,6 +19,7 @@ def _isolated_run_dir(tmp_path):
     """Each test gets a fresh run dir + clean module state."""
     rl.set_run_dir(None)  # reset
     rl._component_agg.clear()  # reset aggregator
+    rl._shaping_agg.clear()   # reset shaping aggregator
     rl.set_run_dir(tmp_path)
     yield tmp_path
     rl.set_run_dir(None)
@@ -169,3 +170,85 @@ def test_measure_component_context_manager(_isolated_run_dir):
 
     rows = _read_lines(_isolated_run_dir / "runtime_log" / "component_timings.jsonl")
     assert any(r["component"] == "schema.profile" for r in rows)
+
+
+# ── Shaping ratio aggregator (block 3 of the post-collapse fix) ────────────
+
+
+def test_shaping_ratio_aggregator_emits_per_game_rows(_isolated_run_dir):
+    # Simulate one TF3 batch where most decisions saw zero env reward
+    # but the +1.0 survival constant + small intrinsic still landed in
+    # GRPO. Mirror what episode_runner records per-decision.
+    for _ in range(40):
+        rl.record_shaping_signal(
+            game="gymv_thunder_force_iii",
+            raw_env=0.0, intrinsic=0.0, constant_offset=1.0,
+        )
+    rl.record_shaping_signal(
+        game="gymv_thunder_force_iii",
+        raw_env=100.0, intrinsic=0.3, constant_offset=1.0,
+    )
+    snap = rl.flush_shaping_ratio(step=9)
+    assert "gymv_thunder_force_iii" in snap
+    bucket = snap["gymv_thunder_force_iii"]
+    assert bucket["n_decisions"] == 41
+    # 40 decisions at raw=0, 1 decision at raw=100 ⇒ raw_abs_sum=100
+    assert bucket["raw_env_abs_sum"] == pytest.approx(100.0)
+    assert bucket["n_zero_raw"] == 40
+    # 41 decisions × 1.0 survival = 41 const sum, plus 0.3 intrinsic
+    assert bucket["constant_sum"] == pytest.approx(41.0)
+
+    rows = _read_lines(_isolated_run_dir / "reward_shaping_log" / "ratio.jsonl")
+    assert len(rows) == 1
+    r = rows[0]
+    assert r["kind"] == "shaping_ratio"
+    assert r["step"] == 9
+    assert r["zero_raw_frac"] == pytest.approx(40.0 / 41.0)
+    # ratio = (intrinsic_abs + const) / max(raw_abs, eps) =
+    #         (0.3 + 41.0) / 100.0 ≈ 0.413
+    assert r["shaping_ratio"] == pytest.approx((0.3 + 41.0) / 100.0)
+
+    # Aggregator is drained.
+    assert rl.flush_shaping_ratio(step=10) == {}
+
+
+def test_shaping_ratio_warns_when_threshold_crossed(_isolated_run_dir, caplog):
+    # All-zero raw env across 40 decisions ⇒ ratio is enormous.
+    for _ in range(40):
+        rl.record_shaping_signal(
+            game="gymv_thunder_force_iii",
+            raw_env=0.0, intrinsic=0.0, constant_offset=1.0,
+        )
+    with caplog.at_level("WARNING", logger="trainer.coevolution._run_loggers"):
+        rl.flush_shaping_ratio(step=11)
+    msgs = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
+    assert any("Shaping ratio high" in m for m in msgs), (
+        "Expected a WARN row for the high shaping ratio, got: " + str(msgs)
+    )
+
+
+def test_shaping_ratio_skips_warn_on_small_samples(_isolated_run_dir, caplog):
+    # Only 10 decisions ⇒ warn is suppressed even with infinite ratio.
+    for _ in range(10):
+        rl.record_shaping_signal(
+            game="gymv_thunder_force_iii",
+            raw_env=0.0, intrinsic=0.0, constant_offset=1.0,
+        )
+    with caplog.at_level("WARNING", logger="trainer.coevolution._run_loggers"):
+        rl.flush_shaping_ratio(step=12)
+    msgs = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
+    assert not any("Shaping ratio high" in m for m in msgs)
+
+
+def test_shaping_ratio_no_warn_when_raw_dominates(_isolated_run_dir, caplog):
+    # Healthy regime: raw env reward dwarfs the constant.
+    for _ in range(40):
+        rl.record_shaping_signal(
+            game="tetris", raw_env=50.0, intrinsic=0.1, constant_offset=1.0,
+        )
+    with caplog.at_level("WARNING", logger="trainer.coevolution._run_loggers"):
+        snap = rl.flush_shaping_ratio(step=15)
+    msgs = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
+    assert not any("Shaping ratio high" in m for m in msgs), (
+        f"Should not warn when raw env reward is dominant; ratio={snap['tetris']['shaping_ratio']}"
+    )

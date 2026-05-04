@@ -58,6 +58,7 @@ _STREAM_PATHS: Dict[str, tuple[str, str]] = {
     "lifecycle_transition": ("lifecycle_log", "transitions.jsonl"),
     "intention_switch": ("intention_log", "switches.jsonl"),
     "component_timing": ("runtime_log", "component_timings.jsonl"),
+    "shaping_ratio": ("reward_shaping_log", "ratio.jsonl"),
 }
 
 _run_dir_lock = threading.Lock()
@@ -385,6 +386,122 @@ def flush_component_timings(step: int) -> Dict[str, Dict[str, float]]:
             prompt_tokens=int(bucket.get("prompt_tokens", 0)),
             completion_tokens=int(bucket.get("completion_tokens", 0)),
         )
+    return snap
+
+
+# ── Per-step shaping-ratio aggregator ─────────────────────────────────────
+#
+# Surfaces the imbalance between intrinsic shaping (skill-protocol bonuses
+# + survival constant) and raw env reward.  Reward composition in
+# ``episode_runner.py`` is::
+#
+#     _action_reward = float(env_reward) + intrinsic_bonus + 1.0
+#
+# When ``raw_env`` is sparse (TF3-class shooters: 83% zero-reward
+# episodes), the +1.0 survival constant dominates GRPO advantages and
+# pushes the policy toward "do anything safely" instead of the actual
+# scoring action vocabulary (B = fire on TF3).  We log per-step
+# aggregate ratios and emit a WARN when any game crosses
+# ``SHAPING_RATIO_WARN_THRESHOLD`` so the operator notices early.
+
+_SHAPING_RATIO_WARN_THRESHOLD: float = 5.0
+"""Per-game ratio (intrinsic+const) / max(raw_env, eps) above which the
+trainer logs a WARN.  5.0 means the shaping signal is at least 5x the
+real reward — at that point GRPO advantages are unlikely to discriminate
+productive actions from filler ones."""
+
+_shaping_agg_lock = threading.Lock()
+_shaping_agg: Dict[str, Dict[str, float]] = {}
+
+
+def record_shaping_signal(
+    *,
+    game: str,
+    raw_env: float,
+    intrinsic: float,
+    constant_offset: float = 1.0,
+) -> None:
+    """Aggregate one per-decision reward composition under *game*.
+
+    Cheap (a few additions per call); drained per trainer step via
+    :func:`flush_shaping_ratio`.
+    """
+    if not game:
+        return
+    with _shaping_agg_lock:
+        bucket = _shaping_agg.get(game)
+        if bucket is None:
+            bucket = {
+                "n_decisions": 0,
+                "raw_env_sum": 0.0,
+                "raw_env_abs_sum": 0.0,
+                "intrinsic_sum": 0.0,
+                "intrinsic_abs_sum": 0.0,
+                "constant_sum": 0.0,
+                "n_zero_raw": 0,
+            }
+            _shaping_agg[game] = bucket
+        bucket["n_decisions"] += 1
+        bucket["raw_env_sum"] += float(raw_env)
+        bucket["raw_env_abs_sum"] += abs(float(raw_env))
+        bucket["intrinsic_sum"] += float(intrinsic)
+        bucket["intrinsic_abs_sum"] += abs(float(intrinsic))
+        bucket["constant_sum"] += float(constant_offset)
+        if abs(float(raw_env)) < 1e-9:
+            bucket["n_zero_raw"] += 1
+
+
+def flush_shaping_ratio(step: int) -> Dict[str, Dict[str, float]]:
+    """Drain the shaping aggregator, emit one row per game, and return
+    the snapshot.
+
+    Per-game ratio definition::
+
+        ratio = (intrinsic_abs_sum + constant_sum) / max(raw_env_abs_sum, 1e-6)
+
+    Logs a WARN when ``ratio > _SHAPING_RATIO_WARN_THRESHOLD`` and
+    ``n_decisions >= 32`` (avoids noise on tiny samples).
+    """
+    with _shaping_agg_lock:
+        snap = {k: dict(v) for k, v in _shaping_agg.items()}
+        _shaping_agg.clear()
+
+    for game, bucket in snap.items():
+        n_dec = int(bucket.get("n_decisions", 0))
+        raw_abs = float(bucket.get("raw_env_abs_sum", 0.0))
+        intr_abs = float(bucket.get("intrinsic_abs_sum", 0.0))
+        const = float(bucket.get("constant_sum", 0.0))
+        n_zero = int(bucket.get("n_zero_raw", 0))
+        denom = max(raw_abs, 1e-6)
+        ratio = (intr_abs + const) / denom
+        zero_frac = n_zero / n_dec if n_dec > 0 else 0.0
+        row = {
+            "kind": "shaping_ratio",
+            "step": int(step),
+            "game": str(game),
+            "n_decisions": n_dec,
+            "raw_env_sum": float(bucket.get("raw_env_sum", 0.0)),
+            "raw_env_abs_sum": raw_abs,
+            "intrinsic_sum": float(bucket.get("intrinsic_sum", 0.0)),
+            "intrinsic_abs_sum": intr_abs,
+            "constant_sum": const,
+            "n_zero_raw": n_zero,
+            "zero_raw_frac": zero_frac,
+            "shaping_ratio": ratio,
+            "ts": time.time(),
+        }
+        _emit("shaping_ratio", row)
+        if n_dec >= 32 and ratio > _SHAPING_RATIO_WARN_THRESHOLD:
+            logger.warning(
+                "Shaping ratio high for %s @ step %d: "
+                "(intrinsic=%.1f + const=%.1f) / raw_env_abs=%.1f = %.1fx "
+                "(zero-raw decisions: %d/%d = %.1f%%). "
+                "GRPO advantages may be dominated by survival shaping; "
+                "consider reducing the +1.0 constant in episode_runner.py "
+                "or adding a critical-action prior in the game schema.",
+                game, step, intr_abs, const, raw_abs, ratio,
+                n_zero, n_dec, zero_frac * 100.0,
+            )
     return snap
 
 

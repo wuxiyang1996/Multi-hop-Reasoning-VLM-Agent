@@ -54,6 +54,29 @@ from trainer.coevolution.vllm_client import AsyncVLLMClient
 logger = logging.getLogger(__name__)
 
 
+def _log_resumed_bank_sizes(sb_manager: Any, source: str, step: int) -> None:
+    """Emit per-game bank sizes after a checkpoint restore.
+
+    Helps detect silent bank-restore failures (the failure-mode where
+    a respawning trainer's lazy ``SkillBankAgent`` was left as ``None``,
+    causing :func:`load_checkpoint` to skip the bank load entirely and
+    the next outer step to flip into spurious cold-start mode).  If
+    every game reports zero skills here while the checkpoint snapshot
+    on disk is non-empty, the resume path is broken.
+    """
+    try:
+        counts = sb_manager.skill_counts()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resume bank-size log failed (%s source=%s): %s", step, source, exc)
+        return
+    summary = ", ".join(f"{g}={n}" for g, n in counts.items())
+    total = sum(counts.values())
+    logger.info(
+        "Resumed bank sizes (%s ckpt step %d): total=%d skills [%s]",
+        source, step, total, summary or "empty",
+    )
+
+
 async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     """Main co-evolution training loop.
 
@@ -193,11 +216,20 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         if config.resume_from_step is not None:
             start_step = config.resume_from_step
             try:
+                # Eagerly initialise lazy SkillBankAgent instances *before*
+                # load_checkpoint so per-game banks are actually restored
+                # from the snapshot.  Without this, `get_agents()` returns
+                # ``{game: None}`` and ``load_checkpoint``'s ``if agent is
+                # None: continue`` silently no-ops the bank restore — see
+                # run Qwen3.5-9B_20260504_144712 where a mid-step crash
+                # left the trainer respawning with ``bank=0 (empty)``.
+                sb_manager.ensure_agents_initialized()
                 metadata = load_checkpoint(
                     config.checkpoint_dir, start_step,
                     adapter_dir=config.adapter_dir,
                     bank_agents=sb_manager.get_agents(),
                 )
+                _log_resumed_bank_sizes(sb_manager, "explicit step", start_step)
                 logger.info("Resumed from checkpoint step %d", start_step)
                 start_step += 1
             except FileNotFoundError:
@@ -212,11 +244,13 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     f"--resume requested but no checkpoint found "
                     f"in {config.checkpoint_dir}"
                 )
+            sb_manager.ensure_agents_initialized()
             metadata = load_checkpoint(
                 config.checkpoint_dir, latest,
                 adapter_dir=config.adapter_dir,
                 bank_agents=sb_manager.get_agents(),
             )
+            _log_resumed_bank_sizes(sb_manager, "latest", latest)
             start_step = latest + 1
             logger.info("Resumed from latest checkpoint step %d", latest)
 
@@ -224,11 +258,13 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         latest = find_latest_checkpoint(config.checkpoint_dir)
         if latest is not None:
             try:
+                sb_manager.ensure_agents_initialized()
                 metadata = load_checkpoint(
                     config.checkpoint_dir, latest,
                     adapter_dir=config.adapter_dir,
                     bank_agents=sb_manager.get_agents(),
                 )
+                _log_resumed_bank_sizes(sb_manager, "auto", latest)
                 start_step = latest + 1
                 logger.info("Auto-resumed from checkpoint step %d", latest)
             except Exception:
@@ -339,10 +375,25 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         logger.debug("Reviewer instrumentation setup skipped: %s", _rl_exc)
 
     logger.info(
-        "Starting co-evolution loop: steps %d→%d, %d games × %d eps/game",
+        "Starting co-evolution loop: steps %d→%d, %d games × %d eps/game (default)",
         start_step, config.total_steps - 1,
         len(config.games), config.episodes_per_game,
     )
+    _eps_overrides = getattr(config, "episodes_per_game_overrides", {}) or {}
+    # Surface only the overrides that *differ* from the global default
+    # AND that apply to a currently-active game (cuts noise from the
+    # eval-only roster).
+    _active_overrides = {
+        g: n for g, n in _eps_overrides.items()
+        if n != config.episodes_per_game and g in (
+            list(config.games) + list(getattr(config, "eval_games", []))
+        )
+    }
+    if _active_overrides:
+        logger.info(
+            "Per-game episode overrides active: %s",
+            ", ".join(f"{g}={n}" for g, n in sorted(_active_overrides.items())),
+        )
 
     # ── Start persistent vLLM instances (once) ─────────────────────
     if vllm_manager:
@@ -585,6 +636,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             from trainer.coevolution._run_loggers import (
                 log_component_timing,
                 flush_component_timings,
+                flush_shaping_ratio,
             )
             try:
                 actor_snap = vllm_client.snapshot_per_component(reset=True)
@@ -600,6 +652,10 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     completion_tokens=int(bucket.get("completion_tokens", 0)),
                 )
             flush_component_timings(_step)
+            try:
+                flush_shaping_ratio(_step)
+            except Exception as _shape_exc:  # noqa: BLE001
+                logger.debug("shaping_ratio flush failed: %s", _shape_exc)
         except Exception as _rl_exc:  # noqa: BLE001
             logger.debug("component_timing flush failed: %s", _rl_exc)
 

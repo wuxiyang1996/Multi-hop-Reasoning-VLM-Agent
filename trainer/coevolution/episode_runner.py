@@ -29,6 +29,23 @@ from trainer.coevolution.vllm_client import AsyncVLLMClient
 logger = logging.getLogger(__name__)
 
 
+def _critical_actions_for(game: str, valid_actions: List[str]) -> List[str]:
+    """Return the subset of :data:`GAME_CRITICAL_ACTIONS` that are
+    actually exposed for *game* this step.  Imports lazily so callers
+    that don't pass a real game string (eval / smoke tests) avoid
+    pulling the whole config module into the hot path on every call.
+    """
+    try:
+        from trainer.coevolution.config import GAME_CRITICAL_ACTIONS
+    except Exception:                                        # pragma: no cover
+        return []
+    desired = GAME_CRITICAL_ACTIONS.get(game) or []
+    if not desired:
+        return []
+    valid_set = set(valid_actions)
+    return [a for a in desired if a in valid_set]
+
+
 # ---------------------------------------------------------------------------
 # Lazy imports — these pull in heavyweight packages that live in the project
 # ---------------------------------------------------------------------------
@@ -640,6 +657,14 @@ def _fuzzy_match_action(raw: str, valid_actions: List[str]) -> Optional[str]:
     return None
 
 
+_CRITICAL_ACTION_DRY_SPELL = 8
+"""Number of consecutive zero-reward decisions that haven't selected a
+known-critical action before the anti-repetition shim force-substitutes
+the critical action.  Tuned for gymv shooters where the natural episode
+length is ~20 frames (frame_skip=8) and 8 consecutive non-firing decisions
+≈ ~50% of an average episode without any scoring attempt."""
+
+
 def _apply_anti_repetition(
     action: str, valid_actions: List[str],
     recent_actions: List[str], recent_rewards: List[float],
@@ -649,10 +674,38 @@ def _apply_anti_repetition(
         return action
     tail = recent_actions[-MAX_REPEAT_ACTIONS:]
     tail_rewards = recent_rewards[-MAX_REPEAT_ACTIONS:]
+
+    critical = _critical_actions_for(game, valid_actions)
+
+    # Stuck on a single non-scoring action — break the loop, preferring
+    # a critical action over a random alternative.
     if all(a == action for a in tail) and sum(tail_rewards) <= 0:
         alternatives = [a for a in valid_actions if a != action]
-        if alternatives:
-            return random.choice(alternatives)
+        if not alternatives:
+            return action
+        critical_alt = next((c for c in critical if c != action), None)
+        if critical_alt is not None:
+            return critical_alt
+        return random.choice(alternatives)
+
+    # Critical-action dry spell: the policy is exploring varied actions
+    # but the env reward is zero AND no critical action has been picked
+    # in the recent window.  Force-substitute the first critical action
+    # so the learner at least observes the scoring action distribution.
+    # Only fires for shooter-class games (those with critical actions).
+    if (
+        critical
+        and len(recent_actions) >= _CRITICAL_ACTION_DRY_SPELL
+        and len(recent_rewards) >= _CRITICAL_ACTION_DRY_SPELL
+    ):
+        window_actions = recent_actions[-_CRITICAL_ACTION_DRY_SPELL:]
+        window_rewards = recent_rewards[-_CRITICAL_ACTION_DRY_SPELL:]
+        no_critical_used = not any(a in critical for a in window_actions)
+        no_reward = sum(r for r in window_rewards if r is not None) <= 0
+        # Only override if the proposed action itself is non-critical;
+        # never replace a critical action with a critical action.
+        if no_critical_used and no_reward and action not in critical:
+            return critical[0]
 
     return action
 
@@ -1374,10 +1427,21 @@ async def run_episode_async(
 
         imp_tags = imp["SUBGOAL_TAGS"]
         tags_str = "|".join(imp_tags)
+        # Surface critical actions (e.g. B = fire on shooter games) as
+        # a single-line in-context prior so the LLM doesn't have to
+        # rediscover the action vocabulary via GRPO alone.  Schema
+        # source: trainer.coevolution.config.GAME_CRITICAL_ACTIONS.
+        _critical_hint = ""
+        _critical_for_game = _critical_actions_for(game, step_actions)
+        if _critical_for_game:
+            _critical_hint = (
+                f"Critical actions for this game (use frequently when scoring): "
+                f"{', '.join(_critical_for_game)}.\n"
+            )
         action_user = (
             f"Game state:\n\n{summary_for_action}\n\n"
             f"Subgoal: {assigned_subgoal}\n"
-            f"{urgency_line}{skill_context}{recent_context}"
+            f"{urgency_line}{skill_context}{recent_context}{_critical_hint}"
             f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
             f"Output ACTION number."
         )
@@ -1494,6 +1558,25 @@ async def run_episode_async(
             else:
                 action_completion = f"{subgoal_line}REASONING: {reasoning or 'Expert play.'}\nACTION: {action_num}"
                 _action_reward = float(reward) + skill_tracker._intrinsic_bonus + 1.0
+                # Track shaping composition so the orchestrator's per-step
+                # flush surfaces the (intrinsic + const) / raw_env ratio
+                # that GRPO actually sees.  See run-loggers
+                # ``record_shaping_signal`` / ``flush_shaping_ratio`` for
+                # the warning threshold and the post-mortem rationale
+                # (TF3 phase-1 collapse: 83% zero-reward episodes meant
+                # the +1.0 survival constant dominated GRPO advantages).
+                try:
+                    from trainer.coevolution._run_loggers import (  # noqa: WPS433
+                        record_shaping_signal,
+                    )
+                    record_shaping_signal(
+                        game=game,
+                        raw_env=float(raw_env_reward),
+                        intrinsic=float(skill_tracker._intrinsic_bonus),
+                        constant_offset=1.0,
+                    )
+                except Exception:                                # pragma: no cover
+                    pass
             _action_meta = {
                 "chosen_action": str(action),
                 "available_actions": list(step_actions),

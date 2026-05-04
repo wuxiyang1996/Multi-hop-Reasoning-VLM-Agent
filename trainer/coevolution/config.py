@@ -93,12 +93,88 @@ GAME_MAX_STEPS: Dict[str, int] = {
 
 EMULATOR_GAMES: set = set()
 
+
+# ── Game-specific action priors (critical actions) ────────────────────
+# Maps game → ordered list of action names the policy *must* use to make
+# scoring progress.  These are surfaced in two places:
+#
+#   1. The action-selection prompt as a one-line hint, so the LLM sees
+#      the prior in-context (no shaping reward — keeps GRPO advantages
+#      from being further dominated by intrinsic).
+#   2. ``_apply_anti_repetition`` substitutes the first critical action
+#      that hasn't fired recently when the policy is stuck on a single
+#      non-scoring action — this is a hard-coded escape valve only,
+#      not a permanent reward signal.
+#
+# Why TF3 / Altered Beast etc. need this: post-mortem of the Phase-1
+# collapse showed the action_taking policy was choosing UP/RIGHT 30-46%
+# of the time but the B (fire/attack) button only ~3-7% of the time.
+# In Sega-style horizontal shooters and brawlers the only way to score
+# is sustained B presses; without an explicit prior the GRPO signal is
+# too weak (raw env reward zero on 83% of TF3 episodes) to teach the
+# model that B is the scoring action.  Adding a single-line schema hint
+# is a much cheaper fix than waiting 50+ steps for GRPO to converge to
+# the action vocab on its own.
+#
+# Action names match those exposed by the env's ``action_names`` list.
+# Names that don't appear in a given episode's available actions are
+# silently dropped at consumption time.  Keep the list short — only
+# truly indispensable actions (one or two per game).
+GAME_CRITICAL_ACTIONS: Dict[str, List[str]] = {
+    # Horizontal-scrolling shoot-em-ups: B = primary fire.
+    "gymv_thunder_force_iii":  ["B"],
+    "gymv_space_harrier_ii":   ["B"],
+    "gymv_airstriker":         ["B"],
+    # Side-scrolling brawlers / action: B = attack.
+    "gymv_altered_beast":      ["B"],
+    "gymv_streets_of_rage_2":  ["B"],
+    "gymv_strider":            ["B"],
+    # gymv_dynamite_headdy: head-throw is mapped to B in the gymv
+    # adapter; A is jump.
+    "gymv_dynamite_headdy":    ["B"],
+    # Falling-block puzzle: rotation matters but no single button is
+    # indispensable. Intentionally omitted.
+    # "gymv_columns": [],
+}
+
 # ── Multi-role rollout constants ─────────────────────────────────────
 # When ``unified_role_rollouts`` is enabled, the same decision agent
 # plays ALL roles and each rollout is tagged with role / side metadata.
 # Per-game episode overrides ensure sufficient role coverage.
 
 EPISODES_PER_GAME_MULTIROLE: Dict[str, int] = {}
+
+
+# ── High-variance per-step episode overrides ─────────────────────────
+# Empirical analysis of run ``Qwen3.5-9B_20260504_144712`` showed
+# that the gymv shooter / brawler / scrolling-action subset is
+# bimodal (success rate ~17% on TF3, ~12% on Altered Beast) which
+# at the default n=8 episodes/step makes ``mean_reward`` jitter
+# between 0 and 60+ purely from sampling noise — the apparent
+# "collapse" at TF3 phase-1 steps 9-13 was almost entirely sampling
+# variance with one process restart on top.  A 16-episode batch is
+# the smallest n that drops the P(zero-mean | bimodal-success) noise
+# floor below ~5% (bootstrap from the empirical TF3 distribution
+# yields P=22.6% at n=8 and P=4.4% at n=16; see the run summary in
+# the chat thread for the bootstrap calculation).
+#
+# We deliberately don't override every game — Tetris / Candy Crush
+# are dense-reward and don't suffer the bimodal pathology; the
+# paper Table-3 anchor games stay on the global default to avoid
+# drifting away from the published numbers.  Adjust this dict (or
+# pass ``--episodes-per-game-overrides '{...}'`` from the launcher)
+# when adding new sparse-reward games.
+HIGH_VARIANCE_GYMV_EPISODES: Dict[str, int] = {
+    "gymv_thunder_force_iii":  16,
+    "gymv_altered_beast":      16,
+    "gymv_dynamite_headdy":    16,
+    "gymv_space_harrier_ii":   16,
+    "gymv_streets_of_rage_2":  16,
+    "gymv_strider":            16,
+    "gymv_airstriker":         16,
+    # gymv_columns is dense-scoring (every match scores) so the
+    # default 8 is enough — kept off the override list intentionally.
+}
 
 
 def resolve_bank_key(game: str, role: str = "", side: str = "") -> str:
@@ -187,10 +263,16 @@ class CoEvolutionConfig:
 
     # ── Unified multi-role rollout mode ──────────────────────────
     # When True, per-game episode counts follow ``episodes_per_game_overrides``.
-    # When False (default), ``episodes_per_game`` applies uniformly to every game.
+    # When False (default), ``episodes_per_game_overrides`` ALSO applies
+    # so individual high-variance games can be bumped without scaling
+    # the global batch (bootstrapped from
+    # :data:`HIGH_VARIANCE_GYMV_EPISODES` by default).
     unified_role_rollouts: bool = False
     episodes_per_game_overrides: Dict[str, int] = field(
-        default_factory=lambda: dict(EPISODES_PER_GAME_MULTIROLE),
+        default_factory=lambda: {
+            **EPISODES_PER_GAME_MULTIROLE,
+            **HIGH_VARIANCE_GYMV_EPISODES,
+        },
     )
 
     max_concurrent_episodes: int = 64
@@ -851,15 +933,16 @@ class CoEvolutionConfig:
     def get_episodes_for_game(self, game: str) -> int:
         """Return the episode count for *game*.
 
-        In unified-role mode, per-game overrides are applied
-        (5 for Avalon, 7 for Diplomacy by default).  Otherwise
-        the global ``episodes_per_game`` is returned for all games.
+        Per-game overrides apply in BOTH modes:
+          * Unified-role mode: covers role-coverage fan-out (5 for Avalon,
+            7 for Diplomacy by default).
+          * Standard per-game mode: covers high-variance sparse-reward
+            games (gymv shooters / brawlers default to 16 to keep the
+            sampling-noise floor below ~5%; see
+            :data:`HIGH_VARIANCE_GYMV_EPISODES`).
+        Games not in the override dict use the global ``episodes_per_game``.
         """
-        if self.unified_role_rollouts:
-            return self.episodes_per_game_overrides.get(
-                game, self.episodes_per_game,
-            )
-        return self.episodes_per_game
+        return self.episodes_per_game_overrides.get(game, self.episodes_per_game)
 
     def active_games(self, step: int) -> List[str]:
         """Return the list of active games for the given training step.

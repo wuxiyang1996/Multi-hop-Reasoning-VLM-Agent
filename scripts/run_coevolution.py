@@ -72,6 +72,7 @@ os.environ.setdefault("RAG_EMBEDDER_DEVICE", "cpu")
 
 import argparse
 import asyncio
+import json
 import logging
 import sys
 from pathlib import Path
@@ -132,7 +133,19 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--episodes-per-game", type=int, default=8,
-        help="Episodes per game per step (default: 8)",
+        help="Global default episodes per game per step (default: 8). "
+             "Per-game overrides apply on top — see "
+             "trainer.coevolution.config.HIGH_VARIANCE_GYMV_EPISODES "
+             "for sparse-reward gymv games which default to 16. "
+             "Use --episodes-per-game-overrides to customize.",
+    )
+    parser.add_argument(
+        "--episodes-per-game-overrides", type=str, default=None,
+        help="JSON map of per-game episode overrides, e.g. "
+             '\'{"gymv_thunder_force_iii": 24, "tetris": 8}\'. '
+             "Merged on top of the built-in HIGH_VARIANCE_GYMV_EPISODES "
+             "defaults; pass an empty dict '{}' to keep only the "
+             "global --episodes-per-game value across every game.",
     )
     parser.add_argument(
         "--max-concurrent", type=int, default=64,
@@ -792,10 +805,35 @@ def main() -> None:
     if args.min_steps_before_stuck is not None:
         config_kwargs["min_steps_before_stuck_check"] = args.min_steps_before_stuck
 
+    # ── Per-game episode overrides ──────────────────────────────────
+    # Layered precedence: HIGH_VARIANCE_GYMV_EPISODES (built-in default
+    # via dataclass factory) → unified-roles flat override → explicit
+    # --episodes-per-game-overrides JSON.  We resolve here so the
+    # final dict is what reaches CoEvolutionConfig.
+    from trainer.coevolution.config import (
+        EPISODES_PER_GAME_MULTIROLE as _EPS_MULTIROLE,
+        HIGH_VARIANCE_GYMV_EPISODES as _EPS_HIGH_VAR,
+    )
+    eps_overrides: Dict[str, int] = {**_EPS_MULTIROLE, **_EPS_HIGH_VAR}
     if args.unified_roles:
-        config_kwargs["episodes_per_game_overrides"] = {
-            g: args.episodes_per_game for g in games
-        }
+        eps_overrides = {g: args.episodes_per_game for g in games}
+    if args.episodes_per_game_overrides is not None:
+        try:
+            cli_overrides = json.loads(args.episodes_per_game_overrides)
+            if not isinstance(cli_overrides, dict):
+                raise ValueError(
+                    "--episodes-per-game-overrides must be a JSON object"
+                )
+            eps_overrides = {**eps_overrides, **{
+                str(k): int(v) for k, v in cli_overrides.items()
+            }}
+        except (json.JSONDecodeError, ValueError, TypeError) as exc:
+            raise SystemExit(
+                f"Invalid --episodes-per-game-overrides JSON: {exc}\n"
+                f"Got: {args.episodes_per_game_overrides!r}"
+            )
+    if eps_overrides:
+        config_kwargs["episodes_per_game_overrides"] = eps_overrides
 
     if args.opponent_model is not None:
         config_kwargs["opponent_model"] = args.opponent_model

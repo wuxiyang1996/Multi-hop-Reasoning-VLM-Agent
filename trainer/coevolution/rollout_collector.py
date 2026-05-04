@@ -101,8 +101,18 @@ def build_lpt_schedule(
     the entire collection window (enabling cross-system overlap with the
     skill bank pipeline).
 
-    When *unified_role_rollouts* is ``True``, per-game episode counts follow
-    ``episodes_per_game_overrides`` when set.
+    Per-game ``episodes_per_game_overrides`` are honored in BOTH modes:
+      * Unified-role mode — covers role-coverage fan-out (Avalon /
+        Diplomacy).
+      * Standard per-game mode — covers high-variance sparse-reward
+        games (gymv shooters / brawlers, see
+        :data:`HIGH_VARIANCE_GYMV_EPISODES`) where the default n=8
+        is small enough that ``mean_reward`` is dominated by sampling
+        noise rather than actual policy quality.
+
+    The ``unified_role_rollouts`` flag is preserved for callers that
+    still pass it for documentation but no longer gates override
+    application.
     """
     overrides = episodes_per_game_overrides or {}
     sorted_games = sorted(
@@ -118,7 +128,7 @@ def build_lpt_schedule(
     for g in sorted_games:
         ms = GAME_MAX_STEPS.get(g, 200)
         est = ms * PER_STEP_S
-        n_eps = overrides.get(g, episodes_per_game) if unified_role_rollouts else episodes_per_game
+        n_eps = overrides.get(g, episodes_per_game)
 
         specs: List[EpisodeSpec] = []
         for i in range(n_eps):

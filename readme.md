@@ -879,6 +879,7 @@ runs/skillbridge_<tag>/
 ├── reward_log.jsonl              # legacy per-step reward log
 ├── audit.jsonl                   # crafter / promotion audit
 ├── promotion_decisions_out/*_run_summary.json
+├── reward_shaping_log/ratio.jsonl  # intrinsic vs raw_env shaping ratio
 └── (instrumentation streams — see §1 below)
 ```
 
@@ -897,9 +898,53 @@ artifacts:
 | Skill lifecycle transitions                        | `lifecycle_log/transitions.jsonl`             | §5.2 promotion / lifetime curves (E1, E3, E6)   |
 | Per-step intention switch (`z_t` updates)          | `intention_log/switches.jsonl`                | §4.1 intention-trigger ablation (B4)            |
 | Per-trainer-step component runtime                 | `runtime_log/component_timings.jsonl`         | §5.6 token / wall breakdown (E5)                |
+| Per-step shaping-ratio diagnostics                 | `reward_shaping_log/ratio.jsonl`              | Imbalance check between intrinsic + survival shaping vs raw env reward; emits a WARN at >5x |
 
 Schema and field-by-field meaning lives in
 [`trainer/coevolution/_run_loggers.py`](trainer/coevolution/_run_loggers.py).
+
+#### Resume safety: bank restoration
+
+Resuming from a checkpoint (`--resume`, `--resume-from-step`, or auto-
+resume) now eagerly initializes every per-game `SkillBankAgent` *before*
+the checkpoint loader runs.  Without this the lazy pipelines hand
+`load_checkpoint` a `{game: None}` dict, the loader's `if agent is
+None: continue` clause silently no-ops the bank restore, and the next
+outer step reads `bank=0` → flips into spurious cold-start mode.
+Confirmed via the new `tests/test_resume_bank_restore.py` regression
+suite which pins both the post-fix behavior and the pre-fix
+silent-no-op as a negative-test guard.
+
+#### High-variance gymv games default to 16 episodes/step
+
+`trainer.coevolution.config.HIGH_VARIANCE_GYMV_EPISODES` bumps the
+default `episodes_per_game` from 8 to 16 for the gymv shooters /
+brawlers (TF3, Altered Beast, Streets of Rage 2, Strider, Space
+Harrier II, Airstriker, Dynamite Headdy).  Bootstrap from the
+empirical TF3 episode-reward distribution shows the per-step
+mean-reward sampling-noise floor drops from ~22 % (P(zero-mean | n=8))
+to ~4 % (n=16); see the post-mortem in `tests/test_episodes_per_game_overrides.py`
+for the rationale.  Override the dict with
+`--episodes-per-game-overrides '{"gymv_thunder_force_iii": 24}'` to
+go further (or pass `--episodes-per-game-overrides '{}'` to disable
+the high-variance defaults).
+
+#### Game-specific critical actions (action prior)
+
+`trainer.coevolution.config.GAME_CRITICAL_ACTIONS` declares per-game
+"must use" actions that are surfaced two ways:
+
+  1. As a one-line in-context hint in the action-selection prompt
+     ("Critical actions for this game (use frequently when scoring): B.").
+  2. As an anti-stagnation substitution in `_apply_anti_repetition` —
+     when the policy is stuck on a single non-scoring action OR runs
+     8 consecutive zero-reward decisions without picking a critical
+     action, the shim force-substitutes the critical action.
+
+This is a **hard escape valve**, not a reward signal — it costs zero
+GRPO advantage budget but ensures the action-vocab knowledge isn't
+solely a function of GRPO convergence.  See
+`tests/test_critical_action_prior.py` for the full behavior matrix.
 
 ### 2. Ablation flags (Block B)
 

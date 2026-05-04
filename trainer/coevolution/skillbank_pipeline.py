@@ -891,6 +891,34 @@ class PerGameSkillBankManager:
             for key, pipe in self._pipelines.items()
         }
 
+    def ensure_agents_initialized(self) -> Dict[str, Any]:
+        """Eagerly trigger lazy ``_ensure_agent`` on every pipeline.
+
+        Returns ``{key: agent}`` where every ``agent`` is a fully
+        constructed :class:`SkillBankAgent`. Used by the orchestrator's
+        resume path so :func:`load_checkpoint` actually sees concrete
+        agents instead of the lazy ``None`` placeholders that
+        :meth:`get_agents` returns on a fresh trainer process — without
+        this, ``load_checkpoint``'s ``if agent is None: continue`` would
+        silently skip restoring the per-game skill bank, forcing the
+        next outer step into spurious cold-start mode (the failure
+        mode reproduced in run ``Qwen3.5-9B_20260504_144712`` where
+        the trainer crashed mid-step-11 and the new process resumed
+        with ``bank=0 (empty)``).
+        """
+        agents: Dict[str, Any] = {}
+        for key, pipe in self._pipelines.items():
+            try:
+                agents[key] = pipe._ensure_agent()
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "ensure_agents_initialized: pipeline %s _ensure_agent "
+                    "failed (%s) — bank restore for this key will be skipped",
+                    key, exc,
+                )
+                agents[key] = None
+        return agents
+
     def reload_banks_from_disk(
         self,
         keys: Optional[Iterable[str]] = None,
@@ -1249,6 +1277,25 @@ class SharedSkillBankManager:
         :meth:`process_batch_async` so per-game prompt branches still
         receive the right context."""
         agent = self._shared_pipeline.get_agent()
+        return {game: agent for game in self._games}
+
+    def ensure_agents_initialized(self) -> Dict[str, Any]:
+        """Eagerly trigger lazy ``_ensure_agent`` on the shared pipeline.
+
+        Mirrors :meth:`PerGameSkillBankManager.ensure_agents_initialized`
+        — returns ``{game: shared_agent}`` with the agent fully
+        instantiated so :func:`load_checkpoint` can actually restore
+        per-step bank snapshots on a freshly-respawned trainer process.
+        """
+        try:
+            agent = self._shared_pipeline._ensure_agent()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "ensure_agents_initialized (shared): _ensure_agent failed: %s — "
+                "bank restore will be skipped",
+                exc,
+            )
+            agent = None
         return {game: agent for game in self._games}
 
     def reload_banks_from_disk(
