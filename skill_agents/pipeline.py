@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -367,6 +368,59 @@ class SkillBankAgent:
         # uncompetitive — locking the bank to a single skill forever.
         seeded = self._seed_skills_from_intentions(episode, game_name=_game)
         _skill_names = sorted(set(_skill_names) | set(seeded))
+
+        # ── Bounded segmentation cost ───────────────────────────────────
+        # The downstream LLM-teacher pass in
+        # ``skill_agents.infer_segmentation.episode_adapter`` issues
+        # roughly O(N_segments × N_skill_names) preference queries per
+        # episode (one per (segment, skill) pair, plus
+        # transition-preference and active-learning iterations).
+        # Without a cap, ``_skill_names`` grows monotonically as the
+        # bank fills up + new intention seeds appear, and segmentation
+        # wall time scales accordingly:
+        #
+        #   bank=0   ⇒ 25 s        bank=17  ⇒ 386 s
+        #   bank=13  ⇒ 119 s       bank=19  ⇒ 600 s (timeout)
+        #
+        # observed in the v4 Phase-1 run before the cap was added.  We
+        # cap to top-K by skill score (``Skill.compute_skill_score``)
+        # while always preserving ``__NEW__`` and any compound intention
+        # tags from this episode (which carry the novelty / explore
+        # signal — pruning them would lock the bank to its current
+        # vocabulary).  ``SKILLBANK_MAX_SKILL_NAMES=0`` disables the
+        # cap (legacy behaviour).
+        _max_names = int(os.environ.get("SKILLBANK_MAX_SKILL_NAMES", "16"))
+        if _max_names > 0 and len(_skill_names) > _max_names:
+            # ``seeded`` are the per-episode intention compounds — keep
+            # them all so we don't lose discovery signal.
+            preserved: set[str] = set(seeded)
+            preserved.add("__NEW__")
+            preserved.add("__EXPLORE__")
+            # Score the rest by the bank's per-skill score; unscored
+            # entries fall back to 0.5.  Highest-scoring K-len(preserved)
+            # join the preserved set.
+            scoring: List[Tuple[float, str]] = []
+            for sid in _skill_names:
+                if sid in preserved:
+                    continue
+                sk = self.bank.get_skill(sid) if self.bank else None
+                try:
+                    score = sk.compute_skill_score() if sk else 0.5
+                except Exception:
+                    score = 0.5
+                scoring.append((float(score), sid))
+            scoring.sort(reverse=True)
+            keep_extra = max(0, _max_names - len(preserved))
+            kept_extra = [sid for _s, sid in scoring[:keep_extra]]
+            new_names = sorted(preserved | set(kept_extra))
+            logger.info(
+                "segment_episode: capped skill_names %d → %d "
+                "(SKILLBANK_MAX_SKILL_NAMES=%d, preserved %d intention/"
+                "novelty seeds + %d top-scored bank skills)",
+                len(_skill_names), len(new_names), _max_names,
+                len(preserved), len(kept_extra),
+            )
+            _skill_names = new_names
 
         T = len(episode.experiences)
         duration_cfg = get_duration_prior_for_game(_game, episode_length=T)

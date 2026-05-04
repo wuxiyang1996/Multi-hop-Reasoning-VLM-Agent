@@ -277,8 +277,16 @@ class AsyncSkillBankPipeline:
     _MAX_CONCURRENT_SEGMENTATIONS = int(
         os.environ.get("SKILLBANK_MAX_CONCURRENT_SEGMENTATIONS", "8")
     )
+    # Per-episode segmentation timeout.  Default lowered from 600 → 180 s
+    # after the v4 Phase-1 run revealed segmentation cost growth from
+    # 25 s @ bank=0 to 600 s @ bank=19, with timed-out episodes
+    # leaving zombie executor threads that compounded across steps.
+    # The accompanying ``SKILLBANK_MAX_SKILL_NAMES`` cap (in
+    # ``skill_agents.pipeline.segment_episode``) bounds the per-call
+    # LLM cost so 180 s is now the realistic upper bound.  Override
+    # via env when running with a much larger configured bank.
     _SEGMENT_TIMEOUT_S = int(
-        os.environ.get("SKILLBANK_SEGMENT_TIMEOUT_S", "600")
+        os.environ.get("SKILLBANK_SEGMENT_TIMEOUT_S", "180")
     )
 
     async def process_batch_async(
@@ -291,6 +299,22 @@ class AsyncSkillBankPipeline:
         segmentation involves LLM calls, so parallelism overlaps the
         network I/O).  A semaphore limits concurrent segmentations to
         avoid saturating vLLM with hundreds of simultaneous requests.
+
+        Timeout discipline (added 2026-05-04, v4 post-mortem):
+
+        * Each episode's segmentation runs as a future on the shared
+          thread executor.  We track that future explicitly so a
+          timeout can call ``.cancel()`` on it AND wait briefly for
+          the underlying thread to release its LLM connections,
+          rather than leaving a zombie that still hammers vLLM after
+          the asyncio side has moved on.
+        * Episodes whose segmentation timed out (or raised) are
+          *dropped* from the pending pool.  Previously they were
+          retained, which meant downstream stages (contract learning,
+          bank maintenance) saw partially-segmented episodes and
+          mis-counted skill provenance.  Dropping is the safe failure
+          mode: the next step's rollouts will produce fresh episodes
+          to feed the bank.
         """
         episodes = []
         for r in results:
@@ -319,34 +343,66 @@ class AsyncSkillBankPipeline:
                 logger.warning("Segmentation failed for %s: %s", ep.episode_id, exc)
                 return False
 
+        # Track per-episode futures so timeouts can cancel them.  Map
+        # holds (future, ep) so we can identify which episodes survived.
+        in_flight: Dict[Any, Any] = {}
+
         async def _segment_with_sem(ep):
             async with sem:
+                fut = loop.run_in_executor(executor, _segment_one, ep)
+                in_flight[id(ep)] = fut
                 try:
-                    return await asyncio.wait_for(
-                        loop.run_in_executor(executor, _segment_one, ep),
+                    res = await asyncio.wait_for(
+                        asyncio.shield(fut),
                         timeout=self._SEGMENT_TIMEOUT_S,
                     )
+                    return res
                 except asyncio.TimeoutError:
                     logger.error(
-                        "Segmentation timed out after %ds for %s",
+                        "Segmentation timed out after %ds for %s "
+                        "(cancelling future, dropping episode)",
                         self._SEGMENT_TIMEOUT_S,
                         getattr(ep, "episode_id", "?"),
                     )
+                    # Best-effort cancel; the executor may not actually
+                    # interrupt the running thread (Python doesn't
+                    # support cooperative thread cancellation), but at
+                    # minimum this marks the future as cancelled so
+                    # asyncio stops waiting on it and the thread will
+                    # not block the next step's submissions.
+                    fut.cancel()
                     return False
+                finally:
+                    in_flight.pop(id(ep), None)
 
         results_ok = await asyncio.gather(
             *[_segment_with_sem(ep) for ep in episodes],
             return_exceptions=True,
         )
 
-        n_ok = sum(1 for r in results_ok if r is True)
+        n_ok = 0
+        kept_episodes: List[Any] = []
+        for ep, r in zip(episodes, results_ok):
+            if r is True:
+                n_ok += 1
+                kept_episodes.append(ep)
+            # else: timeout or raise — drop from pending so downstream
+            # stages don't see partially-segmented data.
         elapsed = time.monotonic() - t0
-        logger.info(
-            "Segmented %d/%d episodes in %.1fs",
-            n_ok, len(episodes), elapsed,
-        )
+        n_dropped = len(episodes) - n_ok
+        if n_dropped > 0:
+            logger.warning(
+                "Segmented %d/%d episodes in %.1fs (%d dropped — "
+                "timeout or raise, see preceding error/warning lines)",
+                n_ok, len(episodes), elapsed, n_dropped,
+            )
+        else:
+            logger.info(
+                "Segmented %d/%d episodes in %.1fs",
+                n_ok, len(episodes), elapsed,
+            )
 
-        self._pending_episodes.extend(episodes)
+        self._pending_episodes.extend(kept_episodes)
 
     async def finalize_update(self) -> SkillBankUpdateResult:
         """Run the full skill-bank update pipeline.

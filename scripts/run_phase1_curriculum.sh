@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ======================================================================
-#  Phase-1 source-GRPO curriculum — 6 games × 15 steps, sequential, with
+#  Phase-1 source-GRPO curriculum — 6 games × 10 steps, sequential, with
 #  bank + LoRA carry-over between games.
 #
 #  Implements the plan locked in
@@ -28,7 +28,9 @@
 #    2048          ← tetris+Columns  (grid-puzzle composition)
 #    super_mario   ← (no in-genre)   (transfer-distance bound)
 #
-#  Total: 90 GRPO steps. Wall-clock ~54 h sequential at ~36 min/step.
+#  Total: 60 GRPO steps. Wall-clock ~30-36 h sequential at ~30-36 min/step
+#  (tightened wall-time after the v4 segmentation cap landed; previously
+#  ~54 h before the SKILLBANK_MAX_SKILL_NAMES bound on segmentation cost).
 #
 #  Bank + LoRA carry over phase-to-phase by design (Option C in §11.2).
 #  After each phase a snapshot lands at
@@ -83,8 +85,8 @@
 #  Usage:
 #    bash scripts/run_phase1_curriculum.sh
 #
-#    # Override per-phase iteration count (default 15 per §4.1):
-#    ITERS_PER_PHASE=10 bash scripts/run_phase1_curriculum.sh
+#    # Override per-phase iteration count (default 10; was 15 pre-2026-05-04):
+#    ITERS_PER_PHASE=15 bash scripts/run_phase1_curriculum.sh
 #
 #    # Override episodes per step (default 8 — matches paper Table 3):
 #    EPISODES=4 bash scripts/run_phase1_curriculum.sh
@@ -147,10 +149,12 @@ TP="${VLLM_TP:-4}"
 GPU_UTIL="${VLLM_GPU_UTIL:-0.90}"
 MANAGE_VLLM="${MANAGE_VLLM:-1}"
 
-# §4.1 lock: 15 steps per phase, snapshot every 5 steps so a mid-phase
-# failure doesn't lose more than ~3 h of work.  ``EPISODES`` default
-# is set per LAYOUT below (8 for FSDP=2, 16 for FSDP=4).
-ITERS_PER_PHASE="${ITERS_PER_PHASE:-15}"
+# §4.1 lock (relaxed 2026-05-04 to 10 / phase after the v4 segmentation
+# wall-clock blow-up was diagnosed): 10 steps per phase, snapshot every
+# 5 steps so a mid-phase failure doesn't lose more than ~3 h of work.
+# ``EPISODES`` default is set per LAYOUT below (8 for FSDP=2, 16 for
+# FSDP=4).  Override via ``ITERS_PER_PHASE`` env var.
+ITERS_PER_PHASE="${ITERS_PER_PHASE:-10}"
 CKPT_INTERVAL="${CKPT_INTERVAL:-5}"
 WANDB_PROJECT="${WANDB_PROJECT:-game-ai-coevolution-phase1}"
 RUN_DIR="${RUN_DIR:-}"
