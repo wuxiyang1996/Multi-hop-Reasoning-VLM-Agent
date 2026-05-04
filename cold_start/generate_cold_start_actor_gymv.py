@@ -221,16 +221,22 @@ def _is_reasoning_model(model: str) -> bool:
 # Models that secretly burn tokens on hidden chain-of-thought *before* the
 # tool_call payload but still accept the standard ``max_tokens`` /
 # ``temperature`` knobs.  Matches Anthropic Claude 4.x+ (extended thinking
-# enabled by default on Sonnet 4.5+, Opus 4.x) and Google Gemini 2.5/3.x
-# (always-on hidden reasoning on Pro tier).  Without bumping the output
-# budget here, an action call with the strict-enum tool_choice will return
-# ``finish_reason=length`` and an empty ``tool_calls`` once the hidden
-# reasoning trace fills 128 tokens, silently degrading to the random-action
-# fallback (observed on google/gemini-3.1-pro-preview).
+# enabled by default on Sonnet 4.5+, Opus 4.x), Google Gemini 2.5/3.x
+# (always-on hidden reasoning on Pro tier), and Qwen3 / Qwen3.5 / Qwen3.6
+# (ditto — see below).  Without bumping the output budget here, an action
+# call with the strict-enum tool_choice will return ``finish_reason=length``
+# and an empty ``tool_calls`` once the hidden reasoning trace fills 128
+# tokens, silently degrading to the random-action fallback (observed on
+# google/gemini-3.1-pro-preview AND on qwen/qwen3.5-9b +
+# qwen/qwen3.5-35b-a3b via OpenRouter on 2026-05-03 — the
+# ``extra_body.enable_thinking=False`` knob is silently ignored on the
+# OpenRouter Qwen3.5 routes, so the only reliable mitigation is a wide
+# output budget).
 _THINKING_MODEL_RE = re.compile(
     r"(?:^|/)("
-    r"claude-(?:sonnet-|opus-|haiku-)?(?:[4-9]|\d{2,})"  # claude-4.x+, claude-sonnet-4.x+
-    r"|gemini-(?:[2-9]|\d{2,})"                          # gemini-2.x+, gemini-3.x+
+    r"claude-(?:sonnet-|opus-|haiku-)?(?:[4-9]|\d{2,})"   # claude-4.x+, claude-sonnet-4.x+
+    r"|gemini-(?:[2-9]|\d{2,})"                           # gemini-2.x+, gemini-3.x+
+    r"|qwen3(?:\.\d+)?(?=[-./]|$)"                        # qwen3-, qwen3.5-, qwen3.6-, qwen3-max, qwen3-vl-*, …
     r")",
     re.IGNORECASE,
 )
