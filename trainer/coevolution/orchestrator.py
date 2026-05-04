@@ -151,17 +151,37 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     from concurrent.futures import ProcessPoolExecutor as _PPE
     process_executor = _PPE(max_workers=config.process_workers)
 
-    # ── Per-game skill bank pipelines ────────────────────────────
+    # ── Skill bank pipelines (per-game default; opt-in shared) ─────
     all_games = list(config.games) + list(getattr(config, "eval_games", []))
-    sb_manager = PerGameSkillBankManager(
-        games=all_games,
-        bank_dir=config.bank_dir,
-        model_name=config.model_name,
-        executor=thread_executor,
-        seed_bank_dir=getattr(config, "seed_bank_dir", None),
-        process_executor=process_executor,
-        unified_role_rollouts=getattr(config, "unified_role_rollouts", False),
-    )
+    bank_mode = (getattr(config, "bank_mode", "per_game") or "per_game").lower()
+    if bank_mode not in ("per_game", "shared"):
+        raise ValueError(
+            f"Unknown bank_mode={bank_mode!r}. Expected 'per_game' or 'shared'. "
+            "See trainer/coevolution/config.py:CoEvolutionConfig.bank_mode."
+        )
+    if bank_mode == "shared":
+        from trainer.coevolution.skillbank_pipeline import SharedSkillBankManager
+        sb_manager = SharedSkillBankManager(
+            games=all_games,
+            bank_dir=config.bank_dir,
+            model_name=config.model_name,
+            executor=thread_executor,
+            seed_bank_dir=getattr(config, "seed_bank_dir", None),
+            process_executor=process_executor,
+            unified_role_rollouts=getattr(config, "unified_role_rollouts", False),
+        )
+        logger.info("Skill bank mode: SHARED (one file across %d games)", len(all_games))
+    else:
+        sb_manager = PerGameSkillBankManager(
+            games=all_games,
+            bank_dir=config.bank_dir,
+            model_name=config.model_name,
+            executor=thread_executor,
+            seed_bank_dir=getattr(config, "seed_bank_dir", None),
+            process_executor=process_executor,
+            unified_role_rollouts=getattr(config, "unified_role_rollouts", False),
+        )
+        logger.info("Skill bank mode: PER_GAME (legacy, %d separate banks)", len(all_games))
 
     # ── Determine start step ─────────────────────────────────────
     start_step = 0
@@ -236,11 +256,37 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     # eval and training read from one source. Disable by setting
     # ``CoEvolutionConfig.reward_log_path = None`` (or empty after
     # ``resolve_paths()`` post-process).
+    # Teacher-anchored reward normalization (training_notes §4.5):
+    # auto-derive per-game anchors from the SFT cold-start
+    # ``rollout_summary.json`` files, layered over the static
+    # 4-backbone-max fallback table. ``None`` ⇒ "no anchor"; the
+    # downstream ``reward_normalized`` field is then ``None`` too,
+    # which W&B / dashboards distinguish from a real ``0.0``.
+    try:
+        from common.reward_anchors import resolve_anchors as _resolve_anchors
+        reward_anchors = _resolve_anchors()
+        anchored_games = sorted(
+            g for g, v in reward_anchors.items() if v is not None
+        )
+        logger.info(
+            "Reward anchors (§4.5): %d games anchored (%s)",
+            len(anchored_games), ", ".join(anchored_games),
+        )
+    except Exception as _anchor_exc:  # pragma: no cover  (defensive)
+        logger.warning(
+            "Reward anchor resolution failed: %s — normalization will be no-op.",
+            _anchor_exc,
+        )
+        reward_anchors = None
+
     reward_logger = None
     if config.reward_log_path:
         try:
             from harness.reward_logger import RewardLogger as _RewardLogger
-            reward_logger = _RewardLogger(log_path=config.reward_log_path)
+            reward_logger = _RewardLogger(
+                log_path=config.reward_log_path,
+                reward_anchors=reward_anchors,
+            )
             logger.info("Reward sink (T2.4): %s", config.reward_log_path)
         except Exception as exc:
             logger.warning(
@@ -391,18 +437,54 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 "vllm/prompt_tokens": _vstats["total_prompt_tokens"],
                 "vllm/completion_tokens": _vstats["total_completion_tokens"],
             }
+            # Per-game raw metrics (legacy ``reward/{game}/...`` namespace
+            # is kept *unchanged* for backward-compat with existing W&B
+            # dashboards/queries; new ``reward/raw/{game}/...`` mirrors
+            # the legacy keys for readers that want the namespaced view).
+            #
+            # Per-game normalized metrics (training_notes §4.5):
+            # ``reward/normalized/{game}/...``. ``None`` (no anchor) is
+            # *omitted* from ``log_dict`` rather than logged as a NaN —
+            # this preserves the "no anchor ≠ scored zero" semantic.
+            try:
+                from common.reward_anchors import normalize_reward as _norm
+            except Exception:  # pragma: no cover
+                _norm = None
+            anchored_norms: List[float] = []
             for game, m in _ep_metrics["per_game"].items():
-                log_dict[f"reward/{game}/mean"] = m["mean_reward"]
-                log_dict[f"reward/{game}/max"] = m["max_reward"]
-                log_dict[f"reward/{game}/min"] = m["min_reward"]
-                log_dict[f"reward/{game}/std"] = m["std_reward"]
+                # Legacy + ``reward/raw/`` namespace (identical values).
+                for prefix in (f"reward/{game}", f"reward/raw/{game}"):
+                    log_dict[f"{prefix}/mean"] = m["mean_reward"]
+                    log_dict[f"{prefix}/max"] = m["max_reward"]
+                    log_dict[f"{prefix}/min"] = m["min_reward"]
+                    log_dict[f"{prefix}/std"] = m["std_reward"]
                 log_dict[f"reward/{game}/n_episodes"] = m["n_episodes"]
                 log_dict[f"reward/{game}/mean_steps"] = m["mean_steps"]
+
+                # Normalized namespace — only emitted when an anchor exists.
+                if _norm is not None and reward_anchors is not None:
+                    n_mean = _norm(m["mean_reward"], game, anchors=reward_anchors)
+                    n_max = _norm(m["max_reward"], game, anchors=reward_anchors)
+                    n_min = _norm(m["min_reward"], game, anchors=reward_anchors)
+                    if n_mean is not None:
+                        log_dict[f"reward/normalized/{game}/mean"] = n_mean
+                        anchored_norms.append(n_mean)
+                    if n_max is not None:
+                        log_dict[f"reward/normalized/{game}/max"] = n_max
+                    if n_min is not None:
+                        log_dict[f"reward/normalized/{game}/min"] = n_min
             log_dict["reward/mean"] = _ep_metrics["aggregate"]["mean_reward"]
             log_dict["reward/max"] = _ep_metrics["aggregate"]["max_reward"]
             log_dict["reward/min"] = _ep_metrics["aggregate"]["min_reward"]
             log_dict["reward/std"] = _ep_metrics["aggregate"]["std_reward"]
             log_dict["reward/total_steps"] = _ep_metrics["aggregate"]["total_steps"]
+            # Cross-game normalized aggregate — the headline scalar that
+            # is fair to compare across phases. Uses an unweighted mean
+            # of per-game normalized means (each game contributes
+            # equally regardless of episode count).
+            if anchored_norms:
+                log_dict["reward/normalized/mean"] = sum(anchored_norms) / len(anchored_norms)
+                log_dict["reward/normalized/n_anchored_games"] = len(anchored_norms)
             for game, cnt in _sk_counts.items():
                 log_dict[f"skillbank/{game}/n_skills"] = cnt
             for game, result in _sb_results.items():
@@ -555,6 +637,69 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 except Exception as exc:
                     logger.warning("Best-checkpoint rollback failed: %s", exc)
 
+    # ──────────────────────────────────────────────────────────────────
+    # Phase-start GameProfile cache (Path 1).  Populated on first entry
+    # to a game and refreshed whenever the curriculum transitions to a
+    # game we have not yet seen this run.  Entries are passed through
+    # ``collect_rollouts → run_episode_async`` so the actor's
+    # SYSTEM_PROMPT and SKILL_SELECTION_SYSTEM_PROMPT can prepend the
+    # compact profile.  See ``trainer/coevolution/_game_schema.py``.
+    # ──────────────────────────────────────────────────────────────────
+    game_profiles: Dict[str, Any] = {}
+
+    async def _refresh_game_schemas(games_to_check: List[str]) -> None:
+        if not getattr(config, "game_schema_enabled", False):
+            return
+        new_games = [g for g in games_to_check if g not in game_profiles]
+        if not new_games:
+            return
+        try:
+            from trainer.coevolution._game_schema import ensure_game_schemas
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "game_schema import failed (%s); skipping GameProfile gen",
+                exc,
+            )
+            return
+        backbone_judge = (
+            getattr(config, "game_schema_model", "")
+            or os.environ.get("VLM_AGENT_BACKBONE_JUDGE_MODEL", "")
+            or "Qwen/Qwen3.5-35B-A3B"
+        )
+        logger.info(
+            "Phase-start GameProfile: generating for %d game(s) via %s "
+            "(timeout=%.0fs, max_tokens=%d)",
+            len(new_games), backbone_judge,
+            config.game_schema_timeout_s, config.game_schema_max_tokens,
+        )
+        try:
+            fresh = await ensure_game_schemas(
+                games=new_games,
+                run_dir=config.run_dir,
+                model=backbone_judge,
+                executor=thread_executor,
+                max_tokens=config.game_schema_max_tokens,
+                timeout_s=config.game_schema_timeout_s,
+            )
+            game_profiles.update(fresh)
+            llm_count = sum(1 for p in fresh.values() if p.source == "llm")
+            cache_count = sum(1 for p in fresh.values() if p.source == "cache")
+            fb_count = len(fresh) - llm_count - cache_count
+            logger.info(
+                "Phase-start GameProfile: %d ready (llm=%d cache=%d "
+                "fallback=%d)",
+                len(fresh), llm_count, cache_count, fb_count,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Phase-start GameProfile gen failed (%s); proceeding "
+                "without per-game profile injection",
+                exc,
+            )
+
+    if getattr(config, "game_schema_enabled", False):
+        await _refresh_game_schemas(list(config.games))
+
     # ==================================================================
     # MAIN LOOP — pipelined: GRPO(N) overlaps with rollout(N+1)
     # ==================================================================
@@ -576,6 +721,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     "Curriculum transition at step %d: %s → %s",
                     step, prev_games, config.games,
                 )
+                await _refresh_game_schemas(list(config.games))
 
         try:
             from skill_agents.stage3_mvp.schemas import ProtoSkill
@@ -634,12 +780,39 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 from trainer.coevolution._harness_hook import SkillHarnessHook
                 _hook_bank_paths = sb_manager.bank_paths(simple_only=True)
                 _allow_shadow = bool(getattr(config, "harness_allow_shadow", True))
+                # Path 4 — LLM Harness validator wiring.  All four
+                # ``llm_harness_*`` knobs are passive when
+                # ``llm_harness_validator_enabled=False`` (default).
+                _llm_v_enabled = bool(getattr(
+                    config, "llm_harness_validator_enabled", False,
+                ))
+                _llm_v_model = str(getattr(config, "llm_harness_model", "") or "")
+                _llm_v_bootstrap = int(getattr(
+                    config, "llm_harness_bootstrap_steps", 20,
+                ))
+                _llm_v_max_tokens = int(getattr(
+                    config, "llm_harness_max_tokens", 256,
+                ))
+                _llm_v_temperature = float(getattr(
+                    config, "llm_harness_temperature", 0.2,
+                ))
+                _llm_v_timeout = float(getattr(
+                    config, "llm_harness_timeout_s", 30.0,
+                ))
                 for _g, _bp in _hook_bank_paths.items():
                     try:
                         harness_hooks[_g] = SkillHarnessHook.for_game(
                             game=_g,
                             bank_path=Path(_bp),
                             allow_shadow=_allow_shadow,
+                            llm_validator_enabled=_llm_v_enabled,
+                            llm_validator_model=_llm_v_model,
+                            trainer_step=step,
+                            bootstrap_steps=_llm_v_bootstrap,
+                            llm_validator_max_tokens=_llm_v_max_tokens,
+                            llm_validator_temperature=_llm_v_temperature,
+                            llm_validator_timeout_s=_llm_v_timeout,
+                            game_profile=(game_profiles or {}).get(_g),
                         )
                     except Exception as _hexc:                  # noqa: BLE001
                         logger.warning(
@@ -735,6 +908,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 thread_executor=thread_executor,
                 harness_hooks=harness_hooks if harness_hooks else None,
                 reward_logger=reward_logger,
+                game_profiles=game_profiles if game_profiles else None,
             )
         )
         consumer_task = asyncio.create_task(skill_bank_consumer())
@@ -871,6 +1045,26 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     outcome_failure_threshold=config.crafter_outcome_failure_threshold,
                     harness_hooks=harness_hooks if harness_hooks else None,
                     enable_protocol_patching=config.crafter_enable_protocol_patching,
+                    # Path 2 — supplemental LLM Crafter (35B) wiring.
+                    llm_crafter_enabled=getattr(
+                        config, "llm_crafter_enabled", False,
+                    ),
+                    llm_crafter_model=getattr(
+                        config, "llm_crafter_model", "",
+                    ),
+                    llm_crafter_k_max=getattr(
+                        config, "llm_crafter_k_max", 5,
+                    ),
+                    llm_crafter_max_tokens=getattr(
+                        config, "llm_crafter_max_tokens", 1024,
+                    ),
+                    llm_crafter_temperature=getattr(
+                        config, "llm_crafter_temperature", 0.3,
+                    ),
+                    llm_crafter_timeout_s=getattr(
+                        config, "llm_crafter_timeout_s", 60.0,
+                    ),
+                    game_profiles=game_profiles if game_profiles else None,
                 )
                 crafter_report = crafter_step.to_dict()
 
@@ -881,6 +1075,11 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                         proposals_run_dir=crafter_step.run_dir,
                         legacy_bank_paths=bank_paths,
                         driver_timeout_s=config.crafter_promotion_timeout_s,
+                        gate_mode=getattr(
+                            config,
+                            "crafter_promotion_gate_mode",
+                            "offline-synthetic",
+                        ),
                     )
                     promotion_report = promotion_step.to_dict()
 

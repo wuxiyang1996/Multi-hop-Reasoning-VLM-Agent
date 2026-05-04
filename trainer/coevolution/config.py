@@ -14,19 +14,60 @@ os.environ.setdefault("HF_HUB_CACHE", os.path.join(os.environ["HF_HOME"], "hub")
 
 
 SKILL_BANK_GAMES = [
-    "twenty_forty_eight",
+    # Full 12-game registry — all P1 source + P2 hold-out games. Mirrors
+    # ``GAME_MAX_STEPS`` below so ``--games`` validation, the no-args
+    # default, and the curriculum scripts agree on the same universe.
+    #
+    # Phase split (training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
+    # §4.1, refreshed 2026-05-03 PM) is enforced by the curriculum
+    # scripts' ``PHASES`` arrays, NOT by this constant — so:
+    #   * ``scripts/run_phase1_curriculum.sh`` uses the 6 P1 picks
+    #     below (4 healthy gymv + ``candy_crush`` + ``tetris``).
+    #   * ``scripts/run_phase2_holdout.sh`` uses the 6 hold-outs
+    #     (4 P2 gymv + ``twenty_forty_eight`` + ``super_mario``).
+    #
+    # ``python scripts/run_coevolution.py`` (no ``--games``) now defaults
+    # to all 12. For smoke tests against a single game, prefer an
+    # explicit ``--games tetris`` rather than relying on this default.
+    #
+    # ── Phase-1 source roster (§4.1) ──────────────────────────────
+    "tetris",                    # paper Table 3
+    "candy_crush",               # paper Table 3
+    "gymv_thunder_force_iii",    # gymv (data-driven pick)
+    "gymv_altered_beast",        # gymv (data-driven pick)
+    "gymv_columns",              # gymv (data-driven pick)
+    "gymv_dynamite_headdy",      # gymv (data-driven pick)
+    # ── Phase-2 hold-out roster (§7.1) ────────────────────────────
+    "twenty_forty_eight",        # paper Table 3
+    "super_mario",               # paper Table 3
+    "gymv_streets_of_rage_2",    # gymv (in-genre lift target)
+    "gymv_space_harrier_ii",     # gymv (scale-jump test)
+    "gymv_airstriker",           # gymv (easier in-genre sanity)
+    "gymv_strider",              # gymv (partial-signal rescue test)
+]
+
+# Phase-1 source roster (§4.1) — used by curriculum scripts and
+# smoke-tests that want only the healthy training subset. Defined as a
+# tuple to discourage in-place mutation; convert to ``list(...)`` if you
+# need to pass it to ``CoEvolutionConfig.games``.
+PHASE1_DEFAULT_GAMES: tuple = (
     "tetris",
     "candy_crush",
-    "super_mario",
-    # Phase-1 cross-game curriculum: 4 Gym-V Temporal/* games dispatched
-    # via env_wrappers/gymv_temporal_nl_wrapper.py.  These games run at
-    # frame_skip=8 (StochasticFrameSkip), so each agent step ≈ 8 emulator
-    # frames and the per-episode cap below is in agent steps.
-    "gymv_space_harrier_ii",
-    "gymv_streets_of_rage_2",
+    "gymv_thunder_force_iii",
+    "gymv_altered_beast",
     "gymv_columns",
+    "gymv_dynamite_headdy",
+)
+
+# Phase-2 hold-out roster (§7.1).
+PHASE2_HOLDOUT_GAMES: tuple = (
+    "twenty_forty_eight",
+    "super_mario",
+    "gymv_streets_of_rage_2",
+    "gymv_space_harrier_ii",
+    "gymv_airstriker",
     "gymv_strider",
-]
+)
 
 # Evaluation-only: rollouts collected for metrics but NOT fed into GRPO training.
 EVAL_ONLY_GAMES: List[str] = []
@@ -38,11 +79,15 @@ GAME_MAX_STEPS: Dict[str, int] = {
     "super_mario": 500,
     # Gym-V Temporal/* @ frame_skip=8.  200 agent steps ≈ 1600 emulator
     # frames ≈ 27 s of in-game time at 60 Hz, which comfortably covers
-    # the ~100-step paper Table-3 anchor episodes for all 4 games while
+    # the ~100-step paper Table-3 anchor episodes for all 8 games while
     # still bounding the worst case (long Streets-of-Rage 2 stages).
+    "gymv_thunder_force_iii": 200,
+    "gymv_altered_beast": 200,
+    "gymv_columns": 200,
+    "gymv_dynamite_headdy": 200,
     "gymv_space_harrier_ii": 200,
     "gymv_streets_of_rage_2": 200,
-    "gymv_columns": 200,
+    "gymv_airstriker": 200,
     "gymv_strider": 200,
 }
 
@@ -236,6 +281,17 @@ class CoEvolutionConfig:
     # Phase-0 Airstriker baseline is ~0.3s; 300s leaves room for the
     # 13-game sweep + future Stage-1 replay overhead.
     crafter_promotion_timeout_s: float = 300.0
+    # Gate mode forwarded to ``decide_promotion_gpt54.py --gate-mode``.
+    # ``offline-synthetic`` (default) keeps Phase-1's documented
+    # behaviour: rule-only Stage 0 + LIMITED_PASS placeholders for
+    # Stages 1-4, no LLM calls. ``offline-with-llm-judge`` extends it
+    # with one ``BACKBONE_JUDGE_MODEL`` (35B-A3B) call per proposal —
+    # the 35B verdict is appended as an extra StageVerdict and an LLM
+    # ``fail`` flips the aggregate to FAIL ⇒ REJECT, so visibly bad
+    # proposals are filtered out before they enter the bank. The
+    # 35B endpoint is selected via ``VLLM_BASE_URL_MAP`` (handled by
+    # ``API_func``); no extra plumbing required from the trainer side.
+    crafter_promotion_gate_mode: str = "offline-synthetic"
     # Lane-(a) feature flag. ``False`` (default) parks the Repairer /
     # PatchProposal mint path: under
     # ``implementation_notes/legacy/skill-lane-decision.md`` skills are
@@ -337,6 +393,85 @@ class CoEvolutionConfig:
     # bind only fully-validated (ACTIVE / PROVISIONAL) skills.
     harness_allow_shadow: bool = True
 
+    # ── Path 2 — supplemental LLM Crafter (35B) ─────────────────────
+    # When enabled, ``_crafter_hook.run_crafter_step`` augments its
+    # rule-based proposals with up to ``llm_crafter_k_max`` additional
+    # 35B-A3B-driven proposals per game per step (one call per
+    # FailureTrace, parallelised via asyncio.gather, fail-soft on
+    # any error).  Routes through ``API_func.ask_model`` →
+    # ``BACKBONE_JUDGE_MODEL`` (or ``llm_crafter_model`` if non-empty)
+    # via ``VLLM_BASE_URL_MAP`` — same plumbing as the LLM promotion
+    # judge.  See ``trainer/coevolution/_llm_crafter.py`` and
+    # ``crafter-harness-orchestrator-roles.md`` §2.1.
+    llm_crafter_enabled: bool = False
+    # Empty → defer to ``BACKBONE_JUDGE_MODEL`` (35B-A3B teacher).
+    llm_crafter_model: str = ""
+    # Hard cap on parallel 35B calls per game per step.
+    llm_crafter_k_max: int = 5
+    # Token budget per LLM Crafter response.
+    llm_crafter_max_tokens: int = 1024
+    # Sampling temperature for LLM Crafter calls.
+    llm_crafter_temperature: float = 0.3
+    # Hard wall-time per individual 35B call.  On timeout we drop the
+    # one trace and continue; a slow 35B can never block a step.
+    llm_crafter_timeout_s: float = 60.0
+
+    # ── Path 4 — LLM Harness validator (35B) ────────────────────────
+    # Post-LLM second-pass validation by the 35B-A3B teacher,
+    # complementing the deterministic
+    # :meth:`SkillHarness.validate_invocation`.  Hybrid policy:
+    #   * Bootstrap window: when ``trainer_step <
+    #     llm_harness_bootstrap_steps`` the LLM validator fires on
+    #     EVERY admitted skill.
+    #   * Steady state: only fires when the deterministic verdict
+    #     was uncertain (e.g. SHADOW skill, no can_handle evidence,
+    #     translation-rewritten contract).
+    # Verdicts can ONE-WAY downgrade admit→veto; they never
+    # override a deterministic veto upward.  Episode-level cache
+    # keyed by ``(episode_id, skill_id)`` so repeated picks of the
+    # same skill in one episode pay the LLM cost only once.  See
+    # ``trainer/coevolution/_llm_harness_validator.py``.
+    llm_harness_validator_enabled: bool = False
+    # Empty → defer to ``BACKBONE_JUDGE_MODEL`` (35B-A3B teacher).
+    llm_harness_model: str = ""
+    # Bootstrap window: outer-loop training steps below this value
+    # always go through the LLM validator regardless of deterministic
+    # certainty.  Default 20 ≈ ~1 day of P1 training.
+    llm_harness_bootstrap_steps: int = 20
+    # Token budget per LLM Harness validator response.
+    llm_harness_max_tokens: int = 256
+    # Sampling temperature for LLM Harness validator calls.
+    llm_harness_temperature: float = 0.2
+    # Hard wall-time per individual 35B call.  On timeout the
+    # deterministic verdict stands (admit).
+    llm_harness_timeout_s: float = 30.0
+
+    # ── Phase-start GameProfile (Path 1) ────────────────────────────
+    # When ``True``, the orchestrator runs ``ensure_game_schemas`` once
+    # per curriculum phase boundary (and at startup) and injects a
+    # compact GameProfile (goal / win_signal / hazards / key_actions /
+    # failure_modes) into the actor's SYSTEM_PROMPT and
+    # SKILL_SELECTION_SYSTEM_PROMPT for the duration of the phase.
+    # Adds 1 × ``BACKBONE_JUDGE_MODEL`` (35B-A3B) call per game per
+    # phase boundary, no per-step LLM cost. The same call also produces
+    # a ``<state>...</state>`` exemplar cached under
+    # ``run_dir/phase_artifacts/<game>.schema.json`` for Path 2 (LLM
+    # Crafter) and Path 4 (LLM Harness validator) to reuse as a
+    # few-shot anchor without firing their own 35B calls.
+    # See ``trainer/coevolution/_game_schema.py``.
+    game_schema_enabled: bool = False
+    # Override model for GameProfile generation; empty string defers to
+    # ``BACKBONE_JUDGE_MODEL`` resolved by ``API_func.ask_model`` via
+    # ``VLLM_BASE_URL_MAP`` (same routing as the LLM promotion judge).
+    game_schema_model: str = ""
+    # Token budget for the 35B response (compact GAME_PROFILE block +
+    # full STATE_EXAMPLE block fit comfortably in ~1k tokens).
+    game_schema_max_tokens: int = 1024
+    # Hard timeout per 35B call. On timeout we fall back to the
+    # deterministic minimum profile and continue without blocking the
+    # phase boundary.
+    game_schema_timeout_s: float = 60.0
+
     # Run directory — all other dirs are relative to this.
     # Auto-generated from model_name + timestamp if None.
     run_dir: Optional[str] = None
@@ -411,6 +546,31 @@ class CoEvolutionConfig:
     # Skills are copied only when the game's bank is empty; once the
     # co-evolution loop adds its own skills, the seed is never re-applied.
     seed_bank_dir: Optional[str] = None
+
+    # Storage layout for the skill bank across curriculum games.
+    #
+    # ``"per_game"`` (default, legacy):
+    #     One ``<bank_dir>/<game>/skill_bank.jsonl`` per game. Skills
+    #     never cross game boundaries on disk; cross-game effects only
+    #     accumulate at the LoRA-weight level.
+    #
+    # ``"shared"`` (cross-game lifelong-learning experiments):
+    #     One ``<bank_dir>/skill_bank.jsonl`` shared across all games.
+    #     Eligibility is enforced at runtime by the harness's
+    #     ``EligibilityFilter`` task-axis veto (F2′,
+    #     ``harness/README §22``) — every skill carries
+    #     ``feasible_tasks=[<game>]`` so SoR2-mined skills only fire on
+    #     SoR2 states unless the cross-game translator
+    #     (``skill_agents.skill_bank.translate_for_target``) emits an
+    #     explicit derived record. Pair with
+    #     ``--seed-bank-dir`` and the per-phase translation step in
+    #     ``scripts/run_phase1_curriculum.sh`` for the full lifelong
+    #     pipeline.
+    #
+    # Default ``"per_game"`` preserves every prior run's behaviour
+    # bit-for-bit; the shared path is opt-in via
+    # ``run_coevolution.py --bank-mode shared``.
+    bank_mode: str = "per_game"
 
     # Thread/process executors
     thread_workers: int = 64

@@ -5,16 +5,28 @@
 #
 #  Implements the plan locked in
 #    training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1
-#  (game roster + curriculum order, 2026-05-03 PM).
+#  (game roster + curriculum order, refreshed 2026-05-03 PM from the new
+#  Cold-start-out-gymv/latest 4-backbone teacher table — see §13
+#  Changelog).
 #
-#  Curriculum order (high-density rewards first, then puzzle/action,
-#  finishing on the two paper Table-3 anchors):
-#    Phase 1: gymv_space_harrier_ii   (shmup,       baseline 100%)
-#    Phase 2: gymv_streets_of_rage_2  (beat-em-up,  baseline 100%)
-#    Phase 3: gymv_columns            (puzzle,      baseline  89%)
-#    Phase 4: gymv_strider            (action,      baseline  78%)
-#    Phase 5: candy_crush             (paper Table 3, match-3)
-#    Phase 6: tetris                  (paper Table 3, spatial puzzle)
+#  Curriculum order (data-driven from new SFT cold-start; every game has
+#  non-zero teacher reward across all 4 frontier teachers):
+#    Phase 1: gymv_thunder_force_iii  (shmup,             teacher 269-750)
+#    Phase 2: gymv_altered_beast      (beat-em-up,        teacher 119-425)
+#    Phase 3: gymv_columns            (puzzle,            teacher  63-160)
+#    Phase 4: gymv_dynamite_headdy    (action-platformer, teacher  75- 94)
+#    Phase 5: candy_crush             (paper Table 3,     match-3)
+#    Phase 6: tetris                  (paper Table 3,     spatial puzzle)
+#
+#  Phase-2 hold-out roster (run via scripts/run_phase2_holdout.sh — pairs
+#  each Phase-2 gymv game in-genre with a Phase-1 source so the cross-game
+#  translator has the closest possible source vocabulary):
+#    SoR2          ← AlteredBeast    (in-genre lift, healthy ↔ healthy)
+#    SpaceHarrierII ← ThunderForceIII (scale-jump test, ~30× reward)
+#    Airstriker    ← ThunderForceIII (easier in-genre sanity)
+#    Strider       ← DynamiteHeaddy  (partial-signal rescue test)
+#    2048          ← tetris+Columns  (grid-puzzle composition)
+#    super_mario   ← (no in-genre)   (transfer-distance bound)
 #
 #  Total: 90 GRPO steps. Wall-clock ~54 h sequential at ~36 min/step.
 #
@@ -92,6 +104,16 @@
 #    MANAGE_VLLM=0 VLLM_URL=http://localhost:8000/v1 \
 #      bash scripts/run_phase1_curriculum.sh
 #
+#    # Shared-bank lifelong-learning mode (one bank file across all 6
+#    # games, with cross-game LLM translation at every phase boundary):
+#    BANK_MODE=shared bash scripts/run_phase1_curriculum.sh
+#
+#    # Shared mode without between-phase translation (just lets the
+#    # harness's task-axis veto enforce per-game eligibility from the
+#    # source-stamped feasible_tasks alone):
+#    BANK_MODE=shared TRANSLATE_ON_BOUNDARY=0 \
+#      bash scripts/run_phase1_curriculum.sh
+#
 #  Cross-refs:
 #    - scripts/run_2048.sh                       (single-game variant of this layout)
 #    - scripts/use_35b_judge.sh                  (manual VLLM_BASE_URL_MAP wiring)
@@ -137,9 +159,183 @@ RESUME_PHASE="${RESUME_PHASE:-1}"
 SPEC_MODEL="${SPEC_MODEL:-Qwen/Qwen3-0.6B}"
 SPEC_TOKENS="${SPEC_TOKENS:-5}"
 
+# ── Shared-bank lifelong-learning mode (opt-in, see
+#    training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §11.x) ─
+#
+#   BANK_MODE=per_game   (default, legacy)
+#       One ``skill_bank.jsonl`` per game under
+#       ``<run_dir>/skillbank/<game>/``.  Cross-game effects only at
+#       the LoRA-weight level (Option C carry-over).
+#
+#   BANK_MODE=shared
+#       One ``<run_dir>/skillbank/skill_bank.jsonl`` shared across all
+#       phases.  Per-game eligibility is enforced at runtime by the
+#       harness's task-axis veto (``feasible_tasks``,
+#       ``harness/README §22``).  Pair with TRANSLATE_ON_BOUNDARY=1 so
+#       skills mined on phase N are re-grounded onto phase N+1's action
+#       vocabulary at the phase boundary (no judge cost during a phase).
+#
+#   TRANSLATE_ON_BOUNDARY=1
+#       Between phases, run ``python -m
+#       skill_agents.skill_bank.translate_for_target`` against the
+#       shared bank to add cross-game-translated derivatives for the
+#       upcoming phase.  No-op when BANK_MODE=per_game.
+BANK_MODE="${BANK_MODE:-per_game}"
+TRANSLATE_ON_BOUNDARY="${TRANSLATE_ON_BOUNDARY:-0}"
+case "${BANK_MODE}" in
+    per_game|shared) ;;
+    *)
+        echo "ERROR: unknown BANK_MODE=${BANK_MODE} (expected per_game|shared)"
+        exit 1
+        ;;
+esac
+# Auto-enable per-boundary translation when shared mode is requested
+# and the user hasn't pinned TRANSLATE_ON_BOUNDARY explicitly.  Skipped
+# in per_game mode (translation has no effect when banks are isolated
+# per-game on disk).
+if [ "${BANK_MODE}" = "shared" ] && [ -z "${TRANSLATE_ON_BOUNDARY_PINNED:-}" ] && [ "${TRANSLATE_ON_BOUNDARY}" = "0" ]; then
+    TRANSLATE_ON_BOUNDARY=1
+fi
+
 # 8×H200 layout selector (see banner above for full table).
 LAYOUT="${LAYOUT:-dual_stack}"
 JUDGE_MODE="${JUDGE_MODE:-auto}"
+
+# ── 35B control-plane wiring (Crafter / Promotion / Harness) ─────────
+# When JUDGE_MODE != off the script wires the 35B endpoint into
+# VLLM_BASE_URL_MAP (line ~348), but the orchestrator only *issues
+# 35B calls* when these flags are passed to run_coevolution.py.
+# Without them the 35B server idles and the run becomes a 9B-only
+# ablation (mirrors the gap that broke the 2026-05-03 21:15 run).
+#
+# Defaults follow training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
+# §11.2 (live curator + crafter) and §501-502 (35B as the shared
+# control-plane backbone) — all three ON when a judge is reachable.
+#
+#   CRAFTER_PROMOTION   1 → --crafter-promotion-enabled
+#                           + --crafter-cycle-every-k-steps ${CRAFTER_CYCLE_K}
+#                       0 → skip Phase B′ (legacy curator-only baseline)
+#   CRAFTER_CYCLE_K     K=5 default → run Crafter every 5 steps; ~+30s/cycle.
+#                       Set to 1 for paper-style every-step (≈3× the 35B
+#                       budget over a phase); 0 = every step.
+#   HARNESS_ENABLED     1 → --harness-enabled
+#                           (eligibility filter + validate_invocation veto;
+#                            0 LLM calls, pure-Python gating)
+#   GAME_SCHEMA_ENABLED 1 → --game-schema-enabled (default: 1)
+#                           Path 1: 1 × BACKBONE_JUDGE_MODEL (35B-A3B)
+#                           call per game per phase boundary produces a
+#                           compact GameProfile (goal / win_signal /
+#                           hazards / key_actions / failure_modes) that
+#                           gets injected into the actor's SYSTEM_PROMPT
+#                           and SKILL_SELECTION_SYSTEM_PROMPT for the
+#                           duration of the phase. The same call also
+#                           caches a <state> exemplar at
+#                             ${RUN_DIR}/phase_artifacts/<game>.schema.json
+#                           for Path 2 / Path 4 to reuse as a few-shot
+#                           anchor without firing their own 35B calls.
+#                           Off when JUDGE_MODE=off (auto-disabled below).
+#                           See trainer/coevolution/_game_schema.py.
+#   GAME_SCHEMA_MAX_TOKENS  Token budget for the 35B response (default 1024).
+#   GAME_SCHEMA_TIMEOUT_S   Hard timeout per 35B call (default 60s); on
+#                           timeout the trainer falls back to a
+#                           deterministic minimum profile and continues.
+#
+#   PROMOTION_GATE_MODE  Forwarded as --crafter-promotion-gate-mode.
+#                       'offline-synthetic'      = no LLM calls, all
+#                                                  proposals → LIMITED_PASS;
+#                       'offline-with-llm-judge' = +1 BACKBONE_JUDGE_MODEL
+#                                                  (35B-A3B) call per
+#                                                  proposal so visibly
+#                                                  bad ones can FAIL ⇒
+#                                                  REJECT (DEFAULT — fires
+#                                                  the 35B endpoint that
+#                                                  would otherwise sit
+#                                                  idle in Phase 1);
+#                       'live'                   = full GateService
+#                                                  (diagnostic only;
+#                                                  Stage 3a FAILs without
+#                                                  target adapters).
+CRAFTER_PROMOTION="${CRAFTER_PROMOTION:-1}"
+CRAFTER_CYCLE_K="${CRAFTER_CYCLE_K:-5}"
+HARNESS_ENABLED="${HARNESS_ENABLED:-1}"
+PROMOTION_GATE_MODE="${PROMOTION_GATE_MODE:-offline-with-llm-judge}"
+# Path 1 (phase-start GameProfile) — 1 × BACKBONE_JUDGE_MODEL call per
+# game per phase boundary.  Default ON to fire the 35B endpoint that
+# would otherwise idle through phases that don't trigger a Crafter
+# cycle.  See trainer/coevolution/_game_schema.py.
+GAME_SCHEMA_ENABLED="${GAME_SCHEMA_ENABLED:-1}"
+GAME_SCHEMA_MAX_TOKENS="${GAME_SCHEMA_MAX_TOKENS:-1024}"
+GAME_SCHEMA_TIMEOUT_S="${GAME_SCHEMA_TIMEOUT_S:-60}"
+
+# Path 2 (LLM Crafter) — supplemental 35B-A3B teacher driver for the
+# Crafter.  When enabled, in addition to the deterministic rule-based
+# Crafter, the trainer fires up to ${LLM_CRAFTER_K_MAX} parallel 35B
+# calls per game per step (one per FailureTrace) to propose
+# patch / hypothesize / retire BankMutationProposals.  Default ON so
+# Phase 1 exercises the 35B endpoint on every step a failure trace is
+# present; auto-disabled when JUDGE_MODE=off.  See
+# trainer/coevolution/_llm_crafter.py.
+LLM_CRAFTER_ENABLED="${LLM_CRAFTER_ENABLED:-1}"
+LLM_CRAFTER_K_MAX="${LLM_CRAFTER_K_MAX:-5}"
+LLM_CRAFTER_MAX_TOKENS="${LLM_CRAFTER_MAX_TOKENS:-1024}"
+LLM_CRAFTER_TIMEOUT_S="${LLM_CRAFTER_TIMEOUT_S:-60}"
+
+# Path 4 (LLM Harness validator) — post-LLM 35B validation pass on
+# the harness's chosen skill.  Hybrid policy: bootstrap window
+# (steps below ${LLM_HARNESS_BOOTSTRAP_STEPS}) always fires the LLM
+# validator; afterwards the validator only fires when the
+# deterministic verdict was uncertain (SHADOW status, no can_handle
+# evidence, translation-rewritten contracts).  Verdicts can ONE-WAY
+# downgrade admit→veto.  Default ON; auto-disabled when JUDGE_MODE=off.
+# See trainer/coevolution/_llm_harness_validator.py.
+LLM_HARNESS_VALIDATOR_ENABLED="${LLM_HARNESS_VALIDATOR_ENABLED:-1}"
+LLM_HARNESS_BOOTSTRAP_STEPS="${LLM_HARNESS_BOOTSTRAP_STEPS:-20}"
+LLM_HARNESS_MAX_TOKENS="${LLM_HARNESS_MAX_TOKENS:-256}"
+LLM_HARNESS_TIMEOUT_S="${LLM_HARNESS_TIMEOUT_S:-30}"
+
+# Auto-disable 35B-dependent flags when the judge is intentionally off
+# (ablation runs).  Otherwise the orchestrator would try to POST to a
+# non-existent endpoint and crash mid-step.
+if [ "${JUDGE_MODE}" = "off" ]; then
+    if [ "${CRAFTER_PROMOTION}" = "1" ] || [ "${HARNESS_ENABLED}" = "1" ]; then
+        echo "[run_phase1] JUDGE_MODE=off → forcing CRAFTER_PROMOTION=0 + HARNESS_ENABLED=0" \
+             "(35B control plane disabled; legacy curator-only path)"
+        CRAFTER_PROMOTION=0
+        HARNESS_ENABLED=0
+    fi
+    if [ "${PROMOTION_GATE_MODE}" != "offline-synthetic" ]; then
+        echo "[run_phase1] JUDGE_MODE=off → forcing PROMOTION_GATE_MODE=offline-synthetic" \
+             "(no 35B endpoint to query)"
+        PROMOTION_GATE_MODE="offline-synthetic"
+    fi
+    if [ "${GAME_SCHEMA_ENABLED}" = "1" ]; then
+        echo "[run_phase1] JUDGE_MODE=off → forcing GAME_SCHEMA_ENABLED=0" \
+             "(no 35B endpoint to query for phase-start GameProfile)"
+        GAME_SCHEMA_ENABLED=0
+    fi
+    if [ "${LLM_CRAFTER_ENABLED}" = "1" ]; then
+        echo "[run_phase1] JUDGE_MODE=off → forcing LLM_CRAFTER_ENABLED=0" \
+             "(no 35B endpoint to query for Path 2 LLM Crafter)"
+        LLM_CRAFTER_ENABLED=0
+    fi
+    if [ "${LLM_HARNESS_VALIDATOR_ENABLED}" = "1" ]; then
+        echo "[run_phase1] JUDGE_MODE=off → forcing LLM_HARNESS_VALIDATOR_ENABLED=0" \
+             "(no 35B endpoint to query for Path 4 LLM Harness validator)"
+        LLM_HARNESS_VALIDATOR_ENABLED=0
+    fi
+fi
+
+# Defensive: validate the supplied gate mode.  Anything we don't
+# recognise gets stamped back to the synthetic floor so the driver's
+# argparse doesn't die mid-step.
+case "${PROMOTION_GATE_MODE}" in
+    offline-synthetic|offline-with-llm-judge|live) ;;
+    *)
+        echo "[run_phase1] WARN: unknown PROMOTION_GATE_MODE='${PROMOTION_GATE_MODE}'; " \
+             "falling back to offline-synthetic" >&2
+        PROMOTION_GATE_MODE="offline-synthetic"
+        ;;
+esac
 
 case "${LAYOUT}" in
     dual_stack)
@@ -189,24 +385,27 @@ COLDSTART_SKILLBANK="${COLDSTART_DIR}/skillbank"
 # Slugs match env_wrappers/gymv_temporal_nl_wrapper.GYMV_TEMPORAL_GAMES
 # for the 4 gymv games and env_wrappers/game_configs.py for the 2 paper games.
 PHASES=(
-    "1:gymv_space_harrier_ii:Space Harrier II"
-    "2:gymv_streets_of_rage_2:Streets of Rage 2"
+    "1:gymv_thunder_force_iii:Thunder Force III"
+    "2:gymv_altered_beast:Altered Beast"
     "3:gymv_columns:Columns"
-    "4:gymv_strider:Strider"
+    "4:gymv_dynamite_headdy:Dynamite Headdy"
     "5:candy_crush:Candy Crush"
     "6:tetris:Tetris"
 )
 NUM_PHASES=${#PHASES[@]}
 
-# Per-game baseline anchor for §4.3 sanity bar — recorded here so the
-# operator can spot-check end-of-phase reward against the 4-backbone
-# pooled per-episode-success rate from baselines/README.md § "Gym-V
-# benchmark scope". n/a for the 2 paper games (anchor is paper Figure 4).
+# Per-game baseline anchor for §4.3 sanity bar — populated from the new
+# Cold-start-out-gymv/latest 4-backbone teacher table (see
+# training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1, refresh
+# 2026-05-03 PM). The "min teacher reward" is the worst case across the 4
+# frontier rows (GPT-5.4 / Claude-4.6-Sonnet / Gemini-3.1-Pro /
+# Qwen3-VL-235B); end-of-phase actor reward should clear this floor or the
+# curriculum should be re-inspected.
 declare -A BASELINE_ANCHOR=(
-    ["gymv_space_harrier_ii"]="100% (4/4 backbones)"
-    ["gymv_streets_of_rage_2"]="100% (4/4 backbones)"
-    ["gymv_columns"]="89% (Claude/Q9 100%)"
-    ["gymv_strider"]="78% (Q9 100%)"
+    ["gymv_thunder_force_iii"]="min teacher 269 (TF3 across 4 frontier teachers)"
+    ["gymv_altered_beast"]="min teacher 119 (AlteredBeast)"
+    ["gymv_columns"]="min teacher 63 (Columns)"
+    ["gymv_dynamite_headdy"]="min teacher 75 (DynamiteHeaddy)"
     ["candy_crush"]="paper Figure 4 (±30%)"
     ["tetris"]="paper Figure 4 (±30%)"
 )
@@ -310,6 +509,7 @@ echo "  Snapshot every:   ${CKPT_INTERVAL} steps within each phase"
 echo "  Debug I/O:        ${DEBUG:-disabled}"
 echo "  Resume phase:     ${RESUME_PHASE}"
 echo "  Cold-start:       ${COLDSTART_DIR}"
+echo "  Bank mode:        ${BANK_MODE}$([ "${BANK_MODE}" = "shared" ] && [ "${TRANSLATE_ON_BOUNDARY}" = "1" ] && echo " (translate at every phase boundary)" || true)"
 if [ "${MANAGE_VLLM}" = "1" ]; then
     echo "  GPU mode:         MANAGED (persistent vLLM + FSDP)"
     echo "  GPU layout:       LAYOUT=${LAYOUT}"
@@ -324,6 +524,43 @@ if [ "${MANAGE_VLLM}" = "1" ]; then
     if [ "${JUDGE_MODE}" != "off" ]; then
         echo "  Judge URL:        ${JUDGE_URL}"
         echo "  Judge model:      ${JUDGE_MODEL}"
+    fi
+    echo "  35B control plane:"
+    if [ "${CRAFTER_PROMOTION}" = "1" ]; then
+        echo "    Crafter+Promotion:  ON  (every ${CRAFTER_CYCLE_K} steps)"
+        echo "    Promotion gate:     ${PROMOTION_GATE_MODE}"
+        if [ "${PROMOTION_GATE_MODE}" = "offline-with-llm-judge" ]; then
+            echo "                        (1 × 35B BACKBONE_JUDGE_MODEL call per proposal,"
+            echo "                         routed via VLLM_BASE_URL_MAP → port ${JUDGE_PORT:-?})"
+        fi
+    else
+        echo "    Crafter+Promotion:  off"
+    fi
+    if [ "${HARNESS_ENABLED}" = "1" ]; then
+        echo "    Harness:            ON  (eligibility + validate_invocation, 0 LLM)"
+    else
+        echo "    Harness:            off"
+    fi
+    if [ "${GAME_SCHEMA_ENABLED}" = "1" ]; then
+        echo "    Phase GameProfile:  ON  (1 × 35B BACKBONE_JUDGE_MODEL call /"
+        echo "                              game / phase boundary, max_tokens="
+        echo "                              ${GAME_SCHEMA_MAX_TOKENS}, timeout=${GAME_SCHEMA_TIMEOUT_S}s)"
+    else
+        echo "    Phase GameProfile:  off"
+    fi
+    if [ "${LLM_CRAFTER_ENABLED}" = "1" ]; then
+        echo "    LLM Crafter:        ON  (≤${LLM_CRAFTER_K_MAX} parallel 35B calls /"
+        echo "                              game / step, max_tokens="
+        echo "                              ${LLM_CRAFTER_MAX_TOKENS}, timeout=${LLM_CRAFTER_TIMEOUT_S}s)"
+    else
+        echo "    LLM Crafter:        off"
+    fi
+    if [ "${LLM_HARNESS_VALIDATOR_ENABLED}" = "1" ]; then
+        echo "    LLM Harness:        ON  (bootstrap<${LLM_HARNESS_BOOTSTRAP_STEPS} steps,"
+        echo "                              hybrid post-validate, max_tokens="
+        echo "                              ${LLM_HARNESS_MAX_TOKENS}, timeout=${LLM_HARNESS_TIMEOUT_S}s)"
+    else
+        echo "    LLM Harness:        off"
     fi
     echo "  Spec decode:      ${SPEC_MODEL} (${SPEC_TOKENS} tokens)"
 else
@@ -360,14 +597,23 @@ fi
 # fail loudly here.
 python -c "
 from trainer.coevolution.episode_runner import _lazy_imports, GYMV_TEMPORAL_GAMES_SET
+from trainer.coevolution.config import GAME_MAX_STEPS
 _lazy_imports()
-required = {'gymv_space_harrier_ii', 'gymv_streets_of_rage_2',
-            'gymv_columns', 'gymv_strider'}
-missing = required - GYMV_TEMPORAL_GAMES_SET
-if missing:
+# New Phase-1 roster (refreshed 2026-05-03 PM, data-driven from new
+# Cold-start-out-gymv/latest 4-backbone teacher table).
+required = {'gymv_thunder_force_iii', 'gymv_altered_beast',
+            'gymv_columns', 'gymv_dynamite_headdy'}
+missing_gymv = required - GYMV_TEMPORAL_GAMES_SET
+if missing_gymv:
     raise SystemExit(
-        f'[run_phase1] FATAL: gymv slugs not wired in episode_runner: {sorted(missing)}. '
+        f'[run_phase1] FATAL: gymv slugs not wired in episode_runner: {sorted(missing_gymv)}. '
         f'Run install/install_gymv.sh + install/gymv_temporal_patch/apply_patch.sh.'
+    )
+missing_registry = required - set(GAME_MAX_STEPS)
+if missing_registry:
+    raise SystemExit(
+        f'[run_phase1] FATAL: gymv slugs not registered in trainer/coevolution/config.py:GAME_MAX_STEPS: '
+        f'{sorted(missing_registry)}. Add the slug + max_steps and re-run.'
     )
 print(f'[run_phase1] Gym-V slugs wired: {sorted(GYMV_TEMPORAL_GAMES_SET & required)}')
 "
@@ -534,6 +780,7 @@ build_train_args() {
         --model "${MODEL}"
         --wandb-project "${WANDB_PROJECT}"
         --run-dir "${RUN_DIR}"
+        --bank-mode "${BANK_MODE}"
     )
 
     if [ "${is_first_phase}" = "true" ]; then
@@ -550,11 +797,161 @@ build_train_args() {
         args+=(--resume)
     fi
 
+    # ── 35B control-plane flags ──────────────────────────────────────
+    # See top-of-file env-var docs.  Without these the 35B endpoint
+    # idles and the run becomes 9B-only (the bug that wasted the
+    # 2026-05-03 21:15 launch).
+    if [ "${CRAFTER_PROMOTION}" = "1" ]; then
+        args+=(--crafter-promotion-enabled)
+        args+=(--crafter-cycle-every-k-steps "${CRAFTER_CYCLE_K}")
+        # Pass the gate mode through to the Promotion driver. We only
+        # forward the flag when it deviates from the trainer's
+        # ``offline-synthetic`` default, both to keep the launched
+        # command line self-documenting and to avoid touching legacy
+        # ablation scripts that may still depend on the silent default.
+        if [ "${PROMOTION_GATE_MODE}" != "offline-synthetic" ]; then
+            args+=(--crafter-promotion-gate-mode "${PROMOTION_GATE_MODE}")
+        fi
+    fi
+    if [ "${HARNESS_ENABLED}" = "1" ]; then
+        args+=(--harness-enabled)
+    fi
+
+    # Path 1: phase-start GameProfile (1 × 35B / game / phase).
+    if [ "${GAME_SCHEMA_ENABLED}" = "1" ]; then
+        args+=(--game-schema-enabled)
+        if [ "${GAME_SCHEMA_MAX_TOKENS}" != "1024" ]; then
+            args+=(--game-schema-max-tokens "${GAME_SCHEMA_MAX_TOKENS}")
+        fi
+        if [ "${GAME_SCHEMA_TIMEOUT_S}" != "60" ]; then
+            args+=(--game-schema-timeout-s "${GAME_SCHEMA_TIMEOUT_S}")
+        fi
+    fi
+
+    # Path 2: supplemental LLM Crafter (≤K parallel 35B / game / step).
+    if [ "${LLM_CRAFTER_ENABLED}" = "1" ]; then
+        args+=(--llm-crafter-enabled)
+        if [ "${LLM_CRAFTER_K_MAX}" != "5" ]; then
+            args+=(--llm-crafter-k-max "${LLM_CRAFTER_K_MAX}")
+        fi
+        if [ "${LLM_CRAFTER_MAX_TOKENS}" != "1024" ]; then
+            args+=(--llm-crafter-max-tokens "${LLM_CRAFTER_MAX_TOKENS}")
+        fi
+        if [ "${LLM_CRAFTER_TIMEOUT_S}" != "60" ]; then
+            args+=(--llm-crafter-timeout-s "${LLM_CRAFTER_TIMEOUT_S}")
+        fi
+    fi
+
+    # Path 4: LLM Harness validator (post-LLM 35B veto, hybrid).
+    if [ "${LLM_HARNESS_VALIDATOR_ENABLED}" = "1" ]; then
+        args+=(--llm-harness-validator-enabled)
+        if [ "${LLM_HARNESS_BOOTSTRAP_STEPS}" != "20" ]; then
+            args+=(--llm-harness-bootstrap-steps "${LLM_HARNESS_BOOTSTRAP_STEPS}")
+        fi
+        if [ "${LLM_HARNESS_MAX_TOKENS}" != "256" ]; then
+            args+=(--llm-harness-max-tokens "${LLM_HARNESS_MAX_TOKENS}")
+        fi
+        if [ "${LLM_HARNESS_TIMEOUT_S}" != "30" ]; then
+            args+=(--llm-harness-timeout-s "${LLM_HARNESS_TIMEOUT_S}")
+        fi
+    fi
+
     if [ -n "${DEBUG}" ]; then
         args+=(--debug-io)
     fi
 
     echo "${args[@]}"
+}
+
+# ======================================================================
+# Helper: invoke the cross-game skill translator at a phase boundary
+# (shared-bank mode only — no-op when BANK_MODE=per_game).
+#
+# Reads the current shared bank ``${RUN_DIR}/skillbank/skill_bank.jsonl``,
+# rewrites every skill onto the next game's action vocabulary via the
+# 35B judge, and writes the union back so the next phase's harness
+# admits both source-grounded *and* target-grounded variants.
+#
+# Failure here is non-fatal: a flaky judge call or unrecognised target
+# game falls through to "no translated skills added", which leaves the
+# shared bank unchanged.  The next phase still runs (it just behaves
+# like Option C carry-over for skills it can't translate).
+# ======================================================================
+translate_bank_for_next_phase() {
+    if [ "${BANK_MODE}" != "shared" ] || [ "${TRANSLATE_ON_BOUNDARY}" != "1" ]; then
+        return 0
+    fi
+
+    local prev_game="$1"
+    local next_game="$2"
+
+    local shared_bank="${RUN_DIR}/skillbank/skill_bank.jsonl"
+    if [ ! -f "${shared_bank}" ]; then
+        echo "[run_phase1] translate_bank: no shared bank at ${shared_bank} yet — skipping"
+        return 0
+    fi
+
+    echo ""
+    echo "[run_phase1] ── Cross-game skill translation: ${prev_game} → ${next_game} ──"
+
+    local target_actions
+    target_actions=$(python -c "
+import os, json
+os.environ.setdefault('PYGLET_HEADLESS', '1')
+os.environ.setdefault('SDL_VIDEODRIVER', 'dummy')
+target = '${next_game}'
+acts = []
+try:
+    if target.startswith('gymv_'):
+        from env_wrappers.gymv_temporal_nl_wrapper import make_gymv_temporal_env
+        env = make_gymv_temporal_env(target)
+        env.reset()
+        acts = list(env.action_names)
+        env.close()
+    else:
+        # env_wrappers / GYM-API non-gymv games (candy_crush, tetris,
+        # 2048, super_mario): import the game-config registry to
+        # extract the same action vocabulary the wrapper would surface
+        # at runtime.
+        from env_wrappers.game_configs import get_game_config
+        cfg = get_game_config(target)
+        acts = list(getattr(cfg, 'available_actions', []) or [])
+except Exception as exc:
+    import sys
+    print('TRANSLATOR_RESOLVE_ERROR:' + str(exc), file=sys.stderr)
+    acts = []
+print(json.dumps(acts))
+" 2>/dev/null || echo '[]')
+
+    if [ "${target_actions}" = "[]" ] || [ -z "${target_actions}" ]; then
+        echo "[run_phase1] translate_bank: could not resolve actions for ${next_game} — skipping translation"
+        return 0
+    fi
+
+    local translated_bank="${RUN_DIR}/skillbank/skill_bank.translated_to_${next_game}.jsonl"
+    echo "[run_phase1] translate_bank: target_actions=${target_actions}"
+    echo "[run_phase1] translate_bank: source=${shared_bank}"
+    echo "[run_phase1] translate_bank: writing → ${translated_bank}"
+
+    if python -m skill_agents.skill_bank.translate_for_target \
+        --source-bank "${shared_bank}" \
+        --target-game "${next_game}" \
+        --target-actions "${target_actions}" \
+        --source-game "${prev_game}" \
+        --output "${translated_bank}" \
+        --judge-model "${JUDGE_MODEL}" \
+        -v
+    then
+        # Atomic swap: replace the shared bank with the translated
+        # union (which seeds source skills + adds target derivatives).
+        # The translator's --seed-with-source flag (default ON) ensures
+        # we never *lose* source skills here.
+        mv -f "${translated_bank}" "${shared_bank}"
+        echo "[run_phase1] translate_bank: shared bank updated with ${next_game} derivatives"
+    else
+        echo "[run_phase1] translate_bank: WARNING — translation failed; keeping prior shared bank"
+        rm -f "${translated_bank}" 2>/dev/null || true
+    fi
 }
 
 # ======================================================================
@@ -566,6 +963,7 @@ echo "  Starting Phase-1 curriculum (${NUM_PHASES} phases, sequential)"
 echo "══════════════════════════════════════════════════════════════"
 
 PHASE_FAILED=""
+PREV_GAME=""
 
 for phase_def in "${PHASES[@]}"; do
     IFS=':' read -r phase_num game display <<< "${phase_def}"
@@ -573,7 +971,17 @@ for phase_def in "${PHASES[@]}"; do
     if [ "${phase_num}" -lt "${RESUME_PHASE}" ]; then
         echo ""
         echo "[run_phase1] Skipping phase ${phase_num} (${display}) — resuming from phase ${RESUME_PHASE}"
+        # Track the most recent skipped game so the *first executed*
+        # phase still gets a translation pass against it (when the user
+        # resumes mid-curriculum in shared-bank mode).
+        PREV_GAME="${game}"
         continue
+    fi
+
+    # Cross-game skill translation: re-ground prior shared bank onto the
+    # upcoming phase's action vocabulary (no-op in per_game mode).
+    if [ -n "${PREV_GAME}" ] && [ "${PREV_GAME}" != "${game}" ]; then
+        translate_bank_for_next_phase "${PREV_GAME}" "${game}" || true
     fi
 
     step_start=$(( (phase_num - 1) * ITERS_PER_PHASE ))
@@ -613,6 +1021,7 @@ for phase_def in "${PHASES[@]}"; do
         echo ""
         echo "[run_phase1] Phase ${phase_num} (${display}) completed successfully."
         save_phase_snapshot "${phase_num}" "${game}" "${display}" "${step_end}"
+        PREV_GAME="${game}"
     else
         PHASE_FAILED="${phase_num}"
         echo ""

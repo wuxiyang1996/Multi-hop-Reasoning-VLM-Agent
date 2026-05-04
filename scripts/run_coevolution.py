@@ -113,7 +113,15 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--games", nargs="+", default=None,
-        help=f"Games to train on (default: {len(SKILL_BANK_GAMES)} skill-bank games; {len(GAME_MAX_STEPS)} total supported)",
+        help=(
+            f"Games to train on (default: full 12-game registry — "
+            f"{len(SKILL_BANK_GAMES)} games covering Phase-1 source + Phase-2 hold-out; "
+            f"{len(GAME_MAX_STEPS)} total supported). "
+            "For Phase-1-only training prefer "
+            "'--games tetris candy_crush gymv_thunder_force_iii gymv_altered_beast "
+            "gymv_columns gymv_dynamite_headdy' or use scripts/run_phase1_curriculum.sh; "
+            "for single-game smoke tests, pass an explicit '--games <slug>'."
+        ),
     )
     parser.add_argument(
         "--curriculum", type=str, default="focused",
@@ -363,6 +371,21 @@ def parse_args() -> argparse.Namespace:
              "Skills are only copied when the game's bank is empty.",
     )
 
+    # Skill bank storage layout (per_game default, shared opt-in for the
+    # cross-game / lifelong-learning experiments described in
+    # ``training_notes/coevo-3phase-cross-game-ood-transfer-plan.md``).
+    parser.add_argument(
+        "--bank-mode", choices=("per_game", "shared"), default="per_game",
+        help="Skill-bank storage layout. 'per_game' (default, legacy) "
+             "writes one skill_bank.jsonl per game under "
+             "<bank_dir>/<game>/skill_bank.jsonl. 'shared' writes one "
+             "<bank_dir>/skill_bank.jsonl across all games and relies "
+             "on the harness's task-axis veto (feasible_tasks, "
+             "harness/README §22) for per-game eligibility. Pair "
+             "'shared' with --seed-bank-dir and the per-phase "
+             "translation step in scripts/run_phase1_curriculum.sh.",
+    )
+
     # Phase B′: Crafter + Promotion (one-way writeback to legacy bank)
     parser.add_argument(
         "--crafter-promotion-enabled", action="store_true",
@@ -387,6 +410,18 @@ def parse_args() -> argparse.Namespace:
         help="Subprocess timeout for the offline-synthetic promotion "
              "driver (decide_promotion_gpt54.py). Default 300s.",
     )
+    parser.add_argument(
+        "--crafter-promotion-gate-mode",
+        choices=["offline-synthetic", "offline-with-llm-judge", "live"],
+        default="offline-synthetic",
+        help="Forwarded to decide_promotion_gpt54.py --gate-mode. "
+             "'offline-synthetic' (default): no LLM calls, all proposals "
+             "land at LIMITED_PASS ⇒ PROVISIONAL. "
+             "'offline-with-llm-judge': adds one BACKBONE_JUDGE_MODEL "
+             "(35B-A3B) call per proposal so visibly bad proposals can "
+             "be FAILed and rejected — routed via VLLM_BASE_URL_MAP. "
+             "'live': calls GateService.evaluate end-to-end (diagnostic).",
+    )
 
     # Harness wire-up (Day-10): hook the harness's eligibility +
     # validate_invocation surfaces into Phase A, and drain the rejection
@@ -407,6 +442,112 @@ def parse_args() -> argparse.Namespace:
              "HarnessConfig.allow_shadow=True).",
     )
     parser.set_defaults(harness_allow_shadow=True)
+
+    # Phase-start GameProfile (Path 1).  When enabled, the orchestrator
+    # fires one BACKBONE_JUDGE_MODEL (35B) call per game per phase
+    # boundary, parses a compact GameProfile + <state> exemplar, and
+    # prepends the compact profile to the actor's SYSTEM_PROMPT and
+    # SKILL_SELECTION_SYSTEM_PROMPT for the duration of the phase.
+    # See trainer/coevolution/_game_schema.py.
+    parser.add_argument(
+        "--game-schema-enabled", action="store_true",
+        help="Enable phase-start GameProfile generation (Path 1): "
+             "1 × BACKBONE_JUDGE_MODEL (35B) call per game per phase "
+             "produces a compact goal/win_signal/hazards/key_actions/"
+             "failure_modes profile that gets injected into the "
+             "actor's SYSTEM_PROMPT, plus a cached <state> exemplar "
+             "for Path 2 / Path 4 to reuse. Off by default.",
+    )
+    parser.add_argument(
+        "--game-schema-model", type=str, default="",
+        help="Override model for game-schema 35B calls. Empty (default) "
+             "→ BACKBONE_JUDGE_MODEL via VLLM_BASE_URL_MAP (same routing "
+             "as the LLM promotion judge).",
+    )
+    parser.add_argument(
+        "--game-schema-max-tokens", type=int, default=1024,
+        help="Token budget for the 35B GameProfile response (default "
+             "1024 — fits compact + <state> exemplar comfortably).",
+    )
+    parser.add_argument(
+        "--game-schema-timeout-s", type=float, default=60.0,
+        help="Hard timeout per 35B GameProfile call. On timeout we "
+             "fall back to a deterministic minimum profile and "
+             "continue without blocking the phase boundary.",
+    )
+
+    # Path 2 — supplemental LLM Crafter (35B-A3B teacher).
+    parser.add_argument(
+        "--llm-crafter-enabled", action="store_true",
+        help="Enable Path 2 LLM Crafter: in addition to the rule-based "
+             "Crafter, fire up to --llm-crafter-k-max parallel 35B "
+             "calls per game per step (one per FailureTrace) to "
+             "propose patch / hypothesize / retire BankMutationProposals. "
+             "Routes through API_func.ask_model → BACKBONE_JUDGE_MODEL "
+             "via VLLM_BASE_URL_MAP. Off by default.",
+    )
+    parser.add_argument(
+        "--llm-crafter-model", type=str, default="",
+        help="Override model for LLM Crafter 35B calls. Empty (default) "
+             "→ BACKBONE_JUDGE_MODEL via VLLM_BASE_URL_MAP.",
+    )
+    parser.add_argument(
+        "--llm-crafter-k-max", type=int, default=5,
+        help="Hard cap on parallel LLM Crafter calls per game per step "
+             "(default 5).",
+    )
+    parser.add_argument(
+        "--llm-crafter-max-tokens", type=int, default=1024,
+        help="Token budget per LLM Crafter response (default 1024).",
+    )
+    parser.add_argument(
+        "--llm-crafter-temperature", type=float, default=0.3,
+        help="Sampling temperature for LLM Crafter calls (default 0.3).",
+    )
+    parser.add_argument(
+        "--llm-crafter-timeout-s", type=float, default=60.0,
+        help="Hard timeout per LLM Crafter call. On timeout the trace "
+             "is dropped and the deterministic proposal stream continues.",
+    )
+
+    # Path 4 — LLM Harness validator (35B-A3B teacher).
+    parser.add_argument(
+        "--llm-harness-validator-enabled", action="store_true",
+        help="Enable Path 4 LLM Harness validator: after the "
+             "deterministic SkillHarness.validate_invocation admits a "
+             "skill, optionally run a 35B post-validation pass. Hybrid "
+             "policy: bootstrap window (--llm-harness-bootstrap-steps) "
+             "always fires; afterwards only fires on uncertain cases "
+             "(SHADOW status, no can_handle evidence, translation-"
+             "rewritten contracts). Verdicts can ONE-WAY downgrade "
+             "admit→veto. Off by default.",
+    )
+    parser.add_argument(
+        "--llm-harness-model", type=str, default="",
+        help="Override model for LLM Harness validator. Empty (default) "
+             "→ BACKBONE_JUDGE_MODEL via VLLM_BASE_URL_MAP.",
+    )
+    parser.add_argument(
+        "--llm-harness-bootstrap-steps", type=int, default=20,
+        help="Trainer steps below this fire the LLM validator on EVERY "
+             "admitted skill regardless of deterministic certainty "
+             "(default 20).",
+    )
+    parser.add_argument(
+        "--llm-harness-max-tokens", type=int, default=256,
+        help="Token budget per LLM Harness validator response "
+             "(default 256).",
+    )
+    parser.add_argument(
+        "--llm-harness-temperature", type=float, default=0.2,
+        help="Sampling temperature for LLM Harness validator calls "
+             "(default 0.2).",
+    )
+    parser.add_argument(
+        "--llm-harness-timeout-s", type=float, default=30.0,
+        help="Hard timeout per LLM Harness validator call. On timeout "
+             "the deterministic verdict (admit) stands.",
+    )
 
     # Lane-(a) feature flag (T1.3a): the live trainer Crafter never mints
     # PatchProposals by default — see implementation_notes/legacy/skill-lane-decision.md.
@@ -554,6 +695,9 @@ def main() -> None:
     if args.seed_bank_dir is not None:
         config_kwargs["seed_bank_dir"] = args.seed_bank_dir
 
+    if args.bank_mode is not None:
+        config_kwargs["bank_mode"] = args.bank_mode
+
     if args.crafter_promotion_enabled:
         config_kwargs["crafter_promotion_enabled"] = True
     if args.crafter_cycle_every_k_steps:
@@ -564,6 +708,8 @@ def main() -> None:
         )
     if args.crafter_promotion_timeout_s != 300.0:
         config_kwargs["crafter_promotion_timeout_s"] = args.crafter_promotion_timeout_s
+    if args.crafter_promotion_gate_mode != "offline-synthetic":
+        config_kwargs["crafter_promotion_gate_mode"] = args.crafter_promotion_gate_mode
 
     if args.harness_enabled:
         config_kwargs["harness_enabled"] = True
@@ -571,6 +717,43 @@ def main() -> None:
         config_kwargs["harness_allow_shadow"] = False
     if args.crafter_enable_protocol_patching:
         config_kwargs["crafter_enable_protocol_patching"] = True
+
+    if args.game_schema_enabled:
+        config_kwargs["game_schema_enabled"] = True
+    if args.game_schema_model:
+        config_kwargs["game_schema_model"] = args.game_schema_model
+    if args.game_schema_max_tokens != 1024:
+        config_kwargs["game_schema_max_tokens"] = args.game_schema_max_tokens
+    if args.game_schema_timeout_s != 60.0:
+        config_kwargs["game_schema_timeout_s"] = args.game_schema_timeout_s
+
+    # Path 2 — supplemental LLM Crafter (35B-A3B teacher).
+    if args.llm_crafter_enabled:
+        config_kwargs["llm_crafter_enabled"] = True
+    if args.llm_crafter_model:
+        config_kwargs["llm_crafter_model"] = args.llm_crafter_model
+    if args.llm_crafter_k_max != 5:
+        config_kwargs["llm_crafter_k_max"] = args.llm_crafter_k_max
+    if args.llm_crafter_max_tokens != 1024:
+        config_kwargs["llm_crafter_max_tokens"] = args.llm_crafter_max_tokens
+    if args.llm_crafter_temperature != 0.3:
+        config_kwargs["llm_crafter_temperature"] = args.llm_crafter_temperature
+    if args.llm_crafter_timeout_s != 60.0:
+        config_kwargs["llm_crafter_timeout_s"] = args.llm_crafter_timeout_s
+
+    # Path 4 — LLM Harness validator (35B-A3B teacher).
+    if args.llm_harness_validator_enabled:
+        config_kwargs["llm_harness_validator_enabled"] = True
+    if args.llm_harness_model:
+        config_kwargs["llm_harness_model"] = args.llm_harness_model
+    if args.llm_harness_bootstrap_steps != 20:
+        config_kwargs["llm_harness_bootstrap_steps"] = args.llm_harness_bootstrap_steps
+    if args.llm_harness_max_tokens != 256:
+        config_kwargs["llm_harness_max_tokens"] = args.llm_harness_max_tokens
+    if args.llm_harness_temperature != 0.2:
+        config_kwargs["llm_harness_temperature"] = args.llm_harness_temperature
+    if args.llm_harness_timeout_s != 30.0:
+        config_kwargs["llm_harness_timeout_s"] = args.llm_harness_timeout_s
 
     if args.run_dir is not None:
         config_kwargs["run_dir"] = args.run_dir
@@ -633,6 +816,35 @@ def main() -> None:
         print(f"  Harness:      enabled (allow_shadow={config.harness_allow_shadow})")
     else:
         print("  Harness:      disabled")
+    if config.game_schema_enabled:
+        _gsm = config.game_schema_model or "BACKBONE_JUDGE_MODEL (env)"
+        print(
+            f"  GameProfile:  enabled (1×35B/game/phase via {_gsm}, "
+            f"max_tokens={config.game_schema_max_tokens}, "
+            f"timeout={config.game_schema_timeout_s:.0f}s)"
+        )
+    else:
+        print("  GameProfile:  disabled")
+    if getattr(config, "llm_crafter_enabled", False):
+        _lcm = config.llm_crafter_model or "BACKBONE_JUDGE_MODEL (env)"
+        print(
+            f"  LLM Crafter:  enabled (≤{config.llm_crafter_k_max} parallel "
+            f"35B/game/step via {_lcm}, "
+            f"max_tokens={config.llm_crafter_max_tokens}, "
+            f"timeout={config.llm_crafter_timeout_s:.0f}s)"
+        )
+    else:
+        print("  LLM Crafter:  disabled")
+    if getattr(config, "llm_harness_validator_enabled", False):
+        _lhm = config.llm_harness_model or "BACKBONE_JUDGE_MODEL (env)"
+        print(
+            f"  LLM Harness:  enabled (bootstrap<{config.llm_harness_bootstrap_steps} "
+            f"steps via {_lhm}, "
+            f"max_tokens={config.llm_harness_max_tokens}, "
+            f"timeout={config.llm_harness_timeout_s:.0f}s)"
+        )
+    else:
+        print("  LLM Harness:  disabled")
     if config.crafter_enable_protocol_patching:
         print("  Repairer:     ENABLED (lane-(b) — protocol patching live)")
     else:

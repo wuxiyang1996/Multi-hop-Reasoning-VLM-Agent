@@ -464,6 +464,14 @@ class SkillHarnessHook:
         allow_shadow: bool = True,
         adapters: Optional[List[Any]] = None,
         sink: Optional[RejectedSkillSink] = None,
+        # ── Path 4 — LLM Harness validator wire-up ──────────────────
+        # When ``llm_validator`` is non-None, every successful
+        # ``validate_choice`` admit is offered to the validator for a
+        # second-pass 35B veto.  Construction of the validator (and
+        # the trainer-step / game_profile threading) lives in
+        # :meth:`for_game`; passing ``None`` (default) preserves the
+        # historical pure-deterministic behaviour.
+        llm_validator: Any = None,
     ) -> None:
         self._domain = domain
         self._records: Dict[str, SkillRecord] = dict(records or {})
@@ -485,6 +493,7 @@ class SkillHarnessHook:
         )
 
         self._stats = HarnessStepStats()
+        self._llm_validator = llm_validator
 
     # ── Construction helpers ─────────────────────────────────────────
 
@@ -496,6 +505,19 @@ class SkillHarnessHook:
         bank_path: Optional[Path],
         domain: str = "gymv",
         allow_shadow: bool = True,
+        # ── Path 4 — optional LLM validator wiring ──────────────────
+        # All four ``llm_validator_*`` knobs are passive: when
+        # ``llm_validator_enabled=False`` (default) we fast-path to
+        # the historical pure-deterministic behaviour and the rest
+        # are ignored.
+        llm_validator_enabled: bool = False,
+        llm_validator_model: str = "",
+        trainer_step: int = 0,
+        bootstrap_steps: int = 20,
+        llm_validator_max_tokens: int = 256,
+        llm_validator_temperature: float = 0.2,
+        llm_validator_timeout_s: float = 30.0,
+        game_profile: Any = None,
     ) -> "SkillHarnessHook":
         """Build a hook for one game, hydrating its bank.jsonl into the
         SkillRecord cache.
@@ -509,10 +531,38 @@ class SkillHarnessHook:
             records = _hydrate_records_from_bank(
                 Path(bank_path), default_domain=domain,
             )
+
+        # Path 4 — instantiate the LLM validator when enabled.  Lazy
+        # import keeps the trainer's hot path light when the flag is
+        # off (the validator imports ``API_func`` transitively).
+        validator: Any = None
+        if llm_validator_enabled:
+            try:
+                from trainer.coevolution._llm_harness_validator import (
+                    LLMHarnessValidator,
+                )
+                validator = LLMHarnessValidator(
+                    model=llm_validator_model,
+                    trainer_step=trainer_step,
+                    bootstrap_steps=bootstrap_steps,
+                    max_tokens=llm_validator_max_tokens,
+                    temperature=llm_validator_temperature,
+                    timeout_s=llm_validator_timeout_s,
+                    game_profile=game_profile,
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "harness_hook.for_game(%s): LLM validator init failed "
+                    "(%s) — proceeding with deterministic-only validation",
+                    game, exc,
+                )
+                validator = None
+
         return cls(
             domain=domain,
             records=records,
             allow_shadow=allow_shadow,
+            llm_validator=validator,
         )
 
     # ── Properties ───────────────────────────────────────────────────
@@ -752,6 +802,7 @@ class SkillHarnessHook:
         state: StateSchema,
         *,
         bindings: Optional[Dict[str, Any]] = None,
+        episode_id: Optional[str] = None,
     ) -> Tuple[bool, Dict[str, Any]]:
         """Post-LLM second-pass invocation veto (PLAN-UNIFIED §3.4).
 
@@ -759,6 +810,13 @@ class SkillHarnessHook:
         should fall back to the next surviving eligible candidate.
         ``ok=True`` is the default for skills the cache doesn't know
         (we can't prove a veto, so we admit — degrade gracefully).
+
+        When the hook was built with a Path 4 LLM validator,
+        a successful deterministic admit is additionally offered to
+        the validator for a second-pass 35B veto.  The LLM verdict
+        can ONLY downgrade admit→veto; it never upgrades a
+        deterministic veto to admit.  ``episode_id`` is forwarded to
+        the validator for per-episode caching.
         """
         if not skill_id:
             self._stats.n_validate_skipped += 1
@@ -786,11 +844,44 @@ class SkillHarnessHook:
         d = res.to_json()
         d["status"] = "ok" if res.ok else "veto"
         d["skill_id"] = skill_id
-        self._stats.last_validate = dict(d)
         if res.ok:
             self._stats.n_validate_ok += 1
         else:
             self._stats.n_validate_veto += 1
+
+        # ── Path 4 — supplemental LLM second-pass on a deterministic
+        # admit only.  One-way: the LLM can downgrade admit→veto but
+        # cannot upgrade a deterministic veto.
+        if res.ok and self._llm_validator is not None:
+            try:
+                outcome = self._llm_validator.validate(
+                    episode_id=episode_id or "",
+                    skill=rec, state=state,
+                    deterministic_diag=d,
+                )
+                d.update(outcome.to_diag())
+                if not outcome.ok:
+                    # LLM downgrade — flip the verdict.
+                    self._stats.n_validate_ok -= 1
+                    self._stats.n_validate_veto += 1
+                    d["status"] = "veto"
+                    d["veto_class"] = "llm_downgrade"
+                    self._stats.last_validate = dict(d)
+                    return False, d
+            except Exception as exc:  # noqa: BLE001
+                # Validator already absorbs every internal exception
+                # — this branch is the belt-and-braces guard against
+                # future regressions.  We log at debug level (loud
+                # logging would make the failure mode hard to ignore
+                # but easy to drown in) and proceed with the
+                # deterministic admit.
+                logger.debug(
+                    "harness_hook.validate_choice: llm validator raised "
+                    "(skill=%s err=%s) — kept deterministic admit",
+                    skill_id, exc,
+                )
+
+        self._stats.last_validate = dict(d)
         return res.ok, d
 
     # ── Drainage ─────────────────────────────────────────────────────

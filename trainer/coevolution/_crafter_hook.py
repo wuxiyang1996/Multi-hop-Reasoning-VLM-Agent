@@ -102,6 +102,16 @@ DEFAULT_MAX_FAILURES_PER_EPISODE: int = 8
 DEFAULT_HOT_PATTERN_THRESHOLD: int = 3
 DEFAULT_COOLDOWN_PASSES: int = 5
 
+# Path 2 — supplemental LLM Crafter (35B-A3B teacher).  When enabled,
+# at most ``DEFAULT_LLM_CRAFTER_K_MAX`` failure traces *per game per
+# step* get one 35B proposal call each, in parallel.  Proposals are
+# concatenated *after* the deterministic ones so the JSONL row order
+# mirrors the rule-based-then-LLM precedence the gate stack expects.
+DEFAULT_LLM_CRAFTER_K_MAX: int = 5
+DEFAULT_LLM_CRAFTER_MAX_TOKENS: int = 1024
+DEFAULT_LLM_CRAFTER_TEMPERATURE: float = 0.3
+DEFAULT_LLM_CRAFTER_TIMEOUT_S: float = 60.0
+
 # All five domains every BankMutationProposal must declare — PLAN-SKILL-CRAFTER
 # §0.1 / §2.5. Mirrored from labeling_supplement/decide_skill_crafting_gpt54.py
 # verbatim so a writeback round-trip is consistent.
@@ -144,6 +154,12 @@ class CrafterStepReport:
     n_patches_skipped_cooldown: int = 0
     cycle_ran: bool = False                # True iff per-batch cycle() fired
     n_cycle_proposals: int = 0
+    # Path 2 — LLM Crafter rollups (zero when --llm-crafter-enabled off).
+    n_llm_proposals: int = 0
+    n_llm_calls_attempted: int = 0
+    n_llm_calls_succeeded: int = 0
+    n_llm_calls_failed: int = 0
+    llm_proposals_per_kind: Dict[str, int] = field(default_factory=dict)
     wall_time_s: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
@@ -161,6 +177,11 @@ class CrafterStepReport:
             "n_patches_skipped_cooldown": self.n_patches_skipped_cooldown,
             "cycle_ran": self.cycle_ran,
             "n_cycle_proposals": self.n_cycle_proposals,
+            "n_llm_proposals": self.n_llm_proposals,
+            "n_llm_calls_attempted": self.n_llm_calls_attempted,
+            "n_llm_calls_succeeded": self.n_llm_calls_succeeded,
+            "n_llm_calls_failed": self.n_llm_calls_failed,
+            "llm_proposals_per_kind": dict(self.llm_proposals_per_kind),
             "wall_time_s": self.wall_time_s,
         }
 
@@ -193,6 +214,21 @@ def run_crafter_step(
     teacher_model: Optional[str] = None,
     harness_hooks: Optional[Mapping[str, Any]] = None,
     enable_protocol_patching: bool = False,
+    # Path 2 — supplemental LLM Crafter (35B). Off by default; enable
+    # via ``llm_crafter_enabled=True`` (and a non-empty ``llm_crafter_model``
+    # if you want to override the default ``BACKBONE_JUDGE_MODEL`` route).
+    # When enabled, after the deterministic Crafter has emitted its
+    # rule-based proposals, up to ``llm_crafter_k_max`` *additional*
+    # proposals are minted per game by asking the 35B teacher to
+    # respond to one ``FailureTrace`` per call.  See
+    # ``trainer/coevolution/_llm_crafter.py``.
+    llm_crafter_enabled: bool = False,
+    llm_crafter_model: str = "",
+    llm_crafter_k_max: int = DEFAULT_LLM_CRAFTER_K_MAX,
+    llm_crafter_max_tokens: int = DEFAULT_LLM_CRAFTER_MAX_TOKENS,
+    llm_crafter_temperature: float = DEFAULT_LLM_CRAFTER_TEMPERATURE,
+    llm_crafter_timeout_s: float = DEFAULT_LLM_CRAFTER_TIMEOUT_S,
+    game_profiles: Optional[Mapping[str, Any]] = None,
 ) -> CrafterStepReport:
     """Run the per-step Crafter pass for one trainer step.
 
@@ -266,6 +302,13 @@ def run_crafter_step(
     cycle_ran = (
         cycle_every_k_steps > 0 and ((step + 1) % cycle_every_k_steps == 0)
     )
+    # Path 2 — LLM Crafter rollups (initialised even when disabled so the
+    # final ``CrafterStepReport.to_dict`` always carries the keys).
+    n_llm_proposals_total = 0
+    n_llm_calls_attempted_total = 0
+    n_llm_calls_succeeded_total = 0
+    n_llm_calls_failed_total = 0
+    llm_proposals_per_kind_total: Dict[str, int] = {}
 
     for game, episodes in by_game.items():
         bank_path = legacy_bank_paths.get(game)
@@ -340,6 +383,12 @@ def run_crafter_step(
             game_proposals: List[BankMutationProposal] = []
             game_failures: List[FailureTrace] = []
             domain_for_proposal = "gymv"
+            # Track Path 2 LLM-Crafter proposal IDs so the JSONL writer
+            # can tag them with proposer="llm_crafter" without
+            # mistaking deterministic proposals (which inherit a
+            # ``teacher_model`` from ``SkillCrafterService``) for
+            # LLM-driven ones.
+            llm_proposal_ids: set = set()
 
             for ep in episodes:
                 n_episodes_total += 1
@@ -399,12 +448,67 @@ def run_crafter_step(
                     game_proposals.extend(cyc.proposals)
                     n_cycle_proposals_total += len(cyc.proposals)
 
+            # ── Path 2 — supplemental LLM Crafter ──────────────────────
+            # One 35B call per failure trace, capped at ``k_max``.
+            # Proposals are appended *after* the deterministic /
+            # cycle proposals so the JSONL row order (and the
+            # downstream Promotion gate's iteration order) puts
+            # rule-based proposals first and LLM proposals last —
+            # matching the precedence the offline mirror uses.
+            if llm_crafter_enabled and game_failures:
+                try:
+                    from trainer.coevolution._llm_crafter import (
+                        run_llm_crafter,
+                    )
+                    profile = (game_profiles or {}).get(game)
+                    llm_proposals, llm_report = run_llm_crafter(
+                        failures=game_failures,
+                        game=game,
+                        model=llm_crafter_model,
+                        game_profile=profile,
+                        k_max=llm_crafter_k_max,
+                        max_tokens=llm_crafter_max_tokens,
+                        temperature=llm_crafter_temperature,
+                        timeout_s=llm_crafter_timeout_s,
+                    )
+                    game_proposals.extend(llm_proposals)
+                    for p in llm_proposals:
+                        pid = getattr(p, "proposal_id", None)
+                        if pid:
+                            llm_proposal_ids.add(pid)
+                    n_llm_proposals_total += len(llm_proposals)
+                    n_llm_calls_attempted_total += llm_report.n_calls_attempted
+                    n_llm_calls_succeeded_total += llm_report.n_calls_succeeded
+                    n_llm_calls_failed_total += llm_report.n_calls_failed
+                    for k, v in llm_report.proposals_per_kind.items():
+                        llm_proposals_per_kind_total[k] = (
+                            llm_proposals_per_kind_total.get(k, 0) + v
+                        )
+                    if llm_proposals or llm_report.n_calls_attempted:
+                        logger.info(
+                            "crafter_hook[llm]: step=%d game=%s "
+                            "n_calls=%d/%d → %d proposals (%.2fs)",
+                            step, game,
+                            llm_report.n_calls_succeeded,
+                            llm_report.n_calls_attempted,
+                            len(llm_proposals),
+                            llm_report.wall_time_s,
+                        )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "crafter_hook[llm]: run_llm_crafter raised for "
+                        "step=%d game=%s: %s; "
+                        "deterministic proposals proceed unchanged",
+                        step, game, exc,
+                    )
+
             # Write per-game JSONL in the offline-mirror schema.
             jsonl_path = _write_proposals_jsonl(
                 step_root=out_root,
                 game=game,
                 proposals=game_proposals,
                 domain=domain_for_proposal,
+                llm_proposal_ids=llm_proposal_ids,
             )
             proposals_per_game[game] = len(game_proposals)
             n_proposals_total += len(game_proposals)
@@ -425,6 +529,11 @@ def run_crafter_step(
         "n_patches_skipped_cooldown": n_cooldown_total,
         "cycle_ran": cycle_ran,
         "n_cycle_proposals": n_cycle_proposals_total,
+        "n_llm_proposals": n_llm_proposals_total,
+        "n_llm_calls_attempted": n_llm_calls_attempted_total,
+        "n_llm_calls_succeeded": n_llm_calls_succeeded_total,
+        "n_llm_calls_failed": n_llm_calls_failed_total,
+        "llm_proposals_per_kind": llm_proposals_per_kind_total,
         "wall_time_s": elapsed,
         "params": {
             "outcome_failure_threshold": outcome_failure_threshold,
@@ -434,6 +543,12 @@ def run_crafter_step(
             "cycle_every_k_steps": cycle_every_k_steps,
             "teacher_model": teacher_model,
             "enable_protocol_patching": enable_protocol_patching,
+            "llm_crafter_enabled": llm_crafter_enabled,
+            "llm_crafter_model": llm_crafter_model,
+            "llm_crafter_k_max": llm_crafter_k_max,
+            "llm_crafter_max_tokens": llm_crafter_max_tokens,
+            "llm_crafter_temperature": llm_crafter_temperature,
+            "llm_crafter_timeout_s": llm_crafter_timeout_s,
         },
     }
     try:
@@ -455,6 +570,11 @@ def run_crafter_step(
         n_patches_skipped_cooldown=n_cooldown_total,
         cycle_ran=cycle_ran,
         n_cycle_proposals=n_cycle_proposals_total,
+        n_llm_proposals=n_llm_proposals_total,
+        n_llm_calls_attempted=n_llm_calls_attempted_total,
+        n_llm_calls_succeeded=n_llm_calls_succeeded_total,
+        n_llm_calls_failed=n_llm_calls_failed_total,
+        llm_proposals_per_kind=llm_proposals_per_kind_total,
         wall_time_s=elapsed,
     )
 
@@ -713,6 +833,7 @@ def _to_offline_row(
     proposal: BankMutationProposal,
     *,
     domain: str,
+    llm_proposal_ids: Optional[set] = None,
 ) -> Dict[str, Any]:
     """Project one live ``BankMutationProposal`` into the JSONL row
     schema that ``decide_promotion_gpt54.py::_OfflineProposal.from_json``
@@ -733,7 +854,7 @@ def _to_offline_row(
     base = {
         "proposal_id": proposal.proposal_id,
         "rationale": proposal.rationale,
-        "proposer": _proposer_for(proposal),
+        "proposer": _proposer_for(proposal, llm_proposal_ids=llm_proposal_ids),
         "target_domains": list(ALL_FIVE_DOMAINS),
         "adapter_plan": _default_adapter_plan(domain),
     }
@@ -771,8 +892,26 @@ def _to_offline_row(
     return base
 
 
-def _proposer_for(p: BankMutationProposal) -> str:
-    """Map proposal class → offline-mirror ``proposer`` enum."""
+def _proposer_for(
+    p: BankMutationProposal,
+    *,
+    llm_proposal_ids: Optional[set] = None,
+) -> str:
+    """Map proposal class → offline-mirror ``proposer`` enum.
+
+    Path 2 LLM-Crafter proposals are identified by membership in the
+    explicit ``llm_proposal_ids`` set the hook collects when minting
+    them.  We can't rely on the ``teacher_model`` attribute alone:
+    :class:`crafter.service.SkillCrafterService` defaults it to
+    ``BACKBONE_TEACHER_MODEL`` for *all* deterministic proposals it
+    emits, so the field is non-empty even on the rule-based path.
+    The set-membership check is the only unambiguous signal.
+    """
+    if (
+        llm_proposal_ids is not None
+        and getattr(p, "proposal_id", None) in llm_proposal_ids
+    ):
+        return "llm_crafter"
     if isinstance(p, (PatchProposal, RetireProposal)):
         return "reflector"
     if isinstance(p, ComposeProposal):
@@ -828,6 +967,7 @@ def _write_proposals_jsonl(
     game: str,
     proposals: Sequence[BankMutationProposal],
     domain: str,
+    llm_proposal_ids: Optional[set] = None,
 ) -> Path:
     """Write per-game ``proposals.jsonl`` under ``<step_root>/<corpus>/<source>/``.
 
@@ -846,7 +986,9 @@ def _write_proposals_jsonl(
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as tmp:
             for p in proposals:
-                row = _to_offline_row(p, domain=domain)
+                row = _to_offline_row(
+                    p, domain=domain, llm_proposal_ids=llm_proposal_ids,
+                )
                 tmp.write(json.dumps(row, ensure_ascii=False, sort_keys=True, default=str))
                 tmp.write("\n")
             tmp.flush()

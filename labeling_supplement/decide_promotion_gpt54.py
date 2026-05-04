@@ -1025,6 +1025,16 @@ def _load_actor_batch_metrics(
 GATE_MODE_OFFLINE_SYNTHETIC = "offline-synthetic"
 GATE_MODE_LIVE = "live"
 GATE_MODE_EXTERNAL = "external"
+# ``offline-with-llm-judge`` extends ``offline-synthetic`` with a single
+# 35B-A3B (BACKBONE_JUDGE_MODEL) call per proposal — the synthetic
+# stages still fire (so the verdict surface is unchanged for downstream
+# consumers), and the LLM judge's verdict is appended as an extra
+# StageVerdict.  An LLM-graded ``fail`` flips the aggregate to FAIL ⇒
+# REJECT, otherwise behaviour matches the synthetic floor (PROMOTE to
+# PROVISIONAL on LIMITED_PASS).  See ``_llm_skill_judge.py`` for the
+# call shape; routing to the local 35B is via ``VLLM_BASE_URL_MAP`` /
+# ``API_func.ask_model``.
+GATE_MODE_OFFLINE_LLM_JUDGE = "offline-with-llm-judge"
 
 
 def _build_gate_service() -> GateService:
@@ -1212,6 +1222,103 @@ def _evaluate_proposal_live(
         post_score=None,
         few_shot_demos=None,
     )
+
+
+def _evaluate_proposal_offline_with_llm_judge(
+    *,
+    proposal: BankMutationProposal,
+    skill: SkillRecord,
+    judge_model: str,
+    corpus_hint: Optional[str] = None,
+    source_hint: Optional[str] = None,
+) -> SkillEvaluationRecord:
+    """``offline-synthetic`` floor + one extra 35B LLM-judge stage.
+
+    Always runs the same synthetic stages as
+    :func:`_build_synthetic_evaluation` first (so all dashboards keyed
+    off the per-stage shape keep working), then issues a single
+    ``API_func.ask_model`` call against ``judge_model`` and appends the
+    parsed verdict as a sixth ``GateStage.STATIC`` entry tagged
+    ``llm-judge:`` in its ``notes``.  The aggregate ``final_verdict``
+    is recomputed across the augmented stage list using the same
+    aggregation rules as the synthetic path:
+
+    * any FAIL  ⇒ FAIL          (REJECT)
+    * any LIMITED_PASS ⇒ LIMITED_PASS (PROMOTE→PROVISIONAL)
+    * else PASS                  (PROMOTE→ACTIVE)
+
+    Failure-mode contract (per :mod:`_llm_skill_judge`): if the LLM
+    call raises or returns garbage, the judge stage degrades to
+    ``LIMITED_PASS`` (no override of the synthetic floor) and the
+    Promotion driver continues unaffected.
+    """
+    base_record = _build_synthetic_evaluation(
+        proposal=proposal, skill=skill, judge_model=judge_model,
+    )
+
+    from labeling_supplement._llm_skill_judge import (
+        build_stage_verdict,
+        judge_proposal,
+    )
+
+    # ``corpus_hint`` is the bank corpus (e.g. ``env_wrappers``) and
+    # ``source_hint`` is the per-game directory name (e.g.
+    # ``gymv_thunder_force_iii``).  We pass the source hint to the
+    # prompt so the judge can reason about feasibility against the
+    # actual game's action vocabulary rather than the corpus-level
+    # group.
+    game_hint = source_hint or corpus_hint
+    outcome = judge_proposal(
+        proposal=proposal,
+        skill=skill,
+        model=judge_model,
+        game_hint=game_hint,
+    )
+    extra_stage = build_stage_verdict(outcome)
+
+    payload = base_record.verdict
+    augmented_stages: List[StageVerdict] = list(payload.stages) + [extra_stage]
+
+    any_fail    = any(s.verdict == GateVerdict.FAIL         for s in augmented_stages)
+    any_limited = any(s.verdict == GateVerdict.LIMITED_PASS for s in augmented_stages)
+    if any_fail:
+        failing = [s.stage.value for s in augmented_stages if s.verdict == GateVerdict.FAIL]
+        rationale = f"failed_stages={failing}; llm_judge={outcome.rationale!r}"
+        final_verdict = GateVerdict.FAIL
+        eligible: List[str] = []
+    elif any_limited:
+        rationale = (
+            f"promotion_to_provisional_only "
+            f"(offline-mirror synthetic + llm-judge:{outcome.verdict.value})"
+        )
+        final_verdict = GateVerdict.LIMITED_PASS
+        eligible = list(skill.source_domains) or list(skill.feasible_domains)
+    else:
+        rationale = "all_stages_pass (incl. llm-judge)"
+        final_verdict = GateVerdict.PASS
+        eligible = list(skill.source_domains) or list(skill.feasible_domains)
+
+    new_payload = GateVerdictPayload(
+        proposal_id=payload.proposal_id,
+        skill_id=payload.skill_id,
+        skill_content_hash=payload.skill_content_hash,
+        stages=augmented_stages,
+        final_verdict=final_verdict,
+        rationale=rationale,
+        eligible_domains=eligible,
+        notes="offline-with-llm-judge",
+    )
+
+    flat_metrics = {
+        f"{s.stage.value}.{k}": float(v)
+        for s in augmented_stages
+        for k, v in s.metrics.items()
+    }
+
+    base_record.verdict = new_payload
+    base_record.metrics = flat_metrics
+    base_record.judge_model = judge_model
+    return base_record
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1482,6 +1589,14 @@ def _decide_per_source(
                     gate, proposal=live_proposal, skill=subject,
                 )
                 ev.judge_model = judge_model
+            elif gate_mode == GATE_MODE_OFFLINE_LLM_JUDGE:
+                ev = _evaluate_proposal_offline_with_llm_judge(
+                    proposal=live_proposal,
+                    skill=subject,
+                    judge_model=judge_model,
+                    corpus_hint=corpus,
+                    source_hint=source,
+                )
             else:
                 ev = _build_synthetic_evaluation(
                     proposal=live_proposal, skill=subject,
@@ -1931,7 +2046,11 @@ def _build_parser() -> argparse.ArgumentParser:
                         "those verdicts are consumed instead of running "
                         "GateService inline.")
     p.add_argument("--gate-mode",
-                   choices=[GATE_MODE_OFFLINE_SYNTHETIC, GATE_MODE_LIVE],
+                   choices=[
+                       GATE_MODE_OFFLINE_SYNTHETIC,
+                       GATE_MODE_LIVE,
+                       GATE_MODE_OFFLINE_LLM_JUDGE,
+                   ],
                    default=GATE_MODE_OFFLINE_SYNTHETIC,
                    help="How to compute SkillEvaluationRecord when "
                         "--gate-verdicts-run is not provided: "
@@ -1940,7 +2059,12 @@ def _build_parser() -> argparse.ArgumentParser:
                         "Stages 1-4 (the documented Phase-1 behaviour); "
                         "'live' calls the LIVE GateService end-to-end "
                         "(currently FAILs Stage 3a when no target adapters "
-                        "are registered, useful as a diagnostic).")
+                        "are registered, useful as a diagnostic); "
+                        "'offline-with-llm-judge' extends offline-synthetic "
+                        "with one 35B-A3B BACKBONE_JUDGE_MODEL call per "
+                        "proposal (routed via VLLM_BASE_URL_MAP) and "
+                        "appends an extra StageVerdict — an LLM 'fail' "
+                        "verdict flips the aggregate to FAIL ⇒ REJECT.")
     p.add_argument("--output-dir", type=Path, default=None,
                    help="Output root; defaults to "
                         "labeling_supplement/promotion_decisions_out/run_<ts>.")

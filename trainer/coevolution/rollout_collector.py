@@ -150,6 +150,7 @@ async def collect_rollouts(
     thread_executor: Optional[ThreadPoolExecutor] = None,
     harness_hooks: Optional[Dict[str, Any]] = None,
     reward_logger: Any = None,
+    game_profiles: Optional[Dict[str, Any]] = None,
 ) -> List[EpisodeResult]:
     """Collect rollouts for all games with LPT scheduling and concurrency cap.
 
@@ -224,6 +225,7 @@ async def collect_rollouts(
         async with semaphore:
             game_bank = _bank_for(spec)
             game_harness_hook = (harness_hooks or {}).get(spec.game)
+            game_profile = (game_profiles or {}).get(spec.game)
             result: Optional[EpisodeResult] = None
             for attempt in range(1, max_retries + 1):
                 try:
@@ -247,6 +249,7 @@ async def collect_rollouts(
                         opponent_api_base=None,
                         harness_hook=game_harness_hook,
                         reward_logger=reward_logger,
+                        game_profile=game_profile,
                     )
                     break
                 except Exception as exc:

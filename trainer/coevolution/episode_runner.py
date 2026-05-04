@@ -52,11 +52,20 @@ GAMINGAGENT_GAMES = {
 # We import the dict lazily inside _lazy_imports() so module-import time
 # stays cheap when gym_v / stable-retro / ROMs aren't installed.
 GYMV_TEMPORAL_GAMES_SET: set = set()  # populated by _lazy_imports()
+# Gym-V games MUST use SubprocessEnv: stable-retro's Genesis emulator is
+# a process-singleton ("Cannot create multiple emulator instances per
+# process"), so any concurrent in-process episodes after the first one
+# crash and return ``EpisodeResult(steps=0)`` — i.e. ``1/8 ok`` on the
+# rollout collector log line.  Subprocess isolation gives each
+# concurrent episode its own emulator and restores 8/8 GRPO rollouts.
+# Set to the same membership as GYMV_TEMPORAL_GAMES_SET (populated lazily
+# below) — keep them in sync.
+GYMV_SUBPROCESS_GAMES: set = set()  # populated by _lazy_imports() (mirror)
 
 
 def _lazy_imports():
     """Return project modules, imported once and cached."""
-    global _IMPORTS_CACHE, GYMV_TEMPORAL_GAMES_SET
+    global _IMPORTS_CACHE, GYMV_TEMPORAL_GAMES_SET, GYMV_SUBPROCESS_GAMES
     if not _IMPORTS_CACHE:
         from env_wrappers.game_configs import GAME_CONFIGS
         from env_wrappers.gym_like import make_gaming_env
@@ -81,6 +90,10 @@ def _lazy_imports():
                 make_gymv_temporal_env,
             )
             GYMV_TEMPORAL_GAMES_SET.update(GYMV_TEMPORAL_GAMES.keys())
+            # Mirror the slug set into the subprocess gate; we always
+            # subprocess-isolate stable-retro envs (process-singleton
+            # constraint, see GYMV_SUBPROCESS_GAMES docstring).
+            GYMV_SUBPROCESS_GAMES.update(GYMV_TEMPORAL_GAMES.keys())
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "env_wrappers.gymv_temporal_nl_wrapper unavailable (%s); "
@@ -828,6 +841,7 @@ async def run_episode_async(
     opponent_api_base: Optional[str] = None,
     harness_hook: Any = None,
     reward_logger: Any = None,
+    game_profile: Any = None,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -852,6 +866,14 @@ async def run_episode_async(
         instead of vLLM self-play.
     opponent_api_base : str | None
         Base URL for the opponent API (default: OpenRouter).
+    game_profile : ``trainer.coevolution._game_schema.GameProfile`` | None
+        Per-phase static GameProfile (Path 1).  When supplied, the
+        compact rendering (goal / win_signal / hazards / key_actions /
+        failure_modes) is prepended to ``SYSTEM_PROMPT`` and
+        ``SKILL_SELECTION_SYSTEM_PROMPT`` for every step of this
+        episode.  Adds ~150 tokens to each actor / skill-selection
+        prompt; no per-step LLM cost.  ``None`` (default) preserves
+        the legacy hard-coded prompt.
     """
     imp = _lazy_imports()
     GAME_CONFIGS = imp["GAME_CONFIGS"]
@@ -862,6 +884,26 @@ async def run_episode_async(
     extract_game_facts = imp["extract_game_facts"]
     compact_text_observation = imp["compact_text_observation"]
     strip_think_tags = imp["strip_think_tags"]
+
+    # Path 1 wiring.  Imported at function entry so a refactor of
+    # ``_state_to_markup`` / ``_game_schema`` cannot wedge episode
+    # collection at module-import time, and so the ``GameProfile``
+    # rendering is computed once per episode (not per step) for the
+    # actor-prompt prefix.
+    from trainer.coevolution._state_to_markup import state_to_markup
+    if game_profile is not None:
+        try:
+            from trainer.coevolution._game_schema import render_for_actor_prompt
+            _profile_prefix = render_for_actor_prompt(game_profile) + "\n\n"
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "GameProfile render failed for game=%s: %s — "
+                "proceeding without profile prefix",
+                game, exc,
+            )
+            _profile_prefix = ""
+    else:
+        _profile_prefix = ""
 
     loop = asyncio.get_running_loop()
     t0 = time.monotonic()
@@ -894,27 +936,35 @@ async def run_episode_async(
             env = make_orak_env(game, max_steps=max_steps)
 
     elif game in GYMV_TEMPORAL_GAMES_SET:
-        # Gym-V Temporal/* (stable-retro Genesis) path. The wrapper does
-        # `gym_v.make + StochasticFrameSkip(n=8) + GymVTemporalNLWrapper`
-        # so the runner sees the same (obs_nl, info) contract as the
-        # GamingAgent path below. frame_skip=8 is the value that
-        # un-zeroed the 4-backbone success-rate sweep — see
-        # baselines/README.md § "Gym-V benchmark scope".
-        make_gymv_temporal_env = imp["make_gymv_temporal_env"]
-        if make_gymv_temporal_env is None:
+        # Gym-V Temporal/* (stable-retro Genesis).  Always go through
+        # SubprocessEnv: stable-retro's emulator is a process singleton
+        # ("Cannot create multiple emulator instances per process"), so
+        # in-process concurrent episodes drop 7/8 rollouts — see
+        # GYMV_SUBPROCESS_GAMES docstring above.  The worker calls
+        # ``make_gymv_temporal_env`` inside the child (frame_skip=8,
+        # max_steps from caller) so the obs_nl / info contract is
+        # preserved 1:1 with the in-process path.
+        SubprocessEnv = imp["SubprocessEnv"]
+        if game not in GYMV_SUBPROCESS_GAMES:
             raise RuntimeError(
                 f"Gym-V Temporal/* env requested ({game!r}) but gym_v / "
                 "stable-retro / Mega Drive ROMs are not installed; run "
                 "install/install_gymv.sh + install/gymv_temporal_patch/"
                 "apply_patch.sh and retry."
             )
+        logger.info(
+            "Using SubprocessEnv[gymv] for %s (emulator-singleton isolation)",
+            game,
+        )
         if exe:
             env = await loop.run_in_executor(
                 exe,
-                lambda: make_gymv_temporal_env(game, max_steps=max_steps),
+                lambda: SubprocessEnv(
+                    game=game, max_steps=max_steps, env_kind="gymv",
+                ),
             )
         else:
-            env = make_gymv_temporal_env(game, max_steps=max_steps)
+            env = SubprocessEnv(game=game, max_steps=max_steps, env_kind="gymv")
 
     else:
         if exe:
@@ -942,6 +992,16 @@ async def run_episode_async(
 
     action_names = info.get("action_names", [])
     structured_state = info.get("structured_state")
+    # Path 1: emit the unified <state> markup so it's available to any
+    # downstream consumer (skill_selection, Crafter, Harness validator,
+    # eval scorers).  Same call site is used at every env.step below so
+    # train and eval see byte-identical schema for the same observation.
+    try:
+        info["state_markup"] = state_to_markup(
+            obs_nl=obs_nl, info=info, game=game, step=0,
+        )
+    except Exception as _markup_exc:  # noqa: BLE001
+        logger.debug("state_to_markup failed at reset: %s", _markup_exc)
     current_info = info
 
     bank_available = skill_bank is not None and (
@@ -1081,7 +1141,11 @@ async def run_episode_async(
                     f"Available strategies (pick ONE by number):\n{candidates_text}\n\n"
                     f"Choose the best strategy. Output REASONING then SKILL number."
                 )
-                skill_select_prompt = SKILL_SELECTION_SYSTEM_PROMPT + "\n" + user_content
+                skill_select_prompt = (
+                    _profile_prefix
+                    + SKILL_SELECTION_SYSTEM_PROMPT
+                    + "\n" + user_content
+                )
                 skill_coro = vllm_client.generate_chat(
                     [{"role": "user", "content": skill_select_prompt}],
                     adapter="skill_selection",
@@ -1134,7 +1198,11 @@ async def run_episode_async(
                     inner_step=step_count,
                     outer_step=step_count,
                 )
-                _ok, _d = harness_hook.validate_choice(_sid, _hstate2)
+                # Path 4 — pass ``episode_id`` for per-episode LLM
+                # validator caching (no-op when validator is off).
+                _ok, _d = harness_hook.validate_choice(
+                    _sid, _hstate2, episode_id=episode_id,
+                )
                 return bool(_ok), _d
             except Exception as _vexc:                          # noqa: BLE001
                 logger.debug(
@@ -1269,7 +1337,9 @@ async def run_episode_async(
             f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
             f"Output ACTION number."
         )
-        action_prompt = SYSTEM_PROMPT + skill_text + "\n" + action_user
+        action_prompt = (
+            _profile_prefix + SYSTEM_PROMPT + skill_text + "\n" + action_user
+        )
 
         if step_sync is not None:
             await step_sync.arrive()
@@ -1303,6 +1373,16 @@ async def run_episode_async(
         total_reward += reward
         next_action_names = next_info.get("action_names", action_names)
         next_structured_state = next_info.get("structured_state")
+        try:
+            next_info["state_markup"] = state_to_markup(
+                obs_nl=next_obs_nl, info=next_info, game=game,
+                step=step_count + 1,
+            )
+        except Exception as _markup_exc:  # noqa: BLE001
+            logger.debug(
+                "state_to_markup failed at step %d: %s",
+                step_count + 1, _markup_exc,
+            )
 
         recent_actions.append(str(action))
         recent_rewards.append(float(reward))
