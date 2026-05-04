@@ -173,10 +173,26 @@ def _next_vllm_url(model: str | None = None) -> str:
 
 
 def _candidate_vllm_urls(model: str | None = None) -> list[str]:
-    """Return URLs to try for a given ``model``, preferring the per-model
-    map entry first then falling back to the round-robin pool. Used by
-    :func:`ask_vllm` to honour the per-model dispatch contract while
-    still surviving a dead mapped instance via the existing pool.
+    """Return URLs to try for a given ``model``, in a load-balancing
+    *and* failover-aware order.
+
+    Order policy (head = primary attempt, tail = failover candidates):
+
+      1. **Mapped models** (e.g. ``Qwen/Qwen3.5-35B-A3B`` pinned to
+         :8004 via ``VLLM_BASE_URL_MAP``) → mapped URL first, then
+         the round-robin pool as failover.
+      2. **Unmapped models** (e.g. ``Qwen/Qwen3.5-9B`` round-robined
+         across :8000-:8003) → advance the round-robin cycle and
+         place that URL first, with the remaining pool URLs after
+         it as failover.  *This is what makes load actually balance
+         across the pool* — the previous version always returned
+         ``_VLLM_URLS`` in static order, so :8000 always won and
+         the rest were dead failover slots that almost never fired
+         (since :8000 rarely fails).  v10 production audit found
+         this caused the skill-bank pipeline (segment / contract /
+         curator) to hammer :8000 with ~85% of all 9B traffic
+         while the actor's ``AsyncVLLMClient`` (which uses its own
+         counter) load-balanced correctly.
     """
     with _vllm_url_lock:
         global _vllm_url_cycle
@@ -185,6 +201,16 @@ def _candidate_vllm_urls(model: str | None = None) -> list[str]:
         candidates: list[str] = []
         if model and model in _VLLM_URL_BY_MODEL:
             candidates.append(_VLLM_URL_BY_MODEL[model])
+        elif _VLLM_URLS:
+            # Advance the round-robin cycle so each call lands on a
+            # different head URL.  ``next(_vllm_url_cycle)`` is the
+            # exact same generator ``_next_vllm_url`` consumes, so a
+            # call to ``_candidate_vllm_urls`` and a call to
+            # ``_next_vllm_url`` together advance the counter twice;
+            # that's fine — both flavours are still round-robin and
+            # the lock ensures atomicity.
+            head = next(_vllm_url_cycle)
+            candidates.append(head)
         for url in _VLLM_URLS:
             if url not in candidates:
                 candidates.append(url)
