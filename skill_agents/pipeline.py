@@ -299,6 +299,27 @@ class SkillBankAgent:
         ranker always has a diverse skill vocabulary to compare.  This
         mirrors the naming scheme in ``labeling/extract_skillbank_gpt54.py``.
         """
+        labels = SkillBankAgent._seed_label_freq(episode, game_name=game_name)
+        return sorted(labels.keys())
+
+    @staticmethod
+    def _seed_label_freq(
+        episode, game_name: str = "generic",
+    ) -> Dict[str, int]:
+        """Compound skill labels for an episode, mapped to per-step occurrence
+        frequency.
+
+        Same vocabulary as ``_seed_skills_from_intentions`` (per-step
+        compounds + game default seeds), but here we also return the
+        episode-level frequency for each compound — used by ``segment_episode``
+        to rank discovery seeds when capping ``_skill_names``.
+
+        Game default seeds are reported with frequency ``0`` so the cap
+        prefers in-episode dominant intentions, with defaults filling
+        leftover slots.  ``__NEW__`` / ``__EXPLORE__`` are NOT included
+        here — those are handled separately in the cap as always-kept
+        novelty placeholders.
+        """
         from skill_agents.boundary_proposal.signal_extractors import (
             parse_intention_tag,
         )
@@ -309,20 +330,23 @@ class SkillBankAgent:
 
         exps = episode.experiences
         phases = detect_phases(exps, game_name=game_name)
-        labels: set = set()
+        freq: Dict[str, int] = {}
         for exp, phase in zip(exps, phases):
             intent = getattr(exp, "intentions", None)
-            if intent:
-                tag = parse_intention_tag(intent, mode="composite")
-                if tag != "UNKNOWN":
-                    labels.add(make_compound_label(phase, tag))
+            if not intent:
+                continue
+            tag = parse_intention_tag(intent, mode="composite")
+            if tag == "UNKNOWN":
+                continue
+            label = make_compound_label(phase, tag)
+            freq[label] = freq.get(label, 0) + 1
 
         defaults = SkillBankAgent._GAME_DEFAULT_SEEDS.get(
             game_name, SkillBankAgent._GENERIC_DEFAULT_SEEDS,
         )
-        labels.update(defaults)
-
-        return sorted(labels)
+        for d in defaults:
+            freq.setdefault(d, 0)
+        return freq
 
     # ── Stage 1+2: Segment one episode ───────────────────────────────
 
@@ -382,43 +406,148 @@ class SkillBankAgent:
         #   bank=0   ⇒ 25 s        bank=17  ⇒ 386 s
         #   bank=13  ⇒ 119 s       bank=19  ⇒ 600 s (timeout)
         #
-        # observed in the v4 Phase-1 run before the cap was added.  We
-        # cap to top-K by skill score (``Skill.compute_skill_score``)
-        # while always preserving ``__NEW__`` and any compound intention
-        # tags from this episode (which carry the novelty / explore
-        # signal — pruning them would lock the bank to its current
-        # vocabulary).  ``SKILLBANK_MAX_SKILL_NAMES=0`` disables the
-        # cap (legacy behaviour).
+        # observed in the v4 Phase-1 run before the cap was added.
+        #
+        # v12 fix (2026-05-05, Bug 2): the original cap unconditionally
+        # preserved all ``seeded`` (per-episode intention compounds +
+        # game defaults), so when episodes were rich enough that
+        # ``len(seeded) >= _max_names`` the cap was a no-op and prompts
+        # still ballooned to 25-30+ skill names.  Empirically Phase-1
+        # segmentation grew 60s → 335s across just 3 training steps as
+        # 80-step episodes accumulated 22-30 unique intention compounds.
+        #
+        # New policy (strict cap including seeds):
+        #   * Always keep ``__NEW__`` / ``__EXPLORE__`` (novelty placeholders).
+        #   * Prefer episode-derived dominant compounds (rank by per-step
+        #     frequency in this episode — the most-represented intentions
+        #     are the ones segmentation actually needs to label).
+        #   * Then game-default seeds (stable vocabulary baseline).
+        #   * Then bank skills by ``compute_skill_score`` (top-K).
+        #   * Truncate at ``_max_names``.
+        #
+        # Trade-off: rare per-episode intentions are dropped from this
+        # episode's segmentation prompt.  This is safe because (a) rare
+        # compounds are unlikely to dominate any segment's labelling
+        # anyway, and (b) they will reappear in other episodes where
+        # they're more frequent and be picked up there.
+        #
+        # ``SKILLBANK_MAX_SKILL_NAMES=0`` disables the cap (legacy
+        # behaviour).
         _max_names = int(os.environ.get("SKILLBANK_MAX_SKILL_NAMES", "16"))
         if _max_names > 0 and len(_skill_names) > _max_names:
-            # ``seeded`` are the per-episode intention compounds — keep
-            # them all so we don't lose discovery signal.
-            preserved: set[str] = set(seeded)
-            preserved.add("__NEW__")
-            preserved.add("__EXPLORE__")
-            # Score the rest by the bank's per-skill score; unscored
-            # entries fall back to 0.5.  Highest-scoring K-len(preserved)
-            # join the preserved set.
-            scoring: List[Tuple[float, str]] = []
+            seeded_set = set(seeded)
+            game_defaults = set(self._GAME_DEFAULT_SEEDS.get(
+                _game, self._GENERIC_DEFAULT_SEEDS,
+            ))
+            seed_freq = self._seed_label_freq(episode, game_name=_game)
+
+            # Tier 1: novelty placeholders (always in, even if missing
+            # from input ``_skill_names``).
+            kept: set[str] = {"__NEW__", "__EXPLORE__"}
+
+            # Tier 2: episode-derived dominant compounds — rank by
+            # frequency in *this* episode so we keep the intentions
+            # the agent actually pursued.  Defaults (freq=0) sort to
+            # the bottom and only fill leftover slots.
+            episode_compounds: List[Tuple[int, str]] = []
+            for sid in seeded_set:
+                if sid in kept:
+                    continue
+                if sid in game_defaults:
+                    continue  # defaults handled in Tier 3
+                episode_compounds.append((seed_freq.get(sid, 0), sid))
+            episode_compounds.sort(reverse=True)
+
+            # Tier 3: game-default seeds (stable baseline vocab).
+            default_compounds = sorted(game_defaults & seeded_set)
+
+            # Tier 4: bank skills (non-seed ``_skill_names`` entries),
+            # ranked by ``compute_skill_score``.
+            bank_scoring: List[Tuple[float, str]] = []
             for sid in _skill_names:
-                if sid in preserved:
+                if sid in seeded_set or sid in kept:
                     continue
                 sk = self.bank.get_skill(sid) if self.bank else None
                 try:
                     score = sk.compute_skill_score() if sk else 0.5
                 except Exception:
                     score = 0.5
-                scoring.append((float(score), sid))
-            scoring.sort(reverse=True)
-            keep_extra = max(0, _max_names - len(preserved))
-            kept_extra = [sid for _s, sid in scoring[:keep_extra]]
-            new_names = sorted(preserved | set(kept_extra))
+                bank_scoring.append((float(score), sid))
+            bank_scoring.sort(reverse=True)
+
+            # Slot allocation policy (tier-priority order):
+            #   1. Novelty placeholders ``__NEW__`` / ``__EXPLORE__`` — 2 slots
+            #   2. Game default seeds (intersected with seeded) — keep ALL
+            #      that are present.  Defaults represent stable game-
+            #      stage vocabulary; dropping them would destabilise
+            #      transition rankings across episodes within a step.
+            #   3. Bank skills (top by score) — reserve up to
+            #      ``SKILLBANK_SEGMENT_BANK_RESERVE`` slots (env-tunable,
+            #      default 4).  Without this, rich episodes evict bank
+            #      skills entirely and segmentation can't label
+            #      behaviours the bank already knows.
+            #   4. Episode-derived dominant compounds — fill remaining
+            #      slots, ranked by per-episode frequency.  Rare
+            #      compounds (freq=1 or 2) are dropped in this episode;
+            #      they reappear in other episodes where they're more
+            #      common.
+            #
+            # If allocation under-spends in a tier (e.g. fewer bank
+            # skills than reserved), unused slots cascade to the
+            # remaining episode compounds so we always reach
+            # ``_max_names`` whenever supply allows.
+            _bank_reserve = int(os.environ.get(
+                "SKILLBANK_SEGMENT_BANK_RESERVE", "4"
+            ))
+
+            # Tier 2: defaults — always allocate (up to remaining cap).
+            n_default_kept = 0
+            for sid in default_compounds:
+                if len(kept) >= _max_names:
+                    break
+                if sid not in kept:
+                    kept.add(sid)
+                    n_default_kept += 1
+
+            # Tier 3: bank skills — up to bank_reserve slots.
+            n_bank_kept = 0
+            bank_target = min(
+                len(bank_scoring),
+                max(0, _bank_reserve),
+                max(0, _max_names - len(kept)),
+            )
+            for _score, sid in bank_scoring[:bank_target]:
+                kept.add(sid)
+                n_bank_kept += 1
+
+            # Tier 4: episode compounds — fill remaining slots, ranked
+            # by per-episode frequency.
+            n_episode_kept = 0
+            for _, sid in episode_compounds:
+                if len(kept) >= _max_names:
+                    break
+                if sid not in kept:
+                    kept.add(sid)
+                    n_episode_kept += 1
+
+            # Spillover: if we still have room (e.g. very few episode
+            # compounds), give the remaining slots to additional bank
+            # skills so the cap is never under-used.
+            if len(kept) < _max_names:
+                for _score, sid in bank_scoring[bank_target:]:
+                    if len(kept) >= _max_names:
+                        break
+                    if sid not in kept:
+                        kept.add(sid)
+                        n_bank_kept += 1
+
+            new_names = sorted(kept)
             logger.info(
                 "segment_episode: capped skill_names %d → %d "
-                "(SKILLBANK_MAX_SKILL_NAMES=%d, preserved %d intention/"
-                "novelty seeds + %d top-scored bank skills)",
+                "(SKILLBANK_MAX_SKILL_NAMES=%d, kept 2 novelty + "
+                "%d defaults + %d top bank skills + %d top episode compounds)",
                 len(_skill_names), len(new_names), _max_names,
-                len(preserved), len(kept_extra),
+                n_default_kept, n_bank_kept, n_episode_kept,
             )
             _skill_names = new_names
 

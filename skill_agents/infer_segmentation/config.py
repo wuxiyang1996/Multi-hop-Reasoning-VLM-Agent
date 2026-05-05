@@ -79,6 +79,22 @@ GAME_DURATION_PRIORS: Dict[str, Tuple[float, float]] = {
     "avalon": (12.0, 6.0),
     "diplomacy": (18.0, 10.0),
     "super_mario": (10.0, 6.0),
+    # T2.16 (2026-05-05): gymv games run with max_steps=80 (typically
+    # achieving ~60-70 actual steps).  Without explicit entries these
+    # fell to the adaptive default (mean≈5, std≈3) which produced ~12
+    # boundary candidates per episode and a flood of LLM-teacher
+    # preference queries during segmentation (Bug 2 root cause).  The
+    # tuned means below target ~5-7 boundary candidates per episode →
+    # ~50% fewer LLM calls without sacrificing final segment quality
+    # (decoder still beam-prunes to 4-5 segments per episode).
+    "gymv_thunder_force_iii":  (12.0, 6.0),
+    "gymv_altered_beast":      (12.0, 6.0),
+    "gymv_columns":            (15.0, 7.0),
+    "gymv_dynamite_headdy":    (10.0, 5.0),
+    "gymv_streets_of_rage_2":  (12.0, 6.0),
+    "gymv_space_harrier_ii":   (10.0, 5.0),
+    "gymv_airstriker":         (10.0, 5.0),
+    "gymv_strider":            (12.0, 6.0),
 }
 
 

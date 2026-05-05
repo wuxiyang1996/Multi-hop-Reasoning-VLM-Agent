@@ -77,18 +77,26 @@ GAME_MAX_STEPS: Dict[str, int] = {
     "tetris": 200,
     "candy_crush": 50,
     "super_mario": 500,
-    # Gym-V Temporal/* @ frame_skip=8.  200 agent steps ≈ 1600 emulator
-    # frames ≈ 27 s of in-game time at 60 Hz, which comfortably covers
-    # the ~100-step paper Table-3 anchor episodes for all 8 games while
-    # still bounding the worst case (long Streets-of-Rage 2 stages).
-    "gymv_thunder_force_iii": 200,
-    "gymv_altered_beast": 200,
-    "gymv_columns": 200,
-    "gymv_dynamite_headdy": 200,
-    "gymv_space_harrier_ii": 200,
-    "gymv_streets_of_rage_2": 200,
-    "gymv_airstriker": 200,
-    "gymv_strider": 200,
+    # Gym-V Temporal/* @ frame_skip=8.  Lowered from 200 → 80 on
+    # 2026-05-04 to match the SFT cold-start teacher window
+    # (`Cold-start-out-gymv/gpt54_skip8_e16_s80_*`,
+    # `--max_steps 80 --frame_skip 8`).  Empirically 100 % of teacher
+    # episodes truncated at exactly 80 — extending the trainer to 200
+    # left the policy in zero-shot territory for steps 80-200 (no
+    # demonstrations) AND fed the stuck-detector dead 0-reward steps
+    # that biased GRPO advantages downward.  80 agent-steps × 8
+    # frame-skip ≈ 640 emulator frames ≈ 10.7 s of in-game time at
+    # 60 Hz, which covers the title-screen-to-first-reward window
+    # (~5-10 s) for all 8 games and matches the published baseline
+    # comparison budget.
+    "gymv_thunder_force_iii": 80,
+    "gymv_altered_beast": 80,
+    "gymv_columns": 80,
+    "gymv_dynamite_headdy": 80,
+    "gymv_space_harrier_ii": 80,
+    "gymv_streets_of_rage_2": 80,
+    "gymv_airstriker": 80,
+    "gymv_strider": 80,
 }
 
 EMULATOR_GAMES: set = set()
@@ -671,7 +679,15 @@ class CoEvolutionConfig:
     # Bootstrap window: outer-loop training steps below this value
     # always go through the LLM validator regardless of deterministic
     # certainty.  Default 20 ≈ ~1 day of P1 training.
-    llm_harness_bootstrap_steps: int = 20
+    # T2.16 (2026-05-05): default lowered from 20 → 5.  In production
+    # runs we saw the validator fire on EVERY admit for the first 20
+    # trainer steps (~70-75 35B calls per step × 16 episodes), which
+    # is the dominant contribution to ``Phase A+B`` rollout dead-time
+    # outside the GRPO sync window.  Five steps is enough to bootstrap
+    # the deterministic admit signal — after that the validator only
+    # fires on "uncertain" admits (shadow-skill, no-evidence, etc.) and
+    # the per-step 35B call count drops from ~75 to ~15.
+    llm_harness_bootstrap_steps: int = 5
     # Token budget per LLM Harness validator response.
     llm_harness_max_tokens: int = 256
     # Sampling temperature for LLM Harness validator calls.

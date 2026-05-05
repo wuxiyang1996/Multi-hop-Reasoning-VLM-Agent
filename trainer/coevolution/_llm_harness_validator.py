@@ -38,12 +38,16 @@ Cross-refs
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 import re
+import threading
 import time
+from collections import OrderedDict
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Mapping, Optional, Tuple
 
 from data_structure.extensions.skill_record import SkillRecord
 
@@ -63,6 +67,111 @@ _MAX_PROTOCOL_STEPS: int = 8
 # Verdict tag we stamp into the diagnostic dict so dashboards can
 # split LLM-vetoed picks from deterministic-vetoed ones.
 LLM_VALIDATOR_TAG: str = "llm_harness_validator"
+
+
+# ── Module-level cross-step / cross-episode verdict cache (T2.16) ────
+#
+# The original per-episode cache helps within a single rollout, but
+# the same `(skill, deterministic-admit-shape)` combination repeats
+# *across* episodes and *across* trainer steps — that's why our
+# production logs show ~75 35B calls per step even though episodes
+# only pick from ~16 distinct skills.
+#
+# This shared LRU caches the LLM verdict by a stable fingerprint
+# derived from the skill + the deterministic diag's stable fields
+# (admit_status, evidence_count, contract_translated flag, etc.) —
+# we explicitly EXCLUDE volatile state-instance fields so different
+# episodes that hit the same kind of admit re-use the verdict.  Cache
+# key avoids ``episode_id`` so it is shared across episodes; the
+# trainer step is also excluded so the cache survives bootstrap →
+# steady-state transition (the verdict is a function of the skill's
+# preconditions and the deterministic diag, neither of which changes
+# step-over-step).
+#
+# Bounded LRU at ``SKILLBANK_HARNESS_VERDICT_CACHE_MAX`` (default
+# 4096) so memory is capped at ~4 MB.  The cache is intentionally
+# global / lock-protected because validator instances are recreated
+# every step; we want the cache to outlive each instance.
+_VERDICT_CACHE_LOCK = threading.Lock()
+_VERDICT_CACHE: "OrderedDict[Tuple, LLMValidatorOutcome]" = OrderedDict()
+_VERDICT_CACHE_MAX = int(
+    os.environ.get("SKILLBANK_HARNESS_VERDICT_CACHE_MAX", "4096")
+)
+_VERDICT_CACHE_STATS: Dict[str, int] = {"hits": 0, "misses": 0}
+
+
+def _stable_skill_fingerprint(skill: SkillRecord) -> str:
+    """Stable fingerprint of a skill for cross-step verdict caching.
+
+    Hashes ``skill_id`` plus the components that determine whether an
+    admit makes sense for a given deterministic diag — i.e. the
+    skill's preconditions and protocol shape, NOT volatile fields
+    like usage counts or last-update timestamps.
+    """
+    parts = [
+        getattr(skill, "skill_id", "") or "",
+        getattr(skill, "name", "") or "",
+        getattr(skill, "phase_tag", "") or "",
+        json.dumps(getattr(skill, "preconditions", None) or [], sort_keys=True)[:512],
+        json.dumps(getattr(skill, "postconditions", None) or [], sort_keys=True)[:512],
+    ]
+    h = hashlib.blake2b("|".join(parts).encode("utf-8"), digest_size=16).hexdigest()
+    return h
+
+
+def _stable_diag_fingerprint(diag: Mapping[str, Any]) -> str:
+    """Stable fingerprint of a deterministic diag — shape only.
+
+    Excludes per-step volatile fields (timestamps, raw obs hashes)
+    and keeps only the structural decisions that drove the
+    deterministic admit.  If two diags hash the same, they would
+    produce the same admit reasoning and the LLM verdict should
+    therefore be reusable.
+    """
+    keep_keys = (
+        "admit_status",
+        "shadow",
+        "evidence_count",
+        "contract_translated",
+        "fallback_admit",
+        "predicate_match",
+        "phase_match",
+    )
+    sub = {k: diag.get(k) for k in keep_keys if k in diag}
+    h = hashlib.blake2b(
+        json.dumps(sub, sort_keys=True, default=str).encode("utf-8"),
+        digest_size=16,
+    ).hexdigest()
+    return h
+
+
+def _verdict_cache_get(key: Tuple) -> Optional["LLMValidatorOutcome"]:
+    with _VERDICT_CACHE_LOCK:
+        hit = _VERDICT_CACHE.get(key)
+        if hit is None:
+            _VERDICT_CACHE_STATS["misses"] += 1
+            return None
+        _VERDICT_CACHE.move_to_end(key)
+        _VERDICT_CACHE_STATS["hits"] += 1
+        return hit
+
+
+def _verdict_cache_put(key: Tuple, outcome: "LLMValidatorOutcome") -> None:
+    with _VERDICT_CACHE_LOCK:
+        _VERDICT_CACHE[key] = outcome
+        _VERDICT_CACHE.move_to_end(key)
+        while len(_VERDICT_CACHE) > _VERDICT_CACHE_MAX:
+            _VERDICT_CACHE.popitem(last=False)
+
+
+def get_verdict_cache_stats() -> Dict[str, int]:
+    """Expose hit/miss counts for monitor scripts."""
+    with _VERDICT_CACHE_LOCK:
+        return {
+            **_VERDICT_CACHE_STATS,
+            "size": len(_VERDICT_CACHE),
+            "capacity": _VERDICT_CACHE_MAX,
+        }
 
 
 # ── Outcome dataclass ─────────────────────────────────────────────────
@@ -447,6 +556,32 @@ class LLMHarnessValidator:
                 skip_reason=cached.skip_reason,
             )
 
+        # T2.16: cross-episode / cross-step shared LRU cache.  Same
+        # ``(skill, admit-shape)`` combination is hit by many episodes
+        # in the bootstrap window; the per-episode cache above only
+        # helps within a single rollout, so we additionally consult
+        # this shared cache before paying the 35B latency.
+        _shared_key = (
+            _stable_skill_fingerprint(skill),
+            _stable_diag_fingerprint(deterministic_diag),
+        )
+        shared_hit = _verdict_cache_get(_shared_key)
+        if shared_hit is not None:
+            self._stats.n_cache_hits += 1
+            outcome = LLMValidatorOutcome(
+                ok=shared_hit.ok,
+                rationale=shared_hit.rationale,
+                raw_response=shared_hit.raw_response,
+                error=shared_hit.error,
+                cache_hit=True,
+                fired=shared_hit.fired,
+                skip_reason=shared_hit.skip_reason,
+            )
+            # Re-pin to the per-episode cache so subsequent picks of
+            # the same skill in this episode also hit fast.
+            self._cache[cache_key] = outcome
+            return outcome
+
         self._stats.n_calls_attempted += 1
         prompt = _build_prompt(
             skill=skill, state=state,
@@ -558,6 +693,9 @@ class LLMHarnessValidator:
                 self.in_bootstrap(),
             )
         self._cache[cache_key] = outcome
+        # T2.16: also promote to the cross-step / cross-episode LRU
+        # so later episodes paying the same admit shape skip the LLM.
+        _verdict_cache_put(_shared_key, outcome)
         return outcome
 
 
@@ -570,5 +708,6 @@ __all__ = [
     "LLMValidatorOutcome",
     "LLMValidatorStats",
     "LLM_VALIDATOR_TAG",
+    "get_verdict_cache_stats",
     "is_uncertain_admit",
 ]

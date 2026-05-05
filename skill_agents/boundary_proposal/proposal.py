@@ -79,7 +79,15 @@ class ProposalConfig:
     # segments.  The effective target becomes
     #   max(target_segment_length, T // target_segment_count).
     adaptive_target: bool = True
-    target_segment_count: int = 12  # aim for ~12 segments per episode
+    # T2.16 (2026-05-05): lowered from 12 → 8.  For 80-step gymv
+    # episodes (typical 60-70 achieved), 12 produced ~12 boundary
+    # candidates → ~12 LLM-teacher preference queries per episode →
+    # major Phase A+B latency contributor (Bug 2).  8 candidates per
+    # episode keeps decoder choice rich enough (final segment count is
+    # still 4-5 after beam pruning) while halving segmentation LLM
+    # spend.  Long-episode games (200+ steps) still hit the
+    # ``target_segment_length=5`` floor, so they're unaffected.
+    target_segment_count: int = 8  # aim for ~8 segments per episode
 
     # ── Intention-tag boundary signals ─────────────────────────────
     # Tag change → boundary candidate (tag proposes, Stage 2 decides)

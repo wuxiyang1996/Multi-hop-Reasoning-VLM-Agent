@@ -27,6 +27,7 @@ import os
 import re
 import sys
 import threading
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
@@ -56,6 +57,119 @@ _GLOBAL_MAX_CONCURRENT_LLM_CALLS = int(
     os.environ.get("SKILLBANK_GLOBAL_MAX_LLM_CALLS", "32")
 )
 _global_llm_semaphore = threading.Semaphore(_GLOBAL_MAX_CONCURRENT_LLM_CALLS)
+
+
+# ── Transition-preference cache (added 2026-05-05, Bug 2 fix) ────────
+# Within a single training step the skillbank vocabulary is stable and
+# the per-episode skill_names list (after Fix-1's seed-aware cap) tends
+# to be near-identical across episodes of the same game.  Without
+# memoisation, ``collect_transition_preferences`` was re-issuing M LLM
+# calls per episode (M = len(skill_names)), with each call ranking M
+# candidates, i.e. O(M²) prompt tokens per episode.  At M=16 across 16
+# episodes that's ~256 redundant LLM calls per step.
+#
+# Memoising at the ``_collect_one_transition_prefs`` level keys on
+# ``(prev_skill, frozenset(skill_names), descriptions, model, temp,
+#  max_tokens)`` so cache hits only return prefs that were generated
+# with exactly the same prompt content.  Within-step episode 2..N hit
+# cache for the bank-only transitions; only freshly seeded compounds
+# (whose ``prev_skill`` was not yet asked about with this candidate set)
+# fall through to a fresh LLM call.
+#
+# Cross-step bank changes naturally invalidate the cache because the
+# ``frozenset(skill_names)`` differs.  An LRU cap (default 1024) bounds
+# memory; the orchestrator may also call ``clear_transition_pref_cache``
+# explicitly at step boundaries to drop stale entries proactively.
+_TRANSITION_PREF_CACHE_LOCK = threading.Lock()
+_TRANSITION_PREF_CACHE: "OrderedDict[tuple, list]" = OrderedDict()
+_TRANSITION_PREF_CACHE_MAX = int(
+    os.environ.get("SKILLBANK_TRANSITION_PREF_CACHE_MAX", "1024")
+)
+_TRANSITION_PREF_CACHE_STATS = {"hits": 0, "misses": 0}
+
+
+def _transition_pref_cache_key(
+    prev_skill: str,
+    skill_names: List[str],
+    cfg: "LLMTeacherConfig",
+    skill_descriptions: Optional[Dict[str, str]],
+) -> tuple:
+    """Build a deterministic cache key for one transition-pref call.
+
+    The key fingerprints ALL inputs that influence the LLM prompt &
+    sampling: prev_skill, the candidate set, the per-skill descriptions
+    visible in the prompt, and the model/temperature/max_tokens.  Using
+    ``frozenset(skill_names)`` makes the key order-independent (the
+    ranking prompt is built on a deterministic ordering inside
+    ``_build_transition_ranking_prompt``).
+    """
+    if skill_descriptions:
+        relevant = tuple(sorted(
+            (s, skill_descriptions.get(s, "")) for s in skill_names
+        ))
+        descs_fp = hash(relevant)
+    else:
+        descs_fp = 0
+    return (
+        prev_skill,
+        frozenset(skill_names),
+        descs_fp,
+        getattr(cfg, "model", "") or "",
+        round(float(getattr(cfg, "temperature", 0.0) or 0.0), 3),
+        int(getattr(cfg, "max_tokens", 0) or 0),
+    )
+
+
+def _transition_pref_cache_get(key: tuple) -> Optional[list]:
+    """Return cached prefs for ``key`` or ``None``.  LRU-touches on hit."""
+    with _TRANSITION_PREF_CACHE_LOCK:
+        prefs = _TRANSITION_PREF_CACHE.get(key)
+        if prefs is None:
+            _TRANSITION_PREF_CACHE_STATS["misses"] += 1
+            return None
+        _TRANSITION_PREF_CACHE.move_to_end(key)
+        _TRANSITION_PREF_CACHE_STATS["hits"] += 1
+        # Shallow copy: callers extend their own lists; we don't want
+        # downstream mutation to corrupt cached entries.
+        return list(prefs)
+
+
+def _transition_pref_cache_put(key: tuple, prefs: list) -> None:
+    with _TRANSITION_PREF_CACHE_LOCK:
+        _TRANSITION_PREF_CACHE[key] = list(prefs)
+        _TRANSITION_PREF_CACHE.move_to_end(key)
+        while len(_TRANSITION_PREF_CACHE) > _TRANSITION_PREF_CACHE_MAX:
+            _TRANSITION_PREF_CACHE.popitem(last=False)
+
+
+def clear_transition_pref_cache() -> Dict[str, int]:
+    """Drop all cached transition prefs and reset stats.
+
+    Call at training-step boundaries (or any time the skillbank
+    vocabulary is known to have churned heavily) to free memory.
+    Returns a dict with ``{"dropped", "hits", "misses"}`` reflecting the
+    pre-clear state — useful for periodic logging.
+    """
+    with _TRANSITION_PREF_CACHE_LOCK:
+        out = {
+            "dropped": len(_TRANSITION_PREF_CACHE),
+            "hits": _TRANSITION_PREF_CACHE_STATS["hits"],
+            "misses": _TRANSITION_PREF_CACHE_STATS["misses"],
+        }
+        _TRANSITION_PREF_CACHE.clear()
+        _TRANSITION_PREF_CACHE_STATS["hits"] = 0
+        _TRANSITION_PREF_CACHE_STATS["misses"] = 0
+        return out
+
+
+def get_transition_pref_cache_stats() -> Dict[str, int]:
+    """Read-only view of cache size and hit/miss counters."""
+    with _TRANSITION_PREF_CACHE_LOCK:
+        return {
+            "size": len(_TRANSITION_PREF_CACHE),
+            "hits": _TRANSITION_PREF_CACHE_STATS["hits"],
+            "misses": _TRANSITION_PREF_CACHE_STATS["misses"],
+        }
 
 
 # ── Cold-start I/O recording ─────────────────────────────────────────
@@ -599,40 +713,70 @@ def collect_transition_preferences(
     For each skill as prev_skill, collects pairwise preferences on
     which next-skill is more likely. When config.max_workers > 1,
     LLM calls run in parallel.
+
+    Cached at the per-``prev_skill`` granularity (Bug 2 fix,
+    2026-05-05): within a training step, episode 2..N share the same
+    skill vocabulary as episode 1 (after Fix-1's seed-aware cap), so
+    the bank-level transition rankings can be reused directly.  Only
+    cache misses fall through to fresh LLM calls.
     """
-    from skill_agents.infer_segmentation.preference import PreferenceExample
+    from skill_agents.infer_segmentation.preference import PreferenceExample  # noqa: F401
 
     cfg = config or LLMTeacherConfig()
+
+    # Partition into cache hits and misses.  Cache hits are returned
+    # immediately; misses are dispatched to the LLM (serially or via
+    # the worker pool, mirroring the original code path).
+    cached_prefs: List = []
+    miss_skills: List[str] = []
+    miss_keys: Dict[str, tuple] = {}
+    for prev_skill in skill_names:
+        key = _transition_pref_cache_key(
+            prev_skill, skill_names, cfg, skill_descriptions,
+        )
+        hit = _transition_pref_cache_get(key)
+        if hit is not None:
+            cached_prefs.extend(hit)
+        else:
+            miss_skills.append(prev_skill)
+            miss_keys[prev_skill] = key
+
+    if not miss_skills:
+        # Fast path: the entire transition table is in cache (typical
+        # for episodes 2..N within a step).
+        return cached_prefs
+
     ask = _get_ask_model()
     max_workers = getattr(cfg, "max_workers", None)
     if max_workers is None or max_workers <= 1:
-        all_prefs = []
-        for prev_skill in skill_names:
-            all_prefs.extend(
-                _collect_one_transition_prefs(
-                    prev_skill, skill_names, cfg, ask, skill_descriptions,
-                ),
+        for prev_skill in miss_skills:
+            fresh = _collect_one_transition_prefs(
+                prev_skill, skill_names, cfg, ask, skill_descriptions,
             )
-        return all_prefs
+            _transition_pref_cache_put(miss_keys[prev_skill], fresh)
+            cached_prefs.extend(fresh)
+        return cached_prefs
 
     max_concurrent = getattr(cfg, "max_concurrent_llm_calls", None)
     if max_concurrent is not None and max_concurrent > 0:
         ask = _wrap_ask_with_semaphore(ask, max_concurrent)
-    all_prefs = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {
             executor.submit(
                 _collect_one_transition_prefs,
                 ps, skill_names, cfg, ask, skill_descriptions,
             ): ps
-            for ps in skill_names
+            for ps in miss_skills
         }
         for future in as_completed(futures):
+            ps = futures[future]
             try:
-                all_prefs.extend(future.result())
+                fresh = future.result()
             except Exception:
-                pass
-    return all_prefs
+                continue
+            _transition_pref_cache_put(miss_keys[ps], fresh)
+            cached_prefs.extend(fresh)
+    return cached_prefs
 
 
 def _collect_one_uncertain_pref(

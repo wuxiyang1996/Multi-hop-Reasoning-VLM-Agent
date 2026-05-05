@@ -1663,6 +1663,24 @@ def run_fsdp_grpo_multi(
         "PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True"
     )
 
+    # T2.16 (2026-05-05): Cap FSDP child CPU usage so vLLM API servers
+    # (running concurrently on GPUs 0-3) don't get starved during
+    # GRPO.  Without this cap, each FSDP child process spawns
+    # ``cpu_count()`` (~176) OpenMP/MKL threads.  Two FSDP children ×
+    # 176 threads ≈ 350 threads contending with the four vLLM API
+    # server subprocesses, and we observed:
+    #   • OpenAI client retries during every GRPO batch (run-log
+    #     ``trainer.coevolution.orchestrator.Phase A+B`` grows from
+    #     600s (no parallel GRPO) → 1500-2400s (with parallel GRPO))
+    #   • vLLM ``Running: 0-3 reqs`` despite 16 active rollouts —
+    #     ie. vLLM is CPU-starved, not work-saturated
+    # Setting OMP=4 / MKL=4 keeps GPU compute saturated (it's all on
+    # the device anyway) while leaving 168 cores free for inference.
+    _orig_omp = os.environ.get("OMP_NUM_THREADS")
+    _orig_mkl = os.environ.get("MKL_NUM_THREADS")
+    os.environ["OMP_NUM_THREADS"] = "4"
+    os.environ["MKL_NUM_THREADS"] = "4"
+
     t0 = time.time()
     try:
         mp.spawn(
@@ -1688,6 +1706,17 @@ def run_fsdp_grpo_multi(
             os.environ["CUDA_VISIBLE_DEVICES"] = original_cvd
         else:
             os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+        # T2.16: restore parent's thread caps so non-GRPO code paths
+        # (e.g. embeddings used by skillbank pipeline) keep their
+        # default parallelism after GRPO returns.
+        if _orig_omp is not None:
+            os.environ["OMP_NUM_THREADS"] = _orig_omp
+        else:
+            os.environ.pop("OMP_NUM_THREADS", None)
+        if _orig_mkl is not None:
+            os.environ["MKL_NUM_THREADS"] = _orig_mkl
+        else:
+            os.environ.pop("MKL_NUM_THREADS", None)
 
     elapsed = time.time() - t0
 
