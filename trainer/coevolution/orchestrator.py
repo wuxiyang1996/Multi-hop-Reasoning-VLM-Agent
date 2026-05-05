@@ -689,36 +689,76 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             except Exception as exc:
                 logger.error("Checkpoint save failed: %s", exc)
 
-        nonlocal _best_reward, _best_step, _decline_count
+        # T2.16 (2026-05-05): per-game best-reward tracking + rollback.
+        #
+        # Previously we tracked ONE global best/decline-counter across the
+        # whole run.  In a multi-game curriculum (e.g. thunder_force_iii
+        # → altered_beast) reward scales differ between games (TFIII
+        # ~350-1000, Altered Beast ~100-300), so a curriculum
+        # transition deterministically logs as "decline" (TFIII best=531
+        # > Altered Beast 187).  This either fires a spurious rollback
+        # to a TFIII-trained adapter or silently corrupts ``_best_step``
+        # when the lower-scoring game accidentally beats stale state.
+        #
+        # New design: track ``best_reward / best_step / decline_count``
+        # PER GAME.  Rollback fires only when the *current* game has
+        # declined ``DECLINE_PATIENCE`` times below its own best, and
+        # restores the per-game best alias (``step_99800 + game_idx``).
+        # Single-game runs collapse to the legacy behaviour.
+        nonlocal _best_state, _game_index
         _cur_reward = step_summary["mean_reward"]
-        if _cur_reward > _best_reward:
-            _best_reward = _cur_reward
-            _best_step = _step
-            _decline_count = 0
-            _BEST_CKPT_STEP = 99999
+        # Identify the dominant game for this step (one key in our
+        # curriculum; pick the highest-volume one if there are ties).
+        _per_game = step_summary.get("reward_per_game") or {}
+        if _per_game:
+            _cur_game = max(_per_game, key=lambda g: _per_game[g].get("n_episodes", 0))
+        else:
+            _cur_game = "__global__"
+
+        if _cur_game not in _game_index:
+            _game_index[_cur_game] = len(_game_index)
+        _gi = _game_index[_cur_game]
+        _BEST_CKPT_STEP = 99800 + _gi  # one alias per game (≤200 games)
+
+        if _cur_game not in _best_state:
+            _best_state[_cur_game] = {
+                "best_reward": float("-inf"),
+                "best_step": -1,
+                "decline_count": 0,
+            }
+        _gst = _best_state[_cur_game]
+
+        if _cur_reward > _gst["best_reward"]:
+            _gst["best_reward"] = _cur_reward
+            _gst["best_step"] = _step
+            _gst["decline_count"] = 0
             try:
                 save_checkpoint(
                     config.checkpoint_dir, _BEST_CKPT_STEP,
                     bank_agents=sb_manager.get_agents(),
                     adapter_dir=config.adapter_dir,
                     metadata={"best": True, "mean_reward": _cur_reward,
-                              "original_step": _step},
+                              "original_step": _step,
+                              "game": _cur_game},
                 )
                 logger.info(
-                    "New best reward %.1f at step %d — saved best checkpoint",
-                    _best_reward, _step,
+                    "New best reward %.1f at step %d (game=%s) — "
+                    "saved best checkpoint",
+                    _gst["best_reward"], _step, _cur_game,
                 )
             except Exception:
                 pass
         else:
-            _decline_count += 1
+            _gst["decline_count"] += 1
             logger.info(
-                "Reward %.1f < best %.1f (step %d), decline %d/%d",
-                _cur_reward, _best_reward, _best_step,
-                _decline_count, _DECLINE_PATIENCE,
+                "Reward %.1f < best %.1f (step %d, game=%s), decline %d/%d",
+                _cur_reward, _gst["best_reward"], _gst["best_step"],
+                _cur_game, _gst["decline_count"], _DECLINE_PATIENCE,
             )
-            _BEST_CKPT_STEP = 99999
-            if _decline_count >= _DECLINE_PATIENCE and _best_step >= 0:
+            if (
+                _gst["decline_count"] >= _DECLINE_PATIENCE
+                and _gst["best_step"] >= 0
+            ):
                 try:
                     load_checkpoint(
                         config.checkpoint_dir, _BEST_CKPT_STEP,
@@ -726,11 +766,12 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                         bank_agents=sb_manager.get_agents(),
                     )
                     logger.info(
-                        "Rolled back adapters to best step %d (reward %.1f) "
-                        "after %d consecutive declines",
-                        _best_step, _best_reward, _decline_count,
+                        "Rolled back adapters to best step %d (game=%s, "
+                        "reward %.1f) after %d consecutive declines",
+                        _gst["best_step"], _cur_game,
+                        _gst["best_reward"], _gst["decline_count"],
                     )
-                    _decline_count = 0
+                    _gst["decline_count"] = 0
                     if vllm_manager:
                         try:
                             await vllm_manager.reload_adapters()
@@ -806,9 +847,12 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     # MAIN LOOP — pipelined: GRPO(N) overlaps with rollout(N+1)
     # ==================================================================
     _pending_grpo = None  # (asyncio.Task, step_ctx) or None
-    _best_reward = float("-inf")
-    _best_step = -1
-    _decline_count = 0
+    # T2.16: per-game best-reward state (see ``_finalize_step`` for rationale).
+    # ``_best_state[game] = {best_reward, best_step, decline_count}``.
+    # ``_game_index[game]`` assigns each game a stable integer (used to
+    # disambiguate the per-game checkpoint alias step_99800+game_idx).
+    _best_state: Dict[str, Dict[str, Any]] = {}
+    _game_index: Dict[str, int] = {}
     _DECLINE_PATIENCE = getattr(config, "rollback_patience", 4)
 
     for step in range(start_step, config.total_steps):
@@ -1436,6 +1480,16 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         # ── Phase C: Launch GRPO in background (overlaps with next rollout) ──
         if config.grpo_enabled:
             step_ctx['phase_c_t0'] = time.monotonic()
+            # T2.16: pass the rollout's reward std-dev to the schedule
+            # so adaptive-KL can dampen aggressive updates when the
+            # reward distribution turns bimodal (the regime that
+            # triggers the mid-peak / late-collapse pattern).
+            _recent_std: Optional[float] = None
+            try:
+                _agg = step_ctx.get('episode_metrics', {}).get('aggregate', {})
+                _recent_std = float(_agg.get('std_reward', 0.0)) or None
+            except Exception:
+                _recent_std = None
             _pending_grpo = (
                 asyncio.create_task(
                     run_grpo_training(
@@ -1444,11 +1498,17 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                         config,
                         step=step,
                         executor=thread_executor,
+                        recent_reward_std=_recent_std,
                     )
                 ),
                 step_ctx,
             )
-            logger.info("Phase C: GRPO launched in background for step %d", step)
+            logger.info(
+                "Phase C: GRPO launched in background for step %d "
+                "(recent_reward_std=%s)",
+                step,
+                f"{_recent_std:.1f}" if _recent_std is not None else "n/a",
+            )
         else:
             await _finalize_step(step_ctx, None, 0.0)
 

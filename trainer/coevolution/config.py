@@ -867,7 +867,16 @@ class CoEvolutionConfig:
     # Per-run GRPO overrides (set via CLI, leave None to use defaults)
     grpo_clip_ratio: float = 0.2
     grpo_max_epochs: int = 4
-    grpo_adv_clip: Optional[float] = None
+    # T2.16 (2026-05-05): default to 5.0 to prevent the "mid-peak / late-
+    # collapse" pattern observed across runs.  When std(R) spikes (as
+    # policy improves), unclipped advantages reach ±10+ and a single
+    # GRPO update can wipe out exploration.  ``adv_clip=5.0`` bounds
+    # |A_i| while still letting the gradient see meaningful magnitude
+    # differences, and combined with the new adaptive-KL schedule below
+    # keeps training stable through the high-variance regime.  Set to
+    # ``None`` (or pass ``--grpo-adv-clip 0``) to opt out for legacy
+    # comparison runs.
+    grpo_adv_clip: Optional[float] = 5.0
 
     _resolved: bool = field(default=False, repr=False)
 
@@ -991,7 +1000,13 @@ class CoEvolutionConfig:
             parts.append(f"  steps {start}–{end}: {', '.join(games)}")
         return "focused curriculum\n" + "\n".join(parts)
 
-    def grpo_schedule(self, step: int) -> Dict[str, float]:
+    def grpo_schedule(
+        self,
+        step: int,
+        *,
+        recent_reward_std: Optional[float] = None,
+        replay_progress: Optional[float] = None,
+    ) -> Dict[str, float]:
         """Return GRPO hyperparameters for the current step.
 
         During from-scratch training, the first ``scratch_warmup_steps``
@@ -999,8 +1014,30 @@ class CoEvolutionConfig:
         exploration), and lower KL penalty (allow larger policy shifts).
         After warmup, LR follows cosine decay to a minimum of 10% of
         steady-state.  Temperature and KL hold at steady values.
+
+        T2.16 (2026-05-05) — adaptive KL:
+            ``recent_reward_std`` (std of the just-finished rollout's
+            episode rewards) lets us *increase* KL when the policy
+            enters the high-variance / bimodal-reward regime that
+            historically triggers the mid-peak / late-collapse pattern.
+            We scale the base KL by ``max(1, std/SOFT_THRESHOLD)``
+            capped at 4× (so kl≤0.20 with default base=0.05).  Setting
+            ``recent_reward_std=None`` disables the boost (legacy
+            behaviour).
         """
         import math as _math
+
+        # Adaptive-KL multiplier — linear above 200 reward-std, capped at 4×.
+        # The threshold was chosen from production runs where std spikes
+        # beyond ~250 just before the catastrophic policy collapse
+        # (run Qwen3.5-9B_20260505_055230, step 8: std=342 → step 9
+        # mean dropped 531→262).  At std=200 the multiplier is 1.0 so
+        # well-behaved runs see exactly the legacy schedule.
+        def _kl_boost(base_kl: float) -> float:
+            if recent_reward_std is None or recent_reward_std <= 0:
+                return base_kl
+            mult = min(4.0, max(1.0, float(recent_reward_std) / 200.0))
+            return base_kl * mult
 
         if self.start_mode != "from_scratch":
             total = max(1, self.total_steps)
@@ -1009,7 +1046,7 @@ class CoEvolutionConfig:
             lr = lr_min + 0.5 * (self.scratch_steady_lr - lr_min) * (
                 1.0 + _math.cos(_math.pi * progress)
             )
-            kl = self.scratch_steady_kl_coeff
+            kl = _kl_boost(self.scratch_steady_kl_coeff)
             return {
                 "lr": lr,
                 "temperature": self.scratch_steady_temperature,
@@ -1043,9 +1080,11 @@ class CoEvolutionConfig:
                 self.scratch_initial_temperature,
                 self.scratch_steady_temperature,
             ),
-            "kl_coeff": _lerp(
-                self.scratch_initial_kl_coeff,
-                self.scratch_steady_kl_coeff,
+            "kl_coeff": _kl_boost(
+                _lerp(
+                    self.scratch_initial_kl_coeff,
+                    self.scratch_steady_kl_coeff,
+                ),
             ),
         }
 

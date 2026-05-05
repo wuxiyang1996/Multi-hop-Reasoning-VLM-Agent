@@ -182,7 +182,20 @@ def load_checkpoint(
 # training step (the alias is intentionally larger than any real step
 # count so it always wins ``max()``).  Callers that want the best
 # checkpoint must request it explicitly via ``--resume-from-step``.
+#
+# T2.16 (2026-05-05): per-game best aliases also live in this sentinel
+# range, ``99800 .. 99999``.  The full range is reserved so no real
+# training step ever collides with a best alias (training caps well
+# below 99k steps in any realistic run).  ``find_latest_checkpoint``
+# and ``cleanup_old_checkpoints`` both ignore this entire range.
 _BEST_CKPT_STEP_SENTINEL = 99999
+_BEST_CKPT_RANGE_LO = 99800
+_BEST_CKPT_RANGE_HI = 99999
+
+
+def _is_best_alias(step: int) -> bool:
+    """Return True if *step* falls in the reserved best-checkpoint range."""
+    return _BEST_CKPT_RANGE_LO <= step <= _BEST_CKPT_RANGE_HI
 
 
 def find_latest_checkpoint(checkpoint_dir: str) -> Optional[int]:
@@ -203,7 +216,7 @@ def find_latest_checkpoint(checkpoint_dir: str) -> Optional[int]:
         if d.is_dir() and d.name.startswith("step_"):
             try:
                 step = int(d.name.split("_")[1])
-                if step == _BEST_CKPT_STEP_SENTINEL:
+                if _is_best_alias(step):
                     continue
                 meta = d / "metadata.json"
                 if meta.exists():
@@ -228,6 +241,9 @@ def cleanup_old_checkpoints(
         if d.is_dir() and d.name.startswith("step_"):
             try:
                 step = int(d.name.split("_")[1])
+                # T2.16: never delete best-alias checkpoints (99800-99999).
+                if _is_best_alias(step):
+                    continue
                 steps.append(step)
             except (ValueError, IndexError):
                 pass

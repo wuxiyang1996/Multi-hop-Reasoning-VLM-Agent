@@ -251,6 +251,7 @@ class DecisionGRPOTrainer:
         clip_ratio: float = 0.2,
         max_epochs: int = 4,
         adv_clip: Optional[float] = None,
+        replay_ratio_max: float = 1.0,
     ):
         self.model_name = model_name
         self.adapter_dir = adapter_dir
@@ -261,6 +262,13 @@ class DecisionGRPOTrainer:
         self.clip_ratio = clip_ratio
         self.max_epochs = max_epochs
         self.adv_clip = adv_clip
+        # T2.16 (2026-05-05): replay-ratio decay over training progress.
+        # Caller (run_grpo_training) computes ``progress = step/total_steps``
+        # and shrinks the cap from 1.0 → 0.25 so the trainer is dominated
+        # by *fresh* on-policy samples late in the run, where the policy
+        # has drifted enough from old replay that PPO clip turns those
+        # samples into noise.  Setting to 1.0 disables decay (legacy).
+        self.replay_ratio_max = replay_ratio_max
 
     _MIN_SAMPLES = 16
 
@@ -309,7 +317,9 @@ class DecisionGRPOTrainer:
                 buf.add(fresh_recs, step)
 
             all_recs, weights = buf.sample_all(
-                step, max_replay_ratio=1.0, n_fresh=len(fresh_recs),
+                step,
+                max_replay_ratio=self.replay_ratio_max,
+                n_fresh=len(fresh_recs),
             )
             if not all_recs:
                 logger.info("No GRPO records for '%s', skipping", adapter_name)
@@ -626,6 +636,7 @@ async def run_grpo_training(
     *,
     step: int = 0,
     executor=None,
+    recent_reward_std: Optional[float] = None,
 ) -> GRPOStepResult:
     """Run GRPO training for both decision agent and skill bank.
 
@@ -641,6 +652,12 @@ async def run_grpo_training(
         temperature schedule).
     executor : ThreadPoolExecutor | None
         Used to run blocking FSDP training off the event loop.
+    recent_reward_std : float | None
+        Reward std-dev of the just-finished rollout — passed through
+        to ``config.grpo_schedule`` so the adaptive-KL boost (T2.16)
+        can scale ``kl_coeff`` up when the policy enters the bimodal
+        / high-variance regime that historically triggered the
+        mid-peak / late-collapse pattern.  ``None`` disables the boost.
     """
     import asyncio
     import functools
@@ -648,17 +665,27 @@ async def run_grpo_training(
     t0 = time.monotonic()
     loop = asyncio.get_running_loop()
 
-    sched = config.grpo_schedule(step)
+    sched = config.grpo_schedule(
+        step, recent_reward_std=recent_reward_std,
+    )
     lr = sched["lr"]
     temperature = sched["temperature"]
     kl_coeff = sched["kl_coeff"]
+    # T2.16 — replay-ratio decay: 1.0 (50/50) early → 0.25 (20/80
+    # fresh-heavy) at the end of training.  See DecisionGRPOTrainer.
+    _total = max(1, getattr(config, "total_steps", 1))
+    _progress = min(1.0, max(0.0, step / _total))
+    replay_ratio_max = max(0.25, 1.0 - 0.75 * _progress)
     logger.info(
         "GRPO step %d schedule: lr=%.2e, temp=%.2f, kl=%.3f, "
-        "clip=%.2f, max_epochs=%d, adv_clip=%s",
+        "clip=%.2f, max_epochs=%d, adv_clip=%s, replay_ratio=%.2f, "
+        "recent_std=%s",
         step, lr, temperature, kl_coeff,
         getattr(config, "grpo_clip_ratio", 0.2),
         getattr(config, "grpo_max_epochs", 4),
         getattr(config, "grpo_adv_clip", None),
+        replay_ratio_max,
+        f"{recent_reward_std:.1f}" if recent_reward_std is not None else "n/a",
     )
 
     devices = config.effective_grpo_devices
@@ -686,6 +713,7 @@ async def run_grpo_training(
         clip_ratio=clip_ratio,
         max_epochs=max_epochs,
         adv_clip=adv_clip,
+        replay_ratio_max=replay_ratio_max,
     )
     d_jobs, d_names = decision_trainer.build_jobs(decision_records, step=step)
     all_jobs.extend(d_jobs)
