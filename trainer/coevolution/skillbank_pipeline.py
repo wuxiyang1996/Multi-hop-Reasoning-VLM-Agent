@@ -15,7 +15,7 @@ import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from trainer.coevolution.episode_runner import EpisodeResult
 
@@ -735,6 +735,175 @@ class PerGameSkillBankManager:
             self._seed_from_coldstart(seed_bank_dir)
 
     # ── Bank seeding ─────────────────────────────────────────────────
+
+    def cross_game_seed(
+        self,
+        *,
+        target_games: Optional[List[str]] = None,
+        source_games: Optional[List[str]] = None,
+        max_skills_per_source: int = 16,
+        only_high_score: bool = True,
+    ) -> Dict[str, int]:
+        """Cross-game skill transfer (T2.16).
+
+        Merge battle-tested skills from already-trained banks
+        (``source_games``) INTO the curriculum's currently-active
+        banks (``target_games``).  Designed to fire at curriculum
+        transitions so a new game's actor inherits general skills
+        like ``mid:NAVIGATE`` / ``late:SURVIVE`` discovered on the
+        previous game.
+
+        Semantics
+        ---------
+        * Source banks are scored by ``stats.success_rate * 0.7 +
+          min(1, n_invocations/10) * 0.3``.  When
+          ``only_high_score=True`` we only consider skills with
+          ``success_rate > 0`` OR ``n_invocations > 2`` so unprov
+          cold-start artefacts don't pollute the target.
+        * Source/target lists are inferred when ``None``: source =
+          all banks with >0 skills that have evidence of training
+          (``n_invocations > 0`` on at least one skill); target =
+          banks present in the manager.  A bank cannot be both
+          source and target in the same call (would duplicate its
+          own skills back into itself).
+        * Transfer is idempotent at the ``SkillBankMVP.add`` level —
+          duplicate ``skill_id``s are de-duped by the bank.
+
+        Returns ``{game: n_added}`` (only games that received >0
+        new skills).
+        """
+        from skill_agents.skill_bank.bank import SkillBankMVP
+
+        result: Dict[str, int] = {}
+
+        all_keys = list(self._pipelines.keys())
+        target_set = set(target_games) if target_games else set(all_keys)
+
+        candidate_sources: List[Tuple[str, Path]] = []
+        for key in all_keys:
+            if source_games is not None and key not in source_games:
+                continue
+            if key in target_set:
+                continue
+            pipe = self._pipelines[key]
+            src_path = Path(pipe.bank_dir) / "skill_bank.jsonl"
+            try:
+                size = src_path.stat().st_size if src_path.exists() else 0
+            except OSError:
+                size = 0
+            if size > 0:
+                candidate_sources.append((key, src_path))
+
+        if not candidate_sources or not target_set:
+            return result
+
+        # ``all_candidates`` maps a globally-unique tag to the Skill
+        # object we want to copy.  We dedupe by skill_id within each
+        # source bank, but keep distinct tags across banks so two
+        # different source banks with the same skill_id (rare; only
+        # happens if one was minted by the cross-game translator) both
+        # get a chance to be considered.
+        all_candidates: Dict[str, Any] = {}
+        for src_key, src_path in candidate_sources:
+            try:
+                src_bank = SkillBankMVP(str(src_path))
+                src_bank.load(str(src_path))
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "cross_game_seed: failed to load source %s: %s",
+                    src_path, exc,
+                )
+                continue
+
+            ranked = []
+            for sid, skill in src_bank._skills.items():
+                if not sid:
+                    continue
+                if getattr(skill, "retired", False):
+                    continue
+                # Score = pass-rate from the verification report (when
+                # available) blended with usage volume so both
+                # "battle-tested rare skill" and "consistently-used
+                # decent skill" rank well.  When no report exists we
+                # fall back to evidence count alone.
+                report = src_bank._reports.get(sid)
+                pass_rate = (
+                    float(getattr(report, "overall_pass_rate", 0.0) or 0.0)
+                    if report is not None else 0.0
+                )
+                # `n_instances` lives on both Skill and contract; prefer
+                # the contract's number (it's the canonical evidence
+                # count after add_or_update normalisation).
+                contract = getattr(skill, "contract", None)
+                n_inst = int(
+                    getattr(contract, "n_instances", 0) or 0
+                ) if contract is not None else int(
+                    getattr(skill, "n_instances", 0) or 0
+                )
+                if only_high_score and not (pass_rate > 0.0 or n_inst > 2):
+                    continue
+                score = pass_rate * 0.7 + min(1.0, n_inst / 10.0) * 0.3
+                ranked.append((score, sid, skill))
+            ranked.sort(key=lambda x: x[0], reverse=True)
+            for _score, sid, skill in ranked[:max_skills_per_source]:
+                tag = f"{src_key}::{sid}"
+                if tag not in all_candidates:
+                    all_candidates[tag] = (sid, skill)
+
+        if not all_candidates:
+            return result
+
+        for dst_key in sorted(target_set):
+            if dst_key not in self._pipelines:
+                continue
+            pipe = self._pipelines[dst_key]
+            dst_path = Path(pipe.bank_dir) / "skill_bank.jsonl"
+            try:
+                dst_path.parent.mkdir(parents=True, exist_ok=True)
+                dst_bank = SkillBankMVP(str(dst_path))
+                if dst_path.exists():
+                    try:
+                        dst_bank.load(str(dst_path))
+                    except Exception:  # noqa: BLE001
+                        pass
+                existing_ids = set(dst_bank._skills.keys())
+                n_added = 0
+                for _tag, (sid, skill) in all_candidates.items():
+                    if sid in existing_ids:
+                        continue
+                    try:
+                        dst_bank.add_or_update_skill(skill)
+                        # Also carry the verification report through so
+                        # the destination bank's pipeline still knows
+                        # the skill's pass-rate when ranking it later.
+                        report = None
+                        for _src_key, _src_path in candidate_sources:
+                            try:
+                                _src = SkillBankMVP(str(_src_path))
+                                _src.load(str(_src_path))
+                                if sid in _src._reports:
+                                    report = _src._reports[sid]
+                                    break
+                            except Exception:  # noqa: BLE001
+                                pass
+                        if report is not None:
+                            dst_bank._reports[sid] = report
+                        n_added += 1
+                    except Exception:  # noqa: BLE001
+                        pass
+                if n_added > 0:
+                    dst_bank.save()
+                    logger.info(
+                        "cross_game_seed: %s ← %d skills from %d source bank(s)",
+                        dst_key, n_added, len(candidate_sources),
+                    )
+                    result[dst_key] = n_added
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "cross_game_seed: failed to seed %s: %s", dst_key, exc,
+                )
+
+        return result
 
     def _seed_from_coldstart(self, seed_dir: str) -> None:
         """Copy skills from a cold-start bank into empty per-game banks.

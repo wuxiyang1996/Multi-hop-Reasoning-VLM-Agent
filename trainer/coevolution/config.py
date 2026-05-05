@@ -822,13 +822,49 @@ class CoEvolutionConfig:
     # ``run_coevolution.py --bank-mode shared``.
     bank_mode: str = "per_game"
 
+    # T2.16 (2026-05-05) — cross-game skill transfer.
+    # When True (default), at every curriculum transition we auto-seed
+    # any *empty* per-game bank with high-scoring skills from the
+    # already-trained banks of other curriculum games.  This gives a
+    # new game's actor a warm start with general gameplay skills
+    # (NAVIGATE, SURVIVE, EXPLORE_REGION) without polluting either
+    # bank's identity.  Only fires under ``bank_mode='per_game'``;
+    # ``bank_mode='shared'`` already shares all skills by construction.
+    # Set to False for ablations comparing fresh-bank vs warm-bank
+    # transfer.
+    cross_game_skill_transfer: bool = True
+    # Cap on skills copied from each source bank into a fresh
+    # destination bank.  Higher values transfer more, but bloat the
+    # destination's segmentation prompt; 16 keeps the prompt under the
+    # SKILLBANK_MAX_SKILL_NAMES cap from the Bug-2 fix.
+    cross_game_skill_max_per_source: int = 16
+    # When True, only skills with a non-zero ``stats.success_rate`` or
+    # >2 invocations are transferred (filters cold-start artefacts that
+    # never proved themselves).  Set to False for an aggressive
+    # everything-transfers ablation.
+    cross_game_skill_high_score_only: bool = True
+
     # Thread/process executors
     thread_workers: int = 64
     process_workers: int = 8
 
-    # Early episode termination
+    # Early episode termination.
+    #
+    # Raised from (15, 20) → (15, 60) on 2026-05-04 so the stuck
+    # detector cannot fire before the SFT cold-start teacher window
+    # ends.  Cold-start gymv data covers steps 0-80 (frame_skip=8,
+    # `--max_steps 80`); the previous (15, 20) floor truncated
+    # episodes at step 35 whenever the policy hit the inevitable
+    # zero-reward title-screen / setup phase, so the GRPO loop never
+    # actually reached the step range where the teacher had
+    # demonstrations to imitate.  With (15, 60) the earliest
+    # termination is step 60 — exactly where the teacher window
+    # transitions from "scripted setup" to "agent decisions worth
+    # imitating".  With ``GAME_MAX_STEPS=80`` for gymv this leaves a
+    # 20-step grace window before the natural cap, only firing when
+    # the policy is truly hopeless on a given episode.
     stuck_window: int = 15
-    min_steps_before_stuck_check: int = 20
+    min_steps_before_stuck_check: int = 60
 
     # Rollout batching synchronizer — prevents episodes from
     # desynchronizing and losing vLLM request batching (which causes

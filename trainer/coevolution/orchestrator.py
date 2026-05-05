@@ -868,6 +868,51 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     step, prev_games, config.games,
                 )
                 await _refresh_game_schemas(list(config.games))
+                # T2.16: cross-game skill transfer.  If the new game's
+                # bank is empty but a previous game already learned
+                # skills, copy a curated subset over so the new game
+                # starts warm instead of cold.  No-op when
+                # ``cross_game_skill_transfer=False`` or when no
+                # source bank has content yet.
+                if (
+                    getattr(config, "cross_game_skill_transfer", True)
+                    and getattr(config, "bank_mode", "per_game") == "per_game"
+                    and hasattr(sb_manager, "cross_game_seed")
+                ):
+                    try:
+                        # Sources = any prev_game we have already
+                        # trained on (i.e. NOT in the new active set).
+                        # Targets = the newly active games for which
+                        # we want a warm start.
+                        new_targets = list(config.games)
+                        prev_sources = [
+                            g for g in prev_games if g not in new_targets
+                        ]
+                        seeded = sb_manager.cross_game_seed(
+                            target_games=new_targets,
+                            source_games=prev_sources or None,
+                            max_skills_per_source=int(getattr(
+                                config, "cross_game_skill_max_per_source", 16,
+                            )),
+                            only_high_score=bool(getattr(
+                                config, "cross_game_skill_high_score_only", True,
+                            )),
+                        )
+                        if seeded:
+                            logger.info(
+                                "T2.16 cross-game seed at step %d: %s "
+                                "(targets=%s sources=%s)",
+                                step,
+                                ", ".join(
+                                    f"{g}=+{n}" for g, n in seeded.items()
+                                ),
+                                new_targets, prev_sources,
+                            )
+                    except Exception as exc:  # noqa: BLE001
+                        logger.warning(
+                            "cross_game_seed failed at step %d: %s",
+                            step, exc,
+                        )
 
         try:
             from skill_agents.stage3_mvp.schemas import ProtoSkill
