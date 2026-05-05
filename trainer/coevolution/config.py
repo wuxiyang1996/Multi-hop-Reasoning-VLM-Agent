@@ -909,10 +909,18 @@ class CoEvolutionConfig:
 
         Returns one URL per vLLM GPU when managed, or a single URL
         when the user runs vLLM externally.
+
+        Port assignment must mirror ``VLLMServerManager``'s
+        ``base_port + i * port_spacing`` formula (see
+        ``trainer/coevolution/vllm_server.py``); the spacing exists
+        to keep each vLLM v1 EngineCore's IPC TCPStore in its own
+        port lane and avoid the EADDRINUSE race on consecutive ports
+        we hit on 2026-05-04.
         """
         if self.manage_vllm:
+            spacing = int(os.environ.get("VLLM_PORT_SPACING", "10"))
             return [
-                f"http://localhost:{self.vllm_base_port + i}/v1"
+                f"http://localhost:{self.vllm_base_port + i * spacing}/v1"
                 for i in range(len(self.vllm_gpu_ids))
             ]
         return [self.vllm_base_url]

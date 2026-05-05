@@ -399,6 +399,34 @@ def parse_args() -> argparse.Namespace:
              "translation step in scripts/run_phase1_curriculum.sh.",
     )
 
+    # T2.16: cross-game skill transfer (per_game mode only)
+    parser.add_argument(
+        "--no-cross-game-skill-transfer",
+        dest="cross_game_skill_transfer",
+        action="store_false",
+        default=True,
+        help="Disable T2.16 cross-game skill transfer.  By default, when "
+             "the curriculum transitions to a new game, high-scoring "
+             "skills from previously-trained banks are merged into the "
+             "new game's bank as warm-start seeds (per_game mode only).",
+    )
+    parser.add_argument(
+        "--cross-game-skill-max-per-source", type=int, default=16,
+        help="Cap on skills copied from each source bank into a "
+             "destination bank during cross-game skill transfer. "
+             "Higher values transfer more, but can bloat the destination "
+             "bank's segmentation prompt. Default: 16.",
+    )
+    parser.add_argument(
+        "--cross-game-skill-include-unproven",
+        dest="cross_game_skill_high_score_only",
+        action="store_false",
+        default=True,
+        help="Include unproven skills (no usage / zero success-rate) in "
+             "cross-game transfer.  Default off — only skills with "
+             "stats.success_rate > 0 OR n_invocations > 2 are copied.",
+    )
+
     # Phase B′: Crafter + Promotion (one-way writeback to legacy bank)
     parser.add_argument(
         "--crafter-promotion-enabled", action="store_true",
@@ -846,6 +874,17 @@ def main() -> None:
     if args.bank_mode is not None:
         config_kwargs["bank_mode"] = args.bank_mode
 
+    # T2.16: cross-game skill transfer
+    config_kwargs["cross_game_skill_transfer"] = bool(
+        args.cross_game_skill_transfer
+    )
+    config_kwargs["cross_game_skill_max_per_source"] = int(
+        args.cross_game_skill_max_per_source
+    )
+    config_kwargs["cross_game_skill_high_score_only"] = bool(
+        args.cross_game_skill_high_score_only
+    )
+
     if args.crafter_promotion_enabled:
         config_kwargs["crafter_promotion_enabled"] = True
     if args.crafter_cycle_every_k_steps:
@@ -968,10 +1007,12 @@ def main() -> None:
     print(f"  Concurrent:   {config.max_concurrent_episodes}")
     print(f"  Model:        {config.model_name}")
     if config.manage_vllm:
+        _spacing = int(os.environ.get("VLLM_PORT_SPACING", "10"))
+        _last_port = config.vllm_base_port + (len(config.vllm_gpu_ids) - 1) * _spacing
         print(f"  vLLM GPUs:    {config.vllm_gpu_ids} — "
               f"{len(config.vllm_gpu_ids)} × TP=1 (persistent, "
-              f"ports {config.vllm_base_port}–"
-              f"{config.vllm_base_port + len(config.vllm_gpu_ids) - 1})")
+              f"ports {config.vllm_base_port}–{_last_port}"
+              f", spacing={_spacing})")
     else:
         print(f"  vLLM:         EXTERNAL — {config.vllm_base_url}")
     _opp = getattr(config, "opponent_model", None)

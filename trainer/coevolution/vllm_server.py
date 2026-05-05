@@ -66,6 +66,15 @@ class VLLMServerManager:
         self.adapter_dir = adapter_dir
         self.gpu_ids = gpu_ids
         self.base_port = base_port
+        # Per-instance API port spacing.  Default 10 keeps each vLLM v1
+        # EngineCore's IPC TCPStore (picked by scanning upward from
+        # ``--port`` with a ~5-retry budget — vllm/utils/network_utils.py:205)
+        # inside its own private 10-port lane, so concurrent sibling
+        # launches cannot grab the next instance's API port out from
+        # under it.  See ``_launch_wave`` for the post-mortem on the
+        # 2026-05-04 ``EADDRINUSE: 8011`` race we saw with consecutive
+        # ports 8010-8013.  Override via ``VLLM_PORT_SPACING``.
+        self.port_spacing = int(os.environ.get("VLLM_PORT_SPACING", "10"))
         self.gpu_util = gpu_util
         self.max_num_seqs = max_num_seqs
         self.enforce_eager = enforce_eager
@@ -120,13 +129,16 @@ class VLLMServerManager:
     @property
     def base_urls(self) -> List[str]:
         return [
-            f"http://localhost:{self.base_port + i}/v1"
+            f"http://localhost:{self.base_port + i * self.port_spacing}/v1"
             for i in range(self.n_instances)
         ]
 
     @property
     def ports(self) -> List[int]:
-        return [self.base_port + i for i in range(self.n_instances)]
+        return [
+            self.base_port + i * self.port_spacing
+            for i in range(self.n_instances)
+        ]
 
     def _build_lora_args(self) -> List[str]:
         """Build --lora-modules flag values from existing adapter dirs."""
@@ -184,23 +196,26 @@ class VLLMServerManager:
         self._shared_gpus = shared_gpus
 
         spec_msg = self._spec_log_suffix()
+        wave1_last_port = self.base_port + (len(first_wave) - 1) * self.port_spacing
         if lora_modules:
             logger.info(
-                "Wave 1: started %d vLLM instances (ports %d–%d) "
+                "Wave 1: started %d vLLM instances (ports %d–%d, spacing=%d) "
                 "with %d LoRA adapters%s",
                 len(first_wave),
                 self.base_port,
-                self.base_port + len(first_wave) - 1,
+                wave1_last_port,
+                self.port_spacing,
                 len(lora_modules),
                 spec_msg,
             )
         else:
             logger.info(
-                "Wave 1: started %d vLLM instances (ports %d–%d), "
+                "Wave 1: started %d vLLM instances (ports %d–%d, spacing=%d), "
                 "no LoRA adapters yet%s",
                 len(first_wave),
                 self.base_port,
-                self.base_port + len(first_wave) - 1,
+                wave1_last_port,
+                self.port_spacing,
                 spec_msg,
             )
         if second_wave:
@@ -275,8 +290,11 @@ class VLLMServerManager:
         log_dir_path: Optional[Path],
         shared_gpus: bool,
     ) -> None:
+        # API ports are spaced by ``self.port_spacing`` (default 10).  See
+        # ``__init__`` for the post-mortem on the 2026-05-04 EADDRINUSE
+        # race that motivated this design.
         for i, gpu_id in entries:
-            port = self.base_port + i
+            port = self.base_port + i * self.port_spacing
 
             env = os.environ.copy()
             env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
@@ -290,6 +308,22 @@ class VLLMServerManager:
             # like Qwen3.5-9B that have no FP8 path.  Disable by default;
             # callers can re-enable by exporting VLLM_USE_DEEP_GEMM=1.
             env.setdefault("VLLM_USE_DEEP_GEMM", "0")
+            # T2.16 (2026-05-04): vLLM v1's network_utils._get_open_port()
+            # falls back to ``envs.VLLM_PORT`` (the env var) when called
+            # without an explicit ``start_port`` arg — see vllm/utils/
+            # network_utils.py:194.  This means every EngineCore in a
+            # multi-instance setup scans for its IPC TCPStore starting
+            # from the *same* shared VLLM_PORT (the launcher's base
+            # port, e.g. 8010), and they all race for ``base_port + 1``
+            # (the first free port after the first API server).  With
+            # 4 sibling instances we deterministically saw 3/4 EngineCores
+            # fail with EADDRINUSE: 8011 inside ~5-retry budgets.  Pinning
+            # VLLM_PORT to *this* instance's API port shifts each
+            # EngineCore's scan into its own lane (8010-8019 for instance 0,
+            # 8020-8029 for instance 1, …) where the only port already
+            # in use is its own API server, so the very next port is
+            # free and the scan terminates after one retry.
+            env["VLLM_PORT"] = str(port)
 
             cmd = self._build_serve_cmd(port, lora_modules, shared_gpus)
 
@@ -313,21 +347,26 @@ class VLLMServerManager:
                 self._log_files.append(log_fh)
 
         spec_msg = self._spec_log_suffix()
+        last_port = self.base_port + (self.n_instances - 1) * self.port_spacing
         if lora_modules:
             logger.info(
-                "Started %d vLLM instances (ports %d–%d) with %d LoRA adapters%s",
+                "Started %d vLLM instances (ports %d–%d, spacing=%d) "
+                "with %d LoRA adapters%s",
                 self.n_instances,
                 self.base_port,
-                self.base_port + self.n_instances - 1,
+                last_port,
+                self.port_spacing,
                 len(lora_modules),
                 spec_msg,
             )
         else:
             logger.info(
-                "Started %d vLLM instances (ports %d–%d), no LoRA adapters yet%s",
+                "Started %d vLLM instances (ports %d–%d, spacing=%d), "
+                "no LoRA adapters yet%s",
                 self.n_instances,
                 self.base_port,
-                self.base_port + self.n_instances - 1,
+                last_port,
+                self.port_spacing,
                 spec_msg,
             )
 
@@ -400,11 +439,12 @@ class VLLMServerManager:
                             "vLLM instance %d (GPU %d, port %d) exited "
                             "with code %d",
                             i, self.gpu_ids[i],
-                            self.base_port + i, proc.returncode,
+                            self.base_port + i * self.port_spacing,
+                            proc.returncode,
                         )
                         return False
 
-                    port = self.base_port + i
+                    port = self.base_port + i * self.port_spacing
                     try:
                         resp = await client.get(
                             f"http://localhost:{port}/health",
@@ -440,7 +480,10 @@ class VLLMServerManager:
 
                 await asyncio.sleep(poll_interval)
 
-        missing = [self.base_port + i for i in indices if i not in healthy]
+        missing = [
+            self.base_port + i * self.port_spacing
+            for i in indices if i not in healthy
+        ]
         logger.error(
             "Timeout (%.0fs): %d %s instances not ready (ports %s)",
             timeout, len(missing), label, missing,
@@ -509,7 +552,7 @@ class VLLMServerManager:
             return False  # still running
 
         gpu_id = self.gpu_ids[idx]
-        port = self.base_port + idx
+        port = self.base_port + idx * self.port_spacing
         logger.warning(
             "vLLM instance %d (GPU %d, port %d) is dead (rc=%s) — restarting",
             idx, gpu_id, port, proc.returncode,
@@ -524,6 +567,9 @@ class VLLMServerManager:
         env["VLLM_ALLOW_RUNTIME_LORA_UPDATING"] = "1"
         env.setdefault("HF_HOME", "/workspace/huggingface")
         env.setdefault("HF_HUB_CACHE", os.path.join(env["HF_HOME"], "hub"))
+        # T2.16 — keep this instance's EngineCore TCPStore scan inside
+        # its own port lane (see ``_launch_wave`` for the full post-mortem).
+        env["VLLM_PORT"] = str(port)
 
         cmd = self._build_serve_cmd(port, lora_modules, shared_gpus)
 
@@ -613,6 +659,20 @@ class VLLMServerManager:
             logger.warning("No adapters found on disk to reload")
             return
 
+        # T2.17 (2026-05-05): vLLM v1 servers default to API-key
+        # authentication — chat-completion calls go through openai-python
+        # which auto-injects ``Authorization: Bearer $OPENAI_API_KEY``,
+        # but our direct httpx POSTs to ``/v1/{,un}load_lora_adapter``
+        # do not.  Without the header every reload silently 401'd, the
+        # vLLM instances kept serving the *original* cold-start adapters,
+        # and the GRPO updates we wrote to disk never reached inference.
+        # Read the same env var the OpenAI client uses (default "EMPTY"
+        # because the launcher exports ``OPENAI_API_KEY=EMPTY``).
+        api_key = (os.environ.get("VLLM_API_KEY")
+                   or os.environ.get("OPENAI_API_KEY")
+                   or "EMPTY")
+        auth_headers = {"Authorization": f"Bearer {api_key}"}
+
         n_ok, n_fail = 0, 0
         async with _httpx.AsyncClient(timeout=30.0) as client:
             for port in self.ports:
@@ -622,6 +682,7 @@ class VLLMServerManager:
                         await client.post(
                             f"{base}/v1/unload_lora_adapter",
                             json={"lora_name": adapter_name},
+                            headers=auth_headers,
                         )
                     except Exception:
                         pass
@@ -633,6 +694,7 @@ class VLLMServerManager:
                                 "lora_name": adapter_name,
                                 "lora_path": adapter_path,
                             },
+                            headers=auth_headers,
                         )
                         if resp.status_code == 200:
                             n_ok += 1

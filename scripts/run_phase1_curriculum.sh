@@ -509,6 +509,17 @@ start_35b_judge() {
 #                        :8004).  Do NOT pin the 9B here — that would
 #                        route every ``ask_vllm(model="Qwen3.5-9B")``
 #                        deterministically to one port (the v9 bug).
+#
+# Port spacing (v12 fix, 2026-05-04):
+#   The trainer's VLLMServerManager spaces sibling API ports by
+#   ``VLLM_PORT_SPACING`` (default 10) so each vLLM v1 EngineCore's
+#   internal IPC TCPStore — picked by scanning upward from ``--port``
+#   with a ~5-retry cap — has its own private 10-port lane and cannot
+#   collide with the next instance's API port.  The launcher must use
+#   the same multiplier when building ``VLLM_BASE_URLS`` for the
+#   skill-bank pipeline, otherwise round-robin requests would land on
+#   non-existent or wrong-instance ports.
+PORT_SPACING="${VLLM_PORT_SPACING:-10}"
 case "${JUDGE_MODE}" in
     auto|external)
         # Build "http://localhost:PORT/v1" entries from VLLM_GPUS array.
@@ -516,7 +527,7 @@ case "${JUDGE_MODE}" in
         _VLLM_URLS_LIST=""
         _i=0
         for _g in ${VLLM_GPUS//,/ }; do
-            _p=$((PORT + _i))
+            _p=$((PORT + _i * PORT_SPACING))
             if [ -z "${_VLLM_URLS_LIST}" ]; then
                 _VLLM_URLS_LIST="http://localhost:${_p}/v1"
             else
@@ -537,7 +548,7 @@ case "${JUDGE_MODE}" in
         _VLLM_URLS_LIST=""
         _i=0
         for _g in ${VLLM_GPUS//,/ }; do
-            _p=$((PORT + _i))
+            _p=$((PORT + _i * PORT_SPACING))
             if [ -z "${_VLLM_URLS_LIST}" ]; then
                 _VLLM_URLS_LIST="http://localhost:${_p}/v1"
             else

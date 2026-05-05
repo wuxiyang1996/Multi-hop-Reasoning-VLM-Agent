@@ -136,10 +136,11 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             spec_info = f"  |  spec_decode={config.speculative_model} ({config.num_speculative_tokens} tokens)"
         logger.info(
             "vLLM managed mode: %d × TP=1 instances on GPUs %s, "
-            "ports %d–%d  |  GRPO on GPUs %s%s",
+            "ports %d–%d (spacing=%d)  |  GRPO on GPUs %s%s",
             len(config.vllm_gpu_ids), config.vllm_gpu_ids,
             config.vllm_base_port,
-            config.vllm_base_port + len(config.vllm_gpu_ids) - 1,
+            vllm_manager.ports[-1] if vllm_manager.ports else config.vllm_base_port,
+            vllm_manager.port_spacing,
             config.grpo_devices,
             spec_info,
         )
