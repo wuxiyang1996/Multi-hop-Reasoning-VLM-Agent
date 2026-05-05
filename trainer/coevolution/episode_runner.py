@@ -908,6 +908,27 @@ async def run_episode_async(
     # When >0, the SkillQueryEngine.select() restricts the candidate
     # pool to the top-K skills by relevance.
     actor_bank_cap_k: int = 0,
+    # T2.17 (2026-05-05): per-step vision-grounded ``<state>`` markup.
+    # When non-None and ``enabled``, the deterministic ``state_to_markup``
+    # output is replaced (after env.reset and after each env.step) with a
+    # 35B multimodal call grounded in the current frame.  All failures
+    # silently fall back to the deterministic markup — see
+    # :mod:`trainer.coevolution._vision_state_perception` for cache /
+    # concurrency / timeout semantics.  ``None`` (default) preserves the
+    # legacy text-only behaviour.
+    #
+    # Expected shape (set by ``rollout_collector`` from ``CoEvolutionConfig``)::
+    #
+    #   {
+    #       "enabled": bool,
+    #       "model":   str,    # 35B judge model name
+    #       "concurrency": int,
+    #       "timeout_s":   float,
+    #       "max_tokens":  int,
+    #       "temperature": float,
+    #       "every_n_steps": int,  # 1 = every step (cold-start parity)
+    #   }
+    vision_perception_config: Optional[Dict[str, Any]] = None,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -957,6 +978,92 @@ async def run_episode_async(
     # rendering is computed once per episode (not per step) for the
     # actor-prompt prefix.
     from trainer.coevolution._state_to_markup import state_to_markup
+
+    # T2.17 (2026-05-05): vision-aware <state> markup wiring.  Resolved
+    # once per episode so we can short-circuit cheaply on every step.
+    _vision_cfg = vision_perception_config or {}
+    _vision_on = bool(_vision_cfg.get("enabled", False))
+    _vision_n = max(1, int(_vision_cfg.get("every_n_steps", 1)))
+    _vision_model = str(_vision_cfg.get("model", "") or "")
+    if _vision_on and not _vision_model:
+        _vision_on = False
+    if _vision_on:
+        from trainer.coevolution._vision_state_perception import (
+            vision_state_to_markup_async,
+        )
+    _last_vision_markup: Optional[str] = None
+
+    async def _markup_for(
+        *, obs_nl_v: str, info_v: Dict[str, Any], step_v: int,
+    ) -> str:
+        """Compute deterministic markup; optionally upgrade with vision.
+
+        Always returns a non-empty string.  When vision is enabled and a
+        frame is available we call the 35B judge with concurrency /
+        timeout / fallback handled inside
+        :func:`vision_state_to_markup_async`.  Throttling via
+        ``every_n_steps`` reuses the previous frame's vision markup to
+        cap judge spend at high frequencies.
+        """
+        nonlocal _last_vision_markup
+        det = ""
+        try:
+            det = state_to_markup(
+                obs_nl=obs_nl_v, info=info_v, game=game, step=step_v,
+            )
+        except Exception as _markup_exc:  # noqa: BLE001
+            logger.debug(
+                "state_to_markup failed at step %d: %s",
+                step_v, _markup_exc,
+            )
+        if not _vision_on:
+            return det
+        if step_v > 0 and (step_v % _vision_n) != 0:
+            if _last_vision_markup:
+                return _last_vision_markup
+            return det
+        frame_url: Optional[str] = None
+        try:
+            renderer = getattr(env, "render", None)
+            if callable(renderer):
+                rendered = renderer()
+                if isinstance(rendered, str) and rendered.startswith(
+                    "data:image/"
+                ):
+                    frame_url = rendered
+                elif rendered is not None:
+                    from trainer.coevolution._game_schema import (
+                        _encode_image_to_data_url,
+                    )
+                    frame_url = _encode_image_to_data_url(rendered)
+        except Exception as _render_exc:  # noqa: BLE001
+            logger.debug(
+                "vision-perception render failed at step %d: %s",
+                step_v, _render_exc,
+            )
+            frame_url = None
+        try:
+            markup_v = await vision_state_to_markup_async(
+                obs_nl=obs_nl_v, info=info_v, game=game, step=step_v,
+                frame_data_url=frame_url,
+                fallback_markup=det,
+                model=_vision_model,
+                max_tokens=int(_vision_cfg.get("max_tokens", 768)),
+                temperature=float(_vision_cfg.get("temperature", 0.1)),
+                timeout_s=float(_vision_cfg.get("timeout_s", 6.0)),
+                concurrency=int(_vision_cfg.get("concurrency", 12)),
+                executor=executor,
+            )
+        except Exception as _vis_exc:  # noqa: BLE001
+            logger.debug(
+                "vision-perception fatal at step %d: %s",
+                step_v, _vis_exc,
+            )
+            markup_v = det
+        if markup_v and markup_v != det:
+            _last_vision_markup = markup_v
+        return markup_v or det
+
     if game_profile is not None:
         try:
             from trainer.coevolution._game_schema import render_for_actor_prompt
@@ -1062,12 +1169,13 @@ async def run_episode_async(
     # downstream consumer (skill_selection, Crafter, Harness validator,
     # eval scorers).  Same call site is used at every env.step below so
     # train and eval see byte-identical schema for the same observation.
-    try:
-        info["state_markup"] = state_to_markup(
-            obs_nl=obs_nl, info=info, game=game, step=0,
-        )
-    except Exception as _markup_exc:  # noqa: BLE001
-        logger.debug("state_to_markup failed at reset: %s", _markup_exc)
+    # T2.17 (2026-05-05): when vision_perception is enabled, the
+    # deterministic markup is replaced with a 35B-grounded one matching
+    # the cold-start SFT distribution.  ``_markup_for`` falls back to
+    # ``state_to_markup`` on every failure path.
+    info["state_markup"] = await _markup_for(
+        obs_nl_v=obs_nl, info_v=info, step_v=0,
+    )
     current_info = info
 
     bank_available = skill_bank is not None and (
@@ -1525,16 +1633,10 @@ async def run_episode_async(
         total_reward += reward
         next_action_names = next_info.get("action_names", action_names)
         next_structured_state = next_info.get("structured_state")
-        try:
-            next_info["state_markup"] = state_to_markup(
-                obs_nl=next_obs_nl, info=next_info, game=game,
-                step=step_count + 1,
-            )
-        except Exception as _markup_exc:  # noqa: BLE001
-            logger.debug(
-                "state_to_markup failed at step %d: %s",
-                step_count + 1, _markup_exc,
-            )
+        next_info["state_markup"] = await _markup_for(
+            obs_nl_v=next_obs_nl, info_v=next_info,
+            step_v=step_count + 1,
+        )
 
         recent_actions.append(str(action))
         recent_rewards.append(float(reward))

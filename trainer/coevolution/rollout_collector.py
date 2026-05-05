@@ -241,6 +241,53 @@ async def collect_rollouts(
                 try:
                     _opp_model = getattr(config, "opponent_model", None)
                     _opp_base = getattr(config, "opponent_api_base", None)
+                    # T2.17 (2026-05-05): assemble the vision-perception
+                    # config dict the episode runner expects.  Resolved
+                    # once per episode (cheap; just attribute reads); the
+                    # ``model`` slot defers to the 35B judge identifier
+                    # already published by ``common.models``.
+                    _vp_cfg: Optional[Dict[str, Any]] = None
+                    if getattr(
+                        config, "vision_state_perception_enabled", False,
+                    ):
+                        try:
+                            from common.models import BACKBONE_JUDGE_MODEL
+                            _vp_cfg = {
+                                "enabled": True,
+                                "model": BACKBONE_JUDGE_MODEL,
+                                "concurrency": int(getattr(
+                                    config,
+                                    "vision_state_perception_concurrency",
+                                    12,
+                                )),
+                                "timeout_s": float(getattr(
+                                    config,
+                                    "vision_state_perception_timeout_s",
+                                    6.0,
+                                )),
+                                "max_tokens": int(getattr(
+                                    config,
+                                    "vision_state_perception_max_tokens",
+                                    768,
+                                )),
+                                "temperature": float(getattr(
+                                    config,
+                                    "vision_state_perception_temperature",
+                                    0.1,
+                                )),
+                                "every_n_steps": int(getattr(
+                                    config,
+                                    "vision_state_perception_every_n_steps",
+                                    1,
+                                )),
+                            }
+                        except Exception as _vp_exc:  # noqa: BLE001
+                            logger.warning(
+                                "vision-perception config build failed: %s "
+                                "— falling back to deterministic markup",
+                                _vp_exc,
+                            )
+                            _vp_cfg = None
                     result = await run_episode_async(
                         game=spec.game,
                         max_steps=spec.max_steps,
@@ -266,6 +313,7 @@ async def collect_rollouts(
                         actor_bank_cap_k=int(getattr(
                             config, "actor_bank_cap_k", 0,
                         )),
+                        vision_perception_config=_vp_cfg,
                     )
                     break
                 except Exception as exc:

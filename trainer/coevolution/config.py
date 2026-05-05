@@ -914,6 +914,32 @@ class CoEvolutionConfig:
     # comparison runs.
     grpo_adv_clip: Optional[float] = 5.0
 
+    # T2.17 (2026-05-05): per-step vision-grounded ``<state>`` markup.
+    # The 35B judge (port 8001, MULTIMODAL=1) re-emits the cold-start
+    # SFT-shape markup grounded in the actual frame at every actor
+    # decision step, replacing the deterministic Python-rendered markup
+    # (which carries scene-setup priors rather than gameplay entities).
+    # See :mod:`trainer.coevolution._vision_state_perception` for the
+    # cache + concurrency + fallback semantics.  All failures fall back
+    # to ``state_to_markup`` so the rollout never blocks on the judge.
+    #
+    # Defaults are tuned for an 8x H100 box with the 35B running TP=2,
+    # max_num_seqs=16:
+    #   * concurrency=12 leaves 4 slots for game-schema / harness paths
+    #   * timeout 6 s soaks up the rare slow request without wedging
+    #     the rollout when the judge is briefly overloaded
+    #   * max_tokens 768 fits a ~12-entity markup with attributes &
+    #     targets (typical SFT example is ~600 tokens)
+    #   * every_n_steps=1 mirrors the cold-start SFT call rate; bump
+    #     to 2 / 4 to halve / quarter judge spend if Phase A latency
+    #     becomes the bottleneck
+    vision_state_perception_enabled: bool = True
+    vision_state_perception_concurrency: int = 12
+    vision_state_perception_timeout_s: float = 6.0
+    vision_state_perception_max_tokens: int = 2048
+    vision_state_perception_temperature: float = 0.1
+    vision_state_perception_every_n_steps: int = 1
+
     _resolved: bool = field(default=False, repr=False)
 
     def resolve_paths(self) -> "CoEvolutionConfig":

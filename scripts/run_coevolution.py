@@ -427,6 +427,43 @@ def parse_args() -> argparse.Namespace:
              "stats.success_rate > 0 OR n_invocations > 2 are copied.",
     )
 
+    # T2.17: per-step vision-grounded <state> markup via the 35B judge.
+    parser.add_argument(
+        "--no-vision-state-perception",
+        dest="vision_state_perception_enabled",
+        action="store_false",
+        default=True,
+        help="Disable T2.17 vision-aware <state> markup.  By default,"
+             " each actor decision step calls the 35B multimodal judge"
+             " on the current frame to emit cold-start-shape markup;"
+             " disabling reverts to the deterministic Python-rendered"
+             " markup (legacy behaviour, faster but less SFT-aligned).",
+    )
+    parser.add_argument(
+        "--vision-state-perception-every-n-steps", type=int, default=1,
+        help="Throttle vision-perception calls to once every N actor"
+             " steps (reuses the previous markup in between).  Trade"
+             " accuracy for judge spend.  1 = every step (default,"
+             " cold-start parity). 2/4 = halve / quarter spend.",
+    )
+    parser.add_argument(
+        "--vision-state-perception-timeout-s", type=float, default=6.0,
+        help="Hard timeout (seconds) for each per-step vision call."
+             " Falls back to deterministic markup on timeout.  Default 6.0.",
+    )
+    parser.add_argument(
+        "--vision-state-perception-concurrency", type=int, default=12,
+        help="Maximum concurrent in-flight vision-perception calls."
+             " Sized for 35B max_num_seqs=16 minus harness/schema headroom."
+             " Default 12.",
+    )
+    parser.add_argument(
+        "--vision-state-perception-max-tokens", type=int, default=2048,
+        help="Generation token budget per vision-perception call."
+             " Default 1024 (fits a 10-12 entity markup with attributes,"
+             " targets and actions).",
+    )
+
     # Phase B′: Crafter + Promotion (one-way writeback to legacy bank)
     parser.add_argument(
         "--crafter-promotion-enabled", action="store_true",
@@ -883,6 +920,23 @@ def main() -> None:
     )
     config_kwargs["cross_game_skill_high_score_only"] = bool(
         args.cross_game_skill_high_score_only
+    )
+
+    # T2.17: per-step vision-grounded markup
+    config_kwargs["vision_state_perception_enabled"] = bool(
+        args.vision_state_perception_enabled
+    )
+    config_kwargs["vision_state_perception_every_n_steps"] = int(
+        args.vision_state_perception_every_n_steps
+    )
+    config_kwargs["vision_state_perception_timeout_s"] = float(
+        args.vision_state_perception_timeout_s
+    )
+    config_kwargs["vision_state_perception_concurrency"] = int(
+        args.vision_state_perception_concurrency
+    )
+    config_kwargs["vision_state_perception_max_tokens"] = int(
+        args.vision_state_perception_max_tokens
     )
 
     if args.crafter_promotion_enabled:
