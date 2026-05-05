@@ -79,7 +79,15 @@ logger = logging.getLogger(__name__)
 # Latch to MARKUP_SCHEMA_VERSION so cache stale-ness is detected when the
 # vocabulary changes.  Bump independently when the GameProfile *prompt*
 # format itself changes (i.e. force-regenerate even with same markup).
-PROFILE_VERSION = "p1.0"
+#
+# T2.16 (2026-05-05): bumped p1.0 → p2.0 for the vision-aware path —
+# the 35B judge now receives the rendered first frame as an image_url
+# content part alongside the heuristic markup.  Old text-only caches
+# stay on disk but become stale (different cache_key) so they get
+# silently regenerated on the next phase boundary that touches the
+# game.  Backwards-compatible: if env.render() returns None we still
+# fire the original text-only prompt path.
+PROFILE_VERSION = "p2.0"
 
 # Hard caps to keep prompt + cache footprint bounded.
 _MAX_HAZARDS = 5
@@ -209,11 +217,15 @@ def save_cached(*, run_dir: str, game: str, profile: GameProfile) -> None:
 
 _PROMPT_HEADER = """\
 You are a game-analysis assistant.  You will be given the **first frame**
-of one episode of a game (already rendered into a structured `<state>`
-schema), plus static metadata about the game.  Output a short, static
-profile of the game that an action-selecting agent can read once at the
-start of each phase.  Be precise; the agent will rely on the win_signal
-and hazards lines verbatim to choose actions.
+of one episode of a game — both as an actual rendered image (when
+available) AND as a structured `<state>` schema parsed from that frame
+— plus static metadata about the game.  Use the image to ground entity
+labels, hazards, and recurring entities in concrete on-screen visual
+details (colors, positions, HUD elements, sprites, level geometry); use
+the schema for the canonical action vocabulary and entity ids.  Output
+a short, static profile of the game that an action-selecting agent can
+read once at the start of each phase.  Be precise; the agent will rely
+on the win_signal and hazards lines verbatim to choose actions.
 
 Your output MUST contain exactly two blocks, separated by the markers
 shown below.  Do not output anything before, between (besides the marker
@@ -243,14 +255,20 @@ Constraints:
 """
 
 
-def _build_prompt(
+def _build_prompt_text(
     *,
     game: str,
     info: Dict[str, Any],
     obs_nl: str,
     step: int,
 ) -> str:
-    """Construct the 35B prompt.  Always returns a string."""
+    """Build the *text body* of the 35B prompt.
+
+    This is the same content used in the text-only path AND in the
+    vision-augmented path — when an image is available, the caller
+    wraps this string in a multimodal content list.  Splitting the
+    text body out keeps the prompt logic single-source.
+    """
     markup = state_to_markup(
         obs_nl=obs_nl, info=info, game=game, step=step,
     )
@@ -296,6 +314,36 @@ def _build_prompt(
         + "\n\n--- FIRST FRAME RAW OBSERVATION TEXT (truncated) ---\n"
         + (obs_nl or "")[:600]
     )
+
+
+def _build_prompt(
+    *,
+    game: str,
+    info: Dict[str, Any],
+    obs_nl: str,
+    step: int,
+    image_data_url: Optional[str] = None,
+) -> Any:
+    """Construct the 35B prompt.
+
+    Returns either a plain string (text-only path) or an OpenAI-style
+    list of content parts (multimodal path) depending on whether
+    ``image_data_url`` was supplied.
+
+    The multimodal payload places the rendered first-frame image
+    *between* the instructions and the schema/metadata text so the
+    vision tower has the framing it needs before reading the textual
+    grounding.
+    """
+    text = _build_prompt_text(
+        game=game, info=info, obs_nl=obs_nl, step=step,
+    )
+    if not image_data_url:
+        return text
+    return [
+        {"type": "text", "text": text},
+        {"type": "image_url", "image_url": {"url": image_data_url}},
+    ]
 
 
 # Robust to noisy LLM output (fenced blocks, stray whitespace).
@@ -414,17 +462,80 @@ def _parse_response(
 # ── LLM call (sync, runs in executor) ─────────────────────────────────
 
 
-def _ask_judge(
+def _ask_judge_multimodal(
     *,
-    prompt: str,
+    content_parts: List[Dict[str, Any]],
     model: str,
     temperature: float,
     max_tokens: int,
 ) -> str:
+    """Direct vLLM OpenAI-compat call with multimodal content parts.
+
+    Bypasses ``ask_model`` because the ``ask_vllm`` helper only accepts
+    a plain string prompt.  Falls back to text-only via ``ask_model``
+    when no image part is present.
+    """
+    # Lazy import to keep _game_schema cheap to import outside trainer.
+    import os
+    import openai
+    from API_func import (
+        VLLM_API_KEY,
+        _candidate_vllm_urls,
+        _strip_think_tags,
+    )
+
+    candidate_urls = _candidate_vllm_urls(model)
+    last_exc: Optional[Exception] = None
+    for url in candidate_urls:
+        try:
+            client = openai.OpenAI(
+                base_url=url,
+                api_key=VLLM_API_KEY,
+                max_retries=int(os.environ.get("VLLM_OPENAI_MAX_RETRIES", "3")),
+            )
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": content_parts}],
+                temperature=temperature,
+                max_tokens=max_tokens,
+                extra_body={
+                    "chat_template_kwargs": {"enable_thinking": False},
+                },
+            )
+            raw = response.choices[0].message.content or ""
+            return _strip_think_tags(raw)
+        except Exception as exc:  # noqa: BLE001
+            last_exc = exc
+            continue
+    raise RuntimeError(
+        f"All vLLM URLs failed for multimodal call to {model!r}: {last_exc}"
+    )
+
+
+def _ask_judge(
+    *,
+    prompt: Any,
+    model: str,
+    temperature: float,
+    max_tokens: int,
+) -> str:
+    """Submit the prompt to the 35B judge.
+
+    *prompt* is either a string (text-only path) or a list of OpenAI
+    content parts (multimodal path).  The two paths log under the same
+    component label so latency dashboards stay comparable.
+    """
     import time as _t
-    from API_func import ask_model
     _t0 = _t.monotonic()
     try:
+        if isinstance(prompt, list):
+            return _ask_judge_multimodal(
+                content_parts=prompt,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            ) or ""
+        from API_func import ask_model
         return ask_model(
             prompt,
             model=model,
@@ -509,12 +620,17 @@ async def generate_for_game(
     max_tokens: int = 1024,
     temperature: float = 0.2,
     timeout_s: float = 60.0,
+    image_data_url: Optional[str] = None,
 ) -> GameProfile:
     """Run one 35B call and return a :class:`GameProfile`.
 
     Always returns a profile.  On any failure path the result has
     ``source="fallback:<reason>"`` and the LLM-derived fields default
     to deterministic content.
+
+    When *image_data_url* is provided (T2.16 vision-aware path), the
+    prompt is sent as a multimodal payload so the 35B judge's vision
+    tower can ground entity labels in actual on-screen content.
     """
     ss = info.get("structured_state") or {}
     display_name = ss.get("display_name") or game
@@ -523,6 +639,7 @@ async def generate_for_game(
 
     prompt = _build_prompt(
         game=game, info=info, obs_nl=obs_nl, step=0,
+        image_data_url=image_data_url,
     )
 
     raw = ""
@@ -570,7 +687,7 @@ async def generate_for_game(
     profile.cache_key = cache_key
     profile.markup_version = MARKUP_SCHEMA_VERSION
     profile.generated_at = time.time()
-    profile.source = "llm"
+    profile.source = "llm+vision" if image_data_url else "llm"
     return profile
 
 
@@ -645,9 +762,29 @@ async def ensure_game_schemas(
     out: Dict[str, GameProfile] = {}
     for game in games:
         env = None
+        image_data_url: Optional[str] = None
         try:
             env = factory(game)
             obs_nl, info = env.reset()
+            # T2.16 (2026-05-05): try to render the first frame for the
+            # vision-aware schema generator.  Best-effort: if the env
+            # exposes neither ``render()`` nor a stashed frame, we silently
+            # fall back to the original text-only path so this is fully
+            # backwards compatible with envs that pre-date the change.
+            try:
+                if hasattr(env, "render"):
+                    rendered = env.render()
+                    if isinstance(rendered, str) and rendered.startswith("data:image"):
+                        image_data_url = rendered
+                    elif rendered is not None:
+                        # Non-subprocess envs return a numpy array or PIL
+                        # — encode in-process.
+                        image_data_url = _encode_image_to_data_url(rendered)
+            except Exception as exc:  # noqa: BLE001
+                logger.debug(
+                    "game_schema render failed for %s (falling back to "
+                    "text-only): %s", game, exc,
+                )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "game_schema env reset failed for game=%s: %s — "
@@ -688,17 +825,50 @@ async def ensure_game_schemas(
             model=model, executor=executor,
             max_tokens=max_tokens, temperature=temperature,
             timeout_s=timeout_s,
+            image_data_url=image_data_url,
         )
         elapsed = time.monotonic() - t0
         logger.info(
-            "game_schema generated game=%s source=%s elapsed=%.1fs "
+            "game_schema generated game=%s source=%s vision=%s elapsed=%.1fs "
             "key=%s goal=%r",
-            game, profile.source, elapsed, profile.cache_key,
-            profile.goal[:80],
+            game, profile.source, bool(image_data_url),
+            elapsed, profile.cache_key, profile.goal[:80],
         )
         save_cached(run_dir=run_dir, game=game, profile=profile)
         out[game] = profile
     return out
+
+
+def _encode_image_to_data_url(arr: Any) -> Optional[str]:
+    """Encode a PIL.Image or numpy array into ``data:image/png;base64,...``.
+
+    Used by :func:`ensure_game_schemas` for non-subprocess envs (e.g.
+    ``GamingAgentNLWrapper`` for tetris / candy_crush).  Returns
+    ``None`` on any failure so the caller falls back to text-only.
+    """
+    try:
+        from io import BytesIO
+        import base64
+        from PIL import Image
+        if isinstance(arr, Image.Image):
+            pil = arr
+        else:
+            import numpy as np
+            if not isinstance(arr, np.ndarray):
+                return None
+            if arr.dtype != np.uint8:
+                if arr.dtype.kind == "f":
+                    arr = (np.clip(arr, 0.0, 1.0) * 255.0).astype(np.uint8)
+                else:
+                    arr = arr.astype(np.uint8)
+            pil = Image.fromarray(arr)
+        buf = BytesIO()
+        pil.save(buf, format="PNG", optimize=True)
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/png;base64,{b64}"
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("game_schema _encode_image_to_data_url failed: %s", exc)
+        return None
 
 
 # ── Renderers (consumed by orchestrator / episode_runner) ─────────────

@@ -230,6 +230,34 @@ class SubprocessEnv:
             resp.get("info", {}),
         )
 
+    def render(self) -> Optional[str]:
+        """Render the current frame as a ``data:image/png;base64,...`` URL.
+
+        T2.16 (2026-05-05): used by the vision-aware game-schema
+        generator (``trainer.coevolution._game_schema``) to pass the
+        first frame to the multimodal 35B judge.  Returns ``None`` on
+        any failure (env without render, encoding error, dead worker)
+        so callers can silently fall back to text-only schema gen.
+
+        Note: this is a pure read of the **current** frame — does not
+        advance the env.  Call ``reset()`` first to ensure a valid
+        first frame exists.
+        """
+        if self._proc is None:
+            return None
+        try:
+            resp = self._call({"cmd": "render"}, timeout=15.0)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("SubprocessEnv.render() RPC failed: %s", exc)
+            return None
+        b64 = resp.get("image_b64")
+        if not b64:
+            err = resp.get("render_error")
+            if err:
+                logger.debug("SubprocessEnv.render() returned no frame: %s", err)
+            return None
+        return f"data:image/png;base64,{b64}"
+
     def close(self) -> None:
         if self._proc is None:
             return

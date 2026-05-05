@@ -825,13 +825,22 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 timeout_s=config.game_schema_timeout_s,
             )
             game_profiles.update(fresh)
-            llm_count = sum(1 for p in fresh.values() if p.source == "llm")
+            # T2.16: ``source`` is one of {"llm", "llm+vision", "cache",
+            # "fallback", "manual"}.  Group "llm" / "llm+vision" together
+            # for counting and break out vision separately.
+            llm_count = sum(
+                1 for p in fresh.values()
+                if p.source in ("llm", "llm+vision")
+            )
+            vision_count = sum(
+                1 for p in fresh.values() if p.source == "llm+vision"
+            )
             cache_count = sum(1 for p in fresh.values() if p.source == "cache")
             fb_count = len(fresh) - llm_count - cache_count
             logger.info(
-                "Phase-start GameProfile: %d ready (llm=%d cache=%d "
-                "fallback=%d)",
-                len(fresh), llm_count, cache_count, fb_count,
+                "Phase-start GameProfile: %d ready (llm=%d "
+                "[vision=%d] cache=%d fallback=%d)",
+                len(fresh), llm_count, vision_count, cache_count, fb_count,
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning(

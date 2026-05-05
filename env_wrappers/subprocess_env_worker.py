@@ -42,6 +42,7 @@ import json
 import os
 import sys
 import traceback
+from typing import Any, List
 
 os.environ.setdefault("PYGLET_HEADLESS", "1")
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -106,6 +107,12 @@ def main() -> None:
         with _suppress_stdout():
             env = make_orak_env(args.game, max_steps=args.max_steps)
 
+    # T2.16 (2026-05-05): stash the most recent frame across reset/step
+    # so the new ``render`` cmd (vision-aware game schema) can return it
+    # without burning extra emulator state.  Lives in a 1-slot list so
+    # the closure captures by reference.
+    _last_frame_holder: List[Any] = [None]
+
     def _strip_info(info: dict) -> dict:
         # Drop fields that aren't JSON-friendly or are redundant with `obs`.
         # ``state_natural_language`` is duplicated by the worker's ``obs``
@@ -113,6 +120,11 @@ def main() -> None:
         # ``image`` (numpy array) are not JSON-serialisable — episode_runner
         # never reads them at training time, only offline tools under
         # ``visual_grounding_tests/`` and ``cold_start/legacy/`` do.
+        # T2.16: capture ``info["image"]`` (numpy frame) into the worker's
+        # holder before stripping so ``cmd=render`` can serve it later.
+        img = info.get("image", None)
+        if img is not None:
+            _last_frame_holder[0] = img
         for k in ("state_natural_language", "raw_obs", "image"):
             info.pop(k, None)
         return info
@@ -154,6 +166,74 @@ def main() -> None:
 
             elif cmd == "get_action_names":
                 _write({"ok": True, "action_names": env.action_names})
+
+            elif cmd == "render":
+                # T2.16 (2026-05-05): return current frame as
+                # base64-encoded PNG so the orchestrator's vision-aware
+                # game-schema generator (35B 1-shot) can pass an actual
+                # image to the multimodal judge.  Always returns ``ok``
+                # — failures populate ``image_b64=None`` so callers can
+                # silently fall back to text-only schema generation.
+                #
+                # Frame source priority:
+                #   1. ``_last_frame_holder`` populated by ``_strip_info``
+                #      from ``info["image"]`` (gymv path — most reliable),
+                #   2. ``env.render()`` (orak / gaming-agent envs),
+                #   3. fallback attrs (``last_frame``, ``rgb_frame``...).
+                image_b64 = None
+                error = None
+                try:
+                    arr = _last_frame_holder[0]
+                    if arr is None and hasattr(env, "render"):
+                        try:
+                            with _suppress_stdout():
+                                arr = env.render()
+                        except Exception as exc:  # noqa: BLE001
+                            error = f"render_failed:{type(exc).__name__}"
+                    if arr is None:
+                        # Some gymv wrappers stash the raw RGB array on
+                        # the underlying env; try common attributes.
+                        for attr in ("last_frame", "_last_frame",
+                                     "current_frame", "rgb_frame"):
+                            if hasattr(env, attr):
+                                cand = getattr(env, attr)
+                                if cand is not None:
+                                    arr = cand
+                                    break
+                    if arr is not None:
+                        import base64 as _b64
+                        from io import BytesIO as _BIO
+                        try:
+                            from PIL import Image as _PILImage
+                            import numpy as _np
+                            if isinstance(arr, _np.ndarray):
+                                if arr.dtype != _np.uint8:
+                                    # Map float images in [0,1] → uint8
+                                    if arr.dtype.kind == "f":
+                                        arr = (
+                                            _np.clip(arr, 0.0, 1.0) * 255.0
+                                        ).astype(_np.uint8)
+                                    else:
+                                        arr = arr.astype(_np.uint8)
+                                pil = _PILImage.fromarray(arr)
+                            else:
+                                pil = arr  # already PIL
+                            buf = _BIO()
+                            pil.save(buf, format="PNG", optimize=True)
+                            image_b64 = _b64.b64encode(buf.getvalue()).decode(
+                                "ascii"
+                            )
+                        except Exception as exc:  # noqa: BLE001
+                            error = f"encode_failed:{type(exc).__name__}"
+                    elif error is None:
+                        error = "no_frame_available"
+                except Exception as exc:  # noqa: BLE001
+                    error = f"unexpected:{type(exc).__name__}"
+                _write({
+                    "ok": True,
+                    "image_b64": image_b64,
+                    "render_error": error,
+                })
 
             elif cmd == "close":
                 with _suppress_stdout():
