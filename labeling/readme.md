@@ -44,6 +44,25 @@ bank — that requires the Harness `GateRunner` (static / replay / shadow
 [`plans/00-system/DISCUSSION-COMPONENT-RESPONSIBILITIES.md`](../plans/00-system/DISCUSSION-COMPONENT-RESPONSIBILITIES.md)
 for the four-way ownership boundary.
 
+### Second use: Phase B Crafter-validation corpus (T2.18, 2026-05-06)
+
+`labeling/frontier_distill_jsonl/run_<...>_with_labeled/<corpus>/skill_selection.jsonl`
+doubles as the **offline validation set** for the trainer's Crafter
+gate. At each promotion step `trainer/coevolution/_post_writeback_inherit`
+parses the `<state>` blocks in those prompts into
+`SegmentRecord`-shaped instances (one per consecutive step pair within
+an episode), groups them by `active_skill`, and runs
+`skill_agents.stage3_mvp.contract_verify` against every Crafter
+PATCH / HYPOTHESIS contract before the actor sees the new skill. See
+[`../trainer/coevolution/_cold_start_validation_index.py`](../trainer/coevolution/_cold_start_validation_index.py)
+for the predicate-vocab translation
+(`state_flags.phase=early` → `world.phase=early`,
+score-entity ↔ `world.score`,
+step-pair delta ↔ `event.{phase,score}_changed`).
+This means **frontier-quality SFT data also acts as a noise filter on
+LLM Crafter output** — the same corpus that seeds the SFT student now
+keeps the bank from filling up with ungrounded hypotheses.
+
 ## What Gets Labeled
 
 For **each experience step** in an episode:

@@ -83,9 +83,69 @@ lifecycle.promote(promotion_plan)   # raises LifecycleError on any invariant vio
 
 ---
 
+## Trainer-side writeback path (T2.18, 2026-05-06)
+
+The trainer ships a parallel, lighter-weight writeback chain that lives
+in `trainer/coevolution/_promotion_hook.py`. It mirrors the architectural
+contract above (the lifecycle manager remains the only authority that
+mints ACTIVE skills) but adds two post-writeback passes that are
+specific to the Crafter loop:
+
+1. **Phase A — `_post_writeback_inherit.inherit_evidence_for_inserted`**
+   *(commit `a540434`).* When `writeback_promotion` materialises a
+   PATCH / TRANSFER / COMPOSE skill, the new on-disk row is structurally
+   correct but evidentially empty (`sub_episodes=[]`,
+   `strategic_description=""`, `n_instances=0`, `report=null`). Without
+   evidence the bank-cap-K selector silently drops the skill, so the
+   Crafter loop produces zero-impact entries. This sweep inherits a
+   *discounted* slice of the parent's evidence onto the child:
+
+   * `sub_episodes` ← `parent.sub_episodes[:10]`
+   * `strategic_description`, `execution_hint`, `expected_tag_pattern`
+     ← parent verbatim
+   * `n_instances` ← `max(1, parent.n_instances // 4)`
+   * `report.overall_pass_rate` ← `parent.pass_rate * 0.7`
+
+   HYPOTHESIS proposals (no parent) are passed through untouched —
+   they enter the bank with empty fields and rely on UCB exploration to
+   earn their first selection.
+
+2. **Phase B — cold-start validation gate**
+   *(commit `c9fbe7b`).* With `COLD_START_VALIDATION_ROOT` set (e.g. to
+   `labeling/frontier_distill_jsonl/run_<...>_with_labeled/`), every
+   Crafter PATCH / HYPOTHESIS skill with non-empty `contract.eff_*` is
+   verified against teacher-derived `(B_start, B_end, eff_*)` segments
+   parsed from the SFT corpus before the actor sees it.
+   See `trainer/coevolution/_cold_start_validation_index.py` for the
+   predicate-vocab translation
+   (`state_flags.phase=early` → `world.phase=early`,
+   score-entity ↔ `world.score`,
+   step-pair delta ↔ `event.{phase,score}_changed`).
+
+   * Threshold by `source_type`: `REPAIRED`=0.6, `TEACHER`=0.4, others=0.5.
+   * Below 5 segments → abstain (Phase A discount remains).
+   * ≥ threshold → real per-segment report replaces the discounted one
+     (`validated_against=cold_start`).
+   * < threshold → row is **physically removed** from the bank.
+
+   Outcomes are recorded in `_step_summary.json`'s `inherit_per_game`
+   block (`n_validation_attempted`, `n_validation_passed`,
+   `n_validation_rejected`, `n_validation_abstained`,
+   `rejected_skill_ids`).
+
+Both passes are no-ops on curator-evolved skills (they already carry
+their own evidence), and both rewrite `skill_bank.jsonl` atomically.
+The lifecycle manager described in the rest of this README remains
+unchanged — Phase A/B operate on the *legacy* per-game JSONL the
+trainer reads, not on `_bank/active/`.
+
+---
+
 ## Cross-references
 
 - Root [`readme.md`](../readme.md) §"Mechanically-enforced invariants" — the six (now eight) invariants this package owns.
 - [`../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md`](../plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) — the canonical lifecycle and store-split spec.
 - [`../skill_agents/`](../skill_agents/) — legacy Stage-3 bank kept for back-compat; `skill_bank/legacy_bridge.py` (TODO) will provide a one-way migration of those records into `SkillRecord`.
+- [`../trainer/coevolution/_post_writeback_inherit.py`](../trainer/coevolution/_post_writeback_inherit.py) — Phase A/B trainer-side writeback chain (this file's docstring is the canonical design rationale).
+- [`../trainer/coevolution/_cold_start_validation_index.py`](../trainer/coevolution/_cold_start_validation_index.py) — SFT → `SegmentRecord` index used by Phase B.
 - [`../tests/test_invariants.py`](../tests/test_invariants.py) — invariant tests that must stay green for any change to this package.

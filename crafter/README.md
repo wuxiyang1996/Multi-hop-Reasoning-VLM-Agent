@@ -207,9 +207,61 @@ Do not optimize the multi-pass / counterfactual / VL paths *speculatively* befor
 
 ---
 
+## Trainer post-writeback gate (T2.18, 2026-05-06)
+
+The trainer's online co-evolution loop runs `crafter` proposals
+through `_promotion_hook` and then through two post-writeback passes
+before the actor sees them:
+
+```
+LLM Crafter → proposals.jsonl
+        │
+        ▼
+decide_promotion_gpt54.py (subprocess)
+        │  promote / reject / defer
+        ▼
+skill_bank.legacy_writeback.writeback_promotion
+        │  inserts new rows into per-game skill_bank.jsonl
+        ▼
+trainer.coevolution._post_writeback_inherit
+   ├── Phase A — inherit (discounted) evidence from parent
+   │   • PATCH / COMPOSE / TRANSFER inherit sub_episodes,
+   │     strategic_description, n_instances, pass_rate
+   │   • HYPOTHESIS (no parent) is passed through
+   │
+   └── Phase B — cold-start validation gate
+       • Lookup parent's name in the SFT validation index built from
+         frontier_distill_jsonl/<corpus>/skill_selection.jsonl
+       • Run skill_agents.stage3_mvp.contract_verify with the
+         *child's* contract against teacher-derived segments
+       • PATCH threshold 0.6, HYPOTHESIS 0.4, others 0.5
+       • Pass → replace discounted report with real per-segment one
+       • Fail → physically drop the row from the bank
+```
+
+This is the **trainer's** answer to the open issue from the docstring
+above ("teacher-LLM hooks are dormant"): a noisy LLM Crafter can now
+fire freely (`LLM_CRAFTER_K_MAX=8` after the empirical k=2 audit) because
+Phase B catches the contracts that demonstrably fail on cold-start
+data — the gate eats teacher noise as the design intended, just on a
+faster offline corpus instead of a shadow rollout.
+
+For the full design rationale see
+[`../trainer/coevolution/_post_writeback_inherit.py`](../trainer/coevolution/_post_writeback_inherit.py).
+The `_to_offline_row` serialization fix (commit `a540434`, in
+`trainer/coevolution/_crafter_hook.py`) is the matching upstream
+change: PATCH / HYPOTHESIS / COMPOSE / GENERALIZE proposals now
+preserve `patched_protocol` / `patched_contract` / `novel_protocol` /
+`name` through the JSONL round-trip, so the gate's
+`_make_patch_subject` reconstructs a content-rich subject instead of
+a placeholder.
+
+---
+
 ## Cross-references
 
 - Root [`readme.md`](../readme.md) §"Architecture" — where the crafter sits in the four-stage pipeline.
 - [`../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md`](../plans/04-skill-crafter/PLAN-SKILL-CRAFTER.md) — full proposal-family spec.
 - [`../skill_bank/README.md`](../skill_bank/README.md) — the lifecycle authority that the crafter writes through (never around).
 - [`../data_structure/extensions/README.md`](../data_structure/extensions/README.md) — the typed proposal records.
+- [`../trainer/coevolution/_post_writeback_inherit.py`](../trainer/coevolution/_post_writeback_inherit.py) — trainer-side Phase A/B gate that turns Crafter output into bank-eligible skills.

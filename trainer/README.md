@@ -251,6 +251,39 @@ Saves/loads full snapshots: bank state + all 5 adapter weights + metadata. Auto-
 
 The main `co_evolution_loop()` coroutine. Manages Phase A (rollouts with cross-system overlap), Phase B (skill bank finalize), Phase C (GRPO training), checkpointing, and W&B logging.
 
+### `trainer/coevolution/_promotion_hook.py` (+ `_crafter_hook.py`)
+
+Per-step Crafter → promotion → writeback chain (T2.18, 2026-05-06).
+Splices into `co_evolution_loop` after every step's rollout finalize
+and runs:
+
+1. `_crafter_hook` — synthesises FailureTraces for each game, calls
+   the LLM Crafter (≤ `LLM_CRAFTER_K_MAX=8` parallel 35B calls), and
+   serialises typed proposals to `proposals.jsonl` via the
+   content-preserving `_to_offline_row`.
+2. `_promotion_hook` — subprocess-invokes
+   `labeling_supplement/decide_promotion_gpt54.py --gate-mode offline-synthetic`
+   against the proposals, then projects eligible promoted skills into
+   the per-game `skill_bank.jsonl` via
+   `skill_bank.legacy_writeback.writeback_promotion`.
+3. `_post_writeback_inherit` — two-pass evidence sweep on the freshly
+   inserted rows:
+   * Phase A: inherits a discounted slice of the parent's
+     `sub_episodes`, `strategic_description`, `n_instances`, and
+     `pass_rate` so the actor's selector has something to score.
+   * Phase B (`COLD_START_VALIDATION_ROOT` set): verifies each PATCH /
+     HYPOTHESIS contract against teacher-derived segments parsed from
+     `labeling/frontier_distill_jsonl/<corpus>/skill_selection.jsonl`.
+     Skills below `0.6` (PATCH) / `0.4` (HYPOTHESIS) pass rate are
+     physically dropped from the bank; passing skills get the real
+     per-segment report attached (`validated_against=cold_start`).
+
+Outcomes are logged in `_step_summary.json`'s `inherit_per_game` block
+(`n_validation_attempted`, `n_validation_passed`,
+`n_validation_rejected`, `rejected_skill_ids`). See
+[`../skill_bank/README.md`](../skill_bank/README.md) "Trainer-side
+writeback path" for the full contract.
+
 ---
 
 ## Estimated Timeline

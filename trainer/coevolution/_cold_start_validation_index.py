@@ -83,7 +83,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -507,6 +507,61 @@ class ValidationVerdict:
         }
 
 
+def _contract_has_ood_literal(
+    *,
+    contract_literals: Iterable[str],
+    segments: List[_ValidationSegment],
+) -> bool:
+    """Return True if **any** contract literal refers to a value that
+    never appears in any segment's
+    ``B_start ∪ B_end ∪ eff_add ∪ eff_del ∪ eff_event``.
+
+    Why "any" and not "all"
+    ----------------------
+    The GPT cold-start corpus is biased — it underrepresents the
+    late / endgame phase because the teacher rarely survives long enough
+    to reach it.  A contract like
+    ``eff_add=['event.phase_changed', 'world.phase=endgame']``
+    has one literal that *is* in distribution (``event.phase_changed``
+    appears at the early→mid boundary) and one that is *not*
+    (``world.phase=endgame`` never appears).  If we run the verifier
+    anyway, the OOD literal trivially fails on every segment, drops the
+    per-instance literal-pass rate below ``instance_pass_literal_frac``,
+    and the overall pass_rate collapses to 0 — even though the parent
+    skill is curator-validated and the contract is structurally fine.
+
+    The honest read is: if even one literal is unverifiable against
+    this corpus, the corpus cannot tell us whether the contract is
+    correct.  Abstaining keeps the Phase A discount in place and lets
+    the in-loop ``run_contract_learning`` cycle (which will see new
+    runtime segments tagged to this skill) produce the authoritative
+    report.
+
+    Trade-off acknowledged
+    ----------------------
+    A truly bogus contract whose lone literal happens to share a key
+    with cold-start data (e.g. ``world.phase=zzz``) would NOT trigger
+    OOD on the literal-level check; the verifier runs and returns
+    ``pass_rate=0`` (all segments fail the comparison) — which is the
+    correct outcome.  But a bogus literal in a *novel* namespace
+    (``foo.bar=zzz``) abstains.  Phase B is therefore strictly weaker
+    on bogus-namespace literals; we accept this in exchange for not
+    deleting legitimate late-phase skills.
+    """
+    universe: set = set()
+    for seg in segments:
+        universe.update(seg.B_start)
+        universe.update(seg.B_end)
+        universe.update(seg.eff_add)
+        universe.update(seg.eff_del)
+        universe.update(seg.eff_event)
+
+    literals = [lit for lit in contract_literals if lit]
+    if not literals:
+        return False  # nothing to verify — let downstream branch handle
+    return any(lit not in universe for lit in literals)
+
+
 def verify_contract_against_segments(
     *,
     contract_dict: Mapping[str, Any],
@@ -516,13 +571,30 @@ def verify_contract_against_segments(
     """Run :func:`verify_effects_contract` and return a slim verdict.
 
     Returns a verdict with ``insufficient_evidence=True`` when the
-    skill has fewer than *min_segments* validation rows — caller should
-    treat that as "abstain, fall back to discount".
+    skill has fewer than *min_segments* validation rows OR every
+    contract literal is out-of-distribution relative to the SFT corpus
+    (see :func:`_contract_is_out_of_distribution`).  Caller treats
+    both cases as "abstain, fall back to discount".
     """
     if not contract_dict:
         return ValidationVerdict()
     if len(segments) < min_segments:
         v = ValidationVerdict(n_instances=len(segments))
+        return v
+
+    all_literals = list(
+        list(contract_dict.get("eff_add") or [])
+        + list(contract_dict.get("eff_del") or [])
+        + list(contract_dict.get("eff_event") or [])
+    )
+    if _contract_has_ood_literal(
+        contract_literals=all_literals, segments=segments,
+    ):
+        v = ValidationVerdict(n_instances=len(segments))
+        # Mark insufficient_evidence=True (default) so caller routes to
+        # abstain.  Surface the reason via failure_signatures so
+        # ``_step_summary.json`` shows why each abstained.
+        v.failure_signatures = {"out_of_distribution": 1}
         return v
 
     try:

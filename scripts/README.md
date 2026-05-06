@@ -75,3 +75,25 @@ Runs the dual-LoRA decision agent pipeline and records GRPO training data
 ```bash
 bash scripts/run_qwen3_decision_agent.sh
 ```
+
+---
+
+## Crafter / Promotion environment switches
+
+The Phase 1 launcher (`run_phase1_curriculum.sh`) reads a handful of
+environment variables that control the Crafter → promotion → writeback
+chain ([`../trainer/coevolution/_promotion_hook.py`](../trainer/coevolution/_promotion_hook.py)).
+Each has a sensible default; override only when an audit shows the
+default is starving or flooding the gate.
+
+| Env var | Default | Effect |
+|---|---|---|
+| `LLM_CRAFTER_ENABLED` | `1` (auto-disabled when `JUDGE_MODE=off`) | Enables the supplemental 35B-A3B Crafter teacher (`trainer/coevolution/_llm_crafter.py`). |
+| `LLM_CRAFTER_K_MAX` | `8` | Per-game per-step cap on parallel 35B Crafter calls. Raised from 2 → 8 on 2026-05-06 after audit found 96 % of failure signal was being dropped. |
+| `LLM_CRAFTER_MAX_TOKENS` | `1024` | Output cap per Crafter call. |
+| `LLM_CRAFTER_TIMEOUT_S` | `60` | Per-call deadline. Watchdog (`_judge_watchdog.sh`) restarts the 35B endpoint on repeated failures. |
+| `COLD_START_VALIDATION_ROOT` | `${PROJECT_ROOT}/labeling/frontier_distill_jsonl/run_20260506_055632_with_labeled` | **Phase B** — points at the SFT cold-start corpus used to verify each Crafter PATCH / HYPOTHESIS contract before the actor sees it. Set to the empty string to disable Phase B and fall back to Phase A inheritance only. |
+
+The launcher prints whether each switch is active in its banner so
+`tail -f Cold-start-out/_logs/run_phase1.log | head -200` after start
+makes the active configuration auditable.
