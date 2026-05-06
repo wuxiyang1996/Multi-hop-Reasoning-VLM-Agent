@@ -20,7 +20,14 @@ from data_structure.extensions.skill_record import SkillContract
 from crafter.failure_memory import FailurePattern
 
 
-_LLMProposer = Callable[[FailurePattern, FailureDiagnosis], Optional[HypothesisProposal]]
+# Fix-B: widen the LLM-proposer surface so the Hypothesizer can pass
+# a "concepts already covered" list down — the v3 mode-collapse
+# diagnosis is that the LLM had no signal pushing it to diversify
+# AWAY from previously-minted hypotheses.  We use ``Callable[..., …]``
+# (rather than a tighter callable signature) so legacy hooks that
+# only accept ``(pattern, diagnosis)`` keep working — see
+# ``Hypothesizer.propose`` for the TypeError-fallback path.
+_LLMProposer = Callable[..., Optional[HypothesisProposal]]
 
 
 class Hypothesizer:
@@ -37,15 +44,45 @@ class Hypothesizer:
         diagnosis: FailureDiagnosis,
         target_domains: Optional[List[str]] = None,
         teacher_model: Optional[str] = None,
+        existing_concepts: Optional[List[str]] = None,
     ) -> Optional[HypothesisProposal]:
         if self._llm is not None:
             try:
-                proposal = self._llm(pattern, diagnosis)
+                proposal = self._call_llm_with_concepts(
+                    pattern, diagnosis, existing_concepts,
+                )
                 if proposal is not None:
                     return proposal
             except Exception:                                  # noqa: BLE001
                 pass
         return self._rule_propose(pattern, diagnosis, target_domains, teacher_model)
+
+    def _call_llm_with_concepts(
+        self,
+        pattern: FailurePattern,
+        diagnosis: FailureDiagnosis,
+        existing_concepts: Optional[List[str]],
+    ) -> Optional[HypothesisProposal]:
+        """Two-level fallback for legacy hooks.
+
+        New hooks (``crafter._llm_runtime.LLMHypothesizer``) accept
+        the ``existing_concepts`` kw.  Legacy hooks installed by
+        2026-04 callers only accept positional ``(pattern,
+        diagnosis)``.  We probe the new signature first, fall back
+        to the old one on ``TypeError`` — and we only swallow
+        ``TypeError``, NOT generic exceptions, because the outer
+        ``except Exception`` in :meth:`propose` is already there to
+        absorb provider failures and we don't want to mask those by
+        retrying without the kw.
+        """
+        if self._llm is None:
+            return None
+        try:
+            return self._llm(
+                pattern, diagnosis, existing_concepts=existing_concepts,
+            )
+        except TypeError:
+            return self._llm(pattern, diagnosis)
 
     # -- rule path --------------------------------------------------------
 

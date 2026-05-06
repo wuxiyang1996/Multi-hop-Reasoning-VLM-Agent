@@ -320,7 +320,27 @@ DEFAULT_OUTPUT_ROOT = (
     CODEBASE_ROOT / "labeling_supplement" / "promotion_decisions_out"
 )
 
-CORPORA = ("gym_v", "env_wrappers")
+# Top-level corpus buckets the promotion-gate driver walks under
+# ``--proposals-run`` / ``--bank-run``.  ``gym_v`` and ``env_wrappers``
+# are the legacy gymv-side corpora (cold-start ALE games + 2048 / Tetris /
+# Candy Crush / Super Mario hand-built env_wrappers).
+#
+# 2026-05-06: ``visual_reasoning`` added so transfer-target proposals
+# minted by Path 4 (per-game crafter domain dispatch — see
+# ``trainer/coevolution/_crafter_hook.py::_synthesize_failures``) can be
+# promoted in-domain. Layout under each input run:
+#
+#    <proposals-run>/visual_reasoning/<benchmark>/proposals.jsonl
+#    <bank-run>/visual_reasoning/<benchmark>/skill_bank.jsonl
+#
+# where ``<benchmark>`` is one of ``visual_toolbench``, ``tir_bench``,
+# ``video_holmes``, ``siv_bench`` (the four VR cold-start benchmarks
+# that own per-domain failure synthesisers under
+# ``labeling_supplement/_failure_synth/``).  Adding the bucket here is
+# byte-identical for any input run that doesn't *also* contain a
+# ``visual_reasoning/`` subdir — empty buckets are skipped by
+# ``_discover_pairs``.
+CORPORA = ("gym_v", "env_wrappers", "visual_reasoning")
 
 # Crude per-skill regression thresholds for the §3.3 / §3a.4 rollback path.
 # Conservative on purpose — single-domain cold-start data has very little

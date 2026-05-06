@@ -36,6 +36,7 @@ from trainer.coevolution._crafter_hook import (
     _seed_repo_from_legacy_jsonl,
     _synthesize_failures,
     _to_offline_row,
+    corpus_for_domain_or_game,
     corpus_for_game,
     run_crafter_step,
 )
@@ -574,3 +575,400 @@ def test_run_crafter_step_skips_sentinel_results(tmp_path: Path):
     )
     assert report.n_episodes_reflected == 0
     assert report.n_proposals == 0
+
+
+# ---------------------------------------------------------------------------
+# Regression: Path 3 (internal LLM hooks) and Path 4 (per-domain failure
+# synthesisers) wiring. These two kwargs were added 2026-05 to let
+# CoEvolutionConfig opt the production trainer into the same LLM-backed
+# Repairer/Hypothesizer/Diagnoser the offline reflect script uses, and to
+# route VR / video / browser / osworld episodes to per-domain synthesisers
+# instead of the gymv fallback. The tests below pin three properties:
+#
+# 1. ``install_internal_llm_hooks=False`` is byte-identical to never having
+#    added the kwarg (defaults preserve legacy behaviour).
+# 2. ``install_internal_llm_hooks=True`` actually invokes
+#    ``crafter._llm_runtime.install_llm_hooks`` once per game (patched via
+#    monkeypatch — we never want to reach the network during unit tests).
+# 3. ``episode_domain_per_game={game: "visual_reasoning"}`` causes
+#    ``_synthesize_failures`` to dispatch to
+#    ``labeling_supplement._failure_synth.get_synthesizer("visual_reasoning")``
+#    for an episode carrying ``raw_sample`` (no gymv shape required).
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class FakeVREpisodeResult(FakeEpisodeResult):
+    raw_sample: Dict[str, Any] = field(default_factory=dict)
+
+
+def _make_minimal_bank(tmp_path: Path) -> Path:
+    """Tiny non-empty bank — content doesn't matter; we just need
+    ``_seed_repo_from_legacy_jsonl`` to leave the SkillCrafterService
+    with at least one CANDIDATE so the Path 3 install path runs."""
+    bank_path = tmp_path / "bank" / "Temporal_Airstriker-v0" / "skill_bank.jsonl"
+    bank_path.parent.mkdir(parents=True)
+    bank_path.write_text(json.dumps({
+        "skill": {
+            "skill_id": "S_TEST",
+            "name": "S_TEST",
+            "evidence_role": "COMMIT",
+            "applicable_domains": ["gymv"],
+            "protocol": {"steps": ["a"]},
+            "contract": {"eff_add": [], "eff_del": []},
+        },
+        "report": {},
+    }) + "\n", encoding="utf-8")
+    return bank_path
+
+
+def test_run_crafter_step_path3_default_off_does_not_call_installer(
+    tmp_path: Path, monkeypatch
+):
+    """When ``install_internal_llm_hooks`` is the default ``False``, the
+    LLM-runtime installer must not be imported / called — even when there
+    are failure proposals to mint. Guards against accidental opt-in."""
+    bank_path = _make_minimal_bank(tmp_path)
+
+    calls: List[str] = []
+
+    def _spy(*args, **kwargs):
+        calls.append("install_called")
+        return {"installed": True, "model": "spy", "hooks": []}
+
+    monkeypatch.setattr(
+        "crafter._llm_runtime.install_llm_hooks", _spy, raising=False,
+    )
+
+    ep = FakeEpisodeResult(
+        game="Temporal_Airstriker-v0", episode_id="ep-default",
+        steps=2, total_reward=0.0,                       # OUTCOME_FAILURE
+        experiences=[
+            _exp(0, skill_id="S_TEST"),
+            _exp(1, skill_id="S_TEST"),
+        ],
+    )
+    run_crafter_step(
+        step=0, run_dir=tmp_path, rollout_results=[ep],
+        legacy_bank_paths={"Temporal_Airstriker-v0": bank_path},
+        bank_was_available=True,
+        # NB: install_internal_llm_hooks omitted — defaults to False.
+    )
+    assert calls == [], (
+        "install_llm_hooks must not be called when "
+        "install_internal_llm_hooks is left at its default False; "
+        f"got {calls}"
+    )
+
+
+def test_run_crafter_step_path3_install_invokes_runtime(
+    tmp_path: Path, monkeypatch
+):
+    """When ``install_internal_llm_hooks=True`` the hook MUST call
+    ``crafter._llm_runtime.install_llm_hooks`` — once per game with a
+    failed episode — forwarding the model id and the three enable flags.
+
+    We monkeypatch the installer so the test never touches the network.
+    """
+    bank_path = _make_minimal_bank(tmp_path)
+
+    captured: List[Dict[str, Any]] = []
+
+    def _spy(service, *, model, audit_sink, enable_diagnoser,
+             enable_repairer, enable_hypothesizer):
+        captured.append({
+            "model": model,
+            "enable_diagnoser": enable_diagnoser,
+            "enable_repairer": enable_repairer,
+            "enable_hypothesizer": enable_hypothesizer,
+            "audit_sink_callable": callable(audit_sink),
+            "service_class": type(service).__name__,
+        })
+        return {
+            "installed": True, "model": model,
+            "hooks": ["repairer"] if enable_repairer else [],
+        }
+
+    monkeypatch.setattr(
+        "crafter._llm_runtime.install_llm_hooks", _spy, raising=False,
+    )
+
+    ep = FakeEpisodeResult(
+        game="Temporal_Airstriker-v0", episode_id="ep-llm-on",
+        steps=2, total_reward=0.0,
+        experiences=[
+            _exp(0, skill_id="S_TEST"),
+            _exp(1, skill_id="S_TEST"),
+        ],
+    )
+    run_crafter_step(
+        step=0, run_dir=tmp_path, rollout_results=[ep],
+        legacy_bank_paths={"Temporal_Airstriker-v0": bank_path},
+        bank_was_available=True,
+        install_internal_llm_hooks=True,
+        internal_llm_model="gpt-5.4",
+        internal_llm_enable_repairer=True,
+        internal_llm_enable_hypothesizer=False,
+        internal_llm_enable_diagnoser=False,
+    )
+    assert len(captured) == 1, f"expected one install call, got {captured}"
+    rec = captured[0]
+    assert rec["model"] == "gpt-5.4"
+    assert rec["enable_repairer"] is True
+    assert rec["enable_hypothesizer"] is False
+    assert rec["enable_diagnoser"] is False
+    assert rec["audit_sink_callable"] is True
+    assert rec["service_class"] == "SkillCrafterService"
+
+
+def test_run_crafter_step_path3_install_failure_is_soft(
+    tmp_path: Path, monkeypatch
+):
+    """If the LLM-runtime installer raises, the hook must swallow
+    the error, log a warning, and let the deterministic Crafter path
+    proceed. Otherwise a single bad config could brick a training step."""
+    bank_path = _make_minimal_bank(tmp_path)
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("simulated installer failure")
+
+    monkeypatch.setattr(
+        "crafter._llm_runtime.install_llm_hooks", _boom, raising=False,
+    )
+
+    ep = FakeEpisodeResult(
+        game="Temporal_Airstriker-v0", episode_id="ep-llm-boom",
+        steps=2, total_reward=0.0,
+        experiences=[
+            _exp(0, skill_id="S_TEST"),
+            _exp(1, skill_id="S_TEST"),
+        ],
+    )
+    report = run_crafter_step(
+        step=0, run_dir=tmp_path, rollout_results=[ep],
+        legacy_bank_paths={"Temporal_Airstriker-v0": bank_path},
+        bank_was_available=True,
+        install_internal_llm_hooks=True,
+        internal_llm_model="anything",
+    )
+    assert report.n_episodes_reflected == 1, (
+        "Path 3 installer failure must not skip the episode — the "
+        "deterministic chain should still process it."
+    )
+
+
+def test_run_crafter_step_path4_episode_domain_routes_to_synthesiser(
+    tmp_path: Path, monkeypatch
+):
+    """When ``episode_domain_per_game`` maps a game to a transfer-target
+    domain (e.g. visual_reasoning) AND the episode carries a ``raw_sample``
+    dict, ``_synthesize_failures`` MUST dispatch to the per-domain
+    synthesiser registered in ``labeling_supplement._failure_synth``
+    (instead of the gymv heuristic)."""
+    bank_path = _make_minimal_bank(tmp_path)
+
+    seen: List[Dict[str, Any]] = []
+
+    def _fake_synth(sample, *, domain, sample_id, max_failures):
+        seen.append({
+            "domain": domain, "sample_id": sample_id,
+            "max_failures": max_failures, "sample_keys": sorted(sample.keys()),
+        })
+        # Return one trivially-shaped FailureTrace so the rest of the
+        # pipeline has at least one row to work with. Only the fields
+        # actually defined on the FailureTrace dataclass — extra
+        # keyword args would TypeError and (because
+        # ``_synthesize_failures`` wraps the call in try/except) would
+        # be silently swallowed, masking the real wiring bug.
+        from data_structure.extensions.failure_trace import FailureTrace
+        return [FailureTrace(
+            skill_id="vr_skill",
+            skill_episode_id=f"{sample_id}#vr0",
+            domain=domain,
+            failed_step_index=0,
+            failure_class="WRONG_ANSWER",
+            abort_reason="fake",
+        )]
+
+    monkeypatch.setattr(
+        "labeling_supplement._failure_synth.get_synthesizer",
+        lambda domain: _fake_synth,
+    )
+
+    ep = FakeVREpisodeResult(
+        game="Temporal_Airstriker-v0", episode_id="vr-ep-1",
+        steps=1, total_reward=0.0,
+        raw_sample={"task_id": "vtb_42", "predicted": "x", "expected": "y"},
+    )
+
+    report = run_crafter_step(
+        step=0, run_dir=tmp_path, rollout_results=[ep],
+        legacy_bank_paths={"Temporal_Airstriker-v0": bank_path},
+        bank_was_available=True,
+        episode_domain_per_game={"Temporal_Airstriker-v0": "visual_reasoning"},
+    )
+    assert len(seen) == 1, f"expected one synth dispatch, got {seen}"
+    assert seen[0]["domain"] == "visual_reasoning"
+    assert seen[0]["sample_id"] == "vr-ep-1"
+    assert "task_id" in seen[0]["sample_keys"]
+    # The fake synth emitted 1 FailureTrace, so the report must reflect it.
+    assert report.n_failure_traces >= 1
+
+
+def test_run_crafter_step_path4_no_raw_sample_skips_silently(
+    tmp_path: Path, monkeypatch
+):
+    """When ``episode_domain_per_game`` resolves a transfer-target domain
+    BUT the episode lacks ``raw_sample``, ``_synthesize_failures`` MUST
+    NOT fall through to the gymv path (would produce a domain-mislabelled
+    failure) — it should skip and emit zero failures for that episode."""
+    bank_path = _make_minimal_bank(tmp_path)
+
+    called: List[str] = []
+    monkeypatch.setattr(
+        "labeling_supplement._failure_synth.get_synthesizer",
+        lambda domain: (called.append(domain) or (lambda **kw: [])),
+    )
+
+    ep = FakeEpisodeResult(                                   # NO raw_sample
+        game="Temporal_Airstriker-v0", episode_id="ep-no-raw",
+        steps=1, total_reward=0.0,
+        experiences=[_exp(0, skill_id="S_TEST")],
+    )
+    report = run_crafter_step(
+        step=0, run_dir=tmp_path, rollout_results=[ep],
+        legacy_bank_paths={"Temporal_Airstriker-v0": bank_path},
+        bank_was_available=True,
+        episode_domain_per_game={"Temporal_Airstriker-v0": "visual_reasoning"},
+    )
+    assert called == [], (
+        "transfer-target dispatch must NOT call the synthesiser when "
+        "raw_sample is missing — the gymv heuristic does not transfer."
+    )
+    assert report.n_failure_traces == 0
+
+
+# ---------------------------------------------------------------------------
+# Regression: corpus_for_domain_or_game (Path 4 corpus routing)
+#
+# The promotion gate's ``_discover_pairs`` walks one bucket per
+# ``CORPORA`` entry; before 2026-05 the trainer only emitted ``gym_v``
+# and ``env_wrappers``, and any Path-4 transfer-target proposal was
+# silently mis-folded into ``env_wrappers/<game>/`` (which then forced
+# the LLM judge to evaluate a VR-derived patch as if it were a 2048
+# patch — see _smoke_attr_v2/_attribution_summary.md "cross-domain
+# mismatch" note).  ``corpus_for_domain_or_game`` fixes this seam by
+# routing transfer-target proposals to the new ``visual_reasoning``
+# bucket.  Tests below pin both the legacy fall-through and the new
+# transfer-target dispatch.
+# ---------------------------------------------------------------------------
+
+
+def test_corpus_for_domain_or_game_legacy_paths_unchanged():
+    """For domain ∈ {gymv, "", None} the dispatch must match
+    ``corpus_for_game`` exactly — no behaviour change for any caller
+    that hasn't opted into Path 4."""
+    cases = [
+        ("Temporal_Airstriker-v0", "gym_v"),
+        ("Temporal_DynamiteHeaddy-v0", "gym_v"),
+        ("twenty_forty_eight", "env_wrappers"),
+        ("super_mario", "env_wrappers"),
+    ]
+    for game, expected in cases:
+        assert corpus_for_game(game) == expected
+        for legacy_domain in ("gymv", "", None):
+            assert corpus_for_domain_or_game(legacy_domain, game) == expected, (
+                f"domain={legacy_domain!r} game={game} should fall through "
+                f"to {expected!r} but got "
+                f"{corpus_for_domain_or_game(legacy_domain, game)!r}"
+            )
+
+
+def test_corpus_for_domain_or_game_transfer_targets_route_to_vr():
+    """All four transfer-target domains must collapse onto the single
+    ``visual_reasoning`` corpus bucket regardless of game name (the
+    game string remains the per-source segment INSIDE the bucket)."""
+    transfer_domains = ("visual_reasoning", "video", "browser", "osworld")
+    games = (
+        "Temporal_Airstriker-v0",
+        "twenty_forty_eight",
+        "vtb_easy",
+        "siv_bench_holdout",
+    )
+    for d in transfer_domains:
+        for g in games:
+            corpus = corpus_for_domain_or_game(d, g)
+            assert corpus == "visual_reasoning", (
+                f"domain={d!r} game={g!r} should map to "
+                f"'visual_reasoning' but got {corpus!r}"
+            )
+
+
+def test_corpus_for_domain_or_game_writes_under_vr_bucket(tmp_path: Path):
+    """End-to-end: when run_crafter_step's resolved domain is a transfer
+    target AND the synthesiser emits at least one failure, the on-disk
+    proposals.jsonl must land under
+    ``<run_dir>/crafter_proposals_out/step_<n>/visual_reasoning/<game>/``,
+    NOT ``env_wrappers/<game>/``.  This guards against a regression
+    in ``_write_proposals_jsonl`` where the corpus path was computed
+    from the game name alone."""
+    bank_path = _make_minimal_bank(tmp_path)
+
+    # Use the Path-4 dispatch hook to force a non-empty failure trace
+    # without depending on the on-disk failure-synth registry.
+    import pytest as _pytest  # noqa: F401  (avoid F841 lint on unused symbol path)
+
+    from data_structure.extensions.failure_trace import FailureTrace as _FT
+
+    def _fake_synth(sample, *, domain, sample_id, max_failures):
+        return [_FT(
+            skill_id="vr_skill", skill_episode_id=f"{sample_id}#vr0",
+            domain=domain, failed_step_index=0,
+            failure_class="WRONG_ANSWER", abort_reason="test",
+        )]
+
+    import labeling_supplement._failure_synth as _fs
+    orig = getattr(_fs, "get_synthesizer", None)
+
+    try:
+        _fs.get_synthesizer = lambda d: _fake_synth                # type: ignore[attr-defined]
+        ep = FakeVREpisodeResult(
+            game="Temporal_Airstriker-v0", episode_id="vr-ep-corpus",
+            steps=1, total_reward=0.0,
+            raw_sample={"task_id": "vtb_99"},
+        )
+        report = run_crafter_step(
+            step=7, run_dir=tmp_path, rollout_results=[ep],
+            legacy_bank_paths={"Temporal_Airstriker-v0": bank_path},
+            bank_was_available=True,
+            episode_domain_per_game={
+                "Temporal_Airstriker-v0": "visual_reasoning",
+            },
+            # Force failure-driven dispatch threshold so even the rule
+            # path will mint *something* off our fake trace.
+            hypothesize_min_recurrences=1,
+        )
+    finally:
+        if orig is not None:
+            _fs.get_synthesizer = orig                              # type: ignore[attr-defined]
+
+    assert report.n_failure_traces >= 1
+    expected = (
+        tmp_path / "crafter_proposals_out" / "step_0007"
+        / "visual_reasoning" / "Temporal_Airstriker-v0"
+        / "proposals.jsonl"
+    )
+    assert expected.is_file(), (
+        f"expected proposals.jsonl under VR bucket at {expected}, but "
+        f"got tree:\n{sorted((tmp_path / 'crafter_proposals_out').rglob('proposals.jsonl'))}"
+    )
+    legacy = (
+        tmp_path / "crafter_proposals_out" / "step_0007"
+        / "env_wrappers" / "Temporal_Airstriker-v0"
+        / "proposals.jsonl"
+    )
+    assert not legacy.exists(), (
+        "Path-4 episode must NOT also write to the legacy env_wrappers "
+        "bucket — that would be exactly the 'cross-domain fold' bug "
+        f"corpus_for_domain_or_game was added to fix.  Found: {legacy}"
+    )

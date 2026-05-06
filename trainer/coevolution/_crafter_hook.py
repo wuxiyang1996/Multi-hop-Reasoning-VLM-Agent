@@ -142,6 +142,51 @@ def corpus_for_game(game: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Domain-aware corpus dispatch (Path 4 — transfer targets)
+# ---------------------------------------------------------------------------
+
+# Domains whose proposals MUST land under ``visual_reasoning/<game>/``
+# instead of ``gym_v/`` / ``env_wrappers/``.  Mirrors the
+# ``CORPORA`` extension in
+# ``labeling_supplement/decide_promotion_gpt54.py`` (added 2026-05-06)
+# so the gate's ``_discover_pairs`` walk can find these proposals
+# in-domain rather than forcing us to fake a ``twenty_forty_eight``
+# folding (which biases the LLM judge into cross-domain veto land —
+# see ``_smoke_attr_v2/_attribution_summary.md`` Promotion-gate
+# section for the empirical receipt).
+_TRANSFER_TARGET_CORPUS = "visual_reasoning"
+_TRANSFER_TARGET_DOMAINS: frozenset = frozenset({
+    "visual_reasoning", "video", "browser", "osworld",
+})
+
+
+def corpus_for_domain_or_game(domain: Optional[str], game: str) -> str:
+    """Pick the offline-mirror corpus bucket for a proposal.
+
+    Path-4-aware variant of :func:`corpus_for_game`. When the resolved
+    domain is one of the four transfer targets (visual_reasoning,
+    video, browser, osworld), the proposal lands under
+    ``visual_reasoning/<game>/`` regardless of what game name the
+    trainer used. For the legacy ``gymv`` domain (or empty / None),
+    fall through to game-based routing — preserves byte-identical
+    layout for every Phase-1 / Phase-2 run that didn't set
+    ``crafter_episode_domain_per_game``.
+
+    NOTE: we collapse all four transfer targets into the single
+    ``visual_reasoning`` corpus bucket on disk, even though the
+    domains themselves are distinct.  The reason is symmetry with
+    the gate side — ``decide_promotion_gpt54.py::CORPORA`` only
+    enumerates one transfer-target bucket; the per-domain split
+    happens *inside* the bucket via the ``<game>`` segment.  If we
+    later need per-domain corpora (separate buckets for video / browser
+    / osworld), bump both ends together.
+    """
+    if domain and str(domain) in _TRANSFER_TARGET_DOMAINS:
+        return _TRANSFER_TARGET_CORPUS
+    return corpus_for_game(game)
+
+
+# ---------------------------------------------------------------------------
 # Hook surface
 # ---------------------------------------------------------------------------
 
@@ -255,6 +300,32 @@ def run_crafter_step(
     # the dispatch routing in isolation.
     hypothesize_min_recurrences: int = DEFAULT_HYPOTHESIZE_MIN_RECURRENCES,
     hypothesize_related_skill_jaccard: float = DEFAULT_HYPOTHESIZE_RELATED_JACCARD,
+    # ── Path 3 — SkillCrafterService internal LLM hooks ──────────────
+    # When ``install_internal_llm_hooks=True`` we wire the dormant
+    # Repairer / Hypothesizer / FailureDiagnoser hooks of
+    # ``SkillCrafterService`` to ``crafter._llm_runtime.LLM*``.  Path 3
+    # complements Path 2 (``llm_crafter_enabled``):
+    #   * Path 2 mints **supplemental** proposals OUTSIDE the
+    #     SkillCrafterService dispatch chain (one 35B call per failure).
+    #   * Path 3 injects the LLM **INTO** the dispatch chain, so a
+    #     PatchProposal carries an LLM-rewritten ``patched_protocol``
+    #     instead of the rule path's deterministic edit.
+    # Both paths can be on simultaneously; outputs are merged in the
+    # per-game ``proposals.jsonl``. Default OFF preserves byte-
+    # identical behaviour with prior production runs. See
+    # ``crafter/_llm_runtime.py``.
+    install_internal_llm_hooks: bool = False,
+    internal_llm_model: str = "",
+    internal_llm_enable_repairer: bool = True,
+    internal_llm_enable_hypothesizer: bool = True,
+    internal_llm_enable_diagnoser: bool = False,
+    # ── Path 4 — per-game crafter domain dispatch (transfer targets) ─
+    # Map from trainer game name to canonical ``common.enums.DOMAINS``
+    # entry. Empty / missing → gymv (legacy default). When the resolved
+    # domain is a transfer target AND the EpisodeResult carries a
+    # ``raw_sample`` dict, ``_synthesize_failures`` dispatches to
+    # ``labeling_supplement._failure_synth.get_synthesizer(domain)``.
+    episode_domain_per_game: Optional[Mapping[str, str]] = None,
 ) -> CrafterStepReport:
     """Run the per-step Crafter pass for one trainer step.
 
@@ -411,9 +482,62 @@ def run_crafter_step(
                 hypothesize_related_skill_jaccard=hypothesize_related_skill_jaccard,
             )
 
+            # ── Path 3 — install internal LLM hooks (dormant by default) ──
+            # Wire SkillCrafterService's Repairer / Hypothesizer /
+            # FailureDiagnoser to ``crafter._llm_runtime.LLM*`` so the
+            # rule-path defaults are replaced by 35B-A3B (or whatever
+            # ``internal_llm_model`` resolves to). Soft-fail: any
+            # import / call exception leaves the hooks ``None`` and
+            # the deterministic chain runs unchanged.
+            if install_internal_llm_hooks and (
+                internal_llm_enable_repairer
+                or internal_llm_enable_hypothesizer
+                or internal_llm_enable_diagnoser
+            ):
+                try:
+                    from crafter._llm_runtime import install_llm_hooks
+                    from common.models import BACKBONE_TEACHER_MODEL
+                    resolved_internal_model = (
+                        (internal_llm_model or "").strip()
+                        or os.environ.get(
+                            "VLM_AGENT_BACKBONE_TEACHER_MODEL", "",
+                        ).strip()
+                        or BACKBONE_TEACHER_MODEL
+                    )
+                    install_status = install_llm_hooks(
+                        service,
+                        model=resolved_internal_model,
+                        audit_sink=artifact_store.append_audit,
+                        enable_diagnoser=internal_llm_enable_diagnoser,
+                        enable_repairer=internal_llm_enable_repairer,
+                        enable_hypothesizer=internal_llm_enable_hypothesizer,
+                    )
+                    logger.info(
+                        "crafter_hook[path3]: step=%d game=%s installed "
+                        "internal LLM hooks model=%s hooks=%s",
+                        step, game,
+                        install_status.get("model"),
+                        install_status.get("hooks"),
+                    )
+                except Exception as exc:                                # noqa: BLE001
+                    logger.warning(
+                        "crafter_hook[path3]: install_llm_hooks failed "
+                        "for step=%d game=%s: %s; falling back to rule path",
+                        step, game, exc,
+                    )
+
             game_proposals: List[BankMutationProposal] = []
             game_failures: List[FailureTrace] = []
-            domain_for_proposal = "gymv"
+            # ── Path 4 — per-game domain dispatch ────────────────────────
+            # Default = "gymv" (legacy). Transfer targets (visual_reasoning
+            # / video / browser / osworld) are opted in per-game via
+            # ``episode_domain_per_game``; the failure synthesiser then
+            # dispatches to ``labeling_supplement._failure_synth`` when
+            # the resolved domain != gymv AND the episode carries a
+            # ``raw_sample`` dict.
+            domain_for_proposal = (
+                (episode_domain_per_game or {}).get(game, "gymv")
+            )
             # Track Path 2 LLM-Crafter proposal IDs so the JSONL writer
             # can tag them with proposer="llm_crafter" without
             # mistaking deterministic proposals (which inherit a
@@ -704,15 +828,57 @@ def _synthesize_failures(
 ) -> List[FailureTrace]:
     """Synthesize ``FailureTrace``s from a trainer ``EpisodeResult``.
 
-    Two signals (the only two the trainer's experience dict supports —
+    Two signals (the only two the gymv ``EpisodeResult`` supports —
     see module docstring "F2"):
 
     1. **OUTCOME_FAILURE** — episode-level. ``total_reward <= threshold``.
     2. **NO_SKILL_BOUND** — per-step. ``skill_id`` was missing on a
        step where the bank was non-empty going into the episode.
+
+    Path 4 — when ``domain`` is a transfer target AND the episode
+    carries a ``raw_sample`` dict (the cold-start per-sample JSON
+    shape produced by ``cold_start/generate_cold_start_actor_*.py``
+    for VR / video / browser / osworld), this function dispatches to
+    ``labeling_supplement._failure_synth.get_synthesizer(domain)``
+    instead of the gymv heuristic.
     """
     out: List[FailureTrace] = []
     episode_id = getattr(episode, "episode_id", "") or "anon"
+
+    # ── Path 4 — transfer-target dispatch (VR / video / browser / osworld) ─
+    # Routed only when (a) the resolved domain is NOT gymv AND (b) the
+    # episode carries a ``raw_sample`` dict. The synthesiser package
+    # owns the per-domain failure-signal vocabulary; this hook just
+    # routes by name.
+    if domain != "gymv":
+        raw_sample = getattr(episode, "raw_sample", None)
+        if isinstance(raw_sample, dict):
+            try:
+                from labeling_supplement._failure_synth import get_synthesizer
+                synth = get_synthesizer(domain)
+                return synth(
+                    raw_sample,
+                    domain=domain,
+                    sample_id=episode_id,
+                    max_failures=max_failures,
+                )
+            except Exception as exc:                                    # noqa: BLE001
+                logger.debug(
+                    "crafter_hook[path4]: domain=%s synth fall-through "
+                    "(no proposals from this episode): %s", domain, exc,
+                )
+                return out
+        # Resolved transfer-target domain but no raw_sample — the
+        # episode shape is gymv-only, so skip rather than emit a
+        # spurious gymv-shaped failure on the wrong domain. Logged at
+        # DEBUG so noisy mis-configs are visible.
+        logger.debug(
+            "crafter_hook[path4]: domain=%s but episode has no raw_sample; "
+            "skipping failure synthesis", domain,
+        )
+        return out
+
+
     total_reward = float(getattr(episode, "total_reward", 0.0))
     n_steps = int(getattr(episode, "steps", 0) or 0)
     experiences = list(getattr(episode, "experiences", []) or [])
@@ -966,12 +1132,25 @@ def _classify_hypothesis_for_quality_gate(
     pathological case where the LLM / Hypothesizer emitted an
     obvious template.
     """
-    # 1. Name is the auto-generated placeholder — "hyp-XXXXXX" or
-    #    "hypothesis__prop-...".  These are precisely the names the
-    #    Hypothesizer / LLM crafter fall back to when they failed to
-    #    supply a concrete game-specific name.
+    # 1. Name is the auto-generated placeholder.  Three known templates
+    #    fall through the Hypothesizer / LLM crafter when they failed
+    #    to supply a concrete game-specific name:
+    #      * ``hyp-XXXXXX``         (LLM crafter fallback in
+    #        ``_llm_crafter._build_typed_proposal_from_parsed`` —
+    #        ``new_name or f"hyp-{pid[:8]}"``).
+    #      * ``hypothesis__prop-...`` (auto-rename applied at the
+    #        promotion-gate / snapshot boundary when the proposal name
+    #        is missing — ``hypothesis__{proposal_id[:32]}``).
+    #      * ``hyp_for_<failure_class>`` (deterministic
+    #        ``crafter.hypothesizer.Hypothesizer.hypothesize`` —
+    #        ``f"hyp_for_{pattern.failure_class.lower()}"``).
+    #    Post-2026-05-06 audit: the v11 fix only caught the first two
+    #    prefixes, allowing the deterministic ``hyp_for_*`` template to
+    #    leak into per-game banks (78%/77%/61% pollution rates pre-fix
+    #    on TF3 / Altered Beast / Dynamite Headdy in the 04_042755 era,
+    #    re-emerging at 5-9% in the 06_020501 vision-runs).
     name = (getattr(proposal, "name", "") or "").strip()
-    if not name or name.startswith(("hyp-", "hypothesis__")):
+    if not name or name.startswith(("hyp-", "hypothesis__", "hyp_for_")):
         return "name_is_placeholder"
 
     # 2. Protocol must have ≥ 2 steps; otherwise the proposal carries
@@ -1209,6 +1388,21 @@ def _to_offline_row(
         base["patch_kind"] = proposal.recovery_strategy or "protocol_patch"
         base["evidence_role"] = _evidence_role_from_contract(proposal.patched_contract)
         base["seed_failure_ids"] = list(proposal.seed_failure_ids)
+        # 2026-05-06: previously we projected ONLY ``target_skill_id`` /
+        # ``rationale`` / ``patch_kind`` and dropped the actual patch
+        # body. The promotion gate's ``_make_patch_subject`` reads
+        # ``op.raw.get("patched_protocol")`` and ``op.raw.get("patched_contract")``
+        # at promotion time — when missing it synthesises a 1-step
+        # ``[{"action": "EXEC", "notes": "patch"}]`` placeholder, which
+        # is what every Crafter-promoted skill in the bank ended up
+        # being (audit: 230/230 skills in 04_061211 had a single
+        # ``[EXEC] hypothesis`` step — the LLM's actual proposed
+        # protocol was lost at this seam). Emitting them here closes
+        # the lossy gap so the gate can promote rich, refining patches.
+        if proposal.patched_protocol:
+            base["patched_protocol"] = list(proposal.patched_protocol)
+        if proposal.patched_contract is not None:
+            base["patched_contract"] = proposal.patched_contract.to_json()
     elif isinstance(proposal, RetireProposal):
         base["proposal_kind"] = "retire"
         base["target_skill_id"] = proposal.target_skill_id
@@ -1219,6 +1413,14 @@ def _to_offline_row(
         base["components"] = list(proposal.component_skill_ids)
         base["compose_op"] = "sequence"
         base["evidence_role"] = _evidence_role_from_contract(proposal.contract)
+        # See PatchProposal note above. ``_make_compose_subject`` reads
+        # ``op.raw.get("composed_protocol")`` / ``op.raw.get("contract")``.
+        if proposal.composed_protocol:
+            base["composed_protocol"] = list(proposal.composed_protocol)
+        if proposal.contract is not None:
+            base["contract"] = proposal.contract.to_json()
+        if getattr(proposal, "name", ""):
+            base["name"] = proposal.name
     elif isinstance(proposal, GeneralizeProposal):
         base["proposal_kind"] = "transfer"
         base["source_skill_id"] = proposal.base_skill_id
@@ -1226,10 +1428,34 @@ def _to_offline_row(
         base["new_adapter_per_target"] = {proposal.target_domain: True} if proposal.target_domain else {}
         base["slot_remap_per_target"] = {proposal.target_domain: dict(proposal.slot_remap)} if proposal.target_domain else {}
         base["evidence_role"] = _evidence_role_from_contract(proposal.contract)
+        # See PatchProposal note above. ``_make_generalize_subject`` reads
+        # ``op.raw.get("abstracted_protocol")`` / ``op.raw.get("contract")``.
+        if proposal.abstracted_protocol:
+            base["abstracted_protocol"] = list(proposal.abstracted_protocol)
+        if proposal.contract is not None:
+            base["contract"] = proposal.contract.to_json()
     elif isinstance(proposal, HypothesisProposal):
         base["proposal_kind"] = "hypothesize"
         base["new_skill_name"] = proposal.name
         base["evidence_role"] = _evidence_role_from_contract(proposal.contract)
+        # See PatchProposal note above. ``_make_hypothesis_subject``
+        # reads ``op.raw.get("novel_protocol")`` / ``op.raw.get("contract")``
+        # and ``op.raw.get("name")``. Until 2026-05-06 we wrote only
+        # ``new_skill_name`` (which the gate ignores), so every
+        # promoted hypothesis got the auto-fallback name
+        # ``hypothesis__<proposal_id_prefix>`` and the placeholder
+        # ``[EXEC] hypothesis`` protocol — exactly the pollution the
+        # v11 audit traced to a 73-85% boilerplate bank.
+        if proposal.name:
+            base["name"] = proposal.name
+        if proposal.novel_protocol:
+            base["novel_protocol"] = list(proposal.novel_protocol)
+        if proposal.contract is not None:
+            base["contract"] = proposal.contract.to_json()
+        if proposal.source_failure_pattern_ids:
+            base["source_failure_pattern_ids"] = list(
+                proposal.source_failure_pattern_ids,
+            )
     else:
         base["proposal_kind"] = type(proposal).__name__.lower()
 
@@ -1318,8 +1544,15 @@ def _write_proposals_jsonl(
     Always creates the file (even when ``proposals`` is empty), so the
     Promotion hook's ``--proposals-run`` walk doesn't silently skip a
     game with zero proposals — empty file = "we looked, found nothing".
+
+    Path 4 — when ``domain`` is a transfer target the corpus bucket
+    is ``visual_reasoning`` rather than gym_v / env_wrappers, so the
+    promotion gate (which now enumerates ``visual_reasoning`` in its
+    ``CORPORA`` tuple) can ``_discover_pairs`` these proposals
+    in-domain instead of forcing us to fold them under a fake
+    ``env_wrappers/twenty_forty_eight`` pair.
     """
-    corpus = corpus_for_game(game)
+    corpus = corpus_for_domain_or_game(domain, game)
     pair_dir = step_root / corpus / game
     pair_dir.mkdir(parents=True, exist_ok=True)
     out_path = pair_dir / "proposals.jsonl"

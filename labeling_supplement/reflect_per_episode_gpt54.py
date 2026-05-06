@@ -112,6 +112,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import shutil
 import sys
 import tempfile
@@ -141,6 +142,54 @@ for _p in (CODEBASE_ROOT, WORKSPACE_ROOT):
     if _p.exists() and _ps not in sys.path:
         sys.path.insert(0, _ps)
 
+
+def _bootstrap_api_keys_from_file() -> Optional["Path"]:
+    """Seed ``os.environ`` from an ``api_keys.py`` sidecar.
+
+    Mirrors the cold-start launcher's lookup order so the LLM hooks
+    (``--llm-repairer`` / ``--llm-hypothesizer``) work out of the
+    box from the same paths the rest of the project uses. No-op when
+    the env vars are already set.
+    """
+    import importlib.util
+
+    here = Path(__file__).resolve().parent
+    candidates = [
+        Path(os.environ.get("COSPLAY_API_KEYS_FILE", "") or ""),
+        here / "api_keys.py",
+        CODEBASE_ROOT / "api_keys.py",
+        CODEBASE_ROOT.parent / "api_keys.py",   # /workspace/api_keys.py
+    ]
+    for path in candidates:
+        try:
+            if not path or not path.is_file():
+                continue
+        except OSError:
+            continue
+        try:
+            spec = importlib.util.spec_from_file_location("_reflect_api_keys", path)
+            if spec is None or spec.loader is None:
+                continue
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+        except Exception:                                                # noqa: BLE001
+            continue
+        mapping = {
+            "openrouter_api_key": "OPENROUTER_API_KEY",
+            "openai_api_key":     "OPENAI_API_KEY",
+            "claude_api_key":     "ANTHROPIC_API_KEY",
+            "gemini_api_key":     "GEMINI_API_KEY",
+        }
+        for attr, env_name in mapping.items():
+            val = getattr(mod, attr, None)
+            if isinstance(val, str) and val.strip() and not os.environ.get(env_name):
+                os.environ[env_name] = val.strip()
+        return path
+    return None
+
+
+_API_KEYS_FILE_USED = _bootstrap_api_keys_from_file()
+
 # ---------------------------------------------------------------------------
 # Project imports — these load the LIVE Crafter code.
 # ---------------------------------------------------------------------------
@@ -148,6 +197,7 @@ from common.enums import (
     SkillSourceType,
     SkillStatus,
     SkillType,
+    TRANSFER_TARGET_DOMAINS,
 )
 from crafter import SkillCrafterService
 from data_structure.extensions.bank_mutation_proposal import (
@@ -160,6 +210,15 @@ from data_structure.extensions.skill_record import SkillContract, SkillRecord
 from orchestrator import ArtifactStore
 from skill_bank import SkillLifecycleManager, SkillRepository, SkillStore
 from skill_bank.stores import StoreName
+
+# Transfer-target dispatch (smoke for AB / VR / video / OSWorld). Lives
+# under a sibling package so the gymv-only legacy path stays intact.
+try:
+    from labeling_supplement._failure_synth import get_synthesizer
+except Exception:                                                # noqa: BLE001
+    # Defensive — keeps the gymv path importable if the optional
+    # _failure_synth package is missing (e.g. partial check-out).
+    get_synthesizer = None  # type: ignore[assignment]
 
 logger = logging.getLogger("labeling_supplement.reflect_per_episode")
 
@@ -229,25 +288,46 @@ def _wrap_protocol_steps(raw_steps: Iterable[Any]) -> List[Dict[str, Any]]:
 
 def _record_from_bank_entry(entry: Dict[str, Any], default_domain: str) -> SkillRecord:
     """Hydrate a `SkillRecord` from one ``skill_bank.jsonl`` line (the
-    ``{"skill": ..., "report": ...}`` envelope)."""
+    ``{"skill": ..., "report": ...}`` envelope).
+
+    Two on-disk shapes for ``protocol`` (mirrors
+    ``trainer/coevolution/_crafter_hook.py::_record_from_bank_entry``):
+
+    * **legacy cold-start** (pre-Day-2 lift) — a dict ``{"steps": [...],
+      "preconditions": [...], "success_criteria": [...], ...}``. The
+      ancillary contract fields hang off the protocol dict.
+    * **Day-2-lifted** — a list of typed hops ``[{"op": "READ",
+      "payload": {...}, "notes": ..., ...}, ...]``. Contract fields
+      have moved into ``skill["contract"]`` upstream so the protocol
+      body carries no preconditions / success_criteria of its own.
+    """
     skill = entry.get("skill") or {}
     contract = skill.get("contract") or {}
     role = (skill.get("evidence_role") or "COMMIT").upper()
     skill_type = _ROLE_TO_SKILL_TYPE.get(role, SkillType.MIXED)
 
     feasible = list(skill.get("applicable_domains") or []) or [default_domain]
-    protocol_blob = skill.get("protocol") or {}
+    raw_protocol = skill.get("protocol")
+    if isinstance(raw_protocol, list):
+        protocol_steps = list(raw_protocol)
+        protocol_blob: Dict[str, Any] = {}
+    elif isinstance(raw_protocol, dict):
+        protocol_blob = raw_protocol
+        protocol_steps = list(protocol_blob.get("steps") or [])
+    else:
+        protocol_blob = {}
+        protocol_steps = []
 
     sk = SkillRecord.new(
         name=skill.get("name", skill.get("skill_id", "_unknown")),
         skill_type=skill_type,
         source_type=SkillSourceType.MINED,
         feasible_domains=feasible,
-        protocol=_wrap_protocol_steps(protocol_blob.get("steps") or []),
+        protocol=_wrap_protocol_steps(protocol_steps),
         contract=SkillContract(
             preconditions=list(protocol_blob.get("preconditions") or []),
-            effects_add=list(contract.get("eff_add") or []),
-            effects_del=list(contract.get("eff_del") or []),
+            effects_add=list(contract.get("eff_add") or contract.get("effects_add") or []),
+            effects_del=list(contract.get("eff_del") or contract.get("effects_del") or []),
             expected_evidence_roles=[role] if role else [],
             success_criteria=list(protocol_blob.get("success_criteria") or []),
             abort_criteria=list(protocol_blob.get("abort_criteria") or []),
@@ -861,6 +941,474 @@ def _discover_pairs(
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# Transfer-target driver (VR / video / browser / osworld)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# This second driver mirrors `_process_source` but for the per-sample
+# cold-start corpora produced by
+# ``cold_start/generate_cold_start_actor_visual_reasoning.py`` (and the
+# planned browsergym / osworld / video equivalents). The contract is:
+#
+#   * One temp ``SkillCrafterService`` per (domain, benchmark) pair.
+#   * Optional bank seeding from a ``--seed-bank`` JSONL, tagging each
+#     loaded skill with ``feasible_domains=[<domain>]`` so the
+#     EligibilityFilter accepts it (gymv-tagged seeds would silently get
+#     vetoed for domain mismatch).
+#   * Per-sample synthesis via ``_failure_synth.get_synthesizer(domain)``.
+#   * Optional nearest-neighbor binding (``--match-skill-by-token``) to
+#     attach a base skill_id to each FailureTrace so the Crafter's
+#     dispatch chain (repair > retire > hypothesize) reaches the
+#     Repairer. Without this every VR failure has empty skill_id and
+#     the dispatch falls through to the Hypothesizer — fine for a pure
+#     hypothesizer smoke, but useless if the test target is the
+#     Repairer / Patch path the user enabled.
+#
+# The output layout matches the gymv driver (per-sample
+# ``proposals.jsonl`` / ``reflection.json`` / ``result.json`` plus a
+# per-benchmark ``_source_summary.json``) so the existing aggregation
+# tooling under ``labeling_supplement/promotion_decisions_out/`` keeps
+# working without changes.
+
+def _seed_bank_for_target_domain(
+    lifecycle: SkillLifecycleManager,
+    bank_jsonl: Path,
+    target_domain: str,
+) -> Tuple[int, int]:
+    """Like ``_seed_bank`` but rewrites ``feasible_domains`` to
+    ``[target_domain]`` so the EligibilityFilter admits the skill in
+    the new domain. The original gymv lineage is preserved on
+    ``parent_skill_ids`` (NOT on ``feasible_domains`` — that's the
+    runtime-eligibility axis, not the provenance axis)."""
+    if not bank_jsonl.exists():
+        return 0, 0
+    n = 0
+    skipped = 0
+    with bank_jsonl.open("r") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                skipped += 1
+                continue
+            try:
+                rec = _record_from_bank_entry(entry, default_domain=target_domain)
+                # Force the runtime-eligibility domain to the target
+                # domain so the EligibilityFilter doesn't veto every
+                # skill on the F1 (domain) axis. The Repairer will
+                # patch the skill body further.
+                object.__setattr__(rec, "feasible_domains", [target_domain])
+                lifecycle.ingest_draft(rec)
+                lifecycle.transition(
+                    rec.skill_id,
+                    to_status=SkillStatus.CANDIDATE,
+                    rationale=f"seed-from-bank-snapshot[retag→{target_domain}]",
+                )
+                n += 1
+            except Exception as exc:                                # noqa: BLE001
+                logger.debug("skip seed %s: %s",
+                             entry.get("skill", {}).get("skill_id"), exc)
+                skipped += 1
+    return n, skipped
+
+
+def _tokenize(text: Any) -> set:
+    """Mirror ``crafter.service._tokenize_for_relatedness`` so
+    nearest-neighbor binding uses the same vocabulary the
+    Hypothesizer's relatedness gate uses."""
+    if not text:
+        return set()
+    import re as _re
+    return {
+        w for w in _re.split(r"[^a-zA-Z0-9]+", str(text).lower())
+        if len(w) >= 2
+    }
+
+
+def _bind_failures_to_nearest_skill(
+    failures: List[FailureTrace],
+    lifecycle: SkillLifecycleManager,
+    *,
+    min_jaccard: float = 0.05,
+) -> int:
+    """Tag each ``FailureTrace`` whose ``skill_id`` is empty with the
+    bank's nearest-neighbor skill_id by token Jaccard over the
+    failure's ``abort_reason`` + ``extra``.
+
+    Returns the number of failures that received a binding. Skills are
+    drawn from candidate + draft (the two stores
+    ``_seed_bank_for_target_domain`` populates).
+    """
+    repo = lifecycle.repository
+    bank: List[Tuple[str, set]] = []
+    # Repository store accessors are ``draft`` / ``candidate`` /
+    # ``active`` / ``archive`` (no ``_store`` suffix); the gymv seed
+    # path lands records as CANDIDATE so that's the primary search
+    # surface, with DRAFT as fallback for in-flight records.
+    for store in (repo.candidate, repo.draft):
+        for sk in store.all():
+            tokens = _tokenize(sk.name) | _tokenize(sk.notes)
+            for hop in sk.protocol or []:
+                tokens |= _tokenize(hop.get("notes"))
+            if tokens:
+                bank.append((sk.skill_id, tokens))
+    if not bank:
+        return 0
+
+    n_bound = 0
+    for trace in failures:
+        if trace.skill_id:
+            continue
+        ctx = _tokenize(trace.abort_reason) | _tokenize(trace.failure_class)
+        for k, v in (trace.extra or {}).items():
+            ctx |= _tokenize(v)
+            ctx |= _tokenize(k)
+        if not ctx:
+            continue
+        best_id, best_j = "", 0.0
+        for sk_id, sk_tokens in bank:
+            inter = len(ctx & sk_tokens)
+            if inter == 0:
+                continue
+            j = inter / len(ctx | sk_tokens)
+            if j > best_j:
+                best_id, best_j = sk_id, j
+        if best_id and best_j >= min_jaccard:
+            object.__setattr__(trace, "skill_id", best_id)
+            trace.extra.setdefault("binding", {})["nearest_skill_jaccard"] = round(best_j, 4)
+            n_bound += 1
+    return n_bound
+
+
+def _process_target_sample(
+    *,
+    crafter: SkillCrafterService,
+    lifecycle: SkillLifecycleManager,
+    sample_path: Path,
+    out_dir: Path,
+    benchmark: str,
+    domain: str,
+    max_failures: int,
+    match_skill_by_token: bool,
+    binding_jaccard_min: float,
+) -> Dict[str, Any]:
+    """Process one cold-start per-sample JSON end-to-end (transfer-target mode)."""
+    sample = json.loads(sample_path.read_text())
+    sid = str(sample.get("sample_id") or sample.get("task_id") or sample_path.stem)
+    sample_id_full = f"{benchmark}/{sid}"
+
+    if get_synthesizer is None:
+        raise RuntimeError(
+            "labeling_supplement._failure_synth is not importable; "
+            "transfer-target mode requires the synthesiser package."
+        )
+    synth = get_synthesizer(domain)
+    failure_traces = synth(
+        sample,
+        domain=domain,
+        sample_id=sample_id_full,
+        max_failures=max_failures,
+    )
+
+    # Optional: bind empty-skill_id failures to the nearest seeded
+    # bank skill so the Crafter's dispatch reaches the Repairer.
+    n_bound = 0
+    if match_skill_by_token and failure_traces:
+        n_bound = _bind_failures_to_nearest_skill(
+            failure_traces, lifecycle, min_jaccard=binding_jaccard_min,
+        )
+
+    outcome_summary = {
+        "benchmark": benchmark,
+        "sample_id": sid,
+        "correct": bool(sample.get("correct")),
+        "judge_verdict": (sample.get("judge") or {}).get("verdict"),
+        "is_mcq": bool(sample.get("is_mcq")),
+        "schema_recovery": sample.get("schema_recovery"),
+    }
+
+    reflection = EpisodeReflection(
+        episode_id=sample_id_full,
+        domain=domain,
+        parent_run_id=str(sample_path.parent),
+        failure_traces=failure_traces,
+        skill_episodes=[],
+        new_candidate_skill_ids=[],
+        bank_agent_actions={},
+        outcome_summary=outcome_summary,
+    )
+
+    t0 = time.time()
+    result = crafter.reflect_on_episode(reflection)
+    elapsed = time.time() - t0
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    proposals_path = out_dir / "proposals.jsonl"
+    with proposals_path.open("w") as f:
+        for p in result.proposals:
+            f.write(json.dumps(proposal_to_json(p), ensure_ascii=False, sort_keys=True) + "\n")
+
+    (out_dir / "reflection.json").write_text(
+        json.dumps(reflection.to_json(), indent=2, ensure_ascii=False, sort_keys=True)
+    )
+
+    by_kind: Counter[str] = Counter(type(p).__name__ for p in result.proposals)
+    by_proposer: Counter[str] = Counter(_infer_proposer(p) for p in result.proposals)
+
+    (out_dir / "result.json").write_text(json.dumps({
+        "trigger": result.trigger,
+        "episode_id": result.episode_id,
+        "n_failures_synthesized": len(failure_traces),
+        "n_failures_ingested": result.n_failures_ingested,
+        "n_failures_bound_by_token": n_bound,
+        "n_patterns_examined": result.n_patterns_examined,
+        "n_proposals": len(result.proposals),
+        "n_subsumption_retires": result.n_subsumption_retires,
+        "n_patches_coalesced": result.n_patches_coalesced,
+        "n_patches_skipped_cooldown": result.n_patches_skipped_cooldown,
+        "by_kind": dict(by_kind),
+        "by_proposer": dict(by_proposer),
+        "bank_view_summary": dict(result.bank_view_summary),
+        "elapsed_sec": round(elapsed, 4),
+        "completed_at": _utcnow_iso(),
+    }, indent=2))
+
+    return {
+        "sample_path": str(sample_path),
+        "benchmark": benchmark,
+        "sample_id": sid,
+        "n_failures_synthesized": len(failure_traces),
+        "n_failures_bound_by_token": n_bound,
+        "n_proposals": len(result.proposals),
+        "by_kind": dict(by_kind),
+        "by_proposer": dict(by_proposer),
+        "elapsed_sec": round(elapsed, 4),
+    }
+
+
+def _process_target_benchmark(
+    *,
+    benchmark: str,
+    domain: str,
+    samples_dir: Path,
+    output_root: Path,
+    seed_bank_path: Optional[Path],
+    max_samples: Optional[int],
+    sample_id_filter: Optional[List[str]],
+    max_failures: int,
+    match_skill_by_token: bool,
+    binding_jaccard_min: float,
+    enable_protocol_patching: bool,
+    hot_pattern_threshold: int,
+    hypothesize_min_recurrences: int,
+    llm_repairer: bool,
+    llm_hypothesizer: bool,
+    llm_diagnoser: bool,
+    llm_model: str,
+) -> Dict[str, Any]:
+    """Run reflect across all per-sample JSONs for one benchmark."""
+    t0 = time.time()
+    out_src = output_root / domain / benchmark
+    out_src.mkdir(parents=True, exist_ok=True)
+
+    samples = sorted(samples_dir.glob("sample_*.json"))
+    if sample_id_filter is not None:
+        keep = set(sample_id_filter)
+        # Match either by file stem or by the sample's own sample_id.
+        kept: List[Path] = []
+        for sp in samples:
+            if sp.stem in keep:
+                kept.append(sp)
+                continue
+            try:
+                blob = json.loads(sp.read_text())
+                if str(blob.get("sample_id") or "") in keep:
+                    kept.append(sp)
+            except Exception:                                       # noqa: BLE001
+                continue
+        samples = kept
+    if max_samples is not None:
+        samples = samples[:max_samples]
+    if not samples:
+        logger.warning("%s/%s: no sample_*.json (or filter dropped all)",
+                       domain, benchmark)
+        (out_src / "_source_summary.json").write_text(json.dumps({
+            "domain": domain, "benchmark": benchmark,
+            "status": "no_samples", "samples_dir": str(samples_dir),
+        }, indent=2))
+        return {"domain": domain, "benchmark": benchmark, "status": "no_samples",
+                "n_samples": 0, "n_proposals": 0, "elapsed_sec": 0.0}
+
+    temp_root = Path(tempfile.mkdtemp(prefix=f"crafter_target_{domain}_{benchmark}_"))
+    try:
+        repo = SkillRepository(
+            draft_store=SkillStore(StoreName.DRAFT, str(temp_root / "draft")),
+            candidate_store=SkillStore(StoreName.CANDIDATE, str(temp_root / "candidate")),
+            active_store=SkillStore(StoreName.ACTIVE, str(temp_root / "active")),
+            archive_store=SkillStore(StoreName.ARCHIVE, str(temp_root / "archive")),
+        )
+        lifecycle = SkillLifecycleManager(repo)
+        artifacts = ArtifactStore(str(temp_root / "artifacts"))
+        crafter = SkillCrafterService(
+            lifecycle=lifecycle,
+            artifact_store=artifacts,
+            enable_protocol_patching=enable_protocol_patching,
+            hot_pattern_threshold=hot_pattern_threshold,
+            hypothesize_min_recurrences=hypothesize_min_recurrences,
+        )
+
+        # Optional LLM hooks (Step-0 of the README's integration roadmap).
+        llm_status: Dict[str, Any] = {"installed": False}
+        if llm_repairer or llm_hypothesizer or llm_diagnoser:
+            try:
+                from crafter._llm_runtime import install_llm_hooks
+                llm_status = install_llm_hooks(
+                    crafter,
+                    model=llm_model,
+                    audit_sink=artifacts.append_audit,
+                    enable_diagnoser=llm_diagnoser,
+                    enable_repairer=llm_repairer,
+                    enable_hypothesizer=llm_hypothesizer,
+                )
+                llm_status["installed"] = True
+            except Exception as exc:                                # noqa: BLE001
+                logger.error("LLM hook install failed: %s", exc)
+                llm_status = {"installed": False, "error": str(exc)}
+
+        n_seeded = n_seed_skipped = 0
+        if seed_bank_path is not None:
+            n_seeded, n_seed_skipped = _seed_bank_for_target_domain(
+                lifecycle, seed_bank_path, target_domain=domain,
+            )
+
+        rows: List[Dict[str, Any]] = []
+        total_props_per_episode = 0
+        total_subsumes = 0
+        total_coalesced = 0
+        total_cooldown = 0
+        total_bound = 0
+        by_kind: Counter[str] = Counter()
+        by_proposer: Counter[str] = Counter()
+
+        for sp in samples:
+            row = _process_target_sample(
+                crafter=crafter,
+                lifecycle=lifecycle,
+                sample_path=sp,
+                out_dir=out_src / sp.stem,
+                benchmark=benchmark,
+                domain=domain,
+                max_failures=max_failures,
+                match_skill_by_token=match_skill_by_token,
+                binding_jaccard_min=binding_jaccard_min,
+            )
+            rows.append(row)
+            total_props_per_episode += row["n_proposals"]
+            total_bound += row.get("n_failures_bound_by_token", 0)
+            by_kind.update(row["by_kind"])
+            by_proposer.update(row["by_proposer"])
+
+        # Per-batch reflective pass (PLAN-SKILL-CRAFTER §6.5) — VR is a
+        # one-call-per-sample modality, so the per-episode pass above
+        # always sees pattern.count==1 and the Hypothesizer recurrence
+        # gate (default 3) blocks every proposal. The cross-sample
+        # aggregation needs `cycle()`: FailureMemory accumulates across
+        # `reflect_on_episode` calls (it's the same SkillCrafterService),
+        # so calling `cycle()` here with no new failures simply re-runs
+        # dispatch over the now-populated memory at the proper
+        # `hot_pattern_threshold`.
+        cycle_t0 = time.time()
+        cycle_result = crafter.cycle(new_failures=None)
+        cycle_elapsed = time.time() - cycle_t0
+        total_props_cycle = len(cycle_result.proposals)
+        cycle_by_kind: Counter[str] = Counter(
+            type(p).__name__ for p in cycle_result.proposals
+        )
+        cycle_by_proposer: Counter[str] = Counter(
+            _infer_proposer(p) for p in cycle_result.proposals
+        )
+        by_kind.update(cycle_by_kind)
+        by_proposer.update(cycle_by_proposer)
+        total_subsumes += cycle_result.n_subsumption_retires
+        total_coalesced += cycle_result.n_patches_coalesced
+        total_cooldown += cycle_result.n_patches_skipped_cooldown
+
+        # Persist the cycle proposals separately so the per-sample
+        # vs. cross-sample attribution is preserved on disk.
+        cycle_out = out_src / "_cycle"
+        cycle_out.mkdir(parents=True, exist_ok=True)
+        with (cycle_out / "proposals.jsonl").open("w") as f:
+            for p in cycle_result.proposals:
+                f.write(json.dumps(proposal_to_json(p), ensure_ascii=False, sort_keys=True) + "\n")
+        (cycle_out / "result.json").write_text(json.dumps({
+            "trigger": cycle_result.trigger,
+            "n_failures_ingested": cycle_result.n_failures_ingested,
+            "n_patterns_examined": cycle_result.n_patterns_examined,
+            "n_proposals": total_props_cycle,
+            "n_subsumption_retires": cycle_result.n_subsumption_retires,
+            "n_patches_coalesced": cycle_result.n_patches_coalesced,
+            "n_patches_skipped_cooldown": cycle_result.n_patches_skipped_cooldown,
+            "by_kind": dict(cycle_by_kind),
+            "by_proposer": dict(cycle_by_proposer),
+            "elapsed_sec": round(cycle_elapsed, 4),
+            "completed_at": _utcnow_iso(),
+        }, indent=2))
+
+        total_props = total_props_per_episode + total_props_cycle
+
+        elapsed = time.time() - t0
+        (out_src / "_source_summary.json").write_text(json.dumps({
+            "domain": domain,
+            "benchmark": benchmark,
+            "samples_dir": str(samples_dir),
+            "status": "ok",
+            "n_samples": len(samples),
+            "n_skills_seeded": n_seeded,
+            "n_skills_skipped_in_seed": n_seed_skipped,
+            "n_failures_bound_by_token": total_bound,
+            "n_proposals": total_props,
+            "n_proposals_per_episode": total_props_per_episode,
+            "n_proposals_cross_sample_cycle": total_props_cycle,
+            "by_kind": dict(by_kind),
+            "by_proposer": dict(by_proposer),
+            "thresholds": {
+                "max_failures_per_sample": max_failures,
+                "binding_jaccard_min": binding_jaccard_min if match_skill_by_token else None,
+                "hot_pattern_threshold": hot_pattern_threshold,
+                "hypothesize_min_recurrences": hypothesize_min_recurrences,
+            },
+            "knobs": {
+                "enable_protocol_patching": enable_protocol_patching,
+                "match_skill_by_token": match_skill_by_token,
+                "seed_bank": str(seed_bank_path) if seed_bank_path else None,
+                "llm_status": llm_status,
+            },
+            "elapsed_sec": round(elapsed, 3),
+            "completed_at": _utcnow_iso(),
+            "per_sample": rows,
+        }, indent=2))
+
+        return {
+            "domain": domain,
+            "benchmark": benchmark,
+            "status": "ok",
+            "n_samples": len(samples),
+            "n_proposals": total_props,
+            "n_subsumption_retires": total_subsumes,
+            "n_patches_coalesced": total_coalesced,
+            "n_patches_skipped_cooldown": total_cooldown,
+            "n_failures_bound_by_token": total_bound,
+            "by_kind": dict(by_kind),
+            "by_proposer": dict(by_proposer),
+            "elapsed_sec": round(elapsed, 3),
+        }
+    finally:
+        shutil.rmtree(temp_root, ignore_errors=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -890,7 +1438,243 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true",
                    help="Print discovered pairs and exit without invoking the Crafter.")
     p.add_argument("-v", "--verbose", action="store_true")
+
+    # ── Transfer-target mode (VR / video / browser / osworld smoke) ──
+    # When --domain is set to a transfer-target domain (NOT 'gymv'),
+    # the legacy gymv (corpus, source) discovery is bypassed and the
+    # script switches to the per-sample driver in
+    # `_process_target_benchmark`. The gymv path is byte-identical
+    # whenever --domain is unset or is 'gymv'.
+    target_grp = p.add_argument_group(
+        "Transfer-target mode (VR / video / browser / osworld)",
+        "Activated when --domain != 'gymv'. Mutually exclusive with the "
+        "gymv (corpus, source) discovery flags.",
+    )
+    target_grp.add_argument(
+        "--domain", default="gymv",
+        choices=("gymv",) + tuple(TRANSFER_TARGET_DOMAINS),
+        help="Which target domain to process. Default 'gymv' = legacy path.",
+    )
+    target_grp.add_argument(
+        "--samples-root", type=Path, default=None,
+        help="Root holding per-benchmark cold-start dirs, e.g. "
+             "Cold-start-out-visual-reasoning/. Required when --domain != gymv.",
+    )
+    target_grp.add_argument(
+        "--benchmarks", nargs="+", default=None,
+        help="Subdirectory names under --samples-root to process, e.g. "
+             "visual_toolbench tir_bench. Default = every subdir with sample_*.json.",
+    )
+    target_grp.add_argument(
+        "--max-samples-per-benchmark", type=int, default=None,
+        help="Per-benchmark cap (smoke testing).",
+    )
+    target_grp.add_argument(
+        "--sample-ids-file", type=Path, default=None,
+        help="Optional file with one sample_id (or sample_NNN stem) per "
+             "line; restricts processing to those samples. Pair with the "
+             "manifests under cold_start/evaluation_dataset/{pool,holdout}/.",
+    )
+    target_grp.add_argument(
+        "--seed-bank", type=Path, default=None,
+        help="Optional skill_bank.jsonl to seed as CANDIDATE (re-tagged "
+             "feasible_domains=[<domain>]). Required for the Repairer "
+             "path; without it the dispatch falls through to the "
+             "Hypothesizer for every failure.",
+    )
+    target_grp.add_argument(
+        "--match-skill-by-token", action="store_true",
+        help="Token-Jaccard nearest-neighbor: bind every empty-skill_id "
+             "FailureTrace to the closest seeded skill so the Repairer "
+             "(rather than the Hypothesizer) handles it.",
+    )
+    target_grp.add_argument(
+        "--binding-jaccard-min", type=float, default=0.05,
+        help="Minimum Jaccard for token-binding (default 0.05).",
+    )
+
+    # ── Crafter knobs ────────────────────────────────────────────────
+    knob_grp = p.add_argument_group("Crafter knobs (apply to both modes)")
+    knob_grp.add_argument(
+        "--enable-protocol-patching", action="store_true", default=False,
+        help="Lane-(b): allow Repairer to mint PatchProposal records. "
+             "Default OFF (lane-(a)) — matches live trainer behaviour.",
+    )
+    knob_grp.add_argument(
+        "--hot-pattern-threshold", type=int, default=3,
+        help="Per-batch dispatch threshold (per-episode pass uses 1).",
+    )
+    knob_grp.add_argument(
+        "--hypothesize-min-recurrences", type=int, default=3,
+        help="Hypothesizer fallthrough gate: pattern.count must reach "
+             "this many before the Hypothesizer fires. Set to a large "
+             "number to effectively disable Hypothesizer for repair-only "
+             "smoke tests.",
+    )
+
+    # ── LLM hooks (Step-0 of crafter/README.md teacher-LLM roadmap) ──
+    llm_grp = p.add_argument_group(
+        "Crafter LLM hooks",
+        "Wire the dormant Repairer / Hypothesizer / FailureDiagnoser "
+        "hooks to a real LLM via API_func.ask_model. Defaults preserve "
+        "the deterministic rule path.",
+    )
+    llm_grp.add_argument("--llm-repairer", action="store_true", default=False,
+                        help="Replace Repairer rule path with LLMRepairer (gpt-5.4 by default).")
+    llm_grp.add_argument("--llm-hypothesizer", action="store_true", default=False)
+    llm_grp.add_argument("--llm-diagnoser", action="store_true", default=False)
+    llm_grp.add_argument("--llm-model", default="gpt-5.4",
+                        help="Model id for the LLM hooks (default gpt-5.4).")
     return p
+
+
+def _main_target(args: argparse.Namespace, output_root: Path) -> int:
+    """Driver for transfer-target benchmarks (VR / video / browser / osworld).
+
+    Activated when ``--domain != gymv``. Reads cold-start per-sample
+    JSONs from ``--samples-root/<benchmark>/`` and emits the same
+    per-sample artefact layout the gymv driver does, plus a top-level
+    ``_run_summary.json``.
+    """
+    if args.samples_root is None:
+        logger.error("--samples-root is required when --domain != gymv")
+        return 2
+    samples_root: Path = args.samples_root.resolve()
+    if not samples_root.is_dir():
+        logger.error("samples-root not a directory: %s", samples_root)
+        return 2
+
+    # Discover benchmarks.
+    if args.benchmarks:
+        benchmarks = list(args.benchmarks)
+    else:
+        benchmarks = sorted(
+            p.name for p in samples_root.iterdir()
+            if p.is_dir()
+            and not p.name.startswith("_")
+            and any(p.glob("sample_*.json"))
+        )
+    if not benchmarks:
+        logger.error("no benchmark subdirs with sample_*.json under %s", samples_root)
+        return 2
+
+    sample_id_filter: Optional[List[str]] = None
+    if args.sample_ids_file is not None:
+        ids = []
+        for line in args.sample_ids_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#"):
+                ids.append(line)
+        sample_id_filter = ids
+        logger.info("loaded %d sample-id filter entries from %s",
+                    len(ids), args.sample_ids_file)
+
+    seed_bank_path: Optional[Path] = None
+    if args.seed_bank is not None:
+        seed_bank_path = args.seed_bank.resolve()
+        if not seed_bank_path.is_file():
+            logger.error("seed-bank not a file: %s", seed_bank_path)
+            return 2
+
+    started_at = _utcnow_iso()
+    logger.info("reflect_per_episode (target): domain=%s benchmarks=%s",
+                args.domain, ",".join(benchmarks))
+    logger.info("  samples_root: %s", samples_root)
+    logger.info("  seed_bank   : %s", seed_bank_path)
+    logger.info("  knobs       : protocol_patching=%s match_token=%s "
+                "llm_repairer=%s llm_hypothesizer=%s model=%s",
+                args.enable_protocol_patching, args.match_skill_by_token,
+                args.llm_repairer, args.llm_hypothesizer, args.llm_model)
+    if args.dry_run:
+        for b in benchmarks:
+            n = len(list((samples_root / b).glob("sample_*.json")))
+            print(f"  {args.domain}/{b}: {n} sample(s)")
+        return 0
+
+    rows: List[Dict[str, Any]] = []
+    total_samples = total_props = total_bound = 0
+    by_kind_total: Counter[str] = Counter()
+    by_proposer_total: Counter[str] = Counter()
+
+    for bench in benchmarks:
+        bench_dir = samples_root / bench
+        if not bench_dir.is_dir():
+            logger.warning("skipping missing benchmark dir: %s", bench_dir)
+            continue
+        logger.info("processing %s/%s", args.domain, bench)
+        row = _process_target_benchmark(
+            benchmark=bench,
+            domain=args.domain,
+            samples_dir=bench_dir,
+            output_root=output_root,
+            seed_bank_path=seed_bank_path,
+            max_samples=args.max_samples_per_benchmark,
+            sample_id_filter=sample_id_filter,
+            max_failures=args.max_failures_per_episode,
+            match_skill_by_token=args.match_skill_by_token,
+            binding_jaccard_min=args.binding_jaccard_min,
+            enable_protocol_patching=args.enable_protocol_patching,
+            hot_pattern_threshold=args.hot_pattern_threshold,
+            hypothesize_min_recurrences=args.hypothesize_min_recurrences,
+            llm_repairer=args.llm_repairer,
+            llm_hypothesizer=args.llm_hypothesizer,
+            llm_diagnoser=args.llm_diagnoser,
+            llm_model=args.llm_model,
+        )
+        rows.append(row)
+        total_samples += row.get("n_samples", 0)
+        total_props += row.get("n_proposals", 0)
+        total_bound += row.get("n_failures_bound_by_token", 0)
+        by_kind_total.update(row.get("by_kind") or {})
+        by_proposer_total.update(row.get("by_proposer") or {})
+        logger.info("  %s/%s -> %d sample(s), %d proposal(s) (%s)",
+                    args.domain, bench,
+                    row.get("n_samples", 0),
+                    row.get("n_proposals", 0),
+                    ", ".join(f"{k}={v}" for k, v in (row.get("by_kind") or {}).items()) or "-")
+
+    (output_root / "_run_meta.json").write_text(json.dumps({
+        "domain":        args.domain,
+        "samples_root":  str(samples_root),
+        "benchmarks":    benchmarks,
+        "seed_bank":     str(seed_bank_path) if seed_bank_path else None,
+        "max_samples_per_benchmark": args.max_samples_per_benchmark,
+        "sample_ids_file": str(args.sample_ids_file) if args.sample_ids_file else None,
+        "knobs": {
+            "enable_protocol_patching": args.enable_protocol_patching,
+            "match_skill_by_token": args.match_skill_by_token,
+            "binding_jaccard_min": args.binding_jaccard_min,
+            "hot_pattern_threshold": args.hot_pattern_threshold,
+            "hypothesize_min_recurrences": args.hypothesize_min_recurrences,
+            "llm_repairer": args.llm_repairer,
+            "llm_hypothesizer": args.llm_hypothesizer,
+            "llm_diagnoser": args.llm_diagnoser,
+            "llm_model": args.llm_model,
+        },
+        "started_at": started_at,
+    }, indent=2))
+
+    (output_root / "_run_summary.json").write_text(json.dumps({
+        "domain":           args.domain,
+        "samples_root":     str(samples_root),
+        "n_benchmarks":     len(benchmarks),
+        "n_samples":        total_samples,
+        "n_proposals":      total_props,
+        "n_failures_bound_by_token": total_bound,
+        "by_kind":          dict(by_kind_total),
+        "by_proposer":      dict(by_proposer_total),
+        "per_benchmark":    rows,
+        "started_at":       started_at,
+        "completed_at":     _utcnow_iso(),
+    }, indent=2))
+
+    logger.info("DONE: %d sample(s) across %d benchmark(s), %d proposal(s)",
+                total_samples, len(benchmarks), total_props)
+    logger.info("  by kind     : %s",
+                ", ".join(f"{k}={v}" for k, v in by_kind_total.most_common()) or "-")
+    logger.info("  by proposer : %s",
+                ", ".join(f"{k}={v}" for k, v in by_proposer_total.most_common()) or "-")
+    return 0
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -900,6 +1684,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s | %(message)s",
     )
 
+    output_root: Path = (
+        args.output_dir.resolve() if args.output_dir
+        else (DEFAULT_OUTPUT_ROOT / f"run_{_utc_run_stamp()}").resolve()
+    )
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    # Transfer-target dispatch — bypasses the gymv (corpus, source) loop.
+    if args.domain != "gymv":
+        return _main_target(args, output_root)
+
     bank_run: Path = args.bank_run.resolve()
     actions_run: Path = args.actions_run.resolve()
     if not bank_run.exists():
@@ -908,12 +1702,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not actions_run.exists():
         logger.error("actions-run does not exist: %s", actions_run)
         return 2
-
-    output_root: Path = (
-        args.output_dir.resolve() if args.output_dir
-        else (DEFAULT_OUTPUT_ROOT / f"run_{_utc_run_stamp()}").resolve()
-    )
-    output_root.mkdir(parents=True, exist_ok=True)
 
     pairs = _discover_pairs(
         bank_run, actions_run,

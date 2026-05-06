@@ -632,6 +632,32 @@ build_train_args() {
         args+=(--resume)
     fi
 
+    # Path 3 — internal LLM hooks for SkillCrafterService (off by
+    # default; opt-in via CRAFTER_INTERNAL_LLM_HOOKS_ENABLED=1).
+    # Auto-disabled when JUDGE_MODE=off (mirrors phase-1 behaviour).
+    if [ "${CRAFTER_INTERNAL_LLM_HOOKS_ENABLED:-0}" = "1" ] \
+            && [ "${JUDGE_MODE}" != "off" ]; then
+        args+=(--crafter-install-internal-llm-hooks)
+        if [ -n "${CRAFTER_INTERNAL_LLM_MODEL:-}" ]; then
+            args+=(--crafter-internal-llm-model "${CRAFTER_INTERNAL_LLM_MODEL}")
+        fi
+        if [ "${CRAFTER_INTERNAL_LLM_DISABLE_REPAIRER:-0}" = "1" ]; then
+            args+=(--crafter-internal-llm-disable-repairer)
+        fi
+        if [ "${CRAFTER_INTERNAL_LLM_DISABLE_HYPOTHESIZER:-0}" = "1" ]; then
+            args+=(--crafter-internal-llm-disable-hypothesizer)
+        fi
+        if [ "${CRAFTER_INTERNAL_LLM_ENABLE_DIAGNOSER:-0}" = "1" ]; then
+            args+=(--crafter-internal-llm-enable-diagnoser)
+        fi
+    fi
+
+    # Path 4 — per-game crafter domain dispatch.  Empty by default;
+    # opt-in via CRAFTER_EPISODE_DOMAIN_PER_GAME='game1:domain1,...'.
+    if [ -n "${CRAFTER_EPISODE_DOMAIN_PER_GAME:-}" ]; then
+        args+=(--crafter-episode-domain-per-game "${CRAFTER_EPISODE_DOMAIN_PER_GAME}")
+    fi
+
     if [ -n "${DEBUG}" ]; then
         args+=(--debug-io)
     fi

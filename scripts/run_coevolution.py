@@ -792,6 +792,68 @@ def parse_args() -> argparse.Namespace:
     )
     parser.set_defaults(crafter_enable_protocol_patching=False)
 
+    # Path 3 — SkillCrafterService internal LLM hooks
+    # ──────────────────────────────────────────────────
+    # These complement Path 2 (--llm-crafter-enabled). Path 2 mints
+    # SUPPLEMENTAL proposals OUTSIDE the dispatcher; Path 3 wires the
+    # dispatcher's INTERNAL Repairer / Hypothesizer / Diagnoser to the
+    # 35B-A3B teacher so a PatchProposal carries an LLM-rewritten
+    # ``patched_protocol`` instead of the rule path's deterministic
+    # edit. See ``crafter/_llm_runtime.py``. Off by default → byte-
+    # identical to legacy production runs.
+    parser.add_argument(
+        "--crafter-install-internal-llm-hooks", action="store_true",
+        help="Enable Path 3: replace SkillCrafterService's internal "
+             "Repairer / Hypothesizer / Diagnoser with LLM-backed "
+             "implementations from crafter._llm_runtime. Routes via "
+             "VLLM_BASE_URL_MAP; uses --crafter-internal-llm-model "
+             "(default = BACKBONE_TEACHER_MODEL). Soft-fail: any "
+             "import / call exception leaves the dispatcher on its "
+             "deterministic path.",
+    )
+    parser.add_argument(
+        "--crafter-internal-llm-model", type=str, default="",
+        help="Override model for Path 3 internal LLM hooks. Empty "
+             "(default) → BACKBONE_TEACHER_MODEL via VLLM_BASE_URL_MAP "
+             "(or env VLM_AGENT_BACKBONE_TEACHER_MODEL).",
+    )
+    parser.add_argument(
+        "--crafter-internal-llm-enable-diagnoser", action="store_true",
+        help="Path 3 sub-flag: also wire the FailureDiagnoser hook "
+             "(default OFF — diagnoser-as-rule is well-calibrated for "
+             "in-domain gymv failures; we mostly need the "
+             "Repairer / Hypothesizer hooks for transfer targets).",
+    )
+    parser.add_argument(
+        "--crafter-internal-llm-disable-repairer", action="store_true",
+        help="Path 3 sub-flag: TURN OFF the Repairer hook (default ON "
+             "when --crafter-install-internal-llm-hooks). Use for "
+             "Hypothesizer-only attribution runs.",
+    )
+    parser.add_argument(
+        "--crafter-internal-llm-disable-hypothesizer", action="store_true",
+        help="Path 3 sub-flag: TURN OFF the Hypothesizer hook "
+             "(default ON when --crafter-install-internal-llm-hooks). "
+             "Use for Repairer-only attribution runs.",
+    )
+
+    # Path 4 — per-game crafter domain dispatch (transfer targets)
+    # ─────────────────────────────────────────────────────────────
+    # Lets the trainer route each game to a transfer-target domain
+    # (visual_reasoning / video / browser / osworld) instead of the
+    # gymv default. When a game is mapped here AND its EpisodeResult
+    # carries a ``raw_sample`` dict, the failure synthesiser dispatches
+    # to ``labeling_supplement._failure_synth.get_synthesizer(domain)``.
+    parser.add_argument(
+        "--crafter-episode-domain-per-game", type=str, default="",
+        help="Comma-separated game→domain map for Path 4, e.g. "
+             "'vtb_easy:visual_reasoning,siv_bench:visual_reasoning'. "
+             "Games not listed default to gymv (legacy behaviour). "
+             "Domain MUST be one of common.enums.DOMAINS; the "
+             "synthesiser MUST be registered under "
+             "labeling_supplement/_failure_synth/__init__.py.",
+    )
+
     # Debug
     parser.add_argument(
         "--debug-io", action="store_true",
@@ -1088,6 +1150,39 @@ def main() -> None:
         config_kwargs["llm_harness_temperature"] = args.llm_harness_temperature
     if args.llm_harness_timeout_s != 30.0:
         config_kwargs["llm_harness_timeout_s"] = args.llm_harness_timeout_s
+
+    # Path 3 — SkillCrafterService internal LLM hooks.
+    if args.crafter_install_internal_llm_hooks:
+        config_kwargs["crafter_install_internal_llm_hooks"] = True
+    if args.crafter_internal_llm_model:
+        config_kwargs["crafter_internal_llm_model"] = args.crafter_internal_llm_model
+    # Defaults in CoEvolutionConfig: repairer=True, hypothesizer=True,
+    # diagnoser=False. We only forward overrides.
+    if args.crafter_internal_llm_disable_repairer:
+        config_kwargs["crafter_internal_llm_enable_repairer"] = False
+    if args.crafter_internal_llm_disable_hypothesizer:
+        config_kwargs["crafter_internal_llm_enable_hypothesizer"] = False
+    if args.crafter_internal_llm_enable_diagnoser:
+        config_kwargs["crafter_internal_llm_enable_diagnoser"] = True
+
+    # Path 4 — per-game crafter domain dispatch.
+    if args.crafter_episode_domain_per_game.strip():
+        per_game: Dict[str, str] = {}
+        for chunk in args.crafter_episode_domain_per_game.split(","):
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            if ":" not in chunk:
+                logging.warning(
+                    "ignoring malformed --crafter-episode-domain-per-game "
+                    "entry %r (expected 'game:domain')",
+                    chunk,
+                )
+                continue
+            g, d = chunk.split(":", 1)
+            per_game[g.strip()] = d.strip()
+        if per_game:
+            config_kwargs["crafter_episode_domain_per_game"] = per_game
 
     if args.run_dir is not None:
         config_kwargs["run_dir"] = args.run_dir

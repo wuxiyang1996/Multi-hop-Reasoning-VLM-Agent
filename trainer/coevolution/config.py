@@ -640,6 +640,57 @@ class CoEvolutionConfig:
     crafter_hypothesize_min_recurrences: int = 3
     crafter_hypothesize_related_skill_jaccard: float = 0.30
 
+    # ── Path 3 — SkillCrafterService internal LLM hooks ───────────────
+    # Path 2 (``llm_crafter_enabled`` above) sits *outside* the
+    # SkillCrafterService and mints supplemental proposals after the
+    # rule-based ones.  Path 3 wires the **internal** Repairer /
+    # Hypothesizer / FailureDiagnoser hooks of SkillCrafterService
+    # itself, via ``crafter._llm_runtime.install_llm_hooks``.  This
+    # complements Path 2:
+    #
+    #   * Path 2 minted proposals are completely independent of the
+    #     deterministic dispatch chain (one-shot per FailureTrace).
+    #   * Path 3 injects the LLM **into** the dispatch chain so a
+    #     PatchProposal can carry an LLM-rewritten patched_protocol
+    #     instead of the rule path's deterministic edit; same for
+    #     HypothesisProposal / FailureDiagnosis.
+    #
+    # Both paths can be on simultaneously; their outputs are merged by
+    # the per-game ``proposals.jsonl`` writer in ``_crafter_hook``.
+    # Default OFF to preserve byte-identical behaviour with prior
+    # phase-1 / phase-2 production runs; enable per phase by flipping
+    # the master flag below.  See ``crafter/_llm_runtime.py`` and
+    # ``crafter/README.md`` §"Teacher-LLM integration".
+    crafter_install_internal_llm_hooks: bool = False
+    # Empty → fall back to env ``VLM_AGENT_BACKBONE_TEACHER_MODEL`` and
+    # then ``common.models.BACKBONE_TEACHER_MODEL`` (35B-A3B).
+    crafter_internal_llm_model: str = ""
+    # Per-hook on/off so callers can flip just one of the three. The
+    # README's roadmap recommends Repairer first (safest), then
+    # Hypothesizer; Diagnoser is left on the rule path because the
+    # 7-way classification has little LLM lift.
+    crafter_internal_llm_enable_repairer: bool = True
+    crafter_internal_llm_enable_hypothesizer: bool = True
+    crafter_internal_llm_enable_diagnoser: bool = False
+
+    # ── Per-game / per-domain crafter dispatch (Path 4 — VR/video/etc) ─
+    # Until Phase-2 cross-domain training landed, ``_crafter_hook``
+    # hard-coded ``domain_for_proposal = "gymv"`` because the
+    # trainer's ``EpisodeResult`` shape is gymv-specific (board_stats,
+    # skill_id-per-step, etc.).  When the trainer drives a transfer
+    # target (VR, video, browser, osworld), each ``EpisodeResult``
+    # additionally carries a ``raw_sample`` dict (the cold-start
+    # per-sample JSON) and a ``domain`` string.  ``_crafter_hook``
+    # then routes through ``labeling_supplement._failure_synth.
+    # get_synthesizer(domain)`` for failure synthesis instead of the
+    # gymv ``OUTCOME_FAILURE`` / ``NO_SKILL_BOUND`` heuristic.
+    #
+    # When this is empty (default) every episode is gymv. To run a
+    # transfer-target curriculum step, populate this map per game,
+    # e.g. ``{"VTB": "visual_reasoning", "TIR": "visual_reasoning"}``.
+    # The hook still falls back to gymv when a game isn't in the map.
+    crafter_episode_domain_per_game: Dict[str, str] = field(default_factory=dict)
+
     # ── Reviewer-facing instrumentation (block A) ─────────────────────
     # Enable per-event JSONL streams used by the §4.3 / §5.3 / §5.5
     # analysis scripts:

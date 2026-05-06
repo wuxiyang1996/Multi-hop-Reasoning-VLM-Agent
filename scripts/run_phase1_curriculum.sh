@@ -319,6 +319,32 @@ LLM_HARNESS_BOOTSTRAP_STEPS="${LLM_HARNESS_BOOTSTRAP_STEPS:-20}"
 LLM_HARNESS_MAX_TOKENS="${LLM_HARNESS_MAX_TOKENS:-256}"
 LLM_HARNESS_TIMEOUT_S="${LLM_HARNESS_TIMEOUT_S:-30}"
 
+# Path 3 (SkillCrafterService internal LLM hooks) — replace the
+# rule-based Repairer / Hypothesizer / FailureDiagnoser INSIDE the
+# dispatcher with crafter._llm_runtime.LLM* implementations.  This
+# is independent of and orthogonal to LLM_CRAFTER_ENABLED (which is
+# Path 2: SUPPLEMENTAL out-of-dispatcher proposals).  When ON,
+# patch/hypothesis proposals carry an LLM-rewritten body instead of
+# the deterministic edit / boilerplate template.  Off by default ⇒
+# byte-identical to legacy production runs; opt-in for the
+# attribution experiment that proved a 5x distinct-skill-name lift
+# on VTB cold-start (2026-05).  See crafter/_llm_runtime.py and
+# scripts/skillbridge_eval/run_smoke_attribution.py for the off-line
+# evidence that drove this default.  Auto-disabled when JUDGE_MODE=off.
+CRAFTER_INTERNAL_LLM_HOOKS_ENABLED="${CRAFTER_INTERNAL_LLM_HOOKS_ENABLED:-0}"
+CRAFTER_INTERNAL_LLM_MODEL="${CRAFTER_INTERNAL_LLM_MODEL:-}"
+CRAFTER_INTERNAL_LLM_DISABLE_REPAIRER="${CRAFTER_INTERNAL_LLM_DISABLE_REPAIRER:-0}"
+CRAFTER_INTERNAL_LLM_DISABLE_HYPOTHESIZER="${CRAFTER_INTERNAL_LLM_DISABLE_HYPOTHESIZER:-0}"
+CRAFTER_INTERNAL_LLM_ENABLE_DIAGNOSER="${CRAFTER_INTERNAL_LLM_ENABLE_DIAGNOSER:-0}"
+
+# Path 4 (per-game crafter domain dispatch) — route episodes whose
+# raw_sample carries a transfer-target shape to the per-domain
+# failure synthesisers in labeling_supplement/_failure_synth/.
+# Empty (default) ⇒ every game uses the gymv heuristic (legacy).
+# Phase 1 is gymv-only so this stays empty here; Phase 2 (holdout)
+# is the right place to populate it.
+CRAFTER_EPISODE_DOMAIN_PER_GAME="${CRAFTER_EPISODE_DOMAIN_PER_GAME:-}"
+
 # Auto-disable 35B-dependent flags when the judge is intentionally off
 # (ablation runs).  Otherwise the orchestrator would try to POST to a
 # non-existent endpoint and crash mid-step.
@@ -348,6 +374,11 @@ if [ "${JUDGE_MODE}" = "off" ]; then
         echo "[run_phase1] JUDGE_MODE=off → forcing LLM_HARNESS_VALIDATOR_ENABLED=0" \
              "(no 35B endpoint to query for Path 4 LLM Harness validator)"
         LLM_HARNESS_VALIDATOR_ENABLED=0
+    fi
+    if [ "${CRAFTER_INTERNAL_LLM_HOOKS_ENABLED}" = "1" ]; then
+        echo "[run_phase1] JUDGE_MODE=off → forcing CRAFTER_INTERNAL_LLM_HOOKS_ENABLED=0" \
+             "(no 35B endpoint to query for Path 3 internal LLM hooks)"
+        CRAFTER_INTERNAL_LLM_HOOKS_ENABLED=0
     fi
 fi
 
@@ -961,6 +992,29 @@ build_train_args() {
         if [ "${LLM_HARNESS_TIMEOUT_S}" != "30" ]; then
             args+=(--llm-harness-timeout-s "${LLM_HARNESS_TIMEOUT_S}")
         fi
+    fi
+
+    # Path 3: internal LLM hooks for the SkillCrafterService dispatcher.
+    if [ "${CRAFTER_INTERNAL_LLM_HOOKS_ENABLED}" = "1" ]; then
+        args+=(--crafter-install-internal-llm-hooks)
+        if [ -n "${CRAFTER_INTERNAL_LLM_MODEL}" ]; then
+            args+=(--crafter-internal-llm-model "${CRAFTER_INTERNAL_LLM_MODEL}")
+        fi
+        if [ "${CRAFTER_INTERNAL_LLM_DISABLE_REPAIRER}" = "1" ]; then
+            args+=(--crafter-internal-llm-disable-repairer)
+        fi
+        if [ "${CRAFTER_INTERNAL_LLM_DISABLE_HYPOTHESIZER}" = "1" ]; then
+            args+=(--crafter-internal-llm-disable-hypothesizer)
+        fi
+        if [ "${CRAFTER_INTERNAL_LLM_ENABLE_DIAGNOSER}" = "1" ]; then
+            args+=(--crafter-internal-llm-enable-diagnoser)
+        fi
+    fi
+
+    # Path 4 (per-game crafter domain dispatch).  Forwarded verbatim;
+    # the trainer parses 'game1:domain1,game2:domain2'.
+    if [ -n "${CRAFTER_EPISODE_DOMAIN_PER_GAME}" ]; then
+        args+=(--crafter-episode-domain-per-game "${CRAFTER_EPISODE_DOMAIN_PER_GAME}")
     fi
 
     if [ -n "${DEBUG}" ]; then

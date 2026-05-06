@@ -163,6 +163,7 @@ class SkillCrafterService:
         enable_protocol_patching: bool = False,
         hypothesize_min_recurrences: int = 3,
         hypothesize_related_skill_jaccard: float = 0.30,
+        hypothesis_paraphrase_jaccard: float = 0.60,
     ) -> None:
         self._lifecycle = lifecycle
         self._artifacts = artifact_store
@@ -227,6 +228,22 @@ class SkillCrafterService:
         # without each surface having to remember to apply it.
         self._hypothesize_min_recurrences = max(1, int(hypothesize_min_recurrences))
         self._hypothesize_related_jaccard = float(hypothesize_related_skill_jaccard)
+        # Fix-C — persist-time paraphrase dedup.  The
+        # ``_has_related_bank_skill`` gate above only fires PRE-call
+        # (against ``ctx_tokens`` derived from the failure pattern,
+        # which never overlaps with a fresh hypothesis name like
+        # ``evidence_gate_before_claim``).  This second gate fires
+        # POST-call against the proposer's own output (``name +
+        # protocol bullets``) compared to every existing skill in the
+        # bank — catching the LLM-Hypothesizer paraphrase mode-collapse
+        # documented in the v3 attribution summary §"Diagnosis: LLM
+        # Hypothesizer mode collapse".
+        # Set to ``0.0`` to disable the gate (preserves pre-2026-05
+        # behaviour for any caller that needs every paraphrase
+        # persisted, e.g. ablation studies).
+        self._hypothesis_paraphrase_jaccard = max(
+            0.0, min(1.0, float(hypothesis_paraphrase_jaccard))
+        )
 
     # -- phase-F frozen teacher swap -------------------------------------
 
@@ -829,12 +846,38 @@ class SkillCrafterService:
                 })
                 continue
 
+            # Fix-B: feed the LLM Hypothesizer a snapshot of the
+            # concepts already covered by the bank.  Without this the
+            # LLM has no signal to diversify away from previously-
+            # minted hypotheses (root cause of the v3 evidence_gate
+            # paraphrase explosion — see attribution summary §
+            # "Diagnosis: LLM Hypothesizer mode collapse").  Computed
+            # lazily — empty bank → empty list → prompt is identical
+            # to pre-Fix-B render.
+            existing_concepts = self._collect_existing_concepts()
             hypothesis = self._hypothesizer.propose(
                 pattern=pattern,
                 diagnosis=diagnosis,
                 teacher_model=self._teacher,
+                existing_concepts=existing_concepts,
             )
             if hypothesis is None:
+                continue
+            # Fix-C: drop paraphrase-of-existing hypotheses BEFORE
+            # they hit draft.  Prevents the v3 mode-collapse signature
+            # of 10 ``evidence_gate_*`` synonyms occupying the entire
+            # hypothesis budget.
+            dup_match = self._already_have_similar_hypothesis(hypothesis)
+            if dup_match is not None:
+                self._artifacts.append_audit({
+                    "kind": "hypothesize_skipped_paraphrase_dedup",
+                    "pattern_id": pattern.pattern_id,
+                    "candidate_name": hypothesis.name,
+                    "matched_existing_skill_id": dup_match["skill_id"],
+                    "matched_existing_name": dup_match["name"],
+                    "jaccard": dup_match["jaccard"],
+                    "jaccard_threshold": self._hypothesis_paraphrase_jaccard,
+                })
                 continue
             self._persist(hypothesis, skill_type=SkillType.MIXED, name=hypothesis.name)
             proposals.append(hypothesis)
@@ -920,6 +963,173 @@ class SkillCrafterService:
             if jaccard >= self._hypothesize_related_jaccard:
                 return True
         return False
+
+    # -- Fix-C helpers ------------------------------------------------------
+
+    @staticmethod
+    def _hypothesis_signature_tokens(
+        name: Any,
+        novel_protocol: Any,
+        contract: Any,
+    ) -> set:
+        """Token set used for paraphrase-Jaccard between hypotheses.
+
+        Combines the hypothesis ``name`` (carries 60-80% of the
+        concept signal in practice — see the v3 audit's "evidence_
+        gate_before_claim" cluster), the protocol's ``action`` /
+        ``payload.target`` / ``notes`` strings (so two hypotheses
+        with different names but identical hop sequences are still
+        detected as paraphrases), and the contract's
+        ``expected_evidence_roles`` + ``success_criteria`` (carries
+        the contract-level concept).  Length-2 alnum tokens, same
+        tokeniser as :meth:`_tokenize_for_relatedness` so the two
+        gates speak the same language.
+        """
+        tokens: set = set()
+        tokens |= SkillCrafterService._tokenize_for_relatedness(name)
+        if isinstance(novel_protocol, list):
+            for hop in novel_protocol:
+                if not isinstance(hop, dict):
+                    continue
+                tokens |= SkillCrafterService._tokenize_for_relatedness(
+                    hop.get("action")
+                )
+                tokens |= SkillCrafterService._tokenize_for_relatedness(
+                    hop.get("notes")
+                )
+                payload = hop.get("payload")
+                if isinstance(payload, dict):
+                    tokens |= SkillCrafterService._tokenize_for_relatedness(
+                        payload.get("target")
+                    )
+        if contract is not None:
+            for attr in (
+                "expected_evidence_roles",
+                "success_criteria",
+                "abort_criteria",
+            ):
+                vals = getattr(contract, attr, None)
+                if isinstance(vals, (list, tuple)):
+                    for v in vals:
+                        tokens |= SkillCrafterService._tokenize_for_relatedness(v)
+        return tokens
+
+    def _already_have_similar_hypothesis(
+        self,
+        candidate: BankMutationProposal,
+    ) -> Optional[Dict[str, Any]]:
+        """Return a small descriptor of the matching existing skill iff
+        ``candidate`` is a paraphrase of one already in the bank.
+
+        Returns ``None`` when no match is found, the gate is disabled
+        (``self._hypothesis_paraphrase_jaccard <= 0``), or the
+        candidate isn't a ``HypothesisProposal`` (the dedup is
+        purpose-built for hypotheses; PatchProposals already coalesce
+        through ``_open_patches`` and RetireProposals are 1:1 with a
+        target skill_id so they can't paraphrase each other).
+
+        The returned dict carries ``skill_id``, ``name``, and
+        ``jaccard`` so the caller's audit log captures *what* matched.
+        """
+        if self._hypothesis_paraphrase_jaccard <= 0.0:
+            return None
+        if not isinstance(candidate, HypothesisProposal):
+            return None
+
+        cand_tokens = self._hypothesis_signature_tokens(
+            getattr(candidate, "name", ""),
+            getattr(candidate, "novel_protocol", None),
+            getattr(candidate, "contract", None),
+        )
+        # Need at least 2 informative tokens — anything less and the
+        # Jaccard is too noisy to base a drop decision on.  We keep
+        # the candidate and let the rest of the pipeline (gate, actor
+        # uplift) sort it out.
+        if len(cand_tokens) < 2:
+            return None
+
+        view = self._take_bank_view()
+        best: Optional[Dict[str, Any]] = None
+        for rec in view.all_iter():
+            rec_tokens = self._hypothesis_signature_tokens(
+                getattr(rec, "name", ""),
+                getattr(rec, "protocol", None),
+                getattr(rec, "contract", None),
+            )
+            if len(rec_tokens) < 2:
+                continue
+            inter = len(cand_tokens & rec_tokens)
+            if inter == 0:
+                continue
+            jaccard = inter / len(cand_tokens | rec_tokens)
+            if jaccard < self._hypothesis_paraphrase_jaccard:
+                continue
+            if best is None or jaccard > best["jaccard"]:
+                best = {
+                    "skill_id": getattr(rec, "skill_id", ""),
+                    "name": getattr(rec, "name", ""),
+                    "jaccard": jaccard,
+                }
+        return best
+
+    # -- Fix-B helpers ------------------------------------------------------
+
+    # How many "existing concept" lines we ask the bank for before
+    # passing them to the Hypothesizer prompt renderer (which does
+    # its own dedup + cap to ``_HYPOTHESIZE_EXISTING_CONCEPTS_CAP``).
+    # We over-collect by 4× because the renderer's case-insensitive
+    # dedup will trim duplicate paraphrases minted on earlier passes.
+    _EXISTING_CONCEPTS_RAW_CAP: int = 64
+
+    def _collect_existing_concepts(self) -> List[str]:
+        """Return short ``"<name>: <hint>"`` descriptors of the concepts
+        already represented in active / candidate / draft skills.
+
+        Output is a list of strings ready to drop into the
+        Hypothesizer prompt's "EXISTING SKILL BANK" block.  Each
+        descriptor combines:
+
+        * ``rec.name`` — the load-bearing concept token (``evidence_
+          gate_before_claim``);
+        * the first non-empty of ``rec.contract.success_criteria[0]``
+          / ``rec.contract.expected_evidence_roles`` — gives the LLM
+          enough surface to recognise concept overlap even when the
+          name uses a different paraphrase than the current draft.
+
+        Empty when the bank has zero skills, which makes Fix-B a
+        no-op for cold-start / single-pass configurations (preserving
+        prior behaviour).
+        """
+        view = self._take_bank_view()
+        out: List[str] = []
+        for rec in view.all_iter():
+            if len(out) >= self._EXISTING_CONCEPTS_RAW_CAP:
+                break
+            name = (getattr(rec, "name", "") or "").strip()
+            if not name:
+                continue
+            hint = ""
+            contract = getattr(rec, "contract", None)
+            if contract is not None:
+                criteria = getattr(contract, "success_criteria", None) or []
+                if isinstance(criteria, (list, tuple)) and criteria:
+                    first = next(
+                        (c for c in criteria if isinstance(c, str) and c.strip()),
+                        "",
+                    )
+                    hint = first.strip()
+                if not hint:
+                    roles = (
+                        getattr(contract, "expected_evidence_roles", None)
+                        or []
+                    )
+                    if isinstance(roles, (list, tuple)) and roles:
+                        hint = "evidence_roles=" + "/".join(
+                            str(r) for r in roles if r
+                        )
+            descriptor = name if not hint else f"{name}: {hint}"
+            out.append(descriptor)
+        return out
 
     def _is_under_cooldown(self, base_skill_id: str) -> bool:
         if self._cooldown_passes <= 0:

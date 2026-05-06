@@ -1342,6 +1342,29 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                     hypothesize_related_skill_jaccard=getattr(
                         config, "crafter_hypothesize_related_skill_jaccard", 0.30,
                     ),
+                    # Path 3 — SkillCrafterService internal LLM hooks.
+                    # All five fields are getattr'd with the
+                    # default-OFF baseline so older CoEvolutionConfig
+                    # snapshots still load.
+                    install_internal_llm_hooks=getattr(
+                        config, "crafter_install_internal_llm_hooks", False,
+                    ),
+                    internal_llm_model=getattr(
+                        config, "crafter_internal_llm_model", "",
+                    ),
+                    internal_llm_enable_repairer=getattr(
+                        config, "crafter_internal_llm_enable_repairer", True,
+                    ),
+                    internal_llm_enable_hypothesizer=getattr(
+                        config, "crafter_internal_llm_enable_hypothesizer", True,
+                    ),
+                    internal_llm_enable_diagnoser=getattr(
+                        config, "crafter_internal_llm_enable_diagnoser", False,
+                    ),
+                    # Path 4 — per-game crafter domain dispatch (VR/video/etc).
+                    episode_domain_per_game=getattr(
+                        config, "crafter_episode_domain_per_game", None,
+                    ) or None,
                 )
                 crafter_report = crafter_step.to_dict()
 
