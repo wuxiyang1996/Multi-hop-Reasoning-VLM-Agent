@@ -85,6 +85,15 @@ skill_transfer_test/skill_bank_local/
 cross_domain_results/
 # Per-run decision-SFT jsonl bundles (labeling/build_decision_sft_jsonl.py)
 labeling/decision_sft_jsonl/
+# Per-run QA + MiniWob SFT cleaning pipeline outputs (see
+# labeling/README_QA_MINIWOB_SFT_CLEANING.md). All five stage outputs are
+# bulky and reproducible from the scripts under labeling/ and scripts/.
+labeling/qa_multihop_out/
+labeling/qa_miniwob_labeled/
+labeling/skill_bank_qa/
+labeling/skill_actions_qa_out/
+labeling/qa_skill_selection_sft/
+labeling/qa_action_taking_relabel/
 
 # ── Skill Crafter offline mirror outputs ────────────────────────
 # Per-run output directories of labeling_supplement/{decide_skill_crafting,
