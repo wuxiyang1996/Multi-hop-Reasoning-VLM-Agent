@@ -286,7 +286,12 @@ GAME_SCHEMA_TIMEOUT_S="${GAME_SCHEMA_TIMEOUT_S:-60}"
 # present; auto-disabled when JUDGE_MODE=off.  See
 # trainer/coevolution/_llm_crafter.py.
 LLM_CRAFTER_ENABLED="${LLM_CRAFTER_ENABLED:-1}"
-LLM_CRAFTER_K_MAX="${LLM_CRAFTER_K_MAX:-2}"
+# T2.18 (2026-05-06): bumped from 2 → 8 after empirical audit found
+# 96% of failure signal was being dropped (`sliced 126 failures over
+# k_max=2`).  3× throughput; 35B endpoint at TP=2 + EP can sustain
+# ~6 concurrent 1k-token calls per game without runaway latency on
+# the dual-stack layout.  Watchdog will catch if it tips over.
+LLM_CRAFTER_K_MAX="${LLM_CRAFTER_K_MAX:-8}"
 LLM_CRAFTER_MAX_TOKENS="${LLM_CRAFTER_MAX_TOKENS:-1024}"
 LLM_CRAFTER_TIMEOUT_S="${LLM_CRAFTER_TIMEOUT_S:-60}"
 

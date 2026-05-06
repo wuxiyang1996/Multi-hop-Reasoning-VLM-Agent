@@ -59,6 +59,9 @@ from skill_bank.legacy_writeback import (
     writeback_promotion,
 )
 from trainer.coevolution._crafter_hook import corpus_for_game
+from trainer.coevolution._post_writeback_inherit import (
+    inherit_evidence_per_game,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -350,6 +353,21 @@ def run_promotion_step(
             "updated_skill_ids": wb.updated_skill_ids,
         }
 
+    # T2.18 (2026-05-06) — post-writeback evidence inheritance sweep.
+    #
+    # Empirical audit (run 20260506_020501): every Crafter-promoted
+    # skill across 31 banks entered with sub_episodes=[],
+    # strategic_description="", n_instances=0, report=null — leaving
+    # them un-selectable by the actor's bank-cap-K top-K filter.  This
+    # sweep inherits those fields (discounted) from each new skill's
+    # parent_skill_ids[0].  Curator-evolved skills (no parent or
+    # source_type ∉ CRAFTER_SOURCE_TYPES) are passed through.  See
+    # ``_post_writeback_inherit.py`` for the full design rationale.
+    inherit_per_game = inherit_evidence_per_game(
+        legacy_bank_paths=legacy_bank_paths,
+        writeback_per_game=writeback_per_game,
+    )
+
     elapsed = time.monotonic() - t0
 
     # Per-step summary file for trainer step_log + dashboards.
@@ -363,6 +381,7 @@ def run_promotion_step(
         "n_defer": n_defer,
         "n_rollback": n_rollback,
         "writeback_per_game": writeback_per_game,
+        "inherit_per_game": inherit_per_game,
         "driver_wall_time_s": driver_wall,
         "wall_time_s": elapsed,
         "params": {
