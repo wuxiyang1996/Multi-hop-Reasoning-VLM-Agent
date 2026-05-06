@@ -361,11 +361,31 @@ def run_promotion_step(
     # them un-selectable by the actor's bank-cap-K top-K filter.  This
     # sweep inherits those fields (discounted) from each new skill's
     # parent_skill_ids[0].  Curator-evolved skills (no parent or
-    # source_type ∉ CRAFTER_SOURCE_TYPES) are passed through.  See
-    # ``_post_writeback_inherit.py`` for the full design rationale.
+    # source_type ∉ CRAFTER_SOURCE_TYPES) are passed through.
+    #
+    # Phase B (T2.18b) — when the trainer points at a SFT cold-start
+    # corpus via ``COLD_START_VALIDATION_ROOT`` (or the equivalent
+    # config field), every Crafter PATCH/HYPOTHESIS skill is *also*
+    # verified against teacher-derived segments before it sees the
+    # actor.  Failing skills are removed from the bank.  See
+    # ``_cold_start_validation_index.py`` for the predicate-vocab
+    # translation and ``_post_writeback_inherit.py`` for the gate
+    # mechanics.
+    val_corpus_root_str = os.environ.get("COLD_START_VALIDATION_ROOT", "").strip()
+    val_corpus_root: Optional[Path] = None
+    if val_corpus_root_str:
+        candidate = Path(val_corpus_root_str)
+        if candidate.is_dir():
+            val_corpus_root = candidate
+        else:
+            logger.warning(
+                "promotion_hook: COLD_START_VALIDATION_ROOT=%s is not a dir; "
+                "Phase B validation disabled this step", val_corpus_root_str,
+            )
     inherit_per_game = inherit_evidence_per_game(
         legacy_bank_paths=legacy_bank_paths,
         writeback_per_game=writeback_per_game,
+        validation_corpus_root=val_corpus_root,
     )
 
     elapsed = time.monotonic() - t0

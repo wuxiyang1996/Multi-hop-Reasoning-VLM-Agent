@@ -295,6 +295,17 @@ LLM_CRAFTER_K_MAX="${LLM_CRAFTER_K_MAX:-8}"
 LLM_CRAFTER_MAX_TOKENS="${LLM_CRAFTER_MAX_TOKENS:-1024}"
 LLM_CRAFTER_TIMEOUT_S="${LLM_CRAFTER_TIMEOUT_S:-60}"
 
+# Phase B (T2.18, 2026-05-06): cold-start validation gate for
+# Crafter-promoted skills.  When set to a non-empty path, every
+# patch/hypothesis skill that ``writeback_promotion`` inserted is
+# verified against teacher-derived (state, next_state) pairs from the
+# SFT corpus before the actor sees it; failing skills are removed.
+# Empty / unset → Phase A inheritance only (the previous behaviour).
+# See ``trainer/coevolution/_post_writeback_inherit.py`` Phase B
+# section and ``_cold_start_validation_index.py`` for details.
+COLD_START_VALIDATION_ROOT="${COLD_START_VALIDATION_ROOT:-${PROJECT_ROOT}/labeling/frontier_distill_jsonl/run_20260506_055632_with_labeled}"
+export COLD_START_VALIDATION_ROOT
+
 # Path 4 (LLM Harness validator) — post-LLM 35B validation pass on
 # the harness's chosen skill.  Hybrid policy: bootstrap window
 # (steps below ${LLM_HARNESS_BOOTSTRAP_STEPS}) always fires the LLM
