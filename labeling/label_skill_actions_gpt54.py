@@ -100,6 +100,30 @@ except ImportError as exc:  # pragma: no cover
     SkillQueryEngine = None  # type: ignore
     print(f"[label_skill_actions] WARN: SkillQueryEngine unavailable ({exc}).")
 
+# Shared GPU-resident SentenceTransformer embedder.  The default
+# ``SkillQueryEngine`` uses ``get_text_embedder()`` which initialises the
+# model on CPU, taking ~0.5 it/s and effectively stalling labeling jobs
+# with thousands of steps.  We construct one embedder up front, point it
+# at ``cuda:0`` when available, and reuse it across all per-game query
+# engines for ~6× speedup (~3 it/s).
+_SHARED_GPU_EMBEDDER: Any = None
+
+
+def _get_shared_gpu_embedder() -> Any:
+    global _SHARED_GPU_EMBEDDER
+    if _SHARED_GPU_EMBEDDER is not None:
+        return _SHARED_GPU_EMBEDDER
+    try:
+        import torch  # type: ignore
+        from rag import get_text_embedder  # type: ignore
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        _SHARED_GPU_EMBEDDER = get_text_embedder(device=device, shared=False)
+        print(f"[label_skill_actions] loaded shared embedder on device={device}")
+    except Exception as exc:  # pragma: no cover
+        print(f"[label_skill_actions] shared GPU embedder init failed: {exc}")
+        _SHARED_GPU_EMBEDDER = None
+    return _SHARED_GPU_EMBEDDER
+
 
 # ---------------------------------------------------------------------------
 # Defaults — point at the latest dual-axis run + the latest skill bank run
@@ -208,7 +232,12 @@ def load_bank(bank_run: Path, corpus: str, game: str) -> Optional[LoadedBank]:
     engine = None
     if SkillQueryEngine is not None:
         try:
-            engine = SkillQueryEngine(bank)
+            embedder = _get_shared_gpu_embedder()
+            engine = (
+                SkillQueryEngine(bank, embedder=embedder)
+                if embedder is not None
+                else SkillQueryEngine(bank)
+            )
         except Exception as exc:
             print(f"[label_skill_actions] {corpus}/{game}: SkillQueryEngine init FAILED: {exc}")
             engine = None
