@@ -493,21 +493,32 @@ def _import_gymv_stack():
 
 
 def _import_schema_helpers():
-    """Lazy import of ``vlm_wrapper.schema`` helpers."""
+    """Lazy import of ``vlm_wrapper.schema`` helpers.
+
+    ``build_adaptive_system_prompt`` is optional — older vlm_wrapper
+    installs without the adaptive variant fall through and the
+    schema-call path silently uses the static prompt.
+    """
     try:
         from vlm_wrapper.schema import (
             build_system_prompt,
             build_user_message,
             parse_schema_output,
         )
-        return {
-            "build_system_prompt": build_system_prompt,
-            "build_user_message": build_user_message,
-            "parse_schema_output": parse_schema_output,
-        }
     except Exception as exc:
         logger.debug("vlm_wrapper.schema unavailable: %s", exc)
         return None
+    helpers: Dict[str, Any] = {
+        "build_system_prompt": build_system_prompt,
+        "build_user_message": build_user_message,
+        "parse_schema_output": parse_schema_output,
+    }
+    try:
+        from vlm_wrapper.schema import build_adaptive_system_prompt
+        helpers["build_adaptive_system_prompt"] = build_adaptive_system_prompt
+    except Exception:
+        pass
+    return helpers
 
 
 def _rom_resolves(retro_game: str) -> bool:
@@ -704,25 +715,96 @@ def generate_schema_from_image(
     max_tokens: int = _SCHEMA_MAX_TOKENS,
     max_entities: int = 25,
     reasoning_effort: Optional[str] = None,
+    # T2.18 (2026-05-05): optional dedicated path for visual-schema
+    # generation only (Stage 1).  When ``schema_client`` and
+    # ``schema_model`` are both provided, they REPLACE
+    # ``client`` / ``routed_model`` for THIS call only — Stage 2
+    # (action selection) keeps using the original client.  Designed
+    # for routing the schema call to the local Qwen3.5-35B-A3B vLLM
+    # endpoint (``http://127.0.0.1:8001/v1``) while keeping
+    # gpt-5.5 (or any other frontier teacher) on the action call.
+    #
+    # ``few_shot_n`` controls how many curated cold-start exemplars
+    # are injected into the system prompt via
+    # :func:`vlm_wrapper.few_shot_library.get_few_shot_examples`.
+    # Aligns the 35B's output distribution with the SFT target without
+    # any per-domain fine-tuning.  ``0`` reproduces the legacy
+    # zero-shot behaviour.
+    schema_client: Optional[Any] = None,
+    schema_model: Optional[str] = None,
+    few_shot_n: int = 0,
 ) -> Dict[str, Any]:
-    """Call gpt-5.5 (vision) to produce a ``<state>...</state>`` schema.
+    """Call a vision-capable LLM to produce a ``<state>...</state>`` schema.
 
     The image is the primary input; ``obs_text`` rides along as auxiliary
     context. Returns a dict with the parsed ``schema`` (or ``None``), the
-    raw model output, the routed model id, and any exception captured.
+    raw model output, the model id actually used, and any exception
+    captured.
 
     When the API call fails or no schema is parsed, falls back to the
     deterministic ``canonical_fallback`` if provided.
+
+    By default this routes to the same ``client`` / ``routed_model`` the
+    actor uses (legacy gpt-5.5 path).  Pass ``schema_client`` /
+    ``schema_model`` to redirect THIS call only — typically to the local
+    Qwen3.5-35B-A3B vLLM server.  Pair with ``few_shot_n>=1`` to inject
+    curated SFT-aligned exemplars that anchor the smaller teacher's
+    output distribution.
     """
-    if pil_image is None or schema_helpers is None or client is None:
+    # Resolve the (client, model) pair actually used for the call.  The
+    # override is "all-or-nothing": both must be supplied for the
+    # dedicated-path to engage.
+    use_client = client
+    use_model = routed_model
+    if schema_client is not None and schema_model is not None:
+        use_client = schema_client
+        use_model = schema_model
+
+    if pil_image is None or schema_helpers is None or use_client is None:
         return {
             "schema": canonical_fallback,
             "raw": "",
             "source": "fallback_canonical" if canonical_fallback else "no_image_or_client",
             "error": None,
+            "model_used": use_model,
         }
 
-    system = schema_helpers["build_system_prompt"]("gymv", max_entities=max_entities)
+    if few_shot_n and few_shot_n > 0:
+        # Adaptive prompt with worked examples.  Falls back to the
+        # static prompt when the library has no entry for this domain.
+        try:
+            from vlm_wrapper.few_shot_library import get_few_shot_examples
+            fs_examples = get_few_shot_examples(
+                "gymv", n=int(few_shot_n), task_id=task_id,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.debug(
+                "few_shot_library unavailable for %s: %s — falling back "
+                "to static system prompt", env_id, exc,
+            )
+            fs_examples = []
+
+        if fs_examples:
+            try:
+                system = schema_helpers["build_adaptive_system_prompt"](
+                    "gymv",
+                    max_entities=max_entities,
+                    few_shot_examples=fs_examples,
+                )
+            except KeyError:
+                # Older vlm_wrapper installs without build_adaptive_*.
+                # Fall back gracefully.
+                system = schema_helpers["build_system_prompt"](
+                    "gymv", max_entities=max_entities,
+                )
+        else:
+            system = schema_helpers["build_system_prompt"](
+                "gymv", max_entities=max_entities,
+            )
+    else:
+        system = schema_helpers["build_system_prompt"](
+            "gymv", max_entities=max_entities,
+        )
 
     extra_parts: List[str] = [
         f"Game info: {display_name} ({env_id}). "
@@ -761,8 +843,8 @@ def generate_schema_from_image(
     recovery: str = ""
     try:
         resp = _chat_completion(
-            client,
-            model=routed_model,
+            use_client,
+            model=use_model,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
@@ -785,6 +867,8 @@ def generate_schema_from_image(
         "finish_reason": finish_reason,
         "recovery": recovery,
         "error": err,
+        "model_used": use_model,
+        "few_shot_n": int(few_shot_n) if few_shot_n else 0,
     }
 
     if parsed:
@@ -1078,6 +1162,15 @@ def run_actor_episode(
     ep_idx: int = 0,
     reasoning_effort: Optional[str] = None,
     frame_skip: int = DEFAULT_FRAME_SKIP,
+    # T2.18 (2026-05-05): dedicated visual-schema-creator client.
+    # When ``schema_client`` and ``schema_model`` are both supplied,
+    # they replace ``(client, routed_model)`` for the Stage-1 schema
+    # call only.  ``schema_few_shot_n`` injects up to N curated
+    # SFT-aligned exemplars into the system prompt.  Action selection
+    # (Stage 2) keeps using ``client`` / ``routed_model``.
+    schema_client: Optional[Any] = None,
+    schema_model: Optional[str] = None,
+    schema_few_shot_n: int = 0,
 ) -> Tuple[Episode, Dict[str, Any]]:
     """Run one episode end-to-end and return ``(Episode, stats)``.
 
@@ -1208,6 +1301,9 @@ def run_actor_episode(
                 temperature=temperature_schema,
                 max_tokens=schema_budget,
                 reasoning_effort=reasoning_effort,
+                schema_client=schema_client,
+                schema_model=schema_model,
+                few_shot_n=schema_few_shot_n,
             )
             schema_calls += 1
             if schema_meta.get("source") == "vlm":
@@ -1479,6 +1575,9 @@ def run_env_rollouts(
     client: Any,
     routed_model: str,
     schema_helpers: Optional[Dict[str, Any]],
+    schema_client: Optional[Any] = None,
+    schema_model: Optional[str] = None,
+    schema_few_shot_n: int = 0,
 ) -> Dict[str, Any]:
     """Run all episodes for one Gym-V env id and persist outputs."""
     safe = _sanitize_env_id(env_id)
@@ -1538,6 +1637,9 @@ def run_env_rollouts(
                 ep_idx=ep_idx,
                 reasoning_effort=getattr(args, "reasoning_effort", None),
                 frame_skip=getattr(args, "frame_skip", DEFAULT_FRAME_SKIP),
+                schema_client=schema_client,
+                schema_model=schema_model,
+                schema_few_shot_n=schema_few_shot_n,
             )
             stats["episode_index"] = ep_idx
             print(
@@ -1709,6 +1811,52 @@ def main():
         ),
     )
 
+    # ── T2.18 (2026-05-05): dedicated visual-schema creator path ────────
+    # Stage 1 (frame → <state> schema) can be redirected to a separate
+    # vision-capable model — typically the local Qwen3.5-35B-A3B vLLM
+    # served by inference/serve_qwen35_35b_a3b.sh — while keeping
+    # Stage 2 (action selection) on the main ``--model``.  Useful when:
+    #   * cost-controlling cold-start runs (35B is local, 0 API spend),
+    #   * aligning the schema generator with the runtime per-step
+    #     vision-perception path (which already uses 35B + few-shot).
+    # Pass ``--schema-fewshot 1`` (the default *when* --schema-model is
+    # set) to inject one curated SFT-aligned exemplar into the system
+    # prompt so the smaller teacher's output distribution matches the
+    # gpt-5.4 gold the SFT data was originally labelled with.
+    parser.add_argument(
+        "--schema-model", "--schema_model",
+        dest="schema_model",
+        type=str, default=None,
+        help="Optional model id for the Stage-1 visual schema call only. "
+             "When set, this REPLACES --model for the schema call and "
+             "leaves Stage-2 (action selection) unchanged.  Pair with "
+             "--schema-base-url for local vLLM endpoints.  Recommended: "
+             "'Qwen/Qwen3.5-35B-A3B'.",
+    )
+    parser.add_argument(
+        "--schema-base-url", "--schema_base_url",
+        dest="schema_base_url",
+        type=str, default=None,
+        help="Optional base URL for the schema-model client.  Recommended: "
+             "'http://127.0.0.1:8001/v1' for the local 35B-A3B vLLM.",
+    )
+    parser.add_argument(
+        "--schema-api-key", "--schema_api_key",
+        dest="schema_api_key",
+        type=str, default=None,
+        help="Optional API key for the schema-model client (defaults to "
+             "'EMPTY' when --schema-base-url points at a local vLLM).",
+    )
+    parser.add_argument(
+        "--schema-fewshot", "--schema_fewshot",
+        dest="schema_fewshot",
+        type=int, default=-1,
+        help="Number of curated cold-start exemplars to inject into the "
+             "schema-call system prompt.  Default: -1 = auto (1 when "
+             "--schema-model is set, 0 otherwise).  Set to 0 to force "
+             "zero-shot, or to 2+ to broaden anchoring.",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -1767,6 +1915,43 @@ def main():
         api_key=args.api_key,
         base_url=args.base_url,
     )
+
+    # T2.18: optional dedicated client for the schema (Stage 1) path.
+    schema_client = None
+    schema_model_routed: Optional[str] = None
+    schema_few_shot_n = 0
+    if args.schema_model:
+        # Default: when the user redirects to a local vLLM and forgets
+        # an API key, vLLM accepts "EMPTY" — match the convention used
+        # everywhere else in this codebase.
+        sk_api_key = args.schema_api_key
+        if (sk_api_key is None and args.schema_base_url
+                and "127.0.0.1" in args.schema_base_url):
+            sk_api_key = "EMPTY"
+        schema_client, schema_model_routed = _build_client_and_route(
+            model=args.schema_model,
+            api_key=sk_api_key,
+            base_url=args.schema_base_url,
+        )
+        if schema_client is None:
+            print(
+                f"[WARNING] --schema-model={args.schema_model} could not "
+                f"build a client; falling back to the main client/model "
+                f"for Stage 1."
+            )
+            schema_model_routed = None
+        # Auto-default fewshot to 1 when wiring a local teacher,
+        # matching the vision-state-perception runtime path.
+        if args.schema_fewshot < 0:
+            schema_few_shot_n = 1 if schema_client is not None else 0
+        else:
+            schema_few_shot_n = max(0, int(args.schema_fewshot))
+    else:
+        # No dedicated schema model — schema_few_shot defaults to 0
+        # (legacy zero-shot) unless the user explicitly overrides.
+        schema_few_shot_n = max(0, int(args.schema_fewshot)) \
+            if args.schema_fewshot >= 0 else 0
+
     if client is None:
         print(
             "[WARNING] No OpenAI/OpenRouter client could be built — "
@@ -1790,6 +1975,13 @@ def main():
     print(f"  Model (configured): {args.model}")
     print(f"  Model (routed):     {routed_model}")
     print(f"  Vision schema:      {'OFF (--no_vision)' if args.no_vision else 'ON'}")
+    if schema_client is not None and schema_model_routed:
+        print(f"  Schema model:       {schema_model_routed}  (dedicated)")
+        print(f"  Schema base_url:    {args.schema_base_url or '(default)'}")
+        print(f"  Schema few-shot:    {schema_few_shot_n}")
+    else:
+        print(f"  Schema model:       (same as main: {routed_model})")
+        print(f"  Schema few-shot:    {schema_few_shot_n}")
     print(f"  Save frames:        {args.save_frames}")
     print(f"  Resume:             {args.resume}")
     print(f"  Output:             {output_dir}")
@@ -1808,6 +2000,9 @@ def main():
             client=client,
             routed_model=routed_model,
             schema_helpers=schema_helpers,
+            schema_client=schema_client,
+            schema_model=schema_model_routed,
+            schema_few_shot_n=schema_few_shot_n,
         )
         env_summaries.append(summary)
 
@@ -1817,6 +2012,10 @@ def main():
         "timestamp": datetime.now().isoformat(),
         "model": args.model,
         "model_routed": routed_model,
+        "schema_model": args.schema_model,
+        "schema_model_routed": schema_model_routed,
+        "schema_base_url": args.schema_base_url,
+        "schema_few_shot_n": schema_few_shot_n,
         "agent_type": "vlm_actor_gymv",
         "use_vision": not args.no_vision,
         "envs": [env_id for env_id, _ in resolved],
