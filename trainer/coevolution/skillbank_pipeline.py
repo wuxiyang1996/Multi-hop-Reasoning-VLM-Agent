@@ -905,6 +905,156 @@ class PerGameSkillBankManager:
 
         return result
 
+    def seed_from_disk_priors(
+        self,
+        *,
+        target_games: Optional[List[str]] = None,
+        bank_dir_root: Optional[str] = None,
+        max_skills_per_source: int = 16,
+        only_high_score: bool = True,
+    ) -> Dict[str, int]:
+        """Cross-game seed using prior-game banks discovered ON DISK.
+
+        T2.18 (2026-05-05): the in-process ``cross_game_seed`` only sees
+        games present in ``self._pipelines``, which means a fresh
+        orchestrator launch (e.g. Phase 2 starting after Phase 1 wrote
+        TF3 to ``bank_dir/gymv_thunder_force_iii/skill_bank.jsonl`` and
+        exited) cannot use those Phase-1 skills as warm-start seeds —
+        TF3 isn't registered in this process's pipeline dict.
+
+        This helper closes that cross-process gap by scanning
+        ``bank_dir_root`` for ``<game>/skill_bank.jsonl`` files, loading
+        each as a read-only :class:`SkillBankMVP` source, and seeding
+        the top-K (by ``pass_rate * 0.7 + min(1, n_inv/10) * 0.3``)
+        into the currently-registered ``target_games`` banks.
+
+        Idempotent: skill IDs already present in the destination are
+        skipped (matching ``cross_game_seed``'s semantics).  Empty
+        source banks (size 0) are silently ignored.
+
+        Returns ``{dst_game: n_added}`` for destinations that received
+        ≥1 skill (no entry when ``n_added == 0``).
+        """
+        from skill_agents.skill_bank.bank import SkillBankMVP
+
+        result: Dict[str, int] = {}
+        root = Path(bank_dir_root or self._bank_dir)
+        if not root.is_dir():
+            return result
+
+        target_keys = [
+            k for k in self._pipelines.keys()
+            if target_games is None or k in target_games
+        ]
+        if not target_keys:
+            return result
+
+        target_set = set(target_keys)
+        external_sources: List[Tuple[str, Path]] = []
+        for child in sorted(root.iterdir()):
+            if not child.is_dir():
+                continue
+            key = child.name
+            if key in target_set:
+                continue
+            jsonl = child / "skill_bank.jsonl"
+            try:
+                size = jsonl.stat().st_size if jsonl.exists() else 0
+            except OSError:
+                size = 0
+            if size > 0:
+                external_sources.append((key, jsonl))
+
+        if not external_sources:
+            return result
+
+        all_candidates: Dict[str, Any] = {}
+        loaded_sources: Dict[str, SkillBankMVP] = {}
+        for src_key, src_path in external_sources:
+            try:
+                src_bank = SkillBankMVP(str(src_path))
+                src_bank.load(str(src_path))
+                loaded_sources[src_key] = src_bank
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "seed_from_disk_priors: failed to load source %s: %s",
+                    src_path, exc,
+                )
+                continue
+
+            ranked = []
+            for sid, skill in src_bank._skills.items():
+                if not sid:
+                    continue
+                if getattr(skill, "retired", False):
+                    continue
+                report = src_bank._reports.get(sid)
+                pass_rate = (
+                    float(getattr(report, "overall_pass_rate", 0.0) or 0.0)
+                    if report is not None else 0.0
+                )
+                contract = getattr(skill, "contract", None)
+                n_inst = int(
+                    getattr(contract, "n_instances", 0) or 0
+                ) if contract is not None else int(
+                    getattr(skill, "n_instances", 0) or 0
+                )
+                if only_high_score and not (pass_rate > 0.0 or n_inst > 2):
+                    continue
+                score = pass_rate * 0.7 + min(1.0, n_inst / 10.0) * 0.3
+                ranked.append((score, sid, skill))
+            ranked.sort(key=lambda x: x[0], reverse=True)
+            for _score, sid, skill in ranked[:max_skills_per_source]:
+                tag = f"{src_key}::{sid}"
+                if tag not in all_candidates:
+                    all_candidates[tag] = (sid, skill, src_key)
+
+        if not all_candidates:
+            return result
+
+        for dst_key in sorted(target_keys):
+            if dst_key not in self._pipelines:
+                continue
+            pipe = self._pipelines[dst_key]
+            dst_path = Path(pipe.bank_dir) / "skill_bank.jsonl"
+            try:
+                dst_path.parent.mkdir(parents=True, exist_ok=True)
+                dst_bank = SkillBankMVP(str(dst_path))
+                if dst_path.exists():
+                    try:
+                        dst_bank.load(str(dst_path))
+                    except Exception:  # noqa: BLE001
+                        pass
+                existing_ids = set(dst_bank._skills.keys())
+                n_added = 0
+                for _tag, (sid, skill, src_key) in all_candidates.items():
+                    if sid in existing_ids:
+                        continue
+                    try:
+                        dst_bank.add_or_update_skill(skill)
+                        src_bank = loaded_sources.get(src_key)
+                        if src_bank is not None and sid in src_bank._reports:
+                            dst_bank._reports[sid] = src_bank._reports[sid]
+                        n_added += 1
+                    except Exception:  # noqa: BLE001
+                        pass
+                if n_added > 0:
+                    dst_bank.save()
+                    logger.info(
+                        "seed_from_disk_priors: %s ← %d skills from %d "
+                        "external bank(s) %s",
+                        dst_key, n_added, len(loaded_sources),
+                        sorted(loaded_sources.keys()),
+                    )
+                    result[dst_key] = n_added
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "seed_from_disk_priors: failed to seed %s: %s",
+                    dst_key, exc,
+                )
+
+        return result
+
     def _seed_from_coldstart(self, seed_dir: str) -> None:
         """Copy skills from a cold-start bank into empty per-game banks.
 

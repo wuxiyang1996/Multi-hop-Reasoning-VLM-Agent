@@ -274,6 +274,58 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         else:
             logger.info("No checkpoint found, starting from step 0")
 
+    # ── T2.18: cross-process cross-game seed ──────────────────────
+    # The in-process ``cross_game_seed`` (called on curriculum
+    # transitions inside the main loop, ~line 880) only knows about
+    # games registered in this process's ``sb_manager._pipelines`` —
+    # which is just ``config.games + config.eval_games``.  When each
+    # phase of a curriculum is launched as a SEPARATE
+    # ``run_coevolution.py`` process (e.g. Phase 1 trains TF3, exits;
+    # Phase 2 boots fresh on altered_beast), the new orchestrator
+    # cannot see Phase 1's TF3 bank as a source, so altered_beast
+    # starts cold — defeating the whole point of cross-game transfer.
+    #
+    # ``seed_from_disk_priors`` closes the gap by scanning
+    # ``config.bank_dir`` for ``<game>/skill_bank.jsonl`` files whose
+    # name is NOT in the currently-active set, treating each as a
+    # read-only source, and seeding the top-K skills (same scoring as
+    # ``cross_game_seed``) into the active banks.  Idempotent +
+    # silent on failure so a misconfigured run still boots cleanly.
+    if (
+        getattr(config, "cross_game_skill_transfer", True)
+        and bank_mode == "per_game"
+        and hasattr(sb_manager, "seed_from_disk_priors")
+    ):
+        try:
+            seeded_at_boot = sb_manager.seed_from_disk_priors(
+                target_games=list(config.games),
+                bank_dir_root=config.bank_dir,
+                max_skills_per_source=int(getattr(
+                    config, "cross_game_skill_max_per_source", 16,
+                )),
+                only_high_score=bool(getattr(
+                    config, "cross_game_skill_high_score_only", True,
+                )),
+            )
+            if seeded_at_boot:
+                logger.info(
+                    "T2.18 cross-process cross-game seed at boot: %s",
+                    ", ".join(
+                        f"{g}=+{n}" for g, n in seeded_at_boot.items()
+                    ),
+                )
+            else:
+                logger.info(
+                    "T2.18 cross-process cross-game seed at boot: "
+                    "no orphan banks found in %s",
+                    config.bank_dir,
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "seed_from_disk_priors at boot failed: %s — proceeding "
+                "with empty / pre-existing banks", exc,
+            )
+
     # ── Ensure output directories ─────────────────────────────────
     dirs_to_create = [
         config.bank_dir, config.adapter_dir,
