@@ -251,6 +251,7 @@ class DecisionGRPOTrainer:
         clip_ratio: float = 0.2,
         max_epochs: int = 4,
         adv_clip: Optional[float] = None,
+        adv_clip_neg: Optional[float] = None,
         replay_ratio_max: float = 1.0,
     ):
         self.model_name = model_name
@@ -262,6 +263,10 @@ class DecisionGRPOTrainer:
         self.clip_ratio = clip_ratio
         self.max_epochs = max_epochs
         self.adv_clip = adv_clip
+        # T2.18 (2026-05-05): when None and adv_clip is not None, the
+        # negative side becomes UNBOUNDED — early-death episodes get
+        # full corrective gradient.  See config.py rationale.
+        self.adv_clip_neg = adv_clip_neg
         # T2.16 (2026-05-05): replay-ratio decay over training progress.
         # Caller (run_grpo_training) computes ``progress = step/total_steps``
         # and shrinks the cap from 1.0 → 0.25 so the trainer is dominated
@@ -358,10 +363,18 @@ class DecisionGRPOTrainer:
             )
 
             if self.adv_clip is not None:
-                advantages = [
-                    max(-self.adv_clip, min(self.adv_clip, a))
-                    for a in advantages
-                ]
+                # T2.18 (2026-05-05): asymmetric clipping by default.
+                # Positive advantages capped at ``adv_clip`` to keep the
+                # collapse-defence intact.  Negative advantages capped at
+                # ``adv_clip_neg`` if set, otherwise UNBOUNDED so
+                # early-death episodes contribute full corrective signal.
+                _hi = float(self.adv_clip)
+                _lo = (
+                    -float(self.adv_clip_neg)
+                    if self.adv_clip_neg is not None
+                    else float("-inf")
+                )
+                advantages = [max(_lo, min(_hi, a)) for a in advantages]
 
             batch_size = _estimate_safe_batch_size(
                 prompts, completions, default=_FSDP_BATCH_SIZE,
@@ -676,6 +689,14 @@ async def run_grpo_training(
     _total = max(1, getattr(config, "total_steps", 1))
     _progress = min(1.0, max(0.0, step / _total))
     replay_ratio_max = max(0.25, 1.0 - 0.75 * _progress)
+    _adv_pos = getattr(config, "grpo_adv_clip", None)
+    _adv_neg = getattr(config, "grpo_adv_clip_neg", None)
+    if _adv_pos is None:
+        _adv_clip_str = "off"
+    elif _adv_neg is None:
+        _adv_clip_str = f"asym(+{_adv_pos:.1f}/−inf)"
+    else:
+        _adv_clip_str = f"sym(±{_adv_pos:.1f})"
     logger.info(
         "GRPO step %d schedule: lr=%.2e, temp=%.2f, kl=%.3f, "
         "clip=%.2f, max_epochs=%d, adv_clip=%s, replay_ratio=%.2f, "
@@ -683,7 +704,7 @@ async def run_grpo_training(
         step, lr, temperature, kl_coeff,
         getattr(config, "grpo_clip_ratio", 0.2),
         getattr(config, "grpo_max_epochs", 4),
-        getattr(config, "grpo_adv_clip", None),
+        _adv_clip_str,
         replay_ratio_max,
         f"{recent_reward_std:.1f}" if recent_reward_std is not None else "n/a",
     )
@@ -701,6 +722,7 @@ async def run_grpo_training(
     clip_ratio = getattr(config, "grpo_clip_ratio", 0.2)
     max_epochs = getattr(config, "grpo_max_epochs", 4)
     adv_clip = getattr(config, "grpo_adv_clip", None)
+    adv_clip_neg = getattr(config, "grpo_adv_clip_neg", None)
 
     decision_trainer = DecisionGRPOTrainer(
         model_name=config.model_name,
@@ -713,6 +735,7 @@ async def run_grpo_training(
         clip_ratio=clip_ratio,
         max_epochs=max_epochs,
         adv_clip=adv_clip,
+        adv_clip_neg=adv_clip_neg,
         replay_ratio_max=replay_ratio_max,
     )
     d_jobs, d_names = decision_trainer.build_jobs(decision_records, step=step)

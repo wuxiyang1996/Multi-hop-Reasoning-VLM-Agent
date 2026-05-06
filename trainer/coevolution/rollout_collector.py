@@ -314,6 +314,20 @@ async def collect_rollouts(
                             config, "actor_bank_cap_k", 0,
                         )),
                         vision_perception_config=_vp_cfg,
+                        early_death_config={
+                            "enabled": bool(getattr(
+                                config, "early_death_penalty_enabled", True,
+                            )),
+                            "threshold_steps": int(getattr(
+                                config, "early_death_threshold_steps", 40,
+                            )),
+                            "threshold_reward": float(getattr(
+                                config, "early_death_threshold_reward", 100.0,
+                            )),
+                            "base": float(getattr(
+                                config, "early_death_penalty_base", 2.0,
+                            )),
+                        },
                     )
                     break
                 except Exception as exc:

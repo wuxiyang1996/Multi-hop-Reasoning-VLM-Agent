@@ -912,7 +912,34 @@ class CoEvolutionConfig:
     # keeps training stable through the high-variance regime.  Set to
     # ``None`` (or pass ``--grpo-adv-clip 0``) to opt out for legacy
     # comparison runs.
+    #
+    # T2.18 (2026-05-05): rollout analysis on TF3 showed top-10 episodes
+    # mean ≈830 vs bottom-10 mean ≈50 — a long tail of early-death runs
+    # dragging the overall average below Gemini's mean (~725).  The
+    # symmetric clip caps the corrective gradient on those bad
+    # episodes, slowing the unlearning of the suicidal RIGHT-heavy
+    # strategy.  Switch to *asymmetric* clipping when ``grpo_adv_clip_neg
+    # is None``: positive advantages get clipped at ``grpo_adv_clip``
+    # (preserve collapse-defence) while negative advantages flow
+    # unbounded (max corrective signal on early death).  Set
+    # ``grpo_adv_clip_neg=5.0`` to restore the legacy symmetric
+    # behaviour.
     grpo_adv_clip: Optional[float] = 5.0
+    grpo_adv_clip_neg: Optional[float] = None
+
+    # T2.18 (2026-05-05): early-death reward shaping.  Applied at the
+    # end of each rollout episode in :mod:`trainer.coevolution.episode_runner`
+    # to penalise *terminal* deaths that happen before
+    # ``early_death_threshold_steps`` and below ``early_death_threshold_reward``.
+    # Smooth-scaled: penalty = ``base * (threshold_steps - steps) / threshold_steps``
+    # so dying at step 0 incurs the full base, dying at threshold incurs ~0.
+    # Truncated episodes (timeout) are NEVER penalised (they survived).
+    # Pair with the asymmetric ``grpo_adv_clip_neg=None`` so the
+    # corrective signal isn't bounded by the clip.
+    early_death_penalty_enabled: bool = True
+    early_death_threshold_steps: int = 40
+    early_death_threshold_reward: float = 100.0
+    early_death_penalty_base: float = 2.0
 
     # T2.17 (2026-05-05): per-step vision-grounded ``<state>`` markup.
     # The 35B judge (port 8001, MULTIMODAL=1) re-emits the cold-start

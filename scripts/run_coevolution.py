@@ -259,7 +259,47 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--grpo-adv-clip", type=float, default=None,
-        help="Clip GRPO advantages to [-val, val] to limit outlier influence",
+        help="Clip GRPO advantages to [-val, val] to limit outlier influence."
+             " When --grpo-adv-clip-neg is omitted, the negative side is"
+             " UNBOUNDED (asymmetric mode, T2.18) so early-death episodes"
+             " contribute their full corrective gradient.",
+    )
+    parser.add_argument(
+        "--grpo-adv-clip-neg", type=float, default=None,
+        help="Optional separate floor for negative advantages (default:"
+             " None = unbounded).  Pass a positive float (e.g."
+             " --grpo-adv-clip-neg 5.0) to restore the legacy symmetric"
+             " behaviour.",
+    )
+
+    # T2.18 (2026-05-05): early-death reward shaping.
+    parser.add_argument(
+        "--no-early-death-penalty",
+        dest="early_death_penalty_enabled",
+        action="store_false",
+        default=True,
+        help="Disable T2.18 early-death reward shaping.  By default,"
+             " terminal episodes that die before --early-death-"
+             "threshold-steps with reward below --early-death-threshold-"
+             "reward incur a smooth-scaled penalty up to"
+             " --early-death-penalty-base (max at step 0, ~0 at the"
+             " threshold).",
+    )
+    parser.add_argument(
+        "--early-death-threshold-steps", type=int, default=40,
+        help="Episodes ending in terminated=True before this step count"
+             " are eligible for the early-death penalty.  Default: 40.",
+    )
+    parser.add_argument(
+        "--early-death-threshold-reward", type=float, default=100.0,
+        help="Eligible-only-if-total-reward-is-below threshold for the"
+             " early-death penalty.  Default: 100.0 (TF3 baseline ≈ 50,"
+             " success ≈ 200+).",
+    )
+    parser.add_argument(
+        "--early-death-penalty-base", type=float, default=2.0,
+        help="Maximum penalty applied at step 0 (penalty ~0 at the"
+             " threshold).  Default: 2.0.",
     )
 
     # Training schedule
@@ -856,6 +896,22 @@ def main() -> None:
         config_kwargs["grpo_max_epochs"] = args.grpo_max_epochs
     if args.grpo_adv_clip is not None:
         config_kwargs["grpo_adv_clip"] = args.grpo_adv_clip
+    if args.grpo_adv_clip_neg is not None:
+        config_kwargs["grpo_adv_clip_neg"] = args.grpo_adv_clip_neg
+
+    # T2.18: early-death penalty
+    config_kwargs["early_death_penalty_enabled"] = bool(
+        args.early_death_penalty_enabled
+    )
+    config_kwargs["early_death_threshold_steps"] = int(
+        args.early_death_threshold_steps
+    )
+    config_kwargs["early_death_threshold_reward"] = float(
+        args.early_death_threshold_reward
+    )
+    config_kwargs["early_death_penalty_base"] = float(
+        args.early_death_penalty_base
+    )
 
     if args.warmup_steps is not None:
         config_kwargs["scratch_warmup_steps"] = args.warmup_steps

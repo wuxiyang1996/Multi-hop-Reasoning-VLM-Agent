@@ -929,6 +929,19 @@ async def run_episode_async(
     #       "every_n_steps": int,  # 1 = every step (cold-start parity)
     #   }
     vision_perception_config: Optional[Dict[str, Any]] = None,
+    # T2.18 (2026-05-05): early-death reward shaping (see implementation
+    # at end of function).  Expected shape::
+    #
+    #   {
+    #       "enabled": bool,
+    #       "threshold_steps":  int,    # only penalise if steps < this
+    #       "threshold_reward": float,  # only penalise if reward < this
+    #       "base":             float,  # max penalty (at step 0)
+    #   }
+    #
+    # Skipped silently when ``None`` or ``enabled=False``.  Truncated
+    # episodes (timeout-based termination) are never penalised.
+    early_death_config: Optional[Dict[str, Any]] = None,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -1837,6 +1850,39 @@ async def run_episode_async(
 
     for rec in grpo_records:
         rec.episode_length = max(step_count, 1)
+
+    # T2.18 (2026-05-05): early-death reward shaping.
+    # ----------------------------------------------------------------
+    # Rollout analysis on TF3 showed top-10 episodes mean ≈830 vs
+    # bottom-10 mean ≈50 — a long tail of early-death runs (RIGHT-heavy
+    # exploration crashing into the cave wall) drags the overall mean
+    # below Gemini's (~725).  GRPO sees these as "low advantage but
+    # terminal" and corrects them slowly because the symmetric adv_clip
+    # bounds the negative-side gradient.  Asymmetric clipping (in
+    # grpo_training) fixes the gradient side; this reward shaping fixes
+    # the SIGNAL side by directly penalising terminal death before the
+    # cap is hit.  Smooth-scaled so dying at step 0 incurs the full
+    # ``base`` penalty while dying at ``threshold_steps`` incurs ~0.
+    # Truncated episodes (max_steps reached → survived) are NOT
+    # penalised regardless of total_reward.
+    edc = early_death_config or {}
+    if (
+        bool(edc.get("enabled", False))
+        and terminated and not truncated
+        and step_count < int(edc.get("threshold_steps", 40))
+        and total_reward < float(edc.get("threshold_reward", 100.0))
+    ):
+        threshold_steps = int(edc.get("threshold_steps", 40))
+        scale = (threshold_steps - step_count) / max(1, threshold_steps)
+        penalty = -float(edc.get("base", 2.0)) * float(scale)
+        new_total = float(total_reward) + penalty
+        logger.debug(
+            "early_death_penalty %s/%s steps=%d term=%s trunc=%s "
+            "reward=%.3f penalty=%.3f → final=%.3f",
+            game, episode_id, step_count, terminated, truncated,
+            total_reward, penalty, new_total,
+        )
+        total_reward = new_total
 
     wall_time = time.monotonic() - t0
     return EpisodeResult(
