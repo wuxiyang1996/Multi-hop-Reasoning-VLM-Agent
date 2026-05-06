@@ -379,6 +379,14 @@ def train_single_adapter(
         # liger-kernel + paged-AdamW are doing the heavy lifting.
         report_to="none",
         remove_unused_columns=False,
+        # LoRA-only training never has true unused params (LoRA is
+        # additive on every targeted projection that's exercised in the
+        # forward pass).  Default ``find_unused_parameters=True`` adds an
+        # extra autograd-graph traversal per step (HF warns explicitly:
+        # "find_unused_parameters=True ... did not find any unused
+        # parameters in the forward pass").  Disabling buys 5-10% per
+        # step on 8x DDP.
+        ddp_find_unused_parameters=False,
     )
 
     collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
@@ -520,12 +528,65 @@ def train_all_adapters(config=None, gpu: Optional[int] = None, **kwargs) -> dict
         loader_cls = AutoModelForCausalLM
     logger.info("Loading base model '%s' (dtype=%s, loader=%s) …",
                 config.model_name, dtype, loader_cls.__name__)
+    # When ``SFT_DEEPSPEED_CONFIG_FILE`` is set, instantiate
+    # ``HfDeepSpeedConfig`` BEFORE ``from_pretrained`` so transformers
+    # routes weight allocation through ``deepspeed.zero.Init()`` and
+    # shards params at load time instead of materialising the full 9B+
+    # base on a single GPU.  Without this, ZeRO-3 becomes an expensive
+    # no-op (each rank holds the full model and we only save on optim
+    # sharding — useless for LoRA where optim is tiny).
+    _ds_cfg_path = os.environ.get("SFT_DEEPSPEED_CONFIG_FILE", "")
+    _ds_cfg_keepalive = None
+    if (
+        _ds_cfg_path
+        and os.environ.get("SFT_USE_DEEPSPEED", "0") == "1"
+    ):
+        # ``HfDeepSpeedConfig.__init__`` runs DeepSpeed's batch-related
+        # assertion, which needs ``world_size`` to match the launcher's
+        # actual world.  DeepSpeed has its own comm backend (``cdb``)
+        # separate from ``torch.distributed`` — call
+        # ``deepspeed.init_distributed`` so DS reads ``world_size = 4``
+        # instead of falling back to 1.  Otherwise the
+        # ``train_batch_size == micro * accum * world_size`` invariant
+        # fails when HF's Trainer later cross-checks the config.
+        if int(os.environ.get("WORLD_SIZE", "1")) > 1:
+            try:
+                import deepspeed as _ds
+                _ds.init_distributed()
+                logger.info(
+                    "deepspeed.init_distributed pre-run (rank=%s/%s) for ZeRO-3 init.",
+                    os.environ.get("RANK", "?"), os.environ.get("WORLD_SIZE", "?"),
+                )
+            except Exception as exc:  # pragma: no cover
+                logger.warning("Pre-init of deepspeed.distributed failed: %s", exc)
+        try:
+            from transformers.integrations.deepspeed import HfDeepSpeedConfig  # type: ignore
+        except ImportError:
+            from transformers.integrations import HfDeepSpeedConfig  # type: ignore
+        _ds_cfg_keepalive = HfDeepSpeedConfig(_ds_cfg_path)  # noqa: F841
+        logger.info(
+            "ZeRO-3 init context active via %s — model weights will be "
+            "sharded at load time across DDP ranks.",
+            _ds_cfg_path,
+        )
     base_model = loader_cls.from_pretrained(
         config.model_name,
         torch_dtype=dtype,
         trust_remote_code=True,
     )
-    base_model = base_model.to("cuda")
+    if _ds_cfg_keepalive is None:
+        # When accelerate launches N>1 ranks via torchrun, every rank's
+        # ``cuda`` defaults to ``cuda:0`` until ``set_device`` is called.
+        # That means all N ranks would copy the 9B model onto GPU 0
+        # (28 GB × N) → instant OOM, even though each rank should own a
+        # distinct GPU.  Pin to ``cuda:LOCAL_RANK`` BEFORE ``.to`` so
+        # each replica lands on its own card.  Single-process / pinned
+        # mode (``CUDA_VISIBLE_DEVICES`` filtered to one device) works
+        # too — set_device(0) is a no-op when only one GPU is visible.
+        _local_rank = int(os.environ.get("LOCAL_RANK", "0"))
+        if torch.cuda.is_available():
+            torch.cuda.set_device(_local_rank)
+        base_model = base_model.to(f"cuda:{_local_rank}")
     base_model.config.use_cache = False
     logger.info(
         "Model loaded on %s — %.1f GB GPU memory allocated",
@@ -690,6 +751,29 @@ def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> di
             "--num_machines", "1",
             "--mixed_precision", "bf16" if config.bf16 else "no",
         ]
+        # Opt-in DeepSpeed ZeRO-3 sharding via env var (no behavior change
+        # without it).  ZeRO-3 shards params/grads/optim across the
+        # ``gpus_per_adapter`` ranks so the 9B+ base model fits on
+        # H100-class hardware with LoRA + grad-ckpt.  When
+        # ``SFT_DEEPSPEED_CONFIG_FILE`` points at a JSON, we hand it to
+        # accelerate verbatim (lets us flip CPU offload on for long
+        # sequences without code changes).
+        if os.environ.get("SFT_USE_DEEPSPEED", "0") == "1":
+            ds_cfg = os.environ.get("SFT_DEEPSPEED_CONFIG_FILE", "")
+            if ds_cfg:
+                launcher_prefix += [
+                    "--use_deepspeed",
+                    "--deepspeed_config_file", ds_cfg,
+                    "--zero3_init_flag", "true",
+                ]
+            else:
+                launcher_prefix += [
+                    "--use_deepspeed",
+                    "--zero_stage", os.environ.get("SFT_ZERO_STAGE", "3"),
+                    "--gradient_clipping", "1.0",
+                    "--zero3_save_16bit_model", "true",
+                    "--zero3_init_flag", "true",
+                ]
         script_invocation = ["-m", "trainer.SFT.train"]
     else:
         launcher_prefix = [sys.executable]
@@ -698,6 +782,8 @@ def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> di
     shared_args = [
         "--model_name", config.model_name,
         "--output_dir", config.output_dir,
+        "--decision_data_dir", config.decision_data_dir,
+        "--skillbank_data_dir", config.skillbank_data_dir,
         "--lr", str(config.lr),
         "--epochs", str(config.epochs),
         "--batch_size", str(config.batch_size),
