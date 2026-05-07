@@ -266,6 +266,11 @@ _HYPOTHESIZE_SYS_PROMPT = (
     "the failure. Every hop dict MUST contain 'action' and 'payload' "
     "keys; 'action' must be one of "
     "GROUND, CHECK, RETRIEVE, COMMIT, EXECUTE, VERIFY. "
+    "Also produce a `strategic_description`: a 1-3 sentence "
+    "natural-language paragraph that tells the actor WHEN to invoke "
+    "this skill (the situation it solves) — this is the same shape "
+    "the legacy Skill Bank Agent emits in `skill.strategic_description` "
+    "and is what the actor's retrieval engine matches against. "
     "Respond with ONLY a JSON object on a single line."
 )
 
@@ -315,6 +320,23 @@ class LLMHypothesizer:
 
         # Default target domains: union of pattern + diagnosis hint.
         target_domains = sorted(set(pattern.domains)) or []
+
+        # Fix-D2: surface a natural-language `strategic_description`
+        # so the writeback projector can populate the legacy bank's
+        # `skill.strategic_description` field — the one the actor's
+        # retrieval engine (`skill_agents/query.py`) embeds into its
+        # similarity index. Falls back to `rationale` when the LLM
+        # forgot the field, since `rationale` already has the right
+        # shape (1-2 sentence summary).
+        strategic_description = str(
+            payload.get("strategic_description")
+            or payload.get("description")
+            or payload.get("rationale")
+            or ""
+        ).strip()
+        if contract is not None and not contract.description:
+            contract.description = strategic_description
+
         return HypothesisProposal(
             name=str(payload.get("name") or
                      f"hyp_for_{pattern.failure_class.lower() or 'unknown'}"),
@@ -329,6 +351,7 @@ class LLMHypothesizer:
             contract=contract,
             source_failure_pattern_ids=[pattern.pattern_id],
             proposed_at=time.time(),
+            strategic_description=strategic_description,
         )
 
 
@@ -538,6 +561,7 @@ def _coerce_contract(raw: Any) -> Optional[SkillContract]:
             expected_evidence_roles=roles,
             success_criteria=_coerce_str_list(raw.get("success_criteria")),
             abort_criteria=_coerce_str_list(raw.get("abort_criteria")),
+            description=str(raw.get("description") or "").strip(),
         )
     except Exception:                                                  # noqa: BLE001
         return None
@@ -644,12 +668,18 @@ def _render_hypothesize_prompt(
     lines: List[str] = [
         _HYPOTHESIZE_SYS_PROMPT,
         "",
-        "Respond with: {\"name\": <string>, \"novel_protocol\": "
+        "Respond with: {\"name\": <string, short verb-phrase like "
+        "\"Gate evidence before commit\">, \"strategic_description\": "
+        "<string, 1-3 sentence paragraph telling the actor WHEN to "
+        "invoke this skill — same shape as the legacy Skill Bank "
+        "Agent's `skill.strategic_description`>, \"novel_protocol\": "
         "[{\"action\": ..., \"payload\": {...}, \"notes\": ...}], "
         "\"contract\": {\"preconditions\": [...], \"effects_add\": [...], "
         "\"effects_del\": [...], \"expected_evidence_roles\": [...], "
-        "\"success_criteria\": [...], \"abort_criteria\": [...]}, "
-        "\"rationale\": <string <= 200 chars>}.",
+        "\"success_criteria\": [...], \"abort_criteria\": [...], "
+        "\"description\": <string, optional natural-language paragraph; "
+        "if omitted strategic_description is used as fallback>}, "
+        "\"rationale\": <string <= 200 chars, internal Crafter audit text>}.",
         "Allowed values for expected_evidence_roles: " + ", ".join(EVIDENCE_ROLES),
         "",
     ]

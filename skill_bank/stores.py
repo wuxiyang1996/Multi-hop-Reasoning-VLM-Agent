@@ -186,6 +186,7 @@ def _record_from_json(data: Dict[str, Any]) -> SkillRecord:
         expected_evidence_roles=list(contract_raw.get("expected_evidence_roles", [])),
         success_criteria=list(contract_raw.get("success_criteria", [])),
         abort_criteria=list(contract_raw.get("abort_criteria", [])),
+        description=str(contract_raw.get("description", "") or ""),
     )
     return SkillRecord(
         skill_id=str(data["skill_id"]),
@@ -211,6 +212,7 @@ def _record_from_json(data: Dict[str, Any]) -> SkillRecord:
         metrics=dict(data.get("metrics", {})),
         notes=str(data.get("notes", "")),
         tags=list(data.get("tags", [])),
+        strategic_description=str(data.get("strategic_description", "") or ""),
     )
 
 

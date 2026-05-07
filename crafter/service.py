@@ -1205,6 +1205,16 @@ class SkillCrafterService:
         skill_type: SkillType,
         name: str,
     ) -> Optional[SkillRecord]:
+        # Fix-D3: surface the proposal's natural-language strategic
+        # description onto the DRAFT SkillRecord so the legacy
+        # writeback projector (skill_bank/legacy_writeback.py) can
+        # populate the legacy bank's ``skill.strategic_description``
+        # field — which is what the actor's retrieval engine
+        # (skill_agents/query.py) embeds into its similarity index.
+        # Falls back to the proposal's rationale (always non-empty
+        # for live LLM hooks) so older cold-start callers that don't
+        # set strategic_description still get a non-empty string.
+        strategic_description = ""
         if isinstance(proposal, ComposeProposal):
             protocol = proposal.composed_protocol
             contract = proposal.contract
@@ -1217,10 +1227,21 @@ class SkillCrafterService:
             protocol = proposal.novel_protocol
             contract = proposal.contract
             domains = proposal.target_domains
+            strategic_description = (
+                getattr(proposal, "strategic_description", "")
+                or (contract.description if contract else "")
+                or proposal.rationale
+                or ""
+            )
         elif isinstance(proposal, PatchProposal):
             protocol = proposal.patched_protocol
             contract = proposal.patched_contract  # may be None; gate Stage 0 will catch
             domains = proposal.target_domains
+            strategic_description = (
+                (contract.description if contract else "")
+                or proposal.rationale
+                or ""
+            )
         elif isinstance(proposal, RetireProposal):
             return None
         else:
@@ -1234,6 +1255,7 @@ class SkillCrafterService:
             contract=contract or None,  # type: ignore[arg-type]
             proposal_id=proposal.proposal_id,
             parent_skill_ids=list(proposal.parent_skill_ids),
+            strategic_description=str(strategic_description or ""),
         )
 
 

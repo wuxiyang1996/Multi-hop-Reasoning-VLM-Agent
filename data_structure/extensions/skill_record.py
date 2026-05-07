@@ -38,6 +38,12 @@ class SkillContract:
     expected_evidence_roles: List[str] = field(default_factory=list)
     success_criteria: List[str] = field(default_factory=list)
     abort_criteria: List[str] = field(default_factory=list)
+    # Natural-language paragraph that mirrors the legacy Skill Bank Agent
+    # contract.description field. Surfaced into the legacy bank envelope
+    # by skill_bank.legacy_writeback so actor retrieval can match this
+    # skill on semantic grounds (skill_agents.query._build_skill_text_for_embedding).
+    # Empty string preserves backward-compat for older snapshots.
+    description: str = ""
 
     def __post_init__(self) -> None:
         for role in self.expected_evidence_roles:
@@ -48,7 +54,7 @@ class SkillContract:
                 )
 
     def to_json(self) -> Dict[str, Any]:
-        return {
+        out: Dict[str, Any] = {
             "preconditions": list(self.preconditions),
             "effects_add": list(self.effects_add),
             "effects_del": list(self.effects_del),
@@ -58,6 +64,14 @@ class SkillContract:
             "success_criteria": list(self.success_criteria),
             "abort_criteria": list(self.abort_criteria),
         }
+        # Emit `description` only when non-empty so older snapshots
+        # (description="") hash identically to their pre-Fix-D content,
+        # preserving evaluation continuity across the gate. New crafter
+        # skills with rich descriptions get a legitimately different
+        # content_hash because their retrieval body genuinely differs.
+        if self.description:
+            out["description"] = str(self.description)
+        return out
 
 
 @dataclass
@@ -106,6 +120,13 @@ class SkillRecord:
     metrics: Dict[str, float] = field(default_factory=dict)       # rolling pass_rate etc.
     notes: str = ""
     tags: List[str] = field(default_factory=list)
+    # Natural-language paragraph that mirrors the legacy Skill Bank Agent
+    # `skill.strategic_description` field. The actor's skill retrieval
+    # (skill_agents/query.py) embeds this into its similarity index and
+    # surfaces it as the "Strategy:" line in selection prompts. Crafter
+    # populates this from the LLM Hypothesizer; cold-start records keep
+    # the default "" so existing snapshots remain readable.
+    strategic_description: str = ""
 
     def __post_init__(self) -> None:
         for d in self.feasible_domains:
@@ -156,6 +177,7 @@ class SkillRecord:
         verified_domains: Optional[List[str]] = None,
         feasible_tasks: Optional[List[str]] = None,
         verified_tasks: Optional[List[str]] = None,
+        strategic_description: str = "",
     ) -> "SkillRecord":
         return cls(
             skill_id=new_skill_id(),
@@ -173,6 +195,7 @@ class SkillRecord:
             contract=contract or SkillContract(),
             parent_skill_ids=list(parent_skill_ids or []),
             proposal_id=proposal_id,
+            strategic_description=str(strategic_description or ""),
         )
 
     def content_hash(self) -> str:
@@ -221,6 +244,7 @@ class SkillRecord:
             "metrics": dict(self.metrics),
             "notes": self.notes,
             "tags": list(self.tags),
+            "strategic_description": str(self.strategic_description or ""),
             "content_hash": self.content_hash(),
         }
 

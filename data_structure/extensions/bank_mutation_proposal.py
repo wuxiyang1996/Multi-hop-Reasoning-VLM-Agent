@@ -87,6 +87,13 @@ class HypothesisProposal(_ProposalBase):
     novel_protocol: List[Dict[str, Any]] = field(default_factory=list)
     contract: SkillContract = field(default_factory=SkillContract)
     source_failure_pattern_ids: List[str] = field(default_factory=list)
+    # Fix-D2: 1-3 sentence natural-language paragraph telling the actor
+    # WHEN to invoke this skill. Mirrors the legacy Skill Bank Agent's
+    # ``skill.strategic_description`` field — the writeback projector
+    # surfaces this onto the legacy bank entry so actor retrieval
+    # (skill_agents/query.py) can match this skill on semantic
+    # grounds. Empty default keeps prior callers unaffected.
+    strategic_description: str = ""
 
     @property
     def source_type(self) -> SkillSourceType:
@@ -240,6 +247,7 @@ def proposal_to_json(p: BankMutationProposal) -> Dict[str, Any]:
             novel_protocol=list(p.novel_protocol),
             contract=p.contract.to_json(),
             source_failure_pattern_ids=list(p.source_failure_pattern_ids),
+            strategic_description=str(p.strategic_description or ""),
         )
     elif isinstance(p, PatchProposal):
         out.update(

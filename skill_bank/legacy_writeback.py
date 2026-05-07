@@ -429,6 +429,16 @@ def _project_to_legacy_envelope(
         "skill_id": skill_id,
         "version": _semver_to_int(skill.get("version")),
         "name": skill.get("name") or skill_id,
+        # Fix-D4: prefer SkillRecord.strategic_description (Fix-D1
+        # field, written by crafter/service.py::_proposal_to_draft from
+        # the LLMHypothesizer's output) → fall back to
+        # SkillContract.description (also Fix-D1, written by the same
+        # path) → fall back to ``""``. Cold-start records minted before
+        # Fix-D have neither field set, so they still surface ``""`` —
+        # backward compatible. Live crafter records minted after Fix-D
+        # always populate at least one of the two, so the actor's
+        # retrieval engine (skill_agents/query.py) can match them on
+        # semantic grounds rather than just the snake_case skill name.
         "strategic_description": (
             skill.get("strategic_description")
             or contract.get("description", "")
@@ -440,7 +450,18 @@ def _project_to_legacy_envelope(
             "skill_id": skill_id,
             "version": _semver_to_int(skill.get("version")),
             "name": contract.get("name") or skill.get("name") or skill_id,
-            "description": contract.get("description", ""),
+            # Fix-D4: legacy Skill Bank Agent populates ``contract.description``
+            # with a paragraph identical (or near-identical) to
+            # ``skill.strategic_description``. Mirror that contract here:
+            # prefer the contract's own description, fall back to the
+            # skill-level strategic_description so the actor's
+            # contract-side retrieval (RBL eff_add/eff_del scoring)
+            # gets the same hint surface as the strategic side.
+            "description": (
+                contract.get("description", "")
+                or skill.get("strategic_description", "")
+                or ""
+            ),
             "eff_add": list(contract.get("effects_add") or []),
             "eff_del": list(contract.get("effects_del") or []),
         },
