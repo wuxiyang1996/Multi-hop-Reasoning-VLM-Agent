@@ -85,21 +85,52 @@ _SYSTEM_PROMPT = """You are a cross-game skill translator. Your job is to
 rewrite a *source* skill — mined and verified on game A — so it can be
 attempted on a *target* game B without changing its strategic intent.
 
+CORE PHILOSOPHY — REWRITE, don't refuse.
+========================================
+
+The source skill's `operator`, `subgoal`, and `strategic_description`
+describe ABSTRACT INTENT (e.g. RECOVER/EVADE = "move out of harm's way
+when threatened").  Your job is to CARRY THAT INTENT to the target by
+rewriting concrete predicates and steps — NOT to refuse translation
+merely because the source uses source-game-specific phase/score
+literals.  Concrete examples of the rewrite mindset:
+
+* source eff_add `world.score=70`  → rewrite to
+  `cumulative_reward_increased` (shared vocab).  DO NOT reject for
+  "target has no score=70".
+* source precondition `phase=midgame`  → drop, or rewrite to
+  `phase_transitioned`.  DO NOT reject because target lacks a literal
+  "midgame" phase.
+* source step "press B 17 times" → rewrite as a sequence of
+  target_actions that produce the same intent (commit/attack on the
+  current threat).
+
+When the source `confidence_tag` is `crafter_v2`, the source IS
+already an abstract operator+subgoal record by construction.  In that
+case, lean even more strongly toward `transferable=true`: simply map
+generic predicates (`event.score_changed`, `predicate.in_range`,
+`has:target`, `world.threat_count>0`) over to the target unchanged,
+and emit a short, target-action sequence that realises operator/
+subgoal in the target game.
+
 You must respect three hard rules:
 
 1. The translated `protocol.steps` may use ONLY actions from the
-   provided `target_actions` list. If the source action sequence has
-   no plausible target-action analogue, output `transferable=false`.
+   provided `target_actions` list.  If a source step has no plausible
+   target-action analogue, OMIT that step — but DO continue producing
+   the remaining steps; only output `transferable=false` when ZERO
+   useful target-action steps remain.
 2. The translated `contract.eff_add` and `contract.eff_del` predicates
    must reference predicates that the *target* game's success_fn can
-   evaluate. Reuse the source predicates when they're shared
-   vocabulary (e.g. `cumulative_reward_increased`,
-   `entity_value_increased`, `phase_transitioned`); replace
-   game-specific ones with the closest target-grounded analogue.
-3. The translated skill remains semantically faithful to the source's
-   strategic_description. If the strategy makes no sense in the
-   target's mechanics (e.g. "match-3 piece swap" → SoR2 brawler),
-   output `transferable=false` rather than inventing a fake mapping.
+   evaluate.  Reuse the shared gymv vocabulary verbatim
+   (`cumulative_reward_increased`, `entity_value_increased`,
+   `entity_value_decreased`, `entity_appeared`, `entity_disappeared`,
+   `entity_count_changed`, `attribute_changed`, `phase_transitioned`).
+   Replace game-specific predicates with the closest shared analogue.
+3. ONLY emit `transferable=false` when the *strategic intent itself*
+   has no analogue in the target's mechanics — e.g. a "match-3 swap"
+   strategy on a brawler with no swap action.  Surface-level mismatch
+   in the source's predicates is NOT a reason to refuse — REWRITE.
 
 Output strict JSON (no prose, no code fences) with the schema:
 
@@ -183,12 +214,35 @@ def _build_user_prompt(
         "name": source_skill.name,
         "strategic_description": source_skill.strategic_description,
         "tags": list(source_skill.tags),
+        "confidence_tag": getattr(source_skill, "confidence_tag", None),
     }
     if source_skill.protocol is not None:
         src_dict["protocol"] = source_skill.protocol.to_dict()
     if source_skill.contract is not None:
         src_dict["contract"] = source_skill.contract.to_dict()
     parts.append("source_skill: " + json.dumps(src_dict, default=str))
+
+    # Pull out abstract operator/subgoal hints when present (crafter v2
+    # encodes them in the skill_id as "<OPERATOR>/<SUBGOAL>#v2:<hash>").
+    sid = source_skill.skill_id or ""
+    abstract_op = abstract_sg = None
+    if "/" in sid and "#v2:" in sid:
+        head = sid.split("#v2:", 1)[0]
+        if "/" in head:
+            abstract_op, abstract_sg = head.split("/", 1)
+    confidence_tag = (getattr(source_skill, "confidence_tag", None) or "").lower()
+    if confidence_tag == "crafter_v2" or (abstract_op and abstract_sg):
+        parts.append(
+            "NOTE: the source skill is ABSTRACT (operator="
+            f"{abstract_op or '?'}, subgoal={abstract_sg or '?'}, "
+            "confidence_tag=crafter_v2).  Strongly prefer "
+            "transferable=true: rewrite concrete source predicates "
+            "into the shared gymv predicate vocabulary and emit a "
+            "short target-action sequence that realises the operator/"
+            "subgoal intent in the target game.  Refuse only if no "
+            "target-action sequence can express the operator/subgoal "
+            "intent at all."
+        )
 
     if target_schema_sample:
         parts.append("target_schema_sample: " + target_schema_sample)

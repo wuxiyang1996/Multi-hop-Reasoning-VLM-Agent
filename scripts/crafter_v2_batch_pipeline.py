@@ -125,6 +125,40 @@ _BANNED_TOKENS_GAMENAMES = {
 BANNED_TOKENS: set = (_BANNED_TOKENS_BUTTON | _BANNED_TOKENS_UI
                       | _BANNED_TOKENS_GAMENAMES)
 
+# ── source-game conditioning (added 2026-05-08) ──────────────────────
+# These slip past the button/UI/game-name ban-list because they look
+# superficially abstract ("phase=midgame", "world.score=70") yet anchor
+# the predicate to a specific moment in a specific game — the
+# translator's downstream judge then refuses translation because the
+# target has no notion of e.g. a literal "midgame" phase.  By filtering
+# them at proposer time we keep crafter v2 truly abstract and let the
+# translator focus on intent transferability.
+_BANNED_LITERAL_TOKENS = {
+    # Concrete (TF3 / Headdy-style) phase names — translator can't
+    # ground these in a target whose phase taxonomy differs.
+    "opening", "midgame", "endgame", "early", "mid", "late",
+    # UI / domain leftovers that escaped the per-token ban
+    "score_hud", "score_trajectory", "score_appeared",
+    "phase_changed", "phase_transitioned", "phase_transition",
+    "score_adjustment", "score_reset",
+}
+
+# phase = <concrete-label>  (literal RHS — must be Δ/relational instead)
+_LITERAL_PHASE_RE = re.compile(
+    r"\b(?:world|state|game|player)\.phase\s*=+\s*(\w+)\b",
+    re.IGNORECASE,
+)
+# score = <integer-literal>  (must be Δ-form, e.g. score+=Δ, score>=old+Δ)
+_LITERAL_SCORE_RE = re.compile(
+    r"\b(?:world|state|game|player)\.score\s*=+\s*(-?\d+)\b",
+    re.IGNORECASE,
+)
+# Allowed RHS labels for `world.phase = X` (Δ-style references stay)
+_PHASE_RHS_ALLOWED = {
+    "phase", "delta", "δ", "old", "new", "next", "prev",
+    "old_phase", "new_phase", "next_phase",
+}
+
 # Predicate-form regex — required for preconditions / eff_* / predicate_*
 # fields.  Accepts:
 #   world.foo, world.foo=bar, event.baz, predicate.qux=true,
@@ -165,6 +199,39 @@ def _has_banned_token(text: str) -> Tuple[bool, List[str]]:
         if re.search(rf"\b{re.escape(term)}\b", low):
             found.append(term)
     return bool(found), found
+
+
+def _has_source_conditioning(text: str) -> Tuple[bool, List[str]]:
+    """Return (had_leak, list of leaks) for source-game-anchored
+    predicates that aren't truly abstract: literal phase names,
+    hard-coded score literals, and curated TF3-flavored predicate
+    names.  These would survive ``_has_banned_token`` but break
+    cross-game translation downstream because the target game has no
+    matching literal vocabulary.
+    """
+    if not text:
+        return False, []
+    low = " " + text.lower() + " "
+    found: List[str] = []
+    for term in _BANNED_LITERAL_TOKENS:
+        if re.search(rf"\b{re.escape(term)}\b", low):
+            found.append(term)
+    # phase=<concrete-label>  — refuse RHS that looks like a literal
+    for m in _LITERAL_PHASE_RE.finditer(text):
+        rhs = m.group(1).lower()
+        if rhs not in _PHASE_RHS_ALLOWED:
+            found.append(f"phase={m.group(1)}")
+    # score=<integer-literal> — must be Δ-form, not a hard-coded number
+    for m in _LITERAL_SCORE_RE.finditer(text):
+        found.append(f"score={m.group(1)}")
+    # Dedupe while keeping insertion order
+    seen: set = set()
+    unique: List[str] = []
+    for t in found:
+        if t not in seen:
+            seen.add(t)
+            unique.append(t)
+    return bool(unique), unique
 
 
 # JSON schema for vLLM's ``guided_json`` enforcement. We define the
@@ -269,6 +336,19 @@ ABSOLUTELY FORBIDDEN in any field:
   toolbar, modal
 * Game names: Thunder Force, TF3, Altered Beast, Columns, Headdy,
   Tetris, Candy Crush, Sega, Genesis, Mega Drive, Arcade, BrowserGym
+* SOURCE-GAME CONDITIONING — predicates that anchor to ONE game's
+  ontology even though they look "abstract":
+  - phase = opening / midgame / endgame / early / mid / late
+    (any concrete phase label).  Use Δ-style instead:
+        world.phase>old.phase     event.phase_changed
+  - world.score = <integer literal>  (e.g. score=10, score=70).  Use
+    Δ-style:
+        world.score+=Δ            score>=old_score+Δ
+        event.score_changed
+  - TF3-flavored names: score_hud, score_trajectory, score_appeared,
+    phase_changed, phase_transitioned, score_adjustment, score_reset.
+    These describe one game's HUD/event vocabulary; the actor at
+    runtime grounds them per game.
 
 If the failure pattern only makes sense if you reference a button or
 specific game mechanic, that means it's not yet a SKILL — skip it.
@@ -371,7 +451,8 @@ def call_35b_proposer_v2(
 
 def _check_predicate_list(items: List[Any], field: str) -> Tuple[List[str], List[str]]:
     """Return (kept, dropped_with_reason).  Drops any item that fails
-    predicate-form OR contains a banned token."""
+    predicate-form OR contains a banned token OR carries source-game
+    conditioning (literal phase names, hard-coded score literals)."""
     kept: List[str] = []
     dropped: List[str] = []
     for it in items or []:
@@ -381,6 +462,10 @@ def _check_predicate_list(items: List[Any], field: str) -> Tuple[List[str], List
         had_ban, terms = _has_banned_token(s)
         if had_ban:
             dropped.append(f"{field}:'{s[:40]}' banned={terms[:3]}")
+            continue
+        had_src, src_terms = _has_source_conditioning(s)
+        if had_src:
+            dropped.append(f"{field}:'{s[:40]}' src_cond={src_terms[:3]}")
             continue
         if not _is_predicate_form(s):
             dropped.append(f"{field}:'{s[:40]}' not predicate-form")
@@ -408,6 +493,9 @@ def validate_proposal(p: dict) -> Tuple[bool, dict]:
     name_banned, name_terms = _has_banned_token(name)
     if name_banned:
         return False, {"reject_reason": f"name contains banned tokens: {name_terms}"}
+    name_src, name_src_terms = _has_source_conditioning(name)
+    if name_src:
+        return False, {"reject_reason": f"name carries source conditioning: {name_src_terms}"}
 
     rationale_banned, rationale_terms = _has_banned_token(
         f"{p.get('rationale_evidence','')} {p.get('non_redundant_reason','')}"
