@@ -1350,8 +1350,23 @@ async def run_episode_async(
 
             if candidates and len(candidates) >= 2:
                 candidates_text = _format_candidates_for_selection(candidates)
+                # T2.17 (2026-05-07 wiring fix): SFT data for
+                # skill_selection trains on the full ``<state>`` block
+                # (entities, attributes, affordances, relations,
+                # state_flags, targets, uncertainty, actions).  Prefer
+                # the 35B-grounded markup stored in
+                # ``info["state_markup"]`` when available; fall back to
+                # the legacy ``summary_state``/``obs_nl`` only when the
+                # vision call was disabled or fell back.
+                _ss_rich = (
+                    current_info.get("state_markup") if current_info else None
+                )
+                _ss_state_text = (
+                    _ss_rich if _ss_rich and "<state>" in _ss_rich
+                    else (summary_state or obs_nl)
+                )
                 user_content = (
-                    f"Game state:\n{(summary_state or obs_nl)[:3000]}\n\n"
+                    f"Game state:\n{_ss_state_text[:3500]}\n\n"
                     f"Current intention: {current_intention[:500]}\n\n"
                     f"Available strategies (pick ONE by number):\n{candidates_text}\n\n"
                     f"Choose the best strategy. Output REASONING then SKILL number."
@@ -1538,9 +1553,28 @@ async def run_episode_async(
                 current_info, summary_state,
             )
         else:
-            summary_for_action = (
-                current_summary if current_summary else obs_nl[:4000]
+            # T2.17 (2026-05-07 wiring fix): for gymv games we already
+            # spend a 35B vision-perception call per step to produce a
+            # rich SFT-aligned ``<state>...</state>`` markup (entities,
+            # attributes, affordances, relations, state_flags, targets,
+            # uncertainty, actions — see
+            # ``_vision_state_perception.py``).  The output landed in
+            # ``info["state_markup"]`` but no consumer was reading it,
+            # so the actor saw the one-line ``summary_state`` instead
+            # — a hard distribution mismatch with the SFT cold-start
+            # data (which trains action_taking on the full <state>
+            # block).  Prefer the rich markup when present; fall back
+            # to the legacy summary when ``state_markup`` is empty
+            # (vision disabled, fallback fired, env missed).
+            _rich_markup = (
+                current_info.get("state_markup") if current_info else None
             )
+            if _rich_markup and "<state>" in _rich_markup:
+                summary_for_action = _rich_markup
+            elif current_summary:
+                summary_for_action = current_summary
+            else:
+                summary_for_action = obs_nl[:4000]
         skill_text = _format_skill_guidance_for_prompt(
             guidance, skill_tracker.protocol_step_idx,
             progress_summary=skill_tracker.get_progress_summary(summary_state),
@@ -1790,6 +1824,42 @@ async def run_episode_async(
                     )
                 except Exception:  # pragma: no cover  (defensive)
                     logger.exception("reward_logger.log_grpo_record(skill_selection) failed")
+
+            # Cross-game skill transfer logging (PLAN-SKILL-BANK §22 + Phase
+            # 1→2 monitoring).  When a skill is committed (i.e. survived the
+            # harness validate), we record its provenance so post-hoc
+            # analysis can compute (a) cross-game-translated skill usage
+            # rate, (b) re-grounding success rate, (c) crafter-v2 skill
+            # uptake.  We resolve full skill metadata via skill_bank
+            # because ``last_candidates`` only carries the runtime
+            # SkillSelectionResult fields, not the ``confidence_tag`` /
+            # ``derived_from`` provenance.
+            try:
+                _chosen_sid = _sk_meta.get("chosen_skill_id")
+                if _chosen_sid and skill_bank is not None and hasattr(skill_bank, "get_skill"):
+                    _full = skill_bank.get_skill(_chosen_sid)
+                    if _full is not None:
+                        from trainer.coevolution._run_loggers import (
+                            log_transfer_usage,  # noqa: WPS433
+                        )
+                        log_transfer_usage(
+                            step=step_count,
+                            episode_id=episode_id,
+                            game=game,
+                            inner_step=step_count,
+                            skill_id=_chosen_sid,
+                            skill_name=getattr(_full, "name", "") or "",
+                            confidence_tag=getattr(_full, "confidence_tag", "stable") or "stable",
+                            derived_from=getattr(_full, "derived_from", None),
+                            feasible_tasks=list(getattr(_full, "feasible_tasks", []) or []),
+                            verified_tasks=list(getattr(_full, "verified_tasks", []) or []),
+                            n_candidates=len(_sk_meta.get("skill_candidates") or []),
+                            chosen_idx=int(_sk_meta.get("chosen_idx", 0) or 0),
+                            harness_verdict=str(_sk_meta.get("reselect_reason") or ""),
+                            raw_env_reward=float(raw_env_reward or 0.0),
+                        )
+            except Exception:  # pragma: no cover (defensive)
+                logger.debug("log_transfer_usage failed", exc_info=True)
 
         _exp_dict: Dict[str, Any] = {
             "step": step_count,

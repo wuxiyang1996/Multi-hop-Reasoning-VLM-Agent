@@ -1182,6 +1182,49 @@ for phase_def in "${PHASES[@]}"; do
         echo ""
         echo "[run_phase1] Phase ${phase_num} (${display}) completed successfully."
         save_phase_snapshot "${phase_num}" "${game}" "${display}" "${step_end}"
+
+        # ── Phase-finalize hook (Phase 1→2 plan, 2026-05-08) ──────
+        # Runs crafter v2 on the just-completed phase's rollouts,
+        # injects novel candidate skills into the source-game bank,
+        # then translates the augmented bank onto the next game's
+        # action vocabulary so Phase N+1 starts with a seeded bank.
+        # Disable with PHASE_FINALIZE=0; fail open if the script
+        # crashes (don't abort the whole curriculum because of
+        # offline-pipeline issues).
+        if [ "${PHASE_FINALIZE:-1}" = "1" ]; then
+            # Resolve the next phase's game (empty when this is the
+            # last phase, in which case we still run crafter v2 +
+            # report but skip the cross-game translation step).
+            _next_game=""
+            for _next_def in "${PHASES[@]}"; do
+                IFS=':' read -r _np _ng _nd <<< "${_next_def}"
+                if [ "${_np}" = "$((phase_num + 1))" ]; then
+                    _next_game="${_ng}"
+                    break
+                fi
+            done
+            echo ""
+            echo "[run_phase1] ── Phase ${phase_num} finalize hook (next=${_next_game:-none}) ──"
+            _judge_url_arg="${JUDGE_URL:-http://localhost:8001/v1}"
+            python scripts/phase1_finalize.py \
+                --run-dir "${RUN_DIR}" \
+                --phase-num "${phase_num}" \
+                --source-game "${game}" \
+                --next-game "${_next_game}" \
+                --judge-url "${_judge_url_arg}" \
+                --judge-model "${JUDGE_MODEL:-Qwen/Qwen3.5-35B-A3B}" \
+                        --bucket-size "${PHASE_FINALIZE_BUCKET_SIZE:-12}" \
+                        --max-buckets "${PHASE_FINALIZE_MAX_BUCKETS:-20}" \
+                        --novelty-threshold "${PHASE_FINALIZE_NOVELTY:-0.55}" \
+                        --promote-window "${PROMOTE_WINDOW:-3}" \
+                        $( [ "${PROMOTE_BEST:-1}" = "0" ] && echo "--no-promote-best" ) \
+                        $( [ "${PROMOTE_BANK:-1}" = "0" ] && echo "--no-promote-bank" ) \
+                        || echo "[run_phase1] WARNING: phase_finalize.py exited non-zero — continuing"
+            echo "[run_phase1] ── Phase ${phase_num} finalize hook done ──"
+        else
+            echo "[run_phase1] PHASE_FINALIZE=0 — skipping crafter v2 + translation hook"
+        fi
+
         PREV_GAME="${game}"
     else
         PHASE_FAILED="${phase_num}"

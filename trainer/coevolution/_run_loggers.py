@@ -59,6 +59,11 @@ _STREAM_PATHS: Dict[str, tuple[str, str]] = {
     "intention_switch": ("intention_log", "switches.jsonl"),
     "component_timing": ("runtime_log", "component_timings.jsonl"),
     "shaping_ratio": ("reward_shaping_log", "ratio.jsonl"),
+    # Cross-game skill transfer usage (Phase N+1 monitoring).  Each row
+    # captures a skill selection event with provenance (confidence_tag,
+    # derived_from, feasible_tasks) so post-hoc analysis can compute
+    # transfer rate / verified-task win rate / re-grounding success.
+    "transfer_usage": ("transfer_log", "usage.jsonl"),
 }
 
 _run_dir_lock = threading.Lock()
@@ -67,6 +72,19 @@ _handles: Dict[str, TextIO] = {}
 _stream_locks: Dict[str, threading.Lock] = {
     key: threading.Lock() for key in _STREAM_PATHS
 }
+
+# Resolve once: the public log_* names that exist in this module.  Used
+# by ``__init__.py`` re-exports.
+__all__ = [
+    "set_run_dir",
+    "log_harness_rejection",
+    "log_harness_validate",
+    "log_lifecycle_transition",
+    "log_intention_switch",
+    "log_component_timing",
+    "log_shaping_ratio",
+    "log_transfer_usage",
+]
 
 
 def set_run_dir(path: Optional[Path]) -> None:
@@ -286,6 +304,80 @@ def log_intention_switch(
     if extra:
         row["extra"] = dict(extra)
     _emit("intention_switch", row)
+
+
+def log_transfer_usage(
+    *,
+    step: int,
+    episode_id: str,
+    game: str,
+    inner_step: int,
+    skill_id: str,
+    skill_name: str,
+    confidence_tag: str,
+    derived_from: Optional[str],
+    feasible_tasks: list,
+    verified_tasks: list,
+    n_candidates: int,
+    chosen_idx: int,
+    harness_verdict: str = "",
+    raw_env_reward: float = 0.0,
+    extra: Optional[Mapping[str, Any]] = None,
+) -> None:
+    """Append one per-step skill-selection event with full provenance.
+
+    Used to track cross-game skill transfer:
+
+    * ``confidence_tag in {"stable", "translated", "crafter_v2", ...}``
+      tells us the skill's origin class.
+    * ``derived_from`` non-null + ``confidence_tag=="translated"``
+      identifies a cross-game-translated skill.  Comparing
+      ``feasible_tasks`` to the current ``game`` reveals whether the
+      actor is using a translated skill on its target game.
+    * ``verified_tasks`` lets us compute the per-game promotion rate
+      after Phase 2 lands.
+
+    Output sink: ``<run_dir>/transfer_log/usage.jsonl``.
+    """
+    row: Dict[str, Any] = {
+        "kind": "transfer_usage",
+        "step": int(step),
+        "episode_id": str(episode_id),
+        "game": str(game),
+        "inner_step": int(inner_step),
+        "skill_id": str(skill_id or ""),
+        "skill_name": str(skill_name or ""),
+        "confidence_tag": str(confidence_tag or "stable"),
+        "derived_from": (str(derived_from) if derived_from else None),
+        "feasible_tasks": list(feasible_tasks or []),
+        "verified_tasks": list(verified_tasks or []),
+        "n_candidates": int(n_candidates),
+        "chosen_idx": int(chosen_idx),
+        "harness_verdict": str(harness_verdict or ""),
+        "raw_env_reward": float(raw_env_reward or 0.0),
+        # Convenience derived fields for fast aggregation.
+        "is_cross_game_translated": (
+            (str(confidence_tag) == "translated") and bool(derived_from)
+        ),
+        # A skill counts as ``native`` to the current ``game`` when:
+        # (a) its confidence_tag is stable / crafter_v2 (i.e. NOT
+        #     translated from another game), AND
+        # (b) either feasible_tasks lists this game, OR feasible_tasks
+        #     is empty (legacy / foundry-mined skills predating the
+        #     §22 metadata defaulted to ``feasible_tasks=[]`` even
+        #     though they were minted for the current game).
+        "is_native": (
+            str(confidence_tag) in ("stable", "crafter_v2")
+            and (
+                not (feasible_tasks or [])
+                or str(game) in (feasible_tasks or [])
+            )
+        ),
+        "ts": time.time(),
+    }
+    if extra:
+        row["extra"] = dict(extra)
+    _emit("transfer_usage", row)
 
 
 def log_component_timing(
