@@ -1,8 +1,17 @@
-# QA + MiniWob + EnvWrappers SFT Dataset Cleaning (May 2026)
+# QA + MiniWob + WebShop + EnvWrappers SFT Dataset Cleaning (May 2026)
 
 A record of the cleaning + enrichment pipeline applied to the multimodal
 decision SFT dataset under
 `labeling/decision_sft_jsonl/run_multimodal_20260506_055105/`.
+
+WebShop was added as a **new browser source** (May 2026 update) using the
+same Stage 1' / 2 / 3 / 4 / 5 pipeline that already cleaned MiniWob — both
+sources share the BrowserGym episode schema, so the only differences are
+the per-task directory glob (`webshop.*` vs `miniwob.*`), the model-tag
+to root-directory mapping, and a per-source success-reward threshold
+(WebShop reward is granular — 0/0.33/0.5/0.67/0.75/1.0 — so we keep
+episodes with `total_reward ≥ 0.5` by default; pass
+`--webshop-min-reward` to widen / tighten).
 
 Three independent quality issues were addressed:
 
@@ -38,6 +47,7 @@ rich per-step intentions and a fully populated, semantically diverse
 | `tir_bench`        |   302 | **0** |  **5,247** | REASON/DEDUCE 147 · REASON/MEASURE 58 · REASON/RULE_OUT 40 |
 | `visual_toolbench` |    74 | **0** |  **6,356** | REASON/DEDUCE 37 · REASON/RULE_OUT 13 · REASON/MEASURE 11 |
 | `miniwob`          |   905 | **0** |  **2,529** | COMMIT/EXECUTE 410 · COMMIT/BUILD 190 · COMMIT/POSITION 69 |
+| `webshop` *(new)*  |   ⟂   |   ⟂   |     ⟂      | populated by re-running Stages 1' → 5 with `--source webshop`; row counts depend on `--webshop-min-reward`. Measured (4 frontier models × 50 tasks): **`r≥0.5`→ 784 rows** (98 episodes), `r=1.0`→ 160 rows (38 episodes), `r≥0.0`→ 2,538 rows (every step kept; noisy). |
 
 **action_taking before:** all 5 sources collapsed to `EXECUTE/EXECUTE`
 (or `NAVIGATE/NAVIGATE` for ~9 % of miniwob).
@@ -184,13 +194,20 @@ Each hop is tagged with `(operator, subgoal, note)`.
 **Stats:** 7,928 samples → **36,872 hops** across 4 sources × 4 models.
 **Output:** `labeling/qa_multihop_out/run_20260506_181625/<source>/<model>/samples_with_hops.jsonl`
 
-### Stage 1' — MiniWob Per-Step Intentions
+### Stage 1' — MiniWob / WebShop Per-Step Intentions
 
 **Script:** `scripts/label_qa_miniwob_intentions.py`
-**Output:** `labeling/qa_miniwob_labeled/run_20260506_070722/miniwob/<model>/<game>/rollouts.jsonl`
+**Output (miniwob):** `labeling/qa_miniwob_labeled/run_20260506_070722/miniwob/<model>/<game>/rollouts.jsonl`
+**Output (webshop):** `labeling/qa_miniwob_labeled/run_<ts>/webshop/<model>/<game>/rollouts.jsonl`
 
 Each browsergym experience step gets `intention_operator`,
-`intention_subgoal`, `intention_note` attached via GPT-5.4.
+`intention_subgoal`, `intention_note` attached via GPT-5.4.  WebShop
+reuses the same script with `--source webshop`, which globs `webshop.*`
+under each `webshop_50task_<tag>/` model-specific root.  WebShop
+cold-start rollouts usually have `intentions=null`, so the few-shot
+block was extended with three webshop-style exemplars (search compose,
+result compare, Buy Now commit) so the LLM still picks an informative
+`(operator, subgoal)` pair from the state + action context alone.
 
 ### Stage 2 — Skill Bank Construction (GPT-5.4 driven)
 
@@ -437,34 +454,69 @@ python labeling/label_qa_multihop_gpt54.py \
 python scripts/label_qa_miniwob_intentions.py \
     --source miniwob --models gpt-5.4 claude gemini qwen --workers 16
 
-# Stage 2 — skill bank build (GPT-5.4)
+# Stage 1' — webshop per-step intentions (run once per model-tag → labeled-run dir).
+# Each tag corresponds to one model in the 4-way frontier comparison (see
+# Cold-start-out-browsergym/REPORT_4way_comparison.md).
+LABELED_RUN=labeling/qa_miniwob_labeled/run_20260506_070722
+for pair in "low gpt-5.4" "claude claude" "gemini gemini" "qwen qwen"; do
+    set -- $pair
+    tag=$1; mdl=$2
+    python scripts/label_qa_miniwob_intentions.py \
+        --source webshop \
+        --inputs Cold-start-out-browsergym/webshop_50task_${tag} \
+        --output-dir ${LABELED_RUN}/webshop/${mdl} \
+        --source-model-tag ${mdl} \
+        --workers 16
+done
+
+# Stage 2 — skill bank build (GPT-5.4).  --sources defaults already include
+# webshop alongside miniwob + the four QA benches.  The single
+# --miniwob-run dir is expected to carry the peer subtrees miniwob/ and
+# webshop/ — that's the layout produced by the Stage 1' loop above.
 python labeling/build_skillbank_qa_gpt54.py \
     --multihop-run labeling/qa_multihop_out/run_20260506_181625 \
     --miniwob-run  labeling/qa_miniwob_labeled/run_20260506_070722 \
     --output-dir   labeling/skill_bank_qa/run_<ts>
 
-# Stage 3 — skill-query labeling (GPU)
+# Stage 3 — skill-query labeling (GPU).  Add `webshop` to --sources so the
+# per-source bank is loaded and the webshop subtree is walked.
 python labeling/label_skill_actions_qa_gpt54.py \
     --bank-run     labeling/skill_bank_qa/run_20260506_184439 \
     --multihop-run labeling/qa_multihop_out/run_20260506_181625 \
     --miniwob-run  labeling/qa_miniwob_labeled/run_20260506_070722 \
     --output-dir   labeling/skill_actions_qa_out/run_<ts>_gpu \
-    --sources video_holmes siv_bench tir_bench visual_toolbench miniwob \
+    --sources video_holmes siv_bench tir_bench visual_toolbench miniwob webshop \
     --models  gpt-5.4 claude gemini qwen \
     --top-k 5 --workers 8 --verbose
 
-# Stage 4 — emit + patch skill_selection.jsonl
+# Build the action_taking.jsonl rows for webshop in the SFT dataset.  This
+# step is parallel to the original miniwob entry in
+# build_multimodal_decision_sft.py and writes
+# <out-root>/webshop/action_taking.jsonl.  Use --webshop-min-reward 0.0
+# to keep every episode (more data, noisier) or 1.0 for full successes
+# only (~38 episodes total across the 4 frontier models).
+python scripts/build_multimodal_decision_sft.py \
+    --sources webshop \
+    --webshop-min-reward 0.5 \
+    --out-root labeling/decision_sft_jsonl/run_multimodal_20260506_055105
+
+# Stage 4 — emit + patch skill_selection.jsonl (now also writes a
+# webshop/ subdir under the SFT root).
 python scripts/build_qa_skill_selection_sft.py \
     --skill-actions-run labeling/skill_actions_qa_out/run_20260506_190122_gpu \
     --out-root          labeling/qa_skill_selection_sft/run_<ts> \
     --patch-sft-dir     labeling/decision_sft_jsonl/run_multimodal_20260506_055105 \
+    --sources video_holmes siv_bench tir_bench visual_toolbench miniwob webshop \
     --verbose
 
-# Stage 5 — relabel action_taking (op, sg) inplace
+# Stage 5 — relabel action_taking (op, sg) inplace.  --miniwob-run is the
+# single labeled-run directory holding both browser sub-trees; webshop SFT
+# rows are patched the same way miniwob ones are.
 python scripts/relabel_qa_action_taking.py \
     --sft-dir       labeling/decision_sft_jsonl/run_multimodal_20260506_055105 \
     --multihop-run  labeling/qa_multihop_out/run_20260506_181625 \
     --miniwob-run   labeling/qa_miniwob_labeled/run_20260506_070722 \
+    --sources video_holmes siv_bench tir_bench visual_toolbench miniwob webshop \
     --inplace --verbose
 
 # ─── EnvWrapper track (run independently after Stage 5) ───────────────

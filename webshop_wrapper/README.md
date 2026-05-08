@@ -69,6 +69,18 @@ roughly at IL+RL (0.300).
   truncation, not by submitting wrong products. Bumping `max_steps`
   helps Gemini / GPT / Claude more than Qwen (Qwen rarely truncates).
 
+**Downstream — decision-SFT integration (May 2026).** The four
+`Cold-start-out-browsergym/webshop_50task_<tag>/` rollout dirs feed
+directly into the multimodal decision-SFT corpus alongside MiniWob.
+The pipeline (Stages 1' → 5: per-step intentions → skill bank →
+skill-query → `skill_selection.jsonl` → `action_taking` relabel) is
+documented in
+[`../labeling/README_QA_MINIWOB_SFT_CLEANING.md`](../labeling/README_QA_MINIWOB_SFT_CLEANING.md);
+the `webshop` bench is added to
+[`../scripts/build_multimodal_decision_sft.py`](../scripts/build_multimodal_decision_sft.py)
+with a configurable `--webshop-min-reward` cutoff (default `0.5`,
+yielding 784 rows / 98 episodes across the 4 frontier models).
+
 ---
 
 ## What's inside

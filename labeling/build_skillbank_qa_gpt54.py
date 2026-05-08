@@ -132,6 +132,11 @@ SUB_EPISODE_KEEP = 16
 
 QA_SOURCES = ("video_holmes", "siv_bench", "tir_bench", "visual_toolbench")
 MINIWOB_SOURCE = "miniwob"
+WEBSHOP_SOURCE = "webshop"
+# The two browser sources share the labeled-rollout layout
+# ``<run>/<source>/<model>/<game>/rollouts.jsonl`` and the BrowserGym step
+# schema, so they go through the same iterator below.
+BROWSER_SOURCES = (MINIWOB_SOURCE, WEBSHOP_SOURCE)
 
 
 # ---------------------------------------------------------------------------
@@ -219,15 +224,21 @@ def _iter_qa_hops(
                 )
 
 
-def _iter_miniwob_steps(
-    miniwob_run: Path, models: Tuple[str, ...],
+def _iter_browser_steps(
+    labeled_run: Path, models: Tuple[str, ...], *, source: str,
 ) -> Iterable[HopInstance]:
-    """Walk miniwob × all models × all games, emit step-level instances."""
-    mw_dir = miniwob_run / "miniwob"
-    if not mw_dir.is_dir():
+    """Walk one browser source × all models × all games / tasks.
+
+    *source* is one of :data:`BROWSER_SOURCES` (``miniwob`` or ``webshop``).
+    The labeled-rollout layout is identical: ``<run>/<source>/<model>/<game>/<*.jsonl>``.
+    Each yielded :class:`HopInstance` carries the source name verbatim so the
+    downstream skill bank stays segmented per browser sub-domain.
+    """
+    src_dir = labeled_run / source
+    if not src_dir.is_dir():
         return
     for mdl in models:
-        mdir = mw_dir / mdl
+        mdir = src_dir / mdl
         if not mdir.is_dir():
             continue
         for game_dir in sorted(mdir.iterdir()):
@@ -257,7 +268,7 @@ def _iter_miniwob_steps(
                         if not note:
                             continue
                         yield HopInstance(
-                            source=MINIWOB_SOURCE,
+                            source=source,
                             model=mdl,
                             sample_id=eid,
                             bucket=game,
@@ -272,6 +283,21 @@ def _iter_miniwob_steps(
                             correct=bool(outcome) if isinstance(outcome, bool) else None,
                             reward=reward,
                         )
+
+
+def _iter_miniwob_steps(
+    miniwob_run: Path, models: Tuple[str, ...],
+) -> Iterable[HopInstance]:
+    """Back-compat wrapper around :func:`_iter_browser_steps` for miniwob."""
+    return _iter_browser_steps(miniwob_run, models, source=MINIWOB_SOURCE)
+
+
+def _iter_webshop_steps(
+    miniwob_run: Path, models: Tuple[str, ...],
+) -> Iterable[HopInstance]:
+    """Webshop walker; reads the ``webshop/`` peer of ``miniwob/`` under the
+    same labeled-run dir."""
+    return _iter_browser_steps(miniwob_run, models, source=WEBSHOP_SOURCE)
 
 
 # ---------------------------------------------------------------------------
@@ -523,7 +549,7 @@ def _build_contract_record(
         "contract": contract,
         "execution_hint": execution_hint,
         "expected_tag_pattern": [skill_id],
-        "applicable_domains": ["visual_reasoning"] if cluster.source != MINIWOB_SOURCE else ["browsergym"],
+        "applicable_domains": ["browsergym"] if cluster.source in BROWSER_SOURCES else ["visual_reasoning"],
         "verified_domains": [],
         "evidence_role": cluster.operator,
         "feasible_tasks": feasible_tasks,
@@ -532,11 +558,11 @@ def _build_contract_record(
         "retired": False,
         "created_at": now,
         "updated_at": now,
-        "source_type": "mined_from_trace_qa" if cluster.source != MINIWOB_SOURCE
-                       else "mined_from_trace_browser",
+        "source_type": "mined_from_trace_browser" if cluster.source in BROWSER_SOURCES
+                       else "mined_from_trace_qa",
         "status": "draft",
         "provenance": {
-            "corpus": "visual_reasoning" if cluster.source != MINIWOB_SOURCE else "browsergym",
+            "corpus": "browsergym" if cluster.source in BROWSER_SOURCES else "visual_reasoning",
             "source_name": cluster.source,
             "decorator_version": "skillrecord_shape_v2",
             "n_models_contributing": n_models,
@@ -877,13 +903,13 @@ def _parse_args() -> argparse.Namespace:
                    help="Output dir of label_qa_multihop_gpt54 "
                         "(labeling/qa_multihop_out/run_<ts>).")
     p.add_argument("--miniwob-run", type=Path, default=None,
-                   help="qa_miniwob_labeled run dir; if omitted, miniwob "
-                        "skipped.  Default: same as --multihop-run if it has "
-                        "a 'miniwob/' folder, else None.")
+                   help="qa_miniwob_labeled run dir.  Holds peer subfolders "
+                        "for each browser source (``miniwob/`` and "
+                        "``webshop/``); if omitted, browser sources are skipped.")
     p.add_argument("--output-dir", type=Path, default=None,
                    help="Output dir; default: labeling/skill_bank_qa/run_<utc-ts>.")
     p.add_argument("--sources", type=str, nargs="+",
-                   default=list(QA_SOURCES) + [MINIWOB_SOURCE])
+                   default=list(QA_SOURCES) + [MINIWOB_SOURCE, WEBSHOP_SOURCE])
     p.add_argument("--models", type=str, nargs="+", default=list(DEFAULT_MODELS))
     p.add_argument("--label-model", type=str, default=DEFAULT_LABEL_MODEL)
     p.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
@@ -946,11 +972,13 @@ def main() -> int:
 
     for source in args.sources:
         logger.info("Loading instances for source=%s ...", source)
-        if source == MINIWOB_SOURCE:
+        if source in BROWSER_SOURCES:
             if miniwob_run is None:
-                logger.warning("miniwob skipped (no --miniwob-run).")
+                logger.warning("%s skipped (no --miniwob-run).", source)
                 continue
-            instances = list(_iter_miniwob_steps(miniwob_run, models=models_tup))
+            instances = list(
+                _iter_browser_steps(miniwob_run, models=models_tup, source=source)
+            )
         elif source in QA_SOURCES:
             instances = list(_iter_qa_hops(multihop_run, source, models=models_tup))
         else:

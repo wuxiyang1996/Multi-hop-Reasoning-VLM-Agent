@@ -109,6 +109,11 @@ logger = logging.getLogger("labeling.label_skill_actions_qa")
 DEFAULT_WORKERS = 8
 QA_SOURCES = ("video_holmes", "siv_bench", "tir_bench", "visual_toolbench")
 MINIWOB_SOURCE = "miniwob"
+WEBSHOP_SOURCE = "webshop"
+# Browser sources share the BrowserGym episode shape and reuse
+# ``_process_miniwob_episode``; only the on-disk folder name and bank lookup
+# differ.  The bank for each source is loaded independently.
+BROWSER_SOURCES = (MINIWOB_SOURCE, WEBSHOP_SOURCE)
 
 
 # ---------------------------------------------------------------------------
@@ -413,17 +418,24 @@ def _process_qa_pair(
     }
 
 
-def _process_miniwob_pair(
-    *, miniwob_run: Path, model: str, game_dir: Path,
+def _process_browser_pair(
+    *, source: str, miniwob_run: Path, model: str, game_dir: Path,
     output_dir: Path, loaded: LoadedBank, top_k: int, workers: int,
     limit: Optional[int],
 ) -> Dict[str, Any]:
+    """Skill-query labeler for one (source, model, game) BrowserGym slice.
+
+    ``source`` is one of :data:`BROWSER_SOURCES`.  The output layout is
+    parallel between the two:
+        ``<output_dir>/<source>/<model>/<game>/rollouts_with_skill_query.jsonl``
+    """
+    del miniwob_run  # signature kept for caller symmetry; game_dir is absolute
     game = game_dir.name
     in_files = sorted(game_dir.glob("*.jsonl"))
     if not in_files:
-        return {"source": MINIWOB_SOURCE, "model": model, "bucket": game,
+        return {"source": source, "model": model, "bucket": game,
                 "skipped": True, "reason": "no rollouts"}
-    out_subdir = output_dir / MINIWOB_SOURCE / model / game
+    out_subdir = output_dir / source / model / game
     out_subdir.mkdir(parents=True, exist_ok=True)
     out_path = out_subdir / "rollouts_with_skill_query.jsonl"
 
@@ -456,7 +468,7 @@ def _process_miniwob_pair(
     elapsed = time.time() - t0
 
     return {
-        "source": MINIWOB_SOURCE, "model": model, "bucket": game,
+        "source": source, "model": model, "bucket": game,
         "input_files": [str(f) for f in in_files],
         "output_path": str(out_path),
         "n_units": stats.n_units,
@@ -467,6 +479,19 @@ def _process_miniwob_pair(
         "top_skills": dict(stats.selected_counter.most_common(8)),
         "elapsed_seconds": round(elapsed, 1),
     }
+
+
+def _process_miniwob_pair(
+    *, miniwob_run: Path, model: str, game_dir: Path,
+    output_dir: Path, loaded: LoadedBank, top_k: int, workers: int,
+    limit: Optional[int],
+) -> Dict[str, Any]:
+    """Back-compat alias delegating to :func:`_process_browser_pair`."""
+    return _process_browser_pair(
+        source=MINIWOB_SOURCE, miniwob_run=miniwob_run, model=model,
+        game_dir=game_dir, output_dir=output_dir, loaded=loaded,
+        top_k=top_k, workers=workers, limit=limit,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -486,11 +511,13 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--multihop-run", type=Path, default=None,
                    help="QA multihop run dir; required for QA sources.")
     p.add_argument("--miniwob-run", type=Path, default=None,
-                   help="qa_miniwob_labeled run dir; required for miniwob.")
+                   help="qa_miniwob_labeled run dir.  Required for any browser "
+                        "source (miniwob/webshop) — it must contain a "
+                        "<source>/<model>/<game>/ tree per requested source.")
     p.add_argument("--output-dir", type=Path, default=None,
                    help="Default: labeling/skill_actions_qa_out/run_<utc-ts>.")
     p.add_argument("--sources", type=str, nargs="+",
-                   default=list(QA_SOURCES) + [MINIWOB_SOURCE])
+                   default=list(QA_SOURCES) + list(BROWSER_SOURCES))
     p.add_argument("--models", type=str, nargs="+", default=list(DEFAULT_MODELS))
     p.add_argument("--top-k", type=int, default=DEFAULT_TOP_K)
     p.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
@@ -579,40 +606,49 @@ def main() -> int:
                         s.get("elapsed_seconds", 0.0),
                     )
 
-    # MiniWob.
-    if MINIWOB_SOURCE in args.sources and MINIWOB_SOURCE in banks:
+    # Browser sources (miniwob, webshop) — they share the BrowserGym episode
+    # shape so we drive them through the same processor, parametrised on the
+    # source name.  Each source loads its own bank and writes under its own
+    # ``<source>/<model>/<game>/`` subtree.
+    browser_sources_to_run = [s for s in args.sources
+                              if s in BROWSER_SOURCES and s in banks]
+    if browser_sources_to_run:
         if args.miniwob_run is None or not args.miniwob_run.is_dir():
-            logger.warning("--miniwob-run not provided; skipping miniwob.")
+            logger.warning("--miniwob-run not provided; skipping browser sources.")
         else:
             mw = args.miniwob_run.resolve()
-            mw_dir = mw / "miniwob"
-            loaded = banks[MINIWOB_SOURCE]
-            if mw_dir.is_dir():
+            for source in browser_sources_to_run:
+                src_dir = mw / source
+                loaded = banks[source]
+                if not src_dir.is_dir():
+                    logger.warning("[%s] missing labeled-rollout subtree at %s",
+                                   source, src_dir)
+                    continue
                 for model in args.models:
-                    mdir = mw_dir / model
+                    mdir = src_dir / model
                     if not mdir.is_dir():
                         continue
                     for game_dir in sorted(mdir.iterdir()):
                         if not game_dir.is_dir():
                             continue
                         try:
-                            s = _process_miniwob_pair(
-                                miniwob_run=mw, model=model, game_dir=game_dir,
-                                output_dir=output_dir, loaded=loaded,
-                                top_k=args.top_k, workers=args.workers,
-                                limit=args.limit,
+                            s = _process_browser_pair(
+                                source=source, miniwob_run=mw, model=model,
+                                game_dir=game_dir, output_dir=output_dir,
+                                loaded=loaded, top_k=args.top_k,
+                                workers=args.workers, limit=args.limit,
                             )
                         except Exception as exc:
-                            logger.error("[miniwob/%s/%s] FAILED: %s",
+                            logger.error("[%s/%s/%s] FAILED: %s", source,
                                          model, game_dir.name, exc)
                             traceback.print_exc()
-                            s = {"source": MINIWOB_SOURCE, "model": model,
+                            s = {"source": source, "model": model,
                                  "bucket": game_dir.name,
                                  "error": f"{type(exc).__name__}: {exc}"}
                         summaries.append(s)
                         logger.info(
-                            "[miniwob/%s/%s] %d eps, %d steps, %d w/ skill (%.1f%%), %.1fs",
-                            s.get("model"), s.get("bucket"),
+                            "[%s/%s/%s] %d eps, %d steps, %d w/ skill (%.1f%%), %.1fs",
+                            s.get("source"), s.get("model"), s.get("bucket"),
                             s.get("n_units", 0), s.get("n_steps", 0),
                             s.get("n_with_skill", 0), 100 * s.get("coverage", 0.0),
                             s.get("elapsed_seconds", 0.0),

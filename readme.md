@@ -861,6 +861,43 @@ For reference: human expert ≈ 0.604, ReAct + GPT-4 ≈ 0.455, IL+RL ≈
 three frontier models is statistically significant (95% CIs do not
 overlap with any of GPT-5.4-low / Claude / Gemini).
 
+##### WebShop → decision-SFT integration (May 2026)
+
+The 4 × 50-task WebShop rollouts above feed directly into the multimodal
+decision-SFT corpus, sitting next to MiniWob as a peer browser source.
+End-to-end pipeline (Stages 1' → 5) is documented in
+[`labeling/README_QA_MINIWOB_SFT_CLEANING.md`](labeling/README_QA_MINIWOB_SFT_CLEANING.md):
+
+- **Stage 1' — per-step intentions.**
+  `scripts/label_qa_miniwob_intentions.py --source webshop` re-uses the
+  miniwob LLM tagger (BrowserGym episode shape is identical) and globs
+  `webshop.*` under each `webshop_50task_<tag>/` model-specific root.
+  WebShop cold-start has `intentions=null`, so the few-shot prompt was
+  extended with three webshop exemplars (search-compose, result-compare,
+  Buy Now) and labels the dual-axis `(operator, subgoal, note)` from the
+  state + action context alone.
+- **Stage 2-5 — skill bank, skill-query, `skill_selection.jsonl`,
+  `action_taking` relabel.** Each downstream script accepts `webshop`
+  as a peer browser source alongside `miniwob`; the labeled-rollout
+  layout is `qa_miniwob_labeled/run_<ts>/{miniwob,webshop}/<model>/<game>/`.
+- **`action_taking` row builder.** A new `webshop` bench in
+  [`scripts/build_multimodal_decision_sft.py`](scripts/build_multimodal_decision_sft.py)
+  walks the four `webshop_50task_<tag>/` roots and writes
+  `<sft_root>/webshop/action_taking.jsonl`. Episode reward is granular
+  (0/0.33/0.5/0.67/0.75/1.0), so the cut-off is configurable via
+  `--webshop-min-reward` (default 0.5 → 784 rows / 98 episodes;
+  `r ≥ 0.0` keeps all 2,538 steps but is noisier; `r = 1.0` keeps
+  160 rows / 38 episodes).
+
+The trainer's `data_loader` ingests `<sft_root>/webshop/action_taking.jsonl`
+and `<sft_root>/webshop/skill_selection.jsonl` with **no code changes**
+— format matches the legacy `labeling/build_decision_sft_jsonl.py`
+schema verbatim. Each row carries `corpus="browsergym"`, `game="webshop.<idx>"`,
+`source_model` ∈ {`gpt-5.4`, `claude-4.6`, `gemini-3.1-pro`,
+`qwen3-vl-235b`}, and `active_skill` prefixed `webshop/<VERB>` so the
+skill bank can keep miniwob and webshop sub-domains separable when
+desired.
+
 ---
 
 ## Running experiments — instrumentation, ablations, cross-domain eval, analysis

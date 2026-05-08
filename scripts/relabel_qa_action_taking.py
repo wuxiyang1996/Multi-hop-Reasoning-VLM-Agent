@@ -1,12 +1,13 @@
-"""Relabel ``intention_operator``/``intention_subgoal`` on QA + MiniWob action_taking SFT rows.
+"""Relabel ``intention_operator``/``intention_subgoal`` on QA + MiniWob + WebShop action_taking SFT rows.
 
 Why
 ---
-The existing QA + MiniWob ``action_taking.jsonl`` rows in
+The existing QA + browser ``action_taking.jsonl`` rows in
 ``labeling/decision_sft_jsonl/run_multimodal_*/`` have their (operator,
 subgoal) pair collapsed to ``EXECUTE/EXECUTE`` (or ``COMMIT/EXECUTE`` for
-miniwob) — the original builder hard-coded ``intention_subgoal="EXECUTE"``
-because at the time we did not have hop-level intention labels.
+miniwob/webshop) — the original builder hard-coded
+``intention_subgoal="EXECUTE"`` because at the time we did not have
+hop-level intention labels.
 
 We now have those labels:
 
@@ -14,8 +15,11 @@ We now have those labels:
   Each sample is decomposed into atomic hops, each tagged with
   ``operator``/``subgoal``/``note``.
 
-* MiniWob steps: ``labeling/qa_miniwob_labeled/run_<ts>/miniwob/<model>/<game>/rollouts.jsonl``
-  Each experience already carries ``intention_operator``/``intention_subgoal``/``intention_note``.
+* MiniWob / WebShop steps:
+  ``labeling/qa_miniwob_labeled/run_<ts>/<browser_source>/<model>/<game>/rollouts.jsonl``
+  Each experience carries ``intention_operator``/``intention_subgoal``/``intention_note``.
+  The two browser sources sit side-by-side under the same labeled-run dir
+  (peers ``miniwob/`` and ``webshop/``).
 
 This script *patches the existing SFT rows in place* (or writes to a
 sibling output) so the trainer sees per-instance intent signal:
@@ -27,8 +31,9 @@ sibling output) so the trainer sees per-instance intent signal:
   ``note`` into the row.  We also persist ``intention_hops`` with the full
   hop sequence so later trainers can use multi-hop signal if desired.
 
-* MiniWob: each row carries ``episode_id`` + ``step_idx``.  We look up the
-  matching experience in the labeled rollout and patch
+* Browser (miniwob, webshop): each row carries ``episode_id`` + ``step_idx``.
+  We look up the matching experience in the labeled rollout (per-source
+  subtree) and patch
   ``intention_operator``/``intention_subgoal``/``intention``/``intention_full``.
 
 Usage
@@ -57,6 +62,8 @@ logger = logging.getLogger("scripts.relabel_qa_action_taking")
 
 QA_SOURCES = ("video_holmes", "siv_bench", "tir_bench", "visual_toolbench")
 MINIWOB_SOURCE = "miniwob"
+WEBSHOP_SOURCE = "webshop"
+BROWSER_SOURCES = (MINIWOB_SOURCE, WEBSHOP_SOURCE)
 DEFAULT_MODELS = ("gpt-5.4", "claude", "gemini", "qwen")
 
 # The SFT row's ``source_model`` field uses the long version-specific name
@@ -201,21 +208,27 @@ def _load_qa_intent_map(
 # MiniWob: build (episode_id, step_idx) -> {op, sg, note}
 # ---------------------------------------------------------------------------
 
-def _load_miniwob_intent_map(
-    miniwob_run: Path, models: List[str],
-) -> Dict[Tuple[str, int], Dict[str, Any]]:
-    """Returns ``(episode_id, step_idx) -> {op, sg, note}``.
+def _load_browser_intent_map(
+    labeled_run: Path, models: List[str], *, source: str,
+) -> Dict[Tuple[str, int, str], Dict[str, Any]]:
+    """Returns ``(episode_id, step_idx, model_dir) -> {op, sg, note}``.
 
-    Note that ``episode_id`` here is the **base** miniwob episode_id (UUID)
-    *without* the ``__model`` suffix, plus we additionally key by
-    (base_eid, model) → fields, then resolve lookup at row-patch time.
+    *source* is one of :data:`BROWSER_SOURCES`.  Both browser sources use
+    the same labeled-rollout layout
+    (``<run>/<source>/<model>/<game>/rollouts.jsonl``); only the
+    sub-directory name differs.
+
+    ``episode_id`` here is the **base** browser episode_id (UUID) *without*
+    the ``__model`` suffix.  We additionally key by model so the relabel
+    driver can prefer a same-model match before falling back to a different
+    model that ran the same task seed.
     """
     out: Dict[Tuple[str, int, str], Dict[str, Any]] = {}
-    mw_root = miniwob_run / "miniwob"
-    if not mw_root.is_dir():
-        return {}
+    src_root = labeled_run / source
+    if not src_root.is_dir():
+        return out
     for model in models:
-        mdir = mw_root / model
+        mdir = src_root / model
         if not mdir.is_dir():
             continue
         for game_dir in sorted(mdir.iterdir()):
@@ -240,7 +253,14 @@ def _load_miniwob_intent_map(
                             "subgoal": sg or "EXECUTE",
                             "note": note,
                         }
-    return out  # type: ignore
+    return out
+
+
+def _load_miniwob_intent_map(
+    miniwob_run: Path, models: List[str],
+) -> Dict[Tuple[str, int, str], Dict[str, Any]]:
+    """Back-compat alias delegating to :func:`_load_browser_intent_map`."""
+    return _load_browser_intent_map(miniwob_run, models, source=MINIWOB_SOURCE)
 
 
 # ---------------------------------------------------------------------------
@@ -275,14 +295,18 @@ def _patch_qa_row(
     return row, changed
 
 
-def _patch_miniwob_row(
+def _patch_browser_row(
     row: Dict[str, Any],
     intent_map: Dict[Tuple[str, int, str], Dict[str, Any]],
     *,
     by_eid_step: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
     match_kind_counter: Optional[Counter] = None,
 ) -> Tuple[Dict[str, Any], bool]:
-    """Look up per-step (op, sg) for a miniwob row by (episode_id, step_idx).
+    """Look up per-step (op, sg) for any browser row by (episode_id, step_idx).
+
+    Works identically for miniwob and webshop because both sources share
+    the same SFT row schema (``episode_id`` ends in ``__<source_model>``,
+    ``step_idx`` is an int, etc.).
 
     Tracks where the matched info came from:
       * ``direct``    — same (eid, step, model)
@@ -329,6 +353,21 @@ def _patch_miniwob_row(
     return row, changed
 
 
+def _patch_miniwob_row(
+    row: Dict[str, Any],
+    intent_map: Dict[Tuple[str, int, str], Dict[str, Any]],
+    *,
+    by_eid_step: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
+    match_kind_counter: Optional[Counter] = None,
+) -> Tuple[Dict[str, Any], bool]:
+    """Back-compat alias for :func:`_patch_browser_row`."""
+    return _patch_browser_row(
+        row, intent_map,
+        by_eid_step=by_eid_step,
+        match_kind_counter=match_kind_counter,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
@@ -340,7 +379,16 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--multihop-run", type=Path, required=True,
                    help="Path to labeling/qa_multihop_out/run_<ts>/")
     p.add_argument("--miniwob-run", type=Path, required=True,
-                   help="Path to labeling/qa_miniwob_labeled/run_<ts>/")
+                   help="Path to labeling/qa_miniwob_labeled/run_<ts>/.  This "
+                        "is a single labeled-run directory that may carry one "
+                        "or both browser-source subtrees (``miniwob/`` and "
+                        "``webshop/``); both are read when present.")
+    p.add_argument("--webshop-run", type=Path, default=None,
+                   help="Optional override for the webshop labeled-run dir.  "
+                        "Defaults to --miniwob-run (which is the canonical "
+                        "single-tree layout).  Use this only when you want "
+                        "to source webshop labels from a separate timestamped "
+                        "run than miniwob's.")
     p.add_argument("--out-dir", type=Path, default=None,
                    help="If set, write patched rows to <out-dir>/<bench>/action_taking.jsonl. "
                         "If --inplace also given, both writes happen.")
@@ -348,7 +396,7 @@ def _parse_args() -> argparse.Namespace:
                    help="Overwrite the existing action_taking.jsonl files in --sft-dir. "
                         "Backups are saved to <bench>/action_taking.jsonl.bak.<ts>.")
     p.add_argument("--sources", type=str, nargs="+",
-                   default=list(QA_SOURCES) + [MINIWOB_SOURCE])
+                   default=list(QA_SOURCES) + list(BROWSER_SOURCES))
     p.add_argument("--models", type=str, nargs="+", default=list(DEFAULT_MODELS))
     p.add_argument("--verbose", "-v", action="store_true")
     return p.parse_args()
@@ -376,21 +424,35 @@ def main() -> int:
     logger.info("Loaded QA intent map: %d (source, sample_id) keys",
                  len(qa_intent_map))
 
-    miniwob_intent_map: Dict[Tuple[str, int, str], Dict[str, Any]] = {}
-    miniwob_by_eid_step: Dict[Tuple[str, int], Dict[str, Any]] = {}
-    if MINIWOB_SOURCE in args.sources:
-        miniwob_intent_map = _load_miniwob_intent_map(
-            args.miniwob_run.resolve(), list(args.models)
+    # Each browser source gets its own (eid, step, model) map and a
+    # model-agnostic fallback derived from it.  We index by source so the
+    # bench-loop below can pick the right map without re-walking the
+    # labeled trees.
+    browser_maps: Dict[str, Dict[Tuple[str, int, str], Dict[str, Any]]] = {}
+    browser_fallbacks: Dict[str, Dict[Tuple[str, int], Dict[str, Any]]] = {}
+    for browser_src in BROWSER_SOURCES:
+        if browser_src not in args.sources:
+            continue
+        if browser_src == WEBSHOP_SOURCE and args.webshop_run is not None:
+            run_dir = args.webshop_run.resolve()
+        else:
+            run_dir = args.miniwob_run.resolve()
+        intent_map = _load_browser_intent_map(
+            run_dir, list(args.models), source=browser_src,
         )
-        # Build a model-agnostic fallback index, preferring entries with
-        # the longest note (assumed richer signal).
-        for (eid, step, _model), info in miniwob_intent_map.items():
-            prev = miniwob_by_eid_step.get((eid, step))
+        fallback: Dict[Tuple[str, int], Dict[str, Any]] = {}
+        for (eid, step, _model), info in intent_map.items():
+            prev = fallback.get((eid, step))
             if prev is None or len(info.get("note", "")) > len(prev.get("note", "")):
-                miniwob_by_eid_step[(eid, step)] = info
-        logger.info("Loaded MiniWob intent map: %d (eid, step, model) keys; "
+                fallback[(eid, step)] = info
+        browser_maps[browser_src] = intent_map
+        browser_fallbacks[browser_src] = fallback
+        logger.info("Loaded %s intent map: %d (eid, step, model) keys; "
                     "%d (eid, step) fallback keys",
-                     len(miniwob_intent_map), len(miniwob_by_eid_step))
+                     browser_src, len(intent_map), len(fallback))
+    # Aliases preserved for back-compat with anyone importing the module.
+    miniwob_intent_map = browser_maps.get(MINIWOB_SOURCE, {})
+    miniwob_by_eid_step = browser_fallbacks.get(MINIWOB_SOURCE, {})
 
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     summary_per_bench: Dict[str, Dict[str, Any]] = {}
@@ -432,10 +494,12 @@ def main() -> int:
                     patched = True
                     if changed:
                         n_patched += 1
-            elif bench == MINIWOB_SOURCE:
-                row, changed = _patch_miniwob_row(
-                    row, miniwob_intent_map,
-                    by_eid_step=miniwob_by_eid_step,
+            elif bench in BROWSER_SOURCES:
+                intent_map = browser_maps.get(bench, {})
+                fallback = browser_fallbacks.get(bench, {})
+                row, changed = _patch_browser_row(
+                    row, intent_map,
+                    by_eid_step=fallback,
                     match_kind_counter=match_kind_counter,
                 )
                 patched = changed

@@ -58,6 +58,8 @@ logger = logging.getLogger("scripts.build_qa_skill_selection_sft")
 
 QA_SOURCES = ("video_holmes", "siv_bench", "tir_bench", "visual_toolbench")
 MINIWOB_SOURCE = "miniwob"
+WEBSHOP_SOURCE = "webshop"
+BROWSER_SOURCES = (MINIWOB_SOURCE, WEBSHOP_SOURCE)
 DEFAULT_MODELS = ("gpt-5.4", "claude", "gemini", "qwen")
 
 SKILL_SELECTION_SYSTEM_PROMPT = (
@@ -94,9 +96,19 @@ def _qa_schema_text(sample: Dict[str, Any]) -> str:
 
 
 def _miniwob_schema_text(exp: Dict[str, Any], episode: Dict[str, Any]) -> str:
+    """Compact state+goal text for any browsergym row (miniwob / webshop).
+
+    For webshop the cold-start ``intentions`` is usually empty, so we
+    additionally fall back to ``metadata.schema_canonical`` (the
+    browsergym AXTree dump) — that is what the agent actually sees and
+    is also what the downstream SFT prompt presents.
+    """
     state = (exp.get("state") or exp.get("raw_state") or "").strip()
     if not state:
         state = (exp.get("summary_state") or "").strip()
+    if not state:
+        meta = exp.get("metadata") or {}
+        state = (meta.get("schema_canonical") or meta.get("schema") or "").strip()
     goal = (exp.get("goal") or episode.get("task") or episode.get("query") or "").strip()
     parts: List[str] = []
     if state:
@@ -245,9 +257,17 @@ def _process_qa_pair(
 # MiniWob processor
 # ---------------------------------------------------------------------------
 
-def _process_miniwob_game(
-    *, model: str, game_dir: Path,
+def _process_browser_game(
+    *, source: str, model: str, game_dir: Path,
 ) -> List[Dict[str, Any]]:
+    """Skill-selection row builder for one BrowserGym (miniwob/webshop) game dir.
+
+    The labeled-rollout shape is identical between sources, so the only
+    source-specific bookkeeping is the ``corpus`` / ``source`` tag we set
+    on each emitted row.  ``corpus='browsergym'`` is correct for both;
+    we additionally stash ``browser_source`` in extras so downstream tools
+    can split the two domains when desired.
+    """
     rows: List[Dict[str, Any]] = []
     in_files = sorted(game_dir.glob("*.jsonl"))
     game = game_dir.name
@@ -296,11 +316,21 @@ def _process_miniwob_game(
                     extras={
                         "outcome": ep.get("outcome"),
                         "action": exp.get("action") or exp.get("action_text"),
+                        "browser_source": source,
                     },
                 )
                 if row:
                     rows.append(row)
     return rows
+
+
+def _process_miniwob_game(
+    *, model: str, game_dir: Path,
+) -> List[Dict[str, Any]]:
+    """Back-compat alias for the miniwob processor."""
+    return _process_browser_game(
+        source=MINIWOB_SOURCE, model=model, game_dir=game_dir,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -319,13 +349,14 @@ def _parse_args() -> argparse.Namespace:
                         "directly under this existing SFT dataset root, "
                         "treating it as the canonical source for the trainer.")
     p.add_argument("--sources", type=str, nargs="+",
-                   default=list(QA_SOURCES) + [MINIWOB_SOURCE])
+                   default=list(QA_SOURCES) + list(BROWSER_SOURCES))
     p.add_argument("--models", type=str, nargs="+", default=list(DEFAULT_MODELS))
     p.add_argument("--miniwob-merge", type=str, default="aggregate",
                    choices=("aggregate", "per_game"),
-                   help="aggregate: one miniwob/skill_selection.jsonl combining "
-                        "all minigames (matches existing SFT layout). "
-                        "per_game: one per minigame.")
+                   help="aggregate: one <source>/skill_selection.jsonl per "
+                        "browser source, combining all per-task subdirs "
+                        "(matches existing SFT layout for miniwob and "
+                        "webshop). per_game: one per minigame/webshop task.")
     p.add_argument("--verbose", "-v", action="store_true")
     return p.parse_args()
 
@@ -368,30 +399,36 @@ def main() -> int:
             if rows:
                 logger.info("[%s/%s] %d skill_selection rows", source, model, len(rows))
 
-    # 2) MiniWob.
-    if MINIWOB_SOURCE in args.sources:
-        mw_root = sa_run / MINIWOB_SOURCE
-        if mw_root.is_dir():
-            for model in args.models:
-                mdir = mw_root / model
-                if not mdir.is_dir():
+    # 2) Browser sources (miniwob, webshop).  Each writes to its own bench
+    #    subdir; the trainer's data_loader treats them as independent benches.
+    for browser_src in BROWSER_SOURCES:
+        if browser_src not in args.sources:
+            continue
+        bs_root = sa_run / browser_src
+        if not bs_root.is_dir():
+            continue
+        for model in args.models:
+            mdir = bs_root / model
+            if not mdir.is_dir():
+                continue
+            for game_dir in sorted(mdir.iterdir()):
+                if not game_dir.is_dir():
                     continue
-                for game_dir in sorted(mdir.iterdir()):
-                    if not game_dir.is_dir():
-                        continue
-                    rows = _process_miniwob_game(model=model, game_dir=game_dir)
-                    per_pair_summary.append({
-                        "source": MINIWOB_SOURCE, "model": model,
-                        "kind": "miniwob", "game": game_dir.name,
-                        "n_rows": len(rows),
-                    })
-                    if args.miniwob_merge == "aggregate":
-                        rows_by_bench[MINIWOB_SOURCE].extend(rows)
-                    else:
-                        rows_by_bench[f"miniwob/{game_dir.name}"].extend(rows)
-                    if rows:
-                        logger.info("[miniwob/%s/%s] %d rows",
-                                     model, game_dir.name, len(rows))
+                rows = _process_browser_game(
+                    source=browser_src, model=model, game_dir=game_dir,
+                )
+                per_pair_summary.append({
+                    "source": browser_src, "model": model,
+                    "kind": browser_src, "game": game_dir.name,
+                    "n_rows": len(rows),
+                })
+                if args.miniwob_merge == "aggregate":
+                    rows_by_bench[browser_src].extend(rows)
+                else:
+                    rows_by_bench[f"{browser_src}/{game_dir.name}"].extend(rows)
+                if rows:
+                    logger.info("[%s/%s/%s] %d rows",
+                                 browser_src, model, game_dir.name, len(rows))
 
     # 3) Write per-bench skill_selection.jsonl.
     targets: List[Path] = [out_root]
