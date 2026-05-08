@@ -364,16 +364,89 @@ step** (intention + skill-selection + action) are unchanged.
 | File | Role |
 |---|---|
 | [`trainer/coevolution/_harness_hook.py`](trainer/coevolution/_harness_hook.py) | `SkillHarnessHook` — per-game façade exposing `filter_candidates`, `validate_choice`, `flush_to_lifecycle`. Hydrates `skill_bank.jsonl` → `SkillRecord` cache via [`_record_from_bank_entry`](trainer/coevolution/_crafter_hook.py). |
-| [`trainer/coevolution/episode_runner.py`](trainer/coevolution/episode_runner.py) | Calls the hook before / after the `skill_selection` LLM; logs `experiences[].harness = {filter, validate}`. |
+| [`trainer/coevolution/episode_runner.py`](trainer/coevolution/episode_runner.py) | Calls the hook before / after the `skill_selection` LLM; logs `experiences[].harness = {filter, validate}`. Also calls `log_transfer_usage(...)` after a skill is committed (post-harness) to record cross-game provenance. |
 | [`trainer/coevolution/rollout_collector.py`](trainer/coevolution/rollout_collector.py) | Threads the per-game `harness_hooks` dict through to each episode. |
 | [`trainer/coevolution/orchestrator.py`](trainer/coevolution/orchestrator.py) | Builds one hook per game per step (gated by `config.harness_enabled`) and passes the same dict into the Phase B′ Crafter hook. |
 | [`trainer/coevolution/_crafter_hook.py`](trainer/coevolution/_crafter_hook.py) | After seeding, calls `hook.flush_to_lifecycle(lifecycle)` so the Repairer's `false_binding_patterns` signal is non-empty. |
+| [`trainer/coevolution/_run_loggers.py`](trainer/coevolution/_run_loggers.py) | Owns the append-only logging streams (incl. the new `transfer_log/usage.jsonl`) and exposes `log_transfer_usage()`. `is_native` correctly classifies skills with empty `feasible_tasks`. |
 | [`trainer/coevolution/config.py`](trainer/coevolution/config.py) | Adds `harness_enabled: bool = False` and `harness_allow_shadow: bool = True`. |
+| [`labeling_supplement/_llm_skill_judge.py`](labeling_supplement/_llm_skill_judge.py) | Promotion-judge prompts. Non-redundancy criteria relaxed to focus on concrete action / precondition / effect differences (rather than abstract topic overlap); defaults to `limited_pass` when uncertain. |
 | [`scripts/run_coevolution.py`](scripts/run_coevolution.py) | `--harness-enabled` and `--no-harness-allow-shadow` CLI flags. |
 | [`tests/test_trainer_harness_hook.py`](tests/test_trainer_harness_hook.py) | 21 unit tests: filter admit/veto by status / domain / task, sink → lifecycle drainage, bank hydration, graceful degradation, factory, stats. |
 
 For the full topology diagram + closed/open-gap table, see
 [`harness/README.md`](harness/README.md) §22.
+
+### Phase-boundary automation — sidecar + finalize + abstract crafter v2
+
+The curriculum in [`scripts/run_phase1_curriculum.sh`](scripts/run_phase1_curriculum.sh)
+runs *N* phases back-to-back, each on a different `gymv` game. Three helpers
+turn the hand-off between phases into a single deterministic transition that
+preserves only the genuinely useful state (best LoRA + best skill bank) and
+re-grounds skills for the next game:
+
+| File | Role |
+|---|---|
+| [`scripts/phase1_finalize.py`](scripts/phase1_finalize.py) | One-shot orchestrator for a single phase boundary. Five steps in order: **(0)** promote best per-step LoRA + bank from the closing phase, **(1)** run the crafter-v2 batch pipeline on the closing phase's rollouts, **(2)** inject accepted candidates into the source-game bank, **(3)** translate the source-game bank to the next game's action vocabulary (existing target-bank skills are merged, never overwritten), **(4)** build a Markdown phase report, **(5)** archive `crafter_v2_offline/` + report into `phase_snapshots/phase_<k>_<game>/`. CLI: `--phase-num`, `--source-game`, `--next-game`, `--bucket-size`, `--max-buckets`, `--novelty-threshold`, `--promote-window`, `--no-promote-best`, `--no-promote-bank`. |
+| [`scripts/phase_finalize_sidecar.py`](scripts/phase_finalize_sidecar.py) | Background daemon. Polls `phase_snapshots/` and triggers `phase1_finalize.py` whenever a new `phase_<k>_<game>/` directory appears; tracks completion in `.phase_finalize_sidecar_state.json` so each snapshot is processed exactly once. CLI mirrors the finalize flags plus `--poll-seconds`. Lets `run_phase1_curriculum.sh` keep running unchanged while the sidecar handles every phase boundary. |
+| [`scripts/promote_best_checkpoint.py`](scripts/promote_best_checkpoint.py) | Reads `step_log.jsonl`, finds the best step for the closing phase by rolling-mean reward (configurable window, default 3), then atomically copies that step's adapters and skill bank into the LIVE `lora_adapters/` and `skillbank/<source-game>/`. Records every action in `promotion_log.jsonl` and saves a timestamped backup of the previous LIVE state. |
+
+The crafter side of the boundary lives in `crafter_v2_batch_pipeline.py`.
+The original prompt produced concrete, button-level skills with ~0.5 %
+abstract-share ([`scripts/audit_skill_abstractness.py`](scripts/audit_skill_abstractness.py)
+quantifies this); the rewritten prompt + JSON-schema gate enforces the
+opposite contract:
+
+| File | Role |
+|---|---|
+| [`scripts/crafter_v2_batch_pipeline.py`](scripts/crafter_v2_batch_pipeline.py) | Phase-boundary crafter. `PROPOSER_SYSTEM_V2` constrains the 35B-A3B proposer to the canonical `OPERATORS` × `SUBGOALS` vocab, predicate-form preconditions / effects / success / abort (e.g. `world.threat_count>0`, `score>=old_score+Δ`), and a hard ban-list for button names (`A`, `B`, `UP`, `DOWN`, `LEFT`, `RIGHT`, …), UI words (`menu`, `button`, …), and game names (`Thunder Force`, `Tetris`, …). vLLM's `guided_json` enforces the JSON schema; `validate_proposal()` runs a post-hoc semantic gate (predicate-form regex, banned-token scan, canonical-vocab membership, quality floor) and sanitizes proposals rather than fully rejecting. `build_skill_record()` writes records as `<OPERATOR>/<SUBGOAL>#v2:<hash>` with `protocol.steps=[]` and `feasible_tasks=[]` (empty = "any game" — cross-game by default), tagged `confidence_tag="crafter_v2"`. |
+| [`scripts/audit_skill_abstractness.py`](scripts/audit_skill_abstractness.py) | Offline auditor. Scores each skill on canonical-vocab membership of `tags`/`expected_tag_pattern`, predicate-form share of preconds/effects/success/abort, and a leak score that penalizes button / UI / game-name occurrences. Emits a per-skill JSON report and a Markdown summary; useful both as a regression gate on the crafter prompt and as a triage tool for legacy banks. |
+| [`scripts/analyze_transfer_log.py`](scripts/analyze_transfer_log.py) | Offline analyzer for `transfer_log/usage.jsonl` — categorizes each post-harness skill selection as `native` (foundry / stage-augmented), `crafter_v2` (abstract), or `translated_to_<game>` (cross-game), with per-game and per-skill breakdowns. Used to verify that abstract + translated skills actually get used at runtime, not just stored. |
+
+The end-to-end sequence for a single phase boundary, run by the sidecar:
+
+```
+phase k ends ─▶ phase_snapshots/phase_k_<game>/ created
+        │
+        ▼
+sidecar detects new snapshot
+        │
+        ▼
+phase1_finalize.py
+   0. promote_best_checkpoint.py    →  best LoRA + bank (window=3 rolling mean)
+   1. crafter_v2_batch_pipeline.py  →  abstract v2 candidates from rollouts
+   2. inject candidates into        →  skillbank/<source-game>/skill_bank.jsonl
+   3. translate_for_target          →  skillbank/<next-game>/skill_bank.jsonl
+                                       (merges with existing target-bank skills)
+   4. write phase_report.md
+   5. archive into phase_snapshots/phase_k_<game>/
+        │
+        ▼
+sidecar marks snapshot handled in .phase_finalize_sidecar_state.json
+```
+
+Required CLI flags to actually exercise this in
+`scripts/run_coevolution.py` (defaults are intentionally conservative):
+
+```bash
+python scripts/run_coevolution.py \
+    --games gymv_altered_beast \
+    --curriculum none \                       # else default 'focused' overrides --games
+    --resume \                                # picks up step_log + LoRA from prior phase
+    --grpo-devices 4 5 \                      # else default 4 5 6 7 collides with vLLM
+    --no-manage-vllm --vllm-url http://localhost:8000/v1 \
+    --crafter-promotion-enabled --crafter-cycle-every-k-steps 5 \
+    --crafter-promotion-gate-mode offline-with-llm-judge \
+    --harness-enabled --harness-mode full \
+    --game-schema-enabled \
+    --llm-crafter-enabled \
+    --llm-harness-validator-enabled \
+    --total-steps 30
+```
+
+`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` on the GRPO process keeps
+the FSDP loader from fragmenting on the boundary between rollout and
+training.
 
 ---
 
@@ -936,6 +1009,7 @@ artifacts:
 | Per-step intention switch (`z_t` updates)          | `intention_log/switches.jsonl`                | §4.1 intention-trigger ablation (B4)            |
 | Per-trainer-step component runtime                 | `runtime_log/component_timings.jsonl`         | §5.6 token / wall breakdown (E5)                |
 | Per-step shaping-ratio diagnostics                 | `reward_shaping_log/ratio.jsonl`              | Imbalance check between intrinsic + survival shaping vs raw env reward; emits a WARN at >5x |
+| Per-decision cross-game skill provenance           | `transfer_log/usage.jsonl`                    | Records every committed skill (post-harness) with `derived_from` / `confidence_tag` / `feasible_tasks`; consumed by `scripts/analyze_transfer_log.py` to verify abstract + translated skills are actually used at runtime |
 
 Schema and field-by-field meaning lives in
 [`trainer/coevolution/_run_loggers.py`](trainer/coevolution/_run_loggers.py).
@@ -1292,6 +1366,7 @@ A more detailed view lives in [`IMPLEMENTATION-STATUS.md`](IMPLEMENTATION-STATUS
 - **Phase A — Harness MVP** — `SkillHarness`, eligibility filter, adapters (`gymv`, `browser`), reward log, replay validator stub.
 - **Phase B — Orchestrator MVP** — `EpisodeRunner`, atomic `ArtifactStore`, `BudgetController`, `GateService` (stages 0–4), `PromotionOrchestrator`, `SnapshotManager`.
 - **Phase C — Crafter MVP** — failure memory + diagnoser, composer, generalizer, hypothesizer, `SkillCrafterService`.
+- **Phase-boundary automation** — `scripts/phase1_finalize.py` orchestrates the five-step boundary (best-checkpoint promotion → abstract crafter v2 → cross-game translation → report → archive); `scripts/phase_finalize_sidecar.py` daemon auto-handles every snapshot; `scripts/promote_best_checkpoint.py` does atomic LoRA + skill-bank promotion by rolling-mean reward; `scripts/crafter_v2_batch_pipeline.py` enforces canonical-vocab + predicate-form + ban-list via `guided_json` + post-hoc `validate_proposal`; `scripts/audit_skill_abstractness.py` quantifies abstract-share per skill; `transfer_log/usage.jsonl` + `scripts/analyze_transfer_log.py` track cross-game skill usage at runtime. See [Trainer integration §Phase-boundary automation](#phase-boundary-automation--sidecar--finalize--abstract-crafter-v2).
 - **Backbone model** — GPT-4o pinned across actor / teacher / judge with env-var override path.
 - **Invariants** — six invariants mechanically enforced and tested.
 
