@@ -46,7 +46,12 @@ ROOT = Path(__file__).resolve().parent
 # ---------------------------------------------------------------------------
 # Source paths (latest production runs as of 2026-05-07)
 # ---------------------------------------------------------------------------
-GYMV_BANK_RUN       = REPO / "labeling/skill_bank_out/run_20260430_030637/gym_v"
+GYMV_BANK_RUN       = REPO / "labeling/skill_bank_out/run_repair_20260510_051643/gym_v"
+# ^^^ Repaired bank: backfills GPT-5.4 contract predicates (preconditions /
+# postconditions / example_predicates / eff_add / eff_del / failure_modes)
+# onto the legacy event-mining bank at run_20260430_030637/gym_v.  See
+# scripts/repair_gymv_contracts_gpt54.py.  All other fields (protocol,
+# sub_episodes, n_instances, report) are preserved verbatim.
 ENVWR_BANK_RUN      = REPO / "labeling/skill_bank_envwrappers/run_20260506_201030/env_wrappers"
 QA_BANK_RUN         = REPO / "labeling/skill_bank_qa/run_20260506_184439"
 WEBSHOP_BANK_RUN    = REPO / "labeling/skill_bank_qa/run_webshop_20260510_044000"

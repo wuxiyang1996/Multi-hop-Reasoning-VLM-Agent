@@ -131,60 +131,126 @@ See `INVENTORY.json` for the machine-readable view, and each task's
 
 ## Cross-task skill overlap
 
-How many of the ~290 unique `OPERATOR/SUBGOAL` skill IDs in this
-inventory are shared across tasks?  Skill banks are **highly
-domain-specialised** — there is **no full skill ID present in all 18
-tasks**.  The only universally-shared element is the `COMMIT` operator.
+There are two layers to this question:
 
-### Closest-to-universal full skills
+* **(A) ID-level overlap** — does the same `OPERATOR/SUBGOAL` literal
+  appear in two banks?  Cheap to answer, but the answer is misleading
+  (the same ID frequently means very different things).
+* **(B) Functional overlap** — do the two skills share predicate
+  vocabulary (preconditions / postconditions / eff_add / eff_del /
+  example_predicates)?  This is what you actually need to know if you
+  want to reuse one skill on another task.
 
-| skill_id           | task coverage | tasks missing it |
-| ------------------ | :-----------: | ---------------- |
-| `INSPECT/SETUP`    | **15 / 18**   | `Temporal_Airstriker-v0`, `visual_toolbench`, `webshop` |
-| `COMMIT/POSITION`  | 11 / 18       | most pure-reasoning benches (no on-screen targets) |
-| `RECOVER/EVADE`    | 10 / 18       | non-action benches |
+We compute (B) using a **token Jaccard** between the lower-cased
+predicate sets, after stop-word removal.  Two skills with `J_tok ≥ 0.30`
+share enough vocabulary that a frontier policy fine-tuned on one is
+very likely to recognise the situation in the other; `0.10–0.30` is
+"thematic similarity, not interchangeable"; `<0.10` is a name collision.
 
-214 / 290 skill IDs (~74 %) appear in exactly **one** task.
+> Note: this analysis became possible only after running
+> `scripts/repair_gymv_contracts_gpt54.py` (May 10).  The legacy
+> `run_20260430_030637/gym_v/` bank had empty `preconditions /
+> postconditions / example_predicates` for all 416 gym_v skills, so
+> only 10 / 18 banks had usable contracts before that repair.
 
-### OPERATOR axis (ignoring subgoal)
+### Layer A — ID-level overlap (still useful for sanity)
 
-| Operator | Coverage |
-| -------- | :------: |
-| `COMMIT` | **18 / 18** ← only universal element |
-| `INSPECT`| 17 / 18 |
-| `RECOVER`| 15 / 18 |
-| `COMPARE`| 13 / 18 |
-| `VERIFY` | 6 / 18 |
-| `REASON` | 4 / 18 |
-| `TRACK`  | 3 / 18 |
+* **0** full skill IDs appear in all 18 tasks.
+* **Closest-to-universal**: `INSPECT/SETUP` (15/18, missing on
+  Airstriker, visual_toolbench, webshop), `COMMIT/POSITION` (11/18),
+  `RECOVER/EVADE` (10/18).
+* **Operator universals**: only `COMMIT` is in all 18 banks; `INSPECT`
+  17/18; `RECOVER` 15/18; `COMPARE` 13/18.
+* **214 / 448 skill IDs are unique to a single task** (~48 %).
 
-### SUBGOAL axis
+### Layer B — Functional overlap (cohort matrix)
 
-No subgoal is present in all 18 tasks.  Top 5: `SETUP` (16/18),
-`POSITION` (16/18), `EVADE` (12/18), `EXPLORE` (10/18), `NAVIGATE` (9/18).
+Token-Jaccard means across all skill pairs (lower-triangle is symmetric):
 
-### Within-cohort consistency is much higher
+|              | env_wr_game | gymv_game | vr_image | vr_video | web   |
+| ------------ | :---------: | :-------: | :------: | :------: | :---: |
+| env_wr_game  | **0.056**   | 0.035     | 0.024    | 0.024    | 0.030 |
+| gymv_game    |             | **0.082** | 0.016    | 0.016    | 0.035 |
+| vr_image     |             |           | **0.082**| 0.080    | 0.034 |
+| vr_video     |             |           |          | **0.108**| 0.033 |
+| web          |             |           |          |          | **0.073** |
 
-| Cohort | Full skill_id intersection |
-| ------ | -------------------------- |
-| 12 games (gym_v + env_wrappers) | 0 (per-game skills diverge: shooting vs. board vs. platformer) |
-| 6 non-game benches              | 0 |
-| **4 visual-reasoning benches** (`video_holmes`, `siv_bench`, `tir_bench`, `visual_toolbench`) | **13 skills** — `COMMIT/ANSWER`, `INSPECT/{EVIDENCE, IDENTIFY, POSITION}`, `COMPARE/{DEDUCE, IDENTIFY, OPTIMIZE, RULE_OUT}`, `REASON/{DEDUCE, IDENTIFY, LOOKUP, RULE_OUT}`, `VERIFY/EVIDENCE` |
-| **2 web tasks** (`miniwob ∩ webshop`) | **15 skills** — webshop's bank is essentially miniwob's web-action vocabulary minus 14 miniwob-specific entries |
+Every diagonal cell (within-cohort) is 1.5–7× larger than the
+off-diagonal, so cohort-level pooling really is the natural unit of
+SFT transfer.
 
-### Implications
+### Layer B — top cross-task functional twins
 
-1. **Cross-task transfer of a single skill is rare.**  Don't expect a
-   policy that uses, say, `REASON/DEDUCE` on `tir_bench` to find that
-   skill in any game bank.
-2. **Cohort-level pooling is well-supported.**  The 4 visual-reasoning
-   benches share 13 reasoning skills → pooling SFT across them should
-   transfer cleanly.  The 2 web tasks (miniwob + webshop) share 15 →
-   same.
-3. **`COMMIT/SETUP` is the closest thing to a universal skill** (15/18
-   has it; the 3 missing tasks are Airstriker which jumps straight into
-   action, and the two `EXPLORE`-dominated web/QA tasks).  Use it as a
-   sanity baseline when measuring cross-task skill reuse.
+| J_tok | J_pred | task A → task B  | skill A ↔ skill B | interpretation |
+| :---: | :---: | ---------------- | ----------------- | -------------- |
+| 0.40 | 0.14 | siv_bench → video_holmes  | `COMPARE/ANSWER` ↔ `COMPARE/ANSWER` | "Option Evidence Matching" — same function, true twin |
+| 0.40 | 0.04 | SpaceHarrierII → ThunderForceIII | shooter dodge skills | both are forced-perspective shooters with similar projectile patterns |
+| 0.39 | 0.17 | AlteredBeast → StreetsOfRage2  | beat-em-up combat | both are beat-em-ups; predicates around enemy stagger / combo / on-screen mob |
+| 0.35 | 0.04 | Airstriker → ThunderForceIII | shoot-em-up skills | both are scrolling shooters |
+| 0.33 | 0.09 | siv_bench → tir_bench | `COMPARE/ANSWER` ↔ `COMPARE/DEDUCE` | candidate-set pruning across modalities |
+| 0.31 | 0.10 | tir_bench → video_holmes  | `COMPARE/DEDUCE` ↔ `COMPARE/ANSWER` | same as above, vr_image ↔ vr_video |
+| 0.31 | 0.03 | siv_bench → video_holmes  | `RECOVER/SETUP` ↔ `RECOVER/SETUP` | "reasoning_trace_required" backstop |
+| 0.29 | 0.06 | tir_bench → visual_toolbench | `COMMIT/ANSWER` ↔ `COMMIT/ANSWER` | answer commitment in image QA |
+
+* The 4 visual-reasoning benches (`siv_bench`, `video_holmes`,
+  `tir_bench`, `visual_toolbench`) form by far the **densest transfer
+  graph**: 25+ pairs at `J_tok ≥ 0.20`, all the way up to 0.40.  This is
+  a real, pool-able cohort.
+* The 2 web tasks (`miniwob`, `webshop`) cluster tightly with each
+  other (e.g. `RECOVER/NAVIGATE` ↔ `RECOVER/EXPLORE` at J_tok=0.26)
+  but neither matches anything outside the web cohort.
+* Genre-mate gym_v games (shooters; beat-em-ups; platformers) reach
+  J_tok 0.30–0.40 — comparable to within-VR cohort.  Cross-genre gym_v
+  pairs sit closer to 0.10.
+
+### Layer B — same ID, sorted by *functional coherence*
+
+For every `OPERATOR/SUBGOAL` literal that appears in ≥4 tasks, the
+average pairwise token-Jaccard across the tasks holding it.  Top of
+this list = "same name actually means same thing across tasks":
+
+| skill_id          | #tasks | avg J_tok | max J_tok |
+| ----------------- | :----: | :-------: | :-------: |
+| `INSPECT/POSITION`|  4     |  0.22     | 0.28      |
+| `COMMIT/ANSWER`   |  4     |  0.22     | 0.29      |
+| `INSPECT/IDENTIFY`|  4     |  0.21     | 0.29      |
+| `COMPARE/IDENTIFY`|  4     |  0.20     | 0.27      |
+| `REASON/RULE_OUT` |  4     |  0.18     | 0.23      |
+| `INSPECT/EVIDENCE`|  4     |  0.16     | 0.27      |
+| `COMPARE/DEDUCE`  |  4     |  0.15     | 0.23      |
+| `VERIFY/EVIDENCE` |  4     |  0.14     | 0.20      |
+| ...               |        |           |           |
+| `RECOVER/EVADE`   | 10     |  **0.08** | 0.17      |
+| `COMMIT/EXPLORE`  |  9     |  **0.08** | 0.18      |
+| `COMMIT/POSITION` | 11     |  **0.06** | 0.19      |
+| `COMMIT/EVADE`    |  8     |  **0.06** | 0.16      |
+| `COMMIT/SETUP`    |  4     |  **0.05** | 0.08      |
+
+Crucial observation: the most-shared IDs (`COMMIT/POSITION`, 11 tasks;
+`RECOVER/EVADE`, 10 tasks) are also the **least functionally coherent**.
+Their high task coverage is the unified vocabulary working as designed
+— a generic "commit to a positioning move" — but the actual
+preconditions and effects diverge wildly between selecting a webshop
+size variant, jumping over a Strider hazard, and clicking a miniwob
+button.  Treat the ID as an *intent label*, not as a transferable
+contract.
+
+### Implications for SFT / curriculum design
+
+1. **Transfer at the cohort level, not the skill level.**  Pooled SFT
+   on the 4 VR benches, or on miniwob+webshop, or on
+   shooter/beat-em-up gym_v subsets, is well-supported by predicate
+   overlap.  Cross-cohort pooling is not.
+2. **Most "shared IDs" lie about transferability.**  Of the 206
+   cross-task pairs sharing an ID across the contract-rich banks, only
+   4 score `J_tok ≥ 0.30`; 84 score `<0.10`.
+3. **The 4-VR cohort is the only example of true cross-task skill
+   reuse**: 25+ cross-bench pairs at `J_tok ≥ 0.20`, including 13
+   `OPERATOR/SUBGOAL` literals that are functionally honest across the
+   cohort (`INSPECT/POSITION`, `INSPECT/IDENTIFY`, `COMPARE/IDENTIFY`,
+   `COMMIT/ANSWER`, etc.).
+4. **No skill is universal across all 18 tasks** — neither by ID nor
+   by predicate vocabulary.  Use cohort-conditioned skill banks.
 
 ---
 
