@@ -281,11 +281,15 @@ GAME_SCHEMA_TIMEOUT_S="${GAME_SCHEMA_TIMEOUT_S:-60}"
 # Crafter.  When enabled, in addition to the deterministic rule-based
 # Crafter, the trainer fires up to ${LLM_CRAFTER_K_MAX} parallel 35B
 # calls per game per step (one per FailureTrace) to propose
-# patch / hypothesize / retire BankMutationProposals.  Default ON so
-# Phase 1 exercises the 35B endpoint on every step a failure trace is
-# present; auto-disabled when JUDGE_MODE=off.  See
-# trainer/coevolution/_llm_crafter.py.
-LLM_CRAFTER_ENABLED="${LLM_CRAFTER_ENABLED:-1}"
+# patch / hypothesize / retire BankMutationProposals.
+#
+# Default flipped to 0 (2026-05-10): the repo-level master switch
+# ``failure_repair_enabled`` (in ``trainer/coevolution/config.py``) now
+# defaults to False, which short-circuits Path B's rule-based crafter
+# AND this Path 2 supplement regardless of what the launcher sets here.
+# Set ``LLM_CRAFTER_ENABLED=1`` *and* pass ``--enable-failure-repair``
+# to ``run_coevolution.py`` if you really want it back.
+LLM_CRAFTER_ENABLED="${LLM_CRAFTER_ENABLED:-0}"
 # T2.18 (2026-05-06): bumped from 2 → 8 after empirical audit found
 # 96% of failure signal was being dropped (`sliced 126 failures over
 # k_max=2`).  3× throughput; 35B endpoint at TP=2 + EP can sustain

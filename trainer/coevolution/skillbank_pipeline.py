@@ -58,6 +58,14 @@ class AsyncSkillBankPipeline:
         self._agent: Any = None
         self._query_engine: Any = None
         self._pending_episodes: List[Any] = []
+        # Seed-evidence buffer.  One dict per ingested EpisodeResult,
+        # carrying the per-step ``skill_id`` (from ``experiences``) so
+        # ``finalize_update`` can attribute usage receipts to cold-
+        # start seeds — Stage-3 MVP segment-clustering keys segments by
+        # ``(phase, intention)`` and never folds them into seeds whose
+        # IDs (``INSPECT/SETUP``, ``COMMIT/POSITION``, …) lack a phase
+        # prefix.  See ``_accumulate_seed_evidence`` below.
+        self._pending_seed_evidence: List[Dict[str, Any]] = []
         self._grpo_data: Dict[str, List[Dict[str, Any]]] = {
             "segment": [],
             "contract": [],
@@ -273,6 +281,30 @@ class AsyncSkillBankPipeline:
             return
         episode = self._convert_episode_result(result)
         self._pending_episodes.append(episode)
+        # Capture per-step active_skill so ``finalize_update`` can fold
+        # usage receipts into matching cold-start seeds.  Cheap O(n) over
+        # the experiences list; we only keep the fields we actually
+        # consume (skill_id, step, reward) to avoid memory pressure for
+        # long-episode games (Columns ~130 steps, WebShop similar).
+        per_step: List[Dict[str, Any]] = []
+        for exp in result.experiences:
+            sid = exp.get("skill_id") or ""
+            if not sid:
+                continue
+            per_step.append({
+                "step": int(exp.get("step", 0) or 0),
+                "skill_id": str(sid),
+                "raw_env_reward": float(exp.get("raw_env_reward") or 0.0),
+                "intention": str(exp.get("intention") or ""),
+            })
+        if per_step:
+            self._pending_seed_evidence.append({
+                "episode_id": str(result.episode_id),
+                "game": str(result.game),
+                "total_reward": float(result.total_reward),
+                "n_steps": int(result.steps),
+                "per_step": per_step,
+            })
 
     _MAX_CONCURRENT_SEGMENTATIONS = int(
         os.environ.get("SKILLBANK_MAX_CONCURRENT_SEGMENTATIONS", "8")
@@ -571,6 +603,27 @@ class AsyncSkillBankPipeline:
         proto_result = await loop.run_in_executor(executor, _synthesize_protocols)
         stage_times["protocol_synthesis"] = time.monotonic() - t_proto
 
+        # ── 6. Seed-evolution: fold active-skill receipts into seeds ─
+        # Stage-3 MVP keys segments by ``(phase, intention)`` and
+        # therefore never updates cold-start seeds (whose IDs are bare
+        # abstract intentions like ``INSPECT/SETUP``).  Without this
+        # hook, seeds stay frozen at v1 with n_instances=0/1 even
+        # though they're routinely selected by the actor.  We walk the
+        # per-step ``skill_id`` buffer captured in ``ingest_episode``
+        # and ingest a ``SubEpisodeRef`` for every contiguous run of a
+        # seed.  Cheap, additive, never invents new skills.
+        t_seed = time.monotonic()
+
+        def _accumulate_seeds():
+            try:
+                return self._accumulate_seed_evidence()
+            except Exception as exc:  # pragma: no cover (defensive)
+                logger.warning("Seed-evidence accumulation failed: %s", exc)
+                return {}
+
+        seed_result = await loop.run_in_executor(executor, _accumulate_seeds)
+        stage_times["seed_evolution"] = time.monotonic() - t_seed
+
         # ── Save bank ────────────────────────────────────────────────
         def _save_bank():
             try:
@@ -603,6 +656,165 @@ class AsyncSkillBankPipeline:
         )
 
         return self._update_result
+
+    # ------------------------------------------------------------------
+    # Seed-evolution helper (used by finalize_update; safe to call
+    # standalone for offline back-fill against an existing run).
+    # ------------------------------------------------------------------
+
+    # Hard cap on sub_episodes per seed.  Seeds get selected hundreds of
+    # times per phase; without a cap the bank file would balloon.  50
+    # mirrors the ``crafter/service.py`` MAX_SUB_EPISODES policy applied
+    # to discovered skills.
+    _SEED_MAX_SUB_EPISODES: int = 50
+
+    def _accumulate_seed_evidence(self) -> Dict[str, Any]:
+        """Fold per-step active-skill receipts into cold-start seeds.
+
+        For every episode in ``self._pending_seed_evidence``:
+          1. Group consecutive steps with the same ``skill_id`` into
+             contiguous runs (each run = one ``SubEpisodeRef``).
+          2. Skip runs whose ``skill_id`` is not a cold-start seed
+             (identified by the ``seed_cold_start`` tag).
+          3. Append a ``SubEpisodeRef`` to the seed's evidence store
+             via ``bank.ingest_sub_episode``, capping at
+             ``_SEED_MAX_SUB_EPISODES`` (drop oldest first).
+          4. Bump the seed's ``version`` and re-stamp ``updated_at``
+             so downstream observers see the change.
+
+        Returns a small summary dict for the orchestrator's step_log.
+        """
+        agent = self._agent
+        if agent is None or not self._pending_seed_evidence:
+            return {"updated_seeds": 0, "n_subep_added": 0}
+
+        bank = agent.bank
+        if bank is None:
+            return {"updated_seeds": 0, "n_subep_added": 0}
+
+        # ── 1. Identify seeds in the current bank ─────────────────
+        seed_ids: set = set()
+        for sid in bank.skill_ids:
+            sk = bank.get_skill(sid)
+            if sk is None:
+                continue
+            tags = list(getattr(sk, "tags", []) or [])
+            if "seed_cold_start" in tags:
+                seed_ids.add(sid)
+
+        if not seed_ids:
+            # No seeds in this game's bank — nothing to evolve.
+            self._pending_seed_evidence.clear()
+            return {"updated_seeds": 0, "n_subep_added": 0,
+                    "n_seeds_in_bank": 0}
+
+        # ── 2. Walk evidence buffer, group contiguous same-skill runs ─
+        from skill_agents.stage3_mvp.schemas import SubEpisodeRef
+
+        n_subep_added = 0
+        seeds_touched: set = set()
+        for ev in self._pending_seed_evidence:
+            ep_id = ev.get("episode_id") or ""
+            per_step = ev.get("per_step") or []
+            if not ep_id or not per_step:
+                continue
+
+            # Group into contiguous (skill_id) runs.  Each run becomes
+            # one SubEpisodeRef so the seg_start/seg_end pointer is
+            # meaningful (not 1-step-per-receipt which would explode
+            # the evidence list).
+            runs: List[Tuple[str, int, int, float, List[str]]] = []
+            cur_sid: Optional[str] = None
+            cur_start: int = 0
+            cur_reward: float = 0.0
+            cur_intentions: List[str] = []
+            for s in per_step:
+                sid = s.get("skill_id") or ""
+                step_idx = int(s.get("step", 0) or 0)
+                rwd = float(s.get("raw_env_reward") or 0.0)
+                intent = str(s.get("intention") or "")
+                if sid != cur_sid:
+                    if cur_sid is not None:
+                        runs.append((
+                            cur_sid, cur_start, step_idx,
+                            cur_reward, cur_intentions,
+                        ))
+                    cur_sid = sid
+                    cur_start = step_idx
+                    cur_reward = rwd
+                    cur_intentions = [intent] if intent else []
+                else:
+                    cur_reward += rwd
+                    if intent and (
+                        not cur_intentions or cur_intentions[-1] != intent
+                    ):
+                        cur_intentions.append(intent)
+            if cur_sid is not None:
+                # Close the last run with the highest step + 1 as end.
+                last_step = int(per_step[-1].get("step", 0) or 0)
+                runs.append((
+                    cur_sid, cur_start, last_step + 1,
+                    cur_reward, cur_intentions,
+                ))
+
+            # ── 3. Ingest each seed-run as a SubEpisodeRef ─────────
+            for sid, seg_start, seg_end, run_reward, run_intentions in runs:
+                if sid not in seed_ids:
+                    continue
+                sub_ep = SubEpisodeRef(
+                    episode_id=f"Play {ev.get('game') or ''}__ep{ep_id}",
+                    seg_start=int(seg_start),
+                    seg_end=int(seg_end),
+                    rollout_source="trainer.episode_runner.live",
+                    summary=(
+                        f"Active skill ran for {seg_end - seg_start} steps "
+                        f"with raw_env_reward={run_reward:.2f}"
+                    ),
+                    intention_tags=run_intentions[:5],
+                    outcome="success" if run_reward > 0 else "partial",
+                    cumulative_reward=float(run_reward),
+                    quality_score=min(1.0, max(0.0, run_reward / 50.0)),
+                )
+                ok = bank.ingest_sub_episode(sid, sub_ep)
+                if ok:
+                    seeds_touched.add(sid)
+                    n_subep_added += 1
+
+        # ── 4. Cap evidence list per seed + bump version ──────────
+        for sid in seeds_touched:
+            sk = bank.get_skill(sid)
+            if sk is None:
+                continue
+            cap = self._SEED_MAX_SUB_EPISODES
+            if len(sk.sub_episodes) > cap:
+                # Keep the most recent; drops also recompute n_instances.
+                sk.sub_episodes = sk.sub_episodes[-cap:]
+            try:
+                sk.bump_version()
+            except Exception:
+                # Older Skill schemas may not have bump_version; fall back
+                # to direct version increment so downstream consumers see
+                # a change.
+                sk.version = int(getattr(sk, "version", 1) or 1) + 1
+            bank.recompute_stats(sid)
+            bank.add_or_update_skill(sk)
+
+        # Buffer is consumed.
+        self._pending_seed_evidence.clear()
+
+        if seeds_touched:
+            logger.info(
+                "Seed evolution: %d seeds touched (+%d sub_episodes) — %s",
+                len(seeds_touched), n_subep_added,
+                sorted(seeds_touched),
+            )
+
+        return {
+            "updated_seeds": len(seeds_touched),
+            "n_subep_added": n_subep_added,
+            "n_seeds_in_bank": len(seed_ids),
+            "touched_skill_ids": sorted(seeds_touched),
+        }
 
     def get_raw_bank(self) -> Any:
         """Return the raw ``SkillBankMVP`` (has ``.skill_ids``, etc.)."""
@@ -656,6 +868,7 @@ class AsyncSkillBankPipeline:
         materialization can access trajectory data from earlier steps.
         """
         self._pending_episodes.clear()
+        self._pending_seed_evidence.clear()
         self._grpo_data = {"segment": [], "contract": [], "curator": []}
         self._update_result = None
         if self._agent is not None:
@@ -1102,6 +1315,24 @@ class PerGameSkillBankManager:
                 logger.info(
                     "Seeded %s bank with %d skills from %s", key, n, candidate,
                 )
+                # Eagerly initialise the SkillBankAgent and load the seed
+                # file into its in-memory bank so the orchestrator's
+                # ``skill_counts()`` reports the seeded count BEFORE the
+                # first segmentation cycle fires.  Without this the agent
+                # stays ``None`` until segment runs at end-of-step-0, the
+                # orchestrator sees ``bank_available=False`` at step 0
+                # entry, and the entire skill-selection branch is short-
+                # circuited for all step-0 rollouts (every action gets
+                # ``active_skill=null``).  Eager init makes the seeded
+                # frontier skills visible to the actor on step 0.
+                try:
+                    pipe._ensure_agent()
+                except Exception as _seed_init_exc:                  # noqa: BLE001
+                    logger.warning(
+                        "seed eager-init failed for %s: %s — "
+                        "step 0 will fall back to lazy init",
+                        key, _seed_init_exc,
+                    )
             else:
                 logger.info("Seed file %s was empty — nothing to load", candidate)
 

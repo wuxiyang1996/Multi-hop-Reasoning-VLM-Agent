@@ -620,6 +620,21 @@ def parse_args() -> argparse.Namespace:
     )
     parser.set_defaults(crafter_enabled=True)
     parser.add_argument(
+        "--enable-failure-repair", dest="failure_repair_enabled",
+        action="store_true",
+        help="Master switch for Path B (FailureTrace-driven repair / "
+             "hypothesis pipeline).  Default is OFF for this repo as "
+             "of 2026-05-10 — Stage-3 MVP segment-clustering (Path A) "
+             "and cold-start forward-bind (Path C) are sufficient for "
+             "skill creation.  Enabling Path B re-activates the rule-"
+             "based crafter, the supplemental 35B LLM crafter (if "
+             "--llm-crafter-enabled is also set), and the internal "
+             "LLM hooks (if --crafter-install-internal-llm-hooks is "
+             "set).  See trainer/coevolution/config.py "
+             "::failure_repair_enabled.",
+    )
+    parser.set_defaults(failure_repair_enabled=False)
+    parser.add_argument(
         "--promotion-bypass-mode",
         choices=["gated", "permissive"],
         default="gated",
@@ -1180,6 +1195,15 @@ def main() -> None:
         config_kwargs["harness_mode"] = args.harness_mode
     if not args.crafter_enabled:
         config_kwargs["crafter_enabled"] = False
+    # Master switch over Path B (FailureTrace-driven repair).  When
+    # False (default), the config's __post_init__ + resolve_paths
+    # force-disables crafter_enabled / llm_crafter_enabled /
+    # crafter_install_internal_llm_hooks regardless of any CLI
+    # overrides further down in this file, so the user gets a
+    # consistent "Path B is OFF" state on the orchestrator side.
+    config_kwargs["failure_repair_enabled"] = bool(
+        getattr(args, "failure_repair_enabled", False)
+    )
     if args.promotion_bypass_mode != "gated":
         config_kwargs["promotion_bypass_mode"] = args.promotion_bypass_mode
     if args.intention_trigger != "every-step":

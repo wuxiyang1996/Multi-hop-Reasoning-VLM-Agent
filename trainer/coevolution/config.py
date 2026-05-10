@@ -530,6 +530,33 @@ class CoEvolutionConfig:
     # promotion mode).
     crafter_enabled: bool = True
 
+    # ── Master switch — failure-repair / LLM-crafter pipeline ────────
+    # "Path B" in the architecture doc: the FailureTrace-driven repair
+    # / hypothesis / retire pipeline that produces ``BankMutationProposal``
+    # objects with ``parent_skill_ids`` set.  Three sub-paths feed it:
+    #
+    #   * Rule-based crafter inside ``run_crafter_step`` (gated by
+    #     ``crafter_enabled``).
+    #   * Path 2 — supplemental LLM Crafter (35B), gated by
+    #     ``llm_crafter_enabled``.
+    #   * Path 3 — internal LLM hooks installed onto SkillCrafterService,
+    #     gated by ``crafter_install_internal_llm_hooks`` plus the
+    #     per-hook ``crafter_internal_llm_enable_*`` flags.
+    #
+    # When ``failure_repair_enabled=False`` (default for this repo as
+    # of 2026-05-10), ``__post_init__`` force-disables all three so no
+    # FailureTrace-driven mutation can happen anywhere.  This leaves
+    # Path A (Stage-3 MVP segment-clustering, the legacy
+    # ``SkillBankAgent`` writer) and Path C (cold-start forward-bind
+    # via ``scripts/bind_abstract_to_task.py``) running untouched,
+    # which is what produces all observed-from-rollout skills + cold-
+    # start seeds today.  See ``readme.md`` §"Skill creation paths"
+    # for a one-page summary.
+    #
+    # Set to True only if you explicitly want repair-driven mutations
+    # back (and remember to re-enable the sub-flags too via the CLI).
+    failure_repair_enabled: bool = False
+
     # ── Block B3 — promotion gate bypass ──────────────────────────────
     # ``"gated"`` (default) routes proposals through
     # ``GateService`` (offline-synthetic / offline-with-llm-judge / live).
@@ -1073,6 +1100,21 @@ class CoEvolutionConfig:
 
     _resolved: bool = field(default=False, repr=False)
 
+    def __post_init__(self) -> None:
+        """Coerce mutually-dependent flags into a consistent state.
+
+        Currently only enforces the ``failure_repair_enabled`` master
+        switch over Path B's three sub-paths.  Idempotent: safe to
+        call repeatedly (the dataclass machinery does this for us).
+        """
+        if not self.failure_repair_enabled:
+            self.crafter_enabled = False
+            self.llm_crafter_enabled = False
+            self.crafter_install_internal_llm_hooks = False
+            self.crafter_internal_llm_enable_repairer = False
+            self.crafter_internal_llm_enable_hypothesizer = False
+            self.crafter_internal_llm_enable_diagnoser = False
+
     def resolve_paths(self) -> "CoEvolutionConfig":
         """Rebase all directory paths under ``run_dir``.
 
@@ -1083,6 +1125,12 @@ class CoEvolutionConfig:
         """
         if self._resolved:
             return self
+
+        # Re-apply the failure-repair master switch in case any of the
+        # sub-flags were flipped by a CLI override after dataclass
+        # construction (run_coevolution.py builds ``config_kwargs`` and
+        # then assigns them, bypassing ``__post_init__``).
+        self.__post_init__()
 
         if self.run_dir is None:
             self.run_dir = _generate_run_dir(self.model_name)

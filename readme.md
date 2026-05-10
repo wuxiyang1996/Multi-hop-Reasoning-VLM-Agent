@@ -387,6 +387,58 @@ The full per-binding diagnostics (`source_ops_vocab`, `candidate_ops`,
 `episode_ids`, `n_demos`, `target_domain`) are written to
 `<out>.cold_start_provenance.json` for audit.
 
+### Skill creation paths in this repo (post-2026-05-10)
+
+There are three paths that can write into a per-game skill bank.  Two are
+on by default; the third is now off.
+
+| Path | When it fires | Writes lineage (`parent_skill_ids`)? | Default |
+|---|---|---|---|
+| **A — Stage-3 MVP segment-clustering** ([`skill_agents/pipeline.py`](skill_agents/pipeline.py)) | After every co-evolution step's rollouts, clusters trajectory segments by `(phase, intention)` into `SkillEffectsContract`s.  Produces skills like `mid:CLEAR`, `early:COMMIT/CLEAR`. | ❌ — clustering, not mutation | **ON** |
+| **B — Failure-driven repair** (rule-based `crafter/service.py` + Path 2 LLM Crafter + Path 3 internal hooks) | Triggered by `FailureTrace` records emitted from rollouts.  Produces `BankMutationProposal` (patch / hypothesis / retire) rooted at an existing skill. | ✅ — sets `parent_skill_ids = [base.skill_id]` | **OFF** (master switch `failure_repair_enabled = False`) |
+| **C — Cold-start forward-bind** ([`scripts/bind_abstract_to_task.py`](scripts/bind_abstract_to_task.py)) | At new-game bootstrap, projects `SharedAbstractSkill` records into target-task `BoundConcreteSkill`s using GPT-5.4. | ✅ — via the `from_abstract:<id>` tag | **ON** (one-shot, before training) |
+
+**Why is Path B off?**  In the 2026-05-09 / 2026-05-10 candy_crush + tetris
+runs we observed 0 `FailureTrace` records (rewards stayed healthy) and
+hence 0 Path B proposals — the LLM-crafter pipeline was provisioned but
+idle.  Keeping it idle by default prevents an unintentional re-activation
+that would (a) burn 35B tokens on dormant proposals and (b) introduce
+bank mutations that bypass the Path A clustering invariant.
+
+To re-enable, pass `--enable-failure-repair` to `scripts/run_coevolution.py`
+(this re-arms `crafter_enabled`, and your CLI flags for
+`--llm-crafter-enabled` / `--crafter-install-internal-llm-hooks` will
+then be honoured rather than coerced).  Implementation:
+[`trainer/coevolution/config.py`](trainer/coevolution/config.py)
+`failure_repair_enabled` + `__post_init__`.
+
+### Cold-start seed evolution (active during training)
+
+Stage-3 MVP keys segments by `(phase, intention)` so cold-start seeds
+(whose IDs are bare abstract intentions like `INSPECT/SETUP`) **never
+match the clustering's hash key** and stayed frozen at v1 / 0
+sub-episodes for the entire run, even when the actor selected them
+hundreds of times.  As of 2026-05-10 the
+[`AsyncSkillBankPipeline`](trainer/coevolution/skillbank_pipeline.py)
+buffers per-step `(active_skill_id, raw_env_reward, intention)` from
+each ingested `EpisodeResult` and runs `_accumulate_seed_evidence`
+during `finalize_update`:
+
+  1. Identify seeds in the bank by the `seed_cold_start` tag.
+  2. Group consecutive same-skill steps inside an episode into
+     contiguous runs.
+  3. For each run whose `skill_id` is a seed, append a `SubEpisodeRef`
+     (with `cumulative_reward`, `intention_tags`, `outcome`) via
+     `bank.ingest_sub_episode`.
+  4. Cap evidence at `_SEED_MAX_SUB_EPISODES = 50` per seed (drop
+     oldest first), bump `version`, and re-stamp `updated_at`.
+
+Replaying the 2026-05-10 candy_crush run through this path off-line
+takes 6 frozen seeds (`INSPECT/SETUP`, `COMMIT/POSITION`, …) from
+**v=1 / 0–1 sub-episodes** to **v=2 / 4–39 sub-episodes**, attributing
+70 receipts proportionally to actual selection rates.  Discovered
+`<phase>:<intent>` skills are untouched.
+
 ### What's still pending (transfer-side)
 
 | Item | Owning module |
