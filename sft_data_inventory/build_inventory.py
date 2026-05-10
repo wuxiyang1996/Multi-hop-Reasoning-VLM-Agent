@@ -56,6 +56,13 @@ ENVWR_BANK_RUN      = REPO / "labeling/skill_bank_envwrappers/run_20260506_20103
 QA_BANK_RUN         = REPO / "labeling/skill_bank_qa/run_20260506_184439"
 WEBSHOP_BANK_RUN    = REPO / "labeling/skill_bank_qa/run_webshop_20260510_044000"
 
+# Layer C — modality-agnostic procedural templates for every skill.
+# One ``template_bank.jsonl`` per task, structured as
+# ``<TEMPLATE_RUN>/<cohort>/<task>/template_bank.jsonl`` where cohort ∈
+# {gymv_game, env_wr_game, web, vr_image, vr_video}.  See
+# ``scripts/lift_skill_templates_gpt54.py``.
+TEMPLATE_RUN        = REPO / "labeling/skill_templates/run_20260510_053121"
+
 GYMV_FRONTIER_SFT   = REPO / "labeling/frontier_distill_jsonl/run_20260506_065830_skill_enriched"
 ENVWR_SFT           = REPO / "labeling/decision_sft_jsonl/run_envwrapper_native_20260507_025519"
 NON_GAME_SFT        = ENVWR_SFT  # multimodal benches share this run
@@ -143,6 +150,27 @@ def short(p: Path) -> str:
         return p.as_posix()
 
 
+def link_template_bank(
+    *, task: str, cohort: str, out_dir: Path, dry_run: bool,
+) -> Optional[Dict[str, Any]]:
+    """Symlink the lifted procedural-template bank for one task.
+
+    Returns a manifest fragment (``{source, n_skills, ...}``) when the
+    template bank exists, else ``None``.
+    """
+    src = TEMPLATE_RUN / cohort / task / "template_bank.jsonl"
+    if not link(src, out_dir / "template_bank.jsonl", dry_run=dry_run):
+        return None
+    return {
+        "source": short(src),
+        "n_skills": count_lines(src),
+        "kind": "lifted-procedural-template (Layer C)",
+        "controlled_vocab": ["PERCEIVE", "RECALL", "COMPARE", "FILTER",
+                              "DECIDE", "COMMIT", "VERIFY", "RECOVER"],
+        "cohort": cohort,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Per-task builders
 # ---------------------------------------------------------------------------
@@ -161,6 +189,11 @@ def build_gymv_game(game: str, out_root: Path, *, dry_run: bool) -> Dict[str, An
             "n_skills": count_lines(bank_src),
             "kind": "bank-extracted (OPERATOR/SUBGOAL)",
         }
+
+    # Template bank (Layer C — lifted modality-agnostic procedural template)
+    tb = link_template_bank(task=game, cohort="gymv_game", out_dir=out_dir, dry_run=dry_run)
+    if tb is not None:
+        manifest["template_bank"] = tb
 
     # SFT (frontier distill, skill-enriched)
     at = GYMV_FRONTIER_SFT / game / "action_taking.jsonl"
@@ -209,6 +242,10 @@ def build_envwr_game(game: str, out_root: Path, *, dry_run: bool) -> Dict[str, A
             "kind": "bank-extracted (OPERATOR/SUBGOAL)",
         }
 
+    tb = link_template_bank(task=game, cohort="env_wr_game", out_dir=out_dir, dry_run=dry_run)
+    if tb is not None:
+        manifest["template_bank"] = tb
+
     at = ENVWR_SFT / game / "action_taking.jsonl"
     ss = ENVWR_SFT / game / "skill_selection.jsonl"
     sft = {}
@@ -247,6 +284,10 @@ def build_miniwob(out_root: Path, *, dry_run: bool) -> Dict[str, Any]:
             "n_skills": count_lines(bank_src),
             "kind": "bank-extracted (OPERATOR/SUBGOAL)",
         }
+
+    tb = link_template_bank(task="miniwob", cohort="web", out_dir=out_dir, dry_run=dry_run)
+    if tb is not None:
+        manifest["template_bank"] = tb
 
     at = NON_GAME_SFT / "miniwob" / "action_taking.jsonl"
     ss = NON_GAME_SFT / "miniwob" / "skill_selection.jsonl"
@@ -311,6 +352,10 @@ def build_webshop(out_root: Path, *, dry_run: bool) -> Dict[str, Any]:
             "n_skills": count_lines(bank_src),
             "kind": "bank-extracted (OPERATOR/SUBGOAL)",
         }
+
+    tb = link_template_bank(task="webshop", cohort="web", out_dir=out_dir, dry_run=dry_run)
+    if tb is not None:
+        manifest["template_bank"] = tb
 
     rollouts: Dict[str, Any] = {}
     for tag, model in [("low", "gpt-5.4"), ("claude", "claude-4.6"),
@@ -390,6 +435,11 @@ def build_qa_bench(bench: str, out_root: Path, *, dry_run: bool) -> Dict[str, An
             "kind": "bank-extracted (OPERATOR/SUBGOAL)",
         }
 
+    tb_cohort = "vr_video" if is_video else "vr_image"
+    tb = link_template_bank(task=bench, cohort=tb_cohort, out_dir=out_dir, dry_run=dry_run)
+    if tb is not None:
+        manifest["template_bank"] = tb
+
     at = NON_GAME_SFT / bench / "action_taking.jsonl"
     ss = NON_GAME_SFT / bench / "skill_selection.jsonl"
     sft = {}
@@ -455,23 +505,24 @@ def main() -> int:
     games_manifests: List[Dict[str, Any]] = []
     nongame_manifests: List[Dict[str, Any]] = []
 
-    for g in GYMV_GAMES:
-        m = build_gymv_game(g, out_root, dry_run=args.dry_run)
-        games_manifests.append(m)
+    def _row(prefix: str, m: Dict[str, Any]) -> None:
         sft = m.get("sft", {})
-        print(f"  game/gym_v       {g:<35} bank={m.get('skill_bank',{}).get('n_skills','-')} "
+        bank_n = m.get("skill_bank", {}).get("n_skills", "-")
+        tmpl_n = m.get("template_bank", {}).get("n_skills", "-")
+        print(f"  {prefix:<16} {m['task']:<35} bank={bank_n} tmpl={tmpl_n} "
               f"sft={sft.get('action_taking',{}).get('n_rows','-')} "
               f"+{sft.get('skill_selection',{}).get('n_rows','-')} "
               f"teachers={len(m.get('rollouts',{}))}")
 
+    for g in GYMV_GAMES:
+        m = build_gymv_game(g, out_root, dry_run=args.dry_run)
+        games_manifests.append(m)
+        _row("game/gym_v", m)
+
     for g in ENVWR_GAMES:
         m = build_envwr_game(g, out_root, dry_run=args.dry_run)
         games_manifests.append(m)
-        sft = m.get("sft", {})
-        print(f"  game/env_wr      {g:<35} bank={m.get('skill_bank',{}).get('n_skills','-')} "
-              f"sft={sft.get('action_taking',{}).get('n_rows','-')} "
-              f"+{sft.get('skill_selection',{}).get('n_rows','-')} "
-              f"teachers={len(m.get('rollouts',{}))}")
+        _row("game/env_wr", m)
 
     nongame_manifests.append(build_miniwob(out_root, dry_run=args.dry_run))
     nongame_manifests.append(build_webshop(out_root, dry_run=args.dry_run))
@@ -479,11 +530,7 @@ def main() -> int:
         nongame_manifests.append(build_qa_bench(b, out_root, dry_run=args.dry_run))
 
     for m in nongame_manifests:
-        sft = m.get("sft", {})
-        print(f"  non_game         {m['task']:<35} bank={m.get('skill_bank',{}).get('n_skills','-')} "
-              f"sft={sft.get('action_taking',{}).get('n_rows','-')} "
-              f"+{sft.get('skill_selection',{}).get('n_rows','-')} "
-              f"teachers={len(m.get('rollouts',{}))}")
+        _row("non_game", m)
 
     inventory: Dict[str, Any] = {
         "repo_root": str(REPO),
@@ -501,6 +548,11 @@ def main() -> int:
         },
         "totals": {
             "n_skill_banks": sum(1 for m in games_manifests + nongame_manifests if m.get("skill_bank")),
+            "n_template_banks": sum(1 for m in games_manifests + nongame_manifests if m.get("template_bank")),
+            "n_lifted_templates": sum(
+                m.get("template_bank", {}).get("n_skills", 0)
+                for m in games_manifests + nongame_manifests
+            ),
             "n_action_taking_rows": sum(
                 m.get("sft", {}).get("action_taking", {}).get("n_rows", 0)
                 for m in games_manifests + nongame_manifests
@@ -519,6 +571,8 @@ def main() -> int:
         print(f"\n[inventory] wrote {out_root}/INVENTORY.json")
     print(f"[inventory] totals: "
           f"banks={inventory['totals']['n_skill_banks']}  "
+          f"template_banks={inventory['totals']['n_template_banks']}  "
+          f"lifted_templates={inventory['totals']['n_lifted_templates']}  "
           f"action_taking_rows={inventory['totals']['n_action_taking_rows']}  "
           f"skill_selection_rows={inventory['totals']['n_skill_selection_rows']}")
     return 0
