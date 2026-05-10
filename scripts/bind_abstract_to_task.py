@@ -384,30 +384,53 @@ def _coerce_binding(
 # ---------------------------------------------------------------------------
 def harness_validate(
     binding: BoundConcreteSkill, *,
-    target_task: str, k: int = 2, max_demos: int = 2,
+    target_task: str,
+    abstract: Optional[SharedAbstractSkill] = None,
+    bank: Optional[TwoLayerSkillStore] = None,
+    max_demos: int = 8,
     pass_rate_min: float = 0.5,
 ) -> Tuple[Optional[bool], Dict[str, Any]]:
-    """Run the binding through ``FewShotAdapter`` if a target-task
-    demo is available.  Returns ``(passed | None, diagnostics)``.
+    """Run the just-produced binding through :class:`FewShotAdapter`
+    using cross-game demos pulled from ``abstract.lineage`` (Path A
+    of the cold-start validation design — see
+    :mod:`harness.skill_bank_bridge`).
 
-    ``passed = None`` means we couldn't even attempt validation
-    (e.g. no demos, dispatcher missing); the caller should leave
-    ``binding_status`` at ``PENDING``.
+    Returns ``(verdict, diagnostics)``:
+
+    * ``True``  — ``pass_rate >= pass_rate_min``; binding earns
+                  ``binding_status="VALIDATED"`` and lands with high
+                  confidence.
+    * ``False`` — demos executed but the binding failed; binding
+                  earns ``binding_status="REJECTED"`` and is dropped.
+    * ``None``  — couldn't validate (no native lineage demos, or no
+                  adapter for the target domain); binding stays at
+                  ``binding_status="PENDING"`` and the trainer's
+                  first real rollout decides.
+
+    Both ``abstract`` and ``bank`` are required — without them the
+    lineage demos can't be assembled and we fall through to ``None``
+    immediately.  ``bind_one`` plumbs them through.
     """
-    diag: Dict[str, Any] = {"validator": "FewShotAdapter"}
+    if abstract is None or bank is None:
+        return None, {
+            "validator": "FewShotAdapter",
+            "reason":    "missing_abstract_or_bank",
+        }
     try:
-        from labeling_supplement._phase4_target_dispatch import (
-            build_target,
-        )
-        from labeling_supplement._phase4_transfer_cycle import _run_transfer
-        from common.enums import SkillStatus
-        from data_structure.extensions.skill_record import SkillRecord
-    except Exception as exc:
-        diag["error"] = f"import_failed: {exc!r}"
-        return None, diag
-
-    diag["error"] = "skipped_for_now: harness validation pipeline not wired in this driver"
-    return None, diag
+        from harness.skill_bank_bridge import validate_binding_via_harness
+    except Exception as exc:                                          # noqa: BLE001
+        return None, {
+            "validator": "FewShotAdapter",
+            "reason":    "import_failed",
+            "error":     repr(exc),
+        }
+    return validate_binding_via_harness(
+        candidate_binding=binding,
+        abstract=abstract,
+        bank=bank,
+        max_demos=max_demos,
+        pass_rate_min=pass_rate_min,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -442,7 +465,12 @@ def bind_one(
         }
 
     validated, vdiag = (None, {}) if not do_harness_validate else \
-        harness_validate(binding, target_task=target_task)
+        harness_validate(
+            binding,
+            target_task=target_task,
+            abstract=abstract,
+            bank=bank,
+        )
     if validated is True:
         binding.binding_status = "VALIDATED"
         binding.last_validation_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

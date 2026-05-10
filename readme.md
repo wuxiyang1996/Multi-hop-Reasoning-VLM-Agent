@@ -318,6 +318,75 @@ the new `BoundConcreteSkill` into `PerTaskBank[T]` and (b) lifts a
 `SharedAbstractSkill` (or merges into an existing one) so the *next*
 new game's cold-start has a richer SharedAbstractBank to draw from.
 
+### Path A — harness validation of cold-start seeds (opt-in)
+
+`scripts/seed_per_task_bank_cold_start.py --harness-validate` flips on
+the **adapter-level** validation path: every just-minted
+`BoundConcreteSkill` is run through `FewShotAdapter.adapt(...)` against
+demos pulled from its parent abstract's cross-game lineage *before*
+it lands in the per-task bank.  Implementation lives in
+[`harness/skill_bank_bridge.py`](harness/skill_bank_bridge.py) and
+the `harness_validate(...)` hook in
+[`scripts/bind_abstract_to_task.py`](scripts/bind_abstract_to_task.py).
+
+Pipeline per candidate binding:
+
+1. **Domain mapping**.  `task_to_harness_domain(target_task)` resolves
+   the candidate's task to a registered harness domain.  Every task
+   currently in PerTaskBank maps cleanly:
+
+   | Cohort | Tasks | Harness domain | Adapter |
+   | --- | --- | --- | --- |
+   | gymv | 13 × `Temporal_*-v0` | `gymv` | `GymvAdapter` |
+   | env-wrapper games | `candy_crush`, `tetris`, `super_mario`, `twenty_forty_eight` | `gymv` (intra-domain task transfer) | `GymvAdapter` |
+   | browser | `miniwob`, `webshop` | `browser` | `BrowserAdapter` |
+   | visual reasoning (image) | `tir_bench`, `visual_toolbench` | `visual_reasoning` | `VisualReasoningAdapter` |
+   | visual reasoning (video) | `video_holmes`, `siv_bench` | `video` | `VideoAdapter` |
+
+2. **Demo synthesis**.  `lineage_to_demos(abstract, bank)` walks the
+   `SharedAbstractSkill.lineage`, pulls each native source binding,
+   and synthesizes one `FewShotDemo` per source task — using the
+   source binding's contract preconditions as `state.facts`, the
+   highest-quality `SubEpisodeRef`'s `seg_start` as `inner_step`,
+   and the sub-episode id as `EvidenceRef.locator`.
+3. **Pre-flight veto**.  Bindings with `len(protocol) < 2` are
+   rejected without spending demos — multi-hop is a bank invariant.
+4. **Run via `FewShotAdapter`**.  The bridge re-tags each demo's
+   `state.domain` to the candidate's target domain via
+   `_coerce_state_to_target` (PLAN-HARNESS §22 intra-domain task
+   transfer), so a candy_crush candidate can ride the gymv adapter's
+   deterministic hop-walker against demos drawn from `Temporal_*` games.
+5. **Structural success_fn**.  A closure over the candidate's action
+   verbs + the source bindings' vocab scores each demo:
+   - `1.0` — episode succeeded AND ops overlap with source vocab,
+   - `0.5` — episode succeeded but vocab is unfamiliar,
+   - `0.0` — episode failed or candidate has no ops.
+6. **Verdict**.  `pass_rate >= pass_rate_min (0.5)` ⇒ binding lands
+   as `binding_status="VALIDATED"` with `last_validation_at` stamped;
+   `pass_rate < threshold` and `n_total > 0` ⇒ `"REJECTED"` (binding
+   is NOT shipped to the trainer's per-task bank); no demos / no
+   adapter ⇒ `"PENDING"` (trainer's first real rollout decides).
+
+End-to-end demo (super_mario, all four picked seeds):
+
+| Abstract | n_demos (cross-game) | pass_rate | verdict |
+| --- | --- | --- | --- |
+| COMMIT/EXPLORE   | 6 | 1.00 | VALIDATED |
+| RECOVER/EVADE    | 6 | 1.00 | VALIDATED |
+| COMMIT/POSITION  | 5 | 1.00 | VALIDATED |
+| COMMIT/NAVIGATE  | 5 | 1.00 | VALIDATED |
+
+End-to-end demo (webshop, 2 seeds, browser cohort):
+
+| Abstract | demo source tasks (re-tagged to `browser` at run time) | pass_rate | verdict |
+| --- | --- | --- | --- |
+| COMMIT/EXPLORE   | 5 × Temporal_* + miniwob | 1.00 | VALIDATED |
+| RECOVER/EVADE    | 6 × Temporal_*           | 1.00 | VALIDATED |
+
+The full per-binding diagnostics (`source_ops_vocab`, `candidate_ops`,
+`episode_ids`, `n_demos`, `target_domain`) are written to
+`<out>.cold_start_provenance.json` for audit.
+
 ### What's still pending (transfer-side)
 
 | Item | Owning module |
@@ -326,7 +395,7 @@ new game's cold-start has a richer SharedAbstractBank to draw from.
 | Unified six-gate runner (`G0–G5`) consuming `gate_service` stages | `harness/gate_runner.py` |
 | Real (non-stub) executors for each transfer-target adapter | `vlm_wrapper/<domain>_adapter.py` |
 | Held-out replay seeds for Stage 1 | `harness/replay_validator.py` |
-| Optional `--harness-validate` smoke pass for cold-start seeds | `scripts/seed_per_task_bank_cold_start.py` (currently writes seeds as `binding_status="PENDING"` — first real rollout confirms or retires) |
+| Promote Path A from a *structural shape* validator (deterministic walker + vocab overlap) to a real-rollout validator on registered domains | `harness/skill_bank_bridge.py` (replace `_make_structural_success_fn` with `gymv_success.evaluate_hop_effects` once the gymv executor is wired into the per-task adapter set) |
 
 These are tracked under Phase D in [`IMPLEMENTATION-STATUS.md`](IMPLEMENTATION-STATUS.md) and in the [Pending](#pending-next-sessions) row above.
 

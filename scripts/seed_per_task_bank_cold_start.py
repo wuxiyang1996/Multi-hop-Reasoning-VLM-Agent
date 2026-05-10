@@ -382,7 +382,11 @@ def cold_start_seed(
 
     # 2. Forward-bind every seed.
     bindings: List[Tuple[SharedAbstractSkill, BoundConcreteSkill]] = []
+    bind_reports: List[Dict[str, Any]] = []
     n_failed = 0
+    n_validated = 0
+    n_rejected = 0
+    n_pending = 0
     for abs_rec in seeds:
         try:
             r = bind_one(
@@ -411,10 +415,43 @@ def cold_start_seed(
                            abs_rec.abstract_skill_id)
             n_failed += 1
             continue
+
+        # Path A harness validation: on REJECTED, drop the binding
+        # rather than ship it; on VALIDATED, log the cross-game pass
+        # rate; on PENDING, fall through (trainer will validate on
+        # first real rollout).
+        diag = r.get("validator_diag") or {}
+        status = binding.binding_status
+        if status == "VALIDATED":
+            n_validated += 1
+            logger.info("  ✓ %-22s VALIDATED  pass_rate=%.2f  "
+                        "n=%d/%d  src_tasks=%s",
+                        abs_rec.abstract_skill_id,
+                        float(diag.get("pass_rate", 0.0)),
+                        int(diag.get("n_success", 0)),
+                        int(diag.get("n_total", 0)),
+                        ",".join(diag.get("demo_source_tasks", [])[:3]))
+        elif status == "REJECTED":
+            n_rejected += 1
+            logger.info("  ✗ %-22s REJECTED   reason=%s  pass_rate=%s",
+                        abs_rec.abstract_skill_id,
+                        diag.get("reason") or diag.get("diagnostic_label"),
+                        diag.get("pass_rate"))
+            # Don't ship rejected bindings into the trainer's bank.
+            continue
+        else:
+            n_pending += 1
+            logger.info("  ~ %-22s PENDING    reason=%s  ops=%s",
+                        abs_rec.abstract_skill_id,
+                        diag.get("reason", "(no harness)"),
+                        [s.op for s in binding.protocol])
+
         bindings.append((abs_rec, binding))
-        logger.info("  ✓ bound %-22s status=%s ops=%s",
-                    abs_rec.abstract_skill_id, binding.binding_status,
-                    [s.op for s in binding.protocol])
+        bind_reports.append({
+            "abstract_skill_id":   abs_rec.abstract_skill_id,
+            "binding_status":      status,
+            "validator_diag":      diag,
+        })
 
     # 3. Project every binding to the trainer's legacy envelope.
     envelopes: List[Dict[str, Any]] = []
@@ -430,12 +467,19 @@ def cold_start_seed(
     # 5. Companion provenance file (so future bidirectional bridges
     # know these were cold-start seeds, not mining output).
     prov_path = out_bank_path.with_suffix(".cold_start_provenance.json")
+    by_abs_id = {r["abstract_skill_id"]: r for r in bind_reports}
     prov_path.write_text(json.dumps({
         "target_task":    target_task,
         "bank_root":      str(bank_root),
         "n_seeds_picked": len(seeds),
         "n_seeds_bound":  len(bindings),
         "n_failed":       n_failed,
+        "harness_validation": {
+            "enabled":     bool(do_harness_validate),
+            "validated":   n_validated,
+            "rejected":    n_rejected,
+            "pending":     n_pending,
+        },
         "seeds": [
             {
                 "abstract_skill_id":  abs_rec.abstract_skill_id,
@@ -447,6 +491,9 @@ def cold_start_seed(
                 "n_native_lineages":  sum(1 for L in abs_rec.lineage
                                            if L.is_native and
                                            L.discovered_via == "mining"),
+                "validator_diag":     by_abs_id.get(
+                    abs_rec.abstract_skill_id, {}
+                ).get("validator_diag", {}),
             }
             for abs_rec, b in bindings
         ],
@@ -462,6 +509,12 @@ def cold_start_seed(
         "n_seeds_picked": len(seeds),
         "n_seeds_bound":  len(bindings),
         "n_failed":       n_failed,
+        "harness_validation": {
+            "enabled":     bool(do_harness_validate),
+            "validated":   n_validated,
+            "rejected":    n_rejected,
+            "pending":     n_pending,
+        },
         "out_bank_path":  str(out_bank_path),
         "out_provenance": str(prov_path),
     }
