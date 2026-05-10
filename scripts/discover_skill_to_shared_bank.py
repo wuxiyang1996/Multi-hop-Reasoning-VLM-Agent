@@ -62,8 +62,8 @@ from scripts.build_shared_skill_bank import (                          # noqa: E
 )
 from skill_bank.shared_abstract_bank import (                          # noqa: E402
     BoundConcreteSkill, LineageEntry, ProtocolStep, SharedAbstractSkill,
-    TemplateStep, TwoLayerSkillStore, hash_contract, normalise_skill_id,
-    parse_skill_id_decorations,
+    SubEpisodeRef, TemplateStep, TwoLayerSkillStore, hash_contract,
+    normalise_skill_id, parse_skill_id_decorations,
 )
 
 logger = logging.getLogger("discover_skill_to_shared_bank")
@@ -150,19 +150,37 @@ def _record_to_concrete(
     sid = inner.get("skill_id", "")
     stem = normalise_skill_id(sid)
     contract = inner.get("contract") or {}
+    # Rich protocol (op / payload / slot_types / effects).
     proto_raw = inner.get("protocol") or []
-    proto_list = proto_raw if isinstance(proto_raw, list) else []
+    protocol_steps: List[ProtocolStep] = []
+    if isinstance(proto_raw, list):
+        for s in proto_raw:
+            if isinstance(s, dict):
+                protocol_steps.append(ProtocolStep.from_dict(s))
+    elif isinstance(proto_raw, dict):
+        for s in (proto_raw.get("steps") or []):
+            if isinstance(s, str):
+                protocol_steps.append(ProtocolStep(op="?", notes=s))
+    # Receipts.
+    sub_eps_raw = inner.get("sub_episodes") or []
+    sub_episodes = [SubEpisodeRef.from_dict(s) for s in sub_eps_raw
+                     if isinstance(s, dict)]
+    for s in sub_episodes:
+        if not s.task:
+            s.task = task
     return BoundConcreteSkill(
         concrete_skill_id=stem,
         task=task,
         abstract_skill_id=stem,
         name=inner.get("name", "") or stem,
+        protocol=protocol_steps,
+        sub_episodes=sub_episodes,
         contract=contract,
-        protocol=proto_list,
         binding_status="VALIDATED" if binding_source == "mining" else "PENDING",
         binding_source=binding_source,
         raw_skill_id=sid,
         decorations=parse_skill_id_decorations(sid),
+        n_episodes_verified=len(sub_episodes),
     )
 
 

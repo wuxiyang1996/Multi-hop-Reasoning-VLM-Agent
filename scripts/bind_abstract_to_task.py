@@ -69,8 +69,8 @@ from scripts.lift_skill_templates_gpt54 import (                       # noqa: E
     _extract_json, _get_openai_client, DEFAULT_MODEL,
 )
 from skill_bank.shared_abstract_bank import (                          # noqa: E402
-    BoundConcreteSkill, LineageEntry, SharedAbstractSkill,
-    TwoLayerSkillStore, hash_contract,
+    BoundConcreteSkill, LineageEntry, ProtocolStep, SharedAbstractSkill,
+    SubEpisodeRef, TwoLayerSkillStore, hash_contract,
 )
 
 logger = logging.getLogger("bind_abstract_to_task")
@@ -83,14 +83,15 @@ DEFAULT_BANK_ROOT = REPO / "shared_skill_bank" / "_latest"
 # ---------------------------------------------------------------------------
 SYSTEM_PROMPT = (
     "You are an expert at re-grounding modality-agnostic skill "
-    "templates into specific game / web / video tasks.  You will be "
-    "given ONE abstract skill (its lifted procedural template + the "
-    "original multi-hop protocol) and ZERO OR MORE existing bindings "
-    "of that same skill in OTHER tasks.  Your job is to propose a "
-    "binding for a NEW target task: write the target-side contract "
-    "(preconditions / postconditions / example_predicates) AND a "
-    "step-by-step protocol that uses the target task's own "
-    "vocabulary.  Output strict JSON only."
+    "skeletons into specific game / web / video tasks.  Your "
+    "PRIMARY output is a STEP-BY-STEP PROTOCOL — the sequence of "
+    "actions the agent will follow OVER TIME at runtime.  Each "
+    "protocol step has a typed action verb (op), parameterised "
+    "payload with semantic slot types, typed preconditions, and "
+    "typed add/del effects.  The contract (preconditions / "
+    "postconditions / example_predicates) is a static summary "
+    "DERIVED from the protocol — not the source of truth.  "
+    "Output strict JSON only."
 )
 
 
@@ -99,39 +100,52 @@ def _render_examples(
     *,
     bank: TwoLayerSkillStore,
     exclude_task: str,
-    max_examples: int = 4,
+    max_examples: int = 3,
 ) -> str:
     """Render up to ``max_examples`` existing bindings of ``abstract``
-    in OTHER tasks for the LLM as few-shot examples."""
-    lines: List[str] = []
-    n = 0
+    in OTHER tasks for the LLM as few-shot examples.  We FAVOUR
+    bindings that have a non-empty protocol — those teach the LLM
+    what shape we want; static-contract-only ones are kept as a
+    fallback only when no rich examples exist."""
+    rich, sparse = [], []
     for L in abstract.lineage:
         if L.task == exclude_task:
             continue
         if L.discovered_via not in ("mining", "binding"):
-            # Only show validated/native examples — skip noisy
-            # production_usage / translation rows where we don't
-            # actually have a contract on disk.
             continue
         binding = bank.per_task(L.task).by_concrete_id(L.concrete_skill_id)
-        if binding is None or not binding.contract:
+        if binding is None:
             continue
-        c = binding.contract
-        lines += [
-            f"-- Existing binding in task '{L.task}' ({L.cohort}) --",
-            f"  preconditions   : {c.get('preconditions') or []}",
-            f"  postconditions  : {c.get('postconditions') or []}",
-            f"  example_preds   : {c.get('example_predicates') or []}",
-            f"  eff_add         : {c.get('eff_add') or []}",
-            f"  eff_del         : {c.get('eff_del') or []}",
-            "",
-        ]
-        n += 1
-        if n >= max_examples:
-            break
-    if not lines:
+        if binding.protocol:
+            rich.append((L, binding))
+        elif binding.contract:
+            sparse.append((L, binding))
+    chosen = (rich + sparse)[:max_examples]
+    if not chosen:
         return "(no existing bindings in other tasks; this is a cold-start binding.)"
-    return "\n".join(lines).rstrip()
+    out: List[str] = []
+    for L, b in chosen:
+        c = b.contract or {}
+        out.append(f"-- Existing binding in task '{L.task}' ({L.cohort}) --")
+        out.append(f"  name          : {b.name}")
+        if b.protocol:
+            out.append(f"  protocol      :")
+            for i, s in enumerate(b.protocol[:5]):
+                out.append(
+                    f"     [{i+1}] op={s.op:<8} "
+                    f"payload={dict(s.payload)} "
+                    f"slot_types={dict(s.slot_types)}"
+                )
+                if s.preconditions:
+                    out.append(f"          pre  = {[p.get('type','?') for p in s.preconditions[:3]]}")
+                if s.effects_add:
+                    out.append(f"          eff+ = {[e.get('type','?') for e in s.effects_add[:3]]}")
+                if s.notes:
+                    out.append(f'          notes= "{s.notes[:80]}"')
+        out.append(f"  preconditions : {c.get('preconditions') or []}")
+        out.append(f"  postconditions: {c.get('postconditions') or []}")
+        out.append("")
+    return "\n".join(out).rstrip()
 
 
 def _render_target_vocab(
@@ -159,6 +173,31 @@ def _render_target_vocab(
     return "\n".join(lines).rstrip()
 
 
+def _render_abstract_protocol(abstract: SharedAbstractSkill) -> str:
+    """Render the abstract skeleton's protocol in a form the LLM can
+    pattern-match on.  Slot types and effect types stay verbatim
+    because they're already modality-agnostic; payload values are
+    slot references (``${target}``)."""
+    if not abstract.protocol_steps:
+        return "  (no protocol skeleton recorded — derive from template_steps)"
+    out: List[str] = []
+    for i, s in enumerate(abstract.protocol_steps[:8]):
+        out.append(
+            f"  [{i+1}] op={s.op:<8} "
+            f"payload={dict(s.payload)}  "
+            f"slot_types={dict(s.slot_types)}"
+        )
+        if s.preconditions:
+            out.append(f"        pre  = {[p.get('type','?') for p in s.preconditions[:3]]}")
+        if s.effects_add:
+            out.append(f"        eff+ = {[e.get('type','?') for e in s.effects_add[:3]]}")
+        if s.effects_del:
+            out.append(f"        eff- = {[e.get('type','?') for e in s.effects_del[:3]]}")
+        if s.evidence_role:
+            out.append(f"        evidence_role = {s.evidence_role}")
+    return "\n".join(out)
+
+
 def build_bind_prompt(
     abstract: SharedAbstractSkill,
     *, target_task: str,
@@ -167,8 +206,7 @@ def build_bind_prompt(
     sig = abstract.template_signature
     template_lines = [f"  [{i+1}] {s.op:<9} {s.predicate}"
                       for i, s in enumerate(abstract.template_steps)]
-    proto_lines = [f"  [{i+1}] op={s.op}  notes={s.notes}"
-                   for i, s in enumerate(abstract.protocol_steps[:8])]
+    proto_skel = _render_abstract_protocol(abstract)
     examples = _render_examples(abstract, bank=bank, exclude_task=target_task)
     target_vocab = _render_target_vocab(bank=bank, target_task=target_task)
 
@@ -177,47 +215,63 @@ def build_bind_prompt(
         f"NAME              : {abstract.name}",
         f"TEMPLATE_SIGNATURE: {sig}",
         "",
-        "TEMPLATE_STEPS (modality-agnostic, 2-5 steps):",
-        *template_lines,
+        "TEMPLATE_STEPS (Layer-C, 2-5 modality-agnostic steps):",
+        *(template_lines or ["  (none)"]),
         "",
-        "ORIGINAL PROTOCOL (multi-hop, what the source agent did):",
-        *(proto_lines or ["  (no protocol recorded)"]),
+        "ABSTRACT PROTOCOL SKELETON (slot types + effect types, "
+        "modality-agnostic — KEEP THIS STRUCTURE):",
+        proto_skel,
         "",
-        "EXISTING BINDINGS IN OTHER TASKS (for analogy):",
+        "EXISTING BINDINGS IN OTHER TASKS (for analogy / shape):",
         examples,
         "",
         f"TARGET TASK: {target_task}",
         "TARGET-TASK NATIVE VOCABULARY (what predicate names look like here):",
         target_vocab,
         "",
-        "TASK: Propose a binding for the TARGET task.  Output STRICT JSON:",
+        "TASK: Produce an EXECUTABLE binding for the TARGET task.  The",
+        "primary output is the PROTOCOL — the step-by-step plan an agent",
+        "will follow over time.  The contract is a derived static summary.",
+        "",
+        "Output STRICT JSON:",
         "{",
-        '  "name": "<short human-readable name for THIS binding>",',
-        '  "contract": {',
-        '    "preconditions":      ["..."],   // ≤6 short, target-task-native facts',
-        '    "postconditions":     ["..."],   // ≤6, observable target-task outcomes',
-        '    "example_predicates": ["..."],   // 3-6 snake_case predicate names from target vocab',
-        '    "eff_add":            ["..."],   // 1-6 predicates that flip TRUE',
-        '    "eff_del":            ["..."]    // 1-6 predicates that flip FALSE',
-        '  },',
+        '  "name": "<short human-readable name>",',
         '  "protocol": [',
-        '    {"op":"<one of {INSPECT,COMPARE,COMMIT,VERIFY,RECOVER,REASON,TRACK,TOOL_USE}>",',
-        '     "notes":"<≤16 word description in target-task vocabulary>",',
-        '     "evidence_role":"<observation|hypothesis|action_plan|verify|recover>",',
-        '     "payload": {}},',
-        '    ...   // 2-5 steps, mirroring the abstract template',
+        '    {',
+        '      "op": "<EXEC | MOVE | INSPECT | COMPARE | KEEP | PLACE | APPROACH | SELECT | VERIFY | TRACK | DROP>",',
+        '      "payload": {"<slot>": "${<slot>}", ...},   // slot REFERENCES, not values',
+        '      "slot_types": {"<slot>": "<tracked_entity|container_entity|navigable_region|selectable_entity|effect_predicate|enum|any>"},',
+        '      "preconditions": [{"type": "<entity_visible|attribute_value|player_state|...>", "args": {<target-task-vocab>}}],',
+        '      "effects_add":   [{"type": "<entity_appeared|entity_disappeared|attribute_changed|cumulative_reward_increased>", "args": {<target-task-vocab>}}],',
+        '      "effects_del":   [...],',
+        '      "evidence_role": "<COMMIT|VERIFY|OBSERVATION|RECOVER>",',
+        '      "notes": "<≤16 word description in TARGET task vocabulary>"',
+        '    },',
+        '    ...   // 2-5 steps, MIRRORING the abstract protocol structure',
         '  ],',
+        '  "contract": {                                  // DERIVED summary',
+        '    "preconditions":      ["..."],   // ≤6 facts in target vocab',
+        '    "postconditions":     ["..."],   // ≤6 observable outcomes',
+        '    "example_predicates": ["..."],   // 3-6 snake_case predicates',
+        '    "eff_add":            ["..."],',
+        '    "eff_del":            ["..."]',
+        '  },',
         '  "rationale": "<≤80 word: why this re-grounding is faithful>"',
         "}",
         "",
         "RULES:",
-        " - Predicates must use the TARGET task's vocabulary, NOT the source's.",
-        "   E.g. for candy_crush use 'cluster_cleared' not 'enemy_dispatched'.",
-        " - The protocol's op-sequence MUST follow the abstract template",
-        "   signature.  E.g. PERCEIVE→COMPARE→DECIDE→COMMIT→VERIFY would",
-        "   typically map to INSPECT→COMPARE→COMMIT→COMMIT→VERIFY in the",
-        "   protocol vocab.",
-        " - Never include game-pad button glyphs / DOM xpaths in predicates.",
+        " - Each protocol step MUST keep the abstract step\\'s op semantics: ",
+        "   if the abstract uses MOVE with slot_types {target: tracked_entity, ",
+        "   direction: enum}, the binding MUST also be a MOVE with those ",
+        "   slot types — only the args' VALUES change to target-task vocab.",
+        " - Effect types come from a fixed enum.  Use entity_appeared / ",
+        "   entity_disappeared / attribute_changed / cumulative_reward_increased",
+        "   etc. — DO NOT invent new effect type names.",
+        " - Predicates in `args` and notes use the TARGET task\\'s vocab.",
+        "   E.g. for candy_crush say 'adjacent_swap' not 'enemy_dispatched'.",
+        " - Never put button glyphs / DOM xpaths in `notes` or `args`.",
+        " - The contract is a SUMMARY — it must be derivable from the ",
+        "   protocol\\'s preconditions and effects.",
     ])
 
 
@@ -238,7 +292,10 @@ def llm_convert(
             {"role": "user",   "content": prompt},
         ],
         temperature=0.0,
-        max_tokens=900,
+        # Rich protocol output (op + payload + slot_types + typed pre/eff
+        # + notes per step) is ~250 tokens/step; 4-5 steps + contract +
+        # rationale needs ~1.6k.
+        max_tokens=1800,
     )
     text = (resp.choices[0].message.content or "") if resp.choices else ""
     return _extract_json(text), text
@@ -250,30 +307,74 @@ def _coerce_binding(
 ) -> Optional[BoundConcreteSkill]:
     if not isinstance(parsed, dict):
         return None
-    contract = parsed.get("contract") or {}
-    if not isinstance(contract, dict):
+
+    # ── Protocol — PRIMARY ──────────────────────────────────────
+    proto_raw = parsed.get("protocol") or []
+    if not isinstance(proto_raw, list):
         return None
-    protocol = parsed.get("protocol") or []
-    if not isinstance(protocol, list):
-        protocol = []
-    # Coerce predicate-list fields to plain lists of strings.
+    protocol_steps: List[ProtocolStep] = []
+    for step in proto_raw:
+        if not isinstance(step, dict):
+            continue
+        # Coerce typed list fields back into list[dict]; the LLM
+        # sometimes returns list[str] for preconditions / effects —
+        # wrap those as {"type": ..., "args": {}}.
+        def _norm_typed(v) -> List[Dict[str, Any]]:
+            out: List[Dict[str, Any]] = []
+            if isinstance(v, list):
+                for x in v:
+                    if isinstance(x, dict):
+                        out.append({
+                            "type": str(x.get("type", "")),
+                            "args": dict(x.get("args") or {}),
+                        })
+                    elif isinstance(x, str) and x.strip():
+                        out.append({"type": x.strip(), "args": {}})
+            return out
+
+        protocol_steps.append(ProtocolStep(
+            op=str(step.get("op", "")).upper(),
+            payload=dict(step.get("payload") or {}),
+            slot_types=dict(step.get("slot_types") or {}),
+            preconditions=_norm_typed(step.get("preconditions")),
+            effects_add=_norm_typed(step.get("effects_add") or step.get("eff_add")),
+            effects_del=_norm_typed(step.get("effects_del") or step.get("eff_del")),
+            evidence_role=str(step.get("evidence_role", "")).upper(),
+            notes=str(step.get("notes", ""))[:200],
+        ))
+    if not protocol_steps:
+        return None
+
+    # ── Contract — DERIVED summary ──────────────────────────────
+    contract_raw = parsed.get("contract") or {}
+    if not isinstance(contract_raw, dict):
+        contract_raw = {}
+    contract: Dict[str, Any] = {}
     for k in ("preconditions", "postconditions", "example_predicates",
               "eff_add", "eff_del"):
-        v = contract.get(k) or []
+        v = contract_raw.get(k) or []
         if not isinstance(v, list):
             v = [str(v)]
         contract[k] = [str(x).strip() for x in v if str(x).strip()][:8]
-    if not contract.get("preconditions") and not contract.get("postconditions"):
-        return None
-    name = str(parsed.get("name") or abstract.name or abstract.abstract_skill_id)
 
+    # Belt-and-braces: if the LLM gave us a protocol but skipped the
+    # contract, derive the static summary from protocol effect types.
+    if not contract["eff_add"]:
+        contract["eff_add"] = sorted({e["type"] for s in protocol_steps
+                                       for e in s.effects_add if e.get("type")})[:6]
+    if not contract["eff_del"]:
+        contract["eff_del"] = sorted({e["type"] for s in protocol_steps
+                                       for e in s.effects_del if e.get("type")})[:6]
+
+    name = str(parsed.get("name") or abstract.name or abstract.abstract_skill_id)
     return BoundConcreteSkill(
         concrete_skill_id=abstract.abstract_skill_id,
         task=target_task,
         abstract_skill_id=abstract.abstract_skill_id,
         name=name,
+        protocol=protocol_steps,
+        sub_episodes=[],                 # forward bind has no rollouts yet
         contract=contract,
-        protocol=protocol,
         binding_status="PENDING",        # validation hasn't fired yet
         binding_source="forward_convert",
         decorations={"rationale": str(parsed.get("rationale", ""))[:400]},
@@ -377,9 +478,12 @@ def bind_one(
         "verdicts": verdicts,
         "elapsed_s": round(time.monotonic() - t0, 2),
         "rationale": binding.decorations.get("rationale", ""),
-        "n_preconditions": len(binding.contract.get("preconditions", [])),
-        "n_eff_add":       len(binding.contract.get("eff_add",     [])),
-        "n_protocol_steps": len(binding.protocol),
+        "n_protocol_steps":  len(binding.protocol),
+        "protocol_op_chain": [s.op for s in binding.protocol],
+        "n_total_effects":   sum(len(s.effects_add) + len(s.effects_del)
+                                  for s in binding.protocol),
+        "n_preconditions":   len(binding.contract.get("preconditions", [])),
+        "n_eff_add_summary": len(binding.contract.get("eff_add",     [])),
     }
 
 

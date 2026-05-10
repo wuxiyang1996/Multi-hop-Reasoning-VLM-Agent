@@ -68,7 +68,7 @@ if str(REPO) not in sys.path:
 
 from skill_bank.shared_abstract_bank import (                          # noqa: E402
     BoundConcreteSkill, LineageEntry, ProtocolStep, SharedAbstractSkill,
-    TemplateStep, TwoLayerSkillStore, hash_contract,
+    SubEpisodeRef, TemplateStep, TwoLayerSkillStore, hash_contract,
     normalise_skill_id, parse_skill_id_decorations,
 )
 
@@ -224,7 +224,22 @@ def consolidate_mining_banks(
                     for s in (template_rec.get("template_steps") or [])
                 ]
 
-            # Protocol — the multi-hop reasoning skeleton from mining.
+            # ── Protocol — the executable plan ──────────────────
+            # Mining emits two flavours:
+            #
+            #   Type A (list[dict]): full per-step structure with
+            #     op / payload / slot_types / preconditions /
+            #     effects_add / effects_del / evidence_role / notes.
+            #     We keep ALL of those — that's what the agent will
+            #     run at runtime.
+            #
+            #   Type B (dict with "steps" list[str]): the crafter-
+            #     style high-level protocol.  Steps are free-text
+            #     ("Identify the matching cluster of three"); we
+            #     wrap each as a ProtocolStep with op="?" + notes
+            #     so the abstract retains the multi-hop outline,
+            #     and stash success_criteria / abort_criteria on
+            #     the LAST step so they survive lifting.
             proto_raw = inner.get("protocol")
             protocol_steps: List[ProtocolStep] = []
             if isinstance(proto_raw, list):
@@ -232,13 +247,41 @@ def consolidate_mining_banks(
                     if isinstance(s, dict):
                         protocol_steps.append(ProtocolStep.from_dict(s))
             elif isinstance(proto_raw, dict):
-                # Crafter-style protocol carries ``steps`` (list[str]) +
-                # preconditions / success_criteria.  Convert to
-                # ProtocolStep best-effort so the abstract retains the
-                # high-level outline.
-                for s in (proto_raw.get("steps") or []):
-                    if isinstance(s, str):
-                        protocol_steps.append(ProtocolStep(op="?", notes=s))
+                steps_b = proto_raw.get("steps") or []
+                pre_b   = proto_raw.get("preconditions") or []
+                succ_b  = proto_raw.get("success_criteria") or []
+                abort_b = proto_raw.get("abort_criteria") or []
+                for i, s in enumerate(steps_b):
+                    if not isinstance(s, str):
+                        continue
+                    is_last = (i == len(steps_b) - 1)
+                    protocol_steps.append(ProtocolStep(
+                        op="?",
+                        notes=s,
+                        preconditions=([{"type": "free_text", "args": {"text": p}}
+                                        for p in pre_b if isinstance(p, str)]
+                                        if i == 0 else []),
+                        success_criteria=([str(c) for c in succ_b]
+                                          if is_last else []),
+                        abort_criteria=([str(c) for c in abort_b]
+                                        if is_last else []),
+                    ))
+
+            # ── Sub-episodes — pointers to PRIOR ACTUAL ROLLOUTS ─
+            sub_eps_raw = inner.get("sub_episodes") or []
+            sub_episodes = [SubEpisodeRef.from_dict(s)
+                             for s in sub_eps_raw if isinstance(s, dict)]
+            # Mining-pipeline sub_episodes don't always tag the
+            # source task; backfill so harness re-runs know which
+            # env to load.
+            for s in sub_episodes:
+                if not s.task:
+                    s.task = task
+
+            # The abstract gets a stripped (slot-name + semantic-type
+            # only) view of the protocol; the concrete binding keeps
+            # the full task-vocabulary version.
+            abstract_protocol_steps = [s.abstract_view() for s in protocol_steps]
 
             # ── upsert the abstract ───────────────────────────────
             key = (stem, signature)
@@ -249,7 +292,7 @@ def consolidate_mining_banks(
                     name=inner.get("name", "") or stem,
                     template_signature=signature,
                     template_steps=list(template_steps),
-                    protocol_steps=list(protocol_steps),
+                    protocol_steps=list(abstract_protocol_steps),
                     discovered_via="mining",
                 )
                 abstracts_by_key[key] = abs_rec
@@ -258,8 +301,8 @@ def consolidate_mining_banks(
                 # but accept later ones if the first was empty.
                 if not abs_rec.template_steps and template_steps:
                     abs_rec.template_steps = list(template_steps)
-                if not abs_rec.protocol_steps and protocol_steps:
-                    abs_rec.protocol_steps = list(protocol_steps)
+                if not abs_rec.protocol_steps and abstract_protocol_steps:
+                    abs_rec.protocol_steps = list(abstract_protocol_steps)
 
             contract = inner.get("contract") or {}
             chash = hash_contract(contract)
@@ -273,21 +316,32 @@ def consolidate_mining_banks(
                 discovered_via="mining",
                 is_native=True,
                 contract_hash=chash,
+                n_uses=sum(1 for s in sub_episodes
+                           if s.outcome in ("success", "failure", "partial")),
+                n_success=sum(1 for s in sub_episodes if s.outcome == "success"),
             )
             abs_rec.upsert_lineage(lineage)
 
-            # Concrete binding — what the harness actually runs.
+            # Concrete binding — the executable plan + receipts.
             binding = BoundConcreteSkill(
                 concrete_skill_id=stem,
                 task=task,
                 abstract_skill_id=stem,
                 name=inner.get("name", "") or stem,
-                contract=contract,
-                protocol=(proto_raw if isinstance(proto_raw, list) else []),
-                binding_status="VALIDATED",  # mined skills are validated by construction
+                protocol=protocol_steps,        # PRIMARY: structured plan
+                sub_episodes=sub_episodes,      # EVIDENCE: rollout pointers
+                contract=contract,              # DERIVED: static summary
+                binding_status="VALIDATED",     # mined skills are validated by construction
                 binding_source="mining",
                 raw_skill_id=sid,
+                n_episodes_verified=len(sub_episodes),
             )
+            # Prefer empirical pass rate when sub_episodes carry
+            # outcome labels; falls back to 0.0 for QA-style skills
+            # where rollouts are partial-only.
+            er = binding.empirical_success_rate
+            if er > 0.0 or binding.n_sub_episodes_failure > 0:
+                binding.pass_rate = er
             bindings.append(binding)
 
     logger.info(
@@ -541,12 +595,26 @@ def main() -> int:
         n_bindings += 1
 
     # ── Summary report ──────────────────────────────────────────────
+    # Sub-episode coverage stats — how many bindings carry receipts.
+    n_bindings_with_subeps = 0
+    n_subeps_total = 0
+    n_subeps_success = 0
+    for task in bank.list_tasks():
+        for b in bank.per_task(task).records:
+            if b.sub_episodes:
+                n_bindings_with_subeps += 1
+                n_subeps_total += b.n_sub_episodes
+                n_subeps_success += b.n_sub_episodes_success
+
     summary: Dict[str, Any] = {
         "out_dir": str(out_dir),
         "n_abstracts_total":   bank.abstract.size,
         "n_abstracts_new":     n_new,
         "n_abstracts_merged":  n_merged,
         "n_per_task_bindings": n_bindings,
+        "n_bindings_with_sub_episodes": n_bindings_with_subeps,
+        "n_sub_episodes_total":   n_subeps_total,
+        "n_sub_episodes_success": n_subeps_success,
         "n_tasks_with_bindings": len(bank.list_tasks()),
         "lift_templates_loaded": len(lift_tpls),
         "no_template_abstracts": sum(

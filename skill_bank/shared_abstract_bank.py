@@ -1,55 +1,78 @@
 """Shared abstract skill bank — the cross-game skill skeleton store.
 
-The repository previously held three independent skill representations:
+DESIGN INVARIANT (read this FIRST)
+----------------------------------
+A skill is, primarily, a **PROTOCOL** — a sequence of typed,
+parameterised steps that GUIDES THE AGENT TO ACT OVER TIME.  Every
+other field is derivative:
 
-* ``labeling/skill_bank_*/<run>/<task>/skill_bank.jsonl`` — per-task
-  mining output with concrete contracts (preconditions / effects /
-  predicates).  Per-task IDs (e.g. ``COMMIT/CLEAR``).
-* ``labeling/skill_templates/run_*/<cohort>/<task>/template_bank.jsonl``
-  — Layer-C lifted, modality-agnostic 2-5 step templates.
-* ``runs/<run>/transfer_log/usage.jsonl`` — production trainer usage,
-  which decorated IDs with ``early:`` / ``mid:`` / ``late:`` phase
-  prefixes, ``#v2`` crafter-evolution suffixes, or
-  ``__translated_to__<task>`` translation suffixes.  None of these
-  variants made it into the lift index, which is why
-  ``TemplateIndex.coverage_on_prod_ids`` was 6.6 %.
+  * ``BoundConcreteSkill.protocol`` is the executable plan.  Each
+    step carries ``op`` (action verb), ``payload`` (slot-bound
+    arguments referring to ``${target}`` / ``${direction}`` / ...),
+    ``slot_types`` (semantic types of those slots:
+    ``tracked_entity``, ``navigable_region``, ``enum`` ...),
+    ``preconditions`` (typed predicates that must hold *before* the
+    step), ``effects_add`` / ``effects_del`` (typed predicates that
+    flip *after* the step), ``evidence_role``, and free-text
+    ``notes``.  An agent at runtime walks this list to act.
 
-This module unifies all three into a single two-layer store:
+  * ``SharedAbstractSkill.protocol_steps`` is the SAME protocol with
+    task-specific tokens stripped: ``op`` is preserved, ``payload``
+    keeps slot *names* but not values, ``slot_types`` /
+    ``effects_add`` / ``effects_del`` keep their semantic types
+    (``tracked_entity`` / ``entity_appeared`` / ...) because those
+    are already modality-agnostic.  This is the cross-game
+    skeleton; the binding stage re-grounds slot fillers.
 
-* :class:`SharedAbstractSkill` — the **cross-game skill skeleton**.
-  Stores the modality-agnostic step skeleton (``template_steps``)
-  AND the original multi-hop protocol skeleton (``protocol_steps``)
-  that is *already* free of game-specific button / DOM tokens.  All
-  game vocabulary lives in the lineage, never in the skeleton.
-* :class:`BoundConcreteSkill` — one concrete (task, contract,
-  protocol) binding for an abstract skill.  This is what the harness
-  actually runs against.
+  * ``contract`` (preconditions / postconditions / example_predicates
+    / eff_add / eff_del) is a *static summary view* derived from
+    the protocol — useful for predicate-Jaccard analysis and for
+    the harness validator's first-pass admit decision.  It is
+    NEVER the source of truth.
 
-Bidirectional flow (both required by the new pipeline):
+  * ``BoundConcreteSkill.sub_episodes`` is a list of
+    :class:`SubEpisodeRef` — pointers to PRIOR ACTUAL ROLLOUTS
+    (``episode_id``, ``seg_start..seg_end``, ``outcome``,
+    ``cumulative_reward``, ``quality_score``) that the protocol
+    was extracted from / has been observed to work against.  This
+    is the EVIDENCE that grounds the protocol; the harness uses
+    these pointers when it wants to re-run a skill against a known
+    trajectory.  Forward-bound bindings start with no sub_episodes
+    until the harness validator records new rollouts.
 
-  Forward (transfer):  SharedAbstractSkill --LLM convert--> candidate
-  BoundConcreteSkill --harness validate--> committed binding.
-
-  Backward (discovery): new skill mined / crafter-proposed in task X
-  --LLM lift--> abstract template --upsert into SharedAbstractBank
-  (new entry OR new lineage entry on existing abstract).
-
-Storage layout (default ``shared_skill_bank/`` next to the lift run):
+Two-layer storage layout::
 
     shared_skill_bank/
-      abstract.jsonl            ← SharedAbstractSkill records
-      by_task/<task>/bindings.jsonl  ← BoundConcreteSkill records
+      abstract.jsonl            ← SharedAbstractSkill (protocol skeletons)
+      by_task/<task>/bindings.jsonl  ← BoundConcreteSkill (executable protocols
+                                       + sub_episode receipts)
 
-Both files are JSONL.  Reads go through the reader classes which
-de-dup on ``stable_key`` (see :meth:`SharedAbstractSkill.stable_key`).
-Writes go through :meth:`SharedAbstractBank.upsert_abstract` /
-:meth:`PerTaskBank.upsert_binding` — which append-only-write a new
-record and let the next read pick the latest by ``updated_at``.
+The store unifies four upstream sources that previously lived in
+parallel files: per-task mining output (``skill_bank.jsonl``),
+Layer-C lifted templates (``template_bank.jsonl``), production
+trainer transfer logs (``transfer_log/usage.jsonl`` — IDs with
+``early:`` / ``mid:`` / ``late:`` phase prefixes, ``#v2(:hash)``
+crafter versions, ``__translated_to__<task>`` translations), and
+crafter v2 accepted proposals.  All four collapse onto a single
+``stable_key = (skill_id_stem, template_signature)``.
 
-This module is dependency-free: no LLM clients, no harness imports,
-just dataclasses + JSONL I/O.  The forward-convert / harness-
-validate / LLM-lift wiring lives in ``scripts/bind_abstract_to_task.py``
-and ``scripts/discover_skill_to_shared_bank.py``.
+Bidirectional flow:
+
+  FORWARD (transfer): SharedAbstractSkill --LLM convert into target
+  task vocab--> candidate BoundConcreteSkill (status=PENDING) --
+  harness FewShotAdapter validate against target-task demos -->
+  status=VALIDATED, sub_episodes appended.
+
+  BACKWARD (discovery): new skill mined / promoted / crafter-
+  proposed in task X --LLM lift the rich protocol into a modality-
+  agnostic skeleton--> upsert into SharedAbstractBank as either a
+  new record or a new lineage entry on an existing abstract.
+
+This module is dependency-free: no LLM clients, no harness
+imports, just dataclasses + JSONL I/O.  The forward-convert /
+harness-validate / LLM-lift wiring lives in
+``scripts/bind_abstract_to_task.py`` and
+``scripts/discover_skill_to_shared_bank.py``.
 """
 from __future__ import annotations
 
@@ -165,27 +188,139 @@ class TemplateStep:
 
 @dataclass
 class ProtocolStep:
-    """One step of the original multi-hop reasoning protocol that
-    produced the skill.  Game-vocabulary tokens (button glyphs, DOM
-    selectors, gold answers, ...) are kept in ``payload`` — the
-    skeleton itself stays modality-agnostic.
+    """One step of the multi-hop protocol that GUIDES THE AGENT TO
+    ACT.
 
-    Concretely, this is the form the mining pipeline emits in
-    ``skill_bank.jsonl`` under ``protocol``: a list of dicts with
-    ``op``, ``notes``, ``evidence_role``, and ``payload``.
+    This is the executable unit: at runtime the agent walks the
+    list of ``ProtocolStep``\\ s and, for each one, binds slot
+    fillers from the current state, checks preconditions, fires
+    the action implied by ``op``, then verifies effects.
+
+    Field meanings (matches the mining pipeline output verbatim):
+
+    * ``op`` — action verb.  Concrete-side examples: ``EXEC``,
+      ``MOVE``, ``KEEP``, ``PLACE``, ``APPROACH``, ``VERIFY``,
+      ``INSPECT``.  Abstract-side examples: ``PERCEIVE``,
+      ``DECIDE``, ``COMMIT``, ``RECOVER``.
+    * ``payload`` — parameterised arguments.  Values may be
+      slot references (``${target}``, ``${direction}``) that
+      :data:`slot_types` resolves to a semantic type.
+    * ``slot_types`` — semantic types for each slot in
+      ``payload``: ``tracked_entity``, ``container_entity``,
+      ``navigable_region``, ``selectable_entity``,
+      ``effect_predicate``, ``enum``, ``any``.  These are
+      already modality-agnostic so they survive lifting unchanged.
+    * ``preconditions`` — typed predicates (each a dict) that
+      must hold before the step fires.  Concrete bindings carry
+      task-vocabulary args; the abstract skeleton keeps the
+      ``type`` and strips args.
+    * ``effects_add`` / ``effects_del`` — typed effects that flip
+      true / false after the step.  Common types include
+      ``entity_appeared``, ``entity_disappeared``,
+      ``attribute_changed``, ``cumulative_reward_increased``,
+      ``entity_value_decreased``.
+    * ``evidence_role`` — what role this step plays in the multi-
+      hop chain (``COMMIT`` / ``VERIFY`` / ``OBSERVATION`` / ...).
+    * ``notes`` — free-text human description (re-grounded by the
+      LLM during binding so it speaks the target task's language).
+    * ``expected_tag_pattern`` — optional regex / glob over the
+      runtime tag stream the agent's emitter should match.
+    * ``success_criteria`` / ``abort_criteria`` — optional explicit
+      gates lifted from the dict-form protocol (Type B mining).
     """
     op: str
-    notes: str = ""
-    evidence_role: str = ""
     payload: Dict[str, Any] = field(default_factory=dict)
+    slot_types: Dict[str, str] = field(default_factory=dict)
+    preconditions: List[Dict[str, Any]] = field(default_factory=list)
+    effects_add: List[Dict[str, Any]] = field(default_factory=list)
+    effects_del: List[Dict[str, Any]] = field(default_factory=list)
+    evidence_role: str = ""
+    notes: str = ""
+    expected_tag_pattern: str = ""
+    success_criteria: List[str] = field(default_factory=list)
+    abort_criteria: List[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "ProtocolStep":
         return cls(
             op=str(d.get("op", "")),
-            notes=str(d.get("notes", "")),
-            evidence_role=str(d.get("evidence_role", "")),
             payload=dict(d.get("payload") or {}),
+            slot_types=dict(d.get("slot_types") or {}),
+            preconditions=list(d.get("preconditions") or []),
+            effects_add=list(d.get("effects_add") or []),
+            effects_del=list(d.get("effects_del") or []),
+            evidence_role=str(d.get("evidence_role", "")),
+            notes=str(d.get("notes", "")),
+            expected_tag_pattern=str(d.get("expected_tag_pattern", "")),
+            success_criteria=list(d.get("success_criteria") or []),
+            abort_criteria=list(d.get("abort_criteria") or []),
+        )
+
+    def abstract_view(self) -> "ProtocolStep":
+        """Strip task-specific tokens, keep semantic types.
+
+        Used when lifting a concrete protocol step into the cross-
+        game skeleton.  Slot *names* and *types* are kept because
+        ``${target}: tracked_entity`` is meaningful across games;
+        the *values* (``"weapon_pickup_42"``) get dropped.  Effects
+        keep ``type`` / ``args`` keys but not concrete IDs.
+        """
+        return ProtocolStep(
+            op=self.op,
+            payload={k: f"${{{k}}}" for k in self.payload.keys()},
+            slot_types=dict(self.slot_types),
+            preconditions=[{"type": p.get("type", "")}
+                           for p in self.preconditions if isinstance(p, dict)],
+            effects_add=[{"type": e.get("type", "")}
+                         for e in self.effects_add if isinstance(e, dict)],
+            effects_del=[{"type": e.get("type", "")}
+                         for e in self.effects_del if isinstance(e, dict)],
+            evidence_role=self.evidence_role,
+            notes="",  # task-specific phrasing dropped during lift
+            expected_tag_pattern="",
+            success_criteria=[],
+            abort_criteria=[],
+        )
+
+
+@dataclass
+class SubEpisodeRef:
+    """A pointer to a PRIOR ACTUAL ROLLOUT that this skill was
+    extracted from / observed to succeed (or fail) on.
+
+    These are the agent's evidence trail — they are NOT the skill
+    itself, but they let the harness (a) re-load the trajectory to
+    re-validate the protocol against the original observations,
+    and (b) compute quality / outcome statistics for the binding.
+
+    Mirrors the mining pipeline's ``sub_episodes`` schema verbatim.
+    """
+    episode_id: str = ""
+    seg_start: int = 0
+    seg_end: int = 0
+    rollout_source: Optional[str] = None
+    summary: str = ""
+    intention_tags: List[str] = field(default_factory=list)
+    outcome: str = ""                    # success | partial | failure | unknown
+    cumulative_reward: float = 0.0
+    quality_score: float = 0.0
+    added_at: float = 0.0
+    task: str = ""
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "SubEpisodeRef":
+        return cls(
+            episode_id=str(d.get("episode_id", "")),
+            seg_start=int(d.get("seg_start", 0) or 0),
+            seg_end=int(d.get("seg_end", 0) or 0),
+            rollout_source=d.get("rollout_source"),
+            summary=str(d.get("summary", "")),
+            intention_tags=list(d.get("intention_tags") or []),
+            outcome=str(d.get("outcome", "")),
+            cumulative_reward=float(d.get("cumulative_reward", 0.0) or 0.0),
+            quality_score=float(d.get("quality_score", 0.0) or 0.0),
+            added_at=float(d.get("added_at", 0.0) or 0.0),
+            task=str(d.get("task", "")),
         )
 
 
@@ -332,39 +467,97 @@ class SharedAbstractSkill:
 class BoundConcreteSkill:
     """A SharedAbstractSkill bound to a specific task.
 
-    ``contract`` and ``protocol`` carry the **task-specific**
-    grounding (game vocabulary, DOM selectors, predicate names that
-    actually exist on the target).  ``abstract_skill_id`` is the
-    cross-game reference."""
-    concrete_skill_id: str             # task-local ID (e.g. "COMMIT/CLEAR" — the stem)
+    The PRIMARY content of a BoundConcreteSkill is its
+    :attr:`protocol` — the sequence of :class:`ProtocolStep`\\ s that
+    the agent follows over time.  :attr:`sub_episodes` are the
+    receipts (pointers to past actual rollouts) that ground / have
+    validated the protocol.  :attr:`contract` is a derived static
+    summary kept around for predicate-Jaccard analysis and
+    fast-path harness admit decisions.
+    """
+    concrete_skill_id: str              # task-local ID (e.g. "COMMIT/CLEAR" — the stem)
     task: str
-    abstract_skill_id: Optional[str]   # ref into SharedAbstractBank
+    abstract_skill_id: Optional[str]    # ref into SharedAbstractBank
     name: str = ""
+    # ── PRIMARY: the executable plan ────────────────────────────
+    protocol: List[ProtocolStep] = field(default_factory=list)
+    # ── EVIDENCE: pointers to prior actual rollouts ─────────────
+    sub_episodes: List[SubEpisodeRef] = field(default_factory=list)
+    # ── DERIVED: static summary (preconditions / postconditions /
+    # example_predicates / eff_add / eff_del) ───────────────────
     contract: Dict[str, Any] = field(default_factory=dict)
-    protocol: List[Dict[str, Any]] = field(default_factory=list)
-    binding_status: str = "PENDING"    # PENDING | VALIDATED | REJECTED | NATIVE_DRAFT
-    binding_source: str = "mining"     # mining | crafter | forward_convert | translation | seed
+    binding_status: str = "PENDING"     # PENDING | VALIDATED | REJECTED | NATIVE_DRAFT
+    binding_source: str = "mining"      # mining | crafter | forward_convert | translation | seed
     n_episodes_verified: int = 0
     pass_rate: float = 0.0
     last_validation_at: str = ""
     raw_skill_id: str = ""              # original ID as seen on disk / in production
     decorations: Dict[str, Any] = field(default_factory=dict)
-    schema_version: int = 1
+    schema_version: int = 2             # bumped: protocol now structured + sub_episodes added
     created_at: str = ""
     updated_at: str = ""
 
+    # ── derived properties on sub_episodes (the "receipts") ─────
+    @property
+    def n_sub_episodes(self) -> int:
+        return len(self.sub_episodes)
+
+    @property
+    def n_sub_episodes_success(self) -> int:
+        return sum(1 for s in self.sub_episodes if s.outcome == "success")
+
+    @property
+    def n_sub_episodes_failure(self) -> int:
+        return sum(1 for s in self.sub_episodes if s.outcome == "failure")
+
+    @property
+    def empirical_success_rate(self) -> float:
+        n = sum(1 for s in self.sub_episodes
+                if s.outcome in ("success", "failure"))
+        if n == 0:
+            return 0.0
+        return self.n_sub_episodes_success / n
+
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        return {
+            "concrete_skill_id":   self.concrete_skill_id,
+            "task":                self.task,
+            "abstract_skill_id":   self.abstract_skill_id,
+            "name":                self.name,
+            "protocol":            [asdict(s) for s in self.protocol],
+            "sub_episodes":        [asdict(s) for s in self.sub_episodes],
+            "contract":            self.contract,
+            "binding_status":      self.binding_status,
+            "binding_source":      self.binding_source,
+            "n_episodes_verified": self.n_episodes_verified,
+            "pass_rate":           self.pass_rate,
+            "last_validation_at":  self.last_validation_at,
+            "raw_skill_id":        self.raw_skill_id,
+            "decorations":         self.decorations,
+            "schema_version":      self.schema_version,
+            "created_at":          self.created_at,
+            "updated_at":          self.updated_at,
+        }
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "BoundConcreteSkill":
+        # Back-compat: schema v1 stored ``protocol`` as List[Dict].
+        proto_raw = d.get("protocol") or []
+        proto: List[ProtocolStep]
+        if proto_raw and isinstance(proto_raw[0], dict):
+            proto = [ProtocolStep.from_dict(s) for s in proto_raw]
+        else:
+            proto = []
+        sub_raw = d.get("sub_episodes") or []
         return cls(
             concrete_skill_id=str(d.get("concrete_skill_id", "")),
             task=str(d.get("task", "")),
             abstract_skill_id=d.get("abstract_skill_id"),
             name=str(d.get("name", "")),
+            protocol=proto,
+            sub_episodes=[SubEpisodeRef.from_dict(s) for s in sub_raw
+                          if isinstance(s, dict)],
             contract=dict(d.get("contract") or {}),
-            protocol=list(d.get("protocol") or []),
             binding_status=str(d.get("binding_status", "PENDING")),
             binding_source=str(d.get("binding_source", "mining")),
             n_episodes_verified=int(d.get("n_episodes_verified", 0) or 0),
@@ -372,7 +565,7 @@ class BoundConcreteSkill:
             last_validation_at=str(d.get("last_validation_at", "")),
             raw_skill_id=str(d.get("raw_skill_id", "")),
             decorations=dict(d.get("decorations") or {}),
-            schema_version=int(d.get("schema_version", 1)),
+            schema_version=int(d.get("schema_version", 2)),
             created_at=str(d.get("created_at", "")),
             updated_at=str(d.get("updated_at", "")),
         )
@@ -596,7 +789,18 @@ class PerTaskBank:
             verdict = "new"
         else:
             old.contract = rec.contract or old.contract
-            old.protocol = rec.protocol or old.protocol
+            if rec.protocol:
+                old.protocol = rec.protocol
+            # sub_episodes: ADDITIVE — receipts don't get overwritten,
+            # they accumulate.  De-dup on (episode_id, seg_start, seg_end).
+            if rec.sub_episodes:
+                seen = {(s.episode_id, s.seg_start, s.seg_end)
+                        for s in old.sub_episodes}
+                for s in rec.sub_episodes:
+                    k = (s.episode_id, s.seg_start, s.seg_end)
+                    if k not in seen:
+                        old.sub_episodes.append(s)
+                        seen.add(k)
             old.binding_status = rec.binding_status or old.binding_status
             old.binding_source = rec.binding_source or old.binding_source
             old.pass_rate = rec.pass_rate or old.pass_rate
@@ -697,6 +901,7 @@ __all__ = [
     "PerTaskBank",
     "SharedAbstractBank",
     "SharedAbstractSkill",
+    "SubEpisodeRef",
     "TemplateStep",
     "TwoLayerSkillStore",
     "hash_contract",
