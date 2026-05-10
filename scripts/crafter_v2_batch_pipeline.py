@@ -47,7 +47,7 @@ import time
 import uuid
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -71,6 +71,14 @@ from scripts.crafter_v2_extract_and_probe import (
     render_failures_for_prompt,
     call_35b_proposer,
 )
+
+# Layer-C template index — optional cross-cohort transfer-candidate
+# enumerator.  Imported lazily so this script still runs in
+# environments that don't have a lift run available.
+try:
+    from scripts.template_index import TemplateIndex                    # noqa: F401
+except Exception:                                                       # pragma: no cover
+    TemplateIndex = None  # type: ignore[assignment]
 
 # Canonical vocabularies — proposals MUST stay within these.
 try:
@@ -125,6 +133,40 @@ _BANNED_TOKENS_GAMENAMES = {
 BANNED_TOKENS: set = (_BANNED_TOKENS_BUTTON | _BANNED_TOKENS_UI
                       | _BANNED_TOKENS_GAMENAMES)
 
+# ── source-game conditioning (added 2026-05-08) ──────────────────────
+# These slip past the button/UI/game-name ban-list because they look
+# superficially abstract ("phase=midgame", "world.score=70") yet anchor
+# the predicate to a specific moment in a specific game — the
+# translator's downstream judge then refuses translation because the
+# target has no notion of e.g. a literal "midgame" phase.  By filtering
+# them at proposer time we keep crafter v2 truly abstract and let the
+# translator focus on intent transferability.
+_BANNED_LITERAL_TOKENS = {
+    # Concrete (TF3 / Headdy-style) phase names — translator can't
+    # ground these in a target whose phase taxonomy differs.
+    "opening", "midgame", "endgame", "early", "mid", "late",
+    # UI / domain leftovers that escaped the per-token ban
+    "score_hud", "score_trajectory", "score_appeared",
+    "phase_changed", "phase_transitioned", "phase_transition",
+    "score_adjustment", "score_reset",
+}
+
+# phase = <concrete-label>  (literal RHS — must be Δ/relational instead)
+_LITERAL_PHASE_RE = re.compile(
+    r"\b(?:world|state|game|player)\.phase\s*=+\s*(\w+)\b",
+    re.IGNORECASE,
+)
+# score = <integer-literal>  (must be Δ-form, e.g. score+=Δ, score>=old+Δ)
+_LITERAL_SCORE_RE = re.compile(
+    r"\b(?:world|state|game|player)\.score\s*=+\s*(-?\d+)\b",
+    re.IGNORECASE,
+)
+# Allowed RHS labels for `world.phase = X` (Δ-style references stay)
+_PHASE_RHS_ALLOWED = {
+    "phase", "delta", "δ", "old", "new", "next", "prev",
+    "old_phase", "new_phase", "next_phase",
+}
+
 # Predicate-form regex — required for preconditions / eff_* / predicate_*
 # fields.  Accepts:
 #   world.foo, world.foo=bar, event.baz, predicate.qux=true,
@@ -165,6 +207,39 @@ def _has_banned_token(text: str) -> Tuple[bool, List[str]]:
         if re.search(rf"\b{re.escape(term)}\b", low):
             found.append(term)
     return bool(found), found
+
+
+def _has_source_conditioning(text: str) -> Tuple[bool, List[str]]:
+    """Return (had_leak, list of leaks) for source-game-anchored
+    predicates that aren't truly abstract: literal phase names,
+    hard-coded score literals, and curated TF3-flavored predicate
+    names.  These would survive ``_has_banned_token`` but break
+    cross-game translation downstream because the target game has no
+    matching literal vocabulary.
+    """
+    if not text:
+        return False, []
+    low = " " + text.lower() + " "
+    found: List[str] = []
+    for term in _BANNED_LITERAL_TOKENS:
+        if re.search(rf"\b{re.escape(term)}\b", low):
+            found.append(term)
+    # phase=<concrete-label>  — refuse RHS that looks like a literal
+    for m in _LITERAL_PHASE_RE.finditer(text):
+        rhs = m.group(1).lower()
+        if rhs not in _PHASE_RHS_ALLOWED:
+            found.append(f"phase={m.group(1)}")
+    # score=<integer-literal> — must be Δ-form, not a hard-coded number
+    for m in _LITERAL_SCORE_RE.finditer(text):
+        found.append(f"score={m.group(1)}")
+    # Dedupe while keeping insertion order
+    seen: set = set()
+    unique: List[str] = []
+    for t in found:
+        if t not in seen:
+            seen.add(t)
+            unique.append(t)
+    return bool(unique), unique
 
 
 # JSON schema for vLLM's ``guided_json`` enforcement. We define the
@@ -269,6 +344,19 @@ ABSOLUTELY FORBIDDEN in any field:
   toolbar, modal
 * Game names: Thunder Force, TF3, Altered Beast, Columns, Headdy,
   Tetris, Candy Crush, Sega, Genesis, Mega Drive, Arcade, BrowserGym
+* SOURCE-GAME CONDITIONING — predicates that anchor to ONE game's
+  ontology even though they look "abstract":
+  - phase = opening / midgame / endgame / early / mid / late
+    (any concrete phase label).  Use Δ-style instead:
+        world.phase>old.phase     event.phase_changed
+  - world.score = <integer literal>  (e.g. score=10, score=70).  Use
+    Δ-style:
+        world.score+=Δ            score>=old_score+Δ
+        event.score_changed
+  - TF3-flavored names: score_hud, score_trajectory, score_appeared,
+    phase_changed, phase_transitioned, score_adjustment, score_reset.
+    These describe one game's HUD/event vocabulary; the actor at
+    runtime grounds them per game.
 
 If the failure pattern only makes sense if you reference a button or
 specific game mechanic, that means it's not yet a SKILL — skip it.
@@ -371,7 +459,8 @@ def call_35b_proposer_v2(
 
 def _check_predicate_list(items: List[Any], field: str) -> Tuple[List[str], List[str]]:
     """Return (kept, dropped_with_reason).  Drops any item that fails
-    predicate-form OR contains a banned token."""
+    predicate-form OR contains a banned token OR carries source-game
+    conditioning (literal phase names, hard-coded score literals)."""
     kept: List[str] = []
     dropped: List[str] = []
     for it in items or []:
@@ -381,6 +470,10 @@ def _check_predicate_list(items: List[Any], field: str) -> Tuple[List[str], List
         had_ban, terms = _has_banned_token(s)
         if had_ban:
             dropped.append(f"{field}:'{s[:40]}' banned={terms[:3]}")
+            continue
+        had_src, src_terms = _has_source_conditioning(s)
+        if had_src:
+            dropped.append(f"{field}:'{s[:40]}' src_cond={src_terms[:3]}")
             continue
         if not _is_predicate_form(s):
             dropped.append(f"{field}:'{s[:40]}' not predicate-form")
@@ -408,6 +501,9 @@ def validate_proposal(p: dict) -> Tuple[bool, dict]:
     name_banned, name_terms = _has_banned_token(name)
     if name_banned:
         return False, {"reject_reason": f"name contains banned tokens: {name_terms}"}
+    name_src, name_src_terms = _has_source_conditioning(name)
+    if name_src:
+        return False, {"reject_reason": f"name carries source conditioning: {name_src_terms}"}
 
     rationale_banned, rationale_terms = _has_banned_token(
         f"{p.get('rationale_evidence','')} {p.get('non_redundant_reason','')}"
@@ -656,6 +752,126 @@ def build_skill_record(
     return {"skill": skill, "report": report}
 
 
+# -------------------------- Layer-C transfer-candidate retrieval -------
+
+
+# Crafter uses internal game IDs like ``gymv_thunder_force_iii`` while
+# the TemplateIndex (built from the inventory) keys gym_v games as
+# ``Temporal_ThunderForceIII-v0``.  This helper does a small set of
+# safe transformations to bridge the two; if every lookup misses we
+# fall through and the transfer block is simply empty (the prompt is
+# unaffected).
+def _candidate_index_keys_for_game(game: str) -> List[str]:
+    keys: List[str] = [game]
+    g = game.strip()
+    if g.startswith("gymv_"):
+        # gymv_thunder_force_iii  ->  ThunderForceIII (roman tail kept upper).
+        # ``capitalize`` lower-cases the rest of each segment, so e.g.
+        # "iii" -> "Iii"; we re-uppercase pure-roman tail tokens (i,
+        # ii, iii, iv, v, vi, vii, viii, ix, x).
+        ROMAN = {"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"}
+        parts = g[5:].split("_")
+        camel = "".join(
+            (part.upper() if part.lower() in ROMAN else part.capitalize())
+            for part in parts
+        )
+        keys.append(f"Temporal_{camel}-v0")
+    if g.startswith("Temporal_") and g.endswith("-v0"):
+        # Already in the canonical inventory form.
+        keys.append(g)
+    return list(dict.fromkeys(keys))  # de-dup, preserve order
+
+
+def _resolve_template_task_name(
+    *, game: str, template_index: "TemplateIndex"
+) -> Optional[str]:
+    for key in _candidate_index_keys_for_game(game):
+        if template_index.signatures_for_task(key):
+            return key
+    return None
+
+
+def _enumerate_transfer_candidates(
+    *,
+    template_index: "TemplateIndex",
+    template_task: str,
+    k_per_signature: int = 3,
+    max_total: int = 16,
+) -> List[Dict[str, Any]]:
+    """For each signature present in *this game*'s template bank, list
+    cross-cohort skills that share the same signature.  Output rows are
+    flat dicts ready for prompt rendering / JSONL emission."""
+    sigs = template_index.signatures_for_task(template_task)
+    out: List[Dict[str, Any]] = []
+    seen = set()
+    for sig in sorted(sigs):
+        rows = template_index.lookup_for_target_task(
+            template_task, sig, k=k_per_signature,
+        )
+        for r in rows:
+            key = (r.task, r.skill_id, sig)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append({
+                "signature": sig,
+                "src_cohort": r.cohort,
+                "src_task": r.task,
+                "src_skill_id": r.skill_id,
+                "src_skill_name": r.skill_name,
+                "src_template_steps": [
+                    {"op": s["op"], "predicate": s["predicate"]}
+                    for s in r.template_steps
+                ],
+                "src_self_reported_transferable_to": list(
+                    r.transferable_to_cohorts
+                ),
+            })
+            if len(out) >= max_total:
+                return out
+    return out
+
+
+def render_transfer_candidates_for_prompt(
+    candidates: Sequence[Dict[str, Any]], *, game: str,
+) -> str:
+    """Render the cross-cohort transfer-candidate block for the
+    proposer prompt.  Returns an empty string when there is nothing to
+    show, so callers can ``if block: user_msg += '\\n\\n' + block``."""
+    if not candidates:
+        return ""
+    lines: List[str] = [
+        "## Layer-C cross-cohort transfer candidates (advisory)",
+        "",
+        ("These skills already exist in OTHER tasks/cohorts AND share "
+         "the same lifted procedural template signature as a skill "
+         f"already mined from {game!s}.  They are *advisory*: when one "
+         "of them clearly fits a failure trace below, prefer proposing "
+         "an `adapt`/`transfer` style entry over inventing a fresh "
+         "`hypothesize` skill.  Each candidate is listed with its "
+         "abstract step skeleton so you can judge fit modality-"
+         "agnostically."),
+        "",
+    ]
+    by_sig: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for c in candidates:
+        by_sig[c["signature"]].append(c)
+    for sig in sorted(by_sig.keys()):
+        lines.append(f"### signature: {sig}")
+        for c in by_sig[sig][:4]:
+            lines.append(
+                f"  - [{c['src_cohort']}/{c['src_task']}/{c['src_skill_id']}]"
+                f" {c['src_skill_name']}"
+            )
+            for i, step in enumerate(c["src_template_steps"], 1):
+                lines.append(
+                    f"      [{i}] {step['op']:<9} "
+                    f"{step['predicate'][:90]}"
+                )
+        lines.append("")
+    return "\n".join(lines).rstrip()
+
+
 # -------------------------- main ----------------------------------------
 
 
@@ -664,8 +880,25 @@ def run_pipeline(
     bucket_size: int = 16, max_buckets: int = 8,
     novelty_threshold: float = 0.55,
     judge_url: str = "http://localhost:8001/v1",
+    template_transfer_bank: Optional[Path] = None,
+    template_task_name: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """End-to-end pipeline. Returns a summary dict and writes outputs."""
+    """End-to-end pipeline. Returns a summary dict and writes outputs.
+
+    Args:
+      template_transfer_bank: optional path to a Layer-C lift run
+        directory.  When set, the proposer prompt is augmented with a
+        block of cross-cohort transfer candidates whose lifted
+        procedural template signature matches the existing bank for
+        ``game``.  The block is *advisory* — it only tells the LLM
+        that these alternatives exist, it does not coerce it.  A side
+        artifact ``template_matched_transfer_candidates.jsonl`` is
+        also emitted under ``out_dir`` for downstream tools.
+      template_task_name: override the task-name lookup into the
+        template bank.  Useful when ``game`` (e.g.
+        ``gymv_thunder_force_iii``) does not exactly match the
+        TemplateIndex key (e.g. ``Temporal_ThunderForceIII-v0``).
+    """
     out_dir = run_dir / "crafter_v2_offline"
     (out_dir / "enriched_failures").mkdir(parents=True, exist_ok=True)
     (out_dir / "proposals").mkdir(parents=True, exist_ok=True)
@@ -697,6 +930,43 @@ def run_pipeline(
 
     bank_block = render_skill_bank_for_prompt(bank)
 
+    # ── Layer-C cross-cohort transfer candidates (opt-in, advisory) ──
+    transfer_block = ""
+    transfer_candidates: List[Dict[str, Any]] = []
+    template_lookup_key: Optional[str] = None
+    if template_transfer_bank is not None and TemplateIndex is not None:
+        try:
+            tidx = TemplateIndex.from_run(Path(template_transfer_bank))
+            template_lookup_key = (
+                template_task_name
+                or _resolve_template_task_name(game=game, template_index=tidx)
+            )
+            if template_lookup_key:
+                transfer_candidates = _enumerate_transfer_candidates(
+                    template_index=tidx,
+                    template_task=template_lookup_key,
+                )
+                transfer_block = render_transfer_candidates_for_prompt(
+                    transfer_candidates, game=game,
+                )
+                print(f"   layer-C transfer: task={template_lookup_key!r}  "
+                      f"candidates={len(transfer_candidates)}  "
+                      f"prompt_chars={len(transfer_block)}")
+                if transfer_candidates:
+                    cand_path = out_dir / "template_matched_transfer_candidates.jsonl"
+                    with open(cand_path, "w") as fh:
+                        for row in transfer_candidates:
+                            row_out = dict(row)
+                            row_out["target_game"] = game
+                            row_out["template_lookup_key"] = template_lookup_key
+                            fh.write(json.dumps(row_out, ensure_ascii=False) + "\n")
+                    print(f"   → {cand_path}")
+            else:
+                print(f"   layer-C transfer: no TemplateIndex match for game={game!r}; "
+                      f"tried keys={_candidate_index_keys_for_game(game)}; skipping.")
+        except Exception as exc:                                      # noqa: BLE001
+            print(f"   layer-C transfer: load failed ({exc}); skipping.")
+
     print(f"\n[4/5] calling 35B proposer (v2 abstract-only, guided_json)…")
     all_proposals: List[dict] = []
     bucket_meta: List[dict] = []
@@ -704,6 +974,8 @@ def run_pipeline(
     for i, bucket in enumerate(buckets[:n_calls]):
         fail_block = render_failures_for_prompt(bucket)
         user_msg = f"{bank_block}\n\n{fail_block}\n\nReview the failures and emit your JSON."
+        if transfer_block:
+            user_msg = f"{bank_block}\n\n{transfer_block}\n\n{fail_block}\n\nReview the failures and emit your JSON."
         t0 = time.monotonic()
         try:
             raw, meta = call_35b_proposer_v2(
@@ -832,6 +1104,27 @@ def main() -> int:
     ap.add_argument("--max-buckets", type=int, default=8)
     ap.add_argument("--novelty-threshold", type=float, default=0.55)
     ap.add_argument("--judge-url", default="http://localhost:8001/v1")
+    ap.add_argument(
+        "--template-transfer-bank",
+        default=None,
+        help=("OPTIONAL Layer-C cross-cohort transfer candidate "
+              "source.  Path to a ``labeling/skill_templates/run_<ts>`` "
+              "dir produced by ``scripts/lift_skill_templates_gpt54.py``. "
+              "When set, the proposer prompt is augmented with cross-"
+              "cohort skills whose lifted template signature matches "
+              "this game's existing bank, so the LLM can propose "
+              "`adapt` / `transfer` instead of fresh `hypothesize` "
+              "skills.  Emits "
+              "``crafter_v2_offline/template_matched_transfer_candidates.jsonl``. "
+              "Off by default."),
+    )
+    ap.add_argument(
+        "--template-task-name",
+        default=None,
+        help=("Override the task name used to look up signatures in "
+              "the template bank.  Defaults to ``--game`` with safe "
+              "transformations (``gymv_*`` -> ``Temporal_*-v0``)."),
+    )
     args = ap.parse_args()
 
     summary = run_pipeline(
@@ -840,6 +1133,11 @@ def main() -> int:
         max_buckets=args.max_buckets,
         novelty_threshold=args.novelty_threshold,
         judge_url=args.judge_url,
+        template_transfer_bank=(
+            Path(args.template_transfer_bank)
+            if args.template_transfer_bank else None
+        ),
+        template_task_name=args.template_task_name,
     )
     return 0 if summary["n_accepted"] > 0 else 1
 

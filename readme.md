@@ -236,6 +236,157 @@ ACTIVE SkillRecord (transferable, evidence-driven, gate-bound)
 
 End-to-end coverage lives in [`tests/test_few_shot_transfer.py`](tests/test_few_shot_transfer.py): it exercises the `SkillRecord` persistence path, the lifecycle invariants, the `FewShotAdapter` execution loop, and the `GateService` verdict shape in a single fixture set.
 
+### Two-tier shared / per-task skill bank — bootstrapping a brand-new game
+
+Day-to-day skill discovery already runs at the *per-game* layer — the
+mining banks under `runs/<run>/skillbank/<game>/skill_bank.jsonl`.
+But when a fresh game/task is added to the curriculum the per-game
+bank starts empty, and the trainer's first phase has nothing to
+retrieve from.  The *cold-start seed path* solves this by
+maintaining a second, modality-agnostic layer on top of the
+per-game banks:
+
+| Layer | What it stores | Who writes it |
+| --- | --- | --- |
+| **SharedAbstractBank** ([`skill_bank/shared_abstract_bank.py`](skill_bank/shared_abstract_bank.py) → `abstract.jsonl`) | One `SharedAbstractSkill` per `(skill_id, template_signature)` — modality-agnostic skeleton: name + strategic description + abstract `ProtocolStep`s (op + slot_types, no task-specific tokens) + lineage list. | The forward consolidator ([`scripts/build_shared_skill_bank.py`](scripts/build_shared_skill_bank.py)) on initial build; the backward discovery path ([`scripts/discover_skill_to_shared_bank.py`](scripts/discover_skill_to_shared_bank.py)) every time a new skill is mined or crafter-promoted. |
+| **PerTaskBank** (`by_task/<task>/bindings.jsonl`) | One `BoundConcreteSkill` per `(task, concrete_skill_id)` — fully grounded contract + executable `ProtocolStep`s in the task's vocabulary + `SubEpisodeRef` receipts pointing at the actual rollouts that confirmed the protocol. | The forward consolidator (one binding per native mining record); the **forward-bind** path ([`scripts/bind_abstract_to_task.py`](scripts/bind_abstract_to_task.py)) when an abstract is re-grounded onto a new task; the discovery path on every mined / promoted skill. |
+
+Schema invariant: protocol-as-primary, sub-episodes-as-receipts.
+The `ProtocolStep` carries `op + payload + slot_types + preconditions + effects_add + effects_del + abort_criteria`; the contract is a *derived* summary, not the source of truth.  Existing rollouts attach as `SubEpisodeRef{episode_id, seg_start, seg_end, outcome, quality_score}` — they are evidence, not behaviour.
+
+#### Cold-start seed pipeline
+
+When a brand-new game `T` is added (no per-game bank yet) the
+trainer kicks off [`scripts/seed_per_task_bank_cold_start.py`](scripts/seed_per_task_bank_cold_start.py):
+
+```bash
+# 1. Consolidate every existing per-game bank + production usage log
+#    + crafter v2 outputs into the SharedAbstractBank (one-time).
+python scripts/build_shared_skill_bank.py        # → shared_skill_bank/_latest/
+
+# 2. For a brand-new task (e.g. candy_crush), mint 8 seed skills.
+python scripts/seed_per_task_bank_cold_start.py \
+    --bank-root  shared_skill_bank/_latest \
+    --target-task candy_crush \
+    --out-bank-path runs/cold_start_demo_candy_crush/skillbank/candy_crush/skill_bank.jsonl \
+    --max-seeds 8 \
+    --min-cross-task-lineage 2     # require an abstract to have been
+                                   # natively-mined in ≥ 2 tasks before
+                                   # we trust it as a starter for T
+```
+
+The pipeline:
+
+1. Loads the SharedAbstractBank, picks the top-K abstracts by
+   `(n_native_tasks, n_cohorts, n_production_successes)` — the
+   skeletons that have already paid off across the widest range
+   of existing games.
+2. For each picked abstract, calls GPT-5.4 via
+   `bind_abstract_to_task.bind_one(...)` to re-ground the
+   modality-agnostic protocol into a concrete `BoundConcreteSkill`
+   in `T`'s vocabulary, and writes it into the PerTaskBank with
+   `binding_status="PENDING"`.
+3. Updates the abstract's `lineage` with a `LineageEntry(task=T,
+   discovered_via="binding", is_native=False)` so the next consolidation
+   knows `T` has been seeded from this abstract.
+4. Projects every binding into the legacy `{"skill": ..., "report": ...}`
+   envelope that `skill_agents.skill_bank.bank.SkillBankMVP.load(...)`
+   already understands — same shape as the `__translated_to__` records
+   in `runs/Qwen3.5-9B_*/skillbank/<game>/skill_bank.jsonl` — so the
+   trainer's runtime can consume the seed bank with **zero loader changes**.
+5. Emits a sidecar `<bank>.cold_start_provenance.json` so a future
+   bidirectional bridge can detect cold-start seeds and refuse to
+   clobber them with the upstream consolidator output.
+
+Demo run on `candy_crush` produced six trainer-loadable seeds
+(`COMMIT/EXPLORE`, `RECOVER/EVADE`, `COMMIT/POSITION`, …) with
+substantive protocol fields — versus the legacy `__translated_to__`
+fallback that emitted only generic `"Action opportunity present"` /
+`"Evaluate best available action"` placeholders:
+
+| Field | Cold-start seed (RECOVER/EVADE on `candy_crush`) | Legacy translation (RECOVER/SURVIVE on `gymv_altered_beast`) |
+| --- | ---: | ---: |
+| `protocol.preconditions` | 5 | 1 |
+| `protocol.success_criteria` | 5 | 1 |
+| `protocol.step_checks` | 3 | 0 |
+| `protocol.predicate_success` | 2 | 0 |
+| `contract.eff_add` | 4 (typed: `clear_triggered`, `score`, …) | 0 |
+
+Once `T`'s training begins, every newly mined / promoted skill
+flows through `discover_skill_to_shared_bank.py`, which (a) writes
+the new `BoundConcreteSkill` into `PerTaskBank[T]` and (b) lifts a
+`SharedAbstractSkill` (or merges into an existing one) so the *next*
+new game's cold-start has a richer SharedAbstractBank to draw from.
+
+### Path A — harness validation of cold-start seeds (opt-in)
+
+`scripts/seed_per_task_bank_cold_start.py --harness-validate` flips on
+the **adapter-level** validation path: every just-minted
+`BoundConcreteSkill` is run through `FewShotAdapter.adapt(...)` against
+demos pulled from its parent abstract's cross-game lineage *before*
+it lands in the per-task bank.  Implementation lives in
+[`harness/skill_bank_bridge.py`](harness/skill_bank_bridge.py) and
+the `harness_validate(...)` hook in
+[`scripts/bind_abstract_to_task.py`](scripts/bind_abstract_to_task.py).
+
+Pipeline per candidate binding:
+
+1. **Domain mapping**.  `task_to_harness_domain(target_task)` resolves
+   the candidate's task to a registered harness domain.  Every task
+   currently in PerTaskBank maps cleanly:
+
+   | Cohort | Tasks | Harness domain | Adapter |
+   | --- | --- | --- | --- |
+   | gymv | 13 × `Temporal_*-v0` | `gymv` | `GymvAdapter` |
+   | env-wrapper games | `candy_crush`, `tetris`, `super_mario`, `twenty_forty_eight` | `gymv` (intra-domain task transfer) | `GymvAdapter` |
+   | browser | `miniwob`, `webshop` | `browser` | `BrowserAdapter` |
+   | visual reasoning (image) | `tir_bench`, `visual_toolbench` | `visual_reasoning` | `VisualReasoningAdapter` |
+   | visual reasoning (video) | `video_holmes`, `siv_bench` | `video` | `VideoAdapter` |
+
+2. **Demo synthesis**.  `lineage_to_demos(abstract, bank)` walks the
+   `SharedAbstractSkill.lineage`, pulls each native source binding,
+   and synthesizes one `FewShotDemo` per source task — using the
+   source binding's contract preconditions as `state.facts`, the
+   highest-quality `SubEpisodeRef`'s `seg_start` as `inner_step`,
+   and the sub-episode id as `EvidenceRef.locator`.
+3. **Pre-flight veto**.  Bindings with `len(protocol) < 2` are
+   rejected without spending demos — multi-hop is a bank invariant.
+4. **Run via `FewShotAdapter`**.  The bridge re-tags each demo's
+   `state.domain` to the candidate's target domain via
+   `_coerce_state_to_target` (PLAN-HARNESS §22 intra-domain task
+   transfer), so a candy_crush candidate can ride the gymv adapter's
+   deterministic hop-walker against demos drawn from `Temporal_*` games.
+5. **Structural success_fn**.  A closure over the candidate's action
+   verbs + the source bindings' vocab scores each demo:
+   - `1.0` — episode succeeded AND ops overlap with source vocab,
+   - `0.5` — episode succeeded but vocab is unfamiliar,
+   - `0.0` — episode failed or candidate has no ops.
+6. **Verdict**.  `pass_rate >= pass_rate_min (0.5)` ⇒ binding lands
+   as `binding_status="VALIDATED"` with `last_validation_at` stamped;
+   `pass_rate < threshold` and `n_total > 0` ⇒ `"REJECTED"` (binding
+   is NOT shipped to the trainer's per-task bank); no demos / no
+   adapter ⇒ `"PENDING"` (trainer's first real rollout decides).
+
+End-to-end demo (super_mario, all four picked seeds):
+
+| Abstract | n_demos (cross-game) | pass_rate | verdict |
+| --- | --- | --- | --- |
+| COMMIT/EXPLORE   | 6 | 1.00 | VALIDATED |
+| RECOVER/EVADE    | 6 | 1.00 | VALIDATED |
+| COMMIT/POSITION  | 5 | 1.00 | VALIDATED |
+| COMMIT/NAVIGATE  | 5 | 1.00 | VALIDATED |
+
+End-to-end demo (webshop, 2 seeds, browser cohort):
+
+| Abstract | demo source tasks (re-tagged to `browser` at run time) | pass_rate | verdict |
+| --- | --- | --- | --- |
+| COMMIT/EXPLORE   | 5 × Temporal_* + miniwob | 1.00 | VALIDATED |
+| RECOVER/EVADE    | 6 × Temporal_*           | 1.00 | VALIDATED |
+
+The full per-binding diagnostics (`source_ops_vocab`, `candidate_ops`,
+`episode_ids`, `n_demos`, `target_domain`) are written to
+`<out>.cold_start_provenance.json` for audit.
+
 ### What's still pending (transfer-side)
 
 | Item | Owning module |
@@ -244,6 +395,7 @@ End-to-end coverage lives in [`tests/test_few_shot_transfer.py`](tests/test_few_
 | Unified six-gate runner (`G0–G5`) consuming `gate_service` stages | `harness/gate_runner.py` |
 | Real (non-stub) executors for each transfer-target adapter | `vlm_wrapper/<domain>_adapter.py` |
 | Held-out replay seeds for Stage 1 | `harness/replay_validator.py` |
+| Promote Path A from a *structural shape* validator (deterministic walker + vocab overlap) to a real-rollout validator on registered domains | `harness/skill_bank_bridge.py` (replace `_make_structural_success_fn` with `gymv_success.evaluate_hop_effects` once the gymv executor is wired into the per-task adapter set) |
 
 These are tracked under Phase D in [`IMPLEMENTATION-STATUS.md`](IMPLEMENTATION-STATUS.md) and in the [Pending](#pending-next-sessions) row above.
 

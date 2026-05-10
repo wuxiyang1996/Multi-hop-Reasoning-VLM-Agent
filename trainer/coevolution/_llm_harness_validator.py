@@ -45,18 +45,39 @@ import os
 import re
 import threading
 import time
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Optional, Tuple
+from typing import Any, Dict, Mapping, Optional, Set, Tuple
 
 from data_structure.extensions.skill_record import SkillRecord
+
+# Layer-C template-signature softener (opt-in).  When a TemplateIndex
+# is provided to the validator, an "uncertain admit" can be softened
+# back to "certain" if the target task already supports the skill's
+# lifted template signature — i.e. structurally-equivalent skills
+# already work on this task.  Imported lazily so the harness module
+# loads in environments without a lift run.
+try:
+    from scripts.template_index import TemplateIndex                    # noqa: F401
+except Exception:  # pragma: no cover
+    TemplateIndex = None  # type: ignore[assignment]
 
 logger = logging.getLogger("trainer.coevolution.llm_harness_validator")
 
 
 # ── Tunables ──────────────────────────────────────────────────────────
 
-DEFAULT_BOOTSTRAP_STEPS: int = 20
+# 2026-05-08 Phase-2 audit: lowered from 20 → 3.  At step=20 the v5
+# AB run was still firing the 35B validator on every admit because
+# either ``in_bootstrap()`` returned True (step<20) or the
+# uncertainty heuristic flagged translated skills (every AB skill is
+# translated, see Edit 1 in ``is_uncertain_admit``).  Together they
+# produced ~95% of all skill_selection events ending in
+# "harness vetoed all candidates", silently nullifying the bank.
+# Three steps is enough to amortise the cold-start (the deterministic
+# harness is then trusted for the rest of the run; uncertain admits
+# still fall through to the LLM via ``is_uncertain_admit``).
+DEFAULT_BOOTSTRAP_STEPS: int = 3
 DEFAULT_MAX_TOKENS: int = 256
 DEFAULT_TEMPERATURE: float = 0.2
 DEFAULT_TIMEOUT_S: float = 30.0
@@ -215,24 +236,114 @@ class LLMValidatorStats:
     n_cache_hits: int = 0
     n_skipped_steady: int = 0       # skipped: steady-state, deterministic certain
     n_skipped_no_record: int = 0    # skipped: SkillRecord not in cache
+    n_skipped_template_match: int = 0  # skipped: Layer-C signature match softened
     n_admit_overrides: int = 0      # admit→veto downgrades
     n_admit_confirmed: int = 0      # admit→admit (LLM agrees)
     last_errors: list = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "n_calls_attempted":   self.n_calls_attempted,
-            "n_calls_succeeded":   self.n_calls_succeeded,
-            "n_calls_failed":      self.n_calls_failed,
-            "n_parse_failures":    self.n_parse_failures,
-            "n_timeouts":          self.n_timeouts,
-            "n_cache_hits":        self.n_cache_hits,
-            "n_skipped_steady":    self.n_skipped_steady,
-            "n_skipped_no_record": self.n_skipped_no_record,
-            "n_admit_overrides":   self.n_admit_overrides,
-            "n_admit_confirmed":   self.n_admit_confirmed,
-            "last_errors":         list(self.last_errors[:5]),
+            "n_calls_attempted":         self.n_calls_attempted,
+            "n_calls_succeeded":         self.n_calls_succeeded,
+            "n_calls_failed":            self.n_calls_failed,
+            "n_parse_failures":          self.n_parse_failures,
+            "n_timeouts":                self.n_timeouts,
+            "n_cache_hits":              self.n_cache_hits,
+            "n_skipped_steady":          self.n_skipped_steady,
+            "n_skipped_no_record":       self.n_skipped_no_record,
+            "n_skipped_template_match":  self.n_skipped_template_match,
+            "n_admit_overrides":         self.n_admit_overrides,
+            "n_admit_confirmed":         self.n_admit_confirmed,
+            "last_errors":               list(self.last_errors[:5]),
         }
+
+
+# ── Layer-C template-signature softener (opt-in) ─────────────────────
+
+
+@dataclass(frozen=True)
+class TemplateMatchSignal:
+    """Verdict from the Layer-C provider for one (skill, target_task) pair.
+
+    ``matches=True`` means the target task ALREADY has at least one
+    skill with the same lifted procedural template signature as
+    ``skill`` — strong evidence that this skill is procedurally
+    compatible with the target task even when the deterministic diag
+    flagged it as uncertain (e.g. a translated contract or empty
+    can_handle_evidence).
+    """
+    matches: bool
+    signature: Optional[str] = None
+    target_task: Optional[str] = None
+    reason: str = ""
+
+
+class TemplateSignatureProvider:
+    """Wraps a :class:`TemplateIndex` with two skill-side helpers.
+
+    1. ``signature_for_skill(skill)`` — best-effort lookup of the
+       lifted procedural-template signature for a SkillRecord.
+       Strategy:
+
+       a. Honour an explicit ``skill.template_signature`` attribute
+          if a future skill-loader populates it.
+       b. Otherwise look up by ``skill.skill_id``; if the index
+          contains exactly one signature for that ID, use it.
+       c. If multiple tasks share that ID with different signatures,
+          disambiguate using ``skill.source_domains``.
+
+    2. ``template_match_for(skill, target_task)`` — return a
+       :class:`TemplateMatchSignal` saying whether the target task
+       already supports the skill's signature.
+    """
+
+    def __init__(self, template_index: Any) -> None:
+        self._idx = template_index
+        self._sigs_by_skill_id: Dict[str, Set[str]] = defaultdict(set)
+        self._sigs_by_id_and_task: Dict[Tuple[str, str], str] = {}
+        for r in getattr(template_index, "records", []) or []:
+            self._sigs_by_skill_id[r.skill_id].add(r.template_signature)
+            self._sigs_by_id_and_task[(r.skill_id, r.task)] = r.template_signature
+
+    def signature_for_skill(self, skill: SkillRecord) -> Optional[str]:
+        explicit = getattr(skill, "template_signature", None)
+        if explicit:
+            return str(explicit)
+        sid = getattr(skill, "skill_id", "") or ""
+        if not sid:
+            return None
+        sigs = self._sigs_by_skill_id.get(sid, set())
+        if len(sigs) == 1:
+            return next(iter(sigs))
+        if not sigs:
+            return None
+        # Ambiguous skill_id (e.g. ``COMMIT/POSITION`` appears in many
+        # tasks).  Try disambiguating via the SkillRecord's source
+        # domains — if any domain hits the per-(id,task) map, use that.
+        srcs = list(getattr(skill, "source_domains", []) or [])
+        for src in srcs:
+            sig = self._sigs_by_id_and_task.get((sid, src))
+            if sig is not None:
+                return sig
+        return None
+
+    def template_match_for(
+        self, skill: SkillRecord, target_task: Optional[str],
+    ) -> TemplateMatchSignal:
+        if not target_task:
+            return TemplateMatchSignal(matches=False, reason="target_task_unknown")
+        sig = self.signature_for_skill(skill)
+        if sig is None:
+            return TemplateMatchSignal(matches=False, reason="signature_unknown")
+        if self._idx.task_has_signature(target_task, sig):
+            return TemplateMatchSignal(
+                matches=True, signature=sig, target_task=target_task,
+                reason="target_task_supports_signature",
+            )
+        return TemplateMatchSignal(
+            matches=False, signature=sig, target_task=target_task,
+            reason="target_task_lacks_signature",
+        )
 
 
 # ── Uncertainty heuristic ─────────────────────────────────────────────
@@ -242,6 +353,7 @@ def is_uncertain_admit(
     *,
     skill: SkillRecord,
     deterministic_diag: Mapping[str, Any],
+    template_signal: Optional[TemplateMatchSignal] = None,
 ) -> bool:
     """Decide whether the deterministic admit was 'uncertain' enough
     to warrant a 35B second look in steady state.
@@ -260,17 +372,52 @@ def is_uncertain_admit(
        with empty ``can_handle_evidence`` — admit-by-default.
     4. Fallback / degraded paths flagged via
        ``deterministic_diag.get("degraded") == True``.
+
+    Edit 2026-05-08 (Phase-2 v6 audit): translated cross-game skills
+    (skill_id contains ``__translated_to__``) ALREADY passed a
+    dedicated 35B re-grounding judge during the phase-finalize
+    translator pass.  Firing a *second* 35B veto on every admit is
+    redundant compute AND tends to fire spuriously: the source-game
+    boilerplate the translator left in the description (e.g. "score
+    increases to 2 during midgame phase") trips this validator's
+    coherence check even though the skill is structurally fine.
+    Treat translated skills as deterministic-certain in steady state
+    so they don't get vetoed by the 35B every step — the bootstrap
+    window still fires for the first few steps as a sanity gate.
+
+    Edit 2026-05-10 (Layer-C softener): when ``template_signal`` is
+    provided AND its ``matches`` is True, the target task already
+    supports this skill's lifted procedural template signature
+    (i.e. structurally equivalent skills already work here).  That
+    is sufficient evidence to demote translation/empty-evidence
+    uncertainty back to "certain".  A SHADOW status or an explicit
+    ``degraded=True`` flag is NOT softened — those signal genuine
+    runtime concern that template overlap can't excuse.
     """
+    sid = getattr(skill, "skill_id", "") or ""
+    if "__translated_to__" in sid:
+        return False
     status = getattr(skill, "status", None)
     status_value = getattr(status, "value", None) or str(status or "")
     if status_value.lower() == "shadow":
         return True
     if deterministic_diag.get("degraded"):
         return True
+
+    # The remaining uncertainty signals are "soft" — they typically
+    # fire because of cold-start or translator boilerplate, not real
+    # runtime danger.  Layer-C signature support, when present, is a
+    # strong enough cross-task prior to override them.
+    soft_uncertain = False
     handle_ev = deterministic_diag.get("can_handle_evidence")
     if handle_ev is None or (isinstance(handle_ev, (list, dict)) and not handle_ev):
-        return True
+        soft_uncertain = True
     if deterministic_diag.get("translation_status") in ("rewritten", "failed"):
+        soft_uncertain = True
+
+    if soft_uncertain:
+        if template_signal is not None and template_signal.matches:
+            return False
         return True
     return False
 
@@ -471,6 +618,7 @@ class LLMHarnessValidator:
         temperature: float = DEFAULT_TEMPERATURE,
         timeout_s: float = DEFAULT_TIMEOUT_S,
         game_profile: Any = None,
+        template_provider: Optional["TemplateSignatureProvider"] = None,
     ) -> None:
         self._model = model
         self._trainer_step = int(trainer_step)
@@ -479,6 +627,11 @@ class LLMHarnessValidator:
         self._temperature = float(temperature)
         self._timeout_s = float(timeout_s)
         self._game_profile = game_profile
+        # Layer-C softener: when set, the validator can demote some
+        # uncertain admits back to certain (skipping the LLM call) if
+        # the target task already supports the skill's lifted template
+        # signature.  Optional; None → behaviour unchanged.
+        self._template_provider = template_provider
 
         # cache[ (episode_id, skill_id) ] = LLMValidatorOutcome
         self._cache: Dict[tuple, LLMValidatorOutcome] = {}
@@ -501,18 +654,57 @@ class LLMHarnessValidator:
         and the validator should fire on every admit."""
         return self._trainer_step < self._bootstrap_steps
 
+    def _template_signal_for(
+        self, skill: SkillRecord, target_task: Optional[str],
+    ) -> Optional[TemplateMatchSignal]:
+        """Materialise the Layer-C signal for ``(skill, target_task)``
+        when a provider is configured.  Returns ``None`` (no opinion)
+        otherwise; ``is_uncertain_admit`` then defaults to the
+        pre-Layer-C behaviour."""
+        if self._template_provider is None:
+            return None
+        try:
+            return self._template_provider.template_match_for(
+                skill, target_task,
+            )
+        except Exception:                                              # pragma: no cover
+            return None
+
     def should_fire(
         self,
         *,
         skill: SkillRecord,
         deterministic_diag: Mapping[str, Any],
+        target_task: Optional[str] = None,
     ) -> bool:
-        """Policy gate: bootstrap-window OR uncertain admit."""
+        """Policy gate: bootstrap-window OR uncertain admit.
+
+        ``target_task`` is the task the skill is being applied to (e.g.
+        ``state.task``).  When a Layer-C ``TemplateSignatureProvider``
+        is attached, the softener may demote a soft-uncertain admit
+        back to certain — bookkept under
+        ``stats.n_skipped_template_match``.
+        """
         if self.in_bootstrap():
             return True
-        return is_uncertain_admit(
-            skill=skill, deterministic_diag=deterministic_diag,
+        signal = self._template_signal_for(skill, target_task)
+        fire = is_uncertain_admit(
+            skill=skill,
+            deterministic_diag=deterministic_diag,
+            template_signal=signal,
         )
+        if (not fire) and signal is not None and signal.matches:
+            # The unsoftened path would have returned ``True`` here —
+            # we know that because the deterministic diag was
+            # uncertain *before* we passed the signal in.  Bookkeep.
+            unsoftened = is_uncertain_admit(
+                skill=skill,
+                deterministic_diag=deterministic_diag,
+                template_signal=None,
+            )
+            if unsoftened:
+                self._stats.n_skipped_template_match += 1
+        return fire
 
     # ── Synchronous validate (called from inside ``validate_choice``) ─
 
@@ -534,7 +726,15 @@ class LLMHarnessValidator:
         skill_id = getattr(skill, "skill_id", "") or ""
         cache_key = (episode_id or "", skill_id)
 
-        if not self.should_fire(skill=skill, deterministic_diag=deterministic_diag):
+        # Layer-C softener input: the task the skill is being applied
+        # to.  ``state.task`` is the canonical field from StateSchema.
+        target_task = getattr(state, "task", None) or None
+
+        if not self.should_fire(
+            skill=skill,
+            deterministic_diag=deterministic_diag,
+            target_task=target_task,
+        ):
             self._stats.n_skipped_steady += 1
             return LLMValidatorOutcome(
                 ok=True, fired=False, skip_reason="steady_state_certain",
@@ -699,6 +899,31 @@ class LLMHarnessValidator:
         return outcome
 
 
+def make_template_provider_from_run(
+    template_run: Optional[Any] = None,
+) -> Optional[TemplateSignatureProvider]:
+    """Convenience factory used by the harness hook bootstrapping path.
+
+    Builds a :class:`TemplateSignatureProvider` from a lift-run dir
+    (typically ``labeling/skill_templates/run_<ts>``).  Returns
+    ``None`` — never raises — when the lift run is missing, the
+    ``TemplateIndex`` import failed, or the resulting index has zero
+    records, so the harness call site never has to wrap this in
+    try/except.
+    """
+    if TemplateIndex is None:                                          # pragma: no cover
+        return None
+    try:
+        idx = TemplateIndex.from_run(template_run) \
+            if template_run is not None else TemplateIndex.from_run()
+    except Exception as exc:                                           # pragma: no cover
+        logger.warning("template provider bootstrap failed: %s", exc)
+        return None
+    if getattr(idx, "size", 0) == 0:
+        return None
+    return TemplateSignatureProvider(idx)
+
+
 __all__ = [
     "DEFAULT_BOOTSTRAP_STEPS",
     "DEFAULT_MAX_TOKENS",
@@ -708,6 +933,9 @@ __all__ = [
     "LLMValidatorOutcome",
     "LLMValidatorStats",
     "LLM_VALIDATOR_TAG",
+    "TemplateMatchSignal",
+    "TemplateSignatureProvider",
     "get_verdict_cache_stats",
     "is_uncertain_admit",
+    "make_template_provider_from_run",
 ]

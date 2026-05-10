@@ -122,6 +122,14 @@ from labeling_supplement._phase4_transfer_cycle import (                # noqa: 
     TransferVerdict,
 )
 
+# Layer-C template-signature prefilter: optional / opt-in via
+# ``--template-prefilter-bank``.  Imported lazily so the matrix still
+# runs in environments that don't have a lift run available.
+try:
+    from scripts.template_index import TemplateIndex                    # noqa: E402
+except Exception:  # pragma: no cover
+    TemplateIndex = None  # type: ignore[assignment]
+
 logger = logging.getLogger("phase4_transfer_matrix")
 
 
@@ -359,6 +367,49 @@ def _cell_admit_rate(verdicts: Sequence[TransferVerdict]) -> float:
     if not verdicts:
         return 0.0
     return sum(1 for v in verdicts if v.success) / len(verdicts)
+
+
+# ---------------------------------------------------------------------------
+# Layer-C template-signature prefilter (opt-in)
+# ---------------------------------------------------------------------------
+def _template_prefilter_decision(
+    *,
+    template_index: Optional["TemplateIndex"],
+    source_corpus: str,
+    target_corpus: str,
+    threshold: float,
+) -> Tuple[bool, str]:
+    """Decide whether a (source, target) cell is worth running.
+
+    Returns ``(should_run, reason)``.  Defaults are *conservative* —
+    if the index is missing, the threshold is non-positive, or either
+    corpus is absent from the index, we **always run** the cell so
+    the matrix never silently drops cells the prefilter doesn't
+    understand.
+
+    The actual decision is a Jaccard between the *signature sets* of
+    the two tasks.  An empty intersection means the two tasks share
+    no procedural backbone in common — running the FewShotAdapter on
+    these source skills is very unlikely to admit, and the cell is a
+    waste of LLM cost.
+    """
+    if template_index is None or template_index.size == 0:
+        return True, "no_index"
+    if threshold <= 0:
+        return True, "threshold_disabled"
+    src_sigs = template_index.signatures_for_task(source_corpus)
+    tgt_sigs = template_index.signatures_for_task(target_corpus)
+    if not src_sigs:
+        return True, f"src_unknown:{source_corpus}"
+    if not tgt_sigs:
+        return True, f"tgt_unknown:{target_corpus}"
+    shared = src_sigs & tgt_sigs
+    if not shared:
+        return False, "no_shared_signatures"
+    j = len(shared) / max(1, len(src_sigs | tgt_sigs))
+    if j < threshold:
+        return False, f"jaccard_below_threshold:{j:.3f}<{threshold:.3f}"
+    return True, f"jaccard_pass:{j:.3f}>={threshold:.3f}"
 
 
 def _empty_cell(
@@ -685,6 +736,24 @@ def main() -> int:
         help=("Output directory (default: "
               "cross_domain_results/_final/run_<ts>/)."),
     )
+    p.add_argument(
+        "--template-prefilter-bank",
+        default=None,
+        help=("OPTIONAL Layer-C template-signature prefilter.  Path to "
+              "a ``labeling/skill_templates/run_<ts>/`` dir produced by "
+              "``scripts/lift_skill_templates_gpt54.py``.  When set, "
+              "(source, target) cells whose lifted-template signature "
+              "Jaccard is below --template-prefilter-threshold are "
+              "skipped (recorded as empty cells, not run through the "
+              "FewShotAdapter).  Off by default to preserve behaviour."),
+    )
+    p.add_argument(
+        "--template-prefilter-threshold",
+        type=float,
+        default=0.05,
+        help=("Jaccard threshold for the template prefilter (default "
+              "0.05).  Set <= 0 to disable even when a bank is given."),
+    )
     p.add_argument("-v", "--verbose", action="store_true")
     args = p.parse_args()
 
@@ -722,6 +791,32 @@ def main() -> int:
     logger.info("source corpora (%d): %s", len(source_corpora), source_corpora)
     logger.info("target corpora (%d): %s", len(target_corpora), target_corpora)
 
+    # --- Layer-C template-signature prefilter (opt-in) -----------------
+    template_index = None
+    prefilter_threshold = float(args.template_prefilter_threshold)
+    if args.template_prefilter_bank:
+        if TemplateIndex is None:
+            logger.warning(
+                "scripts.template_index unavailable; ignoring "
+                "--template-prefilter-bank"
+            )
+        else:
+            try:
+                template_index = TemplateIndex.from_run(
+                    Path(args.template_prefilter_bank)
+                )
+                logger.info(
+                    "template prefilter active: %d records, %d unique "
+                    "signatures, %d tasks (threshold J >= %.3f)",
+                    template_index.size,
+                    template_index.n_unique_signatures,
+                    template_index.n_tasks,
+                    prefilter_threshold,
+                )
+            except Exception as exc:  # pragma: no cover
+                logger.warning("could not load template index: %s", exc)
+                template_index = None
+
     run_id = "run_" + datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     out_dir = (
         Path(args.out_dir) if args.out_dir
@@ -730,9 +825,36 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     cells: List[Dict[str, Any]] = []
+    n_skipped = 0
     started = time.time()
     for src in source_corpora:
         for tgt in target_corpora:
+            should_run, reason = _template_prefilter_decision(
+                template_index=template_index,
+                source_corpus=src,
+                target_corpus=tgt,
+                threshold=prefilter_threshold,
+            )
+            if not should_run:
+                n_skipped += 1
+                cell = _empty_cell(
+                    source_corpus=src,
+                    source_cluster=src,
+                    source_bank_path="",
+                    target_corpus=tgt,
+                    target_cluster=tgt,
+                    target_domain=None,
+                    elapsed_s=0.0,
+                    error=f"skipped:template_prefilter:{reason}",
+                )
+                cell["prefilter_skipped"] = True
+                cell["prefilter_reason"] = reason
+                cells.append(cell)
+                logger.info(
+                    "%s -> %s: SKIPPED by template prefilter (%s)",
+                    src, tgt, reason,
+                )
+                continue
             cell = _run_one_cell(
                 source_corpus=src,
                 target_corpus=tgt,
@@ -772,6 +894,11 @@ def main() -> int:
             "max_demos_per_episode": args.max_demos_per_episode,
             "pass_rate_min": args.pass_rate_min,
             "include_gym_v": bool(args.include_gym_v),
+            "template_prefilter_bank": args.template_prefilter_bank,
+            "template_prefilter_threshold": prefilter_threshold,
+            "template_prefilter_active": template_index is not None,
+            "n_cells_skipped_by_prefilter": n_skipped,
+            "n_cells_total": len(source_corpora) * len(target_corpora),
         },
         "source_corpora": source_corpora,
         "target_corpora": target_corpora,
