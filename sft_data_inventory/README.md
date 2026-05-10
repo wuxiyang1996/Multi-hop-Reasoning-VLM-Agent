@@ -235,7 +235,7 @@ size variant, jumping over a Strider hazard, and clicking a miniwob
 button.  Treat the ID as an *intent label*, not as a transferable
 contract.
 
-### Implications for SFT / curriculum design
+### Implications for SFT / curriculum design (predicate layer)
 
 1. **Transfer at the cohort level, not the skill level.**  Pooled SFT
    on the 4 VR benches, or on miniwob+webshop, or on
@@ -251,6 +251,138 @@ contract.
    `COMMIT/ANSWER`, etc.).
 4. **No skill is universal across all 18 tasks** — neither by ID nor
    by predicate vocabulary.  Use cohort-conditioned skill banks.
+
+## Layer C — High-level procedural templates
+
+The predicate analysis above answers *"do these two skills look
+functionally similar at the level of game/web vocabulary?"*.  But there
+is a higher layer: the **procedural backbone** — the abstract
+PERCEIVE / RECALL / COMPARE / FILTER / DECIDE / COMMIT / VERIFY /
+RECOVER skeleton.  Two skills can share that skeleton even when their
+predicates are completely different (Tetris's "place piece without
+holes" and tir_bench's "pick the closest option" both
+`PERCEIVE → COMPARE → FILTER → DECIDE → COMMIT`).
+
+We extracted this template for every one of the 448 skills via
+`scripts/lift_skill_templates_gpt54.py` (GPT-5.4 reads
+`strategic_description + contract`, emits a 2-5 step template
+constrained to an 8-op controlled vocabulary).  Output dir:
+`labeling/skill_templates/run_20260510_053121/`.
+
+### Operator distribution (1,975 step instances across 448 templates)
+
+| op       | count | share | role                                |
+| -------- | :---: | :---: | ----------------------------------- |
+| PERCEIVE | 446   | 22.7% | observe / scan inputs               |
+| COMMIT   | 390   | 19.8% | execute irreversible action         |
+| VERIFY   | 383   | 19.5% | confirm post-condition              |
+| DECIDE   | 353   | 18.0% | pick option / target / direction    |
+| COMPARE  | 160   |  8.1% | rank candidates against criteria    |
+| FILTER   | 112   |  5.7% | drop options failing constraints    |
+| RECALL   | 104   |  5.3% | pull task spec / memory into context|
+| RECOVER  |  18   |  0.9% | restore safe state on failure       |
+
+99 % of templates are 4–5 steps long.  No 6-step templates emerged.
+
+### Two universal procedural templates (4-cohort coverage)
+
+Out of 74 unique signatures, exactly **2 are present in 4 of the 5
+cohorts** — these are the closest thing to a universal procedural
+backbone:
+
+| signature                                          | #skills | cohorts                                    |
+| -------------------------------------------------- | :-----: | ------------------------------------------ |
+| `PERCEIVE → COMPARE → DECIDE → COMMIT → VERIFY`    | 10      | env_wr_game, gymv_game, vr_image, web      |
+| `PERCEIVE → COMPARE → DECIDE → VERIFY`             |  9      | env_wr_game, vr_image, vr_video, web       |
+
+The single most popular signature *overall* is
+`PERCEIVE → DECIDE → COMMIT → VERIFY` (142 skills, 10 tasks) — the
+"pure action" template (no comparison phase).  Dominates gymv_game.
+
+### Template-signature Jaccard between cohort vocabularies
+
+|              | env_wr_game | gymv_game | vr_image | vr_video | web   |
+| ------------ | :---------: | :-------: | :------: | :------: | :---: |
+| env_wr_game  |   1.00      | 0.05      | 0.15     | **0.26** | 0.12  |
+| gymv_game    |             | 1.00      | 0.03     | 0.02     | 0.10  |
+| vr_image     |             |           | 1.00     | **0.31** | 0.21  |
+| vr_video     |             |           |          | 1.00     | 0.19  |
+| web          |             |           |          |          | 1.00  |
+
+Compared to the predicate-layer matrix:
+
+* **vr_image ↔ vr_video** is still the highest cross-cohort cell
+  (J=0.31), now with **11 distinct signatures** in common.
+* **env_wr_game ↔ vr_video** unexpectedly hits J=0.26 — board games
+  and video QA share procedural backbones (`PERCEIVE → COMPARE →
+  DECIDE → VERIFY` and friends) even though they share *zero*
+  predicate vocabulary.
+* **gymv_game stays isolated** (J ≤ 0.10 with everyone): its
+  skills are dominated by the action-only `PERCEIVE → DECIDE → COMMIT
+  → VERIFY` skeleton, which is rare in analysis-heavy cohorts.
+
+### Same skill_id → same template-signature?
+
+For every `OPERATOR/SUBGOAL` ID present in ≥4 tasks, what fraction of
+its instances collapse onto the *modal* (most-common) signature?
+
+| skill_id          | #tasks | #unique sigs | modal-sig share | modal signature                                  |
+| ----------------- | :----: | :----------: | :-------------: | ------------------------------------------------ |
+| `COMMIT/SETUP`    |  4     |  2           | **75 %**        | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+| `COMMIT/COLLECT`  |  4     |  2           | **75 %**        | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+| `INSPECT/POSITION`|  4     |  2           | **75 %**        | `RECALL → PERCEIVE → COMPARE → DECIDE → VERIFY`  |
+| `COMPARE/RULE_OUT`|  4     |  2           | **75 %**        | `PERCEIVE → COMPARE → FILTER → DECIDE`           |
+| `COMPARE/DEDUCE`  |  4     |  2           | **75 %**        | `PERCEIVE → COMPARE → FILTER → DECIDE`           |
+| `REASON/RULE_OUT` |  4     |  2           | **75 %**        | `PERCEIVE → COMPARE → FILTER → DECIDE`           |
+| `REASON/IDENTIFY` |  4     |  2           | **75 %**        | `RECALL → PERCEIVE → COMPARE → FILTER → DECIDE`  |
+| `COMMIT/NAVIGATE` |  7     |  3           | **71 %**        | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+| `COMMIT/EXPLORE`  |  9     |  4           | **67 %**        | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+| `COMMIT/EVADE`    |  8     |  4           | **62 %**        | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+| `RECOVER/EVADE`   | 10     |  3           | **60 %**        | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+| `COMMIT/POSITION` | 11     |  6           | **45 %**        | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+| `INSPECT/SETUP`   | 15     |  9           | 27 %            | `PERCEIVE → DECIDE → COMMIT → VERIFY`            |
+
+Compare these to the predicate-layer "honest cohesion" numbers in
+*Layer B* — `COMMIT/POSITION` was J_tok = 0.06 (looked like pure name
+collision), but at the template layer **45 % of its 11 instances
+share an exact signature**.  The ID names a transferable
+*procedure*; the token vocabulary just diverges by modality.
+
+### Cross-cohort template-twin pairs
+
+Two skills share the SAME signature → 1,719 such pairs exist across
+different cohorts (vs. 4 honest predicate-twins in Layer B).  Examples:
+
+| signature                                           | A (cohort/task/skill)                          | B (cohort/task/skill)                          |
+| --------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- |
+| `PERCEIVE → DECIDE → COMMIT → VERIFY` (1197 pairs)  | gymv_game / Airstriker / `COMMIT/ATTACK`        | web / miniwob / `COMMIT/SETUP`                  |
+| `PERCEIVE → FILTER → DECIDE → COMMIT → VERIFY` (131)| env_wr_game / candy_crush / `COMMIT/CLEAR`      | gymv_game / StreetsOfRage2 / `COMMIT/ATTACK`    |
+| `PERCEIVE → COMPARE → FILTER → DECIDE` (69)         | env_wr_game / 2048 / `TRACK/MERGE`              | vr_image / tir_bench / `COMPARE/RULE_OUT`       |
+| `PERCEIVE → COMPARE → FILTER → DECIDE → VERIFY` (54)| env_wr_game / candy_crush / `INSPECT/SETUP`     | vr_image / tir_bench / `REASON/OPTIMIZE`        |
+
+### What to do with this
+
+1. **Curriculum scheduling**: organise cross-cohort SFT *by template
+   signature*, not by skill_id.  A "PERCEIVE → COMPARE → FILTER →
+   DECIDE" curriculum can pull from candy_crush, tetris, all 4 VR
+   benches, miniwob, webshop, and the 13 gym_v skills that distil to
+   that template — that's a far richer (and procedurally coherent)
+   pool than any cohort or any single skill_id.
+2. **Skill query / retrieval**: at inference time, an agent on a *new*
+   task can match its current ``intent → procedural signature`` and
+   retrieve example trajectories from any cohort whose template
+   matches, regardless of original predicate vocabulary.
+3. **The skill_id taxonomy is correct as an INTENT label**: `COMMIT/X`
+   collapses onto action templates, `COMPARE/X` onto candidate-pruning
+   templates, `INSPECT/X` onto perception+memory templates.  But the
+   *contract* (predicates) is task-specific — keep it as the modality-
+   adapter layer below the procedural template.
+4. **Where the procedural skeleton is ALSO non-transferable**: the
+   gymv_game cohort.  Its dominance of the pure-action template
+   (`PERCEIVE → DECIDE → COMMIT → VERIFY`) means template-pooling
+   gym_v with web/QA gives you a very mixed pool that is unlikely to
+   help non-action tasks.  Pool gym_v with env_wrappers (action +
+   action) instead.
 
 ---
 
