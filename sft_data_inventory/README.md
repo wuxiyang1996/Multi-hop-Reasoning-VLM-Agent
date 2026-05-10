@@ -414,6 +414,145 @@ different cohorts (vs. 4 honest predicate-twins in Layer B).  Examples:
    help non-action tasks.  Pool gym_v with env_wrappers (action +
    action) instead.
 
+### Concrete cross-domain skill pairs
+
+The eight pairs below pick the *most distant* cohort combinations
+(arcade-action ↔ video-QA, board-game ↔ web, etc.) where the lifted
+template signature still matches exactly.  For each pair we show the
+full step-by-step template side by side — the surface tasks look
+nothing alike, but the procedural backbones are interchangeable.
+
+#### 1.  Retro arcade  ↔  Video QA  (`gymv_game ↔ vr_video`)
+Signature: `PERCEIVE → COMPARE → DECIDE → COMMIT`
+
+| step | A — Columns / `compose__COMMIT__EXPLORE`            | B — siv_bench / `COMMIT/ANSWER`                              |
+| :--: | --------------------------------------------------- | ------------------------------------------------------------ |
+|  1   | PERCEIVE — inspect current state, list feasible target options | PERCEIVE — gather scene cues + task answer choices    |
+|  2   | COMPARE — assess candidate positions for desirability | COMPARE — evaluate each option against situational evidence |
+|  3   | DECIDE — pick one specific target position          | DECIDE — pick the option best supported by constraints      |
+|  4   | COMMIT — initiate movement / placement              | COMMIT — state the chosen answer concisely                  |
+
+#### 2.  Retro arcade  ↔  Image QA  (`gymv_game ↔ vr_image`)
+Same signature `PERCEIVE → COMPARE → DECIDE → COMMIT`.  *A:* Columns
+piece-placement.  *B:* tir_bench `COMPARE/IDENTIFY` "Option value
+matching" — read derived value + listed options → compare → pick exact
+or closest match → report.
+
+#### 3.  Retro arcade  ↔  Web actions  (`gymv_game ↔ web`)  — predicate Jaccard 0.26 (highest of any far-pair)
+Signature: `PERCEIVE → DECIDE → COMMIT → VERIFY`
+
+| step | A — ThunderForceIII / `transfer__Commit/Explore`        | B — miniwob / `TRACK/NAVIGATE` "Scroll to reveal UI"     |
+| :--: | ------------------------------------------------------- | -------------------------------------------------------- |
+|  1   | PERCEIVE — detect a reachable boundary into unseen space | PERCEIVE — inspect current view for missing target region |
+|  2   | DECIDE — choose to advance through the open frontier    | DECIDE — choose navigation direction toward target       |
+|  3   | COMMIT — move forward until hidden region exposed       | COMMIT — reposition the view until target region appears |
+|  4   | VERIFY — confirm new area visible, position advanced    | VERIFY — confirm target region visible and reachable     |
+
+> "Advance until the hidden region is exposed" is literally the same
+> sub-routine for side-scrolling shmup progression and for scrolling
+> a web page to a target widget.
+
+#### 4.  Board game  ↔  Video QA  (`env_wr_game ↔ vr_video`)
+Signature: `PERCEIVE → COMPARE → FILTER → DECIDE → VERIFY`
+
+| step | A — candy_crush / `INSPECT/SETUP` "Identify opening swap" | B — siv_bench / `COMPARE/IDENTIFY` "Best Option Matching" |
+| :--: | --------------------------------------------------------- | --------------------------------------------------------- |
+|  1   | PERCEIVE — enumerate nearby actionable swap pairs         | PERCEIVE — extract observed cues + candidate options      |
+|  2   | COMPARE — assess each candidate for rule-satisfying outcome | COMPARE — assess option fit against inferred evidence  |
+|  3   | FILTER — keep only legal candidates with required effect  | FILTER — eliminate candidates contradicted by cues        |
+|  4   | DECIDE — pick one valid candidate as the starting action  | DECIDE — pick the strongest semantic alignment            |
+|  5   | VERIFY — confirm chosen action would produce intended result | VERIFY — confirm option is evidence-linked             |
+
+#### 5.  Board game  ↔  Image QA  (`env_wr_game ↔ vr_image`)
+Same signature as #4.  *A:* candy_crush opening swap.  *B:* tir_bench
+`REASON/OPTIMIZE` "Apply shortcut transformation" — identify objective
+and candidates → reformulate via simplification / symmetry → eliminate
+dominated candidates → pick best simplified value → confirm valid.
+
+#### 6.  Board game  ↔  Web shopping  (`env_wr_game ↔ web`)
+Signature: `PERCEIVE → FILTER → DECIDE → COMMIT → VERIFY`
+
+| step | A — twenty_forty_eight / `COMMIT/MERGE` "Direct tile merge" | B — webshop / `COMMIT/BUILD` "Compose product search query" |
+| :--: | ----------------------------------------------------------- | ----------------------------------------------------------- |
+|  1   | PERCEIVE — identify matching elements that can combine      | PERCEIVE — read the requested target and attributes         |
+|  2   | FILTER — keep only unobstructed options                     | FILTER — keep most discriminative constraints for retrieval |
+|  3   | DECIDE — choose the legal direction that resolves a combination | DECIDE — form a compact query of the core attributes    |
+|  4   | COMMIT — execute the action to merge and compact            | COMMIT — enter the composed query into the input channel    |
+|  5   | VERIFY — confirm one pair upgraded after movement           | VERIFY — confirm the query reflects target type             |
+
+#### 7.  Image QA  ↔  Web shopping  (`vr_image ↔ web`)  — Jaccard 0.17, the cleanest near-twin
+Signature: `RECALL → PERCEIVE → COMMIT → VERIFY`
+
+| step | A — visual_toolbench / `REASON/EXECUTE` "Execute Derived Operation" | B — webshop / `COMMIT/EXECUTE` "Commit webpage action" |
+| :--: | ------------------------------------------------------------------- | ------------------------------------------------------ |
+|  1   | RECALL — bring the identified rule, target, and current state       | RECALL — bring the chosen goal, selection, or query    |
+|  2   | PERCEIVE — read the concrete values needed now                      | PERCEIVE — confirm the intended control is available   |
+|  3   | COMMIT — apply the rule to produce the next state                   | COMMIT — execute the action that advances the workflow |
+|  4   | VERIFY — confirm computed result matches expectations               | VERIFY — check the next state has appeared             |
+
+> Word-for-word equivalent — one is math/tool reasoning execution, the
+> other is web clicking, but the procedural backbone is identical.
+
+#### 8.  Video QA  ↔  Web shopping  (`vr_video ↔ web`)  — Jaccard 0.18
+Signature: `PERCEIVE → RECALL → COMPARE → FILTER → DECIDE`
+
+| step | A — video_holmes / `INSPECT/LOOKUP` "Schema clue lookup" | B — webshop / `COMPARE/EXPLORE` "Compare results for inspection" |
+| :--: | -------------------------------------------------------- | ----------------------------------------------------------------- |
+|  1   | PERCEIVE — scan inputs for explicit fields and labels    | PERCEIVE — scan candidates and note visible attributes            |
+|  2   | RECALL — bring question targets into working context     | RECALL — bring required constraints and priorities into context   |
+|  3   | COMPARE — match clues against requested entities         | COMPARE — assess each candidate against constraints               |
+|  4   | FILTER — exclude candidates inconsistent with clues      | FILTER — deprioritize candidates with mismatches                  |
+|  5   | DECIDE — pick the grounded target / interpretation       | DECIDE — pick the strongest remaining candidate                   |
+
+### Two backbones spanning 4 cohorts (closest to universal)
+
+#### `PERCEIVE → COMPARE → DECIDE → VERIFY`
+Cohorts: env_wr_game, vr_image, vr_video, web
+
+| Cohort        | Concrete instance                                                     |
+| ------------- | --------------------------------------------------------------------- |
+| env_wr_game   | super_mario / `INSPECT/SETUP` "Assess Start-State Safety"             |
+| vr_image      | tir_bench / `INSPECT/MEASURE` "Estimate visual extent"                |
+| vr_video      | siv_bench / `INSPECT/POSITION` "Infer relative positions"             |
+| web           | miniwob / `TRACK/SETUP` "Wait for actionability" (deliberate inaction)|
+
+All four follow the same arc: **identify the relevant inputs →
+compare against criteria/references → pick a normalised conclusion →
+verify the basis is sound** — used to assess level openings, estimate
+visual quantities, infer spatial relations, or wait out a transitional
+UI.
+
+#### `PERCEIVE → COMPARE → DECIDE → COMMIT → VERIFY`
+Cohorts: env_wr_game, gymv_game, vr_image, web
+
+| Cohort        | Concrete instance                                                  |
+| ------------- | ------------------------------------------------------------------ |
+| env_wr_game   | super_mario / `COMMIT/CLEAR` "Obstacle Clearing Jump"              |
+| gymv_game     | Airstriker / `patch__Commit/Explore` "Reposition while engaging"   |
+| vr_image      | tir_bench / `REASON/BUILD` "Assemble final structure"              |
+| web           | miniwob / `COMMIT/NAVIGATE` "UI navigation commit"                 |
+
+The arc: **observe → assess options → choose one → commit → verify
+state advanced** — the most generic decision-and-commit procedure
+across action and analysis cohorts alike.
+
+### How to use these in SFT pooling
+
+The natural curriculum buckets (instead of by cohort or by skill_id):
+
+* **"Action / commit-and-verify"**: gymv + env_wr action games +
+  web actions, signatures
+  `PERCEIVE → DECIDE → COMMIT → VERIFY` and
+  `PERCEIVE → FILTER → DECIDE → COMMIT → VERIFY`.
+* **"Analysis / candidate pruning"**: all 4 VR benches + miniwob +
+  webshop + 2048 / tetris / candy_crush, signatures
+  `PERCEIVE → COMPARE → FILTER → DECIDE [→ VERIFY]`.
+* **"Recall-and-execute"**: visual_toolbench + webshop + miniwob,
+  signatures starting with `RECALL`.
+
+Within each bucket, surface tasks differ wildly but the procedure is
+coherent — the right grain for cross-cohort SFT data mixing.
+
 ---
 
 ## Refreshing
