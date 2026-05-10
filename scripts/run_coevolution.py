@@ -271,6 +271,21 @@ def parse_args() -> argparse.Namespace:
              " --grpo-adv-clip-neg 5.0) to restore the legacy symmetric"
              " behaviour.",
     )
+    parser.add_argument(
+        "--grpo-entropy-coef", type=float, default=None,
+        help="Per-token entropy bonus coefficient on the GRPO loss "
+             "(default: 0.0 = disabled).  Recommended starting value: "
+             "0.005.  Counters degenerate-action collapse such as the "
+             "AB v5 B-spam (57.7%% single-action share at step 15).  "
+             "Pair with --grpo-entropy-games to scope to one game.",
+    )
+    parser.add_argument(
+        "--grpo-entropy-games", type=str, default=None,
+        help="Comma-separated game slugs that get the entropy bonus "
+             "(default: empty = global).  Use "
+             "'gymv_altered_beast' to leave TF3/DH adapters "
+             "untouched while regularising AB.",
+    )
 
     # T2.18 (2026-05-05): early-death reward shaping.
     parser.add_argument(
@@ -631,6 +646,55 @@ def parse_args() -> argparse.Namespace:
              "retrieval-side filter on SkillQueryEngine.select(); "
              "does not truncate the on-disk bank file.",
     )
+    parser.add_argument(
+        "--bank-size-cap", type=int, default=0,
+        help="v9 (2026-05-09) — hard cap on the persisted bank size, "
+             "enforced at every checkpoint write.  0 (default) "
+             "disables.  When > 0, the writer drops the lowest-"
+             "priority skills (retired → unused → low success-rate × "
+             "sqrt(n_instances)) before serialising.  Distinct from "
+             "``--actor-bank-cap-k`` which only narrows the actor's "
+             "retrieval surface — this one actually evicts records.  "
+             "Recommended: 50 for the per-game baseline.",
+    )
+    parser.add_argument(
+        "--translated-retention-policy",
+        choices=("strip_all", "retain_proven"),
+        default="strip_all",
+        help="v10 (2026-05-09) — how to handle ``__translated_to__`` "
+             "records at checkpoint save time.  'strip_all' (default, "
+             "v9 behaviour) drops every translated record, leaving "
+             "cross-game transfer as a runtime adapter that gets "
+             "re-derived from the source bank each phase.  "
+             "'retain_proven' opts in to persisting translations that "
+             "earned their keep on the target game, gated by "
+             "``--translated-min-n-instances`` and "
+             "``--translated-min-success-rate``.",
+    )
+    parser.add_argument(
+        "--translated-min-n-instances", type=int, default=3,
+        help="v10 — min sub-episode evidence count for a translated "
+             "skill to qualify as 'proven' under "
+             "--translated-retention-policy=retain_proven (default 3).",
+    )
+    parser.add_argument(
+        "--translated-min-success-rate", type=float, default=0.5,
+        help="v10 — min success_rate (sub_episodes outcome=='success' "
+             "rate) for a translated skill to qualify as 'proven' "
+             "(default 0.5).",
+    )
+    parser.add_argument(
+        "--translated-no-promote-on-retain",
+        dest="translated_promote_on_retain",
+        action="store_false",
+        default=True,
+        help="v10 — by default a proven translated record is rewritten "
+             "before save: drop the ``__translated_to__{target}`` "
+             "suffix, mint ``confidence_tag='cross_game_proven'``, "
+             "append target to ``verified_tasks``.  Pass this flag to "
+             "keep the marker (auditable, but L1 strip-on-load will "
+             "evict it next resume — only useful for forensics).",
+    )
 
     # Phase-start GameProfile (Path 1).  When enabled, the orchestrator
     # fires one BACKBONE_JUDGE_MODEL (35B) call per game per phase
@@ -688,30 +752,44 @@ def parse_args() -> argparse.Namespace:
              "smaller cap sufficient).",
     )
     parser.add_argument(
-        "--llm-crafter-max-tokens", type=int, default=1024,
-        help="Token budget per LLM Crafter response (default 1024).",
+        "--llm-crafter-max-tokens", type=int, default=4096,
+        help="Token budget per LLM Crafter response (default 4096 "
+             "post-v9). Pre-v9 default was 1024 but the 35B teacher "
+             "used to truncate JSON answers mid-object when paired "
+             "with the verbose-preamble failure mode; the v9 fix put "
+             "analysis inside <think> (see "
+             "``crafter/_llm_runtime.py::_JSON_OUTPUT_RULE``) so 4096 "
+             "is the new floor that comfortably fits both the think "
+             "block and the largest schema (Hypothesizer).",
     )
     parser.add_argument(
         "--llm-crafter-temperature", type=float, default=0.3,
         help="Sampling temperature for LLM Crafter calls (default 0.3).",
     )
     parser.add_argument(
-        "--llm-crafter-timeout-s", type=float, default=60.0,
-        help="Hard timeout per LLM Crafter call. On timeout the trace "
-             "is dropped and the deterministic proposal stream continues.",
+        "--llm-crafter-timeout-s", type=float, default=180.0,
+        help="Hard timeout per LLM Crafter call (default 180 s "
+             "post-v9; pre-v9 was 60 s but that was tight for "
+             "MULTIMODAL=1 35B end-to-end latency under harness + "
+             "vision_state_perception concurrent load). On timeout "
+             "the trace is dropped and the deterministic proposal "
+             "stream continues.",
     )
     parser.add_argument(
         "--llm-crafter-enable-thinking", action="store_true",
-        help="Stage 2 (cross-domain adaptation) opt-in: forward "
-             "enable_thinking=True into the 35B Crafter ask_model "
-             "calls so Qwen3-A3B emits its <think> chain-of-thought "
-             "before the JSON proposal. EXPERIMENTAL — observed "
-             "Crafter prompts to consume >16K tokens of reasoning "
-             "without emitting a final answer; you should pair this "
-             "with --llm-crafter-max-tokens 16384+ AND a prompt-side "
-             "'think briefly' constraint. --llm-crafter-timeout-s "
-             "should also rise to >=180 s. Stage-1 in-domain "
-             "training (run_phase1_curriculum.sh) keeps this OFF.",
+        help="Forward enable_thinking=True into the 35B Crafter "
+             "ask_model calls so Qwen3-A3B emits its <think> chain-of-"
+             "thought before the JSON proposal.  v9+ (2026-05-09) "
+             "this is the *config-default* behaviour (see "
+             "``trainer/coevolution/config.py::llm_crafter_enable_"
+             "thinking``); the v9 fix capped the think block at "
+             "200 tokens via ``_JSON_OUTPUT_RULE`` and bumped the "
+             "default ``--llm-crafter-max-tokens`` to 4096 / "
+             "``--llm-crafter-timeout-s`` to 180.  Passing this CLI "
+             "flag is now a no-op against config-default; it remains "
+             "for backward compat.  To disable thinking, edit the "
+             "config field directly (rare — Stage-1 Crafter quality "
+             "depends on this being on).",
     )
 
     # Path 3 — Promotion judge (35B-A3B teacher; only fires when
@@ -960,6 +1038,14 @@ def main() -> None:
         config_kwargs["grpo_adv_clip"] = args.grpo_adv_clip
     if args.grpo_adv_clip_neg is not None:
         config_kwargs["grpo_adv_clip_neg"] = args.grpo_adv_clip_neg
+    if args.grpo_entropy_coef is not None:
+        config_kwargs["grpo_entropy_coef"] = float(args.grpo_entropy_coef)
+    if args.grpo_entropy_games is not None:
+        _games = [
+            g.strip() for g in args.grpo_entropy_games.split(",")
+            if g.strip()
+        ]
+        config_kwargs["grpo_entropy_games"] = _games
 
     # T2.18: early-death penalty
     config_kwargs["early_death_penalty_enabled"] = bool(
@@ -1100,6 +1186,25 @@ def main() -> None:
         config_kwargs["intention_trigger"] = args.intention_trigger
     if args.actor_bank_cap_k > 0:
         config_kwargs["actor_bank_cap_k"] = int(args.actor_bank_cap_k)
+    if args.bank_size_cap > 0:
+        config_kwargs["bank_size_cap"] = int(args.bank_size_cap)
+
+    # v10 (2026-05-09) — translated-record retention policy.  Always
+    # forwarded so the user's CLI choice (or its default) wins over the
+    # config dataclass default; downstream save_checkpoint reads these
+    # fields off the config object via ``getattr(..., default)``.
+    config_kwargs["translated_retention_policy"] = str(
+        args.translated_retention_policy
+    )
+    config_kwargs["translated_min_n_instances"] = int(
+        args.translated_min_n_instances
+    )
+    config_kwargs["translated_min_success_rate"] = float(
+        args.translated_min_success_rate
+    )
+    config_kwargs["translated_promote_on_retain"] = bool(
+        args.translated_promote_on_retain
+    )
 
     if args.game_schema_enabled:
         config_kwargs["game_schema_enabled"] = True
@@ -1117,11 +1222,11 @@ def main() -> None:
         config_kwargs["llm_crafter_model"] = args.llm_crafter_model
     if args.llm_crafter_k_max != 2:
         config_kwargs["llm_crafter_k_max"] = args.llm_crafter_k_max
-    if args.llm_crafter_max_tokens != 1024:
+    if args.llm_crafter_max_tokens != 4096:
         config_kwargs["llm_crafter_max_tokens"] = args.llm_crafter_max_tokens
     if args.llm_crafter_temperature != 0.3:
         config_kwargs["llm_crafter_temperature"] = args.llm_crafter_temperature
-    if args.llm_crafter_timeout_s != 60.0:
+    if args.llm_crafter_timeout_s != 180.0:
         config_kwargs["llm_crafter_timeout_s"] = args.llm_crafter_timeout_s
     # Stage 2 cross-domain opt-in for Path 2.
     if args.llm_crafter_enable_thinking:

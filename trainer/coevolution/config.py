@@ -559,6 +559,43 @@ class CoEvolutionConfig:
     # Used for the bank-size sweep K ∈ {10, 50, 200}.
     actor_bank_cap_k: int = 0
 
+    # v9 (2026-05-09) — hard cap on the persisted (on-disk) bank size,
+    # enforced at every checkpoint write in
+    # :func:`trainer.coevolution.checkpoint.save_checkpoint`.  ``0``
+    # disables enforcement (back-compat default).  When ``> 0`` the
+    # writer drops the lowest-priority skills before serialising;
+    # eviction policy is documented in
+    # :func:`trainer.coevolution.checkpoint._apply_bank_size_cap`
+    # (retired → unused → low ``success_rate * sqrt(n_instances)``).
+    # Distinct from ``actor_bank_cap_k`` above which only narrows the
+    # *retrieval surface* the actor sees — this one actually evicts
+    # records from the bank.  Recommended: 50 for the per-game
+    # baseline (5 games × 40 steps minted ~22 native skills each in
+    # the v8 audit, so 50 leaves headroom for transient curator
+    # output without unbounded growth).
+    bank_size_cap: int = 0
+
+    # v10 (2026-05-09) — translated-record retention policy at save
+    # time.  ``"strip_all"`` (default, v9 behaviour) drops every
+    # record whose ``skill_id`` contains ``__translated_to__`` before
+    # the snapshot hits disk — so cross-game translations remain a
+    # **runtime adapter** that gets re-derived from the source bank
+    # each phase.  ``"retain_proven"`` opts in to persisting the
+    # translations that earned their keep on the target game,
+    # gated by ``translated_min_n_instances`` (≥3) AND
+    # ``translated_min_success_rate`` (≥0.5) by default.  When
+    # ``translated_promote_on_retain`` is True (default), the
+    # retained records are rewritten to drop the
+    # ``__translated_to__{target}`` suffix from ``skill_id`` and
+    # earn a ``confidence_tag = "cross_game_proven"`` — they then
+    # round-trip across resumes as regular native skills with
+    # cross-game lineage tracked in ``derived_from``.  See
+    # :func:`trainer.coevolution.checkpoint._process_translated_records`.
+    translated_retention_policy: str = "strip_all"
+    translated_min_n_instances: int = 3
+    translated_min_success_rate: float = 0.5
+    translated_promote_on_retain: bool = True
+
     # ── Path 2 — supplemental LLM Crafter (35B) ─────────────────────
     # When enabled, ``_crafter_hook.run_crafter_step`` augments its
     # rule-based proposals with up to ``llm_crafter_k_max`` additional
@@ -580,32 +617,35 @@ class CoEvolutionConfig:
     # ``--llm-crafter-k-max`` (env: ``LLM_CRAFTER_K_MAX``).
     llm_crafter_k_max: int = 2
     # Token budget per LLM Crafter response.
-    llm_crafter_max_tokens: int = 1024
+    # v9 (2026-05-09): bumped 1024 → 4096 alongside the
+    # ``enable_thinking=True`` default flip (see
+    # ``crafter/_llm_runtime.py``) — old budget truncated JSON when
+    # the model preamble was verbose.  Rule of thumb: leave 200-token
+    # headroom for ``<think>`` plus the largest schema we ask for
+    # (Hypothesizer's full protocol + strategic_description, ~2K).
+    llm_crafter_max_tokens: int = 4096
     # Sampling temperature for LLM Crafter calls.
     llm_crafter_temperature: float = 0.3
     # Hard wall-time per individual 35B call.  On timeout we drop the
     # one trace and continue; a slow 35B can never block a step.
-    llm_crafter_timeout_s: float = 60.0
-    # Stage 2 (cross-domain adaptation) opt-in.  When ``True``, the
-    # 35B Crafter calls in ``_crafter_hook`` forward
-    # ``enable_thinking=True`` into ``API_func.ask_vllm`` so Qwen3-A3B
-    # emits its ``<think>`` chain-of-thought before the final JSON
-    # proposal.  In Stage 1 (in-domain curriculum, all 6 phases of
-    # ``run_phase1_curriculum.sh``) this stays ``False`` because the
-    # rule-based proposals already cover the easy patches and the
-    # extra wall-time would dominate per-step latency.
-    #
-    # EXPERIMENTAL: live probes against Qwen3.5-35B-A3B observed the
-    # Crafter prompt induce >16K-token ``<think>`` blocks that never
-    # emitted a final JSON answer (the prompt's open-ended
-    # patch / hypothesize / retire dispatch invites runaway
-    # reasoning).  Stage-2 callers that flip this to ``True`` SHOULD
-    # therefore (a) bump ``llm_crafter_max_tokens`` to ≥ 16384,
-    # (b) bump ``llm_crafter_timeout_s`` to ≥ 180, AND (c) re-tune
-    # ``_llm_crafter._build_prompt`` to constrain reasoning length
-    # ("think briefly", explicit JSON-first instruction, etc.)
-    # before relying on the path.
-    llm_crafter_enable_thinking: bool = False
+    # v9 (2026-05-09): bumped 60 → 180 to match the slower wall-time
+    # observed under ``MULTIMODAL=1`` 35B load (vision-state-perception
+    # + harness-validator + crafter share the same 35B server's
+    # ``max_num_seqs=16`` queue, so individual call latency P95 climbs
+    # to ~120s under heavy load).
+    llm_crafter_timeout_s: float = 180.0
+    # v9 (2026-05-09): default flipped False → True so Qwen3.5-35B-A3B
+    # routes its analysis preamble into a ``<think>`` block instead of
+    # leaking into the visible JSON answer (the v8 root cause of 54%
+    # parse failures).  Combined with ``_JSON_OUTPUT_RULE`` in
+    # ``crafter/_llm_runtime.py`` (which constrains the think block to
+    # ≤200 tokens) the runaway-reasoning failure mode is also addressed
+    # — see the v8 → v9 diagnosis in
+    # ``runs/Qwen3.5-9B_20260507_192810/_phase2_v8_archive_*``.  For
+    # Stage-1 callers that genuinely want the deterministic-only path,
+    # set ``llm_crafter_enabled=False`` (cleaner) rather than flipping
+    # this back to False.
+    llm_crafter_enable_thinking: bool = True
 
     # ── Hypothesizer fallthrough gate (post-v11 audit) ──────────────
     # The crafter dispatch chain is `patch → retire → hypothesize`,
@@ -977,6 +1017,19 @@ class CoEvolutionConfig:
     # behaviour.
     grpo_adv_clip: Optional[float] = 5.0
     grpo_adv_clip_neg: Optional[float] = None
+
+    # 2026-05-08 (Phase 2 v6): per-game policy-entropy regulariser on
+    # the action_taking / skill_selection adapters.  The v5 AB post-
+    # mortem showed the actor collapsed to a 57.7 % B-spam distribution
+    # after a single GRPO update, capping mean reward at ~206 (vs
+    # Gemini frontier ~800).  Adding a small entropy bonus
+    # (``-coef * H(π)``) keeps the action distribution exploratory.
+    # ``grpo_entropy_games`` gates the bonus to a specific game list
+    # (recommended: ``["gymv_altered_beast"]`` so we don't disturb the
+    # converged TF3 / DH adapters).  Empty list = global, ``coef=0`` =
+    # disabled (default).
+    grpo_entropy_coef: float = 0.0
+    grpo_entropy_games: List[str] = field(default_factory=list)
 
     # T2.18 (2026-05-05): early-death reward shaping.  Applied at the
     # end of each rollout episode in :mod:`trainer.coevolution.episode_runner`

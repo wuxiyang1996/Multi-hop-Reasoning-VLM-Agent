@@ -449,6 +449,45 @@ PHASES=(
     "5:candy_crush:Candy Crush"
     "6:tetris:Tetris"
 )
+
+# Optional override: a comma-separated list of game slugs replacing
+# the default 6-phase curriculum.  When set, the array is rebuilt
+# with the listed games numbered 1..N — i.e. the first listed game
+# becomes phase 1 (cold-start entry) regardless of its position in
+# the default order.  Used e.g. to drop TF3 from a Phase-1 run::
+#
+#   CURRICULUM_GAMES="gymv_altered_beast,gymv_columns,gymv_dynamite_headdy,candy_crush,tetris" \
+#       ITERS_PER_PHASE=10 bash scripts/run_phase1_curriculum.sh
+#
+# Display names fall back to the slug when no default mapping exists.
+if [ -n "${CURRICULUM_GAMES:-}" ]; then
+    declare -A _DISPLAY_OF=(
+        ["gymv_thunder_force_iii"]="Thunder Force III"
+        ["gymv_altered_beast"]="Altered Beast"
+        ["gymv_columns"]="Columns"
+        ["gymv_dynamite_headdy"]="Dynamite Headdy"
+        ["candy_crush"]="Candy Crush"
+        ["tetris"]="Tetris"
+        ["twenty_forty_eight"]="2048"
+        ["super_mario"]="Super Mario"
+    )
+    PHASES=()
+    _i=1
+    IFS=',' read -ra _GAMES_OVERRIDE <<< "${CURRICULUM_GAMES}"
+    for g in "${_GAMES_OVERRIDE[@]}"; do
+        g="${g// /}"
+        [ -z "${g}" ] && continue
+        display="${_DISPLAY_OF[${g}]:-${g}}"
+        PHASES+=("${_i}:${g}:${display}")
+        _i=$((_i + 1))
+    done
+    if [ ${#PHASES[@]} -eq 0 ]; then
+        echo "ERROR: CURRICULUM_GAMES parsed to an empty phase list"
+        exit 1
+    fi
+    echo "[run_phase1] CURRICULUM_GAMES override: ${#PHASES[@]} phase(s)"
+    for p in "${PHASES[@]}"; do echo "             ${p}"; done
+fi
 NUM_PHASES=${#PHASES[@]}
 
 # Per-game baseline anchor for §4.3 sanity bar — populated from the new
@@ -933,6 +972,18 @@ build_train_args() {
     else
         # Either later phase OR phase 1 with existing checkpoint.
         args+=(--resume)
+    fi
+
+    # ── Optional: seed each per-game skill bank from a frontier-SFT-
+    # derived directory on the very first phase run.  Layout expected
+    # by ``CoEvolutionConfig.seed_bank_dir``::
+    #     <SEED_BANK_DIR>/<game>/skill_bank.jsonl
+    # Only applied when the per-game bank is empty (see
+    # ``trainer/coevolution/skillbank_pipeline.py:_seed_from_coldstart``)
+    # — so once the co-evolution loop adds skills, the seed never
+    # re-applies even if subsequent phases inherit the run dir.
+    if [ -n "${SEED_BANK_DIR:-}" ] && [ -d "${SEED_BANK_DIR}" ]; then
+        args+=(--seed-bank-dir "${SEED_BANK_DIR}")
     fi
 
     # ── 35B control-plane flags ──────────────────────────────────────
