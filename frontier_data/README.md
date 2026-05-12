@@ -12,6 +12,70 @@ Qwen3-VL-235B-A22B.
 
 ---
 
+## Contribution Framing & Data Leakage Analysis
+
+### What this pipeline IS vs IS NOT
+
+| | Description |
+|---|---|
+| **Infrastructure** (this pipeline) | Frontier teachers extract skills, GPT-5.4 lifts to Layer-C, GPT-5.4 re-grounds to new domains. All "transfer" here is performed by frontier models that already know how to solve both source and target tasks. |
+| **Contribution** (training experiments) | A **9B student model**, through structured skill banks, reuses reasoning patterns discovered in one domain to adapt faster in a new domain — something it **cannot do** from raw SFT alone. |
+
+### Data leakage concern
+
+The frontier teacher (GPT-5.4) extracts skills, lifts them to
+modality-agnostic templates, and re-grounds them to new domains. The
+"9 cross-domain reasoning plans covering 221 skills" is a property of
+**GPT-5.4's knowledge**, not of the skill bank architecture. A reviewer
+would correctly ask: "Is this skill transfer, or just frontier model
+distillation with extra steps?"
+
+### What constitutes valid evidence
+
+The contribution is **not** "frontier models can transfer reasoning"
+(trivial). The contribution is: **structured skill banks enable a small
+model to transfer reasoning across domains better than unstructured
+alternatives.** This requires three ablation comparisons:
+
+| Comparison | What it tests | Expected evidence |
+|---|---|---|
+| **A1: 9B + seed bank vs 9B + no bank** | Does the bank help at all? | Seed bank reaches same reward in 5 steps that no-bank needs 15 steps |
+| **A2: 9B + seed bank vs 9B + raw SFT** (same data) | Does *structure* matter, or is raw distillation enough? | Structured bank outperforms flat SFT with identical source data |
+| **A3: 9B + cross-domain seeds vs 9B + same-domain seeds** | Does cross-domain transfer add value? | Game→Web/VR seeds improve reward beyond same-domain-only seeds |
+
+**A1** proves the bank is useful. **A2** proves the bank *architecture*
+(not just data) is the contribution. **A3** proves cross-domain transfer
+is real, not just within-domain skill reuse.
+
+### Where each ablation maps to the training plan
+
+| Ablation | Phase | Configuration |
+|---|---|---|
+| A1 | Phase 2 (held-out games) | `BANK_MODE=shared` vs `BANK_MODE=none` |
+| A2 | Phase 2 | `BANK_MODE=shared` vs SFT-only (same frontier episodes, no bank structure) |
+| A3 | Phase 3 (OOD: web + VR) | `seed_source=all_domains` vs `seed_source=target_domain_only` |
+
+**Headline metric** (from coevo plan §7.3):
+`reward(seed-bank @ 5 steps) / reward(no-seed @ 15 steps GRPO)` — if
+≥ 1.0 on ≥ 4/6 held-out targets, cross-task transfer holds.
+
+### What the frontier data pipeline provides
+
+This pipeline is the **data preparation layer** that feeds the training
+experiments. It is not the contribution itself, but without it the
+ablation experiments cannot run:
+
+1. **Per-task skill banks** (406 skills) → seed candidates for A1, A3
+2. **Layer-C templates** (406 templates) → modality-agnostic reasoning
+   plans that enable cross-domain seeding for A3
+3. **Decision SFT** (22k rows) → the raw-SFT baseline for A2
+4. **Shared bank + bindings** → the structured bank for A1, A2
+5. **Cross-domain reasoning plans** (9 plans, 221 skills) → evidence
+   that the same reasoning structure exists across domains (motivation
+   for A3, not the result itself)
+
+---
+
 ## Pipeline Results (2026-05-12)
 
 | Metric | Count |
@@ -377,16 +441,81 @@ Scripts in the main repo that the pipeline wraps:
 
 ## 7. Training Plan Integration
 
-| Phase | Games | Bank mode | What happens |
+| Phase | Tasks | Bank mode | What happens |
 |---|---|---|---|
 | Phase 1 | ThunderForceIII, AlteredBeast, Columns, DynamiteHeaddy, candy_crush, tetris | `per_game` | Mine concrete skills; populate per-task banks |
-| Phase 2 | SpaceHarrierII, StreetsOfRage2, Airstriker, Strider | `shared` | Transfer: mega-skill skeletons to held-out games |
+| Phase 2 | SpaceHarrierII, StreetsOfRage2, Airstriker, Strider, twenty_forty_eight, super_mario | `shared` | Transfer: mega-skill skeletons to held-out games |
 | Phase 3 | miniwob, webshop, tir_bench, visual_toolbench, siv_bench, video_holmes | `shared` | OOD: reasoning patterns cross domain boundaries |
 
 Key config:
 - `BANK_MODE=shared` — one SharedAbstractBank across all phases
 - `TRANSLATE_ON_BOUNDARY=1` — re-ground skills at phase transition
 - `feasible_tasks` on each skill — runtime eligibility veto via `EligibilityFilter`
+
+### 7a. Ablation experiment design
+
+Three controlled comparisons to isolate the contribution of structured
+skill banks from frontier-model distillation:
+
+**A1 — Bank vs No-Bank** (Phase 2, per held-out game)
+
+| Arm | Config | Budget |
+|---|---|---|
+| `seed-bank` | `BANK_MODE=shared`, seed from Phase 1 bank | 5 steps infer → 15 steps GRPO |
+| `no-bank` | `BANK_MODE=none`, empty skill bank | 15 steps GRPO |
+| `no-bank-long` | `BANK_MODE=none`, empty skill bank | 35 steps GRPO (upper bound) |
+
+Metric: step at which `seed-bank` matches `no-bank@15` reward.
+Claim: structured bank saves ≥ 10 GRPO steps per held-out game.
+
+**A2 — Structured Bank vs Raw SFT** (Phase 2, per held-out game)
+
+| Arm | Config | Data |
+|---|---|---|
+| `seed-bank` | `BANK_MODE=shared`, cold-start seeds | Structured skill bank (protocol + contract + effects) |
+| `raw-sft` | SFT warm-start, no bank structure | Same frontier episodes, flattened to (obs, action) pairs |
+
+Both arms see the **same source data** (identical frontier teacher
+rollouts). The only difference is whether the data arrives as structured
+skill records (with reasoning plans, contracts, protocol steps) or as
+flat SFT rows. This isolates the architecture contribution.
+
+**A3 — Cross-Domain vs Same-Domain Seeds** (Phase 3, per OOD target)
+
+| Arm | Config | Seed source |
+|---|---|---|
+| `cross-domain` | Seeds from all 12 game tasks (Layer-C matched) | 9 cross-domain reasoning plans → target |
+| `same-domain-only` | Seeds from same-domain tasks only | VR→VR or Web→Web, no game skills |
+| `no-seed` | Empty bank | Cold start |
+
+Metric: reward delta between `cross-domain` and `same-domain-only`.
+Claim: game-domain reasoning plans (PERCEIVE→DECIDE→COMMIT→VERIFY etc.)
+transfer usefully to web/VR tasks.
+
+### 7b. What a positive result looks like
+
+```
+Phase 2 (in-domain transfer):
+  seed-bank@5  ≥  no-bank@15   on ≥ 4/6 held-out games     → bank saves steps (A1)
+  seed-bank@15 >  raw-sft@15   on ≥ 4/6 held-out games     → structure matters (A2)
+
+Phase 3 (cross-domain transfer):
+  cross-domain > same-domain-only  on ≥ 3/6 OOD targets    → cross-domain works (A3)
+  cross-domain > no-seed           on ≥ 5/6 OOD targets    → seeds help OOD (A1+A3)
+```
+
+### 7c. What a negative result means
+
+- A1 fails → bank architecture doesn't help; the 9B model learns
+  equally fast with or without seeds. Possible cause: seeds are too
+  abstract for the student to operationalize.
+- A2 fails → structure doesn't matter; raw SFT is as good as the bank.
+  This would mean the contribution is in the *data* (frontier teacher
+  quality), not the *architecture* (skill bank).
+- A3 fails → cross-domain reasoning plans don't transfer. Game skills
+  and web/VR skills share the same Layer-C signatures but the concrete
+  grounding is too different for the 9B model to bridge. Possible cause:
+  re-grounding quality depends on frontier model, not student capability.
 
 ---
 
@@ -520,6 +649,15 @@ Scripts:
 
 ## 9. Known Gaps & Next Steps
 
+### Gap 0: Ablation experiments not yet run
+
+The three ablation comparisons (A1/A2/A3 in §7a) are the **primary
+deliverable** that separates the contribution from frontier distillation.
+Without these results, the pipeline is infrastructure only.
+
+**Blocking on:** Phase 1 curriculum training (coevo plan §4), which
+produces the rolling skill bank that seeds Phase 2 and Phase 3.
+
 ### Gap 1: Non-game decision SFT (6 tasks missing)
 
 
@@ -578,7 +716,7 @@ skill bank and shared bank, but decision SFT labeling has not been run.
 Need: skill labeling on 125 miniwob + 50 webshop episodes → decision SFT.
 Multi-model webshop coverage (Claude/Gemini/Qwen) can increase diversity.
 
-### Gap 8: Cross-domain transfer — ✅ RESOLVED (Layer-C re-lift)
+### Gap 8: Cross-domain reasoning alignment — ✅ RESOLVED (Layer-C re-lift)
 
 ~~Only 3 reasoning plans spanned ≥ 2 domains (9 skills).~~
 After Layer-C re-lift (§8c–8d): **9 cross-domain reasoning plans** covering
@@ -588,6 +726,10 @@ signatures while VR uses COMPARE-heavy).
 
 **Next step:** re-cluster shared bank by Layer-C signatures to create
 cross-domain mega-skills (replace name-based clustering).
+
+> **Note:** this gap being "resolved" means the *data pipeline* can now
+> produce cross-domain seed candidates. Whether those seeds actually help
+> the 9B student model is tested by ablation A3 (§7a) — see Gap 0.
 
 ### Excluded tasks
 
