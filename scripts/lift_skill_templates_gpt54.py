@@ -298,7 +298,7 @@ def _lift_one_skill(
                     {"role": "user",   "content": prompt},
                 ],
                 temperature=0.0,
-                max_tokens=600,
+                max_completion_tokens=600,
             )
         except Exception as exc:
             logger.warning("[%s/%s] LLM call failed (attempt %d): %s",

@@ -22,6 +22,8 @@ Qwen3-VL-235B-A22B.
 | Multi-task mega-skills (span ≥ 2 tasks) | **14** |
 | Forward cross-task bindings (offline) | **186** |
 | Total bindings (native + forward) | **592** |
+| **Layer-C templates (GPT-5.4)** | **406 / 406** |
+| **Cross-domain reasoning plans** | **9** (covering 221 skills, 54.4%) |
 | Decision SFT coverage | 12 / 18 skill-banked tasks |
 | action_taking rows | 22,086 |
 | skill_selection rows | 21,086 |
@@ -317,6 +319,8 @@ DRY_RUN=1 bash frontier_data/scripts/run_full_pipeline.sh  # print commands only
 | `build_shared_bank.py` | Lift 406 skills → 354 SharedAbstractSkill mega-skills | `output/shared_skill_bank/` |
 | `build_web_skill_banks.py` | Lift miniwob (45 archetypes) + webshop (3 archetypes) | `output/per_task_banks/{miniwob,webshop}/` |
 | `bind_and_validate.py` | Forward-bind mega-skills → per-task via harness + crafter | `output/shared_skill_bank/by_task/` |
+| `test_game_to_nongame_transfer.py` | Harness structural validation: game → non-game transfer matrix | `output/transfer_matrix.json` |
+| `build_reasoning_aligned_bank.py` | Reasoning-intent normalizer + cross-domain plan matcher | `output/reasoning_aligned_mega_skills.json` |
 
 ### Output directory layout
 
@@ -340,8 +344,13 @@ frontier_data/
 │   │   ├── abstract.jsonl             ← 354 mega-skills
 │   │   ├── by_task/<task>/bindings.jsonl
 │   │   └── SUMMARY.json
-│   └── bind_reports/                  ← binding audit trail
-│       └── bind_report_*.json
+│   ├── layer_c_templates/             ← GPT-5.4 Layer-C procedural templates
+│   │   ├── <cohort>/<task>/template_bank.jsonl  ← 406 templates (8-op vocabulary)
+│   │   └── _lift_summary.json         ← lift run metadata
+│   ├── bind_reports/                  ← binding audit trail
+│   │   └── bind_report_*.json
+│   ├── transfer_matrix.json           ← game→non-game harness validation (84 pairs)
+│   └── reasoning_aligned_mega_skills.json  ← 9 cross-domain reasoning plans (Layer-C)
 └── README.md                          ← this file
 ```
 
@@ -381,9 +390,138 @@ Key config:
 
 ---
 
-## 8. Known Gaps & Next Steps
+## 8. Cross-Domain Transfer Analysis (Game → Non-Game)
+
+### 8a. Harness structural validation
+
+`test_game_to_nongame_transfer.py` ran all 14 game multi-task abstracts
+through the existing harness pipeline (predicate translator + FewShotAdapter
++ skill_bank_bridge) against every non-game target.
+
+| Abstract | Signature | Game tasks | miniwob | webshop | tir | vtool | siv | vholmes |
+|---|---|---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| COMMIT/ATTACK | P→D→C | 5 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMMIT/CLEAR | P→Co→F→D→C | 3 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMMIT/COLLECT | P→F→D→C | 3 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMMIT/EXECUTE | P→D→C→V | 2 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMMIT/EXPLORE | P→R→F→D→C | 7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMMIT/NAVIGATE | P→R→D→C | 5 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMMIT/SETUP | P→R→D→C | 3 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMPARE/ATTACK | P→D→C | 2 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| INSPECT/SETUP | P→Co→D | 9 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| RECOVER/EVADE | P→R→D→C→V | 7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| RECOVER/SURVIVE | P→R→D→C→V | 3 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COMMIT/EVADE | Co | 6 | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| COMMIT/POSITION | V | 8 | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| COMMIT/SURVIVE | V | 3 | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+
+**Result: 11/14 (78.6%) pass structural validation.** The 3 rejected are
+single-step reactive skills (< 2 hops, not multi-step reasoning).
+
+Predicate translation tables (`gymv → browser`, `gymv → visual_reasoning`,
+`gymv → video`) in `harness/predicate_translator.py` provide full coverage.
+
+### 8b. Reasoning-plan alignment analysis (protocol structure, not names)
+
+**Critical finding:** the current shared bank clusters skills by
+`skill_id_stem` (name), **not by reasoning procedure**. Deep inspection
+of actual protocol steps reveals three mismatched vocabularies:
+
+| Domain | Avg steps | Op vocabulary | Protocol level |
+|---|---:|---|---|
+| Game (328 skills) | 0.9 | EXEC, MOVE, VERIFY, APPROACH, KEEP | **action-level** |
+| VR (30 skills) | 5.9 | INSPECT, EVALUATE, VERIFY, EXECUTE | **reasoning-level** |
+| Web (48 skills) | 3.9 | COMMIT, PERCEIVE | **raw-trace-level** |
+
+When skills are normalized to a domain-agnostic reasoning vocabulary
+(PERCEIVE / RECALL / EVALUATE / DECIDE / NAVIGATE / ACT / VERIFY) and
+matched by **compressed reasoning plan**, only **3 cross-domain plans**
+emerge from 406 skills:
+
+| Reasoning plan | Domains | Skills | Example |
+|---|---|---:|---|
+| PERCEIVE → VERIFY → ACT | GAME + VR | 4 | game setup + VR color QA |
+| PERCEIVE → ACT | GAME + WEB | 3 | compare/setup + order items |
+| PERCEIVE → ACT → VERIFY → ACT | GAME + VR | 2 | mario setup + video temporal |
+
+**Root cause:** all three domains actually share the
+`PERCEIVE → EVALUATE → ACT → VERIFY` reasoning cycle, but it is **hidden**
+because:
+1. Game skills encode reasoning as action verbs (EXEC, MOVE, APPROACH)
+2. Web skills are raw click/fill traces with no reasoning structure
+3. Only VR skills have explicit reasoning-level protocols
+
+**Top reasoning plans per domain (compressed):**
+
+| Game | Web | VR |
+|---|---|---|
+| ACT → NAVIGATE → ACT (7) | ACT → PERCEIVE → ACT (6) | PERCEIVE → EVALUATE → VERIFY → ACT (17) |
+| NAVIGATE → ACT (6) | PERCEIVE → ACT (2) | PERCEIVE → EVALUATE → PERCEIVE → VERIFY → ACT (4) |
+| NAVIGATE → ACT → VERIFY (6) | ACT → PERCEIVE → ACT → ... (2) | PERCEIVE → ACT → PERCEIVE → EVALUATE → VERIFY → ACT (2) |
+
+### 8c. Layer-C reasoning-intent re-lift (GPT-5.4, completed)
+
+`scripts/lift_skill_templates_gpt54.py` re-lifted all 406 per-task skills
+into 2-5 step modality-agnostic procedural templates using 8 controlled
+reasoning operators: `{PERCEIVE, RECALL, COMPARE, FILTER, DECIDE, COMMIT,
+VERIFY, RECOVER}`. These are **reasoning intents**, not action verbs.
+
+**Result: 406/406 skills successfully lifted** (98.4 s, 16 workers).
+
+Output: `frontier_data/output/layer_c_templates/<cohort>/<task>/template_bank.jsonl`
+
+**Top Layer-C signatures per domain:**
+
+| Game (328) | Web (48) | VR (30) |
+|---|---|---|
+| PERCEIVE→DECIDE→COMMIT→VERIFY (161) | PERCEIVE→DECIDE→COMMIT→COMMIT (6) | PERCEIVE→COMPARE→DECIDE→VERIFY (5) |
+| PERCEIVE→FILTER→DECIDE→COMMIT→VERIFY (13) | PERCEIVE→DECIDE→COMMIT→VERIFY (5) | PERCEIVE→RECALL→COMPARE→DECIDE→VERIFY (4) |
+| PERCEIVE→COMPARE→FILTER→DECIDE→COMMIT (9) | PERCEIVE→COMPARE→DECIDE→COMMIT (4) | PERCEIVE→COMPARE→DECIDE→VERIFY→COMMIT (3) |
+| PERCEIVE→COMPARE→DECIDE→COMMIT→VERIFY (8) | RECALL→PERCEIVE→FILTER→DECIDE→COMMIT (4) | PERCEIVE→COMPARE→FILTER→DECIDE→VERIFY (3) |
+
+### 8d. Cross-domain reasoning plans (Layer-C)
+
+After re-lift, **9 reasoning plans are shared across ≥ 2 domains**,
+covering **221 of 406 skills (54.4%)**:
+
+| Reasoning plan | Domains | Skills | Example |
+|---|---|---:|---|
+| **PERCEIVE→DECIDE→COMMIT→VERIFY** | GAME+WEB | **166** | mario navigation + miniwob focus/resize |
+| **PERCEIVE→COMPARE→FILTER→DECIDE→COMMIT** | GAME+VR | **11** | tetris optimize + siv_bench emotion inference |
+| **PERCEIVE→DECIDE→COMMIT→COMMIT** | GAME+WEB | **10** | positioning + drag/draw/bisect |
+| **PERCEIVE→COMPARE→DECIDE→COMMIT→VERIFY** | GAME+WEB | **9** | tetris evade + tic-tac-toe |
+| **PERCEIVE→COMMIT→COMMIT→VERIFY** | GAME+WEB | **8** | charge attack + copy paste |
+| **PERCEIVE→COMPARE→DECIDE→VERIFY** | GAME+VR | **7** | columns labeling + VR symbol/math/emotion |
+| **PERCEIVE→DECIDE→COMMIT→COMMIT→VERIFY** | GAME+WEB | **4** | dodge-and-strike + text styling |
+| **PERCEIVE→COMPARE→COMMIT→VERIFY** | GAME+WEB | **4** | scene scan + ascending order |
+| **PERCEIVE→COMMIT→COMMIT** | GAME+WEB | **2** | hazard dodge + circle center |
+
+**Key improvement over name-based clustering:**
+- Before (name-based): 14 multi-task mega-skills, **0 cross-domain**, 0 skills bridging game↔non-game
+- After (Layer-C reasoning plans): **9 cross-domain plans**, **221 skills** bridging game↔non-game
+  - GAME↔WEB: 7 shared plans
+  - GAME↔VR: 2 shared plans
+  - GPT-5.4 also annotated `transferable_to_cohorts` per skill
+
+**Notable cross-domain example — "Perceive → Compare → Filter → Decide → Commit":**
+
+| Domain | Task | Skill | What the reasoning plan does |
+|---|---|---|---|
+| GAME | tetris | COMMIT/OPTIMIZE | Assess board → evaluate sequences → discard blocked → pick best → place |
+| GAME | tetris | skill-903e63c5e3 | Assess state → evaluate actions → discard risky → pick stable → execute |
+| VR | siv_bench | Emotion inference | Observe cues → match against emotions → eliminate inconsistent → decide → commit |
+| VR | video_holmes | IMC inference | Observe behavior → relate to states → discard mismatches → select → commit |
+
+Scripts:
+- `build_reasoning_aligned_bank.py` — offline reasoning-intent normalizer
+- `test_game_to_nongame_transfer.py` — harness validation of game→non-game
+
+---
+
+## 9. Known Gaps & Next Steps
 
 ### Gap 1: Non-game decision SFT (6 tasks missing)
+
 
 siv_bench, tir_bench, video_holmes, visual_toolbench, miniwob, webshop —
 no `action_taking.jsonl` or `skill_selection.jsonl`.
@@ -419,13 +557,12 @@ python frontier_data/scripts/bind_and_validate.py --model gpt-5.4
 tetris, super_mario, candy_crush, twenty_forty_eight have GPT-5.4 +
 Qwen-local (35B-A3B) rollouts. Claude / Gemini never collected.
 
-### Gap 5: Template signature coverage
+### Gap 5: Template signature coverage — ✅ RESOLVED
 
-84.6 % of abstracts use the fallback `PERCEIVE → DECIDE → COMMIT` signature
-because raw per-task skill records lack explicit `template_signature` or
-`protocol_steps`. Running `scripts/lift_skill_templates_gpt54.py` with
-GPT-5.4 would produce richer Layer-C templates and improve shared bank
-signature diversity.
+~~84.6 % of abstracts used the fallback signature.~~
+Layer-C lift completed (§8c): all 406 skills now have GPT-5.4 generated
+procedural templates with rich 8-op signatures. Output in
+`frontier_data/output/layer_c_templates/`.
 
 ### Gap 6: Decision SFT is GPT-only
 
@@ -440,6 +577,17 @@ The 48 archetype skills (45 miniwob + 3 webshop) have been added to the
 skill bank and shared bank, but decision SFT labeling has not been run.
 Need: skill labeling on 125 miniwob + 50 webshop episodes → decision SFT.
 Multi-model webshop coverage (Claude/Gemini/Qwen) can increase diversity.
+
+### Gap 8: Cross-domain transfer — ✅ RESOLVED (Layer-C re-lift)
+
+~~Only 3 reasoning plans spanned ≥ 2 domains (9 skills).~~
+After Layer-C re-lift (§8c–8d): **9 cross-domain reasoning plans** covering
+**221 of 406 skills (54.4%)**. GAME↔WEB: 7 plans, GAME↔VR: 2 plans.
+Remaining gap: no WEB↔VR plans yet (web skills tend toward COMMIT-heavy
+signatures while VR uses COMPARE-heavy).
+
+**Next step:** re-cluster shared bank by Layer-C signatures to create
+cross-domain mega-skills (replace name-based clustering).
 
 ### Excluded tasks
 
