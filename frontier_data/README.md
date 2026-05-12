@@ -94,7 +94,8 @@ ablation experiments cannot run:
 | **Sig-level judge validated (score ≥ 4)** | **52/72** pairs (72%), all 7 sigs MODERATE+ |
 | **Plan-level judge (full plan text)** | **377/415** pairs (≥4), **310 NEW** cross-sig |
 | **Non-game skills with cross-domain match** | **78/78 (100%)** via plan-level judge |
-| **Cross-domain mega-skill families** | **12** (10 three-way GAME+WEB+VR, 2 two-way) |
+| **Cross-domain mega-skill families (plan-judge)** | **12** (10 three-way GAME+WEB+VR, 2 two-way) |
+| **Bottom-up mega-skill taxonomy (LLM-extract)** | **18** families (5 three-way, 5 two-way, 8 single-domain) |
 | Decision SFT coverage | 12 / 18 skill-banked tasks |
 | action_taking rows | 22,086 |
 | skill_selection rows | 21,086 |
@@ -795,7 +796,56 @@ Scripts:
 - `test_game_to_nongame_transfer.py` — harness validation of game→non-game
 - `inject_layerc_protocols.py` — convert Layer-C templates → runtime protocol
 
-### 8e. Layer-C protocol injection (runtime-ready)
+### 8e. Bottom-up mega-skill extraction (per-skill LLM classification)
+
+An alternative to pairwise plan-level judging (§8d″):
+classify **each skill independently** into a fixed taxonomy of
+18 cognitive mega-skill families via LLM, then cluster by label.
+
+**Method**: For each of 406 skills, send its Layer-C template steps +
+description to `gpt-4.1-mini` with a fixed 18-category taxonomy.
+Cost: O(n) = 406 LLM calls (~40s with 10-thread parallelism).
+
+| # | Mega-skill family | Count | Domains | Procedure |
+|---|---|---:|---|---|
+| 1 | **DODGE_AND_SURVIVE** | 65 | GAME | Monitor threats → evade → survive |
+| 2 | **INFER_AND_DECIDE** | 43 | GAME+WEB+VR ★ | Perceive evidence → reason → select action |
+| 3 | **ENGAGE_AND_DEFEAT** | 41 | GAME | Identify target → approach → attack → verify |
+| 4 | **NAVIGATE_AND_REACH** | 37 | GAME+WEB+VR ★ | Plan path → move → arrive at target |
+| 5 | **EXPLORE_AND_DISCOVER** | 35 | GAME | Probe unknown → observe → update knowledge |
+| 6 | **COMPARE_AND_RANK** | 23 | GAME+WEB+VR ★ | Perceive options → rank by criterion → select |
+| 7 | **SEQUENCE_AND_COMPLETE** | 22 | GAME+WEB+VR ★ | Ordered sub-steps → execute each → verify |
+| 8 | **TIME_AND_REACT** | 22 | GAME | Wait for trigger → timed action |
+| 9 | **EVALUATE_AND_OPTIMIZE** | 21 | GAME | Assess quality → try improvement → compare |
+| 10 | **RECALL_MATCH_AND_SELECT** | 18 | GAME+WEB+VR ★ | Retrieve criteria → perceive → match → select |
+| 11 | **POSITION_AND_PLACE** | 15 | GAME+WEB ● | Perceive target → place item → verify |
+| 12 | **TRANSFORM_AND_VERIFY** | 14 | GAME+WEB ● | Apply transformation → verify outcome |
+| 13 | **MONITOR_AND_SUSTAIN** | 14 | GAME | Track process → maintain → ensure completion |
+| 14 | **INPUT_AND_SUBMIT** | 12 | GAME+WEB ● | Fill form → submit → verify |
+| 15 | **FILTER_AND_NARROW** | 11 | VR+WEB ● | Apply criteria → eliminate → act on match |
+| 16 | **COLLECT_AND_ACCUMULATE** | 8 | GAME | Find collectible → acquire → track |
+| 17 | **COUNT_AND_REPORT** | 3 | VR+WEB ● | Count attribute → report total |
+| 18 | **RETRIEVE_AND_EXECUTE** | 2 | GAME | Recall procedure → execute → confirm |
+
+**Cross-domain summary:**
+
+| Coverage | Families | Skills |
+|---|---:|---:|
+| Three-way (GAME+WEB+VR) ★ | 5 | 143 (35%) |
+| Two-way ● | 5 | 55 (14%) |
+| Single-domain | 8 | 208 (51%) |
+
+**Key insight**: The 5 three-way families (**INFER_AND_DECIDE**,
+**NAVIGATE_AND_REACH**, **COMPARE_AND_RANK**, **SEQUENCE_AND_COMPLETE**,
+**RECALL_MATCH_AND_SELECT**) represent the core transferable cognitive
+procedures. They cover 143 skills across all three domains and are
+the best candidates for cross-domain seed transfer.
+
+Scripts:
+- `extract_mega_skills.py` — Phase 1: per-skill LLM classification (O(n))
+- `cluster_mega_skills.py` — Phase 2: optional label merging (for open-ended extraction)
+
+### 8f. Layer-C protocol injection (runtime-ready)
 
 `inject_layerc_protocols.py` converted all 406 Layer-C templates into
 runtime protocol dicts and patched the per-task skill banks:
@@ -822,7 +872,7 @@ The agent now sees structured reasoning plans during execution:
 The `>>` marker advances via `SkillProgressTracker.compute_step_advancement`
 with +0.1 intrinsic bonus per step — GRPO learns to follow reasoning plans.
 
-### 8f. V1 transfer approach: skills as suggestions
+### 8g. V1 transfer approach: skills as suggestions
 
 **Design principle:** Layer-C reasoning plans are **suggestions**, not
 commands. The 9B agent sees them in its prompt, attempts to follow, and

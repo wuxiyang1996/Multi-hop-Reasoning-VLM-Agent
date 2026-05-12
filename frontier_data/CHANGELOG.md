@@ -314,3 +314,42 @@ Top families:
 |---|---|
 | `frontier_data/README.md` | Added §8d‴ mega-skill families table + evolution table |
 | `frontier_data/CHANGELOG.md` | This entry |
+
+---
+
+## 2026-05-12 (update 6): Bottom-up mega-skill extraction via per-skill LLM classification
+
+### Problem
+
+Previous mega-skill discovery relied on pairwise comparison (O(n²)) or
+connected-component clustering, which is expensive and can over-cluster.
+Need a simpler, scalable approach: classify each skill independently.
+
+### Solution
+
+Defined a fixed 18-category cognitive taxonomy and asked `gpt-4.1-mini`
+to classify each of 406 skills into exactly one family. O(n) cost with
+10-thread parallelism (~40 seconds total).
+
+### Results
+
+**18 mega-skill families** with well-balanced distribution:
+- **5 three-way** (GAME+WEB+VR): INFER_AND_DECIDE (43), NAVIGATE_AND_REACH (37),
+  COMPARE_AND_RANK (23), SEQUENCE_AND_COMPLETE (22), RECALL_MATCH_AND_SELECT (18)
+- **5 two-way**: POSITION_AND_PLACE, TRANSFORM_AND_VERIFY, INPUT_AND_SUBMIT,
+  FILTER_AND_NARROW, COUNT_AND_REPORT
+- **8 single-domain** (mostly GAME-specific combat/survival procedures)
+
+The 5 three-way families (143 skills, 35%) represent the core transferable
+cognitive procedures across all domains.
+
+### Files changed
+
+| File | Change |
+|---|---|
+| `frontier_data/scripts/extract_mega_skills.py` | **New** — Phase 1 per-skill classification |
+| `frontier_data/scripts/cluster_mega_skills.py` | **New** — Phase 2 optional label merging |
+| `frontier_data/output/mega_skill_labels.json` | 406 skill classifications |
+| `frontier_data/output/mega_skill_clusters.json` | Merged cluster output |
+| `frontier_data/README.md` | Added §8e with 18-family taxonomy table |
+| `frontier_data/CHANGELOG.md` | This entry |

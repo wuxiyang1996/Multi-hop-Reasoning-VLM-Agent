@@ -1,0 +1,2883 @@
+{
+  "total_skills": 406,
+  "total_canonical_families": 18,
+  "families": {
+    "perceive_evaluate_decide_and_act": {
+      "count": 273,
+      "domains": [
+        "GAME",
+        "VR",
+        "WEB"
+      ],
+      "tasks": [
+        "Temporal_Airstriker-v0",
+        "Temporal_AlteredBeast-v0",
+        "Temporal_Columns-v0",
+        "Temporal_DynamiteHeaddy-v0",
+        "Temporal_SpaceHarrierII-v0",
+        "Temporal_StreetsOfRage2-v0",
+        "Temporal_Strider-v0",
+        "Temporal_ThunderForceIII-v0",
+        "candy_crush",
+        "miniwob",
+        "siv_bench",
+        "super_mario",
+        "tetris",
+        "twenty_forty_eight",
+        "visual_toolbench"
+      ],
+      "n_way": 3,
+      "is_cross_domain": true,
+      "procedure": "perceive environment changes, decide on sustained action, execute and maintain action while monitoring outcomes",
+      "raw_labels_merged": [
+        "ACT_AND_EVALUATE",
+        "ACT_OBSERVE_AND_VERIFY",
+        "COMMIT_AND_COMPARE",
+        "COMMIT_AND_EXECUTE",
+        "DECIDE_AND_ACT",
+        "DECIDE_AND_EXECUTE",
+        "EVALUATE_AND_ACT",
+        "EVALUATE_AND_SELECT",
+        "EVALUATE_DECIDE_ACT",
+        "EXECUTE_AND_VERIFY",
+        "EXPLORE_AND_CONFIRM",
+        "EXPLORE_AND_UPDATE",
+        "ITERATIVE_DECIDE_AND_ACT",
+        "MONITOR_AND_CONFIRM",
+        "PERCEIVE_ACT_ADVANCE",
+        "PERCEIVE_ACT_DECIDE_ACT",
+        "PERCEIVE_ACT_PERCEIVE_ACT",
+        "PERCEIVE_AND_ACT",
+        "PERCEIVE_AND_ACT_CYCLE",
+        "PERCEIVE_AND_ACT_ITERATIVELY",
+        "PERCEIVE_AND_FINALIZE",
+        "PERCEIVE_AND_REACT",
+        "PERCEIVE_AND_STABILIZE",
+        "PERCEIVE_AND_SUSTAIN_ACTION",
+        "PERCEIVE_AND_TRANSFER",
+        "PERCEIVE_ASSESS_AND_ACT",
+        "PERCEIVE_DECIDE_ACT",
+        "PERCEIVE_DECIDE_ACT_DECIDE",
+        "PERCEIVE_EVALUATE_ACT",
+        "PERCEIVE_EVALUATE_ACT_LOOP",
+        "PERCEIVE_EVALUATE_AND_ACT",
+        "PERCEIVE_EVALUATE_AND_SELECT",
+        "PERCEIVE_EVALUATE_DECIDE_ACT",
+        "PERCEIVE_EXPLORE_DECIDE_ACT",
+        "PERCEIVE_STABILIZE_DECIDE_ACT",
+        "RISK_ASSESS_AND_OPTIMIZE",
+        "SEQUENTIAL_DECIDE_AND_ACT",
+        "SEQUENTIAL_MULTI_STEP",
+        "STATE_TRANSITION_AND_VERIFY",
+        "STATE_TRANSITION_CONTROL"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-ac8e115353",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-0473c75276",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-705ba87063",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-335e66f7e0",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-3a875ef3f7",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-44ac53c900",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-1b65530dd9",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7cadbda477",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-e6da3cba14",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-e8605dbeee",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/COLLECT",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-0c62bc5ee3",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMPARE/ATTACK",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-5f3167a8f3",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-c0666c3fe9",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-cedb034951",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-fe42af35b1",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-61e64cb647",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-f4378bff22",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-9a5f0970f0",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/SURVIVE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-278c4f979b",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-2d464bae40",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-bf50fbb5af",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-2ea5759af6",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-56bc640965",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-f800d6d12d",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-6c64d95a31",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-171c794b4f",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-0cb77adbcc",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-cb29563136",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EXECUTE",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-d94dcdb882",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-4eb3432219",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-9d9d2bd762",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7f46d9e3c8",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-ec1b2e1d42",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-9bfd30f64e",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-9be2f2ae54",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-158fead2a1",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-6072264f4a",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-313337d690",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7ecf17fae3",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-5c9d99464f",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-75b8ef8baf",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-edc7211f89",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-5abdd41ca4",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-ea9d17bdb7",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-1bd2bdf432",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-aa8c1b3cc1",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-bf1eb44189",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-0efa25c107",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-cb7744be17",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-bd24f7411c",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-86517c691e",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/COLLECT",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7356203d44",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-2b771f9378",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-e7ab373223",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-deac5bab0c",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-10b43b9fe2",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-8703803b5d",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-1df3156e90",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-080e88a998",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7de55d9211",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-d26224bb7b",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-8b4449bbfd",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-99496c9d37",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-8788936394",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMPARE/ATTACK",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/DEFEND",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-4dbd1884ed",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-67a69d9ef6",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-0f65fb63a1",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-c1afadad58",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-503309c90c",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-2ce2b69b8a",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-6d9113c223",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-3702d3bfed",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-0fdb4c9baa",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-fe6b702449",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-f569463f89",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-b668cc1de6",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7ac45fd856",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-996b1bb15f",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-17705af0bd",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-895c73729a",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-f5adac983e",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-e6e8b351d7",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-40d58a65ed",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7708d5d133",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.bisect",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.drag",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.draw",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.focus",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.highlight",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.right",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.resize",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.sign",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.visual",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.text",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-2d051c433a",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-252e5969e5",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/SURVIVE",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-2c111fa73c",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-5b1884603a",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-9096c7c339",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-ea8c66908b",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-0dfb843e5b",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-44545c5531",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-65da6a8fea",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-a96b12ec7e",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-af2a5bd722",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-80f8f15f69",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-a02be935ec",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-f38dea5287",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-7fbcfa8315",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-06f8801da3",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-c2b1051061",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-9837f822c8",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-d4e9b3d94b",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-0e65ba2a99",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-106242f335",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-922e1001c4",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-d441ec4fe4",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-560be77c74",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "COMMIT/COLLECT",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-a1c7f40ca6",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-9837107841",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-c46df899cb",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-fa709b8010",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-34e0071bf5",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-6c313a81a5",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-ab3919eb42",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-77b1d8a71e",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-acd98a6134",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-18c3b7436e",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-e63284fda3",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-84bf642388",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-f41ed9ee87",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-cea447ef29",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-630bd3adbe",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-648266e9c6",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "archetype.miniwob.daily",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "archetype.miniwob.guess",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-903e63c5e3",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-8c3bcaa401",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-a353c3ce86",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-53faea6a67",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-f4249224d0",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-b7dc206df7",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-ada2e2ddee",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-48aa4939ce",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-98c4134e53",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-039d81be91",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-33d298efee",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "COMPARE/MERGE",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-f1fd2749d9",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "skill-e9ee27e8cf",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "archetype.visual_toolbench.hybrid_tool_reasoning",
+          "task": "visual_toolbench",
+          "domain": "VR",
+          "raw_label": "SEQUENTIAL_MULTI_STEP"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-063cb6176d",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-ce5b23e95d",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-b74e4d3461",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-00f509f288",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-d4da8959bc",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-430f2629dc",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/OPTIMIZE",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-80634fdb7f",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/MERGE",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-b787cefc09",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-2b9f81fe19",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-81eed597db",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-7673e721e2",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-fac3911f34",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-540c5dcc58",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-c6de84f468",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-aefebb4d54",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-ad99ed370e",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-8483e458f8",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-eb2ff1b466",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-b66e35d5c1",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-3f3c3fdf94",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-996b801537",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-c4f6294453",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-1693569607",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-2c4816062a",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-589cc1c6bd",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.circle",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-453ac8d531",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_SUSTAIN_ACTION"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_SUSTAIN_ACTION"
+        },
+        {
+          "skill_id": "skill-74b96fc05d",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_SUSTAIN_ACTION"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_ACT"
+        },
+        {
+          "skill_id": "skill-fa367599dd",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.odd",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_EVALUATE_ACT"
+        },
+        {
+          "skill_id": "skill-a3dcba7f71",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "EVALUATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-336227f5ca",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "EVALUATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-362bbd9f3a",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "EVALUATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-8714c727c6",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-4a8549c4f9",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-70526e4ce5",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "ITERATIVE_DECIDE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-2f860f1522",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "ITERATIVE_DECIDE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-9bd600f650",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT_CYCLE"
+        },
+        {
+          "skill_id": "skill-8a589f1fae",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_STABILIZE"
+        },
+        {
+          "skill_id": "skill-c0eb241d73",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_ACT_PERCEIVE_ACT"
+        },
+        {
+          "skill_id": "skill-0090f51426",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_ACT_ITERATIVELY"
+        },
+        {
+          "skill_id": "skill-e8833a5535",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_ASSESS_AND_ACT"
+        },
+        {
+          "skill_id": "skill-04c6633ea3",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "SEQUENTIAL_DECIDE_AND_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EXECUTE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_FINALIZE"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_ACT_ADVANCE"
+        },
+        {
+          "skill_id": "skill-d09e6bc7b1",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_DECIDE_ACT_DECIDE"
+        },
+        {
+          "skill_id": "skill-33199dab73",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_ACT_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-8866aeffff",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EXPLORE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "skill-1ff289891a",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "DECIDE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-d1c3fb36a6",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_REACT"
+        },
+        {
+          "skill_id": "skill-48c47f33b9",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "STATE_TRANSITION_CONTROL"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "STATE_TRANSITION_AND_VERIFY"
+        },
+        {
+          "skill_id": "skill-ad18d641f8",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "MONITOR_AND_CONFIRM"
+        },
+        {
+          "skill_id": "skill-1044e6c98f",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "DECIDE_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-2e60f92f5f",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "EVALUATE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "EXPLORE_AND_UPDATE"
+        },
+        {
+          "skill_id": "skill-5daafa60f9",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_EVALUATE_ACT_LOOP"
+        },
+        {
+          "skill_id": "skill-2ab00bf91f",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "EXPLORE_AND_CONFIRM"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "EXECUTE_AND_VERIFY"
+        },
+        {
+          "skill_id": "skill-a8b797d2c5",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "COMMIT_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-e5e1dd0601",
+          "task": "candy_crush",
+          "domain": "GAME",
+          "raw_label": "ACT_OBSERVE_AND_VERIFY"
+        },
+        {
+          "skill_id": "skill-b9de370dd9",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_STABILIZE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.copy",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_AND_TRANSFER"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Emotion_Inference",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "PERCEIVE_EVALUATE_AND_SELECT"
+        },
+        {
+          "skill_id": "skill-ee6516e4c4",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "RISK_ASSESS_AND_OPTIMIZE"
+        },
+        {
+          "skill_id": "mid:OPTIMIZE",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "EVALUATE_AND_SELECT"
+        },
+        {
+          "skill_id": "skill-024bf3bc7f",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "ACT_AND_EVALUATE"
+        },
+        {
+          "skill_id": "skill-b1b87ce7d0",
+          "task": "twenty_forty_eight",
+          "domain": "GAME",
+          "raw_label": "COMMIT_AND_COMPARE"
+        }
+      ]
+    },
+    "perceive_plan_and_act": {
+      "count": 41,
+      "domains": [
+        "GAME",
+        "VR",
+        "WEB"
+      ],
+      "tasks": [
+        "Temporal_Airstriker-v0",
+        "Temporal_AlteredBeast-v0",
+        "Temporal_DynamiteHeaddy-v0",
+        "Temporal_SpaceHarrierII-v0",
+        "Temporal_StreetsOfRage2-v0",
+        "Temporal_Strider-v0",
+        "Temporal_ThunderForceIII-v0",
+        "miniwob",
+        "super_mario",
+        "tetris",
+        "tir_bench"
+      ],
+      "n_way": 3,
+      "is_cross_domain": true,
+      "procedure": "perceive environment \u2192 plan path \u2192 move \u2192 act at target",
+      "raw_labels_merged": [
+        "NAVIGATE_AND_ACT",
+        "PERCEIVE_PLAN_ACT",
+        "PERCEIVE_PLAN_ACT_ITERATE",
+        "PERCEIVE_PLAN_ACT_LOOP",
+        "PERCEIVE_PLAN_ACT_VERIFY",
+        "PERCEIVE_PLAN_AND_ACT",
+        "PERCEIVE_PLAN_AND_EXECUTE",
+        "PERCEIVE_PLAN_EXECUTE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-96a3541132",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-c7df05d0ad",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-5cadb55175",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-20481ecb2c",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-d173ce5bd4",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-51d98e7895",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "COMMIT/SURVIVE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-be01902b77",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-c8ab69e3fe",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-bef340165c",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-47c086163c",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-8edb07f999",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-24e87e0119",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-83cb5d9a71",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-68fb1acf64",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-9cde017c0d",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-6c0e464384",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-cbc9f19943",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "archetype.tir_bench.maze",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "NAVIGATE_AND_ACT"
+        },
+        {
+          "skill_id": "skill-cc21561fb4",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "archetype.miniwob.scroll",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-51c8594bab",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-26e90915c0",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-24e4c73a77",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-139e17a4d5",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-107394bbb2",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-eaa7f8f515",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_ACT_LOOP"
+        },
+        {
+          "skill_id": "skill-46e22886ae",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_ACT_LOOP"
+        },
+        {
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_ACT_LOOP"
+        },
+        {
+          "skill_id": "skill-8af2607afd",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_EXECUTE"
+        },
+        {
+          "skill_id": "skill-1bd8a5fe82",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_EXECUTE"
+        },
+        {
+          "skill_id": "skill-f02d949d93",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_EXECUTE"
+        },
+        {
+          "skill_id": "skill-0bec3b0861",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_ACT"
+        },
+        {
+          "skill_id": "skill-c10e4fff69",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_ACT"
+        },
+        {
+          "skill_id": "skill-8a6bf234cb",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_AND_ACT"
+        },
+        {
+          "skill_id": "skill-7fb5bceedd",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_ACT_VERIFY"
+        },
+        {
+          "skill_id": "skill-cc07f43ba9",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_PLAN_ACT_ITERATE"
+        }
+      ]
+    },
+    "compare_and_select": {
+      "count": 35,
+      "domains": [
+        "GAME",
+        "VR",
+        "WEB"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0",
+        "Temporal_SpaceHarrierII-v0",
+        "Temporal_Strider-v0",
+        "Temporal_ThunderForceIII-v0",
+        "miniwob",
+        "siv_bench",
+        "tetris",
+        "tir_bench",
+        "video_holmes",
+        "visual_toolbench",
+        "webshop"
+      ],
+      "n_way": 3,
+      "is_cross_domain": true,
+      "procedure": "Perceive multiple options, compare based on criteria, and assign standardized labels accordingly.",
+      "raw_labels_merged": [
+        "COMPARE_AND_SELECT",
+        "PERCEIVE_AND_STANDARDIZE",
+        "compare_and_select"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-c27d4c6a93",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "skill-a8b92fe099",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "skill-38b1310ea7",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "skill-1f716650ab",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "COMPARE/POSITION",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.book",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.ascending",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.find",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.order",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.tic",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.hot",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Environment_Perception",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Human_Attribute_Identification",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Factual_Prediction",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Relation_Inference",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "skill-20e560a8cb",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "skill-41ebd70fc4",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.tir_bench.color",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.tir_bench.instrument",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.tir_bench.math",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.tir_bench.refcoco",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.tir_bench.rotation_game",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.tir_bench.symbolic",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.video_holmes.CTI",
+          "task": "video_holmes",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.video_holmes.PAR",
+          "task": "video_holmes",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.video_holmes.SR",
+          "task": "video_holmes",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.visual_toolbench.region_switch_qa",
+          "task": "visual_toolbench",
+          "domain": "VR",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.webshop.long_interaction",
+          "task": "webshop",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.webshop.short_interaction",
+          "task": "webshop",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.webshop.medium_interaction",
+          "task": "webshop",
+          "domain": "WEB",
+          "raw_label": "COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.choose",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "compare_and_select"
+        },
+        {
+          "skill_id": "archetype.miniwob.identify",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "compare_and_select"
+        },
+        {
+          "skill_id": "archetype.miniwob.buy",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "compare_and_select"
+        },
+        {
+          "skill_id": "COMPARE/SETUP",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_STANDARDIZE"
+        }
+      ]
+    },
+    "retrieve_perceive_select_decide_and_act": {
+      "count": 14,
+      "domains": [
+        "VR",
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob",
+        "siv_bench",
+        "tir_bench",
+        "video_holmes"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "Recall goal \u2192 perceive options \u2192 select matching target \u2192 perform action on target",
+      "raw_labels_merged": [
+        "EXTRACT_AND_RETRIEVE",
+        "INFER_INTENT_AND_VALIDATE",
+        "PERCEIVE_EVALUATE_DECIDE",
+        "PERCEIVE_EVIDENCE_AND_DECIDE",
+        "PERCEIVE_RECALL_EVALUATE_DECIDE",
+        "PREDICT_AND_SELECT",
+        "RECALL_COMPARE_AND_SELECT",
+        "RECALL_CONSTRAINED_DECISION",
+        "RECALL_FILTER_AND_ACT",
+        "RECALL_PERCEIVE_DECIDE_ACT",
+        "RECALL_PERCEIVE_SELECT_ACT",
+        "RETRIEVE_AND_MATCH",
+        "RETRIEVE_MATCH_AND_ACT",
+        "RETRIEVE_PERCEIVE_SELECT_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.click",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RECALL_PERCEIVE_SELECT_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.email",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RECALL_FILTER_AND_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.grid",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_PERCEIVE_SELECT_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.generate",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RECALL_CONSTRAINED_DECISION"
+        },
+        {
+          "skill_id": "archetype.miniwob.navigate",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_AND_MATCH"
+        },
+        {
+          "skill_id": "archetype.miniwob.unicode",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RECALL_COMPARE_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.miniwob.social",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_MATCH_AND_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.use",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RECALL_PERCEIVE_DECIDE_ACT"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Action_Recognition",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "PREDICT_AND_SELECT"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Facial_Expression_Recognition",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "PERCEIVE_RECALL_EVALUATE_DECIDE"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Intent_Inference",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "INFER_INTENT_AND_VALIDATE"
+        },
+        {
+          "skill_id": "archetype.tir_bench.ocr",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "EXTRACT_AND_RETRIEVE"
+        },
+        {
+          "skill_id": "archetype.tir_bench.visual_search",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "PERCEIVE_EVIDENCE_AND_DECIDE"
+        },
+        {
+          "skill_id": "archetype.video_holmes.IMC",
+          "task": "video_holmes",
+          "domain": "VR",
+          "raw_label": "PERCEIVE_EVALUATE_DECIDE"
+        }
+      ]
+    },
+    "plan_and_execute": {
+      "count": 9,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Airstriker-v0",
+        "Temporal_AlteredBeast-v0",
+        "Temporal_DynamiteHeaddy-v0",
+        "Temporal_StreetsOfRage2-v0",
+        "super_mario",
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "commit to exploration and setup steps sequentially to achieve goal",
+      "raw_labels_merged": [
+        "DEFERRED_COMMIT_AND_EXECUTE",
+        "PLAN_AND_COMMIT",
+        "PLAN_AND_EXECUTE",
+        "PLAN_EXECUTE_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-3ccc2388ed",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-6035b8c6fe",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-705845740a",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-6f4830f8d6",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-6c4b3b251c",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-282658f81b",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-533225c921",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "DEFERRED_COMMIT_AND_EXECUTE"
+        },
+        {
+          "skill_id": "skill-0d97c3e205",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PLAN_EXECUTE_VERIFY"
+        },
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_COMMIT"
+        }
+      ]
+    },
+    "perceive_and_monitor": {
+      "count": 7,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_SpaceHarrierII-v0",
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "actively gather new environmental information by controlled action while maintaining current position",
+      "raw_labels_merged": [
+        "MONITOR_AND_CONTROL",
+        "PERCEIVE_AND_INSPECT",
+        "PERCEIVE_AND_MONITOR"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-cac4785bfe",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_INSPECT"
+        },
+        {
+          "skill_id": "skill-a7493a9b16",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_INSPECT"
+        },
+        {
+          "skill_id": "skill-7381949934",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_INSPECT"
+        },
+        {
+          "skill_id": "skill-55cd8f2f8c",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_INSPECT"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_MONITOR"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "super_mario",
+          "domain": "GAME",
+          "raw_label": "PERCEIVE_AND_MONITOR"
+        },
+        {
+          "skill_id": "skill-915446f4a1",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME",
+          "raw_label": "MONITOR_AND_CONTROL"
+        }
+      ]
+    },
+    "retrieve_and_act": {
+      "count": 7,
+      "domains": [
+        "VR",
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob",
+        "tir_bench"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "Recall required information \u2192 perceive relevant interface elements \u2192 perform actions to complete task",
+      "raw_labels_merged": [
+        "LOCATE_AND_MAP",
+        "RETRIEVE_AND_ACT",
+        "RETRIEVE_LOCATE_ACT_CONFIRM",
+        "RETRIEVE_PERCEIVE_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.enter",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_PERCEIVE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.form",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_PERCEIVE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.read",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_PERCEIVE_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.phone",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_AND_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.search",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_AND_ACT"
+        },
+        {
+          "skill_id": "archetype.miniwob.login",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "RETRIEVE_LOCATE_ACT_CONFIRM"
+        },
+        {
+          "skill_id": "archetype.tir_bench.word_search",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "LOCATE_AND_MAP"
+        }
+      ]
+    },
+    "commit_and_explore": {
+      "count": 4,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0",
+        "Temporal_DynamiteHeaddy-v0",
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "commit to an action plan then explore environment to gather information or adapt",
+      "raw_labels_merged": [
+        "ANCHOR_AND_EXPLORE",
+        "COMMIT_AND_EXPLORE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-dc3986fcf2",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME",
+          "raw_label": "COMMIT_AND_EXPLORE"
+        },
+        {
+          "skill_id": "skill-d5ee8f0ead",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "COMMIT_AND_EXPLORE"
+        },
+        {
+          "skill_id": "skill-b12b6d467c",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME",
+          "raw_label": "COMMIT_AND_EXPLORE"
+        },
+        {
+          "skill_id": "skill-47e727b6d8",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME",
+          "raw_label": "ANCHOR_AND_EXPLORE"
+        }
+      ]
+    },
+    "filter_aggregate_and_summarize": {
+      "count": 3,
+      "domains": [
+        "VR",
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob",
+        "tir_bench"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "Identify target attribute \u2192 filter relevant items \u2192 aggregate information \u2192 produce summary output",
+      "raw_labels_merged": [
+        "FILTER_AND_AGGREGATE",
+        "FILTER_AND_EXECUTE",
+        "RETRIEVE_AND_SUMMARIZE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.count",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "FILTER_AND_AGGREGATE"
+        },
+        {
+          "skill_id": "archetype.miniwob.terminal",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "FILTER_AND_EXECUTE"
+        },
+        {
+          "skill_id": "archetype.tir_bench.contrast",
+          "task": "tir_bench",
+          "domain": "VR",
+          "raw_label": "RETRIEVE_AND_SUMMARIZE"
+        }
+      ]
+    },
+    "initialize_and_confirm": {
+      "count": 2,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Airstriker-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect inactive state \u2192 select initialization steps \u2192 perform startup actions \u2192 verify active status",
+      "raw_labels_merged": [
+        "INITIALIZE_AND_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-16f706e751",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "INITIALIZE_AND_CONFIRM"
+        },
+        {
+          "skill_id": "skill-d6fb397f21",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME",
+          "raw_label": "INITIALIZE_AND_CONFIRM"
+        }
+      ]
+    },
+    "plan_and_optimize": {
+      "count": 2,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "commit to initial setup, then iteratively optimize actions to improve outcome",
+      "raw_labels_merged": [
+        "PLAN_AND_OPTIMIZE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-72730ae4c3",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_OPTIMIZE"
+        },
+        {
+          "skill_id": "skill-db4c886e4c",
+          "task": "tetris",
+          "domain": "GAME",
+          "raw_label": "PLAN_AND_OPTIMIZE"
+        }
+      ]
+    },
+    "evidence_based_inference": {
+      "count": 2,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "Perceive evidence \u2192 evaluate interpretations \u2192 eliminate inconsistencies \u2192 select best explanation \u2192 confirm alignment",
+      "raw_labels_merged": [
+        "EVIDENCE_BASED_INFERENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.MHR",
+          "task": "video_holmes",
+          "domain": "VR",
+          "raw_label": "EVIDENCE_BASED_INFERENCE"
+        },
+        {
+          "skill_id": "archetype.video_holmes.TCI",
+          "task": "video_holmes",
+          "domain": "VR",
+          "raw_label": "EVIDENCE_BASED_INFERENCE"
+        }
+      ]
+    },
+    "counterfactual_inference_and_decision": {
+      "count": 2,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "modify current context with hypothetical change \u2192 evaluate consequences \u2192 select most plausible outcome",
+      "raw_labels_merged": [
+        "COUNTERFACTUAL_INFERENCE",
+        "COUNTERFACTUAL_REASONING"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Counterfactual_Prediction",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "COUNTERFACTUAL_REASONING"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Attitude_Inference",
+          "task": "siv_bench",
+          "domain": "VR",
+          "raw_label": "COUNTERFACTUAL_INFERENCE"
+        }
+      ]
+    },
+    "query_and_verify": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "extract attributes from goal \u2192 map to inputs \u2192 enter values \u2192 submit query \u2192 verify results match constraints",
+      "raw_labels_merged": [
+        "ATTRIBUTE_BASED_QUERY_AND_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.multi",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "ATTRIBUTE_BASED_QUERY_AND_VERIFY"
+        }
+      ]
+    },
+    "perceive_map_reproduce_and_verify": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive reference pattern, map features onto target, reproduce pattern, and verify accuracy",
+      "raw_labels_merged": [
+        "PERCEIVE_MAP_AND_REPRODUCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.number",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_MAP_AND_REPRODUCE"
+        }
+      ]
+    },
+    "perceive_compute_and_act": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive problem \u2192 compute solution \u2192 act to provide answer",
+      "raw_labels_merged": [
+        "PERCEIVE_COMPUTE_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.simple",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "PERCEIVE_COMPUTE_ACT"
+        }
+      ]
+    },
+    "retrieve_evaluate_and_conditionally_act": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target and threshold \u2192 perceive current value \u2192 evaluate condition \u2192 execute action if condition met",
+      "raw_labels_merged": [
+        "CONDITIONALLY_TRIGGER_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.stock",
+          "task": "miniwob",
+          "domain": "WEB",
+          "raw_label": "CONDITIONALLY_TRIGGER_ACTION"
+        }
+      ]
+    },
+    "sequence_and_verify": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "Identify elements \u2192 determine order relations \u2192 select consistent sequence \u2192 confirm correctness",
+      "raw_labels_merged": [
+        "SEQUENCE_AND_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.TA",
+          "task": "video_holmes",
+          "domain": "VR",
+          "raw_label": "SEQUENCE_AND_VERIFY"
+        }
+      ]
+    }
+  },
+  "stats": {
+    "three_way_GAME_WEB_VR": 3,
+    "two_way": 3,
+    "cross_domain_total": 6,
+    "single_domain": 12
+  }
+}
