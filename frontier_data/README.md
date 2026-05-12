@@ -644,6 +644,77 @@ covering **221 of 406 skills (54.4%)**:
 Scripts:
 - `build_reasoning_aligned_bank.py` — offline reasoning-intent normalizer
 - `test_game_to_nongame_transfer.py` — harness validation of game→non-game
+- `inject_layerc_protocols.py` — convert Layer-C templates → runtime protocol
+
+### 8e. Layer-C protocol injection (runtime-ready)
+
+`inject_layerc_protocols.py` converted all 406 Layer-C templates into
+runtime protocol dicts and patched the per-task skill banks:
+
+| Category | Count |
+|---|---:|
+| Skills patched (empty/thin → 3-5 step reasoning plan) | **304** |
+| Already-rich protocols (preserved, enriched with step_checks) | **102** |
+
+The agent now sees structured reasoning plans during execution:
+
+```
+--- Active Skill: archetype.siv_bench.Action_Recognition ---
+  Plan (5 steps):
+  >> 1. Observe current scene cues and immediate preceding events
+     2. Recall task goal of predicting the next likely action
+     3. Compare candidate continuations against causal and contextual evidence
+     4. Select the continuation most strongly implied by context
+     5. Submit the chosen next-action prediction
+  Done when: prediction_submitted=true
+--- end skill ---
+```
+
+The `>>` marker advances via `SkillProgressTracker.compute_step_advancement`
+with +0.1 intrinsic bonus per step — GRPO learns to follow reasoning plans.
+
+### 8f. V1 transfer approach: skills as suggestions
+
+**Design principle:** Layer-C reasoning plans are **suggestions**, not
+commands. The 9B agent sees them in its prompt, attempts to follow, and
+GRPO + crafter refine what works. No complex cross-domain compose needed.
+
+**Why previous compose attempts failed:**
+- R4 compose in `decide_skill_crafting_gpt54.py` uses co-occurrence
+  statistics (A→B frequent ≥ 5% transitions) — behavioral correlation,
+  not reasoning complementarity
+- Crafter v2 35B proposer gets action-level inputs → outputs caught
+  by ban lists or too abstract (0.5% abstract-share per audit)
+- `GeneralizeProposal` does 1:1 translation only, cannot compose
+
+**V1 approach (skills as suggestions):**
+
+```
+Phase 1: train on 6 source games → build per-task banks
+         ↓
+Phase 2: seed_per_task_bank_cold_start.py
+         pick_seed_candidates now prioritizes by:
+           1st: Layer-C cross-domain signatures (≥ 2 domain groups)
+           2nd: cohort diversity
+           3rd: task breadth
+           4th: production successes
+         ↓
+         GPT-5.4 re-grounds to target vocab (bind_abstract_to_task.py)
+         ↓
+         Seeds land as confidence_tag="candidate" (down-weighted)
+         ↓
+Phase 2+3: Agent tries seed reasoning plans
+           GRPO rewards good execution → plans get reinforced
+           Crafter patches bad plans → plans get refined
+           Eligibility filter demotes useless plans
+           New skills discovered in target feed back to shared bank
+```
+
+**Key insight:** the agent doesn't need a perfect plan. It needs a
+**reasonable reasoning structure** to bootstrap from. "Scan → Compare →
+Filter → Decide → Commit" is useful in webshop even if the original
+predicates are from tetris — the STRUCTURE guides the agent's reasoning,
+and GRPO fine-tunes the execution.
 
 ---
 

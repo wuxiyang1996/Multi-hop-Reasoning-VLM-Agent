@@ -84,7 +84,58 @@ logger = logging.getLogger("seed_per_task_bank_cold_start")
 
 
 # ---------------------------------------------------------------------------
-# Candidate selection — same filter as bind_abstract_to_task --batch-strong.
+# Layer-C cross-domain signature index (loaded lazily).
+# ---------------------------------------------------------------------------
+_CROSS_DOMAIN_SIGS: Optional[Dict[str, int]] = None
+
+def _load_cross_domain_sigs(layer_c_dir: Optional[Path] = None) -> Dict[str, int]:
+    """Return {template_signature: n_domains} from the Layer-C template bank.
+
+    Signatures that appear in ≥ 2 domain groups (GAME / WEB / VR) are
+    cross-domain reasoning plans — these are the highest-value seeds
+    because they represent shared reasoning structure, not just shared
+    skill names.
+    """
+    global _CROSS_DOMAIN_SIGS
+    if _CROSS_DOMAIN_SIGS is not None:
+        return _CROSS_DOMAIN_SIGS
+
+    lc_dir = layer_c_dir or REPO / "frontier_data" / "output" / "layer_c_templates"
+    if not lc_dir.is_dir():
+        _CROSS_DOMAIN_SIGS = {}
+        return _CROSS_DOMAIN_SIGS
+
+    GAME_COHORTS = {"gymv_game", "env_wr_game"}
+    sig_domains: Dict[str, set] = {}
+    for cohort_dir in lc_dir.iterdir():
+        if not cohort_dir.is_dir():
+            continue
+        cohort = cohort_dir.name
+        domain = ("GAME" if cohort in GAME_COHORTS
+                  else "WEB" if cohort == "web"
+                  else "VR" if cohort.startswith("vr_")
+                  else cohort.upper())
+        for task_dir in cohort_dir.iterdir():
+            tb = task_dir / "template_bank.jsonl"
+            if not tb.is_file():
+                continue
+            with open(tb) as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    r = json.loads(line)
+                    sig = r.get("template_signature", "")
+                    if sig:
+                        sig_domains.setdefault(sig, set()).add(domain)
+
+    _CROSS_DOMAIN_SIGS = {
+        sig: len(doms) for sig, doms in sig_domains.items()
+    }
+    return _CROSS_DOMAIN_SIGS
+
+
+# ---------------------------------------------------------------------------
+# Candidate selection — Layer-C signature-aware.
 # ---------------------------------------------------------------------------
 def pick_seed_candidates(
     bank: TwoLayerSkillStore,
@@ -93,18 +144,30 @@ def pick_seed_candidates(
     max_seeds: int,
     min_cross_task_lineage: int = 2,
     require_signature: bool = True,
+    layer_c_dir: Optional[Path] = None,
 ) -> List[SharedAbstractSkill]:
     """Pick top-N abstract skills to seed onto ``target_task``.
 
-    Sort key:
+    Sort key (highest priority first):
 
-      1. Number of *native mining* tasks the abstract appears in
-         (breadth — wider implies more universal skeleton).
-      2. Total production successes across all bound tasks (depth —
-         abstract has actually paid off in real rollouts).
-      3. Cohort diversity (favours skeletons that span game / web /
-         vr_image / vr_video — the most modality-agnostic ones).
+      1. **Cross-domain reasoning plan** — the template_signature
+         appears in ≥ 2 domain groups (GAME / WEB / VR) in the
+         Layer-C template bank.  These are shared reasoning structures,
+         not just shared names.
+      2. **Cohort diversity** — number of distinct cohorts the
+         abstract is natively bound to.
+      3. **Task breadth** — number of native mining tasks.
+      4. **Production successes** — total validated rollouts.
+
+    The Layer-C priority ensures that cross-domain reasoning plans
+    (e.g. PERCEIVE→DECIDE→COMMIT→VERIFY shared by games + web) are
+    preferred over within-domain multi-task skills.  This is the V1
+    "skills as suggestions" approach: the 9B agent sees the reasoning
+    plan in its prompt, attempts to follow it, and GRPO + crafter
+    refine what works.
     """
+    cross_sigs = _load_cross_domain_sigs(layer_c_dir)
+
     unbound = bank.abstract.candidates_for_target_task(target_task)
     qualified: List[SharedAbstractSkill] = []
     for r in unbound:
@@ -116,12 +179,15 @@ def pick_seed_candidates(
             continue
         qualified.append(r)
 
-    def _score(r: SharedAbstractSkill) -> Tuple[int, int, int]:
+    def _score(r: SharedAbstractSkill) -> Tuple[int, int, int, int]:
+        sig = r.template_signature or ""
+        n_cross_domains = cross_sigs.get(sig, 0)
+        is_cross = 1 if n_cross_domains >= 2 else 0
+        n_cohorts = len({L.cohort for L in r.lineage if L.cohort})
         n_native_tasks = len({L.task for L in r.lineage
                               if L.is_native and L.discovered_via == "mining"})
         n_successes = r.total_production_successes
-        n_cohorts = len({L.cohort for L in r.lineage if L.cohort})
-        return (n_native_tasks, n_cohorts, n_successes)
+        return (is_cross, n_cohorts, n_native_tasks, n_successes)
 
     qualified.sort(key=_score, reverse=True)
     return qualified[:max_seeds]
