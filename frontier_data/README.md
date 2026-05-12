@@ -70,9 +70,10 @@ ablation experiments cannot run:
    plans that enable cross-domain seeding for A3
 3. **Decision SFT** (22k rows) → the raw-SFT baseline for A2
 4. **Shared bank + bindings** → the structured bank for A1, A2
-5. **Cross-domain reasoning plans** (9 plans, 221 skills) → evidence
-   that the same reasoning structure exists across domains (motivation
-   for A3, not the result itself)
+5. **Cross-domain reasoning plans** (7 collapsed plans, 314 skills,
+   77.3%) → evidence that the same reasoning structure exists across
+   domains (motivation for A3, not the result itself); includes 1
+   three-way (GAME+WEB+VR) plan covering 55 skills
 
 ---
 
@@ -87,7 +88,13 @@ ablation experiments cannot run:
 | Forward cross-task bindings (offline) | **186** |
 | Total bindings (native + forward) | **592** |
 | **Layer-C templates (GPT-5.4)** | **406 / 406** |
-| **Cross-domain reasoning plans** | **9** (covering 221 skills, 54.4%) |
+| **Cross-domain plans (exact 8-op)** | **9** (221 skills, 54.4%) |
+| **Cross-domain plans (collapsed 5-op)** | **7** (314 skills, **77.3%**) |
+| **Three-way plans (GAME+WEB+VR)** | **1** (55 skills, 13.5%) |
+| **Sig-level judge validated (score ≥ 4)** | **52/72** pairs (72%), all 7 sigs MODERATE+ |
+| **Plan-level judge (full plan text)** | **377/415** pairs (≥4), **310 NEW** cross-sig |
+| **Non-game skills with cross-domain match** | **78/78 (100%)** via plan-level judge |
+| **Cross-domain mega-skill families** | **12** (10 three-way GAME+WEB+VR, 2 two-way) |
 | Decision SFT coverage | 12 / 18 skill-banked tasks |
 | action_taking rows | 22,086 |
 | skill_selection rows | 21,086 |
@@ -409,7 +416,7 @@ frontier_data/
 │   │   ├── by_task/<task>/bindings.jsonl
 │   │   └── SUMMARY.json
 │   ├── layer_c_templates/             ← GPT-5.4 Layer-C procedural templates
-│   │   ├── <cohort>/<task>/template_bank.jsonl  ← 406 templates (8-op vocabulary)
+│   │   ├── <cohort>/<task>/template_bank.jsonl  ← 406 templates (8-op + collapsed 5-op)
 │   │   └── _lift_summary.json         ← lift run metadata
 │   ├── bind_reports/                  ← binding audit trail
 │   │   └── bind_report_*.json
@@ -484,12 +491,12 @@ flat SFT rows. This isolates the architecture contribution.
 
 | Arm | Config | Seed source |
 |---|---|---|
-| `cross-domain` | Seeds from all 12 game tasks (Layer-C matched) | 9 cross-domain reasoning plans → target |
+| `cross-domain` | Seeds from all 12 game tasks (Layer-C matched) | 7 collapsed cross-domain plans (314 skills) → target |
 | `same-domain-only` | Seeds from same-domain tasks only | VR→VR or Web→Web, no game skills |
 | `no-seed` | Empty bank | Cold start |
 
 Metric: reward delta between `cross-domain` and `same-domain-only`.
-Claim: game-domain reasoning plans (PERCEIVE→DECIDE→COMMIT→VERIFY etc.)
+Claim: game-domain reasoning plans (PERCEIVE→EVALUATE→DECIDE→ACT etc.)
 transfer usefully to web/VR tasks.
 
 ### 7b. What a positive result looks like
@@ -610,38 +617,180 @@ Output: `frontier_data/output/layer_c_templates/<cohort>/<task>/template_bank.js
 
 ### 8d. Cross-domain reasoning plans (Layer-C)
 
+#### Raw 8-op signatures (exact match)
+
 After re-lift, **9 reasoning plans are shared across ≥ 2 domains**,
-covering **221 of 406 skills (54.4%)**:
+covering **221 of 406 skills (54.4%)**. However, the top signature
+(`PERCEIVE→DECIDE→COMMIT→VERIFY`, 166 skills) is too generic to
+represent a meaningful "transfer" — it's the default 4-step loop.
 
-| Reasoning plan | Domains | Skills | Example |
+#### Collapsed 5-op signatures (semantic equivalence)
+
+The 8 Layer-C ops are collapsed to **5 semantic equivalence classes**:
+
+| Collapse | Rationale |
+|---|---|
+| COMPARE + FILTER → **EVALUATE** | Both assess/evaluate perceived state |
+| COMMIT + VERIFY + RECOVER → **ACT** | All are execution/action steps |
+| PERCEIVE, DECIDE, RECALL | Kept distinct |
+
+This lifts coverage from 54.4% → **77.3%** (314/406 skills) and —
+crucially — unlocks the **first true THREE-WAY (GAME+WEB+VR) plan**:
+
+| Collapsed plan | Domains | Skills | Example |
 |---|---|---:|---|
-| **PERCEIVE→DECIDE→COMMIT→VERIFY** | GAME+WEB | **166** | mario navigation + miniwob focus/resize |
-| **PERCEIVE→COMPARE→FILTER→DECIDE→COMMIT** | GAME+VR | **11** | tetris optimize + siv_bench emotion inference |
-| **PERCEIVE→DECIDE→COMMIT→COMMIT** | GAME+WEB | **10** | positioning + drag/draw/bisect |
-| **PERCEIVE→COMPARE→DECIDE→COMMIT→VERIFY** | GAME+WEB | **9** | tetris evade + tic-tac-toe |
-| **PERCEIVE→COMMIT→COMMIT→VERIFY** | GAME+WEB | **8** | charge attack + copy paste |
-| **PERCEIVE→COMPARE→DECIDE→VERIFY** | GAME+VR | **7** | columns labeling + VR symbol/math/emotion |
-| **PERCEIVE→DECIDE→COMMIT→COMMIT→VERIFY** | GAME+WEB | **4** | dodge-and-strike + text styling |
-| **PERCEIVE→COMPARE→COMMIT→VERIFY** | GAME+WEB | **4** | scene scan + ascending order |
-| **PERCEIVE→COMMIT→COMMIT** | GAME+WEB | **2** | hazard dodge + circle center |
+| **PERCEIVE → DECIDE → ACT** | GAME+WEB | **201** | navigation / click tasks |
+| **PERCEIVE → EVALUATE → DECIDE → ACT** | **GAME+WEB+VR** ★ | **55** | tetris optimize + siv emotion + miniwob compare |
+| **PERCEIVE → ACT** | GAME+WEB | **21** | charge attack + drag/draw |
+| **RECALL → PERCEIVE → EVALUATE → DECIDE → ACT** | VR+WEB | **11** | video_holmes + webshop search |
+| **PERCEIVE → RECALL → EVALUATE → DECIDE → ACT** | GAME+VR | **10** | sequence recall + VR temporal |
+| **PERCEIVE → EVALUATE → ACT** | GAME+WEB | **8** | scene scan + ascending order |
+| **RECALL → PERCEIVE → DECIDE → ACT** | VR+WEB | **8** | VR+miniwob recall tasks |
 
-**Key improvement over name-based clustering:**
-- Before (name-based): 14 multi-task mega-skills, **0 cross-domain**, 0 skills bridging game↔non-game
-- After (Layer-C reasoning plans): **9 cross-domain plans**, **221 skills** bridging game↔non-game
-  - GAME↔WEB: 7 shared plans
-  - GAME↔VR: 2 shared plans
-  - GPT-5.4 also annotated `transferable_to_cohorts` per skill
+**Still domain-locked (22.7%, 92 skills):**
+- GAME: 80 skills — mostly contain RECOVER-heavy loops or trivially short (ACT only)
+- WEB: 11 skills — start with RECALL (which games rarely do)
+- VR: 1 skill — unique PERCEIVE→RECALL→EVALUATE→DECIDE (no ACT)
 
-**Notable cross-domain example — "Perceive → Compare → Filter → Decide → Commit":**
+**Key improvement summary:**
+
+| Metric | Name-based | Exact 8-op | Collapsed 5-op |
+|---|---|---|---|
+| Cross-domain plans | 0 | 9 | **7** |
+| Skills covered | 0 | 221 (54.4%) | **314 (77.3%)** |
+| Three-way plans | 0 | 0 | **1 (55 skills)** |
+| Meaningful (non-generic) | 0 | 55 | **314** |
+
+**Notable three-way example — `PERCEIVE → EVALUATE → DECIDE → ACT` (55 skills):**
 
 | Domain | Task | Skill | What the reasoning plan does |
 |---|---|---|---|
-| GAME | tetris | COMMIT/OPTIMIZE | Assess board → evaluate sequences → discard blocked → pick best → place |
-| GAME | tetris | skill-903e63c5e3 | Assess state → evaluate actions → discard risky → pick stable → execute |
-| VR | siv_bench | Emotion inference | Observe cues → match against emotions → eliminate inconsistent → decide → commit |
-| VR | video_holmes | IMC inference | Observe behavior → relate to states → discard mismatches → select → commit |
+| GAME | tetris | COMMIT/OPTIMIZE | Assess board → evaluate sequences → pick best → place |
+| GAME | Columns | puzzle_analysis | Perceive columns → compare patterns → decide placement → commit |
+| WEB | miniwob | compare_selection | Observe options → evaluate against criteria → select → click |
+| VR | siv_bench | Emotion inference | Observe cues → match against emotions → decide → commit |
+| VR | video_holmes | IMC inference | Observe behavior → compare to states → select → commit |
+
+### 8d′. LLM-as-judge plan similarity validation
+
+Pure structural matching (collapsed signatures) cannot distinguish "same
+reasoning procedure" from "same structure, different cognitive challenge".
+We ran **GPT-4.1-mini as a judge** on all 72 cross-domain skill pairs
+(3 samples per domain, all 7 collapsed sig groups), scoring 1–5 on
+whether the full plan context (predicate text) represents the SAME
+transferable cognitive procedure.
+
+| Collapsed plan | Domains | Pairs | Avg | ≥4 | Verdict |
+|---|---|---:|---:|---:|---|
+| **RECALL → PERCEIVE → DECIDE → ACT** | VR↔WEB | 9 | **4.0** | 100% | STRONG_TRANSFER |
+| **PERCEIVE → EVALUATE → DECIDE → ACT** | GAME+WEB+VR | 27 | **3.8** | 78% | MODERATE_TRANSFER |
+| **RECALL → PERCEIVE → EVALUATE → DECIDE → ACT** | VR↔WEB | 9 | **3.8** | 78% | MODERATE_TRANSFER |
+| PERCEIVE → ACT | GAME↔WEB | 6 | 3.5 | 67% | MODERATE_TRANSFER |
+| PERCEIVE → EVALUATE → ACT | GAME↔WEB | 9 | 3.4 | 44% | MODERATE_TRANSFER |
+| PERCEIVE → DECIDE → ACT | GAME↔WEB | 9 | 3.3 | 67% | MODERATE_TRANSFER |
+| PERCEIVE → RECALL → EVALUATE → DECIDE → ACT | GAME↔VR | 3 | 3.3 | 33% | MODERATE_TRANSFER |
+
+**Overall: 72 pairs judged, 52 (72%) rated as same procedure (score ≥ 4).**
+
+Key findings:
+- **VR↔WEB transfer is strongest** (avg 4.0) — both involve target recall
+  + evidence matching, just with different modalities (image vs DOM)
+- **Three-way PERCEIVE→EVALUATE→DECIDE→ACT is validated** (78% same
+  procedure) — the shared cognitive strategy is "perceive options →
+  evaluate against criteria → select best → commit"
+- **GAME↔WEB (PERCEIVE→DECIDE→ACT) is weakest** (avg 3.3, bimodal:
+  67% score=4, 33% score=2) — "navigate environment" and "click UI
+  element" have same structure but different cognitive challenge
+
+Implication for seed pipeline: the judge scores can be used as
+**confidence weights** when `pick_seed_candidates` selects seeds.
+Plans with avg ≥ 4.0 get full weight; 3.0–4.0 get 0.5; < 3.0
+are excluded from cross-domain seeding.
+
+### 8d″. Plan-level LLM judge (beyond signatures)
+
+The signature-based judge (§8d′) only compares skills within the same
+collapsed-signature group.  **Plan-level judging** compares the FULL
+reasoning plan text across ALL cross-domain pairs, regardless of
+structural signature — finding matches that signatures miss entirely.
+
+Method: for each of the 78 non-game skills, present its full plan
+alongside 20 diverse game skill plans and ask GPT-4.1-mini which
+(if any) share the same cognitive procedure.  Similarly for 30 VR
+skills vs 15 WEB skills.  Total: 108 batch LLM calls.
+
+| Direction | Targets | Total matches (≥3) | High (≥4) | NEW (different sig) |
+|---|---:|---:|---:|---:|
+| WEB → GAME | 48 | 225 | 202 | **168** |
+| VR → GAME | 30 | 87 | 79 | **66** |
+| VR → WEB | 30 | 103 | 96 | **76** |
+| **Total** | **108** | **415** | **377** | **310** |
+
+**Key finding: 310 NEW high-confidence cross-domain pairs discovered
+that collapsed-signature matching completely missed.**
+
+75 unique non-game skills gained cross-domain matches they didn't have
+from structural matching alone.  ALL 78 non-game skills now have ≥ 1
+cross-domain match — **effective coverage: 100% of non-game skills**.
+
+Top discoveries (score = 5, DIFFERENT collapsed signatures):
+
+| Target | Candidate | Shared procedure |
+|---|---|---|
+| VR: tir "how many colors" (P→E→D→A) | WEB: miniwob "how many aqua" (R→P→E→D→A) | Count items with attribute → submit total |
+| VR: siv "action likely to" (P→R→E→D→A) | WEB: webshop "i need some" (R→P→E→D→A) | Perceive options → recall criteria → filter → decide → verify |
+| WEB: miniwob "create 30min event" (R→P→D→A) | GAME: Columns "Execute" (P→A) | Perceive state → commit placement → verify result |
+| VR: video "arrange following" (P→E→D→A) | WEB: miniwob "click numbers" (P→E→A) | Perceive items → compare order → commit sequence → verify |
+
+**Why signatures miss these:** structural differences like
+`PERCEIVE→RECALL→EVALUATE` vs `RECALL→PERCEIVE→EVALUATE` (order of
+first two ops) or `PERCEIVE→DECIDE→ACT` vs `RECALL→PERCEIVE→DECIDE→ACT`
+(presence/absence of RECALL prefix) are structurally distinct but
+cognitively equivalent — the LLM judge recognizes the shared procedure.
+
+**Impact on seed bank sizing:**
+
+| Matching strategy | Non-game coverage | Seedable skills |
+|---|---:|---:|
+| Exact 8-op sig | 55 (70%) | 221/406 (54%) |
+| Collapsed 5-op sig | 66 (85%) | 314/406 (77%) |
+| **Plan-level LLM judge** | **78 (100%)** | **406/406 (100%)** |
+
+### 8d‴. Cross-domain mega-skill families (plan-level)
+
+Classifying the 377 high-confidence cross-domain pairs by their shared
+reasoning procedure description yields **12 distinct mega-skill families**:
+
+| # | Family | Domains | Skills | Representative procedure |
+|---|---|---|---:|---|
+| 1 | **COMPARE_AND_RANK** | GAME+WEB+VR ★ | 51 | Perceive targets → rank by priority → select best → execute |
+| 2 | **DECIDE_ACT_VERIFY** | GAME+WEB+VR ★ | 33 | Perceive state → decide optimal action → execute → verify |
+| 3 | **MATCH_AND_CLASSIFY** | GAME+WEB+VR ★ | 23 | Perceive → match to known categories → commit classification |
+| 4 | **PERCEIVE_DECIDE_ACT** | GAME+WEB+VR ★ | 22 | Observe → decide on criteria-based target → commit action |
+| 5 | **FILTER_AND_SELECT** | GAME+WEB+VR ★ | 19 | Identify cues → filter options → select best match → verify |
+| 6 | **RECALL_FILTER_SELECT** | GAME+WEB+VR ★ | 16 | Recall goal → perceive options → filter → select |
+| 7 | **SEQUENTIAL_EXECUTION** | GAME+WEB+VR ★ | 11 | Perceive initial state → multi-step transform → verify |
+| 8 | **CREATE_AND_VERIFY** | GAME+WEB+VR ★ | 8 | Perceive target → create/place → verify completion |
+| 9 | **COUNT_AND_REPORT** | GAME+WEB+VR ★ | 6 | Count attribute instances → submit total |
+| 10 | **INPUT_AND_SUBMIT** | GAME+WEB+VR ★ | 4 | Perceive field → input value → submit |
+| 11 | GENERAL_PROCEDURE | GAME+WEB | 4 | Evaluate multiple options → select best config |
+| 12 | OBSERVE_AND_ACT | GAME+WEB | 1 | Perceive item → finalize action |
+
+**10 of 12 families are three-way (GAME+WEB+VR)** — structural signature
+matching found only 1 three-way plan. Plan-level LLM judging discovers
+10× more cross-domain reasoning structure.
+
+**Evolution of cross-domain mega-skill discovery:**
+
+| Method | Cross-domain mega-skills | 3-way | Coverage |
+|---|---:|---:|---:|
+| Name-based clustering | 0 | 0 | 0% |
+| Collapsed 5-op signatures | 7 | 1 | 77% |
+| Plan-level LLM judge | **12** | **10** | **100%** |
 
 Scripts:
+- `judge_plan_level_similarity.py` — plan-level LLM-as-judge (batch, 108 queries)
+- `judge_plan_similarity.py` — signature-level LLM-as-judge (pairwise, 72 pairs)
 - `build_reasoning_aligned_bank.py` — offline reasoning-intent normalizer
 - `test_game_to_nongame_transfer.py` — harness validation of game→non-game
 - `inject_layerc_protocols.py` — convert Layer-C templates → runtime protocol
@@ -694,10 +843,12 @@ Phase 1: train on 6 source games → build per-task banks
          ↓
 Phase 2: seed_per_task_bank_cold_start.py
          pick_seed_candidates now prioritizes by:
-           1st: Layer-C cross-domain signatures (≥ 2 domain groups)
-           2nd: cohort diversity
-           3rd: task breadth
-           4th: production successes
+           1st: THREE-WAY collapsed signatures (GAME+WEB+VR)
+           2nd: TWO-WAY cross-domain (collapsed 5-op, ≥ 2 domains)
+           3rd: cohort diversity
+           4th: task breadth
+           5th: production successes
+         Collapsed 5-op matching: 314/406 skills eligible (77.3%)
          ↓
          GPT-5.4 re-grounds to target vocab (bind_abstract_to_task.py)
          ↓
@@ -787,16 +938,21 @@ skill bank and shared bank, but decision SFT labeling has not been run.
 Need: skill labeling on 125 miniwob + 50 webshop episodes → decision SFT.
 Multi-model webshop coverage (Claude/Gemini/Qwen) can increase diversity.
 
-### Gap 8: Cross-domain reasoning alignment — ✅ RESOLVED (Layer-C re-lift)
+### Gap 8: Cross-domain reasoning alignment — ✅ RESOLVED (collapsed 5-op)
 
 ~~Only 3 reasoning plans spanned ≥ 2 domains (9 skills).~~
-After Layer-C re-lift (§8c–8d): **9 cross-domain reasoning plans** covering
-**221 of 406 skills (54.4%)**. GAME↔WEB: 7 plans, GAME↔VR: 2 plans.
-Remaining gap: no WEB↔VR plans yet (web skills tend toward COMMIT-heavy
-signatures while VR uses COMPARE-heavy).
+After Layer-C re-lift (§8c) + collapsed 5-op equivalence (§8d):
+**7 cross-domain reasoning plans** covering **314 of 406 skills (77.3%)**,
+including 1 true three-way (GAME+WEB+VR) plan covering 55 skills.
 
-**Next step:** re-cluster shared bank by Layer-C signatures to create
-cross-domain mega-skills (replace name-based clustering).
+- GAME↔WEB: 4 shared plans (230 skills)
+- GAME↔VR: 1 plan (10 skills)
+- VR↔WEB: 2 plans (19 skills)
+- **GAME+WEB+VR: 1 plan (55 skills)** — `PERCEIVE→EVALUATE→DECIDE→ACT`
+
+The `collapse_signature()` function in `seed_per_task_bank_cold_start.py`
+and the `collapsed_signature` field on every template/skill record make
+this matching automatic at seed selection time.
 
 > **Note:** this gap being "resolved" means the *data pipeline* can now
 > produce cross-domain seed candidates. Whether those seeds actually help

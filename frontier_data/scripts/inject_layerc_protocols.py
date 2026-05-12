@@ -166,6 +166,14 @@ def inject_into_bank(
                     old_proto["action_vocab"] = runtime_proto["action_vocab"]
                     old_proto.setdefault("predicate_success",
                                         runtime_proto["predicate_success"])
+                csig = tmpl.get("collapsed_signature", "")
+                if csig and not sk.get("collapsed_signature"):
+                    sk["collapsed_signature"] = csig
+                    if "skill" in r:
+                        r["skill"] = sk
+                    else:
+                        r = sk
+                    patched += 1
                 records.append(json.dumps(r, ensure_ascii=False))
                 continue
 
@@ -179,6 +187,9 @@ def inject_into_bank(
             sig = tmpl.get("template_signature", "")
             if sig:
                 sk["template_signature"] = sig
+            csig = tmpl.get("collapsed_signature", "")
+            if csig:
+                sk["collapsed_signature"] = csig
             xfer = tmpl.get("transferable_to_cohorts", [])
             if xfer:
                 sk["transferable_to_cohorts"] = xfer
