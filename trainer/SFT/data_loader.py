@@ -46,10 +46,79 @@ from typing import Any, Dict, List, Optional
 from trainer.SFT.config import (
     COLDSTART_IO_MODULE_MAP,
     DECISION_ADAPTERS,
+    LEGACY_DECISION_DATA_DIR,
     SFTConfig,
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ── Per-game balancing utilities ──────────────────────────────────────
+
+
+def _balance_per_game(
+    examples_by_game: Dict[str, List[Dict[str, str]]],
+    strategy: str = "median_cap",
+    cap: int = 5000,
+    upsample_floor: float = 0.5,
+) -> List[Dict[str, str]]:
+    """Balance per-game example counts to prevent data-imbalance collapse.
+
+    Strategies:
+      ``median_cap`` — target = min(median_count, *cap*).  Games above
+          the target are randomly down-sampled; games below
+          ``target * upsample_floor`` are duplicated up to *target*.
+      ``uniform_cap`` — hard cap per game at *cap*; no upsampling.
+      ``none`` — raw concatenation (legacy).
+    """
+    import random as _rng
+
+    if strategy == "none" or not examples_by_game:
+        return [ex for exs in examples_by_game.values() for ex in exs]
+
+    counts = {g: len(exs) for g, exs in examples_by_game.items()}
+    sorted_counts = sorted(counts.values())
+
+    if strategy == "uniform_cap":
+        target = cap
+    else:
+        median = sorted_counts[len(sorted_counts) // 2] if sorted_counts else 0
+        target = min(median, cap) if cap > 0 else median
+        target = max(target, 1)
+
+    upsample_threshold = int(target * upsample_floor)
+    balanced: List[Dict[str, str]] = []
+
+    for game, exs in examples_by_game.items():
+        n = len(exs)
+        if n == 0:
+            continue
+        if n > target:
+            sampled = _rng.sample(exs, target)
+            logger.info(
+                "[balance] %s: down-sampled %d → %d (target=%d)",
+                game, n, target, target,
+            )
+            balanced.extend(sampled)
+        elif strategy == "median_cap" and n < upsample_threshold:
+            repeats = (target // n)
+            remainder = target % n
+            upsampled = exs * repeats + _rng.sample(exs, remainder)
+            logger.info(
+                "[balance] %s: up-sampled %d → %d (target=%d)",
+                game, n, len(upsampled), target,
+            )
+            balanced.extend(upsampled)
+        else:
+            balanced.extend(exs)
+
+    _rng.shuffle(balanced)
+    before_total = sum(counts.values())
+    logger.info(
+        "[balance] strategy=%s target=%d: %d games, %d → %d total examples",
+        strategy, target, len(examples_by_game), before_total, len(balanced),
+    )
+    return balanced
 
 SUBGOAL_TAGS = (
     "SETUP", "CLEAR", "MERGE", "ATTACK", "DEFEND",
@@ -399,6 +468,9 @@ def load_decision_adapter_data(
     data_dir: str,
     games: List[str],
     skillbank_data_dir: Optional[str] = None,
+    balance_strategy: str = "median_cap",
+    balance_cap: int = 5000,
+    balance_upsample_floor: float = 0.5,
 ) -> List[Dict[str, str]]:
     """Load cold-start data for a decision adapter across all games.
 
@@ -409,10 +481,13 @@ def load_decision_adapter_data(
     blocks to include protocol steps, progress, and success/abort criteria
     from the skill bank — matching the new co-evolution format.
 
+    Per-game balancing is applied according to *balance_strategy* to
+    prevent data-imbalance-driven policy collapse.
+
     Returns list of ``{"prompt": ..., "completion": ...}`` dicts.
     """
     assert adapter_name in DECISION_ADAPTERS
-    examples: List[Dict[str, str]] = []
+    per_game: Dict[str, List[Dict[str, str]]] = {}
     base = Path(data_dir)
     for game in games:
         bank: Dict[str, Dict[str, Any]] = {}
@@ -425,12 +500,24 @@ def load_decision_adapter_data(
                                 adapter_name, game, len(bank))
 
         gd = _resolve_game_dir(base, game)
-        if gd is None:
+        path = gd / f"{adapter_name}.jsonl" if gd else None
+
+        # Multi-teacher dir covers gymv skip8 games only; fall back to
+        # legacy single-teacher corpus for missing games/adapters.
+        if path is None or not path.exists():
+            lgd = _resolve_game_dir(LEGACY_DECISION_DATA_DIR, game)
+            if lgd and (lgd / f"{adapter_name}.jsonl").exists():
+                gd = lgd
+                path = lgd / f"{adapter_name}.jsonl"
+                logger.info("[%s] %s: falling back to legacy dir %s",
+                            adapter_name, game, path)
+
+        if gd is None or path is None:
             logger.warning("[%s] %s: no per-game dir under %s — skipping",
                            adapter_name, game, base)
             continue
-        path = gd / f"{adapter_name}.jsonl"
         rows = _read_jsonl(path)
+        game_examples: List[Dict[str, str]] = []
         for row in rows:
             if adapter_name == "action_taking":
                 ex = _align_action_taking_to_coevolution(row, skill_bank=bank or None)
@@ -440,13 +527,21 @@ def load_decision_adapter_data(
             else:
                 ex = _normalise_example(row)
             if ex["prompt"] and ex["completion"]:
-                examples.append(ex)
-        if rows:
+                game_examples.append(ex)
+        if game_examples:
+            per_game[game] = game_examples
             logger.info(
                 "[%s] %s: %d examples from %s",
-                adapter_name, game, len(rows), path,
+                adapter_name, game, len(game_examples), path,
             )
-    logger.info("[%s] Total: %d examples across %d games", adapter_name, len(examples), len(games))
+
+    examples = _balance_per_game(
+        per_game,
+        strategy=balance_strategy,
+        cap=balance_cap,
+        upsample_floor=balance_upsample_floor,
+    )
+    logger.info("[%s] Total: %d examples across %d games", adapter_name, len(examples), len(per_game))
     return examples
 
 
@@ -504,6 +599,9 @@ def load_segment_data(
     data_dir: str,
     games: List[str],
     skillbank_data_dir: Optional[str] = None,
+    balance_strategy: str = "median_cap",
+    balance_cap: int = 5000,
+    balance_upsample_floor: float = 0.5,
 ) -> List[Dict[str, str]]:
     """Load cold-start data for the ``segment`` adapter.
 
@@ -514,7 +612,7 @@ def load_segment_data(
     descriptions (name + strategy) from the skill bank so the model
     learns to rank skills by understanding what they do.
     """
-    examples: List[Dict[str, str]] = []
+    per_game: Dict[str, List[Dict[str, str]]] = {}
     base = Path(data_dir)
     for game in games:
         descs: Dict[str, str] = {}
@@ -533,14 +631,23 @@ def load_segment_data(
 
         path = gd / "teacher_io_coldstart.jsonl"
         rows = _read_jsonl(path)
+        game_examples: List[Dict[str, str]] = []
         for row in rows:
             ex = _normalise_example(row)
             if descs and ex["prompt"]:
                 ex["prompt"] = _enrich_segment_prompt(ex["prompt"], descs)
             if ex["prompt"] and ex["completion"]:
-                examples.append(ex)
-        if rows:
-            logger.info("[segment] %s: %d examples", game, len(rows))
+                game_examples.append(ex)
+        if game_examples:
+            per_game[game] = game_examples
+            logger.info("[segment] %s: %d examples", game, len(game_examples))
+
+    examples = _balance_per_game(
+        per_game,
+        strategy=balance_strategy,
+        cap=balance_cap,
+        upsample_floor=balance_upsample_floor,
+    )
     logger.info("[segment] Total: %d examples", len(examples))
     return examples
 

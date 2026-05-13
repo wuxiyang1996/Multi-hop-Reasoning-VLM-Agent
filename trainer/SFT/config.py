@@ -22,12 +22,17 @@ DECISION_ADAPTERS = ["skill_selection", "action_taking"]
 SKILLBANK_ADAPTERS = ["segment", "contract", "curator"]
 ALL_ADAPTERS = DECISION_ADAPTERS + SKILLBANK_ADAPTERS
 
-# ── Default data sources (current dual-axis SFT corpus) ──────────────
+# ── Default data sources ─────────────────────────────────────────────
 #
-# Decision adapters consume the per-game JSONLs produced by
-# ``labeling/build_decision_sft_jsonl.py`` (output dir is timestamped;
-# the auto-resolver below picks the most recent run).
-DECISION_DATA_DIR = REPO_ROOT / "labeling" / "decision_sft_jsonl"
+# Multi-teacher high-reward SFT (GPT-5.4 + Claude-4.6 + Gemini-3.1 +
+# Qwen3-VL-235B).  Only episodes with reward > 0 are included; the
+# script ``frontier_data/scripts/build_multiteacher_sft.py`` generates
+# this directory.  Falls back to the legacy single-teacher corpus.
+MULTITEACHER_DATA_DIR = (
+    REPO_ROOT / "frontier_data" / "output" / "decision_sft_multiteacher"
+)
+LEGACY_DECISION_DATA_DIR = REPO_ROOT / "frontier_data" / "output" / "decision_sft"
+DECISION_DATA_DIR = MULTITEACHER_DATA_DIR
 
 # Skill-bank adapters consume the per-game artefacts produced by
 # ``labeling/run_skill_discovery.sh`` (skill_bank.jsonl,
@@ -48,7 +53,13 @@ def _latest_run(parent: Path, prefix: str = "run_") -> Path | None:
 # The two SFT corpora are timestamped (``run_<ts>``).  When the user
 # does not pin a specific run via ``--decision_data_dir`` /
 # ``--skillbank_data_dir`` we resolve to the latest one available.
-DEFAULT_DECISION_DATA_DIR = _latest_run(DECISION_DATA_DIR) or DECISION_DATA_DIR
+# Both multi-teacher and legacy dirs are flat (no run_* subdirs).
+if DECISION_DATA_DIR.is_dir() and any(DECISION_DATA_DIR.iterdir()):
+    DEFAULT_DECISION_DATA_DIR = DECISION_DATA_DIR
+elif LEGACY_DECISION_DATA_DIR.is_dir():
+    DEFAULT_DECISION_DATA_DIR = LEGACY_DECISION_DATA_DIR
+else:
+    DEFAULT_DECISION_DATA_DIR = DECISION_DATA_DIR
 DEFAULT_SKILLBANK_DATA_DIR = _latest_run(SKILLBANK_DATA_DIR) or SKILLBANK_DATA_DIR
 
 
@@ -179,6 +190,29 @@ class SFTConfig:
     # projection has zero LoRA-wrapped layers (catches T2.11 drift
     # before we burn another full SFT run).
     strict_lora_coverage: bool = False
+
+    # ── Game-level data balancing (anti-collapse) ──────────────────
+    # Controls how per-game SFT examples are mixed before training.
+    # Without balancing, games with 10× more data dominate the loss
+    # surface and the model's policy collapses toward those games'
+    # patterns while losing generalization to underrepresented ones.
+    #
+    #   "median_cap"  (default) — cap each game at the median count,
+    #                   upsample games below 50 % of median via
+    #                   duplication.  Keeps total volume predictable
+    #                   while preventing any single game from owning
+    #                   more than ~2× the budget.
+    #   "uniform_cap" — hard cap every game at ``game_balance_cap``
+    #                   samples; games below the cap are left as-is.
+    #   "none"        — raw concatenation (legacy, not recommended).
+    game_balance_strategy: str = "median_cap"
+    # Hard cap used by ``uniform_cap``; also serves as the ceiling
+    # for ``median_cap`` when the median is extremely high.
+    game_balance_cap: int = 5000
+    # Minimum upsample threshold as a fraction of the target count.
+    # Games below ``target * game_balance_upsample_floor`` get
+    # duplicated up to ``target``.  Set to 0.0 to disable upsampling.
+    game_balance_upsample_floor: float = 0.5
 
     # Per-adapter overrides (adapter_name → {param: value}).
     #
