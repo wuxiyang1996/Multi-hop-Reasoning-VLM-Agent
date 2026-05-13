@@ -10,43 +10,85 @@ Two questions addressed:
 
 ## 1. Game Split: Source vs Target
 
-### Current Phase 1/2 Split (recommended — keep as-is)
+### Optimized Split (1 game per genre in Phase 1)
 
-Defined in `trainer/coevolution/config.py` (`PHASE1_DEFAULT_GAMES` / `PHASE2_HOLDOUT_GAMES`).
+Defined in `trainer/coevolution/config.py` (`PHASE1_DEFAULT_GAMES` /
+`PHASE2_HOLDOUT_GAMES`).
 
-| Phase | Role | Games | Genres covered |
-|-------|------|-------|----------------|
-| **Phase 1** (source) | Mine concrete skills, populate per-task banks | ThunderForceIII, AlteredBeast, Columns, DynamiteHeaddy, candy_crush, tetris | shooter, brawler, platformer, puzzle |
-| **Phase 2** (target) | Transfer mega-skill skeletons to held-out games | SpaceHarrierII, StreetsOfRage2, Airstriker, Strider, twenty_forty_eight, super_mario | shooter, brawler, platformer, puzzle |
+The split was computed by exhaustive search over all valid 1-per-genre
+assignments, maximizing the number of cross-phase mega-skill transfer
+links. The optimal split scores 50 cross-phase transfer links (vs 43
+for the previous split, +16%).
 
-### Why this split works
+| Phase | Game | Genre | Skills | Role |
+|-------|------|-------|--------|------|
+| **Phase 1** | ThunderForceIII | shooter | 32 | Source: mine shooter skills |
+| | StreetsOfRage2 | brawler | 34 | Source: mine brawler skills |
+| | Strider | platformer | 45 | Source: mine platformer skills (richest bank) |
+| | Columns | puzzle (spatial) | 27 | Source: mine spatial puzzle skills |
+| | tetris | puzzle (spatial) | - | Env_wrapper: block placement like Columns |
+| | candy_crush | puzzle (match) | - | Env_wrapper: pattern-match optimization |
+| **Phase 2** | SpaceHarrierII | shooter | 33 | Target: receive shooter skills from TF3 |
+| | AlteredBeast | brawler | 21 | Target: receive brawler skills from SoR2 |
+| | DynamiteHeaddy | platformer | 32 | Target: receive platformer skills from Strider |
+| | Airstriker | shooter | 31 | Target: receive shooter skills from TF3 |
+| | twenty_forty_eight | puzzle (strategy) | - | Env_wrapper: receives puzzle skills from Columns |
+| | super_mario | platformer | - | Env_wrapper: receives platformer skills from Strider |
 
-**Genre coverage is complete.** Every Phase 2 target genre has a matching
-Phase 1 source:
+### Genre taxonomy
 
-| Target game (Phase 2) | Genre | Source game (Phase 1) | Shared mega-skills |
-|------------------------|-------|-----------------------|-------------------|
-| SpaceHarrierII | shooter | ThunderForceIII | 7 |
-| Airstriker | shooter | ThunderForceIII | 4 |
-| StreetsOfRage2 | brawler | AlteredBeast | 5 |
-| Strider | platformer | DynamiteHeaddy | 7 |
-| super_mario | platformer | DynamiteHeaddy | - |
-| twenty_forty_eight | puzzle | Columns / tetris / candy_crush | 4 |
+The 12 games span 4 primary genres. The 3 puzzle env_wrapper games are
+sub-classified by gameplay mechanics:
 
-**Mega-skill transfer paths confirmed.** The shared skill bank contains
-354 mega-skills, of which 14 span 2+ games. The strongest transfer
-bridges are DynamiteHeaddy-Strider (7 shared) and AlteredBeast-Strider
-(7 shared), both crossing the Phase 1/2 boundary.
+| Genre | Sub-genre | Games | Defining mechanic |
+|-------|-----------|-------|-------------------|
+| shooter | - | ThunderForceIII, SpaceHarrierII, Airstriker | Aim + fire + dodge projectiles |
+| brawler | - | StreetsOfRage2, AlteredBeast | Melee combat + movement |
+| platformer | - | Strider, DynamiteHeaddy, super_mario | Jump + navigate + avoid obstacles |
+| puzzle | spatial | Columns, tetris | Block placement + row/line clearing |
+| puzzle | match | candy_crush | Pattern recognition + swap optimization |
+| puzzle | strategy | twenty_forty_eight | Lookahead + merge planning |
 
-### Potential improvements (not blocking)
+### Cross-phase transfer bridges (9 links, 50 mega-skills total)
 
-- Phase 1 is puzzle-heavy (3/6 are puzzle games). Consider swapping
-  candy_crush to Phase 2 and moving Airstriker to Phase 1 for better
-  balance (shooter:2, brawler:1, platformer:1, puzzle:2 in each phase).
-- 5 zero-data games (CastleOfIllusion, CastlevaniaBloodlines, GoldenAxe,
-  KidChameleon, MortalKombatII) are excluded entirely. The fighter genre
-  (MortalKombatII) has no representation in either phase. These games
-  need skip8 rollouts to be collected before they can participate.
+| Source (Phase 1) | Target (Phase 2) | Shared mega-skills |
+|------------------|-------------------|--------------------|
+| Strider | DynamiteHeaddy | 7 |
+| Strider | AlteredBeast | 7 |
+| Strider | SpaceHarrierII | 7 |
+| ThunderForceIII | SpaceHarrierII | 7 |
+| StreetsOfRage2 | AlteredBeast | 5 |
+| ThunderForceIII | DynamiteHeaddy | 5 |
+| StreetsOfRage2 | DynamiteHeaddy | 4 |
+| Strider | Airstriker | 4 |
+| Columns | DynamiteHeaddy | 4 |
+
+Strider is the strongest transfer hub — it shares 7 mega-skills with
+3 different Phase 2 games across 3 genres (platformer, brawler, shooter).
+
+### Why this split is optimal
+
+1. **Maximized cross-phase transfer:** 50 mega-skill links vs 43 in the
+   previous split (+16%). Every Phase 2 game has at least one strong
+   source in Phase 1.
+2. **Phase 1 has the richest skill banks:** Strider (45 skills),
+   StreetsOfRage2 (34), ThunderForceIII (32), Columns (27) = 138 total.
+   More skills mined in Phase 1 means more to transfer in Phase 2.
+3. **Genre-balanced:** exactly 1 game per primary genre in Phase 1.
+   Phase 2 has 2 shooters, 1 brawler, 1 platformer — the extra shooter
+   provides a same-genre difficulty gradient (Airstriker is easier than
+   SpaceHarrierII).
+4. **Env_wrapper placement is principled:** tetris and candy_crush go
+   to Phase 1 (source puzzle varieties), twenty_forty_eight and
+   super_mario go to Phase 2 (transfer targets matching Columns and
+   Strider respectively).
+
+### Excluded games (no data)
+
+5 gymv games have zero reward across all 4 teachers and no skill banks:
+CastleOfIllusion, CastlevaniaBloodlines, GoldenAxe, KidChameleon,
+MortalKombatII. The fighter genre (MortalKombatII) has no representation.
+These need skip8 rollouts before they can participate.
 
 ---
 

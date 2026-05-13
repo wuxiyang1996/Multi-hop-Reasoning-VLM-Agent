@@ -552,8 +552,8 @@ frontier_data/
 
 | Phase | Tasks | Bank mode | Data source | Purpose |
 |---|---|---|---|---|
-| Phase 1 | ThunderForceIII, AlteredBeast, Columns, DynamiteHeaddy, candy_crush, tetris | `per_game` | Frontier teacher SFT + GRPO | Mine concrete skills; populate per-task banks |
-| Phase 2 | SpaceHarrierII, StreetsOfRage2, Airstriker, Strider, twenty_forty_eight, super_mario | `shared` | Frontier teacher SFT + GRPO | Transfer: mega-skill skeletons to held-out games |
+| Phase 1 | ThunderForceIII, StreetsOfRage2, Strider, Columns, tetris, candy_crush | `per_game` | Frontier teacher SFT + GRPO | Mine concrete skills; 1 game per genre (shooter/brawler/platformer/puzzle) |
+| Phase 2 | SpaceHarrierII, AlteredBeast, DynamiteHeaddy, Airstriker, twenty_forty_eight, super_mario | `shared` | Frontier teacher SFT + GRPO | Transfer: mega-skill skeletons to held-out games (50 cross-phase links) |
 
 Key configuration:
 - `BANK_MODE=shared` — single SharedAbstractBank across all phases

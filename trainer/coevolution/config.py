@@ -46,27 +46,29 @@ SKILL_BANK_GAMES = [
     "gymv_strider",              # gymv (partial-signal rescue test)
 ]
 
-# Phase-1 source roster (§4.1) — used by curriculum scripts and
-# smoke-tests that want only the healthy training subset. Defined as a
-# tuple to discourage in-place mutation; convert to ``list(...)`` if you
-# need to pass it to ``CoEvolutionConfig.games``.
+# Phase-1 source roster — 1 game per primary genre (shooter, brawler,
+# platformer, puzzle) plus 2 env_wrapper puzzle variants.  Optimized by
+# exhaustive search to maximize cross-phase mega-skill transfer links
+# (50 links vs 43 in the previous split).
+# See ``frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md`` §1.
 PHASE1_DEFAULT_GAMES: tuple = (
-    "tetris",
-    "candy_crush",
-    "gymv_thunder_force_iii",
-    "gymv_altered_beast",
-    "gymv_columns",
-    "gymv_dynamite_headdy",
+    "gymv_thunder_force_iii",   # shooter   (32 skills)
+    "gymv_streets_of_rage_2",   # brawler   (34 skills)
+    "gymv_strider",             # platformer (45 skills — richest bank)
+    "gymv_columns",             # puzzle    (27 skills)
+    "tetris",                   # env_wrapper: spatial puzzle
+    "candy_crush",              # env_wrapper: match puzzle
 )
 
-# Phase-2 hold-out roster (§7.1).
+# Phase-2 hold-out roster — transfer targets.  Each game has at least
+# one same-genre source in Phase 1 with shared mega-skills.
 PHASE2_HOLDOUT_GAMES: tuple = (
-    "twenty_forty_eight",
-    "super_mario",
-    "gymv_streets_of_rage_2",
-    "gymv_space_harrier_ii",
-    "gymv_airstriker",
-    "gymv_strider",
+    "gymv_space_harrier_ii",    # shooter   (← TF3: 7 shared mega-skills)
+    "gymv_airstriker",          # shooter   (← TF3: 4, Strider: 4)
+    "gymv_altered_beast",       # brawler   (← SoR2: 5, Strider: 7)
+    "gymv_dynamite_headdy",     # platformer (← Strider: 7, TF3: 5, Columns: 4)
+    "twenty_forty_eight",       # env_wrapper: strategy puzzle (← Columns)
+    "super_mario",              # env_wrapper: platformer (← Strider)
 )
 
 # Evaluation-only: rollouts collected for metrics but NOT fed into GRPO training.
