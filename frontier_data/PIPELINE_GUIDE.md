@@ -9,6 +9,52 @@ and cross-domain skill transfer.
 
 ---
 
+## 0. Data Provenance & Training Strategy
+
+### Games (12 tasks) — frontier teacher distillation
+
+Games use frontier model outputs for SFT. This is safe because game
+environments are **interactive** — no model can "memorize" the correct action
+at frame N. Every rollout is generated fresh against a live emulator.
+
+| Data | Source | Safe? |
+|------|--------|:-----:|
+| SFT (action_taking, skill_selection) | GPT-5.4 + Claude-4.6 + Gemini-3.1 + Qwen3-VL-235B | ✅ |
+| Skill banks | GPT-5.4 extraction from teacher rollouts | ✅ |
+| GRPO training rollouts | Qwen (self-play) | ✅ |
+
+Teacher coverage: gym_v has all 4 teachers; env_wrapper has GPT-5.4 only.
+
+```
+Game pipeline: Multi-teacher SFT → GRPO → Phase 1 (6 source) → Phase 2 (6 hold-out)
+```
+
+### Non-game tasks (6 tasks) — self-rollout exemplars, no teacher answers
+
+Non-game benchmarks (Video Holmes, TIR-bench, etc.) are **static Q&A
+datasets**. Frontier models may have been trained on these benchmarks, so
+their reasoning traces could be post-hoc rationalization of memorized answers.
+
+| Data | Source | Safe? | Notes |
+|------|--------|:-----:|-------|
+| Seed skills (Layer-C templates) | GPT-5.4 | ✅ | Abstract skeletons, no answers |
+| SFT warmup | Game-SFT checkpoint | ✅ | Teaches format, not benchmark answers |
+| ICL exemplars (success/fail) | **Qwen (self-rollout)** | ✅ | Must NOT come from GPT/Gemini |
+| GRPO rollouts | Qwen (self) | ✅ | |
+
+```
+Non-game pipeline:
+  Game-SFT'd Qwen → self-rollout on 200 train split → collect success/fail
+  → ICL exemplars in prompt → GRPO iterations → eval on 800 held-out
+```
+
+**Train/eval split:** 200 train / ~800 eval per task, fixed seed. All
+exemplars and training signals come exclusively from the train split.
+
+See `PLAN_FEW_SHOT_SKILL_BANK.md` for the full non-game training plan.
+
+---
+
 ## Pipeline Overview
 
 ```
@@ -332,37 +378,43 @@ New skill mined in task X ──LLM lift to modality-agnostic skeleton──▶
     (new record, or new lineage entry on existing abstract)
 ```
 
-### 4d. V1 Transfer Approach — "Skills as Suggestions"
+### 4d. V2 Transfer Approach — "Teacher-First Bootstrap + GRPO"
 
-This is the **currently adopted runtime strategy**:
+This is the **currently adopted strategy** (replaces V1's GPT-binding + Crafter):
 
 ```
-Phase 1: Train on 6 source games → build per-task skill banks
+Phase 0: Games (12 tasks)
+         Multi-teacher SFT (GPT/Claude/Gemini/Qwen3-VL) → GRPO
+         → Game-SFT'd Qwen checkpoint (warm-start for non-game tasks)
+         → Layer-C templates distilled from game skill banks
          ↓
-Phase 2: seed_per_task_bank_cold_start.py
-         pick_seed_candidates prioritises by:
-           1st: THREE-WAY collapsed signatures (GAME+WEB+VR)
-           2nd: TWO-WAY cross-domain (collapsed 5-op, ≥ 2 domains)
-           3rd: cohort diversity
-           4th: task breadth
-           5th: production successes
+Phase 0: Non-game tasks (6 tasks)
+         Train/Eval split: 200 / ~800 (fixed seed)
          ↓
-         GPT-5.4 re-grounds to target vocab (bind_abstract_to_task.py)
+         Teacher (GPT/Gemini) rollout on 200 train → teacher demonstrations
          ↓
-         Seeds land as confidence_tag="candidate" (down-weighted)
+         Assign teacher demos to archetypes → initial skill bank
+         (each skill has teacher exemplar + Layer-C protocol + step_checks)
          ↓
-Phase 2+3: Agent tries seed reasoning plans
-           GRPO rewards good execution → plans get reinforced
-           Crafter patches bad plans → plans get refined
-           EligibilityFilter demotes useless plans
-           New skills discovered in target feed back to shared bank (BACKWARD)
+Phase 1: First GRPO iteration
+         Game-SFT'd Qwen + skill bank with teacher exemplars → rollout
+         Collect Qwen self-traces → replace teacher exemplars where valid
+         ↓
+Phase 2+: Iterative GRPO refinement
+         Each iteration: rollout → diagnose → update bank → GRPO
+         Teacher exemplars gradually replaced by Qwen self-traces
+         Statistics-driven: enrich/demote/retire (zero online LLM calls)
+         ↓
+Eval:    800 held-out cases
+         Ablation: teacher-bootstrapped vs self-only exemplars
 ```
 
-**Key insight:** the agent doesn't need a perfect plan — it needs a
-**reasonable reasoning structure** to bootstrap from.
-`PERCEIVE → EVALUATE → DECIDE → ACT` is useful in webshop even if
-the original predicates are from tetris — the **structure guides the
-agent's reasoning**, and **GRPO fine-tunes the execution**.
+**Key insight:** instead of GPT-5.4 binding + Crafter (unreliable LLM
+generation), use **teacher demonstrations as initial ICL exemplars**
+that get naturally replaced by Qwen's own traces through GRPO iterations.
+No new skill text is generated online — only real rollout traces enter the bank.
+
+See `PLAN_FEW_SHOT_SKILL_BANK.md` for full details.
 
 ### 4e. Protocol Injection (Runtime-Ready)
 
@@ -488,23 +540,47 @@ frontier_data/
 │   └── plan_level_similarity_judgments.json ← plan-level judge results
 │
 ├── README.md                              ← full technical documentation
-└── PIPELINE_GUIDE.md                      ← this file
+├── PIPELINE_GUIDE.md                      ← this file
+└── PLAN_FEW_SHOT_SKILL_BANK.md           ← non-game training plan (data provenance + exemplars)
 ```
 
 ---
 
 ## 7. Training Plan Integration
 
-| Phase | Tasks | Bank mode | Purpose |
-|---|---|---|---|
-| Phase 1 | ThunderForceIII, AlteredBeast, Columns, DynamiteHeaddy, candy_crush, tetris | `per_game` | Mine concrete skills; populate per-task banks |
-| Phase 2 | SpaceHarrierII, StreetsOfRage2, Airstriker, Strider, twenty_forty_eight, super_mario | `shared` | Transfer: mega-skill skeletons to held-out games |
-| Phase 3 | miniwob, webshop, tir_bench, visual_toolbench, siv_bench, video_holmes | `shared` | OOD: reasoning patterns cross domain boundaries |
+### Game Training (Phase 1 + Phase 2)
+
+| Phase | Tasks | Bank mode | Data source | Purpose |
+|---|---|---|---|---|
+| Phase 1 | ThunderForceIII, AlteredBeast, Columns, DynamiteHeaddy, candy_crush, tetris | `per_game` | Frontier teacher SFT + GRPO | Mine concrete skills; populate per-task banks |
+| Phase 2 | SpaceHarrierII, StreetsOfRage2, Airstriker, Strider, twenty_forty_eight, super_mario | `shared` | Frontier teacher SFT + GRPO | Transfer: mega-skill skeletons to held-out games |
 
 Key configuration:
 - `BANK_MODE=shared` — single SharedAbstractBank across all phases
 - `TRANSLATE_ON_BOUNDARY=1` — re-ground skills at phase transitions
 - `feasible_tasks` on each skill — runtime eligibility filter
+- SFT data from frontier teachers is standard distillation (safe for games)
+
+### Non-Game Training (Phase 3)
+
+| Phase | Tasks | Bank mode | Data source | Purpose |
+|---|---|---|---|---|
+| Phase 3 | miniwob, webshop, tir_bench, visual_toolbench, siv_bench, video_holmes | `shared` + `exemplar` | Seed skills from GPT + **self-rollout ICL exemplars** + GRPO | OOD: reasoning patterns cross domain boundaries |
+
+Phase 3 uses a different pipeline from games (see `PLAN_FEW_SHOT_SKILL_BANK.md`):
+
+```
+Game-SFT checkpoint (from Phase 1+2)
+  → Self-rollout on 200 train samples per task (Qwen only, no frontier model)
+  → Collect success/fail reasoning traces as ICL exemplars
+  → Seed skill templates (Layer-C) from shared bank (abstract, no answers)
+  → GRPO iterations with exemplar-enriched skill prompts
+  → Bank update between iterations (enrich/demote/retire based on statistics)
+  → Eval on 800 held-out samples
+```
+
+**Critical boundary:** ICL exemplars come from Qwen's own rollouts, not from
+frontier models. This avoids benchmark contamination on static Q&A datasets.
 
 ### Ablation Experiment Design
 
@@ -513,6 +589,8 @@ Key configuration:
 | **A1: seed-bank vs no-bank** | Does the bank help at all? | seed-bank@5 steps ≥ no-bank@15 steps on ≥ 4/6 games |
 | **A2: seed-bank vs raw-SFT** | Does structure matter (same data)? | Structured bank outperforms flat SFT |
 | **A3: cross-domain vs same-domain seeds** | Does cross-domain transfer work? | Game → web/VR seeds improve reward |
+| **A4: self-exemplar vs no-exemplar** | Do ICL exemplars help non-game tasks? | Exemplar-enriched GRPO > bare GRPO on non-game eval |
+| **A5: game-SFT warmup vs raw model** | Does game SFT help non-game? | Game-SFT'd Qwen > raw Qwen on first non-game rollout |
 
 ---
 
@@ -523,12 +601,18 @@ Key configuration:
 | ✅ Done | 406 skills extracted, 354 mega-skills, Layer-C template lift (406/406) |
 | ✅ Done | Protocol injection, cross-domain plan analysis (77.3% collapsed / 100% plan-level) |
 | ✅ Done | 12 mega-skill families (plan-judge), 18 families (bottom-up) |
-| ⏳ Pending | A1/A2/A3 ablation experiments (blocked on Phase 1 training) |
-| ⏳ Pending | 6 non-game tasks missing decision SFT |
-| ⏳ Pending | 186 forward bindings still PENDING (need LLM + harness validation) |
+| ✅ Done | Game SFT data: 12 games, 22,086 SFT rows from frontier teachers |
+| ✅ Done | Data provenance policy: games = teacher distillation, non-game = self-rollout ICL |
+| ⏳ Pending | Train/eval split for 6 non-game tasks (200/800, fixed seed) |
+| ⏳ Pending | Self-rollout collection: run Qwen on train split to gather success/fail exemplars |
+| ⏳ Pending | Exemplar-enriched skill bank construction for non-game tasks |
+| ⏳ Pending | A1-A5 ablation experiments (A1-A3 games, A4-A5 non-game) |
 | ⏳ Pending | env_wrapper games missing Claude / Gemini teacher data |
 
-**Bottom line:** this pipeline is the **data preparation layer**. The actual
-contribution requires three ablation experiments proving that structured skill
-banks enable a 9B student model to transfer reasoning across domains — something
-raw SFT alone cannot achieve.
+**Bottom line:** the pipeline has two distinct training paths:
+- **Games**: standard frontier-teacher SFT → GRPO (data-ready, no leakage concerns)
+- **Non-game**: seed skills + game-SFT warmup → self-rollout ICL exemplars → GRPO (clean boundary, no benchmark contamination)
+
+The contribution is that structured skill banks + self-rollout exemplars
+enable a 9B model to transfer reasoning across domains using only ~200 cases
+per target task — without relying on frontier model answers for the target benchmarks.
