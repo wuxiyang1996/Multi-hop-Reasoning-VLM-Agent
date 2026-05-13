@@ -941,36 +941,125 @@ This is safe because:
 - **No new skill text is generated** — the mega-skill's existing template
   is used as-is, with new exemplars from self-rollout
 
-### Step 2f: Integration with co-evolution orchestrator
+### Step 2f: 35B Enricher — offline skill analyst (idle 35B as free resource)
+
+**Principle**: 9B executes, 35B analyzes. The idle Qwen3.5-35B is used as
+an offline batch analyst BETWEEN iterations — never in the rollout loop.
+It reads 9B's real traces and improves skill prompt text. It does NOT
+generate new skills, predicates, or structural fields.
+
+**Why this is different from the old Crafter that failed:**
+
+| | Old Crafter (failed) | 35B Enricher (new) |
+|---|---|---|
+| **Input** | Abstract failure context | 9B's **real** rollout traces |
+| **Output** | Generate new skills from scratch | Improve **existing** skill text |
+| **Timing** | Per-step online | Between-iteration offline batch |
+| **Scope** | Protocol + effects + contract | Prompt text only |
+| **Risk** | High — hallucinate predicates | Low — only NL descriptions |
+
+**What 35B can modify (prompt text only):**
+
+```python
+class EnricherOutput:
+    # 35B can write these (natural language, shown to agent):
+    improved_step_descriptions: List[str]    # better protocol.steps
+    best_exemplar_id: str                    # pick clearest success trace
+    failure_diagnosis: str                   # why 9B fails at bottleneck
+    failure_lesson: str                      # one-line counter-example lesson
+    strategic_description: str               # updated skill description
+
+    # 35B NEVER touches these (structural, deterministic):
+    # step_checks          → OPERATOR_TO_EFFECT (Phase 0e)
+    # effects / contract   → from mega-skill template
+    # retire/promote       → statistics only (bank_updater)
+    # new skill injection  → mega-skill library lookup
+```
+
+**Four enrichment tasks:**
+
+1. **Step description grounding** — given abstract predicates + 9B success
+   traces, write more actionable step descriptions:
+   ```
+   Input:  predicate="Identify key evidence in observation"
+           + 5 successful 9B traces showing what this means in video_holmes
+   Output: "Identify visual elements, dialogue cues, and character actions
+            that link events to the film's central theme"
+   ```
+
+2. **Exemplar curation** — given multiple 9B success traces, pick the
+   clearest one as the skill's exemplar:
+   ```
+   Input:  20 successful 9B traces for CTI archetype
+   Output: rank by reasoning clarity, select top-1
+   Better than random pick — 35B judges which trace is most instructive
+   ```
+
+3. **Failure diagnosis** — given 9B failure traces clustered at a specific
+   step, produce a failure exemplar with actionable lesson:
+   ```
+   Input:  30 failure traces where 9B stalls at step 3 (FILTER)
+   Output: "Model fails to eliminate options — treats all as equally plausible.
+            Common mistake: fixating on single prop instead of tracing causal chains."
+   → becomes bottleneck warning in prompt for next iteration
+   ```
+
+4. **Cross-archetype pattern recognition** — identify shared failure modes
+   across archetypes to inform bank_updater decisions:
+   ```
+   Input:  failure stats + representative traces across 7 archetypes
+   Output: "CTI and MHR share the same failure pattern — model doesn't
+            trace causal chains in dialogue"
+   → bank_updater can merge similar failure patterns
+   ```
+
+**Cost**: ~100-200 35B inference calls per iteration (offline batch).
+Since 35B is idle, this is effectively free.
+
+**Gating**: 35B's text suggestions are NOT auto-applied. bank_updater
+decides whether to accept based on:
+- Does the improved step description change meaning? (reject if it does)
+- Does the suggested exemplar pass `is_valid_exemplar()` gates?
+- Is the failure diagnosis consistent with statistical evidence?
+
+### Step 2g: Integration with co-evolution orchestrator
 
 **File**: `trainer/coevolution/orchestrator.py`
 
 ```
 for iteration in range(n_iterations):
-    1. rollout(200 train cases, current bank) → episodes
-    2. GRPO update on episodes
-    3. diagnose_skill_performance(episodes) → per-skill + per-step stats
-    4. update_bank:
-       a. enrich / annotate / demote / retire (statistics-driven)
-       b. propagate retirements to shared bank (bookkeeping)
+    1. rollout(200 train cases, current bank) → episodes     [9B]
+    2. GRPO update on episodes                               [9B]
+    3. diagnose_skill_performance(episodes)                   [CPU]
+       → per-skill + per-step stats
+    4. update_bank (statistics-driven):                       [CPU]
+       a. enrich / annotate / demote / retire
+       b. propagate retirements to shared bank
        c. if any skill retired AND bottleneck identified:
-          lookup alternative mega-skill (table lookup, no LLM)
+          lookup alternative mega-skill (table lookup)
           → inject as new seed with template + cross-task exemplar
-    5. quality_check: validate all new/updated exemplars pass gates
-    6. reload_bank_from_disk() → next iteration sees updated bank
+    5. enrich_bank (35B offline batch):                       [35B, idle GPU]
+       a. step description grounding (if still using mega-skill predicates)
+       b. exemplar curation (pick clearest 9B success trace)
+       c. failure diagnosis → update failure_exemplar
+       d. cross-archetype pattern → inform next iteration
+    6. quality_check: validate all new/updated exemplars pass gates
+    7. reload_bank_from_disk() → next iteration sees updated bank
 ```
 
-### Comparison: Crafter v2 vs New Statistics-Driven Approach
+### Comparison: Crafter v2 vs New Approach (Statistics + 35B Enricher)
 
-| Aspect | Crafter v2 (old) | Statistics-driven (new) |
+| Aspect | Crafter v2 (old) | New approach |
 |---|---|---|
-| **New skill generation** | LLM HYPOTHESIZE → 1-step degenerate skills | No new text generated; only inject vetted mega-skills from library |
-| **Skill modification** | LLM PATCH → unpredictable mutations | Replace exemplar with actual rollout trace (real data) |
-| **Failure detection** | Episode-level buckets (USELESS_ACTION, ZERO_REWARD...) | Per-step stall tracking (which step, how often) |
-| **Quality control** | Gate decisions on LLM-generated proposals | Quality gates on real rollout data; minimum episode thresholds |
-| **Online LLM calls** | 35B call per failure trace | **Zero** |
-| **Shared bank feedback** | None | Failure decorations prevent re-seeding bad mega-skills |
+| **New skill generation** | LLM HYPOTHESIZE → 1-step degenerate skills | No new skills generated; only inject vetted mega-skills from library |
+| **Skill modification** | LLM PATCH → unpredictable mutations | Statistics decide WHAT to change; 35B enricher improves prompt TEXT only |
+| **Failure detection** | Episode-level buckets (USELESS_ACTION, ZERO_REWARD...) | Per-step stall tracking + 35B failure diagnosis on real traces |
+| **Quality control** | Gate decisions on LLM-generated proposals | Quality gates on real rollout data; 35B suggestions gated by bank_updater |
+| **LLM calls in rollout** | 35B call per failure trace (online) | **Zero** (9B only) |
+| **LLM calls between iterations** | None | 35B offline batch (~100-200 calls, idle GPU, free) |
+| **Shared bank feedback** | None | Failure decorations + cross-archetype patterns from 35B |
 | **New skill source** | LLM imagination | Pre-computed mega-skill library (vetted offline) |
+| **Role separation** | 35B generates AND executes | 9B executes, 35B analyzes (separate concerns) |
 
 ---
 
@@ -1074,7 +1163,7 @@ class CoEvolutionConfig:
 - **Gradual self-replacement of teacher exemplars**: Every GRPO iteration, wherever Qwen produces a valid success trace, the teacher exemplar is replaced. Over 3-5 iterations, the bank converges to mostly self-generated exemplars. For hard sub-tasks where Qwen never succeeds, teacher exemplars persist — this is by design. Ablation reports both teacher-bootstrapped and self-only results.
 - **Train/eval split enforced at Phase 0**: 200 train / ~800 eval, fixed seed. All exemplars, bank updates, and GRPO training touch only train data.
 - **Unified pipeline for all 6 non-game tasks**: Same code path with per-task exemplar selection strategy (VR standard / miniwob cross-skill / webshop interaction-diverse).
-- **Model**: Training on Qwen 3.5-9B with LoRA from game-SFT checkpoint. When switching to Qwen 3.5-35B later, only need to change `model_name` in `CoEvolutionConfig` + add thinking-mode disable wrapper. The stronger 35B's in-context learning makes exemplar prompts even more effective.
+- **Model split: 9B executes, 35B analyzes**: Training target is Qwen 3.5-9B with LoRA from game-SFT checkpoint. The idle Qwen 3.5-35B serves as an offline skill enricher between iterations — it reads 9B's real traces and improves skill prompt text (step descriptions, exemplar curation, failure diagnosis). 35B never enters the rollout loop or generates structural skill fields. This separation keeps 9B's training clean while leveraging 35B's stronger analytical capability at zero marginal cost (idle GPU).
 - **Selective component disable, not blanket shutdown**: Only the Crafter LLM path (35B hypothesize/patch) is disabled — it was the sole root cause of skill pollution (230/230 degenerate 1-step skills). Harness (eligibility filter + validate_invocation + rejection sink) and Promotion (offline-synthetic gate) are **re-enabled** — they are deterministic, zero-cost, and provide essential runtime quality control. Crafter's rule-based retire path is also kept. See "Online Component Architecture" section for full analysis.
 - **Zero online LLM calls in bank updates**: Crafter v2 used 35B calls to HYPOTHESIZE/PATCH skills, producing degenerate 1-step skills (230/230 in audit). The new pipeline uses only: (a) actual rollout traces as exemplars, (b) pre-computed judge scores for mega-skill lookup, (c) deterministic statistics for enrich/demote/retire. No skill text is generated online.
 - **Skill quality gates at every entry point**: Exemplars must pass `is_valid_exemplar()` (non-truncated, contains reasoning indicators, correct=True for success / correct=False for failure). Bank updates require minimum episode count (default 5) before any decision. Retirement requires 2+ consecutive bad iterations. New mega-skill injection requires pre-computed judge score ≥ 4 AND proven success in other tasks.
@@ -1109,6 +1198,7 @@ class CoEvolutionConfig:
 | `scripts/collect_teacher_demonstrations.py` | Run teacher model (GPT/Gemini) on train split, collect success/fail reasoning traces (one-time bootstrap) |
 | `scripts/build_exemplar_bank.py` | Assign teacher demo traces to archetypes, select top-1 success/fail per skill, produce exemplar-enriched `skill_bank.jsonl` with `source_model` tracking |
 | `trainer/coevolution/bank_updater.py` | All bank update logic: `SkillDiagnosis`, per-step stall tracking, enrich/demote/retire rules, **teacher→self exemplar replacement**, exemplar quality gates, shared bank failure feedback, mega-skill lookup |
+| `trainer/coevolution/skill_enricher_35b.py` | Offline 35B batch enricher: step description grounding, exemplar curation, failure diagnosis, cross-archetype patterns. Called between iterations on idle 35B GPU. Output gated by bank_updater. |
 
 ---
 
