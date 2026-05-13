@@ -2,9 +2,10 @@
 """
 Phase 2: Cluster raw mega-skill labels into canonical families.
 
-Takes the 91 raw labels from extract_mega_skills.py and asks LLM to
-merge semantically equivalent labels into a smaller canonical set.
-Then re-assigns every skill to its canonical family.
+Takes the free-form raw labels from extract_mega_skills.py and asks LLM
+to merge semantically equivalent labels into a smaller canonical set.
+Then re-assigns every skill to its canonical family and outputs a
+codebook for the re-labeling pass (extract_mega_skills.py --relabel).
 
 Usage:
     python frontier_data/scripts/cluster_mega_skills.py
@@ -30,6 +31,7 @@ client = OpenAI(api_key=_keys.openai_api_key)
 OUT_DIR = ROOT / "frontier_data" / "output"
 RAW_FILE = OUT_DIR / "mega_skill_labels.json"
 CLUSTERED_FILE = OUT_DIR / "mega_skill_clusters.json"
+CODEBOOK_FILE = OUT_DIR / "mega_skill_codebook.json"
 
 MERGE_SYSTEM = """\
 You are a cognitive-science expert. Given a list of mega-skill labels \
@@ -265,6 +267,14 @@ Rules:
     with open(CLUSTERED_FILE, "w") as f:
         json.dump(output, f, indent=2, default=str)
     print(f"\nSaved → {CLUSTERED_FILE}")
+
+    # Build codebook for re-labeling pass (extract_mega_skills.py --relabel)
+    codebook = {}
+    for canon, info in output["families"].items():
+        codebook[canon] = info["procedure"]
+    with open(CODEBOOK_FILE, "w") as f:
+        json.dump(codebook, f, indent=2)
+    print(f"Codebook ({len(codebook)} families) → {CODEBOOK_FILE}")
 
 
 if __name__ == "__main__":
