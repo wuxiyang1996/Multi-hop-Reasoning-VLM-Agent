@@ -486,14 +486,71 @@ baseline success rate would be near zero.
 For tasks with few train samples (visual_toolbench, webshop), augment with
 cross-task exemplars from same cohort (see Cross-Task Exemplar Sharing below).
 
-### Step 0c: Seed skill selection from mega-skill bank
+### Step 0c: Seed skill construction — assembly, not generation
 
-**Current code**: `scripts/seed_per_task_bank_cold_start.py` already does this.
+**Principle**: seed skills are assembled from existing components, never
+LLM-generated. The old `bind_abstract_to_task.py` called GPT-5.4 to
+generate full `BoundConcreteSkill` JSON (protocol, contract, effects).
+This is replaced by deterministic assembly.
 
-**What to change**: Instead of full forward-binding (heavy LLM call that generates `BoundConcreteSkill` JSON), do lightweight template injection:
-- Keep the mega-skill's Layer-C template as the reasoning framework
-- Replace forward-bind LLM call with a simpler mapping: just attach the mega-skill template signature + steps as the skill's `protocol`
-- Use exemplars from the mega-skill's cross-task lineage (other tasks' successful bindings) as initial few-shot examples
+**Two paths depending on task status:**
+
+```
+Existing non-game task (6 tasks, already have archetypes):
+  protocol.steps    ← archetype's existing steps (already domain-specific)
+  exemplars         ← protocol_raw.steps (per-sample reasoning trace)
+  step_checks       ← Phase 0e deterministic fill
+  contract          ← archetype's existing effects
+
+New task (future, no archetypes):
+  protocol.steps    ← mega-skill template_steps[].predicate (abstract but serviceable)
+  exemplars         ← teacher demonstrations on train split
+  step_checks       ← Phase 0e deterministic fill from template_signature operators
+  contract          ← mega-skill protocol_steps[].effects (type-level)
+```
+
+In both cases: **exemplar does the domain adaptation, not step description**.
+The model learns what "Identify key evidence" means concretely from the
+exemplar trace, not from the step description text.
+
+**Zero LLM calls.** All components are either pre-existing data or
+deterministic mappings.
+
+### Step 0c-gate: Anti-leakage gate for protocol_raw exemplars
+
+**Risk**: the existing skill bank's `protocol_raw` was extracted from the
+FULL dataset (before train/eval split). Each archetype's representative
+sample might fall in the eval split. Using it as an exemplar during
+training would leak eval answers.
+
+**Gate**: before any `protocol_raw` enters as an exemplar, verify its
+source sample is in the train split:
+
+```python
+def select_safe_exemplar(archetype, train_ids, teacher_demos=None):
+    """Select exemplar that is guaranteed to be from train split."""
+    rep_id = archetype["report"]["lift_stats"]["representative_skill_id"]
+    
+    if rep_id in train_ids:
+        return archetype["skill"]["protocol_raw"]  # safe
+    
+    # Representative is in eval split — find alternative from same archetype
+    for member_id in get_archetype_members(archetype):
+        if member_id in train_ids:
+            member_raw = load_member_protocol_raw(member_id)
+            if member_raw and member_raw.get("steps"):
+                return member_raw
+    
+    # No archetype member in train split — fall back to teacher demo
+    if teacher_demos:
+        return teacher_demos.get_best_trace(archetype["skill"]["skill_id"])
+    
+    return None  # no safe exemplar available
+```
+
+**Rule: any data entering an exemplar field MUST come from train split.**
+This applies to both `protocol_raw` (GPT extraction) and teacher demos
+(Phase 0a already enforces this by only running on train samples).
 
 ### Step 0d: Merge and produce initial bank
 
@@ -917,6 +974,98 @@ for iteration in range(n_iterations):
 
 ---
 
+## Online Component Architecture: What to Keep, What to Disable
+
+The co-evolution training loop has three online subsystems: **Harness**,
+**Crafter**, and **Promotion**. Each has both a deterministic (CPU-only)
+path and an LLM-driven path. The key insight: **only the Crafter LLM path
+actually failed.** Harness and Promotion are architecturally sound — they
+were disabled as collateral when the Crafter was turned off, not because
+of their own defects.
+
+### Component-by-component analysis
+
+| Component | Sub-path | LLM? | Status | Decision | Rationale |
+|-----------|----------|:----:|--------|----------|-----------|
+| **Harness core** (eligibility filter) | F1 status / F2 domain / F2' task / F3 adapter / F4 can_handle | ❌ CPU | Was disabled | **Re-enable** | Pure deterministic filtering, microsecond-level, prevents wrong skills from being selected |
+| **Harness validate_invocation** | Check model followed skill protocol | ❌ CPU | Was disabled | **Re-enable** | Tracks whether model actually used the skill — essential for honest statistics |
+| **Harness rejection sink** | Record which skills get rejected | ❌ CPU | Was disabled | **Re-enable** | Feeds data to `bank_updater` for retire decisions |
+| **Harness LLM validator** | 35B validates skill execution | ✅ 35B | Was disabled | **Keep disabled** | Marginal value over deterministic validation, high cost |
+| **Crafter rule-based retire** | OUTCOME_FAILURE → RetireProposal | ❌ Rules | Was disabled | **Re-enable** | Episode-level failure detection complements `bank_updater`'s per-step stall tracking |
+| **Crafter LLM hypothesize/patch** | 35B generates new skills or patches | ✅ 35B | Was disabled | **Keep disabled** | **Root cause of past failures**: 230/230 promoted skills were degenerate 1-step `[EXEC] hypothesis`. Mode collapse, skill pollution, unverifiable predicates. |
+| **Promotion offline-synthetic gate** | Rule-based gate for proposals | ❌ Rules | Was disabled | **Re-enable** | Lightweight quality gate for `RetireProposal` from Crafter rule path |
+| **Promotion LLM judge** | 35B judges promotion decisions | ✅ 35B | Was disabled | **Keep disabled** | Marginal value, high cost; `bank_updater` statistics replace this |
+
+### Why Crafter LLM was the only real failure
+
+The Crafter LLM path had three documented failure modes:
+
+1. **Serialization bug**: 230/230 crafter-promoted skills had a single
+   `[EXEC] hypothesis` step — the LLM's actual proposed protocol was lost
+   at the serialization seam. The bank filled with degenerate 1-step skills.
+2. **Mode collapse**: The 35B proposer kept generating the same 3-4 skill
+   templates regardless of failure context, because the prompt lacked
+   enough episode-specific grounding.
+3. **Unverifiable output**: LLM-generated skills for non-game tasks produced
+   predicates that could not be checked at runtime (e.g., "understand the
+   narrative arc" is not a verifiable step_check).
+
+Harness and Promotion did not exhibit any of these problems. Harness
+performs deterministic filtering (domain match, status check, protocol
+compliance). Promotion's offline-synthetic gate applies rule-based
+thresholds. Both were only disabled because the Crafter — which fed them
+input — was producing garbage. With garbage input removed, they function
+correctly.
+
+### Responsibility split in the new pipeline
+
+```
+During each training step (real-time):
+  Harness eligibility filter  → "Is this skill applicable to current state?"
+  Harness validate_invocation → "Did the model actually follow this skill?"
+  Harness rejection sink      → Log rejection patterns for bank_updater
+  Crafter rule-path           → Detect episode-level failures → RetireProposal
+  Promotion offline-synthetic → Gate retire proposals (quality threshold)
+
+Between GRPO iterations (batch):
+  bank_updater.py             → Per-step stall analysis
+                              → Enrich / annotate / demote / retire (statistics)
+                              → Teacher→self exemplar replacement
+                              → Failure feedback to shared bank
+                              → Mega-skill lookup for replacements (table lookup)
+```
+
+Harness handles **real-time skill filtering and compliance tracking**.
+bank_updater handles **cross-iteration skill bank management**.
+Crafter rule-path provides **coarse episode-level failure signals**.
+These three are complementary, not overlapping.
+
+### Recommended configuration
+
+```python
+# trainer/coevolution/config.py
+class CoEvolutionConfig:
+    harness_enabled: bool = True           # ✅ Re-enable: deterministic filter
+    crafter_promotion_enabled: bool = True  # ✅ Re-enable: rule-path retire + gate
+    crafter_enabled: bool = True           # ✅ Rule-based path (retire only)
+    llm_crafter_enabled: bool = False      # ❌ Keep disabled: root cause of failures
+    crafter_hypothesize_min_recurrences: int = 999  # Effectively disable hypothesis generation
+    # No config for LLM harness validator — already not wired in default path
+    # Promotion gate_mode defaults to "offline-synthetic" — no LLM judge
+```
+
+### What this gives us vs "all disabled"
+
+| Capability | All disabled | Selective (recommended) |
+|---|---|---|
+| Runtime skill filtering | ❌ Any skill can be selected | ✅ Only domain/status-valid skills |
+| Protocol compliance tracking | ❌ No data on whether model follows skills | ✅ Tracks per-step compliance |
+| Episode-level failure detection | ❌ Only from bank_updater (batch) | ✅ Real-time + batch |
+| Rejection pattern data | ❌ None | ✅ Feeds bank_updater retire decisions |
+| LLM skill generation | ❌ Off | ❌ Off (same — this is the only thing we actually want off) |
+
+---
+
 ## Key Design Decisions
 
 - **Data provenance boundary**: Games use multi-teacher SFT (safe — interactive environments). Non-game tasks use **teacher-first bootstrapping** with **gradual self-replacement**: teacher demonstrations on the train split serve as initial ICL exemplars, and are progressively replaced by Qwen's own traces across GRPO iterations. Seed skills and Layer-C templates from GPT are abstract reasoning skeletons without benchmark answers.
@@ -926,6 +1075,7 @@ for iteration in range(n_iterations):
 - **Train/eval split enforced at Phase 0**: 200 train / ~800 eval, fixed seed. All exemplars, bank updates, and GRPO training touch only train data.
 - **Unified pipeline for all 6 non-game tasks**: Same code path with per-task exemplar selection strategy (VR standard / miniwob cross-skill / webshop interaction-diverse).
 - **Model**: Training on Qwen 3.5-9B with LoRA from game-SFT checkpoint. When switching to Qwen 3.5-35B later, only need to change `model_name` in `CoEvolutionConfig` + add thinking-mode disable wrapper. The stronger 35B's in-context learning makes exemplar prompts even more effective.
+- **Selective component disable, not blanket shutdown**: Only the Crafter LLM path (35B hypothesize/patch) is disabled — it was the sole root cause of skill pollution (230/230 degenerate 1-step skills). Harness (eligibility filter + validate_invocation + rejection sink) and Promotion (offline-synthetic gate) are **re-enabled** — they are deterministic, zero-cost, and provide essential runtime quality control. Crafter's rule-based retire path is also kept. See "Online Component Architecture" section for full analysis.
 - **Zero online LLM calls in bank updates**: Crafter v2 used 35B calls to HYPOTHESIZE/PATCH skills, producing degenerate 1-step skills (230/230 in audit). The new pipeline uses only: (a) actual rollout traces as exemplars, (b) pre-computed judge scores for mega-skill lookup, (c) deterministic statistics for enrich/demote/retire. No skill text is generated online.
 - **Skill quality gates at every entry point**: Exemplars must pass `is_valid_exemplar()` (non-truncated, contains reasoning indicators, correct=True for success / correct=False for failure). Bank updates require minimum episode count (default 5) before any decision. Retirement requires 2+ consecutive bad iterations. New mega-skill injection requires pre-computed judge score ≥ 4 AND proven success in other tasks.
 - **Failure feedback prevents repeat mistakes**: When a skill is retired, its failure pattern is recorded on the shared bank's mega-skill (`failure_decorations`). This prevents `seed_per_task_bank_cold_start.py` from re-seeding the same mega-skill to similar tasks. Over time, the shared bank accumulates cross-task failure knowledge without any LLM calls.
@@ -945,6 +1095,7 @@ for iteration in range(n_iterations):
 | `trainer/coevolution/episode_runner.py` | Modify `_format_skill_guidance_for_prompt()` to render exemplars + bottleneck warnings; add `parse_reasoning_state()` for QA step verification |
 | `trainer/coevolution/skillbank_pipeline.py` | Add hook point for `bank_updater` after rollout collection |
 | `frontier_data/scripts/inject_layerc_protocols.py` | Generate non-empty `step_checks` from operator→effect mapping instead of empty strings |
+| `trainer/coevolution/config.py` | Re-enable `harness_enabled` and `crafter_promotion_enabled` defaults to `True`; keep `llm_crafter_enabled=False`; set `crafter_hypothesize_min_recurrences=999` to disable LLM hypothesis |
 | `trainer/coevolution/orchestrator.py` | Wire bank update step between GRPO iterations |
 | `frontier_data/scripts/collect_all_per_task_banks.py` | Preserve exemplars during archetype aggregation |
 | `scripts/seed_per_task_bank_cold_start.py` | Simplify forward-bind to template+exemplar injection; check `failure_decorations` before selecting mega-skills |
@@ -975,3 +1126,91 @@ If visual_toolbench has only 2 archetypes (31 members):
 ```
 
 This reuses the existing `transferable_to_cohorts` field and plan-level judge scores from the frontier_data pipeline.
+
+---
+
+## Paradigm Selection: How Skills Are Surfaced to the Agent
+
+**Critical discovery**: two fundamentally different paradigms exist for how
+skills guide the agent, and they were never explicitly compared.
+
+See `SKILL_PARADIGM_COMPARISON.md` for the full analysis.
+
+### The two paradigms in our codebase
+
+**Paradigm A (Subgoal Tag)** — verified in game training runs:
+- Agent sees: `Assigned subgoal: [OPTIMIZE] clear blockers to open matches`
+- Skill provides direction (~20 tokens), agent does its own reasoning
+- Successful runs: Candy Crush (reward=17.0), Super Mario, Tetris, 2048
+
+**Paradigm B (Multi-step Protocol)** — designed but never trained:
+- Agent sees: 5-step reasoning plan with `>>` current step marker (~250 tokens)
+- Skill guides each reasoning step, with per-step intrinsic reward
+- Zero training runs to date; `step_checks` are all empty
+
+**Paradigm C (Hybrid + Exemplar)** — proposed middle ground:
+- Agent sees: archetype name + direction + exemplar from `protocol_raw` (~150 tokens)
+- Concrete reasoning example instead of abstract step descriptions
+- Closer to few-shot ICL; no dependency on step_checks
+
+### Key insight: existing `protocol_raw` is a ready-made exemplar source
+
+Every skill in the non-game bank already has `protocol_raw.steps` — the
+per-sample reasoning trace from GPT extraction. These traces are concrete,
+task-specific, and immediately usable as Paradigm C exemplars without any
+additional data collection or LLM calls.
+
+### Decision: paradigm is task-type-dependent
+
+The two task types have fundamentally different needs:
+- **Games**: agent knows HOW to act, needs to know WHAT to do → subgoal tag
+- **Non-game QA**: agent needs to know HOW TO THINK → multi-step protocol IS the skill
+
+The critical factor is **reward density**:
+- Games have dense per-step env_reward → GRPO has strong signal naturally
+- Non-game QA has binary 0/1 reward → GRPO needs per-step artificial reward to provide gradient signal
+
+Per-step intrinsic reward transforms binary 0/1 into continuous partial credit:
+
+```
+PERCEIVE ✓ → +0.1  (found evidence entities)
+COMPARE  ✓ → +0.1  (compared answer options)
+FILTER   ✗ → +0.0  (failed to eliminate — bottleneck identified)
+DECIDE     → skip
+correct    → +1.0
+total = 1.2 (success) or 0.2 (failure with partial credit for reasoning)
+```
+
+**Final assignment:**
+
+| Task type | Paradigm | Prompt content | Reward |
+|---|---|---|---|
+| **Games** (12 tasks) | **A** (subgoal tag) | Tag + one-line objective (~20 tokens) | Dense env_reward only |
+| **Non-game QA** (6 tasks) | **B+C** (protocol + exemplar) | 5-step plan + exemplar from `protocol_raw` (~200 tokens) | Binary env_reward + per-step intrinsic (+0.1/verified step) |
+
+**Prerequisite for non-game**: Phase 0e must populate `step_checks` first.
+Without real checks, intrinsic bonus fires unconditionally (free +0.5 noise).
+
+### Smoke test
+
+Run `frontier_data/scripts/smoke_test_paradigms.py` to see all three
+paradigm prompts rendered side-by-side for any task:
+
+```bash
+python frontier_data/scripts/smoke_test_paradigms.py --task video_holmes
+python frontier_data/scripts/smoke_test_paradigms.py --task tetris --skill-index 0
+python frontier_data/scripts/smoke_test_paradigms.py --all-tasks
+```
+
+### Ablation design
+
+| Ablation | Paradigm | Intrinsic reward | Exemplar |
+|---|---|---|---|
+| A1 (baseline) | Subgoal tag only | None | None |
+| B1 | 5-step protocol (empty checks) | Free +0.5 (noise) | None |
+| B2 | 5-step protocol (real checks) | Earned per-step | None |
+| C1 | Archetype + exemplar | None | From protocol_raw |
+| **BC1** (target) | **Protocol + exemplar** | **Earned per-step** | **From protocol_raw** |
+
+Run on video_holmes (200 train / 800 eval), 3 GRPO iterations each.
+Minimum viable: A1 vs BC1 — does the full package (protocol + exemplar + per-step reward) beat the minimal baseline?
