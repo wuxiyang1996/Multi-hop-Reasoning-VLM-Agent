@@ -238,12 +238,29 @@ if [ "${STAGE}" -le 5 ]; then
     log "STAGE 5: Build shared abstract bank (TwoLayerSkillStore)"
 
     TEMPLATE_OUT="$(cat "${OUTPUT_ROOT}/.latest_templates" 2>/dev/null || echo "${OUTPUT_ROOT}/skill_templates/run_${TIMESTAMP}")"
-    SHARED_BANK_OUT="${OUTPUT_ROOT}/shared_skill_bank/run_${TIMESTAMP}"
+    SHARED_BANK_OUT="${OUTPUT_ROOT}/shared_skill_bank"
+    PLAN_JUDGMENTS="${OUTPUT_ROOT}/plan_level_similarity_judgments.json"
+    SIG_JUDGMENTS="${OUTPUT_ROOT}/plan_similarity_judgments.json"
+    CLUSTER_METHOD="${CLUSTER_METHOD:-plan_judge}"
 
-    run_cmd "Stage 5: Build shared bank from mining + templates + production" \
-        python scripts/build_shared_skill_bank.py \
-            --out "${SHARED_BANK_OUT}" \
-            --template-run "${TEMPLATE_OUT}"
+    if [ "${CLUSTER_METHOD}" = "plan_judge" ] && [ -f "${PLAN_JUDGMENTS}" ]; then
+        # DEFAULT: plan-level LLM judge clustering
+        # Clusters skills by shared reasoning procedure (judge score >= 4)
+        run_cmd "Stage 5: Build shared bank via plan-level judge clustering" \
+            python frontier_data/scripts/build_plan_clustered_bank.py \
+                --plan-judgments "${PLAN_JUDGMENTS}" \
+                --sig-judgments "${SIG_JUDGMENTS}" \
+                --per-task-root "${OUTPUT_ROOT}/per_task_banks" \
+                --out "${SHARED_BANK_OUT}" \
+                --threshold "${JUDGE_THRESHOLD:-4}"
+    else
+        # FALLBACK: name-based clustering (if no judge results available)
+        log "WARN: No plan-level judge results at ${PLAN_JUDGMENTS}, falling back to name-based clustering"
+        run_cmd "Stage 5: Build shared bank from mining + templates (name-based)" \
+            python scripts/build_shared_skill_bank.py \
+                --out "${SHARED_BANK_OUT}" \
+                --template-run "${TEMPLATE_OUT}"
+    fi
 
     log "STAGE 5 complete. Shared bank: ${SHARED_BANK_OUT}"
     echo "${SHARED_BANK_OUT}" > "${OUTPUT_ROOT}/.latest_shared_bank"

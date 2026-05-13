@@ -261,9 +261,27 @@ episode into a per-episode skill, then clusters by `cluster_key`:
 
 ## 4. Shared Skill Bank — TwoLayerSkillStore
 
-The shared bank lifts 406 per-task skills into **354 abstract mega-skills**
-(SharedAbstractSkill). Of these, **14 span ≥ 2 tasks** — the transferable
-multi-step reasoning patterns.
+The shared bank lifts 406 per-task skills into abstract mega-skills
+(SharedAbstractSkill). The **default clustering method** is plan-level
+LLM-as-judge (`build_plan_clustered_bank.py`), which groups skills by
+shared reasoning procedure rather than name or structural signature.
+
+### Clustering method (default: plan-level LLM judge)
+
+| Method | Script | How it clusters | Coverage |
+|---|---|---|---|
+| **Plan-level LLM judge** ✅ | `build_plan_clustered_bank.py` | Union-find on judge edges (score ≥ 4) | 100% |
+| Name-based (fallback) | `build_shared_bank.py` | `normalise_skill_id` stem | 0% cross-domain |
+| Structural signature | `build_reasoning_aligned_bank.py` | Collapsed 5-op signature | 77.3% |
+
+The plan-level judge clustering works by:
+1. Loading judge results (`plan_level_similarity_judgments.json`)
+2. Creating an edge between skills A and B when the judge scores them ≥ 4
+   ("same transferable cognitive procedure")
+3. Running union-find to extract connected components as mega-skill clusters
+4. Falling back to signature/name grouping for skills without judge edges
+
+Override: `CLUSTER_METHOD=name bash frontier_data/scripts/run_full_pipeline.sh`
 
 ### Storage layout
 
@@ -376,7 +394,8 @@ DRY_RUN=1 bash frontier_data/scripts/run_full_pipeline.sh  # print commands only
 | 2 | `label_skill_actions_*.py` → `build_decision_sft_jsonl.py` | Label episodes with skills → decision SFT | ✅ GPT-5.4 |
 | 3 | (copy + reorganise) | Build `frontier_distill_jsonl` from decision SFT | — |
 | 4 | `lift_skill_templates_gpt54.py` | Lift Layer-C procedural templates | ✅ GPT-5.4 |
-| 5 | `build_shared_skill_bank.py` | Merge all sources → SharedAbstractBank | — |
+| 5 | `build_plan_clustered_bank.py` | **Default:** plan-level judge clustering → SharedAbstractBank | — (uses judge results) |
+| 5-alt | `build_shared_skill_bank.py` | Fallback: name-based clustering → SharedAbstractBank | — |
 | 6 | `discover_skill_to_shared_bank.py` | Backward: per-task skills → shared bank | ✅ GPT-5.4 |
 | 7 | `bind_abstract_to_task.py` | Forward: mega-skills → per-task bindings | ✅ GPT-5.4 |
 | 8 | `crafter_v2_batch_pipeline.py` | Crafter v2 refine/compose skills | ✅ 35B judge |
@@ -388,42 +407,58 @@ DRY_RUN=1 bash frontier_data/scripts/run_full_pipeline.sh  # print commands only
 |---|---|---|
 | `collect_all_per_task_banks.py` | Collect per-task `skill_bank.jsonl` from all download sources | `output/per_task_banks/` |
 | `collect_decision_sft.py` | Collect decision SFT + produce gap report | `output/decision_sft/` |
-| `build_shared_bank.py` | Lift 406 skills → 354 SharedAbstractSkill mega-skills | `output/shared_skill_bank/` |
+| `build_plan_clustered_bank.py` | **Default:** plan-level judge clustering → mega-skills (union-find on judge edges) | `output/shared_skill_bank/` |
+| `build_shared_bank.py` | Fallback: name-based clustering → 354 SharedAbstractSkill mega-skills | `output/shared_skill_bank/` |
 | `build_web_skill_banks.py` | Lift miniwob (45 archetypes) + webshop (3 archetypes) | `output/per_task_banks/{miniwob,webshop}/` |
 | `bind_and_validate.py` | Forward-bind mega-skills → per-task via harness + crafter | `output/shared_skill_bank/by_task/` |
 | `test_game_to_nongame_transfer.py` | Harness structural validation: game → non-game transfer matrix | `output/transfer_matrix.json` |
 | `build_reasoning_aligned_bank.py` | Reasoning-intent normalizer + cross-domain plan matcher | `output/reasoning_aligned_mega_skills.json` |
+| `judge_plan_level_similarity.py` | Plan-level LLM-as-judge: batch 1-vs-N comparison (feeds default clustering) | `output/plan_level_similarity_judgments.json` |
+| `judge_plan_similarity.py` | Signature-level LLM-as-judge: pairwise comparison within same signature | `output/plan_similarity_judgments.json` |
+| `extract_mega_skills.py` | Bottom-up per-skill LLM classification into 18 cognitive families | `output/mega_skill_labels.json` |
+| `cluster_mega_skills.py` | Merge raw mega-skill labels into canonical families | `output/mega_skill_clusters.json` |
+| `inject_layerc_protocols.py` | Convert Layer-C templates → runtime protocol in skill banks | per-task `skill_bank.jsonl` |
 
 ### Output directory layout
 
 ```
 frontier_data/
 ├── scripts/
-│   ├── run_full_pipeline.sh           ← 9-stage master orchestrator
-│   ├── collect_all_per_task_banks.py  ← step 1: collect all native skills
-│   ├── collect_decision_sft.py        ← step 2: collect decision SFT + gap report
-│   ├── build_shared_bank.py           ← step 3: build SharedAbstractBank
-│   └── bind_and_validate.py           ← step 4: forward-bind + crafter
+│   ├── run_full_pipeline.sh              ← 9-stage master orchestrator
+│   ├── collect_all_per_task_banks.py     ← step 1: collect all native skills
+│   ├── collect_decision_sft.py           ← step 2: collect decision SFT + gap report
+│   ├── build_plan_clustered_bank.py      ← DEFAULT step 3: plan-judge clustering
+│   ├── build_shared_bank.py              ← fallback step 3: name-based clustering
+│   ├── bind_and_validate.py              ← step 4: forward-bind + crafter
+│   ├── judge_plan_level_similarity.py    ← plan-level LLM judge (feeds clustering)
+│   ├── judge_plan_similarity.py          ← signature-level LLM judge
+│   ├── extract_mega_skills.py            ← bottom-up LLM classification
+│   ├── cluster_mega_skills.py            ← label merging
+│   └── inject_layerc_protocols.py        ← Layer-C → runtime protocol
 ├── output/
-│   ├── per_task_banks/                ← 406 skills across 18 tasks
+│   ├── per_task_banks/                   ← 406 skills across 18 tasks
 │   │   ├── <task>/skill_bank.jsonl
 │   │   └── MANIFEST.json
-│   ├── decision_sft/                  ← 12/18 skill-banked tasks with SFT data
+│   ├── decision_sft/                     ← 12/18 skill-banked tasks with SFT data
 │   │   ├── <task>/{action_taking,skill_selection}.jsonl
 │   │   ├── MANIFEST.json
-│   │   └── GAP_REPORT.json            ← 6 non-game gaps documented
-│   ├── shared_skill_bank/             ← TwoLayerSkillStore
-│   │   ├── abstract.jsonl             ← 354 mega-skills
+│   │   └── GAP_REPORT.json              ← 6 non-game gaps documented
+│   ├── shared_skill_bank/                ← TwoLayerSkillStore
+│   │   ├── abstract.jsonl                ← mega-skills (plan-judge clustered)
 │   │   ├── by_task/<task>/bindings.jsonl
 │   │   └── SUMMARY.json
-│   ├── layer_c_templates/             ← GPT-5.4 Layer-C procedural templates
-│   │   ├── <cohort>/<task>/template_bank.jsonl  ← 406 templates (8-op + collapsed 5-op)
-│   │   └── _lift_summary.json         ← lift run metadata
-│   ├── bind_reports/                  ← binding audit trail
-│   │   └── bind_report_*.json
-│   ├── transfer_matrix.json           ← game→non-game harness validation (84 pairs)
-│   └── reasoning_aligned_mega_skills.json  ← 9 cross-domain reasoning plans (Layer-C)
-└── README.md                          ← this file
+│   ├── layer_c_templates/                ← GPT-5.4 Layer-C procedural templates
+│   │   ├── <cohort>/<task>/template_bank.jsonl
+│   │   └── _lift_summary.json
+│   ├── plan_level_similarity_judgments.json  ← plan-level judge results (feeds clustering)
+│   ├── plan_similarity_judgments.json        ← signature-level judge results
+│   ├── mega_skill_labels.json               ← per-skill LLM classification
+│   ├── mega_skill_clusters.json             ← merged canonical families
+│   ├── bind_reports/                     ← binding audit trail
+│   ├── transfer_matrix.json              ← game→non-game harness validation
+│   └── reasoning_aligned_mega_skills.json ← cross-domain reasoning plans
+├── README.md                             ← this file
+└── PIPELINE_GUIDE.md                     ← pipeline walkthrough
 ```
 
 ---
