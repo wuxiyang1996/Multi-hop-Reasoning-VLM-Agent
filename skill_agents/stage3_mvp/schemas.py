@@ -490,6 +490,11 @@ class Skill:
     expected_tag_pattern: List[str] = field(default_factory=list)
     execution_hint: Optional[ExecutionHint] = None
 
+    # Paradigm C: concrete reasoning exemplar from teacher demo or self-trace.
+    # Loaded from skill_bank.jsonl's protocol_raw field; used by
+    # SkillBankProvider._enrich_from_skill() to populate SkillGuidance.exemplar_steps.
+    protocol_raw: Optional[Dict[str, Any]] = None
+
     # Protocol version history for rollback
     protocol_history: List[Dict[str, Any]] = field(default_factory=list)
 
@@ -657,9 +662,9 @@ class Skill:
         """Part 1 only: protocol + metadata the decision agent needs.
 
         Never includes sub-episodes, raw contract internals, or rollout
-        pointers.
+        pointers.  Includes protocol_raw for Paradigm C exemplar rendering.
         """
-        return {
+        view: Dict[str, Any] = {
             "skill_id": self.skill_id,
             "name": self.name,
             "strategic_description": self.strategic_description,
@@ -668,6 +673,9 @@ class Skill:
             "expected_duration": self.protocol.expected_duration,
             "tags": self.tags,
         }
+        if self.protocol_raw:
+            view["protocol_raw"] = self.protocol_raw
+        return view
 
     def to_evidence_view(self) -> Dict[str, Any]:
         """Part 2 only: evidence pointers + summaries for the skill agent.
@@ -699,6 +707,7 @@ class Skill:
             "sub_episodes": [se.to_dict() for se in self.sub_episodes],
             "expected_tag_pattern": self.expected_tag_pattern,
             "execution_hint": self.execution_hint.to_dict() if self.execution_hint else None,
+            "protocol_raw": self.protocol_raw,
             "protocol_history": self.protocol_history,
             "n_instances": self.n_instances,
             "retired": self.retired,
@@ -727,6 +736,7 @@ class Skill:
             strategic_description=d.get("strategic_description", ""),
             tags=d.get("tags", []),
             protocol=protocol,
+            protocol_raw=d.get("protocol_raw"),
             contract=contract,
             sub_episodes=sub_eps,
             expected_tag_pattern=d.get("expected_tag_pattern", []),

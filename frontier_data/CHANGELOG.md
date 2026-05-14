@@ -1,5 +1,127 @@
 # Frontier Data — Changelog
 
+## 2026-05-13: Paradigm C Data Bridge + 35B LLM Skill Enricher
+
+### Context
+
+Paradigm C (Hybrid + Exemplar) was designed in SKILL_PARADIGM_COMPARISON.md
+but lacked the data flow to actually render in the agent's prompt. The 35B
+model (Qwen3.5-35B-A3B) was idle between GRPO iterations — a natural fit
+for offline skill text improvement.
+
+### What was done
+
+#### 1. Paradigm C runtime data bridge
+
+Bridged the gap between `skill_bank.jsonl` → `SkillGuidance` → agent prompt
+so `protocol_raw.steps` (concrete reasoning exemplars) actually render as
+"Example reasoning:" in the action-taking prompt.
+
+**Data flow (new):**
+
+```
+skill_bank.jsonl                      ← protocol_raw.steps stored here
+    ↓ Skill.from_dict()
+Skill.protocol_raw: Dict              ← new field on Skill dataclass
+    ↓ to_decision_agent_view()
+candidate["protocol_raw"]             ← propagated via _enrich_candidate()
+    ↓ _enrich_from_skill()
+SkillGuidance.exemplar_steps: List    ← new field on SkillGuidance
+    ↓ _format_skill_guidance_for_prompt()
+"  Example reasoning:"                ← rendered in agent prompt (Paradigm C)
+"    - <step 1>"
+"    - <step 2>"
+"  Common mistake: <failure_lesson>"
+```
+
+#### 2. 9B self-rollout exemplar extraction (`enrich_protocol_raw`)
+
+New function in `skill_enrichment.py` extracts `protocol_raw.steps` from
+the best (highest-reward) sub-episode's intention sequence during each
+GRPO iteration. This is the **non-LLM baseline** — works without any
+teacher model.
+
+- Scans all segments, collects per-skill intention traces
+- Selects highest cumulative-reward trace per skill
+- Packages as `{"steps": [...], "source": "self_rollout", "reward": R}`
+- Only updates when a better exemplar is found (monotonic improvement)
+
+#### 3. 35B LLM Skill Enricher (offline batch, fail-soft)
+
+Three-pass LLM enrichment that runs between GRPO iterations using the
+idle 35B model. Fundamentally different from the failed Crafter:
+
+| | Old Crafter (failed) | New 35B Enricher |
+|---|---|---|
+| **Input** | Abstract failure context | Real 9B rollout traces |
+| **Output** | New skills (structural) | Better NL text on existing skills |
+| **Timing** | Online, per-step | Offline, iteration-between batch |
+| **Touches** | effects, contract, protocol (structural) | ONLY prompt text fields |
+| **Risk** | High (hallucinate predicates) | Low (NL only, no structural edits) |
+
+**Three passes (each fail-soft, each independently toggleable):**
+
+1. **Step description grounding** — rewrite `protocol_raw.steps` for
+   clarity given the skill's archetype context. Marks as `llm_grounded`
+   so the same skill isn't rewritten twice.
+
+2. **Exemplar curation** — from N success traces, ask 35B to select the
+   clearest one as the canonical exemplar (rather than just picking
+   highest-reward, which may have messy reasoning).
+
+3. **Failure diagnosis** — from failed traces where 9B gets stuck at the
+   same step, produce a `failure_lesson` string → rendered as
+   "Common mistake:" in the prompt.
+
+**Safety constraints:**
+- 35B only writes: `protocol_raw.steps` (NL), `failure_lesson` (NL),
+  `strategic_description` update (NL), exemplar selection (ranking)
+- 35B never touches: `step_checks`, `effects/contract` (structural),
+  new skill creation, retire/promote decisions (statistics-driven)
+- Every LLM call has a hard 45s timeout, fail-soft to no-op
+- Controlled via `LLM_ENRICHMENT_ENABLED=1` env var (default: off)
+- Config flags: `llm_enrichment_enabled`, `llm_enrichment_model`,
+  per-pass toggles for grounding/curation/diagnosis
+
+**Pipeline integration:**
+
+```
+Each GRPO iteration:
+  1. 9B rollout (N episodes per game)
+  2. GRPO training
+  3. bank_updater: statistics → enrich/demote/retire (deterministic)
+  4. enrich_bank_after_update():
+     a. Deterministic: protocols, hints, durations, sub-episode refs (always)
+     b. protocol_raw from 9B intentions (always, non-LLM)
+     c. 35B enricher (if LLM_ENRICHMENT_ENABLED=1):
+        → Rewrite step descriptions for clarity
+        → Select clearest success trace as exemplar
+        → Diagnose failure patterns → failure_lesson
+  5. Updated skill bank → next iteration
+```
+
+### Files changed
+
+| File | Change |
+|---|---|
+| `trainer/coevolution/skill_enrichment.py` | Added `enrich_protocol_raw()` (non-LLM), 35B LLM enricher (`run_llm_enrichment`, 3 async passes), updated `enrich_bank_after_update()` with LLM toggle |
+| `trainer/coevolution/config.py` | Added `llm_enrichment_enabled`, `llm_enrichment_model`, per-pass toggle flags |
+| `trainer/coevolution/skillbank_pipeline.py` | Thread `LLM_ENRICHMENT_ENABLED` env var into `enrich_bank_after_update()` |
+| `decision_agents/skill_interface.py` | Added `exemplar_steps`, `exemplar_answer`, `failure_lesson` to `SkillGuidance`; updated `_enrich_from_skill()` |
+| `skill_agents/stage3_mvp/schemas.py` | Added `protocol_raw: Optional[Dict]` to `Skill`; updated serialization |
+| `scripts/qwen3_decision_agent.py` | Propagate `protocol_raw` in `_enrich_candidate()` |
+| `trainer/coevolution/episode_runner.py` | Paradigm C rendering in `_format_skill_guidance_for_prompt()` |
+| `frontier_data/SKILL_PARADIGM_COMPARISON.md` | Updated Paradigm C status: implemented |
+| `frontier_data/CHANGELOG.md` | This entry |
+
+Same changes mirrored in `Game-AI-Agent/`:
+- `skill_agents/stage3_mvp/schemas.py`
+- `skill_agents_grpo/stage3_mvp/schemas.py`
+- `trainer/coevolution/skill_enrichment.py`
+- `trainer/coevolution/skillbank_pipeline.py`
+
+---
+
 ## 2026-05-12: Layer-C Reasoning Plans + Cross-Domain Transfer Pipeline
 
 ### What was done

@@ -110,36 +110,52 @@ ACTION: <number>
 
 ---
 
-## Paradigm C: Hybrid — Archetype + Direction + Exemplar (proposed)
+## Paradigm C: Hybrid — Archetype + Direction + Exemplar (implemented)
 
-**What the agent would see:**
+**Status:** Implemented (2026-05-13). Data bridge complete: `protocol_raw.steps`
+flows from skill bank through `SkillGuidance.exemplar_steps` to the agent's
+prompt as "Example reasoning:" block. Optional 35B LLM enricher rewrites
+step text for clarity and diagnoses failure patterns.
+
+**What the agent sees:**
 
 ```
---- Skill: Core Theme Inference (CTI) ---
-  Approach: Trace causal chains in dialogue evidence, don't fixate on single props.
-
-  Example (correct):
-    Q: "What is the core theme of this film?"
-    Key evidence: message="Weird things since the challenge" + smartphone + cartoon mouse
-    Reasoning: Message links horror to game participation → dangerous novelty games → (C)
-
-  Counter-example (wrong):
-    Mistake: Focused on smartphone prop → guessed "technology dependence"
-    Lesson: Trace causal chains, don't fixate on individual props
+--- Active Skill: Core Theme Inference ---
+  Strategy: Identify thematic patterns through evidence chains
+  Progress: step 2/5
+  Plan (5 steps):
+     1. Identify the strongest evidence linking events to a cause
+  >> 2. Assess which thematic interpretation best fits all observed cues
+     3. Eliminate themes unsupported or contradicted by the evidence
+     4. Select the most likely core theme from remaining candidates
+     5. Confirm the chosen theme matches the central evidence pattern
+  Example reasoning:
+    - Message links horror to game participation
+    - Multiple props confirm dangerous novelty games theme
+    - Eliminated technology dependence (only one prop supports it)
+  Common mistake: Focused on smartphone prop instead of tracing causal chains
 --- end skill ---
 ```
 
 **What the skill provides:**
 - Archetype **name** and one-line reasoning **direction**
-- One success **exemplar** (from `protocol_raw` or teacher demo)
-- One failure **counter-example** (optional)
+- One success **exemplar** (from `protocol_raw.steps` — 9B self-rollout or teacher demo)
+- One failure **counter-example** (optional, from `failure_lesson` — 35B diagnosed)
 
 **What the skill does NOT provide:**
-- Step-by-step protocol
-- Per-step progress tracking or intrinsic bonus
-- Step checks
+- Per-step progress tracking or intrinsic bonus (kept from Paradigm B when step_checks exist)
+- Step checks (Paradigm C doesn't depend on them)
 
 **Prompt overhead:** ~120-150 tokens per skill block
+
+**Data sources for exemplars:**
+
+| Source | How | Quality |
+|---|---|---|
+| 9B self-rollout (default) | `enrich_protocol_raw()` extracts best-reward intention sequence | Okay — raw agent reasoning, may be messy |
+| 35B step grounding (optional) | `_enrich_steps_llm_async()` rewrites for clarity | Better — grounded in archetype context |
+| 35B exemplar curation (optional) | `_enrich_exemplar_selection_llm_async()` picks clearest trace | Best — LLM selects for pedagogical value |
+| 35B failure diagnosis (optional) | `_enrich_failure_diagnosis_llm_async()` → `failure_lesson` | Complementary — teaches what NOT to do |
 
 **Rationale:**
 - Exemplar shows concrete reasoning, not abstract instructions
@@ -147,6 +163,7 @@ ACTION: <number>
 - Agent retains freedom to reason its own way, but has a concrete reference
 - No dependency on step_checks correctness (currently broken)
 - `protocol_raw.steps` already exists in the skill bank as exemplar source
+- 35B enrichment is offline and fail-soft — never blocks training
 
 ---
 
@@ -154,14 +171,16 @@ ACTION: <number>
 
 | Dimension | A: Subgoal Tag | B: Multi-step Protocol | C: Hybrid + Exemplar |
 |---|---|---|---|
-| **Verified** | Yes (games) | No | No |
+| **Implemented** | Yes (games, verified) | Yes (rendering only) | **Yes (2026-05-13)** |
 | **Prompt tokens** | ~20 | ~250 | ~120-150 |
 | **Agent freedom** | High | Low | Medium |
 | **Reasoning guidance** | Direction only | Step-by-step | By example |
-| **Failure attribution** | Episode-level | Per-step (if checks work) | Episode-level |
+| **Failure attribution** | Episode-level | Per-step (if checks work) | Episode-level + failure_lesson |
 | **Intrinsic reward** | No | Yes (per-step bonus) | No |
-| **Exemplar** | No | No (planned) | Yes (core feature) |
+| **Exemplar** | No | No (planned) | **Yes (from protocol_raw.steps)** |
+| **Failure counter-example** | No | No | **Yes (from failure_lesson, 35B)** |
 | **Dependency on step_checks** | None | Critical (currently broken) | None |
+| **35B enrichment** | N/A | N/A | **Optional (3 passes, fail-soft)** |
 | **Best for** | Games (dense reward, multi-turn) | QA if step_checks work | QA (sparse reward, single-turn) |
 
 ## Resolution: Different Tasks Need Different Paradigms
@@ -276,9 +295,33 @@ skill_bank.jsonl per skill record:
   skill.strategic_description   → Paradigm A objective text
   skill.skill_id                → Paradigm A tag (archetype.video_holmes.CTI → CTI)
   skill.protocol_raw.steps      → Paradigm C exemplar source (per-sample reasoning)
+  skill.protocol_raw.failure_lesson → Paradigm C counter-example (35B diagnosed)
+  skill.protocol_raw.llm_grounded  → True if steps were rewritten by 35B
   report.expected_answer        → Paradigm C exemplar gold answer
   report.model_answer           → Paradigm C exemplar model answer
 ```
 
 Run `frontier_data/scripts/smoke_test_paradigms.py` to see all three
 prompt variants rendered side-by-side for every video_holmes skill.
+
+## Enabling 35B LLM Enrichment
+
+The 35B enricher is off by default. To enable:
+
+```bash
+# Environment variable (simplest)
+export LLM_ENRICHMENT_ENABLED=1
+export LLM_ENRICHMENT_MODEL=""   # empty = use BACKBONE_JUDGE_MODEL (35B-A3B)
+
+# Or in CoEvolutionConfig
+config.llm_enrichment_enabled = True
+config.llm_enrichment_model = ""
+config.llm_enrichment_step_grounding = True      # pass 1
+config.llm_enrichment_exemplar_curation = True   # pass 2
+config.llm_enrichment_failure_diagnosis = True   # pass 3
+```
+
+Non-LLM enrichment (`enrich_protocol_raw` from 9B self-rollout) always
+runs regardless of the LLM enrichment toggle. The 35B passes layer on
+top: grounding rewrites raw 9B steps for clarity, curation selects the
+clearest exemplar, and diagnosis adds failure counter-examples.

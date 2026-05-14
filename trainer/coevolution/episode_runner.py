@@ -499,6 +499,22 @@ def _format_skill_guidance_for_prompt(
         for i, step in enumerate(steps[:7], 1):
             marker = ">>" if (i - 1) == protocol_step_idx else "  "
             parts.append(f"  {marker} {i}. {step}")
+
+    # Paradigm C: render concrete reasoning exemplar from protocol_raw.
+    proto_raw = guidance.get("protocol_raw")
+    if isinstance(proto_raw, dict):
+        raw_steps = proto_raw.get("steps", [])
+    else:
+        raw_steps = []
+    exemplar_steps = guidance.get("exemplar_steps") or raw_steps
+    if exemplar_steps:
+        parts.append("  Example reasoning:")
+        for es in exemplar_steps[:5]:
+            parts.append(f"    - {str(es)[:150]}")
+    failure_lesson = guidance.get("failure_lesson", "")
+    if failure_lesson:
+        parts.append(f"  Common mistake: {failure_lesson[:200]}")
+
     preconditions = protocol.get("preconditions", []) if isinstance(protocol, dict) else []
     if preconditions:
         parts.append(f"  Preconditions: {'; '.join(preconditions[:3])}")

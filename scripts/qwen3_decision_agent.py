@@ -899,15 +899,15 @@ def get_top_k_skill_candidates(
 
 
 def _enrich_candidate(skill_bank: Any, d: Dict[str, Any]) -> None:
-    """Fill in missing skill_name / execution_hint from the bank.
+    """Fill in missing skill_name / execution_hint / protocol_raw from the bank.
 
     When no strategic description is available (e.g. co-evolution skills
     that only have predicate-based contracts), generates a compact
     hint from the contract effects so the action-taking prompt has
     *some* context about what the skill does.
+
+    Also propagates ``protocol_raw`` for Paradigm C exemplar rendering.
     """
-    if d.get("skill_name") and d.get("execution_hint"):
-        return
     sid = d.get("skill_id")
     if not sid:
         return
@@ -926,6 +926,10 @@ def _enrich_candidate(skill_bank: Any, d: Dict[str, Any]) -> None:
                 if not desc:
                     desc = _hint_from_contract(skill_obj)
                 d["execution_hint"] = desc
+            if not d.get("protocol_raw"):
+                proto_raw = getattr(skill_obj, "protocol_raw", None)
+                if proto_raw:
+                    d["protocol_raw"] = proto_raw
 
 
 def _hint_from_contract(skill_obj: Any) -> str:

@@ -532,12 +532,20 @@ class AsyncSkillBankPipeline:
         t_enrich = time.monotonic()
 
         def _enrich():
+            import os
             try:
                 from trainer.coevolution.skill_enrichment import (
                     enrich_bank_after_update,
                 )
+                llm_enrich = os.environ.get(
+                    "LLM_ENRICHMENT_ENABLED", ""
+                ).lower() in ("1", "true", "yes")
                 return enrich_bank_after_update(
                     agent, episodes=self._pending_episodes,
+                    llm_enrichment_enabled=llm_enrich,
+                    llm_enrichment_model=os.environ.get(
+                        "LLM_ENRICHMENT_MODEL", "",
+                    ),
                 )
             except Exception as exc:
                 logger.warning("Skill enrichment failed: %s", exc)

@@ -609,6 +609,25 @@ class CoEvolutionConfig:
     # before relying on the path.
     llm_crafter_enable_thinking: bool = False
 
+    # ── 35B LLM Skill Enricher (offline batch, iteration-between) ────
+    # Distinct from the old Crafter: the enricher ONLY rewrites NL
+    # prompt text on existing skills using real 9B rollout traces.
+    # It never touches structural fields (effects, contract, step_checks)
+    # and never creates new skills.  Runs between GRPO iterations as
+    # a batch of ~50-200 LLM calls — negligible cost when the 35B is
+    # otherwise idle.  See ``trainer/coevolution/skill_enrichment.py``
+    # and ``frontier_data/PLAN_FEW_SHOT_SKILL_BANK.md``.
+    #
+    # Three independent passes, each fail-soft:
+    #   1. Step grounding: rewrite protocol_raw.steps for clarity
+    #   2. Exemplar curation: from N traces, pick the clearest
+    #   3. Failure diagnosis: diagnose common mistakes → failure_lesson
+    llm_enrichment_enabled: bool = False
+    llm_enrichment_model: str = ""
+    llm_enrichment_step_grounding: bool = True
+    llm_enrichment_exemplar_curation: bool = True
+    llm_enrichment_failure_diagnosis: bool = True
+
     # ── Hypothesizer fallthrough gate (post-v11 audit) ──────────────
     # The crafter dispatch chain is `patch → retire → hypothesize`,
     # with hypothesize as last-resort.  In v11 the trigger conditions

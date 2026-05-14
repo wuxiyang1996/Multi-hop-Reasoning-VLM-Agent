@@ -88,6 +88,13 @@ class SkillGuidance:
     eff_add: List[str] = field(default_factory=list)
     eff_del: List[str] = field(default_factory=list)
 
+    # Paradigm C exemplar fields — concrete reasoning examples from
+    # protocol_raw.steps (teacher demo or self-trace).  Rendered by
+    # _format_skill_guidance_for_prompt() as "Example reasoning:" block.
+    exemplar_steps: List[str] = field(default_factory=list)
+    exemplar_answer: str = ""
+    failure_lesson: str = ""
+
     # Fallback action sequence when no LLM is available.  Each entry is a
     # dict; the recognised keys are ``action`` (env action string) and,
     # optionally, ``effect`` (predicate that should become true).
@@ -121,6 +128,9 @@ class SkillGuidance:
             "optional_slots": list(self.optional_slots),
             "eff_add": list(self.eff_add),
             "eff_del": list(self.eff_del),
+            "exemplar_steps": list(self.exemplar_steps),
+            "exemplar_answer": self.exemplar_answer,
+            "failure_lesson": self.failure_lesson,
             "micro_plan": list(self.micro_plan),
         }
 
@@ -497,6 +507,18 @@ class SkillBankProvider:
                 guidance.execution_hint = (
                     getattr(eh, "execution_description", "") or ""
                 )
+
+        # Paradigm C: pull protocol_raw.steps as exemplar.
+        if skill is not None and not guidance.exemplar_steps:
+            proto_raw = getattr(skill, "protocol_raw", None)
+            if proto_raw is None and isinstance(skill, dict):
+                proto_raw = skill.get("protocol_raw")
+            if isinstance(proto_raw, dict):
+                raw_steps = proto_raw.get("steps", [])
+                if raw_steps and isinstance(raw_steps, list):
+                    guidance.exemplar_steps = [
+                        str(s) for s in raw_steps[:7]
+                    ]
 
         # Pull slot bindings when the skill exposes them (PLAN §10).
         slot_bindings = None
