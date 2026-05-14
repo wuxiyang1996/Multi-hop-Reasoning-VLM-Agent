@@ -952,6 +952,262 @@ Filter → Decide → Commit" is useful in webshop even if the original
 predicates are from tetris — the STRUCTURE guides the agent's reasoning,
 and GRPO fine-tunes the execution.
 
+### 8h. End-to-end skill lifecycle: discovery → mega-skill → transfer
+
+#### Three-phase architecture
+
+Skills do not exist at the start. They are **discovered** by the
+`skill_agents` pipeline during Phase 1, then **clustered** into
+mega-skills at the phase boundary, then **transferred** to new tasks
+via the mega-skill + ICL paradigm in Phase 2+. The `skill_agents`
+pipeline continues to discover new skills in all phases.
+
+```
+Phase 1 — Skill Discovery (6 source games)
+══════════════════════════════════════════════════════════════
+  No mega-skills exist yet. The skill_agents pipeline is the
+  sole skill production mechanism.
+
+  9B GRPO rollout → episode trajectories
+    → skill_agents Stage 1: boundary_proposal (cut points)
+    → skill_agents Stage 2: infer_segmentation (skill labels)
+    → skill_agents Stage 3: contract_learn (effects contract)
+    → skill_agents Stage 4: bank_maintenance (split/merge/refine)
+    → distill_execution_hints() + update_protocols()
+
+  Output: 6 per-game skill banks (~250 skills total)
+    Each skill has: contract, protocol, strategic_description,
+    execution_hint, sub_episodes, verification_report
+
+Phase 1 → 2 Transition (offline, one-time)
+══════════════════════════════════════════════════════════════
+  collect_all_per_task_banks.py  → aggregate 6 game banks
+  lift_skill_templates_gpt54.py → Layer-C templates (8 operators)
+  extract/cluster_mega_skills.py → canonical mega-skill families
+  inject_layerc_protocols.py    → runtime protocol + step_checks
+
+  ★ Mega-skills are born here — clustered from Phase 1 discoveries.
+
+  Bind with exemplars + reasoning steps from Phase 1 sub-episodes:
+    SubEpisodeRef.summary       → ICL exemplar evidence
+    Skill.protocol_raw          → ICL exemplar reasoning steps
+    Skill.execution_hint        → strategy description
+    SkillEffectsContract        → applicability scoring signals
+    VerificationReport          → confidence / pass_rate
+
+Phase 2 (held-out games) + Phase 3 (non-game tasks)
+══════════════════════════════════════════════════════════════
+  Mega-skill + ICL paradigm is now active:
+    SkillQueryEngine.select() → top-k candidates
+    skill_selection LoRA → EFFECTS + DECISION + SKILL
+    action_taking LoRA → ACTION
+    bank_updater (statistics-driven) + 35B enricher (offline)
+
+  Simultaneously, skill_agents pipeline continues mining:
+    9B rollout on new tasks → segment → contract → protocol
+    Mined skill matches existing mega-skill → enrich exemplars
+    Mined skill is novel → candidate for new mega-skill
+```
+
+#### Component roles by phase
+
+| Component | Phase 1 | Transition | Phase 2+ |
+|-----------|---------|------------|----------|
+| `skill_agents` pipeline (full) | **Primary** — sole skill source | Not used | **Active** — continues mining new skills |
+| `query.py` (SkillQueryEngine) | **Active** — retrieval for decision agent | Not used | **Active** — mega-skill retrieval |
+| `skill_bank/bank.py` (SkillBankMVP) | **Active** — per-game storage | Read | **Active** — mega-skill storage |
+| `stage3_mvp/schemas.py` | **Active** — Skill/Contract data structures | Read | **Active** — same data structures |
+| frontier_data scripts | Not used | **Primary** — cluster + lift + bind | Not used |
+| mega-skill + ICL | Does not exist | Created here | **Primary** — skill transfer |
+| bank_updater | Not used | Not used | **Active** — statistics-driven updates |
+| 35B enricher | Not used | Not used | **Active** — offline analysis |
+
+#### Why harness is not needed in any phase
+
+The harness (`harness/skill_harness.py`) was designed for a different
+architecture: real-time domain/task eligibility checking when a decision
+agent invokes a skill during execution. This does not apply to our
+pipeline in any phase:
+
+- **Phase 1**: The `skill_agents` pipeline discovers skills by mining
+  completed rollout trajectories *after* execution. It does not select
+  skills for execution — it segments and labels what already happened.
+  There is no "eligibility" question; every trajectory segment is valid
+  training data.
+
+- **Phase 2+**: The mega-skill + ICL paradigm retrieves skills via
+  `SkillQueryEngine.select()` (embedding + Jaccard + applicability + UCB).
+  The harness eligibility filter (F2 domain, F2' task) would **actively
+  block** the cross-domain transfer that mega-skills are designed for —
+  a `PERCEIVE → EVALUATE → DECIDE → ACT` template spanning GAME+WEB+VR
+  would be vetoed by F2 when the current env is `gymv` but the skill was
+  tagged `visual_reasoning`.
+
+| Harness filter | Phase 1 (discovery) | Phase 2+ (transfer) |
+|----------------|--------------------|--------------------|
+| F1 status | N/A — not selecting skills for execution | Vacuous — mega-skills have no lifecycle status |
+| F2 domain | N/A — mining trajectories, not gating execution | **Harmful** — vetoes cross-domain transfer |
+| F2' task | N/A | **Harmful** — vetoes task-agnostic templates |
+| F3/F4 adapter | N/A | Vacuous — mega-skills bind no adapter |
+| validate_invocation | N/A | Vacuous — no bindings/evidence to check |
+
+**`harness_enabled=False` is correct for all phases.**
+
+#### How mined skills feed back into mega-skills (Phase 2+)
+
+The `skill_agents` pipeline continues mining skills from 9B rollout
+trajectories on new tasks. Mined skills integrate into the mega-skill
+bank through a lightweight bridge (no LLM required):
+
+| Step | Method | LLM needed? |
+|------|--------|-------------|
+| Match to existing mega-skill | `SkillQueryEngine.select(mined.strategic_description)` — embedding + Jaccard | No (CPU) |
+| Derive template signature | `protocol.steps` → `OPERATOR_TO_EFFECT` mapping → `template_signature` | No (rule-based) |
+| Extract ICL exemplar | `SubEpisodeRef.summary` + `Skill.protocol_raw` → exemplar dict | No (field mapping) |
+| Classify novel skill | Match `template_signature` against mega-skill codebook | No (string match) |
+| Optional: Layer-C lift for novel skill | Classify into 18 canonical families | 9B sufficient (18-way classification) |
+
+When a mined skill matches an existing mega-skill (relevance > 0.7):
+its sub-episodes become new ICL exemplars, its contract enriches the
+applicability scoring, and its execution_hint updates the strategy
+description. When it does not match: it enters a candidate pool and
+is promoted to a new mega-skill after accumulating sufficient instances
+across multiple mining rounds.
+
+#### Verification in each phase
+
+| Phase | What needs verification | Mechanism |
+|-------|----------------------|-----------|
+| Phase 1 | Contract accuracy (do mined effects match reality?) | `stage3_mvp/contract_verify.py` — `verify_effects_contract().overall_pass_rate` |
+| Phase 1 | Segmentation quality | `SegmentationDiagnostics` (margin, confidence, compat) |
+| Phase 2+ | Reasoning chain compliance | `step_checks` via `OPERATOR_TO_EFFECT` mapping (PLAN §0e) |
+| Phase 2+ | Per-step stall detection | `bank_updater.SkillDiagnosis.per_step_stall_rate` |
+| Phase 2+ | Exemplar quality | `is_valid_exemplar()` gates (non-truncated, contains reasoning, correct answer) |
+| Phase 2+ | Skill-level performance | `bank_updater` statistics: enrich / annotate / demote / retire |
+
+#### Recommended configuration
+
+```python
+# trainer/coevolution/config.py
+harness_enabled: bool = False        # All phases: not needed (see above)
+crafter_enabled: bool = True         # Phase 1: rule-based retire path
+llm_crafter_enabled: bool = False    # All phases: root cause of past skill pollution
+```
+
+### 8i. Rolling enrichment: snowball strategy for Phase 2 & 3
+
+Phase 2/3 tasks should **not** run independently in parallel against the
+same frozen mega-skill bank from Phase 1. Instead, tasks run **serially**
+and each completed task enriches the SharedAbstractBank before the next
+task begins. This creates a snowball effect: later tasks start with
+progressively richer seed banks.
+
+#### Data flow per task
+
+```
+Task N starts
+  │
+  ├─ seed_per_task_bank_cold_start.py
+  │    SharedAbstractBank → top-K abstracts → GPT-5.4 forward-bind
+  │    → per-task skill_bank.jsonl (cold-start seeds)
+  │
+  ├─ GRPO training loop
+  │    rollout → skill_agents mines new skills (continuous)
+  │    bank_updater → enrich / demote / retire (statistics)
+  │    35B enricher → offline analysis between iterations
+  │
+  Task N completes
+  │
+  ├─ discover_skill_to_shared_bank.py  (backward path)
+  │    New mined skills → lift abstract → upsert SharedAbstractBank
+  │    Match existing mega-skill (relevance > 0.7) → add exemplar
+  │    No match → enter candidate pool for future promotion
+  │
+  ├─ propagate_retirement_to_shared_bank()  (failure feedback)
+  │    Retired skills → failure_decorations on parent mega-skill
+  │    Prevents re-seeding failed mega-skills to similar tasks
+  │
+  └─ (optional) promote novel candidates
+       Candidate in ≥2 tasks → new mega-skill family
+
+Task N+1 starts ← SharedAbstractBank now includes Task N knowledge
+```
+
+#### What each task gains from the snowball
+
+| Task position | SharedAbstractBank contents | Advantage |
+|---------------|---------------------------|-----------|
+| Phase 2 Task 1 | Phase 1 mega-skills only (~30 families) | Baseline transfer |
+| Phase 2 Task 2 | + Task 1 new skills + exemplars + failure decorations | Better seed selection, avoid Task 1's failures |
+| Phase 2 Task 6 | + Tasks 1–5 cumulative knowledge | Richest game-domain seed bank |
+| Phase 3 Task 1 | + All 12 game tasks | Cross-domain transfer at peak coverage |
+| Phase 3 Task 6 | + 12 games + 5 non-game tasks | Full pipeline knowledge |
+
+#### Task ordering strategy (curriculum)
+
+Within each phase, task order affects seed quality. Recommended heuristic:
+
+1. **Start with tasks closest to Phase 1 source games** — highest
+   embedding similarity to existing mega-skills → highest cold-start
+   seed quality → most reliable exemplar production.
+2. **End with most dissimilar tasks** — by then the bank has grown
+   enough to bridge larger domain gaps.
+3. **Within Phase 3 (non-game)**, start with VR tasks (densest
+   transfer graph, J_tok up to 0.40 between VR benchmarks) before
+   moving to MiniWoB/WebShop (most distant from game domain).
+
+Concrete ordering (suggested):
+```
+Phase 2: game_closest_1 → game_closest_2 → ... → game_most_novel_6
+Phase 3: siv_bench → video_holmes → tir_bench → visual_toolbench → miniwob → webshop
+```
+
+VR tasks share exemplars within cohort (`siv_bench ↔ video_holmes`),
+so doing them back-to-back maximizes cross-task exemplar seeding.
+
+#### Novel skill promotion threshold
+
+Mined skills that don't match any existing mega-skill (relevance < 0.7)
+enter a candidate pool. Promotion criteria:
+
+- **`min_cross_task_lineage ≥ 2`**: independently mined in ≥2 different
+  tasks (already a parameter in `seed_per_task_bank_cold_start.py`)
+- **Template signature differs** from all existing mega-skills
+- **Success rate > 0.3** in at least one task
+
+This prevents one-off noise from polluting the mega-skill codebook
+while allowing genuinely new reasoning patterns to emerge.
+
+#### Cost
+
+| Step | Cost | Frequency |
+|------|------|-----------|
+| `discover_skill_to_shared_bank` (lift abstract) | 1 GPT-5.4 call per new skill | Per task completion |
+| `seed_per_task_bank_cold_start` (forward-bind) | 1 GPT-5.4 call per seed × ~8 seeds | Per task start |
+| `propagate_retirement` | CPU only (field update) | Per task completion |
+| Embedding match for mega-skill lookup | CPU only | Per new skill |
+
+Total: ~10–20 API calls per task transition. Negligible.
+
+#### Existing scripts (no new code needed)
+
+| Script | Role in cycle |
+|--------|--------------|
+| `scripts/seed_per_task_bank_cold_start.py` | Forward path: SharedAbstractBank → per-task bank |
+| `scripts/discover_skill_to_shared_bank.py` | Backward path: per-task bank → SharedAbstractBank |
+| `scripts/lift_skill_templates_gpt54.py` | Lift concrete skill → abstract template (used by discover) |
+| `scripts/bind_abstract_to_task.py` | Forward-bind abstract → concrete (used by cold_start_seed) |
+| `skill_bank/shared_abstract_bank.py` | SharedAbstractBank with `failure_decorations` |
+
+The orchestrator needs to call these in sequence between tasks:
+```python
+# Between Task N and Task N+1
+discover_skill_to_shared_bank(task=N, bank_root=shared_bank)
+propagate_retirement_to_shared_bank(task=N, shared_bank=shared_bank)
+# optional: promote_novel_candidates(shared_bank, min_lineage=2)
+cold_start_seed(bank_root=shared_bank, target_task=N+1, max_seeds=8)
+```
+
 ---
 
 ## 9. Known Gaps & Next Steps

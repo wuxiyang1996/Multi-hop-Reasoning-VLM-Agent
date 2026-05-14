@@ -1,5 +1,12 @@
 """Per-rollout `SkillHarnessHook` for the trainer's co-evolution loop.
 
+.. note:: Not used in any training phase (2026-05-14).
+   Phase 1 discovers skills by mining completed trajectories (no
+   eligibility gating needed).  Phase 2+ transfers skills via
+   ``SkillQueryEngine`` (harness domain filters would block cross-domain
+   transfer).  ``harness_enabled=False`` is correct for all phases.
+   See ``frontier_data/README.md`` §8h.
+
 Splices into ``trainer.coevolution.episode_runner.run_episode_async`` so
 the harness's two LLM-free, deterministic surfaces (PLAN-HARNESS §5.2 +
 PLAN-UNIFIED-SKILL-GATE §3.4) get applied around the actor's

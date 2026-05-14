@@ -485,19 +485,14 @@ class CoEvolutionConfig:
     crafter_dashboard_timeout_s: float = 3600.0
 
     # ── Harness wire-up (Day-10) ────────────────────────────────────
-    # When enabled, the trainer wires the harness's two LLM-free
-    # surfaces into Phase A rollouts:
-    #   1. ``SkillHarness.select_eligible_skills`` filters the cold-
-    #      start RAG candidates *before* the skill_selection LLM picks.
-    #   2. ``SkillHarness.validate_invocation`` second-pass-vetoes the
-    #      LLM's chosen skill, falling back to the next eligible one
-    #      when vetoed.
-    # The aggregated rejection patterns ride into Phase B′ via
-    # ``RejectedSkillSink → SkillLifecycleManager.record_false_binding_pattern``
-    # so the Crafter's Repairer sees richer evidence on each
-    # ``SkillRecord.false_binding_patterns`` (PLAN-SKILL-BANK §4.3b).
-    # See ``trainer/coevolution/_harness_hook.py`` for the full
-    # contract; ``harness/README.md`` §22 for the spec gap this closes.
+    # NOT USED (2026-05-14): The harness eligibility filter does not
+    # apply to any training phase.
+    #   Phase 1: skill_agents discovers skills by mining completed
+    #     rollouts — no eligibility gating needed.
+    #   Phase 2+: mega-skill + ICL transfers via SkillQueryEngine —
+    #     F2/F2' domain filters would block cross-domain transfer.
+    # ``False`` is correct for all phases.
+    # See ``frontier_data/README.md`` §8h for the full analysis.
     harness_enabled: bool = False
     # Whether SHADOW skills are admitted by the eligibility filter.
     # Trainer default ``True`` mirrors ``HarnessConfig.allow_shadow``.

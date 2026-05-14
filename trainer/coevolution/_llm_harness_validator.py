@@ -1,5 +1,8 @@
 """LLM-driven post-validation pass for the trainer's harness (Path 4).
 
+.. note:: Not used in any training phase (2026-05-14).
+   See ``_harness_hook.py`` header and ``frontier_data/README.md`` §8h.
+
 Bridges the Phase-1 gap where ``_harness_hook.SkillHarnessHook.validate_choice``
 runs only the deterministic ``SkillHarness.validate_invocation`` —
 that path is rule-based and never touches the 35B-A3B teacher

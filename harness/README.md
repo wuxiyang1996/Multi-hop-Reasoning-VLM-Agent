@@ -1,5 +1,30 @@
 # `harness/` — Per-invocation runtime for skill execution and verification
 
+> **⚠ NOT USED (2026-05-14) — does not apply to any training phase.**
+>
+> The eligibility filter (F1–F4) and `validate_invocation` were designed
+> for a decision agent that selects skills for real-time execution and
+> needs domain/task/adapter eligibility gating. Our pipeline does not
+> have this use case in any phase:
+>
+> - **Phase 1 (skill discovery):** The `skill_agents` pipeline mines
+>   skills from completed rollout trajectories *after* execution. It
+>   does not gate skill selection — it labels what already happened.
+> - **Phase 2+ (skill transfer):** Mega-skills are retrieved via
+>   `SkillQueryEngine.select()` (embedding + Jaccard + UCB). The
+>   harness F2/F2' filters would actively block the cross-domain
+>   transfer that mega-skills are designed for.
+>
+> **Current status:** `harness_enabled=False` in `trainer/coevolution/config.py`.
+> The code is never executed at runtime. Retained for reference.
+>
+> **Verification is handled by:**
+> - Phase 1: `contract_verify.py` (effects contract accuracy)
+> - Phase 2+: `step_checks` + `bank_updater` (reasoning chain compliance)
+> - Phase 2+: `is_valid_exemplar()` (exemplar quality gates)
+>
+> See `frontier_data/README.md` §8h for the full phase-by-phase analysis.
+
 Spec: [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md), [`PLAN-COMPONENTS-IMPLEMENTATION`](../plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md) §4 (Phase A).
 
 > **Current state (post-Phase-5/6, 2026-05-02):** All 5 target domains are
