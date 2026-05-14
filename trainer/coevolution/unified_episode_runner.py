@@ -142,19 +142,21 @@ async def run_unified_episode(
                 )
                 sk_result_text = sk_result.text
 
-                chosen_idx, reasoning, step_progress, decision = parse_skill_selection(
+                chosen_idx, lora_effects, decision = parse_skill_selection(
                     sk_result_text,
                     len(candidates),
                     candidates,
                     strip_think_tags=strip_think_tags,
                 )
 
-                guidance = candidates[chosen_idx]
-                if reasoning:
-                    guidance["why_selected"] = reasoning
-                tracker.set_protocol(guidance.get("protocol"))
-                if step_progress is not None:
-                    tracker.receive_step_assessment(*step_progress)
+                if lora_effects:
+                    tracker.receive_lora_effects(lora_effects)
+
+                if decision == "CONTINUE" and last_guidance is not None:
+                    guidance = last_guidance
+                else:
+                    guidance = candidates[chosen_idx]
+                    tracker.set_protocol(guidance.get("protocol"))
 
                 last_guidance = guidance
 
@@ -170,8 +172,7 @@ async def run_unified_episode(
                     chosen_skill_id=guidance.get("skill_id"),
                     chosen_idx=chosen_idx,
                     decision=decision,
-                    step_progress=step_progress,
-                    reasoning=reasoning,
+                    effects=lora_effects,
                     reselect_reason=tracker._reselect_reason,
                     hop_history=list(tracker.hop_history),
                 ))

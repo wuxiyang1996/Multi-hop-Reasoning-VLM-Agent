@@ -233,6 +233,438 @@ def build_step_checks_from_signature(
     return checks
 
 
+# ── State-effect observer (replaces LoRA self-report for step tracking) ──
+
+class StateEffectObserver:
+    """Observes state deltas between env steps and emits effect predicates.
+
+    Instead of relying on the LoRA to self-report ``STEP: 3/5``, this
+    observer watches what actually changed in the environment and
+    produces a cumulative effect dict like::
+
+        {"board_changed": "true", "score_increased": "true",
+         "highest_increased": "true", "reward_positive": "true"}
+
+    These effects are matched against ``step_checks`` predicates by
+    the existing ``compute_step_advancement()`` function, giving us
+    grounded, deterministic step tracking for games.
+
+    The protocol step ↔ env step mapping is inherently many-to-many:
+    one env step can satisfy multiple protocol steps (cognitive steps
+    like "observe" and "choose" happen within a single LLM call), and
+    one protocol step can span multiple env steps (a complex action
+    sequence).  The observer handles this by accumulating effects and
+    advancing through steps greedily.
+    """
+
+    def __init__(self):
+        self._prev_facts: Dict[str, str] = {}
+        self._cumulative_effects: Dict[str, str] = {}
+        self._step_rewards: List[float] = []
+
+    def reset(self):
+        self._prev_facts = {}
+        self._cumulative_effects = {}
+        self._step_rewards = []
+
+    def observe(
+        self,
+        curr_facts: Dict[str, str],
+        reward: float = 0.0,
+        action: str = "",
+        game_name: str = "",
+    ) -> Dict[str, str]:
+        """Compare current facts against previous, emit effects.
+
+        Call this after each ``env.step()``.  Returns the cumulative
+        effect dict (grows monotonically — effects are never removed).
+        """
+        prev = self._prev_facts
+        self._step_rewards.append(reward)
+
+        effects = dict(self._cumulative_effects)
+
+        if reward > 0:
+            effects["reward_positive"] = "true"
+        if sum(self._step_rewards) > 0:
+            effects["cumulative_reward_positive"] = "true"
+
+        if action:
+            effects["action_taken"] = "true"
+
+        if not prev:
+            effects["state_observed"] = "true"
+            self._prev_facts = dict(curr_facts)
+            self._cumulative_effects = effects
+            return effects
+
+        for key, curr_val in curr_facts.items():
+            prev_val = prev.get(key)
+            if prev_val is None:
+                continue
+
+            try:
+                cv = float(curr_val)
+                pv = float(prev_val)
+                if cv != pv:
+                    effects[f"{key}_changed"] = "true"
+                if cv > pv:
+                    effects[f"{key}_increased"] = "true"
+                if cv < pv:
+                    effects[f"{key}_decreased"] = "true"
+            except (ValueError, TypeError):
+                if curr_val != prev_val:
+                    effects[f"{key}_changed"] = "true"
+
+        game_effects = _compute_game_specific_effects(
+            game_name, prev, curr_facts, action, reward,
+        )
+        effects.update(game_effects)
+
+        self._prev_facts = dict(curr_facts)
+        self._cumulative_effects = effects
+        return effects
+
+    def advance_step(
+        self,
+        current_idx: int,
+        step_checks: List[str],
+        total_steps: int,
+    ) -> int:
+        """Advance through as many protocol steps as the effects satisfy.
+
+        Unlike ``compute_step_advancement`` which checks one step,
+        this greedily advances through consecutive steps whose checks
+        all pass — handling the case where one env step satisfies
+        multiple protocol steps (e.g., "observe" + "choose" + "act"
+        all within one LLM call + env.step).
+        """
+        if total_steps <= 0 or not step_checks:
+            return current_idx
+
+        idx = current_idx
+        effects = self._cumulative_effects
+
+        while idx < total_steps and idx < len(step_checks):
+            check = step_checks[idx]
+            if not check:
+                break
+            if check_predicate(check, effects):
+                idx = min(idx + 1, total_steps - 1)
+                if idx >= total_steps - 1:
+                    break
+            else:
+                break
+
+        return idx
+
+    @property
+    def effects(self) -> Dict[str, str]:
+        return dict(self._cumulative_effects)
+
+
+def _compute_game_specific_effects(
+    game_name: str,
+    prev_facts: Dict[str, str],
+    curr_facts: Dict[str, str],
+    action: str,
+    reward: float,
+) -> Dict[str, str]:
+    """Compute game-specific semantic effects from state deltas.
+
+    Each game defines what state changes constitute meaningful
+    "effects" for protocol step tracking.  These are higher-level
+    than raw key_changed predicates — they capture game semantics.
+    """
+    gn = game_name.lower().replace(" ", "_")
+    fn = _GAME_EFFECT_MAP.get(gn)
+    if fn is not None:
+        return fn(prev_facts, curr_facts, action, reward)
+    return {}
+
+
+def _effects_2048(
+    prev: Dict[str, str], curr: Dict[str, str],
+    action: str, reward: float,
+) -> Dict[str, str]:
+    effects: Dict[str, str] = {}
+    p_highest = _safe_int(prev.get("highest", "0"))
+    c_highest = _safe_int(curr.get("highest", "0"))
+    p_empty = _safe_int(prev.get("empty", "0"))
+    c_empty = _safe_int(curr.get("empty", "0"))
+    p_merges = _safe_int(prev.get("merges", "0"))
+    c_merges = _safe_int(curr.get("merges", "0"))
+
+    if c_highest > p_highest:
+        effects["tile_promoted"] = "true"
+    if p_merges > 0 and reward > 0:
+        effects["merge_executed"] = "true"
+    if c_empty != p_empty:
+        effects["board_transformed"] = "true"
+    if c_empty < 4:
+        effects["board_crowded"] = "true"
+    if action:
+        effects["direction_applied"] = "true"
+    return effects
+
+
+def _effects_tetris(
+    prev: Dict[str, str], curr: Dict[str, str],
+    action: str, reward: float,
+) -> Dict[str, str]:
+    effects: Dict[str, str] = {}
+    p_stack = _safe_int(prev.get("stack_h", "0"))
+    c_stack = _safe_int(curr.get("stack_h", "0"))
+    p_holes = _safe_int(prev.get("holes", "0"))
+    c_holes = _safe_int(curr.get("holes", "0"))
+    p_piece = prev.get("piece", "")
+    c_piece = curr.get("piece", "")
+
+    if reward > 0:
+        effects["line_cleared"] = "true"
+    if c_piece != p_piece:
+        effects["piece_changed"] = "true"
+    if c_stack > p_stack:
+        effects["piece_placed"] = "true"
+    if c_holes < p_holes:
+        effects["holes_reduced"] = "true"
+    if c_holes > p_holes:
+        effects["holes_created"] = "true"
+    if action:
+        effects["move_applied"] = "true"
+    return effects
+
+
+def _effects_candy_crush(
+    prev: Dict[str, str], curr: Dict[str, str],
+    action: str, reward: float,
+) -> Dict[str, str]:
+    effects: Dict[str, str] = {}
+    p_score = _safe_int(prev.get("score", "0"))
+    c_score = _safe_int(curr.get("score", "0"))
+    p_moves = _safe_int(prev.get("moves", "0"))
+    c_moves = _safe_int(curr.get("moves", "0"))
+    p_pairs = _safe_int(prev.get("pairs", "0"))
+    c_pairs = _safe_int(curr.get("pairs", "0"))
+
+    if c_score > p_score:
+        effects["match_scored"] = "true"
+    if c_moves < p_moves:
+        effects["move_spent"] = "true"
+    if c_pairs != p_pairs:
+        effects["board_reshuffled"] = "true"
+    if action:
+        effects["swap_applied"] = "true"
+    return effects
+
+
+def _effects_mario(
+    prev: Dict[str, str], curr: Dict[str, str],
+    action: str, reward: float,
+) -> Dict[str, str]:
+    effects: Dict[str, str] = {}
+    p_pos = prev.get("mario", "")
+    c_pos = curr.get("mario", "")
+    if p_pos and c_pos and p_pos != c_pos:
+        effects["mario_moved"] = "true"
+    if reward > 0:
+        effects["progress_made"] = "true"
+    if reward < 0:
+        effects["damage_taken"] = "true"
+    if action:
+        effects["action_executed"] = "true"
+    return effects
+
+
+def _safe_int(s: str) -> int:
+    try:
+        return int(s)
+    except (ValueError, TypeError):
+        return 0
+
+
+# ── Gym-V Temporal games (shooter / brawler / platformer / puzzle) ────
+
+def _effects_gymv_shooter(
+    prev: Dict[str, str], curr: Dict[str, str],
+    action: str, reward: float,
+) -> Dict[str, str]:
+    """Airstriker, SpaceHarrierII, ThunderForceIII."""
+    effects: Dict[str, str] = {}
+    if reward > 0:
+        effects["enemy_hit"] = "true"
+    if reward < 0:
+        effects["damage_taken"] = "true"
+    p_score = _safe_int(prev.get("score", "0"))
+    c_score = _safe_int(curr.get("score", "0"))
+    if c_score > p_score:
+        effects["score_increased"] = "true"
+    if action:
+        effects["action_executed"] = "true"
+    if "fire" in action.lower() or "b" == action.lower():
+        effects["projectile_fired"] = "true"
+    return effects
+
+
+def _effects_gymv_brawler(
+    prev: Dict[str, str], curr: Dict[str, str],
+    action: str, reward: float,
+) -> Dict[str, str]:
+    """AlteredBeast, StreetsOfRage2, Strider, DynamiteHeaddy."""
+    effects: Dict[str, str] = {}
+    if reward > 0:
+        effects["enemy_hit"] = "true"
+    if reward < 0:
+        effects["damage_taken"] = "true"
+    p_score = _safe_int(prev.get("score", "0"))
+    c_score = _safe_int(curr.get("score", "0"))
+    if c_score > p_score:
+        effects["score_increased"] = "true"
+    if action:
+        effects["action_executed"] = "true"
+    act_low = action.lower()
+    if any(k in act_low for k in ("attack", "punch", "kick", "a", "b", "c")):
+        effects["attack_landed"] = "true"
+    if any(k in act_low for k in ("left", "right", "up", "down")):
+        effects["position_changed"] = "true"
+    return effects
+
+
+def _effects_gymv_columns(
+    prev: Dict[str, str], curr: Dict[str, str],
+    action: str, reward: float,
+) -> Dict[str, str]:
+    """Columns (puzzle/match game)."""
+    effects: Dict[str, str] = {}
+    if reward > 0:
+        effects["match_scored"] = "true"
+    p_score = _safe_int(prev.get("score", "0"))
+    c_score = _safe_int(curr.get("score", "0"))
+    if c_score > p_score:
+        effects["score_increased"] = "true"
+    if action:
+        effects["action_executed"] = "true"
+    act_low = action.lower()
+    if "rotate" in act_low or "cycle" in act_low:
+        effects["piece_rotated"] = "true"
+    if "down" in act_low or "drop" in act_low:
+        effects["piece_placed"] = "true"
+    return effects
+
+
+_GAME_EFFECT_MAP: Dict[str, Any] = {
+    # Classic games
+    "twenty_forty_eight": _effects_2048,
+    "2048": _effects_2048,
+    "tetris": _effects_tetris,
+    "candy_crush": _effects_candy_crush,
+    "candy": _effects_candy_crush,
+    "super_mario": _effects_mario,
+    "mario": _effects_mario,
+    # Gym-V Temporal — shooters
+    "temporal_airstriker-v0": _effects_gymv_shooter,
+    "temporal_spaceharrierii-v0": _effects_gymv_shooter,
+    "temporal_thunderforceiii-v0": _effects_gymv_shooter,
+    # Gym-V Temporal — brawlers / platformers
+    "temporal_alteredbeast-v0": _effects_gymv_brawler,
+    "temporal_streetsofrage2-v0": _effects_gymv_brawler,
+    "temporal_strider-v0": _effects_gymv_brawler,
+    "temporal_dynamiteheaddy-v0": _effects_gymv_brawler,
+    # Gym-V Temporal — puzzle
+    "temporal_columns-v0": _effects_gymv_columns,
+}
+
+
+# ── Auto step_check generation from trajectories ────────────────────
+
+def generate_step_checks_from_effects(
+    protocol_steps: List[str],
+    game_name: str = "",
+) -> List[str]:
+    """Generate step_checks for game skills based on step descriptions.
+
+    Parses each protocol step description and maps keywords to known
+    game effect predicates.  This replaces the empty step_checks in
+    game skill banks with observable, deterministic predicates.
+    """
+    gn = game_name.lower().replace(" ", "_")
+    keyword_to_effect = _STEP_KEYWORD_TO_EFFECT.get(gn, {})
+    keyword_to_effect.update(_UNIVERSAL_KEYWORD_TO_EFFECT)
+
+    checks: List[str] = []
+    for step_desc in protocol_steps:
+        desc_lower = step_desc.lower()
+        matched_effect = ""
+        for keyword, effect in keyword_to_effect.items():
+            if keyword in desc_lower:
+                matched_effect = effect
+                break
+        checks.append(matched_effect)
+
+    return checks
+
+
+_UNIVERSAL_KEYWORD_TO_EFFECT: Dict[str, str] = {
+    "observe": "state_observed=true",
+    "inspect": "state_observed=true",
+    "look": "state_observed=true",
+    "identify": "state_observed=true",
+    "assess": "state_observed=true",
+    "confirm": "reward_positive=true",
+    "verify": "reward_positive=true",
+    "validate": "reward_positive=true",
+}
+
+_STEP_KEYWORD_TO_EFFECT: Dict[str, Dict[str, str]] = {
+    "twenty_forty_eight": {
+        "enumerate": "state_observed=true",
+        "discard": "state_observed=true",
+        "choose": "action_taken=true",
+        "apply": "board_transformed=true",
+        "transform": "board_transformed=true",
+        "merge": "merge_executed=true",
+        "confirm": "board_transformed=true",
+        "promote": "tile_promoted=true",
+        "corner": "direction_applied=true",
+    },
+    "2048": {
+        "enumerate": "state_observed=true",
+        "discard": "state_observed=true",
+        "choose": "action_taken=true",
+        "apply": "board_transformed=true",
+        "transform": "board_transformed=true",
+        "merge": "merge_executed=true",
+        "confirm": "board_transformed=true",
+    },
+    "tetris": {
+        "position": "state_observed=true",
+        "rotate": "move_applied=true",
+        "shift": "move_applied=true",
+        "place": "piece_placed=true",
+        "drop": "piece_placed=true",
+        "clear": "line_cleared=true",
+        "minimize": "holes_reduced=true",
+        "stack": "piece_placed=true",
+    },
+    "candy_crush": {
+        "scan": "state_observed=true",
+        "find": "state_observed=true",
+        "swap": "swap_applied=true",
+        "match": "match_scored=true",
+        "cascade": "match_scored=true",
+        "chain": "match_scored=true",
+    },
+    "super_mario": {
+        "scan": "state_observed=true",
+        "jump": "mario_moved=true",
+        "move": "mario_moved=true",
+        "run": "mario_moved=true",
+        "avoid": "action_executed=true",
+        "collect": "progress_made=true",
+    },
+}
+
+
 # ── QA (multi-hop) step state computation ────────────────────────────
 
 _QA_HOP_TO_PHASE: Dict[str, str] = {
@@ -253,6 +685,19 @@ _QA_PHASE_ORDER = [
     "comparison", "filtering", "verification",
     "decision", "answering",
 ]
+
+_QA_HOP_TO_EXTRA_EFFECT: Dict[str, str] = {
+    "PERCEIVE": "state_observed",
+    "GROUND":   "evidence_cited",
+    "RETRIEVE": "context_retrieved",
+    "RECALL":   "context_retrieved",
+    "COMPARE":  "hypothesis_formed",
+    "FILTER":   "candidates_eliminated",
+    "CHECK":    "answer_confirmed",
+    "VERIFY":   "answer_confirmed",
+    "DECIDE":   "answer_selected",
+    "COMMIT":   "answer_emitted",
+}
 
 
 def compute_qa_step_state(
@@ -294,6 +739,13 @@ def compute_qa_step_state(
         effect = OPERATOR_TO_EFFECT.get(hop_upper, "")
         if effect:
             state_dict[effect] = "true"
+        extra = _QA_HOP_TO_EXTRA_EFFECT.get(hop_upper, "")
+        if extra:
+            state_dict[extra] = "true"
+
+    if hop_history:
+        state_dict["action_taken"] = "true"
+        state_dict["state_observed"] = "true"
 
     state_dict["hops_completed"] = str(len(hop_history))
 
@@ -360,6 +812,7 @@ def compute_web_step_state(
     fill_count = sum(1 for a in action_history if "fill" in a.lower() or "type" in a.lower())
     click_count = sum(1 for a in action_history if "click" in a.lower())
     nav_count = sum(1 for a in action_history if "goto" in a.lower() or "navigate" in a.lower())
+    search_count = sum(1 for a in action_history if "search" in a.lower())
     state_dict["fills"] = str(fill_count)
     state_dict["clicks"] = str(click_count)
     state_dict["navigations"] = str(nav_count)
@@ -370,3 +823,238 @@ def compute_web_step_state(
         step_idx = min(n_steps - 1, meaningful - 1)
 
     return step_idx, state_dict
+
+
+def compute_web_effects(
+    action_history: List[str],
+    dom_change_flags: List[bool],
+) -> Dict[str, str]:
+    """Compute effect tags for web tasks from action history.
+
+    Produces the same tag vocabulary used in ``TASK_EFFECT_SUBSET``
+    for miniwob / webshop, so the LoRA can be trained on grounded
+    observations.
+    """
+    effects: Dict[str, str] = {}
+    if not action_history:
+        return effects
+
+    effects["action_taken"] = "true"
+
+    for act in action_history:
+        act_l = act.lower()
+        if "click" in act_l:
+            effects["element_clicked"] = "true"
+        if "fill" in act_l or "type" in act_l:
+            effects["form_filled"] = "true"
+        if "goto" in act_l or "navigate" in act_l:
+            effects["page_navigated"] = "true"
+        if "search" in act_l:
+            effects["search_performed"] = "true"
+
+    if dom_change_flags and any(dom_change_flags):
+        effects["dom_changed"] = "true"
+
+    return effects
+
+
+# ══════════════════════════════════════════════════════════════════════
+# CANONICAL EFFECT TAG REGISTRY
+# ──────────────────────────────────────────────────────────────────────
+# Closed-set vocabulary for the skill-selection LoRA's EFFECTS output.
+# The LoRA picks a subset of these per step; no free-form tags allowed.
+#
+# Design criteria
+# ───────────────
+# 1. Every tag MUST be independently observable (no LoRA self-report).
+# 2. Tag names are short, verb_noun style, all lowercase + underscores.
+# 3. The set is domain-agnostic: each game / QA / web task uses a
+#    subset; the LoRA learns the mapping from (state, task_type) to
+#    the relevant subset.
+# ══════════════════════════════════════════════════════════════════════
+
+EFFECT_REGISTRY: Dict[str, str] = {
+    # ══ Universal (every domain) ══════════════════════════════════════
+    "state_observed":            "Agent has perceived / inspected current state",
+    "action_taken":              "Agent executed at least one action this turn",
+    "action_executed":           "A domain-specific action was performed",
+    "reward_positive":           "Positive reward received this step",
+    "cumulative_reward_positive":"Sum of rewards across skill so far > 0",
+    "score_increased":           "Numeric score went up",
+
+    # ══ Reasoning / QA ════════════════════════════════════════════════
+    # (video_holmes, siv_bench, tir_bench, visual_toolbench)
+    "evidence_cited":            "Relevant visual or textual evidence extracted",
+    "hypothesis_formed":         "A candidate hypothesis / interpretation stated",
+    "context_retrieved":         "External or temporal context recalled / fetched",
+    "options_compared":          "Multiple candidate answers compared",
+    "candidates_eliminated":     "At least one wrong option ruled out",
+    "answer_selected":           "A single best answer chosen",
+    "answer_emitted":            "Final answer committed / output produced",
+    "answer_confirmed":          "Answer cross-checked against evidence",
+
+    # ══ Board / puzzle (2048, tetris, candy_crush, Columns) ═══════════
+    "board_transformed":         "Board layout changed from previous state",
+    "board_crowded":             "Board is near capacity / few open cells",
+    "board_reshuffled":          "Board was reshuffled or cascaded",
+    "tile_promoted":             "Highest tile value increased (2048)",
+    "merge_executed":            "A merge / combine occurred (2048)",
+    "direction_applied":         "A directional move was applied (2048)",
+    "piece_placed":              "A piece was placed on the board (tetris/columns)",
+    "piece_changed":             "Active piece changed / new piece spawned (tetris)",
+    "piece_rotated":             "A piece was rotated (columns)",
+    "line_cleared":              "One or more lines cleared (tetris)",
+    "holes_reduced":             "Board holes decreased (tetris)",
+    "holes_created":             "Board holes increased (tetris, negative signal)",
+    "move_applied":              "A move/shift/rotate was executed (tetris)",
+    "match_scored":              "A match / cascade scored points (candy/columns)",
+    "swap_applied":              "A swap action performed (candy crush)",
+    "move_spent":                "A move resource was consumed (candy crush)",
+
+    # ══ Platformer / action (mario, Strider, AlteredBeast, …) ═════════
+    "position_changed":          "Agent position moved to a new location",
+    "mario_moved":               "Mario character moved (super_mario specific)",
+    "progress_made":             "Forward progress toward goal",
+    "damage_taken":              "Agent took damage / lost health",
+    "obstacle_cleared":          "An obstacle or hazard was successfully avoided",
+    "collectible_obtained":      "A coin / power-up / item was collected",
+
+    # ══ Shooter / combat (Airstriker, SpaceHarrier, ThunderForce, …) ══
+    "enemy_hit":                 "An enemy was hit / destroyed",
+    "projectile_fired":          "Agent fired a projectile",
+    "attack_landed":             "A melee / ranged attack connected",
+
+    # ══ Web interaction (miniwob, webshop) ════════════════════════════
+    "page_navigated":            "Browser navigated to a new URL / page",
+    "form_filled":               "A text input / form field was filled",
+    "element_clicked":           "A UI element was clicked",
+    "dom_changed":               "Page DOM changed meaningfully after action",
+    "item_found":                "Target item / element located on page",
+    "search_performed":          "A search query was submitted",
+    "product_selected":          "A product / option was chosen from results",
+    "cart_updated":              "Shopping cart was modified (webshop)",
+}
+
+EFFECT_TAGS: List[str] = sorted(EFFECT_REGISTRY.keys())
+
+TASK_EFFECT_SUBSET: Dict[str, List[str]] = {
+    # ── Classic games ─────────────────────────────────────────────────
+    "twenty_forty_eight": [
+        "state_observed", "action_taken", "reward_positive",
+        "cumulative_reward_positive", "score_increased",
+        "board_transformed", "board_crowded",
+        "tile_promoted", "merge_executed", "direction_applied",
+    ],
+    "tetris": [
+        "state_observed", "action_taken", "reward_positive",
+        "cumulative_reward_positive", "score_increased",
+        "board_transformed", "piece_placed", "piece_changed",
+        "line_cleared", "holes_reduced", "holes_created", "move_applied",
+    ],
+    "candy_crush": [
+        "state_observed", "action_taken", "reward_positive",
+        "cumulative_reward_positive", "score_increased",
+        "board_transformed", "board_reshuffled",
+        "match_scored", "swap_applied", "move_spent",
+    ],
+    "super_mario": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "position_changed", "mario_moved", "progress_made",
+        "damage_taken", "obstacle_cleared", "collectible_obtained",
+    ],
+    # ── Gym-V Temporal — shooters ─────────────────────────────────────
+    "temporal_airstriker-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "enemy_hit", "projectile_fired", "damage_taken",
+    ],
+    "temporal_spaceharrierii-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "enemy_hit", "projectile_fired", "damage_taken",
+    ],
+    "temporal_thunderforceiii-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "enemy_hit", "projectile_fired", "damage_taken",
+    ],
+    # ── Gym-V Temporal — brawlers / platformers ───────────────────────
+    "temporal_alteredbeast-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "enemy_hit", "attack_landed", "position_changed", "damage_taken",
+    ],
+    "temporal_streetsofrage2-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "enemy_hit", "attack_landed", "position_changed", "damage_taken",
+    ],
+    "temporal_strider-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "enemy_hit", "attack_landed", "position_changed", "damage_taken",
+    ],
+    "temporal_dynamiteheaddy-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "enemy_hit", "attack_landed", "position_changed", "damage_taken",
+    ],
+    # ── Gym-V Temporal — puzzle ───────────────────────────────────────
+    "temporal_columns-v0": [
+        "state_observed", "action_taken", "action_executed",
+        "reward_positive", "cumulative_reward_positive", "score_increased",
+        "board_transformed", "match_scored",
+        "piece_placed", "piece_rotated",
+    ],
+    # ── QA reasoning ──────────────────────────────────────────────────
+    "video_holmes": [
+        "state_observed", "action_taken",
+        "evidence_cited", "hypothesis_formed", "context_retrieved",
+        "options_compared", "candidates_eliminated",
+        "answer_selected", "answer_emitted", "answer_confirmed",
+    ],
+    "siv_bench": [
+        "state_observed", "action_taken",
+        "evidence_cited", "hypothesis_formed", "context_retrieved",
+        "options_compared", "candidates_eliminated",
+        "answer_selected", "answer_emitted", "answer_confirmed",
+    ],
+    "tir_bench": [
+        "state_observed", "action_taken",
+        "evidence_cited", "hypothesis_formed", "context_retrieved",
+        "options_compared", "candidates_eliminated",
+        "answer_selected", "answer_emitted", "answer_confirmed",
+    ],
+    "visual_toolbench": [
+        "state_observed", "action_taken",
+        "evidence_cited", "hypothesis_formed", "context_retrieved",
+        "options_compared", "candidates_eliminated",
+        "answer_selected", "answer_emitted", "answer_confirmed",
+    ],
+    # ── Web interaction ───────────────────────────────────────────────
+    "miniwob": [
+        "state_observed", "action_taken",
+        "evidence_cited", "options_compared",
+        "page_navigated", "form_filled", "element_clicked",
+        "dom_changed", "item_found", "answer_emitted",
+    ],
+    "webshop": [
+        "state_observed", "action_taken",
+        "evidence_cited", "candidates_eliminated",
+        "page_navigated", "form_filled", "element_clicked",
+        "dom_changed", "item_found", "answer_emitted",
+        "search_performed", "product_selected", "cart_updated",
+    ],
+}
+
+
+def get_valid_effects(task_name: str) -> List[str]:
+    """Return the closed set of valid effect tags for a given task."""
+    tn = task_name.lower().replace(" ", "_")
+    if tn in TASK_EFFECT_SUBSET:
+        return TASK_EFFECT_SUBSET[tn]
+    for key in TASK_EFFECT_SUBSET:
+        if key in tn or tn in key:
+            return TASK_EFFECT_SUBSET[key]
+    return EFFECT_TAGS

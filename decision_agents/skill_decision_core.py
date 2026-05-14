@@ -1,35 +1,34 @@
-"""Unified skill selection + step tracking + GRPO record emission.
+"""Unified skill selection + effect-tag tracking + GRPO record emission.
 
 This module provides the **single decision pipeline** that ALL domains
-(game, QA, web) use for skill selection and protocol step tracking.
-The pipeline is domain-agnostic: the caller supplies a state summary
-and gets back a skill guidance dict + GRPO records.  Domain-specific
-differences (reward density, step-state extraction) are handled by
-configuration, not by separate code paths.
+(game, QA, web) use for skill selection and progress tracking.
+
+Progress tracking uses **effect tags** instead of step counters:
+instead of "we are on step 3/5", we track "we have achieved
+{state_observed, merge_executed} and still need {board_transformed}".
+
+This is robust because:
+  - One env step can achieve multiple tags at once (cognitive steps
+    like "observe" and "choose" happen within a single LLM call)
+  - Tags are unordered — no fragile ordinal alignment needed
+  - Skill completion = required tag set is satisfied
+  - 9B LoRA outputs EFFECTS (easy) not STEP numbers (hard)
+  - Tags are domain-agnostic: games emit "merge_executed", QA emits
+    "evidence_cited", web emits "form_filled"
 
 Architecture
 ------------
 ::
 
-    ┌────────────────────────────────────────────────────┐
-    │               SkillDecisionCore                    │
-    │                                                    │
-    │  ┌─────────────┐  ┌──────────────┐  ┌───────────┐ │
-    │  │ StepTracker  │  │ SkillSelector│  │ RecordBuf │ │
-    │  │ (per-domain  │  │ (shared LoRA │  │ (GRPORec  │ │
-    │  │  step state) │  │  interface)  │  │  + offline │ │
-    │  └─────────────┘  └──────────────┘  │  relabel)  │ │
-    │                                      └───────────┘ │
-    └────────────────────────────────────────────────────┘
-         ▲                    ▲                    │
-         │ state              │ candidates         │ records
-    ─────┘                    └────────────────────┘
-    Game env / QA HopExecutor / BrowserGym
-
-Domain differences (configuration, not code paths):
-    Game:  per-step env reward, state from parse_summary_state()
-    QA:    episode-end reward, state from executed hop types
-    Web:   episode-end reward, state from DOM changes
+    ┌───────────────────────────────────────────────────────┐
+    │               SkillDecisionCore                       │
+    │                                                       │
+    │  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐ │
+    │  │ EffectTracker │  │ SkillSelector│  │  RecordBuf  │ │
+    │  │ (tag accum,   │  │ (shared LoRA │  │  (GRPORec   │ │
+    │  │  completion)  │  │  interface)  │  │  + offline)  │ │
+    │  └──────────────┘  └──────────────┘  └─────────────┘ │
+    └───────────────────────────────────────────────────────┘
 """
 
 from __future__ import annotations
@@ -37,7 +36,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, FrozenSet, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -52,20 +51,31 @@ DOMAIN_WEB = "web"
 
 
 # ---------------------------------------------------------------------------
-# Step tracker (extracted from episode_runner._SkillTracker, unified)
+# Effect/tag tracker (replaces step counter)
 # ---------------------------------------------------------------------------
 
 class StepTracker:
-    """Protocol-aware skill lifecycle tracker, shared across all domains.
+    """Skill lifecycle tracker using effect-tag accumulation.
 
-    Tracks which skill is active, which protocol step we are at, and
-    whether it is time to reselect.  Step advancement comes from
-    ``receive_step_assessment()`` (parsed from skill_selection LoRA
-    output) — this works identically for games, QA hops, and web tasks.
+    Instead of tracking "step 3/5", tracks a set of achieved effect
+    tags.  The skill is progressing as long as new tags are being
+    achieved, and is complete when all required tags are satisfied.
+
+    Tags come from two sources:
+      1. **StateEffectObserver** (deterministic): compares prev/curr
+         game state and emits tags like ``board_transformed``,
+         ``merge_executed``.  Zero LLM cost, runs as fallback.
+      2. **9B LoRA EFFECTS output** (learned): the skill_selection
+         LoRA outputs ``EFFECTS: merge_executed, tile_promoted``
+         as part of its existing call.  Trained via 35B offline
+         annotations.  Zero extra inference cost.
+
+    Both sources feed into the same cumulative tag set.
     """
 
-    def __init__(self, domain: str = DOMAIN_GAME):
+    def __init__(self, domain: str = DOMAIN_GAME, game_name: str = ""):
         self.domain: str = domain
+        self.game_name: str = game_name
         self.active_skill_id: Optional[str] = None
         self.active_skill_name: str = ""
         self.steps_on_skill: int = 0
@@ -75,7 +85,9 @@ class StepTracker:
         self.hop_history: List[str] = []
 
         self._protocol: Optional[Dict[str, Any]] = None
-        self._protocol_step_idx: int = 0
+        self._achieved_effects: Set[str] = set()
+        self._required_effects: Set[str] = set()
+        self._completion_effect: str = ""
         self._success_criteria: List[str] = []
         self._abort_criteria: List[str] = []
         self._predicate_success: List[str] = []
@@ -87,9 +99,41 @@ class StepTracker:
         self._reselect_reason: str = ""
         self._intrinsic_bonus: float = 0.0
 
+        from decision_agents.protocol_utils import StateEffectObserver
+        self._effect_observer = StateEffectObserver()
+
+    # ── Effect tag properties ─────────────────────────────────────
+
+    @property
+    def achieved_effects(self) -> FrozenSet[str]:
+        return frozenset(self._achieved_effects)
+
+    @property
+    def remaining_effects(self) -> FrozenSet[str]:
+        return frozenset(self._required_effects - self._achieved_effects)
+
+    @property
+    def effects_complete(self) -> bool:
+        """True when all required effects have been achieved."""
+        if not self._required_effects:
+            return False
+        return self._required_effects.issubset(self._achieved_effects)
+
+    @property
+    def completion_ratio(self) -> float:
+        """Fraction of required effects achieved (0.0 to 1.0)."""
+        if not self._required_effects:
+            return 0.0
+        return len(self._required_effects & self._achieved_effects) / len(self._required_effects)
+
+    # ── Backward-compat properties (for code that still reads step idx) ──
+
     @property
     def protocol_step_idx(self) -> int:
-        return self._protocol_step_idx
+        total = self.total_protocol_steps
+        if total <= 0:
+            return 0
+        return min(int(self.completion_ratio * total), total - 1)
 
     @property
     def total_protocol_steps(self) -> int:
@@ -99,10 +143,7 @@ class StepTracker:
 
     @property
     def step_progress_ratio(self) -> float:
-        total = self.total_protocol_steps
-        if total <= 0:
-            return 0.0
-        return min(1.0, self._protocol_step_idx / total)
+        return self.completion_ratio
 
     # ── Criteria checking ──────────────────────────────────────────
 
@@ -134,10 +175,12 @@ class StepTracker:
     ) -> bool:
         """Determine whether the current skill should be reselected.
 
-        Same logic for all domains.  For non-game domains where
-        per-step reward is always 0, the ``zero_reward_stall`` trigger
-        is effectively disabled (the LoRA learns SWITCH decisions
-        instead).
+        Triggers:
+          - no_skill: no guidance or skill_id
+          - effects_complete: all required effect tags achieved
+          - duration_exceeded: steps_on_skill >= max_skill_duration
+          - zero_reward_stall: 4+ steps with no reward (games only)
+          - abort/success criteria from protocol
         """
         self._reselect_reason = ""
         if guidance is None or not guidance.get("skill_id"):
@@ -146,6 +189,11 @@ class StepTracker:
         new_id = guidance["skill_id"]
         if new_id != self.active_skill_id:
             return False
+
+        if self.effects_complete:
+            self._reselect_reason = "effects_complete"
+            return True
+
         if self.steps_on_skill >= self.max_skill_duration:
             self._reselect_reason = "duration_exceeded"
             return True
@@ -164,17 +212,50 @@ class StepTracker:
                     return True
         return False
 
-    # ── Step assessment (from LoRA output) ─────────────────────────
+    # ── Receive effects from LoRA output ──────────────────────────
+
+    def receive_lora_effects(self, effects: List[str]):
+        """Accept effect tags reported by the 9B skill_selection LoRA.
+
+        The LoRA outputs ``EFFECTS: merge_executed, tile_promoted``
+        as part of its existing call.  Tags are added to the
+        cumulative set (never removed).
+        """
+        for tag in effects:
+            tag = tag.strip().lower()
+            if tag:
+                self._achieved_effects.add(tag)
 
     def receive_step_assessment(self, completed: int, total: int):
-        """Set protocol step index from skill_selection LoRA output.
+        """Backward-compat: accept STEP: n/m from LoRA output.
 
-        Monotonic constraint: only advances forward.
+        Converts the ordinal step index into approximate effect
+        completion.  Kept for transition period while SFT data
+        still uses STEP format.
         """
-        if total != self.total_protocol_steps or total <= 0:
-            return
-        clamped = max(0, min(completed, total - 1))
-        self._protocol_step_idx = max(self._protocol_step_idx, clamped)
+        pass
+
+    # ── Observe state effects (deterministic fallback) ────────────
+
+    def observe_state_effects(
+        self,
+        curr_facts: Dict[str, Any],
+        reward: float = 0.0,
+        action: str = "",
+    ):
+        """Observe state changes after env.step() and accumulate tags.
+
+        This is the deterministic fallback — always runs, zero cost.
+        Tags from the StateEffectObserver are merged into the same
+        cumulative set as LoRA-reported tags.
+        """
+        effects = self._effect_observer.observe(
+            curr_facts, reward=reward, action=action,
+            game_name=self.game_name,
+        )
+        for key, val in effects.items():
+            if val == "true":
+                self._achieved_effects.add(key)
 
     # ── Update after each step ─────────────────────────────────────
 
@@ -186,14 +267,10 @@ class StepTracker:
         state_text: str = "",
         hop_type: Optional[str] = None,
     ):
-        """Update tracker after one timestep (game action / QA hop / web action).
-
-        ``hop_type`` is set for QA domains (e.g. "GROUND", "CHECK",
-        "VERIFY", "COMMIT") and appended to ``hop_history`` for
-        deterministic step-state tracking.
-        """
+        """Update tracker after one timestep."""
         if hop_type:
             self.hop_history.append(hop_type)
+            self._achieved_effects.add(f"hop_{hop_type.lower()}")
 
         self._intrinsic_bonus = 0.0
         if skill_id != self.active_skill_id:
@@ -208,7 +285,8 @@ class StepTracker:
             self.steps_on_skill = 1
             self.reward_on_skill = reward
             self.skill_switches += 1
-            self._protocol_step_idx = 0
+            self._achieved_effects = set()
+            self._effect_observer.reset()
             self.hop_history = [hop_type] if hop_type else []
         else:
             self._just_switched = False
@@ -226,24 +304,26 @@ class StepTracker:
     # ── Progress summary for prompt ───────────────────────────────
 
     def get_progress_summary(self, state_text: str = "") -> str:
-        if not self._protocol or not isinstance(self._protocol, dict):
+        """Build a tag-based progress summary for prompt injection."""
+        if not self._required_effects:
             return ""
-        steps = self._protocol.get("steps", [])
-        if not steps:
-            return ""
-        from decision_agents.protocol_utils import (
-            build_progress_summary, parse_summary_state,
-        )
-        state_dict = parse_summary_state(state_text)
-        return build_progress_summary(
-            steps, self._step_checks, self._protocol_step_idx, state_dict,
-        )
+        achieved = sorted(self._achieved_effects & self._required_effects)
+        remaining = sorted(self._required_effects - self._achieved_effects)
+        parts = []
+        if achieved:
+            parts.append(f"Achieved: {', '.join(achieved)}")
+        if remaining:
+            parts.append(f"Remaining: {', '.join(remaining)}")
+        return " | ".join(parts)
 
     # ── Protocol setup ─────────────────────────────────────────────
 
     def set_protocol(self, protocol: Optional[Dict[str, Any]]):
         self._protocol = protocol
-        self._protocol_step_idx = 0
+        self._achieved_effects = set()
+        self._required_effects = set()
+        self._completion_effect = ""
+        self._effect_observer.reset()
         self._success_criteria = []
         self._abort_criteria = []
         self._predicate_success = []
@@ -260,8 +340,61 @@ class StepTracker:
             self._predicate_success = protocol.get("predicate_success", []) or []
             self._predicate_abort = protocol.get("predicate_abort", []) or []
             self._step_checks = protocol.get("step_checks", []) or []
+
+            req = protocol.get("required_effects", []) or []
+            if req:
+                self._required_effects = set(req)
+            else:
+                self._required_effects = _infer_required_effects(
+                    protocol, game_name=self.game_name,
+                )
+
+            self._completion_effect = protocol.get("completion_effect", "")
         else:
             self.max_skill_duration = 10
+
+
+def _infer_required_effects(
+    protocol: Dict[str, Any],
+    game_name: str = "",
+) -> Set[str]:
+    """Infer required_effects from existing protocol fields.
+
+    Bridges old protocol format (step_checks, action_vocab,
+    template_signature) to the new effect-tag model.
+    """
+    effects: Set[str] = set()
+
+    step_checks = protocol.get("step_checks", []) or []
+    for check in step_checks:
+        if not check:
+            continue
+        key = check.split("=")[0].strip()
+        if key:
+            effects.add(key)
+
+    if not effects:
+        from decision_agents.protocol_utils import (
+            generate_step_checks_from_effects,
+        )
+        steps = protocol.get("steps", [])
+        if steps:
+            generated = generate_step_checks_from_effects(steps, game_name=game_name)
+            for check in generated:
+                if check:
+                    key = check.split("=")[0].strip()
+                    if key:
+                        effects.add(key)
+
+    if not effects:
+        vocab = protocol.get("action_vocab", []) or []
+        from decision_agents.protocol_utils import OPERATOR_TO_EFFECT
+        for op in vocab:
+            eff = OPERATOR_TO_EFFECT.get(op.upper(), "")
+            if eff:
+                effects.add(eff)
+
+    return effects
 
 
 # ---------------------------------------------------------------------------
@@ -269,13 +402,9 @@ class StepTracker:
 # ---------------------------------------------------------------------------
 
 SKILL_SELECTION_SYSTEM_PROMPT = (
-    "You are an expert strategist. "
-    "Given the current state and a set of candidate strategies, "
-    "choose the ONE strategy most likely to make progress.\n\n"
-    "Output format (strict):\n"
-    "REASONING: <1-2 sentences why this strategy fits the current state>\n"
-    "STEP: <completed>/<total>\n"
-    "DECISION: <CONTINUE|SWITCH>\n"
+    "You are a skill selector. Output exactly 3 lines:\n"
+    "EFFECTS: <comma-separated effects achieved so far from the valid set>\n"
+    "DECISION: CONTINUE or SWITCH\n"
     "SKILL: <number>\n"
 )
 
@@ -288,10 +417,13 @@ def format_candidates_for_selection(candidates: List[Dict[str, Any]]) -> str:
         hint = c.get("execution_hint", "")
         protocol = c.get("protocol", {})
         steps = protocol.get("steps", []) if isinstance(protocol, dict) else []
+        req_effects = protocol.get("required_effects", []) if isinstance(protocol, dict) else []
         lines.append(f"  {i}. {name}")
         if hint:
             lines.append(f"     Strategy: {hint[:150]}")
-        if steps:
+        if req_effects:
+            lines.append(f"     Required effects: {', '.join(req_effects[:6])}")
+        elif steps:
             step_text = " -> ".join(steps[:4])
             if len(steps) > 4:
                 step_text += " -> ..."
@@ -313,21 +445,43 @@ _DECISION_RE = re.compile(
     re.IGNORECASE,
 )
 
+_EFFECTS_RE = re.compile(
+    r"EFFECTS?\s*:\s*(.+?)(?=\nDECISION|\nSKILL|\Z)",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _fuzzy_match_tag(tag: str, valid_set: set) -> str:
+    """Best-effort recovery for misspelled/shortened effect tags."""
+    for valid in valid_set:
+        if tag in valid or valid in tag:
+            return valid
+    tag_parts = set(tag.split("_"))
+    best, best_overlap = "", 0
+    for valid in valid_set:
+        valid_parts = set(valid.split("_"))
+        overlap = len(tag_parts & valid_parts)
+        if overlap > best_overlap:
+            best, best_overlap = valid, overlap
+    return best if best_overlap >= 1 else ""
+
 
 def parse_skill_selection(
     reply: str,
     n_candidates: int,
     candidates: Optional[List[Dict[str, Any]]] = None,
     strip_think_tags: Optional[Callable[[str], str]] = None,
-) -> Tuple[int, Optional[str], Optional[Tuple[int, int]], str]:
-    """Parse skill selection reply.
+    task_name: str = "",
+) -> Tuple[int, List[str], str]:
+    """Parse skill selection reply (3-line format, no REASONING).
 
-    Returns ``(chosen_idx, reasoning, step_progress, decision)`` where
-    ``step_progress`` is ``(completed, total)`` or ``None``, and
-    ``decision`` is one of ``"CONTINUE"`` / ``"SWITCH"`` / ``"SKIP"``.
+    Returns ``(chosen_idx, effects, decision)`` where
+    ``effects`` is a list of effect tag strings (validated against
+    the closed-set registry), and
+    ``decision`` is ``"CONTINUE"`` / ``"SWITCH"`` / ``"SKIP"``.
     """
     if not reply:
-        return 0, None, None, "SWITCH"
+        return 0, [], "SWITCH"
 
     cleaned = reply
     if strip_think_tags is not None:
@@ -335,21 +489,22 @@ def parse_skill_selection(
     if not cleaned:
         cleaned = reply
 
-    reasoning = None
-    reasoning_m = re.search(
-        r"REASONING\s*:\s*(.+?)(?=\nSTEP|\nDECISION|\nSKILL|\Z)",
-        cleaned, re.DOTALL | re.IGNORECASE,
-    )
-    if reasoning_m:
-        reasoning = reasoning_m.group(1).strip()
-
-    step_progress: Optional[Tuple[int, int]] = None
-    step_m = re.search(r"STEP\s*:\s*(\d+)\s*/\s*(\d+)", cleaned, re.IGNORECASE)
-    if step_m:
-        completed = int(step_m.group(1))
-        total = int(step_m.group(2))
-        if 0 <= completed <= total <= 20 and total > 0:
-            step_progress = (completed, total)
+    effects: List[str] = []
+    effects_m = _EFFECTS_RE.search(cleaned)
+    if effects_m:
+        raw = effects_m.group(1).strip()
+        parsed = [t.strip().lower() for t in raw.split(",") if t.strip()]
+        from decision_agents.protocol_utils import EFFECT_REGISTRY
+        valid_set = set(EFFECT_REGISTRY.keys())
+        for tag in parsed:
+            if tag in valid_set:
+                effects.append(tag)
+            else:
+                closest = _fuzzy_match_tag(tag, valid_set)
+                if closest:
+                    effects.append(closest)
+                else:
+                    logger.debug("Dropping unknown effect tag: %s", tag)
 
     decision = "SWITCH"
     decision_m = _DECISION_RE.search(cleaned)
@@ -360,23 +515,23 @@ def parse_skill_selection(
     if skill_m:
         idx = int(skill_m.group(1)) - 1
         if 0 <= idx < n_candidates:
-            return idx, reasoning, step_progress, decision
+            return idx, effects, decision
 
     tail = cleaned[-100:]
     nums = re.findall(r"\b(\d+)\b", tail)
     for n_str in reversed(nums):
         idx = int(n_str) - 1
         if 0 <= idx < n_candidates:
-            return idx, reasoning, step_progress, decision
+            return idx, effects, decision
 
     if candidates:
         cleaned_lower = cleaned.lower()
         for i, c in enumerate(candidates):
             name = (c.get("skill_name") or "").lower()
             if name and len(name) >= 4 and name in cleaned_lower:
-                return i, reasoning, step_progress, decision
+                return i, effects, decision
 
-    return 0, reasoning, step_progress, decision
+    return 0, effects, decision
 
 
 # ---------------------------------------------------------------------------
@@ -389,24 +544,56 @@ def build_skill_selection_prompt(
     candidates: List[Dict[str, Any]],
     tracker: StepTracker,
     profile_prefix: str = "",
+    recent_actions: Optional[List[str]] = None,
+    recent_rewards: Optional[List[float]] = None,
+    task_name: str = "",
 ) -> str:
     """Build the skill_selection prompt, identical for all domains.
 
-    The state_text is domain-specific (game summary / evidence chain /
-    DOM state), but the prompt structure is always the same.
+    The prompt gives the LoRA everything it needs for CONTINUE vs SWITCH:
+      - Current state (what the world looks like now)
+      - Closed-set valid effect tags for this task (constrained vocabulary)
+      - Current skill + what effects it still needs (CONTINUE context)
+      - Historical actions/rewards (is the skill making progress?)
+      - Candidate skills to switch to (SWITCH context)
     """
+    from decision_agents.protocol_utils import get_valid_effects
+
     candidates_text = format_candidates_for_selection(candidates)
 
-    proto_ctx = ""
-    if tracker._protocol:
-        p_steps = tracker._protocol.get("steps", [])
-        p_idx = tracker.protocol_step_idx
-        if p_steps:
-            step_list = " → ".join(s[:50] for s in p_steps)
-            proto_ctx = (
-                f"Current protocol progress: step {p_idx + 1}/{len(p_steps)}\n"
-                f"Protocol: {step_list}\n"
-            )
+    # Closed-set effect vocabulary for this task
+    tn = task_name or tracker.game_name
+    valid_tags = get_valid_effects(tn)
+    valid_tags_str = ", ".join(valid_tags)
+
+    # Current skill context (for CONTINUE branch)
+    skill_ctx = ""
+    if tracker.active_skill_name:
+        skill_ctx = f"Active skill: {tracker.active_skill_name}"
+        skill_ctx += f" (step {tracker.steps_on_skill}, reward so far: {tracker.reward_on_skill:.1f})\n"
+
+    # Effect progress (for CONTINUE branch — what tags achieved / remaining)
+    progress_ctx = ""
+    achieved = tracker.achieved_effects
+    remaining = tracker.remaining_effects
+    if achieved or remaining:
+        parts = []
+        if achieved:
+            parts.append(f"Achieved effects: {', '.join(sorted(achieved))}")
+        if remaining:
+            parts.append(f"Still needed: {', '.join(sorted(remaining))}")
+        progress_ctx = "\n".join(parts) + "\n"
+
+    # Recent action/reward history (is the skill progressing?)
+    history_ctx = ""
+    if recent_actions:
+        rr = recent_rewards or [0.0] * len(recent_actions)
+        tail_a = recent_actions[-5:]
+        tail_r = rr[-5:]
+        history_lines = [f"  {a} → reward {r:.1f}" for a, r in zip(tail_a, tail_r)]
+        history_ctx = "Recent history:\n" + "\n".join(history_lines) + "\n"
+        if sum(tail_r) <= 0 and len(tail_a) >= 3:
+            history_ctx += "  (no reward in recent steps — consider SWITCH)\n"
 
     hop_ctx = ""
     if tracker.hop_history:
@@ -414,15 +601,15 @@ def build_skill_selection_prompt(
 
     user_content = (
         f"Current state:\n{state_text[:3500]}\n\n"
-        f"Current intention: {intention[:500]}\n"
-        f"{proto_ctx}"
+        f"Intention: {intention[:500]}\n"
+        f"Valid effect tags: [{valid_tags_str}]\n"
+        f"{skill_ctx}"
+        f"{progress_ctx}"
+        f"{history_ctx}"
         f"{hop_ctx}\n"
-        f"Available strategies (pick ONE by number):\n{candidates_text}\n\n"
-        f"Assess protocol progress and choose a strategy.\n"
-        f"Output format:\n"
-        f"REASONING: <why this strategy fits + progress assessment>\n"
-        f"STEP: <completed>/<total>\n"
-        f"DECISION: <CONTINUE|SWITCH>\n"
+        f"Strategies:\n{candidates_text}\n\n"
+        f"EFFECTS: <list achieved effects from the valid set>\n"
+        f"DECISION: CONTINUE or SWITCH\n"
         f"SKILL: <number>"
     )
     return profile_prefix + SKILL_SELECTION_SYSTEM_PROMPT + "\n" + user_content
@@ -434,13 +621,7 @@ def build_skill_selection_prompt(
 
 @dataclass
 class SkillSelectionRecord:
-    """One skill_selection decision point, ready for GRPO training.
-
-    Created at each skill selection call.  The ``reward`` field is
-    initially set to a placeholder (clamped env reward for games,
-    0.0 for non-game).  After the episode completes, the offline
-    reward labeler overwrites it with the trajectory-level signal.
-    """
+    """One skill_selection decision point, ready for GRPO training."""
 
     domain: str
     task: str
@@ -453,8 +634,7 @@ class SkillSelectionRecord:
     chosen_skill_id: Optional[str] = None
     chosen_idx: int = 0
     decision: str = "SWITCH"
-    step_progress: Optional[Tuple[int, int]] = None
-    reasoning: Optional[str] = None
+    effects: List[str] = field(default_factory=list)
     reselect_reason: str = ""
     hop_history: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -470,26 +650,13 @@ def relabel_skill_rewards(
     episode_success: bool = False,
     gamma: float = 0.95,
 ) -> List[SkillSelectionRecord]:
-    """Relabel skill_selection rewards using full trajectory information.
-
-    For games: per-step env reward is already known, so we use
-    discounted cumulative future reward from each decision point.
-
-    For non-game (QA/web): episode_reward is binary (correct/incorrect)
-    or task-completion score.  All skill decisions in the episode share
-    the outcome, weighted by recency (later decisions get more credit).
-
-    This replaces the noisy inline reward computation and works
-    identically across all domains.
-    """
+    """Relabel skill_selection rewards using full trajectory information."""
     n = len(records)
     if n == 0:
         return records
 
     for i, rec in enumerate(records):
-        steps_remaining = n - i
         recency_weight = gamma ** (n - i - 1)
-
         base_reward = episode_reward * recency_weight
 
         if episode_success:

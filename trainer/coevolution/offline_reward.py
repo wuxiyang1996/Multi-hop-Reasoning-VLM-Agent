@@ -42,7 +42,8 @@ class TrajectorySegment:
     n_candidates: int
     hop_history: List[str]
     env_rewards: List[float]
-    step_progress_ratio: float = 0.0
+    completion_ratio: float = 0.0
+    effects_complete: bool = False
     reselect_reason: str = ""
 
 
@@ -76,7 +77,8 @@ def segment_trajectory(
                 n_candidates=rec.get("n_candidates", 0),
                 hop_history=list(current_hops),
                 env_rewards=list(current_rewards),
-                step_progress_ratio=rec.get("step_progress_ratio", 0.0),
+                completion_ratio=rec.get("completion_ratio", 0.0),
+                effects_complete=rec.get("effects_complete", False),
                 reselect_reason=rec.get("reselect_reason", ""),
             ))
             current_start = i
@@ -100,7 +102,8 @@ def segment_trajectory(
             n_candidates=last.get("n_candidates", 0),
             hop_history=list(current_hops),
             env_rewards=list(current_rewards),
-            step_progress_ratio=last.get("step_progress_ratio", 0.0),
+            completion_ratio=last.get("completion_ratio", 0.0),
+            effects_complete=last.get("effects_complete", False),
             reselect_reason=last.get("reselect_reason", ""),
         ))
 
@@ -131,10 +134,14 @@ def relabel_game_rewards(
     for i in range(n):
         base = cumulative_from[i] / max_ret
 
-        progress_bonus = segments[i].step_progress_ratio * 0.15
+        progress_bonus = segments[i].completion_ratio * 0.15
+        if segments[i].effects_complete:
+            progress_bonus += 0.2
 
         if segments[i].reselect_reason.startswith("success:"):
             base += 0.2
+        elif segments[i].reselect_reason == "effects_complete":
+            base += 0.25
         elif segments[i].reselect_reason.startswith("abort:"):
             base -= 0.1
 
@@ -167,10 +174,14 @@ def relabel_sparse_rewards(
         if episode_success:
             base += 0.2 * recency
 
-        progress_bonus = segments[i].step_progress_ratio * 0.15
+        progress_bonus = segments[i].completion_ratio * 0.15
+        if segments[i].effects_complete:
+            progress_bonus += 0.2
 
         if segments[i].reselect_reason.startswith("success:"):
             base += 0.15
+        elif segments[i].reselect_reason == "effects_complete":
+            base += 0.2
         elif segments[i].reselect_reason.startswith("abort:"):
             base -= 0.1
 

@@ -36,6 +36,11 @@ decision_agents/
 ├─ schema_parser.py      ← shared StateSchema / Entity / parse_state_schema
 ├─ skill_interface.py    ← SkillProvider seam
 ├─ skill_tracker.py      ← SkillTracker (slot coverage, reselect-on-stall)
+├─ skill_decision_core.py ← unified skill selection pipeline (LoRA):
+│                           StepTracker (effect-tag accumulation),
+│                           prompt builder, parser, SkillSelectionRecord
+├─ protocol_utils.py     ← StateEffectObserver, EFFECT_REGISTRY (47 tags),
+│                          per-task effect subsets, QA/web step state
 ├─ reward_func.py        ← RewardComputer (r_env + r_follow + r_cost,
 │                          incl. per-action-kind costs for VR/Video)
 ├─ agent_helper.py       ← infer_intention, EpisodicMemoryStore
@@ -1033,12 +1038,283 @@ Skills are sorted by confidence and top-k returned as `SkillSelectionResult` obj
 
 ---
 
+## Unified skill selection pipeline (LoRA + effect-tag tracking)
+
+The skill selection LoRA (`skill_selection` adapter, 9B) runs a **single
+unified pipeline** across all 18 tasks — 4 classic games, 8 Gym-V
+temporal games, 4 QA benchmarks, 2 web benchmarks. The pipeline is
+implemented in two files:
+
+| File | Responsibility |
+|------|----------------|
+| `skill_decision_core.py` | `StepTracker` (effect-tag accumulation), prompt builder, parser, `SkillSelectionRecord` (GRPO) |
+| `protocol_utils.py` | `StateEffectObserver` (deterministic effect emission), `EFFECT_REGISTRY` (closed-set vocabulary), per-task subsets, QA/web effect computation |
+
+### LoRA output format (3-line, no reasoning)
+
+The 9B LoRA outputs exactly 3 lines per skill-selection call:
+
+```
+EFFECTS: state_observed, merge_executed, board_transformed
+DECISION: CONTINUE
+SKILL: 2
+```
+
+- **EFFECTS** — comma-separated tags from a **closed set** of 47 known
+  tags (see below). Lists what effects have been achieved so far under
+  the current skill.
+- **DECISION** — `CONTINUE` (keep current skill) or `SWITCH` (pick a
+  new skill).
+- **SKILL** — 1-indexed candidate number.
+
+The `REASONING` field was eliminated after discovering that SFT data
+for reasoning was degenerate (100% identical templated strings across
+all training examples). Removing it reduces the 9B model's task to
+pure structured classification (~15 tokens output), making it highly
+tractable.
+
+### Effect-tag accumulation (replaces step counters)
+
+Instead of tracking "we are on step 3/5" (fragile ordinal alignment),
+the system tracks **which effect tags have been achieved**:
+
+```
+Achieved: {state_observed, merge_executed}
+Remaining: {board_transformed, tile_promoted}
+→ completion_ratio = 2/4 = 0.50
+```
+
+Tags come from two sources (both feed into the same cumulative set):
+
+| Source | Latency | Cost | Example |
+|--------|---------|------|---------|
+| `StateEffectObserver` (deterministic) | 0ms | free | Compares prev/curr game state → `board_transformed=true` |
+| 9B LoRA EFFECTS output (learned) | ~50ms | part of existing skill_selection call | `EFFECTS: merge_executed, tile_promoted` |
+
+Benefits over step counters:
+- **Unordered** — no fragile ordinal alignment between cognitive steps and env steps
+- **Many-to-many** — one env step can satisfy multiple tags; one protocol step can span multiple env steps
+- **Domain-agnostic** — games emit `merge_executed`, QA emits `evidence_cited`, web emits `form_filled`
+- **Observable** — every tag corresponds to a measurable state change
+
+### Closed-set effect tag registry (47 tags)
+
+Every effect tag the LoRA can output is pre-registered. The LoRA prompt
+includes the valid subset for the current task, constraining output to
+known tags. Unknown tags from LoRA output are either fuzzy-matched to
+the closest valid tag or dropped.
+
+#### Universal tags (all 18 tasks)
+
+| Tag | Description |
+|-----|-------------|
+| `state_observed` | Agent perceived / inspected current state |
+| `action_taken` | Agent executed at least one action this turn |
+| `action_executed` | A domain-specific action was performed |
+| `reward_positive` | Positive reward received this step |
+| `cumulative_reward_positive` | Sum of rewards across skill so far > 0 |
+| `score_increased` | Numeric score went up |
+
+#### QA reasoning tags (video_holmes, siv_bench, tir_bench, visual_toolbench)
+
+| Tag | Description |
+|-----|-------------|
+| `evidence_cited` | Relevant visual or textual evidence extracted |
+| `hypothesis_formed` | A candidate hypothesis / interpretation stated |
+| `context_retrieved` | External or temporal context recalled / fetched |
+| `options_compared` | Multiple candidate answers compared |
+| `candidates_eliminated` | At least one wrong option ruled out |
+| `answer_selected` | A single best answer chosen |
+| `answer_emitted` | Final answer committed / output produced |
+| `answer_confirmed` | Answer cross-checked against evidence |
+
+#### Board / puzzle game tags (2048, tetris, candy_crush, Columns)
+
+| Tag | Description |
+|-----|-------------|
+| `board_transformed` | Board layout changed from previous state |
+| `board_crowded` | Board is near capacity / few open cells |
+| `board_reshuffled` | Board was reshuffled or cascaded |
+| `tile_promoted` | Highest tile value increased (2048) |
+| `merge_executed` | A merge / combine occurred (2048) |
+| `direction_applied` | A directional move was applied (2048) |
+| `piece_placed` | A piece was placed on the board (tetris/columns) |
+| `piece_changed` | Active piece changed / new piece spawned (tetris) |
+| `piece_rotated` | A piece was rotated (columns) |
+| `line_cleared` | One or more lines cleared (tetris) |
+| `holes_reduced` | Board holes decreased (tetris) |
+| `holes_created` | Board holes increased (tetris, negative signal) |
+| `move_applied` | A move/shift/rotate was executed (tetris) |
+| `match_scored` | A match / cascade scored points (candy/columns) |
+| `swap_applied` | A swap action performed (candy crush) |
+| `move_spent` | A move resource was consumed (candy crush) |
+
+#### Platformer / action tags (mario, Strider, AlteredBeast, etc.)
+
+| Tag | Description |
+|-----|-------------|
+| `position_changed` | Agent position moved to a new location |
+| `mario_moved` | Mario character moved (super_mario specific) |
+| `progress_made` | Forward progress toward goal |
+| `damage_taken` | Agent took damage / lost health |
+| `obstacle_cleared` | An obstacle or hazard was successfully avoided |
+| `collectible_obtained` | A coin / power-up / item was collected |
+
+#### Shooter / combat tags (Airstriker, SpaceHarrier, ThunderForce, etc.)
+
+| Tag | Description |
+|-----|-------------|
+| `enemy_hit` | An enemy was hit / destroyed |
+| `projectile_fired` | Agent fired a projectile |
+| `attack_landed` | A melee / ranged attack connected |
+
+#### Web interaction tags (miniwob, webshop)
+
+| Tag | Description |
+|-----|-------------|
+| `page_navigated` | Browser navigated to a new URL / page |
+| `form_filled` | A text input / form field was filled |
+| `element_clicked` | A UI element was clicked |
+| `dom_changed` | Page DOM changed meaningfully after action |
+| `item_found` | Target item / element located on page |
+| `search_performed` | A search query was submitted |
+| `product_selected` | A product / option was chosen from results |
+| `cart_updated` | Shopping cart was modified (webshop) |
+
+### Per-task tag coverage
+
+Each task uses a subset of 9–13 tags from the registry. The LoRA
+prompt injects the valid tags as `Valid effect tags: [...]` to constrain
+output. Per-task subsets are defined in `TASK_EFFECT_SUBSET` in
+`protocol_utils.py`.
+
+| Task | # Tags | Domain-specific highlights |
+|------|--------|---------------------------|
+| `twenty_forty_eight` | 10 | `board_transformed`, `tile_promoted`, `merge_executed`, `direction_applied`, `board_crowded` |
+| `tetris` | 12 | `piece_placed`, `piece_changed`, `line_cleared`, `holes_reduced`, `holes_created`, `move_applied` |
+| `candy_crush` | 10 | `match_scored`, `swap_applied`, `board_reshuffled`, `move_spent` |
+| `super_mario` | 12 | `mario_moved`, `progress_made`, `damage_taken`, `obstacle_cleared`, `collectible_obtained` |
+| `temporal_airstriker-v0` | 9 | `enemy_hit`, `projectile_fired`, `damage_taken` |
+| `temporal_alteredbeast-v0` | 10 | `enemy_hit`, `attack_landed`, `position_changed`, `damage_taken` |
+| `temporal_columns-v0` | 10 | `match_scored`, `piece_placed`, `piece_rotated` |
+| `temporal_dynamiteheaddy-v0` | 10 | `enemy_hit`, `attack_landed`, `position_changed` |
+| `temporal_spaceharrierii-v0` | 9 | `enemy_hit`, `projectile_fired`, `damage_taken` |
+| `temporal_streetsofrage2-v0` | 10 | `enemy_hit`, `attack_landed`, `position_changed` |
+| `temporal_strider-v0` | 10 | `enemy_hit`, `attack_landed`, `position_changed` |
+| `temporal_thunderforceiii-v0` | 9 | `enemy_hit`, `projectile_fired` |
+| `video_holmes` | 10 | `evidence_cited`, `hypothesis_formed`, `context_retrieved`, `answer_confirmed` |
+| `siv_bench` | 10 | `evidence_cited`, `hypothesis_formed`, `context_retrieved`, `answer_confirmed` |
+| `tir_bench` | 10 | `evidence_cited`, `hypothesis_formed`, `context_retrieved`, `answer_confirmed` |
+| `visual_toolbench` | 10 | `evidence_cited`, `hypothesis_formed`, `context_retrieved`, `answer_confirmed` |
+| `miniwob` | 10 | `page_navigated`, `form_filled`, `element_clicked`, `dom_changed`, `item_found` |
+| `webshop` | 13 | `page_navigated`, `form_filled`, `element_clicked`, `search_performed`, `product_selected`, `cart_updated` |
+
+### StateEffectObserver (deterministic effect emission)
+
+`StateEffectObserver` in `protocol_utils.py` compares prev/curr game
+state facts and emits effect tags without any LLM call. It provides
+grounded, zero-cost tracking that the LoRA's learned EFFECTS output
+supplements.
+
+Game-specific effect functions:
+
+| Games | Function | Key effects |
+|-------|----------|-------------|
+| 2048 | `_effects_2048` | `tile_promoted`, `merge_executed`, `board_transformed`, `board_crowded`, `direction_applied` |
+| Tetris | `_effects_tetris` | `line_cleared`, `piece_placed`, `piece_changed`, `holes_reduced`, `holes_created`, `move_applied` |
+| Candy Crush | `_effects_candy_crush` | `match_scored`, `swap_applied`, `board_reshuffled`, `move_spent` |
+| Mario | `_effects_mario` | `mario_moved`, `progress_made`, `damage_taken` |
+| Temporal shooters (3) | `_effects_gymv_shooter` | `enemy_hit`, `projectile_fired`, `score_increased`, `damage_taken` |
+| Temporal brawlers (4) | `_effects_gymv_brawler` | `enemy_hit`, `attack_landed`, `score_increased`, `position_changed`, `damage_taken` |
+| Temporal Columns | `_effects_gymv_columns` | `match_scored`, `piece_placed`, `piece_rotated`, `score_increased` |
+
+QA and web tasks use `compute_qa_step_state()` and
+`compute_web_effects()` respectively, which map hop types and browser
+actions to the same effect vocabulary.
+
+### StepTracker lifecycle
+
+`StepTracker` in `skill_decision_core.py` manages the active skill's
+effect-tag state. Key methods:
+
+```python
+tracker = StepTracker(domain="game", game_name="tetris")
+tracker.set_protocol(skill_protocol)
+
+tracker.receive_lora_effects(["piece_placed", "holes_reduced"])
+tracker.observe_state_effects(curr_facts, reward=1.0, action="drop")
+
+print(tracker.achieved_effects)    # {"piece_placed", "holes_reduced"}
+print(tracker.remaining_effects)   # {"line_cleared"}
+print(tracker.completion_ratio)    # 0.67
+print(tracker.effects_complete)    # False
+
+if tracker.should_reselect(guidance, state_text):
+    print(tracker.reselect_reason)  # "effects_complete" / "duration_exceeded" / ...
+```
+
+Reselection triggers:
+- `effects_complete` — all required effect tags achieved
+- `duration_exceeded` — steps on skill >= max duration
+- `zero_reward_stall` — 4+ steps with no reward (games)
+- `abort/success criteria` — keyword match from protocol
+
+### Skill bank effect layers
+
+The system has two effect layers that work together:
+
+| Layer | Where | Purpose | Example |
+|-------|-------|---------|---------|
+| **Contract effects** (`eff_add/eff_del`) | Skill bank JSONL | What a skill promises to achieve | `attribute_changed`, `entity_appeared` |
+| **Runtime effects** (EFFECT_REGISTRY) | LoRA output + observer | What has actually been observed | `tile_promoted`, `board_transformed` |
+
+The mapping between layers is handled by `_infer_required_effects()`
+in `skill_decision_core.py`, which bridges protocol fields
+(`step_checks`, `action_vocab`, `template_signature`) to runtime
+effect tags. This means older skill banks without explicit
+`required_effects` still work — their protocol steps are automatically
+mapped to the new effect vocabulary.
+
+### Offline reward relabeling
+
+`trainer/coevolution/offline_reward.py` uses the effect-tag model for
+post-hoc reward adjustment during GRPO training:
+
+- `completion_ratio` — fraction of required effects achieved at each
+  decision point; used to scale partial credit
+- `effects_complete` — boolean bonus when all effects are satisfied
+- `reselect_reason == "effects_complete"` — bonus for clean skill
+  transitions triggered by completion rather than timeout
+
+### GRPO training record
+
+`SkillSelectionRecord` captures one skill-selection decision point:
+
+```python
+@dataclass
+class SkillSelectionRecord:
+    domain: str       # "game" / "qa" / "web"
+    task: str         # e.g. "tetris"
+    episode_id: str
+    step: int
+    prompt: str       # full skill selection prompt
+    completion: str   # "EFFECTS: ...\nDECISION: ...\nSKILL: ..."
+    chosen_skill: str
+    effects: List[str]
+    decision: str     # "CONTINUE" / "SWITCH"
+    reward: float
+```
+
+---
+
 ## Files
 
 | File / sub-package | What it does |
 |--------------------|--------------|
 | `agent.py` | `VLMDecisionAgent` (LLM decision agent), `run_tool()`, `run_episode_vlm_agent()`, tool handlers (e.g. `TOOL_SELECT_SKILL` → `active_skill_plan` from protocol steps) |
 | `agent_helper.py` | `get_state_summary()`, `build_rag_summary()`, `extract_game_facts()`, `infer_intention()`, `EpisodicMemoryStore`, `skill_bank_to_text()`, `query_skill_bank()` / `select_skill_from_bank()`, `_get_protocol_for_skill()` |
+| `skill_decision_core.py` | Unified skill selection pipeline: `StepTracker` (effect-tag accumulation), `build_skill_selection_prompt()`, `parse_skill_selection()`, `SkillSelectionRecord` (GRPO), `SKILL_SELECTION_SYSTEM_PROMPT` |
+| `protocol_utils.py` | `StateEffectObserver`, `EFFECT_REGISTRY` (47 closed-set tags), `TASK_EFFECT_SUBSET`, `get_valid_effects()`, `compute_qa_step_state()`, `compute_web_effects()`, game-specific effect functions |
 | `reward_func.py` | `RewardConfig`, `RewardResult`, `RewardComputer`, `compute_reward()` (r_follow uses skill contract `eff_add`) |
 | `dummy_agent.py` | Baseline `language_agent_action()` + game detection + action extraction for all 6 supported games (LMGame-Bench, AgentEvolver, Orak) |
 | `__init__.py` | Re-exports the above; lazy `__getattr__` for `GPT4oCollectorActor` / `QwenVLActor` etc. |

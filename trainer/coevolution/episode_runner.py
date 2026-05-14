@@ -169,11 +169,9 @@ SYSTEM_PROMPT = (
 )
 
 SKILL_SELECTION_SYSTEM_PROMPT = (
-    "You are an expert game strategist. "
-    "Given the current game state and a set of candidate strategies, "
-    "choose the ONE strategy most likely to make progress.\n\n"
-    "Output format (strict):\n"
-    "REASONING: <1-2 sentences why this strategy fits the current state>\n"
+    "You are a skill selector. Output exactly 3 lines:\n"
+    "EFFECTS: <comma-separated effects achieved so far>\n"
+    "DECISION: CONTINUE or SWITCH\n"
     "SKILL: <number>\n"
 )
 
@@ -493,12 +491,14 @@ def _format_skill_guidance_for_prompt(
     if progress_summary:
         parts.append(f"  Progress: {progress_summary}")
     protocol = guidance.get("protocol", {})
+    req_effects = protocol.get("required_effects", []) if isinstance(protocol, dict) else []
     steps = protocol.get("steps", []) if isinstance(protocol, dict) else []
+    if req_effects:
+        parts.append(f"  Required effects: {', '.join(req_effects[:8])}")
     if steps:
         parts.append(f"  Plan ({len(steps)} steps):")
         for i, step in enumerate(steps[:7], 1):
-            marker = ">>" if (i - 1) == protocol_step_idx else "  "
-            parts.append(f"  {marker} {i}. {step}")
+            parts.append(f"    {i}. {step}")
 
     # Paradigm C: render concrete reasoning exemplar from protocol_raw.
     proto_raw = guidance.get("protocol_raw")
@@ -1095,7 +1095,7 @@ async def run_episode_async(
     recent_actions: List[str] = []
     recent_rewards: List[float] = []
     tag_history: List[str] = []
-    skill_tracker = _SkillTracker(domain=DOMAIN_GAME)
+    skill_tracker = _SkillTracker(domain=DOMAIN_GAME, game_name=game)
     last_guidance: Optional[Dict[str, Any]] = None
     last_candidates: List[Dict[str, Any]] = []
     last_chosen_idx = 0
@@ -1235,15 +1235,6 @@ async def run_episode_async(
                     harness_filter_diag = {"harness_error": repr(_hexc)}
 
             if candidates and len(candidates) >= 2:
-                candidates_text = _format_candidates_for_selection(candidates)
-                # T2.17 (2026-05-07 wiring fix): SFT data for
-                # skill_selection trains on the full ``<state>`` block
-                # (entities, attributes, affordances, relations,
-                # state_flags, targets, uncertainty, actions).  Prefer
-                # the 35B-grounded markup stored in
-                # ``info["state_markup"]`` when available; fall back to
-                # the legacy ``summary_state``/``obs_nl`` only when the
-                # vision call was disabled or fell back.
                 _ss_rich = (
                     current_info.get("state_markup") if current_info else None
                 )
@@ -1251,31 +1242,14 @@ async def run_episode_async(
                     _ss_rich if _ss_rich and "<state>" in _ss_rich
                     else (summary_state or obs_nl)
                 )
-                _proto_ctx = ""
-                if last_guidance and last_guidance.get("protocol"):
-                    _p_steps = last_guidance["protocol"].get("steps", [])
-                    _p_idx = skill_tracker.protocol_step_idx
-                    if _p_steps:
-                        _step_list = " → ".join(s[:50] for s in _p_steps)
-                        _proto_ctx = (
-                            f"Current protocol progress: step {_p_idx + 1}/{len(_p_steps)}\n"
-                            f"Protocol: {_step_list}\n"
-                        )
-                user_content = (
-                    f"Game state:\n{_ss_state_text[:3500]}\n\n"
-                    f"Current intention: {current_intention[:500]}\n"
-                    f"{_proto_ctx}\n"
-                    f"Available strategies (pick ONE by number):\n{candidates_text}\n\n"
-                    f"Assess protocol progress and choose a strategy.\n"
-                    f"Output format:\n"
-                    f"REASONING: <why this strategy fits + progress assessment>\n"
-                    f"STEP: <completed>/<total>\n"
-                    f"SKILL: <number>"
-                )
-                skill_select_prompt = (
-                    _profile_prefix
-                    + SKILL_SELECTION_SYSTEM_PROMPT
-                    + "\n" + user_content
+                skill_select_prompt = _build_skill_selection_prompt_unified(
+                    state_text=_ss_state_text,
+                    intention=current_intention,
+                    candidates=candidates,
+                    tracker=skill_tracker,
+                    profile_prefix=_profile_prefix,
+                    recent_actions=recent_actions,
+                    recent_rewards=recent_rewards,
                 )
                 skill_coro = vllm_client.generate_chat(
                     [{"role": "user", "content": skill_select_prompt}],
@@ -1349,50 +1323,49 @@ async def run_episode_async(
         # Process skill selection result
         if bank_available and (need_reselect or last_guidance is None):
             if sk_result is not None and candidates and len(candidates) >= 2:
-                chosen_idx, skill_reasoning, _step_progress, _decision = _parse_skill_selection_unified(
+                chosen_idx, _lora_effects, _decision = _parse_skill_selection_unified(
                     sk_result.text, len(candidates), candidates,
                     strip_think_tags=strip_think_tags,
                 )
-                # Walk through candidates starting at the LLM's pick; if
-                # the harness vetoes it, fall through to the next one.
-                _scan_order = [chosen_idx] + [
-                    i for i in range(len(candidates)) if i != chosen_idx
-                ]
-                _picked: Optional[int] = None
-                _last_v: Optional[Dict[str, Any]] = None
-                for _i in _scan_order:
-                    _ok, _d = _harness_validate(_i)
-                    if _ok:
-                        _picked = _i
-                        _last_v = _d
-                        if _i != chosen_idx:
-                            skill_reasoning = (
-                                f"{skill_reasoning or 'LLM-selected'} "
-                                f"(harness re-routed from idx={chosen_idx} "
-                                f"→ idx={_i})"
-                            )
-                        break
-                    _last_v = _d
-                harness_validate_diag = _last_v
-                if _picked is None:
-                    guidance = None
+
+                if _lora_effects:
+                    skill_tracker.receive_lora_effects(_lora_effects)
+
+                if _decision == "CONTINUE" and last_guidance is not None:
+                    guidance = last_guidance
                     last_candidates = candidates
                     last_chosen_idx = chosen_idx
-                    last_skill_reasoning = "harness vetoed all candidates"
+                    last_skill_reasoning = None
                 else:
-                    chosen_idx = _picked
-                    guidance = candidates[chosen_idx]
-                    if skill_reasoning:
-                        guidance["why_selected"] = skill_reasoning
-                    last_candidates = candidates
-                    last_chosen_idx = chosen_idx
-                    last_skill_reasoning = skill_reasoning
-                    skill_tracker.set_protocol(guidance.get("protocol"))
-                    if _step_progress is not None:
-                        skill_tracker.receive_step_assessment(*_step_progress)
-                    _chosen_sid = guidance.get("skill_id")
-                    if _chosen_sid and hasattr(skill_bank, "selection_tracker"):
-                        skill_bank.selection_tracker.increment(_chosen_sid)
+                    # SWITCH: validate and adopt the new skill
+                    _scan_order = [chosen_idx] + [
+                        i for i in range(len(candidates)) if i != chosen_idx
+                    ]
+                    _picked: Optional[int] = None
+                    _last_v: Optional[Dict[str, Any]] = None
+                    for _i in _scan_order:
+                        _ok, _d = _harness_validate(_i)
+                        if _ok:
+                            _picked = _i
+                            _last_v = _d
+                            break
+                        _last_v = _d
+                    harness_validate_diag = _last_v
+                    if _picked is None:
+                        guidance = None
+                        last_candidates = candidates
+                        last_chosen_idx = chosen_idx
+                        last_skill_reasoning = None
+                    else:
+                        chosen_idx = _picked
+                        guidance = candidates[chosen_idx]
+                        last_candidates = candidates
+                        last_chosen_idx = chosen_idx
+                        last_skill_reasoning = None
+                        skill_tracker.set_protocol(guidance.get("protocol"))
+                        _chosen_sid = guidance.get("skill_id")
+                        if _chosen_sid and hasattr(skill_bank, "selection_tracker"):
+                            skill_bank.selection_tracker.increment(_chosen_sid)
             elif candidates:
                 _picked2: Optional[int] = None
                 _last_v2: Optional[Dict[str, Any]] = None
@@ -1408,15 +1381,12 @@ async def run_episode_async(
                     guidance = None
                     last_candidates = candidates
                     last_chosen_idx = 0
-                    last_skill_reasoning = "harness vetoed all candidates"
+                    last_skill_reasoning = None
                 else:
                     guidance = candidates[_picked2]
                     last_candidates = candidates
                     last_chosen_idx = _picked2
-                    last_skill_reasoning = (
-                        "only one candidate" if _picked2 == 0
-                        else f"harness re-routed to idx={_picked2}"
-                    )
+                    last_skill_reasoning = None
                     skill_tracker.set_protocol(guidance.get("protocol"))
                     _chosen_sid = guidance.get("skill_id")
                     if _chosen_sid and hasattr(skill_bank, "selection_tracker"):
@@ -1597,6 +1567,11 @@ async def run_episode_async(
         skill_tracker.update(skill_id, skill_name_val, float(reward),
                              state_text=summary_state)
 
+        next_facts = extract_game_facts(next_obs_nl, game)
+        skill_tracker.observe_state_effects(
+            next_facts, reward=float(reward), action=str(action),
+        )
+
         try:
             from trainer.coevolution._run_loggers import log_step_progress
             _itag_m = _TAG_RE.match(current_intention) if current_intention else None
@@ -1605,7 +1580,7 @@ async def run_episode_async(
                 protocol_step_idx=skill_tracker.protocol_step_idx,
                 total_steps=skill_tracker.total_protocol_steps,
                 intention_tag=_itag_m.group(1).upper() if _itag_m else "",
-                source="tag_inferred",
+                source="effect_tags",
                 active_skill_id=skill_id or "",
             )
         except Exception:
@@ -1687,14 +1662,13 @@ async def run_episode_async(
                     logger.exception("reward_logger.log_grpo_record(action_taking) failed")
 
         if skill_select_prompt and last_candidates and len(last_candidates) >= 2:
-            _step_str = ""
-            _n_total_steps = skill_tracker.total_protocol_steps
-            if _n_total_steps > 0:
-                _step_str = f"\nSTEP: {skill_tracker.protocol_step_idx + 1}/{_n_total_steps}"
+            _achieved_set = skill_tracker.achieved_effects
+            _effects_str = ", ".join(sorted(_achieved_set)) if _achieved_set else "none"
+            _decision_str = "CONTINUE" if not skill_tracker._just_switched else "SWITCH"
             sk_completion = (
-                f"REASONING: {last_skill_reasoning}{_step_str}\nSKILL: {last_chosen_idx + 1}"
-                if last_skill_reasoning
-                else f"{_step_str}\nSKILL: {last_chosen_idx + 1}".lstrip("\n")
+                f"EFFECTS: {_effects_str}\n"
+                f"DECISION: {_decision_str}\n"
+                f"SKILL: {last_chosen_idx + 1}"
             )
             # Protocol-aware delayed reward at skill-switch time.
             # Uses the multi-signal reward from rewards.py instead of
