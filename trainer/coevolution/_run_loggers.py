@@ -64,6 +64,7 @@ _STREAM_PATHS: Dict[str, tuple[str, str]] = {
     # derived_from, feasible_tasks) so post-hoc analysis can compute
     # transfer rate / verified-task win rate / re-grounding success.
     "transfer_usage": ("transfer_log", "usage.jsonl"),
+    "step_progress": ("step_progress_log", "progress.jsonl"),
 }
 
 _run_dir_lock = threading.Lock()
@@ -84,6 +85,7 @@ __all__ = [
     "log_component_timing",
     "log_shaping_ratio",
     "log_transfer_usage",
+    "log_step_progress",
 ]
 
 
@@ -378,6 +380,37 @@ def log_transfer_usage(
     if extra:
         row["extra"] = dict(extra)
     _emit("transfer_usage", row)
+
+
+def log_step_progress(
+    *,
+    episode_id: str,
+    game: str,
+    inner_step: int,
+    protocol_step_idx: int,
+    total_steps: int,
+    intention_tag: str = "",
+    source: str = "tag_inferred",
+    active_skill_id: str = "",
+) -> None:
+    """Append one per-step protocol progress record.
+
+    Purely for offline analysis — does not affect reward or training.
+    ``source`` is ``"skill_selection_lora"`` when the step index came
+    from the LoRA's STEP output, ``"tag_inferred"`` otherwise.
+    """
+    _emit("step_progress", {
+        "kind": "step_progress",
+        "episode_id": str(episode_id),
+        "game": str(game),
+        "inner_step": int(inner_step),
+        "protocol_step_idx": int(protocol_step_idx),
+        "total_steps": int(total_steps),
+        "intention_tag": str(intention_tag or ""),
+        "source": str(source),
+        "active_skill_id": str(active_skill_id or ""),
+        "ts": time.time(),
+    })
 
 
 def log_component_timing(

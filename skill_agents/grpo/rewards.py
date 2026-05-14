@@ -772,6 +772,7 @@ def skill_selection_reward(
     success_met: bool = False,
     abort_triggered: bool = False,
     confidence: float = 0.5,
+    step_progress_ratio: float = 0.0,
 ) -> float:
     """Reward for a skill selection decision, assigned at skill-switch time.
 
@@ -794,6 +795,10 @@ def skill_selection_reward(
         Whether the skill was terminated due to abort criteria.
     confidence : float
         RAG confidence score of the selected skill (prior).
+    step_progress_ratio : float
+        Protocol step completion ratio (completed / total), from the
+        skill_selection LoRA's STEP output.  0.0 when the LoRA hasn't
+        learned to output STEP yet (safe fallback — no reward impact).
 
     Returns
     -------
@@ -801,11 +806,12 @@ def skill_selection_reward(
         Reward in [0, 1].
 
     Components (weights sum to 1.0):
-        0.40 * env_reward — normalized cumulative reward during skill
-        0.20 * efficiency — ratio of useful steps vs. max duration
+        0.35 * env_reward — normalized cumulative reward during skill
+        0.15 * efficiency — ratio of useful steps vs. max duration
         0.20 * success    — 1.0 if success criteria met, 0.0 otherwise
         0.10 * no_abort   — 1.0 if no abort triggered, 0.0 otherwise
-        0.10 * confidence — RAG confidence as a soft prior
+        0.05 * confidence — RAG confidence as a soft prior
+        0.15 * progress   — protocol step completion ratio
     """
     r_env = min(1.0, max(0.0, reward_on_skill / max(steps_on_skill, 1)))
 
@@ -817,11 +823,13 @@ def skill_selection_reward(
     r_success = 1.0 if success_met else 0.0
     r_no_abort = 0.0 if abort_triggered else 1.0
     r_confidence = max(0.0, min(1.0, confidence))
+    r_progress = max(0.0, min(1.0, step_progress_ratio))
 
     return (
-        0.40 * r_env
-        + 0.20 * r_efficiency
+        0.35 * r_env
+        + 0.15 * r_efficiency
         + 0.20 * r_success
         + 0.10 * r_no_abort
-        + 0.10 * r_confidence
+        + 0.05 * r_confidence
+        + 0.15 * r_progress
     )

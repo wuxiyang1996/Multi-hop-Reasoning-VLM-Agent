@@ -499,6 +499,18 @@ def load_decision_adapter_data(
                     logger.info("[%s] %s: loaded %d skills from bank",
                                 adapter_name, game, len(bank))
 
+        # For skill_selection, prefer v2 data (EFFECTS+DECISION+SKILL
+        # format) when it exists alongside the base dir.  The v2 data
+        # has pre-built prompts that already match the runtime format,
+        # so no enrichment is needed.
+        v2_path = None
+        if adapter_name == "skill_selection":
+            v2_base = base.parent / (base.name + "_v2")
+            if v2_base.is_dir():
+                v2_gd = _resolve_game_dir(v2_base, game)
+                if v2_gd and (v2_gd / "skill_selection.jsonl").exists():
+                    v2_path = v2_gd / "skill_selection.jsonl"
+
         gd = _resolve_game_dir(base, game)
         path = gd / f"{adapter_name}.jsonl" if gd else None
 
@@ -512,14 +524,25 @@ def load_decision_adapter_data(
                 logger.info("[%s] %s: falling back to legacy dir %s",
                             adapter_name, game, path)
 
-        if gd is None or path is None:
+        if v2_path is not None:
+            path = v2_path
+            logger.info("[%s] %s: using v2 relabeled data from %s",
+                        adapter_name, game, v2_path)
+
+        if gd is None and path is None:
+            logger.warning("[%s] %s: no per-game dir under %s — skipping",
+                           adapter_name, game, base)
+            continue
+        if path is None:
             logger.warning("[%s] %s: no per-game dir under %s — skipping",
                            adapter_name, game, base)
             continue
         rows = _read_jsonl(path)
         game_examples: List[Dict[str, str]] = []
         for row in rows:
-            if adapter_name == "action_taking":
+            if v2_path is not None and adapter_name == "skill_selection":
+                ex = _normalise_example(row)
+            elif adapter_name == "action_taking":
                 ex = _align_action_taking_to_coevolution(row, skill_bank=bank or None)
             elif adapter_name == "skill_selection" and bank:
                 ex = _normalise_example(row)

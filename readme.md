@@ -79,9 +79,9 @@ The agent runs an **outer** environment loop with a **lightweight typed inner lo
 
 | Agent | Default model (current phase) | Role | Update timescale |
 | --- | --- | --- | --- |
-| **Actor / Decision Agent** | `gpt-4o` | Online action execution, hop selection, skill selection, protocol following | Fast |
-| **Skill-Use / Operational** | `gpt-4o` | Skill retrieval, segmentation, contract learning, curation | Medium |
-| **Synthesis-Reflection (Teacher)** | `gpt-4o` (will swap to frozen 32B/72B later) | Failure reflection, composition, hypothesis, transfer, judging | Slow, gated |
+| **Actor / Decision Agent** | `Qwen/Qwen3.5-9B` (LoRA-trained) | Online action execution, hop selection, skill selection, protocol following | Fast |
+| **Skill-Use / Operational** | `Qwen/Qwen3.5-9B` (LoRA-trained) | Skill retrieval, segmentation, contract learning, curation | Medium |
+| **Synthesis-Reflection (Teacher)** | `Qwen/Qwen3.5-35B-A3B` (frozen MoE) | Failure reflection, composition, hypothesis, transfer, judging | Slow, gated |
 
 See [Action Agent §2](plans/02-action-agent/PLAN-ACTION-AGENT.md#three-agent-role-split) for the canonical specification.
 
@@ -1541,26 +1541,91 @@ Phases A → B → C → D → E → F are strict; do not start a phase before i
 
 ## Quick start
 
+### Hardware requirements
+
+| Use case | GPU requirement |
+|---|---|
+| Full co-evolution training (GRPO + FSDP) | **8× A100-80GB** (or H100 / H200) |
+| GPU 0–3: vLLM inference (Qwen3.5-9B, TP=1 per GPU) | |
+| GPU 4–7: FSDP GRPO training **or** 35B judge (TP=4) | |
+| Inference / baselines only | 1× GPU (24+ GB) |
+
+- **Python**: 3.9–3.11
+- **OS**: Linux (Ubuntu 20.04+). macOS for development only (no vLLM / FSDP).
+- **CUDA driver**: 12.8+ (driver ≥ 570.x). See [CUDA compatibility note](#cuda-driver-compatibility) below.
+
 ### Install
 
 ```bash
-cd Multi-hop-Reasoning-VLM-Agent
-conda create -n vlm-agent python=3.11 -y
-conda activate vlm-agent
-pip install -e .
+# 1. Clone all repos into the same parent directory
+mkdir -p ~/cos-play && cd ~/cos-play
+git clone <this-repo> Multi-hop-Reasoning-VLM-Agent
+git clone https://github.com/lmgame-org/GamingAgent.git
+git clone https://github.com/modelscope/AgentEvolver.git
+
+# 2. Run the automated installer (creates conda env "game-ai-agent" + all deps)
+bash Multi-hop-Reasoning-VLM-Agent/install/install_main_env.sh
+
+# 3. Activate
+conda activate game-ai-agent
+export PYTHONPATH=$(pwd)/Multi-hop-Reasoning-VLM-Agent:$(pwd)/AgentEvolver:$(pwd)/GamingAgent:$PYTHONPATH
 ```
 
-For full setup (CUDA toolchain, vLLM for the deferred Qwen tracks, game environments) see [`install/README.md`](install/README.md). The new build (`harness/`, `orchestrator/`, `crafter/`, `skill_bank/`, `tests/`) only requires the standard scientific Python stack and an OpenAI / OpenRouter API key for GPT-4o.
+The installer creates the `game-ai-agent` conda environment with Python 3.11,
+vLLM 0.20, PyTorch 2.11, Transformers 5.6+, PEFT, Accelerate, and all game
+environment dependencies. For details see [`INSTALL.md`](INSTALL.md) and
+[`install/README.md`](install/README.md).
+
+### CUDA driver compatibility
+
+The default `pip install vllm>=0.20` pulls **`torch 2.11+cu130`** which
+requires a CUDA 13.0 driver (≥ 575.x). If your host has a **CUDA 12.8
+driver** (570.x series, common on A100 nodes), PyTorch will report
+`CUDA available: False` and GPU training will fail silently.
+
+**Fix** — replace the cu130 stack with the cu128 variant:
+
+```bash
+conda activate game-ai-agent
+
+# Remove the cu130 packages
+pip uninstall -y vllm torch torchvision torchaudio
+
+# Reinstall with cu128 (requires uv for --torch-backend)
+pip install uv
+uv pip install vllm --torch-backend=cu128
+```
+
+This installs `torch==2.11.0+cu128` + `vllm==0.20.2` compiled against
+CUDA 12.8, which works correctly with the 570.x driver family.
+
+| Driver version | CUDA support | PyTorch variant needed |
+|---|---|---|
+| ≥ 575.x | CUDA 13.0 | `torch+cu130` (default) |
+| 570.x | CUDA 12.8 | `torch+cu128` (manual fix above) |
+| 555.x–565.x | CUDA 12.4–12.6 | `torch+cu124` via `--torch-backend=cu124` |
 
 ### Configure the backbone
 
 ```bash
 cp .env.example .env
-# minimum: OPENAI_API_KEY=...  (or OPENROUTER_API_KEY=...)
+# Fill in API keys: OPENAI_API_KEY (for gpt-5.5 SFT teacher), plus any
+# baseline keys you need (Anthropic, Google, OpenRouter).
 set -a && source .env && set +a
 ```
 
-The default backbone is `gpt-4o`; nothing else needs to be set.
+The three-tier backbone defaults (defined in [`common/models.py`](common/models.py))
+require no manual override:
+
+| Tier | Model | vLLM port | Role |
+|---|---|---|---|
+| Actor + Skill-Bank | `Qwen/Qwen3.5-9B` | `:8000` | LoRA-trained policy (5 adapters) |
+| Teacher + Judge | `Qwen/Qwen3.5-35B-A3B` | `:8001` | Frozen MoE control-plane + eval judge |
+| SFT Teacher | `gpt-5.5` | OpenAI API | Cold-start data generation (one-time) |
+
+The vLLM endpoint routing in `.env` maps each model to the correct port via
+`VLLM_BASE_URL_MAP`. See [Backbone models — three-tier stack](#backbone-models--three-tier-stack)
+for the full specification.
 
 ### Run the test suite
 
@@ -1568,7 +1633,7 @@ The default backbone is `gpt-4o`; nothing else needs to be set.
 python -m pytest tests/ -v
 ```
 
-Expected: `29 passed`. The suite covers the six invariants, an end-to-end `EpisodeRunner` smoke run, the crafter's failure → DRAFT proposal cycle, and the GPT-4o backbone pin.
+Expected: `29 passed`. The suite covers the six invariants, an end-to-end `EpisodeRunner` smoke run, the crafter's failure → DRAFT proposal cycle, and the backbone pin.
 
 ### Smoke-run the orchestrator
 
@@ -1645,7 +1710,7 @@ The `decision_agents/`, `skill_agents/`, `vlm_wrapper/`, `trainer/`, `inference/
 
 > *COS-PLAY: Co-Evolving LLM Decision and Skill Bank Agents for Long-Horizon Game Play.*
 
-The COS-PLAY entrypoints (`scripts/run_coevolution.py`, `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`, `bash scripts/run_2048.sh`, etc.) and the corresponding documentation in their per-module READMEs remain valid — they are retained as the **deferred 8B/32B/72B Qwen tracks**. They do not run by default; the new build under `common/`, `harness/`, `orchestrator/`, `crafter/`, `skill_bank/` defaults to GPT-4o end-to-end.
+The COS-PLAY entrypoints (`scripts/run_coevolution.py`, `scripts/qwen3_*.py`, `inference/run_qwen3_8b_eval.py`, `bash scripts/run_2048.sh`, etc.) and the corresponding documentation in their per-module READMEs remain valid — they are retained as the **deferred 8B/32B/72B Qwen tracks**. They do not run by default; the new build under `common/`, `harness/`, `orchestrator/`, `crafter/`, `skill_bank/` defaults to the three-tier Qwen3.5 stack (`Qwen3.5-9B` actor + `Qwen3.5-35B-A3B` teacher/judge).
 
 ### Schema → predicate bridge ([`skill_agents/schema_predicates.py`](skill_agents/schema_predicates.py))
 
