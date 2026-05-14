@@ -21,6 +21,9 @@
 # Prerequisites:
 #   - Miniconda3 or Anaconda installed
 #   - CUDA 12.8+ or 13.x driver on the host (for GPU training / vLLM)
+#     * driver 570.x (CUDA 12.8) → after install run the cu128 swap in INSTALL.md
+#     * driver 575.x (CUDA 12.9) → ditto with --torch-backend=cu129
+#     * driver 580.x+ (CUDA 13.0) → default install works as-is
 #   - The following repos cloned as siblings under the same parent directory
 #     (the script will offer to clone gym-v if missing):
 #       Multi-hop-Reasoning-VLM-Agent/   (this repo)
@@ -112,14 +115,14 @@ fi
 echo
 
 # ---------------------------------------------------------------------------
-# Step 2: PyTorch is pulled in transitively by vLLM 0.20 (torch==2.11.0+cu130).
-#         The wheels on PyPI ship with CUDA runtime libraries, which work on
-#         any host with a CUDA 12.8+ / 13.x driver (covers H100/H200/B200).
-#         Skipping an explicit `torch` install here avoids pinning a stale
-#         CUDA 12.4 wheel that would then be re-resolved to torch==2.11.0
-#         below and trigger an avoidable re-download.
+# Step 2: PyTorch is pulled in transitively by vLLM 0.20 (torch==2.11.0+cu130
+#         on a CUDA 13.0 driver). On a 570.x driver (CUDA 12.8) the user must
+#         re-run with cu128 torch + cu129 vLLM — see INSTALL.md
+#         "CUDA driver compatibility" for the post-install fixup. We skip an
+#         explicit torch install here so vLLM picks its matching cu130 wheel.
 # ---------------------------------------------------------------------------
 echo "[2/7] Skipping explicit torch install — vLLM will pull torch==2.11.0+cu130 ..."
+echo "      (570.x driver users: see INSTALL.md for the cu128/cu129 swap.)"
 echo
 
 # ---------------------------------------------------------------------------

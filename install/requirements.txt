@@ -1,6 +1,13 @@
 # =============================================================================
 # Multi-hop-Reasoning-VLM-Agent  —  Main environment (game-ai-agent)
-# Python 3.11 | torch 2.11.0+cu130 (pulled by vLLM 0.20) | CUDA 12.8+ / 13.x
+# Python 3.11 | torch 2.11.0 (cu128 on 570.x driver / cu130 default) | CUDA 12.8+ / 13.x
+#
+# CUDA / wheel notes (see INSTALL.md → "CUDA driver compatibility"):
+#   * vLLM 0.20.x only publishes +cu129 and (no-suffix) cu130 GPU wheels.
+#     There is NO +cu128 vLLM wheel — on a 570.x driver we use the +cu129
+#     wheel under CUDA Minor Version Compatibility (driver ≥ 570.86.10).
+#   * The matching PyTorch (cu128 for 570.x, cu129 for 575.x, cu130 for 580.x+)
+#     is swapped in manually via `uv pip install ... --torch-backend=cuNNN`.
 #
 # This file installs the unified training + inference + game-environment
 # stack. After install, the env contains:
@@ -39,8 +46,10 @@ numpy>=1.26
 pyyaml>=6.0
 
 # ── Deep Learning ───────────────────────────────────────────────────────────
-# torch is pulled in transitively by vllm (==2.11.0+cu130 for vllm 0.20.x) so
-# we do not pin it here; pinning would fight with vllm's exact-version pin.
+# torch is pulled in transitively by vllm (==2.11.0 for vllm 0.20.x; CUDA
+# variant depends on the host: cu128 on 570.x driver, cu129 on 575.x,
+# cu130 default on 580.x+). We do not pin it here; pinning fights vllm's
+# exact-version constraint. See INSTALL.md for the driver-specific swap.
 transformers>=5.6.0             # required for `qwen3_5` / `qwen3_5_moe` archs (Qwen3.5-9B, Qwen3.5-35B-A3B)
 peft>=0.17                      # LoRA adapter loading / merging on transformers 5.x
 safetensors>=0.4                # checkpoint save/load
@@ -52,7 +61,7 @@ sentence-transformers>=5.0      # Qwen3-Embedding-0.6B text embedder, transforme
 Pillow>=9.0                     # multimodal embedder (qwen3_vl_embedding) + gym-v Observation.image
 
 # ── Inference server ────────────────────────────────────────────────────────
-vllm>=0.20.0                    # adds qwen3_5 / qwen3_5_moe model support; pulls torch==2.11.0+cu130
+vllm>=0.20.0                    # adds qwen3_5 / qwen3_5_moe model support; pulls torch==2.11.0 (cu130 default, swap to cu128 per INSTALL.md on 570.x driver)
 httpx>=0.24                     # async vLLM client
 
 # ── API clients (baselines + GamingAgent runtime) ───────────────────────────

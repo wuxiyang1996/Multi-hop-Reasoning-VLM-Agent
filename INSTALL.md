@@ -67,40 +67,83 @@ set -a && source Multi-hop-Reasoning-VLM-Agent/.env && set +a
 ## CUDA driver compatibility
 
 The default `pip install vllm>=0.20` resolves to **`torch 2.11.0+cu130`**,
-which requires a CUDA 13.0-capable driver (≥ 575.x). Many A100 clusters
+which requires a CUDA 13.0-capable driver (≥ 580.x). Many A100 clusters
 ship with the **570.x driver** (CUDA 12.8), which causes PyTorch to report
 `CUDA available: False` even though `nvidia-smi` shows all GPUs.
 
-**Fix** — after running `install_main_env.sh`, replace the cu130 stack
-with the cu128 variant:
+### The cu128 wheel reality (important)
+
+**vLLM 0.20.x does NOT publish `+cu128` wheels.** Checking the GitHub release
+assets for v0.20.0 / v0.20.1 / v0.20.2 shows only two GPU variants:
+
+| vLLM 0.20.x asset | Compiled against |
+|---|---|
+| `vllm-0.20.x+cu129-...whl` (PyPI default for GPU) | CUDA 12.9 |
+| `vllm-0.20.x-...whl` (no suffix, default index on Docker) | CUDA 13.0 |
+
+The vLLM install docs do mention "we also provide vLLM binaries compiled
+with CUDA 12.8" — that statement is aspirational and only applied to
+earlier minor releases. For the 0.20 line, **the lowest CUDA wheel
+available is `+cu129`.**
+
+The good news: a **570.x driver runs `+cu129` binaries fine** via NVIDIA's
+[CUDA Minor Version Compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/index.html#minor-version-compatibility).
+The vLLM wheel bundles its own CUDA 12.9 user-space runtime (`libcudart.so.12`,
+cuBLAS, cuDNN), which forward-compats onto any driver ≥ 570.86.10 within
+CUDA 12.x. PyTorch is independent and is pinned to `+cu128` to stay
+bit-identical with the driver's `libcuda.so`.
+
+### Recommended cu128 install (570.x driver, A100/H100/H200)
+
+After running `install_main_env.sh`:
 
 ```bash
 conda activate game-ai-agent
 
-# 1. Remove the cu130 packages
+# 1. Remove anything the auto-install pulled (cu130 torch, etc.)
 pip uninstall -y vllm torch torchvision torchaudio
 
-# 2. Reinstall with cu128 (requires uv for --torch-backend selection)
+# 2. Install matching PyTorch + matching vLLM
 pip install uv
-uv pip install vllm --torch-backend=cu128
+uv pip install \
+  torch==2.11.0 torchvision torchaudio \
+  --torch-backend=cu128
+uv pip install vllm==0.20.2 --torch-backend=cu128
 ```
 
-This installs `torch==2.11.0+cu128` + `vllm==0.20.2` compiled against
-CUDA 12.8, fully compatible with the 570.x driver family.
+`--torch-backend=cu128` swaps the PyTorch index to
+`download.pytorch.org/whl/cu128` (true CUDA 12.8 torch). For vLLM, uv
+still resolves to the only published GPU wheel (`+cu129`); this is
+expected — its bundled 12.9 user-space libs run on the 570.x driver via
+forward-compat.
+
+After install you should see:
+
+```
+torch:        2.11.0+cu128
+torch.version.cuda: 12.8
+vllm:         0.20.2  (vllm-0.20.2+cu129-...whl on disk — expected)
+```
 
 **How to check your driver:**
 
 ```bash
 nvidia-smi | head -3
-# Look for "CUDA Version: 12.8" → use cu128
-# Look for "CUDA Version: 13.0" → default cu130 is fine
+# "CUDA Version: 12.8" (driver 570.x)  → use cu128 torch + cu129 vllm (this guide)
+# "CUDA Version: 12.9" (driver 575.x)  → use cu129 torch + cu129 vllm
+# "CUDA Version: 13.0" (driver 580.x+) → default `pip install vllm` is fine
 ```
 
-| Driver version | Max CUDA | PyTorch variant | Install method |
-|---|---|---|---|
-| ≥ 575.x | 13.0 | `torch+cu130` (default) | `pip install vllm` |
-| 570.x | 12.8 | `torch+cu128` | `uv pip install vllm --torch-backend=cu128` |
-| 555.x–565.x | 12.4–12.6 | `torch+cu124` | `uv pip install vllm --torch-backend=cu124` |
+| Driver | Max CUDA | Torch wheel | vLLM wheel | Install method |
+|---|---|---|---|---|
+| ≥ 580.x | 13.0 | `torch+cu130` (default) | `+cu130` (no suffix) | `pip install vllm` |
+| 575.x | 12.9 | `torch+cu129` | `+cu129` | `uv pip install vllm --torch-backend=cu129` |
+| 570.x | 12.8 | `torch+cu128` | `+cu129` (forward-compat) | `uv pip install vllm --torch-backend=cu128` |
+| 555.x–565.x | 12.4–12.6 | `torch+cu124` | — | vLLM 0.20 not supported; downgrade to vLLM 0.19 |
+
+> **V100 / SM 7.0 users:** PyTorch 2.11 cu128 wheels dropped Volta support.
+> Stay on `torch+cu126` and build vLLM from source. This repo does not
+> support V100 by default.
 
 ## Alternative Install Methods
 
@@ -147,12 +190,15 @@ import transformers; print(f'Transformers: {transformers.__version__}')
 "
 ```
 
-Expected output on 8× A100 with CUDA 12.8:
+Expected output on 8× A100 with 570.x driver / CUDA 12.8:
 
 ```
 PyTorch: 2.11.0+cu128
 CUDA available: True
 GPU count: 8
-vLLM: 0.20.2
+vLLM: 0.20.2            # wheel on disk is vllm-0.20.2+cu129-...whl (expected)
 Transformers: 5.8.1
 ```
+
+On a 580.x driver / CUDA 13.0 host the torch line will instead read
+`PyTorch: 2.11.0+cu130` and the vLLM wheel will have no `+cuXXX` suffix.
