@@ -1100,6 +1100,7 @@ async def run_episode_async(
     last_candidates: List[Dict[str, Any]] = []
     last_chosen_idx = 0
     last_skill_reasoning: Optional[str] = None
+    last_sk_lora_text: Optional[str] = None
 
     while step_count < max_steps:
         step_actions = action_names if action_names else ["stay"]
@@ -1327,6 +1328,7 @@ async def run_episode_async(
                     sk_result.text, len(candidates), candidates,
                     strip_think_tags=strip_think_tags,
                 )
+                last_sk_lora_text = sk_result.text
 
                 if _lora_effects:
                     skill_tracker.receive_lora_effects(_lora_effects)
@@ -1662,26 +1664,26 @@ async def run_episode_async(
                     logger.exception("reward_logger.log_grpo_record(action_taking) failed")
 
         if skill_select_prompt and last_candidates and len(last_candidates) >= 2:
-            _achieved_set = skill_tracker.achieved_effects
-            _effects_str = ", ".join(sorted(_achieved_set)) if _achieved_set else "none"
-            _decision_str = "CONTINUE" if not skill_tracker._just_switched else "SWITCH"
-            sk_completion = (
-                f"EFFECTS: {_effects_str}\n"
-                f"DECISION: {_decision_str}\n"
-                f"SKILL: {last_chosen_idx + 1}"
-            )
-            # Protocol-aware delayed reward at skill-switch time.
-            # Uses the multi-signal reward from rewards.py instead of
-            # a simple clamped env reward, incorporating efficiency,
-            # success/abort criteria, and RAG confidence.
+            # Prefer actual LoRA output; fall back to reconstruction
+            # only when the LLM call failed.
+            if last_sk_lora_text:
+                sk_completion = last_sk_lora_text
+            else:
+                _achieved_set = skill_tracker.achieved_effects
+                _effects_str = ", ".join(sorted(_achieved_set)) if _achieved_set else "none"
+                _decision_str = "CONTINUE" if not skill_tracker._just_switched else "SWITCH"
+                sk_completion = (
+                    f"EFFECTS: {_effects_str}\n"
+                    f"DECISION: {_decision_str}\n"
+                    f"SKILL: {last_chosen_idx + 1}"
+                )
             if skill_tracker._just_switched and skill_tracker._prev_steps_on_skill > 0:
+                # SWITCH reward: evaluate the previous skill's quality.
+                # Uses deterministic-only effects for progress to prevent
+                # the LoRA from inflating reward via hallucinated tags.
                 from skill_agents.grpo.rewards import skill_selection_reward
                 _reason = skill_tracker._reselect_reason
-                _n_total = skill_tracker.total_protocol_steps
-                _progress = (
-                    skill_tracker.protocol_step_idx / max(_n_total, 1)
-                    if _n_total > 0 else 0.0
-                )
+                _progress = skill_tracker._prev_deterministic_ratio
                 sk_reward = skill_selection_reward(
                     reward_on_skill=skill_tracker._prev_reward_on_skill,
                     steps_on_skill=skill_tracker._prev_steps_on_skill,
@@ -1692,7 +1694,17 @@ async def run_episode_async(
                     step_progress_ratio=_progress,
                 )
             else:
-                sk_reward = min(1.0, max(0.0, float(reward)))
+                # CONTINUE reward: was staying on the current skill
+                # justified?  Uses deterministic effect progress and
+                # env reward — not LoRA-reported effects.
+                _has_progress = float(
+                    skill_tracker._new_effects_this_step or reward > 0
+                )
+                sk_reward = (
+                    0.2
+                    + 0.5 * _has_progress
+                    + 0.3 * min(1.0, max(0.0, float(reward)))
+                )
             _sk_meta = {
                 "chosen_idx": last_chosen_idx,
                 "skill_candidates": [c.get("skill_id") for c in last_candidates],

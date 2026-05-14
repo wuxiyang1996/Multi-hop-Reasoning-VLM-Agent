@@ -99,6 +99,10 @@ class StepTracker:
         self._reselect_reason: str = ""
         self._intrinsic_bonus: float = 0.0
 
+        self._deterministic_effects: Set[str] = set()
+        self._prev_deterministic_ratio: float = 0.0
+        self._new_effects_this_step: bool = False
+
         from decision_agents.protocol_utils import StateEffectObserver
         self._effect_observer = StateEffectObserver()
 
@@ -125,6 +129,17 @@ class StepTracker:
         if not self._required_effects:
             return 0.0
         return len(self._required_effects & self._achieved_effects) / len(self._required_effects)
+
+    @property
+    def deterministic_completion_ratio(self) -> float:
+        """Like completion_ratio but only counts StateEffectObserver tags.
+
+        LoRA-reported effects are excluded to prevent the reward signal
+        from being inflated by hallucinated tags.
+        """
+        if not self._required_effects:
+            return 0.0
+        return len(self._required_effects & self._deterministic_effects) / len(self._required_effects)
 
     # ── Backward-compat properties (for code that still reads step idx) ──
 
@@ -245,10 +260,12 @@ class StepTracker:
     ):
         """Observe state changes after env.step() and accumulate tags.
 
-        This is the deterministic fallback — always runs, zero cost.
-        Tags from the StateEffectObserver are merged into the same
-        cumulative set as LoRA-reported tags.
+        Deterministic tags go into both ``_achieved_effects`` (prompt
+        context) and ``_deterministic_effects`` (reward-safe subset).
+        ``_new_effects_this_step`` is set when at least one new
+        deterministic tag appears — used for CONTINUE reward.
         """
+        prev_count = len(self._deterministic_effects)
         effects = self._effect_observer.observe(
             curr_facts, reward=reward, action=action,
             game_name=self.game_name,
@@ -256,6 +273,8 @@ class StepTracker:
         for key, val in effects.items():
             if val == "true":
                 self._achieved_effects.add(key)
+                self._deterministic_effects.add(key)
+        self._new_effects_this_step = len(self._deterministic_effects) > prev_count
 
     # ── Update after each step ─────────────────────────────────────
 
@@ -276,6 +295,7 @@ class StepTracker:
         if skill_id != self.active_skill_id:
             self._prev_reward_on_skill = self.reward_on_skill
             self._prev_steps_on_skill = self.steps_on_skill
+            self._prev_deterministic_ratio = self.deterministic_completion_ratio
             self._just_switched = (
                 self.active_skill_id is not None
                 and self.steps_on_skill > 0
@@ -286,6 +306,8 @@ class StepTracker:
             self.reward_on_skill = reward
             self.skill_switches += 1
             self._achieved_effects = set()
+            self._deterministic_effects = set()
+            self._new_effects_this_step = False
             self._effect_observer.reset()
             self.hop_history = [hop_type] if hop_type else []
         else:
@@ -321,6 +343,8 @@ class StepTracker:
     def set_protocol(self, protocol: Optional[Dict[str, Any]]):
         self._protocol = protocol
         self._achieved_effects = set()
+        self._deterministic_effects = set()
+        self._new_effects_this_step = False
         self._required_effects = set()
         self._completion_effect = ""
         self._effect_observer.reset()

@@ -1208,6 +1208,113 @@ propagate_retirement_to_shared_bank(task=N, shared_bank=shared_bank)
 cold_start_seed(bank_root=shared_bank, target_task=N+1, max_seeds=8)
 ```
 
+### 8j. GRPO reward for skill_selection under EFFECTS + DECISION + SKILL
+
+The skill_selection LoRA now outputs three lines (`EFFECTS`, `DECISION`,
+`SKILL`) instead of the old `REASONING + SKILL`. The GRPO reward must
+match this new output structure. Three issues exist with a naïve
+carry-over of the old reward, and three targeted fixes address them.
+
+#### Issue 1: LoRA-reported effects can inflate progress reward
+
+The `StepTracker` accumulates effect tags from two sources:
+`StateEffectObserver` (deterministic, compares game state) and the
+LoRA's `EFFECTS:` output (learned). Both feed into `_achieved_effects`,
+which drives `completion_ratio`, which drives the `r_progress` reward
+component (weight 0.15).
+
+**Problem:** The LoRA can hallucinate effect tags (e.g. report
+`merge_executed` when the board hasn't changed). This inflates
+`completion_ratio` and `r_progress` — a reward hacking vector that
+GRPO will exploit.
+
+**Fix:** Separate `_deterministic_effects` (StateEffectObserver only)
+from `_achieved_effects` (both sources). The reward uses
+`deterministic_completion_ratio` exclusively. LoRA-reported effects
+still appear in the prompt context (so the model sees its own prior
+output) but cannot inflate reward.
+
+```python
+# StepTracker.observe_state_effects() — writes to BOTH sets
+self._achieved_effects.add(key)        # prompt context
+self._deterministic_effects.add(key)   # reward-safe
+
+# StepTracker.receive_lora_effects() — writes to _achieved_effects ONLY
+# (unchanged, but now isolated from reward path)
+```
+
+#### Issue 2: CONTINUE decisions get no meaningful reward
+
+The LoRA is called at reselection decision points (effects_complete,
+duration_exceeded, zero_reward_stall, abort criteria). It can output
+`DECISION: CONTINUE` (override the heuristic, keep current skill) or
+`DECISION: SWITCH`.
+
+Under the old reward, CONTINUE steps received `min(1, max(0, reward))`
+— the raw env reward, which is often 0.0 in sparse-reward settings.
+GRPO had no signal to differentiate good vs bad CONTINUE decisions.
+
+**Fix:** CONTINUE reward uses a simple binary progress signal:
+
+```python
+# Did the env actually progress after the CONTINUE decision?
+has_progress = new_deterministic_effects_this_step or env_reward > 0
+sk_reward = 0.2 + 0.5 * has_progress + 0.3 * clamp(env_reward)
+```
+
+| Outcome | Reward | Interpretation |
+|---------|--------|---------------|
+| Effect progress + env reward | 0.9–1.0 | CONTINUE was clearly correct |
+| Effect progress only | 0.7 | Progressing despite no env reward |
+| Env reward only | 0.5–0.7 | Getting reward, likely correct |
+| Neither | 0.2 | Should have switched |
+
+SWITCH reward is unchanged (6-signal `skill_selection_reward()`),
+except `step_progress_ratio` now uses `deterministic_completion_ratio`.
+
+#### Issue 3: GRPO completion target was reconstructed, not actual
+
+The GRPO training record's `completion` field was reconstructed from
+tracker state (`_just_switched` → DECISION, `achieved_effects` →
+EFFECTS) rather than using the LoRA's actual output text. When the
+LoRA said SWITCH but harness rejected all candidates, the tracker
+didn't switch, and the reconstructed completion said CONTINUE —
+training on a target that contradicts what the model actually output.
+
+**Fix:** Use `sk_result.text` (actual LoRA output) for the GRPO
+record. Fall back to reconstruction only when the LLM call failed.
+
+#### Reward summary
+
+| Component | SWITCH (weight) | CONTINUE |
+|-----------|----------------|----------|
+| `r_env` (env reward) | 0.35 | 0.3 |
+| `r_efficiency` (steps vs max) | 0.15 | — |
+| `r_success` (criteria met) | 0.20 | — |
+| `r_no_abort` (no abort) | 0.10 | — |
+| `r_confidence` (RAG prior) | 0.05 | — |
+| `r_progress` (deterministic effects) | 0.15 | 0.5 (binary) |
+| `r_base` (minimum floor) | — | 0.2 |
+
+#### What we deliberately did NOT add
+
+- **No explicit effects accuracy reward.** LoRA effects accuracy is
+  trained implicitly: accurate self-awareness → better CONTINUE/SWITCH
+  decisions → better outcomes → higher reward. Adding a separate
+  precision/recall signal would be over-fitting the reward to a proxy.
+- **No per-step intrinsic reward.** CONTINUE/SWITCH decisions happen
+  at heuristic-triggered decision points, not every step. The
+  existing reward timing is sufficient.
+- **No changes to `skill_selection_reward()` signature.** The function
+  is fine; callers just pass the right (deterministic) values.
+
+#### Files changed
+
+| File | Change |
+|------|--------|
+| `decision_agents/skill_decision_core.py` | `StepTracker`: add `_deterministic_effects`, `_prev_deterministic_ratio`, `_new_effects_this_step`, `deterministic_completion_ratio` property |
+| `trainer/coevolution/episode_runner.py` | SWITCH: use `_prev_deterministic_ratio`; CONTINUE: binary progress formula; `sk_completion`: use actual LoRA output |
+
 ---
 
 ## 9. Known Gaps & Next Steps
