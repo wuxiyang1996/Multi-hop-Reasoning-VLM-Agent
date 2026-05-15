@@ -1253,8 +1253,24 @@ async def run_episode_async(
                     recent_actions=recent_actions,
                     recent_rewards=recent_rewards,
                 )
-                skill_coro = vllm_client.generate_chat(
-                    [{"role": "user", "content": skill_select_prompt}],
+                # NOTE (May-2026 fix, mirrors the same fix on action_taking
+                # at line ~1550): the skill_selection LoRA was SFT-trained on
+                # the ``/completions`` endpoint (raw prompt text, no chat
+                # template wrapping).  Calling ``generate_chat`` here
+                # produced an OOD distribution -- the chat-template prefix
+                # (``<|im_start|>user``...) flipped Qwen3.5 into thinking-
+                # mode (``Thinking Process: ...``) and the actual
+                # ``EFFECTS:/DECISION:/SKILL:`` payload was either never
+                # emitted or got chopped by the ``stop`` list before
+                # reaching the SKILL line.  Direct probing of the deployed
+                # adapter showed: via /completions it emits clean
+                # ``SKILL: 2`` (idx=1) consistently; via /chat/completions
+                # it collapses to ``EFFECTS:.. DECISION: CONTINUE`` and
+                # truncates -- the parser then silently fell back to
+                # candidate 0 every single step.  This was the dominant
+                # silent-fallback in TF3 runs prior to commit 0f8f668.
+                skill_coro = vllm_client.generate(
+                    skill_select_prompt,
                     adapter="skill_selection",
                     temperature=temperature, max_tokens=128,
                     stop=["\n\nAvailable", "\n\nGame state", "\n\n---"],
