@@ -8,13 +8,65 @@ progress tracking helpers.  Used by ``_SkillTracker`` in both
 
 from __future__ import annotations
 
+import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+
+logger = logging.getLogger(__name__)
 
 
 _CMP_RE = re.compile(
     r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*([<>=!]+)\s*(.+)$"
 )
+
+
+# ── Predicate-check telemetry ────────────────────────────────────────
+# Distinguishes "predicate is false" from "key is missing from state"
+# so the operator can spot when a Protocol references state fields the
+# runtime never produces (e.g. LoRA hallucinated ``shield_buff`` for
+# TF3 — both bug classes return False but mean very different things).
+# Counters reset at each co-evolution step boundary via
+# ``reset_predicate_stats()``.
+
+PREDICATE_RESULT_MATCH       = "match"         # ✅ pred holds
+PREDICATE_RESULT_MISMATCH    = "mismatch"      # ✅ pred false (legit)
+PREDICATE_RESULT_KEY_MISSING = "key_missing"   # 🚨 state lacks the key
+PREDICATE_RESULT_PARSE_ERROR = "parse_error"   # 🚨 malformed predicate
+
+_PREDICATE_STATS: Dict[str, int] = {
+    PREDICATE_RESULT_MATCH:       0,
+    PREDICATE_RESULT_MISMATCH:    0,
+    PREDICATE_RESULT_KEY_MISSING: 0,
+    PREDICATE_RESULT_PARSE_ERROR: 0,
+}
+
+# Set of unique keys observed to be missing from state.  Useful for
+# post-hoc diagnosis ("which Protocols reference state fields the
+# runtime never produces?") without per-call log spam.
+_MISSING_PREDICATE_KEYS: Set[str] = set()
+
+
+def reset_predicate_stats() -> None:
+    """Reset the predicate-evaluation counters and missing-key set.
+
+    Called by the orchestrator at the start of each co-evolution step
+    so per-step ``key_missing`` rates land in ``step_log.jsonl``.
+    """
+    for k in list(_PREDICATE_STATS):
+        _PREDICATE_STATS[k] = 0
+    _MISSING_PREDICATE_KEYS.clear()
+
+
+def get_predicate_stats() -> Dict[str, Any]:
+    """Snapshot ``{result_kind: count, missing_keys: [...]}`` for the
+    current step.  The list of missing keys is bounded to 50 entries so
+    badly-misconfigured protocols don't blow up the step log.
+    """
+    return {
+        **_PREDICATE_STATS,
+        "missing_keys": sorted(_MISSING_PREDICATE_KEYS)[:50],
+    }
 
 
 def parse_summary_state(state_str: str) -> Dict[str, str]:
@@ -42,35 +94,98 @@ def check_predicate(pred: str, state: Dict[str, str]) -> bool:
       ``key<=N``         — numeric less-or-equal
 
     Returns False if the key is missing from state or parsing fails.
+    Records the outcome in module-level telemetry
+    (:data:`_PREDICATE_STATS`) so the operator can distinguish "the
+    Protocol references a state field the runtime never produces"
+    from "the predicate is legitimately false".
+    """
+    result, _ = check_predicate_with_telemetry(pred, state)
+    return result
+
+
+def check_predicate_with_telemetry(
+    pred: str,
+    state: Dict[str, str],
+) -> Tuple[bool, str]:
+    """Like :func:`check_predicate` but also returns a result-kind tag
+    (one of :data:`PREDICATE_RESULT_MATCH`,
+    :data:`PREDICATE_RESULT_MISMATCH`,
+    :data:`PREDICATE_RESULT_KEY_MISSING`,
+    :data:`PREDICATE_RESULT_PARSE_ERROR`).
+
+    The tag distinguishes the four cases that the legacy
+    boolean-return collapsed onto False:
+
+      * ``mismatch``    — predicate is well-formed, key exists, value
+                          comparison failed.  This is the SAFE False.
+      * ``key_missing`` — predicate is well-formed but the runtime
+                          state dict doesn't carry that key.  This is
+                          the DANGEROUS False: the Protocol may be
+                          referencing a field the runtime never
+                          produces (the May-2026 contamination bug).
+      * ``parse_error`` — predicate string is malformed.  Should be
+                          rare; logs at exponential checkpoints.
+
+    Empty / blank predicates (``""``) return ``(False, "parse_error")``
+    — caller must filter those out beforehand if it cares.
     """
     m = _CMP_RE.match(pred.strip())
     if not m:
-        return False
+        _PREDICATE_STATS[PREDICATE_RESULT_PARSE_ERROR] += 1
+        if _PREDICATE_STATS[PREDICATE_RESULT_PARSE_ERROR] in (1, 10, 100):
+            logger.warning(
+                "check_predicate: malformed predicate %r (count=%d)",
+                pred, _PREDICATE_STATS[PREDICATE_RESULT_PARSE_ERROR],
+            )
+        return False, PREDICATE_RESULT_PARSE_ERROR
+
     key, op, expected = m.group(1), m.group(2), m.group(3).strip()
     actual = state.get(key)
     if actual is None:
-        return False
+        _PREDICATE_STATS[PREDICATE_RESULT_KEY_MISSING] += 1
+        if key not in _MISSING_PREDICATE_KEYS:
+            _MISSING_PREDICATE_KEYS.add(key)
+            logger.warning(
+                "check_predicate: key %r referenced by predicate %r is "
+                "MISSING from runtime state (first-seen; total "
+                "key_missing count=%d).  This is the silent-zero "
+                "intrinsic_bonus failure mode — either the Protocol "
+                "references a hallucinated field or the runtime "
+                "summary_state generator dropped the key.",
+                key, pred, _PREDICATE_STATS[PREDICATE_RESULT_KEY_MISSING],
+            )
+        return False, PREDICATE_RESULT_KEY_MISSING
 
+    matched: bool
     if op == "==" or op == "=":
-        return actual == expected
-    if op == "!=":
-        return actual != expected
+        matched = actual == expected
+    elif op == "!=":
+        matched = actual != expected
+    else:
+        try:
+            a_num = float(actual)
+            e_num = float(expected)
+        except (ValueError, TypeError):
+            _PREDICATE_STATS[PREDICATE_RESULT_PARSE_ERROR] += 1
+            return False, PREDICATE_RESULT_PARSE_ERROR
 
-    try:
-        a_num = float(actual)
-        e_num = float(expected)
-    except (ValueError, TypeError):
-        return False
+        if op == ">":
+            matched = a_num > e_num
+        elif op == "<":
+            matched = a_num < e_num
+        elif op == ">=":
+            matched = a_num >= e_num
+        elif op == "<=":
+            matched = a_num <= e_num
+        else:
+            _PREDICATE_STATS[PREDICATE_RESULT_PARSE_ERROR] += 1
+            return False, PREDICATE_RESULT_PARSE_ERROR
 
-    if op == ">":
-        return a_num > e_num
-    if op == "<":
-        return a_num < e_num
-    if op == ">=":
-        return a_num >= e_num
-    if op == "<=":
-        return a_num <= e_num
-    return False
+    if matched:
+        _PREDICATE_STATS[PREDICATE_RESULT_MATCH] += 1
+        return True, PREDICATE_RESULT_MATCH
+    _PREDICATE_STATS[PREDICATE_RESULT_MISMATCH] += 1
+    return False, PREDICATE_RESULT_MISMATCH
 
 
 def check_predicates(preds: List[str], state: Dict[str, str]) -> bool:

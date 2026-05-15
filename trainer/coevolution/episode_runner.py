@@ -1325,6 +1325,15 @@ async def run_episode_async(
         # Process skill selection result
         if bank_available and (need_reselect or last_guidance is None):
             sk_parse_path: Optional[str] = None
+            # Initialised up-front so the three branches below
+            # (LoRA-fires / single-candidate-harness / no-candidate)
+            # all share the same downstream metadata schema.  These
+            # are populated by the LoRA branch and stay at their
+            # defaults in the harness-only / empty branches (where
+            # ``harness_override`` is meaningless — the LoRA never
+            # picked anything to override).
+            lora_chosen_idx: int = -1
+            harness_override: bool = False
             if sk_result is not None and candidates and len(candidates) >= 2:
                 # ``return_parse_path=True`` surfaces which parse strategy
                 # produced the chosen_idx (skill_tag = clean LoRA emission,
@@ -1346,6 +1355,15 @@ async def run_episode_async(
                 if _lora_effects:
                     skill_tracker.receive_lora_effects(_lora_effects)
 
+                # ``lora_chosen_idx`` is the index the skill_selection
+                # LoRA explicitly emitted (or that the parse heuristics
+                # recovered).  ``chosen_idx`` may diverge below if the
+                # harness vetoes the LoRA's pick and we fall through to
+                # another candidate — we track the divergence so the
+                # GRPO metadata can correlate "LoRA selected X but
+                # harness overrode to Y" (an instructive learning
+                # signal that's invisible in the legacy reward log).
+                lora_chosen_idx = chosen_idx
                 if _decision == "CONTINUE" and last_guidance is not None:
                     guidance = last_guidance
                     last_candidates = candidates
@@ -1367,11 +1385,38 @@ async def run_episode_async(
                         _last_v = _d
                     harness_validate_diag = _last_v
                     if _picked is None:
+                        # Harness rejected EVERY candidate.  Episode
+                        # runs without skill guidance this step but
+                        # ``lora_chosen_idx`` is preserved so the GRPO
+                        # reward can still penalise the LoRA's
+                        # selection (it picked a skill the harness
+                        # would have rejected — that IS a learning
+                        # signal worth backpropagating).
+                        harness_override = True
                         guidance = None
                         last_candidates = candidates
                         last_chosen_idx = chosen_idx
                         last_skill_reasoning = None
                     else:
+                        if _picked != lora_chosen_idx:
+                            # Harness silently switched the LoRA's
+                            # selection.  Log + flag so the metadata
+                            # captures the divergence; the reward
+                            # shaping below applies a small penalty
+                            # so the LoRA learns the harness's
+                            # eligibility rules.
+                            harness_override = True
+                            logger.info(
+                                "skill_selection: harness override "
+                                "for episode=%s step=%d — LoRA picked "
+                                "idx=%d (%s) but harness vetoed; "
+                                "fell through to idx=%d (%s)",
+                                episode_id, step_count,
+                                lora_chosen_idx,
+                                candidates[lora_chosen_idx].get("skill_id", "?"),
+                                _picked,
+                                candidates[_picked].get("skill_id", "?"),
+                            )
                         chosen_idx = _picked
                         guidance = candidates[chosen_idx]
                         last_candidates = candidates
@@ -1758,12 +1803,36 @@ async def run_episode_async(
             elif sk_parse_path in ("tail_number", "name_substring"):
                 sk_reward = sk_reward - 0.02   # ⚠️ heuristic recovery
 
+            # Harness-override penalty: when the LoRA's pick is
+            # vetoed by ``_harness_validate`` and we fall through to
+            # a different candidate (or to ``guidance=None``), the
+            # LoRA's selection was effectively wrong from a harness-
+            # eligibility standpoint.  We add a small negative term
+            # so the adapter learns the harness's per-domain rules
+            # (e.g. "Crafter rejects skills tagged for cross-domain
+            # board games").  Penalty magnitude matches the
+            # heuristic-recovery tier so it never dominates the
+            # progress / env-reward signal but is consistently felt.
+            if harness_override:
+                sk_reward = sk_reward - 0.05
+
             _sk_meta = {
                 "chosen_idx": last_chosen_idx,
+                "lora_chosen_idx": lora_chosen_idx,
+                "harness_override": harness_override,
                 "skill_candidates": [c.get("skill_id") for c in last_candidates],
                 "chosen_skill_id": (
                     last_candidates[last_chosen_idx].get("skill_id")
                     if last_chosen_idx < len(last_candidates) else None
+                ),
+                "lora_chosen_skill_id": (
+                    last_candidates[lora_chosen_idx].get("skill_id")
+                    if lora_chosen_idx >= 0 and lora_chosen_idx < len(last_candidates)
+                    else None
+                ),
+                "rag_source": (
+                    last_candidates[last_chosen_idx].get("_rag_source")
+                    if 0 <= last_chosen_idx < len(last_candidates) else None
                 ),
                 "summary_state": summary_state,
                 "intention": current_intention,
@@ -1786,9 +1855,12 @@ async def run_episode_async(
                         game=game,
                         metadata={
                             "chosen_skill_id": _sk_meta["chosen_skill_id"],
+                            "lora_chosen_skill_id": _sk_meta["lora_chosen_skill_id"],
+                            "harness_override": _sk_meta["harness_override"],
                             "reselect_reason": _sk_meta["reselect_reason"],
                             "n_candidates": len(_sk_meta["skill_candidates"]),
                             "parse_path": _sk_meta["parse_path"],
+                            "rag_source": _sk_meta["rag_source"],
                         },
                     )
                 except Exception:  # pragma: no cover  (defensive)

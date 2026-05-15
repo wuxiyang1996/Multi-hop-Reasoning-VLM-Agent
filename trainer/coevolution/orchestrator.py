@@ -531,6 +531,40 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         except Exception:                                # noqa: BLE001
             _ss_parse = {}
 
+        # ── Predicate-check telemetry ────────────────────────────────
+        # Distinguishes the four cases the legacy boolean-return
+        # collapsed onto False (``match``, ``mismatch``,
+        # ``key_missing``, ``parse_error``).  ``key_missing`` is the
+        # smoking-gun signal that a Protocol references state fields
+        # the runtime never produces — the May-2026 silent-zero
+        # intrinsic_bonus failure mode.
+        try:
+            from decision_agents.protocol_utils import (
+                get_predicate_stats as _get_pred_stats,
+                reset_predicate_stats as _reset_pred_stats,
+            )
+            _pred_stats = _get_pred_stats()
+            _reset_pred_stats()
+        except Exception:                                # noqa: BLE001
+            _pred_stats = {}
+
+        # ── RAG candidate-retrieval telemetry ────────────────────────
+        # Counts which strategy ``get_top_k_skill_candidates`` used to
+        # assemble the candidate list each call.  Healthy run is ~100%
+        # ``semantic_select``; non-trivial ``all_active_unranked`` or
+        # ``single_best_guidance`` means the LoRA is making
+        # selection decisions on a degraded candidate set (no
+        # relevance ranking, or only one option).
+        try:
+            from scripts.qwen3_decision_agent import (
+                get_rag_stats as _get_rag_stats,
+                reset_rag_stats as _reset_rag_stats,
+            )
+            _rag_stats = _get_rag_stats()
+            _reset_rag_stats()
+        except Exception:                                # noqa: BLE001
+            _rag_stats = {}
+
         step_summary = {
             "step": _step,
             "mode": _mode,
@@ -549,7 +583,54 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             "vllm_prompt_tokens": _vstats["total_prompt_tokens"],
             "vllm_completion_tokens": _vstats["total_completion_tokens"],
             "skill_selection_parse_paths": _ss_parse,
+            "predicate_check_stats": _pred_stats,
+            "rag_candidate_paths": _rag_stats,
         }
+
+        # Per-step warning when RAG falls back beyond the semantic
+        # path more than 5% of the time — that's a signal that
+        # SkillQueryEngine is failing repeatedly and the LoRA's
+        # candidate quality is degrading.
+        _rag_tot = sum(_rag_stats.values())
+        if _rag_tot:
+            _degraded = (
+                _rag_stats.get("all_active_unranked", 0)
+                + _rag_stats.get("single_best_guidance", 0)
+                + _rag_stats.get("empty", 0)
+            )
+            if _degraded / max(_rag_tot, 1) > 0.05:
+                logger.warning(
+                    "Step %d: RAG candidate-retrieval degraded for "
+                    "%d/%d (%.1f%%) calls — SkillQueryEngine returned "
+                    "empty results, LoRA seeing low-quality candidate "
+                    "lists.  Breakdown: %s",
+                    _step, _degraded, _rag_tot,
+                    100.0 * _degraded / _rag_tot, _rag_stats,
+                )
+
+        # Per-step warning when predicates have a non-trivial
+        # ``key_missing`` rate — that's the dominant May-2026 silent
+        # failure (Protocols reference state keys the runtime never
+        # produces → intrinsic_bonus = 0 → skill_selection GRPO has
+        # no learning signal).
+        _pred_tot = (
+            _pred_stats.get("match", 0)
+            + _pred_stats.get("mismatch", 0)
+            + _pred_stats.get("key_missing", 0)
+            + _pred_stats.get("parse_error", 0)
+        )
+        if _pred_tot:
+            _miss = _pred_stats.get("key_missing", 0)
+            if _miss / max(_pred_tot, 1) > 0.10:
+                logger.warning(
+                    "Step %d: predicate-check KEY_MISSING rate is "
+                    "%d/%d (%.1f%%) — Protocols reference state keys "
+                    "the runtime never produces.  Missing keys "
+                    "(top 20): %s",
+                    _step, _miss, _pred_tot,
+                    100.0 * _miss / _pred_tot,
+                    _pred_stats.get("missing_keys", [])[:20],
+                )
 
         # Surface a per-step warning so the operator notices when the
         # adapter is emitting >5% unparseable output (silent fallback

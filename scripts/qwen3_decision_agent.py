@@ -61,6 +61,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import re
 import shutil
@@ -70,6 +71,8 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+_logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Path setup
@@ -760,6 +763,42 @@ def _apply_harness_rejection_deboost(
         return candidates
 
 
+# ── RAG candidate-retrieval telemetry ────────────────────────────────
+# ``get_top_k_skill_candidates`` walks 3 progressively-less-discriminating
+# strategies for assembling a candidate list — semantic similarity via
+# ``SkillQueryEngine.select()`` (the SFT-aligned path), then
+# ``bank.get_skills_for_decision_agent()`` (returns ANY ≥2 active skills
+# with no ranking), then ``get_skill_guidance()`` (single best skill).
+# Pre-fix these silently fell through each other so the LoRA could be
+# fed a degraded candidate list without any signal that ranking had
+# been lost.  Each candidate now carries a ``_rag_source`` tag and the
+# module accumulates per-path counters that the orchestrator snapshots
+# into ``step_log.jsonl``.
+
+RAG_PATH_SEMANTIC      = "semantic_select"       # ✅ SkillQueryEngine ranked
+RAG_PATH_ALL_ACTIVE    = "all_active_unranked"   # ⚠️ no ranking, any 2+ skills
+RAG_PATH_SINGLE_BEST   = "single_best_guidance"  # ⚠️ collapsed to 1 candidate
+RAG_PATH_EMPTY         = "empty"                 # 🚨 bank truly had nothing
+
+_RAG_STATS: Dict[str, int] = {
+    RAG_PATH_SEMANTIC:    0,
+    RAG_PATH_ALL_ACTIVE:  0,
+    RAG_PATH_SINGLE_BEST: 0,
+    RAG_PATH_EMPTY:       0,
+}
+
+
+def reset_rag_stats() -> None:
+    """Reset the RAG candidate-retrieval counters."""
+    for k in list(_RAG_STATS):
+        _RAG_STATS[k] = 0
+
+
+def get_rag_stats() -> Dict[str, int]:
+    """Snapshot the RAG candidate-retrieval counters."""
+    return dict(_RAG_STATS)
+
+
 def get_top_k_skill_candidates(
     skill_bank: Any,
     state_text: str,
@@ -854,10 +893,20 @@ def get_top_k_skill_candidates(
                 domain=game_name,
                 task=intention,
             )
+        # ✅ Semantic-similarity path succeeded — tag every candidate
+        # so downstream (episode_runner, reward_logger) can correlate
+        # RAG quality with skill_selection LoRA performance.
+        _RAG_STATS[RAG_PATH_SEMANTIC] += 1
+        for _c in candidates:
+            _c.setdefault("_rag_source", RAG_PATH_SEMANTIC)
         return candidates
 
-    # Fallback: build candidates from all active skills so that
+    # ⚠️ Fallback: build candidates from all active skills so that
     # skill_selection GRPO can fire even without SkillQueryEngine.
+    # This produces an UNRANKED list — the LoRA loses the "candidates
+    # are presented in relevance order" prior it learned during SFT.
+    # Counted + first-instance logged so the operator can spot when
+    # the semantic engine is failing repeatedly.
     try:
         _bank = getattr(skill_bank, "_bank", None) or getattr(skill_bank, "bank", None) or skill_bank
         if hasattr(_bank, "get_skills_for_decision_agent"):
@@ -872,8 +921,21 @@ def get_top_k_skill_candidates(
                         d.setdefault("confidence", 0.5)
                         d.setdefault("relevance", 0.5)
                         _enrich_candidate(skill_bank, d)
+                        d["_rag_source"] = RAG_PATH_ALL_ACTIVE
                         candidates.append(d)
                 if len(candidates) >= 2:
+                    _RAG_STATS[RAG_PATH_ALL_ACTIVE] += 1
+                    if _RAG_STATS[RAG_PATH_ALL_ACTIVE] in (1, 10, 100, 1000):
+                        _logger.warning(
+                            "get_top_k_skill_candidates: SkillQueryEngine "
+                            "produced no candidates — falling back to "
+                            "unranked all-active list (count=%d, "
+                            "game=%r intention=%r bank_size=%d).  "
+                            "LoRA's relevance-prior is lost when this "
+                            "path fires.",
+                            _RAG_STATS[RAG_PATH_ALL_ACTIVE],
+                            game_name, intention[:60], len(all_views),
+                        )
                     if apply_rejection_deboost:
                         candidates = _apply_harness_rejection_deboost(
                             candidates,
@@ -885,16 +947,37 @@ def get_top_k_skill_candidates(
     except Exception:
         pass
 
-    # Final fallback: single best skill
+    # ⚠️ Final fallback: single best skill — collapses to a 1-element
+    # candidate list, which forces skill_selection into a degenerate
+    # "choose between 1 option" decision (effectively no choice).
     try:
         single = get_skill_guidance(
             skill_bank, state_text, game_name, intention, structured_state,
         )
         if single and single.get("skill_id"):
+            _RAG_STATS[RAG_PATH_SINGLE_BEST] += 1
+            if _RAG_STATS[RAG_PATH_SINGLE_BEST] in (1, 10, 100):
+                _logger.warning(
+                    "get_top_k_skill_candidates: collapsed to single "
+                    "best skill (count=%d, game=%r) — skill_selection "
+                    "LoRA has no real choice this step.",
+                    _RAG_STATS[RAG_PATH_SINGLE_BEST], game_name,
+                )
+            single["_rag_source"] = RAG_PATH_SINGLE_BEST
             return [single]
     except Exception:
         pass
 
+    # 🚨 Bank truly returned nothing.  Caller (episode_runner) treats
+    # this as ``guidance = None`` for the step.
+    _RAG_STATS[RAG_PATH_EMPTY] += 1
+    if _RAG_STATS[RAG_PATH_EMPTY] in (1, 10, 100):
+        _logger.warning(
+            "get_top_k_skill_candidates: bank produced ZERO candidates "
+            "(count=%d, game=%r intention=%r).  Episode runs without "
+            "skill guidance this step.",
+            _RAG_STATS[RAG_PATH_EMPTY], game_name, intention[:60],
+        )
     return []
 
 
