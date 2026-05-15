@@ -76,7 +76,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 CODEBASE_ROOT = SCRIPT_DIR.parent
@@ -134,18 +134,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--episodes-per-game", type=int, default=8,
         help="Global default episodes per game per step (default: 8). "
-             "Per-game overrides apply on top — see "
+             "Per-game overrides may apply on top — see "
              "trainer.coevolution.config.HIGH_VARIANCE_GYMV_EPISODES "
-             "for sparse-reward gymv games which default to 16. "
-             "Use --episodes-per-game-overrides to customize.",
+             "for the registry of bimodal-success gymv shooters (n=8 "
+             "by default after May-2026 rollback; re-bump via "
+             "--episodes-per-game-overrides if the variance pathology "
+             "resurfaces).  Use --no-high-variance-defaults to drop the "
+             "registry entirely.",
     )
     parser.add_argument(
         "--episodes-per-game-overrides", type=str, default=None,
         help="JSON map of per-game episode overrides, e.g. "
              '\'{"gymv_thunder_force_iii": 24, "tetris": 8}\'. '
              "Merged on top of the built-in HIGH_VARIANCE_GYMV_EPISODES "
-             "defaults; pass an empty dict '{}' to keep only the "
-             "global --episodes-per-game value across every game.",
+             "registry. Pass an empty dict '{}' to *clear* every "
+             "built-in override and use the global --episodes-per-game "
+             "value uniformly.",
+    )
+    parser.add_argument(
+        "--no-high-variance-defaults",
+        action="store_true",
+        help="Drop the built-in HIGH_VARIANCE_GYMV_EPISODES registry "
+             "from the override map.  Since May-2026 the registry "
+             "values match the global default (n=8), so this flag is "
+             "primarily forward-compat: it ensures the registry stays "
+             "inert even if a future re-bump lands.  Combine with "
+             "--episodes-per-game-overrides to express explicit intent.",
     )
     parser.add_argument(
         "--max-concurrent", type=int, default=64,
@@ -864,6 +878,68 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def resolve_episode_overrides(
+    args: argparse.Namespace,
+    games: List[str],
+) -> Dict[str, int]:
+    """Resolve the per-game ``episodes_per_game_overrides`` map from CLI flags.
+
+    Layered precedence (highest wins):
+      1. ``--episodes-per-game-overrides`` JSON  (explicit per-game CLI)
+      2. ``--unified-roles``                     (flat per-game = global)
+      3. ``HIGH_VARIANCE_GYMV_EPISODES``         (built-in registry of
+                                                  bimodal-success
+                                                  shmups; values currently
+                                                  match the global default
+                                                  so this layer is a no-op
+                                                  unless re-bumped or
+                                                  ``--no-high-variance-
+                                                  defaults`` is set)
+      4. ``EPISODES_PER_GAME_MULTIROLE``         (Avalon/Diplomacy role
+                                                  coverage)
+
+    Empty-dict semantics: passing ``--episodes-per-game-overrides '{}'``
+    *clears* the entire override map (both MULTIROLE and HIGH_VAR) so
+    the global ``--episodes-per-game`` value applies uniformly.  This
+    matches the help string and is the explicit escape hatch for users
+    who want raw ``n=episodes_per_game`` everywhere.
+    """
+    from trainer.coevolution.config import (
+        EPISODES_PER_GAME_MULTIROLE as _EPS_MULTIROLE,
+        HIGH_VARIANCE_GYMV_EPISODES as _EPS_HIGH_VAR,
+    )
+    if getattr(args, "no_high_variance_defaults", False):
+        eps_overrides: Dict[str, int] = {**_EPS_MULTIROLE}
+    else:
+        eps_overrides = {**_EPS_MULTIROLE, **_EPS_HIGH_VAR}
+    if getattr(args, "unified_roles", False):
+        eps_overrides = {g: args.episodes_per_game for g in games}
+    if args.episodes_per_game_overrides is not None:
+        try:
+            cli_overrides = json.loads(args.episodes_per_game_overrides)
+            if not isinstance(cli_overrides, dict):
+                raise ValueError(
+                    "--episodes-per-game-overrides must be a JSON object"
+                )
+            # Empty dict ``{}`` is the explicit "clear everything" signal.
+            # Without this branch ``{**eps_overrides, **{}} == eps_overrides``
+            # would silently keep the built-in HIGH_VAR/MULTIROLE bumps
+            # (the old surprising behaviour the help string mis-claimed
+            # to support).  Honour the documented contract instead.
+            if not cli_overrides:
+                eps_overrides = {}
+            else:
+                eps_overrides = {**eps_overrides, **{
+                    str(k): int(v) for k, v in cli_overrides.items()
+                }}
+        except (json.JSONDecodeError, ValueError, TypeError) as exc:
+            raise SystemExit(
+                f"Invalid --episodes-per-game-overrides JSON: {exc}\n"
+                f"Got: {args.episodes_per_game_overrides!r}"
+            )
+    return eps_overrides
+
+
 def main() -> None:
     args = parse_args()
 
@@ -989,32 +1065,7 @@ def main() -> None:
         config_kwargs["min_steps_before_stuck_check"] = args.min_steps_before_stuck
 
     # ── Per-game episode overrides ──────────────────────────────────
-    # Layered precedence: HIGH_VARIANCE_GYMV_EPISODES (built-in default
-    # via dataclass factory) → unified-roles flat override → explicit
-    # --episodes-per-game-overrides JSON.  We resolve here so the
-    # final dict is what reaches CoEvolutionConfig.
-    from trainer.coevolution.config import (
-        EPISODES_PER_GAME_MULTIROLE as _EPS_MULTIROLE,
-        HIGH_VARIANCE_GYMV_EPISODES as _EPS_HIGH_VAR,
-    )
-    eps_overrides: Dict[str, int] = {**_EPS_MULTIROLE, **_EPS_HIGH_VAR}
-    if args.unified_roles:
-        eps_overrides = {g: args.episodes_per_game for g in games}
-    if args.episodes_per_game_overrides is not None:
-        try:
-            cli_overrides = json.loads(args.episodes_per_game_overrides)
-            if not isinstance(cli_overrides, dict):
-                raise ValueError(
-                    "--episodes-per-game-overrides must be a JSON object"
-                )
-            eps_overrides = {**eps_overrides, **{
-                str(k): int(v) for k, v in cli_overrides.items()
-            }}
-        except (json.JSONDecodeError, ValueError, TypeError) as exc:
-            raise SystemExit(
-                f"Invalid --episodes-per-game-overrides JSON: {exc}\n"
-                f"Got: {args.episodes_per_game_overrides!r}"
-            )
+    eps_overrides = resolve_episode_overrides(args, games)
     if eps_overrides:
         config_kwargs["episodes_per_game_overrides"] = eps_overrides
 

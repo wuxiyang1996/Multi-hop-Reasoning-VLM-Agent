@@ -104,11 +104,13 @@ def build_lpt_schedule(
     Per-game ``episodes_per_game_overrides`` are honored in BOTH modes:
       * Unified-role mode — covers role-coverage fan-out (Avalon /
         Diplomacy).
-      * Standard per-game mode — covers high-variance sparse-reward
-        games (gymv shooters / brawlers, see
-        :data:`HIGH_VARIANCE_GYMV_EPISODES`) where the default n=8
-        is small enough that ``mean_reward`` is dominated by sampling
-        noise rather than actual policy quality.
+      * Standard per-game mode — consults the
+        :data:`HIGH_VARIANCE_GYMV_EPISODES` registry of bimodal-success
+        gymv shooters / brawlers.  As of May-2026 these are aligned
+        with the global default (n=8); the registry remains in place
+        so individual games can be re-bumped via a one-line edit (or
+        ``--episodes-per-game-overrides``) if the bimodal-sampling
+        pathology resurfaces.
 
     The ``unified_role_rollouts`` flag is preserved for callers that
     still pass it for documentation but no longer gates override

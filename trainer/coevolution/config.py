@@ -156,34 +156,44 @@ EPISODES_PER_GAME_MULTIROLE: Dict[str, int] = {}
 
 
 # ── High-variance per-step episode overrides ─────────────────────────
-# Empirical analysis of run ``Qwen3.5-9B_20260504_144712`` showed
-# that the gymv shooter / brawler / scrolling-action subset is
-# bimodal (success rate ~17% on TF3, ~12% on Altered Beast) which
-# at the default n=8 episodes/step makes ``mean_reward`` jitter
-# between 0 and 60+ purely from sampling noise — the apparent
-# "collapse" at TF3 phase-1 steps 9-13 was almost entirely sampling
-# variance with one process restart on top.  A 16-episode batch is
-# the smallest n that drops the P(zero-mean | bimodal-success) noise
-# floor below ~5% (bootstrap from the empirical TF3 distribution
-# yields P=22.6% at n=8 and P=4.4% at n=16; see the run summary in
-# the chat thread for the bootstrap calculation).
+# Registry of gymv shooter / brawler / scrolling-action games whose
+# episode-reward distribution is bimodal (success rate ~17% on TF3,
+# ~12% on Altered Beast).  Historically these were bumped to n=16 to
+# drop the P(zero-mean | bimodal-success) noise floor from ~22% to
+# ~4% — empirical analysis of run ``Qwen3.5-9B_20260504_144712`` and
+# the bootstrap calculation in
+# ``tests/test_episodes_per_game_overrides.py`` motivated that bump.
 #
-# We deliberately don't override every game — Tetris / Candy Crush
-# are dense-reward and don't suffer the bimodal pathology; the
-# paper Table-3 anchor games stay on the global default to avoid
-# drifting away from the published numbers.  Adjust this dict (or
-# pass ``--episodes-per-game-overrides '{...}'`` from the launcher)
-# when adding new sparse-reward games.
+# As of the May-2026 co-evolution work the n=16 bump was rolled back
+# to n=8: the dominant source of mean_reward variance in TF3 turned
+# out to be the cross-domain ``step_checks`` predicates contaminating
+# the seeded skill bank (zero ``intrinsic_bonus`` firing → no GRPO
+# learning signal for ``skill_selection`` → ``action_taking`` carrying
+# the entire reward signal on its own), not bimodal sampling noise.
+# n=8 halves rollout wall-clock, and the upstream contamination fix is
+# the right place to address the variance.
+#
+# The dict is kept (rather than deleted) for two reasons:
+#   1. It documents which games are *known* to be bimodal-success so
+#      future engineers can re-bump them with a one-line edit if the
+#      sampling-noise pathology resurfaces post-contamination-fix.
+#   2. ``--no-high-variance-defaults`` and explicit
+#      ``--episodes-per-game-overrides`` still consult it as the
+#      authoritative high-variance registry.
+#
+# Tetris / Candy Crush / Columns are dense-reward and intentionally
+# omitted (they don't suffer the bimodal pathology even when it
+# resurfaces).
 HIGH_VARIANCE_GYMV_EPISODES: Dict[str, int] = {
-    "gymv_thunder_force_iii":  16,
-    "gymv_altered_beast":      16,
-    "gymv_dynamite_headdy":    16,
-    "gymv_space_harrier_ii":   16,
-    "gymv_streets_of_rage_2":  16,
-    "gymv_strider":            16,
-    "gymv_airstriker":         16,
-    # gymv_columns is dense-scoring (every match scores) so the
-    # default 8 is enough — kept off the override list intentionally.
+    "gymv_thunder_force_iii":  8,
+    "gymv_altered_beast":      8,
+    "gymv_dynamite_headdy":    8,
+    "gymv_space_harrier_ii":   8,
+    "gymv_streets_of_rage_2":  8,
+    "gymv_strider":            8,
+    "gymv_airstriker":         8,
+    # gymv_columns is dense-scoring (every match scores) so it never
+    # suffered the bimodal pathology — kept off the registry.
 }
 
 
@@ -1104,6 +1114,15 @@ class CoEvolutionConfig:
                 f"http://localhost:{self.vllm_base_port + i * spacing}/v1"
                 for i in range(len(self.vllm_gpu_ids))
             ]
+        # External vLLM mode: honour ``VLLM_BASE_URLS`` env var so callers
+        # can point the rollout client at a pool of independently-launched
+        # 9B replicas (mirrors run_phase1_curriculum.sh's dual_stack
+        # layout). ``--vllm-url`` remains the single-URL fallback.
+        env_urls = os.environ.get("VLLM_BASE_URLS", "").strip()
+        if env_urls:
+            urls = [u.strip() for u in env_urls.split(",") if u.strip()]
+            if urls:
+                return urls
         return [self.vllm_base_url]
 
     @property
@@ -1125,10 +1144,10 @@ class CoEvolutionConfig:
         Per-game overrides apply in BOTH modes:
           * Unified-role mode: covers role-coverage fan-out (5 for Avalon,
             7 for Diplomacy by default).
-          * Standard per-game mode: covers high-variance sparse-reward
-            games (gymv shooters / brawlers default to 16 to keep the
-            sampling-noise floor below ~5%; see
-            :data:`HIGH_VARIANCE_GYMV_EPISODES`).
+          * Standard per-game mode: registry of high-variance sparse-reward
+            games (gymv shooters / brawlers) — currently set to n=8 to
+            match the global default after the May-2026 rollback (see
+            :data:`HIGH_VARIANCE_GYMV_EPISODES` for the rationale).
         Games not in the override dict use the global ``episodes_per_game``.
         """
         return self.episodes_per_game_overrides.get(game, self.episodes_per_game)

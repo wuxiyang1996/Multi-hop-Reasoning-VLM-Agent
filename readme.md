@@ -1178,19 +1178,31 @@ Confirmed via the new `tests/test_resume_bank_restore.py` regression
 suite which pins both the post-fix behavior and the pre-fix
 silent-no-op as a negative-test guard.
 
-#### High-variance gymv games default to 16 episodes/step
+#### High-variance gymv games registry (currently aligned with default)
 
-`trainer.coevolution.config.HIGH_VARIANCE_GYMV_EPISODES` bumps the
-default `episodes_per_game` from 8 to 16 for the gymv shooters /
-brawlers (TF3, Altered Beast, Streets of Rage 2, Strider, Space
-Harrier II, Airstriker, Dynamite Headdy).  Bootstrap from the
-empirical TF3 episode-reward distribution shows the per-step
-mean-reward sampling-noise floor drops from ~22 % (P(zero-mean | n=8))
-to ~4 % (n=16); see the post-mortem in `tests/test_episodes_per_game_overrides.py`
-for the rationale.  Override the dict with
-`--episodes-per-game-overrides '{"gymv_thunder_force_iii": 24}'` to
-go further (or pass `--episodes-per-game-overrides '{}'` to disable
-the high-variance defaults).
+`trainer.coevolution.config.HIGH_VARIANCE_GYMV_EPISODES` is the
+registry of bimodal-success gymv shooters / brawlers (TF3, Altered
+Beast, Streets of Rage 2, Strider, Space Harrier II, Airstriker,
+Dynamite Headdy).  Bootstrap on the empirical TF3 reward distribution
+showed the per-step mean-reward sampling-noise floor drops from ~22 %
+(P(zero-mean | n=8)) to ~4 % (n=16), and the registry historically
+forced n=16 for these games.
+
+As of May-2026 the registry was rolled back to **n=8 across the
+board** — investigation of the TF3 co-evolution runs traced the
+dominant mean-reward variance to the cross-domain `step_checks`
+predicates contaminating the seeded skill bank
+(`intrinsic_bonus=0` for 8204/8204 steps → no GRPO learning signal
+for `skill_selection`), not bimodal sampling noise.  Halving rollout
+wall-clock outweighed the marginal stability benefit.
+
+The registry stays in place as authoritative documentation of which
+games are *known* bimodal-success candidates.  Re-bump a single game
+with a one-line edit (or `--episodes-per-game-overrides
+'{"gymv_thunder_force_iii": 16}'`) if the variance pathology
+resurfaces post-bank-contamination-fix.  Pass
+`--no-high-variance-defaults` or `--episodes-per-game-overrides
+'{}'` to drop the registry entirely from the resolution path.
 
 #### Game-specific critical actions (action prior)
 
