@@ -162,10 +162,11 @@ SYSTEM_PROMPT = (
     "Rules:\n"
     "- Study the state carefully before choosing.\n"
     "- Consider which action makes the most progress toward winning.\n"
-    "- NEVER repeat the same action more than 2 times in a row — try something different.\n"
+    "- NEVER repeat the same action more than 2 times in a row.\n"
     "- If recent actions got zero reward, change strategy.\n\n"
     "Output format (strict):\n"
-    "ACTION: <number>\n"
+    "REASONING: <1-2 sentences>\n"
+    "ACTION: <number>\n\n"
 )
 
 SKILL_SELECTION_SYSTEM_PROMPT = (
@@ -1474,7 +1475,7 @@ async def run_episode_async(
             f"Subgoal: {assigned_subgoal}\n"
             f"{urgency_line}{skill_context}{recent_context}{_critical_hint}"
             f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
-            f"Output ACTION number."
+            f"Choose the best action. Output REASONING then ACTION number."
         )
         action_prompt = (
             _profile_prefix + SYSTEM_PROMPT + skill_text + "\n" + action_user
@@ -1483,11 +1484,17 @@ async def run_episode_async(
         if step_sync is not None:
             await step_sync.arrive()
 
-        action_result = await vllm_client.generate_chat(
-            [{"role": "user", "content": action_prompt}],
+        # NOTE: action_taking LoRA was SFT-trained on /completions (raw text)
+        # format, not /chat/completions.  Using the chat endpoint wraps the
+        # prompt in chat template tokens (<|im_start|>user ...) which is
+        # an OOD distribution that triggers Qwen3.5 thinking-mode fallback
+        # ("Thinking Process: ...") instead of the trained REASONING/ACTION
+        # pattern.  Stay on generate() for action_taking to match SFT.
+        action_result = await vllm_client.generate(
+            action_prompt,
             adapter="action_taking",
-            temperature=temperature, max_tokens=128,
-            stop=["\n\nAvailable", "\n\nGame state", "\n\n---", "\n\n"],
+            temperature=temperature, max_tokens=192,
+            stop=["\n\nGame state:", "\n\nAvailable actions"],
         )
         action, reasoning, parsed_intention = _parse_action_response(
             action_result.text, step_actions,
@@ -1601,14 +1608,33 @@ async def run_episode_async(
                 _action_reward = 0.0
             else:
                 action_completion = f"{subgoal_line}REASONING: {reasoning or 'Expert play.'}\nACTION: {action_num}"
-                _action_reward = float(reward) + skill_tracker._intrinsic_bonus + 1.0
-                # Track shaping composition so the orchestrator's per-step
-                # flush surfaces the (intrinsic + const) / raw_env ratio
-                # that GRPO actually sees.  See run-loggers
-                # ``record_shaping_signal`` / ``flush_shaping_ratio`` for
-                # the warning threshold and the post-mortem rationale
-                # (TF3 phase-1 collapse: 83% zero-reward episodes meant
-                # the +1.0 survival constant dominated GRPO advantages).
+                # Reward composition (post TF3 phase-1 collapse fix):
+                #   env_reward  : raw game reward (dominant signal)
+                #   intrinsic   : skill_tracker bonus when step_check fires
+                #   format bonus: tiny +0.05 for emitting a valid REASONING+
+                #                 ACTION block (down from +1.0 which
+                #                 saturated GRPO advantages — see commit
+                #                 10b425a post-mortem).
+                # Anti-repetition / non-critical-NOOP gets a small penalty
+                # so the LoRA can't farm the format bonus by repeating NOOP.
+                _format_bonus = 0.05
+                _critical = _critical_actions_for(game, step_actions)
+                _is_critical = (str(action) in _critical) if _critical else False
+                _passive_penalty = 0.0
+                _action_str = str(action).upper()
+                _passive_set = {"NOOP", "STAY", "PASS"}
+                if (
+                    _action_str in _passive_set
+                    and not _is_critical
+                    and float(raw_env_reward) <= 0.0
+                ):
+                    _passive_penalty = -0.05
+                _action_reward = (
+                    float(reward)
+                    + skill_tracker._intrinsic_bonus
+                    + _format_bonus
+                    + _passive_penalty
+                )
                 try:
                     from trainer.coevolution._run_loggers import (  # noqa: WPS433
                         record_shaping_signal,
@@ -1617,7 +1643,7 @@ async def run_episode_async(
                         game=game,
                         raw_env=float(raw_env_reward),
                         intrinsic=float(skill_tracker._intrinsic_bonus),
-                        constant_offset=1.0,
+                        constant_offset=_format_bonus + _passive_penalty,
                     )
                 except Exception:                                # pragma: no cover
                     pass

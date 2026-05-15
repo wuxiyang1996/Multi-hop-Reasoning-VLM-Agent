@@ -588,12 +588,12 @@ def generate_step_checks_from_effects(
     game skill banks with observable, deterministic predicates.
     """
     gn = game_name.lower().replace(" ", "_")
-    keyword_to_effect = _STEP_KEYWORD_TO_EFFECT.get(gn, {})
+    keyword_to_effect = dict(_STEP_KEYWORD_TO_EFFECT.get(gn, {}))
     keyword_to_effect.update(_UNIVERSAL_KEYWORD_TO_EFFECT)
 
     checks: List[str] = []
     for step_desc in protocol_steps:
-        desc_lower = step_desc.lower()
+        desc_lower = (step_desc or "").lower()
         matched_effect = ""
         for keyword, effect in keyword_to_effect.items():
             if keyword in desc_lower:
@@ -602,6 +602,77 @@ def generate_step_checks_from_effects(
         checks.append(matched_effect)
 
     return checks
+
+
+# ── Closed-set step_check validation for newly mined protocols ──────────
+# Used by skill_agents.pipeline._llm_synthesize_protocol to repair LoRA-
+# generated step_checks that hallucinate predicates outside the game's
+# closed effect registry (e.g. "shield_buff=active" for TF3).
+
+def _extract_predicate_key(check: str) -> str:
+    """Pull the key part of a 'key=value' / 'key>N' / 'key<N' predicate."""
+    if not check:
+        return ""
+    s = check.strip()
+    for op in ("=", ">=", "<=", ">", "<", "!="):
+        if op in s:
+            return s.split(op, 1)[0].strip().lower()
+    return s.lower()
+
+
+def repair_step_checks_against_registry(
+    step_checks: List[str],
+    protocol_steps: List[str],
+    game_name: str = "",
+) -> Tuple[List[str], bool]:
+    """Validate ``step_checks`` against the game's closed effect set.
+
+    Returns ``(repaired_checks, was_repaired)``.
+
+    A predicate is considered valid if its key belongs to either
+    ``TASK_EFFECT_SUBSET[<game_key>]`` (preferred) or the global
+    ``EFFECT_REGISTRY``.  Empty strings are allowed (= "no check for
+    this step").  If *any* check has an off-registry key, the entire
+    list is regenerated via ``generate_step_checks_from_effects`` so
+    that runtime ``compute_step_advancement`` can actually evaluate it.
+
+    Rationale: ``contract`` / ``curator`` LoRAs synthesise protocols
+    free-form and frequently produce predicates that don't exist in the
+    game state dict (e.g. ``shield_buff``, ``target_health``).  Without
+    repair these checks never fire, leaving ``r_progress=0`` for every
+    newly-mined skill.
+    """
+    if not step_checks:
+        return step_checks, False
+
+    gn = (game_name or "").lower().replace(" ", "_")
+    allowed: set = set()
+    if gn in TASK_EFFECT_SUBSET:
+        allowed = set(TASK_EFFECT_SUBSET[gn])
+    if not allowed:
+        for key in TASK_EFFECT_SUBSET:
+            if key in gn or gn in key:
+                allowed = set(TASK_EFFECT_SUBSET[key])
+                break
+    if not allowed:
+        allowed = set(EFFECT_REGISTRY.keys())
+
+    needs_repair = False
+    for chk in step_checks:
+        if not chk:
+            continue
+        k = _extract_predicate_key(chk)
+        if k and k not in allowed and k not in EFFECT_REGISTRY:
+            needs_repair = True
+            break
+
+    if not needs_repair:
+        return step_checks, False
+
+    repaired = generate_step_checks_from_effects(protocol_steps, game_name)
+    while len(repaired) < len(protocol_steps):
+        repaired.append("")
+    return repaired[:len(protocol_steps)], True
 
 
 _UNIVERSAL_KEYWORD_TO_EFFECT: Dict[str, str] = {
@@ -662,7 +733,196 @@ _STEP_KEYWORD_TO_EFFECT: Dict[str, Dict[str, str]] = {
         "avoid": "action_executed=true",
         "collect": "progress_made=true",
     },
+    # ── Gym-V Temporal shooters (Airstriker, SpaceHarrierII, ThunderForceIII)
+    # Effect tags drawn from TASK_EFFECT_SUBSET[temporal_<game>-v0]:
+    # state_observed, action_taken, action_executed, projectile_fired,
+    # enemy_hit, damage_taken, score_increased, reward_positive,
+    # cumulative_reward_positive.
+    "temporal_airstriker-v0": {
+        "observe": "state_observed=true", "inspect": "state_observed=true",
+        "scan": "state_observed=true", "identify": "state_observed=true",
+        "look": "state_observed=true", "assess": "state_observed=true",
+        "compare": "state_observed=true", "explore": "state_observed=true",
+        "recover": "state_observed=true",
+        "choose": "action_taken=true", "decide": "action_taken=true",
+        "select": "action_taken=true", "filter": "action_taken=true",
+        "execute": "action_executed=true", "issue": "action_executed=true",
+        "apply": "action_executed=true", "commit": "action_executed=true",
+        "move": "action_executed=true", "navigate": "action_executed=true",
+        "position": "action_executed=true",
+        "shoot": "projectile_fired=true", "fire": "projectile_fired=true",
+        "attack": "enemy_hit=true",
+        "evade": "damage_taken=false", "dodge": "damage_taken=false",
+        "survive": "cumulative_reward_positive=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "advance": "score_increased=true", "progress": "score_increased=true",
+    },
+    "temporal_spaceharrierii-v0": {
+        "observe": "state_observed=true", "inspect": "state_observed=true",
+        "scan": "state_observed=true", "identify": "state_observed=true",
+        "look": "state_observed=true", "assess": "state_observed=true",
+        "compare": "state_observed=true", "explore": "state_observed=true",
+        "recover": "state_observed=true",
+        "choose": "action_taken=true", "decide": "action_taken=true",
+        "select": "action_taken=true",
+        "execute": "action_executed=true", "issue": "action_executed=true",
+        "apply": "action_executed=true", "commit": "action_executed=true",
+        "move": "action_executed=true", "navigate": "action_executed=true",
+        "position": "action_executed=true",
+        "shoot": "projectile_fired=true", "fire": "projectile_fired=true",
+        "attack": "enemy_hit=true",
+        "evade": "damage_taken=false", "dodge": "damage_taken=false",
+        "survive": "cumulative_reward_positive=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "advance": "score_increased=true", "progress": "score_increased=true",
+    },
+    "temporal_thunderforceiii-v0": {
+        "observe": "state_observed=true", "inspect": "state_observed=true",
+        "scan": "state_observed=true", "identify": "state_observed=true",
+        "look": "state_observed=true", "assess": "state_observed=true",
+        "compare": "state_observed=true", "explore": "state_observed=true",
+        "recover": "state_observed=true",
+        "choose": "action_taken=true", "decide": "action_taken=true",
+        "select": "action_taken=true", "filter": "action_taken=true",
+        "execute": "action_executed=true", "issue": "action_executed=true",
+        "apply": "action_executed=true", "commit": "action_executed=true",
+        "move": "action_executed=true", "navigate": "action_executed=true",
+        "position": "action_executed=true",
+        "shoot": "projectile_fired=true", "fire": "projectile_fired=true",
+        "attack": "enemy_hit=true",
+        "evade": "damage_taken=false", "dodge": "damage_taken=false",
+        "survive": "cumulative_reward_positive=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "advance": "score_increased=true", "progress": "score_increased=true",
+    },
+    # ── Gym-V Temporal brawlers (AlteredBeast, StreetsOfRage2, Strider, DynamiteHeaddy)
+    # Effect tags: state_observed, action_taken, action_executed, attack_landed,
+    # enemy_hit, damage_taken, position_changed, score_increased,
+    # reward_positive, cumulative_reward_positive.
+    "temporal_alteredbeast-v0": {
+        "observe": "state_observed=true", "inspect": "state_observed=true",
+        "scan": "state_observed=true", "look": "state_observed=true",
+        "assess": "state_observed=true", "explore": "state_observed=true",
+        "recover": "state_observed=true",
+        "choose": "action_taken=true", "decide": "action_taken=true",
+        "select": "action_taken=true",
+        "execute": "action_executed=true", "issue": "action_executed=true",
+        "apply": "action_executed=true", "commit": "action_executed=true",
+        "attack": "attack_landed=true", "strike": "attack_landed=true",
+        "punch": "attack_landed=true", "kick": "attack_landed=true",
+        "hit": "enemy_hit=true",
+        "shoot": "attack_landed=true", "fire": "attack_landed=true",
+        "evade": "damage_taken=false", "dodge": "damage_taken=false",
+        "block": "damage_taken=false",
+        "navigate": "position_changed=true", "move": "position_changed=true",
+        "advance": "position_changed=true", "position": "position_changed=true",
+        "survive": "cumulative_reward_positive=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "progress": "score_increased=true",
+    },
+    "temporal_streetsofrage2-v0": {
+        "observe": "state_observed=true", "scan": "state_observed=true",
+        "look": "state_observed=true", "assess": "state_observed=true",
+        "explore": "state_observed=true", "recover": "state_observed=true",
+        "choose": "action_taken=true", "select": "action_taken=true",
+        "execute": "action_executed=true", "apply": "action_executed=true",
+        "commit": "action_executed=true",
+        "attack": "attack_landed=true", "strike": "attack_landed=true",
+        "punch": "attack_landed=true", "kick": "attack_landed=true",
+        "hit": "enemy_hit=true",
+        "evade": "damage_taken=false", "dodge": "damage_taken=false",
+        "block": "damage_taken=false",
+        "navigate": "position_changed=true", "move": "position_changed=true",
+        "advance": "position_changed=true", "position": "position_changed=true",
+        "survive": "cumulative_reward_positive=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "progress": "score_increased=true",
+    },
+    "temporal_strider-v0": {
+        "observe": "state_observed=true", "scan": "state_observed=true",
+        "look": "state_observed=true", "assess": "state_observed=true",
+        "explore": "state_observed=true", "recover": "state_observed=true",
+        "choose": "action_taken=true", "select": "action_taken=true",
+        "execute": "action_executed=true", "apply": "action_executed=true",
+        "commit": "action_executed=true",
+        "attack": "attack_landed=true", "strike": "attack_landed=true",
+        "slash": "attack_landed=true", "hit": "enemy_hit=true",
+        "evade": "damage_taken=false", "dodge": "damage_taken=false",
+        "navigate": "position_changed=true", "move": "position_changed=true",
+        "advance": "position_changed=true", "jump": "position_changed=true",
+        "climb": "position_changed=true", "position": "position_changed=true",
+        "survive": "cumulative_reward_positive=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "progress": "score_increased=true",
+    },
+    "temporal_dynamiteheaddy-v0": {
+        "observe": "state_observed=true", "scan": "state_observed=true",
+        "look": "state_observed=true", "assess": "state_observed=true",
+        "explore": "state_observed=true", "recover": "state_observed=true",
+        "choose": "action_taken=true", "select": "action_taken=true",
+        "execute": "action_executed=true", "apply": "action_executed=true",
+        "commit": "action_executed=true",
+        "attack": "attack_landed=true", "hit": "enemy_hit=true",
+        "throw": "attack_landed=true", "punch": "attack_landed=true",
+        "evade": "damage_taken=false", "dodge": "damage_taken=false",
+        "navigate": "position_changed=true", "move": "position_changed=true",
+        "advance": "position_changed=true", "jump": "position_changed=true",
+        "position": "position_changed=true",
+        "survive": "cumulative_reward_positive=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "progress": "score_increased=true",
+    },
+    # ── Gym-V Temporal puzzle (Columns)
+    # Effect tags: state_observed, action_taken, action_executed,
+    # piece_placed, piece_rotated, match_scored, board_transformed,
+    # score_increased, reward_positive, cumulative_reward_positive.
+    "temporal_columns-v0": {
+        "observe": "state_observed=true", "scan": "state_observed=true",
+        "look": "state_observed=true", "assess": "state_observed=true",
+        "inspect": "state_observed=true", "compare": "state_observed=true",
+        "explore": "state_observed=true", "recover": "state_observed=true",
+        "choose": "action_taken=true", "select": "action_taken=true",
+        "decide": "action_taken=true",
+        "execute": "action_executed=true", "apply": "action_executed=true",
+        "commit": "action_executed=true",
+        "drop": "piece_placed=true", "place": "piece_placed=true",
+        "stack": "piece_placed=true",
+        "rotate": "piece_rotated=true",
+        "match": "match_scored=true", "clear": "match_scored=true",
+        "transform": "board_transformed=true",
+        "verify": "reward_positive=true", "confirm": "reward_positive=true",
+        "advance": "score_increased=true", "progress": "score_increased=true",
+        "survive": "cumulative_reward_positive=true",
+    },
 }
+
+# ── Runtime aliases: per_task_banks dir name → canonical TASK_EFFECT_SUBSET key
+# Co-evolution receives game_name in the gymv_* form; we point those at the
+# canonical Temporal_<game>-v0 keyword map above.
+_STEP_KEYWORD_TO_EFFECT["gymv_thunder_force_iii"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_thunderforceiii-v0"
+]
+_STEP_KEYWORD_TO_EFFECT["gymv_airstriker"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_airstriker-v0"
+]
+_STEP_KEYWORD_TO_EFFECT["gymv_space_harrier_ii"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_spaceharrierii-v0"
+]
+_STEP_KEYWORD_TO_EFFECT["gymv_altered_beast"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_alteredbeast-v0"
+]
+_STEP_KEYWORD_TO_EFFECT["gymv_streets_of_rage_2"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_streetsofrage2-v0"
+]
+_STEP_KEYWORD_TO_EFFECT["gymv_strider"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_strider-v0"
+]
+_STEP_KEYWORD_TO_EFFECT["gymv_dynamite_headdy"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_dynamiteheaddy-v0"
+]
+_STEP_KEYWORD_TO_EFFECT["gymv_columns"] = _STEP_KEYWORD_TO_EFFECT[
+    "temporal_columns-v0"
+]
 
 
 # ── QA (multi-hop) step state computation ────────────────────────────

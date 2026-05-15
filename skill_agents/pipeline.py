@@ -1238,6 +1238,12 @@ class SkillBankAgent:
         Tries local vLLM (Qwen) first with retry, then falls back to
         ``ask_model`` (OpenRouter/GPT).  Sets ``protocol.source`` to
         ``"llm"`` on success so tag-based enrichment won't overwrite it.
+
+        ``step_checks`` emitted by the LoRA are post-validated against
+        the game's closed-set effect registry (``TASK_EFFECT_SUBSET``).
+        Any check with an off-registry predicate key triggers a rebuild
+        via ``generate_step_checks_from_effects``, so newly-mined skills
+        always carry runtime-evaluable predicates.
         """
         from skill_agents.stage3_mvp.schemas import Protocol
         import json as _json
@@ -1252,6 +1258,29 @@ class SkillBankAgent:
                 f"IMPORTANT: Reference these exact action names in your steps.\n"
             )
 
+        game_name = getattr(self.config, "game_name", "") or ""
+        try:
+            from decision_agents.protocol_utils import (
+                TASK_EFFECT_SUBSET as _TES,
+                EFFECT_REGISTRY as _EREG,
+            )
+            _gn = game_name.lower().replace(" ", "_")
+            _allowed = list(_TES.get(_gn, []))
+            if not _allowed:
+                for _k in _TES:
+                    if _k in _gn or _gn in _k:
+                        _allowed = list(_TES[_k]); break
+            if not _allowed:
+                _allowed = list(_EREG.keys())
+        except Exception:
+            _allowed = []
+        effect_keys_hint = (
+            f"\nClosed-set effect keys for this game (use ONLY these as "
+            f"predicate keys in step_checks / predicate_success / "
+            f"predicate_abort): {', '.join(sorted(_allowed)[:20])}\n"
+            if _allowed else ""
+        )
+
         prompt = (
             f"You are a game-AI protocol designer. Generate a concrete execution "
             f"protocol for the skill below.\n\n"
@@ -1259,7 +1288,7 @@ class SkillBankAgent:
             f"Description: {skill.strategic_description or '(none)'}\n"
             f"Effects: {effects_desc or '(none)'}\n"
             f"Evidence from successful executions:\n{evidence}\n"
-            f"{action_block}\n"
+            f"{action_block}{effect_keys_hint}"
             f"Generate a structured protocol as JSON with these exact keys:\n"
             f'{{"preconditions": ["..."], "steps": ["..."], '
             f'"step_checks": ["..."], '
@@ -1272,17 +1301,16 @@ class SkillBankAgent:
             f"- steps: 2-7 concrete action steps (imperative, game-specific). "
             f"Do NOT write generic steps like 'Achieve: X' or 'Execute skill'. "
             f"Reference actual game actions when possible.\n"
-            f"- step_checks: one entry per step — a key=value condition from "
-            f"the game state that indicates the step is complete "
-            f"(e.g. 'stack_h<5', 'quest=2'). Use empty string '' if no "
-            f"specific check applies.\n"
+            f"- step_checks: one entry per step — a key=value condition where "
+            f"the key MUST come from the closed-set effect keys listed above "
+            f"(e.g. 'state_observed=true', 'enemy_hit=true'). Use empty "
+            f"string '' if no specific check applies. Do NOT invent keys.\n"
             f"- success_criteria: 1-3 human-readable descriptions of success\n"
             f"- abort_criteria: 1-2 human-readable conditions to stop early\n"
-            f"- predicate_success: 1-3 machine-checkable key=value or key<N "
-            f"conditions from the game state (e.g. 'phase=endgame', "
-            f"'holes<5')\n"
-            f"- predicate_abort: 1-2 machine-checkable conditions "
-            f"(e.g. 'stack_h>18', 'moves<3')\n"
+            f"- predicate_success: 1-3 machine-checkable key=value conditions "
+            f"using keys from the closed-set above\n"
+            f"- predicate_abort: 1-2 machine-checkable conditions using keys "
+            f"from the closed-set above\n"
             f"Reply with ONLY the JSON object."
         )
 
@@ -1331,6 +1359,25 @@ class SkillBankAgent:
             step_checks = data.get("step_checks", [])[:7]
             if step_checks and len(step_checks) < len(steps):
                 step_checks.extend([""] * (len(steps) - len(step_checks)))
+
+            try:
+                from decision_agents.protocol_utils import (
+                    repair_step_checks_against_registry,
+                )
+                step_checks, _repaired = repair_step_checks_against_registry(
+                    step_checks, steps, game_name=game_name,
+                )
+                if _repaired:
+                    logger.info(
+                        "[protocol_synthesis] Repaired step_checks for "
+                        "skill=%s game=%s: %s",
+                        skill.skill_id, game_name, step_checks,
+                    )
+            except Exception as _e:
+                logger.debug(
+                    "[protocol_synthesis] step_check repair skipped: %s", _e,
+                )
+
             return Protocol(
                 preconditions=data.get("preconditions", [])[:5],
                 steps=steps,

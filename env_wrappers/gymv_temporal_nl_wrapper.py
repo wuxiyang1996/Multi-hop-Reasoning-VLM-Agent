@@ -317,6 +317,20 @@ class GymVTemporalNLWrapper:
         meta = dict(getattr(obs, "metadata", None) or {})
         self._action_names = [str(a) for a in (meta.get("available_actions") or [])][:25]
         if not self._action_names:
+            # ``RetroGymVEnv.metadata['available_actions']`` is not populated
+            # in the current stable-retro build — fall back to the underlying
+            # emulator's button list, which matches the SFT vocabulary
+            # (e.g. TF3: ['B','A','MODE','START','UP','DOWN','LEFT','RIGHT',
+            # 'C','Y','X','Z']). Without this, action_taking only sees
+            # ['NOOP'] and the LoRA degenerates to no-ops, breaking GRPO.
+            try:
+                unwrapped = self._env.unwrapped
+                buttons = getattr(unwrapped, "buttons", None)
+                if buttons:
+                    self._action_names = [str(b) for b in buttons if b][:25]
+            except Exception:  # noqa: BLE001
+                pass
+        if not self._action_names:
             self._action_names = ["NOOP"]
 
         nl = self._obs_to_nl(obs)
