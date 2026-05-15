@@ -490,21 +490,99 @@ def _fuzzy_match_tag(tag: str, valid_set: set) -> str:
     return best if best_overlap >= 1 else ""
 
 
+# ── Skill-selection parse telemetry ──────────────────────────────────
+# Tracks which parse path produced each ``(chosen_idx, effects,
+# decision)`` tuple so we can distinguish "LoRA emitted a valid
+# ``SKILL: N`` tag" from "LoRA emitted garbage and we silently fell
+# back to candidate 0".  Pre-May-2026 the legacy parser had 4
+# unguarded fallback layers (empty reply, trailing-number heuristic,
+# name-substring heuristic, default-to-zero) with no logging — the
+# reward log recorded ``chosen_skill_id=candidates[0].skill_id`` for
+# both intelligent selections AND silent fallbacks, so the GRPO
+# learning signal couldn't penalise unparseable LoRA output.  The
+# counters here surface fallback rates to monitoring; the new
+# ``parse_path`` field on ``SkillSelectionResult`` lets callers
+# include it in GRPO metadata.
+
+PARSE_PATH_SKILL_TAG       = "skill_tag"        # ✅ Correct SFT format
+PARSE_PATH_TAIL_NUMBER     = "tail_number"      # ⚠️ Heuristic recovery
+PARSE_PATH_NAME_SUBSTRING  = "name_substring"   # ⚠️ Heuristic recovery
+PARSE_PATH_FALLBACK_ZERO   = "fallback_zero"    # 🚨 Unparseable → 0
+PARSE_PATH_EMPTY_REPLY     = "empty_reply"      # 🚨 No reply → 0
+
+_PARSE_STATS: Dict[str, int] = {
+    PARSE_PATH_SKILL_TAG:      0,
+    PARSE_PATH_TAIL_NUMBER:    0,
+    PARSE_PATH_NAME_SUBSTRING: 0,
+    PARSE_PATH_FALLBACK_ZERO:  0,
+    PARSE_PATH_EMPTY_REPLY:    0,
+}
+
+
+def reset_parse_stats() -> None:
+    """Reset the module-level parse-path counters (called by the
+    orchestrator at the start of each co-evolution step so per-step
+    fallback rates surface in the step report)."""
+    for k in list(_PARSE_STATS):
+        _PARSE_STATS[k] = 0
+
+
+def get_parse_stats() -> Dict[str, int]:
+    """Snapshot of the parse-path counters since the last reset."""
+    return dict(_PARSE_STATS)
+
+
 def parse_skill_selection(
     reply: str,
     n_candidates: int,
     candidates: Optional[List[Dict[str, Any]]] = None,
     strip_think_tags: Optional[Callable[[str], str]] = None,
     task_name: str = "",
+    *,
+    return_parse_path: bool = False,
 ) -> Tuple[int, List[str], str]:
-    """Parse skill selection reply (3-line format, no REASONING).
+    """Parse skill selection reply (3-line ``EFFECTS / DECISION / SKILL``
+    format) into ``(chosen_idx, effects, decision)``.
 
-    Returns ``(chosen_idx, effects, decision)`` where
-    ``effects`` is a list of effect tag strings (validated against
-    the closed-set registry), and
     ``decision`` is ``"CONTINUE"`` / ``"SWITCH"`` / ``"SKIP"``.
+
+    Parse-path telemetry
+    --------------------
+    The function tries 4 progressively-less-trustworthy strategies to
+    recover ``chosen_idx`` when the LoRA doesn't emit a clean
+    ``SKILL: N`` tag.  Each strategy increments a module-level counter
+    (:data:`_PARSE_STATS`) so callers can monitor *how often* the
+    parser is falling back versus reading a valid LoRA emission:
+
+      1. ``skill_tag``      — clean ``SKILL: N`` match (preferred)
+      2. ``tail_number``    — any number in the last 100 chars
+      3. ``name_substring`` — any candidate skill name appears as
+                              substring of the reply
+      4. ``fallback_zero``  — none of the above → return ``idx=0``
+
+    A non-trivial ``tail_number`` / ``name_substring`` / ``fallback_zero``
+    rate is a SIGNAL THAT THE LoRA IS BROKEN, not a benign recovery.
+    Each fallback path also emits a ``logger.warning`` (rate-limited
+    via the counter) so the issue surfaces in real-time logs.
+
+    When ``return_parse_path=True`` the tuple is extended with the
+    chosen parse path string (one of the ``PARSE_PATH_*`` constants).
+    Default ``False`` preserves the 3-element tuple for all existing
+    callers.
     """
+    parse_path: str
+
     if not reply:
+        _PARSE_STATS[PARSE_PATH_EMPTY_REPLY] += 1
+        if _PARSE_STATS[PARSE_PATH_EMPTY_REPLY] in (1, 10, 100, 1000):
+            logger.warning(
+                "parse_skill_selection: empty reply, falling back to "
+                "candidate 0 (count=%d)",
+                _PARSE_STATS[PARSE_PATH_EMPTY_REPLY],
+            )
+        parse_path = PARSE_PATH_EMPTY_REPLY
+        if return_parse_path:
+            return 0, [], "SWITCH", parse_path  # type: ignore[return-value]
         return 0, [], "SWITCH"
 
     cleaned = reply
@@ -535,26 +613,72 @@ def parse_skill_selection(
     if decision_m:
         decision = decision_m.group(1).upper()
 
+    # ── Path 1 (preferred): clean ``SKILL: N`` match ─────────────────
     skill_m = re.search(r"SKILL\s*:\s*(\d+)", cleaned, re.IGNORECASE)
     if skill_m:
         idx = int(skill_m.group(1)) - 1
         if 0 <= idx < n_candidates:
+            _PARSE_STATS[PARSE_PATH_SKILL_TAG] += 1
+            parse_path = PARSE_PATH_SKILL_TAG
+            if return_parse_path:
+                return idx, effects, decision, parse_path  # type: ignore[return-value]
             return idx, effects, decision
 
+    # ── Path 2: trailing-number heuristic (LoRA forgot the SKILL: tag
+    # but ended with "...so I pick 3.").  Already a degradation signal.
     tail = cleaned[-100:]
     nums = re.findall(r"\b(\d+)\b", tail)
     for n_str in reversed(nums):
         idx = int(n_str) - 1
         if 0 <= idx < n_candidates:
+            _PARSE_STATS[PARSE_PATH_TAIL_NUMBER] += 1
+            if _PARSE_STATS[PARSE_PATH_TAIL_NUMBER] in (1, 10, 100, 1000):
+                logger.warning(
+                    "parse_skill_selection: no SKILL: tag, recovered idx=%d "
+                    "from trailing number heuristic (count=%d, reply tail=%r)",
+                    idx, _PARSE_STATS[PARSE_PATH_TAIL_NUMBER], tail[-60:],
+                )
+            parse_path = PARSE_PATH_TAIL_NUMBER
+            if return_parse_path:
+                return idx, effects, decision, parse_path  # type: ignore[return-value]
             return idx, effects, decision
 
+    # ── Path 3: candidate-name substring (LoRA wrote the skill name
+    # instead of an index — also a degradation signal).
     if candidates:
         cleaned_lower = cleaned.lower()
         for i, c in enumerate(candidates):
             name = (c.get("skill_name") or "").lower()
             if name and len(name) >= 4 and name in cleaned_lower:
+                _PARSE_STATS[PARSE_PATH_NAME_SUBSTRING] += 1
+                if _PARSE_STATS[PARSE_PATH_NAME_SUBSTRING] in (1, 10, 100, 1000):
+                    logger.warning(
+                        "parse_skill_selection: no SKILL: tag, recovered "
+                        "idx=%d from candidate-name substring match "
+                        "(count=%d, name=%r)",
+                        i, _PARSE_STATS[PARSE_PATH_NAME_SUBSTRING], name,
+                    )
+                parse_path = PARSE_PATH_NAME_SUBSTRING
+                if return_parse_path:
+                    return i, effects, decision, parse_path  # type: ignore[return-value]
                 return i, effects, decision
 
+    # ── Path 4 (silent fallback): unparseable reply → candidate 0.
+    # This is the bug-of-record: pre-May-2026 the legacy parser took
+    # this path with zero telemetry, so the reward log recorded
+    # ``chosen_skill_id=candidates[0]`` for both intelligent selections
+    # and total LoRA failure.  Now counted + logged at exponential
+    # checkpoints so the rate surfaces without log spam.
+    _PARSE_STATS[PARSE_PATH_FALLBACK_ZERO] += 1
+    if _PARSE_STATS[PARSE_PATH_FALLBACK_ZERO] in (1, 10, 100, 1000, 10000):
+        logger.warning(
+            "parse_skill_selection: UNPARSEABLE reply → fallback to "
+            "candidate 0 (count=%d, reply=%r)",
+            _PARSE_STATS[PARSE_PATH_FALLBACK_ZERO], cleaned[:200],
+        )
+    parse_path = PARSE_PATH_FALLBACK_ZERO
+    if return_parse_path:
+        return 0, effects, decision, parse_path  # type: ignore[return-value]
     return 0, effects, decision
 
 

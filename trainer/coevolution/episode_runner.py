@@ -1324,11 +1324,23 @@ async def run_episode_async(
 
         # Process skill selection result
         if bank_available and (need_reselect or last_guidance is None):
+            sk_parse_path: Optional[str] = None
             if sk_result is not None and candidates and len(candidates) >= 2:
-                chosen_idx, _lora_effects, _decision = _parse_skill_selection_unified(
+                # ``return_parse_path=True`` surfaces which parse strategy
+                # produced the chosen_idx (skill_tag = clean LoRA emission,
+                # tail_number / name_substring = heuristic recovery,
+                # fallback_zero / empty_reply = LoRA failed entirely).
+                # Used downstream to (1) include in GRPO metadata so
+                # reward analysis can separate intelligent selections
+                # from silent fallbacks, and (2) penalise unparseable
+                # LoRA output in the skill_selection reward so the
+                # adapter learns the SFT format.
+                _parsed = _parse_skill_selection_unified(
                     sk_result.text, len(candidates), candidates,
                     strip_think_tags=strip_think_tags,
+                    return_parse_path=True,
                 )
+                chosen_idx, _lora_effects, _decision, sk_parse_path = _parsed  # type: ignore[misc]
                 last_sk_lora_text = sk_result.text
 
                 if _lora_effects:
@@ -1731,6 +1743,21 @@ async def run_episode_async(
                     + 0.5 * _has_progress
                     + 0.3 * min(1.0, max(0.0, float(reward)))
                 )
+            # Penalty for unparseable LoRA output so the adapter learns
+            # to emit the SFT-canonical ``EFFECTS/DECISION/SKILL:N``
+            # format.  Without this term, the legacy 4-layer silent
+            # fallback in ``parse_skill_selection`` defaulted to
+            # candidate 0 and the GRPO reward couldn't distinguish
+            # "LoRA chose intelligently" from "LoRA produced garbage,
+            # parser fell back".  Penalties are intentionally small
+            # (the dominant signal is still progress / env reward) but
+            # consistent so the adapter feels the pull toward
+            # parseable output.
+            if sk_parse_path == "fallback_zero" or sk_parse_path == "empty_reply":
+                sk_reward = sk_reward - 0.10   # 🚨 totally unparseable
+            elif sk_parse_path in ("tail_number", "name_substring"):
+                sk_reward = sk_reward - 0.02   # ⚠️ heuristic recovery
+
             _sk_meta = {
                 "chosen_idx": last_chosen_idx,
                 "skill_candidates": [c.get("skill_id") for c in last_candidates],
@@ -1741,6 +1768,7 @@ async def run_episode_async(
                 "summary_state": summary_state,
                 "intention": current_intention,
                 "reselect_reason": skill_tracker._reselect_reason,
+                "parse_path": sk_parse_path or "no_lora_call",
             }
             grpo_records.append(GRPORecord(
                 adapter="skill_selection", game=game, episode_id=episode_id, step=step_count,
@@ -1760,6 +1788,7 @@ async def run_episode_async(
                             "chosen_skill_id": _sk_meta["chosen_skill_id"],
                             "reselect_reason": _sk_meta["reselect_reason"],
                             "n_candidates": len(_sk_meta["skill_candidates"]),
+                            "parse_path": _sk_meta["parse_path"],
                         },
                     )
                 except Exception:  # pragma: no cover  (defensive)

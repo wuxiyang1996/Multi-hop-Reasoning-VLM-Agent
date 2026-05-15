@@ -512,6 +512,25 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             for game, m in _ep_metrics["per_game"].items()
         }
 
+        # ── Skill-selection parse-path telemetry ─────────────────────
+        # Surface the count of each parse path the LoRA produced in
+        # this step's rollouts.  A healthy run has ~100% ``skill_tag``
+        # hits; non-trivial ``fallback_zero`` / ``empty_reply`` /
+        # ``tail_number`` / ``name_substring`` rates indicate the
+        # adapter is emitting unparseable output and silently
+        # defaulting to candidate 0.  Snapshot is reset at the start
+        # of the next step (or here, if the run rolls over a step
+        # boundary mid-batch).
+        try:
+            from decision_agents.skill_decision_core import (
+                get_parse_stats as _get_ss_parse_stats,
+                reset_parse_stats as _reset_ss_parse_stats,
+            )
+            _ss_parse = _get_ss_parse_stats()
+            _reset_ss_parse_stats()
+        except Exception:                                # noqa: BLE001
+            _ss_parse = {}
+
         step_summary = {
             "step": _step,
             "mode": _mode,
@@ -529,7 +548,40 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             "vllm_calls": _vstats["call_count"],
             "vllm_prompt_tokens": _vstats["total_prompt_tokens"],
             "vllm_completion_tokens": _vstats["total_completion_tokens"],
+            "skill_selection_parse_paths": _ss_parse,
         }
+
+        # Surface a per-step warning so the operator notices when the
+        # adapter is emitting >5% unparseable output (silent fallback
+        # to candidate 0 is the dominant May-2026 failure mode this
+        # telemetry was added to catch).
+        _tot_parses = sum(_ss_parse.values())
+        if _tot_parses:
+            _bad = (
+                _ss_parse.get("fallback_zero", 0)
+                + _ss_parse.get("empty_reply", 0)
+            )
+            _heur = (
+                _ss_parse.get("tail_number", 0)
+                + _ss_parse.get("name_substring", 0)
+            )
+            if _bad / max(_tot_parses, 1) > 0.05:
+                logger.warning(
+                    "Step %d: skill_selection LoRA emitted UNPARSEABLE "
+                    "output for %d/%d (%.1f%%) selections — adapter is "
+                    "silently falling back to candidate 0.  Parse-path "
+                    "breakdown: %s",
+                    _step, _bad, _tot_parses,
+                    100.0 * _bad / _tot_parses, _ss_parse,
+                )
+            elif _heur / max(_tot_parses, 1) > 0.10:
+                logger.info(
+                    "Step %d: skill_selection LoRA needed heuristic "
+                    "recovery for %d/%d (%.1f%%) selections (LoRA "
+                    "omitted SKILL: tag).  Parse-path breakdown: %s",
+                    _step, _heur, _tot_parses,
+                    100.0 * _heur / _tot_parses, _ss_parse,
+                )
 
         per_game_summary = ", ".join(
             f"{g}={m['mean_reward']:.1f}" for g, m in per_game_rewards.items()
