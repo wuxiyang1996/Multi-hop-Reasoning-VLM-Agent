@@ -1110,6 +1110,26 @@ class PerGameSkillBankManager:
                 logger.info(
                     "Seeded %s bank with %d skills from %s", key, n, candidate,
                 )
+                # Eagerly materialise the lazy SkillBankAgent so the bank
+                # we just wrote to disk is also live in memory for step 0.
+                # Without this, ``AsyncSkillBankPipeline.get_bank()``
+                # short-circuits on ``self._agent is None`` and the
+                # orchestrator boots step 0 in cold-start mode with an
+                # empty bank — observed in run tf3_coevo_20260515_024243
+                # where ``Seeded ... with 8 skills`` was followed by
+                # ``Step 0 [cold-start] bank=0 skills (empty)`` and zero
+                # ``skill_selection`` GRPO records across 16 episodes.
+                # ``_ensure_agent`` is idempotent + cheap when the bank
+                # file is already on disk; it just rebuilds the in-memory
+                # ``SkillBankAgent`` + ``SkillBankMVP`` view.
+                try:
+                    pipe._ensure_agent()
+                except Exception as _ea_exc:                     # noqa: BLE001
+                    logger.warning(
+                        "Seed-time _ensure_agent failed for %s: %s — "
+                        "step 0 may run cold-start despite seed file",
+                        key, _ea_exc,
+                    )
             else:
                 logger.info("Seed file %s was empty — nothing to load", candidate)
 
@@ -1576,6 +1596,19 @@ class SharedSkillBankManager:
                 "(across %d game subdirs)",
                 n_loaded_total, seed_dir, len(self._games),
             )
+            # Mirror PerGameSkillBankManager: materialise the lazy
+            # SkillBankAgent now so step 0 sees a non-empty bank via
+            # ``get_bank()``. Without this, the cold-start rollout
+            # silently skips skill_selection. See same comment in
+            # PerGameSkillBankManager._seed_from_coldstart.
+            try:
+                self._shared_pipeline._ensure_agent()
+            except Exception as _ea_exc:                         # noqa: BLE001
+                logger.warning(
+                    "Seed-time _ensure_agent failed for shared bank: %s — "
+                    "step 0 may run cold-start despite seed file",
+                    _ea_exc,
+                )
         else:
             logger.info("SharedSkillBankManager: no seed files found under %s", seed_dir)
 

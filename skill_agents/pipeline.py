@@ -1216,12 +1216,39 @@ class SkillBankAgent:
         if skill.success_rate < 0.5:
             abort_criteria.append("Abort if no progress after expected duration")
 
+        # Generate ``step_checks`` for the deterministic fallback too —
+        # without them, ``StepTracker.compute_step_advancement`` cannot
+        # fire and the LoRA receives zero ``intrinsic_bonus`` on every
+        # protocol step. Observed in run tf3_coevo_20260515_024243 where
+        # 9 of 13 newly-mined skills (compound + early/late templates +
+        # placeholders that fell through to this branch when contract-
+        # LoRA synthesis returned None) shipped with ``step_checks=[]``
+        # so ``r_progress`` was always 0 even when the runtime path was
+        # otherwise healthy. ``generate_step_checks_from_effects`` is
+        # game-aware and returns the empty string for steps whose
+        # natural-language summary doesn't map to a known effect key,
+        # so this is strictly additive — never worse than the empty
+        # list that existed before.
+        try:
+            from decision_agents.protocol_utils import (        # noqa: WPS433
+                generate_step_checks_from_effects,
+            )
+            game_for_checks = getattr(
+                self.config, "game_name", "",
+            ) or ""
+            step_checks = generate_step_checks_from_effects(
+                steps, game_for_checks,
+            )
+        except Exception:                                       # noqa: BLE001
+            step_checks = []
+
         return Protocol(
             preconditions=preconditions,
             steps=steps,
             success_criteria=success_criteria,
             abort_criteria=abort_criteria,
             expected_duration=max(1, avg_len),
+            step_checks=step_checks,
             source="deterministic",
         )
 
