@@ -1290,13 +1290,17 @@ class SkillBankAgent:
             from decision_agents.protocol_utils import (
                 TASK_EFFECT_SUBSET as _TES,
                 EFFECT_REGISTRY as _EREG,
+                canonicalize_game_key as _canon,
             )
-            _gn = game_name.lower().replace(" ", "_")
-            _allowed = list(_TES.get(_gn, []))
-            if not _allowed:
-                for _k in _TES:
-                    if _k in _gn or _gn in _k:
-                        _allowed = list(_TES[_k]); break
+            # Use the canonical lookup so wrapper names like
+            # ``gymv_thunder_force_iii`` resolve to
+            # ``temporal_thunderforceiii-v0`` instead of falling
+            # through the broken substring match to the full
+            # EFFECT_REGISTRY (which historically advertised web /
+            # board / QA predicates as "valid" to the LoRA prompt and
+            # silently produced cross-domain protocols).
+            _canonical = _canon(game_name)
+            _allowed = list(_TES.get(_canonical, []))
             if not _allowed:
                 _allowed = list(_EREG.keys())
         except Exception:
@@ -1387,9 +1391,13 @@ class SkillBankAgent:
             if step_checks and len(step_checks) < len(steps):
                 step_checks.extend([""] * (len(steps) - len(step_checks)))
 
+            pred_success = data.get("predicate_success", [])[:5]
+            pred_abort = data.get("predicate_abort", [])[:3]
+
             try:
                 from decision_agents.protocol_utils import (
                     repair_step_checks_against_registry,
+                    filter_predicates_against_registry,
                 )
                 step_checks, _repaired = repair_step_checks_against_registry(
                     step_checks, steps, game_name=game_name,
@@ -1399,6 +1407,25 @@ class SkillBankAgent:
                         "[protocol_synthesis] Repaired step_checks for "
                         "skill=%s game=%s: %s",
                         skill.skill_id, game_name, step_checks,
+                    )
+                # Strip cross-domain predicates from success / abort
+                # gates as well.  Without this the per-game subset
+                # validation in StepTracker silently accepts e.g.
+                # ``dom_changed=true`` as a success gate for TF3,
+                # which can never fire and leaves intrinsic_bonus=0
+                # for every action step.
+                pred_success, _ps_filt = filter_predicates_against_registry(
+                    pred_success, game_name=game_name,
+                )
+                pred_abort, _pa_filt = filter_predicates_against_registry(
+                    pred_abort, game_name=game_name,
+                )
+                if _ps_filt or _pa_filt:
+                    logger.info(
+                        "[protocol_synthesis] Filtered cross-domain "
+                        "predicates for skill=%s game=%s "
+                        "(success_dropped=%d, abort_dropped=%d)",
+                        skill.skill_id, game_name, _ps_filt, _pa_filt,
                     )
             except Exception as _e:
                 logger.debug(
@@ -1411,8 +1438,8 @@ class SkillBankAgent:
                 success_criteria=data.get("success_criteria", [])[:5],
                 abort_criteria=data.get("abort_criteria", [])[:3],
                 step_checks=step_checks,
-                predicate_success=data.get("predicate_success", [])[:5],
-                predicate_abort=data.get("predicate_abort", [])[:3],
+                predicate_success=pred_success,
+                predicate_abort=pred_abort,
                 action_vocab=action_vocab or [],
                 source="llm",
             )

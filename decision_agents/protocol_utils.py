@@ -604,6 +604,60 @@ def generate_step_checks_from_effects(
     return checks
 
 
+# ── Game-name canonicalization for TASK_EFFECT_SUBSET lookup ────────────
+# Runtime code refers to gym-v shooters/brawlers using the wrapper
+# naming convention (e.g. ``gymv_thunder_force_iii``) while
+# ``TASK_EFFECT_SUBSET`` is keyed by the canonical gym env id
+# (``temporal_thunderforceiii-v0``).  Without this alias table the
+# fuzzy substring match in ``get_valid_effects`` /
+# ``repair_step_checks_against_registry`` falls through to the global
+# ``EFFECT_REGISTRY`` and silently accepts cross-domain predicates
+# (``dom_changed``, ``element_clicked``, ``board_transformed``…) that
+# can never fire in a Sega Genesis shooter, killing
+# ``intrinsic_bonus`` for every action step.
+
+_GAMEV_KEY_ALIASES: Dict[str, str] = {
+    # Gym-V Temporal shooters
+    "gymv_airstriker":         "temporal_airstriker-v0",
+    "gymv_space_harrier_ii":   "temporal_spaceharrierii-v0",
+    "gymv_thunder_force_iii":  "temporal_thunderforceiii-v0",
+    # Gym-V Temporal brawlers / platformers
+    "gymv_altered_beast":      "temporal_alteredbeast-v0",
+    "gymv_streets_of_rage_2":  "temporal_streetsofrage2-v0",
+    "gymv_strider":            "temporal_strider-v0",
+    "gymv_dynamite_headdy":    "temporal_dynamiteheaddy-v0",
+    # Gym-V Temporal puzzle
+    "gymv_columns":            "temporal_columns-v0",
+}
+
+
+def canonicalize_game_key(game_name: str) -> str:
+    """Return the ``TASK_EFFECT_SUBSET`` lookup key for *game_name*.
+
+    Resolution order:
+      1. Exact alias hit in ``_GAMEV_KEY_ALIASES`` (handles all the
+         ``gymv_*`` wrapper names → canonical gym env ids).
+      2. Exact key hit in ``TASK_EFFECT_SUBSET``.
+      3. Substring fuzzy match against ``TASK_EFFECT_SUBSET`` keys
+         (preserves the legacy behaviour for non-wrapper names like
+         ``2048``, ``twenty_forty_eight``).
+      4. Returns the input unchanged if nothing matches; callers
+         then fall back to the global ``EFFECT_REGISTRY``.
+    """
+    if not game_name:
+        return ""
+    gn = game_name.lower().replace(" ", "_")
+    aliased = _GAMEV_KEY_ALIASES.get(gn)
+    if aliased and aliased in TASK_EFFECT_SUBSET:
+        return aliased
+    if gn in TASK_EFFECT_SUBSET:
+        return gn
+    for key in TASK_EFFECT_SUBSET:
+        if key in gn or gn in key:
+            return key
+    return gn
+
+
 # ── Closed-set step_check validation for newly mined protocols ──────────
 # Used by skill_agents.pipeline._llm_synthesize_protocol to repair LoRA-
 # generated step_checks that hallucinate predicates outside the game's
@@ -645,24 +699,30 @@ def repair_step_checks_against_registry(
     if not step_checks:
         return step_checks, False
 
-    gn = (game_name or "").lower().replace(" ", "_")
+    canonical = canonicalize_game_key(game_name or "")
     allowed: set = set()
-    if gn in TASK_EFFECT_SUBSET:
-        allowed = set(TASK_EFFECT_SUBSET[gn])
+    if canonical in TASK_EFFECT_SUBSET:
+        allowed = set(TASK_EFFECT_SUBSET[canonical])
     if not allowed:
-        for key in TASK_EFFECT_SUBSET:
-            if key in gn or gn in key:
-                allowed = set(TASK_EFFECT_SUBSET[key])
-                break
-    if not allowed:
+        # No game-specific subset → can't safely validate. Fall back
+        # to the global registry, but mark every off-subset predicate
+        # as "needs repair" so the regeneration path is exercised
+        # (the legacy code accepted *anything* in the global registry
+        # which silently passed cross-domain predicates like
+        # ``dom_changed`` and ``element_clicked`` into TF3 protocols).
         allowed = set(EFFECT_REGISTRY.keys())
 
+    # Predicates valid only if their key is in the game-specific
+    # subset (or if we had to fall back to EFFECT_REGISTRY because the
+    # game key was unknown).  Cross-domain predicates whose keys are
+    # in EFFECT_REGISTRY but NOT in the game subset must trigger
+    # repair — that was the silent-pass bug for gymv_*.
     needs_repair = False
     for chk in step_checks:
         if not chk:
             continue
         k = _extract_predicate_key(chk)
-        if k and k not in allowed and k not in EFFECT_REGISTRY:
+        if k and k not in allowed:
             needs_repair = True
             break
 
@@ -673,6 +733,54 @@ def repair_step_checks_against_registry(
     while len(repaired) < len(protocol_steps):
         repaired.append("")
     return repaired[:len(protocol_steps)], True
+
+
+def filter_predicates_against_registry(
+    predicates: List[str],
+    game_name: str = "",
+) -> Tuple[List[str], int]:
+    """Drop cross-domain predicates from ``predicate_success`` /
+    ``predicate_abort`` lists.
+
+    Returns ``(filtered_predicates, n_dropped)``.
+
+    A predicate is *kept* iff its key (the LHS of ``key=value`` /
+    ``key>N`` / etc.) appears in
+    ``TASK_EFFECT_SUBSET[canonicalize_game_key(game_name)]``.  If no
+    game-specific subset is registered the predicate is kept (legacy
+    behaviour for unknown games); otherwise off-subset predicates are
+    dropped so they can't poison ``StepTracker`` (which would never
+    fire them in this game).
+
+    Unlike ``repair_step_checks_against_registry`` this function does
+    NOT regenerate replacements — the goal/abort gates carry the
+    intent of the LLM-synthesised protocol and we'd rather have a
+    short valid list than a regenerated one.  Empty result is allowed
+    and downstream code must tolerate it (StepTracker treats empty
+    ``predicate_success`` as "no intrinsic-bonus gate", which is
+    correct in this context).
+    """
+    if not predicates:
+        return predicates, 0
+
+    canonical = canonicalize_game_key(game_name or "")
+    if canonical not in TASK_EFFECT_SUBSET:
+        # Unknown game — can't safely filter without risking dropping
+        # everything.  Leave the list intact.
+        return list(predicates), 0
+
+    allowed = set(TASK_EFFECT_SUBSET[canonical])
+    kept: List[str] = []
+    dropped = 0
+    for pred in predicates:
+        if not pred:
+            continue
+        k = _extract_predicate_key(pred)
+        if k and k in allowed:
+            kept.append(pred)
+        else:
+            dropped += 1
+    return kept, dropped
 
 
 _UNIVERSAL_KEYWORD_TO_EFFECT: Dict[str, str] = {
@@ -1310,11 +1418,15 @@ TASK_EFFECT_SUBSET: Dict[str, List[str]] = {
 
 
 def get_valid_effects(task_name: str) -> List[str]:
-    """Return the closed set of valid effect tags for a given task."""
-    tn = task_name.lower().replace(" ", "_")
-    if tn in TASK_EFFECT_SUBSET:
-        return TASK_EFFECT_SUBSET[tn]
-    for key in TASK_EFFECT_SUBSET:
-        if key in tn or tn in key:
-            return TASK_EFFECT_SUBSET[key]
+    """Return the closed set of valid effect tags for a given task.
+
+    Uses :func:`canonicalize_game_key` to map wrapper names like
+    ``gymv_thunder_force_iii`` onto the registry key
+    ``temporal_thunderforceiii-v0``.  Falls back to ``EFFECT_TAGS``
+    (the full global set) only if no game-specific subset can be
+    identified.
+    """
+    canonical = canonicalize_game_key(task_name)
+    if canonical in TASK_EFFECT_SUBSET:
+        return TASK_EFFECT_SUBSET[canonical]
     return EFFECT_TAGS

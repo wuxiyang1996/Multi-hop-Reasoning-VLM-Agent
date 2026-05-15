@@ -34,6 +34,110 @@ class SkillBankUpdateResult:
     grpo_data: Dict[str, List[Dict[str, Any]]] = field(default_factory=dict)
 
 
+def _sanitize_skill_in_place(skill: Any, game_name: str) -> Dict[str, int]:
+    """Strip cross-domain predicates from a single skill's protocol.
+
+    Returns a ``{stat: count}`` summary (``step_checks_repaired``:
+    0/1, ``success_predicates_dropped``: int, ``abort_predicates_dropped``:
+    int).  No-op if the protocol is missing or the game has no
+    closed-set registered.
+    """
+    try:
+        from decision_agents.protocol_utils import (
+            repair_step_checks_against_registry,
+            filter_predicates_against_registry,
+            canonicalize_game_key,
+            TASK_EFFECT_SUBSET,
+        )
+    except Exception:                                       # noqa: BLE001
+        return {}
+
+    if skill is None or skill.protocol is None:
+        return {}
+    canonical = canonicalize_game_key(game_name)
+    if canonical not in TASK_EFFECT_SUBSET:
+        return {}
+
+    proto = skill.protocol
+    stats = {
+        "step_checks_repaired": 0,
+        "success_predicates_dropped": 0,
+        "abort_predicates_dropped": 0,
+    }
+
+    new_checks, was_repaired = repair_step_checks_against_registry(
+        list(proto.step_checks or []),
+        list(proto.steps or []),
+        game_name=game_name,
+    )
+    if was_repaired:
+        proto.step_checks = new_checks
+        stats["step_checks_repaired"] = 1
+
+    new_psucc, n_dropped_s = filter_predicates_against_registry(
+        list(proto.predicate_success or []),
+        game_name=game_name,
+    )
+    if n_dropped_s:
+        proto.predicate_success = new_psucc
+        stats["success_predicates_dropped"] = n_dropped_s
+
+    new_pabort, n_dropped_a = filter_predicates_against_registry(
+        list(proto.predicate_abort or []),
+        game_name=game_name,
+    )
+    if n_dropped_a:
+        proto.predicate_abort = new_pabort
+        stats["abort_predicates_dropped"] = n_dropped_a
+
+    return stats
+
+
+def _sanitize_seeded_bank_for_game(bank: Any, game_name: str) -> Dict[str, int]:
+    """Strip cross-domain predicates from every skill in a freshly-seeded bank.
+
+    The ``frontier_data/output/per_task_banks`` seed banks were
+    aggregated across all 19 frontier tasks (web / board / QA / video
+    / shooter / brawler / platformer) and the protocols carry
+    predicates from every domain — e.g. a TF3 skill seeded from the
+    ``visual_toolbench`` mining pass might carry ``answer_confirmed=true``
+    in ``predicate_success`` and ``dom_changed=true`` in
+    ``predicate_abort``.  These can never fire in a Sega Genesis
+    shooter and silently null out the StepTracker intrinsic_bonus,
+    starving the skill_selection GRPO of learning signal.
+
+    This helper iterates every loaded skill, repairs its
+    ``step_checks`` against the game's closed effect set, and filters
+    cross-domain entries out of its ``predicate_success`` /
+    ``predicate_abort`` lists.  Mutates the bank in-place; caller is
+    responsible for ``bank.save()`` afterwards.
+
+    Returns a ``{stat: count}`` summary for logging.
+    """
+    aggregate = {
+        "n_skills": 0,
+        "step_checks_repaired": 0,
+        "success_predicates_dropped": 0,
+        "abort_predicates_dropped": 0,
+    }
+    for sid in list(bank.get_skill_names()):
+        skill = bank.get_skill(sid)
+        if skill is None or skill.protocol is None:
+            continue
+        aggregate["n_skills"] += 1
+        per_skill = _sanitize_skill_in_place(skill, game_name)
+        aggregate["step_checks_repaired"] += per_skill.get(
+            "step_checks_repaired", 0
+        )
+        aggregate["success_predicates_dropped"] += per_skill.get(
+            "success_predicates_dropped", 0
+        )
+        aggregate["abort_predicates_dropped"] += per_skill.get(
+            "abort_predicates_dropped", 0
+        )
+    return aggregate
+
+
 class AsyncSkillBankPipeline:
     """Manages the skill bank update lifecycle across a co-evolution step.
 
@@ -1106,6 +1210,24 @@ class PerGameSkillBankManager:
             bank.load(str(candidate))
             n = len(bank)
             if n > 0:
+                # Strip cross-domain predicates (web / board / QA /
+                # video) from every seeded skill BEFORE persisting so
+                # the StepTracker can fire intrinsic_bonus on the
+                # right effect keys for this game.  See
+                # ``_sanitize_seeded_bank_for_game`` for the
+                # contamination story.  The game key here is the
+                # destination bank key — for plain per-game banks
+                # this is the game name (e.g. ``gymv_thunder_force_iii``);
+                # for unified-role keys it's
+                # ``<game>/<role>`` and the parent game name is
+                # extracted before the canonicalization lookup.
+                sanitize_key = key.split("/", 1)[0]
+                stats = _sanitize_seeded_bank_for_game(bank, sanitize_key)
+                if stats.get("n_skills", 0):
+                    logger.info(
+                        "Seed sanitization for %s (game=%s): %s",
+                        key, sanitize_key, stats,
+                    )
                 bank.save()
                 logger.info(
                     "Seeded %s bank with %d skills from %s", key, n, candidate,
@@ -1568,6 +1690,11 @@ class SharedSkillBankManager:
 
         merged = SkillBankMVP(str(dest_file))
         n_loaded_total = 0
+        sanitize_totals = {
+            "step_checks_repaired": 0,
+            "success_predicates_dropped": 0,
+            "abort_predicates_dropped": 0,
+        }
         for game in self._games:
             candidate = seed_path / game / "skill_bank.jsonl"
             if not candidate.exists():
@@ -1586,6 +1713,20 @@ class SharedSkillBankManager:
                 # translator is what registers a wider eligibility.
                 if not skill.feasible_tasks:
                     skill.feasible_tasks = [game]
+                # Strip cross-domain predicates from the skill's
+                # protocol before merging — same rationale as
+                # ``PerGameSkillBankManager._seed_from_coldstart``;
+                # see ``_sanitize_seeded_bank_for_game`` docstring.
+                # Sanitize against the *source* game so a skill
+                # coming from ``per_task_banks/gymv_thunder_force_iii/``
+                # is filtered against the TF3 closed-set even though
+                # it's about to land in a shared bank that also
+                # serves other games (each skill's
+                # ``feasible_tasks`` keeps it routed correctly).
+                per_skill = _sanitize_skill_in_place(skill, game)
+                for k, v in per_skill.items():
+                    if k in sanitize_totals:
+                        sanitize_totals[k] += v
                 merged.add_or_update_skill(skill)
                 n_loaded_total += 1
 
@@ -1593,8 +1734,8 @@ class SharedSkillBankManager:
             merged.save()
             logger.info(
                 "SharedSkillBankManager seeded %d skills from %s "
-                "(across %d game subdirs)",
-                n_loaded_total, seed_dir, len(self._games),
+                "(across %d game subdirs); sanitization=%s",
+                n_loaded_total, seed_dir, len(self._games), sanitize_totals,
             )
             # Mirror PerGameSkillBankManager: materialise the lazy
             # SkillBankAgent now so step 0 sees a non-empty bank via
