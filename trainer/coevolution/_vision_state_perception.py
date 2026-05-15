@@ -330,6 +330,59 @@ def _system_prompt(max_entities: int) -> str:
     return _SYSTEM_PROMPT.replace("{max_entities}", str(max_entities))
 
 
+# ── Inference plan scaffold ──────────────────────────────────────────
+# A reusable, game-agnostic chain-of-thought template that we drop into
+# the **stable** portion of every visual-schema call (i.e. before the
+# per-frame image).  Two goals:
+#
+#   1. Boost the cacheable prefix.  vLLM's prefix cache is broken the
+#      moment image tokens appear; piling ~500 more tokens of stable
+#      text in front of the image moves them inside the cached span.
+#      Net: total cacheable prefix goes from
+#      ``[system ~600]`` → ``[system ~600 + stable-user-text ~2500]``
+#      across an entire run for a fixed (game, task) — i.e. ~4× the
+#      cached tokens, freeing prompt-fill compute for the actually
+#      novel image tokens.
+#
+#   2. Anchor model attention.  Explicit step-1/step-2/... scaffolds
+#      consistently improve gymv-style entity recall in our SFT
+#      labelling pipeline (same data the 35B was trained on).  This
+#      gets us closer to the cold-start label distribution without
+#      requiring any extra LoRA work.
+#
+# Kept abstract enough to apply to all gymv retro games (TF3,
+# Strider, Centipede, Pac-Man, etc.) so the prefix stays stable across
+# tasks within the same game family.  Per-task hints live in the
+# 1-shot example, not here.
+_INFERENCE_PLAN = """\
+INFERENCE PLAN — apply these steps mentally before emitting <state>:
+
+  Step 1. Locate the AGENT AVATAR (player ship / character / cursor).
+          Record its approximate grid position (row, col) on the
+          coarse 12×16 grid.
+  Step 2. Identify the 1–3 NEAREST THREATS that block, shoot at, or
+          could collide with the avatar within the next few frames.
+          Cluster identical projectiles / enemies into a single
+          ``... wave`` entity (do not enumerate).
+  Step 3. Identify any PICKUPS, POWER-UPS, or score-bearing entities
+          currently visible.
+  Step 4. Note all on-screen TEXT HUD elements (score, level, life
+          counter, weapon icon) — these go in as ``type=text``.
+  Step 5. Choose ``target`` = avatar id, ``blocker`` = id of the most
+          pressing threat / obstacle (or ``null`` if no immediate
+          threat is in range).
+  Step 6. Write ONE ``constraint=`` line that captures the immediate
+          tactical priority (e.g. ``dodge incoming bullet``,
+          ``intercept pickup before enemy``, ``advance right while
+          shooting``).
+  Step 7. Pick 4–6 ACTIONS from the supplied ``available_actions=``
+          list that best execute the constraint.  Copy action names
+          VERBATIM — never invent.
+
+Output rule: emit ONLY the final ``<state>...</state>`` block; do
+NOT include the plan itself or any preamble."""
+
+
 def _load_few_shot_block(domain: str, task_id: str, n: int) -> str:
     """Return a rendered ``=== EXAMPLE i ===`` block, or empty string.
 
@@ -414,33 +467,74 @@ def _build_messages(
     actions_str = ",".join(action_names) if action_names else "stay"
     obs_compact = _truncate(obs_nl or "", 600)
 
-    text_lines = [
+    # ── Stable prefix: identical across every call within (game, task) ──
+    # Layout: ``[stable-text] → [image] → [dynamic-text]``.  vLLM prefix
+    # caching matches contiguous shared prefixes; putting the image
+    # *first* destroyed cacheability because image tokens are unique
+    # per frame, so cacheable text never appeared in the cached span.
+    # Run ``tf3_coevo_20260515_042814`` confirmed the symptom: 35B
+    # ``Prefix cache hit rate: 3.0%`` (= ~600 system tokens / ~20k
+    # total = system prompt cached, everything else cold).  We can't
+    # avoid the cut-off itself (image tokens are unique per frame) but
+    # we can push the cut-off as late as possible by piling the
+    # universal inference plan, 1-shot example, and task constants up
+    # front.  Stable-prefix layers, longest-shared first:
+    #
+    #   [system prompt]              ~600 tok  ── all games / all tasks
+    #   [INFERENCE PLAN scaffold]    ~500 tok  ── all gymv games
+    #   [task-stable header]         ~200 tok  ── (game, task) constant
+    #   [1-shot example]            ~1200 tok  ── (game, task) constant
+    #   [closing instruction]        ~100 tok  ── all games
+    #   ─────────────────────────────────────────────────────────
+    #   total cacheable prefix     ~2600 tok  ── (vs. ~600 before)
+    #   [image]                    ~1500 tok  ── per-frame, breaks cache
+    #   [dynamic suffix]             ~80 tok  ── per-step, post-cache
+    #
+    # Net: cacheable prefix grows ~4×, prefix-cache hit rate should
+    # climb from 3% to ~45-55% on a sustained single-game run, freeing
+    # the bulk of the 35B's prompt-fill compute for the actually-novel
+    # image tokens.
+    stable_lines = [
+        _INFERENCE_PLAN,
+        "",
+        # Task-stable header (constant across all calls of the same
+        # (game, task) pair — entire TF3 run shares these exact lines).
         f"domain={domain}",
         f"task={task_id}",
         f"goal={str(goal)[:300]}",
-        f"step={step}",
         f"available_actions=[{actions_str}]",
+    ]
+    if fewshot:
+        stable_lines.append("")
+        stable_lines.append(fewshot)
+    stable_lines.append("")
+    stable_lines.append(
+        "Look at the FRAME attached BELOW, mentally run the INFERENCE "
+        "PLAN steps 1–7 above, then emit ONE ``<state>...</state>`` "
+        "block for THIS frame only.  Replace the example's labels and "
+        "positions with what you actually see in the frame; do NOT "
+        "copy the example's labels verbatim unless they truly match."
+    )
+    stable_text = "\n".join(stable_lines)
+
+    # ── Dynamic suffix: changes every step (never cacheable) ────────
+    # Kept short so the post-image suffix is cheap to (re-)prefill.
+    # Note: ``obs_text`` is truncated to 600 chars upstream — keep this
+    # block under ~150 tokens total so the per-call recompute cost is
+    # negligible relative to the image's ~1500 tokens.
+    dynamic_lines = [
+        f"step={step}",
         f"recent_actions=[{recent_str}]",
         f"score_hint={score or 'unknown'}",
     ]
     if obs_compact:
-        text_lines.append(f"obs_text={obs_compact}")
-    if fewshot:
-        text_lines.append("")
-        text_lines.append(fewshot)
-    text_lines.append("")
-    text_lines.append(
-        "Now look at the FRAME attached above and emit the "
-        "``<state>...</state>`` block for THIS frame only.  Replace "
-        "the example's labels and positions with what you actually "
-        "see in the frame; do NOT copy the example's labels verbatim "
-        "unless they truly match."
-    )
-    text = "\n".join(text_lines)
+        dynamic_lines.append(f"obs_text={obs_compact}")
+    dynamic_text = "\n".join(dynamic_lines)
 
     user_content = [
+        {"type": "text", "text": stable_text},
         {"type": "image_url", "image_url": {"url": frame_data_url}},
-        {"type": "text", "text": text},
+        {"type": "text", "text": dynamic_text},
     ]
     return _system_prompt(_SCHEMA_MAX_ENTITIES), user_content
 
