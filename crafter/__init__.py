@@ -1,66 +1,82 @@
-"""Skill Crafter — slow-timescale proposal layer.
+"""Soft-retirement shim — the real package now lives at ``legacy.crafter``.
 
-Spec: PLAN-SKILL-CRAFTER, PLAN-COMPONENTS-IMPLEMENTATION §4 (Phase C),
-``implementation_notes/legacy/crafter-harness-orchestrator-roles.md`` §"Two-tier
-trigger model".
+The original ``crafter`` package (slow-timescale typed proposal layer:
+Composer / Generalizer / Hypothesizer / Repairer / FailureDiagnoser +
+``SkillCrafterService``) has been moved to ``legacy/crafter/`` as part
+of the co-evolution audit. The post-update **skill enricher**
+(``trainer/coevolution/skill_enrichment.py``) is the supported skill-
+evolution path going forward; see that module's docstring for the
+"Old Crafter (failed) vs. New 35B Enricher" comparison.
 
-The crafter is the *creative* layer of the system: it proposes new skills
-(compositions, generalizations, novel hypotheses) and patches to existing
-ones (failure repairs, retirements). Every proposal is typed
-(`BankMutationProposal`) and is *only* a proposal — it lands in the
-draft store and must pass the unified gate to be promoted.
+This shim keeps every existing import path working without touching the
+~40 consumer sites (production code, tests, scripts, docs):
 
-Trigger surfaces (PLAN-SKILL-CRAFTER §6.4 + implementation note):
+    from crafter import SkillCrafterService            # OK
+    from crafter.service import SkillCrafterService    # OK
+    from crafter._llm_runtime import install_llm_hooks # OK
+    import crafter; crafter.Composer                    # OK
 
-  * :meth:`SkillCrafterService.reflect_on_episode` — per-episode reactive
-    pass, fired immediately after the Skill Bank Agent finishes one
-    episode. Runs Failure-Reflector (threshold=1), per-episode
-    Hypothesizer fall-through, and subsumption-retire detection over
-    the freshly-minted candidate skills the Bank Agent just produced.
-  * :meth:`SkillCrafterService.cycle` — per-batch reflective pass,
-    fired every K episodes by the orchestrator. Runs the same dispatch
-    with the configured ``hot_pattern_threshold`` (default 3).
-    Composer / Generalizer belong here (they require multi-episode
-    statistics).
+Internally each access is routed to the corresponding ``legacy.crafter``
+module via ``sys.modules`` aliasing — the import system sees one module
+instance per submodule, so ``isinstance`` checks, monkey-patches, and
+module-level singletons all behave identically to before the move.
 
-Architectural rules (mechanically enforced; see invariant tests):
-  * The crafter never imports `skill_bank.stores` directly.
-  * The crafter never holds a `SkillLifecycleManager` reference outside
-    `crafter.service.SkillCrafterService`.
-  * The crafter writes proposals via `ArtifactStore.put_proposal`
-    and ingests draft records via `SkillLifecycleManager.ingest_draft`
-    *only* through `crafter.service.SkillCrafterService`.
-  * Component proposers (Composer / Generalizer / Hypothesizer /
-    Repairer) never re-fetch the bank — when they need cross-store
-    visibility, the service builds a frozen :class:`BankView` and hands
-    it in as a parameter.
-
-Public surface:
-
-    from crafter import (
-        SkillCrafterService,
-        BankView,
-        Composer,
-        Generalizer,
-        Hypothesizer,
-        Repairer,
-        FailureDiagnoser,
-        FailureMemory,
-        FailurePattern,
-    )
-
-    # Per-episode bundle accepted by `SkillCrafterService.reflect_on_episode`:
-    from data_structure.extensions import EpisodeReflection
+To clear the deprecation warning, switch the import path to
+``legacy.crafter`` (or migrate the call site to the skill enricher).
 """
 
-from crafter._bank_view import BankView
-from crafter.composer import Composer
-from crafter.failure_diagnoser import FailureDiagnoser
-from crafter.failure_memory import FailureMemory, FailurePattern
-from crafter.generalizer import Generalizer
-from crafter.hypothesizer import Hypothesizer
-from crafter.repairer import Repairer
-from crafter.service import CrafterCycleResult, SkillCrafterService
+from __future__ import annotations
+
+import importlib as _importlib
+import sys as _sys
+import warnings as _warnings
+
+_warnings.warn(
+    "The top-level `crafter` package has been retired to `legacy.crafter`. "
+    "Imports still work via this shim, but new code should either import "
+    "from `legacy.crafter` directly or use the skill enricher at "
+    "`trainer.coevolution.skill_enrichment` (the supported skill-evolution "
+    "path going forward).",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+_legacy = _importlib.import_module("legacy.crafter")
+
+# ── Submodule aliasing ────────────────────────────────────────────────
+# Register every legacy.crafter submodule under the legacy `crafter.X`
+# path so `from crafter.service import Y` (etc.) resolves to the *same*
+# module object that `from legacy.crafter.service import Y` would.
+_SUBMODULES = (
+    "_bank_view",
+    "_llm_runtime",
+    "composer",
+    "failure_diagnoser",
+    "failure_memory",
+    "generalizer",
+    "hypothesizer",
+    "repairer",
+    "service",
+)
+
+for _name in _SUBMODULES:
+    _mod = _importlib.import_module(f"legacy.crafter.{_name}")
+    _sys.modules[f"{__name__}.{_name}"] = _mod
+    globals()[_name] = _mod
+
+# ── Public re-exports (mirror legacy/crafter/__init__.py) ─────────────
+from legacy.crafter import (  # noqa: E402  (must follow sys.modules setup)
+    BankView,
+    Composer,
+    CrafterCycleResult,
+    FailureDiagnoser,
+    FailureMemory,
+    FailurePattern,
+    Generalizer,
+    Hypothesizer,
+    Repairer,
+    SkillCrafterService,
+)
 
 __all__ = [
     "BankView",

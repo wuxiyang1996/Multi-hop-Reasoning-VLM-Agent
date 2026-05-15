@@ -39,7 +39,7 @@ from common.enums import EVIDENCE_ROLES, RecoveryStrategy
 from data_structure.extensions.bank_mutation_proposal import PatchProposal
 from data_structure.extensions.failure_trace import FailureDiagnosis
 from data_structure.extensions.skill_record import SkillContract, SkillRecord
-from crafter.failure_memory import FailurePattern
+from .failure_memory import FailurePattern
 
 
 _LLMRepairer = Callable[

@@ -17,7 +17,7 @@ from common.enums import DOMAINS, RecoveryStrategy
 from data_structure.extensions.bank_mutation_proposal import HypothesisProposal
 from data_structure.extensions.failure_trace import FailureDiagnosis
 from data_structure.extensions.skill_record import SkillContract
-from crafter.failure_memory import FailurePattern
+from .failure_memory import FailurePattern
 
 
 # Fix-B: widen the LLM-proposer surface so the Hypothesizer can pass

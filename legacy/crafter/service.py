@@ -91,13 +91,13 @@ from data_structure.extensions.bank_mutation_proposal import (
 from data_structure.extensions.episode_reflection import EpisodeReflection
 from data_structure.extensions.failure_trace import FailureDiagnosis, FailureTrace
 from data_structure.extensions.skill_record import SkillRecord
-from crafter._bank_view import BankView, take_bank_view
-from crafter.composer import Composer
-from crafter.failure_diagnoser import FailureDiagnoser
-from crafter.failure_memory import FailureMemory, FailurePattern
-from crafter.generalizer import Generalizer
-from crafter.hypothesizer import Hypothesizer
-from crafter.repairer import Repairer
+from ._bank_view import BankView, take_bank_view
+from .composer import Composer
+from .failure_diagnoser import FailureDiagnoser
+from .failure_memory import FailureMemory, FailurePattern
+from .generalizer import Generalizer
+from .hypothesizer import Hypothesizer
+from .repairer import Repairer
 from orchestrator.artifact_store import ArtifactStore
 from skill_bank.lifecycle import SkillLifecycleManager
 

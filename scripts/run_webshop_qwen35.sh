@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# run_webshop_qwen35.sh — Qwen3.5-9B & 35B-A3B on WebShop via local vLLM
+# run_webshop_qwen35.sh — Qwen3.5-9B & 35B-A3B on WebShop via OpenRouter
 #   with visual schema (screenshots sent to model).
+#   Parallel workers per model to speed up evaluation.
 # ==============================================================================
 set -euo pipefail
 
@@ -11,37 +12,35 @@ cd "$REPO_ROOT"
 
 CONDA_BASE="$(conda info --base 2>/dev/null || echo /workspace/miniconda3)"
 source "$CONDA_BASE/etc/profile.d/conda.sh"
+conda activate browsergym
 
 # ── Config ────────────────────────────────────────────────────────────────
 NUM_TASKS="${WEBSHOP_NUM_TASKS:-50}"
 MAX_STEPS="${WEBSHOP_MAX_STEPS:-20}"
 EPISODES="${WEBSHOP_EPISODES:-1}"
+PARALLEL="${WEBSHOP_PARALLEL:-5}"
 export WEBSHOP_BASE_URL="${WEBSHOP_BASE_URL:-http://127.0.0.1:3000}"
 export WEBSHOP_NUM_GOALS="$NUM_TASKS"
 
-# Prevent any OpenAI key from diverting calls
 unset OPENAI_API_KEY 2>/dev/null || true
 unset VLLM_BASE_URL 2>/dev/null || true
 
-# cu13 runtime required by vLLM's bundled flash-attn .so
-CU13_LIB="$CONDA_BASE/envs/game-ai-agent/lib/python3.11/site-packages/nvidia/cu13/lib"
-export LD_LIBRARY_PATH="${CU13_LIB}:${LD_LIBRARY_PATH:-}"
+if [ -z "${OPENROUTER_API_KEY:-}" ]; then
+    OPENROUTER_API_KEY=$(python3 -c "
+import sys; sys.path.insert(0, '$REPO_ROOT/..')
+try:
+    import keys; print(keys.openrouter_api_key)
+except Exception:
+    print('')
+" 2>/dev/null)
+fi
+export OPENROUTER_API_KEY
 
-# HuggingFace cache
-export HF_HOME="${HF_HOME:-/workspace/.cache/huggingface}"
-export HF_HUB_CACHE="${HF_HOME}/hub"
-
-# ── Model / vLLM config ──────────────────────────────────────────────────
-MODEL_9B="Qwen/Qwen3.5-9B"
-MODEL_35B="Qwen/Qwen3.5-35B-A3B"
-PORT_9B=8001
-PORT_35B=8002
-
+MODEL_9B="qwen/qwen3.5-9b"
+MODEL_35B="qwen/qwen3.5-35b-a3b"
+OR_BASE="https://openrouter.ai/api/v1"
 OUT_9B="Cold-start-out-browsergym/webshop_${NUM_TASKS}task_qwen35_9b"
 OUT_35B="Cold-start-out-browsergym/webshop_${NUM_TASKS}task_qwen35_35b"
-
-TASKS=""
-for i in $(seq 0 $((NUM_TASKS - 1))); do TASKS="$TASKS browsergym/webshop.$i"; done
 
 RUN_9B=true; RUN_35B=true
 case "${1:-all}" in 9b) RUN_35B=false;; 35b) RUN_9B=false;; esac
@@ -51,109 +50,94 @@ echo "Checking WebShop server at $WEBSHOP_BASE_URL ..."
 curl -sf --max-time 5 "${WEBSHOP_BASE_URL}/__bridge/session/fixed_0" >/dev/null || {
     echo "[ERROR] WebShop server not running."; exit 1; }
 echo "  OK"
+[ -z "$OPENROUTER_API_KEY" ] && { echo "[ERROR] OPENROUTER_API_KEY not set"; exit 1; }
+echo "  Key: ${OPENROUTER_API_KEY:0:12}..."
 
-# ── vLLM launcher ────────────────────────────────────────────────────────
-start_vllm() {
-    local model="$1" port="$2" gpus="$3" tp="$4" tag="$5"
-    local log="/tmp/vllm_${tag}.log"
-    echo "[vLLM] Starting $model on GPU $gpus (TP=$tp) → port $port"
-    echo "  Log: $log"
+# ── Split tasks into chunks for parallel workers ─────────────────────────
+all_tasks=()
+for i in $(seq 0 $((NUM_TASKS - 1))); do all_tasks+=("browsergym/webshop.$i"); done
 
-    local extra_args=()
-    if [[ "$tp" -ge 2 ]]; then
-        extra_args+=(--disable-custom-all-reduce)
-    fi
-
-    conda activate game-ai-agent
-    CUDA_VISIBLE_DEVICES="$gpus" nohup python -m vllm.entrypoints.openai.api_server \
-        --model "$model" \
-        --port "$port" \
-        --tensor-parallel-size "$tp" \
-        --gpu-memory-utilization 0.92 \
-        --max-model-len 16384 \
-        --max-num-seqs 4 \
-        --trust-remote-code \
-        --tool-call-parser hermes \
-        --enable-auto-tool-choice \
-        "${extra_args[@]}" \
-        > "$log" 2>&1 &
-    disown
-    echo "  PID=$!"
-    conda activate browsergym
-}
-
-wait_vllm() {
-    local port="$1" tag="$2" timeout="${3:-300}"
-    echo "[vLLM] Waiting for $tag on port $port (timeout ${timeout}s) ..."
-    local start=$SECONDS
-    while ! curl -sf --max-time 2 "http://localhost:${port}/v1/models" >/dev/null 2>&1; do
-        if (( SECONDS - start > timeout )); then
-            echo "[ERROR] vLLM $tag did not start within ${timeout}s"
-            echo "  Check: tail -50 /tmp/vllm_${tag}.log"
-            exit 1
-        fi
-        sleep 5
+split_tasks() {
+    local n_workers="$1"
+    local n_total="${#all_tasks[@]}"
+    local chunk_size=$(( (n_total + n_workers - 1) / n_workers ))
+    local w=0
+    for (( start=0; start<n_total; start+=chunk_size )); do
+        local end=$((start + chunk_size))
+        [[ $end -gt $n_total ]] && end=$n_total
+        WORKER_TASKS[$w]="${all_tasks[@]:$start:$((end - start))}"
+        w=$((w + 1))
     done
-    echo "  $tag ready ($(( SECONDS - start ))s)"
 }
 
-# ── Eval runner ───────────────────────────────────────────────────────────
-run_eval() {
-    local model="$1" port="$2" out="$3" tag="$4"
-    local log="/tmp/webshop_${tag}.log"
-    local base="http://localhost:${port}/v1"
+declare -a WORKER_TASKS
+split_tasks "$PARALLEL"
+N_WORKERS=${#WORKER_TASKS[@]}
 
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  Launching eval: $model  →  $out"
-    echo "  Base URL: $base"
-    echo "  Log: $log"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+# ── Worker launcher ──────────────────────────────────────────────────────
+run_worker() {
+    local model="$1" out_base="$2" tag="$3" worker_id="$4" tasks="$5"
+    local out="${out_base}"
+    local log="/tmp/webshop_${tag}_w${worker_id}.log"
 
-    conda activate browsergym
+    echo "  [W${worker_id}] tasks: $tasks"
+    echo "  [W${worker_id}] log: $log"
+
     nohup python cold_start/generate_cold_start_actor_browsergym.py \
-        --tasks $TASKS \
+        --tasks $tasks \
         --episodes "$EPISODES" \
         --max_steps "$MAX_STEPS" \
         --model "$model" \
-        --api_key "dummy" \
-        --base_url "$base" \
+        --api_key "$OPENROUTER_API_KEY" \
+        --base_url "$OR_BASE" \
         --output_dir "$out" \
         --save_frames \
+        --resume \
         -v \
         > "$log" 2>&1 &
     disown
-    echo "  PID=$!"
+    echo "  [W${worker_id}] PID=$!"
+}
+
+launch_model() {
+    local model="$1" out="$2" tag="$3"
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  Launching $N_WORKERS parallel workers for: $model"
+    echo "  Output dir: $out"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    mkdir -p "$out"
+    for (( w=0; w<N_WORKERS; w++ )); do
+        run_worker "$model" "$out" "$tag" "$w" "${WORKER_TASKS[$w]}"
+    done
 }
 
 # ── Banner ────────────────────────────────────────────────────────────────
 echo ""
 echo "================================================================"
-echo "  WebShop Benchmark — Qwen3.5 (local vLLM, vision ON)"
+echo "  WebShop Benchmark — Qwen3.5 (OpenRouter, vision ON)"
+echo "  Parallel workers per model: $N_WORKERS"
 echo "================================================================"
 echo "  Tasks:       $NUM_TASKS"
 echo "  Max steps:   $MAX_STEPS"
-[[ "$RUN_9B"  == true ]] && echo "  Model 1:     $MODEL_9B (GPU 1, port $PORT_9B)"
-[[ "$RUN_35B" == true ]] && echo "  Model 2:     $MODEL_35B (GPU 2,3, port $PORT_35B)"
+[[ "$RUN_9B"  == true ]] && echo "  Model 1:     $MODEL_9B → $OUT_9B"
+[[ "$RUN_35B" == true ]] && echo "  Model 2:     $MODEL_35B → $OUT_35B"
 echo "================================================================"
 echo ""
 
-# ── Launch vLLM servers ──────────────────────────────────────────────────
-[[ "$RUN_9B"  == true ]] && start_vllm "$MODEL_9B"  "$PORT_9B"  "1"   1 "qwen35_9b"
-[[ "$RUN_35B" == true ]] && start_vllm "$MODEL_35B" "$PORT_35B" "2,3" 2 "qwen35_35b"
-[[ "$RUN_9B"  == true ]] && wait_vllm "$PORT_9B"  "qwen35_9b"  300
-[[ "$RUN_35B" == true ]] && wait_vllm "$PORT_35B" "qwen35_35b" 600
-
-# ── Launch evals ─────────────────────────────────────────────────────────
-[[ "$RUN_9B"  == true ]] && { rm -rf "$OUT_9B" 2>/dev/null; run_eval "$MODEL_9B"  "$PORT_9B"  "$OUT_9B"  "qwen35_9b"; }
-[[ "$RUN_35B" == true ]] && { rm -rf "$OUT_35B" 2>/dev/null; run_eval "$MODEL_35B" "$PORT_35B" "$OUT_35B" "qwen35_35b"; }
+# ── Launch ────────────────────────────────────────────────────────────────
+[[ "$RUN_9B"  == true ]] && launch_model "$MODEL_9B"  "$OUT_9B"  "qwen35_9b"
+[[ "$RUN_35B" == true ]] && launch_model "$MODEL_35B" "$OUT_35B" "qwen35_35b"
 
 echo ""
-echo "Runs launched. Monitor:"
-[[ "$RUN_9B"  == true ]] && echo "  tail -f /tmp/webshop_qwen35_9b.log"
-[[ "$RUN_35B" == true ]] && echo "  tail -f /tmp/webshop_qwen35_35b.log"
+echo "All workers launched. Monitor:"
+for (( w=0; w<N_WORKERS; w++ )); do
+    [[ "$RUN_9B"  == true ]] && echo "  tail -f /tmp/webshop_qwen35_9b_w${w}.log"
+done
+for (( w=0; w<N_WORKERS; w++ )); do
+    [[ "$RUN_35B" == true ]] && echo "  tail -f /tmp/webshop_qwen35_35b_w${w}.log"
+done
 echo ""
-echo "vLLM logs:"
-[[ "$RUN_9B"  == true ]] && echo "  tail -f /tmp/vllm_qwen35_9b.log"
-[[ "$RUN_35B" == true ]] && echo "  tail -f /tmp/vllm_qwen35_35b.log"
-echo ""
-echo "When done: python -m webshop_wrapper._make_report"
+echo "Quick status:  ps aux | grep generate_cold_start"
+echo "When done:     python -m webshop_wrapper._make_report"

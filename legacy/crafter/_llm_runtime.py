@@ -69,7 +69,7 @@ from data_structure.extensions.bank_mutation_proposal import (
 )
 from data_structure.extensions.failure_trace import FailureDiagnosis, FailureTrace
 from data_structure.extensions.skill_record import SkillContract, SkillRecord
-from crafter.failure_memory import FailurePattern
+from .failure_memory import FailurePattern
 
 logger = logging.getLogger("crafter.llm_runtime")
 
