@@ -25,6 +25,12 @@ os.environ.setdefault("HF_HOME", "/workspace/huggingface")
 os.environ.setdefault("HF_HUB_CACHE", os.path.join(os.environ["HF_HOME"], "hub"))
 
 from trainer.coevolution.vllm_client import AsyncVLLMClient
+from trainer.coevolution.skill_reward_shaping import (
+    SkillChainTracker,
+    PositionCollapseTracker,
+    exploration_bonus,
+    premature_switch_penalty,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1097,6 +1103,8 @@ async def run_episode_async(
     recent_rewards: List[float] = []
     tag_history: List[str] = []
     skill_tracker = _SkillTracker(domain=DOMAIN_GAME, game_name=game)
+    chain_tracker = SkillChainTracker()
+    collapse_tracker = PositionCollapseTracker()
     last_guidance: Optional[Dict[str, Any]] = None
     last_candidates: List[Dict[str, Any]] = []
     last_chosen_idx = 0
@@ -1634,6 +1642,7 @@ async def run_episode_async(
         done = terminated or truncated
         raw_env_reward = next_info.get("raw_env_reward", float(reward))
         total_reward += reward
+        chain_tracker.observe_step(total_reward)
         next_action_names = next_info.get("action_names", action_names)
         next_structured_state = next_info.get("structured_state")
         next_info["state_markup"] = await _markup_for(
@@ -1832,10 +1841,39 @@ async def run_episode_async(
             if harness_override:
                 sk_reward = sk_reward - 0.05
 
+            # Exploration bonus: break SFT positional bias toward SKILL: 1
+            _expl_bonus = exploration_bonus(
+                chosen_idx=last_chosen_idx,
+                env_reward=float(reward),
+                n_candidates=len(last_candidates),
+            )
+            sk_reward += _expl_bonus
+
+            # Anti-collapse: penalise consecutive same-position picks
+            collapse_tracker.record(last_chosen_idx)
+            _collapse_pen = collapse_tracker.penalty()
+            sk_reward += _collapse_pen
+
+            # Premature switch penalty: don't abandon a skill too early
+            if skill_tracker._just_switched and skill_tracker._prev_steps_on_skill > 0:
+                _proto_steps = skill_tracker.total_protocol_steps
+                _proto_idx = skill_tracker._protocol_step_idx
+                _completion_ratio = _proto_idx / max(_proto_steps, 1) if _proto_steps > 0 else 1.0
+                _premature_pen = premature_switch_penalty(
+                    protocol_completion_ratio=_completion_ratio,
+                    reselect_reason=skill_tracker._reselect_reason,
+                )
+                sk_reward += _premature_pen
+            else:
+                _premature_pen = 0.0
+
             _sk_meta = {
                 "chosen_idx": last_chosen_idx,
                 "lora_chosen_idx": lora_chosen_idx,
                 "harness_override": harness_override,
+                "exploration_bonus": round(_expl_bonus, 4),
+                "collapse_penalty": round(_collapse_pen, 4),
+                "premature_switch_penalty": round(_premature_pen, 4),
                 "skill_candidates": [c.get("skill_id") for c in last_candidates],
                 "chosen_skill_id": (
                     last_candidates[last_chosen_idx].get("skill_id")
@@ -1860,6 +1898,11 @@ async def run_episode_async(
                 prompt=skill_select_prompt, completion=sk_completion, reward=sk_reward,
                 metadata=_sk_meta,
             ))
+            chain_tracker.register(
+                grpo_idx=len(grpo_records) - 1,
+                step=step_count,
+                current_score=total_reward,
+            )
             # T2.4 single-sink mirror — see the action_taking branch.
             if reward_logger is not None:
                 try:
@@ -2010,6 +2053,8 @@ async def run_episode_async(
             total_reward, penalty, new_total,
         )
         total_reward = new_total
+
+    chain_tracker.finalize(grpo_records, current_score=total_reward)
 
     wall_time = time.monotonic() - t0
     return EpisodeResult(

@@ -565,6 +565,17 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         except Exception:                                # noqa: BLE001
             _rag_stats = {}
 
+        # ── Reward shaping telemetry ─────────────────────────────────
+        try:
+            from trainer.coevolution.skill_reward_shaping import (
+                get_shaping_stats as _get_shaping_stats,
+                reset_shaping_stats as _reset_shaping_stats,
+            )
+            _shaping_stats = _get_shaping_stats()
+            _reset_shaping_stats()
+        except Exception:                                # noqa: BLE001
+            _shaping_stats = {}
+
         step_summary = {
             "step": _step,
             "mode": _mode,
@@ -585,6 +596,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             "skill_selection_parse_paths": _ss_parse,
             "predicate_check_stats": _pred_stats,
             "rag_candidate_paths": _rag_stats,
+            "reward_shaping_stats": _shaping_stats,
         }
 
         # Per-step warning when RAG falls back beyond the semantic
