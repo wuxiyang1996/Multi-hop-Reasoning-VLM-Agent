@@ -646,6 +646,7 @@ class AsyncSkillBankPipeline:
                 ).lower() in ("1", "true", "yes")
                 return enrich_bank_after_update(
                     agent, episodes=self._pending_episodes,
+                    game_name=self.game_name,
                     llm_enrichment_enabled=llm_enrich,
                     llm_enrichment_model=os.environ.get(
                         "LLM_ENRICHMENT_MODEL", "",
@@ -1477,6 +1478,29 @@ class PerGameSkillBankManager:
         except Exception as exc:
             logger.warning("Failed to enable GRPO wrappers: %s", exc)
 
+    def ensure_step_checks_all(self) -> int:
+        """Run ``ensure_step_checks`` on every per-game bank.
+
+        Call before each rollout so newly discovered skills have
+        step_checks populated, enabling ``completion_ratio`` and
+        ``r_progress`` to work from their first episode.
+        """
+        from trainer.coevolution.skill_enrichment import ensure_step_checks
+
+        total = 0
+        for key, pipe in self._pipelines.items():
+            agent = pipe.get_agent()
+            if agent is None:
+                continue
+            n = ensure_step_checks(agent, game_name=key)
+            if n:
+                try:
+                    agent.save()
+                except Exception:
+                    pass
+            total += n
+        return total
+
     def _key_for_result(self, result: EpisodeResult) -> str:
         """Resolve the bank key for an ``EpisodeResult``."""
         if self._unified_role_rollouts and (result.role or result.side):
@@ -1912,6 +1936,21 @@ class SharedSkillBankManager:
             self._enable_grpo_wrappers()
         except Exception as exc:
             logger.warning("Failed to enable GRPO wrappers (shared): %s", exc)
+
+    def ensure_step_checks_all(self) -> int:
+        """Run ``ensure_step_checks`` on the shared bank."""
+        from trainer.coevolution.skill_enrichment import ensure_step_checks
+
+        agent = self._shared_pipeline.get_agent()
+        if agent is None:
+            return 0
+        n = ensure_step_checks(agent, game_name=self._shared_pipeline.game_name)
+        if n:
+            try:
+                agent.save()
+            except Exception:
+                pass
+        return n
 
     async def process_batch_async(
         self, results: List[EpisodeResult],

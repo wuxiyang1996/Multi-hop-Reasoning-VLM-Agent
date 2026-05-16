@@ -1233,6 +1233,21 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                 )
                 harness_hooks = {}
 
+        # ── Pre-rollout: ensure every skill has step_checks ──────────
+        # New skills from the enricher may lack step_checks, which means
+        # completion_ratio (and thus r_progress in the reward) stays 0.
+        # Running ensure_step_checks here guarantees every skill in the
+        # bank has observable predicates before it can be selected.
+        try:
+            n_checks_filled = sb_manager.ensure_step_checks_all()
+            if n_checks_filled:
+                logger.info(
+                    "Pre-rollout: generated step_checks for %d skill(s)",
+                    n_checks_filled,
+                )
+        except Exception as _sc_exc:
+            logger.warning("Pre-rollout ensure_step_checks failed: %s", _sc_exc)
+
         # ── Phase A + B: Rollout collection with cross-system overlap ──
         phase_ab_t0 = time.monotonic()
 

@@ -314,6 +314,50 @@ def enrich_skill_protocols(
     return updated
 
 
+def ensure_step_checks(agent: Any, game_name: str = "") -> int:
+    """Generate step_checks for skills that lack them.
+
+    Uses ``generate_step_checks_from_effects`` to derive observable
+    predicates from the protocol ``steps`` text.  Without step_checks
+    the ``_infer_required_effects`` chain may still succeed via this
+    same fallback, but writing the checks into the persisted protocol
+    means the skill bank file already contains them and downstream
+    reward computation (``completion_ratio`` → ``r_progress``) works
+    on the very first episode after a new skill is discovered.
+
+    Safe to call repeatedly — skips skills that already have non-empty
+    step_checks.
+    """
+    from decision_agents.protocol_utils import generate_step_checks_from_effects
+
+    bank = agent.bank
+    updated = 0
+
+    for sid in list(bank.skill_ids):
+        skill = bank.get_skill(sid)
+        if skill is None or getattr(skill, "retired", False):
+            continue
+        proto = skill.protocol
+        if not proto or not proto.steps:
+            continue
+        existing = proto.step_checks or []
+        if existing and any(c.strip() for c in existing):
+            continue
+
+        checks = generate_step_checks_from_effects(proto.steps, game_name=game_name)
+        if not checks or not any(c.strip() for c in checks):
+            continue
+
+        proto.step_checks = checks
+        skill.protocol = proto
+        bank.add_or_update_skill(skill)
+        updated += 1
+
+    if updated:
+        logger.info("ensure_step_checks: generated step_checks for %d skill(s)", updated)
+    return updated
+
+
 def enrich_execution_hints(agent: Any) -> int:
     """Generate ExecutionHint for skills that lack one.
 
@@ -1219,6 +1263,7 @@ def enrich_bank_after_update(
     agent: Any,
     episodes: Optional[list] = None,
     *,
+    game_name: str = "",
     llm_enrichment_enabled: bool = False,
     llm_enrichment_model: str = "",
     llm_enrichment_step_grounding: bool = True,
@@ -1240,6 +1285,7 @@ def enrich_bank_after_update(
 
     durations = compute_segment_durations(agent)
     results["protocols"] = enrich_skill_protocols(agent, segment_durations=durations)
+    results["step_checks"] = ensure_step_checks(agent, game_name=game_name)
     results["execution_hints"] = enrich_execution_hints(agent)
     results["durations_updated"] = update_expected_durations(agent, durations)
 
