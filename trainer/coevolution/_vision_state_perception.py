@@ -567,26 +567,34 @@ def _ask_judge_blocking(
     candidate_urls = _candidate_vllm_urls(model)
     last_exc: Optional[Exception] = None
     for url in candidate_urls:
+        _is_external = "openrouter.ai" in url or "api.openai.com" in url
+        _api_key = (
+            os.environ.get("OPENROUTER_API_KEY", "")
+            or getattr(__import__("API_func"), "open_router_api_key", "")
+        ) if _is_external else VLLM_API_KEY
+        _model_id = model.lower() if _is_external else model
         try:
             client = openai.OpenAI(
                 base_url=url,
-                api_key=VLLM_API_KEY,
+                api_key=_api_key,
                 max_retries=int(
                     os.environ.get("VLLM_OPENAI_MAX_RETRIES", "1")
                 ),
             )
-            response = client.chat.completions.create(
-                model=model,
+            kwargs: Dict[str, Any] = dict(
+                model=_model_id,
                 messages=[
                     {"role": "system", "content": system_msg},
                     {"role": "user", "content": user_content},
                 ],
                 temperature=temperature,
                 max_tokens=max_tokens,
-                extra_body={
-                    "chat_template_kwargs": {"enable_thinking": False},
-                },
             )
+            if not _is_external:
+                kwargs["extra_body"] = {
+                    "chat_template_kwargs": {"enable_thinking": False},
+                }
+            response = client.chat.completions.create(**kwargs)
             raw = response.choices[0].message.content or ""
             return _strip_think_tags(raw)
         except Exception as exc:  # noqa: BLE001
