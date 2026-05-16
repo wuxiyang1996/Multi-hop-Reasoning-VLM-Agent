@@ -1857,7 +1857,7 @@ async def run_episode_async(
             # Premature switch penalty: don't abandon a skill too early
             if skill_tracker._just_switched and skill_tracker._prev_steps_on_skill > 0:
                 _proto_steps = skill_tracker.total_protocol_steps
-                _proto_idx = skill_tracker._protocol_step_idx
+                _proto_idx = skill_tracker.protocol_step_idx
                 _completion_ratio = _proto_idx / max(_proto_steps, 1) if _proto_steps > 0 else 1.0
                 _premature_pen = premature_switch_penalty(
                     protocol_completion_ratio=_completion_ratio,
