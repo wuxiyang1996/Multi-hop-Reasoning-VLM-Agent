@@ -233,9 +233,9 @@ def parse_args() -> argparse.Namespace:
              "method=mtp. Default: empty (no external drafter).",
     )
     parser.add_argument(
-        "--num-speculative-tokens", type=int, default=1,
+        "--num-speculative-tokens", type=int, default=3,
         help="Number of tokens the drafter proposes per step. "
-             "Default: 1 (good for MTP); 4–5 for draft_model.",
+             "Default: 3 (good for MTP); 4–5 for draft_model.",
     )
 
     # External opponent (Avalon / Diplomacy)
