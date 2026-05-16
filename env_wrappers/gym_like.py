@@ -30,7 +30,11 @@ _SCRIPT_DIR = Path(__file__).resolve().parent
 _CODEBASE_ROOT = _SCRIPT_DIR.parent
 _GAMINGAGENT_ROOT = _CODEBASE_ROOT.parent / "GamingAgent"
 
-for _p in [str(_CODEBASE_ROOT), str(_GAMINGAGENT_ROOT)]:
+for _p in [
+    str(_CODEBASE_ROOT),
+    str(_GAMINGAGENT_ROOT),
+    str(_GAMINGAGENT_ROOT / "gamingagent" / "envs" / "custom_03_candy_crush"),
+]:
     if Path(_p).exists() and _p not in sys.path:
         sys.path.insert(0, _p)
 

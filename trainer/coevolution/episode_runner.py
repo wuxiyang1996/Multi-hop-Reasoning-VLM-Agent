@@ -28,6 +28,7 @@ from trainer.coevolution.vllm_client import AsyncVLLMClient
 from trainer.coevolution.skill_reward_shaping import (
     SkillChainTracker,
     PositionCollapseTracker,
+    SkillDiversityTracker,
     exploration_bonus,
     premature_switch_penalty,
 )
@@ -1105,14 +1106,26 @@ async def run_episode_async(
     skill_tracker = _SkillTracker(domain=DOMAIN_GAME, game_name=game)
     chain_tracker = SkillChainTracker()
     collapse_tracker = PositionCollapseTracker()
+    diversity_tracker = SkillDiversityTracker()
     last_guidance: Optional[Dict[str, Any]] = None
     last_candidates: List[Dict[str, Any]] = []
     last_chosen_idx = 0
     last_skill_reasoning: Optional[str] = None
     last_sk_lora_text: Optional[str] = None
+    _pending_markup: Optional[asyncio.Task] = None
 
     while step_count < max_steps:
         step_actions = action_names if action_names else ["stay"]
+
+        # Await pipelined 35B vision markup from the previous step.
+        # Overlaps 35B generation with reward logging, GRPO record
+        # assembly, and the loop-transition overhead of the prior step.
+        if _pending_markup is not None:
+            try:
+                current_info["state_markup"] = await _pending_markup
+            except Exception:
+                pass
+            _pending_markup = None
 
         # ── 1. summary_state (deterministic, 0 LLM calls) ────────
         summary_state = _generate_summary_state(
@@ -1645,10 +1658,15 @@ async def run_episode_async(
         chain_tracker.observe_step(total_reward)
         next_action_names = next_info.get("action_names", action_names)
         next_structured_state = next_info.get("structured_state")
-        next_info["state_markup"] = await _markup_for(
+        # Pipeline the 35B vision markup: fire async now, await at the
+        # start of the NEXT iteration.  This overlaps 35B generation
+        # with all the reward logging, GRPO record assembly, experience
+        # dict construction, and loop-transition work below — saving
+        # ~3-5s per wave (8 episodes × 69 steps).
+        _pending_markup = asyncio.ensure_future(_markup_for(
             obs_nl_v=next_obs_nl, info_v=next_info,
             step_v=step_count + 1,
-        )
+        ))
 
         recent_actions.append(str(action))
         recent_rewards.append(float(reward))
@@ -1805,13 +1823,23 @@ async def run_episode_async(
                 # CONTINUE reward: was staying on the current skill
                 # justified?  Uses deterministic effect progress and
                 # env reward — not LoRA-reported effects.
+                #
+                # May-2026 fix: the old formula clamped reward to [0,1]
+                # which destroyed all signal for games like Candy Crush
+                # where per-step reward is always positive (0.85–70+).
+                # Every skill got ~1.0 → GRPO advantage ≈ 0 → no
+                # learning.  Use log1p scaling instead: preserves
+                # ordering, compresses heavy tails, and gives zero
+                # reward a clearly distinct value from positive reward.
+                import math as _math_mod
                 _has_progress = float(
                     skill_tracker._new_effects_this_step or reward > 0
                 )
+                _log_r = _math_mod.log1p(max(0.0, float(reward)))
                 sk_reward = (
                     0.2
-                    + 0.5 * _has_progress
-                    + 0.3 * min(1.0, max(0.0, float(reward)))
+                    + 0.3 * _has_progress
+                    + 0.5 * min(3.0, _log_r)
                 )
             # Penalty for unparseable LoRA output so the adapter learns
             # to emit the SFT-canonical ``EFFECTS/DECISION/SKILL:N``
@@ -1824,9 +1852,9 @@ async def run_episode_async(
             # consistent so the adapter feels the pull toward
             # parseable output.
             if sk_parse_path == "fallback_zero" or sk_parse_path == "empty_reply":
-                sk_reward = sk_reward - 0.10   # 🚨 totally unparseable
+                sk_reward = sk_reward * 0.5 - 0.15
             elif sk_parse_path in ("tail_number", "name_substring"):
-                sk_reward = sk_reward - 0.02   # ⚠️ heuristic recovery
+                sk_reward = sk_reward * 0.8 - 0.05
 
             # Harness-override penalty: when the LoRA's pick is
             # vetoed by ``_harness_validate`` and we fall through to
@@ -1854,6 +1882,14 @@ async def run_episode_async(
             _collapse_pen = collapse_tracker.penalty()
             sk_reward += _collapse_pen
 
+            # Skill-ID diversity: penalise monopoly by a single skill
+            _chosen_sid_for_div = (
+                last_candidates[last_chosen_idx].get("skill_id", "")
+                if last_chosen_idx < len(last_candidates) else ""
+            )
+            _diversity_bonus = diversity_tracker.record_and_shape(_chosen_sid_for_div)
+            sk_reward += _diversity_bonus
+
             # Premature switch penalty: don't abandon a skill too early
             if skill_tracker._just_switched and skill_tracker._prev_steps_on_skill > 0:
                 _proto_steps = skill_tracker.total_protocol_steps
@@ -1873,6 +1909,7 @@ async def run_episode_async(
                 "harness_override": harness_override,
                 "exploration_bonus": round(_expl_bonus, 4),
                 "collapse_penalty": round(_collapse_pen, 4),
+                "diversity_bonus": round(_diversity_bonus, 4),
                 "premature_switch_penalty": round(_premature_pen, 4),
                 "skill_candidates": [c.get("skill_id") for c in last_candidates],
                 "chosen_skill_id": (
@@ -2009,6 +2046,14 @@ async def run_episode_async(
                 and sum(recent_rewards[-stuck_window:]) <= 0):
             logger.debug("Episode %s stuck at step %d, terminating early", episode_id, step_count)
             break
+
+    # Cancel any in-flight 35B vision task from the pipelined markup.
+    if _pending_markup is not None and not _pending_markup.done():
+        _pending_markup.cancel()
+        try:
+            await _pending_markup
+        except (asyncio.CancelledError, Exception):
+            pass
 
     if step_sync is not None:
         step_sync.depart()

@@ -185,11 +185,11 @@ EPISODES_PER_GAME_MULTIROLE: Dict[str, int] = {}
 # omitted (they don't suffer the bimodal pathology even when it
 # resurfaces).
 HIGH_VARIANCE_GYMV_EPISODES: Dict[str, int] = {
-    "gymv_thunder_force_iii":  8,
-    "gymv_altered_beast":      8,
-    "gymv_dynamite_headdy":    8,
-    "gymv_space_harrier_ii":   8,
-    "gymv_streets_of_rage_2":  8,
+    "gymv_thunder_force_iii":  12,
+    "gymv_altered_beast":      12,
+    "gymv_dynamite_headdy":    12,
+    "gymv_space_harrier_ii":   12,
+    "gymv_streets_of_rage_2":  12,
     "gymv_strider":            8,
     "gymv_airstriker":         8,
     # gymv_columns is dense-scoring (every match scores) so it never
@@ -278,7 +278,7 @@ class CoEvolutionConfig:
 
     games: List[str] = field(default_factory=lambda: list(SKILL_BANK_GAMES))
     eval_games: List[str] = field(default_factory=lambda: list(EVAL_ONLY_GAMES))
-    episodes_per_game: int = 4
+    episodes_per_game: int = 8
     eval_episodes_per_game: int = 3
 
     # ── Unified multi-role rollout mode ──────────────────────────
@@ -1212,7 +1212,8 @@ class CoEvolutionConfig:
             if recent_reward_std is None or recent_reward_std <= 0:
                 return base_kl
             mult = min(4.0, max(1.0, float(recent_reward_std) / 200.0))
-            return base_kl * mult
+            boosted = base_kl * mult
+            return min(boosted, 0.20)
 
         if self.start_mode != "from_scratch":
             total = max(1, self.total_steps)

@@ -813,7 +813,9 @@ def skill_selection_reward(
         0.05 * confidence — RAG confidence as a soft prior
         0.15 * progress   — protocol step completion ratio
     """
-    r_env = min(1.0, max(0.0, reward_on_skill / max(steps_on_skill, 1)))
+    import math as _math
+    _avg_reward = reward_on_skill / max(steps_on_skill, 1)
+    r_env = min(1.0, _math.log1p(max(0.0, _avg_reward)) / 3.0)
 
     if steps_on_skill <= 0:
         r_efficiency = 0.0

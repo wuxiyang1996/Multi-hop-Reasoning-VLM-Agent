@@ -57,7 +57,7 @@ class VLLMServerManager:
         enforce_eager: bool = False,
         log_dir: Optional[str] = None,
         speculative_model: Optional[str] = None,
-        num_speculative_tokens: int = 1,
+        num_speculative_tokens: int = 3,
         speculative_method: str = "mtp",
         language_model_only: bool = True,
         reasoning_parser: Optional[str] = "qwen3",

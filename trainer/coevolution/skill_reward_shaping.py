@@ -38,6 +38,11 @@ ANTI_COLLAPSE_THRESHOLD: int = 3
 ANTI_COLLAPSE_PENALTY_PER_EXTRA: float = 0.04
 ANTI_COLLAPSE_MAX_PENALTY: float = 0.15
 
+SKILL_DIVERSITY_WINDOW: int = 12
+SKILL_DIVERSITY_THRESHOLD: float = 0.70
+SKILL_DIVERSITY_PENALTY: float = 0.12
+SKILL_DIVERSITY_BONUS: float = 0.06
+
 # ── Telemetry ──────────────────────────────────────────────────────────
 
 _SHAPING_STATS: Dict[str, int] = {
@@ -240,3 +245,49 @@ def premature_switch_penalty(
     if protocol_completion_ratio >= min_completion:
         return 0.0
     return -penalty
+
+
+# ── Skill-ID Diversity Bonus / Penalty ────────────────────────────────
+
+class SkillDiversityTracker:
+    """Penalise monopoly of a single skill_id; reward trying under-used skills.
+
+    Solves the Candy Crush collapse where one discovered skill captured
+    84% of all action steps.  Tracks a sliding window of recent skill_id
+    selections and applies:
+      - penalty when one skill exceeds ``threshold`` share of the window
+      - bonus when a skill with < 20% historical share is selected
+    """
+
+    def __init__(
+        self,
+        window: int = SKILL_DIVERSITY_WINDOW,
+        threshold: float = SKILL_DIVERSITY_THRESHOLD,
+    ):
+        self._window = window
+        self._threshold = threshold
+        self._recent: Deque[str] = deque(maxlen=window)
+
+    def record_and_shape(self, skill_id: str) -> float:
+        """Record *skill_id* and return a diversity shaping term."""
+        if not skill_id:
+            self._recent.append("")
+            return 0.0
+
+        from collections import Counter
+        counts = Counter(self._recent)
+        total = len(self._recent)
+
+        self._recent.append(skill_id)
+
+        if total < 4:
+            return 0.0
+
+        share = counts.get(skill_id, 0) / total
+        if share >= self._threshold:
+            _SHAPING_STATS["anti_collapse"] += 1
+            return -SKILL_DIVERSITY_PENALTY
+        elif share <= 0.15 and total >= self._window // 2:
+            _SHAPING_STATS["exploration_bonus"] += 1
+            return SKILL_DIVERSITY_BONUS
+        return 0.0

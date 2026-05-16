@@ -684,6 +684,25 @@ async def run_grpo_training(
     lr = sched["lr"]
     temperature = sched["temperature"]
     kl_coeff = sched["kl_coeff"]
+
+    # KL guard: when previous GRPO step produced high KL divergence,
+    # reduce lr and boost kl_coeff to prevent policy collapse.  The
+    # threshold (0.05) comes from TF3 production runs where KL spiking
+    # past 0.046 preceded reward drops in 4/5 observed cases.
+    _prev_kl = getattr(config, "_last_grpo_kl", None)
+    _KL_GUARD_THRESHOLD = 0.05
+    _kl_guarded = False
+    if _prev_kl is not None and float(_prev_kl) > _KL_GUARD_THRESHOLD:
+        _kl_guarded = True
+        _kl_mult = min(3.0, float(_prev_kl) / _KL_GUARD_THRESHOLD)
+        kl_coeff = kl_coeff * _kl_mult
+        lr = lr * 0.5
+        logger.warning(
+            "KL guard activated at step %d: prev_kl=%.4f > %.4f, "
+            "lr reduced to %.2e, kl_coeff boosted to %.4f",
+            step, float(_prev_kl), _KL_GUARD_THRESHOLD, lr, kl_coeff,
+        )
+
     # T2.16 — replay-ratio decay: 1.0 (50/50) early → 0.25 (20/80
     # fresh-heavy) at the end of training.  See DecisionGRPOTrainer.
     _total = max(1, getattr(config, "total_steps", 1))
@@ -809,6 +828,21 @@ async def run_grpo_training(
 
     for adapter_name, samples in skillbank_grpo_data.items():
         all_records[adapter_name] = list(samples)
+
+    # Store max loss across decision adapters as a KL proxy for
+    # the guard in the next step.  The FSDP trainer's mean_loss
+    # includes the KL penalty term, so a spike indicates policy
+    # divergence.  We use mean_loss / kl_coeff as a rough KL estimate.
+    _max_kl_proxy = 0.0
+    for _dstat in decision_stats.values():
+        if _dstat.mean_loss > 0 and kl_coeff > 0:
+            _kl_est = _dstat.mean_loss / max(kl_coeff, 0.001)
+            _max_kl_proxy = max(_max_kl_proxy, _kl_est)
+    if _max_kl_proxy > 0:
+        try:
+            config._last_grpo_kl = _max_kl_proxy
+        except Exception:
+            pass
 
     elapsed = time.monotonic() - t0
     return GRPOStepResult(
