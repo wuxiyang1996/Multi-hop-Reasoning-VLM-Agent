@@ -1215,6 +1215,10 @@ async def run_episode_async(
 
         if bank_available and (need_reselect or last_guidance is None):
             facts = extract_game_facts(obs_nl, game)
+            _ss_for_facts = (current_info.get("structured_state") or {}).get("ram_watch") or {}
+            for _fk, _fv in _ss_for_facts.items():
+                if _fk not in facts and _fv is not None:
+                    facts[_fk] = str(_fv.item() if hasattr(_fv, "item") else _fv)
             step_structured = {k: v for k, v in facts.items() if v}
 
             from scripts.qwen3_decision_agent import get_top_k_skill_candidates
@@ -1677,6 +1681,15 @@ async def run_episode_async(
                              state_text=summary_state)
 
         next_facts = extract_game_facts(next_obs_nl, game)
+        # Supplement text-extracted facts with structured RAM data when
+        # available (gymv envs expose exact score/lives via ram_watch).
+        _ss = next_info.get("structured_state") or {}
+        _rw = _ss.get("ram_watch") or {}
+        for _rk, _rv in _rw.items():
+            if _rk not in next_facts and _rv is not None:
+                next_facts[_rk] = str(
+                    _rv.item() if hasattr(_rv, "item") else _rv
+                )
         skill_tracker.observe_state_effects(
             next_facts, reward=float(reward), action=str(action),
         )
@@ -1890,11 +1903,12 @@ async def run_episode_async(
             _diversity_bonus = diversity_tracker.record_and_shape(_chosen_sid_for_div)
             sk_reward += _diversity_bonus
 
-            # Premature switch penalty: don't abandon a skill too early
+            # Premature switch penalty: don't abandon a skill too early.
+            # Use _prev_deterministic_ratio (saved before set_protocol
+            # reset) so we measure the OLD skill's completion, not the
+            # new skill's (which is always 0 right after reset).
             if skill_tracker._just_switched and skill_tracker._prev_steps_on_skill > 0:
-                _proto_steps = skill_tracker.total_protocol_steps
-                _proto_idx = skill_tracker.protocol_step_idx
-                _completion_ratio = _proto_idx / max(_proto_steps, 1) if _proto_steps > 0 else 1.0
+                _completion_ratio = skill_tracker._prev_deterministic_ratio
                 _premature_pen = premature_switch_penalty(
                     protocol_completion_ratio=_completion_ratio,
                     reselect_reason=skill_tracker._reselect_reason,

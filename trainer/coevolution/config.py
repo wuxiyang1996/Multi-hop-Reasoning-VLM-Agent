@@ -1039,7 +1039,7 @@ class CoEvolutionConfig:
     #     becomes the bottleneck
     vision_state_perception_enabled: bool = True
     vision_state_perception_concurrency: int = 12
-    vision_state_perception_timeout_s: float = 6.0
+    vision_state_perception_timeout_s: float = 12.0
     vision_state_perception_max_tokens: int = 2048
     vision_state_perception_temperature: float = 0.1
     vision_state_perception_every_n_steps: int = 1

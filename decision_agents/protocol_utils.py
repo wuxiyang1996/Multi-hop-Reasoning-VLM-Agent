@@ -637,10 +637,12 @@ def _effects_gymv_brawler(
         effects["score_increased"] = "true"
     if action:
         effects["action_executed"] = "true"
-    act_low = action.lower()
-    if any(k in act_low for k in ("attack", "punch", "kick", "a", "b", "c")):
+    act_low = action.lower().strip()
+    _ATTACK_BUTTONS = {"a", "b", "c"}
+    _ATTACK_WORDS = ("attack", "punch", "kick")
+    if act_low in _ATTACK_BUTTONS or any(w in act_low for w in _ATTACK_WORDS):
         effects["attack_landed"] = "true"
-    if any(k in act_low for k in ("left", "right", "up", "down")):
+    if act_low in ("left", "right", "up", "down"):
         effects["position_changed"] = "true"
     return effects
 

@@ -271,7 +271,6 @@ class SkillDiversityTracker:
     def record_and_shape(self, skill_id: str) -> float:
         """Record *skill_id* and return a diversity shaping term."""
         if not skill_id:
-            self._recent.append("")
             return 0.0
 
         from collections import Counter

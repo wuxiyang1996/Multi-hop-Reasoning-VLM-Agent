@@ -589,6 +589,35 @@ def _extract_generic_facts(state: str) -> Dict[str, str]:
     return facts
 
 
+def _extract_gymv_pipe_facts(state: str) -> Dict[str, str]:
+    """Extract facts from RetroGymVEnv pipe-separated obs.text.
+
+    Format: ``Score: 2400 | Lives: 3 | Weapon: SEVER | Stage: Cave``
+    """
+    facts: Dict[str, str] = {}
+    _KEY_MAP = {
+        "score": "score",
+        "lives": "lives",
+        "health": "health",
+        "stage": "stage",
+        "level": "level",
+        "weapon": "weapon",
+        "gameover": "gameover",
+    }
+    for part in state.split("|"):
+        p = part.strip()
+        if ":" not in p:
+            continue
+        k, v = p.split(":", 1)
+        key = k.strip().lower().replace(" ", "_")
+        mapped = _KEY_MAP.get(key)
+        if mapped:
+            facts[mapped] = v.strip()
+    if not facts:
+        return _extract_generic_facts(state)
+    return facts
+
+
 _GAME_EXTRACTORS: Dict[str, Any] = {
     "tetris": _extract_tetris_facts,
     "candy_crush": _extract_candy_crush_facts,
@@ -599,6 +628,15 @@ _GAME_EXTRACTORS: Dict[str, Any] = {
     "mario": _extract_mario_facts,
     "avalon": _extract_avalon_facts,
     "diplomacy": _extract_diplomacy_facts,
+    # Gym-V Temporal/* (stable-retro Genesis) — pipe-separated obs.text
+    "gymv_thunder_force_iii": _extract_gymv_pipe_facts,
+    "gymv_airstriker": _extract_gymv_pipe_facts,
+    "gymv_space_harrier_ii": _extract_gymv_pipe_facts,
+    "gymv_altered_beast": _extract_gymv_pipe_facts,
+    "gymv_streets_of_rage_2": _extract_gymv_pipe_facts,
+    "gymv_strider": _extract_gymv_pipe_facts,
+    "gymv_dynamite_headdy": _extract_gymv_pipe_facts,
+    "gymv_columns": _extract_gymv_pipe_facts,
 }
 
 

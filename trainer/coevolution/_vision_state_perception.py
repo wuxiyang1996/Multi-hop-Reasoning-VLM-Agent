@@ -590,7 +590,13 @@ def _ask_judge_blocking(
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            if not _is_external:
+            if _is_external:
+                # OpenRouter: even the non-thinking model variant may
+                # emit a short <think> block that eats into max_tokens.
+                # Budget 50% extra so the actual <state> output is
+                # never truncated; _strip_think_tags removes the block.
+                kwargs["max_tokens"] = int(max_tokens * 1.5)
+            else:
                 kwargs["extra_body"] = {
                     "chat_template_kwargs": {"enable_thinking": False},
                 }

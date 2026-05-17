@@ -820,7 +820,9 @@ def skill_selection_reward(
     if steps_on_skill <= 0:
         r_efficiency = 0.0
     else:
-        r_efficiency = min(1.0, max_skill_duration / max(steps_on_skill, 1))
+        # Fraction of the budget used: higher when the skill ran longer
+        # (utilised its allocated time), lower when it quit after 1 step.
+        r_efficiency = min(1.0, steps_on_skill / max(max_skill_duration, 1))
 
     r_success = 1.0 if success_met else 0.0
     r_no_abort = 0.0 if abort_triggered else 1.0
