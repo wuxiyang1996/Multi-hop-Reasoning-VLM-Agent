@@ -689,6 +689,20 @@ _GAME_EFFECT_MAP: Dict[str, Any] = {
     "temporal_columns-v0": _effects_gymv_columns,
 }
 
+# Gym-V wrapper aliases (episode_runner passes ``gymv_thunder_force_iii``
+# but _GAME_EFFECT_MAP was keyed only by canonical gym env IDs like
+# ``temporal_thunderforceiii-v0``, so game-specific effects such as
+# ``enemy_hit``, ``score_increased``, ``damage_taken`` were never
+# computed for any gymv game).
+_GAME_EFFECT_MAP["gymv_thunder_force_iii"] = _effects_gymv_shooter
+_GAME_EFFECT_MAP["gymv_airstriker"] = _effects_gymv_shooter
+_GAME_EFFECT_MAP["gymv_space_harrier_ii"] = _effects_gymv_shooter
+_GAME_EFFECT_MAP["gymv_altered_beast"] = _effects_gymv_brawler
+_GAME_EFFECT_MAP["gymv_streets_of_rage_2"] = _effects_gymv_brawler
+_GAME_EFFECT_MAP["gymv_strider"] = _effects_gymv_brawler
+_GAME_EFFECT_MAP["gymv_dynamite_headdy"] = _effects_gymv_brawler
+_GAME_EFFECT_MAP["gymv_columns"] = _effects_gymv_columns
+
 
 # ── Auto step_check generation from trajectories ────────────────────
 

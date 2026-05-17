@@ -172,6 +172,10 @@ class StepTracker:
 
         if preds:
             state_dict = parse_summary_state(state_text)
+            # Merge the cumulative effect tags from StateEffectObserver
+            # so predicates like ``score_increased=true`` can resolve
+            # (parse_summary_state only has keys like ``game``, ``score``).
+            state_dict.update(self._effect_observer._cumulative_effects)
             if check_any_predicate(preds, state_dict):
                 return f"{label}:predicate"
 
