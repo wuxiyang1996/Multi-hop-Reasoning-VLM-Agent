@@ -518,6 +518,11 @@ class OrakNLWrapper:
         self._promote_visual_fields(raw_obs, info)
         return nl, reward, bool(terminated or done), bool(truncated), info
 
+    def render(self):
+        if hasattr(self._env, "render"):
+            return self._env.render()
+        return None
+
     def close(self) -> None:
         if hasattr(self._env, "close"):
             self._env.close()

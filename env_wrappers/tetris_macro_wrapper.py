@@ -136,6 +136,11 @@ class TetrisMacroActionWrapper:
 
         return obs_nl, reward, terminated, truncated, info
 
+    def render(self):
+        if hasattr(self._env, "render"):
+            return self._env.render()
+        return None
+
     def close(self) -> None:
         if hasattr(self._env, "close"):
             self._env.close()

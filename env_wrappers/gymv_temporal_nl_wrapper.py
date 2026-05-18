@@ -418,6 +418,14 @@ class GymVTemporalNLWrapper:
         })
         return nl, reward, terminated, truncated, info
 
+    def render(self, *args, **kwargs):
+        if hasattr(self._env, "render"):
+            try:
+                return self._env.render(*args, **kwargs)
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("GymVTemporalNLWrapper.render() failed: %s", exc)
+        return None
+
     def close(self) -> None:
         if hasattr(self._env, "close"):
             try:

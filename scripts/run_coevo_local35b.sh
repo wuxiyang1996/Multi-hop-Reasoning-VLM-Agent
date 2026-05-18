@@ -33,6 +33,13 @@ sleep 2
 # ── Per-game LoRA switching ──────────────────────────────────────────
 declare -A GAME_TO_SFT_KEY=(
     [gymv_thunder_force_iii]="Temporal_ThunderForceIII-v0"
+    [gymv_strider]="Temporal_Strider-v0"
+    [gymv_columns]="Temporal_Columns-v0"
+    [gymv_airstriker]="Temporal_Airstriker-v0"
+    [gymv_altered_beast]="Temporal_AlteredBeast-v0"
+    [gymv_dynamite_headdy]="Temporal_DynamiteHeaddy-v0"
+    [gymv_space_harrier_ii]="Temporal_SpaceHarrierII-v0"
+    [gymv_streets_of_rage_2]="Temporal_StreetsOfRage2-v0"
     [candy_crush]="candy_crush"
     [tetris]="tetris"
     [super_mario]="super_mario"
@@ -139,13 +146,21 @@ except Exception:
 fi
 export OPENROUTER_API_KEY
 
-RUN_DIR="runs/${GAME}_coevo_v4_$(date +%Y%m%d_%H%M%S)"
+# Resume mode: pass RESUME_RUN_DIR=runs/... and START_MODE=resume to reuse a run.
+if [[ -n "${RESUME_RUN_DIR:-}" ]]; then
+    RUN_DIR="$RESUME_RUN_DIR"
+    START_FLAG="--resume"
+else
+    RUN_DIR="runs/${GAME}_coevo_v4_$(date +%Y%m%d_%H%M%S)"
+    START_FLAG="--from-scratch"
+fi
 LOG_FILE="runs/${GAME}_coevo_v4.log"
 
 echo ""
 echo "============================================"
 echo "  Game:       $GAME"
 echo "  Steps:      $STEPS"
+echo "  Mode:       $START_FLAG"
 echo "  9B vLLM:    4× TP=1 on GPU 0-3"
 echo "  GRPO:       GPU 6-7"
 echo "  35B local:  GPU 4-5 (TP=2, MULTIMODAL, port 8001)"
@@ -162,11 +177,14 @@ python3 scripts/run_coevolution.py \
     --vllm-gpus 0 1 2 3 \
     --grpo-devices 6 7 \
     --load-adapters-from runs/lora_adapters/decision \
-    --from-scratch \
+    $START_FLAG \
     --curriculum none \
     --seed-bank-dir /workspace/Multi-hop-Reasoning-VLM-Agent/frontier_data/output/per_task_banks \
     --run-dir "$RUN_DIR" \
     --vllm-gpu-util 0.90 \
     --temperature 0.3 \
     --max-tokens 512 \
-    2>&1 | tee "$LOG_FILE"
+    --checkpoint-interval 1 \
+    --grpo-adv-clip 10.0 \
+    --grpo-max-epochs 3 \
+    2>&1 | tee -a "$LOG_FILE"

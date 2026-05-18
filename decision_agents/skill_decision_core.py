@@ -312,7 +312,12 @@ class StepTracker:
             self._achieved_effects = set()
             self._deterministic_effects = set()
             self._new_effects_this_step = False
-            self._effect_observer.reset()
+            # Keep StateEffectObserver alive across skill switches so
+            # _cumulative_effects (and _prev_facts for delta computation)
+            # persist across the whole episode.  Resetting here was the
+            # root cause of 70%+ key_missing on gymv games: every switch
+            # wiped the effects dict, so the very next predicate check
+            # saw an empty dict and all effect-type predicates failed.
             self.hop_history = [hop_type] if hop_type else []
         else:
             self._just_switched = False
@@ -362,7 +367,12 @@ class StepTracker:
         self._new_effects_this_step = False
         self._required_effects = set()
         self._completion_effect = ""
-        self._effect_observer.reset()
+        # Do NOT reset _effect_observer here — same reasoning as
+        # the update() skill-switch path: _cumulative_effects and
+        # _prev_facts must persist across the whole episode so
+        # predicate checks can find effect keys like score_increased,
+        # enemy_hit, etc.  Resetting here caused 40-81% key_missing
+        # on all gymv games.
         self._success_criteria = []
         self._abort_criteria = []
         self._predicate_success = []

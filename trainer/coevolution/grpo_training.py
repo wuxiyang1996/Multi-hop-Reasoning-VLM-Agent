@@ -467,7 +467,7 @@ def _estimate_safe_batch_size(
         return default
     char_lens = sorted(len(p) + len(c) for p, c in zip(prompts, completions))
     median_chars = char_lens[len(char_lens) // 2]
-    safe = max(1, int(256_000 / max(median_chars, 1)))
+    safe = max(1, int(64_000 / max(median_chars, 1)))
     result = min(default, safe)
     if result < default:
         logger.info(

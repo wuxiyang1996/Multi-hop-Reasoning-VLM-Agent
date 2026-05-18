@@ -39,8 +39,8 @@ ANTI_COLLAPSE_PENALTY_PER_EXTRA: float = 0.04
 ANTI_COLLAPSE_MAX_PENALTY: float = 0.15
 
 SKILL_DIVERSITY_WINDOW: int = 12
-SKILL_DIVERSITY_THRESHOLD: float = 0.70
-SKILL_DIVERSITY_PENALTY: float = 0.12
+SKILL_DIVERSITY_THRESHOLD: float = 0.90
+SKILL_DIVERSITY_PENALTY: float = 0.03
 SKILL_DIVERSITY_BONUS: float = 0.06
 
 # ── Telemetry ──────────────────────────────────────────────────────────
