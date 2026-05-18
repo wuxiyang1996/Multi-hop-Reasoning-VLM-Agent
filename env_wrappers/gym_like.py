@@ -438,6 +438,15 @@ def make_gaming_env(
             ),
             **common_adapter_kw,
         )
+        if render_mode == "rgb_array":
+            env.internal_render_mode = "rgb_array"
+            env.render_mode = "rgb_array"
+            if env.renderer is None:
+                from tile_match_gym.renderer import Renderer
+                env.renderer = Renderer(
+                    env.num_rows, env.num_cols, env.num_colours,
+                    env.num_moves, render_fps=2, render_mode="rgb_array",
+                )
         dynamic_actions = True
 
     elif game == "tetris":

@@ -1047,12 +1047,13 @@ async def run_episode_async(
             env = SubprocessEnv(game=game, max_steps=max_steps, env_kind="gymv")
 
     else:
+        _rm = "rgb_array" if _vision_on else None
         if exe:
             base_env = await loop.run_in_executor(
-                exe, make_gaming_env, game, max_steps,
+                exe, lambda: make_gaming_env(game=game, max_steps=max_steps, render_mode=_rm),
             )
         else:
-            base_env = make_gaming_env(game=game, max_steps=max_steps)
+            base_env = make_gaming_env(game=game, max_steps=max_steps, render_mode=_rm)
 
         if game == "tetris":
             from env_wrappers.tetris_macro_wrapper import TetrisMacroActionWrapper
@@ -1675,14 +1676,7 @@ async def run_episode_async(
         recent_actions.append(str(action))
         recent_rewards.append(float(reward))
 
-        skill_id = guidance.get("skill_id") if guidance else None
-        skill_name_val = guidance.get("skill_name", "") if guidance else ""
-        skill_tracker.update(skill_id, skill_name_val, float(reward),
-                             state_text=summary_state)
-
         next_facts = extract_game_facts(next_obs_nl, game)
-        # Supplement text-extracted facts with structured RAM data when
-        # available (gymv envs expose exact score/lives via ram_watch).
         _ss = next_info.get("structured_state") or {}
         _rw = _ss.get("ram_watch") or {}
         for _rk, _rv in _rw.items():
@@ -1693,6 +1687,11 @@ async def run_episode_async(
         skill_tracker.observe_state_effects(
             next_facts, reward=float(reward), action=str(action),
         )
+
+        skill_id = guidance.get("skill_id") if guidance else None
+        skill_name_val = guidance.get("skill_name", "") if guidance else ""
+        skill_tracker.update(skill_id, skill_name_val, float(reward),
+                             state_text=summary_state)
 
         try:
             from trainer.coevolution._run_loggers import log_step_progress

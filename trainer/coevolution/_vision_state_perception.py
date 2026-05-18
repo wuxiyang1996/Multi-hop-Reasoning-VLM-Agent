@@ -441,6 +441,7 @@ def _build_messages(
     action_names = [str(a) for a in action_names][:16]
 
     ss = info.get("structured_state") or {}
+    ram: Dict[str, Any] = {}
     score = ""
     if isinstance(ss, dict):
         ram = ss.get("ram_watch") or {}
@@ -527,6 +528,12 @@ def _build_messages(
         f"recent_actions=[{recent_str}]",
         f"score_hint={score or 'unknown'}",
     ]
+    # Feed all ram_watch variables (lives, score, etc.) so the 35B can
+    # cross-reference visual HUD elements against ground-truth RAM data.
+    _ram_hints = {k: v for k, v in ram.items() if v is not None and k != "score"}
+    if _ram_hints:
+        _rh = ",".join(f"{k}={v}" for k, v in _ram_hints.items())
+        dynamic_lines.append(f"ram_state=[{_rh}]")
     if obs_compact:
         dynamic_lines.append(f"obs_text={obs_compact}")
     dynamic_text = "\n".join(dynamic_lines)
@@ -564,7 +571,20 @@ def _ask_judge_blocking(
         _strip_think_tags,
     )
 
-    candidate_urls = _candidate_vllm_urls(model)
+    candidate_urls = list(_candidate_vllm_urls(model))
+
+    # Resolve the OpenRouter key from env var OR keys.py (via API_func).
+    _or_key = (
+        os.environ.get("OPENROUTER_API_KEY", "")
+        or getattr(__import__("API_func"), "open_router_api_key", "")
+    )
+    _or_url = "https://openrouter.ai/api/v1"
+    # Append OpenRouter as last-resort fallback so the 35B judge still
+    # works when no local 35B vLLM instance is running.  The
+    # ``_is_external`` branch below handles auth + max_tokens padding.
+    if _or_key and _or_url not in candidate_urls:
+        candidate_urls.append(_or_url)
+
     last_exc: Optional[Exception] = None
     for url in candidate_urls:
         _is_external = "openrouter.ai" in url or "api.openai.com" in url
@@ -574,12 +594,17 @@ def _ask_judge_blocking(
         ) if _is_external else VLLM_API_KEY
         _model_id = model.lower() if _is_external else model
         try:
+            # max_retries=0: the outer URL loop IS the retry mechanism.
+            # Per-URL retries cause exponential backoff (0.5s+) and, on
+            # non-HTTP ports (e.g. vLLM EngineCore :8001), the hanging
+            # connection + retry accumulates zombie threads in the
+            # executor, progressively starving the thread pool and
+            # causing rollout times to grow per step.
             client = openai.OpenAI(
                 base_url=url,
                 api_key=_api_key,
-                max_retries=int(
-                    os.environ.get("VLLM_OPENAI_MAX_RETRIES", "1")
-                ),
+                max_retries=0,
+                timeout=30.0 if not _is_external else 30.0,
             )
             kwargs: Dict[str, Any] = dict(
                 model=_model_id,

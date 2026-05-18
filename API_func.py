@@ -94,7 +94,7 @@ gemini_api_key = (
 )
 open_router_api_key = (
     os.environ.get("OPENROUTER_API_KEY", "").strip()
-    or _key_from_repo("openrouter", "OPENROUTER_API_KEY", "open_router_api_key")
+    or _key_from_repo("openrouter", "OPENROUTER_API_KEY", "open_router_api_key", "openrouter_api_key")
 )
 
 OPENROUTER_BASE = "https://openrouter.ai/api/v1"

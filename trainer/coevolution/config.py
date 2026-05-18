@@ -970,16 +970,16 @@ class CoEvolutionConfig:
     # Only applied when start_mode == "from_scratch" (otherwise GRPO
     # configs use the default values from StageGRPOConfig).
     scratch_warmup_steps: int = 20
-    scratch_initial_lr: float = 1e-4
-    scratch_steady_lr: float = 5e-5
+    scratch_initial_lr: float = 5e-5
+    scratch_steady_lr: float = 2e-5
     scratch_initial_temperature: float = 1.0
     scratch_steady_temperature: float = 0.7
-    scratch_initial_kl_coeff: float = 0.01
-    scratch_steady_kl_coeff: float = 0.05
+    scratch_initial_kl_coeff: float = 0.03
+    scratch_steady_kl_coeff: float = 0.08
 
     # Per-run GRPO overrides (set via CLI, leave None to use defaults)
     grpo_clip_ratio: float = 0.2
-    grpo_max_epochs: int = 4
+    grpo_max_epochs: int = 2
     # T2.16 (2026-05-05): default to 5.0 to prevent the "mid-peak / late-
     # collapse" pattern observed across runs.  When std(R) spikes (as
     # policy improves), unclipped advantages reach ±10+ and a single
@@ -1002,7 +1002,7 @@ class CoEvolutionConfig:
     # ``grpo_adv_clip_neg=5.0`` to restore the legacy symmetric
     # behaviour.
     grpo_adv_clip: Optional[float] = 5.0
-    grpo_adv_clip_neg: Optional[float] = None
+    grpo_adv_clip_neg: Optional[float] = 3.0
 
     # T2.18 (2026-05-05): early-death reward shaping.  Applied at the
     # end of each rollout episode in :mod:`trainer.coevolution.episode_runner`

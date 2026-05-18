@@ -371,6 +371,11 @@ class GamingAgentNLWrapper:
         self._promote_visual_fields(obs, info)
         return nl, float(reward), bool(terminated), bool(truncated), info
 
+    def render(self, *args, **kwargs):
+        if hasattr(self._env, "render"):
+            return self._env.render(*args, **kwargs)
+        return None
+
     def close(self) -> None:
         if hasattr(self._env, "close"):
             self._env.close()
