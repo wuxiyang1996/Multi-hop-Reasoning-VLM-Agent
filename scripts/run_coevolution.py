@@ -118,10 +118,10 @@ def parse_args() -> argparse.Namespace:
             f"Games to train on (default: full 12-game registry — "
             f"{len(SKILL_BANK_GAMES)} games covering Phase-1 source + Phase-2 hold-out; "
             f"{len(GAME_MAX_STEPS)} total supported). "
-            "For Phase-1-only training prefer "
-            "'--games tetris candy_crush gymv_thunder_force_iii gymv_altered_beast "
-            "gymv_columns gymv_dynamite_headdy' or use scripts/run_phase1_curriculum.sh; "
-            "for single-game smoke tests, pass an explicit '--games <slug>'."
+            "For Phase-1-only training, prefer scripts/run_phase1_curriculum.sh "
+            "(which reads PHASE1_DEFAULT_GAMES from trainer/coevolution/config.py — "
+            "the mega-skill-optimal split from frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md §1). "
+            "For single-game smoke tests, pass an explicit '--games <slug>'."
         ),
     )
     parser.add_argument(
@@ -440,7 +440,9 @@ def parse_args() -> argparse.Namespace:
 
     # Skill bank storage layout (per_game default, shared opt-in for the
     # cross-game / lifelong-learning experiments described in
-    # ``training_notes/coevo-3phase-cross-game-ood-transfer-plan.md``).
+    # ``legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md``;
+    # the current source of truth is
+    # ``frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md``).
     parser.add_argument(
         "--bank-mode", choices=("per_game", "shared"), default="per_game",
         help="Skill-bank storage layout. 'per_game' (default, legacy) "

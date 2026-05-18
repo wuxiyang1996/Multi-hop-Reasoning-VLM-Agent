@@ -1599,7 +1599,8 @@ class SharedSkillBankManager:
 
     Drop-in alternative to :class:`PerGameSkillBankManager` for the
     cross-game / lifelong-learning experiments described in
-    ``training_notes/coevo-3phase-cross-game-ood-transfer-plan.md``.
+    ``legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md``
+    (superseded by ``frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md``).
 
     Design summary
     --------------

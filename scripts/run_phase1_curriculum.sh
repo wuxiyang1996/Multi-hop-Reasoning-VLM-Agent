@@ -1,32 +1,26 @@
 #!/usr/bin/env bash
 # ======================================================================
-#  Phase-1 source-GRPO curriculum — 6 games × 10 steps, sequential, with
-#  bank + LoRA carry-over between games.
+#  Phase-1 source-GRPO curriculum — sequential, with bank + LoRA
+#  carry-over between games.
 #
-#  Implements the plan locked in
-#    training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1
-#  (game roster + curriculum order, refreshed 2026-05-03 PM from the new
-#  Cold-start-out-gymv/latest 4-backbone teacher table — see §13
-#  Changelog).
+#  Game roster + order are read live from
+#    trainer/coevolution/config.py:PHASE1_DEFAULT_GAMES
+#  which is the single source of truth (locked by exhaustive search to
+#  maximise mega-skill cross-phase transfer links — see
+#  frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md §1, and
+#  frontier_data/scripts/coverage_audit.py to dump the live link count).
 #
-#  Curriculum order (data-driven from new SFT cold-start; every game has
-#  non-zero teacher reward across all 4 frontier teachers):
-#    Phase 1: gymv_thunder_force_iii  (shmup,             teacher 269-750)
-#    Phase 2: gymv_altered_beast      (beat-em-up,        teacher 119-425)
-#    Phase 3: gymv_columns            (puzzle,            teacher  63-160)
-#    Phase 4: gymv_dynamite_headdy    (action-platformer, teacher  75- 94)
-#    Phase 5: candy_crush             (paper Table 3,     match-3)
-#    Phase 6: tetris                  (paper Table 3,     spatial puzzle)
+#  The Phase-2 hold-out roster (consumed by scripts/run_phase2_holdout.sh)
+#  is similarly sourced from
+#    trainer/coevolution/config.py:PHASE2_HOLDOUT_GAMES.
 #
-#  Phase-2 hold-out roster (run via scripts/run_phase2_holdout.sh — pairs
-#  each Phase-2 gymv game in-genre with a Phase-1 source so the cross-game
-#  translator has the closest possible source vocabulary):
-#    SoR2          ← AlteredBeast    (in-genre lift, healthy ↔ healthy)
-#    SpaceHarrierII ← ThunderForceIII (scale-jump test, ~30× reward)
-#    Airstriker    ← ThunderForceIII (easier in-genre sanity)
-#    Strider       ← DynamiteHeaddy  (partial-signal rescue test)
-#    2048          ← tetris+Columns  (grid-puzzle composition)
-#    super_mario   ← (no in-genre)   (transfer-distance bound)
+#  Historical note: this script used to hard-code its own PHASES array
+#  alongside legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
+#  (2026-05-03 PM split: TF3, AlteredBeast, Columns, DynamiteHeaddy,
+#  candy_crush, tetris). That doc has been moved to legacy/training_notes/
+#  because the mega-skill-optimal split (2026-05-12) swapped
+#  {AlteredBeast, DynamiteHeaddy} → {SoR2, Strider} in Phase 1 for a
+#  +16% (43→50) cross-phase link count.
 #
 #  Total: 60 GRPO steps. Wall-clock ~30-36 h sequential at ~30-36 min/step
 #  (tightened wall-time after the v4 segmentation cap landed; previously
@@ -170,7 +164,7 @@ SPEC_MODEL="${SPEC_MODEL:-Qwen/Qwen3-0.6B}"
 SPEC_TOKENS="${SPEC_TOKENS:-5}"
 
 # ── Shared-bank lifelong-learning mode (opt-in, see
-#    training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §11.x) ─
+#    legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §11.x) ─
 #
 #   BANK_MODE=per_game   (default, legacy)
 #       One ``skill_bank.jsonl`` per game under
@@ -218,7 +212,7 @@ JUDGE_MODE="${JUDGE_MODE:-auto}"
 # Without them the 35B server idles and the run becomes a 9B-only
 # ablation (mirrors the gap that broke the 2026-05-03 21:15 run).
 #
-# Defaults follow training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
+# Defaults follow legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
 # §11.2 (live curator + crafter) and §501-502 (35B as the shared
 # control-plane backbone) — all three ON when a judge is reachable.
 #
@@ -437,34 +431,74 @@ COLDSTART_DIR="${COLDSTART_DIR:-runs/sft_coldstart}"
 COLDSTART_DECISION="${COLDSTART_DIR}/decision"
 COLDSTART_SKILLBANK="${COLDSTART_DIR}/skillbank"
 
-# ── Locked Phase-1 curriculum (training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1)
-# Format: "phase_number:game_slug:display_name"
-# Slugs match env_wrappers/gymv_temporal_nl_wrapper.GYMV_TEMPORAL_GAMES
-# for the 4 gymv games and env_wrappers/game_configs.py for the 2 paper games.
-PHASES=(
-    "1:gymv_thunder_force_iii:Thunder Force III"
-    "2:gymv_altered_beast:Altered Beast"
-    "3:gymv_columns:Columns"
-    "4:gymv_dynamite_headdy:Dynamite Headdy"
-    "5:candy_crush:Candy Crush"
-    "6:tetris:Tetris"
+# ── Phase-1 curriculum — sourced live from trainer/coevolution/config.py
+#
+# Single source of truth: ``PHASE1_DEFAULT_GAMES`` in
+# ``trainer/coevolution/config.py``. That tuple was locked by exhaustive
+# search over all valid 1-per-genre assignments to maximise the cross-
+# phase mega-skill transfer link count (50 links across 9 bridges; see
+# ``frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md`` §1 and run
+# ``frontier_data/scripts/coverage_audit.py`` to re-measure on the
+# current ``mega_skill_clusters.json``).
+#
+# Previously this script hard-coded its own ``PHASES`` array which drifted
+# from ``config.py`` (the old roster swapped {SoR2, Strider} for
+# {AlteredBeast, DynamiteHeaddy}). Driving the loop from the trainer
+# config eliminates the divergence — re-rostering needs one edit, in
+# ``config.py``.
+#
+# Format after expansion: "phase_number:game_slug:display_name"
+mapfile -t PHASES < <(PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}" python - <<'PYEOF'
+from trainer.coevolution.config import PHASE1_DEFAULT_GAMES
+
+DISPLAY = {
+    "gymv_thunder_force_iii":  "Thunder Force III",
+    "gymv_altered_beast":      "Altered Beast",
+    "gymv_columns":            "Columns",
+    "gymv_dynamite_headdy":    "Dynamite Headdy",
+    "gymv_streets_of_rage_2":  "Streets of Rage 2",
+    "gymv_strider":            "Strider",
+    "gymv_space_harrier_ii":   "Space Harrier II",
+    "gymv_airstriker":         "Airstriker",
+    "candy_crush":             "Candy Crush",
+    "tetris":                  "Tetris",
+    "twenty_forty_eight":      "2048",
+    "super_mario":             "Super Mario Bros",
+}
+for i, slug in enumerate(PHASE1_DEFAULT_GAMES, start=1):
+    print(f"{i}:{slug}:{DISPLAY.get(slug, slug)}")
+PYEOF
 )
 NUM_PHASES=${#PHASES[@]}
+if [ "${NUM_PHASES}" -eq 0 ]; then
+    echo "[run_phase1] FATAL: could not load PHASE1_DEFAULT_GAMES from " \
+         "trainer/coevolution/config.py"
+    exit 1
+fi
 
-# Per-game baseline anchor for §4.3 sanity bar — populated from the new
-# Cold-start-out-gymv/latest 4-backbone teacher table (see
-# training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1, refresh
-# 2026-05-03 PM). The "min teacher reward" is the worst case across the 4
-# frontier rows (GPT-5.4 / Claude-4.6-Sonnet / Gemini-3.1-Pro /
-# Qwen3-VL-235B); end-of-phase actor reward should clear this floor or the
-# curriculum should be re-inspected.
+# Per-game baseline anchor for §4.3 sanity bar — populated from the
+# 4-backbone teacher table (Cold-start-out-gymv/latest). The "min teacher
+# reward" is the worst case across the 4 frontier rows (GPT-5.4 /
+# Claude-4.6-Sonnet / Gemini-3.1-Pro / Qwen3-VL-235B); end-of-phase
+# actor reward should clear this floor or the curriculum should be
+# re-inspected.
+#
+# Covers every slug that may appear in PHASE1_DEFAULT_GAMES or
+# PHASE2_HOLDOUT_GAMES so a roster swap in config.py does not
+# silently lose its anchor row.
 declare -A BASELINE_ANCHOR=(
     ["gymv_thunder_force_iii"]="min teacher 269 (TF3 across 4 frontier teachers)"
-    ["gymv_altered_beast"]="min teacher 119 (AlteredBeast)"
+    ["gymv_streets_of_rage_2"]="min teacher 202 (SoR2)"
+    ["gymv_strider"]="min teacher 0 (Strider — partial-signal, rescue test)"
     ["gymv_columns"]="min teacher 63 (Columns)"
+    ["gymv_altered_beast"]="min teacher 119 (AlteredBeast)"
     ["gymv_dynamite_headdy"]="min teacher 75 (DynamiteHeaddy)"
+    ["gymv_space_harrier_ii"]="min teacher 14469 (SH2 — scale outlier)"
+    ["gymv_airstriker"]="min teacher 52 (Airstriker)"
     ["candy_crush"]="paper Figure 4 (±30%)"
     ["tetris"]="paper Figure 4 (±30%)"
+    ["twenty_forty_eight"]="paper Figure 4 (±30%)"
+    ["super_mario"]="paper Figure 4 (±30%)"
 )
 
 # ── Cleanup on exit ───────────────────────────────────────────────────
@@ -717,13 +751,15 @@ fi
 # fail loudly here.
 python -c "
 from trainer.coevolution.episode_runner import _lazy_imports, GYMV_TEMPORAL_GAMES_SET
-from trainer.coevolution.config import GAME_MAX_STEPS
+from trainer.coevolution.config import GAME_MAX_STEPS, PHASE1_DEFAULT_GAMES
 _lazy_imports()
-# New Phase-1 roster (refreshed 2026-05-03 PM, data-driven from new
-# Cold-start-out-gymv/latest 4-backbone teacher table).
-required = {'gymv_thunder_force_iii', 'gymv_altered_beast',
-            'gymv_columns', 'gymv_dynamite_headdy'}
-missing_gymv = required - GYMV_TEMPORAL_GAMES_SET
+# Phase-1 roster is read from config.PHASE1_DEFAULT_GAMES (the live
+# mega-skill-optimal split). Pre-flight: every slug in the roster has
+# to be (a) GAME_MAX_STEPS-registered and (b) for gymv_* slugs,
+# GYMV_TEMPORAL_GAMES_SET-wired.
+required = set(PHASE1_DEFAULT_GAMES)
+required_gymv = {slug for slug in required if slug.startswith('gymv_')}
+missing_gymv = required_gymv - GYMV_TEMPORAL_GAMES_SET
 if missing_gymv:
     raise SystemExit(
         f'[run_phase1] FATAL: gymv slugs not wired in episode_runner: {sorted(missing_gymv)}. '
@@ -732,10 +768,10 @@ if missing_gymv:
 missing_registry = required - set(GAME_MAX_STEPS)
 if missing_registry:
     raise SystemExit(
-        f'[run_phase1] FATAL: gymv slugs not registered in trainer/coevolution/config.py:GAME_MAX_STEPS: '
+        f'[run_phase1] FATAL: slugs not registered in trainer/coevolution/config.py:GAME_MAX_STEPS: '
         f'{sorted(missing_registry)}. Add the slug + max_steps and re-run.'
     )
-print(f'[run_phase1] Gym-V slugs wired: {sorted(GYMV_TEMPORAL_GAMES_SET & required)}')
+print(f'[run_phase1] Phase-1 roster ({len(required)} games) wired: {sorted(required)}')
 "
 
 RESOLVED_RUN_DIR=$(python -c "

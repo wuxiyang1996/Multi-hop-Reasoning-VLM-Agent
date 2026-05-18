@@ -1,23 +1,28 @@
 #!/usr/bin/env bash
 # ======================================================================
-#  Phase-2 hold-out adaptation curriculum — 6 games × (5 + 15) steps,
-#  sequential, seeded from the post-Phase-1 bank + LoRA snapshot.
+#  Phase-2 hold-out adaptation curriculum — sequential, seeded from the
+#  post-Phase-1 bank + LoRA snapshot.
 #
-#  Implements the plan locked in
-#    training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §7
-#  (held-out roster + two-budget reporting, refreshed 2026-05-03 PM).
+#  Game roster + order are read live from
+#    trainer/coevolution/config.py:PHASE2_HOLDOUT_GAMES
+#  which is the single source of truth (locked alongside
+#  PHASE1_DEFAULT_GAMES by the exhaustive search documented in
+#  frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md §1; re-measure with
+#  frontier_data/scripts/coverage_audit.py).
 #
-#  Each Phase-2 gymv game is paired in-genre with a Phase-1 source so
-#  the cross-game skill translator
-#  (skill_agents/skill_bank/translate_for_target.py) has the closest
-#  possible source vocabulary to re-ground onto:
+#  Per-game in-genre pairing (used by the cross-game skill translator at
+#  the phase boundary) lives in the IN_GENRE_SOURCE associative array
+#  below — pairings come from the mega-skill bridge table so each P2
+#  game maps onto its strongest same-genre P1 source.
 #
-#    Phase 1: gymv_streets_of_rage_2  ← AlteredBeast    (in-genre lift)
-#    Phase 2: gymv_space_harrier_ii   ← ThunderForceIII (scale-jump test)
-#    Phase 3: gymv_airstriker         ← ThunderForceIII (easier in-genre)
-#    Phase 4: gymv_strider            ← DynamiteHeaddy  (partial-signal rescue)
-#    Phase 5: twenty_forty_eight      ← tetris+Columns  (grid-puzzle composition)
-#    Phase 6: super_mario             ← (no in-genre)   (transfer-distance bound)
+#  Historical note: this script used to hard-code its own PHASES array
+#  alongside legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
+#  (the 2026-05-03 PM Phase-2 roster: SoR2, SH2, Airstriker, Strider,
+#  2048, super_mario). The mega-skill-optimal split (2026-05-12) moved
+#  SoR2 and Strider into Phase 1 and replaced them with AlteredBeast and
+#  DynamiteHeaddy as Phase-2 transfer targets, because that pairing
+#  yields more cross-phase mega-skill links. The legacy plan doc lives
+#  under legacy/training_notes/ for reference.
 #
 #  Two-budget protocol (§7.2):
 #    Budget A — 5 steps · INFER_ONLY=1 · frozen LoRA
@@ -222,37 +227,79 @@ if [ ! -d "${PHASE1_SKILLBANK}" ]; then
     PHASE1_SKILLBANK="${PHASE1_LORA}"
 fi
 
-# ── Locked Phase-2 hold-out roster (training_notes §7.1, refreshed 2026-05-03 PM)
-PHASES=(
-    "1:gymv_streets_of_rage_2:Streets of Rage 2"
-    "2:gymv_space_harrier_ii:Space Harrier II"
-    "3:gymv_airstriker:Airstriker"
-    "4:gymv_strider:Strider"
-    "5:twenty_forty_eight:2048"
-    "6:super_mario:Super Mario Bros"
+# ── Phase-2 hold-out roster — sourced live from
+#    trainer/coevolution/config.py:PHASE2_HOLDOUT_GAMES.
+#
+# Single source of truth (see run_phase1_curriculum.sh banner). The
+# split was locked alongside PHASE1_DEFAULT_GAMES by the exhaustive
+# search in frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md §1 so
+# every Phase-2 game has at least one strong same-genre Phase-1 source
+# in the mega-skill family graph. Re-run
+# frontier_data/scripts/coverage_audit.py to dump the live cross-phase
+# link counts (the H2 headline).
+mapfile -t PHASES < <(PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}" python - <<'PYEOF'
+from trainer.coevolution.config import PHASE2_HOLDOUT_GAMES
+
+DISPLAY = {
+    "gymv_thunder_force_iii":  "Thunder Force III",
+    "gymv_altered_beast":      "Altered Beast",
+    "gymv_columns":            "Columns",
+    "gymv_dynamite_headdy":    "Dynamite Headdy",
+    "gymv_streets_of_rage_2":  "Streets of Rage 2",
+    "gymv_strider":            "Strider",
+    "gymv_space_harrier_ii":   "Space Harrier II",
+    "gymv_airstriker":         "Airstriker",
+    "candy_crush":             "Candy Crush",
+    "tetris":                  "Tetris",
+    "twenty_forty_eight":      "2048",
+    "super_mario":             "Super Mario Bros",
+}
+for i, slug in enumerate(PHASE2_HOLDOUT_GAMES, start=1):
+    print(f"{i}:{slug}:{DISPLAY.get(slug, slug)}")
+PYEOF
 )
 NUM_PHASES=${#PHASES[@]}
+if [ "${NUM_PHASES}" -eq 0 ]; then
+    echo "[run_phase2] FATAL: could not load PHASE2_HOLDOUT_GAMES from " \
+         "trainer/coevolution/config.py"
+    exit 1
+fi
 
 # In-genre Phase-1 source for each Phase-2 game (used by the per-boundary
-# translator to pick the right source-game vocabulary).
+# translator to pick the right source-game vocabulary). Pairings come
+# from the mega-skill bridge table in
+# frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md §1: each P2 game is
+# paired with the P1 game it shares the most mega-skills with.
+#
+# Covers both the current mega-skill-optimal split AND the older
+# 2026-05-03 split so an ablation that swaps PHASE2_HOLDOUT_GAMES in
+# config.py to a legacy roster does not trip the "no in-genre source"
+# branch.
 declare -A IN_GENRE_SOURCE=(
+    # Current mega-skill split (live):
+    ["gymv_space_harrier_ii"]="gymv_thunder_force_iii"   # shooter (7 shared mega-skills)
+    ["gymv_airstriker"]="gymv_thunder_force_iii"          # shooter (TF3=4, Strider=4)
+    ["gymv_altered_beast"]="gymv_streets_of_rage_2"       # brawler (SoR2=5, Strider=7)
+    ["gymv_dynamite_headdy"]="gymv_strider"               # platformer (Strider=7, TF3=5, Columns=4)
+    ["twenty_forty_eight"]="gymv_columns"                 # grid puzzle (Columns)
+    ["super_mario"]="gymv_strider"                        # platformer (Strider hub)
+    # Legacy 2026-05-03 split slugs:
     ["gymv_streets_of_rage_2"]="gymv_altered_beast"
-    ["gymv_space_harrier_ii"]="gymv_thunder_force_iii"
-    ["gymv_airstriker"]="gymv_thunder_force_iii"
     ["gymv_strider"]="gymv_dynamite_headdy"
-    ["twenty_forty_eight"]="tetris"
-    ["super_mario"]="gymv_dynamite_headdy"
 )
 
 # Per-game baseline anchor (min teacher reward across 4 frontier rows
-# from new Cold-start-out-gymv/latest data — see training_notes §4.1).
+# from Cold-start-out-gymv/latest data). Same dual coverage as
+# IN_GENRE_SOURCE so legacy ablations don't lose their anchor row.
 declare -A BASELINE_ANCHOR=(
-    ["gymv_streets_of_rage_2"]="min teacher 202 (SoR2)"
-    ["gymv_space_harrier_ii"]="min teacher 14 469 (SH2 — scale outlier)"
+    ["gymv_space_harrier_ii"]="min teacher 14469 (SH2 — scale outlier)"
     ["gymv_airstriker"]="min teacher 52 (Airstriker)"
-    ["gymv_strider"]="min teacher 0 (partial-signal — rescue test)"
+    ["gymv_altered_beast"]="min teacher 119 (AlteredBeast)"
+    ["gymv_dynamite_headdy"]="min teacher 75 (DynamiteHeaddy)"
     ["twenty_forty_eight"]="paper Figure 4 (±30%)"
     ["super_mario"]="paper Figure 4 (±30%)"
+    ["gymv_streets_of_rage_2"]="min teacher 202 (SoR2)"
+    ["gymv_strider"]="min teacher 0 (Strider — partial-signal rescue test)"
 )
 
 # ── Cleanup on exit ───────────────────────────────────────────────────
@@ -380,15 +427,14 @@ for phase_def in "${PHASES[@]}"; do
 done
 echo "══════════════════════════════════════════════════════════════"
 
-# Pre-flight: confirm all Phase-2 slugs are wired in episode_runner +
-# registered in trainer/coevolution/config.py:GAME_MAX_STEPS.
+# Pre-flight: confirm every slug in the live PHASE2_HOLDOUT_GAMES roster
+# is wired in episode_runner + registered in GAME_MAX_STEPS.
 python -c "
 from trainer.coevolution.episode_runner import _lazy_imports, GYMV_TEMPORAL_GAMES_SET
-from trainer.coevolution.config import GAME_MAX_STEPS
+from trainer.coevolution.config import GAME_MAX_STEPS, PHASE2_HOLDOUT_GAMES
 _lazy_imports()
-required_gymv = {'gymv_streets_of_rage_2', 'gymv_space_harrier_ii',
-                 'gymv_airstriker', 'gymv_strider'}
-required_all = required_gymv | {'twenty_forty_eight', 'super_mario'}
+required_all = set(PHASE2_HOLDOUT_GAMES)
+required_gymv = {s for s in required_all if s.startswith('gymv_')}
 missing_gymv = required_gymv - GYMV_TEMPORAL_GAMES_SET
 if missing_gymv:
     raise SystemExit(
@@ -401,7 +447,7 @@ if missing_registry:
         f'[run_phase2] FATAL: Phase-2 slugs not in GAME_MAX_STEPS: '
         f'{sorted(missing_registry)}.'
     )
-print(f'[run_phase2] Phase-2 slugs wired + registered: {sorted(required_all)}')
+print(f'[run_phase2] Phase-2 roster ({len(required_all)} games) wired: {sorted(required_all)}')
 "
 
 RESOLVED_RUN_DIR=$(python -c "

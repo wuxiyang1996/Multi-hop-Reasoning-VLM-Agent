@@ -1,6 +1,6 @@
 """Tests for ``common.reward_anchors`` + ``RewardLogger`` normalization plumbing.
 
-Covers training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.5:
+Covers legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.5:
 
   1. Static fallback table is well-formed (positive floats for the
      8 gymv games; ``None`` for the 4 paper Table-3 games).

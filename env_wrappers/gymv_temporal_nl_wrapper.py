@@ -56,8 +56,10 @@ logger = logging.getLogger(__name__)
 # the §11.2-Option-A back-stop is invoked.
 
 GYMV_TEMPORAL_GAMES: Dict[str, str] = {
-    # Phase-1 source (4 games — see training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1,
-    # refreshed 2026-05-03 PM from new Cold-start-out-gymv/latest 4-backbone teacher data)
+    # Phase-1 source (4 games — see
+    # legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1
+    # for the original split; the live mega-skill split is in
+    # trainer/coevolution/config.py:PHASE1_DEFAULT_GAMES)
     "gymv_thunder_force_iii": "Temporal/ThunderForceIII-v0",
     "gymv_altered_beast": "Temporal/AlteredBeast-v0",
     "gymv_columns": "Temporal/Columns-v0",

@@ -18,8 +18,13 @@ SKILL_BANK_GAMES = [
     # ``GAME_MAX_STEPS`` below so ``--games`` validation, the no-args
     # default, and the curriculum scripts agree on the same universe.
     #
-    # Phase split (training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
-    # §4.1, refreshed 2026-05-03 PM) is enforced by the curriculum
+    # Phase split is locked by PHASE1_DEFAULT_GAMES / PHASE2_HOLDOUT_GAMES
+    # below — the mega-skill-optimal roster from
+    # frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md §1. The earlier
+    # plan in legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md
+    # §4.1 used a different roster (TF3, AlteredBeast, Columns,
+    # DynamiteHeaddy, …) and is kept for historical reference only —
+    # it is enforced by the curriculum
     # scripts' ``PHASES`` arrays, NOT by this constant — so:
     #   * ``scripts/run_phase1_curriculum.sh`` uses the 6 P1 picks
     #     below (4 healthy gymv + ``candy_crush`` + ``tetris``).

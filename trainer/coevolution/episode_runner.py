@@ -72,7 +72,9 @@ GAMINGAGENT_GAMES = {
 # wired slugs lives in that module's GYMV_TEMPORAL_GAMES dict (8 games for
 # the default benchmark scope — the 4 Phase-1 source games plus the 4
 # Phase-2 holdouts from
-# training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1 / §7.1).
+# legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1 / §7.1
+# (superseded by trainer/coevolution/config.py:PHASE1_DEFAULT_GAMES /
+# PHASE2_HOLDOUT_GAMES and frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md).
 # We import the dict lazily inside _lazy_imports() so module-import time
 # stays cheap when gym_v / stable-retro / ROMs aren't installed.
 GYMV_TEMPORAL_GAMES_SET: set = set()  # populated by _lazy_imports()
