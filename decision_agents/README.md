@@ -873,6 +873,8 @@ Shipped so far (all additive — no existing-caller API breaks):
 13. ✅ **Unified single-MDP / per-task-harness pivot — shipped.** Collapsed the two-MDP framing (`outer env-step MDP + inner HopPolicy MDP`) into a single COS-PLAY-style MDP whose action set is defined by a per-task `Harness`. Five harnesses ship under `decision_agents/core/`: `GymHarness` (game), `BrowserHarness` (web; `step` stub), `OSWorldHarness` (OS; `step` stub), `VRHarness` (visual reasoning), `VideoHarness` (video understanding). `inner_mdp.py` (HopAction / HopPolicy / HopStep / HopTrace / HeuristicHopPolicy / parse_hop_action — ~430 LOC) was deleted; its operators relocated as first-class actions inside `VRHarness` / `VideoHarness` (`LOOK / RETRIEVE / NOTE / ANSWER` and `NEXT_FRAME / JUMP / WINDOW / FOCUS / TRACK`). `ActorAgent.step` now consumes `harness.valid_actions(state)` directly; `_run_inner_mdp` + `_apply_hop_side_effect` deleted. `RewardConfig` gained 8 optional per-action-kind cost fields (defaults `0.0`) looked up via `harness.action_kind(action)` so VR / video tasks can shape away over-deliberation without affecting game / web / OS `r_total`. The legacy `run_actor_episode(env, agent)` path keeps working byte-identical — it auto-binds a `GymHarness` over the env. Deprecated `hop_policy=` / `max_hops_per_step=` kwargs and the `decision_agents.HopAction` / `HopPolicy` / etc. names emit a one-shot `DeprecationWarning` for one release of grace. The `hop_select` LoRA is dropped — GRPO trains exactly two LoRAs (`skill_selection`, `action_taking`) for all 5 tasks. Tests: deleted `test_intention_dispatch.py` (4 cases) + 6 inner-MDP cases in `test_actor_agent.py`; added `test_harness.py` (32 cases across all 5 harnesses + `parse_op_call`), `test_actor_with_vr_harness.py` (5 end-to-end cases), and `test_actor_back_compat.py` (12 cases pinning the legacy entry point + the deprecation contract). 79 tests total, all passing.
 14. ✅ **Phase 8.0 — perception plumbing + VR harness rewire.** Added `decision_agents/core/perception/` sub-package: `RegionDetector` / `Segmenter` / `OCREngine` Protocols (`runtime_checkable`), `Detection` / `Segmentation` / `OCRResult` frozen dataclasses, `MockRegionDetector` / `MockSegmenter` / `MockOCR` deterministic stand-ins (no GPU / no `transformers` dep), and a per-episode LRU `EvidenceCache` keyed by `(image_hash, op, args_blob)` with hit/miss stats. `VRHarness` constructor now accepts optional `detector / segmenter / ocr / cache`; `LOOK / CROP / READ_TEXT / COUNT / SEGMENT` actually call the backends, mint `Entity` rows, and surface them on `info["schema_delta"]`; `CROP` additionally appends the cropped region as a `VisualInput` on `info["images"]`. `ActorAgent.step` gained `_merge_schema_delta` (accepts `list[Entity]` *or* `list[dict]`) which folds harness-emitted entities into the current schema *before* `_pick_action` so the next prompt sees the fresh entity. New `SEGMENT(eid)` op surfaced in `valid_actions`. The harness keeps Phase-7 backward compatibility — when no backends are bound, all ops degrade gracefully into the original scratchpad-only behaviour. Real backends (Grounding-DINO 1.5 Edge, SAM-2, PaddleOCR) are deferred to Phase 8.1 and will load lazily so `import decision_agents` stays fast. New tests: `test_perception.py` (27 cases — Protocols + Mocks + cache hit/miss/eviction + bbox geometry), `test_vr_harness_with_perception.py` (27 cases — image-byte loading, schema_delta emission per op, cache reuse, ANSWER scoring, schema-delta merge semantics including dict coercion + affords dedup). Total: 133 tests, all passing.
 
+15. ✅ **Runtime predicate filtering — key_missing fix (2026-05-18).** Cross-domain predicates in protocols loaded from disk (cold-start seeds, pre-existing skill banks) caused 1,000–2,700 `key_missing` events per step in gymv games, making `r_progress` reward signal ineffective. Added runtime filtering in three code paths: (a) `StepTracker.set_protocol()` now calls `_filter_protocol_predicates_for_game()` to strip `step_checks` / `predicate_success` / `predicate_abort` of cross-domain predicates against `TASK_EFFECT_SUBSET`; also filters explicit `required_effects` and passes filtered `step_checks` to `_infer_required_effects()`. (b) `scripts/qwen3_decision_agent.py`'s legacy `_SkillTracker` gained `game_name` and the same filtering. (c) `unified_episode_runner.py` now passes `task_name` to `StepTracker(game_name=task_name)` so QA/web tasks get filtering when they enter the training loop. All 18 tasks (12 games + 4 QA + 2 web) have `TASK_EFFECT_SUBSET` coverage; unknown games are a safe no-op. 4 new tests in `test_cross_domain_predicate_filter.py` (25 total, all passing).
+
 Still open (see tables above): #5-sharedActionParser, #6, #7, #9, #10, VERIFY semantics, anti-repetition randomness, plus H1–H4 (Browser/OSWorld `step()` implementations, video frame-cache, perception fallback for sparse a11y trees), and Phase 8.1 (real Grounding-DINO / SAM-2 / PaddleOCR backends behind lazy imports). (Items #1-OptionB / #8 / `hop_select` LoRA are now obsolete — superseded by #13.)
 
 ---
@@ -1258,6 +1260,58 @@ Reselection triggers:
 - `duration_exceeded` — steps on skill >= max duration
 - `zero_reward_stall` — 4+ steps with no reward (games)
 - `abort/success criteria` — keyword match from protocol
+
+### Runtime predicate filtering (key_missing fix, 2026-05-18)
+
+**Problem.** Protocols loaded from disk (cold-start seeds, pre-existing
+skill banks) can contain cross-domain predicates — e.g. a web predicate
+like `dom_changed=true` or a QA predicate like `answer_confirmed=true`
+inside a gymv shooter protocol. When `StepTracker` evaluated these
+predicates at runtime, the referenced keys never existed in the game
+state dict, producing `key_missing` telemetry events (1,000–2,700 per
+step for gymv games). This made `intrinsic_bonus` always zero,
+`r_progress` reward signal ineffective, and GRPO unable to learn from
+fine-grained step tracking — it could only rely on the coarse
+environment score.
+
+The write-time sanitizer (`skillbank_pipeline._sanitize_skill_in_place`)
+only runs when new protocols are mined or updated (Phase B). Protocols
+loaded from disk bypass that path entirely.
+
+**Fix.** Runtime predicate filtering was added at three code sites:
+
+| File | What changed |
+|------|-------------|
+| `skill_decision_core.py` — `StepTracker.set_protocol()` | Calls `_filter_protocol_predicates_for_game()` to filter `step_checks`, `predicate_success`, and `predicate_abort` against `TASK_EFFECT_SUBSET` at protocol-load time. Also filters explicitly provided `required_effects` via `_filter_required_effects()`, and passes already-filtered `step_checks` to `_infer_required_effects()` to prevent cross-domain effect keys from leaking into the required set. |
+| `scripts/qwen3_decision_agent.py` — `_SkillTracker.set_protocol()` | Added `game_name` parameter and runtime filtering via `repair_step_checks_against_registry` + `filter_predicates_against_registry`. The legacy `_SkillTracker` had no game awareness at all. |
+| `trainer/coevolution/unified_episode_runner.py` | Changed `StepTracker(domain=domain)` to `StepTracker(domain=domain, game_name=task_name)` so the `task_name` parameter (e.g. `"miniwob"`, `"webshop"`) is passed through, enabling runtime filtering for QA/web tasks when they enter the training loop. |
+
+**Coverage.** All 18 tasks have `TASK_EFFECT_SUBSET` entries:
+
+| Domain | Tasks | Status |
+|--------|-------|--------|
+| Classic games | `twenty_forty_eight`, `tetris`, `candy_crush`, `super_mario` | Covered |
+| GymV shooters | `temporal_airstriker-v0`, `temporal_spaceharrierii-v0`, `temporal_thunderforceiii-v0` | Covered (via `_GAMEV_KEY_ALIASES`) |
+| GymV brawlers | `temporal_alteredbeast-v0`, `temporal_streetsofrage2-v0`, `temporal_strider-v0`, `temporal_dynamiteheaddy-v0` | Covered (via `_GAMEV_KEY_ALIASES`) |
+| GymV puzzle | `temporal_columns-v0` | Covered (via `_GAMEV_KEY_ALIASES`) |
+| QA reasoning | `video_holmes`, `siv_bench`, `tir_bench`, `visual_toolbench` | Covered |
+| Web interaction | `miniwob`, `webshop` | Covered |
+
+Games without `TASK_EFFECT_SUBSET` registration (e.g. Orak games other
+than `super_mario`, OSWorld, `tictactoe`, `texasholdem`) are unaffected —
+the filter is a safe no-op for unknown games, preferring to keep all
+predicates rather than risk dropping valid ones.
+
+**Safety invariant.** When `game_name` is empty or not in the registry,
+no filtering occurs (identical to pre-fix behaviour). When filtering
+would reduce `required_effects` to an empty set but there were original
+requirements, the original set is retained to avoid accidentally making
+protocols trivially completable.
+
+**Expected impact.** `key_missing` events drop from 1,000–2,700 per step
+to near zero for gymv games. `intrinsic_bonus` fires correctly when
+step_check predicates are actually satisfied. `r_progress` provides
+effective fine-grained reward signal for GRPO training.
 
 ### Skill bank effect layers
 

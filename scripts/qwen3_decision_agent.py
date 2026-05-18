@@ -1561,7 +1561,8 @@ class _SkillTracker:
     Falls back to time-based advancement (one step per timestep).
     """
 
-    def __init__(self):
+    def __init__(self, game_name: str = ""):
+        self.game_name: str = game_name
         self.active_skill_id: Optional[str] = None
         self.active_skill_name: str = ""
         self.steps_on_skill: int = 0
@@ -1721,6 +1722,23 @@ class _SkillTracker:
             self._predicate_success = protocol.get("predicate_success", []) or []
             self._predicate_abort = protocol.get("predicate_abort", []) or []
             self._step_checks = protocol.get("step_checks", []) or []
+
+            if self.game_name:
+                from decision_agents.protocol_utils import (
+                    repair_step_checks_against_registry,
+                    filter_predicates_against_registry,
+                )
+                self._step_checks, _ = repair_step_checks_against_registry(
+                    list(self._step_checks),
+                    list(protocol.get("steps", []) or []),
+                    game_name=self.game_name,
+                )
+                self._predicate_success, _ = filter_predicates_against_registry(
+                    list(self._predicate_success), game_name=self.game_name,
+                )
+                self._predicate_abort, _ = filter_predicates_against_registry(
+                    list(self._predicate_abort), game_name=self.game_name,
+                )
         else:
             self.max_skill_duration = 10
 
@@ -1793,7 +1811,7 @@ def run_episode(
 
     recent_actions: List[str] = []
     recent_rewards: List[float] = []
-    skill_tracker = _SkillTracker()
+    skill_tracker = _SkillTracker(game_name=game)
     last_guidance: Optional[Dict[str, Any]] = None
     last_candidates: List[Dict[str, Any]] = []
     last_chosen_idx: int = 0

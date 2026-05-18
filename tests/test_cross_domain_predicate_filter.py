@@ -310,3 +310,138 @@ def test_sanitize_skill_no_op_for_unknown_game():
     assert skill.protocol.step_checks == ["weird_predicate=true"]
     assert skill.protocol.predicate_success == ["foo=bar"]
     assert skill.protocol.predicate_abort == ["baz=qux"]
+
+
+# ---------------------------------------------------------------------------
+# StepTracker runtime filtering — ensures even pre-existing/cold-start
+# protocols loaded from disk get their cross-domain predicates stripped
+# before any runtime evaluation (key_missing fix for gymv games)
+# ---------------------------------------------------------------------------
+
+
+def test_step_tracker_filters_cross_domain_step_checks_at_runtime():
+    """StepTracker.set_protocol must filter out cross-domain step_checks
+    like ``dom_changed=true`` for a gymv shooter game.  Before this fix,
+    every evaluation of such a predicate incremented key_missing."""
+    from decision_agents.skill_decision_core import StepTracker, DOMAIN_GAME
+
+    tracker = StepTracker(domain=DOMAIN_GAME, game_name="gymv_thunder_force_iii")
+    protocol = {
+        "steps": ["observe screen", "fire at enemies", "evade projectiles"],
+        "step_checks": [
+            "dom_changed=true",      # cross-domain (web)
+            "element_clicked=true",   # cross-domain (web)
+            "enemy_hit=true",         # valid for shooter
+        ],
+        "predicate_success": [
+            "board_transformed=true",  # cross-domain (board game)
+            "score_increased=true",    # valid
+        ],
+        "predicate_abort": [
+            "answer_confirmed=true",   # cross-domain (QA)
+            "damage_taken=true",       # valid
+        ],
+    }
+    tracker.set_protocol(protocol)
+
+    for check in tracker._step_checks:
+        if not check:
+            continue
+        key = check.split("=")[0].strip()
+        allowed = set(get_valid_effects("gymv_thunder_force_iii"))
+        assert key in allowed, (
+            f"Runtime step_check {check!r} has key {key!r} outside "
+            f"the closed effect set for gymv_thunder_force_iii"
+        )
+
+    for pred in tracker._predicate_success:
+        key = pred.split("=")[0].strip()
+        allowed = set(get_valid_effects("gymv_thunder_force_iii"))
+        assert key in allowed, (
+            f"Runtime predicate_success {pred!r} has key {key!r} "
+            f"outside the closed effect set"
+        )
+
+    for pred in tracker._predicate_abort:
+        key = pred.split("=")[0].strip()
+        allowed = set(get_valid_effects("gymv_thunder_force_iii"))
+        assert key in allowed, (
+            f"Runtime predicate_abort {pred!r} has key {key!r} "
+            f"outside the closed effect set"
+        )
+
+
+def test_step_tracker_filters_required_effects_at_runtime():
+    """When a protocol carries explicit ``required_effects`` with
+    cross-domain tags, StepTracker must filter them too."""
+    from decision_agents.skill_decision_core import StepTracker, DOMAIN_GAME
+
+    tracker = StepTracker(domain=DOMAIN_GAME, game_name="gymv_thunder_force_iii")
+    protocol = {
+        "steps": ["scan", "shoot"],
+        "required_effects": [
+            "state_observed",
+            "enemy_hit",
+            "board_transformed",  # cross-domain
+            "form_filled",        # cross-domain
+        ],
+    }
+    tracker.set_protocol(protocol)
+
+    allowed = set(get_valid_effects("gymv_thunder_force_iii"))
+    for eff in tracker._required_effects:
+        assert eff in allowed, (
+            f"Required effect {eff!r} is outside the closed set"
+        )
+    assert "state_observed" in tracker._required_effects
+    assert "enemy_hit" in tracker._required_effects
+    assert "board_transformed" not in tracker._required_effects
+    assert "form_filled" not in tracker._required_effects
+
+
+def test_step_tracker_no_filter_when_no_game_name():
+    """When game_name is empty, no filtering should occur (unknown
+    domain — safer to keep everything than risk dropping valid preds)."""
+    from decision_agents.skill_decision_core import StepTracker, DOMAIN_GAME
+
+    tracker = StepTracker(domain=DOMAIN_GAME, game_name="")
+    protocol = {
+        "steps": ["do stuff"],
+        "step_checks": ["dom_changed=true", "enemy_hit=true"],
+        "predicate_success": ["board_transformed=true"],
+        "predicate_abort": ["answer_confirmed=true"],
+    }
+    tracker.set_protocol(protocol)
+    assert tracker._step_checks == ["dom_changed=true", "enemy_hit=true"]
+    assert tracker._predicate_success == ["board_transformed=true"]
+    assert tracker._predicate_abort == ["answer_confirmed=true"]
+
+
+def test_step_tracker_infer_required_effects_uses_filtered_checks():
+    """_infer_required_effects must use the FILTERED step_checks, not
+    the raw protocol step_checks.  Otherwise cross-domain effect keys
+    leak into _required_effects and the completion_ratio never reaches
+    1.0 (those effects can never be achieved)."""
+    from decision_agents.skill_decision_core import StepTracker, DOMAIN_GAME
+
+    tracker = StepTracker(domain=DOMAIN_GAME, game_name="gymv_thunder_force_iii")
+    protocol = {
+        "steps": [
+            "scan for enemies",
+            "click the target",  # web-like step desc
+            "fire weapon",
+        ],
+        "step_checks": [
+            "state_observed=true",
+            "element_clicked=true",  # cross-domain → will be repaired
+            "projectile_fired=true",
+        ],
+    }
+    tracker.set_protocol(protocol)
+
+    allowed = set(get_valid_effects("gymv_thunder_force_iii"))
+    for eff in tracker._required_effects:
+        assert eff in allowed, (
+            f"Inferred required effect {eff!r} is outside the closed "
+            f"set — _infer_required_effects used unfiltered step_checks"
+        )

@@ -86,7 +86,7 @@ async def run_unified_episode(
     obs_nl, info = env.reset()
     action_names = info.get("action_names", [])
 
-    tracker = StepTracker(domain=domain)
+    tracker = StepTracker(domain=domain, game_name=task_name)
     skill_records: List[SkillSelectionRecord] = []
     action_records: List[Dict[str, Any]] = []
     experiences: List[Dict[str, Any]] = []

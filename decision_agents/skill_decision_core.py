@@ -319,6 +319,8 @@ class StepTracker:
             self.steps_on_skill += 1
             self.reward_on_skill += reward
 
+            success = None
+            abort = None
             if state_text and self.active_skill_id:
                 success = self._check_criteria(state_text, is_abort=False)
                 abort = self._check_criteria(state_text, is_abort=True)
@@ -326,6 +328,15 @@ class StepTracker:
                     self._intrinsic_bonus += 0.3
                 if abort:
                     self._intrinsic_bonus -= 0.1
+
+            if self._step_checks and not (success or abort):
+                from decision_agents.protocol_utils import check_predicate
+                effects = self._effect_observer._cumulative_effects
+                idx = min(self.steps_on_skill - 1,
+                          len(self._step_checks) - 1)
+                check = self._step_checks[idx] if idx >= 0 else ""
+                if check and check_predicate(check, effects):
+                    self._intrinsic_bonus += 0.2
 
     # ── Progress summary for prompt ───────────────────────────────
 
@@ -369,12 +380,36 @@ class StepTracker:
             self._predicate_abort = protocol.get("predicate_abort", []) or []
             self._step_checks = protocol.get("step_checks", []) or []
 
+            # Runtime predicate filtering: drop cross-domain predicates
+            # that can never fire for this game.  The bank-update pipeline
+            # (skillbank_pipeline._sanitize_skill_in_place) already filters
+            # at write time, but pre-existing / cold-start-seeded protocols
+            # loaded from disk bypass that path.  Without runtime filtering,
+            # every evaluation of a stale cross-domain predicate increments
+            # key_missing (1000-2700 per step for gymv games), leaving
+            # r_progress ~0 and GRPO without fine-grained reward signal.
+            if self.game_name:
+                self._step_checks, self._predicate_success, self._predicate_abort = (
+                    _filter_protocol_predicates_for_game(
+                        self._step_checks,
+                        self._predicate_success,
+                        self._predicate_abort,
+                        protocol.get("steps", []) or [],
+                        self.game_name,
+                    )
+                )
+
             req = protocol.get("required_effects", []) or []
             if req:
                 self._required_effects = set(req)
+                if self.game_name:
+                    self._required_effects = _filter_required_effects(
+                        self._required_effects, self.game_name,
+                    )
             else:
                 self._required_effects = _infer_required_effects(
                     protocol, game_name=self.game_name,
+                    filtered_step_checks=self._step_checks,
                 )
 
             self._completion_effect = protocol.get("completion_effect", "")
@@ -382,18 +417,83 @@ class StepTracker:
             self.max_skill_duration = 10
 
 
+def _filter_required_effects(
+    required: Set[str],
+    game_name: str,
+) -> Set[str]:
+    """Drop required effects that cannot fire for *game_name*.
+
+    If the game has a registered closed effect set, only keep effects
+    that appear in it.  If no set is registered, return unchanged.
+    """
+    from decision_agents.protocol_utils import (
+        canonicalize_game_key,
+        TASK_EFFECT_SUBSET,
+    )
+    canonical = canonicalize_game_key(game_name)
+    if canonical not in TASK_EFFECT_SUBSET:
+        return required
+    allowed = set(TASK_EFFECT_SUBSET[canonical])
+    filtered = {e for e in required if e in allowed}
+    if not filtered and required:
+        return required
+    return filtered
+
+
+def _filter_protocol_predicates_for_game(
+    step_checks: List[str],
+    predicate_success: List[str],
+    predicate_abort: List[str],
+    protocol_steps: List[str],
+    game_name: str,
+) -> Tuple[List[str], List[str], List[str]]:
+    """Filter all protocol predicates against the game's closed effect set.
+
+    Called at protocol-load time inside :meth:`StepTracker.set_protocol`
+    so that even pre-existing / cold-start-seeded protocols don't poison
+    runtime evaluation with cross-domain predicates (the write-time
+    sanitizer in ``skillbank_pipeline`` only runs on freshly-mined
+    protocols, not on loaded ones).
+
+    Returns ``(filtered_step_checks, filtered_pred_success, filtered_pred_abort)``.
+    """
+    from decision_agents.protocol_utils import (
+        repair_step_checks_against_registry,
+        filter_predicates_against_registry,
+    )
+
+    new_checks, _ = repair_step_checks_against_registry(
+        list(step_checks), list(protocol_steps), game_name=game_name,
+    )
+    new_ps, _ = filter_predicates_against_registry(
+        list(predicate_success), game_name=game_name,
+    )
+    new_pa, _ = filter_predicates_against_registry(
+        list(predicate_abort), game_name=game_name,
+    )
+    return new_checks, new_ps, new_pa
+
+
 def _infer_required_effects(
     protocol: Dict[str, Any],
     game_name: str = "",
+    filtered_step_checks: Optional[List[str]] = None,
 ) -> Set[str]:
     """Infer required_effects from existing protocol fields.
 
     Bridges old protocol format (step_checks, action_vocab,
     template_signature) to the new effect-tag model.
+
+    When ``filtered_step_checks`` is provided (from runtime predicate
+    filtering), use those instead of the protocol's raw step_checks to
+    avoid pulling cross-domain effect keys into the required set.
     """
     effects: Set[str] = set()
 
-    step_checks = protocol.get("step_checks", []) or []
+    step_checks = (
+        filtered_step_checks if filtered_step_checks is not None
+        else (protocol.get("step_checks", []) or [])
+    )
     for check in step_checks:
         if not check:
             continue
