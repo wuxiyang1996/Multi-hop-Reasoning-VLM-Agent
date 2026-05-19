@@ -1681,26 +1681,43 @@ def run_fsdp_grpo_multi(
     os.environ["OMP_NUM_THREADS"] = "4"
     os.environ["MKL_NUM_THREADS"] = "4"
 
+    _MAX_OOM_RETRIES = 2
     t0 = time.time()
     try:
-        mp.spawn(
-            _fsdp_train_worker_multi,
-            nprocs=world_size,
-            args=(args,),
-            join=True,
-        )
-    except Exception:
-        # On spawn failure (SIGABRT, OOM), force-clear GPU memory on
-        # all training GPUs so the next step starts with a clean slate.
-        try:
-            import torch as _torch
-            for _gid in gpu_ids:
-                with _torch.cuda.device(_gid):
-                    _torch.cuda.empty_cache()
-            gc.collect()
-        except Exception:
-            pass
-        raise
+        for _attempt in range(_MAX_OOM_RETRIES + 1):
+            try:
+                if _attempt > 0:
+                    args["master_port"] = _find_free_port()
+                    logger.info(
+                        "GRPO OOM retry %d/%d — cleared GPU memory, new port %d",
+                        _attempt, _MAX_OOM_RETRIES, args["master_port"],
+                    )
+                    time.sleep(3)
+                mp.spawn(
+                    _fsdp_train_worker_multi,
+                    nprocs=world_size,
+                    args=(args,),
+                    join=True,
+                )
+                break
+            except Exception as _exc:
+                _is_oom = (
+                    "OutOfMemory" in type(_exc).__name__
+                    or "CUDA out of memory" in str(_exc)
+                )
+                try:
+                    import torch as _torch
+                    for _gid in gpu_ids:
+                        with _torch.cuda.device(_gid):
+                            _torch.cuda.empty_cache()
+                    gc.collect()
+                except Exception:
+                    pass
+                if not _is_oom or _attempt >= _MAX_OOM_RETRIES:
+                    raise
+                logger.warning(
+                    "GRPO OOM on attempt %d, will retry", _attempt,
+                )
     finally:
         if original_cvd is not None:
             os.environ["CUDA_VISIBLE_DEVICES"] = original_cvd

@@ -853,7 +853,10 @@ class CoEvolutionConfig:
     # Number of consecutive reward declines before rolling back to the
     # best checkpoint.  Higher values give the optimizer more room to
     # recover from temporary dips; lower values are more conservative.
-    rollback_patience: int = 4
+    # Raised from 4→6: with 10-step runs, patience=4 triggers rollback
+    # too early (e.g. peak at step 1 → rollback at step 5 → no recovery
+    # window).  6 gives ~60% of a run to recover from a dip.
+    rollback_patience: int = 6
 
     # W&B
     wandb_enabled: bool = True

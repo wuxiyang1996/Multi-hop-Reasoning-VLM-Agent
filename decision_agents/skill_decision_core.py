@@ -737,6 +737,13 @@ def parse_skill_selection(
             if return_parse_path:
                 return idx, effects, decision, parse_path  # type: ignore[return-value]
             return idx, effects, decision
+        if n_candidates > 0:
+            clamped = max(0, min(idx, n_candidates - 1))
+            _PARSE_STATS[PARSE_PATH_SKILL_TAG] += 1
+            parse_path = PARSE_PATH_SKILL_TAG
+            if return_parse_path:
+                return clamped, effects, decision, parse_path  # type: ignore[return-value]
+            return clamped, effects, decision
 
     # ── Path 2: trailing-number heuristic (LoRA forgot the SKILL: tag
     # but ended with "...so I pick 3.").  Already a degradation signal.

@@ -1300,7 +1300,7 @@ async def run_episode_async(
                 skill_coro = vllm_client.generate(
                     skill_select_prompt,
                     adapter="skill_selection",
-                    temperature=temperature, max_tokens=128,
+                    temperature=temperature, max_tokens=256,
                     stop=["\n\nAvailable", "\n\nGame state", "\n\n---"],
                 )
 

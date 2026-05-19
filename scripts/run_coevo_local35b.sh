@@ -25,7 +25,7 @@ cd /workspace/Multi-hop-Reasoning-VLM-Agent
 export PYTHONPATH="/workspace/Multi-hop-Reasoning-VLM-Agent:/workspace/GamingAgent:/workspace/GamingAgent/gamingagent/envs/custom_03_candy_crush:${PYTHONPATH:-}"
 export HF_HOME="/workspace/huggingface"
 export HF_HUB_CACHE="${HF_HOME}/hub"
-export GRPO_FSDP_BATCH_SIZE=64
+export GRPO_FSDP_BATCH_SIZE=48
 
 pkill -f "vllm.entrypoints" 2>/dev/null || true
 sleep 2
@@ -53,6 +53,39 @@ if [[ -z "$SFT_KEY" ]]; then
 fi
 
 ADAPTER_DIR="runs/lora_adapters/decision"
+
+# ── Per-game GRPO hyper-parameters ────────────────────────────────────
+# Matched to the Game-AI-Agent Qwen3-8B baselines that achieved
+# candy_crush=658, strider=69+.  The shared defaults were too
+# conservative (lr=5e-5, kl=0.03→0.08, adv_clip=10, patience=4),
+# starving GRPO of learning signal.  Each game gets a tuned set.
+declare -A GAME_GRPO_LR GAME_GRPO_KL GAME_GRPO_KL_INIT GAME_ADV_CLIP GAME_ADV_CLIP_NEG GAME_GRPO_EPOCHS GAME_STEPS_OVERRIDE
+# candy_crush: env-wrapper puzzle; dense reward, low variance → higher LR OK
+GAME_GRPO_LR[candy_crush]="5e-5"        # steady LR (initial = 2×)
+GAME_GRPO_KL[candy_crush]="0.05"        # steady KL coeff
+GAME_GRPO_KL_INIT[candy_crush]="0.01"   # warmup KL coeff
+GAME_ADV_CLIP[candy_crush]="5.0"        # advantage clip (positive)
+GAME_ADV_CLIP_NEG[candy_crush]="3.0"    # advantage clip (negative)
+GAME_GRPO_EPOCHS[candy_crush]="2"
+# gymv_strider: sparse bimodal reward (0 vs 50/150), 60-75% episodes score 0.
+# adv_clip=10 + 3 epochs caused policy collapse (run 212411).
+# adv_clip=5 + 2 epochs gave steady 12→69 improvement (run 115557).
+# Use symmetric clip=5 so zero-reward episodes don't over-correct.
+GAME_GRPO_LR[gymv_strider]="3e-5"
+GAME_GRPO_KL[gymv_strider]="0.04"
+GAME_GRPO_KL_INIT[gymv_strider]="0.01"
+GAME_ADV_CLIP[gymv_strider]="5.0"
+GAME_ADV_CLIP_NEG[gymv_strider]="5.0"   # symmetric — sparse 0s must not dominate
+GAME_GRPO_EPOCHS[gymv_strider]="2"
+GAME_STEPS_OVERRIDE[gymv_strider]="20"  # sparse reward needs more steps to converge
+
+GRPO_LR="${GAME_GRPO_LR[$GAME]:-}"
+GRPO_KL="${GAME_GRPO_KL[$GAME]:-}"
+GRPO_KL_INIT="${GAME_GRPO_KL_INIT[$GAME]:-}"
+ADV_CLIP="${GAME_ADV_CLIP[$GAME]:-10.0}"
+ADV_CLIP_NEG="${GAME_ADV_CLIP_NEG[$GAME]:-}"
+GRPO_EPOCHS="${GAME_GRPO_EPOCHS[$GAME]:-3}"
+STEPS="${GAME_STEPS_OVERRIDE[$GAME]:-$STEPS}"
 
 # skill_selection
 SK_SRC="runs/sft_per_game_v3/${SFT_KEY}/skill_selection/${SFT_KEY}__skill_selection"
@@ -165,9 +198,21 @@ echo "  9B vLLM:    4× TP=1 on GPU 0-3"
 echo "  GRPO:       GPU 6-7"
 echo "  35B local:  GPU 4-5 (TP=2, MULTIMODAL, port 8001)"
 echo "  Run dir:    $RUN_DIR"
+echo "  ── GRPO tuning ──"
+echo "  LR:         ${GRPO_LR:-default} (steady; initial=2×)"
+echo "  KL init:    ${GRPO_KL_INIT:-default}"
+echo "  KL steady:  ${GRPO_KL:-default}"
+echo "  Adv clip:   $ADV_CLIP"
+echo "  Max epochs: $GRPO_EPOCHS"
 echo "============================================"
 
 trap "echo 'Caught signal — stopping 35B server (PID=$JUDGE_PID)...'; kill $JUDGE_PID 2>/dev/null || true; exit 130" INT TERM
+
+EXTRA_GRPO_ARGS=""
+[[ -n "$GRPO_LR" ]]       && EXTRA_GRPO_ARGS+=" --grpo-lr $GRPO_LR"
+[[ -n "$GRPO_KL" ]]       && EXTRA_GRPO_ARGS+=" --grpo-kl-coeff $GRPO_KL"
+[[ -n "$GRPO_KL_INIT" ]]  && EXTRA_GRPO_ARGS+=" --initial-kl-coeff $GRPO_KL_INIT"
+[[ -n "$ADV_CLIP_NEG" ]]  && EXTRA_GRPO_ARGS+=" --grpo-adv-clip-neg $ADV_CLIP_NEG"
 
 python3 scripts/run_coevolution.py \
     --games "$GAME" \
@@ -185,6 +230,7 @@ python3 scripts/run_coevolution.py \
     --temperature 0.3 \
     --max-tokens 512 \
     --checkpoint-interval 1 \
-    --grpo-adv-clip 10.0 \
-    --grpo-max-epochs 3 \
+    --grpo-adv-clip "$ADV_CLIP" \
+    --grpo-max-epochs "$GRPO_EPOCHS" \
+    $EXTRA_GRPO_ARGS \
     2>&1 | tee -a "$LOG_FILE"
