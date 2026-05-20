@@ -838,6 +838,11 @@ async def run_episode_async(
     # Skipped silently when ``None`` or ``enabled=False``.  Truncated
     # episodes (timeout-based termination) are never penalised.
     early_death_config: Optional[Dict[str, Any]] = None,
+    # T2.19: dense action reward shaping for sparse-reward envs.
+    action_survival_bonus: float = 0.0,
+    episode_return_redistribution_weight: float = 0.0,
+    action_advance_bonus: float = 0.0,
+    action_advance_actions: str = "RIGHT",
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -1269,9 +1274,17 @@ async def run_episode_async(
                     current_info.get("state_markup") if current_info else None
                 )
                 _ss_state_text = (
-                    _ss_rich if _ss_rich and "<state>" in _ss_rich
+                    _ss_rich if _ss_rich
                     else (summary_state or obs_nl)
                 )
+                if _ss_state_text and "<state>" in _ss_state_text:
+                    _ss_state_text = (
+                        _ss_state_text
+                        .replace("<state>\n", "", 1)
+                        .replace("\n</state>", "", 1)
+                        .replace("<state>", "", 1)
+                        .replace("</state>", "", 1)
+                    )
                 skill_select_prompt = _build_skill_selection_prompt_unified(
                     state_text=_ss_state_text,
                     intention=current_intention,
@@ -1743,11 +1756,15 @@ async def run_episode_async(
                     and float(raw_env_reward) <= 0.0
                 ):
                     _passive_penalty = -0.05
+                _surv_bonus = action_survival_bonus if float(raw_env_reward) <= 0.0 else 0.0
+                _adv_bonus = action_advance_bonus if _action_str in action_advance_actions.upper().split(",") else 0.0
                 _action_reward = (
                     float(reward)
                     + skill_tracker._intrinsic_bonus
                     + _format_bonus
                     + _passive_penalty
+                    + _surv_bonus
+                    + _adv_bonus
                 )
                 try:
                     from trainer.coevolution._run_loggers import (  # noqa: WPS433
@@ -2113,6 +2130,23 @@ async def run_episode_async(
             total_reward, penalty, new_total,
         )
         total_reward = new_total
+
+    # T2.19: episode return redistribution — spread a fraction of the
+    # episode score across all action_taking GRPO records so that good
+    # positioning/approach actions get credit even when they didn't
+    # directly coincide with a score event.
+    if episode_return_redistribution_weight > 0.0 and total_reward > 0.0:
+        at_records = [r for r in grpo_records if r.adapter == "action_taking"]
+        if at_records:
+            per_action_bonus = (
+                total_reward * episode_return_redistribution_weight
+                / len(at_records)
+            )
+            for rec in at_records:
+                rec.reward += per_action_bonus
+                if rec.metadata is None:
+                    rec.metadata = {}
+                rec.metadata["return_redistribution"] = round(per_action_bonus, 4)
 
     chain_tracker.finalize(grpo_records, current_score=total_reward)
 

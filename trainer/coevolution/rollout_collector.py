@@ -26,6 +26,14 @@ from trainer.coevolution.vllm_client import AsyncVLLMClient
 logger = logging.getLogger(__name__)
 
 
+def _dense_reward_cfg(config: Any, game_name: str, field: str) -> float:
+    """Resolve a dense-reward config value with gymv-specific override."""
+    gymv_field = field + "_gymv"
+    if game_name.startswith("gymv_") and hasattr(config, gymv_field):
+        return float(getattr(config, gymv_field))
+    return float(getattr(config, field, 0.0))
+
+
 # ---------------------------------------------------------------------------
 # Wave synchronizer — keeps episode LLM requests batched on the GPU
 # ---------------------------------------------------------------------------
@@ -330,6 +338,18 @@ async def collect_rollouts(
                                 config, "early_death_penalty_base", 2.0,
                             )),
                         },
+                        action_survival_bonus=_dense_reward_cfg(
+                            config, spec.game, "action_survival_bonus",
+                        ),
+                        episode_return_redistribution_weight=_dense_reward_cfg(
+                            config, spec.game, "episode_return_redistribution_weight",
+                        ),
+                        action_advance_bonus=_dense_reward_cfg(
+                            config, spec.game, "action_advance_bonus",
+                        ),
+                        action_advance_actions=str(getattr(
+                            config, "action_advance_actions", "RIGHT",
+                        )),
                     )
                     break
                 except Exception as exc:

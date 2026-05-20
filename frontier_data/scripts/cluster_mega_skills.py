@@ -103,11 +103,14 @@ def main():
         canonical_map.update(batch_map)
         print(f"  batch {i//batch_size+1}: {len(batch_map)} labels mapped")
 
-    # Unification pass — merge canonical names down to 12-18 families
-    canonical_names = sorted(set(canonical_map.values()))
-    if len(canonical_names) > 18:
-        print(f"  Unifying {len(canonical_names)} canonical names → target 12-18...")
-        # Build a richer prompt with procedures and counts
+    # Iterative unification — merge canonical names down to 15-20 families
+    TARGET_MIN, TARGET_MAX, MAX_ROUNDS = 15, 20, 5
+    for rnd in range(1, MAX_ROUNDS + 1):
+        canonical_names = sorted(set(canonical_map.values()))
+        if len(canonical_names) <= TARGET_MAX:
+            break
+        print(f"  Unify round {rnd}: {len(canonical_names)} canonical names → target {TARGET_MIN}-{TARGET_MAX}...")
+
         canon_info = defaultdict(lambda: {"count": 0, "domains": set(), "procedure": ""})
         for raw_lbl, canon in canonical_map.items():
             info = raw["mega_skills"].get(raw_lbl)
@@ -124,37 +127,74 @@ def main():
             doms = "+".join(sorted(ci["domains"]))
             lines.append(f"- {cn} ({ci['count']} skills, {doms}): {ci['procedure']}")
 
-        unify_system = """\
-You are a cognitive-science expert merging mega-skill families.
+        unify_system = f"""\
+You are a cognitive-science expert merging mega-skill families for
+CROSS-DOMAIN transfer (GAME ↔ WEB ↔ VR).
+
+GOAL: Reduce the families to {TARGET_MIN}-{TARGET_MAX} abstract families
+that capture TRANSFERABLE cognitive procedures shared across domains.
 
 Rules:
-1. Only merge families with TRULY identical core cognitive procedures.
-   Do NOT over-merge: "perceive→decide→act" and "perceive→plan→act" differ
-   because planning is a distinct cognitive step beyond reactive deciding.
-   Similarly, "compare→select" differs from "filter→select" because compare
-   evaluates pairwise while filter applies criteria.
-2. Target 15-20 final families. No single family should dominate (>30%).
-3. Output a JSON object mapping each input name to its final canonical name.
-4. Use SHORT_SNAKE_CASE names (2-4 words).
-5. Output ONLY the JSON object."""
+1. Aggressively merge families that share the same core cognitive loop
+   (e.g. perceive→decide→act variants should become ONE family).
+2. Prefer CROSS-DOMAIN families. Single-domain families should be merged
+   into the closest cross-domain family whenever the core procedure matches.
+3. Target {TARGET_MIN}-{TARGET_MAX} final families. No single family >25%.
+4. Output a JSON object mapping EVERY input name to its final canonical name.
+   You MUST map ALL {len(canonical_names)} input names — do NOT skip any.
+5. Use SHORT_SNAKE_CASE names (2-4 words).
+6. Output ONLY the JSON object, nothing else."""
 
         unify_prompt = "Merge these families:\n\n" + "\n".join(lines)
-        resp2 = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {"role": "system", "content": unify_system},
-                {"role": "user", "content": unify_prompt},
-            ],
-            temperature=0.0,
-            max_completion_tokens=2000,
-        )
-        text2 = resp2.choices[0].message.content.strip()
-        match2 = re.search(r'\{[\s\S]+\}', text2)
-        if match2:
-            unify_map = json.loads(match2.group())
+
+        # Split into batches if too many names
+        batch_sz = 45
+        if len(canonical_names) > batch_sz:
+            full_unify_map = {}
+            for bi in range(0, len(lines), batch_sz):
+                batch_lines = lines[bi:bi + batch_sz]
+                bp = f"Merge these families (batch {bi//batch_sz+1}, map EVERY name):\n\n" + "\n".join(batch_lines)
+                resp2 = client.chat.completions.create(
+                    model="gpt-4.1-mini",
+                    messages=[
+                        {"role": "system", "content": unify_system},
+                        {"role": "user", "content": bp},
+                    ],
+                    temperature=0.0,
+                    max_completion_tokens=8000,
+                )
+                text2 = resp2.choices[0].message.content.strip()
+                match2 = re.search(r'\{[\s\S]+\}', text2)
+                if match2:
+                    bmap = json.loads(match2.group())
+                    full_unify_map.update(bmap)
+            unify_map = full_unify_map
+        else:
+            resp2 = client.chat.completions.create(
+                model="gpt-4.1-mini",
+                messages=[
+                    {"role": "system", "content": unify_system},
+                    {"role": "user", "content": unify_prompt},
+                ],
+                temperature=0.0,
+                max_completion_tokens=8000,
+            )
+            text2 = resp2.choices[0].message.content.strip()
+            match2 = re.search(r'\{[\s\S]+\}', text2)
+            unify_map = json.loads(match2.group()) if match2 else {}
+
+        if unify_map:
+            mapped_count = 0
             for raw_lbl in canonical_map:
                 old_canon = canonical_map[raw_lbl]
-                canonical_map[raw_lbl] = unify_map.get(old_canon, old_canon)
+                new_canon = unify_map.get(old_canon)
+                if new_canon and new_canon != old_canon:
+                    canonical_map[raw_lbl] = new_canon
+                    mapped_count += 1
+            print(f"    Applied {mapped_count} remappings")
+        else:
+            print("    WARNING: unify pass returned empty map, stopping")
+            break
 
     print(f"Final canonical families: {len(set(canonical_map.values()))}")
 

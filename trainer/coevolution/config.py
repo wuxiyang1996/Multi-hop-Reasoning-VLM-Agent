@@ -195,7 +195,7 @@ HIGH_VARIANCE_GYMV_EPISODES: Dict[str, int] = {
     "gymv_dynamite_headdy":    12,
     "gymv_space_harrier_ii":   12,
     "gymv_streets_of_rage_2":  12,
-    "gymv_strider":            8,
+    "gymv_strider":            12,
     "gymv_airstriker":         8,
     # gymv_columns is dense-scoring (every match scores) so it never
     # suffered the bimodal pathology — kept off the registry.
@@ -1025,6 +1025,33 @@ class CoEvolutionConfig:
     early_death_threshold_steps: int = 40
     early_death_threshold_reward: float = 100.0
     early_death_penalty_base: float = 2.0
+
+    # T2.19 (2026-05-19): dense action-level reward shaping for sparse-
+    # reward games (e.g. gymv_strider).  Two mechanisms:
+    #
+    # 1. **Survival bonus** — small per-step reward for staying alive,
+    #    creating a dense gradient that teaches "don't die" independent of
+    #    score events.  Only applied when ``raw_env_reward == 0`` so it
+    #    doesn't inflate already-rewarded actions.
+    #
+    # 2. **Episode return redistribution** — at episode end, a fraction
+    #    of the total episode reward is distributed uniformly across all
+    #    action GRPO records.  Solves the credit-assignment problem where
+    #    good positioning/timing actions get zero reward despite enabling
+    #    the scoring action later.
+    action_survival_bonus: float = 0.0
+    action_survival_bonus_gymv: float = 1.5
+    episode_return_redistribution_weight: float = 0.0
+    episode_return_redistribution_weight_gymv: float = 0.25
+
+    # T2.19b: advance bonus for side-scrolling brawler/platformer games.
+    # Gemini frontier data shows RIGHT=36% vs our agent ~7% — the agent
+    # attacks but doesn't push forward through stages.  A small bonus on
+    # RIGHT incentivises stage progression → more enemy encounters → more
+    # score.  Only applied to GRPO training reward, not episode total.
+    action_advance_bonus: float = 0.0
+    action_advance_bonus_gymv: float = 2.0
+    action_advance_actions: str = "RIGHT"
 
     # T2.17 (2026-05-05): per-step vision-grounded ``<state>`` markup.
     # The 35B judge (port 8001, MULTIMODAL=1) re-emits the cold-start

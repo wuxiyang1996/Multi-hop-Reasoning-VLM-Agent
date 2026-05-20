@@ -71,20 +71,20 @@ GAME_GRPO_EPOCHS[candy_crush]="2"
 # adv_clip=10 + 3 epochs caused policy collapse (run 212411).
 # adv_clip=5 + 2 epochs gave steady 12→69 improvement (run 115557).
 # Use symmetric clip=5 so zero-reward episodes don't over-correct.
-GAME_GRPO_LR[gymv_strider]="3e-5"
-GAME_GRPO_KL[gymv_strider]="0.04"
-GAME_GRPO_KL_INIT[gymv_strider]="0.01"
+GAME_GRPO_LR[gymv_strider]="2e-5"
+GAME_GRPO_KL[gymv_strider]="0.08"
+GAME_GRPO_KL_INIT[gymv_strider]="0.03"
 GAME_ADV_CLIP[gymv_strider]="5.0"
-GAME_ADV_CLIP_NEG[gymv_strider]="5.0"   # symmetric — sparse 0s must not dominate
+GAME_ADV_CLIP_NEG[gymv_strider]="3.0"   # asymmetric — damp zero-reward neg gradients (was 5.0, caused oscillation)
 GAME_GRPO_EPOCHS[gymv_strider]="2"
-GAME_STEPS_OVERRIDE[gymv_strider]="20"  # sparse reward needs more steps to converge
+GAME_STEPS_OVERRIDE[gymv_strider]="20"  # 20 steps to push past SOTA (112.5)
 
-GRPO_LR="${GAME_GRPO_LR[$GAME]:-}"
-GRPO_KL="${GAME_GRPO_KL[$GAME]:-}"
-GRPO_KL_INIT="${GAME_GRPO_KL_INIT[$GAME]:-}"
-ADV_CLIP="${GAME_ADV_CLIP[$GAME]:-10.0}"
-ADV_CLIP_NEG="${GAME_ADV_CLIP_NEG[$GAME]:-}"
-GRPO_EPOCHS="${GAME_GRPO_EPOCHS[$GAME]:-3}"
+GRPO_LR="${GAME_GRPO_LR[$GAME]:-4e-5}"
+GRPO_KL="${GAME_GRPO_KL[$GAME]:-0.04}"
+GRPO_KL_INIT="${GAME_GRPO_KL_INIT[$GAME]:-0.01}"
+ADV_CLIP="${GAME_ADV_CLIP[$GAME]:-5.0}"
+ADV_CLIP_NEG="${GAME_ADV_CLIP_NEG[$GAME]:-4.0}"
+GRPO_EPOCHS="${GAME_GRPO_EPOCHS[$GAME]:-2}"
 STEPS="${GAME_STEPS_OVERRIDE[$GAME]:-$STEPS}"
 
 # skill_selection
@@ -179,10 +179,15 @@ except Exception:
 fi
 export OPENROUTER_API_KEY
 
-# Resume mode: pass RESUME_RUN_DIR=runs/... and START_MODE=resume to reuse a run.
+# Resume mode: pass RESUME_RUN_DIR=runs/... to reuse a run.
+# Optionally pass RESUME_FROM_STEP=N to resume from a specific checkpoint.
 if [[ -n "${RESUME_RUN_DIR:-}" ]]; then
     RUN_DIR="$RESUME_RUN_DIR"
-    START_FLAG="--resume"
+    if [[ -n "${RESUME_FROM_STEP:-}" ]]; then
+        START_FLAG="--resume-from-step $RESUME_FROM_STEP"
+    else
+        START_FLAG="--resume"
+    fi
 else
     RUN_DIR="runs/${GAME}_coevo_v4_$(date +%Y%m%d_%H%M%S)"
     START_FLAG="--from-scratch"
