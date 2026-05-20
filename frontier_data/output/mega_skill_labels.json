@@ -1,407 +1,72 @@
 {
-  "total_skills": 406,
-  "total_mega_skills": 18,
+  "total_skills": 324,
+  "total_mega_skills": 190,
+  "clustering_method": "free_form_reasoning_step_labels",
   "mega_skills": {
-    "DODGE_AND_SURVIVE": {
-      "count": 65,
-      "domains": [
-        "GAME"
-      ],
-      "tasks": [
-        "Temporal_Airstriker-v0",
-        "Temporal_AlteredBeast-v0",
-        "Temporal_DynamiteHeaddy-v0",
-        "Temporal_SpaceHarrierII-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "Temporal_Strider-v0",
-        "Temporal_ThunderForceIII-v0",
-        "tetris"
-      ],
-      "n_way": 1,
-      "is_cross_domain": false,
-      "procedure": "Monitor threats \u2192 decide evasive action \u2192 execute avoidance",
-      "skills": [
-        {
-          "skill_id": "RECOVER/EVADE",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EVADE",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-3a875ef3f7",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0473c75276",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-44ac53c900",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8a589f1fae",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-e8605dbeee",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-e8833a5535",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-e6da3cba14",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1b65530dd9",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/EVADE",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EVADE",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/EVADE",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-4eb3432219",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8714c727c6",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6072264f4a",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-313337d690",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/SURVIVE",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cc21561fb4",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ea9d17bdb7",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-aa8c1b3cc1",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1bd2bdf432",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d1c3fb36a6",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-46e22886ae",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-86517c691e",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-bd24f7411c",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/EVADE",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-06f8801da3",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/EVADE",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-10b43b9fe2",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8b4449bbfd",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EVADE",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/SURVIVE",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/EVADE",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/DEFEND",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0f65fb63a1",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-503309c90c",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c1afadad58",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-67a69d9ef6",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-3702d3bfed",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-4dbd1884ed",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0fdb4c9baa",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b668cc1de6",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-fe6b702449",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-4a8549c4f9",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f569463f89",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7ac45fd856",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-17705af0bd",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/EVADE",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-996b1bb15f",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "RECOVER/SURVIVE",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ce5b23e95d",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-83cb5d9a71",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b74e4d3461",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-5daafa60f9",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8af2607afd",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-063cb6176d",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-40d58a65ed",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d4da8959bc",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-430f2629dc",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b9de370dd9",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9cde017c0d",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a8b797d2c5",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/SURVIVE",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-039d81be91",
-          "task": "tetris",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "INFER_AND_DECIDE": {
-      "count": 43,
+    "PERCEIVE_DECIDE_ACT": {
+      "count": 33,
       "domains": [
         "GAME",
-        "VR",
+        "UNKNOWN",
         "WEB"
       ],
       "tasks": [
         "Temporal_Airstriker-v0",
         "Temporal_AlteredBeast-v0",
-        "Temporal_Columns-v0",
         "Temporal_DynamiteHeaddy-v0",
         "Temporal_SpaceHarrierII-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "Temporal_Strider-v0",
-        "Temporal_ThunderForceIII-v0",
+        "gymv_altered_beast",
+        "gymv_dynamite_headdy",
+        "gymv_space_harrier_ii",
         "miniwob",
-        "siv_bench",
-        "tetris",
-        "video_holmes",
-        "visual_toolbench"
+        "super_mario",
+        "tetris"
       ],
       "n_way": 3,
       "is_cross_domain": true,
-      "procedure": "Perceive evidence \u2192 reason about causes \u2192 select explanation/action",
+      "procedure": "perceive environment and target \u2192 decide to engage now \u2192 act to initiate and maintain close interaction",
+      "raw_labels": [
+        "PERCEIVE_DECIDE_ACT"
+      ],
       "skills": [
         {
-          "skill_id": "COMMIT/SETUP",
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
           "task": "Temporal_Airstriker-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-705ba87063",
+          "skill_id": "RECOVER/EVADE",
           "task": "Temporal_Airstriker-v0",
           "domain": "GAME"
         },
         {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMPARE/ATTACK",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME"
+        },
+        {
           "skill_id": "INSPECT/SETUP",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ea8c66908b",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "INSPECT/SETUP",
-          "task": "Temporal_Columns-v0",
+          "task": "Temporal_DynamiteHeaddy-v0",
           "domain": "GAME"
         },
         {
@@ -410,13 +75,8 @@
           "domain": "GAME"
         },
         {
-          "skill_id": "INSPECT/SETUP",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-70526e4ce5",
-          "task": "Temporal_DynamiteHeaddy-v0",
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "Temporal_SpaceHarrierII-v0",
           "domain": "GAME"
         },
         {
@@ -425,1053 +85,87 @@
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-5abdd41ca4",
+          "skill_id": "COMMIT/NAVIGATE",
           "task": "Temporal_SpaceHarrierII-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-75b8ef8baf",
+          "skill_id": "COMMIT/POSITION",
           "task": "Temporal_SpaceHarrierII-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-5c9d99464f",
+          "skill_id": "RECOVER/EVADE",
           "task": "Temporal_SpaceHarrierII-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-bf1eb44189",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "gymv_altered_beast",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "skill-0efa25c107",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
+          "skill_id": "RECOVER/EVADE",
+          "task": "gymv_altered_beast",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "COMMIT/COLLECT",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
+          "skill_id": "COMMIT/ATTACK",
+          "task": "gymv_altered_beast",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMPARE/ATTACK",
+          "task": "gymv_altered_beast",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/EXECUTE",
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
         },
         {
           "skill_id": "INSPECT/SETUP",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "skill-2e60f92f5f",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "gymv_space_harrier_ii",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "INSPECT/SETUP",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "gymv_space_harrier_ii",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "archetype.miniwob.stock",
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "gymv_space_harrier_ii",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "gymv_space_harrier_ii",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "gymv_space_harrier_ii",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "archetype.miniwob.drag",
           "task": "miniwob",
           "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Attitude_Inference",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Environment_Perception",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Action_Recognition",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Emotion_Inference",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Counterfactual_Prediction",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Facial_Expression_Recognition",
-          "task": "siv_bench",
-          "domain": "VR"
         },
         {
           "skill_id": "archetype.miniwob.bisect",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Intent_Inference",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Relation_Inference",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Factual_Prediction",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.siv_bench.Human_Attribute_Identification",
-          "task": "siv_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "COMMIT/EVADE",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/SETUP",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8c3bcaa401",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1bd8a5fe82",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f02d949d93",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ada2e2ddee",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.video_holmes.MHR",
-          "task": "video_holmes",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.video_holmes.CTI",
-          "task": "video_holmes",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.video_holmes.SR",
-          "task": "video_holmes",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.video_holmes.TCI",
-          "task": "video_holmes",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.video_holmes.IMC",
-          "task": "video_holmes",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.visual_toolbench.hybrid_tool_reasoning",
-          "task": "visual_toolbench",
-          "domain": "VR"
-        }
-      ]
-    },
-    "ENGAGE_AND_DEFEAT": {
-      "count": 41,
-      "domains": [
-        "GAME"
-      ],
-      "tasks": [
-        "Temporal_Airstriker-v0",
-        "Temporal_AlteredBeast-v0",
-        "Temporal_DynamiteHeaddy-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "Temporal_Strider-v0"
-      ],
-      "n_way": 1,
-      "is_cross_domain": false,
-      "procedure": "Identify target \u2192 approach \u2192 attack/interact \u2192 verify elimination",
-      "skills": [
-        {
-          "skill_id": "COMMIT/ATTACK",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/ATTACK",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-96a3541132",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMPARE/ATTACK",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-5f3167a8f3",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0c62bc5ee3",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-fe42af35b1",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6c4b3b251c",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cedb034951",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-04c6633ea3",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c0666c3fe9",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-61e64cb647",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f4378bff22",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9a5f0970f0",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/ATTACK",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7f46d9e3c8",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7fb5bceedd",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a02be935ec",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/ATTACK",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7356203d44",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2b771f9378",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-e7ab373223",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d173ce5bd4",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8703803b5d",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-282658f81b",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-99496c9d37",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-51d98e7895",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7de55d9211",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d4e9b3d94b",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1df3156e90",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d26224bb7b",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-080e88a998",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-895c73729a",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8788936394",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/ATTACK",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMPARE/ATTACK",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9837107841",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a1c7f40ca6",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c8ab69e3fe",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-fa709b8010",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "NAVIGATE_AND_REACH": {
-      "count": 37,
-      "domains": [
-        "GAME",
-        "VR",
-        "WEB"
-      ],
-      "tasks": [
-        "Temporal_DynamiteHeaddy-v0",
-        "Temporal_SpaceHarrierII-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "Temporal_Strider-v0",
-        "Temporal_ThunderForceIII-v0",
-        "miniwob",
-        "super_mario",
-        "tetris",
-        "tir_bench"
-      ],
-      "n_way": 3,
-      "is_cross_domain": true,
-      "procedure": "Plan path to target position \u2192 move there \u2192 confirm arrival and stability",
-      "skills": [
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d94dcdb882",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7ecf17fae3",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/NAVIGATE",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-edc7211f89",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-48c47f33b9",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cb7744be17",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-20481ecb2c",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-5cadb55175",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c7df05d0ad",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/NAVIGATE",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-deac5bab0c",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/NAVIGATE",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/SURVIVE",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c46df899cb",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-be01902b77",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-34e0071bf5",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/NAVIGATE",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8edb07f999",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-fa367599dd",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-00f509f288",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.miniwob.navigate",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.scroll",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "COMMIT/NAVIGATE",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-51c8594bab",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-26e90915c0",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2d051c433a",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6c0e464384",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0d97c3e205",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-24e4c73a77",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-252e5969e5",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-139e17a4d5",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-107394bbb2",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cbc9f19943",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.tir_bench.maze",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "skill-2c111fa73c",
-          "task": "tetris",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "EXPLORE_AND_DISCOVER": {
-      "count": 35,
-      "domains": [
-        "GAME"
-      ],
-      "tasks": [
-        "Temporal_Airstriker-v0",
-        "Temporal_AlteredBeast-v0",
-        "Temporal_Columns-v0",
-        "Temporal_DynamiteHeaddy-v0",
-        "Temporal_SpaceHarrierII-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "Temporal_Strider-v0",
-        "Temporal_ThunderForceIII-v0",
-        "super_mario"
-      ],
-      "n_way": 1,
-      "is_cross_domain": false,
-      "procedure": "Probe unknown space \u2192 observe result \u2192 update knowledge",
-      "skills": [
-        {
-          "skill_id": "COMMIT/EXPLORE",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0bec3b0861",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8a6bf234cb",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-3ccc2388ed",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6035b8c6fe",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6f4830f8d6",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c0eb241d73",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-705845740a",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EXPLORE",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-33199dab73",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-47e727b6d8",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-44545c5531",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8866aeffff",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EXPLORE",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-af2a5bd722",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f38dea5287",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2f860f1522",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1ff289891a",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cc07f43ba9",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1693569607",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-589cc1c6bd",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EXPLORE",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6d9113c223",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d5ee8f0ead",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-bef340165c",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b12b6d467c",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EXPLORE",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-e6e8b351d7",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2ab00bf91f",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c10e4fff69",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "INSPECT/SETUP",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cac4785bfe",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-55cd8f2f8c",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a7493a9b16",
-          "task": "super_mario",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7381949934",
-          "task": "super_mario",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "COMPARE_AND_RANK": {
-      "count": 23,
-      "domains": [
-        "GAME",
-        "VR",
-        "WEB"
-      ],
-      "tasks": [
-        "Temporal_Columns-v0",
-        "Temporal_SpaceHarrierII-v0",
-        "Temporal_Strider-v0",
-        "Temporal_ThunderForceIII-v0",
-        "miniwob",
-        "tetris",
-        "tir_bench",
-        "twenty_forty_eight"
-      ],
-      "n_way": 3,
-      "is_cross_domain": true,
-      "procedure": "Perceive multiple options, compare by position, select and label extremes",
-      "skills": [
-        {
-          "skill_id": "skill-c27d4c6a93",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a8b92fe099",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-38b1310ea7",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1f716650ab",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMPARE/POSITION",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EVADE",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.miniwob.book",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.buy",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.find",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.hot",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.tic",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "skill-20e560a8cb",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "INSPECT/SETUP",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.tir_bench.symbolic",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.tir_bench.refcoco",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.tir_bench.instrument",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "skill-540c5dcc58",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b787cefc09",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2b9f81fe19",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c6de84f468",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-81eed597db",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-aefebb4d54",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b1b87ce7d0",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "SEQUENCE_AND_COMPLETE": {
-      "count": 22,
-      "domains": [
-        "GAME",
-        "VR",
-        "WEB"
-      ],
-      "tasks": [
-        "Temporal_Airstriker-v0",
-        "Temporal_AlteredBeast-v0",
-        "Temporal_Columns-v0",
-        "Temporal_DynamiteHeaddy-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "Temporal_Strider-v0",
-        "miniwob",
-        "tetris",
-        "video_holmes"
-      ],
-      "n_way": 3,
-      "is_cross_domain": true,
-      "procedure": "Break goal into ordered sub-steps \u2192 execute each in order \u2192 verify",
-      "skills": [
-        {
-          "skill_id": "skill-ac8e115353",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9096c7c339",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0dfb843e5b",
-          "task": "Temporal_AlteredBeast-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d09e6bc7b1",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EXPLORE",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0cb77adbcc",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c4f6294453",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a96b12ec7e",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-158fead2a1",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-80f8f15f69",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0e65ba2a99",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9837f822c8",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-c2b1051061",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-560be77c74",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-d441ec4fe4",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-106242f335",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6c313a81a5",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.miniwob.ascending",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.daily",
           "task": "miniwob",
           "domain": "WEB"
         },
@@ -1481,517 +175,7 @@
           "domain": "WEB"
         },
         {
-          "skill_id": "skill-5b1884603a",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.video_holmes.TA",
-          "task": "video_holmes",
-          "domain": "VR"
-        }
-      ]
-    },
-    "TIME_AND_REACT": {
-      "count": 22,
-      "domains": [
-        "GAME"
-      ],
-      "tasks": [
-        "Temporal_Airstriker-v0",
-        "Temporal_Columns-v0",
-        "Temporal_DynamiteHeaddy-v0",
-        "Temporal_Strider-v0",
-        "Temporal_ThunderForceIII-v0"
-      ],
-      "n_way": 1,
-      "is_cross_domain": false,
-      "procedure": "Wait for trigger \u2192 execute precisely timed actions \u2192 respond to environment",
-      "skills": [
-        {
-          "skill_id": "skill-9bd600f650",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-eb2ff1b466",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-335e66f7e0",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b66e35d5c1",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-eaa7f8f515",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7cadbda477",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-0090f51426",
-          "task": "Temporal_Airstriker-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-3f3c3fdf94",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-996b801537",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9d9d2bd762",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ec1b2e1d42",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-453ac8d531",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-65da6a8fea",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9bfd30f64e",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-533225c921",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-9be2f2ae54",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-dc3986fcf2",
-          "task": "Temporal_DynamiteHeaddy-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ad18d641f8",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2ce2b69b8a",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-1044e6c98f",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ab3919eb42",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7708d5d133",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "EVALUATE_AND_OPTIMIZE": {
-      "count": 21,
-      "domains": [
-        "GAME"
-      ],
-      "tasks": [
-        "tetris",
-        "twenty_forty_eight"
-      ],
-      "n_way": 1,
-      "is_cross_domain": false,
-      "procedure": "Assess state quality \u2192 try improvements \u2192 compare and select best action sequence",
-      "skills": [
-        {
-          "skill_id": "COMMIT/OPTIMIZE",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-53faea6a67",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a3dcba7f71",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-80634fdb7f",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-a353c3ce86",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ee6516e4c4",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-72730ae4c3",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f4249224d0",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-48aa4939ce",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-41ebd70fc4",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-b7dc206df7",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-33d298efee",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-98c4134e53",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-db4c886e4c",
-          "task": "tetris",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "mid:OPTIMIZE",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-fac3911f34",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-024bf3bc7f",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-7673e721e2",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-8483e458f8",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-ad99ed370e",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-903e63c5e3",
-          "task": "tetris",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "RECALL_MATCH_AND_SELECT": {
-      "count": 18,
-      "domains": [
-        "GAME",
-        "VR",
-        "WEB"
-      ],
-      "tasks": [
-        "Temporal_SpaceHarrierII-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "miniwob",
-        "tir_bench"
-      ],
-      "n_way": 3,
-      "is_cross_domain": true,
-      "procedure": "Retrieve criteria \u2192 perceive options \u2192 match references \u2192 select and confirm",
-      "skills": [
-        {
-          "skill_id": "skill-7fbcfa8315",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "INSPECT/SETUP",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.miniwob.click",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.choose",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.focus",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.generate",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.identify",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.grid",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.phone",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.search",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.social",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.unicode",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.tir_bench.color",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.tir_bench.math",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.tir_bench.rotation_game",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.tir_bench.ocr",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.tir_bench.visual_search",
-          "task": "tir_bench",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.tir_bench.word_search",
-          "task": "tir_bench",
-          "domain": "VR"
-        }
-      ]
-    },
-    "POSITION_AND_PLACE": {
-      "count": 15,
-      "domains": [
-        "GAME",
-        "WEB"
-      ],
-      "tasks": [
-        "Temporal_Columns-v0",
-        "Temporal_StreetsOfRage2-v0",
-        "Temporal_ThunderForceIII-v0",
-        "miniwob",
-        "tetris"
-      ],
-      "n_way": 2,
-      "is_cross_domain": true,
-      "procedure": "Perceive target location \u2192 move/arrange item \u2192 verify placement",
-      "skills": [
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-278c4f979b",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/SURVIVE",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2ea5759af6",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-2d464bae40",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-56bc640965",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-171c794b4f",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f800d6d12d",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cb29563136",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-6c64d95a31",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "Temporal_StreetsOfRage2-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f5adac983e",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.miniwob.drag",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "COMMIT/POSITION",
-          "task": "tetris",
-          "domain": "GAME"
-        }
-      ]
-    },
-    "TRANSFORM_AND_VERIFY": {
-      "count": 14,
-      "domains": [
-        "GAME",
-        "WEB"
-      ],
-      "tasks": [
-        "Temporal_Columns-v0",
-        "Temporal_Strider-v0",
-        "candy_crush",
-        "miniwob",
-        "twenty_forty_eight"
-      ],
-      "n_way": 2,
-      "is_cross_domain": true,
-      "procedure": "Apply transformation to state \u2192 verify new state matches goal",
-      "skills": [
-        {
-          "skill_id": "COMMIT/SETUP",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMPARE/SETUP",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/EXECUTE",
-          "task": "Temporal_Columns-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/CLEAR",
-          "task": "Temporal_Strider-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "COMMIT/CLEAR",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "archetype.miniwob.number",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.right",
+          "skill_id": "archetype.miniwob.scroll",
           "task": "miniwob",
           "domain": "WEB"
         },
@@ -2001,253 +185,512 @@
           "domain": "WEB"
         },
         {
-          "skill_id": "COMMIT/MERGE",
-          "task": "twenty_forty_eight",
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "super_mario",
           "domain": "GAME"
         },
         {
-          "skill_id": "COMPARE/MERGE",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-336227f5ca",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f1fd2749d9",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-e9ee27e8cf",
-          "task": "twenty_forty_eight",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-362bbd9f3a",
-          "task": "twenty_forty_eight",
+          "skill_id": "COMMIT/SURVIVE",
+          "task": "tetris",
           "domain": "GAME"
         }
       ]
     },
-    "MONITOR_AND_SUSTAIN": {
-      "count": 14,
+    "EVALUATE_EXECUTE_OBSERVE": {
+      "count": 24,
       "domains": [
-        "GAME"
+        "GAME",
+        "UNKNOWN"
       ],
       "tasks": [
-        "Temporal_DynamiteHeaddy-v0",
-        "Temporal_SpaceHarrierII-v0",
-        "candy_crush"
+        "Temporal_Columns-v0",
+        "Temporal_StreetsOfRage2-v0",
+        "Temporal_Strider-v0",
+        "Temporal_ThunderForceIII-v0",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_streets_of_rage_2",
+        "gymv_strider",
+        "gymv_thunder_force_iii"
       ],
-      "n_way": 1,
-      "is_cross_domain": false,
-      "procedure": "Track transition condition \u2192 maintain action \u2192 ensure completion and presence",
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "evaluate options \u2192 select best action \u2192 execute action \u2192 observe outcome",
+      "raw_labels": [
+        "EVALUATE_EXECUTE_OBSERVE"
+      ],
       "skills": [
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:INSPECT/SETUP",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:COMMIT/CLEAR",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/EXECUTE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:COMMIT/ATTACK",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/NAVIGATE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:COMMIT/ATTACK",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/DEFEND",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:COMMIT/NAVIGATE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/EXECUTE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "candy_crush",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "skill-2d9b4140e3",
+          "task": "candy_crush",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:INSPECT/SETUP",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "early:COMMIT/CLEAR",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "mid:EXECUTE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "late:COMMIT/NAVIGATE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "early:COMMIT/ATTACK",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "RECOVER/DEFEND",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "early:COMMIT/NAVIGATE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "late:COMMIT/EXECUTE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "PERCEIVE_DECIDE_ACT_CONFIRM": {
+      "count": 11,
+      "domains": [
+        "GAME",
+        "UNKNOWN",
+        "WEB"
+      ],
+      "tasks": [
+        "Temporal_AlteredBeast-v0",
+        "Temporal_DynamiteHeaddy-v0",
+        "gymv_airstriker",
+        "gymv_altered_beast",
+        "gymv_dynamite_headdy",
+        "miniwob"
+      ],
+      "n_way": 3,
+      "is_cross_domain": true,
+      "procedure": "perceive target and state \u2192 decide to acquire \u2192 act to acquire \u2192 confirm state change",
+      "raw_labels": [
+        "PERCEIVE_DECIDE_ACT_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/COLLECT",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_AlteredBeast-v0",
+          "domain": "GAME"
+        },
         {
           "skill_id": "COMMIT/CLEAR",
           "task": "Temporal_DynamiteHeaddy-v0",
           "domain": "GAME"
         },
         {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "gymv_airstriker",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/COLLECT",
+          "task": "gymv_altered_beast",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "gymv_altered_beast",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "gymv_altered_beast",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "archetype.miniwob.right",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "EVALUATE_EXECUTE_OBSERVE_UPDATE": {
+      "count": 9,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "Temporal_ThunderForceIII-v0",
+        "gymv_streets_of_rage_2",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "evaluate options \u2192 execute selected option \u2192 observe outcome \u2192 update state accordingly",
+      "raw_labels": [
+        "EVALUATE_EXECUTE_OBSERVE_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:EXECUTE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:COMMIT/COLLECT",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:INSPECT/SETUP",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:RECOVER/SURVIVE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:INSPECT/SETUP",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:INSPECT/SETUP",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "early:COMMIT/COLLECT",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "late:RECOVER/SURVIVE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "early:INSPECT/SETUP",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "PERCEIVE_EVALUATE_DECIDE_ACT": {
+      "count": 5,
+      "domains": [
+        "GAME",
+        "UNKNOWN",
+        "WEB"
+      ],
+      "tasks": [
+        "Temporal_DynamiteHeaddy-v0",
+        "gymv_dynamite_headdy",
+        "miniwob"
+      ],
+      "n_way": 3,
+      "is_cross_domain": true,
+      "procedure": "perceive environment \u2192 evaluate candidates \u2192 decide on primary target and direction \u2192 act to explore and confirm control",
+      "raw_labels": [
+        "PERCEIVE_EVALUATE_DECIDE_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME"
+        },
+        {
           "skill_id": "COMMIT/EVADE",
-          "task": "Temporal_SpaceHarrierII-v0",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "archetype.miniwob.hot",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "TRIGGER_AND_VERIFY_STATE_CHANGE": {
+      "count": 5,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "Temporal_ThunderForceIII-v0",
+        "gymv_streets_of_rage_2",
+        "gymv_strider",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "initiate action \u2192 observe state changes \u2192 verify updates match expected outcomes",
+      "raw_labels": [
+        "TRIGGER_AND_VERIFY_STATE_CHANGE"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:NAVIGATE",
+          "task": "Temporal_StreetsOfRage2-v0",
           "domain": "GAME"
         },
         {
           "skill_id": "INSPECT/SETUP",
-          "task": "Temporal_SpaceHarrierII-v0",
+          "task": "Temporal_ThunderForceIII-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-74b96fc05d",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
+          "skill_id": "mid:NAVIGATE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "skill-915446f4a1",
-          "task": "Temporal_SpaceHarrierII-v0",
-          "domain": "GAME"
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "skill-e5e1dd0601",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-cea447ef29",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-18c3b7436e",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-e63284fda3",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-acd98a6134",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-630bd3adbe",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-84bf642388",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-648266e9c6",
-          "task": "candy_crush",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-f41ed9ee87",
-          "task": "candy_crush",
-          "domain": "GAME"
+          "skill_id": "INSPECT/SETUP",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
         }
       ]
     },
-    "INPUT_AND_SUBMIT": {
-      "count": 12,
+    "SELECT_AND_EXECUTE_ACTION": {
+      "count": 5,
       "domains": [
         "GAME",
-        "WEB"
+        "UNKNOWN"
       ],
       "tasks": [
-        "Temporal_Columns-v0",
-        "miniwob"
+        "Temporal_StreetsOfRage2-v0",
+        "Temporal_Strider-v0",
+        "candy_crush",
+        "gymv_streets_of_rage_2",
+        "gymv_strider"
       ],
       "n_way": 2,
       "is_cross_domain": true,
-      "procedure": "Perceive form/field \u2192 enter value \u2192 submit \u2192 verify acceptance",
+      "procedure": "evaluate possible actions \u2192 choose best action \u2192 perform action \u2192 observe outcome",
+      "raw_labels": [
+        "SELECT_AND_EXECUTE_ACTION"
+      ],
       "skills": [
         {
-          "skill_id": "skill-bf50fbb5af",
-          "task": "Temporal_Columns-v0",
+          "skill_id": "late:EXECUTE",
+          "task": "Temporal_StreetsOfRage2-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "archetype.miniwob.circle",
-          "task": "miniwob",
-          "domain": "WEB"
+          "skill_id": "mid:EXECUTE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
         },
         {
-          "skill_id": "archetype.miniwob.copy",
-          "task": "miniwob",
-          "domain": "WEB"
+          "skill_id": "early:CLEAR",
+          "task": "candy_crush",
+          "domain": "GAME"
         },
         {
-          "skill_id": "archetype.miniwob.form",
-          "task": "miniwob",
-          "domain": "WEB"
+          "skill_id": "late:EXECUTE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
         },
         {
-          "skill_id": "archetype.miniwob.enter",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.login",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.multi",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.highlight",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.read",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.text",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.simple",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.use",
-          "task": "miniwob",
-          "domain": "WEB"
+          "skill_id": "mid:EXECUTE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
         }
       ]
     },
-    "FILTER_AND_NARROW": {
-      "count": 11,
+    "SEQUENTIAL_ACTION_EXECUTION": {
+      "count": 5,
       "domains": [
-        "VR",
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "Temporal_ThunderForceIII-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perform action \u2192 monitor for confirmation \u2192 perform subsequent action to progress",
+      "raw_labels": [
+        "SEQUENTIAL_ACTION_EXECUTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/COLLECT",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/COLLECT",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "FILTER_AND_SELECT": {
+      "count": 4,
+      "domains": [
         "WEB"
       ],
       "tasks": [
         "miniwob",
-        "video_holmes",
-        "visual_toolbench",
         "webshop"
       ],
-      "n_way": 2,
-      "is_cross_domain": true,
-      "procedure": "Apply criteria to items \u2192 eliminate non-matching \u2192 act on matched item",
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "recall criteria \u2192 perceive options \u2192 filter by criteria \u2192 select subset \u2192 execute choice",
+      "raw_labels": [
+        "FILTER_AND_SELECT"
+      ],
       "skills": [
-        {
-          "skill_id": "archetype.miniwob.email",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.guess",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.odd",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
         {
           "skill_id": "archetype.miniwob.order",
           "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.sign",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.miniwob.terminal",
-          "task": "miniwob",
-          "domain": "WEB"
-        },
-        {
-          "skill_id": "archetype.video_holmes.PAR",
-          "task": "video_holmes",
-          "domain": "VR"
-        },
-        {
-          "skill_id": "archetype.webshop.short_interaction",
-          "task": "webshop",
           "domain": "WEB"
         },
         {
@@ -2256,98 +699,3616 @@
           "domain": "WEB"
         },
         {
-          "skill_id": "archetype.visual_toolbench.region_switch_qa",
-          "task": "visual_toolbench",
-          "domain": "VR"
+          "skill_id": "archetype.webshop.medium_interaction",
+          "task": "webshop",
+          "domain": "WEB"
         },
         {
-          "skill_id": "archetype.webshop.medium_interaction",
+          "skill_id": "archetype.webshop.short_interaction",
           "task": "webshop",
           "domain": "WEB"
         }
       ]
     },
-    "COLLECT_AND_ACCUMULATE": {
-      "count": 8,
+    "EXECUTE_AND_VERIFY_ACTION": {
+      "count": 3,
       "domains": [
-        "GAME"
+        "GAME",
+        "UNKNOWN"
       ],
       "tasks": [
-        "Temporal_AlteredBeast-v0",
+        "Temporal_Columns-v0",
         "Temporal_StreetsOfRage2-v0",
-        "Temporal_Strider-v0",
-        "Temporal_ThunderForceIII-v0"
+        "gymv_streets_of_rage_2"
       ],
-      "n_way": 1,
-      "is_cross_domain": false,
-      "procedure": "Identify collectible \u2192 move to it \u2192 acquire \u2192 track count",
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "identify current state \u2192 perform action \u2192 verify state change \u2192 detect triggered effects \u2192 confirm effect execution \u2192 observe outcome updates",
+      "raw_labels": [
+        "EXECUTE_AND_VERIFY_ACTION"
+      ],
       "skills": [
         {
-          "skill_id": "COMMIT/COLLECT",
-          "task": "Temporal_AlteredBeast-v0",
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_Columns-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-2c4816062a",
+          "skill_id": "early:COMMIT/ATTACK",
           "task": "Temporal_StreetsOfRage2-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "COMMIT/COLLECT",
+          "skill_id": "early:COMMIT/ATTACK",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EVALUATE_AND_EXECUTE_BEST_ACTION": {
+      "count": 3,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0",
+        "candy_crush",
+        "gymv_columns"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "scan environment \u2192 identify options \u2192 evaluate options by value \u2192 select highest-value option \u2192 execute action \u2192 verify outcome \u2192 reassess state \u2192 execute follow-up if beneficial \u2192 confirm new stable state",
+      "raw_labels": [
+        "EVALUATE_AND_EXECUTE_BEST_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "__EXPLORE__",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "skill-770a9b2393",
+          "task": "candy_crush",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "__EXPLORE__",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_VERIFY_STATE_CHANGE": {
+      "count": 3,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "Temporal_Strider-v0",
+        "gymv_columns"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "execute specific command \u2192 verify state update \u2192 confirm removal of related triggers",
+      "raw_labels": [
+        "EXECUTE_AND_VERIFY_STATE_CHANGE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:SETUP",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/CLEAR",
           "task": "Temporal_Strider-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-922e1001c4",
+          "skill_id": "COMMIT/SURVIVE",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENCE_ACTION_EXECUTION": {
+      "count": 3,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "initiate simultaneous actions \u2192 maintain momentum through action \u2192 execute precise landing to complete transition",
+      "raw_labels": [
+        "SEQUENCE_ACTION_EXECUTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "COMPARE/ATTACK",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EVALUATE_AND_EXECUTE_ACTION": {
+      "count": 3,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "candy_crush",
+        "gymv_streets_of_rage_2",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "evaluate available actions \u2192 select best action \u2192 execute action \u2192 observe and confirm outcome",
+      "raw_labels": [
+        "EVALUATE_AND_EXECUTE_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-37c95b1014",
+          "task": "candy_crush",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/EXECUTE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        },
+        {
+          "skill_id": "early:COMMIT/ATTACK",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "STATE_TRANSITION_CONFIRMATION": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Airstriker-v0",
+        "gymv_airstriker"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perceive current state \u2192 decide to transition \u2192 execute transition action \u2192 confirm new state activation",
+      "raw_labels": [
+        "STATE_TRANSITION_CONFIRMATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "gymv_airstriker",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "STABILIZE_AND_EXPLORE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Airstriker-v0",
+        "gymv_airstriker"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "observe until stable feedback \u2192 confirm outputs \u2192 select safe stance \u2192 scan environment \u2192 cautiously advance maintaining safety",
+      "raw_labels": [
+        "STABILIZE_AND_EXPLORE"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "gymv_airstriker",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SUSTAIN_ACTION_UNDER_THREAT": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Airstriker-v0",
+        "gymv_airstriker"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perceive threats and state changes \u2192 decide to maintain action despite risk \u2192 execute and sustain action \u2192 verify completion and continued presence",
+      "raw_labels": [
+        "SUSTAIN_ACTION_UNDER_THREAT"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_Airstriker-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "gymv_airstriker",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "APPLY_AND_VALIDATE_CHANGE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0",
+        "gymv_columns"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "observe current state \u2192 apply action to change state \u2192 verify change completion \u2192 check for resulting patterns \u2192 confirm state update \u2192 validate outcome improvement",
+      "raw_labels": [
+        "APPLY_AND_VALIDATE_CHANGE"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EXECUTE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/EXECUTE",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EVALUATE_AND_RELOCATE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_DynamiteHeaddy-v0",
+        "gymv_dynamite_headdy"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perceive hazards and safe zones \u2192 decide on optimal relocation direction \u2192 act to reposition \u2192 verify improved safety and context",
+      "raw_labels": [
+        "EVALUATE_AND_RELOCATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "gymv_dynamite_headdy",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "PERCEIVE_SUSTAIN_CONFIRM": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_SpaceHarrierII-v0",
+        "gymv_space_harrier_ii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perceive transition cues \u2192 sustain initiating action \u2192 end action to finalize \u2192 confirm completed transformation",
+      "raw_labels": [
+        "PERCEIVE_SUSTAIN_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "gymv_space_harrier_ii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENCE_EXECUTE_VERIFY": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perform action \u2192 trigger related event \u2192 confirm event occurrence \u2192 verify outcome \u2192 finalize state",
+      "raw_labels": [
+        "SEQUENCE_EXECUTE_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/DEFEND",
           "task": "Temporal_StreetsOfRage2-v0",
           "domain": "GAME"
         },
         {
-          "skill_id": "skill-24e87e0119",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-47c086163c",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-77b1d8a71e",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
-        },
-        {
-          "skill_id": "skill-68fb1acf64",
-          "task": "Temporal_ThunderForceIII-v0",
-          "domain": "GAME"
+          "skill_id": "RECOVER/DEFEND",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
         }
       ]
     },
-    "COUNT_AND_REPORT": {
-      "count": 3,
+    "SELECT_EXECUTE_VERIFY_UPDATE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0",
+        "gymv_columns"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "identify best option \u2192 perform action \u2192 verify outcome \u2192 confirm state update \u2192 proceed to next step",
+      "raw_labels": [
+        "SELECT_EXECUTE_VERIFY_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "REPOSITION_AND_CONFIRM_ESCAPE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "initiate rapid movement away from threat \u2192 hold position to allow threat displacement \u2192 observe environment to confirm threat absence",
+      "raw_labels": [
+        "REPOSITION_AND_CONFIRM_ESCAPE"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "ENVIRONMENTAL_SCANNING_AND_VERIFICATION": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "move to trigger events \u2192 scan surroundings \u2192 approach target objects \u2192 wait for information update \u2192 verify updated labels",
+      "raw_labels": [
+        "ENVIRONMENTAL_SCANNING_AND_VERIFICATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_MONITOR": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "initiate action \u2192 maintain conditions for effect \u2192 verify outcome and feedback",
+      "raw_labels": [
+        "EXECUTE_AND_MONITOR"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:EXECUTE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:EXECUTE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_VERIFY_EFFECT": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perform action \u2192 observe state changes \u2192 confirm expected outcome",
+      "raw_labels": [
+        "EXECUTE_AND_VERIFY_EFFECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "__EXPLORE__",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "__EXPLORE__",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EVALUATE_AND_EXECUTE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "evaluate options \u2192 select best action \u2192 execute action \u2192 observe outcome \u2192 update state",
+      "raw_labels": [
+        "EVALUATE_AND_EXECUTE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:COMMIT/EXECUTE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:COMMIT/EXECUTE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_UPDATE_STATE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "initiate action \u2192 verify action effects \u2192 process outcome events \u2192 update internal state",
+      "raw_labels": [
+        "EXECUTE_AND_UPDATE_STATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENTIAL_STATE_TRANSITION_AND_CLEANUP": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0",
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perform actions to reach target states \u2192 trigger state transitions \u2192 remove obsolete state markers",
+      "raw_labels": [
+        "SEQUENTIAL_STATE_TRANSITION_AND_CLEANUP"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "AVOID_AND_EVADE_THREATS": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "detect immediate threats \u2192 initiate escape movement \u2192 perform defensive actions if threatened \u2192 continuously adjust movement to maintain safety",
+      "raw_labels": [
+        "AVOID_AND_EVade_THREATS"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENTIAL_EXPLORATION_AND_VERIFICATION": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "move to new location \u2192 observe environment \u2192 verify state change \u2192 if none, try different move \u2192 repeat until new information found",
+      "raw_labels": [
+        "SEQUENTIAL_EXPLORATION_AND_VERIFICATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "__EXPLORE__",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "__EXPLORE__",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_VERIFY_TRANSITION": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perform action to change state \u2192 verify system registers change \u2192 confirm new state matches expected outcome",
+      "raw_labels": [
+        "EXECUTE_AND_VERIFY_TRANSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_MONITOR_ACTION": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "initiate action input \u2192 maintain input while monitoring state change \u2192 release input upon achieving target state",
+      "raw_labels": [
+        "EXECUTE_AND_MONITOR_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EVALUATE_SELECT_EXECUTE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "evaluate options \u2192 select best option \u2192 execute chosen option \u2192 observe outcome",
+      "raw_labels": [
+        "EVALUATE_SELECT_EXECUTE"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/EXECUTE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "late:COMMIT/EXECUTE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "AVOID_AND_NAVIGATE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "detect threat \u2192 execute evasive maneuver \u2192 align movement with safe path \u2192 continuously monitor and adjust position",
+      "raw_labels": [
+        "AVOID_AND_NAVIGATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "MONITOR_AND_CONFIRM_STATE_CHANGES": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "maintain focus on key element \u2192 observe changes in related elements \u2192 confirm new stable configuration \u2192 verify updated labels",
+      "raw_labels": [
+        "MONITOR_AND_CONFIRM_STATE_CHANGES"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMPARE/POSITION",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMPARE/POSITION",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "MONITOR_AND_CONFIRM_TRANSITION": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "maintain action to trigger event \u2192 observe environmental change \u2192 confirm visual and interface updates",
+      "raw_labels": [
+        "MONITOR_AND_CONFIRM_TRANSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_CONFIRM_ACTION": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0",
+        "gymv_strider"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "perform an action \u2192 observe outcome to confirm effect \u2192 trigger event based on confirmation",
+      "raw_labels": [
+        "EXECUTE_AND_CONFIRM_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:OPTIMIZE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "mid:OPTIMIZE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "ADVANCE_AND_SCAN": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "move forward to reveal new area \u2192 observe new elements \u2192 engage threats \u2192 collect rewards \u2192 confirm status updates",
+      "raw_labels": [
+        "ADVANCE_AND_SCAN"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "ADAPTIVE_DEFENSIVE_RESPONSE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "detect threat \u2192 adjust position defensively \u2192 initiate preemptive action \u2192 monitor status and adapt behavior",
+      "raw_labels": [
+        "ADAPTIVE_DEFENSIVE_RESPONSE"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "RECOVER/SURVIVE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXPLORE_AND_UPDATE": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "select unexplored option \u2192 gather information \u2192 update internal state \u2192 remove irrelevant data",
+      "raw_labels": [
+        "EXPLORE_AND_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:EXPLORE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "early:EXPLORE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "INITIATE_AND_MONITOR_EFFECT": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "initiate action \u2192 maintain until event occurs \u2192 observe outcome to confirm effect",
+      "raw_labels": [
+        "INITIATE_AND_MONITOR_EFFECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:EXECUTE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "mid:EXECUTE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "TARGET_AND_INTERCEPT": {
+      "count": 2,
+      "domains": [
+        "GAME",
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0",
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 2,
+      "is_cross_domain": true,
+      "procedure": "detect nearest target \u2192 predict target path \u2192 move to intercept \u2192 confirm interaction outcome",
+      "raw_labels": [
+        "TARGET_AND_INTERCEPT"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:NAVIGATE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        },
+        {
+          "skill_id": "mid:NAVIGATE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "ELIMINATE_BY_CRITERIA": {
+      "count": 2,
       "domains": [
         "VR",
         "WEB"
       ],
       "tasks": [
         "miniwob",
-        "tir_bench"
+        "siv_bench"
       ],
       "n_way": 2,
       "is_cross_domain": true,
-      "procedure": "Identify attribute \u2192 count matching items \u2192 output total count",
+      "procedure": "recall possible options \u2192 select candidate consistent with feedback \u2192 act on candidate \u2192 perceive feedback \u2192 eliminate inconsistent options",
+      "raw_labels": [
+        "ELIMINATE_BY_CRITERIA"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.guess",
+          "task": "miniwob",
+          "domain": "WEB"
+        },
+        {
+          "skill_id": "archetype.siv_bench.Emotion_Inference",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "MATCH_AND_SELECT": {
+      "count": 2,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive target and options \u2192 compare attributes to options \u2192 choose best matching option \u2192 perform selection action",
+      "raw_labels": [
+        "MATCH_AND_SELECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.identify",
+          "task": "miniwob",
+          "domain": "WEB"
+        },
+        {
+          "skill_id": "archetype.miniwob.unicode",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_PERCEIVE_ACT": {
+      "count": 2,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve required value \u2192 locate input and control \u2192 enter value \u2192 activate control \u2192 confirm completion",
+      "raw_labels": [
+        "RECALL_PERCEIVE_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.read",
+          "task": "miniwob",
+          "domain": "WEB"
+        },
+        {
+          "skill_id": "archetype.miniwob.form",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "ALIGN_AND_COMMIT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "align object with target position \u2192 execute commit action \u2192 verify state update \u2192 confirm score increment",
+      "raw_labels": [
+        "ALIGN_AND_COMMIT"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "IDENTIFY_AND_NORMALIZE_LOCATIONS": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive spatial elements \u2192 determine relative positions \u2192 assign standardized labels \u2192 update internal representation \u2192 verify consistency without state change",
+      "raw_labels": [
+        "IDENTIFY_AND_NORMALIZE_LOCATIONS"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMPARE/SETUP",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_EXECUTE_UPDATE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "evaluate options \u2192 select and perform action \u2192 observe outcome \u2192 update internal state by removing outdated information",
+      "raw_labels": [
+        "EVALUATE_EXECUTE_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:RECOVER/SURVIVE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SEQUENCE_ACTIONS_AND_VERIFY": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 transform representations \u2192 remove irrelevant elements \u2192 verify final state",
+      "raw_labels": [
+        "SEQUENCE_ACTIONS_AND_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/SURVIVE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "IDENTIFY_IMPROVE_VERIFY": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "analyze current state \u2192 identify inefficiencies \u2192 apply targeted improvement \u2192 verify improvement outcome",
+      "raw_labels": [
+        "IDENTIFY_IMPROVE_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:OPTIMIZE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SEQUENCE_EXECUTION_AND_UPDATE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 adjust subsequent action to align \u2192 perform combined action \u2192 observe outcome and update state",
+      "raw_labels": [
+        "SEQUENCE_EXECUTION_AND_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:EXECUTE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "PLAN_AND_EXECUTE_ACTION_SEQUENCE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify goal \u2192 plan path \u2192 execute actions avoiding obstacles \u2192 verify progress \u2192 update state \u2192 remove irrelevant elements",
+      "raw_labels": [
+        "PLAN_AND_EXECUTE_ACTION_SEQUENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:NAVIGATE",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "PREPARE_AND_VERIFY_SETUP": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Columns-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "assess initial state \u2192 arrange elements for future use \u2192 verify stability of arrangement",
+      "raw_labels": [
+        "PREPARE_AND_VERIFY_SETUP"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:SETUP",
+          "task": "Temporal_Columns-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "FOCUS_AND_STABILIZE_POSITION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_DynamiteHeaddy-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current state \u2192 decide on target position \u2192 act to move and maintain position \u2192 confirm stability",
+      "raw_labels": [
+        "FOCUS_AND_STABILIZE_POSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "Temporal_DynamiteHeaddy-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "OBSERVE_AND_REGISTER": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_SpaceHarrierII-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current state \u2192 identify key elements \u2192 mark elements without change \u2192 confirm monitoring setup",
+      "raw_labels": [
+        "OBSERVE_AND_REGISTER"
+      ],
+      "skills": [
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_SpaceHarrierII-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SEQUENCE_EXECUTE_VERIFY_UPDATE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "position optimally \u2192 perform action \u2192 confirm completion \u2192 verify outcome \u2192 trigger subsequent event \u2192 finalize state",
+      "raw_labels": [
+        "SEQUENCE_EXECUTE_VERIFY_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/ATTACK",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SEQUENCE_CONSOLIDATE_TRANSITION_EXECUTE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "stabilize current state \u2192 maximize value \u2192 shift focus to final phase \u2192 perform concluding actions \u2192 verify outcome",
+      "raw_labels": [
+        "SEQUENCE_CONSOLIDATE_TRANSITION_EXECUTE"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "PRIORITIZE_AND_STABILIZE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify critical constraint \u2192 act to mitigate threat \u2192 stabilize system to prevent failure",
+      "raw_labels": [
+        "PRIORITIZE_AND_STABILIZE"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:SURVIVE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "COMMIT_AND_ADAPT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate forward action \u2192 maintain action until environment changes \u2192 detect threat \u2192 engage threat while continuing action",
+      "raw_labels": [
+        "COMMIT_AND_ADAPT"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "INITIALIZE_AND_RENDER_SCENE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate transition \u2192 generate environment visuals \u2192 position agents and objects \u2192 display interface elements",
+      "raw_labels": [
+        "INITIALIZE_AND_RENDER_SCENE"
+      ],
+      "skills": [
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SEQUENCE_ACTION_AND_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 execute state transition \u2192 confirm action effect",
+      "raw_labels": [
+        "SEQUENCE_ACTION_AND_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMPARE/ATTACK",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "APPROACH_AND_EXECUTE_ACTION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "navigate to target \u2192 initiate action \u2192 monitor action completion and feedback",
+      "raw_labels": [
+        "APPROACH_AND_EXECUTE_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "IDENTIFY_AND_IMPLEMENT_IMPROVEMENT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_StreetsOfRage2-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "analyze current state for inefficiencies \u2192 plan targeted improvement \u2192 execute improvement \u2192 verify desired state change",
+      "raw_labels": [
+        "IDENTIFY_AND_IMPLEMENT_IMPROVEMENT"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:OPTIMIZE",
+          "task": "Temporal_StreetsOfRage2-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EXECUTE_AND_VERIFY_INITIALIZATION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "issue initialization command \u2192 wait for state update \u2192 verify variable initialization \u2192 confirm removal of prior state elements",
+      "raw_labels": [
+        "EXECUTE_AND_VERIFY_INITIALIZATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:SETUP",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "PERFORM_AND_VERIFY_EFFECT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "execute action \u2192 observe state change \u2192 confirm expected event occurrence",
+      "raw_labels": [
+        "PERFORM_AND_VERIFY_EFFECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:EXPLORE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "DEFER_AND_EXECUTE_ACTION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 delay execution \u2192 force action commitment \u2192 verify action processing \u2192 confirm outcome change",
+      "raw_labels": [
+        "DEFER_AND_EXECUTE_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/ATTACK",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "PHASE_TRANSITION_VERIFICATION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_Strider-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perform action to change state \u2192 check for removal of initial markers \u2192 perform reward-generating action \u2192 verify updated state reflects new phase",
+      "raw_labels": [
+        "PHASE_TRANSITION_VERIFICATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:COMMIT/NAVIGATE",
+          "task": "Temporal_Strider-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "ALIGN_AND_NAVIGATE_PATH": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "orient towards target path \u2192 move forward into path \u2192 adjust position to specific route \u2192 maintain movement within visible bounds",
+      "raw_labels": [
+        "ALIGN_AND_NAVIGATE_PATH"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EXECUTE_AND_OBSERVE_EFFECT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 commit action to state \u2192 observe resulting state changes and outcomes",
+      "raw_labels": [
+        "EXECUTE_AND_OBSERVE_EFFECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/ATTACK",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EXECUTE_AND_VERIFY_OPTIMIZATION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "Temporal_ThunderForceIII-v0"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perform high-value action \u2192 measure outcome improvement \u2192 confirm no negative consequences",
+      "raw_labels": [
+        "EXECUTE_AND_VERIFY_OPTIMIZATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:OPTIMIZE",
+          "task": "Temporal_ThunderForceIII-v0",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SELECT_AND_ACT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "candy_crush"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "evaluate options \u2192 choose best action \u2192 perform action \u2192 observe outcome",
+      "raw_labels": [
+        "SELECT_AND_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:EXECUTE",
+          "task": "candy_crush",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EXECUTE_AND_TRANSITION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "candy_crush"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perform action to update state \u2192 trigger system transformation \u2192 confirm and finalize new state",
+      "raw_labels": [
+        "EXECUTE_AND_TRANSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "candy_crush",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SEQUENCE_OPTIMIZATION_AND_STATE_TRANSITION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "candy_crush"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify high-value action \u2192 execute action to maximize immediate gain \u2192 transform state to reduce complexity \u2192 use remaining resources to clear low-value elements and shift phase",
+      "raw_labels": [
+        "SEQUENCE_OPTIMIZATION_AND_STATE_TRANSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:COMMIT/CLEAR",
+          "task": "candy_crush",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "PERCEIVE_EVALUATE_RELOCATE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_airstriker"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect threats \u2192 evaluate safer alternative positions \u2192 move to chosen position \u2192 verify improved safety",
+      "raw_labels": [
+        "PERCEIVE_EVALUATE_RELOCATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "RECOVER/EVADE",
+          "task": "gymv_airstriker",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "COMMIT_AND_VERIFY_TRANSITION": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify current state element \u2192 execute state-changing action \u2192 verify state update \u2192 initiate consequence search \u2192 confirm consequence execution \u2192 observe outcome effects",
+      "raw_labels": [
+        "COMMIT_AND_VERIFY_TRANSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "ALIGN_COMMIT_VERIFY": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "align object with target \u2192 execute commit action \u2192 verify state update \u2192 confirm score increment",
+      "raw_labels": [
+        "ALIGN_COMMIT_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SELECT_EXECUTE_UPDATE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "evaluate options \u2192 choose and perform action \u2192 observe outcome \u2192 update state by removing outdated information",
+      "raw_labels": [
+        "SELECT_EXECUTE_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:RECOVER/SURVIVE",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "IDENTIFY_AND_NORMALIZE_LABELS": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive spatial elements \u2192 determine relative positions \u2192 assign standardized labels \u2192 update internal representation \u2192 verify consistency without state change",
+      "raw_labels": [
+        "IDENTIFY_AND_NORMALIZE_LABELS"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMPARE/SETUP",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "INITIALIZE_AND_VALIDATE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "assess initial conditions \u2192 arrange elements to enable progress \u2192 verify stability of arrangement",
+      "raw_labels": [
+        "INITIALIZE_AND_VALIDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:SETUP",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENCE_AND_ADJUST_ACTIONS": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 modify subsequent action to fit pattern \u2192 execute combined move \u2192 observe outcome and update state",
+      "raw_labels": [
+        "SEQUENCE_AND_ADJUST_ACTIONS"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:EXECUTE",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "IDENTIFY_AND_IMPROVE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "analyze current state \u2192 identify inefficiencies \u2192 apply targeted improvement \u2192 verify improvement",
+      "raw_labels": [
+        "IDENTIFY_AND_IMPROVE"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:OPTIMIZE",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "PLAN_AND_EXECUTE_ACTION": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_columns"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify goal \u2192 plan path \u2192 execute movement avoiding obstacles \u2192 verify progress \u2192 update state \u2192 remove irrelevant information",
+      "raw_labels": [
+        "PLAN_AND_EXECUTE_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "mid:NAVIGATE",
+          "task": "gymv_columns",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "INITIAL_INSPECTION_AND_MARKING": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_space_harrier_ii"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "observe scene without change \u2192 identify key elements \u2192 mark elements without altering state \u2192 confirm monitoring setup",
+      "raw_labels": [
+        "INITIAL_INSPECTION_AND_MARKING"
+      ],
+      "skills": [
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "gymv_space_harrier_ii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "POSITION_EXECUTE_VERIFY": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "assess position \u2192 adjust to optimal \u2192 perform action \u2192 confirm completion \u2192 verify outcome \u2192 finalize state",
+      "raw_labels": [
+        "POSITION_EXECUTE_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/ATTACK",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "CONSOLIDATE_AND_ADVANCE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "stabilize current state \u2192 maximize value \u2192 shift focus to final phase \u2192 execute completion actions \u2192 verify final outcome",
+      "raw_labels": [
+        "CONSOLIDATE_AND_ADVANCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/CLEAR",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "IDENTIFY_AND_APPLY_IMPROVEMENT": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "analyze current state for inefficiencies \u2192 apply targeted improvement \u2192 verify improvement \u2192 confirm state transition",
+      "raw_labels": [
+        "IDENTIFY_AND_APPLY_IMPROVEMENT"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:OPTIMIZE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "IDENTIFY_AND_ALLEVIATE_CONSTRAINT": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify critical constraint \u2192 take action to reduce it \u2192 stabilize system to prevent failure",
+      "raw_labels": [
+        "IDENTIFY_AND_ALLEVIATE_CONSTRAINT"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:SURVIVE",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "PROGRESSIVE_ACTION_WITH_MONITORING": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_strider"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate forward action \u2192 maintain action until environmental change \u2192 detect threat \u2192 engage threat while continuing action",
+      "raw_labels": [
+        "PROGRESSIVE_ACTION_WITH_MONITORING"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EXPLORE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENCE_INITIALIZATION_SETUP": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_strider"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate transition \u2192 render environment \u2192 instantiate key entities \u2192 display interface elements",
+      "raw_labels": [
+        "SEQUENCE_INITIALIZATION_SETUP"
+      ],
+      "skills": [
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_TARGETED_ACTION": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_strider"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "approach target \u2192 initiate action \u2192 monitor action completion and feedback",
+      "raw_labels": [
+        "EXECUTE_TARGETED_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/ATTACK",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_VERIFY_STATE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_streets_of_rage_2"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "execute specific command \u2192 verify state update \u2192 confirm removal of triggers",
+      "raw_labels": [
+        "EXECUTE_AND_VERIFY_STATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:SETUP",
+          "task": "gymv_streets_of_rage_2",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "PERFORM_ACTION_AND_VERIFY_EFFECT": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_strider"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "execute action \u2192 observe state change \u2192 confirm expected event occurrence",
+      "raw_labels": [
+        "PERFORM_ACTION_AND_VERIFY_EFFECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:EXPLORE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "INITIALIZE_AND_VERIFY_STATE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_strider"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "issue initialization command \u2192 wait for state update \u2192 verify variable initialization \u2192 confirm removal of prior conditions",
+      "raw_labels": [
+        "INITIALIZE_AND_VERIFY_STATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:SETUP",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "DELAYED_ACTION_EXECUTION": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_strider"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 wait for delay \u2192 execute action \u2192 verify execution \u2192 confirm outcome",
+      "raw_labels": [
+        "DELAYED_ACTION_EXECUTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/ATTACK",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENCE_ACTIONS_WITH_VERIFICATION": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_strider"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perform action to change state \u2192 check for state change \u2192 perform another action \u2192 verify updated state",
+      "raw_labels": [
+        "SEQUENCE_ACTIONS_WITH_VERIFICATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "early:COMMIT/NAVIGATE",
+          "task": "gymv_strider",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SEQUENTIAL_NAVIGATION_AND_ACTION": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "navigate along path \u2192 perform action on encountered targets \u2192 maintain forward progression \u2192 monitor feedback indicators",
+      "raw_labels": [
+        "SEQUENTIAL_NAVIGATION_AND_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/NAVIGATE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "ALIGN_AND_COMMIT_PATH": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "orient towards target path \u2192 move into path \u2192 adjust position within path \u2192 maintain movement and visibility",
+      "raw_labels": [
+        "ALIGN_AND_COMMIT_PATH"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "EXECUTE_AND_OBSERVE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "initiate action \u2192 commit action to state \u2192 observe resulting state changes",
+      "raw_labels": [
+        "EXECUTE_AND_OBSERVE"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:COMMIT/ATTACK",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "SELECT_EXECUTE_OBSERVE_UPDATE": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "evaluate options \u2192 select and perform action \u2192 observe outcome \u2192 update state accordingly",
+      "raw_labels": [
+        "SELECT_EXECUTE_OBSERVE_UPDATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/CLEAR",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "PERFORM_AND_VALIDATE_OPTIMIZATION": {
+      "count": 1,
+      "domains": [
+        "UNKNOWN"
+      ],
+      "tasks": [
+        "gymv_thunder_force_iii"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "execute action sequence \u2192 measure outcome improvement \u2192 confirm no negative side effects",
+      "raw_labels": [
+        "PERFORM_AND_VALIDATE_OPTIMIZATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "late:OPTIMIZE",
+          "task": "gymv_thunder_force_iii",
+          "domain": "UNKNOWN"
+        }
+      ]
+    },
+    "ORDER_AND_SELECT_SEQUENCE": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive items \u2192 extract comparable values \u2192 sort values ascending \u2192 select items in sorted order \u2192 verify sequence completion",
+      "raw_labels": [
+        "ORDER_AND_SELECT_SEQUENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.ascending",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RETRIEVE_INPUTS_SELECT_BEST": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve criteria \u2192 input constraints \u2192 evaluate options \u2192 select best match \u2192 confirm selection",
+      "raw_labels": [
+        "RETRIEVE_INPUTS_SELECT_BEST"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.book",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "SELECT_MINIMUM_VALUE": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive all options and values \u2192 evaluate to find minimum value \u2192 decide on minimum \u2192 act on decision",
+      "raw_labels": [
+        "SELECT_MINIMUM_VALUE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.buy",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "PERCEIVE_COPY_PASTE_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive source content \u2192 reproduce content in target \u2192 execute submission action \u2192 verify acceptance",
+      "raw_labels": [
+        "PERCEIVE_COPY_PASTE_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.copy",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RETRIEVE_MATCH_SELECT_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target \u2192 perceive options \u2192 identify matching option \u2192 select and confirm \u2192 verify success",
+      "raw_labels": [
+        "RETRIEVE_MATCH_SELECT_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.choose",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_PERCEIVE_MATCH_ACT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve instruction \u2192 perceive elements \u2192 match element to instruction \u2192 activate matched element",
+      "raw_labels": [
+        "RECALL_PERCEIVE_MATCH_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.click",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "IDENTIFY_AND_ACT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive target shape \u2192 determine key point \u2192 perform action on point \u2192 finalize response",
+      "raw_labels": [
+        "IDENTIFY_AND_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.circle",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "FILTER_AND_COUNT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify target attribute \u2192 perceive all items \u2192 filter items by attribute \u2192 count filtered items \u2192 output count",
+      "raw_labels": [
+        "FILTER_AND_COUNT"
+      ],
       "skills": [
         {
           "skill_id": "archetype.miniwob.count",
           "task": "miniwob",
           "domain": "WEB"
-        },
+        }
+      ]
+    },
+    "RECALL_PERCEIVE_ACT_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve required information \u2192 locate relevant interface elements \u2192 perform input actions \u2192 activate submission control \u2192 confirm completion",
+      "raw_labels": [
+        "RECALL_PERCEIVE_ACT_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.enter",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "SELECT_AND_FOCUS": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive all options \u2192 select specific option by position \u2192 direct focus to option \u2192 confirm focus",
+      "raw_labels": [
+        "SELECT_AND_FOCUS"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.focus",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "FILTER_AND_ACTIVATE": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "recall target criteria \u2192 scan items \u2192 filter items by criteria \u2192 activate control on filtered item \u2192 confirm action success",
+      "raw_labels": [
+        "FILTER_AND_ACTIVATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.email",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "EVALUATE_AND_SELECT_OPTIMAL_TARGET": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive reference points and candidates \u2192 evaluate candidates by spatial criterion \u2192 select best candidate \u2192 execute action on selection",
+      "raw_labels": [
+        "EVALUATE_AND_SELECT_OPTIMAL_TARGET"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.find",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_MATCH_ACT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target information \u2192 perceive available options \u2192 match target to option \u2192 perform action on matched option",
+      "raw_labels": [
+        "RECALL_MATCH_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.grid",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_FILTER_SELECT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve constraint \u2192 filter options by constraint \u2192 select and confirm valid option",
+      "raw_labels": [
+        "RECALL_FILTER_SELECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.generate",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RETRIEVE_FILTER_SELECT_ACT_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve requirements \u2192 perceive available options \u2192 select valid option \u2192 perform action \u2192 confirm outcome",
+      "raw_labels": [
+        "RETRIEVE_FILTER_SELECT_ACT_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.daily",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "ATTRIBUTE_FILTERING": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "extract target attributes \u2192 locate input fields \u2192 input attribute values \u2192 submit query \u2192 verify results match criteria",
+      "raw_labels": [
+        "ATTRIBUTE_FILTERING"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.multi",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_MATCH_SELECT_ACT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target label \u2192 perceive visible labels \u2192 match labels to target \u2192 select matching item \u2192 activate selected item",
+      "raw_labels": [
+        "RECALL_MATCH_SELECT_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.navigate",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_LOCATE_ACT_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve required information \u2192 locate input and control elements \u2192 input information \u2192 activate submission control \u2192 confirm action initiation",
+      "raw_labels": [
+        "RECALL_LOCATE_ACT_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.login",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "PATTERN_COPYING": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive reference and target \u2192 map pattern positions \u2192 reproduce pattern on target \u2192 verify and finalize",
+      "raw_labels": [
+        "PATTERN_COPYING"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.number",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "PERCEIVE_EVALUATE_CATEGORIZE": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive items and categories \u2192 evaluate each item by criterion \u2192 assign category to each item \u2192 finalize action",
+      "raw_labels": [
+        "PERCEIVE_EVALUATE_CATEGORIZE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.odd",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_MATCH_AND_ACT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "recall target \u2192 perceive options \u2192 evaluate matches \u2192 decide on associated field \u2192 act on selection",
+      "raw_labels": [
+        "RECALL_MATCH_AND_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.phone",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "SELECT_AND_EXECUTE_OPTION": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive available options \u2192 identify option matching goal \u2192 select and activate option \u2192 verify outcome",
+      "raw_labels": [
+        "SELECT_AND_EXECUTE_OPTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.sign",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "SELECT_AND_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify target content \u2192 select specified portion \u2192 perform selection action \u2192 activate confirmation control",
+      "raw_labels": [
+        "SELECT_AND_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.highlight",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RECALL_AND_SELECT_BY_RANK": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target parameters \u2192 input query \u2192 submit query \u2192 identify and select item by rank",
+      "raw_labels": [
+        "RECALL_AND_SELECT_BY_RANK"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.search",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "SELECT_AND_APPLY_STYLE": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify target content and controls \u2192 select appropriate style \u2192 apply style \u2192 submit changes \u2192 verify application",
+      "raw_labels": [
+        "SELECT_AND_APPLY_STYLE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.text",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "RETRIEVE_MATCH_ACTIVATE_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target and action \u2192 scan options \u2192 match target with action \u2192 perform action \u2192 confirm success",
+      "raw_labels": [
+        "RETRIEVE_MATCH_ACTIVATE_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.social",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "ADJUST_AND_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify target \u2192 perceive current state \u2192 decide adjustment \u2192 perform adjustment \u2192 verify outcome",
+      "raw_labels": [
+        "ADJUST_AND_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.use",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "FILTER_AND_ACT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify items matching criterion \u2192 select appropriate action \u2192 apply action to items \u2192 verify removal of targeted items",
+      "raw_labels": [
+        "FILTER_AND_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.terminal",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "SOLVE_AND_RESPOND": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive problem \u2192 compute solution \u2192 input answer \u2192 confirm submission",
+      "raw_labels": [
+        "SOLVE_AND_RESPOND"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.simple",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "COUNT_AND_REPORT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive items \u2192 count total \u2192 select input and submit controls \u2192 enter count and submit \u2192 confirm submission",
+      "raw_labels": [
+        "COUNT_AND_REPORT"
+      ],
+      "skills": [
         {
           "skill_id": "archetype.miniwob.visual",
           "task": "miniwob",
           "domain": "WEB"
-        },
+        }
+      ]
+    },
+    "COUNTERFACTUAL_INFERENCE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify current state evidence \u2192 recall hypothetical condition \u2192 infer changes under new condition \u2192 select consistent outcome \u2192 produce counterfactual response",
+      "raw_labels": [
+        "COUNTERFACTUAL_INFERENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Attitude_Inference",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "EVALUATE_AND_SELECT_EXPLANATION": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive evidence \u2192 recall relevant goal \u2192 evaluate explanations \u2192 select best explanation \u2192 confirm consistency",
+      "raw_labels": [
+        "EVALUATE_AND_SELECT_EXPLANATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Environment_Perception",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "COUNTERFACTUAL_SCENARIO_EVALUATION": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify elements \u2192 introduce hypothetical change \u2192 assess effects \u2192 select best outcome \u2192 verify consistency",
+      "raw_labels": [
+        "COUNTERFACTUAL_SCENARIO_EVALUATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Counterfactual_Prediction",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "COMPARE_HYPOTHETICAL_SCENARIOS": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "observe current state \u2192 recall hypothetical change \u2192 compare hypothetical to current \u2192 select best fitting outcome \u2192 verify alignment with evidence",
+      "raw_labels": [
+        "COMPARE_HYPOTHETICAL_SCENARIOS"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Factual_Prediction",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "EVALUATE_AND_SELECT": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "gather contextual information \u2192 match against categories \u2192 select best supported option \u2192 confirm with strongest evidence",
+      "raw_labels": [
+        "EVALUATE_AND_SELECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Relation_Inference",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "PERCEIVE_RECALL_EVALUATE_DECIDE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive relevant elements \u2192 recall candidate categories and context \u2192 evaluate observed data against candidates \u2192 decide best fitting category",
+      "raw_labels": [
+        "PERCEIVE_RECALL_EVALUATE_DECIDE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Facial_Expression_Recognition",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "ELIMINATE_AND_SELECT": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify relevant elements \u2192 recall target and transitions \u2192 eliminate unsupported options \u2192 select best supported outcome \u2192 confirm consistency",
+      "raw_labels": [
+        "ELIMINATE_AND_SELECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Human_Attribute_Identification",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "RECALL_PERCEIVE_EVALUATE_ACT": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target and threshold \u2192 perceive current value \u2192 evaluate condition \u2192 perform action if condition met",
+      "raw_labels": [
+        "RECALL_PERCEIVE_EVALUATE_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.stock",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "INFER_INTENTIONS": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "gather relevant information \u2192 evaluate possible explanations \u2192 select best-supported interpretation \u2192 confirm consistency with evidence",
+      "raw_labels": [
+        "INFER_INTENTIONS"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Intent_Inference",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "PREDICT_NEXT_EVENT": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "siv_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current context \u2192 recall prediction goal \u2192 evaluate candidates against context \u2192 decide most likely continuation \u2192 act on decision",
+      "raw_labels": [
+        "PREDICT_NEXT_EVENT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.siv_bench.Action_Recognition",
+          "task": "siv_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "EVALUATE_AND_SELECT_BEST_OPTION": {
+      "count": 1,
+      "domains": [
+        "WEB"
+      ],
+      "tasks": [
+        "miniwob"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current state and options \u2192 evaluate options by goal progress and threat \u2192 select best option \u2192 execute action \u2192 verify outcome improvement",
+      "raw_labels": [
+        "EVALUATE_AND_SELECT_BEST_OPTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.miniwob.tic",
+          "task": "miniwob",
+          "domain": "WEB"
+        }
+      ]
+    },
+    "PERCEIVE_DECIDE_MONITOR_ACT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current state \u2192 decide on stationary action \u2192 monitor changes \u2192 act to maintain or release action",
+      "raw_labels": [
+        "PERCEIVE_DECIDE_MONITOR_ACT"
+      ],
+      "skills": [
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "MONITOR_AND_ADVANCE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "check path ahead for obstacles \u2192 move forward if clear \u2192 continuously re-check path for changes",
+      "raw_labels": [
+        "MONITOR_AND_ADVANCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-ce299e7f78",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "DETECT_PREPARE_EXECUTE_VERIFY": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect obstacle ahead \u2192 prepare by building momentum \u2192 execute action with specific parameters \u2192 verify successful outcome",
+      "raw_labels": [
+        "DETECT_PREPARE_EXECUTE_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-3f211a5410",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "DETECT_ALIGN_EXECUTE_VERIFY": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect target \u2192 align position beneath target \u2192 execute precise action \u2192 verify success",
+      "raw_labels": [
+        "DETECT_ALIGN_EXECUTE_VERIFY"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-000bcd2c79",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_COMMIT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive constraint \u2192 evaluate options by future viability \u2192 decide best option \u2192 reinforce choice \u2192 confirm ongoing feasibility",
+      "raw_labels": [
+        "EVALUATE_AND_COMMIT"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/EVADE",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "DETECT_AND_RECOVER_STUCK_STATE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "monitor recent actions for no movement \u2192 retreat to create space \u2192 execute high-effort action \u2192 verify movement success",
+      "raw_labels": [
+        "DETECT_AND_RECOVER_STUCK_STATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-2c5803c5bc",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "BUILD_AND_EXECUTE_MOMENTUM_JUMP": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect obstacle \u2192 adjust position for momentum \u2192 perform high jump action \u2192 verify successful progress without damage",
+      "raw_labels": [
+        "BUILD_AND_EXECUTE_MOMENTUM_JUMP"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-f33930254f",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_COMMIT_SEQUENCE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current state \u2192 evaluate possible action sequences \u2192 discard suboptimal options \u2192 select best sequence \u2192 execute chosen actions",
+      "raw_labels": [
+        "EVALUATE_AND_COMMIT_SEQUENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/OPTIMIZE",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_COMMIT_SETUP": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current state \u2192 recall short-term future elements \u2192 evaluate options by stability and risk \u2192 decide on low-risk arrangement \u2192 execute chosen plan",
+      "raw_labels": [
+        "EVALUATE_AND_COMMIT_SETUP"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/SETUP",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_COMMIT_FIT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive local structure \u2192 evaluate fit options by future benefit \u2192 select fit despite cost \u2192 confirm follow-up viability",
+      "raw_labels": [
+        "EVALUATE_AND_COMMIT_FIT"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/POSITION",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_SELECT_SAFE_OPTION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "assess current state \u2192 eliminate risky options \u2192 rank by stability and flexibility \u2192 select safest option \u2192 execute placement",
+      "raw_labels": [
+        "EVALUATE_AND_SELECT_SAFE_OPTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "INSPECT/SETUP",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_MINIMIZE_VARIANCE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "analyze current state metrics \u2192 simulate possible actions \u2192 evaluate outcomes by variance and constraints \u2192 select optimal action \u2192 execute and verify",
+      "raw_labels": [
+        "EVALUATE_AND_MINIMIZE_VARIANCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-ef15646a63",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "DELAY_AND_OBSERVE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect uncertainty \u2192 perform neutral action to pause \u2192 re-perceive environment \u2192 decide next action",
+      "raw_labels": [
+        "DELAY_AND_OBSERVE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-ddc22463e1",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "FILL_GAP_AND_EXECUTE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify near-complete gap \u2192 find piece placement to fill gap \u2192 plan movement sequence \u2192 execute moves \u2192 verify outcome",
+      "raw_labels": [
+        "FILL_GAP_AND_EXECUTE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-fb2291cf83",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "VERIFY_AND_EXECUTE_ACTION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "confirm preconditions met \u2192 execute action \u2192 confirm action success",
+      "raw_labels": [
+        "VERIFY_AND_EXECUTE_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-0705eea546",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "ELIMINATE_BY_CRITERIA_AND_SELECT_MINIMUM": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "generate outcomes \u2192 evaluate each by criterion \u2192 discard those failing criterion \u2192 select remaining with minimal secondary metric \u2192 verify selection",
+      "raw_labels": [
+        "ELIMINATE_BY_CRITERIA_AND_SELECT_MINIMUM"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-a14b29d8f1",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_SELECT_OPTION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "tetris"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify current item \u2192 find candidate placements \u2192 re-score candidates with future context \u2192 select best candidate \u2192 output plan",
+      "raw_labels": [
+        "EVALUATE_AND_SELECT_OPTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-4e4c89db8d",
+          "task": "tetris",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "COUNT_BY_IDENTIFICATION": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve target category \u2192 identify matching instances \u2192 count instances \u2192 verify count \u2192 report total",
+      "raw_labels": [
+        "COUNT_BY_IDENTIFICATION"
+      ],
+      "skills": [
         {
           "skill_id": "archetype.tir_bench.contrast",
           "task": "tir_bench",
@@ -2355,35 +4316,671 @@
         }
       ]
     },
-    "RETRIEVE_AND_EXECUTE": {
-      "count": 2,
+    "COUNT_AND_MATCH": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive distinct elements \u2192 count elements \u2192 compare count to options \u2192 select matching option \u2192 confirm and respond",
+      "raw_labels": [
+        "COUNT_AND_MATCH"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.color",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "CONSTRAINED_PATH_SELECTION": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify start and goal \u2192 apply constraints to filter options \u2192 evaluate options by goal alignment \u2192 select best option \u2192 verify consistency with environment",
+      "raw_labels": [
+        "CONSTRAINED_PATH_SELECTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.maze",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "EXTRACT_AND_CONFIRM_TEXT": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "recognize task \u2192 perceive text region \u2192 identify target text \u2192 verify clarity \u2192 output exact text",
+      "raw_labels": [
+        "EXTRACT_AND_CONFIRM_TEXT"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.ocr",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "ESTIMATE_AND_MATCH_RANGE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive indicator position \u2192 estimate value by comparison \u2192 match estimate to given ranges \u2192 select best matching range \u2192 confirm and respond",
+      "raw_labels": [
+        "ESTIMATE_AND_MATCH_RANGE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.instrument",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "MATCH_VALUE_TO_RANGE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify input value \u2192 compare value against intervals \u2192 select matching interval \u2192 verify selection \u2192 finalize choice",
+      "raw_labels": [
+        "MATCH_VALUE_TO_RANGE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.math",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "ESTIMATE_AND_MATCH_PROPORTION": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify target and context \u2192 estimate target proportion \u2192 compare estimate to options \u2192 select closest match \u2192 respond",
+      "raw_labels": [
+        "ESTIMATE_AND_MATCH_PROPORTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.refcoco",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "CALCULATE_AND_MATCH_CORRECTION": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive deviation \u2192 recall correction rule \u2192 evaluate options against correction \u2192 decide matching option \u2192 confirm restoration",
+      "raw_labels": [
+        "CALCULATE_AND_MATCH_CORRECTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.rotation_game",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "LOCATE_AND_MAP_POSITION": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve format \u2192 identify target in structure \u2192 determine position coordinates \u2192 verify correctness \u2192 output position",
+      "raw_labels": [
+        "LOCATE_AND_MAP_POSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.word_search",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "IDENTIFY_MATCH_SELECT_CONFIRM": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify target and attribute \u2192 locate and perceive evidence \u2192 compare evidence to options \u2192 select best match \u2192 confirm selection",
+      "raw_labels": [
+        "IDENTIFY_MATCH_SELECT_CONFIRM"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.visual_search",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "COUNT_NESTED_STRUCTURES": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "tir_bench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify repeated units \u2192 evaluate containment relationships \u2192 select matching count option \u2192 confirm selection matches structure",
+      "raw_labels": [
+        "COUNT_NESTED_STRUCTURES"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.tir_bench.symbolic",
+          "task": "tir_bench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "EVALUATE_AND_SELECT_BEST_ACTION": {
+      "count": 1,
       "domains": [
         "GAME"
       ],
       "tasks": [
-        "Temporal_Airstriker-v0"
+        "twenty_forty_eight"
       ],
       "n_way": 1,
       "is_cross_domain": false,
-      "procedure": "Recall known procedure \u2192 execute it \u2192 confirm outcome",
+      "procedure": "perceive current state \u2192 generate possible actions \u2192 evaluate actions by criteria \u2192 discard suboptimal actions \u2192 select and apply best action",
+      "raw_labels": [
+        "EVALUATE_AND_SELECT_BEST_ACTION"
+      ],
       "skills": [
         {
-          "skill_id": "skill-16f706e751",
-          "task": "Temporal_Airstriker-v0",
+          "skill_id": "mid:OPTIMIZE",
+          "task": "twenty_forty_eight",
           "domain": "GAME"
-        },
+        }
+      ]
+    },
+    "MERGE_AND_UPDATE_SEQUENCE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify relevant groups \u2192 reorganize elements \u2192 detect merge candidates \u2192 merge elements \u2192 validate updated state",
+      "raw_labels": [
+        "MERGE_AND_UPDATE_SEQUENCE"
+      ],
+      "skills": [
         {
-          "skill_id": "skill-d6fb397f21",
-          "task": "Temporal_Airstriker-v0",
+          "skill_id": "COMPARE/MERGE",
+          "task": "twenty_forty_eight",
           "domain": "GAME"
+        }
+      ]
+    },
+    "TRACE_AND_REPAIR_SEQUENCE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "trace sequence \u2192 identify break-point \u2192 select action to repair or extend sequence \u2192 avoid disruptive actions \u2192 execute and verify improvement",
+      "raw_labels": [
+        "TRACE_AND_REPAIR_SEQUENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-8642e07c88",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "ANCHOR_AND_PRESERVE_POSITION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify key element and its position \u2192 list actions preserving position \u2192 select action optimizing local condition \u2192 avoid actions breaking position \u2192 execute and verify position maintained",
+      "raw_labels": [
+        "ANCHOR_AND_PRESERVE_POSITION"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-a5382573f6",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "FILTER_AND_APPLY_TRANSFORMATION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive current state \u2192 generate possible transformations \u2192 eliminate ineffective options \u2192 select valid transformation \u2192 apply transformation \u2192 verify change",
+      "raw_labels": [
+        "FILTER_AND_APPLY_TRANSFORMATION"
+      ],
+      "skills": [
+        {
+          "skill_id": "COMMIT/MERGE",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "IDENTIFY_AND_EXECUTE_OPTIMAL_MERGE": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "scan options for merge pairs \u2192 select option with most merges \u2192 verify constraints \u2192 execute action \u2192 confirm success",
+      "raw_labels": [
+        "IDENTIFY_AND_EXECUTE_OPTIMAL_MERGE"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-b77bc8cee5",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "SIMULATE_EVALUATE_SELECT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "generate candidate actions \u2192 eliminate invalid actions \u2192 evaluate remaining actions by heuristic \u2192 select best action \u2192 execute and observe outcome",
+      "raw_labels": [
+        "SIMULATE_EVALUATE_SELECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-1c237d74a2",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "INFER_INTERNAL_STATE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "observe behavior and context \u2192 generate possible internal states \u2192 eliminate inconsistent states \u2192 select best-supported state \u2192 report conclusion",
+      "raw_labels": [
+        "INFER_INTERNAL_STATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.IMC",
+          "task": "video_holmes",
+          "domain": "VR"
+        }
+      ]
+    },
+    "EVIDENCE_BASED_INFERENCE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "perceive evidence and context \u2192 generate possible interpretations \u2192 eliminate inconsistent options \u2192 select best fitting interpretation \u2192 confirm alignment with evidence",
+      "raw_labels": [
+        "EVIDENCE_BASED_INFERENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.MHR",
+          "task": "video_holmes",
+          "domain": "VR"
+        }
+      ]
+    },
+    "EVALUATE_AND_ELIMINATE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify strongest evidence \u2192 assess fit of interpretations \u2192 eliminate unsupported options \u2192 select best match \u2192 confirm consistency",
+      "raw_labels": [
+        "EVALUATE_AND_ELIMINATE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.CTI",
+          "task": "video_holmes",
+          "domain": "VR"
+        }
+      ]
+    },
+    "ELIMINATE_AND_SELECT_BEST": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect failure \u2192 exclude failed option \u2192 evaluate remaining options by effectiveness \u2192 select and confirm best option",
+      "raw_labels": [
+        "ELIMINATE_AND_SELECT_BEST"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-f64acfee97",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "LOOKAHEAD_PRUNE_SELECT": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "generate top candidates \u2192 simulate future states \u2192 evaluate viability \u2192 discard poor options \u2192 select best candidate",
+      "raw_labels": [
+        "LOOKAHEAD_PRUNE_SELECT"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-ae456df3ed",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVALUATE_AND_MAXIMIZE_ADJACENCY": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "twenty_forty_eight"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect condition \u2192 simulate options \u2192 count adjacency increases \u2192 exclude undesirable options \u2192 select maximum \u2192 execute action",
+      "raw_labels": [
+        "EVALUATE_AND_MAXIMIZE_ADJACENCY"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-86f2a197a9",
+          "task": "twenty_forty_eight",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "ORDER_EVENTS_CHRONOLOGICALLY": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify events \u2192 infer temporal relations \u2192 select consistent sequence \u2192 verify complete match",
+      "raw_labels": [
+        "ORDER_EVENTS_CHRONOLOGICALLY"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.TA",
+          "task": "video_holmes",
+          "domain": "VR"
+        }
+      ]
+    },
+    "ELIMINATE_BY_EVIDENCE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify salient cues \u2192 match cues to options \u2192 eliminate unsupported options \u2192 select best-supported option \u2192 confirm consistency",
+      "raw_labels": [
+        "ELIMINATE_BY_EVIDENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.PAR",
+          "task": "video_holmes",
+          "domain": "VR"
+        }
+      ]
+    },
+    "COMBINE_AND_SIMPLIFY_EQUATIONS": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "visual_toolbench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify given relations \u2192 combine equations to eliminate variables \u2192 select simplified expression \u2192 verify consistency with constraints",
+      "raw_labels": [
+        "COMBINE_AND_SIMPLIFY_EQUATIONS"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.visual_toolbench.hybrid_tool_reasoning",
+          "task": "visual_toolbench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "FILTER_BY_RULES": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "visual_toolbench"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify categories \u2192 recall rules linking categories \u2192 filter categories by rules \u2192 assess sufficiency \u2192 verify against evidence",
+      "raw_labels": [
+        "FILTER_BY_RULES"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.visual_toolbench.region_switch_qa",
+          "task": "visual_toolbench",
+          "domain": "VR"
+        }
+      ]
+    },
+    "COMPARE_AND_DETERMINE_RELATIONSHIP": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "retrieve question \u2192 perceive attributes \u2192 evaluate similarities/differences \u2192 decide relationship \u2192 confirm consistency",
+      "raw_labels": [
+        "COMPARE_AND_DETERMINE_RELATIONSHIP"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.SR",
+          "task": "video_holmes",
+          "domain": "VR"
+        }
+      ]
+    },
+    "DETECT_AND_TIME_ACTION": {
+      "count": 1,
+      "domains": [
+        "GAME"
+      ],
+      "tasks": [
+        "super_mario"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "detect target in path \u2192 assess readiness \u2192 execute timed action \u2192 verify successful outcome",
+      "raw_labels": [
+        "DETECT_AND_TIME_ACTION"
+      ],
+      "skills": [
+        {
+          "skill_id": "skill-84abf477af",
+          "task": "super_mario",
+          "domain": "GAME"
+        }
+      ]
+    },
+    "EVIDENCE_BASED_CAUSAL_INFERENCE": {
+      "count": 1,
+      "domains": [
+        "VR"
+      ],
+      "tasks": [
+        "video_holmes"
+      ],
+      "n_way": 1,
+      "is_cross_domain": false,
+      "procedure": "identify outcome and event \u2192 gather related evidence \u2192 compare timing and access \u2192 infer cause \u2192 verify explanation consistency",
+      "raw_labels": [
+        "EVIDENCE_BASED_CAUSAL_INFERENCE"
+      ],
+      "skills": [
+        {
+          "skill_id": "archetype.video_holmes.TCI",
+          "task": "video_holmes",
+          "domain": "VR"
         }
       ]
     }
   },
   "stats": {
-    "three_way": 5,
-    "two_way": 5,
-    "cross_domain_total": 10,
-    "single_domain": 8
+    "three_way": 3,
+    "two_way": 40,
+    "cross_domain_total": 43,
+    "single_domain": 147
   }
 }

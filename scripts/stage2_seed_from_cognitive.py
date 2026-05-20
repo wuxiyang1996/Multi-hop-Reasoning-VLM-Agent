@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 BANKS_DIR = ROOT / "frontier_data" / "output" / "per_task_banks"
 CLUSTERS_FILE = ROOT / "frontier_data" / "output" / "mega_skill_clusters_v2.json"
+REASONING_FILE = ROOT / "frontier_data" / "output" / "reasoning_aligned_mega_skills.json"
 OUT_DIR = ROOT / "frontier_data" / "output" / "stage2_seed_banks"
 
 # Source tasks with trained skill banks (Stage 1 best runs)
@@ -34,6 +35,14 @@ TEMPORAL_MAP = {
     "gymv_strider": "Temporal_Strider-v0",
     "gymv_columns": "Temporal_Columns-v0",
     "gymv_streets_of_rage_2": "Temporal_StreetsOfRage2-v0",
+    "Temporal_ThunderForceIII-v0": "gymv_thunder_force_iii",
+    "Temporal_Strider-v0": "gymv_strider",
+    "Temporal_Columns-v0": "gymv_columns",
+    "Temporal_StreetsOfRage2-v0": "gymv_streets_of_rage_2",
+    "Temporal_Airstriker-v0": "gymv_airstriker",
+    "Temporal_AlteredBeast-v0": "gymv_altered_beast",
+    "Temporal_DynamiteHeaddy-v0": "gymv_dynamite_headdy",
+    "Temporal_SpaceHarrierII-v0": "gymv_space_harrier_ii",
 }
 
 # All available source tasks (including Temporal variants and non-game banks)
@@ -75,6 +84,17 @@ SOURCE_GENRES = {
     "gymv_strider":           "platformer",
     "gymv_columns":           "puzzle",
     "candy_crush":            "puzzle",
+    "tetris":                 "puzzle",
+    "twenty_forty_eight":     "puzzle",
+    "super_mario":            "platformer",
+    "Temporal_ThunderForceIII-v0": "shooter",
+    "Temporal_StreetsOfRage2-v0":  "brawler",
+    "Temporal_Strider-v0":        "platformer",
+    "Temporal_Columns-v0":        "puzzle",
+    "Temporal_Airstriker-v0":     "shooter",
+    "Temporal_AlteredBeast-v0":   "brawler",
+    "Temporal_DynamiteHeaddy-v0": "platformer",
+    "Temporal_SpaceHarrierII-v0": "shooter",
     "miniwob":                "web",
     "webshop":                "web",
     "siv_bench":              "vr",
@@ -95,9 +115,13 @@ GENRE_SIMILARITY = {
     ("platformer", "platformer"): 1.0,
     ("platformer", "puzzle"): 0.2,
     ("puzzle", "puzzle"): 1.0,
+    ("web", "web"): 1.0,
+    ("vr", "vr"): 1.0,
+    ("web", "vr"): 0.5,
+    ("vr", "web"): 0.5,
 }
 
-MAX_SEEDS = 40
+MAX_SEEDS = 50
 
 
 def determine_domain(task):
@@ -115,18 +139,55 @@ def load_clusters():
         return json.load(f)
 
 
+def load_reasoning_mega_skills():
+    """Load cross-domain mega-skills from build_reasoning_aligned_bank.py."""
+    if not REASONING_FILE.exists():
+        return {}
+    with open(REASONING_FILE) as f:
+        data = json.load(f)
+    # Build (task, skill_id) → reasoning_plan mapping
+    mapping = {}
+    for mega in data.get("mega_skills", []):
+        plan = mega.get("reasoning_plan", "")
+        domains = set(mega.get("domains", []))
+        is_cross_domain = len(domains) >= 2 and (
+            ("GAME" in domains and ("WEB" in domains or "VR" in domains))
+            or ("WEB" in domains and "VR" in domains)
+        )
+        for domain_group, members in mega.get("members_by_domain", {}).items():
+            for m in members:
+                key = (m["task"], m["skill_id"])
+                mapping[key] = {
+                    "reasoning_plan": plan,
+                    "is_cross_domain_bridge": is_cross_domain,
+                    "mega_domains": sorted(domains),
+                }
+    return mapping
+
+
 def build_skill_index(clusters):
-    """Build (task, skill_id) → {family, intent, signature, domain} index."""
+    """Build (task, skill_id) → {family, intent, signature, domain} index.
+
+    Enriches with reasoning-plan-aligned mega-skill data when available.
+    """
+    reasoning = load_reasoning_mega_skills()
+
     index = {}
     for family_name, family_info in clusters["families"].items():
         for sk in family_info["skills"]:
             key = (sk["task"], sk["skill_id"])
-            index[key] = {
+            entry = {
                 "family": family_name,
                 "intent": sk.get("intent", ""),
                 "signature": sk.get("signature", ""),
                 "domain": sk.get("domain", ""),
+                "reasoning_plan": "",
+                "is_cross_domain_bridge": False,
             }
+            if key in reasoning:
+                entry["reasoning_plan"] = reasoning[key]["reasoning_plan"]
+                entry["is_cross_domain_bridge"] = reasoning[key]["is_cross_domain_bridge"]
+            index[key] = entry
     return index
 
 
@@ -149,16 +210,16 @@ def compute_affinity(source_profile, target_domain):
     Based on how many of the source's skills belong to cognitive families
     that are transferable to the target domain.
     """
-    # Family transferability from clusters_v2
     TRANSFER_TARGETS = {
         "reactive_execute": {"GAME"},
-        "deliberate_select": {"GAME", "WEB"},
-        "inferential_reason": {"VR", "WEB"},
-        "retrieve_match_act": {"WEB", "VR"},
-        "plan_transform": {"GAME", "WEB"},
-        "explore_monitor": {"GAME"},
-        "filter_aggregate": {"VR", "WEB"},
-        "sequence_chain": {"GAME"},
+        "act_and_verify": {"GAME", "WEB", "VR"},
+        "decide_act_verify": {"GAME", "WEB", "VR"},
+        "observe_decide_verify": {"GAME", "WEB", "VR"},
+        "perceive_decide_act": {"GAME", "WEB", "VR"},
+        "evaluate_act_perceive": {"GAME", "WEB"},
+        "deliberate_reason": {"GAME", "WEB", "VR"},
+        "strategic_navigate": {"GAME"},
+        "navigate_orient": {"GAME"},
     }
 
     total = 0
@@ -200,13 +261,14 @@ def select_seeds(source_tasks, target_domain, target_task, target_genre,
     """Select seed skills prioritizing cognitive transferability + genre affinity."""
     TRANSFER_TARGETS = {
         "reactive_execute": {"GAME"},
-        "deliberate_select": {"GAME", "WEB"},
-        "inferential_reason": {"VR", "WEB"},
-        "retrieve_match_act": {"WEB", "VR"},
-        "plan_transform": {"GAME", "WEB"},
-        "explore_monitor": {"GAME"},
-        "filter_aggregate": {"VR", "WEB"},
-        "sequence_chain": {"GAME"},
+        "act_and_verify": {"GAME", "WEB", "VR"},
+        "decide_act_verify": {"GAME", "WEB", "VR"},
+        "observe_decide_verify": {"GAME", "WEB", "VR"},
+        "perceive_decide_act": {"GAME", "WEB", "VR"},
+        "evaluate_act_perceive": {"GAME", "WEB"},
+        "deliberate_reason": {"GAME", "WEB", "VR"},
+        "strategic_navigate": {"GAME"},
+        "navigate_orient": {"GAME"},
     }
 
     preferred_intents = set(GENRE_INTENT_AFFINITY.get(target_genre, []))
@@ -232,17 +294,23 @@ def select_seeds(source_tasks, target_domain, target_task, target_genre,
             intent = info["intent"]
             targets = TRANSFER_TARGETS.get(family, set())
             is_transferable = target_domain in targets
+            is_reasoning_bridge = info.get("is_cross_domain_bridge", False)
 
-            # Score: combines cognitive transferability + genre match + intent match
+            src_domain = determine_domain(src)
+
             score = 0.0
             if is_transferable:
                 score += 2.0
-            if family in ("deliberate_select", "plan_transform",
-                          "inferential_reason", "retrieve_match_act"):
-                score += 1.0  # bridge family bonus
-            score += genre_sim * 2.0  # genre similarity (0-2)
+            if family in ("decide_act_verify", "observe_decide_verify",
+                          "perceive_decide_act", "deliberate_reason"):
+                score += 1.0
+            if is_reasoning_bridge:
+                score += 3.0
+            if src_domain == target_domain:
+                score += 4.0  # same-domain source gets highest priority
+            score += genre_sim * 2.0
             if intent in preferred_intents:
-                score += 1.5  # intent affinity bonus
+                score += 1.5
 
             candidates.append({
                 "entry": entry,
@@ -257,12 +325,47 @@ def select_seeds(source_tasks, target_domain, target_task, target_genre,
 
     candidates.sort(key=lambda x: -x["score"])
 
-    # Select with diversity constraints
+    # Separate cross-domain bridge candidates
+    cross_domain_bridges = [
+        c for c in candidates
+        if determine_domain(c["source"]) != target_domain
+        and c["is_transferable"]
+    ]
+    cross_domain_bridges.sort(key=lambda x: -x["score"])
+
+    # Reserve slots for cross-domain bridge skills (min 20% of seeds)
+    min_cross = max(8, max_seeds // 5)
+
     selected = []
     seen_family_intent = set()
     seen_sids = set()
 
-    # Pass 1: one per (family, intent) for diversity, highest score first
+    # Pass 1: cross-domain bridges first (one per family for diversity)
+    cross_families_seen = set()
+    for c in cross_domain_bridges:
+        if len(selected) >= min_cross:
+            break
+        sid = c["entry"].get("skill", c["entry"]).get("skill_id", "")
+        family = c["family"]
+        if family not in cross_families_seen and sid not in seen_sids:
+            adapted = adapt_skill(c["entry"], target_task, c["source"], c["family"], c["intent"])
+            selected.append(adapted)
+            seen_family_intent.add((family, c["intent"]))
+            seen_sids.add(sid)
+            cross_families_seen.add(family)
+
+    # Pass 1b: fill remaining cross-domain quota with best bridge skills
+    for c in cross_domain_bridges:
+        if len(selected) >= min_cross:
+            break
+        sid = c["entry"].get("skill", c["entry"]).get("skill_id", "")
+        if sid not in seen_sids:
+            adapted = adapt_skill(c["entry"], target_task, c["source"], c["family"], c["intent"])
+            selected.append(adapted)
+            seen_family_intent.add((c["family"], c["intent"]))
+            seen_sids.add(sid)
+
+    # Pass 2: one per (family, intent) for diversity from ALL candidates
     for c in candidates:
         if len(selected) >= max_seeds:
             break
@@ -274,7 +377,7 @@ def select_seeds(source_tasks, target_domain, target_task, target_genre,
             seen_family_intent.add(key)
             seen_sids.add(sid)
 
-    # Pass 2: fill remaining slots with highest-scored skills
+    # Pass 3: fill remaining slots with highest-scored skills
     for c in candidates:
         if len(selected) >= max_seeds:
             break
@@ -325,22 +428,28 @@ def main():
     clusters = load_clusters()
     skill_index = build_skill_index(clusters)
 
-    # Determine which source banks exist
+    # Auto-discover ALL source banks
+    # Tasks that are ONLY targets (no pre-trained bank of their own)
+    pure_targets = {"gymv_airstriker", "gymv_altered_beast",
+                    "gymv_dynamite_headdy", "gymv_space_harrier_ii",
+                    "miniwob_unseen", "webshop_new", "vr_new_bench"}
+
     available_sources = []
-    for src in SOURCE_TASKS:
-        if (BANKS_DIR / src / "skill_bank.jsonl").exists():
-            available_sources.append(src)
-    # Also add non-game banks as sources for web/vr targets
     web_sources = []
     vr_sources = []
-    for task_dir in BANKS_DIR.iterdir():
+    for task_dir in sorted(BANKS_DIR.iterdir()):
         task = task_dir.name
-        if (task_dir / "skill_bank.jsonl").exists():
-            domain = determine_domain(task)
-            if domain == "WEB" and task not in ("miniwob_unseen", "webshop_new"):
-                web_sources.append(task)
-            elif domain == "VR" and task not in ("vr_new_bench",):
-                vr_sources.append(task)
+        if not (task_dir / "skill_bank.jsonl").exists():
+            continue
+        if task in pure_targets:
+            continue
+        domain = determine_domain(task)
+        if domain == "GAME":
+            available_sources.append(task)
+        elif domain == "WEB":
+            web_sources.append(task)
+        elif domain == "VR":
+            vr_sources.append(task)
 
     print(f"Available GAME sources: {available_sources}")
     print(f"Available WEB sources: {web_sources}")
@@ -361,18 +470,18 @@ def main():
     print()
 
     # Determine targets
+    all_sources = available_sources + web_sources + vr_sources
+
     targets = []
     if args.all_targets or args.game_targets:
         for t, info in GAME_TARGETS.items():
-            targets.append((t, info["domain"], info["genre"], available_sources))
+            targets.append((t, info["domain"], info["genre"], all_sources))
     if args.all_targets or args.web_targets:
         for t, info in WEB_TARGETS.items():
-            targets.append((t, info["domain"], info["genre"],
-                           available_sources + web_sources))
+            targets.append((t, info["domain"], info["genre"], all_sources))
     if args.all_targets or args.vr_targets:
         for t, info in VR_TARGETS.items():
-            targets.append((t, info["domain"], info["genre"],
-                           available_sources + web_sources + vr_sources))
+            targets.append((t, info["domain"], info["genre"], all_sources))
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -400,8 +509,9 @@ def main():
                 if tag.startswith("cognitive_family:"):
                     fam = tag.split(":", 1)[1]
                     family_dist[fam] += 1
-                    if fam in ("deliberate_select", "plan_transform",
-                               "inferential_reason", "retrieve_match_act"):
+                    if fam in ("act_and_verify", "decide_act_verify",
+                               "perceive_decide_act", "observe_decide_verify",
+                               "deliberate_reason"):
                         bridge_count += 1
                 elif tag.startswith("intent:"):
                     intent_dist[tag.split(":", 1)[1]] += 1
@@ -412,11 +522,19 @@ def main():
         src_str = ", ".join(f"{s}({c})" for s, c in source_dist.most_common())
         intent_str = ", ".join(f"{i}({c})" for i, c in intent_dist.most_common(6))
 
+        # Cross-domain stats
+        domain_dist = Counter()
+        for s, c in source_dist.items():
+            domain_dist[determine_domain(s)] += c
+        same_d = domain_dist.get(target_domain, 0)
+        cross_d = len(seeds) - same_d
+        dom_str = ", ".join(f"{d}={c}" for d, c in domain_dist.most_common())
+
         print(f"  {target_task} [{target_domain}]:")
-        print(f"    Seeds: {len(seeds)}, Bridge skills: {bridge_count}/{len(seeds)}")
+        print(f"    Seeds: {len(seeds)}, Bridge families: {bridge_count}/{len(seeds)}")
+        print(f"    Domain mix: {dom_str} (cross-domain: {cross_d}/{len(seeds)})")
         print(f"    Families: {fam_str}")
         print(f"    Sources: {src_str}")
-        print(f"    Top intents: {intent_str}")
         print(f"    → {out_path}")
         print()
 

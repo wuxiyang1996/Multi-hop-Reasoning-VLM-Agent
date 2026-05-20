@@ -163,7 +163,7 @@ def plan_to_signature(plan: List[str]) -> str:
 
 
 def _cohort_of(task: str) -> str:
-    if task.startswith("Temporal_"):
+    if task.startswith("Temporal_") or task.startswith("gymv_"):
         return "gymv_game"
     if task in ("candy_crush", "tetris", "super_mario", "twenty_forty_eight"):
         return "env_wr_game"
@@ -200,7 +200,15 @@ def load_all_skills(bank_root: Path) -> List[Dict]:
                 r = json.loads(line)
                 sk = r.get("skill", r)
                 protocol = sk.get("protocol", [])
-                if not isinstance(protocol, list):
+                if isinstance(protocol, dict):
+                    # Adapt dict-format protocol: convert string steps
+                    # to dicts with "notes" field for intent classification
+                    str_steps = protocol.get("steps", [])
+                    protocol = [
+                        {"notes": s} if isinstance(s, str) else s
+                        for s in str_steps
+                    ]
+                elif not isinstance(protocol, list):
                     protocol = []
 
                 raw_plan = extract_reasoning_plan(protocol)
