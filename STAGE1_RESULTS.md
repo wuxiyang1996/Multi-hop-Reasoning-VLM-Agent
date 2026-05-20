@@ -12,48 +12,58 @@ Best co-evolution runs per game, with peak reward and corresponding step.
 
 ---
 
-## Stage 2 — Cross-Game Skill Transfer (Auto-Clustering)
+## Stage 2 — Cross-Domain Skill Transfer (Cognitive Signature Clustering)
 
-### Pipeline
+### Method
 
-1. **Pass 1**: `extract_mega_skills.py` — LLM free-form labeling (no pre-defined categories).  
-   324 skills → 190 auto-discovered mega-skill labels.
-2. **Clustering**: `cluster_mega_skills.py` — iterative LLM semantic merging (3 rounds).  
-   190 labels → **16 canonical families** (4 three-way GAME+WEB+VR, 6 two-way, 6 single-domain).  
-   94.1% of non-game skills land in cross-domain families.
-3. **Pass 2**: `extract_mega_skills.py --relabel` — re-labels all skills using the codebook for consistency.
-4. **Seed generator**: `stage2_seed_from_clusters.py` — transfers skills to Phase 2 holdout games via genre-matched source mapping + mega-skill family alignment.
+Cognitive-signature-based clustering (`cluster_cognitive_signatures.py`): extracts the
+cognitive verb sequence from each skill's protocol steps, maps to 7 primitives
+(P=Perceive, R=Retrieve, E=Evaluate, S=Select, X=Execute, C=Confirm, T=Transform),
+then clusters by signature pattern.
 
-### 16 Canonical Mega-Skill Families
+Three domains have fundamentally different cognitive loops:
 
-| Family | Skills | Domains | Cross-domain? |
-|--------|--------|---------|---------------|
-| perceive_decide_act_confirm | 199 | GAME+WEB+UNKNOWN | ★ 3-way |
-| evaluate_select_confirm | 63 | GAME+VR+WEB | ★ 3-way |
-| identify_improve_confirm | 14 | GAME+WEB+UNKNOWN | ★ 3-way |
-| sequence_adjust_confirm | 3 | GAME+WEB+UNKNOWN | ★ 3-way |
-| explore_update_confirm | 10 | GAME+UNKNOWN | ● 2-way |
-| avoid_navigate_confirm | 8 | GAME+UNKNOWN | ● 2-way |
-| filter_count_report | 6 | VR+WEB | ● 2-way |
-| initialize_setup | 5 | GAME+UNKNOWN | ● 2-way |
-| sustain_action_under_threat | 4 | GAME+UNKNOWN | ● 2-way |
-| plan_execute_confirm | 3 | GAME+UNKNOWN | ● 2-way |
-| perceive_identify_confirm | 3 | VR | single |
-| copy_confirm_action | 2 | WEB | single |
-| solve_respond | 1 | WEB | single |
-| trace_identify_repair | 1 | GAME | single |
-| combine_simplify_verify | 1 | VR | single |
-| detect_time_execute | 1 | GAME | single |
+```
+GAME:  X→C→P→T  (reactive — act first, then observe)
+WEB:   R→P→S→X  (deliberate — recall instruction, match, then act)
+VR:    P→E→S→C  (inferential — observe, reason, then conclude)
+```
 
-### Phase 2 Seed Banks
+### 7 Cognitive Loop Families
 
-| Holdout Game | Sources | Seeds | Families |
-|---|---|---|---|
-| SpaceHarrierII | ThunderForceIII | 16 | 7 |
-| Airstriker | ThunderForceIII, Strider | 30 | 10 |
-| AlteredBeast | StreetsOfRage2, Strider | 32 | 11 |
-| DynamiteHeaddy | Strider, ThunderForceIII, Columns | 36 | 11 |
-| 2048 | Columns, CandyCrush | 19 | 8 |
-| SuperMario | Strider, StreetsOfRage2 | 31 | 11 |
+| Family | Skills | Domains | Transfer targets |
+|--------|--------|---------|-----------------|
+| reactive_execute | 117 | GAME | GAME |
+| deliberate_select | 88 | GAME+VR+WEB ★ | GAME, WEB |
+| sequence_chain | 36 | GAME+VR | GAME |
+| inferential_reason | 27 | GAME+VR+WEB ★ | VR, WEB |
+| retrieve_match_act | 25 | VR+WEB ● | WEB, VR |
+| plan_transform | 21 | GAME+WEB ● | GAME, WEB |
+| explore_monitor | 10 | GAME | GAME |
 
-Seed banks: `frontier_data/output/stage2_seed_banks/<game>/skill_bank.jsonl`
+### Cross-Domain Transfer Paths
+
+```
+GAME action   ──(reactive_execute)───→ GAME action     (same cognitive loop)
+GAME deliberate ─(deliberate_select)──→ WEB interaction (PSXC signature bridge)
+WEB reasoning ──(inferential_reason)──→ VR inference    (PES signature bridge)
+WEB instruction ─(retrieve_match_act)─→ VR tasks        (RPES signature bridge)
+GAME state ─────(plan_transform)──────→ WEB form-fill   (PXC/PT signature bridge)
+```
+
+### Phase 2 Seed Banks (Cognitive + Genre-Aware)
+
+| Target | Genre | Top Source (count) | Seeds | Bridge |
+|--------|-------|-------------------|-------|--------|
+| SpaceHarrierII | shooter | TF3(19) | 40 | 6 |
+| Airstriker | shooter | TF3(19) | 40 | 6 |
+| AlteredBeast | brawler | SoR2(15), Strider(10) | 40 | 6 |
+| DynamiteHeaddy | platformer | Strider(17) | 40 | 5 |
+| 2048 | puzzle | Columns(14), Strider(11) | 40 | 7 |
+| SuperMario | platformer | Strider(17) | 40 | 5 |
+| webshop_new | web | miniwob(40) | 40 | 40 |
+| miniwob_unseen | web | miniwob(40) | 40 | 40 |
+| vr_new_bench | vr | miniwob(16), tir(9), siv(8) | 40 | 40 |
+
+Scripts: `cluster_cognitive_signatures.py`, `stage2_seed_from_cognitive.py`  
+Seed banks: `frontier_data/output/stage2_seed_banks/<task>/skill_bank.jsonl`
