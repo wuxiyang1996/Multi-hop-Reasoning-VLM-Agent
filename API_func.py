@@ -172,12 +172,62 @@ def _next_vllm_url(model: str | None = None) -> str:
         return next(_vllm_url_cycle)
 
 
+# T2.17c (2026-05-21): provider prefixes recognised as *external* —
+# any model name starting with one of these is served exclusively by
+# OpenRouter / OpenAI (no local vLLM equivalent expected).  Used by
+# :func:`_candidate_vllm_urls` to short-circuit the local-URL probe
+# loop for such models — previously we wasted 4× ~200ms iterations
+# pinging the 4× 9B vLLM servers with e.g. ``google/gemini-2.5-flash``
+# only to get back ``model not found`` from each.  After the
+# vision-perception pivot, those wasted probes were ~20% of every
+# Gemini call's wall time (200ms wasted of a ~4s API call total).
+_EXTERNAL_MODEL_PREFIXES: tuple[str, ...] = (
+    "anthropic/",
+    "openai/",
+    "google/",
+    "meta-llama/",
+    "mistralai/",
+    "deepseek/",
+    "qwen/",          # OpenRouter routes to Qwen API even when local
+                      # Qwen vLLM is up, IF the prefix is lowercase.
+                      # Local model id is ``Qwen/Qwen3.5-9B`` (capital
+                      # Q) — startswith check is case-insensitive
+                      # below to disambiguate.
+)
+
+
+def _is_external_model(model: str | None) -> bool:
+    """Return ``True`` if *model* is a foreign-provider model id.
+
+    Detection uses the ``provider/model`` prefix convention used by
+    OpenRouter / OpenAI / Anthropic.  Case-insensitive on the prefix
+    so a user can pass ``Google/Gemini-2.5-Flash`` and still bypass
+    local probes.  Local Qwen models keep their canonical
+    ``Qwen/Qwen3.5-9B`` capitalisation and are routed locally; only
+    a lowercase ``qwen/...`` is treated as an OpenRouter id.
+    """
+    if not model:
+        return False
+    m = model.strip()
+    if not m or "/" not in m:
+        return False
+    provider = m.split("/", 1)[0].lower()
+    if provider == "qwen" and m.split("/", 1)[0] == "Qwen":
+        return False  # local Qwen (capital Q) — not OpenRouter
+    return any(m.lower().startswith(p) for p in _EXTERNAL_MODEL_PREFIXES)
+
+
 def _candidate_vllm_urls(model: str | None = None) -> list[str]:
     """Return URLs to try for a given ``model``, in a load-balancing
     *and* failover-aware order.
 
     Order policy (head = primary attempt, tail = failover candidates):
 
+      0. **External-provider models** (e.g. ``google/gemini-2.5-flash``,
+         ``openai/gpt-4o-mini``) → ``[]``, forcing callers that
+         themselves append OpenRouter / OpenAI URLs (e.g.
+         :func:`_ask_judge_blocking`) to skip the local probe loop
+         entirely.  T2.17c (2026-05-21).
       1. **Mapped models** (e.g. ``Qwen/Qwen3.5-35B-A3B`` pinned to
          :8004 via ``VLLM_BASE_URL_MAP``) → mapped URL first, then
          the round-robin pool as failover.
@@ -194,6 +244,8 @@ def _candidate_vllm_urls(model: str | None = None) -> list[str]:
          while the actor's ``AsyncVLLMClient`` (which uses its own
          counter) load-balanced correctly.
     """
+    if _is_external_model(model):
+        return []
     with _vllm_url_lock:
         global _vllm_url_cycle
         if _vllm_url_cycle is None:
