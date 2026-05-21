@@ -198,7 +198,6 @@ SYSTEM_PROMPT = (
     "- NEVER repeat the same action more than 2 times in a row.\n"
     "- If recent actions got zero reward, change strategy.\n\n"
     "Output format (strict):\n"
-    "REASONING: <1-2 sentences>\n"
     "ACTION: <number>\n\n"
 )
 
@@ -1675,7 +1674,7 @@ async def run_episode_async(
             f"Subgoal: {assigned_subgoal}\n"
             f"{urgency_line}{skill_context}{recent_context}{_critical_hint}"
             f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
-            f"Choose the best action. Output REASONING then ACTION number."
+            f"Choose the best action. Output ACTION number."
         )
         action_prompt = (
             _profile_prefix + SYSTEM_PROMPT + skill_text + "\n" + action_user
@@ -1846,124 +1845,28 @@ async def run_episode_async(
                 action_num = step_actions.index(action) + 1
             except ValueError:
                 action_num = 1
-            subgoal_line = f"SUBGOAL: {current_intention}\n" if current_intention else ""
-            # T2.19h (2026-05-21): collapse-prevention rework.
+            # T2.19j (v7): pure raw-env reward, no REASONING in output.
             #
-            # The legacy code fabricated ``REASONING: Expert play.`` when
-            # the LoRA emitted only ``ACTION: <n>`` with no REASONING
-            # line.  GRPO then trained on that synthetic completion and
-            # treated it as a positive example, so over a handful of
-            # outer steps the action_taking policy collapsed from
-            # producing real reasoning (0.6% "Expert play." at step 0)
-            # to producing literal placeholder strings (86-98% by
-            # step 3-7 in run gymv_altered_beast_stage2_20260520_185405).
-            #
-            # New behaviour:
-            #   * ``_format_failed`` (no parseable ACTION) — record the
-            #     raw LoRA text and zero the reward, same as before.
-            #   * ``reasoning`` missing / empty — record the raw LoRA
-            #     text and zero the reward.  This makes the no-reasoning
-            #     shortcut a *low-advantage* outcome under GRPO, so the
-            #     policy is nudged back toward the SFT REASONING+ACTION
-            #     format instead of away from it.
-            #   * Otherwise — record the real REASONING + ACTION as
-            #     before; full shaped reward applies.
-            _has_reasoning = bool(reasoning and reasoning.strip())
+            # All dense shaping (survival, advance, hit/damage, attack,
+            # movement, format bonus, passive penalty) removed.  GRPO
+            # sees only the raw environment reward — the cleanest
+            # possible signal.  The prompt no longer requests REASONING,
+            # so the completion is just ``ACTION: <number>``.
             if _format_failed:
                 action_completion = action_result.text.strip()[:150]
                 _action_reward = 0.0
-            elif not _has_reasoning:
-                action_completion = (
-                    action_result.text.strip()[:150]
-                    or f"ACTION: {action_num}"
-                )
-                _action_reward = 0.0
             else:
-                action_completion = f"{subgoal_line}REASONING: {reasoning}\nACTION: {action_num}"
-                # Reward composition (post TF3 phase-1 collapse fix):
-                #   env_reward  : raw game reward (dominant signal)
-                #   intrinsic   : skill_tracker bonus when step_check fires
-                #   format bonus: tiny +0.05 for emitting a valid REASONING+
-                #                 ACTION block (down from +1.0 which
-                #                 saturated GRPO advantages — see commit
-                #                 10b425a post-mortem).
-                # Anti-repetition / non-critical-NOOP gets a small penalty
-                # so the LoRA can't farm the format bonus by repeating NOOP.
-                _format_bonus = 0.05
-                _critical = _critical_actions_for(game, step_actions)
-                _is_critical = (str(action) in _critical) if _critical else False
-                _passive_penalty = 0.0
-                _action_str = str(action).upper()
-                _passive_set = {"NOOP", "STAY", "PASS"}
-                if (
-                    _action_str in _passive_set
-                    and not _is_critical
-                    and float(raw_env_reward) <= 0.0
-                ):
-                    _passive_penalty = -0.05
-                _surv_bonus = action_survival_bonus if float(raw_env_reward) <= 0.0 else 0.0
-                _adv_bonus = action_advance_bonus if _action_str in action_advance_actions.upper().split(",") else 0.0
-                # T2.19e: attack / movement bonuses are *additive* with
-                # advance_bonus.  Both fire whenever the chosen action
-                # token is in the configured comma-separated allow-list
-                # (uppercased, whitespace-tolerant).  Designed for
-                # shmups where teachers fire AND actively evade at high
-                # rates — see ``CoEvolutionConfig.action_attack_bonus``.
-                _attack_set = {
-                    t.strip() for t in action_attack_actions.upper().split(",")
-                    if t.strip()
-                }
-                _movement_set = {
-                    t.strip() for t in action_movement_actions.upper().split(",")
-                    if t.strip()
-                }
-                _attack_bonus = (
-                    float(action_attack_bonus)
-                    if action_attack_bonus > 0.0 and _action_str in _attack_set
-                    else 0.0
-                )
-                _movement_bonus = (
-                    float(action_movement_bonus)
-                    if action_movement_bonus > 0.0 and _action_str in _movement_set
-                    else 0.0
-                )
-                # T2.19d: hit / damage penalties were computed against
-                # the post-step RAM watch a few lines above (so they are
-                # consistent for the *every-step* metadata block even when
-                # action format failed).  They are folded into the GRPO
-                # reward here as additional shaping signal.
-                _action_reward = (
-                    float(reward)
-                    + skill_tracker._intrinsic_bonus
-                    + _format_bonus
-                    + _passive_penalty
-                    + _surv_bonus
-                    + _adv_bonus
-                    + _hit_pen
-                    + _damage_pen
-                    + _attack_bonus
-                    + _movement_bonus
-                )
+                action_completion = f"ACTION: {action_num}"
+                _action_reward = float(reward)
                 try:
                     from trainer.coevolution._run_loggers import (  # noqa: WPS433
                         record_shaping_signal,
                     )
-                    # Fold hit/damage/attack/movement into
-                    # ``constant_offset`` so the shape_ratio diagnostic
-                    # (intrinsic+constant / raw+intrinsic+constant)
-                    # attributes them to non-raw shaping mass.  Hit /
-                    # damage are negative (downward) on Δlives<0; attack
-                    # / movement are positive (upward) when the actor
-                    # picks the listed action.
                     record_shaping_signal(
                         game=game,
                         raw_env=float(raw_env_reward),
-                        intrinsic=float(skill_tracker._intrinsic_bonus),
-                        constant_offset=(
-                            _format_bonus + _passive_penalty
-                            + _hit_pen + _damage_pen
-                            + _attack_bonus + _movement_bonus
-                        ),
+                        intrinsic=0.0,
+                        constant_offset=0.0,
                     )
                 except Exception:                                # pragma: no cover
                     pass
