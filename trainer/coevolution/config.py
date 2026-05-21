@@ -97,7 +97,15 @@ GAME_MAX_STEPS: Dict[str, int] = {
     # (~5-10 s) for all 8 games and matches the published baseline
     # comparison budget.
     "gymv_thunder_force_iii": 80,
-    "gymv_altered_beast": 80,
+    # Altered Beast bumped 80→120 (2026-05-21) after observing every
+    # episode in run gymv_altered_beast_stage2_20260520_185405 truncate
+    # at step 65±2 with a constant ``raw_env_reward=200`` (just the
+    # stage-1 life-bar bonus) — i.e. no kill rewards landed.  Teacher
+    # rollouts (gemini, ``SFT_Data/gymv_games/gemini/Temporal_AlteredBeast-v0``)
+    # show the +1000 boss spike consistently lands at step 72–76, just
+    # past the old 80 cap.  Bumping to 120 gives the policy time to
+    # reach the boss-kill window without doubling rollout wall time.
+    "gymv_altered_beast": 120,
     "gymv_columns": 80,
     "gymv_dynamite_headdy": 80,
     "gymv_space_harrier_ii": 80,
@@ -136,21 +144,105 @@ EMULATOR_GAMES: set = set()
 # silently dropped at consumption time.  Keep the list short — only
 # truly indispensable actions (one or two per game).
 GAME_CRITICAL_ACTIONS: Dict[str, List[str]] = {
-    # Horizontal-scrolling shoot-em-ups: B = primary fire.
+    # Horizontal-scrolling shoot-em-ups: screen auto-scrolls so B (fire)
+    # is the single critical button.
     "gymv_thunder_force_iii":  ["B"],
     "gymv_space_harrier_ii":   ["B"],
     "gymv_airstriker":         ["B"],
-    # Side-scrolling brawlers / action: B = attack.
-    "gymv_altered_beast":      ["B"],
-    "gymv_streets_of_rage_2":  ["B"],
-    "gymv_strider":            ["B"],
-    # gymv_dynamite_headdy: head-throw is mapped to B in the gymv
-    # adapter; A is jump.
-    "gymv_dynamite_headdy":    ["B"],
+    # Side-scrolling brawlers / action: B = attack, RIGHT = advance.
+    # Both are critical — teacher rollouts (claude/gemini, see
+    # ``SFT_Data/gymv_games/{claude,gemini}/Temporal_AlteredBeast-v0``)
+    # spend ~50% on RIGHT and ~22% on B in high-reward (1200+ pt)
+    # episodes; the +1000 boss spike at step ~72 requires both
+    # walking right AND attacking.  Listing them both lets the
+    # critical-action-dry-spell guard and the prompt hint nudge the
+    # policy back to the gemini-style mix instead of the 64% B-mash
+    # we observed in run gymv_altered_beast_stage2_20260520_185405.
+    "gymv_altered_beast":      ["RIGHT", "B"],
+    "gymv_streets_of_rage_2":  ["RIGHT", "B"],
+    "gymv_strider":            ["RIGHT", "B"],
+    # gymv_dynamite_headdy: head-throw is mapped to B; A is jump;
+    # RIGHT walks the level.
+    "gymv_dynamite_headdy":    ["RIGHT", "B"],
     # Falling-block puzzle: rotation matters but no single button is
     # indispensable. Intentionally omitted.
     # "gymv_columns": [],
 }
+
+
+# ── Per-genre <actions>-block ordering hint ──────────────────────────
+# The deterministic state-markup renderer and the 35B vision-perception
+# prompt both surface a *5-item* ``<actions>`` slice that the
+# skill-selector consumes as the primary action vocabulary.  Historically
+# that slice was the first 5 entries of the env's ``action_names`` list,
+# which on gymv adapters is ``[B, A, MODE, START, UP, ...]`` — i.e. the
+# top of the slice was dominated by *system* buttons (MODE/START) with
+# game-critical movement actions like RIGHT/LEFT pushed off the list.
+# Result: the skill-selector saw a degraded action menu and consistently
+# picked skills that ignored movement.
+#
+# This priority list is applied *before* slicing to [:5], so the slice
+# now leads with genre-relevant actions.  The full action_names list is
+# still preserved for ACTION-number mapping; only the *visible* top-5
+# changes.  Unknown actions (anything not in the priority list) are
+# kept in their original order after the prioritised prefix.
+GENRE_ACTION_PRIORITY: Dict[str, List[str]] = {
+    "beatemup":     ["RIGHT", "B", "A", "C", "LEFT", "UP", "DOWN"],
+    "sidescroller": ["RIGHT", "B", "A", "C", "LEFT", "UP", "DOWN"],
+    "platformer":   ["RIGHT", "A", "B", "LEFT", "UP", "DOWN", "C"],
+    "shmup":        ["B", "UP", "DOWN", "LEFT", "RIGHT", "A", "C"],
+    "shooter":      ["B", "UP", "DOWN", "LEFT", "RIGHT", "A", "C"],
+    "puzzle":       ["LEFT", "RIGHT", "DOWN", "UP", "A", "B", "C"],
+}
+
+
+def prioritise_actions(actions: List[str], *, genre: str = "",
+                       game: str = "") -> List[str]:
+    """Reorder ``actions`` so genre-critical buttons come first.
+
+    Returns a new list of the same length as ``actions`` (no items
+    dropped or added).  Items mentioned in
+    :data:`GENRE_ACTION_PRIORITY` for the resolved genre are emitted
+    first in priority order; everything else keeps its original order
+    after that prefix.  Unknown / empty genre falls back to identity.
+
+    The genre is resolved from the supplied ``genre`` argument first;
+    if empty, it's inferred from the leading ``gymv_`` token in
+    ``game`` via a tiny built-in table (kept in sync with the
+    deterministic state-markup's ``_GYMV_GENRE_GOAL`` map).
+    """
+    if not actions:
+        return list(actions)
+    g = (genre or "").strip().lower()
+    if not g:
+        # Inferred game→genre fallback for gymv tasks.
+        _GAME_GENRE = {
+            "gymv_altered_beast":     "beatemup",
+            "gymv_streets_of_rage_2": "beatemup",
+            "gymv_strider":           "sidescroller",
+            "gymv_dynamite_headdy":   "platformer",
+            "gymv_thunder_force_iii": "shmup",
+            "gymv_space_harrier_ii":  "shmup",
+            "gymv_airstriker":        "shooter",
+            "gymv_columns":           "puzzle",
+        }
+        g = _GAME_GENRE.get(game, "")
+    pri = GENRE_ACTION_PRIORITY.get(g)
+    if not pri:
+        return list(actions)
+    # Case-insensitive match while preserving the original spelling.
+    upper_idx = {a.upper(): i for i, a in enumerate(actions)}
+    seen: set = set()
+    out: List[str] = []
+    for token in pri:
+        i = upper_idx.get(token.upper())
+        if i is not None and i not in seen:
+            out.append(actions[i])
+            seen.add(i)
+    for i, a in enumerate(actions):
+        if i not in seen:
+            out.append(a)
+    return out
 
 # ── Multi-role rollout constants ─────────────────────────────────────
 # When ``unified_role_rollouts`` is enabled, the same decision agent

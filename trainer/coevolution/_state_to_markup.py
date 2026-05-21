@@ -436,6 +436,26 @@ def _render_gymv(
         state_flags["episode_reward"] = str(sim["episode_reward"])
     if sim.get("step_reward") is not None:
         state_flags["last_reward"] = str(sim["step_reward"])
+    # T2.19f (2026-05-21): pass RAM-watch scalars straight into
+    # ``<state_flags>`` so the skill-selector and the actor see the
+    # ground-truth health / lives / x-position the env already exposes
+    # via ``info.structured_state.ram_watch``.  Previously these only
+    # influenced reward shaping (hit / damage penalties) but were
+    # invisible to the prompt — leaving the policy to guess at lives
+    # / health from frame pixels alone.  Visible keys are intentionally
+    # narrow (``lives``, ``health``, ``score``, ``x``, ``y``) so the
+    # flags block stays compact (≤5 extra lines) and survives prompt
+    # truncation.
+    ram = ss.get("ram_watch") or {}
+    for _k in ("lives", "health", "score", "x", "y"):
+        _v = ram.get(_k)
+        if _v is None:
+            continue
+        try:
+            _v = _v.item() if hasattr(_v, "item") else _v
+        except Exception:
+            pass
+        state_flags[_k] = str(_v)
     parsed = ss.get("parsed_text") or {}
     if parsed.get("gameover"):
         state_flags["error"] = f"gameover={parsed['gameover']}"
@@ -445,7 +465,21 @@ def _render_gymv(
         or info.get("action_names")
         or []
     )
-    actions = [str(a) for a in available][:5]
+    # T2.19g (2026-05-21): reorder by genre BEFORE slicing to [:5] so
+    # the visible top of the ``<actions>`` block leads with the buttons
+    # that actually drive scoring for this game's genre (RIGHT/B for
+    # beat-em-ups; B/UP/DOWN for shmups; …).  The full ``available``
+    # list is still the source of truth for ACTION-number mapping
+    # elsewhere — only the 5-item slice handed to skill-selection /
+    # vision changes.  See ``trainer.coevolution.config.prioritise_actions``.
+    try:
+        from trainer.coevolution.config import prioritise_actions
+        _reordered = prioritise_actions(
+            [str(a) for a in available], genre=genre, game=game,
+        )
+    except Exception:                                        # pragma: no cover
+        _reordered = [str(a) for a in available]
+    actions = _reordered[:5]
 
     goal_entities = [e for e in entities if e.ontology == "goal_indicator"]
     target_eid = (

@@ -1847,11 +1847,39 @@ async def run_episode_async(
             except ValueError:
                 action_num = 1
             subgoal_line = f"SUBGOAL: {current_intention}\n" if current_intention else ""
+            # T2.19h (2026-05-21): collapse-prevention rework.
+            #
+            # The legacy code fabricated ``REASONING: Expert play.`` when
+            # the LoRA emitted only ``ACTION: <n>`` with no REASONING
+            # line.  GRPO then trained on that synthetic completion and
+            # treated it as a positive example, so over a handful of
+            # outer steps the action_taking policy collapsed from
+            # producing real reasoning (0.6% "Expert play." at step 0)
+            # to producing literal placeholder strings (86-98% by
+            # step 3-7 in run gymv_altered_beast_stage2_20260520_185405).
+            #
+            # New behaviour:
+            #   * ``_format_failed`` (no parseable ACTION) — record the
+            #     raw LoRA text and zero the reward, same as before.
+            #   * ``reasoning`` missing / empty — record the raw LoRA
+            #     text and zero the reward.  This makes the no-reasoning
+            #     shortcut a *low-advantage* outcome under GRPO, so the
+            #     policy is nudged back toward the SFT REASONING+ACTION
+            #     format instead of away from it.
+            #   * Otherwise — record the real REASONING + ACTION as
+            #     before; full shaped reward applies.
+            _has_reasoning = bool(reasoning and reasoning.strip())
             if _format_failed:
                 action_completion = action_result.text.strip()[:150]
                 _action_reward = 0.0
+            elif not _has_reasoning:
+                action_completion = (
+                    action_result.text.strip()[:150]
+                    or f"ACTION: {action_num}"
+                )
+                _action_reward = 0.0
             else:
-                action_completion = f"{subgoal_line}REASONING: {reasoning or 'Expert play.'}\nACTION: {action_num}"
+                action_completion = f"{subgoal_line}REASONING: {reasoning}\nACTION: {action_num}"
                 # Reward composition (post TF3 phase-1 collapse fix):
                 #   env_reward  : raw game reward (dominant signal)
                 #   intrinsic   : skill_tracker bonus when step_check fires

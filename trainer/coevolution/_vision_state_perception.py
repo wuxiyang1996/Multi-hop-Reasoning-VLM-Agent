@@ -488,6 +488,20 @@ def _build_messages(
             (ss.get("control") or {}).get("available_actions") or []
         )
     action_names = [str(a) for a in action_names][:16]
+    # T2.19g (2026-05-21): reorder by genre so the 35B's
+    # ``available_actions=[…]`` list (which it copies verbatim into
+    # its emitted ``<actions>`` block per inference-plan step 7) leads
+    # with genre-relevant buttons.  ``_resolve_domain`` already gave us
+    # the domain; pull genre off the structured_state when available.
+    try:
+        from trainer.coevolution.config import prioritise_actions
+        _genre = ""
+        _ss = info.get("structured_state") or {}
+        if isinstance(_ss, dict):
+            _genre = str(_ss.get("genre") or "")
+        action_names = prioritise_actions(action_names, genre=_genre, game=game)
+    except Exception:                                        # pragma: no cover
+        pass
 
     ss = info.get("structured_state") or {}
     ram: Dict[str, Any] = {}
