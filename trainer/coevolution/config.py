@@ -1053,6 +1053,110 @@ class CoEvolutionConfig:
     action_advance_bonus_gymv: float = 2.0
     action_advance_actions: str = "RIGHT"
 
+    # T2.19e (2026-05-21): attack + movement bonuses for shmups (AS).
+    # Diagnostic on
+    # ``runs/gymv_airstriker_stage2_v3_20260521_011504`` showed the v3
+    # agent firing at teacher rates (B≈33% vs teachers' 39-43%) but
+    # essentially never moving horizontally (LEFT+RIGHT≈3% vs teachers'
+    # 21-29%) — combined with the fixed vision pipeline (T2.17), the
+    # missing horizontal evasion was the next-biggest gap.  These two
+    # knobs reward the *action* directly (not progress), and decouple
+    # from ``action_advance_bonus`` which means "forward progression"
+    # for side-scrollers (RIGHT only).
+    #
+    # ``action_attack_bonus`` rewards a configured "attack" action
+    # (e.g. ``B``).  Useful for sparse-reward shmups where each B is a
+    # small bet on hitting an enemy.
+    #
+    # ``action_movement_bonus`` rewards a configured "movement" action
+    # set (e.g. ``LEFT,RIGHT``).  Crucial for shmups where active
+    # evasion is the difference between dying at frame 40 and surviving
+    # the full episode.  Comma-separated; matches against the actor's
+    # uppercased action token.
+    #
+    # Defaults are zero to preserve global behaviour; opt-in via
+    # ``dense_reward_overrides[game]``.  Recommended for AS (validated
+    # against teacher distributions):
+    #   attack_bonus=0.05, attack_actions=B
+    #   movement_bonus=0.20, movement_actions=LEFT,RIGHT
+    # Expected per-ep contribution at teacher firing/move rates:
+    #   attack = 0.05 × 32 ≈ 1.6     (≈3% of teacher's score-95)
+    #   move   = 0.20 × 24 ≈ 4.8     (≈5%)
+    # → total shape ratio additional contribution ~8%, leaves raw env
+    # reward dominating the GRPO signal.
+    action_attack_bonus: float = 0.0
+    action_attack_bonus_gymv: float = 0.0
+    action_attack_actions: str = "B"
+    action_movement_bonus: float = 0.0
+    action_movement_bonus_gymv: float = 0.0
+    action_movement_actions: str = "LEFT,RIGHT"
+
+    # T2.19d (2026-05-20): per-step hit / damage penalties driven by
+    # stable-retro RAM watches.  The watches dict
+    # (``info["structured_state"]["ram_watch"]``) is auto-populated for
+    # every gymv game with a ``data.json`` (verified 2026-05-20 on
+    # Airstriker: ``{"gameover": 9, "lives": 3, "score": 0}`` every
+    # step).  Coverage:
+    #   * ``lives`` — 7/8 gymv games (all except Columns)
+    #   * ``health``— 3 games: AlteredBeast, DynamiteHeaddy, Strider
+    #
+    # Magnitudes are negated *positive* values — the runtime applies
+    # the sign on ``Δlives < 0`` / ``Δhealth < 0`` events.  Defaults
+    # are zero to preserve the existing reward shape; opt-in via
+    # ``dense_reward_overrides[game]`` per slug.
+    #
+    # Recommended (Airstriker, validated below):
+    #   action_hit_penalty=5.0    → −5 per life lost (50% of one
+    #                                +10 score event; large enough to
+    #                                penalise reckless flight, small
+    #                                enough to avoid the v1 "do nothing"
+    #                                collapse the surv_bonus caused).
+    #   action_damage_penalty=0.0 → not applicable (no ``health`` for
+    #                                Airstriker).
+    #
+    # Brawlers (AB / Strider / DH) can additionally use damage:
+    #   action_damage_penalty=0.3 → −0.3 per HP lost, giving a smoother
+    #                                gradient than the bigger lives-loss
+    #                                event.
+    action_hit_penalty: float = 0.0
+    action_damage_penalty: float = 0.0
+
+    # T2.19c (2026-05-20): per-game-slug overrides for the dense-reward
+    # knobs above.  The default ``*_gymv`` values (surv=1.5, adv=2.0) are
+    # calibrated for high-score-density gymv brawlers (SoR2, SH2, AB),
+    # where surv_bonus ≪ raw per-step env reward.  In sparse-reward
+    # shmups like Airstriker (raw ≈ 0.33 per decision), a uniform
+    # surv_bonus of 1.5 dominates the GRPO advantage and biases the
+    # policy towards "stay still" — confirmed by reward_shaping_log on
+    # ``runs/gymv_airstriker_stage2_20260520_185405`` (true shape_ratio
+    # 0.69 → 0.83 across steps).  ``dense_reward_overrides`` lets us
+    # tune surv/adv/redistribution per game without touching the
+    # gymv-wide defaults that other games rely on.
+    #
+    # Lookup precedence (see ``rollout_collector._dense_reward_cfg``):
+    #   1. ``dense_reward_overrides[game][field]``  (this dict)
+    #   2. ``<field>_gymv``                          (for gymv_* games)
+    #   3. ``<field>``                               (final fallback)
+    #
+    # Recognised inner-keys (must match real config fields):
+    #   * ``action_survival_bonus``
+    #   * ``action_advance_bonus``
+    #   * ``episode_return_redistribution_weight``
+    #   * ``action_hit_penalty``         (T2.19d, lives-loss; magnitude
+    #                                     >0; applied as negative)
+    #   * ``action_damage_penalty``      (T2.19d, health-loss; magnitude
+    #                                     >0; applied as negative; only
+    #                                     fires for games with a
+    #                                     ``health`` RAM watch)
+    #
+    # Example:
+    #     dense_reward_overrides={"gymv_airstriker":
+    #         {"action_survival_bonus": 0.05, "action_advance_bonus": 0.0,
+    #          "action_hit_penalty": 5.0}}
+    dense_reward_overrides: Dict[str, Dict[str, float]] = field(
+        default_factory=dict
+    )
+
     # T2.17 (2026-05-05): per-step vision-grounded ``<state>`` markup.
     # The 35B judge (port 8001, MULTIMODAL=1) re-emits the cold-start
     # SFT-shape markup grounded in the actual frame at every actor
@@ -1074,9 +1178,13 @@ class CoEvolutionConfig:
     #     becomes the bottleneck
     vision_state_perception_enabled: bool = True
     vision_state_perception_concurrency: int = 12
-    vision_state_perception_timeout_s: float = 12.0
+    # Bumped 12.0 → 45.0 on 2026-05-20.  See _vision_state_perception.py
+    # rationale; the CLI default in run_coevolution.py matches.
+    vision_state_perception_timeout_s: float = 45.0
     vision_state_perception_max_tokens: int = 2048
-    vision_state_perception_temperature: float = 0.1
+    # T2.17b (2026-05-21): bumped 0.1 → 0.0.  See
+    # ``_vision_state_perception._DEFAULT_TEMPERATURE`` for rationale.
+    vision_state_perception_temperature: float = 0.0
     vision_state_perception_every_n_steps: int = 1
 
     _resolved: bool = field(default=False, repr=False)

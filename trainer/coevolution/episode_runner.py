@@ -36,6 +36,30 @@ from trainer.coevolution.skill_reward_shaping import (
 logger = logging.getLogger(__name__)
 
 
+# T2.17b (2026-05-21): regex to rewrite the ``step=N`` line inside a
+# cached ``<state>`` markup so reusing a previous step's markup looks
+# fresh to downstream consumers.  Anchored to start-of-line and
+# matches both ``step=12`` and ``step=12\r``.
+_STATE_STEP_FIELD_RE = re.compile(r"^step=\d+", re.MULTILINE)
+
+
+def _rewrite_step_field(markup: str, step: int) -> str:
+    """Rewrite the ``step=<N>`` line in a cached state markup.
+
+    Used by the vision-perception smart-fallback path: when the 35B
+    judge fails for frame N we reuse the last successful markup (from
+    frame N−1 or N−2), but the LoRA consumes ``step=`` as part of the
+    state block, so we bump the field to keep the prompt coherent.
+    Falls through to returning the markup unchanged if no
+    ``step=...`` line is found (defensive — should not happen for
+    35B output, which always includes the field).
+    """
+    if not markup:
+        return markup
+    new, n = _STATE_STEP_FIELD_RE.subn(f"step={int(step)}", markup, count=1)
+    return new if n else markup
+
+
 def _critical_actions_for(game: str, valid_actions: List[str]) -> List[str]:
     """Return the subset of :data:`GAME_CRITICAL_ACTIONS` that are
     actually exposed for *game* this step.  Imports lazily so callers
@@ -843,6 +867,24 @@ async def run_episode_async(
     episode_return_redistribution_weight: float = 0.0,
     action_advance_bonus: float = 0.0,
     action_advance_actions: str = "RIGHT",
+    # T2.19d (2026-05-20): RAM-watch driven hit / damage penalties.
+    # Magnitudes are positive; the runtime applies the sign on a
+    # negative-delta event in ``info["structured_state"]["ram_watch"]``.
+    # 0.0 (default) → feature off.
+    action_hit_penalty: float = 0.0,
+    action_damage_penalty: float = 0.0,
+    # T2.19e (2026-05-21): per-step attack / movement action bonuses.
+    # ``action_attack_actions`` and ``action_movement_actions`` are
+    # comma-separated lists of action tokens (uppercased) that trigger
+    # the corresponding positive bonus when the actor's chosen action
+    # is in the list.  Designed for shmups (AS) where teachers fire +
+    # actively evade laterally — both at much higher rates than the
+    # baseline agent — but ``action_advance_bonus`` (RIGHT-only) is the
+    # wrong shape for a vertical-scrolling shmup.
+    action_attack_bonus: float = 0.0,
+    action_attack_actions: str = "B",
+    action_movement_bonus: float = 0.0,
+    action_movement_actions: str = "LEFT,RIGHT",
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -974,8 +1016,27 @@ async def run_episode_async(
                 step_v, _vis_exc,
             )
             markup_v = det
-        if markup_v and markup_v != det:
+        # T2.17b (2026-05-21): smart fallback on vision failure.
+        # ``vision_state_to_markup_async`` returns ``fallback_markup``
+        # (i.e. ``det``) on any failure path (timeout / parse_failure /
+        # request_error / build_failure).  Previously we returned that
+        # ``det`` directly, throwing away the last-good 35B markup —
+        # an OOD shock for the action_taking LoRA that was trained on
+        # entity-rich SFT markup, not the HUD-blind deterministic
+        # output.  Now: when the call falls back AND we have a
+        # previous successful 35B markup in this episode, reuse it
+        # (with the step= field rewritten to the current step so
+        # downstream consumers see a fresh-looking block).  Same-episode
+        # frames are usually nearly identical (frame_skip=8), so a
+        # 1-2 step old good markup is far more in-distribution than
+        # det.  Only when no prior vision success exists (typical only
+        # for step 0) do we genuinely return det.
+        is_vision_success = bool(markup_v) and markup_v != det
+        if is_vision_success:
             _last_vision_markup = markup_v
+            return markup_v
+        if _last_vision_markup:
+            return _rewrite_step_field(_last_vision_markup, step_v)
         return markup_v or det
 
     if game_profile is not None:
@@ -1121,6 +1182,31 @@ async def run_episode_async(
     last_skill_reasoning: Optional[str] = None
     last_sk_lora_text: Optional[str] = None
     _pending_markup: Optional[asyncio.Task] = None
+    # T2.19d (2026-05-20): RAM-watch driven hit / damage penalties.
+    # Tracks the previously-observed ``lives`` / ``health`` from
+    # ``info["structured_state"]["ram_watch"]`` so we can apply a
+    # per-step penalty when the agent gets hit.  ``None`` means
+    # "no valid prior observation" → first step never fires a
+    # penalty (no delta possible).  These persist across the entire
+    # episode; once a value is observed it stays "stuck" at the
+    # last non-None reading even if a later step's ram_watch is
+    # missing the key (gym-v fallback dict).
+    _prev_lives: Optional[int] = None
+    _prev_health: Optional[int] = None
+
+    def _safe_int_ram(v: Any) -> Optional[int]:
+        """Coerce a ram_watch entry to ``int`` defensively.
+
+        stable-retro returns numpy scalars (``np.uint16``) but
+        downstream consumers occasionally insert raw ints or strings.
+        Anything not convertible returns ``None`` (no delta computed).
+        """
+        if v is None:
+            return None
+        try:
+            return int(v.item() if hasattr(v, "item") else v)
+        except (TypeError, ValueError):
+            return None
 
     while step_count < max_steps:
         step_actions = action_names if action_names else ["stay"]
@@ -1699,6 +1785,37 @@ async def run_episode_async(
                 next_facts[_rk] = str(
                     _rv.item() if hasattr(_rv, "item") else _rv
                 )
+
+        # T2.19d: per-step hit / damage delta from the stable-retro RAM
+        # watch.  Only fires when (a) the game exposes the key (7/8
+        # gymv games for ``lives``; 3/8 for ``health``), and (b) the
+        # value decreased vs the previous step.  Positive deltas
+        # (1UP pickup, mid-episode health refill) are ignored — we
+        # never *reward* the agent for these, only *penalise* the
+        # complement.  See ``CoEvolutionConfig.action_hit_penalty``
+        # for magnitude calibration.
+        _curr_lives = _safe_int_ram(_rw.get("lives"))
+        _curr_health = _safe_int_ram(_rw.get("health"))
+        _lives_delta = (
+            _curr_lives - _prev_lives
+            if (_curr_lives is not None and _prev_lives is not None)
+            else 0
+        )
+        _health_delta = (
+            _curr_health - _prev_health
+            if (_curr_health is not None and _prev_health is not None)
+            else 0
+        )
+        _hit_pen = (
+            -float(action_hit_penalty) * abs(_lives_delta)
+            if (action_hit_penalty > 0.0 and _lives_delta < 0)
+            else 0.0
+        )
+        _damage_pen = (
+            -float(action_damage_penalty) * abs(_health_delta)
+            if (action_damage_penalty > 0.0 and _health_delta < 0)
+            else 0.0
+        )
         skill_tracker.observe_state_effects(
             next_facts, reward=float(reward), action=str(action),
         )
@@ -1758,6 +1875,35 @@ async def run_episode_async(
                     _passive_penalty = -0.05
                 _surv_bonus = action_survival_bonus if float(raw_env_reward) <= 0.0 else 0.0
                 _adv_bonus = action_advance_bonus if _action_str in action_advance_actions.upper().split(",") else 0.0
+                # T2.19e: attack / movement bonuses are *additive* with
+                # advance_bonus.  Both fire whenever the chosen action
+                # token is in the configured comma-separated allow-list
+                # (uppercased, whitespace-tolerant).  Designed for
+                # shmups where teachers fire AND actively evade at high
+                # rates — see ``CoEvolutionConfig.action_attack_bonus``.
+                _attack_set = {
+                    t.strip() for t in action_attack_actions.upper().split(",")
+                    if t.strip()
+                }
+                _movement_set = {
+                    t.strip() for t in action_movement_actions.upper().split(",")
+                    if t.strip()
+                }
+                _attack_bonus = (
+                    float(action_attack_bonus)
+                    if action_attack_bonus > 0.0 and _action_str in _attack_set
+                    else 0.0
+                )
+                _movement_bonus = (
+                    float(action_movement_bonus)
+                    if action_movement_bonus > 0.0 and _action_str in _movement_set
+                    else 0.0
+                )
+                # T2.19d: hit / damage penalties were computed against
+                # the post-step RAM watch a few lines above (so they are
+                # consistent for the *every-step* metadata block even when
+                # action format failed).  They are folded into the GRPO
+                # reward here as additional shaping signal.
                 _action_reward = (
                     float(reward)
                     + skill_tracker._intrinsic_bonus
@@ -1765,16 +1911,31 @@ async def run_episode_async(
                     + _passive_penalty
                     + _surv_bonus
                     + _adv_bonus
+                    + _hit_pen
+                    + _damage_pen
+                    + _attack_bonus
+                    + _movement_bonus
                 )
                 try:
                     from trainer.coevolution._run_loggers import (  # noqa: WPS433
                         record_shaping_signal,
                     )
+                    # Fold hit/damage/attack/movement into
+                    # ``constant_offset`` so the shape_ratio diagnostic
+                    # (intrinsic+constant / raw+intrinsic+constant)
+                    # attributes them to non-raw shaping mass.  Hit /
+                    # damage are negative (downward) on Δlives<0; attack
+                    # / movement are positive (upward) when the actor
+                    # picks the listed action.
                     record_shaping_signal(
                         game=game,
                         raw_env=float(raw_env_reward),
                         intrinsic=float(skill_tracker._intrinsic_bonus),
-                        constant_offset=_format_bonus + _passive_penalty,
+                        constant_offset=(
+                            _format_bonus + _passive_penalty
+                            + _hit_pen + _damage_pen
+                            + _attack_bonus + _movement_bonus
+                        ),
                     )
                 except Exception:                                # pragma: no cover
                     pass
@@ -2067,6 +2228,14 @@ async def run_episode_async(
         current_info = next_info
         action_names = next_action_names
         structured_state = next_structured_state
+        # T2.19d: only overwrite the prev-state cache when the RAM
+        # watch actually exposed the key this step.  Otherwise keep
+        # the last known value so a transient miss doesn't reset
+        # the delta tracker to "no penalty fires next step either".
+        if _curr_lives is not None:
+            _prev_lives = _curr_lives
+        if _curr_health is not None:
+            _prev_health = _curr_health
         step_count += 1
 
         if done:

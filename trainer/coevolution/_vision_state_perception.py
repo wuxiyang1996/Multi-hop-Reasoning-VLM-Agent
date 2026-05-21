@@ -86,11 +86,34 @@ logger = logging.getLogger(__name__)
 
 
 _CACHE_MAX_ENTRIES = 1024
-_DEFAULT_TIMEOUT_S = 6.0
+# Raised 6.0 → 45.0 on 2026-05-20 (T2.17 follow-up).  Diagnostic on
+# ``runs/gymv_airstriker_stage2_v3_20260521_011504``: production 35B
+# vision-perception calls were taking ~11s/frame solo or 20-47s/frame
+# under concurrency=12 contention, exceeding the old 6s timeout 100%
+# of the time, silently falling back to the deterministic Python
+# ``state_to_markup`` (HUD-blind, no player / enemy positions).  This
+# mismatched the action_taking LoRA's SFT distribution and collapsed
+# the agent's movement rate from teachers' 21-29% LEFT+RIGHT to 3%.
+#
+# 45s catches ~85% of the latency distribution (the slow tail comes
+# from vLLM scheduling on the shared 35B); the remaining tail still
+# falls back, but at a manageable rate (occasional vs every call).
+_DEFAULT_TIMEOUT_S = 45.0
 _DEFAULT_MAX_TOKENS = 2048
 _DEFAULT_CONCURRENCY = 12
-_DEFAULT_TEMPERATURE = 0.1
+# T2.17b (2026-05-21): 0.1 → 0.0.  This is a *parser*-style task with
+# strict format rules and only one structurally-correct answer per
+# frame; greedy decoding gives more consistent formatting (fewer
+# ``parse_failures``) and very-slightly faster tail latency on vLLM
+# (no token-bucket sampling noise).
+_DEFAULT_TEMPERATURE = 0.0
 _MAX_RECENT_ACTIONS = 8
+
+# Surface fallback failures every N events so silent DEBUG-only
+# messages don't hide a misconfigured pipeline like the 6s timeout
+# episode above.  Each bucket prints once per N events to avoid log
+# flood while still being visible in launcher.log / coevolution.log.
+_FALLBACK_WARN_EVERY_N = 50
 
 # Lower than the cold-start cap (25) to keep the 35B's output focused
 # on the most action-relevant entities and stay within max_tokens.
@@ -105,6 +128,8 @@ _stats: Dict[str, int] = {
     "fallbacks": 0,
     "timeouts": 0,
     "parse_failures": 0,
+    "build_failures": 0,
+    "request_errors": 0,
 }
 
 
@@ -178,10 +203,10 @@ async def vision_state_to_markup_async(
         )
     except Exception as exc:  # noqa: BLE001
         _stats["fallbacks"] += 1
-        logger.debug(
-            "vision-perception prompt build failed (game=%s step=%d): "
-            "%s; falling back",
-            game, step, exc,
+        _stats["build_failures"] += 1
+        _maybe_warn_fallback(
+            "build_failures", game, step, timeout_s,
+            f"prompt build failed: {exc!r}",
         )
         return fallback_markup
 
@@ -201,18 +226,18 @@ async def vision_state_to_markup_async(
     except asyncio.TimeoutError:
         _stats["timeouts"] += 1
         _stats["fallbacks"] += 1
-        logger.debug(
-            "vision_state_to_markup timeout (game=%s step=%d, %ss); "
-            "falling back",
-            game, step, timeout_s,
+        _maybe_warn_fallback(
+            "timeouts", game, step, timeout_s,
+            f"timed out after {timeout_s:.0f}s — 35B judge too slow"
+            f" (raise --vision-state-perception-timeout-s if persistent)",
         )
         return fallback_markup
     except Exception as exc:  # noqa: BLE001
         _stats["fallbacks"] += 1
-        logger.debug(
-            "vision_state_to_markup error (game=%s step=%d): %s; "
-            "falling back",
-            game, step, exc,
+        _stats["request_errors"] += 1
+        _maybe_warn_fallback(
+            "request_errors", game, step, timeout_s,
+            f"request error: {exc!r}",
         )
         return fallback_markup
 
@@ -220,15 +245,39 @@ async def vision_state_to_markup_async(
     if not markup:
         _stats["parse_failures"] += 1
         _stats["fallbacks"] += 1
-        logger.debug(
-            "vision_state_to_markup parse failure (game=%s step=%d, "
-            "raw=%r); falling back",
-            game, step, raw[:200],
+        _maybe_warn_fallback(
+            "parse_failures", game, step, timeout_s,
+            f"parse failure on raw={raw[:200]!r}",
         )
         return fallback_markup
 
     _cache_put(cache_key, markup)
     return markup
+
+
+def _maybe_warn_fallback(
+    bucket: str, game: str, step: int, timeout_s: float, reason: str,
+) -> None:
+    """Surface fallback events at WARN every ``_FALLBACK_WARN_EVERY_N``.
+
+    A purely DEBUG-only log line silently let the v3 run for 2.5 hours
+    on 100% deterministic-fallback markup (timeout=6s vs 11s call
+    time).  This helper makes each failure mode visible without
+    flooding the log: the first event in each bucket is logged
+    immediately, then once every N events thereafter.  Together with
+    the explicit ``calls/timeouts/fallbacks/...`` stats counters in
+    ``get_stats()``, this gives both immediate visibility and an
+    aggregate diagnostic.
+    """
+    n = _stats.get(bucket, 0)
+    if n == 1 or (n % _FALLBACK_WARN_EVERY_N == 0):
+        logger.warning(
+            "vision_state_perception[%s] event #%d (game=%s step=%d, "
+            "timeout=%.0fs): %s; falling back to deterministic markup "
+            "(cumulative fallbacks=%d / calls=%d)",
+            bucket, n, game, step, timeout_s, reason,
+            _stats.get("fallbacks", 0), _stats.get("calls", 0),
+        )
 
 
 def get_stats() -> Dict[str, int]:
@@ -463,7 +512,14 @@ def _build_messages(
         or f"Play {game.replace('_', ' ')} and maximise score."
     )
 
-    fewshot = _load_few_shot_block(domain, str(task_id), n=1)
+    # T2.17b (2026-05-21): bumped n=1 → n=2 after diagnosing that for
+    # ``Temporal/Airstriker-v0`` the lookup was falling back to a single
+    # *Strider* example in ``gymv.txt`` (the only file pre-2026-05-21),
+    # giving the 35B a side-scrolling brawler prior when labeling a
+    # vertical-scrolling shmup.  AS-specific cold-start examples now
+    # live at ``gymv.Airstriker-v0.txt`` + ``.2.txt``; other games
+    # still fall back to the gymv default until per-game files exist.
+    fewshot = _load_few_shot_block(domain, str(task_id), n=2)
 
     actions_str = ",".join(action_names) if action_names else "stay"
     obs_compact = _truncate(obs_nl or "", 600)

@@ -27,7 +27,28 @@ logger = logging.getLogger(__name__)
 
 
 def _dense_reward_cfg(config: Any, game_name: str, field: str) -> float:
-    """Resolve a dense-reward config value with gymv-specific override."""
+    """Resolve a dense-reward config value with per-game + gymv overrides.
+
+    Lookup precedence (highest wins):
+
+    1. ``config.dense_reward_overrides[game_name][field]`` — explicit
+       per-game-slug override.  Added in T2.19c (2026-05-20) so sparse-
+       reward gymv games (e.g. ``gymv_airstriker``) can use small
+       ``surv``/``adv`` bonuses while keeping the higher gymv defaults
+       for score-dense brawlers (SoR2, SH2, AB).  Missing-key /
+       non-numeric values are silently skipped and fall through.
+    2. ``config.<field>_gymv`` — the gymv-wide default, used for any
+       ``gymv_*`` game without an explicit override.
+    3. ``config.<field>`` — the global default (typically ``0.0``).
+    """
+    overrides_map = getattr(config, "dense_reward_overrides", None) or {}
+    if isinstance(overrides_map, dict):
+        game_overrides = overrides_map.get(game_name) or {}
+        if isinstance(game_overrides, dict) and field in game_overrides:
+            try:
+                return float(game_overrides[field])
+            except (TypeError, ValueError):
+                pass
     gymv_field = field + "_gymv"
     if game_name.startswith("gymv_") and hasattr(config, gymv_field):
         return float(getattr(config, gymv_field))
@@ -349,6 +370,24 @@ async def collect_rollouts(
                         ),
                         action_advance_actions=str(getattr(
                             config, "action_advance_actions", "RIGHT",
+                        )),
+                        action_hit_penalty=_dense_reward_cfg(
+                            config, spec.game, "action_hit_penalty",
+                        ),
+                        action_damage_penalty=_dense_reward_cfg(
+                            config, spec.game, "action_damage_penalty",
+                        ),
+                        action_attack_bonus=_dense_reward_cfg(
+                            config, spec.game, "action_attack_bonus",
+                        ),
+                        action_attack_actions=str(getattr(
+                            config, "action_attack_actions", "B",
+                        )),
+                        action_movement_bonus=_dense_reward_cfg(
+                            config, spec.game, "action_movement_bonus",
+                        ),
+                        action_movement_actions=str(getattr(
+                            config, "action_movement_actions", "LEFT,RIGHT",
                         )),
                     )
                     break

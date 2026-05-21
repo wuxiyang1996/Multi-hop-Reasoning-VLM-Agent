@@ -316,6 +316,34 @@ def parse_args() -> argparse.Namespace:
              " threshold).  Default: 2.0.",
     )
 
+    # T2.19c: per-game-slug dense-reward overrides.  The default
+    # ``*_gymv`` knobs (surv=1.5, adv=2.0) are calibrated for score-
+    # dense brawlers (SoR2/SH2/AB) where surv_bonus << raw env reward
+    # per decision.  In sparse-reward shmups like Airstriker (raw ≈
+    # 0.33/dec), the gymv default dominates the GRPO advantage and
+    # biases the policy towards "stay still" (true shape_ratio 0.83
+    # by step 8 on runs/gymv_airstriker_stage2_20260520_185405).
+    # This flag lets us tune surv/adv/redistribution per game without
+    # touching the gymv-wide defaults that other games rely on.
+    parser.add_argument(
+        "--dense-reward-overrides", type=str, default=None, metavar="JSON",
+        help="JSON object mapping game_slug → {field: value} for the"
+             " dense-reward knobs (action_survival_bonus,"
+             " action_advance_bonus, episode_return_redistribution_weight,"
+             " action_hit_penalty, action_damage_penalty,"
+             " action_attack_bonus, action_movement_bonus)."
+             " hit/damage penalties are positive magnitudes — applied as"
+             " negative on ``Δlives < 0`` / ``Δhealth < 0`` via the"
+             " stable-retro RAM watches in ``info.structured_state.ram_watch``."
+             " Precedence: this map > <field>_gymv > <field>."
+             " Example: '{\"gymv_airstriker\":"
+             " {\"action_survival_bonus\": 0.05,"
+             " \"action_advance_bonus\": 0.0,"
+             " \"action_hit_penalty\": 1.0,"
+             " \"action_attack_bonus\": 0.05,"
+             " \"action_movement_bonus\": 0.2}}'.",
+    )
+
     # Training schedule
     parser.add_argument(
         "--warmup-steps", type=int, default=None,
@@ -503,9 +531,14 @@ def parse_args() -> argparse.Namespace:
              " cold-start parity). 2/4 = halve / quarter spend.",
     )
     parser.add_argument(
-        "--vision-state-perception-timeout-s", type=float, default=6.0,
+        "--vision-state-perception-timeout-s", type=float, default=45.0,
         help="Hard timeout (seconds) for each per-step vision call."
-             " Falls back to deterministic markup on timeout.  Default 6.0.",
+             " Falls back to deterministic markup on timeout.  Default 45.0"
+             " (raised from 6.0 on 2026-05-20 after diagnosing that 35B"
+             " emit times for Airstriker were 19-47s/call under"
+             " concurrency=12 → 100%% silent fallback → action_taking"
+             " LoRA received deterministic HUD-blind markup mismatching"
+             " its SFT distribution).",
     )
     parser.add_argument(
         "--vision-state-perception-concurrency", type=int, default=12,
@@ -880,6 +913,78 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+_ALLOWED_DENSE_REWARD_FIELDS = frozenset({
+    "action_survival_bonus",
+    "action_advance_bonus",
+    "episode_return_redistribution_weight",
+    "action_hit_penalty",            # T2.19d: −Δlives (positive magnitude)
+    "action_damage_penalty",         # T2.19d: −Δhealth (positive magnitude)
+    "action_attack_bonus",           # T2.19e: +bonus on action_attack_actions
+    "action_movement_bonus",         # T2.19e: +bonus on action_movement_actions
+})
+# Note: ``action_attack_actions`` / ``action_movement_actions`` are
+# string config fields (e.g. "B" / "LEFT,RIGHT") tuned per-game-family
+# via the global defaults rather than the per-game numeric override
+# dict.  If you need a different attack action for a future game, add
+# a dedicated CLI flag instead of co-opting dense_reward_overrides.
+
+
+def resolve_dense_reward_overrides(
+    args: argparse.Namespace,
+) -> Dict[str, Dict[str, float]]:
+    """Parse ``--dense-reward-overrides`` JSON into a validated map.
+
+    Empty dict / unset → returns ``{}`` (no override; uses the gymv
+    defaults).  Validation aborts the run on malformed input so a typo
+    in a launcher script can't silently let the broken gymv default
+    leak through.
+
+    Recognised inner-keys are restricted to real shaping knobs (see
+    ``_ALLOWED_DENSE_REWARD_FIELDS``).  Unknown keys raise to surface
+    typos rather than silently being ignored.
+    """
+    raw = getattr(args, "dense_reward_overrides", None)
+    if raw is None:
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(
+            f"Invalid --dense-reward-overrides JSON: {exc}\n"
+            f"Got: {raw!r}"
+        )
+    if not isinstance(parsed, dict):
+        raise SystemExit(
+            "--dense-reward-overrides must be a JSON object mapping"
+            f" game_slug → {{field: value}}.  Got: {raw!r}"
+        )
+    out: Dict[str, Dict[str, float]] = {}
+    for game_slug, inner in parsed.items():
+        if not isinstance(inner, dict):
+            raise SystemExit(
+                f"--dense-reward-overrides[{game_slug!r}] must be an"
+                f" object {{field: value}}.  Got: {inner!r}"
+            )
+        bucket: Dict[str, float] = {}
+        for field_name, value in inner.items():
+            if field_name not in _ALLOWED_DENSE_REWARD_FIELDS:
+                raise SystemExit(
+                    f"--dense-reward-overrides: unknown field"
+                    f" {field_name!r} for game {game_slug!r}."
+                    f" Allowed: {sorted(_ALLOWED_DENSE_REWARD_FIELDS)}"
+                )
+            try:
+                bucket[str(field_name)] = float(value)
+            except (TypeError, ValueError):
+                raise SystemExit(
+                    f"--dense-reward-overrides[{game_slug!r}]"
+                    f"[{field_name!r}] must be numeric.  Got: {value!r}"
+                )
+        if bucket:
+            out[str(game_slug)] = bucket
+    return out
+
+
 def resolve_episode_overrides(
     args: argparse.Namespace,
     games: List[str],
@@ -1070,6 +1175,15 @@ def main() -> None:
     eps_overrides = resolve_episode_overrides(args, games)
     if eps_overrides:
         config_kwargs["episodes_per_game_overrides"] = eps_overrides
+
+    # ── T2.19c: per-game dense-reward overrides ─────────────────────
+    dense_overrides = resolve_dense_reward_overrides(args)
+    if dense_overrides:
+        config_kwargs["dense_reward_overrides"] = dense_overrides
+        logging.info(
+            "Dense-reward overrides applied: %s",
+            json.dumps(dense_overrides, sort_keys=True),
+        )
 
     if args.opponent_model is not None:
         config_kwargs["opponent_model"] = args.opponent_model
