@@ -34,7 +34,7 @@ Usage (from Game-AI-Agent root):
     python scripts/run_coevolution.py \\
         --total-steps 100 \\
         --episodes-per-game 8 \\
-        --checkpoint-interval 5 \\
+        --checkpoint-interval 1 \\
         --wandb-project game-ai-coevolution \\
         --resume
 
@@ -269,7 +269,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--grpo-max-epochs", type=int, default=None,
-        help="Max GRPO epochs per adapter per step (default: 4)",
+        help="Max GRPO epochs per adapter per step (default from config: 2)",
     )
     parser.add_argument(
         "--grpo-adv-clip", type=float, default=None,
@@ -396,8 +396,8 @@ def parse_args() -> argparse.Namespace:
 
     # Checkpointing
     parser.add_argument(
-        "--checkpoint-interval", type=int, default=5,
-        help="Save checkpoint every N steps (default: 5)",
+        "--checkpoint-interval", type=int, default=1,
+        help="Save checkpoint every N steps (default: 1 = every step)",
     )
 
     # Start mode: from-scratch vs resume (mutually exclusive)

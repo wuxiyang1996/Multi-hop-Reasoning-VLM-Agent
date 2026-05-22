@@ -182,6 +182,11 @@ def state_to_markup(
                 obs_nl=obs_nl, info=info, game=game,
                 step=step, max_entities=max_entities,
             )
+        ss = info.get("structured_state") or {}
+        if env_name == "gamingagent" and ss.get("game") == "tetris" and "board_blocks" in ss:
+            return _render_tetris(
+                info=info, step=step, max_entities=max_entities,
+            )
         if env_name == "gamingagent":
             return _render_gamingagent(
                 obs_nl=obs_nl, info=info, game=game,
@@ -193,6 +198,12 @@ def state_to_markup(
                 step=step, max_entities=max_entities,
             )
         if env_name == "orak":
+            ss = info.get("structured_state") or {}
+            if ss.get("game") == "super_mario" and "mario_pos" in ss:
+                return _render_super_mario(
+                    ss=ss, info=info, step=step,
+                    max_entities=max_entities,
+                )
             return _render_orak(
                 obs_nl=obs_nl, info=info, game=game,
                 step=step, max_entities=max_entities,
@@ -504,6 +515,146 @@ def _render_gymv(
     )
 
 
+_PIECE_SYMBOL_MAP = {"I": "I", "O": "O", "T": "T", "S": "S", "Z": "Z", "J": "J", "L": "L"}
+
+_TETRIS_GOAL = (
+    "Classic Tetris. Each macro action commits one piece placement "
+    "(rotation + column). Clear lines by filling rows; the game ends "
+    "when the stack reaches the top. Prefer placements that clear lines, "
+    "avoid creating holes, and keep the stack flat / low."
+)
+
+
+def _render_tetris(
+    *, info: Dict[str, Any], step: int, max_entities: int,
+) -> str:
+    """Render rich ``<state>`` for Tetris matching the GPT-5.4 SFT gold.
+
+    Reads enriched ``structured_state`` populated by
+    ``TetrisMacroActionWrapper._enrich_structured_state``.
+    """
+    ss: Dict[str, Any] = info.get("structured_state") or {}
+    board_blocks: list = ss.get("board_blocks", [])
+    active_piece: str = ss.get("active_piece", "?")
+    next_pieces: list = ss.get("next_pieces", [])
+    b_width: int = ss.get("board_width", 10)
+    b_height: int = ss.get("board_height", 20)
+    stack_h: int = ss.get("stack_height", 0)
+    holes: int = ss.get("holes", 0)
+    col_heights: list = ss.get("column_heights", [])
+    top_actions: list = ss.get("top_actions", [])
+    last_reward = ss.get("reward")
+
+    entities: List[_Entity] = []
+    relations: List[str] = []
+    eid = 1
+
+    # e1 — playfield container (matches SFT gold)
+    pf_eid = f"e{eid}"
+    entities.append(_Entity(
+        eid=pf_eid, type="region", label="playfield",
+        pos=f"0,0,{b_height},{b_width}",
+        ontology="container_entity", state="visible",
+    ))
+    eid += 1
+
+    # Active piece entity (bounding-box style, selectable)
+    ap_eid = f"e{eid}"
+    entities.append(_Entity(
+        eid=ap_eid, type="object",
+        label=f"active_piece_{active_piece}",
+        ontology="selectable_entity", state="visible",
+        value=active_piece,
+        affords=["select", "track", "inspect"],
+        pos_uncertainty="medium" if step > 0 else None,
+    ))
+    relations.append(f"contains({pf_eid},{ap_eid})")
+    eid += 1
+
+    # Next-piece entities (goal indicators)
+    next_eids: List[str] = []
+    for np_name in next_pieces[:3]:
+        ne = f"e{eid}"
+        entities.append(_Entity(
+            eid=ne, type="object",
+            label=f"next_piece_{np_name}",
+            ontology="goal_indicator", state="visible",
+            pos_uncertainty="high",
+        ))
+        next_eids.append(ne)
+        eid += 1
+
+    # Stack-block entities — emit up to (max_entities - eid) blocks.
+    # Prioritize blocks in the top rows (most decision-relevant).
+    remaining_slots = max(0, max_entities - eid + 1)
+    sorted_blocks = sorted(board_blocks, key=lambda b: b[0])
+    for row, col, sym in sorted_blocks[:remaining_slots]:
+        be = f"e{eid}"
+        piece_label = _PIECE_SYMBOL_MAP.get(sym, sym)
+        entities.append(_Entity(
+            eid=be, type="object",
+            label=f"stack_block_{piece_label}",
+            pos=f"{row},{col},1,1",
+            ontology="tracked_entity",
+        ))
+        relations.append(f"contains({pf_eid},{be})")
+        eid += 1
+
+    # State flags
+    total_possible = b_height * b_width
+    progress = min(1.0, len(board_blocks) / total_possible) if total_possible else 0.0
+    if step < 10:
+        phase = "early"
+    elif step < 50:
+        phase = "mid"
+    else:
+        phase = "late"
+
+    state_flags: Dict[str, str] = {
+        "progress": f"{progress:.2f}",
+        "phase": phase,
+        "scene_type": "game_play",
+        "error": "null",
+        "dialog_open": "false",
+        "input_pending": "true",
+    }
+    if last_reward is not None:
+        state_flags["last_reward"] = str(last_reward)
+
+    # Constraint hint — mirror the SFT gold's tactical guidance
+    constraint_parts: List[str] = []
+    if top_actions:
+        best = top_actions[0]
+        if "line" in best.lower():
+            constraint_parts.append(f"prefer the line-clearing placement: {best}")
+        elif "+0hole" in best.lower() or "h=" in best.lower():
+            constraint_parts.append(f"prefer low-hole placement; best option: {best}")
+    if holes > 3:
+        constraint_parts.append(f"holes={holes}, focus on reducing holes")
+    elif stack_h > 14:
+        constraint_parts.append(f"stack_h={stack_h}, keep height low")
+    constraint = "; ".join(constraint_parts) if constraint_parts else None
+
+    candidate_set = [ap_eid] + next_eids[:3]
+
+    return _render_state_block(
+        domain="gymv",
+        task="make_gaming_env/tetris",
+        goal=_TETRIS_GOAL,
+        step=step,
+        entities=entities,
+        state_flags=state_flags,
+        target_eid=ap_eid,
+        blocker_eid=None,
+        candidate_set=candidate_set,
+        actions=top_actions[:5],
+        relations=relations,
+        constraint=constraint,
+        history_anchor=ap_eid,
+        afford_flavour="game",
+    )
+
+
 def _render_gamingagent(
     *, obs_nl: str, info: Dict[str, Any], game: str,
     step: int, max_entities: int,
@@ -674,6 +825,123 @@ def _render_osworld(
         relations=relations,
         constraint=(_short(instruction, 120) if instruction else None),
         afford_flavour="desktop",
+    )
+
+
+def _render_super_mario(
+    *, ss: Dict[str, Any], info: Dict[str, Any],
+    step: int, max_entities: int,
+) -> str:
+    """Render Mario XML matching the xml_retrain SFT format."""
+    goal = (
+        "Super Mario Bros (NES, world 1-1). Move Mario right, "
+        "jump over enemies (goombas, koopas) and pits, reach the flag at the end."
+    )
+
+    entities: List[_Entity] = [
+        _Entity(eid="e1", type="region", label="game_area",
+                ontology="container_entity", pos="0,0,256,240"),
+    ]
+    eid = 2
+    mario_pos = ss.get("mario_pos", (0, 0))
+    entities.append(_Entity(
+        eid=f"e{eid}", type="object", label="mario",
+        ontology="tracked_entity",
+        pos=f"{mario_pos[0]},{mario_pos[1]},16,16",
+    ))
+    mario_eid = f"e{eid}"
+    eid += 1
+
+    relations: List[str] = [f"contains(e1,{mario_eid})"]
+    enemy_eids = []
+
+    for qb in ss.get("question_blocks", [])[:3]:
+        e = f"e{eid}"
+        entities.append(_Entity(eid=e, type="object", label="question_block",
+                                ontology="interactive_entity",
+                                pos=f"{qb[0]},{qb[1]},16,16"))
+        relations.append(f"contains(e1,{e})")
+        eid += 1
+
+    for br in ss.get("bricks", [])[:2]:
+        e = f"e{eid}"
+        entities.append(_Entity(eid=e, type="object", label="brick",
+                                ontology="container_entity",
+                                pos=f"{br[0]},{br[1]},16,16"))
+        relations.append(f"contains(e1,{e})")
+        eid += 1
+
+    for g in ss.get("goombas", [])[:3]:
+        e = f"e{eid}"
+        entities.append(_Entity(eid=e, type="object", label="goomba",
+                                ontology="tracked_entity",
+                                pos=f"{g[0]},{g[1]},16,16"))
+        relations.append(f"contains(e1,{e})")
+        enemy_eids.append(e)
+        eid += 1
+
+    for k in ss.get("koopas", [])[:2]:
+        e = f"e{eid}"
+        entities.append(_Entity(eid=e, type="object", label="koopa",
+                                ontology="tracked_entity",
+                                pos=f"{k[0]},{k[1]},16,16"))
+        relations.append(f"contains(e1,{e})")
+        enemy_eids.append(e)
+        eid += 1
+
+    for p in ss.get("pipes", [])[:2]:
+        e = f"e{eid}"
+        entities.append(_Entity(eid=e, type="object", label="warp_pipe",
+                                ontology="blocking_entity",
+                                pos=f"{p[0]},{p[1]},31,31"))
+        relations.append(f"contains(e1,{e})")
+        eid += 1
+
+    if ss.get("pit"):
+        e = f"e{eid}"
+        pit = ss["pit"]
+        entities.append(_Entity(eid=e, type="region", label="pit",
+                                ontology="hazard_region",
+                                pos=f"{pit[0]},0,{pit[1]-pit[0]},16"))
+        relations.append(f"contains(e1,{e})")
+        eid += 1
+
+    ground_eid = f"e{eid}"
+    entities.append(_Entity(eid=ground_eid, type="region", label="ground",
+                            ontology="navigable_region",
+                            pos="0,0,256,16"))
+    relations.append(f"contains(e1,{ground_eid})")
+    relations.append(f"adjacent({mario_eid},{ground_eid})")
+
+    entities = entities[:max_entities]
+
+    phase = ss.get("phase", "early")
+    progress = ss.get("progress", 0.0)
+    state_flags = {
+        "progress": f"{progress:.2f}",
+        "phase": phase,
+        "scene_type": "game_play",
+    }
+
+    blocker = enemy_eids[0] if enemy_eids else None
+    constraint = "move right safely; avoid enemies and pits"
+
+    actions = [str(a) for a in info.get("action_names") or []][:7]
+
+    return _render_state_block(
+        domain="gymv",
+        task=_format_task("orak", "super_mario"),
+        goal=goal,
+        step=step,
+        entities=entities,
+        state_flags=state_flags,
+        target_eid=mario_eid,
+        blocker_eid=blocker,
+        candidate_set=[e.eid for e in entities[:6]],
+        actions=actions,
+        relations=relations,
+        constraint=constraint,
+        afford_flavour="game",
     )
 
 

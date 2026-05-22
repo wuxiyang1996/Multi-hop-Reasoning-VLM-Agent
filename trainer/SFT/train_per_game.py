@@ -70,7 +70,7 @@ DEFAULTS = {
     "gradient_checkpointing": True,
     "logging_steps": 10,
     "save_steps": 500,
-    "save_total_limit": 1,
+    "save_total_limit": 2,
 }
 
 
@@ -237,8 +237,11 @@ def _worker(
 
         steps_per_epoch = math.ceil(len(train_data) / params["batch_size"])
         total_steps = steps_per_epoch * params["epochs"]
-        save_steps = max(total_steps, params["save_steps"])
 
+        # Save every epoch so that a mid-training crash leaves a usable
+        # checkpoint behind (the previous policy was to save only at the
+        # very last step, which lost ~3h of GPU work when GPU 2 was killed
+        # at step 950/1137 during the sft_per_game_xml run).
         training_args = TrainingArguments(
             output_dir=hf_out,
             num_train_epochs=params["epochs"],
@@ -247,7 +250,7 @@ def _worker(
             learning_rate=params["lr"],
             warmup_ratio=params["warmup_ratio"],
             logging_steps=params["logging_steps"],
-            save_steps=save_steps,
+            save_strategy="epoch",
             save_total_limit=params["save_total_limit"],
             eval_strategy="epoch",
             bf16=params["bf16"],
@@ -270,7 +273,19 @@ def _worker(
             data_collator=collator,
         )
 
-        trainer.train()
+        # Auto-resume from the most recent epoch checkpoint if one exists
+        # (paired with save_strategy="epoch" above). Crash → relaunch the
+        # same command and training picks up from the last completed epoch
+        # instead of restarting from scratch.
+        from transformers.trainer_utils import get_last_checkpoint
+        last_ckpt = (
+            get_last_checkpoint(hf_out) if os.path.isdir(hf_out) else None
+        )
+        if last_ckpt:
+            logger.info(
+                "GPU %d: %s — resuming from %s", gpu_id, adapter_label, last_ckpt,
+            )
+        trainer.train(resume_from_checkpoint=last_ckpt)
 
         peft_model.save_pretrained(str(out_path))
         tokenizer.save_pretrained(str(out_path))

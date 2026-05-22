@@ -467,7 +467,7 @@ def _estimate_safe_batch_size(
         return default
     char_lens = sorted(len(p) + len(c) for p, c in zip(prompts, completions))
     median_chars = char_lens[len(char_lens) // 2]
-    safe = max(1, int(64_000 / max(median_chars, 1)))
+    safe = max(1, int(24_000 / max(median_chars, 1)))
     result = min(default, safe)
     if result < default:
         logger.info(
@@ -715,11 +715,9 @@ async def run_grpo_training(
         except Exception:
             pass
 
-    # T2.16 — replay-ratio decay: 1.0 (50/50) early → 0.25 (20/80
-    # fresh-heavy) at the end of training.  See DecisionGRPOTrainer.
-    _total = max(1, getattr(config, "total_steps", 1))
-    _progress = min(1.0, max(0.0, step / _total))
-    replay_ratio_max = max(0.25, 1.0 - 0.75 * _progress)
+    # Replay disabled: replay buffer doubled GRPO samples (2k→4k) causing
+    # 95-min training times.  Fresh on-policy data only.
+    replay_ratio_max = 0.0
     _adv_pos = getattr(config, "grpo_adv_clip", None)
     _adv_neg = getattr(config, "grpo_adv_clip_neg", None)
     if _adv_pos is None:

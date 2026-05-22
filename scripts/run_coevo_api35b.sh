@@ -26,7 +26,19 @@ cd /workspace/Multi-hop-Reasoning-VLM-Agent
 export PYTHONPATH="/workspace/Multi-hop-Reasoning-VLM-Agent:/workspace/GamingAgent:/workspace/GamingAgent/gamingagent/envs/custom_03_candy_crush:${PYTHONPATH:-}"
 export HF_HOME="/workspace/huggingface"
 export HF_HUB_CACHE="${HF_HOME}/hub"
-export GRPO_FSDP_BATCH_SIZE=64
+# T2.21 (2026-05-19): 64→48 on 80 GB A100 to leave OOM headroom for
+# FSDP activations + KV when GRPO and 6× 9B vLLM share the box.  64
+# triggered SIGABRT mid-step on the tetris 044258 run.  48 matches
+# what run_coevo_local35b.sh uses with the local 35B judge layout.
+export GRPO_FSDP_BATCH_SIZE=48
+
+# ── Conda env with vLLM 0.20.2 + torch + peft ───────────────────────
+# Use the explicit interpreter so that:
+#   1. `python3 scripts/run_coevolution.py` resolves vllm/torch/peft
+#   2. vLLM workers spawned by orchestrator (via sys.executable) inherit
+#      the same interpreter, not /usr/bin/python (which lacks vllm).
+CONDA_PY="/workspace/miniconda3/envs/game-ai-agent/bin/python"
+export PATH="/workspace/miniconda3/envs/game-ai-agent/bin:${PATH}"
 
 # ── Clean up stale GPU processes ─────────────────────────────────────
 pkill -f "vllm.entrypoints" 2>/dev/null || true
@@ -135,7 +147,7 @@ echo "  Run dir:    $RUN_DIR"
 echo "  Log:        $LOG_FILE"
 echo "============================================"
 
-python3 scripts/run_coevolution.py \
+"$CONDA_PY" scripts/run_coevolution.py \
     --games "$GAME" \
     --total-steps "$STEPS" \
     --episodes-per-game 12 \

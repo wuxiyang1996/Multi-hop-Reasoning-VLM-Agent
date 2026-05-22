@@ -25,7 +25,7 @@ cd /workspace/Multi-hop-Reasoning-VLM-Agent
 export PYTHONPATH="/workspace/Multi-hop-Reasoning-VLM-Agent:/workspace/GamingAgent:/workspace/GamingAgent/gamingagent/envs/custom_03_candy_crush:${PYTHONPATH:-}"
 export HF_HOME="/workspace/huggingface"
 export HF_HUB_CACHE="${HF_HOME}/hub"
-export GRPO_FSDP_BATCH_SIZE=48
+export GRPO_FSDP_BATCH_SIZE=8
 
 pkill -f "vllm.entrypoints" 2>/dev/null || true
 sleep 2
@@ -99,16 +99,27 @@ if [[ -d "$SK_SRC" ]]; then
     echo "✓ skill_selection → ${SFT_KEY}"
 fi
 
-# action_taking
+# action_taking — prefer XML-retrained adapter for env_wrapper games
+# (candy_crush, tetris, super_mario, twenty_forty_eight) to match
+# the XML SFT training format with macro actions.
+AT_SRC_XML="runs/sft_per_game_xml/${SFT_KEY}/action_taking/${SFT_KEY}__action_taking"
 AT_SRC="runs/sft_per_game/${SFT_KEY}/action_taking/${SFT_KEY}__action_taking"
-if [[ -d "$AT_SRC" ]]; then
+if [[ -d "$AT_SRC_XML" ]]; then
+    rm -f "${ADAPTER_DIR}/action_taking/adapter_config.json" \
+          "${ADAPTER_DIR}/action_taking/adapter_model.safetensors"
+    ln -s "$(pwd)/${AT_SRC_XML}/adapter_config.json" \
+          "${ADAPTER_DIR}/action_taking/adapter_config.json"
+    ln -s "$(pwd)/${AT_SRC_XML}/adapter_model.safetensors" \
+          "${ADAPTER_DIR}/action_taking/adapter_model.safetensors"
+    echo "✓ action_taking → ${SFT_KEY} (xml-retrained)"
+elif [[ -d "$AT_SRC" ]]; then
     rm -f "${ADAPTER_DIR}/action_taking/adapter_config.json" \
           "${ADAPTER_DIR}/action_taking/adapter_model.safetensors"
     ln -s "$(pwd)/${AT_SRC}/adapter_config.json" \
           "${ADAPTER_DIR}/action_taking/adapter_config.json"
     ln -s "$(pwd)/${AT_SRC}/adapter_model.safetensors" \
           "${ADAPTER_DIR}/action_taking/adapter_model.safetensors"
-    echo "✓ action_taking → ${SFT_KEY}"
+    echo "✓ action_taking → ${SFT_KEY} (legacy, xml not found)"
 fi
 
 # ── Start local 35B vLLM server on GPU 4-5 (MULTIMODAL for vision) ────

@@ -937,7 +937,11 @@ class CoEvolutionConfig:
     debug_io: bool = False
 
     # Checkpointing
-    checkpoint_interval: int = 5
+    # Default 1 = checkpoint EVERY step.  Short co-evo runs (10 steps) want
+    # full per-step snapshots for diagnosis / resume granularity; the extra
+    # ~525 MB per step is cheap relative to a single failed run.  Bump for
+    # longer runs if disk pressure matters.
+    checkpoint_interval: int = 1
     # How many per-step checkpoints to keep on disk.  Set to 0 to keep ALL.
     # The "best" checkpoint (step_99999) is never deleted regardless.
     checkpoint_keep_last: int = 0
@@ -1043,10 +1047,11 @@ class CoEvolutionConfig:
     stuck_window: int = 15
     min_steps_before_stuck_check: int = 60
 
-    # Rollout batching synchronizer — prevents episodes from
-    # desynchronizing and losing vLLM request batching (which causes
-    # 10-20x throughput loss due to the GPU batch-size cliff).
-    rollout_sync_timeout_s: float = 0.10
+    # Rollout wave sync disabled: the 100ms barrier forced 12 episodes
+    # to fire LLM calls simultaneously, creating 9-request queues per
+    # vLLM instance and 10s+ median latency.  vLLM continuous batching
+    # handles staggered requests efficiently without explicit sync.
+    rollout_sync_timeout_s: float = 0.0
 
     # LoRA adapter defaults (matches skill_agents.lora.config)
     lora_r: int = 16
@@ -1070,16 +1075,26 @@ class CoEvolutionConfig:
     # Only applied when start_mode == "from_scratch" (otherwise GRPO
     # configs use the default values from StageGRPOConfig).
     scratch_warmup_steps: int = 20
-    scratch_initial_lr: float = 5e-5
-    scratch_steady_lr: float = 2e-5
+    # T2.21 (2026-05-19): reverted to the v8/v9 values that worked on
+    # 8× A100-80GB.  The remote bump (lr 1e-4→5e-5, kl 0.01→0.05) was
+    # tuned for a Pro6000-class machine (96 GB) — those defaults
+    # combined with FSDP_BATCH_SIZE=64 caused a SIGABRT during step-0
+    # GRPO on 80 GB cards (tetris run 044258, 14 min into FSDP).
+    scratch_initial_lr: float = 1e-4
+    scratch_steady_lr: float = 5e-5
     scratch_initial_temperature: float = 1.0
     scratch_steady_temperature: float = 0.7
-    scratch_initial_kl_coeff: float = 0.03
-    scratch_steady_kl_coeff: float = 0.08
+    scratch_initial_kl_coeff: float = 0.01
+    scratch_steady_kl_coeff: float = 0.05
 
     # Per-run GRPO overrides (set via CLI, leave None to use defaults)
     grpo_clip_ratio: float = 0.2
-    grpo_max_epochs: int = 2
+    # T2.21 (2026-05-19): keep our v9-tested epochs=3 (vs remote's
+    # epochs=2 from Pro6000 tuning).  3 epochs let GRPO consume the
+    # honest dense intrinsic-bonus signal from the predicate fix without
+    # blowing past the KL bound; epochs=2 was leaving exploration on the
+    # table on this A100-80 GB layout.
+    grpo_max_epochs: int = 3
     # T2.16 (2026-05-05): default to 5.0 to prevent the "mid-peak / late-
     # collapse" pattern observed across runs.  When std(R) spikes (as
     # policy improves), unclipped advantages reach ±10+ and a single
@@ -1101,8 +1116,13 @@ class CoEvolutionConfig:
     # unbounded (max corrective signal on early death).  Set
     # ``grpo_adv_clip_neg=5.0`` to restore the legacy symmetric
     # behaviour.
-    grpo_adv_clip: Optional[float] = 5.0
-    grpo_adv_clip_neg: Optional[float] = 3.0
+    # T2.21 (2026-05-19): keep our v9-tested asymmetric clip
+    # (pos=100 unbounded for big-win tails, neg=6 to hammer suicidal
+    # paths).  Remote's clip=5/clip_neg=3 was tuned for Pro6000 with
+    # different reward distribution and threw away most of TF3/tetris'
+    # heavy-tailed positive signal.
+    grpo_adv_clip: Optional[float] = 100.0
+    grpo_adv_clip_neg: Optional[float] = 6.0
 
     # T2.18 (2026-05-05): early-death reward shaping.  Applied at the
     # end of each rollout episode in :mod:`trainer.coevolution.episode_runner`

@@ -252,7 +252,12 @@ def _candidate_vllm_urls(model: str | None = None) -> list[str]:
             _init_vllm_urls()
         candidates: list[str] = []
         if model and model in _VLLM_URL_BY_MODEL:
+            # Mapped model (e.g. 35B pinned to :8001): only return the
+            # mapped URL. Do NOT append the round-robin pool as failover
+            # because those are 9B instances that will 404 on a 35B
+            # model name, wasting a round-trip before OpenRouter kicks in.
             candidates.append(_VLLM_URL_BY_MODEL[model])
+            return candidates
         elif _VLLM_URLS:
             # Advance the round-robin cycle so each call lands on a
             # different head URL.  ``next(_vllm_url_cycle)`` is the

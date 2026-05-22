@@ -40,6 +40,7 @@ export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:T
 # ── Headless rendering ────────────────────────────────────────────────
 export PYGLET_HEADLESS=1
 export SDL_VIDEODRIVER=dummy
+export MARIO_RENDER_MODE="${MARIO_RENDER_MODE:-rgb_array}"
 
 # Super Mario (NES via stable-retro) needs a framebuffer.
 if [ -z "${DISPLAY:-}" ]; then
@@ -74,7 +75,7 @@ echo "[super_mario] Subprocess env Python: ${ORAK_PYTHON}"
 # Medium token budget for platformer context (position, enemies, items);
 # generous timeout for segment ranking over medium-length episodes.
 export SKILLBANK_LLM_TEACHER_MAX_TOKENS="${SKILLBANK_LLM_TEACHER_MAX_TOKENS:-400}"
-export SKILLBANK_SEGMENT_TIMEOUT_S="${SKILLBANK_SEGMENT_TIMEOUT_S:-150}"
+export SKILLBANK_SEGMENT_TIMEOUT_S="${SKILLBANK_SEGMENT_TIMEOUT_S:-600}"
 
 # ── HuggingFace cache ────────────────────────────────────────────────
 export HF_HOME="${HF_HOME:-/workspace/huggingface}"

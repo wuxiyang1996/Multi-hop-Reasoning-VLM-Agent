@@ -336,7 +336,7 @@ def _run_grpo_training_loop(
     seq_lengths = [rd["input_ids"].shape[1] for rd in ref_data if rd is not None]
     if seq_lengths:
         median_seq = sorted(seq_lengths)[len(seq_lengths) // 2]
-        safe_bs = max(1, int(24_000 / max(median_seq, 1)))
+        safe_bs = max(1, int(8_000 / max(median_seq, 1)))
         eff_batch_size = min(batch_size, safe_bs)
         if eff_batch_size < batch_size and is_main:
             logger.info(
@@ -1377,7 +1377,7 @@ def _fsdp_train_worker_multi(rank: int, args: Dict[str, Any]) -> None:
                 job["prompts"], job["completions"], job["advantages"],
                 job["lr"], job["epochs"], job["batch_size"],
                 job["clip_ratio"], job["kl_coeff"],
-                accumulation_steps=job.get("accumulation_steps", 4),
+                accumulation_steps=job.get("accumulation_steps", 8),
             )
 
             if stats is None:
@@ -1701,9 +1701,21 @@ def run_fsdp_grpo_multi(
                 )
                 break
             except Exception as _exc:
+                # T2.21 (2026-05-19): also retry on SIGABRT — on this
+                # 80 GB A100 layout the FSDP worker can be killed by
+                # CUDA's host-side allocator (raises SIGABRT, NOT a
+                # Python OutOfMemoryError) when activations + KV +
+                # optimizer state spike beyond the budget.  The retry
+                # path clears GPU memory, picks a fresh master_port,
+                # and re-spawns — exactly what we want for transient
+                # native aborts that masquerade as crashes.
+                _exc_msg = str(_exc)
+                _exc_name = type(_exc).__name__
                 _is_oom = (
-                    "OutOfMemory" in type(_exc).__name__
-                    or "CUDA out of memory" in str(_exc)
+                    "OutOfMemory" in _exc_name
+                    or "CUDA out of memory" in _exc_msg
+                    or "SIGABRT" in _exc_msg          # native abort, likely OOM
+                    or "signal SIGABRT" in _exc_msg
                 )
                 try:
                     import torch as _torch
@@ -1716,7 +1728,8 @@ def run_fsdp_grpo_multi(
                 if not _is_oom or _attempt >= _MAX_OOM_RETRIES:
                     raise
                 logger.warning(
-                    "GRPO OOM on attempt %d, will retry", _attempt,
+                    "GRPO native-abort (likely OOM) on attempt %d (%s: %s), will retry",
+                    _attempt, _exc_name, _exc_msg[:120],
                 )
     finally:
         if original_cvd is not None:

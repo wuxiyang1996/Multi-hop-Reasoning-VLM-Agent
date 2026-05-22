@@ -86,6 +86,7 @@ class TetrisMacroActionWrapper:
         self._step_count = 0
         self._refresh_placements(info)
         obs_nl = self._build_observation()
+        self._enrich_structured_state(info)
         return obs_nl, info
 
     def step(
@@ -117,14 +118,12 @@ class TetrisMacroActionWrapper:
             info["placement_metrics"] = None
 
         tenv = self._tetris_env
-        empty_val = tenv.base_pixels[0].value
+        _pad = tenv.padding
+        _w = tenv.width
+        _ev = tenv.base_pixels[0].value
         info["board_stats"] = {
-            "stack_height": self._max_height(
-                tenv.board, tenv.padding, tenv.width, empty_val,
-            ),
-            "holes": self._count_holes(
-                tenv.board, tenv.padding, tenv.width, empty_val,
-            ),
+            "stack_height": self._max_height(tenv.board, _pad, _w, _ev),
+            "holes": self._count_holes(tenv.board, _pad, _w, _ev),
             "lines_total": tenv.lines_cleared_total,
             "level": tenv.level,
             "score": tenv.current_score,
@@ -134,12 +133,85 @@ class TetrisMacroActionWrapper:
             self._refresh_placements(info)
             obs_nl = self._build_observation()
 
+        self._enrich_structured_state(info)
         return obs_nl, reward, terminated, truncated, info
 
-    def render(self):
-        if hasattr(self._env, "render"):
-            return self._env.render()
-        return None
+    # ------------------------------------------------------------------
+    # structured_state enrichment for state_to_markup XML generation
+    # ------------------------------------------------------------------
+
+    def _enrich_structured_state(self, info: Dict[str, Any]) -> None:
+        """Populate ``info["structured_state"]`` with rich Tetris fields.
+
+        This gives ``_render_gamingagent`` (or a Tetris-specific renderer)
+        enough data to produce XML matching the GPT-5.4-labeled SFT corpus
+        without needing a vision model at runtime.
+        """
+        tenv = self._tetris_env
+        ss = info.get("structured_state") or {}
+        ss["game"] = "tetris"
+
+        board = tenv.board
+        pad = tenv.padding
+        width = tenv.width
+        height = tenv.height
+        empty_val = tenv.base_pixels[0].value
+
+        symbols = {empty_val: "."}
+        for i, sym in enumerate(tenv.TETROMINO_SYMBOLS):
+            symbols[i + len(tenv.base_pixels)] = sym
+
+        game_area = board[0:height, pad: pad + width]
+
+        # Active piece
+        piece_name = "?"
+        if tenv.active_tetromino_original_idx is not None:
+            piece_name = PIECE_NAMES[tenv.active_tetromino_original_idx]
+        ss["active_piece"] = piece_name
+
+        # Next pieces
+        next_names = [PIECE_NAMES[idx] for idx in tenv.piece_queue[:4]]
+        ss["next_pieces"] = next_names
+
+        # Board stats
+        stack_h = self._max_height(board, pad, width, empty_val)
+        holes = self._count_holes(board, pad, width, empty_val)
+        ss["stack_height"] = stack_h
+        ss["holes"] = holes
+        ss["lines_total"] = tenv.lines_cleared_total
+        ss["level"] = tenv.level
+        ss["score"] = tenv.current_score
+
+        # Column heights
+        col_heights: List[int] = []
+        for c in range(game_area.shape[1]):
+            col = game_area[:, c]
+            h = 0
+            for r in range(col.shape[0]):
+                if col[r] != empty_val:
+                    h = col.shape[0] - r
+                    break
+            col_heights.append(h)
+        ss["column_heights"] = col_heights
+
+        # Per-cell block map: list of (row, col, piece_symbol) for
+        # occupied cells — used by the renderer to emit entity nodes.
+        blocks: List[Tuple[int, int, str]] = []
+        for r in range(game_area.shape[0]):
+            for c in range(game_area.shape[1]):
+                val = int(game_area[r, c])
+                if val != empty_val:
+                    sym = symbols.get(val, "?")
+                    blocks.append((r, c, sym))
+        ss["board_blocks"] = blocks
+        ss["board_width"] = width
+        ss["board_height"] = height
+
+        # Top-N placements for the <actions> section
+        top_actions = self._action_names[:5] if self._action_names else []
+        ss["top_actions"] = top_actions
+
+        info["structured_state"] = ss
 
     def close(self) -> None:
         if hasattr(self._env, "close"):
@@ -456,11 +528,9 @@ class TetrisMacroActionWrapper:
             piece_name = PIECE_NAMES[tenv.active_tetromino_original_idx]
         next_names = [PIECE_NAMES[idx] for idx in tenv.piece_queue[:4]]
 
-        # Stats — derived from the padded board via the wrapper's own
-        # static helpers so we don't depend on private TetrisEnv methods
-        # (which exist in some GamingAgent forks but not the release branch).
-        stack_h = self._max_height(tenv.board, tenv.padding, tenv.width, empty_val)
-        holes = self._count_holes(tenv.board, tenv.padding, tenv.width, empty_val)
+        # Stats
+        stack_h = self._max_height(board, pad, width, empty_val)
+        holes = self._count_holes(game_area, 0, width, empty_val)
 
         # Column heights
         col_heights: List[int] = []

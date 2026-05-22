@@ -674,7 +674,7 @@ def _ask_judge_blocking(
                 base_url=url,
                 api_key=_api_key,
                 max_retries=0,
-                timeout=30.0 if not _is_external else 30.0,
+                timeout=5.0 if not _is_external else 30.0,
             )
             kwargs: Dict[str, Any] = dict(
                 model=_model_id,

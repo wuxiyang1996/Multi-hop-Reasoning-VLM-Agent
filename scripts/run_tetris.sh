@@ -40,7 +40,7 @@ export SDL_VIDEODRIVER=dummy
 # budget keeps vLLM responsive; 150s timeout is generous for segment
 # ranking calls.
 export SKILLBANK_LLM_TEACHER_MAX_TOKENS="${SKILLBANK_LLM_TEACHER_MAX_TOKENS:-400}"
-export SKILLBANK_SEGMENT_TIMEOUT_S="${SKILLBANK_SEGMENT_TIMEOUT_S:-150}"
+export SKILLBANK_SEGMENT_TIMEOUT_S="${SKILLBANK_SEGMENT_TIMEOUT_S:-600}"
 
 # ── HuggingFace cache ────────────────────────────────────────────────
 export HF_HOME="${HF_HOME:-/workspace/huggingface}"

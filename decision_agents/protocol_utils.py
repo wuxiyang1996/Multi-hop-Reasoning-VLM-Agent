@@ -29,16 +29,18 @@ _CMP_RE = re.compile(
 # Counters reset at each co-evolution step boundary via
 # ``reset_predicate_stats()``.
 
-PREDICATE_RESULT_MATCH       = "match"         # ✅ pred holds
-PREDICATE_RESULT_MISMATCH    = "mismatch"      # ✅ pred false (legit)
-PREDICATE_RESULT_KEY_MISSING = "key_missing"   # 🚨 state lacks the key
-PREDICATE_RESULT_PARSE_ERROR = "parse_error"   # 🚨 malformed predicate
+PREDICATE_RESULT_MATCH        = "match"         # ✅ pred holds
+PREDICATE_RESULT_MISMATCH     = "mismatch"      # ✅ pred false (legit)
+PREDICATE_RESULT_KEY_MISSING  = "key_missing"   # 🚨 numeric pred, state lacks key
+PREDICATE_RESULT_BOOL_DEFAULT = "bool_default"  # ⚠️ bool pred, key missing → treated as "false"
+PREDICATE_RESULT_PARSE_ERROR  = "parse_error"   # 🚨 malformed predicate
 
 _PREDICATE_STATS: Dict[str, int] = {
-    PREDICATE_RESULT_MATCH:       0,
-    PREDICATE_RESULT_MISMATCH:    0,
-    PREDICATE_RESULT_KEY_MISSING: 0,
-    PREDICATE_RESULT_PARSE_ERROR: 0,
+    PREDICATE_RESULT_MATCH:        0,
+    PREDICATE_RESULT_MISMATCH:     0,
+    PREDICATE_RESULT_KEY_MISSING:  0,
+    PREDICATE_RESULT_BOOL_DEFAULT: 0,
+    PREDICATE_RESULT_PARSE_ERROR:  0,
 }
 
 # Set of unique keys observed to be missing from state.  Useful for
@@ -113,18 +115,26 @@ def check_predicate_with_telemetry(
     :data:`PREDICATE_RESULT_KEY_MISSING`,
     :data:`PREDICATE_RESULT_PARSE_ERROR`).
 
-    The tag distinguishes the four cases that the legacy
+    The tag distinguishes the five cases that the legacy
     boolean-return collapsed onto False:
 
-      * ``mismatch``    — predicate is well-formed, key exists, value
-                          comparison failed.  This is the SAFE False.
-      * ``key_missing`` — predicate is well-formed but the runtime
-                          state dict doesn't carry that key.  This is
-                          the DANGEROUS False: the Protocol may be
-                          referencing a field the runtime never
-                          produces (the May-2026 contamination bug).
-      * ``parse_error`` — predicate string is malformed.  Should be
-                          rare; logs at exponential checkpoints.
+      * ``mismatch``     — predicate is well-formed, key exists, value
+                           comparison failed.  This is the SAFE False.
+      * ``bool_default`` — boolean predicate (``key=true``/``key=false``)
+                           against an accumulating effect dict where the
+                           key hasn't appeared yet.  Resolved to
+                           ``false`` (the natural semantics of "this
+                           effect hasn't fired yet").  Returned outcome
+                           is ``match`` or ``mismatch`` depending on the
+                           comparison; this counter merely tracks how
+                           often the default kicked in.
+      * ``key_missing``  — predicate is well-formed but the runtime
+                           state dict doesn't carry that key AND the
+                           predicate is not a boolean comparison
+                           (numeric comparisons cannot be resolved
+                           silently — that's a real bug signal).
+      * ``parse_error``  — predicate string is malformed.  Should be
+                           rare; logs at exponential checkpoints.
 
     Empty / blank predicates (``""``) return ``(False, "parse_error")``
     — caller must filter those out beforehand if it cares.
@@ -142,6 +152,28 @@ def check_predicate_with_telemetry(
     key, op, expected = m.group(1), m.group(2), m.group(3).strip()
     actual = state.get(key)
     if actual is None:
+        # Boolean predicates (``key=true`` / ``key=false`` / ``key!=true`` /
+        # ``key!=false``) against an accumulating effect dict have a
+        # natural default: an effect that hasn't fired yet is "false".
+        # We special-case this so step_checks like ``enemy_hit=true`` and
+        # ``damage_taken=false`` evaluate correctly when the underlying
+        # effect functions only emit a key when the event occurs.
+        # Numeric comparisons (``damage>0``) remain truly KEY_MISSING
+        # because a missing numeric field is genuinely ambiguous.
+        exp_lower = expected.lower()
+        if op in ("=", "==", "!=") and exp_lower in ("true", "false"):
+            _PREDICATE_STATS[PREDICATE_RESULT_BOOL_DEFAULT] += 1
+            inferred = "false"
+            if op == "!=":
+                matched = inferred != exp_lower
+            else:
+                matched = inferred == exp_lower
+            if matched:
+                _PREDICATE_STATS[PREDICATE_RESULT_MATCH] += 1
+                return True, PREDICATE_RESULT_MATCH
+            _PREDICATE_STATS[PREDICATE_RESULT_MISMATCH] += 1
+            return False, PREDICATE_RESULT_MISMATCH
+
         _PREDICATE_STATS[PREDICATE_RESULT_KEY_MISSING] += 1
         if key not in _MISSING_PREDICATE_KEYS:
             _MISSING_PREDICATE_KEYS.add(key)

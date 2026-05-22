@@ -96,9 +96,7 @@ GAMINGAGENT_GAMES = {
 # wired slugs lives in that module's GYMV_TEMPORAL_GAMES dict (8 games for
 # the default benchmark scope — the 4 Phase-1 source games plus the 4
 # Phase-2 holdouts from
-# legacy/training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1 / §7.1
-# (superseded by trainer/coevolution/config.py:PHASE1_DEFAULT_GAMES /
-# PHASE2_HOLDOUT_GAMES and frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md).
+# training_notes/coevo-3phase-cross-game-ood-transfer-plan.md §4.1 / §7.1).
 # We import the dict lazily inside _lazy_imports() so module-import time
 # stays cheap when gym_v / stable-retro / ROMs aren't installed.
 GYMV_TEMPORAL_GAMES_SET: set = set()  # populated by _lazy_imports()
@@ -684,6 +682,24 @@ def _parse_action_response(
         if matched:
             return matched, reasoning, intention
 
+    # T2.19 (2026-05-18): trailing-number fallback (mirrors the
+    # skill_selection parser).  v8 analysis (gymv_thunder_force_iii, 6
+    # steps, 5237 samples) showed 6.2% of action_taking completions
+    # never emit ``ACTION:`` and were stored as 150-char mid-word
+    # fragments with reward=0.  Many of those completions DO end with a
+    # bare digit ("...so I pick 3.") that maps to a valid action index
+    # — recovering them as a soft "tail_number" match preserves the
+    # rollout signal and is strictly better than the silent fallback.
+    # We also accept any 1-based integer in the last 100 chars to align
+    # with skill_decision_core.parse_skill_selection's recovery path.
+    if valid_actions:
+        tail = cleaned[-100:]
+        nums = re.findall(r"\b(\d+)\b", tail)
+        for n_str in reversed(nums):
+            idx = int(n_str) - 1
+            if 0 <= idx < len(valid_actions):
+                return valid_actions[idx], reasoning, intention
+
     fallback = valid_actions[0] if valid_actions else "stay"
     return _ActionFallback(fallback), reasoning, intention
 
@@ -1114,13 +1130,12 @@ async def run_episode_async(
             env = SubprocessEnv(game=game, max_steps=max_steps, env_kind="gymv")
 
     else:
-        _rm = "rgb_array" if _vision_on else None
         if exe:
             base_env = await loop.run_in_executor(
-                exe, lambda: make_gaming_env(game=game, max_steps=max_steps, render_mode=_rm),
+                exe, make_gaming_env, game, max_steps,
             )
         else:
-            base_env = make_gaming_env(game=game, max_steps=max_steps, render_mode=_rm)
+            base_env = make_gaming_env(game=game, max_steps=max_steps)
 
         if game == "tetris":
             from env_wrappers.tetris_macro_wrapper import TetrisMacroActionWrapper
@@ -1236,17 +1251,11 @@ async def run_episode_async(
         # Pre-compute urgency (needed by both intention and action prompts)
         urgency = _detect_urgency(summary_state, game)
 
-        # ── 2+3+4. summary_prose, skill_selection, intention (PARALLEL)
-        summary_prompt = (
-            f"{game_label}: {state_text}\n"
-            f"{delta_line}"
-            f"Key strategic note about the current threat or opportunity "
-            f"(max 10 words, be specific to what changed).\nNote:"
-        )
-        summary_coro = vllm_client.generate_chat(
-            [{"role": "user", "content": summary_prompt}],
-            adapter="base", temperature=0.2, max_tokens=64,
-        )
+        # ── 2+3+4. intention, skill_selection (PARALLEL)
+        # Summary-prose LLM call removed: the 10-word strategic note added
+        # ~6s latency per step (competing for vLLM slots) while providing
+        # negligible signal.  Use summary_state directly instead.
+        summary_coro = None
 
         # Block B4 — intention trigger ablation.  When the trigger
         # fires, we generate a fresh intention via the LLM; when it
@@ -1398,7 +1407,7 @@ async def run_episode_async(
                 skill_coro = vllm_client.generate(
                     skill_select_prompt,
                     adapter="skill_selection",
-                    temperature=temperature, max_tokens=256,
+                    temperature=temperature, max_tokens=128,
                     stop=["\n\nAvailable", "\n\nGame state", "\n\n---"],
                 )
 
@@ -1409,20 +1418,14 @@ async def run_episode_async(
 
         # Fire all LLM calls concurrently
         if skill_coro is not None:
-            summary_result, assigned_subgoal, sk_result = await asyncio.gather(
-                summary_coro, intention_coro, skill_coro,
+            assigned_subgoal, sk_result = await asyncio.gather(
+                intention_coro, skill_coro,
             )
         else:
-            summary_result, assigned_subgoal = await asyncio.gather(
-                summary_coro, intention_coro,
-            )
+            assigned_subgoal = await intention_coro
             sk_result = None
 
-        # Process summary result
-        note = strip_think_tags(summary_result.text).strip() if summary_result.text else ""
-        note = note.split("\n")[0].strip().strip('"').strip("'")[:80]
-        current_summary = f"{summary_state} | note={note}" if note else summary_state
-        current_summary = current_summary[:HARD_SUMMARY_CHAR_LIMIT]
+        current_summary = (summary_state or obs_nl[:500])[:HARD_SUMMARY_CHAR_LIMIT]
 
         # Post-LLM harness validate_invocation (PLAN-UNIFIED §3.4).
         # Wraps the LLM's chosen skill in a structured second-pass veto.
@@ -1620,37 +1623,31 @@ async def run_episode_async(
             skill_context += "\n"
 
         recent_context = _build_recent_context(recent_actions, recent_rewards)
-        _use_raw_obs = getattr(env, "_is_macro_action", False)
+        _is_macro = getattr(env, "_is_macro_action", False)
+
+        _rich_markup = (
+            current_info.get("state_markup") if current_info else None
+        )
         _use_rich_obs = getattr(env, "_has_rich_observation", False)
-        if _use_raw_obs:
-            summary_for_action = obs_nl[:4000]
+        if _rich_markup and "<state>" in _rich_markup:
+            summary_for_action = _rich_markup
         elif _use_rich_obs and current_info:
             summary_for_action = _build_rich_state_observation(
                 current_info, summary_state,
             )
+        elif current_summary:
+            summary_for_action = current_summary
         else:
-            # T2.17 (2026-05-07 wiring fix): for gymv games we already
-            # spend a 35B vision-perception call per step to produce a
-            # rich SFT-aligned ``<state>...</state>`` markup (entities,
-            # attributes, affordances, relations, state_flags, targets,
-            # uncertainty, actions — see
-            # ``_vision_state_perception.py``).  The output landed in
-            # ``info["state_markup"]`` but no consumer was reading it,
-            # so the actor saw the one-line ``summary_state`` instead
-            # — a hard distribution mismatch with the SFT cold-start
-            # data (which trains action_taking on the full <state>
-            # block).  Prefer the rich markup when present; fall back
-            # to the legacy summary when ``state_markup`` is empty
-            # (vision disabled, fallback fired, env missed).
-            _rich_markup = (
-                current_info.get("state_markup") if current_info else None
+            summary_for_action = obs_nl[:4000]
+
+        if _is_macro and "<actions>" in summary_for_action:
+            summary_for_action = re.sub(
+                r"\n?<actions>\n.*?(?=\n<|\Z)",
+                "",
+                summary_for_action,
+                flags=re.DOTALL,
             )
-            if _rich_markup and "<state>" in _rich_markup:
-                summary_for_action = _rich_markup
-            elif current_summary:
-                summary_for_action = current_summary
-            else:
-                summary_for_action = obs_nl[:4000]
+
         skill_text = _format_skill_guidance_for_prompt(
             guidance, skill_tracker.protocol_step_idx,
             progress_summary=skill_tracker.get_progress_summary(summary_state),
@@ -1669,12 +1666,19 @@ async def run_episode_async(
                 f"Critical actions for this game (use frequently when scoring): "
                 f"{', '.join(_critical_for_game)}.\n"
             )
+        _quality_sort_hint = ""
+        if _is_macro:
+            _quality_sort_hint = (
+                "Actions are sorted best-first (fewest holes, most line clears). "
+                "Prefer ACTION 1 unless you have a strong reason to pick another.\n"
+            )
         action_user = (
             f"Game state:\n\n{summary_for_action}\n\n"
             f"Subgoal: {assigned_subgoal}\n"
             f"{urgency_line}{skill_context}{recent_context}{_critical_hint}"
+            f"{_quality_sort_hint}"
             f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
-            f"Choose the best action. Output ACTION number."
+            f"Brief REASONING (1 sentence max) then ACTION: <number>."
         )
         action_prompt = (
             _profile_prefix + SYSTEM_PROMPT + skill_text + "\n" + action_user
@@ -1692,7 +1696,7 @@ async def run_episode_async(
         action_result = await vllm_client.generate(
             action_prompt,
             adapter="action_taking",
-            temperature=temperature, max_tokens=192,
+            temperature=temperature, max_tokens=80,
             stop=["\n\nGame state:", "\n\nAvailable actions"],
         )
         action, reasoning, parsed_intention = _parse_action_response(
@@ -1853,11 +1857,36 @@ async def run_episode_async(
             # possible signal.  The prompt no longer requests REASONING,
             # so the completion is just ``ACTION: <number>``.
             if _format_failed:
-                action_completion = action_result.text.strip()[:150]
+                # T2.19 (2026-05-18): store the FULL completion instead of
+                # truncating to 150 chars.  v8 analysis showed 6.2% of
+                # action_taking samples landed here, all stored as 150-char
+                # mid-word fragments — GRPO then learned "long REASONING
+                # is bad" rather than the intended "missing ACTION: tag is
+                # bad".  Keeping the full text gives GRPO the actual
+                # negative example the model produced; reward=0 still
+                # signals "do not emit this".
+                action_completion = action_result.text.strip()
                 _action_reward = 0.0
             else:
-                action_completion = f"ACTION: {action_num}"
-                _action_reward = float(reward)
+                action_completion = f"REASONING: {(reasoning or 'Best move.')[:80]}\nACTION: {action_num}"
+                _format_bonus = 0.05
+                _critical = _critical_actions_for(game, step_actions)
+                _is_critical = (str(action) in _critical) if _critical else False
+                _passive_penalty = 0.0
+                _action_str = str(action).upper()
+                _passive_set = {"NOOP", "STAY", "PASS"}
+                if (
+                    _action_str in _passive_set
+                    and not _is_critical
+                    and float(raw_env_reward) <= 0.0
+                ):
+                    _passive_penalty = -0.05
+                _action_reward = (
+                    float(reward)
+                    + skill_tracker._intrinsic_bonus
+                    + _format_bonus
+                    + _passive_penalty
+                )
                 try:
                     from trainer.coevolution._run_loggers import (  # noqa: WPS433
                         record_shaping_signal,
@@ -1907,6 +1936,10 @@ async def run_episode_async(
                             "raw_env_reward": _action_meta["raw_env_reward"],
                             "active_skill": _action_meta["active_skill"],
                             "intrinsic_bonus": _action_meta["intrinsic_bonus"],
+                            "action_num": action_num,
+                            "num_actions": len(step_actions),
+                            "format_failed": _format_failed,
+                            "raw_completion": action_result.text.strip()[:300],
                         },
                     )
                 except Exception:  # pragma: no cover  (defensive)

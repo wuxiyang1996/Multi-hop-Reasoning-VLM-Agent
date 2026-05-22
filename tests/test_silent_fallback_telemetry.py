@@ -46,6 +46,7 @@ import pytest
 
 
 from decision_agents.protocol_utils import (
+    PREDICATE_RESULT_BOOL_DEFAULT,
     PREDICATE_RESULT_KEY_MISSING,
     PREDICATE_RESULT_MATCH,
     PREDICATE_RESULT_MISMATCH,
@@ -81,31 +82,65 @@ def test_check_predicate_mismatch_against_present_key():
     assert get_predicate_stats()[PREDICATE_RESULT_MISMATCH] == 1
 
 
-def test_check_predicate_key_missing_distinguishable_from_mismatch():
-    """The legacy boolean-return collapsed both onto False.  The fix
-    must produce distinct tags so the operator can see when the
-    Protocol references a state field the runtime never produces.
+def test_check_predicate_numeric_key_missing_distinguishable_from_mismatch():
+    """Numeric predicates with missing keys still return KEY_MISSING — a
+    missing numeric field is genuinely ambiguous and signals a real bug
+    in the Protocol (referencing a hallucinated numeric field).
     """
     state = {"score": "100"}
-    result, kind = check_predicate_with_telemetry("shield_buff=true", state)
+    result, kind = check_predicate_with_telemetry("lives>2", state)
     assert result is False
     assert kind == PREDICATE_RESULT_KEY_MISSING
 
     stats = get_predicate_stats()
     assert stats[PREDICATE_RESULT_KEY_MISSING] == 1
     assert stats[PREDICATE_RESULT_MISMATCH] == 0
-    assert "shield_buff" in stats["missing_keys"]
+    assert "lives" in stats["missing_keys"]
 
 
-def test_check_predicate_records_unique_missing_keys():
-    state = {"score": "100"}
-    check_predicate_with_telemetry("shield_buff=true", state)
-    check_predicate_with_telemetry("shield_buff=false", state)   # same key
-    check_predicate_with_telemetry("lives>2", state)             # diff key
+def test_check_predicate_bool_missing_key_defaults_to_false():
+    """Boolean predicates (``key=true``/``key=false``) against an
+    accumulating effect dict have natural semantics: a key that hasn't
+    appeared yet means the effect hasn't fired → equivalent to "false".
+
+    This matches the StateEffectObserver contract where effects are
+    monotonically added (never removed), so missing key == "not yet".
+    """
+    state: dict[str, str] = {}
+
+    # ``enemy_hit=true`` with no enemy_hit key → effect hasn't fired
+    result, kind = check_predicate_with_telemetry("enemy_hit=true", state)
+    assert result is False
+    assert kind == PREDICATE_RESULT_MISMATCH
+
+    # ``damage_taken=false`` with no damage_taken key → no damage yet → true
+    result, kind = check_predicate_with_telemetry("damage_taken=false", state)
+    assert result is True
+    assert kind == PREDICATE_RESULT_MATCH
+
+    # ``shield_buff!=true`` with no key → shield_buff isn't true → match
+    result, kind = check_predicate_with_telemetry("shield_buff!=true", state)
+    assert result is True
+    assert kind == PREDICATE_RESULT_MATCH
 
     stats = get_predicate_stats()
-    assert stats[PREDICATE_RESULT_KEY_MISSING] == 3
-    assert set(stats["missing_keys"]) == {"shield_buff", "lives"}
+    assert stats[PREDICATE_RESULT_BOOL_DEFAULT] == 3
+    assert stats[PREDICATE_RESULT_KEY_MISSING] == 0  # not flagged as real-bug
+
+
+def test_check_predicate_records_unique_missing_keys_numeric_only():
+    """Only numeric KEY_MISSING (truly ambiguous) is tracked in the
+    ``missing_keys`` set; boolean defaults are resolved cleanly.
+    """
+    state = {"score": "100"}
+    check_predicate_with_telemetry("shield_buff=true", state)   # bool_default
+    check_predicate_with_telemetry("shield_buff=false", state)  # bool_default
+    check_predicate_with_telemetry("lives>2", state)            # KEY_MISSING
+
+    stats = get_predicate_stats()
+    assert stats[PREDICATE_RESULT_KEY_MISSING] == 1
+    assert stats[PREDICATE_RESULT_BOOL_DEFAULT] == 2
+    assert set(stats["missing_keys"]) == {"lives"}
 
 
 def test_check_predicate_parse_error_tagged():
@@ -135,7 +170,7 @@ def test_check_predicate_legacy_bool_return_preserved():
 
 def test_reset_predicate_stats_clears_missing_keys():
     state = {"score": "100"}
-    check_predicate_with_telemetry("shield_buff=true", state)
+    check_predicate_with_telemetry("lives>2", state)
     assert get_predicate_stats()[PREDICATE_RESULT_KEY_MISSING] == 1
     reset_predicate_stats()
     stats = get_predicate_stats()
@@ -145,10 +180,11 @@ def test_reset_predicate_stats_clears_missing_keys():
 
 def test_missing_keys_list_bounded_to_50():
     """Defensive cap so a wildly misconfigured Protocol can't blow up
-    ``step_log.jsonl`` with 10k unique missing keys.
+    ``step_log.jsonl`` with 10k unique missing keys.  Uses numeric
+    predicates so the bool_default short-circuit doesn't intercept them.
     """
     for i in range(80):
-        check_predicate_with_telemetry(f"phantom_field_{i}=true", {})
+        check_predicate_with_telemetry(f"phantom_field_{i}>0", {})
 
     stats = get_predicate_stats()
     assert stats[PREDICATE_RESULT_KEY_MISSING] == 80
