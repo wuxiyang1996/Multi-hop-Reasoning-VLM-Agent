@@ -283,6 +283,71 @@ async def run_unified_episode(
     )
 
 
+def unified_result_to_grpo_records(
+    result: UnifiedEpisodeResult,
+    episode_reward: Optional[float] = None,
+) -> List["GRPORecord"]:
+    """Convert a UnifiedEpisodeResult into a list of GRPORecord objects.
+
+    The unified runner stores action_records as plain dicts and
+    skill_records as SkillSelectionRecord.  The GRPO trainer needs
+    GRPORecord dataclass instances.  This function bridges the gap.
+
+    If *episode_reward* is given, it overrides per-step rewards with a
+    uniform redistribution of the episode-level reward across all
+    action records — appropriate for sparse-reward tasks (QA, web).
+    """
+    from trainer.coevolution.episode_runner import GRPORecord
+
+    records: List[GRPORecord] = []
+    ep_len = max(result.steps, 1)
+    final_reward = episode_reward if episode_reward is not None else result.total_reward
+
+    for ar in result.action_records:
+        step_reward = ar.get("reward", 0.0)
+        if episode_reward is not None:
+            step_reward = final_reward / max(len(result.action_records), 1)
+        records.append(GRPORecord(
+            adapter="action_taking",
+            game=result.task,
+            episode_id=result.episode_id,
+            step=ar.get("step", 0),
+            prompt=ar.get("prompt", ""),
+            completion=ar.get("completion", ""),
+            reward=step_reward,
+            episode_length=ep_len,
+            metadata={
+                "action": ar.get("action", ""),
+                "skill_id": ar.get("skill_id"),
+                "hop_type": ar.get("hop_type", ""),
+                "domain": result.domain,
+            },
+        ))
+
+    for sr in result.skill_records:
+        step_reward = sr.reward
+        if episode_reward is not None:
+            step_reward = final_reward / max(len(result.skill_records), 1)
+        records.append(GRPORecord(
+            adapter="skill_selection",
+            game=result.task,
+            episode_id=result.episode_id,
+            step=sr.step,
+            prompt=sr.prompt,
+            completion=sr.completion,
+            reward=step_reward,
+            episode_length=ep_len,
+            metadata={
+                "candidates": sr.candidates,
+                "chosen_skill_id": sr.chosen_skill_id,
+                "decision": sr.decision,
+                "domain": result.domain,
+            },
+        ))
+
+    return records
+
+
 def _parse_action(reply: str, valid_actions: List[str]) -> str:
     """Parse action from LLM response."""
     if not reply:

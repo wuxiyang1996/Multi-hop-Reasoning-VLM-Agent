@@ -67,7 +67,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 # Reuse the same intent classifier + bank loader from the judge script
 from scripts.judge_plan_level_similarity import (  # noqa: E402
-    BEST_GRPO_RUNS, DOMAIN_OF,
+    BEST_GRPO_RUNS, ALL_STAGES, DOMAIN_OF,
     SkillRec, compressed_plan, load_bank,
 )
 
@@ -577,9 +577,12 @@ def main() -> int:
                     help="emit mega-skill entries for orphaned skills too (default: skip)")
     args = ap.parse_args()
 
-    if args.bank_set != "best_grpo":
+    if args.bank_set == "best_grpo":
+        bank_paths = BEST_GRPO_RUNS
+    elif args.bank_set == "all_stages":
+        bank_paths = ALL_STAGES
+    else:
         raise SystemExit(f"unknown bank-set: {args.bank_set}")
-    bank_paths = BEST_GRPO_RUNS
 
     logger.info("loading judge file: %s", args.judgments)
     judgments = json.loads(Path(args.judgments).read_text())

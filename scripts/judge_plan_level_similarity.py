@@ -80,6 +80,14 @@ BEST_GRPO_RUNS: Dict[str, Path] = {
     "gymv_streets_of_rage_2":  REPO_ROOT / "runs/gymv_streets_of_rage_2_coevo_v5_20260520_010806/skillbank/gymv_streets_of_rage_2/skill_bank.jsonl",
 }
 
+ALL_STAGES: Dict[str, Path] = {
+    **BEST_GRPO_RUNS,
+    "gymv_airstriker":       REPO_ROOT / "frontier_data/output/stage2_merged_banks/gymv_airstriker/skill_bank.jsonl",
+    "gymv_altered_beast":    REPO_ROOT / "frontier_data/output/stage2_merged_banks/gymv_altered_beast/skill_bank.jsonl",
+    "gymv_dynamite_headdy":  REPO_ROOT / "frontier_data/output/stage2_merged_banks/gymv_dynamite_headdy/skill_bank.jsonl",
+    "gymv_space_harrier_ii": REPO_ROOT / "frontier_data/output/stage2_merged_banks/gymv_space_harrier_ii/skill_bank.jsonl",
+}
+
 
 DOMAIN_OF = {
     # GAMES (env_wrappers + retro gymv)
@@ -599,7 +607,7 @@ def main() -> int:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    ap.add_argument("--bank-set", choices=["best_grpo"], default="best_grpo",
+    ap.add_argument("--bank-set", choices=["best_grpo", "all_stages"], default="best_grpo",
                     help="which bank configuration to load")
     ap.add_argument("--top-k", type=int, default=15,
                     help="shortlist size per target (default 15)")
@@ -622,6 +630,8 @@ def main() -> int:
 
     if args.bank_set == "best_grpo":
         bank_paths = BEST_GRPO_RUNS
+    elif args.bank_set == "all_stages":
+        bank_paths = ALL_STAGES
     else:
         raise SystemExit(f"unknown bank-set: {args.bank_set}")
 
