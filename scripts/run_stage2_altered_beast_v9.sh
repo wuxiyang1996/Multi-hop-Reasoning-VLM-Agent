@@ -1,46 +1,37 @@
 #!/usr/bin/env bash
-# Stage-2 Airstriker v7c — raw-env reward + symmetric format signal.
+# Stage-2 Altered Beast v9 — Gemini+Claude SFT + stuck detection fix.
 #
-# v7 diagnosis (from v6 step 1→3 trajectory analysis):
-#   * Vision pipeline (Gemini 2.5 Flash) works perfectly — entity-rich
-#     markup at 100% success rate.
-#   * BUT the model's reasoning collapsed from real CoT (p50=424 chars)
-#     to literal "Expert play." (p50=104 chars) within 3 GRPO steps.
-#   * Root cause: action_movement_bonus=0.2 gave free reward for
-#     outputting RIGHT, so GRPO learned the shortcut:
-#       "Expert play." + ACTION:5(RIGHT) → guaranteed +0.2/step
-#     which dominates the GRPO advantage over actual game rewards.
-#
-# v7 changes vs v6:
-#   1. ALL dense reward shaping zeroed out (survival, advance, hit,
-#      attack, movement all = 0).  GRPO reward = raw env reward ONLY.
-#   2. REASONING removed from output format — model outputs only
-#      "ACTION: <number>".  Eliminates the CoT-collapse vector entirely.
-#   3. Same Gemini 2.5 Flash vision pipeline (proven in v6 step 0-1).
-#
-# Expected:
-#   * No reward hacking — only way to get game reward is to score
-#   * Simpler output → faster inference, no reasoning-collapse risk
-#   * Symmetric format signal: +0.05 correct / -0.05 failed format
-#     → 0.10 gap/step prevents LoRA format degradation under GRPO
-#   * Stop tokens include "<think"/"<thinking" to block thinking mode
-#   * Learning driven by raw env reward (clean signal)
+# v9 changes:
+#   1. SFT retrained on Gemini+Claude-only data (mean teacher raw=383)
+#      includes 3 Gemini boss-kill episodes (1200-1300 pts) the old SFT never saw.
+#   2. --min-steps-before-stuck 110 (was 60) → episodes reach 120 steps.
+#      Gemini teacher boss spike at step 72-76 was being cut off by stuck at 60+.
+#   3. Keeps all v8 anti-collapse fixes:
+#      - REASONING+ACTION format (SFT-native)
+#      - Reasoning quality gate (< 50 chars → reward=0)
+#      - GRPO LR 1e-5 (halved)
+#      - Symmetric format signal +0.05/-0.05
+#      - All dense shaping zeroed (pure raw env reward)
+#      - Stop tokens for <think>/<thinking>
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 REPO_ROOT="$(pwd)"
 SEED_BANK_DIR="${REPO_ROOT}/frontier_data/output/stage2_seeds_v3_grpo"
-SFT_AT_ROOT="${REPO_ROOT}/runs/sft_per_game"
 SFT_SS_ROOT="${REPO_ROOT}/runs/sft_per_game_v3"
 LORA_LINK_DIR="${REPO_ROOT}/runs/lora_adapters/decision"
 TS="$(date +%Y%m%d_%H%M%S)"
 
-# All shaping zeroed — pure raw env reward
-DENSE_OVERRIDES='{"gymv_airstriker":{"action_survival_bonus":0.0,"action_advance_bonus":0.0,"action_hit_penalty":0.0,"action_attack_bonus":0.0,"action_movement_bonus":0.0}}'
+# v9: new SFT adapter from Gemini+Claude only
+SFT_V9_AT="${REPO_ROOT}/runs/sft_v9_gemini_claude_ab/decision/action_taking"
+
+DENSE_OVERRIDES='{"gymv_altered_beast":{"action_survival_bonus":0.0,"action_advance_bonus":0.0,"action_hit_penalty":0.0,"action_attack_bonus":0.0,"action_movement_bonus":0.0}}'
 
 export VLM_AGENT_BACKBONE_JUDGE_MODEL="google/gemini-2.5-flash"
 VISION_TIMEOUT_S=15
+GRPO_LR="1e-5"
+MIN_STEPS_BEFORE_STUCK=110
 
 log() { printf '[%s] %s\n' "$(date '+%F %T')" "$*"; }
 
@@ -72,21 +63,14 @@ kill_stale_9b_vllm() {
     else
         log "No stale 9B vllm servers to kill."
     fi
-
-    if ! curl -sf -m 3 http://localhost:8001/v1/models >/dev/null 2>&1; then
-        log "INFO: 35B vision judge on :8001 not reachable (OK — using OpenRouter)."
-    else
-        log "35B vision judge :8001 still healthy (kept as last-resort fallback)."
-    fi
 }
 
-repoint_decision_lora() {
-    local key="$1"
-    local at_src="${SFT_AT_ROOT}/${key}/action_taking/${key}__action_taking"
-    local ss_src="${SFT_SS_ROOT}/${key}/skill_selection/${key}__skill_selection"
+repoint_decision_lora_v9() {
+    local sft_key="$1"
+    local ss_src="${SFT_SS_ROOT}/${sft_key}/skill_selection/${sft_key}__skill_selection"
 
-    if [[ ! -f "${at_src}/adapter_model.safetensors" ]]; then
-        log "FATAL: action_taking adapter missing at ${at_src}"
+    if [[ ! -d "${SFT_V9_AT}" ]]; then
+        log "FATAL: v9 action_taking adapter missing at ${SFT_V9_AT}"
         return 1
     fi
     if [[ ! -f "${ss_src}/adapter_model.safetensors" ]]; then
@@ -96,30 +80,35 @@ repoint_decision_lora() {
 
     mkdir -p "${LORA_LINK_DIR}/action_taking" "${LORA_LINK_DIR}/skill_selection"
     for f in adapter_model.safetensors adapter_config.json; do
-        ln -sfT "${at_src}/${f}" "${LORA_LINK_DIR}/action_taking/${f}"
+        ln -sfT "${SFT_V9_AT}/${f}" "${LORA_LINK_DIR}/action_taking/${f}"
+    done
+    for f in adapter_model.safetensors adapter_config.json; do
         ln -sfT "${ss_src}/${f}" "${LORA_LINK_DIR}/skill_selection/${f}"
     done
-    log "Repointed decision LoRA → ${key}"
+    log "Repointed action_taking → v9 AB Gemini+Claude SFT"
+    log "Repointed skill_selection → ${sft_key}"
 }
 
 launch_game() {
     local game_slug="$1"
     local sft_key="$2"
 
-    local run_dir="${REPO_ROOT}/runs/${game_slug}_stage2_v7c_${TS}"
+    local run_dir="${REPO_ROOT}/runs/${game_slug}_stage2_v9_${TS}"
     mkdir -p "${run_dir}"
     local launch_log="${run_dir}/launch.log"
 
     log "============================================================"
-    log "GAME: ${game_slug}  (SFT key: ${sft_key})"
+    log "GAME: ${game_slug}  (SFT: v9 Gemini+Claude)"
     log "RUN DIR: ${run_dir}"
-    log "VISION MODEL: ${VLM_AGENT_BACKBONE_JUDGE_MODEL}  (timeout=${VISION_TIMEOUT_S}s)"
-    log "DENSE OVERRIDES: ${DENSE_OVERRIDES}"
-    log "v7: NO REASONING in output, pure raw env reward"
+    log "VISION: ${VLM_AGENT_BACKBONE_JUDGE_MODEL}  (timeout=${VISION_TIMEOUT_S}s)"
+    log "GRPO LR: ${GRPO_LR}"
+    log "MIN_STEPS_BEFORE_STUCK: ${MIN_STEPS_BEFORE_STUCK} (was 60)"
+    log "FORMAT: REASONING+ACTION + quality gate ≥50 chars"
+    log "SHAPING: all zeroed (pure raw env reward)"
     log "============================================================"
 
     kill_stale_9b_vllm
-    repoint_decision_lora "${sft_key}"
+    repoint_decision_lora_v9 "${sft_key}"
 
     log "Launching run_coevolution.py …"
     PYTHONUNBUFFERED=1 python3 scripts/run_coevolution.py \
@@ -132,11 +121,13 @@ launch_game() {
         --run-dir "${run_dir}" \
         --vllm-gpus 0 1 2 3 \
         --grpo-devices 6 7 \
+        --grpo-lr "${GRPO_LR}" \
         --max-concurrent 64 \
         --no-wandb \
         --from-scratch \
         --dense-reward-overrides "${DENSE_OVERRIDES}" \
         --vision-state-perception-timeout-s "${VISION_TIMEOUT_S}" \
+        --min-steps-before-stuck "${MIN_STEPS_BEFORE_STUCK}" \
         2>&1 | tee "${launch_log}"
 
     local rc=${PIPESTATUS[0]}
@@ -146,11 +137,9 @@ launch_game() {
     return ${rc}
 }
 
-log "Stage-2 Airstriker v7c launcher started (ts=${TS})"
-log "Seed bank: ${SEED_BANK_DIR}"
-log "v7c: raw env + symmetric format signal (+0.05/-0.05) + stop <think>"
-log "Vision: ${VLM_AGENT_BACKBONE_JUDGE_MODEL}"
+log "Stage-2 Altered Beast v9 launcher started (ts=${TS})"
+log "Key changes: Gemini+Claude SFT (teacher mean=383, includes boss kills) + 120-step episodes"
 
-launch_game gymv_airstriker Temporal_Airstriker-v0
+launch_game gymv_altered_beast Temporal_AlteredBeast-v0
 
 log "All games done."

@@ -196,6 +196,7 @@ SYSTEM_PROMPT = (
     "- NEVER repeat the same action more than 2 times in a row.\n"
     "- If recent actions got zero reward, change strategy.\n\n"
     "Output format (strict):\n"
+    "REASONING: <1-2 sentences>\n"
     "ACTION: <number>\n\n"
 )
 
@@ -1696,8 +1697,8 @@ async def run_episode_async(
         action_result = await vllm_client.generate(
             action_prompt,
             adapter="action_taking",
-            temperature=temperature, max_tokens=80,
-            stop=["\n\nGame state:", "\n\nAvailable actions"],
+            temperature=temperature, max_tokens=128,
+            stop=["\n\nGame state:", "\n\nAvailable actions", "<think", "<thinking"],
         )
         action, reasoning, parsed_intention = _parse_action_response(
             action_result.text, step_actions,
@@ -1849,27 +1850,32 @@ async def run_episode_async(
                 action_num = step_actions.index(action) + 1
             except ValueError:
                 action_num = 1
-            # T2.19j (v7): pure raw-env reward, no REASONING in output.
+            # T2.19n (v8): REASONING+ACTION restored with quality gate.
             #
-            # All dense shaping (survival, advance, hit/damage, attack,
-            # movement, format bonus, passive penalty) removed.  GRPO
-            # sees only the raw environment reward — the cleanest
-            # possible signal.  The prompt no longer requests REASONING,
-            # so the completion is just ``ACTION: <number>``.
+            # Three-tier reward:
+            #   1. Format failed (no ACTION: N) → -0.05 penalty
+            #   2. Format OK but reasoning too short (<50 chars) → 0.0
+            #      (prevents "Expert play." degenerate shortcut)
+            #   3. Format OK + real reasoning (≥50 chars) →
+            #      raw_env_reward + 0.05 format bonus
+            #
+            # Combined with halved GRPO LR (2.5e-5→1e-5) this keeps
+            # format stable while still learning from game reward.
+            _FORMAT_BONUS = 0.05
+            _FORMAT_FAIL_PENALTY = -0.05
+            _MIN_REASONING_LEN = 50
+            _has_reasoning = bool(reasoning and len(reasoning.strip()) >= _MIN_REASONING_LEN)
             if _format_failed:
-                # T2.19 (2026-05-18): store the FULL completion instead of
-                # truncating to 150 chars.  v8 analysis showed 6.2% of
-                # action_taking samples landed here, all stored as 150-char
-                # mid-word fragments — GRPO then learned "long REASONING
-                # is bad" rather than the intended "missing ACTION: tag is
-                # bad".  Keeping the full text gives GRPO the actual
-                # negative example the model produced; reward=0 still
-                # signals "do not emit this".
                 action_completion = action_result.text.strip()
+                _action_reward = _FORMAT_FAIL_PENALTY
+            elif not _has_reasoning:
+                action_completion = (
+                    action_result.text.strip()[:200]
+                    or f"ACTION: {action_num}"
+                )
                 _action_reward = 0.0
             else:
                 action_completion = f"REASONING: {(reasoning or 'Best move.')[:80]}\nACTION: {action_num}"
-                _format_bonus = 0.05
                 _critical = _critical_actions_for(game, step_actions)
                 _is_critical = (str(action) in _critical) if _critical else False
                 _passive_penalty = 0.0
@@ -1884,7 +1890,7 @@ async def run_episode_async(
                 _action_reward = (
                     float(reward)
                     + skill_tracker._intrinsic_bonus
-                    + _format_bonus
+                    + _FORMAT_BONUS
                     + _passive_penalty
                 )
                 try:
