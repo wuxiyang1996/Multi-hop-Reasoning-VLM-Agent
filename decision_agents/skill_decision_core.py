@@ -103,6 +103,12 @@ class StepTracker:
         self._prev_deterministic_ratio: float = 0.0
         self._new_effects_this_step: bool = False
 
+        # Accumulates per-skill runtime-discovered effects across the
+        # entire episode.  Snapshot is taken on every skill switch and
+        # at episode end via ``snapshot_runtime_effects()``.  Used by
+        # skillbank_pipeline to write-back contracts for seed skills.
+        self._runtime_skill_effects: Dict[str, Dict[str, Any]] = {}
+
         from decision_agents.protocol_utils import StateEffectObserver
         self._effect_observer = StateEffectObserver()
 
@@ -297,6 +303,7 @@ class StepTracker:
 
         self._intrinsic_bonus = 0.0
         if skill_id != self.active_skill_id:
+            self._snapshot_current_skill_effects()
             self._prev_reward_on_skill = self.reward_on_skill
             self._prev_steps_on_skill = self.steps_on_skill
             self._prev_deterministic_ratio = self.deterministic_completion_ratio
@@ -342,6 +349,46 @@ class StepTracker:
                 check = self._step_checks[idx] if idx >= 0 else ""
                 if check and check_predicate(check, effects):
                     self._intrinsic_bonus += 0.2
+
+    # ── Runtime effects snapshot ─────────────────────────────────
+
+    def _snapshot_current_skill_effects(self) -> None:
+        """Capture the current skill's deterministic effects before reset."""
+        sid = self.active_skill_id
+        if not sid or self.steps_on_skill < 1:
+            return
+        det = set(self._deterministic_effects)
+        if not det:
+            return
+        prev = self._runtime_skill_effects.get(sid)
+        if prev is not None:
+            prev["eff_add"] |= det
+            prev["n_steps"] += self.steps_on_skill
+            prev["reward"] += self.reward_on_skill
+            prev["n_episodes"] = prev.get("n_episodes", 1)
+        else:
+            self._runtime_skill_effects[sid] = {
+                "eff_add": set(det),
+                "n_steps": self.steps_on_skill,
+                "reward": self.reward_on_skill,
+                "n_episodes": 1,
+            }
+
+    def snapshot_runtime_effects(self) -> Dict[str, Dict[str, Any]]:
+        """Snapshot the current skill + return all accumulated per-skill effects.
+
+        Call at episode end to capture the final active skill's effects.
+        Returns ``{skill_id: {"eff_add": set, "n_steps": int, "reward": float}}``.
+        """
+        self._snapshot_current_skill_effects()
+        out: Dict[str, Dict[str, Any]] = {}
+        for sid, data in self._runtime_skill_effects.items():
+            out[sid] = {
+                "eff_add": set(data["eff_add"]),
+                "n_steps": data["n_steps"],
+                "reward": data["reward"],
+            }
+        return out
 
     # ── Progress summary for prompt ───────────────────────────────
 

@@ -1406,14 +1406,27 @@ def _query_memory_for_skill(memory: Optional[Any], key: str) -> List[Dict[str, A
 
 
 def _get_protocol_for_skill(skill_bank: Any, skill_id: Optional[str]) -> Dict[str, Any]:
-    """Extract protocol dict from a skill bank for a given skill_id."""
+    """Extract protocol dict from a skill bank for a given skill_id.
+
+    Bridges ``Skill.contract.eff_add`` into the protocol as
+    ``required_effects`` so the runtime tracker's ``set_protocol()``
+    can populate ``_required_effects`` and enable ``intrinsic_bonus``.
+    Without this, seed mega-skills with empty protocol-level effects
+    but learned contracts never activate progress tracking.
+    """
     if not skill_id:
         return {}
     bank = getattr(skill_bank, "bank", skill_bank)
     if hasattr(bank, "get_skill"):
         skill = bank.get_skill(skill_id)
         if skill is not None and skill.protocol.steps:
-            return skill.protocol.to_dict()
+            proto = skill.protocol.to_dict()
+            contract = getattr(skill, "contract", None)
+            if contract is not None and not proto.get("required_effects"):
+                eff_add = getattr(contract, "eff_add", None)
+                if eff_add:
+                    proto["required_effects"] = sorted(eff_add)
+            return proto
     return {}
 
 

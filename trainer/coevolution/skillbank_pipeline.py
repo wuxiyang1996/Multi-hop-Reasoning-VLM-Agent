@@ -138,6 +138,79 @@ def _sanitize_seeded_bank_for_game(bank: Any, game_name: str) -> Dict[str, int]:
     return aggregate
 
 
+def _writeback_runtime_effects(
+    bank: Any,
+    runtime_effects: Dict[str, Dict[str, Any]],
+    min_episodes: int = 2,
+) -> int:
+    """Merge runtime-discovered effects into bank skill contracts.
+
+    For each skill in *runtime_effects*, if the skill exists in *bank*
+    and its contract's ``eff_add`` is empty (Stage 3 didn't populate it),
+    write the runtime-discovered effects as the initial contract.
+
+    When the contract already has ``eff_add`` from Stage 3, the runtime
+    effects are merged (union) so deterministic discoveries augment
+    LLM-derived effects.
+
+    Returns the number of skills whose contracts were updated.
+    """
+    if bank is None or not runtime_effects:
+        return 0
+
+    n_updated = 0
+    for sid, data in runtime_effects.items():
+        eff_add = data.get("eff_add") or set()
+        n_eps = data.get("n_episodes", 1)
+        if not eff_add or n_eps < min_episodes:
+            continue
+
+        skill = None
+        if hasattr(bank, "get_skill"):
+            skill = bank.get_skill(sid)
+        if skill is None:
+            continue
+
+        contract = getattr(skill, "contract", None)
+        existing_eff = set()
+        if contract is not None:
+            existing_eff = set(getattr(contract, "eff_add", None) or set())
+
+        new_effects = eff_add - existing_eff
+        if not new_effects and existing_eff:
+            continue
+
+        merged = existing_eff | eff_add
+
+        if contract is not None:
+            contract.eff_add = merged
+            contract.n_instances = max(
+                getattr(contract, "n_instances", 0) or 0, n_eps,
+            )
+            try:
+                contract.updated_at = time.time()
+            except Exception:  # noqa: BLE001
+                pass
+        else:
+            try:
+                from skill_agents.stage3_mvp.schemas import SkillEffectsContract
+                skill.contract = SkillEffectsContract(
+                    skill_id=sid,
+                    version=1,
+                    eff_add=merged,
+                    n_instances=n_eps,
+                )
+            except Exception:  # noqa: BLE001
+                continue
+        n_updated += 1
+        logger.info(
+            "Runtime writeback %s: eff_add=%s (n_episodes=%d, new=%s)",
+            sid, sorted(merged), n_eps, sorted(new_effects) if new_effects else "merge",
+        )
+
+    return n_updated
+
+
 class AsyncSkillBankPipeline:
     """Manages the skill bank update lifecycle across a co-evolution step.
 
@@ -168,6 +241,11 @@ class AsyncSkillBankPipeline:
             "curator": [],
         }
         self._update_result: Optional[SkillBankUpdateResult] = None
+        # Accumulated runtime-discovered effects per skill across all
+        # episodes in this step.  Merged into bank contracts during
+        # finalize_update() for skills whose Stage 3 segmentation
+        # couldn't produce labeled segments (e.g. seed mega-skills).
+        self._runtime_effects: Dict[str, Dict[str, Any]] = {}
 
     def _ensure_agent(self) -> Any:
         """Lazily create the SkillBankAgent."""
@@ -371,10 +449,31 @@ class AsyncSkillBankPipeline:
         episode.set_outcome()
         return episode
 
+    def _accumulate_runtime_effects(self, result: EpisodeResult) -> None:
+        """Merge per-skill runtime effects from one episode into the step accumulator."""
+        for sid, data in (result.runtime_skill_effects or {}).items():
+            eff_add = data.get("eff_add") or set()
+            if not eff_add:
+                continue
+            prev = self._runtime_effects.get(sid)
+            if prev is not None:
+                prev["eff_add"] |= eff_add
+                prev["n_steps"] += data.get("n_steps", 0)
+                prev["reward"] += data.get("reward", 0.0)
+                prev["n_episodes"] = prev.get("n_episodes", 0) + 1
+            else:
+                self._runtime_effects[sid] = {
+                    "eff_add": set(eff_add),
+                    "n_steps": data.get("n_steps", 0),
+                    "reward": data.get("reward", 0.0),
+                    "n_episodes": 1,
+                }
+
     async def ingest_episode(self, result: EpisodeResult) -> None:
         """Convert and queue a completed episode for processing."""
         if result.steps == 0:
             return
+        self._accumulate_runtime_effects(result)
         episode = self._convert_episode_result(result)
         self._pending_episodes.append(episode)
 
@@ -464,6 +563,7 @@ class AsyncSkillBankPipeline:
         episodes = []
         for r in results:
             if r.steps > 0:
+                self._accumulate_runtime_effects(r)
                 episodes.append(self._convert_episode_result(r))
 
         if not episodes:
@@ -618,6 +718,26 @@ class AsyncSkillBankPipeline:
         s3_result = await loop.run_in_executor(executor, _run_contracts)
         stage_times["contract_learning"] = time.monotonic() - t_s3
 
+        # ── 2b. Runtime effects writeback ─────────────────────────────
+        # For skills whose Stage 3 segmentation didn't produce labeled
+        # segments (seed mega-skills often land as __NEW__), merge
+        # runtime-discovered effects from StateEffectObserver into the
+        # bank's contracts.  This closes the contract_learn → intrinsic
+        # bonus loop for the "empty effects + strong protocol" design.
+        t_rwb = time.monotonic()
+        n_runtime_writeback = 0
+        if self._runtime_effects:
+            n_runtime_writeback = _writeback_runtime_effects(
+                agent.bank, self._runtime_effects,
+            )
+            if n_runtime_writeback > 0:
+                logger.info(
+                    "Runtime effects writeback: updated %d skill contract(s) "
+                    "from %d skill(s) with runtime effects",
+                    n_runtime_writeback, len(self._runtime_effects),
+                )
+        stage_times["runtime_effects_writeback"] = time.monotonic() - t_rwb
+
         # ── 3. Bank maintenance (Stage 4) ────────────────────────────
         t_s4 = time.monotonic()
 
@@ -771,6 +891,7 @@ class AsyncSkillBankPipeline:
         self._pending_episodes.clear()
         self._grpo_data = {"segment": [], "contract": [], "curator": []}
         self._update_result = None
+        self._runtime_effects = {}
         if self._agent is not None:
             self._agent._all_segments = []
             self._agent._new_pool = []

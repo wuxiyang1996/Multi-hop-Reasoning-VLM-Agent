@@ -272,6 +272,13 @@ class EpisodeResult:
     side: str = ""          # e.g. "good", "evil", or power name
     role_index: int = -1    # player index (Avalon) or power ordinal
 
+    # Per-skill runtime-discovered effects from StateEffectObserver.
+    # {skill_id: {"eff_add": set_of_tags, "n_steps": int, "reward": float}}
+    # Populated at each skill switch + episode end; used by
+    # skillbank_pipeline to write-back contracts on seed mega-skills
+    # whose Stage 3 segmentation labels as __NEW__.
+    runtime_skill_effects: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
 
 # ---------------------------------------------------------------------------
 # Helpers (lightweight, no LLM calls)
@@ -2289,6 +2296,13 @@ async def run_episode_async(
 
     chain_tracker.finalize(grpo_records, current_score=total_reward)
 
+    runtime_effects = {}
+    if hasattr(skill_tracker, "snapshot_runtime_effects"):
+        try:
+            runtime_effects = skill_tracker.snapshot_runtime_effects()
+        except Exception:  # noqa: BLE001
+            pass
+
     wall_time = time.monotonic() - t0
     return EpisodeResult(
         game=game,
@@ -2304,4 +2318,5 @@ async def run_episode_async(
         role=_ep_role,
         side=_ep_side,
         role_index=_ep_role_idx,
+        runtime_skill_effects=runtime_effects,
     )
