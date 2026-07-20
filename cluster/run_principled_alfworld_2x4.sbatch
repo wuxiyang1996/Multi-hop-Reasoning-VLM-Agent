@@ -29,6 +29,33 @@ TRAIN_ENV="${TRAIN_ENV:-cosplay-candy-a100}"
 ALFWORLD_ENV="${ALFWORLD_ENV:-/fs/gamma-projects/vlm-robot/conda/envs/alfworld}"
 MODEL="${MODEL:-Qwen/Qwen3.5-9B}"
 PROPOSER_MODEL="${PROPOSER_MODEL:-Qwen/Qwen3.5-35B-A3B}"
+# Slurm's typed GRES is deliberately a runtime setting: sbatch directives do
+# not expand shell variables, so non-L40S submissions override --gres on the
+# sbatch command line and pass the same type here for every child step.
+GPU_GRES="${GPU_GRES:-gpu:l40s}"
+if [[ "${GPU_GRES}" == "gpu:rtxa6000" ]]; then
+    PROPOSER_GPU_UTIL="${PROPOSER_GPU_UTIL:-0.90}"
+    PROPOSER_MAX_MODEL_LEN="${PROPOSER_MAX_MODEL_LEN:-4096}"
+    PROPOSER_MAX_NUM_SEQS="${PROPOSER_MAX_NUM_SEQS:-4}"
+else
+    PROPOSER_GPU_UTIL="${PROPOSER_GPU_UTIL:-0.82}"
+    PROPOSER_MAX_MODEL_LEN="${PROPOSER_MAX_MODEL_LEN:-8192}"
+    PROPOSER_MAX_NUM_SEQS="${PROPOSER_MAX_NUM_SEQS:-8}"
+fi
+if [[ -v PROPOSER_QUANTIZATION ]]; then
+    : # An explicit empty value selects BF16/auto in serve_qwen35_35b_a3b.sh.
+elif [[ "${GPU_GRES}" == "gpu:l40s" ]]; then
+    PROPOSER_QUANTIZATION=fp8
+else
+    PROPOSER_QUANTIZATION=
+fi
+if [[ -v PROPOSER_PCIE_SAFE_COLLECTIVES ]]; then
+    :
+elif [[ "${GPU_GRES}" == "gpu:rtxa6000" ]]; then
+    PROPOSER_PCIE_SAFE_COLLECTIVES=1
+else
+    PROPOSER_PCIE_SAFE_COLLECTIVES=0
+fi
 ADMISSION_MANIFEST="${REPO_ROOT}/artifacts/admission/alfworld/manifest-c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1-fbf22197882400f3.json"
 BINDING_CONFIG="${REPO_ROOT}/configs/alfworld_one_shot_bindings.json"
 TARGET_CONFIG="${REPO_ROOT}/configs/alfworld_pick_and_place_config.yaml"
@@ -75,6 +102,8 @@ echo "run_dir=${RUN_DIR}"
 echo "rollout_node=${ROLLOUT_NODE} train_node=${TRAIN_NODE}"
 echo "source_episode_root=${SOURCE_EPISODE_ROOT}"
 echo "alfworld_data_root=${ALFWORLD_DATA_ROOT}"
+echo "gpu_gres=${GPU_GRES} proposer_quantization=${PROPOSER_QUANTIZATION:-bf16}"
+echo "proposer_pcie_safe_collectives=${PROPOSER_PCIE_SAFE_COLLECTIVES}"
 
 # Freeze audit: the batch refuses to start if any preregistered byte drifted.
 python -c 'import json,sys; from pathlib import Path; sys.path.insert(0, sys.argv[1]); from scripts.aggregate_principled_alfworld import _verify_frozen_inputs; _verify_frozen_inputs(json.loads(Path(sys.argv[2]).read_text())); print("frozen inputs verified")' "${REPO_ROOT}" "${SPEC}"
@@ -85,7 +114,9 @@ python "${REPO_ROOT}/scripts/replay_source_programs.py" \
     >"${RUN_DIR}/logs/source_replay.log" 2>&1
 
 for node in "${ROLLOUT_NODE}" "${TRAIN_NODE}"; do
-    srun --exact --mem=0 --gres=gpu:l40s:4 -N1 -n1 -c1 -w "${node}" nvidia-smi -q \
+    srun --exact --mem=0 --gres="${GPU_GRES}:4" -N1 -n1 -c1 -w "${node}" \
+        env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${TRAIN_ENV}" \
+        bash -lc 'nvidia-smi -q; source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; exec python "$REPO_ROOT/scripts/verify_cuda_devices.py" 4' \
         >"${RUN_DIR}/nvidia_smi_start_${node}.txt" &
 done
 wait
@@ -151,7 +182,7 @@ start_rollout_pool() {
     # The QoS caps this two-node job at 32 total CPUs. Reserve four CPUs for
     # the four servers; up to 12 of the 16 one-CPU clients run concurrently
     # and Slurm queues the remaining four without CPU oversubscription.
-    srun --exact --mem=0 --gres=gpu:l40s:4 -N1 -n1 -c4 -w "${ROLLOUT_NODE}" \
+    srun --exact --mem=0 --gres="${GPU_GRES}:4" -N1 -n1 -c4 -w "${ROLLOUT_NODE}" \
         env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${TRAIN_ENV}" \
             HF_HOME="${ROLLOUT_HF_HOME}" HF_HUB_OFFLINE=1 \
             VLLM_USE_FLASHINFER_SAMPLER=0 VLLM_MAX_MODEL_LEN=8192 \
@@ -211,7 +242,7 @@ start_rollout_pool "${EMPTY_ADAPTER_DIR}" base
 
 # These two long-lived steps each reserve two disjoint GPUs.  Both launchers
 # map logical slots through Slurm's assigned CUDA_VISIBLE_DEVICES mask.
-srun --exact --mem=0 --gres=gpu:l40s:2 -N1 -n1 -c6 -w "${TRAIN_NODE}" \
+srun --exact --mem=0 --gres="${GPU_GRES}:2" -N1 -n1 -c6 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" HF_HOME="${TRAIN_HF_HOME}" HF_HUB_OFFLINE=1 \
         CONDA_ENV="${TRAIN_ENV}" \
     bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; cd "$REPO_ROOT"; exec python -m trainer.SFT.train --model_name Qwen/Qwen3.5-9B --output_dir "$1" --decision_data_dir "$2" --skillbank_data_dir "$2" --require_source_only_manifest "$3" --games candy_crush sokoban super_mario tetris twenty_forty_eight --adapters skill_selection action_taking --parallel --gpus 0 1 --gpus_per_adapter 1 --max_seq_length 1024 --scale_effective_batch 0.0625 --optim adamw_torch_fused --dataloader_workers 2 --strict_lora_coverage' runner \
@@ -220,13 +251,18 @@ srun --exact --mem=0 --gres=gpu:l40s:2 -N1 -n1 -c6 -w "${TRAIN_NODE}" \
 SFT_PID=$!
 BG_PIDS+=("${SFT_PID}")
 
-srun --exact --mem=0 --gres=gpu:l40s:2 -N1 -n1 -c6 -w "${TRAIN_NODE}" \
+srun --exact --mem=0 --gres="${GPU_GRES}:2" -N1 -n1 -c6 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${TRAIN_ENV}" \
         HF_HOME="${TRAIN_HF_HOME}" HF_HUB_OFFLINE=1 \
         VLLM_USE_FLASHINFER_SAMPLER=0 VLLM_USE_DEEP_GEMM=0 \
         MODEL="${PROPOSER_MODEL}" TENSOR_PARALLEL=2 EXPERT_PARALLEL=1 \
-        GPU_UTIL=0.82 MAX_MODEL_LEN=8192 MAX_NUM_SEQS=8 PORT=8004 \
-        HOST=0.0.0.0 QUANTIZATION=fp8 SPECULATIVE=none \
+        GPU_UTIL="${PROPOSER_GPU_UTIL}" MAX_MODEL_LEN="${PROPOSER_MAX_MODEL_LEN}" \
+        MAX_NUM_SEQS="${PROPOSER_MAX_NUM_SEQS}" PORT=8004 HOST=0.0.0.0 \
+        QUANTIZATION="${PROPOSER_QUANTIZATION}" SPECULATIVE=none \
+        NCCL_P2P_DISABLE="${PROPOSER_PCIE_SAFE_COLLECTIVES}" \
+        NCCL_IB_DISABLE="${PROPOSER_PCIE_SAFE_COLLECTIVES}" \
+        VLLM_DISABLE_PYNCCL="${PROPOSER_PCIE_SAFE_COLLECTIVES}" \
+        DISABLE_CUSTOM_ALL_REDUCE="${PROPOSER_PCIE_SAFE_COLLECTIVES}" \
     bash -lc 'cd "$REPO_ROOT"; export GPUS="${CUDA_VISIBLE_DEVICES:?Slurm did not assign proposer GPUs}"; exec bash inference/serve_qwen35_35b_a3b.sh' \
     >"${RUN_DIR}/logs/proposer_35b_server.log" 2>&1 &
 PROPOSER_PID=$!
@@ -265,7 +301,7 @@ python "${REPO_ROOT}/scripts/aggregate_principled_alfworld.py" \
 find "${ADAPTER_DIR}/decision" -type f \( -name 'adapter_config.json' -o -name 'adapter_model.safetensors' \) \
     -print0 | sort -z | xargs -0 sha256sum >"${RUN_DIR}/adapter_sha256.txt"
 for node in "${ROLLOUT_NODE}" "${TRAIN_NODE}"; do
-    srun --exact --mem=0 --gres=gpu:l40s:4 -N1 -n1 -c1 -w "${node}" nvidia-smi -q \
+    srun --exact --mem=0 --gres="${GPU_GRES}:4" -N1 -n1 -c1 -w "${node}" nvidia-smi -q \
         >"${RUN_DIR}/nvidia_smi_end_${node}.txt" &
 done
 wait

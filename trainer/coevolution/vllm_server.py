@@ -338,6 +338,11 @@ class VLLMServerManager:
         cmd = [
             "python", "-m", "vllm.entrypoints.openai.api_server",
             "--model", self.model_name,
+            # HF_HUB_OFFLINE makes vLLM 0.24 replace a Hub id with its local
+            # snapshot path.  Pin the public API alias so clients can keep
+            # requesting the preregistered model id instead of a node-local
+            # cache path.
+            "--served-model-name", self.model_name,
             "--tensor-parallel-size", "1",
             "--gpu-memory-utilization", str(self.gpu_util),
             "--enable-lora", "--max-loras", "5", "--max-lora-rank", "64",
