@@ -245,12 +245,14 @@ case "${JUDGE_MODE}" in
                  "JUDGE_MODE=off (disable 35B routing)."
             exit 1
         fi
-        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        # Leave the actor unmapped so auxiliary actor requests round-robin
+        # across every endpoint in VLLM_BASE_URLS.
+        export VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}"
         export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
         ;;
     external)
         echo "[2048] JUDGE_MODE=external → assuming 35B server at ${JUDGE_URL}"
-        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        export VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}"
         export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
         ;;
     off)
