@@ -370,7 +370,8 @@ start_35b_judge() {
 
 case "${JUDGE_MODE}" in
     auto|external)
-        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        # Only the singleton judge is pinned; actor requests use the pool.
+        export VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}"
         export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
         ;;
     off)

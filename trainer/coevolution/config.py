@@ -1378,7 +1378,13 @@ class CoEvolutionConfig:
             urls = [u.strip() for u in env_urls.split(",") if u.strip()]
             if urls:
                 return urls
-        return [self.vllm_base_url]
+        # Also accept a comma-separated --vllm-url value for multi-node
+        # launchers that prefer CLI configuration over VLLM_BASE_URLS.
+        return [
+            url.strip()
+            for url in self.vllm_base_url.split(",")
+            if url.strip()
+        ]
 
     @property
     def decision_adapter_dir(self) -> str:

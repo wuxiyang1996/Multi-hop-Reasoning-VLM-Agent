@@ -60,12 +60,18 @@ JUDGE_PORT="${JUDGE_PORT:-8001}"
 ACTOR_URL="http://localhost:${ACTOR_PORT}/v1"
 JUDGE_URL="http://localhost:${JUDGE_PORT}/v1"
 
+# Preserve a custom ACTOR_PORT for the single-server case while allowing an
+# existing multi-server pool to pass through unchanged.
+export VLLM_BASE_URLS="${VLLM_BASE_URLS:-${ACTOR_URL}}"
+
 # Re-assert the default explicitly so the choice is captured in any
 # wandb run-config / env dump that scrapes the live env.  Without this
 # line `BACKBONE_JUDGE_MODEL` would still resolve to 35B-A3B (it's the
 # common/models.py default) but the env var wouldn't be set.
 export VLM_AGENT_BACKBONE_JUDGE_MODEL="Qwen/Qwen3.5-35B-A3B"
-export VLLM_BASE_URL_MAP="Qwen/Qwen3.5-9B=${ACTOR_URL},Qwen/Qwen3.5-35B-A3B=${JUDGE_URL}"
+# Keep the actor unmapped so actor and skill-bank calls round-robin across
+# every endpoint in VLLM_BASE_URLS.
+export VLLM_BASE_URL_MAP="Qwen/Qwen3.5-35B-A3B=${JUDGE_URL}"
 
 # Optional reachability sanity check — non-fatal so we don't break sourcing.
 if command -v curl >/dev/null 2>&1; then

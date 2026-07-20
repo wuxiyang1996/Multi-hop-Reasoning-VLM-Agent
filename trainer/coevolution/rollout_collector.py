@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -155,9 +156,20 @@ def build_lpt_schedule(
     PER_STEP_S = 1.0
     buckets: Dict[str, List[EpisodeSpec]] = {}
     max_eps = 0
+    smoke_cap = 0
+    smoke_cap_raw = os.environ.get("COEVO_MAX_EPISODE_STEPS", "").strip()
+    if smoke_cap_raw:
+        try:
+            smoke_cap = max(0, int(smoke_cap_raw))
+        except ValueError:
+            logger.warning(
+                "Ignoring invalid COEVO_MAX_EPISODE_STEPS=%r", smoke_cap_raw,
+            )
 
     for g in sorted_games:
         ms = GAME_MAX_STEPS.get(g, 200)
+        if smoke_cap > 0:
+            ms = min(ms, smoke_cap)
         est = ms * PER_STEP_S
         n_eps = overrides.get(g, episodes_per_game)
 
