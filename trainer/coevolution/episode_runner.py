@@ -1003,18 +1003,26 @@ async def run_episode_async(
             return det
         frame_url: Optional[str] = None
         try:
-            renderer = getattr(env, "render", None)
-            if callable(renderer):
-                rendered = renderer()
-                if isinstance(rendered, str) and rendered.startswith(
-                    "data:image/"
-                ):
-                    frame_url = rendered
-                elif rendered is not None:
-                    from trainer.coevolution._game_schema import (
-                        _encode_image_to_data_url,
-                    )
-                    frame_url = _encode_image_to_data_url(rendered)
+            # GamingAgent's vision mode exposes the live frame through the
+            # observation/info mapping while its wrapper's ``render()`` may
+            # legitimately return None.  Prefer those pixels and retain
+            # render() only as a fallback for environments that implement it.
+            from env_wrappers.visual_utils import get_obs_image
+
+            rendered = get_obs_image(info_v)
+            if rendered is None:
+                renderer = getattr(env, "render", None)
+                if callable(renderer):
+                    rendered = renderer()
+            if isinstance(rendered, str) and rendered.startswith(
+                "data:image/"
+            ):
+                frame_url = rendered
+            elif rendered is not None:
+                from trainer.coevolution._game_schema import (
+                    _encode_image_to_data_url,
+                )
+                frame_url = _encode_image_to_data_url(rendered)
         except Exception as _render_exc:  # noqa: BLE001
             logger.debug(
                 "vision-perception render failed at step %d: %s",
@@ -1138,12 +1146,32 @@ async def run_episode_async(
             env = SubprocessEnv(game=game, max_steps=max_steps, env_kind="gymv")
 
     else:
+        # The vision-state path needs an actual RGB frame.  Merely enabling
+        # ``vision_perception_config`` is insufficient because
+        # ``make_gaming_env`` otherwise defaults to text observations and no
+        # rgb_array renderer, causing every visual call to silently fall back
+        # before reaching the multimodal judge.
+        _gaming_env_kwargs: Dict[str, Any] = {}
+        if _vision_on:
+            _gaming_env_kwargs = {
+                "observation_mode": "vision",
+                "render_mode": "rgb_array",
+            }
         if exe:
             base_env = await loop.run_in_executor(
-                exe, make_gaming_env, game, max_steps,
+                exe,
+                lambda: make_gaming_env(
+                    game=game,
+                    max_steps=max_steps,
+                    **_gaming_env_kwargs,
+                ),
             )
         else:
-            base_env = make_gaming_env(game=game, max_steps=max_steps)
+            base_env = make_gaming_env(
+                game=game,
+                max_steps=max_steps,
+                **_gaming_env_kwargs,
+            )
 
         if game == "tetris":
             from env_wrappers.tetris_macro_wrapper import TetrisMacroActionWrapper

@@ -130,6 +130,7 @@ _stats: Dict[str, int] = {
     "parse_failures": 0,
     "build_failures": 0,
     "request_errors": 0,
+    "missing_frames": 0,
 }
 
 
@@ -186,6 +187,12 @@ async def vision_state_to_markup_async(
         35B judge or the supplied ``fallback_markup``.
     """
     if not frame_data_url:
+        _stats["fallbacks"] += 1
+        _stats["missing_frames"] += 1
+        _maybe_warn_fallback(
+            "missing_frames", game, step, timeout_s,
+            "visual perception enabled but no live frame was available",
+        )
         return fallback_markup
 
     cache_key = _hash_url(frame_data_url)
@@ -219,6 +226,7 @@ async def vision_state_to_markup_async(
                 executor,
                 _ask_judge_blocking,
                 system_msg, user_content, model, temperature, max_tokens,
+                max(1.0, timeout_s - 1.0),
             )
 
     try:
@@ -625,6 +633,7 @@ def _ask_judge_blocking(
     model: str,
     temperature: float,
     max_tokens: int,
+    request_timeout_s: float,
 ) -> str:
     """Synchronous OpenAI-compat call to the 35B judge.
 
@@ -649,10 +658,19 @@ def _ask_judge_blocking(
         or getattr(__import__("API_func"), "open_router_api_key", "")
     )
     _or_url = "https://openrouter.ai/api/v1"
-    # Append OpenRouter as last-resort fallback so the 35B judge still
-    # works when no local 35B vLLM instance is running.  The
-    # ``_is_external`` branch below handles auth + max_tokens padding.
-    if _or_key and _or_url not in candidate_urls:
+    # An explicitly routed local judge must stay local.  Falling through
+    # after a short local timeout silently spends API credits and makes a
+    # nominal 2-GPU 35B experiment depend on an external model.  External
+    # fallback is retained only when no local candidate exists, or when a
+    # caller deliberately opts back in.
+    _allow_external_fallback = os.environ.get(
+        "VISION_ALLOW_EXTERNAL_FALLBACK", "0",
+    ).lower() in {"1", "true", "yes"}
+    if (
+        _or_key
+        and _or_url not in candidate_urls
+        and (not candidate_urls or _allow_external_fallback)
+    ):
         candidate_urls.append(_or_url)
 
     last_exc: Optional[Exception] = None
@@ -674,7 +692,7 @@ def _ask_judge_blocking(
                 base_url=url,
                 api_key=_api_key,
                 max_retries=0,
-                timeout=5.0 if not _is_external else 30.0,
+                timeout=request_timeout_s if not _is_external else 30.0,
             )
             kwargs: Dict[str, Any] = dict(
                 model=_model_id,

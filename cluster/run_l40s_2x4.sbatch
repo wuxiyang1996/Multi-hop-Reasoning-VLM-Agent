@@ -33,6 +33,16 @@ SHARED_HF_HOME="${SHARED_HF_HOME:-${REPO_ROOT}/.hf_cache}"
 STAGE_LOCAL_CACHE="${STAGE_LOCAL_CACHE:-1}"
 NO_WANDB="${NO_WANDB:-1}"
 DEBUG_IO="${DEBUG_IO:-0}"
+# Use ${var-default}, not ${var:-default}, so callers can request BF16 by
+# exporting an intentionally empty quantization value (needed on Ampere).
+JUDGE_QUANTIZATION="${JUDGE_QUANTIZATION-fp8}"
+JUDGE_MULTIMODAL="${JUDGE_MULTIMODAL:-1}"
+JUDGE_DISABLE_CUSTOM_ALL_REDUCE="${JUDGE_DISABLE_CUSTOM_ALL_REDUCE:-0}"
+JUDGE_NCCL_P2P_DISABLE="${JUDGE_NCCL_P2P_DISABLE:-0}"
+JUDGE_NCCL_IB_DISABLE="${JUDGE_NCCL_IB_DISABLE:-0}"
+TRAIN_NCCL_P2P_DISABLE="${TRAIN_NCCL_P2P_DISABLE:-0}"
+TRAIN_NCCL_IB_DISABLE="${TRAIN_NCCL_IB_DISABLE:-0}"
+GRPO_DISTRIBUTED_BACKEND="${GRPO_DISTRIBUTED_BACKEND:-fsdp}"
 
 if [[ ! -f "${REPO_ROOT}/scripts/run_coevolution.py" ]]; then
     echo "ERROR: REPO_ROOT is not this repository: ${REPO_ROOT}" >&2
@@ -90,6 +100,16 @@ echo "run dir:      ${RUN_DIR}"
 echo "mode:         ${RUN_MODE}/${START_MODE}"
 echo "============================================================"
 
+# nvidia-smi can list a device that the CUDA runtime cannot initialize
+# (observed on gammagpu13 GPU 3).  Fail before staging models in that case.
+for node in "${ROLLOUT_NODE}" "${TRAIN_NODE}"; do
+    srun --overlap -N1 -n1 -c1 -w "${node}" \
+        env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${CONDA_ENV}" \
+        bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; exec python "$REPO_ROOT/scripts/verify_cuda_devices.py" 4' \
+        >"${RUN_DIR}/cuda_preflight_${node}.json" &
+done
+wait
+
 MODEL_CACHE_NAME="models--${MODEL//\//--}"
 USE_LOCAL_CACHE=0
 if [[ "${STAGE_LOCAL_CACHE}" == "1" && -d "${SHARED_HF_HOME}/hub/${MODEL_CACHE_NAME}" ]]; then
@@ -145,13 +165,17 @@ srun --overlap -N1 -n1 -c16 -w "${ROLLOUT_NODE}" \
     >"${RUN_DIR}/logs/rollout_launcher.log" 2>&1 &
 ROLLOUT_PID=$!
 
-echo "Starting 35B-A3B TP=2 FP8 judge on ${TRAIN_NODE} GPUs 2,3..."
+echo "Starting 35B-A3B TP=2 multimodal judge on ${TRAIN_NODE} GPUs 2,3..."
 srun --overlap -N1 -n1 -c8 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${CONDA_ENV}" \
         HF_HOME="${SHARED_HF_HOME}" VLLM_USE_FLASHINFER_SAMPLER=0 \
+        NCCL_P2P_DISABLE="${JUDGE_NCCL_P2P_DISABLE}" \
+        NCCL_IB_DISABLE="${JUDGE_NCCL_IB_DISABLE}" \
         MODEL="${JUDGE_MODEL}" GPUS=2,3 TENSOR_PARALLEL=2 EXPERT_PARALLEL=1 \
         GPU_UTIL=0.90 MAX_MODEL_LEN=8192 MAX_NUM_SEQS=4 PORT=8004 \
-        HOST=0.0.0.0 QUANTIZATION=fp8 SPECULATIVE=none \
+        HOST=0.0.0.0 QUANTIZATION="${JUDGE_QUANTIZATION}" \
+        MULTIMODAL="${JUDGE_MULTIMODAL}" SPECULATIVE=none \
+        DISABLE_CUSTOM_ALL_REDUCE="${JUDGE_DISABLE_CUSTOM_ALL_REDUCE}" \
     bash -lc 'cd "$REPO_ROOT"; exec bash inference/serve_qwen35_35b_a3b.sh' \
     >"${RUN_DIR}/logs/judge.log" 2>&1 &
 JUDGE_PID=$!
@@ -220,6 +244,9 @@ srun --overlap -N1 -n1 -c12 -w "${TRAIN_NODE}" \
         VLLM_BASE_URLS="${ROLLOUT_URLS}" \
         VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}" \
         VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}" \
+        NCCL_P2P_DISABLE="${TRAIN_NCCL_P2P_DISABLE}" \
+        NCCL_IB_DISABLE="${TRAIN_NCCL_IB_DISABLE}" \
+        GRPO_DISTRIBUTED_BACKEND="${GRPO_DISTRIBUTED_BACKEND}" \
         COEVO_MAX_EPISODE_STEPS="${MAX_EPISODE_STEPS}" \
     bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; cd "$REPO_ROOT"; exec python scripts/run_coevolution.py "$@"' runner "${TRAIN_ARGS[@]}" \
     >"${RUN_DIR}/trainer.log" 2>&1 &

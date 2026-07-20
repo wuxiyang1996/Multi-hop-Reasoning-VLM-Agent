@@ -483,10 +483,18 @@ def _save_lora_under_fsdp(model, adapter_name, save_dir, is_main):
     import re
 
     import torch
+    from contextlib import nullcontext
+    from torch.nn.parallel import DistributedDataParallel as DDP
     from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 
     t0 = time.time()
-    with FSDP.summon_full_params(model, writeback=False, rank0_only=True):
+    is_ddp = isinstance(model, DDP)
+    gather_ctx = (
+        nullcontext()
+        if is_ddp
+        else FSDP.summon_full_params(model, writeback=False, rank0_only=True)
+    )
+    with gather_ctx:
         if is_main:
             save_path = Path(save_dir)
             save_path.mkdir(parents=True, exist_ok=True)
@@ -498,6 +506,8 @@ def _save_lora_under_fsdp(model, adapter_name, save_dir, is_main):
             for name, param in model.named_parameters():
                 if "lora_" not in name:
                     continue
+                if is_ddp and name.startswith("module."):
+                    name = name[len("module."):]
                 clean_key = _adapter_key_re.sub(r"\1.\2", name)
                 lora_state[clean_key] = param.detach().cpu().clone()
 
@@ -532,8 +542,10 @@ def _load_or_init_lora_under_fsdp(
     """
     import math
     import re
+    from contextlib import nullcontext
 
     import torch
+    from torch.nn.parallel import DistributedDataParallel as DDP
     from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 
     t0 = time.time()
@@ -554,10 +566,18 @@ def _load_or_init_lora_under_fsdp(
         r"(lora_[AB])\." + re.escape(adapter_name) + r"\.(weight)"
     )
 
-    with FSDP.summon_full_params(model, writeback=True, rank0_only=False):
+    is_ddp = isinstance(model, DDP)
+    gather_ctx = (
+        nullcontext()
+        if is_ddp
+        else FSDP.summon_full_params(model, writeback=True, rank0_only=False)
+    )
+    with gather_ctx:
         for name, param in model.named_parameters():
             if "lora_" not in name:
                 continue
+            if is_ddp and name.startswith("module."):
+                name = name[len("module."):]
             clean = _adapter_key_re.sub(r"\1.\2", name)
             if clean in saved_state:
                 param.data.copy_(
@@ -1330,14 +1350,32 @@ def _fsdp_train_worker_multi(rank: int, args: Dict[str, Any]) -> None:
             buffer_dtype=torch.bfloat16,
         )
 
-        model = FSDP(
-            model,
-            auto_wrap_policy=auto_policy,
-            sharding_strategy=ShardingStrategy.SHARD_GRAD_OP,
-            mixed_precision=bf16_policy,
-            device_id=rank,
-            use_orig_params=True,
-        )
+        distributed_backend = os.environ.get(
+            "GRPO_DISTRIBUTED_BACKEND", "fsdp",
+        ).strip().lower()
+        if distributed_backend == "ddp":
+            from torch.nn.parallel import DistributedDataParallel as DDP
+            model = DDP(
+                model,
+                device_ids=[rank],
+                output_device=rank,
+                broadcast_buffers=False,
+                find_unused_parameters=False,
+            )
+        elif distributed_backend == "fsdp":
+            model = FSDP(
+                model,
+                auto_wrap_policy=auto_policy,
+                sharding_strategy=ShardingStrategy.SHARD_GRAD_OP,
+                mixed_precision=bf16_policy,
+                device_id=rank,
+                use_orig_params=True,
+            )
+        else:
+            raise ValueError(
+                "GRPO_DISTRIBUTED_BACKEND must be 'fsdp' or 'ddp', got "
+                f"{distributed_backend!r}"
+            )
 
         torch.set_float32_matmul_precision("high")
         torch._dynamo.config.suppress_errors = True
@@ -1348,9 +1386,10 @@ def _fsdp_train_worker_multi(rank: int, args: Dict[str, Any]) -> None:
                 p.numel() for p in model.parameters() if p.requires_grad
             )
             logger.info(
-                "Persistent FSDP model ready (%d GPUs, %s trainable, "
+                "Persistent %s model ready (%d GPUs, %s trainable, "
                 "%.1fs init)",
-                world_size, f"{n_trainable:,}", init_time,
+                distributed_backend.upper(), world_size,
+                f"{n_trainable:,}", init_time,
             )
 
         # ── Phase 2: train each adapter ──────────────────────────────
