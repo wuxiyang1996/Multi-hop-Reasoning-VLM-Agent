@@ -125,8 +125,11 @@ def _choose_action(
         reply = ""
         try:
             reply, usage = client.complete(model=skill_adapter, prompt=prompt)
+        except Exception as exc:
+            raise RuntimeError(f"SKILL_ENDPOINT_FAILURE:{type(exc).__name__}:{exc}") from exc
+        try:
             selected = parse_exact_numbered_response(reply, kind="skill", n=len(bindings))
-        except Exception as exc:  # fail closed, including model hallucination
+        except ValueError as exc:  # received model hallucination: safe abstention
             trace.update(
                 skill_prompt_sha256=_prompt_hash(prompt),
                 skill_reply=reply[:500],
@@ -164,8 +167,11 @@ def _choose_action(
     reply = ""
     try:
         reply, usage = client.complete(model=action_model, prompt=prompt)
+    except Exception as exc:
+        raise RuntimeError(f"ACTION_ENDPOINT_FAILURE:{type(exc).__name__}:{exc}") from exc
+    try:
         selected = parse_exact_numbered_response(reply, kind="action", n=len(candidate_actions))
-    except Exception as exc:  # no random/default action fallback
+    except ValueError as exc:  # no random/default action fallback
         trace.update(
             action_prompt_sha256=_prompt_hash(prompt),
             action_reply=reply[:500],

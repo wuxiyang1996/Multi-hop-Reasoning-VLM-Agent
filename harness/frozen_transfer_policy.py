@@ -22,14 +22,8 @@ from harness.skill_admission import (
 )
 
 
-_ACTION_RESPONSE = re.compile(
-    r"\A\s*(?:REASONING:[^\n]*\n)?ACTION:\s*([1-9][0-9]*)\s*\Z",
-    re.IGNORECASE,
-)
-_SKILL_RESPONSE = re.compile(
-    r"\A\s*(?:REASONING:[^\n]*\n)?SKILL:\s*([1-9][0-9]*)\s*\Z",
-    re.IGNORECASE,
-)
+_ACTION_RESPONSE = re.compile(r"\A\s*ACTION:\s*([1-9][0-9]*)\s*\Z", re.IGNORECASE)
+_SKILL_RESPONSE = re.compile(r"\A\s*SKILL:\s*([1-9][0-9]*)\s*\Z", re.IGNORECASE)
 
 
 def parse_exact_numbered_response(text: str, *, kind: str, n: int) -> int:

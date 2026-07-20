@@ -6,6 +6,7 @@ from harness.frozen_transfer_policy import (
     action_prompt,
     parse_exact_numbered_response,
 )
+from scripts.eval_principled_alfworld import _choose_action
 
 
 @pytest.mark.parametrize("value", ["ACTION: 2", " action: 2\n"])
@@ -15,7 +16,14 @@ def test_exact_action_response(value: str) -> None:
 
 @pytest.mark.parametrize(
     "value",
-    ["I choose ACTION: 2", "ACTION: go north", "ACTION: 0", "ACTION: 4", "2"],
+    [
+        "I choose ACTION: 2",
+        "REASONING: maybe\nACTION: 2",
+        "ACTION: go north",
+        "ACTION: 0",
+        "ACTION: 4",
+        "2",
+    ],
 )
 def test_hallucinated_or_extracted_action_fails_closed(value: str) -> None:
     with pytest.raises(ValueError):
@@ -32,3 +40,24 @@ def test_prompt_preserves_exact_action_strings() -> None:
     assert "1. look" in prompt
     assert "2. take mug 1 from table 1" in prompt
     assert "Return exactly `ACTION: N`" in prompt
+
+
+class _BrokenClient:
+    def complete(self, **_: object) -> tuple[str, dict[str, object]]:
+        raise ConnectionError("endpoint unavailable")
+
+
+def test_endpoint_failure_is_not_counted_as_model_abstention() -> None:
+    with pytest.raises(RuntimeError, match="ACTION_ENDPOINT_FAILURE:ConnectionError"):
+        _choose_action(
+            condition="base",
+            client=_BrokenClient(),  # type: ignore[arg-type]
+            base_model="base",
+            action_adapter="action",
+            skill_adapter="skill",
+            guard=None,  # type: ignore[arg-type]
+            goal="put the mug away",
+            observation="at the table",
+            admissible=["look"],
+            recent_actions=[],
+        )
