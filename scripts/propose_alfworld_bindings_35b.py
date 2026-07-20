@@ -86,6 +86,24 @@ def _validate(raw: str, program: Any) -> tuple[Dict[str, Any] | None, str | None
     return payload, None
 
 
+def _request_proposal(
+    client: StrictOpenAIClient, *, model: str, prompt: str, program: Any,
+) -> tuple[str, Mapping[str, Any], Dict[str, Any] | None, str | None, bool]:
+    """Keep endpoint failures separate from model schema failures."""
+    try:
+        reply, usage = client.complete(model=model, prompt=prompt, max_tokens=256)
+    except Exception as exc:
+        return (
+            "",
+            {},
+            None,
+            f"ENDPOINT_FAILURE:{type(exc).__name__}:{exc}",
+            True,
+        )
+    proposal, error = _validate(reply, program)
+    return reply, usage, proposal, error, False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--endpoint", required=True)
@@ -119,11 +137,9 @@ def main() -> int:
             error = None
             proposal = None
             usage: Mapping[str, Any] = {}
-            try:
-                reply, usage = client.complete(model=args.model, prompt=prompt, max_tokens=256)
-                proposal, error = _validate(reply, program)
-            except Exception as exc:
-                error = f"REQUEST_OR_PARSE:{type(exc).__name__}:{exc}"
+            reply, usage, proposal, error, endpoint_failure = _request_proposal(
+                client, model=args.model, prompt=prompt, program=program,
+            )
             identity = (program.source_games[0], program.name)
             frozen_operator = frozen_identity.get(identity)
             proposed_operator = proposal.get("operator") if proposal else None
@@ -135,6 +151,7 @@ def main() -> int:
                 "proposal": proposal,
                 "valid_closed_schema_proposal": proposal is not None,
                 "proposal_error": error,
+                "endpoint_failure": endpoint_failure,
                 "raw_reply": reply[:2000],
                 "usage": dict(usage),
                 "frozen_operator_for_audit_only": frozen_operator,
@@ -162,7 +179,11 @@ def main() -> int:
             bool(row.get("proposal") and row["proposal"].get("operator") == "ABSTAIN")
             for row in rows
         ),
-        "n_invalid_or_hallucinated": sum(not row["valid_closed_schema_proposal"] for row in rows),
+        "n_invalid_or_hallucinated": sum(
+            not row["valid_closed_schema_proposal"] and not row["endpoint_failure"]
+            for row in rows
+        ),
+        "n_endpoint_failures": sum(row["endpoint_failure"] for row in rows),
         "n_frozen_candidates": len(frozen_identity),
         "n_matches_frozen": sum(row["matches_frozen_proposal"] for row in rows),
         "admission_artifacts_modified": False,
@@ -174,9 +195,9 @@ def main() -> int:
     os.replace(temporary, args.output)
     print(json.dumps({key: summary[key] for key in (
         "n_programs", "n_valid_closed_schema", "n_abstain",
-        "n_invalid_or_hallucinated", "n_matches_frozen",
+        "n_invalid_or_hallucinated", "n_endpoint_failures", "n_matches_frozen",
     )}, indent=2))
-    return 0
+    return 1 if summary["n_endpoint_failures"] else 0
 
 
 if __name__ == "__main__":

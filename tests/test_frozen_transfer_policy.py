@@ -9,6 +9,7 @@ from harness.frozen_transfer_policy import (
 from scripts.eval_principled_alfworld import _choose_action
 from scripts.eval_principled_alfworld import _official_won
 from scripts.aggregate_principled_alfworld import _require_error_free
+from scripts.propose_alfworld_bindings_35b import _request_proposal
 
 
 @pytest.mark.parametrize("value", ["ACTION: 2", " action: 2\n"])
@@ -75,3 +76,15 @@ def test_aggregation_rejects_any_endpoint_error() -> None:
     rows = [{"error": None}, {"error": "POLICY_ERROR:ACTION_ENDPOINT_FAILURE"}]
     with pytest.raises(RuntimeError, match="evaluation errors in base/eval"):
         _require_error_free(rows, condition="base", split="eval")
+
+
+def test_35b_endpoint_failure_is_not_counted_as_hallucination() -> None:
+    reply, usage, proposal, error, endpoint_failure = _request_proposal(
+        _BrokenClient(),  # type: ignore[arg-type]
+        model="35b",
+        prompt="proposal",
+        program=object(),
+    )
+    assert (reply, usage, proposal) == ("", {}, None)
+    assert error == "ENDPOINT_FAILURE:ConnectionError:endpoint unavailable"
+    assert endpoint_failure is True
