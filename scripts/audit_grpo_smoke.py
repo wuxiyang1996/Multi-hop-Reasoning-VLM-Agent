@@ -60,11 +60,25 @@ def main() -> None:
     if any(float(row.get("phase_c_grpo_time_s", 0)) <= 0 for row in step_rows):
         raise SystemExit("one or more steps did not record positive GRPO wall time")
 
+    launch_pattern = re.compile(r"Launching FSDP GRPO multi \(([^)]*)\)")
+    launched_groups = [
+        [name.strip() for name in group.split(",") if name.strip()]
+        for group in launch_pattern.findall(trainer_log)
+    ]
+    if len(launched_groups) != args.expected_steps:
+        raise SystemExit(
+            f"expected {args.expected_steps} FSDP launches, got {launched_groups}"
+        )
+    if any("action_taking" not in group for group in launched_groups):
+        raise SystemExit(
+            f"action_taking was not trained at every step: {launched_groups}"
+        )
+
     evidence: dict[str, dict] = {}
     for step in expected:
         step_dir = run_dir / "grpo_data" / f"step_{step:04d}"
         step_evidence: dict[str, dict] = {}
-        for adapter in DECISION_ADAPTERS:
+        for adapter in launched_groups[step]:
             path = step_dir / f"{adapter}.jsonl"
             rows = _read_jsonl(path)
             rewards = [float(row["reward"]) for row in rows]
@@ -89,15 +103,26 @@ def main() -> None:
             raise SystemExit(f"missing checkpoint metadata: {checkpoint}")
         evidence[str(step)] = step_evidence
 
+    completed_groups = [
+        int(value)
+        for value in re.findall(
+            r"FSDP GRPO multi complete: (\d+) adapters", trainer_log
+        )
+    ]
+    expected_group_sizes = [len(group) for group in launched_groups]
+    if completed_groups != expected_group_sizes:
+        raise SystemExit(
+            f"completed FSDP groups {completed_groups}; "
+            f"expected {expected_group_sizes}"
+        )
+
     completed_updates: dict[str, int] = {}
     changed_adapters: dict[str, dict[str, str | bool]] = {}
-    for adapter in DECISION_ADAPTERS:
-        pattern = re.compile(rf"FSDP GRPO \[{re.escape(adapter)}\] done:")
-        completed_updates[adapter] = len(pattern.findall(trainer_log))
-        if completed_updates[adapter] < args.expected_steps:
-            raise SystemExit(
-                f"{adapter}: only {completed_updates[adapter]} completed FSDP updates"
-            )
+    trained_adapters = sorted({name for group in launched_groups for name in group})
+    for adapter in trained_adapters:
+        completed_updates[adapter] = sum(
+            adapter in group for group in launched_groups
+        )
         source = args.warm_adapter_dir / "decision" / adapter / "adapter_model.safetensors"
         output = run_dir / "lora_adapters" / "decision" / adapter / "adapter_model.safetensors"
         source_hash = _sha256(source)
@@ -117,6 +142,10 @@ def main() -> None:
         "expected_steps": args.expected_steps,
         "finalized_steps": actual,
         "completed_fsdp_updates": completed_updates,
+        "completed_fsdp_groups": completed_groups,
+        "untrained_decision_adapters": sorted(
+            set(DECISION_ADAPTERS) - set(trained_adapters)
+        ),
         "step_evidence": evidence,
         "adapter_hashes": changed_adapters,
         "phase_c_wall_time_s": [
