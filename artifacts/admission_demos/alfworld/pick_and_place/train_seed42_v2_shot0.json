@@ -1,0 +1,110 @@
+{
+  "actions": [
+    {
+      "action": "look",
+      "admissible_actions_sha256": "a69c0e7cdf83d691d2b333411d4e4a5e1022546be35ea1700a2085a4e82b6761",
+      "argument_types": {},
+      "arguments": {},
+      "next_state_sha256": "733fc5b44503c912b2a9f02f8632249ef1e63e47cc0d74a8000c6a979233f056",
+      "operator": "LOOK",
+      "state_sha256": "8cb21670a2351cb4ec01f9dde4a60912dc4b79ae0530ad5612e3144fca1f6b40",
+      "transition_index": 0
+    },
+    {
+      "action": "go to tvstand 1",
+      "admissible_actions_sha256": "a69c0e7cdf83d691d2b333411d4e4a5e1022546be35ea1700a2085a4e82b6761",
+      "argument_types": {
+        "location": "location"
+      },
+      "arguments": {
+        "location": "tvstand 1"
+      },
+      "next_state_sha256": "5b1fb32db0b7aa60f5526dbf634c8c0cee4184dd30ba35dc486118a414906068",
+      "operator": "GOTO",
+      "state_sha256": "733fc5b44503c912b2a9f02f8632249ef1e63e47cc0d74a8000c6a979233f056",
+      "transition_index": 1
+    },
+    {
+      "action": "go to tvstand 2",
+      "admissible_actions_sha256": "051b6e56d39bd45d396f7474c685fb50f96bf073db96fe192b0044c5a6860e55",
+      "argument_types": {
+        "location": "location"
+      },
+      "arguments": {
+        "location": "tvstand 2"
+      },
+      "next_state_sha256": "2cc27c122c8e242ff94969f0314b20ab60c3891f646a1af5d51396b4fb4ddbe4",
+      "operator": "GOTO",
+      "state_sha256": "5b1fb32db0b7aa60f5526dbf634c8c0cee4184dd30ba35dc486118a414906068",
+      "transition_index": 2
+    },
+    {
+      "action": "take box 2 from tvstand 2",
+      "admissible_actions_sha256": "7be64765706a92bf25b34528a3f32e327a7fa0970c753f00806cc15d56460a61",
+      "argument_types": {
+        "object": "object",
+        "receptacle": "receptacle"
+      },
+      "arguments": {
+        "object": "box 2",
+        "receptacle": "tvstand 2"
+      },
+      "next_state_sha256": "aa70c687b334a87e3ae05e2ce01cb053f218d5d1604e94fcb28c33a0614351c5",
+      "operator": "TAKE",
+      "state_sha256": "2cc27c122c8e242ff94969f0314b20ab60c3891f646a1af5d51396b4fb4ddbe4",
+      "transition_index": 3
+    },
+    {
+      "action": "go to armchair 1",
+      "admissible_actions_sha256": "467e1a967a1fa6fcf93154dc24b5df67f46f4a1c721d92ea284e4e85fe036bd3",
+      "argument_types": {
+        "location": "location"
+      },
+      "arguments": {
+        "location": "armchair 1"
+      },
+      "next_state_sha256": "ae1f9f4d19c86cf8764237607e3722d9d782f005dfb97a829c608efbf3e5391e",
+      "operator": "GOTO",
+      "state_sha256": "aa70c687b334a87e3ae05e2ce01cb053f218d5d1604e94fcb28c33a0614351c5",
+      "transition_index": 4
+    },
+    {
+      "action": "move box 2 to armchair 1",
+      "admissible_actions_sha256": "b6c3f20493617c17263d9317290491e9cf6ca8029598c1aa1dd478ff107a1d9b",
+      "argument_types": {
+        "object": "object",
+        "receptacle": "receptacle"
+      },
+      "arguments": {
+        "object": "box 2",
+        "receptacle": "armchair 1"
+      },
+      "next_state_sha256": "3d1e11272aaade21d29f08cdaf24ef9840dec104e1116e4c6f89752706cf91f9",
+      "operator": "MOVE_TO",
+      "state_sha256": "ae1f9f4d19c86cf8764237607e3722d9d782f005dfb97a829c608efbf3e5391e",
+      "transition_index": 5
+    }
+  ],
+  "demo_hash": "c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1",
+  "demo_id": "alfworld-pick-and-place-train-seed42-v2-shot0",
+  "episode_id": "alfworld-pick-and-place-train-seed42-v2-shot0",
+  "evaluator": "alfworld_official",
+  "executor_kind": "real",
+  "held_out": false,
+  "official_score": 1.0,
+  "official_success": true,
+  "selection_policy": {
+    "best_of_n": false,
+    "protocol_version": 2,
+    "random_seed": 42,
+    "shot_index": 0,
+    "split": "train",
+    "task_types": [
+      1
+    ]
+  },
+  "source_file_sha256": "b7307fba8a307dd2e0ece53f1ddc29353cf1864688952ab092b79612521d81b9",
+  "split": "train",
+  "target_domain": "alfworld",
+  "task_family": "pick_and_place"
+}

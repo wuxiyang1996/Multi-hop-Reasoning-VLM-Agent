@@ -39,7 +39,7 @@
 冻结 manifest：
 
 ```text
-manifest-c92a...-eaa1bbf4214ff0d3.json
+manifest-c92a...-fbf22197882400f3.json
 ```
 
 | Source proposal | Target operator | Source typed effect | Verdict |

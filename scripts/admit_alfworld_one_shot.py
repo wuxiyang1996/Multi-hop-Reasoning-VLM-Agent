@@ -75,7 +75,11 @@ def main() -> int:
             "program_id": program.program_id,
             "status": artifact.status.value,
             "artifact_hash": artifact.artifact_hash,
-            "artifact_path": str(path),
+            # The manifest lives beside its immutable artifacts.  Store a
+            # relative path so a frozen experiment can run from a clean
+            # worktree or archive instead of silently reaching into the
+            # directory where admission happened.
+            "artifact_path": path.name,
             "failure_codes": artifact.failure_codes,
         })
     manifest = {

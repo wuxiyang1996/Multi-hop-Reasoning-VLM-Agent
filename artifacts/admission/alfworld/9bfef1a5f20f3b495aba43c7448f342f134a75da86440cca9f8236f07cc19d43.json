@@ -1,0 +1,87 @@
+{
+  "admitted_candidate_id": "sokoban-execute-to-alfworld-put-v1",
+  "artifact_hash": "9bfef1a5f20f3b495aba43c7448f342f134a75da86440cca9f8236f07cc19d43",
+  "candidate_ids": [
+    "sokoban-execute-to-alfworld-put-v1"
+  ],
+  "demo_hash": "c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1",
+  "demo_id": "alfworld-pick-and-place-train-seed42-v2-shot0",
+  "failure_codes": [],
+  "proof_trace": [
+    {
+      "check": "source_program_verified",
+      "pass": true,
+      "program_hash": "73f27fd86b88fa611340bdb8317021b6c05a5083b0049cceaf9595d0308953ef"
+    },
+    {
+      "check": "one_fixed_real_demo",
+      "demo_hash": "c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1",
+      "pass": true
+    },
+    {
+      "check": "official_target_success",
+      "pass": true,
+      "score": 1.0
+    },
+    {
+      "candidate_id": "sokoban-execute-to-alfworld-put-v1",
+      "check": "candidate_binding",
+      "details": {
+        "operator_and_types": true,
+        "program_hash": true,
+        "program_id": true,
+        "source_effect_verified": true,
+        "source_step": true,
+        "source_target_effect_exact": true,
+        "target_domain": true,
+        "target_schema_supported": true,
+        "task_family": true
+      },
+      "pass": true,
+      "proposal_source_untrusted": "preregistered_source_semantics_untrusted"
+    },
+    {
+      "all_source_steps": [
+        "commit-observed-action"
+      ],
+      "check": "scope_bounded_admission",
+      "covered_source_steps": [
+        "commit-observed-action"
+      ],
+      "pass": true,
+      "source_effect": "movable_location_changed",
+      "source_effect_evidence_count": 14,
+      "source_effect_universal": false,
+      "source_evidence_count": 236,
+      "status": "CONDITIONAL"
+    }
+  ],
+  "schema_version": 1,
+  "source_program_hash": "73f27fd86b88fa611340bdb8317021b6c05a5083b0049cceaf9595d0308953ef",
+  "source_program_id": "source.sokoban.4ba03c1ff899f8d6",
+  "status": "CONDITIONAL",
+  "target_domain": "alfworld",
+  "task_family": "pick_and_place",
+  "verified_scope": {
+    "argument_types": {
+      "object": "object",
+      "receptacle": "receptacle"
+    },
+    "effects": [
+      "movable_location_changed"
+    ],
+    "operators": [
+      "MOVE_TO"
+    ],
+    "required_conditions": [
+      "exact_current_environment_admissibility"
+    ],
+    "source_effect_evidence_count": 14,
+    "source_evidence_count": 236,
+    "source_steps": [
+      "commit-observed-action"
+    ],
+    "target_domain": "alfworld",
+    "task_family": "pick_and_place"
+  }
+}

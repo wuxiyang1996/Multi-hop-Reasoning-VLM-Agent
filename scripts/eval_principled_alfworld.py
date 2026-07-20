@@ -347,7 +347,7 @@ def _parse_args() -> argparse.Namespace:
         "--admission-manifest", type=Path,
         default=(
             REPO_ROOT / "artifacts/admission/alfworld/"
-            "manifest-c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1-eaa1bbf4214ff0d3.json"
+            "manifest-c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1-fbf22197882400f3.json"
         ),
     )
     parser.add_argument(
