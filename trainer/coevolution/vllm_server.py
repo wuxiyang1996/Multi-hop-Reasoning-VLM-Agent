@@ -43,6 +43,90 @@ _HEALTH_MONITOR_INTERVAL_S = float(os.environ.get("VLLM_HEALTH_MONITOR_S", "30")
 _HEALTH_RESTART_COOLDOWN_S = float(os.environ.get("VLLM_RESTART_COOLDOWN_S", "120"))
 
 
+def _adapter_paths(adapter_dir: str) -> list[tuple[str, str]]:
+    """Return the five known LoRA names that currently exist on disk."""
+    adapter_groups = [
+        ("decision", ["skill_selection", "action_taking"]),
+        ("skillbank", ["segment", "contract", "curator"]),
+    ]
+    found: list[tuple[str, str]] = []
+    for sub, names in adapter_groups:
+        for name in names:
+            path = Path(adapter_dir) / sub / name
+            if (path / "adapter_config.json").exists():
+                found.append((name, str(path.resolve())))
+    return found
+
+
+async def reload_adapters_at_urls(
+    adapter_dir: str,
+    base_urls: List[str],
+) -> tuple[int, int]:
+    """Hot-reload adapters on local or remote vLLM OpenAI endpoints.
+
+    ``base_urls`` may contain either ``http://host:port`` or the normal
+    OpenAI-style ``http://host:port/v1`` form. The adapter paths must be
+    visible on every serving node (the GAMMA deployment uses shared NFS).
+    """
+    import httpx as _httpx
+
+    adapters = _adapter_paths(adapter_dir)
+    if not adapters:
+        logger.warning("No adapters found on disk to reload: %s", adapter_dir)
+        return 0, 0
+
+    api_key = (os.environ.get("VLLM_API_KEY")
+               or os.environ.get("OPENAI_API_KEY")
+               or "EMPTY")
+    headers = {"Authorization": f"Bearer {api_key}"}
+    n_ok, n_fail = 0, 0
+    async with _httpx.AsyncClient(timeout=30.0) as client:
+        for raw_url in base_urls:
+            api_base = raw_url.rstrip("/")
+            if not api_base.endswith("/v1"):
+                api_base += "/v1"
+            for adapter_name, adapter_path in adapters:
+                try:
+                    await client.post(
+                        f"{api_base}/unload_lora_adapter",
+                        json={"lora_name": adapter_name},
+                        headers=headers,
+                    )
+                except Exception:
+                    pass
+                try:
+                    response = await client.post(
+                        f"{api_base}/load_lora_adapter",
+                        json={
+                            "lora_name": adapter_name,
+                            "lora_path": adapter_path,
+                        },
+                        headers=headers,
+                    )
+                    if response.status_code == 200:
+                        n_ok += 1
+                    else:
+                        logger.warning(
+                            "Reload %s at %s: HTTP %d — %s",
+                            adapter_name, api_base, response.status_code,
+                            response.text[:200],
+                        )
+                        n_fail += 1
+                except Exception as exc:
+                    logger.warning(
+                        "Failed to reload %s at %s: %s",
+                        adapter_name, api_base, exc,
+                    )
+                    n_fail += 1
+
+    logger.info(
+        "Adapter hot-reload: %d/%d successful across %d endpoints "
+        "(%d adapters)",
+        n_ok, n_ok + n_fail, len(base_urls), len(adapters),
+    )
+    return n_ok, n_fail
+
+
 class VLLMServerManager:
     """Manages multiple TP=1 vLLM inference servers across GPUs."""
 
@@ -641,82 +725,9 @@ class VLLMServerManager:
         via the vLLM REST API so the instance picks up freshly-trained
         weights without a full restart.
         """
-        import httpx as _httpx
-
-        adapter_groups = [
-            ("decision", ["skill_selection", "action_taking"]),
-            ("skillbank", ["segment", "contract", "curator"]),
-        ]
-
-        adapters_to_reload: list[tuple[str, str]] = []
-        for sub, names in adapter_groups:
-            for name in names:
-                path = Path(self.adapter_dir) / sub / name
-                if (path / "adapter_config.json").exists():
-                    adapters_to_reload.append((name, str(path)))
-
-        if not adapters_to_reload:
-            logger.warning("No adapters found on disk to reload")
-            return
-
-        # T2.17 (2026-05-05): vLLM v1 servers default to API-key
-        # authentication — chat-completion calls go through openai-python
-        # which auto-injects ``Authorization: Bearer $OPENAI_API_KEY``,
-        # but our direct httpx POSTs to ``/v1/{,un}load_lora_adapter``
-        # do not.  Without the header every reload silently 401'd, the
-        # vLLM instances kept serving the *original* cold-start adapters,
-        # and the GRPO updates we wrote to disk never reached inference.
-        # Read the same env var the OpenAI client uses (default "EMPTY"
-        # because the launcher exports ``OPENAI_API_KEY=EMPTY``).
-        api_key = (os.environ.get("VLLM_API_KEY")
-                   or os.environ.get("OPENAI_API_KEY")
-                   or "EMPTY")
-        auth_headers = {"Authorization": f"Bearer {api_key}"}
-
-        n_ok, n_fail = 0, 0
-        async with _httpx.AsyncClient(timeout=30.0) as client:
-            for port in self.ports:
-                base = f"http://localhost:{port}"
-                for adapter_name, adapter_path in adapters_to_reload:
-                    try:
-                        await client.post(
-                            f"{base}/v1/unload_lora_adapter",
-                            json={"lora_name": adapter_name},
-                            headers=auth_headers,
-                        )
-                    except Exception:
-                        pass
-
-                    try:
-                        resp = await client.post(
-                            f"{base}/v1/load_lora_adapter",
-                            json={
-                                "lora_name": adapter_name,
-                                "lora_path": adapter_path,
-                            },
-                            headers=auth_headers,
-                        )
-                        if resp.status_code == 200:
-                            n_ok += 1
-                        else:
-                            logger.warning(
-                                "Reload %s on port %d: HTTP %d — %s",
-                                adapter_name, port,
-                                resp.status_code, resp.text[:200],
-                            )
-                            n_fail += 1
-                    except Exception as exc:
-                        logger.warning(
-                            "Failed to reload %s on port %d: %s",
-                            adapter_name, port, exc,
-                        )
-                        n_fail += 1
-
-        logger.info(
-            "Adapter hot-reload: %d/%d successful across %d instances "
-            "(%d adapters)",
-            n_ok, n_ok + n_fail, len(self.ports),
-            len(adapters_to_reload),
+        await reload_adapters_at_urls(
+            self.adapter_dir,
+            [f"http://localhost:{port}/v1" for port in self.ports],
         )
 
     def __del__(self):

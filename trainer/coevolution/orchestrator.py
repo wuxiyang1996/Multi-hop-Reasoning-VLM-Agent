@@ -209,6 +209,14 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
     os.environ["VLLM_BASE_URLS"] = ",".join(config.vllm_base_urls)
     _unpin_actor_from_multi_server_pool(config)
 
+    async def _reload_serving_adapters() -> None:
+        """Reload trained adapters for managed or external vLLM pools."""
+        if vllm_manager:
+            await vllm_manager.reload_adapters()
+            return
+        from trainer.coevolution.vllm_server import reload_adapters_at_urls
+        await reload_adapters_at_urls(config.adapter_dir, config.vllm_base_urls)
+
     # ── Executors ─────────────────────────────────────────────────
     thread_executor = ThreadPoolExecutor(
         max_workers=config.thread_workers, thread_name_prefix="coevo",
@@ -1010,11 +1018,10 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
                         _gst["best_reward"], _gst["decline_count"],
                     )
                     _gst["decline_count"] = 0
-                    if vllm_manager:
-                        try:
-                            await vllm_manager.reload_adapters()
-                        except Exception:
-                            pass
+                    try:
+                        await _reload_serving_adapters()
+                    except Exception:
+                        pass
                 except Exception as exc:
                     logger.warning("Best-checkpoint rollback failed: %s", exc)
 
@@ -1417,9 +1424,9 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
         # ── Finalize previous step (hot-reload + metrics + checkpoint) ──
         if _pending_grpo is not None:
             _, _prev_ctx = _pending_grpo
-            if vllm_manager and _prev_grpo_result:
+            if _prev_grpo_result:
                 try:
-                    await vllm_manager.reload_adapters()
+                    await _reload_serving_adapters()
                 except Exception as exc:
                     logger.warning("Adapter hot-reload failed: %s", exc)
             await _finalize_step(
@@ -1866,9 +1873,9 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
             "Phase C (GRPO, step %d): %.1fs",
             _last_ctx['step'], _last_phase_c_time,
         )
-        if vllm_manager and _last_result:
+        if _last_result:
             try:
-                await vllm_manager.reload_adapters()
+                await _reload_serving_adapters()
             except Exception as exc:
                 logger.warning("Adapter hot-reload failed: %s", exc)
         await _finalize_step(_last_ctx, _last_result, _last_phase_c_time)
