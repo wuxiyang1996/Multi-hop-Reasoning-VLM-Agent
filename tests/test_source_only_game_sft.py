@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from scripts.build_source_only_game_sft import build
+from trainer.SFT.train import _map_visible_gpu_tokens
 
 
 def test_builder_uses_only_exact_executed_source_labels(tmp_path: Path) -> None:
@@ -41,3 +44,12 @@ def test_builder_uses_only_exact_executed_source_labels(tmp_path: Path) -> None:
     assert skill["completion"] == "SKILL: 2"
     assert action["source_only"] is True
     assert manifest["target_examples"] == 0
+
+
+def test_parallel_sft_respects_inherited_slurm_gpu_mask() -> None:
+    assert _map_visible_gpu_tokens([0], inherited="2,3") == "2"
+    assert _map_visible_gpu_tokens([1], inherited="2,3") == "3"
+    assert _map_visible_gpu_tokens([0, 1], inherited="GPU-a,GPU-b") == "GPU-a,GPU-b"
+    assert _map_visible_gpu_tokens([2, 3], inherited="2,3") == "2,3"
+    with pytest.raises(ValueError, match="escape inherited"):
+        _map_visible_gpu_tokens([2], inherited="0,1")

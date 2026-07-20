@@ -721,11 +721,34 @@ def _print_progress(processes: list, t0: float):
     logger.info("  ".join(parts))
 
 
+def _map_visible_gpu_tokens(
+    logical_ids: List[int], *, inherited: Optional[str],
+) -> str:
+    """Map logical slots through a Slurm/container visibility mask.
+
+    A job step allocated physical GPUs 2-3 commonly enters Python with
+    ``CUDA_VISIBLE_DEVICES=2,3`` while the launcher CLI still names its two
+    usable logical slots as ``--gpus 0 1``.  Replacing the mask with ``0``
+    or ``1`` would escape the step allocation.  Preserve the inherited
+    physical/UUID tokens whenever the requested IDs are valid logical slots.
+    """
+    tokens = [item.strip() for item in str(inherited or "").split(",") if item.strip()]
+    if tokens and all(0 <= item < len(tokens) for item in logical_ids):
+        return ",".join(tokens[item] for item in logical_ids)
+    if tokens and all(str(item) in tokens for item in logical_ids):
+        return ",".join(str(item) for item in logical_ids)
+    if tokens:
+        raise ValueError(
+            f"GPU IDs {logical_ids} escape inherited CUDA_VISIBLE_DEVICES={inherited}"
+        )
+    return ",".join(str(item) for item in logical_ids)
+
+
 def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> dict:
     """Launch one subprocess per adapter, each pinned to a chunk of GPUs.
 
     With ``gpus_per_adapter == 1`` (default) each adapter gets one GPU
-    and one ``python -m trainer.SFT.train --gpu <id>`` subprocess.
+    through a subprocess-local ``CUDA_VISIBLE_DEVICES`` mapping.
 
     With ``gpus_per_adapter > 1`` GPUs are grouped into contiguous
     chunks of that size and each adapter gets one chunk; the
@@ -887,18 +910,14 @@ def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> di
             cmd += ["--main_process_port", str(29500 + chunk[0])]
         cmd += script_invocation
         cmd += shared_args + ["--adapters"] + adapter_list
-        # Single-GPU path keeps the legacy ``--gpu N`` flag for log
-        # discoverability; multi-GPU path lets accelerate handle pinning
-        # via CUDA_VISIBLE_DEVICES (the ``--gpu`` flag would conflict).
-        if gpa == 1:
-            cmd += ["--gpu", str(chunk[0])]
-
         chunk_label = "_".join(map(str, chunk))
         log_path = Path(config.output_dir) / f"sft_chunk_{chunk_label}.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         env = os.environ.copy()
-        env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, chunk))
+        env["CUDA_VISIBLE_DEVICES"] = _map_visible_gpu_tokens(
+            chunk, inherited=os.environ.get("CUDA_VISIBLE_DEVICES"),
+        )
 
         logger.info(
             "Launching GPUs %s (n=%d) for adapter(s) %s → %s",

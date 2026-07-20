@@ -85,7 +85,7 @@ python "${REPO_ROOT}/scripts/replay_source_programs.py" \
     >"${RUN_DIR}/logs/source_replay.log" 2>&1
 
 for node in "${ROLLOUT_NODE}" "${TRAIN_NODE}"; do
-    srun --overlap --exact -N1 -n1 -c1 -w "${node}" nvidia-smi -q \
+    srun --exact --gres=gpu:l40s:4 -N1 -n1 -c1 -w "${node}" nvidia-smi -q \
         >"${RUN_DIR}/nvidia_smi_start_${node}.txt" &
 done
 wait
@@ -105,19 +105,19 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "Staging 9B/35B caches to node-local NVMe..."
-srun --overlap --exact -N1 -n1 -c4 -w "${ROLLOUT_NODE}" \
+srun --exact --gres=none -N1 -n1 -c4 -w "${ROLLOUT_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" SOURCE_HF_HOME="${SHARED_HF_HOME}" \
         LOCAL_HF_HOME="${ROLLOUT_HF_HOME}" \
     bash -lc 'cd "$REPO_ROOT"; source scripts/stage_hf_model_cache.sh Qwen/Qwen3.5-9B' \
     >"${RUN_DIR}/logs/stage_rollout_9b.log" 2>&1 &
 stage_rollout=$!
-srun --overlap --exact -N1 -n1 -c4 -w "${TRAIN_NODE}" \
+srun --exact --gres=none -N1 -n1 -c4 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" SOURCE_HF_HOME="${SHARED_HF_HOME}" \
         LOCAL_HF_HOME="${TRAIN_HF_HOME}" \
     bash -lc 'cd "$REPO_ROOT"; source scripts/stage_hf_model_cache.sh Qwen/Qwen3.5-9B' \
     >"${RUN_DIR}/logs/stage_train_9b.log" 2>&1 &
 stage_train_9b=$!
-srun --overlap --exact -N1 -n1 -c4 -w "${TRAIN_NODE}" \
+srun --exact --gres=none -N1 -n1 -c4 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" SOURCE_HF_HOME="${SHARED_HF_HOME}" \
         LOCAL_HF_HOME="${TRAIN_HF_HOME}" \
     bash -lc 'cd "$REPO_ROOT"; source scripts/stage_hf_model_cache.sh Qwen/Qwen3.5-35B-A3B' \
@@ -148,7 +148,10 @@ wait_for_endpoint() {
 start_rollout_pool() {
     local adapters=$1
     local phase=$2
-    srun --overlap --exact -N1 -n1 -c16 -w "${ROLLOUT_NODE}" \
+    # The QoS caps this two-node job at 32 total CPUs. Reserve four CPUs for
+    # the four servers; up to 12 of the 16 one-CPU clients run concurrently
+    # and Slurm queues the remaining four without CPU oversubscription.
+    srun --exact --gres=gpu:l40s:4 -N1 -n1 -c4 -w "${ROLLOUT_NODE}" \
         env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${TRAIN_ENV}" \
             HF_HOME="${ROLLOUT_HF_HOME}" HF_HUB_OFFLINE=1 \
             VLLM_USE_FLASHINFER_SAMPLER=0 VLLM_MAX_MODEL_LEN=8192 \
@@ -176,7 +179,7 @@ run_eval_group() {
             for shard in 0 1 2 3; do
                 local out_dir="${RUN_DIR}/eval/${condition}/${split}"
                 mkdir -p "${out_dir}"
-                srun --overlap --exact -N1 -n1 -c1 -w "${ROLLOUT_NODE}" \
+                srun --exact --gres=none -N1 -n1 -c1 -w "${ROLLOUT_NODE}" \
                     env REPO_ROOT="${REPO_ROOT}" ALFWORLD_ENV="${ALFWORLD_ENV}" \
                         ALFWORLD_DATA="${ALFWORLD_DATA_ROOT}" \
                     bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$ALFWORLD_ENV"; cd "$REPO_ROOT"; exec python scripts/eval_principled_alfworld.py "$@"' runner \
@@ -206,29 +209,31 @@ run_eval_group() {
 echo "Phase A: base eval + source-only SFT + 35B proposals in parallel"
 start_rollout_pool "${EMPTY_ADAPTER_DIR}" base
 
-srun --overlap --exact -N1 -n1 -c12 -w "${TRAIN_NODE}" \
+# These two long-lived steps each reserve two disjoint GPUs.  Both launchers
+# map logical slots through Slurm's assigned CUDA_VISIBLE_DEVICES mask.
+srun --exact --gres=gpu:l40s:2 -N1 -n1 -c6 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" HF_HOME="${TRAIN_HF_HOME}" HF_HUB_OFFLINE=1 \
-        CUDA_VISIBLE_DEVICES=0,1 CONDA_ENV="${TRAIN_ENV}" \
+        CONDA_ENV="${TRAIN_ENV}" \
     bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; cd "$REPO_ROOT"; exec python -m trainer.SFT.train --model_name Qwen/Qwen3.5-9B --output_dir "$1" --decision_data_dir "$2" --skillbank_data_dir "$2" --require_source_only_manifest "$3" --games candy_crush sokoban super_mario tetris twenty_forty_eight --adapters skill_selection action_taking --parallel --gpus 0 1 --gpus_per_adapter 1 --max_seq_length 1024 --scale_effective_batch 0.0625 --optim adamw_torch_fused --dataloader_workers 2 --strict_lora_coverage' runner \
         "${ADAPTER_DIR}" "${SOURCE_SFT_DIR}" "${SOURCE_SFT_MANIFEST}" \
     >"${RUN_DIR}/logs/source_sft_launcher.log" 2>&1 &
 SFT_PID=$!
 BG_PIDS+=("${SFT_PID}")
 
-srun --overlap --exact -N1 -n1 -c12 -w "${TRAIN_NODE}" \
+srun --exact --gres=gpu:l40s:2 -N1 -n1 -c6 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${TRAIN_ENV}" \
         HF_HOME="${TRAIN_HF_HOME}" HF_HUB_OFFLINE=1 \
         VLLM_USE_FLASHINFER_SAMPLER=0 VLLM_USE_DEEP_GEMM=0 \
-        MODEL="${PROPOSER_MODEL}" GPUS=2,3 TENSOR_PARALLEL=2 EXPERT_PARALLEL=1 \
+        MODEL="${PROPOSER_MODEL}" TENSOR_PARALLEL=2 EXPERT_PARALLEL=1 \
         GPU_UTIL=0.82 MAX_MODEL_LEN=8192 MAX_NUM_SEQS=8 PORT=8004 \
         HOST=0.0.0.0 QUANTIZATION=fp8 SPECULATIVE=none \
-    bash -lc 'cd "$REPO_ROOT"; exec bash inference/serve_qwen35_35b_a3b.sh' \
+    bash -lc 'cd "$REPO_ROOT"; export GPUS="${CUDA_VISIBLE_DEVICES:?Slurm did not assign proposer GPUs}"; exec bash inference/serve_qwen35_35b_a3b.sh' \
     >"${RUN_DIR}/logs/proposer_35b_server.log" 2>&1 &
 PROPOSER_PID=$!
 BG_PIDS+=("${PROPOSER_PID}")
 
 wait_for_endpoint "${PROPOSER_URL}" "${PROPOSER_PID}" "35b-proposer"
-srun --overlap --exact -N1 -n1 -c2 -w "${TRAIN_NODE}" \
+srun --exact --gres=none -N1 -n1 -c2 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${TRAIN_ENV}" \
     bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; cd "$REPO_ROOT"; exec python scripts/propose_alfworld_bindings_35b.py --endpoint "$1" --model "$2" --output "$3"' runner \
         "${PROPOSER_URL}" "${PROPOSER_MODEL}" "${RUN_DIR}/proposals_35b.json" \
@@ -260,7 +265,7 @@ python "${REPO_ROOT}/scripts/aggregate_principled_alfworld.py" \
 find "${ADAPTER_DIR}/decision" -type f \( -name 'adapter_config.json' -o -name 'adapter_model.safetensors' \) \
     -print0 | sort -z | xargs -0 sha256sum >"${RUN_DIR}/adapter_sha256.txt"
 for node in "${ROLLOUT_NODE}" "${TRAIN_NODE}"; do
-    srun --overlap --exact -N1 -n1 -c1 -w "${node}" nvidia-smi -q \
+    srun --exact --gres=gpu:l40s:4 -N1 -n1 -c1 -w "${node}" nvidia-smi -q \
         >"${RUN_DIR}/nvidia_smi_end_${node}.txt" &
 done
 wait
