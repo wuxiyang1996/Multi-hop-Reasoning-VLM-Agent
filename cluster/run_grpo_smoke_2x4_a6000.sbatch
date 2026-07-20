@@ -18,9 +18,10 @@ set -Eeuo pipefail
 REPO_ROOT="${REPO_ROOT:-${SLURM_SUBMIT_DIR}}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/runs}"
 RUN_DIR="${RUN_DIR:-${OUTPUT_ROOT}/grpo_smoke_2x4_a6000_${SLURM_JOB_ID}}"
-WARM_RUN="${WARM_RUN:-/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/runs/candy_crush_coevo_v4_20260519_093912}"
-WARM_ADAPTER_DIR="${WARM_RUN}/lora_adapters"
-WARM_BANK_DIR="${WARM_RUN}/skillbank"
+WARM_ADAPTER_RUN="${WARM_ADAPTER_RUN:-/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/runs/gymv_airstriker_stage2_v9_20260521_180740}"
+WARM_BANK_RUN="${WARM_BANK_RUN:-/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/runs/candy_crush_coevo_v4_20260519_093912}"
+WARM_ADAPTER_DIR="${WARM_ADAPTER_RUN}/lora_adapters"
+WARM_BANK_DIR="${WARM_BANK_RUN}/skillbank"
 SHARED_HF_HOME="${SHARED_HF_HOME:-/fs/gamma-projects/vlm-robot/hf_cache}"
 CONDA_ENV="${CONDA_ENV:-cosplay-candy-a100}"
 MODEL="${MODEL:-Qwen/Qwen3.5-9B}"
@@ -45,6 +46,29 @@ for path in \
         exit 2
     fi
 done
+python - "${WARM_ADAPTER_DIR}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+required = {
+    "q_proj", "k_proj", "v_proj", "o_proj",
+    "in_proj_qkv", "in_proj_z", "in_proj_b", "in_proj_a", "out_proj",
+    "gate_proj", "up_proj", "down_proj",
+}
+for group, names in {
+    "decision": ("skill_selection", "action_taking"),
+    "skillbank": ("segment", "contract", "curator"),
+}.items():
+    for name in names:
+        config = json.loads((root / group / name / "adapter_config.json").read_text())
+        actual = set(config.get("target_modules") or [])
+        missing = sorted(required - actual)
+        if missing:
+            raise SystemExit(f"{name} adapter lacks Qwen3.5 projection legs: {missing}")
+print("warm adapters verified: all five cover 12 Qwen3.5 projection legs")
+PY
 if [[ -e "${RUN_DIR}" ]]; then
     echo "ERROR: refusing to overwrite ${RUN_DIR}" >&2
     exit 2
