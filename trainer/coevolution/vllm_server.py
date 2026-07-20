@@ -138,6 +138,8 @@ class VLLMServerManager:
         base_port: int = 8000,
         gpu_util: float = 0.95,
         max_num_seqs: int = 128,
+        max_model_len: Optional[int] = None,
+        max_num_batched_tokens: int = 32768,
         enforce_eager: bool = False,
         log_dir: Optional[str] = None,
         speculative_model: Optional[str] = None,
@@ -161,6 +163,8 @@ class VLLMServerManager:
         self.port_spacing = int(os.environ.get("VLLM_PORT_SPACING", "10"))
         self.gpu_util = gpu_util
         self.max_num_seqs = max_num_seqs
+        self.max_model_len = max_model_len
+        self.max_num_batched_tokens = max_num_batched_tokens
         self.enforce_eager = enforce_eager
         self.log_dir = log_dir
         self.speculative_model = speculative_model
@@ -347,10 +351,12 @@ class VLLMServerManager:
             # gpu_util=0.9, well above the 32K bump.  This is per-batch,
             # NOT per-request, so it cannot truncate any single
             # completion (which is gated by ``max_tokens``).
-            "--max-num-batched-tokens", "32768",
+            "--max-num-batched-tokens", str(self.max_num_batched_tokens),
             "--port", str(port),
             "--trust-remote-code",
         ]
+        if self.max_model_len is not None:
+            cmd.extend(["--max-model-len", str(self.max_model_len)])
         if self.enforce_eager or shared_gpus:
             cmd.append("--enforce-eager")
         if self.language_model_only:

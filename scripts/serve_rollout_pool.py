@@ -20,6 +20,18 @@ def main() -> None:
     parser.add_argument("--gpus", nargs="+", type=int, required=True)
     parser.add_argument("--base-port", type=int, default=8000)
     parser.add_argument("--gpu-util", type=float, default=0.85)
+    parser.add_argument(
+        "--max-model-len", type=int,
+        default=int(os.environ.get("VLLM_MAX_MODEL_LEN", "8192")),
+    )
+    parser.add_argument(
+        "--max-num-seqs", type=int,
+        default=int(os.environ.get("VLLM_MAX_NUM_SEQS", "32")),
+    )
+    parser.add_argument(
+        "--max-num-batched-tokens", type=int,
+        default=int(os.environ.get("VLLM_MAX_NUM_BATCHED_TOKENS", "8192")),
+    )
     parser.add_argument("--log-dir", required=True)
     args = parser.parse_args()
 
@@ -34,6 +46,9 @@ def main() -> None:
         gpu_ids=args.gpus,
         base_port=args.base_port,
         gpu_util=args.gpu_util,
+        max_model_len=args.max_model_len,
+        max_num_seqs=args.max_num_seqs,
+        max_num_batched_tokens=args.max_num_batched_tokens,
         log_dir=args.log_dir,
         speculative_method="none",
         num_speculative_tokens=0,
