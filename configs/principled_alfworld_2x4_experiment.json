@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "experiment_id": "principled-alfworld-one-shot-2x4-l40s-v1",
+  "preregistered_date": "2026-07-20",
+  "target_domain": "alfworld",
+  "task_family": "pick_and_place",
+  "conditions": [
+    "base",
+    "game_sft",
+    "base_harness",
+    "game_sft_harness"
+  ],
+  "splits": {
+    "eval_in_distribution": 35,
+    "eval_out_of_distribution": 24
+  },
+  "paired_task_order_seed": 91000,
+  "seed_implementation": "explicit TextWorld env.seed; not ALFWorld config-only",
+  "num_rollout_shards": 4,
+  "max_steps": 50,
+  "models": {
+    "actor": "Qwen/Qwen3.5-9B",
+    "binding_proposer": "Qwen/Qwen3.5-35B-A3B"
+  },
+  "model_roles": {
+    "actor": "numbered_action_or_skill_proposer_only",
+    "binding_proposer": "untrusted_offline_proposal_only_never_verdict"
+  },
+  "source_sft": {
+    "path": "artifacts/source_only_game_sft/source_sft_manifest.json",
+    "sha256": "4fbedd66e678f85d6164302c26ea6f4b2df08e490174595ec1054fa7a6d9edfa",
+    "n_source_steps_per_adapter": 1250,
+    "target_examples": 0,
+    "target_gradient_updates": 0,
+    "adapters": ["skill_selection", "action_taking"],
+    "epochs": 2,
+    "per_device_batch_size": 1,
+    "gradient_accumulation_steps": 1,
+    "max_sequence_length": 1024,
+    "learning_rate": 0.0002
+  },
+  "frozen_inputs": {
+    "source_evidence_manifest": {
+      "path": "artifacts/source_evidence_index/manifest.json",
+      "sha256": "a0e7623776d60f5bf5e6e67b2b4a26b86a7213c5565c4ec51a3aee77491325fd"
+    },
+    "admission_manifest": {
+      "path": "artifacts/admission/alfworld/manifest-c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1-eaa1bbf4214ff0d3.json",
+      "sha256": "8aa230f351539e7aa8207bcd3171db1405d460242e1e2ef37a4f2be954238fe7"
+    },
+    "binding_config": {
+      "path": "configs/alfworld_one_shot_bindings.json",
+      "sha256": "5681383b51a548373c4110a1f1dbabb29355a171bb2e826148f2c6a164328022"
+    },
+    "target_config": {
+      "path": "configs/alfworld_pick_and_place_config.yaml",
+      "sha256": "6c271cbcc41e5aaafd49ee40721e32d7655cfb6155c5269763c612c492a8e8ff"
+    }
+  },
+  "invariants": {
+    "semantic_clustering": false,
+    "one_fixed_adaptation_demo": true,
+    "held_out_updates": false,
+    "random_action_fallback": false,
+    "substring_action_parser": false,
+    "llm_judge_for_success": false,
+    "official_success_only": true,
+    "unsupported_scope_behavior": "abstain"
+  },
+  "primary_comparison": "game_sft_harness_vs_game_sft",
+  "secondary_comparisons": [
+    "game_sft_harness_vs_base",
+    "base_harness_vs_base"
+  ]
+}

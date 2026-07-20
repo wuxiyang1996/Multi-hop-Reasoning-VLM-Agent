@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import json
 import logging
 import os
@@ -98,6 +99,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--games", type=str, nargs="*", default=None,
         help="Subset of games to include in training data",
+    )
+    p.add_argument(
+        "--require_source_only_manifest", type=str, default=None,
+        help=(
+            "Fail unless this manifest proves source_only=true, zero target "
+            "examples/updates, and hashes every decision JSONL input."
+        ),
     )
     p.add_argument(
         "--parallel", action="store_true", default=False,
@@ -268,6 +276,35 @@ def format_for_sft(examples: list, tokenizer) -> list:
     return formatted
 
 
+def _validate_source_only_manifest(path: str, decision_data_dir: str) -> str:
+    manifest_path = Path(path).resolve()
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    checks = {
+        "source_only": payload.get("source_only") is True,
+        "target_examples": int(payload.get("target_examples", -1)) == 0,
+        "target_gradient_updates": int(payload.get("target_gradient_updates", -1)) == 0,
+        "semantic_clustering": payload.get("semantic_clustering") is False,
+    }
+    if not all(checks.values()):
+        raise ValueError(f"source-only manifest invariant failed: {checks}")
+    root = Path(decision_data_dir).resolve()
+    output_hashes = dict(payload.get("output_sha256") or {})
+    if not output_hashes:
+        raise ValueError("source-only manifest has no output hashes")
+    for relative, expected in output_hashes.items():
+        input_path = root / str(relative)
+        if not input_path.is_file():
+            raise FileNotFoundError(f"manifested SFT input missing: {input_path}")
+        actual = hashlib.sha256(input_path.read_bytes()).hexdigest()
+        if actual != str(expected):
+            raise ValueError(f"source-only SFT input hash mismatch: {input_path}")
+    digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    os.environ["SFT_SOURCE_ONLY_MANIFEST"] = str(manifest_path)
+    os.environ["SFT_SOURCE_ONLY_MANIFEST_SHA256"] = digest
+    logger.info("Verified source-only SFT manifest %s (%s)", manifest_path, digest)
+    return digest
+
+
 def train_single_adapter(
     adapter_name: str,
     examples: list,
@@ -401,8 +438,17 @@ def train_single_adapter(
 
     trainer.train()
 
-    peft_model.save_pretrained(out_str)
+    # PEFT >=0.19 writes a named adapter below ``save_directory/name``.
+    # Saving to ``output_path`` would therefore create
+    # ``decision/action_taking/action_taking`` while vLLM expects the exact
+    # ``decision/action_taking`` layout. Save at the group parent and assert
+    # the production-facing files exist.
+    peft_model.save_pretrained(
+        str(output_path.parent), selected_adapters=[adapter_name],
+    )
     tokenizer.save_pretrained(out_str)
+    if not (output_path / "adapter_config.json").is_file():
+        raise RuntimeError(f"PEFT adapter layout mismatch: {output_path}")
 
     meta = {
         "adapter_name": adapter_name,
@@ -416,6 +462,10 @@ def train_single_adapter(
         "epochs": params["epochs"],
         "lr": params["lr"],
         "training_type": "sft_coldstart",
+        "source_only_manifest": os.environ.get("SFT_SOURCE_ONLY_MANIFEST"),
+        "source_only_manifest_sha256": os.environ.get("SFT_SOURCE_ONLY_MANIFEST_SHA256"),
+        "target_examples": 0 if os.environ.get("SFT_SOURCE_ONLY_MANIFEST") else None,
+        "target_gradient_updates": 0 if os.environ.get("SFT_SOURCE_ONLY_MANIFEST") else None,
     }
     with open(output_path / "adapter_meta.json", "w") as f:
         json.dump(meta, f, indent=2)
@@ -634,6 +684,8 @@ def train_all_adapters(config=None, gpu: Optional[int] = None, **kwargs) -> dict
             "lora_r": config.lora_r,
             "lora_alpha": config.lora_alpha,
             "target_modules": config.resolve_target_modules(),
+            "source_only_manifest": os.environ.get("SFT_SOURCE_ONLY_MANIFEST"),
+            "source_only_manifest_sha256": os.environ.get("SFT_SOURCE_ONLY_MANIFEST_SHA256"),
         }, f, indent=2)
 
     return results
@@ -915,6 +967,8 @@ def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> di
             "lora_r": config.lora_r,
             "lora_alpha": config.lora_alpha,
             "target_modules": config.resolve_target_modules(),
+            "source_only_manifest": os.environ.get("SFT_SOURCE_ONLY_MANIFEST"),
+            "source_only_manifest_sha256": os.environ.get("SFT_SOURCE_ONLY_MANIFEST_SHA256"),
         }, f, indent=2)
 
     return results
@@ -931,6 +985,14 @@ def _detect_gpu_count() -> int:
 
 def main():
     args = parse_args()
+    if args.require_source_only_manifest:
+        _validate_source_only_manifest(
+            args.require_source_only_manifest,
+            args.decision_data_dir or str(
+                __import__("trainer.SFT.config", fromlist=["DEFAULT_DECISION_DATA_DIR"])
+                .DEFAULT_DECISION_DATA_DIR
+            ),
+        )
     config = _build_config(args)
 
     if args.parallel:
@@ -950,7 +1012,10 @@ def main():
             "Parallel mode: %d adapters across GPUs %s (gpus_per_adapter=%d)",
             len(adapters), gpu_ids, gpa,
         )
-        _train_parallel(config, gpu_ids, gpus_per_adapter=gpa)
+        results = _train_parallel(config, gpu_ids, gpus_per_adapter=gpa)
+        missing = sorted(set(adapters) - set(results))
+        if missing:
+            raise SystemExit(f"parallel SFT failed or skipped adapters: {missing}")
     else:
         train_all_adapters(config, gpu=args.gpu)
 

@@ -8,6 +8,12 @@
 > 和 [`README_8_BENCHMARK_ADAPTATION_EVAL.md`](README_8_BENCHMARK_ADAPTATION_EVAL.md)
 > 配套使用。
 
+> 当前 ALFWorld 实现实验见
+> [`README_ALFWORLD_2X4_L40S_EXPERIMENT.md`](README_ALFWORLD_2X4_L40S_EXPERIMENT.md)。
+> 其中 Game SFT 只克隆 source 中精确执行的编号 skill/action，不使用 target sample，
+> 也不把 teacher rationale 或 skill 名称当作语义 proof。它是实验条件，不是默认有效的
+> transfer mechanism。
+
 ## 1. 核心假设
 
 可以使用 Game SFT 模型处理新任务，但训练目标不能是：

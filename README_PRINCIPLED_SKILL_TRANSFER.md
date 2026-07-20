@@ -2,11 +2,14 @@
 
 > 设计目标：把游戏中发现的技能迁移到 ALFWorld、Browser、Video 和 Visual Reasoning，同时消除文本相似度、人工权重、手写 predicate 映射、模糊动作匹配和 LLM-as-judge 等启发式裁决。
 
-> **状态：验收规范与后续路线图。** 当前仓库已经提供四目标域的可运行
-> baseline，并让 ALFWorld 动作解析默认 fail closed（仅精确 admissible
-> command）。但在完成本文 P1–P4 的 typed IR、grammar parser、binding
-> version space、one-shot admission 和真实 held-out 实验前，不应宣称已经满足本文定义的
-> principled one-shot transfer。
+> **状态（2026-07-20）：ALFWorld v1 executable vertical slice 已实现，完整研究路线仍未完成。**
+> 当前已有 immutable source receipts、typed source-effect parser、exact ALFWorld
+> grammar、真实 one-shot demo、frozen admission、source-only Game SFT 与 2×4 L40S
+> paired evaluator。具体冻结协议见
+> [`README_ALFWORLD_2X4_L40S_EXPERIMENT.md`](README_ALFWORLD_2X4_L40S_EXPERIMENT.md)。
+> 当前 source program 仍是 observed-action v1/v2，而非本文后半部分设想的完整
+> precondition/protocol/termination program induction；因此不能把 vertical slice
+> 的结果扩大为本文全部 principled claim。
 
 ## 1. 核心研究问题
 
