@@ -123,23 +123,22 @@ class TestCandidateUrlSelection:
             "http://default/v1",
         ]
 
-    def test_mapped_url_falls_back_to_pool_on_failure(
+    def test_mapped_url_does_not_probe_incompatible_actor_pool(
         self, fresh_api_func,
     ) -> None:
-        """If the mapped 35B endpoint is dead, ``ask_vllm`` should try the
-        round-robin pool next so a single-instance outage doesn't silently
-        kill all judge calls. This is enforced by ``_candidate_vllm_urls``
-        listing the mapped URL first then appending the pool."""
+        """A mapped 35B request must not probe the incompatible 9B pool.
+
+        The provider fallback happens after the mapped endpoint fails; trying
+        every actor replica first only adds predictable model-mismatch 404s.
+        """
         api = fresh_api_func(
             VLLM_BASE_URL="http://pool0/v1",
             VLLM_BASE_URLS="http://pool0/v1,http://pool1/v1",
             VLLM_BASE_URL_MAP="Qwen/Qwen3.5-35B-A3B=http://mapped/v1",
         )
         candidates = api._candidate_vllm_urls("Qwen/Qwen3.5-35B-A3B")
-        assert candidates[0] == "http://mapped/v1"
-        assert "http://pool0/v1" in candidates
-        assert "http://pool1/v1" in candidates
-        # No duplicates if a pool URL also appears as the mapped URL.
+        assert candidates == ["http://mapped/v1"]
+        # A mapped URL that is also in the pool is still returned once.
         api2 = fresh_api_func(
             VLLM_BASE_URLS="http://both/v1",
             VLLM_BASE_URL_MAP="Qwen/Qwen3.5-35B-A3B=http://both/v1",
