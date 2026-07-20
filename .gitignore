@@ -15,6 +15,19 @@ build/
 
 # ── Training / co-evolution outputs ─────────────────────────────
 runs/
+.cache/
+artifacts/
+cold_start/
+SFT_Data/
+labeling/gpt54_skill_labeled/
+labeling/gpt54_skillbank/
+b2_artifacts_manifest.tsv
+b2_artifacts_failures.tsv
+b2_p1_evidence_manifest.tsv
+b2_p1_evidence_failures.tsv
+b2_p1_evidence_GAPS.txt
+b2_megaskill_manifest.tsv
+b2_megaskill_failures.tsv
 wandb/
 *.ckpt
 *.safetensors

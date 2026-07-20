@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import json
 import logging
 import os
@@ -100,6 +101,13 @@ def parse_args() -> argparse.Namespace:
         help="Subset of games to include in training data",
     )
     p.add_argument(
+        "--require_source_only_manifest", type=str, default=None,
+        help=(
+            "Fail unless this manifest proves source_only=true, zero target "
+            "examples/updates, and hashes every decision JSONL input."
+        ),
+    )
+    p.add_argument(
         "--parallel", action="store_true", default=False,
         help="Train adapters in parallel, one per GPU",
     )
@@ -147,7 +155,7 @@ def parse_args() -> argparse.Namespace:
         "--no_gradient_checkpointing", dest="gradient_checkpointing",
         action="store_false",
         help=(
-            "Disable activation checkpointing — buys ~30-40 % throughput "
+            "Disable activation checkpointing — buys ~30-40 %% throughput "
             "but requires either smaller bs or multi-GPU per adapter "
             "(``--gpus_per_adapter 2+``)."
         ),
@@ -266,6 +274,35 @@ def format_for_sft(examples: list, tokenizer) -> list:
             text = f"{prompt}\n{completion}"
         formatted.append({"text": text})
     return formatted
+
+
+def _validate_source_only_manifest(path: str, decision_data_dir: str) -> str:
+    manifest_path = Path(path).resolve()
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    checks = {
+        "source_only": payload.get("source_only") is True,
+        "target_examples": int(payload.get("target_examples", -1)) == 0,
+        "target_gradient_updates": int(payload.get("target_gradient_updates", -1)) == 0,
+        "semantic_clustering": payload.get("semantic_clustering") is False,
+    }
+    if not all(checks.values()):
+        raise ValueError(f"source-only manifest invariant failed: {checks}")
+    root = Path(decision_data_dir).resolve()
+    output_hashes = dict(payload.get("output_sha256") or {})
+    if not output_hashes:
+        raise ValueError("source-only manifest has no output hashes")
+    for relative, expected in output_hashes.items():
+        input_path = root / str(relative)
+        if not input_path.is_file():
+            raise FileNotFoundError(f"manifested SFT input missing: {input_path}")
+        actual = hashlib.sha256(input_path.read_bytes()).hexdigest()
+        if actual != str(expected):
+            raise ValueError(f"source-only SFT input hash mismatch: {input_path}")
+    digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    os.environ["SFT_SOURCE_ONLY_MANIFEST"] = str(manifest_path)
+    os.environ["SFT_SOURCE_ONLY_MANIFEST_SHA256"] = digest
+    logger.info("Verified source-only SFT manifest %s (%s)", manifest_path, digest)
+    return digest
 
 
 def train_single_adapter(
@@ -401,8 +438,17 @@ def train_single_adapter(
 
     trainer.train()
 
-    peft_model.save_pretrained(out_str)
+    # PEFT >=0.19 writes a named adapter below ``save_directory/name``.
+    # Saving to ``output_path`` would therefore create
+    # ``decision/action_taking/action_taking`` while vLLM expects the exact
+    # ``decision/action_taking`` layout. Save at the group parent and assert
+    # the production-facing files exist.
+    peft_model.save_pretrained(
+        str(output_path.parent), selected_adapters=[adapter_name],
+    )
     tokenizer.save_pretrained(out_str)
+    if not (output_path / "adapter_config.json").is_file():
+        raise RuntimeError(f"PEFT adapter layout mismatch: {output_path}")
 
     meta = {
         "adapter_name": adapter_name,
@@ -416,6 +462,10 @@ def train_single_adapter(
         "epochs": params["epochs"],
         "lr": params["lr"],
         "training_type": "sft_coldstart",
+        "source_only_manifest": os.environ.get("SFT_SOURCE_ONLY_MANIFEST"),
+        "source_only_manifest_sha256": os.environ.get("SFT_SOURCE_ONLY_MANIFEST_SHA256"),
+        "target_examples": 0 if os.environ.get("SFT_SOURCE_ONLY_MANIFEST") else None,
+        "target_gradient_updates": 0 if os.environ.get("SFT_SOURCE_ONLY_MANIFEST") else None,
     }
     with open(output_path / "adapter_meta.json", "w") as f:
         json.dump(meta, f, indent=2)
@@ -634,6 +684,8 @@ def train_all_adapters(config=None, gpu: Optional[int] = None, **kwargs) -> dict
             "lora_r": config.lora_r,
             "lora_alpha": config.lora_alpha,
             "target_modules": config.resolve_target_modules(),
+            "source_only_manifest": os.environ.get("SFT_SOURCE_ONLY_MANIFEST"),
+            "source_only_manifest_sha256": os.environ.get("SFT_SOURCE_ONLY_MANIFEST_SHA256"),
         }, f, indent=2)
 
     return results
@@ -669,11 +721,34 @@ def _print_progress(processes: list, t0: float):
     logger.info("  ".join(parts))
 
 
+def _map_visible_gpu_tokens(
+    logical_ids: List[int], *, inherited: Optional[str],
+) -> str:
+    """Map logical slots through a Slurm/container visibility mask.
+
+    A job step allocated physical GPUs 2-3 commonly enters Python with
+    ``CUDA_VISIBLE_DEVICES=2,3`` while the launcher CLI still names its two
+    usable logical slots as ``--gpus 0 1``.  Replacing the mask with ``0``
+    or ``1`` would escape the step allocation.  Preserve the inherited
+    physical/UUID tokens whenever the requested IDs are valid logical slots.
+    """
+    tokens = [item.strip() for item in str(inherited or "").split(",") if item.strip()]
+    if tokens and all(0 <= item < len(tokens) for item in logical_ids):
+        return ",".join(tokens[item] for item in logical_ids)
+    if tokens and all(str(item) in tokens for item in logical_ids):
+        return ",".join(str(item) for item in logical_ids)
+    if tokens:
+        raise ValueError(
+            f"GPU IDs {logical_ids} escape inherited CUDA_VISIBLE_DEVICES={inherited}"
+        )
+    return ",".join(str(item) for item in logical_ids)
+
+
 def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> dict:
     """Launch one subprocess per adapter, each pinned to a chunk of GPUs.
 
     With ``gpus_per_adapter == 1`` (default) each adapter gets one GPU
-    and one ``python -m trainer.SFT.train --gpu <id>`` subprocess.
+    through a subprocess-local ``CUDA_VISIBLE_DEVICES`` mapping.
 
     With ``gpus_per_adapter > 1`` GPUs are grouped into contiguous
     chunks of that size and each adapter gets one chunk; the
@@ -835,18 +910,14 @@ def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> di
             cmd += ["--main_process_port", str(29500 + chunk[0])]
         cmd += script_invocation
         cmd += shared_args + ["--adapters"] + adapter_list
-        # Single-GPU path keeps the legacy ``--gpu N`` flag for log
-        # discoverability; multi-GPU path lets accelerate handle pinning
-        # via CUDA_VISIBLE_DEVICES (the ``--gpu`` flag would conflict).
-        if gpa == 1:
-            cmd += ["--gpu", str(chunk[0])]
-
         chunk_label = "_".join(map(str, chunk))
         log_path = Path(config.output_dir) / f"sft_chunk_{chunk_label}.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         env = os.environ.copy()
-        env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, chunk))
+        env["CUDA_VISIBLE_DEVICES"] = _map_visible_gpu_tokens(
+            chunk, inherited=os.environ.get("CUDA_VISIBLE_DEVICES"),
+        )
 
         logger.info(
             "Launching GPUs %s (n=%d) for adapter(s) %s → %s",
@@ -915,6 +986,8 @@ def _train_parallel(config, gpu_ids: List[int], gpus_per_adapter: int = 1) -> di
             "lora_r": config.lora_r,
             "lora_alpha": config.lora_alpha,
             "target_modules": config.resolve_target_modules(),
+            "source_only_manifest": os.environ.get("SFT_SOURCE_ONLY_MANIFEST"),
+            "source_only_manifest_sha256": os.environ.get("SFT_SOURCE_ONLY_MANIFEST_SHA256"),
         }, f, indent=2)
 
     return results
@@ -931,6 +1004,14 @@ def _detect_gpu_count() -> int:
 
 def main():
     args = parse_args()
+    if args.require_source_only_manifest:
+        _validate_source_only_manifest(
+            args.require_source_only_manifest,
+            args.decision_data_dir or str(
+                __import__("trainer.SFT.config", fromlist=["DEFAULT_DECISION_DATA_DIR"])
+                .DEFAULT_DECISION_DATA_DIR
+            ),
+        )
     config = _build_config(args)
 
     if args.parallel:
@@ -950,7 +1031,10 @@ def main():
             "Parallel mode: %d adapters across GPUs %s (gpus_per_adapter=%d)",
             len(adapters), gpu_ids, gpa,
         )
-        _train_parallel(config, gpu_ids, gpus_per_adapter=gpa)
+        results = _train_parallel(config, gpu_ids, gpus_per_adapter=gpa)
+        missing = sorted(set(adapters) - set(results))
+        if missing:
+            raise SystemExit(f"parallel SFT failed or skipped adapters: {missing}")
     else:
         train_all_adapters(config, gpu=args.gpu)
 

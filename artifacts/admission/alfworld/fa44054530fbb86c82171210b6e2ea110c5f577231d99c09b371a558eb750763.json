@@ -1,0 +1,53 @@
+{
+  "admitted_candidate_id": null,
+  "artifact_hash": "fa44054530fbb86c82171210b6e2ea110c5f577231d99c09b371a558eb750763",
+  "candidate_ids": [
+    "sokoban-setup-to-alfworld-open-v1"
+  ],
+  "demo_hash": "c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1",
+  "demo_id": "alfworld-pick-and-place-train-seed42-v2-shot0",
+  "failure_codes": [
+    "CANDIDATE_FAILED:sokoban-setup-to-alfworld-open-v1"
+  ],
+  "proof_trace": [
+    {
+      "check": "source_program_verified",
+      "pass": true,
+      "program_hash": "410d935940a8dd11a2240cbfd9d0177531dca188fd78bd32f0309059e9f21ec0"
+    },
+    {
+      "check": "one_fixed_real_demo",
+      "demo_hash": "c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1",
+      "pass": true
+    },
+    {
+      "check": "official_target_success",
+      "pass": true,
+      "score": 1.0
+    },
+    {
+      "candidate_id": "sokoban-setup-to-alfworld-open-v1",
+      "check": "candidate_binding",
+      "details": {
+        "operator_and_types": false,
+        "program_hash": true,
+        "program_id": true,
+        "source_effect_verified": false,
+        "source_step": true,
+        "source_target_effect_exact": true,
+        "target_domain": true,
+        "target_schema_supported": true,
+        "task_family": true
+      },
+      "pass": false,
+      "proposal_source_untrusted": "preregistered_source_semantics_untrusted"
+    }
+  ],
+  "schema_version": 1,
+  "source_program_hash": "410d935940a8dd11a2240cbfd9d0177531dca188fd78bd32f0309059e9f21ec0",
+  "source_program_id": "source.sokoban.507ca21214157b8b",
+  "status": "REJECTED",
+  "target_domain": "alfworld",
+  "task_family": "pick_and_place",
+  "verified_scope": null
+}
