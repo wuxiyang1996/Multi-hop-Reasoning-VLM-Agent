@@ -155,7 +155,7 @@ def parse_args() -> argparse.Namespace:
         "--no_gradient_checkpointing", dest="gradient_checkpointing",
         action="store_false",
         help=(
-            "Disable activation checkpointing — buys ~30-40 % throughput "
+            "Disable activation checkpointing — buys ~30-40 %% throughput "
             "but requires either smaller bs or multi-GPU per adapter "
             "(``--gpus_per_adapter 2+``)."
         ),
