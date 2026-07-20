@@ -7,6 +7,8 @@ from harness.frozen_transfer_policy import (
     parse_exact_numbered_response,
 )
 from scripts.eval_principled_alfworld import _choose_action
+from scripts.eval_principled_alfworld import _official_won
+from scripts.aggregate_principled_alfworld import _require_error_free
 
 
 @pytest.mark.parametrize("value", ["ACTION: 2", " action: 2\n"])
@@ -61,3 +63,15 @@ def test_endpoint_failure_is_not_counted_as_model_abstention() -> None:
             admissible=["look"],
             recent_actions=[],
         )
+
+
+def test_only_official_won_counts_as_success() -> None:
+    assert _official_won({"won": [True]}) is True
+    assert _official_won({"won": [False], "raw_env_reward": 1.0}) is False
+    assert _official_won({}) is False
+
+
+def test_aggregation_rejects_any_endpoint_error() -> None:
+    rows = [{"error": None}, {"error": "POLICY_ERROR:ACTION_ENDPOINT_FAILURE"}]
+    with pytest.raises(RuntimeError, match="evaluation errors in base/eval"):
+        _require_error_free(rows, condition="base", split="eval")

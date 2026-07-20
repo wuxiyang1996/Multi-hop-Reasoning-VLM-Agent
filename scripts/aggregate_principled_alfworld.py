@@ -98,6 +98,18 @@ def _summarize(rows: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
     }
 
 
+def _require_error_free(
+    rows: Sequence[Mapping[str, Any]], *, condition: str, split: str,
+) -> None:
+    failures = [row for row in rows if row.get("error") is not None]
+    if failures:
+        examples = [str(row.get("error")) for row in failures[:3]]
+        raise RuntimeError(
+            f"evaluation errors in {condition}/{split}: "
+            f"{len(failures)} row(s); examples={examples}"
+        )
+
+
 def _comparison(
     index: Mapping[tuple[str, str], Mapping[int, Mapping[str, Any]]],
     *, a: str, b: str, splits: Sequence[str], seed: int,
@@ -174,6 +186,7 @@ def aggregate(run_root: Path, spec_path: Path) -> Dict[str, Any]:
                 raise RuntimeError(
                     f"incomplete cell {condition}/{split}: {len(rows)} != {expected_n}"
                 )
+            _require_error_free(rows, condition=condition, split=split)
             by_id = {int(row["global_episode_index"]): row for row in rows}
             if len(by_id) != expected_n or set(by_id) != set(range(expected_n)):
                 raise RuntimeError(f"duplicate/missing episode indices: {condition}/{split}")

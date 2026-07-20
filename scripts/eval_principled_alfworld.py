@@ -59,8 +59,9 @@ def _first(value: Any) -> Any:
     return value
 
 
-def _official_won(info: Dict[str, Any], score: float) -> bool:
-    return bool(_first(info.get("won"))) or float(score) >= 1.0
+def _official_won(info: Dict[str, Any]) -> bool:
+    """Return ALFWorld's official terminal success bit and nothing else."""
+    return bool(_first(info.get("won")))
 
 
 def _task_identity(info: Dict[str, Any], episode_id: str) -> str:
@@ -226,7 +227,7 @@ def run_shard(args: argparse.Namespace) -> Dict[str, Any]:
             score = 0.0
             terminated = False
             truncated = False
-            success = _official_won(info, score)
+            success = _official_won(info)
             error = None
             abstain_reason = None
             while not (success or terminated or truncated) and len(actions) < args.max_steps:
@@ -254,7 +255,7 @@ def run_shard(args: argparse.Namespace) -> Dict[str, Any]:
                 observation, reward, terminated, truncated, info = env.step(action)
                 actions.append(action)
                 score = max(score, float(reward))
-                success = _official_won(info, score)
+                success = _official_won(info)
             rows.append({
                 "global_episode_index": global_index,
                 "episode_id": episode_id,
