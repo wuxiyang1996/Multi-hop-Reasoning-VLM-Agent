@@ -23,6 +23,8 @@ REPO_ROOT="${REPO_ROOT:-${SLURM_SUBMIT_DIR}}"
 SPEC="${SPEC:-${REPO_ROOT}/configs/principled_alfworld_2x4_experiment.json}"
 RUN_DIR="${RUN_DIR:-${REPO_ROOT}/runs/principled_alfworld_2x4_${SLURM_JOB_ID}}"
 SHARED_HF_HOME="${SHARED_HF_HOME:-/fs/gamma-projects/vlm-robot/hf_cache}"
+SOURCE_EPISODE_ROOT="${SOURCE_EPISODE_ROOT:-/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/labeling/gpt54_skill_labeled}"
+ALFWORLD_DATA_ROOT="${ALFWORLD_DATA_ROOT:-/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data}"
 TRAIN_ENV="${TRAIN_ENV:-cosplay-candy-a100}"
 ALFWORLD_ENV="${ALFWORLD_ENV:-/fs/gamma-projects/vlm-robot/conda/envs/alfworld}"
 MODEL="${MODEL:-Qwen/Qwen3.5-9B}"
@@ -37,6 +39,10 @@ EMPTY_ADAPTER_DIR="${RUN_DIR}/empty_adapters"
 
 if [[ ! -f "${SPEC}" || ! -f "${ADMISSION_MANIFEST}" || ! -x "${REPO_ROOT}/scripts/eval_principled_alfworld.py" ]]; then
     echo "ERROR: repository or frozen experiment inputs are incomplete: ${REPO_ROOT}" >&2
+    exit 2
+fi
+if [[ ! -d "${SOURCE_EPISODE_ROOT}" || ! -d "${ALFWORLD_DATA_ROOT}/json_2.1.1" ]]; then
+    echo "ERROR: immutable source episodes or ALFWorld data are missing" >&2
     exit 2
 fi
 if [[ -e "${RUN_DIR}" ]]; then
@@ -67,11 +73,14 @@ PROPOSER_URL="http://${TRAIN_NODE}:8004/v1"
 echo "experiment=${SPEC}"
 echo "run_dir=${RUN_DIR}"
 echo "rollout_node=${ROLLOUT_NODE} train_node=${TRAIN_NODE}"
+echo "source_episode_root=${SOURCE_EPISODE_ROOT}"
+echo "alfworld_data_root=${ALFWORLD_DATA_ROOT}"
 
 # Freeze audit: the batch refuses to start if any preregistered byte drifted.
 python -c 'import json,sys; from pathlib import Path; sys.path.insert(0, sys.argv[1]); from scripts.aggregate_principled_alfworld import _verify_frozen_inputs; _verify_frozen_inputs(json.loads(Path(sys.argv[2]).read_text())); print("frozen inputs verified")' "${REPO_ROOT}" "${SPEC}"
 python "${REPO_ROOT}/scripts/replay_source_programs.py" \
     --programs "${REPO_ROOT}/artifacts/source_evidence_index/source_programs.jsonl" \
+    --source-root "${SOURCE_EPISODE_ROOT}" \
     --output "${RUN_DIR}/source_replay_receipts.jsonl" \
     >"${RUN_DIR}/logs/source_replay.log" 2>&1
 
@@ -169,7 +178,7 @@ run_eval_group() {
                 mkdir -p "${out_dir}"
                 srun --overlap --exact -N1 -n1 -c1 -w "${ROLLOUT_NODE}" \
                     env REPO_ROOT="${REPO_ROOT}" ALFWORLD_ENV="${ALFWORLD_ENV}" \
-                        ALFWORLD_DATA="${REPO_ROOT}/.cache/alfworld_data" \
+                        ALFWORLD_DATA="${ALFWORLD_DATA_ROOT}" \
                     bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$ALFWORLD_ENV"; cd "$REPO_ROOT"; exec python scripts/eval_principled_alfworld.py "$@"' runner \
                         --condition "${condition}" --split "${split}" \
                         --episodes "${episodes}" --max-steps 50 --seed 91000 \
