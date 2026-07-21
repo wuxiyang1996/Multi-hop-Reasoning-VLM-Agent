@@ -243,19 +243,6 @@ GAME_CONFIGS: Dict[str, GameConfig] = {
         setup_difficulty="medium",
     ),
 
-    # ── OSWorld (desktop automation benchmark) ──────────────────────────
-    "osworld": GameConfig(
-        name="osworld",
-        display_name="OSWorld",
-        category="desktop",
-        max_steps=15,
-        episodes=1,
-        description="Open-ended desktop automation tasks in real Ubuntu/Windows VMs",
-        notes="Requires OSWorld (pip install desktop-env) + VM provider (vmware/docker/aws). "
-              "369 tasks across LibreOffice, Firefox, GIMP, VLC, Thunderbird, VS Code, etc.",
-        setup_difficulty="medium",
-    ),
-
     # ── Zoo (multi-agent) games ─────────────────────────────────────────
     "tictactoe": GameConfig(
         name="tictactoe",

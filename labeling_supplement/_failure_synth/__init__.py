@@ -31,15 +31,16 @@ from typing import Callable, Dict, List
 
 from data_structure.extensions.failure_trace import FailureTrace
 
+from labeling_supplement._failure_synth import alfworld as _alfworld
 from labeling_supplement._failure_synth import visual_reasoning as _vr
 
 SynthFn = Callable[..., List[FailureTrace]]
 
 DOMAIN_SYNTHESIZERS: Dict[str, SynthFn] = {
+    "alfworld": _alfworld.from_sample,
     "visual_reasoning": _vr.from_sample,
     # Future: "browser": _browser.from_episode,
     #         "video":   _video.from_sample,
-    #         "osworld": _osworld.from_episode,
 }
 
 

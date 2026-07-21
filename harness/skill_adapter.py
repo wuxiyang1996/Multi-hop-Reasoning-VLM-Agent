@@ -55,7 +55,7 @@ class AdapterRunResult:
 class SkillAdapter(ABC):
     """Domain-specific executor for a `SkillRecord`."""
 
-    #: Unique name (e.g. "gymv", "browser", "osworld"); also the domain key.
+    #: Unique name (e.g. "gymv", "browser", "alfworld"); also the domain key.
     name: str = ""
     #: Which `SkillType`s this adapter can execute.
     supported_types: tuple[SkillType, ...] = (SkillType.ACTION, SkillType.MIXED)

@@ -1,7 +1,7 @@
 """Shared boilerplate for transfer-target adapters.
 
 PLAN-HARNESS §5.4 — adapters are the only place that talk to a concrete
-env / tool surface. The four non-game adapters (`browser`, `osworld`,
+env / tool surface. The active non-game adapters (`browser`, `alfworld`,
 `video`, `visual_reasoning`) all share the same hop-loop scaffolding:
 walk `skill.protocol`, resolve slots, call a pluggable executor, honor
 budget. We factor that loop here so each transfer-target adapter only
@@ -157,6 +157,7 @@ class StubTransferTargetAdapter(SkillAdapter):
         steps: List[Dict[str, Any]] = []
         evidence: List[EvidenceRef] = []
         executor = self._executor if not ctx.dry_run else self._default_executor()
+        last_hop_result: Dict[str, Any] = {}
 
         for i, hop in iter_hops(skill):
             abort = budget.check(i)
@@ -184,6 +185,7 @@ class StubTransferTargetAdapter(SkillAdapter):
                     steps=steps,
                     new_evidence=evidence,
                 )
+            last_hop_result = hop_result
             step_evidence: List[EvidenceRef] = list(hop_result.get("evidence", []))
             evidence.extend(step_evidence)
             steps.append(
@@ -191,7 +193,7 @@ class StubTransferTargetAdapter(SkillAdapter):
                     "action_type": action_type,
                     "payload": payload,
                     "pre_state": ctx.state.to_json() if i == 0 else None,
-                    "post_state": None,
+                    "post_state": hop_result.get("post_state"),
                     "evidence": step_evidence,
                     # Day-7d: surface the directional split when the
                     # executor emits it (deterministic stub does so
@@ -216,10 +218,14 @@ class StubTransferTargetAdapter(SkillAdapter):
         return AdapterRunResult(
             success=True,
             contract_satisfied=True,
-            final_state=ctx.state,
+            final_state=last_hop_result.get("_final_state") or ctx.state,
             steps=steps,
             new_evidence=evidence,
-            score=1.0,
+            answer=last_hop_result.get("answer"),
+            score=float(
+                1.0 if last_hop_result.get("score") is None
+                else last_hop_result["score"]
+            ),
             cost={
                 "hops": float(len(steps)),
                 "ms": (time.time() - budget.started_at) * 1000,

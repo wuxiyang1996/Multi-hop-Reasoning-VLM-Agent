@@ -49,7 +49,7 @@ The lifecycle manager validates these on **every** transition. Failures raise `L
 | 1 | **G0 evidence-driven** — `expected_evidence_roles` non-empty for ACTIVE promotion | `_validate_invariants` on transition into `ACTIVE` / `PROVISIONAL` / `SHADOW` |
 | 3 | **General protocol** — `len(feasible_domains) ≥ 2` for any active state | same |
 | 5 | **Gate-bound** — promotion to ACTIVE requires a passing `GateVerdictPayload` and matching `content_hash` | `promote(plan)` rejects FAIL verdicts and content-hash drift; refuses ACTIVE on `LIMITED_PASS` |
-| 7 | **Source/transfer asymmetry** — every ACTIVE skill has ≥1 entry from `SOURCE_DOMAINS` (`{gymv}`) **and** ≥1 from `TRANSFER_TARGET_DOMAINS` (`{browser, osworld, video, visual_reasoning}`) | `_validate_invariants` on ACTIVE promotion |
+| 7 | **Source/transfer asymmetry** — every ACTIVE skill has ≥1 entry from `SOURCE_DOMAINS` (`{gymv}`) **and** ≥1 from `TRANSFER_TARGET_DOMAINS` (`{browser, alfworld, video, visual_reasoning}`) | `_validate_invariants` on ACTIVE promotion |
 | 8 | **`verified_domains` is gate-owned** — only `record_transfer_verification(skill_id, eligible_domains, gate_verdict_payload)` may mutate `verified_domains` / `adapter_history`. Any other write path is forbidden | The method itself; `PromotionOrchestrator._record_transfer_verifications` is the only caller |
 
 The lifecycle manager also enforces the bank-write isolation invariant (#4) via `SkillStore`'s `_locked` sentinel — direct `store.put(...)` from any other module raises `StoreLockedError`.

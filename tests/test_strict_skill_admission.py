@@ -8,6 +8,7 @@ import pytest
 from harness.alfworld_grammar import parse_alfworld_action
 from harness.alfworld_demo_recorder import AlfworldDemoRecorder
 from harness.frozen_transfer_policy import FrozenAdmissionGuard, FrozenBinding
+from harness.capability_gaps import build_capability_report
 import harness.skill_admission as admission_module
 from harness.skill_admission import (
     AdmissionStatus,
@@ -174,6 +175,30 @@ def test_runtime_checks_target_native_pattern_without_semantic_predicate() -> No
     )
     assert passed is False
     assert reason == "TARGET_NATIVE_TRANSITION_PATTERN_MISMATCH"
+
+
+def test_capability_report_marks_selection_and_unimplemented_gaps() -> None:
+    program = _program()
+    candidate = _candidate(program)
+    demo = _demo()
+    artifact = StrictOneShotAdmission().admit(
+        program=program, candidates=[candidate], demo=demo
+    )
+    report = build_capability_report(
+        proposal_metadata={"candidate_source": "independent_untrusted_agents"},
+        selections=[(program, [candidate], artifact)],
+        demo=demo,
+    )
+    assert report["report_role"] == "claim_boundary_only_never_verdict"
+    assert report["selected_game_skills"][0]["source_program_id"] == program.program_id
+    assert "agent_game_skill_selection" in report["implemented"]
+    assert "source_multistep_control_program" in report["gaps"]
+    assert "counterfactual_intervention_verification" in report["gaps"]
+    assert "multistep_target_binding" in report["gaps"]
+    assert all(
+        item["affects_admission_verdict"] is False
+        for item in report["capabilities"]
+    )
 
 
 def test_frozen_artifact_loader_rejects_tampering() -> None:

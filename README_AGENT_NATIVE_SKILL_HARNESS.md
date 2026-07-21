@@ -1,5 +1,11 @@
 # Agent-proposed、Target-native Skill Harness
 
+> 多步 source reasoning backbone、证据分层、不可识别边界及 OpenRouter 35B smoke
+> 结果见
+> [`README_NON_HEURISTIC_REASONING_BACKBONE.md`](README_NON_HEURISTIC_REASONING_BACKBONE.md)。
+> v3 的实现状态、环境 replay 边界和 2×4 前置验收见
+> [`README_HARNESS_V3_EXECUTION_PLAN.md`](README_HARNESS_V3_EXECUTION_PLAN.md)。
+
 本文取代“人工 source predicate 对齐 target operator”的实验路径。核心问题不再是
 `COLLECT 是否等于 TAKE`，而是：一个从游戏轨迹得到的程序骨架，经独立 Agent
 提出 target 实例候选后，能否通过一条固定 target demonstration 的原生执行证据，
@@ -185,3 +191,55 @@ freeze source receipts + v3 target demo
 
 旧 v1 admission artifacts 和旧 binding config 只保留作历史 smoke test，不能与 v2
 结果混合。
+
+## 9. Game skill selection 与 capability/gap manifest
+
+Harness 把“选择”和“证明”严格分开：
+
+```text
+Agent valid non-ABSTAIN output
+→ selected game-skill proposal
+→ retain every candidate (no rank / threshold / vote)
+→ target-native admission
+```
+
+`selected_game_skills` 为每个选择保存 source program/hash、legacy trace label、Agent
+roles、candidate target operators 和 admission status。Legacy label 只用于找到原始
+record，不作为语义证据，而且正式 Agent prompt 看不到它。
+
+每次 admission manifest 还必须包含 `capability_report`：
+
+```text
+IMPLEMENTED
+PARTIAL
+NOT_IMPLEMENTED
+UNVERIFIABLE_WITH_CURRENT_DATA
+```
+
+每项都携带 machine-readable evidence、claim limit 和：
+
+```text
+affects_admission_verdict = false
+```
+
+因此 gap 不能降低门槛、给候选加分或改变 verdict，只用于阻止论文和实验跨越当前
+实现边界。当前真实 OpenRouter smoke 标记：
+
+```text
+IMPLEMENTED:
+  agent_game_skill_selection
+  source_program_receipt_identity
+  target_native_one_shot_admission
+
+NOT IMPLEMENTED / UNVERIFIABLE:
+  source_multistep_control_program
+  source_skill_boundary_proof
+  source_reasoning_event_instrumentation
+  counterfactual_intervention_verification
+  multistep_target_binding
+  runtime_proposal_set_consensus
+  target_native_same_demo_baseline
+```
+
+Schema 实现在 `harness/capability_gaps.py`；报告由
+`scripts/admit_alfworld_one_shot.py` 自动写入 frozen admission manifest。

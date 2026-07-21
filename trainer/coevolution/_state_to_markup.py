@@ -2,7 +2,8 @@
 
 Goal
 ----
-Every domain we train/eval on (gymv, gamingagent, osworld, browsergym, orak)
+Every active domain we train/eval on (gymv, gamingagent, browsergym,
+ALFWorld, visual/video reasoning)
 ships its own ``info["structured_state"]`` shape — when it ships one at all.
 This module produces a *single* canonical ``<state>...</state>`` markup
 string from any of those shapes so that:
@@ -27,8 +28,8 @@ Per-domain coverage today
                          entities, available_actions)
 * ``gamingagent``:    rich (board, max_tile, empty, merges, phase,
                          affordance) — 2048 / candy_crush / tetris
-* ``osworld``:        moderate (a11y-derived screen_regions,
-                         ui_element_count, terminal, has_dialog)
+* ``alfworld``:       moderate (text observation, admissible household
+                         commands, completion state)
 * ``browsergym``:     defers to
                          :func:`browsergym_wrapper.heuristic.obs_to_schema`
                          which already emits canonical markup
@@ -189,6 +190,11 @@ def state_to_markup(
             )
         if env_name == "gamingagent":
             return _render_gamingagent(
+                obs_nl=obs_nl, info=info, game=game,
+                step=step, max_entities=max_entities,
+            )
+        if env_name == "alfworld":
+            return _render_alfworld(
                 obs_nl=obs_nl, info=info, game=game,
                 step=step, max_entities=max_entities,
             )
@@ -825,6 +831,50 @@ def _render_osworld(
         relations=relations,
         constraint=(_short(instruction, 120) if instruction else None),
         afford_flavour="desktop",
+    )
+
+
+def _render_alfworld(
+    *, obs_nl: str, info: Dict[str, Any], game: str,
+    step: int, max_entities: int,
+) -> str:
+    """Render the active ALFWorld text state into canonical markup."""
+    ss: Dict[str, Any] = info.get("structured_state") or {}
+    observation = str(ss.get("observation") or obs_nl or "").strip()
+    commands = [
+        str(command) for command in (
+            ss.get("admissible_commands") or info.get("action_names") or []
+        )
+    ]
+    entities: List[_Entity] = [
+        _Entity(
+            eid="e1", type="region", label="household_environment",
+            ontology="navigable_region",
+        ),
+        _Entity(
+            eid="e2", type="text", label="observation",
+            ontology="textual_anchor", value=_short(observation, 240),
+        ),
+    ][:max_entities]
+    state_flags = {
+        "scene_type": "household_task",
+        "task_status": "success" if ss.get("won") else "in_progress",
+    }
+    if ss.get("last_action"):
+        state_flags["last_action"] = _short(str(ss["last_action"]), 80)
+    candidate_set = [entity.eid for entity in entities]
+    return _render_state_block(
+        domain="alfworld",
+        task=_format_task("raw", game),
+        goal=_short(observation, 200) or f"Complete the household task: {game}.",
+        step=step,
+        entities=entities,
+        state_flags=state_flags,
+        target_eid="e1" if entities else None,
+        blocker_eid=None,
+        candidate_set=candidate_set,
+        actions=commands[:8],
+        afford_flavour="game",
     )
 
 

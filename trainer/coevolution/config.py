@@ -377,6 +377,10 @@ class CoEvolutionConfig:
     eval_games: List[str] = field(default_factory=lambda: list(EVAL_ONLY_GAMES))
     episodes_per_game: int = 8
     eval_episodes_per_game: int = 3
+    # Opt-in source evidence instrumentation. It never changes reward or
+    # admission. A seed base makes episode i request seed base+i.
+    record_source_reasoning_events: bool = False
+    source_episode_seed_base: Optional[int] = None
 
     # ── Unified multi-role rollout mode ──────────────────────────
     # When True, per-game episode counts follow ``episodes_per_game_overrides``.
@@ -540,7 +544,7 @@ class CoEvolutionConfig:
     crafter_transfer_gate_enabled: bool = False
     # Target corpora the matrix driver evaluates against. Subset of
     # the canonical Stage-6 cluster set (video / visual_reasoning /
-    # osworld / browser). Empty list disables the gate at runtime
+    # alfworld / browser). Empty list disables the gate at runtime
     # without flipping the master flag.
     crafter_transfer_targets: Tuple[str, ...] = ("video", "visual_reasoning")
     # ``(lower, upper)`` admit-rate band per §11.5.4 of the cross-
@@ -582,7 +586,7 @@ class CoEvolutionConfig:
     # Typically the full canonical Stage-6 set so the wandb dashboard
     # shows complete G3-G5 verdicts.
     crafter_dashboard_targets: Tuple[str, ...] = (
-        "video", "visual_reasoning", "osworld", "browser",
+        "video", "visual_reasoning", "alfworld", "browser",
     )
     # Forwarded to ``_phase4_transfer_matrix.py --max-skills``.
     crafter_dashboard_max_skills_per_cell: int = 5
@@ -801,7 +805,7 @@ class CoEvolutionConfig:
     # hard-coded ``domain_for_proposal = "gymv"`` because the
     # trainer's ``EpisodeResult`` shape is gymv-specific (board_stats,
     # skill_id-per-step, etc.).  When the trainer drives a transfer
-    # target (VR, video, browser, osworld), each ``EpisodeResult``
+    # target (VR, video, browser, ALFWorld), each ``EpisodeResult``
     # additionally carries a ``raw_sample`` dict (the cold-start
     # per-sample JSON) and a ``domain`` string.  ``_crafter_hook``
     # then routes through ``labeling_supplement._failure_synth.

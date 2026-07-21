@@ -8,9 +8,13 @@ Transfer-target domains (PLAN-COMPONENTS-IMPLEMENTATION §4 Phase A.5 /
 Phase D — the few-shot transfer arenas that earn `verified_domains`
 entries through PLAN-UNIFIED-SKILL-GATE Stage 3a):
   - `browser` — webagent
-  - `osworld` — os-agent
+  - `alfworld` — embodied text household tasks
   - `video` — short-video evidence-grounded reasoning (first transfer arena)
   - `visual_reasoning` — image-QA / visual reasoning
+
+Isolated compatibility domain:
+  - `osworld` — desktop/GUI code remains explicitly importable but is not
+    registered or evaluated by the active transfer pipeline.
 
 Each adapter is deliberately thin: it translates
 `SkillRecord.protocol` hops into adapter-native tool calls and returns
@@ -19,16 +23,16 @@ depend on it via late imports so the harness package can be imported
 (and tested) without those heavy deps installed.
 """
 
+from harness.adapters.alfworld_adapter import AlfworldAdapter
 from harness.adapters.browser_adapter import BrowserAdapter
 from harness.adapters.gymv_adapter import GymvAdapter
-from harness.adapters.osworld_adapter import OsworldAdapter
 from harness.adapters.video_adapter import VideoAdapter
 from harness.adapters.visual_reasoning_adapter import VisualReasoningAdapter
 
 __all__ = [
     "BrowserAdapter",
+    "AlfworldAdapter",
     "GymvAdapter",
-    "OsworldAdapter",
     "VideoAdapter",
     "VisualReasoningAdapter",
 ]

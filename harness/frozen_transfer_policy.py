@@ -45,16 +45,24 @@ def action_prompt(
     observation: str,
     actions: Sequence[str],
     active_skill: str | None = None,
+    source_conditioning: Sequence[Mapping[str, Any]] = (),
     recent_actions: Sequence[str] = (),
 ) -> str:
     numbered = "\n".join(f"{index}. {value}" for index, value in enumerate(actions, 1))
     skill_line = f"\nVerified active source skill: {active_skill}" if active_skill else ""
+    conditioning_line = (
+        "\nUntrusted source-side conditioning receipts (no target semantics are "
+        "asserted):\n" + json.dumps(
+            list(source_conditioning), sort_keys=True, ensure_ascii=False,
+        )
+        if source_conditioning else ""
+    )
     recent = " -> ".join(recent_actions[-6:]) or "none"
     return (
         "You choose one action from an exact environment-provided list. "
         "Never invent, rewrite, or partially match a command.\n"
         f"Domain: {domain}\nGoal/initial context:\n{goal[:3000]}\n"
-        f"Current observation:\n{observation[:3000]}{skill_line}\n"
+        f"Current observation:\n{observation[:3000]}{skill_line}{conditioning_line}\n"
         f"Recent exact actions: {recent}\n"
         "Available actions (pick ONE by number):\n"
         f"{numbered}\n"
@@ -222,12 +230,20 @@ class FrozenAdmissionGuard:
 
 
 class StrictOpenAIClient:
-    def __init__(self, base_url: str, *, timeout_s: float = 120.0) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        timeout_s: float = 120.0,
+        api_key: str = "EMPTY",
+    ) -> None:
         import httpx
 
         self.base_url = base_url.rstrip("/")
         if not self.base_url.endswith("/v1"):
             self.base_url += "/v1"
+        self.api_key = str(api_key or "EMPTY")
+        self._is_openrouter = "openrouter.ai" in self.base_url.lower()
         self._client = httpx.Client(timeout=timeout_s)
 
     def close(self) -> None:
@@ -235,17 +251,23 @@ class StrictOpenAIClient:
 
     def complete(self, *, model: str, prompt: str, max_tokens: int = 48) -> tuple[str, Dict[str, Any]]:
         started = time.monotonic()
+        request = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.0,
+            "top_p": 1.0,
+            "max_tokens": max_tokens,
+        }
+        if not self._is_openrouter:
+            request["chat_template_kwargs"] = {"enable_thinking": False}
+        else:
+            # Proposal/action APIs need a short closed answer, not a reasoning
+            # trace that can consume the entire completion budget.
+            request["reasoning"] = {"effort": "none", "exclude": True}
         response = self._client.post(
             f"{self.base_url}/chat/completions",
-            headers={"Authorization": "Bearer EMPTY"},
-            json={
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.0,
-                "top_p": 1.0,
-                "max_tokens": max_tokens,
-                "chat_template_kwargs": {"enable_thinking": False},
-            },
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            json=request,
         )
         response.raise_for_status()
         payload = response.json()
@@ -253,9 +275,12 @@ class StrictOpenAIClient:
         if len(choices) != 1:
             raise RuntimeError("endpoint_did_not_return_exactly_one_choice")
         content = choices[0].get("message", {}).get("content")
-        if not isinstance(content, str) or not content.strip():
-            raise RuntimeError("endpoint_returned_empty_content")
+        # HTTP/provider failures raise above.  An empty model answer is a
+        # schema/output failure and must not be mislabeled as endpoint health.
+        if not isinstance(content, str):
+            content = ""
         usage = dict(payload.get("usage") or {})
+        usage["generation_id"] = str(payload.get("id") or "")
         usage["latency_s"] = time.monotonic() - started
         usage["model_requested"] = model
         return content, usage

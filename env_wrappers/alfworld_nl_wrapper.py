@@ -178,11 +178,12 @@ def make_alfworld_env(
     if batch_size != 1:
         raise ValueError("ALFWorldNLWrapper currently requires batch_size=1")
 
-    # Match ALFWorld's downloader default while allowing the isolated
-    # installer to point at the repository-local cache.
-    os.environ.setdefault(
-        "ALFWORLD_DATA", str(Path.home() / ".cache" / "alfworld")
-    )
+    # The repository installer uses ``.cache/alfworld_data``. Prefer that
+    # populated location; the historical home-cache default is retained only
+    # when no repository-local installation exists.
+    repo_data = Path(__file__).resolve().parents[1] / ".cache" / "alfworld_data"
+    default_data = repo_data if repo_data.is_dir() else Path.home() / ".cache" / "alfworld"
+    os.environ.setdefault("ALFWORLD_DATA", str(default_data))
 
     try:
         from alfworld.agents.environment import get_environment  # type: ignore
@@ -204,8 +205,14 @@ def make_alfworld_env(
     config.setdefault("env", {})["type"] = env_type
     if random_seed is not None:
         config.setdefault("general", {})["random_seed"] = int(random_seed)
-    env = get_environment(env_type)(config, train_eval=split)
-    env = env.init_env(batch_size=batch_size)
+    factory_env = get_environment(env_type)(config, train_eval=split)
+    game_files = getattr(factory_env, "game_files", None)
+    if game_files is not None and not game_files:
+        raise RuntimeError(
+            "ALFWorld resolved zero games for "
+            f"split={split!r} with ALFWORLD_DATA={os.environ.get('ALFWORLD_DATA')!r}"
+        )
+    env = factory_env.init_env(batch_size=batch_size)
     # ALFWorld 0.4.2 does not forward ``general.random_seed`` into the
     # registered TextWorld Gym environment. Seed the actual gamefile iterator
     # explicitly; otherwise every run silently uses TextWorld's default 1234.

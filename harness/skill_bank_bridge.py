@@ -19,7 +19,7 @@ cold-start seed validation.
 
 Coverage: every task currently in ``shared_skill_bank/_latest/by_task``
 maps onto one of the canonical harness domains
-(``gymv | browser | osworld | video | visual_reasoning``) via
+(``gymv | browser | alfworld | video | visual_reasoning``) via
 :func:`task_to_harness_domain`.  ``env_wr_game`` cohort tasks
 (``candy_crush``, ``tetris``, ``super_mario``, ``twenty_forty_eight``)
 ride the ``gymv`` adapter as intra-domain task transfers — the
@@ -36,9 +36,9 @@ from common.enums import SkillSourceType, SkillStatus, SkillType
 from common.state_schema import EvidenceRef, StateSchema
 from data_structure.extensions.skill_record import SkillContract, SkillRecord
 from harness.adapter_registry import AdapterRegistry
+from harness.adapters.alfworld_adapter import AlfworldAdapter
 from harness.adapters.browser_adapter import BrowserAdapter
 from harness.adapters.gymv_adapter import GymvAdapter
-from harness.adapters.osworld_adapter import OsworldAdapter
 from harness.adapters.video_adapter import VideoAdapter
 from harness.adapters.visual_reasoning_adapter import VisualReasoningAdapter
 from harness.few_shot_adapter import AdaptResult, FewShotAdapter, FewShotDemo
@@ -67,6 +67,8 @@ TASK_TO_HARNESS_DOMAIN: Dict[str, str] = {
     # Web tasks
     "miniwob":  "browser",
     "webshop":  "browser",
+    # Embodied text/control tasks
+    "alfworld": "alfworld",
     # Visual reasoning over images
     "tir_bench":         "visual_reasoning",
     "visual_toolbench":  "visual_reasoning",
@@ -99,7 +101,7 @@ def task_to_harness_domain(task: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Adapter registry construction (cached, all five adapters).
+# Adapter registry construction (cached, source plus active targets).
 # ---------------------------------------------------------------------------
 _REGISTRY: Optional[AdapterRegistry] = None
 
@@ -113,7 +115,7 @@ def _get_registry() -> AdapterRegistry:
         reg = AdapterRegistry()
         reg.register(GymvAdapter())
         reg.register(BrowserAdapter())
-        reg.register(OsworldAdapter())
+        reg.register(AlfworldAdapter())
         reg.register(VideoAdapter())
         reg.register(VisualReasoningAdapter())
         _REGISTRY = reg

@@ -2,7 +2,33 @@
 
 **A skill-centric, evidence-driven, gate-bound visual agent.** This repository builds a Visual Language Model (VLM) agent that converts pixels into a structured `<state>` schema and acts on it through a four-stage pipeline of *Visual Grounding → Action → Skill Bank → Skill Crafter*, governed by three operational components (*Skill Harness*, *Pipeline Orchestrator*, *Unified Skill Gate*).
 
-The system learns **transferable reasoning, grounding, and control skills as general protocols feasible across game, webagent, os-agent, video-understanding, and visual reasoning tasks**. The first concrete arena is **short-video evidence-grounded reasoning** (Video-Holmes-style); cross-domain generalization is a hard, mechanically-enforced invariant of the skill bank, not an aspiration.
+The system learns **transferable reasoning, grounding, and control skills as general protocols feasible across games, web agents, ALFWorld household tasks, video understanding, and visual reasoning**. The first concrete arena is **short-video evidence-grounded reasoning** (Video-Holmes-style); cross-domain generalization is a hard, mechanically-enforced invariant of the skill bank, not an aspiration.
+
+> **Scope:** OSWorld is not part of this study. Its old desktop modules remain readable for archived artifacts, but are isolated from `TRANSFER_TARGET_DOMAINS`, default adapter registries, Crafter proposals, training dashboards, launchers, and automatic evaluation aggregation.
+
+严格的 executable-semantics 验收标准和去启发式路线图见
+[`README_PRINCIPLED_SKILL_TRANSFER.md`](README_PRINCIPLED_SKILL_TRANSFER.md)；
+当前可运行栈是 baseline，不能提前等同于该路线图的最终 one-shot claim。
+
+### Active non-game benchmark inventory
+
+当前研究包含 **4 个非游戏目标域、8 个具体 benchmark family**：
+
+| Target domain | Benchmark families | Count |
+|---|---|---:|
+| Web agent (`browser`) | AssistantBench、MiniWoB++、WebShop | 3 |
+| Embodied reasoning (`alfworld`) | ALFWorld | 1 |
+| Visual reasoning (`visual_reasoning`) | VisualToolBench、TIR-Bench | 2 |
+| Video understanding (`video`) | Video-Holmes、SIV-Bench | 2 |
+| **Total** | | **8** |
+
+BrowserGym 是 Web-agent 执行框架，不单独重复计为一个 benchmark。
+WebShop 由 [`webshop_wrapper/`](webshop_wrapper/README.md) 注册为
+`browsergym/webshop.<goal_idx>`；默认快速注册 5 个 goal，正式实验使用
+`WEBSHOP_NUM_GOALS=50`。统一 BrowserGym evaluator 默认选择
+AssistantBench，因此运行 WebShop 时必须先启动独立 WebShop Flask server，
+并通过 `--tasks browsergym/webshop.0 ...` 显式传入任务。WebArena 当前暂缓，
+VisualWebArena 不在研究范围内。
 
 This repo supersedes the COS-PLAY codebase that lives alongside it under `decision_agents/`, `skill_agents/`, `vlm_wrapper/`, and `data_structure/legacy/`. Those modules remain importable as a reference for the legacy single-domain GRPO loop; the new build under `common/`, `harness/`, `orchestrator/`, `crafter/`, `skill_bank/`, and `data_structure/extensions/` implements the canonical plan from [`plans/`](plans/README.md).
 
@@ -31,16 +57,16 @@ This repo supersedes the COS-PLAY codebase that lives alongside it under `decisi
 
 Modern VLMs reason well on a single image but break down on multi-hop visual tasks where evidence must be gathered, verified, chained, and committed across hops. Existing skill-based agents either (a) bind their skills to one domain (game-only or browser-only) or (b) treat skills as opaque function calls with no evidence interface. Both choices block transfer and hide failures.
 
-**Core thesis — games as the skill foundry, other domains as few-shot transfer targets.** Games are uniquely well-suited to *learn* multi-hop reasoning, grounding, and control skills: they expose dense, cheap, verifiable rewards; deterministic resets; and rich multi-hop structure (gather → verify → chain → commit) over a controllable visual state. This project uses games as the **source domain** in which skills are discovered, gated, and hardened, and then **transfers those same skills to webagent, os-agent, short-video understanding, and visual reasoning via few-shot adaptation** — a handful of target-domain episodes are enough to bind a game-learned protocol to a new adapter, because the skill is a typed protocol over evidence, not a domain-specific policy.
+**Core thesis — games as the skill foundry, other domains as few-shot transfer targets.** Games are uniquely well-suited to *learn* multi-hop reasoning, grounding, and control skills: they expose dense, cheap, verifiable rewards; deterministic resets; and rich multi-hop structure (gather → verify → chain → commit) over a controllable visual state. This project uses games as the **source domain** in which skills are discovered, gated, and hardened, and then **transfers those same skills to web agents, ALFWorld, short-video understanding, and visual reasoning via few-shot adaptation** — a handful of target-domain episodes are enough to bind a game-learned protocol to a new adapter, because the skill is a typed protocol over evidence, not a domain-specific policy.
 
 This project takes the opposite stance to opaque, single-domain skill agents:
 
-1. **Every skill is a general protocol, learned in games and few-shot adapted elsewhere.** A skill must declare adapter bindings to all five domains (game, webagent, os-agent, video, visual reasoning); the *game* binding is where it is first discovered and stress-tested, and the remaining bindings are earned via few-shot transfer trials at the gate. Single-domain skills are rejected at promotion time. See [Skill Bank §0.1](plans/03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families).
+1. **Every skill is a general protocol, learned in games and few-shot adapted elsewhere.** A skill must declare adapter bindings to all five active domains (game, webagent, ALFWorld, video, visual reasoning); the *game* binding is where it is first discovered and stress-tested, and the remaining bindings are earned via few-shot transfer trials at the gate. Single-domain skills are rejected at promotion time. See [Skill Bank §0.1](plans/03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families).
 2. **Every skill is evidence-driven** — it must declare a role from `{GATHER, VERIFY, REASON, COMMIT}` and record a non-empty evidence interface on every successful episode. Opaque skills are rejected at Gate G0. The evidence interface is what makes few-shot transfer tractable: only the adapter bindings change across domains, while the typed evidence contract stays fixed. See [Skill Bank §0.3](plans/03-skill-bank/PLAN-SKILL-BANK.md#03-evidence-driven-invariant-no-opaque-skills).
 3. **Every promotion is gate-bound, with a dedicated transfer gate.** No proposal reaches `ACTIVE` without passing the canonical gate stack (`static → replay → shadow → transfer → non-regression`). The `transfer` stage is the few-shot adaptation check: a game-learned skill must succeed on a small budget of episodes in at least one non-game domain before its `verified_domains` entry is granted. See [Unified Skill Gate](plans/07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md).
 4. **The Actor is the policy, the Harness is a frozen verifier.** The Skill Bank provides candidates, the Harness narrows + may veto, the Actor decides, the Orchestrator handles offline promotion. The frozen large model never silently becomes the policy. See [Pipeline Orchestrator §0a](plans/06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#0a-actor-harness-skill-bank-orchestrator-boundary).
 
-The first benchmark target outside the game foundry is short-video multi-hop reasoning, but the skill ontology is fixed across phases — short-video is the first **transfer arena** in which game-learned general protocols (e.g. `collect_evidence_chain`, `disambiguate_target`, `locate_filter_select`, `actor_action_binding`, `verify_constraint`) earn their `verified_domains` entry through few-shot adaptation. Webagent, os-agent, and visual reasoning follow as additional transfer arenas under the same gate.
+The first benchmark target outside the game foundry is short-video multi-hop reasoning, but the skill ontology is fixed across phases — short-video is the first **transfer arena** in which game-learned general protocols (e.g. `collect_evidence_chain`, `disambiguate_target`, `locate_filter_select`, `actor_action_binding`, `verify_constraint`) earn their `verified_domains` entry through few-shot adaptation. Webagent, ALFWorld, and visual reasoning follow as additional transfer arenas under the same gate.
 
 ---
 
@@ -99,7 +125,7 @@ The plan calls out six invariants that must hold across *every* phase. Each is e
 | 4 | **Bank-write isolation**: only `SkillLifecycleManager` may mutate any skill store. | `SkillStore.put` / `remove` raise `StoreLockedError` unless called via the lifecycle manager. |
 | 5 | **Gate-bound promotion**: no skill reaches `ACTIVE` without a passing `GateVerdictPayload` and stable content hash. | `PromotionOrchestrator.promote` rejects `FAIL` verdicts and content-hash drift; refuses ACTIVE on `LIMITED_PASS`. |
 | 6 | **Crafter scope**: the crafter materialises only `DRAFT` records and never touches `active_store`. | `SkillCrafterService._persist` calls `SkillLifecycleManager.ingest_draft`; static dependency rule keeps `crafter/` from importing `skill_bank/stores`. |
-| 7 | **Source-domain / transfer-target asymmetry**: every `ACTIVE` skill must declare at least one `source_domains` entry from `SOURCE_DOMAINS` (currently `{"gymv"}`) **and** at least one `verified_domains` entry from `TRANSFER_TARGET_DOMAINS` (`{browser, osworld, video, visual_reasoning}`). Game-only or transfer-only skills cannot be active. | `SkillLifecycleManager._validate_invariants` raises on ACTIVE promotion when either side is empty (additive to invariant 3, back-compat for legacy records). |
+| 7 | **Source-domain / transfer-target asymmetry**: every `ACTIVE` skill must declare at least one `source_domains` entry from `SOURCE_DOMAINS` (currently `{"gymv"}`) **and** at least one `verified_domains` entry from `TRANSFER_TARGET_DOMAINS` (`{browser, alfworld, video, visual_reasoning}`). Game-only or transfer-only skills cannot be active. | `SkillLifecycleManager._validate_invariants` raises on ACTIVE promotion when either side is empty (additive to invariant 3, back-compat for legacy records). |
 | 8 | **`verified_domains` is gate-owned**: the `verified_domains` field (and the matching `adapter_history` entries) reflect Stage 3a outcomes only. The pipeline is: `GateService._run_transfer` runs `FewShotAdapter.adapt()` on K demos, the verified targets are emitted in `GateVerdictPayload.eligible_domains`, and `PromotionOrchestrator.promote(...)` mirrors them into the `SkillRecord` via `SkillLifecycleManager.record_transfer_verification(...)` *before* the status transition. The lifecycle manager is the only writer; any other component is forbidden. | `SkillLifecycleManager.record_transfer_verification` is the sole mutator of `verified_domains` / `adapter_history`; `PromotionOrchestrator._record_transfer_verifications` calls it from the pre-transition step. |
 
 ---
@@ -116,7 +142,7 @@ Two hard-coded tuples in [`common/enums.py`](common/enums.py) encode the asymmet
 SOURCE_DOMAINS: Tuple[str, ...] = ("gymv",)
 TRANSFER_TARGET_DOMAINS: Tuple[str, ...] = (
     "browser",
-    "osworld",
+    "alfworld",
     "video",
     "visual_reasoning",
 )
@@ -144,7 +170,7 @@ Critically it never mutates the bank — it is a read-only probe used by the gat
 
 ### Stub adapters — common scaffolding for the four target domains
 
-[`harness/adapters/_stub_base.py`](harness/adapters/_stub_base.py) defines `StubTransferTargetAdapter`, the shared hop-loop scaffolding for `browser`, `osworld`, `video`, and `visual_reasoning`. Each concrete adapter (e.g. [`harness/adapters/browser.py`](harness/adapters/browser.py)) is just a name + a default `HopExecutor`. The executor is pluggable (`adapter.set_executor(real_executor)`), so today's deterministic stubs let the gate stack be exercised end-to-end while the real `vlm_wrapper/<domain>_adapter.py` executors are wired up independently.
+[`harness/adapters/_stub_base.py`](harness/adapters/_stub_base.py) defines `StubTransferTargetAdapter`, the shared hop-loop scaffolding for `browser`, `alfworld`, `video`, and `visual_reasoning`. ALFWorld additionally ships a live executor that resets a text household task for each probe and resolves protocol actions only against the current admissible-command list. The remaining adapters keep the same pluggable `set_executor(...)` boundary.
 
 ### Gate stage 3a — wiring the probe into promotion
 
@@ -646,7 +672,7 @@ the full per-benchmark sizing tables live in [`cold_start/readme.md`](cold_start
 
 The cold-start runner respects the source-/transfer-target asymmetry from
 [`common/enums.py`](common/enums.py): `gymv` is the **foundry** (volume should be
-heaviest), while `browser` / `osworld` / `video` / `visual_reasoning` are
+heaviest), while `browser` / `alfworld` / `video` / `visual_reasoning` are
 **transfer probes** consumed at gate Stage 3a (`harness/few_shot_adapter.py`,
 `k_shot_default=5`, `k_shot_max=16` per skill per domain). Volumes are therefore
 sized for *diverse pool* coverage, not full-benchmark sweeps:
@@ -659,7 +685,7 @@ sized for *diverse pool* coverage, not full-benchmark sweeps:
 | `browser` | WebArena | 812 tasks | *deferred* — overlaps AssistantBench coverage at much higher infra cost | — | — |
 | `browser` | WebShop (princeton-nlp) | 12,087 goals | **50 sampled** — `browsergym/webshop.0..49`, configurable via `WEBSHOP_NUM_GOALS` | — | `webshop_wrapper.register_webshop_tasks` (in-tree bridge; see [`webshop_wrapper/README.md`](webshop_wrapper/README.md)) |
 | `browser` | ~~VisualWebArena~~ | 910 tasks | *dropped 2026-05-03* — see `legacy/visualwebarena/README.md` for the 10 infra bugs that motivated the cut | — | — |
-| `osworld` | OSWorld desktop tasks | 369 tasks | **250 stratified** | + 50 | `cold_start/evaluation_dataset/build_pool_and_holdout.py` |
+| `alfworld` | ALFWorld text household tasks | train / ID / OOD splits | **live K-shot reset probes** | separate eval split | `harness/few_shot_demos_alfworld.py` |
 | `visual_reasoning` | VisualToolBench (image, single-turn) | 603 samples | **300 stratified** | + 100 | same |
 | `visual_reasoning` | TIR-Bench (image, tool-use) | 1,215 samples | **300 stratified** | + 100 | same |
 | `video` (**headline**) | Video-Holmes | 1,837 questions | **1,000** | + 200 | same |
@@ -668,7 +694,7 @@ sized for *diverse pool* coverage, not full-benchmark sweeps:
 The pool/holdout split is critical: few-shot demos at Stage 3a must be
 **disjoint** from the eval slice or the E0 scoreboard is contaminated. The
 samplers in `cold_start/task_samples/build_*.py` (BrowserGym row) and
-`cold_start/evaluation_dataset/build_pool_and_holdout.py` (rows 4–8 above)
+`cold_start/evaluation_dataset/build_pool_and_holdout.py` (visual rows above)
 emit both files in one pass.
 
 #### How IDs are chosen and stored — `cold_start/evaluation_dataset/`
@@ -683,16 +709,12 @@ cold_start/evaluation_dataset/
 ├── load_manifests.py                # Python API + integrity check (consumers go here)
 ├── manifest.json                    # locked snapshot: per-file SHA-256, sizes, build provenance
 ├── _axis_distribution.json          # measured per-axis counts (diagnostic)
-├── pool/                            # 2,250 ids — used by cold-start actor
-│   ├── osworld.txt                  # 250 UUIDs
-│   ├── osworld_catalog.json         # OSWorld --task_catalog format
+├── pool/                            # visual-reasoning ids used by cold-start actor
 │   ├── visual_toolbench.txt         # 300 HF row ids (single-turn only)
 │   ├── tir_bench.txt                # 300 HF row ids
 │   ├── video_holmes.txt             # 1000 "{video_id}.Q{qid}"
 │   └── siv_bench.txt                # 400 "{video_id}.Q{tsv_row_index}"
-└── holdout/                         # 550 ids — frozen for E0/E1/E2 eval
-    ├── osworld.txt                  # 50 UUIDs
-    ├── osworld_catalog.json         # same format as pool/
+└── holdout/                         # frozen for E0/E1/E2 eval
     ├── visual_toolbench.txt         # 100
     ├── tir_bench.txt                # 100
     ├── video_holmes.txt             # 200
@@ -703,14 +725,13 @@ One sample id per line; comment header records `count`, `seed`, and the
 per-axis distribution. Re-run `python
 cold_start/evaluation_dataset/build_pool_and_holdout.py` (or pass
 `--<bench>_pool / --<bench>_holdout N` to override) to regenerate all
-12 manifest files in one pass.
+8 active visual manifest files in one pass.
 
 Sampling axis, ID format, and exact bucket distribution per file
 (measured, seed = 0):
 
 | Benchmark | Sizes (pool / holdout) | Stratification axis | Pool axis distribution | Holdout axis distribution | ID format |
 |---|---:|---|---|---|---|
-| `osworld` | 250 / 50 | `(snapshot × possibility_of_env_change)`; report per `snapshot` (11 normalized apps) | base_setup=9, chrome=36, gimp=27, libreoffice_calc=36, libreoffice_impress=34, libreoffice_writer=26, multi_apps=11, os=26, thunderbird=17, vlc=3, vs_code=25 | base_setup=2, chrome=7, gimp=5, libreoffice_calc=7, libreoffice_impress=8, libreoffice_writer=5, multi_apps=2, os=5, thunderbird=3, vlc=1, vs_code=5 | task UUID (matches `OSWorld/evaluation_examples/examples/<app>/<uuid>.json`) |
 | `visual_toolbench` | 300 / 100 (single-turn only, 603 of 1,204 raw rows) | `prompt_category` (9 STEM / business categories) | biology=18, chemistry=16, engineering=18, finance=55, generalist=53, maths=18, medical=53, physics=16, sports=53 | biology=6, chemistry=6, engineering=6, finance=16, generalist=18, maths=6, medical=18, physics=6, sports=18 | HF row id (`row['id']`) |
 | `tir_bench` | 300 / 100 | `task` (13 tool-use families) | each of {color, contrast, instrument, jigsaw, math, maze, ocr, refcoco, rotation_game, spot_difference, symbolic, visual_search, word_search} ≈ 22–24 | each family ≈ 7–8 | HF row id (`row['id']`) |
 | `video_holmes` | 1000 / 200 | `Question Type` (7 reasoning skills: CTI / IMC / MHR / PAR / SR / TA / TCI) | each ≈ 142–144 | each ≈ 27–29 | `"{video_id}.Q{question_id}"` |
@@ -721,10 +742,7 @@ Diversity guarantees:
 1. **Every category that appears in the pool also appears in the holdout**
    (proportional within-bucket split at ratio `pool / (pool + holdout)`,
    tie-broken so any bucket with ≥ 2 sampled items contributes to both
-   halves). For OSWorld this means all 11 normalized snapshots and all
-   3 `possibility_of_env_change` tiers (low / medium / high) reach the
-   eval slice; vlc-only contributes 1 holdout item because the bucket
-   itself has only 4 sampled tasks total.
+   halves).
 2. **Round-robin equal-bucket sampling** over-samples rare categories
    relative to natural frequency — exactly what we want for a few-shot
    probe that aims to characterize per-category transfer rather than
@@ -744,10 +762,10 @@ python cold_start/generate_cold_start_actor_browsergym.py \
   --tasks_file cold_start/task_samples/browsergym_assistantbench_200.txt \
   --reasoning_effort minimal ...
 
-# OSWorld: --task_catalog reads the JSON catalog directly
-python cold_start/generate_cold_start_actor_osworld.py \
-  --task_catalog cold_start/evaluation_dataset/pool/osworld_catalog.json \
-  --reasoning_effort minimal ...
+# ALFWorld: live probes reset the selected split for every skill episode
+python -m labeling_supplement._phase4_transfer_cycle \
+  --target-domain alfworld --target eval_out_of_distribution \
+  --k 4 --max-episodes 4 ...
 
 # Visual reasoning (image + video): point --sample_ids_dir at the pool
 # subdir; the launcher autoglobs <benchmark>.txt for each enabled bench.
@@ -769,11 +787,10 @@ re-parsing the text files inline:
 
 ```python
 from cold_start.evaluation_dataset.load_manifests import (
-    load_ids, load_osworld_catalog, verify_integrity, load_manifest,
+    load_ids, verify_integrity, load_manifest,
 )
 pool_ids = load_ids("video_holmes", split="pool")     # list[str], 1000 ids
-held_ids = load_ids("osworld",       split="holdout") #            50 ids
-catalog  = load_osworld_catalog("pool")               # {domain: [uuid, ...]}
+held_ids = load_ids("tir_bench",     split="holdout") # list[str]
 verify_integrity()                                    # raises on hash drift
 load_manifest()                                       # full provenance dict
 ```
@@ -795,12 +812,12 @@ budget. Defaults below apply unless overridden via CLI flag.
 |---|---:|---:|---|---:|---|---|
 | `gymv` (`generate_cold_start_actor_gymv.py`) | 1 | 60 (cap; natural end usually earlier) | 4 k / 12 k | 128 | rendered frame | one process per env (13×) |
 | BrowserGym (`generate_cold_start_actor_browsergym.py`) | 1 | 30 (default) — covers MiniWoB / WebArena / AssistantBench | 4 k / 12 k | 400 | screenshot + AXTree | 4–8 headless Chromium / Playwright |
-| OSWorld (`generate_cold_start_actor_osworld.py`) | 1 | 50 (cap) — recommend 30 for cold-start | 4 k / 12 k | 500 | screenshot + AT-SPI tree | 1–8 KVM guests (dominant wall-clock lever) |
+| ALFWorld (`ALFWorldNLWrapper`) | one live task / reset | 50 | n/a (text env) | admissible command | text observation | one environment process |
 | Visual reasoning (`generate_cold_start_actor_visual_reasoning.py`) | 1 sample / call (no env) | 1 | 4 k / 12 k | 350 | image OR 6 sampled frames per video | 16+ pure API workers |
 
 Other invariants of the actor pipeline:
 
-- **Headless by default** for BrowserGym (Xvfb-backed Chromium) and OSWorld (KVM guest); pass `--no_headless` to render visibly when debugging.
+- **Headless by default** for BrowserGym (Xvfb-backed Chromium); ALFWorld's active wrapper is text-only.
 - **Frames** are NOT saved by default; pass `--save_frames` to persist the PNGs sent to the VLM under `<run>/<task>/frames/ep_NNN/step_NNN.png`.
 - **API keys** are auto-loaded from `<workspace>/api_keys.py` on import (no `export` needed).
 - **Self-hosted site env files** (`webarena_env.sh`) are auto-sourced by the BrowserGym launcher when the relevant tasks are in `--tasks`. (`visualwebarena_env.sh` was dropped 2026-05-03 — see `legacy/visualwebarena/README.md`.)
@@ -820,7 +837,8 @@ hidden tokens never reach the trained policy.
 | Pipeline | Recommended effort | Rationale |
 |---|---|---|
 | `gymv` source-domain trajectories | `minimal` | Structured extraction; student can't use thinking |
-| BrowserGym / OSWorld trajectories | `minimal` | Schema + constrained action; the schema *is* the planning surface |
+| BrowserGym trajectories | `minimal` | Schema + constrained action; the schema *is* the planning surface |
+| ALFWorld live probes | n/a | Local text environment; actions are restricted to admissible commands |
 | Visual reasoning MCQ (image + video) | `medium` | Teacher answer correctness is the bottleneck on multi-hop QA |
 
 A paired smoke test (`gpt-5.4`, 5 mid-difficulty MiniWoB tasks,
@@ -843,19 +861,19 @@ policy for each row:
 |---|---:|---:|
 | Original full sweep, default `medium` everywhere | ~$1,500 – $1,800 | ~12 – 15 h |
 | Lean plan, `minimal` for env / `medium` for visual reasoning | ~$260 – $280 | ~3 – 6 h |
-| **Lean plan, `minimal` everywhere** ← cheapest safe default | **~$200 – $220** | **~3 – 5 h** (set by OSWorld KVM concurrency) |
+| **Lean plan, `minimal` everywhere** ← cheapest safe default | measure with current provider pricing | set by BrowserGym/API throughput |
 | Lean plan, `gpt-5.4-mini` everywhere except Video-Holmes | ~$70 – $100 | ~3 – 5 h |
 
 #### Per-domain parallelism — what each launcher actually does
 
-Three of the four Python launchers are single-process loops; parallelism
+The Python launchers are mostly single-process loops; parallelism
 comes from one of three layered mechanisms:
 
 | Domain | Concurrency primitive | How to scale | Hard ceiling |
 |---|---|---|---|
 | `gymv` | shell wrapper, one process / env | `run_coldstart_actor_gymv_all.sh --parallel` (already default) | 13 envs (= one process / env, retro emulator binds the process) |
 | BrowserGym | shell-level **shard wrapper** (NEW) | `run_coldstart_actor_browsergym_shard.sh --num_shards N` | RAM (Chromium ≈ 500 MB / shard) + WebArena self-host QPS — practical sweet spot **8–12** |
-| OSWorld | shell wrapper, domain-level dispatch | `run_coldstart_actor_osworld_all.sh --parallel --max_parallel N` (default **8**, was 3) | KVM RAM (≈ 6 GB / guest) — **8** on 64 GB host, **10+** on ≥ 96 GB |
+| ALFWorld | live reset probes | run the Phase-4 transfer driver in the isolated `alfworld` environment | TextWorld CPU/RAM; start with one process |
 | Visual reasoning | Python **`--num_workers N`** (ThreadPoolExecutor, NEW) | `--num_workers 32` on the launcher | OpenAI tier RPM — **16–32** on tier 4 (10 k RPM), **32–64** on tier 5 (30 k RPM) |
 
 Per-domain wall-clock at the recommended parallelism (`gpt-5.4`,
@@ -866,22 +884,22 @@ video frames pre-extracted):
 |---|---|---|---:|---:|
 | `gymv` (source) | 13 envs × 10 ep × ~20 steps ≈ 2.6 k steps | ~10 s / step | 13 (one process / env) | **~30–40 min** |
 | BrowserGym | 306 tasks (125 MiniWoB + 181 AssistantBench) | ~70 s / task | 8 shards | **~45–60 min** (was ~6 h serial) |
-| OSWorld ⬅ critical path | 250 tasks × 30 steps | ~10 s / step | 8 KVM guests | **~1.6–2.5 h** (was ~12 h @ 1 KVM) |
+| ALFWorld | K live probes × protocol hops | local environment dependent | 1 | measure on selected split |
 | Visual reasoning (image) | 600 (VTB 300 + TIR 300) | ~6 s / sample | 32 workers | **~2 min** (was ~1 h serial) |
 | Visual reasoning (video) | 1,400 (VH 1,000 + SIV 400) | ~10 s / sample | 32 workers | **~8 min** (was ~4 h serial) |
 
-**End-to-end: ~1.6–2.5 h** at recommended parallelism (set by OSWorld KVM
-count + BrowserGym Chromium count). Two dominant levers stay the same:
-`reasoning_effort` for cost and OSWorld KVM concurrency for wall-clock.
+End-to-end time is now governed by BrowserGym and remote visual-model calls;
+ALFWorld text probes do not require VM orchestration.
 
 #### Quick start — run on all tasks with `gpt-5.4`
 
 The four pipelines are independent (retro-emulator vs. Chromium vs.
-KVM vs. pure-API), so you can launch them in parallel terminals.
+TextWorld vs. pure API), so you can launch them in parallel terminals.
 Manifests live in [`cold_start/task_samples/`](cold_start/task_samples/)
 (BrowserGym) and
 [`cold_start/evaluation_dataset/pool/`](cold_start/evaluation_dataset/)
-(OSWorld + visual reasoning). Output goes to `Cold-start-out-<domain>/`.
+(visual reasoning). Output goes to `Cold-start-out-<domain>/`; ALFWorld
+probes run directly against the selected split.
 
 ```bash
 cd /workspace/Multi-hop-Reasoning-VLM-Agent
@@ -900,12 +918,12 @@ bash cold_start/run_coldstart_actor_browsergym_shard.sh \
   --model gpt-5.4 --reasoning_effort minimal \
   -- --episodes 1 --max_steps 12 -v
 
-# 3. OSWorld (~1.6-2.5 h @ 8 KVMs) — defaults to --max_parallel 8;
-#    drop to 3-4 on hosts with < 64 GB RAM.
-bash cold_start/run_coldstart_actor_osworld_all.sh --parallel --max_parallel 8 \
-  -- --task_catalog cold_start/evaluation_dataset/pool/osworld_catalog.json \
-     --episodes 1 --max_steps 30 \
-     --model gpt-5.4 --reasoning_effort minimal -v
+# 3. ALFWorld — install once, then run live completion-reward probes.
+bash install/install_alfworld.sh
+conda activate alfworld
+python -m labeling_supplement._phase4_transfer_cycle \
+  --target-domain alfworld --target eval_out_of_distribution \
+  --k 4 --max-episodes 4
 
 # 4. Visual reasoning (~10 min @ 32 workers) — pure-API ThreadPoolExecutor.
 #    --reasoning_effort medium is the SAFER default for visual MCQ
@@ -925,15 +943,14 @@ churn), the original `python cold_start/generate_cold_start_actor_browsergym.py
 form still works — it just takes ~10 h instead of ~1.5 h.
 
 Resume is on by default for `gymv` / BrowserGym (skip episodes that
-already have an `episode_NNN.json` on disk). OSWorld + visual reasoning
-write per-task / per-sample summaries; re-running with the same
+already have an `episode_NNN.json` on disk). Visual reasoning
+writes per-sample summaries; re-running with the same
 `--output_dir` skips finished work. The shard wrapper writes per-shard
 logs and task-list audits to `Cold-start-out-browsergym/_shard_logs/`.
 
 See
 [`cold_start/readme.md#multi-domain-cold-start-lean-plan`](cold_start/readme.md#multi-domain-cold-start-lean-plan)
-for sampler scripts, alternate model knobs (mini vs. full), and host-sizing
-guidance for OSWorld KVM counts.
+for sampler scripts and alternate model knobs (mini vs. full).
 
 #### AssistantBench full-eval workflow
 
@@ -1265,16 +1282,21 @@ for unit coverage of every flag.
 
 ### 3. Cross-domain evaluation pipeline (Block C)
 
-Five domain-specific drivers + an aggregator + a one-shot launcher
+Five benchmark drivers + an aggregator
 live under [`scripts/skillbridge_eval/`](scripts/skillbridge_eval/).
-All five drivers reuse the existing `cold_start/generate_cold_start_actor_<domain>.py`
+The benchmark drivers reuse the existing `cold_start/generate_cold_start_actor_<domain>.py`
 scripts under the hood, just pointed at a vLLM endpoint where the
 trained LoRA adapters have been loaded.
+
+这里的 BrowserGym driver 覆盖同一个 `browser` 目标域内的多个 benchmark；
+默认任务清单是 AssistantBench。MiniWoB++ 和 WebShop 通过 `--tasks` 或
+`--tasks-file` 选择，其中 WebShop 还要求 `WEBSHOP_BASE_URL` 指向已启动的
+WebShop server。
 
 | Driver                                                     | Domain            | Underlying engine                                       |
 | ---------------------------------------------------------- | ----------------- | ------------------------------------------------------- |
 | `python -m scripts.skillbridge_eval.eval_browsergym`       | BrowserGym        | `cold_start/generate_cold_start_actor_browsergym.py`    |
-| `python -m scripts.skillbridge_eval.eval_osworld`          | OSWorld           | `cold_start/generate_cold_start_actor_osworld.py`       |
+| `python -m scripts.skillbridge_eval.eval_alfworld`         | ALFWorld          | live `ALFWorldNLWrapper` + admissible commands + environment completion signal |
 | `python -m scripts.skillbridge_eval.eval_visual_reasoning` | Visual reasoning  | `cold_start/generate_cold_start_actor_visual_reasoning.py` (image benches) |
 | `python -m scripts.skillbridge_eval.eval_video`            | Video             | same script restricted to `video_holmes` + `siv_bench`  |
 | `python -m scripts.skillbridge_eval.eval_gymv`             | GymV              | `trainer.coevolution.episode_runner.run_episode_async`  |
@@ -1282,7 +1304,7 @@ trained LoRA adapters have been loaded.
 
 A common actor wrapper [`scripts/skillbridge_eval/eval_actor.py`](scripts/skillbridge_eval/eval_actor.py)
 encapsulates LoRA / skill-bank / harness loading and is reused by the
-GymV driver and the transfer-matrix runner (block D1).
+GymV/ALFWorld drivers and the transfer-matrix runner (block D1).
 
 #### One-shot end-to-end eval
 
@@ -1293,13 +1315,13 @@ bash scripts/run_skillbridge_eval.sh \
     --model Qwen/Qwen3.5-9B \
     --label skillbridge_full \
     --episodes-per-task 1 --max-steps 50 \
-    [--skip osworld]              # comma-separated list of domains to skip
+    [--skip browsergym]           # comma-separated list of domains to skip
     [--judge]                     # enable LLM-as-judge for VR / video
     [--gymv-games crafter,procgen]
 ```
 
 Each driver writes a uniform `<run-dir>/eval/<domain>_result_<ts>.json`
-with `domain`, `label`, `model`, `overall.{success_rate_macro|accuracy_micro|mean_reward_macro}`
+with `domain`, `label`, `model`, `overall.{success_rate|success_rate_macro|accuracy_micro|mean_reward_macro}`
 and a per-task / per-benchmark breakdown.  The aggregator picks the
 most-recent file per domain and emits:
 
@@ -1331,6 +1353,14 @@ python -m scripts.skillbridge_eval.eval_visual_reasoning \
     --model Qwen/Qwen3.5-9B \
     --vllm-base-url http://localhost:8000/v1 \
     --judge --judge-model Qwen/Qwen3.5-35B-A3B
+
+conda run --no-capture-output -n alfworld \
+  python -m scripts.skillbridge_eval.eval_alfworld \
+    --run-dir runs/skillbridge_v12 \
+    --split eval_out_of_distribution \
+    --episodes 25 --max-steps 50 \
+    --model Qwen/Qwen3.5-9B \
+    --vllm-base-url http://localhost:8000/v1
 ```
 
 ### 4. Cross-domain transfer matrix + few-shot scaling (Block D)
@@ -1341,7 +1371,7 @@ Built on top of the per-domain drivers in §3:
 # D1 — every phase snapshot × every held-out domain
 python -m scripts.skillbridge_eval.run_transfer_matrix \
     --run-dir runs/skillbridge_v12 \
-    --domains visual_reasoning video gymv \
+    --domains browsergym alfworld visual_reasoning video gymv \
     --vllm-base-url http://localhost:8000/v1 \
     --model Qwen/Qwen3.5-9B \
     --snapshot-loader 'curl -X POST http://localhost:8000/v1/load_lora -d {snapshot}/lora_adapters' \
@@ -1540,7 +1570,7 @@ A more detailed view lives in [`IMPLEMENTATION-STATUS.md`](IMPLEMENTATION-STATUS
 | --- | --- | --- |
 | **P1 — Visual Grounding** | Lightweight grounding stabilisation; routing policy A/B/C | `vlm_wrapper/grounding.py` |
 | **P2 — Eval E0 driver** | JSONL driver, MCQ answer evaluator, LLM judge, easy/medium/hard slices, headline triple report | `evaluation/{driver,answer_evaluator,llm_judge,slices,report}.py` |
-| **Phase D — Transfer + Replay** | Two-phase shadow → active transfer; full six-gate `GateRunner` (G0–G5); held-out replay; adapters for `osworld`, `video`, `visual_reasoning` | `harness/{transfer_manager,gate_runner,replay_validator}.py` + adapters |
+| **Phase D — Transfer + Replay** | Two-phase shadow → active transfer; full six-gate `GateRunner` (G0–G5); held-out replay; finish real backends for `browser`, `video`, `visual_reasoning` | `harness/{transfer_manager,gate_runner,replay_validator}.py` + adapters |
 | **Phase E — Eval suite + dashboards** | Frozen eval suite for non-regression; slice / label dashboards; `eval_suite_id` wiring | `orchestrator/eval_suite.py` |
 | **Phase F — Trainable extensions** | LoRA heads `skill_select`, `continue_vs_switch`, `accept_transfer`, `adapter_refine` | TBD |
 | **Actor rewire** | `HarnessSkillProvider` so the Actor consumes `SkillHarness.select_eligible_skills` instead of querying the bank directly | `decision_agents/skill_interface.py` |

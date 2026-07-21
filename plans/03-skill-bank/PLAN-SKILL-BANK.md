@@ -36,9 +36,9 @@
 > as the *offline gate / diagnostic* surface unless the section is
 > tagged otherwise.
 
-**Scope:** Build and maintain a cross-domain Skill Bank from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The bank stores **transferable reasoning, grounding, and control skills** defined over shared state abstractions and verified outcome contracts, and exposes them to the [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
+**Scope:** Build and maintain a cross-domain Skill Bank from structured trajectories across **games, web agents, ALFWorld embodied tasks, short-video reasoning, and visual reasoning**. The bank stores **transferable reasoning, grounding, and control skills** defined over shared state abstractions and verified outcome contracts, and exposes them to the [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md) through retrieval and selection APIs.
 
-**Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions; everything it consumes and emits is grounded in the orchestrator's episode-local trajectory (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
+**Scope boundaries (deliberate).** Every skill in this bank is a **general protocol feasible across all five active domains** (game / webagent / ALFWorld / video-understanding / visual reasoning); see [§0.1](#01-general-protocol-invariant-no-domain-specific-skill-families). The **current execution/evaluation priority** is **short-video evidence-grounded reasoning** (Video-Holmes-style) — that is a deployment/measurement choice for adapters and eval slices, **not a narrowing of the skill ontology**. The bank carries no long-video assumptions; everything it consumes and emits is grounded in the orchestrator's episode-local trajectory (see [PLAN-PIPELINE-ORCHESTRATOR.md §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)).
 
 **Upstream:** Structured episode trajectories from the Action Agent; structured schemas from [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md); intermediate reasoning traces; visual grounding outputs; within-episode evidence references (clip/frame / DOM / desktop / tool-call IDs); execution outcomes / verification signals. These inputs may come from multiple domains, but are converted into a shared typed structured representation before skill discovery and maintenance.
 **Downstream:** Skill guidance consumed by the Action Agent and the Reasoning Agent; skill contracts used for reward shaping; bank curation consumed by GRPO-based training loops.
@@ -48,15 +48,15 @@
 
 ## 0. Goal
 
-Build and maintain a **Skill Bank** from structured trajectories across **games, web agents, desktop / OS agents, short-video reasoning, visual reasoning, and embodied tasks**. The Skill Bank should discover reusable skills, learn their protocols and symbolic contracts, and expose them to the Action Agent through retrieval and selection APIs.
+Build and maintain a **Skill Bank** from structured trajectories across **games, web agents, ALFWorld embodied tasks, short-video reasoning, and visual reasoning**. The Skill Bank should discover reusable skills, learn their protocols and symbolic contracts, and expose them to the Action Agent through retrieval and selection APIs.
 
 The key design goal is to store **transferable reasoning, grounding, and control skills**, not only environment-specific action motifs. A skill should be reusable across tasks through shared state abstractions, shared inner primitives, and verifiable outcome contracts.
 
 ### 0.1 General-protocol invariant (games as the foundry, other domains as few-shot transfer targets)
 
-**Every skill in the bank is a general protocol** written over the shared `<state>` schema (§3) and the shared inner primitives (§1.5). A skill is only admitted if its protocol is **feasible across all five target domains** — game, webagent, os-agent, video-understanding, visual reasoning — through adapter binding (§4.3). There is no "short-video skill family," no "browser-only skill family," no per-domain sub-bank.
+**Every skill in the bank is a general protocol** written over the shared `<state>` schema (§3) and the shared inner primitives (§1.5). A skill is only admitted if its protocol is **feasible across all five active domains** — game, webagent, ALFWorld, video-understanding, visual reasoning — through adapter binding (§4.3). There is no "short-video skill family," no "browser-only skill family," no per-domain sub-bank.
 
-The five domains are *not symmetric*. Games (the `gymv` adapter, see [§0.4](#04-source-domain--transfer-target-asymmetry)) are the **source domain** in which skills are first mined, abstracted, and stress-tested under dense verifiable reward. Webagent, os-agent, video, and visual reasoning are **transfer targets**: their adapter bindings are *claimed* up front (so we never approve a skill that is structurally inadmissible elsewhere) but only become *verified* after the skill passes the few-shot adaptation stage of the gate ([Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md), see also [PLAN-HARNESS.md `FewShotAdapter`](../05-harness/PLAN-HARNESS.md)). A "general protocol" therefore means: *one typed protocol over evidence; adapter bindings to all five domains; lineage in the source domain; verified entries in target domains earned shot-by-shot*.
+The five active domains are *not symmetric*. Games (the `gymv` adapter, see [§0.4](#04-source-domain--transfer-target-asymmetry)) are the **source domain** in which skills are first mined, abstracted, and stress-tested under dense verifiable reward. Webagent, ALFWorld, video, and visual reasoning are **transfer targets**: their adapter bindings are *claimed* up front but only become *verified* after the skill passes the few-shot adaptation stage of the gate ([Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md), see also [PLAN-HARNESS.md `FewShotAdapter`](../05-harness/PLAN-HARNESS.md)).
 
 Examples of general protocols (the bank's actual content):
 
@@ -78,7 +78,7 @@ Narrowing the **execution/evaluation target** to short-video (Video-Holmes-style
 - **What narrows:** which adapters are implemented first, which replay slices are built first, which transfer-failure diagnostics are exercised first (see [PLAN-HARNESS.md §10a.2](../05-harness/PLAN-HARNESS.md)), which `DomainEvalMatrix` slice is populated first.
 - **What does not narrow:** the skill format, the protocol vocabulary, the effect families, the typed slots, the promotion gates, or which protocols the Crafter is allowed to synthesize. A skill that only works on short video is, by construction, *not a skill* for this bank — it is a failed transfer candidate and belongs in `known_failure_modes` / `do_not_transfer_if` (see §4.3b).
 
-When short-video evaluation exercises `collect_evidence_chain` first, it is exercising a **general protocol** whose adapter bindings for game / webagent / os-agent / visual reasoning exist from day one; the short-video arena is simply where the first `verified_domains` entry is written.
+When short-video evaluation exercises `collect_evidence_chain` first, it is exercising a **general protocol** whose adapter bindings for game / webagent / ALFWorld / visual reasoning exist from day one; the short-video arena is simply where the first `verified_domains` entry is written.
 
 ### 0.3 Evidence-driven invariant (no opaque skills)
 
@@ -119,7 +119,7 @@ The five canonical domains split into two roles:
 | Role | Members (`common.enums.SOURCE_DOMAINS` / `TRANSFER_TARGET_DOMAINS`) | What the bank does here |
 |------|--------------------------------------------------------------------|-------------------------|
 | **Source domain (foundry)** | `gymv` (game) | Mine candidate skills, run the bulk of training rollouts, harden under dense verifiable reward, stress-test contracts, populate `false_binding_patterns`. *Every active skill must have a source-domain lineage.* |
-| **Transfer target** | `browser`, `osworld`, `video`, `visual_reasoning` | Receive skills *via few-shot adaptation only*. Each skill must declare an adapter binding here, but the binding is **provisional** until it passes [Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) on a small budget of target-domain demonstrations. |
+| **Transfer target** | `browser`, `alfworld`, `video`, `visual_reasoning` | Receive skills *via few-shot adaptation only*. Each skill must declare an adapter binding here, but the binding is **provisional** until it passes [Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md) on a small budget of target-domain demonstrations. |
 
 The asymmetry shows up on every `SkillRecord` (see [§4.3a](#43a-lineage--provenance)) as three required fields:
 
@@ -153,7 +153,7 @@ Instead of defining skills as raw environment-dependent action macros, we define
 This lets the same high-level skill transfer across:
 - games
 - web / UI environments
-- desktop / OS agent environments
+- ALFWorld embodied text environments
 - short-video reasoning settings (first eval target)
 - visual reasoning tasks
 - embodied / robotics tasks
@@ -471,7 +471,7 @@ Every skill carries its own audit trail so the acceptance gate and the transfer 
 |-------|---------------------|---------|
 | `origin_trace_ids` | yes | Episode + step IDs of the trajectories from which the skill was mined or composed |
 | `source_domains` ★ | **yes** | Foundry domains the skill was originally extracted from. Must intersect `SOURCE_DOMAINS = ("gymv",)`. |
-| `transfer_target_domains` ★ | **yes** | The non-game adapter bindings the skill *claims*. Must be ⊆ `TRANSFER_TARGET_DOMAINS = ("browser", "osworld", "video", "visual_reasoning")`. |
+| `transfer_target_domains` ★ | **yes** | The non-game adapter bindings the skill *claims*. Must be ⊆ `TRANSFER_TARGET_DOMAINS = ("browser", "alfworld", "video", "visual_reasoning")`. |
 | `verified_domains` ★ | **yes** (≥1 target) | Domains where the skill has passed replay **and** Stage 3a few-shot adaptation. Mutated *only* via `SkillLifecycleManager.record_transfer_verification(...)`, which `PromotionOrchestrator.promote(...)` calls based on the `GateVerdictPayload.eligible_domains` produced by `GateService`. |
 | `failure_clusters` | no | IDs of failure clusters (see [Skill Crafter §6.7](../04-skill-crafter/PLAN-SKILL-CRAFTER.md)) this skill was intended to patch |
 | `promotion_reason` | yes | Short text + pointer to the `GateVerdict` that last promoted the current version |
@@ -601,7 +601,7 @@ compound:     opening:MERGE  midgame:MERGE  endgame:MERGE   ← 3 distinct skill
 | Game | Candy Crush | Temporal position | early, mid, late |
 | Browser | WebArena | Task completion % + page depth | exploration, form_filling, verification |
 | Browser | MiniWoB++ | Element count + interaction history | identification, interaction, confirmation |
-| Desktop | OSWorld | Window/app state | navigation, configuration, verification |
+| Embodied text | ALFWorld | Objects, receptacles, admissible actions | navigation, manipulation, verification |
 | Image QA | VisualToolBench/TIR-Bench | Evidence chain length | grounding, reasoning, answering |
 | Video QA | SIV-Bench | Timeline position + evidence count | scanning, focusing, concluding |
 | Video QA | Video-Holmes | Clue chain length + scene coverage | exploration, investigation, synthesis |

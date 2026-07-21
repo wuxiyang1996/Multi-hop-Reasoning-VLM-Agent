@@ -2,7 +2,7 @@
 
 **Scope:** Define the **single top-level runner** that closes the loop across [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md), [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md), [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md), and [Skill Crafter](../04-skill-crafter/PLAN-SKILL-CRAFTER.md). The orchestrator is the **domain-general control plane** for grounding → reasoning → skill retrieval → action → verification → promotion → rollback, with **episode-local evidence & trace bookkeeping** plus budgets, artifacts, gates, and full-system evaluation.
 
-**Scope boundaries (deliberate).** The orchestrator is domain-general across game / webagent / os-agent / video-understanding / visual reasoning. Its **first evaluation track** is **short-video evidence-grounded reasoning** (Video-Holmes-style). The orchestrator's only state-keeping surface is the episode-local trajectory described in §4 — current `<state>`, the short typed hop trace, intermediate belief state, and within-episode evidence references. Long-horizon video and any cross-episode storage layer are out of scope and have no APIs in this orchestrator.
+**Scope boundaries (deliberate).** The orchestrator is domain-general across game / webagent / ALFWorld / video-understanding / visual reasoning. Its **first evaluation track** is **short-video evidence-grounded reasoning** (Video-Holmes-style). The orchestrator's only state-keeping surface is the episode-local trajectory described in §4.
 
 **Problem statement:** Sub-plans already specify module orchestrators (e.g., bank maintenance, grounding evaluation harness). What is missing is one **executable DAG** that repeatedly: collects rollouts → grounds → runs inner-hop reasoning → acts → logs traces → updates the bank → runs the crafter → **verifies** → promotes or rolls back → schedules training → re-evaluates — with explicit **acceptance gates**, **budget control**, and **observability**.
 
@@ -366,7 +366,7 @@ The bookkeeping is richer than a plain "log all tool calls" contract because of 
 | **Current structured state** | Latest `<state>` from grounding (entities, attributes, relations, targets, uncertainty) | Replaced every outer step |
 | **Short typed hop trace** | Ordered `InnerHopRecord` + `ActionRecord` from this episode | Cleared at episode boundary |
 | **Intermediate belief state** | Per-entity confidence, accumulated `CHECK` verdicts, pending `REASON` warrants | Episode-scoped |
-| **Within-episode evidence references** | Domain-appropriate pointers: clip/frame IDs for video, DOM-node + screenshot region IDs for web, desktop object + window IDs for os, tool-call IDs for visual reasoning | Episode-scoped |
+| **Within-episode evidence references** | Domain-appropriate pointers: clip/frame IDs for video, DOM-node + screenshot region IDs for web, object/receptacle + admissible-command IDs for ALFWorld, tool-call IDs for visual reasoning | Episode-scoped |
 | **Claim–evidence links** | `(claim_id → evidence_ref[])` produced by `CHECK` / `COMMIT` inner actions | Episode-scoped |
 | **Transfer diagnostics** | For any reused skill: `(skill_id, source_domain, target_domain, binding_verdict, replay_pass)` | Episode-scoped, rolled up into §6a metrics |
 
@@ -402,7 +402,7 @@ Map jobs to the three-agent separation ([README § Three-agent role split](../RE
 
 - **Fast loop = game rollouts only.** The Actor's GRPO updates and skill mining feed off `gymv` rollouts. This is where new candidate skills are *born* and where the bulk of training compute goes.
 - **Medium loop = mining + single-domain replay validation.** Bank-ops jobs operate over the source-domain trace pool only.
-- **Slow loop = few-shot transfer.** Target-domain rollouts (`browser`, `osworld`, `video`, `visual_reasoning`) are scheduled explicitly through the few-shot adapter (PLAN-UNIFIED-SKILL-GATE Stage 3a, [PLAN-HARNESS §5.4.2](../05-harness/PLAN-HARNESS.md)) and are budgeted in *demos per skill per target* rather than continuous rollouts.
+- **Slow loop = few-shot transfer.** Target-domain rollouts (`browser`, `alfworld`, `video`, `visual_reasoning`) are scheduled explicitly through the few-shot adapter (PLAN-UNIFIED-SKILL-GATE Stage 3a, [PLAN-HARNESS §5.4.2](../05-harness/PLAN-HARNESS.md)) and are budgeted in *demos per skill per target* rather than continuous rollouts.
 - **Non-regression is measured on the source-domain frozen slice** (gate G5, see [PLAN-HARNESS §10](../05-harness/PLAN-HARNESS.md#10-promotion-gates)). Target-domain regressions trigger only the partial-deprecation path in §3.3.
 
 ### 5.1 Fast (Actor — every iteration / continuous, **source domain only**)

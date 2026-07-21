@@ -1,7 +1,7 @@
-# env_wrappers -- Game Environment Package
+# env_wrappers — Environment Wrapper Package
 
-Unified package for game environment NL wrappers, Gymnasium adapters, game
-configurations, and benchmark runners used by Game-AI-Agent.
+Unified package for game environment NL wrappers plus the active ALFWorld
+household transfer target. Domain-specific dependency stacks stay isolated.
 
 ## Overview
 
@@ -25,6 +25,16 @@ Supported games:
 | Avalon | `AvalonNLWrapper` | AgentEvolver |
 | Diplomacy | `DiplomacyNLWrapper` | AgentEvolver / AI-Diplomacy |
 
+Active non-game target:
+
+| Target | Wrapper | Interface |
+|---|---|---|
+| ALFWorld | `ALFWorldNLWrapper` | Batch-size-one text observations and current admissible commands |
+
+The wrapper uses the checked-in minimal text configuration at
+`configs/alfworld_base_config.yaml`; callers may override it with
+`make_alfworld_env(config_path=...)`.
+
 ---
 
 ## Module Structure
@@ -32,6 +42,7 @@ Supported games:
 ```
 env_wrappers/
   __init__.py                 Public API surface
+  alfworld_nl_wrapper.py      ALFWorld TextWorld wrapper (active target)
   avalon_nl_wrapper.py        Avalon hidden-role deduction (5-10 agents)
   diplomacy_nl_wrapper.py     Diplomacy strategic negotiation (7 powers)
   gamingagent_nl_wrapper.py   GamingAgent / LMGame-Bench NL wrapper
@@ -54,6 +65,29 @@ env_wrappers/
 ---
 
 ## Quick Start
+
+### ALFWorld household tasks
+
+Install ALFWorld in its isolated environment, download its data, and run the
+smoke test:
+
+```bash
+bash install/install_alfworld.sh
+conda run -n alfworld python install/alfworld_smoke.py
+```
+
+Python API:
+
+```python
+from env_wrappers.alfworld_nl_wrapper import make_alfworld_env
+
+env = make_alfworld_env(split="eval_out_of_distribution")
+observation, info = env.reset()
+observation, reward, terminated, truncated, info = env.step(
+    info["admissible_actions"][0]
+)
+env.close()
+```
 
 ### GamingAgent games (2048, Candy Crush, Tetris)
 
@@ -130,13 +164,13 @@ results = run_benchmark(games=["tetris", "candy_crush"], model="gpt-5.4")
 Decision Agent  (dummy_agent / VLMDecisionAgent / Qwen3 agent)
        |  NL action string
        v
-NL Wrapper  (GamingAgentNLWrapper / OrakNLWrapper / AvalonNLWrapper / ...)
+NL Wrapper  (GamingAgentNLWrapper / ALFWorldNLWrapper / OrakNLWrapper / ...)
        |  obs2text() / text2action()
        v
 Gymnasium Adapter  (gym_like._GymLikeWrapper / OrakNLWrapper internal)
        |  reset() / step()
        v
-Native Game Env  (GamingAgent / Orak BaseEnv / AgentEvolver)
+Native Env  (GamingAgent / ALFWorld TextWorld / Orak BaseEnv / AgentEvolver)
 ```
 
 `SubprocessEnv` enables running environments in isolated processes when the

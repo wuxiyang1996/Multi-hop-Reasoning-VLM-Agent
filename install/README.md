@@ -1,6 +1,6 @@
 # Installation Guide
 
-> **Visual-grounding benchmarks (BrowserGym, OSWorld, VisualToolBench, TIR-Bench, Video-Holmes):**
+> **Transfer benchmarks (BrowserGym, ALFWorld, VisualToolBench, TIR-Bench, Video-Holmes):**
 > see [`INSTALL_BENCHMARKS.md`](INSTALL_BENCHMARKS.md). This file covers the
 > training / actor / skill-bank stack and the bundled game environments.
 
@@ -10,10 +10,10 @@ COS-PLAY uses **three core conda environments** (plus one optional add-on for Su
 |---|---|---|---|---|
 | **`game-ai-agent`** | GRPO training, vLLM inference, baselines, plus 2048 / Tetris (GamingAgent), Avalon, Diplomacy, **gym-v** (179 visual envs incl. 13 stable-retro Sega Genesis games), and the four **visual-reasoning benchmark loaders** (TIR-Bench, VisualToolBench, Video-Holmes, SIV-Bench) | 3.11 | torch 2.11+cu130 | ~15 min |
 | **`browsergym`** | MiniWoB++ / WebArena / VisualWebArena / AssistantBench (2,063 tasks total) — see [`INSTALL_BENCHMARKS.md`](INSTALL_BENCHMARKS.md) §2 | 3.11 | torch 2.4.1+cu121 | ~10 min |
-| **`osworld`** | OSWorld desktop tasks (369 Ubuntu + 49 Windows examples) — see [`INSTALL_BENCHMARKS.md`](INSTALL_BENCHMARKS.md) §3 | 3.11 | torch 2.5.1+cu124 | ~10 min |
+| **`alfworld`** | ALFWorld text household tasks; isolated TextWorld dependencies | 3.9 | none by default | ~10 min + data download |
 | **`orak-mario`** *(optional)* | Super Mario Bros — `nes-py` requires `numpy<2` and `gym==0.26.2` so it cannot share `game-ai-agent` | 3.11 | torch latest+cu124 | ~5 min |
 
-> **Why three core envs?** `game-ai-agent` runs `gymnasium 1.3` + `numpy 2.x` (latest vLLM / Qwen3.5 stack); BrowserGym hard-pins `playwright==1.44`; OSWorld hard-pins `gymnasium~=0.28.1`, `transformers~=4.35`, `torch~=2.5`. They cannot co-resolve. See the incompatibility matrix in [`INSTALL_BENCHMARKS.md`](INSTALL_BENCHMARKS.md) §"TL;DR".
+> **Why three core envs?** `game-ai-agent` runs the latest training stack; BrowserGym hard-pins Playwright/browser dependencies; ALFWorld uses a Python 3.9 TextWorld stack. Keeping them isolated avoids dependency conflicts.
 
 ## Prerequisites
 
@@ -43,7 +43,7 @@ git clone https://github.com/modelscope/AgentEvolver.git
 git clone https://github.com/ModalMinds/gym-v.git              # for gym-v + Temporal/* envs
 # Optional / per-domain:
 git clone https://github.com/ServiceNow/BrowserGym.git         # for browsergym env
-git clone https://github.com/xlang-ai/OSWorld.git              # for osworld env
+git clone https://github.com/alfworld/alfworld.git              # optional upstream reference
 git clone https://github.com/krafton-ai/Orak.git               # for Super Mario (cold-start actor + baselines)
 
 # 2. Install the main environment (training + gym-v + GamingAgent)
@@ -54,7 +54,7 @@ bash Multi-hop-Reasoning-VLM-Agent/install/install_main_env.sh \
 
 # 3. (Optional) Install the visual-grounding benchmark envs
 bash Multi-hop-Reasoning-VLM-Agent/install/install_browsergym.sh
-bash Multi-hop-Reasoning-VLM-Agent/install/install_osworld.sh
+bash Multi-hop-Reasoning-VLM-Agent/install/install_alfworld.sh
 
 # 4. (Optional) Install the orak-mario env for Super Mario Bros
 bash Multi-hop-Reasoning-VLM-Agent/install/install_orak_mario.sh
@@ -173,7 +173,7 @@ Full list: [`install/requirements.txt`](requirements.txt)
 
 ---
 
-## 2. Visual-grounding benchmark environments (`browsergym`, `osworld`)
+## 2. Transfer benchmark environments (`browsergym`, `alfworld`)
 
 These are interactive runtimes used by the `vlm_wrapper` grounding pipeline and have hard-pinned dependency sets that cannot co-resolve with `game-ai-agent`. Each gets its own conda env.
 
@@ -183,10 +183,16 @@ bash install/install_browsergym.sh
 #   (clones BrowserGym, creates `browsergym` env, pip install editable,
 #    runs `playwright install-deps chromium && playwright install chromium`)
 
-# OSWorld  — 369 Ubuntu + 49 Windows tasks (requires Docker / VMware / AWS to actually run)
-bash install/install_osworld.sh
-#   (clones OSWorld, creates `osworld` env, pip install -r requirements.txt + editable)
+# ALFWorld — text household tasks; downloads its game/PDDL data
+bash install/install_alfworld.sh
+source cold_start/alfworld_env.sh
+conda activate alfworld
+python install/alfworld_smoke.py
 ```
+
+The wrapper loads [`configs/alfworld_base_config.yaml`](../configs/alfworld_base_config.yaml)
+directly, so it is safe to call from CLIs that have their own arguments; it
+does not delegate to ALFWorld's command-line `generic.load_config()` parser.
 
 Full setup, VM backend selection, and a per-runtime task table: [`INSTALL_BENCHMARKS.md`](INSTALL_BENCHMARKS.md).
 
@@ -496,16 +502,16 @@ bash install/install_orak_mario.sh
 ```
 install/
 ├── README.md                       # This file (training stack + game-ai-agent + orak-mario)
-├── INSTALL_BENCHMARKS.md           # Visual-grounding benchmarks (BrowserGym, OSWorld, vlm_benchmarks, gymv standalone)
+├── INSTALL_BENCHMARKS.md           # Visual-grounding benchmarks and legacy notes
 ├── install_main_env.sh             # game-ai-agent installer (training + gym-v + GamingAgent)
 ├── install_browsergym.sh           # browsergym installer (BrowserGym + Playwright)
-├── install_osworld.sh              # osworld installer (OSWorld + desktop-env)
+├── install_alfworld.sh             # ALFWorld isolated installer + data download
 ├── install_gymv.sh                 # standalone `gymv` env (rare — for VLM-eval-only setups)
 ├── install_orak_mario.sh           # orak-mario installer (Super Mario only)
 ├── requirements.txt                # game-ai-agent pip deps
 ├── requirements-orak-mario.txt     # orak-mario pip deps
 ├── browsergym.environment.yml      # browsergym conda env spec
-├── osworld.environment.yml         # osworld conda env spec
+├── alfworld.environment.yml        # ALFWorld conda env spec
 ├── gymv.environment.yml            # standalone `gymv` env spec (optional)
 ├── vlm_benchmarks.environment.yml  # vlm_benchmarks env spec (image/video QA + grounding)
 ├── *_smoke.py                      # one-line OK/FAIL/WARN smoke tests per env
@@ -528,8 +534,8 @@ install/
 │  browsergym  (separate — playwright==1.44, transformers 4.57, ~6 GB)     │
 │  └── Tasks:      MiniWoB / WebArena / VisualWebArena / AssistantBench    │
 ├──────────────────────────────────────────────────────────────────────────┤
-│  osworld  (separate — gymnasium 0.28.1, transformers 4.35, ~9 GB)        │
-│  └── Tasks:      OSWorld desktop (Ubuntu 369 + Windows 49)               │
+│  alfworld  (separate — Python 3.9 + TextWorld)                         │
+│  └── Tasks:      embodied text household train / ID / OOD splits          │
 ├──────────────────────────────────────────────────────────────────────────┤
 │  orak-mario  (separate — numpy<2, gym==0.26.2)                           │
 │  └── Game:       Super Mario Bros (nes-py)                               │

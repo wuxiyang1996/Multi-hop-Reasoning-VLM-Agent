@@ -401,6 +401,14 @@ async def collect_rollouts(
                         action_movement_actions=str(getattr(
                             config, "action_movement_actions", "LEFT,RIGHT",
                         )),
+                        episode_seed=(
+                            int(config.source_episode_seed_base) + spec.episode_idx
+                            if getattr(config, "source_episode_seed_base", None) is not None
+                            else None
+                        ),
+                        record_reasoning_events=bool(getattr(
+                            config, "record_source_reasoning_events", False,
+                        )),
                     )
                     break
                 except Exception as exc:

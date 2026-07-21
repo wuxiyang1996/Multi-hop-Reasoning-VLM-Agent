@@ -9,17 +9,6 @@ from enum import Enum
 from typing import Tuple
 
 
-# The five general target domains every skill must be feasible in
-# (PLAN-SKILL-BANK ?0.1 general-protocol invariant).
-DOMAINS: Tuple[str, ...] = (
-    "gymv",                # game (gym-v adapter)
-    "browser",             # webagent
-    "osworld",             # os-agent
-    "video",               # short-video evidence-grounded reasoning
-    "visual_reasoning",    # image-QA / visual reasoning
-)
-
-
 # Source-domain / transfer-target asymmetry
 # (PLAN-SKILL-BANK ?0.4, PLAN-UNIFIED-SKILL-GATE Stage 3a).
 #
@@ -30,9 +19,26 @@ DOMAINS: Tuple[str, ...] = (
 SOURCE_DOMAINS: Tuple[str, ...] = ("gymv",)
 TRANSFER_TARGET_DOMAINS: Tuple[str, ...] = (
     "browser",
-    "osworld",
+    "alfworld",
     "video",
     "visual_reasoning",
+)
+
+
+# OSWorld is intentionally isolated from the active transfer study.  Keep it
+# in the broad compatibility set so archived records and explicit legacy
+# tools remain readable, but never schedule it through the default transfer
+# gate, Crafter target set, or evaluation matrix.
+ISOLATED_DOMAINS: Tuple[str, ...] = ("osworld",)
+
+
+# All domain identifiers understood by the serialization layer.  Active
+# experiments must use SOURCE_DOMAINS / TRANSFER_TARGET_DOMAINS rather than
+# iterating this compatibility union.
+DOMAINS: Tuple[str, ...] = (
+    *SOURCE_DOMAINS,
+    *TRANSFER_TARGET_DOMAINS,
+    *ISOLATED_DOMAINS,
 )
 
 
@@ -165,6 +171,7 @@ __all__ = [
     "GateStage",
     "GateVerdict",
     "InnerAction",
+    "ISOLATED_DOMAINS",
     "LANE_A_RECOVERY_STRATEGIES",
     "RecoveryStrategy",
     "SOURCE_DOMAINS",

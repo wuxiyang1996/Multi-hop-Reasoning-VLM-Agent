@@ -63,7 +63,7 @@ _HEADLINE_TARGETS_FOR_GAME: tuple[str, ...] = (
     "visual_reasoning",
     "video",
     "browser",
-    "osworld",
+    "alfworld",
 )
 
 
@@ -221,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
         f"| n_cells={n_corpora}x{n_targets}={len(cells)} "
         f"| n_per_skill_rows={len(per_skill_rows)} "
         f"| mean cell_max_admit_rate across cross-cluster "
-        f"game->{{vr,video,browser,osworld}} = {headline_str}"
+        f"game->{{vr,video,browser,alfworld}} = {headline_str}"
     )
     return 0
 

@@ -179,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
     summary_path = out_dir / "slot_binding_feasibility.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
 
-    headline_targets = {"visual_reasoning", "video", "browser", "osworld"}
+    headline_targets = {"visual_reasoning", "video", "browser", "alfworld"}
     headline_rates = [
         c["cell_some_bind_rate"]
         for c in cells
@@ -189,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
     n_cells = f"{len(banks)}x{len(TARGET_DOMAINS)}"
     print(
         f"slot_binding_feasibility: {summary_path} | n_cells={n_cells} | "
-        f"mean cell_some_bind_rate across cross-cluster game->{{vr,video,browser,osworld}} "
+        f"mean cell_some_bind_rate across cross-cluster game->{{vr,video,browser,alfworld}} "
         f"= {headline_mean:.2f}"
     )
     return 0

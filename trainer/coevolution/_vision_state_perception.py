@@ -298,6 +298,7 @@ _DOMAIN_BY_ENV: Dict[str, str] = {
     "gymv_temporal": "gymv",
     "gamingagent": "env_wrappers",  # tetris / candy_crush / 2048 share gymv schema
     "browsergym":  "browser",
+    "alfworld":    "alfworld",
     "osworld":     "desktop",
     "orak":        "gymv",
 }

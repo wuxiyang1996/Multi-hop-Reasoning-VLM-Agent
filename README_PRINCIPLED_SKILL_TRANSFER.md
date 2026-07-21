@@ -5,6 +5,9 @@
 > [`README_AGENT_NATIVE_SKILL_HARNESS.md`](README_AGENT_NATIVE_SKILL_HARNESS.md)
 > 为准：Agent 只提出候选，Harness 只使用 target-native execution receipts 和官方
 > evaluator，且当前单步 source program 最多只能获得 `CONDITIONAL`。
+> 多步 source program 不使用旧 skill labels 做 segmentation；当前 full-episode
+> `OBSERVED_TRACE` 与 reasoning hypothesis 的严格边界见
+> [`README_NON_HEURISTIC_REASONING_BACKBONE.md`](README_NON_HEURISTIC_REASONING_BACKBONE.md)。
 
 > 设计目标：把游戏中发现的技能迁移到 ALFWorld、Browser、Video 和 Visual Reasoning，同时消除文本相似度、人工权重、手写 predicate 映射、模糊动作匹配和 LLM-as-judge 等启发式裁决。
 

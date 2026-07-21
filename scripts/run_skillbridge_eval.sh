@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# scripts/run_skillbridge_eval.sh — single entry point that runs all five
-# SkillBridge cross-domain eval drivers (block C7) and aggregates results.
+# scripts/run_skillbridge_eval.sh — active SkillBridge evaluation entry point.
+# OSWorld is isolated from this launcher and from automatic aggregation.
 #
 # Usage:
 #   bash scripts/run_skillbridge_eval.sh \
@@ -14,7 +14,7 @@
 #   --max-steps 50
 #   --gymv-games crafter,procgen
 #   --vr-num-cases 200
-#   --skip browsergym,osworld    # comma-separated list of domains to skip
+#   --skip browsergym,alfworld   # comma-separated list of domains to skip
 #   --judge                      # enable LLM-as-judge for VR/video
 #   --extra-cold-start-args "..." # forward to all cold-start subcalls
 set -euo pipefail
@@ -85,17 +85,26 @@ run_browsergym() {
         "${EXTRA_FLAGS_ARRAY[@]}"
 }
 
-run_osworld() {
-    if skip_domain osworld; then return 0; fi
-    echo "==[ osworld   ]==============================================="
-    python -m scripts.skillbridge_eval.eval_osworld \
+run_alfworld() {
+    if skip_domain alfworld; then return 0; fi
+    echo "==[ alfworld ]================================================"
+    local env_name="${ALFWORLD_ENV_NAME:-alfworld}"
+    if ! command -v conda >/dev/null 2>&1; then
+        echo "[run_skillbridge_eval] conda is required for ALFWorld" >&2
+        return 1
+    fi
+    if ! conda env list | awk '{print $1}' | grep -qx "$env_name"; then
+        echo "[run_skillbridge_eval] ALFWorld env '$env_name' is missing; run install/install_alfworld.sh" >&2
+        return 1
+    fi
+    PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}" conda run --no-capture-output \
+        -n "$env_name" python -m scripts.skillbridge_eval.eval_alfworld \
         --run-dir "$RUN_DIR" \
         --model "$MODEL" \
         --vllm-base-url "$VLLM_BASE_URL" \
         --label "$LABEL" \
-        --episodes-per-task "$EPISODES_PER_TASK" \
-        --max-steps "$MAX_STEPS" \
-        "${EXTRA_FLAGS_ARRAY[@]}"
+        --episodes "$EPISODES_PER_TASK" \
+        --max-steps "$MAX_STEPS"
 }
 
 run_visual_reasoning() {
@@ -139,7 +148,7 @@ run_gymv() {
 }
 
 run_browsergym       || echo "[run_skillbridge_eval] browsergym FAILED"
-run_osworld          || echo "[run_skillbridge_eval] osworld FAILED"
+run_alfworld         || echo "[run_skillbridge_eval] alfworld FAILED"
 run_visual_reasoning || echo "[run_skillbridge_eval] visual_reasoning FAILED"
 run_video            || echo "[run_skillbridge_eval] video FAILED"
 run_gymv             || echo "[run_skillbridge_eval] gymv FAILED"

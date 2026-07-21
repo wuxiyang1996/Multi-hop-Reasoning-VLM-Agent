@@ -23,6 +23,7 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 from common.enums import (
+    ISOLATED_DOMAINS,
     SOURCE_DOMAINS,
     TRANSFER_TARGET_DOMAINS,
     GateStage,
@@ -45,9 +46,9 @@ from harness import (
     SkillHarness,
 )
 from harness.adapters import (
+    AlfworldAdapter,
     BrowserAdapter,
     GymvAdapter,
-    OsworldAdapter,
     VideoAdapter,
     VisualReasoningAdapter,
 )
@@ -79,7 +80,7 @@ def _registry_with_all_adapters() -> AdapterRegistry:
     r = AdapterRegistry()
     r.register(GymvAdapter())
     r.register(BrowserAdapter())
-    r.register(OsworldAdapter())
+    r.register(AlfworldAdapter())
     r.register(VideoAdapter())
     r.register(VisualReasoningAdapter())
     return r
@@ -121,9 +122,11 @@ class TestCanonicalDomainSets:
     def test_source_and_target_partition(self) -> None:
         assert set(SOURCE_DOMAINS).isdisjoint(set(TRANSFER_TARGET_DOMAINS))
         assert "gymv" in SOURCE_DOMAINS
-        assert {"browser", "osworld", "video", "visual_reasoning"} == set(
+        assert {"browser", "alfworld", "video", "visual_reasoning"} == set(
             TRANSFER_TARGET_DOMAINS
         )
+        assert "osworld" in ISOLATED_DOMAINS
+        assert "osworld" not in TRANSFER_TARGET_DOMAINS
 
 
 # --------------------------------------------------------------------- record

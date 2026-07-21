@@ -15,7 +15,8 @@ Modules:
   * :mod:`eval_browsergym`   — BrowserGym tasks (delegates to
     cold_start/generate_cold_start_actor_browsergym.py with a
     SkillBridge actor swap).
-  * :mod:`eval_osworld`      — OSWorld desktop tasks.
+  * :mod:`eval_alfworld`     — ALFWorld text household tasks using
+    admissible actions and the environment completion signal.
   * :mod:`eval_visual_reasoning` — visual reasoning benchmarks.
   * :mod:`eval_video`        — video QA / planning.
   * :mod:`eval_aggregator`   — reads every per-domain result JSON

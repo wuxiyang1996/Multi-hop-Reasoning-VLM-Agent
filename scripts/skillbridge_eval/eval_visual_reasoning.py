@@ -7,7 +7,7 @@ schema -> actor pipeline using a single ``--model`` slug.
 
 The script reads the cold-start ``batch_summary.json`` and re-emits a
 uniform ``visual_reasoning_result.json`` so the eval-aggregator has a
-consistent schema across BrowserGym / OSWorld / VR / Video / GymV.
+consistent schema across BrowserGym / ALFWorld / VR / Video / GymV.
 """
 from __future__ import annotations
 

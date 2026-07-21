@@ -188,7 +188,7 @@ def _print_summary(out_dir: Path, rows: list[dict]) -> None:
     print("  headline upper-bound admit rates (game-source -> cross-cluster targets):")
     print(f"    gym_v -> visual_reasoning : {_mean('visual_reasoning'):.2f}  (Stage 1 image-VR oracle)")
     print(f"    gym_v -> video            : {_mean('video'):.2f}  (Stage 2 video-VR oracle)")
-    print(f"    gym_v -> osworld          : {_mean('osworld'):.2f}  (Stage 3 osworld oracle)")
+    print(f"    gym_v -> alfworld         : {_mean('alfworld'):.2f}  (Stage 3 ALFWorld oracle)")
     print(f"    gym_v -> browser          : {_mean('browser'):.2f}  (Stage 4 browsergym oracle)")
 
 

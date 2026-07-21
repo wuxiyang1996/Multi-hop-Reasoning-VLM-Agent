@@ -4,6 +4,8 @@ import copy
 import sys
 import types
 
+import pytest
+
 from common.enums import SkillSourceType, SkillType
 from common.state_schema import StateSchema
 from data_structure.extensions.skill_record import SkillContract, SkillRecord
@@ -127,6 +129,26 @@ def test_library_factory_loads_repo_config_without_parsing_cli(monkeypatch) -> N
     assert captured["batch_size"] == 1
     assert captured["config"]["env"]["type"] == "AlfredTWEnv"
     assert "$ALFWORLD_DATA" in captured["config"]["dataset"]["data_path"]
+
+
+def test_library_factory_fails_before_textworld_reset_when_no_games(monkeypatch) -> None:
+    class EmptyFactory:
+        game_files = []
+
+        def __init__(self, config, train_eval):
+            pass
+
+        def init_env(self, batch_size):
+            raise AssertionError("empty game list must fail before TextWorld registration")
+
+    env_module = types.ModuleType("alfworld.agents.environment")
+    env_module.get_environment = lambda env_type: EmptyFactory
+    monkeypatch.setitem(sys.modules, "alfworld", types.ModuleType("alfworld"))
+    monkeypatch.setitem(sys.modules, "alfworld.agents", types.ModuleType("alfworld.agents"))
+    monkeypatch.setitem(sys.modules, "alfworld.agents.environment", env_module)
+
+    with pytest.raises(RuntimeError, match="resolved zero games"):
+        make_alfworld_env(split="train")
 
 
 def test_observation_renderer_handles_batch_shape() -> None:

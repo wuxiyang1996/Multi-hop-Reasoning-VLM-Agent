@@ -1,6 +1,6 @@
 # 03-skill-bank — Stage 3: Skill Bank
 
-Cross-task bank of **transferable** reasoning, grounding, and control skills written as **general protocols feasible across all five target domains** (game, webagent, os-agent, video-understanding, visual reasoning). Stores skill objects, retrieves top-k candidates, manages lifecycle states.
+Cross-task bank of **transferable** reasoning, grounding, and control skills written as **general protocols feasible across all five active domains** (game, webagent, ALFWorld, video-understanding, visual reasoning). Stores skill objects, retrieves top-k candidates, manages lifecycle states.
 
 ## Status (repo snapshot — 2026-05-02)
 

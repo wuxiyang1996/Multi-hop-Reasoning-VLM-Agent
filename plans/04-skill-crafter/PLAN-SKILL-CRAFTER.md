@@ -35,7 +35,7 @@
 
 **Scope:** Compose, create, and refine new skills from existing Skill Bank primitives. The Skill Crafter is the creative layer that discovers higher-order strategies by combining existing skills, generalizing across games/domains, and proposing novel skill hypotheses that the [Skill Bank](../03-skill-bank/PLAN-SKILL-BANK.md) can test and adopt.
 
-**Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five target domains** — game / webagent / os-agent / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate; it does not become a "short-video-only skill" or a "browser-only skill". The Crafter's **first evaluation arena** is short-video (Video-Holmes-style) — that is where `verified_domains` entries are filled in first and where transfer-failure diagnostics ([PLAN-HARNESS.md §10a](../05-harness/PLAN-HARNESS.md)) are exercised first, **not** where a separate class of skills is synthesized. The Crafter-private `FailurePatternStore` (§6.7) is an offline pattern-aggregation index over `FailureDiagnosis` records; it is never read by the online actor and never extends the agent's episode-local trajectory.
+**Scope boundaries (deliberate).** Every proposal the Crafter emits must be a **general protocol feasible across all five active domains** — game / webagent / ALFWorld / video-understanding / visual reasoning — written over the shared schema and shared inner primitives (see [Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families)). A proposal that only works on one domain is rejected by the acceptance gate. The Crafter's **first evaluation arena** is short-video (Video-Holmes-style); its private `FailurePatternStore` remains offline and never extends the actor's episode-local trajectory.
 
 **Upstream:** Existing skill bank (contracts, protocols, execution traces); structured schemas from [Visual Grounding](../01-visual-grounding/PLAN-VISUAL-GROUNDING.md); episode trajectories from [Action Agent](../02-action-agent/PLAN-ACTION-AGENT.md).
 **Downstream:** New/refined skills injected into the Skill Bank; cross-domain skill transfer proposals.
@@ -183,7 +183,7 @@ class _BaseProposal:
     proposer:    str                 # "composer" | "generalizer" | "hypothesizer" | "reflector"
     evidence_role: str               # GATHER | VERIFY | REASON | COMMIT  (Skill Bank §0.3 Clause B)
     evidence_interface: EvidenceInterfaceDecl
-    target_domains: list             # MUST include all 5: game, webagent, os-agent, video, visual_reasoning
+    target_domains: list             # MUST include all 5: game, webagent, alfworld, video, visual_reasoning
     adapter_plan:   dict             # per-domain adapter strategy (even if stub)
     replay_slice_ids: list           # replay traces the harness should use for G0+G3
     rationale: str                   # short English justification (teacher output)
@@ -283,7 +283,7 @@ Composed: sequence(A, B)
 
 ### What it does
 
-The Generalizer is the **few-shot transfer engine** of the Crafter ([PLAN-UNIFIED-SKILL-GATE.md Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#7-stage-3a--few-shot-transfer-validation), [PLAN-HARNESS.md §5.4.2](../05-harness/PLAN-HARNESS.md#542-fewshotadapter-stage-3a-runtime)). It takes a skill that was **mined from the source domain (game)** and proposes a *recipe* for adapting it to a specific **transfer-target domain** (`browser` / `osworld` / `video` / `visual_reasoning`) using a small number (`K = few_shot.k_shot_default`) of target-domain demonstrations.
+The Generalizer is the **few-shot transfer engine** of the Crafter ([PLAN-UNIFIED-SKILL-GATE.md Stage 3a](../07-skill-gate/PLAN-UNIFIED-SKILL-GATE.md#7-stage-3a--few-shot-transfer-validation), [PLAN-HARNESS.md §5.4.2](../05-harness/PLAN-HARNESS.md#542-fewshotadapter-stage-3a-runtime)). It takes a skill that was **mined from the source domain (game)** and proposes a *recipe* for adapting it to a specific **transfer-target domain** (`browser` / `alfworld` / `video` / `visual_reasoning`) using a small number (`K = few_shot.k_shot_default`) of target-domain demonstrations.
 
 The recipe is what eventually becomes a `GeneralizeProposal` carrying:
 

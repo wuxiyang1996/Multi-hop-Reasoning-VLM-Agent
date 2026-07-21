@@ -114,7 +114,7 @@ class SkillRecord:
     source_type: SkillSourceType
 
     # Cross-domain ontology (PLAN-SKILL-BANK §3.2 / §4.3)
-    applicable_domains: list[str]            # subset of {gymv, browser, osworld, video, visual_reasoning}
+    applicable_domains: list[str]            # subset of {gymv, browser, alfworld, video, visual_reasoning}
     verified_domains: list[str]              # populated by gate stage 3 (transfer)
 
     # Typed program (PLAN-SKILL-BANK §0.5 / §4.1)
@@ -510,7 +510,7 @@ This subsumes [PLAN-HARNESS.md §10a.1](../05-harness/PLAN-HARNESS.md#10a1-consu
 | **1 — Infrastructure skeleton** | The state machine, records, and dummy gate exist | `gate/gate_types.py`, `gate/gate_record.py`, `skill_bank/skill_record.py`, `skill_bank/skill_lifecycle_manager.py`, `harness/gate_runner.py` (stubs), `orchestrator/promotion_orchestrator.py` (stubs) | A `DRAFT` skill can be registered and walked through `DRAFT → CANDIDATE → SHADOW → PROVISIONAL → ACTIVE` with dummy verdicts; storage split (§6) enforced |
 | **2 — Static + replay** | Mined skill can pass / fail Stages 0–1 | `gate/static_checker.py`, `gate/replay_gate.py`, held-out trajectory loader, contract-consistency scoring | Mined skill from a real trace produces a real `SkillEvaluationRecord` and is correctly routed to `CANDIDATE` or `REJECTED` |
 | **3 — Shadow execution** | Crafted / transferred skills can run in shadow without affecting active behavior | `gate/shadow_gate.py`, candidate retrieval in `run_shadow`, shadow metrics aggregation, no-environment-effect guarantee | Transferred skill runs N shadow episodes; produces `SkillEpisode.shadow=True` records; cannot influence reward or actor action |
-| **4 — Transfer gate** | Adapter validation + per-domain approval | `gate/transfer_gate.py`, `harness/adapter_registry.py` validation hook, ontology mapping validation, per-domain approval results | A skill is approved for one target domain (e.g., `video`) but rejected for another (e.g., `osworld`) and recorded as `LIMITED_PASS` |
+| **4 — Transfer gate** | Adapter validation + per-domain approval | `gate/transfer_gate.py`, `harness/adapter_registry.py` validation hook, ontology mapping validation, per-domain approval results | A skill is approved for one target domain (e.g., `video`) but rejected for another (e.g., `alfworld`) and recorded as `LIMITED_PASS` |
 | **5 — Non-regression + promotion** | Provisional → active only after frozen eval-suite passes | `gate/non_regression_gate.py`, `orchestrator/eval_suite.py`, `orchestrator/snapshot_manager.py`, `orchestrator/rollback_manager.py`, `gate/promotion_manager.py` | A `PROVISIONAL` skill becomes `ACTIVE` after passing source-domain non-regression; a triggered rollback restores `prev_active_version` atomically |
 | **6 — Crafter / failure loop** | Rejection reasons re-enter the crafter | `SkillCrafter` consumes `SkillEvaluationRecord` + diagnostic labels; failure-cluster export; repair proposal path; candidate re-submission | A `REJECTED` skill is repaired by the crafter and re-enters `register_draft`; the new draft carries a `provenance.repaired_from` link |
 

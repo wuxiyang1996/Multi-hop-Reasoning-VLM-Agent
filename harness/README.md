@@ -27,43 +27,13 @@
 
 Spec: [`PLAN-HARNESS`](../plans/05-harness/PLAN-HARNESS.md), [`PLAN-COMPONENTS-IMPLEMENTATION`](../plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md) §4 (Phase A).
 
-> **Current state (post-Phase-5/6, 2026-05-02):** All 5 target domains are
-> registered and dispatchable: `gymv` (canonical), `visual_reasoning`,
-> `video`, `osworld`, `browser`. Routing happens via
-> [`labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py).
-> The 4 cross-domain harness executors (`video_executor`, `osworld_executor`,
-> `browsergym_executor`, `visual_reasoning_executor`) ship as deterministic
-> stubs at the module level, but the dispatcher binds **real-env per-sample
-> wrappers** when cold-start data + runtime infra are available (which they
-> are in this workspace, see below).
->
-> **All 4 Tier 1 + Tier 2 + Tier 3 closed 2026-05-02.** Image-VR + video Stage
-> 1/2 cells exercise real VLM tools via
-> [`harness/_vr_per_sample_executor.py`](_vr_per_sample_executor.py) and
-> [`harness/_video_per_sample_executor.py`](_video_per_sample_executor.py).
-> OSWorld Stage 3 cells exercise real `pyautogui` against the live
-> `happysixd/osworld-docker` container fleet via
-> [`harness/_osworld_per_sample_executor.py`](_osworld_per_sample_executor.py)
-> + [`harness/_executor_helpers/osworld_client.py`](_executor_helpers/osworld_client.py)
-> (HTTP client over the container's Flask server). BrowserGym Stage 4 cells
-> exercise a real Playwright browser via
-> [`harness/_browser_per_sample_executor.py`](_browser_per_sample_executor.py)
-> + [`harness/_executor_helpers/browser_helper.py`](_executor_helpers/browser_helper.py)
-> (JSON-RPC subprocess hosting `gym.make("browsergym/<task>")` in the
-> `browsergym` conda env). The per-domain runtime predicate-translator
-> that game->cross-domain transfers depend on for non-zero admit rates
-> ships as [`harness/predicate_translator.py`](predicate_translator.py)
-> and is wired into all 4 cross-domain target builders. See
-> [`../implementation_notes/legacy/phase5-cross-domain-measurement.md`](../implementation_notes/legacy/phase5-cross-domain-measurement.md) §12 for the updated inventory.
->
-> **Retraction note:** A prior revision of this README and the §12.1 doc
-> classified Tier 1 items 3-4 as "infra-blocked, deferred -- needs an OSWorld
-> VM in CI / Playwright in CI". That framing was wrong: the workspace already
-> ships dedicated `osworld` and `browsergym` conda envs with all
-> dependencies, the upstream OSWorld + BrowserGym sources (editable installs),
-> `Xvfb` + `xvfb-run` on PATH, 13 pre-warmed `happysixd/osworld-docker`
-> containers, and the WebArena Docker stack. The actual gating constraint was
-> code-side wiring, not infra.
+> **Current state (2026-07):** The active dispatcher covers `gymv`,
+> `browser`, `alfworld`, `video`, and `visual_reasoning`. ALFWorld uses a
+> live text environment with per-episode reset, admissible-command resolution,
+> and real completion-reward scoring. Browser, video, and image reasoning bind
+> their existing per-sample executors when runtime assets are available.
+> OSWorld desktop code is isolated legacy compatibility and is not registered
+> by the active dispatcher or default harness registry.
 >
 > Numbers measured against the **dispatcher-bound real-env wrappers** (the
 > default path when cold-start data + runtime infra are present, see callout
@@ -152,7 +122,7 @@ Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source fi
 | `adapters/gymv_adapter.py` (`GymvAdapter`) | Canonical source domain. Real env via `gymv_executor.set_executor(...)` |
 | `adapters/visual_reasoning_adapter.py` (`VisualReasoningAdapter`, `bind_visual_reasoning_executor`) | Image-QA / visual reasoning. Inherits `StubTransferTargetAdapter`; bind helper re-exports `visual_reasoning_wrapper.skill_executor.bind_executor` |
 | `adapters/video_adapter.py` (`VideoAdapter`, `bind_video_executor`) | Short-video evidence-grounded reasoning. Inherits `StubTransferTargetAdapter`; bind helper re-exports `harness.video_executor.make_video_executor` |
-| `adapters/osworld_adapter.py` (`OsworldAdapter`) | OSWorld desktop. Inherits `StubTransferTargetAdapter` |
+| `adapters/alfworld_adapter.py` (`AlfworldAdapter`, `bind_alfworld_executor`) | ALFWorld embodied text control. Binds a live wrapper and resolves only currently admissible household commands |
 | `adapters/browser_adapter.py` (`BrowserAdapter`) | BrowserGym / webagent. Its **own** `SkillAdapter` subclass (not `StubTransferTargetAdapter`) but uses the same hop-loop shape |
 | `adapters/_common.py`, `adapters/_stub_base.py` | Shared slot-binding helpers; `StubTransferTargetAdapter` + `make_deterministic_executor` (Day-7d typed verb-→-role table with `evidence_in` / `evidence_out` split) |
 
@@ -162,7 +132,7 @@ Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source fi
 |---|---|
 | `gymv_executor.py` (`make_gymv_executor`, `initial_state_from_env`, `GymvExecutorState`, `ACTION_ALIAS_MAP`) | **Real** Day-3 env wiring. Plugs into `GymvAdapter.set_executor`; maps typed hop ops to concrete env actions; threads a `schema_producer=…` for decidable post-states |
 | `video_executor.py` (`make_video_executor`) | Phase-5 typed deterministic stub at the module level (identity-passes rebound contract predicates against a `video_meta` payload). The dispatcher binds [`_video_per_sample_executor.py:TaskAwareVideoReasoningExecutor`](_video_per_sample_executor.py) over `visual_reasoning_wrapper.video_skill_executor.VideoReasoningExecutor` for real frame decode + VLM tools when cold-start `video_meta` is on disk |
-| `osworld_executor.py` (`make_osworld_executor`) | Phase-5 typed deterministic stub at the module level. The dispatcher binds [`_osworld_per_sample_executor.py:TaskAwareOsworldExecutor`](_osworld_per_sample_executor.py) over [`_executor_helpers/osworld_client.py:OsworldClient`](_executor_helpers/osworld_client.py) for real `pyautogui` against the live `happysixd/osworld-docker` container fleet (HTTP) when cold-start tree + container fleet are both present |
+| `alfworld_executor.py` (`make_alfworld_executor`, `AlfworldExecutorState`) | Live TextWorld executor; resets per probe, matches literal/unique partial commands against `action_names`, and carries reward/post-state into the episode |
 | `browsergym_executor.py` (`make_browsergym_executor`, `BrowserExecutorState`) | Phase-5 typed deterministic stub at the module level. The dispatcher binds [`_browser_per_sample_executor.py:TaskAwareBrowserExecutor`](_browser_per_sample_executor.py) over [`_executor_helpers/browser_helper.py`](_executor_helpers/browser_helper.py) (JSON-RPC subprocess hosting real Playwright `gym.Env` in the `browsergym` conda env) when cold-start tree present |
 | (`visual_reasoning` has no dedicated executor module — uses `StubTransferTargetAdapter._default_executor()` at module level; dispatcher binds [`_vr_per_sample_executor.py:TaskAwareVisualReasoningExecutor`](_vr_per_sample_executor.py) for real per-sample image loading + VLM tool dispatch when cold-start frames present) | — |
 
@@ -171,7 +141,7 @@ Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source fi
 | Symbol / file | Role |
 |---|---|
 | `gym_schema_producer.py` (`make_gaming_env_producer`, `twenty_forty_eight_producer`, `tetris_producer`, `candy_crush_producer`, `super_mario_producer`, `render_state_block`, `SchemaProducer`) | Day-4B / Day-6 producer for `make_gaming_env(...)` envs. Round-trips through `parse_schema_canonical` so predicates are decidable end-to-end |
-| `osworld_schema_producer.py` (`make_osworld_producer`) | Phase-5 producer for the OSWorld stub-executor input shape |
+| `env_wrappers/alfworld_nl_wrapper.py` (`ALFWorldNLWrapper`) | Batch-size-one text observation and admissible-command state producer |
 | `browser_schema_producer.py` (`browsergym_canonical_producer`, `make_browsergym_producer`) | Phase-5 producer for the BrowserGym stub-executor input shape |
 
 ### Success-fn registrations (`register_success_fn(domain)` from `harness.gymv_success`)
@@ -181,7 +151,7 @@ Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source fi
 | `gymv` | `gymv_success.py` (`make_per_step_success_fn`, `evaluate_predicate`, `evaluate_hop_effects`, `evaluate_episode_effects`) | `make_per_step_success_fn` — registered at import |
 | `visual_reasoning` | `qa_success.py` (`make_qa_success_fn`, `qa_answer_matches`) | QA-style answer-equality scorer |
 | `video` | `video_qa_success.py` (`make_video_qa_success_fn`) | Video-QA answer-equality scorer |
-| `osworld` | `osworld_success.py` (`make_osworld_per_step_success_fn`) | OSWorld desktop predicate scorer |
+| `alfworld` | `alfworld_success.py` (`make_alfworld_success_fn`) | Requires a real demo expectation and minimum environment reward |
 | `browser` | `browser_success.py` (`make_browser_per_step_success_fn`) | BrowserGym-shape predicate scorer |
 
 ### Few-shot demo loaders (one per target domain)
@@ -191,7 +161,7 @@ Regenerated from `harness/__init__.py`'s `__all__` (post-Phase-5/6, 27 source fi
 | `few_shot_demos_gymv.py` | `labeling/skill_actions_out/.../<game>/episode_*.json` |
 | `few_shot_demos_vr.py` | `Cold-start-out-visual-reasoning/{visual_toolbench,tir_bench}/sample_*.json` (re-tagged `state.domain="visual_reasoning"`) |
 | `few_shot_demos_video.py` | Cold-start video samples |
-| `few_shot_demos_osworld.py` | Cold-start OSWorld samples |
+| `few_shot_demos_alfworld.py` | Live-reset ALFWorld probes with completion-reward expectations |
 | `few_shot_demos_browsergym.py` | Cold-start BrowserGym samples |
 
 ### Gate / runner
@@ -230,7 +200,7 @@ class SkillAdapter(ABC):
 | Phase | What this package contains | Status |
 |---|---|---|
 | A (MVP) | `SkillHarness`, eligibility filter, gymv + browser adapters, reward log, replay-validator stub | **Delivered** — covered by `tests/test_smoke.py` and `tests/test_invariants.py` |
-| D (transfer + replay) | Action-level `ReplayValidator` (Day-7b); six-gate `GateRunner` G0–G5 (Day-7a at [`gate_runner.py`](gate_runner.py)); `osworld / video / visual_reasoning / browser` adapters (Phase-5/6, deterministic stubs at the harness level — see top-of-file "Current state" callout); `transfer_manager.py` shadow → active still pending | **Partial** — adapters / executors / schema producers / success_fns / few-shot demo loaders shipped 2026-05-02 as deterministic stubs; full deterministic `ReplayValidator` snapshot path and shadow → active quarantine still pending. See root README §"Pending" |
+| D (transfer + replay) | Action-level `ReplayValidator`; six-gate `GateRunner`; active `alfworld / video / visual_reasoning / browser` adapters; `transfer_manager.py` shadow → active still pending | **Partial** — ALFWorld live binding shipped; full replay snapshots and shadow → active quarantine remain pending |
 | F (trainable extensions) | LoRA heads `skill_select`, `continue_vs_switch`, `accept_transfer`, `adapter_refine` consumed by `SkillHarness.select_eligible_skills` | Pending |
 
 ---
@@ -241,7 +211,7 @@ Grouped by impact. Items 1–4 are blocking the "harness as gate verifier" story
 
 ### 1. Transfer-target adapters are deterministic stubs
 
-Five target domains are registered: `gymv` (canonical, real env via `gymv_executor.py`), `visual_reasoning`, `video`, `osworld`, `browser`. Of these, only `gymv_adapter.py` drives a real environment. `osworld_adapter.py`, `video_adapter.py`, and `visual_reasoning_adapter.py` inherit `StubTransferTargetAdapter` (`adapters/_stub_base.py`); `browser_adapter.py` is its own `SkillAdapter` subclass with the same shape but a separate hop loop. All four transfer-target adapters fall back to `make_deterministic_executor` when no real executor is registered. Day-7d typed the stub: `make_deterministic_executor(...)` now emits a verb-→-role-table-keyed evidence role (`GATHER / VERIFY / REASON / COMMIT` plus common synonyms) with a directional `evidence_in / evidence_out` split rather than a single synthetic `GATHER` per hop. The harness-side cross-domain executors (`harness/video_executor.py`, `harness/osworld_executor.py`, `harness/browsergym_executor.py`) shipped Phase-5/6 as **typed deterministic stubs** that identity-pass the rebound contract's predicates rather than calling a real env or VLM — numbers measured against them are infrastructure-validating, not mechanism-validating (see top-of-file "Current state" callout). Real env binding (BrowserGym / Playwright / OSWorld VM / video frame indexer / VR pixel tools) is still owed by `vlm_wrapper/<domain>_adapter.py` and must be plugged in via `adapter.set_executor(real_executor)`. Helpers: `bind_visual_reasoning_executor` (in `visual_reasoning_adapter`) and `bind_video_executor` (in `video_adapter`) re-export the wire-up from the harness-side stub modules so callers don't have to import the executor module directly.
+Five active domains are registered by the canonical bridge: `gymv`, `browser`, `alfworld`, `video`, and `visual_reasoning`. `gymv` and ALFWorld have live environment executors; the other adapters retain deterministic fallback executors when their external runtime assets are unavailable. Fallback results validate plumbing only and must not be reported as transfer performance.
 
 ### 2. `ReplayValidator` is a "dry-run rerun", not a real replay
 
@@ -411,7 +381,7 @@ The fix is **not** in `harness/`. It belongs in the cold-start labeling pipeline
 >
 > Test deltas: new `test_gate_runner.py` (+5), new `test_replay_validator_action_walk.py` (+6), new `test_lifecycle_task_verification.py` (+6), new `test_validate_invocation.py` (+9), new `test_skill_episode_field_expansion.py` (+7) → +33 unit tests, full suite **375 passed** (1 known pre-existing whitespace-tolerance failure in `test_schema_predicates.py`). Lint clean.
 >
-> Day-9 follow-ups: (a) wire `GateRunner` into the orchestrator's `PromotionOrchestrator.promote()` so anchors flow into release manifests; (b) `_phase4_transfer_cycle.py --persist` flag that calls `record_task_verification`; (c) Crafter consumes the new `RejectedSkill` channel as `false_binding_patterns` evidence; (d) `osworld_adapter` / `video_adapter` / `visual_reasoning_adapter` real surfaces (work-order item 1 cross-domain stub); (e) `dump_harness_io_gpt54.py` extension to the offline `GateRunner` surface.
+> Day-9 follow-ups: (a) wire `GateRunner` into the orchestrator's `PromotionOrchestrator.promote()` so anchors flow into release manifests; (b) `_phase4_transfer_cycle.py --persist` flag that calls `record_task_verification`; (c) Crafter consumes the new `RejectedSkill` channel as `false_binding_patterns` evidence; (d) finish browser / video / visual-reasoning real surfaces; (e) extend `dump_harness_io_gpt54.py` to the offline `GateRunner` surface.
 
 > **Status (2026-05-01, Day-9 wiring milestone — Phase-6):** All five Day-9 follow-ups closed at the wire-up level; full report at [`labeling_supplement/harness_io_out/_phase6_report.md`](../labeling_supplement/harness_io_out/_phase6_report.md):
 >
@@ -435,11 +405,11 @@ The fix is **not** in `harness/`. It belongs in the cold-start labeling pipeline
 >
 > * **Day-6a — Producer fan-out: candy_crush + super_mario.** [`harness/gym_schema_producer.py`](gym_schema_producer.py) registry grew from `{2048, tetris}` to `{2048, tetris, candy_crush, super_mario}`. `candy_crush_producer` parses the textual obs (`"Board:\n0| R C G C …\nScore: <N>\nMoves Left: <N>"`) for the 8×8 letter-coded grid and emits one aggregate `candy_<color>` text entity per color plus `score` / `moves_remaining` `goal_indicator`s; `phase=gameover` when moves exhaust. `super_mario_producer` parses `"Position of Mario: (X, Y)"` + the `Positions of all objects` table for visible enemies/items, emits one entity per detected object plus `score` / `lives` / `scroll_x` (= `mario.x`) `goal_indicator`s; `progress` normalized over a 3168-px world-1-1 baseline.
 >
-> * **Day-6b — Domain-keyed `SuccessFn` registry.** `harness.gymv_success` exposes `register_success_fn(domain, factory)` / `success_fn_for_domain(domain, …)` / `registered_success_fn_domains()`. Bootstrap registers `gymv ⇒ make_per_step_success_fn` at import. `FewShotAdapter.adapt` consults the registry: when constructed with the default scorer, swaps in the registered factory for `target_domain`; explicit `success_fn=…` overrides still win. Lets cross-domain transfer (browser/osworld/video/…) plug a domain-aware scorer once at the lifecycle wiring rather than every gate caller.
+> * **Day-6b — Domain-keyed `SuccessFn` registry.** `harness.gymv_success` exposes `register_success_fn(domain, factory)` / `success_fn_for_domain(domain, …)` / `registered_success_fn_domains()`. Bootstrap registers `gymv ⇒ make_per_step_success_fn` at import. `FewShotAdapter.adapt` consults the registry: when constructed with the default scorer, swaps in the registered factory for `target_domain`; explicit `success_fn=…` overrides still win. This lets browser / ALFWorld / video / visual-reasoning transfer register a scorer once at lifecycle wiring.
 >
 > Test deltas: `test_protocol_lift.py` 33 → 37 (+4), `test_gym_schema_producer.py` 13 → 18 (+5), new `test_few_shot_demos_gymv.py` (+6), new `test_success_fn_registry.py` (+6). Full empirical write-up: [`../labeling_supplement/harness_io_out/_phase4_report.md`](../labeling_supplement/harness_io_out/_phase4_report.md).
 >
-> Day-7 follow-ups: (a) `AdaptResult` lifecycle persistence — append `target_task` to `verified_tasks` on disk via a `SkillLifecycleManager` transition; (b) action-level `ReplayValidator` walk over `seed.steps`; (c) `harness/gate_runner.py` (work-order item 12); (d) `osworld_adapter` / `video_adapter` / `visual_reasoning_adapter` surfaces for the cross-domain transfer set.
+> Day-7 follow-ups: (a) `AdaptResult` lifecycle persistence; (b) action-level `ReplayValidator`; (c) `harness/gate_runner.py`; (d) ALFWorld / video / visual-reasoning adapter surfaces.
 >
 > **Status (2026-05-01, Day-4 of intra-gymv transfer milestone):** Predicate-evaluation rigor closed. Two parallel surfaces landed:
 >
@@ -461,7 +431,7 @@ The fix is **not** in `harness/`. It belongs in the cold-start labeling pipeline
 SOURCE_DOMAINS: Tuple[str, ...] = ("gymv",)
 TRANSFER_TARGET_DOMAINS: Tuple[str, ...] = (
     "browser",
-    "osworld",
+    "alfworld",
     "video",
     "visual_reasoning",
 )
@@ -484,9 +454,9 @@ The fix is an additive contract change: add `SkillRecord.feasible_tasks: List[st
 
 ### Intra-gymv transfer is the right first milestone
 
-[§21](#21-cold-start-protocol-is-natural-language-prose-not-typed-hops) and [§22](#22-feasible_domains-granularity-collapses-gymv-games-into-a-single-bucket) together suggest a smaller first transfer experiment than gymv → browser/osworld. Pinning the first transfer cycle inside gymv (2048 → tetris → candy_crush → …) shrinks four of the six cost axes:
+[§21](#21-cold-start-protocol-is-natural-language-prose-not-typed-hops) and [§22](#22-feasible_domains-granularity-collapses-gymv-games-into-a-single-bucket) together suggest a smaller first transfer experiment than gymv → browser/ALFWorld. Pinning the first transfer cycle inside gymv (2048 → tetris → candy_crush → …) shrinks four of the six cost axes:
 
-| Cost axis | gymv → browser/osworld/video/vr | gymv → gymv (cross-game) |
+| Cost axis | gymv → browser/alfworld/video/vr | gymv → gymv (cross-game) |
 |---|---|---|
 | Adapter executors to wire ([§1](#1-transfer-target-adapters-are-deterministic-stubs) / [§16.1](#161-adapter-executors-are-stubs-so-run_skill-is-a-black-hole)) | 4 transfer + 1 source = 5 | **1** (`GymvAdapter`) |
 | New env bindings | full browser DOM, VM control, frame indexer, MCQ resolver | **none** — `cold_start/generate_cold_start_actor*.py` already drives the envs; expose its `step()` |
@@ -516,14 +486,14 @@ Smallest cost / highest value first. The reordering below puts the audit's [§9�
   8. **[done — Day 3, 2026-05-01]** First intra-gymv real-env execution cycle — wired `GymvAdapter.set_executor(real_step)` via [`gymv_executor.py`](gymv_executor.py), and plugged a gymv-shape `success_fn` keyed on `schema_canonical`-derived `<attributes>` / `<state_flags>` facts via [`gymv_success.py`](gymv_success.py). Phase-2 smoke ([`../labeling_supplement/_phase2_real_env_skill_smoke.py`](../labeling_supplement/_phase2_real_env_skill_smoke.py)) confirms `harness.run_skill(skill, state)` actually steps `make_gaming_env("twenty_forty_eight")` / `make_gaming_env("tetris")` and surfaces a per-hop predicate verdict on `outcome.extra["per_hop_effects"]`. Full report: [`../labeling_supplement/harness_io_out/_phase2_report.md`](../labeling_supplement/harness_io_out/_phase2_report.md). Stage 3a transfer cycle (build `FewShotDemo`s from `labeling/skill_actions_out/.../<game>/episode_*.json`, run `(2048 ↔ tetris)` transfer probes) and lift v2 / VLM schema wrapper are Day-4/5 follow-ups.
   8a. **[done — Day 4, 2026-05-01]** Lift v2 — broadened `_PREDICATE_TRIGGERS` in [`labeling/_protocol_lift.py`](../labeling/_protocol_lift.py) to cover indirect phrasings real cold-start prose uses (`"valid merges were applied"` → `cumulative_reward_increased`, `"top-out"` → `phase_transitioned`, etc.). [`labeling/_decorate_skill_records.py`](../labeling/_decorate_skill_records.py) gained `--force_relift` to sweep the bank in place. Coverage delta: 2 / 12 → 9 / 12 skills with mined effects.
   8b. **[done — Day 4, 2026-05-01]** Deterministic `<state>...</state>` producer for live gym envs — [`gym_schema_producer.py`](gym_schema_producer.py) renders a structured block from `env.info` (no VLM); 2048 + tetris ship; opt-in via `make_gymv_executor(env, …, schema_producer=…)` and `initial_state_from_env(env, …, schema_producer=…)`. A/B on Phase-2 smoke (2048 `Commit/Merge`, 8 deterministic seeds): without producer best_pass_rate=0.67 (undecidable predicates inflate); with producer best_pass_rate=0.33 (only seeds where `up` produces a legal merge actually pass). The drop is the empirical signature of newly-decidable predicates. Full write-up: [`../labeling_supplement/harness_io_out/_phase3_report.md`](../labeling_supplement/harness_io_out/_phase3_report.md).
-  9. ~~Plug a real domain-aware `success_fn` into `FewShotAdapter` for cross-domain (existing item 4) — generalises item 8's gymv scorer.~~ — **shipped 2026-05-02** as the 4 cross-domain success-fn modules registered against `harness.gymv_success.register_success_fn(domain)`: [`qa_success.py`](qa_success.py) (`visual_reasoning`), [`video_qa_success.py`](video_qa_success.py) (`video`), [`osworld_success.py`](osworld_success.py) (`osworld`), [`browser_success.py`](browser_success.py) (`browser`). Companion few-shot demo loaders shipped at [`few_shot_demos_vr.py`](few_shot_demos_vr.py), [`few_shot_demos_video.py`](few_shot_demos_video.py), [`few_shot_demos_osworld.py`](few_shot_demos_osworld.py), [`few_shot_demos_browsergym.py`](few_shot_demos_browsergym.py).
+  9. Domain-aware `success_fn` modules are registered for visual reasoning, video, browser, and ALFWorld. ALFWorld uses [`alfworld_success.py`](alfworld_success.py) plus [`few_shot_demos_alfworld.py`](few_shot_demos_alfworld.py) to require real completion reward.
   10. Wire the legacy actor to `HarnessSkillProvider`. *(Note: under the T1.3 lane-(a) decision the live trainer instead consumes the eligibility + `validate_invocation` surface directly via `harness_hook` — see §22.1.)*
   11. ~~Implement action-level `ReplayValidator` (walk `seed.steps`, compare actions + evidence) — existing item 2.~~ — **shipped 2026-05-01** Day-7b at [`replay_validator.py`](replay_validator.py) (`mode="action_level"` emits per-step `StepDiff`).
   12. ~~Stand up `harness/gate_runner.py` over `gate_service` stages — existing item 3 + [§13](#13-gateservice-lives-under-orchestrator-not-harness--naming-mismatch-with-the-spec) relocate.~~ — **shipped 2026-05-01** Day-7a at [`gate_runner.py`](gate_runner.py) (`GateRunner`, `GateRunnerConfig`, `EvalSuite`).
   13. ~~Extend the dump driver to the offline GateRunner surface (Stage 0–4 + `SkillEvaluationRecord` per Crafter proposal) — second half of [§14](#14-no-io-dump-driver--live-harness-behaviour-against-the-cold-start-corpus-is-unverified).~~ — **shipped 2026-05-01** Day-7e via the `--gate-runner` flag on [`../labeling_supplement/dump_harness_io_gpt54.py`](../labeling_supplement/dump_harness_io_gpt54.py).
   14. ~~Add `rollout_batch[]` overload on `_run_shadow` and `eval_suite[]` overload on `_run_non_regression` ([§12](#12-gateservice-stage-io-signatures-dont-match-the-spec)).~~ — **shipped 2026-05-01** Day-7a as part of [`gate_runner.py`](gate_runner.py)'s `evaluate(...)` shape.
   15. Add `harness/transfer_manager.py` for shadow → active — existing item 3 second half. *(Still pending — no shadow → active two-phase quarantine yet; under lane (a) this is offline-diagnostic only.)*
-  16. Wire `vlm_wrapper/<domain>_adapter.py` executors via `set_executor()` — `browser` → `osworld` → `video` → `visual_reasoning` (existing item 1). Cross-domain transfer follows the path validated by item 8. *(Partial: the harness-side **deterministic stubs** at [`video_executor.py`](video_executor.py), [`osworld_executor.py`](osworld_executor.py), [`browsergym_executor.py`](browsergym_executor.py) — plus matching schema producers [`osworld_schema_producer.py`](osworld_schema_producer.py) and [`browser_schema_producer.py`](browser_schema_producer.py) — **shipped 2026-05-02** as Phase-5/6. They identity-pass rebound contract predicates rather than calling a real env / VLM, so numbers measured against them are infrastructure-validating, not mechanism-validating — see top-of-file "Current state" callout. Real `vlm_wrapper/<domain>_adapter.py` env binding is still pending **for `browser` and `osworld` swap-in**; **for `video` and `visual_reasoning`, the `vlm_wrapper/` real-env adapters do not exist on disk yet and must be authored first** (~600-800 LOC each, mirroring `vlm_wrapper/osworld_adapter.py`).)*
+  16. Finish live executors for `browser`, `video`, and `visual_reasoning`; ALFWorld is wired through [`alfworld_executor.py`](alfworld_executor.py). Deterministic fallbacks validate plumbing only.
   17. Phase-F LoRA heads in `select_eligible_skills` (existing item 5). *(Still pending.)*
 
 ### Additional Day-7/8/9/10 surfaces shipped (not on the original work-order)
@@ -932,7 +902,7 @@ history within the same trainer step.
 
 ### Phase-5/6 cross-domain dispatch and measurement
 
-- [`../labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py) — central per-target dispatcher (Stage 4 / Phase-5/6); routes `gymv → {visual_reasoning, video, osworld, browser}` through the matching adapter + executor + schema producer + success_fn quad.
+- [`../labeling_supplement/_phase4_target_dispatch.py`](../labeling_supplement/_phase4_target_dispatch.py) — central active dispatcher; routes `gymv → {visual_reasoning, video, alfworld, browser}` through the matching adapter + executor + scorer bundle.
 - [`../labeling_supplement/_phase5_matrix.py`](../labeling_supplement/_phase5_matrix.py) — Stage 5 within-VR / within-video 4×4 driver.
 - [`../labeling_supplement/_phase4_transfer_matrix.py`](../labeling_supplement/_phase4_transfer_matrix.py) — Stage 6 NxN cross-domain transfer driver.
 - [`../labeling_supplement/_phase4_transfer_report.py`](../labeling_supplement/_phase4_transfer_report.py) — Stage 6 report generator (G1-G6 verdicts).

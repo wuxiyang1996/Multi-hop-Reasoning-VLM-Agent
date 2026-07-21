@@ -5,13 +5,14 @@ Phase-4 (Day-5b) shipped game->game (within-gymv) transfer through
 ``_phase4_transfer_cycle.py`` with the target adapter, executor,
 schema producer, and demos all hardcoded for ``target_domain='gymv'``.
 
-Phase 5 of the cross-domain measurement plan extends this to the
-remaining four target domains:
+The active cross-domain measurement plan extends this to four targets:
 
     visual_reasoning  -- VTB + TIR-Bench (image-VR)
     video             -- Video-Holmes + SIV-Bench (video-VR)
-    osworld           -- desktop tasks
+    alfworld          -- embodied text household tasks
     browser           -- BrowserGym
+
+Desktop automation is intentionally outside this dispatcher's scope.
 
 Rather than rewriting ``_phase4_transfer_cycle._run_transfer`` per
 domain, this module provides:
@@ -55,7 +56,7 @@ class TargetBuild:
       target_domain:
         The canonical domain string registered with
         ``common.enums.TRANSFER_TARGET_DOMAINS`` (e.g. ``'gymv'``,
-        ``'visual_reasoning'``, ``'video'``, ``'osworld'``,
+        ``'visual_reasoning'``, ``'video'``, ``'alfworld'``,
         ``'browser'``).
       adapter:
         The ``SkillAdapter`` (or subclass) instance with its
@@ -75,7 +76,7 @@ class TargetBuild:
         constructs a fresh per-skill ``SuccessFn`` by calling this
         factory inside the skill loop. For gymv this is
         ``harness.gymv_success.make_per_step_success_fn``; for VR /
-        video / osworld / browser the per-domain ``*_success.py``
+        video / alfworld / browser the per-domain ``*_success.py``
         modules export an analogous factory.
     """
 
@@ -327,23 +328,12 @@ def _build_visual_reasoning_target(args: argparse.Namespace) -> TargetBuild:
     logger.info("loaded %d VR demo(s) from %s/%s",
                 len(demos), cold_start_root, sub_corpus)
 
-    # Wrap the QA success_fn factory with the per-domain runtime
-    # predicate translator (Phase-5/6 §12.3 / §11.5.0). For game->VR
-    # transfers, the wrapper rewrites the source skill's
-    # contract.effects_{add,del} from game vocabulary
-    # (e.g. cumulative_reward_increased) to VR vocabulary
-    # (answer_emitted, answer_matches_gold) before make_qa_success_fn
-    # evaluates it. Diagonal (visual_reasoning->visual_reasoning) calls
-    # are an identity passthrough.
-    from harness.predicate_translator import with_predicate_translation
     return TargetBuild(
         target_domain="visual_reasoning",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=with_predicate_translation(
-            make_qa_success_fn, target_domain="visual_reasoning",
-        ),
+        success_fn_factory=make_qa_success_fn,
     )
 
 def _build_video_target(args: argparse.Namespace) -> TargetBuild:
@@ -460,159 +450,81 @@ def _build_video_target(args: argparse.Namespace) -> TargetBuild:
     # full visual_reasoning vocab plus temporal_ordering_correct +
     # frame_referent_grounded -- so e.g. entity_disappeared maps to
     # temporal_ordering_correct here vs. dropped for image-VR).
-    from harness.predicate_translator import with_predicate_translation
     return TargetBuild(
         target_domain="video",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=with_predicate_translation(
-            make_video_qa_success_fn, target_domain="video",
-        ),
+        success_fn_factory=make_video_qa_success_fn,
     )
 
-def _build_osworld_target(args: argparse.Namespace) -> TargetBuild:
-    """OSWorld desktop transfer cell.
+def _build_alfworld_target(args: argparse.Namespace) -> TargetBuild:
+    """Build a live text-mode ALFWorld transfer cell.
 
-    Mirror of :func:`_build_gymv_target` for the OSWorld target. The
-    deterministic-stub executor (no real ``pyautogui``) keeps the
-    dispatch chain firing so the per-hop success_fn evaluates
-    effects against the producer-emitted facts. Real desktop binding
-    is a later cut (rollout memo §6.1, §11.5.5).
-
-    Builder shape (matches gymv's eight-step recipe):
-
-      1. Resolve the cold-start root (``Cold-start-out-osworld/``).
-      2. Build the OSWorld schema producer for ``args.target``.
-      3. Build the deterministic-stub executor.
-      4. Construct the adapter; widen ``supported_types`` so
-         REASONING / GROUNDING skills also dispatch.
-      5. Wire ``adapter.set_executor(executor)``.
-      6. Build the harness around the adapter via ``AdapterRegistry``.
-      7. Build target-task demos via
-         :func:`build_demos_from_osworld_episodes`.
-      8. Return the per-domain success_fn factory.
+    Every harness invocation resets the environment, resolves action hops
+    against the current admissible-command list, and scores the episode using
+    ALFWorld's real completion reward. ALFWorld lives in its own conda
+    environment; use ``install/install_alfworld.sh`` before running this cell.
     """
     from common.enums import SkillType
-    from harness import (
-        AdapterRegistry,
-        HarnessConfig,
-        SkillHarness,
-        make_osworld_executor,
-        make_osworld_producer,
+    from env_wrappers.alfworld_nl_wrapper import ALFWORLD_SPLITS, make_alfworld_env
+    from harness import AdapterRegistry, HarnessConfig, SkillHarness
+    from harness.adapters.alfworld_adapter import (
+        AlfworldAdapter,
+        bind_alfworld_executor,
     )
-    from harness.adapters.osworld_adapter import OsworldAdapter
-    from harness.few_shot_demos_osworld import build_demos_from_osworld_episodes
-    # Importing the module also registers the success_fn factory at
-    # import time so ``success_fn_for_domain('osworld')`` resolves
-    # downstream even if the caller never imports it directly.
-    import harness.osworld_success  # noqa: F401
-    from harness.osworld_success import make_osworld_per_step_success_fn
+    from harness.alfworld_success import make_alfworld_success_fn
+    from harness.few_shot_demos_alfworld import build_alfworld_probe_demos
 
-    cold_start_root = Path(
-        getattr(args, "cold_start_root", None) or "Cold-start-out-osworld"
-    )
-    if not cold_start_root.exists():
+    split = str(getattr(args, "target", "eval_out_of_distribution"))
+    if split not in ALFWORLD_SPLITS:
         raise SystemExit(
-            f"cold_start_root missing: {cold_start_root} "
-            f"(expected Cold-start-out-osworld/<ts>/{args.target}/"
-            f"<task-uuid>/episode_*.json)"
+            f"--target {split!r} is not an ALFWorld split; expected one of "
+            f"{ALFWORLD_SPLITS}"
         )
 
-    domain_name = args.target  # e.g. "vlc"
-    schema_producer = make_osworld_producer(domain_name)
-    executor, _holder = make_osworld_executor(
-        domain="osworld",
-        task=domain_name,
-        on_unresolved="skip",
-        schema_producer=schema_producer,
+    env = make_alfworld_env(
+        split=split,
+        max_steps=int(getattr(args, "alfworld_max_steps", 50)),
     )
-
-    adapter = OsworldAdapter()
+    adapter = AlfworldAdapter()
     adapter.supported_types = (
-        SkillType.ACTION, SkillType.MIXED,
-        SkillType.GROUNDING, SkillType.REASONING,
+        SkillType.ACTION,
+        SkillType.MIXED,
+        SkillType.GROUNDING,
+        SkillType.REASONING,
     )
-    # Try to bind the real-env wrapper that talks to a live
-    # ``happysixd/osworld-docker`` container fleet over HTTP. The
-    # fleet is a pool of N containers (typically 13) discovered via
-    # ``docker ps``; each task_id hash-pins to one container so a
-    # hot loop of hops on the same task hits the same desktop state.
-    # Falls back to the deterministic stub when (a) the cold-start
-    # tree lacks task->meta entries, (b) the docker daemon is
-    # unreachable, or (c) no containers are running.
-    from harness._executor_helpers.osworld_client import OsworldContainerPool
-    from harness._osworld_per_sample_executor import (
-        TaskAwareOsworldExecutor, discover_task_to_osworld_meta,
+    bind_alfworld_executor(
+        adapter,
+        env=env,
+        on_unresolved="abort",
+        reset_each_run=True,
     )
-    task_to_osworld_meta = discover_task_to_osworld_meta(
-        cold_start_root, domain_filter=domain_name,
-    )
-    osworld_pool = OsworldContainerPool.from_discovery()
-    if task_to_osworld_meta and osworld_pool is not None:
-        prefer_gdino = bool(getattr(args, "vr_prefer_gdino", False))
-        adapter.set_executor(
-            TaskAwareOsworldExecutor(
-                task_to_osworld_meta,
-                osworld_pool,
-                prefer_gdino=prefer_gdino,
-            )
-        )
-        logger.info(
-            "bound TaskAwareOsworldExecutor with %d task->meta entries "
-            "and %d-container pool (domain=%s, prefer_gdino=%s)",
-            len(task_to_osworld_meta), osworld_pool.size,
-            domain_name, prefer_gdino,
-        )
-    else:
-        adapter.set_executor(executor)
-        if not task_to_osworld_meta:
-            logger.warning(
-                "no cold-start task_meta discovered under %s/<run>/%s/; "
-                "falling back to deterministic stub",
-                cold_start_root, domain_name,
-            )
-        else:
-            logger.warning(
-                "no happysixd/osworld-docker containers running; "
-                "falling back to deterministic stub (start the OSWorld "
-                "container fleet to enable real-env binding)",
-            )
 
     registry = AdapterRegistry()
     registry.register(adapter)
-    harness_obj = SkillHarness(registry, config=HarnessConfig(
-        seed=0,
-        default_budget_hops=12,
-        default_budget_ms=30_000.0,
-    ))
-
-    demos = build_demos_from_osworld_episodes(
-        cold_start_root,
-        domain=domain_name,
-        max_episodes=int(getattr(args, "max_episodes", 3)),
-        max_demos_per_episode=int(getattr(args, "max_demos_per_episode", 2)),
+    harness_obj = SkillHarness(
+        registry,
+        config=HarnessConfig(
+            seed=0,
+            default_budget_hops=12,
+            default_budget_ms=30_000.0,
+        ),
     )
-    logger.info(
-        "loaded %d osworld demo(s) from %s/*/%s/",
-        len(demos), cold_start_root, domain_name,
+    max_demos = int(getattr(args, "max_episodes", 3)) * max(
+        1, int(getattr(args, "max_demos_per_episode", 1))
     )
-
-    # Per-step OSWorld success_fn wrapped with the per-domain
-    # predicate translator (Phase-5/6 §12.3). gymv->osworld is mostly
-    # identity (osworld's vocab covers most game predicates by name)
-    # plus cumulative_reward_increased -> task_status and dropping
-    # entity_value_increased / decreased (no scalar-value entities on
-    # the desktop).
-    from harness.predicate_translator import with_predicate_translation
+    demos = build_alfworld_probe_demos(
+        split=split,
+        max_demos=max_demos,
+    )
+    logger.info("prepared %d live ALFWorld probe(s) for split=%s", len(demos), split)
     return TargetBuild(
-        target_domain="osworld",
+        target_domain="alfworld",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=with_predicate_translation(
-            make_osworld_per_step_success_fn, target_domain="osworld",
-        ),
+        success_fn_factory=make_alfworld_success_fn,
     )
 
 
@@ -736,19 +648,12 @@ def _build_browser_target(args: argparse.Namespace) -> TargetBuild:
         len(demos), cold_start_root, task_prefix,
     )
 
-    # See _build_osworld_target for the rationale; browser uses the
-    # same translator with target_domain="browser" (which lacks
-    # entity_disappeared in its vocab -> remapped to attribute_changed,
-    # the closest DOM-level analogue).
-    from harness.predicate_translator import with_predicate_translation
     return TargetBuild(
         target_domain="browser",
         adapter=adapter,
         harness=harness_obj,
         demos=demos,
-        success_fn_factory=with_predicate_translation(
-            make_browser_per_step_success_fn, target_domain="browser",
-        ),
+        success_fn_factory=make_browser_per_step_success_fn,
     )
 
 
@@ -761,7 +666,7 @@ _TARGET_BUILDERS: Dict[str, TargetBuilder] = {
     "gymv": _build_gymv_target,
     "visual_reasoning": _build_visual_reasoning_target,
     "video": _build_video_target,
-    "osworld": _build_osworld_target,
+    "alfworld": _build_alfworld_target,
     "browser": _build_browser_target,
 }
 

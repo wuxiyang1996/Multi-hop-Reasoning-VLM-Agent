@@ -152,12 +152,11 @@ class TestTranslatePredicates:
             ["entity_disappeared"], source="gymv", target="video",
         ) == ["temporal_ordering_correct"]
 
-    def test_osworld_keeps_count_and_attribute(self):
-        # gymv -> osworld preserves entity_count_changed + attribute_changed
-        # because osworld's vocab has both (per TARGET_PREDICATE_VOCAB).
+    def test_alfworld_keeps_count_and_attribute(self):
+        # Household objects/receptacles expose count and attribute changes.
         out = translate_predicates(
             ["entity_count_changed", "attribute_changed"],
-            source="gymv", target="osworld",
+            source="gymv", target="alfworld",
         )
         assert out == ["entity_count_changed", "attribute_changed"]
 

@@ -154,6 +154,14 @@ def main() -> int:
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--model", default="Qwen/Qwen3.5-35B-A3B")
     parser.add_argument(
+        "--api-key-env", default="OPENROUTER_API_KEY",
+        help="environment variable used only for Authorization; never serialized",
+    )
+    parser.add_argument(
+        "--max-programs", type=int, default=None,
+        help="fixed sorted-prefix smoke limit; omitted for formal runs",
+    )
+    parser.add_argument(
         "--programs", type=Path,
         default=REPO_ROOT / "artifacts/source_evidence_index/source_programs.jsonl",
     )
@@ -163,12 +171,25 @@ def main() -> int:
     )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    client = StrictOpenAIClient(args.endpoint, timeout_s=180.0)
+    api_key = os.environ.get(args.api_key_env, "").strip()
+    if not api_key and "openrouter.ai" in args.endpoint.lower():
+        try:
+            from API_func import open_router_api_key
+            api_key = str(open_router_api_key or "").strip()
+        except Exception:
+            api_key = ""
+    if "openrouter.ai" in args.endpoint.lower() and not api_key:
+        raise SystemExit(f"OpenRouter API key unavailable via {args.api_key_env} or API_func")
+    client = StrictOpenAIClient(args.endpoint, timeout_s=180.0, api_key=api_key or "EMPTY")
     programs = [
         canonical_program_from_dict(json.loads(line))
         for line in args.programs.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
+    if args.max_programs is not None:
+        if args.max_programs < 1:
+            raise SystemExit("--max-programs must be positive")
+        programs = programs[:args.max_programs]
     demo = target_demo_receipt_from_dict(json.loads(args.demo.read_text(encoding="utf-8")))
     demo.validate_for_admission()
     allowed_schemas = {item.operator: dict(item.argument_types) for item in demo.actions}
@@ -236,6 +257,12 @@ def main() -> int:
         "demo_id": demo.demo_id,
         "demo_hash": demo.content_hash(),
         "model": args.model,
+        "endpoint_kind": "openrouter" if "openrouter.ai" in args.endpoint.lower() else "local",
+        "smoke_only": args.max_programs is not None,
+        "program_selection": (
+            f"stable_sorted_prefix:{args.max_programs}"
+            if args.max_programs is not None else "all_frozen_programs"
+        ),
         "programs_sha256": _sha256(args.programs),
         "demo_sha256": _sha256(args.demo),
         "n_programs": len(programs),

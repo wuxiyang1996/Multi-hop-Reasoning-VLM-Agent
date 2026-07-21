@@ -99,7 +99,7 @@ src/
       _stub_base.py     # shared scaffolding for transfer-target stub adapters
       gymv.py           # SOURCE_DOMAINS adapter (game, real)
       browser.py        # TRANSFER_TARGET_DOMAINS adapter (stub in Phase A)
-      osworld.py        # TRANSFER_TARGET_DOMAINS adapter (stub)
+      alfworld.py       # TRANSFER_TARGET_DOMAINS adapter (live text binding)
       video.py          # TRANSFER_TARGET_DOMAINS adapter (stub) — first transfer arena
       visual_reasoning.py # TRANSFER_TARGET_DOMAINS adapter (stub)
 
@@ -212,7 +212,7 @@ class AdapterRegistry:
     def request_synthesis(self, skill: SkillSpec, domain: str) -> AdapterProposal: ...  # calls 72B
 ```
 
-**Phase 1 wiring (asymmetric).** Register the *real* `gymv` adapter (`SOURCE_DOMAINS`) and **stub** adapters for every domain in `TRANSFER_TARGET_DOMAINS` (`browser`, `osworld`, `video`, `visual_reasoning`). Stub adapters share `harness/adapters/_stub_base.py` and produce deterministic short hop-loops; they are sufficient for Stage 3a few-shot adaptation runs to exercise the gate end-to-end before any of those domains has a real backend. Real adapters replace the stubs domain-by-domain in later phases without changing the `AdapterRegistry` interface or the gate.
+**Phase 1 wiring (asymmetric).** Register the *real* `gymv` adapter (`SOURCE_DOMAINS`) and adapters for every domain in `TRANSFER_TARGET_DOMAINS` (`browser`, `alfworld`, `video`, `visual_reasoning`). They share `harness/adapters/_stub_base.py` hop-loop scaffolding; ALFWorld binds a live text environment while other backends can replace deterministic executors domain-by-domain without changing the `AdapterRegistry` interface or the gate.
 
 ### 2.3 `harness/skill_harness.py`
 
@@ -529,7 +529,7 @@ This sequence matches [PLAN-HARNESS.md §14 Phases 2–4](../05-harness/PLAN-HAR
 | **A — Harness MVP** | one path for every skill invocation | `harness/skill_episode.py`, `harness/adapter_registry.py`, `harness/skill_harness.py`, `harness/reward_logger.py`, `harness/policies.py`, `harness/adapters/{gymv,browser}.py` | §2.5 acceptance criteria |
 | **B — Orchestrator MVP** | one control plane, atomic snapshots | `orchestrator/schemas.py`, `orchestrator/artifact_store.py`, `orchestrator/runner.py`, `orchestrator/gate_service.py`, `orchestrator/promotion_orchestrator.py`, `orchestrator/snapshot_manager.py`, `orchestrator/rollback_manager.py`, `orchestrator/budget.py`, `orchestrator/config.py` | §3.7 acceptance criteria |
 | **C — Crafter MVP** | typed, gated, frozen-teacher proposals | `crafter/proposal_types.py`, `crafter/failure_trace.py`, `crafter/failure_diagnoser.py`, `crafter/failure_memory.py`, `crafter/composer.py`, `crafter/generalizer.py`, `crafter/hypothesizer.py`, `crafter/service.py` | §4.7 acceptance criteria |
-| **D — Transfer + Replay** | shadow-first cross-domain transfer | `harness/transfer_manager.py`, `harness/replay_validator.py`, `harness/gate_runner.py`, additional adapters (`osworld`, `video`, `visual_reasoning`) | shadow pass rate ≥ threshold for K cycles, then enable active promotion |
+| **D — Transfer + Replay** | shadow-first cross-domain transfer | `harness/transfer_manager.py`, `harness/replay_validator.py`, `harness/gate_runner.py`, additional adapters (`browser`, `video`, `visual_reasoning`) | shadow pass rate ≥ threshold for K cycles, then enable active promotion |
 | **E — Eval + dashboards** | measurable reuse / transfer | `orchestrator/eval_suite.py`, `orchestrator/eval_driver.py`, dashboards for §6.4 slices and §10a label distributions | metrics from [PLAN-HARNESS.md §15](../05-harness/PLAN-HARNESS.md#15-metrics) and [PLAN-PIPELINE-ORCHESTRATOR.md §6](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#6-evaluation-matrix) reproducible per `run_id` |
 | **F — Trainable extensions (optional)** | learned skill-use decisions | `skill_select`, `continue_vs_switch`, `accept_transfer`, `adapter_refine` LoRAs | measurable gain over rule-based baselines |
 

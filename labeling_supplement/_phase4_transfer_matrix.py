@@ -8,14 +8,14 @@ Stages 0-5 are already shipped:
     Stage 0  -- pre-flight static audits (upper_bounds.csv).
     Stage 1  -- image-VR live measurement (visual_toolbench, tir_bench).
     Stage 2  -- video-VR live measurement (video_holmes, siv_bench).
-    Stage 3  -- osworld live measurement.
+    Stage 3  -- ALFWorld live measurement.
     Stage 4  -- browsergym live measurement.
     Stage 5  -- within-VR/video 4x4 driver (`_phase5_matrix.py`).
 
 Stage 6 is the unified driver: it generalises Stage 5's within-VR/video
 matrix into the full cross-product over heterogeneous source banks
 (game banks + cross-domain banks) and target corpora (games + VR/video
-+ desktop + browser). For every (source_corpus, target_corpus) cell it:
++ embodied text + browser). For every (source_corpus, target_corpus) cell it:
 
   1. Loads source skills from the appropriate bank file (env_wrappers
      game / gym_v aggregated / cross-domain `<bank-kind>` bank). Game
@@ -27,7 +27,7 @@ matrix into the full cross-product over heterogeneous source banks
      records onto a game (or any) target.
   2. Dispatches the target via the Stage 1-4 dispatcher
      (``labeling_supplement._phase4_target_dispatch.build_target``).
-     Cells that raise (e.g. osworld with no usable sub-task name) are
+     Cells that raise (e.g. a missing isolated runtime dependency) are
      captured as `error` cells with ``admit_rate=0.0``.
   3. Runs ``_phase4_transfer_cycle._run_transfer`` to produce per-skill
      ``TransferVerdict``s and records the cell's admit rate.
@@ -50,7 +50,7 @@ I/O contract:
         Temporal_*-v0 retro games.
     --target-corpora ...
         Default: 4 env_wrappers games + 4 cross-domain VR/video corpora
-        (8 targets). osworld / browsergym are accepted explicitly but
+        (8 targets). alfworld / browsergym are accepted explicitly but
         not added to the default set since their per-sub-task dispatch
         requires a name we don't synthesise here.
 
@@ -178,7 +178,7 @@ CROSS_DOMAIN_VR_VIDEO: Tuple[str, ...] = (
 # target list because their dispatch keys on a sub-task name we don't
 # auto-synthesise; left as accepted args for explicit smoke runs.
 EXTRA_CROSS_DOMAIN_TARGETS: Tuple[str, ...] = (
-    "osworld",
+    "alfworld",
     "browsergym",
 )
 
@@ -192,7 +192,7 @@ CORPUS_TO_TARGET_DOMAIN: Dict[str, str] = {
     "tir_bench": "visual_reasoning",
     "video_holmes": "video",
     "siv_bench": "video",
-    "osworld": "osworld",
+    "alfworld": "alfworld",
     "browsergym": "browser",
 }
 
@@ -200,7 +200,7 @@ CORPUS_TO_TARGET_DOMAIN: Dict[str, str] = {
 #   game  : env_wrappers + gym_v
 #   image : visual_toolbench + tir_bench
 #   video : video_holmes + siv_bench
-#   osworld / browser : their own clusters (one corpus each)
+#   embodied / browser : their own clusters (one corpus each)
 CORPUS_TO_CLUSTER: Dict[str, str] = {
     **{g: "game" for g in ENV_WRAPPER_GAMES},
     **{g: "game" for g in GYM_V_GAMES},
@@ -208,7 +208,7 @@ CORPUS_TO_CLUSTER: Dict[str, str] = {
     "tir_bench": "image",
     "video_holmes": "video",
     "siv_bench": "video",
-    "osworld": "osworld",
+    "alfworld": "embodied",
     "browsergym": "browser",
 }
 
@@ -341,7 +341,7 @@ def _resolve_default_target_corpora(
 ) -> List[str]:
     """Default targets: 4 env_wrappers + 4 cross-domain VR/video.
 
-    osworld + browsergym are intentionally excluded from the default
+    alfworld + browsergym are intentionally excluded from the default
     set: their per-sub-task dispatch requires a name we don't auto
     synthesise here. Pass them explicitly via --target-corpora to
     exercise (cells will record an error if dispatch fails).
@@ -511,7 +511,11 @@ def _run_one_cell(
         )
 
     ns = argparse.Namespace(
-        target=target_corpus,
+        target=(
+            "eval_out_of_distribution"
+            if target_corpus == "alfworld"
+            else target_corpus
+        ),
         cold_start_root=None,
         actions_root=str(actions_root),
         max_episodes=max_episodes,

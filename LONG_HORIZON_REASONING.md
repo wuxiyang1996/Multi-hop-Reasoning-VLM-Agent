@@ -129,7 +129,7 @@ output = click/input action                        → EXECUTE action
      hop5: EXECUTE(action addressing blocker)
    ```
 
-5. **Unifies all environments** — games, browser, OSWorld, and visual QA all become instances of the same observe-reason-act loop at different horizon lengths.
+5. **Unifies all active environments** — games, browser tasks, ALFWorld household tasks, video, and visual QA all become instances of the same observe-reason-act loop at different horizon lengths.
 
 ---
 

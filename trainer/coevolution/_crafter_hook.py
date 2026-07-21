@@ -123,7 +123,7 @@ DEFAULT_LLM_CRAFTER_TIMEOUT_S: float = 60.0
 # §0.1 / §2.5. Mirrored from labeling_supplement/decide_skill_crafting_gpt54.py
 # verbatim so a writeback round-trip is consistent.
 ALL_FIVE_DOMAINS: Tuple[str, ...] = (
-    "gymv", "browser", "osworld", "video", "visual_reasoning",
+    "gymv", "browser", "alfworld", "video", "visual_reasoning",
 )
 
 # Trainer game-name → offline-mirror corpus bucket.  This is the same split
@@ -156,7 +156,7 @@ def corpus_for_game(game: str) -> str:
 # section for the empirical receipt).
 _TRANSFER_TARGET_CORPUS = "visual_reasoning"
 _TRANSFER_TARGET_DOMAINS: frozenset = frozenset({
-    "visual_reasoning", "video", "browser", "osworld",
+    "visual_reasoning", "video", "browser", "alfworld",
 })
 
 
@@ -165,7 +165,7 @@ def corpus_for_domain_or_game(domain: Optional[str], game: str) -> str:
 
     Path-4-aware variant of :func:`corpus_for_game`. When the resolved
     domain is one of the four transfer targets (visual_reasoning,
-    video, browser, osworld), the proposal lands under
+    video, browser, alfworld), the proposal lands under
     ``visual_reasoning/<game>/`` regardless of what game name the
     trainer used. For the legacy ``gymv`` domain (or empty / None),
     fall through to game-based routing — preserves byte-identical
@@ -179,7 +179,7 @@ def corpus_for_domain_or_game(domain: Optional[str], game: str) -> str:
     enumerates one transfer-target bucket; the per-domain split
     happens *inside* the bucket via the ``<game>`` segment.  If we
     later need per-domain corpora (separate buckets for video / browser
-    / osworld), bump both ends together.
+    / alfworld), bump both ends together.
     """
     if domain and str(domain) in _TRANSFER_TARGET_DOMAINS:
         return _TRANSFER_TARGET_CORPUS
@@ -530,7 +530,7 @@ def run_crafter_step(
             game_failures: List[FailureTrace] = []
             # ── Path 4 — per-game domain dispatch ────────────────────────
             # Default = "gymv" (legacy). Transfer targets (visual_reasoning
-            # / video / browser / osworld) are opted in per-game via
+            # / video / browser / ALFWorld) are opted in per-game via
             # ``episode_domain_per_game``; the failure synthesiser then
             # dispatches to ``labeling_supplement._failure_synth`` when
             # the resolved domain != gymv AND the episode carries a
@@ -838,14 +838,14 @@ def _synthesize_failures(
     Path 4 — when ``domain`` is a transfer target AND the episode
     carries a ``raw_sample`` dict (the cold-start per-sample JSON
     shape produced by ``cold_start/generate_cold_start_actor_*.py``
-    for VR / video / browser / osworld), this function dispatches to
+    for VR / video / browser / ALFWorld), this function dispatches to
     ``labeling_supplement._failure_synth.get_synthesizer(domain)``
     instead of the gymv heuristic.
     """
     out: List[FailureTrace] = []
     episode_id = getattr(episode, "episode_id", "") or "anon"
 
-    # ── Path 4 — transfer-target dispatch (VR / video / browser / osworld) ─
+    # ── Path 4 — transfer-target dispatch (VR / video / browser / ALFWorld) ─
     # Routed only when (a) the resolved domain is NOT gymv AND (b) the
     # episode carries a ``raw_sample`` dict. The synthesiser package
     # owns the per-domain failure-signal vocabulary; this hook just

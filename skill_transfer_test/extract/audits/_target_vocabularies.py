@@ -13,7 +13,7 @@ For now this table is the static oracle.
 
 Provenance per target:
 - gymv:              harness/gymv_success.EFFECT_PREDICATE_TYPES (8 types, shipped)
-- osworld:           rollout memo Sections 11.5.4 / 11.5.5 (Phase 5 deliverables)
+- alfworld:          active embodied-text target; admissible household actions
 - browser:           rollout memo Sections 11.5.4 / 11.5.5 (Phase 2 deliverables)
 - visual_reasoning:  rollout memo Sections 11.5.4 / 11.5.5 (Phase 3 - mostly already shipped via VisualReasoningExecutor)
                      plus mined predicates from single_shot_lift.mine_single_shot_effects
@@ -34,7 +34,7 @@ TARGET_PREDICATE_VOCAB: dict[str, frozenset[str]] = {
         "cumulative_reward_increased",
         "phase_transitioned",
     }),
-    "osworld": frozenset({
+    "alfworld": frozenset({
         "entity_appeared",
         "entity_disappeared",
         "attribute_changed",
@@ -86,7 +86,7 @@ TARGET_SLOT_TYPE_VOCAB: dict[str, frozenset[str]] = {
         "container_entity", "goal_indicator",
         "enum", "effect_predicate", "any",
     }),
-    "osworld": frozenset({
+    "alfworld": frozenset({
         "tracked_entity", "selectable_entity", "container_entity",
         "navigable_region", "goal_indicator", "textual_anchor",
         "enum", "effect_predicate", "any",
@@ -108,5 +108,5 @@ TARGET_SLOT_TYPE_VOCAB: dict[str, frozenset[str]] = {
 
 
 TARGET_DOMAINS: tuple[str, ...] = (
-    "gymv", "osworld", "browser", "visual_reasoning", "video",
+    "gymv", "alfworld", "browser", "visual_reasoning", "video",
 )

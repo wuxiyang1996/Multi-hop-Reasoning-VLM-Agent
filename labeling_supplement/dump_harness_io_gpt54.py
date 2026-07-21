@@ -50,8 +50,8 @@ For each ``(corpus, source)`` pair:
      that ACTIVE imposes (most cold-start skills declare a single
      ``feasible_domain=["gymv"]``). This is a dump-only convention
      and is logged in ``_source_summary.json.thresholds``.
-  2. Build a fresh `AdapterRegistry` with all five adapters
-     registered (gymv source + four transfer targets). The default
+  2. Build a fresh `AdapterRegistry` with the source adapter and all active
+     transfer adapters registered. The default
      deterministic stub executor is used; real env binding can be
      plugged in via ``--with-real-executors`` (TODO — currently a no-op
      placeholder).
@@ -153,9 +153,9 @@ from common.enums import GateStage, GateVerdict, SkillStatus           # noqa: E
 from harness import SkillHarness                                       # noqa: E402
 from harness.adapter_registry import AdapterRegistry                   # noqa: E402
 from harness.adapters import (                                         # noqa: E402
+    AlfworldAdapter,
     BrowserAdapter,
     GymvAdapter,
-    OsworldAdapter,
     VideoAdapter,
     VisualReasoningAdapter,
 )
@@ -210,7 +210,7 @@ def _utc_run_stamp() -> str:
 
 
 def _build_registry() -> AdapterRegistry:
-    """Construct an `AdapterRegistry` with all five domain adapters
+    """Construct an `AdapterRegistry` with all active domain adapters
     registered. Uses the default deterministic-stub executors; real env
     binding (e.g. `gymv_wrapper.adapter.set_executor`) is the
     responsibility of a future ``--with-real-executors`` plumbing path
@@ -219,7 +219,7 @@ def _build_registry() -> AdapterRegistry:
     reg = AdapterRegistry()
     reg.register(GymvAdapter())
     reg.register(BrowserAdapter())
-    reg.register(OsworldAdapter())
+    reg.register(AlfworldAdapter())
     reg.register(VideoAdapter())
     reg.register(VisualReasoningAdapter())
     return reg

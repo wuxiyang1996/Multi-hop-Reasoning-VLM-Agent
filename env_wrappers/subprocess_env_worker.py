@@ -147,8 +147,13 @@ def main() -> None:
         cmd = req.get("cmd")
         try:
             if cmd == "reset":
+                reset_kwargs = {}
+                if "seed" in req:
+                    reset_kwargs["seed"] = int(req["seed"])
+                if "options" in req:
+                    reset_kwargs["options"] = req["options"]
                 with _suppress_stdout():
-                    obs, info = env.reset()
+                    obs, info = env.reset(**reset_kwargs)
                 _write({"ok": True, "obs": obs, "info": _strip_info(info)})
 
             elif cmd == "step":

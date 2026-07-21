@@ -14,7 +14,7 @@ every game->VR contract because the contract advertises predicates the
 target's
 :func:`~harness.qa_success.make_qa_success_fn` /
 :func:`~harness.video_qa_success.make_video_qa_success_fn` /
-:func:`~harness.osworld_success.make_osworld_success_fn` /
+:func:`~harness.alfworld_success.make_alfworld_success_fn` /
 :func:`~harness.browser_success.make_browser_success_fn`
 do not know how to ground -- so cells admit at 0% via static-vocab
 miss before any executor runs (see
@@ -47,13 +47,10 @@ The translator is a pure-data + thin-glue module structured as:
   Never mutates the input. Tags the new record's ``notes`` so the
   trace surfaces that translation occurred.
 
-* :func:`with_predicate_translation` -- success-fn factory wrapper.
-  Wraps a ``make_*_success_fn`` factory so the success_fn it returns
-  translates ``skill`` before evaluating it. Source domain is read at
-  evaluation time from ``skill.source_domains[0]``, so the same
-  wrapped factory handles cross-modal AND diagonal (gymv->gymv) calls
-  -- diagonal cells get the identity translation by default and
-  remain mechanism-equivalent to the un-wrapped path.
+* :func:`with_predicate_translation` -- compatibility wrapper for scorer
+  APIs whose first argument is a ``SkillRecord``. The active Stage-3a cycle
+  translates before ``FewShotAdapter.adapt`` because its scorer signature is
+  ``(episode, demo)`` and therefore has no source skill at scoring time.
 
 Vocabulary provenance
 ---------------------
@@ -144,27 +141,24 @@ PREDICATE_TRANSLATIONS: Dict[Tuple[str, str], Dict[str, List[str]]] = {
         "attribute_changed":           [],
     },
 
-    # ---- gymv -> osworld (desktop A11y) ----
-    # OSWorld has most game predicates as same-name analogues (its
-    # schema producer surfaces entity counts, attribute changes, etc.).
-    # The translation is mostly identity; the interesting bits are
-    # collapsing the game-specific reward signal into desktop's
-    # `task_status` / `last_action`.
-    ("gymv", "osworld"): {
+    # ---- gymv -> alfworld (embodied text household tasks) ----
+    # ALFWorld exposes task completion reward plus concrete admissible
+    # commands. Game reward therefore becomes task status, and persistent
+    # entity/count effects remain meaningful for objects and receptacles.
+    ("gymv", "alfworld"): {
         "cumulative_reward_increased": ["task_status"],
         "phase_transitioned":          ["phase_transitioned"],
         "entity_appeared":             ["entity_appeared", "visited_entity"],
         "entity_disappeared":          ["entity_disappeared"],
         "entity_count_changed":        ["entity_count_changed"],
         "attribute_changed":           ["attribute_changed"],
-        # Desktop has no scalar "value" attribute (no health bar / score),
-        # so value-changed predicates do not have an osworld analogue.
         "entity_value_increased":      [],
         "entity_value_decreased":      [],
     },
 
     # ---- gymv -> browser (webagent) ----
-    # Same shape as osworld. Browser's TARGET_PREDICATE_VOCAB lacks
+    # Same shape as the stateful environment mappings above. Browser's
+    # TARGET_PREDICATE_VOCAB lacks
     # `entity_disappeared` (DOM nodes typically detach via attribute
     # changes rather than disappearance events), so we map to
     # `attribute_changed` instead.
@@ -296,7 +290,7 @@ def with_predicate_translation(
     target_domain: str,
     default_source: str = "gymv",
 ) -> Callable[..., Callable[..., Any]]:
-    """Wrap a ``make_*_success_fn`` factory with per-skill translation.
+    """Wrap a skill-first scorer factory with per-skill translation.
 
     The wrapped factory returns a success_fn that:
 
@@ -306,9 +300,13 @@ def with_predicate_translation(
        copy of the skill.
     3. Delegates to the original success_fn with the translated copy.
 
-    Forwards ``*args, **kwargs`` to the original factory verbatim, so
-    the wrapper is a drop-in replacement -- the dispatcher calls it
-    exactly the way it called the original::
+    Forwards ``*args, **kwargs`` to the original factory verbatim.
+
+    Do not use this with ``FewShotAdapter`` scorers: their first argument is
+    a ``SkillEpisode``, not a ``SkillRecord``. The transfer-cycle driver
+    translates the skill before execution instead.
+
+    Example for a skill-first evaluator::
 
         # Before:
         success_fn_factory=make_qa_success_fn,

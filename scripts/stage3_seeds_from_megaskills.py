@@ -54,6 +54,7 @@ STAGE3_TARGETS = [
     "tir_bench",
     "video_holmes",
     "siv_bench",
+    "alfworld",
     "miniwob",
     "webshop",
 ]
@@ -65,6 +66,7 @@ TARGET_DOMAIN: Dict[str, str] = {
     "tir_bench": "VR",
     "video_holmes": "VR",
     "siv_bench": "VR",
+    "alfworld": "ALFWORLD",
     "miniwob": "WEB",
     "webshop": "WEB",
 }
@@ -74,6 +76,7 @@ TARGET_DOMAIN: Dict[str, str] = {
 DOMAIN_PREFERRED_OPS: Dict[str, List[str]] = {
     "VR": ["VERIFY", "CHECK", "PERCEIVE", "DECIDE"],
     "WEB": ["ACT", "NAVIGATE", "DECIDE", "VERIFY"],
+    "ALFWORLD": ["PERCEIVE", "NAVIGATE", "ACT", "VERIFY"],
 }
 
 

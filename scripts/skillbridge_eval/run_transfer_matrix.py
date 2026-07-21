@@ -18,7 +18,7 @@ Example::
         --run-dir runs/skillbridge_v12 \\
         --vllm-base-url http://localhost:8000/v1 \\
         --model Qwen/Qwen3.5-9B \\
-        --domains visual_reasoning video gymv \\
+        --domains browsergym alfworld visual_reasoning video gymv \\
         --snapshot-loader 'curl -X POST http://localhost:8000/v1/load_lora -d ' \\
         --output runs/skillbridge_v12/eval/transfer_matrix.json
 """
@@ -29,6 +29,7 @@ import json
 import logging
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -40,16 +41,25 @@ logger = logging.getLogger(__name__)
 
 _DRIVER_MODULE = {
     "browsergym":       "scripts.skillbridge_eval.eval_browsergym",
-    "osworld":          "scripts.skillbridge_eval.eval_osworld",
+    "alfworld":         "scripts.skillbridge_eval.eval_alfworld",
     "visual_reasoning": "scripts.skillbridge_eval.eval_visual_reasoning",
     "video":            "scripts.skillbridge_eval.eval_video",
     "gymv":             "scripts.skillbridge_eval.eval_gymv",
 }
 
 
+DEFAULT_DOMAINS = [
+    "browsergym",
+    "alfworld",
+    "visual_reasoning",
+    "video",
+    "gymv",
+]
+
+
 _RESULT_PREFIX = {
     "browsergym":       "browsergym_result_",
-    "osworld":          "osworld_result_",
+    "alfworld":         "alfworld_result_",
     "visual_reasoning": "visual_reasoning_result_",
     "video":            "video_result_",
     "gymv":             "gymv_result_",
@@ -58,7 +68,7 @@ _RESULT_PREFIX = {
 
 _PRIMARY_PATH = {
     "browsergym":       ("overall", "success_rate_macro"),
-    "osworld":          ("overall", "success_rate_macro"),
+    "alfworld":         ("overall", "success_rate"),
     "visual_reasoning": ("overall", "accuracy_micro"),
     "video":            ("overall", "accuracy_micro"),
     "gymv":             ("overall", "mean_reward_macro"),
@@ -75,13 +85,13 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--snapshots", nargs="+", default=None,
         help="Explicit list of snapshot names "
-             "(e.g. phase_01_browsergym phase_02_osworld). "
+             "(e.g. phase_01_browsergym phase_02_video). "
              "Default: all directories under snapshots-dir sorted by name.",
     )
     p.add_argument(
-        "--domains", nargs="+", default=list(_DRIVER_MODULE),
+        "--domains", nargs="+", default=list(DEFAULT_DOMAINS),
         help=f"Target domains to evaluate against. "
-             f"Default: {list(_DRIVER_MODULE)}.",
+             f"Default: {DEFAULT_DOMAINS}.",
     )
     p.add_argument(
         "--snapshot-loader", type=str, default=None,
@@ -152,8 +162,19 @@ def _run_domain(
     module = _DRIVER_MODULE[domain]
     eval_dir = args.run_dir / "eval" / "transfer" / snapshot.name
     eval_dir.mkdir(parents=True, exist_ok=True)
+    python_prefix = [sys.executable]
+    if domain == "alfworld":
+        explicit_python = os.environ.get("ALFWORLD_PYTHON")
+        conda = shutil.which("conda")
+        if explicit_python:
+            python_prefix = [explicit_python]
+        elif conda:
+            python_prefix = [
+                conda, "run", "--no-capture-output", "-n",
+                os.environ.get("ALFWORLD_ENV_NAME", "alfworld"), "python",
+            ]
     cmd = [
-        sys.executable, "-m", module,
+        *python_prefix, "-m", module,
         "--run-dir", str(args.run_dir),
         "--model", args.model,
         "--vllm-base-url", args.vllm_base_url,
@@ -162,9 +183,14 @@ def _run_domain(
     ts = time.strftime("%Y%m%d_%H%M%S")
     out_path = eval_dir / f"{_RESULT_PREFIX[domain]}{ts}.json"
     cmd += ["--output", str(out_path)]
-    if domain in ("browsergym", "osworld"):
+    if domain == "browsergym":
         cmd += [
             "--episodes-per-task", str(args.episodes_per_task),
+            "--max-steps", str(args.max_steps),
+        ]
+    if domain == "alfworld":
+        cmd += [
+            "--episodes", str(args.episodes_per_task),
             "--max-steps", str(args.max_steps),
         ]
     if domain in ("visual_reasoning", "video"):
@@ -208,8 +234,8 @@ def _matches_self_domain(meta: Dict[str, Any], domain: str) -> bool:
         return False
     if domain == "browsergym":
         return "browsergym" in g
-    if domain == "osworld":
-        return "osworld" in g
+    if domain == "alfworld":
+        return "alfworld" in g
     if domain == "visual_reasoning":
         return any(t in g for t in ("vtb", "tir_bench", "visual_toolbench"))
     if domain == "video":

@@ -207,7 +207,17 @@ class SubprocessEnv:
         seed: Optional[int] = None,
         options: Optional[Dict[str, Any]] = None,
     ) -> Tuple[str, Dict[str, Any]]:
-        resp = self._call({"cmd": "reset"}, timeout=120.0)
+        # Orak's current ``initial_obs`` path accepts no seed and silently
+        # ignores the wrapper argument.  Fail explicitly: replay callers must
+        # never mistake an unseeded reset for intervention evidence.
+        if seed is not None and self._env_kind == "orak":
+            raise NotImplementedError("RESET_SEED_UNSUPPORTED:orak_initial_obs")
+        request: Dict[str, Any] = {"cmd": "reset"}
+        if seed is not None:
+            request["seed"] = int(seed)
+        if options is not None:
+            request["options"] = dict(options)
+        resp = self._call(request, timeout=120.0)
         info = resp.get("info", {})
         # gymv's action set is only populated *after* reset by the
         # underlying wrapper.  Refresh ``self._action_names`` so callers

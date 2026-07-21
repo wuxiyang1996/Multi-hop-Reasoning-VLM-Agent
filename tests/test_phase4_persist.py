@@ -25,6 +25,7 @@ from common.enums import SkillSourceType, SkillStatus, SkillType
 from data_structure.extensions.skill_record import SkillContract, SkillRecord
 from labeling_supplement._phase4_transfer_cycle import (
     _seed_lifecycle_for_persistence,
+    _skill_for_target,
 )
 from skill_bank import SkillRepository, SkillStore
 from skill_bank.stores import StoreName
@@ -68,6 +69,17 @@ def test_seed_lifecycle_creates_provisional_records(tmp_path) -> None:
     b = repo.get(skill_b.skill_id)
     assert a is not None and a.status == SkillStatus.PROVISIONAL
     assert b is not None and b.status == SkillStatus.PROVISIONAL
+
+
+def test_transfer_cycle_translates_contract_before_execution() -> None:
+    skill = _draft_action_skill("translated")
+    skill.contract.effects_add = ["cumulative_reward_increased"]
+
+    translated = _skill_for_target(skill, "alfworld")
+
+    assert translated is not skill
+    assert translated.contract.effects_add == ["task_status"]
+    assert skill.contract.effects_add == ["cumulative_reward_increased"]
 
 
 def test_seed_lifecycle_idempotent(tmp_path) -> None:

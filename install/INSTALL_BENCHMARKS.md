@@ -10,6 +10,10 @@ For training / inference of the actor + skill stack, see the original
 to **drive the benchmark runtimes** and **run the grounding pipeline**
 on each domain.
 
+> Active scope uses ALFWorld for embodied household control. Desktop
+> automation is outside this experiment and is not installed or launched by
+> the default workflow.
+
 ---
 
 ## TL;DR — three conda envs, one per runtime family
@@ -38,7 +42,7 @@ EasyOCR, YOLO) used by the offline labeling pipeline.
 | `image_qa` | `game-ai-agent`  | HF `datasets` + cache, local mirror                                 | VisualToolBench + TIR-Bench loaders (`visual_reasoning_wrapper.benchmarks`) |
 | `video_qa` | `game-ai-agent`  | local on-disk videos                                                | Video-Holmes + SIV-Bench loaders (decord-based frame sampling)              |
 | `browser`  | `browsergym`     | [ServiceNow/BrowserGym](https://github.com/ServiceNow/BrowserGym)   | MiniWoB++ / WebArena / VisualWebArena / AssistantBench (2,063 tasks)        |
-| `desktop`  | `osworld`        | [xlang-ai/OSWorld](https://github.com/xlang-ai/OSWorld)             | OSWorld desktop runtime (369 Ubuntu + 49 Windows tasks)                     |
+| `embodied` | `alfworld`       | [alfworld/alfworld](https://github.com/alfworld/alfworld)           | Text household tasks with train / ID / OOD splits                          |
 | `grounding`*| `vlm_benchmarks`*| —                                                                  | *Optional* heavy grounding heads (GroundingDINO, OmniParser-v2, Florence-2, EasyOCR) |
 
 \* `vlm_benchmarks` is only needed if you want to run the **offline
@@ -49,14 +53,15 @@ remote VLM directly.
 
 ### Incompatibility matrix (why we still need separate envs)
 
-| Package        | game-ai-agent     | BrowserGym    | OSWorld         | vlm_benchmarks |
+| Package        | game-ai-agent     | BrowserGym    | ALFWorld        | vlm_benchmarks |
 |----------------|-------------------|---------------|-----------------|----------------|
-| `gymnasium`    | `1.3.x`           | `>=0.27`      | `~=0.28.1`      | any            |
-| `playwright`   | —                 | `==1.44`      | unpinned        | latest         |
-| `transformers` | `5.6.x`           | `4.57.x`      | `~=4.35.2`      | `>=4.51,<4.56` |
-| `torch`        | `2.11.0+cu130`    | `2.4.1+cu121` | `~=2.5.0+cu124` | `2.4.1+cu121`  |
-| `numpy`        | `2.x`             | `1.26.4`      | `1.24.4`        | `<2.0`         |
-| `tqdm`         | latest            | `>=4.66.2` *  | `~=4.65.0`      | latest         |
+| Python         | `3.11`            | `3.11`        | `3.9`           | `3.11`         |
+| `gymnasium`    | `1.3.x`           | `>=0.27`      | package-managed | any            |
+| `playwright`   | —                 | `==1.44`      | —               | latest         |
+| `transformers` | `5.6.x`           | `4.57.x`      | —               | `>=4.51,<4.56` |
+| `torch`        | `2.11.0+cu130`    | `2.4.1+cu121` | not required    | `2.4.1+cu121`  |
+| `numpy`        | `2.x`             | `1.26.4`      | `<2.0`          | `<2.0`         |
+| `tqdm`         | latest            | `>=4.66.2` *  | package-managed | latest         |
 | `decord`       | `0.6.x`           | —             | —               | `0.6.x`        |
 
 \* `browsergym-workarena` only — install it on top of the `browsergym`
@@ -64,7 +69,7 @@ env with `pip install --no-deps browsergym-workarena`.
 
 `game-ai-agent` is the unified training/inference + game-environment env
 defined in [`README.md`](README.md). It's listed here only to show why it
-cannot share dependencies with BrowserGym / OSWorld. You install it via
+cannot share dependencies with BrowserGym / ALFWorld. You install it via
 `install_main_env.sh`, not from this file.
 
 ---
@@ -214,48 +219,21 @@ without the hosted sites.
 
 ---
 
-## 3. `desktop` — xlang-ai/OSWorld
+## 3. `embodied` — ALFWorld
 
-### Install
-
-```bash
-bash install/install_osworld.sh         # creates env, clones OSWorld, pip install -r requirements.txt, pip install -e .
-```
-
-Or manually:
+ALFWorld is text-only in the active study and lives in its own Python 3.9
+environment:
 
 ```bash
-git clone https://github.com/xlang-ai/OSWorld.git /fs/gamma-projects/vlm-robot/OSWorld
-conda env create -f install/osworld.environment.yml
-conda activate osworld
-cd /fs/gamma-projects/vlm-robot/OSWorld
-pip install -r requirements.txt
-pip install -e .
-python install/osworld_smoke.py
+bash install/install_alfworld.sh
+source cold_start/alfworld_env.sh
+conda activate alfworld
+python install/alfworld_smoke.py
 ```
 
-### Task counts (after install)
-
-```bash
-ls /workspace/OSWorld/evaluation_examples
-# README.md examples examples_windows settings test_all.json test_infeasible.json test_nogdrive.json test_small.json
-find /workspace/OSWorld/evaluation_examples/examples         -maxdepth 2 -name '*.json' | wc -l   # → 369  (Ubuntu)
-find /workspace/OSWorld/evaluation_examples/examples_windows -maxdepth 2 -name '*.json' | wc -l   # →  49  (Windows)
-```
-
-### VM backend
-
-To actually run desktop tasks you need one of:
-
-| Backend  | Setup                                                                           |
-|----------|---------------------------------------------------------------------------------|
-| Docker   | `docker pull happysixd/osworld-docker` (requires KVM on host for performance)   |
-| VMware   | Install VMware Workstation Pro, configure `vmrun`; see OSWorld's `INSTALL_VMWARE.md` |
-| AWS      | See OSWorld's `SETUP_GUIDELINE.md` — Host-Client architecture, parallel eval    |
-
-The `grounding_osworld_obs_to_schema` converter in `vlm_wrapper` works
-against any captured screenshot+a11y dict, so offline schema labeling
-does not require a VM.
+The installer pins `alfworld==0.4.2`, downloads the game/PDDL data, and
+checks one `reset()` / `step()` cycle. Set `ALFWORLD_NO_DOWNLOAD=1` only
+when the data cache already exists.
 
 ---
 
@@ -449,7 +427,7 @@ print('VHolmes ', next(iter_video_holmes_samples(limit=1)).video_id)
 print('SIV     ', next(iter_siv_bench_samples(limit=1)).video_id)
 "
 conda run -n browsergym      python install/browsergym_smoke.py
-conda run -n osworld         python install/osworld_smoke.py
+conda run -n alfworld        python install/alfworld_smoke.py
 
 # Optional grounding heads (only if you installed the heavy env)
 conda run -n vlm_benchmarks  python install/vlm_benchmarks_smoke.py
@@ -470,7 +448,7 @@ Each script prints one `[OK] / [FAIL] / [WARN]` line per check.
 | §3 escalation chain — `image_qa`                                                | Runtime ready (`game-ai-agent`); TIR-Bench local mirror + VisualToolBench HF stream |
 | §3 escalation chain — `video_qa`                                                | Runtime ready (`game-ai-agent`); Video-Holmes + SIV-Bench on disk, `decord` decode verified |
 | §3 escalation chain — `browser`                                                 | Runtime ready (`browsergym` env) |
-| §3 escalation chain — `desktop`                                                 | Runtime ready (`osworld` env); VM backend pulled separately |
+| §3 escalation chain — `embodied`                                                | Runtime ready (`alfworld` env); text data downloaded |
 | §3 grounding-head pipeline                                                      | Optional (`vlm_benchmarks` env) — only required for in-process Florence-2 / GroundingDINO / OmniParser-v2 / EasyOCR / YOLO |
 | Phase 0 — Gym-V data collection                                                 | Unblocked                   |
 | Phase 0 — BrowserGym data collection                                            | Unblocked                   |
@@ -499,14 +477,11 @@ python -m playwright install chromium
 The unattended `install_browsergym.sh` script does both steps; this
 trips up only manual installs.
 
-### OSWorld's `pip install -r requirements.txt` drags in ~1.5 GB of wheels
+### ALFWorld reset reports missing game data
 
-That's expected — OSWorld bundles Office-document processors (pymupdf,
-python-docx, python-pptx, openpyxl, formulas, odfpy) plus audio libs
-(librosa, mutagen, pyacoustid) for the eval checkers. If you only need
-the `DesktopEnv` runtime and don't plan to run the evaluator locally,
-`pip install desktop-env` is enough (done automatically by
-`install/osworld.environment.yml`).
+Run `alfworld-download` inside the `alfworld` environment, or rerun
+`install/install_alfworld.sh` without `ALFWORLD_NO_DOWNLOAD=1`. Confirm that
+`ALFWORLD_DATA` points to a writable, populated cache directory.
 
 ### `huggingface_hub` 401 on Video-Holmes
 

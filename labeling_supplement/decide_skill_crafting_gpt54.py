@@ -75,7 +75,7 @@ R5 — **Transfer** ::
     len(applicable_domains) == 1 AND n_instances >= transfer_min_instances
     AND pass_rate >= transfer_min_pass_rate
     -> TransferProposal -> per-target slot_remap stub for browser /
-       osworld / video / visual_reasoning
+       alfworld / video / visual_reasoning
 
 These thresholds are conservative-on-purpose: in Phase-1 of the Crafter
 plan we want a high-precision "low false-positive" pipeline so the
@@ -195,7 +195,7 @@ CORPORA = ("gym_v", "env_wrappers")
 # its target set so the gate stack can verify general-protocol
 # feasibility. The Crafter never narrows this list.
 ALL_FIVE_DOMAINS: Tuple[str, ...] = (
-    "gymv", "browser", "osworld", "video", "visual_reasoning",
+    "gymv", "browser", "alfworld", "video", "visual_reasoning",
 )
 
 # The Skill Crafter is the "synthesis-reflection agent" running on the
@@ -630,8 +630,8 @@ def _adapter_plan_stub(sk: LoadedSkill) -> Dict[str, Any]:
 _DEFAULT_SLOT_REMAP: Dict[str, Dict[str, str]] = {
     "browser":          {"target": "ui_element", "blocker": "modal_overlay",
                          "candidate_set": "clickable_set", "constraint": "form_validation"},
-    "osworld":          {"target": "desktop_object", "blocker": "modal_window",
-                         "candidate_set": "window_set",   "constraint": "permission_constraint"},
+    "alfworld":         {"target": "household_object", "blocker": "closed_receptacle",
+                         "candidate_set": "admissible_actions", "constraint": "task_precondition"},
     "video":            {"target": "tracked_entity", "blocker": "occlusion",
                          "candidate_set": "frame_candidate_set", "constraint": "temporal_ordering"},
     "visual_reasoning": {"target": "image_entity",   "blocker": "ambiguity",

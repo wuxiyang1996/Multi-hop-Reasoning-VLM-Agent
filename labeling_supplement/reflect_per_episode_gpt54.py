@@ -211,7 +211,7 @@ from orchestrator import ArtifactStore
 from skill_bank import SkillLifecycleManager, SkillRepository, SkillStore
 from skill_bank.stores import StoreName
 
-# Transfer-target dispatch (smoke for AB / VR / video / OSWorld). Lives
+# Transfer-target dispatch (browser / ALFWorld / VR / video). Lives
 # under a sibling package so the gymv-only legacy path stays intact.
 try:
     from labeling_supplement._failure_synth import get_synthesizer
@@ -941,13 +941,13 @@ def _discover_pairs(
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# Transfer-target driver (VR / video / browser / osworld)
+# Transfer-target driver (VR / video / browser / ALFWorld)
 # ═══════════════════════════════════════════════════════════════════════
 #
 # This second driver mirrors `_process_source` but for the per-sample
 # cold-start corpora produced by
 # ``cold_start/generate_cold_start_actor_visual_reasoning.py`` (and the
-# planned browsergym / osworld / video equivalents). The contract is:
+# browser / ALFWorld / video equivalents). The contract is:
 #
 #   * One temp ``SkillCrafterService`` per (domain, benchmark) pair.
 #   * Optional bank seeding from a ``--seed-bank`` JSONL, tagging each
@@ -1439,14 +1439,14 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Print discovered pairs and exit without invoking the Crafter.")
     p.add_argument("-v", "--verbose", action="store_true")
 
-    # ── Transfer-target mode (VR / video / browser / osworld smoke) ──
+    # ── Transfer-target mode (VR / video / browser / ALFWorld smoke) ──
     # When --domain is set to a transfer-target domain (NOT 'gymv'),
     # the legacy gymv (corpus, source) discovery is bypassed and the
     # script switches to the per-sample driver in
     # `_process_target_benchmark`. The gymv path is byte-identical
     # whenever --domain is unset or is 'gymv'.
     target_grp = p.add_argument_group(
-        "Transfer-target mode (VR / video / browser / osworld)",
+        "Transfer-target mode (VR / video / browser / ALFWorld)",
         "Activated when --domain != 'gymv'. Mutually exclusive with the "
         "gymv (corpus, source) discovery flags.",
     )
@@ -1529,7 +1529,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _main_target(args: argparse.Namespace, output_root: Path) -> int:
-    """Driver for transfer-target benchmarks (VR / video / browser / osworld).
+    """Driver for transfer-target benchmarks (VR / video / browser / ALFWorld).
 
     Activated when ``--domain != gymv``. Reads cold-start per-sample
     JSONs from ``--samples-root/<benchmark>/`` and emits the same

@@ -4,7 +4,7 @@ Loads a SkillBridge checkpoint (LoRA adapters + skill bank) and exposes
 a uniform ``Actor`` interface every per-domain eval driver can call.
 
 Design goals:
-  * Domain-agnostic — same Actor class drives gymv, browsergym, osworld,
+  * Domain-agnostic — same Actor class drives gymv, browsergym, alfworld,
     visual_reasoning, video.  The per-domain runner is responsible for
     constructing the env-specific ``state`` dict and consuming the
     returned ``action`` string.
@@ -131,6 +131,7 @@ class SkillBridgeActor:
         harness_mode: str = "full",
         actor_bank_cap_k: int = 0,
         games_for_harness: Optional[List[str]] = None,
+        harness_domain: str = "gymv",
         temperature: float = 0.3,
     ) -> "SkillBridgeActor":
         """Build an actor from a trainer run directory.
@@ -161,6 +162,10 @@ class SkillBridgeActor:
             ``SkillHarnessHook`` instances.  When omitted the harness
             is skipped (no veto layer; suitable for non-gymv domains
             that don't have a bank-backed harness yet).
+        harness_domain : str
+            Domain assigned to constructed harness hooks. Target evaluators
+            such as ALFWorld pass their own active domain here so eligibility
+            and predicate translation do not run with a game-domain label.
         """
         # Skill bank — load via PerGameSkillBankManager when present,
         # else fall back to a single SkillQueryEngine over the
@@ -187,7 +192,7 @@ class SkillBridgeActor:
                     hook = SkillHarnessHook.for_game(
                         game=g,
                         bank_path=bank_path,
-                        domain="gymv",
+                        domain=harness_domain,
                         allow_shadow=True,
                         mode=harness_mode,
                     )

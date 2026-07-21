@@ -8,6 +8,7 @@ and runs ``env.step()`` in an executor to avoid blocking the event loop.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import random
@@ -278,6 +279,9 @@ class EpisodeResult:
     # skillbank_pipeline to write-back contracts on seed mega-skills
     # whose Stage 3 segmentation labels as __NEW__.
     runtime_skill_effects: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # Optional tamper-evident v3 source instrumentation. Empty on legacy
+    # rollouts; this is evidence metadata and never changes GRPO reward.
+    reasoning_event_log: Dict[str, Any] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -310,6 +314,39 @@ def _compute_state_delta(prev_ss: str, curr_ss: str) -> str:
     changes = [f"{k}:{p[k]}->{v}" for k, v in c.items()
                if k not in skip and k in p and p[k] != v]
     return ", ".join(changes[:5])
+
+
+def _reasoning_receipt_value(value: Any) -> Any:
+    """Return a compact JSON-safe native-evidence value.
+
+    Images and other large arrays are represented by shape/dtype metadata;
+    textual observations and structured state remain fully inspectable.
+    """
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {
+            str(key): _reasoning_receipt_value(item)
+            for key, item in value.items()
+            if str(key) not in {"image", "raw_obs"}
+        }
+    if isinstance(value, (list, tuple)):
+        return [_reasoning_receipt_value(item) for item in value]
+    shape = getattr(value, "shape", None)
+    dtype = getattr(value, "dtype", None)
+    if shape is not None:
+        return {
+            "array_omitted": True,
+            "shape": [int(item) for item in shape],
+            "dtype": str(dtype),
+        }
+    item = getattr(value, "item", None)
+    if callable(item):
+        try:
+            return _reasoning_receipt_value(item())
+        except Exception:
+            pass
+    return str(value)
 
 
 def _detect_urgency(summary_state: str, game_name: str) -> str:
@@ -759,6 +796,7 @@ def _apply_anti_repetition(
     action: str, valid_actions: List[str],
     recent_actions: List[str], recent_rewards: List[float],
     game: str = "",
+    rng: Optional[random.Random] = None,
 ) -> str:
     if len(recent_actions) < MAX_REPEAT_ACTIONS:
         return action
@@ -776,7 +814,7 @@ def _apply_anti_repetition(
         critical_alt = next((c for c in critical if c != action), None)
         if critical_alt is not None:
             return critical_alt
-        return random.choice(alternatives)
+        return (rng or random).choice(alternatives)
 
     # Critical-action dry spell: the policy is exploring varied actions
     # but the env reward is zero AND no critical action has been picked
@@ -908,6 +946,8 @@ async def run_episode_async(
     action_attack_actions: str = "B",
     action_movement_bonus: float = 0.0,
     action_movement_actions: str = "LEFT,RIGHT",
+    episode_seed: Optional[int] = None,
+    record_reasoning_events: bool = False,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -1082,6 +1122,23 @@ async def run_episode_async(
     game_cfg = GAME_CONFIGS.get(game)
     episode_id = f"{game}_{uuid.uuid4().hex[:8]}"
     exe = executor
+    _reasoning_recorder = None
+    _event_hash = None
+    _policy_rng = random.Random(episode_seed)
+    if record_reasoning_events:
+        from harness.reasoning_event_log import (  # noqa: WPS433
+            ReasoningEventKind,
+            ReasoningEventRecorder,
+        )
+        import hashlib as _event_hashlib
+
+        _reasoning_recorder = ReasoningEventRecorder(episode_id)
+        def _event_hash(value: Any) -> str:
+            encoded = json.dumps(
+                value, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False, default=str,
+            ).encode("utf-8")
+            return _event_hashlib.sha256(encoded).hexdigest()
 
     if game in ORAK_GAMES_SET:
         SubprocessEnv = imp["SubprocessEnv"]
@@ -1156,10 +1213,30 @@ async def run_episode_async(
     _ep_side = ""
     _ep_role_idx = -1
 
+    if _reasoning_recorder is not None:
+        _reasoning_recorder.append(ReasoningEventKind.RESET, {
+            "requested_seed": episode_seed,
+            "seed_application_status": (
+                "PASSED_TO_ENV_RESET_NOT_HIDDEN_STATE_VERIFIED"
+                if episode_seed is not None else "NOT_REQUESTED"
+            ),
+            "environment_fingerprint": {
+                "game": game,
+                "wrapper_module": type(env).__module__,
+                "wrapper_class": type(env).__qualname__,
+                "max_steps": int(max_steps),
+            },
+        })
     if exe:
-        obs_nl, info = await loop.run_in_executor(exe, env.reset)
+        if episode_seed is None:
+            obs_nl, info = await loop.run_in_executor(exe, env.reset)
+        else:
+            from functools import partial
+            obs_nl, info = await loop.run_in_executor(
+                exe, partial(env.reset, seed=episode_seed),
+            )
     else:
-        obs_nl, info = env.reset()
+        obs_nl, info = env.reset(seed=episode_seed) if episode_seed is not None else env.reset()
 
     action_names = info.get("action_names", [])
     structured_state = info.get("structured_state")
@@ -1175,6 +1252,16 @@ async def run_episode_async(
         obs_nl_v=obs_nl, info_v=info, step_v=0,
     )
     current_info = info
+    if _reasoning_recorder is not None:
+        _reasoning_recorder.append(ReasoningEventKind.OBSERVATION, {
+            "step": 0,
+            "observable_state_sha256": _event_hash(obs_nl),
+            "observable_state": str(obs_nl),
+            "structured_state": _reasoning_receipt_value(structured_state),
+            "simulator_state_sha256": None,
+            "simulator_state_available": False,
+            "native_actions_sha256": _event_hash(list(action_names)),
+        })
 
     bank_available = skill_bank is not None and (
         hasattr(skill_bank, "__len__") and len(skill_bank) > 0
@@ -1710,8 +1797,77 @@ async def run_episode_async(
         action, reasoning, parsed_intention = _parse_action_response(
             action_result.text, step_actions,
         )
+        _parse_fallback = isinstance(action, _ActionFallback)
+        _parsed_agent_action = str(action)
         current_intention = parsed_intention or assigned_subgoal or prev_intention or f"[SETUP] {game}"
-        action = _apply_anti_repetition(action, step_actions, recent_actions, recent_rewards, game=game)
+        action = _apply_anti_repetition(
+            action, step_actions, recent_actions, recent_rewards,
+            game=game, rng=_policy_rng,
+        )
+        _executed_action = str(action)
+        if _parse_fallback:
+            _decision_origin = "FALLBACK"
+            _transform_kind = "PARSER_FALLBACK"
+        elif _executed_action != _parsed_agent_action:
+            _decision_origin = "POLICY_POSTPROCESSOR"
+            _transform_kind = "ANTI_REPETITION_OVERRIDE"
+        else:
+            _decision_origin = "AGENT"
+            _transform_kind = "IDENTITY"
+
+        if _reasoning_recorder is not None:
+            _reasoning_recorder.append(ReasoningEventKind.AGENT_PROPOSAL_SET, {
+                "step": step_count,
+                "claim_boundary": "SKILL_CANDIDATES_NOT_ACTION_PROPOSALS",
+                "skill_candidates": [{
+                    "skill_id": str(item.get("skill_id") or ""),
+                    "candidate_sha256": _event_hash(_reasoning_receipt_value(item)),
+                } for item in last_candidates],
+                "harness_filter_diagnostic": _reasoning_receipt_value(harness_filter_diag),
+                "harness_validate_diagnostic": _reasoning_receipt_value(harness_validate_diag),
+            })
+            _reasoning_recorder.append(ReasoningEventKind.AGENT_RESPONSE, {
+                "step": step_count,
+                "raw_response": str(action_result.text),
+                "raw_response_sha256": _event_hash(action_result.text),
+                "prompt_sha256": _event_hash(action_prompt),
+                "adapter": getattr(action_result, "adapter", None),
+                "prompt_tokens": int(getattr(action_result, "prompt_tokens", 0) or 0),
+                "completion_tokens": int(getattr(action_result, "completion_tokens", 0) or 0),
+                "provider_usage": _reasoning_receipt_value(
+                    getattr(action_result, "provider_usage", {})
+                ),
+            })
+            _reasoning_recorder.append(ReasoningEventKind.PARSED_DECISION, {
+                "step": step_count,
+                "parsed_agent_action": _parsed_agent_action,
+                "parser_fallback": _parse_fallback,
+                "reasoning": reasoning,
+                "parsed_intention": parsed_intention,
+                "agent_protocol_supports_replan_abstain": False,
+            })
+            _reasoning_recorder.append(ReasoningEventKind.POLICY_TRANSFORM, {
+                "step": step_count,
+                "input_action": _parsed_agent_action,
+                "output_action": _executed_action,
+                "transform_kind": _transform_kind,
+                "changed_action": _parsed_agent_action != _executed_action,
+            })
+            _reasoning_recorder.append(ReasoningEventKind.NATIVE_ADMISSIBILITY, {
+                "step": step_count,
+                "native_actions": [str(item) for item in step_actions],
+                "native_actions_sha256": _event_hash(list(step_actions)),
+                "parsed_action_exact_member": _parsed_agent_action in step_actions,
+                "executed_action_exact_member": _executed_action in step_actions,
+            })
+            _reasoning_recorder.append(ReasoningEventKind.AGENT_DECISION, {
+                "step": step_count,
+                "decision_type": "EXECUTE" if _decision_origin == "AGENT" else "NO_VALID_AGENT_EXECUTION",
+                "decision_origin": _decision_origin,
+                "parsed_agent_action": _parsed_agent_action,
+                "executed_action": _executed_action,
+                "can_support_agent_reasoning_induction": _decision_origin == "AGENT",
+            })
 
         # Block A4: stream the per-step intention update.  ``switched``
         # = textual inequality;  ``sharp_shift`` = tag-prefix change OR
@@ -1775,6 +1931,31 @@ async def run_episode_async(
         chain_tracker.observe_step(total_reward)
         next_action_names = next_info.get("action_names", action_names)
         next_structured_state = next_info.get("structured_state")
+        if _reasoning_recorder is not None:
+            _reasoning_recorder.append(ReasoningEventKind.ENVIRONMENT_STEP, {
+                "step": step_count,
+                "executed_action": str(action),
+                "reward": float(reward),
+                "terminated": bool(terminated),
+                "truncated": bool(truncated),
+            })
+            _reasoning_recorder.append(ReasoningEventKind.NATIVE_DELTA, {
+                "step": step_count,
+                "before_observable_sha256": _event_hash(obs_nl),
+                "after_observable_sha256": _event_hash(next_obs_nl),
+                "before_native_actions_sha256": _event_hash(list(step_actions)),
+                "after_native_actions_sha256": _event_hash(list(next_action_names)),
+                "simulator_state_sha256": None,
+            })
+            _reasoning_recorder.append(ReasoningEventKind.OBSERVATION, {
+                "step": step_count + 1,
+                "observable_state_sha256": _event_hash(next_obs_nl),
+                "observable_state": str(next_obs_nl),
+                "structured_state": _reasoning_receipt_value(next_structured_state),
+                "simulator_state_sha256": None,
+                "simulator_state_available": False,
+                "native_actions_sha256": _event_hash(list(next_action_names)),
+            })
         # Pipeline the 35B vision markup: fire async now, await at the
         # start of the NEXT iteration.  This overlaps 35B generation
         # with all the reward logging, GRPO record assembly, experience
@@ -2304,6 +2485,29 @@ async def run_episode_async(
             pass
 
     wall_time = time.monotonic() - t0
+    reasoning_event_log: Dict[str, Any] = {}
+    if _reasoning_recorder is not None:
+        _official_success = None
+        _official_success_key = None
+        for _key in ("won", "success", "is_success"):
+            if _key in (current_info or {}):
+                _value = (current_info or {}).get(_key)
+                if isinstance(_value, (list, tuple)) and len(_value) == 1:
+                    _value = _value[0]
+                _official_success = bool(_value)
+                _official_success_key = _key
+                break
+        _reasoning_recorder.append(ReasoningEventKind.OFFICIAL_STOP, {
+            "terminated": bool(terminated),
+            "truncated": bool(truncated),
+            "steps": int(step_count),
+            "total_reward": float(total_reward),
+            "official_success_evaluator_available": _official_success_key is not None,
+            "official_success": _official_success,
+            "official_success_source_key": _official_success_key,
+            "native_final_info": _reasoning_receipt_value(current_info),
+        })
+        reasoning_event_log = _reasoning_recorder.to_dict()
     return EpisodeResult(
         game=game,
         episode_id=episode_id,
@@ -2319,4 +2523,5 @@ async def run_episode_async(
         side=_ep_side,
         role_index=_ep_role_idx,
         runtime_skill_effects=runtime_effects,
+        reasoning_event_log=reasoning_event_log,
     )

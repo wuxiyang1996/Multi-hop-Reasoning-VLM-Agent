@@ -74,9 +74,11 @@ from harness.browser_schema_producer import (  # noqa: F401
     make_browsergym_producer,
 )
 from harness.browser_success import make_browser_per_step_success_fn  # noqa: F401
-from harness.osworld_executor import make_osworld_executor  # noqa: F401
-from harness.osworld_schema_producer import make_osworld_producer  # noqa: F401
-from harness.osworld_success import make_osworld_per_step_success_fn  # noqa: F401
+from harness.alfworld_executor import (  # noqa: F401
+    AlfworldExecutorState,
+    make_alfworld_executor,
+)
+from harness.alfworld_success import make_alfworld_success_fn  # noqa: F401
 from harness.rejected_skill_sink import FlushReport, RejectedSkillSink
 from harness.rejection_deboost import (  # noqa: F401
     apply_deboost_to_candidates,
@@ -136,10 +138,13 @@ __all__ = [
     "SkillHarness",
     "SuccessFnFactory",
     "BrowserExecutorState",
+    "AlfworldExecutorState",
     "browsergym_canonical_producer",
     "candy_crush_producer",
     "default_success_fn",
     "make_browser_per_step_success_fn",
+    "make_alfworld_executor",
+    "make_alfworld_success_fn",
     "make_browsergym_executor",
     "make_browsergym_producer",
     "evaluate_episode_effects",
@@ -148,9 +153,6 @@ __all__ = [
     "initial_state_from_env",
     "make_gaming_env_producer",
     "make_gymv_executor",
-    "make_osworld_executor",
-    "make_osworld_per_step_success_fn",
-    "make_osworld_producer",
     "make_per_step_success_fn",
     "make_video_executor",
     "make_video_qa_success_fn",

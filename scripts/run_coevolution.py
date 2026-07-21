@@ -166,6 +166,17 @@ def parse_args() -> argparse.Namespace:
         help="Max concurrent episodes (default: 64)",
     )
     parser.add_argument(
+        "--record-source-reasoning-events", action="store_true",
+        help=(
+            "Record tamper-evident source Agent response, parsed decision, "
+            "policy transform, native transition, and stop events. Off by default."
+        ),
+    )
+    parser.add_argument(
+        "--source-episode-seed-base", type=int, default=None,
+        help="Request deterministic source episode seed BASE+episode_idx.",
+    )
+    parser.add_argument(
         "--unified-roles", action="store_true",
         help="Enable unified multi-role rollouts for Avalon/Diplomacy. "
              "Deterministically cycles through all roles instead of random "
@@ -889,7 +900,7 @@ def parse_args() -> argparse.Namespace:
     # Path 4 — per-game crafter domain dispatch (transfer targets)
     # ─────────────────────────────────────────────────────────────
     # Lets the trainer route each game to a transfer-target domain
-    # (visual_reasoning / video / browser / osworld) instead of the
+    # (visual_reasoning / video / browser / alfworld) instead of the
     # gymv default. When a game is mapped here AND its EpisodeResult
     # carries a ``raw_sample`` dict, the failure synthesiser dispatches
     # to ``labeling_supplement._failure_synth.get_synthesizer(domain)``.
@@ -1128,6 +1139,8 @@ def main() -> None:
         thread_workers=args.thread_workers,
         process_workers=args.process_workers,
         debug_io=args.debug_io,
+        record_source_reasoning_events=bool(args.record_source_reasoning_events),
+        source_episode_seed_base=args.source_episode_seed_base,
     )
 
     if args.grpo_lr is not None:

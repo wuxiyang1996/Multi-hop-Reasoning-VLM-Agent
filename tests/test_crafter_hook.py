@@ -582,7 +582,7 @@ def test_run_crafter_step_skips_sentinel_results(tmp_path: Path):
 # synthesisers) wiring. These two kwargs were added 2026-05 to let
 # CoEvolutionConfig opt the production trainer into the same LLM-backed
 # Repairer/Hypothesizer/Diagnoser the offline reflect script uses, and to
-# route VR / video / browser / osworld episodes to per-domain synthesisers
+# route VR / video / browser / ALFWorld episodes to per-domain synthesisers
 # instead of the gymv fallback. The tests below pin three properties:
 #
 # 1. ``install_internal_llm_hooks=False`` is byte-identical to never having
@@ -888,7 +888,7 @@ def test_corpus_for_domain_or_game_transfer_targets_route_to_vr():
     """All four transfer-target domains must collapse onto the single
     ``visual_reasoning`` corpus bucket regardless of game name (the
     game string remains the per-source segment INSIDE the bucket)."""
-    transfer_domains = ("visual_reasoning", "video", "browser", "osworld")
+    transfer_domains = ("visual_reasoning", "video", "browser", "alfworld")
     games = (
         "Temporal_Airstriker-v0",
         "twenty_forty_eight",

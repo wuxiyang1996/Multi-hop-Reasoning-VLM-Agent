@@ -1,38 +1,22 @@
 # Implementation status — P0, Phase A, B, C MVP
 
-Last updated: 2026-05-03 (S0+S1 — lane-(a) decision shipped, SFT
-checkpoints reconciled, pre-flight tooling landed; **T2.11 LoRA
-target-modules recipe fix + T2.12 SFT throughput uplift** landed
-2026-05-02; **T2.12 CUDA-13 toolkit unblock (flash-attn 2.8.3 +
-causal_conv1d 1.6.1 + mamba_ssm 2.3.1)**, **T2.13 SFT/GRPO loader-class
-key-remap fix (cold-start LoRA keys now carry `language_model.` prefix
-to match vLLM's multimodal loader; permanent loader-class fix landed in
-`trainer/SFT/train.py`, `skill_agents/grpo/fsdp_trainer.py` (both
-`_train_one_adapter` + `_fsdp_train_worker_multi`), and
-`skill_agents/lora/model.py`; T2.11 random-init fallback drift in the
-same files also closed)**, **T2.13′ 1-shot ICL wiring in production
-schema-gen callers (`vlm_wrapper/tool_loop.py`,
-`osworld_wrapper/adapter.py`,
-`visual_grounding_tests/generate_osworld_text_schema.py`)**, **T2.14
-vLLM 0.20 `deep_gemm_warmup` hard-fail unblock (orchestrator now sets
-`VLLM_USE_DEEP_GEMM=0` for spawned `vllm serve` instances on bf16/fp16
-weights — `trainer/coevolution/vllm_server.py`)**, and **T2.15
-`harness_filter_diag` UnboundLocalError when bank empty / sticky-
-guidance (init hoisted to per-step scope in
-`trainer/coevolution/episode_runner.py`)** all landed today; the same
-day a 1-step `scripts/run_coevolution.py` dry-run ran end-to-end on
-candy_crush — `Step 0 complete: 154.6s | 1 eps | mean_reward=561.00 |
-2 skills (+2) | 150 vLLM calls`, GRPO action_taking 50 samples in
-111.2 s on 4 GPUs, 20/20 LoRA hot-reloads — **co-evolution loop
-greenlit for Stage-1 launch**; **Phase-5/6 measurement Stages 0-6
-shipped (deterministic-stub tier; see Phase-5/6 §12 gap inventory at
-`implementation_notes/legacy/phase5-cross-domain-measurement.md`)**).
+Last updated: 2026-07-20. The active transfer study is
+`gymv → {browser, alfworld, video, visual_reasoning}`. ALFWorld now has a
+live text wrapper, fail-closed admissible-command executor, few-shot probes,
+success scorer, failure synthesis, predicate translation, isolated installer,
+dispatcher binding, and held-out SkillBridge evaluator. Earlier experiment
+chronology remains below for reproducibility.
 
 This document tracks what has been implemented from
 [`plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md`](plans/09-implementation/PLAN-COMPONENTS-IMPLEMENTATION.md)
 and where each module lives. It coexists with — and does not replace —
 the legacy code under `decision_agents/`, `skill_agents/`,
 `vlm_wrapper/`, and `data_structure/`.
+
+> **Scope boundary:** desktop-agent artifacts from earlier experiments are
+> isolated legacy compatibility only. They are absent from active domain
+> constants, registries, training dashboards, launchers, transfer matrices,
+> and report aggregation.
 
 > **Cross-references for the current readiness audit**:
 > - [`implementation_notes/pre-training-readiness-audit.md`](implementation_notes/pre-training-readiness-audit.md) — open / closed items by sprint (S0–S4).
@@ -47,7 +31,7 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 | Common | Shared types and enums | `common/{enums,ids,state_schema,typing,models}.py` |
 | P0 | Extension records | `data_structure/extensions/{skill_episode,skill_record,gate_verdict,skill_evaluation,bank_mutation_proposal,failure_trace,run_release}.py` |
 | Skill bank | Split-storage + lifecycle | `skill_bank/{stores,repository,lifecycle}.py` |
-| Phase A | Harness MVP | `harness/{skill_adapter,adapter_registry,eligibility,reward_logger,replay_validator,skill_harness}.py`, `harness/adapters/{_common,gymv_adapter,browser_adapter}.py` |
+| Phase A | Harness MVP | `harness/{skill_adapter,adapter_registry,eligibility,reward_logger,replay_validator,skill_harness}.py`, `harness/adapters/{_common,gymv_adapter,browser_adapter,alfworld_adapter}.py` |
 | Phase B | Orchestrator MVP | `orchestrator/{config,artifact_store,budget,snapshot_manager,gate_service,promotion_orchestrator,runner}.py` |
 | Phase C | Crafter MVP | `crafter/{failure_memory,failure_diagnoser,composer,generalizer,hypothesizer,service}.py` |
 | Crafter Phase D | `Repairer` + `PatchProposal` plumbing (`SkillCrafterService.propose_repair`, repair-first dispatch in `cycle()`) | `crafter/repairer.py`, `crafter/service.py` |
@@ -58,7 +42,7 @@ the legacy code under `decision_agents/`, `skill_agents/`,
 | Threshold YAMLs (T2.5, S0) | `configs/skill_gate.yaml` (single source of truth for G0–G5 thresholds + drift annotations) and `configs/failure_routing.yaml` (FailureClass → Crafter mode dispatch table, including the new lane-(a) `BANK_GAP / RETRIEVAL_MISLEAD / STALE_DESCRIPTION` taxonomy). Both carry `policy_version` for audit-log drift attribution. | `configs/{skill_gate,failure_routing}.yaml` |
 | SFT manifest + tools (T2.9 / T2.10 / T1.1′, S0) | Run-wide manifest for all six trained adapters; load-smoke and exact-match probes for pre-flight verification before launching co-evolution. | `scripts/build_sft_manifest.py`, `runs/sft_coldstart/sft_summary_all.json`, `evaluation/{smoke_load_sft_adapters,probe_schema_gen_exact_match}.py` |
 | Offline promotion cycle (T1.2, S1) | One-shot wrapper for the §17 keystone — drives `decide_promotion_gpt54.py` + `legacy_writeback.writeback_promotion` once to flip cold-start banks from CANDIDATE to ACTIVE/PROVISIONAL/SHADOW so `bank.runnable() != []`. Asserts the post-condition before exiting. | `scripts/run_offline_promotion_cycle.sh`, `labeling_supplement/decide_promotion_gpt54.py`, `skill_bank/legacy_writeback.py` |
-| Phase-5/6 measurement (Stages 0-6) — **image-VR + video + Tier 2 + Tier 3 closed 2026-05-02** | Cross-domain transfer measurement infrastructure: Stage 0 audit oracle (vocab Jaccard / predicate firing / slot binding), Stage 1-4 cross-domain executors + success_fns + schema producers + few-shot demo loaders, Stage 5 archetype aggregator + within-VR/video 4x4 matrix driver, Stage 6 NxN matrix driver + unified report generator with G1-G6 acceptance gates. After 2026-05-02 follow-up waves, image-VR (Stage 1) and video (Stage 2) cells measure real admit-rates via `harness/_{vr,video}_per_sample_executor.py`'s `TaskAware*Executor` wrappers, Tier 2 `vlm_wrapper/{visual_reasoning,video}_adapter.py` shims ship, and Tier 3's per-domain runtime predicate-translator (`harness/predicate_translator.py` + 28 unit tests + 4-target dispatcher wiring) bridges game-vocab effects (e.g. `cumulative_reward_increased`) onto target-vocab predicates (`[answer_emitted, answer_matches_gold]`). Remaining critical-path: just osworld/browser real-env executors, both gated on CI sandbox provisioning. See [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md) §12 for the updated inventory. | `skill_transfer_test/extract/audits/`, `harness/{qa,video_qa,osworld,browser}_success.py`, `harness/{video,osworld,browsergym}_executor.py`, `harness/{osworld,browser}_schema_producer.py`, `harness/few_shot_demos_{vr,video,osworld,browsergym}.py`, `labeling_supplement/{_phase4_target_dispatch,_phase5_matrix,_phase4_transfer_matrix,_phase4_transfer_report}.py`, `skill_transfer_test/extract/archetype_aggregator.py` |
+| Active cross-domain transfer | Game-source skills transfer to BrowserGym, ALFWorld, video understanding, and visual reasoning. Each target has a registered adapter/executor and target-specific success signal; the matrix and dispatcher share the same active-domain constants. | `common/enums.py`, `harness/{alfworld_executor,alfworld_success,predicate_translator}.py`, `env_wrappers/alfworld_nl_wrapper.py`, `labeling_supplement/_phase4_target_dispatch.py`, `labeling_supplement/_phase4_transfer_matrix.py`, `scripts/skillbridge_eval/` |
 | Tests | Invariant + smoke + backbone-model + crafter Phase D/F + lane-(a) flag + harness Day 7-10 + trainer Day 10 hook | `tests/{conftest,test_invariants,test_smoke,test_backbone_model,test_crafter_*,test_few_shot_transfer,test_gate_runner,test_replay_validator_action_walk,test_lifecycle_*,test_validate_invocation,test_skill_episode_field_expansion,test_promotion_orchestrator_anchors,test_phase4_persist,test_stub_executor_typed_hops,test_rejected_skill_sink,test_trainer_harness_hook,test_crafter_lane_a_flag}.py` (433 passing as of S0 close; one pre-existing unrelated failure in `test_schema_predicates::test_extra_whitespace_tolerated`) |
 
 ### Backbone models — three-tier stack
@@ -312,82 +296,23 @@ T2.11 + T2.12 follow-ups (2026-05-02):
   2026-05-02 (T2.3).** See above.
 - **Phase D / E / F** of `PLAN-COMPONENTS-IMPLEMENTATION.md`
   (training cadence, multi-domain rollout, full eval).
-- **Phase-5/6 real-env binding (all 4 Tier 1 + Tier 2 + Tier 3 closed 2026-05-02)** -- the
-  deterministic-stub tier of Phase-5/6 (see Delivered table) provides
-  infrastructure validation only; mechanism validation now closed end-to-end:
-  - **Tier 1**: 4 harness executors needed real-env binders -- all 4
-    closed as of 2026-05-02 PM:
-    * `harness/visual_reasoning` per-sample image loading -- **CLOSED**
-      via `harness/_vr_per_sample_executor.py`'s
-      `TaskAwareVisualReasoningExecutor` + dispatcher rewire in
-      `labeling_supplement/_phase4_target_dispatch.py`.
-    * `harness/video_executor.py` -- **CLOSED** via
-      `harness/_video_per_sample_executor.py`'s
-      `TaskAwareVideoReasoningExecutor` + `discover_task_to_video_meta`
-      + dispatcher rewire (1000+ task->video_meta mappings discovered
-      against `Cold-start-out-visual-reasoning-video/video_holmes/`).
-      Verb-routing keeps both InnerAction and legacy video-domain
-      verb sets exercising end-to-end.
-    * `harness/osworld_executor.py` (real `pyautogui`) -- **CLOSED**
-      via `harness/_osworld_per_sample_executor.py`'s
-      `TaskAwareOsworldExecutor` + `discover_task_to_osworld_meta` +
-      `harness/_executor_helpers/osworld_client.py`'s `OsworldClient`
-      and `OsworldContainerPool` (HTTP client over the
-      `happysixd/osworld-docker` Flask server). Smoke-verified
-      end-to-end: `pyautogui.click(x=100, y=100, button='left',
-      clicks=1)` actually executed in container `recursing_wilson`.
-      516 task->meta entries discovered across 14 OSWorld domains
-      (chrome, vlc, gimp, libreoffice_*, ...). 13-container fleet
-      preloaded.
-    * `harness/browsergym_executor.py` (real BrowserGym/Playwright)
-      -- **CLOSED** via `harness/_browser_per_sample_executor.py`'s
-      `TaskAwareBrowserExecutor` + `discover_task_to_browser_meta` +
-      `harness/_executor_helpers/browser_helper.py` (JSON-RPC
-      subprocess hosting `gym.make("browsergym/<task>")` in the
-      `browsergym` conda env). Smoke-verified end-to-end against
-      `Cold-start-out-browsergym/miniwob.email-inbox-star-reply/`:
-      real `click("47")` returned `terminated=True` (task completed)
-      in 13.4s including helper boot. 125 unique miniwob tasks
-      discovered.
+- **Active real-environment transfer binding (2026-07-20):**
 
-    **Retraction 2026-05-02:** A prior revision of this section
-    framed items 3-4 as "infra-blocked, deferred -- needs an OSWorld
-    VM in CI / Playwright in CI". That was wrong: the workspace
-    already shipped dedicated `osworld` and `browsergym` conda envs
-    with all dependencies, the upstream OSWorld + BrowserGym sources
-    (editable installs), `Xvfb` + `xvfb-run` on PATH, 13
-    pre-warmed `happysixd/osworld-docker` containers running for
-    >35h, and the WebArena Docker stack. The actual gating
-    constraint was code-side wiring, not infra. With per-sample
-    executors + helper plumbing now landed, both items shipped
-    without a CI sandbox change.
-
-    See
-    [`implementation_notes/legacy/phase5-cross-domain-measurement.md`](implementation_notes/legacy/phase5-cross-domain-measurement.md)
-    §12.1.
-  - **Tier 2**: ~~author `vlm_wrapper/video_adapter.py` and
-    `vlm_wrapper/visual_reasoning_adapter.py` from scratch~~ -- **CLOSED
-    2026-05-02.** Both shims ship as ~25-LOC re-exports over
-    `visual_reasoning_wrapper.{skill_executor, video_skill_executor}`;
-    original ~600-800-LOC-per-adapter estimate was ~10x off because the
-    heavy machinery (registries, OmniParser-v2, Florence-2, video
-    decode, cross-frame analysis) already shipped under
-    `visual_reasoning_wrapper/`. See §12.2.
-  - **Tier 3**: ~~design and ship per-domain runtime
-    predicate-translators~~ -- **CLOSED 2026-05-02.** Shipped as
-    `harness/predicate_translator.py` (~250 LOC) + 28 unit tests in
-    `tests/test_predicate_translator.py` + dispatcher wiring across
-    `_phase4_target_dispatch._build_{visual_reasoning,video,osworld,browser}_target`.
-    `PREDICATE_TRANSLATIONS` table covers (gymv, *) for all 4
-    cross-domain targets with mappings validated against
-    `TARGET_PREDICATE_VOCAB` so translation actually unblocks cells
-    rather than just shifting the static-vocab miss. See §12.3 and the
-    sibling memo `implementation_notes/cross-domain-transfer-suite-rollout.md`
-    §11.5.0.
-  - Closing measurement: re-run Stage 6 NxN driver
-    (`labeling_supplement/_phase4_transfer_matrix.py`) on the now-fully-wired
-    pipeline; expect G6 to pass and §11.5.4's 15-35% / 15-30% bands to
-    become measured admit rates rather than projections across all 25 cells.
+  - **Browser:** the BrowserGym/Playwright task-aware executor remains the
+    live web-agent target.
+  - **ALFWorld:** `ALFWorldNLWrapper` converts the batch-size-one TextWorld
+    API to the shared runner contract. `AlfworldExecutor` executes only a
+    currently admissible household command, preserves observations/evidence,
+    and scores completion from the environment's score/`won` signal.
+  - **Video understanding:** the task-aware video executor decodes per-sample
+    frames and routes spatial/temporal tool calls.
+  - **Visual reasoning:** the task-aware visual executor binds each sample's
+    image to grounded detection, region, comparison, and verification tools.
+  - **Predicate bridge:** `harness/predicate_translator.py` covers all four
+    active targets and validates mappings against each target vocabulary.
+  - **Measurement:** rerun `labeling_supplement._phase4_transfer_matrix` for
+    measured active-target admit rates. ALFWorld remains opt-in in the matrix
+    because it uses an isolated conda environment and downloaded task data.
   - **Co-evolution-loop integration (UPDATED 2026-05-02 PM —
     Layers C / A / D LANDED)**:
     The four-layer plan in

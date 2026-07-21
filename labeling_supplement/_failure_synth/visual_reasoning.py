@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from crafter.failure_memory import SEMANTIC_BUCKET_EXTRA_KEY
+from legacy.crafter.failure_memory import SEMANTIC_BUCKET_EXTRA_KEY
 from data_structure.extensions.failure_trace import FailureTrace
 
 # These thresholds match the conservative defaults in the gymv

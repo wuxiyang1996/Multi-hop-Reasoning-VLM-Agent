@@ -29,6 +29,7 @@ import argparse
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -41,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 _DRIVER_MODULE = {
     "browsergym":       "scripts.skillbridge_eval.eval_browsergym",
-    "osworld":          "scripts.skillbridge_eval.eval_osworld",
+    "alfworld":         "scripts.skillbridge_eval.eval_alfworld",
     "visual_reasoning": "scripts.skillbridge_eval.eval_visual_reasoning",
     "video":            "scripts.skillbridge_eval.eval_video",
     "gymv":             "scripts.skillbridge_eval.eval_gymv",
@@ -49,7 +50,7 @@ _DRIVER_MODULE = {
 
 _PRIMARY_PATH = {
     "browsergym":       ("overall", "success_rate_macro"),
-    "osworld":          ("overall", "success_rate_macro"),
+    "alfworld":         ("overall", "success_rate"),
     "visual_reasoning": ("overall", "accuracy_micro"),
     "video":            ("overall", "accuracy_micro"),
     "gymv":             ("overall", "mean_reward_macro"),
@@ -114,17 +115,33 @@ def _run_eval(*, args: argparse.Namespace, k: int) -> Optional[Path]:
     ts = time.strftime("%Y%m%d_%H%M%S")
     out_path = eval_dir / f"k={k}_{ts}.json"
 
+    python_prefix = [sys.executable]
+    if args.domain == "alfworld":
+        explicit_python = os.environ.get("ALFWORLD_PYTHON")
+        conda = shutil.which("conda")
+        if explicit_python:
+            python_prefix = [explicit_python]
+        elif conda:
+            python_prefix = [
+                conda, "run", "--no-capture-output", "-n",
+                os.environ.get("ALFWORLD_ENV_NAME", "alfworld"), "python",
+            ]
     cmd = [
-        sys.executable, "-m", module,
+        *python_prefix, "-m", module,
         "--run-dir", str(args.run_dir),
         "--model", args.model,
         "--vllm-base-url", args.vllm_base_url,
         "--label", f"few_shot:k={k}",
         "--output", str(out_path),
     ]
-    if args.domain in ("browsergym", "osworld"):
+    if args.domain == "browsergym":
         cmd += [
             "--episodes-per-task", str(args.episodes_per_task),
+            "--max-steps", str(args.max_steps),
+        ]
+    if args.domain == "alfworld":
+        cmd += [
+            "--episodes", str(args.episodes_per_task),
             "--max-steps", str(args.max_steps),
         ]
     if args.domain in ("visual_reasoning", "video"):

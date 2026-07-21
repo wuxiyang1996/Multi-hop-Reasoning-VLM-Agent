@@ -63,6 +63,7 @@ if str(REPO_ROOT) not in sys.path:
 from common.enums import SkillStatus, SkillType                          # noqa: E402
 from data_structure.extensions.skill_record import SkillRecord           # noqa: E402
 from harness import FewShotAdapter                                       # noqa: E402
+from harness.predicate_translator import translate_skill_contract         # noqa: E402
 
 # Reuse the Phase-2 driver's bank-loader and env-builder.
 from labeling_supplement._phase2_real_env_skill_smoke import (           # noqa: E402
@@ -77,6 +78,21 @@ from labeling_supplement._phase4_target_dispatch import (                # noqa:
 )
 
 logger = logging.getLogger("phase4_transfer_cycle")
+
+
+def _skill_for_target(skill: SkillRecord, target_domain: str) -> SkillRecord:
+    """Translate the contract before the target adapter executes it.
+
+    ``FewShotAdapter`` success functions receive ``(episode, demo)``, so a
+    success-function wrapper cannot translate the source ``SkillRecord`` at
+    scoring time. Translation belongs here, before ``run_skill``.
+    """
+    source_domain = next(iter(skill.source_domains or ()), "gymv")
+    return translate_skill_contract(
+        skill,
+        source=str(source_domain),
+        target=target_domain,
+    )
 
 
 @dataclass
@@ -168,12 +184,12 @@ def _run_transfer(
         # Skill must be PROVISIONAL+ for run_skill — bank records are
         # DRAFT by default; promote on the in-memory copy.
         object.__setattr__(skill, "status", SkillStatus.PROVISIONAL)
+        execution_skill = _skill_for_target(skill, target_domain)
 
         # Per-domain success_fn instance. For gymv this scores per-hop
         # effect predicates; for VR / video it scores answer match
-        # against the demo's `expected.gold_answer`; for osworld /
-        # browser it mirrors the gymv per-hop effect-predicate path
-        # against the producer-emitted facts.
+        # against the demo's `expected.gold_answer`; ALFWorld scores real
+        # environment reward; browser evaluates producer-emitted facts.
         success_fn = target_build.success_fn_factory(
             pass_rate_threshold=0.5,
         )
@@ -199,7 +215,7 @@ def _run_transfer(
 
         try:
             r = few_shot.adapt(
-                skill=skill,
+                skill=execution_skill,
                 target_domain=target_domain,
                 target_task=target_game,
                 demos=target_demos,
@@ -320,8 +336,9 @@ def main() -> int:
                          "this is a game name (tetris, twenty_forty_eight, "
                          "...); for visual_reasoning a sub-corpus "
                          "(visual_toolbench, tir_bench); for video "
-                         "(video_holmes, siv_bench); for osworld a domain "
-                         "(vlc, vs_code, gimp, ...); for browser a "
+                         "(video_holmes, siv_bench); for alfworld a split "
+                         "(train, eval_in_distribution, "
+                         "eval_out_of_distribution); for browser a "
                          "task-id-prefix (assistantbench, miniwob, ...)."))
     p.add_argument(
         "--target-domain",
@@ -339,7 +356,8 @@ def main() -> int:
         default=None,
         help=("Root of cold-start corpus for the cross-domain target. "
               "Defaults to Cold-start-out-<target-domain>/ for "
-              "visual_reasoning / video / osworld / browser. Ignored "
+              "visual_reasoning / video / browser. Ignored for alfworld "
+              "(live environment) and "
               "for target_domain=gymv (uses --actions-root instead)."),
     )
     p.add_argument("--max-skills", type=int, default=10)

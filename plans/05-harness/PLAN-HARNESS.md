@@ -52,7 +52,7 @@
 
 **Relation to Pipeline Orchestrator.** The Pipeline Orchestrator is the **system-level DAG** that runs grounding → action → bank → crafter → gates across many episodes and runs. The Skill Harness is the **per-invocation runtime** for a single skill call. Pipeline Orchestrator = macro scheduler; Skill Harness = micro runtime for skill use. They compose: the orchestrator calls the Harness at every `inner_mdp` step where a skill is invoked.
 
-**Non-goals:** Replacing the Action Agent, Skill Bank, or Skill Crafter. Introducing a fourth agent. Making the 32B/72B teacher the default online controller. Adding new trainable models before the execution + validation loop works. **Narrowing the Harness to a single domain, or admitting domain-specific skills.** Every skill the Harness binds, runs, and validates is a **general protocol feasible across all five target domains** (game / webagent / os-agent / video-understanding / visual reasoning) — see [Skill Bank §0.1](../03-skill-bank/PLAN-SKILL-BANK.md#01-general-protocol-invariant-no-domain-specific-skill-families). The Harness is the *domain-general transfer runtime*; short-video evidence-grounded reasoning is the first proving ground where that broad transfer is *validated*, not the definition of the Harness's scope.
+**Non-goals:** Replacing the Action Agent, Skill Bank, or Skill Crafter. Introducing a fourth agent. Making the teacher the default online controller. Adding new trainable models before the execution + validation loop works. **Narrowing the Harness to a single domain, or admitting domain-specific skills.** Every skill the Harness binds, runs, and validates is a **general protocol feasible across all five active domains** (game / webagent / ALFWorld / video-understanding / visual reasoning).
 
 **Episode-local state surface.** The Harness reads skills from the bank and reads its episode-local trajectory — current `<state>`, short typed hop trace, intermediate belief state, and within-episode evidence references — directly from the orchestrator (see [Pipeline Orchestrator §4](../06-orchestrator/PLAN-PIPELINE-ORCHESTRATOR.md#4-episode-local-evidence--trace-bookkeeping)). It maintains no other lookup channel.
 
@@ -230,7 +230,7 @@ The execution layer that maps abstract skill steps into concrete operations in:
 
 - games (Gym-V)
 - web (BrowserGym)
-- desktop (OSWorld)
+- embodied text control (ALFWorld)
 - video reasoning
 - visual grounding / reasoning
 
@@ -392,7 +392,7 @@ class AdapterRegistry:
     def request_synthesis(self, skill, domain) -> AdapterProposal: ...  # calls 72B
 ```
 
-Initial domains: `gymv`, `browser`, `osworld`, `video`, `visual_reasoning`.
+Initial domains: `gymv`, `browser`, `alfworld`, `video`, `visual_reasoning`.
 
 Responsibilities:
 
@@ -601,10 +601,10 @@ Each `GateVerdict` carries zero or more of the following labels; each label is p
 | `opaque_skill_violation` | A shadow or replay episode produced `evidence_in ∪ evidence_out == ∅` or missed the `evidence_role`-specific fields ([§5.1](#51-skillepisode)); the skill is not actually assisting reasoning in the target domain | `SkillHarness.finalize_episode` (Gate G0) |
 | `slot_binding_failed` | Required typed slots do not ground from the target `<state>` (missing `target`, empty `candidate_set`, no `blocker` to anchor, ...) | `SkillHarness.bind_skill` |
 | `adapter_execution_mismatch` | Adapter exists but its execution surface disagrees with the skill's abstract predicates (e.g., `select($target)` is not realizable with the adapter's action set) | `AdapterRegistry.validate` |
-| `evidence_insufficient` | Skill's `evidence_required` cannot be filled from the target domain's within-episode `evidence_refs` (no clip/frame/DOM/desktop-object pointer of the required kind) | `ReplayValidator` |
+| `evidence_insufficient` | Skill's `evidence_required` cannot be filled from the target domain's within-episode `evidence_refs` (no clip/frame/DOM/household-object pointer of the required kind) | `ReplayValidator` |
 | `temporal_mismatch` | Video-understanding transfer: temporal `candidate_set` members do not align with the claim's time anchor, or evidence frames are out of order vs. protocol | `ReplayValidator` (video path) |
 | `ui_grounding_mismatch` | Webagent transfer: UI elements expected by the protocol (e.g., a "submit" control) are not grounded or are ambiguous in the DOM / screenshot state | `SkillHarness.bind_skill` (browser adapter) |
-| `desktop_object_mismatch` | OS-agent transfer: required desktop objects (windows, files, tray icons) are not grounded or belong to a different application | `SkillHarness.bind_skill` (desktop adapter) |
+| `household_object_mismatch` | ALFWorld transfer: required object or receptacle is unavailable, ambiguous, or violates an action precondition | `SkillHarness.bind_skill` (ALFWorld adapter) |
 | `overconfident_commit` | Shadow mode: the skill's `COMMIT` fires despite anti-preconditions / `do_not_transfer_if` predicates holding in the target state | `TransferProposer.shadow_run_transfer` |
 | `contract_mismatch` | Replay: the realized effects diverge from `eff_add` / `eff_del` beyond tolerance, or belief-effects do not hold after execution | `ReplayValidator` |
 | `few_shot_budget_exceeded` | Stage 3a: cumulative `cost_tokens > adaptation_cost_max_tokens` before the K-shot run completes for `(skill, target_domain)` — adapter aborts with this label | `FewShotAdapter` |
@@ -619,7 +619,7 @@ Each `GateVerdict` carries zero or more of the following labels; each label is p
 
 ### 10a.2 First validation arena (for the diagnostics, not for the skills)
 
-The diagnostic labels above are defined for **all five target domains from day one**, and every skill passing through the Harness is a general protocol expected to be feasible in all of them. The **first arena** in which these diagnostics are *exercised and tuned* is short-video evidence-grounded reasoning: `evidence_insufficient`, `temporal_mismatch`, and `opaque_skill_violation` are the highest-signal labels there, followed by `overconfident_commit` (claims made without adequate frame-level backing) and `evidence_interface_mismatch` (adapter cannot supply the declared evidence kinds). As the webagent / os-agent / game adapters come online, `ui_grounding_mismatch`, `desktop_object_mismatch`, and `adapter_execution_mismatch` start firing against the same general protocols — the protocols do not change, only the diagnostics that happen to trigger on them. Gate G0 (`opaque_skill_violation`) fires uniformly across all domains and is the primary defense against a skill *silently ceasing to assist reasoning* after a transfer.
+The diagnostic labels above are defined for **all five active domains from day one**. The first arena in which they are exercised is short-video evidence-grounded reasoning; web, ALFWorld, and game adapters trigger the same protocol-level checks with domain-specific grounding diagnostics such as `ui_grounding_mismatch`, `household_object_mismatch`, and `adapter_execution_mismatch`.
 
 ---
 
@@ -713,7 +713,7 @@ harness/
   adapters/
     gymv.py
     browser.py
-    osworld.py
+    alfworld.py
     video.py
     visual_reasoning.py
 ```

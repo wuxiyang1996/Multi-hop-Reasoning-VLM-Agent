@@ -1,7 +1,7 @@
 """Cross-domain SkillBridge eval aggregator (block C7).
 
-Reads the per-domain ``*_result.json`` files emitted by the C2-C6
-drivers (``eval_browsergym``, ``eval_osworld``, ``eval_visual_reasoning``,
+Reads the per-domain ``*_result.json`` files emitted by the active eval
+drivers (``eval_browsergym``, ``eval_alfworld``, ``eval_visual_reasoning``,
 ``eval_video``, ``eval_gymv``) and produces a single CSV / JSON / Markdown
 table that mirrors what the NeurIPS paper's main-results table needs.
 
@@ -16,7 +16,7 @@ Per-domain primary metric is normalised so the aggregate table is
 directly comparable:
 
 * ``browsergym``         -> ``success_rate_macro``
-* ``osworld``            -> ``success_rate_macro``  (also keeps eval_score)
+* ``alfworld``          -> ``success_rate``
 * ``visual_reasoning``   -> ``accuracy_micro``
 * ``video``              -> ``accuracy_micro``
 * ``gymv``               -> ``mean_reward_macro``
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 _DOMAIN_PRIMARY: Dict[str, Tuple[str, str]] = {
     "browsergym":       ("success_rate_macro",   "overall"),
-    "osworld":          ("success_rate_macro",   "overall"),
+    "alfworld":         ("success_rate",         "overall"),
     "visual_reasoning": ("accuracy_micro",       "overall"),
     "video":            ("accuracy_micro",       "overall"),
     "gymv":             ("mean_reward_macro",    "overall"),
@@ -67,7 +67,7 @@ def _discover_results(eval_dir: Path) -> List[Path]:
         return []
     suffixes = {
         "browsergym_result_",
-        "osworld_result_",
+        "alfworld_result_",
         "visual_reasoning_result_",
         "video_result_",
         "gymv_result_",

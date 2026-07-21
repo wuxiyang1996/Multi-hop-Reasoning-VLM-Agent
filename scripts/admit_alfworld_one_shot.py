@@ -20,6 +20,7 @@ from harness.skill_admission import (  # noqa: E402
     StrictOneShotAdmission,
     target_demo_receipt_from_dict,
 )
+from harness.capability_gaps import build_capability_report  # noqa: E402
 from skill_bank.program_ir import canonical_program_from_dict  # noqa: E402
 
 
@@ -84,8 +85,10 @@ def main() -> int:
         grouped.setdefault(identity, (program, []))[1].append(candidate)
 
     rows = []
+    selection_records = []
     for identity, (program, candidates) in sorted(grouped.items()):
         artifact = verifier.admit(program=program, candidates=candidates, demo=demo)
+        selection_records.append((program, candidates, artifact))
         path = store.freeze(artifact)
         rows.append({
             "candidate_ids": [item.candidate_id for item in candidates],
@@ -101,12 +104,17 @@ def main() -> int:
             "failure_codes": artifact.failure_codes,
         })
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "demo_id": demo.demo_id,
         "demo_hash": demo.content_hash(),
         "one_shot": True,
         "target_gradient_updates": 0,
         "bindings": rows,
+        "capability_report": build_capability_report(
+            proposal_metadata=config,
+            selections=selection_records,
+            demo=demo,
+        ),
     }
     binding_set_hash = hashlib.sha256(
         json.dumps(rows, sort_keys=True, separators=(",", ":")).encode("utf-8")

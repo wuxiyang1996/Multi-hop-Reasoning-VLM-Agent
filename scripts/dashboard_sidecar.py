@@ -54,7 +54,7 @@ Usage
     python scripts/dashboard_sidecar.py \\
         --run-dir runs/Qwen3.5-9B_20260503_120000 \\
         --once \\
-        --targets video visual_reasoning osworld
+        --targets video visual_reasoning alfworld
 
 Cross-refs
 ----------
@@ -241,8 +241,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--targets", nargs="+", default=list(DEFAULT_TARGETS),
                    help="Target corpora the matrix evaluates against. "
                         "Default: video visual_reasoning (VLM-only, no "
-                        "docker/playwright). Add 'osworld' / 'browser' only "
-                        "if the corresponding helper envs are reachable from "
+                        "extra runtimes). Add 'alfworld' / 'browser' only "
+                        "if the corresponding environments are reachable from "
                         "this process.")
     p.add_argument("--max-skills", type=int, default=5,
                    help="Forwarded to _phase4_transfer_matrix.py --max-skills "
