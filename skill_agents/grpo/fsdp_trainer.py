@@ -380,6 +380,8 @@ def _run_grpo_training_loop(
             batch_ids = batch_ids.to(device)
             batch_attn = batch_attn.to(device)
 
+            out = None
+            local_fwd_oom = torch.zeros(1, device=device, dtype=torch.int32)
             try:
                 with torch.enable_grad():
                     out = model(
@@ -387,17 +389,33 @@ def _run_grpo_training_loop(
                         attention_mask=batch_attn,
                     )
             except torch.cuda.OutOfMemoryError:
+                local_fwd_oom.fill_(1)
                 torch.cuda.empty_cache()
+
+            # DDP ranks must make the same backward/skip decision.  Previously
+            # an OOM on only one rank made that rank continue while its peer
+            # entered DDP gradient all-reduces.  The OOM rank then reached the
+            # next scalar collective first, producing a deterministic NCCL
+            # mismatch (1 element versus a 524288-element gradient bucket).
+            # Synchronize the forward outcome before any rank can backward.
+            dist.all_reduce(local_fwd_oom, op=dist.ReduceOp.MAX)
+            if local_fwd_oom.item():
                 old_bs = eff_batch_size
                 eff_batch_size = max(1, eff_batch_size // 2)
                 if is_main:
                     logger.warning(
-                        "OOM in training fwd (bsz=%d, seq=%d), "
-                        "halving batch %d→%d and skipping mini-batch",
+                        "OOM in training fwd on at least one rank "
+                        "(bsz=%d, seq=%d), halving batch %d→%d and "
+                        "skipping mini-batch on all ranks",
                         bsz, max_len, old_bs, eff_batch_size,
                     )
                 optimizer.zero_grad()
+                if out is not None:
+                    del out
+                del batch_ids, batch_attn, local_fwd_oom
+                torch.cuda.empty_cache()
                 continue
+            del local_fwd_oom
 
             mb_losses: list = []
             for j, e in enumerate(entries):
