@@ -46,7 +46,7 @@ def apply_binding_source_control(
     topology. ``wrong`` is represented by passing graphs loaded from a separately
     frozen source artifact; this function records but does not choose that artifact.
     """
-    if treatment not in {"empty", "correct", "wrong", "renamed"}:
+    if treatment not in {"empty", "correct", "wrong", "renamed", "randomized"}:
         raise ValueError("unsupported binding source treatment")
     rows = json.loads(json.dumps(list(graphs), ensure_ascii=False))
     controlled = [] if treatment == "empty" else rows
@@ -85,6 +85,30 @@ def apply_binding_source_control(
             mapping.extend({
                 "old_identity": old, "new_identity": new,
             } for old, new in node_mapping.items())
+    elif treatment == "randomized":
+        controlled = []
+        for graph_index, graph in enumerate(rows):
+            nodes = [dict(node) for node in graph.get("nodes") or ()]
+            if len(nodes) < 2:
+                raise ValueError("randomized source control requires at least two nodes")
+            offset = 1 + (int(seed) + graph_index) % (len(nodes) - 1)
+            rotated = []
+            for node_index, node in enumerate(nodes):
+                donor = nodes[(node_index + offset) % len(nodes)]
+                updated = dict(node)
+                updated["observed_transitions"] = json.loads(json.dumps(
+                    donor.get("observed_transitions") or (), ensure_ascii=False,
+                ))
+                rotated.append(updated)
+                mapping.append({
+                    "old_identity": (
+                        f"{graph['source_hypothesis_hash']}:{node['node_id']}:content"
+                    ),
+                    "new_identity": (
+                        f"{graph['source_hypothesis_hash']}:{donor['node_id']}:content"
+                    ),
+                })
+            controlled.append({**dict(graph), "nodes": rotated})
     unsigned = {
         "treatment": str(treatment),
         "seed": int(seed),

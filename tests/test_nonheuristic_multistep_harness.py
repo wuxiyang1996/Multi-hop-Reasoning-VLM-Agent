@@ -607,6 +607,16 @@ def test_binding_source_control_runs_before_agent_and_renames_only_identities() 
     assert empty == ()
     empty_receipt.validate_hash()
 
+    randomized, randomized_receipt = apply_binding_source_control(
+        graphs, treatment="randomized", seed=11,
+    )
+    assert randomized[0]["source_hypothesis_hash"] == graphs[0]["source_hypothesis_hash"]
+    assert randomized[0]["nodes"][0]["node_id"] == graphs[0]["nodes"][0]["node_id"]
+    assert randomized[0]["nodes"][0]["observed_transitions"] == (
+        graphs[0]["nodes"][1]["observed_transitions"]
+    )
+    randomized_receipt.validate_hash()
+
 
 def _online_rebind_proposal(*, action_numbers=(1, 2)):
     actions = ("go to drawer 1", "look")

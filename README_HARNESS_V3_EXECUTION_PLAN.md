@@ -706,3 +706,51 @@ schema，或遗漏 source node/生成空 segment。最终冻结 artifact 位于
 proposal/repair budget 未恢复出可接纳程序”，不是 source skill 全局无效。下一项实验应预注册更强
 proposal Agent 或 source-graph enumeration budget，并与同预算 target-only proposal control 匹配；
 不得由人手写那个看似明显的 gap 后宣称 transfer 成功。
+
+### 8.6 Qwen3 Max complete-graph proposal capability controls
+
+OpenRouter 当前没有 `qwen/qwen3.5-max` model ID；本轮按用户指定的 Max 意图使用
+`qwen/qwen3-max`。先在固定 `eb689…` graph 上做 1-call gate：Max 一次生成可解析 proposal 且
+admission 为 `READY`，而 35B 的有界 repair 未做到。这证明前一阶段的 0 admission 主要包含
+proposal-Agent capability failure，但不能证明 source 增量价值。
+
+随后对 source edge-evidence gate 后的全部 13 个 graph slots 做四条件 paired enumeration，每个
+slot 使用相同 `proposal_seed=1729+slot`、相同 Max model/role、相同两个 adaptation examples 和
+1400 completion cap：
+
+- `correct`：真实 source graph；
+- `renamed`：只确定性替换 graph/node identities，保留 evidence 与 topology；
+- `randomized`：不读取 target 数据，在 source nodes 间按 seed 旋转 observed-transition payload；
+- `target_only`：只提供相同 node-count/order capacity 的 opaque skeleton，不提供 source
+  transitions 或 intervention receipts。
+
+Target-only 使用确定性无语义 padding。Pilot 根据 API 返回的真实 tokenizer accounting 冻结 3×
+字符差倍率；最终 successful calls 的 prompt tokens 为 55,322 / 56,378 / 55,322 / 57,417，最大
+差约 3.8%。Provider 发生 429 时只按原 graph index 与同一 seed 重试；merge 只允许 endpoint-429
+replacement，若同一 slot 出现多个成功结果会拒绝，不能按 admission outcome 选样本。
+
+最终 complete13 admission：
+
+| condition | admitted | rate | successful-call reported cost |
+|---|---:|---:|---:|
+| correct | 6/13 | 46.2% | `$0.06080` |
+| renamed | 7/13 | 53.8% | `$0.05823` |
+| randomized | 7/13 | 53.8% | `$0.05840` |
+| target-only | 3/13 | 23.1% | `$0.06794` |
+
+Correct 对 target-only 有 5 个 correct-only、2 个 target-only-only slots，但 correct 没有超过
+renamed/randomized；paired comparison 中 renamed 为 0 correct-only / 1 control-only，randomized
+为 1 correct-only / 2 control-only。因此较丰富的 graph-shaped context 可能帮助 Max 构造稳定
+segmentation，但没有证据表明“正确 source content”比 identity/content controls 更有价值。
+
+冻结 summary 位于
+`runs/alfworld_native_calibration_20260721/qwen3max_seeded_conditional_proposal_study_summary.json`，
+hash 为 `aeb022f4ec8603ef9d10701f075291ec03636333b16fa954613200d2847890d9`。其 gate 为：
+
+- `correct_exceeds_every_control=false`；
+- `authorizes_online_source_pilot=false`；
+- `authorizes_large_scale_2x4=false`。
+
+所以不从 correct 的 6 个 admitted programs 中事后挑一个跑正向在线结果。下一研究问题应是重新
+设计能区分真实 source evidence 与 graph-shaped scaffolding 的 control/任务，而不是增加 GPU、
+SFT 或无限 proposal repair。

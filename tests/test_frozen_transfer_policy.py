@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from harness.frozen_transfer_policy import (
+    StrictOpenAIClient,
     action_prompt,
     native_target_action_prompt,
     parse_exact_numbered_response,
@@ -112,6 +113,41 @@ def test_native_target_plan_is_closed_and_action_is_in_range() -> None:
 class _BrokenClient:
     def complete(self, **_: object) -> tuple[str, dict[str, object]]:
         raise ConnectionError("endpoint unavailable")
+
+
+class _SeedResponse:
+    def raise_for_status(self) -> None:
+        return None
+
+    def json(self) -> dict[str, object]:
+        return {
+            "id": "generation", "choices": [{"message": {"content": "ok"}}],
+            "usage": {},
+        }
+
+
+class _SeedHTTPClient:
+    def __init__(self) -> None:
+        self.request: dict[str, object] | None = None
+
+    def post(self, _url: str, *, headers, json):
+        self.request = json
+        return _SeedResponse()
+
+    def close(self) -> None:
+        return None
+
+
+def test_openrouter_client_forwards_registered_seed() -> None:
+    client = StrictOpenAIClient("https://openrouter.ai/api/v1", api_key="test")
+    fake = _SeedHTTPClient()
+    client._client.close()
+    client._client = fake  # type: ignore[assignment]
+    reply, _ = client.complete(model="model", prompt="prompt", seed=1729)
+    assert reply == "ok"
+    assert fake.request is not None
+    assert fake.request["seed"] == 1729
+    assert fake.request["temperature"] == 0.0
 
 
 def test_endpoint_failure_is_not_counted_as_model_abstention() -> None:

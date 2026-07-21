@@ -340,7 +340,7 @@ class StrictOpenAIClient:
 
     def complete(
         self, *, model: str, prompt: str, max_tokens: int = 48,
-        reasoning_effort: str = "none",
+        reasoning_effort: str = "none", seed: int | None = None,
     ) -> tuple[str, Dict[str, Any]]:
         if reasoning_effort not in {"none", "low", "medium", "high"}:
             raise ValueError("unsupported reasoning effort")
@@ -352,6 +352,8 @@ class StrictOpenAIClient:
             "top_p": 1.0,
             "max_tokens": max_tokens,
         }
+        if seed is not None:
+            request["seed"] = int(seed)
         if not self._is_openrouter:
             request["chat_template_kwargs"] = {
                 "enable_thinking": reasoning_effort != "none"

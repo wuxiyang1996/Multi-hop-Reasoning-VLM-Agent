@@ -18,6 +18,7 @@ from harness.conditional_node_program import (
 )
 from harness.online_transfer_runtime import NativeTransitionEvidence
 from harness.skill_admission import TargetActionEvidence, TargetDemoReceipt
+from scripts.enumerate_alfworld_conditional_proposals import _target_only_skeletons
 
 
 def _hash(value) -> str:
@@ -228,6 +229,14 @@ def test_missing_source_edge_receipt_and_unseen_live_effect_fail_closed():
     assert receipt.verdict == ConditionalRuntimeVerdict.NEED_MORE_EVIDENCE
     assert runtime.step_index == 0
 
+    target_only = admit_conditional_programs(
+        adaptation_set_id="target-only-two-example", proposals=(proposal,), demos=demos,
+        source_graphs=(graph,),
+        known_proposal_receipt_hashes=(proposal.proposal_receipt_sha256,),
+        source_treatment="empty",
+    )
+    assert target_only.status == ConditionalAdmissionStatus.READY
+
 
 def test_loader_rejects_rehashed_inconsistent_status():
     payload = _artifact().to_dict()
@@ -237,3 +246,12 @@ def test_loader_rejects_rehashed_inconsistent_status():
     })
     with pytest.raises(ValueError, match="status is inconsistent"):
         conditional_artifact_from_dict(payload)
+
+
+def test_target_only_control_has_capacity_and_padding_but_no_source_transitions():
+    graph = _graph()
+    skeleton = _target_only_skeletons([graph])[0]
+    assert len(skeleton["nodes"]) == len(graph["nodes"])
+    assert all(not node["observed_transitions"] for node in skeleton["nodes"])
+    assert isinstance(skeleton["opaque_context_padding"], str)
+    assert all(not edge["intervention_receipt_sha256s"] for edge in skeleton["edges"])

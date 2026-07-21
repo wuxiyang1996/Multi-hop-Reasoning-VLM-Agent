@@ -64,14 +64,21 @@ def _demo_trace(demo):
     }
 
 
-def _prompt(role, graphs, demos, repair_context=None):
+def _prompt(role, graphs, demos, repair_context=None, condition="source"):
     role_instruction = {
         "proposer_a": "Find one receipt-compatible reusable node-local program.",
         "proposer_b": "Independently find a different compatible segmentation if one exists.",
         "skeptic": "Try to expose non-transferable steps using explicit TARGET_NATIVE_GAP segments.",
     }[role]
+    condition_text = (
+        "The graph contains source transition evidence."
+        if condition == "source" else
+        "This is a target-only matched control. Graph nodes are opaque capacity slots "
+        "and contain no source transition evidence; do not infer source semantics."
+    )
     return (
         f"You are {role}, an untrusted proposal Agent. {role_instruction} "
+        f"{condition_text} "
         "You may propose structure but cannot verify semantics. Select exactly one listed "
         "source_hypothesis_hash. For EACH target demo, return an ordered segmentation that "
         "uses every target transition exactly once. Every source node must occur exactly once "
@@ -221,6 +228,11 @@ def main() -> int:
     parser.add_argument("--source-hypotheses", type=Path, required=True)
     parser.add_argument("--source-treatment", choices=("correct", "renamed"), default="correct")
     parser.add_argument("--source-control-seed", type=int, default=1729)
+    parser.add_argument("--fixed-source-hypothesis-hash")
+    parser.add_argument(
+        "--role", action="append", choices=_ROLES,
+        help="Registered proposal role; repeat to request multiple roles (default: all).",
+    )
     parser.add_argument("--demo", type=Path, action="append", required=True)
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--model", default="qwen/qwen3.5-35b-a3b")
@@ -239,6 +251,15 @@ def main() -> int:
         raw_graphs, treatment=args.source_treatment, seed=args.source_control_seed,
     )
     graphs, excluded_graphs = _edge_evidence_gate(graphs)
+    if args.fixed_source_hypothesis_hash:
+        graphs = [
+            graph for graph in graphs
+            if graph["source_hypothesis_hash"] == args.fixed_source_hypothesis_hash
+        ]
+        if len(graphs) != 1:
+            raise SystemExit(
+                "fixed source hypothesis is absent or failed the edge-evidence gate"
+            )
     demos = tuple(target_demo_receipt_from_dict(
         json.loads(path.read_text(encoding="utf-8"))
     ) for path in args.demo)
@@ -268,7 +289,8 @@ def main() -> int:
     client = StrictOpenAIClient(args.endpoint, timeout_s=180, api_key=key or "EMPTY")
     rows, candidates = [], []
     try:
-        for role_index, role in enumerate(_ROLES):
+        registered_roles = tuple(args.role or _ROLES)
+        for role_index, role in enumerate(registered_roles):
             role_repair = None
             role_graphs = graphs
             if repair_context is not None:
@@ -322,6 +344,8 @@ def main() -> int:
         "demo_ids": [demo.demo_id for demo in demos],
         "demo_hashes": [demo.content_hash() for demo in demos],
         "model": args.model, "rows": rows, "candidates": candidates,
+        "registered_roles": list(registered_roles),
+        "fixed_source_hypothesis_hash": args.fixed_source_hypothesis_hash,
         "n_candidates": len(candidates),
         "n_abstain": sum(row["abstained"] for row in rows),
         "n_invalid": sum(row["error"] is not None for row in rows),

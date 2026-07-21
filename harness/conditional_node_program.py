@@ -369,6 +369,8 @@ def admit_conditional_programs(
             ) and all(_valid_hash(str(item)) for item in (
                 (edge or {}).get("intervention_receipt_sha256s") or ()
             ))
+            if source_treatment == "empty":
+                checks[f"edge:{left}->{right}:has_intervention_receipts"] = True
             if edge is not None:
                 edge_witnesses.append(_edge_witness(edge))
         if all(checks.values()):
