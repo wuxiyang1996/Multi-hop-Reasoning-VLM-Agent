@@ -662,3 +662,47 @@ decompose-recompose，Agent 必须显式提出带条件的 node-local target pol
 Harness 再机械检查完整 transition coverage、node 间顺序/边约束和 live action-set 一致性。
 在这种 evidence-carrying conditional program 尚未实现前，现有数据只能支持上述 bounded
 `NOT_APPLICABLE` 结论，不能启动大规模 2×4 实验。
+
+### 8.5 Conditional node-local program：实现、Agent repair 与负 admission
+
+已实现第一版 evidence-carrying conditional node program，而没有人工把 seed42 的额外 `GOTO`
+移入 gap。新协议由 untrusted Agent 对多个冻结 adaptation examples 联合提出 ordered
+segmentation；每个 segment 只能是：
+
+- `SOURCE_NODE`：精确引用一个已注册 source node；
+- `TARGET_NATIVE_GAP`：显式保留当前无法由 source node 共同解释的 target transitions。
+
+Harness admission 机械检查：所有 target transitions 按原顺序恰好覆盖一次；每个 source node 按
+source graph 顺序恰好出现一次且非空；同一 source node 在所有 examples 中必须产生完全相同的
+target operator/argument-type 序列；连续 source nodes 必须存在已注册 edge，且 edge 携带合法
+intervention receipts。每个 admitted node 的 entry/step/exit evidence 均引用真实 target transition
+receipt。Gap 可以跨实例变化，但不能删除、重排或伪装 transition。实现位于
+`harness/conditional_node_program.py`。
+
+runtime 只在所有 retained candidates 对当前 node step 给出相同 native signature，且该 signature
+在 live admissible actions 中出现时开放 source-conditioned action；node 尚未开始且 entry signature
+不可用时返回 `TARGET_NATIVE_GAP_REQUIRED`，由 native target Actor 继续交互并随后重检；node 已
+开始后 signature 消失或 live effect 未出现在任何冻结 witness 中时返回
+`NEED_MORE_EVIDENCE`，不会猜测 continuation。source node 执行会生成 content-addressed transition
+receipt。当前真实 admission 没有 READY artifact，因此没有把这一 source 分支接入大规模 evaluator；
+synthetic vertical-slice tests 已覆盖 source→gap→source 恢复路径和未覆盖 transition 的拒绝。
+
+真实两样本 35B development 流程还加入两个非语义修复：proposal 前只展示所有连续 edge 均有
+intervention receipts 的 graphs；rejected proposal 可以在 source identity 固定的条件下接收
+Harness failure receipt 做有界 repair。Failure receipt 机械包含 expected/observed node order、
+transition coverage 和逐 demo observed node schemas，不告诉 Agent 应把哪一步移到 gap。
+
+在 seed42/seed48 上，21 个可审计 35B calls 共使用 434,199 tokens，OpenRouter reported cost
+约 `$0.07518`；另有一次在写 artifact 前暴露 dataclass serialization bug 的调用，不计入上述可审计
+统计。开发过程中 Agent 曾提出显式 gap，并选中 `eb689…` source graph，但反复保留不一致的 N0
+schema，或遗漏 source node/生成空 segment。最终冻结 artifact 位于
+`runs/alfworld_native_calibration_20260721/conditional_nodes_two_example_admission_final.json`：
+
+- `n_proposed=3`，`n_admitted=0`，`n_rejected=3`；
+- status 为 `NEED_MORE_AGENT_PROPOSALS`；
+- artifact hash 为 `6c1f4ee6ddfeda5438fde993976c3f313eea440f8787862ce815ada47049622e`。
+
+因此当前正确行为是不开启 source execution，也不运行 2×4。这个 verdict 表示“当前固定 35B
+proposal/repair budget 未恢复出可接纳程序”，不是 source skill 全局无效。下一项实验应预注册更强
+proposal Agent 或 source-graph enumeration budget，并与同预算 target-only proposal control 匹配；
+不得由人手写那个看似明显的 gap 后宣称 transfer 成功。
