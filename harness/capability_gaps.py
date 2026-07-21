@@ -472,24 +472,53 @@ def build_v3_implementation_report() -> Dict[str, Any]:
             ),
         ),
         _record(
+            "native_target_actor_calibration",
+            CapabilityState.IMPLEMENTED,
+            evidence={
+                "source_conditioning_from_reset": False,
+                "demo_action_intersection_from_reset": False,
+                "official_task_line_mechanically_extracted": True,
+                "complete_target_transition_history": True,
+                "closed_agent_plan_schema": [
+                    "state_summary", "next_subgoal", "action_number",
+                ],
+                "native_action_number_exactly_admitted": True,
+                "train_development_episodes": 10,
+                "official_successes": 7,
+                "errors": 0,
+                "abstentions": 0,
+                "mean_success_steps": 10.428571428571429,
+                "reported_cost": 0.041387825,
+                "held_out_results": 0,
+            },
+            claim_limit=(
+                "This establishes target-Actor viability on ten train development episodes, "
+                "not held-out performance. Three episodes still reached the 30-step cap."
+            ),
+        ),
+        _record(
             "large_scale_2x4_v3_experiment",
             CapabilityState.NOT_IMPLEMENTED,
             evidence={
                 "preregistered_v3_config": False,
                 "paired_development_pilot_completed": True,
-                "source_successes": 2,
-                "target_only_successes": 2,
-                "episode_pairs": 8,
-                "source_reported_cost": 0.02737905,
-                "target_only_reported_cost": 0.0027876775,
+                "closed_plan_matched_episode_pairs": 1,
+                "closed_plan_target_only_successes": 1,
+                "closed_plan_designated_shadow_successes": 1,
+                "closed_plan_designated_enforce_successes": 1,
+                "closed_plan_target_only_steps": 8,
+                "closed_plan_designated_shadow_steps": 19,
+                "closed_plan_designated_enforce_steps": 11,
+                "source_positive_value_observed": False,
+                "online_harm_mitigation_observed_single_pair": True,
                 "source_treatment_active": True,
                 "authorizes_large_scale_2x4": False,
             },
             claim_limit=(
-                "Do not launch 2x4: verified source conditioning reached every source Actor "
-                "call but the matched development pilot has no positive source signal. Test a "
-                "different source program family or a general Agent-side receipt-use protocol "
-                "without adapting mappings to ALFWorld development rewards."
+                "Do not launch 2x4: the viable native Actor solved 7/10 train episodes, but in "
+                "the first closed-plan matched pair designated source increased completion "
+                "from 8 to 19 steps; online control reduced this to 11 without beating target-"
+                "only. Build multi-example receipt version spaces before another source pilot."
             ),
         ),
     ]

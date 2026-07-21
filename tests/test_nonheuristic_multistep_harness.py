@@ -955,6 +955,7 @@ def test_v3_readiness_does_not_claim_unrun_production_work() -> None:
     assert "multistep_target_binding_v3" in report["implemented"]
     assert "runtime_all_candidate_exact_action_consensus" in report["implemented"]
     assert "target_native_same_demo_baseline" in report["implemented"]
+    assert "native_target_actor_calibration" in report["implemented"]
     assert "large_scale_2x4_v3_experiment" in report["gaps"]
     large_scale = next(
         item for item in report["capabilities"]
@@ -962,8 +963,10 @@ def test_v3_readiness_does_not_claim_unrun_production_work() -> None:
     )
     assert large_scale["evidence"]["paired_development_pilot_completed"] is True
     assert large_scale["evidence"]["authorizes_large_scale_2x4"] is False
-    assert large_scale["evidence"]["source_successes"] == 2
-    assert large_scale["evidence"]["target_only_successes"] == 2
+    assert large_scale["evidence"]["closed_plan_target_only_successes"] == 1
+    assert large_scale["evidence"]["closed_plan_designated_shadow_steps"] == 19
+    assert large_scale["evidence"]["closed_plan_designated_enforce_steps"] == 11
+    assert large_scale["evidence"]["source_positive_value_observed"] is False
     assert large_scale["evidence"]["source_treatment_active"] is True
 
 

@@ -12,6 +12,7 @@ from data_structure.extensions.skill_record import SkillContract, SkillRecord
 from env_wrappers.alfworld_nl_wrapper import (
     ALFWorldNLWrapper,
     alfworld_obs_to_natural_language,
+    extract_alfworld_task_goal,
     make_alfworld_env,
 )
 from harness import AdapterRegistry, FewShotAdapter, FewShotDemo, HarnessConfig, SkillHarness
@@ -166,6 +167,17 @@ def test_observation_renderer_accepts_unbatched_commands() -> None:
         {"admissible_commands": ["look", "go to sink 1"]},
     )
     assert "go to sink 1" in text
+
+
+def test_official_task_line_is_extracted_without_semantic_rewrite() -> None:
+    observation = (
+        "You are in a kitchen.\n\n"
+        "Your task is to: put some butterknife on drawer.\n\n"
+        "Admissible actions: look; inventory"
+    )
+    assert extract_alfworld_task_goal(observation) == (
+        "put some butterknife on drawer."
+    )
 
 
 def test_alfworld_state_markup_preserves_commands_and_status() -> None:

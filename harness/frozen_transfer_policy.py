@@ -24,6 +24,7 @@ from harness.skill_admission import (
 
 _ACTION_RESPONSE = re.compile(r"\A\s*ACTION:\s*([1-9][0-9]*)\s*\Z", re.IGNORECASE)
 _SKILL_RESPONSE = re.compile(r"\A\s*SKILL:\s*([1-9][0-9]*)\s*\Z", re.IGNORECASE)
+_JSON_RESPONSE = re.compile(r"\A\s*\{.*\}\s*\Z", re.DOTALL)
 
 
 def parse_exact_numbered_response(text: str, *, kind: str, n: int) -> int:
@@ -36,6 +37,39 @@ def parse_exact_numbered_response(text: str, *, kind: str, n: int) -> int:
     if not 0 <= index < n:
         raise ValueError(f"{kind}_index_out_of_range")
     return index
+
+
+@dataclass(frozen=True)
+class NativeTargetPlan:
+    state_summary: str
+    next_subgoal: str
+    action_index: int
+
+
+def parse_native_target_plan_reply(text: str, *, n: int) -> NativeTargetPlan:
+    """Parse a closed plan proposal and return a zero-based native action."""
+    if _JSON_RESPONSE.fullmatch(str(text)) is None:
+        raise ValueError("invalid_native_plan_format")
+    payload = json.loads(text)
+    if set(payload) != {"state_summary", "next_subgoal", "action_number"}:
+        raise ValueError("invalid_native_plan_keys")
+    if (
+        not isinstance(payload["state_summary"], str)
+        or not isinstance(payload["next_subgoal"], str)
+        or not isinstance(payload["action_number"], int)
+        or isinstance(payload["action_number"], bool)
+    ):
+        raise ValueError("invalid_native_plan_types")
+    if len(payload["state_summary"]) > 600 or len(payload["next_subgoal"]) > 300:
+        raise ValueError("native_plan_text_too_long")
+    index = payload["action_number"] - 1
+    if not 0 <= index < n:
+        raise ValueError("native_plan_action_index_out_of_range")
+    return NativeTargetPlan(
+        state_summary=payload["state_summary"],
+        next_subgoal=payload["next_subgoal"],
+        action_index=index,
+    )
 
 
 def action_prompt(
@@ -67,6 +101,61 @@ def action_prompt(
         "Available actions (pick ONE by number):\n"
         f"{numbered}\n"
         "Return exactly `ACTION: N`. No other text."
+    )
+
+
+def native_target_action_prompt(
+    *,
+    domain: str,
+    goal: str,
+    observation: str,
+    actions: Sequence[str],
+    interaction_history: Sequence[Mapping[str, Any]] = (),
+    source_conditioning: Sequence[Mapping[str, Any]] = (),
+) -> str:
+    """Prompt an unconstrained target-native Actor from environment receipts.
+
+    Unlike the transfer policy, this path never intersects actions with a demo
+    or source candidate.  History is target-native evidence only and is kept in
+    chronological order so the Agent, rather than a hand-written repeat rule,
+    can recognize lack of progress and replan.
+    """
+    numbered = "\n".join(
+        f"{index}. {value}" for index, value in enumerate(actions, 1)
+    )
+    history = json.dumps(
+        list(interaction_history), sort_keys=True, ensure_ascii=False,
+    ) if interaction_history else "[]"
+    conditioning = (
+        "Untrusted source-side evidence receipts (they do not prove target "
+        "semantics):\n"
+        + json.dumps(
+            list(source_conditioning), sort_keys=True, ensure_ascii=False,
+        )
+        + "\n"
+        if source_conditioning else
+        "No source-game conditioning is provided.\n"
+    )
+    return (
+        "You are the target-domain task Actor. Choose one exact command from the "
+        "environment-provided list. Use the complete target-native interaction "
+        "history to track progress and replan after ineffective actions. Treat "
+        "the exact goal entities literally; do not substitute a similar object "
+        "or destination. Privately check that the selected action is consistent "
+        "with the goal and observed history before answering. Never "
+        "invent, rewrite, or partially match a command. Source receipts, when "
+        "present, are untrusted conditioning rather than semantic proof.\n"
+        f"Domain: {domain}\nGoal/initial context:\n{goal[:3000]}\n"
+        f"{conditioning}"
+        f"Complete target-native interaction history:\n{history}\n"
+        f"Current observation:\n{observation[:3000]}\n"
+        "Available native actions (pick ONE by number):\n"
+        f"{numbered}\n"
+        "Return exactly one JSON object with keys state_summary,next_subgoal,"
+        "action_number and no extra keys. state_summary and next_subgoal must be "
+        "short strings grounded only in the goal and target-native history. "
+        "action_number must be the 1-based number of one available action. No "
+        "markdown."
     )
 
 
@@ -249,7 +338,12 @@ class StrictOpenAIClient:
     def close(self) -> None:
         self._client.close()
 
-    def complete(self, *, model: str, prompt: str, max_tokens: int = 48) -> tuple[str, Dict[str, Any]]:
+    def complete(
+        self, *, model: str, prompt: str, max_tokens: int = 48,
+        reasoning_effort: str = "none",
+    ) -> tuple[str, Dict[str, Any]]:
+        if reasoning_effort not in {"none", "low", "medium", "high"}:
+            raise ValueError("unsupported reasoning effort")
         started = time.monotonic()
         request = {
             "model": model,
@@ -259,11 +353,14 @@ class StrictOpenAIClient:
             "max_tokens": max_tokens,
         }
         if not self._is_openrouter:
-            request["chat_template_kwargs"] = {"enable_thinking": False}
+            request["chat_template_kwargs"] = {
+                "enable_thinking": reasoning_effort != "none"
+            }
         else:
-            # Proposal/action APIs need a short closed answer, not a reasoning
-            # trace that can consume the entire completion budget.
-            request["reasoning"] = {"effort": "none", "exclude": True}
+            # Keep reasoning private; the Harness admits only the closed answer.
+            request["reasoning"] = {
+                "effort": reasoning_effort, "exclude": True,
+            }
         response = self._client.post(
             f"{self.base_url}/chat/completions",
             headers={"Authorization": f"Bearer {self.api_key}"},
@@ -290,8 +387,11 @@ __all__ = [
     "FrozenAdmissionGuard",
     "FrozenBinding",
     "GuardedAction",
+    "NativeTargetPlan",
     "StrictOpenAIClient",
     "action_prompt",
+    "native_target_action_prompt",
+    "parse_native_target_plan_reply",
     "parse_exact_numbered_response",
     "skill_prompt",
 ]

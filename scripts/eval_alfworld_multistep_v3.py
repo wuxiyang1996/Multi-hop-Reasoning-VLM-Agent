@@ -23,8 +23,8 @@ from harness.candidate_set_runtime import (  # noqa: E402
 )
 from harness.frozen_transfer_policy import (  # noqa: E402
     StrictOpenAIClient,
-    action_prompt,
-    parse_exact_numbered_response,
+    native_target_action_prompt,
+    parse_native_target_plan_reply,
 )
 from harness.multistep_binding import multistep_artifact_from_dict  # noqa: E402
 from harness.online_rebinding import (  # noqa: E402
@@ -73,6 +73,12 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=43)
     parser.add_argument("--episodes", type=int, default=1)
     parser.add_argument("--max-steps", type=int, default=8)
+    parser.add_argument(
+        "--native-reasoning-effort",
+        choices=("none", "low", "medium", "high"), default="none",
+        help="Private reasoning budget for the exact-action native Actor.",
+    )
+    parser.add_argument("--native-action-max-tokens", type=int, default=512)
     parser.add_argument(
         "--online-source-control", action="store_true",
         help="Enable episode-local source verification and live target-only fallback.",
@@ -175,7 +181,9 @@ def main() -> int:
         for episode_index in range(args.episodes):
             started = time.monotonic()
             observation, info = env.reset()
-            goal = _clean(observation)
+            goal = str(
+                (info.get("structured_state") or {}).get("task_goal") or ""
+            ).strip() or _clean(observation)
             initial_actions = [str(item) for item in info.get("action_names") or ()]
             target_instance_identity = {
                 "split": args.split,
@@ -209,6 +217,7 @@ def main() -> int:
                 "target_instance_identity": target_instance_identity,
             })
             actions = []
+            interaction_history = []
             traces = []
             error = None
             abstain_reason = None
@@ -216,6 +225,20 @@ def main() -> int:
             success = _won(info)
             max_native_step_reward = 0.0
             cumulative_native_reward = 0.0
+            native_target_only_active = args.condition == "target_only"
+            native_target_only_started_step = 0 if native_target_only_active else None
+
+            def remember_native_transition(
+                *, command, after_observation, reward, official_success,
+            ):
+                interaction_history.append({
+                    "step": len(actions) - 1,
+                    "action": str(command),
+                    "observation_after": _clean(after_observation)[:3000],
+                    "native_reward": float(reward),
+                    "official_success": bool(official_success),
+                })
+
             while not (success or terminated or truncated) and len(actions) < args.max_steps:
                 if online is not None and online.state == OnlineTransferState.REBIND_REQUIRED:
                     admissible = [str(item) for item in info.get("action_names") or ()]
@@ -372,23 +395,28 @@ def main() -> int:
                         "binding_receipt_sha256": qualified_rebind.receipt_sha256,
                         "common_actions": list(qualified_rebind.common_actions),
                     })
-                    action_prompt_text = action_prompt(
+                    action_prompt_text = native_target_action_prompt(
                         domain="alfworld", goal=goal, observation=_clean(observation),
                         actions=qualified_rebind.common_actions,
-                        recent_actions=actions,
+                        interaction_history=interaction_history,
                         source_conditioning=active_contexts,
                     )
                     action_reply, action_usage, action_error = "", {}, None
                     rebound_command = None
+                    rebound_plan = None
                     try:
                         action_reply, action_usage = client.complete(
-                            model=args.model, prompt=action_prompt_text, max_tokens=48,
+                            model=args.model, prompt=action_prompt_text,
+                            max_tokens=args.native_action_max_tokens,
+                            reasoning_effort=args.native_reasoning_effort,
                         )
-                        selected = parse_exact_numbered_response(
-                            action_reply, kind="action",
+                        rebound_plan = parse_native_target_plan_reply(
+                            action_reply,
                             n=len(qualified_rebind.common_actions),
                         )
-                        rebound_command = qualified_rebind.common_actions[selected]
+                        rebound_command = qualified_rebind.common_actions[
+                            rebound_plan.action_index
+                        ]
                     except Exception as exc:
                         action_error = f"{type(exc).__name__}:{exc}"
                         if type(exc).__module__.startswith("httpx"):
@@ -407,6 +435,14 @@ def main() -> int:
                         "command": rebound_command,
                         "parse_error": action_error,
                         "n_source_conditioning": len(active_contexts),
+                        "planner_state_summary": (
+                            rebound_plan.state_summary
+                            if rebound_plan is not None else None
+                        ),
+                        "planner_next_subgoal": (
+                            rebound_plan.next_subgoal
+                            if rebound_plan is not None else None
+                        ),
                     })
                     if rebound_command is None:
                         event = online.fallback_to_target_only(
@@ -426,6 +462,12 @@ def main() -> int:
                     max_native_step_reward = max(max_native_step_reward, float(reward))
                     cumulative_native_reward += float(reward)
                     success = _won(info)
+                    remember_native_transition(
+                        command=rebound_command,
+                        after_observation=observation,
+                        reward=reward,
+                        official_success=success,
+                    )
                     after_actions = [str(item) for item in info.get("action_names") or ()]
                     native_receipt = NativeTransitionEvidence.build(
                         step=len(actions) - 1,
@@ -497,35 +539,53 @@ def main() -> int:
                     })
                     continue
 
-                if online is not None and online.state == OnlineTransferState.TARGET_ONLY:
+                if (
+                    native_target_only_active
+                    or (
+                        online is not None
+                        and online.state == OnlineTransferState.TARGET_ONLY
+                    )
+                ):
+                    if not native_target_only_active:
+                        native_target_only_active = True
+                        native_target_only_started_step = len(actions)
                     admissible = [str(item) for item in info.get("action_names") or ()]
+                    phase = (
+                        "native_target_only_from_reset"
+                        if native_target_only_started_step == 0
+                        else "live_target_only_fallback"
+                    )
                     recorder.append(ReasoningEventKind.OBSERVATION, {
                         "step": len(actions),
                         "observation_sha256": _hash(_clean(observation)),
                         "native_actions_sha256": _hash(admissible),
-                        "phase": "live_target_only_fallback",
+                        "phase": phase,
                     })
-                    prompt = action_prompt(
+                    prompt = native_target_action_prompt(
                         domain="alfworld", goal=goal, observation=_clean(observation),
-                        actions=admissible, recent_actions=actions, source_conditioning=(),
+                        actions=admissible,
+                        interaction_history=interaction_history,
                     )
                     reply, usage, live_error = "", {}, None
                     command = None
+                    native_plan = None
                     try:
                         reply, usage = client.complete(
-                            model=args.model, prompt=prompt, max_tokens=48,
+                            model=args.model, prompt=prompt,
+                            max_tokens=args.native_action_max_tokens,
+                            reasoning_effort=args.native_reasoning_effort,
                         )
-                        selected = parse_exact_numbered_response(
-                            reply, kind="action", n=len(admissible),
+                        native_plan = parse_native_target_plan_reply(
+                            reply, n=len(admissible),
                         )
-                        command = admissible[selected]
+                        command = admissible[native_plan.action_index]
                     except Exception as exc:
                         live_error = f"{type(exc).__name__}:{exc}"
                         if type(exc).__module__.startswith("httpx"):
                             error = "LIVE_TARGET_ONLY_ENDPOINT_ERROR"
                     trace = {
                         "step": len(actions),
-                        "treatment": "live_target_only_fallback",
+                        "treatment": phase,
                         "status": "EXECUTE" if command is not None else "ABSTAIN",
                         "reason": live_error,
                         "command": command,
@@ -534,11 +594,19 @@ def main() -> int:
                             "usage": dict(usage), "allowed_actions": list(admissible),
                             "command": command, "parse_error": live_error,
                             "n_source_conditioning": 0,
+                            "planner_state_summary": (
+                                native_plan.state_summary
+                                if native_plan is not None else None
+                            ),
+                            "planner_next_subgoal": (
+                                native_plan.next_subgoal
+                                if native_plan is not None else None
+                            ),
                         }],
                     }
                     traces.append(trace)
                     recorder.append(ReasoningEventKind.AGENT_DECISION, {
-                        "step": len(actions), "phase": "live_target_only_fallback",
+                        "step": len(actions), "phase": phase,
                         "status": trace["status"], "command": command,
                     })
                     if command is None:
@@ -550,10 +618,16 @@ def main() -> int:
                     max_native_step_reward = max(max_native_step_reward, float(reward))
                     cumulative_native_reward += float(reward)
                     success = _won(info)
+                    remember_native_transition(
+                        command=command,
+                        after_observation=observation,
+                        reward=reward,
+                        official_success=success,
+                    )
                     recorder.append(ReasoningEventKind.ENVIRONMENT_STEP, {
                         "step": len(actions) - 1, "command": command,
                         "reward": float(reward), "terminated": terminated,
-                        "truncated": truncated, "phase": "live_target_only_fallback",
+                        "truncated": truncated, "phase": phase,
                     })
                     recorder.append(ReasoningEventKind.NATIVE_DELTA, {
                         "step": len(actions) - 1,
@@ -601,14 +675,16 @@ def main() -> int:
                             "reason": "NO_OPERATOR_MATCHING_NATIVE_ACTION",
                         })
                         return proposal
-                    prompt = action_prompt(
+                    prompt = native_target_action_prompt(
                         domain="alfworld", goal=goal, observation=_clean(observation),
-                        actions=allowed, recent_actions=actions,
+                        actions=allowed, interaction_history=interaction_history,
                         source_conditioning=source_conditioning,
                     )
                     try:
                         reply, usage = client.complete(
-                            model=args.model, prompt=prompt, max_tokens=48,
+                            model=args.model, prompt=prompt,
+                            max_tokens=args.native_action_max_tokens,
+                            reasoning_effort=args.native_reasoning_effort,
                         )
                     except Exception as exc:
                         proposal = CandidateActionProposal(
@@ -621,13 +697,14 @@ def main() -> int:
                         })
                         return proposal
                     try:
-                        selected = parse_exact_numbered_response(reply, kind="action", n=len(allowed))
-                        command = allowed[selected]
+                        plan = parse_native_target_plan_reply(reply, n=len(allowed))
+                        command = allowed[plan.action_index]
                         proposal = CandidateActionProposal(scope_hash, command)
                         parse_error = None
                     except ValueError as exc:
                         proposal = CandidateActionProposal(scope_hash, None, abstain=True)
                         command = None
+                        plan = None
                         parse_error = f"{type(exc).__name__}:{exc}"
                     actor_rows.append({
                         "candidate_hashes": candidate_hashes,
@@ -636,6 +713,12 @@ def main() -> int:
                         "command": command, "parse_error": parse_error,
                         "source_conditioning_sha256": _hash(source_conditioning),
                         "n_source_conditioning": len(source_conditioning),
+                        "planner_state_summary": (
+                            plan.state_summary if plan is not None else None
+                        ),
+                        "planner_next_subgoal": (
+                            plan.next_subgoal if plan is not None else None
+                        ),
                     })
                     return proposal
 
@@ -678,6 +761,14 @@ def main() -> int:
                         })
                         trace["online_rebind_requested"] = (
                             online.state == OnlineTransferState.REBIND_REQUIRED
+                        )
+                        continue
+                    if using_source:
+                        native_target_only_active = True
+                        native_target_only_started_step = len(actions)
+                        trace["native_target_only_requested"] = True
+                        trace["fallback_reason"] = (
+                            decision.reason or "CONSENSUS_ABSTENTION"
                         )
                         continue
                     abstain_reason = decision.reason or "CONSENSUS_ABSTENTION"
@@ -738,6 +829,12 @@ def main() -> int:
                 max_native_step_reward = max(max_native_step_reward, float(reward))
                 cumulative_native_reward += float(reward)
                 success = _won(info)
+                remember_native_transition(
+                    command=decision.command,
+                    after_observation=observation,
+                    reward=reward,
+                    official_success=success,
+                )
                 recorder.append(ReasoningEventKind.ENVIRONMENT_STEP, {
                     "step": len(actions) - 1, "command": decision.command,
                     "reward": float(reward), "terminated": terminated, "truncated": truncated,
@@ -824,9 +921,12 @@ def main() -> int:
                 "traces": traces, "reasoning_event_log": recorder.to_dict(),
                 "online_transfer_log": online.to_dict() if online is not None else None,
                 "fallback_mode": (
-                    "LIVE_TARGET_ONLY_FROM_CURRENT_STATE"
-                    if online is not None else None
+                    "NATIVE_TARGET_ONLY_FROM_RESET"
+                    if args.condition == "target_only"
+                    else "LIVE_TARGET_ONLY_FROM_CURRENT_STATE"
+                    if native_target_only_started_step is not None else None
                 ),
+                "native_target_only_started_step": native_target_only_started_step,
                 "wall_time_s": time.monotonic() - started,
             })
     finally:
@@ -842,6 +942,10 @@ def main() -> int:
             artifact.source_control_receipt_sha256
         ),
         "model": args.model, "target_gradient_updates": 0,
+        "target_only_policy": (
+            "native_actor_from_reset_with_full_target_history_and_closed_plan"
+        ),
+        "native_reasoning_effort": args.native_reasoning_effort,
         "online_source_control": args.online_source_control,
         "shadow_source_control": args.shadow_source_control,
         "source_control_mode": (
@@ -855,7 +959,9 @@ def main() -> int:
         "max_steps": args.max_steps,
         "config_sha256": _hash(args.config.read_text(encoding="utf-8")),
         "registered_call_caps": {
-            "action_max_completion_tokens": 48,
+            "action_max_completion_tokens": args.native_action_max_tokens,
+            "native_action_max_completion_tokens": args.native_action_max_tokens,
+            "native_reasoning_effort": args.native_reasoning_effort,
             "action_contract_max_completion_tokens": 0,
             "action_contract_compiler": (
                 "exact_one_shot_transition_receipt_signature_v1"

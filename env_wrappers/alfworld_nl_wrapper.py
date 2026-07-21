@@ -8,6 +8,7 @@ Only text-mode ``AlfredTWEnv`` is required for the active transfer study.
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -19,6 +20,10 @@ ALFWORLD_SPLITS = (
     "train",
     "eval_in_distribution",
     "eval_out_of_distribution",
+)
+
+_TASK_GOAL = re.compile(
+    r"(?:\A|\n)\s*Your task is to:\s*(?P<goal>[^\n]+)", re.IGNORECASE,
 )
 
 
@@ -36,6 +41,12 @@ def _commands_from_info(info: Dict[str, Any]) -> List[str]:
     if commands and isinstance(commands[0], (list, tuple)):
         commands = commands[0]
     return [str(command) for command in commands]
+
+
+def extract_alfworld_task_goal(observation: Any) -> str:
+    """Read ALFWorld's official task line without inferring task semantics."""
+    match = _TASK_GOAL.search(str(_first(observation) or ""))
+    return match.group("goal").strip() if match is not None else ""
 
 
 def alfworld_obs_to_natural_language(
@@ -65,6 +76,7 @@ class ALFWorldNLWrapper:
     _step_count: int = 0
     _last_info: Dict[str, Any] = field(default_factory=dict)
     _last_observation: str = ""
+    _task_goal: str = ""
 
     @property
     def action_names(self) -> List[str]:
@@ -89,6 +101,7 @@ class ALFWorldNLWrapper:
         del seed, options
         self._step_count = 0
         obs, info = self.env.reset()
+        self._task_goal = extract_alfworld_task_goal(obs)
         self._last_info = dict(info or {})
         text = alfworld_obs_to_natural_language(
             obs,
@@ -150,6 +163,7 @@ class ALFWorldNLWrapper:
             action_names=commands,
             structured_state={
                 "observation": observation,
+                "task_goal": self._task_goal,
                 "admissible_commands": commands,
                 "won": bool(won),
                 "last_action": result.get("last_action"),
@@ -232,5 +246,6 @@ __all__ = [
     "ALFWORLD_SPLITS",
     "ALFWorldNLWrapper",
     "alfworld_obs_to_natural_language",
+    "extract_alfworld_task_goal",
     "make_alfworld_env",
 ]

@@ -577,3 +577,46 @@ development smoke，汇总位于
 价值。未来若重复 target evidence 显示同一 binding 的 observable effect 不稳定，应保留多个可行
 contract 或请求更多 adaptation examples，而不是手工挑选 predicate。该问题与多样本 evidence
 aggregation/decompose-recompose 一起，仍是扩大实验前的研究项。
+
+### 8.3 Native target Actor 校准与 matched negative-transfer diagnostic
+
+旧 `empty-off` 不是充分的 target-only baseline：它仍沿 same-demo candidate consensus 执行，
+3 步后没有共同动作便 abstain。当前 evaluator 对 `condition=target_only` 从 reset 起直接调用
+native Actor，不读取 source conditioning，也不把 admissible actions 与 demo/source program
+求交；source program 结束或被禁用后也从当前 live state 进入同一 native Actor，而不是提前结束。
+
+为了避免引入反重复、搜索顺序或对象映射 heuristic，Actor 只增加两类环境/Agent 原生信息：
+
+1. wrapper 机械提取 ALFWorld 明确给出的 `Your task is to:` 行，不解析对象语义；
+2. 每步向 Agent 提供完整 target-native action/observation/reward/outcome history。Agent 返回严格
+   `{state_summary,next_subgoal,action_number}`；前两项是不受信任的计划摘要，Harness 只接纳仍在
+   当前 native list 内的精确 action number，随后由真实 environment transition 验证。
+
+曾尝试使用 Qwen 35B 的 OpenRouter hidden reasoning。256、1024 和 1280 completion caps 均被
+reasoning tokens 吃满而没有 final content，Harness 因格式缺失正确 abstain。当前默认使用
+non-thinking closed-plan proposal（512-token cap）；这比继续扩大 hidden token budget 更可审计，
+也保留 Agent 规划而非手写 policy。
+
+同一 train seed 47 的 10-episode、30-step native calibration 位于
+`runs/alfworld_native_calibration_20260721/target_only_seed47_ep10_s30_closed_plan.json`：
+
+- official success `7/10`，0 errors，0 abstentions；
+- 成功 episode 的平均步数 `10.43`，全部 episode 平均 `16.3`；
+- 163 Actor calls，200,459 total tokens，OpenRouter reported cost `$0.04139`；
+- 三个失败 episode 到达 30-step cap，其中仍可见 location/examine 循环。因此这里只证明
+  target Actor viability，不是 held-out baseline result。
+
+随后统一 empty、designated-shadow 和 designated-enforce 的 closed-plan schema、完整 history、
+512-token cap，并对同一 episode 做单对 diagnostic：
+
+| condition | official success | steps | reported cost | 观察 |
+|---|---:|---:|---:|---|
+| native target-only | 1/1 | 8 | `$0.00185` | 直接完成 butterknife→drawer |
+| designated shadow | 1/1 | 19 | `$0.01213` | source 先引导操作 spatula，之后恢复 |
+| designated enforce | 1/1 | 11 | `$0.00710` | 3 步后回退，减少但未消除伤害 |
+
+这是可观测的单对负迁移：Harness-on 相比 shadow 减少 8 步，但仍比 target-only 多 3 步。
+不能把三者都成功写成 positive transfer，也不能用这一对估计 effect size。下一 source gate 是
+实现多 adaptation examples 的 receipt version space：保留所有仍与证据一致的 binding/effect
+候选，只有全部候选都不兼容才 refute，否则继续或请求额外 example。在完成该机制和小型
+E/S/W/R paired pilot 前，`authorizes_large_scale_2x4=false`。

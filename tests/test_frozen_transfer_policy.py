@@ -4,7 +4,9 @@ import pytest
 
 from harness.frozen_transfer_policy import (
     action_prompt,
+    native_target_action_prompt,
     parse_exact_numbered_response,
+    parse_native_target_plan_reply,
 )
 from scripts.eval_principled_alfworld import _choose_action
 from scripts.eval_principled_alfworld import _official_won
@@ -43,6 +45,68 @@ def test_prompt_preserves_exact_action_strings() -> None:
     assert "1. look" in prompt
     assert "2. take mug 1 from table 1" in prompt
     assert "Return exactly `ACTION: N`" in prompt
+
+
+def test_native_target_prompt_uses_all_target_history_without_source() -> None:
+    history = [
+        {
+            "step": 0,
+            "action": "go to drawer 1",
+            "observation_after": "You arrive at drawer 1.",
+            "native_reward": 0.0,
+            "official_success": False,
+        },
+        {
+            "step": 1,
+            "action": "open drawer 1",
+            "observation_after": "Drawer 1 is open and contains a mug.",
+            "native_reward": 0.0,
+            "official_success": False,
+        },
+    ]
+    prompt = native_target_action_prompt(
+        domain="alfworld",
+        goal="put the mug in the cabinet",
+        observation="Drawer 1 is open and contains a mug.",
+        actions=["look", "take mug 1 from drawer 1"],
+        interaction_history=history,
+    )
+    assert prompt.index("go to drawer 1") < prompt.index("open drawer 1")
+    assert "Drawer 1 is open and contains a mug." in prompt
+    assert "1. look" in prompt
+    assert "2. take mug 1 from drawer 1" in prompt
+    assert "No source-game conditioning is provided." in prompt
+    assert "state_summary,next_subgoal,action_number" in prompt
+
+    conditioned = native_target_action_prompt(
+        domain="alfworld", goal="put the mug away", observation="at table",
+        actions=["look"], interaction_history=history,
+        source_conditioning=[{"receipt_sha256": "abc", "node_id": "N0"}],
+    )
+    assert "Untrusted source-side evidence receipts" in conditioned
+    assert '"receipt_sha256": "abc"' in conditioned
+
+
+def test_native_target_plan_is_closed_and_action_is_in_range() -> None:
+    plan = parse_native_target_plan_reply(
+        '{"state_summary":"drawer checked","next_subgoal":"search next location",'
+        '"action_number":2}',
+        n=3,
+    )
+    assert plan.action_index == 1
+    assert plan.next_subgoal == "search next location"
+
+    with pytest.raises(ValueError, match="keys"):
+        parse_native_target_plan_reply(
+            '{"state_summary":"x","next_subgoal":"y","action_number":1,'
+            '"confidence":0.9}',
+            n=3,
+        )
+    with pytest.raises(ValueError, match="out_of_range"):
+        parse_native_target_plan_reply(
+            '{"state_summary":"x","next_subgoal":"y","action_number":4}',
+            n=3,
+        )
 
 
 class _BrokenClient:
