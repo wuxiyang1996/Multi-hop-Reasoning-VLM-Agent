@@ -36,6 +36,7 @@ from harness.online_rebinding import (
     OnlineRebindProposal,
     OnlineRebindingAdmission,
     build_action_contract_scope,
+    compile_receipt_grounded_action_contract,
     build_rebind_scope,
     parse_online_rebind_reply,
     qualify_action_evidence_contract,
@@ -391,10 +392,19 @@ def test_replay_to_fork_requires_exact_fork_state_before_intervention() -> None:
 def test_multistep_admission_retains_set_and_runtime_uses_common_action_set() -> None:
     artifact = _admit([_binding("a"), _binding("b")])
     assert len(artifact.candidates) == 2
+    assert len(artifact.demo_transition_contract_receipts) == 2
+    assert artifact.demo_transition_contract_receipts[0].supported_evidence == (
+        "COMMAND_WAS_ADMISSIBLE",
+        "OBSERVATION_CHANGED",
+        "ADMISSIBLE_SET_CHANGED",
+        "EXECUTED_ACTION_DISAPPEARED",
+    )
     runtime = FrozenCandidateSetRuntime(artifact)
     active = runtime.active_source_conditioning()
     assert len(active) == 2
     assert {item["node_id"] for item in active} == {"n0"}
+    assert all(item["demo_transition_receipt_sha256"] for item in active)
+    assert all(item["target_transition_index"] == 0 for item in active)
 
     calls = []
 
@@ -529,12 +539,22 @@ def _active_rebind_contexts():
             "candidate_hash": _hash("candidate-a"),
             "source_hypothesis_hash": _hash("hypothesis-a"),
             "node_id": "n1",
+            "target_transition_index": 0,
+            "demo_transition_receipt_sha256": _hash("demo-transition-a"),
+            "demo_supported_evidence": [
+                "COMMAND_WAS_ADMISSIBLE", "OBSERVATION_CHANGED",
+            ],
             "source_conditioning": {"observed_transitions": [{"action": "left"}]},
         },
         {
             "candidate_hash": _hash("candidate-b"),
             "source_hypothesis_hash": _hash("hypothesis-b"),
             "node_id": "n1",
+            "target_transition_index": 0,
+            "demo_transition_receipt_sha256": _hash("demo-transition-b"),
+            "demo_supported_evidence": [
+                "COMMAND_WAS_ADMISSIBLE", "OBSERVATION_CHANGED",
+            ],
             "source_conditioning": {"observed_transitions": [{"action": "up"}]},
         },
     )
@@ -602,6 +622,9 @@ def _online_rebind_proposal(*, action_numbers=(1, 2)):
             candidate_hash=row["candidate_hash"],
             source_hypothesis_hash=row["source_hypothesis_hash"],
             node_id=row["node_id"],
+            demo_transition_receipt_sha256=row[
+                "demo_transition_receipt_sha256"
+            ],
             allowed_action_numbers=action_numbers,
             expected_evidence=(
                 EvidenceQueryKind.COMMAND_WAS_ADMISSIBLE,
@@ -691,7 +714,7 @@ def test_online_rebind_requires_common_action_and_checks_declared_evidence() -> 
     )
     assert not failed.all_satisfied
 
-    partial_proposal = replace(
+    tampered_proposal = replace(
         proposal,
         candidate_bindings=(
             proposal.candidate_bindings[0],
@@ -701,18 +724,14 @@ def test_online_rebind_requires_common_action_and_checks_declared_evidence() -> 
             ),
         ),
     )
-    partial_binding, failures = OnlineRebindingAdmission().admit(
-        proposal=partial_proposal, proposal_source="online-agent",
+    tampered_binding, failures = OnlineRebindingAdmission().admit(
+        proposal=tampered_proposal, proposal_source="online-agent",
         proposal_receipt_sha256=_hash("partial"), artifact_hash=_hash("artifact"),
         demo_hash=_hash("demo"), step=3, observation_sha256=_hash("observation"),
         admissible_actions=actions, active_contexts=contexts,
     )
-    assert partial_binding is not None and not failures
-    partial = verify_rebind_evidence(
-        binding=partial_binding, transition=_native_evidence(step=3, changed=True),
-    )
-    assert partial.any_satisfied and not partial.all_satisfied
-    assert [row.all_satisfied for row in partial.candidate_results] == [True, False]
+    assert tampered_binding is None
+    assert "CANDIDATE_IDENTITY_EXACT" in failures
 
 
 def test_every_source_action_can_freeze_and_verify_a_preaction_contract() -> None:
@@ -729,12 +748,14 @@ def test_every_source_action_can_freeze_and_verify_a_preaction_contract() -> Non
             candidate_hash=row["candidate_hash"],
             source_hypothesis_hash=row["source_hypothesis_hash"],
             node_id=row["node_id"],
-            expected_evidence=((
-                EvidenceQueryKind.OBSERVATION_CHANGED,
-            ) if index == 0 else (
-                EvidenceQueryKind.POSITIVE_NATIVE_REWARD,
-            )),
-        ) for index, row in enumerate(contexts)),
+            demo_transition_receipt_sha256=row[
+                "demo_transition_receipt_sha256"
+            ],
+            expected_evidence=tuple(
+                EvidenceQueryKind(item)
+                for item in row["demo_supported_evidence"]
+            ),
+        ) for row in contexts),
         abstain=False,
     )
     contract = qualify_action_evidence_contract(
@@ -743,11 +764,37 @@ def test_every_source_action_can_freeze_and_verify_a_preaction_contract() -> Non
     verification = verify_action_evidence_contract(
         contract=contract, transition=_native_evidence(step=0, changed=True),
     )
-    assert verification.any_satisfied
-    assert not verification.all_satisfied
-    assert [row.all_satisfied for row in verification.candidate_results] == [True, False]
+    assert verification.any_satisfied and verification.all_satisfied
+    assert [row.all_satisfied for row in verification.candidate_results] == [True, True]
     contract.validate_hash()
     verification.validate_hash()
+
+    compiled = compile_receipt_grounded_action_contract(scope=scope)
+    assert compiled.proposal == proposal
+    assert compiled.proposal_receipt_sha256 != _hash("proposal")
+    compiled.validate_hash()
+
+    ungrounded_scope = dict(scope)
+    ungrounded_identities = [dict(row) for row in scope["active_candidate_identities"]]
+    ungrounded_identities[0]["demo_transition_receipt_sha256"] = ""
+    ungrounded_scope["active_candidate_identities"] = ungrounded_identities
+    with pytest.raises(ValueError, match="GROUNDING_INCOMPLETE"):
+        compile_receipt_grounded_action_contract(scope=ungrounded_scope)
+
+    tampered = replace(
+        proposal,
+        candidate_contracts=(
+            proposal.candidate_contracts[0],
+            replace(
+                proposal.candidate_contracts[1],
+                expected_evidence=(EvidenceQueryKind.POSITIVE_NATIVE_REWARD,),
+            ),
+        ),
+    )
+    with pytest.raises(ValueError, match="IDENTITIES_NOT_EXACT"):
+        qualify_action_evidence_contract(
+            proposal=tampered, proposal_receipt_sha256=_hash("tampered"), scope=scope,
+        )
 
 
 def test_candidate_cursor_advances_only_after_contract_and_refutation_is_retained() -> None:

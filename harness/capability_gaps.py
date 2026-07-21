@@ -344,11 +344,16 @@ def build_v3_implementation_report() -> Dict[str, Any]:
                 "per_candidate_preaction_evidence_contract": True,
                 "per_candidate_transition_verdict": True,
                 "partial_survivor_advancement": True,
-                "agent_contract_must_cite_demo_transition_receipt": False,
-                "uncited_contract_failure_is_inconclusive_not_refutation": False,
+                "agent_selects_action_contract_predicates": False,
+                "harness_compiles_contract_from_demo_transition_receipt": True,
+                "uncited_contract_failure_is_inconclusive_not_refutation": True,
                 "receipt_backed_candidate_refutation": True,
                 "compute_matched_shadow_contract_mode": True,
-                "development_per_candidate_contract_cap_tokens": 768,
+                "development_action_contract_agent_calls": 0,
+                "action_contract_compiler": (
+                    "exact_one_shot_transition_receipt_signature_v1"
+                ),
+                "development_receipt_contract_compilations": 21,
                 "development_prebinding_factorial_pairs": 1,
                 "development_prebinding_factorial_successes": 0,
                 "development_source_candidates_fail_closed_to_target_only": True,
@@ -360,9 +365,10 @@ def build_v3_implementation_report() -> Dict[str, Any]:
                 "Per-candidate contracts and live fallback were exercised in a one-pair "
                 "development factorial. A satisfied native evidence contract is not semantic "
                 "equivalence or task value; decomposition remains unimplemented and there is "
-                "no held-out transfer result. Agent-proposed expected evidence is not yet "
-                "grounded to a cited one-shot transition receipt, so the current refutation "
-                "path can be overly conservative."
+                "no held-out transfer result. Contracts are grounded to exact one-shot "
+                "transition receipts, but a single observed delta does not establish a "
+                "semantic necessity; the current local compatibility test can therefore "
+                "still be overly conservative."
             ),
         ),
         _record(

@@ -11,15 +11,17 @@ from statistics import mean
 
 def _metrics(payload):
     usages = []
-    calls = {"action": 0, "contract": 0, "rebind": 0}
+    calls = {"action": 0, "contract_agent": 0, "contract_compile": 0, "rebind": 0}
     for row in payload["rows"]:
         for trace in row["traces"]:
             for actor in trace.get("actor_rows") or ():
                 calls["action"] += 1
                 usages.append(actor.get("usage") or {})
             if trace.get("contract_agent"):
-                calls["contract"] += 1
+                calls["contract_agent"] += 1
                 usages.append(trace["contract_agent"].get("usage") or {})
+            if trace.get("contract_compiler"):
+                calls["contract_compile"] += 1
             if trace.get("rebind_agent"):
                 calls["rebind"] += 1
                 usages.append(trace["rebind_agent"].get("usage") or {})

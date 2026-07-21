@@ -118,6 +118,10 @@ def main() -> int:
             "native_action_sets"
         ),
         "target_gradient_updates": 0,
+        "demo_transition_contract_receipts": len(
+            artifact.demo_transition_contract_receipts
+        ),
+        "contract_grounding": "exact_one_shot_transition_receipt_signature",
         "semantic_alignment_claimed": False,
         "source_treatment": source_treatment,
         "source_control_receipt_sha256": source_control_hash,

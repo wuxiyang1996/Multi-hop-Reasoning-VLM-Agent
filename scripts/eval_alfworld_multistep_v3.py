@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import runpy
 import sys
 import time
 from pathlib import Path
@@ -28,13 +29,11 @@ from harness.frozen_transfer_policy import (  # noqa: E402
 from harness.multistep_binding import multistep_artifact_from_dict  # noqa: E402
 from harness.online_rebinding import (  # noqa: E402
     OnlineRebindingAdmission,
-    action_evidence_contract_prompt,
     build_action_contract_scope,
     build_rebind_scope,
+    compile_receipt_grounded_action_contract,
     online_rebind_prompt,
-    parse_action_evidence_contract_reply,
     parse_online_rebind_reply,
-    qualify_action_evidence_contract,
     verify_action_evidence_contract,
     verify_rebind_evidence,
 )
@@ -127,6 +126,14 @@ def main() -> int:
     contract_control_enabled = (
         args.online_source_control or args.shadow_source_control
     )
+    if (
+        contract_control_enabled
+        and args.condition == "source"
+        and not artifact.demo_transition_contract_receipts
+    ):
+        raise SystemExit(
+            "source contract control requires frozen demo transition receipts"
+        )
     fallback_artifact = None
     if args.online_source_control:
         if args.condition != "source":
@@ -149,6 +156,12 @@ def main() -> int:
             key = str(open_router_api_key or "").strip()
         except Exception:
             key = ""
+    if not key and "openrouter.ai" in args.endpoint.lower():
+        key_file = REPO_ROOT.parent / "keys.py"
+        if key_file.is_file():
+            key = str(
+                runpy.run_path(str(key_file)).get("OPENROUTER_API_KEY") or ""
+            ).strip()
     if "openrouter.ai" in args.endpoint.lower() and not key:
         raise SystemExit("OpenRouter API key unavailable")
 
@@ -326,14 +339,14 @@ def main() -> int:
                         break
                     if qualified_rebind is None:
                         reason = (
-                            "ONLINE_REBIND_AGENT_ABSTAINED"
+                            "ONLINE_REBIND_AGENT_ABSTAINED_INCONCLUSIVE"
                             if proposal is not None and proposal.abstain
-                            else "ONLINE_REBIND_NOT_ADMITTED"
+                            else "ONLINE_REBIND_UNGROUNDED_OR_NOT_ADMITTED_INCONCLUSIVE"
                         )
                         event = online.fallback_to_target_only(
                             step=len(actions), reason=reason,
                         )
-                        trace.update(status="REJECTED", reason=reason)
+                        trace.update(status="INCONCLUSIVE", reason=reason)
                         recorder.append(ReasoningEventKind.ONLINE_TRANSFER_VERDICT, {
                             "event_sha256": event.event_sha256,
                             "verdict": event.verdict.value,
@@ -678,51 +691,33 @@ def main() -> int:
                         admissible_actions=admissible,
                         active_contexts=source_conditioning,
                     )
-                    contract_prompt = action_evidence_contract_prompt(
-                        goal=goal, observation=_clean(observation),
-                        command=decision.command, admissible_actions=admissible,
-                        active_contexts=source_conditioning, scope=contract_scope,
-                    )
-                    contract_reply, contract_usage, contract_error = "", {}, None
+                    contract_error = None
                     try:
-                        contract_reply, contract_usage = client.complete(
-                            model=args.model, prompt=contract_prompt, max_tokens=768,
-                        )
-                        contract_proposal = parse_action_evidence_contract_reply(
-                            contract_reply
-                        )
-                        contract_receipt_sha256 = _hash({
-                            "model": args.model,
-                            "prompt_sha256": _hash(contract_prompt),
-                            "raw_reply": contract_reply,
-                            "usage": dict(contract_usage),
-                        })
-                        action_contract = qualify_action_evidence_contract(
-                            proposal=contract_proposal,
-                            proposal_receipt_sha256=contract_receipt_sha256,
+                        action_contract = compile_receipt_grounded_action_contract(
                             scope=contract_scope,
                         )
                     except Exception as exc:
                         contract_error = f"{type(exc).__name__}:{exc}"
-                        if type(exc).__module__.startswith("httpx"):
-                            error = "ACTION_CONTRACT_ENDPOINT_ERROR"
-                    trace["contract_agent"] = {
-                        "prompt_sha256": _hash(contract_prompt),
-                        "raw_reply": contract_reply,
-                        "usage": dict(contract_usage),
+                    trace["contract_compiler"] = {
+                        "compiler": "exact_one_shot_transition_receipt_signature_v1",
+                        "scope_sha256": contract_scope["proposal_scope_hash"],
                         "error": contract_error,
+                        "admission_status": (
+                            "RECEIPT_GROUNDED"
+                            if action_contract is not None else "INCONCLUSIVE"
+                        ),
                         "qualified_contract": (
                             action_contract.to_dict() if action_contract is not None else None
                         ),
                     }
-                    if error is not None:
-                        trace.update(status="ERROR", reason=error)
-                        break
                     if action_contract is None:
                         if online is not None:
                             event = online.observe_source_abstention(
                                 step=len(actions),
-                                reason="MISSING_PREDECLARED_ACTION_EVIDENCE_CONTRACT",
+                                reason=(
+                                    "UNGROUNDED_OR_MISSING_ACTION_CONTRACT_"
+                                    "INCONCLUSIVE"
+                                ),
                             )
                             trace.update(status="ABSTAIN", reason=event.reason, command=None)
                             recorder.append(ReasoningEventKind.ONLINE_TRANSFER_VERDICT, {
@@ -732,7 +727,7 @@ def main() -> int:
                                 "state_after": event.state_after.value,
                             })
                             continue
-                        trace["shadow_contract_missing_fail_open"] = True
+                        trace["shadow_contract_inconclusive_fail_open"] = True
                 before_obs, before_actions = _clean(observation), list(admissible)
                 observation, reward, terminated, truncated, info = env.step(decision.command)
                 actions.append(decision.command)
@@ -861,10 +856,16 @@ def main() -> int:
         "config_sha256": _hash(args.config.read_text(encoding="utf-8")),
         "registered_call_caps": {
             "action_max_completion_tokens": 48,
-            "action_contract_max_completion_tokens": 768,
+            "action_contract_max_completion_tokens": 0,
+            "action_contract_compiler": (
+                "exact_one_shot_transition_receipt_signature_v1"
+            ),
             "online_rebind_max_completion_tokens": 1000,
             "max_rebind_requests": args.max_rebind_requests,
         },
+        "receipt_grounded_action_contracts": bool(
+            artifact.demo_transition_contract_receipts
+        ),
         "source_conditioning_control": args.source_conditioning_control,
         "conditioning_control_seed": (
             args.conditioning_control_seed
@@ -884,6 +885,10 @@ def main() -> int:
             ),
             "total_contract_agent_calls": sum(
                 "contract_agent" in trace for row in rows for trace in row["traces"]
+            ),
+            "total_contract_compilations": sum(
+                "contract_compiler" in trace
+                for row in rows for trace in row["traces"]
             ),
             "n_rebind_admitted": sum(
                 bool(trace.get("rebind_agent", {}).get("qualified_receipt"))

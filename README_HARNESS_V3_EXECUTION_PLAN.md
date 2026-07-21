@@ -441,9 +441,10 @@ coverage，也必须同时报告，不能只报 conditional success。
 本轮实现修复了旧 runtime 中“任意 observation/action-set 变化即可继续”的漏洞。新的
 Harness 规则如下：
 
-1. 每个 source-guided action 在执行前必须由 Agent 为每个活动 candidate 分别提交
-   closed-schema evidence contract；共享一个笼统 contract 或遗漏任一 candidate 都会
-   fail closed，并请求 rebind 或进入 target-only。
+1. 每个 source-guided action 在执行前必须为每个活动 candidate 分别冻结 closed-schema
+   evidence contract。Agent 负责 binding hypothesis、native action selection 和必要时的在线
+   rebind；contract 本身由 Harness 从已冻结的 one-shot transition receipt 确定性编译，Agent
+   无权增加、删除或排序 evidence predicates。
 2. `COMMAND_WAS_ADMISSIBLE` 只表示命令来自执行前的 native admissible list，不再表述为
    环境“接受”动作，也不单独构成 informative evidence。
 3. contract 通过只能记为 `NOT_REFUTED_LOCALLY`，不能写成 skill verified、task progress 或
@@ -487,9 +488,9 @@ rotation。
   source-causal claim。
 
 Harness-off source 条件必须使用 `--shadow-source-control`：它执行相同的 pre-action
-contract Agent call 和机械 verification，但不让 contract verdict 改变 native action、cursor
-或 fallback。Harness-on 使用 `--online-source-control`。两者互斥。这样可以隔离“执行安全
-规则”的作用，而不是把多一次 Agent 调用误认为 Harness 效果；由真实 rebind/fallback 引起
+receipt contract compilation 和机械 verification，但不让 contract verdict 改变 native
+action、cursor 或 fallback。Harness-on 使用 `--online-source-control`。两者互斥。编译过程
+不调用模型，因此不会把额外一次 35B 调用误认为 Harness 效果；由真实 rebind/fallback 引起
 的 realized call 差异仍需单独报告，不能隐藏。
 
 ### 8.1 Fresh six-game evidence 与第一次 E/S/W/R smoke
@@ -537,3 +538,42 @@ signature；没有 citation 或 live 状态超出 citation scope 时只能 `INCO
 不能 `REFUTED`。这仍不引入 `COLLECT→TAKE`、predicate ontology 或手工 source→target
 语义，只限制 untrusted Agent 的否决权。在完成该修复并通过新的小型 paired smoke 前，不得
 运行大规模 2×4。
+
+### 8.2 Receipt-grounded contract 修复与第二次 smoke
+
+上述问题已修复。admission artifact 现在冻结 demo 中每个 target transition 的
+content-addressed receipt，并机械记录该 transition 实际支持的 observable signature：命令是否
+在 native admissible set、observation/action-set 是否变化、动作是否消失、native reward 是否
+为正以及 official success。每个 active candidate/node 必须精确引用其 target transition index、
+receipt hash 和 signature；artifact loader 会重新计算并校验这些字段。
+
+最初的 grounded smoke 仍让 35B 逐项复制 Harness 已知的 receipt/signature。模型内容复制正确，
+但 2/3 次输出被 768-token cap 截断；designated enforce 因而在第 0 步把格式失败记为
+`INCONCLUSIVE` 并回退。这个结果说明复制 call 没有提供新信息，只增加 truncation、幻觉、成本
+和 latency。当前 runtime 已改为
+`exact_one_shot_transition_receipt_signature_v1` 确定性 compiler：
+
+- Agent 仍提出跨域 binding、选择 target-native action，并在无共同动作时提出在线 rebind；
+- Harness 独占 evidence provenance 与 contract compilation；
+- 缺少或篡改 receipt/signature 时为 `INCONCLUSIVE`，不会反驳 candidate；
+- live transition 才能产生 candidate-level `NOT_REFUTED_LOCALLY/REFUTED` receipt；
+- 每步 action-contract Agent calls 从 1 降为 0。
+
+随后用相同 ALFWorld train demo、seed 47、1 episode、8-step cap 重跑完整七条件 matched
+development smoke，汇总位于
+`runs/alfworld_v3_eswr_smoke_20260721/summary_compiled.json`：
+
+- 7/7 target identities 与 registered caps matched，0 errors；
+- 三个 shadow 条件各确定性编译 3 个 contract，三个 enforce 条件各编译 4 个；合计 21 次
+  compilation、0 次 action-contract Agent call；
+- designated enforce 的前三个 source actions 均通过精确 receipt signature；无共同动作后，在线
+  rebind 被 admission 接纳并真实执行 1 步，之后再无共同动作才进入 live target-only；
+- 所有七条件仍为 0/1 success，positive-source ordering=false；enforce 路径因真实
+  rebind/fallback 产生更多 action calls 和 tokens，realized budgets 不 matched；
+- `authorizes_large_scale_2x4=false`，不得把本次机制 smoke 写成 positive transfer。
+
+重要限制：one-shot receipt 只定义一次局部、可证伪的行为兼容性检查。某个 delta 在单次 demo
+中出现，并不能证明它是该 skill 的语义必要条件；通过也不能证明 task progress 或 source skill
+价值。未来若重复 target evidence 显示同一 binding 的 observable effect 不稳定，应保留多个可行
+contract 或请求更多 adaptation examples，而不是手工挑选 predicate。该问题与多样本 evidence
+aggregation/decompose-recompose 一起，仍是扩大实验前的研究项。

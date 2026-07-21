@@ -56,11 +56,32 @@ _INFORMATIVE_QUERIES = {
 }
 
 
+def _context_grounding(
+    row: Mapping[str, Any],
+) -> tuple[str, tuple[EvidenceQueryKind, ...], bool]:
+    receipt = str(row.get("demo_transition_receipt_sha256") or "")
+    try:
+        queries = tuple(
+            EvidenceQueryKind(str(item))
+            for item in row.get("demo_supported_evidence") or ()
+        )
+    except ValueError:
+        return receipt, (), False
+    valid = (
+        _valid_sha256(receipt)
+        and bool(queries)
+        and len(queries) == len(set(queries))
+        and bool(set(queries).intersection(_INFORMATIVE_QUERIES))
+    )
+    return receipt, queries, valid
+
+
 @dataclass(frozen=True)
 class CandidateRebinding:
     candidate_hash: str
     source_hypothesis_hash: str
     node_id: str
+    demo_transition_receipt_sha256: str
     allowed_action_numbers: Sequence[int]
     expected_evidence: Sequence[EvidenceQueryKind]
 
@@ -121,6 +142,7 @@ class CandidateEvidenceVerification:
     candidate_hash: str
     source_hypothesis_hash: str
     node_id: str
+    demo_transition_receipt_sha256: str
     results: Sequence[EvidenceQueryResult]
     all_satisfied: bool
 
@@ -160,6 +182,7 @@ class CandidateActionEvidenceContract:
     candidate_hash: str
     source_hypothesis_hash: str
     node_id: str
+    demo_transition_receipt_sha256: str
     expected_evidence: Sequence[EvidenceQueryKind]
 
 
@@ -247,6 +270,13 @@ def build_rebind_scope(
         "candidate_hash": str(row["candidate_hash"]),
         "source_hypothesis_hash": str(row["source_hypothesis_hash"]),
         "node_id": str(row["node_id"]),
+        "target_transition_index": row.get("target_transition_index"),
+        "demo_transition_receipt_sha256": str(
+            row.get("demo_transition_receipt_sha256") or ""
+        ),
+        "demo_supported_evidence": list(
+            row.get("demo_supported_evidence") or ()
+        ),
         "source_conditioning_sha256": _hash(dict(row.get("source_conditioning") or {})),
     } for row in active_contexts]
     scope: Dict[str, Any] = {
@@ -289,13 +319,14 @@ def online_rebind_prompt(
         "candidate_bindings,abstain. If abstain=true, candidate_bindings must be empty. "
         "Otherwise include every "
         "active candidate_hash exactly once. Each candidate_bindings item has exactly "
-        "candidate_hash,source_hypothesis_hash,node_id,allowed_action_numbers,expected_evidence. IDs must be "
+        "candidate_hash,source_hypothesis_hash,node_id,demo_transition_receipt_sha256,"
+        "allowed_action_numbers,expected_evidence. IDs and receipt hashes must be "
         "copied exactly. allowed_action_numbers is a non-empty list of unique 1-based native "
         "action numbers. The intersection across all candidate lists must be non-empty. "
-        "For each candidate, expected_evidence is a non-empty unique list chosen only from "
-        "COMMAND_WAS_ADMISSIBLE,OBSERVATION_CHANGED,ADMISSIBLE_SET_CHANGED,"
-        "EXECUTED_ACTION_DISAPPEARED,POSITIVE_NATIVE_REWARD,OFFICIAL_SUCCESS and must include "
-        "at least one item other than COMMAND_WAS_ADMISSIBLE. No markdown or extra keys."
+        "For each candidate, copy demo_transition_receipt_sha256 and expected_evidence exactly "
+        "from that candidate's demo receipt fields. You may not add, remove, reorder, or invent "
+        "evidence predicates. If any candidate lacks a grounded informative receipt, abstain. "
+        "No markdown or extra keys."
     )
 
 
@@ -316,8 +347,8 @@ def parse_online_rebind_reply(raw: str) -> OnlineRebindProposal:
     bindings = []
     for row in payload["candidate_bindings"]:
         if not isinstance(row, dict) or set(row) != {
-            "candidate_hash", "source_hypothesis_hash", "node_id", "allowed_action_numbers",
-            "expected_evidence",
+            "candidate_hash", "source_hypothesis_hash", "node_id",
+            "demo_transition_receipt_sha256", "allowed_action_numbers", "expected_evidence",
         }:
             raise ValueError("WRONG_CANDIDATE_BINDING_KEYS")
         numbers = row["allowed_action_numbers"]
@@ -344,6 +375,9 @@ def parse_online_rebind_reply(raw: str) -> OnlineRebindProposal:
             candidate_hash=str(row["candidate_hash"]),
             source_hypothesis_hash=str(row["source_hypothesis_hash"]),
             node_id=str(row["node_id"]),
+            demo_transition_receipt_sha256=str(
+                row["demo_transition_receipt_sha256"]
+            ),
             allowed_action_numbers=tuple(numbers),
             expected_evidence=queries,
         ))
@@ -385,12 +419,15 @@ class OnlineRebindingAdmission:
             admissible_actions=admissible_actions,
             active_contexts=active_contexts,
         )
-        expected = {
-            str(row["candidate_hash"]): (
+        expected = {}
+        grounding_valid = True
+        for row in active_contexts:
+            receipt, queries, valid = _context_grounding(row)
+            grounding_valid = grounding_valid and valid
+            expected[str(row["candidate_hash"])] = (
                 str(row["source_hypothesis_hash"]), str(row["node_id"]),
+                receipt, queries,
             )
-            for row in active_contexts
-        }
         proposed = {row.candidate_hash: row for row in proposal.candidate_bindings}
         numbers_in_range = all(
             all(1 <= number <= len(admissible_actions) for number in row.allowed_action_numbers)
@@ -400,7 +437,11 @@ class OnlineRebindingAdmission:
             set(proposed) == set(expected)
             and len(proposed) == len(proposal.candidate_bindings)
             and all(
-                (row.source_hypothesis_hash, row.node_id) == expected.get(row.candidate_hash)
+                (
+                    row.source_hypothesis_hash, row.node_id,
+                    row.demo_transition_receipt_sha256,
+                    tuple(row.expected_evidence),
+                ) == expected.get(row.candidate_hash)
                 for row in proposal.candidate_bindings
             )
         )
@@ -417,6 +458,7 @@ class OnlineRebindingAdmission:
             "active_contexts_nonempty": bool(active_contexts),
             "active_candidate_identities_unique": len(expected) == len(active_contexts),
             "candidate_identity_exact": identity_exact,
+            "demo_receipt_grounding_complete": grounding_valid,
             "allowed_action_numbers_in_range": numbers_in_range,
             "common_exact_action_nonempty": bool(common_ordered),
             "per_candidate_expected_evidence_nonempty": all(
@@ -479,6 +521,9 @@ def qualified_online_rebind_from_dict(
             candidate_hash=str(row["candidate_hash"]),
             source_hypothesis_hash=str(row["source_hypothesis_hash"]),
             node_id=str(row["node_id"]),
+            demo_transition_receipt_sha256=str(
+                row["demo_transition_receipt_sha256"]
+            ),
             allowed_action_numbers=tuple(int(item) for item in row["allowed_action_numbers"]),
             expected_evidence=tuple(
                 EvidenceQueryKind(str(item)) for item in row["expected_evidence"]
@@ -534,6 +579,7 @@ def _candidate_verification(
     candidate_hash: str,
     source_hypothesis_hash: str,
     node_id: str,
+    demo_transition_receipt_sha256: str,
     queries: Sequence[EvidenceQueryKind],
     transition: NativeTransitionEvidence,
 ) -> CandidateEvidenceVerification:
@@ -542,6 +588,7 @@ def _candidate_verification(
         candidate_hash=str(candidate_hash),
         source_hypothesis_hash=str(source_hypothesis_hash),
         node_id=str(node_id),
+        demo_transition_receipt_sha256=str(demo_transition_receipt_sha256),
         results=results,
         all_satisfied=bool(results) and all(item.satisfied for item in results),
     )
@@ -554,6 +601,7 @@ def _candidate_verification_dict(
         "candidate_hash": item.candidate_hash,
         "source_hypothesis_hash": item.source_hypothesis_hash,
         "node_id": item.node_id,
+        "demo_transition_receipt_sha256": item.demo_transition_receipt_sha256,
         "results": [
             {"kind": row.kind.value, "satisfied": row.satisfied}
             for row in item.results
@@ -574,6 +622,7 @@ def verify_rebind_evidence(
             candidate_hash=item.candidate_hash,
             source_hypothesis_hash=item.source_hypothesis_hash,
             node_id=item.node_id,
+            demo_transition_receipt_sha256=item.demo_transition_receipt_sha256,
             queries=item.expected_evidence,
             transition=transition,
         )
@@ -617,6 +666,13 @@ def build_action_contract_scope(
         "candidate_hash": str(row["candidate_hash"]),
         "source_hypothesis_hash": str(row["source_hypothesis_hash"]),
         "node_id": str(row["node_id"]),
+        "target_transition_index": row.get("target_transition_index"),
+        "demo_transition_receipt_sha256": str(
+            row.get("demo_transition_receipt_sha256") or ""
+        ),
+        "demo_supported_evidence": list(
+            row.get("demo_supported_evidence") or ()
+        ),
     } for row in active_contexts]
     scope: Dict[str, Any] = {
         "artifact_hash": str(artifact_hash),
@@ -653,11 +709,11 @@ def action_evidence_contract_prompt(
         f"PROPOSAL_SCOPE={json.dumps(dict(scope), sort_keys=True)}\n"
         "Return exactly one JSON object with keys proposal_scope_hash,candidate_contracts,"
         "abstain. Include every active candidate exactly once. Each candidate_contracts item "
-        "has exactly candidate_hash,source_hypothesis_hash,node_id,expected_evidence; copy all "
-        "identities exactly. Each expected_evidence must be a non-empty unique list chosen only from "
-        "COMMAND_WAS_ADMISSIBLE,OBSERVATION_CHANGED,ADMISSIBLE_SET_CHANGED,"
-        "EXECUTED_ACTION_DISAPPEARED,POSITIVE_NATIVE_REWARD,OFFICIAL_SUCCESS and include at "
-        "least one item other than COMMAND_WAS_ADMISSIBLE. If abstain=true, candidate_contracts "
+        "has exactly candidate_hash,source_hypothesis_hash,node_id,"
+        "demo_transition_receipt_sha256,expected_evidence. Copy identities, receipt hashes, and "
+        "expected_evidence exactly from each active candidate's frozen demo receipt; do not add, "
+        "remove, reorder, or invent predicates. If any candidate lacks a grounded informative "
+        "receipt, abstain. If abstain=true, candidate_contracts "
         "must be empty. No markdown or extra keys."
     )
 
@@ -681,7 +737,8 @@ def parse_action_evidence_contract_reply(raw: str) -> ActionEvidenceContractProp
     contracts = []
     for row in payload["candidate_contracts"]:
         if not isinstance(row, dict) or set(row) != {
-            "candidate_hash", "source_hypothesis_hash", "node_id", "expected_evidence",
+            "candidate_hash", "source_hypothesis_hash", "node_id",
+            "demo_transition_receipt_sha256", "expected_evidence",
         }:
             raise ValueError("WRONG_CANDIDATE_CONTRACT_KEYS")
         if not isinstance(row["expected_evidence"], list):
@@ -700,6 +757,9 @@ def parse_action_evidence_contract_reply(raw: str) -> ActionEvidenceContractProp
             candidate_hash=str(row["candidate_hash"]),
             source_hypothesis_hash=str(row["source_hypothesis_hash"]),
             node_id=str(row["node_id"]),
+            demo_transition_receipt_sha256=str(
+                row["demo_transition_receipt_sha256"]
+            ),
             expected_evidence=queries,
         ))
     return ActionEvidenceContractProposal(
@@ -719,22 +779,31 @@ def qualify_action_evidence_contract(
         raise ValueError("PROPOSAL_SCOPE_MISMATCH")
     if not _valid_sha256(proposal_receipt_sha256):
         raise ValueError("PROPOSAL_RECEIPT_NOT_SHA256")
-    expected = {
-        str(row["candidate_hash"]): (
+    expected = {}
+    grounding_valid = True
+    for row in scope["active_candidate_identities"]:
+        receipt, queries, valid = _context_grounding(row)
+        grounding_valid = grounding_valid and valid
+        expected[str(row["candidate_hash"])] = (
             str(row["source_hypothesis_hash"]), str(row["node_id"]),
+            receipt, queries,
         )
-        for row in scope["active_candidate_identities"]
-    }
     proposed = {row.candidate_hash: row for row in proposal.candidate_contracts}
     if (
         set(proposed) != set(expected)
         or len(proposed) != len(proposal.candidate_contracts)
         or any(
-            (row.source_hypothesis_hash, row.node_id) != expected.get(row.candidate_hash)
+            (
+                row.source_hypothesis_hash, row.node_id,
+                row.demo_transition_receipt_sha256,
+                tuple(row.expected_evidence),
+            ) != expected.get(row.candidate_hash)
             for row in proposal.candidate_contracts
         )
     ):
         raise ValueError("CANDIDATE_CONTRACT_IDENTITIES_NOT_EXACT")
+    if not grounding_valid:
+        raise ValueError("DEMO_RECEIPT_GROUNDING_INCOMPLETE")
     if any(
         not row.expected_evidence
         or not set(row.expected_evidence).intersection(_INFORMATIVE_QUERIES)
@@ -748,6 +817,9 @@ def qualify_action_evidence_contract(
                 "candidate_hash": row.candidate_hash,
                 "source_hypothesis_hash": row.source_hypothesis_hash,
                 "node_id": row.node_id,
+                "demo_transition_receipt_sha256": (
+                    row.demo_transition_receipt_sha256
+                ),
                 "expected_evidence": [item.value for item in row.expected_evidence],
             } for row in proposal.candidate_contracts],
             "abstain": proposal.abstain,
@@ -775,6 +847,46 @@ def qualify_action_evidence_contract(
     return contract
 
 
+def compile_receipt_grounded_action_contract(
+    *, scope: Mapping[str, Any],
+) -> QualifiedActionEvidenceContract:
+    """Compile the pre-action contract from frozen one-shot receipts.
+
+    This operation is deliberately non-agentic: the Agent has already selected
+    the native action, while the Harness owns the evidence receipts and their
+    exact observable signatures.  Asking a language model to copy those fields
+    adds no information and creates a truncation/hallucination failure mode.
+    """
+    contracts = []
+    for row in scope["active_candidate_identities"]:
+        receipt, queries, valid = _context_grounding(row)
+        if not valid:
+            raise ValueError("DEMO_RECEIPT_GROUNDING_INCOMPLETE")
+        contracts.append(CandidateActionEvidenceContract(
+            candidate_hash=str(row["candidate_hash"]),
+            source_hypothesis_hash=str(row["source_hypothesis_hash"]),
+            node_id=str(row["node_id"]),
+            demo_transition_receipt_sha256=receipt,
+            expected_evidence=queries,
+        ))
+    if not contracts:
+        raise ValueError("NO_ACTIVE_RECEIPT_GROUNDED_CANDIDATES")
+    proposal = ActionEvidenceContractProposal(
+        proposal_scope_hash=str(scope["proposal_scope_hash"]),
+        candidate_contracts=tuple(contracts),
+        abstain=False,
+    )
+    compiler_receipt = _hash({
+        "compiler": "exact_one_shot_transition_receipt_signature_v1",
+        "proposal_scope_hash": scope["proposal_scope_hash"],
+    })
+    return qualify_action_evidence_contract(
+        proposal=proposal,
+        proposal_receipt_sha256=compiler_receipt,
+        scope=scope,
+    )
+
+
 def verify_action_evidence_contract(
     *,
     contract: QualifiedActionEvidenceContract,
@@ -789,6 +901,7 @@ def verify_action_evidence_contract(
             candidate_hash=item.candidate_hash,
             source_hypothesis_hash=item.source_hypothesis_hash,
             node_id=item.node_id,
+            demo_transition_receipt_sha256=item.demo_transition_receipt_sha256,
             queries=item.expected_evidence,
             transition=transition,
         )
@@ -826,6 +939,9 @@ def rebind_evidence_verification_from_dict(
         candidate_hash=str(candidate["candidate_hash"]),
         source_hypothesis_hash=str(candidate["source_hypothesis_hash"]),
         node_id=str(candidate["node_id"]),
+        demo_transition_receipt_sha256=str(
+            candidate["demo_transition_receipt_sha256"]
+        ),
         results=tuple(EvidenceQueryResult(
             EvidenceQueryKind(str(row["kind"])), bool(row["satisfied"]),
         ) for row in candidate["results"]),
@@ -875,6 +991,7 @@ __all__ = [
     "RebindEvidenceVerification",
     "action_evidence_contract_prompt",
     "build_action_contract_scope",
+    "compile_receipt_grounded_action_contract",
     "build_rebind_scope",
     "online_rebind_prompt",
     "parse_action_evidence_contract_reply",

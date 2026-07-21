@@ -96,6 +96,10 @@ class FrozenCandidateSetRuntime:
 
     def active_source_conditioning(self) -> Sequence[Mapping[str, object]]:
         """Return every active candidate context; never select or rank one."""
+        demo_receipts = {
+            item.target_transition_index: item
+            for item in self.artifact.demo_transition_contract_receipts
+        }
         contexts = []
         for qualified in self._active_candidates():
             cursor = self._cursor[qualified.candidate_hash]
@@ -104,10 +108,25 @@ class FrozenCandidateSetRuntime:
                 upper = offset + len(node.target_steps)
                 if offset <= cursor < upper:
                     if node.source_conditioning:
+                        target_step = node.target_steps[cursor - offset]
+                        demo_receipt = demo_receipts.get(
+                            target_step.target_transition_index
+                        )
                         contexts.append({
                             "candidate_hash": qualified.candidate_hash,
                             "source_hypothesis_hash": qualified.candidate.source_hypothesis_hash,
                             "node_id": node.node_id,
+                            "target_transition_index": (
+                                target_step.target_transition_index
+                            ),
+                            "demo_transition_receipt_sha256": (
+                                demo_receipt.receipt_sha256
+                                if demo_receipt is not None else None
+                            ),
+                            "demo_supported_evidence": (
+                                list(demo_receipt.supported_evidence)
+                                if demo_receipt is not None else []
+                            ),
                             "source_conditioning": dict(node.source_conditioning),
                         })
                     break

@@ -11,7 +11,7 @@ from enum import Enum
 from typing import Any, Dict, Mapping, Sequence
 from pathlib import Path
 
-from harness.skill_admission import TargetDemoReceipt
+from harness.skill_admission import TargetActionEvidence, TargetDemoReceipt
 
 
 def _hash(value: Any) -> str:
@@ -22,6 +22,66 @@ def _hash(value: Any) -> str:
 class ProgramOrigin(str, Enum):
     SOURCE_HYPOTHESIS = "SOURCE_HYPOTHESIS"
     TARGET_NATIVE_SAME_DEMO = "TARGET_NATIVE_SAME_DEMO"
+
+
+_EVIDENCE_QUERY_ORDER = (
+    "COMMAND_WAS_ADMISSIBLE",
+    "OBSERVATION_CHANGED",
+    "ADMISSIBLE_SET_CHANGED",
+    "EXECUTED_ACTION_DISAPPEARED",
+    "POSITIVE_NATIVE_REWARD",
+    "OFFICIAL_SUCCESS",
+)
+
+
+@dataclass(frozen=True)
+class DemoTransitionContractReceipt:
+    target_transition_index: int
+    target_operator: str
+    argument_types: Mapping[str, str]
+    supported_evidence: Sequence[str]
+    receipt_sha256: str
+
+    def unsigned_payload(self) -> Mapping[str, Any]:
+        payload = asdict(self)
+        payload.pop("receipt_sha256")
+        return payload
+
+    def validate_hash(self) -> None:
+        if _hash(self.unsigned_payload()) != self.receipt_sha256:
+            raise ValueError("demo transition contract receipt hash mismatch")
+
+
+def build_demo_transition_contract_receipt(
+    action: TargetActionEvidence,
+) -> DemoTransitionContractReceipt:
+    supported = {
+        "COMMAND_WAS_ADMISSIBLE": action.action in action.before_admissible_actions,
+        "OBSERVATION_CHANGED": action.state_sha256 != action.next_state_sha256,
+        "ADMISSIBLE_SET_CHANGED": (
+            action.admissible_actions_sha256 != action.next_admissible_actions_sha256
+        ),
+        "EXECUTED_ACTION_DISAPPEARED": action.action not in action.after_admissible_actions,
+        "POSITIVE_NATIVE_REWARD": action.reward > 0.0,
+        "OFFICIAL_SUCCESS": action.official_success_after,
+    }
+    unsigned = {
+        "target_transition_index": int(action.transition_index),
+        "target_operator": str(action.operator),
+        "argument_types": dict(action.argument_types),
+        "supported_evidence": [
+            kind for kind in _EVIDENCE_QUERY_ORDER if supported[kind]
+        ],
+    }
+    receipt = DemoTransitionContractReceipt(
+        target_transition_index=unsigned["target_transition_index"],
+        target_operator=unsigned["target_operator"],
+        argument_types=unsigned["argument_types"],
+        supported_evidence=tuple(unsigned["supported_evidence"]),
+        receipt_sha256=_hash(unsigned),
+    )
+    receipt.validate_hash()
+    return receipt
 
 
 @dataclass(frozen=True)
@@ -69,6 +129,9 @@ class MultiStepAdmissionArtifact:
     demo_hash: str
     candidates: Sequence[QualifiedBindingCandidate]
     rejected_candidates: Sequence[Mapping[str, Any]] = field(default_factory=tuple)
+    demo_transition_contract_receipts: Sequence[DemoTransitionContractReceipt] = field(
+        default_factory=tuple
+    )
     source_treatment: str | None = None
     source_control_receipt_sha256: str | None = None
     schema_version: int = 3
@@ -81,6 +144,10 @@ class MultiStepAdmissionArtifact:
             payload.pop("source_treatment")
         if payload["source_control_receipt_sha256"] is None:
             payload.pop("source_control_receipt_sha256")
+        if not payload["demo_transition_contract_receipts"]:
+            # Preserve exact hashes for legacy v3 artifacts. They remain
+            # loadable but cannot enter receipt-grounded source control.
+            payload.pop("demo_transition_contract_receipts")
         for row in payload["candidates"]:
             row["candidate"]["origin"] = row["candidate"]["origin"].value
         payload["artifact_hash"] = _hash(payload)
@@ -198,6 +265,10 @@ class MultiStepTargetAdmission:
             demo_hash=demo.content_hash(),
             candidates=tuple(by_hash[key] for key in sorted(by_hash)),
             rejected_candidates=tuple(rejected),
+            demo_transition_contract_receipts=tuple(
+                build_demo_transition_contract_receipt(action)
+                for action in demo.actions
+            ),
             source_treatment=source_treatment,
             source_control_receipt_sha256=source_control_receipt_sha256,
         )
@@ -274,6 +345,16 @@ def multistep_artifact_from_dict(payload: Mapping[str, Any]) -> MultiStepAdmissi
         demo_hash=str(payload["demo_hash"]),
         candidates=tuple(candidates),
         rejected_candidates=tuple(payload.get("rejected_candidates") or ()),
+        demo_transition_contract_receipts=tuple(
+            DemoTransitionContractReceipt(
+                target_transition_index=int(row["target_transition_index"]),
+                target_operator=str(row["target_operator"]),
+                argument_types=dict(row.get("argument_types") or {}),
+                supported_evidence=tuple(str(item) for item in row.get("supported_evidence") or ()),
+                receipt_sha256=str(row["receipt_sha256"]),
+            )
+            for row in payload.get("demo_transition_contract_receipts") or ()
+        ),
         source_treatment=(
             str(payload["source_treatment"])
             if payload.get("source_treatment") is not None else None
@@ -294,6 +375,41 @@ def multistep_artifact_from_dict(payload: Mapping[str, Any]) -> MultiStepAdmissi
         raise ValueError("unsupported or semantically widened v3 artifact")
     if artifact.artifact_hash != claimed_hash:
         raise ValueError("v3 artifact hash mismatch")
+    for receipt in artifact.demo_transition_contract_receipts:
+        receipt.validate_hash()
+    indices = [
+        receipt.target_transition_index
+        for receipt in artifact.demo_transition_contract_receipts
+    ]
+    if indices and indices != list(range(len(indices))):
+        raise ValueError("demo transition contract receipts are not contiguous")
+    receipts_by_index = {
+        receipt.target_transition_index: receipt
+        for receipt in artifact.demo_transition_contract_receipts
+    }
+    for receipt in artifact.demo_transition_contract_receipts:
+        if (
+            list(receipt.supported_evidence)
+            != [
+                kind for kind in _EVIDENCE_QUERY_ORDER
+                if kind in set(receipt.supported_evidence)
+            ]
+            or len(receipt.supported_evidence) != len(set(receipt.supported_evidence))
+        ):
+            raise ValueError("demo transition supported evidence is not canonical")
+    if receipts_by_index and any(
+        (
+            step.target_transition_index not in receipts_by_index
+            or receipts_by_index[step.target_transition_index].target_operator
+            != step.target_operator
+            or dict(receipts_by_index[step.target_transition_index].argument_types)
+            != dict(step.argument_types)
+        )
+        for candidate in artifact.candidates
+        for node in candidate.candidate.nodes
+        for step in node.target_steps
+    ):
+        raise ValueError("candidate target step is not anchored to its demo receipt")
     return artifact
 
 
@@ -303,6 +419,7 @@ def _valid_digest(value: str) -> bool:
 
 __all__ = [
     "MultiStepAdmissionArtifact",
+    "DemoTransitionContractReceipt",
     "MultiStepBindingCandidate",
     "MultiStepTargetAdmission",
     "FrozenMultiStepArtifactStore",
@@ -310,6 +427,7 @@ __all__ = [
     "QualifiedBindingCandidate",
     "TargetNodeBinding",
     "TargetStepBinding",
+    "build_demo_transition_contract_receipt",
     "multistep_artifact_from_dict",
     "multistep_candidate_from_dict",
 ]
