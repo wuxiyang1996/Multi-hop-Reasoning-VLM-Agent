@@ -2,7 +2,9 @@
   "schema_version": 1,
   "target_domain": "alfworld",
   "task_family": "pick_and_place",
-  "proposal_policy": "preregistered_source_semantics_untrusted",
+  "candidate_source": "legacy_human_seed",
+  "research_use_allowed": false,
+  "proposal_policy": "deprecated_smoke_test_only",
   "bindings": [
     {
       "candidate_id": "sokoban-navigate-to-alfworld-goto-v1",
@@ -10,7 +12,6 @@
       "source_skill_name": "skill_sokoban_navigate_4",
       "source_step_id": "commit-observed-action",
       "target_operator": "GOTO",
-      "source_effect": "agent_location_changed",
       "argument_types": {"location": "location"}
     },
     {
@@ -19,7 +20,6 @@
       "source_skill_name": "skill_sokoban_setup_7",
       "source_step_id": "commit-observed-action",
       "target_operator": "OPEN",
-      "source_effect": "receptacle_opened",
       "argument_types": {"receptacle": "receptacle"}
     },
     {
@@ -28,7 +28,6 @@
       "source_skill_name": "skill_super_mario_collect_1",
       "source_step_id": "commit-observed-action",
       "target_operator": "TAKE",
-      "source_effect": "possession_acquired",
       "argument_types": {"object": "object", "receptacle": "receptacle"}
     },
     {
@@ -37,7 +36,6 @@
       "source_skill_name": "skill_sokoban_execute_2",
       "source_step_id": "commit-observed-action",
       "target_operator": "MOVE_TO",
-      "source_effect": "movable_location_changed",
       "argument_types": {"object": "object", "receptacle": "receptacle"}
     }
   ]

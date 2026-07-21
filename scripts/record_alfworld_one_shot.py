@@ -41,12 +41,12 @@ def main() -> int:
         "--config-path",
         default=str(REPO_ROOT / "configs/alfworld_pick_and_place_config.yaml"),
     )
-    parser.add_argument("--demo-id", default="alfworld-pick-and-place-train-seed42-v2-shot0")
+    parser.add_argument("--demo-id", default="alfworld-pick-and-place-train-seed42-v3-shot0")
     parser.add_argument("--max-steps", type=int, default=80)
     parser.add_argument(
         "--output",
         type=Path,
-        default=REPO_ROOT / "artifacts/admission_demos/alfworld/pick_and_place/train_seed42_v2_shot0.json",
+        default=REPO_ROOT / "artifacts/admission_demos/alfworld/pick_and_place/train_seed42_v3_shot0.json",
     )
     args = parser.parse_args()
     if args.max_steps < 1:
@@ -87,7 +87,7 @@ def main() -> int:
     payload = asdict(receipt)
     payload["demo_hash"] = receipt.content_hash()
     payload["selection_policy"] = {
-        "protocol_version": 2,
+        "protocol_version": 3,
         "split": "train",
         "task_types": [1],
         "random_seed": 42,

@@ -87,6 +87,10 @@ def _summarize(rows: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
         "success_rate": sum(bool(row["success"]) for row in rows) / n if n else 0.0,
         "abstentions": sum(bool(row["abstained"]) for row in rows),
         "abstention_rate": sum(bool(row["abstained"]) for row in rows) / n if n else 0.0,
+        "false_admissions": sum(bool(row.get("false_admission")) for row in rows),
+        "false_admission_rate": (
+            sum(bool(row.get("false_admission")) for row in rows) / n if n else 0.0
+        ),
         "errors": sum(row.get("error") is not None for row in rows),
         "mean_steps": mean(int(row["steps"]) for row in rows) if rows else 0.0,
         "episode_wall_time_s": sum(float(row["wall_time_s"]) for row in rows),

@@ -13,7 +13,7 @@
 # Preregistered two-node layout:
 #   phase A / node 0 / GPUs 0-3: 4x 9B base rollout replicas
 #   phase A / node 1 / GPUs 0-1: source-only Game SFT (one LoRA per GPU)
-#   phase A / node 1 / GPUs 2-3: 35B TP=2 untrusted proposal audit
+#   phase A / node 1 / GPUs 2-3: 35B TP=2 independent candidate agents
 #   phase B / node 0 / GPUs 0-3: 4x 9B replicas with frozen Game SFT LoRAs
 # Held-out ALFWorld clients are CPU-only and use frozen admission artifacts.
 
@@ -56,15 +56,17 @@ elif [[ "${GPU_GRES}" == "gpu:rtxa6000" ]]; then
 else
     PROPOSER_PCIE_SAFE_COLLECTIVES=0
 fi
-ADMISSION_MANIFEST="${REPO_ROOT}/artifacts/admission/alfworld/manifest-c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1-fbf22197882400f3.json"
-BINDING_CONFIG="${REPO_ROOT}/configs/alfworld_one_shot_bindings.json"
+TARGET_DEMO="${REPO_ROOT}/artifacts/admission_demos/alfworld/pick_and_place/train_seed42_v3_shot0.json"
+PROPOSAL_CONFIG="${RUN_DIR}/proposals_35b.json"
+ADMISSION_ROOT="${RUN_DIR}/admission"
+ADMISSION_MANIFEST="${ADMISSION_ROOT}/manifest.json"
 TARGET_CONFIG="${REPO_ROOT}/configs/alfworld_pick_and_place_config.yaml"
 SOURCE_SFT_DIR="${REPO_ROOT}/artifacts/source_only_game_sft"
 SOURCE_SFT_MANIFEST="${SOURCE_SFT_DIR}/source_sft_manifest.json"
 ADAPTER_DIR="${RUN_DIR}/source_only_lora"
 EMPTY_ADAPTER_DIR="${RUN_DIR}/empty_adapters"
 
-if [[ ! -f "${SPEC}" || ! -f "${ADMISSION_MANIFEST}" || ! -x "${REPO_ROOT}/scripts/eval_principled_alfworld.py" ]]; then
+if [[ ! -f "${SPEC}" || ! -f "${TARGET_DEMO}" || ! -x "${REPO_ROOT}/scripts/eval_principled_alfworld.py" ]]; then
     echo "ERROR: repository or frozen experiment inputs are incomplete: ${REPO_ROOT}" >&2
     exit 2
 fi
@@ -220,7 +222,7 @@ run_eval_group() {
                         --endpoints "${ROLLOUT_URLS[@]}" \
                         --base-model "${MODEL}" \
                         --admission-manifest "${ADMISSION_MANIFEST}" \
-                        --binding-config "${BINDING_CONFIG}" --config "${TARGET_CONFIG}" \
+                        --config "${TARGET_CONFIG}" \
                         --output "${out_dir}/shard_${shard}.json" \
                     >"${RUN_DIR}/logs/eval_${group}_${condition}_${split}_shard${shard}.log" 2>&1 &
                 eval_pids+=("$!")
@@ -271,15 +273,24 @@ BG_PIDS+=("${PROPOSER_PID}")
 wait_for_endpoint "${PROPOSER_URL}" "${PROPOSER_PID}" "35b-proposer"
 srun --exact --mem=0 --gres=none -N1 -n1 -c2 -w "${TRAIN_NODE}" \
     env REPO_ROOT="${REPO_ROOT}" CONDA_ENV="${TRAIN_ENV}" \
-    bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; cd "$REPO_ROOT"; exec python scripts/propose_alfworld_bindings_35b.py --endpoint "$1" --model "$2" --output "$3"' runner \
-        "${PROPOSER_URL}" "${PROPOSER_MODEL}" "${RUN_DIR}/proposals_35b.json" \
+    bash -lc 'source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate "$CONDA_ENV"; cd "$REPO_ROOT"; exec python scripts/propose_alfworld_bindings_35b.py --endpoint "$1" --model "$2" --demo "$3" --output "$4"' runner \
+        "${PROPOSER_URL}" "${PROPOSER_MODEL}" "${TARGET_DEMO}" "${PROPOSAL_CONFIG}" \
     >"${RUN_DIR}/logs/proposals_35b.log" 2>&1 &
 PROPOSAL_AUDIT_PID=$!
 BG_PIDS+=("${PROPOSAL_AUDIT_PID}")
 
+wait "${PROPOSAL_AUDIT_PID}"
+python "${REPO_ROOT}/scripts/admit_alfworld_one_shot.py" \
+    --demo "${TARGET_DEMO}" --bindings "${PROPOSAL_CONFIG}" \
+    --programs "${REPO_ROOT}/artifacts/source_evidence_index/source_programs.jsonl" \
+    --output-root "${ADMISSION_ROOT}" --manifest-output "${ADMISSION_MANIFEST}" \
+    >"${RUN_DIR}/logs/admission.log" 2>&1
+if [[ ! -f "${ADMISSION_MANIFEST}" ]]; then
+    echo "ERROR: agent proposal admission did not freeze a manifest" >&2
+    exit 3
+fi
 run_eval_group base base base_harness
 wait "${SFT_PID}"
-wait "${PROPOSAL_AUDIT_PID}"
 if [[ ! -f "${ADAPTER_DIR}/decision/action_taking/adapter_config.json" || ! -f "${ADAPTER_DIR}/decision/skill_selection/adapter_config.json" ]]; then
     echo "ERROR: source-only SFT did not produce production-layout adapters" >&2
     exit 3

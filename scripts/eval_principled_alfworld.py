@@ -188,6 +188,13 @@ def _choose_action(
         action_usage=usage,
         selected_action=action,
     )
+    if condition == "base_harness":
+        selected_guarded = next(item for item in guarded if item.command == action)
+        trace.update(
+            selected_source_skill=selected_guarded.binding.source_skill_name,
+            selected_operator=selected_guarded.binding.operator,
+            selected_artifact_hash=selected_guarded.binding.artifact.artifact_hash,
+        )
     return action, trace
 
 
@@ -252,10 +259,27 @@ def run_shard(args: argparse.Namespace) -> Dict[str, Any]:
                 if action is None:
                     abstain_reason = str(trace.get("abstain_reason") or "UNSPECIFIED_ABSTENTION")
                     break
+                before_observation = _clean_observation(observation)
+                before_admissible = list(admissible)
                 observation, reward, terminated, truncated, info = env.step(action)
                 actions.append(action)
                 score = max(score, float(reward))
                 success = _official_won(info)
+                if "harness" in args.condition:
+                    artifact_hash = str(trace.get("selected_artifact_hash") or "")
+                    transition_ok, violation = guard.verify_native_transition(
+                        artifact_hash=artifact_hash,
+                        command=action,
+                        before_admissible=before_admissible,
+                        after_admissible=[str(item) for item in info.get("action_names", [])],
+                        before_observation=before_observation,
+                        after_observation=_clean_observation(observation),
+                    )
+                    trace["native_transition_verified"] = transition_ok
+                    if not transition_ok:
+                        trace["contract_violation"] = violation
+                        abstain_reason = f"RUNTIME_CONTRACT_VIOLATION:{violation}"
+                        break
             rows.append({
                 "global_episode_index": global_index,
                 "episode_id": episode_id,
@@ -270,6 +294,9 @@ def run_shard(args: argparse.Namespace) -> Dict[str, Any]:
                 "truncated": bool(truncated),
                 "abstained": abstain_reason is not None,
                 "abstain_reason": abstain_reason,
+                "false_admission": any(
+                    bool(item.get("contract_violation")) for item in traces
+                ),
                 "error": error,
                 "actions": actions,
                 "traces": traces,
@@ -289,8 +316,8 @@ def run_shard(args: argparse.Namespace) -> Dict[str, Any]:
 
     valid = [row for row in rows if row["error"] is None]
     result = {
-        "schema_version": 1,
-        "protocol": "strict_frozen_one_shot_alfworld_v1",
+        "schema_version": 2,
+        "protocol": "agent_proposed_target_native_one_shot_v2",
         "condition": args.condition,
         "split": args.split,
         "episodes_planned_total": args.episodes,
@@ -305,7 +332,9 @@ def run_shard(args: argparse.Namespace) -> Dict[str, Any]:
         "config_sha256": _sha256(args.config),
         "admission_manifest": str(args.admission_manifest.resolve()),
         "admission_manifest_sha256": _sha256(args.admission_manifest),
-        "binding_config_sha256": _sha256(args.binding_config),
+        "legacy_binding_config_sha256": (
+            _sha256(args.binding_config) if args.binding_config is not None else None
+        ),
         "artifact_hashes": guard.artifact_hashes,
         "target_gradient_updates": 0,
         "git_commit_at_launch": _git_commit(),
@@ -314,6 +343,7 @@ def run_shard(args: argparse.Namespace) -> Dict[str, Any]:
             "n_valid": len(valid),
             "n_errors": len(rows) - len(valid),
             "n_abstained": sum(bool(row["abstained"]) for row in valid),
+            "n_false_admissions": sum(bool(row["false_admission"]) for row in valid),
             "success_rate": (
                 sum(bool(row["success"]) for row in valid) / len(valid) if valid else 0.0
             ),
@@ -344,15 +374,12 @@ def _parse_args() -> argparse.Namespace:
         default=REPO_ROOT / "configs/alfworld_pick_and_place_config.yaml",
     )
     parser.add_argument(
-        "--admission-manifest", type=Path,
-        default=(
-            REPO_ROOT / "artifacts/admission/alfworld/"
-            "manifest-c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1-fbf22197882400f3.json"
-        ),
+        "--admission-manifest", type=Path, required=True,
     )
     parser.add_argument(
         "--binding-config", type=Path,
-        default=REPO_ROOT / "configs/alfworld_one_shot_bindings.json",
+        default=None,
+        help="legacy v1 artifact-name lookup only; v2 artifacts are self-contained",
     )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -360,9 +387,11 @@ def _parse_args() -> argparse.Namespace:
         parser.error("episodes and max-steps must be positive")
     if args.num_shards < 1 or not 0 <= args.shard_index < args.num_shards:
         parser.error("invalid shard parameters")
-    for path in (args.config, args.admission_manifest, args.binding_config):
+    for path in (args.config, args.admission_manifest):
         if not path.is_file():
             parser.error(f"required frozen input missing: {path}")
+    if args.binding_config is not None and not args.binding_config.is_file():
+        parser.error(f"legacy binding config missing: {args.binding_config}")
     return args
 
 

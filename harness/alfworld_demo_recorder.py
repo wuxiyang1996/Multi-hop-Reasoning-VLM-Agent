@@ -17,10 +17,11 @@ def _hash(value: Any) -> str:
 
 
 def _won(info: Dict[str, Any], reward: float) -> bool:
+    del reward
     won = info.get("won", False)
     if isinstance(won, (list, tuple)):
         won = won[0] if won else False
-    return bool(won) or float(reward) >= 1.0
+    return bool(won)
 
 
 class AlfworldDemoRecorder:
@@ -73,6 +74,8 @@ class AlfworldDemoRecorder:
             "observation": str(observation),
             "structured_state": after_info.get("structured_state"),
         }
+        after_admissible = list(after_info.get("action_names") or [])
+        official_success_after = _won(after_info, float(reward))
         self._actions.append(
             TargetActionEvidence(
                 transition_index=len(self._actions),
@@ -80,15 +83,22 @@ class AlfworldDemoRecorder:
                 operator=parsed.operator,
                 arguments=dict(parsed.arguments),
                 argument_types=dict(parsed.argument_types),
+                before_admissible_actions=admissible,
+                after_admissible_actions=after_admissible,
                 admissible_actions_sha256=_hash(admissible),
+                next_admissible_actions_sha256=_hash(after_admissible),
                 state_sha256=_hash(before),
                 next_state_sha256=_hash(after),
+                reward=float(reward),
+                terminated=bool(terminated),
+                truncated=bool(truncated),
+                official_success_after=official_success_after,
             )
         )
         self._observation = str(observation)
         self._info = after_info
         self._best_score = max(self._best_score, float(reward))
-        self._success = self._success or _won(after_info, float(reward))
+        self._success = self._success or official_success_after
         return result
 
     def receipt(self) -> TargetDemoReceipt:

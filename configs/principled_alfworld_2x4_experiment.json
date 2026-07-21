@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "experiment_id": "principled-alfworld-one-shot-2x4-l40s-v1",
+  "schema_version": 2,
+  "experiment_id": "agent-proposed-native-evidence-alfworld-one-shot-2x4-v2",
   "preregistered_date": "2026-07-20",
   "target_domain": "alfworld",
   "task_family": "pick_and_place",
@@ -24,7 +24,7 @@
   },
   "model_roles": {
     "actor": "numbered_action_or_skill_proposer_only",
-    "binding_proposer": "untrusted_offline_proposal_only_never_verdict"
+    "binding_proposer": "three_independent_untrusted_candidate_roles_never_verdict"
   },
   "source_sft": {
     "path": "artifacts/source_only_game_sft/source_sft_manifest.json",
@@ -44,13 +44,9 @@
       "path": "artifacts/source_evidence_index/manifest.json",
       "sha256": "a0e7623776d60f5bf5e6e67b2b4a26b86a7213c5565c4ec51a3aee77491325fd"
     },
-    "admission_manifest": {
-      "path": "artifacts/admission/alfworld/manifest-c92a05274bacf88286a05a1be48c8d6bd48da6285038be7f01b1682d014e7cd1-fbf22197882400f3.json",
-      "sha256": "6ae69d4f79155f42174a1fcbf88553b431753dc55cbf2e2f9264d6f892e90cb3"
-    },
-    "binding_config": {
-      "path": "configs/alfworld_one_shot_bindings.json",
-      "sha256": "5681383b51a548373c4110a1f1dbabb29355a171bb2e826148f2c6a164328022"
+    "target_native_demo": {
+      "path": "artifacts/admission_demos/alfworld/pick_and_place/train_seed42_v3_shot0.json",
+      "sha256": "b8db061b7a00f4d7f088631dc35782667f0ada078551f3f55a632e6a8efd8f0f"
     },
     "target_config": {
       "path": "configs/alfworld_pick_and_place_config.yaml",
@@ -59,6 +55,10 @@
   },
   "invariants": {
     "semantic_clustering": false,
+    "cross_domain_predicate_table": false,
+    "human_binding_config": false,
+    "agent_candidates_are_verdicts": false,
+    "target_native_receipts_required": true,
     "one_fixed_adaptation_demo": true,
     "held_out_updates": false,
     "random_action_fallback": false,

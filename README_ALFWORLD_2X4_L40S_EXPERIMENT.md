@@ -1,5 +1,10 @@
 # ALFWorld one-shot skill transfer：2×4 L40S 实验
 
+> **历史 v1 说明：** 本文记录的四条 admission 使用过人工
+> `source effect → target operator` 假设，只能视为工程 smoke test，不能作为正式
+> 跨域语义迁移结果。新的 Agent-proposed、target-native v2 协议见
+> [`README_AGENT_NATIVE_SKILL_HARNESS.md`](README_AGENT_NATIVE_SKILL_HARNESS.md)。
+
 本文是当前可执行 vertical slice 的冻结实验说明。它不把 game skill 名称、9B/35B
 解释文本或旧 mega-skill cluster 当作语义证据；成功只读取 ALFWorld 官方 `won`。
 

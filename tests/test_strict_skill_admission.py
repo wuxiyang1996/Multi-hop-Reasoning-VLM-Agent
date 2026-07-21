@@ -7,6 +7,8 @@ import pytest
 
 from harness.alfworld_grammar import parse_alfworld_action
 from harness.alfworld_demo_recorder import AlfworldDemoRecorder
+from harness.frozen_transfer_policy import FrozenAdmissionGuard, FrozenBinding
+import harness.skill_admission as admission_module
 from harness.skill_admission import (
     AdmissionStatus,
     BindingCandidate,
@@ -18,6 +20,7 @@ from harness.skill_admission import (
     target_demo_receipt_from_dict,
 )
 from skill_bank.source_skill_compiler import compile_source_programs
+from scripts.propose_alfworld_bindings_35b import _prompt
 
 
 def _digest(value: str) -> str:
@@ -62,9 +65,16 @@ def _demo(*, split: str = "train", success: bool = True):
             operator=parsed.operator,
             arguments=parsed.arguments,
             argument_types=parsed.argument_types,
-            admissible_actions_sha256=_digest("look|go to fridge 1"),
+            before_admissible_actions=["look", "go to fridge 1"],
+            after_admissible_actions=["look"],
+            admissible_actions_sha256=_digest('["look","go to fridge 1"]'),
+            next_admissible_actions_sha256=_digest('["look"]'),
             state_sha256=_digest("target-state"),
             next_state_sha256=_digest("target-next"),
+            reward=1.0 if success else 0.0,
+            terminated=True,
+            truncated=False,
+            official_success_after=success,
         )],
     )
 
@@ -79,7 +89,6 @@ def _candidate(program, *, operator: str = "GOTO", candidate_id: str = "c1"):
         task_family="pick_and_place",
         target_operator=operator,
         argument_types={"location": "location"},
-        source_effect="agent_location_changed",
         proposal_source="qwen35_untrusted",
     )
 
@@ -107,7 +116,10 @@ def test_real_successful_one_shot_admits_scope() -> None:
     artifact = StrictOneShotAdmission().admit(
         program=program, candidates=[_candidate(program)], demo=_demo()
     )
-    assert artifact.status == AdmissionStatus.ADMITTED
+    assert artifact.status == AdmissionStatus.CONDITIONAL
+    assert artifact.verified_scope is not None
+    assert artifact.verified_scope.semantic_alignment_claimed is False
+    assert artifact.verified_scope.source_skill_name == "NAVIGATE"
     assert runtime_scope_allows(
         artifact,
         target_domain="alfworld",
@@ -122,6 +134,46 @@ def test_real_successful_one_shot_admits_scope() -> None:
         operator="OPEN",
         argument_types={"receptacle": "receptacle"},
     )
+
+
+def test_no_handwritten_cross_domain_effect_table_remains() -> None:
+    assert not hasattr(admission_module, "TARGET_OPERATOR_EFFECTS")
+
+
+def test_agent_prompt_blinds_game_and_skill_labels() -> None:
+    prompt = _prompt(_program(), _demo(), "proposer_a")
+    assert "NAVIGATE" not in prompt
+    assert "sokoban" not in prompt.lower()
+    assert "program-" in prompt
+
+
+def test_runtime_checks_target_native_pattern_without_semantic_predicate() -> None:
+    program = _program("arbitrary_internal_name")
+    artifact = StrictOneShotAdmission().admit(
+        program=program, candidates=[_candidate(program)], demo=_demo()
+    )
+    guard = FrozenAdmissionGuard([
+        FrozenBinding("c1", program.name, "GOTO", artifact)
+    ])
+    passed, reason = guard.verify_native_transition(
+        artifact_hash=artifact.artifact_hash,
+        command="go to fridge 1",
+        before_admissible=["look", "go to fridge 1"],
+        after_admissible=["look"],
+        before_observation="kitchen",
+        after_observation="at fridge",
+    )
+    assert passed is True and reason is None
+    passed, reason = guard.verify_native_transition(
+        artifact_hash=artifact.artifact_hash,
+        command="go to fridge 1",
+        before_admissible=["look", "go to fridge 1"],
+        after_admissible=["look", "go to fridge 1"],
+        before_observation="kitchen",
+        after_observation="kitchen",
+    )
+    assert passed is False
+    assert reason == "TARGET_NATIVE_TRANSITION_PATTERN_MISMATCH"
 
 
 def test_frozen_artifact_loader_rejects_tampering() -> None:
@@ -162,7 +214,7 @@ def test_non_equivalent_passing_candidates_remain_inconclusive() -> None:
         candidates=[_candidate(program, candidate_id="b"), _candidate(program, candidate_id="a")],
         demo=_demo(),
     )
-    assert equivalent.status == AdmissionStatus.ADMITTED
+    assert equivalent.status == AdmissionStatus.CONDITIONAL
     assert equivalent.admitted_candidate_id == "a"
 
 
@@ -173,11 +225,14 @@ def test_hallucinated_operator_cannot_override_verifier() -> None:
         candidates=[_candidate(program, operator="TELEPORT")],
         demo=_demo(),
     )
-    assert artifact.status == AdmissionStatus.REJECTED
+    # Without a hand-maintained global operator ontology, the Harness can
+    # prove only that this operator is absent from the fixed target demo.
+    assert artifact.status == AdmissionStatus.INCONCLUSIVE
+    assert artifact.failure_codes == ["OPERATOR_NOT_COVERED:c1"]
 
 
 def test_supported_but_unseen_operator_is_inconclusive() -> None:
-    program = _program("receptacle_opened")
+    program = _program("arbitrary_source_internal_label")
     candidate = BindingCandidate(
         candidate_id="open",
         source_program_id=program.program_id,
@@ -187,7 +242,6 @@ def test_supported_but_unseen_operator_is_inconclusive() -> None:
         task_family="pick_and_place",
         target_operator="OPEN",
         argument_types={"receptacle": "receptacle"},
-        source_effect="receptacle_opened",
         proposal_source="untrusted",
     )
     artifact = StrictOneShotAdmission().admit(
@@ -197,26 +251,23 @@ def test_supported_but_unseen_operator_is_inconclusive() -> None:
     assert artifact.failure_codes == ["OPERATOR_NOT_COVERED:open"]
 
 
-def test_partially_observed_source_effect_is_conditional() -> None:
-    rows = []
-    for index, effects in enumerate((["agent_location_changed"], [])):
-        rows.append({
-            "game": "sokoban", "episode_id": f"e{index}", "step_index": 0,
-            "provider_or_run": "teacher", "chosen_skill_id": "NAVIGATE",
-            "action": "down", "reward": 0.0, "done": False,
-            "state_sha256": _digest(f"s{index}"),
-            "next_state_sha256": _digest(f"n{index}"),
-            "source_file_sha256": _digest(f"f{index}"),
-            "source_effects": effects, "source_only": True,
-        })
-    program = compile_source_programs(rows, min_invocations=1)[0]
-    artifact = StrictOneShotAdmission().admit(
-        program=program, candidates=[_candidate(program)], demo=_demo()
+def test_source_internal_predicate_cannot_change_cross_domain_verdict() -> None:
+    first = _program("human_label_a")
+    second = _program("completely_different_human_label")
+    first_artifact = StrictOneShotAdmission().admit(
+        program=first, candidates=[_candidate(first)], demo=_demo()
     )
-    assert artifact.status == AdmissionStatus.CONDITIONAL
-    assert artifact.verified_scope is not None
-    assert artifact.verified_scope.source_effect_evidence_count == 1
-    assert artifact.verified_scope.source_evidence_count == 2
+    second_artifact = StrictOneShotAdmission().admit(
+        program=second, candidates=[_candidate(second)], demo=_demo()
+    )
+    assert first_artifact.status == second_artifact.status == AdmissionStatus.CONDITIONAL
+    assert first_artifact.verified_scope is not None
+    assert second_artifact.verified_scope is not None
+    assert first_artifact.verified_scope.operators == second_artifact.verified_scope.operators
+    assert all(
+        not item.get("details", {}).get("source_target_effect_exact")
+        for item in first_artifact.proof_trace
+    )
 
 
 def test_real_demo_recorder_preserves_exact_action_evidence() -> None:

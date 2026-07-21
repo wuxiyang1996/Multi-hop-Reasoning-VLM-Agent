@@ -12,41 +12,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Sequence
 
 from skill_bank.program_ir import CanonicalSkillProgram, ProgramStatus
-from skill_bank.source_effects import (
-    AGENT_LOCATION_CHANGED,
-    MOVABLE_LOCATION_CHANGED,
-    POSSESSION_ACQUIRED,
-    RECEPTACLE_OPENED,
-)
-
-
-TARGET_OPERATOR_SCHEMAS: Dict[str, Dict[str, Mapping[str, str]]] = {
-    "alfworld": {
-        "LOOK": {},
-        "INVENTORY": {},
-        "GOTO": {"location": "location"},
-        "OPEN": {"receptacle": "receptacle"},
-        "CLOSE": {"receptacle": "receptacle"},
-        "TAKE": {"object": "object", "receptacle": "receptacle"},
-        "PUT": {"object": "object", "relation": "relation", "receptacle": "receptacle"},
-        "MOVE_TO": {"object": "object", "receptacle": "receptacle"},
-        "HEAT": {"object": "object", "tool": "tool"},
-        "COOL": {"object": "object", "tool": "tool"},
-        "CLEAN": {"object": "object", "tool": "tool"},
-        "TOGGLE": {"object": "object"},
-        "USE": {"object": "object"},
-        "EXAMINE": {"object": "object"},
-    }
-}
-
-TARGET_OPERATOR_EFFECTS: Dict[str, Dict[str, str]] = {
-    "alfworld": {
-        "GOTO": AGENT_LOCATION_CHANGED,
-        "OPEN": RECEPTACLE_OPENED,
-        "TAKE": POSSESSION_ACQUIRED,
-        "MOVE_TO": MOVABLE_LOCATION_CHANGED,
-    }
-}
 
 
 class AdmissionStatus(str, Enum):
@@ -64,9 +29,16 @@ class TargetActionEvidence:
     operator: str
     arguments: Mapping[str, str]
     argument_types: Mapping[str, str]
+    before_admissible_actions: Sequence[str]
+    after_admissible_actions: Sequence[str]
     admissible_actions_sha256: str
+    next_admissible_actions_sha256: str
     state_sha256: str
     next_state_sha256: str
+    reward: float
+    terminated: bool
+    truncated: bool
+    official_success_after: bool
 
 
 @dataclass(frozen=True)
@@ -83,6 +55,7 @@ class TargetDemoReceipt:
     official_score: float
     actions: Sequence[TargetActionEvidence]
     held_out: bool = False
+    native_evidence_version: int = 2
 
     def validate_for_admission(self) -> None:
         if self.held_out or self.split.lower() in {
@@ -96,15 +69,33 @@ class TargetDemoReceipt:
             raise ValueError("admission requires an official deterministic evaluator")
         if not self.actions:
             raise ValueError("target demo must contain executed action evidence")
+        if self.native_evidence_version != 2:
+            raise ValueError("admission requires target-native evidence schema v2")
         if not self.official_success:
             raise ValueError("the fixed admission demonstration did not succeed")
         digests = [self.source_file_sha256]
-        for action in self.actions:
+        for expected_index, action in enumerate(self.actions):
+            if action.transition_index != expected_index:
+                raise ValueError("target transition indices must be contiguous")
+            if action.action not in action.before_admissible_actions:
+                raise ValueError("executed action was not exactly target-admissible")
+            if _stable_hash(list(action.before_admissible_actions)) != action.admissible_actions_sha256:
+                raise ValueError("before-admissible receipt hash mismatch")
+            if _stable_hash(list(action.after_admissible_actions)) != action.next_admissible_actions_sha256:
+                raise ValueError("after-admissible receipt hash mismatch")
             digests.extend([
                 action.admissible_actions_sha256,
+                action.next_admissible_actions_sha256,
                 action.state_sha256,
                 action.next_state_sha256,
             ])
+        for previous, current in zip(self.actions, self.actions[1:]):
+            if tuple(previous.after_admissible_actions) != tuple(current.before_admissible_actions):
+                raise ValueError("target action-affordance receipts do not form a chain")
+            if previous.next_state_sha256 != current.state_sha256:
+                raise ValueError("target state receipts do not form a chain")
+        if not any(action.official_success_after for action in self.actions):
+            raise ValueError("target action receipts never record official success")
         if any(
             len(value) != 64 or any(char not in "0123456789abcdef" for char in value)
             for value in digests
@@ -125,26 +116,27 @@ class BindingCandidate:
     task_family: str
     target_operator: str
     argument_types: Mapping[str, str]
-    source_effect: str
     proposal_source: str
 
     @property
     def executable_signature(self) -> str:
         slots = ",".join(f"{key}:{self.argument_types[key]}" for key in sorted(self.argument_types))
-        return f"{self.source_step_id}[{self.source_effect}]->{self.target_operator}({slots})"
+        return f"{self.source_step_id}->{self.target_operator}({slots})"
 
 
 @dataclass(frozen=True)
 class VerifiedScope:
     target_domain: str
     task_family: str
+    source_skill_name: str
     operators: Sequence[str]
     argument_types: Mapping[str, str]
     source_steps: Sequence[str]
-    effects: Sequence[str] = field(default_factory=tuple)
     required_conditions: Sequence[str] = field(default_factory=tuple)
-    source_effect_evidence_count: int = 0
-    source_evidence_count: int = 0
+    target_transition_indices: Sequence[int] = field(default_factory=tuple)
+    native_transition_patterns: Sequence[Mapping[str, Any]] = field(default_factory=tuple)
+    proposal_sources: Sequence[str] = field(default_factory=tuple)
+    semantic_alignment_claimed: bool = False
 
 
 @dataclass
@@ -161,7 +153,7 @@ class AdmissionArtifact:
     verified_scope: VerifiedScope | None
     proof_trace: List[Dict[str, Any]]
     failure_codes: List[str] = field(default_factory=list)
-    schema_version: int = 1
+    schema_version: int = 2
 
     def to_dict(self) -> Dict[str, Any]:
         payload = _jsonable(asdict(self))
@@ -205,45 +197,24 @@ class StrictOneShotAdmission:
             action_by_signature.setdefault(key, []).append(action)
 
         source_steps = {step.step_id for step in program.steps}
-        source_effects = {
-            effect.predicate
-            for step in program.steps
-            for effect in step.effects
-            if effect.value_type == "typed_source_state_delta"
-        }
-        source_effect_support = {
-            effect.predicate: set(effect.evidence_step_ids)
-            for step in program.steps
-            for effect in step.effects
-            if effect.value_type == "typed_source_state_delta"
-        }
         passing: List[BindingCandidate] = []
         failures: List[str] = []
         uncovered: List[str] = []
         for candidate in candidates:
-            canonical_schema = TARGET_OPERATOR_SCHEMAS.get(candidate.target_domain, {}).get(
-                candidate.target_operator
+            target_signature = (
+                candidate.target_operator,
+                tuple(sorted(candidate.argument_types.items())),
             )
             checks = {
                 "program_id": candidate.source_program_id == program.program_id,
                 "program_hash": candidate.source_program_hash == program.content_hash(),
                 "source_step": candidate.source_step_id in source_steps,
-                "source_effect_verified": candidate.source_effect in source_effects,
                 "target_domain": candidate.target_domain == demo.target_domain,
                 "task_family": candidate.task_family == demo.task_family,
-                "target_schema_supported": (
-                    canonical_schema is not None
-                    and dict(candidate.argument_types) == dict(canonical_schema)
-                ),
-                "source_target_effect_exact": (
-                    TARGET_OPERATOR_EFFECTS.get(candidate.target_domain, {}).get(
-                        candidate.target_operator
-                    ) == candidate.source_effect
-                ),
-                "operator_and_types": (
-                    candidate.target_operator,
-                    tuple(sorted(candidate.argument_types.items())),
-                ) in action_by_signature,
+                # The target schema is obtained from the real demo's native
+                # parser receipt.  There is no copied cross-domain or global
+                # operator table in the admission path.
+                "target_native_schema_observed": target_signature in action_by_signature,
             }
             passed = all(checks.values())
             proof.append({
@@ -252,6 +223,7 @@ class StrictOneShotAdmission:
                 "pass": passed,
                 "details": checks,
                 "proposal_source_untrusted": candidate.proposal_source,
+                "cross_domain_semantic_predicate_used": False,
             })
             if passed:
                 passing.append(candidate)
@@ -260,11 +232,10 @@ class StrictOneShotAdmission:
                     checks[key]
                     for key in (
                         "program_id", "program_hash", "source_step",
-                        "source_effect_verified", "target_domain", "task_family",
-                        "target_schema_supported", "source_target_effect_exact",
+                        "target_domain", "task_family",
                     )
                 )
-                if structural and not checks["operator_and_types"]:
+                if structural and not checks["target_native_schema_observed"]:
                     uncovered.append(f"OPERATOR_NOT_COVERED:{candidate.candidate_id}")
                 else:
                     failures.append(f"CANDIDATE_FAILED:{candidate.candidate_id}")
@@ -308,34 +279,59 @@ class StrictOneShotAdmission:
 
         chosen = sorted(passing, key=lambda item: item.candidate_id)[0]
         covered = {item.source_step_id for item in passing if item.executable_signature == chosen.executable_signature}
-        support_count = len(source_effect_support.get(chosen.source_effect, set()))
-        source_evidence_count = len(program.evidence)
-        effect_is_universal = support_count == source_evidence_count
+        matching_target_steps = action_by_signature[
+            (chosen.target_operator, tuple(sorted(chosen.argument_types.items())))
+        ]
+        # A single source step contains no non-trivial control topology.  It is
+        # executable target evidence, but it cannot establish cross-domain
+        # semantic equivalence, so it remains explicitly conditional.
+        source_structure_is_informative = len(source_steps) > 1
         status = (
             AdmissionStatus.ADMITTED
-            if covered == source_steps and effect_is_universal
+            if covered == source_steps and source_structure_is_informative
             else AdmissionStatus.CONDITIONAL
         )
         scope = VerifiedScope(
             target_domain=demo.target_domain,
             task_family=demo.task_family,
+            source_skill_name=program.name,
             operators=[chosen.target_operator],
             argument_types=dict(chosen.argument_types),
             source_steps=sorted(covered),
-            effects=[chosen.source_effect],
-            required_conditions=["exact_current_environment_admissibility"],
-            source_effect_evidence_count=support_count,
-            source_evidence_count=source_evidence_count,
+            required_conditions=[
+                "exact_current_environment_admissibility",
+                "target_native_evidence_only",
+                "no_cross_domain_semantic_equivalence_claim",
+            ],
+            target_transition_indices=sorted(
+                action.transition_index for action in matching_target_steps
+            ),
+            native_transition_patterns=[
+                {
+                    "transition_index": action.transition_index,
+                    "state_changed": action.state_sha256 != action.next_state_sha256,
+                    "admissible_set_changed": (
+                        action.admissible_actions_sha256
+                        != action.next_admissible_actions_sha256
+                    ),
+                    "executed_action_still_admissible_after": (
+                        action.action in action.after_admissible_actions
+                    ),
+                }
+                for action in matching_target_steps
+            ],
+            proposal_sources=sorted({item.proposal_source for item in passing}),
+            semantic_alignment_claimed=False,
         )
         proof.append({
             "check": "scope_bounded_admission",
             "pass": True,
             "covered_source_steps": sorted(covered),
             "all_source_steps": sorted(source_steps),
-            "source_effect": chosen.source_effect,
-            "source_effect_evidence_count": support_count,
-            "source_evidence_count": source_evidence_count,
-            "source_effect_universal": effect_is_universal,
+            "target_transition_indices": list(scope.target_transition_indices),
+            "native_transition_patterns": list(scope.native_transition_patterns),
+            "source_structure_is_informative": source_structure_is_informative,
+            "semantic_alignment_claimed": False,
             "status": status.value,
         })
         return AdmissionArtifact(
@@ -445,13 +441,27 @@ def target_demo_receipt_from_dict(payload: Mapping[str, Any]) -> TargetDemoRecei
                 operator=str(item["operator"]),
                 arguments=dict(item.get("arguments") or {}),
                 argument_types=dict(item.get("argument_types") or {}),
+                before_admissible_actions=[
+                    str(value) for value in item.get("before_admissible_actions", [])
+                ],
+                after_admissible_actions=[
+                    str(value) for value in item.get("after_admissible_actions", [])
+                ],
                 admissible_actions_sha256=str(item["admissible_actions_sha256"]),
+                next_admissible_actions_sha256=str(
+                    item.get("next_admissible_actions_sha256") or ""
+                ),
                 state_sha256=str(item["state_sha256"]),
                 next_state_sha256=str(item["next_state_sha256"]),
+                reward=float(item.get("reward") or 0.0),
+                terminated=bool(item.get("terminated", False)),
+                truncated=bool(item.get("truncated", False)),
+                official_success_after=bool(item.get("official_success_after", False)),
             )
             for item in payload.get("actions", [])
         ],
         held_out=bool(payload.get("held_out", False)),
+        native_evidence_version=int(payload.get("native_evidence_version", 1)),
     )
     expected_hash = payload.get("demo_hash")
     if expected_hash and expected_hash != receipt.content_hash():
@@ -472,17 +482,25 @@ def admission_artifact_from_dict(payload: Mapping[str, Any]) -> AdmissionArtifac
         scope = VerifiedScope(
             target_domain=str(scope_payload["target_domain"]),
             task_family=str(scope_payload["task_family"]),
+            source_skill_name=str(scope_payload.get("source_skill_name") or "unknown"),
             operators=[str(item) for item in scope_payload.get("operators", [])],
             argument_types=dict(scope_payload.get("argument_types") or {}),
             source_steps=[str(item) for item in scope_payload.get("source_steps", [])],
-            effects=[str(item) for item in scope_payload.get("effects", [])],
             required_conditions=[
                 str(item) for item in scope_payload.get("required_conditions", [])
             ],
-            source_effect_evidence_count=int(
-                scope_payload.get("source_effect_evidence_count", 0)
+            target_transition_indices=[
+                int(item) for item in scope_payload.get("target_transition_indices", [])
+            ],
+            native_transition_patterns=[
+                dict(item) for item in scope_payload.get("native_transition_patterns", [])
+            ],
+            proposal_sources=[
+                str(item) for item in scope_payload.get("proposal_sources", [])
+            ],
+            semantic_alignment_claimed=bool(
+                scope_payload.get("semantic_alignment_claimed", False)
             ),
-            source_evidence_count=int(scope_payload.get("source_evidence_count", 0)),
         )
     artifact = AdmissionArtifact(
         status=AdmissionStatus(str(payload["status"])),
@@ -565,6 +583,4 @@ __all__ = [
     "load_frozen_admission_manifest",
     "runtime_scope_allows",
     "target_demo_receipt_from_dict",
-    "TARGET_OPERATOR_SCHEMAS",
-    "TARGET_OPERATOR_EFFECTS",
 ]

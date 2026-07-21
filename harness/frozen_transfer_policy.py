@@ -106,22 +106,25 @@ class FrozenAdmissionGuard:
 
     def __init__(self, bindings: Sequence[FrozenBinding]) -> None:
         self.bindings = tuple(bindings)
-        if not self.bindings:
-            raise ValueError("no admitted bindings in frozen manifest")
 
     @classmethod
     def from_files(
         cls,
         *,
         manifest_path: str | Path,
-        binding_config_path: str | Path,
+        binding_config_path: str | Path | None = None,
     ) -> "FrozenAdmissionGuard":
         artifacts = load_frozen_admission_manifest(manifest_path)
-        config = json.loads(Path(binding_config_path).read_text(encoding="utf-8"))
-        names = {
-            str(item["candidate_id"]): str(item["source_skill_name"])
-            for item in config.get("bindings", [])
-        }
+        # v2 artifacts are self-contained.  The optional config lookup exists
+        # only so old artifacts can still be inspected; new experiments must
+        # not consult a hand-authored cross-domain binding file at runtime.
+        names: Dict[str, str] = {}
+        if binding_config_path is not None:
+            config = json.loads(Path(binding_config_path).read_text(encoding="utf-8"))
+            names = {
+                str(item["candidate_id"]): str(item["source_skill_name"])
+                for item in config.get("bindings", [])
+            }
         bindings: List[FrozenBinding] = []
         for artifact in artifacts:
             if artifact.status not in {AdmissionStatus.ADMITTED, AdmissionStatus.CONDITIONAL}:
@@ -129,14 +132,17 @@ class FrozenAdmissionGuard:
             if artifact.admitted_candidate_id is None or artifact.verified_scope is None:
                 raise ValueError("admitted artifact is missing candidate/scope")
             candidate_id = artifact.admitted_candidate_id
-            if candidate_id not in names:
-                raise ValueError(f"binding config missing candidate: {candidate_id}")
+            source_skill_name = artifact.verified_scope.source_skill_name
+            if source_skill_name == "unknown":
+                if candidate_id not in names:
+                    raise ValueError(f"legacy binding config missing candidate: {candidate_id}")
+                source_skill_name = names[candidate_id]
             operators = list(artifact.verified_scope.operators)
             if len(operators) != 1:
                 raise ValueError(f"runtime requires one exact operator: {candidate_id}")
             bindings.append(FrozenBinding(
                 candidate_id=candidate_id,
-                source_skill_name=names[candidate_id],
+                source_skill_name=source_skill_name,
                 operator=operators[0],
                 artifact=artifact,
             ))
@@ -176,6 +182,43 @@ class FrozenAdmissionGuard:
     def available_bindings(self, actions: Sequence[GuardedAction]) -> List[FrozenBinding]:
         ids = {item.binding.candidate_id for item in actions}
         return [item for item in self.bindings if item.candidate_id in ids]
+
+    def verify_native_transition(
+        self,
+        *,
+        artifact_hash: str,
+        command: str,
+        before_admissible: Sequence[str],
+        after_admissible: Sequence[str],
+        before_observation: str,
+        after_observation: str,
+    ) -> tuple[bool, str | None]:
+        """Match a runtime transition to a pattern observed in the fixed demo.
+
+        The pattern contains only target-native, mechanically observed facts;
+        no cross-domain predicate or Agent rationale is consulted.
+        """
+        binding = next(
+            (item for item in self.bindings if item.artifact.artifact_hash == artifact_hash),
+            None,
+        )
+        if binding is None or binding.artifact.verified_scope is None:
+            return False, "UNKNOWN_FROZEN_ARTIFACT"
+        if command not in before_admissible:
+            return False, "ACTION_NOT_EXACTLY_ADMISSIBLE_BEFORE"
+        patterns = list(binding.artifact.verified_scope.native_transition_patterns)
+        if not patterns:
+            return False, "MISSING_TARGET_NATIVE_TRANSITION_PATTERN"
+        actual = {
+            "state_changed": before_observation != after_observation,
+            "admissible_set_changed": list(before_admissible) != list(after_admissible),
+            "executed_action_still_admissible_after": command in after_admissible,
+        }
+        for pattern in patterns:
+            expected = {key: bool(pattern[key]) for key in actual}
+            if actual == expected:
+                return True, None
+        return False, "TARGET_NATIVE_TRANSITION_PATTERN_MISMATCH"
 
 
 class StrictOpenAIClient:

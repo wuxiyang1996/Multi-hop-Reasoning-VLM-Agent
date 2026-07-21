@@ -1,5 +1,11 @@
 # 基于可执行语义的跨域技能迁移
 
+> **2026-07 v2 修订：** 本文中任何依赖手写共享 predicate 或
+> `source effect → target operator` 表的段落，不再作为正式实验协议。当前协议以
+> [`README_AGENT_NATIVE_SKILL_HARNESS.md`](README_AGENT_NATIVE_SKILL_HARNESS.md)
+> 为准：Agent 只提出候选，Harness 只使用 target-native execution receipts 和官方
+> evaluator，且当前单步 source program 最多只能获得 `CONDITIONAL`。
+
 > 设计目标：把游戏中发现的技能迁移到 ALFWorld、Browser、Video 和 Visual Reasoning，同时消除文本相似度、人工权重、手写 predicate 映射、模糊动作匹配和 LLM-as-judge 等启发式裁决。
 
 > **状态（2026-07-20）：ALFWorld v1 executable vertical slice 已实现，完整研究路线仍未完成。**

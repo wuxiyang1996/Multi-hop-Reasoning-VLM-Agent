@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify preregistered game→ALFWorld bindings against one real demo."""
+"""Verify agent-proposed game→ALFWorld candidates against one real demo."""
 
 from __future__ import annotations
 
@@ -32,16 +32,30 @@ def main() -> int:
     )
     parser.add_argument(
         "--bindings", type=Path,
-        default=REPO_ROOT / "configs/alfworld_one_shot_bindings.json",
+        required=True,
+        help="JSON emitted by propose_alfworld_bindings_35b.py",
     )
     parser.add_argument(
         "--output-root", type=Path,
         default=REPO_ROOT / "artifacts/admission/alfworld",
     )
+    parser.add_argument("--manifest-output", type=Path)
+    parser.add_argument(
+        "--allow-legacy-human-bindings", action="store_true",
+        help="smoke-test compatibility only; forbidden for research results",
+    )
     args = parser.parse_args()
 
     demo = target_demo_receipt_from_dict(json.loads(args.demo.read_text(encoding="utf-8")))
     config = json.loads(args.bindings.read_text(encoding="utf-8"))
+    if (
+        config.get("candidate_source") != "independent_untrusted_agents"
+        and not args.allow_legacy_human_bindings
+    ):
+        raise SystemExit(
+            "binding input is not an agent-generated candidate set; "
+            "use --allow-legacy-human-bindings only for legacy smoke tests"
+        )
     programs = []
     with args.programs.open(encoding="utf-8") as handle:
         for line in handle:
@@ -50,7 +64,7 @@ def main() -> int:
     by_identity = {(program.source_games[0], program.name): program for program in programs}
     verifier = StrictOneShotAdmission()
     store = FrozenAdmissionStore(args.output_root)
-    rows = []
+    grouped = {}
     for spec in config.get("bindings", []):
         identity = (str(spec["source_game"]), str(spec["source_skill_name"]))
         program = by_identity.get(identity)
@@ -65,13 +79,17 @@ def main() -> int:
             task_family=str(config["task_family"]),
             target_operator=str(spec["target_operator"]),
             argument_types=dict(spec.get("argument_types") or {}),
-            source_effect=str(spec["source_effect"]),
-            proposal_source=str(config.get("proposal_policy") or "untrusted"),
+            proposal_source=str(spec.get("proposal_source") or "untrusted_agent"),
         )
-        artifact = verifier.admit(program=program, candidates=[candidate], demo=demo)
+        grouped.setdefault(identity, (program, []))[1].append(candidate)
+
+    rows = []
+    for identity, (program, candidates) in sorted(grouped.items()):
+        artifact = verifier.admit(program=program, candidates=candidates, demo=demo)
         path = store.freeze(artifact)
         rows.append({
-            "candidate_id": candidate.candidate_id,
+            "candidate_ids": [item.candidate_id for item in candidates],
+            "admitted_candidate_id": artifact.admitted_candidate_id,
             "program_id": program.program_id,
             "status": artifact.status.value,
             "artifact_hash": artifact.artifact_hash,
@@ -94,12 +112,15 @@ def main() -> int:
         json.dumps(rows, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
     manifest["binding_set_hash"] = binding_set_hash
-    manifest_path = args.output_root / (
+    manifest_path = args.manifest_output or args.output_root / (
         f"manifest-{demo.content_hash()}-{binding_set_hash[:16]}.json"
     )
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     print(json.dumps(manifest, indent=2))
-    return 0 if all(row["status"] in {"ADMITTED", "CONDITIONAL"} for row in rows) else 1
+    # An empty or fully inconclusive candidate set is a valid fail-closed
+    # outcome.  Harness evaluation will then abstain while Base still runs.
+    return 0
 
 
 if __name__ == "__main__":
