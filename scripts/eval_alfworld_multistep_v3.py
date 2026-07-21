@@ -17,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from env_wrappers.alfworld_nl_wrapper import make_alfworld_env  # noqa: E402
+from harness.alfworld_grammar import parse_alfworld_action  # noqa: E402
 from harness.candidate_set_runtime import (  # noqa: E402
     CandidateActionProposal,
     FrozenCandidateSetRuntime,
@@ -43,6 +44,13 @@ from harness.online_transfer_runtime import (  # noqa: E402
     OnlineTransferState,
 )
 from harness.reasoning_event_log import ReasoningEventKind, ReasoningEventRecorder  # noqa: E402
+from harness.receipt_version_space import (  # noqa: E402
+    ReceiptVersionSpaceRuntime,
+    VersionSpaceStatus,
+    VersionTransitionVerdict,
+    candidate_binding_schema_hash,
+    receipt_version_space_from_dict,
+)
 from harness.source_conditioning_controls import rotate_source_conditioning  # noqa: E402
 
 
@@ -65,6 +73,10 @@ def _clean(value: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifact", type=Path, required=True)
+    parser.add_argument(
+        "--receipt-version-space", type=Path,
+        help="Optional frozen multi-example exact-schema source gate.",
+    )
     parser.add_argument("--condition", choices=("source", "target_only"), required=True)
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--model", default="qwen/qwen3.5-35b-a3b")
@@ -132,6 +144,42 @@ def main() -> int:
     contract_control_enabled = (
         args.online_source_control or args.shadow_source_control
     )
+    version_space = None
+    version_candidate_hashes = None
+    version_schema_by_candidate = {}
+    version_source_enabled = True
+    if args.receipt_version_space is not None:
+        if args.condition != "source" or not contract_control_enabled:
+            raise SystemExit(
+                "receipt version space requires a source shadow/enforce condition"
+            )
+        version_space = receipt_version_space_from_dict(json.loads(
+            args.receipt_version_space.read_text(encoding="utf-8")
+        ))
+        if (
+            version_space.target_domain != artifact.target_domain
+            or version_space.task_family != artifact.task_family
+            or version_space.source_treatment != artifact.source_treatment
+            or artifact.artifact_hash not in {
+                row.admission_artifact_hash for row in version_space.examples
+            }
+        ):
+            raise SystemExit("receipt version space does not cover this admission artifact")
+        viable = set(version_space.viable_schema_hashes)
+        version_schema_by_candidate = {
+            item.candidate_hash: candidate_binding_schema_hash(item)
+            for item in artifact.candidates
+        }
+        version_candidate_hashes = tuple(
+            candidate_hash
+            for candidate_hash, schema_hash in version_schema_by_candidate.items()
+            if schema_hash in viable
+        )
+        version_source_enabled = bool(version_candidate_hashes) and (
+            version_space.status in {
+                VersionSpaceStatus.PROVISIONAL, VersionSpaceStatus.READY,
+            }
+        )
     if (
         contract_control_enabled
         and args.condition == "source"
@@ -199,7 +247,18 @@ def main() -> int:
             target_instance_identity["identity_sha256"] = _hash(
                 target_instance_identity
             )
-            runtime = FrozenCandidateSetRuntime(artifact)
+            runtime = FrozenCandidateSetRuntime(
+                artifact,
+                allowed_candidate_hashes=(
+                    version_candidate_hashes
+                    if version_space is not None and version_source_enabled
+                    else None
+                ),
+            )
+            version_runtime = (
+                ReceiptVersionSpaceRuntime(version_space)
+                if version_space is not None and version_source_enabled else None
+            )
             online = (
                 OnlineTransferController(
                     max_rebind_requests=args.max_rebind_requests,
@@ -225,7 +284,10 @@ def main() -> int:
             success = _won(info)
             max_native_step_reward = 0.0
             cumulative_native_reward = 0.0
-            native_target_only_active = args.condition == "target_only"
+            native_target_only_active = (
+                args.condition == "target_only"
+                or (version_space is not None and not version_source_enabled)
+            )
             native_target_only_started_step = 0 if native_target_only_active else None
 
             def remember_native_transition(
@@ -774,7 +836,23 @@ def main() -> int:
                     abstain_reason = decision.reason or "CONSENSUS_ABSTENTION"
                     break
                 action_contract = None
-                if contract_control_enabled and using_source:
+                if (
+                    contract_control_enabled and using_source
+                    and version_runtime is not None
+                ):
+                    trace["version_space_preaction_contract"] = {
+                        "version_space_artifact_hash": version_space.artifact_hash,
+                        "status": version_space.status.value,
+                        "cursor": version_runtime.cursor,
+                        "current_exact_schemas": version_runtime.current_schemas(),
+                        "n_viable_versions": len(
+                            version_space.viable_schema_hashes
+                        ),
+                    }
+                if (
+                    contract_control_enabled and using_source
+                    and version_runtime is None
+                ):
                     contract_scope = build_action_contract_scope(
                         artifact_hash=artifact.artifact_hash,
                         step=len(actions), command=decision.command,
@@ -866,7 +944,62 @@ def main() -> int:
                     )
                     trace["online_transition_receipt"] = native_receipt.to_dict()
                     trace["online_transition_receipt_sha256"] = native_receipt.receipt_sha256
-                    if action_contract is not None:
+                    if version_runtime is not None:
+                        parsed_command = parse_alfworld_action(
+                            decision.command, admissible=before_actions,
+                        )
+                        version_verification = version_runtime.observe_transition(
+                            transition=native_receipt,
+                            observed_operator=parsed_command.operator,
+                            observed_argument_types=parsed_command.argument_types,
+                        )
+                        trace["version_space_evidence_verification"] = (
+                            version_verification.to_dict()
+                        )
+                        trace["version_space_verdict"] = (
+                            version_verification.verdict.value
+                        )
+                        if online is not None:
+                            if version_verification.verdict == (
+                                VersionTransitionVerdict.SUPPORTED
+                            ):
+                                current_runtime.observe_evidence_contract(
+                                    decision,
+                                    executed_command=decision.command,
+                                    candidate_results={
+                                        key: True for key in current_runtime.cursors
+                                    },
+                                    verification_receipt_sha256=(
+                                        version_verification.receipt_sha256
+                                    ),
+                                )
+                                event = online.observe_contract_transition(
+                                    native_receipt,
+                                    evidence_contract_satisfied=True,
+                                    contract_kind="MULTI_EXAMPLE_VERSION_SPACE",
+                                )
+                            else:
+                                event = online.fallback_to_target_only(
+                                    step=len(actions),
+                                    reason=(
+                                        "VERSION_SPACE_"
+                                        + version_verification.verdict.value
+                                    ),
+                                )
+                            trace["online_verdict"] = event.verdict.value
+                            recorder.append(ReasoningEventKind.ONLINE_TRANSFER_VERDICT, {
+                                "event_sha256": event.event_sha256,
+                                "transition_receipt_sha256": native_receipt.receipt_sha256,
+                                "version_space_verification_receipt_sha256": (
+                                    version_verification.receipt_sha256
+                                ),
+                                "verdict": event.verdict.value,
+                                "reason": event.reason,
+                                "state_after": event.state_after.value,
+                            })
+                        else:
+                            trace["shadow_version_space_not_enforced"] = True
+                    elif action_contract is not None:
                         verification = verify_action_evidence_contract(
                             contract=action_contract, transition=native_receipt,
                         )
@@ -920,9 +1053,20 @@ def main() -> int:
                 "abstain_reason": abstain_reason, "error": error,
                 "traces": traces, "reasoning_event_log": recorder.to_dict(),
                 "online_transfer_log": online.to_dict() if online is not None else None,
+                "receipt_version_space_source_enabled": (
+                    version_source_enabled if version_space is not None else None
+                ),
+                "receipt_version_space_initial_gate": (
+                    "SOURCE_ENABLED"
+                    if version_space is not None and version_source_enabled
+                    else version_space.status.value
+                    if version_space is not None else None
+                ),
                 "fallback_mode": (
                     "NATIVE_TARGET_ONLY_FROM_RESET"
                     if args.condition == "target_only"
+                    else "NATIVE_TARGET_ONLY_FROM_RESET_VERSION_SPACE_GATE"
+                    if version_space is not None and not version_source_enabled
                     else "LIVE_TARGET_ONLY_FROM_CURRENT_STATE"
                     if native_target_only_started_step is not None else None
                 ),
@@ -972,6 +1116,22 @@ def main() -> int:
         "receipt_grounded_action_contracts": bool(
             artifact.demo_transition_contract_receipts
         ),
+        "receipt_version_space_artifact_hash": (
+            version_space.artifact_hash if version_space is not None else None
+        ),
+        "receipt_version_space_status": (
+            version_space.status.value if version_space is not None else None
+        ),
+        "receipt_version_space_expected_examples": (
+            version_space.expected_example_count
+            if version_space is not None else None
+        ),
+        "receipt_version_space_observed_examples": (
+            len(version_space.examples) if version_space is not None else None
+        ),
+        "receipt_version_space_source_enabled": (
+            version_source_enabled if version_space is not None else None
+        ),
         "source_conditioning_control": args.source_conditioning_control,
         "conditioning_control_seed": (
             args.conditioning_control_seed
@@ -996,6 +1156,15 @@ def main() -> int:
                 "contract_compiler" in trace
                 for row in rows for trace in row["traces"]
             ),
+            "total_version_space_verifications": sum(
+                "version_space_evidence_verification" in trace
+                for row in rows for trace in row["traces"]
+            ),
+            "n_version_space_need_more_evidence": sum(
+                trace.get("version_space_verdict")
+                == VersionTransitionVerdict.NEED_MORE_EVIDENCE.value
+                for row in rows for trace in row["traces"]
+            ),
             "n_rebind_admitted": sum(
                 bool(trace.get("rebind_agent", {}).get("qualified_receipt"))
                 for row in rows for trace in row["traces"]
@@ -1009,6 +1178,10 @@ def main() -> int:
                 bool(row["online_transfer_log"])
                 and row["online_transfer_log"]["state"] == "TARGET_ONLY"
                 for row in rows
+            ),
+            "n_source_gated_off_before_episode": (
+                len(rows)
+                if version_space is not None and not version_source_enabled else 0
             ),
         },
     }

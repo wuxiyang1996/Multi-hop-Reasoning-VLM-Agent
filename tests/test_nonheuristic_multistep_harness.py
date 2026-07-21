@@ -821,6 +821,23 @@ def test_candidate_cursor_advances_only_after_contract_and_refutation_is_retaine
     assert after.reason == "NO_ACTIVE_CANDIDATES"
 
 
+def test_candidate_runtime_allowlist_is_exact_and_fail_closed() -> None:
+    artifact = _admit([_binding("a"), _binding("b")])
+    allowed = artifact.candidates[0].candidate_hash
+    runtime = FrozenCandidateSetRuntime(
+        artifact, allowed_candidate_hashes=(allowed,),
+    )
+    assert tuple(runtime.cursors) == (allowed,)
+    assert len(runtime.active_source_conditioning()) == 1
+
+    with pytest.raises(ValueError, match="allowlist is empty"):
+        FrozenCandidateSetRuntime(artifact, allowed_candidate_hashes=())
+    with pytest.raises(ValueError, match="unknown hashes"):
+        FrozenCandidateSetRuntime(
+            artifact, allowed_candidate_hashes=(_hash("not-qualified"),),
+        )
+
+
 def test_candidate_contract_results_advance_and_refute_independently() -> None:
     runtime = FrozenCandidateSetRuntime(_admit([_binding("a"), _binding("b")]))
 

@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import runpy
 import sys
 from pathlib import Path
 from typing import Any
@@ -252,13 +253,28 @@ def main() -> int:
     demo = target_demo_receipt_from_dict(json.loads(args.demo.read_text(encoding="utf-8")))
     demo.validate_for_admission()
     key = os.environ.get(args.api_key_env, "").strip()
-    if not key and args.reuse_proposal_receipts is None and "openrouter.ai" in args.endpoint.lower():
+    if (
+        not key and args.reuse_proposal_receipts is None
+        and "openrouter.ai" in args.endpoint.lower()
+    ):
         try:
             from API_func import open_router_api_key
             key = str(open_router_api_key or "").strip()
         except Exception:
             key = ""
-    if args.reuse_proposal_receipts is None and "openrouter.ai" in args.endpoint.lower() and not key:
+    if (
+        not key and args.reuse_proposal_receipts is None
+        and "openrouter.ai" in args.endpoint.lower()
+    ):
+        key_file = REPO_ROOT.parent / "keys.py"
+        if key_file.is_file():
+            key = str(
+                runpy.run_path(str(key_file)).get("OPENROUTER_API_KEY") or ""
+            ).strip()
+    if (
+        args.reuse_proposal_receipts is None
+        and "openrouter.ai" in args.endpoint.lower() and not key
+    ):
         raise SystemExit("OpenRouter API key unavailable")
 
     client = (

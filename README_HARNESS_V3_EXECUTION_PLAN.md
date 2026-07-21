@@ -620,3 +620,45 @@ non-thinking closed-plan proposal（512-token cap）；这比继续扩大 hidden
 实现多 adaptation examples 的 receipt version space：保留所有仍与证据一致的 binding/effect
 候选，只有全部候选都不兼容才 refute，否则继续或请求额外 example。在完成该机制和小型
 E/S/W/R paired pilot 前，`authorizes_large_scale_2x4=false`。
+
+### 8.4 两样本 receipt version space：真实负结果与设计边界
+
+已实现 content-addressed 多样本 version space。它不做文本 clustering、embedding similarity、
+投票或 reward ranking；每个 version 是 Agent 提出的精确
+`source hypothesis/node → target operator + argument types` schema，Harness 只对冻结 admission
+artifact 做集合运算。adaptation set 未收齐时，非空交集为 `PROVISIONAL`，空交集为
+`NEED_MORE_EVIDENCE`；预注册样本收齐后，非空交集为 `READY`，空交集只声明
+`NOT_APPLICABLE_WITHIN_REGISTERED_ADAPTATION_SET`，不外推成 source skill 全局无效。运行时遇到
+未在 adaptation receipts 出现过的 effect signature 时返回 `NEED_MORE_EVIDENCE`，不会把新证据
+自动当作反证。
+
+真实检查使用两个独立 ALFWorld train success demonstrations：seed42 的 admission artifact
+保留 2 个精确 schema，seed48 由同一 frozen 六游戏 source artifact、相同 35B 模型和 3 个固定
+Agent roles 新生成 proposal，3/3 可解析且 3/3 admission 通过，去重后保留 2 个 schema。冻结的
+两样本 version space 位于
+`runs/alfworld_native_calibration_20260721/designated_version_space_2of2.json`：
+
+- expected/observed examples 为 `2/2`；
+- 总计 4 个不同完整 schema；
+- 精确共同 schema 为 0；
+- verdict 为 `NOT_APPLICABLE_WITHIN_REGISTERED_ADAPTATION_SET`。
+
+这不是 API 或 admission failure。两个成功实例需要不同长度/位置的 navigation scaffolding；当前
+candidate identity 又要求完整目标 action partition 与 source node 分配完全相同，因此没有足够
+证据证明一个固定的 episode-level binding 可以复用。Harness 按 fail-closed 规则在 episode 开始
+前禁用 source，而不是任选一个候选。seed47 的真实 fallback smoke 重复两次：第一次 native
+target Actor 在 8 步完成；加入逐 episode gate 审计字段后重跑，Actor 在 30-step cap 内搜索多个
+cabinet/drawer 仍未完成。因此当前观测为 `1/2` success，而不是稳定性能结论。两次均为 0 rebind、
+0 contract call、0 version verification，且 source 从 reset 前即被 gate off；这里只验证安全回退
+路径确实被执行，也再次说明 35B Actor 有明显的 run-to-run 不稳定性，不是 positive transfer。
+最终可审计重跑位于
+`runs/alfworld_native_calibration_20260721/designated_version_space_2of2_enforce_ep1.json`，其中
+`fallback_mode=NATIVE_TARGET_ONLY_FROM_RESET_VERSION_SPACE_GATE`。
+
+该结果还限定了下一版设计：不能简单删除多余 `GOTO`、忽略 action 顺序或人工把它标成
+“contextual navigation”，因为这些都会暗中加入 ontology/heuristic。若要从完整程序推进到
+decompose-recompose，Agent 必须显式提出带条件的 node-local target policy（包括何时开始、何时
+结束、允许的局部 action set 与 source-edge continuation），每项条件都引用真实 target receipts；
+Harness 再机械检查完整 transition coverage、node 间顺序/边约束和 live action-set 一致性。
+在这种 evidence-carrying conditional program 尚未实现前，现有数据只能支持上述 bounded
+`NOT_APPLICABLE` 结论，不能启动大规模 2×4 实验。

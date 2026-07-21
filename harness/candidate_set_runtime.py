@@ -40,19 +40,31 @@ class CandidateRuntimeStatus(str, Enum):
 class FrozenCandidateSetRuntime:
     """Artifact is immutable; only per-episode cursors change."""
 
-    def __init__(self, artifact: MultiStepAdmissionArtifact) -> None:
+    def __init__(
+        self, artifact: MultiStepAdmissionArtifact,
+        *, allowed_candidate_hashes: Sequence[str] | None = None,
+    ) -> None:
         if artifact.schema_version != 3:
             raise ValueError("candidate-set runtime requires v3 artifact")
         if artifact.node_binding_version != 3:
             raise ValueError("candidate-set runtime requires source-conditioning binding v3")
         self.artifact = artifact
-        self._cursor = {item.candidate_hash: 0 for item in artifact.candidates}
+        known = {item.candidate_hash for item in artifact.candidates}
+        allowed = known if allowed_candidate_hashes is None else set(allowed_candidate_hashes)
+        if not allowed or allowed - known:
+            raise ValueError("candidate allowlist is empty or references unknown hashes")
+        self._qualified_candidates = tuple(
+            item for item in artifact.candidates if item.candidate_hash in allowed
+        )
+        self._cursor = {
+            item.candidate_hash: 0 for item in self._qualified_candidates
+        }
         self._status = {
             item.candidate_hash: CandidateRuntimeStatus.ACTIVE
-            for item in artifact.candidates
+            for item in self._qualified_candidates
         }
         self._status_receipt: dict[str, str | None] = {
-            item.candidate_hash: None for item in artifact.candidates
+            item.candidate_hash: None for item in self._qualified_candidates
         }
 
     @property
@@ -69,7 +81,7 @@ class FrozenCandidateSetRuntime:
 
     def _active_candidates(self) -> tuple[QualifiedBindingCandidate, ...]:
         return tuple(
-            item for item in self.artifact.candidates
+            item for item in self._qualified_candidates
             if self._status[item.candidate_hash] == CandidateRuntimeStatus.ACTIVE
         )
 
@@ -85,7 +97,7 @@ class FrozenCandidateSetRuntime:
             raise ValueError("cannot align runtimes admitted from different demos")
         if completed_steps < 0:
             raise ValueError("completed_steps must be non-negative")
-        for qualified in self.artifact.candidates:
+        for qualified in self._qualified_candidates:
             total = sum(len(node.target_steps) for node in qualified.candidate.nodes)
             if completed_steps > total:
                 raise ValueError("completed prefix exceeds candidate program length")

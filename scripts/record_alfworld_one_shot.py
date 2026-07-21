@@ -41,7 +41,9 @@ def main() -> int:
         "--config-path",
         default=str(REPO_ROOT / "configs/alfworld_pick_and_place_config.yaml"),
     )
-    parser.add_argument("--demo-id", default="alfworld-pick-and-place-train-seed42-v3-shot0")
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--shot-index", type=int, default=0)
+    parser.add_argument("--demo-id")
     parser.add_argument("--max-steps", type=int, default=80)
     parser.add_argument(
         "--output",
@@ -51,16 +53,22 @@ def main() -> int:
     args = parser.parse_args()
     if args.max_steps < 1:
         raise SystemExit("--max-steps must be positive")
+    if args.shot_index < 0:
+        raise SystemExit("--shot-index must be non-negative")
+    demo_id = args.demo_id or (
+        f"alfworld-pick-and-place-train-seed{args.seed}-v3-shot{args.shot_index}"
+    )
     env = make_alfworld_env(
         split="train",
         max_steps=args.max_steps,
         config_path=args.config_path,
-        random_seed=42,
+        random_seed=args.seed,
     )
+    env.skip_games(args.shot_index)
     recorder = AlfworldDemoRecorder(
         env,
-        demo_id=args.demo_id,
-        episode_id=args.demo_id,
+        demo_id=demo_id,
+        episode_id=demo_id,
         task_family="pick_and_place",
         split="train",
     )
@@ -90,8 +98,8 @@ def main() -> int:
         "protocol_version": 3,
         "split": "train",
         "task_types": [1],
-        "random_seed": 42,
-        "shot_index": 0,
+        "random_seed": args.seed,
+        "shot_index": args.shot_index,
         "best_of_n": False,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
