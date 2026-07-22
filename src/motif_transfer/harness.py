@@ -122,8 +122,17 @@ class DeterministicHarness:
                     False, None, "edge must carry every observed fork from its source node"
                 )
 
+        skill_class_map: dict[int, int] = {}
+        for node in candidate.nodes:
+            for signature in node.decision_signatures:
+                if (
+                    isinstance(signature, SourceStepSignature)
+                    and signature.skill_class_ordinal is not None
+                    and signature.skill_class_ordinal not in skill_class_map
+                ):
+                    skill_class_map[signature.skill_class_ordinal] = len(skill_class_map)
         signatures = {
-            stable_hash(self._behavioral_signature(signature))
+            stable_hash(self._behavioral_signature(signature, skill_class_map))
             for node in candidate.nodes
             for signature in node.decision_signatures
         }
@@ -135,14 +144,20 @@ class DeterministicHarness:
 
         # Natural-language descriptions and edge claims are excluded on purpose.
         node_ordinals = {node_id: index for index, node_id in enumerate(node_ids)}
+        def signature_rle(node):
+            result = []
+            for signature in node.decision_signatures:
+                normalized = self._behavioral_signature(signature, skill_class_map)
+                if not result or result[-1] != normalized:
+                    result.append(normalized)
+            return result
+
         verified_shape = {
             "nodes": [
                 {
-                    "transition_count": len(node.transition_receipt_ids),
-                    "decision_signatures": [
-                        self._behavioral_signature(signature)
-                        for signature in node.decision_signatures
-                    ],
+                    # Exact receipts remain mandatory evidence, but repeated time spent
+                    # in one control state is domain timing, not motif identity.
+                    "decision_signature_rle": signature_rle(node),
                 }
                 for node in candidate.nodes
             ],
@@ -158,11 +173,14 @@ class DeterministicHarness:
         return MotifAudit(True, stable_hash(verified_shape), "STRUCTURALLY_NONUNIFORM_CANDIDATE")
 
     @staticmethod
-    def _behavioral_signature(signature):
+    def _behavioral_signature(signature, skill_class_map=None):
         values = dict(signature.__dict__)
         if isinstance(signature, SourceStepSignature):
             # Treatment membership is provenance, not behavioral structure.
             values.pop("skill_conditioned", None)
+            ordinal = values.get("skill_class_ordinal")
+            if ordinal is not None and skill_class_map is not None:
+                values["skill_class_ordinal"] = skill_class_map[ordinal]
         return values
 
     def evaluate_matched(self, outcomes: Iterable[ConditionOutcome]) -> TransferReport:

@@ -102,7 +102,7 @@ def test_source_motif_uses_native_policy_receipts_without_proposals():
     before1 = after0
     after1 = Observation({"n": 2}, ("a", "b"), terminal=True)
 
-    def record(step, before, after, reward):
+    def record(step, before, after, reward, skill_id):
         transition = SourceTransitionReceipt.create(
             before,
             episode_id="episode",
@@ -116,12 +116,15 @@ def test_source_motif_uses_native_policy_receipts_without_proposals():
             reward=reward,
         )
         return SourcePolicyStepRecord(
-            "episode", step, before, "skill", "skill-hash", "reasoning",
+            "episode", step, before, skill_id, "skill-hash", "reasoning",
             f"response-{step}", "a", "AGENT", "action_taking", after,
             reward, transition,
         )
 
-    records = (record(0, before0, after0, 0), record(1, before1, after1, 1))
+    records = (
+        record(0, before0, after0, 0, "skill-a"),
+        record(1, before1, after1, 1, "skill-b"),
+    )
     fork = ReplayForkReceipt.create(
         source_transition_id=records[0].transition.receipt_id,
         prefix_hash="prefix", fork_state_hash="fork", admissible_actions_hash="actions",
@@ -129,17 +132,36 @@ def test_source_motif_uses_native_policy_receipts_without_proposals():
     )
 
     class SourceBackend(Backend):
+        last_payload = None
+
         def complete(self, role, system, payload):
             if role == "segment":
+                self.last_payload = payload
                 return json.dumps({"motifs": [{
                     "nodes": [
-                        {"node_id": "n0", "step_indices": [0]},
-                        {"node_id": "n1", "step_indices": [1]},
+                        {"node_id": "n0", "run_indices": [0]},
+                        {"node_id": "n1", "run_indices": [1]},
                     ],
                     "edges": [{"source": "n0", "target": "n1", "fork_indices": [0]}],
                 }]})
             return super().complete(role, system, payload)
 
-    candidate = FrozenJSONMotifAgent(SourceBackend()).propose_source_motifs(records, (fork,))[0]
+    backend = SourceBackend()
+    candidate = FrozenJSONMotifAgent(backend).propose_source_motifs(records, (fork,))[0]
     assert candidate.nodes[0].transition_receipt_ids == (records[0].transition.receipt_id,)
     assert candidate.edges[0].replay_receipt_ids == (fork.receipt_id,)
+
+    renamed_backend = SourceBackend()
+    FrozenJSONMotifAgent(
+        renamed_backend, condition=PromptCondition.RENAMED
+    ).propose_source_motifs(records, (fork,))
+    serialized = json.dumps(renamed_backend.last_payload)
+    assert "skill-a" not in serialized and "skill-b" not in serialized
+    assert "SKILL_CLASS_0" in serialized and "SKILL_CLASS_1" in serialized
+
+    shuffled_backend = SourceBackend()
+    FrozenJSONMotifAgent(
+        shuffled_backend, condition=PromptCondition.SHUFFLED_TOPOLOGY
+    ).propose_source_motifs(records, (fork,))
+    first_visible = shuffled_backend.last_payload["mechanical_skill_runs"][0]
+    assert first_visible["steps"][0]["transition_receipt_id"] == records[1].transition.receipt_id

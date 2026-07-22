@@ -115,6 +115,57 @@ def test_skill_condition_label_is_excluded_from_structural_fingerprint():
     assert skill_on.structural_fingerprint == skill_off.structural_fingerprint
 
 
+def test_anonymous_skill_class_change_is_observable_control_variation():
+    r1, r2 = receipt(0), receipt(1)
+    fork = replay(r1)
+    candidate = MotifCandidate(
+        "source",
+        (r1.receipt_id, r2.receipt_id),
+        (
+            MotifNode("a", (r1.receipt_id,), (
+                SourceStepSignature(True, "AGENT", "ZERO", False, 0),
+            )),
+            MotifNode("b", (r2.receipt_id,), (
+                SourceStepSignature(True, "AGENT", "ZERO", False, 1),
+            )),
+        ),
+        (MotifEdge("a", "b", (fork.receipt_id,)),),
+    )
+    receipts = {row.receipt_id: row for row in (r1, r2, fork)}
+    audit = DeterministicHarness().audit_motif(candidate, receipts)
+    assert audit.accepted
+
+
+def test_source_fingerprint_is_alpha_renamed_and_run_length_invariant():
+    r1, r2, r3 = receipt(0), receipt(1), receipt(2)
+    fork = replay(r1)
+
+    def candidate(first_class, second_class, repeat):
+        second_receipts = (r2.receipt_id, r3.receipt_id) if repeat else (r2.receipt_id,)
+        second_signatures = tuple(
+            SourceStepSignature(True, "AGENT", "ZERO", False, second_class)
+            for _ in second_receipts
+        )
+        return MotifCandidate(
+            "source",
+            (r1.receipt_id, r2.receipt_id, r3.receipt_id),
+            (
+                MotifNode("a", (r1.receipt_id,), (
+                    SourceStepSignature(True, "AGENT", "ZERO", False, first_class),
+                )),
+                MotifNode("b", second_receipts, second_signatures),
+            ),
+            (MotifEdge("a", "b", (fork.receipt_id,)),),
+        )
+
+    receipts = {row.receipt_id: row for row in (r1, r2, r3, fork)}
+    harness = DeterministicHarness()
+    first = harness.audit_motif(candidate(1, 7, True), receipts)
+    second = harness.audit_motif(candidate(20, 30, False), receipts)
+    assert first.accepted and second.accepted
+    assert first.structural_fingerprint == second.structural_fingerprint
+
+
 def outcome(condition, success):
     return ConditionOutcome(condition, "state", "prefix", "policy", "budget", success, float(success))
 

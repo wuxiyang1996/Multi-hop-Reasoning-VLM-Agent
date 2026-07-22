@@ -55,6 +55,6 @@ python examples/smoke_two_agent.py
 
 旧 Decision Agent 不改接口：skill-on 仍执行 `skill_selection LoRA → selected game skill → action_taking LoRA → native action`，skill-off 只移除 skill context。Motif/Harness Agent 不参与 source action。
 
-rollout 完成后，确定性代码在 recorded selected-skill hash 的变化点切出连续片段。旧 `segment` LoRA 只做它原来训练过的 all-candidate skill ranking；它不生成 action proposal，也不直接生成 motif 图。独立 Motif/Harness Agent 再从 hash-bound ranking receipts、transition receipts 和 replay receipts 中提出候选图，并由 matched controls 判断是否存在 source-derived 增量价值。
+rollout 完成后，确定性代码在精确记录的 `selected_skill_id` 变化点切出连续片段。不能使用 `selected_skill_sha256` 做边界，因为旧系统的该字段包含随 observation 变化的动态 guidance，同一 skill 也会产生不同哈希。旧 `segment` LoRA 只做它原来训练过的 all-candidate skill ranking；它不生成 action proposal，也不直接生成 motif 图。独立 Motif/Harness Agent 只能组合完整的机械片段，并从 hash-bound ranking receipts、transition receipts 和 replay receipts 中提出候选图；matched controls 再判断是否存在 source-derived 增量价值。
 
 历史实现仍完整保存在 Git parent `948f64a` 以及原始工作副本中；本分支不复制 checkpoint、rollout、Slurm log 或生成结果。

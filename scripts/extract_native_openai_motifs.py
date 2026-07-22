@@ -29,6 +29,15 @@ def main() -> None:
     parser.add_argument("--key-file", required=True)
     parser.add_argument("--key-name", default="OPENAI_API_KEY")
     parser.add_argument("--output", required=True)
+    parser.add_argument(
+        "--supplemental-replays",
+        help="hash-bound supplemental replay bundle to merge fail-closed",
+    )
+    parser.add_argument(
+        "--supplemental-only",
+        action="store_true",
+        help="exclude base fixed-step replays from proposal and audit",
+    )
     args = parser.parse_args()
 
     secrets = runpy.run_path(args.key_file)
@@ -49,7 +58,11 @@ def main() -> None:
     harness = DeterministicHarness()
     rows = []
     usage_totals: dict[str, int] = {}
-    for episode in import_native_source_batch(args.evidence_dir):
+    for episode in import_native_source_batch(
+        args.evidence_dir,
+        args.supplemental_replays,
+        include_base_replays=not args.supplemental_only,
+    ):
         receipt_map = {
             row.transition.receipt_id: row.transition for row in episode.records
         } | {row.receipt_id: row for row in episode.replay_forks}
@@ -85,6 +98,8 @@ def main() -> None:
         "authority": "UNTRUSTED_MOTIF_PROPOSAL_ONLY",
         "model_identity": dict(backend.identity),
         "prompt_condition": args.condition,
+        "supplemental_replays": args.supplemental_replays,
+        "supplemental_only": args.supplemental_only,
         "episodes": rows,
         "totals": {
             "episodes": len(rows),

@@ -63,7 +63,7 @@ def segment_native_policy(
     for index in range(1, len(ordered) + 1):
         boundary = (
             index == len(ordered)
-            or ordered[index].selected_skill_hash != ordered[index - 1].selected_skill_hash
+            or ordered[index].selected_skill_id != ordered[index - 1].selected_skill_id
             or ordered[index].step != ordered[index - 1].step + 1
         )
         if boundary:

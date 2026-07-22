@@ -177,6 +177,90 @@ Candy:  skill-on 632.50 - skill-off 565.17 = +67.33
 
 完整机器可读结果保存在本地生成目录 `runs/phase1_tetris_candy_long_v1/paired_report.json`；该目录不进入 Git。定向批次的 receipt、import、initial-state pairing、checkpoint identity、wrapper identity 和 native-action gates 全部通过。六游戏总门保持为 false，因为该批有意只覆盖两游戏。
 
+## Streets/Strider 长程筛查与切换 replay
+
+第一次长程提交 `7119530` 暴露出 source collector 显式使用 `use_query_engine=False`，使 skill-on 退化为 skill bank 前三项的非排序 fallback。该批 skill-on 被中止并隔离到 `runs/phase1_unranked_control_7119530`，没有进入 semantic-skill 结论；skill-off 不受该问题影响。修复后要求 Qwen embedding query engine 成功加载，否则 fail closed。正式 semantic skill-on 重跑 `7119540` 与保留的 matched skill-off 共同形成：
+
+```text
+2 games × {skill-on, skill-off} × 6 episodes × 50 max steps
+1200/1200 imported transitions, 0 gaps
+exact (requested seed, initial-state hash) pairing
+```
+
+配对结果为：
+
+```text
+Streets: skill-on 121.67 - skill-off 93.33 = +28.33
+         selected skill: COMMIT/ATTACK 300/300; 0 switches
+
+Strider: skill-on 183.33 - skill-off 150.00 = +33.33
+         paired deltas: +50, 0, +50, +50, +50, 0
+         selected skills: POSITION 212, EXPLORE 59, ATTACK 29
+         exact selected-skill-ID switches: 52
+```
+
+Gym-V 对 requested seed 的 reset 实际产生相同 initial-state hash。旧分析只比较 hash multiset，会把重复初态误称为 seed pairing；现已改为每对同时要求 requested seed 与 initial hash 相同。另一个问题是 `selected_skill_sha256` 包含动态 observation guidance，同一 skill 每步也会变化；用它分段会把 Strider 的 52 次真实切换膨胀到约 261 个伪切换。现在所有边界只使用 exact recorded `selected_skill_id`，得到 58 个 maximal runs 和 52 个边界。
+
+CPU 作业 `7119593` 在每个边界从相同 requested seed 重放原 prefix，并穷举当步除原动作外的全部 11 个 native alternatives：
+
+```text
+52/52 switch boundaries
+572/572 replay-fork receipts
+status = INTERVENTION_OBSERVED for every receipt
+Slurm exit 0; elapsed 39:09
+```
+
+Supplemental bundle 与原 manifest/events/episodes 三个文件的 SHA-256、receipt 文件 hash 和逐条 content hash 绑定；importer 对任一 mismatch、非 observed status 或 count mismatch fail closed。
+
+Replay collector 随后加入边界内 fork 并行；每个 alternative 仍创建独立 adapter、reset 相同 seed 并重放完整 prefix，`executor.map` 保持 receipt 顺序。8-worker 全量校验作业 `7119635` 用时 `8:03`，相对顺序版 `39:09` 加速 `4.86×`。两版 572 行 receipt JSONL 的 SHA-256 均为 `184e9c05ff4d794c2badf2c3df24ee07225d37f0c642ffd12c6cdfa2e013bdb7`，证明吞吐优化没有改变证据内容。
+
+## Strider motif proposal matched controls
+
+GPT-5-mini 只作为无 action authority 的 untrusted Motif proposal Agent。Agent 只能组合 exact skill-ID 形成的完整 maximal runs，不能切 step、移动 step 或创造边界；Harness 只接受携带 source-node 全部 observed forks 的 edge。初次 smoke 同时输入旧 step-1 forks，模型 6/6 选择了与真实切换无关的前两个 run，Harness 以 `no observable control variation` 全部拒绝。修复后 proposal 只输入 572 个 switch-boundary forks。
+
+Harness 使用 skill ID 的匿名等价类，而不是名称：先按 episode 首次出现编号，再在候选图内做 alpha-renaming；任意 skill rename 不改变 fingerprint。连续重复相同 signature 使用 run-length collapse，避免把领域特定的持续 3 步或 7 步误当成不同 backbone；原始 transitions 仍全部是强制 evidence。
+
+四个等预算条件的结果为：
+
+```text
+condition            accepted    dominant fingerprint recurrence
+authentic              6/6       3/6
+receipt_only           6/6       4/6
+renamed                5/6       4/5 accepted
+shuffled_topology      3/6       2/3 accepted
+```
+
+authentic 与 receipt-only 在 5/6 episode 的 fingerprint 完全相同；renamed 的前五个 accepted 中也与对应 receipt-only 相同。真实 run/fork topology 有助于构造合法图，但 skill 名和自然语言 reasoning 没有显示增量，且 authentic dominant fingerprint 不优于 controls。因此当前候选保持 `GENERIC/BEHAVIORAL STRUCTURE ONLY`，不得晋升 `SOURCE_SUPPORTED`，也尚不进入远域 positive-transfer claim。
+
+Columns/Thunder 的 50-step semantic skill-on/off 长程筛查提交为 `7119628`。skill-on 已完成：Thunder 为 300 transitions、38 次切换、0 gaps；Columns 因部分 episode 提前结束为 277 transitions、5 次切换、0 gaps。8-worker supplemental replay 分别得到 Thunder 418/418、Columns 55/55 observed receipts。
+
+Columns 只有 3/6 episode 有切换。四个条件都在这三个 episode 生成 3/3 accepted candidates，但 authentic 的三个 fingerprint 各只出现一次，没有 recurrence，因此为 `INCONCLUSIVE/SPARSE`。
+
+Thunder 的四条件离线重审为：
+
+```text
+authentic           5/6 accepted; dominant fingerprint 3/6
+receipt_only        6/6 accepted; dominant fingerprint 3/6
+renamed             4/6 accepted; dominant fingerprint 3/6
+shuffled_topology   5/6 accepted; dominant fingerprint 3/6
+```
+
+最后三个 Thunder episode 的 dominant fingerprint 在四个条件中逐一完全相同。它是可复现的行为控制结构，但不依赖 skill 名、reasoning 文本或原时间顺序，故标为 `GENERIC BEHAVIORAL MOTIF`，不能作为 game reasoning-backbone 的 attributable evidence。
+
+`7119628` 四个 task 最终全部 exit 0。联合 paired report 的 action membership、import gaps、requested-seed + initial-hash pairing、checkpoint identity 和 wrapper identity gates 全部通过：
+
+```text
+Columns: skill-on 95.67 - skill-off 80.17 = +15.50
+         5 positive / 1 zero / 0 negative
+         descriptive 95% t interval [0.12, 30.88]
+
+Thunder: skill-on 533.33 - skill-off 250.00 = +283.33
+         4 positive / 1 zero / 1 negative
+         descriptive 95% t interval [-138.62, 705.29]
+```
+
+Columns 的小样本区间略高于 0，Thunder 的均值增益大但区间跨 0；两者都只作为原域 skill-context pilot。它们不能覆盖 matched generic/renamed/shuffled outcome controls，也不能推导跨域 transfer。Readiness 的 batch integrity gates 全部为 true；`six_games_have_skill_on_off=false` 仅因为该 report root 有意只包含 Columns/Thunder，其他四游戏位于各自的定向长程 root。
+
 ## 尚未获得授权的 claim
 
 - 尚无 `SOURCE_SUPPORTED` motif；

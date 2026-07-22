@@ -26,10 +26,15 @@ EPISODES="${EPISODES:-2}"
 MAX_STEPS="${MAX_STEPS:-12}"
 GPU_UTIL="${GPU_UTIL:-0.82}"
 STAGE_MODEL_CACHE="${STAGE_MODEL_CACHE:-0}"
+PORT_BASE="${PORT_BASE:-18000}"
 
 GAME_SET="${GAME_SET:-six}"
 if [[ "${GAME_SET}" == "tetris_candy" ]]; then
   GAMES=(tetris candy_crush)
+elif [[ "${GAME_SET}" == "streets_strider" ]]; then
+  GAMES=(gymv_streets_of_rage_2 gymv_strider)
+elif [[ "${GAME_SET}" == "columns_thunder" ]]; then
+  GAMES=(gymv_columns gymv_thunder_force_iii)
 elif [[ "${GAME_SET}" == "six" ]]; then
   GAMES=(
     candy_crush
@@ -56,7 +61,7 @@ fi
 CHECKPOINT="${CHECKPOINT_ROOT}/${GAME}"
 SKILL_BANK="${CHECKPOINT}/banks/${GAME}/skill_bank.jsonl"
 RUN_DIR="${OUTPUT_ROOT}/${CONDITION}/${GAME}"
-PORT=$((18000 + 20 * SLURM_ARRAY_TASK_ID))
+PORT=$((PORT_BASE + 20 * SLURM_ARRAY_TASK_ID))
 SEED_BASE=$((7301 + 100 * GAME_INDEX))
 LOCAL_CACHE_ROOT="/scratch0/${USER}/motif-p1-${SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
 SOURCE_OVERLAY="$(mktemp -d "/tmp/motif-source-overlay-${SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID}-XXXXXX")"
@@ -101,6 +106,7 @@ else
   exit 2
 fi
 export HF_HUB_OFFLINE=1
+export RAG_EMBEDDER_DEVICE=cpu
 export VLLM_USE_FLASHINFER_SAMPLER=0
 export VLLM_MAX_MODEL_LEN=4096
 export VLLM_MAX_NUM_SEQS=16

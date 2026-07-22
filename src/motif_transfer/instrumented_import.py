@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -56,6 +57,57 @@ def _index_events(events: list[dict[str, Any]]) -> dict[str, dict[int, dict[str,
         if isinstance(step, int):
             result[str(event.get("kind"))][step] = event
     return result
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _raw_replay_hash(raw: dict[str, Any]) -> str:
+    payload = {
+        key: raw[key]
+        for key in (
+            "intervention_id", "seed", "prefix_actions",
+            "expected_fork_state_sha256", "replayed_fork_state_sha256",
+            "alternative_action", "admissible_actions_sha256",
+            "alternative_next_state_sha256", "status", "failure_codes",
+        )
+    }
+    return stable_hash(payload)
+
+
+def _load_supplemental_replays(
+    evidence_root: Path,
+    supplemental_root: Path,
+) -> list[dict[str, Any]]:
+    manifest_path = supplemental_root / "manifest.json"
+    receipt_path = supplemental_root / "replay_receipts.jsonl"
+    if not manifest_path.is_file() or not receipt_path.is_file():
+        raise ValueError("supplemental replay bundle is incomplete")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("authority") != "SUPPLEMENTAL_SWITCH_BOUNDARY_REPLAY_ONLY":
+        raise ValueError("unsupported supplemental replay authority")
+    if manifest.get("boundary_rule") != "EXACT_RECORDED_SELECTED_SKILL_ID_CHANGE_V1":
+        raise ValueError("unsupported supplemental replay boundary rule")
+    expected_source_hashes = manifest.get("source_files_sha256") or {}
+    for name in ("manifest.json", "events.jsonl", "episodes.jsonl"):
+        if expected_source_hashes.get(name) != _file_sha256(evidence_root / name):
+            raise ValueError(f"supplemental replay source hash mismatch: {name}")
+    if manifest.get("receipt_file_sha256") != _file_sha256(receipt_path):
+        raise ValueError("supplemental replay file hash mismatch")
+    rows = read_jsonl(receipt_path)
+    if manifest.get("receipt_count") != len(rows):
+        raise ValueError("supplemental replay count mismatch")
+    for raw in rows:
+        if raw.get("status") != "INTERVENTION_OBSERVED":
+            raise ValueError("supplemental replay is not an observed intervention")
+        if raw.get("receipt_sha256") != _raw_replay_hash(raw):
+            raise ValueError("supplemental replay content hash mismatch")
+    return rows
 
 
 def _observation(event: dict[str, Any], native_actions: tuple[str, ...], *, terminal=False, success=False, score=0.0):
@@ -211,13 +263,26 @@ def import_instrumented_batch(evidence_dir: str | Path) -> tuple[ImportedEpisode
     return tuple(imported)
 
 
-def import_native_source_batch(evidence_dir: str | Path) -> tuple[ImportedSourceEpisode, ...]:
+def import_native_source_batch(
+    evidence_dir: str | Path,
+    supplemental_replay_dir: str | Path | None = None,
+    *,
+    include_base_replays: bool = True,
+) -> tuple[ImportedSourceEpisode, ...]:
     """Import unchanged source-policy steps without inventing proposal/verdict fields."""
 
     root = Path(evidence_dir)
     events = read_jsonl(root / "events.jsonl")
     episode_rows = read_jsonl(root / "episodes.jsonl")
-    replay_rows = read_jsonl(root / "replay_receipts.jsonl") if (root / "replay_receipts.jsonl").exists() else []
+    replay_rows = (
+        read_jsonl(root / "replay_receipts.jsonl")
+        if include_base_replays and (root / "replay_receipts.jsonl").exists()
+        else []
+    )
+    if supplemental_replay_dir is not None:
+        replay_rows += _load_supplemental_replays(
+            root, Path(supplemental_replay_dir)
+        )
     by_episode: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for event in events:
         by_episode[str(event.get("episode_id"))].append(event)
@@ -318,6 +383,7 @@ def import_native_source_batch(evidence_dir: str | Path) -> tuple[ImportedSource
             transition_by_source_step[step] = transition
 
         forks: list[ReplayForkReceipt] = []
+        seen_fork_ids: set[str] = set()
         marker = f"{episode_id}.fork_step_"
         for raw in replay_rows:
             intervention_id = str(raw.get("intervention_id", ""))
@@ -329,14 +395,17 @@ def import_native_source_batch(evidence_dir: str | Path) -> tuple[ImportedSource
             except (ValueError, KeyError):
                 gaps.append("REPLAY_FORK_SOURCE_TRANSITION_UNRESOLVED")
                 continue
-            forks.append(ReplayForkReceipt.create(
+            fork = ReplayForkReceipt.create(
                 source_transition_id=source_transition.receipt_id,
                 prefix_hash=stable_hash(raw.get("prefix_actions", [])),
                 fork_state_hash=str(raw.get("replayed_fork_state_sha256", "")),
                 admissible_actions_hash=str(raw.get("admissible_actions_sha256", "")),
                 alternative_action=str(raw.get("alternative_action", "")),
                 alternative_after_hash=str(raw.get("alternative_next_state_sha256", "")),
-            ))
+            )
+            if fork.receipt_id not in seen_fork_ids:
+                forks.append(fork)
+                seen_fork_ids.add(fork.receipt_id)
         imported.append(ImportedSourceEpisode(
             episode_id=episode_id,
             game=str(episode_row.get("game", "unknown")),

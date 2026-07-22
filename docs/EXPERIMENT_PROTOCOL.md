@@ -14,9 +14,9 @@ Motif 是 adaptation hypothesis generator，而不是 target policy。若强模�
 
 source discovery 分成两个权限不同的步骤：
 
-1. 确定性代码仅在记录到的 `selected_skill_hash` 改变处形成 maximal contiguous segment；这不是文本 clustering，也不解释 skill 语义。
+1. 确定性代码仅在精确记录的 `selected_skill_id` 改变处形成 maximal contiguous run；这不是文本 clustering，也不解释 skill 语义。`selected_skill_sha256` 含动态 guidance，不能作为稳定 skill identity。
 2. 旧 `segment` LoRA 只执行其训练时的原生任务：对该游戏 skill bank 的全部候选做严格排序。它不生成 motif JSON。每个完整排序与 segment receipt、candidate-bank hash、adapter hash 和 raw-response hash 绑定。
-3. 独立 Motif/Harness Agent 才能根据多个 segment ranking receipts 与 replay receipts 提议图结构。所有 role 名和自然语言解释均为 untrusted；Harness 只验证 lineage、拓扑、replay 支持和 matched intervention，不能认可语义。
+3. 独立 Motif/Harness Agent 才能根据多个 segment ranking receipts 与 replay receipts 提议图结构。Agent 只能引用完整 run，不能移动 step、重新分段或创造边界。所有 role 名和自然语言解释均为 untrusted；Harness 只验证 lineage、拓扑、replay 支持和 matched intervention，不能认可语义。
 
 候选需要在 held-out source episodes 上重现，并显示相对 skill-off/renamed/randomized controls 的稳定差异，才成为 `SOURCE_SUPPORTED`。不按 skill 文本、action 名称或 embedding 聚类；“合并”仅表示 verified structural fingerprint 与干预效应均一致。
 

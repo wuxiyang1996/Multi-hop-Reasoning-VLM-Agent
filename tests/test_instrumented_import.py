@@ -1,7 +1,10 @@
 import hashlib
 import json
 
+import pytest
+
 from motif_transfer.instrumented_import import import_instrumented_batch, import_native_source_batch
+from motif_transfer.contracts import stable_hash
 
 
 def dump(path, rows):
@@ -125,3 +128,70 @@ def test_native_source_policy_preserves_postprocessor_action_origin(tmp_path):
     assert imported[0].gaps == ()
     assert imported[0].records[0].action_origin == "POLICY_POSTPROCESSOR"
     assert imported[0].records[0].validate()
+
+
+def test_supplemental_replays_are_hash_bound_and_imported(tmp_path):
+    evidence = tmp_path / "evidence"
+    supplemental = tmp_path / "supplemental"
+    evidence.mkdir()
+    supplemental.mkdir()
+    events = [
+        event("OBSERVATION", 0, {"observable_state": "before", "structured_state": {}}),
+        event("NATIVE_ADMISSIBILITY", 0, {"native_actions": ["go", "wait"]}),
+        event("AGENT_PROPOSAL_SET", 0, {
+            "selected_skill_id": "skill-1", "selected_skill_sha256": "dynamic-hash",
+        }),
+        event("AGENT_RESPONSE", 0, {
+            "adapter": "action_taking", "raw_response_sha256": "response-hash",
+        }),
+        event("PARSED_DECISION", 0, {"reasoning": "untrusted"}),
+        event("AGENT_DECISION", 0, {"decision_origin": "AGENT", "executed_action": "go"}),
+        event("ENVIRONMENT_STEP", 0, {
+            "executed_action": "go", "reward": 0, "terminated": True,
+        }),
+        event("OBSERVATION", 1, {"observable_state": "after", "structured_state": {}}),
+    ]
+    dump(evidence / "events.jsonl", events)
+    dump(evidence / "episodes.jsonl", [{
+        "episode_id": "e", "game": "g", "steps": 1, "total_reward": 0,
+    }])
+    (evidence / "manifest.json").write_text("{}\n", encoding="utf-8")
+    dump(evidence / "replay_receipts.jsonl", [])
+    raw = {
+        "intervention_id": "e.fork_step_0.switch_alt_0",
+        "seed": 7,
+        "prefix_actions": [],
+        "expected_fork_state_sha256": "before-hash",
+        "replayed_fork_state_sha256": "before-hash",
+        "alternative_action": "wait",
+        "admissible_actions_sha256": "actions-hash",
+        "alternative_next_state_sha256": "alternative-after-hash",
+        "status": "INTERVENTION_OBSERVED",
+        "failure_codes": [],
+    }
+    raw["receipt_sha256"] = stable_hash(raw)
+    dump(supplemental / "replay_receipts.jsonl", [raw])
+
+    def sha(path):
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    manifest = {
+        "authority": "SUPPLEMENTAL_SWITCH_BOUNDARY_REPLAY_ONLY",
+        "boundary_rule": "EXACT_RECORDED_SELECTED_SKILL_ID_CHANGE_V1",
+        "source_files_sha256": {
+            name: sha(evidence / name)
+            for name in ("manifest.json", "events.jsonl", "episodes.jsonl")
+        },
+        "receipt_count": 1,
+        "receipt_file_sha256": sha(supplemental / "replay_receipts.jsonl"),
+    }
+    (supplemental / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    imported = import_native_source_batch(evidence, supplemental)
+    assert imported[0].gaps == ()
+    assert len(imported[0].replay_forks) == 1
+    assert imported[0].replay_forks[0].alternative_action == "wait"
+
+    raw["alternative_action"] = "tampered"
+    dump(supplemental / "replay_receipts.jsonl", [raw])
+    with pytest.raises(ValueError, match="replay file hash mismatch"):
+        import_native_source_batch(evidence, supplemental)

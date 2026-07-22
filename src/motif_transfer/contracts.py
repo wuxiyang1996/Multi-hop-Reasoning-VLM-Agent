@@ -225,7 +225,7 @@ class SourceSegmentReceipt:
     end_step: int
     transition_receipt_ids: tuple[str, ...]
     boundary_skill_hash: str | None
-    segmentation_rule: str = "MAXIMAL_SELECTED_SKILL_HASH_RUN_V1"
+    segmentation_rule: str = "MAXIMAL_RECORDED_SKILL_ID_RUN_V2"
 
     @classmethod
     def create(
@@ -240,9 +240,10 @@ class SourceSegmentReceipt:
         steps = tuple(row.step for row in records)
         if steps != tuple(range(steps[0], steps[0] + len(steps))):
             raise ValueError("source segment steps must be contiguous")
-        skill_hashes = {row.selected_skill_hash for row in records}
-        if len(skill_hashes) != 1:
+        skill_ids = {row.selected_skill_id for row in records}
+        if len(skill_ids) != 1:
             raise ValueError("source segment crosses selected-skill boundary")
+        skill_id = next(iter(skill_ids))
         body = {
             "episode_id": episode_id,
             "start_step": steps[0],
@@ -250,8 +251,14 @@ class SourceSegmentReceipt:
             "transition_receipt_ids": tuple(
                 row.transition.receipt_id for row in records
             ),
-            "boundary_skill_hash": next(iter(skill_hashes)),
-            "segmentation_rule": "MAXIMAL_SELECTED_SKILL_HASH_RUN_V1",
+            # The full guidance hash is dynamic (confidence, progress, and
+            # execution hints can change while the selected skill is stable).
+            # Bind the segment to exact recorded skill identity instead.
+            "boundary_skill_hash": (
+                stable_hash({"selected_skill_id": skill_id})
+                if skill_id is not None else None
+            ),
+            "segmentation_rule": "MAXIMAL_RECORDED_SKILL_ID_RUN_V2",
         }
         return cls(receipt_id=stable_hash(body), **body)
 
@@ -408,6 +415,9 @@ class SourceStepSignature:
     action_origin: str
     reward_sign: str
     terminal: bool
+    # Anonymous first-occurrence class: preserves equality/change structure
+    # under arbitrary skill-ID renaming without treating names as semantics.
+    skill_class_ordinal: int | None = None
 
 
 @dataclass(frozen=True)

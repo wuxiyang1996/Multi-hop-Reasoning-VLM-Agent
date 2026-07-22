@@ -31,6 +31,8 @@ from .contracts import (
 class PromptCondition(str, Enum):
     AUTHENTIC = "authentic"
     RECEIPT_ONLY = "receipt_only"
+    RENAMED = "renamed"
+    SHUFFLED_TOPOLOGY = "shuffled_topology"
 
 
 class CompletionBackend(Protocol):
@@ -367,7 +369,13 @@ class FrozenJSONMotifAgent:
             )
         return tuple(candidates)
 
-    def _source_step_view(self, record: SourcePolicyStepRecord, index: int) -> dict[str, Any]:
+    def _source_step_view(
+        self,
+        record: SourcePolicyStepRecord,
+        index: int,
+        *,
+        skill_alias: str | None = None,
+    ) -> dict[str, Any]:
         action_ordinal = record.before.native_actions.index(record.action)
         view: dict[str, Any] = {
             "step_index": index,
@@ -386,9 +394,11 @@ class FrozenJSONMotifAgent:
             ),
             "terminal": record.after.terminal,
         }
-        if self.condition == PromptCondition.AUTHENTIC:
+        if self.condition != PromptCondition.RECEIPT_ONLY:
             view["untrusted_source_reasoning"] = record.action_reasoning
-            view["untrusted_selected_skill_id"] = record.selected_skill_id
+            view["untrusted_selected_skill_id"] = (
+                skill_alias if skill_alias is not None else record.selected_skill_id
+            )
         return view
 
     def propose_source_motifs(
@@ -396,10 +406,60 @@ class FrozenJSONMotifAgent:
         records: Sequence[SourcePolicyStepRecord],
         replay_receipts: Sequence[ReplayForkReceipt],
     ) -> tuple[MotifCandidate, ...]:
+        ordered = tuple(sorted(records, key=lambda row: row.step))
+        skill_class_by_id: dict[str, int] = {}
+        for record in ordered:
+            if record.selected_skill_id is not None and record.selected_skill_id not in skill_class_by_id:
+                skill_class_by_id[record.selected_skill_id] = len(skill_class_by_id)
+        runs: list[tuple[SourcePolicyStepRecord, ...]] = []
+        start = 0
+        for index in range(1, len(ordered) + 1):
+            boundary = (
+                index == len(ordered)
+                or ordered[index].selected_skill_id != ordered[index - 1].selected_skill_id
+                or ordered[index].step != ordered[index - 1].step + 1
+            )
+            if boundary:
+                runs.append(ordered[start:index])
+                start = index
+        proposal_runs = list(runs)
+        if self.condition == PromptCondition.SHUFFLED_TOPOLOGY and len(proposal_runs) > 1:
+            proposal_runs.sort(key=lambda run: stable_hash({
+                "shuffled_topology_control": [
+                    record.transition.receipt_id for record in run
+                ]
+            }))
+            if proposal_runs == runs:
+                proposal_runs = proposal_runs[1:] + proposal_runs[:1]
+        visible_index = {
+            (record.episode_id, record.step): index
+            for index, record in enumerate(
+                record for run in proposal_runs for record in run
+            )
+        }
         payload = {
             "condition": self.condition.value,
-            "source_policy_steps": [
-                self._source_step_view(row, index) for index, row in enumerate(records)
+            "boundary_rule": "MAXIMAL_EXACT_RECORDED_SKILL_ID_RUN_V2",
+            "mechanical_skill_runs": [
+                {
+                    "run_index": run_index,
+                    "step_indices": [
+                        visible_index[(row.episode_id, row.step)] for row in run
+                    ],
+                    "steps": [
+                        self._source_step_view(
+                            row,
+                            visible_index[(row.episode_id, row.step)],
+                            skill_alias=(
+                                f"SKILL_CLASS_{skill_class_by_id[row.selected_skill_id]}"
+                                if self.condition == PromptCondition.RENAMED
+                                and row.selected_skill_id is not None else None
+                            ),
+                        )
+                        for row in run
+                    ],
+                }
+                for run_index, run in enumerate(proposal_runs)
             ],
             "replay_forks": [
                 {
@@ -414,9 +474,12 @@ class FrozenJSONMotifAgent:
         }
         system = (
             "Extract zero or more non-semantic source-policy control motifs. "
+            "The supplied runs are mechanically fixed maximal runs of the exact recorded "
+            "skill ID. You may group whole runs into graph nodes but may not split a run, "
+            "move a step, or invent a boundary. "
             "Return exact JSON: "
-            '{"motifs":[{"nodes":[{"node_id":"n0","step_indices":[0]},'
-            '{"node_id":"n1","step_indices":[1]}],'
+            '{"motifs":[{"nodes":[{"node_id":"n0","run_indices":[0]},'
+            '{"node_id":"n1","run_indices":[1]}],'
             '"edges":[{"source":"n0","target":"n1","fork_indices":[0]}],'
             '"description":"untrusted"}]}. Refer only to supplied integer indices. '
             "The schema is illustrative, not a candidate to copy. Return an empty motifs list "
@@ -431,8 +494,12 @@ class FrozenJSONMotifAgent:
         for raw in response.get("motifs", []):
             nodes: list[MotifNode] = []
             for node in raw.get("nodes", []):
-                indices = tuple(int(index) for index in node.get("step_indices", []))
-                selected = tuple(_bounded_index(records, index) for index in indices)
+                indices = tuple(int(index) for index in node.get("run_indices", []))
+                selected = tuple(
+                    record
+                    for index in indices
+                    for record in _bounded_index(proposal_runs, index)
+                )
                 signatures = tuple(SourceStepSignature(
                     skill_conditioned=record.selected_skill_hash is not None,
                     action_origin=record.action_origin,
@@ -442,6 +509,10 @@ class FrozenJSONMotifAgent:
                         else "ZERO"
                     ),
                     terminal=record.after.terminal,
+                    skill_class_ordinal=(
+                        skill_class_by_id.get(record.selected_skill_id)
+                        if record.selected_skill_id is not None else None
+                    ),
                 ) for record in selected)
                 nodes.append(MotifNode(
                     str(node["node_id"]),
@@ -458,7 +529,7 @@ class FrozenJSONMotifAgent:
                 str(edge.get("claim", "")),
             ) for edge in raw.get("edges", []))
             content = {
-                "lineage": [record.transition.receipt_id for record in records],
+                "lineage": [record.transition.receipt_id for record in ordered],
                 "nodes": [asdict(node) for node in nodes],
                 "edges": [asdict(edge) for edge in edges],
             }

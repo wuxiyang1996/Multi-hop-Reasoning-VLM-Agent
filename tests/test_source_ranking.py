@@ -11,7 +11,7 @@ from motif_transfer.source_ranking import (
 )
 
 
-def _record(step, skill_hash):
+def _record(step, skill_hash, skill_id="skill"):
     before = Observation({"observable_state": f"s{step}"}, ("left", "right"))
     after = Observation({"observable_state": f"s{step + 1}"}, ("left", "right"))
     transition = SourceTransitionReceipt.create(
@@ -27,18 +27,22 @@ def _record(step, skill_hash):
         reward=0,
     )
     return SourcePolicyStepRecord(
-        "episode", step, before, "skill" if skill_hash else None, skill_hash,
+        "episode", step, before, skill_id if skill_hash else None, skill_hash,
         "untrusted reasoning", f"response-{step}", "left", "AGENT",
         "action_taking", after, 0, transition,
     )
 
 
-def test_segmentation_is_only_maximal_recorded_skill_hash_runs():
-    records = (_record(0, "a"), _record(1, "a"), _record(2, "b"))
+def test_segmentation_uses_exact_skill_id_not_dynamic_guidance_hash():
+    records = (
+        _record(0, "guidance-a0", "A"),
+        _record(1, "guidance-a1", "A"),
+        _record(2, "guidance-b0", "B"),
+    )
     segmented = segment_native_policy(records)
     assert [tuple(row.step for row in span) for _, span in segmented] == [(0, 1), (2,)]
     assert all(receipt.validate() for receipt, _ in segmented)
-    assert segmented[0][0].segmentation_rule == "MAXIMAL_SELECTED_SKILL_HASH_RUN_V1"
+    assert segmented[0][0].segmentation_rule == "MAXIMAL_RECORDED_SKILL_ID_RUN_V2"
 
 
 class Backend:

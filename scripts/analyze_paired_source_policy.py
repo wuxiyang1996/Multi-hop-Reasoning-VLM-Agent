@@ -29,13 +29,18 @@ def _read_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def _episode_summary(episode: ImportedSourceEpisode) -> dict[str, Any]:
+def _episode_summary(
+    episode: ImportedSourceEpisode,
+    *,
+    requested_seed: int | None,
+) -> dict[str, Any]:
     records = episode.records
     skill_ids = tuple(record.selected_skill_id for record in records)
     switches = sum(left != right for left, right in zip(skill_ids, skill_ids[1:]))
     native_membership = tuple(record.action in record.before.native_actions for record in records)
     return {
         "episode_id": episode.episode_id,
+        "requested_seed": requested_seed,
         "initial_state_hash": records[0].transition.before_hash if records else None,
         "steps": len(records),
         "total_reward": episode.total_reward,
@@ -53,7 +58,11 @@ def _episode_summary(episode: ImportedSourceEpisode) -> dict[str, Any]:
     }
 
 
-def _load_game(root: Path, condition: str, game: str) -> tuple[dict[str, Any], list[ImportedSourceEpisode]]:
+def _load_game(
+    root: Path,
+    condition: str,
+    game: str,
+) -> tuple[dict[str, Any], list[ImportedSourceEpisode], dict[str, int]]:
     evidence = root / condition / game / "evidence"
     if not evidence.is_dir():
         raise FileNotFoundError(f"missing evidence directory: {evidence}")
@@ -69,9 +78,15 @@ def _load_game(root: Path, condition: str, game: str) -> tuple[dict[str, Any], l
         )
         for event in reset_events
     }
+    requested_seed_by_episode: dict[str, int] = {}
+    for event in reset_events:
+        episode_id = str(event.get("episode_id", ""))
+        requested_seed = (event.get("payload") or {}).get("requested_seed")
+        if episode_id and isinstance(requested_seed, int):
+            requested_seed_by_episode[episode_id] = requested_seed
     manifest["_observed_reset_fingerprints"] = sorted(reset_fingerprints)
     episodes = list(import_native_source_batch(evidence))
-    return manifest, episodes
+    return manifest, episodes, requested_seed_by_episode
 
 
 def _wrapper_identity(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -102,11 +117,15 @@ def _checkpoint_identity(manifest: dict[str, Any]) -> dict[str, Any]:
 def _pair_by_initial_state(
     skill_on: list[ImportedSourceEpisode],
     skill_off: list[ImportedSourceEpisode],
+    skill_on_seeds: dict[str, int],
+    skill_off_seeds: dict[str, int],
 ) -> tuple[list[dict[str, Any]], dict[str, list[str]]]:
-    off_by_hash: dict[str, deque[ImportedSourceEpisode]] = defaultdict(deque)
+    off_by_identity: dict[tuple[int, str], deque[ImportedSourceEpisode]] = defaultdict(deque)
     for episode in skill_off:
-        if episode.records:
-            off_by_hash[episode.records[0].transition.before_hash].append(episode)
+        seed = skill_off_seeds.get(episode.episode_id)
+        if episode.records and seed is not None:
+            identity = (seed, episode.records[0].transition.before_hash)
+            off_by_identity[identity].append(episode)
 
     pairs: list[dict[str, Any]] = []
     unmatched_on: list[str] = []
@@ -114,14 +133,20 @@ def _pair_by_initial_state(
         if not on_episode.records:
             unmatched_on.append(on_episode.episode_id)
             continue
-        initial_hash = on_episode.records[0].transition.before_hash
-        if not off_by_hash[initial_hash]:
+        seed = skill_on_seeds.get(on_episode.episode_id)
+        if seed is None:
             unmatched_on.append(on_episode.episode_id)
             continue
-        off_episode = off_by_hash[initial_hash].popleft()
-        on_summary = _episode_summary(on_episode)
-        off_summary = _episode_summary(off_episode)
+        initial_hash = on_episode.records[0].transition.before_hash
+        identity = (seed, initial_hash)
+        if not off_by_identity[identity]:
+            unmatched_on.append(on_episode.episode_id)
+            continue
+        off_episode = off_by_identity[identity].popleft()
+        on_summary = _episode_summary(on_episode, requested_seed=seed)
+        off_summary = _episode_summary(off_episode, requested_seed=seed)
         pairs.append({
+            "requested_seed": seed,
             "initial_state_hash": initial_hash,
             "skill_on": on_summary,
             "skill_off": off_summary,
@@ -132,7 +157,7 @@ def _pair_by_initial_state(
 
     unmatched_off = [
         episode.episode_id
-        for queue in off_by_hash.values()
+        for queue in off_by_identity.values()
         for episode in queue
     ]
     return pairs, {
@@ -154,9 +179,11 @@ def main() -> None:
 
     game_reports: dict[str, Any] = {}
     for game in games:
-        on_manifest, on_episodes = _load_game(root, CONDITIONS[0], game)
-        off_manifest, off_episodes = _load_game(root, CONDITIONS[1], game)
-        pairs, unmatched = _pair_by_initial_state(on_episodes, off_episodes)
+        on_manifest, on_episodes, on_seeds = _load_game(root, CONDITIONS[0], game)
+        off_manifest, off_episodes, off_seeds = _load_game(root, CONDITIONS[1], game)
+        pairs, unmatched = _pair_by_initial_state(
+            on_episodes, off_episodes, on_seeds, off_seeds,
+        )
         deltas = [pair["reward_delta_skill_on_minus_off"] for pair in pairs]
         all_episodes = on_episodes + off_episodes
         game_reports[game] = {
@@ -199,7 +226,7 @@ def main() -> None:
     report = {
         "schema_version": 1,
         "root": str(root),
-        "pairing_rule": "EXACT_INITIAL_SOURCE_TRANSITION_BEFORE_HASH_WITH_MULTIPLICITY_V1",
+        "pairing_rule": "EXACT_REQUESTED_SEED_AND_INITIAL_SOURCE_TRANSITION_BEFORE_HASH_V2",
         "interpretation_limit": (
             "This paired pilot separates skill-context treatment from the loaded action-policy LoRA. "
             "It does not by itself establish cross-domain motif transfer."
