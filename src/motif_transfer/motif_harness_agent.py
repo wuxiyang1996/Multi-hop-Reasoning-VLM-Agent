@@ -5,6 +5,7 @@ from typing import Protocol, Sequence
 from .contracts import (
     Advisory,
     BindingHypothesis,
+    BindingEvidence,
     DecisionProposal,
     DecisionCycleRecord,
     MotifCandidate,
@@ -29,6 +30,16 @@ class MotifHarnessAgent(Protocol):
         adaptation_records: Sequence[DecisionCycleRecord],
     ) -> BindingHypothesis | None: ...
 
+    def initialize_binding_set_from_example(
+        self,
+        motif: MotifCandidate,
+        adaptation_example,
+        *,
+        max_candidates: int = 4,
+        require_alpha_invariance: bool = True,
+        induction_repetitions: int = 2,
+    ) -> Sequence[BindingHypothesis]: ...
+
     def review(
         self,
         proposal: DecisionProposal,
@@ -36,3 +47,13 @@ class MotifHarnessAgent(Protocol):
         binding: BindingHypothesis | None,
         history: Sequence[TransitionReceipt],
     ) -> Advisory: ...
+
+    def verify_transition(
+        self,
+        binding: BindingHypothesis,
+        before: Observation,
+        proposal: DecisionProposal,
+        after: Observation,
+        transition: TransitionReceipt,
+        history: Sequence[TransitionReceipt],
+    ) -> BindingEvidence: ...

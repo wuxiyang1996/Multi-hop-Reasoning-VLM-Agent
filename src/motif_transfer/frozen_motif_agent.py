@@ -14,9 +14,11 @@ from .contracts import (
     Advisory,
     AdvisoryVerdict,
     BindingHypothesis,
+    BindingEvidence,
     DecisionCycleRecord,
     DecisionProposal,
     DecisionStepSignature,
+    EvidenceVerdict,
     Lifecycle,
     MotifCandidate,
     MotifEdge,
@@ -28,6 +30,7 @@ from .contracts import (
     TransitionReceipt,
     stable_hash,
 )
+from .binding import alpha_rename_target_actions, validate_structural_binding
 
 
 class PromptCondition(str, Enum):
@@ -638,52 +641,160 @@ class FrozenJSONMotifAgent:
             "untrusted_description": motif.untrusted_description,
         }
 
-    def initialize_binding_from_example(
+    def _propose_binding_set(
         self,
         motif: MotifCandidate,
         adaptation_example: Mapping[str, Any],
-    ) -> BindingHypothesis | None:
-        """One target example initializes a provisional binding; it never admits truth."""
+        *,
+        phase: str,
+        max_candidates: int,
+    ) -> tuple[BindingHypothesis, ...]:
         payload = {
             "source_motif": self._binding_motif_view(motif),
             "one_target_adaptation_example": adaptation_example,
             "registered_verifier_ids": sorted(self.allowed_verifier_ids),
+            "max_candidates": max_candidates,
         }
         system = (
-            "Propose one provisional cross-domain binding hypothesis or abstain. The source graph contains "
+            "Propose zero or more provisional cross-domain structural bindings. The source graph contains "
             "anonymous receipt-grounded control structure, not target semantics. The single target example "
-            "may initialize a hypothesis but cannot prove it. Do not use a predefined source-to-target ontology. "
-            "Return exact JSON with keys abstain, target_claim, testable_prediction, verifier_id. Select verifier_id "
-            "from the registry. Never output a target action."
+            "may initialize hypotheses but cannot prove them. Do not use a predefined source-to-target ontology. "
+            "Every candidate must partition ALL target transitions across every source node exactly once and align "
+            "every source edge to one ordered target boundary. Return exact JSON: "
+            '{"abstain":false,"bindings":[{"node_alignment":[{"source_node_ordinal":0,'
+            '"target_cycle_indices":[0]}],"edge_alignment":[{"source_edge_ordinal":0,'
+            '"target_boundary":[0,1]}],"target_claim":"untrusted","testable_prediction":"untrusted",'
+            '"verifier_id":"registered-id"}]}. Refer only to supplied ordinals and indices. Never output or select '
+            "a target action. Return at most max_candidates candidates."
         )
         raw = _strict_json(self.backend.complete("binding", system, payload))
         self.call_receipts.append({
-            "phase": "one_shot_binding",
+            "phase": phase,
             "payload_sha256": stable_hash(payload),
             "response_sha256": stable_hash(raw),
             "usage": dict(getattr(self.backend, "last_usage", {}) or {}),
         })
         if raw.get("abstain") is True:
-            return None
-        verifier_id = str(raw.get("verifier_id", ""))
-        if verifier_id not in self.allowed_verifier_ids:
-            return None
+            return ()
+        raw_bindings = raw.get("bindings") or []
+        if not isinstance(raw_bindings, list) or len(raw_bindings) > max_candidates:
+            raise ValueError("binding Agent returned an invalid candidate count")
         example_hash = stable_hash(adaptation_example)
-        body = {
-            "motif_id": motif.motif_id,
-            "target_claim": str(raw.get("target_claim", "")),
-            "testable_prediction": str(raw.get("testable_prediction", "")),
-            "adaptation_receipts": [example_hash],
-            "verifier_id": verifier_id,
-        }
-        return BindingHypothesis(
-            stable_hash(body),
-            motif.motif_id,
-            body["target_claim"],
-            body["testable_prediction"],
-            (example_hash,),
-            verifier_id,
+        candidates = []
+        seen_signatures = set()
+        for item in raw_bindings:
+            verifier_id = str(item.get("verifier_id", ""))
+            if verifier_id not in self.allowed_verifier_ids:
+                continue
+            node_alignment = tuple(sorted(
+                (
+                    int(row["source_node_ordinal"]),
+                    tuple(int(index) for index in row["target_cycle_indices"]),
+                )
+                for row in item.get("node_alignment", [])
+            ))
+            edge_alignment = tuple(sorted(
+                (
+                    int(row["source_edge_ordinal"]),
+                    tuple(int(index) for index in row["target_boundary"]),
+                )
+                for row in item.get("edge_alignment", [])
+            ))
+            signature = validate_structural_binding(
+                motif,
+                target_cycle_count=len(adaptation_example.get("transitions", [])),
+                node_alignment=node_alignment,
+                edge_alignment=edge_alignment,
+            )
+            if signature in seen_signatures:
+                continue
+            seen_signatures.add(signature)
+            body = {
+                "motif_id": motif.motif_id,
+                "target_claim": str(item.get("target_claim", "")),
+                "testable_prediction": str(item.get("testable_prediction", "")),
+                "adaptation_receipts": [example_hash],
+                "verifier_id": verifier_id,
+                "node_alignment": node_alignment,
+                "edge_alignment": edge_alignment,
+                "invariance_signature": signature,
+            }
+            candidates.append(BindingHypothesis(
+                binding_id=stable_hash(body),
+                motif_id=motif.motif_id,
+                target_claim=body["target_claim"],
+                testable_prediction=body["testable_prediction"],
+                adaptation_receipt_ids=(example_hash,),
+                verifier_id=verifier_id,
+                node_alignment=node_alignment,
+                edge_alignment=edge_alignment,
+                invariance_signature=signature,
+            ))
+        return tuple(candidates)
+
+    def initialize_binding_set_from_example(
+        self,
+        motif: MotifCandidate,
+        adaptation_example: Mapping[str, Any],
+        *,
+        max_candidates: int = 4,
+        require_alpha_invariance: bool = True,
+        induction_repetitions: int = 2,
+    ) -> tuple[BindingHypothesis, ...]:
+        """Keep every structurally valid one-shot binding shared by content controls."""
+        if induction_repetitions < 1:
+            raise ValueError("induction_repetitions must be positive")
+        renamed_example = alpha_rename_target_actions(adaptation_example)
+        first_original: tuple[BindingHypothesis, ...] = ()
+        signature_sets: list[set[str]] = []
+        repetition_counts = []
+        for repetition in range(induction_repetitions):
+            original = self._propose_binding_set(
+                motif, adaptation_example,
+                phase=f"one_shot_binding_original_r{repetition}",
+                max_candidates=max_candidates,
+            )
+            if repetition == 0:
+                first_original = original
+            valid_signatures = {row.invariance_signature for row in original}
+            renamed_count = None
+            if require_alpha_invariance:
+                renamed = self._propose_binding_set(
+                    motif, renamed_example,
+                    phase=f"one_shot_binding_alpha_renamed_r{repetition}",
+                    max_candidates=max_candidates,
+                )
+                renamed_signatures = {row.invariance_signature for row in renamed}
+                valid_signatures &= renamed_signatures
+                renamed_count = len(renamed)
+            signature_sets.append(valid_signatures)
+            repetition_counts.append({
+                "repetition": repetition,
+                "original_candidates": len(original),
+                "renamed_candidates": renamed_count,
+                "within_repetition_invariant": len(valid_signatures),
+            })
+        stable_signatures = set.intersection(*signature_sets) if signature_sets else set()
+        admitted = tuple(
+            row for row in first_original if row.invariance_signature in stable_signatures
         )
+        self.call_receipts.append({
+            "phase": "one_shot_binding_stability_gate",
+            "require_alpha_invariance": require_alpha_invariance,
+            "induction_repetitions": induction_repetitions,
+            "repetition_counts": repetition_counts,
+            "admitted_candidates": len(admitted),
+            "stable_signatures": sorted(stable_signatures),
+        })
+        return admitted
+
+    def initialize_binding_from_example(
+        self,
+        motif: MotifCandidate,
+        adaptation_example: Mapping[str, Any],
+    ) -> BindingHypothesis | None:
+        candidates = self.initialize_binding_set_from_example(motif, adaptation_example)
+        return candidates[0] if candidates else None
 
     def review(self, proposal, observation, binding, history):
         payload = {
@@ -725,3 +836,38 @@ class FrozenJSONMotifAgent:
             "advisory": asdict(advisory),
         })
         return advisory
+
+    def verify_transition(self, binding, before, proposal, after, transition, history):
+        payload = {
+            "binding": asdict(binding),
+            "before_observation": before.state,
+            "already_executed_target_native_action": proposal.action,
+            "proposal_prediction": proposal.prediction,
+            "after_observation": after.state,
+            "transition_receipt": asdict(transition),
+            "recent_receipt_ids": [row.receipt_id for row in history[-6:]],
+        }
+        system = (
+            "Verify one live transition against one provisional structural binding. This is an untrusted Agent "
+            "verdict; the Harness validates only IDs and receipts. Return exact JSON with binding_id, verdict "
+            "(SUPPORTED, REFUTED, or INCONCLUSIVE), and reason. Do not output or select an action. REFUTED means "
+            "this binding cannot explain the observed transition, not merely that the task is unfinished."
+        )
+        raw = _strict_json(self.backend.complete("verify", system, payload))
+        if str(raw.get("binding_id")) != binding.binding_id:
+            raise ValueError("verifier referenced a different binding")
+        evidence = BindingEvidence(
+            binding.binding_id,
+            transition.receipt_id,
+            binding.verifier_id,
+            EvidenceVerdict(str(raw["verdict"])),
+        )
+        self.call_receipts.append({
+            "phase": "verify_transition",
+            "payload_sha256": stable_hash(payload),
+            "response_sha256": stable_hash(raw),
+            "usage": dict(getattr(self.backend, "last_usage", {}) or {}),
+            "binding_evidence": asdict(evidence),
+            "untrusted_reason": str(raw.get("reason", "")),
+        })
+        return evidence

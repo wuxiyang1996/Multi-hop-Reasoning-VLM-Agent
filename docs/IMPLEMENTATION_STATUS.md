@@ -279,5 +279,10 @@ Columns 的小样本区间略高于 0，Thunder 的均值增益大但区间跨 0
 完整错误审计、运行协议和下一阶段 gates 见
 [`ALFWORLD_ONE_SHOT_STATUS.md`](ALFWORLD_ONE_SHOT_STATUS.md)。
 
+后续修复已加入 multi-hypothesis structural binding、full-action alpha-renaming、两次 induction
+intersection、post-transition binding evidence、version-space elimination，以及最多一次 source-induced
+replan 后的 target-only fallback。真实默认复跑因两次 induction 的稳定交集为空，从 step 0 回退，
+仍以 baseline 相同五步 official success；这是正确的 fail-closed 结果，不是 positive transfer。
+
 只有 fresh source evidence 通过审计、frozen 9B comparison 和 source qualification 后，才把后续
 ALFWorld run 解释为 positive-transfer pilot；未过 gate 时只允许像本轮一样作为机制/负迁移诊断。

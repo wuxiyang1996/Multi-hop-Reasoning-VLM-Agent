@@ -3,6 +3,8 @@ import pytest
 from motif_transfer.contracts import (
     Advisory,
     AdvisoryVerdict,
+    BindingEvidence,
+    BindingHypothesis,
     ContinuationDecision,
     DecisionProposal,
     DecisionProposalSet,
@@ -55,10 +57,50 @@ def test_only_decision_agent_action_is_executed():
     assert "action" not in Advisory.__dataclass_fields__
 
 
-def test_abstain_executes_nothing():
+def test_source_abstain_falls_back_and_executes_target_action():
     env = Env()
-    TwoAgentRuntime(FirstNativeDecisionAgent(), MotifAgent(AdvisoryVerdict.ABSTAIN)).run(env, "goal")
-    assert env.actions == []
+    binding = BindingHypothesis("b", "m", "claim", "prediction", ("demo",), "v")
+    result = TwoAgentRuntime(
+        FirstNativeDecisionAgent(), MotifAgent(AdvisoryVerdict.ABSTAIN)
+    ).run(env, "goal", binding=binding)
+    assert env.actions == ["native"]
+    assert result.source_fallback_step == 0
+
+
+class RefutingMotifAgent(MotifAgent):
+    def verify_transition(self, binding, before, proposal, after, transition, history):
+        return BindingEvidence(
+            binding.binding_id,
+            transition.receipt_id,
+            binding.verifier_id,
+            EvidenceVerdict.REFUTED,
+        )
+
+
+def test_post_transition_refutation_updates_version_space_and_fallback():
+    env = Env()
+    binding = BindingHypothesis("b", "m", "claim", "prediction", ("demo",), "v")
+    result = TwoAgentRuntime(FirstNativeDecisionAgent(), RefutingMotifAgent()).run(
+        env, "goal", binding=binding
+    )
+    assert result.binding_evidence[0].verdict == EvidenceVerdict.REFUTED
+    assert result.source_fallback_step == 1
+
+
+class WrongReceiptMotifAgent(MotifAgent):
+    def verify_transition(self, binding, before, proposal, after, transition, history):
+        return BindingEvidence(
+            binding.binding_id, "different-receipt", binding.verifier_id,
+            EvidenceVerdict.SUPPORTED,
+        )
+
+
+def test_post_transition_evidence_must_reference_current_receipt():
+    binding = BindingHypothesis("b", "m", "claim", "prediction", ("demo",), "v")
+    with pytest.raises(ValueError, match="different live transition"):
+        TwoAgentRuntime(FirstNativeDecisionAgent(), WrongReceiptMotifAgent()).run(
+            Env(), "goal", binding=binding
+        )
 
 
 class IllegalDecisionAgent:

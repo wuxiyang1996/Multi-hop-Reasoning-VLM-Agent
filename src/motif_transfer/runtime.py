@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, Sequence
 
 from .contracts import (
     Advisory,
     AdvisoryVerdict,
+    BindingEvidence,
     BindingHypothesis,
     ContinuationDecision,
     DecisionCycleRecord,
@@ -13,6 +14,7 @@ from .contracts import (
     Observation,
     TransitionReceipt,
 )
+from .binding import BindingVersionSpace
 from .decision_agent import DecisionAgent
 from .harness import DeterministicHarness
 from .motif_harness_agent import MotifHarnessAgent
@@ -30,6 +32,9 @@ class EpisodeResult:
     cycles: tuple[DecisionCycleReceipt, ...]
     records: tuple[DecisionCycleRecord, ...]
     final_observation: Observation
+    binding_evidence: tuple[BindingEvidence, ...] = ()
+    source_fallback_step: int | None = None
+    source_replans: int = 0
 
 
 class TwoAgentRuntime:
@@ -43,28 +48,64 @@ class TwoAgentRuntime:
         environment: Environment,
         goal: str,
         binding: BindingHypothesis | None = None,
+        bindings: Sequence[BindingHypothesis] = (),
         max_steps: int = 100,
+        max_source_replans: int = 1,
     ) -> EpisodeResult:
+        if binding is not None and bindings:
+            raise ValueError("pass binding or bindings, not both")
+        hypotheses = tuple(bindings) or ((binding,) if binding is not None else ())
+        version_space = BindingVersionSpace(hypotheses) if hypotheses else None
         observation = environment.reset()
         receipts: list[TransitionReceipt] = []
         cycles: list[DecisionCycleReceipt] = []
         records: list[DecisionCycleRecord] = []
         advisory: Advisory | None = None
-        for _ in range(max_steps):
+        binding_evidence: list[BindingEvidence] = []
+        source_replans = 0
+        source_fallback_step = None
+        source_enabled = version_space is not None
+        for step_index in range(max_steps):
             try:
                 if observation.terminal:
                     break
                 proposal_set = self.decision_agent.propose_set(observation, goal, receipts, advisory)
                 self.harness.validate_proposal_set(observation, proposal_set)
                 proposal = proposal_set.selected
-                # Review can request replanning/abstention but its schema cannot carry an action.
-                advisory = self.motif_agent.review(proposal, observation, binding, receipts)
+                active_binding = None
+                if source_enabled and version_space is not None:
+                    viable = version_space.viable()
+                    if viable:
+                        active_binding = sorted(viable, key=lambda row: row.binding_id)[0]
+                    else:
+                        source_enabled = False
+                        source_fallback_step = step_index
+                if active_binding is not None:
+                    # Review can inspect an already selected action but cannot output one.
+                    advisory = self.motif_agent.review(
+                        proposal, observation, active_binding, receipts
+                    )
+                else:
+                    advisory = Advisory(
+                        AdvisoryVerdict.ADMIT,
+                        "target-only fallback; source intervention disabled",
+                    )
                 if advisory.verdict == AdvisoryVerdict.ABSTAIN:
-                    break
-                if advisory.verdict == AdvisoryVerdict.REPLAN:
+                    source_enabled = False
+                    source_fallback_step = step_index
+                    active_binding = None
+                    advisory = Advisory(
+                        AdvisoryVerdict.ADMIT,
+                        "source agent abstained; execute target-only proposal",
+                    )
+                elif advisory.verdict == AdvisoryVerdict.REPLAN:
+                    source_replans += 1
                     proposal_set = self.decision_agent.propose_set(observation, goal, receipts, advisory)
                     self.harness.validate_proposal_set(observation, proposal_set)
                     proposal = proposal_set.selected
+                    if source_replans >= max_source_replans:
+                        source_enabled = False
+                        source_fallback_step = step_index + 1
                 after, reward = environment.step(proposal.action)
                 receipt = TransitionReceipt.create(observation, proposal, after, reward)
                 self.harness.validate_receipt(receipt)
@@ -81,6 +122,23 @@ class TwoAgentRuntime:
                 receipts.append(receipt)
                 cycles.append(cycle)
                 records.append(record)
+                verifier = getattr(self.motif_agent, "verify_transition", None)
+                if active_binding is not None and callable(verifier):
+                    evidence = verifier(
+                        active_binding,
+                        record.before,
+                        record.proposal_set.selected,
+                        record.after,
+                        record.transition,
+                        tuple(receipts),
+                    )
+                    if evidence.receipt_id != record.transition.receipt_id:
+                        raise ValueError("binding evidence references a different live transition")
+                    version_space.record(evidence)
+                    binding_evidence.append(evidence)
+                    if not version_space.viable():
+                        source_enabled = False
+                        source_fallback_step = step_index + 1
                 observation = after
                 if assessment.continuation in {
                     ContinuationDecision.ABSTAIN,
@@ -96,7 +154,11 @@ class TwoAgentRuntime:
                     )
             except Exception as exc:
                 exc.partial_episode_result = EpisodeResult(
-                    tuple(receipts), tuple(cycles), tuple(records), observation
+                    tuple(receipts), tuple(cycles), tuple(records), observation,
+                    tuple(binding_evidence), source_fallback_step, source_replans,
                 )
                 raise
-        return EpisodeResult(tuple(receipts), tuple(cycles), tuple(records), observation)
+        return EpisodeResult(
+            tuple(receipts), tuple(cycles), tuple(records), observation,
+            tuple(binding_evidence), source_fallback_step, source_replans,
+        )

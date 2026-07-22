@@ -77,6 +77,8 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=20)
     parser.add_argument("--decision-model", default="qwen/qwen3.5-35b-a3b")
     parser.add_argument("--harness-model", default="gpt-5-mini")
+    parser.add_argument("--disable-alpha-invariance", action="store_true")
+    parser.add_argument("--binding-repetitions", type=int, default=2)
     args = parser.parse_args()
 
     _load_keys(args.keys)
@@ -103,7 +105,7 @@ def main() -> None:
             },
         )
         decision = OpenAIJSONDecisionAgent(decision_backend)
-        binding = None
+        bindings = ()
         harness_calls = []
         binding_error = None
         if condition == "target_only":
@@ -111,7 +113,11 @@ def main() -> None:
         else:
             harness_backend = OpenAICompatibleBackend(
                 "https://us.api.openai.com/v1",
-                {"binding": args.harness_model, "review": args.harness_model},
+                {
+                    "binding": args.harness_model,
+                    "review": args.harness_model,
+                    "verify": args.harness_model,
+                },
                 api_key_env="OPENAI_API_KEY",
                 json_mode=True,
                 temperature=None,
@@ -121,12 +127,16 @@ def main() -> None:
                 allowed_verifier_ids=("official_transition_and_outcome",),
             )
             try:
-                binding = motif_agent.initialize_binding_from_example(motifs[condition], adaptation)
+                bindings = motif_agent.initialize_binding_set_from_example(
+                    motifs[condition], adaptation,
+                    require_alpha_invariance=not args.disable_alpha_invariance,
+                    induction_repetitions=args.binding_repetitions,
+                )
             except Exception as exc:
                 binding_error = f"BINDING_ERROR:{type(exc).__name__}:{exc}"
             harness_calls.append({
                 "phase": "binding_driver",
-                "admitted_provisional_binding": binding is not None,
+                "admitted_provisional_bindings": len(bindings),
                 "error": binding_error,
             })
         environment = ALFWorldTextEnvironment(
@@ -141,15 +151,13 @@ def main() -> None:
         error = None
         result = None
         try:
-            if condition != "target_only" and binding is None:
-                error = binding_error or "PROVISIONAL_BINDING_ABSTAINED"
-            else:
-                result = TwoAgentRuntime(decision, motif_agent).run(
-                    environment,
-                    "Follow the official ALFWorld task stated in the observation.",
-                    binding=binding,
-                    max_steps=args.max_steps,
-                )
+            result = TwoAgentRuntime(decision, motif_agent).run(
+                environment,
+                "Follow the official ALFWorld task stated in the observation.",
+                bindings=bindings,
+                max_steps=args.max_steps,
+                max_source_replans=1,
+            )
         except Exception as exc:
             result = getattr(exc, "partial_episode_result", None)
             error = f"{type(exc).__name__}:{exc}"
@@ -161,7 +169,17 @@ def main() -> None:
         row = {
             "condition": condition,
             "source_status": motifs[condition].status.value if condition in motifs else None,
-            "binding": asdict(binding) if binding else None,
+            "bindings": [asdict(binding) for binding in bindings],
+            "binding_status": (
+                "TARGET_ONLY"
+                if condition == "target_only"
+                else "PROVISIONAL_INVARIANCE_DISABLED"
+                if bindings and args.disable_alpha_invariance
+                else "ALPHA_INVARIANT_PROVISIONAL"
+                if bindings
+                else "TARGET_ONLY_FALLBACK_NO_INVARIANT_BINDING"
+            ),
+            "binding_error": binding_error,
             "adaptation_example_sha256": stable_hash(adaptation),
             "initial_state_hash": (
                 result.records[0].transition.before_hash if result and result.records else None
@@ -173,6 +191,15 @@ def main() -> None:
             "metrics": metrics,
             "actions": [record.proposal_set.selected.action for record in result.records] if result else [],
             "transition_receipts": [asdict(row) for row in result.receipts] if result else [],
+            "binding_evidence": [asdict(row) for row in result.binding_evidence] if result else [],
+            "source_fallback_step": (
+                result.source_fallback_step
+                if result and result.source_fallback_step is not None
+                else 0
+                if condition != "target_only" and not bindings
+                else None
+            ),
+            "source_replans": result.source_replans if result else 0,
             "decision_call_receipts": decision.call_receipts,
             "harness_calls": harness_calls,
             "error": error,
@@ -210,6 +237,8 @@ def main() -> None:
             "seed": args.seed,
             "game_index": args.game_index,
             "max_steps": args.max_steps,
+            "alpha_invariance_required": not args.disable_alpha_invariance,
+            "binding_repetitions": args.binding_repetitions,
             "rows": rows,
         }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

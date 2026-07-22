@@ -35,7 +35,7 @@ transfer。
    只记录 official terminal/success，语义 advisory 仍属于 Motif Agent。
 8. transient 429/5xx/timeout/incomplete-read 只允许同请求固定两次 transport retry，不按 outcome 重抽。
 
-39 个测试全部通过。
+44 个测试全部通过。
 
 ## matched one-episode smoke
 
@@ -61,6 +61,34 @@ target-only、shuffled 和 other-source 的五个 native actions 完全相同。
 > one-shot Harness 已可在线运行并 fail closed，但这个 source family 没有显示 attributable positive
 > transfer；authentic 有 +1 step 的负效率信号，样本量不足以做统计结论。
 
+## version-space 与负迁移修复（2026-07-22）
+
+旧的单一自由文本 binding 已替换为最多四个结构化候选。每个候选必须：
+
+- 用 source-node ordinal 对 adaptation example 的全部 transition 做无重叠、连续、完整 partition；
+- 为每条 source edge 引用一个顺序一致的 target transition boundary；
+- 通过真实 demo 与 full-action alpha-renamed demo 的 structural-signature intersection；
+- 在两次独立 induction 中都重现，不能只靠一次有利采样 admission。
+
+在线 runtime 现在维护 `BindingVersionSpace`。Motif Agent 在真实 transition 后只能给绑定 ID、当前
+receipt ID 和 `SUPPORTED / REFUTED / INCONCLUSIVE`；Harness 检查引用，`REFUTED` 淘汰该候选并按
+binding ID 的确定性顺序试下一个。Agent `ABSTAIN`、候选耗尽或达到一次 source-induced replan budget
+时，不再终止 ALFWorld episode，而是关闭 source intervention 并继续同一个 target-only actor。
+
+真实默认 smoke 的两次 induction 为：
+
+| repetition | raw candidates | alpha-renamed | within-repeat intersection |
+|---|---:|---:|---:|
+| 0 | 1 | 2 | 1 |
+| 1 | 0 | 0 | 0 |
+
+跨 repetition 交集为 0，因此从 step 0 fail closed；target actor 随后用与 baseline 完全相同的五个
+actions official success。冻结摘要见
+[`results/alfworld_binding_stability_summary.json`](results/alfworld_binding_stability_summary.json)。
+
+另一个单 repetition 复跑曾得到 raw=4、renamed=4、intersection=4，证明同 prompt 的 binding
+generation 本身不稳定；这正是 repeated intersection 必须存在的原因，不能事后挑选有 binding 的 run。
+
 ## 下一步 concrete plan
 
 ### Gate 1：停止把 generic source graph 当 authentic backbone
@@ -71,15 +99,15 @@ step 必须有 Agent proposal set、selected proposal、predicted observable del
 和 continue/replan/abstain receipt。六游戏各至少两个 episode，并做 correct/reasoning-null/randomized/
 target-only matched source qualification。未过 gate 仍可跑工程 control，但状态必须是 `GENERIC_ONLY`。
 
-### Gate 2：one-shot 初始化 version space，而不是生成一个过拟合故事
+### Gate 2：one-shot version space（已实现，等待更强 source evidence）
 
 当前 GPT-5-mini 把一个 demo 的具体 `look/go to/move` 序列写进 binding，容易把 example 记忆成 motif。
-改成一次生成多个匿名 binding hypotheses；Harness 只检查引用和 schema，不选择“最合理”者。后续 live
+现已生成多个匿名 binding hypotheses；Harness 只检查引用和 schema，不选择“最合理”者。后续 live
 receipt 由 Agent verifier 给出 untrusted supported/refuted/inconclusive，外部 version space 只淘汰被
 注册 verifier refute 的候选。若候选无法区分，返回 `NEED_MORE_EXAMPLE`；若全部消失，立即 target-only
 fallback。不得增加 COLLECT→TAKE、predicate ontology 或 embedding alignment。
 
-### Gate 3：预注册 bounded negative-transfer budget
+### Gate 3：bounded negative-transfer budget（已实现）
 
 source advisory 的额外 replans、model calls 和 wall time必须计费。pilot 预注册最多一次 source-induced
 replan；超过 budget 或 Agent 明确 abstain 时关闭 source intervention，后续使用同一个 target-only actor。

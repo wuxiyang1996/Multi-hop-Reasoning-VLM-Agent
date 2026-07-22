@@ -454,6 +454,12 @@ class BindingHypothesis:
     adaptation_receipt_ids: tuple[str, ...]
     verifier_id: str = ""
     status: Lifecycle = Lifecycle.TARGET_PROVISIONAL
+    # Anonymous structural alignment proposed from one target example.
+    # Each source-node ordinal maps to target transition indices.
+    node_alignment: tuple[tuple[int, tuple[int, ...]], ...] = ()
+    # Each source-edge ordinal maps to a target transition boundary (left, right).
+    edge_alignment: tuple[tuple[int, tuple[int, int]], ...] = ()
+    invariance_signature: str = ""
 
 
 @dataclass(frozen=True)
