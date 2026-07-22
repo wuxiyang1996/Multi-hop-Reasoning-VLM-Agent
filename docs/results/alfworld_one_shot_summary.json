@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "initial_state_match": true,
+  "initial_state_hash": "3b94c09825e873d2fbc61df89d20277607f7617ac561d32694370debc9b2381a",
+  "conditions_complete": true,
+  "source_qualification_at_run": "GENERIC_ONLY_NOT_SOURCE_SUPPORTED",
+  "one_shot_online_execution_reached": true,
+  "metrics": {
+    "target_only": {"steps": 5, "official_success": true, "official_score": 1.0, "repeated_actions": 0, "no_observable_progress": 0, "advisory_replans": 0, "decision_replans": 0},
+    "generic_protocol": {"steps": 7, "official_success": true, "official_score": 1.0, "repeated_actions": 0, "no_observable_progress": 0, "advisory_replans": 1, "decision_replans": 0},
+    "authentic": {"steps": 6, "official_success": true, "official_score": 1.0, "repeated_actions": 0, "no_observable_progress": 0, "advisory_replans": 1, "decision_replans": 0},
+    "shuffled_topology": {"steps": 5, "official_success": true, "official_score": 1.0, "repeated_actions": 0, "no_observable_progress": 0, "advisory_replans": 0, "decision_replans": 0},
+    "other_source": {"steps": 5, "official_success": true, "official_score": 1.0, "repeated_actions": 0, "no_observable_progress": 0, "advisory_replans": 0, "decision_replans": 0}
+  },
+  "authentic_minus_target_only_steps": 1,
+  "verdict": "NO_POSITIVE_VALUE_WITH_NEGATIVE_EFFICIENCY_SIGNAL",
+  "claim_limit": "The one-shot Harness mechanism executed online in ALFWorld. One matched episode cannot establish transfer, and authentic source content did not outperform controls."
+}

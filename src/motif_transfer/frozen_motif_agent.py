@@ -3,10 +3,12 @@ from __future__ import annotations
 from dataclasses import asdict
 from enum import Enum
 import hashlib
+import http.client
 import json
 import os
 from typing import Any, Mapping, Protocol, Sequence
 from urllib import request
+from urllib import error as urllib_error
 
 from .contracts import (
     Advisory,
@@ -53,40 +55,69 @@ class OpenAICompatibleBackend:
         api_key_env: str = "OPENAI_API_KEY",
         timeout_seconds: int = 180,
         json_mode: bool = False,
+        temperature: float | None = 0,
+        request_overrides: Mapping[str, Any] | None = None,
+        transport_attempts: int = 2,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.role_models = dict(role_models)
         self.api_key_env = api_key_env
         self.timeout_seconds = timeout_seconds
         self.json_mode = json_mode
+        self.temperature = temperature
+        self.request_overrides = dict(request_overrides or {})
+        self.transport_attempts = transport_attempts
         self.last_completion = ""
         self.last_usage: Mapping[str, Any] = {}
 
     @property
     def identity(self) -> Mapping[str, Any]:
-        return {"backend": "openai-compatible", "base_url": self.base_url, "models": self.role_models}
+        return {
+            "backend": "openai-compatible",
+            "base_url": self.base_url,
+            "models": self.role_models,
+            "temperature": self.temperature,
+            "request_overrides": self.request_overrides,
+            "transport_attempts": self.transport_attempts,
+        }
 
     def complete(self, role: str, system: str, payload: Mapping[str, Any]) -> str:
         if role not in self.role_models:
             raise KeyError(f"no frozen model configured for role {role}")
         request_body: dict[str, Any] = {
                 "model": self.role_models[role],
-                "temperature": 0,
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
                 ],
         }
+        if self.temperature is not None:
+            request_body["temperature"] = self.temperature
         if self.json_mode:
             request_body["response_format"] = {"type": "json_object"}
+        request_body.update(self.request_overrides)
         body = json.dumps(request_body).encode("utf-8")
         headers = {"Content-Type": "application/json"}
         api_key = os.environ.get(self.api_key_env)
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
         req = request.Request(f"{self.base_url}/chat/completions", data=body, headers=headers, method="POST")
-        with request.urlopen(req, timeout=self.timeout_seconds) as response:
-            result = json.loads(response.read())
+        last_error = None
+        for attempt in range(self.transport_attempts):
+            try:
+                with request.urlopen(req, timeout=self.timeout_seconds) as response:
+                    result = json.loads(response.read())
+                break
+            except urllib_error.HTTPError as exc:
+                last_error = exc
+                if exc.code not in {429, 500, 502, 503, 504} or attempt + 1 == self.transport_attempts:
+                    raise
+            except (urllib_error.URLError, http.client.IncompleteRead, TimeoutError) as exc:
+                last_error = exc
+                if attempt + 1 == self.transport_attempts:
+                    raise
+        else:  # pragma: no cover - loop always raises or breaks
+            raise RuntimeError(f"transport attempts exhausted: {last_error}")
         self.last_completion = str(result["choices"][0]["message"]["content"])
         self.last_usage = result.get("usage") or {}
         return self.last_completion
@@ -264,6 +295,7 @@ class FrozenJSONMotifAgent:
         self.backend = backend
         self.condition = condition
         self.allowed_verifier_ids = frozenset(allowed_verifier_ids)
+        self.call_receipts: list[Mapping[str, Any]] = []
 
     def _cycle_view(self, record: DecisionCycleRecord, index: int) -> dict[str, Any]:
         selected = record.proposal_set.selected
@@ -542,7 +574,7 @@ class FrozenJSONMotifAgent:
     def initialize_binding(self, motif, adaptation_records):
         payload = {
             "motif_id": motif.motif_id,
-            "motif_shape": {"nodes": len(motif.nodes), "edges": len(motif.edges)},
+            "source_motif": self._binding_motif_view(motif),
             "adaptation_cycles": [self._cycle_view(row, index) for index, row in enumerate(adaptation_records)],
             "registered_verifier_ids": sorted(self.allowed_verifier_ids),
         }
@@ -552,6 +584,12 @@ class FrozenJSONMotifAgent:
             "from the supplied registry. Never output a target action."
         )
         raw = _strict_json(self.backend.complete("binding", system, payload))
+        self.call_receipts.append({
+            "phase": "binding",
+            "payload_sha256": stable_hash(payload),
+            "response_sha256": stable_hash(raw),
+            "usage": dict(getattr(self.backend, "last_usage", {}) or {}),
+        })
         if raw.get("abstain") is True:
             return None
         verifier_id = str(raw.get("verifier_id", ""))
@@ -573,22 +611,102 @@ class FrozenJSONMotifAgent:
             verifier_id,
         )
 
+    @staticmethod
+    def _binding_motif_view(motif: MotifCandidate) -> dict[str, Any]:
+        """Expose receipt-grounded anonymous structure, not only graph dimensions."""
+        node_ordinals = {node.node_id: index for index, node in enumerate(motif.nodes)}
+        return {
+            "motif_id": motif.motif_id,
+            "status": motif.status.value,
+            "source_lineage_sha256": stable_hash(motif.source_lineage),
+            "nodes": [
+                {
+                    "ordinal": index,
+                    "receipt_count": len(node.transition_receipt_ids),
+                    "decision_signatures": [asdict(signature) for signature in node.decision_signatures],
+                }
+                for index, node in enumerate(motif.nodes)
+            ],
+            "edges": [
+                {
+                    "source_ordinal": node_ordinals[edge.source],
+                    "target_ordinal": node_ordinals[edge.target],
+                    "replay_receipt_count": len(edge.replay_receipt_ids),
+                }
+                for edge in motif.edges
+            ],
+            "untrusted_description": motif.untrusted_description,
+        }
+
+    def initialize_binding_from_example(
+        self,
+        motif: MotifCandidate,
+        adaptation_example: Mapping[str, Any],
+    ) -> BindingHypothesis | None:
+        """One target example initializes a provisional binding; it never admits truth."""
+        payload = {
+            "source_motif": self._binding_motif_view(motif),
+            "one_target_adaptation_example": adaptation_example,
+            "registered_verifier_ids": sorted(self.allowed_verifier_ids),
+        }
+        system = (
+            "Propose one provisional cross-domain binding hypothesis or abstain. The source graph contains "
+            "anonymous receipt-grounded control structure, not target semantics. The single target example "
+            "may initialize a hypothesis but cannot prove it. Do not use a predefined source-to-target ontology. "
+            "Return exact JSON with keys abstain, target_claim, testable_prediction, verifier_id. Select verifier_id "
+            "from the registry. Never output a target action."
+        )
+        raw = _strict_json(self.backend.complete("binding", system, payload))
+        self.call_receipts.append({
+            "phase": "one_shot_binding",
+            "payload_sha256": stable_hash(payload),
+            "response_sha256": stable_hash(raw),
+            "usage": dict(getattr(self.backend, "last_usage", {}) or {}),
+        })
+        if raw.get("abstain") is True:
+            return None
+        verifier_id = str(raw.get("verifier_id", ""))
+        if verifier_id not in self.allowed_verifier_ids:
+            return None
+        example_hash = stable_hash(adaptation_example)
+        body = {
+            "motif_id": motif.motif_id,
+            "target_claim": str(raw.get("target_claim", "")),
+            "testable_prediction": str(raw.get("testable_prediction", "")),
+            "adaptation_receipts": [example_hash],
+            "verifier_id": verifier_id,
+        }
+        return BindingHypothesis(
+            stable_hash(body),
+            motif.motif_id,
+            body["target_claim"],
+            body["testable_prediction"],
+            (example_hash,),
+            verifier_id,
+        )
+
     def review(self, proposal, observation, binding, history):
         payload = {
             "proposal_id": proposal.proposal_id,
+            "already_selected_target_native_action": proposal.action,
             "proposal_prediction": proposal.prediction,
-            "observation_hash": stable_hash(observation.state),
-            "native_actions_hash": stable_hash(observation.native_actions),
+            "observation": observation.state,
+            "native_actions": observation.native_actions,
             "binding": asdict(binding) if binding else None,
-            "history_receipt_ids": [row.receipt_id for row in history],
+            "recent_live_transition_receipts": [asdict(row) for row in history[-6:]],
         }
         system = (
+            "The Decision Agent has already selected the displayed target-native action. You may inspect it but "
+            "must not select, replace, rewrite, rank, or output an action. Treat the provisional binding as an "
+            "untrusted hypothesis initialized by one example. Use live receipts to decide whether its advisory "
+            "structure is still testable. "
             "Return exact JSON with verdict (ADMIT, REPLAN, or ABSTAIN), reason, current_role, "
             "open_hypotheses, information_need, expected_transition, failure_route, termination_test. "
-            "Do not output, rewrite, or select an environment action."
+            "ADMIT allows the already selected action; REPLAN asks the Decision Agent to reconsider; ABSTAIN "
+            "disables source intervention. Do not output any action field."
         )
         raw = _strict_json(self.backend.complete("review", system, payload))
-        return Advisory(
+        advisory = Advisory(
             AdvisoryVerdict(str(raw["verdict"])),
             str(raw.get("reason", "")),
             tuple(str(value) for value in raw.get("evidence_receipt_ids", [])),
@@ -599,3 +717,11 @@ class FrozenJSONMotifAgent:
             str(raw.get("failure_route", "")),
             str(raw.get("termination_test", "")),
         )
+        self.call_receipts.append({
+            "phase": "review",
+            "payload_sha256": stable_hash(payload),
+            "response_sha256": stable_hash(raw),
+            "usage": dict(getattr(self.backend, "last_usage", {}) or {}),
+            "advisory": asdict(advisory),
+        })
+        return advisory

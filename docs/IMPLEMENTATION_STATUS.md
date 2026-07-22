@@ -269,4 +269,15 @@ Columns 的小样本区间略高于 0，Thunder 的均值增益大但区间跨 0
 - 尚未授权 ALFWorld large-scale experiment；
 - 尚未证明可以跳过 target SFT。
 
-只有 fresh source evidence 通过审计、frozen 9B comparison 和 source qualification 后，才进入 ALFWorld one-shot vertical slice。
+## ALFWorld one-shot online vertical slice（2026-07-22）
+
+真实 ALFWorld OOD 五条件 one-shot smoke 已完成，五组 initial-state hash 一致，official success 都为
+1。target-only / authentic / generic / shuffled / other-source 分别使用 5 / 6 / 7 / 5 / 5 步。
+因此 online mechanism 已接通，但 authentic 没有超过 controls，并有相对 target-only 的 +1 step
+负效率信号。当前 source status 仍为 `GENERIC_ONLY`，不得称为 source reasoning-backbone transfer。
+
+完整错误审计、运行协议和下一阶段 gates 见
+[`ALFWORLD_ONE_SHOT_STATUS.md`](ALFWORLD_ONE_SHOT_STATUS.md)。
+
+只有 fresh source evidence 通过审计、frozen 9B comparison 和 source qualification 后，才把后续
+ALFWorld run 解释为 positive-transfer pilot；未过 gate 时只允许像本轮一样作为机制/负迁移诊断。

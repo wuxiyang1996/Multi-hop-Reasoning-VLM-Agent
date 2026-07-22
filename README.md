@@ -1,5 +1,8 @@
 # Two-Agent Motif Transfer Harness
 
+当前 ALFWorld one-shot online smoke、失败审计和下一阶段 gates 见
+[`docs/ALFWORLD_ONE_SHOT_STATUS.md`](docs/ALFWORLD_ONE_SHOT_STATUS.md)。
+
 这是从历史仓库拆出的最小研究核心。仓库只保留两个有模型判断能力的角色：
 
 1. **Decision Agent**：读取目标环境的原生 observation/action space，并且是唯一可以选择环境动作的 Agent。
