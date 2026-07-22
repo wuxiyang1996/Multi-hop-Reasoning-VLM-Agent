@@ -30,6 +30,8 @@ PORT_BASE="${PORT_BASE:-18000}"
 REASONING_OBSERVER="${REASONING_OBSERVER:-0}"
 EXCLUDE_HUMAN_HINTS="${EXCLUDE_HUMAN_HINTS:-1}"
 OFFLINE_ANNOTATION_SOURCE_ROOT="${OFFLINE_ANNOTATION_SOURCE_ROOT:-}"
+MATCHED_POLICY_SKILL_ID="${MATCHED_POLICY_SKILL_ID:-}"
+MATCHED_REPLAY_WORKERS="${MATCHED_REPLAY_WORKERS:-4}"
 
 GAME_SET="${GAME_SET:-six}"
 if [[ "${GAME_SET}" == "tetris_candy" ]]; then
@@ -68,6 +70,7 @@ PORT=$((PORT_BASE + 20 * SLURM_ARRAY_TASK_ID))
 SEED_BASE=$((7301 + 100 * GAME_INDEX))
 LOCAL_CACHE_ROOT="/scratch0/${USER}/motif-p1-${SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
 SOURCE_OVERLAY="$(mktemp -d "/tmp/motif-source-overlay-${SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID}-XXXXXX")"
+PATCH_SNAPSHOT="${SOURCE_OVERLAY}/patches"
 
 [[ ! -e "${RUN_DIR}" ]] || { echo "ERROR refusing to overwrite ${RUN_DIR}" >&2; exit 2; }
 for path in \
@@ -81,6 +84,17 @@ if [[ "${CONDITION}" == "authentic_skill_loaded" ]]; then
 fi
 
 mkdir -p "${RUN_DIR}/logs"
+# Snapshot executable patches before the long model startup. Queued/running
+# jobs must not observe later edits in the shared working tree.
+mkdir -p "${PATCH_SNAPSHOT}"
+for patch_name in \
+  source_policy_receipts.patch \
+  source_request_seed_control.patch \
+  source_matched_policy_treatments.patch \
+  source_no_human_policy_hints.patch \
+  source_reasoning_shadow_observer.patch; do
+  cp "${CLEAN_REPO}/patches/${patch_name}" "${PATCH_SNAPSHOT}/${patch_name}"
+done
 scontrol show job "${SLURM_JOB_ID}" >"${RUN_DIR}/slurm_job_at_start.txt"
 PYTHONPATH="${CLEAN_REPO}/src${PYTHONPATH:+:${PYTHONPATH}}" \
   python "${CLEAN_REPO}/scripts/record_source_provenance.py" \
@@ -179,16 +193,17 @@ cp -a "${SOURCE_REPO}/trainer" "${SOURCE_OVERLAY}/trainer"
 mkdir -p "${SOURCE_OVERLAY}/scripts"
 cp "${SOURCE_REPO}/scripts/run_instrumented_source_smoke.py" "${SOURCE_OVERLAY}/scripts/"
 ln -s "${SOURCE_REPO}/.git" "${SOURCE_OVERLAY}/.git"
-(cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_policy_receipts.patch")
-(cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_request_seed_control.patch")
+(cd "${SOURCE_OVERLAY}" && git apply "${PATCH_SNAPSHOT}/source_policy_receipts.patch")
+(cd "${SOURCE_OVERLAY}" && git apply "${PATCH_SNAPSHOT}/source_request_seed_control.patch")
+(cd "${SOURCE_OVERLAY}" && git apply "${PATCH_SNAPSHOT}/source_matched_policy_treatments.patch")
 if [[ "${EXCLUDE_HUMAN_HINTS}" == "1" ]]; then
-  (cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_no_human_policy_hints.patch")
+  (cd "${SOURCE_OVERLAY}" && git apply "${PATCH_SNAPSHOT}/source_no_human_policy_hints.patch")
 elif [[ "${EXCLUDE_HUMAN_HINTS}" != "0" ]]; then
   echo "ERROR EXCLUDE_HUMAN_HINTS must be 0 or 1" >&2
   exit 2
 fi
 if [[ "${REASONING_OBSERVER}" == "1" ]]; then
-  (cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_reasoning_shadow_observer.patch")
+  (cd "${SOURCE_OVERLAY}" && git apply "${PATCH_SNAPSHOT}/source_reasoning_shadow_observer.patch")
 elif [[ "${REASONING_OBSERVER}" != "0" ]]; then
   echo "ERROR REASONING_OBSERVER must be 0 or 1" >&2
   exit 2
@@ -198,18 +213,19 @@ OVERLAY_RECEIPT_CMD=(
   --overlay-runner "${SOURCE_OVERLAY}/trainer/coevolution/episode_runner.py"
   --overlay-vllm-client "${SOURCE_OVERLAY}/trainer/coevolution/vllm_client.py"
   --overlay-smoke-runner "${SOURCE_OVERLAY}/scripts/run_instrumented_source_smoke.py"
-  --policy-receipts-patch "${CLEAN_REPO}/patches/source_policy_receipts.patch"
-  --request-seed-control-patch "${CLEAN_REPO}/patches/source_request_seed_control.patch"
+  --policy-receipts-patch "${PATCH_SNAPSHOT}/source_policy_receipts.patch"
+  --request-seed-control-patch "${PATCH_SNAPSHOT}/source_request_seed_control.patch"
+  --matched-policy-patch "${PATCH_SNAPSHOT}/source_matched_policy_treatments.patch"
   --output "${RUN_DIR}/source_overlay_receipt.json"
 )
 if [[ "${EXCLUDE_HUMAN_HINTS}" == "1" ]]; then
   OVERLAY_RECEIPT_CMD+=(
-    --no-human-hints-patch "${CLEAN_REPO}/patches/source_no_human_policy_hints.patch"
+    --no-human-hints-patch "${PATCH_SNAPSHOT}/source_no_human_policy_hints.patch"
   )
 fi
 if [[ "${REASONING_OBSERVER}" == "1" ]]; then
   OVERLAY_RECEIPT_CMD+=(
-    --shadow-observer-patch "${CLEAN_REPO}/patches/source_reasoning_shadow_observer.patch"
+    --shadow-observer-patch "${PATCH_SNAPSHOT}/source_reasoning_shadow_observer.patch"
   )
 fi
 "${OVERLAY_RECEIPT_CMD[@]}"
@@ -232,6 +248,16 @@ if [[ "${CONDITION}" == "authentic_skill_loaded" ]]; then
 fi
 if [[ "${REASONING_OBSERVER}" == "1" ]]; then
   CMD+=(--reasoning-backbone-harness)
+fi
+if [[ -n "${MATCHED_POLICY_SKILL_ID}" ]]; then
+  [[ "${CONDITION}" == "authentic_skill_loaded" ]] || {
+    echo "ERROR matched policy treatments require authentic_skill_loaded" >&2
+    exit 2
+  }
+  CMD+=(
+    --matched-policy-skill-id "${MATCHED_POLICY_SKILL_ID}"
+    --matched-replay-workers "${MATCHED_REPLAY_WORKERS}"
+  )
 fi
 "${CMD[@]}" | tee "${RUN_DIR}/summary.json"
 

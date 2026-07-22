@@ -8,6 +8,9 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
+# Unified diffs encode blank context lines with a required single space.
+*.patch text eol=lf whitespace=-blank-at-eol
+
 # Binary files — do not touch.
 *.png binary
 *.jpg binary

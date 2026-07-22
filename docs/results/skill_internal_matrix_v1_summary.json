@@ -1,0 +1,234 @@
+{
+  "by_condition": {
+    "action_alpha_renamed": {
+      "backbone_eligible": 0,
+      "calls": 11,
+      "candidates": 2,
+      "model_errors": 5
+    },
+    "action_only": {
+      "backbone_eligible": 0,
+      "calls": 11,
+      "candidates": 11,
+      "model_errors": 1
+    },
+    "authentic": {
+      "backbone_eligible": 0,
+      "calls": 11,
+      "candidates": 2,
+      "model_errors": 3
+    },
+    "bank_masked": {
+      "backbone_eligible": 1,
+      "calls": 11,
+      "candidates": 5,
+      "model_errors": 2
+    },
+    "reasoning_masked": {
+      "backbone_eligible": 2,
+      "calls": 11,
+      "candidates": 4,
+      "model_errors": 3
+    },
+    "receipt_only": {
+      "backbone_eligible": 1,
+      "calls": 11,
+      "candidates": 8,
+      "model_errors": 3
+    },
+    "shuffled": {
+      "backbone_eligible": 1,
+      "calls": 11,
+      "candidates": 5,
+      "model_errors": 1
+    },
+    "skill_off": {
+      "backbone_eligible": 1,
+      "calls": 11,
+      "candidates": 3,
+      "model_errors": 3
+    }
+  },
+  "eligible_candidates": [
+    {
+      "condition": "reasoning_masked",
+      "edges": 3,
+      "game": "gymv_streets_of_rage_2",
+      "graph_id": "6a1fe7c5e7003515089a4536f4b5802a8d2b42240fecc65591aa4137e9f4c381",
+      "held_out_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "nodes": 3,
+      "qualification_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "skill_id": "COMMIT/ATTACK"
+    },
+    {
+      "condition": "receipt_only",
+      "edges": 10,
+      "game": "gymv_streets_of_rage_2",
+      "graph_id": "9034fc88c970583c298842d874620a140094472749bc35d74985f85d3a8988c1",
+      "held_out_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "nodes": 9,
+      "qualification_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "skill_id": "COMMIT/ATTACK"
+    },
+    {
+      "condition": "shuffled",
+      "edges": 7,
+      "game": "gymv_streets_of_rage_2",
+      "graph_id": "6f88fc30b69ebd47ff69372b7e91061d67716a1143d2e121f386aa6c2b3d5aaf",
+      "held_out_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "nodes": 7,
+      "qualification_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 0.8571428571428571,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "skill_id": "COMMIT/ATTACK"
+    },
+    {
+      "condition": "skill_off",
+      "edges": 6,
+      "game": "gymv_strider",
+      "graph_id": "1a2fa91045e39ec0f5aab205291a26e09e053a23b4349687e49314adefec516f",
+      "held_out_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "nodes": 5,
+      "qualification_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "skill_id": "COMMIT/EXPLORE"
+    },
+    {
+      "condition": "bank_masked",
+      "edges": 2,
+      "game": "gymv_thunder_force_iii",
+      "graph_id": "6724d11ee8bab11e3f6858ef2cb524e9dbc534afbd6754eb7b322cd6e94e83a2",
+      "held_out_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 0.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "nodes": 2,
+      "qualification_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "skill_id": "COMMIT/NAVIGATE"
+    },
+    {
+      "condition": "reasoning_masked",
+      "edges": 2,
+      "game": "gymv_thunder_force_iii",
+      "graph_id": "bcbe22f5a5959b622ab36c8a9a0ec58855375e75c53f0c7c718b6b120f9403a8",
+      "held_out_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 0.5,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "nodes": 2,
+      "qualification_topology_fit": [
+        {
+          "accepted": true,
+          "edge_recurrence": 1.0,
+          "error": null,
+          "node_coverage": 1.0
+        }
+      ],
+      "skill_id": "early:EXPLORE"
+    }
+  ],
+  "error_types": {
+    "edge has no observed adjacent occurrence": 19,
+    "out-of-range index 11 for length 9": 1,
+    "out-of-range index 50 for length 50": 1
+  },
+  "interpretation": [
+    "No authentic condition produced a backbone-eligible candidate.",
+    "All eligible candidates came from masked, receipt-only, shuffled, or skill-off controls.",
+    "Qualification and held-out alignment are topology-fit diagnostics, not blind prediction accuracy.",
+    "No candidate is SOURCE_SUPPORTED and none should be transferred to a target domain."
+  ],
+  "model_identity": {
+    "backend": "openai-compatible",
+    "base_url": "https://us.api.openai.com/v1",
+    "models": {
+      "skill_internal_alignment": "gpt-5-mini",
+      "skill_internal_graph": "gpt-5-mini"
+    },
+    "request_overrides": {},
+    "temperature": null,
+    "transport_attempts": 2
+  },
+  "schema_version": "SKILL_INTERNAL_MATRIX_V1_COMPACT_AUDIT",
+  "source_report_sha256": "cff61735154976ffa47f6f511e83d41b8fb464cb2f0febf4fc48f24d03cbdf14",
+  "totals": {
+    "backbone_eligible_all_conditions": 6,
+    "backbone_eligible_authentic": 0,
+    "model_calls": 88,
+    "model_errors": 21,
+    "skills": 11,
+    "usage": {
+      "completion_tokens": 120044,
+      "prompt_tokens": 4734617,
+      "total_tokens": 4854661
+    }
+  }
+}

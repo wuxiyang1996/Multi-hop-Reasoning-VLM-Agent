@@ -2,7 +2,9 @@
 
 ## 一句话定义
 
-从 Phase-1 游戏经验中提取 receipt-grounded control motifs，用一个 target example 初始化可证伪 binding，并在后续真实交互中持续验证，帮助一个固定的 Decision Agent 更快适应新任务或新领域。
+检验 Phase-1 游戏训练是否把程序性推理能力写入模型权重，并从 matched source interventions 中提取
+receipt-grounded control motifs；用一个 target example 初始化可证伪 binding，在后续真实交互中持续验证，
+帮助 Decision Agent 更快适应新任务或新领域。
 
 ## 它不是什么
 
@@ -10,7 +12,11 @@
 - 不是替 Decision Agent 生成 action；
 - 不是声称模型本身不会规划、验证或 replan；
 - 不是把 `observe → act → verify` 通用提示包装成 source skill；
+- 不是把 game-trained checkpoint 的任何提升自动归因于 reasoning；
 - 不是在 test episode 上继续训练模型并称之为 transfer。
+
+必须先分离 `game-trained − base` 的 weight-level effect、`skill-on − skill-masked` 的在线 context effect，
+以及 `authentic Harness − generic Harness` 的 source effect。三者的实验身份不能混用。
 
 ## 在线协议
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from enum import Enum
+from itertools import permutations
 import json
 from pathlib import Path
 from typing import Any, Mapping, Protocol, Sequence
@@ -17,6 +19,16 @@ class SkillHypothesis:
     content_hash: str
     content: Mapping[str, Any]
     authority: str = "UNTRUSTED_HISTORICAL_SKILL_HYPOTHESIS"
+
+
+class SourcePromptCondition(str, Enum):
+    AUTHENTIC = "authentic"
+    BANK_MASKED = "bank_masked"
+    REASONING_MASKED = "reasoning_masked"
+    ACTION_ALPHA_RENAMED = "action_alpha_renamed"
+    ACTION_ONLY = "action_only"
+    RECEIPT_ONLY = "receipt_only"
+    SHUFFLED = "shuffled"
 
 
 @dataclass(frozen=True)
@@ -87,6 +99,7 @@ class SkillInternalGraph:
     discovery_execution_ids: tuple[str, ...]
     status: str = "CANDIDATE"
     untrusted_description: str = ""
+    prompt_condition: str = SourcePromptCondition.AUTHENTIC.value
 
     @property
     def is_nontrivial(self) -> bool:
@@ -131,6 +144,28 @@ class InterventionRequest:
     alternative_action_ordinal: int
     untrusted_question: str
     status: str = "REQUESTED_NOT_OBSERVED"
+
+
+@dataclass(frozen=True)
+class FrozenGraphAlignment:
+    alignment_id: str
+    graph_id: str
+    split: str
+    node_occurrences: tuple[tuple[str, tuple[NodeOccurrence, ...]], ...]
+    abstained: bool = False
+
+
+@dataclass(frozen=True)
+class AlignmentAudit:
+    accepted: bool
+    failure_codes: tuple[str, ...]
+    split: str
+    aligned_nodes: int
+    total_nodes: int
+    observed_frozen_edges: int
+    total_frozen_edges: int
+    node_coverage: float
+    edge_recurrence: float
 
 
 class JSONBackend(Protocol):
@@ -229,6 +264,202 @@ def build_execution_sets(
     return tuple(result)
 
 
+def build_skill_off_control_set(
+    game: str,
+    episodes: Sequence[Any],
+    source_skill_id: str,
+) -> GroundedSkillExecutionSet:
+    """Treat each matched skill-off episode as a control execution, never as a skill."""
+
+    episode_ids = sorted({episode.episode_id for episode in episodes})
+    split_by_episode = {
+        episode_id: ("discovery", "qualification", "held_out")[index % 3]
+        for index, episode_id in enumerate(episode_ids)
+    }
+    executions: list[SkillExecution] = []
+    all_receipts: list[str] = []
+    control_skill_id = f"SKILL_OFF_CONTROL::{stable_hash(source_skill_id)}"
+    for episode in sorted(episodes, key=lambda row: row.episode_id):
+        records = tuple(sorted(episode.records, key=lambda row: row.step))
+        if not records:
+            continue
+        body = {
+            "episode_id": episode.episode_id,
+            "skill_id": control_skill_id,
+            "start_step": records[0].step,
+            "end_step": records[-1].step,
+            "transition_receipt_ids": tuple(row.transition.receipt_id for row in records),
+            "split": split_by_episode[episode.episode_id],
+        }
+        executions.append(SkillExecution(stable_hash(body), **body))
+        all_receipts.extend(body["transition_receipt_ids"])
+    hash_body = {
+        "game": game,
+        "skill_id": control_skill_id,
+        "skill_hypothesis_hash": None,
+        "executions": tuple(asdict(row) for row in executions),
+        "transition_receipt_ids": tuple(all_receipts),
+        "authority": "MATCHED_SKILL_OFF_EPISODE_CONTROL_ONLY",
+    }
+    return GroundedSkillExecutionSet(
+        stable_hash(hash_body), game, control_skill_id, None,
+        tuple(executions), tuple(all_receipts),
+        "MATCHED_SKILL_OFF_EPISODE_CONTROL_ONLY",
+    )
+
+
+def _alpha_action_maps(
+    discovery: Sequence[SkillExecution],
+    records_by_receipt: Mapping[str, SourcePolicyStepRecord],
+) -> dict[str, str]:
+    actions = sorted({
+        action
+        for execution in discovery
+        for receipt_id in execution.transition_receipt_ids
+        for action in records_by_receipt[receipt_id].before.native_actions
+    })
+    return {action: f"ACTION_{index}" for index, action in enumerate(actions)}
+
+
+def _conditioned_payload(
+    execution_set: GroundedSkillExecutionSet,
+    discovery: Sequence[SkillExecution],
+    records_by_receipt: Mapping[str, SourcePolicyStepRecord],
+    hypothesis: SkillHypothesis | None,
+    condition: SourcePromptCondition,
+) -> dict[str, Any]:
+    action_aliases = _alpha_action_maps(discovery, records_by_receipt)
+    executions: list[dict[str, Any]] = []
+    for execution_index, execution in enumerate(discovery):
+        source_records = [
+            records_by_receipt[receipt_id]
+            for receipt_id in execution.transition_receipt_ids
+        ]
+        if condition == SourcePromptCondition.SHUFFLED and len(source_records) > 1:
+            # Keep receipt lineage/order fixed while rotating all observable content.
+            content_records = source_records[1:] + source_records[:1]
+        else:
+            content_records = source_records
+        steps: list[dict[str, Any]] = []
+        for offset, (receipt_id, source_record, content_record) in enumerate(zip(
+            execution.transition_receipt_ids, source_records, content_records
+        )):
+            base = {
+                "offset": offset,
+                "transition_receipt_id": receipt_id,
+                "reward": content_record.reward,
+                "terminal": content_record.after.terminal,
+            }
+            if condition == SourcePromptCondition.RECEIPT_ONLY:
+                base.update({
+                    "before_hash": source_record.transition.before_hash,
+                    "after_hash": source_record.transition.after_hash,
+                })
+            elif condition == SourcePromptCondition.ACTION_ONLY:
+                base.update({
+                    "native_actions": content_record.before.native_actions,
+                    "executed_action": content_record.action,
+                })
+            else:
+                native_actions = content_record.before.native_actions
+                executed_action = content_record.action
+                if condition == SourcePromptCondition.ACTION_ALPHA_RENAMED:
+                    native_actions = tuple(action_aliases[action] for action in native_actions)
+                    executed_action = action_aliases[executed_action]
+                base.update({
+                    "before": content_record.before.state,
+                    "native_actions": native_actions,
+                    "executed_action": executed_action,
+                    "after": content_record.after.state,
+                })
+                if condition not in {
+                    SourcePromptCondition.REASONING_MASKED,
+                    SourcePromptCondition.ACTION_ALPHA_RENAMED,
+                }:
+                    base["untrusted_policy_reasoning"] = content_record.action_reasoning
+            steps.append(base)
+        executions.append({
+            "execution_index": execution_index,
+            "execution_id": execution.execution_id,
+            "steps": steps,
+        })
+    return {
+        "schema_version": "SKILL_INTERNAL_V1_FROZEN",
+        "execution_set_id": execution_set.execution_set_id,
+        "untrusted_skill_hypothesis": (
+            hypothesis.content
+            if hypothesis is not None and condition not in {
+                SourcePromptCondition.BANK_MASKED,
+                SourcePromptCondition.ACTION_ALPHA_RENAMED,
+                SourcePromptCondition.ACTION_ONLY,
+                SourcePromptCondition.RECEIPT_ONLY,
+            }
+            else None
+        ),
+        "executions": executions,
+    }
+
+
+def structural_fingerprint(graph: SkillInternalGraph) -> str:
+    """Ignore language, source IDs, and condition labels when comparing controls."""
+
+    node_ids = tuple(node.node_id for node in graph.nodes)
+    shapes = {
+        node.node_id: tuple(sorted(
+            occurrence.end_offset - occurrence.start_offset + 1
+            for occurrence in node.occurrences
+        ))
+        for node in graph.nodes
+    }
+    edge_counts = {
+        (edge.source, edge.target): len(edge.supporting_boundaries)
+        for edge in graph.edges
+    }
+    if len(node_ids) <= 8:
+        encodings = []
+        for order in permutations(node_ids):
+            ordinal = {node_id: index for index, node_id in enumerate(order)}
+            encodings.append({
+                "nodes": [shapes[node_id] for node_id in order],
+                "edges": sorted(
+                    (ordinal[source], ordinal[target], count)
+                    for (source, target), count in edge_counts.items()
+                ),
+            })
+        canonical = min(
+            encodings,
+            key=lambda row: json.dumps(row, sort_keys=True, separators=(",", ":")),
+        ) if encodings else {"nodes": [], "edges": []}
+    else:
+        # Deterministic Weisfeiler-Lehman-style fallback for unexpectedly large graphs.
+        labels = {node_id: stable_hash(shapes[node_id]) for node_id in node_ids}
+        for _ in range(len(node_ids)):
+            labels = {
+                node_id: stable_hash({
+                    "self": labels[node_id],
+                    "out": sorted(
+                        (labels[target], count)
+                        for (source, target), count in edge_counts.items()
+                        if source == node_id
+                    ),
+                    "in": sorted(
+                        (labels[source], count)
+                        for (source, target), count in edge_counts.items()
+                        if target == node_id
+                    ),
+                })
+                for node_id in node_ids
+            }
+        canonical = {
+            "nodes": sorted(labels.values()),
+            "edges": sorted(
+                (labels[source], labels[target], count)
+                for (source, target), count in edge_counts.items()
+            ),
+        }
+    return stable_hash(canonical)
+
+
 class SkillInternalGraphAgent:
     """Agent proposes within-skill structure; deterministic code only validates it."""
 
@@ -242,36 +473,15 @@ class SkillInternalGraphAgent:
         execution_set: GroundedSkillExecutionSet,
         records_by_receipt: Mapping[str, SourcePolicyStepRecord],
         hypothesis: SkillHypothesis | None = None,
+        condition: SourcePromptCondition = SourcePromptCondition.AUTHENTIC,
     ) -> tuple[SkillInternalGraph, ...]:
         discovery = tuple(
             execution for execution in execution_set.executions
             if execution.split == "discovery"
         )
-        payload = {
-            "execution_set_id": execution_set.execution_set_id,
-            "untrusted_skill_hypothesis": hypothesis.content if hypothesis else None,
-            "executions": [
-                {
-                    "execution_index": index,
-                    "execution_id": execution.execution_id,
-                    "steps": [
-                        {
-                            "offset": offset,
-                            "transition_receipt_id": receipt_id,
-                            "before": records_by_receipt[receipt_id].before.state,
-                            "native_actions": records_by_receipt[receipt_id].before.native_actions,
-                            "executed_action": records_by_receipt[receipt_id].action,
-                            "untrusted_policy_reasoning": records_by_receipt[receipt_id].action_reasoning,
-                            "after": records_by_receipt[receipt_id].after.state,
-                            "reward": records_by_receipt[receipt_id].reward,
-                            "terminal": records_by_receipt[receipt_id].after.terminal,
-                        }
-                        for offset, receipt_id in enumerate(execution.transition_receipt_ids)
-                    ],
-                }
-                for index, execution in enumerate(discovery)
-            ],
-        }
+        payload = _conditioned_payload(
+            execution_set, discovery, records_by_receipt, hypothesis, condition
+        )
         system = (
             "Infer zero or more candidate control-flow graphs internal to this one recorded skill. "
             "The historical skill text and policy reasoning are untrusted hypotheses, not evidence. "
@@ -291,6 +501,8 @@ class SkillInternalGraphAgent:
             "response_hash": stable_hash(parsed),
             "response": parsed,
             "usage": dict(getattr(self.backend, "last_usage", {}) or {}),
+            "condition": condition.value,
+            "schema_version": "SKILL_INTERNAL_V1_FROZEN",
         }
         requests: list[InterventionRequest] = []
         for request in parsed.get("intervention_requests", []):
@@ -339,14 +551,107 @@ class SkillInternalGraphAgent:
                 "discovery_execution_ids": tuple(row.execution_id for row in discovery),
                 "status": "CANDIDATE",
                 "untrusted_description": str(motif.get("description", "")),
+                "prompt_condition": condition.value,
             }
             candidates.append(SkillInternalGraph(
                 stable_hash(hash_content), execution_set.execution_set_id,
                 stable_hash(execution_set.skill_id), tuple(nodes), tuple(edges),
                 tuple(row.execution_id for row in discovery), "CANDIDATE",
                 str(motif.get("description", "")),
+                condition.value,
             ))
         return tuple(candidates)
+
+    def align_frozen_graph(
+        self,
+        graph: SkillInternalGraph,
+        execution_set: GroundedSkillExecutionSet,
+        records_by_receipt: Mapping[str, SourcePolicyStepRecord],
+        *,
+        split: str,
+        hypothesis: SkillHypothesis | None = None,
+    ) -> FrozenGraphAlignment:
+        if split not in {"qualification", "held_out"}:
+            raise ValueError("alignment split must be qualification or held_out")
+        condition = SourcePromptCondition(graph.prompt_condition)
+        evaluations = tuple(
+            execution for execution in execution_set.executions
+            if execution.split == split
+        )
+        if not evaluations:
+            raise ValueError(f"execution set has no {split} executions")
+        payload = {
+            "schema_version": "SKILL_INTERNAL_ALIGNMENT_V1_FROZEN",
+            "frozen_graph": {
+                "graph_id": graph.graph_id,
+                "nodes": [
+                    {
+                        "node_id": node.node_id,
+                        "untrusted_role": node.untrusted_role,
+                        "discovery_occurrence_lengths": [
+                            occurrence.end_offset - occurrence.start_offset + 1
+                            for occurrence in node.occurrences
+                        ],
+                    }
+                    for node in graph.nodes
+                ],
+                "edges": [
+                    {"source": edge.source, "target": edge.target}
+                    for edge in graph.edges
+                ],
+            },
+            "evaluation": _conditioned_payload(
+                execution_set, evaluations, records_by_receipt, hypothesis, condition
+            )["executions"],
+        }
+        system = (
+            "Align unseen executions to a frozen source graph. You may only reference supplied "
+            "node IDs and contiguous inclusive offsets. You cannot add, delete, rename, or alter "
+            "nodes or edges. Return exact JSON with abstain and nodes[{node_id,occurrences:["
+            "{execution_index,start_offset,end_offset}]}]. Partial alignment is allowed; abstain "
+            "when evidence is insufficient. Do not infer target-domain semantics."
+        )
+        raw = self.backend.complete("skill_internal_alignment", system, payload)
+        parsed = json.loads(raw) if isinstance(raw, str) else raw
+        occurrences_by_node: list[tuple[str, tuple[NodeOccurrence, ...]]] = []
+        known_nodes = {node.node_id for node in graph.nodes}
+        for raw_node in parsed.get("nodes", []):
+            node_id = str(raw_node["node_id"])
+            if node_id not in known_nodes:
+                raise ValueError("alignment references unknown frozen node")
+            occurrences: list[NodeOccurrence] = []
+            for raw_occurrence in raw_node.get("occurrences", []):
+                execution = evaluations[
+                    _bounded(raw_occurrence["execution_index"], len(evaluations))
+                ]
+                start = _bounded(
+                    raw_occurrence["start_offset"], len(execution.transition_receipt_ids)
+                )
+                end = _bounded(
+                    raw_occurrence["end_offset"], len(execution.transition_receipt_ids)
+                )
+                if end < start:
+                    raise ValueError("alignment occurrence has reversed offsets")
+                occurrences.append(NodeOccurrence(
+                    execution.execution_id,
+                    start,
+                    end,
+                    execution.transition_receipt_ids[start:end + 1],
+                ))
+            occurrences_by_node.append((node_id, tuple(occurrences)))
+        hash_body = {
+            "graph_id": graph.graph_id,
+            "split": split,
+            "node_occurrences": tuple(
+                (node_id, tuple(asdict(row) for row in occurrences))
+                for node_id, occurrences in occurrences_by_node
+            ),
+            "abstained": bool(parsed.get("abstain", False)),
+        }
+        return FrozenGraphAlignment(
+            stable_hash(hash_body), graph.graph_id, split,
+            tuple(occurrences_by_node), bool(parsed.get("abstain", False)),
+        )
 
 
 def _bounded(value: Any, length: int) -> int:
@@ -446,4 +751,75 @@ def audit_internal_graph(
         len(graph.edges),
         accepted and not control_flags,
         tuple(control_flags),
+    )
+
+
+def audit_frozen_alignment(
+    alignment: FrozenGraphAlignment,
+    graph: SkillInternalGraph,
+    execution_set: GroundedSkillExecutionSet,
+) -> AlignmentAudit:
+    failures: list[str] = []
+    if alignment.graph_id != graph.graph_id:
+        failures.append("GRAPH_ID_MISMATCH")
+    if alignment.split not in {"qualification", "held_out"}:
+        failures.append("INVALID_ALIGNMENT_SPLIT")
+    if alignment.abstained and any(rows for _, rows in alignment.node_occurrences):
+        failures.append("ABSTAIN_WITH_OCCURRENCES")
+    frozen_node_ids = {node.node_id for node in graph.nodes}
+    aligned_node_ids: set[str] = set()
+    seen_declared_nodes: set[str] = set()
+    occupied: set[tuple[str, int]] = set()
+    known_executions = {row.execution_id: row for row in execution_set.executions}
+    starts: dict[tuple[str, int], str] = {}
+    ends: dict[tuple[str, int], str] = {}
+    for node_id, occurrences in alignment.node_occurrences:
+        if node_id not in frozen_node_ids:
+            failures.append("UNKNOWN_FROZEN_NODE")
+        if node_id in seen_declared_nodes:
+            failures.append("DUPLICATE_ALIGNMENT_NODE")
+        seen_declared_nodes.add(node_id)
+        if occurrences:
+            aligned_node_ids.add(node_id)
+        for occurrence in occurrences:
+            execution = known_executions.get(occurrence.execution_id)
+            if execution is None or execution.split != alignment.split:
+                failures.append("WRONG_SPLIT_OCCURRENCE")
+                continue
+            expected = execution.transition_receipt_ids[
+                occurrence.start_offset:occurrence.end_offset + 1
+            ]
+            if expected != occurrence.transition_receipt_ids:
+                failures.append("ALIGNMENT_RECEIPT_MISMATCH")
+            starts[(occurrence.execution_id, occurrence.start_offset)] = node_id
+            ends[(occurrence.execution_id, occurrence.end_offset)] = node_id
+            for offset in range(occurrence.start_offset, occurrence.end_offset + 1):
+                key = (occurrence.execution_id, offset)
+                if key in occupied:
+                    failures.append("OVERLAPPING_ALIGNMENT_OCCURRENCES")
+                occupied.add(key)
+    frozen_edges = {(edge.source, edge.target) for edge in graph.edges}
+    observed_edges: set[tuple[str, str]] = set()
+    for execution in known_executions.values():
+        if execution.split != alignment.split:
+            continue
+        for offset in range(len(execution.transition_receipt_ids) - 1):
+            edge = (
+                ends.get((execution.execution_id, offset)),
+                starts.get((execution.execution_id, offset + 1)),
+            )
+            if edge in frozen_edges:
+                observed_edges.add(edge)
+    total_nodes = len(frozen_node_ids)
+    total_edges = len(frozen_edges)
+    return AlignmentAudit(
+        accepted=not failures,
+        failure_codes=tuple(sorted(set(failures))),
+        split=alignment.split,
+        aligned_nodes=len(aligned_node_ids),
+        total_nodes=total_nodes,
+        observed_frozen_edges=len(observed_edges),
+        total_frozen_edges=total_edges,
+        node_coverage=(len(aligned_node_ids) / total_nodes if total_nodes else 0.0),
+        edge_recurrence=(len(observed_edges) / total_edges if total_edges else 0.0),
     )

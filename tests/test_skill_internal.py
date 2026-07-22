@@ -1,14 +1,18 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 
 import pytest
 
 from motif_transfer.contracts import Observation, SourcePolicyStepRecord, SourceTransitionReceipt
 from motif_transfer.skill_internal import (
+    SourcePromptCondition,
     SkillInternalGraphAgent,
+    audit_frozen_alignment,
     audit_internal_graph,
     build_execution_sets,
+    build_skill_off_control_set,
     load_skill_hypotheses,
+    structural_fingerprint,
 )
 
 
@@ -61,6 +65,14 @@ def test_build_execution_sets_reuses_bank_as_untrusted_sidecar(tmp_path):
         "discovery", "qualification", "held_out"
     }
     assert len(execution_set.transition_receipt_ids) == 18
+
+
+def test_skill_off_control_is_explicitly_not_a_source_skill():
+    control = build_skill_off_control_set("game", _episodes(), "skill-a")
+    assert control.validate()
+    assert control.authority == "MATCHED_SKILL_OFF_EPISODE_CONTROL_ONLY"
+    assert control.skill_hypothesis_hash is None
+    assert control.skill_id.startswith("SKILL_OFF_CONTROL::")
 
 
 class CyclicBackend:
@@ -160,3 +172,120 @@ def test_agent_can_request_but_not_fabricate_an_intervention():
     assert request.execution_id in {
         row.execution_id for row in execution_set.executions if row.split == "discovery"
     }
+
+
+def test_frozen_controls_mask_information_without_changing_receipt_lineage():
+    class CaptureBackend:
+        def __init__(self):
+            self.payload = None
+
+        def complete(self, role, system, payload):
+            self.payload = payload
+            return json.dumps({"motifs": []})
+
+    episodes = _episodes()
+    execution_set = build_execution_sets("game", episodes)[0]
+    records = {
+        row.transition.receipt_id: row
+        for episode in episodes for row in episode.records
+    }
+    backend = CaptureBackend()
+    SkillInternalGraphAgent(backend).propose(
+        execution_set, records, condition=SourcePromptCondition.ACTION_ALPHA_RENAMED
+    )
+    payload = backend.payload
+    assert payload["schema_version"] == "SKILL_INTERNAL_V1_FROZEN"
+    assert payload["untrusted_skill_hypothesis"] is None
+    step = payload["executions"][0]["steps"][0]
+    assert step["executed_action"] == "ACTION_0"
+    assert step["native_actions"] == ("ACTION_0", "ACTION_1")
+    assert "untrusted_policy_reasoning" not in step
+    expected_receipts = [
+        row.transition_receipt_ids
+        for row in execution_set.executions if row.split == "discovery"
+    ]
+    assert [
+        tuple(step["transition_receipt_id"] for step in execution["steps"])
+        for execution in payload["executions"]
+    ] == expected_receipts
+
+
+def test_frozen_graph_alignment_cannot_edit_graph_and_recurrence_is_mechanical():
+    episodes = _episodes()
+    execution_set = build_execution_sets("game", episodes)[0]
+    records = {
+        row.transition.receipt_id: row
+        for episode in episodes for row in episode.records
+    }
+    graph = SkillInternalGraphAgent(CyclicBackend()).propose(execution_set, records)[0]
+
+    class AlignmentBackend:
+        def complete(self, role, system, payload):
+            assert role == "skill_internal_alignment"
+            assert payload["schema_version"] == "SKILL_INTERNAL_ALIGNMENT_V1_FROZEN"
+            return json.dumps({
+                "abstain": False,
+                "nodes": [
+                    {"node_id": "n0", "occurrences": [
+                        {"execution_index": 0, "start_offset": 0, "end_offset": 0},
+                        {"execution_index": 0, "start_offset": 2, "end_offset": 2},
+                    ]},
+                    {"node_id": "n1", "occurrences": [
+                        {"execution_index": 0, "start_offset": 1, "end_offset": 1}
+                    ]},
+                ],
+            })
+
+    alignment = SkillInternalGraphAgent(AlignmentBackend()).align_frozen_graph(
+        graph, execution_set, records, split="qualification"
+    )
+    audit = audit_frozen_alignment(alignment, graph, execution_set)
+    assert audit.accepted
+    assert audit.node_coverage == 1.0
+    assert audit.edge_recurrence == 1.0
+
+
+def test_alignment_unknown_node_fails_closed():
+    episodes = _episodes()
+    execution_set = build_execution_sets("game", episodes)[0]
+    records = {
+        row.transition.receipt_id: row
+        for episode in episodes for row in episode.records
+    }
+    graph = SkillInternalGraphAgent(CyclicBackend()).propose(execution_set, records)[0]
+
+    class BadAlignmentBackend:
+        def complete(self, role, system, payload):
+            return json.dumps({
+                "abstain": False,
+                "nodes": [{"node_id": "invented", "occurrences": []}],
+            })
+
+    with pytest.raises(ValueError, match="unknown frozen node"):
+        SkillInternalGraphAgent(BadAlignmentBackend()).align_frozen_graph(
+            graph, execution_set, records, split="qualification"
+        )
+
+
+def test_structural_fingerprint_is_invariant_to_node_names_and_order():
+    episodes = _episodes()
+    execution_set = build_execution_sets("game", episodes)[0]
+    records = {
+        row.transition.receipt_id: row
+        for episode in episodes for row in episode.records
+    }
+    graph = SkillInternalGraphAgent(CyclicBackend()).propose(execution_set, records)[0]
+    renamed_nodes = (
+        replace(graph.nodes[1], node_id="second"),
+        replace(graph.nodes[0], node_id="first"),
+    )
+    renamed_edges = tuple(
+        replace(
+            edge,
+            source={"n0": "first", "n1": "second"}[edge.source],
+            target={"n0": "first", "n1": "second"}[edge.target],
+        )
+        for edge in reversed(graph.edges)
+    )
+    renamed = replace(graph, nodes=renamed_nodes, edges=renamed_edges)
+    assert structural_fingerprint(graph) == structural_fingerprint(renamed)

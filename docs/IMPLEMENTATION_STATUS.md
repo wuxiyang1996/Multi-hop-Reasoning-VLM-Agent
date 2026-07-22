@@ -286,3 +286,34 @@ replan 后的 target-only fallback。真实默认复跑因两次 induction 的�
 
 只有 fresh source evidence 通过审计、frozen 9B comparison 和 source qualification 后，才把后续
 ALFWorld run 解释为 positive-transfer pilot；未过 gate 时只允许像本轮一样作为机制/负迁移诊断。
+
+## Skill-internal frozen control matrix（2026-07-22）
+
+旧 skill bank 与六游戏长轨迹已按真实 `selected_skill_id` 聚合成 13 个
+`GroundedSkillExecutionSet`；其中 11 个具有 episode-level discovery / qualification / held-out
+三分数据。`selected_skill_id` 只定义 membership，不再作为内部 motif node boundary。
+
+GPT-5-mini 在七个同源条件加 matched skill-off 上完成 88 次冻结调用。总使用量为
+4,734,617 prompt tokens、120,044 completion tokens。authentic 的 11 次调用只产生两个候选，
+均因 trivial/overlap/action-identity gate 被拒绝，故 authentic backbone-eligible 为 0。六个
+discovery-eligible graph 全部来自 bank-masked、reasoning-masked、receipt-only、shuffled 或
+skill-off controls。
+
+模型输出中有 19 次无 receipt-supported adjacent edge、2 次 offset 越界，全部 fail-closed。
+Control graph 在 post-hoc qualification/held-out alignment 上也可达到高 topology fit，证明该指标
+不是 blind predictive evidence。当前仍为 0 `SOURCE_SUPPORTED` graph，不进入 ALFWorld transfer。
+紧凑审计见 `results/skill_internal_matrix_v1_summary.json`。
+
+## Game-training matched source gate（2026-07-22）
+
+已实现同 snapshot 的 `B / G−S / G+S / G+Rand` collector、authentic-first authority ordering、prompt/
+checkpoint/adapter receipts、同 seed+prefix one-step replay、重放 startup retry、pre-replay model-record
+持久化和纯 lineage 的多步候选排名。最终 Strider POSITION job `7121659` 完成 155 snapshots 与
+620/620 observed replays；61 项单元测试与 overlay patch static checks 通过。
+
+结果只有 causal influence：三 split 均出现 weight、skill-context 与 authentic-vs-random action/state
+separation。Discovery graph 为 6 nodes / 16 edges，但 qualification/held-out exact recurrence 分别只有
+nodes 42/50、46/51，edges 20/36、19/37；所有 matched one-step rewards 均为 0。严格 Phase 7 为 false，
+不授权远域 positive-transfer claim。完整报告见 `results/strider_position_matched_v2_phase7.json`，ATTACK
+负诊断和结构排名分别见 `results/strider_matched_policy_v3_phase7.json` 与
+`results/strider_v3_structural_skill_ranking.json`。

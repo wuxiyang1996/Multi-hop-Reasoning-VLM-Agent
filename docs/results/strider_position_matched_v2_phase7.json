@@ -1,0 +1,6787 @@
+{
+  "blind_recurrence": {
+    "heldout": {
+      "edge_exact_support": 19,
+      "edge_total": 37,
+      "node_exact_support": 46,
+      "node_total": 51
+    },
+    "qualification": {
+      "edge_exact_support": 20,
+      "edge_total": 36,
+      "node_exact_support": 42,
+      "node_total": 50
+    }
+  },
+  "claim_boundary": "Causal differences show weight/context influence only. SOURCE_VALUE_SUPPORTED additionally requires held-out official one-step reward advantage; no result alone establishes far-domain transfer.",
+  "discovery_graph": {
+    "edges": {
+      "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0->2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04": 3,
+      "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0->772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1": 1,
+      "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04->2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04": 7,
+      "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04->50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93": 3,
+      "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04->772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1": 3,
+      "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04->f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41": 3,
+      "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93->772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1": 2,
+      "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93->f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41": 1,
+      "65c144691fe7e3018175abf5ddd26cb7cfc0a1853475d9c59c5ab60534fe7301->0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0": 1,
+      "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1->2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04": 3,
+      "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1->772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1": 5,
+      "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1->f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41": 2,
+      "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41->0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0": 1,
+      "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41->2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04": 2,
+      "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41->772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1": 1,
+      "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41->f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41": 3
+    },
+    "nodes": {
+      "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0": 5,
+      "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04": 19,
+      "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93": 4,
+      "65c144691fe7e3018175abf5ddd26cb7cfc0a1853475d9c59c5ab60534fe7301": 1,
+      "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1": 14,
+      "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41": 11
+    }
+  },
+  "gates": {
+    "PHASE7_PASS": false,
+    "SOURCE_AUTHORITY_ORDER_SAFE": true,
+    "SOURCE_CAUSAL_SUPPORTED": true,
+    "SOURCE_GRAPH_SUPPORTED": false,
+    "SOURCE_VALUE_SUPPORTED": false
+  },
+  "schema_version": 1,
+  "snapshot_count": 155,
+  "snapshots": [
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 48,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=12",
+      "split": "discovery",
+      "step": 12
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 41,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=13",
+      "split": "discovery",
+      "step": 13
+    },
+    {
+      "actions": {
+        "B": "A",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "Z",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 57,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=14",
+      "split": "discovery",
+      "step": 14
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "A",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 45,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=15",
+      "split": "discovery",
+      "step": 15
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 37,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=17",
+      "split": "discovery",
+      "step": 17
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "Y",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 38,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 32,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=18",
+      "split": "discovery",
+      "step": 18
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "Y",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 65,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=19",
+      "split": "discovery",
+      "step": 19
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 52,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=20",
+      "split": "discovery",
+      "step": 20
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 101,
+        "G_MINUS_S": 31,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=22",
+      "split": "discovery",
+      "step": 22
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "C",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 111,
+        "G_MINUS_S": 41,
+        "G_PLUS_RANDOM": 32,
+        "G_PLUS_S": 45
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=23",
+      "split": "discovery",
+      "step": 23
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 37,
+        "G_MINUS_S": 31,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=24",
+      "split": "discovery",
+      "step": 24
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 40,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=25",
+      "split": "discovery",
+      "step": 25
+    },
+    {
+      "actions": {
+        "B": "B",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 121,
+        "G_MINUS_S": 71,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=26",
+      "split": "discovery",
+      "step": 26
+    },
+    {
+      "actions": {
+        "B": "Y",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 65,
+        "G_PLUS_RANDOM": 43,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=27",
+      "split": "discovery",
+      "step": 27
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 56,
+        "G_MINUS_S": 75,
+        "G_PLUS_RANDOM": 41,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=28",
+      "split": "discovery",
+      "step": 28
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 50,
+        "G_MINUS_S": 36,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=29",
+      "split": "discovery",
+      "step": 29
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 95,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 48,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=30",
+      "split": "discovery",
+      "step": 30
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 105,
+        "G_MINUS_S": 50,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=31",
+      "split": "discovery",
+      "step": 31
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "X",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 58,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=32",
+      "split": "discovery",
+      "step": 32
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 73,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=33",
+      "split": "discovery",
+      "step": 33
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 85,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=34",
+      "split": "discovery",
+      "step": 34
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 75,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=35",
+      "split": "discovery",
+      "step": 35
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 85,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=40",
+      "split": "discovery",
+      "step": 40
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 89,
+        "G_MINUS_S": 33,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=41",
+      "split": "discovery",
+      "step": 41
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "Z",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 46,
+        "G_MINUS_S": 44,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=42",
+      "split": "discovery",
+      "step": 42
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 41,
+        "G_MINUS_S": 73,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=43",
+      "split": "discovery",
+      "step": 43
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "B",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 51,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7701:step=45",
+      "split": "discovery",
+      "step": 45
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 93,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 32,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=46",
+      "split": "discovery",
+      "step": 46
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 45,
+        "G_MINUS_S": 41,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 40
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=47",
+      "split": "discovery",
+      "step": 47
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 69,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 40
+      },
+      "episode_id": "gymv_strider_4df4a28d",
+      "episode_seed": 7701,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7701:step=48",
+      "split": "discovery",
+      "step": 48
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 48,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=12",
+      "split": "qualification",
+      "step": 12
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=13",
+      "split": "qualification",
+      "step": 13
+    },
+    {
+      "actions": {
+        "B": "A",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 57,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 46,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=14",
+      "split": "qualification",
+      "step": 14
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=15",
+      "split": "qualification",
+      "step": 15
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 45,
+        "G_MINUS_S": 41,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=16",
+      "split": "qualification",
+      "step": 16
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 31,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=18",
+      "split": "qualification",
+      "step": 18
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=19",
+      "split": "qualification",
+      "step": 19
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 67,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=20",
+      "split": "qualification",
+      "step": 20
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 37,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "ded7977f39d82660e197d7dc5775e1c883427cff5d175244e1aef8c382a18538",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=21",
+      "split": "qualification",
+      "step": 21
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 77,
+        "G_MINUS_S": 41,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 44
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=22",
+      "split": "qualification",
+      "step": 22
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 75,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 46,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=24",
+      "split": "qualification",
+      "step": 24
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 46,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=25",
+      "split": "qualification",
+      "step": 25
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 87,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=27",
+      "split": "qualification",
+      "step": 27
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 95,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 46,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=28",
+      "split": "qualification",
+      "step": 28
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 49,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=30",
+      "split": "qualification",
+      "step": 30
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 38,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 32,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=31",
+      "split": "qualification",
+      "step": 31
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "A",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 65,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=32",
+      "split": "qualification",
+      "step": 32
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 101,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7702:step=34",
+      "split": "qualification",
+      "step": 34
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 77,
+        "G_MINUS_S": 63,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=35",
+      "split": "qualification",
+      "step": 35
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=36",
+      "split": "qualification",
+      "step": 36
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "A",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 89,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_9aecbbd3",
+      "episode_seed": 7702,
+      "node_id": "ded7977f39d82660e197d7dc5775e1c883427cff5d175244e1aef8c382a18538",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7702:step=49",
+      "split": "qualification",
+      "step": 49
+    },
+    {
+      "actions": {
+        "B": "A",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 59,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=14",
+      "split": "heldout",
+      "step": 14
+    },
+    {
+      "actions": {
+        "B": "START",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 43,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=15",
+      "split": "heldout",
+      "step": 15
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 36,
+        "G_MINUS_S": 42,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 43
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=16",
+      "split": "heldout",
+      "step": 16
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 47,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=17",
+      "split": "heldout",
+      "step": 17
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 65,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 46,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=18",
+      "split": "heldout",
+      "step": 18
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "C",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 69,
+        "G_MINUS_S": 61,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=20",
+      "split": "heldout",
+      "step": 20
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 35
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=21",
+      "split": "heldout",
+      "step": 21
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 38,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=23",
+      "split": "heldout",
+      "step": 23
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 40,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=24",
+      "split": "heldout",
+      "step": 24
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 48,
+        "G_MINUS_S": 31,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 35
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=26",
+      "split": "heldout",
+      "step": 26
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 42,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=27",
+      "split": "heldout",
+      "step": 27
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 49,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=29",
+      "split": "heldout",
+      "step": 29
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 85,
+        "G_MINUS_S": 128,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=30",
+      "split": "heldout",
+      "step": 30
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 95,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 41,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=31",
+      "split": "heldout",
+      "step": 31
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 91,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=32",
+      "split": "heldout",
+      "step": 32
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 51,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 45,
+        "G_PLUS_S": 40
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=33",
+      "split": "heldout",
+      "step": 33
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 77,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 46,
+        "G_PLUS_S": 40
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=34",
+      "split": "heldout",
+      "step": 34
+    },
+    {
+      "actions": {
+        "B": "A",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 91,
+        "G_MINUS_S": 71,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 42
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=39",
+      "split": "heldout",
+      "step": 39
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 46,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 41,
+        "G_PLUS_S": 35
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=40",
+      "split": "heldout",
+      "step": 40
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 67,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=41",
+      "split": "heldout",
+      "step": 41
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 41,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=42",
+      "split": "heldout",
+      "step": 42
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 39,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=44",
+      "split": "heldout",
+      "step": 44
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 40,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 41,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "ded7977f39d82660e197d7dc5775e1c883427cff5d175244e1aef8c382a18538",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7703:step=45",
+      "split": "heldout",
+      "step": 45
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 95,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 41,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "65c144691fe7e3018175abf5ddd26cb7cfc0a1853475d9c59c5ab60534fe7301",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=46",
+      "split": "heldout",
+      "step": 46
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 101,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 35
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=47",
+      "split": "heldout",
+      "step": 47
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "A",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 107,
+        "G_MINUS_S": 69,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_c5e98bcf",
+      "episode_seed": 7703,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7703:step=49",
+      "split": "heldout",
+      "step": 49
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 50,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=13",
+      "split": "discovery",
+      "step": 13
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 103,
+        "G_MINUS_S": 69,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=14",
+      "split": "discovery",
+      "step": 14
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 91,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=15",
+      "split": "discovery",
+      "step": 15
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "Z",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 99,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=16",
+      "split": "discovery",
+      "step": 16
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 99,
+        "G_MINUS_S": 65,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=18",
+      "split": "discovery",
+      "step": 18
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 36,
+        "G_MINUS_S": 44,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=19",
+      "split": "discovery",
+      "step": 19
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 38,
+        "G_MINUS_S": 31,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=20",
+      "split": "discovery",
+      "step": 20
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 89,
+        "G_MINUS_S": 73,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 40
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=21",
+      "split": "discovery",
+      "step": 21
+    },
+    {
+      "actions": {
+        "B": "B",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 44,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 42
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=23",
+      "split": "discovery",
+      "step": 23
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 93,
+        "G_MINUS_S": 69,
+        "G_PLUS_RANDOM": 44,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=24",
+      "split": "discovery",
+      "step": 24
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "B",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=26",
+      "split": "discovery",
+      "step": 26
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 75,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=27",
+      "split": "discovery",
+      "step": 27
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 103,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 49
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=29",
+      "split": "discovery",
+      "step": 29
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 65,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=30",
+      "split": "discovery",
+      "step": 30
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "DOWN"
+      },
+      "completion_tokens": {
+        "B": 67,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=31",
+      "split": "discovery",
+      "step": 31
+    },
+    {
+      "actions": {
+        "B": "START",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 42,
+        "G_MINUS_S": 128,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "65c144691fe7e3018175abf5ddd26cb7cfc0a1853475d9c59c5ab60534fe7301",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=33",
+      "split": "discovery",
+      "step": 33
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "B",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=34",
+      "split": "discovery",
+      "step": 34
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 43,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7704:step=35",
+      "split": "discovery",
+      "step": 35
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 107,
+        "G_MINUS_S": 65,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7704:step=42",
+      "split": "discovery",
+      "step": 42
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 77,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=43",
+      "split": "discovery",
+      "step": 43
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 89,
+        "G_MINUS_S": 128,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=45",
+      "split": "discovery",
+      "step": 45
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 77,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=46",
+      "split": "discovery",
+      "step": 46
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 95,
+        "G_MINUS_S": 69,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7704:step=47",
+      "split": "discovery",
+      "step": 47
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "A",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 51,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 31,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_b3c2e6d4",
+      "episode_seed": 7704,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7704:step=48",
+      "split": "discovery",
+      "step": 48
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "B",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 73,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "ded7977f39d82660e197d7dc5775e1c883427cff5d175244e1aef8c382a18538",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=12",
+      "split": "qualification",
+      "step": 12
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 65,
+        "G_MINUS_S": 33,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 1039,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=13",
+      "split": "qualification",
+      "step": 13
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 47,
+        "G_MINUS_S": 44,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=14",
+      "split": "qualification",
+      "step": 14
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 87,
+        "G_MINUS_S": 71,
+        "G_PLUS_RANDOM": 32,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=15",
+      "split": "qualification",
+      "step": 15
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "B",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 53,
+        "G_MINUS_S": 67,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=17",
+      "split": "qualification",
+      "step": 17
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "B",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 93,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "ded7977f39d82660e197d7dc5775e1c883427cff5d175244e1aef8c382a18538",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=18",
+      "split": "qualification",
+      "step": 18
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 99,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 40
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=19",
+      "split": "qualification",
+      "step": 19
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 99,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 32,
+        "G_PLUS_S": 40
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=20",
+      "split": "qualification",
+      "step": 20
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 77,
+        "G_MINUS_S": 38,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=22",
+      "split": "qualification",
+      "step": 22
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 47,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=23",
+      "split": "qualification",
+      "step": 23
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 47,
+        "G_MINUS_S": 128,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=25",
+      "split": "qualification",
+      "step": 25
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 111,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 51,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=26",
+      "split": "qualification",
+      "step": 26
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 63,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=27",
+      "split": "qualification",
+      "step": 27
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 51,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=28",
+      "split": "qualification",
+      "step": 28
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 89,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=30",
+      "split": "qualification",
+      "step": 30
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 105,
+        "G_MINUS_S": 37,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=31",
+      "split": "qualification",
+      "step": 31
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 58,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 44,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=32",
+      "split": "qualification",
+      "step": 32
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "X",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 107,
+        "G_MINUS_S": 67,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=33",
+      "split": "qualification",
+      "step": 33
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 89,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=34",
+      "split": "qualification",
+      "step": 34
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 39,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=39",
+      "split": "qualification",
+      "step": 39
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "A",
+        "G_PLUS_RANDOM": "A",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 91,
+        "G_MINUS_S": 128,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 42
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "65c144691fe7e3018175abf5ddd26cb7cfc0a1853475d9c59c5ab60534fe7301",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=40",
+      "split": "qualification",
+      "step": 40
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 51,
+        "G_MINUS_S": 41,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=41",
+      "split": "qualification",
+      "step": 41
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 91,
+        "G_MINUS_S": 128,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 35
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=42",
+      "split": "qualification",
+      "step": 42
+    },
+    {
+      "actions": {
+        "B": "B",
+        "G_MINUS_S": "B",
+        "G_PLUS_RANDOM": "MODE",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 64,
+        "G_MINUS_S": 83,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=44",
+      "split": "qualification",
+      "step": 44
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 38,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=45",
+      "split": "qualification",
+      "step": 45
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 50,
+        "G_MINUS_S": 31,
+        "G_PLUS_RANDOM": 35,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=46",
+      "split": "qualification",
+      "step": 46
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 111,
+        "G_MINUS_S": 61,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=47",
+      "split": "qualification",
+      "step": 47
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 30,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7705:step=48",
+      "split": "qualification",
+      "step": 48
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "Y",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 45,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_faf6bfdd",
+      "episode_seed": 7705,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7705:step=49",
+      "split": "qualification",
+      "step": 49
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "B",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 103,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=14",
+      "split": "heldout",
+      "step": 14
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 69,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=15",
+      "split": "heldout",
+      "step": 15
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "START",
+        "G_PLUS_RANDOM": "X",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=16",
+      "split": "heldout",
+      "step": 16
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 40,
+        "G_MINUS_S": 39,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=17",
+      "split": "heldout",
+      "step": 17
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 65,
+        "G_MINUS_S": 40,
+        "G_PLUS_RANDOM": 41,
+        "G_PLUS_S": 39
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=18",
+      "split": "heldout",
+      "step": 18
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 67,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=19",
+      "split": "heldout",
+      "step": 19
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 78,
+        "G_MINUS_S": 65,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=20",
+      "split": "heldout",
+      "step": 20
+    },
+    {
+      "actions": {
+        "B": "A",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 128,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "0fecccb21b7732408af6d5224d0674be4f955f563530380a3da54f2fbb5099c0",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=22",
+      "split": "heldout",
+      "step": 22
+    },
+    {
+      "actions": {
+        "B": "A",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 34,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 33
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "65c144691fe7e3018175abf5ddd26cb7cfc0a1853475d9c59c5ab60534fe7301",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=23",
+      "split": "heldout",
+      "step": 23
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "X",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 79,
+        "G_MINUS_S": 65,
+        "G_PLUS_RANDOM": 34,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=24",
+      "split": "heldout",
+      "step": 24
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 127,
+        "G_MINUS_S": 81,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=25",
+      "split": "heldout",
+      "step": 25
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 97,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 47,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=27",
+      "split": "heldout",
+      "step": 27
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 77,
+        "G_MINUS_S": 65,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=28",
+      "split": "heldout",
+      "step": 28
+    },
+    {
+      "actions": {
+        "B": "START",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "B",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 47,
+        "G_MINUS_S": 32,
+        "G_PLUS_RANDOM": 51,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=30",
+      "split": "heldout",
+      "step": 30
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "LEFT",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 87,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=31",
+      "split": "heldout",
+      "step": 31
+    },
+    {
+      "actions": {
+        "B": "RIGHT",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "DOWN",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 99,
+        "G_MINUS_S": 63,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 44
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=32",
+      "split": "heldout",
+      "step": 32
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "UP",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 39,
+        "G_MINUS_S": 63,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 963,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=34",
+      "split": "heldout",
+      "step": 34
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "LEFT",
+        "G_PLUS_RANDOM": "START",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 89,
+        "G_MINUS_S": 35,
+        "G_PLUS_RANDOM": 38,
+        "G_PLUS_S": 37
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "772f259ce01a45c6c799589ff1f702a78fb61e8dcc4ce177bf8d49df2eb723a1",
+      "prompt_tokens": {
+        "B": 636,
+        "G_MINUS_S": 636,
+        "G_PLUS_RANDOM": 937,
+        "G_PLUS_S": 981
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=35",
+      "split": "heldout",
+      "step": 35
+    },
+    {
+      "actions": {
+        "B": "LEFT",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "LEFT"
+      },
+      "completion_tokens": {
+        "B": 107,
+        "G_MINUS_S": 79,
+        "G_PLUS_RANDOM": 46,
+        "G_PLUS_S": 38
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 621,
+        "G_MINUS_S": 621,
+        "G_PLUS_RANDOM": 948,
+        "G_PLUS_S": 966
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=41",
+      "split": "heldout",
+      "step": 41
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "UP"
+      },
+      "completion_tokens": {
+        "B": 87,
+        "G_MINUS_S": 33,
+        "G_PLUS_RANDOM": 39,
+        "G_PLUS_S": 44
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 621,
+        "G_MINUS_S": 621,
+        "G_PLUS_RANDOM": 948,
+        "G_PLUS_S": 966
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=42",
+      "split": "heldout",
+      "step": 42
+    },
+    {
+      "actions": {
+        "B": "UP",
+        "G_MINUS_S": "RIGHT",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "RIGHT"
+      },
+      "completion_tokens": {
+        "B": 123,
+        "G_MINUS_S": 33,
+        "G_PLUS_RANDOM": 40,
+        "G_PLUS_S": 43
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "f9b707b4d1073d00b9228d0d81d2150a97110f11a01790df694162324e580c41",
+      "prompt_tokens": {
+        "B": 621,
+        "G_MINUS_S": 621,
+        "G_PLUS_RANDOM": 948,
+        "G_PLUS_S": 966
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=43",
+      "split": "heldout",
+      "step": 43
+    },
+    {
+      "actions": {
+        "B": "B",
+        "G_MINUS_S": "B",
+        "G_PLUS_RANDOM": "B",
+        "G_PLUS_S": "B"
+      },
+      "completion_tokens": {
+        "B": 63,
+        "G_MINUS_S": 63,
+        "G_PLUS_RANDOM": 33,
+        "G_PLUS_S": 36
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "50d11995ed911912675434564577e5b41bbffccd26b9afdc550a0eb7e13daf93",
+      "prompt_tokens": {
+        "B": 637,
+        "G_MINUS_S": 637,
+        "G_PLUS_RANDOM": 964,
+        "G_PLUS_S": 982
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": false,
+        "auth_reward_cmp": 0,
+        "auth_state": false,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=44",
+      "split": "heldout",
+      "step": 44
+    },
+    {
+      "actions": {
+        "B": "A",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "A"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 71,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 41
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 637,
+        "G_MINUS_S": 637,
+        "G_PLUS_RANDOM": 1040,
+        "G_PLUS_S": 982
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=45",
+      "split": "heldout",
+      "step": 45
+    },
+    {
+      "actions": {
+        "B": "MODE",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "UP",
+        "G_PLUS_S": "MODE"
+      },
+      "completion_tokens": {
+        "B": 128,
+        "G_MINUS_S": 77,
+        "G_PLUS_RANDOM": 36,
+        "G_PLUS_S": 45
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "2d76c59bf43b74c939b50e7af0f9e3cecf6fcd0ddcd6211f1fb65b376ae23f04",
+      "prompt_tokens": {
+        "B": 637,
+        "G_MINUS_S": 637,
+        "G_PLUS_RANDOM": 1040,
+        "G_PLUS_S": 982
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": true,
+        "skill_reward_cmp": 0,
+        "skill_state": true,
+        "weight_action": true,
+        "weight_reward_cmp": 0,
+        "weight_state": true
+      },
+      "snapshot_id": "seed=7706:step=46",
+      "split": "heldout",
+      "step": 46
+    },
+    {
+      "actions": {
+        "B": "DOWN",
+        "G_MINUS_S": "DOWN",
+        "G_PLUS_RANDOM": "RIGHT",
+        "G_PLUS_S": "DOWN"
+      },
+      "completion_tokens": {
+        "B": 81,
+        "G_MINUS_S": 69,
+        "G_PLUS_RANDOM": 37,
+        "G_PLUS_S": 34
+      },
+      "episode_id": "gymv_strider_15c1de00",
+      "episode_seed": 7706,
+      "node_id": "743f0fb75bf3ac1f458d6abe35d38dd23a0d0717b2c6537022dee96650215a0a",
+      "prompt_tokens": {
+        "B": 637,
+        "G_MINUS_S": 637,
+        "G_PLUS_RANDOM": 1040,
+        "G_PLUS_S": 982
+      },
+      "rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "signature": {
+        "auth_action": true,
+        "auth_reward_cmp": 0,
+        "auth_state": true,
+        "skill_action": false,
+        "skill_reward_cmp": 0,
+        "skill_state": false,
+        "weight_action": false,
+        "weight_reward_cmp": 0,
+        "weight_state": false
+      },
+      "snapshot_id": "seed=7706:step=47",
+      "split": "heldout",
+      "step": 47
+    }
+  ],
+  "source_skill_id": "COMMIT/POSITION",
+  "split_by_seed": {
+    "7701": "discovery",
+    "7702": "qualification",
+    "7703": "heldout",
+    "7704": "discovery",
+    "7705": "qualification",
+    "7706": "heldout"
+  },
+  "split_rule": "ascending_episode_seed_round_robin_discovery_qualification_heldout_v1",
+  "split_stats": {
+    "discovery": {
+      "authenticity_effects": 44,
+      "mean_prompt_tokens": {
+        "B": 636.0,
+        "G_MINUS_S": 636.0,
+        "G_PLUS_RANDOM": 964.1851851851852,
+        "G_PLUS_S": 981.0
+      },
+      "mean_rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "skill_effects": 38,
+      "snapshots": 54,
+      "weight_effects": 36
+    },
+    "heldout": {
+      "authenticity_effects": 37,
+      "mean_prompt_tokens": {
+        "B": 635.1960784313726,
+        "G_MINUS_S": 635.1960784313726,
+        "G_PLUS_RANDOM": 957.9607843137255,
+        "G_PLUS_S": 980.1960784313726
+      },
+      "mean_rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "skill_effects": 38,
+      "snapshots": 51,
+      "weight_effects": 28
+    },
+    "qualification": {
+      "authenticity_effects": 37,
+      "mean_prompt_tokens": {
+        "B": 636.0,
+        "G_MINUS_S": 636.0,
+        "G_PLUS_RANDOM": 956.64,
+        "G_PLUS_S": 981.0
+      },
+      "mean_rewards": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0,
+        "G_PLUS_S": 0.0
+      },
+      "skill_effects": 33,
+      "snapshots": 50,
+      "weight_effects": 24
+    }
+  }
+}

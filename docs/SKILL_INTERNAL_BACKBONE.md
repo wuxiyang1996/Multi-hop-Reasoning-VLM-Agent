@@ -71,17 +71,67 @@ Harness 只允许它引用 discovery execution 中真实存在的 offset 和 nat
 2. Strider `COMMIT/POSITION`：模型返回空 motif；这比编造图更符合 fail-closed 协议。
 3. Strider `COMMIT/ATTACK`：得到 receipt-valid 非线性图，但节点完全等价于 `RIGHT` 和 `B` 动作类别，被 action-identity control 排除。
 
-因此当前状态仍是：**0 个 backbone-eligible motif，0 个 `SOURCE_SUPPORTED` motif**。这不是负迁移结论，而是说明现有旧日志尚未证明 skill 内部 reasoning structure。
+该三次 smoke 当时得到：**0 个 backbone-eligible motif，0 个 `SOURCE_SUPPORTED` motif**。这不是负迁移结论，而是说明现有旧日志尚未证明 skill 内部 reasoning structure。
+
+## 冻结的 11-skill × 8-condition 矩阵
+
+随后固定 `SKILL_INTERNAL_V1_FROZEN`，对 11 个具有 discovery / qualification / held-out
+三分数据的 skill 运行 GPT-5-mini matched matrix。每个 skill 包含七个同源条件和一个配对
+skill-off control：
+
+```text
+authentic
+bank_masked
+reasoning_masked
+action_alpha_renamed
+action_only
+receipt_only
+shuffled
+skill_off
+```
+
+总计 88 次 source-only model calls，使用 4,734,617 prompt tokens、120,044 completion
+tokens。结果为：
+
+| condition | candidates | discovery backbone-eligible |
+|---|---:|---:|
+| authentic | 2 | **0** |
+| bank-masked | 5 | 1 |
+| reasoning-masked | 4 | 2 |
+| action-alpha-renamed | 2 | 0 |
+| action-only | 11 | 0 |
+| receipt-only | 8 | 1 |
+| shuffled | 5 | 1 |
+| skill-off | 3 | 1 |
+
+21/88 输出被 fail-closed：19 次 edge 没有任何相邻 occurrence receipt 支持，2 次引用越界
+offset。Harness 没有截断 offset、删除错误 edge 或修补模型 JSON。
+
+六个 discovery-eligible graph 全部来自 controls，没有一个来自 authentic。Streets 的
+reasoning-masked、receipt-only、shuffled 以及 Strider skill-off graph 甚至都能在 held-out
+上由 Agent 重新对齐出 1.0 edge coverage。这不是支持它们的证据，反而说明：
+
+> Agent 看完整条 held-out trajectory 后进行自由 span alignment，会使 generic/control graph
+> 也获得很高 topology fit。
+
+因此当前 `AlignmentAudit.edge_recurrence` 只解释为 **post-hoc topology-fit diagnostic**，不是
+blind prediction accuracy，也不能把任何候选升级为 `SOURCE_SUPPORTED`。完整紧凑结果见
+`docs/results/skill_internal_matrix_v1_summary.json`。
 
 ## 下一验收门槛
 
 下一阶段不应直接扩大 ALFWorld 数量，而应依次完成：
 
-1. 对候选运行同预算 receipt-only、alpha-renamed、action-only、shuffled 和 skill-off proposal/control；
-2. 让 Agent 对无法区分的 graph hypotheses 提出最小 replay request；
-3. 在 qualification 上冻结 graph，不再修改 schema/prompt；
-4. 在 held-out 上测 topology recurrence、path prediction 和 termination/recovery prediction；
-5. 只把 source-specific grounding 删除后的 graph projection 交给 target one-shot partial binding；
-6. 最终用 matched target-only、generic graph、shuffled graph 和 other-game graph 证明 target adaptation cost 的增量下降。
+1. 不再把 post-hoc alignment 当作 qualification evidence；
+2. 对 discovery 候选冻结 node/edge 以及可机械评分的 prediction request；
+3. qualification 时每次只能读取当前 before-state 和历史 prefix，在隐藏 after-state 的条件下输出 current/next-node 与 transition prediction；
+4. 环境随后揭示 official transition，Harness 计算 blind prediction 与 matched-control 增量；
+5. 无法区分 graph hypotheses 时，让 Agent 提出最小 replay request；
+6. 只有 authentic 在 blind qualification 和 held-out 都超过 controls，才投影 source grounding 并进入 target one-shot partial binding；
+7. 最终用 matched target-only、generic graph、shuffled graph 和 other-game graph 证明 target adaptation cost 的增量下降。
 
 在第 4 步通过前，任何图只能叫 `CANDIDATE`，不能称为已提取的 transferable reasoning backbone。
+
+上述 gate 现进一步扩展为 base / game-trained / skill-context 的 matched snapshot contrast；完整计划见
+[`GAME_TRAINING_REASONING_TRANSFER.md`](GAME_TRAINING_REASONING_TRANSFER.md)。`SKILL_INTERNAL_V1`
+保留为 post-hoc negative baseline，不再承担证明 weight-level reasoning transfer 的任务。

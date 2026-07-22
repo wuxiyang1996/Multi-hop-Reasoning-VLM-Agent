@@ -11,6 +11,7 @@ import runpy
 from motif_transfer.frozen_motif_agent import OpenAICompatibleBackend
 from motif_transfer.instrumented_import import import_native_source_batch
 from motif_transfer.skill_internal import (
+    SourcePromptCondition,
     SkillInternalGraphAgent,
     audit_internal_graph,
     build_execution_sets,
@@ -25,6 +26,10 @@ def main() -> None:
     parser.add_argument("evidence_dir", type=Path)
     parser.add_argument("--bank", type=Path, required=True)
     parser.add_argument("--skill-id", required=True)
+    parser.add_argument(
+        "--condition", choices=[row.value for row in SourcePromptCondition],
+        default=SourcePromptCondition.AUTHENTIC.value,
+    )
     parser.add_argument("--endpoint")
     parser.add_argument("--model")
     parser.add_argument("--api-key-env", default="OPENAI_API_KEY")
@@ -88,7 +93,8 @@ def main() -> None:
         )
     agent = SkillInternalGraphAgent(backend)
     candidates = agent.propose(
-        execution_set, records_by_receipt, hypotheses.get(args.skill_id)
+        execution_set, records_by_receipt, hypotheses.get(args.skill_id),
+        condition=SourcePromptCondition(args.condition),
     )
     audits = [
         audit_internal_graph(candidate, execution_set, records_by_receipt)
@@ -97,6 +103,7 @@ def main() -> None:
     report = {
         "schema_version": 1,
         "authority": "UNTRUSTED_AGENT_PROPOSAL_WITH_MECHANICAL_RECEIPT_AUDIT",
+        "prompt_condition": args.condition,
         "model_identity": dict(backend.identity),
         "agent_call": dict(agent.last_call),
         "intervention_requests": [asdict(row) for row in agent.intervention_requests],

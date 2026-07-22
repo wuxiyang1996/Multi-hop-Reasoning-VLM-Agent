@@ -4,6 +4,10 @@
 [`docs/ALFWORLD_ONE_SHOT_STATUS.md`](docs/ALFWORLD_ONE_SHOT_STATUS.md)。
 旧 Phase-1 skill 的内部图提取、真实 GPT-5-mini pilot 和当前零通过结论见
 [`docs/SKILL_INTERNAL_BACKBONE.md`](docs/SKILL_INTERNAL_BACKBONE.md)。
+冻结的 88-call source control matrix 摘要见
+[`docs/results/skill_internal_matrix_v1_summary.json`](docs/results/skill_internal_matrix_v1_summary.json)。
+game training 的 weight-level reasoning transfer、skill-context effect 与 Harness interaction 计划见
+[`docs/GAME_TRAINING_REASONING_TRANSFER.md`](docs/GAME_TRAINING_REASONING_TRANSFER.md)。
 
 这是从历史仓库拆出的最小研究核心。仓库只保留两个有模型判断能力的角色：
 
@@ -14,13 +18,17 @@
 
 ## 研究目标
 
-本项目不假设模型缺少推理能力，也不试图把一套游戏 policy 直接搬到新领域。我们的目标是：从六种游戏的 skill-conditioned / skill-disabled rollout 中提取可复现的控制结构，把它作为一个 **online adaptation assistant**，帮助固定的 Decision Agent 用更少 target examples 和交互快速适应异构任务。
+本项目不假设模型缺少推理能力，也不试图把一套游戏 policy 直接搬到新领域。我们的目标有两层：
+先检验六游戏训练是否让 game-trained Decision Agent 相对 base model 获得可跨域复用的程序性推理能力；
+再从 matched training/context interventions 中提取可复现控制结构，把它作为一个
+**online adaptation assistant**，帮助对应的 Decision Agent 用更少 target examples 和交互适应异构任务。
 
 这里迁移的是 receipt-grounded 的行为图及其可检验 adaptation hypothesis，而不是游戏 action 名称、手写 ontology、完整 policy 或通用提示词。Decision Agent 始终保留自己的推理能力和目标领域 action authority；Motif/Harness Agent 只帮助它判断当前缺少什么信息、哪个假设值得验证、何时继续、replan 或 abstain。
 
 更准确的研究问题是：
 
-> 在模型已经具备通用推理能力时，来自 source experience 的可验证 motif，能否降低新领域的 adaptation cost？
+> 游戏训练是否把可复用的程序性推理能力写入模型权重，以及 source-derived Harness 能否在远域中
+> 更快、安全地调用这些能力？
 
 当前新增的 source-induction 目标是从旧 skill 的多次真实执行中发现可验证的
 skill-internal reasoning motif。这里的 backbone 指外显 rollout 中重复出现、经过

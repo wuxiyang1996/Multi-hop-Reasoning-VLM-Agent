@@ -2,21 +2,46 @@
 
 ## 核心假设
 
-本实验不检验“模型是否会推理”，而检验：
+本实验不检验“模型是否会推理”，而检验两个相互关联但必须分开的假设：
 
-> 对一个固定、已经具有通用推理能力的 Decision Agent，source-derived reasoning motif 加 online Harness 是否能用更少 target supervision、更少环境试错和更低推理成本完成新领域适应。
+> 六游戏 skill learning / SFT / RL 是否把可跨领域复用的程序性推理先验写入模型权重；
+> source-derived motif 加 online Harness 是否能在新领域中更快、安全地调用这些能力。
 
-Motif 是 adaptation hypothesis generator，而不是 target policy。若强模型已经能自行恢复相同结构，motif 可以是冗余的；若 motif 限制了模型，它也可能产生负迁移。这两种结果都必须被实验显式保留。
+因此必须分别测量 `game-trained − base` 的 weight-level effect，以及同一 Decision model 内
+`authentic Harness − generic Harness` 的 source effect。Motif 是 adaptation hypothesis generator，
+不是 target policy。若 game-trained model 已经内化能力，motif 可以冗余；若 base 与 game-trained 都被
+同一个 generic Harness 改善，则不能归因于游戏训练；若 motif 限制模型，也可能产生负迁移。
+完整 factorial 和归因规则见 [`GAME_TRAINING_REASONING_TRANSFER.md`](GAME_TRAINING_REASONING_TRANSFER.md)。
+
+## Phase 0：game-training weight attribution
+
+在进入 motif transfer 前，先在相同 source snapshot 上运行：
+
+```text
+B       base model
+G−S     game-trained model + masked skill context
+G+S     game-trained model + authentic skill context
+G+Rand  game-trained model + unrelated/random skill context
+```
+
+checkpoint、observation、native actions、prompt template、request seed 和预算必须 hash-bound。只有
+预注册 treatment 可以推进主环境；其他条件是 shadow query，或从相同 snapshot 建立独立 replay fork。
+比较 `G−S−B`、`G+S−G−S` 和 `G+S−G+Rand`，分别识别 weight training、online skill context 和
+authentic content effect。旧 trajectory 的 post-hoc graph 不能替代该实验。
 
 ## Phase A：source motif discovery
 
 对六个游戏分别采集多个 episode，并做 matched skill-on / skill-off intervention：相同 checkpoint、seed、初始状态、step/token budget。source Decision Agent 保持旧系统的原生调用链：`skill_selection → selected skill → action_taking → native action`；skill-off 只移除 skill bank/context。记录完整 observation、native actions、selected-skill receipt、原生 action response、执行动作、transition、replay fork 和 official outcome。旧 policy 没有 proposal-set/post-verdict 接口，因此不得事后伪造这些字段。
 
-正式 source reasoning evidence 使用 offline shadow annotation：先在没有 observer 的条件下冻结完整 source
+旧版正式 source reasoning evidence 使用 offline shadow annotation：先在没有 observer 的条件下冻结完整 source
 trajectory；随后 prediction 调用只读取 before observation、冻结 action ordinal 和原 Decision reasoning，
 verifier 调用才读取 after observation 与 official reward。annotation 只能旁路写新 artifact，不能回写 policy、
 environment 或 source receipt。live observer 仅作协议诊断：实测即使使用 request seed，共享推理服务仍不能
 保证 Columns/Thunder 的 exact action/reward equality，因此不得用容差阈值把它升级为主证据。
+
+该 offline annotation 仍可作辅助 evidence，但它无法区分 base 与 game-trained weight effect，也不能证明
+shadow Agent 提议的 rationale 是原 policy 的内部 reasoning。新的主证据是 Phase 0 的 matched snapshot
+counterfactual receipts，以及随后隐藏 after-state 的 blind qualification。
 
 reference collection 移除旧 runner 中人工 `critical action` / `prefer action 1` 提示，并保存 patched-overlay
 hash。任何 schema 失败、action index 改写或 post-verdict 缺失的 annotation 都显式排除；不允许 parser
@@ -86,4 +111,7 @@ history/prompt 真正分叉才重新采样。主结论只使用环境 official s
 
 ## 模型能力交互
 
-至少比较 base 9B、game-co-evolved 9B 和一个更强模型。预期 motif 可能主要帮助较小或不稳定的模型；若增益随模型能力增强而消失，结论应限定为“外部经验图补偿小模型的在线适应”，而不是普遍 reasoning transfer。
+至少比较 base 9B、game-co-evolved 9B 和一个更强模型。首先测 `game-co-evolved/off − base/off`，
+再在每个模型内部比较 authentic/generic/shuffled Harness，最后报告 training × Harness interaction。
+预期 motif 可能主要帮助较小或不稳定的模型；若增益随模型能力增强而消失，结论应限定为“外部经验图
+补偿小模型的在线适应”，而不是普遍 reasoning transfer。

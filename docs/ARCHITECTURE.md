@@ -2,7 +2,10 @@
 
 ## 定位：适应助手，不是替代推理
 
-模型本身已经具有通用推理能力。Motif/Harness Agent 的作用不是向 Decision Agent 注入一条完整 reasoning chain，也不是把游戏 action 翻译成 target action；它把历史 source experience 转化成可被在线证伪的结构化建议，减少新任务中的探索和适应成本。
+模型本身已经具有通用推理能力，游戏训练还可能改变这种能力。Motif/Harness Agent 的作用不是向
+Decision Agent 注入一条完整 reasoning chain，也不是把游戏 action 翻译成 target action；它把 matched
+source experience 中可归因的 training/context effect 转化成可被在线证伪的结构化建议，减少新任务中的
+探索和适应成本。
 
 它可以建议：
 
@@ -60,6 +63,8 @@ observation + native actions
 
 ## 我们声称与不声称的内容
 
-我们尝试提取 **skill-conditioned policy 在交互中表现出的控制 motif**，再把它作为固定 Decision Agent 的 online adaptation assistant。这可能利用一部分外显 reasoning structure，但不是对模型内部 latent reasoning 的可识别恢复，也不声称模型原本没有这种推理能力。
+我们尝试区分 **game training 写入权重的行为变化** 与 **在线 skill context 造成的行为变化**，再从其中
+提取可验证控制 motif，作为对应 Decision Agent 的 online adaptation assistant。这可能利用一部分外显
+reasoning structure，但不是对模型内部 latent reasoning 的可识别恢复，也不声称模型原本没有这种能力。
 
 Motif 只有在相同模型和预算下，稳定降低 target supervision 或交互成本，并超过 generic prompt、raw trajectory、shuffled topology 和 other-source controls 时才有增量意义。自然语言 skill 名称、游戏动作名称、embedding proximity 和 Agent 自评均不是迁移证据。

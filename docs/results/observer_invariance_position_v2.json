@@ -1,0 +1,336 @@
+{
+  "OBSERVER_INVARIANCE_PASS": false,
+  "keys_compared": 61,
+  "mismatch_count": 41,
+  "mismatches": [
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "UP",
+      "seed": 7701,
+      "step": 7,
+      "unobserved": "B"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "LEFT",
+      "seed": 7701,
+      "step": 8,
+      "unobserved": "B"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "00bc638a8c22ebe5f425cf53231f3ffcf59fa6ce1f30b4120c4cdb16f7b59a5d",
+      "seed": 7701,
+      "step": 8,
+      "unobserved": "7e3ca3d57dc6f199af4c2780ccf1fd85b26d6935c2a870e0995ddd60d753b6d7"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "B",
+      "seed": 7701,
+      "step": 9,
+      "unobserved": "UP"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "39a82ba15adceaf5df507851f35ca698e2ad4b57fe63ac173d15d722b8a465e7",
+      "seed": 7701,
+      "step": 9,
+      "unobserved": "dbc6bef19fbc3d8438d6f5fcbf82ab55acca77b5dfdb70ee2652bc348789a886"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "UP",
+      "seed": 7701,
+      "step": 10,
+      "unobserved": "LEFT"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "10aaebbbdcc31be65e3700aca222c33142ecf43a535ad37032e0e7b30b29e43a",
+      "seed": 7701,
+      "step": 10,
+      "unobserved": "eac6492f87e504e7538a7218e62aff0dbf217a922bbecfba4d372708638e99a5"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "LEFT",
+      "seed": 7701,
+      "step": 11,
+      "unobserved": "A"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "cd0b5738d0f6662584fc1aca84132c83811300b5dbe3f471e2f6c59b81b1c673",
+      "seed": 7701,
+      "step": 11,
+      "unobserved": "ac7bda115034cf3ebebc170d05cdcef1151b6a333617e8d9952222dcd66b8437"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "A",
+      "seed": 7701,
+      "step": 12,
+      "unobserved": "RIGHT"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "1d5bfa64d7ccfa14a1151e3273b495fe587895948da1e90570b8ca144c609105",
+      "seed": 7701,
+      "step": 12,
+      "unobserved": "32ddccec9b878c94a2db26c02ee3ede59273b7f2715bb4beee011c8e0daf50b3"
+    },
+    {
+      "field": "selected_skill_id",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "COMMIT/POSITION",
+      "seed": 7701,
+      "step": 13,
+      "unobserved": "COMMIT/ATTACK"
+    },
+    {
+      "field": "selected_skill_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "2e143ba17cd3c79162c73470579d292fe3644f66e5da6f3c7e98edb3d44724f8",
+      "seed": 7701,
+      "step": 13,
+      "unobserved": "e547a14e2717dd1b6a8d5fd8b2b13eadc4c8fa95788f4bf1ab692c44ff20b83a"
+    },
+    {
+      "field": "selected_skill_context_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "2b881a454019e2ba97afc7922c39ae6192a8987690ea26a7eeb716a240fe481a",
+      "seed": 7701,
+      "step": 13,
+      "unobserved": "e398e393555f83ec8ca5ba7c79a3098801b841b8e7c2b50061871be7d763a1a5"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "UP",
+      "seed": 7701,
+      "step": 13,
+      "unobserved": "DOWN"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "3d4ab87b92c7793b277f32135522e2fcf4641ce1b70de6b29c53392d41a6c867",
+      "seed": 7701,
+      "step": 13,
+      "unobserved": "de28973176d67aa2d6d1041136330e01e2cd110ea6bbb9e5bde9f1f2281f80cf"
+    },
+    {
+      "field": "selected_skill_id",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "COMMIT/ATTACK",
+      "seed": 7701,
+      "step": 14,
+      "unobserved": "COMMIT/EXPLORE"
+    },
+    {
+      "field": "selected_skill_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "fbca1881b0be0b022d7a3ad339d9e095ed28bc52bf44ceb093077aa5400b5550",
+      "seed": 7701,
+      "step": 14,
+      "unobserved": "5595a600732710b03ff63b97e4d819f024c53b3f3e8be82e832115752e0a120f"
+    },
+    {
+      "field": "selected_skill_context_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "e398e393555f83ec8ca5ba7c79a3098801b841b8e7c2b50061871be7d763a1a5",
+      "seed": 7701,
+      "step": 14,
+      "unobserved": "8bfe35d0717e120752105986101ff2fc5cd527dc949ddd2d06e707b295df1b7c"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "RIGHT",
+      "seed": 7701,
+      "step": 14,
+      "unobserved": "UP"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "ffce39408c3c2a998cf23acb6eab98bc34a9cc35e1a1f2503b4177d23197c755",
+      "seed": 7701,
+      "step": 14,
+      "unobserved": "dda792df8d5dc7b08fe6701d1de4e75e0fd4e1fb9243b812bb5c90f726eb1df0"
+    },
+    {
+      "field": "selected_skill_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "9a2a5e174d38dd08be2a81a71917458677ae475f274866aa21b49b4ae92f55d9",
+      "seed": 7701,
+      "step": 15,
+      "unobserved": "5595a600732710b03ff63b97e4d819f024c53b3f3e8be82e832115752e0a120f"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "UP",
+      "seed": 7701,
+      "step": 15,
+      "unobserved": "B"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "9c257d83813e430a8ca658edc46d61498380f443e5b90365d3d02bc6f5acae88",
+      "seed": 7701,
+      "step": 15,
+      "unobserved": "ff80cb07fa1e21ef4a54afdc5b47fe07904de74334580c0897f3a7a0bf9d0c65"
+    },
+    {
+      "field": "selected_skill_id",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "COMMIT/EXPLORE",
+      "seed": 7701,
+      "step": 16,
+      "unobserved": "COMMIT/ATTACK"
+    },
+    {
+      "field": "selected_skill_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "9a2a5e174d38dd08be2a81a71917458677ae475f274866aa21b49b4ae92f55d9",
+      "seed": 7701,
+      "step": 16,
+      "unobserved": "cf9aed47546c003910e705b8c711c3ccc7bde123a96a0fca604a337947170732"
+    },
+    {
+      "field": "selected_skill_context_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "8bfe35d0717e120752105986101ff2fc5cd527dc949ddd2d06e707b295df1b7c",
+      "seed": 7701,
+      "step": 16,
+      "unobserved": "e398e393555f83ec8ca5ba7c79a3098801b841b8e7c2b50061871be7d763a1a5"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "DOWN",
+      "seed": 7701,
+      "step": 16,
+      "unobserved": "LEFT"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "5ff341e2578a2c5a2ddb92f732ac8b18c14bb5d76dede4a89c78f643924e9f2a",
+      "seed": 7701,
+      "step": 16,
+      "unobserved": "4a6c921d7fb101c06a5ad42832f8068bf193f31d279f387f0ab41eb1c76861a7"
+    },
+    {
+      "field": "selected_skill_id",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "COMMIT/ATTACK",
+      "seed": 7701,
+      "step": 17,
+      "unobserved": "COMMIT/POSITION"
+    },
+    {
+      "field": "selected_skill_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "d343cb5347d44d05922f609abfe780f9fbf32ba8ecec26f39b0186e12544ceb5",
+      "seed": 7701,
+      "step": 17,
+      "unobserved": "a0820206dcd56dbd4ccf4764b5881b296a9ecb54b59a5620024b566914c5fbcc"
+    },
+    {
+      "field": "selected_skill_context_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "e398e393555f83ec8ca5ba7c79a3098801b841b8e7c2b50061871be7d763a1a5",
+      "seed": 7701,
+      "step": 17,
+      "unobserved": "2b881a454019e2ba97afc7922c39ae6192a8987690ea26a7eeb716a240fe481a"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "B",
+      "seed": 7701,
+      "step": 17,
+      "unobserved": "MODE"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "cdb3b8ce6990616e4b158fd2ae327176b09568a8a4df6d00a596229895acdee8",
+      "seed": 7701,
+      "step": 17,
+      "unobserved": "f9fb1c14709645793cf092c5923bc8d415923c3e6d9cfb5a186182a17e7ad3e6"
+    },
+    {
+      "field": "selected_skill_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "380eb90b84341f1907d6b08c3c3916fc7d6bede13d83cb073fef46e40d3c6ef5",
+      "seed": 7701,
+      "step": 18,
+      "unobserved": "a0820206dcd56dbd4ccf4764b5881b296a9ecb54b59a5620024b566914c5fbcc"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "LEFT",
+      "seed": 7701,
+      "step": 18,
+      "unobserved": "UP"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "33e69368e4df2fff9fc043b736137e5be8b297a313e7534e69c887264a81191b",
+      "seed": 7701,
+      "step": 18,
+      "unobserved": "d0fdec64472a1554a63f69f3cfc752516bc7be97861730b57e902e95db6cc033"
+    },
+    {
+      "field": "selected_skill_sha256",
+      "kind": "AGENT_PROPOSAL_SET",
+      "observed": "380eb90b84341f1907d6b08c3c3916fc7d6bede13d83cb073fef46e40d3c6ef5",
+      "seed": 7701,
+      "step": 19,
+      "unobserved": "72877023dde75482c328a177367560db7e6bb6375e5f6490f9e60dd1650d1f47"
+    },
+    {
+      "field": "executed_action",
+      "kind": "ENVIRONMENT_STEP",
+      "observed": "MODE",
+      "seed": 7701,
+      "step": 19,
+      "unobserved": "LEFT"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "17480dcbeb2c06fd2187b992bb267d308ad767f0191dfa9611ce248acee6ec56",
+      "seed": 7701,
+      "step": 19,
+      "unobserved": "0511bb6bd596d52599eb40e3bc36884ff3aa59d55399451dc860a13fa8949151"
+    },
+    {
+      "field": "observable_state_sha256",
+      "kind": "OBSERVATION",
+      "observed": "56494de395e34a41c666379c04c66cb81c1fc4d261e45ffc708849da6335ff9e",
+      "seed": 7701,
+      "step": 20,
+      "unobserved": "bf895487f25f33ee7d661a48485d6118b9ed9a7a95408f2bbbdff2af147033a5"
+    }
+  ],
+  "schema_version": 1
+}

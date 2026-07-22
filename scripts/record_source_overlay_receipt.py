@@ -26,6 +26,7 @@ def main() -> None:
     parser.add_argument("--request-seed-control-patch", type=Path, required=True)
     parser.add_argument("--shadow-observer-patch", type=Path)
     parser.add_argument("--no-human-hints-patch", type=Path)
+    parser.add_argument("--matched-policy-patch", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     overlay_files = [
@@ -41,6 +42,8 @@ def main() -> None:
         patch_files.append(args.shadow_observer_patch)
     if args.no_human_hints_patch is not None:
         patch_files.append(args.no_human_hints_patch)
+    if args.matched_policy_patch is not None:
+        patch_files.append(args.matched_policy_patch)
     inputs = overlay_files + patch_files
     if any(not path.is_file() for path in inputs):
         raise FileNotFoundError([str(path) for path in inputs if not path.is_file()])
@@ -50,6 +53,7 @@ def main() -> None:
         "reasoning_observer": args.shadow_observer_patch is not None,
         "human_policy_hints_excluded": args.no_human_hints_patch is not None,
         "request_seed_control": True,
+        "matched_policy_treatments": args.matched_policy_patch is not None,
         "overlay_runner": {
             "path": str(args.overlay_runner),
             "sha256": _sha256(args.overlay_runner),
