@@ -1,0 +1,39 @@
+diff --git a/trainer/coevolution/episode_runner.py b/trainer/coevolution/episode_runner.py
+--- a/trainer/coevolution/episode_runner.py
++++ b/trainer/coevolution/episode_runner.py
+@@ -1922,6 +1922,10 @@
+             _reasoning_recorder.append(ReasoningEventKind.AGENT_PROPOSAL_SET, {
+                 "step": step_count,
++                "selected_skill_id": str(guidance.get("skill_id", "")) if guidance else None,
++                "selected_skill_sha256": _event_hash(_reasoning_receipt_value(guidance)) if guidance else None,
++                "selected_skill_context_sha256": _event_hash(skill_text) if guidance else None,
++                "action_policy_adapter_expected": "action_taking",
+                 "claim_boundary": "SKILL_CANDIDATES_NOT_ACTION_PROPOSALS",
+                 "skill_candidates": [{
+                     "skill_id": str(item.get("skill_id") or ""),
+                     "candidate_sha256": _event_hash(_reasoning_receipt_value(item)),
+diff --git a/scripts/run_instrumented_source_smoke.py b/scripts/run_instrumented_source_smoke.py
+--- a/scripts/run_instrumented_source_smoke.py
++++ b/scripts/run_instrumented_source_smoke.py
+@@ -410,4 +410,4 @@ async def _main(args) -> int:
+-        if args.reasoning_backbone_harness:
++        if args.reasoning_backbone_harness or args.sequential_episodes:
+             # Preserve a stable request order and avoid provider throttling
+             # changing v2 receipt coverage. Endpoint-only retries happen inside
+             # OpenRouterRolloutActor; model/schema failures are never redrawn.
+@@ -439,5 +439,6 @@ async def _main(args) -> int:
+             "episode_seed_base": args.seed_base,
+             "max_steps": args.max_steps,
++            "sequential_episodes": args.sequential_episodes,
+             "git_commit": _git_commit(),
+             "working_tree_changes_may_exist": True,
+             "reasoning_backbone_harness": args.reasoning_backbone_harness,
+@@ -496,4 +497,8 @@ def main() -> int:
+     parser.add_argument("--episodes", type=int, default=4)
+     parser.add_argument("--max-steps", type=int, default=12)
+     parser.add_argument("--seed-base", type=int, default=42)
++    parser.add_argument(
++        "--sequential-episodes", action="store_true",
++        help="Run resets/episodes serially so per-seed initial states cannot race.",
++    )
+     parser.add_argument("--endpoint", default="https://openrouter.ai/api")

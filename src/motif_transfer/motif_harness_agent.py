@@ -6,8 +6,10 @@ from .contracts import (
     Advisory,
     BindingHypothesis,
     DecisionProposal,
+    DecisionCycleRecord,
     MotifCandidate,
     Observation,
+    ReplayForkReceipt,
     TransitionReceipt,
 )
 
@@ -15,12 +17,16 @@ from .contracts import (
 class MotifHarnessAgent(Protocol):
     """Proposal-only role. Its return schemas deliberately contain no action field."""
 
-    def propose_motifs(self, receipts: Sequence[TransitionReceipt]) -> Sequence[MotifCandidate]: ...
+    def propose_motifs(
+        self,
+        records: Sequence[DecisionCycleRecord],
+        replay_receipts: Sequence[ReplayForkReceipt],
+    ) -> Sequence[MotifCandidate]: ...
 
     def initialize_binding(
         self,
         motif: MotifCandidate,
-        adaptation_receipts: Sequence[TransitionReceipt],
+        adaptation_records: Sequence[DecisionCycleRecord],
     ) -> BindingHypothesis | None: ...
 
     def review(

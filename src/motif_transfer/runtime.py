@@ -3,7 +3,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from .contracts import Advisory, BindingHypothesis, Observation, TransitionReceipt
+from .contracts import (
+    Advisory,
+    AdvisoryVerdict,
+    BindingHypothesis,
+    ContinuationDecision,
+    DecisionCycleRecord,
+    DecisionCycleReceipt,
+    Observation,
+    TransitionReceipt,
+)
 from .decision_agent import DecisionAgent
 from .harness import DeterministicHarness
 from .motif_harness_agent import MotifHarnessAgent
@@ -18,6 +27,8 @@ class Environment(Protocol):
 @dataclass(frozen=True)
 class EpisodeResult:
     receipts: tuple[TransitionReceipt, ...]
+    cycles: tuple[DecisionCycleReceipt, ...]
+    records: tuple[DecisionCycleRecord, ...]
     final_observation: Observation
 
 
@@ -36,22 +47,57 @@ class TwoAgentRuntime:
     ) -> EpisodeResult:
         observation = environment.reset()
         receipts: list[TransitionReceipt] = []
+        cycles: list[DecisionCycleReceipt] = []
+        records: list[DecisionCycleRecord] = []
         advisory: Advisory | None = None
         for _ in range(max_steps):
             if observation.terminal:
                 break
-            proposal = self.decision_agent.propose(observation, goal, receipts, advisory)
-            self.harness.validate_proposal(observation, proposal)
+            proposal_set = self.decision_agent.propose_set(observation, goal, receipts, advisory)
+            self.harness.validate_proposal_set(observation, proposal_set)
+            proposal = proposal_set.selected
             # Review can request replanning/abstention but its schema cannot carry an action.
             advisory = self.motif_agent.review(proposal, observation, binding, receipts)
-            if advisory.verdict.value == "ABSTAIN":
+            if advisory.verdict == AdvisoryVerdict.ABSTAIN:
                 break
-            if advisory.verdict.value == "REPLAN":
-                proposal = self.decision_agent.propose(observation, goal, receipts, advisory)
-                self.harness.validate_proposal(observation, proposal)
+            if advisory.verdict == AdvisoryVerdict.REPLAN:
+                proposal_set = self.decision_agent.propose_set(observation, goal, receipts, advisory)
+                self.harness.validate_proposal_set(observation, proposal_set)
+                proposal = proposal_set.selected
             after, reward = environment.step(proposal.action)
             receipt = TransitionReceipt.create(observation, proposal, after, reward)
             self.harness.validate_receipt(receipt)
+            assessment = self.decision_agent.assess_transition(
+                observation, proposal_set, after, reward, receipts
+            )
+            cycle = DecisionCycleReceipt.create(proposal_set, receipt, assessment)
+            self.harness.validate_cycle(cycle)
+            record = DecisionCycleRecord(
+                observation,
+                proposal_set,
+                advisory,
+                after,
+                reward,
+                receipt,
+                assessment,
+                cycle,
+            )
+            if not record.validate():
+                raise RuntimeError("decision-cycle record failed self-validation")
             receipts.append(receipt)
+            cycles.append(cycle)
+            records.append(record)
             observation = after
-        return EpisodeResult(tuple(receipts), observation)
+            if assessment.continuation in {
+                ContinuationDecision.ABSTAIN,
+                ContinuationDecision.TERMINATE,
+            }:
+                break
+            if assessment.continuation == ContinuationDecision.REPLAN:
+                advisory = Advisory(
+                    AdvisoryVerdict.REPLAN,
+                    assessment.reason,
+                    (receipt.receipt_id,),
+                    failure_route="decision agent requested replanning after live evidence",
+                )
+        return EpisodeResult(tuple(receipts), tuple(cycles), tuple(records), observation)

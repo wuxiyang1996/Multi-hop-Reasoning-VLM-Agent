@@ -6,9 +6,14 @@ from typing import Iterable, Mapping
 from .contracts import (
     ConditionOutcome,
     DecisionProposal,
+    DecisionProposalSet,
+    DecisionCycleReceipt,
     Lifecycle,
     MotifCandidate,
     Observation,
+    ReplayForkReceipt,
+    SourceTransitionReceipt,
+    SourceStepSignature,
     TransferReport,
     TransitionReceipt,
     stable_hash,
@@ -37,12 +42,31 @@ class DeterministicHarness:
         if proposal.action not in observation.native_actions:
             raise HarnessReject("proposal is not an exact member of the native action set")
 
-    def validate_receipt(self, receipt: TransitionReceipt) -> None:
+    def validate_proposal_set(self, observation: Observation, proposal_set: DecisionProposalSet) -> None:
+        if not proposal_set.proposals:
+            raise HarnessReject("decision agent supplied an empty proposal set")
+        ids = [row.proposal_id for row in proposal_set.proposals]
+        if len(ids) != len(set(ids)):
+            raise HarnessReject("proposal ids must be unique")
+        try:
+            proposal_set.selected
+        except ValueError as exc:
+            raise HarnessReject(str(exc)) from exc
+        for proposal in proposal_set.proposals:
+            self.validate_proposal(observation, proposal)
+
+    def validate_receipt(self, receipt: TransitionReceipt | SourceTransitionReceipt) -> None:
         if not receipt.validate():
             raise HarnessReject("receipt hash mismatch")
 
+    def validate_cycle(self, cycle: DecisionCycleReceipt) -> None:
+        if not cycle.validate():
+            raise HarnessReject("decision-cycle hash mismatch")
+
     def audit_motif(
-        self, candidate: MotifCandidate, receipts: Mapping[str, TransitionReceipt]
+        self,
+        candidate: MotifCandidate,
+        receipts: Mapping[str, TransitionReceipt | SourceTransitionReceipt | ReplayForkReceipt],
     ) -> MotifAudit:
         if len(candidate.nodes) < 2:
             return MotifAudit(False, None, "motif must contain at least two nodes")
@@ -54,52 +78,131 @@ class DeterministicHarness:
             referenced.extend(node.transition_receipt_ids)
         if len(referenced) != len(set(referenced)):
             return MotifAudit(False, None, "a transition may not be assigned twice")
-        if not referenced or any(receipt_id not in receipts for receipt_id in referenced):
+        if not referenced or any(
+            receipt_id not in receipts
+            or not isinstance(receipts[receipt_id], (TransitionReceipt, SourceTransitionReceipt))
+            for receipt_id in referenced
+        ):
             return MotifAudit(False, None, "unknown transition receipt")
         if any(not receipts[receipt_id].validate() for receipt_id in referenced):
             return MotifAudit(False, None, "invalid transition receipt")
         known_nodes = set(node_ids)
+        if not candidate.edges:
+            return MotifAudit(False, None, "motif must contain at least one control edge")
         for edge in candidate.edges:
             if edge.source not in known_nodes or edge.target not in known_nodes:
                 return MotifAudit(False, None, "edge references unknown node")
-            if any(receipt_id not in receipts for receipt_id in edge.replay_receipt_ids):
+            if any(
+                receipt_id not in receipts or not isinstance(receipts[receipt_id], ReplayForkReceipt)
+                for receipt_id in edge.replay_receipt_ids
+            ):
                 return MotifAudit(False, None, "edge references unknown replay receipt")
+            if not edge.replay_receipt_ids:
+                return MotifAudit(False, None, "control edge lacks a replay-fork receipt")
+            if any(not receipts[receipt_id].validate() for receipt_id in edge.replay_receipt_ids):
+                return MotifAudit(False, None, "invalid replay-fork receipt")
+            source_transitions = set(
+                candidate.nodes[node_ids.index(edge.source)].transition_receipt_ids
+            )
+            if any(
+                receipts[receipt_id].source_transition_id not in source_transitions
+                for receipt_id in edge.replay_receipt_ids
+            ):
+                return MotifAudit(
+                    False, None, "replay fork is not grounded in edge source node"
+                )
+            exhaustive_forks = {
+                receipt_id
+                for receipt_id, receipt in receipts.items()
+                if isinstance(receipt, ReplayForkReceipt)
+                and receipt.source_transition_id in source_transitions
+            }
+            if set(edge.replay_receipt_ids) != exhaustive_forks:
+                return MotifAudit(
+                    False, None, "edge must carry every observed fork from its source node"
+                )
+
+        signatures = {
+            stable_hash(self._behavioral_signature(signature))
+            for node in candidate.nodes
+            for signature in node.decision_signatures
+        }
+        outdegree = {node_id: 0 for node_id in node_ids}
+        for edge in candidate.edges:
+            outdegree[edge.source] += 1
+        if len(signatures) < 2 and max(outdegree.values(), default=0) < 2:
+            return MotifAudit(False, None, "no observable control variation")
 
         # Natural-language descriptions and edge claims are excluded on purpose.
+        node_ordinals = {node_id: index for index, node_id in enumerate(node_ids)}
         verified_shape = {
             "nodes": [
                 {
-                    "receipts": node.transition_receipt_ids,
-                    "decision_signatures": [signature.__dict__ for signature in node.decision_signatures],
+                    "transition_count": len(node.transition_receipt_ids),
+                    "decision_signatures": [
+                        self._behavioral_signature(signature)
+                        for signature in node.decision_signatures
+                    ],
                 }
                 for node in candidate.nodes
             ],
             "edges": [
-                {"source": edge.source, "target": edge.target, "receipts": edge.replay_receipt_ids}
+                {
+                    "source_ordinal": node_ordinals[edge.source],
+                    "target_ordinal": node_ordinals[edge.target],
+                    "replay_count": len(edge.replay_receipt_ids),
+                }
                 for edge in candidate.edges
             ],
         }
         return MotifAudit(True, stable_hash(verified_shape), "STRUCTURALLY_NONUNIFORM_CANDIDATE")
 
+    @staticmethod
+    def _behavioral_signature(signature):
+        values = dict(signature.__dict__)
+        if isinstance(signature, SourceStepSignature):
+            # Treatment membership is provenance, not behavioral structure.
+            values.pop("skill_conditioned", None)
+        return values
+
     def evaluate_matched(self, outcomes: Iterable[ConditionOutcome]) -> TransferReport:
         rows = tuple(outcomes)
-        by_name = {row.condition: row for row in rows}
-        missing = self.REQUIRED_CONDITIONS - by_name.keys()
-        if missing:
-            return TransferReport(Lifecycle.INCONCLUSIVE, f"missing conditions: {sorted(missing)}", rows)
+        pairs: dict[str, list[ConditionOutcome]] = {}
+        for row in rows:
+            pairs.setdefault(row.pair_id, []).append(row)
         identity_fields = ("initial_state_hash", "prefix_hash", "policy_hash", "budget_hash")
-        if any(len({getattr(row, field) for row in rows}) != 1 for field in identity_fields):
-            return TransferReport(Lifecycle.INCONCLUSIVE, "matched-run identity mismatch", rows)
+        for pair_id, pair_rows in pairs.items():
+            names = {row.condition for row in pair_rows}
+            missing = self.REQUIRED_CONDITIONS - names
+            if missing:
+                return TransferReport(
+                    Lifecycle.INCONCLUSIVE,
+                    f"pair {pair_id} missing conditions: {sorted(missing)}",
+                    rows,
+                )
+            if len(pair_rows) != len(names):
+                return TransferReport(Lifecycle.INCONCLUSIVE, f"pair {pair_id} has duplicate conditions", rows)
+            if any(len({getattr(row, field) for row in pair_rows}) != 1 for field in identity_fields):
+                return TransferReport(Lifecycle.INCONCLUSIVE, f"pair {pair_id} identity mismatch", rows)
 
-        authentic = by_name["authentic"]
-        target_only = by_name["target_only"]
-        generic = by_name["generic_protocol"]
-        controls = (by_name["shuffled_topology"], by_name["other_source"])
-        if authentic.official_success and not target_only.official_success:
-            if generic.official_success:
-                return TransferReport(Lifecycle.GENERIC_ONLY, "generic protocol explains the gain", rows)
-            if not any(control.official_success for control in controls):
-                return TransferReport(Lifecycle.POSITIVE_TRANSFER, "authentic motif uniquely improves official outcome", rows)
-        if target_only.official_success and not authentic.official_success:
-            return TransferReport(Lifecycle.NEGATIVE_TRANSFER, "authentic motif harms official outcome", rows)
-        return TransferReport(Lifecycle.INCONCLUSIVE, "no attributable outcome separation", rows)
+        rates = {
+            condition: sum(row.official_success for row in rows if row.condition == condition) / len(pairs)
+            for condition in self.REQUIRED_CONDITIONS
+        }
+        authentic = rates["authentic"]
+        target_only = rates["target_only"]
+        generic = rates["generic_protocol"]
+        other_controls = max(rates["shuffled_topology"], rates["other_source"])
+        if authentic > target_only:
+            if generic >= authentic:
+                return TransferReport(Lifecycle.GENERIC_ONLY, "generic protocol explains the gain", rows, rates)
+            if authentic > other_controls:
+                return TransferReport(
+                    Lifecycle.POSITIVE_TRANSFER,
+                    "authentic motif improves paired official outcomes in this pilot",
+                    rows,
+                    rates,
+                )
+        if target_only > authentic:
+            return TransferReport(Lifecycle.NEGATIVE_TRANSFER, "authentic motif harms paired official outcomes", rows, rates)
+        return TransferReport(Lifecycle.INCONCLUSIVE, "no attributable paired outcome separation", rows, rates)
