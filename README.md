@@ -2,6 +2,8 @@
 
 当前 ALFWorld one-shot online smoke、失败审计和下一阶段 gates 见
 [`docs/ALFWORLD_ONE_SHOT_STATUS.md`](docs/ALFWORLD_ONE_SHOT_STATUS.md)。
+旧 Phase-1 skill 的内部图提取、真实 GPT-5-mini pilot 和当前零通过结论见
+[`docs/SKILL_INTERNAL_BACKBONE.md`](docs/SKILL_INTERNAL_BACKBONE.md)。
 
 这是从历史仓库拆出的最小研究核心。仓库只保留两个有模型判断能力的角色：
 
@@ -20,7 +22,10 @@
 
 > 在模型已经具备通用推理能力时，来自 source experience 的可验证 motif，能否降低新领域的 adaptation cost？
 
-因此主要 claim 不是“恢复并迁移模型内部 reasoning backbone”，而是：
+当前新增的 source-induction 目标是从旧 skill 的多次真实执行中发现可验证的
+skill-internal reasoning motif。这里的 backbone 指外显 rollout 中重复出现、经过
+matched controls 与 intervention 支持的控制图；它不声称读取模型不可观测的内部思维。
+通过 source qualification 后，它才可作为 adaptation hypothesis 进入下面的在线流程：
 
 ```text
 source experience
@@ -48,16 +53,18 @@ python examples/smoke_two_agent.py
 - `src/motif_transfer/harness.py`：fail-closed 验证与 matched evaluation。
 - `src/motif_transfer/runtime.py`：双 Agent 交互循环。
 - `src/motif_transfer/legacy_import.py`：把旧 mega-skill 读成只读 lineage/baseline。
+- `src/motif_transfer/skill_internal.py`：按旧 skill 聚合执行、接收内部图 proposal 并做 fail-closed audit。
 - `docs/ARCHITECTURE.md`：权限边界和数据流。
 - `docs/ADAPTATION_ASSISTANT.md`：快速适应助手的完整定位与证据标准。
 - `docs/EXPERIMENT_PROTOCOL.md`：六游戏到远域的实验设计。
 - `docs/OLD_RESULTS.md`：旧 checkpoint、rollout 和 mega-skill 的保留方式。
+- `docs/SKILL_INTERNAL_BACKBONE.md`：旧 skill 内部 backbone 的表示、controls 与真实 pilot。
 - `docs/IMPLEMENTATION_STATUS.md`：当前机械审计、正在运行的采集和尚未授权的 claim。
 
 ## 旧游戏模型如何进入新 Harness
 
 旧 Decision Agent 不改接口：skill-on 仍执行 `skill_selection LoRA → selected game skill → action_taking LoRA → native action`，skill-off 只移除 skill context。Motif/Harness Agent 不参与 source action。
 
-rollout 完成后，确定性代码在精确记录的 `selected_skill_id` 变化点切出连续片段。不能使用 `selected_skill_sha256` 做边界，因为旧系统的该字段包含随 observation 变化的动态 guidance，同一 skill 也会产生不同哈希。旧 `segment` LoRA 只做它原来训练过的 all-candidate skill ranking；它不生成 action proposal，也不直接生成 motif 图。独立 Motif/Harness Agent 只能组合完整的机械片段，并从 hash-bound ranking receipts、transition receipts 和 replay receipts 中提出候选图；matched controls 再判断是否存在 source-derived 增量价值。
+rollout 完成后，确定性代码在精确记录的 `selected_skill_id` 变化点切出连续 execution。不能使用 `selected_skill_sha256` 做边界，因为旧系统的该字段包含随 observation 变化的动态 guidance，同一 skill 也会产生不同哈希。`selected_skill_id` 只决定哪些 transition 属于同一 skill，不能决定内部 motif node。独立 Motif/Harness Agent 可以在 execution 内部提出 receipt-bound spans 和 graph；旧 bank 文本只作为不可信 hypothesis。matched controls、qualification、intervention 和 held-out 共同判断是否存在 source-derived 增量价值。
 
 历史实现仍完整保存在 Git parent `948f64a` 以及原始工作副本中；本分支不复制 checkpoint、rollout、Slurm log 或生成结果。
