@@ -35,6 +35,7 @@ class EpisodeResult:
     binding_evidence: tuple[BindingEvidence, ...] = ()
     source_fallback_step: int | None = None
     source_replans: int = 0
+    source_failures: tuple[str, ...] = ()
 
 
 class TwoAgentRuntime:
@@ -63,28 +64,49 @@ class TwoAgentRuntime:
         advisory: Advisory | None = None
         binding_evidence: list[BindingEvidence] = []
         source_replans = 0
+        source_failures: list[str] = []
         source_fallback_step = None
         source_enabled = version_space is not None
         for step_index in range(max_steps):
             try:
                 if observation.terminal:
                     break
+                if not source_enabled and step_index > 0:
+                    advisory = Advisory(
+                        AdvisoryVerdict.ADMIT,
+                        "target-only fallback; source intervention disabled",
+                    )
                 proposal_set = self.decision_agent.propose_set(observation, goal, receipts, advisory)
                 self.harness.validate_proposal_set(observation, proposal_set)
                 proposal = proposal_set.selected
-                active_binding = None
+                active_bindings: tuple[BindingHypothesis, ...] = ()
                 if source_enabled and version_space is not None:
                     viable = version_space.viable()
                     if viable:
-                        active_binding = sorted(viable, key=lambda row: row.binding_id)[0]
+                        active_bindings = tuple(sorted(viable, key=lambda row: row.binding_id))
                     else:
                         source_enabled = False
                         source_fallback_step = step_index
-                if active_binding is not None:
+                if active_bindings:
                     # Review can inspect an already selected action but cannot output one.
-                    advisory = self.motif_agent.review(
-                        proposal, observation, active_binding, receipts
-                    )
+                    aggregate_review = getattr(self.motif_agent, "review_bindings", None)
+                    try:
+                        advisory = (
+                            aggregate_review(proposal, observation, active_bindings, receipts)
+                            if callable(aggregate_review)
+                            else self.motif_agent.review(
+                                proposal, observation, active_bindings[0], receipts
+                            )
+                        )
+                    except Exception as exc:
+                        source_failures.append(f"REVIEW:{type(exc).__name__}:{exc}")
+                        source_enabled = False
+                        source_fallback_step = step_index
+                        active_bindings = ()
+                        advisory = Advisory(
+                            AdvisoryVerdict.ADMIT,
+                            "target-only fallback; source intervention disabled",
+                        )
                 else:
                     advisory = Advisory(
                         AdvisoryVerdict.ADMIT,
@@ -93,10 +115,10 @@ class TwoAgentRuntime:
                 if advisory.verdict == AdvisoryVerdict.ABSTAIN:
                     source_enabled = False
                     source_fallback_step = step_index
-                    active_binding = None
+                    active_bindings = ()
                     advisory = Advisory(
                         AdvisoryVerdict.ADMIT,
-                        "source agent abstained; execute target-only proposal",
+                        "target-only fallback; source intervention disabled",
                     )
                 elif advisory.verdict == AdvisoryVerdict.REPLAN:
                     source_replans += 1
@@ -123,20 +145,30 @@ class TwoAgentRuntime:
                 cycles.append(cycle)
                 records.append(record)
                 verifier = getattr(self.motif_agent, "verify_transition", None)
-                if active_binding is not None and callable(verifier):
-                    evidence = verifier(
-                        active_binding,
-                        record.before,
-                        record.proposal_set.selected,
-                        record.after,
-                        record.transition,
-                        tuple(receipts),
-                    )
-                    if evidence.receipt_id != record.transition.receipt_id:
-                        raise ValueError("binding evidence references a different live transition")
-                    version_space.record(evidence)
-                    binding_evidence.append(evidence)
-                    if not version_space.viable():
+                aggregate_verifier = getattr(self.motif_agent, "verify_bindings", None)
+                if active_bindings and (callable(aggregate_verifier) or callable(verifier)):
+                    try:
+                        evidence_rows = (
+                            aggregate_verifier(
+                                active_bindings, record.before, record.proposal_set.selected,
+                                record.after, record.transition, tuple(receipts),
+                            )
+                            if callable(aggregate_verifier)
+                            else tuple(verifier(
+                                active_binding, record.before, record.proposal_set.selected,
+                                record.after, record.transition, tuple(receipts),
+                            ) for active_binding in active_bindings)
+                        )
+                        for evidence in evidence_rows:
+                            if evidence.receipt_id != record.transition.receipt_id:
+                                raise ValueError("binding evidence references a different live transition")
+                            version_space.record(evidence)
+                            binding_evidence.append(evidence)
+                        if not version_space.viable():
+                            source_enabled = False
+                            source_fallback_step = step_index + 1
+                    except Exception as exc:
+                        source_failures.append(f"VERIFY:{type(exc).__name__}:{exc}")
                         source_enabled = False
                         source_fallback_step = step_index + 1
                 observation = after
@@ -156,9 +188,11 @@ class TwoAgentRuntime:
                 exc.partial_episode_result = EpisodeResult(
                     tuple(receipts), tuple(cycles), tuple(records), observation,
                     tuple(binding_evidence), source_fallback_step, source_replans,
+                    tuple(source_failures),
                 )
                 raise
         return EpisodeResult(
             tuple(receipts), tuple(cycles), tuple(records), observation,
             tuple(binding_evidence), source_fallback_step, source_replans,
+            tuple(source_failures),
         )

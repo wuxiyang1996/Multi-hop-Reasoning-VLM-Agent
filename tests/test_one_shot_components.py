@@ -1,8 +1,13 @@
 import json
+import pytest
 
 from motif_transfer.api_decision_agent import OpenAIJSONDecisionAgent
-from motif_transfer.contracts import Advisory, AdvisoryVerdict, Lifecycle, MotifCandidate, MotifEdge, MotifNode, Observation
-from motif_transfer.frozen_motif_agent import FrozenJSONMotifAgent
+from motif_transfer.contracts import (
+    Advisory, AdvisoryVerdict, BindingHypothesis, DecisionProposal, Lifecycle,
+    MotifCandidate, MotifEdge, MotifNode, Observation,
+)
+from motif_transfer.binding import BindingAttribution
+from motif_transfer.frozen_motif_agent import FrozenJSONMotifAgent, MemoizedCompletionBackend
 
 
 class Backend:
@@ -16,6 +21,16 @@ class Backend:
 
     def complete(self, role, system, payload):
         return json.dumps(next(self.responses))
+
+
+def test_memoized_backend_reuses_only_exact_requests():
+    backend = Backend([{"value": 1}, {"value": 2}])
+    memo = MemoizedCompletionBackend(backend)
+    first = memo.complete("r", "system", {"x": 1})
+    assert memo.last_usage["cache_hit"] is False
+    assert memo.complete("r", "system", {"x": 1}) == first
+    assert memo.last_usage["cache_hit"] is True
+    assert memo.complete("r", "system", {"x": 2}) != first
 
 
 def test_decision_agent_selects_only_numbered_native_action():
@@ -67,7 +82,7 @@ def test_one_shot_binding_receives_real_graph_not_shape_only():
     assert any(row["phase"] == "one_shot_binding_stability_gate" for row in agent.call_receipts)
 
 
-def test_one_shot_binding_fails_closed_when_renamed_structure_differs():
+def test_alpha_difference_marks_target_grounding_but_does_not_override_raw_stability():
     first = {
         "abstain": False,
         "bindings": [{
@@ -100,4 +115,121 @@ def test_one_shot_binding_fails_closed_when_renamed_structure_differs():
     agent = FrozenJSONMotifAgent(
         Backend([first, second, first, second]), allowed_verifier_ids=("v",)
     )
-    assert agent.initialize_binding_set_from_example(motif, example) == ()
+    artifact = agent.build_binding_artifact(motif, example)
+    assert len(artifact.bindings) == 1
+    assert artifact.bindings[0].attribution == BindingAttribution.TARGET_GROUNDED_PROVISIONAL
+    assert artifact.validate()
+
+
+def test_unstable_raw_binding_fails_closed_even_when_alpha_is_stable():
+    left = {
+        "abstain": False,
+        "bindings": [{
+            "node_alignment": [
+                {"source_node_ordinal": 0, "target_cycle_indices": [0]},
+                {"source_node_ordinal": 1, "target_cycle_indices": [1, 2]},
+            ],
+            "edge_alignment": [{"source_edge_ordinal": 0, "target_boundary": [0, 1]}],
+            "verifier_id": "v",
+        }],
+    }
+    right = {
+        "abstain": False,
+        "bindings": [{
+            "node_alignment": [
+                {"source_node_ordinal": 0, "target_cycle_indices": [0, 1]},
+                {"source_node_ordinal": 1, "target_cycle_indices": [2]},
+            ],
+            "edge_alignment": [{"source_edge_ordinal": 0, "target_boundary": [1, 2]}],
+            "verifier_id": "v",
+        }],
+    }
+    motif = MotifCandidate(
+        "m", (), (MotifNode("n0", ("r0",)), MotifNode("n1", ("r1",))),
+        (MotifEdge("n0", "n1", ("f",)),), Lifecycle.CANDIDATE,
+    )
+    example = {"transitions": [{"action": "a"}, {"action": "b"}, {"action": "c"}]}
+    # Call order is raw0, alpha0, raw1, alpha1.
+    agent = FrozenJSONMotifAgent(Backend([left, left, right, left]), allowed_verifier_ids=("v",))
+    assert agent.build_binding_artifact(motif, example).hypotheses == ()
+
+
+def test_review_must_cite_a_receipt_from_registered_source_node():
+    motif = MotifCandidate(
+        "m", ("r0",), (MotifNode("n0", ("r0",)),), (), Lifecycle.GENERIC_ONLY,
+    )
+    binding = BindingHypothesis("b", "m", "claim", "prediction", ("demo",), "v")
+    valid = {
+        "reason": "untrusted",
+        "candidate_verdicts": [{
+            "binding_id": "b",
+            "verdict": "ADMIT",
+            "active_source_node_ordinal": 0,
+            "cited_source_receipt_ordinals": [0],
+        }],
+    }
+    agent = FrozenJSONMotifAgent(Backend([valid]))
+    agent.register_motif(motif)
+    assert agent.review(DecisionProposal("p", "a"), Observation({}, ("a",)), binding, ()).verdict.value == "ADMIT"
+
+    invalid = dict(valid, candidate_verdicts=[dict(
+        valid["candidate_verdicts"][0], cited_source_receipt_ordinals=[1],
+    )])
+    agent = FrozenJSONMotifAgent(Backend([invalid]))
+    agent.register_motif(motif)
+    with pytest.raises(ValueError, match="out-of-range"):
+        agent.review(DecisionProposal("p", "a"), Observation({}, ("a",)), binding, ())
+
+
+def test_binding_disagreement_falls_back_instead_of_selecting_one_hypothesis():
+    motif = MotifCandidate(
+        "m", ("r0",), (MotifNode("n0", ("r0",)),), (), Lifecycle.GENERIC_ONLY,
+    )
+    bindings = tuple(
+        BindingHypothesis(name, "m", "claim", "prediction", ("demo",), "v")
+        for name in ("b0", "b1")
+    )
+    response = {"candidate_verdicts": [
+        {
+            "binding_id": "b0", "verdict": "ADMIT", "active_source_node_ordinal": 0,
+            "cited_source_receipt_ordinals": [0],
+        },
+        {
+            "binding_id": "b1", "verdict": "REPLAN", "active_source_node_ordinal": 0,
+            "cited_source_receipt_ordinals": [0],
+        },
+    ]}
+    agent = FrozenJSONMotifAgent(Backend([response]))
+    agent.register_motif(motif)
+    advisory = agent.review_bindings(
+        DecisionProposal("p", "a"), Observation({}, ("a",)), bindings, (),
+    )
+    assert advisory.verdict == AdvisoryVerdict.ABSTAIN
+    assert agent.call_receipts[-1]["unanimous"] is False
+
+
+def test_only_exactly_shared_binding_advice_reaches_decision_agent():
+    motif = MotifCandidate(
+        "m", ("r0",), (MotifNode("n0", ("r0",)),), (), Lifecycle.GENERIC_ONLY,
+    )
+    bindings = tuple(
+        BindingHypothesis(name, "m", "claim", "prediction", ("demo",), "v")
+        for name in ("b0", "b1")
+    )
+    response = {"candidate_verdicts": [
+        {
+            "binding_id": name, "verdict": "ADMIT", "active_source_node_ordinal": 0,
+            "cited_source_receipt_ordinals": [0], "current_role": "shared",
+            "information_need": need, "open_hypotheses": ["shared", unique],
+        }
+        for name, need, unique in (("b0", "left", "x"), ("b1", "right", "y"))
+    ]}
+    agent = FrozenJSONMotifAgent(Backend([response]))
+    agent.register_motif(motif)
+    advisory = agent.review_bindings(
+        DecisionProposal("p", "a"), Observation({}, ("a",)), bindings, (),
+    )
+    assert advisory.verdict == AdvisoryVerdict.ADMIT
+    assert advisory.current_role == "shared"
+    assert advisory.information_need == ""
+    assert advisory.open_hypotheses == ("shared",)

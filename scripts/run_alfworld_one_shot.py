@@ -16,11 +16,20 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from motif_transfer.alfworld_env import ALFWorldTextEnvironment
+from motif_transfer.binding import validate_structural_binding
 from motif_transfer.api_decision_agent import OpenAIJSONDecisionAgent
-from motif_transfer.artifact_io import adaptation_example_view, load_first_source_motif
+from motif_transfer.artifact_io import (
+    adaptation_example_view,
+    load_first_source_motif,
+    load_frozen_binding_artifact,
+)
 from motif_transfer.contracts import Lifecycle, MotifNode, SourceStepSignature, stable_hash
 from motif_transfer.controls import shuffled_topology
-from motif_transfer.frozen_motif_agent import FrozenJSONMotifAgent, OpenAICompatibleBackend
+from motif_transfer.frozen_motif_agent import (
+    FrozenJSONMotifAgent,
+    MemoizedCompletionBackend,
+    OpenAICompatibleBackend,
+)
 from motif_transfer.metrics import measure_episode
 from motif_transfer.neutral_motif_agent import NeutralMotifAgent
 from motif_transfer.runtime import TwoAgentRuntime
@@ -77,9 +86,19 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=20)
     parser.add_argument("--decision-model", default="qwen/qwen3.5-35b-a3b")
     parser.add_argument("--harness-model", default="gpt-5-mini")
-    parser.add_argument("--disable-alpha-invariance", action="store_true")
+    parser.add_argument("--skip-alpha-control", action="store_true")
+    parser.add_argument("--disable-alpha-invariance", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--binding-repetitions", type=int, default=2)
+    parser.add_argument(
+        "--binding-artifact-dir", type=Path,
+        help="Directory containing <condition>.json artifacts frozen before evaluation.",
+    )
+    parser.add_argument(
+        "--allow-inline-adaptation", action="store_true",
+        help="Diagnostic only: permit binding generation in the evaluation process.",
+    )
     args = parser.parse_args()
+    skip_alpha_control = args.skip_alpha_control or args.disable_alpha_invariance
 
     _load_keys(args.keys)
     adaptation = adaptation_example_view(args.adaptation_demo)
@@ -91,21 +110,25 @@ def main() -> None:
         "shuffled_topology": shuffled_topology(authentic),
         "other_source": other,
     }
+    shared_decision_backend = MemoizedCompletionBackend(OpenAICompatibleBackend(
+        "https://openrouter.ai/api/v1",
+        {"decision": args.decision_model},
+        api_key_env="OPENROUTER_API_KEY",
+        json_mode=True,
+        request_overrides={
+            "max_tokens": 256,
+            "top_p": 1.0,
+            "seed": args.seed,
+            "reasoning": {"effort": "none", "exclude": True},
+        },
+    ))
     rows = []
     for condition in args.conditions:
-        decision_backend = OpenAICompatibleBackend(
-            "https://openrouter.ai/api/v1",
-            {"decision": args.decision_model},
-            api_key_env="OPENROUTER_API_KEY",
-            json_mode=True,
-            request_overrides={
-                "max_tokens": 256,
-                "top_p": 1.0,
-                "reasoning": {"effort": "none", "exclude": True},
-            },
-        )
+        decision_backend = shared_decision_backend
         decision = OpenAIJSONDecisionAgent(decision_backend)
         bindings = ()
+        binding_attributions = []
+        binding_artifact_hash = None
         harness_calls = []
         binding_error = None
         if condition == "target_only":
@@ -126,12 +149,45 @@ def main() -> None:
                 harness_backend,
                 allowed_verifier_ids=("official_transition_and_outcome",),
             )
+            motif_agent.register_motif(motifs[condition])
             try:
-                bindings = motif_agent.initialize_binding_set_from_example(
-                    motifs[condition], adaptation,
-                    require_alpha_invariance=not args.disable_alpha_invariance,
-                    induction_repetitions=args.binding_repetitions,
-                )
+                if args.binding_artifact_dir is not None:
+                    artifact = load_frozen_binding_artifact(
+                        args.binding_artifact_dir / f"{condition}.json"
+                    )
+                    if artifact.motif_id != motifs[condition].motif_id:
+                        raise ValueError("frozen binding motif does not match evaluation condition")
+                    if artifact.adaptation_example_sha256 != stable_hash(adaptation):
+                        raise ValueError("frozen binding adaptation example does not match")
+                    for frozen in artifact.bindings:
+                        hypothesis = frozen.hypothesis
+                        signature = validate_structural_binding(
+                            motifs[condition],
+                            target_cycle_count=len(adaptation.get("transitions", [])),
+                            node_alignment=hypothesis.node_alignment,
+                            edge_alignment=hypothesis.edge_alignment,
+                        )
+                        if signature != hypothesis.invariance_signature:
+                            raise ValueError("frozen binding structural signature mismatch")
+                        if hypothesis.adaptation_receipt_ids != (stable_hash(adaptation),):
+                            raise ValueError("frozen binding does not cite the adaptation example")
+                    bindings = artifact.hypotheses
+                    binding_attributions = [row.attribution.value for row in artifact.bindings]
+                    binding_artifact_hash = artifact.artifact_hash
+                elif args.allow_inline_adaptation:
+                    artifact = motif_agent.build_binding_artifact(
+                        motifs[condition], adaptation,
+                        run_alpha_control=not skip_alpha_control,
+                        induction_repetitions=args.binding_repetitions,
+                    )
+                    bindings = artifact.hypotheses
+                    binding_attributions = [row.attribution.value for row in artifact.bindings]
+                    binding_artifact_hash = artifact.artifact_hash
+                else:
+                    raise ValueError(
+                        "non-target evaluation requires --binding-artifact-dir; "
+                        "use --allow-inline-adaptation only for diagnostics"
+                    )
             except Exception as exc:
                 binding_error = f"BINDING_ERROR:{type(exc).__name__}:{exc}"
             harness_calls.append({
@@ -170,14 +226,15 @@ def main() -> None:
             "condition": condition,
             "source_status": motifs[condition].status.value if condition in motifs else None,
             "bindings": [asdict(binding) for binding in bindings],
+            "binding_attributions": binding_attributions,
+            "binding_artifact_hash": binding_artifact_hash,
+            "binding_frozen_before_evaluation": args.binding_artifact_dir is not None,
             "binding_status": (
                 "TARGET_ONLY"
                 if condition == "target_only"
-                else "PROVISIONAL_INVARIANCE_DISABLED"
-                if bindings and args.disable_alpha_invariance
-                else "ALPHA_INVARIANT_PROVISIONAL"
+                else "FROZEN_RAW_STABLE_PROVISIONAL"
                 if bindings
-                else "TARGET_ONLY_FALLBACK_NO_INVARIANT_BINDING"
+                else "TARGET_ONLY_FALLBACK_NO_RAW_STABLE_BINDING"
             ),
             "binding_error": binding_error,
             "adaptation_example_sha256": stable_hash(adaptation),
@@ -200,6 +257,7 @@ def main() -> None:
                 else None
             ),
             "source_replans": result.source_replans if result else 0,
+            "source_failures": list(result.source_failures) if result else [],
             "decision_call_receipts": decision.call_receipts,
             "harness_calls": harness_calls,
             "error": error,
@@ -237,7 +295,8 @@ def main() -> None:
             "seed": args.seed,
             "game_index": args.game_index,
             "max_steps": args.max_steps,
-            "alpha_invariance_required": not args.disable_alpha_invariance,
+            "pythonhashseed": os.environ.get("PYTHONHASHSEED"),
+            "alpha_control_run": not skip_alpha_control,
             "binding_repetitions": args.binding_repetitions,
             "rows": rows,
         }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

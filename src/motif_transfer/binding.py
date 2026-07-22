@@ -1,9 +1,78 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from enum import Enum
 from typing import Iterable, Mapping, Sequence
 
 from .contracts import BindingEvidence, BindingHypothesis, EvidenceVerdict, MotifCandidate, stable_hash
+
+
+class BindingAttribution(str, Enum):
+    """What the alpha control can, and cannot, establish about a binding."""
+
+    GENERIC_STRUCTURAL = "GENERIC_STRUCTURAL"
+    TARGET_GROUNDED_PROVISIONAL = "TARGET_GROUNDED_PROVISIONAL"
+
+
+class BindingArtifactStatus(str, Enum):
+    ADMITTED = "ADMITTED"
+    REJECTED_UNSTABLE = "REJECTED_UNSTABLE"
+
+
+@dataclass(frozen=True)
+class AttributedBinding:
+    hypothesis: BindingHypothesis
+    attribution: BindingAttribution
+
+
+@dataclass(frozen=True)
+class FrozenBindingArtifact:
+    """Immutable output of adaptation; evaluation must not regenerate it."""
+
+    schema_version: int
+    motif_id: str
+    adaptation_example_sha256: str
+    induction_repetitions: int
+    raw_signature_sets: tuple[tuple[str, ...], ...]
+    alpha_signature_sets: tuple[tuple[str, ...], ...]
+    bindings: tuple[AttributedBinding, ...]
+    status: BindingArtifactStatus
+    backend_identity_sha256: str
+    call_receipt_hashes: tuple[str, ...]
+    artifact_hash: str
+
+    @staticmethod
+    def _hypothesis_dict(row: BindingHypothesis) -> dict[str, object]:
+        payload = asdict(row)
+        payload["status"] = row.status.value
+        return payload
+
+    def unsigned_payload(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "motif_id": self.motif_id,
+            "adaptation_example_sha256": self.adaptation_example_sha256,
+            "induction_repetitions": self.induction_repetitions,
+            "raw_signature_sets": self.raw_signature_sets,
+            "alpha_signature_sets": self.alpha_signature_sets,
+            "bindings": [
+                {
+                    "hypothesis": self._hypothesis_dict(row.hypothesis),
+                    "attribution": row.attribution.value,
+                }
+                for row in self.bindings
+            ],
+            "status": self.status.value,
+            "backend_identity_sha256": self.backend_identity_sha256,
+            "call_receipt_hashes": self.call_receipt_hashes,
+        }
+
+    def validate(self) -> bool:
+        return self.schema_version == 1 and stable_hash(self.unsigned_payload()) == self.artifact_hash
+
+    @property
+    def hypotheses(self) -> tuple[BindingHypothesis, ...]:
+        return tuple(row.hypothesis for row in self.bindings)
 
 
 def alignment_signature(

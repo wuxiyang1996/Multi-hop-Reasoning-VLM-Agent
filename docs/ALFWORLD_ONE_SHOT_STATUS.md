@@ -35,7 +35,7 @@ transfer。
    只记录 official terminal/success，语义 advisory 仍属于 Motif Agent。
 8. transient 429/5xx/timeout/incomplete-read 只允许同请求固定两次 transport retry，不按 outcome 重抽。
 
-44 个测试全部通过。
+51 个测试全部通过。
 
 ## matched one-episode smoke
 
@@ -67,8 +67,9 @@ target-only、shuffled 和 other-source 的五个 native actions 完全相同。
 
 - 用 source-node ordinal 对 adaptation example 的全部 transition 做无重叠、连续、完整 partition；
 - 为每条 source edge 引用一个顺序一致的 target transition boundary；
-- 通过真实 demo 与 full-action alpha-renamed demo 的 structural-signature intersection；
-- 在两次独立 induction 中都重现，不能只靠一次有利采样 admission。
+- 在真实 demo 的两次独立 induction 中都重现，不能只靠一次有利采样 admission；
+- full-action alpha-renamed demo 不再是硬 admission gate，而是区分 content-free structure 与
+  target-grounded one-shot binding 的 attribution control。
 
 在线 runtime 现在维护 `BindingVersionSpace`。Motif Agent 在真实 transition 后只能给绑定 ID、当前
 receipt ID 和 `SUPPORTED / REFUTED / INCONCLUSIVE`；Harness 检查引用，`REFUTED` 淘汰该候选并按
@@ -82,12 +83,34 @@ binding ID 的确定性顺序试下一个。Agent `ABSTAIN`、候选耗尽或达
 | 0 | 1 | 2 | 1 |
 | 1 | 0 | 0 | 0 |
 
-跨 repetition 交集为 0，因此从 step 0 fail closed；target actor 随后用与 baseline 完全相同的五个
+旧实现把 raw/alpha 交集当作硬门；该轮跨 repetition 交集为 0，因此从 step 0 fail closed，target actor 随后用与 baseline 完全相同的五个
 actions official success。冻结摘要见
 [`results/alfworld_binding_stability_summary.json`](results/alfworld_binding_stability_summary.json)。
 
 另一个单 repetition 复跑曾得到 raw=4、renamed=4、intersection=4，证明同 prompt 的 binding
 generation 本身不稳定；这正是 repeated intersection 必须存在的原因，不能事后挑选有 binding 的 run。
+
+2026-07-22 后续修正：硬门应当是 repeated **raw** stability，而不是 raw/alpha stability。alpha 删除
+target action content 后结构变化，只说明候选利用了 one-shot target grounding，不能说明它无效。新 artifact
+把候选分别标记为 `GENERIC_STRUCTURAL` 与 `TARGET_GROUNDED_PROVISIONAL`；两者都必须接受后续 live
+transition 检验。正式 eval 默认要求预先冻结 artifact，禁止 test-time rebinding。
+
+同日生成的 Strider→ALFWorld frozen artifact（hash
+`020feba4870f93f56f58ee69f633a63cdfd502d8f723adfe29f19c9fafbee432`）在两次 raw induction 中
+稳定保留 3 个候选：1 个 `GENERIC_STRUCTURAL`、2 个 `TARGET_GROUNDED_PROVISIONAL`。这只证明 binding
+机制可重复，不证明 Strider content 有增量价值。
+
+固定 `PYTHONHASHSEED=0` 后，OOD game index 0 的 matched initial state 上 target-only 与 authentic 都在
+12-step cap 失败；authentic 使用一次 replan 后更晚才探索 cabinet，属于负效率信号。game index 11 的
+target-only 在 5 步官方成功。新的 source-grounded review 首轮又发现接口 bug：motif view 只公开 receipt
+count，却要求 Agent 返回未公开的 hash；现已改为 `(source_node_ordinal, receipt_ordinal)`，Harness 再解析
+真实 receipt。该失败 run 不计入 transfer 结果。单候选旧 runtime 曾以相同 5 个 actions 成功，但它按 hash
+任意选择一个 binding，现已废弃。新 runtime 对完整 version space 做一次 aggregate review：只有所有候选
+一致 `ADMIT` 或一致 `REPLAN` 才干预，分歧或 schema/evidence 缺失立即 fallback。OpenRouter 对相同 prompt
+即使给 seed 仍可能返回不同 completion，因此 matched conditions 还共享 exact-request memo；只有 history
+真的分叉才重新调用。最新 smoke 的 aggregate response 未返回完整 binding ID 集，step 0 fail closed，随后
+authentic 精确复现 target-only 的 5 actions 并官方成功。它证明 fallback 无损，但仍无迁移价值证据。
+机械汇总见 [`results/alfworld_frozen_binding_grounded_summary.json`](results/alfworld_frozen_binding_grounded_summary.json)。
 
 ## 下一步 concrete plan
 

@@ -27,6 +27,9 @@ MAX_STEPS="${MAX_STEPS:-12}"
 GPU_UTIL="${GPU_UTIL:-0.82}"
 STAGE_MODEL_CACHE="${STAGE_MODEL_CACHE:-0}"
 PORT_BASE="${PORT_BASE:-18000}"
+REASONING_OBSERVER="${REASONING_OBSERVER:-0}"
+EXCLUDE_HUMAN_HINTS="${EXCLUDE_HUMAN_HINTS:-1}"
+OFFLINE_ANNOTATION_SOURCE_ROOT="${OFFLINE_ANNOTATION_SOURCE_ROOT:-}"
 
 GAME_SET="${GAME_SET:-six}"
 if [[ "${GAME_SET}" == "tetris_candy" ]]; then
@@ -153,6 +156,22 @@ while (( SECONDS < deadline )); do
 done
 [[ -s "${RUN_DIR}/served_models.json" ]] || { echo "ERROR vLLM startup timeout" >&2; exit 3; }
 
+if [[ -n "${OFFLINE_ANNOTATION_SOURCE_ROOT}" ]]; then
+  SOURCE_EVIDENCE="${OFFLINE_ANNOTATION_SOURCE_ROOT}/authentic_skill_loaded/${GAME}/evidence"
+  [[ -f "${SOURCE_EVIDENCE}/manifest.json" ]] || {
+    echo "ERROR missing immutable source evidence ${SOURCE_EVIDENCE}" >&2
+    exit 2
+  }
+  PYTHONPATH="${CLEAN_REPO}/src${PYTHONPATH:+:${PYTHONPATH}}" \
+    python "${CLEAN_REPO}/scripts/annotate_source_shadow.py" \
+      --evidence "${SOURCE_EVIDENCE}" \
+      --output "${RUN_DIR}/annotation" \
+      --endpoint "http://127.0.0.1:${PORT}/v1" \
+      --model "${MODEL}"
+  echo "OFFLINE_SHADOW_COMPLETE ${GAME} ${RUN_DIR}/annotation"
+  exit 0
+fi
+
 # Keep the old source tree read-only.  The collection job shadows only the
 # Python trainer package in a short-lived overlay, then applies the protocol
 # reliability fix owned and reviewed by this clean repository.
@@ -161,6 +180,39 @@ mkdir -p "${SOURCE_OVERLAY}/scripts"
 cp "${SOURCE_REPO}/scripts/run_instrumented_source_smoke.py" "${SOURCE_OVERLAY}/scripts/"
 ln -s "${SOURCE_REPO}/.git" "${SOURCE_OVERLAY}/.git"
 (cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_policy_receipts.patch")
+(cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_request_seed_control.patch")
+if [[ "${EXCLUDE_HUMAN_HINTS}" == "1" ]]; then
+  (cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_no_human_policy_hints.patch")
+elif [[ "${EXCLUDE_HUMAN_HINTS}" != "0" ]]; then
+  echo "ERROR EXCLUDE_HUMAN_HINTS must be 0 or 1" >&2
+  exit 2
+fi
+if [[ "${REASONING_OBSERVER}" == "1" ]]; then
+  (cd "${SOURCE_OVERLAY}" && git apply "${CLEAN_REPO}/patches/source_reasoning_shadow_observer.patch")
+elif [[ "${REASONING_OBSERVER}" != "0" ]]; then
+  echo "ERROR REASONING_OBSERVER must be 0 or 1" >&2
+  exit 2
+fi
+OVERLAY_RECEIPT_CMD=(
+  python "${CLEAN_REPO}/scripts/record_source_overlay_receipt.py"
+  --overlay-runner "${SOURCE_OVERLAY}/trainer/coevolution/episode_runner.py"
+  --overlay-vllm-client "${SOURCE_OVERLAY}/trainer/coevolution/vllm_client.py"
+  --overlay-smoke-runner "${SOURCE_OVERLAY}/scripts/run_instrumented_source_smoke.py"
+  --policy-receipts-patch "${CLEAN_REPO}/patches/source_policy_receipts.patch"
+  --request-seed-control-patch "${CLEAN_REPO}/patches/source_request_seed_control.patch"
+  --output "${RUN_DIR}/source_overlay_receipt.json"
+)
+if [[ "${EXCLUDE_HUMAN_HINTS}" == "1" ]]; then
+  OVERLAY_RECEIPT_CMD+=(
+    --no-human-hints-patch "${CLEAN_REPO}/patches/source_no_human_policy_hints.patch"
+  )
+fi
+if [[ "${REASONING_OBSERVER}" == "1" ]]; then
+  OVERLAY_RECEIPT_CMD+=(
+    --shadow-observer-patch "${CLEAN_REPO}/patches/source_reasoning_shadow_observer.patch"
+  )
+fi
+"${OVERLAY_RECEIPT_CMD[@]}"
 export PYTHONPATH="${SOURCE_OVERLAY}${PYTHONPATH:+:${PYTHONPATH}}"
 
 CMD=(
@@ -178,6 +230,15 @@ CMD=(
 if [[ "${CONDITION}" == "authentic_skill_loaded" ]]; then
   CMD+=(--skill-bank "${SKILL_BANK}")
 fi
+if [[ "${REASONING_OBSERVER}" == "1" ]]; then
+  CMD+=(--reasoning-backbone-harness)
+fi
 "${CMD[@]}" | tee "${RUN_DIR}/summary.json"
+
+PYTHONPATH="${CLEAN_REPO}/src${PYTHONPATH:+:${PYTHONPATH}}" \
+  python "${CLEAN_REPO}/scripts/record_source_provenance.py" \
+  --source-repo "${SOURCE_REPO}" \
+  --clean-repo "${CLEAN_REPO}" \
+  --output "${RUN_DIR}/source_provenance_at_end.json"
 
 echo "PHASE1_COMPLETE ${CONDITION} ${GAME} ${RUN_DIR}"

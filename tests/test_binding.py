@@ -1,10 +1,16 @@
 import pytest
+import json
 
 from motif_transfer.binding import (
+    AttributedBinding,
+    BindingArtifactStatus,
+    BindingAttribution,
     BindingVersionSpace,
+    FrozenBindingArtifact,
     alpha_rename_target_actions,
     validate_structural_binding,
 )
+from motif_transfer.artifact_io import load_frozen_binding_artifact, write_frozen_binding_artifact
 from motif_transfer.contracts import (
     BindingEvidence,
     BindingHypothesis,
@@ -73,3 +79,36 @@ def test_structural_binding_requires_full_contiguous_partition():
             node_alignment=((0, (0, 2)), (1, (1,))),
             edge_alignment=((0, (0, 1)),),
         )
+
+
+def test_frozen_binding_artifact_detects_tampering(tmp_path):
+    row = hypothesis("a", "v1")
+    unsigned = {
+        "schema_version": 1,
+        "motif_id": "motif",
+        "adaptation_example_sha256": "demo",
+        "induction_repetitions": 2,
+        "raw_signature_sets": (("sig",), ("sig",)),
+        "alpha_signature_sets": ((), ()),
+        "bindings": [{
+            "hypothesis": FrozenBindingArtifact._hypothesis_dict(row),
+            "attribution": BindingAttribution.TARGET_GROUNDED_PROVISIONAL.value,
+        }],
+        "status": BindingArtifactStatus.ADMITTED.value,
+        "backend_identity_sha256": "backend",
+        "call_receipt_hashes": ("receipt",),
+    }
+    from motif_transfer.contracts import stable_hash
+    artifact = FrozenBindingArtifact(
+        1, "motif", "demo", 2, (("sig",), ("sig",)), ((), ()),
+        (AttributedBinding(row, BindingAttribution.TARGET_GROUNDED_PROVISIONAL),),
+        BindingArtifactStatus.ADMITTED, "backend", ("receipt",), stable_hash(unsigned),
+    )
+    path = tmp_path / "binding.json"
+    write_frozen_binding_artifact(path, artifact)
+    assert load_frozen_binding_artifact(path).artifact_hash == artifact.artifact_hash
+    payload = json.loads(path.read_text())
+    payload["motif_id"] = "tampered"
+    path.write_text(json.dumps(payload))
+    with pytest.raises(ValueError, match="hash mismatch"):
+        load_frozen_binding_artifact(path)

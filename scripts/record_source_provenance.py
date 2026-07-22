@@ -31,6 +31,9 @@ def main() -> None:
         source / "harness/agent_reasoning_cycle.py",
         source / "scripts/run_instrumented_source_smoke.py",
         clean / "patches/source_policy_receipts.patch",
+        clean / "patches/source_request_seed_control.patch",
+        clean / "patches/source_reasoning_shadow_observer.patch",
+        clean / "patches/source_no_human_policy_hints.patch",
         clean / "cluster/collect_phase1_complete.sbatch",
     ]
     if args.submitted_batch_script:

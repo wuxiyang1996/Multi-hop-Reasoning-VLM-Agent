@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-22",
+  "binding_artifact_hash": "020feba4870f93f56f58ee69f633a63cdfd502d8f723adfe29f19c9fafbee432",
+  "binding_counts": {
+    "raw_stable": 3,
+    "generic_structural": 1,
+    "target_grounded_provisional": 2
+  },
+  "matched_episode": {
+    "split": "eval_out_of_distribution",
+    "seed": 47,
+    "game_index": 11,
+    "initial_state_hash": "3b94c09825e873d2fbc61df89d20277607f7617ac561d32694370debc9b2381a",
+    "target_only": {
+      "official_success": true,
+      "steps": 5
+    },
+    "authentic": {
+      "official_success": true,
+      "steps": 5,
+      "actions_exactly_match_target_only": true,
+      "source_replans": 0,
+      "source_fallback_step": 0,
+      "online_binding_verdict_counts": {},
+      "source_failure": "aggregate review did not return the exact binding version space"
+    }
+  },
+  "interpretation": "The aggregate version-space review failed closed at step 0. Exact-request memoization then reproduced the target-only five-action trajectory, so the Harness caused neither benefit nor harm.",
+  "claim_limit": "Single-episode mechanism smoke using a GENERIC_ONLY source candidate; not evidence of positive cross-domain transfer."
+}

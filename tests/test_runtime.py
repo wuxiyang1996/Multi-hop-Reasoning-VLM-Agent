@@ -95,12 +95,30 @@ class WrongReceiptMotifAgent(MotifAgent):
         )
 
 
-def test_post_transition_evidence_must_reference_current_receipt():
+def test_invalid_source_evidence_disables_source_without_aborting_target_episode():
     binding = BindingHypothesis("b", "m", "claim", "prediction", ("demo",), "v")
-    with pytest.raises(ValueError, match="different live transition"):
-        TwoAgentRuntime(FirstNativeDecisionAgent(), WrongReceiptMotifAgent()).run(
-            Env(), "goal", binding=binding
-        )
+    result = TwoAgentRuntime(FirstNativeDecisionAgent(), WrongReceiptMotifAgent()).run(
+        Env(), "goal", binding=binding
+    )
+    assert result.final_observation.official_success is True
+    assert result.source_fallback_step == 1
+    assert "different live transition" in result.source_failures[0]
+
+
+class BrokenReviewMotifAgent(MotifAgent):
+    def review(self, proposal, observation, binding, history):
+        raise ValueError("invalid source citation")
+
+
+def test_invalid_source_review_executes_original_target_proposal():
+    binding = BindingHypothesis("b", "m", "claim", "prediction", ("demo",), "v")
+    env = Env()
+    result = TwoAgentRuntime(FirstNativeDecisionAgent(), BrokenReviewMotifAgent()).run(
+        env, "goal", binding=binding,
+    )
+    assert env.actions == ["native"]
+    assert result.source_fallback_step == 0
+    assert result.source_failures == ("REVIEW:ValueError:invalid source citation",)
 
 
 class IllegalDecisionAgent:

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "status": "PROTOCOL_VALID_SOURCE_ANNOTATION_NOT_YET_MOTIF_VALUE",
+  "design": "OFFLINE_SHADOW_ANNOTATION_OF_IMMUTABLE_SOURCE_RECEIPTS",
+  "model": "Qwen/Qwen3.5-9B",
+  "jobs": {
+    "seeded_reference": "7120417",
+    "live_seeded_observer_diagnostic": "7120418",
+    "offline_shadow_v5": "7120462"
+  },
+  "live_observer_diagnostic": {
+    "gymv_columns": {
+      "valid_closed_loop_cycles": 24,
+      "total_steps": 24,
+      "all_pairs_action_exact": false,
+      "all_pairs_reward_exact": false
+    },
+    "gymv_thunder_force_iii": {
+      "valid_closed_loop_cycles": 24,
+      "total_steps": 24,
+      "all_pairs_action_exact": false,
+      "all_pairs_reward_exact": false
+    },
+    "conclusion": "SHARED_SERVICE_LIVE_OBSERVER_REJECTED_AS_MAIN_EVIDENCE_PATH"
+  },
+  "offline_shadow": {
+    "gymv_columns": {
+      "source_steps": 24,
+      "annotation_rows": 24,
+      "valid_closed_loop_annotations": 5,
+      "agent_abstentions": 17,
+      "excluded_protocol_gaps": 2,
+      "verdict_counts": {
+        "SUPPORTED": 3,
+        "REFUTED": 2
+      },
+      "all_nonexcluded_receipts_valid": true,
+      "source_manifest_sha256": "b11026bcaee95f6a4cc5c1e41935ebaa2b39b3b8b5c115322f947cbab6cb203d",
+      "annotation_manifest_sha256": "b4dbd59425fc3d3dba670d50d7dd530ddd0a55cceb1aaea71c6646f903b9c5d3",
+      "audit_sha256": "a11819a49ff50eb0bbe4ad72c731796c04d43ed745b30d8b1692ffcf42b8d407"
+    },
+    "gymv_thunder_force_iii": {
+      "source_steps": 24,
+      "annotation_rows": 24,
+      "valid_closed_loop_annotations": 8,
+      "agent_abstentions": 14,
+      "excluded_protocol_gaps": 2,
+      "verdict_counts": {
+        "SUPPORTED": 7,
+        "REFUTED": 1
+      },
+      "all_nonexcluded_receipts_valid": true,
+      "source_manifest_sha256": "27aa2ef93ba3b4d3763ca463dd9f0348999d25d94c4087c531dd7bd82c0fb34e",
+      "annotation_manifest_sha256": "84b829f5b3d69598c9704faccf405c74baa066c29021ef40e8a603788aa2b21c",
+      "audit_sha256": "a1e22cff051c683395c67d362463f9de98117a164ad1fbdd09cf0e3517546043"
+    }
+  },
+  "harness_claim": "Lineage, causal prompt boundary, exact action references, and hashes are mechanically valid.",
+  "claim_limit": "Coverage is low and these results do not yet establish a transferable motif or target-domain gain. Abstentions and malformed outputs are not imputed."
+}

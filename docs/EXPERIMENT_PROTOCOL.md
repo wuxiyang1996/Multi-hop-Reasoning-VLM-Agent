@@ -12,6 +12,16 @@ Motif 是 adaptation hypothesis generator，而不是 target policy。若强模�
 
 对六个游戏分别采集多个 episode，并做 matched skill-on / skill-off intervention：相同 checkpoint、seed、初始状态、step/token budget。source Decision Agent 保持旧系统的原生调用链：`skill_selection → selected skill → action_taking → native action`；skill-off 只移除 skill bank/context。记录完整 observation、native actions、selected-skill receipt、原生 action response、执行动作、transition、replay fork 和 official outcome。旧 policy 没有 proposal-set/post-verdict 接口，因此不得事后伪造这些字段。
 
+正式 source reasoning evidence 使用 offline shadow annotation：先在没有 observer 的条件下冻结完整 source
+trajectory；随后 prediction 调用只读取 before observation、冻结 action ordinal 和原 Decision reasoning，
+verifier 调用才读取 after observation 与 official reward。annotation 只能旁路写新 artifact，不能回写 policy、
+environment 或 source receipt。live observer 仅作协议诊断：实测即使使用 request seed，共享推理服务仍不能
+保证 Columns/Thunder 的 exact action/reward equality，因此不得用容差阈值把它升级为主证据。
+
+reference collection 移除旧 runner 中人工 `critical action` / `prefer action 1` 提示，并保存 patched-overlay
+hash。任何 schema 失败、action index 改写或 post-verdict 缺失的 annotation 都显式排除；不允许 parser
+heuristic。
+
 source discovery 分成两个权限不同的步骤：
 
 1. 确定性代码仅在精确记录的 `selected_skill_id` 改变处形成 maximal contiguous run；这不是文本 clustering，也不解释 skill 语义。`selected_skill_sha256` 含动态 guidance，不能作为稳定 skill identity。
@@ -28,8 +38,10 @@ source discovery 分成两个权限不同的步骤：
 2. Harness 标记为 `TARGET_PROVISIONAL`，不认可其语义。
 3. Decision Agent 仍在 target-native interface 中独立选 action。
 4. Motif Agent 每一步只能建议 admit/replan/abstain。
-5. live receipt 与 official feedback 持续淘汰不一致 binding；这一步更新的是外部 version space，不在正式测试 episode 中更新模型权重。
-6. 无可行 binding 时回退 target-only；若需要区分多个 binding，则请求额外 example，并记录额外监督成本。
+5. live receipt 与 official feedback 持续淘汰不一致 binding；多候选的 advisory 必须 unanimous，不能按 hash
+   或 Agent confidence 挑一个；这一步只更新外部 version space，不在正式测试 episode 中更新模型权重。
+6. one-shot adaptation 单独生成带 hash 的 frozen binding artifact；held-out evaluation 默认禁止重新 binding。
+7. 无可行 binding 时回退 target-only；若需要区分多个 binding，则请求额外 example，并记录额外监督成本。
 
 这里的 one-shot 表示“用一个 example 启动适应”，不表示一个 example 能唯一确定 binding。后续交互仍持续验证；如果无法区分候选，可以请求额外 example，并把它计入 adaptation cost。
 
@@ -45,7 +57,9 @@ source discovery 分成两个权限不同的步骤：
 - `shuffled_topology`：receipt 数量相同、图结构破坏；
 - `other_source`：来自不匹配游戏/episode 的 motif。
 
-五组必须共享 initial state、prefix、policy、model、sampling、tool/token/step budget。主结论只使用环境 official success/score；Agent judge 只用于诊断。
+五组必须共享 initial state、prefix、policy、model、sampling、tool/token/step budget。远程 provider 对相同 seed
+仍可能非确定，因此同一 matched run 对完全相同的 Decision request 使用 exact-request memoization；只有
+history/prompt 真正分叉才重新采样。主结论只使用环境 official success/score；Agent judge 只用于诊断。
 
 ## 最小判据
 
