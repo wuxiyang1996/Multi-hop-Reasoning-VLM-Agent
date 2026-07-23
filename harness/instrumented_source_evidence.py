@@ -107,7 +107,15 @@ def load_instrumented_source_batch(root: str | Path) -> Sequence[InstrumentedPro
         if unsigned_log["log_sha256"] != episode["reasoning_log_sha256"]:
             raise ValueError(f"episode reasoning log hash mismatch: {episode_id}")
         events = reasoning_event_log_from_dict(unsigned_log)
-        failures = validate_reasoning_protocol(events, profile="source_agent")
+        has_reasoning_v2 = any(
+            row["kind"] in {
+                "AGENT_ACTION_PROPOSAL_SET", "AGENT_POST_TRANSITION_VERDICT",
+            }
+            for row in rows
+        )
+        failures = validate_reasoning_protocol(
+            events, profile="source_agent_v2" if has_reasoning_v2 else "source_agent",
+        )
         if failures:
             raise ValueError(f"incomplete source protocol {episode_id}: {failures}")
         observations = _group(rows, "OBSERVATION")
@@ -116,6 +124,8 @@ def load_instrumented_source_batch(root: str | Path) -> Sequence[InstrumentedPro
         responses = _group(rows, "AGENT_RESPONSE")
         environment_steps = _group(rows, "ENVIRONMENT_STEP")
         native_deltas = _group(rows, "NATIVE_DELTA")
+        action_proposals = _group(rows, "AGENT_ACTION_PROPOSAL_SET")
+        post_verdicts = _group(rows, "AGENT_POST_TRANSITION_VERDICT")
         n_steps = int(episode["steps"])
         verified_steps = []
         for step in range(n_steps):
@@ -124,9 +134,11 @@ def load_instrumented_source_batch(root: str | Path) -> Sequence[InstrumentedPro
                 admissibility.get(step), decisions.get(step), responses.get(step),
                 environment_steps.get(step), native_deltas.get(step),
             )
+            if has_reasoning_v2:
+                required += (action_proposals.get(step), post_verdicts.get(step))
             if any(item is None for item in required):
                 raise ValueError(f"missing source event at {episode_id} step {step}")
-            before, after, allowed, decision, response, env_step, delta = required
+            before, after, allowed, decision, response, env_step, delta = required[:7]
             if decision["payload"]["executed_action"] != env_step["payload"]["executed_action"]:
                 raise ValueError(f"decision/environment action mismatch at step {step}")
             if before["payload"]["observable_state_sha256"] != delta["payload"]["before_observable_sha256"]:
@@ -160,9 +172,27 @@ def load_instrumented_source_batch(root: str | Path) -> Sequence[InstrumentedPro
                 "raw_agent_response": response["payload"]["raw_response"],
                 "agent_response_sha256": response["payload"]["raw_response_sha256"],
             }
+            if has_reasoning_v2:
+                proposal_event = action_proposals[step]
+                verdict_event = post_verdicts[step]
+                native_row.update({
+                    "action_proposal_receipt": dict(proposal_event["payload"]),
+                    "action_proposal_event_sha256": proposal_event["event_sha256"],
+                    "post_transition_verdict_receipt": dict(verdict_event["payload"]),
+                    "post_transition_verdict_event_sha256": verdict_event["event_sha256"],
+                })
+            can_support = bool(
+                decision["payload"]["can_support_agent_reasoning_induction"]
+            )
+            if has_reasoning_v2:
+                can_support = can_support and bool(
+                    post_verdicts[step]["payload"].get(
+                        "can_support_closed_loop_reasoning_induction"
+                    )
+                )
             verified_steps.append((
                 step,
-                bool(decision["payload"]["can_support_agent_reasoning_induction"]),
+                can_support,
                 receipt,
                 native_row,
             ))
@@ -204,21 +234,38 @@ def load_instrumented_source_batch(root: str | Path) -> Sequence[InstrumentedPro
                 official_success_verified=False,
                 metadata=(
                     {
-                        "compiler": "instrumented_reasoning_events_v1",
+                        "compiler": (
+                            "instrumented_reasoning_events_v3_closed_loop"
+                            if has_reasoning_v2 else "instrumented_reasoning_events_v1"
+                        ),
                         "full_path_partition_required_for_source_hypotheses": True,
-                        "explicit_replan_abstain_supported": False,
+                        "explicit_replan_abstain_supported": has_reasoning_v2,
+                        "reasoning_backbone_protocol": (
+                            "agent_native_v2" if has_reasoning_v2 else "legacy_action_justification"
+                        ),
                     }
                     if is_full_episode else {
-                        "compiler": "instrumented_reasoning_events_v2_agent_spans",
+                        "compiler": (
+                            "instrumented_reasoning_events_v3_closed_loop"
+                            if has_reasoning_v2 else
+                            "instrumented_reasoning_events_v2_agent_spans"
+                        ),
                         "full_path_partition_required_for_source_hypotheses": True,
-                        "explicit_replan_abstain_supported": False,
+                        "explicit_replan_abstain_supported": has_reasoning_v2,
                         "parent_episode_id": episode_id,
                         "source_step_start": span[0][0],
                         "source_step_end_inclusive": span[-1][0],
                         "non_agent_transitions_excluded": n_steps - sum(
                             int(item[1]) for item in verified_steps
                         ),
-                        "segmentation_rule": "maximal_contiguous_agent_origin_span_min_length_2",
+                        "segmentation_rule": (
+                            "maximal_contiguous_closed_loop_agent_span_min_length_2"
+                            if has_reasoning_v2 else
+                            "maximal_contiguous_agent_origin_span_min_length_2"
+                        ),
+                        "reasoning_backbone_protocol": (
+                            "agent_native_v2" if has_reasoning_v2 else "legacy_action_justification"
+                        ),
                     }
                 ),
             )

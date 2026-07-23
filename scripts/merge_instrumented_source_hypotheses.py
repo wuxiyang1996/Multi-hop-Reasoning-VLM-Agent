@@ -38,6 +38,10 @@ def main() -> int:
         programs = list(payload.get("programs") or ())
         if not programs or any(int(row.get("n_qualified", 0)) < 1 for row in programs):
             raise SystemExit(f"input lacks a qualified hypothesis: {path}")
+        if int(payload.get("schema_version", 0)) >= 2 and any(
+            not row.get("source_reasoning_trace") for row in programs
+        ):
+            raise SystemExit(f"v2 input lacks source reasoning receipts: {path}")
         input_games = {str(row["program"]["game"]) for row in programs}
         if len(input_games) != 1:
             raise SystemExit(f"input is not single-game: {path}")
@@ -49,7 +53,7 @@ def main() -> int:
     if len(models) != 1:
         raise SystemExit("source hypothesis model mismatch")
     output = {
-        "schema_version": 1,
+        "schema_version": min(int(payload.get("schema_version", 1)) for _, payload, _ in artifacts),
         "candidate_source": "independent_untrusted_agents",
         "source_batch": "exact_union_of_frozen_per_game_artifacts",
         "model": next(iter(models)),

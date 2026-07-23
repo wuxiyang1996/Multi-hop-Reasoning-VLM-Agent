@@ -58,7 +58,7 @@ def _target_only_skeletons(graphs):
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--condition", choices=(
-        "correct", "renamed", "randomized", "target_only",
+        "correct", "renamed", "randomized", "receipt_null", "target_only",
     ), required=True)
     parser.add_argument("--source-hypotheses", type=Path, required=True)
     parser.add_argument("--source-control-seed", type=int, default=1729)
@@ -80,7 +80,7 @@ def main() -> int:
         parser.error("enumeration requires at least two adaptation examples")
     source_payload = json.loads(args.source_hypotheses.read_text(encoding="utf-8"))
     raw_graphs, initially_excluded = _edge_evidence_gate(
-        _source_graphs(source_payload)
+        _source_graphs(source_payload, require_agent_reasoning_receipts=True)
     )
     if args.condition == "target_only":
         graphs = _target_only_skeletons(raw_graphs)

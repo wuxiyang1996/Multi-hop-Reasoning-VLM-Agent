@@ -30,6 +30,7 @@ def write_source_evidence_batch(
     results: Sequence[Any],
     *,
     manifest_metadata: Mapping[str, Any],
+    protocol_profile: str = "source_agent",
 ) -> Mapping[str, Any]:
     """Write one manifest and two JSONL files, never one file per frame."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -41,7 +42,7 @@ def write_source_evidence_batch(
     for result in sorted(results, key=lambda item: item.episode_id):
         log = dict(result.reasoning_event_log or {})
         events = reasoning_event_log_from_dict(log)
-        failures = list(validate_reasoning_protocol(events, profile="source_agent"))
+        failures = list(validate_reasoning_protocol(events, profile=protocol_profile))
         if failures:
             protocol_failures[result.episode_id] = failures
         episode_lines.append(_json({
@@ -68,6 +69,7 @@ def write_source_evidence_batch(
             "events.jsonl": {"sha256": _sha256(events_path)},
         },
         "metadata": dict(manifest_metadata),
+        "protocol_profile": protocol_profile,
         "claim_limit": (
             "Agent-origin decisions are observational evidence. Policy transforms, "
             "fallbacks, and replay forks are separately classified."

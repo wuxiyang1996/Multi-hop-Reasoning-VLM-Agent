@@ -258,9 +258,67 @@ def main() -> int:
             row["candidate"] for row in matching
             if row["candidate"] is not None
         ])
+        reasoning_response = evidence.evidence_session.query(EvidenceQuery(
+            query_id="frozen-agent-reasoning-trace",
+            program_id=evidence.program.program_id,
+            program_hash=evidence.program.content_hash(),
+            transition_ids=[item.transition_id for item in evidence.program.transitions],
+        ))
+        reasoning_steps = []
+        for row in reasoning_response.transitions:
+            native = row.get("native_evidence") or {}
+            raw_response = str(native.get("raw_agent_response") or "")
+            response_hash = str(native.get("agent_response_sha256") or "")
+            if not raw_response or _hash(raw_response) != response_hash:
+                raise ValueError(
+                    "instrumented source transition lacks a valid Agent response receipt"
+                )
+            reasoning_steps.append({
+                "transition_id": str(row["transition_id"]),
+                "step_index": int(row["step_index"]),
+                "agent_reasoning_claim": raw_response,
+                "agent_response_sha256": response_hash,
+                "claim_status": "UNTRUSTED_AGENT_CLAIM",
+                **({
+                    "action_proposal_receipt": {
+                        key: native["action_proposal_receipt"].get(key)
+                        for key in (
+                            "step", "schema_valid", "proposal_set",
+                            "proposal_set_sha256", "claim_status",
+                        )
+                    },
+                    "action_proposal_event_sha256": str(
+                        native["action_proposal_event_sha256"]
+                    ),
+                    "post_transition_verdict_receipt": {
+                        key: native["post_transition_verdict_receipt"].get(key)
+                        for key in (
+                            "step", "schema_valid", "executed_proposal_id",
+                            "verdict", "verdict_sha256",
+                            "can_support_closed_loop_reasoning_induction",
+                            "claim_status",
+                        )
+                    },
+                    "post_transition_verdict_event_sha256": str(
+                        native["post_transition_verdict_event_sha256"]
+                    ),
+                } if "action_proposal_receipt" in native else {}),
+            })
+        reasoning_trace = {
+            "schema_version": 1,
+            "reasoning_log_sha256": evidence.reasoning_log_sha256,
+            "evidence_response_sha256": reasoning_response.response_sha256,
+            "steps": reasoning_steps,
+            "claim_limit": (
+                "Agent text is authentic and hash-linked to the source rollout; "
+                "its semantic or causal correctness is not verified."
+            ),
+        }
+        reasoning_trace["trace_sha256"] = _hash(reasoning_trace)
         output_programs.append({
             "episode_id": evidence.program.episode_id,
             "program": evidence.program.to_dict(),
+            "source_reasoning_trace": reasoning_trace,
             "n_agent_calls": len(matching),
             "n_qualified": len(union),
             "qualified_hypotheses": [{
@@ -287,7 +345,7 @@ def main() -> int:
             } for item in union],
         })
     output = {
-        "schema_version": 1,
+        "schema_version": 2,
         "candidate_source": "independent_untrusted_agents",
         "source_batch": str(args.source_batch),
         "model": args.model,

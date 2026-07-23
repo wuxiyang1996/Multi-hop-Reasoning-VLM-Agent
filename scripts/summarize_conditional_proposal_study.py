@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Freeze a paired four-condition conditional-proposal capability summary."""
+"""Freeze a paired conditional-proposal capability summary."""
 
 from __future__ import annotations
 
@@ -17,7 +17,9 @@ if str(REPO_ROOT) not in sys.path:
 from harness.conditional_node_program import proposal_from_dict
 
 
-CONDITIONS = ("correct", "renamed", "randomized", "target_only")
+CONDITIONS = (
+    "correct", "renamed", "randomized", "receipt_null", "target_only",
+)
 
 
 def _hash(value):
@@ -55,10 +57,8 @@ def main() -> int:
         if (
             proposals["condition"] != condition
             or len(proposals["rows"]) != 13
-            or proposals["n_invalid"] != 0
-            or len(proposals["candidates"]) != 13
         ):
-            raise SystemExit(f"incomplete successful enumeration: {condition}")
+            raise SystemExit(f"incomplete registered enumeration: {condition}")
         admitted_hashes = {
             candidate["proposal_hash"] for candidate in admission["candidates"]
         }
@@ -74,15 +74,20 @@ def main() -> int:
             if int(receipt["graph_index"]) != graph_index:
                 raise SystemExit("merged enumeration row order mismatch")
             seeds.append(int(receipt["proposal_seed"]))
-            candidate = candidate_by_index[graph_index]
+            candidate = candidate_by_index.get(graph_index)
             rows.append({
                 "graph_index": graph_index,
                 "source_hypothesis_hash": receipt["source_hypothesis_hash"],
                 "proposal_seed": int(receipt["proposal_seed"]),
-                "proposal_hash": proposal_from_dict(candidate).content_hash(),
-                "admitted": (
-                    proposal_from_dict(candidate).content_hash() in admitted_hashes
+                "proposal_hash": (
+                    proposal_from_dict(candidate).content_hash()
+                    if candidate is not None else None
                 ),
+                "admitted": (
+                    candidate is not None
+                    and proposal_from_dict(candidate).content_hash() in admitted_hashes
+                ),
+                "format_valid": candidate is not None,
                 "prompt_tokens": int(receipt["usage"].get("prompt_tokens") or 0),
                 "completion_tokens": int(
                     receipt["usage"].get("completion_tokens") or 0
@@ -99,7 +104,9 @@ def main() -> int:
     for condition, rows in condition_rows.items():
         metrics[condition] = {
             "n_registered": len(rows),
-            "n_exact_format_after_endpoint_retry": len(rows),
+            "n_exact_format_after_endpoint_retry": sum(
+                row["format_valid"] for row in rows
+            ),
             "n_admitted": sum(row["admitted"] for row in rows),
             "admission_rate": sum(row["admitted"] for row in rows) / len(rows),
             "prompt_tokens": sum(row["prompt_tokens"] for row in rows),
@@ -132,6 +139,24 @@ def main() -> int:
         metrics["correct"]["n_admitted"] > metrics[control]["n_admitted"]
         for control in CONDITIONS[1:]
     )
+    diagnostic_gates = {
+        "correct_exceeds_receipt_null": (
+            metrics["correct"]["n_admitted"]
+            > metrics["receipt_null"]["n_admitted"]
+        ),
+        "correct_exceeds_target_only": (
+            metrics["correct"]["n_admitted"]
+            > metrics["target_only"]["n_admitted"]
+        ),
+        "correct_exceeds_randomized": (
+            metrics["correct"]["n_admitted"]
+            > metrics["randomized"]["n_admitted"]
+        ),
+    }
+    failed_controls = [
+        control for control in CONDITIONS[1:]
+        if metrics["correct"]["n_admitted"] <= metrics[control]["n_admitted"]
+    ]
     output = {
         "schema_version": 1,
         "study": "qwen3max_seeded_complete_graph_conditional_proposal_capability",
@@ -142,10 +167,11 @@ def main() -> int:
         "metrics": metrics, "paired_admission": paired,
         "gate": {
             "correct_exceeds_every_control": correct_exceeds_every_control,
+            **diagnostic_gates,
             "authorizes_online_source_pilot": correct_exceeds_every_control,
             "authorizes_large_scale_2x4": False,
             "reason": (
-                "CORRECT_SOURCE_DOES_NOT_EXCEED_RENAMED_AND_RANDOMIZED_CONTROLS"
+                "CORRECT_SOURCE_DOES_NOT_EXCEED:" + ",".join(failed_controls)
                 if not correct_exceeds_every_control else
                 "ONLINE_PILOT_REQUIRED_BEFORE_ANY_SCALE_UP"
             ),

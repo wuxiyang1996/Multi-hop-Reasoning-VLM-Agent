@@ -61,22 +61,66 @@ def _verify_source_artifact(source_payload: dict[str, Any]) -> None:
         raise ValueError("SOURCE_ARTIFACT_FULL_PARTITION_NOT_REQUIRED")
 
 
-def _source_graphs(source_payload: dict[str, Any]) -> list[dict[str, Any]]:
+def _source_graphs(
+    source_payload: dict[str, Any], *, require_agent_reasoning_receipts: bool = False,
+) -> list[dict[str, Any]]:
     """Expose exact source receipts and untrusted control claims to binding Agents."""
     _verify_source_artifact(source_payload)
     graphs = []
     for program_row in source_payload.get("programs") or ():
         program = program_row.get("program") or {}
+        reasoning_trace = program_row.get("source_reasoning_trace") or {}
+        if reasoning_trace:
+            unsigned_trace = dict(reasoning_trace)
+            claimed_trace_hash = str(unsigned_trace.pop("trace_sha256", ""))
+            if not claimed_trace_hash or _hash(unsigned_trace) != claimed_trace_hash:
+                raise ValueError("SOURCE_REASONING_TRACE_HASH_MISMATCH")
+            reasoning_by_transition = {}
+            for step in reasoning_trace.get("steps") or ():
+                transition_id = str(step.get("transition_id") or "")
+                claim = str(step.get("agent_reasoning_claim") or "")
+                claim_hash = str(step.get("agent_response_sha256") or "")
+                if (
+                    not transition_id or transition_id in reasoning_by_transition
+                    or not claim or _hash(claim) != claim_hash
+                    or step.get("claim_status") != "UNTRUSTED_AGENT_CLAIM"
+                ):
+                    raise ValueError("INVALID_SOURCE_REASONING_STEP_RECEIPT")
+                reasoning_by_transition[transition_id] = {
+                    "agent_reasoning_claim": claim,
+                    "agent_response_sha256": claim_hash,
+                    "claim_status": "UNTRUSTED_AGENT_CLAIM",
+                    **({
+                        "action_proposal_receipt": dict(step["action_proposal_receipt"]),
+                        "action_proposal_event_sha256": str(
+                            step["action_proposal_event_sha256"]
+                        ),
+                        "post_transition_verdict_receipt": dict(
+                            step["post_transition_verdict_receipt"]
+                        ),
+                        "post_transition_verdict_event_sha256": str(
+                            step["post_transition_verdict_event_sha256"]
+                        ),
+                    } if "action_proposal_receipt" in step else {}),
+                }
+        else:
+            reasoning_by_transition = {}
+        if require_agent_reasoning_receipts and not reasoning_by_transition:
+            raise ValueError("SOURCE_REASONING_RECEIPTS_REQUIRED")
         transitions = {
             str(row["transition_id"]): {
+                "transition_id": str(row["transition_id"]),
                 "action": str(row["action"]),
                 "reward": float(row["reward"]),
                 "done": bool(row["done"]),
                 "state_sha256": str(row["state_sha256"]),
                 "next_state_sha256": str(row["next_state_sha256"]),
+                **reasoning_by_transition.get(str(row["transition_id"]), {}),
             }
             for row in program.get("transitions") or ()
         }
+        if require_agent_reasoning_receipts and set(reasoning_by_transition) != set(transitions):
+            raise ValueError("SOURCE_REASONING_RECEIPT_COVERAGE_MISMATCH")
         qualified = program_row.get("qualified_hypotheses") or ()
         if int(program_row.get("n_qualified", -1)) != len(qualified):
             raise ValueError("SOURCE_ARTIFACT_QUALIFIED_COUNT_MISMATCH")
@@ -102,6 +146,9 @@ def _source_graphs(source_payload: dict[str, Any]) -> list[dict[str, Any]]:
             graphs.append({
                 "source_hypothesis_hash": str(row["hypothesis_hash"]),
                 "source_program_hash": str(program.get("program_hash") or ""),
+                "source_reasoning_trace_sha256": (
+                    str(reasoning_trace.get("trace_sha256")) if reasoning_trace else None
+                ),
                 "nodes": nodes,
                 "edges": [{
                     "source_node_id": str(edge["source_node_id"]),

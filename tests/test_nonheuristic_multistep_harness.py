@@ -355,6 +355,29 @@ def test_source_reasoning_protocol_requires_decision_attribution_events() -> Non
         reasoning_event_log_from_dict(payload)
 
 
+def test_source_reasoning_v2_requires_agent_proposal_and_post_delta_verdict() -> None:
+    recorder = ReasoningEventRecorder("source-v2-gap")
+    for kind in (
+        ReasoningEventKind.RESET,
+        ReasoningEventKind.OBSERVATION,
+        ReasoningEventKind.AGENT_PROPOSAL_SET,
+        ReasoningEventKind.AGENT_RESPONSE,
+        ReasoningEventKind.PARSED_DECISION,
+        ReasoningEventKind.POLICY_TRANSFORM,
+        ReasoningEventKind.NATIVE_ADMISSIBILITY,
+        ReasoningEventKind.AGENT_DECISION,
+        ReasoningEventKind.ENVIRONMENT_STEP,
+        ReasoningEventKind.NATIVE_DELTA,
+        ReasoningEventKind.OFFICIAL_STOP,
+    ):
+        recorder.append(kind, {})
+    failures = validate_reasoning_protocol(
+        recorder.events, profile="source_agent_v2",
+    )
+    assert "MISSING_EVENT_KIND:AGENT_ACTION_PROPOSAL_SET" in failures
+    assert "MISSING_EVENT_KIND:AGENT_POST_TRANSITION_VERDICT" in failures
+
+
 class _ReplayEnv:
     def __init__(self):
         self.value = 0
@@ -583,10 +606,20 @@ def test_binding_source_control_runs_before_agent_and_renames_only_identities() 
     graphs = ({
         "source_hypothesis_hash": _hash("hypothesis"),
         "nodes": [
-            {"node_id": "n0", "observed_transitions": [{"action": "left"}]},
-            {"node_id": "n1", "observed_transitions": [{"action": "up"}]},
+            {"node_id": "n0", "observed_transitions": [{
+                "action": "left", "reward": 1.0, "done": False,
+                "state_sha256": _hash("s0"), "next_state_sha256": _hash("s1"),
+            }]},
+            {"node_id": "n1", "observed_transitions": [{
+                "action": "up", "reward": 2.0, "done": True,
+                "state_sha256": _hash("s1"), "next_state_sha256": _hash("s2"),
+            }]},
         ],
-        "edges": [{"source_node_id": "n0", "target_node_id": "n1", "kind": "SEQUENCE"}],
+        "edges": [{
+            "source_node_id": "n0", "target_node_id": "n1", "kind": "SEQUENCE",
+            "agent_claim": {"claim": "left then up", "confidence": 0.5},
+            "intervention_receipt_sha256s": [_hash("edge-receipt")],
+        }],
     },)
     renamed, receipt = apply_binding_source_control(
         graphs, treatment="renamed", seed=11,
@@ -616,6 +649,24 @@ def test_binding_source_control_runs_before_agent_and_renames_only_identities() 
         graphs[0]["nodes"][1]["observed_transitions"]
     )
     randomized_receipt.validate_hash()
+
+    receipt_null, null_receipt = apply_binding_source_control(
+        graphs, treatment="receipt_null", seed=11,
+    )
+    assert receipt_null[0]["source_hypothesis_hash"] == graphs[0]["source_hypothesis_hash"]
+    assert [len(node["observed_transitions"]) for node in receipt_null[0]["nodes"]] == [
+        len(node["observed_transitions"]) for node in graphs[0]["nodes"]
+    ]
+    original_transition = graphs[0]["nodes"][0]["observed_transitions"][0]
+    null_transition = receipt_null[0]["nodes"][0]["observed_transitions"][0]
+    assert len(null_transition["action"]) == len(original_transition["action"])
+    assert null_transition["action"] != original_transition["action"]
+    assert isinstance(null_transition["reward"], float)
+    assert null_transition["state_sha256"] != original_transition["state_sha256"]
+    assert receipt_null[0]["edges"][0]["source_node_id"] == (
+        graphs[0]["edges"][0]["source_node_id"]
+    )
+    null_receipt.validate_hash()
 
 
 def _online_rebind_proposal(*, action_numbers=(1, 2)):
@@ -1060,8 +1111,26 @@ def test_source_binding_parser_requires_exact_hypothesis_nodes() -> None:
 def _instrumented_source_artifact() -> dict:
     transition_ids = [_hash("source-t0"), _hash("source-t1")]
     hypothesis_hash = _hash("source-hypothesis")
-    payload = {
+    reasoning_steps = [{
+        "transition_id": transition_ids[index],
+        "step_index": index,
+        "agent_reasoning_claim": claim,
+        "agent_response_sha256": _hash(claim),
+        "claim_status": "UNTRUSTED_AGENT_CLAIM",
+    } for index, claim in enumerate((
+        "REASONING: inspect the board\nACTION: 1",
+        "REASONING: react to the observed delta\nACTION: 2",
+    ))]
+    reasoning_trace = {
         "schema_version": 1,
+        "reasoning_log_sha256": _hash("reasoning-log"),
+        "evidence_response_sha256": _hash("evidence-response"),
+        "steps": reasoning_steps,
+        "claim_limit": "untrusted test claims",
+    }
+    reasoning_trace["trace_sha256"] = _hash(reasoning_trace)
+    payload = {
+        "schema_version": 2,
         "candidate_source": "independent_untrusted_agents",
         "full_observed_path_partition_required": True,
         "semantic_scoring": False,
@@ -1082,6 +1151,7 @@ def _instrumented_source_artifact() -> dict:
                     "next_state_sha256": _hash(f"source-s{index + 1}"),
                 } for index, action in enumerate(("left", "up"))],
             },
+            "source_reasoning_trace": reasoning_trace,
             "qualified_hypotheses": [{
                 "hypothesis_hash": hypothesis_hash,
                 "checks": {"full_partition": True, "agent_generated": True},
@@ -1104,14 +1174,28 @@ def _instrumented_source_artifact() -> dict:
 
 
 def test_new_instrumented_source_artifact_is_loaded_with_native_evidence() -> None:
-    graphs = _source_graphs(_instrumented_source_artifact())
+    graphs = _source_graphs(
+        _instrumented_source_artifact(), require_agent_reasoning_receipts=True,
+    )
     assert len(graphs) == 1
     assert [node["node_id"] for node in graphs[0]["nodes"]] == ["n0", "n1"]
     first = graphs[0]["nodes"][0]["observed_transitions"][0]
     assert first["action"] == "left"
+    assert first["agent_reasoning_claim"].startswith("REASONING:")
+    assert first["claim_status"] == "UNTRUSTED_AGENT_CLAIM"
     assert "step_index" not in first
     assert "source_step_index" not in first
     assert graphs[0]["edges"][0]["status"] == "AGENT_HYPOTHESIS"
+
+
+def test_reasoning_backbone_loader_fails_closed_without_reasoning_receipts() -> None:
+    artifact = _instrumented_source_artifact()
+    artifact["programs"][0].pop("source_reasoning_trace")
+    artifact["artifact_sha256"] = _hash({
+        key: value for key, value in artifact.items() if key != "artifact_sha256"
+    })
+    with pytest.raises(ValueError, match="SOURCE_REASONING_RECEIPTS_REQUIRED"):
+        _source_graphs(artifact, require_agent_reasoning_receipts=True)
 
 
 def test_source_artifact_loader_fails_closed_on_tamper_or_empty() -> None:

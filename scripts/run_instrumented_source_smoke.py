@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -21,6 +22,10 @@ if str(REPO_ROOT) not in sys.path:
 from env_wrappers.gamingagent_nl_wrapper import GamingAgentNLWrapper  # noqa: E402
 from env_wrappers.gym_like import make_gaming_env  # noqa: E402
 from harness.frozen_transfer_policy import StrictOpenAIClient  # noqa: E402
+from harness.provider_clients import (  # noqa: E402
+    StrictOpenAIResponsesClient,
+    load_literal_secret,
+)
 from harness.replay_fork import ReplayForkVerifier  # noqa: E402
 from harness.source_evidence_store import write_source_evidence_batch  # noqa: E402
 from trainer.coevolution.episode_runner import run_episode_async  # noqa: E402
@@ -64,10 +69,102 @@ class OpenRouterRolloutActor:
         max_tokens=None, stop=None,
     ) -> _ActorResult:
         del adapter, temperature, stop
-        reply, usage = await asyncio.to_thread(
-            self._client.complete, model=self.model, prompt=prompt,
-            max_tokens=int(max_tokens or 128),
+        request_seed = int(hashlib.sha256(prompt.encode()).hexdigest()[:8], 16)
+
+        def _call_with_endpoint_retry():
+            endpoint_retries = 0
+            for attempt in range(4):
+                try:
+                    reply, usage = self._client.complete(
+                        model=self.model, prompt=prompt,
+                        max_tokens=int(max_tokens or 128), seed=request_seed,
+                    )
+                    usage = dict(usage)
+                    usage["endpoint_retry_count"] = endpoint_retries
+                    usage["request_seed"] = request_seed
+                    return reply, usage
+                except Exception as exc:
+                    status = getattr(getattr(exc, "response", None), "status_code", None)
+                    if status != 429 and not (isinstance(status, int) and status >= 500):
+                        raise
+                    if attempt == 3:
+                        raise
+                    endpoint_retries += 1
+                    time.sleep(2 ** attempt)
+            raise RuntimeError("unreachable endpoint retry state")
+
+        reply, usage = await asyncio.to_thread(_call_with_endpoint_retry)
+        return _ActorResult(
+            text=reply,
+            prompt_tokens=int(usage.get("prompt_tokens", 0) or 0),
+            completion_tokens=int(usage.get("completion_tokens", 0) or 0),
+            latency_ms=float(usage.get("latency_s", 0.0) or 0.0) * 1000,
+            adapter=None,
+            provider_usage=dict(usage),
         )
+
+    def close(self) -> None:
+        self._client.close()
+
+
+class OpenAIResponsesRolloutActor:
+    """OpenAI Responses API adapter preserving the same local Harness parser."""
+
+    def __init__(
+        self, endpoint: str, model: str, api_key: str, reasoning_effort: str,
+        reasoning_token_reserve: int,
+    ) -> None:
+        self.model = model
+        self.reasoning_effort = reasoning_effort
+        self.reasoning_token_reserve = reasoning_token_reserve
+        self._client = StrictOpenAIResponsesClient(
+            endpoint, timeout_s=180, api_key=api_key,
+        )
+
+    async def generate(
+        self, prompt: str, *, adapter=None, temperature=None,
+        max_tokens=None, stop=None,
+    ) -> _ActorResult:
+        del adapter, temperature, stop
+
+        def _call_with_endpoint_retry():
+            endpoint_retries = 0
+            for attempt in range(4):
+                try:
+                    visible_token_budget = int(max_tokens or 128)
+                    reply, usage = self._client.complete(
+                        model=self.model,
+                        prompt=prompt,
+                        # OpenAI counts private reasoning and visible JSON in
+                        # one max_output_tokens budget.  Preserve the runner's
+                        # visible-output allowance by adding an explicit,
+                        # separately receipted reasoning reserve.
+                        max_tokens=(
+                            visible_token_budget + self.reasoning_token_reserve
+                        ),
+                        reasoning_effort=self.reasoning_effort,
+                    )
+                    usage = dict(usage)
+                    usage["harness_visible_token_budget"] = visible_token_budget
+                    usage["api_reasoning_token_reserve"] = self.reasoning_token_reserve
+                    usage["endpoint_retry_count"] = endpoint_retries
+                    # Responses does not expose a sampling seed.  The prompt hash
+                    # is the stable request identity; never pretend determinism.
+                    usage["request_prompt_sha256"] = hashlib.sha256(
+                        prompt.encode()
+                    ).hexdigest()
+                    return reply, usage
+                except Exception as exc:
+                    status = getattr(getattr(exc, "response", None), "status_code", None)
+                    if status != 429 and not (isinstance(status, int) and status >= 500):
+                        raise
+                    if attempt == 3:
+                        raise
+                    endpoint_retries += 1
+                    time.sleep(2 ** attempt)
+            raise RuntimeError("unreachable endpoint retry state")
+
+        reply, usage = await asyncio.to_thread(_call_with_endpoint_retry)
         return _ActorResult(
             text=reply,
             prompt_tokens=int(usage.get("prompt_tokens", 0) or 0),
@@ -270,29 +367,57 @@ async def _main(args) -> int:
     else:
         if args.skill_bank is not None:
             raise SystemExit("--skill-bank requires --checkpoint")
-        key = os.environ.get(args.api_key_env, "").strip()
+        # An explicit file is an explicit credential choice and must override
+        # inherited scheduler/login-shell variables (which are often stale).
+        key = ""
+        if args.api_key_file is not None:
+            try:
+                key = load_literal_secret(args.api_key_file, args.api_key_env)
+            except ValueError as exc:
+                raise SystemExit(f"API key unavailable: {exc}") from exc
         if not key:
+            key = os.environ.get(args.api_key_env, "").strip()
+        if not key and args.provider == "openrouter":
             try:
                 from API_func import open_router_api_key
                 key = str(open_router_api_key or "").strip()
             except Exception:
                 key = ""
         if not key:
-            raise SystemExit("OpenRouter API key unavailable")
-        actor = OpenRouterRolloutActor(args.endpoint, args.model, key)
+            raise SystemExit(f"{args.provider} API key unavailable")
+        if args.provider == "openai":
+            actor = OpenAIResponsesRolloutActor(
+                args.endpoint, args.model, key, args.reasoning_effort,
+                args.openai_reasoning_token_reserve,
+            )
+        else:
+            actor = OpenRouterRolloutActor(args.endpoint, args.model, key)
     try:
-        tasks = [run_episode_async(
-            game=args.game,
-            max_steps=args.max_steps,
-            vllm_client=actor,
-            skill_bank=skill_bank,
-            temperature=0.0,
-            stuck_window=args.max_steps + 1,
-            min_steps_before_stuck=args.max_steps + 1,
-            episode_seed=args.seed_base + index,
-            record_reasoning_events=True,
-        ) for index in range(args.episodes)]
-        results = await asyncio.gather(*tasks)
+        async def _episode(index):
+            return await run_episode_async(
+                game=args.game,
+                max_steps=args.max_steps,
+                vllm_client=actor,
+                skill_bank=skill_bank,
+                temperature=0.0,
+                stuck_window=args.max_steps + 1,
+                min_steps_before_stuck=args.max_steps + 1,
+                episode_seed=args.seed_base + index,
+                record_reasoning_events=True,
+                reasoning_backbone_harness=args.reasoning_backbone_harness,
+            )
+
+        if args.reasoning_backbone_harness:
+            # Preserve a stable request order and avoid provider throttling
+            # changing v2 receipt coverage. Endpoint-only retries happen inside
+            # OpenRouterRolloutActor; model/schema failures are never redrawn.
+            results = []
+            for index in range(args.episodes):
+                results.append(await _episode(index))
+        else:
+            results = await asyncio.gather(*[
+                _episode(index) for index in range(args.episodes)
+            ])
     finally:
         maybe_close = actor.close()
         if asyncio.iscoroutine(maybe_close):
@@ -303,6 +428,14 @@ async def _main(args) -> int:
         manifest_metadata={
             "game": args.game,
             "model": args.model,
+            "provider": args.provider if checkpoint_receipt is None else "local_vllm",
+            "reasoning_effort": (
+                args.reasoning_effort if args.provider == "openai" else None
+            ),
+            "openai_reasoning_token_reserve": (
+                args.openai_reasoning_token_reserve
+                if args.provider == "openai" else None
+            ),
             "adapter": (
                 "checkpoint_multi_lora" if checkpoint_receipt is not None else None
             ),
@@ -313,7 +446,11 @@ async def _main(args) -> int:
             "max_steps": args.max_steps,
             "git_commit": _git_commit(),
             "working_tree_changes_may_exist": True,
+            "reasoning_backbone_harness": args.reasoning_backbone_harness,
         },
+        protocol_profile=(
+            "source_agent_v2" if args.reasoning_backbone_harness else "source_agent"
+        ),
     )
     receipts = _run_replay_forks(
         results, game=args.game, seed_base=args.seed_base, max_steps=args.max_steps,
@@ -357,7 +494,20 @@ def main() -> int:
     parser.add_argument("--seed-base", type=int, default=42)
     parser.add_argument("--endpoint", default="https://openrouter.ai/api")
     parser.add_argument("--model", default="qwen/qwen3.5-35b-a3b")
+    parser.add_argument("--provider", choices=("openrouter", "openai"), default="openrouter")
     parser.add_argument("--api-key-env", default="OPENROUTER_API_KEY")
+    parser.add_argument("--api-key-file", type=Path, default=None)
+    parser.add_argument(
+        "--reasoning-effort", choices=("minimal", "low", "medium", "high"),
+        default="low",
+    )
+    parser.add_argument(
+        "--openai-reasoning-token-reserve", type=int, default=512,
+        help=(
+            "Extra max_output_tokens reserved for private OpenAI reasoning; "
+            "the original runner max_tokens remains the visible JSON budget."
+        ),
+    )
     parser.add_argument(
         "--checkpoint", type=Path, default=None,
         help="Full co-evolution checkpoint root containing adapters/ and metadata.json.",
@@ -366,7 +516,16 @@ def main() -> int:
         "--skill-bank", type=Path, default=None,
         help="Optional exact skill_bank.jsonl to use with the checkpoint.",
     )
+    parser.add_argument(
+        "--reasoning-backbone-harness", action="store_true",
+        help=(
+            "Collect Agent proposal/prediction and post-transition verification "
+            "receipts; invalid cycles remain logged but cannot enter source programs."
+        ),
+    )
     args = parser.parse_args()
+    if args.openai_reasoning_token_reserve < 0:
+        parser.error("--openai-reasoning-token-reserve must be non-negative")
     return asyncio.run(_main(args))
 
 

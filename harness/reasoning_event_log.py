@@ -13,6 +13,7 @@ class ReasoningEventKind(str, Enum):
     RESET = "RESET"
     OBSERVATION = "OBSERVATION"
     AGENT_PROPOSAL_SET = "AGENT_PROPOSAL_SET"
+    AGENT_ACTION_PROPOSAL_SET = "AGENT_ACTION_PROPOSAL_SET"
     AGENT_RESPONSE = "AGENT_RESPONSE"
     PARSED_DECISION = "PARSED_DECISION"
     POLICY_TRANSFORM = "POLICY_TRANSFORM"
@@ -20,6 +21,7 @@ class ReasoningEventKind(str, Enum):
     AGENT_DECISION = "AGENT_DECISION"
     ENVIRONMENT_STEP = "ENVIRONMENT_STEP"
     NATIVE_DELTA = "NATIVE_DELTA"
+    AGENT_POST_TRANSITION_VERDICT = "AGENT_POST_TRANSITION_VERDICT"
     ONLINE_TRANSFER_VERDICT = "ONLINE_TRANSFER_VERDICT"
     OFFICIAL_STOP = "OFFICIAL_STOP"
 
@@ -134,12 +136,17 @@ def validate_reasoning_protocol(
         ReasoningEventKind.NATIVE_DELTA,
         ReasoningEventKind.OFFICIAL_STOP,
     }
-    if profile == "source_agent":
+    if profile in {"source_agent", "source_agent_v2"}:
         required_kinds.update({
             ReasoningEventKind.AGENT_RESPONSE,
             ReasoningEventKind.PARSED_DECISION,
             ReasoningEventKind.POLICY_TRANSFORM,
         })
+        if profile == "source_agent_v2":
+            required_kinds.update({
+                ReasoningEventKind.AGENT_ACTION_PROPOSAL_SET,
+                ReasoningEventKind.AGENT_POST_TRANSITION_VERDICT,
+            })
     elif profile != "generic":
         failures.append(f"UNKNOWN_PROTOCOL_PROFILE:{profile}")
     for required in sorted(required_kinds, key=lambda item: item.value):

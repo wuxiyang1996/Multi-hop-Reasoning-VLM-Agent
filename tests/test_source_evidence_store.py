@@ -38,3 +38,33 @@ def test_source_evidence_store_writes_four_batch_files_not_per_frame(tmp_path) -
     episode = json.loads((tmp_path / "episodes.jsonl").read_text())
     assert episode["reasoning_log_sha256"] == recorder.to_dict()["log_sha256"]
     assert len((tmp_path / "events.jsonl").read_text().splitlines()) == 11
+
+
+def test_source_evidence_store_v2_requires_closed_loop_agent_events(tmp_path) -> None:
+    recorder = ReasoningEventRecorder("e-v2")
+    for kind in (
+        ReasoningEventKind.RESET,
+        ReasoningEventKind.OBSERVATION,
+        ReasoningEventKind.AGENT_ACTION_PROPOSAL_SET,
+        ReasoningEventKind.AGENT_PROPOSAL_SET,
+        ReasoningEventKind.AGENT_RESPONSE,
+        ReasoningEventKind.PARSED_DECISION,
+        ReasoningEventKind.POLICY_TRANSFORM,
+        ReasoningEventKind.NATIVE_ADMISSIBILITY,
+        ReasoningEventKind.AGENT_DECISION,
+        ReasoningEventKind.ENVIRONMENT_STEP,
+        ReasoningEventKind.NATIVE_DELTA,
+        ReasoningEventKind.AGENT_POST_TRANSITION_VERDICT,
+        ReasoningEventKind.OFFICIAL_STOP,
+    ):
+        recorder.append(kind, {"kind": kind.value})
+    result = SimpleNamespace(
+        episode_id="e-v2", game="g", steps=1, total_reward=0.0,
+        terminated=True, truncated=False, reasoning_event_log=recorder.to_dict(),
+    )
+    manifest = write_source_evidence_batch(
+        tmp_path, [result], manifest_metadata={"model": "m"},
+        protocol_profile="source_agent_v2",
+    )
+    assert manifest["protocol_profile"] == "source_agent_v2"
+    assert manifest["protocol_failures"] == {}

@@ -4,6 +4,10 @@
 动作翻译成 ALFWorld 动作，而是检验游戏中 evidence-qualified 的多步控制候选，在
 同一条 target one-shot 证据约束下，是否比 target-only 候选带来额外泛化。
 
+关于旧 mega-skill uniform collapse、atomic decision segments 和 receipt-grounded causal
+motif 的最新设计，见 `README_RECEIPT_GROUNDED_CAUSAL_MOTIFS.md`。统一 event protocol 仅是
+日志接口，不再被称为 transferable skill。
+
 ## 1. 不变的研究边界
 
 Harness 只预定义可判定接口：receipt、hash、Agent closed schema、环境
@@ -754,3 +758,136 @@ hash 为 `aeb022f4ec8603ef9d10701f075291ec03636333b16fa954613200d2847890d9`。�
 所以不从 correct 的 6 个 admitted programs 中事后挑一个跑正向在线结果。下一研究问题应是重新
 设计能区分真实 source evidence 与 graph-shaped scaffolding 的 control/任务，而不是增加 GPU、
 SFT 或无限 proposal repair。
+
+### 8.7 把真实 Agent reasoning 接通后的负结果与下一版协议
+
+复查数据链发现一个关键实现问题：source rollout 的 `events.jsonl` 虽保存了逐步
+`raw_agent_response`，但旧的 downstream `_source_graphs` 只暴露 action/reward/done/state hash，
+把 Agent reasoning 全部丢掉。因此 §8.6 测到的是 **trace/graph scaffolding**，不能称为
+reasoning-backbone transfer。
+
+现已将六个游戏重新以 schema-v2、零新增 API 调用编译。每个 compiled transition 携带：
+
+- 原始 `agent_reasoning_claim`；
+- 可重新计算的 `agent_response_sha256`；
+- 原 reasoning event log hash 和 evidence-response hash；
+- 显式 `UNTRUSTED_AGENT_CLAIM`，禁止把文本真实性误写成语义正确性。
+
+conditional enumeration 现在要求完整 reasoning-receipt coverage；legacy artifact 缺字段时
+fail-closed。六游戏合并 artifact 包含 6 个 programs、44 个唯一 compiled reasoning steps、17 个
+qualified Agent hypotheses，hash 为
+`13fb4b21f4612080aba4de9347e188e3cda2ec3028fe51b656197de4b35bf147`。
+展开到 17 个 graph hypotheses 后共有 120/120 transition occurrences 带 reasoning receipts。
+
+同时新增 `receipt_null`：保留 graph topology、node/transition 数、字段类型、文本长度/标点类别、
+reward multiset、done placement 和 state-hash equality pattern，但确定性遮蔽 action、Agent reasoning、
+edge claim 与 receipt identity。它比空 skeleton 更接近“同形状但无真实内容”的对照。
+
+固定 Qwen3 Max、两个相同 adaptation examples、同一 `1729+slot` seed 的 reasoning-aware 13-slot
+paired study 结果如下。并发时出现的 429 只按原 slot/seed 串行重试；唯一
+`MALFORMED_ABSTENTION` 保留为 randomized 的真实 format failure，没有重抽。
+
+| condition | exact format | admitted | prompt tokens | reported cost |
+|---|---:|---:|---:|---:|
+| correct reasoning receipts | 13/13 | 4/13 | 66,464 | `$0.06357` |
+| renamed identities | 13/13 | 3/13 | 67,520 | `$0.07683` |
+| randomized node content | 12/13 | 2/13 | 66,464 | `$0.07214` |
+| receipt-null | 13/13 | 5/13 | 72,070 | `$0.07830` |
+| padded target-only | 13/13 | 7/13 | 79,888 | `$0.08605` |
+
+Correct 相对 receipt-null 的 paired counts 为：both 1、correct-only 3、null-only 4、neither 5；
+相对 target-only 为：both 1、correct-only 3、target-only-only 6、neither 3。因此 authentic
+reasoning text 改变了 Agent 输出，但没有提高 admission；当前数据甚至不支持“真实 reasoning
+content 优于同形 null/target-only context”。这仍只是 proposal capability，不是 online task success，
+但已足以保持 `authorizes_online_source_pilot=false`。冻结 summary hash 为
+`c73d33f3e8eec56d7f817d5d61fd5051d92539fd4f0ec6d7ff1fbb835806729e`。
+
+原因不是简单的“跨域一定不可行”，而是 source 数据尚未包含我们要转移的闭环。机械审计 12 个
+episodes / 144 steps 得到：137 个 Agent-origin executions，但 **0 action-proposal sets、0
+post-transition Agent verdicts、0 explicit replan/abstain decisions、0 episodes 有 official outcome
+evaluator**。现有 `AGENT_PROPOSAL_SET` 明确标注为 `SKILL_CANDIDATES_NOT_ACTION_PROPOSALS`；每条
+reasoning 基本是执行前的一句 action justification，不能证明 proposal→prediction→verification→
+replan 的 backbone。审计 artifact hash 为
+`519f7df8a3b8a64ecf22d0b3085c573c7217499b3e184968f308af1b35d8b274`。
+
+下一轮不手写 `COLLECT→TAKE` 或 predicate ontology，也不靠 reward threshold 切 skill。使用通用的
+Agent-native v2 cycle：
+
+```text
+observation + exact native actions
+  → Agent action-proposal set + selected proposal/predicted observable delta/abstain
+  → Harness only checks closed schema and exact native-action membership
+  → real environment transition + native delta
+  → Agent post-transition verdict: supported/refuted/inconclusive
+  → Agent continue/replan/abstain decision
+  → official environment outcome
+```
+
+Harness 不判断 Agent 的语义解释“对不对”，只验证引用、顺序、native membership、真实 before/after
+delta 和 official outcome。program node/edge 从这些 event receipts 由 Agent 提出，Harness 只做完整
+coverage；不人工命名 NAVIGATE/ACQUIRE。代码已注册 `AGENT_ACTION_PROPOSAL_SET` 与
+`AGENT_POST_TRANSITION_VERDICT`，且 `source_agent_v2` profile 缺任一事件即拒绝。
+
+下一次最小实验先每个游戏采集 2 个有 official outcome 的 v2 episodes，再冻结四个 reasoning-content
+条件：correct、reasoning-null、跨 node randomized、target-only。只有 correct 在 matched token/call
+budget 下同时超过这些 controls，并在小规模 online target success 上超过 target-only，才进入更多
+adaptation seeds；否则结论应是该 source reasoning family 不可用/需要更多 source evidence，而不是
+继续 SFT 或上 2×4 GPU。
+
+### 8.8 Source-agent-v2 reasoning-backbone vertical slice
+
+这里要迁移的对象明确是 **reasoning backbone through Harness**，不是游戏 action、skill label 或
+predicate ontology。实现加入两个通用事件：
+
+- `AGENT_ACTION_PROPOSAL_SET`：独立 planning Agent 在 exact native action list 上给出 1–3 个
+  proposal、observable-delta prediction、选择或 abstain；
+- `AGENT_POST_TRANSITION_VERDICT`：真实环境 transition 后，verification Agent 输出
+  `SUPPORTED/REFUTED/INCONCLUSIVE` 与 `CONTINUE/REPLAN/ABSTAIN`。
+
+原 action Agent 仍可拒绝 planning Agent 的建议。Harness 只在 proposal JSON 合法、action number
+属于 native list、实际 action 与 selected proposal 精确一致、post-verdict 引用同一 proposal 时标记
+`can_support_closed_loop_reasoning_induction=true`。它不判断 prediction/verdict 的自然语言语义正确性。
+compiler 只把连续、完整的 closed-loop steps 编入 v3 source program；proposal、execution、delta、
+verdict 和 event hashes 全部随 transition receipt 下传。
+
+2026-07-21 在 compute node `gammagpu10` 用 Qwen3 Max 完成 1× Candy Crush、seed 3101、3-step
+真实 smoke（Slurm `7118703`）：
+
+- 3/3 planning proposal schemas 合法；
+- 3/3 executed actions 与 selected proposals exact match；
+- 3/3 post-transition verdict schemas 合法；
+- 3/3 closed-loop steps 可进入 reasoning induction；
+- event hash chain、`source_agent_v2` protocol 和 19 个 replay forks 全部通过；
+- compiler 生成 1 个三步 `agent_native_v2` TraceProgram。
+
+三角色 Qwen3 Max program induction 使用 3 calls、0 errors、3 qualified two-node graphs，reported cost
+`$0.01876134`；三张 graph 均有 intervention edge receipts，且 9/9 graph-expanded transitions 带完整
+proposal/verdict receipts。source hypothesis artifact hash 为
+`5e8f3952dd7ed7555c07ed9dc613e3d769084d9b83c5adad3adbbf0c289b4fd0`。
+
+Verifier 三步均输出 `REFUTED/REPLAN`，但理由可能误读 Candy Crush 消除后立即 refill 的 observable
+board。这不是 Harness failure：verdict 本来就是 `UNTRUSTED_AGENT_CLAIM`。其研究价值必须由
+correct/null/randomized controls 和 target outcome 判断，不能由 Harness 或人工把该解释升级成真值。
+
+随后进行 3-graph ALFWorld 工程 vertical slice：
+
+| condition | exact format | admitted |
+|---|---:|---:|
+| correct closed-loop backbone | 3/3 | 0/3 |
+| receipt-null | 3/3 | 0/3 |
+| padded target-only | 3/3 | 1/3 |
+
+六个 source-conditioned proposals 全部因同一个机械原因被拒绝：同一 source node 在两个 adaptation
+examples 上绑定出的 target operator sequence 不 exact-identical（`schema_exact_across_examples`）。
+因此 receipt transport 与 Agent pipeline 已打通，但这个三步单游戏 backbone 没有显示稳定绑定价值，
+不授权 online execution。source 环境没有 official success evaluator，但具备原生 total return、
+terminated/truncated 与 final-info outcome receipt；后续用固定 seeds 的 matched baseline 解释该 outcome，
+不人工设置 success threshold。v2 audit 将 official-success availability 作为 diagnostic，不作为所有游戏
+都无法满足的硬门槛。更新后的 v2 readiness 为 true，audit artifact hash 为
+`a3325b708fb52a98819e36d606e7d4bbdfe0251938b5b5c665377fb59a9e1574`；readiness 只表示数据协议
+完整，不表示 transfer 有效。
+
+下一步不是放松 exact admission 来制造正结果，而是按固定 seeds 为六游戏各采 2 个 v2 episodes，保存
+环境原生 outcome receipt，并预注册 source outcome 与 target transfer 的独立分析。然后先跑
+correct/reasoning-null/randomized/target-only proposal controls；未过 gate 的 source family 被标记为
+`NOT_USEFUL_UNDER_CURRENT_EVIDENCE`，而不是手工重命名或强制绑定。
