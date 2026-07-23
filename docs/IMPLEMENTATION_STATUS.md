@@ -15,6 +15,9 @@
 - base/receipt-only prompt condition；
 - 六游戏旧 checkpoint、adapter 和 evidence audit；
 - A5000 fresh source collection与严格 readiness audit。
+- VisualToolBench 官方 commit/tool-contract preflight、single-turn v2 manifest、rubric APR/ARS scorer；
+- VTB 六条件结构迁移矩阵（alpha-renaming 不变性、shuffled/other-game/generic destructive controls）；
+- VTB `row:105` 官方 target-only adaptation trace：20 calls、0 final answer、cap exhausted。
 
 ## 2026-07-21 旧资产审计
 
@@ -317,3 +320,35 @@ nodes 42/50、46/51，edges 20/36、19/37；所有 matched one-step rewards 均�
 不授权远域 positive-transfer claim。完整报告见 `results/strider_position_matched_v2_phase7.json`，ATTACK
 负诊断和结构排名分别见 `results/strider_matched_policy_v3_phase7.json` 与
 `results/strider_v3_structural_skill_ranking.json`。
+
+## Source gate 失败分解（2026-07-22）
+
+新增可复跑诊断确认：当前失败发生在 transfer 之前的 measurement 与 representation 层。155 个
+`POSITION` snapshot 在 live authentic path 上的 h1/h2/h4/h8 正 reward support 分别为 0/0/1/4，
+而 treatment replay 只观察一步，因此 delayed value 尚未识别。当前 effect-signature graph 也不是
+reasoning program；qualification/held-out edge recurrence 仍为 20/36、19/37。
+
+同时发现旧结构排名用三个 split 选择候选，构成 held-out selection leakage；旧六游戏数据均无
+no-human-hints exclusion receipt，且 Streets/Strider/Thunder response 明确出现 critical-action 语言。
+现有 Phase 7 因此保留为诊断而非 transferable-backbone 证据。完整结论、fresh no-hint 候选统计与
+停止规则见 `SOURCE_GATE_FAILURE_DIAGNOSIS.md` 和
+`results/source_gate_failure_diagnosis_v1.json`。
+
+## 四域七 Cell feasibility audit（2026-07-22）
+
+SIV-Bench 已从 target matrix 移除。冻结矩阵现在是 VisualToolBench、TIR-Bench、
+Video-Holmes、MiniWoB、WebShop、ALFWorld valid-seen/valid-unseen，共四域七个 cell。
+
+原始资产并不缺失：VTB 1204 rows，TIR 1215 rows 且 1255/1255 image refs 可用，
+Video-Holmes 3388 questions 且 503/503 unique videos 可用，MiniWoB/WebShop 历史
+episode 与 official reward 可读。七个 cell 的 adaptation/test manifest 已冻结；fail-closed
+target-only smoke 已在 TIR、Video-Holmes、MiniWoB 和 ALFWorld 上真实执行。MiniWoB 的冻结样本
+获得 official reward=1；TIR 暴露伪造 receipt/坐标 grounding，Video-Holmes 暴露搜索耗尽而不提交，
+VTB 暴露 typed tool-argument 与官方 rubric evaluator 尚未接入的缺口；官方 judge 代码已在
+`xi1ngang/VisualToolBench@d4f200a` 核实。WebShop full 1k-product server 已恢复，
+冻结 live smoke 4 步获得 official reward=0.6667。所有这些结果都与旧 dispatcher 的 deterministic
+fallback 隔离。
+
+Source audit 同时确认 `reasoning_aligned_mega_skills.json` 含 target-domain members，原文件禁止
+作为 source treatment；all-stage mega bank 的 180 members 中只有 79 个属于冻结六游戏 allowlist。
+完整结果和后续顺序见 [`TARGET_FEASIBILITY_DIAGNOSIS.md`](TARGET_FEASIBILITY_DIAGNOSIS.md)。

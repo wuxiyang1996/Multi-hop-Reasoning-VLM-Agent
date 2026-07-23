@@ -8,6 +8,12 @@
 [`docs/results/skill_internal_matrix_v1_summary.json`](docs/results/skill_internal_matrix_v1_summary.json)。
 game training 的 weight-level reasoning transfer、skill-context effect 与 Harness interaction 计划见
 [`docs/GAME_TRAINING_REASONING_TRANSFER.md`](docs/GAME_TRAINING_REASONING_TRANSFER.md)。
+当前 Strider source gate 的 measurement、selection leakage、旧 human-hint contamination 与下一轮停止规则见
+[`docs/SOURCE_GATE_FAILURE_DIAGNOSIS.md`](docs/SOURCE_GATE_FAILURE_DIAGNOSIS.md)。
+移除 SIV-Bench 后的四域七 Cell 资产、executor、污染与可运行性诊断见
+[`docs/TARGET_FEASIBILITY_DIAGNOSIS.md`](docs/TARGET_FEASIBILITY_DIAGNOSIS.md)。
+VisualToolBench 官方 rubric judge、single-turn v2 修正和游戏 Motif matched-transfer 协议见
+[`docs/VTB_OFFICIAL_MOTIF_TRANSFER_PROTOCOL.md`](docs/VTB_OFFICIAL_MOTIF_TRANSFER_PROTOCOL.md)。
 
 这是从历史仓库拆出的最小研究核心。仓库只保留两个有模型判断能力的角色：
 
@@ -52,6 +58,12 @@ source experience
 python -m pip install -e '.[test]'
 pytest -q
 python examples/smoke_two_agent.py
+```
+
+VisualToolBench 官方协议复现实验另装：
+
+```bash
+python -m pip install -e '.[test,vtb]'
 ```
 
 ## 目录

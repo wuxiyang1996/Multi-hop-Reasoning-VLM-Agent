@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "status": "BLOCKED",
+  "confirmatory_ready": false,
+  "diagnostic_mode_authorized": true,
+  "diagnostic_claim_label": "UNQUALIFIED_SOURCE_DIAGNOSTIC",
+  "config_sha256": "8afb5ad8a631061d3b65523dadad8d728407e8407b89f2f4db7955a8a806b9a0",
+  "manifest_sha256": "61e88a08900ad64170a9dfd6a9990478a503167435ca489fc14fc8134a93ece0",
+  "runtime_audit_sha256": "01d24d6cc76cedb20ca7907224bd45fe62f9e0bfb561c182152826371b783aaa",
+  "source_diagnosis_sha256": "1e559844773d8044b9860574283830c85155bfd139b6727cab0804e57f8f577a",
+  "source_failure_class": "MEASUREMENT_AND_REPRESENTATION_FAILURE_BEFORE_TRANSFER",
+  "source_transfer_authority": "NOT_YET_AUTHORIZED",
+  "official_full_tool_ready": false,
+  "blockers": [
+    "VTB official full-tool runtime is not ready",
+    "no frozen SOURCE_SUPPORTED game motif"
+  ],
+  "experiment_spec": {
+    "experiment_id": "vtb-single-turn-game-motif-transfer-v2",
+    "target_cell": "visual_toolbench_single_turn",
+    "target_manifest_sha256": "61e88a08900ad64170a9dfd6a9990478a503167435ca489fc14fc8134a93ece0",
+    "source_candidate_id": "",
+    "source_candidate_sha256": "",
+    "source_lifecycle": "CANDIDATE",
+    "decision_model": "openrouter:qwen/qwen3.5-35b-a3b",
+    "harness_model": "openai:gpt-5-mini",
+    "judge_model": "openai:o4-mini",
+    "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+    "action_or_tool_budget": 20,
+    "conditions": [
+      "target_only",
+      "generic_reasoning",
+      "authentic_game_source",
+      "renamed_game_source",
+      "shuffled_game_source",
+      "other_game_source"
+    ],
+    "confirmatory_ready": false
+  },
+  "interpretation": "The apparatus can falsify structural motif transfer once both gates pass. Until then, target runs test plumbing or unqualified hypotheses, not game-to-target transfer."
+}

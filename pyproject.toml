@@ -11,6 +11,23 @@ dependencies = []
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
+vtb = [
+  "beautifulsoup4>=4.12",
+  "duckdb>=1.1",
+  "litellm>=1.0",
+  "matplotlib>=3.8",
+  "numpy>=1.24",
+  "openai>=2.20",
+  "opencv-python>=4.8",
+  "pandas>=2.0",
+  "Pillow>=10.0",
+  "requests>=2.31",
+  "scikit-learn>=1.3",
+  "scipy>=1.10",
+  "simpy>=3.0",
+  "tabulate>=0.9",
+  "yfinance>=0.2.18",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "experiment_id": "vtb-single-turn-game-motif-transfer-v2",
+  "target_cell": "visual_toolbench_single_turn",
+  "target_manifest": "configs/vtb_single_turn_manifest_v2.json",
+  "claim_scope": "VTB single-turn subset only",
+  "official_protocol": {
+    "repository": "https://github.com/xi1ngang/VisualToolBench",
+    "commit": "d4f200a0a44790349667bed09334ac88623074b2",
+    "tool_call_cap": 20,
+    "judge_model": "o4-mini",
+    "rubric_granularity": "one judge call per atomic rubric",
+    "ars": "sum(weight for Met) / sum(all weights)",
+    "apr": "pass iff every rubric with weight >= 4 is Met"
+  },
+  "source_gate": {
+    "required_lifecycle": "SOURCE_SUPPORTED",
+    "current_source_candidate": null,
+    "current_status": "BLOCKED_NO_SOURCE_SUPPORTED_MOTIF",
+    "diagnostic_override_allowed": true,
+    "diagnostic_override_claim": "UNQUALIFIED_SOURCE_DIAGNOSTIC"
+  },
+  "conditions": [
+    "target_only",
+    "generic_reasoning",
+    "authentic_game_source",
+    "renamed_game_source",
+    "shuffled_game_source",
+    "other_game_source"
+  ],
+  "model_identities": {
+    "decision_agent": "openrouter:qwen/qwen3.5-35b-a3b",
+    "motif_harness_agent": "openai:gpt-5-mini",
+    "judge": "openai:o4-mini"
+  },
+  "matched_identity_fields": [
+    "sample_id",
+    "initial_image_sha256",
+    "decision_model_hash",
+    "harness_model_hash",
+    "judge_model_hash",
+    "official_tool_contract_hash",
+    "tool_call_budget_hash",
+    "max_output_tokens",
+    "temperature"
+  ],
+  "agent_permissions": {
+    "decision_agent": "may select target-native official tool calls and final answer",
+    "motif_harness_agent": "may emit advisory, prediction, verification, replan, abstain, or source-off; may not emit target tool arguments or final answer"
+  },
+  "binding": {
+    "adaptation_examples": 1,
+    "test_time_text_rewrite": false,
+    "online_live_receipt_validation": true,
+    "unsupported_action": "source-off and continue matched target-only"
+  },
+  "primary_estimands": [
+    "authentic_game_source - generic_reasoning on ARS/APR",
+    "authentic_game_source - shuffled_game_source on ARS/APR",
+    "authentic_game_source - other_game_source on ARS/APR",
+    "alpha-renamed_game_source approximately equals authentic_game_source under a preregistered equivalence margin"
+  ],
+  "negative_transfer_estimands": [
+    "authentic_game_source - target_only on ARS/APR",
+    "delta tool calls",
+    "delta invalid calls",
+    "fallback latency and cost"
+  ],
+  "completion_cache": {
+    "exact_request_cache": true,
+    "shared_across_conditions_for_identical_requests": true,
+    "cache_key_fields": ["model_identity", "role", "messages", "tools", "temperature", "max_tokens"]
+  },
+  "hard_failures": [
+    "missing official tool capability",
+    "missing turn response",
+    "fabricated receipt reference",
+    "unmatched budget or model identity",
+    "target content in source treatment",
+    "test gold visible to Decision or Motif Agent"
+  ]
+}

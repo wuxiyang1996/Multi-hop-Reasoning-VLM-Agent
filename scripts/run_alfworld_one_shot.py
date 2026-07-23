@@ -83,8 +83,13 @@ def main() -> None:
     parser.add_argument("--split", default="eval_out_of_distribution")
     parser.add_argument("--seed", type=int, default=47)
     parser.add_argument("--game-index", type=int, default=0)
+    parser.add_argument("--game-id", help="Frozen split-relative game.tw-pddl ID; safer than a raw index.")
     parser.add_argument("--max-steps", type=int, default=20)
     parser.add_argument("--decision-model", default="qwen/qwen3.5-35b-a3b")
+    parser.add_argument(
+        "--decision-cache", type=Path,
+        help="Persistent exact-request completion cache shared by matched conditions.",
+    )
     parser.add_argument("--harness-model", default="gpt-5-mini")
     parser.add_argument("--skip-alpha-control", action="store_true")
     parser.add_argument("--disable-alpha-invariance", action="store_true", help=argparse.SUPPRESS)
@@ -121,7 +126,7 @@ def main() -> None:
             "seed": args.seed,
             "reasoning": {"effort": "none", "exclude": True},
         },
-    ))
+    ), cache_path=args.decision_cache)
     rows = []
     for condition in args.conditions:
         decision_backend = shared_decision_backend
@@ -201,6 +206,7 @@ def main() -> None:
             split=args.split,
             seed=args.seed,
             game_index=args.game_index,
+            game_id=args.game_id,
             max_steps=args.max_steps,
         )
         started = time.monotonic()
@@ -245,6 +251,8 @@ def main() -> None:
                 result.records[0].before.state.get("task_goal")
                 if result and result.records else None
             ),
+            "resolved_game_index": environment.resolved_game_index,
+            "resolved_game_file": environment.resolved_game_file,
             "metrics": metrics,
             "actions": [record.proposal_set.selected.action for record in result.records] if result else [],
             "transition_receipts": [asdict(row) for row in result.receipts] if result else [],
@@ -277,6 +285,7 @@ def main() -> None:
             "decision_model": args.decision_model,
             "harness_model": args.harness_model,
             "decision_backend": decision_backend.identity,
+            "decision_cache": str(args.decision_cache.resolve()) if args.decision_cache else None,
             "source_artifacts": {
                 "adaptation_demo": {
                     "path": str(args.adaptation_demo.resolve()),
@@ -294,6 +303,7 @@ def main() -> None:
             "split": args.split,
             "seed": args.seed,
             "game_index": args.game_index,
+            "game_id": args.game_id,
             "max_steps": args.max_steps,
             "pythonhashseed": os.environ.get("PYTHONHASHSEED"),
             "alpha_control_run": not skip_alpha_control,

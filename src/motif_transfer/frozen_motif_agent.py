@@ -6,6 +6,7 @@ import hashlib
 import http.client
 import json
 import os
+from pathlib import Path
 from typing import Any, Mapping, Protocol, Sequence
 from urllib import request
 from urllib import error as urllib_error
@@ -57,15 +58,43 @@ class CompletionBackend(Protocol):
 class MemoizedCompletionBackend:
     """Common-randomness control: identical requests receive identical completions."""
 
-    def __init__(self, backend: CompletionBackend) -> None:
+    def __init__(self, backend: CompletionBackend, *, cache_path: str | Path | None = None) -> None:
         self.backend = backend
         self._cache: dict[str, tuple[str, Mapping[str, Any]]] = {}
+        self.cache_path = Path(cache_path) if cache_path is not None else None
         self.last_completion = ""
         self.last_usage: Mapping[str, Any] = {}
+        if self.cache_path is not None and self.cache_path.exists():
+            raw = json.loads(self.cache_path.read_text(encoding="utf-8"))
+            expected = stable_hash(self.backend.identity)
+            if raw.get("backend_identity_sha256") != expected:
+                raise ValueError("persistent completion cache belongs to a different backend")
+            for key, row in raw.get("entries", {}).items():
+                self._cache[str(key)] = (str(row["completion"]), dict(row.get("usage") or {}))
 
     @property
     def identity(self) -> Mapping[str, Any]:
-        return {"memoized_exact_request": True, "wrapped": self.backend.identity}
+        return {
+            "memoized_exact_request": True,
+            "persistent_cache": self.cache_path is not None,
+            "wrapped": self.backend.identity,
+        }
+
+    def _persist(self) -> None:
+        if self.cache_path is None:
+            return
+        payload = {
+            "schema_version": 1,
+            "backend_identity_sha256": stable_hash(self.backend.identity),
+            "entries": {
+                key: {"completion": completion, "usage": dict(usage)}
+                for key, (completion, usage) in sorted(self._cache.items())
+            },
+        }
+        self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.cache_path.with_suffix(self.cache_path.suffix + ".tmp")
+        temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        os.replace(temporary, self.cache_path)
 
     def complete(self, role: str, system: str, payload: Mapping[str, Any]) -> str:
         key = stable_hash({"role": role, "system": system, "payload": payload})
@@ -77,6 +106,7 @@ class MemoizedCompletionBackend:
         completion = self.backend.complete(role, system, payload)
         usage = dict(getattr(self.backend, "last_usage", {}) or {})
         self._cache[key] = (completion, usage)
+        self._persist()
         self.last_completion = completion
         self.last_usage = {"cache_hit": False, "original_usage": usage}
         return completion
