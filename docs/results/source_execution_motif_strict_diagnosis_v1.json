@@ -1,0 +1,737 @@
+{
+  "authority": "MECHANICAL_STRICT_REAUDIT",
+  "gates": {
+    "edge_recurrence": "each edge supported in >=2 discovery episodes",
+    "node_recurrence": "each node supported in >=2 discovery episodes",
+    "shortcut_exclusion": "node labels not exactly recoverable from one recorded skill/action/length/reward field",
+    "still_required_after_acceptance": [
+      "blind qualification recurrence",
+      "blind held-out recurrence",
+      "matched h1/h2/h4/h8 official return",
+      "renamed/shuffled/random controls"
+    ]
+  },
+  "rows": [
+    {
+      "condition": "AUTHENTIC_REASONING",
+      "exploratory_blind_is_confirmatory": false,
+      "exploratory_blind_scoring": {},
+      "game": "gymv_thunder_force_iii",
+      "proposal_description_untrusted": "No non-trivial control motif found. The recorded executions show only regular alternation and variation that can be explained by skill identity, execution length, or reward-sign patterns; there is no clear branching, recovery, verification, or termination structure that goes beyond those attributes (no single execution-id or grouped set of executions is observed to e.g. branch to multiple distinct successors or to converge from multiple distinct predecessors in a way not attributable to skill/duration/reward). Returning an empty motif graph.",
+      "result_file": "docs/results/thunder_execution_motif_authentic_v1.json",
+      "status": "REJECTED_OR_NEEDS_FRESH_RECURRENCE",
+      "strict_audit": {
+        "accepted": false,
+        "discovery_execution_coverage": 0.0,
+        "edges": 0,
+        "failure_codes": [
+          "EDGE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "NODE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "TRIVIAL_EXECUTION_GRAPH",
+          "ZERO_DISCOVERY_COVERAGE"
+        ],
+        "has_branch": false,
+        "has_cycle": false,
+        "nodes": 0,
+        "observed_edges": 0,
+        "recurrent_edges": false,
+        "recurrent_nodes": false,
+        "single_field_shortcuts": []
+      }
+    },
+    {
+      "condition": "RECEIPT_ONLY",
+      "exploratory_blind_is_confirmatory": false,
+      "exploratory_blind_scoring": {
+        "held_out": {
+          "authentic_gain_over_null": -1.1018833318103016,
+          "authentic_gain_over_shuffled": -0.02143622963701608,
+          "authentic_mean_log_score": -2.728118734083168,
+          "blind_boundaries": 12,
+          "claim_boundary": "Model fitting uses discovery assignments only. Evaluation reveals each next execution solely to the mechanical scorer.",
+          "null_mean_log_score": -1.6262354022728662,
+          "passes_predictive_ordering": false,
+          "rows": [
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "ddc5ddaca33fc962bf3653e16d66237c0dff8e3de9c84aae8c3f952771cedc20",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "d2d04b434ad547f6117f33401d56a6d46b0a688d402638199fd2fe9a4278197a"
+            },
+            {
+              "authentic_log_score": -2.94016242239918,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "b6bbcd03baded8d2235103c4fe1cac68cebc8becfdcf1b17974880e8bbc63299",
+              "null_log_score": -2.217427284653739,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.94016242239918,
+              "trace_id": "d2d04b434ad547f6117f33401d56a6d46b0a688d402638199fd2fe9a4278197a"
+            },
+            {
+              "authentic_log_score": -2.4651040224918206,
+              "current_node": "n3_S0_long_progress",
+              "hidden_next_execution_id": "7dbe47475cbc7437a9428593d0e5076069c9bf9b2d114593e943b7ce8c6a7750",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.3364866446697268,
+              "trace_id": "d2d04b434ad547f6117f33401d56a6d46b0a688d402638199fd2fe9a4278197a"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "668a5e3e0d03741236de6939aa75ff7713f35703dfe630b79dc726537c7427e3",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "d2d04b434ad547f6117f33401d56a6d46b0a688d402638199fd2fe9a4278197a"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "960004ac23310c118744cdbdeb80a55cebae9aa2d9e4c2574a1c86898e2b24ee",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "d2d04b434ad547f6117f33401d56a6d46b0a688d402638199fd2fe9a4278197a"
+            },
+            {
+              "authentic_log_score": -3.332204510175204,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "c49772f677bed866f78e44a9fa72741c7690f6bfbfca29784f8c7319bb0c7f1c",
+              "null_log_score": -3.0647251450409425,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -3.332204510175204,
+              "trace_id": "d2d04b434ad547f6117f33401d56a6d46b0a688d402638199fd2fe9a4278197a"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "714ab6be6a0a7c112f98d042692cab95b9525a03decd3b97669577d5039009ec",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "a72e6d1e44874091cb65de8523050fbce856efd4d0200fb581ef5f44fd757d2c"
+            },
+            {
+              "authentic_log_score": -2.94016242239918,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "b19b1a68cb6b1cd5e3001384f625d7d5330548b35ac8670d10bdccdb1fbadc07",
+              "null_log_score": -2.217427284653739,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.94016242239918,
+              "trace_id": "a72e6d1e44874091cb65de8523050fbce856efd4d0200fb581ef5f44fd757d2c"
+            },
+            {
+              "authentic_log_score": -2.4651040224918206,
+              "current_node": "n3_S0_long_progress",
+              "hidden_next_execution_id": "310e19c5695259b6811b6be3145701f09cdea38b7783e5e1bba7241a547fc1dd",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.3364866446697268,
+              "trace_id": "a72e6d1e44874091cb65de8523050fbce856efd4d0200fb581ef5f44fd757d2c"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "d5c89ff4be657e993fc23e5c024802f60211579be9af29c83d3ee54097eb2cf9",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "a72e6d1e44874091cb65de8523050fbce856efd4d0200fb581ef5f44fd757d2c"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "e8bda3c894c10f14ae4c2d23cf9174c40b92cdf194a055669717ebf2aa670c87",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "a72e6d1e44874091cb65de8523050fbce856efd4d0200fb581ef5f44fd757d2c"
+            },
+            {
+              "authentic_log_score": -3.332204510175204,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "0c643716dbd76ed12f40099253de418285726ea26832330ebf61b0a998f3d410",
+              "null_log_score": -3.0647251450409425,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -3.332204510175204,
+              "trace_id": "a72e6d1e44874091cb65de8523050fbce856efd4d0200fb581ef5f44fd757d2c"
+            }
+          ],
+          "shuffled_mean_log_score": -2.7066825044461518,
+          "split": "held_out"
+        },
+        "qualification": {
+          "authentic_gain_over_null": -1.1480331635267305,
+          "authentic_gain_over_shuffled": -0.018373911117442354,
+          "authentic_mean_log_score": -2.7017799363299915,
+          "blind_boundaries": 14,
+          "claim_boundary": "Model fitting uses discovery assignments only. Evaluation reveals each next execution solely to the mechanical scorer.",
+          "null_mean_log_score": -1.553746772803261,
+          "passes_predictive_ordering": false,
+          "rows": [
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "e3b531441276b6d6d41b9ce76e3dc5c17dd84775d5d2a3b36919b892f1714035",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -2.94016242239918,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "aa3a2a1c6e4a29433398396d1000f9f51ace783c841c8ae8b4c13af693e80d59",
+              "null_log_score": -2.217427284653739,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.94016242239918,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -2.4651040224918206,
+              "current_node": "n3_S0_long_progress",
+              "hidden_next_execution_id": "61df661c845139f988667ec94e885cbdb5de73c6e90e4944ac3cb697e999526a",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.3364866446697268,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "7856421c4913f95f2b7dfc711c03a90accedb704656acadce5052246e953149d",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "dfbac311fb1653a769eb07693dfcf0762ce39b96fa69a5c7cb25bebb00a91459",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "e8dec3bbdbf0b089ea89f12a8bd88c635cef860f20db47a13e9829aad520b4f5",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "5332ca81fdd977eb0e42acdcdfda3389c92268a9a7783e78c46d35a1d5aa7c7e",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 6,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -3.332204510175204,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "96c41c3f814d32cdceb95752f75cac459cac361b695646be3801b5a57c774ee5",
+              "null_log_score": -3.0647251450409425,
+              "prefix_end_execution_offset": 7,
+              "shuffled_log_score": -3.332204510175204,
+              "trace_id": "1c78f7a61b0ce4504196bf04f48c28c22da2303175e97421d41ec87823a53909"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "401dc70250be29b982df136072b868a8aebe48c9387cec49750abc93020a0695",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "a9f40916451047b39c68b95dc6b740bd73c640149ccb502171d99d3c5840de0a"
+            },
+            {
+              "authentic_log_score": -2.94016242239918,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "87b392b58715afbc24f7feb84926badc74a6c3c5174a910d1638171dd0662dba",
+              "null_log_score": -2.217427284653739,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.94016242239918,
+              "trace_id": "a9f40916451047b39c68b95dc6b740bd73c640149ccb502171d99d3c5840de0a"
+            },
+            {
+              "authentic_log_score": -2.4651040224918206,
+              "current_node": "n3_S0_long_progress",
+              "hidden_next_execution_id": "f0ce8cc813ffda50080c5f04b138c1c4b9e9f702a9dc11f0cefa32eb539f55d9",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.3364866446697268,
+              "trace_id": "a9f40916451047b39c68b95dc6b740bd73c640149ccb502171d99d3c5840de0a"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "cd210f4bf4db7690a5eac8cac3e9f2d95721e405e796395a038f88e6ca4b45f7",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "a9f40916451047b39c68b95dc6b740bd73c640149ccb502171d99d3c5840de0a"
+            },
+            {
+              "authentic_log_score": -2.5437471498109336,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "8f32b4d8cea6e0e84ae4db40913ba317c320cd4cdd9df52914d4ecf359a05d15",
+              "null_log_score": -1.118814995985629,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.5437471498109336,
+              "trace_id": "a9f40916451047b39c68b95dc6b740bd73c640149ccb502171d99d3c5840de0a"
+            },
+            {
+              "authentic_log_score": -3.332204510175204,
+              "current_node": "n1_branch_point_S1",
+              "hidden_next_execution_id": "8be9342ac5089b85fafaf314335f8f135defd20495876784502485b39230c681",
+              "null_log_score": -3.0647251450409425,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -3.332204510175204,
+              "trace_id": "a9f40916451047b39c68b95dc6b740bd73c640149ccb502171d99d3c5840de0a"
+            }
+          ],
+          "shuffled_mean_log_score": -2.683406025212549,
+          "split": "qualification"
+        }
+      },
+      "game": "gymv_thunder_force_iii",
+      "proposal_description_untrusted": "A single branching-with-recovery motif: after an early S1 execution the trace diverges to one of two distinct S0 executions. One S0 (short) is followed by a return to S1 (a recovery/loop), while the other S0 (long) progresses onward to S2 (no immediate return). This captures an observed branch where the system either recovers by re-entering S1 or proceeds forward via S2.",
+      "result_file": "docs/results/thunder_execution_motif_receipt_only_v1.json",
+      "status": "REJECTED_OR_NEEDS_FRESH_RECURRENCE",
+      "strict_audit": {
+        "accepted": false,
+        "discovery_execution_coverage": 0.42857142857142855,
+        "edges": 4,
+        "failure_codes": [
+          "EDGE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "NODE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "SINGLE_FIELD_SHORTCUT_ACTION_SEQUENCE"
+        ],
+        "has_branch": true,
+        "has_cycle": false,
+        "nodes": 5,
+        "observed_edges": 4,
+        "recurrent_edges": false,
+        "recurrent_nodes": false,
+        "single_field_shortcuts": [
+          "ACTION_SEQUENCE"
+        ]
+      }
+    },
+    {
+      "condition": "AUTHENTIC_REASONING",
+      "exploratory_blind_is_confirmatory": false,
+      "exploratory_blind_scoring": {
+        "held_out": {
+          "authentic_gain_over_null": -0.8987481031243776,
+          "authentic_gain_over_shuffled": -0.06514745460657112,
+          "authentic_mean_log_score": -2.484772534884366,
+          "blind_boundaries": 19,
+          "claim_boundary": "Model fitting uses discovery assignments only. Evaluation reveals each next execution solely to the mechanical scorer.",
+          "null_mean_log_score": -1.5860244317599885,
+          "passes_predictive_ordering": false,
+          "rows": [
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "866487458506dde05fa6877aabd266bf22f376a35f08b32430a217e308691c7a",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "9211fc8cfaf29963e2298917db8e8b77b62e044232151519b39eaa313012ccc9",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "a623ccaf3782fd01c4292768f8da75ca35b94fd6bc674b28c1ca9656a77036bd",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "7dba7481d58cf82b0e0d66a8c42da591a1dfcd1e7a8b8a2141bd812f1a5e78cd",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "7ec6d67dd029bfcd0ad05f1080c10f54bf93e24e76b29aeff70a5cef5be54f44",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "0151ffa5e48177ba96d4deea7f36e5c91f9f2dd2080feeb8ec5423a1d5c868f3",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "2409c71a253fee5df853bad608d8fc82a254d830e294487b3ac45542def1bce3",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 6,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.928010050268495,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "586fe70347d3486cf8b39c71e0c2df2065fb72b2b45e607c8b0cb7b4460f3685",
+              "null_log_score": -2.6855773452501515,
+              "prefix_end_execution_offset": 7,
+              "shuffled_log_score": -3.266476220902044,
+              "trace_id": "753ddc6274d47cea09ea5297aab9a07bfa890e6e8632ef4f4689343cb9a66bf8"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "715ee347686d3b42dff1e2ca7e9cbfddf05b3e0ed6af13ddc91f58bd9b9afdaa",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "fc21fd23712533450f8fe74cc5d9ba50f018d06467ba8ebb6df713814a5f9fa1",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "f8c4786eeb70cedfdb1f3bfa08204be1caeda6bb458ef40d91a00ce7a40be36a",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "82312d177af178aa9ba85266e0516881312250c6cb1488594199dc8727fab14c",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "8e01c8eb3e8143660feb543658df45e6faf04fab4b907cb4f8fe76a29213df84",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.519089732997073,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "066a03d35dfbbe6898368bdc956feb09ab912392d595fb771a4b1c4bd25d9a8c",
+              "null_log_score": -1.8382794848629478,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -2.7861956168024666,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.1910193796625537,
+              "current_node": "S2_attempt_positive",
+              "hidden_next_execution_id": "e769fef1a30f352d61be10bac624e775ccc4c28887931df8a679e6b554839989",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 6,
+              "shuffled_log_score": -2.4250986878781213,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "acfa2d0f91faec02356ee8949b93fb28f0d6ae5ba44b5bc02cfa8831ca6b908a",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 7,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.519089732997073,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "7fae0930e09ed44e303c45d6dffbe6b1be21858fbed55a7f133f6db96290d9ed",
+              "null_log_score": -1.8382794848629478,
+              "prefix_end_execution_offset": 8,
+              "shuffled_log_score": -2.7861956168024666,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.1910193796625537,
+              "current_node": "S2_attempt_positive",
+              "hidden_next_execution_id": "ca2f89079d3adcc2238cfaaf56f54ef7c9ea58f33d7d55a03661606ace921fb7",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 9,
+              "shuffled_log_score": -2.4250986878781213,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            },
+            {
+              "authentic_log_score": -2.8576477700249736,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "4afdfdfc46aef6b62b4d0ee7d5330e717ed2d819b19d34ac9c91c4a4ac875113",
+              "null_log_score": -2.2801122371419873,
+              "prefix_end_execution_offset": 10,
+              "shuffled_log_score": -2.7935784484169326,
+              "trace_id": "19bbc37f391585b2d71cd5613afdecafb01466731816aa1adff7c6303f9b2d68"
+            }
+          ],
+          "shuffled_mean_log_score": -2.419625080277795,
+          "split": "held_out"
+        },
+        "qualification": {
+          "authentic_gain_over_null": -0.8961752279301218,
+          "authentic_gain_over_shuffled": -0.06574323034010687,
+          "authentic_mean_log_score": -2.5362681142603467,
+          "blind_boundaries": 16,
+          "claim_boundary": "Model fitting uses discovery assignments only. Evaluation reveals each next execution solely to the mechanical scorer.",
+          "null_mean_log_score": -1.6400928863302249,
+          "passes_predictive_ordering": false,
+          "rows": [
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "3ac5618020f589b8ad07ec0c38b90cbe906277c963b30f2b1173b6f5580b5b3f",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "e4ace1f516e16d55e8394f0afb06de5449f5e383ed6549b60fee19d19c740089",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "295d97feadb25bb382b46446fb04f4da8327e251d363082413ce64e2a11de692",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "19e52cca9627d858d1ec9f97a2ee30911240ddfb1dd117cf10e07fe67966102c",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "4072f16c62ba8bb7d670fd334d08d2bb8d98ea1a57b83b9e6a4705047883808d",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "4ef0ad05da6a0141f003f1f6fa3e403dadaacd4f61100d2dca789e902422d7b2",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "2dcc0b934efe7ee788769e763eaa4d3e929ffd897c8c5dad41ed06a1424cd663",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 6,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.519089732997073,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "5b2ceee09a5d1e64cd7606056f83e423fc7d6eefcb7fc22bd5a821ac8865be1c",
+              "null_log_score": -1.8382794848629478,
+              "prefix_end_execution_offset": 7,
+              "shuffled_log_score": -2.7861956168024666,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.1910193796625537,
+              "current_node": "S2_attempt_positive",
+              "hidden_next_execution_id": "075f1f0ce6c2af14dbf1bc48ec140ec0837ddb8ded9225ee4f1797bbc7e4a75d",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 8,
+              "shuffled_log_score": -2.4250986878781213,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.928010050268495,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "1907df032f1b251b89829fc812ef2181b62e44df46bfbcb082d62ecd40368d6d",
+              "null_log_score": -2.6855773452501515,
+              "prefix_end_execution_offset": 9,
+              "shuffled_log_score": -3.266476220902044,
+              "trace_id": "2fc67bb7501a1f6ac5bc072aad731a338d812a1253139c7ede4a3d71db61609f"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "bf90d21d47ade569f1e9807e96a6496d6eaa8ce85ab93c46dc2a500ae43794c7",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 0,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "4b39093df74a26bf068fe6a3a97bf02ec910d9daaa42397b77d971343870435b"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "2e6c093a3491cd8a07b9ea62062f323a74519cf591c55571abceccf054eb750e",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 1,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "4b39093df74a26bf068fe6a3a97bf02ec910d9daaa42397b77d971343870435b"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "efda02d8f1ba92c075503bd8638ffe20805c25ebc93cebafa6ec544789052004",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 2,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "4b39093df74a26bf068fe6a3a97bf02ec910d9daaa42397b77d971343870435b"
+            },
+            {
+              "authentic_log_score": -2.4619078551684797,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "f8130d922e589d87de97372b38b43b76b88f6eea022f27ce1ece65f24840e2a7",
+              "null_log_score": -1.4328143767547834,
+              "prefix_end_execution_offset": 3,
+              "shuffled_log_score": -2.268479480507535,
+              "trace_id": "4b39093df74a26bf068fe6a3a97bf02ec910d9daaa42397b77d971343870435b"
+            },
+            {
+              "authentic_log_score": -2.519089732997073,
+              "current_node": "post_success_verify_S1",
+              "hidden_next_execution_id": "434f059f9318023aca35d149d07371fe7c6c10553676f01693509ae1ee32b084",
+              "null_log_score": -1.8382794848629478,
+              "prefix_end_execution_offset": 4,
+              "shuffled_log_score": -2.7861956168024666,
+              "trace_id": "4b39093df74a26bf068fe6a3a97bf02ec910d9daaa42397b77d971343870435b"
+            },
+            {
+              "authentic_log_score": -3.3420945253870795,
+              "current_node": "S2_attempt_positive",
+              "hidden_next_execution_id": "4e4fecd00762ab6bae66cafb7f09d5705d3c66f641b83bf90525599ada7d4f13",
+              "null_log_score": -2.6855773452501515,
+              "prefix_end_execution_offset": 5,
+              "shuffled_log_score": -3.3111577147558564,
+              "trace_id": "4b39093df74a26bf068fe6a3a97bf02ec910d9daaa42397b77d971343870435b"
+            }
+          ],
+          "shuffled_mean_log_score": -2.47052488392024,
+          "split": "qualification"
+        }
+      },
+      "game": "gymv_strider",
+      "proposal_description_untrusted": "Observed recovery/verification branching around S2 (attack) attempts: S2 executions split into successful (positive-return) and failed (zero-return) outcomes. Successful S2s are followed by short S1 \u2018verification\u2019 executions; those verification S1s then either lead into another S2 (continuation/terminal) or into a failed S2. Failed S2s instead transition to an S0 recovery execution before the routine continues. This captures branching (S2 -> {verify, recover}), verification (S2_pos -> S1_verify -> S2_*), and a recovery path after failed attempts.",
+      "result_file": "docs/results/strider_execution_motif_authentic_v1.json",
+      "status": "REJECTED_OR_NEEDS_FRESH_RECURRENCE",
+      "strict_audit": {
+        "accepted": false,
+        "discovery_execution_coverage": 0.42105263157894735,
+        "edges": 4,
+        "failure_codes": [
+          "EDGE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "NODE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "SINGLE_FIELD_SHORTCUT_ACTION_REPEAT_SEQUENCE",
+          "SINGLE_FIELD_SHORTCUT_ACTION_SEQUENCE",
+          "SINGLE_FIELD_SHORTCUT_LENGTH",
+          "SINGLE_FIELD_SHORTCUT_REWARD_SIGN_SEQUENCE"
+        ],
+        "has_branch": true,
+        "has_cycle": true,
+        "nodes": 4,
+        "observed_edges": 5,
+        "recurrent_edges": false,
+        "recurrent_nodes": false,
+        "single_field_shortcuts": [
+          "LENGTH",
+          "ACTION_SEQUENCE",
+          "ACTION_REPEAT_SEQUENCE",
+          "REWARD_SIGN_SEQUENCE"
+        ]
+      }
+    },
+    {
+      "condition": "RECEIPT_ONLY",
+      "exploratory_blind_is_confirmatory": false,
+      "exploratory_blind_scoring": {},
+      "game": "gymv_strider",
+      "proposal_description_untrusted": "No non-trivial control motif is supported by the recordings. The observed organization can be fully accounted for by skill identity, action sequences, execution length, and occasional reward sign differences (e.g., long S2 executions sometimes returning POSITIVE). There is no observed instance where the same recorded execution_id branches to different successors across traces, nor a consistent branching \u2192 reconvergence (recovery), short verification sub-execution following a particular execution, or a termination subgraph that cannot be explained by skill or reward identity alone. Therefore no stronger control motif can be proposed.",
+      "result_file": "docs/results/strider_execution_motif_receipt_only_v1.json",
+      "status": "REJECTED_OR_NEEDS_FRESH_RECURRENCE",
+      "strict_audit": {
+        "accepted": false,
+        "discovery_execution_coverage": 0.0,
+        "edges": 0,
+        "failure_codes": [
+          "EDGE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "NODE_NOT_RECURRENT_ACROSS_DISCOVERY_EPISODES",
+          "TRIVIAL_EXECUTION_GRAPH",
+          "ZERO_DISCOVERY_COVERAGE"
+        ],
+        "has_branch": false,
+        "has_cycle": false,
+        "nodes": 0,
+        "observed_edges": 0,
+        "recurrent_edges": false,
+        "recurrent_nodes": false,
+        "single_field_shortcuts": []
+      }
+    }
+  ],
+  "schema_version": 1,
+  "source_supported": false
+}

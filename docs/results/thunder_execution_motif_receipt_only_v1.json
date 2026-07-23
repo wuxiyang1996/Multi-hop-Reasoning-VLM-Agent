@@ -1,0 +1,165 @@
+{
+  "affordance": {
+    "schema_version": "SOURCE_EXECUTION_AFFORDANCE_V1",
+    "split_stats": {
+      "discovery": {
+        "cross_execution_boundaries": 12,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 14,
+        "positive_return_executions": 3
+      },
+      "held_out": {
+        "cross_execution_boundaries": 12,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 14,
+        "positive_return_executions": 2
+      },
+      "qualification": {
+        "cross_execution_boundaries": 14,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 16,
+        "positive_return_executions": 2
+      }
+    },
+    "traces_valid": true
+  },
+  "agent_call": {
+    "include_reasoning": false,
+    "payload_hash": "ec620911ef1d610a655be5373a265d75a2e8ca1936416107b11718ed0cde8400",
+    "response_hash": "f848b145dc0f9bc1672c1ce49d696db13e71910556aea4aae20cba42fcd555fa",
+    "role": "source_execution_motif",
+    "usage": {
+      "completion_tokens": 2893,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 2240,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens": 3437,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "total_tokens": 6330
+    }
+  },
+  "audit": {
+    "accepted": true,
+    "discovery_execution_coverage": 0.42857142857142855,
+    "edges": 4,
+    "failure_codes": [],
+    "has_branch": true,
+    "has_cycle": false,
+    "nodes": 5,
+    "observed_edges": 4
+  },
+  "authority": "UNTRUSTED_AGENT_GRAPH_OVER_RECEIPT_BOUND_SKILL_EXECUTIONS",
+  "condition": "RECEIPT_ONLY",
+  "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_thunder_force_iii/evidence",
+  "graph": {
+    "discovery_trace_ids": [
+      "edc81e78517699bcc9ba8deb084f2c89cb9c255aa97e6f11649078770d3550d3",
+      "e90037e2872a10251b2c20d28e7b6fe437e2e499b2772ec333536ff78dc46204"
+    ],
+    "edges": [
+      {
+        "source": "n1_branch_point_S1",
+        "supporting_boundaries": [
+          [
+            "edc81e78517699bcc9ba8deb084f2c89cb9c255aa97e6f11649078770d3550d3",
+            1
+          ]
+        ],
+        "target": "n2_S0_short_recovery"
+      },
+      {
+        "source": "n1_branch_point_S1",
+        "supporting_boundaries": [
+          [
+            "e90037e2872a10251b2c20d28e7b6fe437e2e499b2772ec333536ff78dc46204",
+            1
+          ]
+        ],
+        "target": "n3_S0_long_progress"
+      },
+      {
+        "source": "n2_S0_short_recovery",
+        "supporting_boundaries": [
+          [
+            "edc81e78517699bcc9ba8deb084f2c89cb9c255aa97e6f11649078770d3550d3",
+            2
+          ]
+        ],
+        "target": "n4_S1_after_recovery"
+      },
+      {
+        "source": "n3_S0_long_progress",
+        "supporting_boundaries": [
+          [
+            "e90037e2872a10251b2c20d28e7b6fe437e2e499b2772ec333536ff78dc46204",
+            2
+          ]
+        ],
+        "target": "n5_S2_after_progress"
+      }
+    ],
+    "game": "gymv_thunder_force_iii",
+    "graph_id": "008a826b074ae13696756d68a45b521a28fa766eab8501c715894d9d00085038",
+    "nodes": [
+      {
+        "execution_ids": [
+          "dfb63b5edc61fb034831b1c0d1f1d8890a04847d369a7a7f4a560b6255b475a6",
+          "131a650ae88677c8240395cd21bd940254034a9ed410ae51b1c1e84a16ae399e"
+        ],
+        "node_id": "n1_branch_point_S1",
+        "untrusted_role": "branch_point"
+      },
+      {
+        "execution_ids": [
+          "e5cb37b2c95d43d562a4d56a73d698d3602dfd141ee3014f39ef51dcae604077"
+        ],
+        "node_id": "n2_S0_short_recovery",
+        "untrusted_role": "recovery_branch"
+      },
+      {
+        "execution_ids": [
+          "a7b3c9efa417398dd4b1fe54f88be0d34101465f98fb5b2f8400ee34f9b12fa8"
+        ],
+        "node_id": "n3_S0_long_progress",
+        "untrusted_role": "progression_branch"
+      },
+      {
+        "execution_ids": [
+          "e98156d2ef4e0942312f96d0922617f85de142fa7036d21d2f771f130d9dc840"
+        ],
+        "node_id": "n4_S1_after_recovery",
+        "untrusted_role": "recovered_target"
+      },
+      {
+        "execution_ids": [
+          "e235789fa1f0b439c6b6f3af3cfc1b996d60d8c6981e4ebbd0da4dcee975bd0e"
+        ],
+        "node_id": "n5_S2_after_progress",
+        "untrusted_role": "progress_target"
+      }
+    ],
+    "untrusted_description": "A single branching-with-recovery motif: after an early S1 execution the trace diverges to one of two distinct S0 executions. One S0 (short) is followed by a return to S1 (a recovery/loop), while the other S0 (long) progresses onward to S2 (no immediate return). This captures an observed branch where the system either recovers by re-entering S1 or proceeds forward via S2."
+  },
+  "model_identity": {
+    "backend": "openai-compatible",
+    "base_url": "https://us.api.openai.com/v1",
+    "models": {
+      "source_execution_motif": "gpt-5-mini"
+    },
+    "request_overrides": {},
+    "temperature": null,
+    "transport_attempts": 2
+  },
+  "schema_version": 1,
+  "source_supported": false,
+  "source_supported_reason": "Graph audit alone is insufficient; blind recurrence and matched h1/h2/h4/h8 value remain required."
+}

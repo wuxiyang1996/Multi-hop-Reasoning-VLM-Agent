@@ -1,0 +1,377 @@
+{
+  "schema_version": 1,
+  "executor": "vtb_two_agent_online_interposition",
+  "sample_id": "row:105",
+  "split": "adaptation",
+  "condition": "generic_reasoning",
+  "claim_label": "PROTOCOL_SMOKE",
+  "official_commit": "d4f200a0a44790349667bed09334ac88623074b2",
+  "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+  "dynamic_tool_schema_sha256_by_round": [
+    "73cd38f3e4c64fea67e7533c334666c87d86ecf49d210bbe40a368b44164fda9",
+    "73cd38f3e4c64fea67e7533c334666c87d86ecf49d210bbe40a368b44164fda9",
+    "73cd38f3e4c64fea67e7533c334666c87d86ecf49d210bbe40a368b44164fda9"
+  ],
+  "decision_model": "qwen/qwen3.5-35b-a3b",
+  "harness_model": "gpt-5-mini",
+  "max_tool_rounds": 3,
+  "replan_count": 1,
+  "termination_reason": "OFFICIAL_CAP_EXHAUSTED",
+  "final_answer": null,
+  "final_answer_present": false,
+  "image_sha256": [
+    "c797d90d9c0f746eac479466de8835ef9183ddbd97b9f7489ee74216303084a2"
+  ],
+  "source_enabled_at_end": false,
+  "tool_call_count": 2,
+  "reviews": [
+    {
+      "round_index": 0,
+      "reviewed_proposal_ids": [
+        "51e5297a7106234a86bef01d43f48677515e113409045ecbab8f0896c46d03ae"
+      ],
+      "verdict": "REPLAN",
+      "reason": "The proposal applies a 180° rotation without prior evidence that the image is inverted or that this transformation yields new information. The review requires a pre- and post-transformation receipt that demonstrates information gain (e.g., file creation, changed bytes/checksum, orientation/EXIF change, or readable content after rotation). The submitted code performs the transform but does not produce or request the diagnostic evidence needed to confirm success or detect exact repetition. Request the Decision Agent to (a) gather a diagnostic preview/metadata of the original image and (b) re-propose a transformation that includes producing explicit evidentiary receipts (checksums, file paths, size, and a simple content check such as OCR or a thumbnail) so the harness can verify non-redundancy and information gain.",
+      "expected_transition": "The tool observation must include a structured receipt that contains all of the following: 1) input_path (existing input file path), input_size_bytes (>0) and input_sha256; 2) output_path ('/fs/gamma-projects/vlm-robot/.../transformed_image_0.png'), output_size_bytes (>0) and output_sha256; 3) image_dimensions for input and output (width,height) and EXIF orientation tags (if present) for both; 4) a small thumbnail or base64 preview for output (or an OCR/text-extraction string) demonstrating that previously-unreadable text or features are now readable; 5) a transformation_summary object explicitly stating rotation_degrees: 180 and pixels_changed: boolean (true if output_sha256 != input_sha256). The observation should therefore show the saved output file exists and that its bytes differ from the original or that readable content increased (OCR non-empty or thumbnail visually upright).",
+      "termination_test": "Admit (stop) if the tool receipt includes output_path and output_size_bytes>0 AND output_sha256 != input_sha256, and (either OCR_output indicates readable upright text OR the thumbnail preview shows upright content). Replan if output_path is missing, output_size_bytes==0, or output_sha256 == input_sha256 (exact byte-for-byte repetition). Replan also if the receipt reports an error during processing. If the tool returns output_sha256 != input_sha256 but no preview/OCR is supplied, request one more diagnostic run (single attempt) to produce a preview; if that second attempt still lacks preview/OCR, then ABSTAIN to allow target-only fallback.",
+      "source_receipt_ids": [],
+      "live_receipt_ids": []
+    },
+    {
+      "round_index": 1,
+      "reviewed_proposal_ids": [
+        "cb75bcf696de52cca18c000b0ebb4678b50ae77414c86287b1eddf5b6d35736b"
+      ],
+      "verdict": "REPLAN",
+      "reason": "The proposal produces a diagnostic receipt that reports file-level metadata (SHA256, sizes, dimensions) and a pixels_changed boolean, but it does not (a) include an explicit termination/stop criterion for the orchestration layer, and (b) robustly distinguish byte-level changes from true pixel-identity (it relies only on file SHA256 which can change for metadata/encoding differences). The Decision Agent should re-submit a plan that (1) declares the exact stop condition to use, (2) adds an explicit pixel-level identity check (e.g. bytewise pixel array comparison or image-data hash) or documents why SHA256 is sufficient, and (3) ensures the receipt file path and required keys are reliably produced.",
+      "expected_transition": "Tool observation must produce and persist the JSON receipt at /fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/receipt_0.json. The receipt must contain at minimum these fields with sensible types/values: input_sha256 (hex string), output_sha256 (hex string), input_size_bytes (int), output_size_bytes (int), image_dimensions.input and image_dimensions.output (two-element integer arrays), exif_orientation.input and exif_orientation.output (nullable), transformation_summary.rotation_degrees (numeric, expected 180) and transformation_summary.pixels_changed (boolean), thumbnail_base64 (non-empty base64 string prefix), and ocr_preview (string, possibly empty). The tool stdout should print the diagnostic header and lines matching these receipt values. If any of the above keys are missing, malformed, or the receipt file is not written, the observation is insufficient.",
+      "termination_test": "1) Wait for the receipt file to appear at the path above. 2) Load JSON and assert presence of the required fields listed in expected_transition. 3) If transformation_summary.pixels_changed == true: PASS/stop (transformation produced detectable byte-level change). 4) If transformation_summary.pixels_changed == false: verify exact repetition by checking input_sha256 == output_sha256. If true: PASS/stop (no-op confirmed). 5) If pixels_changed == false but input_sha256 != output_sha256: FAIL -> REPLAN (contradiction; tool must provide a pixel-level comparison or explain discrepancy). 6) If any required fields are missing or unreadable: FAIL -> REPLAN. The Decision Agent should include this termination test in its next plan and/or augment the code to perform the pixel-level comparison itself.",
+      "source_receipt_ids": [],
+      "live_receipt_ids": []
+    },
+    {
+      "round_index": 2,
+      "reviewed_proposal_ids": [
+        "b1def6a088638f72d76773b0339c1cf73662f80e0c59eb4658f04ea329110fce"
+      ],
+      "verdict": "REPLAN",
+      "reason": "The most recent live receipt (707685b7...) shows a failed execution. The proposed transformation + diagnostic receipt would be acceptable if a new successful live receipt is produced that demonstrably provides new evidence (different output SHA256 / pixels_changed true and a saved receipt JSON). Because no successful diagnostic evidence is present now, the Decision Agent must choose again (retry or pick an adjusted proposal) rather than admitting the current target.",
+      "expected_transition": "A new live observation that includes a saved receipt JSON at /fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/receipt_0.json and a tool-level live receipt entry. The receipt JSON must contain at minimum: input_path, output_path, input_size_bytes, output_size_bytes, input_sha256, output_sha256, image_dimensions.input, image_dimensions.output, exif_orientation, thumbnail_base64 (non-empty), ocr_preview (string, possibly empty), and transformation_summary with rotation_degrees: 180 and pixels_changed (boolean). The live observation should report success==true and the output file must exist at the stated output_path. For information gain, the output_sha256 in the new receipt should differ from the prior observation SHA256 be042688671740564b1de99a2ec3eb23cfbb40348b6f44634bce6130b51ed7a8.",
+      "termination_test": "Stop waiting when a new live receipt appears with success==true and a receipt JSON saved to the specified path that includes output_sha256. If that output_sha256 != 'be042688671740564b1de99a2ec3eb23cfbb40348b6f44634bce6130b51ed7a8', ADMIT the proposal (evidence of information gain). If a new live receipt appears with success==false, or the new output_sha256 equals 'be042688671740564b1de99a2ec3eb23cfbb40348b6f44634bce6130b51ed7a8' (exact repetition / no information gain), then treat as failure and REPLAN (Decision Agent must choose again).",
+      "source_receipt_ids": [],
+      "live_receipt_ids": [
+        "707685b755e6e909d1a2e0206397f53c7b62901a85d5c1ea033d65139649b3ab"
+      ]
+    }
+  ],
+  "verifications": [
+    {
+      "round_index": 1,
+      "verdict": "REFUTED",
+      "reason": "Prediction expected a detailed JSON receipt with fields like input_sha256, output_sha256, input_size_bytes, output_size_bytes, image_dimensions, transformation_summary, thumbnail_base64, and ocr_preview persisted at the specified path and printed to stdout. The actual receipt (shown) contains only metadata keys (observation_sha256, output_paths_sha256, proposal_id, receipt_id, round_index, success, tool_contract_sha256) and success=false. The tool stderr shows a NameError and no persisted detailed receipt content is present, so the predicted detailed receipt was not produced.",
+      "receipt_id": "707685b755e6e909d1a2e0206397f53c7b62901a85d5c1ea033d65139649b3ab"
+    },
+    {
+      "round_index": 2,
+      "verdict": "REFUTED",
+      "reason": "The prediction expected a new live receipt with success==true and a saved receipt JSON containing output_sha256 different from the prior SHA256. The cited real receipt (id 1377d1f8...) has success==false and stderr showing a ModuleNotFoundError/NameError, so the predicted successful output and receipt contents did not occur.",
+      "receipt_id": "1377d1f819b5ab354416dcb2ff0da8bb8005642966e98432c71c5402dd50b544"
+    }
+  ],
+  "tool_trace": [
+    {
+      "proposal": {
+        "proposal_id": "cb75bcf696de52cca18c000b0ebb4678b50ae77414c86287b1eddf5b6d35736b",
+        "round_index": 1,
+        "call_id": "call_2f9ed4e5d5364e0fa4b8387d",
+        "tool_name": "python_image_processing",
+        "arguments": {
+          "code": "from PIL import Image\nimport hashlib\nimport os\nimport base64\nfrom io import BytesIO\n\n# Define paths\ninput_path = '/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/input_0.png'\noutput_path = '/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png'\n\n# Load original image\nimg = Image.open(input_path)\n\n# Get input metadata\ninput_size = os.path.getsize(input_path)\nwith open(input_path, 'rb') as f:\n    input_sha256 = hashlib.sha256(f.read()).hexdigest()\ninput_dims = img.size  # (width, height)\n\n# Check for EXIF orientation\nexif_data = img.info.get('exif')\nexif_orientation = None\nif exif_data:\n    try:\n        from PIL.ExifTags import TAGS, GPSTAGS\n        exif = img._getexif()\n        if exif:\n            for tag_id, value in exif.items():\n                tag = TAGS.get(tag_id, tag_id)\n                if tag == 'Orientation':\n                    exif_orientation = value\n    except:\n        pass\n\n# Rotate 180 degrees\nrotated_img = img.rotate(180, expand=True)\n\n# Save rotated image\nrotated_img.save(output_path, 'PNG')\n\n# Get output metadata\noutput_size = os.path.getsize(output_path)\nwith open(output_path, 'rb') as f:\n    output_sha256 = hashlib.sha256(f.read()).hexdigest()\noutput_dims = rotated_img.size\n\n# Check for EXIF in output\noutput_exif = None\ntry:\n    output_exif = rotated_img.info.get('exif')\nexcept:\n    pass\n\n# Create thumbnail for preview\nthumbnail = rotated_img.copy()\nthumbnail.thumbnail((200, 200))\nthumbnail_bytes = BytesIO()\nthumbnail.save(thumbnail_bytes, format='PNG')\nthumbnail_base64 = base64.b64encode(thumbnail_bytes.getvalue()).decode('utf-8')\n\n# Simple OCR to check if text is readable\ntry:\n    import pytesseract\n    text = pytesseract.image_to_string(rotated_img)\n    ocr_output = text[:500] if text else \"\"\nexcept:\n    ocr_output = \"OCR not available\"\n\n# Determine if pixels changed\npixels_changed = input_sha256 != output_sha256\n\n# Build receipt\nreceipt = {\n    \"input_path\": input_path,\n    \"input_size_bytes\": input_size,\n    \"input_sha256\": input_sha256,\n    \"output_path\": output_path,\n    \"output_size_bytes\": output_size,\n    \"output_sha256\": output_sha256,\n    \"image_dimensions\": {\n        \"input\": list(input_dims),\n        \"output\": list(output_dims)\n    },\n    \"exif_orientation\": {\n        \"input\": exif_orientation,\n        \"output\": output_exif\n    },\n    \"thumbnail_base64\": thumbnail_base64[:100] + \"...\",  # Truncated for display\n    \"ocr_preview\": ocr_output[:200] if ocr_output else \"\",\n    \"transformation_summary\": {\n        \"rotation_degrees\": 180,\n        \"pixels_changed\": pixels_changed\n    }\n}\n\nprint(\"=== DIAGNOSTIC RECEIPT ===\")\nprint(f\"Input path: {receipt['input_path']}\")\nprint(f\"Input size: {receipt['input_size_bytes']} bytes\")\nprint(f\"Input SHA256: {receipt['input_sha256']}\")\nprint(f\"Output path: {receipt['output_path']}\")\nprint(f\"Output size: {receipt['output_size_bytes']} bytes\")\nprint(f\"Output SHA256: {receipt['output_sha256']}\")\nprint(f\"Input dimensions: {receipt['image_dimensions']['input']}\")\nprint(f\"Output dimensions: {receipt['image_dimensions']['output']}\")\nprint(f\"Pixels changed: {receipt['transformation_summary']['pixels_changed']}\")\nprint(f\"OCR preview: {receipt['ocr_preview']}\")\nprint(\"=== END RECEIPT ===\")\n\n# Save receipt to file for verification\nimport json\nwith open('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/receipt_0.json', 'w') as f:\n    json.dump(receipt, f, indent=2)\n\nprint(\"\\nReceipt saved to receipt_0.json\")"
+        },
+        "agent_id": "decision-agent"
+      },
+      "observation": {
+        "ok": "false",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/fs/gamma-projects/vlm-robot/VisualToolBench-official/scripts/tools.py\", line 150, in python_image_processing\n    exec(compile(code, \"<llm_code>\", \"exec\"), safe_globals, safe_locals)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<llm_code>\", line 16, in <module>\nNameError: name 'open' is not defined\n",
+        "output_path": "",
+        "output_paths": []
+      },
+      "receipt": {
+        "receipt_id": "707685b755e6e909d1a2e0206397f53c7b62901a85d5c1ea033d65139649b3ab",
+        "proposal_id": "cb75bcf696de52cca18c000b0ebb4678b50ae77414c86287b1eddf5b6d35736b",
+        "round_index": 1,
+        "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+        "observation_sha256": "be042688671740564b1de99a2ec3eb23cfbb40348b6f44634bce6130b51ed7a8",
+        "success": false,
+        "output_paths_sha256": []
+      }
+    },
+    {
+      "proposal": {
+        "proposal_id": "b1def6a088638f72d76773b0339c1cf73662f80e0c59eb4658f04ea329110fce",
+        "round_index": 2,
+        "call_id": "call_7e127bc714624315889deca9",
+        "tool_name": "python_image_processing",
+        "arguments": {
+          "code": "from PIL import Image\nimport hashlib\nimport os\nimport base64\nfrom io import BytesIO\n\n# Define paths\ninput_path = '/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/input_0.png'\noutput_path = '/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png'\n\n# Load original image\nimg = Image.open(input_path)\n\n# Get input metadata using PIL\ninput_size = os.path.getsize(input_path)\ninput_bytes = img.tobytes()\ninput_sha256 = hashlib.sha256(input_bytes).hexdigest()\ninput_dims = img.size  # (width, height)\n\n# Check for EXIF orientation\nexif_orientation = None\ntry:\n    exif_data = img.info.get('exif')\n    if exif_data:\n        from PIL.ExifTags import TAGS\n        exif = img._getexif()\n        if exif:\n            for tag_id, value in exif.items():\n                tag = TAGS.get(tag_id, tag_id)\n                if tag == 'Orientation':\n                    exif_orientation = value\nexcept Exception as e:\n    print(f\"EXIF error: {e}\")\n\n# Rotate 180 degrees\nrotated_img = img.rotate(180, expand=True)\n\n# Save rotated image\nrotated_img.save(output_path, 'PNG')\n\n# Get output metadata\noutput_size = os.path.getsize(output_path)\noutput_bytes = rotated_img.tobytes()\noutput_sha256 = hashlib.sha256(output_bytes).hexdigest()\noutput_dims = rotated_img.size\n\n# Create thumbnail for preview\nthumbnail = rotated_img.copy()\nthumbnail.thumbnail((200, 200))\nthumbnail_bytes = BytesIO()\nthumbnail.save(thumbnail_bytes, format='PNG')\nthumbnail_base64 = base64.b64encode(thumbnail_bytes.getvalue()).decode('utf-8')\n\n# Simple OCR to check if text is readable\ntry:\n    import pytesseract\n    text = pytesseract.image_to_string(rotated_img)\n    ocr_output = text[:500] if text else \"\"\nexcept Exception as e:\n    ocr_output = f\"OCR error: {e}\"\n\n# Determine if pixels changed\npixels_changed = input_sha256 != output_sha256\n\n# Build receipt\nreceipt = {\n    \"input_path\": input_path,\n    \"input_size_bytes\": input_size,\n    \"input_sha256\": input_sha256,\n    \"output_path\": output_path,\n    \"output_size_bytes\": output_size,\n    \"output_sha256\": output_sha256,\n    \"image_dimensions\": {\n        \"input\": list(input_dims),\n        \"output\": list(output_dims)\n    },\n    \"exif_orientation\": {\n        \"input\": exif_orientation,\n        \"output\": None\n    },\n    \"thumbnail_base64\": thumbnail_base64[:100] + \"...\",\n    \"ocr_preview\": ocr_output[:200] if ocr_output else \"\",\n    \"transformation_summary\": {\n        \"rotation_degrees\": 180,\n        \"pixels_changed\": pixels_changed\n    }\n}\n\nprint(\"=== DIAGNOSTIC RECEIPT ===\")\nprint(f\"Input path: {receipt['input_path']}\")\nprint(f\"Input size: {receipt['input_size_bytes']} bytes\")\nprint(f\"Input SHA256: {receipt['input_sha256']}\")\nprint(f\"Output path: {receipt['output_path']}\")\nprint(f\"Output size: {receipt['output_size_bytes']} bytes\")\nprint(f\"Output SHA256: {receipt['output_sha256']}\")\nprint(f\"Input dimensions: {receipt['image_dimensions']['input']}\")\nprint(f\"Output dimensions: {receipt['image_dimensions']['output']}\")\nprint(f\"Pixels changed: {receipt['transformation_summary']['pixels_changed']}\")\nprint(f\"OCR preview: {receipt['ocr_preview']}\")\nprint(\"=== END RECEIPT ===\")\n\n# Save receipt to file\nimport json\nwith open('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/receipt_0.json', 'w') as f:\n    json.dump(receipt, f, indent=2)\n\nprint(\"\\nReceipt saved to receipt_0.json\")"
+        },
+        "agent_id": "decision-agent"
+      },
+      "observation": {
+        "ok": "false",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"<llm_code>\", line 56, in <module>\nModuleNotFoundError: No module named 'pytesseract'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/fs/gamma-projects/vlm-robot/VisualToolBench-official/scripts/tools.py\", line 150, in python_image_processing\n    exec(compile(code, \"<llm_code>\", \"exec\"), safe_globals, safe_locals)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<llm_code>\", line 59, in <module>\nNameError: name 'Exception' is not defined\n",
+        "output_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png",
+        "output_paths": [
+          "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png"
+        ]
+      },
+      "receipt": {
+        "receipt_id": "1377d1f819b5ab354416dcb2ff0da8bb8005642966e98432c71c5402dd50b544",
+        "proposal_id": "b1def6a088638f72d76773b0339c1cf73662f80e0c59eb4658f04ea329110fce",
+        "round_index": 2,
+        "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+        "observation_sha256": "879ab2fbec2ddaa39c966729a0e1032b4ab8d6e142ccf5777d20b2e794a859bc",
+        "success": false,
+        "output_paths_sha256": [
+          "383756232e1cd761007188a772cac1719f53198ca967a53bff710f32ef032c58"
+        ]
+      }
+    }
+  ],
+  "model_content": [
+    {
+      "round_index": 0,
+      "content": null
+    },
+    {
+      "round_index": 1,
+      "content": null
+    },
+    {
+      "round_index": 2,
+      "content": null
+    }
+  ],
+  "decision_usage": [
+    {
+      "cache_hit": true,
+      "usage": {
+        "completion_tokens": 303,
+        "prompt_tokens": 2762,
+        "total_tokens": 3065,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 114,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.00068968,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00068968,
+          "upstream_inference_prompt_cost": 0.00038668,
+          "upstream_inference_completions_cost": 0.000303
+        }
+      }
+    },
+    {
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 1298,
+        "prompt_tokens": 3315,
+        "total_tokens": 4613,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 236,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.0017621,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.0017621,
+          "upstream_inference_prompt_cost": 0.0004641,
+          "upstream_inference_completions_cost": 0.001298
+        }
+      }
+    },
+    {
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 1118,
+        "prompt_tokens": 4590,
+        "total_tokens": 5708,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 64,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.0017606,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.0017606,
+          "upstream_inference_prompt_cost": 0.0006426,
+          "upstream_inference_completions_cost": 0.001118
+        }
+      }
+    }
+  ],
+  "harness_usage": [
+    {
+      "phase": "review",
+      "round_index": 0,
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 1696,
+        "prompt_tokens": 6157,
+        "total_tokens": 7853,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 1152,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "phase": "review",
+      "round_index": 1,
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 1911,
+        "prompt_tokens": 6157,
+        "total_tokens": 8068,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 1344,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 4864
+        }
+      }
+    },
+    {
+      "phase": "verify",
+      "round_index": 1,
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 560,
+        "prompt_tokens": 6079,
+        "total_tokens": 6639,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 384,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "phase": "review",
+      "round_index": 2,
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 2277,
+        "prompt_tokens": 6157,
+        "total_tokens": 8434,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 1728,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 3840
+        }
+      }
+    },
+    {
+      "phase": "verify",
+      "round_index": 2,
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 521,
+        "prompt_tokens": 6079,
+        "total_tokens": 6600,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 384,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 3840
+        }
+      }
+    }
+  ],
+  "harness_input_token_counts": [
+    {
+      "phase": "review",
+      "round_index": 0,
+      "o200k_base_tokens": 6000
+    },
+    {
+      "phase": "review",
+      "round_index": 1,
+      "o200k_base_tokens": 6000
+    },
+    {
+      "phase": "verify",
+      "round_index": 1,
+      "o200k_base_tokens": 6000
+    },
+    {
+      "phase": "review",
+      "round_index": 2,
+      "o200k_base_tokens": 6000
+    },
+    {
+      "phase": "verify",
+      "round_index": 2,
+      "o200k_base_tokens": 6000
+    }
+  ]
+}

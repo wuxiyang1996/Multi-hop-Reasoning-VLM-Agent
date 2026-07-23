@@ -1,0 +1,79 @@
+{
+  "authority": "SOURCE_RECEIPT_DERIVED_SUPERVISION_ONLY",
+  "claim_boundary": "This dataset trains transition prediction, recorded-lineage recognition and abstention. It does not establish far-domain transfer.",
+  "dataset_file": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/harness_pretraining_v1/source_receipt_dataset.jsonl",
+  "dataset_sha256": "fefcff4a05ac8e18c557f19113f5e19a162a2ca4f5ee80f6a0d8728a116e432e",
+  "inputs": [
+    {
+      "episodes": 6,
+      "episodes_sha256": "d9eae20da324f2a2003496a02f7d1e273ad0413256ba88b69678675b0fd0b4e9",
+      "events_sha256": "0ed74e9655132fb3e45c704641db8501155932f39ed813863ac502bb61b9fc3d",
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_tetris_candy_long_v1/authentic_skill_loaded/tetris/evidence",
+      "manifest_sha256": "65f36687727af1d62b4e154befbb45c6f1a503290549c7c8bb6f5fcd2f6a8bc1"
+    },
+    {
+      "episodes": 6,
+      "episodes_sha256": "6b8fc2a5918652ca4b635c6ebcb8d6dfc5d87577ea723d40714a2c973bb99b8d",
+      "events_sha256": "05dece45b70c8051408e9fbc855674278478f7129131fba5dcb7ad4847c65c37",
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_tetris_candy_long_v1/authentic_skill_loaded/candy_crush/evidence",
+      "manifest_sha256": "16f9d0c2a0c723622d91e363cee1128c762fd92b5ffe4690e56cd0e60a12692f"
+    },
+    {
+      "episodes": 6,
+      "episodes_sha256": "0cabf662cbb56e5fb45355b17d872890591e66994157e5063a2d76fb96b36715",
+      "events_sha256": "f478fb6b3f6b0a19428e72fdecf4a4944bf7bfaf0662d06d9a676cae90d23d75",
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_streets_of_rage_2/evidence",
+      "manifest_sha256": "1d5d62398c477ecdb0a5ea302edc5e1424a1d541a8df4e5fe403710bb2c3c9d1"
+    },
+    {
+      "episodes": 6,
+      "episodes_sha256": "6c1f9fdeb994df576a92a40772ec24716ed04492da476c1fcb7f9067c402552b",
+      "events_sha256": "d8b8f9218c4d9127d6f83501bb1b5cafda56c3b2764175bde82d8d208500b87a",
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_strider/evidence",
+      "manifest_sha256": "f54224b92d941e65c53c1bf8c4baa773dd956ce0cdf246719b42e4717ec14c72"
+    },
+    {
+      "episodes": 6,
+      "episodes_sha256": "6805bcf2f4166141d4ca7986b71e962fec0c2be0b225e05d04bcae89e8482c89",
+      "events_sha256": "7d21476ca7051a45d70fc87b2040f70feb5dc64557c162f36de7e3315ebf04d1",
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_columns/evidence",
+      "manifest_sha256": "b05beeed82f072528886881378f3847b6415e4fb227f6d4b36ec32bd9deab1b2"
+    },
+    {
+      "episodes": 6,
+      "episodes_sha256": "67d9bc350cdf85f758e494e8f6f46b54820d8c1a74bddc958088fbbc81caba34",
+      "events_sha256": "1344f69470354a01bec46fe757f3b498d612ef591911197c276d93267e128b8b",
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_thunder_force_iii/evidence",
+      "manifest_sha256": "f303c11cc8011ad0dda7e4abf61a24c414a905d74832f6985ad6d87cee21e8c6"
+    }
+  ],
+  "schema_version": 1,
+  "summary": {
+    "agent_verdicts_used_as_labels": false,
+    "all_valid": true,
+    "episodes": 36,
+    "examples": 10614,
+    "games": [
+      "candy_crush",
+      "gymv_columns",
+      "gymv_streets_of_rage_2",
+      "gymv_strider",
+      "gymv_thunder_force_iii",
+      "tetris"
+    ],
+    "human_predicates_used": false,
+    "objective_counts": {
+      "MISSING_EVIDENCE_ABSTENTION": 1769,
+      "NEXT_TRANSITION": 1769,
+      "OUTCOME_PREDICTION": 1769,
+      "RECORDED_ADJACENCY": 1769,
+      "TRANSITION_MEMBERSHIP": 3538
+    },
+    "split_counts": {
+      "source_held_out": 3528,
+      "train": 3552,
+      "validation": 3534
+    },
+    "target_data_used": false
+  }
+}

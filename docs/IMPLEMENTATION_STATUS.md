@@ -18,6 +18,9 @@
 - VisualToolBench 官方 commit/tool-contract preflight、single-turn v2 manifest、rubric APR/ARS scorer；
 - VTB 六条件结构迁移矩阵（alpha-renaming 不变性、shuffled/other-game/generic destructive controls）；
 - VTB `row:105` 官方 target-only adaptation trace：20 calls、0 final answer、cap exhausted。
+- VTB online two-Agent interposition：Decision 独占工具参数，Harness 只 review/verify，live receipt fail-closed；
+- VTB shared exact-request Decision cache 与 SOURCE_SUPPORTED 五-treatment compiler；
+- VTB 3-round matched mechanism smoke：首 proposal exact-cache matched；generic replan 后 2 calls 均失败，0 final answer。
 
 ## 2026-07-21 旧资产审计
 
@@ -352,3 +355,87 @@ fallback 隔离。
 Source audit 同时确认 `reasoning_aligned_mega_skills.json` 含 target-domain members，原文件禁止
 作为 source treatment；all-stage mega bank 的 180 members 中只有 79 个属于冻结六游戏 allowlist。
 完整结果和后续顺序见 [`TARGET_FEASIBILITY_DIAGNOSIS.md`](TARGET_FEASIBILITY_DIAGNOSIS.md)。
+
+## Execution-level motif failure diagnosis（2026-07-22）
+
+旧 Phase-1 的 13 个 skills、131 次 executions、1769 个 transitions 已重新表示为两层证据：
+旧 maximal selected-skill sub-episode 是不可再拆的 execution evidence，完整 episode 才是跨
+execution motif 的搜索边界。这样阻断了 action-level Agent 把 `RIGHT/LEFT` 或 macro action
+partition 冒充 reasoning graph，同时没有丢弃旧 skill-conditioned rollout。
+
+六游戏机械审计显示，当前冻结 discovery split 中只有 Thunder 与 Strider 有足够跨 execution
+边界。GPT-5-mini 的四个 discovery 条件产生两个非空 proposal：
+
+- Thunder receipt-only 的 5-node graph 不跨 discovery episode 重现，并可由 action sequence
+  单字段恢复 node partition；
+- Strider authentic 的 `attempt -> verify/recover -> retry` hypothesis 含 singleton recovery，
+  多条 edge 只出现于一个 episode，且 length/action/reward sequence 可恢复 partition。
+
+严格 re-audit 为 `0/4 accepted`。额外 blind scorer 只用 discovery node receipts 拟合 emission/
+transition model；Thunder 在 qualification/held-out 相对 global null 的 log-score gain 为
+`-1.148/-1.102`，Strider 为 `-0.896/-0.899`，两者相对 shuffled topology 也为负。因此旧候选已
+拒绝，不进入 target Harness。
+
+已新增 frozen fresh-source config、execution-level proposal/audit、单字段 shortcut 检验、
+qualification/held-out blind null/shuffled scorer，以及真正 closed-loop 的 h=1/2/4/8 runner
+contract。后者区分 first-action + common `G−S` continuation 与 full treatment regime，并在
+snapshot hash mismatch 或非法动作时 fail closed；不会用录制动作冒充 policy continuation。
+当前 104 项测试通过。下一步是用 best checkpoint 对 Thunder/Strider 收集至少 12 episodes/game
+的 fresh no-human-hints matched trajectories；若仍无候选通过 discovery、blind 和 h8 value 三门，
+停止显式 transferable-backbone 主张。
+
+该 fresh collection 已于 2026-07-23 启动为 Slurm array `7122289`。Strider 与 Thunder 分别在
+`gammagpu17/gammagpu14` 使用一张 RTX A6000、best Qwen3.5-9B checkpoint、12 episodes ×
+100-step budget；两项均已完成 vLLM/LoRA startup 并进入真实 rollout。运行代码位于隔离 worktree
+`Multi-hop-Reasoning-VLM-Agent-source-fresh-v1`，每个 manifest 将记录 runtime file hashes、
+no-human-hints profile、seed/split contract 和 matched-treatment receipts。启动 receipt 见
+`results/fresh_source_execution_motif_v1_launch.json`。
+
+## 双分支 transfer pipeline（2026-07-23）
+
+显式 motif 与 learned Harness 现在作为两条独立、可组合但不互相替代的路径执行：
+
+1. Path A 继续由 fresh no-human-hints source receipts 搜索 source-supported graph，并要求
+   discovery recurrence、shortcut exclusion、qualification/held-out blind prediction 和
+   matched h=8 official value 全部通过；
+2. Path B 用六游戏 36 个旧 episode 机械生成 10,614 条 source-only receipt supervision，
+   训练 Qwen3.5-9B LoRA，使 Harness 学习 transition/outcome prediction、recorded lineage
+   recognition 和证据不足时 abstain；
+3. target adaptation 只允许 Harness 提议 target-native span/node/edge，Decision Agent
+   始终独占 native action authority；机械审计拒绝 test leakage、非复现图、平凡图和
+   single-field shortcut。
+
+Path B 训练作业 `7122386` 已提交，依赖 Path A array `7122289` 成功后启动。数据 manifest
+为 `results/harness_pretraining_v1_manifest.json`，launch receipt 为
+`results/transferable_harness_v1_launch.json`。冻结 factorial 与 matched contrasts 位于
+`../configs/two_path_transfer_v1.json`。后继 job `7122389` 将执行 source-held-out
+base-vs-LoRA completion-NLL sanity audit；训练 collator 已确保长 prompt 不会吞掉全部
+completion labels。
+
+当前证据边界不变：数据构造与训练启动只证明 pipeline 可执行；尚未证明 trained Harness
+在 ALFWorld/VTB 上降低 adaptation cost，也尚未发现通过 source gate 的显式 transferable motif。
+
+## Target adaptation rollout collection（2026-07-23）
+
+新的 target manifest 已在任何新 outcome 可见前冻结。ALFWorld-valid-unseen 与
+VTB-single-turn 各包含 8 adaptation、8 qualification 和 24 held-out tasks；选择只使用
+benchmark-native ID 的 salted hash，并排除全部旧 smoke 样本。
+
+ALFWorld 的 8 个新 adaptation target-only rollouts 已作为 Slurm array `7122411` 完成：
+Qwen3.5-35B-A3B Decision Agent、30-step cap、无 Harness、无 source motif，逐步保留完整
+Decision cycle 与 transition receipt。最终 4/8 official success、152 transitions、平均
+19 steps。机械审计全部通过。task 2 的初次 256-token JSON 截断 artifact 被保留，扩大到
+512 token 后单独重跑；重跑在第 8 步产生真实越界 action，因此作为 invalid-Decision
+负样本保留，而不是继续采样到成功。
+
+VTB 的 ID 已冻结但未运行。当前 keys 文件仍没有官方工具要求的 `SERP_API_KEY` 与
+`OPENWEATHER_API_KEY`，所以 paper-faithful full-tool preflight 失败；不会用 degraded
+adaptation 冒充正式 VTB collection。详细协议见
+[`TARGET_ROLLOUT_COLLECTION.md`](TARGET_ROLLOUT_COLLECTION.md)。
+
+GPT-5-mini 已作为强 Harness oracle 对 8 个 adaptation traces 做两次冻结诊断。v1 因越界
+offset、span 重复归属和 edge 不复现被拒绝；使用 `E0...E7` alpha-renamed episode IDs 与
+显式 record count 后，v2 消除了越界引用，但仍因 span overlap、重复归属和 edge 不复现被拒绝。
+v2 的 search/observe/move/take/deliver 图主要还是 target action phases，尚非跨域 reasoning
+backbone。由于强 oracle 尚未通过，Qwen3.5-9B Harness LoRA job `7122386` 已在分配 GPU 前
+置为 user hold；不会用较小模型训练掩盖机制本身尚未成立。

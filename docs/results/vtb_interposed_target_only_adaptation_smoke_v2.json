@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "executor": "vtb_two_agent_online_interposition",
+  "sample_id": "row:105",
+  "split": "adaptation",
+  "condition": "target_only",
+  "claim_label": "PROTOCOL_SMOKE",
+  "official_commit": "d4f200a0a44790349667bed09334ac88623074b2",
+  "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+  "dynamic_tool_schema_sha256_by_round": [
+    "73cd38f3e4c64fea67e7533c334666c87d86ecf49d210bbe40a368b44164fda9",
+    "cc9d0fb842c940930d843534d339da68b45cbb6f470603082e1e0db108daade7",
+    "ae22fef196998b683cfed4636f4a7dbc9a362c393998dcbefc33f5f775b4e3ad"
+  ],
+  "decision_model": "qwen/qwen3.5-35b-a3b",
+  "harness_model": null,
+  "max_tool_rounds": 3,
+  "replan_count": 0,
+  "termination_reason": "OFFICIAL_CAP_EXHAUSTED",
+  "final_answer": null,
+  "final_answer_present": false,
+  "image_sha256": [
+    "c797d90d9c0f746eac479466de8835ef9183ddbd97b9f7489ee74216303084a2"
+  ],
+  "source_enabled_at_end": false,
+  "tool_call_count": 3,
+  "reviews": [],
+  "verifications": [],
+  "tool_trace": [
+    {
+      "proposal": {
+        "proposal_id": "51e5297a7106234a86bef01d43f48677515e113409045ecbab8f0896c46d03ae",
+        "round_index": 0,
+        "call_id": "call_3e8955793b2a49dc894d01bf",
+        "tool_name": "python_image_processing",
+        "arguments": {
+          "code": "from PIL import Image\nimport numpy as np\n\n# Load the image\nimg = Image.open('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/input_0.png')\n\n# The image appears to be rotated. Let me rotate it 180 degrees to make it upright\nimg_rotated = img.rotate(180, expand=True)\n\n# Save the rotated image\nimg_rotated.save('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png', 'PNG')\n\nprint(\"Image rotated 180 degrees and saved\")"
+        },
+        "agent_id": "decision-agent"
+      },
+      "observation": {
+        "ok": "true",
+        "stdout": "Image rotated 180 degrees and saved\n",
+        "stderr": "",
+        "output_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png",
+        "output_paths": [
+          "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png"
+        ]
+      },
+      "receipt": {
+        "receipt_id": "f86dd410dbaf0e2d5c491cbce8a7b08bd6c643d8bf29ed6d13152c1a5a05f5a6",
+        "proposal_id": "51e5297a7106234a86bef01d43f48677515e113409045ecbab8f0896c46d03ae",
+        "round_index": 0,
+        "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+        "observation_sha256": "e6ed6e0b5b97e1f129213ff40b963756e2b37064493b06ed0fbe8d5bff62799e",
+        "success": true,
+        "output_paths_sha256": [
+          "383756232e1cd761007188a772cac1719f53198ca967a53bff710f32ef032c58"
+        ]
+      }
+    },
+    {
+      "proposal": {
+        "proposal_id": "142c5f8e462beb4c445c568042e2f902d32cbbde24daf219b255b1c9bb313992",
+        "round_index": 1,
+        "call_id": "call_13a280f80110463097a02f93",
+        "tool_name": "python_image_processing",
+        "arguments": {
+          "code": "from PIL import Image\nimport numpy as np\n\n# Load the already rotated image\nimg = Image.open('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_0.png')\n\n# Rotate 180 degrees to make it upright\nimg_rotated = img.rotate(180, expand=True)\n\n# Save the rotated image\nimg_rotated.save('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_1.png', 'PNG')\n\nprint(\"Image rotated 180 degrees and saved\")"
+        },
+        "agent_id": "decision-agent"
+      },
+      "observation": {
+        "ok": "true",
+        "stdout": "Image rotated 180 degrees and saved\n",
+        "stderr": "",
+        "output_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_1.png",
+        "output_paths": [
+          "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_1.png"
+        ]
+      },
+      "receipt": {
+        "receipt_id": "9433c246da510174a9926f36ad681aabfccbb087fe636c35cb50bbabac6e71dd",
+        "proposal_id": "142c5f8e462beb4c445c568042e2f902d32cbbde24daf219b255b1c9bb313992",
+        "round_index": 1,
+        "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+        "observation_sha256": "b20fc5507180dae5a6b1084d733f3976c1df80d154b041a48e05fd5976137bee",
+        "success": true,
+        "output_paths_sha256": [
+          "c797d90d9c0f746eac479466de8835ef9183ddbd97b9f7489ee74216303084a2"
+        ]
+      }
+    },
+    {
+      "proposal": {
+        "proposal_id": "537c64fb50f400bfcb7fd39a4a0afbf587d3affec40a8205a7fdac19b2b16ad1",
+        "round_index": 2,
+        "call_id": "call_5043c71eb50848e49d58d36c",
+        "tool_name": "python_image_processing",
+        "arguments": {
+          "code": "from PIL import Image\nimport numpy as np\n\n# Load the original image\nimg = Image.open('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/input_0.png')\n\n# Rotate 180 degrees to make it upright\nimg_rotated = img.rotate(180, expand=True)\n\n# Save the rotated image\nimg_rotated.save('/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_2.png', 'PNG')\n\nprint(\"Image rotated 180 degrees and saved\")"
+        },
+        "agent_id": "decision-agent"
+      },
+      "observation": {
+        "ok": "true",
+        "stdout": "Image rotated 180 degrees and saved\n",
+        "stderr": "",
+        "output_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_2.png",
+        "output_paths": [
+          "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/artifacts/vtb_interposed_v3/row_105_matched/transformed_image_2.png"
+        ]
+      },
+      "receipt": {
+        "receipt_id": "858ed5169e3a3c6939965455630a70467f6c5921840665564cb156a5daa30285",
+        "proposal_id": "537c64fb50f400bfcb7fd39a4a0afbf587d3affec40a8205a7fdac19b2b16ad1",
+        "round_index": 2,
+        "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+        "observation_sha256": "9c5ade1409a2b4487ca039ea2c9e629c37c32bcb2bda93254bb9c768a559b49f",
+        "success": true,
+        "output_paths_sha256": [
+          "383756232e1cd761007188a772cac1719f53198ca967a53bff710f32ef032c58"
+        ]
+      }
+    }
+  ],
+  "model_content": [
+    {
+      "round_index": 0,
+      "content": null
+    },
+    {
+      "round_index": 1,
+      "content": null
+    },
+    {
+      "round_index": 2,
+      "content": null
+    }
+  ],
+  "decision_usage": [
+    {
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 303,
+        "prompt_tokens": 2762,
+        "total_tokens": 3065,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 114,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.00068968,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00068968,
+          "upstream_inference_prompt_cost": 0.00038668,
+          "upstream_inference_completions_cost": 0.000303
+        }
+      }
+    },
+    {
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 224,
+        "prompt_tokens": 4376,
+        "total_tokens": 4600,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 30,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.00083664,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00083664,
+          "upstream_inference_prompt_cost": 0.00061264,
+          "upstream_inference_completions_cost": 0.000224
+        }
+      }
+    },
+    {
+      "cache_hit": false,
+      "usage": {
+        "completion_tokens": 228,
+        "prompt_tokens": 5987,
+        "total_tokens": 6215,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 38,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.00106618,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00106618,
+          "upstream_inference_prompt_cost": 0.00083818,
+          "upstream_inference_completions_cost": 0.000228
+        }
+      }
+    }
+  ],
+  "harness_usage": []
+}

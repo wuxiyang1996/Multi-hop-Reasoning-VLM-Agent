@@ -24,6 +24,9 @@ diagnostic；它不能替代官方 rubric judge。
 官方 inference 可加载；但 `keys.py` 和环境均缺 `SERP_API_KEY`、`OPENWEATHER_API_KEY`，所以
 `paper_faithful_full_tool_ready=false`。报告见
 [`vtb_official_runtime_audit_v2.json`](results/vtb_official_runtime_audit_v2.json)。
+再次直接解析 `/fs/gamma-projects/vlm-robot/keys.py` 后，现有变量只有 B2、OpenAI 和 OpenRouter；
+两个外部工具 key 确实不在文件中。OpenAI key 还是 regional key，Harness/judge 必须固定请求
+`https://us.api.openai.com/v1`，默认 hostname 会返回 `incorrect_hostname`。
 
 还需注意，官方参数名虽为 `max_tool_calls=20`，固定 commit 的实现实际每轮模型响应只把 counter
 加一；单轮若返回多个函数调用，真实 function-call 数可超过 counter。我们不静默修改官方代码，
@@ -90,6 +93,28 @@ control：保留 receipt 和图拓扑，只替换游戏特定符号；若它失�
 `NEGATIVE_TRANSFER_PILOT` 和
 `GENERIC_OR_CONTROL_EXPLAINS_EFFECT`。
 
+在线 runner 已实现为 `scripts/run_vtb_interposed_single_turn.py`：每轮严格执行
+
+```text
+Decision Agent target-native proposal
+→ deterministic schema/authority validation
+→ Motif/Harness review (no tool name/arguments fields)
+→ official tool execution
+→ hash-bound live receipt
+→ Motif/Harness verification
+→ continue / replan / source-off
+```
+
+相同 Decision 请求使用跨条件共享的 persistent exact-request cache。temperature=0 仍不能保证
+OpenRouter completion 相同；没有 cache 的旧 smoke 已实测首 proposal 漂移，因此正式 matched run
+强制要求 `--decision-cache`。Harness 若输出目标工具字段、引用不存在的 receipt、或 source treatment
+缺少 `SOURCE_SUPPORTED` qualification，runner 会立即拒绝。
+
+`scripts/compile_vtb_treatments.py` 只接受两个独立的 `SOURCE_SUPPORTED` bundle，并机械生成
+authentic、alpha-renamed、shuffled、other-game 和 matched-generic 五个 treatment。它不读取 target
+prompt/gold，不做 source→target 语义映射。other-game 也必须独立通过 source gate，不能拿任意失败
+candidate 填充对照。
+
 ## 当前诚实状态
 
 当前没有任何 motif 达到 `SOURCE_SUPPORTED`。因此配置
@@ -102,8 +127,9 @@ multi-horizon value controls，那么 target 上的任何提升都无法归因�
 
 当前 readiness receipt 为
 [`vtb_transfer_readiness_v2.json`](results/vtb_transfer_readiness_v2.json)：`BLOCKED`，阻塞项恰为
-“官方 full-tool key 不完整”和“没有冻结的 SOURCE_SUPPORTED game motif”。这不是说实验不可证伪；
-而是 confirmatory treatment 还未被授权。六条件矩阵、官方 scorer 和身份检查均已可执行。
+“官方 full-tool key 不完整”、“没有冻结的 SOURCE_SUPPORTED authentic motif”和“没有独立
+SOURCE_SUPPORTED other-game control”。这不是说实验不可证伪；而是 confirmatory treatment 还未被
+授权。六条件 compiler、在线 interposition、官方 scorer 和身份检查均已可执行。
 
 ## 已运行的官方 adaptation 诊断
 
@@ -117,10 +143,29 @@ multi-horizon value controls，那么 target 上的任何提升都无法归因�
 **不能**用来人工选择 source motif。冻结 source candidate 后，Harness treatment 能否更早 replan/stop，
 必须由六条件 matched run 决定；若 generic 或 shuffled 同样改善，就不属于游戏 motif transfer。
 
+首次 3-round 比较没有共享 Decision cache，temperature=0 下首 proposal 仍漂移；该批只用于发现
+common-randomness bug，不进入结果。修复后重新完成 matched mechanism smoke：target-only 与 generic
+condition 使用同一图像、官方 commit、tool contract、初始动态 schema、Decision model、budget 和可见
+asset path。所有 Harness user payload 机械 padding 到 exact 6000 `o200k_base` tokens。exact-request
+cache 保证 generic 首轮 review 的 proposal 与 target-only 首轮 proposal 完全相同；发生 replan 后才允许
+Decision 轨迹分叉。结果为：
+
+```text
+target-only: 3 executed calls, 3 successful transforms, 0 final answer
+generic:     1 replan, 2 executed calls, 0 successful transforms, 0 final answer
+```
+
+generic verifier 对两次执行均返回 `REFUTED`。因此当前结论是
+`GENERIC_INTERPOSITION_HARMED_TOOL_EXECUTION_WITHOUT_TASK_SUCCESS`：generic review 的 replan 把一个
+原本可执行的 proposal 改成两个失败 proposal。这证明 online interposition、negative-effect capture、
+receipt、token matching 和 common-randomness 机制工作；不是 task success，更不是 game motif transfer。
+机器摘要见
+[`vtb_interposition_matched_smoke_summary_v2.json`](results/vtb_interposition_matched_smoke_summary_v2.json)。
+
 剩余执行顺序为：
 
 1. 补齐 SerpAPI/OpenWeather capability；在此之前 held-out runner 继续 fail-closed；
-2. 把官方逐轮 tool loop 接入双 Agent interposition，使 Harness 只能 review/verify，不能构造 tool arguments；
-3. 六游戏 source gate 通过后冻结一个 game motif，使用已采集的 adaptation trace 初始化 provisional binding；
+2. 六游戏 source gate 通过后冻结一个 authentic motif 和一个独立 other-game motif，编译五个 treatment；
+3. 使用已采集的 adaptation trace 初始化 provisional binding；
 4. 在 `row:55,row:319` 运行六条件 matched smoke，并用官方 judge 评分；
 5. smoke 只用于查 bug；扩量、alpha-equivalence margin 和统计阈值必须在读取更多 held-out outcome 前预注册。

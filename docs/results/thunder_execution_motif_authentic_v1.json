@@ -1,0 +1,90 @@
+{
+  "affordance": {
+    "schema_version": "SOURCE_EXECUTION_AFFORDANCE_V1",
+    "split_stats": {
+      "discovery": {
+        "cross_execution_boundaries": 12,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 14,
+        "positive_return_executions": 3
+      },
+      "held_out": {
+        "cross_execution_boundaries": 12,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 14,
+        "positive_return_executions": 2
+      },
+      "qualification": {
+        "cross_execution_boundaries": 14,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 16,
+        "positive_return_executions": 2
+      }
+    },
+    "traces_valid": true
+  },
+  "agent_call": {
+    "include_reasoning": true,
+    "payload_hash": "b79aa48cbe4b4d61c7361f48737f596247ebf0965ba3e80e85467a52797f1479",
+    "response_hash": "c2be718707d49edff4576d358e71b9fa7bf968bc41175d5ffe44a2105f78dd76",
+    "role": "source_execution_motif",
+    "usage": {
+      "completion_tokens": 1660,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 1536,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens": 6907,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "total_tokens": 8567
+    }
+  },
+  "audit": {
+    "accepted": false,
+    "discovery_execution_coverage": 0.0,
+    "edges": 0,
+    "failure_codes": [
+      "TRIVIAL_EXECUTION_GRAPH",
+      "ZERO_DISCOVERY_COVERAGE"
+    ],
+    "has_branch": false,
+    "has_cycle": false,
+    "nodes": 0,
+    "observed_edges": 0
+  },
+  "authority": "UNTRUSTED_AGENT_GRAPH_OVER_RECEIPT_BOUND_SKILL_EXECUTIONS",
+  "condition": "AUTHENTIC_REASONING",
+  "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_thunder_force_iii/evidence",
+  "graph": {
+    "discovery_trace_ids": [
+      "edc81e78517699bcc9ba8deb084f2c89cb9c255aa97e6f11649078770d3550d3",
+      "e90037e2872a10251b2c20d28e7b6fe437e2e499b2772ec333536ff78dc46204"
+    ],
+    "edges": [],
+    "game": "gymv_thunder_force_iii",
+    "graph_id": "4ec3206b48e5f74516ee1d04ca95fe082f2cab5cbdb05a2658c284d5abb29ab0",
+    "nodes": [],
+    "untrusted_description": "No non-trivial control motif found. The recorded executions show only regular alternation and variation that can be explained by skill identity, execution length, or reward-sign patterns; there is no clear branching, recovery, verification, or termination structure that goes beyond those attributes (no single execution-id or grouped set of executions is observed to e.g. branch to multiple distinct successors or to converge from multiple distinct predecessors in a way not attributable to skill/duration/reward). Returning an empty motif graph."
+  },
+  "model_identity": {
+    "backend": "openai-compatible",
+    "base_url": "https://us.api.openai.com/v1",
+    "models": {
+      "source_execution_motif": "gpt-5-mini"
+    },
+    "request_overrides": {},
+    "temperature": null,
+    "transport_attempts": 2
+  },
+  "schema_version": 1,
+  "source_supported": false,
+  "source_supported_reason": "Graph audit alone is insufficient; blind recurrence and matched h1/h2/h4/h8 value remain required."
+}

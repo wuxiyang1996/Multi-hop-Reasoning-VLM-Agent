@@ -1,12 +1,15 @@
-# 游戏训练能否提升远域推理：可归因的 Harness 计划
+# 游戏训练能否提升远域推理：权重级附加实验
 
-## 核心研究假设
+## 与主实验的关系
 
-我们的首要假设不是“游戏动作可以迁移”，而是：
+本文件描述独立的 weight-level factorial，不再承载项目的首要主张。主实验见
+[`TEST_TIME_REASONING_MOTIF_PLAN.md`](TEST_TIME_REASONING_MOTIF_PLAN.md)：它检验从真实游戏
+receipt 中提取的控制图能否通过 Harness 在测试时迁移，且不要求更新或复用目标模型权重。
+
+这里检验的附加假设是：
 
 > 在六种游戏上的 skill learning、SFT 或 RL 可能把程序性推理先验写入模型权重；
-> 一个在线 Harness 可以在异构目标领域中识别、实例化、验证并安全调用这些能力，
-> 从而降低 one-shot / few-shot adaptation cost。
+> 这些权重变化可能独立降低远域任务的 adaptation cost，并可能与 test-time Harness 产生交互。
 
 候选能力包括形成可区分假设、获取证据、预测 transition、检查结果、失败恢复和停止。
 这些名称只是研究描述，不是 Harness 内置 ontology。是否真的学到，必须由 matched interventions
@@ -242,3 +245,17 @@ vLLM 进程/GPU 的 exact trajectory identity 本身不可复现，不能用它�
 只作更窄、可保证的声明：当前 authentic action 先冻结，shadow 随后查询；每个 outcome 再由相同 prefix
 独立 replay。结论是当前存在 source policy influence，但尚无“有价值且可盲重现的 reasoning backbone”证据，
 所以不授权 ALFWorld/远域正迁移实验。
+# Guideline：Harness 同时负责快速适应与新域技能发现
+
+Trained Harness 的目标不是把游戏 skill 名称映射到新领域。它应从游戏 receipts 中学习
+prediction、verification、replan、abstention 和 recovery，然后在新领域使用少量 adaptation
+examples 发现 target-native motif/skill。Source motif 只是可拒绝的 prior；新域结构可以与
+source 不同，也可以完全独立产生。
+
+因此权重级迁移的主要问题是：
+
+> 游戏交互训练能否让 Harness 用更少的 target examples 发现可验证的新域行为结构，并帮助
+> 原有 Decision Agent 更快适应？
+
+这与显式 source-motif transfer 分开评估。前者测 learned adaptation ability，后者测特定
+source graph content 的增量价值。

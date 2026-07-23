@@ -14,6 +14,10 @@ game training 的 weight-level reasoning transfer、skill-context effect 与 Har
 [`docs/TARGET_FEASIBILITY_DIAGNOSIS.md`](docs/TARGET_FEASIBILITY_DIAGNOSIS.md)。
 VisualToolBench 官方 rubric judge、single-turn v2 修正和游戏 Motif matched-transfer 协议见
 [`docs/VTB_OFFICIAL_MOTIF_TRANSFER_PROTOCOL.md`](docs/VTB_OFFICIAL_MOTIF_TRANSFER_PROTOCOL.md)。
+测试时 reasoning motif 的主张边界、相关工作、强 baselines、source gate、target factorial 与停止规则见
+[`docs/TEST_TIME_REASONING_MOTIF_PLAN.md`](docs/TEST_TIME_REASONING_MOTIF_PLAN.md)。
+新冻结的 ALFWorld/VTB `8/8/24` target rollout splits、数据权限与当前采集状态见
+[`docs/TARGET_ROLLOUT_COLLECTION.md`](docs/TARGET_ROLLOUT_COLLECTION.md)。
 
 这是从历史仓库拆出的最小研究核心。仓库只保留两个有模型判断能力的角色：
 
@@ -24,17 +28,18 @@ VisualToolBench 官方 rubric judge、single-turn v2 修正和游戏 Motif match
 
 ## 研究目标
 
-本项目不假设模型缺少推理能力，也不试图把一套游戏 policy 直接搬到新领域。我们的目标有两层：
-先检验六游戏训练是否让 game-trained Decision Agent 相对 base model 获得可跨域复用的程序性推理能力；
-再从 matched training/context interventions 中提取可复现控制结构，把它作为一个
-**online adaptation assistant**，帮助对应的 Decision Agent 用更少 target examples 和交互适应异构任务。
+本项目不假设模型缺少推理能力，也不试图把一套游戏 policy 直接搬到新领域。主目标是从
+matched skill/context interventions 中提取可复现控制结构，把它作为一个测试时
+**online adaptation assistant**，帮助冻结的 Decision Agent 用更少 target examples 和交互适应异构任务。
+六游戏训练是否让 game-trained Decision Agent 相对 base model 获得可跨域复用的程序性推理能力，
+作为独立的 weight-level factorial 检验，不能替代 test-time motif transfer 的证据。
 
 这里迁移的是 receipt-grounded 的行为图及其可检验 adaptation hypothesis，而不是游戏 action 名称、手写 ontology、完整 policy 或通用提示词。Decision Agent 始终保留自己的推理能力和目标领域 action authority；Motif/Harness Agent 只帮助它判断当前缺少什么信息、哪个假设值得验证、何时继续、replan 或 abstain。
 
-更准确的研究问题是：
+主研究问题是：
 
-> 游戏训练是否把可复用的程序性推理能力写入模型权重，以及 source-derived Harness 能否在远域中
-> 更快、安全地调用这些能力？
+> 能否从游戏 skill 与 rollout 中识别 receipt-grounded 的非平凡控制图，并通过 source-derived
+> Harness 在测试时把它安全、快速地实例化到完全不同的 target interface？
 
 当前新增的 source-induction 目标是从旧 skill 的多次真实执行中发现可验证的
 skill-internal reasoning motif。这里的 backbone 指外显 rollout 中重复出现、经过
@@ -74,6 +79,11 @@ python -m pip install -e '.[test,vtb]'
 - `src/motif_transfer/runtime.py`：双 Agent 交互循环。
 - `src/motif_transfer/legacy_import.py`：把旧 mega-skill 读成只读 lineage/baseline。
 - `src/motif_transfer/skill_internal.py`：按旧 skill 聚合执行、接收内部图 proposal 并做 fail-closed audit。
+- `src/motif_transfer/source_execution_motifs.py`：把旧 skill sub-episode 作为原子 evidence，
+  在完整 episode 上发现并严格审计跨 execution motif。
+- `src/motif_transfer/execution_graph_scoring.py`：只用 discovery 拟合冻结图，并在
+  qualification/held-out 上做 blind null/shuffled scoring。
+- `src/motif_transfer/multihorizon_runner.py`：执行 matched h=1/2/4/8 closed-loop source forks。
 - `docs/ARCHITECTURE.md`：权限边界和数据流。
 - `docs/ADAPTATION_ASSISTANT.md`：快速适应助手的完整定位与证据标准。
 - `docs/EXPERIMENT_PROTOCOL.md`：六游戏到远域的实验设计。

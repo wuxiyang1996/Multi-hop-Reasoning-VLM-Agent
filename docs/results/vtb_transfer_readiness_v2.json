@@ -4,16 +4,21 @@
   "confirmatory_ready": false,
   "diagnostic_mode_authorized": true,
   "diagnostic_claim_label": "UNQUALIFIED_SOURCE_DIAGNOSTIC",
-  "config_sha256": "8afb5ad8a631061d3b65523dadad8d728407e8407b89f2f4db7955a8a806b9a0",
+  "config_sha256": "83dcfe3656d6878c5c2e0d90a9c5c11b16d56df5f00a35b56247a09fd0d502e0",
   "manifest_sha256": "61e88a08900ad64170a9dfd6a9990478a503167435ca489fc14fc8134a93ece0",
   "runtime_audit_sha256": "01d24d6cc76cedb20ca7907224bd45fe62f9e0bfb561c182152826371b783aaa",
   "source_diagnosis_sha256": "1e559844773d8044b9860574283830c85155bfd139b6727cab0804e57f8f577a",
   "source_failure_class": "MEASUREMENT_AND_REPRESENTATION_FAILURE_BEFORE_TRANSFER",
   "source_transfer_authority": "NOT_YET_AUTHORIZED",
   "official_full_tool_ready": false,
+  "online_interposition_runner_implemented": true,
+  "source_treatment_compiler_implemented": true,
+  "exact_request_common_randomness_implemented": true,
+  "matched_adaptation_smoke": "docs/results/vtb_interposition_matched_smoke_summary_v2.json",
   "blockers": [
     "VTB official full-tool runtime is not ready",
-    "no frozen SOURCE_SUPPORTED game motif"
+    "no frozen SOURCE_SUPPORTED authentic game motif",
+    "no frozen SOURCE_SUPPORTED other-game control motif"
   ],
   "experiment_spec": {
     "experiment_id": "vtb-single-turn-game-motif-transfer-v2",

@@ -1,0 +1,165 @@
+{
+  "affordance": {
+    "schema_version": "SOURCE_EXECUTION_AFFORDANCE_V1",
+    "split_stats": {
+      "discovery": {
+        "cross_execution_boundaries": 17,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 19,
+        "positive_return_executions": 3
+      },
+      "held_out": {
+        "cross_execution_boundaries": 19,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 21,
+        "positive_return_executions": 3
+      },
+      "qualification": {
+        "cross_execution_boundaries": 16,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 18,
+        "positive_return_executions": 4
+      }
+    },
+    "traces_valid": true
+  },
+  "agent_call": {
+    "include_reasoning": true,
+    "payload_hash": "f9816e654dd5fa0bc6f9493c503149df6b0f4bc0539f889872088667edc9c7cc",
+    "response_hash": "a20d0f691f682c5ca63db3760f525f87752273deffd8457e9fed81cba165868f",
+    "role": "source_execution_motif",
+    "usage": {
+      "completion_tokens": 6878,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 6144,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens": 7265,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "total_tokens": 14143
+    }
+  },
+  "audit": {
+    "accepted": true,
+    "discovery_execution_coverage": 0.42105263157894735,
+    "edges": 4,
+    "failure_codes": [],
+    "has_branch": true,
+    "has_cycle": true,
+    "nodes": 4,
+    "observed_edges": 5
+  },
+  "authority": "UNTRUSTED_AGENT_GRAPH_OVER_RECEIPT_BOUND_SKILL_EXECUTIONS",
+  "condition": "AUTHENTIC_REASONING",
+  "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_strider/evidence",
+  "graph": {
+    "discovery_trace_ids": [
+      "ca267211f729a92ac05306ddc62c97b15326a4f0704a8dabc394bc5d6dedcb3b",
+      "06bbe8f5859fab31d45fbc618487cb595b592e261e5e36cd9c66db3387064811"
+    ],
+    "edges": [
+      {
+        "source": "S2_attempt_positive",
+        "supporting_boundaries": [
+          [
+            "ca267211f729a92ac05306ddc62c97b15326a4f0704a8dabc394bc5d6dedcb3b",
+            5
+          ],
+          [
+            "06bbe8f5859fab31d45fbc618487cb595b592e261e5e36cd9c66db3387064811",
+            8
+          ]
+        ],
+        "target": "post_success_verify_S1"
+      },
+      {
+        "source": "post_success_verify_S1",
+        "supporting_boundaries": [
+          [
+            "06bbe8f5859fab31d45fbc618487cb595b592e261e5e36cd9c66db3387064811",
+            9
+          ]
+        ],
+        "target": "S2_attempt_positive"
+      },
+      {
+        "source": "post_success_verify_S1",
+        "supporting_boundaries": [
+          [
+            "ca267211f729a92ac05306ddc62c97b15326a4f0704a8dabc394bc5d6dedcb3b",
+            6
+          ]
+        ],
+        "target": "S2_attempt_zero"
+      },
+      {
+        "source": "S2_attempt_zero",
+        "supporting_boundaries": [
+          [
+            "ca267211f729a92ac05306ddc62c97b15326a4f0704a8dabc394bc5d6dedcb3b",
+            2
+          ]
+        ],
+        "target": "recover_S0"
+      }
+    ],
+    "game": "gymv_strider",
+    "graph_id": "de4f96e0afb2f625b0f548014104f28d4cf5cb268a5171453d4cf012f2d61aa1",
+    "nodes": [
+      {
+        "execution_ids": [
+          "137f21a718434fcea9632285fda20490b9cc54261c1a92110d34621ad76f3d8e",
+          "1fbe3f35b2ffbaed087ccb857cebb66e19f6f2657760ee965133d9457d24a9b8",
+          "c7b2ba5ad10b266294a8d3a834e86e28b91e917bd095ddcbc46e7ce17e3b2836"
+        ],
+        "node_id": "S2_attempt_positive",
+        "untrusted_role": "attempt_success (S2 with positive return)"
+      },
+      {
+        "execution_ids": [
+          "27b0027a063e13f5b0d8890ba6b5562754f9b5ebf068cadd79e8c7e9e8792912",
+          "752f61001b530bbd583070e4b4eeadeb315ae7077f4ca55f21d0095bf611259f"
+        ],
+        "node_id": "S2_attempt_zero",
+        "untrusted_role": "attempt_failure (S2 with zero return; includes a terminal failed attempt)"
+      },
+      {
+        "execution_ids": [
+          "b4d74f1a311db1036d17dcbc0084077c58cf048488a4ed260c998cd86083ff12",
+          "613e1b1242b2f7c45d9d1960309f67c45df0a0acc09aa9a4cbfdd809443c4f3a"
+        ],
+        "node_id": "post_success_verify_S1",
+        "untrusted_role": "verification (short S1 after a successful S2)"
+      },
+      {
+        "execution_ids": [
+          "f95b28df9b86a3a29cac8ff9267e0ee558a768473074dee5a1ee1b3d1ed9ccdf"
+        ],
+        "node_id": "recover_S0",
+        "untrusted_role": "recovery (S0 that follows a failed S2)"
+      }
+    ],
+    "untrusted_description": "Observed recovery/verification branching around S2 (attack) attempts: S2 executions split into successful (positive-return) and failed (zero-return) outcomes. Successful S2s are followed by short S1 \u2018verification\u2019 executions; those verification S1s then either lead into another S2 (continuation/terminal) or into a failed S2. Failed S2s instead transition to an S0 recovery execution before the routine continues. This captures branching (S2 -> {verify, recover}), verification (S2_pos -> S1_verify -> S2_*), and a recovery path after failed attempts."
+  },
+  "model_identity": {
+    "backend": "openai-compatible",
+    "base_url": "https://us.api.openai.com/v1",
+    "models": {
+      "source_execution_motif": "gpt-5-mini"
+    },
+    "request_overrides": {},
+    "temperature": null,
+    "transport_attempts": 2
+  },
+  "schema_version": 1,
+  "source_supported": false,
+  "source_supported_reason": "Graph audit alone is insufficient; blind recurrence and matched h1/h2/h4/h8 value remain required."
+}

@@ -16,6 +16,8 @@
   "source_gate": {
     "required_lifecycle": "SOURCE_SUPPORTED",
     "current_source_candidate": null,
+    "required_other_game_control_lifecycle": "SOURCE_SUPPORTED",
+    "current_other_game_control": null,
     "current_status": "BLOCKED_NO_SOURCE_SUPPORTED_MOTIF",
     "diagnostic_override_allowed": true,
     "diagnostic_override_claim": "UNQUALIFIED_SOURCE_DIAGNOSTIC"
@@ -70,6 +72,14 @@
     "exact_request_cache": true,
     "shared_across_conditions_for_identical_requests": true,
     "cache_key_fields": ["model_identity", "role", "messages", "tools", "temperature", "max_tokens"]
+  },
+  "online_runner": {
+    "script": "scripts/run_vtb_interposed_single_turn.py",
+    "treatment_compiler": "scripts/compile_vtb_treatments.py",
+    "decision_exact_request_cache_required": true,
+    "harness_exact_request_cache_required": true,
+    "harness_user_payload_o200k_base_tokens": 6000,
+    "harness_may_construct_target_tool_arguments": false
   },
   "hard_failures": [
     "missing official tool capability",

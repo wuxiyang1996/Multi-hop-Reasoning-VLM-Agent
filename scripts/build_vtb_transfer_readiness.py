@@ -11,8 +11,11 @@ import sys
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
-from motif_transfer.contracts import Lifecycle
-from motif_transfer.transfer_matrix import REQUIRED_TARGET_CONDITIONS, TransferExperimentSpec
+from motif_transfer.contracts import Lifecycle  # noqa: E402
+from motif_transfer.transfer_matrix import (  # noqa: E402
+    REQUIRED_TARGET_CONDITIONS,
+    TransferExperimentSpec,
+)
 
 
 def _read(path: Path) -> dict:
@@ -41,6 +44,7 @@ def main() -> None:
     source = _read(args.source_diagnosis)["failure_tree"]
     conditions = tuple(config.get("conditions") or [])
     source_candidate = config["source_gate"].get("current_source_candidate")
+    other_candidate = config["source_gate"].get("current_other_game_control")
     source_supported = bool(
         source_candidate
         and config["source_gate"].get("current_status") == "SOURCE_SUPPORTED"
@@ -72,7 +76,9 @@ def main() -> None:
     if not runtime.get("paper_faithful_full_tool_ready"):
         blockers.append("VTB official full-tool runtime is not ready")
     if not source_supported:
-        blockers.append("no frozen SOURCE_SUPPORTED game motif")
+        blockers.append("no frozen SOURCE_SUPPORTED authentic game motif")
+    if not other_candidate:
+        blockers.append("no frozen SOURCE_SUPPORTED other-game control motif")
     if not all((spec.decision_model, spec.harness_model, spec.judge_model)):
         blockers.append("one or more model identities are unset")
 
@@ -90,6 +96,16 @@ def main() -> None:
         "source_failure_class": source.get("current_class"),
         "source_transfer_authority": source.get("far_domain_transfer"),
         "official_full_tool_ready": runtime.get("paper_faithful_full_tool_ready"),
+        "online_interposition_runner_implemented": (
+            REPO / "scripts/run_vtb_interposed_single_turn.py"
+        ).is_file(),
+        "source_treatment_compiler_implemented": (
+            REPO / "scripts/compile_vtb_treatments.py"
+        ).is_file(),
+        "exact_request_common_randomness_implemented": (
+            REPO / "src/motif_transfer/exact_request_cache.py"
+        ).is_file(),
+        "matched_adaptation_smoke": "docs/results/vtb_interposition_matched_smoke_summary_v2.json",
         "blockers": blockers,
         "experiment_spec": spec.to_json(),
         "interpretation": (

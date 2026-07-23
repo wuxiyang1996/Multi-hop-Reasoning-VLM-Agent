@@ -7,7 +7,7 @@ name = "motif-transfer-harness"
 version = "0.1.0"
 description = "A fail-closed two-agent harness for cross-domain behavioral motif transfer"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["jsonschema>=4.0"]
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
@@ -26,6 +26,7 @@ vtb = [
   "scipy>=1.10",
   "simpy>=3.0",
   "tabulate>=0.9",
+  "tiktoken>=0.8",
   "yfinance>=0.2.18",
 ]
 

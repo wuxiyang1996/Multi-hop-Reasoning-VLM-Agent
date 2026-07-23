@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
 import runpy
 import sys
@@ -15,7 +14,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
-from motif_transfer.vtb_evaluator import (
+from motif_transfer.vtb_evaluator import (  # noqa: E402
     OFFICIAL_COMMIT,
     OFFICIAL_REPOSITORY,
     official_judge_prompt,
@@ -65,6 +64,7 @@ def main() -> None:
     parser.add_argument("--keys", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--judge-model", default="o4-mini")
+    parser.add_argument("--openai-base-url", default="https://us.api.openai.com/v1")
     parser.add_argument("--attempts", type=int, default=3)
     args = parser.parse_args()
 
@@ -87,7 +87,7 @@ def main() -> None:
         raise SystemExit("OPENAI_API_KEY is missing")
     from openai import OpenAI
 
-    client = OpenAI(api_key=str(key), timeout=180.0)
+    client = OpenAI(base_url=args.openai_base_url, api_key=str(key), timeout=180.0)
     rubric_turns = tuple(parse_rubric_blob(blob) for blob in rubric_blobs)
     verdict_turns = []
     call_receipts = []
