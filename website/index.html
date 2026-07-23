@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test-Time Reasoning with Legacy Mega-Skill Knowledge</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #18202a;
+        --muted: #5d6875;
+        --paper: #f7f4ef;
+        --line: #d8d1c5;
+        --blue: #315a74;
+        --red: #b34848;
+        --green: #2f735a;
+        --gold: #aa7b24;
+        --white: #fffdf9;
+        --shadow: 0 18px 45px rgba(24, 32, 42, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Noto Sans SC", sans-serif;
+      }
+
+      main {
+        min-width: 320px;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 88vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background: #e9e0d1;
+        border-bottom: 1px solid var(--line);
+      }
+
+      #evidence-map {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(247, 244, 239, 0.58);
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        width: min(1080px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 88px 0 72px;
+      }
+
+      .kicker,
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--blue);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        overflow-wrap: anywhere;
+      }
+
+      h1 {
+        max-width: 860px;
+        margin: 0;
+        font-size: clamp(3.1rem, 8vw, 7.6rem);
+        line-height: 0.92;
+        letter-spacing: 0;
+      }
+
+      .thesis {
+        max-width: 780px;
+        margin: 28px 0 0;
+        color: #26313d;
+        font-size: clamp(1.1rem, 2vw, 1.45rem);
+        line-height: 1.55;
+        font-weight: 540;
+      }
+
+      .status-strip {
+        width: min(100%, 960px);
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border: 1px solid rgba(24, 32, 42, 0.16);
+        background: rgba(255, 253, 249, 0.72);
+        box-shadow: var(--shadow);
+      }
+
+      .status-strip span {
+        min-height: 96px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
+      .status-strip span + span {
+        border-left: 1px solid rgba(24, 32, 42, 0.14);
+      }
+
+      .status-strip strong {
+        color: var(--ink);
+      }
+
+      .band {
+        border-bottom: 1px solid var(--line);
+        background: var(--paper);
+      }
+
+      .summary-band {
+        background: var(--white);
+      }
+
+      .inner {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 72px 0;
+      }
+
+      .two-column {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
+        gap: 48px;
+        align-items: start;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(1.8rem, 3.8vw, 3rem);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .two-column > p,
+      .claim-card p,
+      .insight p,
+      .timeline li {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+
+      .section-head {
+        max-width: 760px;
+        margin-bottom: 32px;
+      }
+
+      .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .insight {
+        min-height: 292px;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--white);
+      }
+
+      .mark {
+        display: inline-block;
+        margin-bottom: 38px;
+        color: var(--red);
+        font-weight: 850;
+      }
+
+      h3 {
+        margin: 0 0 12px;
+        font-size: 1.05rem;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .evidence-band {
+        background: #eef1eb;
+      }
+
+      .evidence-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+        gap: 22px;
+        align-items: stretch;
+      }
+
+      .score-board {
+        display: grid;
+        grid-template-rows: repeat(3, minmax(110px, 1fr));
+        border: 1px solid #c7d0c4;
+      }
+
+      .score-board div {
+        padding: 22px;
+        background: rgba(255, 253, 249, 0.76);
+      }
+
+      .score-board div + div {
+        border-top: 1px solid #c7d0c4;
+      }
+
+      .score {
+        display: block;
+        color: var(--green);
+        font-size: clamp(2.2rem, 5vw, 4.4rem);
+        font-weight: 880;
+        line-height: 0.95;
+      }
+
+      .score-board p {
+        margin: 10px 0 0;
+        color: var(--muted);
+      }
+
+      .claim-card {
+        padding: 32px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: var(--white);
+        box-shadow: var(--shadow);
+      }
+
+      .claim-card h3 {
+        color: #f1d28a;
+        font-size: 1.25rem;
+      }
+
+      .claim-card p {
+        color: #ecf0f3;
+        font-size: clamp(1.08rem, 1.8vw, 1.34rem);
+      }
+
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border: 1px solid var(--line);
+        background: var(--white);
+      }
+
+      .timeline li {
+        min-height: 260px;
+        padding: 24px;
+      }
+
+      .timeline li + li {
+        border-left: 1px solid var(--line);
+      }
+
+      .timeline span {
+        display: block;
+        margin-bottom: 54px;
+        color: var(--gold);
+        font-size: 1.1rem;
+        font-weight: 850;
+      }
+
+      .footer-band {
+        background: #e5edf1;
+      }
+
+      @media (max-width: 900px) {
+        .status-strip,
+        .two-column,
+        .evidence-layout,
+        .timeline,
+        .insight-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .status-strip span + span,
+        .timeline li + li {
+          border-left: 0;
+          border-top: 1px solid rgba(24, 32, 42, 0.14);
+        }
+
+        .insight,
+        .timeline li {
+          min-height: auto;
+        }
+
+        .timeline span,
+        .mark {
+          margin-bottom: 18px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .hero {
+          min-height: 92vh;
+        }
+
+        .hero-copy,
+        .inner {
+          width: min(100% - 28px, 1120px);
+        }
+
+        .hero-copy {
+          padding-top: 64px;
+        }
+
+        h1 {
+          font-size: 3rem;
+        }
+
+        .status-strip span {
+          min-height: 82px;
+          padding: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <canvas id="evidence-map" aria-hidden="true"></canvas>
+        <div class="hero-copy">
+          <p class="kicker">Multi-hop Reasoning VLM Agent</p>
+          <h1 id="page-title">测试时 reasoning 能否受益于旧 mega-skill 知识</h1>
+          <p class="thesis">
+            我们不把旧 mega-skill 当成可直接迁移的 target policy。我们检验的是：
+            旧 mega-skill 及其 source rollout receipts 是否包含可复用的 reasoning recipe knowledge，
+            能在异构 MDP 的目标任务测试时降低推理和适应成本。
+          </p>
+          <div class="status-strip" aria-label="current evidence status">
+            <span><strong>当前 verdict</strong> Generic-only / fail-closed</span>
+            <span><strong>ALFWorld adaptation</strong> 4/8 success, 152 transitions</span>
+            <span><strong>legacy asset</strong> 20 mega-skill families, 180 members</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="band summary-band" aria-labelledby="purpose-title">
+        <div class="inner two-column">
+          <div>
+            <p class="eyebrow">Purpose</p>
+            <h2 id="purpose-title">把“迁移”从漂亮故事变成可证伪实验</h2>
+          </div>
+          <p>
+            旧 mega-skill 可以作为候选知识来源，但不能自动成为证据。真正要验证的是它们的
+            family、template signature、step checks 和代表性 rollout receipts 是否能变成弱的、
+            可反驳的 target-time reasoning prior。
+          </p>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="prior-title">
+        <div class="inner">
+          <div class="section-head">
+            <p class="eyebrow">Prior Work Insights</p>
+            <h2 id="prior-title">已有工作给我们的四个压力测试</h2>
+          </div>
+          <div class="insight-grid">
+            <article class="insight">
+              <span class="mark">01</span>
+              <h3>STRATAGEM 是背景，不是同一问题</h3>
+              <p>
+                STRATAGEM 研究 game training 是否写入权重级 reasoning ability。我们研究的是旧
+                mega-skill / receipt knowledge 能否在 target test time 被调用、验证或拒绝。
+              </p>
+            </article>
+            <article class="insight">
+              <span class="mark">02</span>
+              <h3>Agent KB / ExpeL 是强 baseline</h3>
+              <p>
+                如果 legacy mega-skill knowledge 不能超过等 token 的 workflow memory、raw trajectory
+                retrieval 和自然语言 insight，就只能称为 memory scaffold，而不是 source-specific value。
+              </p>
+            </article>
+            <article class="insight">
+              <span class="mark">03</span>
+              <h3>Voyager 提醒我们别把文本当能力</h3>
+              <p>
+                可复用 skill library 的价值来自环境反馈和自验证。我们的旧 mega-skill 文本只能提出
+                hypothesis；target-native receipts 才能决定它是否真的帮助 reasoning。
+              </p>
+            </article>
+            <article class="insight">
+              <span class="mark">04</span>
+              <h3>Trace-to-skill 类工作逼近我们的边界</h3>
+              <p>
+                单纯把轨迹总结成 SOP 已经不够。我们的差异点应落在 mega-skill lineage、receipt
+                validation、matched destructive controls 和 negative-transfer recovery。
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band evidence-band" aria-labelledby="evidence-title">
+        <div class="inner">
+          <div class="section-head">
+            <p class="eyebrow">Current Evidence</p>
+            <h2 id="evidence-title">我们现在能诚实 claim 什么</h2>
+          </div>
+          <div class="evidence-layout">
+            <div class="score-board">
+              <div>
+                <span class="score">0</span>
+                <p>SOURCE_SUPPORTED knowledge units</p>
+              </div>
+              <div>
+                <span class="score">4/8</span>
+                <p>ALFWorld target-only adaptation success</p>
+              </div>
+              <div>
+                <span class="score">5 → 6</span>
+                <p>one-shot smoke: target-only vs authentic steps</p>
+              </div>
+            </div>
+            <div class="claim-card">
+              <h3>Recommended claim</h3>
+              <p>
+                我们提出并实现了一个严格检验 legacy mega-skill knowledge 是否能帮助 target
+                test-time reasoning 的 two-agent harness；当前证据支持机制和审计协议，但尚未证明
+                source-specific knowledge 超过 generic controls。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="pipeline-title">
+        <div class="inner">
+          <div class="section-head">
+            <p class="eyebrow">Protocol</p>
+            <h2 id="pipeline-title">我们真正需要通过的 gate</h2>
+          </div>
+          <ol class="timeline">
+            <li>
+              <span>Source receipts</span>
+              legacy mega-skill members must be linked back to fresh no-human-hints source rollouts,
+              with transition, replay and intervention receipts.
+            </li>
+            <li>
+              <span>Source gate</span>
+              recipe candidates must survive shortcut exclusion, blind held-out predictive gain,
+              alpha-renaming invariance and shuffled/control separation.
+            </li>
+            <li>
+              <span>Target binding</span>
+              target-time reasoning may use the recipe as weak prior; live target receipts support,
+              refute or force SOURCE_OFF.
+            </li>
+            <li>
+              <span>Matched evaluation</span>
+              legacy mega-skill knowledge must beat target-only, generic, raw trajectory, insight,
+              shuffled and other-source on success or adaptation cost.
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="band footer-band" aria-labelledby="next-title">
+        <div class="inner two-column">
+          <div>
+            <p class="eyebrow">Next Move</p>
+            <h2 id="next-title">先证明 mega-skill 知识可用，再训练 Harness LoRA</h2>
+          </div>
+          <p>
+            如果 GPT-5-mini oracle 都不能把 legacy mega-skill 和 source receipts 转成可审计、可预测、
+            可被 target feedback 反驳的 recipe knowledge，小模型训练只会更难归因。先让强 oracle
+            通过 gate，再把 LoRA 作为 matched ablation。
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      const canvas = document.querySelector("#evidence-map");
+      const ctx = canvas.getContext("2d");
+
+      const nodes = [
+        { label: "game receipts", x: 0.16, y: 0.34, color: "#315a74" },
+        { label: "source gate", x: 0.39, y: 0.25, color: "#b34848" },
+        { label: "recipe knowledge", x: 0.58, y: 0.43, color: "#aa7b24" },
+        { label: "target binding", x: 0.78, y: 0.31, color: "#2f735a" },
+        { label: "SOURCE_OFF", x: 0.63, y: 0.67, color: "#18202a" },
+        { label: "official outcome", x: 0.84, y: 0.72, color: "#315a74" },
+      ];
+
+      const edges = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 5],
+        [3, 4],
+        [4, 5],
+      ];
+
+      function resize() {
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(canvas.clientWidth * ratio);
+        canvas.height = Math.floor(canvas.clientHeight * ratio);
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      }
+
+      function draw(time = 0) {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = "#e9e0d1";
+        ctx.fillRect(0, 0, width, height);
+
+        const pulse = Math.sin(time / 900) * 0.5 + 0.5;
+        const points = nodes.map((node, index) => ({
+          ...node,
+          px: node.x * width + Math.sin(time / 1200 + index) * 8,
+          py: node.y * height + Math.cos(time / 1350 + index) * 6,
+        }));
+
+        ctx.lineWidth = 2;
+        edges.forEach(([from, to], index) => {
+          const a = points[from];
+          const b = points[to];
+          ctx.strokeStyle = `rgba(24, 32, 42, ${0.16 + pulse * 0.08})`;
+          ctx.beginPath();
+          ctx.moveTo(a.px, a.py);
+          const midX = (a.px + b.px) / 2;
+          const midY = (a.py + b.py) / 2 - 34 + index * 4;
+          ctx.quadraticCurveTo(midX, midY, b.px, b.py);
+          ctx.stroke();
+        });
+
+        points.forEach((node, index) => {
+          const radius = index === 1 ? 56 : 46;
+          ctx.fillStyle = "rgba(255, 253, 249, 0.72)";
+          ctx.beginPath();
+          ctx.arc(node.px, node.py, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = node.color;
+          ctx.lineWidth = index === 1 ? 4 : 2;
+          ctx.stroke();
+
+          ctx.fillStyle = node.color;
+          ctx.font = "700 13px Inter, system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          wrapText(node.label, node.px, node.py, radius * 1.35, 17);
+        });
+
+        requestAnimationFrame(draw);
+      }
+
+      function wrapText(text, x, y, maxWidth, lineHeight) {
+        const words = text.split(" ");
+        const lines = [];
+        let line = "";
+        words.forEach((word) => {
+          const test = line ? `${line} ${word}` : word;
+          if (ctx.measureText(test).width > maxWidth && line) {
+            lines.push(line);
+            line = word;
+          } else {
+            line = test;
+          }
+        });
+        lines.push(line);
+        const startY = y - ((lines.length - 1) * lineHeight) / 2;
+        lines.forEach((item, index) => ctx.fillText(item, x, startY + index * lineHeight));
+      }
+
+      window.addEventListener("resize", () => {
+        resize();
+        draw();
+      });
+
+      resize();
+      draw();
+    </script>
+  </body>
+</html>

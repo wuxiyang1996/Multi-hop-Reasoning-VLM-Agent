@@ -170,8 +170,19 @@ Harness LoRA 不是主张成立的前提。它检验另一个独立问题：
 - 这只证明 source evidence 可用于后续 induction，不证明存在有用知识；
 - GPT-5-mini 的 ALFWorld exact-topology proposals 两次未通过 span/recurrence gate；
 - 该失败现在解释为强 topology hypothesis 失败，不能直接否定更弱的 control-knowledge hypothesis；
-- Qwen3.5-9B Harness LoRA 继续保持暂停，直到 frozen weak-prior oracle smoke 给出可行证据。
+- GPT-5-mini weak-prior canonical feasibility pilot 已完成四个 ALFWorld qualification tasks ×
+  六条件 matched evaluation；authentic 为 `3/4`，其余各 `2/4`；
+- canonical task 0 随后冻结 source/adaptation lineage、hypotheses、environment、prompt 和预算，
+  在 10 个 matched actor seeds 上复制；target-only `0/10`、generic `2/10`、raw `0/10`、
+  authentic `1/10`、shuffled `0/10`、empty `0/10`；
+- authentic 对 target-only 的单侧 exact `p=0.5`，且唯一 authentic success 的 seed 上 generic
+  也成功；因此 canonical task-0 正例已降级为 prompt/sampling-sensitive variance；
+- task 2 的 raw receipts 比 authentic 快，task 3 的 authentic initializer abstain，因此当前
+  证据不能升级为稳定 source-derived knowledge benefit；
+- Qwen3.5-9B Harness LoRA 继续保持暂停。当前 strong-oracle 结果已不足以授权训练。
 
-下一轮应先从 discovery-only source receipts 提议 `ReceiptGroundedKnowledge`，通过 source gates
-后在 ALFWorld adaptation split 生成不含 topology alignment 的 target hypothesis，再执行上述
-七条件 matched evaluation。
+不继续 unchanged task-0 20-seed 扩展。下一轮必须预注册新机制：在 disjoint target adaptation
+split 上学习 receipt-verifiable、能预测 future official progress 的 failure detector 或
+information need；source knowledge 只作为独立冻结 prior，并须在 held-out target tasks 上超过
+target-only 与 generic。若 ALFWorld 和第二远域均无 adaptation-cost 增益，则放弃
+cross-domain source-derived component；target-trained adaptive Harness 必须作为不同 claim。

@@ -464,3 +464,72 @@ offset、span 重复归属和 edge 不复现被拒绝；使用 `E0...E7` alpha-r
 v2 的 search/observe/move/take/deliver 图主要还是 target action phases，尚非跨域 reasoning
 backbone。由于强 oracle 尚未通过，Qwen3.5-9B Harness LoRA job `7122386` 已在分配 GPU 前
 置为 user hold；不会用较小模型训练掩盖机制本身尚未成立。
+
+## ALFWorld weak-knowledge canonical pilot（2026-07-23）
+
+exact-topology oracle 失败后，已实现不要求 source→target node alignment 的 weak
+receipt-grounded knowledge 路径。GPT-5-mini 只初始化和审查可证伪 control hypothesis，
+Qwen3.5-35B-A3B 是唯一 target action authority。六条件为 target-only、generic、raw source
+receipts、authentic weak prior、shuffled clause-to-receipt evidence 和 empty/abstain。
+所有 source hash 在进入模型前改成短 alias，再由确定性代码映射回真实 receipt。
+
+运行中修复了四类接口错误：长 hash 导致伪 citation、teacher 越权建议 ALFWorld action、
+verification 在 precondition 未成立时错误记 supported，以及 `PASS/ACCEPT` 等 schema 外
+verdict 触发整段 fallback。未知 verdict 现在只安全降级为本步 `ADMIT` 并保留 violation
+receipt，不做 synonym heuristic。
+
+adaptation loader 还发现宽泛 `task_*.json` 会混入
+`task_2.failed_schema_256tokens.json`。canonical v5 只接受 exact
+`task_<integer>.json`，固定 task 0/1/2/3 的 82 个唯一 receipts，并保存每个 artifact 的路径、
+SHA-256、record count 与 collection error。task 2 是 8 个有效 transition 后发生 actor
+越界的 partial example；保留但显式披露。
+
+最终 Slurm array `7122688` 四项均 `COMPLETED 0:0`，六条件 initial-state hash 逐任务一致，
+无 runtime condition error：
+
+| condition | official success | mean steps | repeated actions |
+|---|---:|---:|---:|
+| target-only | 2/4 | 20.75 | 13.00 |
+| generic | 2/4 | 18.50 | 13.50 |
+| raw receipts | 2/4 | 18.50 | 12.75 |
+| authentic weak prior | **3/4** | **14.50** | **7.50** |
+| shuffled evidence | 2/4 | 18.50 | 13.25 |
+| empty/abstain | 2/4 | 21.25 | 14.00 |
+
+task 0 是 clean replication candidate：authentic 在 16 步 official success，其他五条件均
+30 步失败；该 authentic run 无 protocol violation、fallback 或 Harness-forced replan。
+task 2 中 raw receipts 7 步、authentic 8 步，故只支持 source context 可能有用，不支持
+induced knowledge 的额外价值。task 1 为 ceiling case；task 3 全失败且 authentic initializer
+abstain。
+
+这仍是四样本 adaptation feasibility upper bound，不是 one-shot；每个 condition 也只有一个
+远程 actor rollout。canonical 状态因此只是 `REPLICATION_CANDIDATE`，不是
+`SOURCE_KNOWLEDGE_SUPPORTED`。final canonical run 估算成本 `$1.31`。完整报告见
+[`ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md`](ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md)。
+
+冻结 task-0 复制随后已完成 10 个 actor seeds（`92000`--`92009`），固定 environment seed
+`81000`、initial-state hash、source/adaptation hashes、六个 hypothesis、prompt 与预算。结果为：
+
+| condition | official success | mean steps |
+|---|---:|---:|
+| target-only | 0/10 | 30.0 |
+| generic | **2/10** | **26.5** |
+| raw receipts | 0/10 | 30.0 |
+| authentic weak prior | 1/10 | 27.6 |
+| shuffled | 0/10 | 30.0 |
+| empty/abstain | 0/10 | 30.0 |
+
+authentic 对 target-only 是 1 win / 0 loss / 9 ties，单侧 exact `p=0.5`；对 generic 是
+0 win / 1 loss / 9 ties。唯一 authentic 成功 seed 同时也是 generic 成功 seed。故 task 0
+现已降级为 `PROMPT_OR_SAMPLING_SENSITIVE_VARIANCE`，不能支持 source-derived knowledge
+benefit。复制的选择后有效 artifacts 估算 `$5.38`，不含 smoke、失败 raw 调用和 debug。
+
+seed 4 raw condition 暴露了同 payload memoized schema retry 无效的问题；retry 现在携带 parse
+error 与 schema-repair instruction。只对该预先声明的 seed/condition 用相同冻结输入重跑，
+最终 10 个 replicate 均通过完整性检查。当前 115 项测试、ruff、py_compile 全通过。
+
+不继续相同协议的 20-seed 扩展，不做 one-shot，也不训练 Harness LoRA。下一步若继续，必须
+预注册新的 target-side predictive Harness：先在 disjoint adaptation split 学到可由 future
+official progress 检验的 failure detector / information need，再把 source knowledge 作为独立
+冻结 prior 做增量 ablation。若在 ALFWorld 和第二远域都不能降低 adaptation cost，则删除
+cross-domain source benefit claim，只保留 target-trained adaptive Harness 方向。

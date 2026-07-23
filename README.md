@@ -3,10 +3,16 @@
 本项目不迁移 skill 或 policy；我们检验 target agent 的 test-time reasoning 是否能从 source
 MDP 中抽取的 motif、receipts 和 experiential knowledge 获得可归因收益。新的主协议见
 [`docs/TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md`](docs/TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md)。
+当前实验账本网页见 [`docs/EXPERIMENT_LEDGER.html`](docs/EXPERIMENT_LEDGER.html)。
+跨五个 repo/worktree 的完整项目总账本见
+[`docs/PROJECT_WIDE_EXPERIMENT_LEDGER.html`](docs/PROJECT_WIDE_EXPERIMENT_LEDGER.html)。
 旧 exact-topology motif binding 继续保留为强假设和 ablation，不再代表主 claim。
 
 当前 ALFWorld one-shot online smoke、失败审计和下一阶段 gates 见
 [`docs/ALFWORLD_ONE_SHOT_STATUS.md`](docs/ALFWORLD_ONE_SHOT_STATUS.md)。
+最新 GPT-5-mini weak-knowledge Harness canonical pilot、六条件结果、接口修复和多 seed
+复现门槛见
+[`docs/ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md`](docs/ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md)。
 旧 Phase-1 skill 的内部图提取、真实 GPT-5-mini pilot 和当前零通过结论见
 [`docs/SKILL_INTERNAL_BACKBONE.md`](docs/SKILL_INTERNAL_BACKBONE.md)。
 冻结的 88-call source control matrix 摘要见
@@ -67,6 +73,15 @@ source experience
 
 “快速适应”必须用 examples-to-success、environment steps、无效/重复动作、token/tool cost 和 negative-transfer recovery latency 衡量，而不能只报告最终成功率。
 
+截至 2026-07-23，四任务 canonical pilot 曾得到一个 task-0 正例，但冻结 hypothesis、环境、
+prompt 与预算后的 10 个 matched actor-seed 复制没有复现 source-specific benefit：
+target-only `0/10`、generic `2/10`、raw receipts `0/10`、authentic `1/10`、shuffled `0/10`、
+empty/abstain `0/10`。authentic 对 target-only 仅 1 个 discordant win（单侧 exact
+`p=0.5`），对 generic 为 0 win / 1 loss；唯一 authentic 成功的 seed 上 generic 也成功。
+因此 task 0 已从 `REPLICATION_CANDIDATE` 降为 prompt/sampling-sensitive variance。当前不扩到
+20 seeds、不做 one-shot claim，也不训练 Harness LoRA；下一步必须先在 disjoint target
+adaptation split 上验证新的、可预测 future official progress 的 Harness 机制。
+
 ## 快速运行
 
 ```bash
@@ -102,6 +117,8 @@ python -m pip install -e '.[test,vtb]'
 - `docs/OLD_RESULTS.md`：旧 checkpoint、rollout 和 mega-skill 的保留方式。
 - `docs/SKILL_INTERNAL_BACKBONE.md`：旧 skill 内部 backbone 的表示、controls 与真实 pilot。
 - `docs/IMPLEMENTATION_STATUS.md`：当前机械审计、正在运行的采集和尚未授权的 claim。
+- `docs/ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md`：最新 weak-knowledge oracle pilot、
+  canonical 结果、失败修复和复现 gate。
 
 ## 旧游戏模型如何进入新 Harness
 

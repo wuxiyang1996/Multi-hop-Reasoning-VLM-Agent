@@ -114,6 +114,15 @@ authentic 精确复现 target-only 的 5 actions 并官方成功。它证明 fal
 
 ## 下一步 concrete plan
 
+> 2026-07-23 更新：本文件前半记录旧 one-shot vertical slice。更新的 weak-knowledge
+> strong-teacher feasibility pilot 已不再使用 exact-topology binding，详见
+> [`ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md`](ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md)。
+> 新 pilot 使用四个 canonical adaptation artifacts，因此不是新的 one-shot 结果。它发现过
+> task 0 的一个 authentic-only 16-step success，但冻结 10-actor-seed 复制未复现：
+> target-only `0/10`、generic `2/10`、authentic `1/10`。因此不执行本文件 Gate 4，不把
+> adaptation 降为 one-shot，也不训练 Harness LoRA；若继续，必须先预注册新的 target-side
+> predictive Harness 机制。
+
 ### Gate 1：停止把 generic source graph 当 authentic backbone
 
 当前 Strider/Thunder graph 主要编码 skill-ID run change、reward sign 和 topology，authentic 并未超过

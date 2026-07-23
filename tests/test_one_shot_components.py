@@ -3,7 +3,7 @@ import pytest
 
 from motif_transfer.api_decision_agent import OpenAIJSONDecisionAgent
 from motif_transfer.contracts import (
-    Advisory, AdvisoryVerdict, BindingHypothesis, DecisionProposal, Lifecycle,
+    AdvisoryVerdict, BindingHypothesis, DecisionProposal, Lifecycle,
     MotifCandidate, MotifEdge, MotifNode, Observation,
 )
 from motif_transfer.binding import BindingAttribution
@@ -40,6 +40,32 @@ def test_decision_agent_selects_only_numbered_native_action():
     agent = OpenAIJSONDecisionAgent(backend)
     proposal_set = agent.propose_set(Observation({"x": 1}, ("a", "b")), "goal", (), None)
     assert proposal_set.selected.action == "b"
+
+
+def test_decision_schema_retry_changes_request_and_carries_error_receipt():
+    class RecordingBackend(Backend):
+        def __init__(self):
+            super().__init__([
+                "not an object",
+                {"action_number": 1, "state_summary": "state", "next_subgoal": "retry"},
+            ])
+            self.payloads = []
+
+        def complete(self, role, system, payload):
+            self.payloads.append(payload)
+            return super().complete(role, system, payload)
+
+    backend = RecordingBackend()
+    agent = OpenAIJSONDecisionAgent(backend)
+    proposal_set = agent.propose_set(
+        Observation({"x": 1}, ("a",)), "goal", (), None
+    )
+    assert proposal_set.selected.action == "a"
+    assert "_schema_retry" not in backend.payloads[0]
+    assert backend.payloads[1]["_schema_retry"]["attempt"] == 1
+    assert "decision model must return one JSON object" in (
+        backend.payloads[1]["_schema_retry"]["previous_error"]
+    )
 
 
 def test_one_shot_binding_receives_real_graph_not_shape_only():

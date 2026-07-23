@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-hop Reasoning VLM Agent Project-Wide Ledger</title>
+  <style>
+    :root {
+      --bg: #f6f6f1;
+      --ink: #202124;
+      --muted: #666b68;
+      --line: #d9d9cf;
+      --panel: #fffef9;
+      --soft: #edf1ea;
+      --code: #eeede4;
+      --good: #16754a;
+      --warn: #966800;
+      --bad: #b42318;
+      --blue: #245c8f;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fffefa 0%, #f0f2e9 100%);
+    }
+
+    .wrap {
+      width: min(1220px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 44px 0 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 1040px;
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 4.1rem);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 990px;
+      margin: 18px 0 0;
+      color: #3b403d;
+      font-size: 1.08rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .pill,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #3f4441;
+      white-space: nowrap;
+    }
+
+    .pill {
+      min-height: 30px;
+      padding: 5px 10px;
+      font-size: 0.88rem;
+    }
+
+    .tag {
+      min-height: 24px;
+      margin: 0 4px 4px 0;
+      padding: 2px 7px;
+      font-size: 0.78rem;
+    }
+
+    .good { color: var(--good); border-color: #9dd3b5; background: #eef9f3; }
+    .warn { color: var(--warn); border-color: #e7c878; background: #fff8df; }
+    .bad { color: var(--bad); border-color: #eda7a0; background: #fff0ee; }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(246, 246, 241, 0.96);
+      backdrop-filter: blur(10px);
+    }
+
+    nav .wrap {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+
+    nav a {
+      flex: 0 0 auto;
+      color: #3f4441;
+      font-size: 0.92rem;
+      text-decoration: none;
+    }
+
+    main { padding: 26px 0 56px; }
+
+    section {
+      margin: 28px 0;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.46rem;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 24px 0 10px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    p { margin: 0 0 12px; }
+
+    .lead { font-size: 1.04rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fcfcf7;
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .metric {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .value {
+      margin: 0;
+      font-size: 1.42rem;
+      font-weight: 740;
+      line-height: 1.16;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .callout {
+      margin: 14px 0;
+      padding: 16px;
+      border-left: 4px solid var(--blue);
+      background: #f1f6fb;
+    }
+
+    .callout.warn { border-left-color: var(--warn); background: #fff8df; }
+    .callout.bad { border-left-color: var(--bad); background: #fff0ee; }
+
+    table {
+      width: 100%;
+      margin: 12px 0 18px;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft);
+      font-weight: 720;
+    }
+
+    code,
+    pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+
+    code {
+      padding: 0.12em 0.35em;
+      border-radius: 5px;
+      background: var(--code);
+      font-size: 0.9em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 12px 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1f2421;
+      color: #f7f6ec;
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 14px 1.1rem;
+      padding: 0;
+    }
+
+    li { margin: 6px 0; }
+
+    .timeline {
+      margin-left: 0;
+      list-style: none;
+    }
+
+    .timeline li {
+      position: relative;
+      margin: 0 0 14px;
+      padding-left: 26px;
+    }
+
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      top: 0.52em;
+      left: 4px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #69726b;
+    }
+
+    .timeline li::after {
+      content: "";
+      position: absolute;
+      top: 1.1em;
+      bottom: -16px;
+      left: 8px;
+      border-left: 1px solid var(--line);
+    }
+
+    .timeline li:last-child::after { display: none; }
+
+    @media (max-width: 880px) {
+      section { padding: 18px; }
+      .span-3,
+      .span-4,
+      .span-6,
+      .span-8 { grid-column: span 12; }
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <p class="eyebrow">Project-wide ledger · five repos · commit history + docs + logs + thread decisions · 2026-07-23</p>
+      <h1>Multi-hop Reasoning VLM Agent：两个月实验谱系总账本</h1>
+      <p class="subtitle">
+        本页把五个相关 worktree/repo 的 commit 线、Slurm/log 证据、README/notes、run summaries 和这条对话里的结论合并成一张总图。
+        它的目的不是润色成 paper claim，而是留下一个诚实的恢复点：哪些东西跑通了，哪些正例倒了，哪些说法不能再用，以及下一步如果重启应从哪里开始。
+      </p>
+      <div class="meta">
+        <span class="pill bad">当前 0 个 SOURCE_SUPPORTED transferable motif</span>
+        <span class="pill bad">2×4 ALFWorld harness v1 明确负迁移</span>
+        <span class="pill warn">ALFWorld weak-prior task-0 未复现</span>
+        <span class="pill good">2×4 A6000/GRPO 与 visual rollout 链路可运行</span>
+        <span class="pill warn">下一步先暂停，video projects 优先</span>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="wrap">
+      <a href="#executive">总判断</a>
+      <a href="#repos">Repo 谱系</a>
+      <a href="#commits">Commit 线</a>
+      <a href="#arc">问题演化</a>
+      <a href="#training">训练/吞吐</a>
+      <a href="#harness">Harness 结果</a>
+      <a href="#source">Source 证据</a>
+      <a href="#target">Target/四域</a>
+      <a href="#thread">Thread 决定</a>
+      <a href="#next">重启 Gate</a>
+      <a href="#artifacts">Artifacts</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section id="executive">
+      <h2>总判断</h2>
+      <p class="lead">
+        这条线最大的进展不是证明了“game skill transfer”，而是把一个过强、容易自欺的 claim
+        连续收缩成可证伪的问题。我们已经证明了很多工程能力：2×4 GPU 布局、真实 GRPO、ALFWorld/VTB/多 target runner、
+        receipt/hash/fail-closed Harness、OpenRouter/OpenAI teacher pilot、fresh source collection。科学上还没有证明：
+        游戏 skill、motif 或 source-derived receipt knowledge 能在远域 target task 上稳定超过 generic/raw/shuffled controls。
+      </p>
+
+      <div class="grid">
+        <div class="card span-3">
+          <p class="metric">Repo/worktree scanned</p>
+          <p class="value">5</p>
+          <p class="small">old main、experiment-clean、github-main、source-fresh、two-agent-clean。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">Formal ALFWorld 2×4</p>
+          <p class="value">13/59 → 0/59</p>
+          <p class="small">base 为 22.0%；base_harness/game_sft_harness 为 0%。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">ALFWorld weak-prior replication</p>
+          <p class="value">1/10 vs 2/10</p>
+          <p class="small">authentic 弱 prior 低于 generic，task-0 正例降级。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">Fresh source integrity</p>
+          <p class="value">2400</p>
+          <p class="small">Strider + Thunder 各 12 episodes × 100 steps，通过 clean repo audit。</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <p>
+          当前最稳的表达是：<strong>我们不迁移 skill 或 policy；我们检验 target-time reasoning
+          是否能从异构 source MDP 的 receipt-grounded experience 中获得可归因收益。</strong>
+          如果之后重启，第一件事不是再调 prompt，而是用强 teacher 验证 target-adapted prediction Harness 的
+          <code>k=0/1/2/4/8</code> 曲线。
+        </p>
+      </div>
+    </section>
+
+    <section id="repos">
+      <h2>Repo 谱系</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Path</th>
+            <th>当前角色</th>
+            <th>Git 状态</th>
+            <th>最重要结论</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent</code></td>
+            <td>老主仓：co-evolution、frontier_data、mega-skill、Stage3 domain adaptation pipeline。</td>
+            <td><span class="tag warn">main behind origin/main by 44</span> <span class="tag warn">dirty</span></td>
+            <td>早期方向以 skill bank / mega-skill / Layer-C reasoning plans 为主；后来发现这些更多是 text/LLM structure，不是 receipt-grounded proof。</td>
+          </tr>
+          <tr>
+            <td><code>/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-experiment-clean</code></td>
+            <td>2×4 GPU/ALFWorld/GRPO 实验 worktree。</td>
+            <td><span class="tag warn">detached HEAD b32d5ba</span></td>
+            <td>2×4 A6000 真实跑通，但 ALFWorld harness v1 产生明确负迁移；visual GRPO/默认视觉 observation 链路跑通。</td>
+          </tr>
+          <tr>
+            <td><code>/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main</code></td>
+            <td>agent-native skill harness v2/v3、causal motif、online rebind 和旧 GitHub branch。</td>
+            <td><span class="tag warn">agent/agent-native-skill-harness-v2</span> <span class="tag warn">dirty + many slurm logs</span></td>
+            <td>从手写 predicate skill transfer 迁到 agent-proposed target-native harness；development pilots 没有 source advantage。</td>
+          </tr>
+          <tr>
+            <td><code>/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1</code></td>
+            <td>fresh no-human-hints source collection worktree。</td>
+            <td><span class="tag warn">detached 948f64a</span> <span class="tag warn">dirty</span></td>
+            <td>Strider/Thunder fresh source job 7122289 完成真实 rollout；输出被 clean repo audit 接收。</td>
+          </tr>
+          <tr>
+            <td><code>/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean</code></td>
+            <td>当前最干净的研究核心和总账本。</td>
+            <td><span class="tag warn">agent/two-agent-clean-architecture</span> <span class="tag warn">dirty</span></td>
+            <td>主 claim 已降为 weak receipt-grounded knowledge / test-time reasoning benefit；ALFWorld task-0 frozen replication 未复现。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="small">
+        注：所有 repo 当前都有不同程度未提交/未跟踪文件。本页是工作区账本，不是 release manifest；后续提交前还需要单独做 scope 审计。
+      </p>
+    </section>
+
+    <section id="commits">
+      <h2>Commit 线</h2>
+      <h3>Clean repo: two-agent-clean</h3>
+      <table>
+        <thead>
+          <tr><th>Commit</th><th>Message</th><th>作用</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>ac2dc26</code></td><td>Implement receipt-grounded reasoning priors</td><td>当前 HEAD；weak receipt-grounded knowledge 成为主协议。</td></tr>
+          <tr><td><code>eb8478b</code></td><td>Fix Slurm imports and record source audit</td><td>修 Slurm PYTHONPATH/import，记录 fresh source audit。</td></tr>
+          <tr><td><code>05aeb8f</code></td><td>Implement receipt-grounded motif transfer diagnostics</td><td>source/target diagnostics 与 fail-closed transfer matrix。</td></tr>
+          <tr><td><code>213af4c</code></td><td>Add falsifiable far-domain transfer diagnostics</td><td>四域 target feasibility 与可证伪边界。</td></tr>
+          <tr><td><code>5034338</code></td><td>Add matched source reasoning transfer gate</td><td><code>B/G-S/G+S/G+Rand</code> source gate。</td></tr>
+          <tr><td><code>d4784f2</code></td><td>Extract receipt-grounded skill-internal motifs</td><td>skill-internal matrix 和 action-identity controls。</td></tr>
+          <tr><td><code>8f9141c</code></td><td>Run ALFWorld one-shot transfer vertical slice</td><td>真实 ALFWorld online loop 首次跑通，但无 source 增量。</td></tr>
+          <tr><td><code>6695ee6</code></td><td>Refocus repository on two-agent motif transfer</td><td>从旧大仓切出 two-agent clean 架构。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Harness v2/v3 branch: github-main / source-fresh</h3>
+      <table>
+        <thead>
+          <tr><th>Commit</th><th>Message</th><th>作用</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>948f64a</code></td><td>Add matched conditional proposal controls</td><td>v2/v3 branch HEAD；条件 proposal、controls、online harness 准备。</td></tr>
+          <tr><td><code>74b0c44</code></td><td>Add conditional node transfer programs</td><td>尝试 conditional node-local program，不手写 gap。</td></tr>
+          <tr><td><code>3a36625</code></td><td>Add receipt-grounded binding version spaces</td><td>binding version-space 与 receipt grounding。</td></tr>
+          <tr><td><code>9fcfcd4</code></td><td>Add viable native target actor baseline</td><td>target-native actor baseline；避免 source-only 掩盖 base 能力。</td></tr>
+          <tr><td><code>7fa9d44</code></td><td>Ground online contracts in target receipts</td><td>online Harness 的 target receipt contract。</td></tr>
+          <tr><td><code>e65577b</code></td><td>Add evidence-gated online skill transfer harness</td><td>早期 evidence-gated online harness。</td></tr>
+          <tr><td><code>bdd3fec</code></td><td>Add agent-native skill harness v2</td><td>从人工 predicate 路径切到 Agent-proposed target-native harness。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2×4 / experiment-clean line</h3>
+      <table>
+        <thead>
+          <tr><th>Commit</th><th>Message</th><th>作用</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>b32d5ba</code></td><td>Synchronize DDP ranks after forward OOM</td><td>视觉 GRPO 中修复 rank 间 OOM 后 collective 分叉。</td></tr>
+          <tr><td><code>8f2f3d5</code></td><td>Enable actual visual runs on A6000</td><td>默认视觉 observation / A6000 跑通。</td></tr>
+          <tr><td><code>244e700</code></td><td>Align GRPO smoke audit with scheduled adapters</td><td>GRPO smoke 与 adapter 调度对齐。</td></tr>
+          <tr><td><code>1316b2b</code></td><td>Add 2x4 A6000 GRPO smoke test</td><td>2×4 A6000 三步 GRPO smoke。</td></tr>
+          <tr><td><code>fba67c9</code></td><td>Run formal experiment on RTX A6000</td><td>ALFWorld 236 episodes 正式实验。</td></tr>
+          <tr><td><code>61089ad</code></td><td>Share Slurm memory across partitioned steps</td><td>2×4 layout / resource reliability。</td></tr>
+          <tr><td><code>44f1d74</code></td><td>Implement strict one-shot ALFWorld transfer experiment</td><td>严格 one-shot ALFWorld transfer v1。</td></tr>
+          <tr><td><code>52a1f9f</code></td><td>Document principled cross-domain skill transfer</td><td>principled skill transfer 初始文档。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Old main / origin main</h3>
+      <table>
+        <thead>
+          <tr><th>Commit</th><th>Message</th><th>作用</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>4f44c53</code></td><td>feat(stage3): implement GRPO domain adaptation pipeline for 6 non-game benchmarks</td><td>远端最新 main；Stage3 non-game GRPO/domain adaptation pipeline。</td></tr>
+          <tr><td><code>a39eab7</code></td><td>mega-skill clustering: two-pass free-form labeling</td><td>本地 main HEAD；mega-skill clustering 路线。</td></tr>
+          <tr><td><code>2a8296a</code></td><td>optimize game split</td><td>Phase 1/2 game split 调整。</td></tr>
+          <tr><td><code>e85c1ef</code></td><td>frontier_data: multi-teacher SFT data + per-game LoRA & no-SFT GRPO plans</td><td>multi-teacher data、per-game LoRA、no-SFT GRPO 计划。</td></tr>
+          <tr><td><code>f216b94</code></td><td>frontier_data: inject Layer-C reasoning plans into 304/406 skill protocols</td><td>Layer-C reasoning plans 注入；后来被重新解释为提示/结构，而非 receipt proof。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="arc">
+      <h2>问题演化</h2>
+      <ol class="timeline">
+        <li>
+          <strong>阶段 0：旧系统与 co-evolution。</strong>
+          原 repo 已经有 harness/crafter/orchestrator、skill bank lifecycle、SFT/GRPO、Qwen3.5-9B/35B stack，
+          并在游戏上有可运行 skill/context/LoRA 路线。
+        </li>
+        <li>
+          <strong>阶段 1：Layer-C / mega-skill / reasoning plan。</strong>
+          406 skills 被 LLM lifted 成 PERCEIVE/DECIDE/COMMIT/VERIFY 等计划，跨域 signature 覆盖率看起来很高。
+          后续审计发现它更像自然语言/LLM prior，不是可执行 receipt-grounded transfer proof。
+        </li>
+        <li>
+          <strong>阶段 2：principled skill transfer。</strong>
+          尝试用 typed effect、one-shot admission、source-only SFT 和 ALFWorld official success，避免 COLLECT→TAKE 等手写映射。
+          这条线工程上跑通，但 v1 Harness 过度收缩 action scope，导致 0/59。
+        </li>
+        <li>
+          <strong>阶段 3：agent-native harness v2/v3。</strong>
+          改成 Agent 只提出 target-native candidates，Harness 只验证 receipt/admissibility/official outcome；
+          35B smoke 和 dev pilots 能跑，但 source-conditioned treatment 没有超过 target-only。
+        </li>
+        <li>
+          <strong>阶段 4：receipt-grounded causal motif。</strong>
+          旧 mega-skill 被降为 <code>LINEAGE_RETRIEVAL_ONLY</code>；统一 event protocol 不再叫 skill。
+          真实 motif 必须有 proposal/execute/observe/update、replay fork、source attribution 和 target incremental value。
+        </li>
+        <li>
+          <strong>阶段 5：two-agent clean。</strong>
+          repo 清成 Decision Agent + Motif/Harness Agent；旧 exact topology 失败后，主对象降为 weak receipt-grounded knowledge。
+        </li>
+        <li>
+          <strong>阶段 6：当前结论。</strong>
+          ALFWorld weak-prior canonical pilot 的 task-0 正例经 10-seed frozen replication 未复现；
+          所以现在暂停 positive transfer 主张，转向 target-adapted prediction Harness gate。
+        </li>
+      </ol>
+    </section>
+
+    <section id="training">
+      <h2>训练与吞吐结果</h2>
+      <h3>2×4 A6000 三步 GRPO smoke</h3>
+      <table>
+        <thead>
+          <tr><th>Job</th><th>硬件/布局</th><th>结果</th><th>边界</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>7113785</code></td>
+            <td>2 nodes × 4 RTX A6000；4×9B rollout + 4×FSDP GRPO。</td>
+            <td><span class="tag good">COMPLETED 0:0</span> 3 个 outer steps，6 episodes / 72 env steps，非零 advantage，action_taking LoRA 更新并保存。</td>
+            <td>只证明 action_taking GRPO path；skill_selection / skillbank 记录低于训练门槛，不能说所有 adapters 已完整训练。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>默认视觉 observation 2×4 A6000 run</h3>
+      <table>
+        <thead>
+          <tr><th>Job</th><th>Game</th><th>Rollout</th><th>GRPO/LoRA</th><th>修复</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>7114347</code></td>
+            <td>Candy Crush</td>
+            <td>24/24 episodes，1200 env steps，reward 3587/3696/3669。</td>
+            <td>最终 <code>skill_selection</code> 与 <code>action_taking</code> 两个 adapters 均改变 496/496 tensors。</td>
+            <td>修复 DDP rank forward OOM 后不同步导致的 collective 分叉。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>ALFWorld formal 2×4 A6000</h3>
+      <table>
+        <thead>
+          <tr><th>Condition</th><th>Seen</th><th>Unseen</th><th>Overall</th><th>解释</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>base</td><td>7/35</td><td>6/24</td><td><span class="tag good">13/59</span></td><td>原始 9B baseline 有 22.0% official success。</td></tr>
+          <tr><td>game_sft</td><td>1/35</td><td>0/24</td><td><span class="tag bad">1/59</span></td><td>游戏 SFT 直接转到 ALFWorld 明显负迁移。</td></tr>
+          <tr><td>base_harness</td><td>0/35</td><td>0/24</td><td><span class="tag bad">0/59</span></td><td>Harness v1 删除未 transfer 动作能力，导致只能 GOTO。</td></tr>
+          <tr><td>game_sft_harness</td><td>0/35</td><td>0/24</td><td><span class="tag bad">0/59</span></td><td>相对 base Δ=-0.220，McNemar p=0.0002441。</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout bad">
+        <p>
+          ALFWorld 2×4 的关键教训：Harness 不能用 admitted/transferred skill scope 替代官方 admissible action set。
+          它应该是 non-censoring advisor/predictor，否则会把基础任务能力切掉。
+        </p>
+      </div>
+    </section>
+
+    <section id="harness">
+      <h2>Harness / Motif 实验结果</h2>
+      <h3>Agent-native v3 development pilots</h3>
+      <table>
+        <thead>
+          <tr><th>实验</th><th>结果</th><th>边界</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OpenRouter 35B source proposer smoke</td>
+            <td>12 calls，11 valid，1 hallucinated program ID rejected，4 abstentions，0 endpoint failures；2 CONDITIONAL / 2 INCONCLUSIVE admission。</td>
+            <td>说明 proposer path 能跑；当前单步 source programs 缺 reasoning structure。</td>
+          </tr>
+          <tr>
+            <td>harness v3 matched binding dev8</td>
+            <td>source 2/8 success，target-only 2/8 success，net gain 0；source prompt tokens 161,898 vs 14,424，成本约 9.8×。</td>
+            <td><code>NO_SOURCE_ADVANTAGE_IN_DEV_PILOT</code>，不授权 large-scale 2×4。</td>
+          </tr>
+          <tr>
+            <td>online rebind dev4</td>
+            <td>B/N/H/R 均 1/4 success；H/R 增加 steps/tokens/cost，未增成功。</td>
+            <td>验证 online rebind mechanics，不是 positive transfer。</td>
+          </tr>
+          <tr>
+            <td>conditional node-local program</td>
+            <td>proposal/repair budget 未恢复可接纳程序。</td>
+            <td>不能由人手写 gap 再宣称 transfer 成功。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Causal motif audit</h3>
+      <table>
+        <thead>
+          <tr><th>对象</th><th>数字</th><th>解释</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>legacy mega-skills</td><td>180 members, 20 families, 14 template signatures</td><td>旧 clustering 压缩严重，20/20 families 无 executable control-flow receipts。</td></tr>
+          <tr><td>causal motif candidates</td><td>3 structurally-specific candidates</td><td>都缺 source attribution 和 target incremental value。</td></tr>
+          <tr><td>authority</td><td><code>LINEAGE_RETRIEVAL_ONLY</code></td><td>旧 mega-skill 可作 lineage/retrieval/control，不能作 transfer truth。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Two-agent clean ALFWorld weak prior</h3>
+      <table>
+        <thead>
+          <tr><th>Run</th><th>结果</th><th>解释</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>canonical 4-task pilot <code>7122688</code></td>
+            <td>authentic 3/4，target/generic/raw/shuffled/empty 均 2/4；task 0 authentic-only success。</td>
+            <td>只标为 <code>REPLICATION_CANDIDATE</code>，不是 one-shot 或 held-out evidence。</td>
+          </tr>
+          <tr>
+            <td>frozen task-0 10-seed replication</td>
+            <td>target-only 0/10，generic 2/10，raw 0/10，authentic 1/10，shuffled 0/10，empty 0/10。</td>
+            <td>authentic 不优于 generic；task 0 降级为 prompt/sampling-sensitive variance。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="source">
+      <h2>Source 证据与旧数据边界</h2>
+      <h3>旧 source 数据</h3>
+      <ul>
+        <li>早期 full source audit：299 episodes、23,072 transitions、299/299 full-episode replay pass。</li>
+        <li>56 个 <code>CanonicalSkillProgram</code> 全部只有单步 <code>COMMIT</code>，不能证明多步 reasoning program。</li>
+        <li>旧 skill labels/intentions/chosen skills 来自 retrieval/LLM，不是 ground-truth segmentation。</li>
+        <li>旧 outcome 字段不是可靠 official success receipt，不能用来证明 termination correctness。</li>
+      </ul>
+
+      <h3>Skill-internal / Phase 7 gate</h3>
+      <table>
+        <thead>
+          <tr><th>Gate</th><th>状态</th><th>证据</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>skill-internal authentic backbone</td><td><span class="tag bad">0 eligible</span></td><td>11 skills × 8 conditions；authentic 0，eligible 全来自 controls。</td></tr>
+          <tr><td>matched source influence</td><td><span class="tag good">supported</span></td><td>Strider POSITION 中 weights/context 改变 action/after-state。</td></tr>
+          <tr><td>source value</td><td><span class="tag bad">not supported at h1</span></td><td>155 selected POSITION snapshots one-step reward 全为 0。</td></tr>
+          <tr><td>delayed value</td><td><span class="tag warn">not identified</span></td><td>旧 replay 没有 h2/h4/h8 counterfactual continuation。</td></tr>
+          <tr><td>reasoning graph</td><td><span class="tag bad">not supported</span></td><td>effect graph recurrence 不足，且不是 reasoning program。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Fresh no-human-hints source</h3>
+      <table>
+        <thead>
+          <tr><th>Worktree/job</th><th>Game</th><th>Episodes/steps</th><th>Replay receipts</th><th>当前意义</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>source-fresh-v1</code> / Slurm <code>7122289_0</code></td>
+            <td>Strider</td>
+            <td>12 episodes × 100 steps；rewards mostly 0, one 50。</td>
+            <td>clean audit: 8 matched observed receipts after filtering; source log also records 132 raw replay receipts。</td>
+            <td>数据完整，positive execution sparse；不是 transfer evidence。</td>
+          </tr>
+          <tr>
+            <td><code>source-fresh-v1</code> / Slurm <code>7122289_1</code></td>
+            <td>Thunder Force III</td>
+            <td>12 episodes × 100 steps；returns 200-800。</td>
+            <td>clean audit: 428 matched observed receipts; source log also records 132 raw replay receipts。</td>
+            <td>更适合下一轮 multi-horizon value gate。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="target">
+      <h2>Target / 四域状态</h2>
+      <h3>目标矩阵演化</h3>
+      <p>
+        早期文档定义 4 domains × 8 cells：VTB、TIR、Video-Holmes、SIV、MiniWoB、WebShop、ALFWorld seen/unseen。
+        clean repo 后来移除 SIV-Bench，变成 4 domains × 7 cells；Video 当前只有 Video-Holmes，一个 benchmark。
+      </p>
+      <table>
+        <thead>
+          <tr><th>Cell</th><th>状态</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ALFWorld seen/unseen</td><td><span class="tag good">runnable</span></td><td>valid-unseen 已有 8 adaptation rollouts，4/8 success，152 transitions。</td></tr>
+          <tr><td>MiniWoB</td><td><span class="tag good">runnable</span></td><td>冻结 smoke 一步 official reward=1。</td></tr>
+          <tr><td>WebShop</td><td><span class="tag good">runnable</span></td><td>full BM25 server restored；smoke reward=0.6667。</td></tr>
+          <tr><td>TIR-Bench</td><td><span class="tag good">runnable</span></td><td>1215 rows，image refs 完整；需要严格 receipt/coordinate grounding。</td></tr>
+          <tr><td>Video-Holmes</td><td><span class="tag good">runnable</span></td><td>503 videos 可用；smoke 搜索耗尽无 final answer。</td></tr>
+          <tr><td>VisualToolBench</td><td><span class="tag warn">blocked for official full-tool</span></td><td>官方 code/evaluator 确认；full-tool keys <code>SERP_API_KEY</code>/<code>OPENWEATHER_API_KEY</code> 缺失。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>VTB 特别状态</h3>
+      <ul>
+        <li>官方仓库固定到 <code>xi1ngang/VisualToolBench@d4f200a</code>；旧 gold-string diagnostic 不能替代官方 rubric judge。</li>
+        <li>single-turn v2 manifest 有 603 tasks，adaptation row:105，held-out smoke row:55/319。</li>
+        <li>matched interposition smoke：target-only 3 successful transforms / 0 final；generic replan 后 2 calls / 0 successful / 0 final。</li>
+        <li>结论是 <code>GENERIC_INTERPOSITION_HARMED_TOOL_EXECUTION_WITHOUT_TASK_SUCCESS</code>，只证明负效果捕捉和 common-randomness mechanics。</li>
+      </ul>
+    </section>
+
+    <section id="thread">
+      <h2>这条对话里已经定下的决定</h2>
+      <table>
+        <thead>
+          <tr><th>决定</th><th>原因</th><th>落地位置</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>不再主张 <code>skill transfer</code></td>
+            <td>reviewer 会把 skill 理解成可复用 policy/action program；当前证据只支持更弱的 test-time reasoning benefit 问题。</td>
+            <td>clean README、<a href="TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md">TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md</a>、<a href="EXPERIMENT_LEDGER.html">EXPERIMENT_LEDGER.html</a></td>
+          </tr>
+          <tr>
+            <td>Harness 无 target action authority</td>
+            <td>否则 source prior 会变成手写/模型生成 target policy，无法归因。</td>
+            <td>two-agent architecture docs and runtime。</td>
+          </tr>
+          <tr>
+            <td>旧 mega-skill 仅 lineage</td>
+            <td>180 members / 20 families / 14 signatures 显示 collapse；无 executable control-flow receipts。</td>
+            <td>causal motif audit、clean docs。</td>
+          </tr>
+          <tr>
+            <td>不继续 task-0 20-seed 扩展</td>
+            <td>10-seed frozen replication 已显示 authentic 不优于 generic；更多同机制样本只会精确估计近零效应。</td>
+            <td>ALFWorld weak-knowledge pilot doc。</td>
+          </tr>
+          <tr>
+            <td>不释放当前 Harness LoRA job</td>
+            <td>strong teacher mechanism 尚未证明；用小模型训练会掩盖机制失败。</td>
+            <td>target rollout collection / implementation status。</td>
+          </tr>
+          <tr>
+            <td>暂停此线，先 fire 两个 video projects</td>
+            <td>这条线已进入高风险方法论阶段；video projects 更 promising，资源优先给更清晰闭环。</td>
+            <td>本页和 thread close-out。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <p>
+          离开 thread 后的接力棒：当前不是“失败项目”，而是一个高风险、需要强 gate 的方法线。
+          可恢复点是 clean repo 的两个网页账本和 docs/results；不要从旧 prompt 调参继续，而要从 prediction Harness gate 重新开。
+        </p>
+      </div>
+    </section>
+
+    <section id="next">
+      <h2>如果之后重启：最小 Gate</h2>
+      <ol>
+        <li>
+          <strong>先做 target-adapted large Harness。</strong>
+          用 GPT-5-mini 或更强 teacher，在 ALFWorld 或 video target 上做 action/proposal-conditional
+          future progress prediction，k 固定为 <code>0/1/2/4/8</code>。
+        </li>
+        <li>
+          <strong>补 target data 形态。</strong>
+          现有 ALFWorld adaptation trace 多为单 proposal，不能支撑 action-value ranking；
+          需要 multi-proposal 或 matched continuation receipts。
+        </li>
+        <li>
+          <strong>先看 prediction curve，不先上线控制。</strong>
+          如果 target-only/target-adapted predictor 自己不随 k 改善，就先修 receipt/schema/data，不谈 source。
+        </li>
+        <li>
+          <strong>再加 source 条件。</strong>
+          比较 large generic、target-adapted、source-only、source+target、shuffled+target。
+          只有 source+target 曲线相对 target-adapted 稳定左移，才有 source-derived benefit。
+        </li>
+        <li>
+          <strong>最后才 distill。</strong>
+          只蒸馏 future-receipt-verified prediction/ranking/source-off 样本，不蒸馏 CoT 或 target action。
+        </li>
+      </ol>
+
+      <table>
+        <thead>
+          <tr><th>如果失败</th><th>解释</th><th>下一步</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>large target-adapted predictor 不工作</td><td>target receipts 或 prediction schema 不够。</td><td>回去补 proposal sets / horizon labels。</td></tr>
+          <tr><td>target-adapted 有效，source 无增量</td><td>快速适应可行，但不是 source transfer。</td><td>改成 target-trained adaptive Harness。</td></tr>
+          <tr><td>prediction 有效，online decision 无效</td><td>控制接口出问题。</td><td>修 ADMIT/REPLAN/ABSTAIN 与 fallback budget。</td></tr>
+          <tr><td>authentic 输给 generic/shuffled</td><td>source content 无归因价值或有负迁移。</td><td>报告 negative transfer/source-off latency，停止 positive source claim。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="artifacts">
+      <h2>Artifact 与文档索引</h2>
+      <h3>Clean repo current ledgers</h3>
+      <table>
+        <thead><tr><th>Path</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><a href="EXPERIMENT_LEDGER.html">docs/EXPERIMENT_LEDGER.html</a></td><td>two-agent-clean 内部实验账本。</td></tr>
+          <tr><td><a href="TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md">docs/TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md</a></td><td>主 claim 与 attribution rules。</td></tr>
+          <tr><td><a href="ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md">docs/ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md</a></td><td>ALFWorld weak-prior canonical + frozen replication。</td></tr>
+          <tr><td><a href="IMPLEMENTATION_STATUS.md">docs/IMPLEMENTATION_STATUS.md</a></td><td>clean repo 的 Slurm/job-level 状态。</td></tr>
+          <tr><td><a href="TARGET_FEASIBILITY_DIAGNOSIS.md">docs/TARGET_FEASIBILITY_DIAGNOSIS.md</a></td><td>四域七 Cell readiness。</td></tr>
+          <tr><td><a href="results/source_gate_failure_diagnosis_v1.json">docs/results/source_gate_failure_diagnosis_v1.json</a></td><td>Source gate failure machine summary。</td></tr>
+          <tr><td><a href="results/fresh_source_execution_motif_v1_integrity.json">docs/results/fresh_source_execution_motif_v1_integrity.json</a></td><td>Fresh source integrity audit。</td></tr>
+          <tr><td><a href="../runs/alfworld_task0_frozen_replication_v1/summary.json">runs/alfworld_task0_frozen_replication_v1/summary.json</a></td><td>10-seed frozen task-0 replication。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Other repo paths</h3>
+      <table>
+        <thead><tr><th>Repo</th><th>Key artifacts</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>Multi-hop-Reasoning-VLM-Agent-experiment-clean</code></td>
+            <td>
+              <code>README_ALFWORLD_2X4_L40S_EXPERIMENT.md</code>;
+              <code>README_GAME_SFT_TO_NEW_TASKS.md</code>;
+              <code>runs/principled_alfworld_2x4_7113627/RUN_REPORT_ZH.md</code>;
+              <code>runs/principled_alfworld_2x4_7113627/aggregate.json</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>Multi-hop-Reasoning-VLM-Agent-github-main</code></td>
+            <td>
+              <code>README_AGENT_NATIVE_SKILL_HARNESS.md</code>;
+              <code>README_HARNESS_V3_EXECUTION_PLAN.md</code>;
+              <code>README_NON_HEURISTIC_REASONING_BACKBONE.md</code>;
+              <code>README_RECEIPT_GROUNDED_CAUSAL_MOTIFS.md</code>;
+              <code>runs/harness_v3_matched_binding_20260721/conditioned_paired_dev8_report.json</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>Multi-hop-Reasoning-VLM-Agent-source-fresh-v1</code></td>
+            <td>
+              <code>cluster/run_fresh_execution_motif_source_v1.sbatch</code>;
+              <code>slurm-7122289_0.out</code>;
+              <code>slurm-7122289_1.out</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>Multi-hop-Reasoning-VLM-Agent</code></td>
+            <td>
+              <code>frontier_data/CHANGELOG.md</code>;
+              <code>frontier_data/SKILL_PARADIGM_COMPARISON.md</code>;
+              <code>frontier_data/PLAN_GAME_SPLIT_AND_NO_SFT_GRPO.md</code>;
+              <code>IMPLEMENTATION-STATUS.md</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="small">
+        读数方法：本页使用本轮扫描到的 git status/log、README/notes、JSON summaries、Slurm stdout 和当前 thread 结论。
+        大型 run directories 没有复制进本页；路径保留为可点击/可追溯入口。正式论文 claim 仍需重新冻结 manifests、hashes、seeds、prompts、budgets 和 statistical plan。
+      </p>
+    </section>
+  </main>
+</body>
+</html>

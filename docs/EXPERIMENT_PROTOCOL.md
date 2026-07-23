@@ -72,6 +72,19 @@ source discovery 分成两个权限不同的步骤：
 
 如果 motif 没帮助，应区分：`NOT_APPLICABLE`、`NEGATIVE_TRANSFER`、`GENERIC_ONLY` 和 `INCONCLUSIVE`，而不是强制映射或继续消耗 rollout。
 
+### Phase B0：strong-teacher feasibility upper bound
+
+正式 one-shot 之前，允许使用多个 frozen adaptation artifacts 做一次明确标注为
+`FEASIBILITY_UPPER_BOUND` 的强 teacher pilot。它只回答机制是否可能工作，不能计入 one-shot
+结果，也不能用来选择 held-out 样本。adaptation 文件必须按 canonical exact filename 选择，
+逐个记录 hash、receipt count 和 collection error；不得由宽泛 glob 混入 failed/debug artifact。
+
+2026-07-23 的 ALFWorld canonical pilot 使用四个 canonical adaptation artifacts 和四个
+qualification tasks。它在 task 0 得到 authentic-only success，但冻结 10-actor-seed
+replication 未复现 source-specific benefit：target-only `0/10`、generic `2/10`、authentic
+`1/10`。因此不把 adaptation budget 降为一个 clean example，也不扩 unchanged 20 seeds。
+任何后续机制必须在 disjoint target adaptation split 上重新预注册，不能沿用该 task 调参。
+
 ## Phase C：matched target evaluation
 
 每个样本至少运行：
@@ -89,6 +102,7 @@ history/prompt 真正分叉才重新采样。主结论只使用环境 official s
 ## 最小判据
 
 - `authentic > target_only` 且优于 generic、shuffled、other-source：正迁移 pilot evidence。
+- 单个 task、单个 seed 满足该关系：只标为 `REPLICATION_CANDIDATE`，不能升级整体 claim。
 - generic 与 authentic 相当：只能称 generic scaffold effect。
 - target-only 优于 authentic：负迁移。
 - 缺少 identity 或完整 controls：inconclusive。

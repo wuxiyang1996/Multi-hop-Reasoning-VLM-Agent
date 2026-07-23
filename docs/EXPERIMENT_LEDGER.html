@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Two-Agent Harness Experiment Ledger</title>
+  <style>
+    :root {
+      --bg: #f7f7f2;
+      --ink: #202124;
+      --muted: #656866;
+      --line: #d9dbd0;
+      --panel: #ffffff;
+      --soft: #eef2ea;
+      --good: #1b7f4b;
+      --warn: #9a6700;
+      --bad: #b42318;
+      --info: #2864a0;
+      --code: #f0efe7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+
+    a {
+      color: #245c8f;
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fcfcf8 0%, #f2f3ec 100%);
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 44px 0 30px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 980px;
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 4rem);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 950px;
+      margin: 18px 0 0;
+      color: #3d403e;
+      font-size: 1.1rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #343735;
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
+    .pill.good {
+      color: var(--good);
+      border-color: #9fd8bb;
+      background: #eef9f3;
+    }
+
+    .pill.warn {
+      color: var(--warn);
+      border-color: #e7c878;
+      background: #fff8df;
+    }
+
+    .pill.bad {
+      color: var(--bad);
+      border-color: #efaaa3;
+      background: #fff0ee;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 247, 242, 0.95);
+      backdrop-filter: blur(10px);
+    }
+
+    nav .wrap {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+
+    nav a {
+      flex: 0 0 auto;
+      color: #3f4340;
+      font-size: 0.92rem;
+      text-decoration: none;
+    }
+
+    main {
+      padding: 26px 0 54px;
+    }
+
+    section {
+      margin: 28px 0;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.45rem;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 24px 0 10px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .lead {
+      font-size: 1.04rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fcfcf8;
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .metric {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .value {
+      margin: 0;
+      font-size: 1.45rem;
+      font-weight: 720;
+      line-height: 1.16;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .callout {
+      padding: 16px;
+      border-left: 4px solid var(--info);
+      background: #f1f6fb;
+    }
+
+    .callout.warn {
+      border-left-color: var(--warn);
+      background: #fff8df;
+    }
+
+    .callout.bad {
+      border-left-color: var(--bad);
+      background: #fff0ee;
+    }
+
+    table {
+      width: 100%;
+      margin: 12px 0 18px;
+      border-collapse: collapse;
+      font-size: 0.93rem;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft);
+      font-weight: 700;
+    }
+
+    code,
+    pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    code {
+      padding: 0.12em 0.35em;
+      border-radius: 5px;
+      background: var(--code);
+      font-size: 0.9em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 12px 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1f2421;
+      color: #f6f7ee;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 14px 1.1rem;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 4px 4px 0;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #3e423f;
+      font-size: 0.78rem;
+    }
+
+    .tag.good {
+      color: var(--good);
+      border-color: #9fd8bb;
+      background: #eef9f3;
+    }
+
+    .tag.warn {
+      color: var(--warn);
+      border-color: #e7c878;
+      background: #fff8df;
+    }
+
+    .tag.bad {
+      color: var(--bad);
+      border-color: #efaaa3;
+      background: #fff0ee;
+    }
+
+    .timeline {
+      position: relative;
+      margin-left: 0;
+      list-style: none;
+    }
+
+    .timeline li {
+      position: relative;
+      margin: 0 0 14px;
+      padding: 0 0 0 26px;
+    }
+
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      top: 0.52em;
+      left: 4px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #6b756c;
+    }
+
+    .timeline li::after {
+      content: "";
+      position: absolute;
+      top: 1.1em;
+      bottom: -16px;
+      left: 8px;
+      border-left: 1px solid var(--line);
+    }
+
+    .timeline li:last-child::after {
+      display: none;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 850px) {
+      section {
+        padding: 18px;
+      }
+
+      .span-3,
+      .span-4,
+      .span-6,
+      .span-8 {
+        grid-column: span 12;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <p class="eyebrow">实验账本 · thread + local artifacts · 2026-07-23</p>
+      <h1>Two-Agent Harness: 从“skill transfer”降级到可证伪的 test-time reasoning benefit</h1>
+      <p class="subtitle">
+        本页把最近这轮讨论、Slurm/runner 结果、文档结论和机器摘要整理成一个网页版实验笔记。
+        核心边界很重要：当前还没有证明游戏 skill 或 policy 可以迁移；我们正在检验 target-time reasoning
+        是否能从异构 source MDP 的 receipt-grounded knowledge 中获得可归因收益。
+      </p>
+      <div class="meta">
+        <span class="pill bad">0 SOURCE_SUPPORTED motif</span>
+        <span class="pill warn">ALFWorld weak pilot 正例未复现</span>
+        <span class="pill good">Target/source receipt pipeline 可运行</span>
+        <span class="pill warn">Harness LoRA 暂停</span>
+        <span class="pill">下一 gate: GPT-5-mini target-adapted predictor</span>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="wrap">
+      <a href="#verdict">当前结论</a>
+      <a href="#claim">Claim 边界</a>
+      <a href="#timeline">时间线</a>
+      <a href="#source">Source 证据</a>
+      <a href="#target">Target 证据</a>
+      <a href="#alfworld">ALFWorld</a>
+      <a href="#vtb">VTB</a>
+      <a href="#learned">Learned Harness</a>
+      <a href="#next">下一步</a>
+      <a href="#artifacts">Artifacts</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section id="verdict">
+      <h2>当前结论</h2>
+      <p class="lead">
+        最诚实的状态是：工程链路已经很强，但科学 claim 还没有过门。source 训练和 skill context
+        确实会改变游戏 policy 的行为；target Harness 也能在线 interpose、verify、fallback。
+        但我们还没有看到一个 authentic source-derived object 稳定超过 generic / shuffled / raw receipts controls。
+      </p>
+
+      <div class="grid">
+        <div class="card span-3">
+          <p class="metric">Source-supported transferable motif</p>
+          <p class="value">0</p>
+          <p class="small">skill-internal、execution-level、Phase 7 gate 均未授权 positive transfer。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">ALFWorld frozen task-0 replication</p>
+          <p class="value">1/10 vs 2/10</p>
+          <p class="small">authentic 成功 1/10，generic 成功 2/10；source-specific benefit 未复现。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">ALFWorld target adaptation data</p>
+          <p class="value">4/8</p>
+          <p class="small">8 个 valid-unseen adaptation rollouts，152 transitions，机械审计通过。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">Target feasibility</p>
+          <p class="value">6/7 runnable</p>
+          <p class="small">VTB 仍缺 official full-tool/evaluator integration 与外部 API key。</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <p>
+          当前不应继续说 <code>skill transfer</code>。更稳的主句是：
+          <strong>source 不迁移 skill 或 policy；source 只提供弱的、可被 target receipt 证伪的 control knowledge，
+          看它能否帮助 target test-time reasoning 更快适应。</strong>
+        </p>
+      </div>
+    </section>
+
+    <section id="claim">
+      <h2>Claim 边界</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>对象</th>
+            <th>当前状态</th>
+            <th>可说什么</th>
+            <th>不能说什么</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>source skill</code> / game policy</td>
+            <td><span class="tag bad">不作为 transfer object</span></td>
+            <td>可作为 source rollout 分层、intervention 条件和 receipt lineage。</td>
+            <td>不能说 COLLECT→TAKE、游戏动作程序或旧 skill 文本可执行迁移。</td>
+          </tr>
+          <tr>
+            <td>Receipt-grounded weak knowledge</td>
+            <td><span class="tag warn">primary object, 未证明 benefit</span></td>
+            <td>控制规律、失败信号、验证流程、适用边界；每次 target 使用都要 live receipt 验证。</td>
+            <td>不能让 Harness 直接选择、替换或排序 target action。</td>
+          </tr>
+          <tr>
+            <td>Exact graph / motif topology</td>
+            <td><span class="tag bad">strong probe failed so far</span></td>
+            <td>保留为严格 ablation 和 source diagnostic。</td>
+            <td>不能把 post-hoc topology fit 当作 blind prediction 或 reasoning backbone。</td>
+          </tr>
+          <tr>
+            <td>Game-trained weights</td>
+            <td><span class="tag warn">独立 factorial</span></td>
+            <td>可测 <code>G-S - B</code>、<code>G+S - G-S</code>、<code>G+S - G+Rand</code>。</td>
+            <td>不能自动归因于 reasoning，也不能证明可以跳过 target SFT。</td>
+          </tr>
+          <tr>
+            <td>Target-trained / learned Harness</td>
+            <td><span class="tag warn">下一方向</span></td>
+            <td>可作为快速适应助手：预测、验证、replan、abstain、source-off。</td>
+            <td>在强 teacher 大模型验证前，不训练小 LoRA 来掩盖机制失败。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre>source MDP receipts
+  -> weak, falsifiable control knowledge
+  -> target-time prediction / verification / source-off
+  -> lower adaptation cost only if authentic beats generic, raw, shuffled, and other-source controls</pre>
+    </section>
+
+    <section id="timeline">
+      <h2>实验时间线</h2>
+      <ol class="timeline">
+        <li>
+          <strong>旧资产审计。</strong>
+          六游戏 best checkpoints、rollouts、旧 mega-skill 可作为 lineage；旧自然语言 skill bank 和 mega-skill family
+          固定为 <code>LINEAGE_RETRIEVAL_ONLY</code>。
+        </li>
+        <li>
+          <strong>双 Agent 架构清理。</strong>
+          repo 缩成两个有模型判断能力的角色：Decision Agent 独占环境动作；Motif/Harness Agent 只能提议、
+          预测、verify、abstain、source-off。确定性 Harness 只做 receipt/schema/hash 审计。
+        </li>
+        <li>
+          <strong>Source rollout 调试。</strong>
+          早期 observer/JSON proposal 方案会干扰 source policy 或使 Qwen 续写 action list，已放弃。
+          正式路径改为旧 source policy 原生执行，Harness 事后读冻结 receipts。
+        </li>
+        <li>
+          <strong>Phase-1 六游戏长轨迹。</strong>
+          Tetris 确认为 macro action；Candy swap 合法。skill-on/off return 有正有负，但旧数据缺 no-human-hints
+          exclusion receipt，且部分 response 泄漏 critical-action 语言，只能作 discovery diagnostic。
+        </li>
+        <li>
+          <strong>Skill-internal 88-call matrix。</strong>
+          GPT-5-mini 对 11 skill × 8 condition 做 source-only proposal，authentic backbone-eligible 为 0；
+          所有 eligible graph 都来自 masked、receipt-only、shuffled 或 skill-off controls。
+        </li>
+        <li>
+          <strong>Game-training Phase 1-7 source gate。</strong>
+          Strider POSITION 证明 <code>B/G-S/G+S/G+Rand</code> 会产生 causal influence，
+          但 exact graph recurrence 与 one-step value gate 失败，Phase 7 未通过。
+        </li>
+        <li>
+          <strong>Fresh no-human-hints source collection。</strong>
+          Strider/Thunder 各 12 episodes × 100 steps 通过机械 integrity audit；这确认有干净 source 搜索空间，
+          不确认存在通过 blind recurrence 与 h8 value 的 motif。
+        </li>
+        <li>
+          <strong>四域七 Cell feasibility。</strong>
+          SIV-Bench 移除；ALFWorld、MiniWoB、WebShop、TIR、Video-Holmes 可真实跑；
+          VTB 数据和官方代码存在，但 full-tool/evaluator integration 仍未完成。
+        </li>
+        <li>
+          <strong>ALFWorld one-shot vertical slice。</strong>
+          真实 ALFWorld online loop 跑通，五条件都成功；authentic 比 target-only 慢一步，因此只是机制 smoke。
+        </li>
+        <li>
+          <strong>ALFWorld weak-knowledge pilot。</strong>
+          四个 canonical adaptation artifacts × 四个 qualification tasks × 六条件：authentic 3/4，其余 2/4。
+          task 0 曾是 clean replication candidate。
+        </li>
+        <li>
+          <strong>Frozen task-0 10-seed replication。</strong>
+          authentic 1/10，generic 2/10；唯一 authentic success 的 seed 上 generic 也成功。task 0 降级为 sampling/prompt variance。
+        </li>
+        <li>
+          <strong>当前转向。</strong>
+          不扩 unchanged 20 seeds，不做 one-shot claim，不训练 Harness LoRA。下一步先用大模型验证 target-adapted
+          prediction Harness 是否真的能画出 <code>k=0/1/2/4/8</code> 左移曲线。
+        </li>
+      </ol>
+    </section>
+
+    <section id="source">
+      <h2>Source 证据</h2>
+      <h3>六游戏旧 return diagnostics</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Game</th>
+            <th>authentic - skill-off</th>
+            <th>正 / 零 / 负 seed</th>
+            <th>证据边界</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tetris</td><td>-8.33</td><td>1 / 2 / 3</td><td>macro action 正确；无正向 skill-context 增量。</td></tr>
+          <tr><td>Candy Crush</td><td>+67.33</td><td>5 / 0 / 1</td><td>可作为正向 pilot 线索，但样本小且不是 causal estimate。</td></tr>
+          <tr><td>Streets of Rage 2</td><td>+28.33</td><td>4 / 0 / 2</td><td>旧 response 有 critical-action 语言，不能作为 clean source evidence。</td></tr>
+          <tr><td>Strider</td><td>+33.33</td><td>4 / 2 / 0</td><td>fresh no-hint 后 mean return 降到 8.33，旧差异不能归因于 skill。</td></tr>
+          <tr><td>Columns</td><td>+15.50</td><td>5 / 1 / 0</td><td>有 reward density，后续更适合 value-aware smoke。</td></tr>
+          <tr><td>Thunder Force III</td><td>+283.33</td><td>4 / 1 / 1</td><td>旧 response 有 hint 语言；需要 fresh no-hints gate。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Fresh no-human-hints source integrity</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Game</th>
+            <th>Episodes</th>
+            <th>Transitions</th>
+            <th>Matched replays</th>
+            <th>当前解释</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Strider</td>
+            <td>12</td>
+            <td>1200</td>
+            <td>8 observed</td>
+            <td>integrity accepted；execution-level 搜索空间存在，但 positive-return execution 很少。</td>
+          </tr>
+          <tr>
+            <td>Thunder Force III</td>
+            <td>12</td>
+            <td>1200</td>
+            <td>428 observed</td>
+            <td>integrity accepted；更适合下一轮 multi-horizon source value gate。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Skill-internal matrix</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Condition</th>
+            <th>Calls</th>
+            <th>Candidates</th>
+            <th>Backbone-eligible</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>authentic</td><td>11</td><td>2</td><td><span class="tag bad">0</span></td></tr>
+          <tr><td>bank-masked</td><td>11</td><td>5</td><td>1</td></tr>
+          <tr><td>reasoning-masked</td><td>11</td><td>4</td><td>2</td></tr>
+          <tr><td>action-alpha-renamed</td><td>11</td><td>2</td><td>0</td></tr>
+          <tr><td>action-only</td><td>11</td><td>11</td><td>0</td></tr>
+          <tr><td>receipt-only</td><td>11</td><td>8</td><td>1</td></tr>
+          <tr><td>shuffled</td><td>11</td><td>5</td><td>1</td></tr>
+          <tr><td>skill-off</td><td>11</td><td>3</td><td>1</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout bad">
+        <p>
+          这张 matrix 的关键信息不是“control 也能出图”，而是 <strong>authentic 没有出任何合格图</strong>。
+          control graph 在 post-hoc held-out alignment 上也能 fit，说明 topology fit 不是 blind predictive evidence。
+        </p>
+      </div>
+
+      <h3>Source gate failure diagnosis</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Gate</th>
+            <th>Status</th>
+            <th>解释</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>source weights / context influence</td><td><span class="tag good">SUPPORTED</span></td><td>matched snapshot 上 action/after-state 有稳定分离。</td></tr>
+          <tr><td>one-step source value</td><td><span class="tag bad">NOT SUPPORTED</span></td><td>Strider POSITION 155 个 selected snapshot 的 one-step reward 全为 0。</td></tr>
+          <tr><td>delayed treatment value</td><td><span class="tag warn">NOT IDENTIFIED</span></td><td>旧 replay 只存 h1，不足以判断 h2/h4/h8。</td></tr>
+          <tr><td>explicit reasoning motif</td><td><span class="tag bad">NOT SUPPORTED</span></td><td>effect graph 还只是 action/state separation hash，不是 reasoning program。</td></tr>
+          <tr><td>far-domain transfer</td><td><span class="tag bad">NOT AUTHORIZED</span></td><td>没有 SOURCE_SUPPORTED candidate。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="target">
+      <h2>Target 证据</h2>
+      <h3>四域七 Cell feasibility</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Domain</th>
+            <th>Cell</th>
+            <th>Status</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Visual reasoning</td><td>VisualToolBench</td><td><span class="tag warn">not official-ready</span></td><td>数据与官方代码存在；full-tool/evaluator integration 和 API keys 未齐。</td></tr>
+          <tr><td>Visual reasoning</td><td>TIR-Bench</td><td><span class="tag good">runnable</span></td><td>1215 rows，image refs 完整；smoke 暴露 fabricated evidence/coordinate grounding 问题。</td></tr>
+          <tr><td>Video reasoning</td><td>Video-Holmes</td><td><span class="tag good">runnable</span></td><td>503/503 videos 可用；smoke 产生 34 tool receipts 但耗尽预算无 final answer。</td></tr>
+          <tr><td>Browser</td><td>MiniWoB</td><td><span class="tag good">runnable</span></td><td>冻结 live smoke 一步 reward=1。</td></tr>
+          <tr><td>Browser</td><td>WebShop</td><td><span class="tag good">runnable</span></td><td>full BM25 server 恢复；冻结 smoke reward=0.6667。</td></tr>
+          <tr><td>Embodied text</td><td>ALFWorld valid-seen</td><td><span class="tag good">runnable</span></td><td>真实 text env 与 official won signal。</td></tr>
+          <tr><td>Embodied text</td><td>ALFWorld valid-unseen</td><td><span class="tag good">runnable</span></td><td>真实 OOD runs、binding artifacts 和 target adaptation 数据。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>ALFWorld target adaptation data</h3>
+      <div class="grid">
+        <div class="card span-3">
+          <p class="metric">Tasks</p>
+          <p class="value">8</p>
+          <p class="small">valid-unseen adaptation split，qualification/held-out 未执行。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">Official success</p>
+          <p class="value">4/8</p>
+          <p class="small">target-only Qwen3.5-35B-A3B，无 Harness、无 source。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">Transitions</p>
+          <p class="value">152</p>
+          <p class="small">完整 before/native actions/proposal/selection/transition receipt。</p>
+        </div>
+        <div class="card span-3">
+          <p class="metric">Mean steps</p>
+          <p class="value">19.0</p>
+          <p class="small">包含一个真实 invalid Decision negative example。</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <p>
+          这些 target rollouts 足够做 adaptation diagnosis，但还不够做 action-value ranking：
+          现有 proposal set 基本是单 proposal，缺少多 proposal/counterfactual continuation。下一步 prediction Harness
+          需要补这个数据形态。
+        </p>
+      </div>
+    </section>
+
+    <section id="alfworld">
+      <h2>ALFWorld weak-knowledge pilot</h2>
+      <h3>Canonical four-task pilot</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Condition</th>
+            <th>Official success</th>
+            <th>Mean steps</th>
+            <th>Mean repeated actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>target-only</td><td>2/4</td><td>20.75</td><td>13.00</td></tr>
+          <tr><td>generic reasoning</td><td>2/4</td><td>18.50</td><td>13.50</td></tr>
+          <tr><td>source receipts only</td><td>2/4</td><td>18.50</td><td>12.75</td></tr>
+          <tr><td>authentic weak control prior</td><td><span class="tag good">3/4</span></td><td>14.50</td><td>7.50</td></tr>
+          <tr><td>shuffled evidence prior</td><td>2/4</td><td>18.50</td><td>13.25</td></tr>
+          <tr><td>empty / abstain</td><td>2/4</td><td>21.25</td><td>14.00</td></tr>
+        </tbody>
+      </table>
+      <p>
+        task 0 曾经很诱人：authentic 16 步成功，五个 controls 全部 30 步失败。task 2 raw receipts 比 authentic
+        更快，因此只支持 source context 可能有用，不支持 induced knowledge 的额外价值。canonical final run 估算成本约
+        <code>$1.31</code>。
+      </p>
+
+      <h3>Frozen task-0 10-seed replication</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Condition</th>
+            <th>Official success</th>
+            <th>Mean steps</th>
+            <th>Mean repeated actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>target-only</td><td>0/10</td><td>30.0</td><td>26.4</td></tr>
+          <tr><td>generic reasoning</td><td><span class="tag good">2/10</span></td><td>26.5</td><td>20.2</td></tr>
+          <tr><td>source receipts only</td><td>0/10</td><td>30.0</td><td>24.5</td></tr>
+          <tr><td>authentic weak control prior</td><td>1/10</td><td>27.6</td><td>19.6</td></tr>
+          <tr><td>shuffled evidence prior</td><td>0/10</td><td>30.0</td><td>23.9</td></tr>
+          <tr><td>empty / abstain</td><td>0/10</td><td>30.0</td><td>26.1</td></tr>
+        </tbody>
+      </table>
+      <div class="callout bad">
+        <p>
+          Replication 结论：authentic 对 target-only 是 1 win / 0 loss / 9 ties，单侧 exact <code>p=0.5</code>；
+          对 generic 是 0 win / 1 loss / 9 ties。唯一 authentic success 的 seed 上 generic 也成功。
+          所以 task 0 现在是 <code>PROMPT_OR_SAMPLING_SENSITIVE_VARIANCE</code>，不是 source-derived benefit。
+        </p>
+      </div>
+    </section>
+
+    <section id="vtb">
+      <h2>VisualToolBench 状态</h2>
+      <p>
+        VTB 不缺官方 evaluator。官方仓库固定到 <code>xi1ngang/VisualToolBench@d4f200a</code>，APR/ARS
+        需要按官方 rubric judge 算，不能用旧 gold-string diagnostic 替代。当前不能把 VTB 写进完整主结果，
+        因为 full-tool key 不完整、official runner 尚未完全接入 clean two-agent interposition。
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>项目</th>
+            <th>状态</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Single-turn v2 manifest</td><td><span class="tag good">frozen</span></td><td>603 single-turn tasks，adaptation row:105，held-out smoke row:55,row:319。</td></tr>
+          <tr><td>Official tool contract</td><td><span class="tag good">audited</span></td><td>六个官方工具检出，tool-contract hash 已固定。</td></tr>
+          <tr><td>External API keys</td><td><span class="tag bad">missing</span></td><td><code>SERP_API_KEY</code>、<code>OPENWEATHER_API_KEY</code> 不在 keys.py；full-tool preflight fail-closed。</td></tr>
+          <tr><td>Matched interposition smoke</td><td><span class="tag warn">mechanism only</span></td><td>generic replan 伤害工具执行，0 final answer；证明 negative-effect capture，不证明 transfer。</td></tr>
+        </tbody>
+      </table>
+      <pre>target-only: 3 executed calls, 3 successful transforms, 0 final answer
+generic:     1 replan, 2 executed calls, 0 successful transforms, 0 final answer</pre>
+    </section>
+
+    <section id="learned">
+      <h2>Learned Harness / target-trained Harness</h2>
+      <p>
+        这里的方向不是让 Harness 学会把游戏 action 映射到 ALFWorld action，而是让它成为一个
+        receipt-verifiable predictor：给定当前 target receipt、candidate proposal 和少量 adaptation examples，
+        预测未来 progress / failure / information need，并在 live receipts 反驳时及时 source-off。
+      </p>
+
+      <div class="grid">
+        <div class="card span-4">
+          <p class="metric">Source pretraining dataset</p>
+          <p class="value">10,614</p>
+          <p class="small">6 games、36 episodes；用于 transition/outcome/lineage/abstention supervision。</p>
+        </div>
+        <div class="card span-4">
+          <p class="metric">Split</p>
+          <p class="value">3552 / 3534 / 3528</p>
+          <p class="small">train / validation / source-heldout。</p>
+        </div>
+        <div class="card span-4">
+          <p class="metric">LoRA job</p>
+          <p class="value">held</p>
+          <p class="small">job 7122386 暂停；强 oracle 没过前不训练。</p>
+        </div>
+      </div>
+
+      <h3>为什么旧 Path B 还不够</h3>
+      <ul>
+        <li>旧 dataset 主要是一跳 selected-action prediction，不是 h=1/2/4/8 future official progress。</li>
+        <li>OUTCOME_PREDICTION 标签没有足够 success signal，无法学习 long-horizon success predictor。</li>
+        <li>现有 ALFWorld adaptation trace 多数只有单 proposal，不能评估 action-conditional ranking。</li>
+        <li>旧 config 已经设计了 k=0/1/2/4 curve，但实验没有真正完成；现在要补 k=8 和大模型 oracle。</li>
+      </ul>
+
+      <h3>大模型先验证，再蒸馏</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Condition</th>
+            <th>用途</th>
+            <th>必须测量</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Large generic, k=0</td><td>通用预测/验证 scaffold baseline</td><td>future-progress prediction, calibration, online effect</td></tr>
+          <tr><td>Large target-adapted, k=1/2/4/8</td><td>验证 target receipts 是否足以快速适应</td><td>prediction/task performance vs k curve</td></tr>
+          <tr><td>Large source-only, k=0</td><td>source zero-shot prior 是否有用</td><td>是否超过 generic</td></tr>
+          <tr><td>Large source+target, k=1/2/4/8</td><td>source 是否让 target adaptation curve 左移</td><td>是否超过 target-adapted no-source</td></tr>
+          <tr><td>Large shuffled+target</td><td>排除 source context/format/receipt 数量效应</td><td>authentic 是否超过 shuffled</td></tr>
+        </tbody>
+      </table>
+      <p>
+        只有 strong teacher 曲线先成立，才把 future-receipt-verified 的 prediction/ranking/source-off 样本蒸馏给 9B。
+        不蒸馏 CoT，不蒸馏 target action，不蒸馏未被未来 receipt 验证的建议。
+      </p>
+    </section>
+
+    <section id="next">
+      <h2>下一步 Gate</h2>
+      <div class="callout">
+        <p>
+          下一轮的最小 publishable 路线不是继续调 task 0 prompt，而是证明一个更机械的问题：
+          <strong>来自异构 source MDP 的 receipt-grounded experience，能否减少学习 target action-value/progress predictor
+          所需的 target interactions？</strong>
+        </p>
+      </div>
+
+      <ol>
+        <li>
+          <strong>冻结 prediction schema。</strong>
+          Harness 输出 action/proposal-conditional 的 <code>success/failure/progress/no-progress/source-applicability</code>
+          prediction，horizon 固定为 <code>1/2/4/8</code>。
+        </li>
+        <li>
+          <strong>补 target data shape。</strong>
+          ALFWorld 至少收集 multi-proposal 或 matched-continuation receipts；没有多 proposal 就只能做 selected-path
+          calibration，无法证明 decision-making benefit。
+        </li>
+        <li>
+          <strong>先离线 prediction gate。</strong>
+          大模型 Harness 在 k=0/1/2/4/8 adaptation examples 下预测 future official progress；
+          画 prediction score 与 task performance 曲线。
+        </li>
+        <li>
+          <strong>再上线 decision gate。</strong>
+          只有 prediction 有增量，才允许 Harness 通过 ADMIT/REPLAN/ABSTAIN 影响 Decision loop；
+          Harness 仍无 target action authority。
+        </li>
+        <li>
+          <strong>做 source attribution。</strong>
+          authentic 必须超过 target-only、generic、raw receipts、shuffled、other-game。否则结论降级为 target-trained Harness 或 generic scaffold。
+        </li>
+        <li>
+          <strong>再考虑 LoRA。</strong>
+          strong teacher 可行后，用 verified-only records 训练小 Harness；如果 teacher 都不行，不用 LoRA 硬救。
+        </li>
+      </ol>
+
+      <h3>失败时怎么办</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>结果</th>
+            <th>解释</th>
+            <th>转向</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>target-adapted large Harness 不工作</td><td>当前 target data/schema 不能支撑预测</td><td>先修 target receipts、proposal set 和 horizon labels。</td></tr>
+          <tr><td>target-adapted 有效，source 无增量</td><td>快速适应可行，但不是 cross-domain source benefit</td><td>改成 target-trained adaptive Harness claim。</td></tr>
+          <tr><td>prediction 有效，online decision 无效</td><td>控制接口有问题，不是 predictor 不会</td><td>修 ADMIT/REPLAN/ABSTAIN policy 与 fallback budget。</td></tr>
+          <tr><td>authentic 低于 generic/shuffled</td><td>source content 无归因价值或负迁移</td><td>报告 negative transfer / source-off latency，停止 positive source claim。</td></tr>
+          <tr><td>authentic 曲线稳定左移</td><td>真正值得扩 ALFWorld + 第二远域</td><td>预注册扩量，再做 verified-only distillation。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="artifacts">
+      <h2>Artifact 索引</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>主题</th>
+            <th>文档 / 结果</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>主 claim</td>
+            <td><a href="TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md">TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md</a></td>
+            <td>weak receipt-grounded knowledge 的 contract、conditions、attribution rules。</td>
+          </tr>
+          <tr>
+            <td>ALFWorld weak pilot</td>
+            <td><a href="ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md">ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md</a></td>
+            <td>canonical pilot、task-0 replication、bug fixes、cost。</td>
+          </tr>
+          <tr>
+            <td>Implementation ledger</td>
+            <td><a href="IMPLEMENTATION_STATUS.md">IMPLEMENTATION_STATUS.md</a></td>
+            <td>Slurm/job-level 运行记录和当前未授权 claim。</td>
+          </tr>
+          <tr>
+            <td>Source gate failure</td>
+            <td><a href="SOURCE_GATE_FAILURE_DIAGNOSIS.md">SOURCE_GATE_FAILURE_DIAGNOSIS.md</a> / <a href="results/source_gate_failure_diagnosis_v1.json">JSON</a></td>
+            <td>measurement/representation failure before transfer。</td>
+          </tr>
+          <tr>
+            <td>Skill-internal matrix</td>
+            <td><a href="SKILL_INTERNAL_BACKBONE.md">SKILL_INTERNAL_BACKBONE.md</a> / <a href="results/skill_internal_matrix_v1_summary.json">JSON</a></td>
+            <td>11 skills × 8 conditions，authentic backbone-eligible = 0。</td>
+          </tr>
+          <tr>
+            <td>Fresh source integrity</td>
+            <td><a href="results/fresh_source_execution_motif_v1_integrity.json">fresh_source_execution_motif_v1_integrity.json</a></td>
+            <td>Strider/Thunder no-human-hints integrity audit。</td>
+          </tr>
+          <tr>
+            <td>Target rollout collection</td>
+            <td><a href="TARGET_ROLLOUT_COLLECTION.md">TARGET_ROLLOUT_COLLECTION.md</a> / <a href="results/alfworld_target_adaptation_v1.json">JSON</a></td>
+            <td>ALFWorld 8 adaptation rollouts，4/8 success。</td>
+          </tr>
+          <tr>
+            <td>Target feasibility</td>
+            <td><a href="TARGET_FEASIBILITY_DIAGNOSIS.md">TARGET_FEASIBILITY_DIAGNOSIS.md</a> / <a href="results/target_feasibility_audit_v1.json">JSON</a></td>
+            <td>四域七 Cell readiness；SIV-Bench removed。</td>
+          </tr>
+          <tr>
+            <td>VTB protocol</td>
+            <td><a href="VTB_OFFICIAL_MOTIF_TRANSFER_PROTOCOL.md">VTB_OFFICIAL_MOTIF_TRANSFER_PROTOCOL.md</a></td>
+            <td>official evaluator、single-turn v2、matched interposition。</td>
+          </tr>
+          <tr>
+            <td>Game-training factorial</td>
+            <td><a href="GAME_TRAINING_REASONING_TRANSFER.md">GAME_TRAINING_REASONING_TRANSFER.md</a></td>
+            <td><code>B/G-S/G+S/G+Rand</code>、weight/context/source effect 分离。</td>
+          </tr>
+          <tr>
+            <td>Source pretraining data</td>
+            <td><a href="results/harness_pretraining_v1_manifest.json">harness_pretraining_v1_manifest.json</a></td>
+            <td>10,614 source receipt supervision examples；不建立 far-domain transfer。</td>
+          </tr>
+          <tr>
+            <td>Frozen ALFWorld summaries</td>
+            <td><a href="../runs/receipt_knowledge_teacher_pilot_v1/alfworld/pilot_summary_v5_canonical.json">canonical JSON</a> / <a href="../runs/alfworld_task0_frozen_replication_v1/summary.json">replication JSON</a></td>
+            <td>四任务 pilot 与 10-seed task-0 replication。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="small">
+        本页是可读索引，不替代机器结果。正式 claim 仍以 hash-bound artifacts、configs、tests 和 frozen manifests 为准。
+      </p>
+    </section>
+  </main>
+</body>
+</html>

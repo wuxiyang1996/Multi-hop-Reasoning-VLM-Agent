@@ -480,3 +480,28 @@ reasoning motif，也没有排除 interface memorization。后续 structural/alp
 必须作为 matched ablation，而不能在看到 target outcome 后再设计。只有它在
 ALFWorld 与 VTB 的冻结 `k=0/1/2/4` adaptation 曲线上优于 base，且不是 shuffled source
 或额外 token 带来的效果，才能升级为 transferable-Harness 证据。
+
+### 10.2 Weak-knowledge oracle pilot update（2026-07-23）
+
+GPT-5-mini strong-teacher canonical pilot 已完成四个 ALFWorld qualification tasks × 六条件。
+authentic weak prior 为 `3/4`，target-only、generic、raw receipts、shuffled 与 empty 均为
+`2/4`。唯一 clean separation 是 task 0：authentic 16 步成功，其余五条件 30 步失败；其
+authentic treatment 无 protocol violation、fallback 或 forced replan。
+
+这足以把 task 0 标记为 `REPLICATION_CANDIDATE`，但不足以训练 Path B 或声称跨域 reasoning
+benefit。理由是每条件只有一个远程 actor rollout、generic/authentic/shuffled 的 target
+hypothesis 语言相近、task 2 的 raw receipts 比 authentic 快、task 3 authentic abstain，而且
+本轮用了四个 canonical adaptation artifacts，不是 one-shot。
+
+冻结 task-0 六条件 10 个 matched actor seeds 已完成。固定同一 environment seed、initial
+state、source/adaptation lineage、hypotheses、prompt 与预算后，target-only `0/10`、generic
+`2/10`、raw `0/10`、authentic `1/10`、shuffled `0/10`、empty `0/10`。authentic 对
+target-only 仅 1 个 discordant win（单侧 exact `p=0.5`），对 generic 为 0 win / 1 loss；
+唯一 authentic success 的 seed 上 generic 也成功。
+
+因此 canonical task-0 结果现归为 prompt/sampling-sensitive trajectory variance，不进入
+`k=1` one-shot，不扩 unchanged 20 seeds，也不训练 Harness LoRA。若继续 Path B，必须先在
+disjoint target adaptation split 上学习能预测 future official progress 的 receipt-verifiable
+Harness signal；source object 只作为冻结增量 prior。这个新机制必须预注册，并在 ALFWorld 与
+第二远域的 held-out tasks 上降低 examples-to-success 或 environment steps，否则明确转为
+target-trained adaptation Harness，而不是跨域 source benefit。

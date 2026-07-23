@@ -78,6 +78,27 @@ Results are:
 LoRA job `7122386` is therefore held before GPU allocation. It can be released later as a matched
 training ablation, but is not needed to test whether the Harness mechanism is feasible.
 
+## Weak-knowledge feasibility update
+
+The later weak-knowledge pilot did not require the rejected target-native topology. GPT-5-mini
+instead instantiated a falsifiable control hypothesis from source receipts and canonical target
+adaptation receipts. Four ALFWorld qualification tasks were evaluated under six token-matched
+conditions. Authentic weak knowledge succeeded on 3/4 tasks versus 2/4 for every control.
+
+One task was initially a clean replication candidate: authentic succeeded in 16 steps while
+target-only, generic, raw receipts, shuffled evidence and empty/abstain all exhausted 30 steps.
+The frozen 10-actor-seed replication did not reproduce that separation: target-only was `0/10`,
+generic `2/10`, raw `0/10`, authentic `1/10`, shuffled `0/10`, and empty/abstain `0/10`.
+Authentic had only one discordant win over target-only (one-sided exact `p=0.5`) and lost one
+discordant pair to generic. The candidate is therefore downgraded to prompt/sampling-sensitive
+trajectory variance, not transfer evidence.
+
+The pilot also found that a broad `task_*.json` glob included the retained
+`task_2.failed_schema_256tokens.json`. The canonical loader now accepts only exact
+`task_<integer>.json` names and records each artifact hash, record count and collection error.
+The final feasibility run used four canonical artifacts and is therefore four-shot, not one-shot.
+See `ALFWORLD_WEAK_KNOWLEDGE_TEACHER_PILOT.md`.
+
 VisualToolBench IDs are frozen but not executed. The pinned official runtime currently lacks
 `SERP_API_KEY` and `OPENWEATHER_API_KEY`; full-tool preflight therefore fails. We do not run those
 items in degraded mode and later describe them as official VTB results.

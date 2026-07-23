@@ -44,11 +44,20 @@ class OpenAIJSONDecisionAgent:
     def _complete(self, phase: str, system: str, payload: Mapping[str, Any]) -> dict[str, Any]:
         last_error = None
         for attempt in range(self.schema_attempts):
-            raw = self.backend.complete(self.role, system, payload)
+            request_payload = dict(payload)
+            if attempt:
+                request_payload["_schema_retry"] = {
+                    "attempt": attempt,
+                    "previous_error": f"{type(last_error).__name__}:{last_error}",
+                    "instruction": (
+                        "Return only the exact JSON schema requested by the system."
+                    ),
+                }
+            raw = self.backend.complete(self.role, system, request_payload)
             receipt = {
                 "phase": phase,
                 "attempt": attempt,
-                "prompt_payload_sha256": stable_hash(payload),
+                "prompt_payload_sha256": stable_hash(request_payload),
                 "response_sha256": stable_hash(raw),
                 "usage": dict(getattr(self.backend, "last_usage", {}) or {}),
             }
