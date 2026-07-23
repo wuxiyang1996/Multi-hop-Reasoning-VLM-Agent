@@ -193,6 +193,7 @@ class AsyncVLLMClient:
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         stop: Optional[List[str]] = None,
+        extra_body: Optional[Dict[str, Any]] = None,
     ) -> GenerateResult:
         """Generate a completion via vLLM.
 
@@ -213,6 +214,9 @@ class AsyncVLLMClient:
             model_id = ADAPTER_MAP[adapter]
 
         n_clients = len(self._clients)
+        extra_kwargs: Dict[str, Any] = {}
+        if extra_body:
+            extra_kwargs["extra_body"] = extra_body
         last_exc: Optional[Exception] = None
 
         for attempt in range(n_clients):
@@ -225,6 +229,7 @@ class AsyncVLLMClient:
                     temperature=temp,
                     max_tokens=mtok,
                     stop=stop,
+                    **extra_kwargs,
                 )
                 self._mark_ok(idx)
                 break
@@ -243,6 +248,7 @@ class AsyncVLLMClient:
                             temperature=temp,
                             max_tokens=mtok,
                             stop=stop,
+                            **extra_kwargs,
                         )
                         self._mark_ok(idx)
                         break

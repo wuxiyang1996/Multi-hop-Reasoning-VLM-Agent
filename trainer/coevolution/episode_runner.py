@@ -8,6 +8,7 @@ and runs ``env.step()`` in an executor to avoid blocking the event loop.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -16,7 +17,7 @@ import re
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # Headless mode for retro/pyglet/SDL — must be set before any game env import
@@ -282,6 +283,9 @@ class EpisodeResult:
     # Optional tamper-evident v3 source instrumentation. Empty on legacy
     # rollouts; this is evidence metadata and never changes GRPO reward.
     reasoning_event_log: Dict[str, Any] = field(default_factory=dict)
+    # Same-snapshot policy contrasts used only by source qualification.
+    # Kept outside the canonical event chain so the live policy stays singular.
+    matched_policy_records: List[Dict[str, Any]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -948,6 +952,8 @@ async def run_episode_async(
     action_movement_actions: str = "LEFT,RIGHT",
     episode_seed: Optional[int] = None,
     record_reasoning_events: bool = False,
+    reasoning_backbone_harness: bool = False,
+    matched_policy_skill_id: Optional[str] = None,
 ) -> EpisodeResult:
     """Run one game episode asynchronously.
 
@@ -990,6 +996,13 @@ async def run_episode_async(
     extract_game_facts = imp["extract_game_facts"]
     compact_text_observation = imp["compact_text_observation"]
     strip_think_tags = imp["strip_think_tags"]
+    if reasoning_backbone_harness:
+        if not record_reasoning_events:
+            raise ValueError("reasoning_backbone_harness requires reasoning event recording")
+        from harness.agent_reasoning_cycle import (  # noqa: WPS433
+            parse_agent_action_proposal_set,
+            parse_agent_post_transition_verdict,
+        )
 
     # Path 1 wiring.  Imported at function entry so a refactor of
     # ``_state_to_markup`` / ``_game_schema`` cannot wedge episode
@@ -1139,6 +1152,7 @@ async def run_episode_async(
                 ensure_ascii=False, default=str,
             ).encode("utf-8")
             return _event_hashlib.sha256(encoded).hexdigest()
+    _matched_policy_records: List[Dict[str, Any]] = []
 
     if game in ORAK_GAMES_SET:
         SubprocessEnv = imp["SubprocessEnv"]
@@ -1708,14 +1722,6 @@ async def run_episode_async(
         # The intention tag comes from the base model (step 4 above).
         # We inject it as "Assigned subgoal" so the LoRA follows it.
         urgency_line = f"URGENCY: {urgency}\n" if urgency else ""
-        skill_context = ""
-        if guidance and guidance.get("skill_id"):
-            sk_name = guidance.get("skill_name", guidance["skill_id"])
-            sk_hint = guidance.get("execution_hint", "")
-            skill_context = f"Active skill: {sk_name}"
-            if sk_hint:
-                skill_context += f" — {sk_hint[:100]}"
-            skill_context += "\n"
 
         recent_context = _build_recent_context(recent_actions, recent_rewards)
         _is_macro = getattr(env, "_is_macro_action", False)
@@ -1743,10 +1749,47 @@ async def run_episode_async(
                 flags=re.DOTALL,
             )
 
-        skill_text = _format_skill_guidance_for_prompt(
-            guidance, skill_tracker.protocol_step_idx,
-            progress_summary=skill_tracker.get_progress_summary(summary_state),
-        )
+        _backbone_plan = None
+        _backbone_plan_result = None
+        _backbone_plan_error = None
+        _backbone_plan_prompt = ""
+        if reasoning_backbone_harness:
+            _backbone_plan_prompt = (
+                "You are an untrusted planning Agent. Propose 1-3 candidate native "
+                "actions and predict only their observable state deltas. Do not name "
+                "cross-domain skills or invent predicates. ACTION_NUMBER is 1-based "
+                "and must refer to the exact list below. Return exactly one JSON object "
+                "with keys proposals,selected_proposal_id,decision. decision is EXECUTE "
+                "or ABSTAIN; ABSTAIN requires selected_proposal_id=null. Each proposal "
+                "has exactly proposal_id,action_number,predicted_observable_delta,rationale. "
+                "proposal_id and selected_proposal_id are JSON strings (for example "
+                "\"p0\"); action_number is a JSON integer; "
+                "predicted_observable_delta and rationale are JSON strings, not "
+                "objects or arrays.\n"
+                f"GAME={game}\nSTEP={step_count}\n"
+                f"OBSERVATION={summary_for_action[:6000]}\n"
+                f"NATIVE_ACTIONS={_format_numbered_actions(step_actions)}"
+            )
+            try:
+                _backbone_plan_result = await vllm_client.generate(
+                    _backbone_plan_prompt, adapter=None, temperature=0.0,
+                    max_tokens=512,
+                )
+                _backbone_plan = parse_agent_action_proposal_set(
+                    _backbone_plan_result.text,
+                    n_native_actions=len(step_actions),
+                )
+            except Exception as exc:  # fail closed; baseline actor still advances env
+                _backbone_plan_error = f"{type(exc).__name__}:{exc}"
+
+        _backbone_context = ""
+        if _backbone_plan is not None:
+            _backbone_context = (
+                "Untrusted planning-Agent candidates (use only if useful; all native "
+                "actions remain available):\n"
+                + json.dumps(_backbone_plan.to_dict(), ensure_ascii=False)
+                + "\n"
+            )
 
         imp_tags = imp["SUBGOAL_TAGS"]
         tags_str = "|".join(imp_tags)
@@ -1755,69 +1798,230 @@ async def run_episode_async(
         # rediscover the action vocabulary via GRPO alone.  Schema
         # source: trainer.coevolution.config.GAME_CRITICAL_ACTIONS.
         _critical_hint = ""
-        _critical_for_game = _critical_actions_for(game, step_actions)
+        # Human-authored game advice is excluded from backbone collection.
+        _critical_for_game = ()
         if _critical_for_game:
             _critical_hint = (
                 f"Critical actions for this game (use frequently when scoring): "
                 f"{', '.join(_critical_for_game)}.\n"
             )
         _quality_sort_hint = ""
-        if _is_macro:
+        # Keep macro actions as native interface, but remove best-first advice.
+        if False and _is_macro:
             _quality_sort_hint = (
                 "Actions are sorted best-first (fewest holes, most line clears). "
                 "Prefer ACTION 1 unless you have a strong reason to pick another.\n"
             )
-        action_user = (
-            f"Game state:\n\n{summary_for_action}\n\n"
-            f"Subgoal: {assigned_subgoal}\n"
-            f"{urgency_line}{skill_context}{recent_context}{_critical_hint}"
-            f"{_quality_sort_hint}"
-            f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
-            f"Brief REASONING (1 sentence max) then ACTION: <number>."
-        )
-        action_prompt = (
-            _profile_prefix + SYSTEM_PROMPT + skill_text + "\n" + action_user
+
+        def _render_action_prompt(_guidance: Optional[Dict[str, Any]]) -> str:
+            _skill_context = ""
+            if _guidance and _guidance.get("skill_id"):
+                _sk_name = _guidance.get("skill_name", _guidance["skill_id"])
+                _sk_hint = _guidance.get("execution_hint", "")
+                _skill_context = f"Active skill: {_sk_name}"
+                if _sk_hint:
+                    _skill_context += f" — {_sk_hint[:100]}"
+                _skill_context += "\n"
+            _skill_text = _format_skill_guidance_for_prompt(
+                _guidance, skill_tracker.protocol_step_idx,
+                progress_summary=skill_tracker.get_progress_summary(summary_state),
+            )
+            _action_user = (
+                f"Game state:\n\n{summary_for_action}\n\n"
+                f"Subgoal: {assigned_subgoal}\n"
+                f"{urgency_line}{_skill_context}{recent_context}{_critical_hint}"
+                f"{_quality_sort_hint}{_backbone_context}"
+                f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
+                f"Brief REASONING (1 sentence max) then ACTION: <number>."
+            )
+            return _profile_prefix + SYSTEM_PROMPT + _skill_text + "\n" + _action_user
+
+        action_prompt = _render_action_prompt(guidance)
+        # Retain the exact authentic context payload for the pre-existing
+        # tamper-evident AGENT_PROPOSAL_SET receipt below.
+        skill_text = _format_skill_guidance_for_prompt(
+            guidance, skill_tracker.protocol_step_idx,
+            progress_summary=skill_tracker.get_progress_summary(summary_state),
         )
 
         if step_sync is not None:
             await step_sync.arrive()
 
-        # NOTE: action_taking LoRA was SFT-trained on /completions (raw text)
-        # format, not /chat/completions.  Using the chat endpoint wraps the
-        # prompt in chat template tokens (<|im_start|>user ...) which is
-        # an OOD distribution that triggers Qwen3.5 thinking-mode fallback
-        # ("Thinking Process: ...") instead of the trained REASONING/ACTION
-        # pattern.  Stay on generate() for action_taking to match SFT.
-        action_result = await vllm_client.generate(
-            action_prompt,
-            adapter="action_taking",
-            temperature=temperature, max_tokens=128,
-            stop=["\n\nGame state:", "\n\nAvailable actions", "<think", "<thinking"],
+        _selected_backbone_plan = (
+            _backbone_plan.selected()
+            if _backbone_plan is not None and _backbone_plan.decision == "EXECUTE"
+            else None
         )
-        action, reasoning, parsed_intention = _parse_action_response(
-            action_result.text, step_actions,
-        )
-        _parse_fallback = isinstance(action, _ActionFallback)
-        _parsed_agent_action = str(action)
-        current_intention = parsed_intention or assigned_subgoal or prev_intention or f"[SETUP] {game}"
-        action = _apply_anti_repetition(
-            action, step_actions, recent_actions, recent_rewards,
-            game=game, rng=_policy_rng,
-        )
-        _executed_action = str(action)
-        if _parse_fallback:
-            _decision_origin = "FALLBACK"
-            _transform_kind = "PARSER_FALLBACK"
-        elif _executed_action != _parsed_agent_action:
-            _decision_origin = "POLICY_POSTPROCESSOR"
-            _transform_kind = "ANTI_REPETITION_OVERRIDE"
-        else:
+        if _selected_backbone_plan is not None:
+            # The planning Agent is the policy whose reasoning backbone is
+            # being observed. Harness admission already constrained its
+            # 1-based action number to the exact native list.
+            action_result = _backbone_plan_result
+            action = step_actions[_selected_backbone_plan.action_number - 1]
+            reasoning = _selected_backbone_plan.rationale
+            parsed_intention = None
+            _parse_fallback = False
+            _parsed_agent_action = str(action)
+            _executed_action = str(action)
             _decision_origin = "AGENT"
             _transform_kind = "IDENTITY"
+            _action_event_prompt = _backbone_plan_prompt
+            # This is source evidence collection, not an action_taking GRPO
+            # sample. Avoid training the LoRA on the planner's JSON protocol.
+            action_prompt = ""
+        else:
+            # Invalid/abstained planning never authorizes an action. Fall back
+            # to the existing native action Agent and mark the v2 cycle as
+            # unusable for reasoning induction.
+            _stop = ["\n\nGame state:", "\n\nAvailable actions", "<think", "<thinking"]
+            _matched_here = bool(
+                matched_policy_skill_id
+                and guidance
+                and str(guidance.get("skill_id") or "") == matched_policy_skill_id
+            )
+            if _matched_here:
+                _other_candidates = [
+                    item for item in last_candidates
+                    if str(item.get("skill_id") or "") != matched_policy_skill_id
+                ]
+                if not _other_candidates:
+                    raise RuntimeError("matched_policy_random_control_unavailable")
+                _random_key = f"{episode_seed}:{step_count}:{matched_policy_skill_id}"
+                _random_idx = int(hashlib.sha256(_random_key.encode()).hexdigest()[:16], 16)
+                _random_guidance = _other_candidates[_random_idx % len(_other_candidates)]
+                _treatment_specs = (
+                    ("B", None, None),
+                    ("G_MINUS_S", None, "action_taking"),
+                    ("G_PLUS_S", guidance, "action_taking"),
+                    ("G_PLUS_RANDOM", _random_guidance, "action_taking"),
+                )
+                _treatment_prompts = {
+                    _name: _render_action_prompt(_guidance)
+                    for _name, _guidance, _adapter in _treatment_specs
+                }
+                # Preserve the live policy's request shape and authority:
+                # authentic is generated alone exactly as in an unobserved run.
+                # Only after it is frozen do the three shadow calls execute.
+                action_result = await vllm_client.generate(
+                    _treatment_prompts["G_PLUS_S"], adapter="action_taking",
+                    temperature=temperature, max_tokens=128, stop=_stop,
+                )
+                _shadow_specs = tuple(
+                    item for item in _treatment_specs if item[0] != "G_PLUS_S"
+                )
+                _shadow_results = await asyncio.gather(*[
+                    vllm_client.generate(
+                        _treatment_prompts[_name], adapter=_adapter,
+                        temperature=temperature, max_tokens=128, stop=_stop,
+                    )
+                    for _name, _guidance, _adapter in _shadow_specs
+                ])
+                _result_by_treatment = {
+                    "G_PLUS_S": action_result,
+                    **{
+                        _spec[0]: _result
+                        for _spec, _result in zip(_shadow_specs, _shadow_results)
+                    },
+                }
+                for _name, _guidance, _adapter in _treatment_specs:
+                    _result = _result_by_treatment[_name]
+                    _parsed, _why, _subgoal = _parse_action_response(
+                        _result.text, step_actions,
+                    )
+                    _matched_policy_records.append({
+                        "schema_version": 1,
+                        "episode_id": episode_id,
+                        "episode_seed": episode_seed,
+                        "step": step_count,
+                        "treatment": _name,
+                        "sampling_order": "AUTHENTIC_FIRST_SHADOW_AFTER_V1",
+                        "requested_adapter": _adapter,
+                        "used_adapter": getattr(_result, "adapter", None),
+                        "source_skill_id": matched_policy_skill_id,
+                        "context_skill_id": (
+                            str(_guidance.get("skill_id") or "") if _guidance else None
+                        ),
+                        "prefix_actions": list(recent_actions),
+                        "before_observable_sha256": _event_hash(obs_nl),
+                        "native_actions": list(step_actions),
+                        "native_actions_sha256": _event_hash(list(step_actions)),
+                        "prompt": _treatment_prompts[_name],
+                        "prompt_sha256": _event_hash(_treatment_prompts[_name]),
+                        "raw_response": str(_result.text),
+                        "raw_response_sha256": _event_hash(_result.text),
+                        "parsed_action": str(_parsed),
+                        "parser_fallback": isinstance(_parsed, _ActionFallback),
+                        "reasoning": _why,
+                        "parsed_subgoal": _subgoal,
+                        "prompt_tokens": int(getattr(_result, "prompt_tokens", 0) or 0),
+                        "completion_tokens": int(getattr(_result, "completion_tokens", 0) or 0),
+                    })
+            else:
+                action_result = await vllm_client.generate(
+                    action_prompt, adapter="action_taking",
+                    temperature=temperature, max_tokens=128, stop=_stop,
+                )
+            action, reasoning, parsed_intention = _parse_action_response(
+                action_result.text, step_actions,
+            )
+            _parse_fallback = isinstance(action, _ActionFallback)
+            _parsed_agent_action = str(action)
+            action = _apply_anti_repetition(
+                action, step_actions, recent_actions, recent_rewards,
+                game=game, rng=_policy_rng,
+            )
+            _executed_action = str(action)
+            _action_event_prompt = action_prompt
+            if _parse_fallback:
+                _decision_origin = "FALLBACK"
+                _transform_kind = "PARSER_FALLBACK"
+            elif _executed_action != _parsed_agent_action:
+                _decision_origin = "POLICY_POSTPROCESSOR"
+                _transform_kind = "ANTI_REPETITION_OVERRIDE"
+            else:
+                _decision_origin = "AGENT"
+                _transform_kind = "IDENTITY"
+        current_intention = (
+            parsed_intention or assigned_subgoal or prev_intention or f"[SETUP] {game}"
+        )
 
         if _reasoning_recorder is not None:
+            if reasoning_backbone_harness:
+                _reasoning_recorder.append(
+                    ReasoningEventKind.AGENT_ACTION_PROPOSAL_SET, {
+                        "step": step_count,
+                        "schema_valid": _backbone_plan is not None,
+                        "parse_error": _backbone_plan_error,
+                        "proposal_set": (
+                            _backbone_plan.to_dict() if _backbone_plan is not None else None
+                        ),
+                        "proposal_set_sha256": (
+                            _backbone_plan.content_hash()
+                            if _backbone_plan is not None else None
+                        ),
+                        "raw_response": (
+                            str(_backbone_plan_result.text)
+                            if _backbone_plan_result is not None else ""
+                        ),
+                        "prompt_sha256": _event_hash(_backbone_plan_prompt),
+                        "prompt_tokens": int(getattr(
+                            _backbone_plan_result, "prompt_tokens", 0,
+                        ) or 0),
+                        "completion_tokens": int(getattr(
+                            _backbone_plan_result, "completion_tokens", 0,
+                        ) or 0),
+                        "provider_usage": _reasoning_receipt_value(getattr(
+                            _backbone_plan_result, "provider_usage", {},
+                        )),
+                        "claim_status": "UNTRUSTED_AGENT_CLAIM",
+                    },
+                )
             _reasoning_recorder.append(ReasoningEventKind.AGENT_PROPOSAL_SET, {
                 "step": step_count,
+                "selected_skill_id": str(guidance.get("skill_id", "")) if guidance else None,
+                "selected_skill_sha256": _event_hash(_reasoning_receipt_value(guidance)) if guidance else None,
+                "selected_skill_context_sha256": _event_hash(skill_text) if guidance else None,
+                "action_policy_adapter_expected": "action_taking",
                 "claim_boundary": "SKILL_CANDIDATES_NOT_ACTION_PROPOSALS",
                 "skill_candidates": [{
                     "skill_id": str(item.get("skill_id") or ""),
@@ -1830,7 +2034,7 @@ async def run_episode_async(
                 "step": step_count,
                 "raw_response": str(action_result.text),
                 "raw_response_sha256": _event_hash(action_result.text),
-                "prompt_sha256": _event_hash(action_prompt),
+                "prompt_sha256": _event_hash(_action_event_prompt),
                 "adapter": getattr(action_result, "adapter", None),
                 "prompt_tokens": int(getattr(action_result, "prompt_tokens", 0) or 0),
                 "completion_tokens": int(getattr(action_result, "completion_tokens", 0) or 0),
@@ -1844,7 +2048,7 @@ async def run_episode_async(
                 "parser_fallback": _parse_fallback,
                 "reasoning": reasoning,
                 "parsed_intention": parsed_intention,
-                "agent_protocol_supports_replan_abstain": False,
+                "agent_protocol_supports_replan_abstain": reasoning_backbone_harness,
             })
             _reasoning_recorder.append(ReasoningEventKind.POLICY_TRANSFORM, {
                 "step": step_count,
@@ -1867,6 +2071,13 @@ async def run_episode_async(
                 "parsed_agent_action": _parsed_agent_action,
                 "executed_action": _executed_action,
                 "can_support_agent_reasoning_induction": _decision_origin == "AGENT",
+                "selected_action_matches_reasoning_proposal": bool(
+                    _backbone_plan is not None
+                    and _backbone_plan.decision == "EXECUTE"
+                    and _backbone_plan.selected() is not None
+                    and step_actions[_backbone_plan.selected().action_number - 1]
+                    == _executed_action
+                ) if reasoning_backbone_harness else None,
             })
 
         # Block A4: stream the per-step intention update.  ``switched``
@@ -1956,6 +2167,76 @@ async def run_episode_async(
                 "simulator_state_available": False,
                 "native_actions_sha256": _event_hash(list(next_action_names)),
             })
+            if reasoning_backbone_harness:
+                _selected_plan = (
+                    _backbone_plan.selected()
+                    if _backbone_plan is not None and _backbone_plan.decision == "EXECUTE"
+                    else None
+                )
+                _executed_proposal_id = (
+                    _selected_plan.proposal_id
+                    if _selected_plan is not None
+                    and step_actions[_selected_plan.action_number - 1] == str(action)
+                    else None
+                )
+                _verdict_prompt = (
+                    "You are an untrusted post-transition verification Agent. Compare "
+                    "the predicted observable delta with the real before/after evidence. "
+                    "Return exactly one JSON object with keys proposal_id,verdict,decision,"
+                    "evidence_claim. verdict is SUPPORTED, REFUTED, or INCONCLUSIVE; "
+                    "decision is CONTINUE, REPLAN, or ABSTAIN. proposal_id must equal "
+                    "EXPECTED_PROPOSAL_ID, including null. evidence_claim must be a "
+                    "JSON string, not an object or array. Do not invent hidden state.\n"
+                    f"EXPECTED_PROPOSAL_ID={json.dumps(_executed_proposal_id)}\n"
+                    f"PROPOSAL={json.dumps(asdict(_selected_plan) if _selected_plan else None, ensure_ascii=False)}\n"
+                    f"BEFORE={summary_for_action[:5000]}\n"
+                    f"EXECUTED_ACTION={str(action)}\nREWARD={float(reward)}\n"
+                    f"AFTER={str(next_obs_nl)[:5000]}"
+                )
+                _verdict_result = None
+                _verdict = None
+                _verdict_error = None
+                try:
+                    _verdict_result = await vllm_client.generate(
+                        _verdict_prompt, adapter=None, temperature=0.0,
+                        max_tokens=384,
+                    )
+                    _verdict = parse_agent_post_transition_verdict(
+                        _verdict_result.text,
+                        expected_proposal_id=_executed_proposal_id,
+                    )
+                except Exception as exc:
+                    _verdict_error = f"{type(exc).__name__}:{exc}"
+                _closed_loop_valid = bool(
+                    _executed_proposal_id is not None and _verdict is not None
+                )
+                _reasoning_recorder.append(
+                    ReasoningEventKind.AGENT_POST_TRANSITION_VERDICT, {
+                        "step": step_count,
+                        "schema_valid": _verdict is not None,
+                        "parse_error": _verdict_error,
+                        "executed_proposal_id": _executed_proposal_id,
+                        "verdict": _verdict.to_dict() if _verdict is not None else None,
+                        "verdict_sha256": (
+                            _verdict.content_hash() if _verdict is not None else None
+                        ),
+                        "raw_response": (
+                            str(_verdict_result.text) if _verdict_result is not None else ""
+                        ),
+                        "prompt_sha256": _event_hash(_verdict_prompt),
+                        "prompt_tokens": int(getattr(
+                            _verdict_result, "prompt_tokens", 0,
+                        ) or 0),
+                        "completion_tokens": int(getattr(
+                            _verdict_result, "completion_tokens", 0,
+                        ) or 0),
+                        "provider_usage": _reasoning_receipt_value(getattr(
+                            _verdict_result, "provider_usage", {},
+                        )),
+                        "can_support_closed_loop_reasoning_induction": _closed_loop_valid,
+                        "claim_status": "UNTRUSTED_AGENT_CLAIM",
+                    },
+                )
         # Pipeline the 35B vision markup: fire async now, await at the
         # start of the NEXT iteration.  This overlaps 35B generation
         # with all the reward logging, GRPO record assembly, experience
@@ -2524,4 +2805,5 @@ async def run_episode_async(
         role_index=_ep_role_idx,
         runtime_skill_effects=runtime_effects,
         reasoning_event_log=reasoning_event_log,
+        matched_policy_records=_matched_policy_records,
     )
