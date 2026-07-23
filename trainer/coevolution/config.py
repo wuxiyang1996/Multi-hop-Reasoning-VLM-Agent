@@ -1090,7 +1090,13 @@ class CoEvolutionConfig:
                 f"http://localhost:{self.vllm_base_port + i * spacing}/v1"
                 for i in range(len(self.vllm_gpu_ids))
             ]
-        return [self.vllm_base_url]
+        # External multi-node launchers may provide a comma-separated pool
+        # (for example, four one-GPU rollout servers on a sibling node).
+        return [
+            url.strip()
+            for url in self.vllm_base_url.split(",")
+            if url.strip()
+        ]
 
     @property
     def decision_adapter_dir(self) -> str:

@@ -54,6 +54,46 @@ from trainer.coevolution.vllm_client import AsyncVLLMClient
 logger = logging.getLogger(__name__)
 
 
+def _unpin_actor_from_multi_server_pool(config: CoEvolutionConfig) -> None:
+    """Keep actor traffic balanced when a model-specific URL map is present.
+
+    ``VLLM_BASE_URL_MAP`` is intended to pin singleton services such as the
+    35B judge.  Pinning the actor as well silently collapses skill-bank calls
+    onto one server even though rollout collection uses the full pool.
+    ``VLLM_PIN_ACTOR_URL=1`` preserves an intentional pin.
+    """
+    if len(config.vllm_base_urls) < 2:
+        return
+    if os.environ.get("VLLM_PIN_ACTOR_URL", "").lower() in {"1", "true", "yes"}:
+        return
+
+    raw = os.environ.get("VLLM_BASE_URL_MAP", "")
+    if not raw:
+        return
+    kept: list[str] = []
+    removed = False
+    for entry in raw.split(","):
+        piece = entry.strip()
+        if "=" not in piece:
+            if piece:
+                kept.append(piece)
+            continue
+        model, _url = piece.split("=", 1)
+        if model.strip() == config.model_name:
+            removed = True
+        else:
+            kept.append(piece)
+    if removed:
+        os.environ["VLLM_BASE_URL_MAP"] = ",".join(kept)
+        logger.info(
+            "Removed actor '%s' from VLLM_BASE_URL_MAP so auxiliary actor "
+            "calls round-robin across %d servers (set VLLM_PIN_ACTOR_URL=1 "
+            "to opt out)",
+            config.model_name,
+            len(config.vllm_base_urls),
+        )
+
+
 def _log_resumed_bank_sizes(sb_manager: Any, source: str, step: int) -> None:
     """Emit per-game bank sizes after a checkpoint restore.
 
@@ -167,6 +207,7 @@ async def co_evolution_loop(config: CoEvolutionConfig) -> None:
 
     # Expose all vLLM URLs so API_func.ask_vllm round-robins across them
     os.environ["VLLM_BASE_URLS"] = ",".join(config.vllm_base_urls)
+    _unpin_actor_from_multi_server_pool(config)
 
     # ── Executors ─────────────────────────────────────────────────
     thread_executor = ThreadPoolExecutor(

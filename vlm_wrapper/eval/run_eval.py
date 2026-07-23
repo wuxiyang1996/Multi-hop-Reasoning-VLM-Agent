@@ -17,8 +17,10 @@ Supported ``--benchmark`` values:
 
 * ``visual_toolbench`` — image QA + tool use (HF); gold string (diagnostic)
 * ``tir_bench``        — image QA (HF Agents-X/TIR-Bench)
-* ``video_holmes``     — video QA MCQ, gold letter
-* ``siv_bench``        — video QA MCQ, gold letter
+* ``video_holmes``     — video QA MCQ, gold letter (short, multi-hop)
+* ``siv_bench``        — video QA MCQ, gold letter (short, social)
+* ``vrbench``          — video QA MCQ, gold letter + reasoning steps (long, narrative)
+* ``cg_bench``         — video QA MCQ, gold letter + clue intervals (long, evidence)
 
 Add a new benchmark by extending ``_BENCHMARKS`` below — provide an
 iterator factory, a grounder, a sample-id function, and a
@@ -166,11 +168,59 @@ def _make_siv_bench(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def _make_vrbench(args: argparse.Namespace) -> dict[str, Any]:
+    from visual_reasoning_wrapper.benchmarks.vrbench import (
+        iter_vrbench_samples, parse_vrbench_sample,
+    )
+
+    def grounder(sample):
+        return parse_vrbench_sample(
+            sample,
+            num_frames=args.num_frames or 16,
+            model=args.model, api_key=args.api_key, base_url=args.base_url,
+            max_entities=args.max_entities, max_rounds=args.max_rounds,
+        )
+
+    return {
+        "samples": iter_vrbench_samples(limit=args.limit),
+        "grounder": grounder,
+        "domain": "video_qa",
+        "gold_extractor": _gold_from_qa("answer"),
+        "sample_id_fn": lambda s: f"{s.video_id}.{s.qa_key}",
+    }
+
+
+def _make_cg_bench(args: argparse.Namespace) -> dict[str, Any]:
+    from visual_reasoning_wrapper.benchmarks.cg_bench import (
+        iter_cg_bench_samples, parse_cg_bench_sample,
+    )
+
+    def grounder(sample):
+        return parse_cg_bench_sample(
+            sample,
+            num_frames=args.num_frames or 32,
+            model=args.model, api_key=args.api_key, base_url=args.base_url,
+            max_entities=args.max_entities, max_rounds=args.max_rounds,
+        )
+
+    return {
+        "samples": iter_cg_bench_samples(
+            limit=args.limit, require_video=True,
+        ),
+        "grounder": grounder,
+        "domain": "video_qa",
+        "gold_extractor": lambda s: {"answer": s.right_answer},
+        "sample_id_fn": lambda s: s.qid,
+    }
+
+
 _BENCHMARKS: dict[str, Callable[[argparse.Namespace], dict[str, Any]]] = {
     "visual_toolbench": _make_visual_toolbench,
     "tir_bench": _make_tir_bench,
     "video_holmes": _make_video_holmes,
     "siv_bench": _make_siv_bench,
+    "vrbench": _make_vrbench,
+    "cg_bench": _make_cg_bench,
 }
 
 

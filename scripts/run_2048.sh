@@ -18,54 +18,24 @@
 #    - Best-checkpoint rollback after 3 consecutive declines
 #    - Reduced GRPO epochs
 #
-#  ── 8×H200 dual-stack layout (default, 2026-05-03) ──────────────────
-#  Hosts the 9B actor AND the 35B-A3B judge simultaneously so the live
-#  promotion gates (E0/E1/E2) and crafter / harness control plane can
-#  hit the 35B endpoint instead of silently falling back to 9B
-#  self-judging.  Default layout (LAYOUT=dual_stack):
-#
-#    GPUs 0–3 → 4× Qwen3.5-9B vLLM (TP=1 each, ports 8000–8003).
-#               Full rollout DP — same throughput as the legacy
-#               single-stack run.
-#    GPUs 4–5 → 1× Qwen3.5-35B-A3B vLLM (TP=2, expert-parallel,
-#               port 8004) — judge / crafter / harness / orchestrator.
-#               Auto-launched in the background by this script when
-#               ${JUDGE_MODE}=auto (the default).
-#    GPUs 6–7 → FSDP=2 GRPO trainer.
-#
-#  Why FSDP=2 not FSDP=4 (key insight):
-#    • GRPO trains LoRA only — base 9B is frozen and FSDP-sharded but
-#      does no backward.  Per-GPU memory ≈ 9 GB base shard + 3 GB
-#      adapter+grad+optim → fits comfortably under H200 141 GB.
-#    • orchestrator.py pipelines GRPO(N) with rollout(N+1)
-#      (L559/742/1093).  Total step time = max(rollout_time,
-#      train_time).  For 2048: rollout ≈ 25-30 min, GRPO@FSDP=2 ≈
-#      8-12 min → train hides inside rollout, FSDP=2's ~2×
-#      per-step cost is FREE wall-clock-wise.
-#    • Net: same step time as legacy single-stack BUT now with the
-#      35B judge live.
-#
-#  Layout overrides (all env vars):
-#    LAYOUT=dual_stack       → default; 4×9B + 1×35B(TP=2) + FSDP=2
-#                              (recommended; pipelining hides FSDP=2 cost)
-#    LAYOUT=dual_stack_fsdp4 → 2×9B + 1×35B(TP=2) + FSDP=4 + EPISODES=16
-#                              (use when train_time would exceed rollout
-#                              even after pipelining — short games, big
-#                              batch ablations)
-#    LAYOUT=actor_only       → 4×9B + FSDP=4, no 35B server (legacy /
-#                              ablations / runs where the judge is OFF)
-#    JUDGE_MODE=auto         → script auto-launches the 35B server
-#                              (default when LAYOUT=dual_stack*)
-#    JUDGE_MODE=external     → 35B server is already running elsewhere
-#                              (e.g. ``inference/serve_qwen35_35b_a3b.sh``
-#                              on a 2nd box); this script only exports
-#                              VLLM_BASE_URL_MAP
-#    JUDGE_MODE=off          → no 35B routing wired (silently falls back
-#                              to 9B-self-judging — NOT recommended)
+#  ── GPU layouts (see scripts/gpu_layouts.sh) ─────────────────────────
+#  Default LAYOUT=dual_stack targets 8×H200 (141 GB).
+#  For GAMMA / Nexus L40S (48 GB) use:
+#    LAYOUT=l40s_8            → 8×L40S, 4×9B + fp8 35B(TP=2) + FSDP=2
+#    LAYOUT=l40s_8_tp4        → 8×L40S, 2×9B + bf16 35B(TP=4) + FSDP=2
+#    LAYOUT=l40s_4            → 4×L40S actor+GRPO (judge external/off)
+#    LAYOUT=l40s_4_compact    → 4×L40S + live fp8 35B judge (tight)
 #
 #  Usage:
 #    conda activate game-ai-agent
 #    bash scripts/run_2048.sh
+#
+#    # 8×L40S (e.g. cml34 / two gammagpu L40S nodes via scavenger):
+#    LAYOUT=l40s_8 bash scripts/run_2048.sh
+#
+#    # 4×L40S actor + external 35B on a second node:
+#    LAYOUT=l40s_4 JUDGE_MODE=external JUDGE_URL=http://otherhost:8004/v1 \
+#        bash scripts/run_2048.sh
 #
 #    # Skip launching the 35B server (e.g. run it yourself on a 2nd box):
 #    JUDGE_MODE=external JUDGE_URL=http://otherhost:8001/v1 \
@@ -83,6 +53,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
+# shellcheck source=gpu_layouts.sh
+source "${SCRIPT_DIR}/gpu_layouts.sh"
 
 # ── Headless rendering ────────────────────────────────────────────────
 export PYGLET_HEADLESS=1
@@ -117,60 +89,18 @@ WANDB_PROJECT="${WANDB_PROJECT:-game-ai-coevolution}"
 SPEC_MODEL="${SPEC_MODEL:-Qwen/Qwen3-0.6B}"
 SPEC_TOKENS="${SPEC_TOKENS:-5}"
 
-# 8×H200 layout selector (see banner above for full table).
+# Layout selector (H200 + L40S presets — see scripts/gpu_layouts.sh).
 LAYOUT="${LAYOUT:-dual_stack}"
 JUDGE_MODE="${JUDGE_MODE:-auto}"
-
-case "${LAYOUT}" in
-    dual_stack)
-        # Recommended: 4×9B(TP=1) + 1×35B(TP=2,EP) + FSDP=2.
-        # GRPO trains LoRA only (~250M trainable params total across 5
-        # adapters), so per-GPU FSDP=2 memory is dominated by the
-        # frozen 9B base shard (~9 GB) — nowhere near H200's 141 GB.
-        # The orchestrator pipelines GRPO(N) with rollout(N+1)
-        # (orchestrator.py L559/742/1093), so the 2× per-GPU compute
-        # cost of FSDP=2 vs FSDP=4 hides behind the rollout window
-        # (rollout: ~25-30 min/step on 2048; GRPO: ~8-12 min on FSDP=2).
-        VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
-        JUDGE_GPUS="${JUDGE_GPUS:-4,5}"
-        JUDGE_TP="${JUDGE_TP:-2}"
-        GRPO_GPUS="${GRPO_GPUS:-6 7}"
-        EPISODES="${EPISODES:-8}"
-        ;;
-    dual_stack_fsdp4)
-        # Heavier-trainer variant: 2×9B + 1×35B(TP=2,EP) + FSDP=4.
-        # Use when train_time would exceed rollout_time despite
-        # pipelining (e.g. very short games, big batch ablations).
-        # Also bumps EPISODES=8→16 to keep the FSDP=4 trainer fed.
-        VLLM_GPUS="${VLLM_GPUS:-0 1}"
-        JUDGE_GPUS="${JUDGE_GPUS:-2,3}"
-        JUDGE_TP="${JUDGE_TP:-2}"
-        GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
-        EPISODES="${EPISODES:-16}"
-        ;;
-    actor_only)
-        # Legacy: 4×9B(TP=1) + FSDP=4, no 35B server.
-        # Use for ablations or runs where the 35B judge is OFF.
-        VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
-        JUDGE_GPUS=""
-        JUDGE_TP="0"
-        GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
-        EPISODES="${EPISODES:-8}"
-        if [ "${JUDGE_MODE}" = "auto" ]; then
-            JUDGE_MODE="off"
-        fi
-        ;;
-    *)
-        echo "ERROR: unknown LAYOUT=${LAYOUT}" \
-             "(expected dual_stack|dual_stack_fsdp4|actor_only)"
-        exit 1
-        ;;
-esac
+apply_gpu_layout || exit 1
 
 # 35B-A3B judge endpoint (used by the orchestrator + skill_eval gates).
 JUDGE_PORT="${JUDGE_PORT:-8004}"
 JUDGE_URL="${JUDGE_URL:-http://localhost:${JUDGE_PORT}/v1}"
 JUDGE_GPU_UTIL="${JUDGE_GPU_UTIL:-0.92}"
+JUDGE_MAX_MODEL_LEN="${JUDGE_MAX_MODEL_LEN:-65536}"
+JUDGE_MAX_NUM_SEQS="${JUDGE_MAX_NUM_SEQS:-128}"
+JUDGE_QUANTIZATION="${JUDGE_QUANTIZATION:-}"
 JUDGE_MODEL="${JUDGE_MODEL:-Qwen/Qwen3.5-35B-A3B}"
 
 # ── SFT cold-start adapter paths ─────────────────────────────────────
@@ -212,6 +142,9 @@ start_35b_judge() {
     TENSOR_PARALLEL="${JUDGE_TP}" \
     EXPERT_PARALLEL=1 \
     GPU_UTIL="${JUDGE_GPU_UTIL}" \
+    MAX_MODEL_LEN="${JUDGE_MAX_MODEL_LEN}" \
+    MAX_NUM_SEQS="${JUDGE_MAX_NUM_SEQS}" \
+    QUANTIZATION="${JUDGE_QUANTIZATION}" \
     PORT="${JUDGE_PORT}" \
     HOST="127.0.0.1" \
     MODEL="${JUDGE_MODEL}" \
@@ -245,12 +178,14 @@ case "${JUDGE_MODE}" in
                  "JUDGE_MODE=off (disable 35B routing)."
             exit 1
         fi
-        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        # Only singleton services belong in the map. Actor requests that are
+        # unmapped round-robin across the full VLLM_BASE_URLS pool.
+        export VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}"
         export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
         ;;
     external)
         echo "[2048] JUDGE_MODE=external → assuming 35B server at ${JUDGE_URL}"
-        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        export VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}"
         export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
         ;;
     off)

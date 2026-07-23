@@ -191,8 +191,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--vllm-url", type=str, default="http://localhost:8000/v1",
-        help="vLLM server URL (only used with --no-manage-vllm). "
-             "Default: http://localhost:8000/v1",
+        help="vLLM server URL, or a comma-separated URL pool (only used "
+             "with --no-manage-vllm). Default: http://localhost:8000/v1",
     )
     parser.add_argument(
         "--vllm-base-port", type=int, default=8000,

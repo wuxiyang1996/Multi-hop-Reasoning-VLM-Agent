@@ -15,14 +15,23 @@ Image benchmarks (HF ``datasets`` + cache):
 
 Video benchmarks (local data under ``data/``):
 
-* ``video_holmes`` — Video-Holmes multi-hop video QA.
-* ``siv_bench``    — SIV-Bench social-interaction video QA.
+* ``video_holmes`` — Video-Holmes multi-hop video QA (short, multi-hop).
+* ``siv_bench``    — SIV-Bench social-interaction video QA (short, social).
+* ``vrbench``      — VRBench multi-step narrative reasoning (long, retrieval).
+* ``cg_bench``     — CG-Bench clue-grounded QA (long, evidence attribution).
 
 Image loaders need ``Pillow`` and ``datasets`` (plus HF cache or network).
-Video loaders need ``decord`` or ``opencv-python`` (SIV-Bench reuses
-Video-Holmes' frame sampler).
+Video loaders need ``decord`` or ``opencv-python`` (SIV-Bench, VRBench,
+CG-Bench reuse Video-Holmes' frame sampler).
 """
 
+from .cg_bench import (
+    CGBenchSample,
+    default_cg_bench_root,
+    iter_cg_bench_samples,
+    load_cg_bench_questions,
+    parse_cg_bench_sample,
+)
 from .siv_bench import (
     SIVBenchSample,
     default_siv_bench_root,
@@ -54,6 +63,13 @@ from .visual_toolbench import (
     parse_visual_toolbench_batch,
     parse_visual_toolbench_sample,
 )
+from .vrbench import (
+    VRBenchSample,
+    default_vrbench_root,
+    iter_vrbench_samples,
+    load_vrbench_records,
+    parse_vrbench_sample,
+)
 
 __all__ = [
     # VisualToolBench
@@ -83,4 +99,16 @@ __all__ = [
     "iter_siv_bench_samples",
     "load_siv_bench_questions",
     "parse_siv_bench_sample",
+    # VRBench
+    "VRBenchSample",
+    "default_vrbench_root",
+    "iter_vrbench_samples",
+    "load_vrbench_records",
+    "parse_vrbench_sample",
+    # CG-Bench
+    "CGBenchSample",
+    "default_cg_bench_root",
+    "iter_cg_bench_samples",
+    "load_cg_bench_questions",
+    "parse_cg_bench_sample",
 ]

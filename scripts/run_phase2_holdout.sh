@@ -141,45 +141,19 @@ if [ "${BANK_MODE}" = "per_game" ] && [ "${TRANSLATE_ON_BOUNDARY}" = "1" ]; then
     TRANSLATE_ON_BOUNDARY=0
 fi
 
-# 8×H200 layout selector (mirrors run_phase1_curriculum.sh; see banner there).
+# Layout selector (H200 + L40S presets — see scripts/gpu_layouts.sh).
 LAYOUT="${LAYOUT:-dual_stack}"
 JUDGE_MODE="${JUDGE_MODE:-auto}"
-
-case "${LAYOUT}" in
-    dual_stack)
-        VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
-        JUDGE_GPUS="${JUDGE_GPUS:-4,5}"
-        JUDGE_TP="${JUDGE_TP:-2}"
-        GRPO_GPUS="${GRPO_GPUS:-6 7}"
-        EPISODES="${EPISODES:-8}"
-        ;;
-    dual_stack_fsdp4)
-        VLLM_GPUS="${VLLM_GPUS:-0 1}"
-        JUDGE_GPUS="${JUDGE_GPUS:-2,3}"
-        JUDGE_TP="${JUDGE_TP:-2}"
-        GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
-        EPISODES="${EPISODES:-16}"
-        ;;
-    actor_only)
-        VLLM_GPUS="${VLLM_GPUS:-0 1 2 3}"
-        JUDGE_GPUS=""
-        JUDGE_TP="0"
-        GRPO_GPUS="${GRPO_GPUS:-4 5 6 7}"
-        EPISODES="${EPISODES:-8}"
-        if [ "${JUDGE_MODE}" = "auto" ]; then
-            JUDGE_MODE="off"
-        fi
-        ;;
-    *)
-        echo "ERROR: unknown LAYOUT=${LAYOUT}" \
-             "(expected dual_stack|dual_stack_fsdp4|actor_only)"
-        exit 1
-        ;;
-esac
+# shellcheck source=gpu_layouts.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gpu_layouts.sh"
+apply_gpu_layout || exit 1
 
 JUDGE_PORT="${JUDGE_PORT:-8004}"
 JUDGE_URL="${JUDGE_URL:-http://localhost:${JUDGE_PORT}/v1}"
 JUDGE_GPU_UTIL="${JUDGE_GPU_UTIL:-0.92}"
+JUDGE_MAX_MODEL_LEN="${JUDGE_MAX_MODEL_LEN:-65536}"
+JUDGE_MAX_NUM_SEQS="${JUDGE_MAX_NUM_SEQS:-128}"
+JUDGE_QUANTIZATION="${JUDGE_QUANTIZATION:-}"
 JUDGE_MODEL="${JUDGE_MODEL:-Qwen/Qwen3.5-35B-A3B}"
 
 # ── Phase-1 snapshot — mandatory ─────────────────────────────────────
@@ -297,6 +271,9 @@ start_35b_judge() {
     TENSOR_PARALLEL="${JUDGE_TP}" \
     EXPERT_PARALLEL=1 \
     GPU_UTIL="${JUDGE_GPU_UTIL}" \
+    MAX_MODEL_LEN="${JUDGE_MAX_MODEL_LEN}" \
+    MAX_NUM_SEQS="${JUDGE_MAX_NUM_SEQS}" \
+    QUANTIZATION="${JUDGE_QUANTIZATION}" \
     PORT="${JUDGE_PORT}" \
     HOST="127.0.0.1" \
     MODEL="${JUDGE_MODEL}" \
@@ -323,7 +300,9 @@ start_35b_judge() {
 
 case "${JUDGE_MODE}" in
     auto|external)
-        export VLLM_BASE_URL_MAP="${MODEL}=http://localhost:${PORT}/v1,${JUDGE_MODEL}=${JUDGE_URL}"
+        # Leave the actor unmapped so API_func balances auxiliary calls over
+        # every endpoint in VLLM_BASE_URLS; only the singleton judge is pinned.
+        export VLLM_BASE_URL_MAP="${JUDGE_MODEL}=${JUDGE_URL}"
         export VLM_AGENT_BACKBONE_JUDGE_MODEL="${JUDGE_MODEL}"
         ;;
     off)

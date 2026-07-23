@@ -1,0 +1,65 @@
+=== claude (showing 2 of 12 completed; one longest, one shortest) ===
+
+--- claude :: assistantbench.test.0  (16 steps) ---
+  step  0: r=+0.00  search_web("SmartLess podcast episode without guest names in title")
+  step  1: r=+0.00  click("22")
+  step  2: r=+0.00  scroll(0, 300)
+  step  3: r=+0.00  scroll(0, 300)
+  step  4: r=+0.00  scroll(0, -300)
+  step  5: r=+0.00  scroll(0, -300)
+  step  6: r=+0.00  search_web("SmartLess podcast episode title without guest names season 1")
+  step  7: r=+0.00  go_back()
+  step  8: r=+0.00  search_web("SmartLess podcast IMDB season 1 episode list all titles")
+  step  9: r=+0.00  goto("https://www.imdb.com/title/tt12665676/episodes/?season=1")
+  step 10: r=+0.00  search_web("SmartLess podcast episode list season 1 titles all episodes")
+  step 11: r=+0.00  click("17")
+  step 12: r=+0.00  search_web("SmartLess podcast episode without guest names in title")
+  step 13: r=+0.00  click("12")
+  step 14: r=+0.00  scroll(0, 300)
+  step 15: r=+0.00  search_web("SmartLess podcast episode title without guest names \"SmartLess\" episode")
+
+--- claude :: assistantbench.test.9  (2 steps) ---
+  step  0: r=+0.00  search_web("USA executive legislative branch leaders Twitter followers most 2024 President Vice President Spea...
+  step  1: r=+0.00  send_msg_to_user("Donald Trump (@realDonaldTrump) has the most Twitter/X followers among USA executive and leg...
+
+=== gemini (showing 2 of 8 completed; one longest, one shortest) ===
+
+--- gemini :: assistantbench.test.0  (16 steps) ---
+  step  0: r=+0.00  search_web("SmartLess episodes Wikipedia")
+  step  1: r=+0.00  click("12")
+  step  2: r=+0.00  click("194")
+  step  3: r=+0.00  scroll(0, 300)
+  step  4: r=+0.00  scroll(0, -300)
+  step  5: r=+0.00  search_web("SmartLess episode does not include the names of the guests in the title")
+  step  6: r=+0.00  goto("https://en.wikipedia.org/wiki/SmartLess")
+  step  7: r=+0.00  scroll(0, 300)
+  step  8: r=+0.00  click("195")
+  step  9: r=+0.00  scroll(0, -300)
+  step 10: r=+0.00  go_back()
+  step 11: r=+0.00  go_back()
+  step 12: r=+0.00  goto("https://en.wikipedia.org/wiki/SmartLess")
+  step 13: r=+0.00  scroll(0, 1000)
+  step 14: r=+0.00  scroll(0, 300)
+  step 15: r=+0.00  scroll(0, -300)
+
+--- gemini :: assistantbench.test.11  (2 steps) ---
+  step  0: r=+0.00  search_web("Spier and Mackay high rise cotton pants")
+  step  1: r=+0.00  send_msg_to_user("Spier and Mackay")
+
+=== qwen (showing 2 of 22 completed; one longest, one shortest) ===
+
+--- qwen :: assistantbench.test.12  (7 steps) ---
+  step  0: r=+0.00  search_web("Kansas City Chiefs subreddit user increase 2021/22 NFL regular season")
+  step  1: r=+0.00  click("22")
+  step  2: r=+0.00  scroll(0, 300)
+  step  3: r=+0.00  scroll(0, -300)
+  step  4: r=+0.00  go_back()
+  step  5: r=+0.00  click("17")
+  step  6: r=+0.00  report_infeasible("The current page does not display historical user count data for the 2021/22 NFL regular se...
+
+--- qwen :: assistantbench.test.9  (2 steps) ---
+  step  0: r=+0.00  search_web("USA executive legislative branch leaders Twitter followers count")
+  step  1: r=+0.00  report_infeasible("The search engine returned no results due to server-side backend unavailability. The task c...
+
+
+=== snapshot written: /fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/cold_start/_ab_test161_traj.snapshot ===

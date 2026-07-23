@@ -18,7 +18,9 @@
 # Usage:
 #
 #   # Default: lean-plan pools (MiniWoB 125 + AssistantBench 180),
-#   # 8 shards, gpt-5.4 + reasoning_effort=minimal
+#   # 8 shards, gpt-5.4 + reasoning_effort=low
+#   # (was 'minimal' before 2026-05-04 — OpenAI gpt-5.x direct chat now
+#   #  HTTP-400s on 'minimal'; supported set is none/low/medium/high/xhigh)
 #   bash cold_start/run_coldstart_actor_browsergym_shard.sh
 #
 #   # 16 shards, custom tasks file, save frames
@@ -39,8 +41,9 @@
 #                             (default: Cold-start-out-browsergym)
 #   --model NAME              model passed to the Python launcher
 #                             (default: gpt-5.4)
-#   --reasoning_effort EFFORT one of {minimal,low,medium,high}
-#                             (default: minimal)
+#   --reasoning_effort EFFORT one of {none,low,medium,high,xhigh}
+#                             (default: low; was 'minimal' but OpenAI
+#                              gpt-5.x direct chat now HTTP-400s on it)
 #   --                        end of wrapper flags; everything after is
 #                             forwarded to generate_cold_start_actor_browsergym.py
 #
@@ -68,7 +71,7 @@ NUM_SHARDS=8
 TASKS_FILES=()
 OUTPUT_DIR=""
 MODEL="gpt-5.4"
-REASONING_EFFORT="minimal"
+REASONING_EFFORT="low"
 CONDA_ENV="${BROWSERGYM_CONDA_ENV:-browsergym}"
 EXTRA_ARGS=()
 

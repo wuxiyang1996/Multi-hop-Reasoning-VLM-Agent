@@ -255,7 +255,9 @@ class VLLMServerManager:
             "--enable-lora", "--max-loras", "5", "--max-lora-rank", "64",
             "--enable-prefix-caching",
             "--enable-chunked-prefill",
-            "--max-num-seqs", str(self.max_num_seqs),
+            "--max-num-seqs", str(
+                int(os.environ.get("VLLM_MAX_NUM_SEQS", self.max_num_seqs))
+            ),
             # batch-level token budget (sum across in-flight requests in
             # one decode step).  Bumped 16384 → 32768 (v10, 2026-05-04)
             # to let the engine pack more concurrent rollouts per step
@@ -263,10 +265,16 @@ class VLLMServerManager:
             # gpu_util=0.9, well above the 32K bump.  This is per-batch,
             # NOT per-request, so it cannot truncate any single
             # completion (which is gated by ``max_tokens``).
-            "--max-num-batched-tokens", "32768",
+            # L40S (48 GB) layouts export VLLM_MAX_NUM_BATCHED_TOKENS=8192
+            # via scripts/gpu_layouts.sh to keep prefill from OOMing.
+            "--max-num-batched-tokens",
+            os.environ.get("VLLM_MAX_NUM_BATCHED_TOKENS", "32768"),
             "--port", str(port),
             "--trust-remote-code",
         ]
+        max_model_len = os.environ.get("VLLM_MAX_MODEL_LEN", "").strip()
+        if max_model_len:
+            cmd.extend(["--max-model-len", max_model_len])
         if self.enforce_eager or shared_gpus:
             cmd.append("--enforce-eager")
         if self.language_model_only:

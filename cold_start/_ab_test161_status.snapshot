@@ -1,0 +1,35 @@
+================================================================
+  AssistantBench test_feasible (n=161) — multi-model
+  OUT_BASE = /tmp/ab_test161
+  Time     = 10:18:56
+================================================================
+  Active python procs:   5
+  Active chrome procs:   35
+  Memory:                14Gi used / 251Gi total (235Gi avail)
+
+  claude  : shards_done=1/4  completed=100
+    meanR=0.000  steps=11.1  sent=52/100  infeasible=0  trunc=48  placeholder=0
+            e.g. ab.test.3  ->  "1.2.8"
+            e.g. ab.test.6  ->  "[{\"album_name\": \"Sgt. Pepper's Lonely Hearts Club Band\","
+  gemini  : shards_done=4/4  completed=161
+    meanR=0.000  steps=13.1  sent=64/161  infeasible=51  trunc=46  placeholder=0
+            e.g. ab.test.9  ->  "Barack Obama"
+            e.g. ab.test.11  ->  "Spier and Mackay"
+  qwen    : shards_done=4/4  completed=161
+    meanR=0.000  steps=5.9  sent=49/161  infeasible=98  trunc=14  placeholder=0
+            e.g. ab.test.2  ->  "Astoria Greenmarket"
+            e.g. ab.test.13  ->  "The current page does not provide historical user count data"
+
+  Per-shard:
+    claude  sh00 : task #19  cur=assistantbench.test.84
+    claude  sh01 : task #16  cur=assistantbench.test.72
+    claude  sh02 : DONE  EXIT=0 @ 2026-05-04T04:25:51
+    claude  sh03 : task #28  cur=assistantbench.test.127
+    gemini  sh00 : DONE  EXIT=0 @ 2026-05-04T07:22:48
+    gemini  sh01 : DONE  EXIT=0 @ 2026-05-04T06:47:43
+    gemini  sh02 : DONE  EXIT=0 @ 2026-05-04T07:25:23
+    gemini  sh03 : DONE  EXIT=0 @ 2026-05-04T06:47:22
+    qwen    sh00 : DONE  EXIT=0 @ 2026-05-04T04:14:27
+    qwen    sh01 : DONE  EXIT=0 @ 2026-05-04T04:23:13
+    qwen    sh02 : DONE  EXIT=0 @ 2026-05-04T04:44:26
+    qwen    sh03 : DONE  EXIT=0 @ 2026-05-04T05:01:14

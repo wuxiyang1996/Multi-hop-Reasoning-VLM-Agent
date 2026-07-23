@@ -43,10 +43,19 @@
 #   TENSOR_PARALLEL=8, EXPERT_PARALLEL=on  → ~5 GB weights/GPU + huge KV cache.
 #   Override TENSOR_PARALLEL=4 if you only have 4 GPUs free during training.
 #
+# L40S presets (48 GB) — set PRESET=l40s_4 or PRESET=l40s_8:
+#   PRESET=l40s_8 → TP=4 on GPUs 0-3, max_model_len=32768, util=0.88
+#   PRESET=l40s_4 → TP=4 on GPUs 0-3, max_model_len=32768, util=0.88
+#                   (same TP; use all 4 GPUs on a gammagpu L40S node)
+#   For a tighter 2-GPU judge: PRESET=l40s_2 QUANTIZATION=fp8
+#
 # ======================== USAGE ==============================================
 #
 #   # Default: TP=8 + expert-parallel on GPUs 0-7, port 8001
 #   bash inference/serve_qwen35_35b_a3b.sh
+#
+#   # 4×L40S judge (GAMMA gammagpu18–21 / csd00):
+#   PRESET=l40s_4 PORT=8004 bash inference/serve_qwen35_35b_a3b.sh
 #
 #   # Run on GPUs 4-7 only (e.g. while GRPO is training on 0-3):
 #   GPUS="4,5,6,7" TENSOR_PARALLEL=4 \
@@ -103,6 +112,38 @@ mkdir -p "$HF_HUB_CACHE"
 # bf16 inference and lets the engine come up cleanly.  Override by
 # setting VLLM_USE_DEEP_GEMM=1 in the env if you've installed deep_gemm.
 export VLLM_USE_DEEP_GEMM="${VLLM_USE_DEEP_GEMM:-0}"
+
+# ---------------------------------------------------------------------------
+# Optional hardware presets (applied before explicit env overrides below)
+# ---------------------------------------------------------------------------
+PRESET="${PRESET:-}"
+case "${PRESET}" in
+    ""|h200|h200_8)
+        : # keep H200 defaults below
+        ;;
+    l40s_8|l40s_4)
+        # 4×L40S (48 GB): TP=4 + EP so bf16 MoE weights fit with KV left.
+        GPUS="${GPUS:-0,1,2,3}"
+        TENSOR_PARALLEL="${TENSOR_PARALLEL:-4}"
+        GPU_UTIL="${GPU_UTIL:-0.88}"
+        MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"
+        MAX_NUM_SEQS="${MAX_NUM_SEQS:-32}"
+        ;;
+    l40s_2)
+        # 2×L40S judge — needs fp8 (or short context) to fit ~70 GB bf16.
+        GPUS="${GPUS:-0,1}"
+        TENSOR_PARALLEL="${TENSOR_PARALLEL:-2}"
+        GPU_UTIL="${GPU_UTIL:-0.90}"
+        MAX_MODEL_LEN="${MAX_MODEL_LEN:-16384}"
+        MAX_NUM_SEQS="${MAX_NUM_SEQS:-16}"
+        QUANTIZATION="${QUANTIZATION:-fp8}"
+        ;;
+    *)
+        echo "[serve-35b] ERROR: unknown PRESET=${PRESET}" \
+             "(expected h200|l40s_8|l40s_4|l40s_2)"
+        exit 1
+        ;;
+esac
 
 # ---------------------------------------------------------------------------
 # Defaults
@@ -172,8 +213,11 @@ echo "============================================"
 echo "  Qwen3.5-35B-A3B  (inference-only)"
 echo "============================================"
 echo "  Model:           $MODEL"
+echo "  Preset:          ${PRESET:-h200 (default)}"
 echo "  Bind:            http://${HOST}:${PORT}/v1"
 echo "  GPUs:            $GPUS  (TP=${TENSOR_PARALLEL}, EP=${EXPERT_PARALLEL})"
+echo "  max_model_len:   $MAX_MODEL_LEN   max_num_seqs: $MAX_NUM_SEQS"
+echo "  gpu_util:        $GPU_UTIL"
 echo "  Multimodal:      $MULTIMODAL  (0 = text-only / vision tower skipped)"
 echo "  Quantization:    ${QUANTIZATION:-bf16}"
 echo "  Speculative:     $SPECULATIVE  (${NUM_SPEC_TOKENS} tok)"

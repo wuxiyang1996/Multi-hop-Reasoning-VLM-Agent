@@ -122,16 +122,23 @@ for _p in [str(CODEBASE_ROOT), str(WORKSPACE_ROOT)]:
 
 
 def _bootstrap_api_keys_from_file() -> Optional[Path]:
-    """Seed ``os.environ`` from a sibling ``api_keys.py`` if present.
+    """Seed ``os.environ`` from a sibling ``api_keys.py`` / ``keys.py`` if present.
 
     Looked-up locations (first hit wins):
       1. ``$COSPLAY_API_KEYS_FILE``
-      2. ``cold_start/api_keys.py``
-      3. ``<codebase_root>/api_keys.py``
-      4. ``<codebase_root>/../api_keys.py``  (workspace root)
+      2. ``$VLM_ROBOT_KEYS_FILE``  (matches ``API_func._load_repo_keys_module``)
+      3. ``cold_start/api_keys.py``
+      4. ``<codebase_root>/api_keys.py``
+      5. ``<codebase_root>/../api_keys.py``  (workspace root)
+      6. ``<codebase_root>/../keys.py``       (workspace-root ``keys.py`` —
+         the canonical location used by ``API_func.py``; without this
+         entry the env vars are unset even though API calls succeed
+         through ``API_func``, triggering a false-positive
+         "No API key set" warning at the launcher banner.)
 
     The file should define any of:
       ``openrouter_api_key``, ``openai_api_key``, ``claude_api_key``
+      (or the bare aliases ``openai`` / ``openrouter`` / ``anthropic``).
     Existing env vars are NOT overwritten.
     """
     import importlib.util
@@ -140,10 +147,14 @@ def _bootstrap_api_keys_from_file() -> Optional[Path]:
     env_override = os.environ.get("COSPLAY_API_KEYS_FILE")
     if env_override:
         candidates.append(Path(env_override))
+    vlm_robot_override = os.environ.get("VLM_ROBOT_KEYS_FILE")
+    if vlm_robot_override:
+        candidates.append(Path(vlm_robot_override))
     candidates.extend([
         SCRIPT_DIR / "api_keys.py",
         CODEBASE_ROOT / "api_keys.py",
         CODEBASE_ROOT.parent / "api_keys.py",
+        CODEBASE_ROOT.parent / "keys.py",
     ])
 
     for path in candidates:
@@ -730,7 +741,7 @@ def _build_client_and_route(
     return client, model
 
 
-_VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high")
+_VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high", "xhigh")
 
 
 def _maybe_disable_thinking_kwargs(model: Any, tool_choice: Any) -> Dict[str, Any]:
@@ -1423,10 +1434,46 @@ _ACTOR_SYSTEM_PROMPT = (
     "who / when / where / how / why / which, or ends with ``?``) and "
     "you have GROUNDED EVIDENCE on the current page for the answer, "
     "your final action MUST be "
-    "``send_msg_to_user(\"<concise answer>\")`` — this is what the "
-    "eval harness scores against the reference. Without it the "
-    "episode hits max_steps with reward=0 even if you found the "
-    "answer in the page text.\n"
+    "``send_msg_to_user(\"YOUR_REAL_ANSWER\")`` — this is what the "
+    "eval harness scores against the reference. Replace "
+    "``YOUR_REAL_ANSWER`` with the actual fact you researched "
+    "(e.g. ``send_msg_to_user(\"42\")`` or "
+    "``send_msg_to_user(\"Marie Curie\")`` or "
+    "``send_msg_to_user(\"Trout Lake Trail, Artist Point, Storm "
+    "Point Trail\")``). Without it the episode hits max_steps with "
+    "reward=0 even if you found the answer in the page text.\n"
+    "  • PLACEHOLDER GUARD: the candidate list seeds literal "
+    "placeholder strings such as "
+    "``send_msg_to_user(\"<your answer here>\")`` and "
+    "``report_infeasible(\"<reason this task cannot be answered>\")`` "
+    "so the harness always offers a terminal-action affordance. "
+    "These placeholders are STRUCTURAL HINTS, not real actions — "
+    "REPLACE the angle-bracket text with your actual finding before "
+    "submitting. ``send_msg_to_user(\"42\")`` is correct; "
+    "``send_msg_to_user(\"<your answer here>\")`` is rejected by "
+    "the validator. The placeholder guard does NOT mean 'never "
+    "commit' — it means 'commit with real text, not the literal "
+    "hint'.\n"
+    "  • STEP-BUDGET DISCIPLINE (CRITICAL — addresses the 2026-05-04 "
+    "Gemini 100%-truncation observation): you have a HARD "
+    "max_steps budget (typically 16). Truncation gives reward=0; a "
+    "wrong answer also gives reward=0; **the only difference is "
+    "telemetry — a submitted answer is *always* better than no "
+    "answer**. By step ~12 (≈75 % of a 16-step budget) you MUST "
+    "commit, in this priority order:\n"
+    "    (a) ``send_msg_to_user(\"<your best-supported answer>\")`` "
+    "if any page in your history shows evidence — even partial, "
+    "even one source. Pick the most-likely fact and ship it. "
+    "Refusing to commit because the evidence isn't ironclad is a "
+    "FAILURE MODE. Submit at step 12-14, do not run out the clock.\n"
+    "    (b) ``report_infeasible(\"<concrete reason>\")`` ONLY "
+    "when you have hit ≥3 dead ends (CAPTCHA, login required, "
+    "404s, search backends all failed). DO NOT use it on step 0/1. "
+    "DO NOT use it just because the first search returned no "
+    "results — switch backend or refine query first.\n"
+    "    (c) Truncation (running out of steps without (a) or (b)) "
+    "is the WORST outcome — you wasted the entire trajectory and "
+    "produced no usable signal. AVOID IT.\n"
     "  • DO NOT call ``report_infeasible(...)`` on step 0 or 1. The "
     "first thing you should do on any QA task is fill the focused "
     "search box (or visible textbox) with a query derived from the "
@@ -1912,28 +1959,50 @@ def _canonicalize_to_candidate(
       2. case-insensitive match
       3. numeric index ("3" or "3." -> candidates[2])
       4. canonical form (collapse whitespace, strip outer parens spaces)
+
+    Placeholder safety net (added 2026-05-04 after the AB test_feasible
+    sweep showed Gemini-3.1-pro / Claude-4.6-sonnet emitting
+    ``send_msg_to_user("<your answer here>")`` verbatim ~73 % / 43 % of
+    the time). The candidate list seeds ``_SEND_MSG_PLACEHOLDER`` /
+    ``_REPORT_INFEASIBLE_PLACEHOLDER`` so the structured-fallback always
+    has a terminal action to point at; but if the LLM ever emits one of
+    those placeholder strings verbatim (because it copy-pasted the
+    candidate list as its action), this function would happily return
+    it — bypassing ``_validate_action_string``'s
+    ``_PLACEHOLDER_LITERAL_RE`` rejection. We block that here too: a
+    canonicalized match that still contains a literal ``<your answer
+    here>`` / ``<reason ...>`` fragment is treated as "no match", so
+    the caller falls through to the autoquote+validate path (which
+    rejects placeholders) and the action selector gets a clean retry
+    next step.
     """
     if not raw or not candidates:
         return None
     s = raw.strip().strip("`").strip()
     if not s:
         return None
+    out: Optional[str] = None
     if s in candidates:
-        return s
-    lower_map = {c.lower(): c for c in candidates}
-    if s.lower() in lower_map:
-        return lower_map[s.lower()]
-    m = re.match(r"^\s*(\d+)\s*[\.\)\-:]?\s*$", s)
-    if m:
-        idx = int(m.group(1)) - 1
-        if 0 <= idx < len(candidates):
-            return candidates[idx]
-    # Whitespace-collapse compare.
-    norm = re.sub(r"\s+", "", s)
-    for c in candidates:
-        if re.sub(r"\s+", "", c) == norm:
-            return c
-    return None
+        out = s
+    if out is None:
+        lower_map = {c.lower(): c for c in candidates}
+        if s.lower() in lower_map:
+            out = lower_map[s.lower()]
+    if out is None:
+        m = re.match(r"^\s*(\d+)\s*[\.\)\-:]?\s*$", s)
+        if m:
+            idx = int(m.group(1)) - 1
+            if 0 <= idx < len(candidates):
+                out = candidates[idx]
+    if out is None:
+        norm = re.sub(r"\s+", "", s)
+        for c in candidates:
+            if re.sub(r"\s+", "", c) == norm:
+                out = c
+                break
+    if out and _PLACEHOLDER_LITERAL_RE.search(out):
+        return None
+    return out
 
 
 def select_action(
@@ -1950,6 +2019,7 @@ def select_action(
     temperature: float = 0.4,
     max_tokens: int = _ACTION_MAX_TOKENS,
     reasoning_effort: Optional[str] = None,
+    max_steps: Optional[int] = None,
 ) -> Tuple[Optional[str], Optional[str], str, Optional[str]]:
     """Call gpt-5.5 with the schema → ``(action, reasoning, raw, error)``."""
     if not candidate_actions:
@@ -1977,16 +2047,48 @@ def select_action(
         candidate_lines.append(f"  {i}. {m['action']}{suffix}")
     candidate_block = "Candidate actions:\n" + "\n".join(candidate_lines)
 
+    # Step-budget pressure (added 2026-05-04 to fix the gemini
+    # 100 %-truncation observation): tell the model exactly how much
+    # budget is left, and at ≥75 % usage shout that it MUST commit.
+    if max_steps and max_steps > 0:
+        step_line = f"Step: {step}/{max_steps - 1}  (budget left: {max_steps - 1 - step} steps)"
+        budget_pressure = ""
+        if step >= int(max_steps * 0.75):
+            budget_pressure = (
+                "BUDGET PRESSURE: you are past 75 % of the step budget. "
+                "Your NEXT 1-2 actions MUST terminate the episode. "
+                "Pick (a) ``send_msg_to_user(\"<best-supported answer "
+                "from your history>\")`` or (b) "
+                "``report_infeasible(\"<concrete reason>\")``. "
+                "Truncation = reward 0; submitting a low-confidence "
+                "guess > truncation. COMMIT NOW."
+            )
+        elif step >= int(max_steps * 0.50):
+            budget_pressure = (
+                "BUDGET HEADS-UP: you are past the half-way mark of "
+                "the step budget. Start consolidating evidence. "
+                "If you have any candidate answer in mind, ship it "
+                "with ``send_msg_to_user(...)`` rather than browsing "
+                "for marginal extra confidence."
+            )
+    else:
+        step_line = f"Step: {step}"
+        budget_pressure = ""
+
     user_parts = [
         f"Task: {task}",
         f"URL: {obs.get('url', '') or ''}",
-        f"Step: {step}",
+        step_line,
+    ]
+    if budget_pressure:
+        user_parts.append(budget_pressure)
+    user_parts.extend([
         "",
         "Structured state schema:",
         schema_block,
         "",
         candidate_block,
-    ]
+    ])
     if not schema_text:
         ax_text = _flatten_axtree(obs, max_chars=2000)
         if ax_text:
@@ -2055,8 +2157,14 @@ def select_action(
                 return structured, reasoning, raw or json.dumps(args), None
 
         # 3. No tool call — try to extract a verbatim action from the raw text.
+        # Skip placeholder candidates (``send_msg_to_user("<your answer here>")``
+        # etc.) so a model that just paraphrases the candidate list cannot
+        # accidentally submit the literal hint as its final answer (this was
+        # the root cause of the 2026-05-04 Gemini placeholder-leak observation;
+        # ``_validate_action_string`` already rejects placeholders, so we
+        # mirror that check here on path 3 instead of returning unchecked).
         for cand in candidate_actions:
-            if cand in raw:
+            if cand in raw and _validate_action_string(cand):
                 return cand, None, raw, None
 
     except Exception as exc:
@@ -2102,14 +2210,24 @@ _DESTRUCTIVE_NAV_ACTIONS = frozenset({
 
 
 def _pick_different(action: str, candidates: List[str]) -> str:
-    """Pick a candidate that is neither ``action`` nor a destructive nav."""
+    """Pick a candidate that is neither ``action`` nor a destructive nav.
+
+    Also excludes placeholder candidates (``send_msg_to_user("<your answer
+    here>")`` etc.) so the override logic cannot accidentally swap a real
+    action for the seeded hint string. Without this filter the anti-noop /
+    anti-error / anti-repeat overrides would happily pick the placeholder
+    when shuffling, re-introducing the same leak that line 2995's
+    "fallback when select_action returned None" used to cause
+    (2026-05-04 Gemini test_feasible run).
+    """
     alts = [
         a for a in candidates
-        if a != action and a not in _DESTRUCTIVE_NAV_ACTIONS
+        if a != action
+        and a not in _DESTRUCTIVE_NAV_ACTIONS
+        and not _PLACEHOLDER_LITERAL_RE.search(a)
     ]
     if alts:
         return random.choice(alts)
-    # Fall back to a non-destructive default; ``noop()`` is always safe.
     return "noop()"
 
 
@@ -2932,14 +3050,36 @@ def run_actor_episode(
                     routed_model=routed_model,
                     temperature=temperature_action,
                     reasoning_effort=reasoning_effort,
+                    max_steps=max_steps,
                 )
                 if action is not None:
                     action_llm_ok += 1
                 else:
                     action_llm_fail += 1
-                    action = candidate_actions[0] if candidate_actions else "noop()"
+                    # Fallback when ``select_action`` returns nothing.
+                    # IMPORTANT: ``candidate_actions[0]`` for AssistantBench/QA
+                    # is the seeded ``_SEND_MSG_PLACEHOLDER`` (= literal
+                    # ``send_msg_to_user("<your answer here>")``). Picking it
+                    # blindly here was the actual root cause of the
+                    # 2026-05-04 placeholder leak (Gemini-3.1-pro 73 %,
+                    # Claude-4.6-sonnet 43 %): every time the model failed
+                    # to produce a tool-call we silently submitted the hint
+                    # as the final answer. We now skip any placeholder
+                    # candidate in the fallback and prefer the first
+                    # non-placeholder candidate that actually validates;
+                    # if none exists, ``noop()`` keeps the episode alive
+                    # for another step instead of submitting garbage.
+                    action = next(
+                        (a for a in candidate_actions
+                         if not _PLACEHOLDER_LITERAL_RE.search(a)),
+                        "noop()",
+                    )
                     if last_noop_action == action and len(candidate_actions) > 1:
-                        action = _pick_different(action, candidate_actions)
+                        alt_pool = [
+                            a for a in candidate_actions
+                            if not _PLACEHOLDER_LITERAL_RE.search(a)
+                        ] or candidate_actions
+                        action = _pick_different(action, alt_pool)
 
             # 6. Anti-NOOP override.
             if (
@@ -2972,9 +3112,9 @@ def run_actor_episode(
                     a for a in candidate_actions
                     if (_bid_from_action(a) or "") not in bad_bids
                     and a not in _DESTRUCTIVE_NAV_ACTIONS
+                    and not _PLACEHOLDER_LITERAL_RE.search(a)
                 ]
                 if not alt_pool:
-                    # Stay on the page rather than navigating away.
                     alt_pool = ["scroll(0, 300)", "scroll(0, -300)", "noop()"]
                 action = random.choice(alt_pool)
                 reasoning = (
@@ -3742,20 +3882,26 @@ def main():
         choices=list(_VALID_REASONING_EFFORTS),
         help=(
             "OpenAI reasoning_effort knob for gpt-5.x / o1 / o3 / o4. "
-            "One of {minimal, low, medium, high}. Default: 'low' "
-            "(2026-05-03). Why ``low`` and not ``minimal``: OpenAI "
-            "direct ``/v1/chat/completions`` rejects ``minimal`` for "
-            "gpt-5.x with HTTP-400 (``Unsupported value: 'reasoning_"
-            "effort' does not support 'minimal' with this model``); "
-            "``low`` is accepted on direct + OpenRouter + silently "
-            "dropped by the driver for non-OpenAI-reasoning models "
-            "(Claude / Gemini / Qwen3-VL). For SFT cold-start data "
-            "generation ``low`` is the right knob — the student never "
-            "consumes the teacher's hidden thinking, so anything above "
-            "``low`` is wasted budget on structured-extraction + "
-            "constrained-action tasks. Reserve ``medium`` / ``high`` "
-            "for the leaderboard chase where teacher answer correctness "
-            "is the bottleneck (visual reasoning MCQ, hard multi-hop)."
+            "One of {minimal*, low, medium, high, xhigh}. Default: "
+            "'low' (2026-05-03). Why ``low`` and not ``minimal``: "
+            "OpenAI direct ``/v1/chat/completions`` rejects "
+            "``minimal`` for gpt-5.x with HTTP-400 (``Unsupported "
+            "value: 'reasoning_effort' does not support 'minimal' "
+            "with this model'') — supported values on direct chat are "
+            "{none, low, medium, high, xhigh}. ``minimal`` remains "
+            "in this argparse list for back-compat (legacy call "
+            "sites + OpenRouter routing where it still works) but "
+            "will 400 on direct OpenAI; switch those call sites to "
+            "``low``. ``low`` is accepted on direct + OpenRouter + "
+            "silently dropped by the driver for non-OpenAI-reasoning "
+            "models (Claude / Gemini / Qwen3-VL). For SFT cold-start "
+            "data generation ``low`` is the right knob — the student "
+            "never consumes the teacher's hidden thinking, so "
+            "anything above ``low`` is wasted budget on "
+            "structured-extraction + constrained-action tasks. "
+            "Reserve ``medium`` / ``high`` / ``xhigh`` for the "
+            "leaderboard chase where teacher answer correctness is "
+            "the bottleneck (visual reasoning MCQ, hard multi-hop)."
         ),
     )
 
