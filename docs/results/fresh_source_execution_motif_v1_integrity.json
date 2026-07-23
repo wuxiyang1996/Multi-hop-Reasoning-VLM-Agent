@@ -1,0 +1,99 @@
+{
+  "all_accepted": true,
+  "authority": "MECHANICAL_FRESH_SOURCE_INTEGRITY_AUDIT",
+  "rows": [
+    {
+      "accepted": true,
+      "episodes": 12,
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/fresh_source_execution_motif_v1/gymv_strider/evidence",
+      "execution_affordance": {
+        "schema_version": "SOURCE_EXECUTION_AFFORDANCE_V1",
+        "split_stats": {
+          "discovery": {
+            "cross_execution_boundaries": 216,
+            "episodes": 4,
+            "episodes_with_at_least_three_executions": 4,
+            "executions": 220,
+            "positive_return_executions": 0
+          },
+          "held_out": {
+            "cross_execution_boundaries": 216,
+            "episodes": 4,
+            "episodes_with_at_least_three_executions": 4,
+            "executions": 220,
+            "positive_return_executions": 1
+          },
+          "qualification": {
+            "cross_execution_boundaries": 215,
+            "episodes": 4,
+            "episodes_with_at_least_three_executions": 4,
+            "executions": 219,
+            "positive_return_executions": 0
+          }
+        },
+        "traces_valid": true
+      },
+      "failure_codes": [],
+      "game": [
+        "gymv_strider"
+      ],
+      "matched_replay_status_counts": {
+        "INTERVENTION_OBSERVED": 8
+      },
+      "transitions": 1200,
+      "treatment_counts": {
+        "B": 2,
+        "G_MINUS_S": 2,
+        "G_PLUS_RANDOM": 2,
+        "G_PLUS_S": 2
+      }
+    },
+    {
+      "accepted": true,
+      "episodes": 12,
+      "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/fresh_source_execution_motif_v1/gymv_thunder_force_iii/evidence",
+      "execution_affordance": {
+        "schema_version": "SOURCE_EXECUTION_AFFORDANCE_V1",
+        "split_stats": {
+          "discovery": {
+            "cross_execution_boundaries": 147,
+            "episodes": 4,
+            "episodes_with_at_least_three_executions": 4,
+            "executions": 151,
+            "positive_return_executions": 10
+          },
+          "held_out": {
+            "cross_execution_boundaries": 160,
+            "episodes": 4,
+            "episodes_with_at_least_three_executions": 4,
+            "executions": 164,
+            "positive_return_executions": 10
+          },
+          "qualification": {
+            "cross_execution_boundaries": 163,
+            "episodes": 4,
+            "episodes_with_at_least_three_executions": 4,
+            "executions": 167,
+            "positive_return_executions": 9
+          }
+        },
+        "traces_valid": true
+      },
+      "failure_codes": [],
+      "game": [
+        "gymv_thunder_force_iii"
+      ],
+      "matched_replay_status_counts": {
+        "INTERVENTION_OBSERVED": 428
+      },
+      "transitions": 1200,
+      "treatment_counts": {
+        "B": 107,
+        "G_MINUS_S": 107,
+        "G_PLUS_RANDOM": 107,
+        "G_PLUS_S": 107
+      }
+    }
+  ],
+  "schema_version": 1
+}

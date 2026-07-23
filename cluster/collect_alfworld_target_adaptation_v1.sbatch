@@ -24,6 +24,7 @@ DATA="${DATA:-${SOURCE_REPO}/.cache/alfworld_data}"
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV}"
 cd "${REPO_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 INDEX="${SLURM_ARRAY_TASK_ID}"
 OUTPUT="${OUTPUT_ROOT}/task_${INDEX}.json"

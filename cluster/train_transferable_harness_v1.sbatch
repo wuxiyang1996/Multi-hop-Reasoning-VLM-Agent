@@ -38,6 +38,7 @@ nvidia-smi --query-gpu=index,name,memory.total,compute_cap --format=csv \
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV}"
 cd "${REPO_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 cleanup() {
     local code=$?

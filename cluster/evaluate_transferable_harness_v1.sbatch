@@ -30,6 +30,7 @@ OUTPUT="${OUTPUT:-${REPO_ROOT}/docs/results/harness_pretraining_v1_source_held_o
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV}"
 cd "${REPO_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 cleanup() {
     local code=$?

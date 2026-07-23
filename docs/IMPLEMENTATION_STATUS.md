@@ -384,12 +384,19 @@ snapshot hash mismatch 或非法动作时 fail closed；不会用录制动作冒
 的 fresh no-human-hints matched trajectories；若仍无候选通过 discovery、blind 和 h8 value 三门，
 停止显式 transferable-backbone 主张。
 
-该 fresh collection 已于 2026-07-23 启动为 Slurm array `7122289`。Strider 与 Thunder 分别在
+该 fresh collection 已于 2026-07-23 通过 Slurm array `7122289` 完成。Strider 与 Thunder 分别在
 `gammagpu17/gammagpu14` 使用一张 RTX A6000、best Qwen3.5-9B checkpoint、12 episodes ×
-100-step budget；两项均已完成 vLLM/LoRA startup 并进入真实 rollout。运行代码位于隔离 worktree
+100-step budget；两项均以 exit 0 完成真实 rollout，共各 12 episodes、1200 transitions。运行代码位于隔离 worktree
 `Multi-hop-Reasoning-VLM-Agent-source-fresh-v1`，每个 manifest 将记录 runtime file hashes、
 no-human-hints profile、seed/split contract 和 matched-treatment receipts。启动 receipt 见
 `results/fresh_source_execution_motif_v1_launch.json`。
+
+依赖 audit job `7122387` 最初因 Slurm 环境未加入本仓库 `src/` 而失败，不是数据或科学 gate
+失败。现已为全部新 Slurm entrypoint 显式设置 `PYTHONPATH`，并对相同产物重跑机械审计；
+Strider 与 Thunder 均为 `accepted=true`。Thunder 包含 428 个 matched replay receipts（四个
+treatment 各 107），Strider 包含 8 个（各 2）；两个游戏的 execution traces 均有效。完整
+receipt 见 `results/fresh_source_execution_motif_v1_integrity.json`。这只确认数据完整并有
+execution-level 搜索空间，尚未确认存在通过 blind recurrence 与 h8 value gate 的 motif。
 
 ## 双分支 transfer pipeline（2026-07-23）
 

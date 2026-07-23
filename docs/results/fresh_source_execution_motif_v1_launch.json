@@ -1,9 +1,17 @@
 {
   "schema_version": 1,
-  "status": "RUNNING",
+  "status": "COLLECTION_COMPLETE_INTEGRITY_ACCEPTED",
   "submitted_at": "2026-07-23T00:07:18-04:00",
+  "completed_at": "2026-07-23T01:25:14-04:00",
   "slurm_array_job_id": 7122289,
   "dependent_integrity_audit_job_id": 7122387,
+  "dependent_integrity_audit": {
+    "slurm_status": "FAILED_INFRA_IMPORT_PATH",
+    "failure": "missing repository src on PYTHONPATH",
+    "remediation": "fixed all new Slurm entrypoints and reran the identical mechanical audit locally",
+    "rerun_status": "ACCEPTED",
+    "receipt": "docs/results/fresh_source_execution_motif_v1_integrity.json"
+  },
   "time_limit": "16:00:00",
   "maintenance_adjustment": "reduced_from_24h_to_16h_to_fit_before_2026-07-23_maintenance",
   "runtime_worktree": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1",

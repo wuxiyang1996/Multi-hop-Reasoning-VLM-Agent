@@ -19,6 +19,7 @@ OUTPUT="${OUTPUT:-${REPO_ROOT}/docs/results/fresh_source_execution_motif_v1_inte
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV}"
 cd "${REPO_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 python scripts/audit_fresh_source_collection.py \
   "${RUN_ROOT}/gymv_strider/evidence" \

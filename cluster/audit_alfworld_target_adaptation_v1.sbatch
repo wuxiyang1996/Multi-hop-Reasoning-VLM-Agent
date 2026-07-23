@@ -20,6 +20,7 @@ OUTPUT="${OUTPUT:-${REPO_ROOT}/docs/results/alfworld_target_adaptation_v1.json}"
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV}"
 cd "${REPO_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 python scripts/audit_target_adaptation_rollouts.py \
   --manifest "${MANIFEST}" \
