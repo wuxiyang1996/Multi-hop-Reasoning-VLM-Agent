@@ -1,5 +1,23 @@
 # Implementation Status
 
+## 主 claim 与 weak-prior contract 更新（2026-07-23）
+
+主问题已从 `skill/motif transfer` 改为：target MDP 的 test-time reasoning 能否从异构 source
+MDP 提取的 receipt-grounded knowledge 获得可归因收益。Source skill 继续作为 rollout
+分层和 intervention 条件，但不再是 transfer object。
+
+新增 `ReceiptGroundedKnowledge`、四类 control knowledge role、hash/receipt/跨 episode
+recurrence audit、artifact round-trip 和 matched weak-prior controls。`BindingHypothesis`
+现在显式区分 `EXACT_TOPOLOGY` 与 `WEAK_CONTROL_PRIOR`；后者一旦携带 node/edge target
+alignment，version-space 会 fail closed。冻结 target matrix 新增 raw receipts、generic、
+authentic weak prior、shuffled evidence、other-game 与 exact-topology 条件，从而区分 induced
+knowledge、额外上下文、通用 reasoning、receipt grounding 和强 graph hypothesis。
+
+新协议见
+[`TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md`](TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md)，
+机器可读配置为 `configs/test_time_receipt_knowledge_v1.json`。旧 motif 文档和代码继续作为
+强假设诊断，不再代表主 claim。
+
 ## 已完成
 
 - 两个 Agent 的权限边界；

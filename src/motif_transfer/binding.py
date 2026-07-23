@@ -4,7 +4,14 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Iterable, Mapping, Sequence
 
-from .contracts import BindingEvidence, BindingHypothesis, EvidenceVerdict, MotifCandidate, stable_hash
+from .contracts import (
+    BindingEvidence,
+    BindingHypothesis,
+    EvidenceVerdict,
+    MotifCandidate,
+    TransferObjectKind,
+    stable_hash,
+)
 
 
 class BindingAttribution(str, Enum):
@@ -166,6 +173,12 @@ class BindingVersionSpace:
             raise ValueError("a version space requires at least one hypothesis")
         if len({row.binding_id for row in rows}) != len(rows):
             raise ValueError("duplicate binding id")
+        for row in rows:
+            if (
+                row.transfer_object_kind == TransferObjectKind.WEAK_CONTROL_PRIOR
+                and (row.node_alignment or row.edge_alignment)
+            ):
+                raise ValueError("weak control prior may not carry target topology alignment")
         self._states = {row.binding_id: BindingState(row) for row in rows}
 
     def record(self, evidence: BindingEvidence) -> BindingState:

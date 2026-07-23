@@ -43,6 +43,13 @@ class ContinuationDecision(str, Enum):
     TERMINATE = "TERMINATE"
 
 
+class TransferObjectKind(str, Enum):
+    """What source-derived object is being tested at target time."""
+
+    EXACT_TOPOLOGY = "EXACT_TOPOLOGY"
+    WEAK_CONTROL_PRIOR = "WEAK_CONTROL_PRIOR"
+
+
 @dataclass(frozen=True)
 class Observation:
     state: Mapping[str, Any]
@@ -460,6 +467,7 @@ class BindingHypothesis:
     # Each source-edge ordinal maps to a target transition boundary (left, right).
     edge_alignment: tuple[tuple[int, tuple[int, int]], ...] = ()
     invariance_signature: str = ""
+    transfer_object_kind: TransferObjectKind = TransferObjectKind.EXACT_TOPOLOGY
 
 
 @dataclass(frozen=True)

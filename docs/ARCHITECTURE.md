@@ -1,5 +1,16 @@
 # 双 Agent 架构
 
+## Primary transfer object
+
+主实验对象现在是 `ReceiptGroundedKnowledge`，不是 skill、policy 或完整 source graph。
+它只允许携带 source receipt 支撑的 control regularity、failure signature、verification routine
+与 applicability boundary。Target-time hypothesis 不得包含 target action，也不得包含
+`node_alignment` 或 `edge_alignment`。旧 exact-topology binding 保留为独立强假设对照。
+
+固定 knowledge role 是 Agent/Harness 通信权限，不是 source→target predicate ontology；
+自然语言 clause 始终是不可信 hypothesis，机械 Harness 只验证 hash、lineage、receipt provenance、
+跨 episode recurrence 与 live target contradiction。
+
 ## 定位：适应助手，不是替代推理
 
 模型本身已经具有通用推理能力，游戏训练还可能改变这种能力。Motif/Harness Agent 的作用不是向

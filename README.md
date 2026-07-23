@@ -1,4 +1,9 @@
-# Two-Agent Motif Transfer Harness
+# Two-Agent Test-Time Reasoning Harness
+
+本项目不迁移 skill 或 policy；我们检验 target agent 的 test-time reasoning 是否能从 source
+MDP 中抽取的 motif、receipts 和 experiential knowledge 获得可归因收益。新的主协议见
+[`docs/TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md`](docs/TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md)。
+旧 exact-topology motif binding 继续保留为强假设和 ablation，不再代表主 claim。
 
 当前 ALFWorld one-shot online smoke、失败审计和下一阶段 gates 见
 [`docs/ALFWORLD_ONE_SHOT_STATUS.md`](docs/ALFWORLD_ONE_SHOT_STATUS.md)。
@@ -28,23 +33,28 @@ VisualToolBench 官方 rubric judge、single-turn v2 修正和游戏 Motif match
 
 ## 研究目标
 
-本项目不假设模型缺少推理能力，也不试图把一套游戏 policy 直接搬到新领域。主目标是从
-matched skill/context interventions 中提取可复现控制结构，把它作为一个测试时
-**online adaptation assistant**，帮助冻结的 Decision Agent 用更少 target examples 和交互适应异构任务。
+本项目不假设模型缺少推理能力，也不试图把一套游戏 policy 或 skill 搬到新领域。主目标是从
+matched source interventions 中提取 receipt-grounded knowledge，并检验它能否作为测试时
+**online reasoning assistant**，帮助冻结的 Decision Agent 用更少 target examples 和交互适应异构任务。
 六游戏训练是否让 game-trained Decision Agent 相对 base model 获得可跨域复用的程序性推理能力，
-作为独立的 weight-level factorial 检验，不能替代 test-time motif transfer 的证据。
+作为独立的 weight-level factorial 检验，不能替代 source-derived knowledge 对 test-time
+reasoning 产生增量收益的证据。
 
-这里迁移的是 receipt-grounded 的行为图及其可检验 adaptation hypothesis，而不是游戏 action 名称、手写 ontology、完整 policy 或通用提示词。Decision Agent 始终保留自己的推理能力和目标领域 action authority；Motif/Harness Agent 只帮助它判断当前缺少什么信息、哪个假设值得验证、何时继续、replan 或 abstain。
+Source 只提供关于 control regularities、failure signatures、verification routines 和
+applicability boundaries 的不可信假设，而不是游戏 action 名称、手写 ontology、完整 policy
+或 target action mapping。Decision Agent 始终保留自己的推理能力和目标领域 action authority；
+Harness Agent 只帮助它判断当前缺少什么信息、哪个假设值得验证、何时继续、replan、source-off
+或 abstain。每次使用必须由 live target receipt 验证或拒绝。
 
 主研究问题是：
 
-> 能否从游戏 skill 与 rollout 中识别 receipt-grounded 的非平凡控制图，并通过 source-derived
-> Harness 在测试时把它安全、快速地实例化到完全不同的 target interface？
+> 目标 MDP 中的 test-time reasoning，能否从异构 source MDP 中抽取出的 receipt-grounded
+> knowledge 获得相对 generic prompting、raw receipt retrieval 和 shuffled controls 的可归因收益？
 
-当前新增的 source-induction 目标是从旧 skill 的多次真实执行中发现可验证的
-skill-internal reasoning motif。这里的 backbone 指外显 rollout 中重复出现、经过
-matched controls 与 intervention 支持的控制图；它不声称读取模型不可观测的内部思维。
-通过 source qualification 后，它才可作为 adaptation hypothesis 进入下面的在线流程：
+当前 source-induction 目标是从旧 skill-conditioned rollout 的多次真实执行中发现可验证的
+控制规律、失败信号与验证流程。Source skill 只是数据分层与 intervention 条件，不是 transfer
+object。旧 graph topology 路径仍单独测试，但只有在提供超过 weak prior 的增量时才支持结构迁移。
+通过 source qualification 的知识才能进入下面的在线流程：
 
 ```text
 source experience
@@ -81,6 +91,8 @@ python -m pip install -e '.[test,vtb]'
 - `src/motif_transfer/skill_internal.py`：按旧 skill 聚合执行、接收内部图 proposal 并做 fail-closed audit。
 - `src/motif_transfer/source_execution_motifs.py`：把旧 skill sub-episode 作为原子 evidence，
   在完整 episode 上发现并严格审计跨 execution motif。
+- `src/motif_transfer/control_priors.py`：定义不含 target action/topology alignment 的
+  receipt-grounded knowledge、弱 control prior、机械 provenance audit 与 matched controls。
 - `src/motif_transfer/execution_graph_scoring.py`：只用 discovery 拟合冻结图，并在
   qualification/held-out 上做 blind null/shuffled scoring。
 - `src/motif_transfer/multihorizon_runner.py`：执行 matched h=1/2/4/8 closed-loop source forks。

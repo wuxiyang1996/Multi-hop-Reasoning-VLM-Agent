@@ -1,5 +1,11 @@
 # 游戏到远域的测试时 Reasoning Motif 迁移计划
 
+> **定位更新（2026-07-23）**：本文件保留 exact-topology motif 的发现、诊断和强假设实验。
+> 项目主 claim 已降为“target test-time reasoning 能否从 source-derived receipt-grounded
+> knowledge 获益”，不再称为 skill transfer，也不再要求主 treatment 完整对齐 source graph。
+> 新冻结协议见
+> [`TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md`](TEST_TIME_RECEIPT_GROUNDED_KNOWLEDGE.md)。
+
 ## 1. 主张边界
 
 本项目的主问题固定为：
