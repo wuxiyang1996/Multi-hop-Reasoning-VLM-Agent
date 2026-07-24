@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "status": "COLLECTION_COMPLETE_INTEGRITY_ACCEPTED",
+  "submitted_at": "2026-07-23T00:07:18-04:00",
+  "completed_at": "2026-07-23T01:25:14-04:00",
+  "slurm_array_job_id": 7122289,
+  "dependent_integrity_audit_job_id": 7122387,
+  "dependent_integrity_audit": {
+    "slurm_status": "FAILED_INFRA_IMPORT_PATH",
+    "failure": "missing repository src on PYTHONPATH",
+    "remediation": "fixed all new Slurm entrypoints and reran the identical mechanical audit locally",
+    "rerun_status": "ACCEPTED",
+    "receipt": "docs/results/fresh_source_execution_motif_v1_integrity.json"
+  },
+  "time_limit": "16:00:00",
+  "maintenance_adjustment": "reduced_from_24h_to_16h_to_fit_before_2026-07-23_maintenance",
+  "runtime_worktree": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1",
+  "runtime_base_commit": "948f64a4e6c3998b04416fa42ccc588ebd30f556",
+  "output_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/fresh_source_execution_motif_v1",
+  "protocol_config": "configs/source_execution_motif_v1.json",
+  "model": "Qwen/Qwen3.5-9B",
+  "checkpoint_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/runs/b2_best_checkpoints",
+  "episodes_per_game": 12,
+  "maximum_steps_per_episode": 100,
+  "sequential_episodes": true,
+  "human_policy_hints": false,
+  "matched_treatments": [
+    "B",
+    "G_MINUS_S",
+    "G_PLUS_S",
+    "G_PLUS_RANDOM"
+  ],
+  "tasks": [
+    {
+      "array_task": 0,
+      "game": "gymv_strider",
+      "matched_skill_id": "COMMIT/POSITION",
+      "skill_selection_rule": "historical_lineage_maximin_continuous_edges",
+      "seed_base": 91001,
+      "gpu": "rtxa6000",
+      "node_at_launch": "gammagpu17"
+    },
+    {
+      "array_task": 1,
+      "game": "gymv_thunder_force_iii",
+      "matched_skill_id": "COMMIT/CLEAR",
+      "skill_selection_rule": "historical_lineage_maximin_continuous_edges",
+      "seed_base": 92001,
+      "gpu": "rtxa6000",
+      "node_at_launch": "gammagpu14"
+    }
+  ],
+  "collection_scope": {
+    "one_step_matched_replay": "collected_for_all_selected-skill snapshots",
+    "h1_h2_h4_h8": "run_only_after_discovery candidate freeze",
+    "target_data_used": false,
+    "source_supported_at_launch": false
+  }
+}

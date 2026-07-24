@@ -1,0 +1,90 @@
+{
+  "affordance": {
+    "schema_version": "SOURCE_EXECUTION_AFFORDANCE_V1",
+    "split_stats": {
+      "discovery": {
+        "cross_execution_boundaries": 17,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 19,
+        "positive_return_executions": 3
+      },
+      "held_out": {
+        "cross_execution_boundaries": 19,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 21,
+        "positive_return_executions": 3
+      },
+      "qualification": {
+        "cross_execution_boundaries": 16,
+        "episodes": 2,
+        "episodes_with_at_least_three_executions": 2,
+        "executions": 18,
+        "positive_return_executions": 4
+      }
+    },
+    "traces_valid": true
+  },
+  "agent_call": {
+    "include_reasoning": false,
+    "payload_hash": "cb98029f17cbbab44570e0d24ca48d42a3f7665db37cf5d55538a79b82a0cbfd",
+    "response_hash": "1b087b8eb6b1b39950183d55f93572a3fb5fc9d201afb932879b16942b800fe7",
+    "role": "source_execution_motif",
+    "usage": {
+      "completion_tokens": 1418,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 1280,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens": 4136,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "total_tokens": 5554
+    }
+  },
+  "audit": {
+    "accepted": false,
+    "discovery_execution_coverage": 0.0,
+    "edges": 0,
+    "failure_codes": [
+      "TRIVIAL_EXECUTION_GRAPH",
+      "ZERO_DISCOVERY_COVERAGE"
+    ],
+    "has_branch": false,
+    "has_cycle": false,
+    "nodes": 0,
+    "observed_edges": 0
+  },
+  "authority": "UNTRUSTED_AGENT_GRAPH_OVER_RECEIPT_BOUND_SKILL_EXECUTIONS",
+  "condition": "RECEIPT_ONLY",
+  "evidence_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_strider/evidence",
+  "graph": {
+    "discovery_trace_ids": [
+      "ca267211f729a92ac05306ddc62c97b15326a4f0704a8dabc394bc5d6dedcb3b",
+      "06bbe8f5859fab31d45fbc618487cb595b592e261e5e36cd9c66db3387064811"
+    ],
+    "edges": [],
+    "game": "gymv_strider",
+    "graph_id": "f683bbb91df85fb47b08dbd455dc60d5778892ac385862f883cbf02d3ddf39d6",
+    "nodes": [],
+    "untrusted_description": "No non-trivial control motif is supported by the recordings. The observed organization can be fully accounted for by skill identity, action sequences, execution length, and occasional reward sign differences (e.g., long S2 executions sometimes returning POSITIVE). There is no observed instance where the same recorded execution_id branches to different successors across traces, nor a consistent branching \u2192 reconvergence (recovery), short verification sub-execution following a particular execution, or a termination subgraph that cannot be explained by skill or reward identity alone. Therefore no stronger control motif can be proposed."
+  },
+  "model_identity": {
+    "backend": "openai-compatible",
+    "base_url": "https://us.api.openai.com/v1",
+    "models": {
+      "source_execution_motif": "gpt-5-mini"
+    },
+    "request_overrides": {},
+    "temperature": null,
+    "transport_attempts": 2
+  },
+  "schema_version": 1,
+  "source_supported": false,
+  "source_supported_reason": "Graph audit alone is insufficient; blind recurrence and matched h1/h2/h4/h8 value remain required."
+}

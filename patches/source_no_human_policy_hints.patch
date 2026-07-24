@@ -1,0 +1,22 @@
+diff --git a/trainer/coevolution/episode_runner.py b/trainer/coevolution/episode_runner.py
+--- a/trainer/coevolution/episode_runner.py
++++ b/trainer/coevolution/episode_runner.py
+@@ -1805,14 +1805,16 @@
+         # rediscover the action vocabulary via GRPO alone.  Schema
+         # source: trainer.coevolution.config.GAME_CRITICAL_ACTIONS.
+         _critical_hint = ""
+-        _critical_for_game = _critical_actions_for(game, step_actions)
++        # Human-authored game advice is excluded from backbone collection.
++        _critical_for_game = ()
+         if _critical_for_game:
+             _critical_hint = (
+                 f"Critical actions for this game (use frequently when scoring): "
+                 f"{', '.join(_critical_for_game)}.\n"
+             )
+         _quality_sort_hint = ""
+-        if _is_macro:
++        # Keep macro actions as native interface, but remove best-first advice.
++        if False and _is_macro:
+             _quality_sort_hint = (
+                 "Actions are sorted best-first (fewest holes, most line clears). "
+                 "Prefer ACTION 1 unless you have a strong reason to pick another.\n"

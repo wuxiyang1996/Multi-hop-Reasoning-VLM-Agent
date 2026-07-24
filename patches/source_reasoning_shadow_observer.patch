@@ -1,0 +1,158 @@
+diff --git a/trainer/coevolution/episode_runner.py b/trainer/coevolution/episode_runner.py
+--- a/trainer/coevolution/episode_runner.py
++++ b/trainer/coevolution/episode_runner.py
+@@ -1760,7 +1760,9 @@
+         _backbone_plan_result = None
+         _backbone_plan_error = None
+         _backbone_plan_prompt = ""
+-        if reasoning_backbone_harness:
++        # The shadow predictor runs only after the original Decision Agent has
++        # selected its action; it never sees or changes the full action prompt.
++        if False and reasoning_backbone_harness:
+             _backbone_plan_prompt = (
+                 "You are an untrusted planning Agent. Propose 1-3 candidate native "
+                 "actions and predict only their observable state deltas. Do not name "
+@@ -1790,7 +1792,7 @@
+                 _backbone_plan_error = f"{type(exc).__name__}:{exc}"
+ 
+         _backbone_context = ""
+-        if _backbone_plan is not None:
++        if False and _backbone_plan is not None:
+             _backbone_context = (
+                 "Untrusted planning-Agent candidates (use only if useful; all native "
+                 "actions remain available):\n"
+@@ -1837,7 +1839,7 @@
+             if _backbone_plan is not None and _backbone_plan.decision == "EXECUTE"
+             else None
+         )
+-        if _selected_backbone_plan is not None:
++        if False and _selected_backbone_plan is not None:
+             # The planning Agent is the policy whose reasoning backbone is
+             # being observed. Harness admission already constrained its
+             # 1-based action number to the exact native list.
+@@ -1884,6 +1886,49 @@
+             else:
+                 _decision_origin = "AGENT"
+                 _transform_kind = "IDENTITY"
++        if reasoning_backbone_harness:
++            try:
++                _decision_action_number = step_actions.index(str(action)) + 1
++                _backbone_plan_prompt = (
++                    "The source Decision Agent has already selected the action below and "
++                    "you cannot change it. Predict only its next observable state delta. "
++                    "Do not list, rank, replace, or propose another action and do not "
++                    "invent hidden state. Return only one JSON object, with no markdown "
++                    "or leading text, in this exact schema: {\"proposals\":[{"
++                    "\"proposal_id\":\"p0\",\"action_number\":N,"
++                    "\"predicted_observable_delta\":\"string\","
++                    "\"rationale\":\"string\"}],\"selected_proposal_id\":\"p0\","
++                    "\"decision\":\"EXECUTE\"}. N must equal the supplied integer. "
++                    "Both predicted_observable_delta and rationale must be JSON strings.\n"
++                    f"STEP={step_count}\n"
++                    f"OBSERVATION={str(obs_nl)[:1500]}\n"
++                    f"DECISION_REASONING={str(reasoning)[:500]}\n"
++                    f"ALREADY_SELECTED_ACTION_NUMBER={_decision_action_number}\n"
++                    f"ALREADY_SELECTED_ACTION={str(action)}"
++                )
++                _backbone_plan_result = await vllm_client.generate_chat(
++                    [
++                        {"role": "system", "content": (
++                            "You are a shadow prediction Agent with no action authority. "
++                            "Follow the supplied JSON schema exactly and output JSON only."
++                        )},
++                        {"role": "user", "content": _backbone_plan_prompt},
++                    ],
++                    adapter=None, temperature=0.0, max_tokens=256,
++                )
++                _backbone_plan = parse_agent_action_proposal_set(
++                    _backbone_plan_result.text,
++                    n_native_actions=len(step_actions),
++                )
++                if _backbone_plan.decision != "EXECUTE":
++                    raise ValueError("SHADOW_PREDICTOR_ABSTAINED")
++                if len(_backbone_plan.proposals) != 1:
++                    raise ValueError("SHADOW_PREDICTOR_NOT_SINGLE_PROPOSAL")
++                if _backbone_plan.selected().action_number != _decision_action_number:
++                    raise ValueError("SHADOW_PREDICTOR_CHANGED_DECISION_ACTION")
++            except Exception as exc:
++                _backbone_plan = None
++                _backbone_plan_error = f"{type(exc).__name__}:{exc}"
+         current_intention = (
+             parsed_intention or assigned_subgoal or prev_intention or f"[SETUP] {game}"
+         )
+@@ -2085,26 +2130,33 @@
+                     else None
+                 )
+                 _verdict_prompt = (
+-                    "You are an untrusted post-transition verification Agent. Compare "
+-                    "the predicted observable delta with the real before/after evidence. "
+-                    "Return exactly one JSON object with keys proposal_id,verdict,decision,"
+-                    "evidence_claim. verdict is SUPPORTED, REFUTED, or INCONCLUSIVE; "
+-                    "decision is CONTINUE, REPLAN, or ABSTAIN. proposal_id must equal "
+-                    "EXPECTED_PROPOSAL_ID, including null. evidence_claim must be a "
+-                    "JSON string, not an object or array. Do not invent hidden state.\n"
++                    "Compare the predicted observable delta with the real before/after "
++                    "evidence. Do not invent hidden state. Return only one JSON object, "
++                    "with no markdown or leading text, in this exact schema: "
++                    "{\"proposal_id\":\"p0\",\"verdict\":\"SUPPORTED|REFUTED|"
++                    "INCONCLUSIVE\",\"decision\":\"CONTINUE|REPLAN|ABSTAIN\","
++                    "\"evidence_claim\":\"string\"}. proposal_id must equal the "
++                    "supplied EXPECTED_PROPOSAL_ID and evidence_claim must be a string.\n"
+                     f"EXPECTED_PROPOSAL_ID={json.dumps(_executed_proposal_id)}\n"
+                     f"PROPOSAL={json.dumps(asdict(_selected_plan) if _selected_plan else None, ensure_ascii=False)}\n"
+-                    f"BEFORE={summary_for_action[:5000]}\n"
++                    f"BEFORE={str(obs_nl)[:1500]}\n"
+                     f"EXECUTED_ACTION={str(action)}\nREWARD={float(reward)}\n"
+-                    f"AFTER={str(next_obs_nl)[:5000]}"
++                    f"AFTER={str(next_obs_nl)[:1500]}"
+                 )
+                 _verdict_result = None
+                 _verdict = None
+                 _verdict_error = None
+                 try:
+-                    _verdict_result = await vllm_client.generate(
+-                        _verdict_prompt, adapter=None, temperature=0.0,
+-                        max_tokens=384,
++                    _verdict_result = await vllm_client.generate_chat(
++                        [
++                            {"role": "system", "content": (
++                                "You are a post-transition verification Agent with no "
++                                "action authority. Follow the supplied JSON schema exactly "
++                                "and output JSON only."
++                            )},
++                            {"role": "user", "content": _verdict_prompt},
++                        ],
++                        adapter=None, temperature=0.0, max_tokens=256,
+                     )
+                     _verdict = parse_agent_post_transition_verdict(
+                         _verdict_result.text,
+diff --git a/scripts/run_instrumented_source_smoke.py b/scripts/run_instrumented_source_smoke.py
+--- a/scripts/run_instrumented_source_smoke.py
++++ b/scripts/run_instrumented_source_smoke.py
+@@ -220,6 +220,26 @@ class LocalCheckpointRolloutActor:
+                 raise RuntimeError(f"checkpoint_adapter_empty_response:{adapter}")
+         return result
+ 
++    async def generate_chat(
++        self, messages, *, adapter=None, temperature=None,
++        max_tokens=None, stop=None, extra_body=None,
++    ):
++        result = await self._client.generate_chat(
++            messages,
++            adapter=adapter,
++            temperature=temperature,
++            max_tokens=max_tokens,
++            stop=stop,
++            extra_body=extra_body,
++        )
++        self.calls.append({
++            "requested_adapter": adapter,
++            "used_adapter": result.adapter,
++            "nonempty_response": bool(result.text.strip()),
++            "mode": "chat",
++        })
++        return result
++
+     async def close(self) -> None:
+         for client in self._client._clients:  # owned clients; no public close API
+             await client.close()

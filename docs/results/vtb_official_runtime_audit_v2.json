@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "audit": {
+    "official_repository": "https://github.com/xi1ngang/VisualToolBench",
+    "expected_commit": "d4f200a0a44790349667bed09334ac88623074b2",
+    "observed_commit": "d4f200a0a44790349667bed09334ac88623074b2",
+    "commit_matches": true,
+    "tools_py_sha256": "47102e08e58feb6236477e24468a70f6707f8f6239f7166b61c7eee084a1240a",
+    "tool_contract_sha256": "8e97e537c4be22733d911d5aa85e84330c04b7c4a816e29fbb1d466f89e9c16f",
+    "observed_tools": [
+      "python_image_processing",
+      "python_interpreter",
+      "google_search",
+      "browser_get_page_text",
+      "historical_weather",
+      "calculator"
+    ],
+    "missing_tools": [],
+    "module_available": {
+      "PIL": true,
+      "bs4": true,
+      "cv2": true,
+      "litellm": true,
+      "matplotlib": true,
+      "numpy": true,
+      "pandas": true,
+      "requests": true,
+      "scipy": true,
+      "simpy": true,
+      "sklearn": true,
+      "tabulate": true,
+      "yfinance": true
+    },
+    "key_present": {
+      "SERP_API_KEY": false,
+      "OPENWEATHER_API_KEY": false
+    },
+    "official_inference_ready": true,
+    "paper_faithful_full_tool_ready": false,
+    "blockers": [
+      "missing external capability key: SERP_API_KEY",
+      "missing external capability key: OPENWEATHER_API_KEY"
+    ]
+  }
+}

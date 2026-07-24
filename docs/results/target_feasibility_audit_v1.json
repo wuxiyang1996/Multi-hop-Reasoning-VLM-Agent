@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "matrix": "4-domain/7-cell",
+  "domains": [
+    "alfworld",
+    "browser",
+    "video",
+    "visual_reasoning"
+  ],
+  "cells": [
+    {
+      "domain": "visual_reasoning",
+      "cell": "visual_toolbench",
+      "data_ready": true,
+      "official_evaluator_ready": false,
+      "real_executor_ready": true,
+      "adaptation_split_ready": true,
+      "test_split_ready": true,
+      "stub_fallback_possible": false,
+      "target_content_in_source_treatment": false,
+      "evidence": [
+        "manifest_rows=1204",
+        "parquet_bytes=7812249877",
+        "official judge exists in xi1ngang/VisualToolBench@d4f200a but is not integrated",
+        "official APR uses weight>=4, not the dataset critical field"
+      ],
+      "runnable": false,
+      "status": "OFFICIAL_EVALUATOR_NOT_INTEGRATED"
+    },
+    {
+      "domain": "visual_reasoning",
+      "cell": "tir_bench",
+      "data_ready": true,
+      "official_evaluator_ready": true,
+      "real_executor_ready": true,
+      "adaptation_split_ready": true,
+      "test_split_ready": true,
+      "stub_fallback_possible": false,
+      "target_content_in_source_treatment": false,
+      "evidence": [
+        "rows=1215",
+        "image_refs=1255",
+        "missing_images=0",
+        "real smoke exposed fabricated evidence and coordinate grounding failure"
+      ],
+      "runnable": true,
+      "status": "RUNNABLE"
+    },
+    {
+      "domain": "video",
+      "cell": "video_holmes",
+      "data_ready": true,
+      "official_evaluator_ready": true,
+      "real_executor_ready": true,
+      "adaptation_split_ready": true,
+      "test_split_ready": true,
+      "stub_fallback_possible": false,
+      "target_content_in_source_treatment": false,
+      "evidence": [
+        "questions=3388",
+        "unique_video_ids=503",
+        "available_videos=503",
+        "real smoke produced 34 tool receipts but exhausted budget without final answer"
+      ],
+      "runnable": true,
+      "status": "RUNNABLE"
+    },
+    {
+      "domain": "browser",
+      "cell": "miniwob",
+      "data_ready": true,
+      "official_evaluator_ready": true,
+      "real_executor_ready": true,
+      "adaptation_split_ready": true,
+      "test_split_ready": true,
+      "stub_fallback_possible": false,
+      "target_content_in_source_treatment": false,
+      "evidence": [
+        "tasks=125",
+        "episodes=250",
+        "episodes_with_official_reward=125",
+        "live frozen smoke succeeded in one step with official reward=1"
+      ],
+      "runnable": true,
+      "status": "RUNNABLE"
+    },
+    {
+      "domain": "browser",
+      "cell": "webshop",
+      "data_ready": true,
+      "official_evaluator_ready": true,
+      "real_executor_ready": true,
+      "adaptation_split_ready": true,
+      "test_split_ready": true,
+      "stub_fallback_possible": false,
+      "target_content_in_source_treatment": false,
+      "evidence": [
+        "historical_runs=6",
+        "unique_tasks=50",
+        "episodes=600",
+        "episodes_with_official_reward=300",
+        "full 1k-product server and bridge restored; frozen live smoke official reward=0.6667"
+      ],
+      "runnable": true,
+      "status": "RUNNABLE"
+    },
+    {
+      "domain": "alfworld",
+      "cell": "alfworld_valid_seen",
+      "data_ready": true,
+      "official_evaluator_ready": true,
+      "real_executor_ready": true,
+      "adaptation_split_ready": true,
+      "test_split_ready": true,
+      "stub_fallback_possible": false,
+      "target_content_in_source_treatment": false,
+      "evidence": [
+        "real text environment and official won signal are implemented",
+        "frozen_adaptation=/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/adaptation/alfworld_valid_seen.json",
+        "frozen_manifest=/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/target_manifests_v1.json"
+      ],
+      "runnable": true,
+      "status": "RUNNABLE"
+    },
+    {
+      "domain": "alfworld",
+      "cell": "alfworld_valid_unseen",
+      "data_ready": true,
+      "official_evaluator_ready": true,
+      "real_executor_ready": true,
+      "adaptation_split_ready": true,
+      "test_split_ready": true,
+      "stub_fallback_possible": false,
+      "target_content_in_source_treatment": false,
+      "evidence": [
+        "real OOD runs and frozen binding artifacts exist",
+        "frozen_adaptation=/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/adaptation/alfworld_valid_unseen.json",
+        "legacy_adaptation_reference=/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/artifacts/admission_demos/alfworld/pick_and_place/train_seed42_v3_shot0.json"
+      ],
+      "runnable": true,
+      "status": "RUNNABLE"
+    }
+  ],
+  "runnable_cells": 6,
+  "status_counts": {
+    "OFFICIAL_EVALUATOR_NOT_INTEGRATED": 1,
+    "RUNNABLE": 6
+  },
+  "claim_limits": [
+    "Video evidence is one benchmark only.",
+    "A deterministic or synthetic executor is never a target result.",
+    "Target-derived skills or mega-skill members are never source treatment.",
+    "No source treatment is called transferable before matched controls show incremental value."
+  ],
+  "source_treatment_audit": {
+    "authority": "LINEAGE_RETRIEVAL_ONLY",
+    "phase1_allowlist": [
+      "candy_crush",
+      "gymv_columns",
+      "gymv_streets_of_rage_2",
+      "gymv_strider",
+      "gymv_thunder_force_iii",
+      "tetris"
+    ],
+    "legacy_mega_families": 20,
+    "legacy_mega_members": 180,
+    "strict_phase1_members": 79,
+    "non_game_members_in_all_stages": 0,
+    "reasoning_aligned_rows": 59,
+    "target_members_in_reasoning_aligned": 20,
+    "raw_reasoning_aligned_allowed_as_source": false,
+    "game_only_filter_required": true
+  }
+}

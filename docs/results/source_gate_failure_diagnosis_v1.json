@@ -1,0 +1,915 @@
+{
+  "failure_tree": {
+    "current_class": "MEASUREMENT_AND_REPRESENTATION_FAILURE_BEFORE_TRANSFER",
+    "explicit_reasoning_motif": "NOT_SUPPORTED",
+    "far_domain_transfer": "NOT_YET_AUTHORIZED",
+    "source_value": "UNIDENTIFIED_BEYOND_ONE_STEP_AND_UNSUPPORTED_AT_ONE_STEP",
+    "source_weight_or_context_influence": "SUPPORTED"
+  },
+  "fresh_no_hint_discovery": {
+    "gymv_columns": {
+      "agent_responses_with_hint_language": 0,
+      "environment_steps": 24,
+      "episode_returns": [
+        28.0,
+        22.0
+      ],
+      "episodes": 2,
+      "evidence_dir": "runs/source_no_hints_reference_columns_thunder_v1/authentic_skill_loaded/gymv_columns/evidence",
+      "human_hint_exclusion": "EXCLUDED_WITH_RECEIPT",
+      "mean_episode_return": 25.0,
+      "positive_reward_density": 0.2916666666666667,
+      "positive_reward_events": 7,
+      "skills": [
+        {
+          "continuous_edges": 22,
+          "positive_reward_support": {
+            "h1": 7,
+            "h2": 11,
+            "h4": 17,
+            "h8": 22
+          },
+          "selected_steps": 24,
+          "skill_id": "__EXPLORE__"
+        }
+      ]
+    },
+    "gymv_strider": {
+      "agent_responses_with_hint_language": 0,
+      "environment_steps": 300,
+      "episode_returns": [
+        50.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "episodes": 6,
+      "evidence_dir": "runs/strider_position_matched_v2/authentic_skill_loaded/gymv_strider/evidence",
+      "human_hint_exclusion": "EXCLUDED_WITH_RECEIPT",
+      "mean_episode_return": 8.333333333333334,
+      "positive_reward_density": 0.0033333333333333335,
+      "positive_reward_events": 1,
+      "skills": [
+        {
+          "continuous_edges": 114,
+          "positive_reward_support": {
+            "h1": 0,
+            "h2": 0,
+            "h4": 1,
+            "h8": 4
+          },
+          "selected_steps": 155,
+          "skill_id": "COMMIT/POSITION"
+        },
+        {
+          "continuous_edges": 39,
+          "positive_reward_support": {
+            "h1": 0,
+            "h2": 1,
+            "h4": 2,
+            "h8": 2
+          },
+          "selected_steps": 73,
+          "skill_id": "COMMIT/EXPLORE"
+        },
+        {
+          "continuous_edges": 2,
+          "positive_reward_support": {
+            "h1": 1,
+            "h2": 1,
+            "h4": 1,
+            "h8": 2
+          },
+          "selected_steps": 70,
+          "skill_id": "COMMIT/ATTACK"
+        },
+        {
+          "continuous_edges": 1,
+          "positive_reward_support": {
+            "h1": 0,
+            "h2": 0,
+            "h4": 0,
+            "h8": 0
+          },
+          "selected_steps": 2,
+          "skill_id": "COMMIT/NAVIGATE"
+        }
+      ]
+    },
+    "gymv_thunder_force_iii": {
+      "agent_responses_with_hint_language": 0,
+      "environment_steps": 24,
+      "episode_returns": [
+        600.0,
+        600.0
+      ],
+      "episodes": 2,
+      "evidence_dir": "runs/source_no_hints_reference_columns_thunder_v1/authentic_skill_loaded/gymv_thunder_force_iii/evidence",
+      "human_hint_exclusion": "EXCLUDED_WITH_RECEIPT",
+      "mean_episode_return": 600.0,
+      "positive_reward_density": 0.25,
+      "positive_reward_events": 6,
+      "skills": [
+        {
+          "continuous_edges": 22,
+          "positive_reward_support": {
+            "h1": 6,
+            "h2": 8,
+            "h4": 12,
+            "h8": 16
+          },
+          "selected_steps": 24,
+          "skill_id": "early:EXPLORE"
+        }
+      ]
+    }
+  },
+  "legacy_six_game_discovery": [
+    {
+      "authentic": {
+        "agent_responses_with_hint_language": 0,
+        "environment_steps": 292,
+        "episode_returns": [
+          240.0,
+          200.0,
+          126.0,
+          129.0,
+          240.0,
+          190.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_tetris_candy_long_v1/authentic_skill_loaded/tetris/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 187.5,
+        "positive_reward_density": 1.0,
+        "positive_reward_events": 292,
+        "skills": [
+          {
+            "continuous_edges": 286,
+            "positive_reward_support": {
+              "h1": 292,
+              "h2": 292,
+              "h4": 292,
+              "h8": 292
+            },
+            "selected_steps": 292,
+            "skill_id": "COMMIT/POSITION"
+          }
+        ]
+      },
+      "game": "tetris",
+      "return_diagnostic": {
+        "authentic_returns": [
+          190.0,
+          240.0,
+          129.0,
+          240.0,
+          200.0,
+          126.0
+        ],
+        "claim_limit": "Seed pairing does not make independently sampled model trajectories causal. This is a discovery diagnostic only.",
+        "common_seeds": [
+          7301,
+          7302,
+          7303,
+          7304,
+          7305,
+          7306
+        ],
+        "mean_paired_difference": -8.333333333333334,
+        "paired_differences": [
+          -10.0,
+          0.0,
+          -71.0,
+          0.0,
+          -20.0,
+          51.0
+        ],
+        "positive_zero_negative": {
+          "negative": 3,
+          "positive": 1,
+          "zero": 2
+        },
+        "skill_off_returns": [
+          200.0,
+          240.0,
+          200.0,
+          240.0,
+          220.0,
+          75.0
+        ]
+      },
+      "skill_off": {
+        "agent_responses_with_hint_language": 0,
+        "environment_steps": 284,
+        "episode_returns": [
+          200.0,
+          240.0,
+          75.0,
+          240.0,
+          200.0,
+          220.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_tetris_candy_long_v1/skill_disabled/tetris/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 195.83333333333334,
+        "positive_reward_density": 1.0,
+        "positive_reward_events": 284,
+        "skills": []
+      }
+    },
+    {
+      "authentic": {
+        "agent_responses_with_hint_language": 0,
+        "environment_steps": 300,
+        "episode_returns": [
+          572.0,
+          487.0,
+          739.0,
+          570.0,
+          841.0,
+          586.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_tetris_candy_long_v1/authentic_skill_loaded/candy_crush/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 632.5,
+        "positive_reward_density": 1.0,
+        "positive_reward_events": 300,
+        "skills": [
+          {
+            "continuous_edges": 294,
+            "positive_reward_support": {
+              "h1": 300,
+              "h2": 300,
+              "h4": 300,
+              "h8": 300
+            },
+            "selected_steps": 300,
+            "skill_id": "COMMIT/CLEAR"
+          }
+        ]
+      },
+      "game": "candy_crush",
+      "return_diagnostic": {
+        "authentic_returns": [
+          586.0,
+          570.0,
+          841.0,
+          739.0,
+          572.0,
+          487.0
+        ],
+        "claim_limit": "Seed pairing does not make independently sampled model trajectories causal. This is a discovery diagnostic only.",
+        "common_seeds": [
+          7401,
+          7402,
+          7403,
+          7404,
+          7405,
+          7406
+        ],
+        "mean_paired_difference": 67.33333333333333,
+        "paired_differences": [
+          -216.0,
+          76.0,
+          284.0,
+          176.0,
+          79.0,
+          5.0
+        ],
+        "positive_zero_negative": {
+          "negative": 1,
+          "positive": 5,
+          "zero": 0
+        },
+        "skill_off_returns": [
+          802.0,
+          494.0,
+          557.0,
+          563.0,
+          493.0,
+          482.0
+        ]
+      },
+      "skill_off": {
+        "agent_responses_with_hint_language": 0,
+        "environment_steps": 300,
+        "episode_returns": [
+          802.0,
+          557.0,
+          482.0,
+          494.0,
+          563.0,
+          493.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_tetris_candy_long_v1/skill_disabled/candy_crush/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 565.1666666666666,
+        "positive_reward_density": 1.0,
+        "positive_reward_events": 300,
+        "skills": []
+      }
+    },
+    {
+      "authentic": {
+        "agent_responses_with_hint_language": 49,
+        "environment_steps": 300,
+        "episode_returns": [
+          90.0,
+          0.0,
+          100.0,
+          150.0,
+          160.0,
+          230.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_streets_of_rage_2/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 121.66666666666667,
+        "positive_reward_density": 0.05,
+        "positive_reward_events": 15,
+        "skills": [
+          {
+            "continuous_edges": 294,
+            "positive_reward_support": {
+              "h1": 15,
+              "h2": 30,
+              "h4": 50,
+              "h8": 84
+            },
+            "selected_steps": 300,
+            "skill_id": "COMMIT/ATTACK"
+          }
+        ]
+      },
+      "game": "gymv_streets_of_rage_2",
+      "return_diagnostic": {
+        "authentic_returns": [
+          90.0,
+          160.0,
+          0.0,
+          100.0,
+          230.0,
+          150.0
+        ],
+        "claim_limit": "Seed pairing does not make independently sampled model trajectories causal. This is a discovery diagnostic only.",
+        "common_seeds": [
+          7301,
+          7302,
+          7303,
+          7304,
+          7305,
+          7306
+        ],
+        "mean_paired_difference": 28.333333333333332,
+        "paired_differences": [
+          -10.0,
+          110.0,
+          -150.0,
+          40.0,
+          130.0,
+          50.0
+        ],
+        "positive_zero_negative": {
+          "negative": 2,
+          "positive": 4,
+          "zero": 0
+        },
+        "skill_off_returns": [
+          100.0,
+          50.0,
+          150.0,
+          60.0,
+          100.0,
+          100.0
+        ]
+      },
+      "skill_off": {
+        "agent_responses_with_hint_language": 30,
+        "environment_steps": 300,
+        "episode_returns": [
+          60.0,
+          100.0,
+          150.0,
+          100.0,
+          100.0,
+          50.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_streets_strider_long_v1/skill_disabled/gymv_streets_of_rage_2/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 93.33333333333333,
+        "positive_reward_density": 0.03666666666666667,
+        "positive_reward_events": 11,
+        "skills": []
+      }
+    },
+    {
+      "authentic": {
+        "agent_responses_with_hint_language": 33,
+        "environment_steps": 300,
+        "episode_returns": [
+          150.0,
+          200.0,
+          200.0,
+          200.0,
+          200.0,
+          150.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_strider/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 183.33333333333334,
+        "positive_reward_density": 0.05333333333333334,
+        "positive_reward_events": 16,
+        "skills": [
+          {
+            "continuous_edges": 200,
+            "positive_reward_support": {
+              "h1": 15,
+              "h2": 29,
+              "h4": 51,
+              "h8": 95
+            },
+            "selected_steps": 212,
+            "skill_id": "COMMIT/POSITION"
+          },
+          {
+            "continuous_edges": 38,
+            "positive_reward_support": {
+              "h1": 0,
+              "h2": 1,
+              "h4": 7,
+              "h8": 23
+            },
+            "selected_steps": 59,
+            "skill_id": "COMMIT/EXPLORE"
+          },
+          {
+            "continuous_edges": 4,
+            "positive_reward_support": {
+              "h1": 1,
+              "h2": 2,
+              "h4": 6,
+              "h8": 10
+            },
+            "selected_steps": 29,
+            "skill_id": "COMMIT/ATTACK"
+          }
+        ]
+      },
+      "game": "gymv_strider",
+      "return_diagnostic": {
+        "authentic_returns": [
+          200.0,
+          150.0,
+          200.0,
+          200.0,
+          200.0,
+          150.0
+        ],
+        "claim_limit": "Seed pairing does not make independently sampled model trajectories causal. This is a discovery diagnostic only.",
+        "common_seeds": [
+          7401,
+          7402,
+          7403,
+          7404,
+          7405,
+          7406
+        ],
+        "mean_paired_difference": 33.333333333333336,
+        "paired_differences": [
+          50.0,
+          0.0,
+          50.0,
+          50.0,
+          50.0,
+          0.0
+        ],
+        "positive_zero_negative": {
+          "negative": 0,
+          "positive": 4,
+          "zero": 2
+        },
+        "skill_off_returns": [
+          150.0,
+          150.0,
+          150.0,
+          150.0,
+          150.0,
+          150.0
+        ]
+      },
+      "skill_off": {
+        "agent_responses_with_hint_language": 67,
+        "environment_steps": 300,
+        "episode_returns": [
+          150.0,
+          150.0,
+          150.0,
+          150.0,
+          150.0,
+          150.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_streets_strider_long_v1/skill_disabled/gymv_strider/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 150.0,
+        "positive_reward_density": 0.04,
+        "positive_reward_events": 12,
+        "skills": []
+      }
+    },
+    {
+      "authentic": {
+        "agent_responses_with_hint_language": 0,
+        "environment_steps": 277,
+        "episode_returns": [
+          112.0,
+          60.0,
+          121.0,
+          86.0,
+          108.0,
+          87.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_columns/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 95.66666666666667,
+        "positive_reward_density": 0.33574007220216606,
+        "positive_reward_events": 93,
+        "skills": [
+          {
+            "continuous_edges": 249,
+            "positive_reward_support": {
+              "h1": 89,
+              "h2": 125,
+              "h4": 190,
+              "h8": 233
+            },
+            "selected_steps": 256,
+            "skill_id": "__EXPLORE__"
+          },
+          {
+            "continuous_edges": 16,
+            "positive_reward_support": {
+              "h1": 4,
+              "h2": 8,
+              "h4": 14,
+              "h8": 14
+            },
+            "selected_steps": 19,
+            "skill_id": "COMMIT/EXPLORE"
+          },
+          {
+            "continuous_edges": 1,
+            "positive_reward_support": {
+              "h1": 0,
+              "h2": 0,
+              "h4": 0,
+              "h8": 0
+            },
+            "selected_steps": 2,
+            "skill_id": "COMMIT/CLEAR"
+          }
+        ]
+      },
+      "game": "gymv_columns",
+      "return_diagnostic": {
+        "authentic_returns": [
+          112.0,
+          108.0,
+          86.0,
+          121.0,
+          60.0,
+          87.0
+        ],
+        "claim_limit": "Seed pairing does not make independently sampled model trajectories causal. This is a discovery diagnostic only.",
+        "common_seeds": [
+          7301,
+          7302,
+          7303,
+          7304,
+          7305,
+          7306
+        ],
+        "mean_paired_difference": 15.5,
+        "paired_differences": [
+          4.0,
+          4.0,
+          23.0,
+          35.0,
+          0.0,
+          27.0
+        ],
+        "positive_zero_negative": {
+          "negative": 0,
+          "positive": 5,
+          "zero": 1
+        },
+        "skill_off_returns": [
+          108.0,
+          104.0,
+          63.0,
+          86.0,
+          60.0,
+          60.0
+        ]
+      },
+      "skill_off": {
+        "agent_responses_with_hint_language": 0,
+        "environment_steps": 260,
+        "episode_returns": [
+          86.0,
+          108.0,
+          63.0,
+          60.0,
+          60.0,
+          104.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_columns_thunder_long_v1/skill_disabled/gymv_columns/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 80.16666666666667,
+        "positive_reward_density": 0.3,
+        "positive_reward_events": 78,
+        "skills": []
+      }
+    },
+    {
+      "authentic": {
+        "agent_responses_with_hint_language": 44,
+        "environment_steps": 300,
+        "episode_returns": [
+          600.0,
+          200.0,
+          600.0,
+          600.0,
+          600.0,
+          600.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_thunder_force_iii/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 533.3333333333334,
+        "positive_reward_density": 0.056666666666666664,
+        "positive_reward_events": 17,
+        "skills": [
+          {
+            "continuous_edges": 124,
+            "positive_reward_support": {
+              "h1": 0,
+              "h2": 0,
+              "h4": 0,
+              "h8": 0
+            },
+            "selected_steps": 131,
+            "skill_id": "COMMIT/CLEAR"
+          },
+          {
+            "continuous_edges": 101,
+            "positive_reward_support": {
+              "h1": 14,
+              "h2": 17,
+              "h4": 26,
+              "h8": 46
+            },
+            "selected_steps": 119,
+            "skill_id": "early:EXPLORE"
+          },
+          {
+            "continuous_edges": 24,
+            "positive_reward_support": {
+              "h1": 3,
+              "h2": 4,
+              "h4": 6,
+              "h8": 8
+            },
+            "selected_steps": 36,
+            "skill_id": "COMMIT/NAVIGATE"
+          },
+          {
+            "continuous_edges": 7,
+            "positive_reward_support": {
+              "h1": 0,
+              "h2": 6,
+              "h4": 12,
+              "h8": 14
+            },
+            "selected_steps": 14,
+            "skill_id": "COMMIT/POSITION"
+          }
+        ]
+      },
+      "game": "gymv_thunder_force_iii",
+      "return_diagnostic": {
+        "authentic_returns": [
+          600.0,
+          600.0,
+          600.0,
+          200.0,
+          600.0,
+          600.0
+        ],
+        "claim_limit": "Seed pairing does not make independently sampled model trajectories causal. This is a discovery diagnostic only.",
+        "common_seeds": [
+          7401,
+          7402,
+          7403,
+          7404,
+          7405,
+          7406
+        ],
+        "mean_paired_difference": 283.3333333333333,
+        "paired_differences": [
+          0.0,
+          600.0,
+          400.0,
+          -400.0,
+          600.0,
+          500.0
+        ],
+        "positive_zero_negative": {
+          "negative": 1,
+          "positive": 4,
+          "zero": 1
+        },
+        "skill_off_returns": [
+          600.0,
+          0.0,
+          200.0,
+          600.0,
+          0.0,
+          100.0
+        ]
+      },
+      "skill_off": {
+        "agent_responses_with_hint_language": 152,
+        "environment_steps": 300,
+        "episode_returns": [
+          600.0,
+          200.0,
+          0.0,
+          0.0,
+          100.0,
+          600.0
+        ],
+        "episodes": 6,
+        "evidence_dir": "runs/phase1_columns_thunder_long_v1/skill_disabled/gymv_thunder_force_iii/evidence",
+        "human_hint_exclusion": "NO_EXCLUSION_RECEIPT",
+        "mean_episode_return": 250.0,
+        "positive_reward_density": 0.03,
+        "positive_reward_events": 9,
+        "skills": []
+      }
+    }
+  ],
+  "matched_gate": {
+    "blind_recurrence": {
+      "heldout": {
+        "edge_exact_support": 19,
+        "edge_total": 37,
+        "node_exact_support": 46,
+        "node_total": 51
+      },
+      "qualification": {
+        "edge_exact_support": 20,
+        "edge_total": 36,
+        "node_exact_support": 42,
+        "node_total": 50
+      }
+    },
+    "classifications": [
+      "MATCHED_POLICY_INFLUENCE_ESTABLISHED",
+      "DELAYED_TREATMENT_VALUE_NOT_IDENTIFIED",
+      "SELECTED_SKILL_HAS_ZERO_IMMEDIATE_REWARD_SUPPORT",
+      "EXACT_EFFECT_GRAPH_NOT_RECURRENT",
+      "SOURCE_VALUE_NOT_SUPPORTED_AT_OBSERVED_HORIZON"
+    ],
+    "delayed_treatment_return_fields_present": false,
+    "diagnosis": "The current run proves policy influence, not useful reasoning transfer. Its one-step replay cannot identify delayed value, and the structurally selected skill has no immediate positive-reward support.",
+    "evidence": {
+      "agent_responses_with_hint_language": 0,
+      "environment_steps": 300,
+      "episode_returns": [
+        50.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "episodes": 6,
+      "evidence_dir": "runs/strider_position_matched_v2/authentic_skill_loaded/gymv_strider/evidence",
+      "human_hint_exclusion": "EXCLUDED_WITH_RECEIPT",
+      "mean_episode_return": 8.333333333333334,
+      "positive_reward_density": 0.0033333333333333335,
+      "positive_reward_events": 1,
+      "skills": [
+        {
+          "continuous_edges": 114,
+          "positive_reward_support": {
+            "h1": 0,
+            "h2": 0,
+            "h4": 1,
+            "h8": 4
+          },
+          "selected_steps": 155,
+          "skill_id": "COMMIT/POSITION"
+        },
+        {
+          "continuous_edges": 39,
+          "positive_reward_support": {
+            "h1": 0,
+            "h2": 1,
+            "h4": 2,
+            "h8": 2
+          },
+          "selected_steps": 73,
+          "skill_id": "COMMIT/EXPLORE"
+        },
+        {
+          "continuous_edges": 2,
+          "positive_reward_support": {
+            "h1": 1,
+            "h2": 1,
+            "h4": 1,
+            "h8": 2
+          },
+          "selected_steps": 70,
+          "skill_id": "COMMIT/ATTACK"
+        },
+        {
+          "continuous_edges": 1,
+          "positive_reward_support": {
+            "h1": 0,
+            "h2": 0,
+            "h4": 0,
+            "h8": 0
+          },
+          "selected_steps": 2,
+          "skill_id": "COMMIT/NAVIGATE"
+        }
+      ]
+    },
+    "gates": {
+      "PHASE7_PASS": false,
+      "SOURCE_AUTHORITY_ORDER_SAFE": true,
+      "SOURCE_CAUSAL_SUPPORTED": true,
+      "SOURCE_GRAPH_SUPPORTED": false,
+      "SOURCE_VALUE_SUPPORTED": false
+    },
+    "matched_snapshots": 155,
+    "observed_treatment_horizon": 1,
+    "prompt_token_delta_authentic_minus_random": {
+      "exactly_matched": 0,
+      "maximum": 44,
+      "mean": 21.032258064516128,
+      "minimum": -58,
+      "snapshots": 155
+    },
+    "replay_rows": 620,
+    "selected_skill_reward_support_on_live_authentic_path": {
+      "continuous_edges": 114,
+      "positive_reward_support": {
+        "h1": 0,
+        "h2": 0,
+        "h4": 1,
+        "h8": 4
+      },
+      "selected_steps": 155,
+      "skill_id": "COMMIT/POSITION"
+    },
+    "source_skill_id": "COMMIT/POSITION",
+    "unseen_effect_nodes_relative_to_discovery": {
+      "heldout": 2,
+      "qualification": 2
+    }
+  },
+  "next_minimum_experiment": {
+    "controls": [
+      "B",
+      "G_MINUS_S",
+      "G_PLUS_S",
+      "G_PLUS_RANDOM"
+    ],
+    "estimands": [
+      "first-action treatment followed by one common frozen continuation policy",
+      "full treatment policy regime for the same fixed horizon"
+    ],
+    "replay_horizons": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "selection": "Use discovery-only lineage plus official reward support; freeze before qualification and do not inspect skill names or action semantics.",
+    "stop_rule": "If no fresh no-hint candidate has held-out value and blind recurrence, stop the explicit transferable-backbone claim."
+  },
+  "schema_version": "SOURCE_GATE_FAILURE_DIAGNOSIS_V1"
+}

@@ -1,0 +1,357 @@
+diff --git a/trainer/coevolution/episode_runner.py b/trainer/coevolution/episode_runner.py
+--- a/trainer/coevolution/episode_runner.py
++++ b/trainer/coevolution/episode_runner.py
+@@ -9,5 +9,6 @@ from __future__ import annotations
+ 
+ import asyncio
++import hashlib
+ import json
+ import logging
+ import os
+@@ -281,4 +282,7 @@ class EpisodeResult:
+     # Optional tamper-evident v3 source instrumentation. Empty on legacy
+     # rollouts; this is evidence metadata and never changes GRPO reward.
+     reasoning_event_log: Dict[str, Any] = field(default_factory=dict)
++    # Same-snapshot policy contrasts used only by source qualification.
++    # Kept outside the canonical event chain so the live policy stays singular.
++    matched_policy_records: List[Dict[str, Any]] = field(default_factory=list)
+ 
+@@ -949,4 +953,5 @@ async def run_episode_async(
+     episode_seed: Optional[int] = None,
+     record_reasoning_events: bool = False,
+     reasoning_backbone_harness: bool = False,
++    matched_policy_skill_id: Optional[str] = None,
+ ) -> EpisodeResult:
+@@ -1144,4 +1149,5 @@ async def run_episode_async(
+             ).encode("utf-8")
+             return _event_hashlib.sha256(encoded).hexdigest()
++    _matched_policy_records: List[Dict[str, Any]] = []
+ 
+     if game in ORAK_GAMES_SET:
+@@ -1717,14 +1723,6 @@ async def run_episode_async(
+         # The intention tag comes from the base model (step 4 above).
+         # We inject it as "Assigned subgoal" so the LoRA follows it.
+         urgency_line = f"URGENCY: {urgency}\n" if urgency else ""
+-        skill_context = ""
+-        if guidance and guidance.get("skill_id"):
+-            sk_name = guidance.get("skill_name", guidance["skill_id"])
+-            sk_hint = guidance.get("execution_hint", "")
+-            skill_context = f"Active skill: {sk_name}"
+-            if sk_hint:
+-                skill_context += f" — {sk_hint[:100]}"
+-            skill_context += "\n"
+ 
+         recent_context = _build_recent_context(recent_actions, recent_rewards)
+         _is_macro = getattr(env, "_is_macro_action", False)
+@@ -1750,11 +1748,6 @@ async def run_episode_async(
+                 flags=re.DOTALL,
+             )
+ 
+-        skill_text = _format_skill_guidance_for_prompt(
+-            guidance, skill_tracker.protocol_step_idx,
+-            progress_summary=skill_tracker.get_progress_summary(summary_state),
+-        )
+-
+         _backbone_plan = None
+         _backbone_plan_result = None
+         _backbone_plan_error = None
+@@ -1815,16 +1808,36 @@ async def run_episode_async(
+                 "Prefer ACTION 1 unless you have a strong reason to pick another.\n"
+             )
+-        action_user = (
+-            f"Game state:\n\n{summary_for_action}\n\n"
+-            f"Subgoal: {assigned_subgoal}\n"
+-            f"{urgency_line}{skill_context}{recent_context}{_critical_hint}"
+-            f"{_quality_sort_hint}{_backbone_context}"
+-            f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
+-            f"Brief REASONING (1 sentence max) then ACTION: <number>."
+-        )
+-        action_prompt = (
+-            _profile_prefix + SYSTEM_PROMPT + skill_text + "\n" + action_user
+-        )
++
++        def _render_action_prompt(_guidance: Optional[Dict[str, Any]]) -> str:
++            _skill_context = ""
++            if _guidance and _guidance.get("skill_id"):
++                _sk_name = _guidance.get("skill_name", _guidance["skill_id"])
++                _sk_hint = _guidance.get("execution_hint", "")
++                _skill_context = f"Active skill: {_sk_name}"
++                if _sk_hint:
++                    _skill_context += f" — {_sk_hint[:100]}"
++                _skill_context += "\n"
++            _skill_text = _format_skill_guidance_for_prompt(
++                _guidance, skill_tracker.protocol_step_idx,
++                progress_summary=skill_tracker.get_progress_summary(summary_state),
++            )
++            _action_user = (
++                f"Game state:\n\n{summary_for_action}\n\n"
++                f"Subgoal: {assigned_subgoal}\n"
++                f"{urgency_line}{_skill_context}{recent_context}{_critical_hint}"
++                f"{_quality_sort_hint}{_backbone_context}"
++                f"Available actions (pick ONE by number):\n{_format_numbered_actions(step_actions)}\n\n"
++                f"Brief REASONING (1 sentence max) then ACTION: <number>."
++            )
++            return _profile_prefix + SYSTEM_PROMPT + _skill_text + "\n" + _action_user
++
++        action_prompt = _render_action_prompt(guidance)
++        # Retain the exact authentic context payload for the pre-existing
++        # tamper-evident AGENT_PROPOSAL_SET receipt below.
++        skill_text = _format_skill_guidance_for_prompt(
++            guidance, skill_tracker.protocol_step_idx,
++            progress_summary=skill_tracker.get_progress_summary(summary_state),
++        )
+ 
+         if step_sync is not None:
+             await step_sync.arrive()
+@@ -1859,12 +1872,94 @@ async def run_episode_async(
+             # Invalid/abstained planning never authorizes an action. Fall back
+             # to the existing native action Agent and mark the v2 cycle as
+             # unusable for reasoning induction.
+-            action_result = await vllm_client.generate(
+-                action_prompt,
+-                adapter="action_taking",
+-                temperature=temperature, max_tokens=128,
+-                stop=["\n\nGame state:", "\n\nAvailable actions", "<think", "<thinking"],
+-            )
++            _stop = ["\n\nGame state:", "\n\nAvailable actions", "<think", "<thinking"]
++            _matched_here = bool(
++                matched_policy_skill_id
++                and guidance
++                and str(guidance.get("skill_id") or "") == matched_policy_skill_id
++            )
++            if _matched_here:
++                _other_candidates = [
++                    item for item in last_candidates
++                    if str(item.get("skill_id") or "") != matched_policy_skill_id
++                ]
++                if not _other_candidates:
++                    raise RuntimeError("matched_policy_random_control_unavailable")
++                _random_key = f"{episode_seed}:{step_count}:{matched_policy_skill_id}"
++                _random_idx = int(hashlib.sha256(_random_key.encode()).hexdigest()[:16], 16)
++                _random_guidance = _other_candidates[_random_idx % len(_other_candidates)]
++                _treatment_specs = (
++                    ("B", None, None),
++                    ("G_MINUS_S", None, "action_taking"),
++                    ("G_PLUS_S", guidance, "action_taking"),
++                    ("G_PLUS_RANDOM", _random_guidance, "action_taking"),
++                )
++                _treatment_prompts = {
++                    _name: _render_action_prompt(_guidance)
++                    for _name, _guidance, _adapter in _treatment_specs
++                }
++                # Preserve the live policy's request shape and authority:
++                # authentic is generated alone exactly as in an unobserved run.
++                # Only after it is frozen do the three shadow calls execute.
++                action_result = await vllm_client.generate(
++                    _treatment_prompts["G_PLUS_S"], adapter="action_taking",
++                    temperature=temperature, max_tokens=128, stop=_stop,
++                )
++                _shadow_specs = tuple(
++                    item for item in _treatment_specs if item[0] != "G_PLUS_S"
++                )
++                _shadow_results = await asyncio.gather(*[
++                    vllm_client.generate(
++                        _treatment_prompts[_name], adapter=_adapter,
++                        temperature=temperature, max_tokens=128, stop=_stop,
++                    )
++                    for _name, _guidance, _adapter in _shadow_specs
++                ])
++                _result_by_treatment = {
++                    "G_PLUS_S": action_result,
++                    **{
++                        _spec[0]: _result
++                        for _spec, _result in zip(_shadow_specs, _shadow_results)
++                    },
++                }
++                for _name, _guidance, _adapter in _treatment_specs:
++                    _result = _result_by_treatment[_name]
++                    _parsed, _why, _subgoal = _parse_action_response(
++                        _result.text, step_actions,
++                    )
++                    _matched_policy_records.append({
++                        "schema_version": 1,
++                        "episode_id": episode_id,
++                        "episode_seed": episode_seed,
++                        "step": step_count,
++                        "treatment": _name,
++                        "sampling_order": "AUTHENTIC_FIRST_SHADOW_AFTER_V1",
++                        "requested_adapter": _adapter,
++                        "used_adapter": getattr(_result, "adapter", None),
++                        "source_skill_id": matched_policy_skill_id,
++                        "context_skill_id": (
++                            str(_guidance.get("skill_id") or "") if _guidance else None
++                        ),
++                        "prefix_actions": list(recent_actions),
++                        "before_observable_sha256": _event_hash(obs_nl),
++                        "native_actions": list(step_actions),
++                        "native_actions_sha256": _event_hash(list(step_actions)),
++                        "prompt": _treatment_prompts[_name],
++                        "prompt_sha256": _event_hash(_treatment_prompts[_name]),
++                        "raw_response": str(_result.text),
++                        "raw_response_sha256": _event_hash(_result.text),
++                        "parsed_action": str(_parsed),
++                        "parser_fallback": isinstance(_parsed, _ActionFallback),
++                        "reasoning": _why,
++                        "parsed_subgoal": _subgoal,
++                        "prompt_tokens": int(getattr(_result, "prompt_tokens", 0) or 0),
++                        "completion_tokens": int(getattr(_result, "completion_tokens", 0) or 0),
++                    })
++            else:
++                action_result = await vllm_client.generate(
++                    action_prompt, adapter="action_taking",
++                    temperature=temperature, max_tokens=128, stop=_stop,
++                )
+             action, reasoning, parsed_intention = _parse_action_response(
+                 action_result.text, step_actions,
+             )
+@@ -2707,3 +2802,4 @@ async def run_episode_async(
+         runtime_skill_effects=runtime_effects,
+         reasoning_event_log=reasoning_event_log,
++        matched_policy_records=_matched_policy_records,
+     )
+diff --git a/scripts/run_instrumented_source_smoke.py b/scripts/run_instrumented_source_smoke.py
+--- a/scripts/run_instrumented_source_smoke.py
++++ b/scripts/run_instrumented_source_smoke.py
+@@ -8,4 +8,6 @@ import argparse
+ import asyncio
++from collections import Counter
++from concurrent.futures import ThreadPoolExecutor
+ import hashlib
+ import json
+ import os
+@@ -274,4 +276,7 @@ class _SourceReplayAdapter:
+         self._observation = ""
+         self._actions: list[str] = []
++        self.last_reward = 0.0
++        self.last_terminated = False
++        self.last_truncated = False
+ 
+     def reset(self, *, seed: int):
+@@ -287,6 +292,9 @@ class _SourceReplayAdapter:
+         return tuple(self._actions)
+ 
+     def step(self, action: str):
+-        self._observation, _, _, _, info = self._env.step(action)
++        self._observation, reward, terminated, truncated, info = self._env.step(action)
++        self.last_reward = float(reward)
++        self.last_terminated = bool(terminated)
++        self.last_truncated = bool(truncated)
+         self._actions = [str(item) for item in info.get("action_names", ())]
+         return self._observation
+@@ -391,3 +399,4 @@ async def _main(args) -> int:
+                 record_reasoning_events=True,
+                 reasoning_backbone_harness=args.reasoning_backbone_harness,
++                matched_policy_skill_id=args.matched_policy_skill_id,
+             )
+@@ -461,4 +470,97 @@ async def _main(args) -> int:
+     (args.output / "manifest.json").write_text(
+         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8",
+     )
++
++    if args.matched_policy_skill_id:
++        matched = [
++            row for result in results
++            for row in getattr(result, "matched_policy_records", [])
++        ]
++        if not matched:
++            raise RuntimeError(
++                f"no matched policy snapshots for {args.matched_policy_skill_id}"
++            )
++        treatment_counts = Counter(str(row["treatment"]) for row in matched)
++        expected_treatments = {"B", "G_MINUS_S", "G_PLUS_S", "G_PLUS_RANDOM"}
++        if set(treatment_counts) != expected_treatments:
++            raise RuntimeError(f"incomplete matched treatments: {dict(treatment_counts)}")
++        snapshot_count = len(matched) // 4
++        if any(value != snapshot_count for value in treatment_counts.values()):
++            raise RuntimeError(f"unbalanced matched treatments: {dict(treatment_counts)}")
++        # Persist expensive model outputs before emulator replay. The same file
++        # is enriched and overwritten after every replay passes.
++        matched_path = args.output / "matched_policy_records.jsonl"
++        matched_path.write_text(
++            "".join(json.dumps(row, sort_keys=True) + "\n" for row in matched),
++            encoding="utf-8",
++        )
++
++        def _replay_matched(row):
++            last_error = None
++            for _attempt in range(3):
++                adapter = None
++                try:
++                    adapter = _SourceReplayAdapter(args.game, args.max_steps)
++                    receipt = ReplayForkVerifier().run(
++                        adapter,
++                        intervention_id=(
++                            f"{row['episode_id']}.matched_step_{row['step']}.{row['treatment']}"
++                        ),
++                        seed=int(row["episode_seed"]),
++                        prefix_actions=[str(item) for item in row["prefix_actions"]],
++                        expected_fork_state_sha256=str(row["before_observable_sha256"]),
++                        alternative_action=str(row["parsed_action"]),
++                    )
++                    return asdict(receipt) | {
++                        "receipt_sha256": receipt.content_hash(),
++                        "alternative_reward": adapter.last_reward,
++                        "alternative_terminated": adapter.last_terminated,
++                        "alternative_truncated": adapter.last_truncated,
++                        "startup_attempt": _attempt + 1,
++                    }
++                except Exception as exc:
++                    last_error = exc
++                finally:
++                    if adapter is not None:
++                        adapter.close()
++            raise RuntimeError("matched_replay_startup_retries_exhausted") from last_error
++
++        with ThreadPoolExecutor(max_workers=args.matched_replay_workers) as pool:
++            matched_replays = list(pool.map(_replay_matched, matched))
++        replay_by_id = {
++            str(row["intervention_id"]): row for row in matched_replays
++        }
++        for row in matched:
++            intervention_id = (
++                f"{row['episode_id']}.matched_step_{row['step']}.{row['treatment']}"
++            )
++            replay = replay_by_id[intervention_id]
++            row["replay_receipt_sha256"] = replay["receipt_sha256"]
++            row["replay_status"] = replay["status"]
++            row["after_observable_sha256"] = replay["alternative_next_state_sha256"]
++
++        matched_path.write_text(
++            "".join(json.dumps(row, sort_keys=True) + "\n" for row in matched),
++            encoding="utf-8",
++        )
++        matched_replay_path = args.output / "matched_policy_replays.jsonl"
++        matched_replay_path.write_text(
++            "".join(json.dumps(row, sort_keys=True) + "\n" for row in matched_replays),
++            encoding="utf-8",
++        )
++        manifest["matched_policy_treatments"] = {
++            "source_skill_id": args.matched_policy_skill_id,
++            "snapshot_count": snapshot_count,
++            "treatment_counts": dict(sorted(treatment_counts.items())),
++            "replay_status_counts": dict(sorted(Counter(
++                str(row["status"]) for row in matched_replays
++            ).items())),
++            "records_file": matched_path.name,
++            "records_sha256": _sha256(matched_path),
++            "replays_file": matched_replay_path.name,
++            "replays_sha256": _sha256(matched_replay_path),
++        }
++        (args.output / "manifest.json").write_text(
++            json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8",
++        )
+     summary = {
+@@ -500,5 +602,13 @@ def main() -> int:
+     parser.add_argument("--max-steps", type=int, default=12)
+     parser.add_argument("--seed-base", type=int, default=42)
++    parser.add_argument(
++        "--matched-policy-skill-id", default=None,
++        help="Collect B/G-S/G+S/G+Random at snapshots selecting this exact skill ID.",
++    )
++    parser.add_argument(
++        "--matched-replay-workers", type=int, default=4,
++        help="Parallel environment workers for one-step matched replay receipts.",
++    )
+     parser.add_argument(
+         "--sequential-episodes", action="store_true",
+         help="Run resets/episodes serially so per-seed initial states cannot race.",

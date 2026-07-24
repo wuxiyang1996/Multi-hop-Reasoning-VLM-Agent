@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "protocol_status": "FROZEN_BEFORE_TRANSFERABLE_HARNESS_TRAINING",
+  "paths": {
+    "explicit_motif": {
+      "source": "fresh_source_execution_motif_v1",
+      "required_gates": [
+        "receipt_integrity",
+        "discovery_recurrence",
+        "single_field_shortcut_exclusion",
+        "qualification_predictive_gain_over_null_and_shuffled",
+        "held_out_predictive_gain_over_null_and_shuffled",
+        "matched_h8_value_gain"
+      ],
+      "target_use": "one_shot_online_binding_as_rejectable_prior"
+    },
+    "transferable_harness": {
+      "source_supervision": [
+        "next_transition",
+        "outcome_prediction",
+        "transition_membership",
+        "recorded_adjacency",
+        "missing_evidence_abstention",
+        "replay_fork_contrast_when_available"
+      ],
+      "forbidden_supervision": [
+        "human_predicate_ontology",
+        "source_to_target_action_mapping",
+        "unverified_agent_verdict_as_ground_truth",
+        "target_test_outcome"
+      ],
+      "target_use": "few_shot_target_native_motif_and_skill_discovery",
+      "adaptation_examples": [
+        0,
+        1,
+        2,
+        4
+      ]
+    }
+  },
+  "harness_weights": [
+    "BASE",
+    "GAME_RECEIPT_TRAINED",
+    "GAME_RECEIPT_TRAINED_PLUS_VERIFIED_TARGET_LORA"
+  ],
+  "factorial_conditions": [
+    {
+      "harness_weights": "BASE",
+      "source_motif": "OFF",
+      "target_motif_discovery": false
+    },
+    {
+      "harness_weights": "BASE",
+      "source_motif": "OFF",
+      "target_motif_discovery": true
+    },
+    {
+      "harness_weights": "GAME_RECEIPT_TRAINED",
+      "source_motif": "OFF",
+      "target_motif_discovery": false
+    },
+    {
+      "harness_weights": "GAME_RECEIPT_TRAINED",
+      "source_motif": "OFF",
+      "target_motif_discovery": true
+    },
+    {
+      "harness_weights": "BASE",
+      "source_motif": "AUTHENTIC",
+      "target_motif_discovery": true
+    },
+    {
+      "harness_weights": "GAME_RECEIPT_TRAINED",
+      "source_motif": "AUTHENTIC",
+      "target_motif_discovery": true
+    },
+    {
+      "harness_weights": "GAME_RECEIPT_TRAINED",
+      "source_motif": "SHUFFLED",
+      "target_motif_discovery": true
+    }
+  ],
+  "required_matched_contrasts": {
+    "weight_only_without_discovery": [
+      "BASE/OFF/discovery_off",
+      "GAME_RECEIPT_TRAINED/OFF/discovery_off"
+    ],
+    "target_native_discovery_with_base": [
+      "BASE/OFF/discovery_off",
+      "BASE/OFF/discovery_on"
+    ],
+    "game_training_given_discovery": [
+      "BASE/OFF/discovery_on",
+      "GAME_RECEIPT_TRAINED/OFF/discovery_on"
+    ],
+    "explicit_source_motif_given_base": [
+      "BASE/OFF/discovery_on",
+      "BASE/AUTHENTIC/discovery_on"
+    ],
+    "explicit_source_motif_given_game_training": [
+      "GAME_RECEIPT_TRAINED/OFF/discovery_on",
+      "GAME_RECEIPT_TRAINED/AUTHENTIC/discovery_on"
+    ],
+    "topology_control": [
+      "GAME_RECEIPT_TRAINED/AUTHENTIC/discovery_on",
+      "GAME_RECEIPT_TRAINED/SHUFFLED/discovery_on"
+    ]
+  },
+  "target_domains": [
+    "ALFWorld",
+    "VisualToolBench"
+  ],
+  "primary_metrics": [
+    "examples_to_success_auc",
+    "official_success",
+    "official_score",
+    "environment_or_tool_steps",
+    "invalid_or_repeated_actions",
+    "token_and_tool_cost",
+    "negative_transfer_recovery_latency"
+  ],
+  "authority": {
+    "decision_agent_selects_native_action": true,
+    "harness_may_execute_native_action": false,
+    "target_motif_proposals_are_untrusted": true,
+    "test_split_is_read_once_after_freeze": true
+  },
+  "stopping_rules": {
+    "explicit_motif": "stop claim if no source candidate passes all source gates",
+    "transferable_harness": "stop transfer claim if game-trained Harness does not beat base Harness under matched target budgets",
+    "target_motif": "reject if graph is shortcut-explained, non-recurrent, or has no held-out value"
+  }
+}

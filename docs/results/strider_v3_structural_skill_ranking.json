@@ -1,0 +1,115 @@
+{
+  "ranking": [
+    {
+      "minimum_split_edges": 27,
+      "skill_id": "COMMIT/POSITION",
+      "split_stats": {
+        "discovery": {
+          "continuous_edges": 48,
+          "max_span": 22,
+          "spans": 11,
+          "steps": 59
+        },
+        "heldout": {
+          "continuous_edges": 47,
+          "max_span": 19,
+          "spans": 10,
+          "steps": 57
+        },
+        "qualification": {
+          "continuous_edges": 27,
+          "max_span": 6,
+          "spans": 10,
+          "steps": 37
+        }
+      },
+      "total_continuous_edges": 122
+    },
+    {
+      "minimum_split_edges": 11,
+      "skill_id": "COMMIT/EXPLORE",
+      "split_stats": {
+        "discovery": {
+          "continuous_edges": 11,
+          "max_span": 2,
+          "spans": 11,
+          "steps": 22
+        },
+        "heldout": {
+          "continuous_edges": 12,
+          "max_span": 3,
+          "spans": 10,
+          "steps": 22
+        },
+        "qualification": {
+          "continuous_edges": 22,
+          "max_span": 5,
+          "spans": 16,
+          "steps": 38
+        }
+      },
+      "total_continuous_edges": 45
+    },
+    {
+      "minimum_split_edges": 0,
+      "skill_id": "COMMIT/NAVIGATE",
+      "split_stats": {
+        "discovery": {
+          "continuous_edges": 0,
+          "max_span": 0,
+          "spans": 0,
+          "steps": 0
+        },
+        "heldout": {
+          "continuous_edges": 2,
+          "max_span": 3,
+          "spans": 1,
+          "steps": 3
+        },
+        "qualification": {
+          "continuous_edges": 1,
+          "max_span": 2,
+          "spans": 1,
+          "steps": 2
+        }
+      },
+      "total_continuous_edges": 3
+    },
+    {
+      "minimum_split_edges": 0,
+      "skill_id": "COMMIT/ATTACK",
+      "split_stats": {
+        "discovery": {
+          "continuous_edges": 0,
+          "max_span": 1,
+          "spans": 19,
+          "steps": 19
+        },
+        "heldout": {
+          "continuous_edges": 0,
+          "max_span": 1,
+          "spans": 18,
+          "steps": 18
+        },
+        "qualification": {
+          "continuous_edges": 1,
+          "max_span": 2,
+          "spans": 22,
+          "steps": 23
+        }
+      },
+      "total_continuous_edges": 1
+    }
+  ],
+  "schema_version": 1,
+  "selected_skill_id": "COMMIT/POSITION",
+  "selection_rule": "maximize minimum continuous edges across frozen splits, then total edges; skill names and action/reward contents are not inspected",
+  "split_by_seed": {
+    "7701": "discovery",
+    "7702": "qualification",
+    "7703": "heldout",
+    "7704": "discovery",
+    "7705": "qualification",
+    "7706": "heldout"
+  }
+}

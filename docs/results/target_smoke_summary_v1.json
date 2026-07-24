@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "matrix": "4-domain/7-cell",
+  "condition": "target_only",
+  "visual_toolbench": [
+    {
+      "receipt": "runs/target_feasibility_v1/visual_toolbench_target_only_smoke0_ocr.json",
+      "receipt_sha256": "a49e049c0a5c3452ef2c2241bcf84cac0c07bc2ffcdde6e85eb61a9220329a74",
+      "sample_id": "row:865",
+      "answer": null,
+      "ground_truth": "Kellogg's All-Bran Wheat Flakes contain 120 calories per serving, and there are four boxes in the photo with the same number of calories per serving.",
+      "correct": null,
+      "rounds": 6,
+      "tool_events": 6,
+      "head_used": "tool_loop",
+      "validation_valid": false,
+      "validation_errors": [
+        "empty schema"
+      ],
+      "tool_errors": [
+        {
+          "event": 5,
+          "error": "'<' not supported between instances of 'int' and 'str'"
+        }
+      ]
+    }
+  ],
+  "tir_bench": [
+    {
+      "receipt": "runs/target_feasibility_v1/tir_bench_target_only_smoke0.json",
+      "receipt_sha256": "6f3f513a933313b603201c4c93da0585091606bdbbe2e57527c75fa263997c59",
+      "sample_id": "1001",
+      "answer": null,
+      "ground_truth": "[36, 20, 5, 29, 34, 31, 33, 30, 4, 14, 23, 3, 27, 35, 12, 9, 24, 10, 15, 7, 25, 16, 26, 6, 2, 1, 8, 22, 17, 13, 32, 18, 19, 28, 11, 21]",
+      "correct": null,
+      "rounds": 4,
+      "tool_events": 3,
+      "head_used": "tool_loop",
+      "validation_valid": false,
+      "validation_errors": [
+        "empty schema"
+      ],
+      "tool_errors": []
+    },
+    {
+      "receipt": "runs/target_feasibility_v1/tir_bench_target_only_smoke1.json",
+      "receipt_sha256": "e82435143c1192bdc0cbb671eb8072ccf6876845816ad417924d0cab187e1d84",
+      "sample_id": "668",
+      "answer": "E",
+      "ground_truth": "C",
+      "correct": false,
+      "rounds": 4,
+      "tool_events": 3,
+      "head_used": "tool_loop",
+      "validation_valid": false,
+      "validation_errors": [
+        "hop4 claims tool=verify_claim but no such call appears in the tool_trace (fabricated)"
+      ],
+      "tool_errors": []
+    }
+  ],
+  "video_holmes": [
+    {
+      "receipt": "runs/target_feasibility_v1/video_holmes_target_only_smoke0.json",
+      "receipt_sha256": "231c48e6a81bc302ec6f7015224ae024ec551b948ceaceef1dfcd81d0e15e27b",
+      "sample_id": "nT7w-T2aBOo.Q770",
+      "answer": null,
+      "ground_truth": "A",
+      "correct": null,
+      "rounds": 6,
+      "tool_events": 34,
+      "head_used": "tool_loop",
+      "validation_valid": false,
+      "validation_errors": [
+        "empty schema"
+      ],
+      "tool_errors": []
+    }
+  ],
+  "miniwob": [
+    {
+      "receipt": "runs/target_feasibility_v1/miniwob_target_only_smoke0.json",
+      "receipt_sha256": "dabfa7fb592e90492ebdcb27d2558dec5726c092a930197eb63f4cc282eb991d",
+      "task_id": "miniwob.unicode-test",
+      "initial_state_hash": "7003a71eb1d7ef01522c6472ba122685182bf576116a92330d08e205f5a49acf",
+      "steps": 1,
+      "actions": [
+        "click('13')"
+      ],
+      "total_reward": 1.0,
+      "success": true,
+      "terminated": true,
+      "invalid_actions": 0
+    }
+  ],
+  "webshop": [
+    {
+      "receipt": "runs/target_feasibility_v1/webshop_target_only_smoke0.json",
+      "receipt_sha256": "3600146ac538149f1861787df34ea9f20fddccac8bb851d350fd70e51e3722f6",
+      "task_id": "webshop.32",
+      "initial_state_hash": "5d794feaa6469da725e6f72e481007725e0fd21900d9edddb211be943442d109",
+      "steps": 4,
+      "actions": [
+        "fill('18', 'pink niuta 2 pack hair towel wrap for dry hair')}",
+        "click('20')",
+        "click('35')",
+        "click('60')"
+      ],
+      "total_reward": 0.6666666666666666,
+      "success": true,
+      "terminated": true,
+      "invalid_actions": 0
+    }
+  ],
+  "alfworld_summary": {
+    "schema_version": 1,
+    "claim_limit": "ALFWORLD_MATCHED_MECHANISM_DIAGNOSIS_ONLY",
+    "source_status": "GENERIC_ONLY_NOT_SOURCE_SUPPORTED",
+    "cells": {
+      "alfworld_valid_seen": {
+        "status": "NO_VALID_SOURCE_INTERVENTION",
+        "matched": true,
+        "identity": {
+          "initial_state_hash_match": true,
+          "resolved_game_file_match": true,
+          "decision_cache_shared": true,
+          "treatment_decision_calls_all_cache_hit": true
+        },
+        "actions_exact_match": true,
+        "binding_count": 1,
+        "binding_evidence_count": 0,
+        "source_fallback_step": 0,
+        "source_failures": [
+          "REVIEW:ValueError:review did not cite source evidence"
+        ],
+        "baseline_metrics": {
+          "steps": 12,
+          "official_success": false,
+          "official_score": 0.0,
+          "repeated_actions": 3,
+          "no_observable_progress": 0,
+          "advisory_replans": 0,
+          "decision_replans": 0
+        },
+        "treatment_metrics": {
+          "steps": 12,
+          "official_success": false,
+          "official_score": 0.0,
+          "repeated_actions": 3,
+          "no_observable_progress": 0,
+          "advisory_replans": 0,
+          "decision_replans": 0
+        },
+        "official_score_delta": 0.0,
+        "baseline_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_seen_target_only_cache_v2.json",
+        "treatment_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_seen_authentic_cache_v2.json"
+      },
+      "alfworld_valid_unseen": {
+        "status": "BINDING_REJECTED_SAFE_FALLBACK",
+        "matched": true,
+        "identity": {
+          "initial_state_hash_match": true,
+          "resolved_game_file_match": true,
+          "decision_cache_shared": true,
+          "treatment_decision_calls_all_cache_hit": true
+        },
+        "actions_exact_match": true,
+        "binding_count": 0,
+        "binding_evidence_count": 0,
+        "source_fallback_step": 0,
+        "source_failures": [],
+        "baseline_metrics": {
+          "steps": 12,
+          "official_success": false,
+          "official_score": 0.0,
+          "repeated_actions": 6,
+          "no_observable_progress": 0,
+          "advisory_replans": 0,
+          "decision_replans": 0
+        },
+        "treatment_metrics": {
+          "steps": 12,
+          "official_success": false,
+          "official_score": 0.0,
+          "repeated_actions": 6,
+          "no_observable_progress": 0,
+          "advisory_replans": 0,
+          "decision_replans": 0
+        },
+        "official_score_delta": 0.0,
+        "baseline_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_unseen_target_only_cache_v2.json",
+        "treatment_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_unseen_authentic_cache_v2.json"
+      }
+    },
+    "positive_transfer_cells": 0,
+    "negative_transfer_cells": 0
+  },
+  "claim_limit": "These are infrastructure and target-only policy smokes, not source-motif transfer results."
+}

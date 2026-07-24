@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "USER_HELD_PENDING_ORACLE_FEASIBILITY",
+  "submitted_at": "2026-07-23T00:36:50-04:00",
+  "slurm_job_id": "7122386",
+  "dependent_source_held_out_eval_job_id": "7122389",
+  "dependency": "afterok:7122289",
+  "slurm_hold_reason": "JobHeldUser",
+  "hold_rationale": "Do not spend GPU training a smaller Harness before GPT-5-mini passes the adaptation-only motif/evidence gate.",
+  "resource": {
+    "partition": "gamma",
+    "qos": "huge-long",
+    "gpu": "rtxa6000",
+    "gpu_count": 1,
+    "cpus": 12,
+    "memory": "120G",
+    "time_limit": "10:00:00"
+  },
+  "model": "Qwen/Qwen3.5-9B",
+  "training": {
+    "method": "LoRA",
+    "max_steps": 400,
+    "max_length": 2048,
+    "gradient_accumulation": 8,
+    "learning_rate": 0.0002,
+    "lora_r": 16,
+    "lora_alpha": 32
+  },
+  "dataset": {
+    "examples": 10614,
+    "episodes": 36,
+    "games": 6,
+    "train_examples": 3552,
+    "validation_examples": 3534,
+    "source_held_out_examples": 3528,
+    "sha256": "fefcff4a05ac8e18c557f19113f5e19a162a2ca4f5ee80f6a0d8728a116e432e",
+    "target_data_used": false,
+    "agent_verdicts_used_as_labels": false,
+    "human_predicates_used": false
+  },
+  "claim_boundary": "This job trains a receipt-verification and adaptation prior. Only matched far-domain evaluation can establish transferable Harness value."
+}

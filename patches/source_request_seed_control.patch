@@ -1,0 +1,70 @@
+diff --git a/trainer/coevolution/vllm_client.py b/trainer/coevolution/vllm_client.py
+--- a/trainer/coevolution/vllm_client.py
++++ b/trainer/coevolution/vllm_client.py
+@@ -193,6 +193,7 @@
+         temperature: Optional[float] = None,
+         max_tokens: Optional[int] = None,
+         stop: Optional[List[str]] = None,
++        extra_body: Optional[Dict[str, Any]] = None,
+     ) -> GenerateResult:
+         """Generate a completion via vLLM.
+ 
+@@ -215,6 +216,9 @@
+             model_id = ADAPTER_MAP[adapter]
+ 
+         n_clients = len(self._clients)
++        extra_kwargs: Dict[str, Any] = {}
++        if extra_body:
++            extra_kwargs["extra_body"] = extra_body
+         last_exc: Optional[Exception] = None
+ 
+         for attempt in range(n_clients):
+@@ -227,6 +231,7 @@
+                     temperature=temp,
+                     max_tokens=mtok,
+                     stop=stop,
++                    **extra_kwargs,
+                 )
+                 self._mark_ok(idx)
+                 break
+@@ -243,6 +248,7 @@
+                             temperature=temp,
+                             max_tokens=mtok,
+                             stop=stop,
++                            **extra_kwargs,
+                         )
+                         self._mark_ok(idx)
+                         break
+diff --git a/scripts/run_instrumented_source_smoke.py b/scripts/run_instrumented_source_smoke.py
+--- a/scripts/run_instrumented_source_smoke.py
++++ b/scripts/run_instrumented_source_smoke.py
+@@ -196,13 +196,22 @@
+     async def generate(
+         self, prompt: str, *, adapter=None, temperature=None,
+         max_tokens=None, stop=None,
+     ):
++        # Bind stochastic sampling to the exact request instead of the shared
++        # server request order.  A shadow observer can then make extra calls
++        # without perturbing the source Decision policy's random stream.
++        seed_payload = json.dumps(
++            {"adapter": adapter, "prompt": prompt}, sort_keys=True,
++            separators=(",", ":"), ensure_ascii=False,
++        )
++        request_seed = int(hashlib.sha256(seed_payload.encode()).hexdigest()[:8], 16)
+         result = await self._client.generate(
+             prompt,
+             adapter=adapter,
+             temperature=temperature,
+             max_tokens=max_tokens,
+             stop=stop,
++            extra_body={"seed": request_seed},
+         )
+         self.calls.append({
+             "requested_adapter": adapter,
+@@ -209,5 +218,6 @@
+             "used_adapter": result.adapter,
+             "nonempty_response": bool(result.text.strip()),
++            "request_seed": request_seed,
+         })
+         # AsyncVLLMClient deliberately supports base fallback for production
+         # availability.  Evidence collection has the opposite requirement:

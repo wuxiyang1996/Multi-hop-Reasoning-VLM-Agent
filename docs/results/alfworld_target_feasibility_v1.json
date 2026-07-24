@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "claim_limit": "ALFWORLD_MATCHED_MECHANISM_DIAGNOSIS_ONLY",
+  "source_status": "GENERIC_ONLY_NOT_SOURCE_SUPPORTED",
+  "cells": {
+    "alfworld_valid_seen": {
+      "status": "NO_VALID_SOURCE_INTERVENTION",
+      "matched": true,
+      "identity": {
+        "initial_state_hash_match": true,
+        "resolved_game_file_match": true,
+        "decision_cache_shared": true,
+        "treatment_decision_calls_all_cache_hit": true
+      },
+      "actions_exact_match": true,
+      "binding_count": 1,
+      "binding_evidence_count": 0,
+      "source_fallback_step": 0,
+      "source_failures": [
+        "REVIEW:ValueError:review did not cite source evidence"
+      ],
+      "baseline_metrics": {
+        "steps": 12,
+        "official_success": false,
+        "official_score": 0.0,
+        "repeated_actions": 3,
+        "no_observable_progress": 0,
+        "advisory_replans": 0,
+        "decision_replans": 0
+      },
+      "treatment_metrics": {
+        "steps": 12,
+        "official_success": false,
+        "official_score": 0.0,
+        "repeated_actions": 3,
+        "no_observable_progress": 0,
+        "advisory_replans": 0,
+        "decision_replans": 0
+      },
+      "official_score_delta": 0.0,
+      "baseline_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_seen_target_only_cache_v2.json",
+      "treatment_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_seen_authentic_cache_v2.json"
+    },
+    "alfworld_valid_unseen": {
+      "status": "BINDING_REJECTED_SAFE_FALLBACK",
+      "matched": true,
+      "identity": {
+        "initial_state_hash_match": true,
+        "resolved_game_file_match": true,
+        "decision_cache_shared": true,
+        "treatment_decision_calls_all_cache_hit": true
+      },
+      "actions_exact_match": true,
+      "binding_count": 0,
+      "binding_evidence_count": 0,
+      "source_fallback_step": 0,
+      "source_failures": [],
+      "baseline_metrics": {
+        "steps": 12,
+        "official_success": false,
+        "official_score": 0.0,
+        "repeated_actions": 6,
+        "no_observable_progress": 0,
+        "advisory_replans": 0,
+        "decision_replans": 0
+      },
+      "treatment_metrics": {
+        "steps": 12,
+        "official_success": false,
+        "official_score": 0.0,
+        "repeated_actions": 6,
+        "no_observable_progress": 0,
+        "advisory_replans": 0,
+        "decision_replans": 0
+      },
+      "official_score_delta": 0.0,
+      "baseline_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_unseen_target_only_cache_v2.json",
+      "treatment_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_feasibility_v1/alfworld_valid_unseen_authentic_cache_v2.json"
+    }
+  },
+  "positive_transfer_cells": 0,
+  "negative_transfer_cells": 0
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-22",
+  "protocol": "post-decision_pre-transition_shadow_prediction_v7",
+  "human_policy_hints_excluded": true,
+  "observer_action_authority": false,
+  "parser_repair_or_semantic_heuristics": false,
+  "games": {
+    "gymv_columns": {
+      "steps": 3,
+      "valid_closed_loop_cycles": 3,
+      "step_gaps": 0,
+      "post_verdict_counts": {
+        "SUPPORTED": 1,
+        "REFUTED": 2
+      }
+    },
+    "gymv_thunder_force_iii": {
+      "steps": 3,
+      "valid_closed_loop_cycles": 3,
+      "step_gaps": 0,
+      "post_verdict_counts": {
+        "REFUTED": 3
+      }
+    }
+  },
+  "claim_limit": "Protocol smoke only. It establishes complete shadow prediction/transition/verdict receipts, not source motif qualification or cross-domain transfer."
+}

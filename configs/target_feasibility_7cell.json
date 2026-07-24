@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "matrix": "4-domain/7-cell",
+  "excluded": ["siv_bench"],
+  "cells": [
+    {"domain": "visual_reasoning", "cell": "visual_toolbench"},
+    {"domain": "visual_reasoning", "cell": "tir_bench"},
+    {"domain": "video", "cell": "video_holmes"},
+    {"domain": "browser", "cell": "miniwob"},
+    {"domain": "browser", "cell": "webshop"},
+    {"domain": "alfworld", "cell": "alfworld_valid_seen"},
+    {"domain": "alfworld", "cell": "alfworld_valid_unseen"}
+  ],
+  "required_conditions": [
+    "target_only",
+    "generic_reasoning",
+    "authentic_game_source",
+    "renamed_game_source",
+    "shuffled_game_source",
+    "other_game_source"
+  ],
+  "hard_gates": [
+    "official_outcome",
+    "real_executor",
+    "frozen_one_shot_adaptation",
+    "held_out_test",
+    "game_only_source_lineage",
+    "matched_agent_and_token_budget",
+    "no_stub_fallback"
+  ]
+}

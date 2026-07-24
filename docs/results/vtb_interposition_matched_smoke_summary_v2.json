@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "GENERIC_INTERPOSITION_HARMED_TOOL_EXECUTION_WITHOUT_TASK_SUCCESS",
+  "sample_id": "row:105",
+  "identity_checks": {
+    "initial_image_sha256_equal": true,
+    "official_commit_equal": true,
+    "tool_contract_equal": true,
+    "initial_dynamic_tool_schema_equal": true,
+    "decision_model_equal": true,
+    "budget_equal": true,
+    "generic_first_decision_request_cache_hit": true,
+    "generic_first_reviewed_proposal_equals_target_first": true,
+    "generic_harness_payloads_exact_6000_tokens": true
+  },
+  "target_only": {
+    "tool_calls": 3,
+    "successful_tool_calls": 3,
+    "final_answer_present": false,
+    "termination_reason": "OFFICIAL_CAP_EXHAUSTED"
+  },
+  "generic_reasoning": {
+    "tool_calls": 2,
+    "successful_tool_calls": 0,
+    "reviews": 3,
+    "verifications": 2,
+    "replans": 1,
+    "final_answer_present": false,
+    "termination_reason": "OFFICIAL_CAP_EXHAUSTED"
+  },
+  "claim_limit": "This adaptation-only, capability-degraded, three-round run validates interposition and common-randomness mechanics. It is not source-motif transfer evidence and has no official task score."
+}

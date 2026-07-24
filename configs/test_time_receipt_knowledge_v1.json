@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "protocol_status": "FROZEN_BEFORE_WEAK_PRIOR_TARGET_EVALUATION",
+  "primary_question": "Can target-MDP test-time reasoning obtain attributable gains from source-derived receipt-grounded knowledge?",
+  "claim_boundary": {
+    "transfers_skill": false,
+    "transfers_policy": false,
+    "target_action_mapping": false,
+    "primary_object": "RECEIPT_GROUNDED_KNOWLEDGE",
+    "strong_secondary_object": "EXACT_TOPOLOGY_PRIOR"
+  },
+  "source_objects": [
+    {
+      "name": "source_receipts_only",
+      "content": "frozen source evidence without induced control statements",
+      "purpose": "separate retrieval/context effects from induced knowledge"
+    },
+    {
+      "name": "weak_control_prior",
+      "content": [
+        "control_regularities",
+        "failure_signatures",
+        "verification_routines",
+        "applicability_boundaries"
+      ],
+      "forbidden": [
+        "target_action",
+        "source_to_target_ontology",
+        "target_graph_alignment",
+        "agent_confidence_as_ground_truth"
+      ]
+    },
+    {
+      "name": "exact_topology_prior",
+      "content": "complete source node/edge structure with target structural binding",
+      "purpose": "strong secondary hypothesis and ablation, not the primary claim"
+    }
+  ],
+  "harness_weights": [
+    "BASE",
+    "GAME_RECEIPT_TRAINED",
+    "GAME_RECEIPT_TRAINED_PLUS_VERIFIED_TARGET_LORA"
+  ],
+  "conditions": [
+    "target_only",
+    "generic_reasoning",
+    "source_receipts_only",
+    "authentic_weak_control_prior",
+    "shuffled_evidence_prior",
+    "other_game_control_prior",
+    "exact_topology_prior"
+  ],
+  "primary_contrasts": {
+    "knowledge_over_generic": [
+      "authentic_weak_control_prior",
+      "generic_reasoning"
+    ],
+    "knowledge_over_raw_receipts": [
+      "authentic_weak_control_prior",
+      "source_receipts_only"
+    ],
+    "source_grounding": [
+      "authentic_weak_control_prior",
+      "shuffled_evidence_prior"
+    ],
+    "source_specificity": [
+      "authentic_weak_control_prior",
+      "other_game_control_prior"
+    ],
+    "strong_topology_increment": [
+      "exact_topology_prior",
+      "authentic_weak_control_prior"
+    ]
+  },
+  "online_authority": {
+    "decision_agent_selects_native_action": true,
+    "harness_selects_native_action": false,
+    "harness_outputs": [
+      "information_need",
+      "expected_evidence",
+      "verification_test",
+      "recovery_or_source_off",
+      "termination_test",
+      "ADMIT_REPLAN_ABSTAIN"
+    ],
+    "every_source_use_requires_live_target_verification": true,
+    "contradiction_action": "SOURCE_OFF_AND_TARGET_ONLY_FALLBACK"
+  },
+  "source_gates": [
+    "receipt_integrity",
+    "skill_on_off_or_matched_intervention_support",
+    "discovery_only_selection",
+    "qualification_recurrence",
+    "held_out_predictive_support",
+    "generic_and_shuffled_control_separation"
+  ],
+  "target_protocol": {
+    "adaptation_examples": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "qualification_and_test_hidden_during_induction": true,
+    "matched_decision_model_seed_budget_and_context_tokens": true,
+    "primary_metrics": [
+      "examples_to_success_auc",
+      "official_success_or_score",
+      "environment_or_tool_steps",
+      "invalid_or_repeated_actions",
+      "verification_precision",
+      "negative_transfer_recovery_latency",
+      "token_and_tool_cost"
+    ]
+  },
+  "interpretation": {
+    "weak_prior_positive_exact_topology_negative": "receipt-grounded knowledge helps, but source graph topology does not transfer",
+    "raw_receipts_equals_weak_prior": "benefit is retrieval or extra context, not induced knowledge",
+    "generic_equals_authentic": "benefit is generic test-time reasoning guidance, not source-derived knowledge",
+    "shuffled_equals_authentic": "source receipt grounding is not causally identified",
+    "all_source_conditions_negative": "source knowledge is not useful under this source-target-budget regime"
+  }
+}

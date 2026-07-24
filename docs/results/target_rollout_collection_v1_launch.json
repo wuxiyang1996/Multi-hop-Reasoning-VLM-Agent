@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "ALFWORLD_ADAPTATION_COMPLETE_VTB_BLOCKED",
+  "manifest": "configs/target_rollout_collection_v1.json",
+  "splits_per_cell": {
+    "adaptation": 8,
+    "qualification": 8,
+    "held_out": 24
+  },
+  "alfworld": {
+    "cell": "alfworld_valid_unseen",
+    "condition": "BASE_DECISION_TARGET_ONLY",
+    "slurm_array_job_id": "7122411",
+    "original_dependent_audit_job_id": "7122417_CANCELLED_AFTER_TASK_RETRY",
+    "task_2_retry_job_id": "7122461",
+    "mechanical_audit": "docs/results/alfworld_target_adaptation_v1.json",
+    "all_receipts_accepted": true,
+    "tasks": 8,
+    "official_successes": 4,
+    "official_failures": 4,
+    "total_steps": 152,
+    "mean_steps": 19.0,
+    "decision_invalid_output_failures": 1,
+    "decision_model": "qwen/qwen3.5-35b-a3b",
+    "max_steps": 30,
+    "harness_used": false,
+    "source_motif_used": false
+  },
+  "visual_toolbench": {
+    "cell": "visual_toolbench_single_turn",
+    "status": "NOT_RUNNABLE_FULL_TOOL",
+    "official_inference_ready": true,
+    "paper_faithful_full_tool_ready": false,
+    "missing_capabilities": [
+      "SERP_API_KEY",
+      "OPENWEATHER_API_KEY"
+    ]
+  },
+  "held_out_executed": false,
+  "selection_used_content_or_outcome": false
+}

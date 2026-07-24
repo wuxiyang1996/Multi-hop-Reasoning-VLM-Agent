@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "protocol_status": "FROZEN_BEFORE_FRESH_COLLECTION",
+  "source_games": [
+    "gymv_strider",
+    "gymv_thunder_force_iii"
+  ],
+  "historical_diagnostic_only_games": [
+    "tetris",
+    "candy_crush",
+    "gymv_streets_of_rage_2",
+    "gymv_columns"
+  ],
+  "collection": {
+    "human_policy_hints": false,
+    "episodes_per_game_minimum": 12,
+    "episodes_per_game_preferred": 24,
+    "maximum_steps_per_episode": 100,
+    "split_rule": "SORT_EPISODE_ID_THEN_ROUND_ROBIN_DISCOVERY_QUALIFICATION_HELD_OUT_V1",
+    "treatments": [
+      "B",
+      "G_MINUS_S",
+      "G_PLUS_S",
+      "G_PLUS_RANDOM"
+    ],
+    "matched_fields": [
+      "checkpoint",
+      "episode_seed",
+      "prefix",
+      "observation",
+      "native_actions",
+      "sampling_budget"
+    ]
+  },
+  "discovery_gate": {
+    "minimum_independent_episode_support_per_node": 2,
+    "minimum_independent_episode_support_per_edge": 2,
+    "require_branch_or_cycle": true,
+    "forbid_exact_single_field_node_classifier": [
+      "skill_token",
+      "length",
+      "return_sign",
+      "action_sequence",
+      "action_repeat_sequence",
+      "reward_sign_sequence"
+    ],
+    "agent_candidate_budget_per_game": 1
+  },
+  "blind_gate": {
+    "splits": [
+      "qualification",
+      "held_out"
+    ],
+    "controls": [
+      "majority_null",
+      "shuffled_topology",
+      "alpha_renamed",
+      "receipt_only",
+      "other_game"
+    ],
+    "prediction_unit": "NEXT_COMPLETE_SKILL_EXECUTION",
+    "no_future_event_in_same_request": true
+  },
+  "value_gate": {
+    "horizons": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "primary_horizon": 8,
+    "estimands": [
+      "COMMON_G_MINUS_S_CONTINUATION",
+      "FULL_TREATMENT_REGIME"
+    ],
+    "required_authentic_contrasts": [
+      "G_PLUS_S_GT_G_MINUS_S",
+      "G_PLUS_S_GT_G_PLUS_RANDOM"
+    ],
+    "required_splits": [
+      "qualification",
+      "held_out"
+    ]
+  },
+  "stopping_rule": "IF_NO_GAME_PASSES_DISCOVERY_BLIND_AND_VALUE_GATES_STOP_EXPLICIT_TRANSFERABLE_MOTIF_CLAIM"
+}

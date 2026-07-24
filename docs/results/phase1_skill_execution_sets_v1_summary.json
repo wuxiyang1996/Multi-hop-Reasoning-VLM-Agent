@@ -1,0 +1,52 @@
+{
+  "authority": "RECORDED_EXECUTION_MEMBERSHIP_ONLY",
+  "schema_version": 1,
+  "totals": {
+    "bank_skills_found": 13,
+    "executions": 131,
+    "games": 6,
+    "skills": 13,
+    "three_way_eligible": 11,
+    "transitions": 1769
+  },
+  "pilots": [
+    {
+      "backbone_eligible": 0,
+      "game": "candy_crush",
+      "model": "gpt-5-mini",
+      "receipt_valid_candidates": 0,
+      "result": "three proposed language nodes had no supported edges",
+      "skill_id": "COMMIT/CLEAR"
+    },
+    {
+      "backbone_eligible": 0,
+      "game": "gymv_strider",
+      "model": "gpt-5-mini",
+      "receipt_valid_candidates": 0,
+      "result": "agent abstained with an empty motif list",
+      "skill_id": "COMMIT/POSITION",
+      "usage": {
+        "completion_tokens": 1871,
+        "prompt_tokens": 108743,
+        "total_tokens": 110614
+      }
+    },
+    {
+      "backbone_eligible": 0,
+      "control_flags": [
+        "ACTION_IDENTITY_EXPLAINS_NODE_PARTITION"
+      ],
+      "game": "gymv_strider",
+      "model": "gpt-5-mini",
+      "nontrivial_topology_candidates": 1,
+      "receipt_valid_candidates": 1,
+      "result": "RIGHT to RIGHT/B motor pattern; excluded as reasoning backbone",
+      "skill_id": "COMMIT/ATTACK",
+      "usage": {
+        "completion_tokens": 2432,
+        "prompt_tokens": 27709,
+        "total_tokens": 30141
+      }
+    }
+  ]
+}

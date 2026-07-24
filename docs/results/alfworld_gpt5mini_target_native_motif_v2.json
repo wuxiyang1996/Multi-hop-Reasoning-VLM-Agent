@@ -1,0 +1,1417 @@
+{
+  "adaptation_only": true,
+  "agent_response": {
+    "description": "Recurring attempt-observe-branch-recover loop extracted from episodes: agent repeatedly searches a location (go/open/use/examine), observes nothing (look/examine repeated), branches by moving to another location, and when an item is found it picks it up and later delivers it to the task target. This produces a cycle SearchAttempt -> ObserveNothing -> MoveNext -> SearchAttempt, with a branch SearchAttempt -> TakeItem -> Deliver. All spans are contiguous, cite exact offsets, and each node and edge recurs in at least two episodes.",
+    "edges": [
+      {
+        "source": "N_search",
+        "target": "N_observe_empty"
+      },
+      {
+        "source": "N_observe_empty",
+        "target": "N_move_next"
+      },
+      {
+        "source": "N_move_next",
+        "target": "N_search"
+      },
+      {
+        "source": "N_search",
+        "target": "N_take"
+      },
+      {
+        "source": "N_take",
+        "target": "N_move_next"
+      },
+      {
+        "source": "N_take",
+        "target": "N_deliver"
+      }
+    ],
+    "nodes": [
+      {
+        "node_id": "N_search",
+        "role": "SearchAttempt (go/open/use/examine a container/location)",
+        "span_ids": [
+          "S_E0_0",
+          "S_E0_1",
+          "S_E1_0",
+          "S_E3_0",
+          "S_E3_3",
+          "S_E4_0",
+          "S_E4_1",
+          "S_E4_4",
+          "S_E5_0",
+          "S_E6_0",
+          "S_E7_0",
+          "S_E7_1",
+          "S_E7_3"
+        ]
+      },
+      {
+        "node_id": "N_observe_empty",
+        "role": "ObserveNothing (look/examine shows nothing / repeated looks)",
+        "span_ids": [
+          "S_E1_1",
+          "S_E3_1",
+          "S_E4_2",
+          "S_E4_5",
+          "S_E0_0"
+        ]
+      },
+      {
+        "node_id": "N_move_next",
+        "role": "MoveNext (go to another location / change focus)",
+        "span_ids": [
+          "S_E0_3",
+          "S_E0_4",
+          "S_E3_2",
+          "S_E4_3",
+          "S_E5_2",
+          "S_E6_2",
+          "S_E7_2",
+          "S_E7_5",
+          "S_E1_2"
+        ]
+      },
+      {
+        "node_id": "N_take",
+        "role": "TakeItem (take/pick up discovered item)",
+        "span_ids": [
+          "S_E0_2",
+          "S_E3_4",
+          "S_E5_1",
+          "S_E6_1",
+          "S_E1_3",
+          "S_E7_4"
+        ]
+      },
+      {
+        "node_id": "N_deliver",
+        "role": "Deliver (move or place item to goal target)",
+        "span_ids": [
+          "S_E0_5",
+          "S_E1_4",
+          "S_E5_3",
+          "S_E6_3"
+        ]
+      }
+    ],
+    "spans": [
+      {
+        "end_offset": 3,
+        "episode_id": "E0",
+        "intent": "SearchAttempt",
+        "span_id": "S_E0_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 8,
+        "episode_id": "E0",
+        "intent": "SearchAttempt",
+        "span_id": "S_E0_1",
+        "start_offset": 4
+      },
+      {
+        "end_offset": 9,
+        "episode_id": "E0",
+        "intent": "TakeItem",
+        "span_id": "S_E0_2",
+        "start_offset": 8
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "E0",
+        "intent": "MoveNext",
+        "span_id": "S_E0_3",
+        "start_offset": 9
+      },
+      {
+        "end_offset": 23,
+        "episode_id": "E0",
+        "intent": "MoveNext",
+        "span_id": "S_E0_4",
+        "start_offset": 20
+      },
+      {
+        "end_offset": 27,
+        "episode_id": "E0",
+        "intent": "Deliver",
+        "span_id": "S_E0_5",
+        "start_offset": 23
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "E1",
+        "intent": "SearchAttempt",
+        "span_id": "S_E1_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "E1",
+        "intent": "ObserveNothing",
+        "span_id": "S_E1_1",
+        "start_offset": 4
+      },
+      {
+        "end_offset": 12,
+        "episode_id": "E1",
+        "intent": "MoveNext",
+        "span_id": "S_E1_2",
+        "start_offset": 11
+      },
+      {
+        "end_offset": 15,
+        "episode_id": "E1",
+        "intent": "TakeItem",
+        "span_id": "S_E1_3",
+        "start_offset": 13
+      },
+      {
+        "end_offset": 15,
+        "episode_id": "E1",
+        "intent": "Deliver",
+        "span_id": "S_E1_4",
+        "start_offset": 15
+      },
+      {
+        "end_offset": 2,
+        "episode_id": "E3",
+        "intent": "SearchAttempt",
+        "span_id": "S_E3_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 8,
+        "episode_id": "E3",
+        "intent": "ObserveNothing",
+        "span_id": "S_E3_1",
+        "start_offset": 5
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "E3",
+        "intent": "MoveNext",
+        "span_id": "S_E3_2",
+        "start_offset": 8
+      },
+      {
+        "end_offset": 13,
+        "episode_id": "E3",
+        "intent": "SearchAttempt",
+        "span_id": "S_E3_3",
+        "start_offset": 11
+      },
+      {
+        "end_offset": 13,
+        "episode_id": "E3",
+        "intent": "TakeItem",
+        "span_id": "S_E3_4",
+        "start_offset": 12
+      },
+      {
+        "end_offset": 14,
+        "episode_id": "E3",
+        "intent": "MoveNext",
+        "span_id": "S_E3_5",
+        "start_offset": 13
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "E4",
+        "intent": "SearchAttempt",
+        "span_id": "S_E4_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 7,
+        "episode_id": "E4",
+        "intent": "SearchAttempt",
+        "span_id": "S_E4_1",
+        "start_offset": 6
+      },
+      {
+        "end_offset": 12,
+        "episode_id": "E4",
+        "intent": "ObserveNothing",
+        "span_id": "S_E4_2",
+        "start_offset": 8
+      },
+      {
+        "end_offset": 19,
+        "episode_id": "E4",
+        "intent": "MoveNext",
+        "span_id": "S_E4_3",
+        "start_offset": 17
+      },
+      {
+        "end_offset": 29,
+        "episode_id": "E4",
+        "intent": "SearchAttempt",
+        "span_id": "S_E4_4",
+        "start_offset": 28
+      },
+      {
+        "end_offset": 29,
+        "episode_id": "E4",
+        "intent": "ObserveNothing",
+        "span_id": "S_E4_5",
+        "start_offset": 29
+      },
+      {
+        "end_offset": 1,
+        "episode_id": "E5",
+        "intent": "SearchAttempt",
+        "span_id": "S_E5_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 2,
+        "episode_id": "E5",
+        "intent": "TakeItem",
+        "span_id": "S_E5_1",
+        "start_offset": 1
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "E5",
+        "intent": "MoveNext",
+        "span_id": "S_E5_2",
+        "start_offset": 2
+      },
+      {
+        "end_offset": 5,
+        "episode_id": "E5",
+        "intent": "Deliver",
+        "span_id": "S_E5_3",
+        "start_offset": 3
+      },
+      {
+        "end_offset": 1,
+        "episode_id": "E6",
+        "intent": "SearchAttempt",
+        "span_id": "S_E6_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 1,
+        "episode_id": "E6",
+        "intent": "TakeItem",
+        "span_id": "S_E6_1",
+        "start_offset": 1
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "E6",
+        "intent": "MoveNext",
+        "span_id": "S_E6_2",
+        "start_offset": 2
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "E6",
+        "intent": "Deliver",
+        "span_id": "S_E6_3",
+        "start_offset": 3
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "E7",
+        "intent": "SearchAttempt",
+        "span_id": "S_E7_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 8,
+        "episode_id": "E7",
+        "intent": "SearchAttempt",
+        "span_id": "S_E7_1",
+        "start_offset": 3
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "E7",
+        "intent": "MoveNext",
+        "span_id": "S_E7_2",
+        "start_offset": 9
+      },
+      {
+        "end_offset": 24,
+        "episode_id": "E7",
+        "intent": "SearchAttempt",
+        "span_id": "S_E7_3",
+        "start_offset": 22
+      },
+      {
+        "end_offset": 26,
+        "episode_id": "E7",
+        "intent": "TakeItem",
+        "span_id": "S_E7_4",
+        "start_offset": 23
+      },
+      {
+        "end_offset": 29,
+        "episode_id": "E7",
+        "intent": "MoveNext",
+        "span_id": "S_E7_5",
+        "start_offset": 27
+      }
+    ]
+  },
+  "audit": {
+    "accepted": false,
+    "adaptation_episodes": 8,
+    "edges": 6,
+    "failure_codes": [
+      "OVERLAPPING_TARGET_SPANS",
+      "SPAN_ASSIGNED_TO_MULTIPLE_NODES",
+      "TARGET_EDGE_NOT_RECURRENT_ACROSS_ADAPTATION_EPISODES"
+    ],
+    "has_branch": true,
+    "has_cycle": true,
+    "nodes": 5,
+    "recurrent_edges": false,
+    "recurrent_nodes": true,
+    "single_field_shortcuts": [],
+    "spans": 37
+  },
+  "authority": "UNTRUSTED_GPT_TARGET_MOTIF_PLUS_MECHANICAL_AUDIT",
+  "claim_boundary": "An accepted adaptation motif is only a candidate. Qualification and matched official value are still required.",
+  "episode_aliases": {
+    "E0": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+    "E1": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+    "E2": "pick_two_obj_and_place-Watch-None-Shelf-326/trial_T20190906_201415_685426/game.tw-pddl",
+    "E3": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+    "E4": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+    "E5": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+    "E6": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+    "E7": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl"
+  },
+  "grounded_agent_response": {
+    "description": "Recurring attempt-observe-branch-recover loop extracted from episodes: agent repeatedly searches a location (go/open/use/examine), observes nothing (look/examine repeated), branches by moving to another location, and when an item is found it picks it up and later delivers it to the task target. This produces a cycle SearchAttempt -> ObserveNothing -> MoveNext -> SearchAttempt, with a branch SearchAttempt -> TakeItem -> Deliver. All spans are contiguous, cite exact offsets, and each node and edge recurs in at least two episodes.",
+    "edges": [
+      {
+        "source": "N_search",
+        "target": "N_observe_empty"
+      },
+      {
+        "source": "N_observe_empty",
+        "target": "N_move_next"
+      },
+      {
+        "source": "N_move_next",
+        "target": "N_search"
+      },
+      {
+        "source": "N_search",
+        "target": "N_take"
+      },
+      {
+        "source": "N_take",
+        "target": "N_move_next"
+      },
+      {
+        "source": "N_take",
+        "target": "N_deliver"
+      }
+    ],
+    "nodes": [
+      {
+        "node_id": "N_search",
+        "role": "SearchAttempt (go/open/use/examine a container/location)",
+        "span_ids": [
+          "S_E0_0",
+          "S_E0_1",
+          "S_E1_0",
+          "S_E3_0",
+          "S_E3_3",
+          "S_E4_0",
+          "S_E4_1",
+          "S_E4_4",
+          "S_E5_0",
+          "S_E6_0",
+          "S_E7_0",
+          "S_E7_1",
+          "S_E7_3"
+        ]
+      },
+      {
+        "node_id": "N_observe_empty",
+        "role": "ObserveNothing (look/examine shows nothing / repeated looks)",
+        "span_ids": [
+          "S_E1_1",
+          "S_E3_1",
+          "S_E4_2",
+          "S_E4_5",
+          "S_E0_0"
+        ]
+      },
+      {
+        "node_id": "N_move_next",
+        "role": "MoveNext (go to another location / change focus)",
+        "span_ids": [
+          "S_E0_3",
+          "S_E0_4",
+          "S_E3_2",
+          "S_E4_3",
+          "S_E5_2",
+          "S_E6_2",
+          "S_E7_2",
+          "S_E7_5",
+          "S_E1_2"
+        ]
+      },
+      {
+        "node_id": "N_take",
+        "role": "TakeItem (take/pick up discovered item)",
+        "span_ids": [
+          "S_E0_2",
+          "S_E3_4",
+          "S_E5_1",
+          "S_E6_1",
+          "S_E1_3",
+          "S_E7_4"
+        ]
+      },
+      {
+        "node_id": "N_deliver",
+        "role": "Deliver (move or place item to goal target)",
+        "span_ids": [
+          "S_E0_5",
+          "S_E1_4",
+          "S_E5_3",
+          "S_E6_3"
+        ]
+      }
+    ],
+    "spans": [
+      {
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E0_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 8,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E0_1",
+        "start_offset": 4
+      },
+      {
+        "end_offset": 9,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "intent": "TakeItem",
+        "span_id": "S_E0_2",
+        "start_offset": 8
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E0_3",
+        "start_offset": 9
+      },
+      {
+        "end_offset": 23,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E0_4",
+        "start_offset": 20
+      },
+      {
+        "end_offset": 27,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "intent": "Deliver",
+        "span_id": "S_E0_5",
+        "start_offset": 23
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E1_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "intent": "ObserveNothing",
+        "span_id": "S_E1_1",
+        "start_offset": 4
+      },
+      {
+        "end_offset": 12,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E1_2",
+        "start_offset": 11
+      },
+      {
+        "end_offset": 15,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "intent": "TakeItem",
+        "span_id": "S_E1_3",
+        "start_offset": 13
+      },
+      {
+        "end_offset": 15,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "intent": "Deliver",
+        "span_id": "S_E1_4",
+        "start_offset": 15
+      },
+      {
+        "end_offset": 2,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E3_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 8,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "intent": "ObserveNothing",
+        "span_id": "S_E3_1",
+        "start_offset": 5
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E3_2",
+        "start_offset": 8
+      },
+      {
+        "end_offset": 13,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E3_3",
+        "start_offset": 11
+      },
+      {
+        "end_offset": 13,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "intent": "TakeItem",
+        "span_id": "S_E3_4",
+        "start_offset": 12
+      },
+      {
+        "end_offset": 14,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E3_5",
+        "start_offset": 13
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E4_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 7,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E4_1",
+        "start_offset": 6
+      },
+      {
+        "end_offset": 12,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "intent": "ObserveNothing",
+        "span_id": "S_E4_2",
+        "start_offset": 8
+      },
+      {
+        "end_offset": 19,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E4_3",
+        "start_offset": 17
+      },
+      {
+        "end_offset": 29,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E4_4",
+        "start_offset": 28
+      },
+      {
+        "end_offset": 29,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "intent": "ObserveNothing",
+        "span_id": "S_E4_5",
+        "start_offset": 29
+      },
+      {
+        "end_offset": 1,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E5_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 2,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "intent": "TakeItem",
+        "span_id": "S_E5_1",
+        "start_offset": 1
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E5_2",
+        "start_offset": 2
+      },
+      {
+        "end_offset": 5,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "intent": "Deliver",
+        "span_id": "S_E5_3",
+        "start_offset": 3
+      },
+      {
+        "end_offset": 1,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E6_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 1,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "intent": "TakeItem",
+        "span_id": "S_E6_1",
+        "start_offset": 1
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E6_2",
+        "start_offset": 2
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "intent": "Deliver",
+        "span_id": "S_E6_3",
+        "start_offset": 3
+      },
+      {
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E7_0",
+        "start_offset": 0
+      },
+      {
+        "end_offset": 8,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E7_1",
+        "start_offset": 3
+      },
+      {
+        "end_offset": 11,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E7_2",
+        "start_offset": 9
+      },
+      {
+        "end_offset": 24,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "intent": "SearchAttempt",
+        "span_id": "S_E7_3",
+        "start_offset": 22
+      },
+      {
+        "end_offset": 26,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "intent": "TakeItem",
+        "span_id": "S_E7_4",
+        "start_offset": 23
+      },
+      {
+        "end_offset": 29,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "intent": "MoveNext",
+        "span_id": "S_E7_5",
+        "start_offset": 27
+      }
+    ]
+  },
+  "model_identity": {
+    "memoized_exact_request": true,
+    "persistent_cache": true,
+    "wrapped": {
+      "backend": "openai-compatible",
+      "base_url": "https://us.api.openai.com/v1",
+      "models": {
+        "target_motif": "gpt-5-mini"
+      },
+      "request_overrides": {
+        "max_completion_tokens": 12000,
+        "reasoning_effort": "low"
+      },
+      "temperature": null,
+      "transport_attempts": 2
+    }
+  },
+  "motif": {
+    "adaptation_episode_ids": [
+      "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+      "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+      "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+      "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+      "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+      "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+      "pick_two_obj_and_place-Watch-None-Shelf-326/trial_T20190906_201415_685426/game.tw-pddl"
+    ],
+    "domain": "alfworld_valid_unseen",
+    "edges": [
+      {
+        "source": "N_search",
+        "supporting_boundaries": [
+          [
+            "S_E1_0",
+            "S_E1_1"
+          ],
+          [
+            "S_E4_1",
+            "S_E4_2"
+          ]
+        ],
+        "target": "N_observe_empty"
+      },
+      {
+        "source": "N_observe_empty",
+        "supporting_boundaries": [],
+        "target": "N_move_next"
+      },
+      {
+        "source": "N_move_next",
+        "supporting_boundaries": [],
+        "target": "N_search"
+      },
+      {
+        "source": "N_search",
+        "supporting_boundaries": [],
+        "target": "N_take"
+      },
+      {
+        "source": "N_take",
+        "supporting_boundaries": [
+          [
+            "S_E6_1",
+            "S_E6_2"
+          ],
+          [
+            "S_E7_4",
+            "S_E7_5"
+          ]
+        ],
+        "target": "N_move_next"
+      },
+      {
+        "source": "N_take",
+        "supporting_boundaries": [
+          [
+            "S_E5_1",
+            "S_E5_3"
+          ]
+        ],
+        "target": "N_deliver"
+      }
+    ],
+    "motif_id": "d4227b6e50b93972af0994552246c8989ad3da3a8f4de3acc849d3827e4fc973",
+    "nodes": [
+      {
+        "node_id": "N_search",
+        "span_ids": [
+          "S_E0_0",
+          "S_E0_1",
+          "S_E1_0",
+          "S_E3_0",
+          "S_E3_3",
+          "S_E4_0",
+          "S_E4_1",
+          "S_E4_4",
+          "S_E5_0",
+          "S_E6_0",
+          "S_E7_0",
+          "S_E7_1",
+          "S_E7_3"
+        ],
+        "untrusted_role": "SearchAttempt (go/open/use/examine a container/location)"
+      },
+      {
+        "node_id": "N_observe_empty",
+        "span_ids": [
+          "S_E1_1",
+          "S_E3_1",
+          "S_E4_2",
+          "S_E4_5",
+          "S_E0_0"
+        ],
+        "untrusted_role": "ObserveNothing (look/examine shows nothing / repeated looks)"
+      },
+      {
+        "node_id": "N_move_next",
+        "span_ids": [
+          "S_E0_3",
+          "S_E0_4",
+          "S_E3_2",
+          "S_E4_3",
+          "S_E5_2",
+          "S_E6_2",
+          "S_E7_2",
+          "S_E7_5",
+          "S_E1_2"
+        ],
+        "untrusted_role": "MoveNext (go to another location / change focus)"
+      },
+      {
+        "node_id": "N_take",
+        "span_ids": [
+          "S_E0_2",
+          "S_E3_4",
+          "S_E5_1",
+          "S_E6_1",
+          "S_E1_3",
+          "S_E7_4"
+        ],
+        "untrusted_role": "TakeItem (take/pick up discovered item)"
+      },
+      {
+        "node_id": "N_deliver",
+        "span_ids": [
+          "S_E0_5",
+          "S_E1_4",
+          "S_E5_3",
+          "S_E6_3"
+        ],
+        "untrusted_role": "Deliver (move or place item to goal target)"
+      }
+    ],
+    "spans": [
+      {
+        "cycle_receipt_ids": [
+          "24e33fb372e6070a4d12d2513d021fac80f01b0443580e65891fa0bf13b9dc15",
+          "1e355c9f668686689881e59c17e8cea3470780d1ff682ad91709594176e718fe",
+          "c9d15e263ac6098c1dba682b895c5d08c4a38492d8d0072c819ec2f4b381a74c",
+          "c35bb0516644475ca5d11c41b08deb172201f5724976a62fccc27c6708405593"
+        ],
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "span_id": "S_E0_0",
+        "start_offset": 0,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "85202fd3ed5ccdbe0aad944f7ffabdf2f7e6d76495f547f2fca57007821d0c28",
+          "c3d7772df3a8b885da22ca81ae894609de880db6db6bd49735d2b68ace1df933",
+          "c8cf8382b9fdb538a97ce70f99dd7d85aa27563564fa7d125171aa5ae745fafe",
+          "8b26d48d946de39ea831665d85469f6cf16a4912bf0071662279fec0d48e86e6",
+          "fd64a636f0cc0859d4ea61ae107162c510e4766727f7fcfe8101eea1511f3ea4"
+        ],
+        "end_offset": 8,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "span_id": "S_E0_1",
+        "start_offset": 4,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "fd64a636f0cc0859d4ea61ae107162c510e4766727f7fcfe8101eea1511f3ea4",
+          "fefa04afc920333a000d48a86c3524792720a2ebfb98f77c17965cd048cebf90"
+        ],
+        "end_offset": 9,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "span_id": "S_E0_2",
+        "start_offset": 8,
+        "untrusted_intent": "TakeItem"
+      },
+      {
+        "cycle_receipt_ids": [
+          "fefa04afc920333a000d48a86c3524792720a2ebfb98f77c17965cd048cebf90",
+          "2a043a1a14e650bf30e4230322f44d9158af67ec7edc075623869e57be83ad51",
+          "e29e41bc3c5e423cba0a58dd41e40104fd3558a237e37258b3e4c6df1a97eba2"
+        ],
+        "end_offset": 11,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "span_id": "S_E0_3",
+        "start_offset": 9,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "8e2dc9c8f0231339a0abb3e3ddecc9117bc85e9f19b4989621a94bf5a3744ea8",
+          "f5bfc97825044db1769f51b4d370395b67713c87045b9ff729ec9aa8d0bc23ea",
+          "fa64ca3e6f8d800dba074470b33d8e7eff5c649ed6e04c2c2861cb3ee79ad39a",
+          "9d4a6042e3351c432820ca390137fe9cd9a250e7cdaaec16a1114f284c1770bb"
+        ],
+        "end_offset": 23,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "span_id": "S_E0_4",
+        "start_offset": 20,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "9d4a6042e3351c432820ca390137fe9cd9a250e7cdaaec16a1114f284c1770bb",
+          "ac43fd8cae4a599fd3d65f265f9d57176a0923bc166a21202c856a6b70bea410",
+          "896859fa0cde13d56f4480f6aa5c9386b150b5317cc7213723f432b2c3494241",
+          "9eb81e0c073bb85057f181d02b56c3c8d1cdc4e1b6bffef66958d79ed689f4ab",
+          "48faf1a6186b394ee752dc26d17d4637a50ba5e153b57efe241f764cda6d8313"
+        ],
+        "end_offset": 27,
+        "episode_id": "pick_two_obj_and_place-Spatula-None-Drawer-13/trial_T20190908_183611_514718/game.tw-pddl",
+        "span_id": "S_E0_5",
+        "start_offset": 23,
+        "untrusted_intent": "Deliver"
+      },
+      {
+        "cycle_receipt_ids": [
+          "9a8bbea3e1e9ab6c29fa027b2112fe9c5be627ab92077136f1649c0be76e13d6",
+          "c46075acb7d805d100f4e47ab897fb4d9ec5ee8aa6760bc76bb1115125ff1154",
+          "eba85d2bb67f2140c7662ecce1f0e7a05fdb4f4ddc1e1d012afef684eb713899",
+          "c5af8e51c5e222cc322c7605c29fe2a65205af57918ffe557da3c76ae693b87a"
+        ],
+        "end_offset": 3,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "span_id": "S_E1_0",
+        "start_offset": 0,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "207c40e3ef14d1092e78ce8e6087d386ae611be9827a6bd65b4a66d1839f55b4",
+          "823409281c4318fe5c3984d2ac8dd1b01df106f77aba6f82a04c045ac5a805eb",
+          "eae0ff9c6ba269c35cf36bf95fd52df5fbad9543eba03fa73649dd9bfa1a6269",
+          "4c44714b4e2f61f5d619072b76ca9ab224bb9bdb19fa77dc67fb8ea954208499",
+          "5ee1196b253b910636a795fce1080aba8dc96f5940a354919e8bb9b8c9b317b7",
+          "586db84747e16568379daee3ecd7e501832080192fd42e6529e3cefaa3df4451",
+          "e9402300c3be4ea362c77bd50c0176e71cd44a5c1f614e8ed60fe3b7a3f2c8b5",
+          "aba66be3d7535a732e13a9551f30aadf0fe8cb8154f5a4c282509ad6115c42be"
+        ],
+        "end_offset": 11,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "span_id": "S_E1_1",
+        "start_offset": 4,
+        "untrusted_intent": "ObserveNothing"
+      },
+      {
+        "cycle_receipt_ids": [
+          "aba66be3d7535a732e13a9551f30aadf0fe8cb8154f5a4c282509ad6115c42be",
+          "b39ab1b6a053ca417b829cf8a520dc73b9fa6bae77573c831c2093523224935d"
+        ],
+        "end_offset": 12,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "span_id": "S_E1_2",
+        "start_offset": 11,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "41b75848e612e9cc58ade9ee06af48fb4bdb719dad1e4cbc37503410b61af277",
+          "bb0229d21f8c6e02781fac9b8a384155e5b4778298ebb6f1e403024732c55699",
+          "5477385ab7005614e6493e30a441f57efe7180fd596436d876e1eed89a3578e3"
+        ],
+        "end_offset": 15,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "span_id": "S_E1_3",
+        "start_offset": 13,
+        "untrusted_intent": "TakeItem"
+      },
+      {
+        "cycle_receipt_ids": [
+          "5477385ab7005614e6493e30a441f57efe7180fd596436d876e1eed89a3578e3"
+        ],
+        "end_offset": 15,
+        "episode_id": "pick_and_place_simple-RemoteControl-None-ArmChair-223/trial_T20190908_163710_603458/game.tw-pddl",
+        "span_id": "S_E1_4",
+        "start_offset": 15,
+        "untrusted_intent": "Deliver"
+      },
+      {
+        "cycle_receipt_ids": [
+          "3d4593e0803441ed9979a2bb698f83b610df8449d22f7d3e80ff096fb2d676a5",
+          "bd20c352b7b923a514f3e13a4d2b23e31c588896b063acf98a9eb500de0de6f2",
+          "f8e29d11b03490e9e56bbb5e9539ce21ddc9eec7cca72542a4bb6f10e1f112ae"
+        ],
+        "end_offset": 2,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "span_id": "S_E3_0",
+        "start_offset": 0,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "026d70fffc13457bad890be18a28d074fd23f34d7bf45e953e263ba2cb9cf20b",
+          "825cc331d386bc74c5b442b2df0fbf720febdedc11f9e97ac5a943bd08817478",
+          "b1880e021317c5562e18071f0b25550d5ff94d4c6d142805d92459c8e9c3e889",
+          "9f038fff752d0846dab6e7a11f58359064c1fdbe2c8e6cb8cbeb4cd037a85f00"
+        ],
+        "end_offset": 8,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "span_id": "S_E3_1",
+        "start_offset": 5,
+        "untrusted_intent": "ObserveNothing"
+      },
+      {
+        "cycle_receipt_ids": [
+          "9f038fff752d0846dab6e7a11f58359064c1fdbe2c8e6cb8cbeb4cd037a85f00",
+          "26fba6e43619b54e35e80201e3ed073d59270393d2bd90800917680a6203c63b",
+          "0a7f7289a576b1a73dad947810e2e422251662e80352a76375324483ef8f11cc",
+          "1367090a55e7fa564ad364c6f6129338bcd10dd4b824f4513cc7009fb09f09c8"
+        ],
+        "end_offset": 11,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "span_id": "S_E3_2",
+        "start_offset": 8,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "1367090a55e7fa564ad364c6f6129338bcd10dd4b824f4513cc7009fb09f09c8",
+          "49724680b1f64766bbd97d02cec28c75ddf90285d5a56e43465c5c3969232d65",
+          "8917d81f2723fe716f7b8cb902c82aa89d6af84da251ac5c150ade358415b356"
+        ],
+        "end_offset": 13,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "span_id": "S_E3_3",
+        "start_offset": 11,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "49724680b1f64766bbd97d02cec28c75ddf90285d5a56e43465c5c3969232d65",
+          "8917d81f2723fe716f7b8cb902c82aa89d6af84da251ac5c150ade358415b356"
+        ],
+        "end_offset": 13,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "span_id": "S_E3_4",
+        "start_offset": 12,
+        "untrusted_intent": "TakeItem"
+      },
+      {
+        "cycle_receipt_ids": [
+          "8917d81f2723fe716f7b8cb902c82aa89d6af84da251ac5c150ade358415b356",
+          "739fb74b5babf745c269875d252df90b52a42c1d9bbbf27ac7ff0ae1b0b1544f"
+        ],
+        "end_offset": 14,
+        "episode_id": "pick_cool_then_place_in_recep-Potato-None-Microwave-25/trial_T20190910_225453_476809/game.tw-pddl",
+        "span_id": "S_E3_5",
+        "start_offset": 13,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "30ec2329726193591cfc6e1ff1aa622b1c20894c369d466289853281cc29f095",
+          "f5f46a9ebd734ad7213281b2a5b89e6d57090f2020c06b8fb31b0fe07be02cae",
+          "3bcf8b82882b6d34c1af9d8d1d209a06c25f2d762503492bed4795ec992c7a09",
+          "62814a7e18cb9c7375c7b8b064129d9bc895ecbefa499018331f5d85b9e1eefc"
+        ],
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "span_id": "S_E4_0",
+        "start_offset": 0,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "b40ded1940218dc4882e8fd66c1f6109df223191f69a2685475c25e039a40a87",
+          "f160cff8dc9e3fa66ff27a1fc1257d61d8284c67f0993b05376c0de38c04aa16"
+        ],
+        "end_offset": 7,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "span_id": "S_E4_1",
+        "start_offset": 6,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "b47d17263a46b9163abb07789a036c9bcf7b7826bcc9f64ba20a2ca17a5e7b73",
+          "12a8bae0edf536c49eff0a442700649ca060be8071d22ea06234e8234ca3dedd",
+          "67d7d30d6a74d7cd3a6945774f1b08eabcf9a5d195ad1c6524a6b59b9d79e628",
+          "179b1e13b3d88f86f5439bc9048fbe30a79b7a9a8be2f0de6ff175f07c0cb882",
+          "ff65d0e5d9f8f59dc45c7edec598f96dda0aeb49e59b981db78a50d0ed5cb980"
+        ],
+        "end_offset": 12,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "span_id": "S_E4_2",
+        "start_offset": 8,
+        "untrusted_intent": "ObserveNothing"
+      },
+      {
+        "cycle_receipt_ids": [
+          "cf9b68e0227b9636f4aa23198777f1b93350ddecc29edd3c51dbc14117e999e2",
+          "c3284c4168c542ae55c21387d8cf63c8ae48bfb328a412f262f250d3dcc106d9",
+          "e788a983907ce8d5399215c7e67ce5ff71adc4407177f13fb00ff70f07db1ad7"
+        ],
+        "end_offset": 19,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "span_id": "S_E4_3",
+        "start_offset": 17,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "fa86e4be3e3a5cecb58d6ed5650a1980fddca4d66c1749daa9a8d0069cf8b215",
+          "9ee218505cc776ec713082e0bdeadf924f40b8e1c4315bfc7f2fd731d3c0950d"
+        ],
+        "end_offset": 29,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "span_id": "S_E4_4",
+        "start_offset": 28,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "9ee218505cc776ec713082e0bdeadf924f40b8e1c4315bfc7f2fd731d3c0950d"
+        ],
+        "end_offset": 29,
+        "episode_id": "pick_two_obj_and_place-Cup-None-Cabinet-2/trial_T20190908_030749_717286/game.tw-pddl",
+        "span_id": "S_E4_5",
+        "start_offset": 29,
+        "untrusted_intent": "ObserveNothing"
+      },
+      {
+        "cycle_receipt_ids": [
+          "e8b6f2379b4ed2a8798e7dbff9bd13e6eafba437cb4a1591ed6d0b2204e4e15a",
+          "a26b40bf930cfdf14d5fef13f0afef767642de9f8be9dae8e3866a98c98d047b"
+        ],
+        "end_offset": 1,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "span_id": "S_E5_0",
+        "start_offset": 0,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "a26b40bf930cfdf14d5fef13f0afef767642de9f8be9dae8e3866a98c98d047b",
+          "3ef6e8b412925854873e52ab7449399610eff5227305d26eb7216ef273a002ff"
+        ],
+        "end_offset": 2,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "span_id": "S_E5_1",
+        "start_offset": 1,
+        "untrusted_intent": "TakeItem"
+      },
+      {
+        "cycle_receipt_ids": [
+          "3ef6e8b412925854873e52ab7449399610eff5227305d26eb7216ef273a002ff",
+          "02a4a0d943cd24eb27aa4f2a3af62f7391ff3a5afbf0d38d3efda433e588b756"
+        ],
+        "end_offset": 3,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "span_id": "S_E5_2",
+        "start_offset": 2,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "02a4a0d943cd24eb27aa4f2a3af62f7391ff3a5afbf0d38d3efda433e588b756",
+          "a2e4cc9e91de1c73a0650cb73a6aa67943fe8a66a8ae6f782f962b586a8fe483",
+          "7b63190089a5b40b04c017b9941104c0b1b358d7d1470d47b94ea5d4f9c231f1"
+        ],
+        "end_offset": 5,
+        "episode_id": "pick_and_place_simple-KeyChain-None-Sofa-228/trial_T20190908_122649_115988/game.tw-pddl",
+        "span_id": "S_E5_3",
+        "start_offset": 3,
+        "untrusted_intent": "Deliver"
+      },
+      {
+        "cycle_receipt_ids": [
+          "038e2770f9888e49b5573e8e4210df5841c381de7ada028814f09c7d8aadb2de",
+          "3b5e444f8c22eaf2786b899a898839ae24214b7eae9183c05f428fdc24a5a875"
+        ],
+        "end_offset": 1,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "span_id": "S_E6_0",
+        "start_offset": 0,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "3b5e444f8c22eaf2786b899a898839ae24214b7eae9183c05f428fdc24a5a875"
+        ],
+        "end_offset": 1,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "span_id": "S_E6_1",
+        "start_offset": 1,
+        "untrusted_intent": "TakeItem"
+      },
+      {
+        "cycle_receipt_ids": [
+          "0007f3f1d7b30c4fc5f7577bdd3837fd3851f177edcf14546028118c7054dc90",
+          "f28811a96803e475ac99e7595184066b2bb70005d03ceff816815b50b036f9af"
+        ],
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "span_id": "S_E6_2",
+        "start_offset": 2,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "f28811a96803e475ac99e7595184066b2bb70005d03ceff816815b50b036f9af"
+        ],
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-SprayBottle-None-Cabinet-417/trial_T20190909_112708_722705/game.tw-pddl",
+        "span_id": "S_E6_3",
+        "start_offset": 3,
+        "untrusted_intent": "Deliver"
+      },
+      {
+        "cycle_receipt_ids": [
+          "97e02f53fd4fdccde95584902fbaad2aba999321f657a8e0148c4722836abfc7",
+          "d6169ba99be8cb41bc1a1b64e11b73bca0985ab0a27126e3d2da589b67dfd02f",
+          "af07a61415b5dae00febae510524bf399f749667d67977f0c37b2880522a3f1c",
+          "a6b8b10ad91a98d5b9ce8f8d002f7a2faefbce7fd875cc19bf4106dd5adfc124"
+        ],
+        "end_offset": 3,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "span_id": "S_E7_0",
+        "start_offset": 0,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "a6b8b10ad91a98d5b9ce8f8d002f7a2faefbce7fd875cc19bf4106dd5adfc124",
+          "dfc9df2262347ca4fabca4a56e77de9bc212ada4b7879f6fb18910c6af5ebbf5",
+          "10c8b7c454831fde3e8a0c9a7cdbc9db9cb5a47e70f2ec8c107077dfd47cf859",
+          "2daee765d550823f0a984195e60d934f524951e050d61a0a79c8a4c0455467cc",
+          "ae3d17e0046f2a31ec0b9591b4843dc904863fa3b142604e85a04141ad8c1327",
+          "97691d8635a87b827c72dd019204ec54d7e6541694b8b32f4f800e6cbc84acc5"
+        ],
+        "end_offset": 8,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "span_id": "S_E7_1",
+        "start_offset": 3,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "cbc7de36a621bb9fe541840e13d677a8c3bd22a4eb71b3de253c049d7edeeb7c",
+          "b1a62286057d7992fae45ca9b0b4c9bf812c3adafa10cdfa19483a5a8c479692",
+          "dc18811c0c797774525e12e759fcbfa64c431acead3d3b51c0a898c46cbc2eb6"
+        ],
+        "end_offset": 11,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "span_id": "S_E7_2",
+        "start_offset": 9,
+        "untrusted_intent": "MoveNext"
+      },
+      {
+        "cycle_receipt_ids": [
+          "dfa3eca67e0adfe5933f11810977b2ab925c7a8aac128cfe2f7a910b83e135dc",
+          "52fa3c6a11ff43c4314f9664d191e24b6435f178e75aa8e6318c9b72438d0f15",
+          "76a4c6cb0e5a48918a4485daf99689b52360f7265d217a09b8edb34acd18648f"
+        ],
+        "end_offset": 24,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "span_id": "S_E7_3",
+        "start_offset": 22,
+        "untrusted_intent": "SearchAttempt"
+      },
+      {
+        "cycle_receipt_ids": [
+          "52fa3c6a11ff43c4314f9664d191e24b6435f178e75aa8e6318c9b72438d0f15",
+          "76a4c6cb0e5a48918a4485daf99689b52360f7265d217a09b8edb34acd18648f",
+          "649eced79e0826610a9beaee43c8cf4569de5583bd8701c956c6d1f68a699639",
+          "fefe0318017693b609f73cb98d1ff54bd89976af58e0601df6932bc6a3095b87"
+        ],
+        "end_offset": 26,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "span_id": "S_E7_4",
+        "start_offset": 23,
+        "untrusted_intent": "TakeItem"
+      },
+      {
+        "cycle_receipt_ids": [
+          "3de0cb009d61376d4630c27f15f51540eb37564f76958a0520442bb118e9a05c",
+          "b156cd3975a8f0f759245ab0e6294f453af2306b9e1377edd2edea5e300cf5f0",
+          "a05e6833d541ed95f3ae409c9e8cca66d982273f63a3c02215dab422d802215c"
+        ],
+        "end_offset": 29,
+        "episode_id": "pick_two_obj_and_place-Book-None-Desk-309/trial_T20190909_061225_804285/game.tw-pddl",
+        "span_id": "S_E7_5",
+        "start_offset": 27,
+        "untrusted_intent": "MoveNext"
+      }
+    ],
+    "untrusted_description": "Recurring attempt-observe-branch-recover loop extracted from episodes: agent repeatedly searches a location (go/open/use/examine), observes nothing (look/examine repeated), branches by moving to another location, and when an item is found it picks it up and later delivers it to the task target. This produces a cycle SearchAttempt -> ObserveNothing -> MoveNext -> SearchAttempt, with a branch SearchAttempt -> TakeItem -> Deliver. All spans are contiguous, cite exact offsets, and each node and edge recurs in at least two episodes."
+  },
+  "qualification_or_held_out_used": false,
+  "schema_version": 1,
+  "source_files": [
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_0.json",
+      "records": 28,
+      "sha256": "a78c79ce51cfd814fe8a38c260388bcb61e47dbd2202fabbb18693a1e79491cb"
+    },
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_1.json",
+      "records": 16,
+      "sha256": "04abc818c7333e5aee06d18c2f3ad549809652b6916c257ab8ada0f8d3e942c5"
+    },
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_2.json",
+      "records": 8,
+      "sha256": "381b7e51ffe160be49918d69be941d815e7386d6f5e79355bf8083a4d7678ee2"
+    },
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_3.json",
+      "records": 30,
+      "sha256": "8f1169775980ecd237edaf42213f2f02f4c88352d0344f3d44951cadb8f5caba"
+    },
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_4.json",
+      "records": 30,
+      "sha256": "ddbb8b52aba6c5789181b70d407670dd764f978cc0c4259af496dde3589b07b1"
+    },
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_5.json",
+      "records": 6,
+      "sha256": "da22f1ff4cda9c68eff495a735a158f511f11f88485b584cc7fe91918e995ef9"
+    },
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_6.json",
+      "records": 4,
+      "sha256": "30ea81f1ec3ab75c664cbf524428d9af6d1d2b837ccc26db0de789722bd1aa0d"
+    },
+    {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation/task_7.json",
+      "records": 30,
+      "sha256": "fe217b3f3948e59492114d5ec899671e391494be50338354862df18a9eaa5c95"
+    }
+  ],
+  "usage": {
+    "cache_hit": false,
+    "original_usage": {
+      "completion_tokens": 2908,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 768,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens": 30697,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "total_tokens": 33605
+    }
+  }
+}
