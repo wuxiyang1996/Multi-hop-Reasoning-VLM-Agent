@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "status": "CONTROLLED_MECHANISM_SMOKE",
+  "claim_boundary": "Controlled cross-semantic mechanism validation only. The source qualification and target environment are synthetic; this is not evidence of real-game transfer.",
+  "maximum_steps": 7,
+  "minimum_authentic_intervention_rate": 0.4,
+  "episodes": [
+    {"episode_id": "incident-00", "requires_decode": false},
+    {"episode_id": "incident-01", "requires_decode": true},
+    {"episode_id": "incident-02", "requires_decode": false},
+    {"episode_id": "incident-03", "requires_decode": true},
+    {"episode_id": "incident-04", "requires_decode": true},
+    {"episode_id": "incident-05", "requires_decode": false},
+    {"episode_id": "incident-06", "requires_decode": true},
+    {"episode_id": "incident-07", "requires_decode": false},
+    {"episode_id": "incident-08", "requires_decode": true},
+    {"episode_id": "incident-09", "requires_decode": false},
+    {"episode_id": "incident-10", "requires_decode": true},
+    {"episode_id": "incident-11", "requires_decode": false}
+  ],
+  "output": "docs/results/harness_retargeting_smoke_v1_summary.json"
+}

@@ -7,6 +7,10 @@
 [`HARNESS_RETARGETING_BITTER_LESSONS.md`](HARNESS_RETARGETING_BITTER_LESSONS.md)。后续实验必须
 固定同一个 target Harness，对比 null、shuffled/wrong、authentic frozen source skill 与
 target-written oracle；仅 `skill+Harness > raw target-only` 不足以归因 source skill transfer。
+权限矩阵、fail-closed invariants、paired gates 与实现入口见
+[`HARNESS_RETARGETING_PROTOCOL.md`](HARNESS_RETARGETING_PROTOCOL.md)。
+Controlled cross-semantic reference run 已通过完整五条件矩阵；结果与严格 claim boundary 见
+[`HARNESS_RETARGETING_SMOKE_V1_RESULTS.md`](HARNESS_RETARGETING_SMOKE_V1_RESULTS.md)。
 
 ## 主 claim 与 weak-prior contract 更新（2026-07-23）
 
