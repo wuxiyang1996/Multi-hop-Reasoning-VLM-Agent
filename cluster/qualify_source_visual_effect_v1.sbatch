@@ -15,7 +15,7 @@ set -Eeuo pipefail
 CLEAN_REPO="${CLEAN_REPO:-${SLURM_SUBMIT_DIR}}"
 SOURCE_RUNTIME="${SOURCE_RUNTIME:-/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1}"
 RUN_ROOT="${RUN_ROOT:-${CLEAN_REPO}/runs/source_visual_intervention_v1/gymv_thunder_force_iii}"
-OUTPUT_DIR="${OUTPUT_DIR:-${RUN_ROOT}/qualification}"
+OUTPUT_DIR="${OUTPUT_DIR:-${RUN_ROOT}/qualification_episode_unit_v1}"
 GYMV_CONDA_ENV="${GYMV_CONDA_ENV:-gymv}"
 WORKERS="${WORKERS:-4}"
 

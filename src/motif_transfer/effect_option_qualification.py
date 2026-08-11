@@ -305,6 +305,7 @@ def collect_source_qualification(
     output_dir: Path,
     env_factory: Callable[[str, int], QualificationEnvironment],
     workers: int,
+    runtime_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     validate_causal_effect_option_artifact(artifact)
     if artifact.get("plan_sha256") != plan.get("plan_sha256"):
@@ -375,6 +376,7 @@ def collect_source_qualification(
         "trajectory_count": len(jobs),
         "receipts_file": receipts_path.name,
         "receipts_sha256": file_sha256(receipts_path),
+        "runtime_receipt": dict(runtime_receipt or {}),
         "summary": summary,
     }
     manifest = body | {"manifest_sha256": stable_hash(body)}
