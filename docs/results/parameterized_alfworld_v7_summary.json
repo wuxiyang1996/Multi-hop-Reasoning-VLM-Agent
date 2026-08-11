@@ -1,0 +1,74 @@
+{
+  "schema_version": "parameterized-real-source-alfworld-v7-summary",
+  "status": "FRESH_CONFIRMATION_NEGATIVE_STOP",
+  "claim_boundary": "FRESH_UNSEEN_TRAIN_INSTANCE_CONFIRMATION_ONLY; NOT VALID_UNSEEN OOD; EXISTING_VALID_UNSEEN_HELDOUT_UNREAD",
+  "parent_source_ir_sha256": "5a7a48a6cc083a9b8caffbcb02fa721971a28d2052f276c847bb9296641942ea",
+  "parameterized_source_ir_sha256": "25d3cce470c479b56db8d04174a65e29541dab081ae3b2664e94a08f9686fd18",
+  "property_router_sha256": "8014b961f7e7b3b0f3ab26aa7d4e8216a4b264e06cd3c2c56ff668432ca58f18",
+  "confirmation_manifest_sha256": "b3600e9387786d75ad9b3cfd0d4835072ffca9659c996019503eb026ff6c5d6d",
+  "adaptation_gate_manifest_sha256": "7c2661b061a2d67b9dffca8d17b9fffc833197f24729df863bfa52bb2af6b80f",
+  "harness_sha256": "5d80aa99b355aaf4f2de515c9cdca2c4b966f2b6c0a39d774998f0dcdb96d47b",
+  "report_sha256": "cf9d200567438a819ab98bb349bb9e094d5f245ad3437262ead9a4113abe7972",
+  "existing_valid_unseen_heldout_read": false,
+  "thresholds": {
+    "minimum_property_confidence": 0.8,
+    "minimum_role_binding": 0.5,
+    "minimum_realization_score": 0.1,
+    "minimum_target_policy_ratio": 0.05
+  },
+  "fresh_adaptation_gate": {
+    "property_router_accuracy": 0.9166666666666666,
+    "states": 456,
+    "target_only_effect_accuracy": 0.8574561403508771,
+    "authentic_effect_accuracy": 0.8618421052631579,
+    "target_only_action_top1": 0.22149122807017543,
+    "authentic_action_top1": 0.22587719298245615,
+    "changed_effect_count": 2,
+    "changed_task_count": 2,
+    "all_gates_passed": true
+  },
+  "fresh_confirmation": {
+    "tasks": 24,
+    "official_successes": {
+      "target_only": 16,
+      "authentic_parameterized_ir": 16,
+      "edge_permuted_ir": 16,
+      "property_permuted_router": 16
+    },
+    "mean_steps": {
+      "target_only": 58.5,
+      "authentic_parameterized_ir": 57.625,
+      "edge_permuted_ir": 59.0,
+      "property_permuted_router": 57.791666666666664
+    },
+    "authentic_interventions": {
+      "source_admission_rate": 0.03181489515545915,
+      "changed_effect_count": 12,
+      "changed_task_count": 5,
+      "required_option_invariance_rate": 1.0,
+      "changed_effect_types": {
+        "BIND": 12,
+        "MUTATE": 0,
+        "RELATE": 0
+      }
+    },
+    "paired_authentic_vs_target_only": {
+      "wins": 1,
+      "ties": 22,
+      "losses": 1,
+      "net_wins": 0
+    },
+    "paired_authentic_vs_property_permuted": {
+      "wins": 0,
+      "ties": 24,
+      "losses": 0,
+      "net_wins": 0
+    },
+    "failed_gates": [
+      "paired_net_win_over_target_only",
+      "strict_success_superiority_to_all_controls"
+    ]
+  },
+  "diagnosis": "GOAL_OBJECT_ROLE_LACKS_INSTANCE_COUNT_AND_UNSATISFIED_SLOT_STATE; ALL FRESH INTERVENTIONS COLLAPSED TO GENERIC_BIND",
+  "next_step": "PREDICT_MARGINAL_GOAL_SLOT_CLOSURE_AND_REQUIRE PER-EDGE INTERVENTION COVERAGE BEFORE A NEW FROZEN SPLIT"
+}
