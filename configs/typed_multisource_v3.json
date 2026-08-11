@@ -1,0 +1,45 @@
+{
+  "schema_version": "typed-multisource-config-v3",
+  "namespace": "typed-multisource-v3-frozen",
+  "seeds": [0, 1, 2],
+  "groups_per_effect": 1,
+  "selection": {
+    "search": "deterministic breadth-first search over native action ordinals",
+    "fork": "reset(seed) plus exact prefix replay for every native action",
+    "labels": "mechanical before/after simulator-state deltas",
+    "source_reward_used_for_labels": false
+  },
+  "tasks": [
+    {
+      "task_id": "doorkey_5x5",
+      "environment_id": "MiniGrid-DoorKey-5x5-v0",
+      "required_effects": ["BIND", "MUTATE"],
+      "max_depth": 18,
+      "max_states": 800
+    },
+    {
+      "task_id": "unlock_pickup",
+      "environment_id": "MiniGrid-UnlockPickup-v0",
+      "required_effects": ["BIND", "MUTATE"],
+      "max_depth": 24,
+      "max_states": 3000
+    },
+    {
+      "task_id": "put_near",
+      "environment_id": "MiniGrid-PutNear-6x6-N2-v0",
+      "required_effects": ["BIND", "RELATE"],
+      "max_depth": 20,
+      "max_states": 1000
+    }
+  ],
+  "source_gate": {
+    "required_positive_groups_per_task_effect_split": 1,
+    "required_matched_negative_groups_per_task_effect_split": 1,
+    "required_replay_mismatches": 0
+  },
+  "transfer_boundary": {
+    "transfer": ["typed effect nodes", "guarded symbolic edges", "source receipt lineage"],
+    "do_not_transfer": ["source action ordinal", "environment id", "coordinates", "mission text", "source probe weights"],
+    "target_grounding": "target-native neural probes"
+  }
+}
