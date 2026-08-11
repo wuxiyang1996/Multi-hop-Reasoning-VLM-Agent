@@ -1,0 +1,61 @@
+{
+  "schema_version": "typed-multisource-alfworld-v5-v6-summary",
+  "claim_boundary": "CONSUMED_QUALIFICATION_DIAGNOSTIC_ONLY; TARGET_HELDOUT_UNREAD",
+  "source_ir_sha256": "5a7a48a6cc083a9b8caffbcb02fa721971a28d2052f276c847bb9296641942ea",
+  "v5": {
+    "status": "DEVELOPMENT_DIAGNOSTIC_NEGATIVE_STOP",
+    "harness_sha256": "a997adba9bb26735469dc1a16067d8c6231398e32904337d4687be5e1e1731bf",
+    "report_sha256": "5268a7d8f15120ebeb8827be80ec8460c26f85af77e7d715cf3070c78e6157fd",
+    "heldout_read": false,
+    "official_successes": {
+      "target_only": 16,
+      "authentic_typed_ir": 13,
+      "edge_permuted_ir": 0,
+      "wrong_guard_ir": 0
+    },
+    "paired_authentic_vs_target_only": {
+      "wins": 1,
+      "ties": 19,
+      "losses": 4,
+      "net_wins": -3
+    },
+    "authentic_rates": {
+      "source_admission": 0.11942959001782531,
+      "changed_action": 0.053475935828877004,
+      "changed_effect": 0.0427807486631016,
+      "required_option_invariance": 1.0
+    },
+    "trace_diagnosis": {
+      "source_admitted_changed_actions": 52,
+      "same_effect_but_changed_concrete_action": 12,
+      "selected_policy_below_10pct_of_fallback": 28,
+      "selected_policy_below_1pct_of_fallback": 21
+    }
+  },
+  "v6": {
+    "status": "BLOCKED_BEFORE_ONLINE_DIAGNOSTIC",
+    "harness_sha256": "211afc460c597717a5b08314e61dd8eeb9b87cf0dc2a89b79b695d8bb6249028",
+    "concrete_action_ranking": "target_policy_within_effect",
+    "minimum_realization_score": 0.05,
+    "minimum_target_policy_ratio": 0.95,
+    "adaptation_train": {
+      "states": 991,
+      "effect_accuracy": 0.9505549949545913,
+      "expert_action_top1": 0.549949545913219,
+      "source_admission_rate": 0.09989909182643794,
+      "changed_effect_rate": 0.020181634712411706
+    },
+    "adaptation_validation": {
+      "states": 306,
+      "effect_accuracy": 0.9248366013071896,
+      "target_only_effect_accuracy": 0.9248366013071896,
+      "expert_action_top1": 0.565359477124183,
+      "target_only_expert_action_top1": 0.565359477124183,
+      "source_admission_rate": 0.13071895424836602,
+      "changed_effect_rate": 0.006535947712418301
+    },
+    "failed_gate": "validation_changed_effect_nontrivial",
+    "online_resets": 0
+  },
+  "next_step": "INDUCE_ROLE_AND_GOAL_CONDITIONED_SOURCE_EDGES; TRAIN_TARGET_NATIVE_NEURAL_EDGE_ROUTER; FREEZE_NEW_OUTCOME_BLIND_CONFIRMATION_SPLIT"
+}
