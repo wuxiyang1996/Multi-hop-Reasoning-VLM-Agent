@@ -87,3 +87,39 @@ and repeated original source action.  The primary endpoint is cumulative game
 reward under the full treatment regime.  Qualification must beat shuffled,
 random, and marginal controls both in mean paired reward and net paired wins;
 otherwise held-out source and every target run stay blocked.
+
+## Qualification result: rejected
+
+Job `7237914` completed all 80 planned trajectories with no protocol failures.
+The primary full-regime h=8 results were:
+
+| condition | mean reward | positive rate | life-loss rate |
+| --- | ---: | ---: | ---: |
+| authentic effect structure | 0.0 | 0.000 | 0.250 |
+| shuffled effect structure | 50.0 | 0.375 | 0.000 |
+| all-action hash random | 0.0 | 0.000 | 0.000 |
+| discovery action marginal | 0.0 | 0.000 | 0.125 |
+| repeat source action | 12.5 | 0.125 | 0.125 |
+
+Using source episode as the independent paired unit (four episodes), authentic
+versus shuffled had zero wins, one tie, and three losses; its mean margin was
+-50.  Authentic tied random and marginal at zero, so it also failed both of
+those strict gates.  A second execution after the episode-unit and runtime-code
+receipt fixes produced byte-identical trajectory receipts.  Held-out source and
+all targets were therefore not run.
+
+The important diagnosis is not “neural-symbolic transfer is impossible.”  It is
+that **visual effect existence is not option value**.  Actions in the apparent
+visual nullspace can implement useful waiting while the world continues to
+evolve, and a stable visual effect can move the agent into danger.  In this run,
+the shuffled controller accidentally composed `DOWN`, `B`, and wait-like keys;
+three qualification episodes gained reward, while the authentic controller's
+value-blind effect cycling gained none and lost lives in two snapshots.
+
+A defensible v2 must add source-native delayed valence and composition before
+transfer: learn when an effect is useful from the current frame, represent
+wait/observe as an option instead of filtering it, and test matched sequences
+such as actuate -> wait/observe -> verify and risk-conditioned reposition.  The
+symbolic sequence may transfer, but source action names, pixels, and value
+predictions may not; those require a target-native neural grounder.  This v1
+candidate must not be sent to WebShop, visual reasoning, or video tasks.
