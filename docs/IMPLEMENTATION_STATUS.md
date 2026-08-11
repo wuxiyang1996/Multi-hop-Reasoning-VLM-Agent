@@ -1,5 +1,13 @@
 # Implementation Status
 
+## Harness retargeting 跨版本审计（2026-08-11）
+
+五个历史工作目录的 docs、raw reports 与关键 logs 已完成只读审计。审计结论、负结果、
+受限正结果及 frozen-skill/target-harness 权限边界见
+[`HARNESS_RETARGETING_BITTER_LESSONS.md`](HARNESS_RETARGETING_BITTER_LESSONS.md)。后续实验必须
+固定同一个 target Harness，对比 null、shuffled/wrong、authentic frozen source skill 与
+target-written oracle；仅 `skill+Harness > raw target-only` 不足以归因 source skill transfer。
+
 ## 主 claim 与 weak-prior contract 更新（2026-07-23）
 
 主问题已从 `skill/motif transfer` 改为：target MDP 的 test-time reasoning 能否从异构 source
