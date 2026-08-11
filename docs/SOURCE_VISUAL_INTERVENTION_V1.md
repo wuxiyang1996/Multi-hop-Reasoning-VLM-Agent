@@ -60,3 +60,30 @@ episodes:
 Target-native grounding starts only if the source option is predictable and
 causally valuable on qualification and held-out source episodes.  Target pixels
 or action names are never copied from the source artifact.
+
+## Discovery result (2026-08-11)
+
+The complete Thunder discovery run collected 96/96 valid forks (eight frozen
+states times 12 native actions).  Every snapshot had one identical before-frame
+hash across all treatments.  Exact counterfactual frame equivalence induced the
+following anonymous source grounding:
+
+- `PERSISTENT_NULL_EFFECT`: `MODE`, `START`, `X`, `Y`, `Z` (effect rate 0/8);
+- `STABLE_CAUSAL_EFFECT`: `A` (6/8), `B` (7/8), `C` (7/8);
+- `CONTEXTUAL_CAUSAL_EFFECT`: `UP` (4/8), `DOWN` (5/8), `LEFT` (2/8),
+  `RIGHT` (5/8).
+
+These native names are retained only to test the candidate back in Thunder.
+The proposed transfer object is the anonymous three-way effect partition and
+the symbolic rule “exclude the persistent nullspace, alternate stable-effect
+basis actions with contextual probes, and verify the predicted effect using a
+target-native grounder.”  The artifact remains
+`DISCOVERY_CANDIDATE_NOT_SOURCE_QUALIFIED`.
+
+Qualification uses untouched episodes, h=8 rollouts, and two estimands.  Its
+five paired conditions are authentic effect structure, cardinality-preserving
+fully deranged structure, all-action hash random, discovery action marginal,
+and repeated original source action.  The primary endpoint is cumulative game
+reward under the full treatment regime.  Qualification must beat shuffled,
+random, and marginal controls both in mean paired reward and net paired wins;
+otherwise held-out source and every target run stay blocked.
