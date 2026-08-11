@@ -229,20 +229,27 @@ def summarize_source_qualification(
             }
 
     primary_mode = "FULL_TREATMENT_REGIME"
-    authentic_rows = {
-        str(row["snapshot_id"]): row
-        for row in grouped[(primary_mode, "AUTHENTIC_EFFECT_STRUCTURE")]
-    }
+    def episode_h8(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
+        values: dict[str, list[float]] = defaultdict(list)
+        for row in rows:
+            values[str(row["episode_id"])].append(float(row["returns"]["h8"]))
+        return {
+            episode_id: sum(episode_values) / len(episode_values)
+            for episode_id, episode_values in values.items()
+        }
+
+    # Episodes, not the two snapshots sampled from each episode, are the
+    # independent paired units.  Snapshot-level pairing would be
+    # pseudoreplication and could overstate a four-episode qualification result.
+    authentic_rows = episode_h8(
+        grouped[(primary_mode, "AUTHENTIC_EFFECT_STRUCTURE")]
+    )
     control_gates = {}
     for control in GATE_CONTROLS:
-        control_rows = {
-            str(row["snapshot_id"]): row
-            for row in grouped[(primary_mode, control)]
-        }
+        control_rows = episode_h8(grouped[(primary_mode, control)])
         common = sorted(set(authentic_rows) & set(control_rows))
         diffs = [
-            float(authentic_rows[key]["returns"]["h8"])
-            - float(control_rows[key]["returns"]["h8"])
+            authentic_rows[key] - control_rows[key]
             for key in common
         ]
         authentic_mean = summaries[primary_mode]["AUTHENTIC_EFFECT_STRUCTURE"][
@@ -261,6 +268,7 @@ def summarize_source_qualification(
             and net_wins >= minimum_paired_net_wins
         )
         control_gates[control] = {
+            "paired_unit": "SOURCE_EPISODE",
             "paired_n": len(common),
             "mean_h8_margin": mean_margin,
             "paired_wins": sum(value > 0 for value in diffs),

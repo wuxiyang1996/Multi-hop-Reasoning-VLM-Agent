@@ -76,6 +76,7 @@ def _receipt(snapshot, treatment, value):
     return {
         "status": "INTERVENTION_OBSERVED",
         "snapshot_id": snapshot,
+        "episode_id": snapshot,
         "mode": "FULL_TREATMENT_REGIME",
         "treatment": treatment,
         "returns": {"h1": value, "h2": value, "h4": value, "h8": value},
@@ -104,3 +105,28 @@ def test_source_gate_requires_paired_uplift_over_every_control():
     failed = summarize_source_qualification(rows)
     assert not failed["qualification_passed"]
     assert failed["next_step"] == "STOP_BEFORE_HELD_OUT_AND_TARGET"
+
+
+def test_paired_gate_uses_episode_not_snapshot_as_independent_unit():
+    rows = []
+    for episode in ("episode-a", "episode-b"):
+        for snapshot_index in range(2):
+            snapshot = f"{episode}-snapshot-{snapshot_index}"
+            authentic = _receipt(snapshot, "AUTHENTIC_EFFECT_STRUCTURE", 2.0)
+            authentic["episode_id"] = episode
+            rows.append(authentic)
+            for control in (
+                "SHUFFLED_EFFECT_STRUCTURE", "ALL_ACTION_HASH_RANDOM",
+                "DISCOVERY_ACTION_MARGINAL",
+            ):
+                receipt = _receipt(snapshot, control, 1.0)
+                receipt["episode_id"] = episode
+                rows.append(receipt)
+            repeated = _receipt(snapshot, "REPEAT_SOURCE_ACTION", 0.0)
+            repeated["episode_id"] = episode
+            rows.append(repeated)
+    summary = summarize_source_qualification(rows)
+    assert summary["qualification_passed"]
+    for gate in summary["control_gates"].values():
+        assert gate["paired_unit"] == "SOURCE_EPISODE"
+        assert gate["paired_n"] == 2
