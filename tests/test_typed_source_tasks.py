@@ -6,6 +6,8 @@ from motif_transfer.typed_source_tasks import (
     TypedEffect,
     build_effect_ir,
     classify_typed_effects,
+    summarize_edge_replication_gate,
+    summarize_effect_value_gate,
     summarize_typed_source_gate,
 )
 
@@ -108,3 +110,52 @@ def test_ir_lineage_uses_development_only() -> None:
     assert ir["induction_split"] == "development"
     assert ir["validation_splits"] == ["heldout"]
     assert ir["source_lineage"] == ["a" * 64]
+
+
+def test_edge_replication_gate_requires_distinct_families() -> None:
+    ir = {
+        "edges": [
+            {
+                "from": "BIND",
+                "to": "RELATE",
+                "supporting_source_tasks": ["put_near", "putnext_3d"],
+            }
+        ]
+    }
+    requirement = [{
+        "from": "BIND", "to": "RELATE",
+        "minimum_source_tasks": 2, "minimum_simulator_families": 2,
+    }]
+    passed = summarize_edge_replication_gate(
+        ir,
+        requirement,
+        task_families={"put_near": "minigrid", "putnext_3d": "miniworld"},
+    )
+    assert passed["status"] == "EDGE_REPLICATION_GATE_PASSED"
+    failed = summarize_edge_replication_gate(
+        ir,
+        requirement,
+        task_families={"put_near": "minigrid", "putnext_3d": "minigrid"},
+    )
+    assert failed["status"] == "EDGE_REPLICATION_GATE_FAILED"
+
+
+def test_effect_value_gate_requires_official_terminal_outcomes() -> None:
+    collection = _collection("RELATE", before_bound=True)
+    collection["task_id"] = "put_near"
+    for row in collection["rows"]:
+        row["native_reward"] = 1.0 if "RELATE" in row["typed_effects"] else 0.0
+        row["terminated"] = "RELATE" in row["typed_effects"]
+    requirement = [{
+        "effect": "RELATE", "minimum_source_tasks": 1,
+        "minimum_simulator_families": 1, "minimum_task_split_cells": 1,
+    }]
+    passed = summarize_effect_value_gate(
+        [collection], requirement, task_families={"put_near": "minigrid"}
+    )
+    assert passed["status"] == "EFFECT_VALUE_GATE_PASSED"
+    collection["rows"][0]["terminated"] = False
+    failed = summarize_effect_value_gate(
+        [collection], requirement, task_families={"put_near": "minigrid"}
+    )
+    assert failed["status"] == "EFFECT_VALUE_GATE_FAILED"

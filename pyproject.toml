@@ -15,6 +15,10 @@ source-spatial = [
   "gymnasium>=1.2.2",
   "minigrid>=3.0.0",
 ]
+source-spatial-3d = [
+  "gymnasium>=1.2.2",
+  "miniworld @ git+https://github.com/Farama-Foundation/Miniworld.git",
+]
 vtb = [
   "beautifulsoup4>=4.12",
   "duckdb>=1.1",

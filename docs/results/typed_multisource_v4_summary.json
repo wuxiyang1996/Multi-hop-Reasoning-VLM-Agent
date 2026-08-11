@@ -1,0 +1,59 @@
+{
+  "schema_version": "typed-multisource-summary-v4",
+  "status": "SOURCE_TYPED_GATE_PASSED",
+  "tasks": ["doorkey_5x5", "unlock_pickup", "put_near", "putnext_3d"],
+  "simulator_families": ["minigrid", "miniworld"],
+  "seeds": [0, 1, 2],
+  "source_split_assignment": {
+    "0": "qualification",
+    "1": "development",
+    "2": "heldout"
+  },
+  "explored_states": 955,
+  "matched_forks": 174,
+  "gate_cells_passed": 24,
+  "gate_cells_total": 24,
+  "replay_mismatches": 0,
+  "effect_positive_forks": {
+    "BIND": 12,
+    "MUTATE": 6,
+    "POSITION": 12,
+    "RELATE": 6
+  },
+  "official_positive_terminal_forks": 6,
+  "edge_replication_gate": {
+    "status": "EDGE_REPLICATION_GATE_PASSED",
+    "edge": "BIND -> RELATE",
+    "supporting_source_tasks": ["put_near", "putnext_3d"],
+    "supporting_simulator_families": ["minigrid", "miniworld"]
+  },
+  "effect_value_gate": {
+    "status": "EFFECT_VALUE_GATE_PASSED",
+    "effect": "RELATE",
+    "officially_valued_task_split_cells": 6,
+    "required_task_split_cells": 6
+  },
+  "effect_ir": {
+    "ir_sha256": "5a7a48a6cc083a9b8caffbcb02fa721971a28d2052f276c847bb9296641942ea",
+    "induction_split": "development",
+    "validation_splits": ["heldout", "qualification"],
+    "source_lineage_count": 8,
+    "edges": [
+      {
+        "from": "BIND",
+        "to": "MUTATE",
+        "guard": "CARRIER_BOUND",
+        "supporting_source_tasks": ["doorkey_5x5", "unlock_pickup"]
+      },
+      {
+        "from": "BIND",
+        "to": "RELATE",
+        "guard": "CARRIER_BOUND",
+        "supporting_source_tasks": ["put_near", "putnext_3d"]
+      }
+    ]
+  },
+  "deterministic_repeat_identical": true,
+  "target_heldout_touched": false,
+  "claim": "BIND -> RELATE is reproducible and officially valued across two source tasks and two simulator families; target-domain success-rate transfer is not yet established."
+}
