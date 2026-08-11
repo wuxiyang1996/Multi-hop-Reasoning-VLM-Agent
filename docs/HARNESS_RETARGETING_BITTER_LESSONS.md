@@ -43,6 +43,8 @@ authority。否则 Harness 会包含 target policy，成功无法归因于 sourc
 | Hierarchical synthetic→ALFWorld V4 | authentic 19/24，neural-only 14/24，shuffled 12/24，phase-permuted 2/24 | 目前最强正证据；有效 factorization 是 source 选择 option、target 在 option 内选择 concrete action |
 | Real Candy→ALFWorld | fresh source forks 全部可重放，但 held-out normalized regret authentic `0.634`、shuffled `0.584` | 真实 intervention 存在不等于 observable state 能预测 value；source grounder 不合格时必须停止 target transfer |
 | Real-game→WebShop V7/V8 | V7 strict `1/8→0/8`、mean reward `0.573→0.531`；V8 恢复安全但零 intervention | source action arbitration 会放大 target-grounder 错误；安全 abstention 不是 transfer benefit |
+| Real Sokoban→ALFWorld V1 | authentic `14/24` 高于 target-only `11/24`，但 phase-permuted 为 `18/24` | source POSITION-heavy occupancy 与错误 feature semantics 被迁移；表面 success 增益未通过因果 control |
+| Real Sokoban→ALFWorld V2 | source effect guard 在新 boards 为 `95/96`，target masked grounder 通过；但 target authentic `10/24`、target-only `16/24` | effect direction 有 source 内容，但 binary COMMIT 折叠 ACQUIRE/TRANSFORM/PLACE，产生 typed-effect negative transfer |
 
 主要本地证据：
 
@@ -268,3 +270,6 @@ e_t = f_feedback^B(o_t, a_t, o_{t+1})
 - 当前 WebShop paired-label recovery 可归因于 game source；
 - generic `observe/act/verify/recover` loop 是 non-trivial transferable skill；
 - 五个仓库目录构成五次独立 replication。
+
+最新 V1/V2 的完整结果与 held-out 边界见
+[`SOKOBAN_ALFWORLD_NEUROSYMBOLIC_TRANSFER_V1_V2_RESULTS.md`](SOKOBAN_ALFWORLD_NEUROSYMBOLIC_TRANSFER_V1_V2_RESULTS.md)。
