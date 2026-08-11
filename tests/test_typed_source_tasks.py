@@ -94,3 +94,17 @@ def test_failed_gate_cannot_freeze_ir() -> None:
     assert gate["status"] == "SOURCE_TYPED_GATE_FAILED"
     with pytest.raises(ValueError):
         build_effect_ir([collection], gate)
+
+
+def test_ir_lineage_uses_development_only() -> None:
+    development = _collection("BIND", before_bound=False)
+    heldout = _collection("BIND", before_bound=False)
+    heldout["split"] = "heldout"
+    heldout["seed"] = 1
+    for row in heldout["rows"]:
+        row["before_replay_state_sha256"] = "b" * 64
+    gate = summarize_typed_source_gate([development, heldout])
+    ir = build_effect_ir([development, heldout], gate)
+    assert ir["induction_split"] == "development"
+    assert ir["validation_splits"] == ["heldout"]
+    assert ir["source_lineage"] == ["a" * 64]

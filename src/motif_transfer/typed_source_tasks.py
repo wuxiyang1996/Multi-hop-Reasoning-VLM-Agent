@@ -350,12 +350,24 @@ def summarize_typed_source_gate(
 
 
 def build_effect_ir(
-    collections: Sequence[Mapping[str, Any]], gate: Mapping[str, Any]
+    collections: Sequence[Mapping[str, Any]],
+    gate: Mapping[str, Any],
+    *,
+    induction_split: str = "development",
 ) -> dict[str, Any]:
     """Build an action/coordinate-free candidate IR from qualified receipts."""
     if gate.get("status") != "SOURCE_TYPED_GATE_PASSED":
         raise ValueError("cannot freeze typed effect IR before the source gate passes")
-    rows = [row for collection in collections for row in collection["rows"]]
+    induction_collections = [
+        collection
+        for collection in collections
+        if str(collection["split"]) == induction_split
+    ]
+    if not induction_collections:
+        raise ValueError(f"no collections found for induction split {induction_split!r}")
+    rows = [
+        row for collection in induction_collections for row in collection["rows"]
+    ]
     effects = sorted(
         {
             effect
@@ -365,7 +377,7 @@ def build_effect_ir(
         }
     )
     edge_support: dict[tuple[str, str], set[str]] = defaultdict(set)
-    for collection in collections:
+    for collection in induction_collections:
         task_rows = list(collection["rows"])
         has_bind = any("BIND" in row["typed_effects"] for row in task_rows)
         if not has_bind:
@@ -378,6 +390,14 @@ def build_effect_ir(
                 )
     core = {
         "schema_version": "typed-effect-ir-v3",
+        "induction_split": induction_split,
+        "validation_splits": sorted(
+            {
+                str(collection["split"])
+                for collection in collections
+                if str(collection["split"]) != induction_split
+            }
+        ),
         "nodes": effects,
         "edges": [
             {

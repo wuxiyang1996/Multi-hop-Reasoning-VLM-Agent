@@ -40,6 +40,8 @@
   "transfer_boundary": {
     "transfer": ["typed effect nodes", "guarded symbolic edges", "source receipt lineage"],
     "do_not_transfer": ["source action ordinal", "environment id", "coordinates", "mission text", "source probe weights"],
+    "ir_induction_split": "development",
+    "source_validation_only_splits": ["qualification", "heldout"],
     "target_grounding": "target-native neural probes"
   }
 }

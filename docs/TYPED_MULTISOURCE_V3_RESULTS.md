@@ -38,7 +38,8 @@ development / heldout / qualification。对每个 BFS 状态，每个 action for
 reset(seed) -> exact prefix replay -> one native intervention
 ```
 
-source gate 要求每个 `task × split × required effect` cell 同时具有：
+IR 只读取 development lineage；qualification 与 heldout 只验证冻结结构。source gate 要求
+每个 `task × split × required effect` cell 同时具有：
 
 1. 至少一个 effect-positive state；
 2. 同一 state 中至少一个不产生该 effect 的 native-action control；
@@ -64,7 +65,7 @@ heldout 分别为 `0.70 / 0.76 / 0.82`。同一个冻结命令重复运行得到
 冻结 IR SHA256：
 
 ```text
-1a19d0a7f9849b61fbb2178384fbf9fc9d9118617f2b2653f1a731b45ed8557e
+88ff2695ecd07ff5cd81035f37d5d6efba1831ebd038e620d9728585dd14ad85
 ```
 
 IR 中得到：
