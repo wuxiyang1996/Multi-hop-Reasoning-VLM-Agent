@@ -33,7 +33,9 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def main() -> int:
+def main(*, default_manifest_version: str = "v11") -> int:
+    if default_manifest_version not in {"v11", "v12"}:
+        raise ValueError("unsupported default manifest version")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--parent-manifest", type=Path, required=True)
     parser.add_argument("--train-root", type=Path, required=True)
@@ -44,19 +46,30 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--adaptation-seed", type=int, default=99601)
     parser.add_argument("--adaptation-per-family", type=int, default=8)
+    parser.add_argument(
+        "--manifest-version",
+        choices=("v11", "v12"),
+        default=default_manifest_version,
+    )
     args = parser.parse_args()
+    version_label = args.manifest_version.upper()
     output = args.output.resolve()
     if output.exists():
-        raise SystemExit(f"refusing to overwrite V11 manifest: {output}")
+        raise SystemExit(
+            f"refusing to overwrite {version_label} manifest: {output}"
+        )
     parent = _read(args.parent_manifest)
     parent_body = dict(parent)
     parent_hash = str(parent_body.pop("manifest_sha256", ""))
     if stable_hash(parent_body) != parent_hash:
-        raise SystemExit("parent V10 manifest hash mismatch")
-    if parent.get("schema_version") != (
-        "budgeted-executable-source-graph-alfworld-manifest-v10"
-    ):
-        raise SystemExit("wrong V10 parent manifest")
+        raise SystemExit("parent manifest hash mismatch")
+    expected_parent_schema = (
+        "budgeted-relation-edge-alfworld-manifest-v11"
+        if args.manifest_version == "v12"
+        else "budgeted-executable-source-graph-alfworld-manifest-v10"
+    )
+    if parent.get("schema_version") != expected_parent_schema:
+        raise SystemExit("wrong parent manifest for requested version")
     confirmation = tuple(map(
         str, parent["splits"]["fresh_confirmation"]
     ))
@@ -107,37 +120,69 @@ def main() -> int:
             key=lambda task_id: _rank(args.adaptation_seed, task_id),
         )
         if len(ranked) < args.adaptation_per_family:
-            raise SystemExit(f"family {family} lacks fresh V11 tasks")
+            raise SystemExit(
+                f"family {family} lacks fresh {version_label} tasks"
+            )
         selected = ranked[:args.adaptation_per_family]
         adaptation.extend(selected)
         selected_by_family[family] = selected
     if set(adaptation) & excluded:
-        raise RuntimeError("V11 adaptation overlaps consumed identities")
+        raise RuntimeError(
+            f"{version_label} adaptation overlaps consumed identities"
+        )
     if set(adaptation) & set(confirmation):
-        raise RuntimeError("V11 adaptation overlaps confirmation")
+        raise RuntimeError(
+            f"{version_label} adaptation overlaps confirmation"
+        )
     excluded_rows = sorted(excluded)
     excluded_payload = (
         "\n".join(excluded_rows) + "\n"
     ).encode()
+    is_v12 = args.manifest_version == "v12"
     body = {
         "schema_version": (
-            "budgeted-relation-edge-alfworld-manifest-v11"
+            "selective-budgeted-relation-edge-alfworld-manifest-v12"
+            if is_v12
+            else "budgeted-relation-edge-alfworld-manifest-v11"
         ),
-        "status": "FROZEN_BEFORE_ANY_V11_ADAPTATION_RESET",
+        "status": (
+            "FROZEN_BEFORE_ANY_V12_ADAPTATION_RESET"
+            if is_v12
+            else "FROZEN_BEFORE_ANY_V11_ADAPTATION_RESET"
+        ),
         "claim_boundary": (
-            "RELATE_ONLY_CLAIM_FIXED_AFTER_CONSUMED_V10_GATE; SIXTY_STEP_"
-            "ENDPOINT_UNCHANGED; V11_ADAPTATION_FRESH; CONFIRMATION_"
-            "PRESERVED_UNREAD; EXISTING_VALID_UNSEEN_HELDOUT_UNREAD"
+            (
+                "SELECTIVE_STEP_NINE_RULE_FIXED_AFTER_CONSUMED_V9_V10_"
+                "V11_GROUPED_AUDIT_AND_CLOSED_LOOP_REPLAY; SIXTY_STEP_"
+                "ENDPOINT_UNCHANGED; V12_ADAPTATION_FRESH; CONFIRMATION_"
+                "PRESERVED_UNREAD; EXISTING_VALID_UNSEEN_HELDOUT_UNREAD"
+            )
+            if is_v12
+            else (
+                "RELATE_ONLY_CLAIM_FIXED_AFTER_CONSUMED_V10_GATE; "
+                "SIXTY_STEP_ENDPOINT_UNCHANGED; V11_ADAPTATION_FRESH; "
+                "CONFIRMATION_PRESERVED_UNREAD; EXISTING_VALID_UNSEEN_"
+                "HELDOUT_UNREAD"
+            )
         ),
         "parent_manifest": {
             "path": str(args.parent_manifest.resolve()),
             "file_sha256": _sha256(args.parent_manifest),
             "manifest_sha256": parent_hash,
             "preserved_confirmation_task_count": len(confirmation),
-            "preserved_confirmation_reset_before_v11": False,
+            (
+                "preserved_confirmation_reset_before_v12"
+                if is_v12
+                else "preserved_confirmation_reset_before_v11"
+            ): False,
         },
         "development_authority": (
-            "V10_ADAPTATION_CONSUMED_FOR_CLAIM_COVERAGE_FIX_ONLY"
+            (
+                "V9_V10_V11_CONSUMED_GROUPED_AUDIT_AND_CLOSED_LOOP_"
+                "REPLAY_PASSED_BEFORE_V12_SELECTION"
+            )
+            if is_v12
+            else "V10_ADAPTATION_CONSUMED_FOR_CLAIM_COVERAGE_FIX_ONLY"
         ),
         "train_root": str(train_root),
         "train_task_count": len(task_ids),

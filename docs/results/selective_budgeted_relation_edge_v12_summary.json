@@ -1,0 +1,113 @@
+{
+  "adaptation_gate": {
+    "failed_gates": [
+      "authentic_success_superior_to_edge_control",
+      "changed_tasks"
+    ],
+    "gates": {
+      "authentic_changes_exceed_edge_control": true,
+      "authentic_success_noninferior_to_target_only": true,
+      "authentic_success_superior_to_edge_control": false,
+      "changed_effects_each_claimed_effect": true,
+      "changed_source_edges": true,
+      "changed_tasks": false,
+      "no_failed_selected_postconditions": true,
+      "no_reopened_completed_slots": true,
+      "paired_net_win_nonnegative": true,
+      "required_option_invariance": true,
+      "source_admission_rate_range": true
+    },
+    "paired_authentic_vs_each_control": {
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 16,
+      "wins": 0
+    },
+    "report_sha256": "2ac20d8ac7fd327f519c9e7d1f7ae2fd815ab658d5d718d03ecbc1533859092e",
+    "status": "ADAPTATION_GATE_FAILED_STOP",
+    "summaries": {
+      "authentic_slot_ir": {
+        "changed_by_effect": {
+          "BIND": 0,
+          "MUTATE": 0,
+          "RELATE": 2
+        },
+        "changed_effect_count": 2,
+        "changed_task_count": 2,
+        "mean_steps": 33.625,
+        "source_edge_changed_count": 2,
+        "successes": 12,
+        "tasks": 16
+      },
+      "edge_permuted_ir": {
+        "mean_steps": 33.625,
+        "source_edge_changed_count": 0,
+        "successes": 12,
+        "tasks": 16
+      },
+      "property_permuted_router": {
+        "mean_steps": 33.625,
+        "successes": 12,
+        "tasks": 16
+      },
+      "target_only": {
+        "mean_steps": 35.0,
+        "successes": 11,
+        "tasks": 16
+      }
+    }
+  },
+  "applicability_audit": {
+    "audit_sha256": "7b17687badf2f18cd9ffbb8c53022f593aa118da98e88d94135b9efb7caf3ac8",
+    "changed_edge_task_count": 10,
+    "fold_selected_minimum_edge_steps": [
+      9,
+      9,
+      9
+    ],
+    "selected_minimum_edge_step": 9,
+    "status": "CONSUMED_CROSS_VERSION_AUDIT_PASSED"
+  },
+  "confirmation_authorized": false,
+  "consumed_closed_loop_development": {
+    "development_sha256": "e8731341b80eac422841ef21e7e4eb5b88b9e5da357cee02cee982372432bfb4",
+    "early_applicability_abstentions": 52,
+    "status": "CONSUMED_CLOSED_LOOP_REPLAY_PASSED",
+    "versions": {
+      "v10": {
+        "authentic_successes": 15,
+        "node_only_successes": 13,
+        "report_sha256": "263b0813ee351e9a710c6acf9e038eaf86c31cdbd6544a1293361eb7c3217180"
+      },
+      "v11": {
+        "authentic_successes": 13,
+        "node_only_successes": 13,
+        "report_sha256": "760393e0d1cf2443bc2439eaa2ffce474e4305a03f6a309a35e88c8740a29ba1"
+      },
+      "v9": {
+        "authentic_successes": 14,
+        "node_only_successes": 14,
+        "report_sha256": "75dbeb19d056571830e78835092cd778ad986a7e266a923af25552cdabc3ada1"
+      }
+    }
+  },
+  "existing_valid_unseen_heldout_read": false,
+  "experiment_parameters": {
+    "applicability_feature": "TARGET_EPISODE_STEP_INDEX",
+    "claimed_changed_effects": [
+      "RELATE"
+    ],
+    "max_steps": 60,
+    "minimum_source_edge_step": 9,
+    "primary_endpoint": "OFFICIAL_SUCCESS_WITHIN_STEP_BUDGET",
+    "runner_seed": 99901
+  },
+  "frozen_hashes": {
+    "candidate_sha256": "d44ac8d50a4a459ce5912a7ca150f9946ab4d39224f04b8546b21e45678b8320",
+    "manifest_sha256": "2c4dc440dfb165af2a891914a8a9ee911eb6b4fa74077619d49dea92ecd21b80"
+  },
+  "schema_version": "selective-budgeted-relation-edge-v12-result-summary",
+  "source_edge_behaviorally_nontrivial": true,
+  "source_edge_success_gain_fresh": false,
+  "verdict": "SELECTIVE_RULE_FAILED_FRESH_STOP_BEFORE_CONFIRMATION"
+}
