@@ -273,3 +273,26 @@ e_t = f_feedback^B(o_t, a_t, o_{t+1})
 
 最新 V1/V2 的完整结果与 held-out 边界见
 [`SOKOBAN_ALFWORLD_NEUROSYMBOLIC_TRANSFER_V1_V2_RESULTS.md`](SOKOBAN_ALFWORLD_NEUROSYMBOLIC_TRANSFER_V1_V2_RESULTS.md)。
+
+## V20–V24 与 controlled V3 的新增结论
+
+V24 给出一个更尖锐的 bitter lesson：预测“这个 target state 最终会成功”不等于预测
+“source intervention 相对 target abstain 会导致成功”。V24 neural risk 在 271 个已打开 forks 的
+OOF 中是 `6W/0L`，但 sealed confirmation 的 7 个 admissions 全部为 ties。与此同时，
+always-source 在完整 200-task split 上得到 `5W/0L`、`+2.5pp`，却与 lexical control 完全相同。
+因此 relation intervention 有机制信号，但 non-trivial selector 未验证。完整审计见
+[`REAL_SOURCE_RELATION_V20_V24_RESULTS.md`](REAL_SOURCE_RELATION_V20_V24_RESULTS.md)。
+
+受控 V3 则第一次在真正的 target-native MLP grounding 下通过完整 cross-domain gate：source
+迁移 state-dependent `TEST/COMMIT` matched intervention values；target MLP 只从自己的 anonymous
+binary calibration outcomes 学 grounding。两个新 target splits 上，success 相对 target-only
+分别提高 `+2.00pp` 与 `+1.95pp`，且 paired CI 下界均严格大于零；authentic 同时超过
+within-state shuffled 与 source-marginal controls。完整结果见
+[`CONTROLLED_NEURAL_SYMBOLIC_TRANSFER_V3_RESULTS.md`](CONTROLLED_NEURAL_SYMBOLIC_TRANSFER_V3_RESULTS.md)。
+
+这使 claim boundary 变为：
+
+- controlled neural-symbolic mechanism transfer：已验证；
+- real-game relation intervention：sealed split 上有正机制效应；
+- real-game non-trivial neural selector：V24 未验证；
+- real arcade → ALFWorld/WebShop：仍未验证。
