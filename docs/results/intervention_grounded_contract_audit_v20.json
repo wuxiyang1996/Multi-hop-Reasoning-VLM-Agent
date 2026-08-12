@@ -1,0 +1,238 @@
+{
+  "audit_sha256": "6b5f73a1699f2f408c9f01c928495c9c6f97056ff205518633397134dfe094bf",
+  "claim_boundary": "Post-hoc implementation and representation audit of already-consumed V18/V19 development artifacts only; no new target outcomes and no confirmation or valid_unseen access.",
+  "confirmation_or_valid_unseen_read_or_run": false,
+  "contract_audit": {
+    "status": "NEUROSYMBOLIC_TRANSFER_CONTRACT_REJECTED",
+    "target_score_contract": {
+      "causal_successor_effect_certified": false,
+      "counterfactual_action_supervision": false,
+      "entity_conditioned_action_binding": false,
+      "legacy_contract_inferred": true,
+      "probability_calibration": "UNDECLARED",
+      "score_semantics": "expert_action_imitation_score",
+      "successor_event_prediction": false
+    },
+    "violations": [
+      "TARGET_SCORE_IS_NOT_CAUSAL_SUCCESSOR_EFFECT",
+      "TARGET_CAUSAL_EFFECT_NOT_CERTIFIED",
+      "TARGET_HAS_NO_COUNTERFACTUAL_ACTION_SUPERVISION",
+      "TARGET_EFFECT_PROBABILITY_NOT_CALIBRATED",
+      "TARGET_BINDING_NOT_ENTITY_CONDITIONED",
+      "TARGET_SUCCESSOR_EVENT_NOT_PREDICTED",
+      "SOURCE_TARGET_SUPPORT_RECEIPT_MISSING"
+    ]
+  },
+  "disposition": {
+    "code_fix": "Fail closed unless target scores are calibrated counterfactual successor-event probabilities and a joint source-target support receipt certifies conformal applicability.",
+    "v18": "POSTHOC_INVALIDATED: the outcome-blind contrast demonstrates that a source model can alter options under this numerical wiring, not that a causally grounded neural-symbolic skill transferred.",
+    "v19": "MECHANISM_REJECTED: 0/64 successes in every condition and materially longer action loops under authentic overrides."
+  },
+  "lineage": {
+    "outcome_report_sha256": "deb1075814de088d1a70f39947a19d3d11058e54e9af55b9a4cdef50c9522996",
+    "shadow_report_sha256": "9dad3a5df2a74f5c8dbce3d0da7feebd00a2eddaf29ca71d237db74fad21e360",
+    "source_config_sha256": "bea9989331387a0f652b3be4c433e83b94fd210f64425f063f6696afbc9973ab",
+    "target_grounder_artifact_sha256": "71aff0cbd171a3b20e5c7805ea0d0e41f4f99da856dfaabb8e716a1cd7f331a8",
+    "target_grounder_sha256": "4208c1f121e07ef7aa0711129ce67b888e574dfb737969978b95a173a0a75f11"
+  },
+  "matched_outcome_loop_audit": {
+    "authentic_intervention_effect": {
+      "maximum_longest_identical_action_run": 59,
+      "mean_adjacent_exact_action_repeat_rate": 0.44835805084745767,
+      "median_longest_identical_action_run": 17.5,
+      "successes": 0,
+      "tasks": 64,
+      "worst_run_examples": [
+        {
+          "action": "look",
+          "longest_identical_action_run": 59,
+          "source_interventions": 59,
+          "task_id": "pick_two_obj_and_place-Candle-None-Toilet-417/trial_T20190907_182724_868283/game.tw-pddl"
+        },
+        {
+          "action": "look",
+          "longest_identical_action_run": 59,
+          "source_interventions": 59,
+          "task_id": "pick_two_obj_and_place-SoapBottle-None-Toilet-428/trial_T20190909_070317_650884/game.tw-pddl"
+        },
+        {
+          "action": "look",
+          "longest_identical_action_run": 59,
+          "source_interventions": 59,
+          "task_id": "pick_two_obj_and_place-TissueBox-None-Toilet-426/trial_T20190909_044737_339279/game.tw-pddl"
+        },
+        {
+          "action": "look",
+          "longest_identical_action_run": 57,
+          "source_interventions": 2,
+          "task_id": "pick_two_obj_and_place-Candle-None-Cabinet-402/trial_T20190909_084844_114031/game.tw-pddl"
+        },
+        {
+          "action": "use desklamp 1",
+          "longest_identical_action_run": 56,
+          "source_interventions": 58,
+          "task_id": "pick_two_obj_and_place-AlarmClock-None-Desk-307/trial_T20190907_013652_494441/game.tw-pddl"
+        }
+      ]
+    },
+    "source_effect_permutation": {
+      "maximum_longest_identical_action_run": 59,
+      "mean_adjacent_exact_action_repeat_rate": 0.26668432203389836,
+      "median_longest_identical_action_run": 1.0,
+      "successes": 0,
+      "tasks": 64,
+      "worst_run_examples": []
+    },
+    "target_effect_permutation": {
+      "maximum_longest_identical_action_run": 59,
+      "mean_adjacent_exact_action_repeat_rate": 0.2748940677966102,
+      "median_longest_identical_action_run": 1.0,
+      "successes": 0,
+      "tasks": 64,
+      "worst_run_examples": []
+    },
+    "target_neural_baseline": {
+      "maximum_longest_identical_action_run": 59,
+      "mean_adjacent_exact_action_repeat_rate": 0.26668432203389836,
+      "median_longest_identical_action_run": 1.0,
+      "successes": 0,
+      "tasks": 64,
+      "worst_run_examples": []
+    }
+  },
+  "schema_version": "intervention-grounded-contract-audit-v20",
+  "source_effect_support": {
+    "calibration": {
+      "effect_score_quantiles": {
+        "maximum": 0.9444444444444444,
+        "median": 0.05555555555555555,
+        "minimum": 0.05555555555555555,
+        "q05": 0.05555555555555555,
+        "q95": 0.6666666666666666
+      },
+      "option_rows": 10240,
+      "options_above_0p1_per_state_counts": {
+        "1": 2048
+      },
+      "pair_effect_sum_quantiles": {
+        "maximum": 1.0,
+        "median": 0.1111111111111111,
+        "minimum": 0.1111111111111111,
+        "q05": 0.1111111111111111,
+        "q95": 0.7777777777777778
+      },
+      "states": 2048
+    },
+    "heldout": {
+      "effect_score_quantiles": {
+        "maximum": 0.9444444444444444,
+        "median": 0.05555555555555555,
+        "minimum": 0.05555555555555555,
+        "q05": 0.05555555555555555,
+        "q95": 0.6666666666666666
+      },
+      "option_rows": 10240,
+      "options_above_0p1_per_state_counts": {
+        "1": 2048
+      },
+      "pair_effect_sum_quantiles": {
+        "maximum": 1.0,
+        "median": 0.1111111111111111,
+        "minimum": 0.1111111111111111,
+        "q05": 0.1111111111111111,
+        "q95": 0.7777777777777778
+      },
+      "states": 2048
+    },
+    "train": {
+      "effect_score_quantiles": {
+        "maximum": 0.9444444444444444,
+        "median": 0.05555555555555555,
+        "minimum": 0.05555555555555555,
+        "q05": 0.05555555555555555,
+        "q95": 0.6666666666666666
+      },
+      "option_rows": 40960,
+      "options_above_0p1_per_state_counts": {
+        "0": 7,
+        "1": 8185
+      },
+      "pair_effect_sum_quantiles": {
+        "maximum": 1.0,
+        "median": 0.1111111111111111,
+        "minimum": 0.1111111111111111,
+        "q05": 0.1111111111111111,
+        "q95": 0.7777777777777778
+      },
+      "states": 8192
+    }
+  },
+  "status": "V18_CONTRACT_INVALIDATED_V19_MECHANISM_REJECTED",
+  "target_shadow_score_support": {
+    "by_option_contrast": {
+      "ACQUIRE->SEARCH": {
+        "count": 241,
+        "mean_fallback_score": 0.9579502173632889,
+        "mean_selected_minus_fallback": -0.1959390412461017,
+        "mean_selected_score": 0.7620111761171872
+      },
+      "ACQUIRE->TRANSFORM": {
+        "count": 30,
+        "mean_fallback_score": 0.9256698823281967,
+        "mean_selected_minus_fallback": -0.36394244445092133,
+        "mean_selected_score": 0.5617274378772753
+      },
+      "PLACE->SEARCH": {
+        "count": 181,
+        "mean_fallback_score": 0.9059460565696025,
+        "mean_selected_minus_fallback": -0.16158607800463715,
+        "mean_selected_score": 0.7443599785649653
+      },
+      "PLACE->TRANSFORM": {
+        "count": 25,
+        "mean_fallback_score": 0.8549957378651967,
+        "mean_selected_minus_fallback": -0.29753535120942604,
+        "mean_selected_score": 0.5574603866557705
+      },
+      "SEARCH->ACQUIRE": {
+        "count": 212,
+        "mean_fallback_score": 0.9401531727996049,
+        "mean_selected_minus_fallback": -0.19633214629904888,
+        "mean_selected_score": 0.7438210265005559
+      },
+      "SEARCH->PLACE": {
+        "count": 590,
+        "mean_fallback_score": 0.898487767575266,
+        "mean_selected_minus_fallback": -0.2618165846060715,
+        "mean_selected_score": 0.6366711829691947
+      }
+    },
+    "legacy_option_score_quantiles": {
+      "maximum": 0.9967895949030473,
+      "median": 0.8413993057364723,
+      "minimum": 0.4390084450021271,
+      "q05": 0.5358311869835697,
+      "q95": 0.9760020873061548
+    },
+    "legacy_score_semantics": "expert_action_imitation_score",
+    "options_above_0p1_per_state_counts": {
+      "2": 1183,
+      "3": 96
+    },
+    "selected_minus_fallback_score_quantiles": {
+      "maximum": -0.07700098909268016,
+      "median": -0.22285719954517602,
+      "minimum": -0.43315680917690536,
+      "q05": -0.3921467582551712,
+      "q95": -0.10970934761424853
+    },
+    "selected_plus_fallback_score_quantiles": {
+      "maximum": 1.883393144265659,
+      "median": 1.6338425825655338,
+      "minimum": 1.3111736991811596,
+      "q05": 1.40529715009994,
+      "q95": 1.8162038680300028
+    },
+    "states_with_authentic_contrast": 1279
+  }
+}

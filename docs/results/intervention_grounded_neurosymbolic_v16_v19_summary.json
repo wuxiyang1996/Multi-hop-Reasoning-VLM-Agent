@@ -27,7 +27,7 @@
     "limitation": "The source is a controlled synthetic multi-surface workflow generator, not collected real-game trajectories."
   },
   "v18_target_grounder": {
-    "status": "TARGET_GROUNDER_GATE_PASSED",
+    "status": "CLASSIFIER_GATE_PASSED_TRANSFER_CONTRACT_FAILED",
     "artifact_sha256": "71aff0cbd171a3b20e5c7805ea0d0e41f4f99da856dfaabb8e716a1cd7f331a8",
     "validation_states": 266,
     "authentic_pairwise_auc": 0.846558758656503,
@@ -37,10 +37,13 @@
     "cluster_bootstrap_lower_top1_minus_random": 0.1726667460580039,
     "cluster_bootstrap_lower_pairwise_auc_minus_permuted_control": 0.5271759587793041,
     "required_option_or_workflow_features_used": false,
-    "reward_success_completion_fields_consumed": false
+    "reward_success_completion_fields_consumed": false,
+    "actual_score_semantics": "expert_action_imitation_score",
+    "causal_successor_effect_certified": false,
+    "counterfactual_action_supervision": false
   },
   "v18_outcome_blind_shadow": {
-    "status": "OUTCOME_BLIND_SHADOW_GATE_PASSED_FORK_FREEZER_AUTHORIZED",
+    "status": "POSTHOC_INVALIDATED_SCORE_SEMANTICS_AND_SUPPORT_MISMATCH",
     "report_sha256": "9dad3a5df2a74f5c8dbce3d0da7feebd00a2eddaf29ca71d237db74fad21e360",
     "tasks": 64,
     "tasks_with_authentic_option_contrast": 41,
@@ -61,7 +64,8 @@
       "target_effect_permutation": 0.2520833333333333
     },
     "reward_serialized": false,
-    "official_success_serialized": false
+    "official_success_serialized": false,
+    "interpretation": "Source-specific numerical option contrast only; not valid evidence of causally grounded neural-symbolic transfer."
   },
   "v19_matched_outcomes": {
     "status": "CONSUMED_DEVELOPMENT_TRANSFER_GATE_FAILED_STOP",
@@ -106,10 +110,16 @@
   },
   "diagnosis": [
     "The target quantity named neural_effect_probability was expert-action likelihood, not a learned causal successor-state effect.",
+    "The source calibration support normally had exactly one of five effect scores above 0.1, while every target contrast state had two or three scores above 0.1; source-only conformal residuals did not certify this covariate shift.",
     "Zeroing ungrounded binding fields prevented oracle leakage but also removed target-object and destination binding needed to instantiate an abstract option safely.",
     "The transferred relative option value had no target-native successor-state update, option termination predicate, or recovery transition, so admitted overrides became loops.",
-    "The positive V18 shadow result establishes nontrivial neural-symbolic intervention transfer, but V19 falsifies the stronger success-improvement claim for this controller."
+    "The V18 contrast gate is post-hoc invalidated as transfer evidence, and V19 rejects the controller as a success-improving mechanism."
   ],
+  "v20_contract_audit": {
+    "status": "V18_CONTRACT_INVALIDATED_V19_MECHANISM_REJECTED",
+    "audit_sha256": "6b5f73a1699f2f408c9f01c928495c9c6f97056ff205518633397134dfe094bf",
+    "fail_closed_fix": "Require calibrated counterfactual successor-event probabilities plus a joint source-target support receipt before source conformal admission."
+  },
   "next_required_interface": "Transfer a closed-loop intervention automaton over learned causal event deltas: precondition, native intervention, predicted successor event, termination, and recovery; ground every field with target-native counterfactual transition receipts.",
-  "summary_sha256": "1445a61b4b566c322495ed4dd12138d6a75dea808496777b82e09e2a01356c30"
+  "summary_sha256": "19a5dfcddeeb73d2ee89ea6807b2402bf707ceac306a7d669bd834f17f57a449"
 }

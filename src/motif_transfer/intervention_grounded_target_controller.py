@@ -6,6 +6,12 @@ from collections import Counter
 from typing import Any, Mapping, Sequence
 
 from .hierarchical_skill_transfer import FEATURE_NAMES, OPTION_NAMES
+from .neurosymbolic_transfer_contract import (
+    CAUSAL_EFFECT_SCORE_SEMANTICS,
+    support_receipt_violations,
+    target_grounder_contract_violations,
+    target_score_contract,
+)
 from .oracle_free_target_grounder import score_native_actions
 from .pairwise_option_advantage import (
     PairwiseAdvantageEnsemble,
@@ -28,7 +34,8 @@ FORBIDDEN_FEATURE_INDICES = (
 def target_option_features(
     *,
     option: str,
-    neural_effect_probability: float,
+    causal_effect_probability: float,
+    score_semantics: str,
     representative_action: str,
     action_history: Sequence[str],
     step: int,
@@ -41,7 +48,12 @@ def target_option_features(
     """
     if option not in OPTION_NAMES:
         raise ValueError("unknown transferable option")
-    effect = min(max(float(neural_effect_probability), 0.0), 1.0)
+    if score_semantics != CAUSAL_EFFECT_SCORE_SEMANTICS:
+        raise ValueError(
+            "cannot bind a non-causal score into source effect features: "
+            f"{score_semantics}"
+        )
+    effect = min(max(float(causal_effect_probability), 0.0), 1.0)
     repeats = Counter(map(str, action_history))
     repeat_fraction = min(repeats[str(representative_action)], 4) / 4.0
     remaining = max(0, int(max_steps) - int(step)) / max(1, int(max_steps))
@@ -92,7 +104,7 @@ def ground_target_options(
     ranked_actions = sorted(
         scored,
         key=lambda action: (
-            -float(scored[action]["policy_probability"]),
+            -float(scored[action]["score"]),
             action,
         ),
     )
@@ -100,10 +112,23 @@ def ground_target_options(
     representatives: dict[str, str] = {}
     for action in ranked_actions:
         representatives.setdefault(str(scored[action]["option"]), action)
+    contract_violations = target_grounder_contract_violations(target_grounder)
+    if contract_violations:
+        return {
+            "fallback_action": fallback_action,
+            "fallback_option": str(scored[fallback_action]["option"]),
+            "representative_actions": representatives,
+            "option_features": {},
+            "action_scores": scored,
+            "score_contract": target_score_contract(target_grounder),
+            "transfer_eligible": False,
+            "transfer_abstention_reasons": list(contract_violations),
+        }
     features = {
         option: target_option_features(
             option=option,
-            neural_effect_probability=float(scored[action]["policy_probability"]),
+            causal_effect_probability=float(scored[action]["score"]),
+            score_semantics=str(scored[action]["score_semantics"]),
             representative_action=action,
             action_history=action_history,
             step=step,
@@ -117,6 +142,31 @@ def ground_target_options(
         "representative_actions": representatives,
         "option_features": features,
         "action_scores": scored,
+        "score_contract": target_score_contract(target_grounder),
+        "transfer_eligible": True,
+        "transfer_abstention_reasons": [],
+    }
+
+
+def _fallback_abstention(
+    grounded: Mapping[str, Any], reasons: Sequence[str],
+) -> dict[str, Any]:
+    fallback_option = str(grounded["fallback_option"])
+    fallback_action = str(grounded["fallback_action"])
+    comparison = {
+        "option": fallback_option,
+        "predicted_advantage": 0.0,
+        "ensemble_deviation": 0.0,
+        "conformal_lower_bound": 0.0,
+    }
+    return {
+        "option": fallback_option,
+        "action": fallback_action,
+        "fallback_option": fallback_option,
+        "source_admitted": False,
+        "comparison": comparison,
+        "all_comparisons": [],
+        "transfer_abstention_reasons": list(map(str, reasons)),
     }
 
 
@@ -125,24 +175,22 @@ def source_shadow_decision(
     *,
     model: PairwiseAdvantageEnsemble,
     conformal_error: float,
+    source_target_support_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    grounding_reasons = tuple(map(
+        str, grounded.get("transfer_abstention_reasons", ())
+    ))
+    if grounded.get("transfer_eligible") is not True:
+        return _fallback_abstention(grounded, grounding_reasons or (
+            "TARGET_TRANSFER_CONTRACT_NOT_CERTIFIED",
+        ))
+    support_reasons = support_receipt_violations(
+        source_target_support_receipt
+    )
+    if support_reasons:
+        return _fallback_abstention(grounded, support_reasons)
     if len(grounded["option_features"]) == 1:
-        fallback_option = str(grounded["fallback_option"])
-        fallback_action = str(grounded["fallback_action"])
-        comparison = {
-            "option": fallback_option,
-            "predicted_advantage": 0.0,
-            "ensemble_deviation": 0.0,
-            "conformal_lower_bound": 0.0,
-        }
-        return {
-            "option": fallback_option,
-            "action": fallback_action,
-            "fallback_option": fallback_option,
-            "source_admitted": False,
-            "comparison": comparison,
-            "all_comparisons": [],
-        }
+        return _fallback_abstention(grounded, ("ONLY_ONE_TARGET_OPTION",))
     decision = choose_option_against_fallback(
         model,
         grounded["option_features"],

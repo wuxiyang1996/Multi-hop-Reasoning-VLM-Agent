@@ -26,6 +26,9 @@ from motif_transfer.oracle_free_target_grounder import (  # noqa: E402
     FORBIDDEN_SEMANTIC_INPUTS,
     policy_features,
 )
+from motif_transfer.neurosymbolic_transfer_contract import (  # noqa: E402
+    IMITATION_SCORE_SEMANTICS,
+)
 
 
 def _sha256(path: Path) -> str:
@@ -387,6 +390,16 @@ def main() -> int:
         "required_option_or_workflow_features_used": False,
         "training_supervision": "expert_action_identity_only",
         "reward_success_completion_fields_consumed": False,
+        "score_contract": {
+            "score_semantics": IMITATION_SCORE_SEMANTICS,
+            "causal_successor_effect_certified": False,
+            "counterfactual_action_supervision": False,
+            "probability_calibration": (
+                "none_class_balanced_negative_sampled"
+            ),
+            "entity_conditioned_action_binding": False,
+            "successor_event_prediction": False,
+        },
         "policy_head": authentic_head,
         "validation_summary": summary,
         "gates": gates,

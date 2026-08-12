@@ -2,14 +2,19 @@
 
 ## Outcome
 
-The narrow mechanism works, but the success-transfer claim does not.
+The current mechanism is rejected.  V19 failed the success gate, and a post-hoc
+contract audit found that V18 did not establish neural-symbolic transfer.
 
-V18 showed a nontrivial, outcome-blind neural-symbolic intervention effect on 64
+Mechanically, V18 showed an outcome-blind option-change contrast on 64
 already-consumed ALFWorld train-development tasks.  The authentic source controller
-changed the target neural fallback's abstract option on 41 tasks and produced 1,279
-source-specific option contrasts.  Four destructive controls did not reproduce this
-behavior.  The task-cluster bootstrap lower bounds for authentic change rate minus
-each control were 0.252–0.266.
+changed the target fallback's abstract option on 41 tasks and produced 1,279
+source-specific contrasts.  Four destructive controls did not reproduce this
+behavior, and the task-cluster bootstrap lower bounds were 0.252–0.266.  However,
+the target number bound into the source `causal_effect` slots was a class-balanced
+expert-action imitation score.  It was neither a causal successor-event probability
+nor calibrated on the source controller's support.  The V18 gate is therefore
+post-hoc invalidated; it demonstrates numerical control-flow dependence, not valid
+transfer evidence.
 
 V19 then executed matched full-rollout forks under a plan frozen before those
 outcomes were read.  Every condition achieved 0/64 official successes and mean
@@ -25,33 +30,35 @@ return 0:
 The pre-registered V19 transfer gate therefore failed.  No confirmation or
 `valid_unseen` task was read or run.
 
-## What was actually transferred
+## What V18 actually wired together
 
 The factorization was:
 
 ```text
-controlled source intervention receipts
+controlled synthetic source intervention receipts
     -> pairwise relative abstract-option advantage + conformal admission
-    -> target-native neural action ranking
+    -> target-native expert-action imitation ranking
     -> abstract option override
     -> target-native representative action
 ```
 
-This is neural-symbolic transfer in a limited but real sense:
+The wiring did satisfy several useful negative controls:
 
 - source raw tokens and target ALFWorld tokens were not shared;
 - required-option, workflow phase/progress, held/transformed state, reward,
   official success, and completion labels were absent from target inference;
-- the source transferred a relative option-value relation, while a target-native
-  sigmoid head grounded native actions;
+- a source relative option-value model altered decisions made from a target-native
+  sigmoid action-ranking head;
 - cyclic source-effect, shuffled-value, effect-blind, and target-effect controls
   were frozen before the V18 shadow;
 - authentic decisions were selective rather than an always-on option prior.
 
-It is not evidence that a completed game skill was transferred.  V17's source is
-a controlled synthetic multi-surface workflow generator.  Surface names such as
-`game`, `science`, and `maintenance` do not turn those samples into real game
-rollouts.
+These properties are insufficient for neural-symbolic skill transfer because the
+neural score did not have the semantics required by the symbolic feature it
+populated.  It is also not evidence that a completed game skill was transferred.
+V17's source is a controlled synthetic multi-surface workflow generator.  Surface
+names such as `game`, `science`, and `maintenance` do not turn those samples into
+real game rollouts.
 
 ## Oracle-shortcut and optimizer audits
 
@@ -77,7 +84,8 @@ It passed on 266 isolated adaptation-validation states:
 - task-cluster lower bound, pairwise AUC minus control: 0.527.
 
 These checks prevented a hand-written phase oracle and an unconverged model from
-being mistaken for transfer evidence.
+being mistaken for transfer evidence, but they did not check score semantics or
+source-target calibration support.  Passing them was necessary, not sufficient.
 
 ## Why V18 contrast did not become V19 success
 
@@ -87,6 +95,14 @@ First, the target field called `neural_effect_probability` was actually expert-a
 likelihood.  It was trained from action identity only.  It did not predict a causal
 change between the before and after target state.  A good imitation ranking on
 isolated adaptation states is not an intervention-effect model.
+
+This also caused a severe support mismatch.  In source train/calibration states,
+normally exactly one of five options had effect score above 0.1 and the other four
+were near `1/18 = 0.056`.  In all 1,279 target contrast states, two or three available
+options exceeded 0.1; target scores ranged 0.439–0.997.  The authentic override
+always moved away from the imitation fallback: selected-minus-fallback score ranged
+from -0.433 to -0.077.  Source-only conformal residuals provide no coverage guarantee
+under this shift.
 
 Second, eliminating hand-written binding by setting unknown source binding fields to
 the same zero was safe against leakage but insufficient for execution.  The
@@ -108,8 +124,10 @@ not more procedural competence.
 
 The right interpretation is:
 
-> V18 verifies transfer of selective intervention structure; V19 falsifies transfer
-> of a closed-loop procedural skill under the current representation.
+> V18 verifies only that the source controller can create a source-specific option
+> contrast under the old numerical wiring.  The score-semantics and support audit
+> invalidates that contrast as evidence of neural-symbolic transfer.  V19 separately
+> rejects the mechanism as a success-improving controller.
 
 ## Bitter lesson
 
@@ -117,6 +135,12 @@ Do not repair this failure with a hand-written phase parser, a cooldown, a large
 repeat penalty, or an option-order prompt.  Those changes can suppress the visible
 loops while restoring exactly the task-specific heuristic leakage the experiment was
 designed to remove.
+
+The implementation now fails closed at the evidence boundary.  Legacy imitation
+artifacts may still rank the target baseline's native actions, so the agent remains
+runnable, but they produce no source option features and every source decision
+abstains.  Even a future causal target scorer must also present a joint source-target
+support receipt before source conformal admission can run.
 
 The transferable unit must include a causal transition contract:
 
@@ -153,8 +177,10 @@ high-level option names:
    edge only after the target neural observer detects its expected successor event;
    terminate or recover using learned predicates.
 5. Require held-out source-game transition prediction, isolated target adaptation
-   effect calibration, outcome-blind target state-change contrast, and destructive
-   source/target binding controls before another consumed-development success fork.
+   effect calibration, a joint source-target covariate-support receipt, outcome-blind
+   target state-change contrast, and destructive source/target binding controls
+   before another consumed-development success fork.  Source conformal admission
+   must fail closed when the joint support gate is absent.
 6. Keep confirmation and `valid_unseen` sealed until a pre-registered development
    outcome gate passes.
 
@@ -165,6 +191,9 @@ failure without adding a task-specific workflow heuristic.
 
 Compact authoritative metrics are in
 `docs/results/intervention_grounded_neurosymbolic_v16_v19_summary.json`.
+The reproducible post-hoc contract audit is implemented by
+`scripts/audit_intervention_grounded_contract_v20.py`; its compact result is
+`docs/results/intervention_grounded_contract_audit_v20.json`.
 The large V18/V19 raw reports remain under ignored `runs/` paths:
 
 - `runs/intervention_grounded_transfer_shadow_v18/report.json`

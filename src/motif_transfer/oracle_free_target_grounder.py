@@ -19,6 +19,7 @@ from .alfworld_hierarchical_grounder import (
     mlp_probability,
     tokens,
 )
+from .neurosymbolic_transfer_contract import target_score_contract
 
 
 DENSE_FEATURE_NAMES = (
@@ -105,6 +106,7 @@ def score_native_actions(
         raise ValueError("target grounder does not certify the oracle-free contract")
     feature_bins = int(artifact["feature_bins"])
     head = artifact["policy_head"]
+    contract = target_score_contract(artifact)
     result: dict[str, dict[str, float | str]] = {}
     for raw_action in native_actions:
         action = str(raw_action)
@@ -119,9 +121,14 @@ def score_native_actions(
             action_history=action_history,
             feature_bins=feature_bins,
         )
+        score = mlp_probability(features, head)
         result[action] = {
             "option": option,
-            "policy_probability": mlp_probability(features, head),
+            "score": score,
+            "score_semantics": str(contract["score_semantics"]),
+            # Kept only so frozen V17/V18 artifacts remain inspectable.  A
+            # caller must not reinterpret this alias as an intervention effect.
+            "policy_probability": score,
         }
     return result
 
