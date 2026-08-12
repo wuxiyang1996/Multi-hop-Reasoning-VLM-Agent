@@ -1,0 +1,79 @@
+{
+  "adaptation_gate": {
+    "gates": {
+      "authentic_changes_exceed_edge_control": true,
+      "authentic_success_noninferior_to_target_only": true,
+      "authentic_success_superior_to_edge_control": false,
+      "changed_effects_each_claimed_effect": true,
+      "changed_source_edges": true,
+      "changed_tasks": true,
+      "no_failed_selected_postconditions": true,
+      "no_reopened_completed_slots": true,
+      "paired_net_win_nonnegative": true,
+      "required_option_invariance": true,
+      "source_admission_rate_range": true
+    },
+    "paired_authentic_vs_target_only": {
+      "losses": 0,
+      "ties": 13,
+      "wins": 3
+    },
+    "report_sha256": "be28eec79e448ba90b8be1e3a62768af7214d1fa37b3422158289bd765cede94",
+    "status": "ADAPTATION_GATE_FAILED_STOP",
+    "summaries": {
+      "authentic_slot_ir": {
+        "changed_by_effect": {
+          "BIND": 2,
+          "MUTATE": 0,
+          "RELATE": 4
+        },
+        "changed_effect_count": 6,
+        "mean_steps": 43.625,
+        "reopened_completed_slots": 0,
+        "source_edge_changed_count": 4,
+        "successes": 14,
+        "tasks": 16
+      },
+      "edge_permuted_ir": {
+        "changed_effect_count": 2,
+        "mean_steps": 48.0,
+        "reopened_completed_slots": 0,
+        "source_edge_changed_count": 0,
+        "successes": 14,
+        "tasks": 16
+      },
+      "property_permuted_router": {
+        "changed_effect_count": 0,
+        "mean_steps": 55.875,
+        "successes": 11,
+        "tasks": 16
+      },
+      "target_only": {
+        "changed_effect_count": 0,
+        "mean_steps": 55.875,
+        "reopened_completed_slots": 7,
+        "successes": 11,
+        "tasks": 16
+      }
+    }
+  },
+  "confirmation_authorized": false,
+  "existing_valid_unseen_heldout_read": false,
+  "frozen_hashes": {
+    "authentic_compiled_graph_sha256": "cb7c086a184333660b239b20f846db9287cd8e7a18f0f5920e7a52ce2369ab9e",
+    "candidate_sha256": "d4a3e3e1f10e67eeb87e8987412bf0730fe466160dda5052e6556bbca4a9f979",
+    "edge_control_compiled_graph_sha256": "7114067205507344cf48f518d40ad7694edc5fb7a403a3d3266f474f90e1e2f4",
+    "manifest_sha256": "5256dde934dde1e87718180d797ccfe8a2c4f9252e1529df5c47c6f46a1990d5",
+    "source_ir_sha256": "5522d11484dfbac4c6dc82a7b2f4cc6369ae771cf6dff780a708e20c9cf411fd"
+  },
+  "mechanism_fixes": {
+    "completed_slot_safety_independent_of_router_confidence": true,
+    "runtime_structural_scope_enforced": true,
+    "source_graph_edges_executed": true,
+    "source_graph_metamorphic_controls_passed": true
+  },
+  "schema_version": "executable-source-graph-alfworld-v9-result-summary",
+  "source_edge_success_gain_over_edge_control": false,
+  "source_edge_transfer_behaviorally_nontrivial": true,
+  "verdict": "MECHANISM_FIXED_BUT_ADAPTATION_SUCCESS_GATE_FAILED"
+}
