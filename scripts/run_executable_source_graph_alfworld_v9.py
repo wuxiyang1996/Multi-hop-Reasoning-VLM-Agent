@@ -104,22 +104,33 @@ def main() -> int:
     if args.output.exists():
         raise SystemExit(f"refusing to overwrite V9 report: {args.output}")
     artifact = _read(args.artifact)
+    experiment_version = str(artifact.get("experiment_version", "v9"))
+    if experiment_version not in {"v9", "v10"}:
+        raise SystemExit("unsupported executable-source-graph version")
+    candidate_schemas = {
+        "v9": "executable-source-graph-alfworld-candidate-v9",
+        "v10": "budgeted-executable-source-graph-alfworld-candidate-v10",
+    }
+    harness_schemas = {
+        "v9": "executable-source-graph-alfworld-harness-v9",
+        "v10": "budgeted-executable-source-graph-alfworld-harness-v10",
+    }
     if args.phase == "adaptation_gate":
         _validate_hash(artifact, "candidate_sha256")
-        if artifact.get("schema_version") != (
-            "executable-source-graph-alfworld-candidate-v9"
-        ):
-            raise SystemExit("wrong V9 candidate schema")
+        if artifact.get("schema_version") != candidate_schemas[
+            experiment_version
+        ]:
+            raise SystemExit("wrong executable-source-graph candidate schema")
         if artifact.get("status") != "ADAPTATION_GATE_ONLY":
             raise SystemExit("V9 adaptation requires a frozen candidate")
         artifact_hash_field = "candidate_sha256"
         expected_split = "adaptation_gate"
     else:
         _validate_hash(artifact, "harness_sha256")
-        if artifact.get("schema_version") != (
-            "executable-source-graph-alfworld-harness-v9"
-        ):
-            raise SystemExit("wrong V9 Harness schema")
+        if artifact.get("schema_version") != harness_schemas[
+            experiment_version
+        ]:
+            raise SystemExit("wrong executable-source-graph Harness schema")
         if artifact.get("status") != "FRESH_CONFIRMATION_AUTHORIZED":
             raise SystemExit("V9 confirmation requires authorization")
         gate = _validate_dependency(artifact["adaptation_gate_report"])
@@ -132,15 +143,28 @@ def main() -> int:
         raise SystemExit("V9 artifact does not bind implementation")
     for receipt in implementation.values():
         _validate_file_receipt(receipt)
+    parameters = artifact.get("experiment_parameters", {})
+    if "max_steps" in parameters and args.max_steps != int(
+        parameters["max_steps"]
+    ):
+        raise SystemExit("runner max_steps differs from frozen candidate")
+    if "runner_seed" in parameters and args.seed != int(
+        parameters["runner_seed"]
+    ):
+        raise SystemExit("runner seed differs from frozen candidate")
     manifest = _read(args.manifest)
     _validate_hash(manifest, "manifest_sha256")
-    if manifest.get("schema_version") != (
-        "executable-source-graph-alfworld-manifest-v9"
-    ):
-        raise SystemExit("wrong V9 manifest schema")
-    if manifest.get("status") != (
-        "FROZEN_BEFORE_ANY_SELECTED_TASK_RESET"
-    ):
+    expected_manifest_schema = str(artifact.get(
+        "manifest_schema",
+        "executable-source-graph-alfworld-manifest-v9",
+    ))
+    expected_manifest_status = str(artifact.get(
+        "manifest_status",
+        "FROZEN_BEFORE_ANY_SELECTED_TASK_RESET",
+    ))
+    if manifest.get("schema_version") != expected_manifest_schema:
+        raise SystemExit("wrong executable-source-graph manifest schema")
+    if manifest.get("status") != expected_manifest_status:
         raise SystemExit("V9 manifest was not frozen before reset")
     if manifest.get("selection_used_target_rollout_outcomes"):
         raise SystemExit("V9 manifest selection used target outcomes")
@@ -516,7 +540,9 @@ def main() -> int:
             if passed else "FRESH_CONFIRMATION_NEGATIVE_STOP"
         )
     body = {
-        "schema_version": f"executable-source-graph-{args.phase}-v9",
+        "schema_version": (
+            f"executable-source-graph-{args.phase}-{experiment_version}"
+        ),
         "status": status,
         "claim_boundary": (
             "FRESH_RELATION_ONLY_TRAIN_INSTANCES; SOURCE_GRAPH_EXECUTED; "
@@ -537,6 +563,8 @@ def main() -> int:
         "seed": args.seed,
         "max_steps": args.max_steps,
         "conditions": list(CONDITIONS),
+        "condition_semantics": artifact.get("condition_semantics"),
+        "experiment_parameters": parameters,
         "transfer_scope": transfer_scope,
         "episodes": episodes,
         "summaries": summaries,
