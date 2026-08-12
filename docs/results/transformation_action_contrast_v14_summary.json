@@ -1,0 +1,40 @@
+{
+  "confirmation_authorized": false,
+  "contrast_report": {
+    "contrast_state_count": 8,
+    "contrast_tasks_by_family": {
+      "look_at_obj_in_light": 0,
+      "pick_clean_then_place_in_recep": 3,
+      "pick_cool_then_place_in_recep": 0,
+      "pick_heat_then_place_in_recep": 4
+    },
+    "edge_action_contrast_task_count": 7,
+    "edge_opportunity_count": 63,
+    "edge_opportunity_task_count": 28,
+    "failed_gates": [
+      "minimum_families_with_four_contrast_tasks",
+      "minimum_mutate_contrast_tasks",
+      "minimum_relate_contrast_tasks",
+      "minimum_tasks_with_edge_action_contrast"
+    ],
+    "mutate_contrast_task_count": 2,
+    "outcomes_recorded": false,
+    "relate_contrast_task_count": 5,
+    "report_sha256": "40fe79c874fc64de3194a84446cc3b34e44bfa50ef089d4c7995ee7f9e45ebe6",
+    "rewards_recorded": false,
+    "status": "OUTCOME_BLIND_CONTRAST_GATE_FAILED_STOP",
+    "task_count": 64
+  },
+  "existing_valid_unseen_heldout_read": false,
+  "frozen_pool": {
+    "excluded_task_count": 544,
+    "file_sha256": "e2ae506b1c1dedfa2117c7c01ac279cdd78aae08cdae34193e5e75c469e675f6",
+    "pool_sha256": "7c1ff1978ec90b963ab3e874053ecec8be87b04fb3ef3206f76be8a3074a7c1a",
+    "selected_intersection_with_prior_logs": 0,
+    "selected_task_count": 64,
+    "status": "FROZEN_BEFORE_ANY_V14_SELECTED_TASK_RESET"
+  },
+  "matched_outcome_collection_authorized": false,
+  "schema_version": "transformation-action-contrast-v14-result-summary",
+  "verdict": "INSUFFICIENT_TARGET_ACTION_DISAGREEMENT_STOP_BEFORE_OUTCOMES"
+}
