@@ -105,15 +105,17 @@ def main() -> int:
         raise SystemExit(f"refusing to overwrite V9 report: {args.output}")
     artifact = _read(args.artifact)
     experiment_version = str(artifact.get("experiment_version", "v9"))
-    if experiment_version not in {"v9", "v10"}:
+    if experiment_version not in {"v9", "v10", "v11"}:
         raise SystemExit("unsupported executable-source-graph version")
     candidate_schemas = {
         "v9": "executable-source-graph-alfworld-candidate-v9",
         "v10": "budgeted-executable-source-graph-alfworld-candidate-v10",
+        "v11": "budgeted-relation-edge-alfworld-candidate-v11",
     }
     harness_schemas = {
         "v9": "executable-source-graph-alfworld-harness-v9",
         "v10": "budgeted-executable-source-graph-alfworld-harness-v10",
+        "v11": "budgeted-relation-edge-alfworld-harness-v11",
     }
     if args.phase == "adaptation_gate":
         _validate_hash(artifact, "candidate_sha256")
