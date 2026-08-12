@@ -1,0 +1,73 @@
+{
+  "schema_version": "intervention-grounded-transfer-shadow-plan-v18",
+  "status": "FROZEN_BEFORE_V18_OUTCOME_BLIND_SHADOW",
+  "claim_boundary": "OUTCOME_BLIND_SHADOW_ON_64_ALREADY_CONSUMED_V15_TRAIN_TASKS_ONLY; SOURCE_TRANSFERS_PAIRWISE_RELATIVE_OPTION_ADVANTAGE_LEARNED_FROM_MATCHED_INTERVENTION_RECEIPTS; TARGET_PROVIDES_ORACLE_FREE_NATIVE_NEURAL_ACTION_GROUNDING; REQUIRED_OPTION, WORKFLOW_PHASE_OR_STATUS, HELD_OR_TRANSFORMED_STATE, REWARD, OFFICIAL_SUCCESS, AND COMPLETION_LABELS_ARE_FORBIDDEN; SOURCE_IS_SHADOW_ONLY_AND_TARGET_NEURAL_FALLBACK_CONTROLS_THE_MAIN_PATH; PASSING_ONLY_AUTHORIZES_FREEZING_A_SEPARATE_MATCHED_FORK_PLAN_AND_DOES_NOT_ESTABLISH_SUCCESS_TRANSFER; CONFIRMATION_AND_VALID_UNSEEN_REMAIN_UNREAD",
+  "consumed_target_pool": {
+    "path": "configs/strict_subgoal_option_audit_plan_v15.json",
+    "file_sha256": "bcfceec8b5c2407e8ac485ec3db48d6aa3b33c6b8a2d37803a35baa5e6465150",
+    "plan_sha256": "b68a31a6ef5c17b2bcc9720558e40ef9134c3a8873162ca633368a5f953a8838"
+  },
+  "source_controller": {
+    "path": "configs/intervention_grounded_option_advantage_source_candidate_v17.json",
+    "file_sha256": "4f953a27f70410ad01b23d9f297e9a9a390d9ed41cf9e9cbca5cf33f9f114ada",
+    "candidate_sha256": "4df4c2e3af752e31c06734f1466170a88fda4b1f47da8143a606aedebe4d35c6"
+  },
+  "target_grounder": {
+    "path": "configs/oracle_free_target_policy_candidate_v18.json",
+    "file_sha256": "4208c1f121e07ef7aa0711129ce67b888e574dfb737969978b95a173a0a75f11",
+    "artifact_sha256": "71aff0cbd171a3b20e5c7805ea0d0e41f4f99da856dfaabb8e716a1cd7f331a8"
+  },
+  "implementation": {
+    "shadow_runner": {
+      "path": "scripts/run_intervention_grounded_transfer_shadow_v18.py",
+      "file_sha256": "de781450e46a1d339db8cf690dfb6394af5c0568be90bfa7b918a8be5f489e9c"
+    },
+    "target_binding": {
+      "path": "src/motif_transfer/intervention_grounded_target_controller.py",
+      "file_sha256": "4f329544e126505e1c3a7acb9dd04959a8655cd94f9b511cd93a59c913562900"
+    },
+    "oracle_free_target_grounder": {
+      "path": "src/motif_transfer/oracle_free_target_grounder.py",
+      "file_sha256": "faaa812091347e007f5ae487d526538984404139b37195fdd23ee35d72b3cf18"
+    },
+    "pairwise_source_controller": {
+      "path": "src/motif_transfer/pairwise_option_advantage.py",
+      "file_sha256": "a041ba4b71ed9dcb05f2947343a6327598e519c4ade74e1816a25dedbfffe056"
+    },
+    "source_feature_contract": {
+      "path": "src/motif_transfer/hierarchical_skill_transfer.py",
+      "file_sha256": "cf9a7e2e4dcdcffa252bc6d83b45a8cd4dad7e4ffaec888fef851db4722719cb"
+    }
+  },
+  "task_authority": "CONSUMED_V15_DEVELOPMENT_IDENTITIES_ONLY",
+  "task_count": 64,
+  "max_steps": 60,
+  "main_path_policy": "ORACLE_FREE_TARGET_NEURAL_POLICY",
+  "source_controller_executed": false,
+  "shadow_conditions": [
+    "authentic_intervention_effect",
+    "within_state_effect_permutation",
+    "within_state_value_shuffle",
+    "effect_blind",
+    "target_effect_permutation"
+  ],
+  "source_specific_definition": "authentic abstract option differs from target-neural fallback and from every destructive control option at the same state",
+  "contrast_gate": {
+    "minimum_tasks_with_authentic_option_contrast": 32,
+    "minimum_tasks_with_source_specific_option_contrast": 16,
+    "minimum_option_pair_types": 3,
+    "minimum_tasks_per_option_pair_type": 4,
+    "minimum_authentic_minus_control_bootstrap_lower_bound": 0.0
+  },
+  "bootstrap": {
+    "unit": "consumed_target_task",
+    "samples": 5000,
+    "lower_tail_alpha": 0.05,
+    "seed": 971801
+  },
+  "target_outcome_fields_read_or_serialized": false,
+  "outcome_forks_authorized_by_this_plan": false,
+  "confirmation_read": false,
+  "existing_valid_unseen_heldout_read": false,
+  "plan_sha256": "41c4dbade9dc881552d16ddd2330270ef7c1d979a9c02c9e20fc8c10e5f55e6a"
+}

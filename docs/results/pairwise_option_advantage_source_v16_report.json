@@ -1,0 +1,149 @@
+{
+  "schema_version": "pairwise-option-advantage-source-report-v16",
+  "status": "SOURCE_GATE_PASSED",
+  "claim_boundary": "CONTROLLED_SOURCE_EXACT_DP_COUNTERFACTUALS_ONLY; SOURCE_GATE_BEFORE_TARGET; NO_REAL_GAME_TRANSFER_CLAIM",
+  "split_counts": {
+    "train": {
+      "states": 8192,
+      "option_rows": 40960,
+      "pairwise_rows": 81920
+    },
+    "calibration": {
+      "states": 2048,
+      "option_rows": 10240,
+      "pairwise_rows": 20480
+    },
+    "heldout": {
+      "states": 2048,
+      "option_rows": 10240,
+      "pairwise_rows": 20480
+    }
+  },
+  "cross_split_state_id_overlap": false,
+  "heldout_pair_metrics": {
+    "authentic": {
+      "pairs": 20480,
+      "rmse": 0.030928443430399723,
+      "sign_accuracy": 0.98349609375
+    },
+    "phase_permuted": {
+      "pairs": 20480,
+      "rmse": 0.21398918751112414,
+      "sign_accuracy": 0.572998046875
+    },
+    "within_state_value_shuffle": {
+      "pairs": 20480,
+      "rmse": 0.18282502655572613,
+      "sign_accuracy": 0.659619140625
+    },
+    "phase_blind": {
+      "pairs": 20480,
+      "rmse": 0.17309448485225812,
+      "sign_accuracy": 0.7001953125
+    }
+  },
+  "heldout_treatment_metrics": {
+    "authentic": {
+      "states": 2048,
+      "interventions": 1518,
+      "intervention_rate": 0.7412109375,
+      "positive_interventions": 1518,
+      "negative_interventions": 0,
+      "mean_true_utility": 0.16552057083950567,
+      "optimal_selection_rate": 1.0,
+      "mean_true_utility_by_surface": {
+        "forensics": 0.16332558052416668,
+        "game": 0.1496552125872058,
+        "logistics": 0.18768529431130915,
+        "maintenance": 0.1455045143149426,
+        "medicine": 0.17149162268557422,
+        "network": 0.1673262058392321,
+        "science": 0.17143972595859652,
+        "software": 0.167736410495018
+      }
+    },
+    "phase_permuted": {
+      "states": 2048,
+      "interventions": 0,
+      "intervention_rate": 0.0,
+      "positive_interventions": 0,
+      "negative_interventions": 0,
+      "mean_true_utility": 0.0,
+      "optimal_selection_rate": 0.2587890625,
+      "mean_true_utility_by_surface": {
+        "forensics": 0.0,
+        "game": 0.0,
+        "logistics": 0.0,
+        "maintenance": 0.0,
+        "medicine": 0.0,
+        "network": 0.0,
+        "science": 0.0,
+        "software": 0.0
+      }
+    },
+    "within_state_value_shuffle": {
+      "states": 2048,
+      "interventions": 0,
+      "intervention_rate": 0.0,
+      "positive_interventions": 0,
+      "negative_interventions": 0,
+      "mean_true_utility": 0.0,
+      "optimal_selection_rate": 0.2587890625,
+      "mean_true_utility_by_surface": {
+        "forensics": 0.0,
+        "game": 0.0,
+        "logistics": 0.0,
+        "maintenance": 0.0,
+        "medicine": 0.0,
+        "network": 0.0,
+        "science": 0.0,
+        "software": 0.0
+      }
+    },
+    "phase_blind": {
+      "states": 2048,
+      "interventions": 0,
+      "intervention_rate": 0.0,
+      "positive_interventions": 0,
+      "negative_interventions": 0,
+      "mean_true_utility": 0.0,
+      "optimal_selection_rate": 0.2587890625,
+      "mean_true_utility_by_surface": {
+        "forensics": 0.0,
+        "game": 0.0,
+        "logistics": 0.0,
+        "maintenance": 0.0,
+        "medicine": 0.0,
+        "network": 0.0,
+        "science": 0.0,
+        "software": 0.0
+      }
+    }
+  },
+  "bootstrap": {
+    "resamples": 4000,
+    "confidence_alpha": 0.05,
+    "authentic_utility_lower_bound": 0.15745346918137318,
+    "authentic_minus_control_lower_bounds": {
+      "phase_permuted": 0.15727658096523828,
+      "within_state_value_shuffle": 0.1575364692185074,
+      "phase_blind": 0.1573042563253338
+    }
+  },
+  "gates": {
+    "zero_invalid_or_cross_split_state_ids": true,
+    "stratified_bootstrap_lower_bound_authentic_utility_gt_zero": true,
+    "stratified_bootstrap_lower_bound_authentic_minus_phase_permuted_gt_zero": true,
+    "stratified_bootstrap_lower_bound_authentic_minus_value_shuffle_gt_zero": true,
+    "stratified_bootstrap_lower_bound_authentic_minus_phase_blind_gt_zero": true
+  },
+  "candidate_sha256": "597d81bdf433bc6ef966ab56f220792094698a7bf8dc6d31c7c528faa76dec6d",
+  "runtime_hashes": {
+    "config": "866b1463938db015806e10617a9cd3afe98c003a1036f0e0397976d0e5818890",
+    "trainer": "86d771f85476174b96fc0b2db396b957d73922ffde87e1411e5d361103f98366",
+    "pairwise_module": "f9dd2473f9e99d596189e197c3c3a9d055e322e84023d89d03413fe650918b43",
+    "source_generator": "cf9a7e2e4dcdcffa252bc6d83b45a8cd4dad7e4ffaec888fef851db4722719cb"
+  },
+  "target_read_or_run": false,
+  "report_sha256": "2722ce5dff8ccddadec34dd4f2e9ae6a928bfa3ea1ca38a36048ca6031a9e58a"
+}

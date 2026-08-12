@@ -1,0 +1,52 @@
+{
+  "schema_version": "pairwise-option-advantage-source-config-v16",
+  "status": "FROZEN_BEFORE_V16_SOURCE_CALIBRATION_OR_HELDOUT_READ",
+  "claim_boundary": "CONTROLLED_SOURCE_EXACT_DP_COUNTERFACTUALS_ONLY; SOURCE_GATE_BEFORE_TARGET; NO_REAL_GAME_TRANSFER_CLAIM",
+  "source": {
+    "surfaces": [
+      "game",
+      "software",
+      "science",
+      "forensics",
+      "network",
+      "logistics",
+      "medicine",
+      "maintenance"
+    ],
+    "train_domains_per_surface": 32,
+    "calibration_domains_per_surface": 8,
+    "heldout_domains_per_surface": 8,
+    "states_per_domain": 32,
+    "train_seed": 168501,
+    "calibration_seed": 268501,
+    "heldout_seed": 368501,
+    "ensemble_seed": 168502,
+    "control_seed": 168503,
+    "ensemble_size": 11,
+    "ridge_alpha": 0.35,
+    "workflow": {
+      "minimum_budget": 7,
+      "maximum_budget": 16,
+      "completion_probability_range": [0.35, 0.95],
+      "failure_cost_range": [0.01, 0.18],
+      "progress_reward": 0.15,
+      "invalid_option_cost": 0.18
+    }
+  },
+  "calibration": {
+    "split_conformal_alpha": 0.05
+  },
+  "inference": {
+    "fallback": "PHASE_BLIND_SOURCE_MODEL",
+    "admission": "MAX_PAIRWISE_CONFORMAL_LOWER_BOUND_STRICTLY_POSITIVE"
+  },
+  "source_gate": {
+    "bootstrap_resamples": 4000,
+    "bootstrap_seed": 168504,
+    "confidence_alpha": 0.05,
+    "require_stratified_bootstrap_lower_bound_authentic_utility_gt_zero": true,
+    "require_stratified_bootstrap_lower_bound_authentic_minus_each_destructive_control_gt_zero": true,
+    "require_zero_invalid_or_cross_split_state_ids": true
+  },
+  "target_authorized_by_this_config": false
+}
