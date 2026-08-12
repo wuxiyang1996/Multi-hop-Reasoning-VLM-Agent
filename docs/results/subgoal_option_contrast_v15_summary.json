@@ -1,0 +1,55 @@
+{
+  "schema_version": "subgoal-option-contrast-summary-v15",
+  "status": "STRICT_OUTCOME_BLIND_OPTION_CONTRAST_GATE_FAILED_STOP",
+  "claim_boundary": "CONTROLLED_MULTISOURCE_OPTION_CONTROLLER_FEASIBILITY_ONLY; NOT_REAL_GAME_TRANSFER; NO_OUTCOME_OR_CONFIRMATION_EVIDENCE",
+  "broad_preflight": {
+    "status": "QUARANTINED_ACTION_LEVEL_GATE_TOO_BROAD",
+    "tasks": 64,
+    "native_action_contrasts": 1435,
+    "within_option_search_to_search_contrasts": 718,
+    "option_contrasts_reproduced_by_strict_audit": 680,
+    "pool_stable_sha256": "c6c2cdea492c0ba3edd002024d7991ac352bceb7973513d3d538c5edfab76bed",
+    "pool_file_sha256": "013a6e7699e0e2d861444064fe6ff21f75a4a499f49d58713e20d756697c4eb2",
+    "report_stable_sha256": "e398195387e9b07ce6c6b603c4455a7569a549fbbfa43b49b539686aca266c95",
+    "report_file_sha256": "ed1c2ca5ba352ff41f51a72bb05c4faea248423169af58e4a7e23a64de288736"
+  },
+  "strict_audit": {
+    "tasks": 64,
+    "tasks_with_option_contrast": 64,
+    "tasks_with_second_cycle_option_contrast": 64,
+    "tasks_with_source_specific_option_contrast": 22,
+    "option_contrasts": 680,
+    "second_cycle_option_contrasts": 645,
+    "source_specific_option_contrasts": 69,
+    "destination_groups_with_four_source_specific_tasks": 3,
+    "required_destination_groups": 4,
+    "source_specific_by_destination": {
+      "armchair": {"tasks": 1, "opportunities": 15},
+      "cabinet": {"tasks": 4, "opportunities": 7},
+      "coffeetable": {"tasks": 1, "opportunities": 8},
+      "desk": {"tasks": 1, "opportunities": 3},
+      "drawer": {"tasks": 5, "opportunities": 9},
+      "shelf": {"tasks": 5, "opportunities": 11},
+      "sofa": {"tasks": 3, "opportunities": 13},
+      "toilet": {"tasks": 2, "opportunities": 3}
+    },
+    "gates": {
+      "minimum_tasks_with_option_contrast": true,
+      "minimum_tasks_with_source_specific_option_contrast": true,
+      "minimum_tasks_with_second_cycle_option_contrast": true,
+      "minimum_destination_groups_with_four_source_specific_tasks": false,
+      "zero_outcomes_recorded": true,
+      "zero_identity_or_receipt_failures": true
+    },
+    "plan_stable_sha256": "b68a31a6ef5c17b2bcc9720558e40ef9134c3a8873162ca633368a5f953a8838",
+    "plan_file_sha256": "bcfceec8b5c2407e8ac485ec3db48d6aa3b33c6b8a2d37803a35baa5e6465150",
+    "report_stable_sha256": "84f2b9c15a8cdba51c8d0a5957a023571eed47030862ed2345ac4c78dd4a5976",
+    "report_file_sha256": "40e640c2b12ca4c40a25a0903c8f59df96dd17132790651afa4de075377d004a"
+  },
+  "reward_serialized": false,
+  "official_success_serialized": false,
+  "matched_outcome_forks_run": false,
+  "confirmation_read_or_run": false,
+  "existing_valid_unseen_read_or_run": false,
+  "decision": "STOP_BEFORE_OUTCOMES_AND_IMPROVE_SOURCE_SPECIFIC_OPTION_CONTROL"
+}
