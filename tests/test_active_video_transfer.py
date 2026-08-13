@@ -4,12 +4,17 @@ from pathlib import Path
 import numpy as np
 
 from motif_transfer.active_video_transfer import (
+    CandidateEffectRow,
+    GroundedCandidateIntervention,
     CalibrationRow,
     GainRow,
     build_source_value_models,
+    candidate_action_features,
+    choose_candidate_action,
     choose_video_action,
     exact_binomial_two_sided,
     fit_calibration_head,
+    fit_candidate_effect_grounder,
     fit_gain_grounder,
     normalized_probabilities,
     video_action_features,
@@ -118,6 +123,65 @@ def test_source_models_route_only_abstract_test_or_commit():
         assert 0 <= decision.answer_index < 6
     else:
         assert decision.answer_index is None
+
+
+def test_candidate_grounder_ranks_matched_interventions_and_source_routes_ids():
+    rows = []
+    belief = (0.35, 0.2, 0.15, 0.1, 0.1, 0.1)
+    for sample in range(12):
+        for candidate in range(3):
+            useful = candidate == sample % 3
+            descriptor = [0.0] * 8
+            descriptor[candidate] = 1.0
+            rows.append(CandidateEffectRow(
+                sample_id=f"s{sample}",
+                candidate_id=f"c{candidate}",
+                current_belief=belief,
+                planner_score=0.9 if useful else 0.2,
+                descriptor=tuple(descriptor),
+                information_gain=0.2 if useful else 0.0,
+                confidence_gain=0.15 if useful else 0.0,
+                answer_quality_gain=0.4 if useful else -0.1,
+            ))
+    grounder = fit_candidate_effect_grounder(rows, seed=81, epochs=400)
+    predictions = [grounder.predict(
+        belief, planner_score=row.planner_score, descriptor=row.descriptor,
+    ) for row in rows[:3]]
+    assert all(len(row) == 3 for row in predictions)
+    candidate_rows = [GroundedCandidateIntervention(
+        candidate_id=f"c{index}", planner_score=0.8 - index * 0.1,
+        predicted_information_gain=0.2 - index * 0.05,
+        predicted_confidence_gain=0.1 - index * 0.02,
+        predicted_answer_quality_gain=0.3 - index * 0.1,
+        predicted_outcome_balance=0.8,
+    ) for index in range(3)]
+    tests, commits = candidate_action_features(
+        belief, candidates=candidate_rows, remaining_test_fraction=1.0,
+    )
+    assert len(tests) == 3
+    assert len(commits) == 6
+    assert all(len(row) == 9 for row in tests + commits)
+    source_config = json.loads((
+        REPO / "configs/controlled_neural_symbolic_transfer_v3_formal.json"
+    ).read_text())
+    decision = choose_candidate_action(
+        belief,
+        condition="authentic_source_plus_target",
+        candidates=candidate_rows,
+        source_models=build_source_value_models(source_config, seed=82),
+        uncertainty_scale=0.5,
+        decision_margin=0.0025,
+        fallback_commit_threshold=0.72,
+        target_quality_threshold=0.0,
+        information_gain_threshold=0.025,
+    )
+    assert decision.kind in {"TEST", "COMMIT"}
+    if decision.kind == "TEST":
+        assert decision.candidate_id in {"c0", "c1", "c2"}
+        assert decision.answer_index is None
+    else:
+        assert decision.candidate_id is None
+        assert 0 <= decision.answer_index < 6
 
 
 def test_probability_and_paired_sign_contracts_fail_closed():

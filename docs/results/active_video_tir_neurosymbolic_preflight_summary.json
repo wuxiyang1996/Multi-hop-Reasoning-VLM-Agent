@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "experiments": {
     "active_video_neural_symbolic_transfer_v1": {
       "role": "adaptation_only",
@@ -46,7 +46,78 @@
       "best_crop_accuracy_gain_over_overview": 0.0625,
       "authentic_vs_target_action_contrast_samples": 0,
       "failed_gate": "authentic_source_action_contrast"
+    },
+    "active_tir_wrapper_neurosymbolic_v2": {
+      "role": "adaptation_only_nested_cross_fit",
+      "status": "ADAPTATION_PREFLIGHT_PASS",
+      "samples": 16,
+      "baseline_accuracy": 0.375,
+      "target_only_accuracy": 0.375,
+      "authentic_source_accuracy": 0.4375,
+      "shuffled_source_accuracy": 0.375,
+      "source_marginal_accuracy": 0.375,
+      "oracle_candidate_accuracy": 0.5625,
+      "all_preregistered_gates_passed": true,
+      "formal_outcomes_consumed": false
+    },
+    "active_video_wrapper_neurosymbolic_v5": {
+      "role": "adaptation_only_aligned_visual_audio",
+      "status": "ADAPTATION_PREFLIGHT_FAIL",
+      "samples": 8,
+      "baseline_accuracy": 0.375,
+      "oracle_candidate_accuracy": 0.625,
+      "authentic_source_accuracy": 0.375,
+      "lesson": "Audio and stronger target evidence integration restore oracle headroom but not source transfer utility."
+    },
+    "active_video_wrapper_neurosymbolic_v7": {
+      "role": "stratified_expanded_train_adaptation",
+      "status": "ADAPTATION_PREFLIGHT_FAIL",
+      "samples": 20,
+      "baseline_accuracy": 0.8,
+      "oracle_candidate_accuracy": 0.85,
+      "target_only_accuracy": 0.85,
+      "authentic_source_accuracy": 0.85,
+      "shuffled_source_accuracy": 0.75,
+      "source_marginal_accuracy": 0.7,
+      "failed_gate": "authentic_source_strictly_improves_target_only"
+    },
+    "active_video_wrapper_neurosymbolic_v9": {
+      "role": "outcome_blind_neural_applicability",
+      "status": "ADAPTATION_PREFLIGHT_FAIL",
+      "samples": 28,
+      "baseline_accuracy": 0.6785714285714286,
+      "target_only_accuracy": 0.7142857142857143,
+      "authentic_source_accuracy": 0.6785714285714286,
+      "shuffled_source_accuracy": 0.6071428571428571,
+      "source_marginal_accuracy": 0.5714285714285714,
+      "lesson": "Authentic source beats source controls but does not improve success rate over baseline or target-only."
+    },
+    "active_video_wrapper_neurosymbolic_v10": {
+      "role": "leave_one_task_out_full_target_residual",
+      "status": "ADAPTATION_PREFLIGHT_FAIL",
+      "samples": 28,
+      "baseline_accuracy": 0.6785714285714286,
+      "target_only_accuracy": 0.7142857142857143,
+      "authentic_source_accuracy": 0.7142857142857143,
+      "shuffled_source_accuracy": 0.7142857142857143,
+      "source_marginal_accuracy": 0.7142857142857143,
+      "lesson": "Target residual helps but erases identifiable source contribution."
+    },
+    "active_video_wrapper_neurosymbolic_v11": {
+      "role": "deterministic_four_shot_target_residual",
+      "status": "ADAPTATION_PREFLIGHT_FAIL",
+      "samples": 28,
+      "baseline_accuracy": 0.6785714285714286,
+      "target_only_accuracy": 0.7142857142857143,
+      "authentic_source_accuracy": 0.6428571428571429,
+      "shuffled_source_accuracy": 0.6428571428571429,
+      "source_marginal_accuracy": 0.6428571428571429,
+      "lesson": "Four-shot residual does not reveal unique source-prior value."
     }
   },
-  "claim_boundary": "Adaptation/preflight evidence only. No formal Video-Holmes or TIR transfer outcome was consumed."
+  "claim_boundary": "Adaptation/preflight evidence only. No formal Video-Holmes or TIR qualification/held-out transfer outcome was consumed.",
+  "bottom_line": {
+    "TIR": "Adaptation preflight passed; formal validation remains unopened.",
+    "Video-Holmes": "Multimodal evidence headroom is fixed, but source-transfer success-rate gain is not validated."
+  }
 }

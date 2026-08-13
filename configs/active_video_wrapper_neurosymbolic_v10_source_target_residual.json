@@ -1,0 +1,69 @@
+{
+  "schema_version": 10,
+  "status": "DEVELOPMENT_SOURCE_PRIOR_TARGET_RESIDUAL_REANALYSIS",
+  "claim_boundary": "Leave-one-task-out source-prior plus target-residual evaluation on 28 already-consumed Video-Holmes train adaptation tasks; official test outcomes remain unread.",
+  "source": {
+    "controlled_v3_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/controlled_neural_symbolic_transfer_v3_formal.json",
+    "controlled_v3_config_content_sha256": "d5fb9c1976c1ac735d7efa4b0d8291dfc603b32f47a3ac6cf045519e3888d940",
+    "transferred_structure": "STATE_DEPENDENT_PARAMETERIZED_TEST_CANDIDATE_VS_COMMIT_MATCHED_INTERVENTION_VALUES",
+    "target_objective_test_cost": 0.025,
+    "use_target_residual_value_ensemble": true,
+    "target_residual": {
+      "maximum_scale": 1.0,
+      "full_strength_states": 4,
+      "label_contract": "OTHER_ADAPTATION_TASK_MATCHED_TEST_AND_COMMIT_SUCCESS_ONLY"
+    },
+    "model_seed": 2026081401
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+    "package": "visual_reasoning_wrapper",
+    "execution_authority": "WRAPPER_TOOL_REGISTRY_AND_QUESTION_ROUTER"
+  },
+  "target_grounder": {
+    "kind": "target_native_outcome_blind_neural_applicability",
+    "belief_seed": 2026081400,
+    "training_authority": "APPLICABILITY_SEES_NO_OUTCOME; VALUE_RESIDUAL_IS_LEAVE_ONE_TASK_OUT"
+  },
+  "policy": {
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "fallback_commit_threshold": 0.72,
+    "target_quality_threshold": 0.0,
+    "information_gain_threshold": 0.025
+  },
+  "conditions": [
+    "target_only",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target",
+    "target_native_information_gain",
+    "target_native_candidate_uplift"
+  ],
+  "splits": {
+    "adaptation": [
+      "ng9BW-vQ_2k.Q17", "fqo8YyqJZ98.Q423", "45pI9jQCcbo.Q783",
+      "Kwlv2mNFJlA.Q1327", "jCQnUuq-TEE.Q430", "63gIW3pe3hs.Q1515",
+      "wcee0enepVI.Q1378", "3xF8zUIGBbA.Q401",
+      "ZtYTwUxhAoI.Q314", "1IzpG2kJPdg.Q1444",
+      "IR0lXKXU6_8.Q1479", "YYAp7xT_JNE.Q501",
+      "LGzV36dOZPk.Q1343", "H69qiQok4dA.Q1068",
+      "YMSo2XuHMBQ.Q1036", "xeqHWpkwZl4.Q1404",
+      "9Jc7z54USA0.Q608", "h_ZjVLu_1oU.Q470", "Vi2oGllnQpE.Q590",
+      "zJ93oOLUd6M.Q940", "5A4Dn6tMESc.Q1298", "-3l2KFTj7yY.Q735",
+      "XJgjXqf1nbs.Q1255", "HiPUeVFK9yU.Q318",
+      "dQ3mEfxgBpA.Q1023", "ghuntBvDKLE.Q734", "nNV6vh20EAA.Q937",
+      "9blcWYHjrEo.Q1399"
+    ],
+    "qualification": [],
+    "held_out": []
+  },
+  "development_preflight": {
+    "minimum_samples_with_candidate_effect_variation": 7,
+    "minimum_authentic_action_contrasts": 3,
+    "require_oracle_candidate_headroom": true,
+    "require_cross_fitted_positive_response": false,
+    "require_source_control_contrast": true,
+    "require_authentic_source_accuracy_superiority": true
+  }
+}
