@@ -26,7 +26,7 @@ from __future__ import annotations
 import hashlib
 import io
 import logging
-from typing import Any
+from typing import Any, Callable, Mapping
 
 import numpy as np
 from PIL import Image
@@ -94,6 +94,60 @@ TOOL_SAMPLE_FRAMES = ToolDef(
             },
         },
         "required": [],
+    },
+    domain="video",
+)
+
+TOOL_INSPECT_AUDIO_WINDOW = ToolDef(
+    name="inspect_audio_window",
+    description=(
+        "Inspect audible evidence within a parameterized time window. "
+        "Returns a target-native description of speech, sound events, their "
+        "order, repetition, and uncertainty. The audio analyzer is supplied "
+        "by the caller; the wrapper does not hard-code a model provider."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "start_sec": {
+                "type": "number",
+                "description": "Start of the audio window in seconds.",
+            },
+            "end_sec": {
+                "type": "number",
+                "description": "End of the audio window in seconds.",
+            },
+        },
+        "required": ["start_sec", "end_sec"],
+    },
+    domain="video",
+)
+
+TOOL_INSPECT_MULTIMODAL_WINDOW = ToolDef(
+    name="inspect_multimodal_window",
+    description=(
+        "Inspect one parameterized video window using aligned visual frame "
+        "sampling and audio-event analysis. Returns both receipts under the "
+        "same start/end boundary so downstream reasoning can test temporal "
+        "and causal hypotheses without silently dropping the soundtrack."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "n": {
+                "type": "integer",
+                "description": "Number of visual frames to sample. Default 8.",
+            },
+            "start_sec": {
+                "type": "number",
+                "description": "Start of the aligned window in seconds.",
+            },
+            "end_sec": {
+                "type": "number",
+                "description": "End of the aligned window in seconds.",
+            },
+        },
+        "required": ["start_sec", "end_sec"],
     },
     domain="video",
 )
@@ -226,11 +280,13 @@ class _VideoState:
         video_path: str | None = None,
         fps: float = 1.0,
         current_index: int = 0,
+        audio_analyzer: Callable[..., Mapping[str, Any] | str] | None = None,
     ):
         self._raw_frames = frames
         self._video_path = video_path
         self._fps = fps
         self.current_index = current_index
+        self._audio_analyzer = audio_analyzer
         self._decoded: list[Image.Image] | None = None
 
     @property
@@ -342,6 +398,63 @@ def _h_sample_frames(
                 "timestamp": round(i / state._fps, 2) if state._fps > 0 else 0,
             })
     return {"sampled": sampled, "count": len(sampled), "total_frames": state.total_frames}
+
+
+def _h_inspect_audio_window(
+    state: _VideoState,
+    *,
+    start_sec: float,
+    end_sec: float,
+) -> dict:
+    start = max(0.0, float(start_sec))
+    end = min(float(end_sec), state.duration)
+    if end <= start:
+        return {
+            "available": False,
+            "error": "end_sec must exceed start_sec inside the video duration",
+            "start_sec": start,
+            "end_sec": end,
+        }
+    if state._audio_analyzer is None:
+        return {
+            "available": False,
+            "error": "No audio analyzer was supplied to build_video_registry",
+            "start_sec": start,
+            "end_sec": end,
+        }
+    payload = state._audio_analyzer(start_sec=start, end_sec=end)
+    if isinstance(payload, str):
+        payload = {"description": payload}
+    output = dict(payload)
+    output.update({
+        "available": True,
+        "start_sec": start,
+        "end_sec": end,
+    })
+    return output
+
+
+def _h_inspect_multimodal_window(
+    state: _VideoState,
+    *,
+    n: int = 8,
+    start_sec: float,
+    end_sec: float,
+) -> dict:
+    visual = _h_sample_frames(
+        state, n=n, start_sec=start_sec, end_sec=end_sec,
+    )
+    audio = _h_inspect_audio_window(
+        state, start_sec=start_sec, end_sec=end_sec,
+    )
+    return {
+        "visual": visual,
+        "audio": audio,
+        "aligned_window": {
+            "start_sec": float(start_sec),
+            "end_sec": float(end_sec),
+        },
+    }
 
 
 def _h_compare_frames(state: _VideoState, *, frame_a: int, frame_b: int) -> dict:
@@ -500,6 +613,10 @@ def _h_list_valid_actions_video(state: _VideoState) -> dict:
         {"action": "temporal_navigate('+1')", "description": "Next frame"},
         {"action": "temporal_navigate('-1')", "description": "Previous frame"},
         {"action": "sample_frames(n=8)", "description": "Overview of video"},
+        {
+            "action": "inspect_multimodal_window(n=8, start_sec=0, end_sec=10)",
+            "description": "Aligned visual frames plus audible events",
+        },
         {"action": "detect_scene_changes()", "description": "Find key moments"},
         {"action": "read_text_in_frame()", "description": "OCR current frame"},
         {"action": "compare_frames(a, b)", "description": "Diff two frames"},
@@ -533,6 +650,7 @@ def build_video_registry(
     video_path: str | None = None,
     fps: float = 1.0,
     current_index: int = 0,
+    audio_analyzer: Callable[..., Mapping[str, Any] | str] | None = None,
 ) -> ToolRegistry:
     """Create a ToolRegistry with all video tools.
 
@@ -551,11 +669,25 @@ def build_video_registry(
     -------
     ToolRegistry
     """
-    state = _VideoState(frames=frames, video_path=video_path, fps=fps, current_index=current_index)
+    state = _VideoState(
+        frames=frames,
+        video_path=video_path,
+        fps=fps,
+        current_index=current_index,
+        audio_analyzer=audio_analyzer,
+    )
     reg = ToolRegistry(domain="video")
 
     reg.register(TOOL_GET_FRAME, lambda **kw: _h_get_frame(state, **kw))
     reg.register(TOOL_SAMPLE_FRAMES, lambda **kw: _h_sample_frames(state, **kw))
+    reg.register(
+        TOOL_INSPECT_AUDIO_WINDOW,
+        lambda **kw: _h_inspect_audio_window(state, **kw),
+    )
+    reg.register(
+        TOOL_INSPECT_MULTIMODAL_WINDOW,
+        lambda **kw: _h_inspect_multimodal_window(state, **kw),
+    )
     reg.register(TOOL_COMPARE_FRAMES, lambda **kw: _h_compare_frames(state, **kw))
     reg.register(TOOL_DETECT_CHANGES, lambda **kw: _h_detect_changes(state, **kw))
     reg.register(TOOL_GET_VIDEO_INFO, lambda **kw: _h_get_video_info(state))
