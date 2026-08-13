@@ -57,3 +57,25 @@ def test_wrapper_video_contract_samples_parameterized_window():
     assert receipt["proxy_frame_indices"][0] >= 2
     assert receipt["result"]["audio"]["available"] is True
     assert "footsteps" in receipt["result"]["audio"]["description"]
+
+
+def test_wrapper_visual_only_video_contract_needs_no_audio():
+    frames = [Image.new("RGB", (32, 24), (index, 0, 0)) for index in range(12)]
+    registry, _ = build_video_registry(
+        frames,
+        duration_seconds=11.0,
+        wrapper_root=WRAPPER,
+        required_tools=("sample_frames",),
+    )
+    names = {
+        row["function"]["name"]
+        for row in video_tool_schemas(registry, allowed_tools=("sample_frames",))
+    }
+    assert names == {"sample_frames"}
+    selected, receipt = execute_video_intervention(
+        registry, frames, tool="sample_frames",
+        arguments={"n": 3, "start_sec": 2, "end_sec": 8},
+    )
+    assert len(selected) == 3
+    assert receipt["result"]["audio"]["not_applicable"] is True
+    assert receipt["proxy_frame_indices"][0] >= 2

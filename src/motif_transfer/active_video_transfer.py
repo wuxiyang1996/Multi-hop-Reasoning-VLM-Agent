@@ -49,8 +49,15 @@ def stable_hash(value: object) -> str:
     ).hexdigest()
 
 
-def normalized_probabilities(values: Mapping[str, Any]) -> np.ndarray:
-    vector = np.asarray([float(values.get(slot, 0.0)) for slot in ANSWER_SLOTS])
+def normalized_probabilities(
+    values: Mapping[str, Any],
+    *,
+    answer_slots: Sequence[str] = ANSWER_SLOTS,
+) -> np.ndarray:
+    slots = tuple(map(str, answer_slots))
+    if len(slots) < 2 or len(set(slots)) != len(slots):
+        raise ValueError("answer_slots must contain at least two unique slots")
+    vector = np.asarray([float(values.get(slot, 0.0)) for slot in slots])
     if not np.all(np.isfinite(vector)) or np.any(vector < 0):
         raise ValueError("answer probabilities must be finite and nonnegative")
     total = float(np.sum(vector))
@@ -100,15 +107,16 @@ class SoftmaxCalibrationHead:
     """
 
     temperature_weights: tuple[float, float, float]
+    answer_slot_count: int = len(ANSWER_SLOTS)
 
     def predict(self, features: Sequence[float]) -> np.ndarray:
         values = np.asarray(features, dtype=np.float64)
-        if values.shape != (len(ANSWER_SLOTS) + 2,):
+        if values.shape != (self.answer_slot_count + 2,):
             raise ValueError("calibration feature shape mismatch")
         context = np.asarray([1.0, values[-2], values[-1]])
         raw_temperature = float(context @ np.asarray(self.temperature_weights))
         temperature = 0.25 + float(np.logaddexp(0.0, raw_temperature))
-        logits = values[:len(ANSWER_SLOTS)] / temperature
+        logits = values[:self.answer_slot_count] / temperature
         logits -= np.max(logits)
         probabilities = np.exp(np.clip(logits, -30.0, 30.0))
         return probabilities / np.sum(probabilities)
@@ -117,12 +125,16 @@ class SoftmaxCalibrationHead:
         return {
             "kind": "target_native_slot_symmetric_temperature_head",
             "temperature_weights": list(self.temperature_weights),
+            "answer_slot_count": self.answer_slot_count,
             "cannot_permute_answer_slots": True,
         }
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> "SoftmaxCalibrationHead":
-        return cls(tuple(map(float, payload["temperature_weights"])))
+        return cls(
+            tuple(map(float, payload["temperature_weights"])),
+            int(payload.get("answer_slot_count", len(ANSWER_SLOTS))),
+        )
 
 
 def fit_calibration_head(
@@ -137,9 +149,16 @@ def fit_calibration_head(
 
     if not rows:
         raise ValueError("calibration rows cannot be empty")
+    answer_slot_count = len(rows[0].raw_probabilities)
+    if answer_slot_count < 2 or any(
+        len(row.raw_probabilities) != answer_slot_count for row in rows
+    ):
+        raise ValueError("calibration rows must share at least two answer slots")
+    if any(not 0 <= row.answer_index < answer_slot_count for row in rows):
+        raise ValueError("calibration answer index is outside the answer slots")
     matrix = np.asarray([row.features() for row in rows], dtype=np.float64)
     labels = np.asarray([row.answer_index for row in rows], dtype=np.int64)
-    raw_logits = matrix[:, :len(ANSWER_SLOTS)]
+    raw_logits = matrix[:, :answer_slot_count]
     context = np.column_stack((
         np.ones(len(matrix)), matrix[:, -2], matrix[:, -1],
     ))
@@ -170,7 +189,9 @@ def fit_calibration_head(
         weights -= learning_rate * (first / (1.0 - beta1**epoch)) / (
             np.sqrt(second / (1.0 - beta2**epoch)) + 1e-8
         )
-    return SoftmaxCalibrationHead(tuple(map(float, weights)))
+    return SoftmaxCalibrationHead(
+        tuple(map(float, weights)), answer_slot_count=answer_slot_count,
+    )
 
 
 @dataclass(frozen=True)

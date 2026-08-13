@@ -23,7 +23,12 @@ TIR_INTERVENTION_TOOLS = (
     "read_text_region",
     "describe_region",
 )
-VIDEO_INTERVENTION_TOOLS = ("inspect_multimodal_window",)
+VIDEO_VISUAL_INTERVENTION_TOOLS = ("sample_frames",)
+VIDEO_MULTIMODAL_INTERVENTION_TOOLS = ("inspect_multimodal_window",)
+VIDEO_INTERVENTION_TOOLS = (
+    *VIDEO_VISUAL_INTERVENTION_TOOLS,
+    *VIDEO_MULTIMODAL_INTERVENTION_TOOLS,
+)
 
 
 @dataclass(frozen=True)
@@ -141,6 +146,7 @@ def build_video_registry(
     duration_seconds: float,
     wrapper_root: str | Path,
     audio_analyzer: Callable[..., Mapping[str, Any] | str] | None = None,
+    required_tools: Sequence[str] = VIDEO_MULTIMODAL_INTERVENTION_TOOLS,
 ):
     if not frames:
         raise ValueError("video wrapper needs at least one sampled frame")
@@ -153,14 +159,25 @@ def build_video_registry(
         frames=list(frames), fps=proxy_fps, current_index=0,
         audio_analyzer=audio_analyzer,
     )
-    missing = sorted(set(VIDEO_INTERVENTION_TOOLS) - set(registry.tool_names()))
+    requested = tuple(map(str, required_tools))
+    unsupported = sorted(set(requested) - set(VIDEO_INTERVENTION_TOOLS))
+    if unsupported:
+        raise ValueError(f"unsupported video intervention tools: {unsupported}")
+    missing = sorted(set(requested) - set(registry.tool_names()))
     if missing:
         raise RuntimeError(f"wrapper video tool contract is missing: {missing}")
     return registry, proxy_fps
 
 
-def video_tool_schemas(registry) -> list[dict[str, Any]]:
-    allowed = set(VIDEO_INTERVENTION_TOOLS)
+def video_tool_schemas(
+    registry,
+    *,
+    allowed_tools: Sequence[str] = VIDEO_MULTIMODAL_INTERVENTION_TOOLS,
+) -> list[dict[str, Any]]:
+    allowed = set(map(str, allowed_tools))
+    unsupported = sorted(allowed - set(VIDEO_INTERVENTION_TOOLS))
+    if unsupported:
+        raise ValueError(f"unsupported video intervention tools: {unsupported}")
     return [
         definition for definition in registry.definitions()
         if definition.get("function", {}).get("name") in allowed
@@ -186,14 +203,31 @@ def execute_video_intervention(
     result = registry.dispatch(tool, canonical)
     if result.error:
         raise RuntimeError(f"wrapper {tool} failed: {result.error}")
-    payload = dict(result.result or {})
-    visual = dict(payload.get("visual") or {})
-    audio = dict(payload.get("audio") or {})
-    if not audio.get("available"):
-        raise RuntimeError(
-            "wrapper multimodal intervention has no audio evidence: "
-            + str(audio.get("error") or "unknown error")
-        )
+    raw_payload = dict(result.result or {})
+    if tool in VIDEO_VISUAL_INTERVENTION_TOOLS:
+        visual = raw_payload
+        audio = {
+            "available": False,
+            "not_applicable": True,
+            "reason": "visual_only_benchmark_intervention",
+        }
+        payload = {
+            "visual": visual,
+            "audio": audio,
+            "aligned_window": {
+                "start_sec": canonical["start_sec"],
+                "end_sec": canonical["end_sec"],
+            },
+        }
+    else:
+        payload = raw_payload
+        visual = dict(payload.get("visual") or {})
+        audio = dict(payload.get("audio") or {})
+        if not audio.get("available"):
+            raise RuntimeError(
+                "wrapper multimodal intervention has no audio evidence: "
+                + str(audio.get("error") or "unknown error")
+            )
     indices = [int(row["index"]) for row in visual.get("sampled", ())]
     if not indices or any(index < 0 or index >= len(frames) for index in indices):
         raise RuntimeError("wrapper returned invalid sampled frame indices")
@@ -208,6 +242,8 @@ def execute_video_intervention(
 __all__ = [
     "TIR_INTERVENTION_TOOLS",
     "VIDEO_INTERVENTION_TOOLS",
+    "VIDEO_MULTIMODAL_INTERVENTION_TOOLS",
+    "VIDEO_VISUAL_INTERVENTION_TOOLS",
     "WrapperRoutingReceipt",
     "build_tir_registry",
     "build_video_registry",

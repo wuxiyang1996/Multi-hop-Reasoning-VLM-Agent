@@ -191,3 +191,24 @@ def test_probability_and_paired_sign_contracts_fail_closed():
     )
     assert exact_binomial_two_sided(6, 0) == 0.03125
     assert exact_binomial_two_sided(0, 0) == 1.0
+
+
+def test_binary_target_uses_native_answer_slots_without_padding():
+    probabilities = normalized_probabilities(
+        {"A": 3, "B": 1}, answer_slots=("A", "B"),
+    )
+    assert np.allclose(probabilities, (0.75, 0.25))
+    rows = [
+        CalibrationRow(
+            sample_id=f"binary-{index}",
+            prefix_length=0,
+            max_tests=1,
+            mean_planner_score=0.5,
+            raw_probabilities=(0.8, 0.2) if index % 2 == 0 else (0.2, 0.8),
+            answer_index=index % 2,
+        )
+        for index in range(8)
+    ]
+    head = fit_calibration_head(rows, seed=91, epochs=100)
+    assert head.answer_slot_count == 2
+    assert head.predict(rows[0].features()).shape == (2,)

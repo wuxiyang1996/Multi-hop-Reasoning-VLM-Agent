@@ -27,20 +27,48 @@ from .active_video_transfer import (
 from .controlled_exploration_transfer import AbstractAction, MatchedValueExample
 
 
+def receipt_answer_slots(
+    receipts: Sequence[Mapping[str, Any]],
+) -> tuple[str, ...]:
+    """Resolve and validate one experiment-wide native answer vocabulary."""
+
+    if not receipts:
+        raise ValueError("receipts cannot be empty")
+    declared = receipts[0].get("answer_slots")
+    if declared is None:
+        declared = tuple(
+            (receipts[0].get("baseline") or {}).get("answer", {})
+            .get("probabilities", {})
+            .keys()
+        ) or ANSWER_SLOTS
+    slots = tuple(map(str, declared))
+    if len(slots) < 2 or len(set(slots)) != len(slots):
+        raise ValueError("receipt answer_slots must contain unique native slots")
+    for receipt in receipts:
+        row_slots = tuple(map(str, receipt.get("answer_slots", slots)))
+        if row_slots != slots:
+            raise ValueError("all receipts must share the same answer_slots")
+        if str(receipt["gold_answer"]) not in slots:
+            raise ValueError("gold answer is outside receipt answer_slots")
+    return slots
+
+
 def _candidate_calibration_rows(
     receipts: Sequence[Mapping[str, Any]],
 ) -> list[tuple[str, str, CalibrationRow]]:
+    answer_slots = receipt_answer_slots(receipts)
     indexed: list[tuple[str, str, CalibrationRow]] = []
     for receipt in receipts:
         sample_id = str(receipt["sample_id"])
-        gold_index = ANSWER_SLOTS.index(str(receipt["gold_answer"]))
+        gold_index = answer_slots.index(str(receipt["gold_answer"]))
         indexed.append((sample_id, "BASE", CalibrationRow(
             sample_id=f"{sample_id}::BASE",
             prefix_length=0,
             max_tests=1,
             mean_planner_score=0.0,
             raw_probabilities=tuple(normalized_probabilities(
-                receipt["baseline"]["answer"]["probabilities"]
+                receipt["baseline"]["answer"]["probabilities"],
+                answer_slots=answer_slots,
             )),
             answer_index=gold_index,
         )))
@@ -52,7 +80,8 @@ def _candidate_calibration_rows(
                 max_tests=1,
                 mean_planner_score=float(candidate["planner_score"]),
                 raw_probabilities=tuple(normalized_probabilities(
-                    candidate["answer"]["probabilities"]
+                    candidate["answer"]["probabilities"],
+                    answer_slots=answer_slots,
                 )),
                 answer_index=gold_index,
             )))
@@ -119,6 +148,7 @@ def nested_cross_fitted_candidate_predictions(
 ) -> dict[tuple[str, str], tuple[float, float, float]]:
     """Predict each task after removing it from both learned target heads."""
 
+    answer_slots = receipt_answer_slots(receipts)
     sample_ids = sorted({str(receipt["sample_id"]) for receipt in receipts})
     if len(sample_ids) < 3:
         raise ValueError("nested candidate cross-fitting needs three samples")
@@ -141,7 +171,8 @@ def nested_cross_fitted_candidate_predictions(
                 max_tests=1,
                 mean_planner_score=0.0,
                 raw_probabilities=tuple(normalized_probabilities(
-                    receipt["baseline"]["answer"]["probabilities"]
+                    receipt["baseline"]["answer"]["probabilities"],
+                    answer_slots=answer_slots,
                 )),
                 answer_index=0,
             )
@@ -156,7 +187,8 @@ def nested_cross_fitted_candidate_predictions(
                     max_tests=1,
                     mean_planner_score=float(candidate["planner_score"]),
                     raw_probabilities=tuple(normalized_probabilities(
-                        candidate["answer"]["probabilities"]
+                        candidate["answer"]["probabilities"],
+                        answer_slots=answer_slots,
                     )),
                     answer_index=0,
                 )
@@ -187,15 +219,17 @@ def candidate_effect_rows(
     *,
     calibrated_predictions: Mapping[tuple[str, str], np.ndarray] | None = None,
 ) -> list[CandidateEffectRow]:
+    answer_slots = receipt_answer_slots(receipts)
     rows: list[CandidateEffectRow] = []
     for receipt in receipts:
         sample_id = str(receipt["sample_id"])
-        gold_index = ANSWER_SLOTS.index(str(receipt["gold_answer"]))
+        gold_index = answer_slots.index(str(receipt["gold_answer"]))
         before = (
             calibrated_predictions[(sample_id, "BASE")]
             if calibrated_predictions is not None
             else normalized_probabilities(
-                receipt["baseline"]["answer"]["probabilities"]
+                receipt["baseline"]["answer"]["probabilities"],
+                answer_slots=answer_slots,
             )
         )
         for candidate in receipt["candidates"]:
@@ -203,7 +237,10 @@ def candidate_effect_rows(
             after = (
                 calibrated_predictions[(sample_id, candidate_id)]
                 if calibrated_predictions is not None
-                else normalized_probabilities(candidate["answer"]["probabilities"])
+                else normalized_probabilities(
+                    candidate["answer"]["probabilities"],
+                    answer_slots=answer_slots,
+                )
             )
             quality = math.log(float(after[gold_index])) - math.log(
                 float(before[gold_index])
@@ -273,6 +310,7 @@ def _target_residual_examples(
 ) -> tuple[MatchedValueExample, ...]:
     """Compile matched target forks to abstract TEST/COMMIT value rows."""
 
+    answer_slots = receipt_answer_slots(receipts)
     output: list[MatchedValueExample] = []
     for receipt in receipts:
         sample_id = str(receipt["sample_id"])
@@ -285,7 +323,7 @@ def _target_residual_examples(
         tests, commits = candidate_action_features(
             belief, candidates=grounded, remaining_test_fraction=1.0,
         )
-        gold_index = ANSWER_SLOTS.index(str(receipt["gold_answer"]))
+        gold_index = answer_slots.index(str(receipt["gold_answer"]))
         candidate_index = {
             str(candidate["candidate_id"]): candidate
             for candidate in receipt["candidates"]
@@ -328,6 +366,7 @@ def evaluate_candidate_adaptation(
     target tool name, coordinate, timestamp, answer text, or gold label.
     """
 
+    answer_slots = receipt_answer_slots(receipts)
     grounder_config = config["target_grounder"]
     direct_applicability = (
         str(grounder_config["kind"])
@@ -512,7 +551,7 @@ def evaluate_candidate_adaptation(
 
     for receipt in receipts:
         sample_id = str(receipt["sample_id"])
-        gold_index = ANSWER_SLOTS.index(str(receipt["gold_answer"]))
+        gold_index = answer_slots.index(str(receipt["gold_answer"]))
         before = calibrated[(sample_id, "BASE")]
         candidate_index = candidate_indices[sample_id]
         grounded = grounded_by_sample[sample_id]
@@ -548,9 +587,9 @@ def evaluate_candidate_adaptation(
                 "sample_id": sample_id,
                 "family": str(receipt.get("family") or ""),
                 "condition": condition,
-                "baseline_answer": ANSWER_SLOTS[int(np.argmax(before))],
-                "committed_answer": ANSWER_SLOTS[committed],
-                "gold_answer": ANSWER_SLOTS[gold_index],
+                "baseline_answer": answer_slots[int(np.argmax(before))],
+                "committed_answer": answer_slots[committed],
+                "gold_answer": answer_slots[gold_index],
                 "correct": committed == gold_index,
                 "selected_candidate_id": (
                     str(selected["candidate_id"]) if selected is not None else None
@@ -579,7 +618,7 @@ def evaluate_candidate_adaptation(
     candidate_effect_ranges = []
     for receipt in receipts:
         sample_id = str(receipt["sample_id"])
-        gold = ANSWER_SLOTS.index(str(receipt["gold_answer"]))
+        gold = answer_slots.index(str(receipt["gold_answer"]))
         before = calibrated[(sample_id, "BASE")]
         candidates = list(receipt["candidates"])
         baseline_correct.append(int(np.argmax(before)) == gold)
@@ -699,6 +738,7 @@ def evaluate_candidate_adaptation(
     artifact = {
         "schema_version": 1,
         "role": "TARGET_NATIVE_PARAMETERIZED_INTERVENTION_GROUNDER_ADAPTATION_ONLY",
+        "answer_slots": list(answer_slots),
         "belief_calibration_head": calibration_head.as_dict(),
         "candidate_effect_grounder": full_grounder_payload,
         "training_sample_ids": sorted({row.sample_id for row in rows}),
@@ -717,6 +757,7 @@ def evaluate_candidate_adaptation(
     artifact["artifact_sha256"] = stable_hash(artifact)
     report = {
         "schema_version": 1,
+        "answer_slots": list(answer_slots),
         "status": (
             "ADAPTATION_PREFLIGHT_PASS" if all(gates.values())
             else "ADAPTATION_PREFLIGHT_FAIL"

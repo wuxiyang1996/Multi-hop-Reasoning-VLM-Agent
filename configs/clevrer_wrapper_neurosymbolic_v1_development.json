@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "CLEVRER official validation candidates; adaptation labels may train target-native heads, qualification and held-out outcomes remain frozen.",
+  "source": {
+    "controlled_v3_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/controlled_neural_symbolic_transfer_v3_formal.json",
+    "controlled_v3_config_content_sha256": "d5fb9c1976c1ac735d7efa4b0d8291dfc603b32f47a3ac6cf045519e3888d940",
+    "transferred_structure": "STATE_DEPENDENT_PARAMETERIZED_TEST_CANDIDATE_VS_COMMIT_MATCHED_INTERVENTION_VALUES",
+    "target_objective_test_cost": 0.0,
+    "model_seed": 2026081411
+  },
+  "target": {
+    "benchmark": "CLEVRER",
+    "split": "validation",
+    "families": ["explanatory", "predictive", "counterfactual"],
+    "official_evaluator": "per_choice_correct_wrong_accuracy",
+    "target_native_actions": [
+      "sample_frames(start_sec,end_sec,n)",
+      "commit_correct_or_wrong"
+    ],
+    "oracle_programs_for_diagnosis_only": true
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+    "package": "visual_reasoning_wrapper",
+    "execution_authority": "WRAPPER_TOOL_REGISTRY_AND_CLEVRER_LOADER"
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "temperature": 0,
+    "max_answer_tokens": 700,
+    "max_planner_tokens": 1100
+  },
+  "media": {
+    "proxy_frame_count": 32,
+    "proxy_frame_max_side": 640,
+    "overview_frame_count": 3,
+    "overview_frame_width": 160,
+    "frames_per_candidate": 8,
+    "evidence_frame_width": 320,
+    "jpeg_quality": 86
+  },
+  "interventions": {
+    "tool": "sample_frames",
+    "candidate_count": 3,
+    "maximum_window_fraction": 0.5,
+    "matched_fork_contract": "THREE_FRAME_LOW_BANDWIDTH_OVERVIEW_PLUS_EXACTLY_ONE_QUESTION_CONDITIONED_VISUAL_WINDOW"
+  },
+  "target_grounder": {
+    "kind": "target_native_candidate_intervention_uplift_mlp",
+    "belief_seed": 2026081410,
+    "candidate_seed": 2026081412,
+    "candidate_hidden_units": 16,
+    "candidate_epochs": 600,
+    "training_authority": "CLEVRER_INTERNAL_ADAPTATION_MATCHED_FORKS_ONLY"
+  },
+  "policy": {
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "fallback_commit_threshold": 0.72,
+    "target_quality_threshold": 0.0,
+    "information_gain_threshold": 0.025
+  },
+  "conditions": [
+    "target_only",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target",
+    "target_native_information_gain",
+    "target_native_candidate_uplift"
+  ],
+  "split_selection": {
+    "seed": 20260813,
+    "strata": "question_type_x_correct_wrong",
+    "video_disjoint": true,
+    "counts_per_stratum": {
+      "adaptation": 3,
+      "qualification": 5,
+      "held_out": 10
+    }
+  },
+  "splits": {
+    "adaptation": [
+      "video_13876.mp4.Q14.C0", "video_14783.mp4.Q14.C1", "video_10248.mp4.Q14.C0",
+      "video_12544.mp4.Q13.C0", "video_12606.mp4.Q14.C3", "video_11946.mp4.Q14.C2",
+      "video_12562.mp4.Q12.C2", "video_12825.mp4.Q12.C1", "video_11681.mp4.Q11.C3",
+      "video_12849.mp4.Q12.C3", "video_12159.mp4.Q12.C0", "video_12846.mp4.Q12.C3",
+      "video_12143.mp4.Q13.C1", "video_12723.mp4.Q13.C0", "video_11184.mp4.Q13.C1",
+      "video_14864.mp4.Q12.C0", "video_10821.mp4.Q13.C0", "video_10857.mp4.Q13.C0"
+    ],
+    "qualification": [
+      "video_11572.mp4.Q13.C0", "video_11858.mp4.Q14.C1", "video_13398.mp4.Q15.C0", "video_13063.mp4.Q15.C1", "video_14482.mp4.Q15.C1",
+      "video_11405.mp4.Q14.C0", "video_10721.mp4.Q15.C0", "video_12295.mp4.Q15.C1", "video_13278.mp4.Q14.C1", "video_11487.mp4.Q14.C1",
+      "video_12447.mp4.Q12.C2", "video_11074.mp4.Q12.C1", "video_11313.mp4.Q11.C0", "video_12943.mp4.Q12.C2", "video_11169.mp4.Q12.C0",
+      "video_11701.mp4.Q11.C2", "video_12132.mp4.Q11.C1", "video_14311.mp4.Q11.C1", "video_11259.mp4.Q11.C0", "video_13491.mp4.Q12.C0",
+      "video_11037.mp4.Q13.C0", "video_12648.mp4.Q12.C1", "video_14853.mp4.Q12.C0", "video_13531.mp4.Q13.C1", "video_11411.mp4.Q11.C1",
+      "video_14798.mp4.Q13.C1", "video_12212.mp4.Q12.C1", "video_13533.mp4.Q13.C1", "video_14088.mp4.Q12.C1", "video_12833.mp4.Q12.C0"
+    ],
+    "held_out": [
+      "video_14371.mp4.Q15.C1", "video_13241.mp4.Q15.C1", "video_11678.mp4.Q14.C3", "video_13572.mp4.Q14.C2", "video_14704.mp4.Q14.C1",
+      "video_13950.mp4.Q14.C1", "video_13924.mp4.Q14.C3", "video_13852.mp4.Q14.C0", "video_12328.mp4.Q15.C2", "video_12744.mp4.Q14.C2",
+      "video_11857.mp4.Q14.C1", "video_10339.mp4.Q14.C2", "video_10341.mp4.Q13.C1", "video_10344.mp4.Q12.C1", "video_10487.mp4.Q14.C2",
+      "video_11859.mp4.Q13.C0", "video_14281.mp4.Q13.C0", "video_13133.mp4.Q15.C2", "video_11994.mp4.Q13.C2", "video_11028.mp4.Q15.C2",
+      "video_11587.mp4.Q12.C3", "video_10240.mp4.Q12.C2", "video_13361.mp4.Q11.C2", "video_11297.mp4.Q11.C1", "video_11435.mp4.Q12.C2",
+      "video_14506.mp4.Q12.C2", "video_14479.mp4.Q11.C2", "video_11654.mp4.Q11.C2", "video_10823.mp4.Q11.C2", "video_13490.mp4.Q11.C1",
+      "video_14826.mp4.Q11.C2", "video_11539.mp4.Q11.C0", "video_12194.mp4.Q11.C2", "video_13580.mp4.Q12.C0", "video_14176.mp4.Q12.C1",
+      "video_14190.mp4.Q11.C1", "video_14862.mp4.Q12.C2", "video_10732.mp4.Q11.C0", "video_10368.mp4.Q11.C2", "video_12353.mp4.Q12.C0",
+      "video_10132.mp4.Q13.C0", "video_13218.mp4.Q13.C1", "video_11161.mp4.Q13.C1", "video_11824.mp4.Q13.C0", "video_13916.mp4.Q13.C1",
+      "video_13382.mp4.Q13.C1", "video_11486.mp4.Q13.C0", "video_13912.mp4.Q12.C0", "video_11494.mp4.Q13.C1", "video_13898.mp4.Q13.C1",
+      "video_13596.mp4.Q13.C0", "video_14078.mp4.Q13.C0", "video_11419.mp4.Q11.C1", "video_13683.mp4.Q13.C1", "video_13867.mp4.Q13.C0",
+      "video_13237.mp4.Q13.C1", "video_12963.mp4.Q13.C0", "video_13851.mp4.Q13.C1", "video_14223.mp4.Q13.C1", "video_13287.mp4.Q13.C0"
+    ]
+  },
+  "development_preflight": {
+    "minimum_samples_with_candidate_effect_variation": 5,
+    "minimum_authentic_action_contrasts": 2,
+    "require_oracle_candidate_headroom": true,
+    "require_cross_fitted_positive_response": true,
+    "require_source_control_contrast": true,
+    "require_authentic_source_accuracy_superiority": true
+  }
+}

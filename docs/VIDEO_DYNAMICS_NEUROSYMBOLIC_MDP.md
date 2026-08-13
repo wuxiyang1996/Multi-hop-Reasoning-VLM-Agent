@@ -1,0 +1,284 @@
+# 视频 neural-symbolic transfer：Dynamics / Tools / MDP 设计
+
+## 决策
+
+当前 CLEVRER V1 不能继续沿着 `sample_frames → 重新问一次答案` 调 grounder。它已经是一个有用的
+失败诊断，但不是正确的视频 neural-symbolic MDP。V1 adaptation 的结果是：
+
+- baseline `11/18`；
+- oracle candidate `12/18`，说明只有很小的单窗口 headroom；
+- authentic source `11/18`，与 target-only 相同；
+- marginal source `12/18`，反而高于 authentic；
+- authentic 只在 `1/18` 个样本上改变 target action。
+
+因此失败不能先解释为“semantic grounder 不够强”。更根本的问题是：V1 没有显式 dynamics state、
+typed test outcome、belief transition 或 causal executor。原计划中的 semantic-only V2 不运行。
+
+正确的最小闭环是：
+
+```text
+question + low-bandwidth video scout
+    -> target-native query graph
+    -> target-native world/dynamics particles
+    -> typed predicate TEST candidates
+    -> source sees only anonymous TEST/COMMIT value features
+    -> target-native tool returns a calibrated predicate receipt
+    -> Bayesian world-particle update
+    -> dynamics / counterfactual simulation
+    -> symbolic program execution
+    -> native answer belief
+    -> repeat TEST or COMMIT
+```
+
+迁移对象仍然可以是 intervention-grounded symbolic structure，但 target grounding 必须包括
+**perception、dynamics 和 executor**，而不只是把多看几帧后的 VLM answer 当作新 belief。
+
+## TIR 与视频的真实同构和非同构部分
+
+| 项目 | TIR | CLEVRER / structured video |
+|---|---|---|
+| 环境 | 静态图像，隐藏答案可由局部像素/文字直接揭示 | 固定视频，但答案由隐藏轨迹、事件图和 dynamics 派生 |
+| 隐藏假设 | answer slot 本身通常足够 | world/dynamics/event-graph particle；多个 worlds 可导出同一答案 |
+| TEST | `zoom/read_text/describe(region)` | `verify predicate(entities, window)`；window 只是底层取帧参数 |
+| observation | crop/OCR，通常直接改变答案证据 | object state、track、collision、entry/exit、event order 及可靠度 |
+| transition | 直接更新 answer belief | 先更新 world posterior，再运行 dynamics/executor，最后聚合 answer belief |
+| COMMIT | 单个 MCQ slot | STAR/NExT-QA 是 MCQ slot；CLEVRER 应提交整题 choice-label vector |
+| 规划难度 | 一层 active perception 常可近似 | perception + temporal association + model-based prediction/counterfactual |
+| 当前证据 | adaptation preflight `7/16`，baseline/controls `6/16`；非 formal | V1 adaptation fail；尚无 transfer 证据 |
+
+两者真正共享的是：
+
+```text
+uncertainty / evidence reliability / budget
+    -> 哪个 TEST 的 expected value 最大
+    -> 继续 TEST 还是 COMMIT
+```
+
+两者不共享 raw tool、时间/空间坐标、object vocabulary、query program 或 dynamics model。
+
+## 为什么视频仍然是 belief MDP，而不是把帧时间当环境 transition
+
+CLEVRER 视频在 episode 开始时已经固定；agent 选择时间窗不会改变视频中的物理世界。因此对 agent
+而言，它首先是一个 active-perception POMDP：潜在 world `W` 不变，TEST 改变 epistemic belief。
+但 `W` 本身必须包含时间演化：object attributes、trajectories、collision graph、dynamics parameters
+和 counterfactual worlds。predictive / counterfactual answer 通过 target-native generative transition
+产生，而不是存在于某个尚未看的窗口中。
+
+这可以避免两个概念错误：
+
+1. “看晚一点”不能观察 CLEVRER 的 unseen future；官方 predictive target 需要 dynamics rollout；
+2. “移除物体”不是可在 factual video 中执行的 sensing action；它是 simulator 中的 intervention。
+
+## 状态
+
+最小状态定义为：
+
+```text
+s_t = (q, {W_i, w_i}_i, H_t, b_t(y), n_t, c_t)
+```
+
+- `q`：由问题文本解析出的 target-native query graph；
+- `W_i`：world particle，包含 object trajectories、event graph、dynamics/counterfactual prediction；
+- `w_i`：该 particle 的 posterior weight；
+- `H_t`：已绑定的 typed evidence receipts；
+- `b_t(y)`：executor 在每个 `W_i` 上运行后按 `w_i` 聚合出的 native answer belief；
+- `n_t`：remaining TEST budget；
+- `c_t`：各 probe 的重复次数。
+
+对 CLEVRER，一道题的若干 candidate 不是标准 one-of-K MCQ。正式 unit 应是整道 question：每个
+`W_i` 经 executor 得到一个 bit vector，例如 `1010`；`COMMIT(1010)` 的成功条件是整题 exact
+match。官方 per-choice accuracy 只作为诊断指标。V1 把每个 candidate 单独变成 A/B，会丢失整题
+约束并放大 label-prior baseline，因此不能作为最终协议。
+
+## 动作
+
+顶层保持 source-compatible 的两类 action：
+
+```text
+TEST(probe_id)
+COMMIT(native_answer)
+```
+
+但一个合法 `TEST` 必须已经由 target candidate generator 编译为：
+
+```text
+probe = (
+    predicate_kind,
+    entity_refs,
+    time_window,
+    target_tool,
+    expected_sensor_reliability,
+    P(predicate=true | W_i) for every world particle
+)
+```
+
+首版只允许可观测、可校准的 predicate：
+
+- `OBJECT_PRESENT / OBJECT_ATTRIBUTE`；
+- `OBJECT_MOTION / OBJECT_TRACK`；
+- `COLLISION`；
+- `ENTRY / EXIT`；
+- `EVENT_ORDER`；
+- `CAUSAL_ANCESTOR` 只在其组成事件都有 evidence 后使用。
+
+`sample_frames` 仍可作为 wrapper 的底层 transport primitive，但它不是 agent 的 symbolic TEST。
+`find_moment("something useful")` 或自由文本 window hypothesis 也不够，因为它们没有有限 outcome
+space，无法定义 `P(o | W, TEST)` 或可靠 belief transition。
+
+首版不把 `SIMULATE` 暴露给 source controller。每次 TEST 后，target transition 固定执行一次
+dynamics/counterfactual executor。以后若研究 compute allocation，可增加 target-only 的
+`REFINE_DYNAMICS` option，但不能把它与 sensing TEST 混在同一个 outcome model 中。
+
+## Tool receipt
+
+视频工具必须返回 typed measurement，而不是只返回 frame indices：
+
+```json
+{
+  "probe_id": "collision:red-sphere:blue-cube@1.0-2.0",
+  "predicate_kind": "COLLISION",
+  "entity_refs": ["red sphere", "blue cube"],
+  "window": [1.0, 2.0],
+  "observed_true": true,
+  "sensor_reliability": 0.87,
+  "evidence_sha256": ["...", "..."],
+  "target_native_measurement": {
+    "tracks": [],
+    "event_time_distribution": []
+  }
+}
+```
+
+硬约束：
+
+1. receipt 的 probe、entities 和 window 必须与 selected action 完全绑定，禁止重绑；
+2. reliability 必须从 target adaptation/calibration 得到，不能由回答器自报；
+3. gold answer、official functional program、oracle event graph 不得进入 runtime receipt；
+4. frame hashes、model/config hash 和 tool arguments 必须保存；
+5. 感知失败要返回低可靠度或 abstain，不能生成自由文本“symbolic update”后强行更新。
+
+现有 wrapper 的 `track_object/find_moment/detect_objects_at_frame/sample_frames` 可以提供取帧、
+检测和导航基础，但还缺 CLEVRER-native identity association、velocity/collision measurement、typed
+reliability 以及 counterfactual executor。不能仅通过把已有 tool 名换成 symbolic label 来绕过这些缺口。
+
+## Observation 与 transition
+
+对 probe `a`，target dynamics ensemble 给出每个 particle 下的 predicate likelihood：
+
+```text
+L_i(a) = P(o=1 | W_i, a)
+```
+
+收到 typed observation 后：
+
+```text
+w'_i ∝ w_i P(o | W_i, a)
+b'(y) = Σ_i 1[Executor(W_i, q)=y] w'_i
+```
+
+然后更新 event graph、重新 rollout predictive/counterfactual particles，再生成下一轮 probes。source
+controller只读取从 `b(y)` 和 `L_i(a)` 计算出的 9 个匿名特征：
+
+```text
+is_test
+expected_information_gain
+expected_map_confidence_gain
+predicted_outcome_balance
+current_map_confidence
+current_entropy
+remaining_test_fraction
+candidate_hypothesis_probability
+action_repeat_fraction
+```
+
+这里 information gain 必须在 **derived answer belief** 上计算，而 likelihood 和 posterior 在
+**world particles** 上更新。这正是视频与 TIR 之间需要的 compilation layer。
+
+## Reward 和 budget
+
+主要结论应先回答“是否提高 success rate”，因此第一阶段：
+
+- 所有 conditions 使用相同 scout、相同最大 TEST 数和相同底层视觉带宽；
+- primary reward 是 official whole-question exact match；
+- per-choice accuracy、tool latency 和 token/frame cost 是诊断；
+- source 先只负责“同预算下选择哪个 TEST”，避免 test cost 让少看帧伪装成成功；
+- target-native headroom 和 action selection 通过后，再冻结一个小 test cost，评估 net return 和
+  adaptive TEST/COMMIT timing。
+
+如果不同 condition 实际得到不同总帧数，需要同时报告 fixed-one-TEST matched fork；否则无法区分
+“source 选择更好 evidence”与“某个 condition 单纯看得更多”。
+
+## 分阶段实验与停止规则
+
+### Gate 0：source legitimacy
+
+当前 TIR 使用的 frozen source 来自 48 个 synthetic hidden-rule `game` surfaces、9,268 个 matched
+value examples。它验证的是 controlled abstract mechanism，不是旧 Thunder/Sokoban rollouts 已学出
+该结构。真实游戏日志的结论仍是：one-step value 未通过，delayed value 未识别，explicit recurring
+program 未通过。
+
+因此要分开报告：
+
+- **Track A**：controlled source → video，用于验证 MDP compilation mechanism；
+- **Track B**：fresh no-hint real-game rollouts → source gate → video，只有 source held-out value、
+  recurrence 和 shuffled/marginal controls 先通过后，才允许声称 game-derived transfer。
+
+### Gate 1：target-native perception（不做 transfer claim）
+
+先验证 object binding、tracking、motion 和 observed collision：
+
+- object identity / attribute accuracy；
+- track association、position/velocity error；
+- collision / entry / exit event F1 和 calibration；
+- receipt binding 与 fail-closed invariants。
+
+官方 tracks/event annotations可以作为 evaluator；不能作为 runtime input。
+
+### Gate 2：target-native dynamics / executor headroom
+
+按难度分开，不能把三类题先混在一个 18-sample number 中：
+
+1. explanatory：observed event graph + causal ancestor；
+2. predictive：factual dynamics rollout；
+3. counterfactual：remove-object intervention + alternate rollout。
+
+做 perception-oracle、dynamics-oracle、program-oracle 三个诊断 ablation，定位瓶颈。只有完整
+target-native pipeline 明显优于 overview answer baseline，且 oracle probe 显示足够 action headroom，
+才进入 transfer preflight。
+
+### Gate 3：adaptation transfer preflight
+
+冻结 question/video-disjoint split 和全部 gates，再比较：
+
+- target-only learned VoI selector；
+- authentic source + target-native grounding；
+- within-state shuffled source；
+- source marginal；
+- random typed probe；
+- oracle probe（只用于 headroom，不参与 policy）。
+
+必须同时满足：typed evidence response、authentic action contrast、authentic 优于 baseline、authentic
+优于合理 target-only、authentic 优于 shuffled/marginal。否则不读取 qualification/held-out。
+
+### Gate 4：benchmark 顺序
+
+1. **CLEVRER**：最适合验证 perception → event graph → dynamics → executor 机制；
+2. **STAR**：有 natural video、situation hypergraph 和 functional programs，最适合验证同一接口能否
+   从 synthetic video 迁到 natural video；
+3. **NExT-QA**：用最终 causal/temporal QA success rate 验证，但缺少同等级的显式 state supervision；
+4. **Video-Holmes**：更依赖 audio、narrative latent causes 和 commonsense，现有日志已说明它不适合做
+   第一个机制 benchmark。
+
+## 已落地的最小状态机
+
+`src/motif_transfer/video_dynamics_mdp.py` 已实现：
+
+- world particles 到 native answer/bit-vector belief 的聚合；
+- typed predicate probe 及逐 particle likelihood；
+- expected answer information gain；
+- calibrated receipt 的 Bayesian update；
+- 与 frozen source 完全对齐的 9D TEST/COMMIT features；
+- budget、repeat count、receipt/action binding 和 evidence hash invariants。
+
+这只是正确 harness 的 symbolic spine，不等于 target perception/dynamics 已经完成。下一项工程工作应是
+CLEVRER-native grounder 和 executor adapter，而不是再训练 semantic candidate-uplift MLP。
