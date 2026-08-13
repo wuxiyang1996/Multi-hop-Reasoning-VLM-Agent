@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "artifact_role": "FROZEN_BEFORE_FRESH_REAL_SOURCE_WEBSHOP_REPLICATION_V13",
+  "status": "FROZEN_BEFORE_ANY_GOAL_TEXT_OR_OUTCOME_FOR_IDS_114_145",
+  "selection_rule": "After V12 aborted before any action, discard its entire reserved range 82-113. Use the next 32 contiguous deterministic WebShop goal indices 114 through 145. No goal text, product identifier, trajectory, or outcome from these indices was read before this file was frozen.",
+  "task_ids": [
+    "webshop.114",
+    "webshop.115",
+    "webshop.116",
+    "webshop.117",
+    "webshop.118",
+    "webshop.119",
+    "webshop.120",
+    "webshop.121",
+    "webshop.122",
+    "webshop.123",
+    "webshop.124",
+    "webshop.125",
+    "webshop.126",
+    "webshop.127",
+    "webshop.128",
+    "webshop.129",
+    "webshop.130",
+    "webshop.131",
+    "webshop.132",
+    "webshop.133",
+    "webshop.134",
+    "webshop.135",
+    "webshop.136",
+    "webshop.137",
+    "webshop.138",
+    "webshop.139",
+    "webshop.140",
+    "webshop.141",
+    "webshop.142",
+    "webshop.143",
+    "webshop.144",
+    "webshop.145"
+  ],
+  "conditions": [
+    "target_only",
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "source_domain": "Sokoban",
+    "artifact": "runs/sokoban_effect_program_v2/discovery_artifact.json",
+    "artifact_file_sha256": "95fea4cfc4e00819956b08d372723171b8807f11d7ac68d3700be260307e62de",
+    "artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "fresh_confirmation": "runs/sokoban_effect_program_v2/fresh_confirmation_report.json",
+    "fresh_confirmation_file_sha256": "ab288adf1359beb262c25e7314d80adad136c464558987577e313eb198edc914",
+    "fresh_confirmation_report_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_gate_passed": true,
+    "fresh_source_accuracy": 0.9895833333333334,
+    "fresh_source_examples": 96,
+    "fresh_source_option_support": {"POSITION": 72, "COMMIT": 24},
+    "transferred_structure": "POSITIVE_IRREVERSIBLE_EFFECT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_REVERSIBLE_POSITION_OR_PREPARE",
+    "excluded": [
+      "source action tokens",
+      "source coordinates",
+      "source option occupancy",
+      "source duration",
+      "target observations",
+      "target goal tokens"
+    ]
+  },
+  "target_contract": {
+    "grounder": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+    "grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+    "grounder_preflight_passed": true,
+    "grounded_outcomes": [
+      "state_changed",
+      "terminated",
+      "reward",
+      "prerequisite_progress"
+    ],
+    "target_permission": "The WebShop-native MLP grounds predicates and ranks native actions within the selected POSITION or COMMIT option."
+  },
+  "semantic_controls": {
+    "commit_availability_control_plus_target": "Commit whenever a changing COMMIT is available, discarding the positive-effect guard.",
+    "inverted_effect_control_plus_target": "Commit only when a COMMIT is available and the positive-effect guard is false.",
+    "position_prior_control_plus_target": "Always select POSITION whenever source authority is applicable."
+  },
+  "primary_gate": {
+    "require_zero_final_failures": true,
+    "require_matched_initial_state_hashes": true,
+    "require_authentic_source_decisions": true,
+    "for_every_comparator_require_action_contrast": true,
+    "comparators": [
+      "target_only",
+      "target_native_myopic",
+      "commit_availability_control_plus_target",
+      "inverted_effect_control_plus_target",
+      "position_prior_control_plus_target"
+    ],
+    "for_every_comparator_require_strict_wins_greater_than_losses": true,
+    "for_every_comparator_require_positive_strict_success_delta": true,
+    "for_every_comparator_require_positive_mean_reward_delta": true,
+    "for_every_comparator_require_paired_exact_two_sided_p_at_most": 0.05
+  },
+  "operational_policy": {
+    "maximum_whole_group_provider_retries": 1,
+    "retry_scope": "If any condition has a provider, HTTP, timeout, completion, or schema failure, retry all six conditions for that task with a fresh shared cache. Preserve every attempt.",
+    "no_selective_condition_retry": true
+  },
+  "diagnostics_known_before_freeze": {
+    "v11_controlled_source_receipt_states": 266,
+    "authentic_sokoban_vs_validated_controlled_source_action_matches": 266,
+    "action_mismatches": 0,
+    "is_primary_evidence": false,
+    "v12_abort_manifest": "configs/webshop_sokoban_effect_transfer_v12_frozen.json",
+    "v12_reserved_range_reused": false
+  },
+  "runtime": {
+    "python_environment": "/fs/gamma-projects/vlm-robot/conda/envs/browsergym",
+    "number_of_goals": 146,
+    "maximum_steps": 12,
+    "candidate_count": 5,
+    "schema_retries": 3,
+    "model": "qwen/qwen3.5-35b-a3b",
+    "base_url": "https://openrouter.ai/api/v1"
+  },
+  "runtime_hashes": {
+    "runner": "af997b2b2e604f1b7020d518d105b715b2e1a9e80530c7960e49448e3f63765e",
+    "core": "68c2e2daba3d764a9286130a07a4e274b5f976c010f2bd4d6b362c0a94836126"
+  },
+  "claim_boundary": "A pass validates transfer of a fresh-confirmed Sokoban intervention-effect program through a frozen WebShop-native neural grounder on deterministic local WebShop goals 114-145. It does not validate raw-trajectory retrieval, arbitrary games, arbitrary targets, or automatic discovery of the cross-domain correspondence.",
+  "goal_text_read_or_run": false
+}

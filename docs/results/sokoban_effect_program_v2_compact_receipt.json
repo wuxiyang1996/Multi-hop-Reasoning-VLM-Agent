@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "artifact_version": "SOKOBAN_EFFECT_PROGRAM_V2",
+  "source_domain": "Sokoban",
+  "claim_boundary": "TRANSFER_BOOLEAN_INTERVENTION_EFFECT_STRUCTURE_ONLY; EXCLUDE_SOURCE_OPTION_OCCUPANCY_COORDINATES_ACTION_NAMES_AND_DURATIONS",
+  "artifact": {
+    "path": "runs/sokoban_effect_program_v2/discovery_artifact.json",
+    "file_sha256": "95fea4cfc4e00819956b08d372723171b8807f11d7ac68d3700be260307e62de",
+    "artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_plan_sha256": "bda4fde906cdda76b479c15621a677ca04619f43d06d850fd0c8f29d16448630"
+  },
+  "program": {
+    "predicates": [
+      "COMMIT_AVAILABLE",
+      "DIRECT_PROGRESS_AVAILABLE",
+      "ASSIGNMENT_IMPROVEMENT_AVAILABLE",
+      "EXPECTED_EFFECT_OBSERVED"
+    ],
+    "rules": [
+      {
+        "when": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE",
+        "select": "COMMIT",
+        "then": "VERIFY_EXPECTED_EFFECT"
+      },
+      {
+        "when": "NO_POSITIVE_COMMIT_EFFECT_AVAILABLE",
+        "select": "POSITION",
+        "then": "RECOMPUTE_EFFECT_PREDICATES"
+      },
+      {
+        "when": "EXPECTED_EFFECT_REFUTED",
+        "select": "REPLAN_OR_ABSTAIN"
+      }
+    ]
+  },
+  "fresh_confirmation": {
+    "path": "runs/sokoban_effect_program_v2/fresh_confirmation_report.json",
+    "file_sha256": "ab288adf1359beb262c25e7314d80adad136c464558987577e313eb198edc914",
+    "report_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_plan_sha256": "b12321771390a569344eca914d9ef49c3bfec2ddbf783f6ac6e7d1527ae627e9",
+    "eligible_examples": 96,
+    "optimal_option_counts": {
+      "COMMIT": 24,
+      "POSITION": 72
+    },
+    "condition_metrics": {
+      "authentic_effect_guard": {
+        "accuracy": 0.9895833333333334,
+        "selected_option_counts": {"COMMIT": 23, "POSITION": 73}
+      },
+      "commit_availability_only": {
+        "accuracy": 0.7395833333333334,
+        "selected_option_counts": {"COMMIT": 49, "POSITION": 47}
+      },
+      "inverted_effect_guard": {
+        "accuracy": 0.5,
+        "selected_option_counts": {"COMMIT": 26, "POSITION": 70}
+      },
+      "position_occupancy_prior": {
+        "accuracy": 0.75,
+        "selected_option_counts": {"POSITION": 96}
+      }
+    },
+    "gates": {
+      "coverage": true,
+      "accuracy": true,
+      "control_superiority": true
+    },
+    "source_gate_passed": true,
+    "next_step": "FREEZE_NEW_TARGET_SPLIT"
+  },
+  "development_disclosure": "The effect program removed the source option-occupancy prior after that prior failed ALFWorld V1. Its rules were then frozen and confirmed on 24 new procedural Sokoban layouts and 96 new snapshots before WebShop V13.",
+  "compact_receipt_sha256": "86898bf50e77eca037213656f1fa1578ececfc938df79ca8eb99b7da11bc0a85"
+}

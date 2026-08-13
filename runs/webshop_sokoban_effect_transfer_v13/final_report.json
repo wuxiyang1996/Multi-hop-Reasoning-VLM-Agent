@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_sokoban_effect_transfer_v13",
+  "claim_boundary": "A pass validates transfer of a fresh-confirmed Sokoban intervention-effect program through a frozen WebShop-native neural grounder on deterministic local WebShop goals 114-145. It does not validate raw-trajectory retrieval, arbitrary games, arbitrary targets, or automatic discovery of the cross-domain correspondence.",
+  "source_contract": {
+    "source_domain": "Sokoban",
+    "artifact": "runs/sokoban_effect_program_v2/discovery_artifact.json",
+    "artifact_file_sha256": "95fea4cfc4e00819956b08d372723171b8807f11d7ac68d3700be260307e62de",
+    "artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "fresh_confirmation": "runs/sokoban_effect_program_v2/fresh_confirmation_report.json",
+    "fresh_confirmation_file_sha256": "ab288adf1359beb262c25e7314d80adad136c464558987577e313eb198edc914",
+    "fresh_confirmation_report_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_gate_passed": true,
+    "fresh_source_accuracy": 0.9895833333333334,
+    "fresh_source_examples": 96,
+    "fresh_source_option_support": {
+      "POSITION": 72,
+      "COMMIT": 24
+    },
+    "transferred_structure": "POSITIVE_IRREVERSIBLE_EFFECT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_REVERSIBLE_POSITION_OR_PREPARE",
+    "excluded": [
+      "source action tokens",
+      "source coordinates",
+      "source option occupancy",
+      "source duration",
+      "target observations",
+      "target goal tokens"
+    ]
+  },
+  "target_contract": {
+    "grounder": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+    "grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+    "grounder_preflight_passed": true,
+    "grounded_outcomes": [
+      "state_changed",
+      "terminated",
+      "reward",
+      "prerequisite_progress"
+    ],
+    "target_permission": "The WebShop-native MLP grounds predicates and ranks native actions within the selected POSITION or COMMIT option."
+  },
+  "tasks": 32,
+  "receipt_count": 192,
+  "receipt_matrix_sha256": "c45d7421b6f13c32925e8552b4ec09f478e188c25cd3cddfccd83805c8e94a15",
+  "conditions": {
+    "target_only": {
+      "n": 32,
+      "strict_successes": 11,
+      "pass_successes": 20,
+      "mean_reward": 0.5598958333333334,
+      "mean_steps": 8.15625,
+      "source_decisions": 0,
+      "failures": 0
+    },
+    "target_native_myopic": {
+      "n": 32,
+      "strict_successes": 2,
+      "pass_successes": 27,
+      "mean_reward": 0.5859375,
+      "mean_steps": 4.5,
+      "source_decisions": 30,
+      "failures": 0
+    },
+    "authentic_sokoban_effect_plus_target": {
+      "n": 32,
+      "strict_successes": 18,
+      "pass_successes": 24,
+      "mean_reward": 0.71875,
+      "mean_steps": 7.53125,
+      "source_decisions": 33,
+      "failures": 0
+    },
+    "commit_availability_control_plus_target": {
+      "n": 32,
+      "strict_successes": 2,
+      "pass_successes": 25,
+      "mean_reward": 0.5546875,
+      "mean_steps": 6.3125,
+      "source_decisions": 18,
+      "failures": 0
+    },
+    "inverted_effect_control_plus_target": {
+      "n": 32,
+      "strict_successes": 2,
+      "pass_successes": 25,
+      "mean_reward": 0.5546875,
+      "mean_steps": 6.3125,
+      "source_decisions": 18,
+      "failures": 0
+    },
+    "position_prior_control_plus_target": {
+      "n": 32,
+      "strict_successes": 9,
+      "pass_successes": 16,
+      "mean_reward": 0.4583333333333333,
+      "mean_steps": 8.59375,
+      "source_decisions": 33,
+      "failures": 0
+    }
+  },
+  "comparisons": [
+    {
+      "comparator": "target_only",
+      "tasks": 32,
+      "strict_wins": 7,
+      "strict_losses": 0,
+      "strict_ties": 25,
+      "strict_success_delta": 0.21875,
+      "mean_reward_delta": 0.15885416666666666,
+      "mean_step_delta": -0.625,
+      "paired_exact_p_two_sided": 0.015625,
+      "action_contrast_tasks": 10,
+      "action_contrast_task_ids": [
+        "webshop.116",
+        "webshop.118",
+        "webshop.120",
+        "webshop.126",
+        "webshop.127",
+        "webshop.128",
+        "webshop.131",
+        "webshop.139",
+        "webshop.140",
+        "webshop.145"
+      ]
+    },
+    {
+      "comparator": "target_native_myopic",
+      "tasks": 32,
+      "strict_wins": 16,
+      "strict_losses": 0,
+      "strict_ties": 16,
+      "strict_success_delta": 0.5,
+      "mean_reward_delta": 0.1328125,
+      "mean_step_delta": 3.03125,
+      "paired_exact_p_two_sided": 3.0517578125e-05,
+      "action_contrast_tasks": 23,
+      "action_contrast_task_ids": [
+        "webshop.115",
+        "webshop.116",
+        "webshop.118",
+        "webshop.119",
+        "webshop.120",
+        "webshop.123",
+        "webshop.124",
+        "webshop.126",
+        "webshop.127",
+        "webshop.128",
+        "webshop.129",
+        "webshop.130",
+        "webshop.131",
+        "webshop.132",
+        "webshop.133",
+        "webshop.135",
+        "webshop.136",
+        "webshop.137",
+        "webshop.139",
+        "webshop.140",
+        "webshop.141",
+        "webshop.142",
+        "webshop.145"
+      ]
+    },
+    {
+      "comparator": "commit_availability_control_plus_target",
+      "tasks": 32,
+      "strict_wins": 16,
+      "strict_losses": 0,
+      "strict_ties": 16,
+      "strict_success_delta": 0.5,
+      "mean_reward_delta": 0.1640625,
+      "mean_step_delta": 1.21875,
+      "paired_exact_p_two_sided": 3.0517578125e-05,
+      "action_contrast_tasks": 18,
+      "action_contrast_task_ids": [
+        "webshop.116",
+        "webshop.118",
+        "webshop.119",
+        "webshop.120",
+        "webshop.123",
+        "webshop.126",
+        "webshop.127",
+        "webshop.128",
+        "webshop.129",
+        "webshop.131",
+        "webshop.133",
+        "webshop.135",
+        "webshop.136",
+        "webshop.137",
+        "webshop.139",
+        "webshop.140",
+        "webshop.142",
+        "webshop.145"
+      ]
+    },
+    {
+      "comparator": "inverted_effect_control_plus_target",
+      "tasks": 32,
+      "strict_wins": 16,
+      "strict_losses": 0,
+      "strict_ties": 16,
+      "strict_success_delta": 0.5,
+      "mean_reward_delta": 0.1640625,
+      "mean_step_delta": 1.21875,
+      "paired_exact_p_two_sided": 3.0517578125e-05,
+      "action_contrast_tasks": 18,
+      "action_contrast_task_ids": [
+        "webshop.116",
+        "webshop.118",
+        "webshop.119",
+        "webshop.120",
+        "webshop.123",
+        "webshop.126",
+        "webshop.127",
+        "webshop.128",
+        "webshop.129",
+        "webshop.131",
+        "webshop.133",
+        "webshop.135",
+        "webshop.136",
+        "webshop.137",
+        "webshop.139",
+        "webshop.140",
+        "webshop.142",
+        "webshop.145"
+      ]
+    },
+    {
+      "comparator": "position_prior_control_plus_target",
+      "tasks": 32,
+      "strict_wins": 9,
+      "strict_losses": 0,
+      "strict_ties": 23,
+      "strict_success_delta": 0.28125,
+      "mean_reward_delta": 0.2604166666666667,
+      "mean_step_delta": -1.0625,
+      "paired_exact_p_two_sided": 0.00390625,
+      "action_contrast_tasks": 9,
+      "action_contrast_task_ids": [
+        "webshop.116",
+        "webshop.120",
+        "webshop.127",
+        "webshop.128",
+        "webshop.129",
+        "webshop.133",
+        "webshop.137",
+        "webshop.140",
+        "webshop.142"
+      ]
+    }
+  ],
+  "comparison_gates": {
+    "target_only": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    },
+    "target_native_myopic": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    },
+    "commit_availability_control_plus_target": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    },
+    "inverted_effect_control_plus_target": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    },
+    "position_prior_control_plus_target": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    }
+  },
+  "primary_gates": {
+    "receipt_matrix_complete": true,
+    "receipt_hashes_valid": true,
+    "zero_final_failures": true,
+    "matched_initial_state_hashes": true,
+    "authentic_source_decisions": true,
+    "all_comparator_gates": true
+  },
+  "passed": true,
+  "scientific_status": "REAL_SOKOBAN_TO_WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_VALIDATED",
+  "operational_retries": [],
+  "runtime_hashes": {
+    "summarizer": "d4cd6f04c7de50bccf977938ea57d572dd5761be5a5c2b2df949429a4a7d1395",
+    "frozen_config": "90c25a60ba265537002671efc8cf67a7b01ae2191f6f409e72e18edf499f7671",
+    "run_summary": "812ce4adf2fc451808719409843b3a87b8e6143fc46aa0a2c9155af8e741573f"
+  },
+  "v12_reserved_data_used": false,
+  "report_sha256": "2b029bc303e113facb371e71e4395f7ba701a80e3ec4350c15b1db205bf98d12"
+}

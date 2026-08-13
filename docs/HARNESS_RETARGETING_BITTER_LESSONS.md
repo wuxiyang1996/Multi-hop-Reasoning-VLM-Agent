@@ -296,3 +296,26 @@ within-state shuffled 与 source-marginal controls。完整结果见
 - real-game relation intervention：sealed split 上有正机制效应；
 - real-game non-trivial neural selector：V24 未验证；
 - real arcade → ALFWorld/WebShop：仍未验证。
+
+## V13 更新：真实 Sokoban effect program → WebShop 已验证
+
+上面的最后一条已被 V13 的新证据部分取代。V13 没有重新使用 ALFWorld 的 binary
+POSITION/COMMIT value prior，而是迁移 fresh-confirmed Sokoban intervention-effect relation：
+只有 target-native neural grounder 预测到正向、可验证的不可逆效果时才 COMMIT，否则保持可逆
+POSITION/PREPARE 或 abstain。
+
+在运行前冻结的 WebShop goals `114–145` 上，authentic 为 `18/32` strict success，target-only
+为 `11/32`；paired `7W/0L/25T`、`+21.875pp`、双侧 exact `p=.015625`。Authentic 同时严格
+超过 target-native myopic、commit-availability、inverted-effect 和 POSITION-prior controls；
+192 个 receipts 完整、hash 有效、initial states matched、零 failure、零 retry。
+
+因此截至 V13，更新后的边界是：
+
+- controlled neural-symbolic mechanism transfer：已验证；
+- real Sokoban intervention-effect program → local WebShop：已验证；
+- source/target typed correspondence 自动发现：未验证，当前仍由研究者定义；
+- Thunder/任意 arcade → 任意 target：未验证；
+- TIR/Video-Holmes external validity：未验证，且现有 adaptation preflight 尚未通过。
+
+完整 protocol、结果、V12 pre-action abort 和限制见
+[`SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md`](SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md)。

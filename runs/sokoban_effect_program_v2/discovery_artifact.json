@@ -1,0 +1,142 @@
+{
+  "artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+  "artifact_version": "SOKOBAN_EFFECT_PROGRAM_V2",
+  "claim_boundary": "TRANSFER_BOOLEAN_INTERVENTION_EFFECT_STRUCTURE_ONLY; EXCLUDE_SOURCE_OPTION_OCCUPANCY_COORDINATES_ACTION_NAMES_AND_DURATIONS",
+  "development_receipt": {
+    "reason": "REMOVE_SOURCE_OPTION_OCCUPANCY_AFTER_PHASE_CONTROL_DOMINATED_V1",
+    "v1_target_report_file_sha256": "3e437963238967c38e117d69fae3072f9c9be0e52bca22c1b71fcf1496f812ca",
+    "v1_target_report_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_alfworld_transfer_v1/qualification_report.json",
+    "v1_target_report_sha256": "002fe9fbc47cc4aa7f6591abe9d25c3f2fc0047672d14f9f91b1d26cbe080072"
+  },
+  "discovery": {
+    "condition_metrics": {
+      "authentic_effect_guard": {
+        "accuracy": 0.9838709677419355,
+        "n": 62,
+        "selected_option_counts": {
+          "COMMIT": 5,
+          "POSITION": 57
+        }
+      },
+      "commit_availability_only": {
+        "accuracy": 0.4838709677419355,
+        "n": 62,
+        "selected_option_counts": {
+          "COMMIT": 38,
+          "POSITION": 24
+        }
+      },
+      "inverted_effect_guard": {
+        "accuracy": 0.4032258064516129,
+        "n": 62,
+        "selected_option_counts": {
+          "COMMIT": 33,
+          "POSITION": 29
+        }
+      },
+      "position_occupancy_prior": {
+        "accuracy": 0.9032258064516129,
+        "n": 62,
+        "selected_option_counts": {
+          "POSITION": 62
+        }
+      }
+    },
+    "eligible_examples": 62,
+    "optimal_option_counts": {
+      "COMMIT": 6,
+      "POSITION": 56
+    },
+    "source_snapshot_ids": [
+      "336f793f8575c9f66d7d93c7951e5caaeac08ecbd0d14333d3caa00a6c47396c",
+      "bac3efce8c76eb486d8f432db2a71833be62dd1c66d1edb4c58e4a2891242a60",
+      "3bd2121d9f07b9757a11c688a9b9bae3d70fa0513e48d1dfd046136025b83e1d",
+      "3f24bec0ed5e1d8c170b68a7c503898e8e329d81037dd6efb7005e910917ade3",
+      "6b3d70065fa5d477c3fca73ee381160e3c58ef6cc7f0660a9c44e6b923705928",
+      "5a79fe28023212edf44a62771b2967f6a32b7a5e21ed7af272e266608f61b310",
+      "44bb5fe30588c18968146ba23ae1d7fd9bd842156432a9c3ffd98ef75bb65d74",
+      "926f066850291eeb4026a36fc79d86251362c6519abf8ca407ed2bc8f6e4586d",
+      "66253a73053a0d295527f39e6498c7c4502c42f585cc2f9065f73e1234e7d409",
+      "c8a95c1d851031f3fa3f76fdd6eb302db5f76043a8ab7bd5041bd76b0379ffb3",
+      "07442c7b6484cdd011ceaf3669c66b98bba30296e6f02a22d9bdc3eeab17270c",
+      "c2f03d1276428b04636e9b583760e796b242e6158e5dd2505c036ff13e6781e3",
+      "f03711fa59f28a6273d25c9b5a9b8b4feb94c2c7fea225abe07ea3269746c9d5",
+      "02120a6b16d62c77a0be7eafea027b990a04e8e57d2eef094a7ae90703f6b6ef",
+      "a7e217b8e6ddcd01de40c7414a7d36f8a5ad26b5a3adfbcca00cddef43355bed",
+      "a01e706cdbaa7cf39d7a3bc874bb6e15a81527980841568b1e71cd811c6644d9",
+      "e4cd4f8a121dc3d458d98939026c22cf3f43713ce3cd454e20bea26c2496d1eb",
+      "eae5e0d9b26b1fc48b382254e5031d5a6002f02bb9f805f1ee4ca6d5b1f179d4",
+      "30b4532088cf69f51df2bc34341bd146ade05461b117b24855932c088b0dad39",
+      "46b1940eba10ea0f2feb86859015c6871db68bac165ab85097cd2f7aab9ed05f",
+      "68975947f7c77147e7806d77ab9608c4d8b92828107572f2bfe76b1d026117c2",
+      "1ca8ac845d08fb5c9bdf141165c0a1182ee406acc915066f7215efc992e3dbbd",
+      "b2825715663d8ee997466aa9cd4c64925f39f5176cccfd4859ca09e662a2e83a",
+      "bce9f23dd50bbf0478963ca16270034a24e9fd75a060edba212eb911831247e2",
+      "40c1f8e2deb00bbd05702bd426c13289436faedfb79b94704cd5dbfc4f4d01f0",
+      "d85d37e91b1617da2df6b64d09f014d8d3b1dbf7ae6c99e2f1200ed02e0947b5",
+      "5ca7b4961cc371ba8528404b923b1a22bbabc19668c75d055777ff5daaf9a436",
+      "57d2dcbadc6350f05640cfde35eb9315e48f0e2520166d67cb2f56ca2d49d9f3",
+      "8b2536bcad232ff04de22dd496fae5abbec61160f572fd3eea129042e19ebd6b",
+      "64550e6cb5d0637d2541ae9b9124e0536c4a58bfea684978c96a7926df522ee9",
+      "72eacd313712cc74bddfc748670bc2d3ef0dfc2c94391447b4aa55742287600d",
+      "e8235584b5fd3243182a9a533647fea6e7562f0d6ba384f53033bedf02aba7d7",
+      "7f9f75fb6081b214fa5948a1f11e98b6ef336139605b59f6fff2e1aa4203682b",
+      "36cae0e3242a897b6c4b818c56a527a6ccc57140018ca36b518a5ef893eff1c6",
+      "b0c8f1700a73f8706ff94b7a79841f0d54bea8941f5f964ac6237d58d81e1d39",
+      "cf59fe17bad6ae8b0852579653ebbf41fce0cc0d669c5c4731c95bcae7d719b8",
+      "d1aa13e20fd501554274f794348532762f54dd997d8e2bead370692d50fc4ad1",
+      "7c38d1d0105620b53b12416e19ebe9204d25375a0a1b9471089d99b8d57f1d53",
+      "5ca3badbe1a940ac396bcfddd3b47f124db61fd59f5459770e731497bdc8a0a2",
+      "dff68dd256ae621b1c874523e9824e156799043647d34c7b8c492da7d28a22d4",
+      "72da4d8f1032139dfcc164ccf2ae779eed3fa0dcf114cd63830b4f498fd3bf04",
+      "1a25199b420491c670f4b35e7acd87c2ee16fd117a16dcd88e3eda0893804277",
+      "2f3c832ee59013d6f2cd524e4bc84d620697334778a425a6e2d2618be4bd5471",
+      "60501fe025b46d82e537f681190f1df2aa6ffda537718216ffb751a13a3add5c",
+      "58d7690e1c19d5e7b925e71dd249e9b6e4eb2f043dcdc301d126863b83a6b92c",
+      "66eaf31c0e50571bb510546c286023ca7df6d643f4b2d081a281530bbbd5c8e5",
+      "1ecd80391a6f7bc5e4168124800e59dc2a06dd1e0fde9f060296cafdb519d3d6",
+      "823f7aa29c5ce3a598266493751d09ac85e82d0e4351afc3d802eeaeee4b8e3c",
+      "12f0b02c8fac94efbfd6647eb1d0468082449ea8e15f56b56b978122dcca1066",
+      "3bb4a95a515dbfe2031756c68ebec5828f5b3cefa462128fbef31623236a7f4d",
+      "12bbca0e691f8d4f74c15598730271e5fbb2ea727241e0b928dc79b349b00acf",
+      "a25e03e67589f29d9fbf2d81f9b8961fde112666438aa72e59ea763ba7c8e014",
+      "0ecea29dd268c09b8da3ce3686da167d2f4894b4b69f6a527f87b4bb35f58161",
+      "cbf8fec5bb783150b3addd1d8ddfe4ff80fc8b3e2e89868c06089d6476cc733f",
+      "4a4a22c75211ddcb31c3fe4038b884d116fd38952d006736f7054612e20a1583",
+      "478e0b15ca7c10c3d3b2433107073fbe198565e6fb6dffc47475141da45a3367",
+      "64c2a4484a662c98377296e1845861064efea1ad0ae5f22cd15ac24544d082c7",
+      "f03051b26e698cc17889df1db94acc9f85e6c736626389356126c7f8615e1608",
+      "4f3a7a870afbfc21d6484cf4098477a0458209cd878a9e080b80df8c943cc83a",
+      "214f1b41e43985fc12d3ca9225cd51c5b46fccdfee4b044df5d26165744200f6",
+      "7c3bd03d4653505ef9a87131129efb3bd6fb9ea1652c2e326b2a2980ce830524",
+      "5e6e2ceecc7eaa2c4d493c3d97ea6c58a03ff4cd1615608b41ca7d451af3758b"
+    ]
+  },
+  "lifecycle": "DISCOVERY_FROZEN_AWAITING_NEW_FRESH_SOURCE_CONFIRMATION",
+  "program": {
+    "predicates": [
+      "COMMIT_AVAILABLE",
+      "DIRECT_PROGRESS_AVAILABLE",
+      "ASSIGNMENT_IMPROVEMENT_AVAILABLE",
+      "EXPECTED_EFFECT_OBSERVED"
+    ],
+    "rules": [
+      {
+        "select": "COMMIT",
+        "then": "VERIFY_EXPECTED_EFFECT",
+        "when": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE"
+      },
+      {
+        "select": "POSITION",
+        "then": "RECOMPUTE_EFFECT_PREDICATES",
+        "when": "NO_POSITIVE_COMMIT_EFFECT_AVAILABLE"
+      },
+      {
+        "select": "REPLAN_OR_ABSTAIN",
+        "when": "EXPECTED_EFFECT_REFUTED"
+      }
+    ],
+    "target_permission": "TARGET_NATIVE_GROUNDER_MAY_GROUND_PREDICATES_AND_REALIZE_ONE_NATIVE_ACTION; SOURCE_PROGRAM_SELECTS_POSITION_OR_COMMIT_ONLY"
+  },
+  "source_plan_sha256": "bda4fde906cdda76b479c15621a677ca04619f43d06d850fd0c8f29d16448630"
+}
