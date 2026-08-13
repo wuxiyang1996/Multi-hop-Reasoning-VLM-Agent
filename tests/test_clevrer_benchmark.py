@@ -7,6 +7,7 @@ import pytest
 
 from visual_reasoning_wrapper.benchmarks.clevrer import (
     iter_clevrer_choice_samples,
+    iter_clevrer_question_samples,
     load_clevrer_scenes,
 )
 
@@ -58,6 +59,21 @@ def test_choice_loader_preserves_binary_official_labels(tmp_path: Path) -> None:
     assert samples[0].to_dict(include_oracle_programs=True)["choice_program"] == [
         "filter_collision"
     ]
+
+
+def test_whole_question_loader_preserves_native_multilabel_contract(tmp_path: Path) -> None:
+    root = _fixture(tmp_path)
+    sample = next(iter_clevrer_question_samples(clevrer_root=root))
+    assert sample.sample_id == "video_10000.mp4.Q7"
+    assert sample.answer == "10"
+    assert sample.answer_length == 2
+    assert sample.validate_answer("01") is True
+    assert sample.validate_answer("A") is False
+    assert "exactly 2 digits" in sample.format_question()
+    assert "question_program" not in sample.to_dict()
+    oracle = sample.to_dict(include_oracle_programs=True)
+    assert oracle["question_program"] == ["unseen_events", "belong_to"]
+    assert oracle["choice_programs"] == [["filter_collision"], ["filter_out"]]
 
 
 def test_choice_loader_filters_by_id_and_requires_video(tmp_path: Path) -> None:

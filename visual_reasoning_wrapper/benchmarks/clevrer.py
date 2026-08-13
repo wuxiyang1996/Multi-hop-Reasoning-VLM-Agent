@@ -42,6 +42,69 @@ _ANSWER_SLOTS = ("A", "B")
 
 
 @dataclass(frozen=True)
+class CLEVRERQuestionSample:
+    """One complete causal question with its native multi-label answer."""
+
+    video_id: str
+    scene_index: int
+    question_id: int
+    question_type: str
+    question: str
+    candidates: tuple[str, ...]
+    answer: str | None
+    split: str
+    video_path: Path | None
+    question_subtype: str | None = None
+    question_program: tuple[Any, ...] = ()
+    choice_programs: tuple[tuple[Any, ...], ...] = ()
+    raw: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
+
+    @property
+    def sample_id(self) -> str:
+        return f"{self.video_id}.Q{self.question_id}"
+
+    @property
+    def answer_length(self) -> int:
+        return len(self.candidates)
+
+    def validate_answer(self, value: str) -> bool:
+        return len(value) == self.answer_length and set(value) <= {"0", "1"}
+
+    def format_question(self) -> str:
+        candidates = "\n".join(
+            f"{index}. {value}" for index, value in enumerate(self.candidates)
+        )
+        return (
+            f"{self.question.strip()}\n\nCandidate events:\n{candidates}\n\n"
+            "Return one binary digit per candidate in the same order: 1 if "
+            "the event is correct under the video dynamics, otherwise 0. "
+            f"The answer must contain exactly {self.answer_length} digits."
+        )
+
+    def to_dict(self, *, include_oracle_programs: bool = False) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "sample_id": self.sample_id,
+            "video_id": self.video_id,
+            "scene_index": self.scene_index,
+            "question_id": self.question_id,
+            "question_type": self.question_type,
+            "question_subtype": self.question_subtype,
+            "question": self.question,
+            "candidates": list(self.candidates),
+            "answer_contract": f"binary_vector_length_{self.answer_length}",
+            "answer": self.answer,
+            "split": self.split,
+            "video_path": str(self.video_path) if self.video_path else None,
+        }
+        if include_oracle_programs:
+            payload["question_program"] = list(self.question_program)
+            payload["choice_programs"] = [
+                list(program) for program in self.choice_programs
+            ]
+        return payload
+
+
+@dataclass(frozen=True)
 class CLEVRERChoiceSample:
     """One labelled candidate event for a CLEVRER causal question."""
 
@@ -163,6 +226,84 @@ def load_clevrer_scenes(
     return payload
 
 
+def iter_clevrer_question_samples(
+    split: str = "validation",
+    *,
+    clevrer_root: str | Path | None = None,
+    question_types: Iterable[str] | None = None,
+    scene_indices: Iterable[int] | None = None,
+    sample_ids: Iterable[str] | None = None,
+    require_video: bool = False,
+    limit: int | None = None,
+) -> Iterator[CLEVRERQuestionSample]:
+    """Yield whole causal questions using official multi-label semantics."""
+
+    canonical = _canonical_split(split)
+    root = Path(clevrer_root) if clevrer_root else default_clevrer_root()
+    allowed_types = set(question_types or _CAUSAL_TYPES)
+    unknown = allowed_types - set(_CAUSAL_TYPES)
+    if unknown:
+        raise ValueError(
+            "question samples support only causal question types; unknown: "
+            + ", ".join(sorted(unknown))
+        )
+    allowed_scenes = set(map(int, scene_indices)) if scene_indices else None
+    allowed_ids = set(map(str, sample_ids)) if sample_ids else None
+    emitted = 0
+    for scene in load_clevrer_scenes(canonical, clevrer_root=root):
+        scene_index = int(scene["scene_index"])
+        if allowed_scenes is not None and scene_index not in allowed_scenes:
+            continue
+        filename = str(scene.get("video_filename") or f"video_{scene_index:05d}.mp4")
+        video_path = _video_path(root, canonical, filename)
+        for question in scene.get("questions") or ():
+            question_type = str(question.get("question_type") or "")
+            if question_type not in allowed_types:
+                continue
+            question_id = int(question["question_id"])
+            sample_id = f"{filename}.Q{question_id}"
+            if allowed_ids is not None and sample_id not in allowed_ids:
+                continue
+            if require_video and not video_path.is_file():
+                continue
+            choices = tuple(question.get("choices") or ())
+            if not choices:
+                raise ValueError(f"causal question needs at least one choice: {sample_id}")
+            ordered = tuple(sorted(choices, key=lambda row: int(row["choice_id"])))
+            labels = []
+            for choice in ordered:
+                label = choice.get("answer")
+                if label is None:
+                    labels = []
+                    break
+                normalized = str(label).strip().lower()
+                if normalized not in {"correct", "wrong"}:
+                    raise ValueError(
+                        f"unexpected CLEVRER choice label {label!r} in {sample_id}"
+                    )
+                labels.append("1" if normalized == "correct" else "0")
+            yield CLEVRERQuestionSample(
+                video_id=filename,
+                scene_index=scene_index,
+                question_id=question_id,
+                question_type=question_type,
+                question_subtype=question.get("question_subtype"),
+                question=str(question["question"]),
+                candidates=tuple(str(choice["choice"]) for choice in ordered),
+                answer="".join(labels) if labels else None,
+                split=canonical,
+                video_path=video_path if video_path.is_file() else None,
+                question_program=tuple(question.get("program") or ()),
+                choice_programs=tuple(
+                    tuple(choice.get("program") or ()) for choice in ordered
+                ),
+                raw={"question": question},
+            )
+            emitted += 1
+            if limit is not None and emitted >= limit:
+                return
+
+
 def iter_clevrer_choice_samples(
     split: str = "validation",
     *,
@@ -260,8 +401,10 @@ def parse_clevrer_choice_sample(
 
 __all__ = [
     "CLEVRERChoiceSample",
+    "CLEVRERQuestionSample",
     "default_clevrer_root",
     "iter_clevrer_choice_samples",
+    "iter_clevrer_question_samples",
     "load_clevrer_scenes",
     "parse_clevrer_choice_sample",
 ]

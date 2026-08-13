@@ -16,6 +16,8 @@ Image benchmarks (HF ``datasets`` + cache):
 Video benchmarks (local data under ``data/``):
 
 * ``clevrer``      — controlled causal/counterfactual video reasoning.
+* ``star``         — situated reasoning with situation hypergraphs.
+* ``nextqa``       — causal/temporal natural-video question answering.
 * ``video_holmes`` — Video-Holmes multi-hop video QA (short, multi-hop).
 * ``siv_bench``    — SIV-Bench social-interaction video QA (short, social).
 * ``vrbench``      — VRBench multi-step narrative reasoning (long, retrieval).
@@ -35,10 +37,19 @@ from .cg_bench import (
 )
 from .clevrer import (
     CLEVRERChoiceSample,
+    CLEVRERQuestionSample,
     default_clevrer_root,
     iter_clevrer_choice_samples,
+    iter_clevrer_question_samples,
     load_clevrer_scenes,
     parse_clevrer_choice_sample,
+)
+from .nextqa import (
+    NExTQASample,
+    default_nextqa_root,
+    iter_nextqa_samples,
+    load_nextqa_rows,
+    parse_nextqa_sample,
 )
 from .siv_bench import (
     SIVBenchSample,
@@ -46,6 +57,13 @@ from .siv_bench import (
     iter_siv_bench_samples,
     load_siv_bench_questions,
     parse_siv_bench_sample,
+)
+from .star import (
+    STARSample,
+    default_star_root,
+    iter_star_samples,
+    load_star_questions,
+    parse_star_sample,
 )
 from .tir_bench import (
     TIRBenchSample,
@@ -82,10 +100,24 @@ from .vrbench import (
 __all__ = [
     # CLEVRER
     "CLEVRERChoiceSample",
+    "CLEVRERQuestionSample",
     "default_clevrer_root",
     "iter_clevrer_choice_samples",
+    "iter_clevrer_question_samples",
     "load_clevrer_scenes",
     "parse_clevrer_choice_sample",
+    # STAR
+    "STARSample",
+    "default_star_root",
+    "iter_star_samples",
+    "load_star_questions",
+    "parse_star_sample",
+    # NExT-QA
+    "NExTQASample",
+    "default_nextqa_root",
+    "iter_nextqa_samples",
+    "load_nextqa_rows",
+    "parse_nextqa_sample",
     # VisualToolBench
     "VisualToolBenchSample",
     "default_visual_toolbench_root",
