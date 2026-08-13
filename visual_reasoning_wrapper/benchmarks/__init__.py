@@ -15,6 +15,7 @@ Image benchmarks (HF ``datasets`` + cache):
 
 Video benchmarks (local data under ``data/``):
 
+* ``clevrer``      — controlled causal/counterfactual video reasoning.
 * ``video_holmes`` — Video-Holmes multi-hop video QA (short, multi-hop).
 * ``siv_bench``    — SIV-Bench social-interaction video QA (short, social).
 * ``vrbench``      — VRBench multi-step narrative reasoning (long, retrieval).
@@ -31,6 +32,13 @@ from .cg_bench import (
     iter_cg_bench_samples,
     load_cg_bench_questions,
     parse_cg_bench_sample,
+)
+from .clevrer import (
+    CLEVRERChoiceSample,
+    default_clevrer_root,
+    iter_clevrer_choice_samples,
+    load_clevrer_scenes,
+    parse_clevrer_choice_sample,
 )
 from .siv_bench import (
     SIVBenchSample,
@@ -72,6 +80,12 @@ from .vrbench import (
 )
 
 __all__ = [
+    # CLEVRER
+    "CLEVRERChoiceSample",
+    "default_clevrer_root",
+    "iter_clevrer_choice_samples",
+    "load_clevrer_scenes",
+    "parse_clevrer_choice_sample",
     # VisualToolBench
     "VisualToolBenchSample",
     "default_visual_toolbench_root",
