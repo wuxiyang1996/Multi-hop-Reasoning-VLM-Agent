@@ -96,6 +96,7 @@ class PredicateProbe:
     latent_true_probability_by_particle: tuple[float, ...]
     target_tool: str
     expected_sensor_reliability: float = 1.0
+    target_event_role: str = ""
 
     def validate(self, particle_count: int) -> None:
         if not self.probe_id or not self.target_tool:
@@ -121,6 +122,8 @@ class PredicateProbe:
             raise ValueError("latent predicate likelihoods must be in [0, 1]")
         if not 0.5 <= self.expected_sensor_reliability <= 1.0:
             raise ValueError("expected sensor reliability must be in [0.5, 1]")
+        if self.target_event_role not in {"", "BIND", "RELATE"}:
+            raise ValueError("target_event_role must be BIND, RELATE, or empty")
 
 
 @dataclass(frozen=True)

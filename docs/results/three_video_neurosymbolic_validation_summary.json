@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "status": "THREE_VIDEO_TRANSFER_NOT_VALIDATED",
+  "source": {
+    "status": "SOURCE_TYPED_GATE_PASSED",
+    "summary": "docs/results/typed_multisource_v4_summary.json",
+    "summary_sha256": "1386d2023dbf1ebac88992dd49cad1aa1e323299a0937c4e2dd3bf4505613969",
+    "edges": [
+      "BIND--CARRIER_BOUND-->RELATE",
+      "BIND--CARRIER_BOUND-->MUTATE"
+    ],
+    "gate_cells": "24/24",
+    "matched_forks": 174,
+    "replay_mismatches": 0
+  },
+  "benchmarks": {
+    "clevrer": {
+      "phase": "adaptation_program_oracle_diagnostic",
+      "status": "TARGET_DYNAMICS_HEADROOM_PASS_TRANSFER_NOT_IDENTIFIED",
+      "baseline_correct": 0,
+      "samples": 12,
+      "target_without_edge_correct": 7,
+      "target_with_edge_correct": 8,
+      "authentic_correct": 8,
+      "same_architecture_target_control_correct": 8,
+      "runtime_program_oracle": true,
+      "report": "runs/typed_clevrer_v4b_gpt54/nsdr_program_oracle_report.json",
+      "report_sha256": "3e86fec86c544fbab54e3c2e4092d769eaaf2410454b8981ebcfbafa4f177e0c"
+    },
+    "star": {
+      "phase": "adaptation",
+      "status": "CAUSAL_ATTRIBUTION_FAILED",
+      "samples": 16,
+      "baseline_correct": 6,
+      "bind_relate": {
+        "target_correct": 10,
+        "authentic_correct": 9,
+        "strongest_control_correct": 10,
+        "report": "runs/typed_star_v4b_gpt54/candidate_claim_v6_dual_view_forks_adaptation_report.json",
+        "report_sha256": "793d29fea6df676e7961200ef526a0f800a6b4f4337c1757414ac193c37a47b4"
+      },
+      "bind_mutate": {
+        "target_correct": 6,
+        "authentic_correct": 7,
+        "wrong_guard_correct": 7,
+        "node_only_correct": 7,
+        "source_marginal_correct": 7,
+        "shuffled_correct": 7,
+        "report": "runs/typed_star_v4b_gpt54/candidate_mutation_v1_forks_adaptation_report.json",
+        "report_sha256": "9b2dbbc49d519dc2bd2579e0d5f8d010b2d52bc374017a814feee1cff7b36ae3"
+      },
+      "qualification_touched": false,
+      "heldout_touched": false
+    },
+    "nextqa": {
+      "status": "PROSPECTIVE_QUALIFICATION_TRANSFER_FAIL",
+      "adaptation": {
+        "samples": 12,
+        "baseline_correct": 8,
+        "authentic_selective_correct": 9,
+        "target_selective_correct": 7,
+        "strongest_edge_control_correct": 8,
+        "selective_report": "runs/typed_nextqa_v4b_gpt54/candidate_claim_v6_dual_view_forks_adaptation_report_selective_report.json",
+        "selective_report_sha256": "e77d74b3ac8791c8f350e09d6870e5e1d27e74fc23b4cda384ac3091b0aa845a"
+      },
+      "frozen_policy": {
+        "path": "docs/results/nextqa_candidate_claim_v6_frozen_policy.json",
+        "sha256": "893415c58936b32bda87e336975dfe5b7b52f2674ff6677ee7de888f0fa19062",
+        "rule": "intervene_on_causal_family_only"
+      },
+      "qualification": {
+        "samples": 18,
+        "baseline_correct": 18,
+        "authentic_correct": 16,
+        "target_correct": 16,
+        "wrong_guard_correct": 16,
+        "source_marginal_correct": 16,
+        "shuffled_correct": 16,
+        "report": "runs/typed_nextqa_v6_qualification/candidate_claim_v6_qualification_report.json",
+        "report_sha256": "bbff3941dbe25354a1dc8e6534fbea82ef1b9821be1a965c13b354a01748d963",
+        "base_prompt_matches_adaptation_world_model_prompt": false,
+        "runtime_gold_or_official_structure": false
+      },
+      "heldout_touched": false
+    }
+  },
+  "strict_conclusion": "Target-native neural grounding and symbolic execution can improve video reasoning, but the game-derived source artifact does not produce an attributable success-rate gain on CLEVRER, STAR, or prospective NExT-QA qualification.",
+  "next_required_source_artifact": "SOURCE_TRAINED_CALIBRATED_ABSTRACT_TRANSITION_AND_GUARD_VALUE_PARAMETERS_NOT_GRAPH_TOPOLOGY_ONLY"
+}

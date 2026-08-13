@@ -344,3 +344,83 @@ budget。
 STAR 利用 adaptation situation graphs监督一个 oracle-free graph grounder；NExT-QA 使用 relation
 annotations校准 event receipts；source 端则需要先产生 transition-aware multi-step game value，而不是
 继续扩大静态 active-identification synthetic domains。
+
+## 2026-08 严格三 benchmark 结论：执行完成，transfer 未通过
+
+后续实验把 source 换成真实游戏 source gate 已通过的 typed IR：
+
+```text
+BIND --[CARRIER_BOUND]--> RELATE
+  source: MiniGrid PutNear + MiniWorld PutNext
+
+BIND --[CARRIER_BOUND]--> MUTATE
+  source: MiniGrid DoorKey + UnlockPickup
+```
+
+source gate 为 `24/24` cells passed、`174` matched forks、`0` replay mismatch；冻结 summary SHA256
+为 `1386d2023dbf1ebac88992dd49cad1aa1e323299a0937c4e2dd3bf4505613969`。target 侧实现了：
+
+- candidate-factorized compiler；
+- separate-frame neural BIND tracker；
+- 独立 identity audit；
+- matched global+zoom RELATE / before→after MUTATE grounder；
+- exact target-only、reversed、wrong-guard、node-only、source-marginal、shuffled controls；
+- outcome-blind family transfer-utility calibration和 prospective frozen qualification。
+
+因此本轮不再是旧的“高层 skill 名塞进 prompt”。source edge 真实、target grounding neural、symbolic
+guard 可执行；但严格 attribution 仍失败。
+
+### 最终结果
+
+| benchmark / phase | baseline | target-only | authentic source | strongest causal control | 结论 |
+|---|---:|---:|---:|---:|---|
+| CLEVRER NS-DR adaptation | 0/12 | 8/12 with-edge | 8/12 | 8/12 same architecture | target headroom；source contribution 未识别 |
+| STAR BIND→RELATE adaptation | 6/16 | 10/16 | 9/16 | 10/16 reversed/wrong | authentic 低于 target/control |
+| STAR BIND→MUTATE adaptation | 6/16 | 6/16 | 7/16 | 7/16 wrong/node/marginal/shuffled | +1 不能归因于正确 edge |
+| NExT-QA selective adaptation | 8/12 | 7/12 | 9/12 | 7/12 | adaptation gate 通过 |
+| NExT-QA frozen qualification | 18/18 | 16/18 | 16/18 | 16/18 | prospective negative transfer |
+
+CLEVRER 使用官方 neural dynamics predictions 与 symbolic executor；官方 functional program 是明确
+披露的 program-oracle runtime input，answer labels 仅供 evaluator。without-edge 为 `7/12`，with-edge
+为 `8/12`，证明 target-native dynamics/executor 有真实 headroom。但 authentic compilation 与完整
+same-architecture target control 是同一个 pipeline，所以不能把 `8/12` 归因于 source。
+
+STAR 的 RELATE verifier 本身把 baseline `6/16` 提到 `10/16`，但 authentic 为 `9/16`。改用 source
+中另一个真实 edge `BIND→MUTATE` 后，显式测量 candidate-specific `before_state→after_state`；只有
+identity audit 通过且 bound/unbound 变化至少 `0.05` 才允许执行，否则 fail closed。authentic 得到
+`7/16`，确实高于 target-unbound `6/16`，但 wrong-guard、node-only、marginal 与 shuffled 全部也是
+`7/16`。这说明多出的一个 correct answer 来自 bound observation/target neural evidence，而不是
+正确的 source edge 或 correspondence。
+
+NExT-QA adaptation 上，用 leave-one-video-out、held row 完全排除的 family utility 得到 authentic
+`9/12`，baseline `8/12`，其余 edge controls最多 `8/12`，所以在读取 qualification 前冻结了 policy：
+只在 Causal family 使用 intervention。policy SHA256 为
+`893415c58936b32bda87e336975dfe5b7b52f2674ff6677ee7de888f0fa19062`。随后恢复并逐个解码验证
+`18/18` 个冻结 qualification videos，运行全部 matched forks。结果 baseline `18/18`；六个 Causal
+interventions 使 authentic、target、reversed、wrong、marginal 和 shuffled 都变为 `16/18`。因此
+adaptation gain 没有 prospective generalize，而且所有 edge conditions 完全相同。
+
+qualification 的 base prior 使用了更小、但 outcome-blind 的 scout collector，而不是 adaptation
+world-model+probe 的完整 prompt contract。这会阻止把 baseline 从 `8/12` 到 `18/18` 解释为同一模型
+的纯 split generalization；它不会挽救 transfer claim：这个更强的 target-only baseline 已饱和，且
+authentic 与 target/错误边 controls 仍完全相同。qualification policy 未作任何修改；held-out 始终
+未读取。
+
+### Bitter lesson
+
+当前 transferable artifact 仍然太弱。它只提供拓扑
+`BIND→RELATE/MUTATE` 与 `CARRIER_BOUND` guard；一旦 target-native pipeline 已实现同一拓扑，source
+版本和 same-architecture target control必然相同。反过来，当 neural BIND 有噪声时，graph topology
+又不足以校准“何时相信这个 handle”，所以 marginal/shuffled controls 会复制 authentic 的行为。
+
+因此不能靠增加 prompt、family rule、post-hoc threshold 或更多同类 target forks把当前结果调成
+transfer。下一版 source 必须迁移更低层且会改变决策的量：
+
+1. 从更大游戏 rollouts 学出的 calibrated abstract transition operator，而不只是 edge 名；
+2. source-trained guard/option-value 参数，在 target adaptation 只学习 neural grounding map；
+3. source 参数必须在 prospective target rows 上产生与 marginal/shuffled 不同的 action；
+4. 仍要求 authentic 严格超过同预算 target learner和全部 causal controls。
+
+在得到这种 source artifact 前，三个 video benchmark 的正确状态是
+`TRANSFER_NOT_VALIDATED`。这里“worked out”指机制、对照和 prospective gate 已经跑通并给出可复现的
+否证，不是 success-rate transfer 已成立。

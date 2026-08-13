@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_PROSPECTIVE_QUALIFICATION",
+  "claim_boundary": "Prospective NExT-QA qualification under a policy frozen before qualification video collection. Gold answers and official structures are evaluator-only; held-out remains sealed.",
+  "frozen_policy": {
+    "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/nextqa_candidate_claim_v6_frozen_policy.json",
+    "sha256": "893415c58936b32bda87e336975dfe5b7b52f2674ff6677ee7de888f0fa19062"
+  },
+  "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json",
+  "split_manifest_sha256": "578086b9829b095483e470f0fbe67972de6edc29a3726492fc6ef2fbdd37439d",
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent"
+  },
+  "benchmarks": {
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 240,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_base_tokens": 3000
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 720,
+    "scout_frame_count": 12,
+    "scout_frame_width": 224,
+    "jpeg_quality": 88
+  }
+}

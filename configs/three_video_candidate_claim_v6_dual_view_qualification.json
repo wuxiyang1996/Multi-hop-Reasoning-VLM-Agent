@@ -1,0 +1,41 @@
+{
+  "schema_version": 6,
+  "status": "FROZEN_PROSPECTIVE_QUALIFICATION",
+  "claim_boundary": "Exact V6 dual-view execution under a policy frozen before NExT-QA qualification collection. Gold and official structures remain sealed from all model calls; held-out remains untouched.",
+  "frozen_policy": {
+    "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/nextqa_candidate_claim_v6_frozen_policy.json",
+    "sha256": "893415c58936b32bda87e336975dfe5b7b52f2674ff6677ee7de888f0fa19062"
+  },
+  "source": {
+    "typed_summary": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/typed_multisource_v4_summary.json",
+    "typed_summary_sha256": "1386d2023dbf1ebac88992dd49cad1aa1e323299a0937c4e2dd3bf4505613969",
+    "transferred_structure": "BIND--CARRIER_BOUND-->RELATE"
+  },
+  "model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 240,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_compile_tokens": 3000,
+    "max_track_tokens": 1800,
+    "max_relation_tokens": 900
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 720,
+    "program_frame_count": 8,
+    "evidence_frame_width": 256,
+    "jpeg_quality": 88,
+    "binding_observation_mode": "SEPARATE_FRAMES_DUAL_VIEW"
+  },
+  "evaluation": {
+    "binary_claim_threshold": 0.5,
+    "minimum_bound_unbound_probability_delta": 0.05,
+    "require_authentic_strictly_above_baseline": true,
+    "require_authentic_strictly_above_target_unbound": true,
+    "require_authentic_strictly_above_all_edge_controls": true
+  }
+}

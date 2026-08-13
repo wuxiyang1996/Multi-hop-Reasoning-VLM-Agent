@@ -1,0 +1,91 @@
+{
+  "schema_version": 2,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "Answer-complete matched structured-video adaptation preflight. The native answer space is visible but gold answers and benchmark oracle programs/graphs are evaluator-only. Qualification and held-out remain sealed.",
+  "source": {
+    "controlled_v3_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/controlled_neural_symbolic_transfer_v3_formal.json",
+    "controlled_v3_config_content_sha256": "d5fb9c1976c1ac735d7efa4b0d8291dfc603b32f47a3ac6cf045519e3888d940",
+    "transferred_structure": "STATE_DEPENDENT_MULTI_STEP_TYPED_PREDICATE_TEST_VALUE",
+    "target_objective_test_cost": 0.0,
+    "model_seed": 2026081501,
+    "real_game_transfer_claim": false
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent"
+  },
+  "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json",
+  "benchmarks": {
+    "clevrer": {
+      "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/data/CLEVRER",
+      "annotation_split": "validation",
+      "state_kind": "ANSWER_COMPLETE_OBJECT_TRAJECTORY_EVENT_GRAPH_HYPOTHESES",
+      "answer_contract": "ALL_BINARY_VECTORS_WHOLE_QUESTION_EXACT_MATCH"
+    },
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val",
+      "state_kind": "ANSWER_COMPLETE_SITUATION_HYPERGRAPH_HYPOTHESES",
+      "answer_contract": "ALL_FOUR_MC_SLOTS_EXACT_MATCH"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val",
+      "state_kind": "ANSWER_COMPLETE_WEAK_EVENT_HYPOTHESES",
+      "answer_contract": "ALL_FIVE_MC_SLOTS_EXACT_MATCH"
+    }
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "max_world_model_tokens": 4200,
+    "max_probe_tokens": 500,
+    "schema_retries": 3
+  },
+  "media": {
+    "proxy_frame_count": 32,
+    "proxy_frame_max_side": 640,
+    "scout_frame_count": 6,
+    "scout_frame_width": 192,
+    "frames_per_probe": 8,
+    "evidence_frame_width": 320,
+    "jpeg_quality": 86
+  },
+  "interventions": {
+    "answer_complete_hypotheses": true,
+    "particle_count": 4,
+    "probe_count": 4,
+    "max_tests": 2,
+    "allowed_predicates": [
+      "OBJECT_PRESENT",
+      "OBJECT_ATTRIBUTE",
+      "OBJECT_MOTION",
+      "OBJECT_TRACK",
+      "COLLISION",
+      "ENTRY",
+      "EXIT",
+      "EVENT_ORDER",
+      "CAUSAL_ANCESTOR"
+    ],
+    "grounder_contract": "PROBE_MODEL_SEES_ONLY_TYPED_PREDICATE_ENTITIES_WINDOW_AND_EVIDENCE_FRAMES;NEVER_QUESTION_OPTIONS_OR_GOLD",
+    "matched_fork_contract": "EVERY_PROPOSED_TYPED_PROBE_EXECUTED_ON_IDENTICAL_SCOUT_AND_PROXY_VIDEO"
+  },
+  "conditions": [
+    "target_native_information_gain",
+    "target_native_expected_accuracy",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target",
+    "deterministic_random_probe"
+  ],
+  "adaptation_gates": {
+    "minimum_gold_answer_world_coverage_fraction": 1.0,
+    "minimum_oracle_headroom_samples": 1,
+    "minimum_authentic_action_contrasts": 2,
+    "require_authentic_strictly_above_target_only": true,
+    "require_authentic_strictly_above_source_controls": true
+  }
+}

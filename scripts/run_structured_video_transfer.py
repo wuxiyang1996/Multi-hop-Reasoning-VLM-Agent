@@ -7,6 +7,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
 import hashlib
+import itertools
 import json
 from pathlib import Path
 import runpy
@@ -32,7 +33,7 @@ from motif_transfer.active_video_transfer import (  # noqa: E402
 from motif_transfer.structured_video_transfer import (  # noqa: E402
     FIXED_TEST_CONDITIONS,
     ParsedTargetWorldModel,
-    evaluate_fixed_one_test,
+    evaluate_fixed_test_budget,
     parse_target_world_model,
     parse_typed_probe_receipt,
 )
@@ -166,13 +167,19 @@ def _panel(
     )
 
 
-def _answer_contract(sample: Any, benchmark: str) -> tuple[Sequence[str] | None, int | None, str]:
+def _answer_contract(
+    sample: Any, benchmark: str,
+) -> tuple[Sequence[str] | None, int | None, tuple[str, ...], str]:
     if benchmark == "clevrer":
-        return None, int(sample.answer_length), (
-            f"a binary vector of exactly {sample.answer_length} digits"
+        length = int(sample.answer_length)
+        answer_space = tuple(
+            "".join(bits) for bits in itertools.product("01", repeat=length)
+        )
+        return None, length, answer_space, (
+            f"one of the complete {length}-bit vectors listed below"
         )
     slots = tuple(sample.answer_slots)
-    return slots, None, "one of " + ", ".join(slots)
+    return slots, None, slots, "one of " + ", ".join(slots)
 
 
 def _propose_world_model(
@@ -186,27 +193,54 @@ def _propose_world_model(
 ) -> tuple[ParsedTargetWorldModel, dict[str, Any], dict[str, Any]]:
     model_config = config["model"]
     intervention = config["interventions"]
-    valid_answers, binary_length, contract = _answer_contract(sample, benchmark)
+    valid_answers, binary_length, answer_space, contract = _answer_contract(
+        sample, benchmark,
+    )
+    exhaustive = bool(intervention.get("answer_complete_hypotheses", False))
+    if exhaustive:
+        particle_count = len(answer_space)
+        answer_instruction = (
+            "Return exactly one world hypothesis for every candidate in this exact "
+            f"order: {list(answer_space)}. Do not omit, duplicate, reorder, or invent "
+            "an answer. Assign every candidate a positive prior_weight."
+        )
+    else:
+        particle_count = int(intervention["particle_count"])
+        answer_instruction = (
+            f"Construct exactly {particle_count} alternative target-native "
+            "world/event/dynamics hypotheses. Preserve uncertainty by using at least "
+            "two distinct answers."
+        )
     prompt = (
         sample.format_question()
         + f"\nThe provided clip runs from relative 0.0 to {duration_seconds:.3f} seconds. "
-        f"Construct exactly {intervention['particle_count']} alternative target-native "
-        "world/event/dynamics hypotheses. Each hypothesis must execute to a native answer "
-        f"that is {contract}. Preserve uncertainty by using at least two distinct answers. "
+        + answer_instruction
+        + " Each hypothesis must execute to a native answer "
+        f"that is {contract}. Keep each event_graph_summary concise and state the "
+        "answer-conditioned temporal/causal events rather than merely paraphrasing the answer. "
         f"Then propose exactly {intervention['probe_count']} distinct typed visual probes. "
         "A probe must test a finite predicate about named entities in a bounded observed "
         "normalized window_fraction satisfying 0 <= start < end <= 1; the wrapper maps "
         "this fraction deterministically to clip seconds. It must not ask the "
         "final question. For each probe estimate predicate-true "
-        "probability under every world particle and expected sensor reliability. Allowed "
+        "probability under every world particle, in the same frozen answer order, and "
+        "expected sensor reliability. Prefer probes whose outcome distinguishes multiple "
+        "answer hypotheses and avoid predicates predicted identically under all hypotheses. Allowed "
         f"predicate kinds: {', '.join(intervention['allowed_predicates'])}. Do not use or "
         "claim access to functional programs, answer labels, situation graphs, or annotations."
+        + (
+            " Probe-design contract: " + str(intervention["probe_design_contract"])
+            if intervention.get("probe_design_contract") else ""
+        )
     )
     system = (
-        "Return JSON only with keys world_particles and typed_probes. "
+        "Return JSON only with keys world_particles, typed_probes, and optional entity_catalog. "
         "world_particles rows: native_answer, prior_weight, event_graph_summary. "
         "typed_probes rows: predicate_kind, entity_refs, window_fraction, "
         "true_probability_by_particle, expected_sensor_reliability, rationale. "
+        "When a typed BIND/RELATE contract is requested, entity_catalog rows are "
+        "{entity_id,visual_description}, and typed_probes use target_event_role and "
+        "entity_ids instead of free-text entity_refs. "
         "Latent predicate probabilities must be in [0,1]; reliability must be in [0.5,1]."
     )
     last_error = ""
@@ -224,10 +258,33 @@ def _propose_world_model(
             parsed = parse_target_world_model(
                 payload,
                 duration_seconds=duration_seconds,
-                particle_count=int(intervention["particle_count"]),
+                particle_count=particle_count,
                 probe_count=int(intervention["probe_count"]),
                 valid_answers=valid_answers,
                 binary_vector_length=binary_length,
+                required_answers=answer_space if exhaustive else None,
+                maximum_object_present_probes=(
+                    int(intervention["maximum_object_present_probes"])
+                    if "maximum_object_present_probes" in intervention else None
+                ),
+                minimum_non_presence_probes=int(
+                    intervention.get("minimum_non_presence_probes", 0)
+                ),
+                minimum_likelihood_span=float(
+                    intervention.get("minimum_likelihood_span", 0.0)
+                ),
+                require_bind_relate_roles=bool(
+                    intervention.get("require_bind_relate_roles", False)
+                ),
+                minimum_bind_probes=int(
+                    intervention.get("minimum_bind_probes", 0)
+                ),
+                minimum_relate_probes=int(
+                    intervention.get("minimum_relate_probes", 0)
+                ),
+                minimum_relate_likelihood_span=float(
+                    intervention.get("minimum_relate_likelihood_span", 0.0)
+                ),
             )
             return parsed, payload, usage
         except ValueError as exc:
@@ -412,14 +469,16 @@ def _report(
     source_models: Mapping[str, Any],
 ) -> dict[str, Any]:
     evaluated = []
+    test_budget = int(config["interventions"]["max_tests"])
     for row in rows:
         model, receipts = _rehydrate(row)
-        result = evaluate_fixed_one_test(
+        result = evaluate_fixed_test_budget(
             sample_id=str(row["sample_id"]),
             gold_answer=str(row["gold_answer"]),
             world_model=model,
             probe_receipts=receipts,
             source_models=source_models,
+            test_budget=test_budget,
         )
         result["family"] = row["family"]
         evaluated.append(result)
@@ -432,12 +491,13 @@ def _report(
         condition: {
             "correct": sum(row["conditions"][condition]["correct"] for row in evaluated),
             "accuracy": sum(row["conditions"][condition]["correct"] for row in evaluated) / count,
-            "selected_probes": {
-                probe_id: sum(
-                    row["conditions"][condition]["selected_probe_id"] == probe_id
-                    for row in evaluated
+            "selected_probe_sequences": {
+                "->".join(row["conditions"][condition]["selected_probe_ids"]): sum(
+                    other["conditions"][condition]["selected_probe_ids"]
+                    == row["conditions"][condition]["selected_probe_ids"]
+                    for other in evaluated
                 )
-                for probe_id in ("P0", "P1", "P2")
+                for row in evaluated
             },
         }
         for condition in FIXED_TEST_CONDITIONS
@@ -458,6 +518,9 @@ def _report(
         "authentic_above_target_only": authentic > conditions[
             "target_native_information_gain"
         ]["correct"],
+        "authentic_above_target_expected_accuracy": authentic > conditions[
+            "target_native_expected_accuracy"
+        ]["correct"],
         "authentic_above_shuffled": authentic > conditions[
             "shuffled_source_plus_target"
         ]["correct"],
@@ -469,6 +532,7 @@ def _report(
         "schema_version": 1,
         "status": "ADAPTATION_PREFLIGHT_PASS" if all(gates.values()) else "ADAPTATION_PREFLIGHT_FAIL",
         "samples": count,
+        "test_budget": test_budget,
         "baseline": {"correct": baseline, "accuracy": baseline / count},
         "oracle_probe": {"correct": oracle, "accuracy": oracle / count},
         "gold_answer_world_coverage": {"samples": covered, "fraction": covered / count},
@@ -487,11 +551,22 @@ def main() -> None:
     parser.add_argument("--keys", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument(
+        "--resume-collection-contract",
+        help=(
+            "Explicit prior collection contract for resuming receipts after an "
+            "analysis-only code change. Existing receipts must all match it."
+        ),
+    )
     args = parser.parse_args()
 
     config = json.loads(args.config.read_text(encoding="utf-8"))
     manifest = json.loads(Path(config["split_manifest"]).read_text(encoding="utf-8"))
-    contract_sha256 = _contract(config, manifest)
+    computed_contract_sha256 = _contract(config, manifest)
+    contract_sha256 = (
+        str(args.resume_collection_contract)
+        if args.resume_collection_contract else computed_contract_sha256
+    )
     sample_ids, samples = _load_samples(
         args.benchmark, config, manifest, args.split,
     )
@@ -513,6 +588,10 @@ def main() -> None:
             for row in existing.values()
         ):
             raise SystemExit("cached receipt contract mismatch")
+        if args.resume_collection_contract is None and (
+            contract_sha256 != computed_contract_sha256
+        ):
+            raise SystemExit("resume contract drift")
     pending = [sample_id for sample_id in sample_ids if sample_id not in existing]
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = {
@@ -549,6 +628,38 @@ def main() -> None:
     if missing:
         raise SystemExit(f"incomplete receipts; rerun to resume: {missing}")
 
+    if "typed_summary" in config["source"]:
+        source_path = Path(config["source"]["typed_summary"])
+        if media_helpers.file_sha256(source_path) != config["source"][
+            "typed_summary_sha256"
+        ]:
+            raise SystemExit("typed source summary hash mismatch")
+        source_summary = json.loads(source_path.read_text(encoding="utf-8"))
+        if source_summary.get("status") != "SOURCE_TYPED_GATE_PASSED":
+            raise SystemExit("typed source gate is not passed")
+        collection_report = {
+            "schema_version": 1,
+            "status": "ADAPTATION_COLLECTION_COMPLETE_TYPED_IR_ANALYSIS_REQUIRED",
+            "benchmark": args.benchmark,
+            "split": args.split,
+            "samples": len(rows := [existing[sample_id] for sample_id in sample_ids]),
+            "collection_contract_sha256": contract_sha256,
+            "analysis_code_contract_sha256": computed_contract_sha256,
+            "source_summary_sha256": config["source"]["typed_summary_sha256"],
+            "receipts": {
+                "path": str(receipts_path.resolve()),
+                "sha256": media_helpers.file_sha256(receipts_path),
+            },
+            "runtime_oracle_inputs": False,
+        }
+        report_path = args.output_dir / "adaptation_collection_report.json"
+        report_path.write_text(
+            json.dumps(collection_report, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(json.dumps(collection_report, ensure_ascii=False, indent=2))
+        return
+
     controlled = json.loads(Path(
         config["source"]["controlled_v3_config"]
     ).read_text(encoding="utf-8"))
@@ -564,6 +675,7 @@ def main() -> None:
     report["benchmark"] = args.benchmark
     report["split"] = args.split
     report["collection_contract_sha256"] = contract_sha256
+    report["analysis_code_contract_sha256"] = computed_contract_sha256
     report["receipts"] = {
         "path": str(receipts_path.resolve()),
         "sha256": media_helpers.file_sha256(receipts_path),
