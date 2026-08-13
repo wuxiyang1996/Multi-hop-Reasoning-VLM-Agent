@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_neural_symbolic_transfer_v9_development",
+  "claim_limit": "WebShop consumed adaptation and calibration semantic groups only; confirmation and held-out are unread.",
+  "source_config": "configs/controlled_neural_symbolic_transfer_v3_formal.json",
+  "adaptation_receipts": [
+    "runs/webshop_neurosymbolic_applicability_v8/grouped_adaptation/webshop.29.target_only.json",
+    "runs/webshop_neurosymbolic_applicability_v8/grouped_adaptation/webshop.43.target_only.json"
+  ],
+  "adaptation_sequences": [
+    {
+      "sequence_id": "webshop.29:step8:paired-label-then-commit",
+      "target_receipt": "runs/webshop_neurosymbolic_applicability_v8/grouped_adaptation/webshop.29.target_only.json",
+      "prefix_length": 8,
+      "actions": [
+        "click('31')",
+        "click('59')"
+      ]
+    }
+  ],
+  "target_grounder": {
+    "kind": "target_native_webshop_outcome_mlp",
+    "seed": 91301,
+    "hidden_units": 12,
+    "epochs": 2200,
+    "learning_rate": 0.02,
+    "l2": 0.01
+  },
+  "policy": {
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "progress_probability_threshold": 0.5,
+    "state_change_probability_threshold": 0.5
+  },
+  "conditions": [
+    "target_only",
+    "target_native_myopic",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target"
+  ]
+}

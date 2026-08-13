@@ -1,0 +1,1048 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_v9_target_native_grounding_adaptation",
+  "claim_limit": "WebShop adaptation groups only; not confirmation evidence.",
+  "sequences": [
+    {
+      "sequence_id": "webshop.29:target-on-policy",
+      "task_id": "webshop.29",
+      "prefix_length": 0,
+      "actions": [
+        "fill('18', 'folding storage box ottoman faux leather')",
+        "click('20')",
+        "click('35')",
+        "click('30')",
+        "scroll(0, 300)",
+        "click('30')",
+        "scroll(0, 200)",
+        "click('30')",
+        "scroll(0, 100)",
+        "click('30')",
+        "scroll(0, 150)",
+        "click('30')"
+      ],
+      "prefix_state_match": true,
+      "rows": [
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 0,
+          "action": "fill('18', 'folding storage box ottoman faux leather')",
+          "semantics": {
+            "verb": "fill",
+            "url_phase": "landing",
+            "element_role": "textbox",
+            "element_text": "[18] textbox 'Search...', required",
+            "action_bid": "18",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "outcomes": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "8e315a4ecea0aa387883d5ea08ce15347b55e4bed43e0ee0ac7034304b300a5c",
+          "after_hash": "330ecfb44898dd6da78bd37c59f9a546695d0eee39700ff308407c1da50eb19f",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 1,
+          "action": "click('20')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "landing",
+            "element_role": "button",
+            "element_text": "[20] button 'Search'",
+            "action_bid": "20",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.09090909090909091
+          ],
+          "outcomes": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "330ecfb44898dd6da78bd37c59f9a546695d0eee39700ff308407c1da50eb19f",
+          "after_hash": "c36f068cc78fcc5fc365f117f80e2ea6faecb068f70031c1b267a4b8a3fb3c25",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 2,
+          "action": "click('35')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "search_results",
+            "element_role": "link",
+            "element_text": "[35] link 'B09NTCCVGX'",
+            "action_bid": "35",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.18181818181818182
+          ],
+          "outcomes": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c36f068cc78fcc5fc365f117f80e2ea6faecb068f70031c1b267a4b8a3fb3c25",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 3,
+          "action": "click('30')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "radio",
+            "element_text": "[30] radio '60x40x40cm', checked='false'",
+            "action_bid": "30",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [
+              "60x40x40cm"
+            ],
+            "goal_overlap": 0.2,
+            "is_commit": false,
+            "is_constraint": true,
+            "is_goal_constraint": true,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.2,
+            0.0,
+            1.0,
+            0.0,
+            0.2727272727272727
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 4,
+          "action": "scroll(0, 300)",
+          "semantics": {
+            "verb": "scroll",
+            "url_phase": "item_page",
+            "element_role": "other",
+            "element_text": "",
+            "action_bid": null,
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.36363636363636365
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 5,
+          "action": "click('30')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "radio",
+            "element_text": "[30] radio '60x40x40cm', checked='false'",
+            "action_bid": "30",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [
+              "60x40x40cm"
+            ],
+            "goal_overlap": 0.2,
+            "is_commit": false,
+            "is_constraint": true,
+            "is_goal_constraint": true,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.2,
+            0.0,
+            1.0,
+            1.0,
+            0.45454545454545453
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 6,
+          "action": "scroll(0, 200)",
+          "semantics": {
+            "verb": "scroll",
+            "url_phase": "item_page",
+            "element_role": "other",
+            "element_text": "",
+            "action_bid": null,
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.5454545454545454
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 7,
+          "action": "click('30')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "radio",
+            "element_text": "[30] radio '60x40x40cm', checked='false'",
+            "action_bid": "30",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [
+              "60x40x40cm"
+            ],
+            "goal_overlap": 0.2,
+            "is_commit": false,
+            "is_constraint": true,
+            "is_goal_constraint": true,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.2,
+            0.0,
+            1.0,
+            1.0,
+            0.6363636363636364
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 8,
+          "action": "scroll(0, 100)",
+          "semantics": {
+            "verb": "scroll",
+            "url_phase": "item_page",
+            "element_role": "other",
+            "element_text": "",
+            "action_bid": null,
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.7272727272727273
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 9,
+          "action": "click('30')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "radio",
+            "element_text": "[30] radio '60x40x40cm', checked='false'",
+            "action_bid": "30",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [
+              "60x40x40cm"
+            ],
+            "goal_overlap": 0.2,
+            "is_commit": false,
+            "is_constraint": true,
+            "is_goal_constraint": true,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.2,
+            0.0,
+            1.0,
+            1.0,
+            0.8181818181818182
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 10,
+          "action": "scroll(0, 150)",
+          "semantics": {
+            "verb": "scroll",
+            "url_phase": "item_page",
+            "element_role": "other",
+            "element_text": "",
+            "action_bid": null,
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.9090909090909091
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:target-on-policy",
+          "task_id": "webshop.29",
+          "step": 11,
+          "action": "click('30')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "radio",
+            "element_text": "[30] radio '60x40x40cm', checked='false'",
+            "action_bid": "30",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [
+              "60x40x40cm"
+            ],
+            "goal_overlap": 0.2,
+            "is_commit": false,
+            "is_constraint": true,
+            "is_goal_constraint": true,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.2,
+            0.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "outcomes": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "terminated": false,
+          "truncated": false
+        }
+      ],
+      "failure": null,
+      "failure_traceback": null,
+      "target_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/webshop_neurosymbolic_applicability_v8/grouped_adaptation/webshop.29.target_only.json",
+      "target_receipt_sha256": "d478f729f4a583ed31b38e964779b01280bd2aadf29eae94daa331a5c8aa2888"
+    },
+    {
+      "sequence_id": "webshop.43:target-on-policy",
+      "task_id": "webshop.43",
+      "prefix_length": 0,
+      "actions": [
+        "fill('18', 'gluten free vegan protein shake soy free')",
+        "click('20')",
+        "click('47')",
+        "click('42')"
+      ],
+      "prefix_state_match": true,
+      "rows": [
+        {
+          "sequence_id": "webshop.43:target-on-policy",
+          "task_id": "webshop.43",
+          "step": 0,
+          "action": "fill('18', 'gluten free vegan protein shake soy free')",
+          "semantics": {
+            "verb": "fill",
+            "url_phase": "landing",
+            "element_role": "textbox",
+            "element_text": "[18] textbox 'Search...', required",
+            "action_bid": "18",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "outcomes": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "d23c4f45c84d4f12c78a524f0c6a6bd51e21979abff0b73b2065ff8731a1eaef",
+          "after_hash": "807ce893afc26bd1b59e87c1edc53ee4d78ebf3888d2e2a35b0168e7ecd748f3",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.43:target-on-policy",
+          "task_id": "webshop.43",
+          "step": 1,
+          "action": "click('20')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "landing",
+            "element_role": "button",
+            "element_text": "[20] button 'Search'",
+            "action_bid": "20",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.09090909090909091
+          ],
+          "outcomes": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "807ce893afc26bd1b59e87c1edc53ee4d78ebf3888d2e2a35b0168e7ecd748f3",
+          "after_hash": "519f9d5b3a533a3b29625b4ec78d7c9327f81a8c1b3b1f465966ba22fcaed1a7",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.43:target-on-policy",
+          "task_id": "webshop.43",
+          "step": 2,
+          "action": "click('47')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "search_results",
+            "element_role": "link",
+            "element_text": "[47] link 'B07FYPSNH8'",
+            "action_bid": "47",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": false,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": true,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.18181818181818182
+          ],
+          "outcomes": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "before_hash": "519f9d5b3a533a3b29625b4ec78d7c9327f81a8c1b3b1f465966ba22fcaed1a7",
+          "after_hash": "b91268e720c390a94970ab5ac9dec2976903ad157418093bc81b0ee0142ea342",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.43:target-on-policy",
+          "task_id": "webshop.43",
+          "step": 3,
+          "action": "click('42')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "button",
+            "element_text": "[42] button 'Buy Now'",
+            "action_bid": "42",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [],
+            "goal_overlap": 0.0,
+            "is_commit": true,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.2727272727272727
+          ],
+          "outcomes": [
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "before_hash": "b91268e720c390a94970ab5ac9dec2976903ad157418093bc81b0ee0142ea342",
+          "after_hash": "c94f10043e20c1256fd4a4f4fe6ebf413037cb7de63e72c8dbda39379b43d884",
+          "terminated": true,
+          "truncated": false
+        }
+      ],
+      "failure": null,
+      "failure_traceback": null,
+      "target_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/webshop_neurosymbolic_applicability_v8/grouped_adaptation/webshop.43.target_only.json",
+      "target_receipt_sha256": "83b17dbee91397775dae3810bffc0df73797c8de073ce9c3c81e0e9cfdc23838"
+    },
+    {
+      "sequence_id": "webshop.29:step8:paired-label-then-commit",
+      "task_id": "webshop.29",
+      "prefix_length": 8,
+      "actions": [
+        "click('31')",
+        "click('59')"
+      ],
+      "prefix_state_match": true,
+      "rows": [
+        {
+          "sequence_id": "webshop.29:step8:paired-label-then-commit",
+          "task_id": "webshop.29",
+          "step": 8,
+          "action": "click('31')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "other",
+            "element_text": "[31] LabelText ''",
+            "action_bid": "31",
+            "paired_constraint_bid": "30",
+            "paired_constraint_text": "[30] radio '60x40x40cm', checked='false'",
+            "goal_overlap_tokens": [
+              "60x40x40cm"
+            ],
+            "goal_overlap": 0.14285714285714285,
+            "is_commit": false,
+            "is_constraint": true,
+            "is_goal_constraint": true,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": false,
+            "visible_goal_constraint_unsatisfied": true,
+            "prior_action_had_no_effect": true
+          },
+          "features": [
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.14285714285714285,
+            0.0,
+            1.0,
+            1.0,
+            0.7272727272727273
+          ],
+          "outcomes": [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "before_hash": "c3b97dc4b28de4bce5dfd168b861e4e8e10999e9da2e312fc6bd9bde3cf577cd",
+          "after_hash": "3cace89e6d3daf4fc73190a8513f87d7fa4ea9cdd42e9329aa1061cd8cdc8e76",
+          "terminated": false,
+          "truncated": false
+        },
+        {
+          "sequence_id": "webshop.29:step8:paired-label-then-commit",
+          "task_id": "webshop.29",
+          "step": 9,
+          "action": "click('59')",
+          "semantics": {
+            "verb": "click",
+            "url_phase": "item_page",
+            "element_role": "button",
+            "element_text": "[59] button 'Buy Now'",
+            "action_bid": "59",
+            "paired_constraint_bid": null,
+            "paired_constraint_text": "",
+            "goal_overlap_tokens": [
+              "buy"
+            ],
+            "goal_overlap": 0.25,
+            "is_commit": true,
+            "is_constraint": false,
+            "is_goal_constraint": false,
+            "is_selected": false,
+            "is_navigation": false,
+            "is_noop": false
+          },
+          "state_context": {
+            "visible_goal_constraint_satisfied": true,
+            "visible_goal_constraint_unsatisfied": false,
+            "prior_action_had_no_effect": false
+          },
+          "features": [
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            1.0,
+            0.0,
+            0.0,
+            0.8181818181818182
+          ],
+          "outcomes": [
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "before_hash": "3cace89e6d3daf4fc73190a8513f87d7fa4ea9cdd42e9329aa1061cd8cdc8e76",
+          "after_hash": "a4310915a453df0ed20e227efc53a1e4ddefb5e0be13df7cadb28f440d76fc30",
+          "terminated": true,
+          "truncated": false
+        }
+      ],
+      "failure": null,
+      "failure_traceback": null,
+      "target_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/webshop_neurosymbolic_applicability_v8/grouped_adaptation/webshop.29.target_only.json",
+      "target_receipt_sha256": "d478f729f4a583ed31b38e964779b01280bd2aadf29eae94daa331a5c8aa2888"
+    }
+  ],
+  "metrics": {
+    "sequences": 3,
+    "rows": 18,
+    "failures": 0,
+    "all_prefix_states_match": true
+  },
+  "runtime_hashes": {
+    "collector": "ae77e522594a7305f2bafa280293f709b0e41c1088780e0861c528fed8da2290",
+    "config": "c696f745bd6afffe3ba40cce4874b1f016cdd316a8c08b845a990ccdf93c40c3"
+  },
+  "confirmation_read_or_run": false,
+  "held_out_read_or_run": false,
+  "report_sha256": "51c6b411379070653925a623db39c56d2d728dddc2da02ac3b3dcd0f6338713d"
+}

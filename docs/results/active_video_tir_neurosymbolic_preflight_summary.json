@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "experiments": {
+    "active_video_neural_symbolic_transfer_v1": {
+      "role": "adaptation_only",
+      "status": "ADAPTATION_PREFLIGHT_PASS_UNDER_V1_GATES",
+      "samples": 8,
+      "raw_accuracy_by_prefix": {
+        "k0": 0.375,
+        "k1": 0.375,
+        "k2": 0.375,
+        "k3": 0.375,
+        "k4": 0.375
+      },
+      "prediction_changed_k0_to_kmax": 4,
+      "authentic_accuracy": 0.375,
+      "target_accuracy": 0.375
+    },
+    "active_video_neural_symbolic_transfer_v2": {
+      "role": "adaptation_only",
+      "status": "ADAPTATION_PREFLIGHT_FAIL",
+      "samples": 8,
+      "raw_accuracy_by_prefix": {
+        "k0": 0.5,
+        "k1": 0.5,
+        "k2": 0.375,
+        "k3": 0.5,
+        "k4": 0.5
+      },
+      "prediction_changed_k0_to_kmax": 2,
+      "authentic_vs_target_action_contrast_samples": 2,
+      "best_raw_accuracy_gain_over_k0": 0.0,
+      "failed_gate": "positive_evidence_response"
+    },
+    "active_tir_neural_symbolic_transfer_v1": {
+      "role": "adaptation_only",
+      "status": "ADAPTATION_PREFLIGHT_FAIL",
+      "samples": 16,
+      "raw_accuracy_by_prefix": {
+        "k0": 0.25,
+        "k1": 0.1875,
+        "k2": 0.25,
+        "k3": 0.25,
+        "k4": 0.3125
+      },
+      "best_crop_accuracy_gain_over_overview": 0.0625,
+      "authentic_vs_target_action_contrast_samples": 0,
+      "failed_gate": "authentic_source_action_contrast"
+    }
+  },
+  "claim_boundary": "Adaptation/preflight evidence only. No formal Video-Holmes or TIR transfer outcome was consumed."
+}

@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_neural_symbolic_transfer_v10",
+  "claim_boundary": "Original WebShop held-out task IDs under the local 50-goal deterministic benchmark and qwen/qwen3.5-35b-a3b target planner. A pass supports game-derived state-dependent TEST/COMMIT value transfer with target-native neural grounding; it does not establish arbitrary-domain or arbitrary-model generalization.",
+  "qualification": {
+    "tasks": 8,
+    "comparisons": [
+      {
+        "control": "target_only",
+        "tasks": 8,
+        "strict_wins": 3,
+        "strict_losses": 0,
+        "strict_ties": 5,
+        "strict_success_delta": 0.375,
+        "mean_reward_delta": 0.09375,
+        "paired_exact_p_two_sided": 0.25,
+        "action_contrast_tasks": 4
+      },
+      {
+        "control": "target_native_myopic",
+        "tasks": 8,
+        "strict_wins": 5,
+        "strict_losses": 0,
+        "strict_ties": 3,
+        "strict_success_delta": 0.625,
+        "mean_reward_delta": 0.041666666666666685,
+        "paired_exact_p_two_sided": 0.0625,
+        "action_contrast_tasks": 8
+      },
+      {
+        "control": "shuffled_source_plus_target",
+        "tasks": 8,
+        "strict_wins": 2,
+        "strict_losses": 0,
+        "strict_ties": 6,
+        "strict_success_delta": 0.25,
+        "mean_reward_delta": 0.25,
+        "paired_exact_p_two_sided": 0.5,
+        "action_contrast_tasks": 2
+      },
+      {
+        "control": "source_marginal_plus_target",
+        "tasks": 8,
+        "strict_wins": 2,
+        "strict_losses": 0,
+        "strict_ties": 6,
+        "strict_success_delta": 0.25,
+        "mean_reward_delta": 0.25,
+        "paired_exact_p_two_sided": 0.5,
+        "action_contrast_tasks": 2
+      }
+    ],
+    "passed": true
+  },
+  "final": {
+    "tasks": 24,
+    "comparisons": [
+      {
+        "control": "target_only",
+        "tasks": 24,
+        "strict_wins": 5,
+        "strict_losses": 0,
+        "strict_ties": 19,
+        "strict_success_delta": 0.20833333333333334,
+        "mean_reward_delta": 0.10763888888888888,
+        "paired_exact_p_two_sided": 0.0625,
+        "action_contrast_tasks": 10
+      },
+      {
+        "control": "target_native_myopic",
+        "tasks": 24,
+        "strict_wins": 11,
+        "strict_losses": 0,
+        "strict_ties": 13,
+        "strict_success_delta": 0.4583333333333333,
+        "mean_reward_delta": 0.08333333333333336,
+        "paired_exact_p_two_sided": 0.0009765625,
+        "action_contrast_tasks": 20
+      },
+      {
+        "control": "shuffled_source_plus_target",
+        "tasks": 24,
+        "strict_wins": 5,
+        "strict_losses": 0,
+        "strict_ties": 19,
+        "strict_success_delta": 0.20833333333333334,
+        "mean_reward_delta": 0.20833333333333334,
+        "paired_exact_p_two_sided": 0.0625,
+        "action_contrast_tasks": 5
+      },
+      {
+        "control": "source_marginal_plus_target",
+        "tasks": 24,
+        "strict_wins": 5,
+        "strict_losses": 0,
+        "strict_ties": 19,
+        "strict_success_delta": 0.20833333333333334,
+        "mean_reward_delta": 0.20833333333333334,
+        "paired_exact_p_two_sided": 0.0625,
+        "action_contrast_tasks": 5
+      }
+    ],
+    "passed": false,
+    "status": "REAL_WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_NOT_VALIDATED"
+  },
+  "scientific_status": "REAL_WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_NOT_VALIDATED",
+  "runtime_hashes": {
+    "summarizer": "a2200d23b7bf6f26dfdcb1aaf2fbf1ac8a2fe69e13b83c30834a5ea7c33bfa47",
+    "frozen_config": "bc283e489c0423e781e882049d3c6e9497b1aa4727946d69a82cedc6e8b813c4",
+    "qualification_summary": "c7f685b50ef146f194de4b3735472e3e39d67fea8f2ba2eb9b62796efacae141",
+    "replication_summary": "915d976177a1ea15d82d5a5c7b94169ac8d84be44a054a20d78ea589cca0899a"
+  },
+  "report_sha256": "f6ade6c4fafd012dac2c80fcce79956d149ef085d3d3d3f883f590334103ff43"
+}

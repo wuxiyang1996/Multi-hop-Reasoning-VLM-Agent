@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_neural_symbolic_transfer_v11_independent_replication",
+  "claim_boundary": "Independent fresh-goal replication on deterministic local WebShop goal indices 50-81 with qwen/qwen3.5-35b-a3b as target planner. A pass validates game-derived state-dependent TEST/COMMIT transfer within this WebShop setup, not arbitrary-domain or arbitrary-model generalization.",
+  "tasks": 32,
+  "zero_failures": true,
+  "matched_initial_state_hashes": true,
+  "authentic_source_decisions": 41,
+  "comparisons": [
+    {
+      "control": "target_only",
+      "tasks": 32,
+      "strict_wins": 9,
+      "strict_losses": 0,
+      "strict_ties": 23,
+      "strict_success_delta": 0.28125,
+      "mean_reward_delta": 0.140625,
+      "paired_exact_p_two_sided": 0.00390625,
+      "action_contrast_tasks": 13
+    },
+    {
+      "control": "target_native_myopic",
+      "tasks": 32,
+      "strict_wins": 14,
+      "strict_losses": 0,
+      "strict_ties": 18,
+      "strict_success_delta": 0.4375,
+      "mean_reward_delta": 0.06770833333333334,
+      "paired_exact_p_two_sided": 0.0001220703125,
+      "action_contrast_tasks": 25
+    },
+    {
+      "control": "shuffled_source_plus_target",
+      "tasks": 32,
+      "strict_wins": 7,
+      "strict_losses": 0,
+      "strict_ties": 25,
+      "strict_success_delta": 0.21875,
+      "mean_reward_delta": 0.21875,
+      "paired_exact_p_two_sided": 0.015625,
+      "action_contrast_tasks": 7
+    },
+    {
+      "control": "source_marginal_plus_target",
+      "tasks": 32,
+      "strict_wins": 7,
+      "strict_losses": 0,
+      "strict_ties": 25,
+      "strict_success_delta": 0.21875,
+      "mean_reward_delta": 0.21875,
+      "paired_exact_p_two_sided": 0.015625,
+      "action_contrast_tasks": 7
+    }
+  ],
+  "passed": true,
+  "scientific_status": "REAL_WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_INDEPENDENTLY_VALIDATED",
+  "v10_data_used_in_v11_test": false,
+  "runtime_hashes": {
+    "summarizer": "35897355ce402d5a5cc174b080348867f75f4a46bcf767a29671f174bdc2fdb2",
+    "frozen_config": "ce440e14032eb991120caa01fb6572f82cc602f305b02e4f4efc833e4e0cdf9c",
+    "run_summary": "63f0a605ca422a42013fecaf9eef42c40613aa4ba4a15a99798c410e71ea35bb"
+  },
+  "report_sha256": "eb186dc1036f86b44788e9ddcf0e2ee8a0f35db443cb8a835de759b033aeaf37"
+}

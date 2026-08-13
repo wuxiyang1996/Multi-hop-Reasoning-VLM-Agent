@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_neurosymbolic_applicability_v8_development",
+  "claim_limit": "Consumed semantic groups only; held-out remains unread.",
+  "grouped_split": "configs/webshop_grouped_development_v8.json",
+  "group_key": "goal.asin",
+  "diagnostic_groups_are_not_confirmation": true,
+  "target_applicability": {
+    "stall": "exact same canonical state and repeated target rank-zero action",
+    "preserve_target_constraint_action": true,
+    "forbid_source_commit_action": true,
+    "require_repeat_probability_reduction": 0.2,
+    "require_positive_source_value_advantage": true
+  },
+  "conditions": [
+    "target_only",
+    "selective_safe_minimum_repeat",
+    "selective_safe_authentic_source"
+  ],
+  "required_comparisons": [
+    "safe_authentic_vs_target",
+    "safe_authentic_vs_safe_neural_only"
+  ],
+  "held_out_authorized_by_this_config": false
+}

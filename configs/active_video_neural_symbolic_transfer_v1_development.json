@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "No Video-Holmes test outcomes may be consumed until the target-native grounder and formal manifest are frozen.",
+  "source": {
+    "controlled_v3_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/controlled_neural_symbolic_transfer_v3_formal.json",
+    "controlled_v3_config_content_sha256": "d5fb9c1976c1ac735d7efa4b0d8291dfc603b32f47a3ac6cf045519e3888d940",
+    "transferred_structure": "STATE_DEPENDENT_TEST_VS_COMMIT_MATCHED_INTERVENTION_VALUES",
+    "model_seed": 2026081201
+  },
+  "target": {
+    "benchmark": "Video-Holmes",
+    "official_evaluator": "exact_answer_letter",
+    "target_native_actions": [
+      "inspect_temporal_segment",
+      "commit_answer_slot"
+    ]
+  },
+  "model": {
+    "provider": "openrouter",
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "temperature": 0
+  },
+  "media": {
+    "segment_count": 6,
+    "frames_per_segment": 8,
+    "frame_width": 320,
+    "jpeg_quality": 80
+  },
+  "target_grounder": {
+    "kind": "target_native_vlm_plus_softmax_and_gain_mlp",
+    "seed": 2026081202,
+    "gain_seed": 2026081203,
+    "gain_hidden_units": 16,
+    "training_authority": "VIDEO_HOLMES_OFFICIAL_TRAIN_ADAPTATION_ONLY"
+  },
+  "policy": {
+    "max_tests": 4,
+    "fallback_commit_threshold": 0.72,
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "information_gain_threshold": 0.025
+  },
+  "conditions": [
+    "target_only",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target",
+    "target_native_information_gain"
+  ],
+  "splits": {
+    "adaptation": [
+      "ng9BW-vQ_2k.Q17",
+      "fqo8YyqJZ98.Q423",
+      "45pI9jQCcbo.Q783",
+      "Kwlv2mNFJlA.Q1327",
+      "jCQnUuq-TEE.Q430",
+      "63gIW3pe3hs.Q1515",
+      "wcee0enepVI.Q1378",
+      "3xF8zUIGBbA.Q401"
+    ],
+    "qualification": [],
+    "held_out": []
+  },
+  "development_preflight": {
+    "require_complete_receipts": true,
+    "minimum_changed_predictions_k0_to_kmax": 2,
+    "require_full_evidence_accuracy_above_chance": true,
+    "require_leave_one_video_out_calibrated_accuracy_above_chance": true
+  }
+}
