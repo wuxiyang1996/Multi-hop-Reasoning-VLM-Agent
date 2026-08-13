@@ -282,3 +282,65 @@ target-native pipeline 明显优于 overview answer baseline，且 oracle probe 
 
 这只是正确 harness 的 symbolic spine，不等于 target perception/dynamics 已经完成。下一项工程工作应是
 CLEVRER-native grounder 和 executor adapter，而不是再训练 semantic candidate-uplift MLP。
+
+## 2026-08 三 benchmark structured-video adaptation 结果
+
+实现 `structured_video_transfer.py` 后，在 video-disjoint frozen adaptation splits 上完成了三个真实
+benchmark 的 matched probe collection。共同协议为：4 个 neural world/event hypotheses、3 个 typed
+predicate probes；probe grounder 只看 predicate、entities、normalized temporal window 和 focused
+frames，完全不看 question、options 或 gold。每个 condition 在相同 TEST budget 下用同一 receipt 做
+Bayesian world transition，再 COMMIT native answer。STAR 使用 16 个官方 Charades clips，NExT-QA
+使用 12 个官方 NExTVideo clips，CLEVRER 使用 12 个官方 validation videos。
+
+### One-TEST 结果
+
+| benchmark | baseline | target IG | target expected accuracy | authentic | shuffled | marginal | oracle |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| CLEVRER | 2/12 | 2/12 | 2/12 | 2/12 | 0/12 | 1/12 | 3/12 |
+| STAR | 9/16 | 9/16 | 10/16 | 10/16 | 7/16 | 10/16 | 11/16 |
+| NExT-QA | 6/12 | 7/12 | 7/12 | 6/12 | 6/12 | 5/12 | 8/12 |
+
+三者均为 `ADAPTATION_PREFLIGHT_FAIL`，qualification/held-out 均未读取：
+
+- CLEVRER 的 gold whole-question answer 仅被 world particles 覆盖 `6/12`。这是 dynamics/world
+  generation failure；selector 不能在不存在正确 world 的情况下修复答案。
+- STAR authentic 比 baseline/IG/shuffled 高，但与一个更强的 target expected-accuracy selector和
+  source marginal 完全相同，不能归因于 authentic source state-action correspondence。
+- NExT-QA target-native typed probing 从 `6/12` 提到 `7/12`，oracle 为 `8/12`；但 authentic 只有
+  `6/12`。这里 target mechanism 有正 evidence response，而 source 是 negative transfer。
+
+### Two-TEST sequential reanalysis
+
+同一批 matched receipts 支持不调用模型的 `TEST → update → replan → TEST → COMMIT` 重放：
+
+| benchmark | target IG | target expected accuracy | authentic | shuffled | marginal | oracle |
+|---|---:|---:|---:|---:|---:|---:|
+| CLEVRER | 1/12 | 0/12 | 1/12 | 1/12 | 1/12 | 4/12 |
+| STAR | 9/16 | 9/16 | 9/16 | 8/16 | 9/16 | 9/16 |
+| NExT-QA | 7/12 | 7/12 | 7/12 | 5/12 | 7/12 | 9/12 |
+
+增加 TEST 数不是单调有益：感知 receipt 仍有噪声，错误 measurement 会使 posterior 变差。因此正式
+MDP 最终需要 reliability-calibrated adaptive TEST/COMMIT，而不是硬编码“多看总会更好”。不过两步
+结果仍没有 authentic 严格超过 target expected accuracy 与 marginal，说明 blocker 不只是 one-step
+budget。
+
+### 当前可支持与不可支持的结论
+
+可支持：
+
+1. 三个 benchmark 已共享同一个 typed-probe/world-particle neural-symbolic MDP，并在真实视频上执行；
+2. STAR/NExT-QA 的 world coverage、typed evidence 和 Bayesian transition 可产生 answer headroom；
+3. authentic source 通常优于 shuffled，说明 source correspondence 并非完全任意；
+4. target-native expected accuracy 是必须加入的强 control，不能只与 information gain 比。
+
+不可支持：
+
+1. 当前 controlled synthetic-game value prior 在任一视频 benchmark 上产生独有 success-rate gain；
+2. 更多 TEST 自动改善视频 QA；
+3. CLEVRER 在没有 target-native dynamics generator/executor 时能靠 generic VLM world particles解决；
+4. 真实 Thunder/Sokoban rollout skills 已迁移到视频。
+
+下一项原则性工作不是调 threshold/seed/MLP，而是：CLEVRER 接入 target-native dynamics predictor；
+STAR 利用 adaptation situation graphs监督一个 oracle-free graph grounder；NExT-QA 使用 relation
+annotations校准 event receipts；source 端则需要先产生 transition-aware multi-step game value，而不是
+继续扩大静态 active-identification synthetic domains。

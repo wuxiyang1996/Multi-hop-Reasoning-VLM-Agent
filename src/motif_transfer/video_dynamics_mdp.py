@@ -116,9 +116,9 @@ class PredicateProbe:
         if likelihood.shape != (particle_count,):
             raise ValueError("probe likelihood length must match world particles")
         if not np.all(np.isfinite(likelihood)) or np.any(
-            (likelihood <= 0) | (likelihood >= 1)
+            (likelihood < 0) | (likelihood > 1)
         ):
-            raise ValueError("probe likelihoods must be strictly between zero and one")
+            raise ValueError("latent predicate likelihoods must be in [0, 1]")
         if not 0.5 <= self.expected_sensor_reliability <= 1.0:
             raise ValueError("expected sensor reliability must be in [0.5, 1]")
 
@@ -283,6 +283,8 @@ def probe_statistics(
     for observed_true, probability in (
         (True, probability_true), (False, 1.0 - probability_true),
     ):
+        if probability <= 1e-12:
+            continue
         posterior_state = VideoDynamicsBeliefState(
             tuple(map(float, _posterior(
                 state.world_weights,

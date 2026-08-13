@@ -154,3 +154,13 @@ def test_receipt_cannot_be_rebound_to_a_different_typed_probe():
     )
     with pytest.raises(ValueError, match="does not match"):
         apply_probe_receipt(particles, state, probes, mismatched)
+
+
+def test_deterministic_latent_event_likelihood_is_valid():
+    particles = _particles()
+    probe = PredicateProbe(
+        "deterministic-collision", "COLLISION", ("a", "b"), 0.1, 0.9,
+        (1.0, 1.0, 0.0), "detect_event", expected_sensor_reliability=0.9,
+    )
+    state = initial_state(particles, (probe,), max_tests=1)
+    assert probe_statistics(particles, state, probe).expected_information_gain > 0
