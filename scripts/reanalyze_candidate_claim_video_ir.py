@@ -65,6 +65,16 @@ def main() -> None:
     )
     source_hashes = {str(row.get("source_gate_sha256") or "") for row in forks}
     action_contrasts = sum(bool(row["authentic_action_contrast"]) for row in rows)
+    wrong_control_contrasts = sum(
+        bool(row["wrong_control_action_contrast"]) for row in rows
+    )
+    distinct_wrong_control_candidates = sum(
+        int(row["distinct_wrong_control_candidates"]) for row in rows
+    )
+    distinct_shuffled_control_candidates = sum(
+        int(row["distinct_shuffled_control_candidates"]) for row in rows
+    )
+    candidate_count = sum(len(row["slots"]) for row in rows)
     rescues = sum(
         bool(row["conditions"]["authentic_bound_claim_program"]["correct"])
         and not bool(row["conditions"]["target_unbound_claim_verification"]["correct"])
@@ -90,6 +100,14 @@ def main() -> None:
             row["bound_unbound_changed_candidates"] for row in rows
         ) > 0,
         "authentic_action_contrast": action_contrasts > 0,
+        "wrong_control_executes_distinct_observation": (
+            wrong_control_contrasts == count
+            and distinct_wrong_control_candidates / candidate_count >= 0.9
+        ),
+        "shuffled_control_executes_distinct_observation": (
+            all(row["shuffled_control_action_contrast"] for row in rows)
+            and distinct_shuffled_control_candidates / candidate_count >= 0.9
+        ),
         "authentic_above_baseline": authentic > baseline,
         "authentic_above_target_unbound": authentic > conditions[
             "target_unbound_claim_verification"
@@ -121,6 +139,16 @@ def main() -> None:
         "oracle": {"correct": oracle, "accuracy": oracle / count},
         "source_gate_sha256": next(iter(source_hashes)),
         "authentic_action_contrasts": action_contrasts,
+        "wrong_control_action_contrasts": wrong_control_contrasts,
+        "distinct_wrong_control_candidates": distinct_wrong_control_candidates,
+        "candidate_count": candidate_count,
+        "distinct_wrong_control_candidate_fraction": (
+            distinct_wrong_control_candidates / candidate_count
+        ),
+        "distinct_shuffled_control_candidates": distinct_shuffled_control_candidates,
+        "distinct_shuffled_control_candidate_fraction": (
+            distinct_shuffled_control_candidates / candidate_count
+        ),
         "authentic_rescues_over_target": rescues,
         "authentic_harms_vs_target": harms,
         "conditions": conditions, "family_metrics": family_metrics,

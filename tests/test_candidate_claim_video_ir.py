@@ -58,3 +58,64 @@ def test_candidate_claim_program_preserves_clevrer_vector_contract():
     )
     assert report["conditions"]["authentic_bound_claim_program"]["committed_answer"] == "101"
     assert report["conditions"]["authentic_bound_claim_program"]["correct"]
+
+
+def test_distinct_decoy_drives_wrong_and_shuffled_control():
+    first = _candidate("A", .9, .4, .9, .9)
+    first.update({
+        "bind_entity_visual_description": "red ball",
+        "decoy_entity_visual_description": "blue cube",
+        "decoy_identity_verification": {"identity_match_probability": .9},
+    })
+    first["bound_relation"]["panel_sha256"] = "bound-a"
+    first["wrong_guard_relation"]["panel_sha256"] = "decoy-a"
+    second = _candidate("B", .8, .6, .7, .1)
+    second.update({
+        "bind_entity_visual_description": "person in white",
+        "decoy_entity_visual_description": "wooden table",
+        "decoy_identity_verification": {"identity_match_probability": .8},
+    })
+    second["bound_relation"]["panel_sha256"] = "bound-b"
+    second["wrong_guard_relation"]["panel_sha256"] = "decoy-b"
+    report = evaluate_candidate_claim_program(
+        sample_id="decoy", gold_answer="A", baseline_answer="B",
+        fork={
+            "complete": True, "answer_contract": "single_choice",
+            "candidates": [first, second],
+        },
+    )
+    assert report["conditions"]["authentic_bound_claim_program"]["correct"]
+    assert not report["conditions"]["shuffled_bind_correspondence"]["correct"]
+    assert report["distinct_wrong_control_candidates"] == 2
+    assert report["wrong_control_action_contrast"]
+    assert report["shuffled_control_action_contrast"]
+    assert report["guard_failure_transition"] == "NOOP_TO_BASELINE"
+
+
+def test_v7_failed_decoy_guard_is_noop_not_unbound_relation():
+    first = _candidate("A", .9, .1, .9, .9)
+    first.update({
+        "bind_entity_visual_description": "carrier a",
+        "decoy_entity_visual_description": "absent decoy a",
+        "decoy_identity_verification": {"identity_match_probability": .1},
+    })
+    first["bound_relation"]["panel_sha256"] = "a-bound"
+    first["wrong_guard_relation"]["panel_sha256"] = "a-wrong"
+    second = _candidate("B", .9, .8, .2, .1)
+    second.update({
+        "bind_entity_visual_description": "carrier b",
+        "decoy_entity_visual_description": "absent decoy b",
+        "decoy_identity_verification": {"identity_match_probability": .1},
+    })
+    second["bound_relation"]["panel_sha256"] = "b-bound"
+    second["wrong_guard_relation"]["panel_sha256"] = "b-wrong"
+    report = evaluate_candidate_claim_program(
+        sample_id="noop", gold_answer="A", baseline_answer="A",
+        fork={
+            "complete": True, "answer_contract": "single_choice",
+            "candidates": [first, second],
+        },
+    )
+    # The unbound scores would choose B. A failed wrong guard must execute no
+    # relation action and preserve A instead.
+    assert report["conditions"]["wrong_guard_bound_claim"]["committed_answer"] == "A"

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import copy
 import hashlib
 import io
 import json
@@ -25,6 +26,10 @@ import augment_bound_relation_smoke as bound  # noqa: E402
 import collect_overlay_relation_forks as overlay  # noqa: E402
 import run_active_video_wrapper_transfer as media_helpers  # noqa: E402
 import run_structured_video_transfer as runner  # noqa: E402
+from motif_transfer.video_temporal_localization import (  # noqa: E402
+    absolute_temporal_window,
+    parse_temporal_localization,
+)
 
 
 def _sha256(path: Path) -> str:
@@ -41,6 +46,57 @@ def _candidate_items(sample: Mapping[str, Any]) -> tuple[str, list[tuple[str, st
         return "binary_vector", [(str(index), str(value)) for index, value in enumerate(values)]
     options = dict(sample["options"])
     return "single_choice", [(str(slot), str(value)) for slot, value in options.items()]
+
+
+def _localize_question_window(
+    client: OpenAI,
+    *,
+    config: Mapping[str, Any],
+    question: str,
+    scout: bytes,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """Find a broad event window without seeing answer candidates or gold."""
+
+    model = config["model"]
+    temporal = config["media"]["temporal_localization"]
+    prompt = (
+        "Locate the broad temporal interval needed to visually investigate this "
+        "question. You do not receive answer choices and must not answer the "
+        "question. Use the complete clip only when comparing distant events is "
+        "essential; otherwise identify the event/action anchor and a broad window "
+        "around it. Return normalized fractions of the whole supplied clip. "
+        f"Question only: {question}"
+    )
+    last_error = ""
+    for _ in range(int(model["schema_retries"])):
+        payload, usage = media_helpers._json_call(
+            client,
+            model=str(model["id"]),
+            system=(
+                "Return JSON only: {window_fraction:[number,number],"
+                "requires_full_context:bool,anchor_description:string,"
+                "sensor_reliability:number}. Do not predict an answer."
+            ),
+            content=[
+                {
+                    "type": "text",
+                    "text": prompt + (f" Schema error: {last_error}" if last_error else ""),
+                },
+                {"type": "text", "text": "Low-bandwidth whole-clip scout frames:"},
+                media_helpers._image_content(scout),
+            ],
+            max_tokens=int(model["max_localization_tokens"]),
+        )
+        try:
+            parsed = parse_temporal_localization(
+                payload,
+                minimum_width=float(temporal["minimum_width_fraction"]),
+                maximum_width=float(temporal["maximum_width_fraction"]),
+            )
+            return parsed, payload, usage
+        except (TypeError, ValueError) as exc:
+            last_error = str(exc)
+    raise ValueError(f"question-only temporal localizer failed: {last_error}")
 
 
 def _jpeg_bytes(image: Image.Image, *, quality: int) -> bytes:
@@ -143,6 +199,14 @@ def _compile_claims(
     entity_catalog: Sequence[Mapping[str, Any]], candidates: Sequence[tuple[str, str]],
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     model = config["model"]
+    distinct_decoy = bool(config.get("controls", {}).get("require_distinct_decoy", False))
+    decoy_instruction = (
+        " For every carrier also select a decoy_entity_visual_description: a "
+        "concrete, visible entity from the same clip that is visually distinct "
+        "from the carrier in class, color, clothing, shape, or role. It is used "
+        "only for a wrong-correspondence control and must not be the carrier."
+        if distinct_decoy else ""
+    )
     prompt = (
         "Compile every answer candidate into an independent visually testable "
         "claim for a candidate-factorized neural-symbolic video program. You do "
@@ -159,7 +223,9 @@ def _compile_claims(
         "relation_description "
         "must state what temporal, interaction, causal, or physical relation should "
         "be measured after binding. Use the full clip unless a broad normalized "
-        "window is clearly sufficient. Return all slots exactly once.\nQuestion: "
+        "window is clearly sufficient."
+        + decoy_instruction
+        + " Return all slots exactly once.\nQuestion: "
         + str(sample["question"])
         + "\nCandidates: " + json.dumps(
             [{"slot": slot, "text": text} for slot, text in candidates],
@@ -175,7 +241,9 @@ def _compile_claims(
             client, model=str(model["id"]),
             system=(
                 "Return JSON only: {candidate_programs:[{slot:string,claim:string,"
-                "bind_entity_visual_description:string,relation_description:string,"
+                "bind_entity_visual_description:string,"
+                + ("decoy_entity_visual_description:string," if distinct_decoy else "")
+                + "relation_description:string,"
                 "window_fraction:[number,number]}]}. No correctness estimates."
             ),
             content=[{"type": "text", "text": prompt + (f"\nSchema error: {last_error}" if last_error else "")}],
@@ -189,18 +257,26 @@ def _compile_claims(
             for row in rows:
                 claim = str(row.get("claim") or "").strip()
                 entity = str(row.get("bind_entity_visual_description") or "").strip()
+                decoy = str(row.get("decoy_entity_visual_description") or "").strip()
                 relation = str(row.get("relation_description") or "").strip()
                 window = tuple(map(float, row.get("window_fraction") or ()))
                 if not claim or not entity or not relation:
                     raise ValueError("candidate program strings must be nonempty")
+                if distinct_decoy and (
+                    not decoy or decoy.casefold() == entity.casefold()
+                ):
+                    raise ValueError("decoy must be nonempty and distinct from carrier")
                 if len(window) != 2 or not 0 <= window[0] < window[1] <= 1:
                     raise ValueError("candidate window must be a valid normalized pair")
-                parsed.append({
+                compiled = {
                     "slot": str(row["slot"]), "claim": claim,
                     "bind_entity_visual_description": entity,
                     "relation_description": relation,
                     "window_fraction": list(window),
-                })
+                }
+                if distinct_decoy:
+                    compiled["decoy_entity_visual_description"] = decoy
+                parsed.append(compiled)
             return parsed, usage
         except (TypeError, ValueError) as exc:
             last_error = str(exc)
@@ -390,14 +466,60 @@ def main() -> None:
             continue
         sample = source["sample"]
         contract, items = _candidate_items(sample)
-        frames, metadata = runner._sample_clip(
+        full_frames, metadata = runner._sample_clip(
             Path(sample["video_path"]),
             start_sec=float(source["video_metadata"]["clip_start_seconds"]),
             end_sec=float(source["video_metadata"]["clip_end_seconds"]),
             frame_count=int(config["media"]["proxy_frame_count"]),
             max_side=int(config["media"]["proxy_frame_max_side"]),
         )
+        frames = full_frames
         seconds = metadata["proxy_sample_seconds"]
+        localization = None
+        localization_raw = None
+        localization_usage = None
+        temporal_config = config["media"].get("temporal_localization")
+        if temporal_config:
+            scout = runner._panel(
+                full_frames, seconds,
+                count=int(temporal_config["scout_frame_count"]),
+                width=int(temporal_config["scout_frame_width"]),
+                quality=int(config["media"]["jpeg_quality"]),
+            )
+            if row is not None and "temporal_localization" in row:
+                localization = dict(row["temporal_localization"])
+            else:
+                localization, localization_raw, localization_usage = (
+                    _localize_question_window(
+                        client, config=config, question=str(sample["question"]),
+                        scout=scout,
+                    )
+                )
+            absolute_start, absolute_end = absolute_temporal_window(
+                float(metadata["clip_start_seconds"]),
+                float(metadata["clip_end_seconds"]),
+                localization["window_fraction"],
+            )
+            frames, localized_metadata = runner._sample_clip(
+                Path(sample["video_path"]), start_sec=absolute_start,
+                end_sec=absolute_end,
+                frame_count=int(config["media"]["proxy_frame_count"]),
+                max_side=int(config["media"]["proxy_frame_max_side"]),
+            )
+            relative_offset = absolute_start - float(metadata["clip_start_seconds"])
+            seconds = [
+                relative_offset + float(value)
+                for value in localized_metadata["proxy_sample_seconds"]
+            ]
+            localization = {
+                **localization,
+                "absolute_start_seconds": absolute_start,
+                "absolute_end_seconds": absolute_end,
+                "whole_clip_scout_sha256": hashlib.sha256(scout).hexdigest(),
+                "question_only": True,
+                "answer_candidates_seen": False,
+                "gold_or_official_structure_seen": False,
+            }
         frame_count = int(config["media"].get("program_frame_count", 16))
         track_indices = [
             round(index * (len(frames) - 1) / (frame_count - 1))
@@ -405,12 +527,19 @@ def main() -> None:
         ]
         track_panel = _panel(frames, track_indices, seconds, config=config, prefix="T")
         mode = str(config["media"].get("binding_observation_mode", "COLLAGE_OVERLAY"))
+        matched_control_pixels = bool(
+            config.get("controls", {}).get("require_distinct_decoy", False)
+        )
         if mode == "SEPARATE_FRAMES_DUAL_VIEW":
             global_panel, _ = _dual_view_panel(
-                frames, track_indices, seconds, config=config, prefix="U",
+                frames, track_indices, seconds, config=config,
+                prefix="E" if matched_control_pixels else "U",
             )
         else:
-            global_panel = _panel(frames, track_indices, seconds, config=config, prefix="U")
+            global_panel = _panel(
+                frames, track_indices, seconds, config=config,
+                prefix="E" if matched_control_pixels else "U",
+            )
         if row is None:
             programs, compile_usage = _compile_claims(
                 client, config=config, sample=sample,
@@ -432,12 +561,31 @@ def main() -> None:
                 "compiler_saw_gold_or_official_program": False,
                 "visual_grounders_saw_full_question_option_set_or_gold": False,
             }
+            if localization is not None:
+                row.update({
+                    "temporal_localization": localization,
+                    "temporal_localization_raw": localization_raw,
+                    "temporal_localization_usage": localization_usage,
+                })
             existing[sample_id] = row
             save()
         candidates = row["candidates"]
-        for candidate in candidates:
+        for candidate_index, candidate in enumerate(candidates):
             if "track" not in candidate:
-                if mode == "SEPARATE_FRAMES_DUAL_VIEW":
+                cached = next((
+                    other for other in candidates[:candidate_index]
+                    if str(other["bind_entity_visual_description"]).casefold()
+                    == str(candidate["bind_entity_visual_description"]).casefold()
+                    and "track" in other
+                ), None)
+                if cached is not None:
+                    candidate.update({
+                        "track": copy.deepcopy(cached["track"]),
+                        "track_usage": {"cached_identical_bind": True},
+                        "track_indices": list(cached["track_indices"]),
+                        "track_evidence_sha256": cached["track_evidence_sha256"],
+                    })
+                elif mode == "SEPARATE_FRAMES_DUAL_VIEW":
                     track, usage, track_evidence_hash = _multiframe_bind_track(
                         client, config=config,
                         entity=str(candidate["bind_entity_visual_description"]),
@@ -450,32 +598,125 @@ def main() -> None:
                         panel=track_panel,
                     )
                     track_evidence_hash = hashlib.sha256(track_panel).hexdigest()
-                candidate["track"] = track
-                candidate["track_usage"] = usage
-                candidate["track_indices"] = track_indices
-                candidate["track_evidence_sha256"] = track_evidence_hash
+                if cached is None:
+                    candidate["track"] = track
+                    candidate["track_usage"] = usage
+                    candidate["track_indices"] = track_indices
+                    candidate["track_evidence_sha256"] = track_evidence_hash
                 save()
             if "identity_verification" not in candidate:
-                overlaid, fallbacks = overlay._overlay_frames(
-                    frames, track_indices, candidate["track_indices"],
-                    candidate["track"]["tracks"], entity_id="CARRIER",
-                )
-                identity_panel = media_helpers._panel_bytes(
-                    overlaid,
-                    labels=[f"I{slot} {seconds[frame_index]:.2f}s" for slot, frame_index in enumerate(track_indices)],
-                    frame_width=int(config["media"]["evidence_frame_width"]),
-                    quality=int(config["media"]["jpeg_quality"]),
-                )
-                parsed, raw, usage = _verify_identity(
-                    client, config=config,
-                    entity=str(candidate["bind_entity_visual_description"]),
-                    panel=identity_panel,
-                )
-                candidate["identity_verification"] = {
-                    **parsed, "raw": raw, "usage": usage,
-                    "panel_sha256": hashlib.sha256(identity_panel).hexdigest(),
-                    "overlay_fallback_count": sum(fallbacks),
-                }
+                cached = next((
+                    other for other in candidates[:candidate_index]
+                    if str(other["bind_entity_visual_description"]).casefold()
+                    == str(candidate["bind_entity_visual_description"]).casefold()
+                    and "identity_verification" in other
+                ), None)
+                if cached is not None:
+                    candidate["identity_verification"] = copy.deepcopy(
+                        cached["identity_verification"]
+                    )
+                    candidate["identity_verification"]["usage"] = {
+                        "cached_identical_bind": True,
+                    }
+                else:
+                    overlaid, fallbacks = overlay._overlay_frames(
+                        frames, track_indices, candidate["track_indices"],
+                        candidate["track"]["tracks"], entity_id="CARRIER",
+                    )
+                    identity_panel = media_helpers._panel_bytes(
+                        overlaid,
+                        labels=[f"I{slot} {seconds[frame_index]:.2f}s" for slot, frame_index in enumerate(track_indices)],
+                        frame_width=int(config["media"]["evidence_frame_width"]),
+                        quality=int(config["media"]["jpeg_quality"]),
+                    )
+                    parsed, raw, usage = _verify_identity(
+                        client, config=config,
+                        entity=str(candidate["bind_entity_visual_description"]),
+                        panel=identity_panel,
+                    )
+                    candidate["identity_verification"] = {
+                        **parsed, "raw": raw, "usage": usage,
+                        "panel_sha256": hashlib.sha256(identity_panel).hexdigest(),
+                        "overlay_fallback_count": sum(fallbacks),
+                    }
+                save()
+            if (
+                "decoy_entity_visual_description" in candidate
+                and "decoy_track" not in candidate
+            ):
+                decoy_entity = str(candidate["decoy_entity_visual_description"])
+                cached = next((
+                    other for other in candidates[:candidate_index]
+                    if str(other.get("decoy_entity_visual_description") or "").casefold()
+                    == decoy_entity.casefold() and "decoy_track" in other
+                ), None)
+                if cached is not None:
+                    candidate.update({
+                        "decoy_track": copy.deepcopy(cached["decoy_track"]),
+                        "decoy_track_usage": {"cached_identical_bind": True},
+                        "decoy_track_indices": list(cached["decoy_track_indices"]),
+                        "decoy_track_evidence_sha256": cached["decoy_track_evidence_sha256"],
+                    })
+                elif mode == "SEPARATE_FRAMES_DUAL_VIEW":
+                    track, usage, evidence_hash = _multiframe_bind_track(
+                        client, config=config, entity=decoy_entity,
+                        frames=frames, indices=track_indices, seconds=seconds,
+                    )
+                else:
+                    track, usage = bound._bind_track(
+                        client, config=config, entity=decoy_entity,
+                        panel=track_panel,
+                    )
+                    evidence_hash = hashlib.sha256(track_panel).hexdigest()
+                if cached is None:
+                    candidate.update({
+                        "decoy_track": track,
+                        "decoy_track_usage": usage,
+                        "decoy_track_indices": track_indices,
+                        "decoy_track_evidence_sha256": evidence_hash,
+                    })
+                save()
+            if (
+                "decoy_entity_visual_description" in candidate
+                and "decoy_identity_verification" not in candidate
+            ):
+                decoy_entity = str(candidate["decoy_entity_visual_description"])
+                cached = next((
+                    other for other in candidates[:candidate_index]
+                    if str(other.get("decoy_entity_visual_description") or "").casefold()
+                    == decoy_entity.casefold()
+                    and "decoy_identity_verification" in other
+                ), None)
+                if cached is not None:
+                    candidate["decoy_identity_verification"] = copy.deepcopy(
+                        cached["decoy_identity_verification"]
+                    )
+                    candidate["decoy_identity_verification"]["usage"] = {
+                        "cached_identical_bind": True,
+                    }
+                else:
+                    overlaid, fallbacks = overlay._overlay_frames(
+                        frames, track_indices, candidate["decoy_track_indices"],
+                        candidate["decoy_track"]["tracks"], entity_id="DECOY",
+                    )
+                    identity_panel = media_helpers._panel_bytes(
+                        overlaid,
+                        labels=[
+                            f"D{slot} {seconds[frame_index]:.2f}s"
+                            for slot, frame_index in enumerate(track_indices)
+                        ],
+                        frame_width=int(config["media"]["evidence_frame_width"]),
+                        quality=int(config["media"]["jpeg_quality"]),
+                    )
+                    parsed, raw, usage = _verify_identity(
+                        client, config=config, entity=decoy_entity,
+                        panel=identity_panel,
+                    )
+                    candidate["decoy_identity_verification"] = {
+                        **parsed, "raw": raw, "usage": usage,
+                        "panel_sha256": hashlib.sha256(identity_panel).hexdigest(),
+                        "overlay_fallback_count": sum(fallbacks),
+                    }
                 save()
         for index, candidate in enumerate(candidates):
             if "unbound_relation" not in candidate:
@@ -493,7 +734,8 @@ def main() -> None:
                     panel, fallback_count = _dual_view_panel(
                         frames, track_indices, seconds, config=config,
                         track_indices=candidate["track_indices"],
-                        tracks=candidate["track"]["tracks"], prefix="B",
+                        tracks=candidate["track"]["tracks"],
+                        prefix="E" if matched_control_pixels else "B",
                     )
                 else:
                     overlaid, fallbacks = overlay._overlay_frames(
@@ -519,16 +761,25 @@ def main() -> None:
                 save()
             if "wrong_guard_relation" not in candidate:
                 wrong = candidates[(index + 1) % len(candidates)]
+                wrong_track = (
+                    candidate["decoy_track"]
+                    if "decoy_track" in candidate else wrong["track"]
+                )
+                wrong_track_indices = (
+                    candidate["decoy_track_indices"]
+                    if "decoy_track_indices" in candidate else wrong["track_indices"]
+                )
                 if mode == "SEPARATE_FRAMES_DUAL_VIEW":
                     panel, fallback_count = _dual_view_panel(
                         frames, track_indices, seconds, config=config,
-                        track_indices=wrong["track_indices"],
-                        tracks=wrong["track"]["tracks"], prefix="W",
+                        track_indices=wrong_track_indices,
+                        tracks=wrong_track["tracks"],
+                        prefix="E" if matched_control_pixels else "W",
                     )
                 else:
                     overlaid, fallbacks = overlay._overlay_frames(
-                        frames, track_indices, wrong["track_indices"],
-                        wrong["track"]["tracks"], entity_id="CARRIER",
+                        frames, track_indices, wrong_track_indices,
+                        wrong_track["tracks"], entity_id="DECOY",
                     )
                     panel = media_helpers._panel_bytes(
                         overlaid,
@@ -545,7 +796,10 @@ def main() -> None:
                     **parsed, "raw": raw, "usage": usage,
                     "panel_sha256": hashlib.sha256(panel).hexdigest(),
                     "overlay_fallback_count": fallback_count,
-                    "wrong_track_slot": str(wrong["slot"]),
+                    "wrong_track_slot": (
+                        f"{candidate['slot']}:decoy"
+                        if "decoy_track" in candidate else str(wrong["slot"])
+                    ),
                 }
                 save()
         row["complete"] = True

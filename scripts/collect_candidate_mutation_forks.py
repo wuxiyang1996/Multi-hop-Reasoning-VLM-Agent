@@ -21,6 +21,9 @@ sys.path.insert(0, str(REPO / "scripts"))
 import collect_candidate_claim_video_forks as claim  # noqa: E402
 import run_active_video_wrapper_transfer as media_helpers  # noqa: E402
 import run_structured_video_transfer as structured  # noqa: E402
+from motif_transfer.video_temporal_localization import (  # noqa: E402
+    absolute_temporal_window,
+)
 
 
 def _sha256(path: Path) -> str:
@@ -191,17 +194,36 @@ def main() -> None:
         if row and row.get("complete"):
             continue
         base_row = base[sample_id]
+        clip_start = float(source["video_metadata"]["clip_start_seconds"])
+        clip_end = float(source["video_metadata"]["clip_end_seconds"])
+        relative_offset = 0.0
+        use_temporal = bool(
+            config["media"].get("use_base_temporal_localization", False)
+        )
+        if use_temporal:
+            if "temporal_localization" not in base_row:
+                raise ValueError("V8 mutation requires a base temporal localization")
+            clip_start, clip_end = absolute_temporal_window(
+                clip_start, clip_end,
+                base_row["temporal_localization"]["window_fraction"],
+            )
+            relative_offset = (
+                clip_start - float(source["video_metadata"]["clip_start_seconds"])
+            )
         frames, metadata = structured._sample_clip(
             Path(source["sample"]["video_path"]),
-            start_sec=float(source["video_metadata"]["clip_start_seconds"]),
-            end_sec=float(source["video_metadata"]["clip_end_seconds"]),
+            start_sec=clip_start, end_sec=clip_end,
             frame_count=int(config["media"]["proxy_frame_count"]),
             max_side=int(config["media"]["proxy_frame_max_side"]),
         )
-        seconds = metadata["proxy_sample_seconds"]
+        seconds = [
+            relative_offset + float(value)
+            for value in metadata["proxy_sample_seconds"]
+        ]
         indices = list(base_row["candidates"][0]["track_indices"])
         global_panel, _ = claim._dual_view_panel(
-            frames, indices, seconds, config=config, prefix="U",
+            frames, indices, seconds, config=config,
+            prefix="E" if use_temporal else "U",
         )
         if row is None:
             programs, usage = _compile_mutations(
@@ -216,17 +238,31 @@ def main() -> None:
                     "track_indices": base_candidate["track_indices"],
                     "track_evidence_sha256": base_candidate["track_evidence_sha256"],
                     "identity_verification": base_candidate["identity_verification"],
+                    **({
+                        "decoy_entity_visual_description": base_candidate[
+                            "decoy_entity_visual_description"
+                        ],
+                        "decoy_track": base_candidate["decoy_track"],
+                        "decoy_track_indices": base_candidate["decoy_track_indices"],
+                        "decoy_identity_verification": base_candidate[
+                            "decoy_identity_verification"
+                        ],
+                    } if "decoy_track" in base_candidate else {}),
                 })
             row = {
                 "schema_version": 1, "benchmark": source["benchmark"],
-                "sample_id": sample_id, "complete": False,
+                "sample_id": sample_id,
+                "answer_contract": base_row.get("answer_contract", "single_choice"),
+                "complete": False,
                 "source_gate_sha256": _sha256(source_path),
                 "base_bind_forks_sha256": _sha256(base_path),
+                "collector_sha256": _sha256(Path(__file__).resolve()),
                 "config_sha256": _sha256(args.config),
                 "compiler_usage": usage, "candidates": candidates,
                 "compiler_saw_question_and_candidates": True,
                 "compiler_saw_gold_or_official_program": False,
                 "mutation_grounders_saw_full_question_option_set_or_gold": False,
+                "temporal_localization": base_row.get("temporal_localization"),
             }
             existing[sample_id] = row
             save()
@@ -236,13 +272,18 @@ def main() -> None:
             bound_panel, bound_fallbacks = claim._dual_view_panel(
                 frames, indices, seconds, config=config,
                 track_indices=candidate["track_indices"],
-                tracks=candidate["track"]["tracks"], prefix="B",
+                tracks=candidate["track"]["tracks"],
+                prefix="E" if use_temporal else "B",
             )
             wrong = candidates[(index + 1) % len(candidates)]
+            wrong_track = candidate.get("decoy_track", wrong["track"])
+            wrong_indices = candidate.get(
+                "decoy_track_indices", wrong["track_indices"],
+            )
             wrong_panel, wrong_fallbacks = claim._dual_view_panel(
                 frames, indices, seconds, config=config,
-                track_indices=wrong["track_indices"], tracks=wrong["track"]["tracks"],
-                prefix="W",
+                track_indices=wrong_indices, tracks=wrong_track["tracks"],
+                prefix="E" if use_temporal else "W",
             )
             panels["bound_mutation"] = (bound_panel, "BOUND_DUAL_VIEW", bound_fallbacks)
             panels["wrong_guard_mutation"] = (wrong_panel, "WRONG_GUARD_DUAL_VIEW", wrong_fallbacks)
@@ -259,7 +300,10 @@ def main() -> None:
                     "overlay_fallback_count": fallbacks,
                 }
                 if key == "wrong_guard_mutation":
-                    candidate[key]["wrong_track_slot"] = str(wrong["slot"])
+                    candidate[key]["wrong_track_slot"] = (
+                        f"{candidate['slot']}:decoy"
+                        if "decoy_track" in candidate else str(wrong["slot"])
+                    )
                 save()
         row["complete"] = True
         save()

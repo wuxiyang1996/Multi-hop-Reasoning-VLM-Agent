@@ -50,6 +50,16 @@ def _relation_probability(candidate: Mapping[str, Any], key: str) -> float:
     )
 
 
+def _decoy_bind_probability(candidate: Mapping[str, Any]) -> float | None:
+    verification = candidate.get("decoy_identity_verification")
+    if not isinstance(verification, Mapping):
+        return None
+    return _probability(
+        verification["identity_match_probability"],
+        field="decoy_identity_verification.identity_match_probability",
+    )
+
+
 def _commit(
     scores: Sequence[float], *, slots: Sequence[str], answer_contract: str,
     threshold: float,
@@ -87,29 +97,58 @@ def evaluate_candidate_claim_program(
     unbound = [_relation_probability(row, "unbound_relation") for row in candidates]
     bound = [_relation_probability(row, "bound_relation") for row in candidates]
     wrong = [_relation_probability(row, "wrong_guard_relation") for row in candidates]
+    decoy_bind = [_decoy_bind_probability(row) for row in candidates]
     count = len(candidates)
+    strict_guard_noop = all(value is not None for value in decoy_bind)
+    if contract == "binary_vector":
+        if len(baseline_answer) != count or set(baseline_answer) - {"0", "1"}:
+            raise ValueError("binary baseline must align with candidate slots")
+        baseline_scores = [float(value) for value in baseline_answer]
+    else:
+        if baseline_answer not in slots:
+            raise ValueError("single-choice baseline must be a candidate slot")
+        baseline_scores = [float(slot == baseline_answer) for slot in slots]
+    guard_fallback = baseline_scores if strict_guard_noop else unbound
     mean_bind = sum(bind) / count
     authentic_guard = [value >= guard_threshold for value in bind]
-    shuffled_guard = [bind[(index + 1) % count] >= guard_threshold for index in range(count)]
+    shuffled_guard = [
+        (
+            decoy_bind[(index + 1) % count] >= guard_threshold
+            if decoy_bind[index] is not None
+            else bind[(index + 1) % count] >= guard_threshold
+        )
+        for index in range(count)
+    ]
     marginal_guard = mean_bind >= guard_threshold
     condition_scores = {
         "target_unbound_claim_verification": unbound,
         "authentic_bound_claim_program": [
-            bound[index] if authentic_guard[index] else unbound[index]
+            bound[index] if authentic_guard[index] else guard_fallback[index]
             for index in range(count)
         ],
         "reversed_claim_then_bind": unbound,
         "wrong_guard_bound_claim": [
-            wrong[index] if authentic_guard[index] else unbound[index]
+            (
+                wrong[index]
+                if (
+                    decoy_bind[index] >= guard_threshold
+                    if decoy_bind[index] is not None else authentic_guard[index]
+                )
+                else guard_fallback[index]
+            )
             for index in range(count)
         ],
         "node_only_bind": bind,
         "source_marginal_bind": [
-            bound[index] if marginal_guard else unbound[index]
+            bound[index] if marginal_guard else guard_fallback[index]
             for index in range(count)
         ],
         "shuffled_bind_correspondence": [
-            bound[index] if shuffled_guard[index] else unbound[index]
+            (
+                wrong[(index + 1) % count]
+                if decoy_bind[index] is not None and shuffled_guard[index]
+                else bound[index] if shuffled_guard[index] else guard_fallback[index]
+            )
             for index in range(count)
         ],
     }
@@ -151,6 +190,19 @@ def evaluate_candidate_claim_program(
     changed = sum(
         abs(bound[index] - unbound[index]) >= 0.05 for index in range(count)
     )
+    distinct_wrong_controls = sum(
+        bool(candidate.get("decoy_entity_visual_description"))
+        and str(candidate["decoy_entity_visual_description"]).casefold()
+        != str(candidate["bind_entity_visual_description"]).casefold()
+        and candidate["wrong_guard_relation"].get("panel_sha256")
+        != candidate["bound_relation"].get("panel_sha256")
+        for candidate in candidates
+    )
+    distinct_shuffled_controls = sum(
+        candidates[(index + 1) % count]["wrong_guard_relation"].get("panel_sha256")
+        != candidate["bound_relation"].get("panel_sha256")
+        for index, candidate in enumerate(candidates)
+    )
     return {
         "sample_id": sample_id,
         "gold_answer": gold_answer,
@@ -159,8 +211,12 @@ def evaluate_candidate_claim_program(
         "baseline_answer": baseline_answer,
         "baseline_correct": baseline_answer == gold_answer,
         "bind_probabilities": bind,
+        "decoy_bind_probabilities": decoy_bind,
         "authentic_guard_passed": authentic_guard,
         "guard_threshold": guard_threshold,
+        "guard_failure_transition": (
+            "NOOP_TO_BASELINE" if strict_guard_noop else "LEGACY_UNBOUND_FALLBACK"
+        ),
         "conditions": conditions,
         "oracle_scores": oracle_scores,
         "oracle_answer": oracle_answer,
@@ -171,6 +227,10 @@ def evaluate_candidate_claim_program(
             and abs(bound[index] - unbound[index]) >= 0.05
             for index in range(count)
         ),
+        "distinct_wrong_control_candidates": distinct_wrong_controls,
+        "wrong_control_action_contrast": distinct_wrong_controls > 0,
+        "distinct_shuffled_control_candidates": distinct_shuffled_controls,
+        "shuffled_control_action_contrast": distinct_shuffled_controls > 0,
     }
 
 

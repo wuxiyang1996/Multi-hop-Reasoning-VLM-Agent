@@ -1,0 +1,192 @@
+{
+  "schema_version": "video-neurosymbolic-v7-v8-summary-v1",
+  "status": "VIDEO_HARNESS_REPAIRED_TRANSFER_NOT_VALIDATED",
+  "scope": "VIDEO_ONLY; validated TIR/WebShop/ALFWorld untouched",
+  "repairs": {
+    "question_only_temporal_localization": true,
+    "dense_resampling_inside_localized_window": true,
+    "same_window_and_pixel_budget_across_forks": true,
+    "independent_decoy_bind_and_identity_audit": true,
+    "wrong_control_requires_distinct_observation": true,
+    "failed_bind_transition": "NOOP_TO_BASELINE",
+    "confirmation_baseline_collector_implemented_with_exact_adaptation_prompt": true
+  },
+  "experiments": {
+    "nextqa_bind_relate_v7": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4b_gpt54/candidate_claim_v7_1_temporal_control_merged_adaptation_report.json",
+      "sha256": "a7c261763f076ba5ed782d0757fcb6cf918bc84d27fad9b553d0513625e501bb",
+      "status": "CANDIDATE_CLAIM_ADAPTATION_FAIL",
+      "samples": 12,
+      "baseline_correct": 8,
+      "oracle_correct": 11,
+      "conditions_correct": {
+        "target_unbound_claim_verification": 8,
+        "authentic_bound_claim_program": 8,
+        "reversed_claim_then_bind": 8,
+        "wrong_guard_bound_claim": 8,
+        "node_only_bind": 1,
+        "source_marginal_bind": 8,
+        "shuffled_bind_correspondence": 1
+      },
+      "distinct_wrong_control_candidate_fraction": 1.0,
+      "distinct_shuffled_control_candidate_fraction": 1.0,
+      "gates": {
+        "source_gate_receipts_match": true,
+        "runtime_gold_and_official_program_sealed": true,
+        "matched_forks_complete": true,
+        "oracle_headroom_over_strongest_nonoracle": true,
+        "bound_changes_relation_measurement": true,
+        "authentic_action_contrast": true,
+        "wrong_control_executes_distinct_observation": true,
+        "shuffled_control_executes_distinct_observation": true,
+        "authentic_above_baseline": false,
+        "authentic_above_target_unbound": false,
+        "authentic_above_all_edge_controls": false
+      }
+    },
+    "star_bind_relate_v7": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4b_gpt54/candidate_claim_v7_1_temporal_control_merged_adaptation_report.json",
+      "sha256": "c5f753248285ce5f73996629902b4673684a969914033360d5f7d48dbcd5a2c1",
+      "status": "CANDIDATE_CLAIM_ADAPTATION_FAIL",
+      "samples": 16,
+      "baseline_correct": 6,
+      "oracle_correct": 16,
+      "conditions_correct": {
+        "target_unbound_claim_verification": 11,
+        "authentic_bound_claim_program": 6,
+        "reversed_claim_then_bind": 11,
+        "wrong_guard_bound_claim": 7,
+        "node_only_bind": 7,
+        "source_marginal_bind": 6,
+        "shuffled_bind_correspondence": 2
+      },
+      "distinct_wrong_control_candidate_fraction": 0.9375,
+      "distinct_shuffled_control_candidate_fraction": 0.90625,
+      "gates": {
+        "source_gate_receipts_match": true,
+        "runtime_gold_and_official_program_sealed": true,
+        "matched_forks_complete": true,
+        "oracle_headroom_over_strongest_nonoracle": true,
+        "bound_changes_relation_measurement": true,
+        "authentic_action_contrast": true,
+        "wrong_control_executes_distinct_observation": true,
+        "shuffled_control_executes_distinct_observation": true,
+        "authentic_above_baseline": false,
+        "authentic_above_target_unbound": false,
+        "authentic_above_all_edge_controls": false
+      }
+    },
+    "clevrer_bind_relate_v7": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_clevrer_v4b_gpt54/candidate_claim_v7_1_temporal_control_merged_adaptation_report.json",
+      "sha256": "208c7f9c418e1d1b60e73cfd7c2ecba0bc8e9c6682f747dc6e25372ee52df7b7",
+      "status": "CANDIDATE_CLAIM_ADAPTATION_FAIL",
+      "samples": 12,
+      "baseline_correct": 0,
+      "oracle_correct": 8,
+      "conditions_correct": {
+        "target_unbound_claim_verification": 4,
+        "authentic_bound_claim_program": 4,
+        "reversed_claim_then_bind": 4,
+        "wrong_guard_bound_claim": 1,
+        "node_only_bind": 2,
+        "source_marginal_bind": 2,
+        "shuffled_bind_correspondence": 2
+      },
+      "distinct_wrong_control_candidate_fraction": 1.0,
+      "distinct_shuffled_control_candidate_fraction": 0.9736842105263158,
+      "gates": {
+        "source_gate_receipts_match": true,
+        "runtime_gold_and_official_program_sealed": true,
+        "matched_forks_complete": true,
+        "oracle_headroom_over_strongest_nonoracle": true,
+        "bound_changes_relation_measurement": true,
+        "authentic_action_contrast": true,
+        "wrong_control_executes_distinct_observation": true,
+        "shuffled_control_executes_distinct_observation": true,
+        "authentic_above_baseline": true,
+        "authentic_above_target_unbound": false,
+        "authentic_above_all_edge_controls": false
+      }
+    },
+    "star_bind_mutate_v8": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4b_gpt54/candidate_mutation_v8_temporal_decoy_merged_adaptation_report.json",
+      "sha256": "f84d042d0b49b5b986edd43d0f68ec24cc0c549a116f433d569098787e0a9ac3",
+      "status": "CANDIDATE_MUTATION_ADAPTATION_FAIL",
+      "samples": 16,
+      "baseline_correct": 6,
+      "oracle_correct": 16,
+      "conditions_correct": {
+        "target_unbound_mutation_verification": 12,
+        "authentic_bound_mutation_program": 7,
+        "reversed_mutation_then_bind": 12,
+        "wrong_guard_bound_mutation": 7,
+        "node_only_bind": 7,
+        "source_marginal_bind_mutate": 7,
+        "shuffled_bind_mutate_correspondence": 3
+      },
+      "distinct_wrong_control_candidate_fraction": 0.9375,
+      "distinct_shuffled_control_candidate_fraction": 0.90625,
+      "gates": {
+        "source_gate_receipts_match": true,
+        "runtime_gold_and_official_program_sealed": true,
+        "matched_forks_complete": true,
+        "oracle_headroom_over_strongest_nonoracle": true,
+        "bound_changes_mutation_measurement": true,
+        "authentic_action_contrast": true,
+        "wrong_control_executes_distinct_observation": true,
+        "shuffled_control_executes_distinct_observation": true,
+        "authentic_above_baseline": true,
+        "authentic_above_target_unbound": false,
+        "authentic_above_all_edge_controls": false
+      }
+    },
+    "clevrer_bind_mutate_v8": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_clevrer_v4b_gpt54/candidate_mutation_v8_temporal_decoy_merged_adaptation_report.json",
+      "sha256": "415b1cb6995964fe63e2b91799ba15aa41710cdcf5066ed626ebb6dfff1f8cfd",
+      "status": "CANDIDATE_MUTATION_ADAPTATION_FAIL",
+      "samples": 12,
+      "baseline_correct": 0,
+      "oracle_correct": 7,
+      "conditions_correct": {
+        "target_unbound_mutation_verification": 1,
+        "authentic_bound_mutation_program": 0,
+        "reversed_mutation_then_bind": 1,
+        "wrong_guard_bound_mutation": 1,
+        "node_only_bind": 2,
+        "source_marginal_bind_mutate": 0,
+        "shuffled_bind_mutate_correspondence": 1
+      },
+      "distinct_wrong_control_candidate_fraction": 1.0,
+      "distinct_shuffled_control_candidate_fraction": 0.9736842105263158,
+      "gates": {
+        "source_gate_receipts_match": true,
+        "runtime_gold_and_official_program_sealed": true,
+        "matched_forks_complete": true,
+        "oracle_headroom_over_strongest_nonoracle": true,
+        "bound_changes_mutation_measurement": true,
+        "authentic_action_contrast": true,
+        "wrong_control_executes_distinct_observation": true,
+        "shuffled_control_executes_distinct_observation": true,
+        "authentic_above_baseline": false,
+        "authentic_above_target_unbound": false,
+        "authentic_above_all_edge_controls": false
+      }
+    }
+  },
+  "strict_findings": {
+    "nextqa_bind_relate": "baseline=8/12, authentic=8/12, target-unbound=8/12",
+    "star_bind_relate": "baseline=6/16, authentic=6/16, target-unbound=11/16",
+    "star_bind_mutate": "baseline=6/16, authentic=7/16, target-unbound=12/16",
+    "clevrer_bind_relate": "baseline=0/12, authentic=4/12, target-unbound=4/12",
+    "clevrer_bind_mutate": "baseline=0/12, authentic=0/12, target-unbound=1/12"
+  },
+  "interpretation": "The repaired target-native video programs have real perception and reasoning headroom, especially STAR target-unbound and CLEVRER RELATE, but the source-transferred BIND routing is not strictly better than the strong target-native control. Cross-domain success-rate transfer is therefore not validated by these adaptation receipts.",
+  "confirmation": {
+    "opened": false,
+    "authorized": false,
+    "reason": "No raw or selective adaptation policy passed strict gates.",
+    "frozen_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_v7_confirmation_splits.json",
+    "frozen_manifest_sha256": "fc1419db7657187990f383ea045417910319da83f95cc23035af16d93ae51417",
+    "reserve_remains_sealed": true
+  }
+}

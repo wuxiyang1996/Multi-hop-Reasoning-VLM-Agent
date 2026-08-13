@@ -424,3 +424,58 @@ transfer。下一版 source 必须迁移更低层且会改变决策的量：
 在得到这种 source artifact 前，三个 video benchmark 的正确状态是
 `TRANSFER_NOT_VALIDATED`。这里“worked out”指机制、对照和 prospective gate 已经跑通并给出可复现的
 否证，不是 success-rate transfer 已成立。
+
+## V7/V8 video-only repair：旧 qualification 结论被更严格 adaptation 取代
+
+对旧日志复查后确认了三个会夸大或掩盖效果的问题：
+
+1. candidate compiler 虽然输出 `window_fraction`，collector 实际仍对整段视频均匀抽帧；90 秒左右的
+   NExT-QA 视频会漏掉短动作；
+2. wrong/shuffled correspondence 经常复用同一个 carrier，因而 control 在像素和 action 上是 no-op；
+3. failed BIND guard 仍回退执行 unbound RELATE/MUTATE，等价于给错误 control 一次额外 target-native
+   observation，而不是 MDP 中正确的 no-op transition。
+
+V7/V8 只修改 video 路径，未修改 TIR、WebShop 或 ALFWorld。新执行契约是：
+
+```text
+question text without options + whole-clip scout
+    -> broad temporal localization
+    -> dense decode of 48 frames inside that window
+    -> independent carrier BIND + identity audit
+    -> independent visually distinct decoy BIND + identity audit
+    -> matched unbound / authentic / wrong / shuffled RELATE or MUTATE
+
+failed symbolic guard -> NOOP_TO_BASELINE
+```
+
+localizer 从未看到 options、gold、official program 或 question family；所有条件使用同一 localization、
+frame count、resolution 和 label layout。wrong control 的 decoy panel hash 必须与 authentic 不同；严格
+gate 要求每个 sample 都产生 action contrast，且至少 90% candidates 的 observation 不同。实际
+NExT-QA、STAR、CLEVRER 的 distinct fractions 分别为 `1.000`、`0.9375`、`1.000`。
+
+### 修复后 adaptation 结果
+
+| benchmark / typed edge | baseline | target-unbound | authentic | wrong | shuffled | strict gate |
+|---|---:|---:|---:|---:|---:|---|
+| NExT-QA BIND→RELATE | 8/12 | 8/12 | 8/12 | 8/12 | 1/12 | fail |
+| STAR BIND→RELATE | 6/16 | 11/16 | 6/16 | 7/16 | 2/16 | fail |
+| STAR BIND→MUTATE | 6/16 | 12/16 | 7/16 | 7/16 | 3/16 | fail |
+| CLEVRER BIND→RELATE | 0/12 | 4/12 | 4/12 | 1/12 | 2/12 | fail |
+| CLEVRER BIND→MUTATE | 0/12 | 1/12 | 0/12 | 1/12 | 1/12 | fail |
+
+这些结果解决了“benchmark 为什么不 work”的工程问题，也把科学结论变得更清楚：target-native video
+program 确实有 headroom，例如 STAR unbound MUTATE 为 `12/16`、CLEVRER RELATE 为 `4/12`；但
+source-transferred BIND routing 没有严格超过同预算的 target-native control。STAR 的旧 `7/16 > 6/16`
+不再构成 transfer evidence，因为强 target control 是 `12/16`。CLEVRER authentic 与 target 都是
+`4/12`，只能证明 neural-symbolic target program 有效，不能识别 source contribution。
+
+因此没有冻结任何 post-hoc family/threshold selector，也没有打开新的 confirmation。新的 6-per-family
+confirmation 和 4-per-family reserve 已在读取 outcome 前冻结；完整 baseline collector 也已改为复用
+adaptation 的同一个 `_propose_world_model` prompt contract，但 adaptation gate 未通过，所以没有运行。
+confirmation/reserve 仍 sealed。机器可读结论见
+`docs/results/video_v7_v8_adaptation_summary.json`。
+
+当前 blocker 已不是 video wrapper、sampling 或 control execution，而是 source artifact 本身只有
+`execution_authority=SYMBOLIC_ROUTING_ONLY`。下一次值得运行的实验必须先从 source games 学到会改变
+decision 的低层参数，例如 calibrated guard reliability、transition likelihood 或 option value；只继续
+迁移 `BIND→RELATE/MUTATE` 的拓扑，无法与 target-native 同构 executor 做非平凡区分。

@@ -1,0 +1,52 @@
+{
+  "schema_version": 7,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "Question-only temporal localization, dense target-native resampling, and matched BIND->RELATE forks with independently tracked distinct decoys. Gold and official programs are evaluator-only.",
+  "source": {
+    "typed_summary": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/typed_multisource_v4_summary.json",
+    "typed_summary_sha256": "1386d2023dbf1ebac88992dd49cad1aa1e323299a0937c4e2dd3bf4505613969",
+    "transferred_structure": "BIND--CARRIER_BOUND-->RELATE"
+  },
+  "model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 240,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_localization_tokens": 700,
+    "max_compile_tokens": 3500,
+    "max_track_tokens": 1800,
+    "max_relation_tokens": 900
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 720,
+    "program_frame_count": 8,
+    "evidence_frame_width": 256,
+    "jpeg_quality": 88,
+    "binding_observation_mode": "SEPARATE_FRAMES_DUAL_VIEW",
+    "temporal_localization": {
+      "scout_frame_count": 12,
+      "scout_frame_width": 224,
+      "minimum_width_fraction": 0.2,
+      "maximum_width_fraction": 0.65,
+      "contract": "QUESTION_TEXT_WITHOUT_OPTIONS_PLUS_WHOLE_CLIP_SCOUT_ONLY"
+    }
+  },
+  "controls": {
+    "require_distinct_decoy": true,
+    "require_distinct_observation_hash": true,
+    "matched_pixel_labels": true
+  },
+  "evaluation": {
+    "binary_claim_threshold": 0.5,
+    "guard_threshold": 0.5,
+    "minimum_bound_unbound_probability_delta": 0.05,
+    "require_authentic_strictly_above_baseline": true,
+    "require_authentic_strictly_above_target_unbound": true,
+    "require_authentic_strictly_above_all_edge_controls": true,
+    "require_executed_wrong_control_contrast": true
+  }
+}
