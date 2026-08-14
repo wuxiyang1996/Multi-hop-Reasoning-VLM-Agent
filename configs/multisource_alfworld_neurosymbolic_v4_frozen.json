@@ -1,0 +1,53 @@
+{
+  "schema_version": 4,
+  "status": "FINAL_FROZEN_HELDOUT_EVALUATION",
+  "claim_boundary": "One-shot final evaluation on the previously unread ALFWorld held-out split. The V3 artifact, controller, controls, seeds, maximum steps, and gates were frozen before any held-out environment reset.",
+  "development_evidence": {
+    "origin_config": "configs/multisource_alfworld_neurosymbolic_v3_diagnostic.json",
+    "origin_config_sha256": "3850617d779a3d0f826d3c1a4f2af631c681d36c7c28ba8ab7f6ab0e3444d25d",
+    "qualification_report": "runs/multisource_alfworld_neurosymbolic_v3_diagnostic/qualification_report.json",
+    "qualification_report_sha256": "a806a2986450f546296ca8d41d6a3d10004672c5d010c136279887af6bec4376",
+    "frozen_artifact_sha256": "12eb38a91cb81cdaee0bce8e0ac76d4f347e016937bb775105b1a6703c16eaed",
+    "runner_sha256": "1a829f289ceb92954286cb3bb5afbe387017558ea00ae1d6fbde08651db44e0e"
+  },
+  "source": {
+    "surfaces": ["game", "software", "science", "forensics", "network", "logistics", "medicine", "maintenance"],
+    "train_domains_per_surface": 32,
+    "evaluation_domains_per_surface": 8,
+    "states_per_domain": 32,
+    "ensemble_size": 11,
+    "ridge_alpha": 0.35,
+    "model_seed": 88501,
+    "control_seed": 88502,
+    "workflow": {
+      "minimum_stages": 3,
+      "maximum_stages": 6,
+      "minimum_budget": 7,
+      "maximum_budget": 16,
+      "completion_probability_range": [0.35, 0.95],
+      "failure_cost_range": [0.01, 0.18],
+      "progress_reward": 0.15,
+      "invalid_option_cost": 0.18
+    },
+    "minimum_relative_mse_improvement_over_each_control": 0.10
+  },
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "seed": 88601,
+    "artifact": "runs/multisource_alfworld_neurosymbolic_v3_diagnostic/frozen_candidate_artifact.json",
+    "qualification_manifest": "configs/target_rollout_collection_v1.json",
+    "qualification_split": "eval_out_of_distribution",
+    "qualification_manifest_split": "held_out",
+    "qualification_max_steps": 70,
+    "qualification_report": "runs/multisource_alfworld_neurosymbolic_v4_frozen/heldout_report.json"
+  },
+  "policy": {
+    "controller": "SOURCE_OPTION_ONLY_V3_DIAGNOSTIC",
+    "uncertainty_scale": 0.4,
+    "decision_margin": 0.01,
+    "minimum_authentic_option_change_rate": 0.08,
+    "require_mean_steps_below_target_only": true,
+    "success_gate": "authentic successes strictly greater than target-only, shuffled, marginal, and phase-permuted"
+  }
+}

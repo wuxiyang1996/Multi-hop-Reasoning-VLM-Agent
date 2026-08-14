@@ -1,0 +1,53 @@
+{
+  "schema_version": "alfworld-multisource-neurosymbolic-summary-v4",
+  "status": "FINAL_HELDOUT_PASSED",
+  "claim_boundary": "Fresh one-shot ALFWorld held-out validation of a typed workflow value model learned from controlled game, software, science, forensics, network, logistics, medicine, and maintenance source surfaces. This is cross-domain procedural transfer with target-native grounding, but it is not a pure real-game-only source result.",
+  "source": {
+    "surfaces": [
+      "game",
+      "software",
+      "science",
+      "forensics",
+      "network",
+      "logistics",
+      "medicine",
+      "maintenance"
+    ],
+    "symbolic_workflow": ["SEARCH", "ACQUIRE", "TRANSFORM", "PLACE", "VERIFY"],
+    "training_domains": 256,
+    "source_evaluation_domains": 64,
+    "source_evaluation_examples": 10240,
+    "source_gate_passed": true,
+    "frozen_candidate_artifact_file_sha256": "12eb38a91cb81cdaee0bce8e0ac76d4f347e016937bb775105b1a6703c16eaed"
+  },
+  "target": {
+    "grounding": "Target-native independent neural applicability, completion, binding, and policy heads over ALFWorld observations and admissible actions.",
+    "source_permission": "Score and select a typed workflow option only; target grounding chooses the native ALFWorld action.",
+    "heldout_tasks": 24
+  },
+  "formal": {
+    "status": "FINAL_HELDOUT_PASSED",
+    "authentic_source_plus_target": {
+      "successes": 19,
+      "success_rate": 0.7916666666666666,
+      "mean_steps": 30.666666666666668,
+      "changed_option_rate": 0.19429347826086957
+    },
+    "target_only": {
+      "successes": 14,
+      "success_rate": 0.5833333333333334,
+      "mean_steps": 43.708333333333336
+    },
+    "shuffled_source_plus_target_successes": 12,
+    "source_marginal_plus_target_successes": 14,
+    "phase_permuted_source_plus_target_successes": 2,
+    "paired_authentic_vs_target": {
+      "wins": 5,
+      "losses": 0
+    },
+    "nontriviality_gate_passed": true,
+    "efficiency_gate_passed": true,
+    "authentic_strictly_beats_every_control": true,
+    "raw_report_file_sha256": "cd50129490f34fdb4e3da19dbde76630af63f8f86d5e59b9456281ab236738a8"
+  }
+}
