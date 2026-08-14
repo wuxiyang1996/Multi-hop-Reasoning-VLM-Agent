@@ -50,6 +50,14 @@ animals, but spent the remaining horizon in manual navigation and never reached
 the flag/statue placement stage. The main limitation is therefore target-state
 acquisition before the transferred effect guard can act.
 
+There is also a more fundamental protocol error: difficulty does not preserve
+the intervention interface. Space Sick Easy ends by putting a diagnosed food
+item into a jar, whereas Space Sick Normal asks the agent to make colonists eat
+ten safe mushrooms through Chef/dialog dynamics. The latter has no required
+`DROP`/`PUT` commit at all. V22 selected a target by scenario name instead of by
+task-native action/effect schema, making its Space Sick fork rule structurally
+inapplicable before any rollout began.
+
 ## Early-stop proof
 
 After three trajectories:
@@ -71,6 +79,8 @@ The strongest honest statement is:
 > validation failed.
 
 The next research problem is not another selector heuristic. DiscoveryWorld
-Normal needs a stronger **target-native acquisition/tool controller** that can
-reliably reach scientific decision states. It must be qualified independently
-of the source program before another untouched evaluation set is opened.
+needs two prerequisites before another reserve is opened: an outcome-blind
+applicability audit over the target task's actual action/effect schema, and a
+stronger **target-native acquisition/tool controller** that can reliably reach
+scientific decision states on compatible tasks such as Proteomics. Both must be
+qualified independently of the source program.
