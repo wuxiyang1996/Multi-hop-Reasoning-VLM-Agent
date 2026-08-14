@@ -1,0 +1,77 @@
+{
+  "schema_version": "discoveryworld-sokoban-normal-formal-protocol-v22",
+  "status": "FORMAL_RESERVE_PROTOCOL_FROZEN_BEFORE_OPEN",
+  "evaluation_stage": "FORMAL_RESERVE",
+  "candidate_commit": "eac0837",
+  "claim_boundary": "Held-out game-to-DiscoveryWorld neural-symbolic transfer evaluation on six previously unopened Normal instances from Space Sick and Proteomics seeds2-4. Target-native neural binding and exact target symbols instantiate the source-qualified Sokoban positive-effect guard; a shared target-native spatial realizer may only execute POSITION. Passing validates this mechanism for these interfaces and seeds, not all DiscoveryWorld tasks.",
+  "target_baseline_config": "configs/discoveryworld_target_only_v22_normal_formal.json",
+  "task_ids": [
+    "space_sick.normal.seed2",
+    "proteomics.normal.seed2",
+    "space_sick.normal.seed3",
+    "proteomics.normal.seed3",
+    "space_sick.normal.seed4",
+    "proteomics.normal.seed4"
+  ],
+  "fork_rule": {
+    "name": "FIRST_PREDECLARED_NATIVE_COMMIT_PROPOSAL",
+    "allowed_commit_actions": ["DROP", "PUT"],
+    "reads_action_success": false,
+    "reads_terminal_outcome": false,
+    "reads_evaluation_or_scorecard": false,
+    "minimum_fork_after_episode_step": 1
+  },
+  "recovery_horizon": 8,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "require_source_gate_passed": true,
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "target_native_spatial_realizer": {
+    "enabled": true,
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "may_select_commit": false,
+    "shared_across_all_conditions": true
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "hidden_reasoning_effort": "none",
+    "schema_attempts": 4
+  },
+  "formal_gates": {
+    "minimum_eligible_forks": 4,
+    "both_target_themes_represented": true,
+    "zero_runtime_or_receipt_failures": true,
+    "zero_authentic_negative_transfer_vs_target_native": true,
+    "minimum_authentic_success_gain_vs_target_native": 1,
+    "authentic_successes_strictly_greater_than_commit_availability_control": true,
+    "authentic_successes_strictly_greater_than_position_prior_control": true,
+    "all_policy_and_audit_forks_matched": true,
+    "all_common_prefix_neural_groundings_matched_within_task": true,
+    "zero_policy_oracle_scorecard_use": true
+  },
+  "conclusion_rule": {
+    "all_gates_pass": "Game-to-DiscoveryWorld effect-guard transfer is validated for Space Sick and Proteomics Normal seeds2-4 under this exact protocol.",
+    "any_gate_fails": "Held-out validation fails; report signals and failure modes without adapting on the opened Normal instances or weakening gates."
+  }
+}
