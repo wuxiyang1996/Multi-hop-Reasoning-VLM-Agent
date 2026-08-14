@@ -1,6 +1,6 @@
 {
   "schema_version": "neurosymbolic-skill-library-v1",
-  "status": "THREE_FORMAL_ONE_MECHANISM_AWAITING_DISCOVERYWORLD_V23",
+  "status": "FOUR_EXACT_TARGET_ROUTES_FRESH_FORMAL_VALIDATED",
   "dispatch_authority": "SELECT_SKILL_OR_ABSTAIN_ONLY",
   "skills": [
     {
@@ -98,15 +98,16 @@
           {"path": "fresh_confirmation.source_gate_passed", "equals": true}
         ]
       },
-      "evidence_tier": "MECHANISM",
-      "evidence_status": "CONSUMED_ADAPTATION_GATE_PASSED",
+      "evidence_tier": "FRESH_FORMAL",
+      "evidence_status": "FRESH_FORMAL_TRANSFER_VALIDATED",
       "evidence_status_path": "status",
       "evidence_receipt": {
-        "path": "docs/results/discoveryworld_v18_v21_adaptation_summary.json",
-        "file_sha256": "7bbaa76058e9efc29146cbd900e3b282d7a2341cdabf861151080fa96a41c104",
+        "path": "docs/results/discoveryworld_v23_fresh_easy_formal_summary.json",
+        "file_sha256": "4d1aacd8c3491b9ae53e47d7bc06271af0ebc7709aa3e01b81bd2c19c19edd96",
         "claims": [
-          {"path": "v21_shared_spatial_realization.adaptation_gate_passed", "equals": true},
-          {"path": "v21_shared_spatial_realization.integrity.zero_runtime_errors", "equals": true}
+          {"path": "outcome_blind_fork_freeze.outcome_fields_read_for_eligibility", "equals": false},
+          {"path": "formal_matched_results.all_predeclared_gates_passed", "equals": true},
+          {"path": "operational_disclosure.scientific_configuration_changed", "equals": false}
         ]
       },
       "adapter_files": [
@@ -118,7 +119,7 @@
           "target_domain": "discoveryworld",
           "target_interface": "scientific_spatial_commit",
           "required_capabilities": ["commit_effect_prediction", "inventory_state", "object_relation_state", "spatial_realization"],
-          "target_adapter": "discoveryworld-sokoban-effect-v21",
+          "target_adapter": "discoveryworld-sokoban-effect-v23",
           "target_grounder": "motif_transfer.discoveryworld_sokoban_transfer.parse_grounded_candidates",
           "target_executor": "motif_transfer.discoveryworld_sokoban_transfer.select_candidate",
           "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR"
@@ -184,7 +185,7 @@
       "domain": "discoveryworld",
       "interface": "scientific_spatial_commit",
       "capabilities": ["commit_effect_prediction", "inventory_state", "object_relation_state", "spatial_realization"],
-      "minimum_evidence": "MECHANISM",
+      "minimum_evidence": "FRESH_FORMAL",
       "expected_skill_id": "sokoban-positive-effect-guard-v2-discoveryworld"
     },
     {
