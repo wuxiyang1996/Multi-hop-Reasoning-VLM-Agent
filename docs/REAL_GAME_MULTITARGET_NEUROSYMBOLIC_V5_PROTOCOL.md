@@ -123,3 +123,28 @@ signal，可以进入 target qualification diagnostic。结果和冻结参数位
 `DEVELOPMENT_PASS_FRESH_CONFIRMATION_REQUIRED`，不是 confirmatory source gate。它不能单独授权
 positive-transfer claim；正式主张还需要新的 source causal/fresh confirmation，以及未读取 target 上的
 matched controls。序列化参数固定到 12 位小数；连续两次运行的 candidate/report 文件 SHA-256 完全一致。
+
+## V6 fresh cross-game confirmation
+
+V5 的 `k=7` candidate 随后在打开确认结果前被锁定，并原样应用到两个未参与
+candidate 拟合或选型的游戏：Candy Crush 与 Super Mario。两个确认游戏的
+discovery episodes 只用于各自 reward 的 location/scale；cluster centers 与 value
+coefficients 均不更新。正式角色包含 24 episodes、1,207 transitions。
+
+预注册确认门没有通过，因此 learned universal ontology 的主张当前不成立：
+
+| Metric | Authentic | Control | Relative change |
+|---|---:|---:|---:|
+| pooled aggregate MSE vs phase-permuted | 8.5700 | 10.5650 | +18.88% |
+| pooled aggregate MSE vs within-episode shift | 8.5700 | 9.0862 | +5.68% |
+| pooled aggregate MSE vs marginal context | 8.5700 | 8.2226 | **-4.22%** |
+| Candy Crush vs marginal | 2.7960 | 3.2947 | +15.14% |
+| Super Mario vs marginal | 14.2774 | 13.0936 | **-9.04%** |
+
+这不是“完全没有 structure”：authentic 明显优于 phase-permuted，并在 Candy
+Crush 上优于 marginal。但它不足以证明一个可跨游戏复用的统一 latent option
+vocabulary。结果更支持较窄的设计：从 source interventions 学 executable program
+或 relation，并在每个 target 使用 native neural grounding；不要让一个 pooled
+KMeans ontology 直接承担跨域语义对齐。正式状态为
+`FRESH_CROSS_GAME_LATENT_ONTOLOGY_NOT_CONFIRMED`，完整 compact receipt 位于
+`docs/results/real_game_latent_options_v6_formal_summary.json`。

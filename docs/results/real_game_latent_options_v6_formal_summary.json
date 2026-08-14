@@ -1,0 +1,136 @@
+{
+  "authentic": {
+    "aggregate": 8.569954143184663,
+    "per_horizon": {
+      "h1": 0.7030659611334532,
+      "h2": 2.640945258495844,
+      "h4": 8.177474556996096,
+      "h8": 22.75833079611326
+    }
+  },
+  "candidate_artifact_sha256": "110b28206873f81625fbe1a604b69d69aeeae7dfb024a66fc5913e9bbccb7be6",
+  "claim_boundary": "Fresh compiler-level confirmation of an anonymous effect/value ontology learned on Sokoban, Tetris, and 2048 and applied without refitting to Candy Crush and Super Mario. Confirmation-game discovery episodes set reward location/scale only. This tests cross-game source abstraction; it does not by itself establish target-domain success or ontology provenance necessity.",
+  "config_sha256": "ff5504bcdcd9f6ea0293a8c7e178d962efb7d273797f24f4af7402273f481ae8",
+  "confirmation_games": [
+    "candy_crush",
+    "super_mario"
+  ],
+  "controls": {
+    "marginal_context": {
+      "aggregate": 8.222563423167145,
+      "per_horizon": {
+        "h1": 1.013125860094606,
+        "h2": 2.7019930663460645,
+        "h4": 7.7198438556429405,
+        "h8": 21.45529091058497
+      }
+    },
+    "phase_permuted": {
+      "aggregate": 10.564973497721144,
+      "per_horizon": {
+        "h1": 3.0555955463144335,
+        "h2": 5.000307242655543,
+        "h4": 10.26016949540112,
+        "h8": 23.94382170651348
+      }
+    },
+    "within_episode_option_shift": {
+      "aggregate": 9.086230375732683,
+      "per_horizon": {
+        "h1": 1.474550671144815,
+        "h2": 3.3801103586865806,
+        "h4": 8.653783199926247,
+        "h8": 22.836477273173085
+      }
+    }
+  },
+  "gates": {
+    "anonymous_options_non_degenerate": true,
+    "both_games_above_marginal": false,
+    "candidate_self_hash_valid": true,
+    "disjoint_confirmation_games": true,
+    "exact_heldout_episode_count": true,
+    "pooled_above_all_controls": false
+  },
+  "heldout_rows": 1207,
+  "manifest_file_sha256": "812e1378953dcbb9409d547047d645e5710d74a362f4dce4b525cc4116717afb",
+  "per_game": {
+    "candy_crush": {
+      "authentic": {
+        "aggregate": 2.79595737311902,
+        "per_horizon": {
+          "h1": 0.5596176932455993,
+          "h2": 1.750725301479586,
+          "h4": 3.435610164242432,
+          "h8": 5.437876333508463
+        }
+      },
+      "authentic_improvement_over_marginal": 0.15137063986186142,
+      "cluster_counts": [
+        0,
+        109,
+        397,
+        12,
+        3,
+        0,
+        79
+      ],
+      "episodes": 12,
+      "marginal_context": {
+        "aggregate": 3.294674335405858,
+        "per_horizon": {
+          "h1": 1.2962950795871553,
+          "h2": 2.356038042266695,
+          "h4": 3.835633419421427,
+          "h8": 5.690730800348154
+        }
+      },
+      "rows": 600
+    },
+    "super_mario": {
+      "authentic": {
+        "aggregate": 14.27736445955927,
+        "per_horizon": {
+          "h1": 0.8448599656354504,
+          "h2": 3.520899087506972,
+          "h4": 12.864655175862978,
+          "h8": 39.87904360923168
+        }
+      },
+      "authentic_improvement_over_marginal": -0.09040591282268959,
+      "cluster_counts": [
+        146,
+        172,
+        0,
+        12,
+        265,
+        0,
+        12
+      ],
+      "episodes": 12,
+      "marginal_context": {
+        "aggregate": 13.09362347696743,
+        "per_horizon": {
+          "h1": 0.7332221834957106,
+          "h2": 3.0439584937721302,
+          "h4": 11.559261090787766,
+          "h8": 37.03805213981411
+        }
+      },
+      "rows": 607
+    }
+  },
+  "relative_improvement_over_controls": {
+    "marginal_context": -0.04224846950267868,
+    "phase_permuted": 0.18883335154288888,
+    "within_episode_option_shift": 0.05681962829457631
+  },
+  "report_sha256": "c43e2a2e8ee9171c7ed60edee2887951e02915da61a77c0f4caca52df6bd45f9",
+  "schema_version": "real-game-latent-options-v6-confirmation",
+  "status": "FRESH_CROSS_GAME_LATENT_ONTOLOGY_NOT_CONFIRMED",
+  "train_games": [
+    "sokoban",
+    "tetris",
+    "twenty_forty_eight"
+  ]
+}
