@@ -532,7 +532,7 @@
         <thead><tr><th>缺口</th><th>当前证据</th><th>完成标准</th><th>优先级</th></tr></thead>
         <tbody>
           <tr><td><strong>独立与统计 replication</strong></td><td>每域一个 frozen run；DiscoveryWorld 只有 8 个 eligible tasks，p=0.5</td><td>新 reserve、多个 seeds/instances、预注册 aggregate estimand 与置信区间</td><td><span class="tag bad">P0</span></td></tr>
-          <tr><td><strong>可移植 reproduction package</strong></td><td>compact receipts 已提交；full reports 在 ignored <code>runs/</code>，ALF paths 仍是本机绝对路径</td><td>environment lock、portable paths、artifact bundle、clean-checkout 一键审计</td><td><span class="tag bad">P0</span></td></tr>
+          <tr><td><strong>完整四域 clean-room replay</strong></td><td>Release V1 已完成 clean-checkout audit、环境锁定和 ALFWorld artifact/replay bundle；其余三域保留 compact receipts</td><td>再打包 WebShop provider cache、DiscoveryWorld installation recipe 与 TIR execution cache，完成四域从头执行</td><td><span class="tag warn">P0 partial</span></td></tr>
           <tr><td><strong>Target scope 扩展</strong></td><td>DW Easy、TIR maze、32 WebShop goals、24 ALF tasks</td><td>DW Normal/更多 tasks、TIR 非 maze、fresh WebShop/ALF reserves</td><td><span class="tag bad">P0</span></td></tr>
           <tr><td><strong>ALFWorld multiplicity</strong></td><td>唯一 two-object task regression</td><td>source/target state 显式表示 object count，并在新 development + fresh reserve 验证</td><td><span class="tag bad">P0</span></td></tr>
           <tr><td><strong>自动 ontology induction</strong></td><td>workflow/topology schema 与 target parser 人工指定</td><td>从 source receipts 学 canonical roles，并在未见 target schema 上 binding</td><td><span class="tag warn">P1</span></td></tr>
@@ -553,7 +553,7 @@
       <h2>建议的执行顺序</h2>
       <div class="priority">
         <div class="rank">1</div>
-        <div><strong>先做 release-grade reproduction。</strong><p class="small">把四个 compact receipts、所需 frozen artifacts、环境版本和相对路径装成 clean-checkout audit。先保证别人能验证现有 claim。</p></div>
+        <div><strong>Release V1 audit/ALFWorld bundle 已完成；继续补 full clean-room replay。</strong><p class="small">四个 compact receipts、ALFWorld frozen artifacts、环境版本和相对路径已进入 clean-checkout audit；仍需补其他三域的外部 runtime/cache。</p></div>
       </div>
       <div class="priority">
         <div class="rank">2</div>
@@ -580,6 +580,7 @@
           <h3>Human-readable</h3>
           <ul>
             <li><a href="FOUR_DOMAIN_NEUROSYMBOLIC_TRANSFER_HARNESS_V1.md">Four-domain harness contract</a></li>
+            <li><a href="FOUR_DOMAIN_NEUROSYMBOLIC_RELEASE_V1.md">Portable release and ALFWorld replay</a></li>
             <li><a href="PROCEDURAL_GAME_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Procedural-game → ALFWorld result</a></li>
             <li><a href="SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md">Sokoban → WebShop result</a></li>
             <li><a href="DISCOVERYWORLD_SOKOBAN_V23_RESULTS.md">Sokoban → DiscoveryWorld result</a></li>
@@ -590,6 +591,7 @@
           <h3>Machine-readable</h3>
           <ul>
             <li><a href="results/four_domain_neurosymbolic_harness_v1_summary.json">Unified dispatch audit</a></li>
+            <li><a href="results/four_domain_neurosymbolic_release_v1_audit.json">Portable release audit</a></li>
             <li><a href="results/procedural_game_alfworld_v1_summary.json">ALFWorld compact receipt</a></li>
             <li><a href="results/webshop_sokoban_effect_transfer_v13_summary.json">WebShop compact receipt</a></li>
             <li><a href="results/discoveryworld_v23_fresh_easy_formal_summary.json">DiscoveryWorld compact receipt</a></li>

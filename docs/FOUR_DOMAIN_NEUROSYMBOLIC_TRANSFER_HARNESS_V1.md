@@ -64,13 +64,15 @@ The ALFWorld final evidence is an exact frozen deterministic replay after a fore
 The four exact routes are complete, but a stronger general transfer claim still requires:
 
 - fresh independent replication with larger task counts and multiple seeds, especially for the 8-task DiscoveryWorld result;
-- a portable artifact/environment bundle—the full reports currently remain under ignored `runs/`, and ALFWorld configs contain machine-local dataset paths;
+- a full four-target clean-room replay package. Release V1 now provides a clean-checkout evidence audit plus all frozen ALFWorld artifacts and portable resource-path materialization; WebShop, DiscoveryWorld, and TIR still rely on compact receipts rather than vendored runtimes/caches;
 - broader target coverage beyond DiscoveryWorld Easy and TIR maze, plus a fresh ALFWorld test of object multiplicity;
 - learned or induced canonical roles instead of a fully designed workflow/topology ontology;
 - a calibrated target-state applicability/transfer-utility predictor, rather than only static exact-interface dispatch;
 - equal-budget comparisons against target memory/retrieval, target-written workflows, and black-box target policies.
 
 Video remains a separate failed/open route and continues to dispatch to `ABSTAIN`. The web overview gives the prioritized experiment queue and completion criteria.
+
+Portable audit and ALFWorld replay instructions are in [`FOUR_DOMAIN_NEUROSYMBOLIC_RELEASE_V1.md`](FOUR_DOMAIN_NEUROSYMBOLIC_RELEASE_V1.md).
 
 ## Reproduction
 
