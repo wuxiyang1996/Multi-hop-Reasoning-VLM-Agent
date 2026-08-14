@@ -49,3 +49,38 @@ This is fresh formal validation for these two Easy interfaces and seeds, not all
 The first target-only seed5 process was interrupted at step30 and resumed using the same completion cache and deterministic prefix; a separate partial restart was discarded. The first parallel matched launch exposed a shared non-authoritative PNG frame-directory race. All matched jobs were stopped and resumed from their config-specific completion caches under task-isolated frame directories. No selector, prompt, model, fork, condition, horizon, or gate changed, and only isolated complete results entered the report.
 
 Compact evidence is in `docs/results/discoveryworld_v23_fresh_easy_formal_summary.json`; the exact outcome-blind fork receipts are in `configs/generated/discoveryworld_v23_fresh_easy_formal/`.
+
+## Independent Easy replication V1
+
+The next prospective reserve used Space Sick and Proteomics Easy seeds11–20.
+Target-only acquisition completed all 20 tasks; an outcome-blind first-`DROP`/
+`PUT` rule yielded 16 eligible forks (all ten Proteomics tasks and six Space
+Sick tasks), exceeding the frozen minimum of ten and covering both interfaces.
+
+| Condition | Successes | Rate on eligible forks |
+|---|---:|---:|
+| Target-native myopic | 10/16 | 62.5% |
+| Authentic Sokoban effect + target grounding | **13/16** | **81.25%** |
+| Commit-availability control | 9/16 | 56.25% |
+| Inverted-effect control | 0/16 | 0% |
+| Position-prior control | 0/16 | 0% |
+
+Authentic versus target-native is `3W/0L/13T` (`p=.25`), with zero negative
+transfer. All 14 gates pass, including exact task coverage, both themes,
+matched policy/audit forks, self-hashes, oracle isolation, strict control
+superiority, and a new explicit check that runner/environment/policy/selector
+file hashes equal the frozen protocol. The result therefore independently
+validates this exact Easy route, while its small number of discordant pairs
+remains insufficient for the conservative online utility selector described in
+the four-domain audit.
+
+Two operational failures are disclosed rather than hidden. Initial scheduler
+launches used an incomplete Python environment and failed before reset. A later
+launch produced six results with a post-freeze parser hash; lineage audit
+excluded that entire directory, and a complete frozen-code execution was made
+from detached commit `e075f4e`. During that execution, a shared PNG frame race
+failed before the first Space Sick result; all six Space Sick configs were then
+run in task-isolated frame directories, while the ten already-complete
+Proteomics results were retained. No task, source artifact, prompt, model,
+threshold, condition, or scientific gate changed. The compact result is
+`docs/results/discoveryworld_replication_v1_summary.json`.

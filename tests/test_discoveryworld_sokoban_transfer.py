@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from motif_transfer.discoveryworld_env import DiscoveryWorldObservation
+from motif_transfer.discoveryworld_normal_binding import parse_normal_target_binding
 from motif_transfer.discoveryworld_sokoban_transfer import (
     DiscoveryWorldGroundedCandidate,
     DiscoveryWorldTargetBinding,
@@ -64,7 +65,7 @@ def test_same_location_null_distance_normalizes_to_zero():
     observation.ui["nearbyObjects"] = {"objects": {"same_location": [
         {"uuid": 9, "name": "statue", "distance": 0},
     ]}}
-    binding = parse_target_binding(
+    binding = parse_normal_target_binding(
         '{"target_uuid":9,"target_name":"statue",'
         '"commit_subject_relation_to_target":"same_location","target_distance":null,'
         '"commit_action":{"action":"DROP","arg1":7},'

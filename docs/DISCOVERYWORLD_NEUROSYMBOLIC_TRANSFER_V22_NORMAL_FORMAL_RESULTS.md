@@ -1,5 +1,11 @@
 # DiscoveryWorld neural-symbolic transfer: V22 Normal formal result
 
+> Reproduction note (2026-08-14): the `same_location`/null normalization found
+> in the later consumed V24 diagnosis now lives in
+> `src/motif_transfer/discoveryworld_normal_binding.py` and the Normal-only
+> launcher `scripts/run_discoveryworld_commit_recovery_normal_v24.py`. This
+> preserves the byte-exact V23 Easy adapter required by the validated registry.
+
 ## Verdict
 
 V22 **does not validate held-out game-to-DiscoveryWorld transfer**. The formal

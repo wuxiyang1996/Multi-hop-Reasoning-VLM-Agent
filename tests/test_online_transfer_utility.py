@@ -5,6 +5,7 @@ from motif_transfer.online_transfer_utility import (
     OnlineTransferUtilityGate,
     PairedOutcome,
 )
+from scripts.audit_online_transfer_utility_v1 import route_receipt
 
 
 VALID = ApplicabilityReceipt(True, True, True, True, True)
@@ -56,3 +57,12 @@ def test_any_failed_target_native_predicate_abstains() -> None:
     receipt = gate.decision(invalid)
     assert receipt.decision == "ABSTAIN"
     assert receipt.reason == "STRUCTURAL_APPLICABILITY_FAILED"
+
+
+def test_audit_route_receipt_is_conservative_at_small_n() -> None:
+    assert route_receipt(
+        wins=3, losses=0, ties=3, evidence_status="positive",
+    )["post_replication"]["decision"] == "ABSTAIN"
+    assert route_receipt(
+        wins=7, losses=0, ties=25, evidence_status="positive",
+    )["post_replication"]["decision"] == "SELECT_SKILL"

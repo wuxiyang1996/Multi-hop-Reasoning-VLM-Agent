@@ -88,8 +88,6 @@ required goal relation, never the current observed relation. Example: "flag one 
 of target" means commit_subject_relation_to_target=west and target_distance=1. A symbolic
 relation algebra will invert the viewpoint later. For "put X in Y", use inside with null
 distance; containment is not same_location. Otherwise use null.
-For same_location, use target_distance=0; same_location is an exact spatial goal,
-not an unspecified relation.
 Return exactly:
 {"target_uuid":INT,"target_name":"exact supplied name","commit_subject_relation_to_target":
  "north|east|south|west|same_location|inside|null","target_distance":INT_OR_NULL,
@@ -475,13 +473,6 @@ def parse_target_binding(
     }
     relation = inverse_relation[subject_relation]
     distance = row.get("target_distance")
-    # Neural binders sometimes encode the zero-length same-location relation as
-    # JSON null.  The symbolic contract has only one coherent interpretation:
-    # same_location is exactly distance zero.  Normalize that representation at
-    # the neural/symbolic boundary instead of rejecting an otherwise exact UUID,
-    # action, and relation binding.
-    if subject_relation == "same_location" and distance is None:
-        distance = 0
     if distance is not None and (
         not isinstance(distance, int) or isinstance(distance, bool) or distance < 0
     ):

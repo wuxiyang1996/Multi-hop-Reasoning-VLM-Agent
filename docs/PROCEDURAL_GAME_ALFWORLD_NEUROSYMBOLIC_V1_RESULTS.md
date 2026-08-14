@@ -20,6 +20,18 @@ Against target-only, authentic transfer produced 9 wins, 1 loss, and 14 ties. Th
 
 The one regression was the only two-object placement task. Authentic transfer succeeded on 22/23 single-object tasks but failed on the 1/1 two-object task, so the original event-count workflow state was not sufficient for multiplicity.
 
+## Independent 32-task replication
+
+A disjoint prospective reserve subsequently reproduced the main workflow
+effect: authentic succeeded on **31/32**, versus **22/32** for target-only and
+the source marginal, **14/32** for shuffled source value, and **2/32** for the
+phase-permuted control. The paired authentic-versus-target result was
+`9W/0L/23T` (`p=.00390625`), with no regression. Authentic changed the
+hierarchical option on 16.08% of decisions and reduced mean steps from 38.69 to
+22.94. The frozen efficiency, non-triviality, control-superiority, paired-order,
+and lineage gates all pass. This independently confirms the singleton workflow
+route; the separate six-task experiment below evaluates count-two tasks.
+
 ## Identity-aware multiplicity extension
 
 The follow-up V1 extension replaced the ambiguous number of `PLACE` events with

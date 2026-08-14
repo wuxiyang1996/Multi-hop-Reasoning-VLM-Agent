@@ -15,6 +15,16 @@ The frozen fresh formal split validates a narrow but non-trivial game-to-visual-
 
 Authentic versus raw has exact two-sided sign-test `p=0.00390625`. All seven frozen gates passed, including zero negative-transfer cases, alpha-renaming invariance, non-trivial action changes, valid neural bindings, and superiority over every specified control.
 
+## Independent 48-task replication
+
+The prospective replication doubled the target sample without changing the
+source receipt, neural binding, symbolic executor, or controls. Authentic
+scored **41/48**, versus **19/48** for raw target-only: `22W/0L/26T`, exact
+two-sided `p=4.768e-7`. Alpha renaming remained exactly invariant (41/48), the
+direction-permuted source control stayed at 19/48, and all seven frozen gates
+passed. This independently confirms the maze route rather than pooling the new
+tasks into the original estimate.
+
 ## What transferred
 
 The source skill was discovered from real Sokoban transition receipts and freshly confirmed on disjoint source seeds. It contains only this anonymous symbolic procedure:
