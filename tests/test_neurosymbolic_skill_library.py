@@ -103,3 +103,14 @@ def test_registry_rejects_hash_drift_and_source_action_authority(tmp_path: Path)
         FrozenNeurosymbolicSkillLibrary.load(
             _registry(clean, authority="SOURCE_EMITS_TARGET_ACTION"), repo=clean,
         )
+
+
+def test_source_artifact_may_be_the_bound_receipt_file(tmp_path: Path) -> None:
+    registry_path = _registry(tmp_path)
+    registry = json.loads(registry_path.read_text())
+    row = registry["skills"][0]
+    row.pop("source_artifact_hash_path")
+    row["source_artifact_sha256"] = row["source_receipt"]["file_sha256"]
+    registry_path.write_text(json.dumps(registry))
+    library = FrozenNeurosymbolicSkillLibrary.load(registry_path, repo=tmp_path)
+    assert library.skills[0].source_artifact_sha256 == row["source_artifact_sha256"]

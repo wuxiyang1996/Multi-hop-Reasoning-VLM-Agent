@@ -169,8 +169,13 @@ class FrozenNeurosymbolicSkillLibrary:
         for row in payload.get("skills") or ():
             source_payload = _validate_bound_file(repo_path, row["source_receipt"])
             evidence_payload = _validate_bound_file(repo_path, row["evidence_receipt"])
-            source_hash = str(_lookup(source_payload, row["source_artifact_hash_path"]))
             expected_source_hash = str(row["source_artifact_sha256"])
+            source_hash_path = row.get("source_artifact_hash_path")
+            source_hash = (
+                str(_lookup(source_payload, str(source_hash_path)))
+                if source_hash_path
+                else str(row["source_receipt"]["file_sha256"])
+            )
             if source_hash != expected_source_hash:
                 raise SkillLibraryReject(f"source content hash mismatch: {row['skill_id']}")
             evidence_status = str(_lookup(evidence_payload, row["evidence_status_path"]))
