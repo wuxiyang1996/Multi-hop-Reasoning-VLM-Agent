@@ -1,0 +1,109 @@
+{
+  "schema_version": "discoveryworld-sokoban-formal-summary-v17",
+  "status": "FORMAL_VALIDATION_FAILED",
+  "claim": "Game-to-DiscoveryWorld neural-symbolic transfer is not validated by V17.",
+  "frozen_inputs": {
+    "protocol": "configs/discoveryworld_sokoban_v17_formal_protocol.json",
+    "protocol_sha256": "c09cf212d073c325e6262c73914c67d654cdd108ac3875774f927e73e7d431a3",
+    "preformal_freeze": "docs/results/discoveryworld_v17_preformal_freeze.json",
+    "preformal_freeze_file_sha256": "873dd021df9a34fcc4e903e5d4eb1508b28cf8bab7bc31e864051a4e5ccecbcb",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed"
+  },
+  "target_baseline": {
+    "artifact": "runs/discoveryworld_v17_formal_baseline/summary.json",
+    "artifact_file_sha256": "0daac8117b76d58e430f98351c49ba8bb4c2ad4893779b464eb17aa760758da1",
+    "summary_sha256": "b1e5d27334cd389bbdb80be523bf7fa32fecb2fd9bd9022c8be1ec4c10782d51",
+    "tasks": 6,
+    "successes": 1,
+    "nonzero_progress_tasks": 6,
+    "mean_score_normalized": 0.638888888888889,
+    "invalid_native_actions": 0,
+    "policy_runtime_saw_oracle_scorecard": false
+  },
+  "fork_coverage": {
+    "artifact": "configs/generated/discoveryworld_v17_formal/fork_freeze_receipt.json",
+    "artifact_file_sha256": "bf373d39c5ecc961d9ed3f93b8f26076985a94f91d33374825251cec9b21a6c8",
+    "summary_sha256": "9133608701b5c8f86766881a219c5999792c514cdc7e03c775f6cfea572af702",
+    "outcome_fields_read_for_eligibility": false,
+    "eligible_forks": 1,
+    "total_tasks": 6,
+    "eligible_task_ids": [
+      "space_sick.easy.seed2"
+    ],
+    "ineligible_reason_counts": {
+      "NO_PREDECLARED_COMMIT_ACTION": 5
+    }
+  },
+  "matched_fork": {
+    "task_id": "space_sick.easy.seed2",
+    "fork_after_episode_step": 28,
+    "artifact": "runs/discoveryworld_v17_formal/space_sick.easy.seed2/result.json",
+    "artifact_file_sha256": "c3dedac6293a2d5173b913335a12a5b588698f4f72c3d7aaf9d45f7ffb13d466",
+    "result_sha256": "a4ce21f2c8719b395ad93d66b46c096aa153460977a9128e4662caaca8c9e8c6",
+    "result_hash_valid": true,
+    "all_matched_forks": true,
+    "all_selection_receipts_valid": true,
+    "policy_runtime_saw_oracle_scorecard": false,
+    "runtime_errors": 0,
+    "success": {
+      "target_only_recorded": true,
+      "target_native_myopic": true,
+      "authentic_sokoban_effect_plus_target": true,
+      "commit_availability_control_plus_target": true,
+      "inverted_effect_control_plus_target": false,
+      "position_prior_control_plus_target": false
+    }
+  },
+  "aggregate": {
+    "eligible_forks": 1,
+    "target_native_myopic_successes": 1,
+    "authentic_successes": 1,
+    "commit_availability_control_successes": 1,
+    "inverted_effect_control_successes": 0,
+    "position_prior_control_successes": 0,
+    "authentic_success_gain_over_target_native": 0,
+    "authentic_success_rate_gain_over_target_native": 0.0,
+    "authentic_negative_transfer_count": 0
+  },
+  "pre_registered_gate_checks": {
+    "minimum_eligible_forks": {
+      "required": 4,
+      "observed": 1,
+      "passed": false
+    },
+    "both_target_themes_have_an_eligible_fork": {
+      "passed": false
+    },
+    "zero_runtime_or_receipt_failures": {
+      "passed": true
+    },
+    "zero_authentic_negative_transfer_vs_target_native": {
+      "passed": true
+    },
+    "minimum_authentic_success_gain_over_target_native": {
+      "required": 2,
+      "observed": 0,
+      "passed": false
+    },
+    "minimum_authentic_success_rate_gain_over_target_native": {
+      "required": 0.25,
+      "observed": 0.0,
+      "passed": false
+    },
+    "authentic_successes_strictly_greater_than_each_source_control": {
+      "passed": false,
+      "reason": "Authentic tied the commit-availability control 1-1."
+    },
+    "all_policy_and_audit_forks_matched": {
+      "passed": true
+    }
+  },
+  "interpretation": {
+    "positive_mechanistic_signal": "Effect polarity changed behavior: authentic committed successfully while inverted and position-prior controls did not commit within the matched horizon.",
+    "not_demonstrated": "The source-qualified symbolic effect program did not improve success over either target-native myopic selection or the commit-availability control.",
+    "primary_bottleneck": "The first-target-baseline-commit eligibility rule covered only one of six formal episodes and selected a state where target-native myopic selection was already correct.",
+    "reserve_policy": "Normal-difficulty seeds2-4 remain unopened."
+  },
+  "next_protocol": "Use consumed Easy seeds2-4 only as adaptation data to develop an outcome-blind first-applicability/disagreement fork rule. Freeze that rule and all gates before opening any Normal-difficulty reserve."
+}

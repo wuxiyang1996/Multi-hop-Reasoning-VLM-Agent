@@ -44,9 +44,15 @@ def main() -> None:
     baseline_config_path = REPO / str(protocol["target_baseline_config"])
     expected_baseline_hash = file_sha256(baseline_config_path)
     baseline_relative = args.baseline_dir.resolve().relative_to(REPO.resolve())
+    stage = str(protocol.get("evaluation_stage") or "QUALIFICATION").upper()
+    if stage not in {"QUALIFICATION", "FORMAL_RESERVE", "ADAPTATION"}:
+        raise SystemExit(f"unsupported evaluation_stage: {stage}")
+    task_ids = protocol.get("task_ids", protocol.get("qualification_task_ids"))
+    if not isinstance(task_ids, list) or not task_ids:
+        raise SystemExit("protocol task_ids must be a nonempty list")
     receipts = []
     generated = []
-    for task_id in protocol["qualification_task_ids"]:
+    for task_id in task_ids:
         episode_path = args.baseline_dir / f"{task_id}.json"
         episode = json.loads(episode_path.read_text())
         if episode.get("status") != "TARGET_ONLY_EPISODE_COMPLETE":
@@ -60,8 +66,11 @@ def main() -> None:
         if not receipt["eligible"]:
             continue
         config = {
-            "schema_version": "discoveryworld-sokoban-qualification-fork-v1",
-            "status": "QUALIFICATION_FROZEN_NO_ADAPTATION",
+            "schema_version": "discoveryworld-sokoban-frozen-fork-v2",
+            "status": (
+                "ADAPTATION_FROZEN_CONSUMED"
+                if stage == "ADAPTATION" else f"{stage}_FROZEN_NO_ADAPTATION"
+            ),
             "claim_boundary": protocol["claim_boundary"],
             "reference_episode": str(baseline_relative / f"{task_id}.json"),
             "reference_episode_sha256": episode["episode_sha256"],
@@ -74,12 +83,20 @@ def main() -> None:
             "qualification_protocol_sha256": file_sha256(args.protocol),
             "fork_receipt_sha256": receipt["fork_receipt_sha256"],
         }
+        if "target_native_spatial_realizer" in protocol:
+            config["target_native_spatial_realizer"] = dict(
+                protocol["target_native_spatial_realizer"]
+            )
+        cache_seeds = protocol.get("neural_cache_seed_by_task") or {}
+        if task_id in cache_seeds:
+            config["neural_cache_seed"] = dict(cache_seeds[task_id])
         output_path = args.output_dir / f"{task_id}.json"
         write_json(output_path, config)
         generated.append(str(output_path.resolve().relative_to(REPO.resolve())))
     summary = {
-        "schema_version": "discoveryworld-qualification-fork-freeze-v1",
-        "status": "QUALIFICATION_FORKS_FROZEN",
+        "schema_version": "discoveryworld-fork-freeze-v2",
+        "status": f"{stage}_FORKS_FROZEN",
+        "evaluation_stage": stage,
         "protocol_file_sha256": file_sha256(args.protocol),
         "generator_file_sha256": file_sha256(Path(__file__)),
         "target_baseline_config_sha256": expected_baseline_hash,

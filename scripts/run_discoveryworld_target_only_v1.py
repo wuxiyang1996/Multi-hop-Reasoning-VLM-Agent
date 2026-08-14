@@ -238,14 +238,22 @@ def main() -> None:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--keys", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--role", choices=("development", "qualification"), default="development")
+    parser.add_argument(
+        "--role", choices=(
+            "development", "qualification", "formal_reserve", "consumed_adaptation",
+        ),
+        default="development",
+    )
     parser.add_argument("--task-index", type=int, action="append")
     parser.add_argument("--maximum-tasks", type=int)
     args = parser.parse_args()
     config = json.loads(args.config.read_text())
     manifest_path = REPO / str(config["manifest"])
     manifest = json.loads(manifest_path.read_text())
-    tasks = list(manifest["roles"][args.role])
+    manifest_role = str(config.get("manifest_role") or args.role)
+    if manifest_role not in manifest["roles"]:
+        raise SystemExit(f"unknown manifest role: {manifest_role}")
+    tasks = list(manifest["roles"][manifest_role])
     configured_indices = config.get("task_indices")
     if configured_indices is not None:
         if args.task_index:
@@ -309,10 +317,12 @@ def main() -> None:
     ]
     summary = {
         "schema_version": "discoveryworld-target-only-summary-v1",
-        "status": (
-            "TARGET_ONLY_QUALIFICATION_COMPLETE" if args.role == "qualification"
-            else "TARGET_ONLY_DEVELOPMENT_COMPLETE"
-        ),
+        "status": {
+            "development": "TARGET_ONLY_DEVELOPMENT_COMPLETE",
+            "qualification": "TARGET_ONLY_QUALIFICATION_COMPLETE",
+            "formal_reserve": "TARGET_ONLY_FORMAL_RESERVE_COMPLETE",
+            "consumed_adaptation": "TARGET_ONLY_CONSUMED_ADAPTATION_COMPLETE",
+        }[args.role],
         "role": args.role,
         "claim_boundary": config["claim_boundary"],
         "tasks": len(receipts),

@@ -12,6 +12,7 @@ from motif_transfer.discoveryworld_sokoban_transfer import (
     parse_target_binding,
     positive_commit_effect_kind,
     positive_commit_effect_witnessed,
+    realize_localized_spatial_position,
     select_candidate,
     target_bound_position,
 )
@@ -213,6 +214,70 @@ def test_bound_object_teleport_survives_bad_neural_relation_evidence():
     assert receipt.target_bound_position and receipt.validate()
 
 
+def test_localized_spatial_realizer_routes_around_target_without_coordinates():
+    observation = _observation()
+    observation.ui["agentLocation"] = {
+        "x": 16, "y": 16, "directions_you_can_move": ["west"],
+    }
+    observation.ui["nearbyObjects"] = {"objects": {"north": [
+        {"uuid": 9, "name": "statue", "distance": 1},
+    ]}}
+    neural_position = _candidate(
+        "POSITION", {"action": "TELEPORT_TO_OBJECT", "arg1": 9}, 0.9, 0.0,
+    )
+    action, receipt = realize_localized_spatial_position(
+        neural_position, observation, _binding(observation),
+        target_was_localized=True,
+    )
+    assert action == {"action": "MOVE_DIRECTION", "arg1": "west"}
+    assert receipt["active"] and receipt["changed"]
+    assert receipt["compatible_target_vectors"] == [[0, -1]]
+    assert receipt["desired_target_vector"] == [1, 0]
+    expected = dict(receipt)
+    receipt_hash = expected.pop("receipt_sha256")
+    from motif_transfer.discoveryworld_env import stable_hash
+    assert receipt_hash == stable_hash(expected)
+
+
+def test_localized_spatial_realizer_finishes_two_step_relation_route():
+    observation = _observation()
+    observation.ui["agentLocation"] = {
+        "x": 15, "y": 16, "directions_you_can_move": ["north", "east"],
+    }
+    observation.ui["nearbyObjects"] = {"objects": {"north-east": [
+        {"uuid": 9, "name": "statue", "distance": 2},
+    ]}}
+    neural_position = _candidate(
+        "POSITION", {"action": "TELEPORT_TO_OBJECT", "arg1": 9}, 0.9, 0.0,
+    )
+    action, receipt = realize_localized_spatial_position(
+        neural_position, observation, _binding(observation),
+        target_was_localized=True,
+    )
+    assert action == {"action": "MOVE_DIRECTION", "arg1": "north"}
+    assert receipt["current_worst_case_error"] == 1
+    assert receipt["active"]
+
+
+def test_spatial_realizer_requires_native_localization_and_never_rewrites_commit():
+    observation = _observation()
+    binding = _binding(observation)
+    position = _candidate(
+        "POSITION", {"action": "MOVE_DIRECTION", "arg1": "south"}, 0.2, 0.8,
+    )
+    action, receipt = realize_localized_spatial_position(
+        position, observation, binding, target_was_localized=False,
+    )
+    assert action == dict(position.action)
+    assert not receipt["active"]
+    commit = _candidate("COMMIT", {"action": "DROP", "arg1": 7}, 0.9, 0.0)
+    action, receipt = realize_localized_spatial_position(
+        commit, observation, binding, target_was_localized=True,
+    )
+    assert action == dict(commit.action)
+    assert not receipt["active"]
+
+
 def test_candidate_parser_discards_one_invalid_action_without_poisoning_bundle():
     raw = json.dumps({
         "memory": "",
@@ -244,6 +309,13 @@ def test_candidate_parser_discards_one_invalid_action_without_poisoning_bundle()
     assert [row.action["action"] for row in candidates] == ["MOVE_DIRECTION", "DROP"]
     assert len(bundle["candidate_parse_rejections"]) == 1
     assert "not currently movable" in bundle["candidate_parse_rejections"][0]["error"]
+    assert not bundle["choice_set_degenerate"]
+
+    one_valid = json.loads(raw)
+    one_valid["candidates"] = one_valid["candidates"][:2]
+    bundle, candidates = parse_grounded_candidates(json.dumps(one_valid), _observation())
+    assert len(candidates) == 1
+    assert bundle["choice_set_degenerate"]
 
 
 def test_assignment_improvement_witness_joins_put_subject_and_receiver():

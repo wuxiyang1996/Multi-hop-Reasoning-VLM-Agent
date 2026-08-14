@@ -196,6 +196,175 @@ class DiscoveryWorldSelectionReceipt:
         return expected == stable_hash(body)
 
 
+_CARDINAL_VECTORS = {
+    "north": (0, -1),
+    "east": (1, 0),
+    "south": (0, 1),
+    "west": (-1, 0),
+}
+
+
+def _relative_vector_candidates(
+    relation: str, distance: int,
+) -> tuple[tuple[int, int], ...]:
+    """Enumerate relative vectors exactly represented by a UI relation.
+
+    DiscoveryWorld reports the signs of dx/dy and Manhattan distance, rather
+    than object coordinates.  Keeping every compatible vector avoids silently
+    turning a target-native observation into a coordinate oracle.
+    """
+
+    if distance < 0:
+        return ()
+    if relation == "same_location":
+        return ((0, 0),) if distance == 0 else ()
+
+    output = []
+    for dx in range(-distance, distance + 1):
+        remaining = distance - abs(dx)
+        dys = {remaining, -remaining}
+        for dy in dys:
+            parts = []
+            if dy < 0:
+                parts.append("north")
+            elif dy > 0:
+                parts.append("south")
+            if dx < 0:
+                parts.append("west")
+            elif dx > 0:
+                parts.append("east")
+            observed_relation = "-".join(parts) if parts else "same_location"
+            if observed_relation == relation:
+                output.append((dx, dy))
+    return tuple(sorted(set(output)))
+
+
+def realize_localized_spatial_position(
+    selected: DiscoveryWorldGroundedCandidate,
+    observation: DiscoveryWorldObservation,
+    target_binding: DiscoveryWorldTargetBinding | None,
+    *,
+    target_was_localized: bool,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Realize a neural POSITION choice with exact target-native geometry.
+
+    The neural grounder still proposes the role and the binder still identifies
+    the target and desired relation.  After one successful target-bound
+    TELEPORT has established local observability, this executor replaces a
+    looping POSITION action only when an available cardinal move strictly
+    reduces the worst-case relation error over every coordinate vector
+    compatible with the public UI facts.  It never selects COMMIT.
+    """
+
+    grounded_action = dict(selected.action)
+    body: dict[str, Any] = {
+        "schema_version": "discoveryworld-local-spatial-realization-v1",
+        "active": False,
+        "reason": "NOT_APPLICABLE",
+        "target_was_localized": bool(target_was_localized),
+        "selected_role": selected.target_role,
+        "grounded_action": grounded_action,
+        "realized_action": grounded_action,
+        "changed": False,
+        "observed_target_relation": None,
+        "observed_target_distance": None,
+        "compatible_target_vectors": [],
+        "desired_target_vector": None,
+        "current_worst_case_error": None,
+        "move_scores": [],
+    }
+    if selected.target_role != "POSITION" or target_binding is None:
+        body["reason"] = "SELECTED_ROLE_IS_NOT_POSITION"
+    elif not target_was_localized:
+        body["reason"] = "TARGET_NOT_YET_LOCALIZED_BY_NATIVE_TELEPORT"
+    elif (
+        target_binding.target_relation_from_agent is None
+        or target_binding.target_distance is None
+    ):
+        body["reason"] = "BOUND_COMMIT_HAS_NO_SPATIAL_RELATION"
+    else:
+        facts = target_native_facts(observation)
+        target_rows = [
+            row for row in facts["salient_relative_objects"]
+            if row.get("uuid") == target_binding.target_uuid
+            and row.get("name") == target_binding.target_name
+            and isinstance(row.get("distance"), int)
+        ]
+        if not target_rows:
+            body["reason"] = "BOUND_TARGET_RELATION_NOT_CURRENTLY_VISIBLE"
+        else:
+            target_row = target_rows[0]
+            observed_relation = str(target_row["relation_from_agent"])
+            observed_distance = int(target_row["distance"])
+            vectors = _relative_vector_candidates(observed_relation, observed_distance)
+            desired_vectors = _relative_vector_candidates(
+                target_binding.target_relation_from_agent,
+                int(target_binding.target_distance),
+            )
+            body["observed_target_relation"] = observed_relation
+            body["observed_target_distance"] = observed_distance
+            body["compatible_target_vectors"] = [list(row) for row in vectors]
+            body["desired_target_vector"] = (
+                list(desired_vectors[0]) if len(desired_vectors) == 1 else None
+            )
+            if not vectors or len(desired_vectors) != 1:
+                body["reason"] = "RELATION_DOES_NOT_HAVE_A_UNIQUE_GOAL_VECTOR"
+            else:
+                goal = desired_vectors[0]
+
+                def error(vector: tuple[int, int]) -> int:
+                    return abs(vector[0] - goal[0]) + abs(vector[1] - goal[1])
+
+                current_error = max(error(row) for row in vectors)
+                body["current_worst_case_error"] = current_error
+                if current_error == 0:
+                    body["reason"] = "GOAL_RELATION_ALREADY_WITNESSED"
+                else:
+                    available = set(
+                        facts["agent_location"].get("directions_you_can_move") or ()
+                    )
+                    scored = []
+                    for order, direction in enumerate(("north", "east", "south", "west")):
+                        if direction not in available:
+                            continue
+                        mx, my = _CARDINAL_VECTORS[direction]
+                        next_errors = [
+                            error((dx - mx, dy - my)) for dx, dy in vectors
+                        ]
+                        scored.append({
+                            "direction": direction,
+                            "worst_case_error": max(next_errors),
+                            "total_error": sum(next_errors),
+                            "tie_break_order": order,
+                        })
+                    body["move_scores"] = scored
+                    improving = [
+                        row for row in scored
+                        if row["worst_case_error"] < current_error
+                    ]
+                    if not improving:
+                        body["reason"] = "NO_AVAILABLE_MOVE_STRICTLY_REDUCES_RELATION_ERROR"
+                    else:
+                        best = min(
+                            improving,
+                            key=lambda row: (
+                                row["worst_case_error"], row["total_error"],
+                                row["tie_break_order"],
+                            ),
+                        )
+                        realized = {
+                            "action": "MOVE_DIRECTION", "arg1": best["direction"],
+                        }
+                        body.update({
+                            "active": True,
+                            "reason": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION",
+                            "realized_action": realized,
+                            "changed": realized != grounded_action,
+                        })
+    body["receipt_sha256"] = stable_hash(body)
+    return dict(body["realized_action"]), body
+
+
 def _probability(value: Any, field: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError(f"{field} must be numeric")
@@ -258,12 +427,13 @@ def parse_grounded_candidates(
             continue
         seen_actions.add(action_hash)
         candidates.append(candidate)
-    if len(candidates) < 2:
+    if not candidates:
         raise ValueError(
-            f"fewer than two distinct valid candidates; rejections={rejections}"
+            f"no valid candidates remain; rejections={rejections}"
         )
     bundle = dict(bundle)
     bundle["candidate_parse_rejections"] = rejections
+    bundle["choice_set_degenerate"] = len(candidates) == 1
     return bundle, tuple(candidates)
 
 

@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import runpy
+import shutil
 import sys
 from typing import Any, Mapping
 
@@ -33,6 +34,7 @@ from motif_transfer.discoveryworld_sokoban_transfer import (  # noqa: E402
     grounder_prompt_payload,
     parse_grounded_candidates,
     parse_target_binding,
+    realize_localized_spatial_position,
     select_candidate,
 )
 from motif_transfer.frozen_motif_agent import (  # noqa: E402
@@ -71,9 +73,14 @@ def call_grounder(
             recent=recent, target_binding=target_binding, schema_error=schema_error,
         )
         raw = backend.complete("grounder", TARGET_GROUNDER_SYSTEM_PROMPT, payload)
+        request_usage = dict(backend.last_usage)
         try:
             bundle, candidates = parse_grounded_candidates(raw, observation)
-            audit.append({"attempt": attempt + 1, "accepted": True})
+            audit.append({
+                "attempt": attempt + 1,
+                "accepted": True,
+                "cache_hit": bool(request_usage.get("cache_hit")),
+            })
             return bundle, candidates, raw, audit
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             schema_error = f"{type(exc).__name__}: {exc}"
@@ -82,6 +89,7 @@ def call_grounder(
                 "accepted": False,
                 "error": schema_error,
                 "raw_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+                "cache_hit": bool(request_usage.get("cache_hit")),
             })
     raise RuntimeError(f"target grounder exhausted schema attempts: {audit}")
 
@@ -101,15 +109,21 @@ def call_binder(
             observation, memory=memory, hypotheses=hypotheses, schema_error=schema_error,
         )
         raw = backend.complete("binder", TARGET_BINDER_SYSTEM_PROMPT, payload)
+        request_usage = dict(backend.last_usage)
         try:
             binding = parse_target_binding(raw, observation)
-            audit.append({"attempt": attempt + 1, "accepted": True})
+            audit.append({
+                "attempt": attempt + 1,
+                "accepted": True,
+                "cache_hit": bool(request_usage.get("cache_hit")),
+            })
             return binding, raw, audit
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             schema_error = f"{type(exc).__name__}: {exc}"
             audit.append({
                 "attempt": attempt + 1, "accepted": False, "error": schema_error,
                 "raw_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+                "cache_hit": bool(request_usage.get("cache_hit")),
             })
     raise RuntimeError(f"target binder exhausted schema attempts: {audit}")
 
@@ -129,6 +143,8 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     config = json.loads(args.config.read_text())
+    spatial_realizer_config = dict(config.get("target_native_spatial_realizer") or {})
+    spatial_realizer_enabled = bool(spatial_realizer_config.get("enabled", False))
     reference_path = REPO / config["reference_episode"]
     reference = json.loads(reference_path.read_text())
     stored_episode_hash = reference.get("episode_sha256")
@@ -159,8 +175,7 @@ def main() -> None:
     if not key:
         raise SystemExit("configured OpenRouter key is missing")
     os.environ["DISCOVERYWORLD_OPENROUTER_KEY"] = str(key)
-    backend = MemoizedCompletionBackend(
-        OpenAICompatibleBackend(
+    raw_backend = OpenAICompatibleBackend(
             str(config["model"]["base_url"]),
             {
                 "grounder": str(config["model"]["model"]),
@@ -176,9 +191,35 @@ def main() -> None:
                 },
             },
             transport_attempts=3,
-        ),
-        cache_path=args.output.parent / f"grounder_cache_{file_sha256(args.config)[:12]}.json",
     )
+    cache_path = (
+        args.output.parent / f"grounder_cache_{file_sha256(args.config)[:12]}.json"
+    )
+    cache_seed = dict(config.get("neural_cache_seed") or {})
+    if cache_seed:
+        seed_path = REPO / str(cache_seed["path"])
+        expected_seed_hash = str(cache_seed["sha256"])
+        if file_sha256(seed_path) != expected_seed_hash:
+            raise SystemExit("frozen neural cache seed hash mismatch")
+        seed_payload = json.loads(seed_path.read_text())
+        if seed_payload.get("backend_identity_sha256") != stable_hash(raw_backend.identity):
+            raise SystemExit("frozen neural cache seed backend mismatch")
+        if cache_path.exists():
+            current_payload = json.loads(cache_path.read_text())
+            if current_payload.get("backend_identity_sha256") != stable_hash(
+                raw_backend.identity
+            ):
+                raise SystemExit("current neural cache backend mismatch")
+            current_entries = current_payload.get("entries") or {}
+            for request_hash, row in (seed_payload.get("entries") or {}).items():
+                if current_entries.get(request_hash) != row:
+                    raise SystemExit(
+                        "current neural cache does not preserve frozen seed entries"
+                    )
+        else:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(seed_path, cache_path)
+    backend = MemoizedCompletionBackend(raw_backend, cache_path=cache_path)
 
     fork_step = int(config["fork_after_episode_step"])
     prefix = [dict(row["action"]) for row in reference["steps"][:fork_step]]
@@ -198,10 +239,42 @@ def main() -> None:
     initial_hypotheses = tuple(
         reference["steps"][fork_step - 1].get("running_hypotheses") or ()
     )
-    target_binding, binder_raw, binder_attempts = call_binder(
-        backend, anchor, memory=initial_memory, hypotheses=initial_hypotheses,
-        attempts=int(config["model"]["schema_attempts"]),
-    )
+    frozen_initial = config.get("frozen_initial_grounding")
+    if frozen_initial is not None:
+        if not isinstance(frozen_initial, Mapping):
+            raise SystemExit("frozen_initial_grounding must be an object")
+        applicability = frozen_initial.get("applicability_receipt")
+        if not isinstance(applicability, Mapping) or not applicability.get("eligible"):
+            raise SystemExit("frozen initial applicability receipt is absent or ineligible")
+        applicability_body = dict(applicability)
+        applicability_hash = applicability_body.pop(
+            "applicability_receipt_sha256", None,
+        )
+        if applicability_hash != stable_hash(applicability_body):
+            raise SystemExit("frozen applicability receipt self-hash mismatch")
+        binder_payload = binder_prompt_payload(
+            anchor, memory=initial_memory, hypotheses=initial_hypotheses,
+        )
+        if frozen_initial.get("binder_prompt_sha256") != stable_hash(binder_payload):
+            raise SystemExit("frozen binder prompt differs at replayed fork")
+        binder_raw = str(frozen_initial.get("binder_response") or "")
+        if frozen_initial.get("binder_response_sha256") != hashlib.sha256(
+            binder_raw.encode()
+        ).hexdigest():
+            raise SystemExit("frozen binder response hash mismatch")
+        target_binding = parse_target_binding(binder_raw, anchor)
+        if applicability.get("binding_sha256") != target_binding.binding_sha256:
+            raise SystemExit("frozen applicability binding mismatch")
+        binder_attempts = [{
+            "attempt": 0,
+            "accepted": True,
+            "source": "FROZEN_OUTCOME_BLIND_APPLICABILITY_SCAN",
+        }]
+    else:
+        target_binding, binder_raw, binder_attempts = call_binder(
+            backend, anchor, memory=initial_memory, hypotheses=initial_hypotheses,
+            attempts=int(config["model"]["schema_attempts"]),
+        )
 
     target_only_env = new_env(
         task, max_steps, 98101, args.output.parent / "frames" / "target_only_recorded",
@@ -252,15 +325,48 @@ def main() -> None:
         memory = initial_memory
         hypotheses = initial_hypotheses
         recent: list[dict[str, Any]] = []
+        localized_target_uuids: set[int] = set()
         recovery = []
         arm_error = None
         while not observation.terminal and len(recovery) < int(config["recovery_horizon"]):
             try:
-                bundle, candidates, raw, schema_attempts = call_grounder(
-                    backend, observation, memory=memory, hypotheses=hypotheses,
-                    recent=recent, target_binding=target_binding,
-                    attempts=int(config["model"]["schema_attempts"]),
-                )
+                if not recovery and frozen_initial is not None:
+                    grounder_payload = grounder_prompt_payload(
+                        observation,
+                        memory=memory,
+                        hypotheses=hypotheses,
+                        recent=recent,
+                        target_binding=target_binding,
+                    )
+                    if frozen_initial.get("grounder_prompt_sha256") != stable_hash(
+                        grounder_payload
+                    ):
+                        raise RuntimeError(
+                            "frozen grounder prompt differs at replayed fork"
+                        )
+                    raw = str(frozen_initial.get("grounder_response") or "")
+                    if frozen_initial.get(
+                        "grounder_response_sha256"
+                    ) != hashlib.sha256(raw.encode()).hexdigest():
+                        raise RuntimeError("frozen grounder response hash mismatch")
+                    bundle, candidates = parse_grounded_candidates(raw, observation)
+                    if applicability.get("candidate_bundle_sha256") != stable_hash(
+                        [row.candidate_sha256 for row in candidates]
+                    ):
+                        raise RuntimeError(
+                            "frozen applicability candidate bundle mismatch"
+                        )
+                    schema_attempts = [{
+                        "attempt": 0,
+                        "accepted": True,
+                        "source": "FROZEN_OUTCOME_BLIND_APPLICABILITY_SCAN",
+                    }]
+                else:
+                    bundle, candidates, raw, schema_attempts = call_grounder(
+                        backend, observation, memory=memory, hypotheses=hypotheses,
+                        recent=recent, target_binding=target_binding,
+                        attempts=int(config["model"]["schema_attempts"]),
+                    )
             except RuntimeError as exc:
                 arm_error = str(exc)
                 print(json.dumps({
@@ -275,8 +381,27 @@ def main() -> None:
                 positive_effect_threshold=float(selector_config["positive_effect_threshold"]),
                 target_binding=target_binding,
             )
+            realized_action, realization = realize_localized_spatial_position(
+                selected, observation, target_binding,
+                target_was_localized=(
+                    spatial_realizer_enabled
+                    and target_binding.target_uuid in localized_target_uuids
+                ),
+            )
+            if not spatial_realizer_enabled:
+                realization["reason"] = "DISABLED_BY_FROZEN_PROTOCOL"
+                realization["receipt_sha256"] = stable_hash({
+                    key: value for key, value in realization.items()
+                    if key != "receipt_sha256"
+                })
             before_facts = target_native_facts(observation)
-            after, transition = env.step(selected.action)
+            after, transition = env.step(realized_action)
+            if (
+                realized_action.get("action") == "TELEPORT_TO_OBJECT"
+                and realized_action.get("arg1") == target_binding.target_uuid
+                and transition.action_succeeded
+            ):
+                localized_target_uuids.add(target_binding.target_uuid)
             memory = str(bundle.get("memory") or memory)[-6000:]
             raw_hypotheses = bundle.get("running_hypotheses") or hypotheses
             hypotheses = tuple(str(row) for row in raw_hypotheses)[-24:]
@@ -284,27 +409,34 @@ def main() -> None:
                 "recovery_step": len(recovery) + 1,
                 "candidate_bundle": [asdict(candidate) for candidate in candidates],
                 "candidate_parse_rejections": bundle.get("candidate_parse_rejections", []),
+                "choice_set_degenerate": bool(bundle.get("choice_set_degenerate")),
                 "grounder_response_sha256": hashlib.sha256(raw.encode()).hexdigest(),
                 "grounder_schema_attempts": schema_attempts,
                 "selection": asdict(selection),
+                "target_native_realization": realization,
                 "transition": asdict(transition),
                 "before_target_native_facts": before_facts,
                 "after_target_native_facts": target_native_facts(after),
             }
             recovery.append(row)
-            recent.append({
-                "action": dict(selected.action),
+            recent_row = {
+                "action": dict(realized_action),
                 "selected_role": selected.target_role,
                 "action_succeeded": transition.action_succeeded,
                 "last_action_message": str(after.ui.get("lastActionMessage") or "")[:1000],
                 "expected_effect": selected.expected_effect,
-            })
+            }
+            if dict(realized_action) != dict(selected.action):
+                recent_row["grounded_action"] = dict(selected.action)
+            recent.append(recent_row)
             observation = after
             print(json.dumps({
                 "condition": condition,
                 "recovery_step": len(recovery),
                 "role": selected.target_role,
-                "action": selected.action,
+                "grounded_action": selected.action,
+                "action": realized_action,
+                "spatial_realization_active": realization["active"],
                 "terminal": observation.terminal,
                 "official_success": observation.official_success,
             }), flush=True)
@@ -324,10 +456,15 @@ def main() -> None:
         row.get("runtime_error") is None
         for name, row in results.items() if name != "target_only_recorded"
     )
-    qualification = str(config.get("status") or "").startswith("QUALIFICATION")
+    configured_status = str(config.get("status") or "")
+    qualification = configured_status.startswith("QUALIFICATION")
+    formal = configured_status.startswith("FORMAL_RESERVE")
     payload = {
         "schema_version": "discoveryworld-sokoban-commit-recovery-result-v1",
         "status": (
+            ("FORMAL_MECHANISM_COMPLETE" if mechanism_complete
+             else "FORMAL_MECHANISM_INCOMPLETE")
+            if formal else
             ("QUALIFICATION_MECHANISM_COMPLETE" if mechanism_complete
              else "QUALIFICATION_MECHANISM_INCOMPLETE")
             if qualification else
@@ -345,6 +482,15 @@ def main() -> None:
         "target_binding": asdict(target_binding),
         "target_binding_response_sha256": hashlib.sha256(binder_raw.encode()).hexdigest(),
         "target_binding_schema_attempts": binder_attempts,
+        "target_native_spatial_realizer": spatial_realizer_config,
+        "neural_cache_seed": cache_seed,
+        "initial_grounding_mode": (
+            "FROZEN_OUTCOME_BLIND_APPLICABILITY_SCAN"
+            if frozen_initial is not None else "LIVE_AT_MATCHED_FORK"
+        ),
+        "frozen_initial_applicability_receipt_sha256": (
+            applicability_hash if frozen_initial is not None else None
+        ),
         "source_receipt_file_sha256": file_sha256(source_receipt_path),
         "runtime_hashes": {
             "config": file_sha256(args.config),

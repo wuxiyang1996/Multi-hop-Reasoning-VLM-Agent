@@ -1,0 +1,20 @@
+{
+  "schema_version": "discoveryworld-target-only-config-v19-consumed-adaptation",
+  "manifest": "configs/discoveryworld_v1_manifest.json",
+  "manifest_role": "formal_reserve",
+  "task_indices": [5, 6, 13, 14, 21, 22],
+  "claim_boundary": "Post-V17/V18 target-capability diagnostic on already consumed Space Sick and Proteomics Easy seeds2-4. It changes only the episode horizon from 32 to 64 to determine whether target acquisition, rather than source effect selection, truncated the useful decision states. It is not formal evidence and does not open any Normal-difficulty reserve.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_steps": 64,
+    "include_vision": false
+  }
+}
