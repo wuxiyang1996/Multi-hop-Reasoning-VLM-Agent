@@ -5,6 +5,8 @@ import pytest
 from motif_transfer.webshop_constraint_coverage_v14 import (
     ConstraintCoverage,
     augment_with_constraint_labels,
+    augment_with_product_backtrack,
+    ground_structured_goal_constraints,
     visible_goal_constraint_label_actions,
 )
 from motif_transfer.webshop_semantic_reserve import (
@@ -108,3 +110,48 @@ def test_visible_goal_constraints_add_working_paired_label_actions() -> None:
         axtree=tree,
         goal="Find black shorts",
     ) == ("click('28')", "click('70')", "click('29')")
+
+
+def test_structured_goal_options_reject_partial_large_match() -> None:
+    rows = [
+        {
+            "is_constraint": True,
+            "is_goal_constraint": True,
+            "goal_overlap_tokens": ["large"],
+            "element_text": "[45] radio 'large', checked='false'",
+            "paired_constraint_text": "",
+        },
+        {
+            "is_constraint": True,
+            "is_goal_constraint": True,
+            "goal_overlap_tokens": ["3x", "large"],
+            "element_text": "[51] radio '3x-large', checked='false'",
+            "paired_constraint_text": "",
+        },
+    ]
+    ground_structured_goal_constraints(rows, {"size": "3x-large"})
+    assert not rows[0]["is_goal_constraint"]
+    assert rows[1]["goal_constraint_signature"] == "size:3x large"
+
+
+def test_structured_augmentation_adds_only_exact_goal_label() -> None:
+    tree = """\
+[45] radio 'large', checked='false'
+[46] LabelText ''
+[51] radio '3x-large', checked='false'
+[52] LabelText ''
+"""
+    assert visible_goal_constraint_label_actions(
+        tree,
+        "Find black shorts, size 3x-large",
+        goal_options={"size": "3x-large"},
+    ) == ("click('52')",)
+
+
+def test_product_backtrack_is_added_without_reranking() -> None:
+    assert augment_with_product_backtrack(
+        ("click('70')",), url="http://server/item_page/session/ASIN/query/1/{}",
+    ) == ("click('70')", "go_back()")
+    assert augment_with_product_backtrack(
+        ("click('20')",), url="http://server/search_results/session/query/1",
+    ) == ("click('20')",)

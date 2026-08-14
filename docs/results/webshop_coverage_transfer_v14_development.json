@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "status": "TARGET_NATIVE_BRIDGE_VALIDATED_SOURCE_SPECIFIC_WEBSHOP_TRANSFER_NOT_VALIDATED",
+  "date": "2026-08-14",
+  "claim_limit": "Development-only mechanism evidence on two unique synthetic ASIN goals; the 32-goal formal reserve remains unopened.",
+  "final_mechanism_tasks": [
+    "webshop.1",
+    "webshop.4"
+  ],
+  "conditions": {
+    "target_only": {
+      "strict_successes": 0,
+      "episodes": 2,
+      "mean_reward": 0.0,
+      "mean_steps": 12.0
+    },
+    "target_native_coverage_only": {
+      "strict_successes": 2,
+      "episodes": 2,
+      "mean_reward": 1.0,
+      "mean_steps": 8.0,
+      "coverage_interventions": 8
+    },
+    "authentic_sokoban_effect_plus_coverage_target": {
+      "strict_successes": 2,
+      "episodes": 2,
+      "mean_reward": 1.0,
+      "mean_steps": 8.0,
+      "source_commit_decisions": 2
+    },
+    "commit_availability_control_plus_coverage_target": {
+      "strict_successes": 2,
+      "episodes": 2,
+      "mean_reward": 1.0,
+      "mean_steps": 8.0,
+      "source_commit_decisions": 2
+    },
+    "inverted_effect_control_plus_coverage_target": {
+      "strict_successes": 0,
+      "episodes": 2,
+      "mean_reward": 0.0,
+      "mean_steps": 12.0,
+      "source_position_decisions": 5
+    },
+    "position_prior_control_plus_coverage_target": {
+      "strict_successes": 0,
+      "episodes": 2,
+      "mean_reward": 0.0,
+      "mean_steps": 12.0,
+      "source_position_decisions": 5
+    }
+  },
+  "paired_strict_outcomes": {
+    "coverage_only_vs_target_only": {
+      "wins": 2,
+      "losses": 0,
+      "ties": 0
+    },
+    "authentic_vs_target_only": {
+      "wins": 2,
+      "losses": 0,
+      "ties": 0
+    },
+    "authentic_vs_coverage_only": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 2
+    },
+    "authentic_vs_commit_availability_control": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 2
+    },
+    "authentic_vs_inverted_control": {
+      "wins": 2,
+      "losses": 0,
+      "ties": 0
+    },
+    "authentic_vs_position_prior_control": {
+      "wins": 2,
+      "losses": 0,
+      "ties": 0
+    }
+  },
+  "gates": {
+    "matched_initial_states": true,
+    "all_final_mechanism_receipts_complete": true,
+    "zero_unsafe_coverage_commits": true,
+    "paired_label_actions_caused_observed_state_changes": true,
+    "target_bridge_improves_strict_success": true,
+    "authentic_source_exercised_commit_authority": true,
+    "authentic_improves_over_coverage_only": false,
+    "authentic_improves_over_commit_availability_control": false,
+    "open_formal_reserve": false
+  },
+  "diagnosis": {
+    "validated": "Exact structured option identities, state-change verification, incomplete-product rejection, and untried-product exploration form a working target-native symbolic bridge.",
+    "not_validated": "The frozen Sokoban positive-effect guard has no source-specific WebShop increment: it ties both coverage-only and the simpler commit-availability control.",
+    "bitter_lesson": "The observed 0/2 to 2/2 success recovery is attributable to target-native grounding and execution, not yet to cross-domain source knowledge.",
+    "next_required_evidence": "Before opening formal, identify development states where positive expected commit effect and mere commit availability make different predictions, and ground that distinction without target outcome leakage."
+  },
+  "estimated_unique_provider_cost_usd_through_v5": 0.0873830125,
+  "formal_reserve_read_or_run": false,
+  "source_summaries": {
+    "webshop.1": "runs/webshop_coverage_transfer_v14_final_mechanism_probe_v5/summary.json",
+    "webshop.4": "runs/webshop_coverage_transfer_v14_backtrack_probe_v4/summary.json"
+  },
+  "runtime_hashes": {
+    "runner": "be5f091a8a24274a5d10f2fa6145b364ed15637b4b9881cd6ddea353594ca6d1",
+    "coverage_core": "5f9f699dd2fbf048e5a152a6bf29787f7ace84842431f5643eac1ead3d4d8fe3",
+    "coverage_ledger": "4d743c512f5508ffdb3a8ecf11aba27ad6dc55e724d3e050b7b92daed35ed384"
+  }
+}

@@ -88,9 +88,51 @@ V14 commit_authorized = false
 verified，successful paired-label state change 才计入。这个修复保持 source 的 `POSITION/COMMIT` 为二元，
 但 target grounding 不再丢失 prerequisite multiplicity。
 
-### 下一次 WebShop experiment 的必要对照
+### V14 development execution：target bridge 已修复，source-specific increment 未通过
 
-新的 synthetic development split 已做两组完整 diagnostic smoke，然后因预注册外的明确 futility signal
+最初 synthetic development smoke 暴露了两个 live blocker：BrowserGym 的直接 radio click 是 no-op，旧的
+goal-token overlap 又把 `3x-large` 错误扩成多个普通 `large` prerequisites。V14 live runner 现在执行：
+
+1. 从冻结 synthetic manifest 读取 typed `goal_options`，以 exact normalized value 建 constraint identity；
+2. 把配对 `LabelText` action 确定性加入所有 matched conditions 的候选池，但不改变 target-only rank 0；
+3. 只有 action 后 observation hash 改变才把 constraint 标为 verified；
+4. 商品缺少任一 required option 时 fail closed、返回搜索页，并跳过已经被证伪的 ASIN；
+5. coverage ready 后才允许 source program 决定 `COMMIT` 或 `POSITION`。
+
+最终机制在两个不同 synthetic ASIN development goals 上完成六条件 matched probe：
+
+| condition | strict success | mean steps | source decision |
+|---|---:|---:|---:|
+| target-only | 0/2 | 12 | — |
+| target-native coverage-only | 2/2 | 8 | — |
+| authentic Sokoban effect + coverage | 2/2 | 8 | 2 COMMIT |
+| commit-availability control + coverage | 2/2 | 8 | 2 COMMIT |
+| inverted effect + coverage | 0/2 | 12 | 5 POSITION |
+| position-prior + coverage | 0/2 | 12 | 5 POSITION |
+
+全部 receipts 完整、initial states matched、coverage conditions 的 unsafe commits 为 0。`webshop.1` 的精确
+`black` 与 `3x-large` LabelText actions 都造成 state change，随后 authentic source 执行 COMMIT 并得到
+reward 1；`webshop.4` 先拒绝两个缺失 options 的商品，再打开未试 ASIN、完成 options 和购买，同样得到
+reward 1。
+
+这个结果验证了 **target-native symbolic bridge 的 live success-rate effect**，但没有通过 source-specific
+transfer gate：authentic 与 coverage-only 完全持平，也与更简单的 commit-availability control 完全持平。
+它只超过 inverted/position controls。准确状态是：
+
+```text
+TARGET_NATIVE_BRIDGE_VALIDATED
+SOURCE_SPECIFIC_WEBSHOP_TRANSFER_NOT_VALIDATED
+FORMAL_RESERVE_REMAINS_SEALED
+```
+
+因此不能把 0/2 → 2/2 的恢复归因于 Sokoban knowledge；当前增益来自 target-native exact grounding、
+intervention verification 和 infeasible-product backtracking。机器记录为
+[`results/webshop_coverage_transfer_v14_development.json`](results/webshop_coverage_transfer_v14_development.json)。
+到 V5 为止，去除 copied cache 后的 unique provider cost 约 `$0.0874`。
+
+### 被保留的早期 smoke 记录
+
+新的 synthetic development split 最初做了两组完整 diagnostic smoke，然后因明确 futility signal
 主动停止，没有继续消耗第 3/4 个 smoke goal：
 
 | complete goal | target-only | authentic | authentic source decisions |
@@ -115,10 +157,11 @@ click 连续 no-op，最后在 `black` 与 `3x-large` 都未 verified 时购买�
 4. inverted/permuted source + 同一 coverage；
 5. target-written isomorphic effect guard + 同一 coverage。
 
-首要工程修复是把可见 goal radio 的 paired LabelText action 确定性补入候选集，再让 set coverage 阻止
-未完成购买；不能通过降低 source threshold 强行制造 authority。只有 authentic 同时超过 target-only 与
-coverage-only，且 source-specific controls 不追平，才允许打开
-32-goal formal reserve。Primary inference unit 是 unique ASIN goal，不再是任意 task ID。
+这段早期结果只作为 blocker diagnosis，不与最终机制结果合并。下一步也不是扩大 task 数或降低 source
+threshold，而是在 development 中先找到 `positive expected commit effect` 与 `mere commit availability`
+预测不同的 target states，并用无 outcome leakage 的 target-native grounding 区分它们。只有 authentic
+超过 coverage-only 和 commit-availability control，才允许打开 32-goal formal reserve。Primary inference
+unit 是 unique ASIN goal，不再是任意 task ID。
 
 本地复现命令：
 
@@ -178,6 +221,8 @@ destructions，才值得采集新视频结果。
 - WebShop semantic audit: `scripts/audit_webshop_semantic_independence_v14.py`
 - WebShop reserve guard: `src/motif_transfer/webshop_semantic_reserve.py`
 - WebShop multiplicity guard: `src/motif_transfer/webshop_constraint_coverage_v14.py`
+- WebShop V14 live controller: `src/motif_transfer/webshop_coverage_transfer_v14.py`
+- WebShop V14 development runner: `scripts/run_webshop_coverage_transfer_v14.py`
 - Synthetic server adapter: `src/motif_transfer/webshop_unique_goal_server_v14.py`
 - Outcome-blind freezer: `scripts/freeze_webshop_synthetic_reserve_v14.py`
 - Live fail-closed verifier: `scripts/verify_webshop_synthetic_server_v14.py`
