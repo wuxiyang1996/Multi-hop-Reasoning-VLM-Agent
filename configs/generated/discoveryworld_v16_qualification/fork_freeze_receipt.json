@@ -1,0 +1,66 @@
+{
+  "schema_version": "discoveryworld-qualification-fork-freeze-v1",
+  "status": "QUALIFICATION_FORKS_FROZEN",
+  "protocol_file_sha256": "7edefeb87f116eb17f9dbf45ff211d27dd151c48999dd115e6686bf50e38ec6d",
+  "generator_file_sha256": "a03ab6736f0a2b22af0b812283bc845447c1820107e60111f5fb75386a6e6fe5",
+  "target_baseline_config_sha256": "550639c8d085b46dad7a71c79abbe9ac9b6bf2e209b659176be50b78bb42a583",
+  "outcome_fields_read_for_eligibility": false,
+  "receipts": [
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed1",
+      "task": {
+        "scenario": "Space Sick",
+        "difficulty": "Easy",
+        "seed": 1
+      },
+      "reference_episode_sha256": "5f8c7f8191f353d3eba1bd68e6666bed4fecf761e1cda42dedfd1e517332e7e1",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 16,
+      "selected_episode_step": 17,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "dfbd45f67b5ac973e454676f2af0db049b085014b3f6ddc6d4baeb9bbdcc3a23"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed1",
+      "task": {
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 1
+      },
+      "reference_episode_sha256": "30d844a4447ecb708b3031d2400506ec7cdb8ccfd481e542539d4aa64c392037",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 25,
+      "selected_episode_step": 26,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "3b3e1e1325609a2f101af9996083420fe31def1db76ddb7c4d0cd18a99117e2d"
+    }
+  ],
+  "generated_configs": [
+    "configs/generated/discoveryworld_v16_qualification/space_sick.easy.seed1.json",
+    "configs/generated/discoveryworld_v16_qualification/proteomics.easy.seed1.json"
+  ],
+  "summary_sha256": "efa26ac74fa7215fc00cc0d9be49034a1f7c0992f86260dcaa4ce07402e18704"
+}

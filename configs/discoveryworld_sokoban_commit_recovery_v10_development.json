@@ -1,0 +1,34 @@
+{
+  "schema_version": "discoveryworld-sokoban-commit-recovery-v10",
+  "status": "DEVELOPMENT_ONLY_CONSUMED_PROTEOMICS_SEED0",
+  "claim_boundary": "Focused two-condition mechanism development on one already-consumed target fork. Neural task/action/entity binding, symbolic relation inversion, exact direct-progress witnesses, and target-bound positioning are separated. Candidate actions are individually validated and invalid proposals are content-addressed and discarded without weakening native preconditions. This is not qualification or transfer-efficacy evidence.",
+  "reference_episode": "runs/discoveryworld_target_only_v2_development/proteomics.easy.seed0.json",
+  "reference_episode_sha256": "2c5b188ed49a35bf723db38cd3350725cd81f3d8819199eab53e1741bf032bc3",
+  "fork_after_episode_step": 23,
+  "recovery_horizon": 6,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "require_source_gate_passed": true,
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "hidden_reasoning_effort": "none",
+    "schema_attempts": 4
+  }
+}

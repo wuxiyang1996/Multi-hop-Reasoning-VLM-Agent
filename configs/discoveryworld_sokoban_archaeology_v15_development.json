@@ -1,0 +1,35 @@
+{
+  "schema_version": "discoveryworld-sokoban-archaeology-v15",
+  "status": "DEVELOPMENT_ONLY_CONSUMED_ARCHAEOLOGY_SEED0",
+  "claim_boundary": "Matched six-step recovery from the last development state whose target-only memory correctly identifies the oldest artifact. The target-native binder distinguishes ground placement (DROP after POSITION) from containment (PUT). The recorded suffix and selector arms receive the same horizon. Because public task wording contains a right/west inconsistency, this is diagnostic only.",
+  "reference_episode": "runs/discoveryworld_target_only_v3_archaeology_development/archaeology_dating.easy.seed0.json",
+  "reference_episode_sha256": "4665485c3ae312b61a3ac76d6941f80e6fa267538b4e91b6284298bcf92436de",
+  "fork_after_episode_step": 14,
+  "recovery_horizon": 6,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "require_source_gate_passed": true,
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "hidden_reasoning_effort": "none",
+    "schema_attempts": 4
+  }
+}

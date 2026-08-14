@@ -1,0 +1,19 @@
+{
+  "schema_version": "discoveryworld-target-only-config-v4-qualification",
+  "manifest": "configs/discoveryworld_v1_manifest.json",
+  "task_indices": [5, 6],
+  "claim_boundary": "Frozen seed-1 qualification pilot for Space Sick and Proteomics. The target-only policy receives no source program or evaluator scorecard. Episodes also supply outcome-blind first-commit forks under the separately frozen qualification protocol; no mechanism adaptation is permitted after opening this split.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_steps": 32,
+    "include_vision": false
+  }
+}
