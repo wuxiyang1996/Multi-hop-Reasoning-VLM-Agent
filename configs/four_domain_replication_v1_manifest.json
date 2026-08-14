@@ -1,0 +1,48 @@
+{
+  "aggregate_estimand": {
+    "primary": "Each domain authentic paired wins must exceed losses; at least three of four domains must have a strict positive success delta; no domain may have a negative success delta.",
+    "secondary": "Equal-domain-weight mean success-rate delta and pooled paired sign test are descriptive because task units are heterogeneous.",
+    "thresholds_or_tasks_may_change_after_open": false
+  },
+  "component_file_sha256": {
+    "alfworld_procedural_game_replication_v1_frozen.json": "54cd83feb70ea3cb27d7b5b6f5413e62409197e5f36a90195bdfdf665b695850",
+    "alfworld_procedural_game_replication_v1_manifest.json": "c297ee5a8b64aaab991a1115986a06eebd2056ba05813c3e1ec4bf5a02131563",
+    "discoveryworld_replication_v1_manifest.json": "5f5bb89b55dec38331791fdcd89538a0808052d8c39c75c069f21926201fba14",
+    "discoveryworld_sokoban_replication_v1_protocol.json": "ae17a292d694e63240e2cbb8a3cd58517aa968b22818df829152a93f24e45994",
+    "discoveryworld_target_only_replication_v1.json": "1c7efa6e63ff178d105571478b740388bc5373e5ca33a4cd9035b49a41dc7fe6",
+    "tir_maze_topology_replication_v1_frozen.json": "9fd262877e4b9961ac3ce17ba36d5284b69566e8242f61a09968972c33f71b52",
+    "webshop_sokoban_effect_replication_v1_frozen.json": "128dc00633b6d11d3850386b3f4cc0574208af18acc512a841fab4ecaea32081"
+  },
+  "domains": {
+    "alfworld": {
+      "config": "alfworld_procedural_game_replication_v1_frozen.json",
+      "tasks": 32
+    },
+    "discoveryworld": {
+      "config": "discoveryworld_sokoban_replication_v1_protocol.json",
+      "tasks": 20
+    },
+    "tir": {
+      "config": "tir_maze_topology_replication_v1_frozen.json",
+      "tasks": 48
+    },
+    "webshop": {
+      "config": "webshop_sokoban_effect_replication_v1_frozen.json",
+      "tasks": 32
+    }
+  },
+  "freezer_file_sha256": "5bb666fcaf69094d1d8eae9c5a2d422d18d58722e76dea1bfa78fd263c2ca07f",
+  "frozen_at_git_commit": "085dc093dba6854f0101d8bb6ff1f77f3ba25c54",
+  "locked_future_alfworld_multiplicity_ids": [
+    "pick_two_obj_and_place-SoapBar-None-GarbageCan-424/trial_T20190909_064053_839817/game.tw-pddl",
+    "pick_two_obj_and_place-Pillow-None-Sofa-219/trial_T20190907_163240_345855/game.tw-pddl",
+    "pick_two_obj_and_place-PepperShaker-None-Drawer-10/trial_T20190908_010306_215435/game.tw-pddl",
+    "pick_two_obj_and_place-Pillow-None-Sofa-219/trial_T20190907_163327_486300/game.tw-pddl",
+    "pick_two_obj_and_place-SoapBar-None-Cabinet-424/trial_T20190909_081720_491733/game.tw-pddl",
+    "pick_two_obj_and_place-SoapBar-None-GarbageCan-424/trial_T20190909_064221_368939/game.tw-pddl"
+  ],
+  "manifest_sha256": "7f36d0d88ecc648f294e02092abb6e8b9f81e7ee62f9549fdc68c5bd887f080a",
+  "schema_version": "four-domain-independent-replication-manifest-v1",
+  "selection_saw_task_content_or_outcome": false,
+  "status": "FROZEN_BEFORE_ANY_REPLICATION_TARGET_RESET_OR_QUERY"
+}
