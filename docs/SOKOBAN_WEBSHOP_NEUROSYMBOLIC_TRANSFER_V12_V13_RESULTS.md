@@ -196,3 +196,34 @@ TIR/Video-Holmes test split只会重复旧的“source 看起来存在，但不�
 Full local receipts remain under `runs/webshop_sokoban_effect_transfer_v13/`; they are intentionally excluded
 from Git because they contain 192 verbose trajectories and model completions. The compact result binds their
 run-summary and final-report file hashes.
+
+## Independent replication V1: positive direction, strict gate not replicated
+
+After the original V13 result, a prospective replication froze the next 32
+contiguous goals (`146–177`) before reading any goal text or outcome. The
+source artifact, target MLP, six conditions, runner, model, thresholds, and
+12-step budget were unchanged. All `32 × 6 = 192` receipts completed with zero
+failures or retries and valid matched initial states.
+
+| condition | strict success | mean reward | mean steps |
+|---|---:|---:|---:|
+| target-only | 9/32 | .5651 | 7.875 |
+| target-native myopic | 3/32 | .6589 | 4.313 |
+| authentic Sokoban + target | **14/32** | **.7057** | **7.688** |
+| commit availability | 3/32 | .6068 | 6.813 |
+| inverted effect | 3/32 | .6068 | 6.813 |
+| POSITION prior | 8/32 | .5182 | 8.188 |
+
+Authentic versus target-only is `6W/1L/25T`, a strict-success improvement of
+`+15.625pp` and mean-reward improvement of `+.140625`. Thus the effect direction
+replicates and paired wins still exceed losses, but the predeclared two-sided
+exact test is `p=.125`, above `.05`. Every other comparator gate passes; the
+single failed target-only significance gate makes the frozen route-level status
+`REAL_SOKOBAN_TO_WEBSHOP_TRANSFER_V13_NOT_VALIDATED` for this replication.
+
+This is not evidence that the mechanism has zero value, nor permission to pool
+the two 32-task sets post hoc. It says the original large effect was smaller and
+less stable on the independent range. The four-domain aggregate protocol may
+use only its separately frozen directional estimand. The machine-readable
+replication record is
+[`results/webshop_sokoban_effect_replication_v1_summary.json`](results/webshop_sokoban_effect_replication_v1_summary.json).

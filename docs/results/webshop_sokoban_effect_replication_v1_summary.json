@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_sokoban_effect_transfer_v13",
+  "claim_boundary": "Independent prospective replication of the frozen Sokoban positive-effect route on deterministic local WebShop goals 146-177.",
+  "source_contract": {
+    "artifact": "runs/sokoban_effect_program_v2/discovery_artifact.json",
+    "artifact_file_sha256": "95fea4cfc4e00819956b08d372723171b8807f11d7ac68d3700be260307e62de",
+    "artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "excluded": [
+      "source action tokens",
+      "source coordinates",
+      "source option occupancy",
+      "source duration",
+      "target observations",
+      "target goal tokens"
+    ],
+    "fresh_confirmation": "runs/sokoban_effect_program_v2/fresh_confirmation_report.json",
+    "fresh_confirmation_file_sha256": "ab288adf1359beb262c25e7314d80adad136c464558987577e313eb198edc914",
+    "fresh_confirmation_report_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "fresh_source_accuracy": 0.9895833333333334,
+    "fresh_source_examples": 96,
+    "fresh_source_option_support": {
+      "COMMIT": 24,
+      "POSITION": 72
+    },
+    "source_domain": "Sokoban",
+    "source_gate_passed": true,
+    "transferred_structure": "POSITIVE_IRREVERSIBLE_EFFECT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_REVERSIBLE_POSITION_OR_PREPARE"
+  },
+  "target_contract": {
+    "grounded_outcomes": [
+      "state_changed",
+      "terminated",
+      "reward",
+      "prerequisite_progress"
+    ],
+    "grounder": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+    "grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+    "grounder_preflight_passed": true,
+    "target_permission": "The WebShop-native MLP grounds predicates and ranks native actions within the selected POSITION or COMMIT option."
+  },
+  "tasks": 32,
+  "receipt_count": 192,
+  "receipt_matrix_sha256": "16f0e1a13d4f0989b080639919e220f233b2fcdd4f8cac08f49ad0d1243a3fa8",
+  "conditions": {
+    "target_only": {
+      "n": 32,
+      "strict_successes": 9,
+      "pass_successes": 22,
+      "mean_reward": 0.5651041666666666,
+      "mean_steps": 7.875,
+      "source_decisions": 0,
+      "failures": 0
+    },
+    "target_native_myopic": {
+      "n": 32,
+      "strict_successes": 3,
+      "pass_successes": 30,
+      "mean_reward": 0.6588541666666666,
+      "mean_steps": 4.3125,
+      "source_decisions": 32,
+      "failures": 0
+    },
+    "authentic_sokoban_effect_plus_target": {
+      "n": 32,
+      "strict_successes": 14,
+      "pass_successes": 26,
+      "mean_reward": 0.7057291666666666,
+      "mean_steps": 7.6875,
+      "source_decisions": 25,
+      "failures": 0
+    },
+    "commit_availability_control_plus_target": {
+      "n": 32,
+      "strict_successes": 3,
+      "pass_successes": 27,
+      "mean_reward": 0.6067708333333333,
+      "mean_steps": 6.8125,
+      "source_decisions": 13,
+      "failures": 0
+    },
+    "inverted_effect_control_plus_target": {
+      "n": 32,
+      "strict_successes": 3,
+      "pass_successes": 27,
+      "mean_reward": 0.6067708333333333,
+      "mean_steps": 6.8125,
+      "source_decisions": 13,
+      "failures": 0
+    },
+    "position_prior_control_plus_target": {
+      "n": 32,
+      "strict_successes": 8,
+      "pass_successes": 20,
+      "mean_reward": 0.5182291666666666,
+      "mean_steps": 8.1875,
+      "source_decisions": 25,
+      "failures": 0
+    }
+  },
+  "comparisons": [
+    {
+      "comparator": "target_only",
+      "tasks": 32,
+      "strict_wins": 6,
+      "strict_losses": 1,
+      "strict_ties": 25,
+      "strict_success_delta": 0.15625,
+      "mean_reward_delta": 0.140625,
+      "mean_step_delta": -0.1875,
+      "paired_exact_p_two_sided": 0.125,
+      "action_contrast_tasks": 11,
+      "action_contrast_task_ids": [
+        "webshop.146",
+        "webshop.155",
+        "webshop.157",
+        "webshop.159",
+        "webshop.162",
+        "webshop.165",
+        "webshop.171",
+        "webshop.172",
+        "webshop.174",
+        "webshop.175",
+        "webshop.176"
+      ]
+    },
+    {
+      "comparator": "target_native_myopic",
+      "tasks": 32,
+      "strict_wins": 11,
+      "strict_losses": 0,
+      "strict_ties": 21,
+      "strict_success_delta": 0.34375,
+      "mean_reward_delta": 0.046875000000000014,
+      "mean_step_delta": 3.375,
+      "paired_exact_p_two_sided": 0.0009765625,
+      "action_contrast_tasks": 26,
+      "action_contrast_task_ids": [
+        "webshop.146",
+        "webshop.149",
+        "webshop.150",
+        "webshop.152",
+        "webshop.153",
+        "webshop.154",
+        "webshop.155",
+        "webshop.157",
+        "webshop.158",
+        "webshop.159",
+        "webshop.161",
+        "webshop.162",
+        "webshop.163",
+        "webshop.164",
+        "webshop.165",
+        "webshop.166",
+        "webshop.167",
+        "webshop.168",
+        "webshop.169",
+        "webshop.170",
+        "webshop.171",
+        "webshop.172",
+        "webshop.174",
+        "webshop.175",
+        "webshop.176",
+        "webshop.177"
+      ]
+    },
+    {
+      "comparator": "commit_availability_control_plus_target",
+      "tasks": 32,
+      "strict_wins": 11,
+      "strict_losses": 0,
+      "strict_ties": 21,
+      "strict_success_delta": 0.34375,
+      "mean_reward_delta": 0.09895833333333334,
+      "mean_step_delta": 0.875,
+      "paired_exact_p_two_sided": 0.0009765625,
+      "action_contrast_tasks": 13,
+      "action_contrast_task_ids": [
+        "webshop.146",
+        "webshop.155",
+        "webshop.157",
+        "webshop.159",
+        "webshop.162",
+        "webshop.165",
+        "webshop.168",
+        "webshop.170",
+        "webshop.171",
+        "webshop.172",
+        "webshop.174",
+        "webshop.175",
+        "webshop.176"
+      ]
+    },
+    {
+      "comparator": "inverted_effect_control_plus_target",
+      "tasks": 32,
+      "strict_wins": 11,
+      "strict_losses": 0,
+      "strict_ties": 21,
+      "strict_success_delta": 0.34375,
+      "mean_reward_delta": 0.09895833333333334,
+      "mean_step_delta": 0.875,
+      "paired_exact_p_two_sided": 0.0009765625,
+      "action_contrast_tasks": 13,
+      "action_contrast_task_ids": [
+        "webshop.146",
+        "webshop.155",
+        "webshop.157",
+        "webshop.159",
+        "webshop.162",
+        "webshop.165",
+        "webshop.168",
+        "webshop.170",
+        "webshop.171",
+        "webshop.172",
+        "webshop.174",
+        "webshop.175",
+        "webshop.176"
+      ]
+    },
+    {
+      "comparator": "position_prior_control_plus_target",
+      "tasks": 32,
+      "strict_wins": 6,
+      "strict_losses": 0,
+      "strict_ties": 26,
+      "strict_success_delta": 0.1875,
+      "mean_reward_delta": 0.1875,
+      "mean_step_delta": -0.5,
+      "paired_exact_p_two_sided": 0.03125,
+      "action_contrast_tasks": 6,
+      "action_contrast_task_ids": [
+        "webshop.146",
+        "webshop.155",
+        "webshop.159",
+        "webshop.168",
+        "webshop.172",
+        "webshop.176"
+      ]
+    }
+  ],
+  "comparison_gates": {
+    "target_only": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": false,
+      "action_contrast": true
+    },
+    "target_native_myopic": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    },
+    "commit_availability_control_plus_target": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    },
+    "inverted_effect_control_plus_target": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    },
+    "position_prior_control_plus_target": {
+      "complete": true,
+      "strict_wins_exceed_losses": true,
+      "positive_strict_success_delta": true,
+      "positive_mean_reward_delta": true,
+      "paired_exact_p_at_most_0p05": true,
+      "action_contrast": true
+    }
+  },
+  "primary_gates": {
+    "receipt_matrix_complete": true,
+    "receipt_hashes_valid": true,
+    "zero_final_failures": true,
+    "matched_initial_state_hashes": true,
+    "authentic_source_decisions": true,
+    "all_comparator_gates": false
+  },
+  "passed": false,
+  "scientific_status": "REAL_SOKOBAN_TO_WEBSHOP_TRANSFER_V13_NOT_VALIDATED",
+  "operational_retries": [],
+  "runtime_hashes": {
+    "summarizer": "d4cd6f04c7de50bccf977938ea57d572dd5761be5a5c2b2df949429a4a7d1395",
+    "frozen_config": "128dc00633b6d11d3850386b3f4cc0574208af18acc512a841fab4ecaea32081",
+    "run_summary": "afd3c0c117e17945ba017694efcf27fdc769d2f8e5aca1305239d1a6ec54acd9"
+  },
+  "v12_reserved_data_used": false,
+  "report_sha256": "3d2b150acb5bb37fa3d315eee2a009ad84fc826f52abc22778465a2660f67f0f"
+}
