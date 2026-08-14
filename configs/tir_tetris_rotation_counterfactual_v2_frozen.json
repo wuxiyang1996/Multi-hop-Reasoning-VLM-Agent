@@ -1,0 +1,86 @@
+{
+  "schema_version": "tetris-to-tir-rotation-counterfactual-v2",
+  "status": "FROZEN_BEFORE_FRESH_COUNTERFACTUAL_CALLS",
+  "claim_boundary": "Tetris supplies an anonymous cyclic-group inverse/identity-recovery program. A target-native neural model sees only deterministically shuffled counterfactual image panels and selects which anonymous intervention restores physical uprightness; numeric angles, answer slots, and gold are hidden. The symbolic executor binds that intervention to a native TIR action. The target-written isomorphic condition is extensionally identical, so this tests transferable mechanism value but not source provenance necessity.",
+  "authority": {
+    "development_report": "docs/results/tir_rotation_counterfactual_v2_consumed_development.json",
+    "qualification_report": "runs/tir_rotation_counterfactual_v2_fresh/qualification_report.json"
+  },
+  "source": {
+    "artifact": "docs/results/tetris_rotation_group_v1_compact_receipt.json",
+    "artifact_content_sha256": "22b7d947e95fec0865704dec41d66d3207960b24c7113ed6f86f71fef3d768d7",
+    "artifact_file_sha256": "b787e6ae052af81b23b891a9f97e4f1b3f68fa7606570652a49b5fa472c4a974"
+  },
+  "dataset": {
+    "family": "rotation_game",
+    "file_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8"
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "openai/gpt-4.1-mini",
+    "temperature": 0,
+    "maximum_output_tokens": 300,
+    "timeout_seconds": 180,
+    "max_retries": 2
+  },
+  "selection": {
+    "available_before_v2_selection": 29,
+    "source": "the unopened V1 heldout plus reserve IDs",
+    "rule": "Sort sha256('tir-rotation-counterfactual-v2-fresh\\0'+id), assign first 8 to qualification and remaining 21 to heldout.",
+    "image_prompt_answer_or_outcome_read_before_assignment": false
+  },
+  "splits": {
+    "qualification": [
+      "595",
+      "703",
+      "504",
+      "329",
+      "823",
+      "1087",
+      "804",
+      "386"
+    ],
+    "heldout": [
+      "403",
+      "261",
+      "783",
+      "552",
+      "1115",
+      "1039",
+      "380",
+      "221",
+      "815",
+      "432",
+      "772",
+      "1165",
+      "1136",
+      "980",
+      "1082",
+      "523",
+      "791",
+      "672",
+      "940",
+      "893",
+      "137"
+    ]
+  },
+  "formal_gates": {
+    "minimum_authentic_accuracy": 0.75,
+    "authentic_strictly_above_raw": true,
+    "paired_wins_above_losses": true,
+    "authentic_strictly_above_opposite_binding_rotation_and_marginal": true,
+    "alpha_rename_invariance": true,
+    "target_written_isomorphic_equivalence": true,
+    "minimum_action_changes": "max(2,floor(tasks/5))",
+    "thresholds_may_change_after_open": false
+  },
+  "integrity": {
+    "file_sha256": {
+      "scripts/develop_tir_rotation_counterfactual_v2.py": "695dc5bc7f72a697a66bf11fc527e185c49f7ebf43253e7e29960b9d1e1d4bdf",
+      "scripts/run_tir_rotation_counterfactual_v2.py": "15424d8706cc9abdb1e9a30df07299f8a1476563e17eec3238649be5ee40c084",
+      "src/motif_transfer/tetris_counterfactual_rotation.py": "05867aeb61e13004138ee4d30df40456a5dc53780bb6d20ba35b4ce2ca5cf9c8",
+      "src/motif_transfer/tetris_rotation_transfer.py": "50cdc1536421572ceca7465afd8e4213c2d57e57b35832c88f86191d3fa8cf78"
+    }
+  }
+}
