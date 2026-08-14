@@ -45,40 +45,48 @@
       ]
     },
     {
-      "skill_id": "multisource-typed-workflow-value-v4",
-      "source_domains": ["game", "software", "science", "forensics", "network", "logistics", "medicine", "maintenance"],
-      "symbolic_payload": "Score the typed SEARCH-ACQUIRE-TRANSFORM-PLACE-VERIFY workflow option using source-learned intervention value; target-native neural heads bind and rank admissible ALFWorld actions.",
-      "source_artifact_sha256": "12eb38a91cb81cdaee0bce8e0ac76d4f347e016937bb775105b1a6703c16eaed",
+      "skill_id": "procedural-game-typed-workflow-value-v1",
+      "source_domains": ["grid_quest", "factory_quest", "dungeon_quest", "space_quest", "island_quest", "circuit_quest"],
+      "symbolic_payload": "Transfer matched-intervention value over the typed SEARCH-ACQUIRE-TRANSFORM-PLACE-VERIFY workflow automaton; alpha-renamed source-native actions never cross the boundary, while target-native neural heads bind and rank admissible ALFWorld actions.",
+      "source_artifact_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
       "source_artifact_hash_path": "source.frozen_candidate_artifact_file_sha256",
       "source_receipt": {
-        "path": "docs/results/alfworld_multisource_neurosymbolic_v4_summary.json",
-        "file_sha256": "34738e0b353aa12596d3c4c69f4ef4bb13dd46a45085cb64db0e80fe4d208d95",
+        "path": "docs/results/procedural_game_alfworld_v1_summary.json",
+        "file_sha256": "cc6e37cee45a5d505f39f1a4172ceb9e2fc1d5351b98d184467c1e371e4da0ef",
         "claims": [
-          {"path": "source.source_gate_passed", "equals": true}
+          {"path": "source.source_gate_passed", "equals": true},
+          {"path": "source.raw_action_tokens_transferred", "equals": false},
+          {"path": "source.candidate_rebuilt_exactly_from_current_code", "equals": true}
         ]
       },
       "evidence_tier": "FRESH_FORMAL",
-      "evidence_status": "FINAL_HELDOUT_PASSED",
-      "evidence_status_path": "formal.status",
+      "evidence_status": "PROCEDURAL_GAME_TO_ALFWORLD_FRESH_FORMAL_VALIDATED",
+      "evidence_status_path": "status",
       "evidence_receipt": {
-        "path": "docs/results/alfworld_multisource_neurosymbolic_v4_summary.json",
-        "file_sha256": "34738e0b353aa12596d3c4c69f4ef4bb13dd46a45085cb64db0e80fe4d208d95",
+        "path": "docs/results/procedural_game_alfworld_v1_summary.json",
+        "file_sha256": "cc6e37cee45a5d505f39f1a4172ceb9e2fc1d5351b98d184467c1e371e4da0ef",
         "claims": [
+          {"path": "formal.all_frozen_gates_passed", "equals": true},
           {"path": "formal.nontriviality_gate_passed", "equals": true},
           {"path": "formal.efficiency_gate_passed", "equals": true},
-          {"path": "formal.authentic_strictly_beats_every_control", "equals": true}
+          {"path": "formal.superiority_gate_passed", "equals": true},
+          {"path": "operational_disclosure.scientific_configuration_changed_after_partial_outcomes", "equals": false}
         ]
       },
       "adapter_files": [
+        {"path": "src/motif_transfer/procedural_workflow_game.py", "file_sha256": "acdf8b2e2e484208f8695c1448f447fec856d411917be7f476a6b66fc5c22e68"},
         {"path": "src/motif_transfer/alfworld_hierarchical_grounder.py", "file_sha256": "b6eec64dcdff75f4ae11d6d38ddec9bd6ef8e6fe10a2feee8b78b211e7f7997e"},
-        {"path": "src/motif_transfer/hierarchical_skill_transfer.py", "file_sha256": "cf9a7e2e4dcdcffa252bc6d83b45a8cd4dad7e4ffaec888fef851db4722719cb"}
+        {"path": "src/motif_transfer/hierarchical_skill_transfer.py", "file_sha256": "cf9a7e2e4dcdcffa252bc6d83b45a8cd4dad7e4ffaec888fef851db4722719cb"},
+        {"path": "scripts/train_procedural_game_alfworld_candidate.py", "file_sha256": "dc12e40ab5fb54d611e646400b496d63767350e335204cc6c222d3a9509f48d0"},
+        {"path": "scripts/run_multisource_alfworld_v2_qualification.py", "file_sha256": "1a829f289ceb92954286cb3bb5afbe387017558ea00ae1d6fbde08651db44e0e"},
+        {"path": "scripts/summarize_procedural_game_alfworld_v1.py", "file_sha256": "f2af732535fbc66140650c0e88c8d6118dda77a47e2f296b4cbdcec5e2f648ae"}
       ],
       "routes": [
         {
           "target_domain": "alfworld",
           "target_interface": "text_household_workflow",
           "required_capabilities": ["admissible_actions", "effect_prediction", "goal_binding", "workflow_state"],
-          "target_adapter": "alfworld-multisource-neurosymbolic-v4",
+          "target_adapter": "alfworld-procedural-game-neurosymbolic-v1",
           "target_grounder": "motif_transfer.alfworld_hierarchical_grounder.score_actions",
           "target_executor": "scripts.run_multisource_alfworld_v2_qualification._choose_action",
           "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR"
@@ -179,7 +187,7 @@
       "interface": "text_household_workflow",
       "capabilities": ["admissible_actions", "effect_prediction", "goal_binding", "workflow_state"],
       "minimum_evidence": "FRESH_FORMAL",
-      "expected_skill_id": "multisource-typed-workflow-value-v4"
+      "expected_skill_id": "procedural-game-typed-workflow-value-v1"
     },
     {
       "domain": "discoveryworld",

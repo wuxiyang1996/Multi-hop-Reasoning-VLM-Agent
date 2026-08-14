@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "status": "CONSUMED_TARGET_DEVELOPMENT_DIAGNOSTIC_ONLY",
+  "claim_boundary": "Compatibility diagnostic on an already-consumed eight-task ALFWorld qualification split. It may authorize freezing the pre-existing unread V12 confirmation identities but cannot itself support a transfer claim.",
+  "source_evidence": {
+    "candidate": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+    "source_gate_required": true,
+    "source_kind_required": "matched-intervention-procedural-workflow-game-mdp-v1"
+  },
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "seed": 88601,
+    "artifact": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+    "qualification_manifest": "configs/target_rollout_collection_v1.json",
+    "qualification_split": "eval_out_of_distribution",
+    "qualification_manifest_split": "qualification",
+    "qualification_max_steps": 70,
+    "qualification_report": "runs/procedural_game_alfworld_v1_development/target_development_report.json"
+  },
+  "policy": {
+    "controller": "SOURCE_OPTION_ONLY_V3_DIAGNOSTIC",
+    "uncertainty_scale": 0.4,
+    "decision_margin": 0.01,
+    "minimum_authentic_option_change_rate": 0.08,
+    "require_mean_steps_below_target_only": true,
+    "success_gate": "authentic successes strictly greater than target-only, shuffled, marginal, and phase-permuted"
+  }
+}

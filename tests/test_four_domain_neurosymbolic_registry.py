@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from motif_transfer.neurosymbolic_skill_library import (
@@ -52,6 +53,28 @@ def test_all_four_exact_routes_are_fresh_formal_and_target_native() -> None:
     assert {receipt.request.domain for receipt in receipts} == {
         "webshop", "alfworld", "discoveryworld", "tir",
     }
+    by_domain = {receipt.request.domain: receipt for receipt in receipts}
+    assert by_domain["alfworld"].skill_id == (
+        "procedural-game-typed-workflow-value-v1"
+    )
+
+
+def test_alfworld_route_is_bound_to_procedural_game_sources() -> None:
+    registry = json.loads(
+        (REPO / "configs/neurosymbolic_skill_library_v1.json").read_text()
+    )
+    skill = next(
+        row for row in registry["skills"]
+        if row["skill_id"] == "procedural-game-typed-workflow-value-v1"
+    )
+    assert set(skill["source_domains"]) == {
+        "grid_quest", "factory_quest", "dungeon_quest", "space_quest",
+        "island_quest", "circuit_quest",
+    }
+    assert "raw action" not in skill["symbolic_payload"].lower()
+    assert skill["routes"][0]["action_authority"] == (
+        "TARGET_NATIVE_GROUNDER_AND_EXECUTOR"
+    )
 
 
 def test_unsupported_video_and_broad_tir_routes_abstain() -> None:

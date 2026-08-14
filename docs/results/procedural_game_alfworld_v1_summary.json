@@ -1,0 +1,260 @@
+{
+  "claim_boundary": "Matched-intervention procedural workflow games to the exact 24-task ALFWorld valid_unseen reserve. This is controlled game-suite transfer, not Sokoban-only transfer and not zero-shot target grounding.",
+  "development": {
+    "all_gates_passed": true,
+    "status": "QUALIFICATION_CANDIDATE_PASSED",
+    "summaries": {
+      "authentic_source_plus_target": {
+        "changed_action_rate": 0.5364583333333334,
+        "changed_option_rate": 0.16666666666666666,
+        "mean_steps": 24.0,
+        "source_admission_rate": 0.6666666666666666,
+        "success_rate": 1.0,
+        "successes": 8,
+        "tasks": 8
+      },
+      "phase_permuted_source_plus_target": {
+        "changed_action_rate": 0.584,
+        "changed_option_rate": 0.46,
+        "mean_steps": 62.5,
+        "source_admission_rate": 0.636,
+        "success_rate": 0.125,
+        "successes": 1,
+        "tasks": 8
+      },
+      "shuffled_source_plus_target": {
+        "changed_action_rate": 0.5320197044334976,
+        "changed_option_rate": 0.3669950738916256,
+        "mean_steps": 50.75,
+        "source_admission_rate": 0.6083743842364532,
+        "success_rate": 0.375,
+        "successes": 3,
+        "tasks": 8
+      },
+      "source_marginal_plus_target": {
+        "changed_action_rate": 0.0,
+        "changed_option_rate": 0.0,
+        "mean_steps": 39.0,
+        "source_admission_rate": 0.0,
+        "success_rate": 0.75,
+        "successes": 6,
+        "tasks": 8
+      },
+      "target_only": {
+        "changed_action_rate": 0.0,
+        "changed_option_rate": 0.0,
+        "mean_steps": 39.0,
+        "source_admission_rate": 0.0,
+        "success_rate": 0.75,
+        "successes": 6,
+        "tasks": 8
+      }
+    }
+  },
+  "formal": {
+    "all_frozen_gates_passed": true,
+    "efficiency_gate_passed": true,
+    "family_breakdown": {
+      "look_at_obj_in_light": {
+        "authentic_source_plus_target": 6,
+        "phase_permuted_source_plus_target": 0,
+        "shuffled_source_plus_target": 5,
+        "source_marginal_plus_target": 6,
+        "target_only": 6,
+        "tasks": 6
+      },
+      "pick_and_place_simple": {
+        "authentic_source_plus_target": 5,
+        "phase_permuted_source_plus_target": 2,
+        "shuffled_source_plus_target": 4,
+        "source_marginal_plus_target": 4,
+        "target_only": 4,
+        "tasks": 5
+      },
+      "pick_clean_then_place_in_recep": {
+        "authentic_source_plus_target": 4,
+        "phase_permuted_source_plus_target": 0,
+        "shuffled_source_plus_target": 0,
+        "source_marginal_plus_target": 2,
+        "target_only": 2,
+        "tasks": 4
+      },
+      "pick_cool_then_place_in_recep": {
+        "authentic_source_plus_target": 3,
+        "phase_permuted_source_plus_target": 0,
+        "shuffled_source_plus_target": 1,
+        "source_marginal_plus_target": 1,
+        "target_only": 1,
+        "tasks": 4
+      },
+      "pick_heat_then_place_in_recep": {
+        "authentic_source_plus_target": 4,
+        "phase_permuted_source_plus_target": 1,
+        "shuffled_source_plus_target": 0,
+        "source_marginal_plus_target": 0,
+        "target_only": 0,
+        "tasks": 4
+      },
+      "pick_two_obj_and_place": {
+        "authentic_source_plus_target": 0,
+        "phase_permuted_source_plus_target": 0,
+        "shuffled_source_plus_target": 0,
+        "source_marginal_plus_target": 1,
+        "target_only": 1,
+        "tasks": 1
+      }
+    },
+    "nontriviality_gate_passed": true,
+    "paired_comparisons": {
+      "phase_permuted_source_plus_target": {
+        "exact_two_sided_sign_p": 3.814697265625e-06,
+        "losses": 0,
+        "ties": 5,
+        "wins": 19
+      },
+      "shuffled_source_plus_target": {
+        "exact_two_sided_sign_p": 0.00048828125,
+        "losses": 0,
+        "ties": 12,
+        "wins": 12
+      },
+      "source_marginal_plus_target": {
+        "exact_two_sided_sign_p": 0.021484375,
+        "losses": 1,
+        "ties": 14,
+        "wins": 9
+      },
+      "target_only": {
+        "exact_two_sided_sign_p": 0.021484375,
+        "losses": 1,
+        "ties": 14,
+        "wins": 9
+      }
+    },
+    "status": "FINAL_HELDOUT_PASSED",
+    "summaries": {
+      "authentic_source_plus_target": {
+        "changed_action_rate": 0.4590443686006826,
+        "changed_option_rate": 0.17747440273037543,
+        "mean_steps": 24.416666666666668,
+        "source_admission_rate": 0.5631399317406144,
+        "success_rate": 0.9166666666666666,
+        "successes": 22,
+        "tasks": 24
+      },
+      "phase_permuted_source_plus_target": {
+        "changed_action_rate": 0.4984005118362124,
+        "changed_option_rate": 0.3889955214331414,
+        "mean_steps": 65.125,
+        "source_admission_rate": 0.5527831094049904,
+        "success_rate": 0.125,
+        "successes": 3,
+        "tasks": 24
+      },
+      "shuffled_source_plus_target": {
+        "changed_action_rate": 0.5123456790123457,
+        "changed_option_rate": 0.33719135802469136,
+        "mean_steps": 54.0,
+        "source_admission_rate": 0.5555555555555556,
+        "success_rate": 0.4166666666666667,
+        "successes": 10,
+        "tasks": 24
+      },
+      "source_marginal_plus_target": {
+        "changed_action_rate": 0.0,
+        "changed_option_rate": 0.0,
+        "mean_steps": 44.125,
+        "source_admission_rate": 0.0,
+        "success_rate": 0.5833333333333334,
+        "successes": 14,
+        "tasks": 24
+      },
+      "target_only": {
+        "changed_action_rate": 0.0,
+        "changed_option_rate": 0.0,
+        "mean_steps": 44.125,
+        "source_admission_rate": 0.0,
+        "success_rate": 0.5833333333333334,
+        "successes": 14,
+        "tasks": 24
+      }
+    },
+    "superiority_gate_passed": true
+  },
+  "input_file_sha256": {
+    "candidate_artifact": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+    "development_config": "5d9eb8083b1b3df55bb87d37ff768bc739e3f7ef7647fa712d90f75d893bdb1f",
+    "development_report": "9d81a16167fdb50f6182d1eb522d627f632178a189e1bf50a97a26a76c8c1a8b",
+    "final_config": "2ece7d45c3ec6dddc2d6c1164874472bf238fdbb03eec66e2ba150b1d15105b5",
+    "final_report": "0c42871e89a39555571df026767578d5618ad2340d8eda4ad3a66ddf69c2c860",
+    "manifest": "5f8c952d3bcb1a0097fa62aea1bbf4aa8f854fb6f3d267354ddd6ea938a19883",
+    "runner": "1a829f289ceb92954286cb3bb5afbe387017558ea00ae1d6fbde08651db44e0e",
+    "source_config": "5d9be685f2e9e9ebbbcb9f71bef177609363ded5cce4a88f85300ae649e4e1b8",
+    "source_game_mdp": "acdf8b2e2e484208f8695c1448f447fec856d411917be7f476a6b66fc5c22e68",
+    "source_trainer": "dc12e40ab5fb54d611e646400b496d63767350e335204cc6c222d3a9509f48d0",
+    "symbolic_value_model": "cf9a7e2e4dcdcffa252bc6d83b45a8cd4dad7e4ffaec888fef851db4722719cb",
+    "target_native_grounder": "b6eec64dcdff75f4ae11d6d38ddec9bd6ef8e6fe10a2feee8b78b211e7f7997e"
+  },
+  "operational_disclosure": {
+    "first_attempt_final_report_written": false,
+    "first_attempt_partial_next_condition": {
+      "completed_tasks": 2,
+      "condition": "shuffled_source_plus_target"
+    },
+    "first_attempt_transport_interrupted_after_conditions": [
+      "target_only",
+      "authentic_source_plus_target"
+    ],
+    "interpretation": "The exact frozen run was replayed after a transport interruption. The result is a deterministic frozen replay, not an uninterrupted one-shot execution.",
+    "replay_used_identical_frozen_inputs": true,
+    "scientific_configuration_changed_after_partial_outcomes": false
+  },
+  "schema_version": "procedural-game-to-alfworld-v1-summary",
+  "source": {
+    "alpha_renamed_native_actions_per_domain": true,
+    "candidate_rebuilt_exactly_from_current_code": true,
+    "evaluation_domains": 24,
+    "evaluation_intervention_receipts": 46080,
+    "evaluation_receipts_sha256": "5f99e41879c1c1544e236f787c5712cb8e2d6df7bc80ed9236bd8982d7903db0",
+    "evaluation_surfaces": [
+      "island_quest",
+      "circuit_quest"
+    ],
+    "frozen_candidate_artifact_file_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+    "frozen_candidate_content_sha256": "e5399b44760fc265aac3f718ece7c9333042b15dac8180dae457b69f71e056aa",
+    "heldout_value_mse": {
+      "authentic_source_plus_target": 0.027365231735777228,
+      "phase_permuted_source_plus_target": 0.045967647580433785,
+      "shuffled_source_plus_target": 0.03996914294902362,
+      "source_marginal_plus_target": 0.052710387574205333
+    },
+    "kind": "matched-intervention-procedural-workflow-game-mdp-v1",
+    "raw_action_tokens_transferred": false,
+    "relative_mse_improvement_over_control": {
+      "phase_permuted_source_plus_target": 0.4046849648354577,
+      "shuffled_source_plus_target": 0.31534104269689595,
+      "source_marginal_plus_target": 0.4808379715050921
+    },
+    "source_gate_passed": true,
+    "surface_overlap": [],
+    "train_domains": 96,
+    "train_surfaces": [
+      "grid_quest",
+      "factory_quest",
+      "dungeon_quest",
+      "space_quest"
+    ]
+  },
+  "status": "PROCEDURAL_GAME_TO_ALFWORLD_FRESH_FORMAL_VALIDATED",
+  "summary_sha256": "891872d0004b0261870a93424dedcf3c75b713960a1a1b1c7782c3b5e049ca13",
+  "target": {
+    "grounder_gate_passed": true,
+    "grounder_kind": "target-native-hierarchical-event-grounder-v2",
+    "grounder_retrained_on_qualification_or_heldout": false,
+    "manifest_parent_sha256": "8377d8b8fb13e3095ed9220927e7828541e6fbed1a2218348656d6bd395024b4",
+    "manifest_status_before_first_attempt": "FROZEN_BEFORE_ANY_SELECTED_TASK_RESET",
+    "native_action_authority": true,
+    "split": "valid_unseen",
+    "tasks": 24
+  }
+}
