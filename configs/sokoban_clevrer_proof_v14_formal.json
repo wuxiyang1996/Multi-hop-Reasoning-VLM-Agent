@@ -1,0 +1,56 @@
+{
+  "schema_version": 14,
+  "status": "FROZEN_BEFORE_V14_FORMAL_OUTCOMES",
+  "claim_boundary": "Prospective test of the real-Sokoban COMMIT/VERIFY/EXPECTED_EFFECT_REFUTED/REPLAN contract using a CLEVRER-native neural paired-uplift ensemble grounded in step-level symbolic proof and event-graph receipts. Source actions, coordinates, game tokens, video tokens, official functional programs, and answer labels never cross the runtime boundary. This is adaptation-based, not zero-shot, and can validate selective recovery only in this fixed local CLEVRER setup; it does not prove Sokoban provenance is necessary relative to an extensionally identical target-only controller or establish STAR/NExT-QA transfer.",
+  "source": {
+    "receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "required_artifact_version": "SOKOBAN_EFFECT_PROGRAM_V2",
+    "transferred_contract": "COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN_OR_ABSTAIN"
+  },
+  "grounder": {
+    "artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/clevrer_sokoban_proof_v14_training/frozen_proof_grounder.json",
+    "training_report": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/clevrer_sokoban_proof_v14_training/training_report.json",
+    "training_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_sokoban_proof_v14_training.json",
+    "runtime_inputs": "public question/choice text; paired target-native neural event graphs; typed postfix executor proof receipts",
+    "forbidden_runtime_inputs": "official functional programs; official answer labels; formal outcomes; reserve-role queries"
+  },
+  "target": {
+    "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_sokoban_proof_v14_splits.json",
+    "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+    "split": "formal",
+    "explicit_relation_prediction_directory": "with_edge_supervision_old",
+    "trajectory_prediction_directory": "without_edge_supervision",
+    "recovery_realization": "SWITCH_FROM_EXPLICIT_RELATION_TO_TARGET_NATIVE_TRAJECTORY_RELATIONS"
+  },
+  "gates": {
+    "expected_formal_samples": 720,
+    "minimum_authentic_recoveries": 40,
+    "minimum_primary_net_wins": 12,
+    "maximum_primary_exact_p": 0.01,
+    "require_proof_receipts_strictly_above_base_only": true,
+    "binding_control_conditions": [
+      "target_trajectory_only",
+      "permuted_uplift_cate_recover",
+      "shuffled_proof_binding_recover",
+      "source_inverted_effect_recover",
+      "source_shuffled_action_binding_recover",
+      "target_family_matched_marginal_recover",
+      "target_error_only_recover",
+      "target_disagreement_recover"
+    ],
+    "reserve_role_must_not_be_queried": true
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "split_manifest_sha256": "cde4d9b8f12fcf6cd6cb70d4635c3335123d91156e2eac5ab07bf1d591a616be",
+    "proof_artifact_file_sha256": "f2c380de4d451746517d849dab45ed54385068ee562998d646058f8f38a6423b",
+    "training_report_sha256": "a726e4d54ee6d0ac9e3de9cdb5e61ea93bbe8ce8221b525d42e83e26dfd4caad",
+    "training_config_sha256": "f26a3a2f80d9e3fb8746afb5705e6be1056e45396ad20a561fe8615c9e97db9f",
+    "runner_sha256": "91894d03b0a4d78202672d710b67ceae49f5668217c120b08e314508ac58e2fe",
+    "proof_grounder_module_sha256": "778e73cc7b6bdf612a1016e9088f9d86e99e272dd51a104c7c55fae8e8e6794d",
+    "proof_receipt_module_sha256": "def0e90c0c3f43d3a23717ff52ffc2ec67a476d5f1145f1633fa80e5c4fa8169",
+    "compiler_module_sha256": "49be363fac3603213ba5621855f7f6cdd6f5d17804961acb57ea6f3699b8ff5c",
+    "base_feature_module_sha256": "86b165ee347479c0a63d76b830895a18f35e7dc18c3c1db84aaa986291c9a3af",
+    "recovery_module_sha256": "55776f55966a4c982e718701e15474442a4998769ee5a1a7aebbebb7fd7c5bae"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 14,
+  "status": "FROZEN_V14_PROOF_GROUNDER_TRAINING",
+  "claim_boundary": "Fit a target-native neural paired-uplift ensemble on typed CLEVRER proof receipts from four consumed/development batches. The real Sokoban source supplies only the independently confirmed VERIFY/EXPECTED_EFFECT_REFUTED/REPLAN symbolic contract. The V14 formal and reserve roles remain unqueried during fitting and model selection.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "development_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/clevrer_sokoban_proof_v14_development/development_receipts.json",
+  "development_receipts_sha256": "0b43baecf57d0189dc13df47f8bf0b5a9c5327491a8e6d5d2713a8de6b47b378",
+  "model": {
+    "kind": "FIVE_HEAD_ONE_HIDDEN_LAYER_TANH_MLP_ENSEMBLE",
+    "hidden_units": 12,
+    "alpha": 3.0,
+    "max_iter": 3000,
+    "seeds": [
+      0,
+      1,
+      2,
+      13,
+      21
+    ]
+  },
+  "cross_fit": "LEAVE_ONE_SOURCE_BATCH_OUT",
+  "decision_threshold": 0.2,
+  "threshold_provenance": "Inherited unchanged from the pre-V13-formal paired-uplift protocol; not selected on V14 outcomes.",
+  "permuted_control_seed": 314159,
+  "gates": {
+    "minimum_selected": 60,
+    "minimum_net_wins": 25,
+    "maximum_exact_p": 0.001,
+    "minimum_net_wins_per_batch": 3,
+    "minimum_net_wins_per_family": 3,
+    "require_proof_above_base_only": true,
+    "require_proof_above_permuted": true
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "trainer_sha256": "c6cf044330794e88b68c6412d7614001184754955a84c47460bce910401df629",
+    "proof_grounder_module_sha256": "778e73cc7b6bdf612a1016e9088f9d86e99e272dd51a104c7c55fae8e8e6794d"
+  }
+}
