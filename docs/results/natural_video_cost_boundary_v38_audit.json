@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "status": "NATURAL_VIDEO_TRANSFER_FORMALLY_FAILED_STOP_NEW_API_SPEND",
+  "formal_natural_video": {
+    "status": "SOKOBAN_TO_MATCHED_STAR_NEXTQA_NEUROSYMBOLIC_TRANSFER_FORMAL_FAILED",
+    "questions": 201,
+    "video_clusters": 28,
+    "same_model_and_frames_direct_vs_proof": true,
+    "zero_sample_overlap_with_adaptation": true,
+    "zero_video_overlap_with_adaptation": true,
+    "matched_direct": {
+      "n": 201,
+      "correct": 150,
+      "accuracy": 0.746268656716418,
+      "wins": 0,
+      "losses": 0,
+      "ties": 201,
+      "net_wins": 0,
+      "accuracy_delta": 0.0,
+      "exact_two_sided_p": 1.0
+    },
+    "raw_typed_proof": {
+      "n": 201,
+      "correct": 151,
+      "accuracy": 0.7512437810945274,
+      "wins": 8,
+      "losses": 7,
+      "ties": 186,
+      "net_wins": 1,
+      "accuracy_delta": 0.004975124378109453,
+      "exact_two_sided_p": 1.0
+    },
+    "authentic_source_cate": {
+      "n": 201,
+      "correct": 149,
+      "accuracy": 0.7412935323383084,
+      "wins": 3,
+      "losses": 4,
+      "ties": 194,
+      "net_wins": -1,
+      "accuracy_delta": -0.004975124378109453,
+      "exact_two_sided_p": 1.0
+    },
+    "inverted_source_control": {
+      "n": 201,
+      "correct": 152,
+      "accuracy": 0.7562189054726368,
+      "wins": 5,
+      "losses": 3,
+      "ties": 193,
+      "net_wins": 2,
+      "accuracy_delta": 0.009950248756218905,
+      "exact_two_sided_p": 0.7265625
+    },
+    "same_rate_marginal_control": {
+      "n": 201,
+      "correct": 151,
+      "accuracy": 0.7512437810945274,
+      "wins": 5,
+      "losses": 4,
+      "ties": 192,
+      "net_wins": 1,
+      "accuracy_delta": 0.004975124378109453,
+      "exact_two_sided_p": 1.0
+    },
+    "all_formal_gates_passed": false,
+    "failed_gate_count": 13,
+    "estimated_provider_cost_usd": 11.627438,
+    "provider_call_records": 402
+  },
+  "mechanism_boundary": {
+    "clevrer_structured_video": {
+      "status": "SOKOBAN_TO_CLEVRER_PROOF_NEUROSYMBOLIC_TRANSFER_FORMAL_VALIDATED",
+      "samples": 720,
+      "target_correct": 489,
+      "authentic_correct": 511,
+      "paired": {
+        "wins": 27,
+        "losses": 5,
+        "net_wins": 22,
+        "ties": 688,
+        "exact_two_sided_p": 0.00011307420209050179
+      }
+    },
+    "star_active_frame_navigation": {
+      "status": "NOT_QUALIFIED",
+      "direct_correct": 60,
+      "source_correct": 48,
+      "paired": {
+        "wins": 7,
+        "losses": 19,
+        "ties": 102,
+        "net_wins": -12,
+        "accuracy_delta": -0.09375,
+        "exact_two_sided_p": 0.028959274291992188,
+        "video_cluster_bootstrap_lower_95": -0.1796875,
+        "video_cluster_bootstrap_upper_95": -0.0078125
+      },
+      "estimated_provider_cost_usd": 0.856376
+    },
+    "natural_candidate_grounding": {
+      "candidates": 36,
+      "covered": 35,
+      "correct": 33,
+      "coverage": 0.9722222222222222,
+      "covered_accuracy": 0.9428571428571428
+    },
+    "video_holmes_latest": {
+      "active_video_wrapper_neurosymbolic_v7": {
+        "role": "stratified_expanded_train_adaptation",
+        "status": "ADAPTATION_PREFLIGHT_FAIL",
+        "samples": 20,
+        "baseline_accuracy": 0.8,
+        "oracle_candidate_accuracy": 0.85,
+        "target_only_accuracy": 0.85,
+        "authentic_source_accuracy": 0.85,
+        "shuffled_source_accuracy": 0.75,
+        "source_marginal_accuracy": 0.7,
+        "failed_gate": "authentic_source_strictly_improves_target_only"
+      },
+      "active_video_wrapper_neurosymbolic_v9": {
+        "role": "outcome_blind_neural_applicability",
+        "status": "ADAPTATION_PREFLIGHT_FAIL",
+        "samples": 28,
+        "baseline_accuracy": 0.6785714285714286,
+        "target_only_accuracy": 0.7142857142857143,
+        "authentic_source_accuracy": 0.6785714285714286,
+        "shuffled_source_accuracy": 0.6071428571428571,
+        "source_marginal_accuracy": 0.5714285714285714,
+        "lesson": "Authentic source beats source controls but does not improve success rate over baseline or target-only."
+      },
+      "active_video_wrapper_neurosymbolic_v10": {
+        "role": "leave_one_task_out_full_target_residual",
+        "status": "ADAPTATION_PREFLIGHT_FAIL",
+        "samples": 28,
+        "baseline_accuracy": 0.6785714285714286,
+        "target_only_accuracy": 0.7142857142857143,
+        "authentic_source_accuracy": 0.7142857142857143,
+        "shuffled_source_accuracy": 0.7142857142857143,
+        "source_marginal_accuracy": 0.7142857142857143,
+        "lesson": "Target residual helps but erases identifiable source contribution."
+      },
+      "active_video_wrapper_neurosymbolic_v11": {
+        "role": "deterministic_four_shot_target_residual",
+        "status": "ADAPTATION_PREFLIGHT_FAIL",
+        "samples": 28,
+        "baseline_accuracy": 0.6785714285714286,
+        "target_only_accuracy": 0.7142857142857143,
+        "authentic_source_accuracy": 0.6428571428571429,
+        "shuffled_source_accuracy": 0.6428571428571429,
+        "source_marginal_accuracy": 0.6428571428571429,
+        "lesson": "Four-shot residual does not reveal unique source-prior value."
+      }
+    }
+  },
+  "what_is_not_missing": [
+    "More question samples: the matched formal set already has 201 questions over 28 independent videos.",
+    "More frames: direct and proof used the same 24 frames, and active STAR navigation was significantly worse.",
+    "Generic candidate grounding: the typed natural-video grounder reached 33/35 correct covered candidates.",
+    "A stronger target model: the matched Gemini direct baseline was already 150/201; NExT-QA was 57/65.",
+    "More source gating of the current proof: authentic source lost one answer while its inversion gained two."
+  ],
+  "what_is_missing": [
+    "A target evidence operation with material intrinsic answer headroom; raw typed proof was only +1/201 (8W/7L, p=1).",
+    "Source-specific applicability: authentic source must beat isomorphic, marginal, binding, and inverted controls.",
+    "For natural video, a source causal object aligned to event dependency/counterfactual intervention rather than generic COMMIT->VERIFY."
+  ],
+  "decision": {
+    "new_video_provider_calls": "STOP",
+    "increase_frame_count": "DO_NOT_DO",
+    "video_holmes": "DEPRIORITIZE",
+    "retain_clevrer": "YES_AS_VALIDATED_STRUCTURED_VIDEO_MECHANISM",
+    "cheap_next_action": "Use existing V37 receipts only for a leave-video-out error audit. Reopen natural-video collection only if a preregistered target evidence operator first shows stable intrinsic headroom and the authentic source predicts its wins over destructive controls."
+  },
+  "input_hashes": {
+    "formal_report": "8df4350f5ccd4cf57d1e047aaf2b0108828e39cc3d48840bb2527bfeb07e5c11",
+    "formal_receipts": "3dec509f2761d040f1c93854dfdcbc5ecf65810c1c97d6707c51808e7390b5ea",
+    "clevrer_report": "82cf5f9cf4c75171f4589e7db5b0abad691b69d107ec9429556b6998571f3949",
+    "star_v27_summary": "16f9f272a31f008f21786b9030245a31fdb9f50d5585278a6e2c252d401d89fd",
+    "typed_v33_summary": "be6659269e58bc071fa3d05f9e8cfdb36585dee24db2dec51aa70cb7834e40cc",
+    "video_holmes_summary": "795877ed0b1e9a1f3b8a1aa27463ab387be07641dd5acf71e2c0bae4d692ce5d"
+  },
+  "artifact_sha256": "11f1e66e6d12ec33b0fe8a2b1e21360a3b00af337220ad6fb591c60d167a8deb"
+}

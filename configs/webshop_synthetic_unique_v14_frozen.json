@@ -1,0 +1,1559 @@
+{
+  "schema_version": 1,
+  "artifact_role": "OUTCOME_BLIND_WEBSHOP_SYNTHETIC_UNIQUE_V14_SPLIT",
+  "status": "FROZEN_BEFORE_ANY_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "Synthetic WebShop goals use the benchmark's native products, search, option controls, reward, and executor. Goal semantics and product ASIN are unique across development/formal and disjoint from the 13-goal human pool.",
+  "selection_rule": "After the benchmark's seeded goal generation and shuffle, take the first eligible goal for each previously unused ASIN; development precedes formal.",
+  "goal_seed": 233,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 108,
+  "excluded_human_goal_asins": [
+    "B003I567W4",
+    "B005X7IXTK",
+    "B07FYPSNH8",
+    "B07S7HDC88",
+    "B087Y28XLM",
+    "B08G14B779",
+    "B099231V35",
+    "B09HX5CD2D",
+    "B09KP78G37",
+    "B09MW563KN",
+    "B09NTCCVGX",
+    "B09PY89B1S",
+    "B09R4RJSFP"
+  ],
+  "roles": {
+    "development": [
+      {
+        "task_id": "webshop.0",
+        "server_goal_index": 0,
+        "asin": "B0743JKHBV",
+        "instruction_text": "Find me double sided, machine washable decorative pillows with printing technology with size: 28\" x 28\", and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B0743JKHBV",
+          "category": "garden",
+          "query": "decorative pillows",
+          "name": "Ambesonne Abstract Throw Pillow Cushion Cover, Geometric Composition with Different Colored Squares Striped Dotted Rhombus, Decorative Square Accent Pillow Case, 16\" X 16\", Grey Purple",
+          "product_category": "Home & Kitchen › Bedding › Decorative Pillows, Inserts & Covers › Throw Pillow Covers",
+          "instruction_text": "Find me double sided, machine washable decorative pillows with printing technology with size: 28\" x 28\", and price lower than 50.00 dollars",
+          "attributes": [
+            "double sided",
+            "machine washable",
+            "printing technology"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "28\" x 28\""
+          },
+          "weight": 0.05299377134820173
+        },
+        "goal_sha256": "792451128859015acdc3a4e3124546d3e94d62c2ddced920d05440a87e841eb5"
+      },
+      {
+        "task_id": "webshop.1",
+        "server_goal_index": 1,
+        "asin": "B09QCP4579",
+        "instruction_text": "Find me butt lifting, light weight women's shorts with high waist, tummy control with color: black, and size: 3x-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09QCP4579",
+          "category": "fashion",
+          "query": "women's shorts",
+          "name": "LWLW High Waist Yoga Shorts for Women,Tummy Control Biker Shorts Exercise Workout Butt Lifting Tights Women's Short Pants",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Active › Leggings",
+          "instruction_text": "Find me butt lifting, light weight women's shorts with high waist, tummy control with color: black, and size: 3x-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "butt lifting",
+            "light weight",
+            "high waist",
+            "tummy control"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "black",
+            "size": "3x-large"
+          },
+          "weight": 0.00992086000463998
+        },
+        "goal_sha256": "a40de7a0b45931e96fe796bf3c86fa2d1afab8c69e68290572dd4519bdb6c744"
+      },
+      {
+        "task_id": "webshop.2",
+        "server_goal_index": 2,
+        "asin": "B099WH1RTM",
+        "instruction_text": "Find me ready hang wall art with solid wood for living room with color: turtles and african american couple, and size: 8x10 inch, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B099WH1RTM",
+          "category": "garden",
+          "query": "wall art",
+          "name": "African American Wall Art Get Naked Fashion Black Girl And Bathtub Canvas Prints Gray Pink Painting Picture Modern Artwork For Bathroom Living Room Home Wall Decor Framed Ready To Hang 16x24 Inch",
+          "product_category": "Home & Kitchen › Wall Art › Posters & Prints",
+          "instruction_text": "Find me ready hang wall art with solid wood for living room with color: turtles and african american couple, and size: 8x10 inch, and price lower than 50.00 dollars",
+          "attributes": [
+            "ready hang",
+            "solid wood",
+            "living room"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "turtles and african american couple",
+            "size": "8x10 inch"
+          },
+          "weight": 0.016857078853046593
+        },
+        "goal_sha256": "8f80bdcd9fd12734cad0b68b02ec8817a251878de5ba958c86ac6b71a4870d6b"
+      },
+      {
+        "task_id": "webshop.3",
+        "server_goal_index": 3,
+        "asin": "B09LSKQF8C",
+        "instruction_text": "Find me dual band streaming media players with quad core, and price lower than 350.00 dollars",
+        "goal": {
+          "asin": "B09LSKQF8C",
+          "category": "electronics",
+          "query": "streaming media players",
+          "name": "Superbox S3 Pro Dual Band Wi-Fi 2.4Ghz 5Ghz Supports 6K Video",
+          "product_category": "Electronics › Television & Video › Streaming Media Players",
+          "instruction_text": "Find me dual band streaming media players with quad core, and price lower than 350.00 dollars",
+          "attributes": [
+            "dual band",
+            "quad core"
+          ],
+          "price_upper": 350.0,
+          "goal_options": {},
+          "weight": 0.75
+        },
+        "goal_sha256": "1dd047d868301dafdb2f988cbbbefbd7956dd83d1630d0ffac3b5051f691cd5b"
+      },
+      {
+        "task_id": "webshop.4",
+        "server_goal_index": 4,
+        "asin": "B09M63B87V",
+        "instruction_text": "Find me hand wash women's sweaters with long sleeve, stretch fabric, polyester spandex for teen girls, daily wear with color: xnj-tshirt334-gray, and size: x-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09M63B87V",
+          "category": "fashion",
+          "query": "women's sweaters",
+          "name": "YALFJV Women Long Sleeve Crew Neck Side Button T Shirts Tunic Dress Loose Asymmetric Hem Tunic Pullover to Wear with Leggings",
+          "product_category": "Sports & Outdoors › Sports › Water Sports › Swimming › Swimwear",
+          "instruction_text": "Find me hand wash women's sweaters with long sleeve, stretch fabric, polyester spandex for teen girls, daily wear with color: xnj-tshirt334-gray, and size: x-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "hand wash",
+            "long sleeve",
+            "stretch fabric",
+            "polyester spandex",
+            "teen girls",
+            "daily wear"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "xnj-tshirt334-gray",
+            "size": "x-large"
+          },
+          "weight": 0.0025077006759898976
+        },
+        "goal_sha256": "06fc56802cacb2dcdc91aaaed9a0a26e80ecdceeff2a5e951080bca4dd76c072"
+      },
+      {
+        "task_id": "webshop.5",
+        "server_goal_index": 5,
+        "asin": "B07HRFSNL4",
+        "instruction_text": "Find me machine wash men's dress shirts with cotton spandex, classic fit, short sleeve with color: black, and size: xx-large tall, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B07HRFSNL4",
+          "category": "fashion",
+          "query": "men's dress shirts",
+          "name": "Nautica Men's Solid Crew Neck Short-Sleeve Pocket T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+          "instruction_text": "Find me machine wash men's dress shirts with cotton spandex, classic fit, short sleeve with color: black, and size: xx-large tall, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "cotton spandex",
+            "classic fit",
+            "short sleeve"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "black",
+            "size": "xx-large tall"
+          },
+          "weight": 0.0008129621260382322
+        },
+        "goal_sha256": "dd9304058fa1050974fc33cd5ce55e296787f874949d997d66f7f72d490b751d"
+      },
+      {
+        "task_id": "webshop.6",
+        "server_goal_index": 6,
+        "asin": "B09PYSKD7H",
+        "instruction_text": "Find me men's shorts with elastic waist, classic fit, short sleeve for gym workout with color: navy, and size: x-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09PYSKD7H",
+          "category": "fashion",
+          "query": "men's shorts",
+          "name": "FIN86 Men's Elastic High Waisted Shorts,Men's Summer Printed Casual Shorts Loose Tether Pocket Board Shorts",
+          "product_category": "",
+          "instruction_text": "Find me men's shorts with elastic waist, classic fit, short sleeve for gym workout with color: navy, and size: x-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "elastic waist",
+            "classic fit",
+            "short sleeve",
+            "gym workout"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "navy",
+            "size": "x-large"
+          },
+          "weight": 0.002813466255649802
+        },
+        "goal_sha256": "76e947bf743ea0468ecbfebf8610230b90997436fea2891fbf230d652fc27682"
+      },
+      {
+        "task_id": "webshop.7",
+        "server_goal_index": 7,
+        "asin": "B097RK2B2Q",
+        "instruction_text": "Find me loose fit women's tops, tees & blouses with short sleeve, long sleeve with color: b3-wine, and size: large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B097RK2B2Q",
+          "category": "fashion",
+          "query": "women's tops, tees & blouses",
+          "name": "FABIURT Summer Tops for Women, Women Fashion Graphic Plus Tank Top Sleeveless Casual Tunic Loose Cross Tee Shirt Blouses",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Tops, Tees & Blouses › Tanks & Camis",
+          "instruction_text": "Find me loose fit women's tops, tees & blouses with short sleeve, long sleeve with color: b3-wine, and size: large, and price lower than 50.00 dollars",
+          "attributes": [
+            "loose fit",
+            "short sleeve",
+            "long sleeve"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "b3-wine",
+            "size": "large"
+          },
+          "weight": 0.000825497497372351
+        },
+        "goal_sha256": "3a511f83aa0a9a62fb88799e9000e7d8ecb2f79b2611d91933b3e261dada2102"
+      },
+      {
+        "task_id": "webshop.8",
+        "server_goal_index": 8,
+        "asin": "B09P39QN2W",
+        "instruction_text": "Find me wash cold, machine wash men's shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: brown, and fit type: youth, and size: medium, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09P39QN2W",
+          "category": "fashion",
+          "query": "men's shirts",
+          "name": "I Tackled 100 Day Of School Football Boy 100th Day School T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › T-Shirts",
+          "instruction_text": "Find me wash cold, machine wash men's shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: brown, and fit type: youth, and size: medium, and price lower than 40.00 dollars",
+          "attributes": [
+            "wash cold",
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "brown",
+            "fit type": "youth",
+            "size": "medium"
+          },
+          "weight": 0.0009191438741101819
+        },
+        "goal_sha256": "cbc4bb6ebeb881bfca777fae031733d861446278f25ce6fbc46d5a7a45acd62f"
+      },
+      {
+        "task_id": "webshop.9",
+        "server_goal_index": 9,
+        "asin": "B09KLQLLT2",
+        "instruction_text": "Find me machine wash, moisture wicking men's t-shirts & tanks with polyester spandex, long sleeve with color: blue | red, and size: xx-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09KLQLLT2",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Long Sleeve Superhero T Shirt Tank Top Mens Compression Shirt Men Workout Fitness Gym Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Shirts & Tees › Tank Tops",
+          "instruction_text": "Find me machine wash, moisture wicking men's t-shirts & tanks with polyester spandex, long sleeve with color: blue | red, and size: xx-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "moisture wicking",
+            "polyester spandex",
+            "long sleeve"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "blue | red",
+            "size": "xx-large"
+          },
+          "weight": 0.0020034778840501725
+        },
+        "goal_sha256": "9c581a3f03203a0558797a6d7eb4dd66899e7017603ca314e5361ec68dee2c06"
+      },
+      {
+        "task_id": "webshop.10",
+        "server_goal_index": 10,
+        "asin": "B08LKKSL8F",
+        "instruction_text": "Find me machine wash men's pants with relaxed fit with color: grey, and size: 40w x 34l, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B08LKKSL8F",
+          "category": "fashion",
+          "query": "men's pants",
+          "name": "BOCOMAL FR Pants for Men Cargo Flame Resistant Pants(2112&CAT2) 100% C 7.5oz Utility Fire Resistant Pants",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Uniforms, Work & Safety › Clothing › Work Utility & Safety › Pants",
+          "instruction_text": "Find me machine wash men's pants with relaxed fit with color: grey, and size: 40w x 34l, and price lower than 70.00 dollars",
+          "attributes": [
+            "machine wash",
+            "relaxed fit"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "color": "grey",
+            "size": "40w x 34l"
+          },
+          "weight": 0.0021029494757477648
+        },
+        "goal_sha256": "106e6e639ebe56e7c34ecf43ccf7be618ce4b809d2d110ad49cda3eb84a2b986"
+      },
+      {
+        "task_id": "webshop.11",
+        "server_goal_index": 11,
+        "asin": "B09R9YCM6R",
+        "instruction_text": "Find me slim fit men's henleys with short sleeve with color: 157- green, and size: 3x-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09R9YCM6R",
+          "category": "fashion",
+          "query": "men's henleys",
+          "name": "XXBR Summer T-shirts for Mens, Soldier Short Sleeve 3D Street Vintage Printed Shirt Slim Fit Muscle Casual Tee Tops",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Sets › Active Tracksuits",
+          "instruction_text": "Find me slim fit men's henleys with short sleeve with color: 157- green, and size: 3x-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "slim fit",
+            "short sleeve"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "157- green",
+            "size": "3x-large"
+          },
+          "weight": 0.001141326354588161
+        },
+        "goal_sha256": "b483f2ba53a9b807a26b92acc27ecb2c2b325b8cf8225b4d77a1a43ba970c15f"
+      },
+      {
+        "task_id": "webshop.12",
+        "server_goal_index": 12,
+        "asin": "B08JD14GJF",
+        "instruction_text": "Find me quick drying, moisture wicking women's activewear with long sleeve with color: b-purple-thumbhole, and size: x-large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B08JD14GJF",
+          "category": "fashion",
+          "query": "women's activewear",
+          "name": "COOrun Women's UPF 50+ Sun Protection Shirts Quick Dry Long Sleeve Shirts Lightweight T-Shirt Outdoor Hiking Runing Fishing",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Active › Active Shirts & Tees › T-Shirts",
+          "instruction_text": "Find me quick drying, moisture wicking women's activewear with long sleeve with color: b-purple-thumbhole, and size: x-large, and price lower than 40.00 dollars",
+          "attributes": [
+            "quick drying",
+            "moisture wicking",
+            "long sleeve"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "b-purple-thumbhole",
+            "size": "x-large"
+          },
+          "weight": 0.005198361683975461
+        },
+        "goal_sha256": "ff9d8c5b4ceb7e57423d7501ed193aecbe771a15c7c91e91eb6bd19a90359c02"
+      },
+      {
+        "task_id": "webshop.13",
+        "server_goal_index": 13,
+        "asin": "B07FKGQKZ1",
+        "instruction_text": "Find me home office furniture sets for dining room, living room with color: blue | gray, and item shape: runner, and size: 21 in x 35 in, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B07FKGQKZ1",
+          "category": "garden",
+          "query": "home office furniture sets",
+          "name": "Home Dynamix Lyndhurst Rotana Modern Area Rug, Contemporary Blue/Gray/Ivory 5'2\"x7'4\"",
+          "product_category": "Home & Kitchen › Home Décor Products › Rugs, Pads & Protectors › Area Rugs",
+          "instruction_text": "Find me home office furniture sets for dining room, living room with color: blue | gray, and item shape: runner, and size: 21 in x 35 in, and price lower than 80.00 dollars",
+          "attributes": [
+            "dining room",
+            "living room"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "blue | gray",
+            "item shape": "runner",
+            "size": "21 in x 35 in"
+          },
+          "weight": 0.002378778656928383
+        },
+        "goal_sha256": "e16a6baaab2dc7f6734b50fe673e316112a05e3e8889b402a0f988f8be143f2c"
+      },
+      {
+        "task_id": "webshop.14",
+        "server_goal_index": 14,
+        "asin": "B08J3WFRBT",
+        "instruction_text": "Find me leak proof, bpa free, easy clean refillable containers with travel bottles with size: 5 packs, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B08J3WFRBT",
+          "category": "beauty",
+          "query": "refillable containers",
+          "name": "LotFancy 70ml 2.4Oz Travel Bottles with Keychain,15pc Empty Plastic Carabiner Bottle, Clear Bottle, Squeeze Container for Hand Sanitizer, Lotion, Cosmetics, Leakproof, Refillable, 15 labels Included",
+          "product_category": "Beauty & Personal Care › Tools & Accessories › Refillable Containers › Squeeze Bottles",
+          "instruction_text": "Find me leak proof, bpa free, easy clean refillable containers with travel bottles with size: 5 packs, and price lower than 40.00 dollars",
+          "attributes": [
+            "leak proof",
+            "bpa free",
+            "easy clean",
+            "travel bottles"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "size": "5 packs"
+          },
+          "weight": 0.23185483870967738
+        },
+        "goal_sha256": "ef11d1f7afd540a5e16f3a964bbff4fe1226b518053482192f1d775bf9e8b458"
+      },
+      {
+        "task_id": "webshop.15",
+        "server_goal_index": 15,
+        "asin": "B0969G2DH8",
+        "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: purple, and fit type: men, and size: large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B0969G2DH8",
+          "category": "fashion",
+          "query": "men's dress shirts",
+          "name": "The cool twins just showed up T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › T-Shirts",
+          "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: purple, and fit type: men, and size: large, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "purple",
+            "fit type": "men",
+            "size": "large"
+          },
+          "weight": 0.0007773492690577492
+        },
+        "goal_sha256": "498ac2c1d2bdfaa7b53f5b04ce7342ad165785658ec405e2e0926c0c99923fe2"
+      },
+      {
+        "task_id": "webshop.17",
+        "server_goal_index": 17,
+        "asin": "B01HQTWL6S",
+        "instruction_text": "Find me machine wash, wash cold women's fashion hoodies & sweatshirts for dry clean, tumble dry with color: heather grey, and size: large, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B01HQTWL6S",
+          "category": "fashion",
+          "query": "women's fashion hoodies & sweatshirts",
+          "name": "Expression Tees Pug Life Funny Thug Life Unisex Adult Hoodie",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Hoodies",
+          "instruction_text": "Find me machine wash, wash cold women's fashion hoodies & sweatshirts for dry clean, tumble dry with color: heather grey, and size: large, and price lower than 70.00 dollars",
+          "attributes": [
+            "machine wash",
+            "wash cold",
+            "dry clean",
+            "tumble dry"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "color": "heather grey",
+            "size": "large"
+          },
+          "weight": 0.004830216764493592
+        },
+        "goal_sha256": "1cd65e093e87fb2b017a8a76789dc03afa41d004088a5cb7fd235ba1aca38346"
+      },
+      {
+        "task_id": "webshop.19",
+        "server_goal_index": 19,
+        "asin": "B092VDY5MF",
+        "instruction_text": "Find me women's pumps with closed toe, rubber sole with color: black, and size: 7, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B092VDY5MF",
+          "category": "fashion",
+          "query": "women's pumps",
+          "name": "JOY IN LOVE Kitten Heels for Women Slingback Pumps Sandals Pointy Toe Pumps",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Heeled Sandals",
+          "instruction_text": "Find me women's pumps with closed toe, rubber sole with color: black, and size: 7, and price lower than 80.00 dollars",
+          "attributes": [
+            "closed toe",
+            "rubber sole"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "black",
+            "size": "7"
+          },
+          "weight": 0.00640750758675287
+        },
+        "goal_sha256": "7a94352e11bb054637756303b3ad04573ee6475cc33e8fa0746ef390578f0a36"
+      },
+      {
+        "task_id": "webshop.21",
+        "server_goal_index": 21,
+        "asin": "B09QL82H1L",
+        "instruction_text": "Find me non slip, hand wash women's loafers & slip-ons with arch support with color: blue, and size: 7, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09QL82H1L",
+          "category": "fashion",
+          "query": "women's loafers & slip-ons",
+          "name": "Padaleks Elastic Cute Flat Sandals for Women Comfortable Summer Beach Shoes Wedges Flip Flop Dressy Thong Sandal",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Flats",
+          "instruction_text": "Find me non slip, hand wash women's loafers & slip-ons with arch support with color: blue, and size: 7, and price lower than 60.00 dollars",
+          "attributes": [
+            "non slip",
+            "hand wash",
+            "arch support"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "blue",
+            "size": "7"
+          },
+          "weight": 0.0038364621257270647
+        },
+        "goal_sha256": "7960fa3e1c828974ca2858da749bbfa8ac765b190d01ef50e0372dc5b5b10fdd"
+      },
+      {
+        "task_id": "webshop.22",
+        "server_goal_index": 22,
+        "asin": "B07ZXBGDXF",
+        "instruction_text": "Find me loose fit women's shorts with elastic closure, faux fur with color: black, and size: x-large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07ZXBGDXF",
+          "category": "fashion",
+          "query": "women's shorts",
+          "name": "Women's Coat, FORUU Winter Faux Fur Fleece Outwear Warm Lapel Biker Motor Aviator Jacket",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Coats, Jackets & Vests › Fur & Faux Fur",
+          "instruction_text": "Find me loose fit women's shorts with elastic closure, faux fur with color: black, and size: x-large, and price lower than 60.00 dollars",
+          "attributes": [
+            "loose fit",
+            "elastic closure",
+            "faux fur"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "black",
+            "size": "x-large"
+          },
+          "weight": 0.010643826575618659
+        },
+        "goal_sha256": "1ab418494c85dde34d8f9fdced1c6308c8dbf6ecd761ee3c3a3da21ce773d67c"
+      },
+      {
+        "task_id": "webshop.23",
+        "server_goal_index": 23,
+        "asin": "B09NPML43M",
+        "instruction_text": "Find me loose fit, day comfort, hand wash women's tops, tees & blouses with short sleeve, polyester spandex for teen girls with color: a2-gray, and size: large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09NPML43M",
+          "category": "fashion",
+          "query": "women's tops, tees & blouses",
+          "name": "Womens Short Sleeve Tops, Womens Casual Dandelion Printing T-Shirts Loose O-Neck Blouse Tops Funny Graphic Tee Shirts",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Tops, Tees & Blouses › T-Shirts",
+          "instruction_text": "Find me loose fit, day comfort, hand wash women's tops, tees & blouses with short sleeve, polyester spandex for teen girls with color: a2-gray, and size: large, and price lower than 30.00 dollars",
+          "attributes": [
+            "loose fit",
+            "day comfort",
+            "hand wash",
+            "short sleeve",
+            "polyester spandex",
+            "teen girls"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "a2-gray",
+            "size": "large"
+          },
+          "weight": 0.001680865775131393
+        },
+        "goal_sha256": "e1b8811cf66880616495d1828629621bf50a816b80a029d4df34ddd0eb8bda58"
+      },
+      {
+        "task_id": "webshop.26",
+        "server_goal_index": 26,
+        "asin": "B09GL561XH",
+        "instruction_text": "Find me officially licensed, machine wash men's t-shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: pink, and fit type: youth, and size: large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09GL561XH",
+          "category": "fashion",
+          "query": "men's t-shirts",
+          "name": "Disney Mickey And Friends Happy Birthday Mickey Confetti T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › T-Shirts",
+          "instruction_text": "Find me officially licensed, machine wash men's t-shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: pink, and fit type: youth, and size: large, and price lower than 60.00 dollars",
+          "attributes": [
+            "officially licensed",
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "pink",
+            "fit type": "youth",
+            "size": "large"
+          },
+          "weight": 0.0012094824261668269
+        },
+        "goal_sha256": "018d684fb2dbe84bb49a01643ffaad67df6179868cc56cba1fef56c6a6f601ae"
+      },
+      {
+        "task_id": "webshop.27",
+        "server_goal_index": 27,
+        "asin": "B07HP6LVRS",
+        "instruction_text": "Find me men's loafers & slip-ons with rubber outsole, rubber sole with color: yellow-a, and size: 11, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B07HP6LVRS",
+          "category": "fashion",
+          "query": "men's loafers & slip-ons",
+          "name": "MCICI Mens Loafers Moccasin Driving Shoes Premium Genuine Leather Casual Slip On Flats Fashion Slipper Breathable Big Size",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Loafers & Slip-Ons",
+          "instruction_text": "Find me men's loafers & slip-ons with rubber outsole, rubber sole with color: yellow-a, and size: 11, and price lower than 70.00 dollars",
+          "attributes": [
+            "rubber outsole",
+            "rubber sole"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "color": "yellow-a",
+            "size": "11"
+          },
+          "weight": 0.0017481842924602503
+        },
+        "goal_sha256": "000a3e4a4068fa775bdf88fd5c6a33018cc804e7824b959acc5494485c476875"
+      },
+      {
+        "task_id": "webshop.30",
+        "server_goal_index": 30,
+        "asin": "B08HF132PN",
+        "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather with fit type: youth, and size: x-small, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B08HF132PN",
+          "category": "fashion",
+          "query": "men's dress shirts",
+          "name": "Flamingo Pink waterbird costume Gift Premium T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › T-Shirts",
+          "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather with fit type: youth, and size: x-small, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "fit type": "youth",
+            "size": "x-small"
+          },
+          "weight": 0.0008309211244045238
+        },
+        "goal_sha256": "5ad2402f4e00447719bc00c217536fdda21fb4835e54f08fb38ca37b8c0822ca"
+      }
+    ],
+    "formal_reserve": [
+      {
+        "task_id": "webshop.32",
+        "server_goal_index": 32,
+        "asin": "B096MM7XM4",
+        "instruction_text": "Find me double sided, easy clean, easy use hair extensions, wigs & accessories for hair extensions, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B096MM7XM4",
+          "category": "beauty",
+          "query": "hair extensions, wigs & accessories",
+          "name": "36pcs / Bag Hair Extension Tape, Lace Front Wig Double Sided Adhesive Tape,Wigs Adhesive Tape Accessor for Hair Extensions Wigs Supplies",
+          "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Adhesives",
+          "instruction_text": "Find me double sided, easy clean, easy use hair extensions, wigs & accessories for hair extensions, and price lower than 30.00 dollars",
+          "attributes": [
+            "double sided",
+            "easy clean",
+            "easy use",
+            "hair extensions"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {},
+          "weight": 0.06776753712237583
+        },
+        "goal_sha256": "1a4067a0346ab8122b3b6cc0a35fbbd8f65a005c154ecc88056a6f5b494c2c15"
+      },
+      {
+        "task_id": "webshop.35",
+        "server_goal_index": 35,
+        "asin": "B07JVVDJ6L",
+        "instruction_text": "Find me machine wash men's tuxedo shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: heather grey, and fit type: men, and size: 3t, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B07JVVDJ6L",
+          "category": "fashion",
+          "query": "men's tuxedo shirts",
+          "name": "Canadian Tuxedo T Shirt - Novelty Denim Tux T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › T-Shirts",
+          "instruction_text": "Find me machine wash men's tuxedo shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: heather grey, and fit type: men, and size: 3t, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "heather grey",
+            "fit type": "men",
+            "size": "3t"
+          },
+          "weight": 0.0007773492690577492
+        },
+        "goal_sha256": "7f25d6bf265a026c987a7eae28109034fd64245e8c15f7ab90e74829bd068440"
+      },
+      {
+        "task_id": "webshop.37",
+        "server_goal_index": 37,
+        "asin": "B01MG1LTMS",
+        "instruction_text": "Find me men's polos with relaxed fit, needle sleeve with color: brown, and size: medium, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B01MG1LTMS",
+          "category": "fashion",
+          "query": "men's polos",
+          "name": "Got Snow? Funny Snowmobile Snowboard Skiing Cold Weather Winter Sports Unisex Hooded Sweatshirt",
+          "product_category": "",
+          "instruction_text": "Find me men's polos with relaxed fit, needle sleeve with color: brown, and size: medium, and price lower than 50.00 dollars",
+          "attributes": [
+            "relaxed fit",
+            "needle sleeve"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "brown",
+            "size": "medium"
+          },
+          "weight": 0.002312927690901455
+        },
+        "goal_sha256": "a0cc26ce5bfe419043d6a9bc1cc2c39f50aa71cc050a279dce0d830f784a16d8"
+      },
+      {
+        "task_id": "webshop.38",
+        "server_goal_index": 38,
+        "asin": "B09ND8P2QR",
+        "instruction_text": "Find me hand wash men's sleep & lounge with long sleeve, elastic waistband for daily wear with color: multi 6, and size: large, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B09ND8P2QR",
+          "category": "fashion",
+          "query": "men's sleep & lounge",
+          "name": "InterestPrint Deer and Stars Men's Loungewear Pajama Sets - Long Sleeve Tee and Jogger Pant",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Sleep & Lounge › Sleep Sets",
+          "instruction_text": "Find me hand wash men's sleep & lounge with long sleeve, elastic waistband for daily wear with color: multi 6, and size: large, and price lower than 80.00 dollars",
+          "attributes": [
+            "hand wash",
+            "long sleeve",
+            "elastic waistband",
+            "daily wear"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "multi 6",
+            "size": "large"
+          },
+          "weight": 0.00234314368150314
+        },
+        "goal_sha256": "caca6b80a69f8de9ce51fcbc9c0d57512603edbf3736ef534d548d82d179430c"
+      },
+      {
+        "task_id": "webshop.40",
+        "server_goal_index": 40,
+        "asin": "B09LM3H2F5",
+        "instruction_text": "Find me hand crafted candy & chocolate for gift set, valentine day with style: happy birthday truffle chocolate, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09LM3H2F5",
+          "category": "grocery",
+          "query": "candy & chocolate",
+          "name": "CRAVINGS BY ZOE Valentine’s Day Chocolate Truffles | Assorted Chocolate Gift Box Red | Gourmet Chocolate | Delicious Milk Chocolate, Dark Chocolate and White Chocolate Flavors with 16 Assorted Toppings - 7.5 oz, 16 Count",
+          "product_category": "Grocery & Gourmet Food › Snacks & Sweets › Candy & Chocolate › Candy & Chocolate Gifts",
+          "instruction_text": "Find me hand crafted candy & chocolate for gift set, valentine day with style: happy birthday truffle chocolate, and price lower than 60.00 dollars",
+          "attributes": [
+            "hand crafted",
+            "gift set",
+            "valentine day"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "style": "happy birthday truffle chocolate"
+          },
+          "weight": 0.3055555555555555
+        },
+        "goal_sha256": "2d5db63f817308445e2a706225bb86f4a3614a1733f3f3eabe6b9ebb01b4f430"
+      },
+      {
+        "task_id": "webshop.41",
+        "server_goal_index": 41,
+        "asin": "B09Q5ZHRVM",
+        "instruction_text": "Find me long lasting, moisture wicking, loose fit men's shorts with elastic waistband, quality materials, polyester cotton, short sleeve with color: red, and size: large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09Q5ZHRVM",
+          "category": "fashion",
+          "query": "men's shorts",
+          "name": "Yinimo Mens Gym Shorts Fashionable Loose Beach Drawstring Turkey Print Beach Cool Shorts",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shorts › Flat Front",
+          "instruction_text": "Find me long lasting, moisture wicking, loose fit men's shorts with elastic waistband, quality materials, polyester cotton, short sleeve with color: red, and size: large, and price lower than 40.00 dollars",
+          "attributes": [
+            "long lasting",
+            "moisture wicking",
+            "loose fit",
+            "elastic waistband",
+            "quality materials",
+            "polyester cotton",
+            "short sleeve"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "red",
+            "size": "large"
+          },
+          "weight": 0.0097968953979191
+        },
+        "goal_sha256": "e962fdd7754185881f399a17ccabf237c98ab88762e8c513f34e2e273ff53bb8"
+      },
+      {
+        "task_id": "webshop.44",
+        "server_goal_index": 44,
+        "asin": "B00O30JLDK",
+        "instruction_text": "Find me machine wash men's t-shirts with long sleeve with color: big game field camo, and size: 5x-large big, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B00O30JLDK",
+          "category": "fashion",
+          "query": "men's t-shirts",
+          "name": "Legendary Whitetails Men's Non-Typical Long Sleeve T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › T-Shirts",
+          "instruction_text": "Find me machine wash men's t-shirts with long sleeve with color: big game field camo, and size: 5x-large big, and price lower than 70.00 dollars",
+          "attributes": [
+            "machine wash",
+            "long sleeve"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "color": "big game field camo",
+            "size": "5x-large big"
+          },
+          "weight": 0.0005102090948394451
+        },
+        "goal_sha256": "dab5186ba756dbb7eff700bb44cbdc0427d7a70c32a1e5805574cc9e7a2dcf2a"
+      },
+      {
+        "task_id": "webshop.51",
+        "server_goal_index": 51,
+        "asin": "B08ZRR3DZT",
+        "instruction_text": "Find me women's dresses with polyester spandex for daily wear with color: red, and size: small, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B08ZRR3DZT",
+          "category": "fashion",
+          "query": "women's dresses",
+          "name": "SheIn Women's Sexy One Shoulder Sleeveless Cutout Mini Club Pencil Bodycon Dress",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Dresses › Club & Night Out",
+          "instruction_text": "Find me women's dresses with polyester spandex for daily wear with color: red, and size: small, and price lower than 40.00 dollars",
+          "attributes": [
+            "polyester spandex",
+            "daily wear"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "red",
+            "size": "small"
+          },
+          "weight": 0.0019102517967465183
+        },
+        "goal_sha256": "912e6d8570304e4cea63835cfbdd5854aa6b4516d268393d39d1bcd5a19ab854"
+      },
+      {
+        "task_id": "webshop.53",
+        "server_goal_index": 53,
+        "asin": "B09DG3YTHY",
+        "instruction_text": "Find me eco friendly throw blankets with fleece throw with color: paris eiffel tower1goo8867, and size: 39x59in, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09DG3YTHY",
+          "category": "garden",
+          "query": "throw blankets",
+          "name": "Gogobebe Teal Green and Brown Flannel Fleece Throw Blanket for Sofa Couch Bed Retro Rustic Wood Grain Soft Cozy Lightweight Blanket for Adults/Kids 39x49inch",
+          "product_category": "Home & Kitchen › Bedding › Blankets & Throws › Throws",
+          "instruction_text": "Find me eco friendly throw blankets with fleece throw with color: paris eiffel tower1goo8867, and size: 39x59in, and price lower than 60.00 dollars",
+          "attributes": [
+            "eco friendly",
+            "fleece throw"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "paris eiffel tower1goo8867",
+            "size": "39x59in"
+          },
+          "weight": 0.005991461270763821
+        },
+        "goal_sha256": "f9e21662c05291ee493a3cc2c3a5bab5c07d6f4953212620acd6e9161bd4c3a6"
+      },
+      {
+        "task_id": "webshop.55",
+        "server_goal_index": 55,
+        "asin": "B08DXL22JN",
+        "instruction_text": "Find me wash cold, machine wash women's suiting & blazers with button closure, polyester spandex, long sleeve with color: black, and size: x-small, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B08DXL22JN",
+          "category": "fashion",
+          "query": "women's suiting & blazers",
+          "name": "Cicy Bell Womens Casual Blazers Open Front Long Sleeve Work Office Jackets Blazer",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Suiting & Blazers › Blazers",
+          "instruction_text": "Find me wash cold, machine wash women's suiting & blazers with button closure, polyester spandex, long sleeve with color: black, and size: x-small, and price lower than 70.00 dollars",
+          "attributes": [
+            "wash cold",
+            "machine wash",
+            "button closure",
+            "polyester spandex",
+            "long sleeve"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "color": "black",
+            "size": "x-small"
+          },
+          "weight": 0.001387185723005731
+        },
+        "goal_sha256": "33ad2edba698d47c717d7b8102561aea6d9c9204dc85d4ab7a864f64e5810d14"
+      },
+      {
+        "task_id": "webshop.57",
+        "server_goal_index": 57,
+        "asin": "B09ND9DP7J",
+        "instruction_text": "Find me men's sleep & lounge with long sleeve, elastic waistband for daily wear with color: multi 2, and size: xx-large, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B09ND9DP7J",
+          "category": "fashion",
+          "query": "men's sleep & lounge",
+          "name": "InterestPrint Gold Horse Pattern Men's 2-Piece Sleepwear Set, Long Sleeve Shirt with Pants Loungewear",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Sleep & Lounge › Sleep Sets",
+          "instruction_text": "Find me men's sleep & lounge with long sleeve, elastic waistband for daily wear with color: multi 2, and size: xx-large, and price lower than 80.00 dollars",
+          "attributes": [
+            "long sleeve",
+            "elastic waistband",
+            "daily wear"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "multi 2",
+            "size": "xx-large"
+          },
+          "weight": 0.0025830660342119794
+        },
+        "goal_sha256": "606e613c864be66661b7feabc8fbf14f5df268662ee538ceb74bdfadcfebb540"
+      },
+      {
+        "task_id": "webshop.58",
+        "server_goal_index": 58,
+        "asin": "B09QSQ8RT9",
+        "instruction_text": "Find me loose fit, slim fit men's shorts with short sleeve, contrast color, regular fit, drawstring waist for gym workout with color: light blue, and size: large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09QSQ8RT9",
+          "category": "fashion",
+          "query": "men's shorts",
+          "name": "Mens Shorts Casual Printed Lace Up Pocket Beach Shorts Regular-fit Lightweight Lining Mens Sweatpants Hawaii Pants",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shorts › Flat Front",
+          "instruction_text": "Find me loose fit, slim fit men's shorts with short sleeve, contrast color, regular fit, drawstring waist for gym workout with color: light blue, and size: large, and price lower than 40.00 dollars",
+          "attributes": [
+            "loose fit",
+            "slim fit",
+            "short sleeve",
+            "contrast color",
+            "regular fit",
+            "drawstring waist",
+            "gym workout"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "light blue",
+            "size": "large"
+          },
+          "weight": 0.01804071707043312
+        },
+        "goal_sha256": "97814d25a340759c7e438305ff18ca3e49099e94fbd420eb107fc5f315b950c1"
+      },
+      {
+        "task_id": "webshop.67",
+        "server_goal_index": 67,
+        "asin": "B01EX1BWE4",
+        "instruction_text": "Find me long lasting, moisture wicking men's boots for daily wear with size: 7.5, and price lower than 150.00 dollars",
+        "goal": {
+          "asin": "B01EX1BWE4",
+          "category": "fashion",
+          "query": "men's boots",
+          "name": "Milwaukee Leather MBM9075 Men's Black 6-inch Plain Toe Dual Zipper Lock Leather Boots",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Boots › Motorcycle & Combat",
+          "instruction_text": "Find me long lasting, moisture wicking men's boots for daily wear with size: 7.5, and price lower than 150.00 dollars",
+          "attributes": [
+            "long lasting",
+            "moisture wicking",
+            "daily wear"
+          ],
+          "price_upper": 150.0,
+          "goal_options": {
+            "size": "7.5"
+          },
+          "weight": 0.006475533888929126
+        },
+        "goal_sha256": "d2942612f39fc6f4977323d23d9f17c6485466332035bded9fb81564fba01efc"
+      },
+      {
+        "task_id": "webshop.69",
+        "server_goal_index": 69,
+        "asin": "B07L6DV555",
+        "instruction_text": "Find me men's boots with lace closure, rubber outsole, rubber sole with color: boulder, and size: 7.5, and price lower than 150.00 dollars",
+        "goal": {
+          "asin": "B07L6DV555",
+          "category": "fashion",
+          "query": "men's boots",
+          "name": "Merrell Men's Primer Mid LTR Fashion Boot",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Outdoor › Hiking & Trekking › Hiking Boots",
+          "instruction_text": "Find me men's boots with lace closure, rubber outsole, rubber sole with color: boulder, and size: 7.5, and price lower than 150.00 dollars",
+          "attributes": [
+            "lace closure",
+            "rubber outsole",
+            "rubber sole"
+          ],
+          "price_upper": 150.0,
+          "goal_options": {
+            "color": "boulder",
+            "size": "7.5"
+          },
+          "weight": 0.008741213770731076
+        },
+        "goal_sha256": "2cec57fb2ec46bae3430ba4b44fe50a751968ffa033f0dc00d9d44402125b55c"
+      },
+      {
+        "task_id": "webshop.70",
+        "server_goal_index": 70,
+        "asin": "B0936C6MBM",
+        "instruction_text": "Find me fragrance free women's fragrance for sensitive skin, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B0936C6MBM",
+          "category": "beauty",
+          "query": "women's fragrance",
+          "name": "NOURIA Intimate After Shave Protection Moisturizer By Coochy Plus - FRAGRANCE FREE: Delicate MOISTURIZING PLUS Soothing Mist For The Pubic Area & Armpits – For Razor Burns, Itchiness & Ingrown Hairs",
+          "product_category": "Beauty & Personal Care › Shave & Hair Removal › Women's › Shaving Creams, Lotions & Gels › Shaving Creams",
+          "instruction_text": "Find me fragrance free women's fragrance for sensitive skin, and price lower than 50.00 dollars",
+          "attributes": [
+            "fragrance free",
+            "sensitive skin"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {},
+          "weight": 0.2121212121212121
+        },
+        "goal_sha256": "ea2d750e6006520bf65a562bd154c9fe3b15d4dfb2bab19286a04c51f3929773"
+      },
+      {
+        "task_id": "webshop.71",
+        "server_goal_index": 71,
+        "asin": "B07JMXLXNY",
+        "instruction_text": "Find me screen protectors with tempered glass, glass screen, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B07JMXLXNY",
+          "category": "electronics",
+          "query": "screen protectors",
+          "name": "JETech Screen Protector for iPad Air 3 (10.5 Inch 2019 Model) and iPad Pro 10.5 (2017), Tempered Glass Film, 2-Pack",
+          "product_category": "Electronics › Computers & Accessories › Tablet Accessories › Screen Protectors",
+          "instruction_text": "Find me screen protectors with tempered glass, glass screen, and price lower than 40.00 dollars",
+          "attributes": [
+            "tempered glass",
+            "glass screen"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {},
+          "weight": 0.09401709401709402
+        },
+        "goal_sha256": "04a770c1768a9e6c32789a3ca28e89e87d08974bf14cda99769a8ec55a0c1379"
+      },
+      {
+        "task_id": "webshop.74",
+        "server_goal_index": 74,
+        "asin": "B096RV56XP",
+        "instruction_text": "Find me machine washable window coverings for living room with color: sea mist, and size: 52\"w x 108\"l, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B096RV56XP",
+          "category": "garden",
+          "query": "window coverings",
+          "name": "PONY DANCE Kitchen Curtain for Windows - Semi-Sheer Decorative Roman Shade for Bedroom Tie Up Blinds Short Window Covering, 42\" Wide by 45\" Long, Dark Blue, Set of 1",
+          "product_category": "Home & Kitchen › Home Décor Products › Window Treatments › Blinds & Shades › Balloon Shades",
+          "instruction_text": "Find me machine washable window coverings for living room with color: sea mist, and size: 52\"w x 108\"l, and price lower than 30.00 dollars",
+          "attributes": [
+            "machine washable",
+            "living room"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "sea mist",
+            "size": "52\"w x 108\"l"
+          },
+          "weight": 0.0029161562542534365
+        },
+        "goal_sha256": "3630322ba80656f7be7a9b6c55ca2311ca1b131039f45a3b52218c946f0ffc75"
+      },
+      {
+        "task_id": "webshop.78",
+        "server_goal_index": 78,
+        "asin": "B07WMMYB6G",
+        "instruction_text": "Find me men's shorts with drawstring closure, elastic waist for gym workout with color: #2 army green, and size: 30, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B07WMMYB6G",
+          "category": "fashion",
+          "query": "men's shorts",
+          "name": "MAGCOMSEN Men's Gym Workout Shorts with Pockets Mesh Liner Quick Dry Running Shorts for Jogging, Hiking",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Shorts",
+          "instruction_text": "Find me men's shorts with drawstring closure, elastic waist for gym workout with color: #2 army green, and size: 30, and price lower than 40.00 dollars",
+          "attributes": [
+            "drawstring closure",
+            "elastic waist",
+            "gym workout"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "#2 army green",
+            "size": "30"
+          },
+          "weight": 0.005785092561851122
+        },
+        "goal_sha256": "49db80ab93ca262084d65bd5c702412547c3bf0beb8d2821457293e81c53108b"
+      },
+      {
+        "task_id": "webshop.79",
+        "server_goal_index": 79,
+        "asin": "B09HH6P68W",
+        "instruction_text": "Find me non slip men's outdoor shoes with rubber sole, comfortable fit, unique design with size: 8, and price lower than 130.00 dollars",
+        "goal": {
+          "asin": "B09HH6P68W",
+          "category": "fashion",
+          "query": "men's outdoor shoes",
+          "name": "MAPOLO Hand Drawn Christmas Elements Collection Men's Boys Casual Walking Shoes Sneaker Lightweight Stylish Athletic Tennis Sports Running Shoes for Outdoor Hiking Travel Driving",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Athletic › Walking",
+          "instruction_text": "Find me non slip men's outdoor shoes with rubber sole, comfortable fit, unique design with size: 8, and price lower than 130.00 dollars",
+          "attributes": [
+            "non slip",
+            "rubber sole",
+            "comfortable fit",
+            "unique design"
+          ],
+          "price_upper": 130.0,
+          "goal_options": {
+            "size": "8"
+          },
+          "weight": 0.012524567315009628
+        },
+        "goal_sha256": "038fa7078cad48fbb930cd79ec8b7bcec08cd9bd73e98976151a07da78ff5e85"
+      },
+      {
+        "task_id": "webshop.81",
+        "server_goal_index": 81,
+        "asin": "B078WSND96",
+        "instruction_text": "Find me men's t-shirts & tanks with short sleeve, fashion design, long sleeve, button closure with color: e-blue, and size: 4x-large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B078WSND96",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Clearance Deals Retro T-Shirt Bee Printed Blouse, 2021 Summer Fashion Boys Men 3D Round Neck Short Sleeve Tee Tops",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › T-Shirts",
+          "instruction_text": "Find me men's t-shirts & tanks with short sleeve, fashion design, long sleeve, button closure with color: e-blue, and size: 4x-large, and price lower than 30.00 dollars",
+          "attributes": [
+            "short sleeve",
+            "fashion design",
+            "long sleeve",
+            "button closure"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "e-blue",
+            "size": "4x-large"
+          },
+          "weight": 0.003394565790624488
+        },
+        "goal_sha256": "4d13c3a31703f7b909e94be97bcfffa141ada6415f74ddc120f41a8a888d29fd"
+      },
+      {
+        "task_id": "webshop.82",
+        "server_goal_index": 82,
+        "asin": "B09Q55JLCS",
+        "instruction_text": "Find me teeth whitening, easy use children's dental care with color: l, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09Q55JLCS",
+          "category": "beauty",
+          "query": "children's dental care",
+          "name": "Nargar 2 Pieces Children’s U-Shape Toothbrush, 360 Degree Toothbrush for Kids Cute Teeth Whitening Gums Massage Tooth Brush for 2-6 Years Old Toddlers Kids (F)",
+          "product_category": "Beauty & Personal Care › Oral Care › Toothbrushes & Accessories › Manual Toothbrushes",
+          "instruction_text": "Find me teeth whitening, easy use children's dental care with color: l, and price lower than 60.00 dollars",
+          "attributes": [
+            "teeth whitening",
+            "easy use"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "l"
+          },
+          "weight": 0.03742690058479532
+        },
+        "goal_sha256": "7f0c9c25df5eff9e566fa0c8df1ac0eee420549d4b3d640f097fd5f2768c7405"
+      },
+      {
+        "task_id": "webshop.86",
+        "server_goal_index": 86,
+        "asin": "B09QMPV75P",
+        "instruction_text": "Find me high speed flashes with usb port with color: eausb512-dark blue, and size: 256gb, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09QMPV75P",
+          "category": "electronics",
+          "query": "flashes",
+          "name": "EATOP USB 3.0 512GB Flash Drive Photo Stick for iPhone (13/12/12 pro/12 pro max/11/11 Pro/XR/X/8/7/6) iPhone Memory Stick External Photo Storage Drive for iPhone iPad Android Computer (Purple)",
+          "product_category": "Electronics › Computers & Accessories › Data Storage › USB Flash Drives",
+          "instruction_text": "Find me high speed flashes with usb port with color: eausb512-dark blue, and size: 256gb, and price lower than 60.00 dollars",
+          "attributes": [
+            "high speed",
+            "usb port"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "eausb512-dark blue",
+            "size": "256gb"
+          },
+          "weight": 0.03257575757575758
+        },
+        "goal_sha256": "c247858ab61d570561086dc5fe0e737ecffa53f561fe8f02ec3b0f34cc2a7542"
+      },
+      {
+        "task_id": "webshop.87",
+        "server_goal_index": 87,
+        "asin": "B01MSP2B0I",
+        "instruction_text": "Find me slim fit, straight leg men's jeans with quality materials, and price lower than 100.00 dollars",
+        "goal": {
+          "asin": "B01MSP2B0I",
+          "category": "fashion",
+          "query": "men's jeans",
+          "name": "Wrangler Men's Retro Slim Fit Straight Leg Jean, Black, 42W x 32L",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Jeans",
+          "instruction_text": "Find me slim fit, straight leg men's jeans with quality materials, and price lower than 100.00 dollars",
+          "attributes": [
+            "slim fit",
+            "straight leg",
+            "quality materials"
+          ],
+          "price_upper": 100.0,
+          "goal_options": {},
+          "weight": 0.014835183567157302
+        },
+        "goal_sha256": "0aacd36f8a226acdb9b7ea4d61c87a34d77a670ba5204a2b9efdedb6f6c4b321"
+      },
+      {
+        "task_id": "webshop.89",
+        "server_goal_index": 89,
+        "asin": "B09PBPZ24Z",
+        "instruction_text": "Find me fleece lined, low rise, straight leg, wide leg, butt lifting, wash cold, slim fit, hand wash, machine wash women's jeans with high waist, polyester spandex, regular fit, button closure for teen girls, daily wear with size: large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09PBPZ24Z",
+          "category": "fashion",
+          "query": "women's jeans",
+          "name": "myhehthw Women's High Waisted Jeans for Women Distressed Ripped Jeans Slim Fit Butt Lifting Skinny Stretch Jeans Trousers",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Jeans",
+          "instruction_text": "Find me fleece lined, low rise, straight leg, wide leg, butt lifting, wash cold, slim fit, hand wash, machine wash women's jeans with high waist, polyester spandex, regular fit, button closure for teen girls, daily wear with size: large, and price lower than 40.00 dollars",
+          "attributes": [
+            "fleece lined",
+            "low rise",
+            "straight leg",
+            "wide leg",
+            "butt lifting",
+            "wash cold",
+            "slim fit",
+            "hand wash",
+            "machine wash",
+            "high waist",
+            "polyester spandex",
+            "regular fit",
+            "button closure",
+            "teen girls",
+            "daily wear"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "size": "large"
+          },
+          "weight": 0.021027140446931263
+        },
+        "goal_sha256": "559e2a32348c916a3fdecf9114852e83606e1e5b74f93478ce253cf1bdca66a3"
+      },
+      {
+        "task_id": "webshop.90",
+        "server_goal_index": 90,
+        "asin": "B08T84R7V2",
+        "instruction_text": "Find me men's fashion sneakers with lace closure, rubber outsole, rubber sole with color: white | black, and size: 11, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B08T84R7V2",
+          "category": "fashion",
+          "query": "men's fashion sneakers",
+          "name": "Levi's Mens Lance Lo Mono UL Casual Sneaker Shoe",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Fashion Sneakers",
+          "instruction_text": "Find me men's fashion sneakers with lace closure, rubber outsole, rubber sole with color: white | black, and size: 11, and price lower than 50.00 dollars",
+          "attributes": [
+            "lace closure",
+            "rubber outsole",
+            "rubber sole"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "white | black",
+            "size": "11"
+          },
+          "weight": 0.008741213770731076
+        },
+        "goal_sha256": "c95d4bed7abd611c29f2ce5a669d29883b2a42145f9092b6a443af05d44220fd"
+      },
+      {
+        "task_id": "webshop.91",
+        "server_goal_index": 91,
+        "asin": "B07T3VMGDG",
+        "instruction_text": "Find me machine wash men's tuxedo shirts with cotton heather, needle sleeve, classic fit with color: navy | white, and fit type: women, and size: large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07T3VMGDG",
+          "category": "fashion",
+          "query": "men's tuxedo shirts",
+          "name": "Tuxedo Cat 4th of July Hat Patriotic Gift Adults Kids Raglan Baseball Tee",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › T-Shirts",
+          "instruction_text": "Find me machine wash men's tuxedo shirts with cotton heather, needle sleeve, classic fit with color: navy | white, and fit type: women, and size: large, and price lower than 60.00 dollars",
+          "attributes": [
+            "machine wash",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "navy | white",
+            "fit type": "women",
+            "size": "large"
+          },
+          "weight": 0.0006660239035866237
+        },
+        "goal_sha256": "6b814c374bded8baa0bcae91b38583c47a0c035528185bdb8eb3662449e293f6"
+      },
+      {
+        "task_id": "webshop.95",
+        "server_goal_index": 95,
+        "asin": "B08QRHVS6N",
+        "instruction_text": "Find me quick release, hands free iphone accessories for wireless charging with color: original, and style: windshield, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B08QRHVS6N",
+          "category": "electronics",
+          "query": "iphone accessories",
+          "name": "Nite Ize Steelie Squeeze Windshield Kit, Universal Windshield Magnetic Car Mount Holder, Compatible With MagSafe iPhone 12 Pro Max/Mini/Galaxy/Edge/Google Pixel and more",
+          "product_category": "Cell Phones & Accessories › Accessories › Automobile Accessories › Cradles",
+          "instruction_text": "Find me quick release, hands free iphone accessories for wireless charging with color: original, and style: windshield, and price lower than 60.00 dollars",
+          "attributes": [
+            "quick release",
+            "hands free",
+            "wireless charging"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "original",
+            "style": "windshield"
+          },
+          "weight": 0.028216374269005848
+        },
+        "goal_sha256": "ee272df9c5fa6b48c43c70107cc79d0500e20905bfecdf1252cb009c978c38cf"
+      },
+      {
+        "task_id": "webshop.100",
+        "server_goal_index": 100,
+        "asin": "B09P8D2Q1Q",
+        "instruction_text": "Find me home office cabinets with storage space for living room, and price lower than 200.00 dollars",
+        "goal": {
+          "asin": "B09P8D2Q1Q",
+          "category": "garden",
+          "query": "home office cabinets",
+          "name": "Tiamu File Cabinet - Vertical Filing Cabinet - Office Cabinet with Open Storage Shelf and Drawer - Letter Size Large Modern Storage Cabinet Printer Stand, for Office, Study, Living Room",
+          "product_category": "Office Products › Office Furniture & Lighting › Cabinets, Racks & Shelves › File Cabinets › Vertical File Cabinets",
+          "instruction_text": "Find me home office cabinets with storage space for living room, and price lower than 200.00 dollars",
+          "attributes": [
+            "storage space",
+            "living room"
+          ],
+          "price_upper": 200.0,
+          "goal_options": {},
+          "weight": 0.01866359447004608
+        },
+        "goal_sha256": "f5191c9104355ff2e90c77475e6b9eea6f82eb72512f61b9f305ca2a04873f60"
+      },
+      {
+        "task_id": "webshop.101",
+        "server_goal_index": 101,
+        "asin": "B08YQKXLVG",
+        "instruction_text": "Find me high power, non slip binoculars & scopes for bird watching with style: 10x50 hd binoculars, and price lower than 170.00 dollars",
+        "goal": {
+          "asin": "B08YQKXLVG",
+          "category": "electronics",
+          "query": "binoculars & scopes",
+          "name": "Staoptics 15x60 UHD Binoculars,High Power Astronomy Binoculars for Stargazing and Long Distance Bird Watching Hunting-Fully Multi-Broadband Coated Lenses View Clear and Bright,Adapt to Tripod Black",
+          "product_category": "Electronics › Camera & Photo › Binoculars & Scopes › Binoculars",
+          "instruction_text": "Find me high power, non slip binoculars & scopes for bird watching with style: 10x50 hd binoculars, and price lower than 170.00 dollars",
+          "attributes": [
+            "high power",
+            "non slip",
+            "bird watching"
+          ],
+          "price_upper": 170.0,
+          "goal_options": {
+            "style": "10x50 hd binoculars"
+          },
+          "weight": 0.07560716454159078
+        },
+        "goal_sha256": "5563c1a9bbb935f09eaf1545da0a23084a9be4d62eead9248b6d834273297dfc"
+      },
+      {
+        "task_id": "webshop.103",
+        "server_goal_index": 103,
+        "asin": "B07S2Z9KGP",
+        "instruction_text": "Find me space saving decorative mirrors for living room with color: ridge bronze, and price lower than 170.00 dollars",
+        "goal": {
+          "asin": "B07S2Z9KGP",
+          "category": "garden",
+          "query": "decorative mirrors",
+          "name": "Amanti Art Door Mirror (55.50 x 21.50 in.), Ballroom Bronze Frame - Full Length Mirror, Full Body Mirror, Wall Mirror - Bronze",
+          "product_category": "Home & Kitchen › Home Décor Products › Mirrors › Wall-Mounted Mirrors",
+          "instruction_text": "Find me space saving decorative mirrors for living room with color: ridge bronze, and price lower than 170.00 dollars",
+          "attributes": [
+            "space saving",
+            "living room"
+          ],
+          "price_upper": 170.0,
+          "goal_options": {
+            "color": "ridge bronze"
+          },
+          "weight": 0.01747311827956989
+        },
+        "goal_sha256": "d61b7a19ed0e4a3dcd7fa83fbc8121c0c438f31c4938fcd56703f93e14f73a67"
+      },
+      {
+        "task_id": "webshop.104",
+        "server_goal_index": 104,
+        "asin": "B09KRLGSC5",
+        "instruction_text": "Find me hand wash, machine wash women's sweaters with long sleeve, unique design with color: coffee brown, and size: large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09KRLGSC5",
+          "category": "fashion",
+          "query": "women's sweaters",
+          "name": "SweatyRocks Women's Oversized Sweater Crewneck Long Sleeve Knit Tops Pullover Jumper Tops",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Sweaters › Pullovers",
+          "instruction_text": "Find me hand wash, machine wash women's sweaters with long sleeve, unique design with color: coffee brown, and size: large, and price lower than 60.00 dollars",
+          "attributes": [
+            "hand wash",
+            "machine wash",
+            "long sleeve",
+            "unique design"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "coffee brown",
+            "size": "large"
+          },
+          "weight": 0.003438726481041656
+        },
+        "goal_sha256": "7663e8baaf2820e3709875c492decf63f55f0ca38b0b5a8595a128eb28368ece"
+      },
+      {
+        "task_id": "webshop.107",
+        "server_goal_index": 107,
+        "asin": "B08XQRDDT1",
+        "instruction_text": "Find me long lasting, easy apply, cruelty free lips makeup with color: set-a, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B08XQRDDT1",
+          "category": "beauty",
+          "query": "lips makeup",
+          "name": "YOUNG VISION Cream Blush Stick, All-in-One Natural Makeup Stick for Cheeks, Lips, Eyes and Contour, Matte Pink/Peach/Brown Face Blushes, Highlighter and Contour for Mature Skin, Long Lasting",
+          "product_category": "Beauty & Personal Care › Makeup › Face › Blush",
+          "instruction_text": "Find me long lasting, easy apply, cruelty free lips makeup with color: set-a, and price lower than 40.00 dollars",
+          "attributes": [
+            "long lasting",
+            "easy apply",
+            "cruelty free"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "set-a"
+          },
+          "weight": 0.14054001554001552
+        },
+        "goal_sha256": "e19979b94182c320864dc46d3e172b0f011c6f862d4b0b6eb27f0b0bf13946c7"
+      }
+    ]
+  },
+  "preflight": {
+    "all_selected": {
+      "tasks": 56,
+      "unique_goal_semantics": 56,
+      "required_unique_goal_semantics": 56,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 56,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    },
+    "formal_vs_development_and_human": {
+      "tasks": 32,
+      "unique_goal_semantics": 32,
+      "required_unique_goal_semantics": 32,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 32,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    }
+  },
+  "runtime_contract": {
+    "server_launcher": "scripts/run_webshop_unique_goal_server_v14.py",
+    "goal_mode": "native_synthetic",
+    "human_goal_mode_forbidden": true,
+    "semantic_preflight_before_provider": true,
+    "primary_inference_unit": "unique_asin_goal"
+  },
+  "runtime_hashes": {
+    "products": "30a4765c3a327af72d9a9a95a6b2486d516f0fa1d3ecd83681901ce82a21b269",
+    "human_instructions": "cf78667548a71786e1d9049c24b802e48e1084ad4bb021cae56ce1f6d96954a3",
+    "vendor_engine": "4af84efef1401c3735296201afc397be54015ff9b169c2c6bfe5f5bc90dc31e6",
+    "vendor_goal": "9703c8583244e2041182eb14856186b998145ab16ce2ba9aef8cb680877c8ed5",
+    "vendor_app": "2161ee48cea38a8d8e0dfa2e386f059bd006af47e5549ea41051e26f3d553d24",
+    "freezer": "acf89e5e8e9edfb517c901f55af297ca94651576418bee855bb0473e85caa7c0",
+    "server_launcher": "a0d0a1cb61c3230458fb5f2ac91058177a72bffaae96dc98cc53d6f195e554c1",
+    "server_adapter": "dfa7aefa70584ba1d0cb3c82aedb7c48939ba1b5eb8609c5a86abb75eee8cf25"
+  },
+  "artifact_sha256": "bcd08bd8c037811053bdb069cb1e97b5711cce914e002ffbfa55e56faf7588e7"
+}

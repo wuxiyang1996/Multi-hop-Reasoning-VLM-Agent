@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "status": "WEBSHOP_V14_DEVELOPMENT_PREFLIGHT_FAILED_ZERO_SOURCE_APPLICABILITY",
+  "role": "DEVELOPMENT_DIAGNOSIS_ONLY",
+  "formal_reserve_opened": false,
+  "intended_smoke_tasks": [
+    "webshop.0",
+    "webshop.1",
+    "webshop.2",
+    "webshop.3"
+  ],
+  "complete_paired_tasks": [
+    "webshop.0",
+    "webshop.1"
+  ],
+  "incomplete_tasks_excluded": [
+    "webshop.2",
+    "webshop.3"
+  ],
+  "stop_rule": "Stopped after two complete six-condition groups both produced zero authentic source decisions; did not spend on the remaining smoke tasks.",
+  "conditions": {
+    "target_only": {
+      "tasks": 2,
+      "strict_successes": 0,
+      "rewards": [
+        0.0,
+        0.7142857142857143
+      ],
+      "source_decisions": 0,
+      "changed_from_target_rank_zero": 0,
+      "failures": 0
+    },
+    "target_native_myopic": {
+      "tasks": 2,
+      "strict_successes": 0,
+      "rewards": [
+        0.2,
+        0.7142857142857143
+      ],
+      "source_decisions": 2,
+      "changed_from_target_rank_zero": 2,
+      "failures": 0
+    },
+    "authentic_sokoban_effect_plus_target": {
+      "tasks": 2,
+      "strict_successes": 0,
+      "rewards": [
+        0.0,
+        0.7142857142857143
+      ],
+      "source_decisions": 0,
+      "changed_from_target_rank_zero": 0,
+      "failures": 0
+    },
+    "commit_availability_control_plus_target": {
+      "tasks": 2,
+      "strict_successes": 0,
+      "rewards": [
+        0.0,
+        0.7142857142857143
+      ],
+      "source_decisions": 0,
+      "changed_from_target_rank_zero": 0,
+      "failures": 0
+    },
+    "inverted_effect_control_plus_target": {
+      "tasks": 2,
+      "strict_successes": 0,
+      "rewards": [
+        0.0,
+        0.7142857142857143
+      ],
+      "source_decisions": 0,
+      "changed_from_target_rank_zero": 0,
+      "failures": 0
+    },
+    "position_prior_control_plus_target": {
+      "tasks": 2,
+      "strict_successes": 0,
+      "rewards": [
+        0.0,
+        0.7142857142857143
+      ],
+      "source_decisions": 0,
+      "changed_from_target_rank_zero": 0,
+      "failures": 0
+    }
+  },
+  "authentic_total_source_decisions": 0,
+  "coverage_counterfactual_audit": {
+    "webshop.0": [],
+    "webshop.1": [
+      {
+        "step": 8,
+        "selected_action": "click('70')",
+        "authorized": false,
+        "coverage": {
+          "required": [
+            "3x|large",
+            "black"
+          ],
+          "verified": [],
+          "missing": [
+            "3x|large",
+            "black"
+          ],
+          "commit_authorized": false,
+          "pending_signature": null
+        }
+      }
+    ]
+  },
+  "diagnosis": [
+    "The synthetic server and BrowserGym transitions work end to end.",
+    "The frozen V13 target MLP never opened authentic source authority on either complete new goal.",
+    "On webshop.1, repeated direct radio clicks were no-ops and target rank zero committed with both required options unverified, yielding reward 5/7 rather than strict success.",
+    "The next repair is target-native label-action completion plus set coverage, tested against coverage-only; changing the source threshold is not justified."
+  ],
+  "next_gate": "Require nonzero action contrast and authentic improvement over both target-only and target-native coverage-only on development before opening formal reserve.",
+  "operational": {
+    "cached_provider_calls": 30,
+    "estimated_provider_cost_usd": 0.039988935,
+    "complete_receipts": 12,
+    "final_failures": 0
+  },
+  "runtime_hashes": {
+    "manifest": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee",
+    "decision_caches": {
+      "webshop.0": "54ef5c7fffd0aae27a7ed35fccde03cf07a4717f81c96d464d47af26e23c53a6",
+      "webshop.1": "210f8a23e4e6179a40bee92d0324638bb590cdb0770b50fdcbe74056b0bae502"
+    },
+    "summarizer": "d7f576094879911250a73308d9ab9d3309a1eda398d28876392e27de791881d3"
+  },
+  "artifact_sha256": "420ea8eea9747d13168ea2d8f4a844dddebba442bbe9cfcdea675e051a5740a5"
+}

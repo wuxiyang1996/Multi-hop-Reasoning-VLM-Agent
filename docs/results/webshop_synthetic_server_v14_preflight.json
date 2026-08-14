@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "status": "WEBSHOP_SYNTHETIC_SERVER_V14_PREFLIGHT_PASSED",
+  "passed": true,
+  "live_goals_checked": 56,
+  "development_goals": 24,
+  "formal_reserve_goals": 32,
+  "goal_hash_mismatches": [],
+  "semantic_audit": {
+    "tasks": 56,
+    "unique_goal_semantics": 56,
+    "required_unique_goal_semantics": 56,
+    "duplicate_goal_semantics": [],
+    "duplicate_multiplicities": {},
+    "consumed_instruction_overlap": [],
+    "candidate_unique_asins": 56,
+    "consumed_asin_overlap": [],
+    "gates": {
+      "enough_unique_goal_semantics": true,
+      "one_task_per_goal_semantics": true,
+      "instruction_disjoint_from_consumed": true,
+      "asin_disjoint_from_consumed": true,
+      "one_task_per_asin": true
+    },
+    "passed": true
+  },
+  "gates": {
+    "manifest_status_frozen": true,
+    "every_live_goal_hash_matches": true,
+    "live_semantic_reserve_passes": true,
+    "formal_outcomes_remain_sealed": true,
+    "zero_provider_calls": true
+  },
+  "manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/webshop_synthetic_unique_v14_frozen.json",
+  "manifest_artifact_sha256": "bcd08bd8c037811053bdb069cb1e97b5711cce914e002ffbfa55e56faf7588e7",
+  "artifact_sha256": "c3d80f3fd8000435abd694d0157ffee97e73b80521367a898fbeec8378ff7022"
+}

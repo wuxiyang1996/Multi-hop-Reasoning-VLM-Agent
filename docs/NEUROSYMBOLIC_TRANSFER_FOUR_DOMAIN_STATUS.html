@@ -329,15 +329,16 @@
       <p class="eyebrow">Evidence-bound status · 2026-08-14</p>
       <h1>Game → Four Domains<br>Neural-Symbolic Transfer</h1>
       <p class="subtitle">
-        我们最终验证的不是“一条高层游戏 heuristic 到处通用”，而是三种 intervention-grounded
-        symbolic structures，在四个精确定义的 target interfaces 上由 target-native neural grounding 执行。
-        七步扩展计划已经跑完：正结果、负结果与 abstention 都按冻结 gate 报告。
+        我们实现的不是“一条高层游戏 heuristic 到处通用”，而是 intervention-grounded symbolic
+        structures 由 target-native neural grounding 执行。七步扩展已跑完；后续审计撤回了 WebShop
+        旧 independent-goal claim，并把自然视频正式负结果纳入边界。
       </p>
       <div class="pills">
-        <span class="pill good">4-domain directional replication passed</span>
+        <span class="pill bad">Old 4-domain aggregate retired</span>
         <span class="pill good">Target action authority preserved</span>
         <span class="pill info">5 select · 4 abstain</span>
-        <span class="pill warn">WebShop route replication inconclusive</span>
+        <span class="pill warn">WebShop V14 reserve preflight passed</span>
+        <span class="pill bad">Natural-video V37 failed</span>
         <span class="pill bad">Universal learned ontology not confirmed</span>
       </div>
     </div>
@@ -358,18 +359,26 @@
 
   <main class="wrap">
     <section id="outcome">
-      <h2>当前结论：aggregate 复现通过，但不是四个单域都显著</h2>
+      <h2>当前结论：WebShop 旧 aggregate 被 semantic pseudoreplication 限定</h2>
       <p class="lead">
-        独立 reserve 上四域 success delta 都为正且每域 wins &gt; losses，预注册 directional aggregate gate
-        通过（equal-domain mean +27.08 pp；pooled descriptive 40W/1L/87T）。但 WebShop 的强单域
-        confirmatory gate 没通过；“aggregate validated”不能改写成“四域分别统计确认”。
+        旧四域 aggregate 在 task-ID 层通过，但 2026-08-14 审计发现 WebShop IDs 114–177 都在循环同一组
+        13 个 human-goal semantics；两段 32-task sets 不是独立 semantic reserves。因此旧 aggregate 不能再作为
+        independent four-domain confirmation。ALFWorld、DiscoveryWorld、TIR 和 CLEVRER 的既有结果不受此
+        WebShop sampler 问题影响。
       </p>
+
+      <div class="callout bad">
+        <strong>WebShop correction：</strong>V13 cluster-aware 为 5 positive / 0 negative（p=.0625），replication
+        为 4/1（p=.375）。V14 已切到 native synthetic goals，冻结 24 development + 32 formal，56/56 live
+        hashes、56 unique semantics、56 unique ASINs 全通过；formal outcome sealed。两组 development
+        smoke 的 authentic source decisions 均为 0，尚未形成新 transfer evidence。
+      </div>
 
       <div class="grid">
         <article class="card result-card span-3">
           <p class="metric">WebShop · product search/commit</p>
           <p class="value">14 / 32</p>
-          <p class="small">target-only 9/32 · 6W/1L · p=.125 · route gate 未通过</p>
+          <p class="small">旧 task-ID result；仅 13 个重复 semantics · independent claim 撤回</p>
           <div class="bar-pair">
             <div class="bar-row"><span>transfer</span><div class="bar-track"><div class="bar" style="width:43.75%"></div></div><b>44%</b></div>
             <div class="bar-row"><span>baseline</span><div class="bar-track"><div class="bar baseline" style="width:28.125%"></div></div><b>28%</b></div>
@@ -483,7 +492,7 @@
       <h2>七步计划：做到第 7 步后的真实状态</h2>
       <ol>
         <li><strong>Portable audit。</strong>exact registry、compact receipts 与 ALFWorld replay 可 clean-checkout 审计；三域外部 runtime/cache 尚未 vendored。</li>
-        <li><strong>四域独立 reserve。</strong>aggregate directional gate 通过；ALFWorld/TIR 强确认，DiscoveryWorld 小样本正向，WebShop 强单域 gate 未通过。</li>
+        <li><strong>四域 reserve audit。</strong>ALFWorld/TIR 强确认，DiscoveryWorld 小样本正向；WebShop 被发现只有 13 个循环 semantics，所以旧四域 independent aggregate claim 撤回。</li>
         <li><strong>ALFWorld multiplicity。</strong>identity set 在 6 个 count-two tasks 上 4/6 vs 1/6；正向但仍小样本。</li>
         <li><strong>扩 target scope。</strong>TIR rotation 19/21 vs 4/21；DiscoveryWorld Normal 则发现 adjacency vocabulary gap 并出现 0/1 vs 1/1 负迁移。</li>
         <li><strong>学习 latent ontology。</strong>Sokoban/Tetris/2048 学到的匿名 roles 在 Candy/Super Mario fresh confirm 未超过 marginal，因此不确认。</li>
@@ -503,9 +512,9 @@
         <div class="card span-6">
           <h3><span class="tag good">Supported</span> 当前可以写进结论</h3>
           <ul>
-            <li>四域独立 reserve 上 transfer delta 均为正，aggregate directional gate 通过。</li>
+            <li>ALFWorld 与 TIR 的独立 reserve 强通过；DiscoveryWorld Easy 小样本正向且无 regression。</li>
             <li>Target-native neural grounding 与 source symbolic control 可以分离。</li>
-            <li>ALFWorld/TIR 独立复现强通过；DiscoveryWorld Easy 小样本正向且无 regression。</li>
+            <li>WebShop V14 的 56-goal unique-semantic/unique-ASIN live execution preflight 已通过。</li>
             <li>Fail-closed dispatcher 能阻止 unsupported route 获得 source authority。</li>
             <li>另有 TIR rotation 与 CLEVRER synthetic event-graph 两条正式正结果。</li>
           </ul>
@@ -516,7 +525,7 @@
             <li>同一个 universal skill 从一个游戏迁移到所有四域。</li>
             <li>任意真实游戏、任意 task 或整个 benchmark 已解决。</li>
             <li>Zero-shot grounding 或自动发现跨域 ontology；本轮 learned ontology 是负结果。</li>
-            <li>WebShop 已被强单域统计复现；它目前是正向但 inconclusive。</li>
+            <li>WebShop 已被独立 32-goal 统计复现；旧两段各自只有同一组 13 个 goal families。</li>
             <li>STAR、NExT-QA、Video-Holmes 或广义自然视频迁移已通过。</li>
             <li>达到 benchmark SOTA，或 source provenance 对所有 route 都是必要的。</li>
           </ul>
@@ -538,7 +547,7 @@
       <table>
         <thead><tr><th>缺口</th><th>当前证据</th><th>完成标准</th><th>优先级</th></tr></thead>
         <tbody>
-          <tr><td><strong>WebShop 单域 replication</strong></td><td>14/32 vs 9/32，6W/1L，p=.125；aggregate 方向一致但强 route gate 失败</td><td>新的冻结 reserve 在同一 per-route criterion 下确认或否定</td><td><span class="tag bad">P0</span></td></tr>
+          <tr><td><strong>WebShop semantic replication</strong></td><td>旧 64 IDs 只覆盖同一 13 goals；V14 56/56 live preflight 已过。2-goal dev smoke 中 authentic authority 为 0，结果与 target-only 相同</td><td>先补 paired-label candidates + set coverage，并超过 coverage-only；只有 source-specific gate 过后才打开 32 formal</td><td><span class="tag bad">P0</span></td></tr>
           <tr><td><strong>完整四域 clean-room replay</strong></td><td>Release V1 已完成 clean-checkout audit、环境锁定和 ALFWorld artifact/replay bundle；其余三域保留 compact receipts</td><td>再打包 WebShop provider cache、DiscoveryWorld installation recipe 与 TIR execution cache，完成四域从头执行</td><td><span class="tag warn">P0 partial</span></td></tr>
           <tr><td><strong>DiscoveryWorld Normal</strong></td><td>target-native 1/1、authentic 0/1；当前 vocabulary 无法表示 undirected adjacency，且 fork 已在 ceiling</td><td>只在 development 修 target-native adjacency，并在 non-ceiling fork 冻结新 reserve</td><td><span class="tag bad">P0</span></td></tr>
           <tr><td><strong>ALFWorld multiplicity breadth</strong></td><td>count-two fresh 4/6 vs 1/6，3W/0L</td><td>更多 unopened tasks 与多种 counts；不能只重复当前六题</td><td><span class="tag warn">P1</span></td></tr>
@@ -546,7 +555,7 @@
           <tr><td><strong>State-level applicability</strong></td><td>route-level posterior gate 已能 5 select / 4 abstain；structural predicates 仍手写</td><td>在执行前用当前 state 预测 transfer utility，严格使用过去数据并校准 negative transfer</td><td><span class="tag warn">P1</span></td></tr>
           <tr><td><strong>等预算强 baseline</strong></td><td>已有 target-only 和 structural controls</td><td>同模型/数据/调用预算下对比 target memory、retrieval、black-box policy 与 target-written workflow</td><td><span class="tag warn">P1</span></td></tr>
           <tr><td><strong>单一 source / universal skill</strong></td><td>旧 single Sokoban effect 在 ALF/TIR 失败；当前使用三种 structures</td><td>若仍追求此 claim，必须先提出非退化共享结构并通过四域 controls</td><td><span class="tag info">Open, not required</span></td></tr>
-          <tr><td><strong>Natural-video route</strong></td><td>CLEVRER synthetic event graph 已过；STAR/NExT-QA/Video-Holmes 未过</td><td>稳定 temporal identity/event grounding 后再做 source-specific fresh test</td><td><span class="tag info">Separate track</span></td></tr>
+          <tr><td><strong>Natural-video route</strong></td><td>V37 已正式失败：149/201 source vs 150/201 direct；inverted 152/201；已花约 $11.63</td><td>暂停新调用；先用旧 receipts 证明 target evidence headroom 与 source-specific applicability</td><td><span class="tag info">STOP spend</span></td></tr>
         </tbody>
       </table>
 
@@ -560,7 +569,7 @@
       <h2>建议的执行顺序</h2>
       <div class="priority">
         <div class="rank">1</div>
-        <div><strong>先处理 WebShop replication uncertainty。</strong><p class="small">保留当前 6W/1L 为 inconclusive evidence；冻结新 reserve，不调 threshold，不把 aggregate 显著性借给单域 claim。</p></div>
+        <div><strong>修 WebShop V14 target applicability，不打开 formal。</strong><p class="small">56/56 preflight 已完成；2-goal smoke 暴露 source authority=0。先补 paired-label action 与 set coverage，再比较 coverage-only、source+coverage 与 controls。</p></div>
       </div>
       <div class="priority">
         <div class="rank">2</div>
@@ -576,7 +585,7 @@
       </div>
       <div class="priority">
         <div class="rank">5</div>
-        <div><strong>视频从 CLEVRER 向自然视频逐级扩。</strong><p class="small">先验证 STAR 的 target-native event/identity graph，再考虑 NExT-QA 与 Video-Holmes；不能把 CLEVRER 正结果直接外推。</p></div>
+        <div><strong>暂停自然视频新 API 调用。</strong><p class="small">V37 的 201-question formal 已失败；先离线验证新的 evidence operator 有 intrinsic headroom，再讨论 STAR/NExT-QA。Video-Holmes 降级。</p></div>
       </div>
       <div class="priority">
         <div class="rank">6</div>
@@ -594,6 +603,7 @@
             <li><a href="FOUR_DOMAIN_NEUROSYMBOLIC_RELEASE_V1.md">Portable release and ALFWorld replay</a></li>
             <li><a href="PROCEDURAL_GAME_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Procedural-game → ALFWorld result</a></li>
             <li><a href="SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md">Sokoban → WebShop result</a></li>
+            <li><a href="WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md">WebShop correction + video cost boundary</a></li>
             <li><a href="DISCOVERYWORLD_SOKOBAN_V23_RESULTS.md">Sokoban → DiscoveryWorld result</a></li>
             <li><a href="TIR_MAZE_SOKOBAN_TOPOLOGY_V1_V2_RESULTS.md">Sokoban topology → TIR maze result</a></li>
             <li><a href="TIR_TETRIS_ROTATION_COUNTERFACTUAL_V2_RESULTS.md">Tetris → TIR rotation result</a></li>
@@ -608,6 +618,10 @@
             <li><a href="results/four_domain_neurosymbolic_release_v1_audit.json">Portable release audit</a></li>
             <li><a href="results/procedural_game_alfworld_v1_summary.json">ALFWorld compact receipt</a></li>
             <li><a href="results/webshop_sokoban_effect_transfer_v13_summary.json">WebShop compact receipt</a></li>
+            <li><a href="results/webshop_semantic_independence_v14_audit.json">WebShop semantic audit</a></li>
+            <li><a href="results/webshop_synthetic_server_v14_preflight.json">WebShop V14 live preflight</a></li>
+            <li><a href="results/webshop_synthetic_v14_development_smoke_v1.json">WebShop V14 development smoke</a></li>
+            <li><a href="results/natural_video_cost_boundary_v38_audit.json">Natural-video cost audit</a></li>
             <li><a href="results/discoveryworld_v23_fresh_easy_formal_summary.json">DiscoveryWorld compact receipt</a></li>
             <li><a href="results/tir_maze_topology_v2_summary.json">TIR compact receipt</a></li>
             <li><a href="results/four_domain_replication_v1_summary.json">Independent four-domain aggregate</a></li>
@@ -626,7 +640,7 @@
 PYTHONPATH=src:. pytest -q \
   tests/test_neurosymbolic_skill_library.py \
   tests/test_four_domain_neurosymbolic_registry.py</pre>
-      <p class="small">Branch: <code>agent/harness-transfer-bitter-lessons</code> · status updated through seven-step audit on 2026-08-14.</p>
+      <p class="small">Branch: <code>agent/harness-transfer-bitter-lessons</code> · status updated through WebShop V14 and natural-video V38 audits on 2026-08-14.</p>
     </section>
   </main>
 

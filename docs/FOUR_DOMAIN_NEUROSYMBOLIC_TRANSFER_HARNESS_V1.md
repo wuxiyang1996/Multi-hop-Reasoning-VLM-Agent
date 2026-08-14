@@ -2,9 +2,19 @@
 
 Web overview: [`NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html`](NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html).
 
+> **2026-08-14 correction:** WebShop IDs 114–177 wrap over 13 human-goal
+> semantics. Its two 32-task runs are not independent semantic reserves, and
+> the four-domain aggregate therefore inherits WebShop pseudoreplication. Keep
+> the ALFWorld, DiscoveryWorld, TIR, and CLEVRER route results unchanged, but do
+> not use the old aggregate as independent four-domain confirmation. A new
+> 24-development/32-formal WebShop synthetic split now passes 56/56 live goal
+> hash and unique-ASIN preflight; formal outcomes remain unopened, while a
+> two-goal development smoke found zero authentic source decisions. See
+> [`WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md`](WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md).
+
 ## Result
 
-The original four exact routes passed their frozen route-specific gates. We then
+Historically, the original four exact routes passed their frozen route-specific gates. We then
 ran independent reserves under a separately frozen directional aggregate gate:
 
 | Independent target reserve | Transfer | Comparator | Paired change | Route-level interpretation |

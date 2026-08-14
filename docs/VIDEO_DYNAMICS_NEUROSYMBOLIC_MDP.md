@@ -479,3 +479,20 @@ confirmation/reserve 仍 sealed。机器可读结论见
 `execution_authority=SYMBOLIC_ROUTING_ONLY`。下一次值得运行的实验必须先从 source games 学到会改变
 decision 的低层参数，例如 calibrated guard reliability、transition likelihood 或 option value；只继续
 迁移 `BIND→RELATE/MUTATE` 的拓扑，无法与 target-native 同构 executor 做非平凡区分。
+
+## 2026-08 V37 matched natural-video formal 与 cost stop
+
+后续 V37 已经完成此前缺少的 matched-model、matched-frame、video-disjoint 正式测试，不应再被描述为
+“尚未运行 fresh natural video”。STAR + NExT-QA 共 `201` questions、`28` video clusters；direct 与
+typed proof 都使用 Gemini 3.1 Pro 和同一组 24 frames，与 V36 adaptation 的 sample/video overlap 都为 0。
+
+结果为 direct `150/201`、raw typed proof `151/201`（8W/7L）、authentic Sokoban source CATE
+`149/201`（3W/4L）；inverted source control 为 `152/201`。全部 13 个 formal gates 失败。402 条
+provider-call usage records 合计约 `$11.63`。这说明 blocker 不是帧数、样本数或 generic candidate
+grounding，而是 raw target evidence operation 只有 `+1/201` headroom，且 authentic source 没有超过
+inverted/marginal controls 的独特 applicability value。
+
+因此 natural-video 新调用暂停，Video-Holmes 降级；CLEVRER `511/720 vs 489/720` 仍保留为 structured
+event-graph positive boundary。完整结论与机器审计见
+[`WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md`](WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md) 和
+[`results/natural_video_cost_boundary_v38_audit.json`](results/natural_video_cost_boundary_v38_audit.json)。

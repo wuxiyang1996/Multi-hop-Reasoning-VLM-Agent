@@ -2,7 +2,17 @@
 
 日期：2026-08-12
 
-## 结论
+> **2026-08-14 independence correction（优先于下方历史结论）：** installed WebShop
+> human-goal pool 只有 13 个 goals，bridge 将 task ID 对 13 取模。V13 `114–145` 与 replication
+> `146–177` 各自都重复这同一组 13 个 semantics；两段 unique goal sets 完全重合。因此下方
+> task-level `7W/0L, p=.015625` 仍是历史观察，但“32 个独立 fresh goals”与 independent
+> confirmatory claim 撤回。按 semantic goal 聚类后，V13 为 5 positive / 0 negative clusters，
+> `p=.0625`；replication 为 4/1，`p=.375`。V14 已冻结并 live 验证 56 个 unique-ASIN synthetic
+> goals；32-goal formal outcome 仍 sealed。两组 development smoke 显示 authentic source authority=0，
+> 尚未支持新 transfer claim。完整审计见
+> [`WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md`](WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md)。
+
+## 历史 V13 结论（已被上方 independence correction 限定）
 
 V13 在预先冻结的 32 个 fresh WebShop goals 上通过了全部完整性、non-triviality 和 paired
 performance gates：
