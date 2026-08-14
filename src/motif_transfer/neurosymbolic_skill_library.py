@@ -123,7 +123,7 @@ def _lookup(payload: Any, path: str) -> Any:
     return value
 
 
-def _validate_bound_file(repo: Path, spec: Mapping[str, Any]) -> Mapping[str, Any]:
+def _validate_file_hash(repo: Path, spec: Mapping[str, Any]) -> Path:
     path = _within_repo(repo, str(spec["path"]))
     observed = _file_sha256(path)
     expected = str(spec["file_sha256"])
@@ -131,6 +131,11 @@ def _validate_bound_file(repo: Path, spec: Mapping[str, Any]) -> Mapping[str, An
         raise SkillLibraryReject(
             f"frozen file hash mismatch for {spec['path']}: {observed} != {expected}"
         )
+    return path
+
+
+def _validate_bound_file(repo: Path, spec: Mapping[str, Any]) -> Mapping[str, Any]:
+    path = _validate_file_hash(repo, spec)
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -183,7 +188,7 @@ class FrozenNeurosymbolicSkillLibrary:
                 raise SkillLibraryReject(f"evidence status mismatch: {row['skill_id']}")
             adapter_files = row.get("adapter_files") or ()
             for adapter_file in adapter_files:
-                _validate_bound_file(repo_path, adapter_file)
+                _validate_file_hash(repo_path, adapter_file)
             routes = []
             for route in row.get("routes") or ():
                 authority = str(route["action_authority"])
