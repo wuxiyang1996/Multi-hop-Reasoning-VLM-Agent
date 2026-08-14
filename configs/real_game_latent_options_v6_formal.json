@@ -1,0 +1,33 @@
+{
+  "schema_version": "real-game-latent-options-v6-formal",
+  "status": "FROZEN_BEFORE_CONFIRMATION_HELDOUT_READ",
+  "claim_boundary": "Fresh compiler-level confirmation of an anonymous effect/value ontology learned on Sokoban, Tetris, and 2048 and applied without refitting to Candy Crush and Super Mario. Confirmation-game discovery episodes set reward location/scale only. This tests cross-game source abstraction; it does not by itself establish target-domain success or ontology provenance necessity.",
+  "candidate_artifact_sha256": "110b28206873f81625fbe1a604b69d69aeeae7dfb024a66fc5913e9bbccb7be6",
+  "manifest_file_sha256": "812e1378953dcbb9409d547047d645e5710d74a362f4dce4b525cc4116717afb",
+  "fixed_cluster_count": 7,
+  "train_games": [
+    "sokoban",
+    "tetris",
+    "twenty_forty_eight"
+  ],
+  "confirmation_games": [
+    "candy_crush",
+    "super_mario"
+  ],
+  "confirmation_role": "held_out",
+  "target_game_calibration_role": "discovery_reward_location_scale_only",
+  "formal_gates": {
+    "expected_heldout_episodes": 24,
+    "minimum_relative_improvement": 0.1,
+    "require_pooled_authentic_above_phase_permuted_within_episode_and_marginal": true,
+    "require_authentic_above_marginal_in_both_games": true,
+    "minimum_nonempty_anonymous_options_per_game": 3,
+    "thresholds_may_change_after_open": false
+  },
+  "integrity": {
+    "file_sha256": {
+      "scripts/confirm_real_game_latent_options_v6.py": "b8875fc4f95ee41ed7f23401415df1e569706467de7bdd1038a5758ed058b7ed",
+      "src/motif_transfer/real_game_latent_options.py": "ea944f0794c405de0d42dd6253367e8a5b504c06eda636d48117d72f9594c5b3"
+    }
+  }
+}
