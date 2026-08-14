@@ -18,7 +18,32 @@ The frozen 24-task `ALFWorld valid_unseen` evaluation supports the narrow transf
 
 Against target-only, authentic transfer produced 9 wins, 1 loss, and 14 ties. The exact two-sided paired sign-test value is `p=0.021484375`. It strictly beat every frozen control, changed the selected symbolic option on 17.75% of decisions, and reduced mean episode length by 44.67%.
 
-The one regression was the only two-object placement task. Authentic transfer succeeded on 22/23 single-object tasks but failed on the 1/1 two-object task, so the current workflow state is not yet a sufficient representation for multiplicity.
+The one regression was the only two-object placement task. Authentic transfer succeeded on 22/23 single-object tasks but failed on the 1/1 two-object task, so the original event-count workflow state was not sufficient for multiplicity.
+
+## Identity-aware multiplicity extension
+
+The follow-up V1 extension replaced the ambiguous number of `PLACE` events with
+an ALFWorld-native set of distinct object identities currently bound to the goal
+receptacle. Removing a completed object is represented as a negative effect. The
+source value model still selects only an abstract option; the frozen target
+neural grounder retains native action authority.
+
+On six prospectively locked `pick_two_obj_and_place` tasks, authentic transfer
+succeeded on **4/6**, versus **1/6** for target-only, **0/6** for shuffled source,
+**1/6** for the source marginal, and **3/6** for the phase-permuted control. The
+paired authentic-versus-target result was 3 wins, 0 losses, and 3 ties
+(`p=0.25`; small-sample sign test). It changed the selected hierarchical option
+on 4/6 tasks, reduced mean steps from 69.67 to 46.00, and the audit verified that
+every reported count equals the cardinality of the distinct-ID set.
+
+The raw legacy runner reports `FINAL_HELDOUT_FAILED` because it also retained a
+singleton-era gate requiring an 8% option-change rate averaged over every
+environment step; the observed rate was 2.17%. Before opening these six tasks,
+the multiplicity protocol explicitly made the task-level intervention gate
+(at least 4/6 tasks) authoritative and retained the old status for disclosure.
+All eight frozen multiplicity gates pass in
+`docs/results/alfworld_multiplicity_v1_formal_summary.json`. This validates the
+narrow count-two repair; it does not establish arbitrary cardinalities.
 
 ## What transfers
 
