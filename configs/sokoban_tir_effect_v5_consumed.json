@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "status": "DEVELOPMENT_ON_CONSUMED_TIR_V3_TASKS",
+  "claim_boundary": "CONSUMED_TIR_DEVELOPMENT_ONLY",
+  "source": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json"
+  },
+  "target": {
+    "benchmark": "TIR-Bench",
+    "model": "openai/gpt-4.1-mini",
+    "receipts": "runs/active_tir_wrapper_gpt41mini_v4_development/receipts.json"
+  },
+  "target_grounder": {
+    "kind": "nested_leave_one_task_out_candidate_effect_mlp",
+    "belief_seed": 2026081320,
+    "candidate_seed": 2026081322,
+    "candidate_hidden_units": 16,
+    "candidate_epochs": 600
+  },
+  "policy": {
+    "positive_effect_threshold": 0.0,
+    "fallback_commit_threshold": 0.72
+  },
+  "splits": {
+    "consumed_development": ["1092", "596", "224", "223", "321", "1178", "360", "1109"],
+    "held_out_unread": ["1162", "911", "808", "1009", "1103", "751", "651", "233", "318", "462", "939", "795", "1157", "561", "1144", "1005", "768", "1024", "1132", "842", "22", "1029", "879", "834"]
+  }
+}

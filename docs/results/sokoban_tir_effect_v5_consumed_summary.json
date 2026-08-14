@@ -1,0 +1,1223 @@
+{
+  "claim_boundary": "CONSUMED_TIR_DEVELOPMENT_ONLY",
+  "gates": {
+    "authentic_action_contrast": true,
+    "authentic_strictly_beats_source_controls": false,
+    "authentic_success_gain_over_null": false,
+    "authentic_zero_negative_transfer": false,
+    "cross_fitted_target_grounding": true,
+    "shared_sokoban_source_qualified": true
+  },
+  "mapping": {
+    "source_COMMIT": "target_TEST_best_target_neural_candidate",
+    "source_POSITION": "target_COMMIT_baseline_answer"
+  },
+  "paired": {
+    "commit_availability_control": {
+      "losses": 1,
+      "net_wins": 0,
+      "ties": 6,
+      "wins": 1
+    },
+    "inverted_effect_control": {
+      "losses": 1,
+      "net_wins": 1,
+      "ties": 5,
+      "wins": 2
+    },
+    "null_skill_same_harness": {
+      "losses": 1,
+      "net_wins": 0,
+      "ties": 6,
+      "wins": 1
+    },
+    "position_prior_control": {
+      "losses": 0,
+      "net_wins": 1,
+      "ties": 7,
+      "wins": 1
+    }
+  },
+  "report_sha256": "49b746dcbbc118ba0c197890e9502ee5d84310d8b691ce3e822ab8e501891ac4",
+  "schema_version": "sokoban-tir-effect-development-v5",
+  "source_artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+  "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+  "status": "CONSUMED_MECHANISM_GATE_FAILED",
+  "summaries": {
+    "authentic_sokoban_effect_skill": {
+      "success_rate": 0.625,
+      "successes": 5,
+      "tasks": 8,
+      "tests": 5
+    },
+    "commit_availability_control": {
+      "success_rate": 0.625,
+      "successes": 5,
+      "tasks": 8,
+      "tests": 8
+    },
+    "inverted_effect_control": {
+      "success_rate": 0.5,
+      "successes": 4,
+      "tasks": 8,
+      "tests": 3
+    },
+    "null_skill_same_harness": {
+      "success_rate": 0.625,
+      "successes": 5,
+      "tasks": 8,
+      "tests": 4
+    },
+    "position_prior_control": {
+      "success_rate": 0.5,
+      "successes": 4,
+      "tasks": 8,
+      "tests": 0
+    },
+    "raw_target_only": {
+      "success_rate": 0.5,
+      "successes": 4,
+      "tasks": 8,
+      "tests": 0
+    },
+    "target_oracle_skill": {
+      "success_rate": 0.75,
+      "successes": 6,
+      "tasks": 8,
+      "tests": 6
+    }
+  },
+  "target_receipts_file_sha256": "8e695242961385462c76ef282594b06d5e362adf4e06c4cab03b91fe425e38a3",
+  "tasks": [
+    "1092",
+    "596",
+    "224",
+    "223",
+    "321",
+    "1178",
+    "360",
+    "1109"
+  ],
+  "traces": [
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1092",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "06d85a40d56ff885526cc91cadc2022f80fe8a502d82a5398e1195dd95792ae1"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1092",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "348a457f939dd2c022d530d013497c991051a9e31bf9e607e88358552238b379"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1092",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "read_text_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "7f9d47b49779eb610ea2e1a1e2e947afaa29b4cd21315adb29ea007a23bdd023"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1092",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "read_text_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "fc374f888a8949b7c1b0d4e83de420aae6a9018ba28461c598ac39861edeec1c"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1092",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "acb441a1a6d38726060c5afa8ecbfa433d62537acd4cb5ad9b7410155e8f704f"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1092",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "9b3720a10424ce2758f97ac7a967eb687027b314231e1bf513902a8c378bc123"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1092",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "TEST",
+      "trace_sha256": "3c3b2d1b5c1a8062cf6bbef8f1a6b726ac4c950449d0710c9bb44b5ef54e3433"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "596",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "6ef9510519c92ef65911b0aa6b97664c32f548b93fea5e4c878ba8f32715f13e"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "596",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "c3fc4772b22c8ea219a8c505dbfff4e3065baf555995c1687b155a15cf5c180a"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "596",
+      "selected_candidate_id": "C2",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "0c92aabaa77d826edd583e3bf538301a62ad73dcf4bdfcc6c4ef138e27b06ee9"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "596",
+      "selected_candidate_id": "C2",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "aa0ade0fe4ea8cd58ef807808907000ec0d37cc3ed28ea65ea83933febb4dc5c"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "596",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "4d2c4a90e5d9a8dba8113de5a16050b1c44a79d4c2f2b46fe8fabbda4ec2ac70"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "596",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "1172372ce44d31d897ba37951baf8290ab9a583b9b729b5d09aef940a4e4bb93"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "596",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "TEST",
+      "trace_sha256": "351ca408c7cdc0acaaa978e27374adbf4569aad62fe6d599760014e39db3adf1"
+    },
+    {
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "A",
+      "sample_id": "224",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "38d3de3506b30bfbc6385cad76d6326724a808f7857263d93d74466244d36cce"
+    },
+    {
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "A",
+      "sample_id": "224",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": null,
+      "target_native_action": "TEST",
+      "trace_sha256": "1a13da190504bbeb7d0ee2c93a38cb35e22332d963f7d44e5c07993930f0e6cd"
+    },
+    {
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "A",
+      "sample_id": "224",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "d670feb8e10425d8df3614b9d1e7d5ecc50a6327a301b9309d2247ef3e0ce0cf"
+    },
+    {
+      "baseline_answer": "A",
+      "committed_answer": "D",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "A",
+      "sample_id": "224",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "describe_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "849a3d634c719d7d2da4b709278196cc0195631e7e53302d401d6de565331c15"
+    },
+    {
+      "baseline_answer": "A",
+      "committed_answer": "D",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "A",
+      "sample_id": "224",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "describe_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "ed8cf54959b16aaa45ec8deedd437713707e85c0c35d3bc76221ae243ef56258"
+    },
+    {
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "A",
+      "sample_id": "224",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "0f5695bd61c1ee180f10a56c91632da9fd8d88c07014d210ac05ecbfb071c7b4"
+    },
+    {
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "A",
+      "sample_id": "224",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "TEST",
+      "trace_sha256": "cd82008cd4421cbb27818772855194fc68ca4e19e3f476566e6a83096ef1d2cf"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "223",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "efc0ebaa8c4fab6cd01229d1b1ec30e15f3e87d3dabfef16482c2b4d48e6d95d"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "B",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "223",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": null,
+      "target_native_action": "TEST",
+      "trace_sha256": "2f411ace2905bb359666a8a3135d306ed0c08ced3bbddd4b735deaef2e80f285"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "B",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "223",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "b91934c0c280d1b0ef48d3171cd1003270989faf73c440eb83e06fd9797f9de4"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "B",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "223",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "ab933edd00e0d4b131bd9ae9cef161102eb1866b50900d5faac4171cc9711f80"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "223",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "ca00378de7bc37b9718201fc1584af12df1a353306e4c7947a94bf6e07da7ba6"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "223",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "201b2cc5fb783d5a30c966c333673232f1057e99b33521715c5de09cb9955790"
+    },
+    {
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "223",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "df69dd3587a721f11be86469261298b389acdafb2197815223290159f7ea20f4"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "321",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "5a62fe5692ab391395cb8011bb79b28bd96e52ff73fd5683dba14acc85289f68"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "321",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "describe_region",
+      "source_selected_option": null,
+      "target_native_action": "TEST",
+      "trace_sha256": "25ec7226c2491e8380b5001f9e63f33095c85b1556046ca44a3148a3eedc0c3e"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "321",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "30e14af5bce78149bfc47cc6eb7bbd7ab7e22b5cc9b9470ffa58e4f4fae23718"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "321",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "fcbc22988a7108072f827cacf882c2ddfb25d0805e9f290612cac5e13e91ffb4"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "321",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "c895b8359a8175e2b9a41f14352bcd16f6798d4b6006462252db3f17dfb62a19"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "321",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "4014b0fed47dba84db86e9e3ce295b4af6d149f24cb6c92ea3e387eb099268b3"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "D",
+      "sample_id": "321",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "describe_region",
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "TEST",
+      "trace_sha256": "65fbb9e29c4c40b7c78126618d43af2e44726d6ae74e3e2920e95102835ead97"
+    },
+    {
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1178",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "19b6f423fa3b12d8077b7356321388ba289a90aad19b91cfbf8ff9f46365cff9"
+    },
+    {
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1178",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "dd8d1ba5839876e2382abebeed0e7ca63a68a6786615b8923065234e83f91396"
+    },
+    {
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1178",
+      "selected_candidate_id": "C1",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "48db92ef4d01d8c56afe73d36b386ba03db03acc8d2c98888ae86f964b5181d8"
+    },
+    {
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1178",
+      "selected_candidate_id": "C1",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "db8b91c05e8f3849b22da735076f5641bf61acec247b9130932abb60ed089013"
+    },
+    {
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1178",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "33597e6f316ce5bc8611975fa0fd7c321f9baeed9c83433e45d7216439469bff"
+    },
+    {
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1178",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "b06405de40c1727dd0a18153c94d5093bc5424238ab0c171d4c5dca03e453292"
+    },
+    {
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "E",
+      "sample_id": "1178",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "b498529c12294e7dd3dd241060f29d33280d54d7b2d53008d2bf1d9e4c79d623"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "B",
+      "sample_id": "360",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "dac8fd0d1c60df312451ea59a84d46ebe94e3f15e979a8a10bf5084637af5b03"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "B",
+      "sample_id": "360",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "9087d5daa5a75deddfdf1fd7aab2376c2eceffb451df6b47e71b41006c650aef"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "B",
+      "sample_id": "360",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "e5ec0b686b423e165b3d7b4d5e08e8d60fde10d3e07efedaa6c3fd2c1d17e82a"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "B",
+      "sample_id": "360",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "7ec4de88b2b496b2c656d4ca1e78521cb59c09deb2275c70c1bf95989a1be2ad"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "B",
+      "sample_id": "360",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "51a65f9985165acf6a1b56bb66be99f988adf73b8015d2b525a15bf65738011c"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "B",
+      "sample_id": "360",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "2254fe45f5ae98fcb666e7514398fddc3ab9aea5d4b87f3a123c1897cf37ad9b"
+    },
+    {
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": true,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "B",
+      "sample_id": "360",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "TEST",
+      "trace_sha256": "c7dc5d0e50b988d148dac620e0459fae019c2f37e2a55e0e56ecb54093775427"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "raw_target_only",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "C",
+      "sample_id": "1109",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": null,
+      "target_native_action": "COMMIT",
+      "trace_sha256": "6d5d1cf54c3f453e834456204e36a876e9b4dd1582756fa787e80ec00642d280"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "condition": "null_skill_same_harness",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "C",
+      "sample_id": "1109",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": null,
+      "target_native_action": "TEST",
+      "trace_sha256": "c5689c88c7443c5b8297e42a1d3032894eda1b060e7e924323785b2e9604324a"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "authentic_sokoban_effect_skill",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "C",
+      "sample_id": "1109",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "815c368586c59ad0ec9df223be7610da89d2ac6daf9fe9f93477e651514e21d0"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "condition": "commit_availability_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "C",
+      "sample_id": "1109",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "adb1f61371b3ca0d3c6cb68e67fbca4e85560c62fad8c996f23c34dc0debc838"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "condition": "inverted_effect_control",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "C",
+      "sample_id": "1109",
+      "selected_candidate_id": "C3",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "COMMIT",
+      "target_native_action": "TEST",
+      "trace_sha256": "ecb10889893b1358416fe178c5c749a552c555a3584df54d1f131c33463fe09d"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "condition": "position_prior_control",
+      "correct_evaluator_only": false,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "C",
+      "sample_id": "1109",
+      "selected_candidate_id": null,
+      "selected_wrapper_tool": null,
+      "source_selected_option": "POSITION",
+      "target_native_action": "COMMIT",
+      "trace_sha256": "08ec148cf60150a648d4422ac29c57678f4357399302fd8299cd9080f6d1ca0c"
+    },
+    {
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "condition": "target_oracle_skill",
+      "correct_evaluator_only": true,
+      "effect_predicates": {
+        "assignment_improvement_available": false,
+        "commit_available": true,
+        "deadlock_observed": false,
+        "direct_progress_available": false,
+        "regression_observed": false
+      },
+      "gold_answer_evaluator_only": "C",
+      "sample_id": "1109",
+      "selected_candidate_id": "C0",
+      "selected_wrapper_tool": "zoom_region",
+      "source_selected_option": "TARGET_ORACLE",
+      "target_native_action": "TEST",
+      "trace_sha256": "1e1ead7c5261bfb613fb6611651845ed38c9848f5637cd8c1dd96f8ea3ee37a1"
+    }
+  ]
+}
