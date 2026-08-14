@@ -1,0 +1,5410 @@
+{
+  "schema_version": "tir-sokoban-effect-harness-v6",
+  "status": "DEVELOPMENT_GATE_PASSED_FREEZE_QUALIFICATION",
+  "claim_boundary": "CORRECTED_TYPED_POSITION_VERIFY_COMMIT_MAPPING_ON_TWENTY_FOUR_PREVIOUSLY_CONSUMED_TIR_TASKS; MAY_AUTHORIZE_A FRESH_QUALIFICATION_BUT_IS_NOT_CONFIRMATORY_EVIDENCE",
+  "evidence_tier": "CONSUMED_DEVELOPMENT",
+  "source_artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+  "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+  "mapping": {
+    "source_POSITION": "target_native_evidence_operation",
+    "source_COMMIT": "target_native_answer_commit",
+    "source_VERIFY_EXPECTED_EFFECT": "corroborate_changed_answer_with_independent_target_evidence",
+    "source_EXPECTED_EFFECT_REFUTED": "replan_or_abstain_to_target"
+  },
+  "tasks": [
+    "158",
+    "721",
+    "1122",
+    "622",
+    "423",
+    "49",
+    "474",
+    "958",
+    "800",
+    "516",
+    "785",
+    "270",
+    "713",
+    "735",
+    "1110",
+    "532",
+    "1092",
+    "596",
+    "224",
+    "223",
+    "321",
+    "1178",
+    "360",
+    "1109"
+  ],
+  "families": {
+    "maze": 6,
+    "refcoco": 6,
+    "rotation_game": 6,
+    "visual_search": 6
+  },
+  "summaries": {
+    "raw_target_only": {
+      "tasks": 24,
+      "successes": 10,
+      "success_rate": 0.4166666666666667,
+      "tests": 0,
+      "action_changes_vs_raw": 0
+    },
+    "target_native_one_test": {
+      "tasks": 24,
+      "successes": 13,
+      "success_rate": 0.5416666666666666,
+      "tests": 24,
+      "action_changes_vs_raw": 8
+    },
+    "authentic_sokoban_effect_plus_target": {
+      "tasks": 24,
+      "successes": 14,
+      "success_rate": 0.5833333333333334,
+      "tests": 36,
+      "action_changes_vs_raw": 7
+    },
+    "within_state_candidate_order_shuffle": {
+      "tasks": 24,
+      "successes": 14,
+      "success_rate": 0.5833333333333334,
+      "tests": 36,
+      "action_changes_vs_raw": 4
+    },
+    "inverted_verify_control": {
+      "tasks": 24,
+      "successes": 9,
+      "success_rate": 0.375,
+      "tests": 63,
+      "action_changes_vs_raw": 13
+    },
+    "position_until_budget_control": {
+      "tasks": 24,
+      "successes": 14,
+      "success_rate": 0.5833333333333334,
+      "tests": 96,
+      "action_changes_vs_raw": 5
+    },
+    "phase_permuted_commit_first": {
+      "tasks": 24,
+      "successes": 10,
+      "success_rate": 0.4166666666666667,
+      "tests": 0,
+      "action_changes_vs_raw": 0
+    }
+  },
+  "paired": {
+    "raw_target_only": {
+      "wins": 4,
+      "losses": 0,
+      "ties": 20,
+      "net_wins": 4,
+      "exact_two_sided_p": 0.125
+    },
+    "target_native_one_test": {
+      "wins": 1,
+      "losses": 0,
+      "ties": 23,
+      "net_wins": 1,
+      "exact_two_sided_p": 1.0
+    },
+    "within_state_candidate_order_shuffle": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 24,
+      "net_wins": 0,
+      "exact_two_sided_p": 1.0
+    },
+    "inverted_verify_control": {
+      "wins": 5,
+      "losses": 0,
+      "ties": 19,
+      "net_wins": 5,
+      "exact_two_sided_p": 0.0625
+    },
+    "position_until_budget_control": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 24,
+      "net_wins": 0,
+      "exact_two_sided_p": 1.0
+    },
+    "phase_permuted_commit_first": {
+      "wins": 4,
+      "losses": 0,
+      "ties": 20,
+      "net_wins": 4,
+      "exact_two_sided_p": 0.125
+    }
+  },
+  "gates": {
+    "source_receipt_valid_and_fresh_confirmed": true,
+    "receipt_matrix_complete": true,
+    "authentic_nontrivial_action_contrast": true,
+    "authentic_success_gain_vs_raw": true,
+    "authentic_zero_negative_transfer_vs_raw": true,
+    "authentic_beats_one_test_target_policy": true,
+    "authentic_strictly_beats_source_structure_controls": true,
+    "authentic_order_shuffle_robustness": true,
+    "authentic_matches_exhaustive_success_with_fewer_tests": true
+  },
+  "traces": [
+    {
+      "sample_id": "158",
+      "family": "maze",
+      "condition": "raw_target_only",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "a98e0b48c1018d28d43cf514069634a108d9109d3558928527bd3c7a046467a2"
+    },
+    {
+      "sample_id": "158",
+      "family": "maze",
+      "condition": "target_native_one_test",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "e240b881f434b6fe3fd61fac8fd290e60fda4212a672a8af1f00911ce3071046"
+    },
+    {
+      "sample_id": "158",
+      "family": "maze",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "733793d436bdc7380625f6f5445202ffa7da8fa5fb843a2d3ebebbe7cfe60f04"
+    },
+    {
+      "sample_id": "158",
+      "family": "maze",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "27e88bd8251ce4434d5777534316b119c073b0e117d221973e06a215d01070e4"
+    },
+    {
+      "sample_id": "158",
+      "family": "maze",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "e34bed076a518393753f8a33d17a3244c4a6f8205767a4da9cd0c055d8a5419e"
+    },
+    {
+      "sample_id": "158",
+      "family": "maze",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "48fe0b20909e1ed1fd6ab093941893e38c9c443eb1286dc09c8d6a78a2099546"
+    },
+    {
+      "sample_id": "158",
+      "family": "maze",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "24838ab47e2746ab5e4bbd4470462b12e86dcb41e10492659c36dea6e184394b"
+    },
+    {
+      "sample_id": "721",
+      "family": "refcoco",
+      "condition": "raw_target_only",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "52f028203613c795a99002c26db2cfb56bba940f182859e1d32b9acbbec31129"
+    },
+    {
+      "sample_id": "721",
+      "family": "refcoco",
+      "condition": "target_native_one_test",
+      "baseline_answer": "D",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "e153ea0f54c22b87c42817a45092b141bf1376a7211e59c899ad7cdac1d75604"
+    },
+    {
+      "sample_id": "721",
+      "family": "refcoco",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "D",
+      "committed_answer": "F",
+      "tests": 3,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "c35f6fa04e5cda1b50d623c0d1203ba7dd54eec837c08135e5f975fde28b61e5"
+    },
+    {
+      "sample_id": "721",
+      "family": "refcoco",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "C",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "REPLAN_OR_ABSTAIN",
+          "target_native_action": "abstain_to_target_baseline",
+          "effect_predicate": "EXPECTED_EFFECT_REFUTED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "UNVERIFIED_TARGET_CHANGE_REJECTED"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "4a304a85cdbf172da17af9b13f44a533118bc55f48520c263a5042c1591c1ced"
+    },
+    {
+      "sample_id": "721",
+      "family": "refcoco",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "D",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "c0b10e9426682a06e09fa6687e1ba631e77bb841c4a7052e583f66f068dd8d64"
+    },
+    {
+      "sample_id": "721",
+      "family": "refcoco",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "D",
+      "committed_answer": "F",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "ec05aa650e6c97dbc285a9af920a7f7d83ffae6f353974e31892210b4390c28b"
+    },
+    {
+      "sample_id": "721",
+      "family": "refcoco",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "95f9e78d5d92bfc88319e129b45d005e66d2b32aadc0cd005b2627cb8339253b"
+    },
+    {
+      "sample_id": "1122",
+      "family": "rotation_game",
+      "condition": "raw_target_only",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "cbb9f61677d0af2797bf08d020d6a5481387ad2cd22d90a0fc9aca3ee948595e"
+    },
+    {
+      "sample_id": "1122",
+      "family": "rotation_game",
+      "condition": "target_native_one_test",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "0c3846d3c5ed5d9abb206e9636fd7f1fe6c2dba4d3e5bb66689dff5f294a5601"
+    },
+    {
+      "sample_id": "1122",
+      "family": "rotation_game",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "bc5791529e87637010ca4c133792db9e11bed9ce768a756366d5d0a7bbb6d915"
+    },
+    {
+      "sample_id": "1122",
+      "family": "rotation_game",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.75,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "8629dcf2fd477e3854b1ab6d66b67a51f593945fbc0043d30dc4d6642f151c80"
+    },
+    {
+      "sample_id": "1122",
+      "family": "rotation_game",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.75,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "2a4b9a0b3b926a61c8d08aac52279e005fc5e69a5d6ac7de69919eea6aff524a"
+    },
+    {
+      "sample_id": "1122",
+      "family": "rotation_game",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.75,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "a8d1b4ec479ad094024873bd2231f2ba1c498e179c0b603198943d28d9c682cb"
+    },
+    {
+      "sample_id": "1122",
+      "family": "rotation_game",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "7a6fd8967c1a9f63238a4b7d1efa2e2df15563cad13d6957f35d991e6e31242f"
+    },
+    {
+      "sample_id": "622",
+      "family": "visual_search",
+      "condition": "raw_target_only",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "0e39a48c97e3a5d32ce21aa93479b7cf0b57a29831de485b6d1e6cfdf0df6e92"
+    },
+    {
+      "sample_id": "622",
+      "family": "visual_search",
+      "condition": "target_native_one_test",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "4a63864d38445a3c8703fe847a7bec1b565b10dbc5c2a44b5ccd783fbc1bcc9d"
+    },
+    {
+      "sample_id": "622",
+      "family": "visual_search",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "4b2bc52368e084986e13b6562de251927096240e05d77d66f72de2da7ec4d390"
+    },
+    {
+      "sample_id": "622",
+      "family": "visual_search",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "c83277c3444b16847a12536438ddc1a05d931f60a1e064d4892e699c99e8f487"
+    },
+    {
+      "sample_id": "622",
+      "family": "visual_search",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "B",
+      "committed_answer": "D",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "db1c66fc8a62cf41f5f0bea0f6e6ce2e52ccb206450c6ef9046a9230cd0d42da"
+    },
+    {
+      "sample_id": "622",
+      "family": "visual_search",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.5,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "9f26dd1edd5ab4ca0ea80f837f33a53d130d50147faa80f882e8390df17c318e"
+    },
+    {
+      "sample_id": "622",
+      "family": "visual_search",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "c36c61a86306c7abb7d566e670dad1086930ed01b885f4b3c33bb8428089b37c"
+    },
+    {
+      "sample_id": "423",
+      "family": "maze",
+      "condition": "raw_target_only",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "5c1a3facc7d8120a3588e8a345ffa5887214e0ccc8f8d764809aede1faba01b4"
+    },
+    {
+      "sample_id": "423",
+      "family": "maze",
+      "condition": "target_native_one_test",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "6240b3ffaceeb77f56e73363e565fcd85c71c72196f0bd8561c764d401ce3af4"
+    },
+    {
+      "sample_id": "423",
+      "family": "maze",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "f9278eb5f2030c0a929ec07d0e0bbd996c4cbd1db2c3add10eee6372ba54c1f0"
+    },
+    {
+      "sample_id": "423",
+      "family": "maze",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "9b815a9b713a6ff9fb76b482cd0286758d243105dbba9047605bd415d25fece9"
+    },
+    {
+      "sample_id": "423",
+      "family": "maze",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "3b1ec1b8a200fcac033ba0e79f993dca7430242dbe4c1e2300a466ca9125e645"
+    },
+    {
+      "sample_id": "423",
+      "family": "maze",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "22a3c04399b87750aced9b9373250e8d2a8f41cef363c55f635d5691ec8d171b"
+    },
+    {
+      "sample_id": "423",
+      "family": "maze",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "e19210c8bf974669cc90eedee52bc84e60d12de0e55e17d73a5ccda8e31858b1"
+    },
+    {
+      "sample_id": "49",
+      "family": "maze",
+      "condition": "raw_target_only",
+      "baseline_answer": "C",
+      "committed_answer": "C",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "7fa9c356e5eb83776ed20902ab5cae1214488f8519c3f22d1b5ee5b8e3c6f681"
+    },
+    {
+      "sample_id": "49",
+      "family": "maze",
+      "condition": "target_native_one_test",
+      "baseline_answer": "C",
+      "committed_answer": "C",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "47ce9ed63d8c56cfb23d64aa4030b91a1496dd26caad0ad4f6a032da4a7834fe"
+    },
+    {
+      "sample_id": "49",
+      "family": "maze",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "C",
+      "committed_answer": "C",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "8c90917d08f7a77212f72415feb53227543704270bde29bf1c590da681e2a424"
+    },
+    {
+      "sample_id": "49",
+      "family": "maze",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "C",
+      "committed_answer": "C",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "8017d7680f5a591eefb3628394b1d854dd077abce345478b85d68553116a515b"
+    },
+    {
+      "sample_id": "49",
+      "family": "maze",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "C",
+      "committed_answer": "C",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "C",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "C",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "b403c5bf22b4a50b4e4b00d602fd8d183f08becf789e3b2e72686493ca71f0b6"
+    },
+    {
+      "sample_id": "49",
+      "family": "maze",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "C",
+      "committed_answer": "C",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "86ca57f54eb37fffb3832e8fee08f46a038e7d64fe9a5d9397da283c1b18ef5b"
+    },
+    {
+      "sample_id": "49",
+      "family": "maze",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "C",
+      "committed_answer": "C",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "4f9cdaa534e9fae174c1677e69a98e11b80326c16fb0a7d198864372f60b3422"
+    },
+    {
+      "sample_id": "474",
+      "family": "maze",
+      "condition": "raw_target_only",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "e719ab0d3c05b44483706258f63e0f198253ea40e3c9fafb8251e2178e01a867"
+    },
+    {
+      "sample_id": "474",
+      "family": "maze",
+      "condition": "target_native_one_test",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "835c91ca9c1c65935eff748a751798514effaae941f5391090c376fbca9f8fad"
+    },
+    {
+      "sample_id": "474",
+      "family": "maze",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "6c96e9bd2cf29d862682c8572b285cf09962e0394736d765fcc8cbb7c484819d"
+    },
+    {
+      "sample_id": "474",
+      "family": "maze",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "E",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "REPLAN_OR_ABSTAIN",
+          "target_native_action": "abstain_to_target_baseline",
+          "effect_predicate": "EXPECTED_EFFECT_REFUTED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "UNVERIFIED_TARGET_CHANGE_REJECTED"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "5fe745355518a347b2ef580e52a82d77462f8528b51212349d9be590d255342c"
+    },
+    {
+      "sample_id": "474",
+      "family": "maze",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "E",
+      "committed_answer": "B",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "c6bc320457138d337df7d0e1a8d16b6ba2d184ad62896b390d9480e9e3dbedeb"
+    },
+    {
+      "sample_id": "474",
+      "family": "maze",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "d8d009d73d5df5f05fd730a93e40fcd524cd32d4ab840c849fd2d14b786beace"
+    },
+    {
+      "sample_id": "474",
+      "family": "maze",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "f26f49dc040e6d6b661350db49a55f8415d41468602f7701aafe2385de4f5d4f"
+    },
+    {
+      "sample_id": "958",
+      "family": "refcoco",
+      "condition": "raw_target_only",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "93393a0af565d904687fc64e823d971e280d136f3074bfe9c9479badd63696d6"
+    },
+    {
+      "sample_id": "958",
+      "family": "refcoco",
+      "condition": "target_native_one_test",
+      "baseline_answer": "E",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": true,
+      "trace_sha256": "448fa59465090281f2c1dcede0811296bab4b9df6b077d8a3385d393d29b9516"
+    },
+    {
+      "sample_id": "958",
+      "family": "refcoco",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "E",
+      "committed_answer": "F",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": true,
+      "trace_sha256": "3cfca6af83dda82915412079614b90b6785998d67c2d066b5f864594abad818e"
+    },
+    {
+      "sample_id": "958",
+      "family": "refcoco",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "E",
+      "committed_answer": "F",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": true,
+      "trace_sha256": "a78e6beeaa75974aa9f139cddce4813fee3550c03f11b156ab7aa276f54ca23a"
+    },
+    {
+      "sample_id": "958",
+      "family": "refcoco",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "E",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": true,
+      "trace_sha256": "98c28a55195d698ad5e3cc859d4b2e11ed9ac2b20e792d91d3b4bb5f00bc38ce"
+    },
+    {
+      "sample_id": "958",
+      "family": "refcoco",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "E",
+      "committed_answer": "F",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": true,
+      "trace_sha256": "ad9fc86e78127b929226212be3bbe7fcbd0aaf124b232fc11c6e2e65f3ce7c23"
+    },
+    {
+      "sample_id": "958",
+      "family": "refcoco",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "edf3d7318b5e4ca497c3ab2bbc04a88b9cb773e6fad8656bbd597a1bfc7d37fd"
+    },
+    {
+      "sample_id": "800",
+      "family": "refcoco",
+      "condition": "raw_target_only",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "3eb885899d6bcdab0f9979e4f4ba05af7ea70ab5a1f99af0217eb4ad921187f3"
+    },
+    {
+      "sample_id": "800",
+      "family": "refcoco",
+      "condition": "target_native_one_test",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "28ca04e35b78a77101b092f22c798a4a013d13459c0543f7fb905a3eea356389"
+    },
+    {
+      "sample_id": "800",
+      "family": "refcoco",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "e8bcd82be5f88583dd903bf8c5b0ff732cd0654f81b30cfdbb35fdb51028846e"
+    },
+    {
+      "sample_id": "800",
+      "family": "refcoco",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "17c96c02c777ca2f5325dcaff77880410420423b4c1bf39063883059c5ae2d35"
+    },
+    {
+      "sample_id": "800",
+      "family": "refcoco",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.85,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "1d5b7735936d9f50278356324a9bfff9d7ecf1cd2f71f0ce2c9e69e509c9f1ef"
+    },
+    {
+      "sample_id": "800",
+      "family": "refcoco",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.85,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "a253009f4f92411acb9e2f9fc1f9f344d964f3a6199c62dcca21821357afa5bc"
+    },
+    {
+      "sample_id": "800",
+      "family": "refcoco",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "dee3907cae7545720978f9e150a896384fb733b9d3960a90ebd11bdc62b0726f"
+    },
+    {
+      "sample_id": "516",
+      "family": "refcoco",
+      "condition": "raw_target_only",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "613edbab85957d557521b007c2cdd4a22899f27ec84dd5d869796499c5dd4ff1"
+    },
+    {
+      "sample_id": "516",
+      "family": "refcoco",
+      "condition": "target_native_one_test",
+      "baseline_answer": "D",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "b94b2ac9f7cd054e210a85e2580fbfb3fc46a9eb99a43427f5d6228b47309121"
+    },
+    {
+      "sample_id": "516",
+      "family": "refcoco",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "D",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "REPLAN_OR_ABSTAIN",
+          "target_native_action": "abstain_to_target_baseline",
+          "effect_predicate": "EXPECTED_EFFECT_REFUTED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "UNVERIFIED_TARGET_CHANGE_REJECTED"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "120a67597d9d30e708837c914dedf87c4d703431e6bf1ab44c3f1030769445df"
+    },
+    {
+      "sample_id": "516",
+      "family": "refcoco",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "465ec03bed96ebf44586e06c2bdae9cbfcf4427ff3e41aee87153eb1da64950b"
+    },
+    {
+      "sample_id": "516",
+      "family": "refcoco",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "D",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "3cf78a0323e2809ecde91b26019d2f7b7e2e49eeec80fcf011fddbf857a52722"
+    },
+    {
+      "sample_id": "516",
+      "family": "refcoco",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "a92c6628ac6e9d55d95ea6eb44c6498fc64a80966b963db8687f6155ecca4841"
+    },
+    {
+      "sample_id": "516",
+      "family": "refcoco",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "c0001868103ffdeb7fe65c52b8e61ad4f800b4915f9d56b40cc576d7262edae9"
+    },
+    {
+      "sample_id": "785",
+      "family": "rotation_game",
+      "condition": "raw_target_only",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "3dc86839af1a8952f9c97138678973e1301f81c630d3f39543839f36166d7e01"
+    },
+    {
+      "sample_id": "785",
+      "family": "rotation_game",
+      "condition": "target_native_one_test",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "89715346c059e6506e7a95125390e2717db1c8d5fa219cd9f63e6881b541aa99"
+    },
+    {
+      "sample_id": "785",
+      "family": "rotation_game",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "fd984e7fe80995d4e390af4d2808fabb7af748fd62c837022c3665497b02049a"
+    },
+    {
+      "sample_id": "785",
+      "family": "rotation_game",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "885c3d2fcb57ed2dd177e0110f7a33543f18b574094e5bf70316ea3699da636c"
+    },
+    {
+      "sample_id": "785",
+      "family": "rotation_game",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.85,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "b2cdabeb920aa783b47e8c00161932c2eb87396626605bb0ee18b66235a1e025"
+    },
+    {
+      "sample_id": "785",
+      "family": "rotation_game",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.85,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "345c4313ab7ec85d1c73ffdb172299a7840b968850d9e1fe31c69b56337acebd"
+    },
+    {
+      "sample_id": "785",
+      "family": "rotation_game",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "F",
+      "correct_evaluator_only": false,
+      "trace_sha256": "59513fa33120afda658ea6ed89f54deeb14d2f5774ab53e0a39983b02b38dc86"
+    },
+    {
+      "sample_id": "270",
+      "family": "rotation_game",
+      "condition": "raw_target_only",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "e2378dea6b1f337f0516e906bfa53b17290c369bdde801578649bf37482741c4"
+    },
+    {
+      "sample_id": "270",
+      "family": "rotation_game",
+      "condition": "target_native_one_test",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "1f4fe6fa5cd60ad98815730d03aed6d8801fa9e7f0931f375827fc9fbfa94dcc"
+    },
+    {
+      "sample_id": "270",
+      "family": "rotation_game",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "ea1657cc1fae7ada85b74c7b27c40dd261501d1d51a6507930e7a2ce15cff0a5"
+    },
+    {
+      "sample_id": "270",
+      "family": "rotation_game",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "90cc893fc24ff22d3fa6d4b236f949f44c082241508f8560a46131cfac68803a"
+    },
+    {
+      "sample_id": "270",
+      "family": "rotation_game",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "957a7e2caff5cc545b603626636a2e3856b371fb46b3a4cf993cce1a0ffc1f7e"
+    },
+    {
+      "sample_id": "270",
+      "family": "rotation_game",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "26590b4a410fd0c3163f7eca7646e569bf34ef5911fbb2fe049b2a85fe84c539"
+    },
+    {
+      "sample_id": "270",
+      "family": "rotation_game",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "19f7394fce84422663c95f50bcf899a492380117bbc80461fc4ac0baf99bc578"
+    },
+    {
+      "sample_id": "713",
+      "family": "rotation_game",
+      "condition": "raw_target_only",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "3befe34ab438a6e2bf55638d5b0fddb52e2fc15404127754fd98c9b2cd200444"
+    },
+    {
+      "sample_id": "713",
+      "family": "rotation_game",
+      "condition": "target_native_one_test",
+      "baseline_answer": "F",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "47f01d8e774e81292e442b3eb95fba5d79107465fef032ec08bba49649f8bdb9"
+    },
+    {
+      "sample_id": "713",
+      "family": "rotation_game",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "F",
+      "committed_answer": "B",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "0d20fd2ec208c691678d9e1ab2eb8cfa24d5f3aea301010460728cd32e856595"
+    },
+    {
+      "sample_id": "713",
+      "family": "rotation_game",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "ea734e7b0111226ea8ad6f1f07fa7134f4ac60d4330ecf5f543c9da14903fb1e"
+    },
+    {
+      "sample_id": "713",
+      "family": "rotation_game",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "F",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "3a4c47985067abe37cf430d923735f32ac92ef0c39e48612ee17fb24ce93dbe0"
+    },
+    {
+      "sample_id": "713",
+      "family": "rotation_game",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "c563afdb65d7fe1b872354011fa5611226577cfb7a407ee96bcac33a364a3bc1"
+    },
+    {
+      "sample_id": "713",
+      "family": "rotation_game",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "1128110b663b7db56022c3e9c59501568ec88b5597393e7be77b697c0adffeb5"
+    },
+    {
+      "sample_id": "735",
+      "family": "visual_search",
+      "condition": "raw_target_only",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "f55c4bbc3ec54e79a8e462fd92833b035ed58171cbe2d8383eeaa58bf9cb8ef3"
+    },
+    {
+      "sample_id": "735",
+      "family": "visual_search",
+      "condition": "target_native_one_test",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "b6fa456033f554bcc497ad6c64d72e2a39af66ace31be6faa1c0e4cf8f7cada0"
+    },
+    {
+      "sample_id": "735",
+      "family": "visual_search",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "acaa150774f7ef766e00732cb2bc659566f1cc8db80d7188d2deea7fe90f4e7c"
+    },
+    {
+      "sample_id": "735",
+      "family": "visual_search",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "f4c300632b583a50c227f5526bdeaa9a6831e87626c7630074cd076a187e3211"
+    },
+    {
+      "sample_id": "735",
+      "family": "visual_search",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "B",
+      "committed_answer": "A",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "A",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": false,
+      "trace_sha256": "0a2f9dc642c46725aecf35fb940cb2745c1678b580da50d8dfabeaf24bf66070"
+    },
+    {
+      "sample_id": "735",
+      "family": "visual_search",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "A",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.3,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "91ed8db4df5310de882985ecaec2c7729972e800517690b556e5ac3f35953ee9"
+    },
+    {
+      "sample_id": "735",
+      "family": "visual_search",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "5b7d48391aaf9e0a0b432fd114c7511572fd8c1ce07ea1eadd5c890fe5487c8d"
+    },
+    {
+      "sample_id": "1110",
+      "family": "visual_search",
+      "condition": "raw_target_only",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "e90606f9dc6562f5019a6853f527bd61099d41d1f7146a033733227f65d86a6a"
+    },
+    {
+      "sample_id": "1110",
+      "family": "visual_search",
+      "condition": "target_native_one_test",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "ae1e316d78bda6fb0d7931825e25cd0369f64b2b3f7c170728bffac2dd6a344b"
+    },
+    {
+      "sample_id": "1110",
+      "family": "visual_search",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "8c229183b6f90c3de4d6d4d6ba4f6734277c25bde3bb9b91f0046c8ae7cca05f"
+    },
+    {
+      "sample_id": "1110",
+      "family": "visual_search",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "94cc69d567c436cf9f658fb1cabe5e19d54e08ee1c607826be75085da4a20aef"
+    },
+    {
+      "sample_id": "1110",
+      "family": "visual_search",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "A",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "A",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "A",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "d2d4e834a1251095501174f574d71983d9d72f18090be2780ba554bdabf50275"
+    },
+    {
+      "sample_id": "1110",
+      "family": "visual_search",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "A",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "A",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "A",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "f4831b1169800303283e5f4e776f5d770b2eeaefbc6b2b910b1cf919184d24a2"
+    },
+    {
+      "sample_id": "1110",
+      "family": "visual_search",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "c0784e1947b6d6b7ee7b07128100dcb1dd3aa1bb95943d996b654cdd7503c8e3"
+    },
+    {
+      "sample_id": "532",
+      "family": "visual_search",
+      "condition": "raw_target_only",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "999452b69052c6e89d296bb0227074dca4fc71938bcea4996152d9362463d50d"
+    },
+    {
+      "sample_id": "532",
+      "family": "visual_search",
+      "condition": "target_native_one_test",
+      "baseline_answer": "F",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C1",
+          "planner_score": 0.95,
+          "observed_answer_slot": "D",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "09a9c7f51d7945f9bc24346c7757df466f135cf14d57799840c5fe02cb3f73a0"
+    },
+    {
+      "sample_id": "532",
+      "family": "visual_search",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "F",
+      "committed_answer": "D",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C1",
+          "planner_score": 0.95,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "5c74920a8cca8361ae8b775ff5a0664d0033de0f605f4bbd7b9f835acb6b757b"
+    },
+    {
+      "sample_id": "532",
+      "family": "visual_search",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "F",
+      "committed_answer": "D",
+      "tests": 3,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "4336df97eafad13b9f5231facf048537b0ae9ee6d768c735a451bbc3f482640b"
+    },
+    {
+      "sample_id": "532",
+      "family": "visual_search",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "F",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C1",
+          "planner_score": 0.95,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "0919a2b35c6f2976e21d280f9b88e5102a6d35df1ee5b5b59d882fe012f0bbaf"
+    },
+    {
+      "sample_id": "532",
+      "family": "visual_search",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "F",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C1",
+          "planner_score": 0.95,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "ba8ed630e65eea1865f67eaca6c2018d28a2908c046fe7a98f351cfb927a8410"
+    },
+    {
+      "sample_id": "532",
+      "family": "visual_search",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "4b9836f9ca025a424ce210f9c820a46dd42a0b4622a14f85e3fe350dc59c1793"
+    },
+    {
+      "sample_id": "1092",
+      "family": "maze",
+      "condition": "raw_target_only",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "56a2f74aaced7ebcb982ea6474d752bb5dd1459cf0d92fdd27752977217e3b8a"
+    },
+    {
+      "sample_id": "1092",
+      "family": "maze",
+      "condition": "target_native_one_test",
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "75df681fd0c1e6995d40625bdcb52cbaf2fbd66cdcc0488e11563480a258aa72"
+    },
+    {
+      "sample_id": "1092",
+      "family": "maze",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "tests": 3,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "65cf50f027221f5ea8fb1c56f75edd710b6c2da68fad7c0fcff117b2481a174b"
+    },
+    {
+      "sample_id": "1092",
+      "family": "maze",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "tests": 3,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "VERIFY_CANDIDATE_EFFECT"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "afa966ad8a6693d35d8ded2e2c0725b800901042cbfdb9b067ce85410ac9a1dd"
+    },
+    {
+      "sample_id": "1092",
+      "family": "maze",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "a0fc14a82e82e5fe4ba3a0d921646529515b29dc1193c29a9acce0d253983d49"
+    },
+    {
+      "sample_id": "1092",
+      "family": "maze",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "B",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "76af9a5df52c9134fe63d68a29dd6327c838a4915832d2a5abe0fc63b0c24cd5"
+    },
+    {
+      "sample_id": "1092",
+      "family": "maze",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "372fc47d41a652aa06165e396de7bb2c14f4dc3a3e497893c36843651bd4ea92"
+    },
+    {
+      "sample_id": "596",
+      "family": "maze",
+      "condition": "raw_target_only",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "8890910cf1e4e5b600b44766aa49ce0d040788ff0c96c09825289feb61724d71"
+    },
+    {
+      "sample_id": "596",
+      "family": "maze",
+      "condition": "target_native_one_test",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "88fa7336f28809c22a2a6ce83cebfe1028ebed5d94b4953a512196b575c507ba"
+    },
+    {
+      "sample_id": "596",
+      "family": "maze",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "795191175264344e3f7586b6cb40b04066e84e87ffd2d948373b01064dcbcdaf"
+    },
+    {
+      "sample_id": "596",
+      "family": "maze",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "91b4bc66760482cc743b532fbdaa3a8c03134adf37a051d4c809cbccd0ea235d"
+    },
+    {
+      "sample_id": "596",
+      "family": "maze",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "4d26c3e04958b1619384e532fa4757a789cad9884547c3527d0795e85d38dcc5"
+    },
+    {
+      "sample_id": "596",
+      "family": "maze",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 1.0,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.9,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.8,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "c62974750ff52835eb6c30e3c50fa6081680079c7aeff458da9f0e9e1a465d3b"
+    },
+    {
+      "sample_id": "596",
+      "family": "maze",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": true,
+      "trace_sha256": "00c11cf1d7df75a73dd7763abe2223a8b065b56d532ea68eb96882af20ea47a2"
+    },
+    {
+      "sample_id": "224",
+      "family": "refcoco",
+      "condition": "raw_target_only",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "dd8772ec32061ea1df890b8bc8140e12581e9b1e1c45806ad7b8a6e01af671c5"
+    },
+    {
+      "sample_id": "224",
+      "family": "refcoco",
+      "condition": "target_native_one_test",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "b48a27e94f9ea5d9aa973013ba1db4dca52826c1673df624baf8f57f945e7640"
+    },
+    {
+      "sample_id": "224",
+      "family": "refcoco",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "13a250393b55964d2ba254475042dfe2f44095cafff83c2d4ada6a2a1e57a966"
+    },
+    {
+      "sample_id": "224",
+      "family": "refcoco",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "44b1dc5a614b72449b01f58c37c6dc693926532887d09cfe7d9c681bc6f22fa7"
+    },
+    {
+      "sample_id": "224",
+      "family": "refcoco",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "A",
+      "committed_answer": "D",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": false,
+      "trace_sha256": "4ab7ad8909f5417a92b72793b3e6009fbcc822e7d13c88f32388ee3ccfbfcca4"
+    },
+    {
+      "sample_id": "224",
+      "family": "refcoco",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "A",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C3",
+          "planner_score": 0.85,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.8,
+          "observed_answer_slot": "A",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "0b36bf4cecbb676ed68b68b9366a8a5a7ef31275b1739f9c1c27b48fe1acbb98"
+    },
+    {
+      "sample_id": "224",
+      "family": "refcoco",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "A",
+      "committed_answer": "A",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "A",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "A",
+      "correct_evaluator_only": true,
+      "trace_sha256": "b229d0254840c41edd8880fcfab0caf6836dffee3b0d56aed1e703ca1e0109e1"
+    },
+    {
+      "sample_id": "223",
+      "family": "refcoco",
+      "condition": "raw_target_only",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "7590eb63a64963dfd7ec1e4daad6909c0a8ecc6e392db68aab8f7645504350b4"
+    },
+    {
+      "sample_id": "223",
+      "family": "refcoco",
+      "condition": "target_native_one_test",
+      "baseline_answer": "E",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "56d45242a4b6368ad3fddd021ebf371bf50a13fd427b5741cf99220a86806f2c"
+    },
+    {
+      "sample_id": "223",
+      "family": "refcoco",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "E",
+      "committed_answer": "B",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "afd14da91250c69d49896bba2898c91fab241146bad1119bc4022b49e3d007fc"
+    },
+    {
+      "sample_id": "223",
+      "family": "refcoco",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.5,
+          "observed_answer_slot": "E",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "a01a7383908172e06a88fac06de218a9d76869edca037a600a46e73142cf2885"
+    },
+    {
+      "sample_id": "223",
+      "family": "refcoco",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "E",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "20d67fa4b7d592112ec38c952419bd7c1043232d422246ba7afe1ba7bd12131a"
+    },
+    {
+      "sample_id": "223",
+      "family": "refcoco",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.5,
+          "observed_answer_slot": "E",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "35cdb681e8b9b354a6e80670c213f584cedc12bdae70d21ae4a83d4edc95b1be"
+    },
+    {
+      "sample_id": "223",
+      "family": "refcoco",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "E",
+      "committed_answer": "E",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "E",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "99e9db74fee3eb1353053a582b5a63f491f64fb9580b26b4604cbf5cf7147022"
+    },
+    {
+      "sample_id": "321",
+      "family": "rotation_game",
+      "condition": "raw_target_only",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "0856bdeb726b7637606517aaeb9890b59141d84f2be2aae844a2ce33ab5c1697"
+    },
+    {
+      "sample_id": "321",
+      "family": "rotation_game",
+      "condition": "target_native_one_test",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "9dc46b4f8adb339dcab104d5a59fea227869e82221e40c30312fb163e8b64e32"
+    },
+    {
+      "sample_id": "321",
+      "family": "rotation_game",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "18527dac6be73d492dcfada5b2efeefd5aab89b496e92fd362a0447d399850ba"
+    },
+    {
+      "sample_id": "321",
+      "family": "rotation_game",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "673b54f4f34a0fa84ef8319aeb1b4f30d110d9fa69258440142de2572813e059"
+    },
+    {
+      "sample_id": "321",
+      "family": "rotation_game",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "D",
+      "committed_answer": "B",
+      "tests": 3,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": false,
+      "trace_sha256": "1cd3e357834ba8cc683c40b695f2a66af0b17529732d42e63bc204bed80bec4a"
+    },
+    {
+      "sample_id": "321",
+      "family": "rotation_game",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "D",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "693051cd13303ffe390a89c121fe5b4bdfaa7ccc08ea1176381b3173bb255e95"
+    },
+    {
+      "sample_id": "321",
+      "family": "rotation_game",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "D",
+      "correct_evaluator_only": true,
+      "trace_sha256": "7e952d63d95306dbbf8999d3ca6167a4e25723a1ebf2df46d5f2c5e508451385"
+    },
+    {
+      "sample_id": "1178",
+      "family": "rotation_game",
+      "condition": "raw_target_only",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "405b41096f8d231780eb56159a20e229947a5d51e3f9c2166ddd494e2bbbd656"
+    },
+    {
+      "sample_id": "1178",
+      "family": "rotation_game",
+      "condition": "target_native_one_test",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "67b8524e52f8e04b7d4bccea883b3407cbda6b966adcdab5a3a2cbe6fd262a41"
+    },
+    {
+      "sample_id": "1178",
+      "family": "rotation_game",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "ae3fcaa0fb1b9baebf3afd22f188000c98459a4cb3f8bb6ad4f9cdd836c80c58"
+    },
+    {
+      "sample_id": "1178",
+      "family": "rotation_game",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "801f4918dbe7b59e4fc41c77f17afd11a42850432aaf668f1f80887a6794e103"
+    },
+    {
+      "sample_id": "1178",
+      "family": "rotation_game",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "F",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "F",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "e8766c3b4c6144dfc735a2db5728d0349cd5fe9e8d6cbe7c2711a7909de7875e"
+    },
+    {
+      "sample_id": "1178",
+      "family": "rotation_game",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.7,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.6,
+          "observed_answer_slot": "F",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "ccde0e6c12172af338f386ec2a044dd96a2fab6592c59c48078689e034149ee2"
+    },
+    {
+      "sample_id": "1178",
+      "family": "rotation_game",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "F",
+      "committed_answer": "F",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "F",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "E",
+      "correct_evaluator_only": false,
+      "trace_sha256": "f4c498cedbce5063257f8be4398d0a4e63ddddbc426e5027360ba5699ae48343"
+    },
+    {
+      "sample_id": "360",
+      "family": "visual_search",
+      "condition": "raw_target_only",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "054ca0199c95e690833a24068ac13cc183cab696e99214d8492e72f61265d5ae"
+    },
+    {
+      "sample_id": "360",
+      "family": "visual_search",
+      "condition": "target_native_one_test",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "61080538bd00a7c363b775910fa2ace5fe33aafdf1184c8819721efd6cce631d"
+    },
+    {
+      "sample_id": "360",
+      "family": "visual_search",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "65564fbaf68ac4d72211b1c46f422f41d97e1f1182a4b9daa9979db34c257eb7"
+    },
+    {
+      "sample_id": "360",
+      "family": "visual_search",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "TARGET_EVIDENCE_CORROBORATES_CURRENT_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "6377d2682f712813e5a6c38711bd77a2dd814c1da706efcc381cf786709bbfea"
+    },
+    {
+      "sample_id": "360",
+      "family": "visual_search",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.5,
+          "observed_answer_slot": "B",
+          "effect_predicate": "INVERTED_REJECTS_CORROBORATION"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "INVERTED_VERIFY_CONTROL"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "3265bd8a0ffc7ad5c4a74d89ac3905794b0591f723ac934fdde08b8850eedd1b"
+    },
+    {
+      "sample_id": "360",
+      "family": "visual_search",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "describe_region",
+          "candidate_id": "C1",
+          "planner_score": 0.7,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "read_text_region",
+          "candidate_id": "C2",
+          "planner_score": 0.6,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.5,
+          "observed_answer_slot": "B",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "2b3cf9fcd1837d64c5f9bbeea6ac3eb9da7bb66b9b81452022c1e8d8df4ec3b0"
+    },
+    {
+      "sample_id": "360",
+      "family": "visual_search",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "B",
+      "committed_answer": "B",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "B",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "B",
+      "correct_evaluator_only": true,
+      "trace_sha256": "377aeab652b380f826cbd1d3ef4c97b0c44ece70483c84b7150f4f073c7a6769"
+    },
+    {
+      "sample_id": "1109",
+      "family": "visual_search",
+      "condition": "raw_target_only",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "NO_SOURCE"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "b3cbf05fe7b413e103918a9b6459470c15861d6948d6086351baf26734cc64d4"
+    },
+    {
+      "sample_id": "1109",
+      "family": "visual_search",
+      "condition": "target_native_one_test",
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "TARGET_NATIVE_NO_SOURCE_VERIFY"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "ONE_TEST_TARGET_POLICY"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": true,
+      "trace_sha256": "5f71909d77bd68424d491de70fcfb66b68586f22da7eec09b7b5759cb458c09d"
+    },
+    {
+      "sample_id": "1109",
+      "family": "visual_search",
+      "condition": "authentic_sokoban_effect_plus_target",
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.85,
+          "observed_answer_slot": "C",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": true,
+      "trace_sha256": "f26dcee105e0187632566a85bb4c42c3b2b990bcc784c35fa577a2690d893e5f"
+    },
+    {
+      "sample_id": "1109",
+      "family": "visual_search",
+      "condition": "within_state_candidate_order_shuffle",
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "tests": 2,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "C",
+          "effect_predicate": "EFFECT_PENDING_VERIFICATION"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "C",
+          "effect_predicate": "EXPECTED_EFFECT_OBSERVED"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "INDEPENDENT_TARGET_EVIDENCE_CORROBORATES_NEW_COMMIT"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": true,
+      "trace_sha256": "6f0639e81c412e38e2cfdcf772441db65f51d2e438acfe90cf954a53b22d8259"
+    },
+    {
+      "sample_id": "1109",
+      "family": "visual_search",
+      "condition": "inverted_verify_control",
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "tests": 1,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "INVERTED_EFFECT_GUARD"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "INVERTED_ACCEPTS_UNCORROBORATED_CHANGE"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": true,
+      "trace_sha256": "c60cef70ef5c8c502cc7b41946054cf99f34ecb197a8c983af6a8a58a5564c60"
+    },
+    {
+      "sample_id": "1109",
+      "family": "visual_search",
+      "condition": "position_until_budget_control",
+      "baseline_answer": "D",
+      "committed_answer": "C",
+      "tests": 4,
+      "source_decisions": [
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C0",
+          "planner_score": 0.9,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C2",
+          "planner_score": 0.85,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C1",
+          "planner_score": 0.8,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "POSITION",
+          "target_native_action": "zoom_region",
+          "candidate_id": "C3",
+          "planner_score": 0.7,
+          "observed_answer_slot": "C",
+          "effect_predicate": "POSITION_PRIOR_IGNORES_STOP_EDGE"
+        },
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "C",
+          "reason": "EXHAUSTIVE_TARGET_MAJORITY_AFTER_POSITION_BUDGET"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": true,
+      "trace_sha256": "ce49a096284485176ed874859efb16482938cec62d4c1cff35681b520471f06c"
+    },
+    {
+      "sample_id": "1109",
+      "family": "visual_search",
+      "condition": "phase_permuted_commit_first",
+      "baseline_answer": "D",
+      "committed_answer": "D",
+      "tests": 0,
+      "source_decisions": [
+        {
+          "source_option": "COMMIT",
+          "target_native_action": "commit_answer_slot",
+          "answer_slot": "D",
+          "reason": "PHASE_PERMUTED_COMMIT_BEFORE_POSITION"
+        }
+      ],
+      "gold_answer_evaluator_only": "C",
+      "correct_evaluator_only": false,
+      "trace_sha256": "fd9592e1d89dbce1584b9b76d5fb61e7ec702e37559ac4887448d825c7e4f258"
+    }
+  ],
+  "integrity": {
+    "config_file_sha256": "2cee833ccadec2235166ecebed8ecd151503328e704e2fa6b59ca43de5aa90a1",
+    "source_receipt_file_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "target_receipt_file_sha256": {
+      "runs/active_tir_wrapper_gpt41mini_v6_consumed_expansion/receipts.json": "eab3d33ed42dad4f21ae3c7db1ffc11e7729ee0ad0cbc59b02c444eae95b6082",
+      "runs/active_tir_wrapper_gpt41mini_v4_development/receipts.json": "8e695242961385462c76ef282594b06d5e362adf4e06c4cab03b91fe425e38a3"
+    }
+  },
+  "report_sha256": "3d3c34e861b42ed7fe971397d4d4b5eed45736de0a1c7d0458fa673fe52fcef1"
+}
