@@ -1,0 +1,39 @@
+{
+  "schema_version": "alfworld-multiplicity-v1-development",
+  "status": "SOURCE_GATE_AND_TARGET_DEVELOPMENT",
+  "claim_boundary": "Consumed development evaluation of an identity/count-aware target symbolic state using the unchanged procedural-game intervention value ensemble and frozen ALFWorld-native neural grounder. These 11 tasks cannot authorize a fresh multiplicity claim.",
+  "source": {
+    "kind": "matched-intervention-procedural-workflow-game-mdp-v1",
+    "train_surfaces": ["grid_quest", "factory_quest", "dungeon_quest", "space_quest"],
+    "heldout_surfaces": ["island_quest", "circuit_quest"],
+    "evaluation_intervention_receipts": 46080,
+    "raw_action_tokens_transferred": false
+  },
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "seed": 88601,
+    "artifact": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+    "qualification_manifest": "configs/alfworld_multiplicity_v1_consumed_development_manifest.json",
+    "qualification_split": "eval_out_of_distribution",
+    "qualification_manifest_split": "qualification",
+    "qualification_max_steps": 70,
+    "qualification_report": "runs/alfworld_multiplicity_v1_consumed_development/report.json"
+  },
+  "policy": {
+    "controller": "SOURCE_OPTION_ONLY_V3_DIAGNOSTIC",
+    "uncertainty_scale": 0.4,
+    "decision_margin": 0.01,
+    "minimum_authentic_option_change_rate": 0.08,
+    "require_mean_steps_below_target_only": true,
+    "success_gate": "authentic successes strictly greater than target-only, shuffled, marginal, and phase-permuted"
+  },
+  "multiplicity_extension": {
+    "status": "DEVELOPMENT_ONLY",
+    "state": "set of distinct target-object identities currently bound to the goal receptacle",
+    "negative_effect": "taking an already bound target object from the goal receptacle",
+    "grounder_sha256": "4fde30b8ea050669ddbe97c5ef99d41bfa82f8cdbf721bacd541b279f9b75828",
+    "runner_sha256": "fdc250fb2c199c44a83fa7c34777c3bbaf6e0687c149a20cd93089676cb39a16",
+    "formal_reserve_read": false
+  }
+}

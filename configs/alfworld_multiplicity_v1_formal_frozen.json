@@ -1,0 +1,61 @@
+{
+  "schema_version": "alfworld-multiplicity-v1-formal",
+  "status": "FINAL_FROZEN_HELDOUT_EVALUATION",
+  "claim_boundary": "Prospective six-task test of game-derived procedural option value after replacing PLACE-event counts with an ALFWorld-native set of distinct object bindings. The source selects an abstract option only; the frozen target neural grounder retains native action authority. This evaluates multiplicity in the pinned valid_unseen installation and does not establish arbitrary counts or zero-shot grounding.",
+  "development_evidence": {
+    "origin_config": "configs/alfworld_multiplicity_v1_consumed_development.json",
+    "origin_config_sha256": "a430036e7727c0862519652fb4442d263d377729fa73c276cce12e51fc94aedf",
+    "qualification_report": "runs/alfworld_multiplicity_v1_consumed_development/report.json",
+    "qualification_report_sha256": "97e6d3ef9a2a4015208f71d8ffb94a7d175427e0c85909be3f3efd4e227f87ca",
+    "frozen_artifact_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+    "runner_sha256": "1a829f289ceb92954286cb3bb5afbe387017558ea00ae1d6fbde08651db44e0e"
+  },
+  "source": {
+    "kind": "matched-intervention-procedural-workflow-game-mdp-v1",
+    "train_surfaces": ["grid_quest", "factory_quest", "dungeon_quest", "space_quest"],
+    "heldout_surfaces": ["island_quest", "circuit_quest"],
+    "evaluation_intervention_receipts": 46080,
+    "raw_action_tokens_transferred": false
+  },
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "seed": 88601,
+    "artifact": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+    "qualification_manifest": "configs/alfworld_multiplicity_v1_formal_manifest.json",
+    "qualification_split": "eval_out_of_distribution",
+    "qualification_manifest_split": "held_out",
+    "qualification_max_steps": 70,
+    "qualification_report": "runs/alfworld_multiplicity_v1_formal/raw_report.json"
+  },
+  "policy": {
+    "controller": "SOURCE_OPTION_ONLY_V3_DIAGNOSTIC",
+    "uncertainty_scale": 0.4,
+    "decision_margin": 0.01,
+    "minimum_authentic_option_change_rate": 0.08,
+    "require_mean_steps_below_target_only": true,
+    "success_gate": "Legacy singleton gate remains reported but multiplicity authorization is exclusively the predeclared task-level gate below."
+  },
+  "multiplicity_extension": {
+    "status": "FROZEN_BEFORE_ANY_FORMAL_MULTIPLICITY_RESET",
+    "state": "set of distinct target-object identities currently bound to the goal receptacle",
+    "negative_effect": "taking an already bound target object from the goal receptacle",
+    "grounder_sha256": "4fde30b8ea050669ddbe97c5ef99d41bfa82f8cdbf721bacd541b279f9b75828",
+    "runner_sha256": "32393e5df5c553643090b21600313456a007b82fff8d5b325cdf10fcf4dc8181",
+    "summarizer_sha256": "e0e93a3386cabe766a5791e02b7106f504e811398fd23208bc257ceb78a67ffd",
+    "development_summary": "docs/results/alfworld_multiplicity_v1_consumed_development_summary.json",
+    "development_summary_sha256": "847a3a7c7e597bf47b6cf9a285be1f1836c5c164ff095af0d679b8493a88c518",
+    "raw_development_runner_status": "QUALIFICATION_CANDIDATE_FAILED_ONLY_ON_SINGLETON_STEP_RATE_METRIC"
+  },
+  "formal_gates": {
+    "expected_tasks": 6,
+    "minimum_authentic_successes": 4,
+    "minimum_tasks_with_changed_option": 4,
+    "require_distinct_identity_set_invariant": true,
+    "require_authentic_strictly_above_target": true,
+    "require_paired_wins_above_losses": true,
+    "require_authentic_strictly_above_each_destructive_control": true,
+    "require_authentic_mean_steps_below_target": true,
+    "thresholds_may_change_after_formal_open": false
+  }
+}
