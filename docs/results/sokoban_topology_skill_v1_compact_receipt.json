@@ -1,0 +1,21 @@
+{
+  "schema_version": "sokoban-topology-source-receipt-v1",
+  "status": "SOURCE_TOPOLOGY_EXECUTOR_CONFIRMED",
+  "claim_boundary": "Fresh source confirmation only. The transferable payload is an anonymous graph-edge executor with bind, execute, refute, verify, commit, and abstain phases; it excludes source coordinates, action tokens, objects, and path lengths.",
+  "artifact": {
+    "path": "runs/sokoban_topology_skill_v1/discovery_artifact.json",
+    "content_sha256": "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+    "file_sha256": "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963"
+  },
+  "fresh_confirmation": {
+    "path": "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json",
+    "report_sha256": "87e69e67da6b45feb983e3244e6c5da05b5a293244edc1b670b6aeb274bcef7d",
+    "file_sha256": "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7",
+    "eligible_examples": 62,
+    "canonical_accuracy": 1.0,
+    "direction_permuted_accuracy": 0.0,
+    "phase_reversed_accuracy": 0.0,
+    "sequence_length_marginal_accuracy": 0.0,
+    "all_source_gates_passed": true
+  }
+}
