@@ -84,3 +84,43 @@ applicability audit over the target task's actual action/effect schema, and a
 stronger **target-native acquisition/tool controller** that can reliably reach
 scientific decision states on compatible tasks such as Proteomics. Both must be
 qualified independently of the source program.
+
+## V24 sequel: acquisition fixed, transfer still negative
+
+V24 implemented the missing source-blind, target-native acquisition layer for
+Proteomics Normal. It exhaustively surveys the public teleport locations,
+measures five distinct species with the native proteomics meter, computes the
+robust protein-vector outlier, picks up the flag, and returns to the matching
+statue. It reads neither the source skill nor the official scorecard. On the two
+consumed development seeds it reached `DROP` and officially succeeded 2/2
+(steps 24 and 27), so the V22 coverage blocker is resolved for this one
+compatible interface.
+
+An outcome-blind fork was then frozen immediately before seed2's first `DROP`.
+The matched diagnostic completed with valid receipts and no oracle use:
+
+| Condition | Success | Recovery steps |
+|---|---:|---:|
+| Recorded target baseline | 1/1 | 1 |
+| Target-native myopic | 1/1 | 1 |
+| Authentic Sokoban effect guard | **0/1** | 8 |
+| Commit-availability control | 1/1 | 1 |
+| Inverted-effect control | 1/1 | 1 |
+| Position-prior control | 0/1 | 8 |
+
+This is a genuine consumed-development negative-transfer diagnosis, not a fresh
+formal result. The target policy simply committed and was already at ceiling.
+The authentic effect guard instead rejected `DROP` for all eight steps. The
+immediate cause is also informative: the natural goal says “directly beside,”
+but the binder encoded `same_location, distance=0`, while exact target facts
+placed the statue one square north. The current symbolic relation vocabulary
+cannot represent undirected adjacency. Availability-based selection ignores
+that failed witness and succeeds; the authentic exact-effect guard correctly
+refuses to claim an effect it cannot prove.
+
+Therefore V24 does **not** justify opening another Normal reserve. A future
+version should add a target-native `adjacent` predicate during development and
+test an earlier scientific decision point where the source-blind target policy
+is below ceiling. Merely forcing `DROP` here would erase the mechanism rather
+than demonstrate transfer utility. The compact record is
+`docs/results/discoveryworld_proteomics_normal_v24_summary.json`.

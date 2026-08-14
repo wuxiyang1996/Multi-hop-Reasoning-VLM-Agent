@@ -59,6 +59,22 @@ def _binding(observation):
     )
 
 
+def test_same_location_null_distance_normalizes_to_zero():
+    observation = _observation()
+    observation.ui["nearbyObjects"] = {"objects": {"same_location": [
+        {"uuid": 9, "name": "statue", "distance": 0},
+    ]}}
+    binding = parse_target_binding(
+        '{"target_uuid":9,"target_name":"statue",'
+        '"commit_subject_relation_to_target":"same_location","target_distance":null,'
+        '"commit_action":{"action":"DROP","arg1":7},'
+        '"confidence":0.99,"hypothesis_used":"statue target","reason":"same tile"}',
+        observation,
+    )
+    assert binding.target_distance == 0
+    assert binding.target_relation_from_agent == "same_location"
+
+
 def test_authentic_effect_program_commits_only_with_supported_positive_effect():
     observation = _observation()
     commit = _candidate(

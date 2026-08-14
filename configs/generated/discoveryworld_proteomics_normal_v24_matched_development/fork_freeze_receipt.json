@@ -1,0 +1,40 @@
+{
+  "schema_version": "discoveryworld-fork-freeze-v2",
+  "status": "ADAPTATION_FORKS_FROZEN",
+  "evaluation_stage": "ADAPTATION",
+  "protocol_file_sha256": "932fb9cd9dd4dd8f990a6b7fb27a5bdb6c7a5cb9596ea13ada898663222eca03",
+  "generator_file_sha256": "14348733b8752388087aa64e97f3cd574c3819aaf82331d078078322956c7613",
+  "target_baseline_config_sha256": "a938a87d873dd85592060205b4e554d143d2154e98ef1c30698cdb168ffc4911",
+  "outcome_fields_read_for_eligibility": false,
+  "receipts": [
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.normal.seed2",
+      "task": {
+        "scenario": "Proteomics",
+        "difficulty": "Normal",
+        "seed": 2
+      },
+      "reference_episode_sha256": "168cd28a4a11079758a76a4a7a09ba0367c5c913d4539c15a13fbf7d6ba40aec",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 23,
+      "selected_episode_step": 24,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 33979
+      },
+      "selected_action_sha256": "ececeec8615d4e0757c9c1eaf1a6cd9026a966a9392fbe81e30abf0bc3672352",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "8299f1debf2336537ad6f8a7cbdafd724ed93ac4530086aa0c6cee25d66e39e4"
+    }
+  ],
+  "generated_configs": [
+    "configs/generated/discoveryworld_proteomics_normal_v24_matched_development/proteomics.normal.seed2.json"
+  ],
+  "summary_sha256": "d9ccdee1499adf3928e0f56a2c1e305be1a27bf67b12c1cf6a5b5e8e69ef5133"
+}
