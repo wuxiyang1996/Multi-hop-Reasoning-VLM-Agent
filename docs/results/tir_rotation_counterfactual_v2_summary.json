@@ -1,0 +1,66 @@
+{
+  "schema_version": "tir-rotation-counterfactual-v2-compact-summary",
+  "status": "FRESH_FORMAL_COUNTERFACTUAL_ROTATION_TRANSFER_VALIDATED",
+  "claim_boundary": "Tetris supplies an anonymous cyclic-group inverse/identity-recovery program. A target-native neural model selects an anonymous image intervention that restores physical uprightness without numeric angles, A-F slots, or gold. The target-written isomorphic program is identical, so source provenance necessity is not established.",
+  "failed_v1_qualification": {
+    "authentic_correct": 0,
+    "raw_correct": 4,
+    "tasks": 12,
+    "status": "FRESH_QUALIFICATION_ROTATION_TRANSFER_GATE_FAILED",
+    "diagnosis": "single-image absolute angle estimation was not reliable"
+  },
+  "consumed_v2_development": {
+    "authentic_correct": 24,
+    "raw_correct": 5,
+    "tasks": 24,
+    "wins": 19,
+    "losses": 0
+  },
+  "fresh_qualification": {
+    "authentic_correct": 8,
+    "raw_correct": 1,
+    "destructive_control_correct": {
+      "opposite_group": 0,
+      "binding_rotation": 0,
+      "half_turn_marginal": 0
+    },
+    "tasks": 8,
+    "wins": 7,
+    "losses": 0,
+    "exact_two_sided_p": 0.015625,
+    "all_gates_passed": true
+  },
+  "fresh_formal": {
+    "authentic_correct": 19,
+    "raw_correct": 4,
+    "destructive_control_correct": {
+      "opposite_group": 0,
+      "binding_rotation": 0,
+      "half_turn_marginal": 0
+    },
+    "alpha_renamed_correct": 19,
+    "target_written_isomorphic_correct": 19,
+    "tasks": 21,
+    "action_changes_vs_raw": 16,
+    "wins": 15,
+    "losses": 0,
+    "ties": 6,
+    "exact_two_sided_p": 6.103515625e-05,
+    "all_gates_passed": true
+  },
+  "integrity": {
+    "config_file_sha256": "f0e26f8547dcd84ddc738a806b52453d13556fb9d549d6729b6fb5d4eebdccff",
+    "development_authority_file_sha256": "7d062b5753829dfe0e9a3b34e8564bf9bbdbef43cac1b633c146a49017f475b5",
+    "qualification_report_sha256": "ba63c4681f1afa2889867bb15ee81ae4b3993c2be5e2ded418456faa106c0699",
+    "qualification_report_file_sha256": "a35fa26ea16eb4bca1619d138f0d51be7e527095938e94610f7337805e3fbeaf",
+    "formal_report_sha256": "1cff84f1e1aee2ba7204c524662d042420d818f5c280e5bedd00a1b2f1bb1285",
+    "formal_report_file_sha256": "5e72d26b9804ee0f820c29477189052447d30f068746f294b1b9df76a0e08cbf",
+    "source_artifact_sha256": "22b7d947e95fec0865704dec41d66d3207960b24c7113ed6f86f71fef3d768d7"
+  },
+  "limitations": [
+    "The target-written isomorphic program exactly matches authentic, so this does not prove source provenance necessity.",
+    "The route covers TIR rotation_game only.",
+    "The neural grounder evaluates target-generated candidate transformations; it is not zero-shot absolute angle regression."
+  ],
+  "summary_sha256": "14264e545473e5aa39de7f9e9ec1222f082bafe5d056aba1f423616399035f7a"
+}
