@@ -1,5 +1,7 @@
 # Procedural-game to ALFWorld neural-symbolic transfer V1
 
+Four-domain web overview: [`NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html`](NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html).
+
 ## Result
 
 The frozen 24-task `ALFWorld valid_unseen` evaluation supports the narrow transfer claim:

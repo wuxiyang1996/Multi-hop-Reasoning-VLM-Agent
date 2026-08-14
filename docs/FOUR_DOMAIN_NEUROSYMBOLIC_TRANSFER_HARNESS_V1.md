@@ -1,5 +1,7 @@
 # Four-domain neural-symbolic transfer harness V1
 
+Web overview: [`NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html`](NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html).
+
 ## Result
 
 The harness now has a source-qualified, target-native, fresh-formal route for each requested target domain:
@@ -56,6 +58,19 @@ Transfers bind/execute/refute/verify/commit/abstain over an anonymous graph to T
 These failures are why the library contains multiple source-qualified skills and exact target routes instead of one high-level `POSITION/COMMIT` heuristic.
 
 The ALFWorld final evidence is an exact frozen deterministic replay after a foreground transport interruption. The first invocation wrote no final report; no scientific input changed before replay. See `docs/PROCEDURAL_GAME_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md` for the full disclosure and factorization.
+
+## What remains
+
+The four exact routes are complete, but a stronger general transfer claim still requires:
+
+- fresh independent replication with larger task counts and multiple seeds, especially for the 8-task DiscoveryWorld result;
+- a portable artifact/environment bundle—the full reports currently remain under ignored `runs/`, and ALFWorld configs contain machine-local dataset paths;
+- broader target coverage beyond DiscoveryWorld Easy and TIR maze, plus a fresh ALFWorld test of object multiplicity;
+- learned or induced canonical roles instead of a fully designed workflow/topology ontology;
+- a calibrated target-state applicability/transfer-utility predictor, rather than only static exact-interface dispatch;
+- equal-budget comparisons against target memory/retrieval, target-written workflows, and black-box target policies.
+
+Video remains a separate failed/open route and continues to dispatch to `ABSTAIN`. The web overview gives the prioritized experiment queue and completion criteria.
 
 ## Reproduction
 

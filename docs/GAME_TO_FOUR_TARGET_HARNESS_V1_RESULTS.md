@@ -2,6 +2,13 @@
 
 日期：2026-08-14
 
+> **Historical scope note.** This document tests whether one shared Sokoban
+> binary-effect program transfers unchanged to all four targets; that claim remains
+> negative/partial. Later work validates four exact routes using three distinct
+> game-derived structures. See
+> [`NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html`](NEUROSYMBOLIC_TRANSFER_FOUR_DOMAIN_STATUS.html)
+> and [`FOUR_DOMAIN_NEUROSYMBOLIC_TRANSFER_HARNESS_V1.md`](FOUR_DOMAIN_NEUROSYMBOLIC_TRANSFER_HARNESS_V1.md).
+
 ## 结论
 
 同一个 fresh-confirmed real-Sokoban effect program 已通过统一的 source receipt、
