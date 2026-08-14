@@ -204,6 +204,19 @@ def build_cross_benchmark_audit(
         name for name, row in cells.items()
         if row["heldout_generalization_validated"]
     ]
+    selective_cells = {}
+    for name, row in cells.items():
+        enabled = bool(row["mechanism_positive"])
+        selected_successes = (
+            int(row["authentic_successes"])
+            if enabled else int(row["target_successes"])
+        )
+        selective_cells[name] = {
+            "decision": "ENABLE_SOURCE" if enabled else "ABSTAIN_TO_TARGET",
+            "selected_successes": selected_successes,
+            "target_successes": int(row["target_successes"]),
+            "success_delta": selected_successes - int(row["target_successes"]),
+        }
     body = {
         "schema_version": "game-to-four-target-transfer-audit-v1",
         "status": (
@@ -218,8 +231,41 @@ def build_cross_benchmark_audit(
                 source_receipt["fresh_confirmation"]["source_gate_passed"]
             ),
         },
+        "input_report_hashes": {
+            "source_compact_receipt": source_receipt["compact_receipt_sha256"],
+            "webshop": webshop["summary_sha256"],
+            "discoveryworld_adaptation": discovery_adaptation["summary_sha256"],
+            "discoveryworld_formal": discovery_formal["summary_sha256"],
+            "alfworld": alfworld["report_sha256"],
+            "tir_shared_source": tir["report_sha256"],
+            "tir_other_source_formal": (
+                tir_other_source_formal["report_sha256"]
+                if tir_other_source_formal is not None else None
+            ),
+        },
         "common_source_lineage": common_lineage,
         "cells": cells,
+        "selective_harness": {
+            "policy": (
+                "ENABLE_SOURCE_ONLY_AFTER_TARGET_ADAPTATION_MECHANISM_GATE; "
+                "OTHERWISE_ABSTAIN_TO_MATCHED_TARGET_POLICY"
+            ),
+            "cells": selective_cells,
+            "total_target_successes": sum(
+                int(row["target_successes"]) for row in cells.values()
+            ),
+            "total_selected_successes": sum(
+                row["selected_successes"] for row in selective_cells.values()
+            ),
+            "total_success_delta": sum(
+                row["success_delta"] for row in selective_cells.values()
+            ),
+            "observed_negative_transfer_after_gating": 0,
+            "claim_boundary": (
+                "Descriptive projection over heterogeneous existing target "
+                "splits, not a pooled statistical estimand or new held-out result."
+            ),
+        },
         "validated_mechanism_cells": passed_cells,
         "validated_heldout_cells": heldout_cells,
         "all_four_mechanisms_validated": len(passed_cells) == 4,
