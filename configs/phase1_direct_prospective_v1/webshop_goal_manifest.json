@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "artifact_role": "OUTCOME_BLIND_PHASE1_DIRECT_WEBSHOP_RESERVE_V1",
+  "status": "FROZEN_BEFORE_ANY_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "Six fresh native synthetic WebShop goal identities, one per source lineage, disjoint by ASIN and instruction from prior WebShop configs.",
+  "selection_rule": "Seed native synthetic goal generation with 20260815 and take the first six identities whose ASIN and instruction do not occur in prior WebShop configurations or result artifacts.",
+  "goal_seed": 20260815,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 13,
+  "roles": {
+    "development": [],
+    "formal_reserve": [
+      {
+        "task_id": "webshop.0",
+        "server_goal_index": 0,
+        "asin": "B08P8LRFZ4",
+        "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type 3-pink, and price lower than 130.00 dollars",
+        "goal": {
+          "asin": "B08P8LRFZ4",
+          "category": "garden",
+          "query": "home office chairs",
+          "name": "MTFY Cute Faux Fur Desk Chair for Girls Women, Comfy Fluffy Modern Home Office Chair with Wheels, Elegant Swivel Fuzzy Vanity Chair Makeup Arm Chair for Living Room, Bedroom",
+          "product_category": "Home & Kitchen › Furniture › Home Office Furniture › Home Office Chairs › Home Office Desk Chairs",
+          "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type 3-pink, and price lower than 130.00 dollars",
+          "attributes": [
+            "height adjustable",
+            "high density",
+            "easy install",
+            "easy assemble",
+            "living room"
+          ],
+          "price_upper": 130.0,
+          "goal_options": {
+            "color": "type 3-pink"
+          },
+          "weight": 0.015088473514919903
+        },
+        "goal_sha256": "04267754cebb9774015340cd13097fa35f61415dde6ad4de8b0cec0f697fa23a"
+      },
+      {
+        "task_id": "webshop.2",
+        "server_goal_index": 2,
+        "asin": "B09KXCHWGD",
+        "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 20.00 dollars",
+        "goal": {
+          "asin": "B09KXCHWGD",
+          "category": "fashion",
+          "query": "men's polos",
+          "name": "Custom Polo Shirts for Men Design Your Own Personalized Logo Text Photo Polo Shirt Customize Classic Polo Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › Polos",
+          "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 20.00 dollars",
+          "attributes": [
+            "short sleeve",
+            "button closure"
+          ],
+          "price_upper": 20.0,
+          "goal_options": {
+            "color": "orange"
+          },
+          "weight": 0.0016657827079001029
+        },
+        "goal_sha256": "a53c93bbfff8caa3414f1c5f88b65168b08eaae997bd420675b2a728a3460749"
+      },
+      {
+        "task_id": "webshop.8",
+        "server_goal_index": 8,
+        "asin": "B09T756KQ5",
+        "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: a-bk1, and size: medium, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09T756KQ5",
+          "category": "fashion",
+          "query": "men's tuxedo shirts",
+          "name": "WENKOMG1 Men's Crewneck Goth Tee Shirts Skull Print Tops Spring/Summer Long Sleeve Sports T-Shirt Baggy Y2K Soft Streetwear",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+          "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: a-bk1, and size: medium, and price lower than 30.00 dollars",
+          "attributes": [
+            "slim fit",
+            "loose fit",
+            "long sleeve",
+            "short sleeve",
+            "contrast color",
+            "classic fit",
+            "teen girls"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "a-bk1",
+            "size": "medium"
+          },
+          "weight": 0.002027250552457214
+        },
+        "goal_sha256": "33154169d075758f0d94de1f196121057622ec071345e07120791daad1364b5f"
+      },
+      {
+        "task_id": "webshop.9",
+        "server_goal_index": 9,
+        "asin": "B09PVNLVRW",
+        "instruction_text": "Find me slim fit women's jumpsuits, rompers & overalls with long sleeve for daily wear with color: red, and size: medium, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09PVNLVRW",
+          "category": "fashion",
+          "query": "women's jumpsuits, rompers & overalls",
+          "name": "Women's V-Neck Rompers Printed Jumpsuit Long Sleeve Homewear Butt Flap Pajamas One-Piece Onesies Nightwear Sexy Bodysuit",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Jumpsuits, Rompers & Overalls › Jumpsuits",
+          "instruction_text": "Find me slim fit women's jumpsuits, rompers & overalls with long sleeve for daily wear with color: red, and size: medium, and price lower than 60.00 dollars",
+          "attributes": [
+            "slim fit",
+            "long sleeve",
+            "daily wear"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "red",
+            "size": "medium"
+          },
+          "weight": 0.0015991571007478158
+        },
+        "goal_sha256": "d1891903a8f557ad657daaf2dee184d5bbbc161eaa9915d32358d08d365ec419"
+      },
+      {
+        "task_id": "webshop.10",
+        "server_goal_index": 10,
+        "asin": "B079PH6955",
+        "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B079PH6955",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Need Some Hank & A Drank Country Music T Shirt for Rednecks",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › T-Shirts",
+          "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: large, and price lower than 30.00 dollars",
+          "attributes": [
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "navy",
+            "fit type": "men",
+            "size": "large"
+          },
+          "weight": 0.0006702055583641998
+        },
+        "goal_sha256": "cefe582ebb1f39f66971b37e463f85b11e195905e6053f9bf66be3b3bb0d1861"
+      },
+      {
+        "task_id": "webshop.12",
+        "server_goal_index": 12,
+        "asin": "B07SXLVPF3",
+        "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 59x79, and price lower than 900.00 dollars",
+        "goal": {
+          "asin": "B07SXLVPF3",
+          "category": "garden",
+          "query": "mattresses",
+          "name": "Mayton 12-Inch King Size Mattress, Box Spring And Bed Frame - Foam Encased Soft Pillow Top Hybrid Contouring Comfort, No Assembly Required 78x79",
+          "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Mattresses & Box Springs › Mattresses",
+          "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 59x79, and price lower than 900.00 dollars",
+          "attributes": [
+            "high density",
+            "assembly required",
+            "ready use",
+            "long lasting",
+            "box spring",
+            "king size",
+            "memory foam"
+          ],
+          "price_upper": 900.0,
+          "goal_options": {
+            "color": "59x79"
+          },
+          "weight": 0.06790224462638256
+        },
+        "goal_sha256": "2540f5f92f5b5c826b5b4ee51f743ad53c98412d9a58bfdc7c62e776e6ed0c6f"
+      }
+    ]
+  },
+  "preflight": {
+    "selected_vs_prior": {
+      "tasks": 6,
+      "unique_goal_semantics": 6,
+      "required_unique_goal_semantics": 6,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 6,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    }
+  },
+  "runtime_contract": {
+    "server_launcher": "scripts/run_webshop_direct_server_v1.py",
+    "goal_mode": "native_synthetic",
+    "human_goal_mode_forbidden": true
+  },
+  "runtime_hashes": {
+    "products": "30a4765c3a327af72d9a9a95a6b2486d516f0fa1d3ecd83681901ce82a21b269",
+    "human_instructions": "cf78667548a71786e1d9049c24b802e48e1084ad4bb021cae56ce1f6d96954a3",
+    "vendor_engine": "4af84efef1401c3735296201afc397be54015ff9b169c2c6bfe5f5bc90dc31e6",
+    "vendor_goal": "9703c8583244e2041182eb14856186b998145ab16ce2ba9aef8cb680877c8ed5"
+  },
+  "artifact_sha256": "fa21bac14d5ee0c3efef4382e2b4ffdbe2f8bd560bc9e7fe9022ceabad10fd0a"
+}

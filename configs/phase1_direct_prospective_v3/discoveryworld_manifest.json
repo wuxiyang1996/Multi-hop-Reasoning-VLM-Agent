@@ -1,0 +1,148 @@
+{
+  "schema_version": "phase1-direct-discoveryworld-confirmation-v3",
+  "status": "FROZEN_BEFORE_ANY_V3_TARGET_RESET_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "Six direct prospective source-lineage-to-DiscoveryWorld executions; V1 and V2 DiscoveryWorld outcomes are excluded.",
+  "parent_v1_manifest": "configs/phase1_direct_prospective_v1/manifest.json",
+  "parent_v1_manifest_sha256": "7a0d600bc3c9c3ec5ff4c7bb2384e5740cbbb5b6aba8918962faa57b5468f5a1",
+  "parent_v1_manifest_file_sha256": "c2045baf6ff66f1062a88812a48dcd70bbf7f479e21993b2cd1bac7ce2787cb5",
+  "consumed_v2_manifest": "configs/phase1_direct_prospective_v2/discoveryworld_manifest.json",
+  "consumed_v2_manifest_sha256": "bfca432bb1db80139a0833d60f503f7e212a100547ee3e02d018b2073dc93549",
+  "selection_read_target_outcome": false,
+  "historical_target_outcome_reuse_allowed": false,
+  "uniform_confirmation_for_all_six_sources": true,
+  "conditions": {
+    "discoveryworld": [
+      "target_native_myopic",
+      "authentic_sokoban_effect_plus_target",
+      "commit_availability_control_plus_target",
+      "inverted_effect_control_plus_target",
+      "position_prior_control_plus_target"
+    ]
+  },
+  "target_manifest": "configs/phase1_direct_prospective_v3/discoveryworld_target_manifest.json",
+  "target_config": "configs/phase1_direct_prospective_v3/discoveryworld_target_only.json",
+  "protocol": "configs/phase1_direct_prospective_v3/discoveryworld_protocol.json",
+  "cells": [
+    {
+      "cell_id": "tetris__to__discoveryworld",
+      "source_game": "tetris",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed33",
+      "target_task": {
+        "task_id": "proteomics.easy.seed33",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 33
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "cell_id": "candy_crush__to__discoveryworld",
+      "source_game": "candy_crush",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed34",
+      "target_task": {
+        "task_id": "proteomics.easy.seed34",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 34
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "cell_id": "gymv_columns__to__discoveryworld",
+      "source_game": "gymv_columns",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed35",
+      "target_task": {
+        "task_id": "proteomics.easy.seed35",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 35
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__discoveryworld",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed36",
+      "target_task": {
+        "task_id": "proteomics.easy.seed36",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 36
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__discoveryworld",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed37",
+      "target_task": {
+        "task_id": "proteomics.easy.seed37",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 37
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "cell_id": "gymv_strider__to__discoveryworld",
+      "source_game": "gymv_strider",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed38",
+      "target_task": {
+        "task_id": "proteomics.easy.seed38",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 38
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    }
+  ],
+  "runtime_file_sha256": {
+    "src/motif_transfer/contracts.py": "77da9776e0005f585d2c451f4c014d3726dbb7289d86143c634a351db1fc111c",
+    "src/motif_transfer/direct_prospective_matrix_v1.py": "c9aa946fbecf0b86d4aca8455220618a25a3c55d2eea9f937c5b5ff1c8ed2bb7",
+    "src/motif_transfer/discoveryworld_env.py": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "src/motif_transfer/discoveryworld_policy.py": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "src/motif_transfer/discoveryworld_search_automaton_v16.py": "925fd4339698e97ea6591ca30f0b6976a5b6c0ab62786a20d9a85ab35f8ad71f",
+    "src/motif_transfer/discoveryworld_sokoban_transfer.py": "8d50120bacf89ceca5a6884f6ba90f55a9147a945f5008c9fbbf25ac260af2b7",
+    "src/motif_transfer/frozen_motif_agent.py": "51335c93a13411d3f597e71e81ecfbeb3e663e6228363b4188cebfd9c83ee54e",
+    "src/motif_transfer/search_automaton_transfer_v16.py": "46522b4ee2e68beab8cbe0e36e5f92c9dde578ae43ef02eb2a6bcf8cd76d08ac",
+    "scripts/freeze_phase1_direct_discoveryworld_v3.py": "26bc2ca16e2bb93eb4f03c95ad075e0cf389b951dae33173ae0cd78a1cca68e3",
+    "scripts/prepare_phase1_direct_discoveryworld_v3.py": "23f0a8a0db739ad71a7a108881ccf7f22667ac3ade646aa3e9ca6b7653d33f4b",
+    "scripts/run_discoveryworld_target_only_v1.py": "8c908e84e7da5b27474cbc14da7164b3d46c32bc0b406938179cff5d42466377",
+    "scripts/freeze_discoveryworld_qualification_forks_v1.py": "14348733b8752388087aa64e97f3cd574c3819aaf82331d078078322956c7613",
+    "scripts/run_discoveryworld_commit_recovery_v1.py": "14a768760c4a327c2486a3400310a771f9074ebe69ead83c848c425b2d54527d",
+    "scripts/run_phase1_direct_discoveryworld_v1.py": "495d5be6980520b23bb6342b2290730d076ce74a78ba2a1ff045cd26ec31848a",
+    "scripts/run_phase1_direct_discoveryworld_v2.py": "a655235a883829db9e336333006f9727229960f3c5c2df64168e069dc2916f3e",
+    "scripts/run_phase1_direct_discoveryworld_v3.py": "8d4a7f6724bbe783ebe9ece46c49b256ccc5e7bf1e126b1117d02fcbcb019998"
+  },
+  "manifest_sha256": "de056c9a60320d370b9f1130277025a4475890a02f83fbcf5826ca86ed862b17"
+}
