@@ -216,6 +216,27 @@ CLEVRER structured-video result = RETAIN
 evidence operator 在旧数据上显示稳定 intrinsic headroom，并且 source features 能区分 proof wins 与
 destructions，才值得采集新视频结果。
 
+## V15 source-only triage gate（2026-08-15）
+
+在继续 WebShop 前，我们先要求 source 独立识别三分支控制：`INFEASIBLE -> BACKTRACK`、
+`FEASIBLE_AND_UNTRIED -> EXPLORE`、`READY_AND_POSITIVE_EFFECT -> COMMIT -> VERIFY`。审计没有读取
+WebShop outcome，也没有 provider call。
+
+结果只有第三个分支通过。Sokoban fresh confirmation 的 96 个 labels 全部属于 COMMIT/POSITION，
+REPLAN/BACKTRACK 为 0；真实 GymV 的 32 个 matched SWITCH/PERSIST cells 中，qualification 与 held-out
+的 common-continuation estimand 都没有 SWITCH win。因而：
+
+```text
+SOURCE_TRIAGE_GATE_V15_FAILED_CLOSED
+WebShop V15 target adapter = NOT AUTHORIZED
+WebShop formal reserve = SEALED
+```
+
+详细结果见 [`SOURCE_TRIAGE_GATE_V15_RESULTS.md`](SOURCE_TRIAGE_GATE_V15_RESULTS.md) 与
+[`results/source_triage_gate_v15.json`](results/source_triage_gate_v15.json)。下一步必须先在真实 source
+states 上做 matched `BACKTRACK / EXPLORE_UNTRIED / COMMIT` forks；不能把 V14 target coverage
+heuristic 反向包装成 source skill。
+
 ## Authoritative files
 
 - WebShop semantic audit: `scripts/audit_webshop_semantic_independence_v14.py`
@@ -226,4 +247,5 @@ destructions，才值得采集新视频结果。
 - Synthetic server adapter: `src/motif_transfer/webshop_unique_goal_server_v14.py`
 - Outcome-blind freezer: `scripts/freeze_webshop_synthetic_reserve_v14.py`
 - Live fail-closed verifier: `scripts/verify_webshop_synthetic_server_v14.py`
+- V15 source-only gate: `scripts/audit_source_triage_gate_v15.py`
 - Video cost audit: `scripts/audit_natural_video_cost_boundary_v38.py`

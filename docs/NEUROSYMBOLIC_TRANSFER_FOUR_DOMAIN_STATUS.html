@@ -326,7 +326,7 @@
 <body>
   <header>
     <div class="wrap">
-      <p class="eyebrow">Evidence-bound status · 2026-08-14</p>
+      <p class="eyebrow">Evidence-bound status · 2026-08-15</p>
       <h1>Game → Four Domains<br>Neural-Symbolic Transfer</h1>
       <p class="subtitle">
         我们实现的不是“一条高层游戏 heuristic 到处通用”，而是 intervention-grounded symbolic
@@ -338,6 +338,7 @@
         <span class="pill good">Target action authority preserved</span>
         <span class="pill info">5 select · 4 abstain</span>
         <span class="pill warn">WebShop bridge 2/2 · source increment pending</span>
+        <span class="pill bad">V15 triage source gate failed closed</span>
         <span class="pill bad">Natural-video V37 failed</span>
         <span class="pill bad">Universal learned ontology not confirmed</span>
       </div>
@@ -373,6 +374,8 @@
         hashes、56 unique semantics、56 unique ASINs 全通过；formal outcome sealed。V14 final mechanism
         在两个 development goals 上把 strict success 从 target-only 0/2 提高到 coverage/authentic 2/2，
         但 authentic 与 coverage-only、commit-availability control 都持平，因此 source-specific increment 未成立。
+        V15 随后在读 target outcome 前审计三分支 source controller：只有 COMMIT/VERIFY 通过，
+        BACKTRACK 与 EXPLORE 缺 source intervention support，target adapter 被 fail-closed gate 阻止。
       </div>
 
       <div class="grid">
@@ -548,7 +551,7 @@
       <table>
         <thead><tr><th>缺口</th><th>当前证据</th><th>完成标准</th><th>优先级</th></tr></thead>
         <tbody>
-          <tr><td><strong>WebShop semantic replication</strong></td><td>V14 target bridge 已 live 通过：target-only 0/2，coverage/authentic 2/2；0 unsafe commits。Authentic 同时被 coverage-only 与 commit-availability control 追平</td><td>先在 development 证明 positive-effect guard 区别于 mere availability；只有 source-specific gate 过后才打开 32 formal</td><td><span class="tag bad">P0</span></td></tr>
+          <tr><td><strong>WebShop semantic replication</strong></td><td>V14 target bridge 已 live 通过；V15 source-only triage 只有 COMMIT/VERIFY 通过，BACKTRACK labels=0，EXPLORE 在 blind common cells 为 0 wins</td><td>先在真实 source states 做 matched BACKTRACK / EXPLORE_UNTRIED / COMMIT forks；三分支 source gate 过后才写 target adapter、打开 32 formal</td><td><span class="tag bad">P0</span></td></tr>
           <tr><td><strong>完整四域 clean-room replay</strong></td><td>Release V1 已完成 clean-checkout audit、环境锁定和 ALFWorld artifact/replay bundle；其余三域保留 compact receipts</td><td>再打包 WebShop provider cache、DiscoveryWorld installation recipe 与 TIR execution cache，完成四域从头执行</td><td><span class="tag warn">P0 partial</span></td></tr>
           <tr><td><strong>DiscoveryWorld Normal</strong></td><td>target-native 1/1、authentic 0/1；当前 vocabulary 无法表示 undirected adjacency，且 fork 已在 ceiling</td><td>只在 development 修 target-native adjacency，并在 non-ceiling fork 冻结新 reserve</td><td><span class="tag bad">P0</span></td></tr>
           <tr><td><strong>ALFWorld multiplicity breadth</strong></td><td>count-two fresh 4/6 vs 1/6，3W/0L</td><td>更多 unopened tasks 与多种 counts；不能只重复当前六题</td><td><span class="tag warn">P1</span></td></tr>
@@ -570,7 +573,7 @@
       <h2>建议的执行顺序</h2>
       <div class="priority">
         <div class="rank">1</div>
-        <div><strong>保持 WebShop formal sealed，修 source-specific applicability。</strong><p class="small">Exact option grounding、paired-label、state-change verification 与 infeasible-product backtracking 已把两个 development goals 从 0/2 修到 2/2。下一步必须让 authentic 区别于 coverage-only 和 commit-availability control，不能再扩大同类任务制造样本量。</p></div>
+        <div><strong>保持 WebShop formal sealed，先补 source 三分支 identifiability。</strong><p class="small">V15 已 fail closed：现有 source 只识别 COMMIT/POSITION；REPLAN 没有 intervention labels，真实游戏 SWITCH 在 blind common cells 没有一次胜出。下一轮必须先做 matched BACKTRACK / EXPLORE_UNTRIED / COMMIT source forks，不能把 target coverage logic 当作迁移知识。</p></div>
       </div>
       <div class="priority">
         <div class="rank">2</div>
@@ -605,6 +608,7 @@
             <li><a href="PROCEDURAL_GAME_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Procedural-game → ALFWorld result</a></li>
             <li><a href="SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md">Sokoban → WebShop result</a></li>
             <li><a href="WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md">WebShop correction + video cost boundary</a></li>
+            <li><a href="SOURCE_TRIAGE_GATE_V15_RESULTS.md">V15 source-only triage gate</a></li>
             <li><a href="DISCOVERYWORLD_SOKOBAN_V23_RESULTS.md">Sokoban → DiscoveryWorld result</a></li>
             <li><a href="TIR_MAZE_SOKOBAN_TOPOLOGY_V1_V2_RESULTS.md">Sokoban topology → TIR maze result</a></li>
             <li><a href="TIR_TETRIS_ROTATION_COUNTERFACTUAL_V2_RESULTS.md">Tetris → TIR rotation result</a></li>
@@ -623,6 +627,7 @@
             <li><a href="results/webshop_synthetic_server_v14_preflight.json">WebShop V14 live preflight</a></li>
             <li><a href="results/webshop_synthetic_v14_development_smoke_v1.json">WebShop V14 development smoke</a></li>
             <li><a href="results/webshop_coverage_transfer_v14_development.json">WebShop V14 live coverage transfer diagnosis</a></li>
+            <li><a href="results/source_triage_gate_v15.json">V15 source-only triage receipt</a></li>
             <li><a href="results/natural_video_cost_boundary_v38_audit.json">Natural-video cost audit</a></li>
             <li><a href="results/discoveryworld_v23_fresh_easy_formal_summary.json">DiscoveryWorld compact receipt</a></li>
             <li><a href="results/tir_maze_topology_v2_summary.json">TIR compact receipt</a></li>
@@ -642,7 +647,7 @@
 PYTHONPATH=src:. pytest -q \
   tests/test_neurosymbolic_skill_library.py \
   tests/test_four_domain_neurosymbolic_registry.py</pre>
-      <p class="small">Branch: <code>agent/harness-transfer-bitter-lessons</code> · status updated through WebShop V14 and natural-video V38 audits on 2026-08-14.</p>
+      <p class="small">Branch: <code>agent/harness-transfer-bitter-lessons</code> · status updated through WebShop V15 source triage and natural-video V38 audits on 2026-08-15.</p>
     </section>
   </main>
 
