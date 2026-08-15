@@ -1,0 +1,122 @@
+{
+  "artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+  "canonical_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "claim_boundary": "SIX_FORMALLY_QUALIFIED_PHASE1_SOURCE_GAMES;COMMON_SYMBOLIC_EVENT_ROUTING_ONLY;TARGET_NATIVE_NEURAL_GROUNDING_REQUIRED;NO_SOURCE_ACTION_TOKEN_CANDIDATE_ID_OR_ORDER_EXPORTED",
+  "learned_policy": {
+    "ACTIVE_CANDIDATE_REFUTED": "BACKTRACK_REPLAN",
+    "ACTIVE_CANDIDATE_VERIFIED": "COMMIT_VERIFY",
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": "EXPLORE_UNTRIED"
+  },
+  "schema_version": "sokoban-search-automaton-artifact-v16",
+  "source_lineage": {
+    "formal_manifest_file_sha256": "b909a4b5a7214fae2c93e2e9bd2168430afe70282dd6fc1b8fde910981222f37",
+    "formal_manifest_sha256": "d924bb9690eb82221b9af47050804a8651578422443f73b3229bc359ee6cec2a",
+    "games": [
+      "tetris",
+      "candy_crush",
+      "gymv_columns",
+      "gymv_streets_of_rage_2",
+      "gymv_thunder_force_iii",
+      "gymv_strider"
+    ],
+    "kind": "SIX_INDEPENDENT_PHASE1_GAME_FORMAL_CONSENSUS"
+  },
+  "source_lineages": [
+    {
+      "collection_audit_file_sha256": "177fb05edaed0caae278c9dbf93fbfea93a5d4a0d6dc0df3733f2202642c8ad2",
+      "config_file_sha256": "1b1b3d865db4a4c06b51c7215878c67a3e5ba74ff88c0515af3cb8d0aa3f7896",
+      "eligible_ledgers": 24,
+      "fresh_eligible_states": 8,
+      "game": "tetris",
+      "plan_file_sha256": "3ca94ea6b646face6e2da075e6ee07858432d55013ec216b0420d4c740a66e3b",
+      "plan_sha256": "fd7fc1073faed58e8301d4321e8e4ab7b0556e0108f7af3bc1901a7cdbcedae5",
+      "report_file_sha256": "3808b19045f413ee991601cecead2a41f6657e5c9c31ca193f094c51a5f083bf",
+      "rows_file_sha256": "925842ca9aca8c6fee1490f3982c6ee7b854dfd5eae95613c65d2d957e85f955",
+      "template_receipt": null
+    },
+    {
+      "collection_audit_file_sha256": "e60c6c473af659ae6133dd97812d57272fd0ddf2d337ddec67aaea9282f44c47",
+      "config_file_sha256": "44b9e8e39ae03056aa53b9764beeb860089106627d37dabb5c33d32f3f7dc812",
+      "eligible_ledgers": 29,
+      "fresh_eligible_states": 10,
+      "game": "candy_crush",
+      "plan_file_sha256": "540f23cf169589147f7fd9d4479bf1139250abb4fa4eb89a53b2ca8dac9119ec",
+      "plan_sha256": "c108e8b14b606bd4d9cc618dc41bf67be9038013834bced3abe08f81f1d3f299",
+      "report_file_sha256": "9304325273e65530a2271e8bb4becbb6b660aed1e6425141d1176c964dc26d78",
+      "rows_file_sha256": "db2bdb039556b5beaae99910a659274679b17a337ca539ba8e50af0874339eb2",
+      "template_receipt": null
+    },
+    {
+      "collection_audit_file_sha256": "59f9fa73afce1195f07da9e835c2751bb0924b376c9335a13fb3e2714c223a10",
+      "config_file_sha256": "2fe8b4b1728432b50ae91e0254c96307184dfa63943871fed869269ffe7378ac",
+      "eligible_ledgers": 30,
+      "fresh_eligible_states": 10,
+      "game": "gymv_columns",
+      "plan_file_sha256": "59f57367b495b4a96114ce8a9584166a109d599697cc9c616b322fa4050b394e",
+      "plan_sha256": "fbb8a6de342c468a6daef81d0427647a73571c61c77d827cb03b9f4cde991858",
+      "report_file_sha256": "4c8f9edcf13444643ef6c68350325c2d6a99ea95f1bce6971efab1f1a7c3194e",
+      "rows_file_sha256": "252f6531d0f5763f7a8fe440ef50d97dd096c68eb8124164a49e8bed8931f604",
+      "template_receipt": {
+        "artifact_sha256": "4fb42e5b723bfb77766f17db45a954ad7251ba7ee065fd8d820e52d2352a1314",
+        "file_sha256": "4df5a8b2ab0d1da118ce3b73fdae4c4f2048933567524fa247847c3e24f40b02",
+        "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_formal_v1/gymv_columns/templates.json"
+      }
+    },
+    {
+      "collection_audit_file_sha256": "a06cdc293c4e13c2fee6ee74af4f8e19fa02a01f6647674da55500eb2c5068d7",
+      "config_file_sha256": "8887e2615994e3f7b4fd92d6bdc9288a7eea3577a2aa4a56008f9602d6a24777",
+      "eligible_ledgers": 27,
+      "fresh_eligible_states": 11,
+      "game": "gymv_streets_of_rage_2",
+      "plan_file_sha256": "d9c84aa3cca1668abf903f14ede0ea1801a88f9ff7b403f103462df6c76eb200",
+      "plan_sha256": "1b1e03e5e8235c4403b831923a1027b1398e94a6efa70f76136016465a932e5c",
+      "report_file_sha256": "3b2b2a7bf6c6f62e0cf8aef2e0a5ce508fe5bca41294bfbcec276f1b85c9276b",
+      "rows_file_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+      "template_receipt": {
+        "artifact_sha256": "dc060412c78bc1206f41280046c49e00bbbf4538453752401017327f03ce2000",
+        "file_sha256": "697e307c73b60612cb1f85863934d895b893a16ca6f1c8a17ca96968e250f461",
+        "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_streets_formal_v2/gymv_streets_of_rage_2/templates.json"
+      }
+    },
+    {
+      "collection_audit_file_sha256": "ea80f37d45bc4baaa1661089570dbe73b270ea2d1a7dbd64c1a59da6428656fa",
+      "config_file_sha256": "972a63462e3f6424e0e005d9f9096cc05b03b91df1d3578b6b87be4e2724444b",
+      "eligible_ledgers": 31,
+      "fresh_eligible_states": 9,
+      "game": "gymv_thunder_force_iii",
+      "plan_file_sha256": "09f89216db10b5c043535a7b3c03cc05898780e1c14e119a963ffa50df6bb340",
+      "plan_sha256": "f9d2ace461a71023aeb65c058dcd3d0b6facb94ca343c2e65637197ce65da1ca",
+      "report_file_sha256": "56b95da51f3ca8f360b619ba6908531862405063b0f7a55d7af2916140015330",
+      "rows_file_sha256": "cc56eb77928b41513e89cc69f344eafa4d214889274e1633fb6343a640a570bb",
+      "template_receipt": {
+        "artifact_sha256": "542def510ed22b2ec78defc986abb2f115cc428d8fd9f85303c0ece5b06117c1",
+        "file_sha256": "83e5aed933412a75a111bc90ee3782ea79bf6bbb12d48bd72e57a31745a81146",
+        "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_formal_v1/gymv_thunder_force_iii/templates.json"
+      }
+    },
+    {
+      "collection_audit_file_sha256": "c31c93ee645010115b1a2d237feaf1d136862b43c4797f379bf3e2508dec8fe3",
+      "config_file_sha256": "2a6a2e8ac86bab0295a404fb266dc80ece33f6c8a0002733efaf7e6747e35025",
+      "eligible_ledgers": 30,
+      "fresh_eligible_states": 10,
+      "game": "gymv_strider",
+      "plan_file_sha256": "f6ca755251f1cc55e0211ed77753d95ca4e641310c4c368e74a39333cd41f4f5",
+      "plan_sha256": "a816aae5ecffe1b3aaa2a250d5b947ab65ac6ad8a9ecce5c4e7f11a1df888ff5",
+      "report_file_sha256": "c2a79eca9b620cb67be1a1e5e29370bd786a31b743b5c7b2c01813430b5e032c",
+      "rows_file_sha256": "9651da01f1a3229fe92840895010d229d9fdb235b3be7f0b5d7b69ba813ba546",
+      "template_receipt": {
+        "artifact_sha256": "575ab9c345585a17b721d7085267f206906be34dce4e68856d6ba5f163d24fa8",
+        "file_sha256": "bcf058382d58fe2c74aaa7f2906d1fb159322934b03aa29fd53f8a697f7aae8f",
+        "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_formal_v1/gymv_strider/templates.json"
+      }
+    }
+  ],
+  "status": "SOURCE_SEARCH_AUTOMATON_FROZEN",
+  "target_authorized": true,
+  "transfer_contract": {
+    "advance_only_after_observed_effect": true,
+    "state": "ABSTRACT_EVENT_PLUS_ATTEMPT_LEDGER",
+    "target_permission": "TARGET_BINDS_EVENTS_CANDIDATES_AND_NATIVE_ACTIONS_FROM_ITS_OWN_NEURAL_GROUNDING;SOURCE_NATIVE_ACTIONS_AND_CANDIDATE_IDENTITIES_FORBIDDEN",
+    "unknown_event": "ABSTAIN"
+  }
+}

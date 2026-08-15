@@ -1,0 +1,33 @@
+{
+  "schema_version": "phase1-common-search-ir-formal-v1",
+  "game": "gymv_thunder_force_iii",
+  "namespace": "phase1-common-search-ir-formal-v1:gymv_thunder_force_iii",
+  "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py",
+  "gymv_python": "/fs/gamma-projects/vlm-robot/conda/envs/gymv/bin/python",
+  "seeds": [94401, 94402, 94403, 94404, 94405, 94406, 94407, 94408, 94409, 94410, 94411, 94412, 94413, 94414, 94415, 94416, 94417, 94418, 94419, 94420, 94421, 94422, 94423, 94424, 94425, 94426, 94427, 94428, 94429, 94430, 94431, 94432, 94433, 94434, 94435, 94436],
+  "max_steps": 50,
+  "rollout_steps": 20,
+  "snapshots_per_episode": 1,
+  "candidate_count": 4,
+  "minimum_step": 2,
+  "horizon": 23,
+  "horizon_authority": "maximum discovery-only maximal skill-execution length",
+  "repeats": 2,
+  "continuation_mode": "common",
+  "template_strategy": "discovery_native_primitives",
+  "template_source_evidence": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_thunder_force_iii/evidence",
+  "option_template_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_formal_v1/gymv_thunder_force_iii/templates.json",
+  "maximum_infrastructure_attempts_per_snapshot": 2,
+  "maximum_intervention_failed_rows": 0,
+  "minimum_eligible_fraction_each_split": 0.40,
+  "expected_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "source_gate": {
+    "minimum_fresh_eligible_states": 8,
+    "minimum_fresh_examples_per_selected_action": 8,
+    "minimum_authentic_success_rate": 1.0,
+    "minimum_authentic_minus_each_destructive_control": 0.40,
+    "minimum_mean_matched_advantage_per_branch": 1.0,
+    "require_alpha_renaming_invariance": true,
+    "require_isomorphic_exhaustive_ceiling_reported_not_used_as_gate": true
+  }
+}

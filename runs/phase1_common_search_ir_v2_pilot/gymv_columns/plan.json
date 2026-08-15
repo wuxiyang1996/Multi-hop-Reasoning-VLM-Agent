@@ -1,0 +1,704 @@
+{
+  "episode_audit": [
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91601,
+      "selected_steps": [
+        5,
+        17
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91602,
+      "selected_steps": [
+        2,
+        11
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91603,
+      "selected_steps": [
+        8,
+        12
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91604,
+      "selected_steps": [
+        6,
+        17
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91605,
+      "selected_steps": [
+        2,
+        11
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91606,
+      "selected_steps": [
+        11,
+        17
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91607,
+      "selected_steps": [
+        14,
+        18
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91608,
+      "selected_steps": [
+        4,
+        8
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91609,
+      "selected_steps": [
+        7,
+        17
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    }
+  ],
+  "plan_sha256": "d1e231475c1ba06ca211e4702940eb57c1176a7b80d3807e115fccc4a636c5b1",
+  "schema_version": "real-source-intervention-plan-v1",
+  "selection": {
+    "actions_per_snapshot": 4,
+    "content_or_outcome_used_for_selection": false,
+    "minimum_step": 2,
+    "namespace": "phase1-common-search-ir-pilot-v2:gymv_columns",
+    "reward_read_during_plan_collection": false,
+    "rollout_steps": 20,
+    "rule": "observe reward-blind hash-policy prefixes; rank available snapshots by sha256(namespace, seed, step)",
+    "seed_splits": {
+      "91601": "qualification",
+      "91602": "qualification",
+      "91603": "development",
+      "91604": "heldout",
+      "91605": "qualification",
+      "91606": "heldout",
+      "91607": "development",
+      "91608": "development",
+      "91609": "heldout"
+    },
+    "snapshots_per_episode": 2,
+    "terminal_status_used_only_to_stop_invalid_future_steps": true,
+    "trajectory_policy": "lowest sha256(namespace, seed, step, rollout, native_action)"
+  },
+  "snapshots": [
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91601",
+      "expected_fork_state_sha256": "3282efc22d2ed43b23211c64401354d605d7f3c3a9de18a6c91915c2a1cdc845",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 0 | Gameover: 0 | Frame: 40 | StepReward: 0.000 | EpReward: 0.000 | LastAction: UP | Recent: [UP,UP,UP,UP,UP,UP,UP,UP]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "MODE",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "Y",
+        "MODE",
+        "START",
+        "UP"
+      ],
+      "seed": 91601,
+      "selected_actions": [
+        "MODE",
+        "LEFT",
+        "UP",
+        "A"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91601.step_5",
+      "split": "qualification",
+      "step": 5
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91601",
+      "expected_fork_state_sha256": "deea428c2bc527e5b210e2a444c5a3f2a8e96215ca343f741f4d504634cc5ad7",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 136 | StepReward: 0.000 | EpReward: 8.000 | LastAction: Y | Recent: [Y,Y,Y,Y,Y,Y,Y,Y]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "Y",
+        "MODE",
+        "START",
+        "UP",
+        "MODE",
+        "MODE",
+        "MODE",
+        "A",
+        "Y",
+        "Z",
+        "DOWN",
+        "A",
+        "LEFT",
+        "Z",
+        "X",
+        "Y"
+      ],
+      "seed": 91601,
+      "selected_actions": [
+        "UP",
+        "START",
+        "A",
+        "X"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91601.step_17",
+      "split": "qualification",
+      "step": 17
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91602",
+      "expected_fork_state_sha256": "5aba44ac256c89e8d3d8b1372c31517051c4a297e47aa82cf659310c66d3687f",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 0 | Gameover: 0 | Frame: 16 | StepReward: 0.000 | EpReward: 0.000 | LastAction: B | Recent: [B,B,B,B,B,B,B,B]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "X",
+      "max_steps": 50,
+      "prefix_actions": [
+        "RIGHT",
+        "B"
+      ],
+      "seed": 91602,
+      "selected_actions": [
+        "X",
+        "MODE",
+        "Y",
+        "LEFT"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91602.step_2",
+      "split": "qualification",
+      "step": 2
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91602",
+      "expected_fork_state_sha256": "c5e924c086ec40fd8c2bc6fbfdc69f5869508b28258eba2c97231e327509673a",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 16 | Gameover: 0 | Frame: 88 | StepReward: 1.000 | EpReward: 16.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "RIGHT",
+        "B",
+        "X",
+        "UP",
+        "Y",
+        "C",
+        "A",
+        "LEFT",
+        "MODE",
+        "DOWN",
+        "DOWN"
+      ],
+      "seed": 91602,
+      "selected_actions": [
+        "RIGHT",
+        "MODE",
+        "LEFT",
+        "X"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91602.step_11",
+      "split": "qualification",
+      "step": 11
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91603",
+      "expected_fork_state_sha256": "fb63969e821ef795e6583b11cc791cf4c1642e4bd4556b5d9c38575df589cb95",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 64 | StepReward: 0.000 | EpReward: 8.000 | LastAction: X | Recent: [X,X,X,X,X,X,X,X]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "C",
+        "Y",
+        "DOWN",
+        "Y",
+        "LEFT",
+        "X",
+        "A",
+        "X"
+      ],
+      "seed": 91603,
+      "selected_actions": [
+        "UP",
+        "C",
+        "A",
+        "Y"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91603.step_8",
+      "split": "development",
+      "step": 8
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91603",
+      "expected_fork_state_sha256": "8ab4bc97659307efb4fcf26a07076d393305a5b4b1b5c8e16977dbac411b8551",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 16 | Gameover: 0 | Frame: 96 | StepReward: 0.000 | EpReward: 16.000 | LastAction: X | Recent: [X,X,X,X,X,X,X,X]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "C",
+        "Y",
+        "DOWN",
+        "Y",
+        "LEFT",
+        "X",
+        "A",
+        "X",
+        "UP",
+        "DOWN",
+        "UP",
+        "X"
+      ],
+      "seed": 91603,
+      "selected_actions": [
+        "Y",
+        "DOWN",
+        "C",
+        "MODE"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91603.step_12",
+      "split": "development",
+      "step": 12
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91604",
+      "expected_fork_state_sha256": "be47fd9d67d788dd0f91c85ab1ca5296fbbcb67a51d1fdb8cdf123b11aa6968b",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 48 | StepReward: 0.000 | EpReward: 8.000 | LastAction: Y | Recent: [Y,Y,Y,Y,Y,Y,Y,Y]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Y",
+        "DOWN",
+        "START",
+        "X",
+        "B",
+        "Y"
+      ],
+      "seed": 91604,
+      "selected_actions": [
+        "RIGHT",
+        "UP",
+        "Y",
+        "X"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91604.step_6",
+      "split": "heldout",
+      "step": 6
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91604",
+      "expected_fork_state_sha256": "1300c71180e6485bebc30dc46eebf50315a150ee56cfc78a5af19b1525360d28",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 136 | StepReward: 0.000 | EpReward: 8.000 | LastAction: Z | Recent: [Z,Z,Z,Z,Z,Z,Z,Z]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Y",
+        "DOWN",
+        "START",
+        "X",
+        "B",
+        "Y",
+        "RIGHT",
+        "UP",
+        "A",
+        "Z",
+        "C",
+        "B",
+        "Y",
+        "X",
+        "A",
+        "C",
+        "Z"
+      ],
+      "seed": 91604,
+      "selected_actions": [
+        "A",
+        "C",
+        "Z",
+        "RIGHT"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91604.step_17",
+      "split": "heldout",
+      "step": 17
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91605",
+      "expected_fork_state_sha256": "051c9e1511bb23fc43936189c54feec407541c70bb559735491c48a1acee0776",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 0 | Gameover: 0 | Frame: 16 | StepReward: 0.000 | EpReward: 0.000 | LastAction: A | Recent: [A,A,A,A,A,A,A,A]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "LEFT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "A"
+      ],
+      "seed": 91605,
+      "selected_actions": [
+        "LEFT",
+        "START",
+        "RIGHT",
+        "MODE"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91605.step_2",
+      "split": "qualification",
+      "step": 2
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91605",
+      "expected_fork_state_sha256": "3613c6b2f301e946debb14d2238f15867716bbbf48e5e46edc90b05b19b575c1",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 88 | StepReward: 0.000 | EpReward: 8.000 | LastAction: B | Recent: [B,B,B,B,B,B,B,B]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "A",
+        "LEFT",
+        "START",
+        "Z",
+        "B",
+        "DOWN",
+        "LEFT",
+        "X",
+        "START",
+        "B"
+      ],
+      "seed": 91605,
+      "selected_actions": [
+        "RIGHT",
+        "LEFT",
+        "B",
+        "MODE"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91605.step_11",
+      "split": "qualification",
+      "step": 11
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91606",
+      "expected_fork_state_sha256": "04f114fe3eabdc35137f809f380ee87daa1fdccfd90bc2f3d3b167c260ccb43b",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 88 | StepReward: 0.000 | EpReward: 8.000 | LastAction: C | Recent: [C,C,C,C,C,C,C,C]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "START",
+        "DOWN",
+        "B",
+        "Y",
+        "LEFT",
+        "X",
+        "Y",
+        "LEFT",
+        "C",
+        "RIGHT",
+        "C"
+      ],
+      "seed": 91606,
+      "selected_actions": [
+        "UP",
+        "C",
+        "A",
+        "Z"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91606.step_11",
+      "split": "heldout",
+      "step": 11
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91606",
+      "expected_fork_state_sha256": "1691131d5565fda10fe95751beb8ba25ede3db8af9fa68edc66e2e1bf50b72f8",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 136 | StepReward: 0.000 | EpReward: 8.000 | LastAction: A | Recent: [A,A,A,A,A,A,A,A]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "DOWN",
+      "max_steps": 50,
+      "prefix_actions": [
+        "START",
+        "DOWN",
+        "B",
+        "Y",
+        "LEFT",
+        "X",
+        "Y",
+        "LEFT",
+        "C",
+        "RIGHT",
+        "C",
+        "UP",
+        "Y",
+        "RIGHT",
+        "RIGHT",
+        "C",
+        "A"
+      ],
+      "seed": 91606,
+      "selected_actions": [
+        "DOWN",
+        "LEFT",
+        "B",
+        "Y"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91606.step_17",
+      "split": "heldout",
+      "step": 17
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91607",
+      "expected_fork_state_sha256": "d2ad7418a5a0d5cfed4c7708c6d721a24cd486984e934b74feac80199fbfd918",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 21 | Gameover: 0 | Frame: 112 | StepReward: 0.000 | EpReward: 21.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "DOWN",
+        "Y",
+        "Z",
+        "UP",
+        "DOWN",
+        "Z",
+        "A",
+        "RIGHT",
+        "B",
+        "C",
+        "X",
+        "C",
+        "DOWN",
+        "DOWN"
+      ],
+      "seed": 91607,
+      "selected_actions": [
+        "RIGHT",
+        "B",
+        "Y",
+        "START"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91607.step_14",
+      "split": "development",
+      "step": 14
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91607",
+      "expected_fork_state_sha256": "1264e1c635f6466bde6f4c5992012fb42f73294f3392f9cc4f9853e1954fb9ca",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 21 | Gameover: 0 | Frame: 144 | StepReward: 0.000 | EpReward: 21.000 | LastAction: START | Recent: [START,START,START,START,START,START,START,START]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "DOWN",
+        "Y",
+        "Z",
+        "UP",
+        "DOWN",
+        "Z",
+        "A",
+        "RIGHT",
+        "B",
+        "C",
+        "X",
+        "C",
+        "DOWN",
+        "DOWN",
+        "RIGHT",
+        "DOWN",
+        "DOWN",
+        "START"
+      ],
+      "seed": 91607,
+      "selected_actions": [
+        "RIGHT",
+        "MODE",
+        "A",
+        "DOWN"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91607.step_18",
+      "split": "development",
+      "step": 18
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91608",
+      "expected_fork_state_sha256": "d8fb529454d1b0d7e39698a6bc346b623463932e45b48a7b0922afb07c79cd43",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 0 | Gameover: 0 | Frame: 32 | StepReward: 0.000 | EpReward: 0.000 | LastAction: B | Recent: [B,B,B,B,B,B,B,B]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "LEFT",
+        "C",
+        "B"
+      ],
+      "seed": 91608,
+      "selected_actions": [
+        "A",
+        "DOWN",
+        "LEFT",
+        "MODE"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91608.step_4",
+      "split": "development",
+      "step": 4
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91608",
+      "expected_fork_state_sha256": "87807ea5246184241b9b2984a49d513c97881c8758cab09940f1b187d1004d51",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 0 | Gameover: 0 | Frame: 64 | StepReward: 0.000 | EpReward: 0.000 | LastAction: Z | Recent: [Z,Z,Z,Z,Z,Z,Z,Z]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "LEFT",
+        "C",
+        "B",
+        "A",
+        "A",
+        "C",
+        "Z"
+      ],
+      "seed": 91608,
+      "selected_actions": [
+        "Y",
+        "UP",
+        "MODE",
+        "Z"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91608.step_8",
+      "split": "development",
+      "step": 8
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91609",
+      "expected_fork_state_sha256": "5f038b40fcba0d29477f736908dc87fa4f8c1a39429e1178b050bc14ca90034a",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 0 | Gameover: 0 | Frame: 56 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "MODE",
+        "Y",
+        "Z",
+        "LEFT",
+        "LEFT",
+        "Y",
+        "MODE"
+      ],
+      "seed": 91609,
+      "selected_actions": [
+        "RIGHT",
+        "B",
+        "C",
+        "DOWN"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91609.step_7",
+      "split": "heldout",
+      "step": 7
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_columns_observed_seed_91609",
+      "expected_fork_state_sha256": "67593f19795cde5bddcf6391f915c4f80aee5afcad327e6da0b9e0c8443b05f6",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Columns-Genesis-v0 | Score: 8 | Gameover: 0 | Frame: 136 | StepReward: 0.000 | EpReward: 8.000 | LastAction: START | Recent: [START,START,START,START,START,START,START,START]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "DOWN",
+      "max_steps": 50,
+      "prefix_actions": [
+        "MODE",
+        "Y",
+        "Z",
+        "LEFT",
+        "LEFT",
+        "Y",
+        "MODE",
+        "RIGHT",
+        "MODE",
+        "X",
+        "DOWN",
+        "RIGHT",
+        "Z",
+        "RIGHT",
+        "Z",
+        "C",
+        "START"
+      ],
+      "seed": 91609,
+      "selected_actions": [
+        "DOWN",
+        "X",
+        "C",
+        "Z"
+      ],
+      "snapshot_id": "gymv_columns.observed_hash_policy.91609.step_17",
+      "split": "heldout",
+      "step": 17
+    }
+  ],
+  "source": {
+    "collection_kind": "fresh_same_runtime_observed_prefix_reward_blind",
+    "game": "gymv_columns",
+    "runtime_receipt": {
+      "config_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_v2_pilot/gymv_columns.json",
+      "gymv_python": "/fs/gamma-projects/vlm-robot/conda/envs/gymv/bin/python3.11",
+      "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py"
+    }
+  }
+}

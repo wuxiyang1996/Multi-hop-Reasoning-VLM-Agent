@@ -1,0 +1,164 @@
+{
+  "automaton_gate": {
+    "calibration_branch_advantages": {
+      "ACTIVE_CANDIDATE_REFUTED": {
+        "matched_forks": 6,
+        "mean_selected_minus_best_alternative": 1.0,
+        "positive_advantage_forks": 6,
+        "selected_action": "BACKTRACK_REPLAN"
+      },
+      "ACTIVE_CANDIDATE_VERIFIED": {
+        "matched_forks": 4,
+        "mean_selected_minus_best_alternative": 1.0,
+        "positive_advantage_forks": 4,
+        "selected_action": "COMMIT_VERIFY"
+      },
+      "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": {
+        "matched_forks": 10,
+        "mean_selected_minus_best_alternative": 1.0,
+        "positive_advantage_forks": 10,
+        "selected_action": "EXPLORE_UNTRIED"
+      }
+    },
+    "fresh_branch_advantages": {
+      "ACTIVE_CANDIDATE_REFUTED": {
+        "matched_forks": 10,
+        "mean_selected_minus_best_alternative": 1.0,
+        "positive_advantage_forks": 10,
+        "selected_action": "BACKTRACK_REPLAN"
+      },
+      "ACTIVE_CANDIDATE_VERIFIED": {
+        "matched_forks": 6,
+        "mean_selected_minus_best_alternative": 1.0,
+        "positive_advantage_forks": 6,
+        "selected_action": "COMMIT_VERIFY"
+      },
+      "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": {
+        "matched_forks": 16,
+        "mean_selected_minus_best_alternative": 1.0,
+        "positive_advantage_forks": 16,
+        "selected_action": "EXPLORE_UNTRIED"
+      }
+    },
+    "fresh_policy_metrics": {
+      "always_backtrack": {
+        "selected_action_counts": {
+          "BACKTRACK_REPLAN": 6
+        },
+        "states": 6,
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      "authentic_learned_event_policy": {
+        "selected_action_counts": {
+          "BACKTRACK_REPLAN": 10,
+          "COMMIT_VERIFY": 6,
+          "EXPLORE_UNTRIED": 16
+        },
+        "states": 6,
+        "success_rate": 1.0,
+        "successes": 6
+      },
+      "commit_availability_only": {
+        "selected_action_counts": {
+          "COMMIT_VERIFY": 6
+        },
+        "states": 6,
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      "event_binding_permuted": {
+        "selected_action_counts": {
+          "BACKTRACK_REPLAN": 6
+        },
+        "states": 6,
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      "isomorphic_exhaustive_ceiling": {
+        "selected_action_counts": {
+          "BACKTRACK_REPLAN": 10,
+          "COMMIT_VERIFY": 6,
+          "EXPLORE_UNTRIED": 16
+        },
+        "states": 6,
+        "success_rate": 1.0,
+        "successes": 6
+      },
+      "ledger_blind_repeat_first": {
+        "selected_action_counts": {
+          "BACKTRACK_REPLAN": 42,
+          "EXPLORE_UNTRIED": 42
+        },
+        "states": 6,
+        "success_rate": 0.0,
+        "successes": 0
+      }
+    },
+    "gates": {
+      "all_three_actions_have_fresh_support": true,
+      "all_three_branches_have_matched_advantage": true,
+      "alpha_renaming_invariance": true,
+      "authentic_success_rate": true,
+      "authentic_superior_to_each_destructive_control": true,
+      "fresh_eligible_state_coverage": true,
+      "isomorphic_ceiling_reported": true
+    },
+    "learned_policy": {
+      "ACTIVE_CANDIDATE_REFUTED": "BACKTRACK_REPLAN",
+      "ACTIVE_CANDIDATE_VERIFIED": "COMMIT_VERIFY",
+      "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": "EXPLORE_UNTRIED"
+    },
+    "source_gate_passed": true,
+    "split_counts": {
+      "calibration_states": 4,
+      "discovery_states": 6,
+      "fresh_confirmation_states": 6
+    }
+  },
+  "canonical_policy_equivalence_passed": true,
+  "canonical_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "claim_boundary": "SOURCE_ONLY_MATCHED_MULTI_STEP_OFFICIAL_RETURN;NO_TARGET_DATA_READ;NO_SOURCE_NATIVE_ACTION_TOKEN_EXPORTED",
+  "coverage_gate": {
+    "minimum_eligible_fraction_each_split": 0.15,
+    "passed": true
+  },
+  "expected_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "game": "gymv_columns",
+  "ledger_audit": {
+    "eligible_ledgers": 16,
+    "exclusions": {
+      "INTERVENTION_FAILURE": 1,
+      "NO_UNIQUE_VALUED_CANDIDATE": 1
+    },
+    "native_action_tokens_exported_to_ir": false,
+    "snapshots": 18,
+    "split_eligible": {
+      "development": 6,
+      "heldout": 6,
+      "qualification": 4
+    },
+    "split_eligible_fraction": {
+      "development": 1.0,
+      "heldout": 1.0,
+      "qualification": 0.6666666666666666
+    },
+    "split_totals": {
+      "development": 6,
+      "heldout": 6,
+      "qualification": 6
+    },
+    "verified_candidate_rank_counts": {
+      "0": 4,
+      "1": 6,
+      "2": 3,
+      "3": 3
+    }
+  },
+  "primary_horizon": 16,
+  "rows_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v2_pilot/gymv_columns/rows.jsonl",
+  "rows_sha256": "6a3eb007a48f406cf56666a34174bacdb545ffc8a91a1077cef01858f86759a3",
+  "schema_version": "phase1-common-search-ir-source-report-v1",
+  "source_gate_passed": true,
+  "status": "SOURCE_COMMON_SEARCH_IR_GATE_PASSED"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "phase1-common-search-ir-pilot-v2",
+  "game": "gymv_strider",
+  "namespace": "phase1-common-search-ir-pilot-v2:gymv_strider",
+  "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py",
+  "gymv_python": "/fs/gamma-projects/vlm-robot/conda/envs/gymv/bin/python",
+  "seeds": [91801, 91802, 91803, 91804, 91805, 91806, 91807, 91808, 91809],
+  "max_steps": 50,
+  "rollout_steps": 20,
+  "snapshots_per_episode": 2,
+  "candidate_count": 4,
+  "minimum_step": 2,
+  "horizon": 16,
+  "repeats": 2,
+  "continuation_mode": "candidate_conditioned",
+  "minimum_eligible_fraction_each_split": 0.15,
+  "expected_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "source_gate": {
+    "minimum_fresh_eligible_states": 2,
+    "minimum_fresh_examples_per_selected_action": 2,
+    "minimum_authentic_success_rate": 1.0,
+    "minimum_authentic_minus_each_destructive_control": 0.25,
+    "minimum_mean_matched_advantage_per_branch": 1.0,
+    "require_alpha_renaming_invariance": true,
+    "require_isomorphic_exhaustive_ceiling_reported_not_used_as_gate": true
+  }
+}

@@ -1,0 +1,545 @@
+{
+  "claim_boundary": "SOURCE_IS_NEW_SIX_GAME_FORMAL_EVIDENCE;TARGET_OUTCOMES_ARE_HISTORICAL_AND_NOT_NEW_PROSPECTIVE_RUNS;EVERY_RECORDED_ROUTE_IS_EXHAUSTIVELY_RELINEAGED",
+  "domains": {
+    "alfworld": {
+      "admitted_decisions": 1733,
+      "claim_boundary": "NO_NEW_TARGET_EXECUTION;INHERITS_HISTORICAL_TARGET_OUTCOMES_ONLY_THROUGH_EXHAUSTIVE_IDENTICAL_POLICY_ROUTE_RELINEAGE",
+      "direct_new_target_execution": false,
+      "domain": "alfworld",
+      "domain_report_sha256": "4eacbe6bc3fe5ba86d692c009777a24bc4b7ca346e25b339a40cad3fd1170819",
+      "evidence_tier": "HISTORICAL_CONSUMED_DEVELOPMENT_REEXECUTION",
+      "gates": {
+        "all_historical_route_receipts_valid": true,
+        "all_historical_target_gates_passed": true,
+        "all_relined_route_receipts_valid": true,
+        "all_target_events_admissions_and_native_actions_unchanged": true,
+        "all_three_symbolic_actions_exercised": true,
+        "old_and_new_symbolic_policies_identical": true
+      },
+      "historical_outcomes": {
+        "mapping": {
+          "BACKTRACK_REPLAN": "reject_no-effect_action_within_target_scope",
+          "COMMIT_VERIFY": "accept_target_official_terminal_success",
+          "EXPLORE_UNTRIED": "execute_highest_ranked_untried_target_neural_action"
+        },
+        "paired": {
+          "event_binding_permuted_control": {
+            "exact_two_sided_p": 0.25,
+            "losses": 0,
+            "net_wins": 3,
+            "ties": 5,
+            "wins": 3
+          },
+          "ledger_blind_control": {
+            "exact_two_sided_p": 0.03125,
+            "losses": 0,
+            "net_wins": 6,
+            "ties": 2,
+            "wins": 6
+          },
+          "raw_target_only": {
+            "exact_two_sided_p": 0.25,
+            "losses": 0,
+            "net_wins": 3,
+            "ties": 5,
+            "wins": 3
+          },
+          "target_native_search_ceiling": {
+            "exact_two_sided_p": 1.0,
+            "losses": 0,
+            "net_wins": 0,
+            "ties": 8,
+            "wins": 0
+          }
+        },
+        "summaries": {
+          "authentic_search_automaton_plus_target": {
+            "changed_actions_vs_raw": 417,
+            "mean_steps": 27.5,
+            "source_decisions": 404,
+            "success_rate": 0.875,
+            "successes": 7,
+            "tasks": 8
+          },
+          "event_binding_permuted_control": {
+            "changed_actions_vs_raw": 0,
+            "mean_steps": 52.625,
+            "source_decisions": 421,
+            "success_rate": 0.5,
+            "successes": 4,
+            "tasks": 8
+          },
+          "ledger_blind_control": {
+            "changed_actions_vs_raw": 499,
+            "mean_steps": 61.75,
+            "source_decisions": 981,
+            "success_rate": 0.125,
+            "successes": 1,
+            "tasks": 8
+          },
+          "raw_target_only": {
+            "changed_actions_vs_raw": 0,
+            "mean_steps": 52.625,
+            "source_decisions": 0,
+            "success_rate": 0.5,
+            "successes": 4,
+            "tasks": 8
+          },
+          "target_native_search_ceiling": {
+            "changed_actions_vs_raw": 417,
+            "mean_steps": 27.5,
+            "source_decisions": 0,
+            "success_rate": 0.875,
+            "successes": 7,
+            "tasks": 8
+          }
+        }
+      },
+      "historical_outcomes_sha256": "6b3069ad8bcaf43b20950371e70ea40a5ddbc2f93b9cf928153d953a0fc39bf1",
+      "historical_target_gates": {
+        "all_three_source_actions_exercised": true,
+        "complete_matched_task_matrix": true,
+        "matches_isomorphic_target_search_ceiling": true,
+        "nontrivial_action_changes": true,
+        "strictly_beats_destructive_controls": true,
+        "success_gain_over_raw_target": true,
+        "target_neural_grounder_adaptation_gate_passed": true,
+        "zero_negative_transfer_vs_raw": true
+      },
+      "historical_target_report_file_sha256": "d995c6c04078de0eaf1f1f38e04566945bf3ccd20911da237b8b8d63e296122e",
+      "historical_target_report_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/alfworld_search_automaton_v16_development/report.json",
+      "historical_target_report_sha256": "a985cffe29e054300be6de492691d5debec036ae06d807bd6b53347b6b0c0a3c",
+      "historical_target_status": "CONSUMED_DEVELOPMENT_TRANSFER_GATE_PASSED",
+      "new_source_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "old_source_artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+      "relined_receipt_set_sha256": "14b7a184e314b9d246aa0fa2ac83efde9653cc8592e45ea78b99c3af8955941a",
+      "routed_decisions": 1806,
+      "source_abstentions": 0,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 1085,
+        "COMMIT_VERIFY": 7,
+        "EXPLORE_UNTRIED": 714
+      },
+      "status": "PROGRAM_EQUIVALENT_RELINEAGE_PASSED",
+      "supplemental_receipt_count": 0,
+      "supplemental_receipt_set_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "target_event_counts": {
+        "ACTIVE_CANDIDATE_REFUTED": 1085,
+        "ACTIVE_CANDIDATE_VERIFIED": 7,
+        "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": 714
+      }
+    },
+    "discoveryworld": {
+      "admitted_decisions": 43,
+      "claim_boundary": "NO_NEW_TARGET_EXECUTION;INHERITS_HISTORICAL_TARGET_OUTCOMES_ONLY_THROUGH_EXHAUSTIVE_IDENTICAL_POLICY_ROUTE_RELINEAGE",
+      "direct_new_target_execution": false,
+      "domain": "discoveryworld",
+      "domain_report_sha256": "ce0061e26ddef63d0ab1444b42bae0d5bc2124c7133bb09f486a83c323a66f3a",
+      "evidence_tier": "HISTORICAL_RETROSPECTIVE_EQUIVALENCE",
+      "gates": {
+        "all_historical_route_receipts_valid": true,
+        "all_historical_target_gates_passed": true,
+        "all_relined_route_receipts_valid": true,
+        "all_target_events_admissions_and_native_actions_unchanged": true,
+        "all_three_symbolic_actions_exercised": true,
+        "old_and_new_symbolic_policies_identical": true
+      },
+      "historical_outcomes": {
+        "historical_success_counts": {
+          "authentic_sokoban_effect_plus_target": 13,
+          "commit_availability_control_plus_target": 9,
+          "inverted_effect_control_plus_target": 0,
+          "position_prior_control_plus_target": 0,
+          "target_native_myopic": 10
+        },
+        "paired": {
+          "commit_availability_control_plus_target": {
+            "exact_two_sided_p": 0.125,
+            "losses": 0,
+            "net_wins": 4,
+            "ties": 12,
+            "wins": 4
+          },
+          "inverted_effect_control_plus_target": {
+            "exact_two_sided_p": 0.000244140625,
+            "losses": 0,
+            "net_wins": 13,
+            "ties": 3,
+            "wins": 13
+          },
+          "position_prior_control_plus_target": {
+            "exact_two_sided_p": 0.000244140625,
+            "losses": 0,
+            "net_wins": 13,
+            "ties": 3,
+            "wins": 13
+          },
+          "target_native_myopic": {
+            "exact_two_sided_p": 0.25,
+            "losses": 0,
+            "net_wins": 3,
+            "ties": 13,
+            "wins": 3
+          }
+        }
+      },
+      "historical_outcomes_sha256": "f1683aa40cd1637ddaf008b0bab756a7a8ad7719dee9b385dbdf8f3cd8c144fd",
+      "historical_target_gates": {
+        "all_three_source_actions_exercised": true,
+        "all_v16_routes_or_explicit_target_fallbacks_reproduced_actions": true,
+        "exact_eligible_task_coverage": true,
+        "historical_authentic_gain_over_target": true,
+        "historical_replication_gates_passed": true,
+        "historical_strict_control_superiority": true,
+        "historical_zero_negative_transfer": true,
+        "zero_policy_oracle_scorecard_use": true
+      },
+      "historical_target_report_file_sha256": "ffa9af6f292e68a3977334775f430fbcd0d43fe80c10547dda65e9c9f8defebb",
+      "historical_target_report_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/discoveryworld_search_automaton_v16/equivalence_report.json",
+      "historical_target_report_sha256": "43fe25205ccc880d697ea516b02e3956d6fd889bb2756c3d614dd576a07d8de4",
+      "historical_target_status": "RETROSPECTIVE_EQUIVALENCE_PASSED_NOT_NEW_CONFIRMATION",
+      "new_source_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "old_source_artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+      "relined_receipt_set_sha256": "8deb10cba2a468d5639a55bc6d978b553b71f418dcb286bdc33f651f6062747d",
+      "routed_decisions": 44,
+      "source_abstentions": 1,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 9,
+        "COMMIT_VERIFY": 14,
+        "EXPLORE_UNTRIED": 20
+      },
+      "status": "PROGRAM_EQUIVALENT_RELINEAGE_PASSED",
+      "supplemental_receipt_count": 0,
+      "supplemental_receipt_set_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "target_event_counts": {
+        "ACTIVE_CANDIDATE_REFUTED": 9,
+        "ACTIVE_CANDIDATE_VERIFIED": 14,
+        "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": 20,
+        "None": 1
+      }
+    },
+    "tirbench": {
+      "admitted_decisions": 12096,
+      "claim_boundary": "NO_NEW_TARGET_EXECUTION;INHERITS_HISTORICAL_TARGET_OUTCOMES_ONLY_THROUGH_EXHAUSTIVE_IDENTICAL_POLICY_ROUTE_RELINEAGE",
+      "direct_new_target_execution": false,
+      "domain": "tirbench",
+      "domain_report_sha256": "5b71ef3114a5507fda6e886a44cea5be773ae67bf85a85ea91d013f2ab7f0412",
+      "evidence_tier": "HISTORICAL_CONSUMED_FRESH_FORMAL_REANALYSIS",
+      "gates": {
+        "all_historical_route_receipts_valid": true,
+        "all_historical_target_gates_passed": true,
+        "all_relined_route_receipts_valid": true,
+        "all_target_events_admissions_and_native_actions_unchanged": true,
+        "all_three_symbolic_actions_exercised": true,
+        "old_and_new_symbolic_policies_identical": true
+      },
+      "historical_outcomes": {
+        "mapping": {
+          "BACKTRACK_REPLAN": "reject_candidate_and_replan",
+          "COMMIT_VERIFY": "commit_unique_target_answer_slot",
+          "EXPLORE_UNTRIED": "execute_target_path_candidate"
+        },
+        "paired": {
+          "commit_availability_only_control": {
+            "exact_two_sided_p": 0.00390625,
+            "losses": 0,
+            "net_wins": 9,
+            "ties": 15,
+            "wins": 9
+          },
+          "event_binding_permuted_control": {
+            "exact_two_sided_p": 0.00390625,
+            "losses": 0,
+            "net_wins": 9,
+            "ties": 15,
+            "wins": 9
+          },
+          "ledger_blind_repeat_first_control": {
+            "exact_two_sided_p": 0.00390625,
+            "losses": 0,
+            "net_wins": 9,
+            "ties": 15,
+            "wins": 9
+          },
+          "raw_target_only": {
+            "exact_two_sided_p": 0.00390625,
+            "losses": 0,
+            "net_wins": 9,
+            "ties": 15,
+            "wins": 9
+          },
+          "target_native_exhaustive_ceiling": {
+            "exact_two_sided_p": 1.0,
+            "losses": 0,
+            "net_wins": 0,
+            "ties": 24,
+            "wins": 0
+          }
+        },
+        "summaries": {
+          "authentic_search_automaton_plus_target": {
+            "changed_answers_vs_raw": 9,
+            "success_rate": 0.9583333333333334,
+            "successes": 23,
+            "target_candidate_tests": 6000,
+            "tasks": 24
+          },
+          "commit_availability_only_control": {
+            "changed_answers_vs_raw": 0,
+            "success_rate": 0.5833333333333334,
+            "successes": 14,
+            "target_candidate_tests": 0,
+            "tasks": 24
+          },
+          "event_binding_permuted_control": {
+            "changed_answers_vs_raw": 0,
+            "success_rate": 0.5833333333333334,
+            "successes": 14,
+            "target_candidate_tests": 0,
+            "tasks": 24
+          },
+          "ledger_blind_repeat_first_control": {
+            "changed_answers_vs_raw": 0,
+            "success_rate": 0.5833333333333334,
+            "successes": 14,
+            "target_candidate_tests": 24,
+            "tasks": 24
+          },
+          "raw_target_only": {
+            "changed_answers_vs_raw": 0,
+            "success_rate": 0.5833333333333334,
+            "successes": 14,
+            "target_candidate_tests": 0,
+            "tasks": 24
+          },
+          "target_native_exhaustive_ceiling": {
+            "changed_answers_vs_raw": 9,
+            "success_rate": 0.9583333333333334,
+            "successes": 23,
+            "target_candidate_tests": 6000,
+            "tasks": 24
+          }
+        }
+      },
+      "historical_outcomes_sha256": "641426826d0288a487c62998ad17e270955fb76e90b80cba28d091dec83ca6ec",
+      "historical_target_gates": {
+        "all_target_neural_bindings_valid": true,
+        "all_three_source_actions_exercised": true,
+        "complete_matched_condition_matrix": true,
+        "matches_isomorphic_target_ceiling": true,
+        "nontrivial_answer_changes": true,
+        "strictly_beats_destructive_controls": true,
+        "success_gain_over_raw_target": true,
+        "zero_negative_transfer_vs_raw": true
+      },
+      "historical_target_report_file_sha256": "f08c0668bd2f3daa00e271e54734f1d7681815403d496f0ed6a7c1e0e2dc5e30",
+      "historical_target_report_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/tir_search_automaton_v16/reanalysis_report.json",
+      "historical_target_report_sha256": "614547e30236ca17e81b23129ec101ebc306daade3066ffdde1a1c8a5b67d37c",
+      "historical_target_status": "CONSUMED_FORMAL_REANALYSIS_MECHANISM_REPRODUCED",
+      "new_source_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "old_source_artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+      "relined_receipt_set_sha256": "8e2ef161f351f9ecb01ae4f3f5a3f59957cc17e2c47eed2839d7c9ebfad391ae",
+      "routed_decisions": 12096,
+      "source_abstentions": 0,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 6025,
+        "COMMIT_VERIFY": 47,
+        "EXPLORE_UNTRIED": 6024
+      },
+      "status": "PROGRAM_EQUIVALENT_RELINEAGE_PASSED",
+      "supplemental_receipt_count": 0,
+      "supplemental_receipt_set_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "target_event_counts": {
+        "ACTIVE_CANDIDATE_REFUTED": 6025,
+        "ACTIVE_CANDIDATE_VERIFIED": 47,
+        "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": 6024
+      }
+    },
+    "webshop": {
+      "admitted_decisions": 781,
+      "claim_boundary": "NO_NEW_TARGET_EXECUTION;INHERITS_HISTORICAL_TARGET_OUTCOMES_ONLY_THROUGH_EXHAUSTIVE_IDENTICAL_POLICY_ROUTE_RELINEAGE",
+      "direct_new_target_execution": false,
+      "domain": "webshop",
+      "domain_report_sha256": "f27f36d055c476442446f13ea5937a275587e03d0b5d4f9cd5d7ac5fb95df6b1",
+      "evidence_tier": "HISTORICAL_PROSPECTIVELY_FROZEN_FRESH_FORMAL",
+      "gates": {
+        "all_historical_route_receipts_valid": true,
+        "all_historical_target_gates_passed": true,
+        "all_relined_route_receipts_valid": true,
+        "all_target_events_admissions_and_native_actions_unchanged": true,
+        "all_three_symbolic_actions_exercised": true,
+        "old_and_new_symbolic_policies_identical": true
+      },
+      "historical_outcomes": {
+        "paired": {
+          "event_binding_permuted_control": {
+            "exact_two_sided_p": 0.0009765625,
+            "losses": 0,
+            "net_wins": 11,
+            "reward_exact_two_sided_p": 0.09625244140625,
+            "reward_losses": 5,
+            "reward_net_wins": 8,
+            "reward_ties": 14,
+            "reward_wins": 13,
+            "ties": 21,
+            "wins": 11
+          },
+          "ledger_blind_control": {
+            "exact_two_sided_p": 0.0001220703125,
+            "losses": 0,
+            "net_wins": 14,
+            "reward_exact_two_sided_p": 0.0783538818359375,
+            "reward_losses": 6,
+            "reward_net_wins": 9,
+            "reward_ties": 11,
+            "reward_wins": 15,
+            "ties": 18,
+            "wins": 14
+          },
+          "raw_target_only": {
+            "exact_two_sided_p": 0.0009765625,
+            "losses": 0,
+            "net_wins": 11,
+            "reward_exact_two_sided_p": 0.09625244140625,
+            "reward_losses": 5,
+            "reward_net_wins": 8,
+            "reward_ties": 14,
+            "reward_wins": 13,
+            "ties": 21,
+            "wins": 11
+          },
+          "target_native_search_ceiling": {
+            "exact_two_sided_p": 1.0,
+            "losses": 0,
+            "net_wins": 0,
+            "reward_exact_two_sided_p": 1.0,
+            "reward_losses": 0,
+            "reward_net_wins": 0,
+            "reward_ties": 32,
+            "reward_wins": 0,
+            "ties": 32,
+            "wins": 0
+          }
+        },
+        "summaries": {
+          "authentic_search_automaton_plus_target": {
+            "changed_from_target_rank_zero": 82,
+            "failures": 0,
+            "mean_reward": 0.5901041666666667,
+            "mean_steps": 8.625,
+            "pass_successes": 19,
+            "source_action_counts": {
+              "BACKTRACK_REPLAN": 30,
+              "COMMIT_VERIFY": 20,
+              "EXPLORE_UNTRIED": 222
+            },
+            "source_decisions": 272,
+            "strict_successes": 18,
+            "tasks": 32,
+            "unsafe_commits": 0
+          },
+          "event_binding_permuted_control": {
+            "changed_from_target_rank_zero": 0,
+            "failures": 0,
+            "mean_reward": 0.4649627976190477,
+            "mean_steps": 6.46875,
+            "pass_successes": 15,
+            "source_action_counts": {
+              "BACKTRACK_REPLAN": 207
+            },
+            "source_decisions": 207,
+            "strict_successes": 7,
+            "tasks": 32,
+            "unsafe_commits": 0
+          },
+          "ledger_blind_control": {
+            "changed_from_target_rank_zero": 118,
+            "failures": 0,
+            "mean_reward": 0.4706171218487395,
+            "mean_steps": 10.15625,
+            "pass_successes": 18,
+            "source_action_counts": {
+              "BACKTRACK_REPLAN": 82,
+              "COMMIT_VERIFY": 5,
+              "EXPLORE_UNTRIED": 215
+            },
+            "source_decisions": 302,
+            "strict_successes": 4,
+            "tasks": 32,
+            "unsafe_commits": 0
+          },
+          "raw_target_only": {
+            "changed_from_target_rank_zero": 0,
+            "failures": 0,
+            "mean_reward": 0.4649627976190477,
+            "mean_steps": 6.46875,
+            "pass_successes": 15,
+            "source_action_counts": {},
+            "source_decisions": 0,
+            "strict_successes": 7,
+            "tasks": 32,
+            "unsafe_commits": 0
+          },
+          "target_native_search_ceiling": {
+            "changed_from_target_rank_zero": 82,
+            "failures": 0,
+            "mean_reward": 0.5901041666666667,
+            "mean_steps": 8.625,
+            "pass_successes": 19,
+            "source_action_counts": {},
+            "source_decisions": 0,
+            "strict_successes": 18,
+            "tasks": 32,
+            "unsafe_commits": 0
+          }
+        }
+      },
+      "historical_outcomes_sha256": "53f0fea17cd6ec06797330cab166d72543c56fae88fc4fb047a9e00eeebac98d",
+      "historical_target_gates": {
+        "all_receipts_complete": true,
+        "all_three_source_actions_exercised": true,
+        "authentic_success_gain_over_raw": true,
+        "matched_initial_state_hashes": true,
+        "matches_isomorphic_target_search_ceiling": true,
+        "mean_reward_not_below_raw": true,
+        "pass_success_not_below_raw": true,
+        "reward_pairing_not_net_negative": true,
+        "strictly_beats_destructive_controls": true,
+        "zero_authentic_unsafe_commits": true,
+        "zero_negative_transfer_vs_raw": true
+      },
+      "historical_target_report_file_sha256": "6d2c7c20fdf091013eb8dce9c769795ca02e34b55a70ca160836df3be44b0a51",
+      "historical_target_report_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/webshop_search_automaton_v16_formal/report.json",
+      "historical_target_report_sha256": "db26c36f421e927b608fff558582d7bf50242bbf68eaaf3844f640864d9b5c59",
+      "historical_target_status": "FRESH_FORMAL_TRANSFER_GATE_PASSED",
+      "new_source_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "old_source_artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+      "relined_receipt_set_sha256": "426977970780c4d7861918acfd420e0f3b5ee83f18dc2d9e7b7935350339cc43",
+      "routed_decisions": 781,
+      "source_abstentions": 0,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 319,
+        "COMMIT_VERIFY": 25,
+        "EXPLORE_UNTRIED": 437
+      },
+      "status": "PROGRAM_EQUIVALENT_RELINEAGE_PASSED",
+      "supplemental_receipt_count": 160,
+      "supplemental_receipt_set_sha256": "e8632c50d75bc06b8553bcb44c85b4fd2a4c212a92e78fef6dbf4db4cc339627",
+      "target_event_counts": {
+        "ACTIVE_CANDIDATE_REFUTED": 319,
+        "ACTIVE_CANDIDATE_VERIFIED": 25,
+        "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": 437
+      }
+    }
+  },
+  "gates": {
+    "all_domain_gates_passed": true,
+    "all_four_domains_relineaged": true,
+    "new_source_policy_identical_to_target_validated_policy": true
+  },
+  "new_source_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+  "old_source_artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+  "report_sha256": "b000bb149e849963e4f81c5e7a7e3d5cb7c39ea0db4855f830957f3ea1b0dc78",
+  "schema_version": "phase1-six-game-four-target-relineage-v1",
+  "status": "FOUR_TARGET_PROGRAM_EQUIVALENCE_PASSED"
+}

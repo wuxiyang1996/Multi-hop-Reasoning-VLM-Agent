@@ -1,0 +1,28 @@
+{
+  "schema_version": "phase1-common-search-ir-formal-v1",
+  "game": "tetris",
+  "namespace": "phase1-common-search-ir-formal-v1:tetris",
+  "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py",
+  "seeds": [94001, 94002, 94003, 94004, 94005, 94006, 94007, 94008, 94009, 94010, 94011, 94012, 94013, 94014, 94015, 94016, 94017, 94018, 94019, 94020, 94021, 94022, 94023, 94024, 94025, 94026, 94027, 94028, 94029, 94030, 94031, 94032, 94033, 94034, 94035, 94036],
+  "max_steps": 50,
+  "rollout_steps": 20,
+  "snapshots_per_episode": 1,
+  "candidate_count": 4,
+  "minimum_step": 2,
+  "horizon": 16,
+  "repeats": 2,
+  "continuation_mode": "common",
+  "maximum_infrastructure_attempts_per_snapshot": 2,
+  "maximum_intervention_failed_rows": 0,
+  "minimum_eligible_fraction_each_split": 0.40,
+  "expected_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "source_gate": {
+    "minimum_fresh_eligible_states": 8,
+    "minimum_fresh_examples_per_selected_action": 8,
+    "minimum_authentic_success_rate": 1.0,
+    "minimum_authentic_minus_each_destructive_control": 0.40,
+    "minimum_mean_matched_advantage_per_branch": 1.0,
+    "require_alpha_renaming_invariance": true,
+    "require_isomorphic_exhaustive_ceiling_reported_not_used_as_gate": true
+  }
+}

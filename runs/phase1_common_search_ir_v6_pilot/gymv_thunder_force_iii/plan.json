@@ -1,0 +1,418 @@
+{
+  "episode_audit": [
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92501,
+      "selected_steps": [
+        9
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92502,
+      "selected_steps": [
+        9
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92503,
+      "selected_steps": [
+        16
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92504,
+      "selected_steps": [
+        9
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92505,
+      "selected_steps": [
+        17
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92506,
+      "selected_steps": [
+        10
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92507,
+      "selected_steps": [
+        14
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92508,
+      "selected_steps": [
+        3
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92509,
+      "selected_steps": [
+        12
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    }
+  ],
+  "plan_sha256": "3c60a507712bbab54706a66b09bcac1796e35cc8d6fa83d2319ce4b90bad9eb5",
+  "schema_version": "real-source-intervention-plan-v1",
+  "selection": {
+    "actions_per_snapshot": 4,
+    "content_or_outcome_used_for_selection": false,
+    "minimum_step": 2,
+    "namespace": "phase1-common-search-ir-pilot-v6:gymv_thunder_force_iii",
+    "reward_read_during_plan_collection": false,
+    "rollout_steps": 20,
+    "rule": "observe reward-blind hash-policy prefixes; rank available snapshots by sha256(namespace, seed, step)",
+    "seed_splits": {
+      "92501": "qualification",
+      "92502": "development",
+      "92503": "heldout",
+      "92504": "development",
+      "92505": "heldout",
+      "92506": "heldout",
+      "92507": "qualification",
+      "92508": "development",
+      "92509": "qualification"
+    },
+    "snapshots_per_episode": 1,
+    "terminal_status_used_only_to_stop_invalid_future_steps": true,
+    "trajectory_policy": "lowest sha256(namespace, seed, step, rollout, native_action)"
+  },
+  "snapshots": [
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92501",
+      "expected_fork_state_sha256": "b222e04d93800a8977e90db3a75ab7cbf121e99fcccb6311ec6e721d9fcd2aa0",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 20 | Lives: 4 | Frame: 72 | StepReward: 0.000 | EpReward: 200.000 | LastAction: Z | Recent: [Z,Z,Z,Z,Z,Z,Z,Z]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "LEFT",
+        "START",
+        "MODE",
+        "B",
+        "X",
+        "DOWN",
+        "LEFT",
+        "Z"
+      ],
+      "seed": 92501,
+      "selected_actions": [
+        "UP",
+        "Y",
+        "MODE",
+        "B"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92501.step_9",
+      "split": "qualification",
+      "step": 9
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92502",
+      "expected_fork_state_sha256": "f88e689619bc53acc89e1d6e5db854061eb24a0125d3b69b4d2642242ffb0118",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 0 | Lives: 4 | Frame: 72 | StepReward: 0.000 | EpReward: 0.000 | LastAction: START | Recent: [START,START,START,START,START,START,START,START]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Z",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "UP",
+        "A",
+        "Z",
+        "UP",
+        "LEFT",
+        "X",
+        "Z",
+        "START"
+      ],
+      "seed": 92502,
+      "selected_actions": [
+        "Z",
+        "X",
+        "Y",
+        "C"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92502.step_9",
+      "split": "development",
+      "step": 9
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92503",
+      "expected_fork_state_sha256": "706c25e3eeffb1e3eb92176049c4fa5b45151709283cf33305c2993c3713feff",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 0 | Lives: 4 | Frame: 128 | StepReward: 0.000 | EpReward: 0.000 | LastAction: UP | Recent: [UP,UP,UP,UP,UP,UP,UP,UP]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "B",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "Z",
+        "MODE",
+        "MODE",
+        "DOWN",
+        "UP",
+        "A",
+        "Z",
+        "MODE",
+        "DOWN",
+        "LEFT",
+        "LEFT",
+        "MODE",
+        "Y",
+        "DOWN",
+        "UP"
+      ],
+      "seed": 92503,
+      "selected_actions": [
+        "B",
+        "X",
+        "Y",
+        "Z"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92503.step_16",
+      "split": "heldout",
+      "step": 16
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92504",
+      "expected_fork_state_sha256": "1c5c642e7eae510c9498b7b9d9b8f7cf47764304f6fb1cc4847c6d385922c025",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 0 | Lives: 4 | Frame: 72 | StepReward: 0.000 | EpReward: 0.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "MODE",
+      "max_steps": 50,
+      "prefix_actions": [
+        "RIGHT",
+        "RIGHT",
+        "Z",
+        "UP",
+        "Z",
+        "DOWN",
+        "Z",
+        "X",
+        "DOWN"
+      ],
+      "seed": 92504,
+      "selected_actions": [
+        "MODE",
+        "UP",
+        "RIGHT",
+        "C"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92504.step_9",
+      "split": "development",
+      "step": 9
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92505",
+      "expected_fork_state_sha256": "74bccb6b5b88bf230068da7a1fe1cdf457c2f944b9a86a92ad9a52a1a45018e1",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 0 | Lives: 4 | Frame: 136 | StepReward: 0.000 | EpReward: 0.000 | LastAction: A | Recent: [A,A,A,A,A,A,A,A]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "START",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "RIGHT",
+        "UP",
+        "MODE",
+        "Y",
+        "Y",
+        "START",
+        "UP",
+        "MODE",
+        "DOWN",
+        "UP",
+        "START",
+        "B",
+        "RIGHT",
+        "RIGHT",
+        "B",
+        "A"
+      ],
+      "seed": 92505,
+      "selected_actions": [
+        "START",
+        "Y",
+        "UP",
+        "Z"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92505.step_17",
+      "split": "heldout",
+      "step": 17
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92506",
+      "expected_fork_state_sha256": "3891da03fb01ed5eeb34035bdb582c2d552be764c769169a94a34189684d332b",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 0 | Lives: 4 | Frame: 80 | StepReward: 0.000 | EpReward: 0.000 | LastAction: X | Recent: [X,X,X,X,X,X,X,X]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "C",
+        "MODE",
+        "START",
+        "A",
+        "Y",
+        "LEFT",
+        "Y",
+        "C",
+        "X",
+        "X"
+      ],
+      "seed": 92506,
+      "selected_actions": [
+        "Y",
+        "DOWN",
+        "START",
+        "X"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92506.step_10",
+      "split": "heldout",
+      "step": 10
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92507",
+      "expected_fork_state_sha256": "bcfea84d6049335ae2035aa10073aaa8ae60f38bf33923778b543ba8ea3e1eb4",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 20 | Lives: 4 | Frame: 112 | StepReward: 0.000 | EpReward: 200.000 | LastAction: RIGHT | Recent: [RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "B",
+        "LEFT",
+        "A",
+        "C",
+        "LEFT",
+        "UP",
+        "C",
+        "LEFT",
+        "B",
+        "X",
+        "START",
+        "RIGHT",
+        "RIGHT"
+      ],
+      "seed": 92507,
+      "selected_actions": [
+        "A",
+        "LEFT",
+        "Z",
+        "START"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92507.step_14",
+      "split": "qualification",
+      "step": 14
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92508",
+      "expected_fork_state_sha256": "4656b5591f71e3ac4b7a7e5ebc74ddb100613f314241cd69737daf0af13b63e8",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 0 | Lives: 4 | Frame: 24 | StepReward: 0.000 | EpReward: 0.000 | LastAction: Z | Recent: [Z,Z,Z,Z,Z,Z,Z,Z]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "START",
+        "Z"
+      ],
+      "seed": 92508,
+      "selected_actions": [
+        "UP",
+        "Z",
+        "MODE",
+        "RIGHT"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92508.step_3",
+      "split": "development",
+      "step": 3
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_thunder_force_iii_observed_seed_92509",
+      "expected_fork_state_sha256": "e2841f56b39741b6409812b8fc192fedc8be192dfd0ad9e797312a9f32226aff",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: ThunderForceIII-Genesis-v0 | Score: 10 | Lives: 4 | Frame: 96 | StepReward: 0.000 | EpReward: 100.000 | LastAction: RIGHT | Recent: [RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "START",
+        "B",
+        "A",
+        "C",
+        "UP",
+        "B",
+        "Z",
+        "START",
+        "A",
+        "C",
+        "RIGHT"
+      ],
+      "seed": 92509,
+      "selected_actions": [
+        "Y",
+        "A",
+        "MODE",
+        "Z"
+      ],
+      "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.92509.step_12",
+      "split": "qualification",
+      "step": 12
+    }
+  ],
+  "source": {
+    "collection_kind": "fresh_same_runtime_observed_prefix_reward_blind",
+    "game": "gymv_thunder_force_iii",
+    "runtime_receipt": {
+      "config_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_v6_pilot/gymv_thunder_force_iii.json",
+      "gymv_python": "/fs/gamma-projects/vlm-robot/conda/envs/gymv/bin/python3.11",
+      "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py"
+    }
+  }
+}

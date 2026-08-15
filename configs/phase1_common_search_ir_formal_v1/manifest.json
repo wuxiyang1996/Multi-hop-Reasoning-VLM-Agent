@@ -1,0 +1,139 @@
+{
+  "claim_boundary": "SOURCE_QUALIFICATION_ONLY;TARGET_UNREAD_DURING_SOURCE_FREEZE;FORMAL_OUTCOMES_NOT_USED_TO_CHANGE_THIS_MANIFEST",
+  "code_receipts": [
+    {
+      "file_sha256": "8c421a80788bed144b43ed0fb646d10dc7dcf69cad52f100503dc26d0dfbd4ee",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/src/motif_transfer/phase1_common_search_ir.py"
+    },
+    {
+      "file_sha256": "b9c734f93ccfc75eb693b2af37990422fd0d5442d2a9565aaf79712c594db2e7",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_phase1_common_search_ir.py"
+    },
+    {
+      "file_sha256": "ff46872fb07d0453db687c5d1fd41c59493e1b9c3ee78486a5fad03b20c3feac",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/src/motif_transfer/sokoban_search_automaton_v16.py"
+    }
+  ],
+  "config_receipts": [
+    {
+      "file_sha256": "1b1b3d865db4a4c06b51c7215878c67a3e5ba74ff88c0515af3cb8d0aa3f7896",
+      "game": "tetris",
+      "option_grounding": "native_candidates_common",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_formal_v1/tetris.json",
+      "seed_count": 36
+    },
+    {
+      "file_sha256": "44b9e8e39ae03056aa53b9764beeb860089106627d37dabb5c33d32f3f7dc812",
+      "game": "candy_crush",
+      "option_grounding": "native_candidates_common",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_formal_v1/candy_crush.json",
+      "seed_count": 30
+    },
+    {
+      "file_sha256": "2fe8b4b1728432b50ae91e0254c96307184dfa63943871fed869269ffe7378ac",
+      "game": "gymv_columns",
+      "option_grounding": "discovery_native_primitives",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_formal_v1/gymv_columns.json",
+      "seed_count": 30
+    },
+    {
+      "file_sha256": "e6e380664a789d6c78da5ba39d47c6efe98c1603a2cabc7937926201bec59028",
+      "game": "gymv_streets_of_rage_2",
+      "option_grounding": "native_candidates_candidate_conditioned",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_formal_v1/gymv_streets_of_rage_2.json",
+      "seed_count": 48
+    },
+    {
+      "file_sha256": "972a63462e3f6424e0e005d9f9096cc05b03b91df1d3578b6b87be4e2724444b",
+      "game": "gymv_thunder_force_iii",
+      "option_grounding": "discovery_native_primitives",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_formal_v1/gymv_thunder_force_iii.json",
+      "seed_count": 36
+    },
+    {
+      "file_sha256": "2a6a2e8ac86bab0295a404fb266dc80ece33f6c8a0002733efaf7e6747e35025",
+      "game": "gymv_strider",
+      "option_grounding": "discovery_native_primitives",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_formal_v1/gymv_strider.json",
+      "seed_count": 30
+    }
+  ],
+  "games": [
+    "tetris",
+    "candy_crush",
+    "gymv_columns",
+    "gymv_streets_of_rage_2",
+    "gymv_thunder_force_iii",
+    "gymv_strider"
+  ],
+  "manifest_sha256": "92cd25bc4e78aeb61f34ed4b4df7a4b9b580222f0ae1aaccf2db85083340a984",
+  "pilot_report_receipts": [
+    {
+      "file_sha256": "f52f73d6ab4e7aaeaf624271e6834679647a52422610c55bd23bc5459082b6e6",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v1_pilot2/candy_crush/report.pilot.json"
+    },
+    {
+      "file_sha256": "a84c8a31c4479636c98117ed3db8e6fb6a6124106755bfc83cac22bc7b1092a4",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v1_pilot2/gymv_columns/report.pilot.json"
+    },
+    {
+      "file_sha256": "0265afba1601833d965cc60f88f7fb7322c469249179964b0e831c3c78fe8658",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v1_pilot2/gymv_streets_of_rage_2/report.pilot.json"
+    },
+    {
+      "file_sha256": "0ada301621bff47879c4f3293a3353619163b33405ed0e46eafbcfaf6bb925a3",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v1_pilot2/tetris/report.pilot.json"
+    },
+    {
+      "file_sha256": "ca5fdae903655c75c47085d5ac600811968e788286fda6b53fed4f2ec6e5621c",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v2_pilot/gymv_columns/report.pilot.json"
+    },
+    {
+      "file_sha256": "f2a9d62ccaa757b4a2d3d3b22314a238d8cd3274f627f9df0eb79d5d551ab959",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v2_pilot/gymv_streets_of_rage_2/report.pilot.json"
+    },
+    {
+      "file_sha256": "8e2993f79b6db8a70d668be16a582568b1bef6ea4f76282ff2cb92c6cefdba08",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v2_pilot/gymv_strider/report.pilot.json"
+    },
+    {
+      "file_sha256": "11918c0464ec80c8674eb02225321bc6cdefbd73fbd15c45d790565ff1e03918",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v2_pilot/gymv_thunder_force_iii/report.pilot.json"
+    },
+    {
+      "file_sha256": "b35b8b5c7be5d74e7073161dd582bb65b2e17cd7079018eef0bdbab46143c1b1",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v3_pilot/gymv_strider/report.json"
+    },
+    {
+      "file_sha256": "09373b86edbb036054d08c46af09133f1eb935a2fd05eb9296c22a5b4c80f62f",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v4_pilot/gymv_strider/report.failclosed.json"
+    },
+    {
+      "file_sha256": "64fe5c2942f30865e7b6ad6c66cd86463fc1c6dd93fc88ad77f07d19edab240c",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v5_pilot/gymv_strider/report.json"
+    },
+    {
+      "file_sha256": "badf90949ef880bdc1ad69ac8745f1b7c982b41725a5719348d4b25f42682179",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v6_pilot/gymv_columns/report.json"
+    },
+    {
+      "file_sha256": "34c0f3ad5288573065c29981527616e08e0782acbd281231a68ca8064f91dcd9",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v6_pilot/gymv_streets_of_rage_2/report.json"
+    },
+    {
+      "file_sha256": "92a15bc099eb728cc9bfc1e5d636bd77e3d77287f0fbbb56467225b8627e51b9",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_v6_pilot/gymv_thunder_force_iii/report.json"
+    }
+  ],
+  "protocol": {
+    "matched_duplicate_option_forks": 2,
+    "native_action_tokens_exported_to_common_ir": false,
+    "outcome_used_for_retry": false,
+    "required_canonical_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+    "reward_blind_prefix_and_snapshot_selection": true,
+    "whole_snapshot_retry_only_on_infrastructure_failure": true
+  },
+  "schema_version": "phase1-common-search-ir-formal-manifest-v1",
+  "status": "FROZEN_BEFORE_FORMAL_SOURCE_COLLECTION",
+  "target_data_read_for_freeze": false
+}
