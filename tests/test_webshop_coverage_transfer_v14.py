@@ -188,3 +188,48 @@ def test_incomplete_product_is_rejected_then_untried_product_is_opened() -> None
     second = _call(controller, search_rows)
     assert second.selected_index == 1
     assert second.reason == "target_coverage_explore_untried_product"
+
+
+def test_anytime_salvage_uses_action_graph_lower_bound() -> None:
+    controller = CoverageTransferController(
+        TARGET_COVERAGE,
+        goal_options={"color": "black", "size": "xx-large tall"},
+        anytime_reward_salvage=True,
+        maximum_steps=12,
+    )
+    rows = [_row(signature="black"), _row(commit=True), _row()]
+    predictions = np.zeros((3, 4))
+    predictions[1, 2] = 0.8
+    decision = controller(
+        condition=controller.condition,
+        predictions=predictions,
+        semantics=rows,
+        source_models={"artifact": {}},
+        visible_satisfied=False,
+        visible_unsatisfied=True,
+        prior_no_effect=False,
+        remaining_fraction=1 / 12,
+        previous_action=None,
+        candidates=["click('29')", "click('70')", "go_back()"],
+        uncertainty_scale=0.0,
+        decision_margin=0.0,
+    )
+    assert decision.selected_index == 1
+    assert decision.source_abstained
+    assert controller.budget_abstentions == 1
+
+
+def test_verified_options_are_reset_when_product_changes() -> None:
+    controller = CoverageTransferController(
+        TARGET_COVERAGE,
+        goal_options={"color": "black"},
+    )
+    controller.ledger.verified.add("color:black")
+    controller.last_selected_product_id = "B000000001"
+    controller._record_product_selection({
+        **_row(),
+        "element_role": "link",
+        "element_text": "[47] link 'B000000002'",
+    })
+    assert controller.ledger.verified == set()
+    assert controller.product_ledger_resets == 1

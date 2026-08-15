@@ -1,0 +1,136 @@
+{
+  "schema_version": "search-automaton-four-domain-transfer-summary-v16",
+  "status": "FOUR_DOMAIN_MECHANISM_SUPPORTED_EVIDENCE_TIERS_MIXED",
+  "claim_boundary": "The same frozen Sokoban event-routing artifact is grounded with target-native neural predicates/actions in all four targets. Only WebShop is prospective source-artifact-specific V16 formal evidence; ALFWorld is consumed development reexecution, TIRBench is consumed formal reanalysis, and DiscoveryWorld is retrospective equivalence.",
+  "source": {
+    "status": "FRESH_SOURCE_SEARCH_AUTOMATON_CONFIRMED",
+    "artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+    "artifact_file_sha256": "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54",
+    "fresh_states": 85,
+    "fresh_successes": 85,
+    "source_actions": [
+      "BACKTRACK_REPLAN",
+      "COMMIT_VERIFY",
+      "EXPLORE_UNTRIED"
+    ],
+    "report_file_sha256": "eced3f35457668ffeff453eef12e621904353fe8852bf6d81e12bcacb6af4d3f",
+    "full_report_file_sha256": "66c015e11afa0deb63d58fef6a7a7d50f675a5ea7ffd25d603ba88e552b1e7d8",
+    "report_sha256": "3f3e25701aa6aeab1bcfffeb6f819ec20a7d2e5338d9b4dc49813afca5ba882a"
+  },
+  "domains": {
+    "webshop": {
+      "evidence_tier": "PROSPECTIVELY_FROZEN_FRESH_FORMAL",
+      "status": "FRESH_FORMAL_TRANSFER_GATE_PASSED",
+      "tasks": 32,
+      "authentic_successes": 18,
+      "raw_successes": 7,
+      "paired_wins": 11,
+      "paired_losses": 0,
+      "authentic_mean_reward": 0.5901041666666667,
+      "raw_mean_reward": 0.4649627976190477,
+      "reward_wins": 13,
+      "reward_losses": 5,
+      "gates": {
+        "all_receipts_complete": true,
+        "matched_initial_state_hashes": true,
+        "all_three_source_actions_exercised": true,
+        "zero_authentic_unsafe_commits": true,
+        "authentic_success_gain_over_raw": true,
+        "zero_negative_transfer_vs_raw": true,
+        "pass_success_not_below_raw": true,
+        "mean_reward_not_below_raw": true,
+        "reward_pairing_not_net_negative": true,
+        "strictly_beats_destructive_controls": true,
+        "matches_isomorphic_target_search_ceiling": true
+      },
+      "all_gates_passed": true,
+      "report_file_sha256": "6d2c7c20fdf091013eb8dce9c769795ca02e34b55a70ca160836df3be44b0a51",
+      "report_sha256": "db26c36f421e927b608fff558582d7bf50242bbf68eaaf3844f640864d9b5c59"
+    },
+    "alfworld": {
+      "evidence_tier": "PREVIOUSLY_CONSUMED_DEVELOPMENT_REEXECUTION",
+      "status": "CONSUMED_DEVELOPMENT_TRANSFER_GATE_PASSED",
+      "tasks": 8,
+      "authentic_successes": 7,
+      "raw_successes": 4,
+      "paired_wins": 3,
+      "paired_losses": 0,
+      "gates": {
+        "complete_matched_task_matrix": true,
+        "target_neural_grounder_adaptation_gate_passed": true,
+        "all_three_source_actions_exercised": true,
+        "nontrivial_action_changes": true,
+        "success_gain_over_raw_target": true,
+        "zero_negative_transfer_vs_raw": true,
+        "strictly_beats_destructive_controls": true,
+        "matches_isomorphic_target_search_ceiling": true,
+        "matched_initial_state_hashes_reaudited": true
+      },
+      "all_gates_passed": true,
+      "report_file_sha256": "d995c6c04078de0eaf1f1f38e04566945bf3ccd20911da237b8b8d63e296122e",
+      "report_sha256": "a985cffe29e054300be6de492691d5debec036ae06d807bd6b53347b6b0c0a3c"
+    },
+    "discoveryworld": {
+      "evidence_tier": "RETROSPECTIVE_V16_EQUIVALENCE_TO_PRIOR_FRESH_RUN",
+      "status": "RETROSPECTIVE_EQUIVALENCE_PASSED_NOT_NEW_CONFIRMATION",
+      "tasks": 16,
+      "authentic_successes": 13,
+      "raw_successes": 10,
+      "paired_wins": 3,
+      "paired_losses": 0,
+      "gates": {
+        "historical_replication_gates_passed": true,
+        "exact_eligible_task_coverage": true,
+        "all_v16_routes_or_explicit_target_fallbacks_reproduced_actions": true,
+        "all_three_source_actions_exercised": true,
+        "zero_policy_oracle_scorecard_use": true,
+        "historical_authentic_gain_over_target": true,
+        "historical_zero_negative_transfer": true,
+        "historical_strict_control_superiority": true
+      },
+      "all_gates_passed": true,
+      "report_file_sha256": "ffa9af6f292e68a3977334775f430fbcd0d43fe80c10547dda65e9c9f8defebb",
+      "report_sha256": "43fe25205ccc880d697ea516b02e3956d6fd889bb2756c3d614dd576a07d8de4"
+    },
+    "tirbench": {
+      "evidence_tier": "PREVIOUSLY_CONSUMED_FRESH_FORMAL_REANALYSIS",
+      "status": "CONSUMED_FORMAL_REANALYSIS_MECHANISM_REPRODUCED",
+      "tasks": 24,
+      "authentic_successes": 23,
+      "raw_successes": 14,
+      "paired_wins": 9,
+      "paired_losses": 0,
+      "gates": {
+        "complete_matched_condition_matrix": true,
+        "all_target_neural_bindings_valid": true,
+        "all_three_source_actions_exercised": true,
+        "nontrivial_answer_changes": true,
+        "success_gain_over_raw_target": true,
+        "zero_negative_transfer_vs_raw": true,
+        "strictly_beats_destructive_controls": true,
+        "matches_isomorphic_target_ceiling": true
+      },
+      "all_gates_passed": true,
+      "report_file_sha256": "f08c0668bd2f3daa00e271e54734f1d7681815403d496f0ed6a7c1e0e2dc5e30",
+      "report_sha256": "614547e30236ca17e81b23129ec101ebc306daade3066ffdde1a1c8a5b67d37c"
+    }
+  },
+  "aggregate_gates": {
+    "same_frozen_source_artifact_all_domains": true,
+    "target_native_grounding_boundary_all_domains": true,
+    "mechanism_gates_pass_all_domains": true,
+    "positive_success_delta_all_domains": true,
+    "webshop_fresh_formal_confirmed": true,
+    "all_four_prospectively_v16_confirmed": false
+  },
+  "remaining_confirmations": [
+    "Prospectively frozen V16 ALFWorld reserve",
+    "Prospectively frozen V16 DiscoveryWorld reserve",
+    "New V16-specific TIRBench reserve rather than consumed receipt reanalysis"
+  ],
+  "interpretation": {
+    "supported": "A nontrivial intervention-grounded symbolic search automaton can transfer across game, shopping, embodied text, scientific discovery, and tool-use reasoning interfaces when each target supplies native neural grounding and execution.",
+    "not_supported": "The source artifact is not superior to an isomorphic target-native implementation; ceiling ties show transferability and reuse, not unique algorithmic advantage."
+  },
+  "report_sha256": "7d7d8890b2c2301d30c382af359ed1534262192b35a1087d843bd7abbd0ca1db"
+}

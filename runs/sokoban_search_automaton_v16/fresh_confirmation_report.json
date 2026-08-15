@@ -1,0 +1,452 @@
+{
+  "artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+  "calibration_branch_advantages": {
+    "ACTIVE_CANDIDATE_REFUTED": {
+      "matched_forks": 92,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 92,
+      "selected_action": "BACKTRACK_REPLAN"
+    },
+    "ACTIVE_CANDIDATE_VERIFIED": {
+      "matched_forks": 62,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 62,
+      "selected_action": "COMMIT_VERIFY"
+    },
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": {
+      "matched_forks": 154,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 154,
+      "selected_action": "EXPLORE_UNTRIED"
+    }
+  },
+  "claim_boundary": "REAL_SOKOBAN_STATES_WITH_SOLVER_GENERATED_CANDIDATE_CORRUPTIONS; TRANSFER_EVENT_ROUTING_AND_CLOSED_LOOP_LEDGER_ONLY; NO_SOURCE_COORDINATES_ACTION_TOKENS_CANDIDATE_ORDER_OR_PATH_LENGTHS; NO_TARGET_DATA_READ",
+  "fresh_branch_advantages": {
+    "ACTIVE_CANDIDATE_REFUTED": {
+      "matched_forks": 127,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 127,
+      "selected_action": "BACKTRACK_REPLAN"
+    },
+    "ACTIVE_CANDIDATE_VERIFIED": {
+      "matched_forks": 85,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 85,
+      "selected_action": "COMMIT_VERIFY"
+    },
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": {
+      "matched_forks": 212,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 212,
+      "selected_action": "EXPLORE_UNTRIED"
+    }
+  },
+  "fresh_policy_metrics": {
+    "always_backtrack": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 85
+      },
+      "states": 85,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "authentic_learned_event_policy": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 127,
+        "COMMIT_VERIFY": 85,
+        "EXPLORE_UNTRIED": 212
+      },
+      "states": 85,
+      "success_rate": 1.0,
+      "successes": 85
+    },
+    "commit_availability_only": {
+      "selected_action_counts": {
+        "COMMIT_VERIFY": 85
+      },
+      "states": 85,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "event_binding_permuted": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 85
+      },
+      "states": 85,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "isomorphic_exhaustive_ceiling": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 127,
+        "COMMIT_VERIFY": 85,
+        "EXPLORE_UNTRIED": 212
+      },
+      "states": 85,
+      "success_rate": 1.0,
+      "successes": 85
+    },
+    "ledger_blind_repeat_first": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 469,
+        "COMMIT_VERIFY": 18,
+        "EXPLORE_UNTRIED": 487
+      },
+      "states": 85,
+      "success_rate": 0.21176470588235294,
+      "successes": 18
+    }
+  },
+  "fresh_receipt_examples": [
+    {
+      "attempts": [
+        {
+          "candidate_receipt_id": "01a326bc4f4d80c7fc296cb2a32350a47b7394710bf5f77494f99f15a02e6f2d",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "afc710dfaa4b6eaeeebbe8d3762985271df0cd322327a2457e0dc28b5deca13c"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "7e0bd77a8a08d2d57e3332b044cdd18d84172d8dc85747b81a071080769b3e80",
+          "observed_actions": 2,
+          "refuted": true,
+          "transition_hashes": [
+            "767fdd4307ced68c6d2ff434bdc970ea110c33b56ad127b430777a7afb65d565",
+            "83620beda3d909f5e61006f7ddd5b8e7fd4a92c48922f641f3007051fed2a295"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "962a23b3e2083897c7129e09de9aa5ab162633ff481ea7efc0991e22064eaf55",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "afc710dfaa4b6eaeeebbe8d3762985271df0cd322327a2457e0dc28b5deca13c"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "e325021daf5801c457a3250b74c5c30b57d6b1c7a1c19b113f8b61bd5768d5f6",
+          "observed_actions": 8,
+          "refuted": false,
+          "transition_hashes": [
+            "ed3450568297a0474ed0265a133ceb2798cc6b6ba410213a259711af14698f33",
+            "db13f30bab4930f2b963353cc7e93f0082c16793bb06836434221dd0e87503b6",
+            "b7921403b41b98fc05be18dabc1e33554293e1f0c53607852db24f440896e793",
+            "9b1ef7bc8f931d5c8465a5640be0ff7b983ce35a579e9e2240275ce4a37a6b61",
+            "eed5e71a4d596fefb38f13216c0b52d87dea55ba302bd330b15cf620310543bc",
+            "f26d7765061680ed2d6092ee732dc3762332bd7f832f217a6fa13609cf3794c8",
+            "5a82c4c4a8a402ba2f9a73bf7425511cf30b5d042d50ad126350a90d73c0e57f",
+            "59a92af4abf5c63112e72f617eee001ee4f321b6f6b369287240bce0b3e36096"
+          ],
+          "verified": true
+        }
+      ],
+      "candidate_count": 4,
+      "episode_id": "procedural-sokoban-98001",
+      "receipt_sha256": "ef9181c127b7af85aed8f2f2618d429be522ab7b854f9a638e1ffeef11054845",
+      "snapshot_id": "194baa8e57b19eb19a325d4c24058edbd590c78903d36be60754ec0e8cb76c48",
+      "verified_candidate_rank": 3
+    },
+    {
+      "attempts": [
+        {
+          "candidate_receipt_id": "1a4f9f87c21ddfa481b0da203b0ffc1b7ac0323770962882b0c3e150d4c0bd12",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "3fdbaeeb32d67664789249808d1379be6cc79c2c35161c821c9469c5687f4794"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "83e28dadc1461303d364fb16d4cb2be85c45ae365b68c30d63355a437dd2c62e",
+          "observed_actions": 4,
+          "refuted": false,
+          "transition_hashes": [
+            "4269ef1fb06696e02889ed45fc4dd45dfb9f99a3a5268650c7e637f54f076ac4",
+            "9efd77df20c566ded4adec080475d261f08e22b6dd819d62439dc677f167ef5d",
+            "4b3e73a310b21a3a531784eb4b1bfa6985089241e8e1e038846ac3a2a1abfc8b",
+            "6a48df84d9ec3eca79c895ad1cff795f8fa81c7a1ac7f5addac76edaf4f6c165"
+          ],
+          "verified": true
+        },
+        {
+          "candidate_receipt_id": "e3a5564983a33272c64a58a39534063a56292150baace283a22e7b2867a6de6f",
+          "observed_actions": 2,
+          "refuted": true,
+          "transition_hashes": [
+            "4269ef1fb06696e02889ed45fc4dd45dfb9f99a3a5268650c7e637f54f076ac4",
+            "7ec0a342eb4ac5cebdda6acfff9c6f167d4b77edeffcdfa94e9d1f95707863e0"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "f0b00ff1d59e114158503b34e8f55e919f87fac277b3eb025d923471ab69b4e4",
+          "observed_actions": 4,
+          "refuted": true,
+          "transition_hashes": [
+            "c4248b8ded8257dfd507e105a60602edabbf13b23dbe697ebab4b81a4494c4c1",
+            "48e83a42fd9e8f666ea69185af83152e299841f54ab256c95616dffef83278c4",
+            "8ae0902fea096ea16d0d70e42b67bbd9cbf7dfe3e54d154a3adb225d82185c23",
+            "2e19dc6e25818da39ef0cc66fd7a1ebf25275279b911723f2a850ef7b04c1453"
+          ],
+          "verified": false
+        }
+      ],
+      "candidate_count": 4,
+      "episode_id": "procedural-sokoban-98001",
+      "receipt_sha256": "af3acb6bbb3ba11d44f92b138ad4cab7f1e8a75a3d60dde4c7b5bb8c8b582ba1",
+      "snapshot_id": "4e7d98360ea12e37d39727f8b6d167347fd84d95ccd523569a443add39fc185f",
+      "verified_candidate_rank": 1
+    },
+    {
+      "attempts": [
+        {
+          "candidate_receipt_id": "4c0312869a1679a3faa10554c15f0a45cd09010c90d1b1ccd1d7635b9ebef941",
+          "observed_actions": 3,
+          "refuted": true,
+          "transition_hashes": [
+            "69a5f51513f2e2e87c1b9c49fae7f535e4e85b59c454e63bf53b11175619c04d",
+            "8a1d2680c8220256bee74f226fd1079eeb0fa6adf3b55b5aa9ce11fdee1617b1",
+            "6b17923b7b8cbe198aea3bd4d4cc4aa774f7b41d75f5e3d84d9343db692f6d0c"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "5e46c6a52da36473952670f88286c1a2e68f70f90de63165fe7dfd604a16c752",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "5744f0b0a93c2227a2e185854392ce02b2a0daa3a096d9d4e6b21b28cbddf42e"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "83f1ade370b35e69464da18119194615f9be2c259a759261c3cfe30cc59dd1d1",
+          "observed_actions": 5,
+          "refuted": false,
+          "transition_hashes": [
+            "abea310e37333cc2b54a6794e881cadacc7ae6d5d20d6d3fb13d53c134105354",
+            "7a8acf205f35a3c57579ff384903d977b9c074446fe55f7a2d8189d5fa6c74cc",
+            "3a9ac126d1e2e39dd19f57e65167b21c23c40b1be8ff6e7281b3bc51ed82e65e",
+            "d5493deeb0357d801afd377b19b09c721b5954d4ef3f7261aabaa4b9df544476",
+            "53464a146cb41e6569c9d1a180a42364863cd3d04d794191e5476b526bd04713"
+          ],
+          "verified": true
+        },
+        {
+          "candidate_receipt_id": "8daab9f99bf0c57cf68e424b08c6be5132638aff5d72d855749642cc81141ca1",
+          "observed_actions": 4,
+          "refuted": true,
+          "transition_hashes": [
+            "69a5f51513f2e2e87c1b9c49fae7f535e4e85b59c454e63bf53b11175619c04d",
+            "8a1d2680c8220256bee74f226fd1079eeb0fa6adf3b55b5aa9ce11fdee1617b1",
+            "545538137ef8a79e3aadef27bbc95f19e1f5554f7840870aeb05cef73588ffd4",
+            "ba98f29edd1cde951a19ee424f680e1306f4627d62940f24b98775076a7f6e3d"
+          ],
+          "verified": false
+        }
+      ],
+      "candidate_count": 4,
+      "episode_id": "procedural-sokoban-98002",
+      "receipt_sha256": "309bf1a7d64fb43c6e7ab71e2eaac52eb5f2293cba39af6a954b50f21c0a0508",
+      "snapshot_id": "f980ca1185575533929ee18fcbef52ddb09a07301f116bbf077278901e7e5ac3",
+      "verified_candidate_rank": 2
+    },
+    {
+      "attempts": [
+        {
+          "candidate_receipt_id": "15edbec0be1935d1dad4bebb46148012e482a6212cb65f14cf4e841805155e4e",
+          "observed_actions": 4,
+          "refuted": true,
+          "transition_hashes": [
+            "a361b77958232b6edc1af7436a4f632900cce8147f7513f14a461556c4cdda73",
+            "a982150a1e58e8396af2333e6eb3b2ecae43aa7c7da731a32408a7dd3b105fcd",
+            "3ec9f6f77dfb6297e3879faceda9f3c8818795448cb8de5301179c83cad81032",
+            "c4a673fbabacbb4012378cfb8084753df83e0e683f912b7f915dc6a904154e04"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "464c3b6fe440d063a506e47595c0f9b5e8f95a0a605aec074d786ff8cac4b8f2",
+          "observed_actions": 4,
+          "refuted": false,
+          "transition_hashes": [
+            "126cc2dcf5591a5bfd7faa1d5f16853d3c99d9f59ea42bf826ede93cbb65b6d6",
+            "ef2287cbd27a853c95b6078a1c6ed8a0a6a88a60b9f8e47704e55d6724727884",
+            "eb632d0a5bc2c8036bd8958edf5b47c47ce8ba6c885739751b2e6ac663eb99f3",
+            "05bcd7f8ffecbe409f2746e06bd77f104465244723af1bafaa3d3f2d87546e3b"
+          ],
+          "verified": true
+        },
+        {
+          "candidate_receipt_id": "dbf52890ab0614526c114ee4c9c1f1d97ab0f60507d4b3b3fd1e4548c95eb48e",
+          "observed_actions": 3,
+          "refuted": true,
+          "transition_hashes": [
+            "126cc2dcf5591a5bfd7faa1d5f16853d3c99d9f59ea42bf826ede93cbb65b6d6",
+            "ef2287cbd27a853c95b6078a1c6ed8a0a6a88a60b9f8e47704e55d6724727884",
+            "9d8fdcdf7f871a07585aac5268a1657c55f4260bf7619fb095f347c0d00654b6"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "fb5c21b81c62688b2d37c209dc2797e427bdbef0dafd2d59cb375d7aab0e3f5e",
+          "observed_actions": 4,
+          "refuted": true,
+          "transition_hashes": [
+            "b9ede6536dd4c74092b2cdf5d72da4d6ba36aef3d83616fde7da04b79aa48927",
+            "903cd08e785c58f49c3d11b6248f108d68ca4612829adc6260596e31c61786c1",
+            "22bad47deb16be7ebad2c228fb62597d9a94bd1d2395ea914543d8d31790633e",
+            "5a46b76b7625ed6ff56e142366997f9916b8c36681a21c9b57c1f049b0ea8c92"
+          ],
+          "verified": false
+        }
+      ],
+      "candidate_count": 4,
+      "episode_id": "procedural-sokoban-98002",
+      "receipt_sha256": "8761f1966d9c3c99fb4bc841d537f3fb00900d276e691112e8d94431e59f7125",
+      "snapshot_id": "ccddc8667fe1b75c7578c37fa3ac280cfd25f3b92e849891786f68a08adb9334",
+      "verified_candidate_rank": 1
+    },
+    {
+      "attempts": [
+        {
+          "candidate_receipt_id": "0085e5bde66adf93697ac64fa100f49145b2cc13b73d68d9b262a4be556eac1f",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "f6011d29bdb6b9998b53911afa7933ec9aa569799c36199afbfa1d5356f51b0c"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "5405b6143cfb5541db7238463fccacb7953e1f899b97b47fde131de6eac96c32",
+          "observed_actions": 8,
+          "refuted": false,
+          "transition_hashes": [
+            "27f0f1972972e808d2894d7df8fe8c7ed8d0daf0e44ea5113e7a935f8be66702",
+            "0bd19fab39f62cbb3ff451aef801a743c8b041ca71439a1e9f97cd113e753dc2",
+            "4f3caa94b8f8f9d657e49dc332ab6577d9219f2fc49c68ed76a65f8b19302c7b",
+            "5eda6732e7b003809c60164262cf0eed36f53102b7b7aa840c5208e7e97f7db6",
+            "8f1378bfcc55c3480184c31bfd0a8927789a2e41cf785056ff4afa9c27f76879",
+            "298f6252b95c434f5c656f0f4b3240bf3495de37564c8f95409cf28b376809bc",
+            "66df76eb62d481fc9faa9fddac9870bd38fe102560afce532ea5e6756caef66e",
+            "360bdaf7d1c7515453f8c143c10727a46944b6437193b8bc24a0fe12af334f32"
+          ],
+          "verified": true
+        },
+        {
+          "candidate_receipt_id": "5d7fa3b7ad73f16989d368b9f846b484361aac7f90cc5746e36e9c99a479ca38",
+          "observed_actions": 2,
+          "refuted": true,
+          "transition_hashes": [
+            "27f0f1972972e808d2894d7df8fe8c7ed8d0daf0e44ea5113e7a935f8be66702",
+            "e59dc8b30d861d30a6797ecfc4370bb615c4ca5e9f01f5556531c34e670206f4"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "d621f93b12bef5ab326472fc4e3c3c18bdeef2510e1c778c3ba36292593427cc",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "f6011d29bdb6b9998b53911afa7933ec9aa569799c36199afbfa1d5356f51b0c"
+          ],
+          "verified": false
+        }
+      ],
+      "candidate_count": 4,
+      "episode_id": "procedural-sokoban-98002",
+      "receipt_sha256": "bc56e42cc01d39100b21e2c3540323827e599178a63fcafd6f311ef71c4d55ff",
+      "snapshot_id": "956a357690d5340f6f2a70f409fcc921653d9ac4d0f461809142121830419e68",
+      "verified_candidate_rank": 1
+    },
+    {
+      "attempts": [
+        {
+          "candidate_receipt_id": "47b9890fdb7aa17c5cc5924c5c9cc0f457e91b0fe5740bfd7b936c11424f4135",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "18a9af15a9aff72fc556544d0147a16543535861cf326db468828c5eba6df3b8"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "94b310b2ac135d20cfca04ed8dee54eb7f53329682b0e5780ab79c03fde914f4",
+          "observed_actions": 2,
+          "refuted": true,
+          "transition_hashes": [
+            "ce663f077a639bdc60444b1906376f94b6ca7a973c5533e07ade892dc71d399a",
+            "d5da4280c52cdca1abfdd1af9b9165304151cc967cc73c24edc62c6ee8fbde3b"
+          ],
+          "verified": false
+        },
+        {
+          "candidate_receipt_id": "d2b699289a015211c2984ce02d509c9bf5d771e15d78f8ef4e2582d64c88f67b",
+          "observed_actions": 7,
+          "refuted": false,
+          "transition_hashes": [
+            "caa7a30589cbda1264a0696b6c8192167c2312b78d907ba146efb54a54b53d9a",
+            "fc8a37963b4c4e1224548a25f9e0ff5ebc3bbeece6d9e2076d85248752814374",
+            "0f80632b23c636adcc7b6454186dbad619071e78175d7138f37a12e69020785b",
+            "e10c6ed70ad5165cce6a2a89157dc93251cae344ae12246069a3274ab3aec913",
+            "fe60a8f93af1aa0091c16c74d684ba760ee524cb222b4f97fc794e7c58df884f",
+            "9a6898ae2f48ca058a0b351724790ced76de03346a6b08f9894f36625d12f5b1",
+            "4b1752fb8e718fdd62f7433c641e1388fd38be242f1320a5066fd2e583f7db87"
+          ],
+          "verified": true
+        },
+        {
+          "candidate_receipt_id": "d8f97eb0d29c9a101f35eed5575b1c9d658c24174e8dfe5fe15277e0f78d344b",
+          "observed_actions": 1,
+          "refuted": true,
+          "transition_hashes": [
+            "18a9af15a9aff72fc556544d0147a16543535861cf326db468828c5eba6df3b8"
+          ],
+          "verified": false
+        }
+      ],
+      "candidate_count": 4,
+      "episode_id": "procedural-sokoban-98002",
+      "receipt_sha256": "b2a70e30750a1b907e9d7fcf42a2e22cab73562707cc01b8e898a6de006c1bdd",
+      "snapshot_id": "0fa0e953fc556b2aad1bd146838d5534bc47a36dba3c84d6167613c849f6356f",
+      "verified_candidate_rank": 2
+    }
+  ],
+  "gates": {
+    "all_three_actions_have_fresh_support": true,
+    "all_three_branches_have_matched_advantage": true,
+    "alpha_renaming_invariance": true,
+    "authentic_success_rate": true,
+    "authentic_superior_to_each_destructive_control": true,
+    "fresh_eligible_state_coverage": true,
+    "isomorphic_ceiling_reported": true
+  },
+  "learned_policy": {
+    "ACTIVE_CANDIDATE_REFUTED": "BACKTRACK_REPLAN",
+    "ACTIVE_CANDIDATE_VERIFIED": "COMMIT_VERIFY",
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": "EXPLORE_UNTRIED"
+  },
+  "provider_calls": 0,
+  "report_sha256": "3f3e25701aa6aeab1bcfffeb6f819ec20a7d2e5338d9b4dc49813afca5ba882a",
+  "schema_version": "sokoban-search-automaton-report-v16",
+  "source_gate_passed": true,
+  "source_receipt_counts": {
+    "calibration_matched_action_rows": 924,
+    "discovery_matched_action_rows": 1134,
+    "fresh_matched_action_rows": 1272
+  },
+  "split_counts": {
+    "calibration_states": 62,
+    "discovery_states": 73,
+    "fresh_confirmation_states": 85
+  },
+  "status": "FRESH_SOURCE_SEARCH_AUTOMATON_CONFIRMED",
+  "target_data_read_or_run": false
+}

@@ -1,0 +1,156 @@
+{
+  "artifact": {
+    "artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+    "claim_boundary": "REAL_SOKOBAN_STATES_WITH_SOLVER_GENERATED_CANDIDATE_CORRUPTIONS; TRANSFER_EVENT_ROUTING_AND_CLOSED_LOOP_LEDGER_ONLY; NO_SOURCE_COORDINATES_ACTION_TOKENS_CANDIDATE_ORDER_OR_PATH_LENGTHS; NO_TARGET_DATA_READ",
+    "learned_policy": {
+      "ACTIVE_CANDIDATE_REFUTED": "BACKTRACK_REPLAN",
+      "ACTIVE_CANDIDATE_VERIFIED": "COMMIT_VERIFY",
+      "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": "EXPLORE_UNTRIED"
+    },
+    "schema_version": "sokoban-search-automaton-artifact-v16",
+    "source_lineage": {
+      "calibration_plan_sha256": "802fec94d8e9a7b1d831dc1a94af038bce99ccf7efa2bf296308c54fd0557bf5",
+      "config_file_sha256": "69bd9de92a68ff5fe791efdea129cf8551217ee126a29c45c77dd3a6d4cac89c",
+      "discovery_plan_file_sha256": "d4a94a76a37e98a0961894c7424c51938d46bc45dceec6cfd47c9b86b5ecfce6",
+      "discovery_plan_sha256": "b12321771390a569344eca914d9ef49c3bfec2ddbf783f6ac6e7d1527ae627e9",
+      "fresh_confirmation_plan_sha256": "5749ec2df7252d58134d6e6ac5bc540df4e6c013bfd5894d1721a0fac3063eb7"
+    },
+    "status": "SOURCE_SEARCH_AUTOMATON_FROZEN",
+    "target_authorized": true,
+    "transfer_contract": {
+      "advance_only_after_observed_effect": true,
+      "state": "ABSTRACT_EVENT_PLUS_ATTEMPT_LEDGER",
+      "target_permission": "TARGET_BINDS_EVENTS_CANDIDATES_AND_NATIVE_ACTIONS_FROM_ITS_OWN_ADAPTATION_RECEIPTS; SOURCE_PATHS_TOKENS_AND_ORDER_FORBIDDEN",
+      "unknown_event": "ABSTAIN"
+    }
+  },
+  "artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+  "calibration_branch_advantages": {
+    "ACTIVE_CANDIDATE_REFUTED": {
+      "matched_forks": 92,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 92,
+      "selected_action": "BACKTRACK_REPLAN"
+    },
+    "ACTIVE_CANDIDATE_VERIFIED": {
+      "matched_forks": 62,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 62,
+      "selected_action": "COMMIT_VERIFY"
+    },
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": {
+      "matched_forks": 154,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 154,
+      "selected_action": "EXPLORE_UNTRIED"
+    }
+  },
+  "claim_boundary": "REAL_SOKOBAN_STATES_WITH_SOLVER_GENERATED_CANDIDATE_CORRUPTIONS; TRANSFER_EVENT_ROUTING_AND_CLOSED_LOOP_LEDGER_ONLY; NO_SOURCE_COORDINATES_ACTION_TOKENS_CANDIDATE_ORDER_OR_PATH_LENGTHS; NO_TARGET_DATA_READ",
+  "fresh_branch_advantages": {
+    "ACTIVE_CANDIDATE_REFUTED": {
+      "matched_forks": 127,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 127,
+      "selected_action": "BACKTRACK_REPLAN"
+    },
+    "ACTIVE_CANDIDATE_VERIFIED": {
+      "matched_forks": 85,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 85,
+      "selected_action": "COMMIT_VERIFY"
+    },
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": {
+      "matched_forks": 212,
+      "mean_selected_minus_best_alternative": 1.0,
+      "positive_advantage_forks": 212,
+      "selected_action": "EXPLORE_UNTRIED"
+    }
+  },
+  "fresh_confirmation_plan_sha256": "5749ec2df7252d58134d6e6ac5bc540df4e6c013bfd5894d1721a0fac3063eb7",
+  "fresh_policy_metrics": {
+    "always_backtrack": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 85
+      },
+      "states": 85,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "authentic_learned_event_policy": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 127,
+        "COMMIT_VERIFY": 85,
+        "EXPLORE_UNTRIED": 212
+      },
+      "states": 85,
+      "success_rate": 1.0,
+      "successes": 85
+    },
+    "commit_availability_only": {
+      "selected_action_counts": {
+        "COMMIT_VERIFY": 85
+      },
+      "states": 85,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "event_binding_permuted": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 85
+      },
+      "states": 85,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "isomorphic_exhaustive_ceiling": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 127,
+        "COMMIT_VERIFY": 85,
+        "EXPLORE_UNTRIED": 212
+      },
+      "states": 85,
+      "success_rate": 1.0,
+      "successes": 85
+    },
+    "ledger_blind_repeat_first": {
+      "selected_action_counts": {
+        "BACKTRACK_REPLAN": 469,
+        "COMMIT_VERIFY": 18,
+        "EXPLORE_UNTRIED": 487
+      },
+      "states": 85,
+      "success_rate": 0.21176470588235294,
+      "successes": 18
+    }
+  },
+  "gates": {
+    "all_three_actions_have_fresh_support": true,
+    "all_three_branches_have_matched_advantage": true,
+    "alpha_renaming_invariance": true,
+    "authentic_success_rate": true,
+    "authentic_superior_to_each_destructive_control": true,
+    "fresh_eligible_state_coverage": true,
+    "isomorphic_ceiling_reported": true
+  },
+  "learned_policy": {
+    "ACTIVE_CANDIDATE_REFUTED": "BACKTRACK_REPLAN",
+    "ACTIVE_CANDIDATE_VERIFIED": "COMMIT_VERIFY",
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": "EXPLORE_UNTRIED"
+  },
+  "provider_calls": 0,
+  "report_sha256": "3f3e25701aa6aeab1bcfffeb6f819ec20a7d2e5338d9b4dc49813afca5ba882a",
+  "schema_version": "sokoban-search-automaton-report-v16",
+  "source_gate_passed": true,
+  "source_receipt_counts": {
+    "calibration_matched_action_rows": 924,
+    "discovery_matched_action_rows": 1134,
+    "fresh_matched_action_rows": 1272
+  },
+  "split_counts": {
+    "calibration_states": 62,
+    "discovery_states": 73,
+    "fresh_confirmation_states": 85
+  },
+  "status": "FRESH_SOURCE_SEARCH_AUTOMATON_CONFIRMED",
+  "target_data_read_or_run": false
+}

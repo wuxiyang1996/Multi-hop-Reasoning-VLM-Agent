@@ -1,0 +1,42 @@
+{
+  "schema_version": "sokoban-search-automaton-source-config-v16",
+  "status": "FROZEN_BEFORE_FRESH_CONFIRMATION_GENERATION_OR_READ",
+  "claim_boundary": "REAL_SOKOBAN_STATES_WITH_SOLVER_GENERATED_CANDIDATE_CORRUPTIONS; TRANSFER_EVENT_ROUTING_AND_CLOSED_LOOP_LEDGER_ONLY; NO_SOURCE_COORDINATES_ACTION_TOKENS_CANDIDATE_ORDER_OR_PATH_LENGTHS; NO_TARGET_DATA_READ",
+  "discovery_plan": "runs/sokoban_effect_program_v2/fresh_confirmation_plan.json",
+  "calibration_seeds": {
+    "start": 97001,
+    "stop_exclusive": 97025,
+    "snapshots_per_episode": 4
+  },
+  "fresh_confirmation_seeds": {
+    "start": 98001,
+    "stop_exclusive": 98033,
+    "snapshots_per_episode": 4
+  },
+  "candidate_families": [
+    "AUTHENTIC",
+    "DIRECTION_CORRUPT",
+    "PHASE_CORRUPT",
+    "ORDER_CORRUPT"
+  ],
+  "abstract_events": [
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+    "ACTIVE_CANDIDATE_REFUTED",
+    "ACTIVE_CANDIDATE_VERIFIED"
+  ],
+  "abstract_actions": [
+    "BACKTRACK_REPLAN",
+    "EXPLORE_UNTRIED",
+    "COMMIT_VERIFY"
+  ],
+  "source_gate": {
+    "minimum_fresh_eligible_states": 64,
+    "minimum_fresh_examples_per_selected_action": 48,
+    "minimum_authentic_success_rate": 0.99,
+    "minimum_authentic_minus_each_destructive_control": 0.40,
+    "minimum_mean_matched_advantage_per_branch": 0.99,
+    "require_alpha_renaming_invariance": true,
+    "require_isomorphic_exhaustive_ceiling_reported_not_used_as_gate": true
+  },
+  "target_authorized_before_source_gate": false
+}

@@ -16,6 +16,7 @@ import numpy as np
 
 from .webshop_constraint_coverage_v14 import (
     ConstraintCoverage,
+    constraint_signature,
     goal_option_signatures,
     ground_structured_goal_constraints,
 )
@@ -56,10 +57,16 @@ class CoverageTransferController:
     source_calls_after_coverage: int = 0
     rejected_product_ids: set[str] = field(default_factory=set)
     last_selected_product_id: str | None = None
+    anytime_reward_salvage: bool = False
+    maximum_steps: int | None = None
+    budget_abstentions: int = 0
+    product_ledger_resets: int = 0
 
     def __post_init__(self) -> None:
         if self.condition not in CONDITIONS:
             raise ValueError(f"unknown V14 condition: {self.condition}")
+        if self.maximum_steps is not None and self.maximum_steps <= 0:
+            raise ValueError("maximum_steps must be positive")
         self.ledger.required.update(goal_option_signatures(self.goal_options))
 
     @property
@@ -69,6 +76,94 @@ class CoverageTransferController:
     @property
     def coverage_ready(self) -> bool:
         return not self.goal_options or self.ledger.commit_authorized
+
+    def _record_product_selection(self, row: Mapping[str, Any]) -> None:
+        """Start a product-local option ledger when search changes product.
+
+        WebShop option clicks apply only to the currently open product.  The
+        required signatures are episode-level, but evidence that an option was
+        selected must never leak from one product to the next.
+        """
+
+        product_id = self._product_id(row)
+        if product_id is None:
+            return
+        if (
+            self.last_selected_product_id is not None
+            and product_id != self.last_selected_product_id
+        ):
+            self.ledger.verified.clear()
+            self.ledger.pending_signature = None
+            self.product_ledger_resets += 1
+        self.last_selected_product_id = product_id
+
+    def _budget_salvage(
+        self,
+        *,
+        semantics: Sequence[Mapping[str, Any]],
+        predictions: np.ndarray,
+        remaining_fraction: float,
+    ) -> EffectTransferDecision | None:
+        """Return a target-native partial-reward commit iff strict success is unreachable.
+
+        The lower bound is derived from the WebShop action graph.  If a needed
+        option is absent on the current product, strict completion needs at
+        least: back to results, open another product, select every required
+        option on that product, and commit.  No task identity or outcome is
+        consulted.  A visible missing option is still selected first whenever
+        there is time for one subsequent commit.
+        """
+
+        if (
+            not self.anytime_reward_salvage
+            or self.maximum_steps is None
+            or not self.ledger.missing
+        ):
+            return None
+        commit_indices = [
+            index for index, row in enumerate(semantics) if row.get("is_commit")
+        ]
+        if not commit_indices:
+            return None
+        remaining_steps = max(
+            1, int(round(float(remaining_fraction) * self.maximum_steps)),
+        )
+        visible_missing = {
+            signature
+            for row in semantics
+            if (signature := constraint_signature(row)) in set(self.ledger.missing)
+            and not row.get("is_selected")
+        }
+        missing_available_here = set(self.ledger.missing).issubset(visible_missing)
+        if missing_available_here:
+            strict_lower_bound = len(self.ledger.missing) + 1
+        else:
+            # Verified choices are product-local and must be made again after
+            # opening another product.
+            strict_lower_bound = len(self.ledger.required) + 3
+        if remaining_steps >= strict_lower_bound:
+            return None
+
+        prepare = self.ledger.preferred_missing_index(semantics)
+        if prepare is not None and remaining_steps > 1:
+            return None
+        reward_index = 2
+        selected = max(
+            commit_indices,
+            key=lambda index: (float(predictions[index, reward_index]), -index),
+        )
+        self.budget_abstentions += 1
+        return EffectTransferDecision(
+            selected_index=selected,
+            abstract_kind="TARGET",
+            source_abstained=True,
+            source_test_value=None,
+            source_commit_value=None,
+            reason=(
+                "target_budget_infeasible_immediate_reward_salvage:"
+                f"remaining={remaining_steps}:strict_lb={strict_lower_bound}"
+            ),
+        )
 
     def __call__(
         self,
@@ -94,6 +189,15 @@ class CoverageTransferController:
         self.ledger.begin_decision(
             semantics, prior_action_had_no_effect=prior_no_effect,
         )
+
+        salvage = self._budget_salvage(
+            semantics=semantics,
+            predictions=predictions,
+            remaining_fraction=remaining_fraction,
+        )
+        if salvage is not None:
+            self.coverage_interventions += 1
+            return salvage
 
         if self.coverage_enabled and self.ledger.missing:
             visible_missing = {
@@ -133,7 +237,7 @@ class CoverageTransferController:
                     None,
                 )
                 if untried is not None:
-                    self.last_selected_product_id = self._product_id(semantics[untried])
+                    self._record_product_selection(semantics[untried])
                     self.coverage_interventions += 1
                     return EffectTransferDecision(
                         selected_index=untried,
@@ -219,9 +323,7 @@ class CoverageTransferController:
             self.source_calls_after_coverage += 1
 
         self.ledger.record_selected(semantics[decision.selected_index])
-        selected_product = self._product_id(semantics[decision.selected_index])
-        if selected_product is not None:
-            self.last_selected_product_id = selected_product
+        self._record_product_selection(semantics[decision.selected_index])
         return decision
 
     @staticmethod
@@ -244,6 +346,10 @@ class CoverageTransferController:
             "source_calls_after_coverage": self.source_calls_after_coverage,
             "rejected_product_ids": sorted(self.rejected_product_ids),
             "last_selected_product_id": self.last_selected_product_id,
+            "anytime_reward_salvage": self.anytime_reward_salvage,
+            "maximum_steps": self.maximum_steps,
+            "budget_abstentions": self.budget_abstentions,
+            "product_ledger_resets": self.product_ledger_resets,
             "ledger": self.ledger.as_dict(),
         }
 

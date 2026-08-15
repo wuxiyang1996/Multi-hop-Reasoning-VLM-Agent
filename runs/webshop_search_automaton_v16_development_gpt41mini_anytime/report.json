@@ -1,0 +1,153 @@
+{
+  "schema_version": "webshop-search-automaton-transfer-v16",
+  "status": "CONSUMED_DEVELOPMENT_TRANSFER_GATE_PASSED",
+  "claim_boundary": "Previously consumed synthetic WebShop development tasks only; formal reserve remains sealed.",
+  "source_artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+  "tasks": [
+    "webshop.0",
+    "webshop.1",
+    "webshop.2",
+    "webshop.3",
+    "webshop.4",
+    "webshop.5",
+    "webshop.6",
+    "webshop.7"
+  ],
+  "summaries": {
+    "raw_target_only": {
+      "tasks": 8,
+      "strict_successes": 2,
+      "pass_successes": 6,
+      "mean_reward": 0.6361111111111111,
+      "mean_steps": 8.0,
+      "changed_from_target_rank_zero": 0,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "authentic_search_automaton_plus_target": {
+      "tasks": 8,
+      "strict_successes": 4,
+      "pass_successes": 6,
+      "mean_reward": 0.7333333333333334,
+      "mean_steps": 8.0,
+      "changed_from_target_rank_zero": 30,
+      "source_decisions": 60,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 11,
+        "COMMIT_VERIFY": 4,
+        "EXPLORE_UNTRIED": 45
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "event_binding_permuted_control": {
+      "tasks": 8,
+      "strict_successes": 2,
+      "pass_successes": 6,
+      "mean_reward": 0.6361111111111111,
+      "mean_steps": 8.0,
+      "changed_from_target_rank_zero": 0,
+      "source_decisions": 64,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 64
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "ledger_blind_control": {
+      "tasks": 8,
+      "strict_successes": 1,
+      "pass_successes": 4,
+      "mean_reward": 0.5369047619047619,
+      "mean_steps": 9.875,
+      "changed_from_target_rank_zero": 34,
+      "source_decisions": 72,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 22,
+        "COMMIT_VERIFY": 1,
+        "EXPLORE_UNTRIED": 49
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "target_native_search_ceiling": {
+      "tasks": 8,
+      "strict_successes": 4,
+      "pass_successes": 6,
+      "mean_reward": 0.7333333333333334,
+      "mean_steps": 8.0,
+      "changed_from_target_rank_zero": 30,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    }
+  },
+  "paired": {
+    "raw_target_only": {
+      "wins": 2,
+      "losses": 0,
+      "ties": 6,
+      "net_wins": 2,
+      "exact_two_sided_p": 0.5,
+      "reward_wins": 3,
+      "reward_losses": 1,
+      "reward_ties": 4,
+      "reward_net_wins": 2,
+      "reward_exact_two_sided_p": 0.625
+    },
+    "event_binding_permuted_control": {
+      "wins": 2,
+      "losses": 0,
+      "ties": 6,
+      "net_wins": 2,
+      "exact_two_sided_p": 0.5,
+      "reward_wins": 3,
+      "reward_losses": 1,
+      "reward_ties": 4,
+      "reward_net_wins": 2,
+      "reward_exact_two_sided_p": 0.625
+    },
+    "ledger_blind_control": {
+      "wins": 3,
+      "losses": 0,
+      "ties": 5,
+      "net_wins": 3,
+      "exact_two_sided_p": 0.25,
+      "reward_wins": 4,
+      "reward_losses": 0,
+      "reward_ties": 4,
+      "reward_net_wins": 4,
+      "reward_exact_two_sided_p": 0.125
+    },
+    "target_native_search_ceiling": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 8,
+      "net_wins": 0,
+      "exact_two_sided_p": 1.0,
+      "reward_wins": 0,
+      "reward_losses": 0,
+      "reward_ties": 8,
+      "reward_net_wins": 0,
+      "reward_exact_two_sided_p": 1.0
+    }
+  },
+  "gates": {
+    "all_receipts_complete": true,
+    "matched_initial_state_hashes": true,
+    "all_three_source_actions_exercised": true,
+    "zero_authentic_unsafe_commits": true,
+    "authentic_success_gain_over_raw": true,
+    "zero_negative_transfer_vs_raw": true,
+    "pass_success_not_below_raw": true,
+    "mean_reward_not_below_raw": true,
+    "reward_pairing_not_net_negative": true,
+    "strictly_beats_destructive_controls": true,
+    "matches_isomorphic_target_search_ceiling": true
+  },
+  "decision_cache_file_sha256": "cc25be714f599fb1635826fdf5b99473b52d841025020ec5505c65ab57ff1018",
+  "report_sha256": "cad47625125fa28b34b47768aeb0d445b802bf80117c8675805123947283daff"
+}
