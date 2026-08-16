@@ -1,5 +1,10 @@
 # Phase 2：Game → WebShop neural-symbolic transfer utility
 
+> Subsequent status (2026-08-16): ALFWorld、DiscoveryWorld 和 TIRBench 的
+> route-scoped Phase-2 utility evidence 已分别验证。本文后文的“尚未跨三域泛化”是
+> WebShop V4 完成时的历史 claim boundary；最新统一状态见
+> `docs/PHASE2_FOUR_TARGET_CAUSAL_UTILITY_STATUS.md`。
+
 ## 结论
 
 截至 2026-08-16，fresh V4 confirmatory run 的状态为：

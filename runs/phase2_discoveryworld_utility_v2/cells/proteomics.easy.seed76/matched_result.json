@@ -1,0 +1,2695 @@
+{
+  "schema_version": "discoveryworld-sokoban-commit-recovery-result-v1",
+  "status": "FORMAL_MECHANISM_COMPLETE",
+  "claim_boundary": "Powered fresh causal utility estimate on 36 Proteomics Easy forks; the 30 historical eligible forks used for power planning are excluded.",
+  "task": {
+    "task_id": "proteomics.easy.seed76",
+    "scenario": "Proteomics",
+    "difficulty": "Easy",
+    "seed": 76
+  },
+  "fork_after_episode_step": 40,
+  "fork_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+  "fork_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+  "determinism_protocol": "discoveryworld-isolated-common-random-numbers-v1",
+  "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+  "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+  "target_binding": {
+    "target_uuid": 43006,
+    "target_name": "statue of an animaplant",
+    "commit_subject_relation_to_target": "west",
+    "target_relation_from_agent": "east",
+    "target_distance": 1,
+    "commit_action": {
+      "action": "DROP",
+      "arg1": 17557
+    },
+    "confidence": 0.9,
+    "hypothesis_used": "Animaplant is the non-native species based on anomalous protein readings",
+    "reason": "The hypothesis identifies animaplant as the anomaly; the task requires dropping the flag one square west of the statue of the anomalous species, which is the statue of an animaplant (UUID 43006)."
+  },
+  "target_binding_response_sha256": "706d19f216b950fa862dd7a16e6aad6218dd1f559557436b1c036127e97d0032",
+  "target_binding_schema_attempts": [
+    {
+      "attempt": 1,
+      "accepted": true,
+      "cache_hit": false
+    }
+  ],
+  "target_native_spatial_realizer": {
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "enabled": true,
+    "may_select_commit": false,
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "shared_across_all_conditions": true
+  },
+  "neural_cache_seed": {},
+  "initial_grounding_mode": "LIVE_AT_MATCHED_FORK",
+  "frozen_initial_applicability_receipt_sha256": null,
+  "source_receipt_file_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+  "runtime_hashes": {
+    "config": "c785da84b58d3430a7bba50fc48423a8bdfdfd3a59e00bb5006325165688f6dd",
+    "runner": "14a768760c4a327c2486a3400310a771f9074ebe69ead83c848c425b2d54527d",
+    "environment": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "target_policy": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "transfer_selector": "8d50120bacf89ceca5a6884f6ba90f55a9147a945f5008c9fbbf25ac260af2b7"
+  },
+  "conditions": {
+    "target_only_recorded": {
+      "recovery": [
+        {
+          "recovery_step": 1,
+          "action": {
+            "action": "DROP",
+            "arg1": 17557
+          },
+          "transition": {
+            "schema_version": "discoveryworld-transition-v1",
+            "scenario": "Proteomics",
+            "difficulty": "Easy",
+            "seed": 76,
+            "episode_step": 41,
+            "before_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+            "before_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+            "action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "action_result": {
+              "errors": [],
+              "success": true
+            },
+            "action_succeeded": true,
+            "tick_result": {
+              "errors": [],
+              "success": true
+            },
+            "after_policy_state_sha256": "52fdc39d573a6256c397c522731152da5990ed693d6fa7d44222efaef7142a02",
+            "after_audit_world_sha256": "709ee74051f0cb4552bba6bfe713e5a5d979a9dea190d3def8084607903569ca",
+            "terminal": true,
+            "official_success": true,
+            "runtime_saw_oracle_scorecard": false,
+            "receipt_sha256": "5bde4a0149130ba84de73ea3d2fdd07294d5cb591324d21287e4ee45373a07dc"
+          },
+          "before_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": false,
+                "completedSuccessfully": false
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I moved to (15, 13)."
+          },
+          "after_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": true,
+                "completedSuccessfully": true
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I dropped the flag."
+          }
+        }
+      ],
+      "terminal": true,
+      "official_success": true,
+      "evaluation": {
+        "schema_version": "discoveryworld-evaluation-v1",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 76,
+        "episode_steps": 41,
+        "terminal": true,
+        "official_success": true,
+        "scorecard": [
+          {
+            "taskName": "ProteomicsTaskEasy",
+            "taskDescription": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+            "score": 6,
+            "maxScore": 6,
+            "scoreNormalized": 1.0,
+            "completed": true,
+            "completedSuccessfully": true,
+            "scoreCard": [
+              {
+                "name": "Take proteomics meter",
+                "description": "The proteomics meter has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  16434
+                ],
+                "associatedNotes": "The proteomics meter has been in the inventory of the agent with uuid 16434"
+              },
+              {
+                "name": "Take flag",
+                "description": "The flag has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557
+                ],
+                "associatedNotes": "The flag has been in the inventory of the agent with uuid 15577"
+              },
+              {
+                "name": "Use proteomics meter",
+                "description": "The proteomics meter has been used on each of the 3 different animal types",
+                "maxScore": 3,
+                "score": 3,
+                "completed": true,
+                "associatedUUIDs": [
+                  5697,
+                  6122,
+                  63031
+                ],
+                "associatedNotes": "The following animal types have been investigated: {'prismatic beast', 'animaplant', 'vortisquid'}"
+              },
+              {
+                "name": "Move flag to correct location",
+                "description": "The flag has been moved to the correct location",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557,
+                  43006
+                ],
+                "associatedNotes": "The flag has been placed near the correct statue"
+              }
+            ],
+            "criticalHypotheses": [
+              "When performing a clustering analysis, the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together."
+            ],
+            "criticalQuestions": [
+              "Does it clearly state that the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together?"
+            ]
+          }
+        ],
+        "scorecard_sha256": "2104dd39af87f073fffe44f9ca263e52ec054d18cfa436507e4eafbeac481f59",
+        "policy_runtime_saw_oracle_scorecard": false
+      }
+    },
+    "target_native_myopic": {
+      "matched_fork_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+      "matched_fork_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+      "recovery": [
+        {
+          "recovery_step": 1,
+          "candidate_bundle": [
+            {
+              "action": {
+                "action": "DROP",
+                "arg1": 17557
+              },
+              "target_role": "COMMIT",
+              "prerequisite_probability": 0.9,
+              "positive_effect_probability": 0.95,
+              "information_gain_probability": 0.0,
+              "expected_effect": "Flag dropped west of animaplant statue",
+              "evidence": [
+                {
+                  "kind": "inventory",
+                  "uuid": 17557,
+                  "name": "flag"
+                },
+                {
+                  "kind": "relative_object",
+                  "uuid": 43006,
+                  "name": "statue of an animaplant",
+                  "relation_from_agent": "east",
+                  "distance": 1
+                }
+              ],
+              "reason": "Agent is currently east of animaplant statue, so dropping flag now places it west of the statue as required."
+            }
+          ],
+          "candidate_parse_rejections": [
+            {
+              "index": 0,
+              "error": "ValueError: MOVE_DIRECTION arg1 is not currently movable: ['south', 'west']",
+              "candidate_sha256": "f17062ed68a4321541b1fdc4cdf928f13df694ad492323518e19f1b4f1a54b76"
+            }
+          ],
+          "choice_set_degenerate": true,
+          "grounder_response_sha256": "55c8af567a3c15606feb238d79ff98308e61cf5b04adbab8f93375733beeed54",
+          "grounder_schema_attempts": [
+            {
+              "attempt": 1,
+              "accepted": true,
+              "applicability_complete": true,
+              "cache_hit": false
+            }
+          ],
+          "selection": {
+            "schema_version": "discoveryworld-sokoban-selection-v1",
+            "condition": "target_native_myopic",
+            "source_program_sha256": null,
+            "source_confirmation_sha256": null,
+            "candidate_bundle_sha256": "cf2e0a5ca7fae0f5a9a548dad5ec18088fadd23799a5b89491ad8b3b50ffa370",
+            "selected_candidate_sha256": "2356eac6b8b9a6d385aae52573b7b756226c6ca4f6d2634e6aaac220b0ab1e27",
+            "selected_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "selected_role": "COMMIT",
+            "evidence_supported": true,
+            "target_bound_position": false,
+            "commit_available": true,
+            "positive_commit_effect_witnessed": true,
+            "positive_commit_effect_kind": "DIRECT_PROGRESS_AVAILABLE",
+            "selection_reason": "TARGET_NATIVE_MAX_PREDICTED_IMMEDIATE_EFFECT",
+            "receipt_sha256": "3bdc038a53329f07fc65f689ab4a971bda065edfa73ee2c433f4a69b56ee6da0"
+          },
+          "target_native_realization": {
+            "schema_version": "discoveryworld-local-spatial-realization-v1",
+            "active": false,
+            "reason": "SELECTED_ROLE_IS_NOT_POSITION",
+            "target_was_localized": false,
+            "selected_role": "COMMIT",
+            "grounded_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "realized_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "changed": false,
+            "observed_target_relation": null,
+            "observed_target_distance": null,
+            "compatible_target_vectors": [],
+            "desired_target_vector": null,
+            "current_worst_case_error": null,
+            "move_scores": [],
+            "receipt_sha256": "95ea97a37d6f2a7d34d8f677742c64f0e79d1a959448f737eaf95dac1260328b"
+          },
+          "transition": {
+            "schema_version": "discoveryworld-transition-v1",
+            "scenario": "Proteomics",
+            "difficulty": "Easy",
+            "seed": 76,
+            "episode_step": 41,
+            "before_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+            "before_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+            "action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "action_result": {
+              "errors": [],
+              "success": true
+            },
+            "action_succeeded": true,
+            "tick_result": {
+              "errors": [],
+              "success": true
+            },
+            "after_policy_state_sha256": "52fdc39d573a6256c397c522731152da5990ed693d6fa7d44222efaef7142a02",
+            "after_audit_world_sha256": "709ee74051f0cb4552bba6bfe713e5a5d979a9dea190d3def8084607903569ca",
+            "terminal": true,
+            "official_success": true,
+            "runtime_saw_oracle_scorecard": false,
+            "receipt_sha256": "5bde4a0149130ba84de73ea3d2fdd07294d5cb591324d21287e4ee45373a07dc"
+          },
+          "before_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": false,
+                "completedSuccessfully": false
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I moved to (15, 13)."
+          },
+          "after_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": true,
+                "completedSuccessfully": true
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I dropped the flag."
+          }
+        }
+      ],
+      "terminal": true,
+      "official_success": true,
+      "evaluation": {
+        "schema_version": "discoveryworld-evaluation-v1",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 76,
+        "episode_steps": 41,
+        "terminal": true,
+        "official_success": true,
+        "scorecard": [
+          {
+            "taskName": "ProteomicsTaskEasy",
+            "taskDescription": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+            "score": 6,
+            "maxScore": 6,
+            "scoreNormalized": 1.0,
+            "completed": true,
+            "completedSuccessfully": true,
+            "scoreCard": [
+              {
+                "name": "Take proteomics meter",
+                "description": "The proteomics meter has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  16434
+                ],
+                "associatedNotes": "The proteomics meter has been in the inventory of the agent with uuid 16434"
+              },
+              {
+                "name": "Take flag",
+                "description": "The flag has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557
+                ],
+                "associatedNotes": "The flag has been in the inventory of the agent with uuid 15577"
+              },
+              {
+                "name": "Use proteomics meter",
+                "description": "The proteomics meter has been used on each of the 3 different animal types",
+                "maxScore": 3,
+                "score": 3,
+                "completed": true,
+                "associatedUUIDs": [
+                  5697,
+                  6122,
+                  63031
+                ],
+                "associatedNotes": "The following animal types have been investigated: {'prismatic beast', 'animaplant', 'vortisquid'}"
+              },
+              {
+                "name": "Move flag to correct location",
+                "description": "The flag has been moved to the correct location",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557,
+                  43006
+                ],
+                "associatedNotes": "The flag has been placed near the correct statue"
+              }
+            ],
+            "criticalHypotheses": [
+              "When performing a clustering analysis, the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together."
+            ],
+            "criticalQuestions": [
+              "Does it clearly state that the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together?"
+            ]
+          }
+        ],
+        "scorecard_sha256": "2104dd39af87f073fffe44f9ca263e52ec054d18cfa436507e4eafbeac481f59",
+        "policy_runtime_saw_oracle_scorecard": false
+      },
+      "runtime_error": null
+    },
+    "authentic_sokoban_effect_plus_target": {
+      "matched_fork_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+      "matched_fork_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+      "recovery": [
+        {
+          "recovery_step": 1,
+          "candidate_bundle": [
+            {
+              "action": {
+                "action": "DROP",
+                "arg1": 17557
+              },
+              "target_role": "COMMIT",
+              "prerequisite_probability": 0.9,
+              "positive_effect_probability": 0.95,
+              "information_gain_probability": 0.0,
+              "expected_effect": "Flag dropped west of animaplant statue",
+              "evidence": [
+                {
+                  "kind": "inventory",
+                  "uuid": 17557,
+                  "name": "flag"
+                },
+                {
+                  "kind": "relative_object",
+                  "uuid": 43006,
+                  "name": "statue of an animaplant",
+                  "relation_from_agent": "east",
+                  "distance": 1
+                }
+              ],
+              "reason": "Agent is currently east of animaplant statue, so dropping flag now places it west of the statue as required."
+            }
+          ],
+          "candidate_parse_rejections": [
+            {
+              "index": 0,
+              "error": "ValueError: MOVE_DIRECTION arg1 is not currently movable: ['south', 'west']",
+              "candidate_sha256": "f17062ed68a4321541b1fdc4cdf928f13df694ad492323518e19f1b4f1a54b76"
+            }
+          ],
+          "choice_set_degenerate": true,
+          "grounder_response_sha256": "55c8af567a3c15606feb238d79ff98308e61cf5b04adbab8f93375733beeed54",
+          "grounder_schema_attempts": [
+            {
+              "attempt": 1,
+              "accepted": true,
+              "applicability_complete": true,
+              "cache_hit": true
+            }
+          ],
+          "selection": {
+            "schema_version": "discoveryworld-sokoban-selection-v1",
+            "condition": "authentic_sokoban_effect_plus_target",
+            "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+            "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+            "candidate_bundle_sha256": "cf2e0a5ca7fae0f5a9a548dad5ec18088fadd23799a5b89491ad8b3b50ffa370",
+            "selected_candidate_sha256": "2356eac6b8b9a6d385aae52573b7b756226c6ca4f6d2634e6aaac220b0ab1e27",
+            "selected_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "selected_role": "COMMIT",
+            "evidence_supported": true,
+            "target_bound_position": false,
+            "commit_available": true,
+            "positive_commit_effect_witnessed": true,
+            "positive_commit_effect_kind": "DIRECT_PROGRESS_AVAILABLE",
+            "selection_reason": "SOURCE_POSITIVE_COMMIT_EFFECT_THEN_COMMIT_AND_VERIFY",
+            "receipt_sha256": "f5844bd1fb7a224d87eecb95c67e018550f3f948a2d21f0e2c8567dc4161aeaa"
+          },
+          "target_native_realization": {
+            "schema_version": "discoveryworld-local-spatial-realization-v1",
+            "active": false,
+            "reason": "SELECTED_ROLE_IS_NOT_POSITION",
+            "target_was_localized": false,
+            "selected_role": "COMMIT",
+            "grounded_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "realized_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "changed": false,
+            "observed_target_relation": null,
+            "observed_target_distance": null,
+            "compatible_target_vectors": [],
+            "desired_target_vector": null,
+            "current_worst_case_error": null,
+            "move_scores": [],
+            "receipt_sha256": "95ea97a37d6f2a7d34d8f677742c64f0e79d1a959448f737eaf95dac1260328b"
+          },
+          "transition": {
+            "schema_version": "discoveryworld-transition-v1",
+            "scenario": "Proteomics",
+            "difficulty": "Easy",
+            "seed": 76,
+            "episode_step": 41,
+            "before_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+            "before_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+            "action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "action_result": {
+              "errors": [],
+              "success": true
+            },
+            "action_succeeded": true,
+            "tick_result": {
+              "errors": [],
+              "success": true
+            },
+            "after_policy_state_sha256": "52fdc39d573a6256c397c522731152da5990ed693d6fa7d44222efaef7142a02",
+            "after_audit_world_sha256": "709ee74051f0cb4552bba6bfe713e5a5d979a9dea190d3def8084607903569ca",
+            "terminal": true,
+            "official_success": true,
+            "runtime_saw_oracle_scorecard": false,
+            "receipt_sha256": "5bde4a0149130ba84de73ea3d2fdd07294d5cb591324d21287e4ee45373a07dc"
+          },
+          "before_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": false,
+                "completedSuccessfully": false
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I moved to (15, 13)."
+          },
+          "after_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": true,
+                "completedSuccessfully": true
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I dropped the flag."
+          }
+        }
+      ],
+      "terminal": true,
+      "official_success": true,
+      "evaluation": {
+        "schema_version": "discoveryworld-evaluation-v1",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 76,
+        "episode_steps": 41,
+        "terminal": true,
+        "official_success": true,
+        "scorecard": [
+          {
+            "taskName": "ProteomicsTaskEasy",
+            "taskDescription": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+            "score": 6,
+            "maxScore": 6,
+            "scoreNormalized": 1.0,
+            "completed": true,
+            "completedSuccessfully": true,
+            "scoreCard": [
+              {
+                "name": "Take proteomics meter",
+                "description": "The proteomics meter has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  16434
+                ],
+                "associatedNotes": "The proteomics meter has been in the inventory of the agent with uuid 16434"
+              },
+              {
+                "name": "Take flag",
+                "description": "The flag has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557
+                ],
+                "associatedNotes": "The flag has been in the inventory of the agent with uuid 15577"
+              },
+              {
+                "name": "Use proteomics meter",
+                "description": "The proteomics meter has been used on each of the 3 different animal types",
+                "maxScore": 3,
+                "score": 3,
+                "completed": true,
+                "associatedUUIDs": [
+                  5697,
+                  6122,
+                  63031
+                ],
+                "associatedNotes": "The following animal types have been investigated: {'prismatic beast', 'animaplant', 'vortisquid'}"
+              },
+              {
+                "name": "Move flag to correct location",
+                "description": "The flag has been moved to the correct location",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557,
+                  43006
+                ],
+                "associatedNotes": "The flag has been placed near the correct statue"
+              }
+            ],
+            "criticalHypotheses": [
+              "When performing a clustering analysis, the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together."
+            ],
+            "criticalQuestions": [
+              "Does it clearly state that the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together?"
+            ]
+          }
+        ],
+        "scorecard_sha256": "2104dd39af87f073fffe44f9ca263e52ec054d18cfa436507e4eafbeac481f59",
+        "policy_runtime_saw_oracle_scorecard": false
+      },
+      "runtime_error": null
+    },
+    "commit_availability_control_plus_target": {
+      "matched_fork_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+      "matched_fork_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+      "recovery": [
+        {
+          "recovery_step": 1,
+          "candidate_bundle": [
+            {
+              "action": {
+                "action": "DROP",
+                "arg1": 17557
+              },
+              "target_role": "COMMIT",
+              "prerequisite_probability": 0.9,
+              "positive_effect_probability": 0.95,
+              "information_gain_probability": 0.0,
+              "expected_effect": "Flag dropped west of animaplant statue",
+              "evidence": [
+                {
+                  "kind": "inventory",
+                  "uuid": 17557,
+                  "name": "flag"
+                },
+                {
+                  "kind": "relative_object",
+                  "uuid": 43006,
+                  "name": "statue of an animaplant",
+                  "relation_from_agent": "east",
+                  "distance": 1
+                }
+              ],
+              "reason": "Agent is currently east of animaplant statue, so dropping flag now places it west of the statue as required."
+            }
+          ],
+          "candidate_parse_rejections": [
+            {
+              "index": 0,
+              "error": "ValueError: MOVE_DIRECTION arg1 is not currently movable: ['south', 'west']",
+              "candidate_sha256": "f17062ed68a4321541b1fdc4cdf928f13df694ad492323518e19f1b4f1a54b76"
+            }
+          ],
+          "choice_set_degenerate": true,
+          "grounder_response_sha256": "55c8af567a3c15606feb238d79ff98308e61cf5b04adbab8f93375733beeed54",
+          "grounder_schema_attempts": [
+            {
+              "attempt": 1,
+              "accepted": true,
+              "applicability_complete": true,
+              "cache_hit": true
+            }
+          ],
+          "selection": {
+            "schema_version": "discoveryworld-sokoban-selection-v1",
+            "condition": "commit_availability_control_plus_target",
+            "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+            "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+            "candidate_bundle_sha256": "cf2e0a5ca7fae0f5a9a548dad5ec18088fadd23799a5b89491ad8b3b50ffa370",
+            "selected_candidate_sha256": "2356eac6b8b9a6d385aae52573b7b756226c6ca4f6d2634e6aaac220b0ab1e27",
+            "selected_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "selected_role": "COMMIT",
+            "evidence_supported": true,
+            "target_bound_position": false,
+            "commit_available": true,
+            "positive_commit_effect_witnessed": true,
+            "positive_commit_effect_kind": "DIRECT_PROGRESS_AVAILABLE",
+            "selection_reason": "CONTROL_COMMIT_AVAILABILITY_WITHOUT_POSITIVE_EFFECT_GUARD",
+            "receipt_sha256": "eaf1a4890ef999ce2abfb431351ba57b46c71174a09f8137ffa98da6871bf472"
+          },
+          "target_native_realization": {
+            "schema_version": "discoveryworld-local-spatial-realization-v1",
+            "active": false,
+            "reason": "SELECTED_ROLE_IS_NOT_POSITION",
+            "target_was_localized": false,
+            "selected_role": "COMMIT",
+            "grounded_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "realized_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "changed": false,
+            "observed_target_relation": null,
+            "observed_target_distance": null,
+            "compatible_target_vectors": [],
+            "desired_target_vector": null,
+            "current_worst_case_error": null,
+            "move_scores": [],
+            "receipt_sha256": "95ea97a37d6f2a7d34d8f677742c64f0e79d1a959448f737eaf95dac1260328b"
+          },
+          "transition": {
+            "schema_version": "discoveryworld-transition-v1",
+            "scenario": "Proteomics",
+            "difficulty": "Easy",
+            "seed": 76,
+            "episode_step": 41,
+            "before_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+            "before_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+            "action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "action_result": {
+              "errors": [],
+              "success": true
+            },
+            "action_succeeded": true,
+            "tick_result": {
+              "errors": [],
+              "success": true
+            },
+            "after_policy_state_sha256": "52fdc39d573a6256c397c522731152da5990ed693d6fa7d44222efaef7142a02",
+            "after_audit_world_sha256": "709ee74051f0cb4552bba6bfe713e5a5d979a9dea190d3def8084607903569ca",
+            "terminal": true,
+            "official_success": true,
+            "runtime_saw_oracle_scorecard": false,
+            "receipt_sha256": "5bde4a0149130ba84de73ea3d2fdd07294d5cb591324d21287e4ee45373a07dc"
+          },
+          "before_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": false,
+                "completedSuccessfully": false
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I moved to (15, 13)."
+          },
+          "after_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": true,
+                "completedSuccessfully": true
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I dropped the flag."
+          }
+        }
+      ],
+      "terminal": true,
+      "official_success": true,
+      "evaluation": {
+        "schema_version": "discoveryworld-evaluation-v1",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 76,
+        "episode_steps": 41,
+        "terminal": true,
+        "official_success": true,
+        "scorecard": [
+          {
+            "taskName": "ProteomicsTaskEasy",
+            "taskDescription": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+            "score": 6,
+            "maxScore": 6,
+            "scoreNormalized": 1.0,
+            "completed": true,
+            "completedSuccessfully": true,
+            "scoreCard": [
+              {
+                "name": "Take proteomics meter",
+                "description": "The proteomics meter has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  16434
+                ],
+                "associatedNotes": "The proteomics meter has been in the inventory of the agent with uuid 16434"
+              },
+              {
+                "name": "Take flag",
+                "description": "The flag has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557
+                ],
+                "associatedNotes": "The flag has been in the inventory of the agent with uuid 15577"
+              },
+              {
+                "name": "Use proteomics meter",
+                "description": "The proteomics meter has been used on each of the 3 different animal types",
+                "maxScore": 3,
+                "score": 3,
+                "completed": true,
+                "associatedUUIDs": [
+                  5697,
+                  6122,
+                  63031
+                ],
+                "associatedNotes": "The following animal types have been investigated: {'prismatic beast', 'animaplant', 'vortisquid'}"
+              },
+              {
+                "name": "Move flag to correct location",
+                "description": "The flag has been moved to the correct location",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557,
+                  43006
+                ],
+                "associatedNotes": "The flag has been placed near the correct statue"
+              }
+            ],
+            "criticalHypotheses": [
+              "When performing a clustering analysis, the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together."
+            ],
+            "criticalQuestions": [
+              "Does it clearly state that the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together?"
+            ]
+          }
+        ],
+        "scorecard_sha256": "2104dd39af87f073fffe44f9ca263e52ec054d18cfa436507e4eafbeac481f59",
+        "policy_runtime_saw_oracle_scorecard": false
+      },
+      "runtime_error": null
+    },
+    "inverted_effect_control_plus_target": {
+      "matched_fork_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+      "matched_fork_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+      "recovery": [
+        {
+          "recovery_step": 1,
+          "candidate_bundle": [
+            {
+              "action": {
+                "action": "DROP",
+                "arg1": 17557
+              },
+              "target_role": "COMMIT",
+              "prerequisite_probability": 0.9,
+              "positive_effect_probability": 0.95,
+              "information_gain_probability": 0.0,
+              "expected_effect": "Flag dropped west of animaplant statue",
+              "evidence": [
+                {
+                  "kind": "inventory",
+                  "uuid": 17557,
+                  "name": "flag"
+                },
+                {
+                  "kind": "relative_object",
+                  "uuid": 43006,
+                  "name": "statue of an animaplant",
+                  "relation_from_agent": "east",
+                  "distance": 1
+                }
+              ],
+              "reason": "Agent is currently east of animaplant statue, so dropping flag now places it west of the statue as required."
+            }
+          ],
+          "candidate_parse_rejections": [
+            {
+              "index": 0,
+              "error": "ValueError: MOVE_DIRECTION arg1 is not currently movable: ['south', 'west']",
+              "candidate_sha256": "f17062ed68a4321541b1fdc4cdf928f13df694ad492323518e19f1b4f1a54b76"
+            }
+          ],
+          "choice_set_degenerate": true,
+          "grounder_response_sha256": "55c8af567a3c15606feb238d79ff98308e61cf5b04adbab8f93375733beeed54",
+          "grounder_schema_attempts": [
+            {
+              "attempt": 1,
+              "accepted": true,
+              "applicability_complete": true,
+              "cache_hit": true
+            }
+          ],
+          "selection": {
+            "schema_version": "discoveryworld-sokoban-selection-v1",
+            "condition": "inverted_effect_control_plus_target",
+            "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+            "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+            "candidate_bundle_sha256": "cf2e0a5ca7fae0f5a9a548dad5ec18088fadd23799a5b89491ad8b3b50ffa370",
+            "selected_candidate_sha256": "2356eac6b8b9a6d385aae52573b7b756226c6ca4f6d2634e6aaac220b0ab1e27",
+            "selected_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "selected_role": "COMMIT",
+            "evidence_supported": true,
+            "target_bound_position": false,
+            "commit_available": true,
+            "positive_commit_effect_witnessed": true,
+            "positive_commit_effect_kind": "DIRECT_PROGRESS_AVAILABLE",
+            "selection_reason": "CONTROL_INVERTED_POSITIVE_EFFECT_GUARD",
+            "receipt_sha256": "3ad7e91d6c5dd1c44955a0bf4eae824e412534534ea88cc245e50cf5f502306b"
+          },
+          "target_native_realization": {
+            "schema_version": "discoveryworld-local-spatial-realization-v1",
+            "active": false,
+            "reason": "SELECTED_ROLE_IS_NOT_POSITION",
+            "target_was_localized": false,
+            "selected_role": "COMMIT",
+            "grounded_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "realized_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "changed": false,
+            "observed_target_relation": null,
+            "observed_target_distance": null,
+            "compatible_target_vectors": [],
+            "desired_target_vector": null,
+            "current_worst_case_error": null,
+            "move_scores": [],
+            "receipt_sha256": "95ea97a37d6f2a7d34d8f677742c64f0e79d1a959448f737eaf95dac1260328b"
+          },
+          "transition": {
+            "schema_version": "discoveryworld-transition-v1",
+            "scenario": "Proteomics",
+            "difficulty": "Easy",
+            "seed": 76,
+            "episode_step": 41,
+            "before_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+            "before_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+            "action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "action_result": {
+              "errors": [],
+              "success": true
+            },
+            "action_succeeded": true,
+            "tick_result": {
+              "errors": [],
+              "success": true
+            },
+            "after_policy_state_sha256": "52fdc39d573a6256c397c522731152da5990ed693d6fa7d44222efaef7142a02",
+            "after_audit_world_sha256": "709ee74051f0cb4552bba6bfe713e5a5d979a9dea190d3def8084607903569ca",
+            "terminal": true,
+            "official_success": true,
+            "runtime_saw_oracle_scorecard": false,
+            "receipt_sha256": "5bde4a0149130ba84de73ea3d2fdd07294d5cb591324d21287e4ee45373a07dc"
+          },
+          "before_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": false,
+                "completedSuccessfully": false
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I moved to (15, 13)."
+          },
+          "after_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": true,
+                "completedSuccessfully": true
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I dropped the flag."
+          }
+        }
+      ],
+      "terminal": true,
+      "official_success": true,
+      "evaluation": {
+        "schema_version": "discoveryworld-evaluation-v1",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 76,
+        "episode_steps": 41,
+        "terminal": true,
+        "official_success": true,
+        "scorecard": [
+          {
+            "taskName": "ProteomicsTaskEasy",
+            "taskDescription": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+            "score": 6,
+            "maxScore": 6,
+            "scoreNormalized": 1.0,
+            "completed": true,
+            "completedSuccessfully": true,
+            "scoreCard": [
+              {
+                "name": "Take proteomics meter",
+                "description": "The proteomics meter has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  16434
+                ],
+                "associatedNotes": "The proteomics meter has been in the inventory of the agent with uuid 16434"
+              },
+              {
+                "name": "Take flag",
+                "description": "The flag has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557
+                ],
+                "associatedNotes": "The flag has been in the inventory of the agent with uuid 15577"
+              },
+              {
+                "name": "Use proteomics meter",
+                "description": "The proteomics meter has been used on each of the 3 different animal types",
+                "maxScore": 3,
+                "score": 3,
+                "completed": true,
+                "associatedUUIDs": [
+                  5697,
+                  6122,
+                  63031
+                ],
+                "associatedNotes": "The following animal types have been investigated: {'prismatic beast', 'animaplant', 'vortisquid'}"
+              },
+              {
+                "name": "Move flag to correct location",
+                "description": "The flag has been moved to the correct location",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557,
+                  43006
+                ],
+                "associatedNotes": "The flag has been placed near the correct statue"
+              }
+            ],
+            "criticalHypotheses": [
+              "When performing a clustering analysis, the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together."
+            ],
+            "criticalQuestions": [
+              "Does it clearly state that the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together?"
+            ]
+          }
+        ],
+        "scorecard_sha256": "2104dd39af87f073fffe44f9ca263e52ec054d18cfa436507e4eafbeac481f59",
+        "policy_runtime_saw_oracle_scorecard": false
+      },
+      "runtime_error": null
+    },
+    "position_prior_control_plus_target": {
+      "matched_fork_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+      "matched_fork_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+      "recovery": [
+        {
+          "recovery_step": 1,
+          "candidate_bundle": [
+            {
+              "action": {
+                "action": "DROP",
+                "arg1": 17557
+              },
+              "target_role": "COMMIT",
+              "prerequisite_probability": 0.9,
+              "positive_effect_probability": 0.95,
+              "information_gain_probability": 0.0,
+              "expected_effect": "Flag dropped west of animaplant statue",
+              "evidence": [
+                {
+                  "kind": "inventory",
+                  "uuid": 17557,
+                  "name": "flag"
+                },
+                {
+                  "kind": "relative_object",
+                  "uuid": 43006,
+                  "name": "statue of an animaplant",
+                  "relation_from_agent": "east",
+                  "distance": 1
+                }
+              ],
+              "reason": "Agent is currently east of animaplant statue, so dropping flag now places it west of the statue as required."
+            }
+          ],
+          "candidate_parse_rejections": [
+            {
+              "index": 0,
+              "error": "ValueError: MOVE_DIRECTION arg1 is not currently movable: ['south', 'west']",
+              "candidate_sha256": "f17062ed68a4321541b1fdc4cdf928f13df694ad492323518e19f1b4f1a54b76"
+            }
+          ],
+          "choice_set_degenerate": true,
+          "grounder_response_sha256": "55c8af567a3c15606feb238d79ff98308e61cf5b04adbab8f93375733beeed54",
+          "grounder_schema_attempts": [
+            {
+              "attempt": 1,
+              "accepted": true,
+              "applicability_complete": true,
+              "cache_hit": true
+            }
+          ],
+          "selection": {
+            "schema_version": "discoveryworld-sokoban-selection-v1",
+            "condition": "position_prior_control_plus_target",
+            "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+            "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+            "candidate_bundle_sha256": "cf2e0a5ca7fae0f5a9a548dad5ec18088fadd23799a5b89491ad8b3b50ffa370",
+            "selected_candidate_sha256": "2356eac6b8b9a6d385aae52573b7b756226c6ca4f6d2634e6aaac220b0ab1e27",
+            "selected_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "selected_role": "COMMIT",
+            "evidence_supported": true,
+            "target_bound_position": false,
+            "commit_available": true,
+            "positive_commit_effect_witnessed": true,
+            "positive_commit_effect_kind": "DIRECT_PROGRESS_AVAILABLE",
+            "selection_reason": "CONTROL_ALWAYS_POSITION_WHEN_AVAILABLE",
+            "receipt_sha256": "320e6952efb1fd68fe5853f6e5c8cf04dfc4eeee4597d92700023b93b0aeaa73"
+          },
+          "target_native_realization": {
+            "schema_version": "discoveryworld-local-spatial-realization-v1",
+            "active": false,
+            "reason": "SELECTED_ROLE_IS_NOT_POSITION",
+            "target_was_localized": false,
+            "selected_role": "COMMIT",
+            "grounded_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "realized_action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "changed": false,
+            "observed_target_relation": null,
+            "observed_target_distance": null,
+            "compatible_target_vectors": [],
+            "desired_target_vector": null,
+            "current_worst_case_error": null,
+            "move_scores": [],
+            "receipt_sha256": "95ea97a37d6f2a7d34d8f677742c64f0e79d1a959448f737eaf95dac1260328b"
+          },
+          "transition": {
+            "schema_version": "discoveryworld-transition-v1",
+            "scenario": "Proteomics",
+            "difficulty": "Easy",
+            "seed": 76,
+            "episode_step": 41,
+            "before_policy_state_sha256": "442bceab317d5520f6d6483593dd42593b041b1134741d4a728d3167eee7a961",
+            "before_audit_world_sha256": "c95f2c398bae98c8e977bdfba8216fc12e7b70c2c993589de7f15f992be57ad9",
+            "action": {
+              "action": "DROP",
+              "arg1": 17557
+            },
+            "action_result": {
+              "errors": [],
+              "success": true
+            },
+            "action_succeeded": true,
+            "tick_result": {
+              "errors": [],
+              "success": true
+            },
+            "after_policy_state_sha256": "52fdc39d573a6256c397c522731152da5990ed693d6fa7d44222efaef7142a02",
+            "after_audit_world_sha256": "709ee74051f0cb4552bba6bfe713e5a5d979a9dea190d3def8084607903569ca",
+            "terminal": true,
+            "official_success": true,
+            "runtime_saw_oracle_scorecard": false,
+            "receipt_sha256": "5bde4a0149130ba84de73ea3d2fdd07294d5cb591324d21287e4ee45373a07dc"
+          },
+          "before_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": false,
+                "completedSuccessfully": false
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I moved to (15, 13)."
+          },
+          "after_target_native_facts": {
+            "agent_location": {
+              "x": 15,
+              "y": 13,
+              "faceDirection": "east",
+              "directions_you_can_move": [
+                "south",
+                "west"
+              ],
+              "directions_blocked": [
+                "north",
+                "east"
+              ]
+            },
+            "inventory": [
+              {
+                "uuid": 16434,
+                "name": "proteomics meter",
+                "description": "proteomics meter (on agent [uuid: 15577])"
+              }
+            ],
+            "accessible_objects": [
+              {
+                "uuid": 2056,
+                "name": "floor",
+                "description": "floor"
+              },
+              {
+                "uuid": 17557,
+                "name": "flag",
+                "description": "flag"
+              },
+              {
+                "uuid": 43006,
+                "name": "statue of an animaplant",
+                "description": "statue of an animaplant"
+              },
+              {
+                "uuid": 46461,
+                "name": "floor",
+                "description": "floor"
+              }
+            ],
+            "salient_relative_objects": [
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 15577,
+                "name": "agent"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 16434,
+                "name": "proteomics meter"
+              },
+              {
+                "relation_from_agent": "same_location",
+                "distance": 0,
+                "uuid": 17557,
+                "name": "flag"
+              },
+              {
+                "relation_from_agent": "east",
+                "distance": 1,
+                "uuid": 43006,
+                "name": "statue of an animaplant"
+              },
+              {
+                "relation_from_agent": "west",
+                "distance": 1,
+                "uuid": 6122,
+                "name": "prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 2,
+                "uuid": 52178,
+                "name": "statue of a vortisquid"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 2,
+                "uuid": 5697,
+                "name": "vortisquid"
+              },
+              {
+                "relation_from_agent": "south-east",
+                "distance": 3,
+                "uuid": 3185,
+                "name": "statue of a prismatic beast"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 3,
+                "uuid": 63031,
+                "name": "animaplant"
+              },
+              {
+                "relation_from_agent": "south-west",
+                "distance": 4,
+                "uuid": 21353,
+                "name": "table"
+              }
+            ],
+            "task_progress": [
+              {
+                "taskName": "ProteomicsTaskEasy",
+                "description": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+                "completed": true,
+                "completedSuccessfully": true
+              }
+            ],
+            "teleport_location_names": [
+              "Animal Area 1",
+              "Animal Area 2",
+              "Animal Area 3",
+              "Instrument Table",
+              "Statue of a echojelly",
+              "Statue of a spheroid",
+              "Statue of a vortisquid"
+            ],
+            "last_action_message": "I dropped the flag."
+          }
+        }
+      ],
+      "terminal": true,
+      "official_success": true,
+      "evaluation": {
+        "schema_version": "discoveryworld-evaluation-v1",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 76,
+        "episode_steps": 41,
+        "terminal": true,
+        "official_success": true,
+        "scorecard": [
+          {
+            "taskName": "ProteomicsTaskEasy",
+            "taskDescription": "You are in a biological preserve on Planet X, that has 3 different animal species. We suspect that one of these animal species is not native to the area, but migrated from an isolated island in the recent past. Your task is to use the proteomics meter to analyze the proteins of each of the 3 animal species, which can be found in the research building you're in, and determine which species is the anomoly. Once you have completed your task, drop the red flag directly beside (i.e. one square left/to the west) the statue of the animal species that is the anomoly.",
+            "score": 6,
+            "maxScore": 6,
+            "scoreNormalized": 1.0,
+            "completed": true,
+            "completedSuccessfully": true,
+            "scoreCard": [
+              {
+                "name": "Take proteomics meter",
+                "description": "The proteomics meter has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  16434
+                ],
+                "associatedNotes": "The proteomics meter has been in the inventory of the agent with uuid 16434"
+              },
+              {
+                "name": "Take flag",
+                "description": "The flag has been in an agent's inventory",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557
+                ],
+                "associatedNotes": "The flag has been in the inventory of the agent with uuid 15577"
+              },
+              {
+                "name": "Use proteomics meter",
+                "description": "The proteomics meter has been used on each of the 3 different animal types",
+                "maxScore": 3,
+                "score": 3,
+                "completed": true,
+                "associatedUUIDs": [
+                  5697,
+                  6122,
+                  63031
+                ],
+                "associatedNotes": "The following animal types have been investigated: {'prismatic beast', 'animaplant', 'vortisquid'}"
+              },
+              {
+                "name": "Move flag to correct location",
+                "description": "The flag has been moved to the correct location",
+                "maxScore": 1,
+                "score": 1,
+                "completed": true,
+                "associatedUUIDs": [
+                  17557,
+                  43006
+                ],
+                "associatedNotes": "The flag has been placed near the correct statue"
+              }
+            ],
+            "criticalHypotheses": [
+              "When performing a clustering analysis, the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together."
+            ],
+            "criticalQuestions": [
+              "Does it clearly state that the animaplant has proteomics values that appear to be outliers compared to the other animals, whose proteomics values all cluster together?"
+            ]
+          }
+        ],
+        "scorecard_sha256": "2104dd39af87f073fffe44f9ca263e52ec054d18cfa436507e4eafbeac481f59",
+        "policy_runtime_saw_oracle_scorecard": false
+      },
+      "runtime_error": null
+    }
+  },
+  "all_matched_forks": true,
+  "all_selection_receipts_valid": true,
+  "policy_runtime_saw_oracle_scorecard": false,
+  "result_sha256": "feaea692ca653337c057ed5465da2cee95086bf0586c222fd1b988b92ef4dbdf"
+}

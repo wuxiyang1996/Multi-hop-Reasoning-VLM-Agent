@@ -1,0 +1,65 @@
+{
+  "schema_version": "phase2-discoveryworld-selective-cell-v2",
+  "manifest_sha256": "36e9fbb35836bd1e4a0d51fa3a305b598534c617b6d53a74671f8bbb2c779afa",
+  "task_id": "proteomics.easy.seed45",
+  "source_game": "tetris",
+  "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+  "applicable": true,
+  "abstention_rule": null,
+  "outcomes": {
+    "target_native_myopic": true,
+    "authentic_sokoban_effect_plus_target": true,
+    "commit_availability_control_plus_target": false,
+    "inverted_effect_control_plus_target": false,
+    "position_prior_control_plus_target": false
+  },
+  "recovery_steps": {
+    "target_native_myopic": 2,
+    "authentic_sokoban_effect_plus_target": 2,
+    "commit_availability_control_plus_target": 8,
+    "inverted_effect_control_plus_target": 8,
+    "position_prior_control_plus_target": 8
+  },
+  "authentic_source_routes": [
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed45",
+      "decision_index": 0,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "58d33ca73ab473e09b6935c757f0700aac4a21f745b18a017d3a3d41c32e82e0",
+      "native_action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 43006
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "target_evidence_sha256": "49bc15c75843e3146cb74bc4c052717fab58401d36aade7a32f7d374b8594098",
+      "receipt_sha256": "7658e13d35d9c2f8be4a4e65527e969487a214b8a39d110c70a0df8cbfe031dc"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed45",
+      "decision_index": 1,
+      "target_event": "ACTIVE_CANDIDATE_VERIFIED",
+      "source_action": "COMMIT_VERIFY",
+      "native_action_id": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "native_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "target_evidence_sha256": "24533fd82a41f7f2c6f8bd514d8e01d31324e192bbafc2713319c83fba903b79",
+      "receipt_sha256": "34b763071984c8e2772d007f2c104d59984413e5a8882d4055b4b1f0703f550a"
+    }
+  ],
+  "matched_result_file_sha256": "e996689d27c2dd37a81ede4623d6482f2504d4cca5813f10a28e8b230d36a303",
+  "all_matched_forks": true,
+  "all_selection_receipts_valid": true,
+  "policy_runtime_saw_oracle_scorecard": false,
+  "runtime_error": null,
+  "cell_sha256": "c464f15cee4c02b664d3c95d5fe3e61da986fb695fb574b0cc12e60bf9f87bff"
+}
