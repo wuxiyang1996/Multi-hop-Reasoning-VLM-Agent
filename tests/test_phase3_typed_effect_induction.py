@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from pathlib import Path
 
 from motif_transfer.contracts import stable_hash
 from motif_transfer.phase3_typed_effect_induction import (
@@ -9,6 +10,7 @@ from motif_transfer.phase3_typed_effect_induction import (
     PERSISTENCE_EFFECT,
     SHORT_EFFECT,
     induce_typed_effect_program,
+    maximum_typed_program_contrast_derangement,
     target_trial_order,
     typed_intervention_sets_from_rows,
     validate_typed_effect_program,
@@ -155,3 +157,24 @@ def test_tampered_program_is_rejected():
     program["selected_effect_type"] = "SOURCE_NAME"
     with pytest.raises(ValueError, match="hash mismatch"):
         validate_typed_effect_program(program)
+
+
+def test_frozen_six_source_control_is_status_matched_and_source_only():
+    root = Path(__file__).resolve().parents[1]
+    program_dir = (
+        root / "configs/phase3_source_induction_v2/frozen_reserve/programs"
+    )
+    artifacts = {
+        path.stem: json.loads(path.read_text())
+        for path in program_dir.glob("*.json")
+    }
+    mapping = maximum_typed_program_contrast_derangement(artifacts)
+    assert set(mapping) == set(artifacts)
+    assert set(mapping.values()) == set(artifacts)
+    assert all(source != control for source, control in mapping.items())
+    for source, control in mapping.items():
+        assert (
+            artifacts[source]["typed_effect_program"]["status"]
+            == artifacts[control]["typed_effect_program"]["status"]
+        )
+    assert mapping == maximum_typed_program_contrast_derangement(artifacts)

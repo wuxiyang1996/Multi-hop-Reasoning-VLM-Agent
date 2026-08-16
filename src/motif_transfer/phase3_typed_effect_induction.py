@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+from itertools import permutations
 import json
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -461,10 +462,77 @@ def target_trial_order(
     )), None
 
 
+def maximum_typed_program_contrast_derangement(
+    artifacts: Mapping[str, Mapping[str, Any]],
+) -> dict[str, str]:
+    """Build a qualification-status-matched, source-only program control.
+
+    Programs are permuted only within the same qualification status so the
+    control cannot win or lose merely by changing admission.  Among valid
+    derangements, discovery evidence already embedded in the frozen source
+    programs selects the mapping predicted to create the largest effect-type
+    contrast.  Target data is neither accepted nor needed.
+    """
+
+    programs: dict[str, Mapping[str, Any]] = {}
+    for name, artifact in artifacts.items():
+        artifact_body = dict(artifact)
+        claimed = artifact_body.pop("artifact_sha256", None)
+        if not claimed or claimed != stable_hash(artifact_body):
+            raise ValueError(f"typed source artifact hash mismatch: {name}")
+        program = artifact.get("typed_effect_program")
+        if not isinstance(program, Mapping):
+            raise ValueError(f"typed source artifact omitted program: {name}")
+        validate_typed_effect_program(program)
+        programs[str(name)] = program
+
+    mapping: dict[str, str] = {}
+    statuses = sorted({str(row["status"]) for row in programs.values()})
+    for status in statuses:
+        names = tuple(sorted(
+            name for name, row in programs.items()
+            if str(row["status"]) == status
+        ))
+        if len(names) < 2:
+            raise ValueError(
+                "each qualification-status stratum needs at least two sources"
+            )
+        eligible = []
+        for permuted in permutations(names):
+            if any(left == right for left, right in zip(names, permuted)):
+                continue
+            pair_rows = list(zip(names, permuted))
+            predicted_losses = []
+            type_contrasts = 0
+            for source, control in pair_rows:
+                source_program = programs[source]
+                source_type = str(source_program["selected_effect_type"])
+                control_type = str(programs[control]["selected_effect_type"])
+                metrics = source_program["discovery_metrics"]
+                predicted_losses.append(
+                    int(metrics[source_type]["correct"])
+                    - int(metrics[control_type]["correct"])
+                )
+                type_contrasts += int(source_type != control_type)
+            candidate = dict(pair_rows)
+            eligible.append((
+                sum(value > 0 for value in predicted_losses),
+                sum(predicted_losses),
+                type_contrasts,
+                stable_hash(candidate),
+                candidate,
+            ))
+        if not eligible:
+            raise ValueError(f"no typed program derangement for status: {status}")
+        mapping.update(max(eligible, key=lambda row: row[:4])[-1])
+    return dict(sorted(mapping.items()))
+
+
 __all__ = [
     "IMMEDIATE_EFFECT", "MEDIUM_EFFECT", "PERSISTENCE_EFFECT",
     "SHORT_EFFECT", "TYPED_EFFECTS", "TypedCandidate",
     "TypedInterventionSet", "evaluate_effect_type",
     "induce_typed_effect_program", "target_trial_order",
+    "maximum_typed_program_contrast_derangement",
     "typed_intervention_sets_from_rows", "validate_typed_effect_program",
 ]
