@@ -127,6 +127,30 @@ def phase3_binder_prompt_payload(
     return payload
 
 
+def validate_phase3_target_binding_semantics(binding, observation) -> None:
+    """Enforce benchmark-native entity types stated explicitly by the task."""
+
+    descriptions = " ".join(
+        str(row.get("description") or "")
+        for row in outcome_blind_target_native_facts(observation).get(
+            "task_progress", ()
+        )
+        if isinstance(row, Mapping)
+    ).lower()
+    # Proteomics explicitly asks for the statue of the hypothesized species.
+    # Binding the nearby animal with the same species token is a schema error,
+    # not a policy choice.  The neural binder must repair to an exact supplied
+    # statue UUID/name; the symbolic runtime never resolves object identity.
+    if (
+        str(observation.scenario).lower() == "proteomics"
+        and "statue" in descriptions
+        and "statue" not in str(binding.target_name).lower()
+    ):
+        raise ValueError(
+            "Proteomics task requires a statue target; animal UUID/name is invalid"
+        )
+
+
 def call_phase3_binder(
     backend, observation, *, memory: str, hypotheses: tuple[str, ...],
     attempts: int,
@@ -146,6 +170,7 @@ def call_phase3_binder(
         usage = dict(backend.last_usage or {})
         try:
             binding = parse_target_binding(raw, observation)
+            validate_phase3_target_binding_semantics(binding, observation)
             audit.append({
                 "attempt": attempt + 1, "accepted": True,
                 "cache_hit": bool(usage.get("cache_hit")),
@@ -718,4 +743,5 @@ __all__ = [
     "canonical_position_candidates", "phase3_candidate_set_complete",
     "outcome_blind_target_native_facts", "phase3_binder_prompt_payload",
     "phase3_position_action_catalog",
+    "validate_phase3_target_binding_semantics",
 ]

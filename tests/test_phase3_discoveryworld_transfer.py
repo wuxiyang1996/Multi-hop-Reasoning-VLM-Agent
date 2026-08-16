@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from dataclasses import replace
+import pytest
 
 from motif_transfer.discoveryworld_sokoban_transfer import (
     DiscoveryWorldGroundedCandidate,
@@ -21,6 +22,7 @@ from motif_transfer.phase3_discoveryworld_transfer import (
     phase3_candidate_set_complete,
     outcome_blind_target_native_facts,
     phase3_position_action_catalog,
+    validate_phase3_target_binding_semantics,
 )
 
 
@@ -227,6 +229,12 @@ def test_phase3_binder_and_facts_strip_formal_outcome_fields():
     payload_text = json.dumps(backend.payload["target_native_facts"])
     assert "completed" not in payload_text
     assert "score" not in payload_text
+
+    wrong_type = replace(
+        binding, target_uuid=10, target_name="prismatic beast",
+    )
+    with pytest.raises(ValueError, match="requires a statue target"):
+        validate_phase3_target_binding_semantics(wrong_type, observation)
 
 
 def test_phase3_catalog_compiles_only_currently_valid_native_actions():
