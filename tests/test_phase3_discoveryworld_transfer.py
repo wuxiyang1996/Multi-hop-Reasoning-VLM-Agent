@@ -20,6 +20,7 @@ from motif_transfer.phase3_discoveryworld_transfer import (
     call_phase3_grounder,
     canonical_position_candidates,
     phase3_candidate_set_complete,
+    phase3_commit_action_catalog,
     outcome_blind_target_native_facts,
     phase3_position_action_catalog,
     phase3_target_binding_catalog,
@@ -232,6 +233,9 @@ def test_phase3_binder_and_facts_strip_formal_outcome_fields():
     assert required_type == "statue"
     assert catalog == ({"uuid": 9, "name": "statue"},)
     assert backend.payload["phase3_target_binding_catalog"] == list(catalog)
+    commit_catalog = phase3_commit_action_catalog(observation)
+    assert commit_catalog == ({"action": "DROP", "arg1": 7},)
+    assert backend.payload["phase3_commit_action_catalog"] == list(commit_catalog)
     payload_text = json.dumps(backend.payload["target_native_facts"])
     assert "completed" not in payload_text
     assert "score" not in payload_text

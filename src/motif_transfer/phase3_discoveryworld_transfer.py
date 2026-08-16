@@ -82,7 +82,9 @@ PHASE3_TARGET_BINDER_SYSTEM_PROMPT = TARGET_BINDER_SYSTEM_PROMPT + (
     " The payload may contain a phase3_target_binding_catalog compiled from "
     "the task's explicit target object type and current target-native facts. "
     "When present, copy target_uuid and target_name exactly from one catalog "
-    "entry; use the scientific hypothesis only to choose among those entries."
+    "entry; use the scientific hypothesis only to choose among those entries. "
+    "When phase3_commit_action_catalog is present, copy commit_action exactly "
+    "from it; do not replace DROP with PUT or invent a container."
 ) + TRANSPORT_SUFFIX
 
 _FORBIDDEN_OUTCOME_FIELDS = frozenset({
@@ -132,6 +134,9 @@ def phase3_binder_prompt_payload(
     payload["phase3_required_target_object_type"] = required_type
     payload["phase3_target_binding_catalog"] = list(catalog)
     payload["phase3_target_binding_catalog_is_exhaustive"] = bool(required_type)
+    commit_catalog = phase3_commit_action_catalog(observation)
+    payload["phase3_commit_action_catalog"] = list(commit_catalog)
+    payload["phase3_commit_action_catalog_is_exhaustive"] = bool(commit_catalog)
     payload["formal_outcome_fields_visible"] = False
     return payload
 
@@ -168,6 +173,37 @@ def phase3_target_binding_catalog(
     )
 
 
+def phase3_commit_action_catalog(
+    observation,
+) -> tuple[Mapping[str, Any], ...]:
+    """Compile explicit final-action operands from task text and inventory."""
+
+    facts = outcome_blind_target_native_facts(observation)
+    descriptions = " ".join(
+        str(row.get("description") or "")
+        for row in facts.get("task_progress") or ()
+        if isinstance(row, Mapping)
+    ).lower()
+    proposals = []
+    if (
+        str(observation.scenario).lower() == "proteomics"
+        and "drop" in descriptions
+        and "DROP" in observation.known_actions
+    ):
+        for row in facts.get("inventory") or ():
+            if (
+                isinstance(row, Mapping)
+                and isinstance(row.get("uuid"), int)
+                and "flag" in str(row.get("name") or "").lower()
+            ):
+                proposals.append({"action": "DROP", "arg1": int(row["uuid"])})
+    valid = {}
+    for proposal in proposals:
+        action = native_action_from_decision(proposal, observation)
+        valid[stable_hash(action)] = action
+    return tuple(valid[key] for key in sorted(valid))
+
+
 def validate_phase3_target_binding_semantics(binding, observation) -> None:
     """Enforce benchmark-native entity types stated explicitly by the task."""
 
@@ -196,6 +232,11 @@ def validate_phase3_target_binding_semantics(binding, observation) -> None:
     } not in catalog:
         raise ValueError(
             "target UUID/name must be copied from phase3_target_binding_catalog"
+        )
+    commit_catalog = phase3_commit_action_catalog(observation)
+    if commit_catalog and dict(binding.commit_action) not in commit_catalog:
+        raise ValueError(
+            "commit_action must be copied from phase3_commit_action_catalog"
         )
 
 
@@ -792,7 +833,7 @@ __all__ = [
     "TARGET_NATIVE_CEILING", "call_phase3_binder", "call_phase3_grounder",
     "canonical_position_candidates", "phase3_candidate_set_complete",
     "outcome_blind_target_native_facts", "phase3_binder_prompt_payload",
-    "phase3_position_action_catalog",
+    "phase3_commit_action_catalog", "phase3_position_action_catalog",
     "phase3_target_binding_catalog",
     "validate_phase3_target_binding_semantics",
 ]
