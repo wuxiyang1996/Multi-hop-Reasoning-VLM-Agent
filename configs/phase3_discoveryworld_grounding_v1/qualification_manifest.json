@@ -1,0 +1,39 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-freeze-v1",
+  "status": "FROZEN_BEFORE_QUALIFICATION_TASK_RESET",
+  "development_config_path": "configs/phase3_discoveryworld_grounding_v1/development.json",
+  "development_config_file_sha256": "23f8138700b43c351f4d25f4726640344e966f2b6d75abc6405bd893da5139ff",
+  "development_summary_path": "runs/phase3_discoveryworld_grounding_v1_development_affordance_polarity/summary.json",
+  "development_summary_file_sha256": "97dfa852e3292f55973d604aced7774c466ff02c7e15e31b7989d210f926d203",
+  "development_summary_sha256": "910a5f79686db818fcf32773d65269f2031fe42ed3a423cb73de0032497117bb",
+  "development_schema_fallback_rate": 0.07291666666666667,
+  "development_invalid_native_actions": 0,
+  "qualification_config_path": "configs/phase3_discoveryworld_grounding_v1/qualification.json",
+  "qualification_config_file_sha256": "a5f3f9258bf7e3b17c38391f505615a020d7558871770c3a28214ed4724ba0f0",
+  "qualification_seeds": [
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88
+  ],
+  "qualification_tasks_previously_executed": false,
+  "frozen_qualification_gates": {
+    "minimum_steps": 128,
+    "maximum_schema_fallback_rate": 0.1,
+    "maximum_invalid_native_actions": 0
+  },
+  "runtime_file_sha256": {
+    "src/motif_transfer/phase3_discoveryworld_grounding.py": "be8d1a92a569666e2e7a379152a5b6ec3fffdb1fd0cd591701674546ae18c4ac",
+    "src/motif_transfer/discoveryworld_policy.py": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "src/motif_transfer/discoveryworld_env.py": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "scripts/run_phase3_discoveryworld_grounding_qualification_v1.py": "a6cd992ef3b640d9a2f93c77182639de65d8a0925ddd6b83f4ca106baed37b5e"
+  },
+  "formal_target_outcome_read_for_freeze": false,
+  "formal_reserve_task_opened": false,
+  "claim_boundary": "Untouched component qualification on Proteomics Easy seeds81-88; fixed horizon, no evaluator call, official success persistence, source program, or Phase-3 formal-reserve task.",
+  "manifest_sha256": "33421581c7254b4bb20a1425a73fd2be990c08ed212605a8e0680b7d03f99aeb"
+}
