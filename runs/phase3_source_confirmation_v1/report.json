@@ -1,0 +1,3769 @@
+{
+  "schema_version": "phase3-source-confirmation-report-v1",
+  "status": "PHASE3_SOURCE_ONLY_INDUCTION_PROSPECTIVELY_CONFIRMED",
+  "manifest_sha256": "b841a194f3733218d0f13bab91c9c38f38947667da3f3f3e920aa1e891f57136",
+  "lineages": [
+    {
+      "source_game": "tetris",
+      "status": "FRESH_SOURCE_INDUCED_PROGRAM_CONFIRMED",
+      "program_artifact_sha256": "af337470707a41a160bae2077577e5749f9e75feaaa263d2cb5e1b0073a5d5de",
+      "plan_sha256": "295a58a93ee82609cfa1a9157934d4e2931be4f6a6e4bdd6662c126f25a31f1e",
+      "rows_file_sha256": "3c960f2675a2717c4182a32e3541fc72ef1b1659b1252ade8550e86057986a32",
+      "heldout_planned": 16,
+      "heldout_eligible": 12,
+      "heldout_eligible_fraction": 0.75,
+      "intervention_failed_rows": 0,
+      "executions": {
+        "authentic": {
+          "source_split": "heldout",
+          "ledgers": 12,
+          "successes": 12,
+          "success_rate": 1.0,
+          "abstentions": 0,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 32,
+            "OP_a3126032f76e895f": 12,
+            "OP_b1eed9a105f62ecd": 20
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101002.step_6",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101010.step_2",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101013.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101015.step_11",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101019.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101020.step_6",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101021.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101035.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101038.step_12",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101040.step_5",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101043.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101045.step_8",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        },
+        "frozen_shuffled_effect_program": {
+          "source_split": "heldout",
+          "ledgers": 12,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 12,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 12
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101002.step_6",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101010.step_2",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101013.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101015.step_11",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101019.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101020.step_6",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101021.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101035.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101038.step_12",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101040.step_5",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101043.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101045.step_8",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            }
+          ]
+        },
+        "runtime_effect_permutation": {
+          "source_split": "heldout",
+          "ledgers": 12,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 0,
+          "incorrect_terminations": 12,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 33,
+            "OP_a3126032f76e895f": 12,
+            "OP_b1eed9a105f62ecd": 21
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101002.step_6",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101010.step_2",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101013.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101015.step_11",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101019.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101020.step_6",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101021.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101035.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101038.step_12",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101040.step_5",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101043.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "tetris.observed_hash_policy.101045.step_8",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        }
+      },
+      "gates": {
+        "planned_heldout_seed_count": true,
+        "fresh_eligible_ledger_count": true,
+        "fresh_eligible_fraction": true,
+        "zero_intervention_failed_rows": true,
+        "authentic_closed_loop_success": true,
+        "authentic_strictly_beats_frozen_shuffled_program": true,
+        "authentic_strictly_beats_runtime_effect_permutation": true,
+        "program_not_updated_from_confirmation_rows": true
+      }
+    },
+    {
+      "source_game": "candy_crush",
+      "status": "FRESH_SOURCE_INDUCED_PROGRAM_CONFIRMED",
+      "program_artifact_sha256": "30f3967c2b91a62b39799ee1b3b066ec369d53a6a990b307007c0b9b4c0b9c63",
+      "plan_sha256": "98630db278d32b2e0bc9351bfa241c847caab00ea412308b6b36cf425e535e30",
+      "rows_file_sha256": "74d1af8eed9c612e813646473312fa881dc1a85f3cea1352705cbf1013dcd1c2",
+      "heldout_planned": 16,
+      "heldout_eligible": 16,
+      "heldout_eligible_fraction": 1.0,
+      "intervention_failed_rows": 0,
+      "executions": {
+        "authentic": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 16,
+          "success_rate": 1.0,
+          "abstentions": 0,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 41,
+            "OP_a3126032f76e895f": 16,
+            "OP_b1eed9a105f62ecd": 25
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102003.step_11",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102004.step_14",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102009.step_9",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102011.step_18",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102019.step_11",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102020.step_17",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102021.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102022.step_9",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102023.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102028.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102029.step_6",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102034.step_5",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102036.step_11",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102039.step_6",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102040.step_15",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102047.step_18",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        },
+        "frozen_shuffled_effect_program": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 16,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 16
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102003.step_11",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102004.step_14",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102009.step_9",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102011.step_18",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102019.step_11",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102020.step_17",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102021.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102022.step_9",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102023.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102028.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102029.step_6",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102034.step_5",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102036.step_11",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102039.step_6",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102040.step_15",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102047.step_18",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            }
+          ]
+        },
+        "runtime_effect_permutation": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 0,
+          "incorrect_terminations": 16,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 44,
+            "OP_a3126032f76e895f": 16,
+            "OP_b1eed9a105f62ecd": 28
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102003.step_11",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102004.step_14",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102009.step_9",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102011.step_18",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102019.step_11",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102020.step_17",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102021.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102022.step_9",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102023.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102028.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102029.step_6",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102034.step_5",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102036.step_11",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102039.step_6",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102040.step_15",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "candy_crush.observed_hash_policy.102047.step_18",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        }
+      },
+      "gates": {
+        "planned_heldout_seed_count": true,
+        "fresh_eligible_ledger_count": true,
+        "fresh_eligible_fraction": true,
+        "zero_intervention_failed_rows": true,
+        "authentic_closed_loop_success": true,
+        "authentic_strictly_beats_frozen_shuffled_program": true,
+        "authentic_strictly_beats_runtime_effect_permutation": true,
+        "program_not_updated_from_confirmation_rows": true
+      }
+    },
+    {
+      "source_game": "gymv_columns",
+      "status": "FRESH_SOURCE_INDUCED_PROGRAM_CONFIRMED",
+      "program_artifact_sha256": "d59bfb7379d7298f2bc586fce9cb3b5ad975dd5995f8bceea048efdb1b6ad3ce",
+      "plan_sha256": "afd463198a066249420908b6e5dfc1e95295fa2e2ca54a51a1eac7f6fd557260",
+      "rows_file_sha256": "a0f170d874f690695ba6b050123f32fb42fbfdf4454ff262d3b83750b966c866",
+      "heldout_planned": 16,
+      "heldout_eligible": 16,
+      "heldout_eligible_fraction": 1.0,
+      "intervention_failed_rows": 0,
+      "executions": {
+        "authentic": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 16,
+          "success_rate": 1.0,
+          "abstentions": 0,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 73,
+            "OP_a3126032f76e895f": 16,
+            "OP_b1eed9a105f62ecd": 57
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103001.step_16",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103005.step_12",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103009.step_6",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103016.step_10",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103019.step_17",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103023.step_18",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103024.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103026.step_12",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103028.step_2",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103029.step_2",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103030.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103031.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103033.step_11",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103035.step_15",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103037.step_14",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103045.step_2",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        },
+        "frozen_shuffled_effect_program": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 16,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 16
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103001.step_16",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103005.step_12",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103009.step_6",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103016.step_10",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103019.step_17",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103023.step_18",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103024.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103026.step_12",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103028.step_2",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103029.step_2",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103030.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103031.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103033.step_11",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103035.step_15",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103037.step_14",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103045.step_2",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            }
+          ]
+        },
+        "runtime_effect_permutation": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 0,
+          "incorrect_terminations": 16,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 82,
+            "OP_a3126032f76e895f": 16,
+            "OP_b1eed9a105f62ecd": 66
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103001.step_16",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103005.step_12",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103009.step_6",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103016.step_10",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103019.step_17",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103023.step_18",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103024.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103026.step_12",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103028.step_2",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103029.step_2",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103030.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103031.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103033.step_11",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103035.step_15",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103037.step_14",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_columns.observed_hash_policy.103045.step_2",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        }
+      },
+      "gates": {
+        "planned_heldout_seed_count": true,
+        "fresh_eligible_ledger_count": true,
+        "fresh_eligible_fraction": true,
+        "zero_intervention_failed_rows": true,
+        "authentic_closed_loop_success": true,
+        "authentic_strictly_beats_frozen_shuffled_program": true,
+        "authentic_strictly_beats_runtime_effect_permutation": true,
+        "program_not_updated_from_confirmation_rows": true
+      }
+    },
+    {
+      "source_game": "gymv_streets_of_rage_2",
+      "status": "FRESH_SOURCE_INDUCED_PROGRAM_CONFIRMED",
+      "program_artifact_sha256": "744e4c90026e3e2ac1875b23d43f247a305241beaf0e2c310af660a68022e14e",
+      "plan_sha256": "0ad429ed49fd3fef3b14b7e805d53cc65f2ccb6aa5f5affca546ded91b4b7202",
+      "rows_file_sha256": "94ad0a78bc16a2f76ffaaefdde04505cdb10fe9d0fda7f05fecb3817897e0f56",
+      "heldout_planned": 16,
+      "heldout_eligible": 14,
+      "heldout_eligible_fraction": 0.875,
+      "intervention_failed_rows": 0,
+      "executions": {
+        "authentic": {
+          "source_split": "heldout",
+          "ledgers": 14,
+          "successes": 14,
+          "success_rate": 1.0,
+          "abstentions": 0,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 35,
+            "OP_a3126032f76e895f": 14,
+            "OP_b1eed9a105f62ecd": 21
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104003.step_6",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104004.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104009.step_13",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104010.step_11",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104015.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104016.step_17",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104020.step_14",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104025.step_12",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104027.step_8",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104028.step_9",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104033.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104038.step_13",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104040.step_16",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104043.step_5",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        },
+        "frozen_shuffled_effect_program": {
+          "source_split": "heldout",
+          "ledgers": 14,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 14,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 14
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104003.step_6",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104004.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104009.step_13",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104010.step_11",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104015.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104016.step_17",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104020.step_14",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104025.step_12",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104027.step_8",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104028.step_9",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104033.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104038.step_13",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104040.step_16",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104043.step_5",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            }
+          ]
+        },
+        "runtime_effect_permutation": {
+          "source_split": "heldout",
+          "ledgers": 14,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 0,
+          "incorrect_terminations": 14,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 33,
+            "OP_a3126032f76e895f": 14,
+            "OP_b1eed9a105f62ecd": 19
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104003.step_6",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104004.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104009.step_13",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104010.step_11",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104015.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104016.step_17",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104020.step_14",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104025.step_12",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104027.step_8",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104028.step_9",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104033.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104038.step_13",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104040.step_16",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.104043.step_5",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        }
+      },
+      "gates": {
+        "planned_heldout_seed_count": true,
+        "fresh_eligible_ledger_count": true,
+        "fresh_eligible_fraction": true,
+        "zero_intervention_failed_rows": true,
+        "authentic_closed_loop_success": true,
+        "authentic_strictly_beats_frozen_shuffled_program": true,
+        "authentic_strictly_beats_runtime_effect_permutation": true,
+        "program_not_updated_from_confirmation_rows": true
+      }
+    },
+    {
+      "source_game": "gymv_thunder_force_iii",
+      "status": "FRESH_SOURCE_INDUCED_PROGRAM_CONFIRMED",
+      "program_artifact_sha256": "e609d994b7f302eb0d41e1d258715a8fc3a6d92b62bd8cda7b133b6cbc98288b",
+      "plan_sha256": "50d5e129ce55a2f254e4f53238ed611992e6ca2163d302e4c1b3a52004402400",
+      "rows_file_sha256": "223e5e60fb2e478dc7434f3518d61d2670684a84bc255f20220c1ceb442f6d19",
+      "heldout_planned": 16,
+      "heldout_eligible": 14,
+      "heldout_eligible_fraction": 0.875,
+      "intervention_failed_rows": 0,
+      "executions": {
+        "authentic": {
+          "source_split": "heldout",
+          "ledgers": 14,
+          "successes": 14,
+          "success_rate": 1.0,
+          "abstentions": 0,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 63,
+            "OP_a3126032f76e895f": 14,
+            "OP_b1eed9a105f62ecd": 49
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105002.step_2",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105005.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105008.step_15",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105009.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105014.step_10",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105018.step_11",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105019.step_18",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105020.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105023.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105024.step_9",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105035.step_18",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105036.step_14",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105044.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105047.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        },
+        "frozen_shuffled_effect_program": {
+          "source_split": "heldout",
+          "ledgers": 14,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 14,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 14
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105002.step_2",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105005.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105008.step_15",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105009.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105014.step_10",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105018.step_11",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105019.step_18",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105020.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105023.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105024.step_9",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105035.step_18",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105036.step_14",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105044.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105047.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            }
+          ]
+        },
+        "runtime_effect_permutation": {
+          "source_split": "heldout",
+          "ledgers": 14,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 0,
+          "incorrect_terminations": 14,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 48,
+            "OP_a3126032f76e895f": 14,
+            "OP_b1eed9a105f62ecd": 34
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105002.step_2",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105005.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105008.step_15",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105009.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105014.step_10",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105018.step_11",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105019.step_18",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105020.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105023.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105024.step_9",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105035.step_18",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105036.step_14",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105044.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_thunder_force_iii.observed_hash_policy.105047.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        }
+      },
+      "gates": {
+        "planned_heldout_seed_count": true,
+        "fresh_eligible_ledger_count": true,
+        "fresh_eligible_fraction": true,
+        "zero_intervention_failed_rows": true,
+        "authentic_closed_loop_success": true,
+        "authentic_strictly_beats_frozen_shuffled_program": true,
+        "authentic_strictly_beats_runtime_effect_permutation": true,
+        "program_not_updated_from_confirmation_rows": true
+      }
+    },
+    {
+      "source_game": "gymv_strider",
+      "status": "FRESH_SOURCE_INDUCED_PROGRAM_CONFIRMED",
+      "program_artifact_sha256": "ebd2d89269529566f0c747fe23b738cc60eb9d465f1e631e031bb5aaa32ee7ca",
+      "plan_sha256": "2f1dd91bfe5c52ac1e48e451512b6826e7eacb7c8ca629402856e0398a31015f",
+      "rows_file_sha256": "829ab4cc31610a08a3c125d6d35f852bf61e2b0fe11dbc6f3b274d3d1e20549a",
+      "heldout_planned": 16,
+      "heldout_eligible": 16,
+      "heldout_eligible_fraction": 1.0,
+      "intervention_failed_rows": 0,
+      "executions": {
+        "authentic": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 16,
+          "success_rate": 1.0,
+          "abstentions": 0,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 50,
+            "OP_a3126032f76e895f": 16,
+            "OP_b1eed9a105f62ecd": 34
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106003.step_16",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106008.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106009.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106010.step_14",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106015.step_9",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106016.step_2",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106020.step_18",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106021.step_18",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106028.step_4",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106030.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106031.step_5",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106033.step_3",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106036.step_6",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106041.step_16",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106044.step_19",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106045.step_17",
+              "success": true,
+              "abstained": false,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        },
+        "frozen_shuffled_effect_program": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 16,
+          "incorrect_terminations": 0,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 16
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106003.step_16",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106008.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106009.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106010.step_14",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106015.step_9",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106016.step_2",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106020.step_18",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106021.step_18",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106028.step_4",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106030.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106031.step_5",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106033.step_3",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106036.step_6",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106041.step_16",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106044.step_19",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106045.step_17",
+              "success": false,
+              "abstained": true,
+              "incorrect_termination": false,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985"
+              ]
+            }
+          ]
+        },
+        "runtime_effect_permutation": {
+          "source_split": "heldout",
+          "ledgers": 16,
+          "successes": 0,
+          "success_rate": 0.0,
+          "abstentions": 0,
+          "incorrect_terminations": 16,
+          "operator_route_counts": {
+            "OP_23e232e1a9ece985": 46,
+            "OP_a3126032f76e895f": 16,
+            "OP_b1eed9a105f62ecd": 30
+          },
+          "per_ledger": [
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106003.step_16",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106008.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106009.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106010.step_14",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106015.step_9",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106016.step_2",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106020.step_18",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106021.step_18",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106028.step_4",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106030.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106031.step_5",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106033.step_3",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106036.step_6",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106041.step_16",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106044.step_19",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_b1eed9a105f62ecd",
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            },
+            {
+              "snapshot_id": "gymv_strider.observed_hash_policy.106045.step_17",
+              "success": false,
+              "abstained": false,
+              "incorrect_termination": true,
+              "route_operator_ids": [
+                "OP_23e232e1a9ece985",
+                "OP_a3126032f76e895f"
+              ]
+            }
+          ]
+        }
+      },
+      "gates": {
+        "planned_heldout_seed_count": true,
+        "fresh_eligible_ledger_count": true,
+        "fresh_eligible_fraction": true,
+        "zero_intervention_failed_rows": true,
+        "authentic_closed_loop_success": true,
+        "authentic_strictly_beats_frozen_shuffled_program": true,
+        "authentic_strictly_beats_runtime_effect_permutation": true,
+        "program_not_updated_from_confirmation_rows": true
+      }
+    }
+  ],
+  "gates": {
+    "exact_six_lineages": true,
+    "all_six_fresh_source_confirmations_pass": true
+  },
+  "claim_boundary": "PROSPECTIVE_SOURCE_CONFIRMATION_OF_INDUCED_ANONYMOUS_PROGRAM;NO_TARGET_TRANSFER_UTILITY_CLAIM",
+  "report_sha256": "8f64ca2cc463f918e8fc3cd836ba0d1edfdbf5db5731e6a00554b8058b5ebc68"
+}
