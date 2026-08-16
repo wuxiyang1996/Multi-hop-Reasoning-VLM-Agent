@@ -78,7 +78,12 @@ PHASE3_TARGET_GROUNDER_SYSTEM_PROMPT = TARGET_GROUNDER_SYSTEM_PROMPT.replace(
     "follow-ups. Do not use or mention any source game."
 ) + TRANSPORT_SUFFIX
 
-PHASE3_TARGET_BINDER_SYSTEM_PROMPT = TARGET_BINDER_SYSTEM_PROMPT + TRANSPORT_SUFFIX
+PHASE3_TARGET_BINDER_SYSTEM_PROMPT = TARGET_BINDER_SYSTEM_PROMPT + (
+    " The payload may contain a phase3_target_binding_catalog compiled from "
+    "the task's explicit target object type and current target-native facts. "
+    "When present, copy target_uuid and target_name exactly from one catalog "
+    "entry; use the scientific hypothesis only to choose among those entries."
+) + TRANSPORT_SUFFIX
 
 _FORBIDDEN_OUTCOME_FIELDS = frozenset({
     "completed", "completedSuccessfully", "score", "maxScore",
@@ -123,8 +128,44 @@ def phase3_binder_prompt_payload(
         schema_error=schema_error,
     )
     payload["target_native_facts"] = outcome_blind_target_native_facts(observation)
+    required_type, catalog = phase3_target_binding_catalog(observation)
+    payload["phase3_required_target_object_type"] = required_type
+    payload["phase3_target_binding_catalog"] = list(catalog)
+    payload["phase3_target_binding_catalog_is_exhaustive"] = bool(required_type)
     payload["formal_outcome_fields_visible"] = False
     return payload
+
+
+def phase3_target_binding_catalog(
+    observation,
+) -> tuple[str | None, tuple[Mapping[str, Any], ...]]:
+    """Compile exact operands for an object type explicitly named by a task."""
+
+    facts = outcome_blind_target_native_facts(observation)
+    descriptions = " ".join(
+        str(row.get("description") or "")
+        for row in facts.get("task_progress") or ()
+        if isinstance(row, Mapping)
+    ).lower()
+    required_type = (
+        "statue" if str(observation.scenario).lower() == "proteomics"
+        and "statue" in descriptions else None
+    )
+    objects: dict[tuple[int, str], Mapping[str, Any]] = {}
+    for key in ("accessible_objects", "salient_relative_objects"):
+        for row in facts.get(key) or ():
+            if not isinstance(row, Mapping):
+                continue
+            uuid = row.get("uuid")
+            name = str(row.get("name") or "")
+            if not isinstance(uuid, int) or isinstance(uuid, bool) or not name:
+                continue
+            if required_type and required_type not in name.lower():
+                continue
+            objects[(uuid, name)] = {"uuid": uuid, "name": name}
+    return required_type, tuple(
+        objects[key] for key in sorted(objects, key=lambda row: (row[1], row[0]))
+    )
 
 
 def validate_phase3_target_binding_semantics(binding, observation) -> None:
@@ -148,6 +189,13 @@ def validate_phase3_target_binding_semantics(binding, observation) -> None:
     ):
         raise ValueError(
             "Proteomics task requires a statue target; animal UUID/name is invalid"
+        )
+    required_type, catalog = phase3_target_binding_catalog(observation)
+    if required_type and {
+        "uuid": int(binding.target_uuid), "name": str(binding.target_name),
+    } not in catalog:
+        raise ValueError(
+            "target UUID/name must be copied from phase3_target_binding_catalog"
         )
 
 
@@ -745,5 +793,6 @@ __all__ = [
     "canonical_position_candidates", "phase3_candidate_set_complete",
     "outcome_blind_target_native_facts", "phase3_binder_prompt_payload",
     "phase3_position_action_catalog",
+    "phase3_target_binding_catalog",
     "validate_phase3_target_binding_semantics",
 ]

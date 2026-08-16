@@ -22,6 +22,7 @@ from motif_transfer.phase3_discoveryworld_transfer import (
     phase3_candidate_set_complete,
     outcome_blind_target_native_facts,
     phase3_position_action_catalog,
+    phase3_target_binding_catalog,
     validate_phase3_target_binding_semantics,
 )
 
@@ -227,6 +228,10 @@ def test_phase3_binder_and_facts_strip_formal_outcome_fields():
     assert binding.target_uuid == 9
     assert audit[0]["formal_outcome_fields_visible"] is False
     assert backend.payload["formal_outcome_fields_visible"] is False
+    required_type, catalog = phase3_target_binding_catalog(observation)
+    assert required_type == "statue"
+    assert catalog == ({"uuid": 9, "name": "statue"},)
+    assert backend.payload["phase3_target_binding_catalog"] == list(catalog)
     payload_text = json.dumps(backend.payload["target_native_facts"])
     assert "completed" not in payload_text
     assert "score" not in payload_text
