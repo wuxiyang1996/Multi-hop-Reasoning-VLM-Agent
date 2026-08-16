@@ -110,7 +110,7 @@ def test_exhausted_schema_attempts_return_counted_native_fallback():
 def test_neural_affordance_rejection_triggers_focused_repair():
     backend = Backend([
         '{"action":"PICKUP","arg1":9}',
-        '{"has_obvious_error":true,"reason":"meter is a fixed instrument"}',
+        '{"verdict":"INVALID","reason":"meter is a fixed instrument"}',
         '{"action":"MOVE_DIRECTION","arg1":"north","memory":"m",'
         '"running_hypotheses":[],"expected_effect":"move","reason":"repair"}',
     ])
@@ -133,7 +133,7 @@ def test_neural_affordance_no_error_accepts_use_action():
     backend = Backend([
         '{"action":"USE","arg1":9,"arg2":7,"memory":"m",'
         '"running_hypotheses":[],"expected_effect":"measure","reason":"test"}',
-        '{"has_obvious_error":false,"reason":"meter is a tool and flag is a target"}',
+        '{"verdict":"VALID","reason":"meter is a tool and flag is a target"}',
     ])
     _decision, action, _raw, audit, fallback = call_qualified_decision(
         backend=backend,
@@ -145,4 +145,4 @@ def test_neural_affordance_no_error_accepts_use_action():
     )
     assert fallback is False
     assert action == {"action": "USE", "arg1": 9, "arg2": 7}
-    assert audit[0]["affordance_check"]["has_obvious_error"] is False
+    assert audit[0]["affordance_check"]["verdict"] == "VALID"

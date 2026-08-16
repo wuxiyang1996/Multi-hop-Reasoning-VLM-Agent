@@ -63,7 +63,13 @@ def _make_backend(
     return MemoizedCompletionBackend(
         OpenAICompatibleBackend(
             str(config["model"]["base_url"]),
-            {"decision": str(config["model"]["model"])},
+            {
+                "decision": str(config["model"]["model"]),
+                "affordance": str(
+                    config["model"].get("affordance_model")
+                    or config["model"]["model"]
+                ),
+            },
             api_key_env="PHASE3_DISCOVERYWORLD_OPENROUTER_KEY",
             json_mode=True,
             temperature=float(config["model"]["temperature"]),

@@ -1,0 +1,36 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-summary-v1",
+  "status": "DISCOVERYWORLD_GROUNDING_QUALIFICATION_PASSED",
+  "role": "development",
+  "tasks": 8,
+  "steps": 192,
+  "schema_fallback_steps": 5,
+  "schema_fallback_rate": 0.026041666666666668,
+  "invalid_native_actions": 0,
+  "gates": {
+    "minimum_steps": true,
+    "schema_fallback_rate": true,
+    "zero_invalid_native_actions": true,
+    "zero_evaluator_calls": true,
+    "zero_oracle_scorecard_use": true
+  },
+  "required_gates": [
+    "minimum_steps",
+    "schema_fallback_rate",
+    "zero_invalid_native_actions",
+    "zero_evaluator_calls",
+    "zero_oracle_scorecard_use"
+  ],
+  "task_receipt_sha256s": [
+    "606a847f0092ebb95379071c1c88b40ee302f34716cff16f14c8f22d8d7c3709",
+    "90779f37acea2b7d2fa16ddb0711ab37f54a3daa80a74ecbac63eb21656fccb3",
+    "42fd6811f467809ff55390ab1f60d2e31c08a8f70074b5e9af484f7a67ab6ac8",
+    "da43cefb6c945ff226bf4160cb79c50e15a3cd3ae004f365d887dd42462cffd5",
+    "135881ee8d066c4b1ba1ddbad92b5c7f0ef6e74f0d067108b3a27de7aeee22a0",
+    "e2ff73e5ba4aa77d7268f15d595b8afaeb209617cd04915b7c14ce391396f149",
+    "0a2550df4370209e44ee8dc24658bd2f6a7aa0c7553a384fe4b84e5ef5f8891e",
+    "715ce49868cff86f8f95e1c974e74b5a4b198b992c6240cf3b556704e5333edb"
+  ],
+  "claim_boundary": "V2 grounding repair on consumed failed V1 qualification seeds81-88 only; fixed horizon, no evaluator call, official success persistence, source program, or unopened target task.",
+  "summary_sha256": "6bedfb5238537e75d863609690b59932b6d01900e4701312d359f6f6596398c6"
+}

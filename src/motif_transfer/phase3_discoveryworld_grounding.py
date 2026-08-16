@@ -55,8 +55,15 @@ plausible arg2 measurement target. Reject only when arg1 is not a tool or the
 pair is otherwise nonsensical. Do not substitute ACTIVATE/DEACTIVATE for USE on
 a meter unless its description explicitly says it is activatable. Do not predict task
 success or optimize the plan.
-Return exactly one JSON object:
-{\"has_obvious_error\":true|false,\"reason\":\"...\"}."""
+Use these native-semantic examples:
+- PICKUP a flag, named tool, meter, or instrument: VALID when accessible.
+- PICKUP a floor, wall, table, statue, animal, or plant: INVALID.
+- USE a meter/instrument as arg1 on an animal or plant specimen as arg2: VALID
+  when both UUIDs are in the catalog's allowed domains.
+- USE an animal/specimen as arg1, or use one specimen on another: INVALID.
+- ACTIVATE a meter that is not explicitly described as activatable: INVALID.
+Return exactly one JSON object with a categorical verdict:
+{\"verdict\":\"VALID\"|\"INVALID\",\"reason\":\"...\"}."""
 
 _AFFORDANCE_CHECK_ACTIONS = frozenset({
     "PICKUP", "DROP", "PUT", "OPEN", "CLOSE", "ACTIVATE", "DEACTIVATE",
@@ -237,20 +244,18 @@ def _neural_affordance_check(
         },
     }
     raw = backend.complete(
-        "decision", PHASE3_AFFORDANCE_SYSTEM_PROMPT, payload,
+        "affordance", PHASE3_AFFORDANCE_SYSTEM_PROMPT, payload,
     )
     usage = json.loads(json.dumps(dict(backend.last_usage or {}), default=str))
     try:
         verdict = parse_json_object(raw)
-        has_error = verdict.get("has_obvious_error")
-        if not isinstance(has_error, bool):
-            raise ValueError(
-                "affordance verdict omitted boolean has_obvious_error"
-            )
-        accept = not has_error
+        categorical = str(verdict.get("verdict") or "").upper()
+        if categorical not in {"VALID", "INVALID"}:
+            raise ValueError("affordance verdict must be VALID or INVALID")
+        accept = categorical == "VALID"
         return accept, {
             "accepted": accept,
-            "has_obvious_error": has_error,
+            "verdict": categorical,
             "reason": str(verdict.get("reason") or "")[:1000],
             "raw_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
             "usage": usage,
