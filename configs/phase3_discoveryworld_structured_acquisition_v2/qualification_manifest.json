@@ -1,0 +1,259 @@
+{
+  "schema_version": "phase3-discoveryworld-structured-acquisition-freeze-v2",
+  "status": "FROZEN_BEFORE_STRUCTURED_ACQUISITION_QUALIFICATION",
+  "role": "qualification",
+  "claim_boundary": "Component-only structured acquisition qualification on previously consumed seeds51-80 except70; stops at ready fork, does not finalize the evaluator, and does not read target outcomes or source programs.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "model": "openai/gpt-4.1-mini",
+    "affordance_model": "openai/gpt-4.1",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_acquisition_steps": 24,
+    "continuation_horizon": 0,
+    "task_workers": 4,
+    "thread_id_base": 160000
+  },
+  "tasks": [
+    {
+      "task_id": "proteomics.easy.seed51",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 51,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed52",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 52,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed53",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 53,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed54",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 54,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed55",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 55,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed56",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 56,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed57",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 57,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed58",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 58,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed59",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 59,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed60",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 60,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed61",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 61,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed62",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 62,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed63",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 63,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed64",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 64,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed65",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 65,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed66",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 66,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed67",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 67,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed68",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 68,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed69",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 69,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed71",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 71,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed72",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 72,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed73",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 73,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed74",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 74,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed75",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 75,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed76",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 76,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed77",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 77,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed78",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 78,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed79",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 79,
+      "state_previously_consumed": true
+    },
+    {
+      "task_id": "proteomics.easy.seed80",
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 80,
+      "state_previously_consumed": true
+    }
+  ],
+  "task_count": 29,
+  "frozen_qualification_gates": {
+    "required_ready_states": 29,
+    "maximum_acquisition_schema_fallback_rate": 0.1,
+    "maximum_acquisition_repair_rate": 0.1,
+    "maximum_invalid_native_actions": 0,
+    "evaluator_finalized": false,
+    "formal_target_outcome_read": false
+  },
+  "development_evidence": {
+    "path": "runs/phase3_discoveryworld_structured_acquisition_v2_development/summary.json",
+    "file_sha256": "f18a76549666b9cc288dda75edbcb825b4e2fd4bcbf8b9f94f894f589150d205",
+    "summary_sha256": "aafe03ac108e0dd316e6f8b4ff4c89062f3eb105f439b834e97db028a0118cc4",
+    "excluded_from_prospective_estimates": true
+  },
+  "runtime_file_sha256": {
+    "src/motif_transfer/contracts.py": "77da9776e0005f585d2c451f4c014d3726dbb7289d86143c634a351db1fc111c",
+    "src/motif_transfer/discoveryworld_env.py": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "src/motif_transfer/discoveryworld_policy.py": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "src/motif_transfer/phase3_discoveryworld_grounding.py": "e53e71997eb1e5cab575f748161eef544095937bfc93fdb1eaaea288431b8477",
+    "src/motif_transfer/phase3_discoveryworld_transfer.py": "9cb77edfe13b86824f1b482751ef2bba2287becdd57913681849aaac5972f5aa",
+    "src/motif_transfer/phase3_discoveryworld_formal.py": "8c87d8b8ebc8265660ad88b6c0f1a2fe18dc78f5b865f9565fd12d4fad89b32c",
+    "src/motif_transfer/discoveryworld_structured_acquisition_v2.py": "480a7b3a6de5675369212a78f222ae6994bbef72cef53fdcfdd457513c447c7c",
+    "scripts/run_phase3_discoveryworld_structured_acquisition_v2.py": "5767b95aec1803d0b2ef53b491ee5e3fe7a070d005ae6c2ffc51d1bd5f83d999"
+  },
+  "formal_reserve_seed_range": [
+    121,
+    144
+  ],
+  "formal_reserve_opened": false,
+  "formal_target_outcome_read_for_freeze": false,
+  "manifest_sha256": "217a5320802e7593682092d4ebca59b628d804e0e62e053dab7a105c30e4beda"
+}
