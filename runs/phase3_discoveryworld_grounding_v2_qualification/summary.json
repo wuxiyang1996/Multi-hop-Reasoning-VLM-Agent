@@ -1,0 +1,36 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-summary-v1",
+  "status": "DISCOVERYWORLD_GROUNDING_QUALIFICATION_PASSED",
+  "role": "qualification",
+  "tasks": 8,
+  "steps": 192,
+  "schema_fallback_steps": 5,
+  "schema_fallback_rate": 0.026041666666666668,
+  "invalid_native_actions": 0,
+  "gates": {
+    "minimum_steps": true,
+    "schema_fallback_rate": true,
+    "zero_invalid_native_actions": true,
+    "zero_evaluator_calls": true,
+    "zero_oracle_scorecard_use": true
+  },
+  "required_gates": [
+    "minimum_steps",
+    "schema_fallback_rate",
+    "zero_invalid_native_actions",
+    "zero_evaluator_calls",
+    "zero_oracle_scorecard_use"
+  ],
+  "task_receipt_sha256s": [
+    "e6f0d423b4e131cd88fc326324be9bf9113e3199e3400399f358589939b8ca77",
+    "7728c2fe7ce3124e8eeb2de0c10335b1d91929ab914cd5e22dc79521b45bf764",
+    "025a7146c25abd8351a9f04284d5582419db9b3262d2149e313b2a7e6acbef1c",
+    "f03f9d49164369ec2063ec1d4af601832fc1c1c9551476853b4057f079c49fde",
+    "0f3fd05ea99b7cd6be929d33396ea3e0b7b0272202c316372223c81dbd75d787",
+    "6a058281c611bdc54a158fc72ec2ceaa67e7fba0364b578db2f2bcfa7d4fd60d",
+    "6982ba7de0dbbf060889de82e546c3a67573beef2549fef46a500d5c97f02ea8",
+    "8fbbe96f69c9987854077c51898e12a546e08c8ee9f4234516cb36bb2429d501"
+  ],
+  "claim_boundary": "Untouched component-only qualification of the V2 target-native grounder on Proteomics Easy seeds89-96; fixed horizon and frozen V1 qualification thresholds; no evaluator, official success persistence, source program, or Phase-3 formal-reserve task.",
+  "summary_sha256": "beb9a0281947aaf71bf0a9161d953f3dc02b0ebbbcc82e7aa337c93b46f46871"
+}
