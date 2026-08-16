@@ -60,6 +60,7 @@ def _relative(path: Path) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--development-summary", type=Path, required=True)
+    parser.add_argument("--binding-fix-result", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.output.exists():
@@ -74,6 +75,40 @@ def main() -> None:
     schema = development.get("neural_grounding_schema") or {}
     if not schema.get("qualification_gate_passed"):
         raise SystemExit("development typed-grounder schema gate did not pass")
+    binding_fix = _read(args.binding_fix_result)
+    _validate_self_hash(binding_fix, "result_sha256")
+    if binding_fix.get("status") != "DEVELOPMENT_MECHANISM_COMPLETE":
+        raise SystemExit("binding-catalog development smoke is incomplete")
+    binding = binding_fix.get("target_binding") or {}
+    if "statue" not in str(binding.get("target_name") or "").lower():
+        raise SystemExit("binding-catalog smoke did not bind a statue")
+    if (binding.get("commit_action") or {}).get("action") != "DROP":
+        raise SystemExit("binding-catalog smoke did not bind DROP")
+    if binding_fix.get("policy_runtime_saw_oracle_scorecard") is not False:
+        raise SystemExit("binding-catalog smoke exposed the scorecard to policy")
+    if not binding_fix.get("all_selection_receipts_valid"):
+        raise SystemExit("binding-catalog smoke has invalid selection receipts")
+    binder_attempts = binding_fix.get("target_binding_schema_attempts") or ()
+    if not binder_attempts or any(
+        row.get("formal_outcome_fields_visible") is not False
+        for row in binder_attempts
+    ):
+        raise SystemExit("binding-catalog smoke lacks outcome-blind binder receipts")
+    matched = binding_fix.get("conditions") or {}
+    grounder_attempts = [
+        attempt
+        for condition in (
+            "source_induced", "source_permuted", "generic_scaffold",
+            "target_native_ceiling",
+        )
+        for step in (matched.get(condition, {}).get("recovery") or ())
+        for attempt in (step.get("grounder_schema_attempts") or ())
+    ]
+    if not grounder_attempts or any(
+        row.get("formal_outcome_fields_visible") is not False
+        for row in grounder_attempts
+    ):
+        raise SystemExit("binding-catalog smoke lacks outcome-blind grounder receipts")
 
     tasks = []
     model = None
@@ -139,6 +174,16 @@ def main() -> None:
             "file_sha256": _file_sha256(args.development_summary),
             "summary_sha256": development["summary_sha256"],
             "repair_rate": schema["repair_rate"],
+            "excluded_from_prospective_target_estimates": True,
+        },
+        "outcome_blind_binding_fix_evidence": {
+            "path": _relative(args.binding_fix_result),
+            "file_sha256": _file_sha256(args.binding_fix_result),
+            "result_sha256": binding_fix["result_sha256"],
+            "bound_target_name": binding["target_name"],
+            "bound_commit_action": binding["commit_action"],
+            "policy_runtime_saw_oracle_scorecard": False,
+            "formal_outcome_fields_visible_to_binder_or_grounder": False,
             "excluded_from_prospective_target_estimates": True,
         },
         "grounder_prompt_sha256": stable_hash(PHASE3_TARGET_GROUNDER_SYSTEM_PROMPT),
