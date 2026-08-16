@@ -187,6 +187,7 @@ def test_initial_multiplicity_retry_reports_native_parse_rejections():
     assert "valid_positions=3" in repair
     assert phase3_candidate_set_complete(candidates)
     assert [row["accepted"] for row in audit] == [False, True]
+    assert all(row["formal_outcome_fields_visible"] is False for row in audit)
     assert all(
         payload["formal_outcome_fields_visible"] is False
         and "completed" not in json.dumps(payload["target_native_facts"])

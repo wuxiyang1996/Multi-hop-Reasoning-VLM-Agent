@@ -366,6 +366,7 @@ def call_phase3_grounder(
                 "multiplicity_complete": not recent,
                 "recovery_complete": bool(recent),
                 "cache_hit": bool(usage.get("cache_hit")),
+                "formal_outcome_fields_visible": False,
             })
             return bundle, candidates, raw, audit
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
@@ -375,6 +376,7 @@ def call_phase3_grounder(
                 "multiplicity_complete": False, "error": schema_error,
                 "raw_sha256": hashlib.sha256(raw.encode()).hexdigest(),
                 "cache_hit": bool(usage.get("cache_hit")),
+                "formal_outcome_fields_visible": False,
             })
     raise RuntimeError(f"Phase-3 grounder exhausted multiplicity attempts: {audit}")
 
