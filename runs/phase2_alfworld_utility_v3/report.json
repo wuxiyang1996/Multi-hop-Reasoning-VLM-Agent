@@ -1,0 +1,184 @@
+{
+  "schema_version": "phase2-alfworld-selective-utility-report-v3",
+  "status": "PHASE2_ALFWORLD_SELECTIVE_CAUSAL_UTILITY_VALIDATED",
+  "claim_boundary": "Selective aggregate utility on every remaining fresh valid_seen task; arity applicability learned only from consumed V2 development.",
+  "manifest_sha256": "0612c38d5195122e00303de56ec1cd02c6b71a00190f9c9026408712b5abf960",
+  "tasks": 75,
+  "receipts": 375,
+  "summaries": {
+    "raw_target_only": {
+      "tasks": 75,
+      "strict_successes": 37,
+      "pass_successes": 37,
+      "mean_reward": 0.49333333333333335,
+      "mean_steps": 45.053333333333335,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "authentic_search_automaton_plus_target": {
+      "tasks": 75,
+      "strict_successes": 57,
+      "pass_successes": 57,
+      "mean_reward": 0.76,
+      "mean_steps": 32.973333333333336,
+      "source_decisions": 3172,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 1419,
+        "COMMIT_VERIFY": 50,
+        "EXPLORE_UNTRIED": 1699
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "event_binding_permuted_control": {
+      "tasks": 75,
+      "strict_successes": 37,
+      "pass_successes": 37,
+      "mean_reward": 0.49333333333333335,
+      "mean_steps": 45.053333333333335,
+      "source_decisions": 2609,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 2040
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "ledger_blind_control": {
+      "tasks": 75,
+      "strict_successes": 13,
+      "pass_successes": 13,
+      "mean_reward": 0.17333333333333334,
+      "mean_steps": 61.586666666666666,
+      "source_decisions": 7629,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 3773,
+        "COMMIT_VERIFY": 7,
+        "EXPLORE_UNTRIED": 3848
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "target_native_search_ceiling": {
+      "tasks": 75,
+      "strict_successes": 57,
+      "pass_successes": 57,
+      "mean_reward": 0.76,
+      "mean_steps": 32.973333333333336,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    }
+  },
+  "paired": {
+    "raw_target_only": {
+      "wins": 21,
+      "losses": 1,
+      "ties": 53,
+      "net_wins": 20,
+      "exact_two_sided_p": 1.0967254638671875e-05,
+      "reward_wins": 21,
+      "reward_losses": 1,
+      "reward_ties": 53,
+      "reward_net_wins": 20,
+      "reward_exact_two_sided_p": 1.0967254638671875e-05,
+      "action_contrast_tasks": 61
+    },
+    "event_binding_permuted_control": {
+      "wins": 21,
+      "losses": 1,
+      "ties": 53,
+      "net_wins": 20,
+      "exact_two_sided_p": 1.0967254638671875e-05,
+      "reward_wins": 21,
+      "reward_losses": 1,
+      "reward_ties": 53,
+      "reward_net_wins": 20,
+      "reward_exact_two_sided_p": 1.0967254638671875e-05,
+      "action_contrast_tasks": 61
+    },
+    "ledger_blind_control": {
+      "wins": 44,
+      "losses": 0,
+      "ties": 31,
+      "net_wins": 44,
+      "exact_two_sided_p": 1.1368683772161603e-13,
+      "reward_wins": 44,
+      "reward_losses": 0,
+      "reward_ties": 31,
+      "reward_net_wins": 44,
+      "reward_exact_two_sided_p": 1.1368683772161603e-13,
+      "action_contrast_tasks": 58
+    },
+    "target_native_search_ceiling": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 75,
+      "net_wins": 0,
+      "exact_two_sided_p": 1.0,
+      "reward_wins": 0,
+      "reward_losses": 0,
+      "reward_ties": 75,
+      "reward_net_wins": 0,
+      "reward_exact_two_sided_p": 1.0,
+      "action_contrast_tasks": 0
+    }
+  },
+  "discordant_negative_transfer_rate": 0.045454545454545456,
+  "source_lineages": {
+    "tetris": {
+      "tasks": 13,
+      "authentic_successes": 10,
+      "raw_successes": 6,
+      "source_decisions": 481
+    },
+    "candy_crush": {
+      "tasks": 13,
+      "authentic_successes": 11,
+      "raw_successes": 6,
+      "source_decisions": 461
+    },
+    "gymv_columns": {
+      "tasks": 13,
+      "authentic_successes": 8,
+      "raw_successes": 6,
+      "source_decisions": 748
+    },
+    "gymv_streets_of_rage_2": {
+      "tasks": 12,
+      "authentic_successes": 8,
+      "raw_successes": 7,
+      "source_decisions": 609
+    },
+    "gymv_thunder_force_iii": {
+      "tasks": 12,
+      "authentic_successes": 10,
+      "raw_successes": 5,
+      "source_decisions": 563
+    },
+    "gymv_strider": {
+      "tasks": 12,
+      "authentic_successes": 10,
+      "raw_successes": 7,
+      "source_decisions": 310
+    }
+  },
+  "gates": {
+    "exact_fresh_receipt_matrix": true,
+    "all_receipt_hashes_valid": true,
+    "all_receipts_complete": true,
+    "matched_initial_states": true,
+    "all_six_lineages_exercised": true,
+    "all_three_symbolic_actions_exercised": true,
+    "authentic_success_gain": true,
+    "authentic_vs_raw_significant": true,
+    "bounded_negative_transfer": true,
+    "beats_event_permuted_significantly": true,
+    "beats_ledger_blind_significantly": true,
+    "matches_target_native_ceiling_outcomes": true,
+    "zero_unsafe_commits": true
+  },
+  "report_sha256": "981600e4d0f03aa77802045e1aa461c8a032fc1aee333c8d8d1af0fabf24a8d5"
+}

@@ -1,0 +1,231 @@
+{
+  "schema_version": "phase2-alfworld-six-source-utility-report-v1",
+  "status": "PHASE2_ALFWORLD_CAUSAL_UTILITY_NOT_VALIDATED",
+  "claim_boundary": "Causal utility of the common, independently game-qualified search structure on 32 fresh ALFWorld valid_seen tasks. This is an aggregate shared-policy effect, not six powered per-game estimates and not an advantage over an isomorphic target-written ceiling. Target-native neural grounding remains required.",
+  "manifest_sha256": "8e665b51b913d75f2294aa36cd5d201a46a812b27cbea396d71557b1d97ff85a",
+  "tasks": 32,
+  "receipts": 160,
+  "summaries": {
+    "raw_target_only": {
+      "tasks": 32,
+      "strict_successes": 19,
+      "pass_successes": 19,
+      "mean_reward": 0.59375,
+      "mean_steps": 39.25,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "authentic_search_automaton_plus_target": {
+      "tasks": 32,
+      "strict_successes": 25,
+      "pass_successes": 25,
+      "mean_reward": 0.78125,
+      "mean_steps": 34.25,
+      "source_decisions": 2004,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 883,
+        "COMMIT_VERIFY": 25,
+        "EXPLORE_UNTRIED": 1027
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "event_binding_permuted_control": {
+      "tasks": 32,
+      "strict_successes": 19,
+      "pass_successes": 19,
+      "mean_reward": 0.59375,
+      "mean_steps": 39.25,
+      "source_decisions": 1256,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 1105
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "ledger_blind_control": {
+      "tasks": 32,
+      "strict_successes": 2,
+      "pass_successes": 2,
+      "mean_reward": 0.0625,
+      "mean_steps": 65.96875,
+      "source_decisions": 4152,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 2039,
+        "COMMIT_VERIFY": 2,
+        "EXPLORE_UNTRIED": 2072
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "target_native_search_ceiling": {
+      "tasks": 32,
+      "strict_successes": 25,
+      "pass_successes": 25,
+      "mean_reward": 0.78125,
+      "mean_steps": 34.25,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    }
+  },
+  "paired": {
+    "raw_target_only": {
+      "wins": 10,
+      "losses": 4,
+      "ties": 18,
+      "net_wins": 6,
+      "exact_two_sided_p": 0.1795654296875,
+      "reward_wins": 10,
+      "reward_losses": 4,
+      "reward_ties": 18,
+      "reward_net_wins": 6,
+      "reward_exact_two_sided_p": 0.1795654296875,
+      "action_contrast_tasks": 32
+    },
+    "event_binding_permuted_control": {
+      "wins": 10,
+      "losses": 4,
+      "ties": 18,
+      "net_wins": 6,
+      "exact_two_sided_p": 0.1795654296875,
+      "reward_wins": 10,
+      "reward_losses": 4,
+      "reward_ties": 18,
+      "reward_net_wins": 6,
+      "reward_exact_two_sided_p": 0.1795654296875,
+      "action_contrast_tasks": 32
+    },
+    "ledger_blind_control": {
+      "wins": 23,
+      "losses": 0,
+      "ties": 9,
+      "net_wins": 23,
+      "exact_two_sided_p": 2.384185791015625e-07,
+      "reward_wins": 23,
+      "reward_losses": 0,
+      "reward_ties": 9,
+      "reward_net_wins": 23,
+      "reward_exact_two_sided_p": 2.384185791015625e-07,
+      "action_contrast_tasks": 31
+    },
+    "target_native_search_ceiling": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 32,
+      "net_wins": 0,
+      "exact_two_sided_p": 1.0,
+      "reward_wins": 0,
+      "reward_losses": 0,
+      "reward_ties": 32,
+      "reward_net_wins": 0,
+      "reward_exact_two_sided_p": 1.0,
+      "action_contrast_tasks": 3
+    }
+  },
+  "source_lineages": {
+    "tetris": {
+      "tasks": 6,
+      "authentic_strict_successes": 5,
+      "raw_strict_successes": 4,
+      "strict_wins": 1,
+      "strict_losses": 0,
+      "source_decisions": 371,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 170,
+        "COMMIT_VERIFY": 5,
+        "EXPLORE_UNTRIED": 195
+      }
+    },
+    "candy_crush": {
+      "tasks": 6,
+      "authentic_strict_successes": 3,
+      "raw_strict_successes": 3,
+      "strict_wins": 1,
+      "strict_losses": 1,
+      "source_decisions": 555,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 246,
+        "COMMIT_VERIFY": 3,
+        "EXPLORE_UNTRIED": 271
+      }
+    },
+    "gymv_columns": {
+      "tasks": 5,
+      "authentic_strict_successes": 5,
+      "raw_strict_successes": 0,
+      "strict_wins": 5,
+      "strict_losses": 0,
+      "source_decisions": 269,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 118,
+        "COMMIT_VERIFY": 5,
+        "EXPLORE_UNTRIED": 146
+      }
+    },
+    "gymv_streets_of_rage_2": {
+      "tasks": 5,
+      "authentic_strict_successes": 4,
+      "raw_strict_successes": 4,
+      "strict_wins": 1,
+      "strict_losses": 1,
+      "source_decisions": 270,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 124,
+        "COMMIT_VERIFY": 4,
+        "EXPLORE_UNTRIED": 142
+      }
+    },
+    "gymv_thunder_force_iii": {
+      "tasks": 5,
+      "authentic_strict_successes": 4,
+      "raw_strict_successes": 5,
+      "strict_wins": 0,
+      "strict_losses": 1,
+      "source_decisions": 238,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 91,
+        "COMMIT_VERIFY": 4,
+        "EXPLORE_UNTRIED": 112
+      }
+    },
+    "gymv_strider": {
+      "tasks": 5,
+      "authentic_strict_successes": 4,
+      "raw_strict_successes": 3,
+      "strict_wins": 2,
+      "strict_losses": 1,
+      "source_decisions": 301,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 134,
+        "COMMIT_VERIFY": 4,
+        "EXPLORE_UNTRIED": 161
+      }
+    }
+  },
+  "cache_usage": {},
+  "gates": {
+    "exact_32x5_receipt_matrix": true,
+    "all_receipt_hashes_valid": true,
+    "all_receipts_complete": true,
+    "matched_initial_state_hashes": true,
+    "all_six_source_lineages_exercised": true,
+    "all_three_symbolic_actions_exercised": true,
+    "zero_authentic_unsafe_commits": true,
+    "authentic_strict_success_gain_over_raw": true,
+    "authentic_vs_raw_significant": false,
+    "zero_strict_negative_transfer_vs_raw": false,
+    "authentic_pass_success_not_below_raw": true,
+    "authentic_mean_reward_not_below_raw": true,
+    "authentic_reward_pairing_net_nonnegative": true,
+    "authentic_significantly_beats_event_permuted": false,
+    "authentic_significantly_beats_ledger_blind": true,
+    "authentic_matches_target_native_ceiling_exactly": false,
+    "every_lineage_has_zero_strict_losses_vs_raw": false
+  },
+  "target_split": "eval_in_distribution",
+  "report_sha256": "8df0c7f2b3e96e6ec7cde16e403ee25c104242dff09434d671faa65256b16d40"
+}
