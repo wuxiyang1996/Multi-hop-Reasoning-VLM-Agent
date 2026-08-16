@@ -27,6 +27,7 @@ from motif_transfer.frozen_motif_agent import (  # noqa: E402
     OpenAICompatibleBackend,
 )
 from motif_transfer.phase3_discoveryworld_transfer import (  # noqa: E402
+    call_phase3_binder,
     call_phase3_grounder,
     phase3_candidate_set_complete,
     phase3_position_action_catalog,
@@ -114,7 +115,7 @@ def _run_one(
         manifest, key,
         output_dir / "caches" / f"{task['task_id']}.json",
     )
-    binding, binder_raw, binder_attempts = base.call_binder(
+    binding, binder_raw, binder_attempts = call_phase3_binder(
         backend, observation, memory=memory, hypotheses=hypotheses,
         attempts=int(manifest["model"]["schema_attempts"]),
     )

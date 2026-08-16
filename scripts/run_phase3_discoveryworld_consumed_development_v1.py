@@ -26,6 +26,7 @@ from motif_transfer.phase3_discoveryworld_transfer import (  # noqa: E402
     Phase3DiscoveryWorldPortfolioSelector,
     SOURCE_INDUCED,
     SOURCE_PERMUTED,
+    call_phase3_binder,
     call_phase3_grounder,
 )
 from motif_transfer.phase3_typed_effect_induction import (  # noqa: E402
@@ -93,8 +94,10 @@ def run_one(
         )
     )
     old_grounder = runner.call_grounder
+    old_binder = runner.call_binder
     old_selector = runner.select_candidate
     runner.call_grounder = call_phase3_grounder
+    runner.call_binder = call_phase3_binder
     runner.select_candidate = selector.select
     transport_suffix = "\nReturn one valid json object."
     if not runner.TARGET_BINDER_SYSTEM_PROMPT.endswith(transport_suffix):
@@ -110,6 +113,7 @@ def run_one(
     finally:
         sys.argv = old_argv
         runner.call_grounder = old_grounder
+        runner.call_binder = old_binder
         runner.select_candidate = old_selector
     return _read(output_path)
 

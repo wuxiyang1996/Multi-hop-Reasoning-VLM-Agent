@@ -15,14 +15,17 @@ from .discoveryworld_applicability_grounder_v4 import (
 )
 from .discoveryworld_sokoban_transfer import (
     DiscoveryWorldGroundedCandidate,
+    TARGET_BINDER_SYSTEM_PROMPT,
     TARGET_GROUNDER_SYSTEM_PROMPT,
+    binder_prompt_payload,
     evidence_supported,
     grounder_prompt_payload,
     parse_grounded_candidates,
+    parse_target_binding,
     positive_commit_effect_witnessed,
     select_candidate,
 )
-from .discoveryworld_policy import native_action_from_decision
+from .discoveryworld_policy import native_action_from_decision, target_native_facts
 from .phase3_attempt_runtime import AnonymousAttemptRuntime, RuntimeDecision
 from .phase3_source_portfolio import (
     permute_selected_effect_binding,
@@ -74,6 +77,91 @@ PHASE3_TARGET_GROUNDER_SYSTEM_PROMPT = TARGET_GROUNDER_SYSTEM_PROMPT.replace(
     "the probability the intervention remains valid and safe through those "
     "follow-ups. Do not use or mention any source game."
 ) + TRANSPORT_SUFFIX
+
+PHASE3_TARGET_BINDER_SYSTEM_PROMPT = TARGET_BINDER_SYSTEM_PROMPT + TRANSPORT_SUFFIX
+
+_FORBIDDEN_OUTCOME_FIELDS = frozenset({
+    "completed", "completedSuccessfully", "score", "maxScore",
+    "scoreNormalized", "scoreCard", "official_success", "evaluation",
+})
+
+
+def outcome_blind_target_native_facts(observation) -> dict[str, Any]:
+    """Remove evaluator/completion fields before any Phase-3 neural call."""
+
+    facts = target_native_facts(observation)
+    progress = []
+    for row in facts.get("task_progress") or ():
+        if not isinstance(row, Mapping):
+            continue
+        progress.append({
+            key: value for key, value in row.items()
+            if key not in _FORBIDDEN_OUTCOME_FIELDS
+        })
+    facts["task_progress"] = progress
+
+    def assert_clean(value: Any, path: str = "target_native_facts") -> None:
+        if isinstance(value, Mapping):
+            for key, nested in value.items():
+                if str(key) in _FORBIDDEN_OUTCOME_FIELDS:
+                    raise ValueError(f"formal outcome field leaked at {path}.{key}")
+                assert_clean(nested, f"{path}.{key}")
+        elif isinstance(value, (list, tuple)):
+            for index, nested in enumerate(value):
+                assert_clean(nested, f"{path}[{index}]")
+
+    assert_clean(facts)
+    return facts
+
+
+def phase3_binder_prompt_payload(
+    observation, *, memory: str, hypotheses: Sequence[str],
+    schema_error: str | None = None,
+) -> dict[str, Any]:
+    payload = binder_prompt_payload(
+        observation, memory=memory, hypotheses=hypotheses,
+        schema_error=schema_error,
+    )
+    payload["target_native_facts"] = outcome_blind_target_native_facts(observation)
+    payload["formal_outcome_fields_visible"] = False
+    return payload
+
+
+def call_phase3_binder(
+    backend, observation, *, memory: str, hypotheses: tuple[str, ...],
+    attempts: int,
+):
+    """Bind target entities without exposing completion/evaluator fields."""
+
+    schema_error = None
+    audit = []
+    for attempt in range(attempts):
+        payload = phase3_binder_prompt_payload(
+            observation, memory=memory, hypotheses=hypotheses,
+            schema_error=schema_error,
+        )
+        raw = backend.complete(
+            "binder", PHASE3_TARGET_BINDER_SYSTEM_PROMPT, payload,
+        )
+        usage = dict(backend.last_usage or {})
+        try:
+            binding = parse_target_binding(raw, observation)
+            audit.append({
+                "attempt": attempt + 1, "accepted": True,
+                "cache_hit": bool(usage.get("cache_hit")),
+                "formal_outcome_fields_visible": False,
+            })
+            return binding, raw, audit
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            schema_error = f"{type(exc).__name__}: {exc}"
+            audit.append({
+                "attempt": attempt + 1, "accepted": False,
+                "error": schema_error,
+                "raw_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+                "cache_hit": bool(usage.get("cache_hit")),
+                "formal_outcome_fields_visible": False,
+            })
+    raise RuntimeError(f"Phase-3 binder exhausted schema attempts: {audit}")
 
 
 @dataclass(frozen=True)
@@ -209,6 +297,10 @@ def call_phase3_grounder(
             observation, memory=memory, hypotheses=hypotheses, recent=recent,
             target_binding=target_binding, schema_error=schema_error,
         )
+        payload["target_native_facts"] = outcome_blind_target_native_facts(
+            observation
+        )
+        payload["formal_outcome_fields_visible"] = False
         payload["phase3_position_action_catalog"] = list(
             phase3_position_action_catalog(observation, target_binding)
         )
@@ -617,11 +709,13 @@ class Phase3DiscoveryWorldPortfolioSelector(Phase3DiscoveryWorldSelector):
 
 __all__ = [
     "CONDITIONS", "GENERIC_SCAFFOLD", "MATCHED_CONDITIONS", "NEURAL_ONLY",
-    "PHASE3_TARGET_GROUNDER_SYSTEM_PROMPT", "Phase3DiscoveryWorldSelector",
+    "PHASE3_TARGET_BINDER_SYSTEM_PROMPT", "PHASE3_TARGET_GROUNDER_SYSTEM_PROMPT",
+    "Phase3DiscoveryWorldSelector",
     "Phase3DiscoveryWorldPortfolioSelector",
     "Phase3GroundedCandidate", "attach_phase3_typed_effects",
     "Phase3SelectionReceipt", "SOURCE_INDUCED", "SOURCE_PERMUTED",
-    "TARGET_NATIVE_CEILING", "call_phase3_grounder",
+    "TARGET_NATIVE_CEILING", "call_phase3_binder", "call_phase3_grounder",
     "canonical_position_candidates", "phase3_candidate_set_complete",
+    "outcome_blind_target_native_facts", "phase3_binder_prompt_payload",
     "phase3_position_action_catalog",
 ]

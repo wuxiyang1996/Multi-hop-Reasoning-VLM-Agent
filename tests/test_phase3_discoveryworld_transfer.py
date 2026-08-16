@@ -12,12 +12,14 @@ from motif_transfer.phase3_discoveryworld_transfer import (
     PHASE3_TARGET_GROUNDER_SYSTEM_PROMPT,
     SOURCE_INDUCED,
     SOURCE_PERMUTED,
+    call_phase3_binder,
     Phase3GroundedCandidate,
     Phase3DiscoveryWorldSelector,
     Phase3DiscoveryWorldPortfolioSelector,
     call_phase3_grounder,
     canonical_position_candidates,
     phase3_candidate_set_complete,
+    outcome_blind_target_native_facts,
     phase3_position_action_catalog,
 )
 
@@ -81,7 +83,11 @@ def _grounder_observation():
     return DiscoveryWorldObservation(
         scenario="Proteomics", difficulty="Easy", seed=0, episode_step=20,
         ui={
-            "taskProgress": [{"description": "drop flag west of statue"}],
+            "taskProgress": [{
+                "description": "drop flag west of statue",
+                "completed": True, "completedSuccessfully": True,
+                "score": 1, "maxScore": 1,
+            }],
             "agentLocation": {
                 "x": 15, "y": 13, "directions_you_can_move": ["south"],
             },
@@ -179,6 +185,48 @@ def test_initial_multiplicity_retry_reports_native_parse_rejections():
     assert "valid_positions=3" in repair
     assert phase3_candidate_set_complete(candidates)
     assert [row["accepted"] for row in audit] == [False, True]
+    assert all(
+        payload["formal_outcome_fields_visible"] is False
+        and "completed" not in json.dumps(payload["target_native_facts"])
+        and "score" not in json.dumps(payload["target_native_facts"])
+        for payload in backend.payloads
+    )
+
+
+def test_phase3_binder_and_facts_strip_formal_outcome_fields():
+    observation = _grounder_observation()
+    facts = outcome_blind_target_native_facts(observation)
+    serialized = json.dumps(facts)
+    assert "completed" not in serialized
+    assert "score" not in serialized
+
+    class Backend:
+        last_usage = {}
+
+        def __init__(self):
+            self.payload = None
+
+        def complete(self, role, system_prompt, payload):
+            self.payload = payload
+            return json.dumps({
+                "target_uuid": 9, "target_name": "statue",
+                "commit_subject_relation_to_target": "west",
+                "target_distance": 1,
+                "commit_action": {"action": "DROP", "arg1": 7},
+                "confidence": 1.0, "hypothesis_used": "task",
+                "reason": "bind exact supplied target",
+            })
+
+    backend = Backend()
+    binding, _, audit = call_phase3_binder(
+        backend, observation, memory="", hypotheses=(), attempts=1,
+    )
+    assert binding.target_uuid == 9
+    assert audit[0]["formal_outcome_fields_visible"] is False
+    assert backend.payload["formal_outcome_fields_visible"] is False
+    payload_text = json.dumps(backend.payload["target_native_facts"])
+    assert "completed" not in payload_text
+    assert "score" not in payload_text
 
 
 def test_phase3_catalog_compiles_only_currently_valid_native_actions():
