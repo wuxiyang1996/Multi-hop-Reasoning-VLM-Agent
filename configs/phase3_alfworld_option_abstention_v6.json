@@ -1,0 +1,21 @@
+{
+  "schema_version": "phase3-alfworld-option-risk-first-abstention-v6",
+  "status": "ADAPTIVE_AFTER_V5_TRAIN_ADMISSION_BOUND_FORMAL_UNOPENED",
+  "threshold_grid": [0.99, 0.995, 0.999, 1.0],
+  "train_selection": {
+    "minimum_changed_action_admission_rate": 0.03,
+    "maximum_changed_action_admission_rate": 0.10,
+    "maximum_top1_drop_vs_neural": 0.01
+  },
+  "validation_gates": {
+    "minimum_changed_action_admission_rate": 0.02,
+    "maximum_top1_drop_vs_neural": 0.02
+  },
+  "adaptation_note": "V5 required 5% changed-action admission, but the maximum risk-qualified target-option rate was 4.54%; V6 lowers only the nontriviality floor to 3% train and 2% validation.",
+  "forbidden_adaptation": [
+    "CHANGE_SOURCE_PROGRAM",
+    "CHANGE_ANONYMOUS_OPERATORS",
+    "READ_ALFWORLD_FORMAL_RESERVE",
+    "USE_OFFICIAL_SUCCESS_FOR_GROUNDING_OR_ADMISSION"
+  ]
+}

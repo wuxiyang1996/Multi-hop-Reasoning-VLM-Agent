@@ -1,0 +1,97 @@
+{
+  "adaptive_history": null,
+  "claim_boundary": "Already-consumed valid_unseen multiplicity tasks; may qualify the same-IR adapter but cannot support a fresh replication claim.",
+  "conditions": [
+    "neural_only",
+    "source_induced",
+    "source_permuted",
+    "generic_scaffold",
+    "target_native_ceiling"
+  ],
+  "config_sha256": "4266471e51fd2ee615e5d662f2a39f97c8720383027bab310817ff1b4d72fe93",
+  "formal_reserve_read": false,
+  "gates": {
+    "expected_tasks": 11,
+    "maximum_negative_transfer_rate": 0.1,
+    "minimum_ceiling_successes": 8,
+    "minimum_changed_action_rate": 0.02,
+    "minimum_permuted_first_action_contrasts": 4,
+    "minimum_selected_effect_types": 2
+  },
+  "grounder": {
+    "artifact_sha256": "dcda00c45aeb6cfddd934fd4557dabe95f92511ea5a705c2bc3d866440d6d9f4",
+    "file_sha256": "7e4275c9556853049ef0bd3c068467c5f835dbe4fb0740581ae29933a60fc3c0",
+    "formal_success_read_for_training_or_qualification": false,
+    "path": "artifacts/phase3_alfworld_intervention_v11/artifact.json.gz",
+    "qualification_thresholds_frozen": true
+  },
+  "integrity": {
+    "file_sha256": {
+      "scripts/run_phase3_alfworld_replication.py": "ecd5d2b9248a0f91899fca87d102eb3d2dfaf236e03233e2bd7994ea53150271",
+      "src/motif_transfer/alfworld_env.py": "628132a058715544246960f782322f1b7d455f647115c9c85e042c4d6f1cf40e",
+      "src/motif_transfer/phase3_alfworld_transfer.py": "beedb61423e89711fea40eeadce21036d90621aa9bbcf1800c41782493cbbcc3",
+      "src/motif_transfer/phase3_alfworld_typed_grounder.py": "594c599695ff2d5c2229b48bf94ebd4c091b3e742b32cff54883f4e41fcaa6e1",
+      "src/motif_transfer/phase3_attempt_runtime.py": "dc7cd679d4a666f661d8007c5ccb5c0d902e41d6867b00c9705a1b416dc7e4c3",
+      "src/motif_transfer/phase3_source_portfolio.py": "4a347cc5a0a206a51dc26a1fb131496cf9c19e1802d90602b514f44076f3d034",
+      "src/motif_transfer/phase3_typed_effect_induction.py": "9bf1f653f2e03a978afbcfeaa40eadaf87f3989fa6cf9e4d68c0e85e57f4aa52"
+    }
+  },
+  "only_target_native_grounder_replaced": true,
+  "role": "qualification",
+  "same_symbolic_ir_as_discoveryworld": true,
+  "schema_version": "phase3-alfworld-replication-config-v1",
+  "source_identity_used_as_runtime_feature": false,
+  "source_programs": [
+    {
+      "artifact_sha256": "ea841196f4753b1f62423aa7a1abd834002db89bef11a96f6960df9b9e116ae4",
+      "file_sha256": "194d9fa366cdfed53726da6e158d8297c61bd4fca06adb8930e85bf2f54e4ea9",
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/candy_crush.json"
+    },
+    {
+      "artifact_sha256": "f647aada5003ad2f4626927f93b89f38b947284d249ada8ecaf8fd5a147b743a",
+      "file_sha256": "4210418ae8d7c0d6fcece3b2cf2c95a89d3699de9115d4d47eefca35f5e1fcb7",
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_columns.json"
+    },
+    {
+      "artifact_sha256": "fa2a7efae09d09b28a31a7900271e30589305af151406ed59d1430720c31d291",
+      "file_sha256": "2b827513c80842e761009e56d30ad126dfa341f1b91273e8a551267e114b8f57",
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_streets_of_rage_2.json"
+    },
+    {
+      "artifact_sha256": "d6655c32d4d5c1b5e157a568c6d823d22f3533dbffea1ccac07a5fdf0862b8cc",
+      "file_sha256": "151b172525bf82473e270863d23c531143c477074ed8c55ee69af51cb03bec22",
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_strider.json"
+    },
+    {
+      "artifact_sha256": "927ee6c97997275abafcc2e2fab06321d04ae010c0f5a5e445943aa0d21df7bb",
+      "file_sha256": "dd6aa9442d23b11c9668141e6efd263dfe8a9079f458ac9cf3ff59f0f7b32c26",
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_thunder_force_iii.json"
+    },
+    {
+      "artifact_sha256": "5c6b44491dd8a7f9ab558576427e2c89610b915aad7f1f6a7b669c6798245504",
+      "file_sha256": "353aa9903148311a0b54809614022c5b3922118258b7137d5ab6bab89b103728",
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/tetris.json"
+    }
+  ],
+  "status": "FROZEN_BEFORE_CONSUMED_QUALIFICATION_RESET",
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "max_steps": 180,
+    "seed": 2026081602,
+    "split": "eval_out_of_distribution",
+    "task_ids": [
+      "pick_two_obj_and_place-CD-None-Safe-308/trial_T20190907_050942_897916/game.tw-pddl",
+      "pick_two_obj_and_place-CD-None-Safe-308/trial_T20190907_051013_060265/game.tw-pddl",
+      "pick_two_obj_and_place-CD-None-Safe-308/trial_T20190907_051056_585414/game.tw-pddl",
+      "pick_two_obj_and_place-KeyChain-None-Safe-219/trial_T20190909_011803_423115/game.tw-pddl",
+      "pick_two_obj_and_place-KeyChain-None-Safe-219/trial_T20190909_012027_782483/game.tw-pddl",
+      "pick_two_obj_and_place-PepperShaker-None-Drawer-10/trial_T20190912_221016_460197/game.tw-pddl",
+      "pick_two_obj_and_place-PepperShaker-None-Drawer-10/trial_T20190912_221141_608117/game.tw-pddl",
+      "pick_two_obj_and_place-Pillow-None-Sofa-219/trial_T20190907_163408_914117/game.tw-pddl",
+      "pick_two_obj_and_place-SoapBar-None-Cabinet-424/trial_T20190909_081746_857594/game.tw-pddl",
+      "pick_two_obj_and_place-SoapBar-None-GarbageCan-424/trial_T20190909_064309_357168/game.tw-pddl",
+      "pick_two_obj_and_place-ToiletPaper-None-Cabinet-424/trial_T20190906_202926_527010/game.tw-pddl"
+    ]
+  }
+}

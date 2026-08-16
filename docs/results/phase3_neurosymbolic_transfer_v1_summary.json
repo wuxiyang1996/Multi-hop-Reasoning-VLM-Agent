@@ -1,0 +1,104 @@
+{
+  "schema_version": "phase3-neurosymbolic-transfer-summary-v1",
+  "claim": {
+    "source_only_symbolic_induction": "VALIDATED",
+    "untouched_discoveryworld_transfer": "VALIDATED",
+    "alfworld_same_ir_qualification": "PASSED",
+    "alfworld_same_ir_formal_replication": "FAILED",
+    "second_target_positive_replication": "NOT_ESTABLISHED"
+  },
+  "source_induction": {
+    "status": "SOURCE_SPECIFIC_TYPED_EFFECT_APPLICABILITY_VALIDATED",
+    "qualified_lineages": 3,
+    "abstaining_lineages": 3,
+    "heldout_authentic": "18/22",
+    "heldout_shuffled_effect": "1/22",
+    "heldout_source_permuted": "8/22",
+    "selected_effects": {
+      "gymv_columns": "EFFECT_BY_TRANSITION_4",
+      "gymv_thunder_force_iii": "EFFECT_BY_TRANSITION_8",
+      "tetris": "EXECUTABLE_TRANSITION_PERSISTENCE"
+    },
+    "report_sha256": "04af8f595ea99c4cbd13af948805d4a8d280a18eb7b3d4b7ecd94a5a7e5c9794"
+  },
+  "discoveryworld": {
+    "structured_acquisition_qualification": {
+      "tasks": 29,
+      "actions": 262,
+      "schema_fallback_rate": 0.0,
+      "repair_rate": 0.0,
+      "formal_outcome_read": false,
+      "summary_sha256": "5277dfe3f00c871bbc24abf7486e78b1451658918240e268b8da12f42eed2a39"
+    },
+    "untouched_formal": {
+      "tasks": 24,
+      "neural_only": 3,
+      "source_induced": 22,
+      "source_permuted": 11,
+      "generic_scaffold": 1,
+      "target_native_ceiling": 24,
+      "source_vs_neural": "19 wins / 0 losses / 5 ties",
+      "source_vs_neural_exact_two_sided_sign_p": 0.000003814697265625,
+      "negative_transfer_rate": 0.0,
+      "formal_schema_fallback_rate": 0.03550295857988166,
+      "report_sha256": "c805389237080e8103ab91fcd8fbeb1103f1a75a1d5ed59ab6cf0d7e7ce89d93"
+    }
+  },
+  "alfworld": {
+    "development_intervention_acquisition": {
+      "train_tasks": 36,
+      "train_snapshots": 107,
+      "train_option_forks": 237,
+      "validation_tasks": 12,
+      "validation_snapshots": 36,
+      "validation_option_forks": 77,
+      "formal_success_read": false,
+      "qualification_or_formal_reset": false,
+      "receipts_sha256": "f88779a837c2df968bf7083b6bab28166b2397c1fcf1ff15ec9071e369a73a9a"
+    },
+    "grounder": {
+      "head_validation_auc": {
+        "EFFECT_BY_TRANSITION_1": 1.0,
+        "EFFECT_BY_TRANSITION_4": 0.9380952380952381,
+        "EFFECT_BY_TRANSITION_8": 0.8333333333333333,
+        "EXECUTABLE_TRANSITION_PERSISTENCE": 0.7916666666666667
+      },
+      "frozen_policy_support_threshold": 0.9,
+      "qualified_artifact_sha256": "dcda00c45aeb6cfddd934fd4557dabe95f92511ea5a705c2bc3d866440d6d9f4"
+    },
+    "consumed_qualification": {
+      "tasks": 11,
+      "neural_only": 6,
+      "source_induced": 7,
+      "source_permuted": 6,
+      "generic_scaffold": 5,
+      "source_vs_neural": "1 win / 0 losses / 10 ties",
+      "changed_actions": 5,
+      "task_level_source_permuted_contrasts": 8,
+      "status": "ALFWORLD_PHASE3_QUALIFICATION_PASSED",
+      "report_sha256": "23955ff2ef3a8149dfa3f61f2d8fbd8fc35287288bf60a3b660b4f6dc19038ea"
+    },
+    "formal_replication": {
+      "claim_boundary": "Complete valid_seen multiplicity population; historical target exposure possible; not untouched.",
+      "tasks": 24,
+      "neural_only": 12,
+      "source_induced": 11,
+      "source_permuted": 12,
+      "generic_scaffold": 11,
+      "source_vs_neural": "0 wins / 1 loss / 23 ties",
+      "source_vs_permuted": "1 win / 2 losses / 21 ties",
+      "source_vs_generic": "4 wins / 4 losses / 16 ties",
+      "negative_transfer_rate_vs_neural": 0.041666666666666664,
+      "changed_actions": 21,
+      "task_level_source_permuted_contrasts": 18,
+      "selected_effect_counts": {
+        "EFFECT_BY_TRANSITION_4": 194,
+        "EFFECT_BY_TRANSITION_8": 94,
+        "EXECUTABLE_TRANSITION_PERSISTENCE": 138
+      },
+      "status": "ALFWORLD_PHASE3_REPLICATION_FAILED",
+      "report_sha256": "13b209af3d45953074af5be7c21bd9bef823be9f1ff2f89e059d02bdc33fff10"
+    }
+  },
+  "next_valid_experiment": "Freeze a new second-target reserve (prefer TIR non-maze with temporally extended tool interventions) and train only a target-native downside/applicability grounder; do not tune on the consumed ALFWorld formal population."
+}

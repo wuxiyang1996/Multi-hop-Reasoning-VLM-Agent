@@ -143,6 +143,7 @@ class ALFWorldTextBatchEnvironment(ALFWorldTextEnvironment):
         split: str = "train",
         seed: int = 47,
         max_steps: int = 30,
+        expose_expert_plan: bool = False,
     ) -> None:
         import yaml
         from alfworld.agents.environment import get_environment
@@ -174,7 +175,11 @@ class ALFWorldTextBatchEnvironment(ALFWorldTextEnvironment):
         factory_class = get_environment("AlfredTWEnv")
         factory = factory_class.__new__(factory_class)
         factory.config = config
-        factory.train_eval = split
+        # The official ALFWorld wrapper only requests the hand-coded plan when
+        # train_eval == "train".  A target-native ceiling may request that
+        # evaluator-only field while still executing the exact frozen eval
+        # game files selected above.  This flag does not alter those files.
+        factory.train_eval = "train" if expose_expert_plan else split
         factory.game_files = selected
         factory.num_games = len(selected)
         self.resolved_game_files = tuple(map(str, selected))

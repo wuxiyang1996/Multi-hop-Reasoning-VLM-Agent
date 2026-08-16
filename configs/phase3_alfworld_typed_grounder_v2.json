@@ -1,0 +1,43 @@
+{
+  "schema_version": "phase3-alfworld-typed-grounder-training-v2",
+  "status": "ADAPTIVE_TARGET_TRAIN_AND_ADAPTATION_VALIDATION_ONLY",
+  "claim_boundary": "Adaptive follow-up to the blocked V1 target validation. The only adaptation is stronger present-state target-policy support and an explicit noninferiority gate. No ALFWorld qualification/formal reset or official success was read. Source programs, source calibration, anonymous operators, and abstention remain frozen.",
+  "blocked_predecessor": {
+    "config": "configs/phase3_alfworld_typed_grounder_v1.json",
+    "artifact": "runs/phase3_alfworld_typed_grounder_v1/artifact.json",
+    "artifact_sha256": "e17344889e4fece78438c3951149e2c3f639561b6b34e7af1eac553efe25a2be",
+    "failure": "source expert-action top1 0.4150 versus neural-only 0.5523 and generic 0.4771",
+    "formal_environment_resets_before_adaptation": 0
+  },
+  "target_adaptation": {
+    "receipts": "runs/multisource_alfworld_neurosymbolic_v2/adaptation_expert_receipts.json",
+    "policy_grounder": "runs/sokoban_alfworld_effect_transfer_v2/masked_target_grounder.json"
+  },
+  "source_programs": [
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/candy_crush.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_columns.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_streets_of_rage_2.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_strider.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_thunder_force_iii.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/tetris.json"
+  ],
+  "model": {
+    "feature_bins": 192,
+    "hidden_units": 16,
+    "alpha": 0.5,
+    "maximum_iterations": 300,
+    "maximum_per_class_per_state": 8,
+    "seed": 2026081601
+  },
+  "qualification": {
+    "policy_support_exponent_grid": [64.0, 80.0, 96.0, 112.0, 128.0],
+    "training_minimum_contrast_rate": 0.05,
+    "frozen_thresholds": {
+      "minimum_each_head_auc": 0.65,
+      "minimum_portfolio_applicability_rate": 0.95,
+      "minimum_source_permuted_action_contrast_rate": 0.03,
+      "maximum_source_top1_drop_vs_neural": 0.05,
+      "maximum_source_top1_drop_vs_generic": 0.05
+    }
+  }
+}
