@@ -1,0 +1,236 @@
+{
+  "schema_version": "phase2-webshop-six-source-utility-report-v1",
+  "status": "PHASE2_WEBSHOP_CAUSAL_UTILITY_VALIDATED",
+  "claim_boundary": "Causal utility of the common, independently game-qualified search structure on 32 fresh WebShop goals. This is an aggregate shared-policy effect, not six powered per-game effect estimates and not an advantage over an isomorphic target-written ceiling.",
+  "manifest_sha256": "16a900de39fa78bfbd489c6d95111d65f485fb0405e797d8129f4ea53ca18e2f",
+  "tasks": 32,
+  "receipts": 160,
+  "summaries": {
+    "raw_target_only": {
+      "tasks": 32,
+      "strict_successes": 9,
+      "pass_successes": 20,
+      "mean_reward": 0.6038059163059164,
+      "mean_steps": 5.71875,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "authentic_search_automaton_plus_target": {
+      "tasks": 32,
+      "strict_successes": 19,
+      "pass_successes": 24,
+      "mean_reward": 0.7250000000000001,
+      "mean_steps": 6.03125,
+      "source_decisions": 188,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 19,
+        "COMMIT_VERIFY": 26,
+        "EXPLORE_UNTRIED": 143
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "event_binding_permuted_control": {
+      "tasks": 32,
+      "strict_successes": 9,
+      "pass_successes": 20,
+      "mean_reward": 0.6038059163059164,
+      "mean_steps": 5.71875,
+      "source_decisions": 183,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 183
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "ledger_blind_control": {
+      "tasks": 32,
+      "strict_successes": 7,
+      "pass_successes": 23,
+      "mean_reward": 0.6475423881673882,
+      "mean_steps": 8.3125,
+      "source_decisions": 245,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 66,
+        "COMMIT_VERIFY": 11,
+        "EXPLORE_UNTRIED": 168
+      },
+      "unsafe_commits": 0,
+      "failures": 0
+    },
+    "target_native_search_ceiling": {
+      "tasks": 32,
+      "strict_successes": 19,
+      "pass_successes": 24,
+      "mean_reward": 0.7250000000000001,
+      "mean_steps": 6.03125,
+      "source_decisions": 0,
+      "source_action_counts": {},
+      "unsafe_commits": 0,
+      "failures": 0
+    }
+  },
+  "paired": {
+    "raw_target_only": {
+      "wins": 10,
+      "losses": 0,
+      "ties": 22,
+      "net_wins": 10,
+      "exact_two_sided_p": 0.001953125,
+      "reward_wins": 14,
+      "reward_losses": 1,
+      "reward_ties": 17,
+      "reward_net_wins": 13,
+      "reward_exact_two_sided_p": 0.0009765625,
+      "action_contrast_tasks": 21
+    },
+    "event_binding_permuted_control": {
+      "wins": 10,
+      "losses": 0,
+      "ties": 22,
+      "net_wins": 10,
+      "exact_two_sided_p": 0.001953125,
+      "reward_wins": 14,
+      "reward_losses": 1,
+      "reward_ties": 17,
+      "reward_net_wins": 13,
+      "reward_exact_two_sided_p": 0.0009765625,
+      "action_contrast_tasks": 21
+    },
+    "ledger_blind_control": {
+      "wins": 12,
+      "losses": 0,
+      "ties": 20,
+      "net_wins": 12,
+      "exact_two_sided_p": 0.00048828125,
+      "reward_wins": 14,
+      "reward_losses": 3,
+      "reward_ties": 15,
+      "reward_net_wins": 11,
+      "reward_exact_two_sided_p": 0.012725830078125,
+      "action_contrast_tasks": 21
+    },
+    "target_native_search_ceiling": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 32,
+      "net_wins": 0,
+      "exact_two_sided_p": 1.0,
+      "reward_wins": 0,
+      "reward_losses": 0,
+      "reward_ties": 32,
+      "reward_net_wins": 0,
+      "reward_exact_two_sided_p": 1.0,
+      "action_contrast_tasks": 0
+    }
+  },
+  "source_lineages": {
+    "tetris": {
+      "tasks": 6,
+      "authentic_strict_successes": 5,
+      "raw_strict_successes": 2,
+      "strict_wins": 3,
+      "strict_losses": 0,
+      "source_decisions": 35,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 4,
+        "COMMIT_VERIFY": 5,
+        "EXPLORE_UNTRIED": 26
+      }
+    },
+    "candy_crush": {
+      "tasks": 6,
+      "authentic_strict_successes": 2,
+      "raw_strict_successes": 1,
+      "strict_wins": 1,
+      "strict_losses": 0,
+      "source_decisions": 37,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 3,
+        "COMMIT_VERIFY": 5,
+        "EXPLORE_UNTRIED": 29
+      }
+    },
+    "gymv_columns": {
+      "tasks": 5,
+      "authentic_strict_successes": 3,
+      "raw_strict_successes": 1,
+      "strict_wins": 2,
+      "strict_losses": 0,
+      "source_decisions": 34,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 4,
+        "COMMIT_VERIFY": 3,
+        "EXPLORE_UNTRIED": 27
+      }
+    },
+    "gymv_streets_of_rage_2": {
+      "tasks": 5,
+      "authentic_strict_successes": 4,
+      "raw_strict_successes": 2,
+      "strict_wins": 2,
+      "strict_losses": 0,
+      "source_decisions": 29,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 4,
+        "COMMIT_VERIFY": 4,
+        "EXPLORE_UNTRIED": 21
+      }
+    },
+    "gymv_thunder_force_iii": {
+      "tasks": 5,
+      "authentic_strict_successes": 2,
+      "raw_strict_successes": 1,
+      "strict_wins": 1,
+      "strict_losses": 0,
+      "source_decisions": 32,
+      "source_action_counts": {
+        "BACKTRACK_REPLAN": 4,
+        "COMMIT_VERIFY": 4,
+        "EXPLORE_UNTRIED": 24
+      }
+    },
+    "gymv_strider": {
+      "tasks": 5,
+      "authentic_strict_successes": 3,
+      "raw_strict_successes": 2,
+      "strict_wins": 1,
+      "strict_losses": 0,
+      "source_decisions": 21,
+      "source_action_counts": {
+        "COMMIT_VERIFY": 5,
+        "EXPLORE_UNTRIED": 16
+      }
+    }
+  },
+  "cache_usage": {
+    "unique_provider_completions": 351,
+    "prompt_tokens": 569423,
+    "completion_tokens": 15512,
+    "total_tokens": 584935,
+    "cost": 0.20489560000000004,
+    "decision_cache_file_sha256": "79be5f7a1d97cdde41c309fba95406519581eb1f3f1835ac357301e24327bdf9"
+  },
+  "gates": {
+    "exact_32x5_receipt_matrix": true,
+    "all_receipt_hashes_valid": true,
+    "all_receipts_complete": true,
+    "matched_initial_state_hashes": true,
+    "all_six_source_lineages_exercised": true,
+    "all_three_symbolic_actions_exercised": true,
+    "zero_authentic_unsafe_commits": true,
+    "authentic_strict_success_gain_over_raw": true,
+    "authentic_vs_raw_significant": true,
+    "zero_strict_negative_transfer_vs_raw": true,
+    "authentic_pass_success_not_below_raw": true,
+    "authentic_mean_reward_not_below_raw": true,
+    "authentic_reward_pairing_net_nonnegative": true,
+    "authentic_significantly_beats_event_permuted": true,
+    "authentic_significantly_beats_ledger_blind": true,
+    "authentic_matches_target_native_ceiling_exactly": true,
+    "every_lineage_has_zero_strict_losses_vs_raw": true
+  },
+  "report_sha256": "56d03ada15c5c779d8f750ae110d9373558a17470f22caea1388c6846f7b5666"
+}

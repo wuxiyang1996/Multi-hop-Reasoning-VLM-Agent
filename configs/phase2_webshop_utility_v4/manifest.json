@@ -1,0 +1,1162 @@
+{
+  "schema_version": "phase2-webshop-six-source-utility-v1",
+  "status": "FROZEN_BEFORE_ANY_PHASE2_TARGET_RESET_PROVIDER_CALL_OR_OUTCOME",
+  "attempt_version": "v4_singlethread_server_and_failclosed_candidates",
+  "claim_boundary": "One-shot aggregate causal utility test of the common policy supported by six independent game lineages on 32 new, product-disjoint WebShop goals. Per-game task counts are replication strata, not powered per-game studies.",
+  "selection_read_target_outcome": false,
+  "historical_target_outcome_reuse_allowed": false,
+  "source_assignment_read_target_semantics": false,
+  "source_assignment_rule": "SOURCE_GAMES manifest order round-robin before V4 outcomes",
+  "candidate_generation_failure_policy": {
+    "schema_version": "webshop-target-native-candidate-fallback-v3",
+    "trigger": "all frozen model schema retries fail target-native action validation",
+    "action": "noop()",
+    "task_or_goal_information_used": false,
+    "source_information_used": false,
+    "condition_information_used": false,
+    "transport_errors_caught": false,
+    "rationale": "Convert malformed model output into an audited safe policy outcome, not a runtime failure."
+  },
+  "seed_derivation": {
+    "label": "phase2-webshop-six-source-utility-v4-singlethread-failclosed",
+    "phase1_audit_sha256": "9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7",
+    "v3_failed_preflight_sha256": "02faae63c7a7b80ba310ec01a3dafa7cc957d0e185bf747e80c278969848c17b",
+    "v3_singlethread_diagnostic_sha256": "d928ae3b764043cca353bc2dc7fcc471e33f7833d9a8a1f6eef4eab8448f9004",
+    "fallback_schema": "webshop-target-native-candidate-fallback-v3",
+    "seed_hash": "2bd7fd24852fc2f35284b5b13a5f31c01b0762a2c994d85e9a33a440f910d7ad",
+    "rule": "int(first eight hex digits, base16)"
+  },
+  "goal_seed": 735575332,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 362,
+  "prior_consumed_goal_manifest": "configs/phase2_webshop_utility_v3/manifest.json",
+  "prior_consumed_goal_manifest_file_sha256": "d5d8f3ff36f21d2e8ed3ca62f7cd411dc2bc267f090c19248f466b841ae3e300",
+  "earlier_consumed_goal_manifest": "configs/phase2_webshop_utility_v2/manifest.json",
+  "earlier_consumed_goal_manifest_file_sha256": "8df925c772491f512a8b9176d1c7f63065892ef17ef10a2b2c8f650825ac8a87",
+  "historical_consumed_goal_manifest": "configs/webshop_synthetic_unique_v14_frozen.json",
+  "historical_consumed_goal_manifest_file_sha256": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee",
+  "predecessor_report": "runs/phase2_webshop_utility_v2/report.json",
+  "predecessor_report_sha256": "edb94a37ab0676cacac2b6f5cae4dfd1b7101fb5103f7c6e231599cb23ab929a",
+  "predecessor_report_file_sha256": "36a21e075212393846e908d9e6db5d7eea8962494daaaa1f0c17a3307e5f5a5f",
+  "predecessor_failed_gates": [
+    "all_receipts_complete"
+  ],
+  "runtime_drycheck": "docs/results/phase2_webshop_runtime_v3_drycheck.json",
+  "runtime_drycheck_sha256": "781b732eeed56a4eab8ccd6d1a95bd23460724d7802627c1a1e905f6bd152389",
+  "runtime_drycheck_file_sha256": "89321973e945133db07a2b391825ca78b3abdb79d7fabccbeeb9e639a6eed397",
+  "execution_interpreter": "/fs/gamma-projects/vlm-robot/conda/envs/vlm_benchmarks/bin/python3.11",
+  "prior_target_adapter_qualification": "runs/webshop_search_automaton_v16_formal/report.json",
+  "prior_target_adapter_qualification_file_sha256": "6d2c7c20fdf091013eb8dce9c769795ca02e34b55a70ca160836df3be44b0a51",
+  "parent_phase1_manifest": "configs/phase1_direct_prospective_v1/manifest.json",
+  "parent_phase1_manifest_sha256": "7a0d600bc3c9c3ec5ff4c7bb2384e5740cbbb5b6aba8918962faa57b5468f5a1",
+  "parent_phase1_manifest_file_sha256": "c2045baf6ff66f1062a88812a48dcd70bbf7f479e21993b2cd1bac7ce2787cb5",
+  "parent_phase1_audit": "docs/results/phase1_direct_prospective_24_of_24_v4.json",
+  "parent_phase1_audit_sha256": "9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7",
+  "semantic_independence_audit": {
+    "tasks": 32,
+    "unique_goal_semantics": 32,
+    "required_unique_goal_semantics": 32,
+    "duplicate_goal_semantics": [],
+    "duplicate_multiplicities": {},
+    "consumed_instruction_overlap": [],
+    "candidate_unique_asins": 32,
+    "consumed_asin_overlap": [],
+    "gates": {
+      "enough_unique_goal_semantics": true,
+      "one_task_per_goal_semantics": true,
+      "instruction_disjoint_from_consumed": true,
+      "asin_disjoint_from_consumed": true,
+      "one_task_per_asin": true
+    },
+    "passed": true
+  },
+  "sources": {
+    "tetris": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    "candy_crush": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    "gymv_columns": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    "gymv_streets_of_rage_2": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    "gymv_thunder_force_iii": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    "gymv_strider": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    }
+  },
+  "target_grounder": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+  "target_grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "tasks": [
+    {
+      "task_id": "webshop.27",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index27.36a28b74242c7f4a",
+      "server_goal_index": 27,
+      "asin": "B08Q43LJKJ",
+      "instruction_text": "Find me fleece lined women's pants with long sleeve for teen girls with color: dark gray, and size: medium, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B08Q43LJKJ",
+        "category": "fashion",
+        "query": "women's pants",
+        "name": "Womens Winter Plus Velvet Thick Lamb Velvet Leggings Trousers High-Waisted Leggings Warm Pants",
+        "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Leggings",
+        "instruction_text": "Find me fleece lined women's pants with long sleeve for teen girls with color: dark gray, and size: medium, and price lower than 60.00 dollars",
+        "attributes": [
+          "fleece lined",
+          "long sleeve",
+          "teen girls"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "color": "dark gray",
+          "size": "medium"
+        },
+        "weight": 0.013165501244416539
+      },
+      "goal_sha256": "36a28b74242c7f4a15d1198c730b90a2caaf151dc8db73460eb439befba21c49",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.45",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index45.d3d9069a3d5e3eac",
+      "server_goal_index": 45,
+      "asin": "B08LD3XCPQ",
+      "instruction_text": "Find me bpa free, easy clean tongue cleaners with storage case for bad breath, and price lower than 30.00 dollars",
+      "goal": {
+        "asin": "B08LD3XCPQ",
+        "category": "beauty",
+        "query": "tongue cleaners",
+        "name": "Premium Tongue Scraper Cleaner, BPA Free Tongue Scrapers, Healthy Oral Care, Soft and 100% Effective Clean Tools, With Travel Carry Case",
+        "product_category": "Beauty & Personal Care › Oral Care › Tongue Cleaners",
+        "instruction_text": "Find me bpa free, easy clean tongue cleaners with storage case for bad breath, and price lower than 30.00 dollars",
+        "attributes": [
+          "bpa free",
+          "easy clean",
+          "storage case",
+          "bad breath"
+        ],
+        "price_upper": 30.0,
+        "goal_options": {},
+        "weight": 0.39852150537634407
+      },
+      "goal_sha256": "d3d9069a3d5e3eac8358299c001d5a4c4bafb3f7ae3761ab4be824356758330b",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.46",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index46.ce84aa0796bd8a51",
+      "server_goal_index": 46,
+      "asin": "B08KYBVQ46",
+      "instruction_text": "Find me machine wash women's pants with elastic waist with color: orbit green, and size: small, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B08KYBVQ46",
+        "category": "fashion",
+        "query": "women's pants",
+        "name": "adidas Originals Women's Adicolor Essentials Tights",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Active › Leggings",
+        "instruction_text": "Find me machine wash women's pants with elastic waist with color: orbit green, and size: small, and price lower than 60.00 dollars",
+        "attributes": [
+          "machine wash",
+          "elastic waist"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "color": "orbit green",
+          "size": "small"
+        },
+        "weight": 0.002586897026790535
+      },
+      "goal_sha256": "ce84aa0796bd8a515c65f236d79f8c2f0128f4fc3bcc82e2d18258d0716eb893",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.52",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index52.29bcc96ff1465bd5",
+      "server_goal_index": 52,
+      "asin": "B08R5Z7S2K",
+      "instruction_text": "Find me easy clean, easy assemble file cabinets with storage space, and price lower than 130.00 dollars",
+      "goal": {
+        "asin": "B08R5Z7S2K",
+        "category": "garden",
+        "query": "file cabinets",
+        "name": "Estink File Cabinet, Grey Metal Moveable Hanging File Cabinet Nightstand Storage Cabinets with 5 Drawers Storage Filing Office Home Use,28 x 41 x 68.5 cm",
+        "product_category": "Office Products › Office Furniture & Lighting › Cabinets, Racks & Shelves › File Cabinets › Mobile File Cabinets",
+        "instruction_text": "Find me easy clean, easy assemble file cabinets with storage space, and price lower than 130.00 dollars",
+        "attributes": [
+          "easy clean",
+          "easy assemble",
+          "storage space"
+        ],
+        "price_upper": 130.0,
+        "goal_options": {},
+        "weight": 0.0211387088095672
+      },
+      "goal_sha256": "29bcc96ff1465bd531f61cdaf0ce49f305b6ecab3e78b0e05ea7d210b375ca47",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.63",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index63.18584ee1974c029a",
+      "server_goal_index": 63,
+      "asin": "B08X4YD5WH",
+      "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair loss with size: 8 inch, and price lower than 110.00 dollars",
+      "goal": {
+        "asin": "B08X4YD5WH",
+        "category": "beauty",
+        "query": "hair extensions, wigs & accessories",
+        "name": "QAZPL Hair Weaving Deep Curly, Virgin Human Hair, Wig For Women, 8-24 Inch 1B Natural Black, Grade 8A, Support Perm Or Hair Coloring, 1pcs (Size : 20 inch)",
+        "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Hair Extensions",
+        "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair loss with size: 8 inch, and price lower than 110.00 dollars",
+        "attributes": [
+          "high quality",
+          "hair loss"
+        ],
+        "price_upper": 110.0,
+        "goal_options": {
+          "size": "8 inch"
+        },
+        "weight": 0.02204301075268817
+      },
+      "goal_sha256": "18584ee1974c029a5b47bf4c61a3407aa667daae3e170e28873e815e6317b488",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.69",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index69.9a58b341500762d6",
+      "server_goal_index": 69,
+      "asin": "B084VWH12H",
+      "instruction_text": "Find me mirrors with rose gold for hair removal, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B084VWH12H",
+        "category": "beauty",
+        "query": "mirrors",
+        "name": "Look Bella 10x Magnifying Compact Folding Double Mirror. Magnification for Hair Removal. Perfect for Purses. Distortion Free - Rose Gold",
+        "product_category": "Beauty & Personal Care › Tools & Accessories › Mirrors › Compact & Travel Mirrors",
+        "instruction_text": "Find me mirrors with rose gold for hair removal, and price lower than 50.00 dollars",
+        "attributes": [
+          "rose gold",
+          "hair removal"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {},
+        "weight": 0.375
+      },
+      "goal_sha256": "9a58b341500762d68f70d460cb52e65d58b6d7693a5c232a4f93162b90f48045",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.74",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index74.34994d9fcdbf2e8c",
+      "server_goal_index": 74,
+      "asin": "B09QKJHF4Q",
+      "instruction_text": "Find me day comfort, anti slip, non slip women's oxfords with high heel, closed toe, ankle strap, memory foam, rubber sole with color: beige, and size: 8, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B09QKJHF4Q",
+        "category": "fashion",
+        "query": "women's oxfords",
+        "name": "LIUEONG Lady Metal Buckle Platform Shoes Booties Comfortable High Top Boots Casual Shoes Comfort Women's Closed Toe Ankle Strap",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Boots › Ankle & Bootie",
+        "instruction_text": "Find me day comfort, anti slip, non slip women's oxfords with high heel, closed toe, ankle strap, memory foam, rubber sole with color: beige, and size: 8, and price lower than 60.00 dollars",
+        "attributes": [
+          "day comfort",
+          "anti slip",
+          "non slip",
+          "high heel",
+          "closed toe",
+          "ankle strap",
+          "memory foam",
+          "rubber sole"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "color": "beige",
+          "size": "8"
+        },
+        "weight": 0.0084689738863064
+      },
+      "goal_sha256": "34994d9fcdbf2e8c555b7bd9504578a49d87aaef11e5fb7e9358078746c048e5",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.91",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index91.064d97e7f0f738d4",
+      "server_goal_index": 91,
+      "asin": "B08ZKDQPZ3",
+      "instruction_text": "Find me easy use body care for hair extensions, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B08ZKDQPZ3",
+        "category": "beauty",
+        "query": "body care",
+        "name": "Hair Tinsel Kit Strands With Tool 47 Inch 12 Colors 2100 Strands Fairy Hair Tinsel Kit Hair Extensions Sparkling Glitter Shiny Silk Tinsel (12 colors)",
+        "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Hair Extensions",
+        "instruction_text": "Find me easy use body care for hair extensions, and price lower than 50.00 dollars",
+        "attributes": [
+          "easy use",
+          "hair extensions"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {},
+        "weight": 0.09444444444444444
+      },
+      "goal_sha256": "064d97e7f0f738d4b562b28cbe8ff2c8902775bab57237761e14a9ba9feeb863",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.92",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index92.faf085d190379571",
+      "server_goal_index": 92,
+      "asin": "B08RCVFMQ7",
+      "instruction_text": "Find me highly pigmented, long lasting makeup palettes for eye shadow with size: 01, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B08RCVFMQ7",
+        "category": "beauty",
+        "query": "makeup palettes",
+        "name": "Rivetino Eyeshadow Palette, Professional 30 Color Spotlight Eye Shadow Matte Shimmer Makeup Pallet Highly Pigmented Colorful Powder Long Lasting Waterproof Eye Shadow",
+        "product_category": "Beauty & Personal Care › Makeup › Eyes › Eyeshadow",
+        "instruction_text": "Find me highly pigmented, long lasting makeup palettes for eye shadow with size: 01, and price lower than 50.00 dollars",
+        "attributes": [
+          "highly pigmented",
+          "long lasting",
+          "eye shadow"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "size": "01"
+        },
+        "weight": 0.188973063973064
+      },
+      "goal_sha256": "faf085d19037957173d7aca8af736ee02e17f29cae3072d1cf8f4ca08b18f40e",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.94",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index94.bec553e7c304dd3d",
+      "server_goal_index": 94,
+      "asin": "B09SHRV5JW",
+      "instruction_text": "Find me high quality hair loss products with seed oil for hair growth, hair loss with size: 30ml, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B09SHRV5JW",
+        "category": "beauty",
+        "query": "hair loss products",
+        "name": "Herbal Hair Regrowth Spray, Hair-growth Essence Spray, Herbal Hair Growth Essence Spray, Hair Growth Treatement Germinal Oil, Hair Growth Maximizer Spray for Prevent Postpartum Hair Loss Men Women (10ml 4PC)",
+        "product_category": "Beauty & Personal Care › Hair Care › Hair Loss Products › Hair Regrowth Treatments",
+        "instruction_text": "Find me high quality hair loss products with seed oil for hair growth, hair loss with size: 30ml, and price lower than 50.00 dollars",
+        "attributes": [
+          "high quality",
+          "seed oil",
+          "hair growth",
+          "hair loss"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "size": "30ml"
+        },
+        "weight": 0.07572738772928526
+      },
+      "goal_sha256": "bec553e7c304dd3d7c7beddbfb1784621a9a6c32bf69f7b326a41c278ab1e140",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.115",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index115.94e2763f4ba4c448",
+      "server_goal_index": 115,
+      "asin": "B09PL5W9PD",
+      "instruction_text": "Find me machine wash women's swimsuits & cover ups with drawstring closure, elastic waistband, tummy control with color: white, and size: xx-large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09PL5W9PD",
+        "category": "fashion",
+        "query": "women's swimsuits & cover ups",
+        "name": "Women's One Piece Swimsuit Halter Plunge Neck Tummy Control Bathing Suits Push Up Tankini Sets Plus Size Beachwear",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Swimsuits & Cover Ups › One-Pieces",
+        "instruction_text": "Find me machine wash women's swimsuits & cover ups with drawstring closure, elastic waistband, tummy control with color: white, and size: xx-large, and price lower than 40.00 dollars",
+        "attributes": [
+          "machine wash",
+          "drawstring closure",
+          "elastic waistband",
+          "tummy control"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "white",
+          "size": "xx-large"
+        },
+        "weight": 0.005017186714735997
+      },
+      "goal_sha256": "94e2763f4ba4c44826262b4704cd090061e108e5e39dd2ec7af5dc4f26b0aaac",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.142",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index142.ea2968e2021faf62",
+      "server_goal_index": 142,
+      "asin": "B09GY58GDH",
+      "instruction_text": "Find me button tufted, mid century, high density, easy assemble dining sets with solid wood, wood frame for dining room with color: green, and price lower than 270.00 dollars",
+      "goal": {
+        "asin": "B09GY58GDH",
+        "category": "garden",
+        "query": "dining sets",
+        "name": "Set of 2 Velvet Upholstered Dining Chairs Soft Padded Button Tufted Wingback Chairs with Nailhead Trim and Wooden Legs,Easy Assembly(Black)",
+        "product_category": "Home & Kitchen › Furniture › Dining Room Furniture › Chairs",
+        "instruction_text": "Find me button tufted, mid century, high density, easy assemble dining sets with solid wood, wood frame for dining room with color: green, and price lower than 270.00 dollars",
+        "attributes": [
+          "button tufted",
+          "mid century",
+          "high density",
+          "easy assemble",
+          "solid wood",
+          "wood frame",
+          "dining room"
+        ],
+        "price_upper": 270.0,
+        "goal_options": {
+          "color": "green"
+        },
+        "weight": 0.04113917022042985
+      },
+      "goal_sha256": "ea2968e2021faf620528a6c2e22b4402ae75633328735ce5557f481cdab816c8",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.146",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index146.5ad66c7f222fadb8",
+      "server_goal_index": 146,
+      "asin": "B09GF68QPJ",
+      "instruction_text": "Find me easy use bathing accessories with long handle for dead skin, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09GF68QPJ",
+        "category": "beauty",
+        "query": "bathing accessories",
+        "name": "Electric Shower Brush Set,Deep Cleaning Bath Shower Wash Brush with Long Handle,5 in 1 Spin SPA Brush Back Scrubber Set for Helps Promote Healthier Younger Looking Skin Soothes Tired Muscles",
+        "product_category": "Beauty & Personal Care › Personal Care › Bath & Bathing Accessories › Bathing Accessories › Bath & Body Brushes",
+        "instruction_text": "Find me easy use bathing accessories with long handle for dead skin, and price lower than 40.00 dollars",
+        "attributes": [
+          "easy use",
+          "long handle",
+          "dead skin"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {},
+        "weight": 0.193681917211329
+      },
+      "goal_sha256": "5ad66c7f222fadb8a3087bb5cba542429d2c5f44aa04be244821da1af9c25d70",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.147",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index147.221b8b1b9e4bf45d",
+      "server_goal_index": 147,
+      "asin": "B082MT9162",
+      "instruction_text": "Find me anti slip men's loafers & slip-ons with rubber sole with color: 2005brown, and size: 7, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B082MT9162",
+        "category": "fashion",
+        "query": "men's loafers & slip-ons",
+        "name": "GLOBALWIN Men's Casual Slip On Penny Loafers Lightweight Driving Shoes",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Loafers & Slip-Ons",
+        "instruction_text": "Find me anti slip men's loafers & slip-ons with rubber sole with color: 2005brown, and size: 7, and price lower than 50.00 dollars",
+        "attributes": [
+          "anti slip",
+          "rubber sole"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "2005brown",
+          "size": "7"
+        },
+        "weight": 0.007767942926061449
+      },
+      "goal_sha256": "221b8b1b9e4bf45d9ed25a47101d330bbd98c5888a69c6a81626033c69accf26",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.150",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index150.7efc9fdc8deedd1c",
+      "server_goal_index": 150,
+      "asin": "B09NLZFMRG",
+      "instruction_text": "Find me easy clean bathing accessories for dead skin with color: purple 1 pair, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B09NLZFMRG",
+        "category": "beauty",
+        "query": "bathing accessories",
+        "name": "ONGHAHYIS Shower Scrubbing Mitt Gloves Body Brush Take A Shower in 1 Minute Exfoliating Scrub Foot Scrubber Cath Sponge High-Elastic Five-Finger Bath Towel (Color : Random Color 1pc)",
+        "product_category": "Beauty & Personal Care › Personal Care › Bath & Bathing Accessories › Bathing Accessories › Bath Sponges",
+        "instruction_text": "Find me easy clean bathing accessories for dead skin with color: purple 1 pair, and price lower than 60.00 dollars",
+        "attributes": [
+          "easy clean",
+          "dead skin"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "color": "purple 1 pair"
+        },
+        "weight": 0.03478810879190386
+      },
+      "goal_sha256": "7efc9fdc8deedd1c581b036634db4950d7fa9cfc03397fef4fce0715c2b3967f",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.151",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index151.bdeabce9398ada08",
+      "server_goal_index": 151,
+      "asin": "B07CXTNVRJ",
+      "instruction_text": "Find me easy clean makeup palettes with stainless steel, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07CXTNVRJ",
+        "category": "beauty",
+        "query": "makeup palettes",
+        "name": "Small Stainless Steel Cosmetic Makeup Palette Spatula Rectangle Shape Foundation Mixing Plate Tool",
+        "product_category": "Beauty & Personal Care › Makeup › Makeup Palettes",
+        "instruction_text": "Find me easy clean makeup palettes with stainless steel, and price lower than 50.00 dollars",
+        "attributes": [
+          "easy clean",
+          "stainless steel"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {},
+        "weight": 0.018889857599535022
+      },
+      "goal_sha256": "bdeabce9398ada08a6edd93eb654d0c0bcd7ce17e6e10ac5a7bad2fa2dcff2f0",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.157",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index157.653ef916e4157354",
+      "server_goal_index": 157,
+      "asin": "B07LBNRY7H",
+      "instruction_text": "Find me officially licensed men's sweaters with classic fit with size: unisex large, and price lower than 80.00 dollars",
+      "goal": {
+        "asin": "B07LBNRY7H",
+        "category": "fashion",
+        "query": "men's sweaters",
+        "name": "Friday The 13th Jason TGIF Pullover Hoodie",
+        "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Hoodies",
+        "instruction_text": "Find me officially licensed men's sweaters with classic fit with size: unisex large, and price lower than 80.00 dollars",
+        "attributes": [
+          "officially licensed",
+          "classic fit"
+        ],
+        "price_upper": 80.0,
+        "goal_options": {
+          "size": "unisex large"
+        },
+        "weight": 0.0021668154984382767
+      },
+      "goal_sha256": "653ef916e41573549fe0b052b38e94a74366ef9d2799833e5c623083e1bb5f81",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.158",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index158.90802f940877eac7",
+      "server_goal_index": 158,
+      "asin": "B09GK4XTJG",
+      "instruction_text": "Find me wall mounted pendants and chandeliers with pendant light for dining room, living room, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B09GK4XTJG",
+        "category": "garden",
+        "query": "pendants and chandeliers",
+        "name": "Modern Black Plug in Cord Pendant Lights with 11.5ft Cord LED Hanging Lamps for Ceiling Wall Mounted Industrial Chandelier Lighting Metal Aluminum Cylinder Nordic Design Included Warm Lighting 2700k",
+        "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Ceiling Lights › Pendant Lights",
+        "instruction_text": "Find me wall mounted pendants and chandeliers with pendant light for dining room, living room, and price lower than 60.00 dollars",
+        "attributes": [
+          "wall mounted",
+          "pendant light",
+          "dining room",
+          "living room"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {},
+        "weight": 0.06434728406530629
+      },
+      "goal_sha256": "90802f940877eac7aa17b019d189f90d2ef27c0242d11238864f1fe5514981b6",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.212",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index212.0f22c002906825bf",
+      "server_goal_index": 212,
+      "asin": "B0957XW92M",
+      "instruction_text": "Find me high density, white item vanities with metal legs for living room with color: white, and price lower than 90.00 dollars",
+      "goal": {
+        "asin": "B0957XW92M",
+        "category": "garden",
+        "query": "vanities",
+        "name": "Giantex Faux Fur Vanity Stool Chair, Round Footstool Ottoman with Metal Legs for Living Room, Fluffy Chair with Furry Padded Seat, Makeup Stool for Bedroom, Decorative Furniture Footrest White",
+        "product_category": "Home & Kitchen › Furniture › Accent Furniture › Ottomans",
+        "instruction_text": "Find me high density, white item vanities with metal legs for living room with color: white, and price lower than 90.00 dollars",
+        "attributes": [
+          "high density",
+          "white item",
+          "metal legs",
+          "living room"
+        ],
+        "price_upper": 90.0,
+        "goal_options": {
+          "color": "white"
+        },
+        "weight": 0.14894433986480704
+      },
+      "goal_sha256": "0f22c002906825bf1286ea526df72cc9e6f12eb3fc5082870fb2aed8e658259c",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.215",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index215.0df76b361f141e47",
+      "server_goal_index": 215,
+      "asin": "B08X2PKKB2",
+      "instruction_text": "Find me easy carry, high quality refillable containers with rose gold with size: 12 count (pack of 1), and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B08X2PKKB2",
+        "category": "beauty",
+        "query": "refillable containers",
+        "name": "1 oz Aluminum Tin Jar with Screw Cap Refillable Container for Cosmetic, Lip Balm, Cream, Rose Gold 12 Pcs.",
+        "product_category": "Beauty & Personal Care › Tools & Accessories › Bags & Cases",
+        "instruction_text": "Find me easy carry, high quality refillable containers with rose gold with size: 12 count (pack of 1), and price lower than 40.00 dollars",
+        "attributes": [
+          "easy carry",
+          "high quality",
+          "rose gold"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "size": "12 count (pack of 1)"
+        },
+        "weight": 0.09882232462877623
+      },
+      "goal_sha256": "0df76b361f141e47d46ac7e5997989c95c9caa8aa6669bb06bb36bbad7d8d682",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.230",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index230.b0058d6387587c3b",
+      "server_goal_index": 230,
+      "asin": "B01LM6W7Z6",
+      "instruction_text": "Find me eyes makeup for nail polish, nail art with size: 4 shelves, and price lower than 30.00 dollars",
+      "goal": {
+        "asin": "B01LM6W7Z6",
+        "category": "beauty",
+        "query": "eyes makeup",
+        "name": "BY ALEGORY Acrylic Makeup Wall Organizing Shelves Nail Polish, Eyelashes, Foundations Cosmetics | 12 inch shelf (Pack of 4) Hardware Incl'd",
+        "product_category": "Beauty & Personal Care › Foot, Hand & Nail Care › Nail Art & Polish › Nail Art Accessories › Nail Art Equipment",
+        "instruction_text": "Find me eyes makeup for nail polish, nail art with size: 4 shelves, and price lower than 30.00 dollars",
+        "attributes": [
+          "nail polish",
+          "nail art"
+        ],
+        "price_upper": 30.0,
+        "goal_options": {
+          "size": "4 shelves"
+        },
+        "weight": 0.25
+      },
+      "goal_sha256": "b0058d6387587c3b8eb40d0e95c3552a8c84c5543ba04b5ce25e12de40c17c8c",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.247",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index247.73690ccab117b859",
+      "server_goal_index": 247,
+      "asin": "B09GVJBPRR",
+      "instruction_text": "Find me non slip, easy clean dining sets for dining room with color: glod, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B09GVJBPRR",
+        "category": "garden",
+        "query": "dining sets",
+        "name": "Gold Placemats Set of 8 for Dining Table, Pressed Vinyl 15 inch Round Place Mats Non-Slip Washable Dining Table Mates,8 Placemats and 8 Coaster for Wedding Party Holiday",
+        "product_category": "Home & Kitchen › Kitchen & Dining › Kitchen & Table Linens › Place Mats",
+        "instruction_text": "Find me non slip, easy clean dining sets for dining room with color: glod, and price lower than 50.00 dollars",
+        "attributes": [
+          "non slip",
+          "easy clean",
+          "dining room"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "glod"
+        },
+        "weight": 0.00523961196162188
+      },
+      "goal_sha256": "73690ccab117b859ae15afc8531e1419bd41fc6600d11072bc7d69a06b782dba",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.249",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index249.2b548bb5ead07dfb",
+      "server_goal_index": 249,
+      "asin": "B07DJJXGB5",
+      "instruction_text": "Find me scrubs & body treatments with tea tree, natural ingredients with scent: acne face & body wash, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B07DJJXGB5",
+        "category": "beauty",
+        "query": "scrubs & body treatments",
+        "name": "Face, Body Acne Spray with Benzoyl Peroxide - Body, Chest, Butt, Back Acne Treatment with Tea Tree Oil - Salicylic Acid Spray for Men, Women, Teens - Cystic Hormonal Acne Treatment - Acne Body Spray",
+        "product_category": "Beauty & Personal Care › Skin Care › Face › Cleansers › Washes",
+        "instruction_text": "Find me scrubs & body treatments with tea tree, natural ingredients with scent: acne face & body wash, and price lower than 40.00 dollars",
+        "attributes": [
+          "tea tree",
+          "natural ingredients"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "scent": "acne face & body wash"
+        },
+        "weight": 0.27941176470588236
+      },
+      "goal_sha256": "2b548bb5ead07dfb8f9fc4d9575c25e24b30dc9dc4a5bd211aeeacacdfdb13e9",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.257",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index257.f63bc4dc1470f851",
+      "server_goal_index": 257,
+      "asin": "B07Y81FQV3",
+      "instruction_text": "Find me console tables with steel frame for living room, and price lower than 170.00 dollars",
+      "goal": {
+        "asin": "B07Y81FQV3",
+        "category": "garden",
+        "query": "console tables",
+        "name": "BON AUGURE Industrial Sofa Console Table for Entryway, 3 Tier Foyer Table for Hallway, Rustic Hall Tables Behind Couch (47 Inch, Rustic Oak)",
+        "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Tables › Sofa & Console Tables",
+        "instruction_text": "Find me console tables with steel frame for living room, and price lower than 170.00 dollars",
+        "attributes": [
+          "steel frame",
+          "living room"
+        ],
+        "price_upper": 170.0,
+        "goal_options": {},
+        "weight": 0.027122241086587433
+      },
+      "goal_sha256": "f63bc4dc1470f8514582356ca9c7589a3c7be6aecf9b54ec96c68b777a2b47e2",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.264",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index264.17dbc5884a49a2ac",
+      "server_goal_index": 264,
+      "asin": "B09B77K9YQ",
+      "instruction_text": "Find me console tables with wood frame for living room with color: green, and price lower than 320.00 dollars",
+      "goal": {
+        "asin": "B09B77K9YQ",
+        "category": "garden",
+        "query": "console tables",
+        "name": "Rhomtree 36” Wood Console Table Sideboard Hall Table with 2 Drawers, 1 Cabinet and 1 Shelf Modern Sofa Table for Hallway, Entryway, Living Room, Kitchen (Green with Brown Top)",
+        "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Tables › Sofa & Console Tables",
+        "instruction_text": "Find me console tables with wood frame for living room with color: green, and price lower than 320.00 dollars",
+        "attributes": [
+          "wood frame",
+          "living room"
+        ],
+        "price_upper": 320.0,
+        "goal_options": {
+          "color": "green"
+        },
+        "weight": 0.01747311827956989
+      },
+      "goal_sha256": "17dbc5884a49a2ac4521ade8195b7fb32311f3020beed9e48ae1502a16dfe44f",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.266",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index266.d76b88c58339beab",
+      "server_goal_index": 266,
+      "asin": "B09NRWND4H",
+      "instruction_text": "Find me high quality, easy use makeup palettes with stainless steel, and price lower than 30.00 dollars",
+      "goal": {
+        "asin": "B09NRWND4H",
+        "category": "beauty",
+        "query": "makeup palettes",
+        "name": "Empty Round Makeup Palette, Makeup Palette Sticker Kit 15 Pieces Adhesive Right Size for Eyeshadow Palette Set",
+        "product_category": "Beauty & Personal Care › Makeup › Makeup Palettes",
+        "instruction_text": "Find me high quality, easy use makeup palettes with stainless steel, and price lower than 30.00 dollars",
+        "attributes": [
+          "high quality",
+          "easy use",
+          "stainless steel"
+        ],
+        "price_upper": 30.0,
+        "goal_options": {},
+        "weight": 0.02000064580709742
+      },
+      "goal_sha256": "d76b88c58339beab62c0c766e9133075858b7e29fbc3c7eb913757e62ea0b7e2",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.269",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index269.06b409c14436e0df",
+      "server_goal_index": 269,
+      "asin": "B07G4HJR5V",
+      "instruction_text": "Find me easy clean living room sets with faux leather with color: white, and price lower than 720.00 dollars",
+      "goal": {
+        "asin": "B07G4HJR5V",
+        "category": "garden",
+        "query": "living room sets",
+        "name": "Best Choice Products Tufted Faux Leather 3-Seat L-Shape Sectional Sofa Couch Set w/Chaise Lounge, Ottoman Coffee Table Bench, Black",
+        "product_category": "Automotive › Motorcycle & Powersports › Protective Gear › Knee & Shin Protection",
+        "instruction_text": "Find me easy clean living room sets with faux leather with color: white, and price lower than 720.00 dollars",
+        "attributes": [
+          "easy clean",
+          "faux leather"
+        ],
+        "price_upper": 720.0,
+        "goal_options": {
+          "color": "white"
+        },
+        "weight": 0.027115474520804116
+      },
+      "goal_sha256": "06b409c14436e0dff691567b7d35d438716c7cf2216e1d8fe4644dae1b9b146e",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.304",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index304.69b81086f815db32",
+      "server_goal_index": 304,
+      "asin": "B099FKK27G",
+      "instruction_text": "Find me anti slip, non slip women's slippers with faux fur with color: other white, and size: large, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B099FKK27G",
+        "category": "fashion",
+        "query": "women's slippers",
+        "name": "Rachel Zoe Women's Sofia Slipper",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Flats",
+        "instruction_text": "Find me anti slip, non slip women's slippers with faux fur with color: other white, and size: large, and price lower than 50.00 dollars",
+        "attributes": [
+          "anti slip",
+          "non slip",
+          "faux fur"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "other white",
+          "size": "large"
+        },
+        "weight": 0.009868210268004045
+      },
+      "goal_sha256": "69b81086f815db32a7e81e72a6d8c872a98599ee370245d005f2945ba8aec57e",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.322",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index322.cbaa9b77859750b1",
+      "server_goal_index": 322,
+      "asin": "B09N9T673Q",
+      "instruction_text": "Find me open toe, knee high, non slip women's pumps with ankle strap, high heel, memory foam, rubber sole for teen girls with size: 6.5, and price lower than 120.00 dollars",
+      "goal": {
+        "asin": "B09N9T673Q",
+        "category": "fashion",
+        "query": "women's pumps",
+        "name": "Women's Heeled Sandals Sexy Minimalistic Cut out Rear Zipper Wedge Roman Sandals Casual Solid Stiletto Pump for Night Party Comfy Lightweight Summer Shoes",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Heeled Sandals",
+        "instruction_text": "Find me open toe, knee high, non slip women's pumps with ankle strap, high heel, memory foam, rubber sole for teen girls with size: 6.5, and price lower than 120.00 dollars",
+        "attributes": [
+          "open toe",
+          "knee high",
+          "non slip",
+          "ankle strap",
+          "high heel",
+          "memory foam",
+          "rubber sole",
+          "teen girls"
+        ],
+        "price_upper": 120.0,
+        "goal_options": {
+          "size": "6.5"
+        },
+        "weight": 0.010960347354406812
+      },
+      "goal_sha256": "cbaa9b77859750b1d68245736cc052fed0f22bc7a82f716c0ee0b73ff9bb3b1a",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.334",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index334.ff335e0ade63c510",
+      "server_goal_index": 334,
+      "asin": "B08KY1G31G",
+      "instruction_text": "Find me candles with soy wax for living room, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B08KY1G31G",
+        "category": "garden",
+        "query": "candles",
+        "name": "GSPY Lavender Scented Candles - I Miss You Gifts, Thinking of You Gifts for Women, Her, Girlfriend, Boyfriend, Friends - A Hug in a Jar, Sending Hugs - Divorce, Get Well, Mothers Day, Sympathy Gifts",
+        "product_category": "Home & Kitchen › Home Décor Products › Candles & Holders › Candles › Jar Candles",
+        "instruction_text": "Find me candles with soy wax for living room, and price lower than 40.00 dollars",
+        "attributes": [
+          "soy wax",
+          "living room"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {},
+        "weight": 0.2508064516129032
+      },
+      "goal_sha256": "ff335e0ade63c5105693191258610413c2011adb1d9e1a11da8dbada79cf9d81",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.352",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index352.1ba410a9a3d568fc",
+      "server_goal_index": 352,
+      "asin": "B08DHS3TH5",
+      "instruction_text": "Find me mid century vanities with vanity light, clear glass, light fixture, and price lower than 140.00 dollars",
+      "goal": {
+        "asin": "B08DHS3TH5",
+        "category": "garden",
+        "query": "vanities",
+        "name": "LALUZ Bathroom Light Fixtures, Gold Vanity Light Fixture with Clear Glass Shades ( L19.5”× W6”× H7.5”)",
+        "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Wall Lights › Vanity Lights",
+        "instruction_text": "Find me mid century vanities with vanity light, clear glass, light fixture, and price lower than 140.00 dollars",
+        "attributes": [
+          "mid century",
+          "vanity light",
+          "clear glass",
+          "light fixture"
+        ],
+        "price_upper": 140.0,
+        "goal_options": {},
+        "weight": 0.055036764705882354
+      },
+      "goal_sha256": "1ba410a9a3d568fc1aaaffe3b7bf4a284dce4a1a44f132156191a2c47b405f4a",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.361",
+      "target_identity": "webshop.synthetic.phase2v4.seed735575332.index361.6bbf5cc75917f48e",
+      "server_goal_index": 361,
+      "asin": "B09JJ5W1N4",
+      "instruction_text": "Find me easy carry, high quality bags & cases with color: blue, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09JJ5W1N4",
+        "category": "beauty",
+        "query": "bags & cases",
+        "name": "Lotus78 Makeup Bag. Cosmetic Bag for Women. Elegant Toiletry Bag for Women. Make Up Bag with Brush Organizer. Travel Makeup Bag for Girls. Makeup Bag Organizer with Detachable Small Cosmetic Bag. (Pink)",
+        "product_category": "Beauty & Personal Care › Tools & Accessories › Bags & Cases › Cosmetic Bags",
+        "instruction_text": "Find me easy carry, high quality bags & cases with color: blue, and price lower than 40.00 dollars",
+        "attributes": [
+          "easy carry",
+          "high quality"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "blue"
+        },
+        "weight": 0.023233486943164364
+      },
+      "goal_sha256": "6bbf5cc75917f48e8b3b6eb496030d465922cf782a6364293187d922728920d8",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    }
+  ],
+  "parameters": {
+    "model": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "maximum_output_tokens": 1200,
+    "maximum_steps": 12,
+    "candidate_count": 5,
+    "schema_retries": 3,
+    "timeout_seconds": 180
+  },
+  "one_shot_execution_rule": "Each target-condition cell may be reset/executed once. Existing valid receipts may be resumed; a start marker without a receipt is consumed incomplete and must not be rerun.",
+  "success_gates": {
+    "exact_32x5_receipt_matrix": true,
+    "all_receipt_hashes_valid": true,
+    "all_receipts_complete": true,
+    "matched_initial_state_hashes": true,
+    "all_six_source_lineages_exercised": true,
+    "all_three_symbolic_actions_exercised": true,
+    "zero_authentic_unsafe_commits": true,
+    "authentic_strict_success_gain_over_raw": true,
+    "authentic_vs_raw_significant": "paired exact two-sided p <= .05",
+    "zero_strict_negative_transfer_vs_raw": true,
+    "authentic_pass_success_not_below_raw": true,
+    "authentic_mean_reward_not_below_raw": true,
+    "authentic_reward_pairing_net_nonnegative": true,
+    "authentic_significantly_beats_event_permuted": true,
+    "authentic_significantly_beats_ledger_blind": true,
+    "authentic_matches_target_native_ceiling_exactly": true,
+    "every_lineage_has_zero_strict_losses_vs_raw": true
+  },
+  "runtime_file_sha256": {
+    "src/motif_transfer/phase2_webshop_utility_v1.py": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "src/motif_transfer/webshop_candidate_failclosed_v3.py": "dfdb28a6554e4598e769041eb866e353a4d80e84f7ab9f94ac935d2b77aaeac2",
+    "src/motif_transfer/webshop_search_automaton_v16.py": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "src/motif_transfer/webshop_coverage_transfer_v14.py": "56d28e46d073a0563d3e13884c7ad1dc70491259af61bdea24329b41d97580fe",
+    "src/motif_transfer/webshop_constraint_coverage_v14.py": "4d743c512f5508ffdb3a8ecf11aba27ad6dc55e724d3e050b7b92daed35ed384",
+    "src/motif_transfer/webshop_unique_goal_server_v14.py": "dfa7aefa70584ba1d0cb3c82aedb7c48939ba1b5eb8609c5a86abb75eee8cf25",
+    "scripts/freeze_phase2_webshop_utility_v2.py": "f79040ee442c706c7d65bf1847d9fc817c54d8d371474f299ad90c73d6458d08",
+    "scripts/freeze_phase2_webshop_utility_v4.py": "3c8293c154118fe4f726e6f93564e5222f4dbfaab9fb05a2718d591bb09042de",
+    "scripts/run_phase2_webshop_utility_v1.py": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "scripts/run_phase2_webshop_utility_v3.py": "72bcd90a86e25ff0150a59016fd06913e0dde023d3f5144755acf645e7531d6d",
+    "scripts/run_phase2_webshop_utility_v4.py": "14ce382904d239a7eccf7ced33ce9e068ea2a9e6bde0dd9f3304d9549d764663",
+    "scripts/run_webshop_direct_server_v4.py": "b4193345c656a381e74f760df105c76b77aed3cc2dcbcc917449df313808ea78",
+    "scripts/run_webshop_search_automaton_v16.py": "b21567e4b02937d84283eb3b0d821443507f048ff945aa29fd9f3294541768ed",
+    "scripts/run_webshop_neural_symbolic_v9.py": "a07a1dd48b7ae69149d47f228ab4985cfe11e1b17ed5c3843f22bf302330757e",
+    "scripts/run_webshop_transfer_qualification_v5.py": "70b2a6f2f117e1a2508afc95367607d9776c599dbe519c33d8278bb6482944f1",
+    "scripts/verify_phase2_webshop_utility_v4.py": "4dde561378f495a7aa62e1367fe54deced92384c6e7765fce6004f4f33764ad6"
+  },
+  "vendor_runtime_file_sha256": {
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/data/items_shuffle_1000.json": "30a4765c3a327af72d9a9a95a6b2486d516f0fa1d3ecd83681901ce82a21b269",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/data/items_human_ins.json": "cf78667548a71786e1d9049c24b802e48e1084ad4bb021cae56ce1f6d96954a3",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/engine/engine.py": "4af84efef1401c3735296201afc397be54015ff9b169c2c6bfe5f5bc90dc31e6",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/engine/goal.py": "9703c8583244e2041182eb14856186b998145ab16ce2ba9aef8cb680877c8ed5",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/app.py": "2161ee48cea38a8d8e0dfa2e386f059bd006af47e5549ea41051e26f3d553d24"
+  },
+  "server_concurrency_policy": {
+    "threaded": false,
+    "reason": "Eliminate lazy goal-initialization races proven by V3 paired preflights."
+  },
+  "predecessor_failed_preflight": "docs/results/phase2_webshop_utility_v3_preflight.json",
+  "predecessor_failed_preflight_sha256": "02faae63c7a7b80ba310ec01a3dafa7cc957d0e185bf747e80c278969848c17b",
+  "predecessor_failed_preflight_file_sha256": "b954f1242e3e3a5f886e2a426db27a0ad1f7f02d298f68159c83fbb345e6da71",
+  "singlethread_diagnostic": "docs/results/phase2_webshop_utility_v3_singlethread_diagnostic.json",
+  "singlethread_diagnostic_sha256": "d928ae3b764043cca353bc2dc7fcc471e33f7833d9a8a1f6eef4eab8448f9004",
+  "singlethread_diagnostic_file_sha256": "9e89b675ff4a599d00e7fc6c07252e443d881ec7894d8594c2bc6ba7eb00b441",
+  "manifest_sha256": "16a900de39fa78bfbd489c6d95111d65f485fb0405e797d8129f4ea53ca18e2f"
+}

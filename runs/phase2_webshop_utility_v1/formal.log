@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_phase2_webshop_utility_v1.py", line 336, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_phase2_webshop_utility_v1.py", line 313, in main
+    report = _run(
+        manifest, keys=args.keys, wrapper_root=args.wrapper_root,
+        output_dir=args.output_dir,
+    )
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_phase2_webshop_utility_v1.py", line 208, in _run
+    receipt = v9_runner._run_condition(
+        task_id=str(task["task_id"]),
+    ...<14 lines>...
+        schema_retries=int(parameters["schema_retries"]),
+    )
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_webshop_neural_symbolic_v9.py", line 62, in _run_condition
+    from webshop_wrapper import register_webshop_tasks
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/webshop_wrapper/__init__.py", line 40, in <module>
+    from webshop_wrapper.task import WebShopTask, register_webshop_tasks
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/webshop_wrapper/task.py", line 30, in <module>
+    import gymnasium as gym
+ModuleNotFoundError: No module named 'gymnasium'

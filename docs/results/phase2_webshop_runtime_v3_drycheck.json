@@ -1,0 +1,31 @@
+{
+  "schema_version": "phase2-webshop-runtime-drycheck-v3",
+  "status": "PHASE2_WEBSHOP_RUNTIME_V3_DRYCHECK_PASSED",
+  "python_executable": "/fs/gamma-projects/vlm-robot/conda/envs/vlm_benchmarks/bin/python3.11",
+  "python_version": "3.11.15",
+  "gymnasium_version": "1.3.0",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "fallback_schema": "webshop-target-native-candidate-fallback-v3",
+  "gates": {
+    "benchmark_python_selected": true,
+    "python_3_11_selected": true,
+    "gymnasium_imported": true,
+    "browsergym_imported": true,
+    "v3_runner_imported": true,
+    "webshop_wrapper_imported": true,
+    "openrouter_key_present": true,
+    "synthetic_invalid_response_falls_back_to_noop": true,
+    "fallback_raw_is_valid_json": true,
+    "fallback_schema_bound": true,
+    "fallback_used_no_target_information": true,
+    "fallback_used_no_source_information": true,
+    "fallback_made_no_provider_call": true,
+    "zero_target_registrations": true,
+    "zero_environment_constructions": true,
+    "zero_target_resets": true,
+    "zero_target_actions": true,
+    "zero_provider_calls": true,
+    "zero_target_outcomes_read": true
+  },
+  "drycheck_sha256": "781b732eeed56a4eab8ccd6d1a95bd23460724d7802627c1a1e905f6bd152389"
+}
