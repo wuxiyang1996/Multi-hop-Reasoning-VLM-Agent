@@ -419,9 +419,10 @@ def validate_typed_effect_program(program: Mapping[str, Any]) -> None:
     claimed = body.pop("program_sha256", None)
     if not claimed or claimed != stable_hash(body):
         raise ValueError("typed-effect program hash mismatch")
-    if program.get("schema_version") != (
-        "phase3-source-induced-typed-effect-program-v2"
-    ):
+    if program.get("schema_version") not in {
+        "phase3-source-induced-typed-effect-program-v2",
+        "phase3-source-induced-typed-effect-program-v3",
+    }:
         raise ValueError("unsupported typed-effect program schema")
     if program.get("selected_effect_type") not in TYPED_EFFECTS:
         raise ValueError("typed-effect program selected an unknown type")
@@ -431,6 +432,81 @@ def validate_typed_effect_program(program: Mapping[str, Any]) -> None:
     for token in program.get("forbidden_named_policy_tokens") or ():
         if serialized.count(str(token)) != 1:
             raise ValueError("named policy token leaked outside forbidden audit list")
+
+
+def recalibrate_typed_effect_program(
+    program: Mapping[str, Any], *, calibration_metrics: Mapping[str, Any],
+    calibration_receipt_sha256: str,
+    minimum_calibration_accuracy: float = 0.50,
+    minimum_calibration_varying_fraction: float = 0.50,
+    minimum_calibration_authentic_minus_shuffled: float = 0.25,
+) -> dict[str, Any]:
+    """Conservatively recalibrate admission without changing effect content.
+
+    The selected effect type and operator score are frozen from the original
+    discovery split.  A second, independent source batch may only remove an
+    operator (turning it into abstention); it can never rescue a previously
+    unqualified program or select a different effect type.
+    """
+
+    validate_typed_effect_program(program)
+    authentic = calibration_metrics.get("authentic")
+    shuffled = calibration_metrics.get("shuffled_effect_binding")
+    if not isinstance(authentic, Mapping) or not isinstance(shuffled, Mapping):
+        raise ValueError("calibration metrics omitted authentic/shuffled evidence")
+    gates = {
+        "single_batch_source_qualification_passed": (
+            program.get("status") == "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED"
+        ),
+        "independent_calibration_accuracy": (
+            float(authentic.get("accuracy", 0.0))
+            >= minimum_calibration_accuracy
+        ),
+        "independent_calibration_effect_varies": (
+            float(authentic.get("varying_effect_fraction", 0.0))
+            >= minimum_calibration_varying_fraction
+        ),
+        "independent_calibration_beats_shuffled": (
+            float(authentic.get("accuracy", 0.0))
+            - float(shuffled.get("accuracy", 0.0))
+            >= minimum_calibration_authentic_minus_shuffled
+        ),
+    }
+    admitted = all(gates.values())
+    original = dict(program)
+    original_sha = str(original.pop("program_sha256"))
+    body = {
+        **original,
+        "schema_version": "phase3-source-induced-typed-effect-program-v3",
+        "status": (
+            "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED" if admitted
+            else "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED"
+        ),
+        "operators": list(program.get("operators") or ()) if admitted else [],
+        "pre_recalibration_program_sha256": original_sha,
+        "cross_batch_calibration": {
+            "authority": (
+                "INDEPENDENT_SOURCE_RESERVE_ONLY;CAN_REMOVE_OPERATOR_BUT_"
+                "CANNOT_CHANGE_SELECTED_EFFECT_TYPE;NO_TARGET_DATA"
+            ),
+            "calibration_receipt_sha256": str(calibration_receipt_sha256),
+            "metrics": {
+                "authentic": dict(authentic),
+                "shuffled_effect_binding": dict(shuffled),
+            },
+            "thresholds": {
+                "minimum_calibration_accuracy": minimum_calibration_accuracy,
+                "minimum_calibration_varying_fraction": (
+                    minimum_calibration_varying_fraction
+                ),
+                "minimum_calibration_authentic_minus_shuffled": (
+                    minimum_calibration_authentic_minus_shuffled
+                ),
+            },
+            "gates": gates,
+        },
+    }
+    return body | {"program_sha256": stable_hash(body)}
 
 
 def target_trial_order(
@@ -534,5 +610,6 @@ __all__ = [
     "TypedInterventionSet", "evaluate_effect_type",
     "induce_typed_effect_program", "target_trial_order",
     "maximum_typed_program_contrast_derangement",
+    "recalibrate_typed_effect_program",
     "typed_intervention_sets_from_rows", "validate_typed_effect_program",
 ]

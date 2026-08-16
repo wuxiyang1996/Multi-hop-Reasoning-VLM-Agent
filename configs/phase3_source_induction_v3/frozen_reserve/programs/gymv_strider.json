@@ -1,0 +1,322 @@
+{
+  "anonymous_transition_program": {
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "multiple_matching_operators": "ABSTAIN",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "abstained": 0,
+      "admitted": 66,
+      "correct": 66,
+      "coverage": 1.0,
+      "examples": 66,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 33,
+        "OP_a3126032f76e895f": 10,
+        "OP_b1eed9a105f62ecd": 23
+      },
+      "overall_accuracy": 1.0,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "gates": {
+      "all_operator_gates_pass": true,
+      "at_least_three_anonymous_operators_induced": true,
+      "no_induction_errors": true,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "qualification_coverage": true,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true
+    },
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "induction_errors": [],
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      },
+      "OP_a3126032f76e895f": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      },
+      "OP_b1eed9a105f62ecd": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      }
+    },
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 33,
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 30,
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ]
+      },
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 10,
+        "operator_id": "OP_a3126032f76e895f",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "HIGH"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 10,
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ]
+      },
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 23,
+        "operator_id": "OP_b1eed9a105f62ecd",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "LOW"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 20,
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ]
+      }
+    ],
+    "program_sha256": "91bc0c4570b457ca3b1625fc241dde1693e1d97fec72b1dd953e0d4347a7d240",
+    "qualification_metrics": {
+      "abstained": 0,
+      "admitted": 60,
+      "correct": 60,
+      "coverage": 1.0,
+      "examples": 60,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 30,
+        "OP_a3126032f76e895f": 10,
+        "OP_b1eed9a105f62ecd": 20
+      },
+      "overall_accuracy": 1.0,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "source_game": "gymv_strider",
+    "source_induction_receipts_sha256": "98ab4dfed7dd38596558ab275f021d02f9038a4a5bfb684f81db5b9a5de4de5d",
+    "status": "SOURCE_INDUCED_PROGRAM_QUALIFIED",
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_coverage": 0.95,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_support": 2
+    }
+  },
+  "artifact_sha256": "d6655c32d4d5c1b5e157a568c6d823d22f3533dbffea1ccac07a5fdf0862b8cc",
+  "calibration_policy": "KEEP_V2_EFFECT_TYPE_FIXED;REMOVE_OPERATOR_IF_INDEPENDENT_SOURCE_RESERVE_FAILS;NEVER_RESCUE_PRIOR_ABSTENTION",
+  "schema_version": "phase3-frozen-typed-effect-lineage-v3",
+  "source_game": "gymv_strider",
+  "source_identity_used_as_runtime_feature": false,
+  "status": "FROZEN_BEFORE_THIRD_UNTOUCHED_SOURCE_RESERVE",
+  "target_data_read_for_program_induction_or_calibration": false,
+  "typed_effect_program": {
+    "abstention_rule": {
+      "candidate_set_smaller_than_two": "ABSTAIN",
+      "missing_target_typed_effect": "ABSTAIN",
+      "nonfinite_target_typed_effect": "ABSTAIN",
+      "nonunique_target_argmax": "ABSTAIN",
+      "source_not_qualified": "ABSTAIN"
+    },
+    "cross_batch_calibration": {
+      "authority": "INDEPENDENT_SOURCE_RESERVE_ONLY;CAN_REMOVE_OPERATOR_BUT_CANNOT_CHANGE_SELECTED_EFFECT_TYPE;NO_TARGET_DATA",
+      "calibration_receipt_sha256": "4dbefd2aeb644a0ba3a147c1e8f7672a2539250b3ffdbed2e0312eea951feca6",
+      "gates": {
+        "independent_calibration_accuracy": false,
+        "independent_calibration_beats_shuffled": false,
+        "independent_calibration_effect_varies": false,
+        "single_batch_source_qualification_passed": false
+      },
+      "metrics": {
+        "authentic": {
+          "accuracy": 0.375,
+          "correct": 3,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.0,
+          "varying_effect_sets": 0
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.375,
+          "correct": 3,
+          "examples": 8,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.0,
+          "varying_effect_sets": 0
+        }
+      },
+      "thresholds": {
+        "minimum_calibration_accuracy": 0.5,
+        "minimum_calibration_authentic_minus_shuffled": 0.25,
+        "minimum_calibration_varying_fraction": 0.5
+      }
+    },
+    "discovery_metrics": {
+      "EFFECT_BY_TRANSITION_1": {
+        "accuracy": 0.25,
+        "correct": 4,
+        "examples": 16,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.0,
+        "unique_argmax_sets": 0,
+        "varying_effect_fraction": 0.0,
+        "varying_effect_sets": 0
+      },
+      "EFFECT_BY_TRANSITION_4": {
+        "accuracy": 0.25,
+        "correct": 4,
+        "examples": 16,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.0,
+        "unique_argmax_sets": 0,
+        "varying_effect_fraction": 0.0,
+        "varying_effect_sets": 0
+      },
+      "EFFECT_BY_TRANSITION_8": {
+        "accuracy": 0.25,
+        "correct": 4,
+        "examples": 16,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.0,
+        "unique_argmax_sets": 0,
+        "varying_effect_fraction": 0.0,
+        "varying_effect_sets": 0
+      },
+      "EXECUTABLE_TRANSITION_PERSISTENCE": {
+        "accuracy": 0.25,
+        "correct": 4,
+        "examples": 16,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.0,
+        "unique_argmax_sets": 0,
+        "varying_effect_fraction": 0.0,
+        "varying_effect_sets": 0
+      }
+    },
+    "forbidden_named_policy_tokens": [
+      "EXPLORE_UNTRIED",
+      "BACKTRACK_REPLAN",
+      "COMMIT_VERIFY"
+    ],
+    "induction_authority": "SOURCE_DISCOVERY_TRANSITION_TUPLES_ONLY;SOURCE_QUALIFICATION_CALIBRATION;NO_SOURCE_IDENTITY_FEATURE;NO_TARGET_DATA",
+    "native_action_tokens_exported": false,
+    "operators": [],
+    "pre_recalibration_program_sha256": "ad58a49e38bbe55c4444d8cd8f05c618f5c0d1a1add29441672fa669febf9d9e",
+    "program_sha256": "69d7dd7da743051b77d816fdcb633d57848aff2828f1eafe55c9dd84b1af9b6d",
+    "qualification_gates": {
+      "discovery_predictive_accuracy": false,
+      "minimum_discovery_examples": true,
+      "minimum_qualification_examples": true,
+      "qualification_beats_shuffled_effect_binding": false,
+      "qualification_effect_is_observably_varying": false,
+      "qualification_predictive_accuracy": false
+    },
+    "qualification_metrics": {
+      "accuracy": 0.125,
+      "correct": 2,
+      "examples": 16,
+      "shuffled_effects": false,
+      "unique_argmax_fraction": 0.0,
+      "unique_argmax_sets": 0,
+      "varying_effect_fraction": 0.0,
+      "varying_effect_sets": 0
+    },
+    "qualification_shuffled_effect_metrics": {
+      "accuracy": 0.125,
+      "correct": 2,
+      "examples": 16,
+      "shuffled_effects": true,
+      "unique_argmax_fraction": 0.0,
+      "unique_argmax_sets": 0,
+      "varying_effect_fraction": 0.0,
+      "varying_effect_sets": 0
+    },
+    "schema_version": "phase3-source-induced-typed-effect-program-v3",
+    "selected_effect_type": "EFFECT_BY_TRANSITION_1",
+    "source_identity_used_as_feature": false,
+    "source_receipts_sha256": "682a8c863c20ecaf5baf7e8744d7ad46238bf358b6d9a8444194a6c7f536a98d",
+    "status": "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED",
+    "target_data_read": false,
+    "thresholds": {
+      "minimum_authentic_minus_shuffled": 0.25,
+      "minimum_discovery_accuracy": 0.5,
+      "minimum_discovery_examples": 8,
+      "minimum_qualification_accuracy": 0.5,
+      "minimum_qualification_examples": 8,
+      "minimum_qualification_varying_fraction": 0.5
+    },
+    "type_system": {
+      "effect_types": [
+        "EFFECT_BY_TRANSITION_1",
+        "EFFECT_BY_TRANSITION_4",
+        "EFFECT_BY_TRANSITION_8",
+        "EXECUTABLE_TRANSITION_PERSISTENCE"
+      ],
+      "measurement": "CONTENT_ADDRESSED_STATE_TRANSITIONS_WITH_OFFICIAL_EFFECT_AND_EXECUTABLE_PREFIX_LENGTH",
+      "value_domain": "NORMALIZED_SCALAR_[0,1]"
+    }
+  },
+  "v1_rank_prior_disabled": true,
+  "v2_failed_report_sha256": "39d83d998f33887069b93e41918841ccf85c3874a1278ba21471c85d2c1d0f0c",
+  "v2_program_artifact_sha256": "2201c4fc8e9e73d71997bb911ba7c7fcaad577a89d9b20a775037e9e10e13c9e"
+}

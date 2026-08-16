@@ -1,0 +1,347 @@
+{
+  "anonymous_transition_program": {
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "multiple_matching_operators": "ABSTAIN",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "abstained": 0,
+      "admitted": 40,
+      "correct": 40,
+      "coverage": 1.0,
+      "examples": 40,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 20,
+        "OP_a3126032f76e895f": 7,
+        "OP_b1eed9a105f62ecd": 13
+      },
+      "overall_accuracy": 1.0,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "gates": {
+      "all_operator_gates_pass": true,
+      "at_least_three_anonymous_operators_induced": true,
+      "no_induction_errors": true,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "qualification_coverage": true,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true
+    },
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "induction_errors": [],
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      },
+      "OP_a3126032f76e895f": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      },
+      "OP_b1eed9a105f62ecd": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      }
+    },
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 20,
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 22,
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ]
+      },
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 7,
+        "operator_id": "OP_a3126032f76e895f",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "HIGH"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 9,
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ]
+      },
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 13,
+        "operator_id": "OP_b1eed9a105f62ecd",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "LOW"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 13,
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ]
+      }
+    ],
+    "program_sha256": "3671757c3aa239c58d52cc99fc5c909eea5499039623f62198705af276b5f91f",
+    "qualification_metrics": {
+      "abstained": 0,
+      "admitted": 44,
+      "correct": 44,
+      "coverage": 1.0,
+      "examples": 44,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 22,
+        "OP_a3126032f76e895f": 9,
+        "OP_b1eed9a105f62ecd": 13
+      },
+      "overall_accuracy": 1.0,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "source_game": "tetris",
+    "source_induction_receipts_sha256": "3d6c4d00dd0edd9a63893135c45cb9587a5bb8c53a834ecf3fd4f6ef80622b59",
+    "status": "SOURCE_INDUCED_PROGRAM_QUALIFIED",
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_coverage": 0.95,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_support": 2
+    }
+  },
+  "artifact_sha256": "5c6b44491dd8a7f9ab558576427e2c89610b915aad7f1f6a7b669c6798245504",
+  "calibration_policy": "KEEP_V2_EFFECT_TYPE_FIXED;REMOVE_OPERATOR_IF_INDEPENDENT_SOURCE_RESERVE_FAILS;NEVER_RESCUE_PRIOR_ABSTENTION",
+  "schema_version": "phase3-frozen-typed-effect-lineage-v3",
+  "source_game": "tetris",
+  "source_identity_used_as_runtime_feature": false,
+  "status": "FROZEN_BEFORE_THIRD_UNTOUCHED_SOURCE_RESERVE",
+  "target_data_read_for_program_induction_or_calibration": false,
+  "typed_effect_program": {
+    "abstention_rule": {
+      "candidate_set_smaller_than_two": "ABSTAIN",
+      "missing_target_typed_effect": "ABSTAIN",
+      "nonfinite_target_typed_effect": "ABSTAIN",
+      "nonunique_target_argmax": "ABSTAIN",
+      "source_not_qualified": "ABSTAIN"
+    },
+    "cross_batch_calibration": {
+      "authority": "INDEPENDENT_SOURCE_RESERVE_ONLY;CAN_REMOVE_OPERATOR_BUT_CANNOT_CHANGE_SELECTED_EFFECT_TYPE;NO_TARGET_DATA",
+      "calibration_receipt_sha256": "f189b5dc87b4e4d4a7bc24187d13e9cba3afa04dbd14942ea89409ae92cccdaa",
+      "gates": {
+        "independent_calibration_accuracy": true,
+        "independent_calibration_beats_shuffled": true,
+        "independent_calibration_effect_varies": true,
+        "single_batch_source_qualification_passed": true
+      },
+      "metrics": {
+        "authentic": {
+          "accuracy": 0.5,
+          "correct": 3,
+          "examples": 6,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.6666666666666666,
+          "unique_argmax_sets": 4,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 6
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.16666666666666666,
+          "correct": 1,
+          "examples": 6,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 0.6666666666666666,
+          "unique_argmax_sets": 4,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 6
+        }
+      },
+      "thresholds": {
+        "minimum_calibration_accuracy": 0.5,
+        "minimum_calibration_authentic_minus_shuffled": 0.25,
+        "minimum_calibration_varying_fraction": 0.5
+      }
+    },
+    "discovery_metrics": {
+      "EFFECT_BY_TRANSITION_1": {
+        "accuracy": 0.36363636363636365,
+        "correct": 4,
+        "examples": 11,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.36363636363636365,
+        "unique_argmax_sets": 4,
+        "varying_effect_fraction": 0.36363636363636365,
+        "varying_effect_sets": 4
+      },
+      "EFFECT_BY_TRANSITION_4": {
+        "accuracy": 0.5454545454545454,
+        "correct": 6,
+        "examples": 11,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.2727272727272727,
+        "unique_argmax_sets": 3,
+        "varying_effect_fraction": 0.45454545454545453,
+        "varying_effect_sets": 5
+      },
+      "EFFECT_BY_TRANSITION_8": {
+        "accuracy": 0.8181818181818182,
+        "correct": 9,
+        "examples": 11,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.5454545454545454,
+        "unique_argmax_sets": 6,
+        "varying_effect_fraction": 0.8181818181818182,
+        "varying_effect_sets": 9
+      },
+      "EXECUTABLE_TRANSITION_PERSISTENCE": {
+        "accuracy": 0.9090909090909091,
+        "correct": 10,
+        "examples": 11,
+        "shuffled_effects": false,
+        "unique_argmax_fraction": 0.8181818181818182,
+        "unique_argmax_sets": 9,
+        "varying_effect_fraction": 1.0,
+        "varying_effect_sets": 11
+      }
+    },
+    "forbidden_named_policy_tokens": [
+      "EXPLORE_UNTRIED",
+      "BACKTRACK_REPLAN",
+      "COMMIT_VERIFY"
+    ],
+    "induction_authority": "SOURCE_DISCOVERY_TRANSITION_TUPLES_ONLY;SOURCE_QUALIFICATION_CALIBRATION;NO_SOURCE_IDENTITY_FEATURE;NO_TARGET_DATA",
+    "native_action_tokens_exported": false,
+    "operators": [
+      {
+        "operator_id": "OP_8b283567edfee537",
+        "preconditions": {
+          "source_qualification_passed": true,
+          "target_candidate_count_minimum": 2,
+          "target_typed_effect_required": "EXECUTABLE_TRANSITION_PERSISTENCE",
+          "target_unique_argmax_required": true
+        },
+        "score": {
+          "coefficient": 1.0,
+          "effect_type": "EXECUTABLE_TRANSITION_PERSISTENCE",
+          "kind": "ARGMAX_SINGLE_TYPED_EFFECT"
+        },
+        "state_delta": [
+          [
+            "active_candidate",
+            "UNIQUE_TYPED_EFFECT_ARGMAX"
+          ],
+          [
+            "attempt_ledger",
+            "MARK_ACTIVE_AS_TRIED"
+          ]
+        ]
+      }
+    ],
+    "pre_recalibration_program_sha256": "a5b39e79e8ac42ebf8733e9ff9cf6fb9a7d32bbdee276751bff385c97e18bc07",
+    "program_sha256": "84d404907c0235eff32250f99ab0dce952480e4c166d21577925fb5d821f3cae",
+    "qualification_gates": {
+      "discovery_predictive_accuracy": true,
+      "minimum_discovery_examples": true,
+      "minimum_qualification_examples": true,
+      "qualification_beats_shuffled_effect_binding": true,
+      "qualification_effect_is_observably_varying": true,
+      "qualification_predictive_accuracy": true
+    },
+    "qualification_metrics": {
+      "accuracy": 0.8333333333333334,
+      "correct": 10,
+      "examples": 12,
+      "shuffled_effects": false,
+      "unique_argmax_fraction": 0.6666666666666666,
+      "unique_argmax_sets": 8,
+      "varying_effect_fraction": 1.0,
+      "varying_effect_sets": 12
+    },
+    "qualification_shuffled_effect_metrics": {
+      "accuracy": 0.0,
+      "correct": 0,
+      "examples": 12,
+      "shuffled_effects": true,
+      "unique_argmax_fraction": 0.6666666666666666,
+      "unique_argmax_sets": 8,
+      "varying_effect_fraction": 1.0,
+      "varying_effect_sets": 12
+    },
+    "schema_version": "phase3-source-induced-typed-effect-program-v3",
+    "selected_effect_type": "EXECUTABLE_TRANSITION_PERSISTENCE",
+    "source_identity_used_as_feature": false,
+    "source_receipts_sha256": "b10a5319337271bb2e4d82f3cf3c8f2693f0f4849514cc2a5b661072c1c4859b",
+    "status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+    "target_data_read": false,
+    "thresholds": {
+      "minimum_authentic_minus_shuffled": 0.25,
+      "minimum_discovery_accuracy": 0.5,
+      "minimum_discovery_examples": 8,
+      "minimum_qualification_accuracy": 0.5,
+      "minimum_qualification_examples": 8,
+      "minimum_qualification_varying_fraction": 0.5
+    },
+    "type_system": {
+      "effect_types": [
+        "EFFECT_BY_TRANSITION_1",
+        "EFFECT_BY_TRANSITION_4",
+        "EFFECT_BY_TRANSITION_8",
+        "EXECUTABLE_TRANSITION_PERSISTENCE"
+      ],
+      "measurement": "CONTENT_ADDRESSED_STATE_TRANSITIONS_WITH_OFFICIAL_EFFECT_AND_EXECUTABLE_PREFIX_LENGTH",
+      "value_domain": "NORMALIZED_SCALAR_[0,1]"
+    }
+  },
+  "v1_rank_prior_disabled": true,
+  "v2_failed_report_sha256": "39d83d998f33887069b93e41918841ccf85c3874a1278ba21471c85d2c1d0f0c",
+  "v2_program_artifact_sha256": "49eda2c04379fe0b0a0dd32f159d7d8e7b4d19c72a9acdf7d142d7f5eb4dd2d7"
+}

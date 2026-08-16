@@ -52,6 +52,10 @@ def main() -> None:
             "plan_receipt.json"
         ),
     )
+    parser.add_argument(
+        "--evaluator", type=Path,
+        default=REPO / "scripts/evaluate_phase3_typed_source_reserve_v2.py",
+    )
     args = parser.parse_args()
     if args.output.exists():
         raise SystemExit(f"refusing to overwrite frozen plan receipt: {args.output}")
@@ -106,7 +110,7 @@ def main() -> None:
             "source_outcome_visible_at_freeze": False,
         })
 
-    evaluator_path = REPO / "scripts/evaluate_phase3_typed_source_reserve_v2.py"
+    evaluator_path = args.evaluator.resolve()
     body = {
         "schema_version": "phase3-typed-effect-source-plan-receipt-v2",
         "status": "FROZEN_AFTER_REWARD_BLIND_PLANS_BEFORE_RESERVE_OUTCOMES",

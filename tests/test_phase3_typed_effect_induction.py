@@ -11,6 +11,7 @@ from motif_transfer.phase3_typed_effect_induction import (
     SHORT_EFFECT,
     induce_typed_effect_program,
     maximum_typed_program_contrast_derangement,
+    recalibrate_typed_effect_program,
     target_trial_order,
     typed_intervention_sets_from_rows,
     validate_typed_effect_program,
@@ -178,3 +179,34 @@ def test_frozen_six_source_control_is_status_matched_and_source_only():
             == artifacts[control]["typed_effect_program"]["status"]
         )
     assert mapping == maximum_typed_program_contrast_derangement(artifacts)
+
+
+def test_cross_batch_calibration_can_only_remove_operator():
+    examples, _ = typed_intervention_sets_from_rows(
+        _dataset(PERSISTENCE_EFFECT), primary_horizon=16,
+    )
+    program = induce_typed_effect_program(
+        examples, source_receipts_sha256=stable_hash("source"),
+    )
+    rejected = recalibrate_typed_effect_program(
+        program,
+        calibration_metrics={
+            "authentic": {"accuracy": 0.375, "varying_effect_fraction": 1.0},
+            "shuffled_effect_binding": {"accuracy": 0.125},
+        },
+        calibration_receipt_sha256=stable_hash("reserve"),
+    )
+    validate_typed_effect_program(rejected)
+    assert rejected["status"] == "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED"
+    assert rejected["operators"] == []
+    assert rejected["selected_effect_type"] == program["selected_effect_type"]
+    accepted = recalibrate_typed_effect_program(
+        program,
+        calibration_metrics={
+            "authentic": {"accuracy": 0.75, "varying_effect_fraction": 1.0},
+            "shuffled_effect_binding": {"accuracy": 0.0},
+        },
+        calibration_receipt_sha256=stable_hash("reserve"),
+    )
+    assert accepted["status"] == "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED"
+    assert accepted["operators"] == program["operators"]
