@@ -1,0 +1,54 @@
+{
+  "schema_version": "phase3-source-induction-config-v1",
+  "status": "DEVELOPMENT_HISTORICAL_SOURCE_REPLAY_NOT_PROSPECTIVE",
+  "claim_boundary": "Previously executed source rows are reused only to develop and falsify the anonymous induction implementation. No new source or target claim is authorized.",
+  "source_lineages": [
+    {
+      "source_game": "tetris",
+      "rows_path": "runs/phase1_common_search_ir_formal_v1/tetris/rows.jsonl",
+      "rows_file_sha256": "925842ca9aca8c6fee1490f3982c6ee7b854dfd5eae95613c65d2d957e85f955",
+      "primary_horizon": 16
+    },
+    {
+      "source_game": "candy_crush",
+      "rows_path": "runs/phase1_common_search_ir_formal_v1/candy_crush/rows.jsonl",
+      "rows_file_sha256": "db2bdb039556b5beaae99910a659274679b17a337ca539ba8e50af0874339eb2",
+      "primary_horizon": 16
+    },
+    {
+      "source_game": "gymv_columns",
+      "rows_path": "runs/phase1_common_search_ir_formal_v1/gymv_columns/rows.jsonl",
+      "rows_file_sha256": "252f6531d0f5763f7a8fe440ef50d97dd096c68eb8124164a49e8bed8931f604",
+      "primary_horizon": 50
+    },
+    {
+      "source_game": "gymv_streets_of_rage_2",
+      "rows_path": "runs/phase1_common_search_ir_streets_formal_v2/gymv_streets_of_rage_2/rows.jsonl",
+      "rows_file_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+      "primary_horizon": 50
+    },
+    {
+      "source_game": "gymv_thunder_force_iii",
+      "rows_path": "runs/phase1_common_search_ir_formal_v1/gymv_thunder_force_iii/rows.jsonl",
+      "rows_file_sha256": "cc56eb77928b41513e89cc69f344eafa4d214889274e1633fb6343a640a570bb",
+      "primary_horizon": 23
+    },
+    {
+      "source_game": "gymv_strider",
+      "rows_path": "runs/phase1_common_search_ir_formal_v1/gymv_strider/rows.jsonl",
+      "rows_file_sha256": "9651da01f1a3229fe92840895010d229d9fdb235b3be7f0b5d7b69ba813ba546",
+      "primary_horizon": 22
+    }
+  ],
+  "thresholds": {
+    "maximum_literals": 3,
+    "minimum_discovery_support": 2,
+    "minimum_qualification_support": 2,
+    "minimum_qualification_precision": 1.0,
+    "minimum_qualification_coverage": 0.95,
+    "minimum_heldout_coverage": 0.95,
+    "minimum_heldout_selective_accuracy": 1.0,
+    "minimum_heldout_closed_loop_success_rate": 1.0,
+    "maximum_shuffled_heldout_accuracy": 0.75
+  }
+}
