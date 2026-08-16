@@ -29,6 +29,8 @@ from motif_transfer.frozen_motif_agent import (  # noqa: E402
 from motif_transfer.phase3_discoveryworld_transfer import (  # noqa: E402
     call_phase3_binder,
     call_phase3_grounder,
+    extract_phase3_acquisition_evidence,
+    phase3_acquisition_outlier_candidates,
     phase3_candidate_set_complete,
     phase3_position_action_catalog,
 )
@@ -115,9 +117,16 @@ def _run_one(
         manifest, key,
         output_dir / "caches" / f"{task['task_id']}.json",
     )
+    acquisition_evidence = extract_phase3_acquisition_evidence(
+        reference, fork_step,
+    )
+    acquisition_outliers = phase3_acquisition_outlier_candidates(
+        acquisition_evidence,
+    )
     binding, binder_raw, binder_attempts = call_phase3_binder(
         backend, observation, memory=memory, hypotheses=hypotheses,
         attempts=int(manifest["model"]["schema_attempts"]),
+        acquisition_evidence=acquisition_evidence,
     )
     bundle, candidates, raw, grounder_attempts = call_phase3_grounder(
         backend, observation, memory=memory, hypotheses=hypotheses,
@@ -133,6 +142,13 @@ def _run_one(
             "fork_audit_world_sha256": replay_receipts[-1].after_audit_world_sha256,
             "binder_response_sha256": hashlib.sha256(binder_raw.encode()).hexdigest(),
             "binder_attempts": binder_attempts,
+            "acquisition_evidence_count": len(acquisition_evidence),
+            "acquisition_outlier_candidates": list(acquisition_outliers),
+            "acquisition_grounding_complete": bool(
+                len(acquisition_evidence) == 3
+                and len(acquisition_outliers) == 1
+                and acquisition_outliers[0].lower() in binding.target_name.lower()
+            ),
             "grounder_response_sha256": hashlib.sha256(raw.encode()).hexdigest(),
             "grounder_attempts": grounder_attempts,
             "candidate_bundle_complete": phase3_candidate_set_complete(candidates),
@@ -238,6 +254,16 @@ def main() -> None:
             )
             and row["commit_candidates"] == int(
                 gates_config["required_commit_candidates"]
+            )
+            for row in rows
+        ),
+        "acquisition_grounding": all(
+            row["acquisition_grounding_complete"]
+            and row["acquisition_evidence_count"] == int(
+                gates_config["required_acquisition_measurement_vectors"]
+            )
+            and len(row["acquisition_outlier_candidates"]) == int(
+                gates_config["required_acquisition_outlier_candidates"]
             )
             for row in rows
         ),

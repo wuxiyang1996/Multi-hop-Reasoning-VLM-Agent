@@ -28,6 +28,7 @@ from motif_transfer.phase3_discoveryworld_transfer import (  # noqa: E402
     SOURCE_PERMUTED,
     call_phase3_binder,
     call_phase3_grounder,
+    extract_phase3_acquisition_evidence,
 )
 from motif_transfer.phase3_typed_effect_induction import (  # noqa: E402
     maximum_typed_program_contrast_derangement,
@@ -68,6 +69,10 @@ def run_one(
     artifacts = _artifacts()
     permutation = maximum_typed_program_contrast_derangement(artifacts)
     original = _read(REPO / str(task["fork_config"]))
+    reference = _read(REPO / str(original["reference_episode"]))
+    acquisition_evidence = extract_phase3_acquisition_evidence(
+        reference, int(original["fork_after_episode_step"]),
+    )
     config = {
         **original,
         "status": "DEVELOPMENT_CONSUMED_PHASE2_FORKS_ONLY",
@@ -97,7 +102,15 @@ def run_one(
     old_binder = runner.call_binder
     old_selector = runner.select_candidate
     runner.call_grounder = call_phase3_grounder
-    runner.call_binder = call_phase3_binder
+    def outcome_blind_phase3_binder(
+        backend, observation, *, memory, hypotheses, attempts,
+    ):
+        return call_phase3_binder(
+            backend, observation, memory=memory, hypotheses=hypotheses,
+            attempts=attempts, acquisition_evidence=acquisition_evidence,
+        )
+
+    runner.call_binder = outcome_blind_phase3_binder
     runner.select_candidate = selector.select
     transport_suffix = "\nReturn one valid json object."
     if not runner.TARGET_BINDER_SYSTEM_PROMPT.endswith(transport_suffix):

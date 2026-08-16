@@ -19,9 +19,13 @@ from motif_transfer.phase3_discoveryworld_transfer import (
     Phase3DiscoveryWorldPortfolioSelector,
     call_phase3_grounder,
     canonical_position_candidates,
+    extract_phase3_acquisition_evidence,
     phase3_candidate_set_complete,
+    phase3_binder_prompt_payload,
     phase3_commit_action_catalog,
     outcome_blind_target_native_facts,
+    phase3_acquisition_relations,
+    phase3_acquisition_outlier_candidates,
     phase3_position_action_catalog,
     phase3_target_binding_catalog,
     validate_phase3_target_binding_semantics,
@@ -225,9 +229,14 @@ def test_phase3_binder_and_facts_strip_formal_outcome_fields():
     backend = Backend()
     binding, _, audit = call_phase3_binder(
         backend, observation, memory="", hypotheses=(), attempts=1,
+        acquisition_evidence=({
+            "subject": "statue", "measurement_vector": {"x": 0.0},
+        },),
     )
     assert binding.target_uuid == 9
     assert audit[0]["formal_outcome_fields_visible"] is False
+    assert audit[0]["acquisition_evidence_count"] == 1
+    assert audit[0]["prior_conclusion_superseded_by_raw_evidence"] is True
     assert backend.payload["formal_outcome_fields_visible"] is False
     required_type, catalog = phase3_target_binding_catalog(observation)
     assert required_type == "statue"
@@ -245,6 +254,93 @@ def test_phase3_binder_and_facts_strip_formal_outcome_fields():
     )
     with pytest.raises(ValueError, match="requires a statue target"):
         validate_phase3_target_binding_semantics(wrong_type, observation)
+
+
+def test_acquisition_evidence_uses_only_raw_measurements_and_deduplicates():
+    reference = {
+        "steps": [
+            {
+                "episode_step": 1,
+                "after_target_native_facts": {
+                    "last_action_message": (
+                        "You use the meter to investigate the spheroid.\n"
+                        "- Protein A: 0.78\n- Protein B: 0.71\n"
+                    ),
+                    "task_progress": [{"completedSuccessfully": True}],
+                },
+                "transition": {"official_success": True},
+            },
+            {
+                "episode_step": 2,
+                "after_target_native_facts": {
+                    "last_action_message": (
+                        "You use the meter to investigate the echojelly.\n"
+                        "- Protein A: 0.50\n- Protein B: 0.37\n"
+                    ),
+                },
+            },
+            {
+                "episode_step": 3,
+                "after_target_native_facts": {
+                    "last_action_message": (
+                        "You use the meter to investigate the spheroid.\n"
+                        "- Protein A: 0.79\n- Protein B: 0.72\n"
+                    ),
+                },
+            },
+        ],
+    }
+    evidence = extract_phase3_acquisition_evidence(reference, 3)
+    assert [row["subject"] for row in evidence] == ["echojelly", "spheroid"]
+    assert evidence[1]["measurement_vector"] == {
+        "Protein A": 0.79, "Protein B": 0.72,
+    }
+    serialized = json.dumps(evidence)
+    assert "official_success" not in serialized
+    assert "completedSuccessfully" not in serialized
+    relations = phase3_acquisition_relations(evidence)
+    assert relations[0] == {
+        "left_subject": "echojelly",
+        "right_subject": "spheroid",
+        "shared_features": ["Protein A", "Protein B"],
+        "squared_euclidean_distance": 0.2066,
+    }
+    payload = phase3_binder_prompt_payload(
+        _grounder_observation(), memory="wrong prior conclusion",
+        hypotheses=("wrong prior hypothesis",), acquisition_evidence=evidence,
+    )
+    assert payload["untrusted_scientific_memory"] == ""
+    assert payload["running_hypotheses"] == []
+    assert payload["phase3_acquisition_relations"] == list(relations)
+    assert payload["phase3_prior_conclusion_superseded_by_raw_evidence"] is True
+
+
+def test_acquisition_outlier_is_remaining_subject_after_unique_tightest_pair():
+    evidence = (
+        {"subject": "echojelly", "measurement_vector": {
+            "Protein A": 0.50, "Protein B": 0.37,
+        }},
+        {"subject": "prismatic beast", "measurement_vector": {
+            "Protein A": 0.54, "Protein B": 0.18,
+        }},
+        {"subject": "spheroid", "measurement_vector": {
+            "Protein A": 0.78, "Protein B": 0.71,
+        }},
+    )
+    assert phase3_acquisition_outlier_candidates(evidence) == ("spheroid",)
+    required_type, catalog = phase3_target_binding_catalog(
+        _grounder_observation(), acquisition_evidence=evidence,
+    )
+    assert required_type == "statue"
+    # The fixture has only a generic statue, so semantic filtering fails closed.
+    assert catalog == ()
+
+    tied = (
+        {"subject": "a", "measurement_vector": {"x": 0.0}},
+        {"subject": "b", "measurement_vector": {"x": 1.0}},
+        {"subject": "c", "measurement_vector": {"x": 2.0}},
+    )
+    assert phase3_acquisition_outlier_candidates(tied) == ()
 
 
 def test_phase3_catalog_compiles_only_currently_valid_native_actions():

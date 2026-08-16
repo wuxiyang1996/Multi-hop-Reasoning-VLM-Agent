@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import hashlib
 import json
+import re
 from typing import Any, Mapping, Sequence
 
 from .contracts import stable_hash
@@ -85,12 +86,132 @@ PHASE3_TARGET_BINDER_SYSTEM_PROMPT = TARGET_BINDER_SYSTEM_PROMPT + (
     "entry; use the scientific hypothesis only to choose among those entries. "
     "When phase3_commit_action_catalog is present, copy commit_action exactly "
     "from it; do not replace DROP with PUT or invent a container."
+) + (
+    " When phase3_acquisition_evidence is present, reassess the hypothesis "
+    "from those raw target-native measurements instead of trusting a prior "
+    "memory conclusion. For multivariate anomaly tasks, compare complete "
+    "measurement vectors jointly: identify the tightest cluster and bind the "
+    "remaining outlier. Never infer an anomaly from one component alone."
 ) + TRANSPORT_SUFFIX
 
 _FORBIDDEN_OUTCOME_FIELDS = frozenset({
     "completed", "completedSuccessfully", "score", "maxScore",
     "scoreNormalized", "scoreCard", "official_success", "evaluation",
 })
+
+_PROTEOMICS_SUBJECT_RE = re.compile(
+    r"investigate the (?P<subject>[^.\n]+)", re.IGNORECASE,
+)
+_PROTEOMICS_VALUE_RE = re.compile(
+    r"-\s*(?P<feature>Protein\s+[^:]+):\s*"
+    r"(?P<value>[-+]?(?:\d+(?:\.\d*)?|\.\d+))",
+    re.IGNORECASE,
+)
+
+
+def extract_phase3_acquisition_evidence(
+    reference: Mapping[str, Any], fork_step: int,
+) -> tuple[Mapping[str, Any], ...]:
+    """Compile raw pre-fork instrument readings without evaluator fields.
+
+    The compiler only reads policy-visible ``last_action_message`` strings.
+    Repeated measurements of the same entity are deduplicated, and no
+    conclusion, task-progress value, transition outcome, or source artifact is
+    copied.  The neural target binder remains responsible for interpreting the
+    resulting target-native vectors.
+    """
+
+    rows: dict[str, Mapping[str, Any]] = {}
+    steps = reference.get("steps") or ()
+    for row in steps[:fork_step]:
+        if not isinstance(row, Mapping):
+            continue
+        after = row.get("after_target_native_facts") or {}
+        if not isinstance(after, Mapping):
+            continue
+        message = str(after.get("last_action_message") or "")
+        subject_match = _PROTEOMICS_SUBJECT_RE.search(message)
+        values = {
+            match.group("feature").strip(): float(match.group("value"))
+            for match in _PROTEOMICS_VALUE_RE.finditer(message)
+        }
+        if subject_match is None or not values:
+            continue
+        subject = subject_match.group("subject").strip()
+        rows[subject.lower()] = {
+            "subject": subject,
+            "measurement_vector": values,
+            "evidence_episode_step": int(row.get("episode_step") or 0),
+            "evidence_source": "POLICY_VISIBLE_INSTRUMENT_MESSAGE",
+        }
+    return tuple(rows[key] for key in sorted(rows))
+
+
+def phase3_acquisition_relations(
+    evidence: Sequence[Mapping[str, Any]],
+) -> tuple[Mapping[str, Any], ...]:
+    """Build an answer-free relation graph over target measurement vectors."""
+
+    relations = []
+    for left_index, left in enumerate(evidence):
+        left_values = left.get("measurement_vector") or {}
+        if not isinstance(left_values, Mapping):
+            continue
+        for right in evidence[left_index + 1:]:
+            right_values = right.get("measurement_vector") or {}
+            if not isinstance(right_values, Mapping):
+                continue
+            shared = sorted(set(left_values) & set(right_values))
+            if not shared:
+                continue
+            squared_distance = sum(
+                (float(left_values[key]) - float(right_values[key])) ** 2
+                for key in shared
+            )
+            relations.append({
+                "left_subject": str(left.get("subject") or ""),
+                "right_subject": str(right.get("subject") or ""),
+                "shared_features": shared,
+                "squared_euclidean_distance": round(squared_distance, 8),
+            })
+    return tuple(sorted(
+        relations,
+        key=lambda row: (
+            row["squared_euclidean_distance"], row["left_subject"],
+            row["right_subject"],
+        ),
+    ))
+
+
+def phase3_acquisition_outlier_candidates(
+    evidence: Sequence[Mapping[str, Any]],
+) -> tuple[str, ...]:
+    """Infer a unique one-outlier candidate from a three-vector relation graph.
+
+    This is deliberately fail-closed: incomplete vectors, non-three-way tasks,
+    or a tied nearest-pair relation produce no candidate.  It never consumes an
+    evaluator label or a task outcome.
+    """
+
+    subjects = {
+        str(row.get("subject") or "").strip()
+        for row in evidence if str(row.get("subject") or "").strip()
+    }
+    relations = phase3_acquisition_relations(evidence)
+    if len(subjects) != 3 or len(relations) != 3:
+        return ()
+    minimum = float(relations[0]["squared_euclidean_distance"])
+    if sum(
+        abs(float(row["squared_euclidean_distance"]) - minimum) <= 1e-12
+        for row in relations
+    ) != 1:
+        return ()
+    tight_pair = {
+        str(relations[0]["left_subject"]),
+        str(relations[0]["right_subject"]),
+    }
+    remaining = sorted(subjects - tight_pair)
+    return tuple(remaining) if len(remaining) == 1 else ()
 
 
 def outcome_blind_target_native_facts(observation) -> dict[str, Any]:
@@ -123,6 +244,7 @@ def outcome_blind_target_native_facts(observation) -> dict[str, Any]:
 
 def phase3_binder_prompt_payload(
     observation, *, memory: str, hypotheses: Sequence[str],
+    acquisition_evidence: Sequence[Mapping[str, Any]] = (),
     schema_error: str | None = None,
 ) -> dict[str, Any]:
     payload = binder_prompt_payload(
@@ -130,19 +252,39 @@ def phase3_binder_prompt_payload(
         schema_error=schema_error,
     )
     payload["target_native_facts"] = outcome_blind_target_native_facts(observation)
-    required_type, catalog = phase3_target_binding_catalog(observation)
+    required_type, catalog = phase3_target_binding_catalog(
+        observation, acquisition_evidence=acquisition_evidence,
+    )
     payload["phase3_required_target_object_type"] = required_type
     payload["phase3_target_binding_catalog"] = list(catalog)
     payload["phase3_target_binding_catalog_is_exhaustive"] = bool(required_type)
     commit_catalog = phase3_commit_action_catalog(observation)
     payload["phase3_commit_action_catalog"] = list(commit_catalog)
     payload["phase3_commit_action_catalog_is_exhaustive"] = bool(commit_catalog)
+    payload["phase3_acquisition_evidence"] = list(acquisition_evidence)
+    payload["phase3_acquisition_relations"] = list(
+        phase3_acquisition_relations(acquisition_evidence)
+    )
+    payload["phase3_acquisition_outlier_candidates"] = list(
+        phase3_acquisition_outlier_candidates(acquisition_evidence)
+    )
+    payload["phase3_acquisition_rule"] = (
+        "ONE_OUTLIER_AMONG_THREE_VECTORS_REMAINS_AFTER_UNIQUE_TIGHTEST_PAIR"
+    )
+    payload["phase3_acquisition_evidence_is_outcome_blind"] = True
+    if acquisition_evidence:
+        # The raw pre-fork observations are stronger evidence than a lossy and
+        # potentially mistaken rollout summary.  Remove that conclusion from
+        # the neural input instead of asking the model to overcome anchoring.
+        payload["untrusted_scientific_memory"] = ""
+        payload["running_hypotheses"] = []
+        payload["phase3_prior_conclusion_superseded_by_raw_evidence"] = True
     payload["formal_outcome_fields_visible"] = False
     return payload
 
 
 def phase3_target_binding_catalog(
-    observation,
+    observation, *, acquisition_evidence: Sequence[Mapping[str, Any]] = (),
 ) -> tuple[str | None, tuple[Mapping[str, Any], ...]]:
     """Compile exact operands for an object type explicitly named by a task."""
 
@@ -156,6 +298,7 @@ def phase3_target_binding_catalog(
         "statue" if str(observation.scenario).lower() == "proteomics"
         and "statue" in descriptions else None
     )
+    outliers = phase3_acquisition_outlier_candidates(acquisition_evidence)
     objects: dict[tuple[int, str], Mapping[str, Any]] = {}
     for key in ("accessible_objects", "salient_relative_objects"):
         for row in facts.get(key) or ():
@@ -166,6 +309,10 @@ def phase3_target_binding_catalog(
             if not isinstance(uuid, int) or isinstance(uuid, bool) or not name:
                 continue
             if required_type and required_type not in name.lower():
+                continue
+            if outliers and not any(
+                subject.lower() in name.lower() for subject in outliers
+            ):
                 continue
             objects[(uuid, name)] = {"uuid": uuid, "name": name}
     return required_type, tuple(
@@ -204,7 +351,10 @@ def phase3_commit_action_catalog(
     return tuple(valid[key] for key in sorted(valid))
 
 
-def validate_phase3_target_binding_semantics(binding, observation) -> None:
+def validate_phase3_target_binding_semantics(
+    binding, observation, *,
+    acquisition_evidence: Sequence[Mapping[str, Any]] = (),
+) -> None:
     """Enforce benchmark-native entity types stated explicitly by the task."""
 
     descriptions = " ".join(
@@ -226,7 +376,9 @@ def validate_phase3_target_binding_semantics(binding, observation) -> None:
         raise ValueError(
             "Proteomics task requires a statue target; animal UUID/name is invalid"
         )
-    required_type, catalog = phase3_target_binding_catalog(observation)
+    required_type, catalog = phase3_target_binding_catalog(
+        observation, acquisition_evidence=acquisition_evidence,
+    )
     if required_type and {
         "uuid": int(binding.target_uuid), "name": str(binding.target_name),
     } not in catalog:
@@ -242,15 +394,27 @@ def validate_phase3_target_binding_semantics(binding, observation) -> None:
 
 def call_phase3_binder(
     backend, observation, *, memory: str, hypotheses: tuple[str, ...],
-    attempts: int,
+    attempts: int, acquisition_evidence: Sequence[Mapping[str, Any]] = (),
 ):
     """Bind target entities without exposing completion/evaluator fields."""
 
     schema_error = None
     audit = []
+    relations = phase3_acquisition_relations(acquisition_evidence)
+    outliers = phase3_acquisition_outlier_candidates(acquisition_evidence)
+    acquisition_audit = {
+        "acquisition_evidence_count": len(acquisition_evidence),
+        "acquisition_evidence_sha256": stable_hash(list(acquisition_evidence)),
+        "acquisition_relations_sha256": stable_hash(list(relations)),
+        "acquisition_outlier_candidates": list(outliers),
+        "prior_conclusion_superseded_by_raw_evidence": bool(
+            acquisition_evidence
+        ),
+    }
     for attempt in range(attempts):
         payload = phase3_binder_prompt_payload(
             observation, memory=memory, hypotheses=hypotheses,
+            acquisition_evidence=acquisition_evidence,
             schema_error=schema_error,
         )
         raw = backend.complete(
@@ -259,12 +423,15 @@ def call_phase3_binder(
         usage = dict(backend.last_usage or {})
         try:
             binding = parse_target_binding(raw, observation)
-            validate_phase3_target_binding_semantics(binding, observation)
+            validate_phase3_target_binding_semantics(
+                binding, observation,
+                acquisition_evidence=acquisition_evidence,
+            )
             audit.append({
                 "attempt": attempt + 1, "accepted": True,
                 "cache_hit": bool(usage.get("cache_hit")),
                 "formal_outcome_fields_visible": False,
-            })
+            } | acquisition_audit)
             return binding, raw, audit
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             schema_error = f"{type(exc).__name__}: {exc}"
@@ -274,7 +441,7 @@ def call_phase3_binder(
                 "raw_sha256": hashlib.sha256(raw.encode()).hexdigest(),
                 "cache_hit": bool(usage.get("cache_hit")),
                 "formal_outcome_fields_visible": False,
-            })
+            } | acquisition_audit)
     raise RuntimeError(f"Phase-3 binder exhausted schema attempts: {audit}")
 
 

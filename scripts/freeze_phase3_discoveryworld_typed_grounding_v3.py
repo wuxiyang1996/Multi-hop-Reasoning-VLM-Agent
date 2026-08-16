@@ -94,6 +94,16 @@ def main() -> None:
         for row in binder_attempts
     ):
         raise SystemExit("binding-catalog smoke lacks outcome-blind binder receipts")
+    final_binder = binder_attempts[-1]
+    outliers = final_binder.get("acquisition_outlier_candidates") or ()
+    if (
+        int(final_binder.get("acquisition_evidence_count", 0)) != 3
+        or len(outliers) != 1
+        or str(outliers[0]).lower() not in str(binding["target_name"]).lower()
+    ):
+        raise SystemExit(
+            "binding-catalog smoke lacks complete symbolic acquisition evidence"
+        )
     matched = binding_fix.get("conditions") or {}
     grounder_attempts = [
         attempt
@@ -166,6 +176,8 @@ def main() -> None:
             "maximum_accepted_bundle_candidate_parse_rejections": 0,
             "required_position_candidates": 4,
             "required_commit_candidates": 1,
+            "required_acquisition_measurement_vectors": 3,
+            "required_acquisition_outlier_candidates": 1,
             "maximum_post_fork_actions_executed": 0,
             "formal_target_outcomes_read": False,
         },
