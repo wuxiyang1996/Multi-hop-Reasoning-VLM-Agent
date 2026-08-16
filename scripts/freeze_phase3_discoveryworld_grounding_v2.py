@@ -81,7 +81,10 @@ def main() -> None:
         raise SystemExit("qualification gates differ from the frozen V1 gates")
 
     qualification = {
-        "schema_version": "phase3-discoveryworld-grounding-config-v2",
+        # The shared qualification runner intentionally has a single config
+        # wire schema.  V2 identifies the frozen grounder revision in status
+        # and the manifest, not by inventing an incompatible transport schema.
+        "schema_version": "phase3-discoveryworld-grounding-config-v1",
         "status": "FROZEN_BEFORE_V2_QUALIFICATION_TASK_RESET",
         "role": "qualification",
         "reads_target_success": False,
@@ -112,6 +115,14 @@ def main() -> None:
     body = {
         "schema_version": "phase3-discoveryworld-grounding-freeze-v2",
         "status": "FROZEN_BEFORE_V2_QUALIFICATION_TASK_RESET",
+        "supersedes_prelaunch_manifest_sha256": (
+            "bea187f944a33038e572928433921e66be653725ee7921aee1bbf8589317d8bf"
+        ),
+        "supersession_reason": (
+            "The first launch was rejected during config validation before "
+            "environment construction because its wire schema was labelled v2; "
+            "no qualification task was reset or observed."
+        ),
         "development_config_path": str(args.development_config),
         "development_config_file_sha256": _file_sha256(args.development_config),
         "development_summary_path": str(args.development_summary),

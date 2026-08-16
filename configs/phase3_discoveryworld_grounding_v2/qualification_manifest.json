@@ -1,6 +1,8 @@
 {
   "schema_version": "phase3-discoveryworld-grounding-freeze-v2",
   "status": "FROZEN_BEFORE_V2_QUALIFICATION_TASK_RESET",
+  "supersedes_prelaunch_manifest_sha256": "bea187f944a33038e572928433921e66be653725ee7921aee1bbf8589317d8bf",
+  "supersession_reason": "The first launch was rejected during config validation before environment construction because its wire schema was labelled v2; no qualification task was reset or observed.",
   "development_config_path": "configs/phase3_discoveryworld_grounding_v2/development_consumed_v1.json",
   "development_config_file_sha256": "d8a667a80d49933b86952a4db8eee33510279d34a6a9fb54e2fa66df2592d761",
   "development_summary_path": "runs/phase3_discoveryworld_grounding_v2_development_consumed_v1/summary.json",
@@ -13,7 +15,7 @@
   "v1_failure_summary_sha256": "ffac4b9603d6da83fb4a49b3bf290a8f67a90dfb8959d110d61d667b97048fa0",
   "v1_schema_fallback_rate": 0.1875,
   "qualification_config_path": "configs/phase3_discoveryworld_grounding_v2/qualification.json",
-  "qualification_config_file_sha256": "1e5bd3f6c29abf392b284ece756bda3be7a02d437c42a3f71a106847f3e2e832",
+  "qualification_config_file_sha256": "7a6b2089aecab127902dda1ba1e7341f595a422bc6e2727dff23d5e40196de23",
   "qualification_seeds": [
     89,
     90,
@@ -40,5 +42,5 @@
   "formal_target_outcome_read_for_freeze": false,
   "formal_reserve_task_opened": false,
   "claim_boundary": "Untouched component-only qualification of the V2 target-native grounder on Proteomics Easy seeds89-96; fixed horizon and frozen V1 qualification thresholds; no evaluator, official success persistence, source program, or Phase-3 formal-reserve task.",
-  "manifest_sha256": "bea187f944a33038e572928433921e66be653725ee7921aee1bbf8589317d8bf"
+  "manifest_sha256": "ae3d20174dffaaed7001da8801719d25e10d31277e7f7e7c69dc1d3d50cbafc1"
 }
