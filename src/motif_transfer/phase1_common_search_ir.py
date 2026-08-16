@@ -474,6 +474,7 @@ def execute_option_fork(
     rewards: list[float] = []
     actions: list[str] = []
     state_hashes: list[str] = []
+    transition_effects: list[dict[str, Any]] = []
     candidate_id = stable_hash({
         "snapshot_id": str(snapshot["snapshot_id"]),
         "candidate_rank": candidate_rank,
@@ -529,6 +530,20 @@ def execute_option_fork(
             after_hash = _observable_hash(adapter.state_receipt())
             actions.append(action)
             rewards.append(float(adapter.last_reward))
+            transition_effects.append({
+                # This is the explicit (state, effect, next_state) projection
+                # consumed by Phase-3 typed-effect induction.  The native
+                # action remains only in the source audit row and is never
+                # exported in the induced symbolic program.
+                "before_observable_sha256": before_hash,
+                "effect": {
+                    "official_reward": float(adapter.last_reward),
+                    "terminated": bool(adapter.last_terminated),
+                    "truncated": bool(adapter.last_truncated),
+                },
+                "after_observable_sha256": after_hash,
+                "observable_changed": before_hash != after_hash,
+            })
             state_hashes.append(stable_hash({
                 "decision_index": decision_index,
                 "before_observable_sha256": before_hash,
@@ -571,6 +586,7 @@ def execute_option_fork(
         "step_rewards": rewards,
         "cumulative_returns": cumulative,
         "transition_hashes": state_hashes,
+        "transition_effects": transition_effects,
         "expected_fork_observable_sha256": str(
             snapshot["expected_fork_state_sha256"]
         ),

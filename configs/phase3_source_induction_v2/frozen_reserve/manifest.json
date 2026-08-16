@@ -1,0 +1,122 @@
+{
+  "claim_boundary": "PROSPECTIVE_CONFIRMATION_OF_SOURCE_SPECIFIC_TYPED_EFFECT_APPLICABILITY_AND_ABSTENTION;NO_TARGET_TRANSFER_CLAIM",
+  "fresh_seed_count": 144,
+  "manifest_sha256": "8c5dcc8c4010648dc5b15838ef68c3f4cee283051324e1d61c52898d8796e620",
+  "prefreeze_gates": {
+    "all_reserve_seeds_new": true,
+    "at_least_three_source_induced_effect_types": true,
+    "both_qualified_and_abstaining_sources_present": true,
+    "exact_six_source_lineages": true,
+    "no_target_data_read_for_freeze": true
+  },
+  "reserve_protocol": {
+    "controls": [
+      "DETERMINISTIC_EFFECT_BINDING_SHUFFLE_V1",
+      "SOURCE_PROGRAM_DERANGEMENT_V1"
+    ],
+    "failure_policy": "FAIL_CLOSED_NO_REPLACEMENT_SEED",
+    "heldout_split_only_for_confirmation": true,
+    "matched_repeats": 2,
+    "reward_blind_plan": true
+  },
+  "runtime_file_sha256": {
+    "scripts/freeze_phase3_typed_source_reserve_v2.py": "6fd48951661aec19b232168b0217cbd55ab4584b5406074c6e53ec1ded402756",
+    "scripts/run_phase1_common_search_ir.py": "b9c734f93ccfc75eb693b2af37990422fd0d5442d2a9565aaf79712c594db2e7",
+    "src/motif_transfer/phase1_common_search_ir.py": "3fb95fd1a2c07f8674e733832b3ec72597abb768d5c1d8f1d1a62723da97f291",
+    "src/motif_transfer/phase3_typed_effect_induction.py": "6d876ea532868127282489af9b6f73d8f3f775f347ec0b43cc43a424a509be29"
+  },
+  "schema_version": "phase3-typed-effect-source-reserve-manifest-v2",
+  "source_receipts": [
+    {
+      "config_file_sha256": "40c55aaec30c907321684b953e6772a4d0740869566940a5dc38a5294b05eb89",
+      "config_path": "configs/phase3_source_induction_v2/frozen_reserve/source_configs/tetris.json",
+      "primary_horizon": 16,
+      "program_artifact_sha256": "49eda2c04379fe0b0a0dd32f159d7d8e7b4d19c72a9acdf7d142d7f5eb4dd2d7",
+      "program_file_sha256": "af2170d23e94d8c370c96366ba5506219b2bd0b32e6efc9f94b5a319ec263026",
+      "program_path": "configs/phase3_source_induction_v2/frozen_reserve/programs/tetris.json",
+      "qualification_status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+      "seed_count": 24,
+      "seed_max": 201024,
+      "seed_min": 201001,
+      "selected_effect_type": "EXECUTABLE_TRANSITION_PERSISTENCE",
+      "source_game": "tetris",
+      "typed_effect_program_sha256": "a5b39e79e8ac42ebf8733e9ff9cf6fb9a7d32bbdee276751bff385c97e18bc07"
+    },
+    {
+      "config_file_sha256": "f3b649bd534ed0978469c0d7331d954e07912801fa0e711d2b9c80c73ebf4fd7",
+      "config_path": "configs/phase3_source_induction_v2/frozen_reserve/source_configs/candy_crush.json",
+      "primary_horizon": 16,
+      "program_artifact_sha256": "1828b9aee8de22637a31f6370a3ea5a9fefa7b1496449f993a2404017b30d1e9",
+      "program_file_sha256": "159d180124b1cb0b58e17b5ac3415cf4cf90ac12c9575e2e2a931be65e3b3719",
+      "program_path": "configs/phase3_source_induction_v2/frozen_reserve/programs/candy_crush.json",
+      "qualification_status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+      "seed_count": 24,
+      "seed_max": 202024,
+      "seed_min": 202001,
+      "selected_effect_type": "EFFECT_BY_TRANSITION_8",
+      "source_game": "candy_crush",
+      "typed_effect_program_sha256": "c46508c43d591f46529fa2cad10734a65b5c3fe30ed08a28bdfc6f8b8cd51f70"
+    },
+    {
+      "config_file_sha256": "cd5307783843e41e840c715557d868643f0060949e9f59c55982002d4ef8e4a3",
+      "config_path": "configs/phase3_source_induction_v2/frozen_reserve/source_configs/gymv_columns.json",
+      "primary_horizon": 50,
+      "program_artifact_sha256": "5d46d0b77ada0e4eb817b1af102573ce6df85b02edaf3055c73666325402d5e1",
+      "program_file_sha256": "6ef433ae606de410105b2f26c128bd81ad65b435f487659f905ef2d4f949f869",
+      "program_path": "configs/phase3_source_induction_v2/frozen_reserve/programs/gymv_columns.json",
+      "qualification_status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+      "seed_count": 24,
+      "seed_max": 203024,
+      "seed_min": 203001,
+      "selected_effect_type": "EFFECT_BY_TRANSITION_4",
+      "source_game": "gymv_columns",
+      "typed_effect_program_sha256": "fc1d6e9a391ccb96f1afa1d60aad06fc8f83937c90b8aaf2229025f0e813ed40"
+    },
+    {
+      "config_file_sha256": "fc05e3974991812a1b8cbd6b50f4ffd92ab2a4334d2d95b5ae1cb829b58c4c86",
+      "config_path": "configs/phase3_source_induction_v2/frozen_reserve/source_configs/gymv_streets_of_rage_2.json",
+      "primary_horizon": 50,
+      "program_artifact_sha256": "cb56c4361b871f86870835304577ef285355b46e2d5b383bc778eab0c40ba296",
+      "program_file_sha256": "35cc16da6d603cd921441b8486d9c3dea7c78a0dac063c8beceff0b91dd246eb",
+      "program_path": "configs/phase3_source_induction_v2/frozen_reserve/programs/gymv_streets_of_rage_2.json",
+      "qualification_status": "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED",
+      "seed_count": 24,
+      "seed_max": 204024,
+      "seed_min": 204001,
+      "selected_effect_type": "EFFECT_BY_TRANSITION_4",
+      "source_game": "gymv_streets_of_rage_2",
+      "typed_effect_program_sha256": "bb15b49a3209acec0f77a470c2b5b81344ac584fea9471905d70681cfa991ad1"
+    },
+    {
+      "config_file_sha256": "d4d6b1e39ce1c916eb7012917492125730cbbe6a09ff458e8cfa65639c5aebd8",
+      "config_path": "configs/phase3_source_induction_v2/frozen_reserve/source_configs/gymv_thunder_force_iii.json",
+      "primary_horizon": 23,
+      "program_artifact_sha256": "ba2f8a23ce9dc3ebfdcacd3c205c824c600edc6632b828b190cf70baac25615e",
+      "program_file_sha256": "bcf3ef6ee6588a364bd755b82126e16bcbcd89778363a3cbd55afb8cdb53f3c3",
+      "program_path": "configs/phase3_source_induction_v2/frozen_reserve/programs/gymv_thunder_force_iii.json",
+      "qualification_status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+      "seed_count": 24,
+      "seed_max": 205024,
+      "seed_min": 205001,
+      "selected_effect_type": "EFFECT_BY_TRANSITION_8",
+      "source_game": "gymv_thunder_force_iii",
+      "typed_effect_program_sha256": "e554ce5aceb5b29e69321a7b534f3cad18282d036760ae4bd903ed841d51ec25"
+    },
+    {
+      "config_file_sha256": "75e90afe927ce573083479a08c46de3e38ae91121f526b711fbb1b67bd324f7f",
+      "config_path": "configs/phase3_source_induction_v2/frozen_reserve/source_configs/gymv_strider.json",
+      "primary_horizon": 22,
+      "program_artifact_sha256": "2201c4fc8e9e73d71997bb911ba7c7fcaad577a89d9b20a775037e9e10e13c9e",
+      "program_file_sha256": "0661e74e84bdb4d5b8f2cd591c1b53984513361f288c9f7ddd2b85799bfc7a5c",
+      "program_path": "configs/phase3_source_induction_v2/frozen_reserve/programs/gymv_strider.json",
+      "qualification_status": "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED",
+      "seed_count": 24,
+      "seed_max": 206024,
+      "seed_min": 206001,
+      "selected_effect_type": "EFFECT_BY_TRANSITION_1",
+      "source_game": "gymv_strider",
+      "typed_effect_program_sha256": "ad58a49e38bbe55c4444d8cd8f05c618f5c0d1a1add29441672fa669febf9d9e"
+    }
+  ],
+  "status": "FROZEN_BEFORE_ANY_RESERVE_PLAN_OR_INTERVENTION_OUTCOME"
+}
