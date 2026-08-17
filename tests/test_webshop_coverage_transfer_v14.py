@@ -190,6 +190,27 @@ def test_incomplete_product_is_rejected_then_untried_product_is_opened() -> None
     assert second.reason == "target_coverage_explore_untried_product"
 
 
+def test_neural_relation_witness_without_exact_binding_abstains() -> None:
+    controller = CoverageTransferController(
+        TARGET_COVERAGE, goal_options={"size": "15.7 x 1.25"},
+    )
+    approximate = {
+        **_row(),
+        "is_goal_constraint": True,
+        "is_constraint": True,
+        "element_text": "[28] radio \"15.7'' x 1.25''\", checked='false'",
+    }
+    decision = _call(
+        controller, [approximate, _row(commit=True)],
+        candidates=["click('28')", "click('55')"],
+    )
+    assert decision.selected_index == 0
+    assert decision.source_abstained
+    assert decision.reason == (
+        "target_coverage_neural_relation_binding_abstention"
+    )
+
+
 def test_anytime_salvage_uses_action_graph_lower_bound() -> None:
     controller = CoverageTransferController(
         TARGET_COVERAGE,

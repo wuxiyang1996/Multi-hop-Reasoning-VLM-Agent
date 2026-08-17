@@ -1,0 +1,1114 @@
+{
+  "schema_version": "webshop-structural-v19-reserve-v1",
+  "artifact_role": "MATCHED_TRANSPORT_OPTION_RELATION_WEBSHOP_V19_RESERVE",
+  "status": "FROZEN_BEFORE_ANY_V19_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "Native synthetic relation goals, unique ASIN/semantics, disjoint from human and every supplied prior manifest. Exact-query result ordering is replayed across matched arms.",
+  "goal_seed": 823,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 819,
+  "roles": {
+    "transport_qualification": [
+      {
+        "task_id": "webshop.18",
+        "server_goal_index": 18,
+        "asin": "B07ZBCF88X",
+        "instruction_text": "Find me height adjustable dining tables with glass shade, contemporary design, clear glass for dining room with color: black and brass, and price lower than 230.00 dollars",
+        "goal": {
+          "asin": "B07ZBCF88X",
+          "category": "garden",
+          "query": "dining tables",
+          "name": "VINLUZ Farmhouse Chandeliers Rectangle Black 5 Light Dining Room Lighting Fixtures Hanging, Kitchen Island Cage Pendant Lights Contemporary Modern Ceiling Light with Glass Shade Adjustable Rods",
+          "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Ceiling Lights › Island Lights",
+          "instruction_text": "Find me height adjustable dining tables with glass shade, contemporary design, clear glass for dining room with color: black and brass, and price lower than 230.00 dollars",
+          "attributes": [
+            "height adjustable",
+            "glass shade",
+            "contemporary design",
+            "clear glass",
+            "dining room"
+          ],
+          "price_upper": 230.0,
+          "goal_options": {
+            "color": "black and brass"
+          },
+          "weight": 0.05988249207117132
+        },
+        "goal_sha256": "7fb92bf8ce1df587ed207289fc3416e55c9068c2a5ddb76984730a10d49e7e1a"
+      },
+      {
+        "task_id": "webshop.27",
+        "server_goal_index": 27,
+        "asin": "B08QSNM69H",
+        "instruction_text": "Find me blu ray, gold plated, high speed, heavy duty hdmi cables with color: blue braided, and size: 3-pack, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B08QSNM69H",
+          "category": "electronics",
+          "query": "hdmi cables",
+          "name": "4K HDMI Cables, Short Cord, 1ft [3 Pack] Braided Cord & Gold Connectors, 1ft High-Speed HDMI 2.0 with Ethernet, for Playstation PS5, PS4, PS3, Xbox, Roku, Apple TV, HDTV, Blu-ray, Laptop, PC, Monitor",
+          "product_category": "Electronics › Accessories & Supplies › Audio & Video Accessories › Cables & Interconnects › Video Cables › HDMI Cables",
+          "instruction_text": "Find me blu ray, gold plated, high speed, heavy duty hdmi cables with color: blue braided, and size: 3-pack, and price lower than 50.00 dollars",
+          "attributes": [
+            "blu ray",
+            "gold plated",
+            "high speed",
+            "heavy duty"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "blue braided",
+            "size": "3-pack"
+          },
+          "weight": 0.029619107744107743
+        },
+        "goal_sha256": "bcad9ce4ca745a5905f03cbe11d64bc23f6fed393743896f20925f4eec4620da"
+      },
+      {
+        "task_id": "webshop.44",
+        "server_goal_index": 44,
+        "asin": "B074Z315KK",
+        "instruction_text": "Find me wash cold, hand wash, machine wash men's t-shirts & tanks with color: silver 1, and size: xx-large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B074Z315KK",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Novia's Choice Men Shiny Metallic Shirt Blouse T-Shirt Tee for Nightclub",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+          "instruction_text": "Find me wash cold, hand wash, machine wash men's t-shirts & tanks with color: silver 1, and size: xx-large, and price lower than 60.00 dollars",
+          "attributes": [
+            "wash cold",
+            "hand wash",
+            "machine wash"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "silver 1",
+            "size": "xx-large"
+          },
+          "weight": 0.001260797728722387
+        },
+        "goal_sha256": "604508b6238c798b9e09f3eebcd823684813f29f4b0cf0e92696b5b07007de6b"
+      },
+      {
+        "task_id": "webshop.75",
+        "server_goal_index": 75,
+        "asin": "B07FD13LP1",
+        "instruction_text": "Find me machine wash men's shorts with drawstring closure for tumble dry with color: wine, and size: large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07FD13LP1",
+          "category": "fashion",
+          "query": "men's shorts",
+          "name": "The Establishment Men's Organic Cotton Fleece Short with Pocket(S to XXL)",
+          "product_category": "",
+          "instruction_text": "Find me machine wash men's shorts with drawstring closure for tumble dry with color: wine, and size: large, and price lower than 60.00 dollars",
+          "attributes": [
+            "machine wash",
+            "drawstring closure",
+            "tumble dry"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "wine",
+            "size": "large"
+          },
+          "weight": 0.004585396389618382
+        },
+        "goal_sha256": "56eda3c408d22757e4b8bc0fde6bde5e8b995a5927dfddaddeea591c6c2c9f53"
+      },
+      {
+        "task_id": "webshop.78",
+        "server_goal_index": 78,
+        "asin": "B08ZB1MN8D",
+        "instruction_text": "Find me long lasting, easy care, machine washable men's pants with elastic waistband with color: green-charcoal, and size: large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B08ZB1MN8D",
+          "category": "fashion",
+          "query": "men's pants",
+          "name": "Unipro Mens Jogger Pants 2 Pack Tech Fleece Sweatpants Lightweight Running Pant for Men",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Pants › Sweatpants",
+          "instruction_text": "Find me long lasting, easy care, machine washable men's pants with elastic waistband with color: green-charcoal, and size: large, and price lower than 40.00 dollars",
+          "attributes": [
+            "long lasting",
+            "easy care",
+            "machine washable",
+            "elastic waistband"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "green-charcoal",
+            "size": "large"
+          },
+          "weight": 0.027791258437922343
+        },
+        "goal_sha256": "d4adf74e84b34d2695bd0e0acfb81cc0048bc2bb4790e990ce5ab4b7c67dc49e"
+      },
+      {
+        "task_id": "webshop.79",
+        "server_goal_index": 79,
+        "asin": "B09NLZFMRG",
+        "instruction_text": "Find me easy clean bathing accessories for dead skin with color: beige 1 pair, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09NLZFMRG",
+          "category": "beauty",
+          "query": "bathing accessories",
+          "name": "ONGHAHYIS Shower Scrubbing Mitt Gloves Body Brush Take A Shower in 1 Minute Exfoliating Scrub Foot Scrubber Cath Sponge High-Elastic Five-Finger Bath Towel (Color : Random Color 1pc)",
+          "product_category": "Beauty & Personal Care › Personal Care › Bath & Bathing Accessories › Bathing Accessories › Bath Sponges",
+          "instruction_text": "Find me easy clean bathing accessories for dead skin with color: beige 1 pair, and price lower than 60.00 dollars",
+          "attributes": [
+            "easy clean",
+            "dead skin"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "beige 1 pair"
+          },
+          "weight": 0.03478810879190386
+        },
+        "goal_sha256": "2376efae939a871a4abde331d8f29246fa859aad552a86ea219752cc711d802d"
+      },
+      {
+        "task_id": "webshop.82",
+        "server_goal_index": 82,
+        "asin": "B09JT3Z6JV",
+        "instruction_text": "Find me high quality, teeth whitening children's dental care with quality materials for sensitive teeth with color: pink-dinosaur, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09JT3Z6JV",
+          "category": "beauty",
+          "query": "children's dental care",
+          "name": "Hoomall Kids U-Shaped Toothbrush, Manual Toothbrush with U-Shaped Bristles Food Grade Silicone Toothbrush Head, 360° Oral Teeth Cleaning Design for Toddlers and Children(Blue-Dinosaur，9545mm)",
+          "product_category": "Beauty & Personal Care › Oral Care › Toothbrushes & Accessories › Manual Toothbrushes",
+          "instruction_text": "Find me high quality, teeth whitening children's dental care with quality materials for sensitive teeth with color: pink-dinosaur, and price lower than 50.00 dollars",
+          "attributes": [
+            "high quality",
+            "teeth whitening",
+            "quality materials",
+            "sensitive teeth"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "pink-dinosaur"
+          },
+          "weight": 0.059624868623170825
+        },
+        "goal_sha256": "24deba3d0272da0a32687ac146dcaeaa76fb8c4b0e029474c2ccf2f7e9501331"
+      },
+      {
+        "task_id": "webshop.95",
+        "server_goal_index": 95,
+        "asin": "B09S3BN15C",
+        "instruction_text": "Find me slim fit, loose fit men's henleys with short sleeve, long sleeve, regular fit with color: yellow, and size: 3x-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09S3BN15C",
+          "category": "fashion",
+          "query": "men's henleys",
+          "name": "Mens Linen Shirt,Men's Striped Shirts Casual Short Sleeve Button Down Shirts Regular Fit Hawaiian Shirts Beach Tees Tops",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Shirts & Tees › Button-Down Shirts",
+          "instruction_text": "Find me slim fit, loose fit men's henleys with short sleeve, long sleeve, regular fit with color: yellow, and size: 3x-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "slim fit",
+            "loose fit",
+            "short sleeve",
+            "long sleeve",
+            "regular fit"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "yellow",
+            "size": "3x-large"
+          },
+          "weight": 0.0027812801504127826
+        },
+        "goal_sha256": "79203eebc8f648baca67cd5cc2adec76c9adf9114aeafd4f96a5cb6b5a5a82db"
+      }
+    ],
+    "formal_reserve": [
+      {
+        "task_id": "webshop.113",
+        "server_goal_index": 113,
+        "asin": "B09QCVCYVY",
+        "instruction_text": "Find me wide leg, slim fit, straight leg, loose fit women's shorts with long sleeve, elastic waist, high waist, tummy control, short sleeve with color: dark gray, and size: medium, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09QCVCYVY",
+          "category": "fashion",
+          "query": "women's shorts",
+          "name": "Burband Womens High Waist Bike Shorts Tummy Control Workout Yoga Pants Running Exercise Running Shorts with Side Pockets",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Active › Active Shorts",
+          "instruction_text": "Find me wide leg, slim fit, straight leg, loose fit women's shorts with long sleeve, elastic waist, high waist, tummy control, short sleeve with color: dark gray, and size: medium, and price lower than 40.00 dollars",
+          "attributes": [
+            "wide leg",
+            "slim fit",
+            "straight leg",
+            "loose fit",
+            "long sleeve",
+            "elastic waist",
+            "high waist",
+            "tummy control",
+            "short sleeve"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "dark gray",
+            "size": "medium"
+          },
+          "weight": 0.0063832636445422634
+        },
+        "goal_sha256": "797149945df4d7d30d4449bca3c9949ac2ccd41eb38133095075288fb712a3c1"
+      },
+      {
+        "task_id": "webshop.138",
+        "server_goal_index": 138,
+        "asin": "B08GY1VWPH",
+        "instruction_text": "Find me sconces for dining room, living room with color: red, and price lower than 100.00 dollars",
+        "goal": {
+          "asin": "B08GY1VWPH",
+          "category": "garden",
+          "query": "sconces",
+          "name": "SMWZFDD Vintage Industrial Wall Lights E27 Retro Wall Lamp Industrial Wall Light Loft Wall Sconce Lamps Bedside Wall Light for Bedroom Cafe Bar Aisle,Metal Lampshade, E27,Gold",
+          "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Wall Lights › Wall Lamps & Sconces",
+          "instruction_text": "Find me sconces for dining room, living room with color: red, and price lower than 100.00 dollars",
+          "attributes": [
+            "dining room",
+            "living room"
+          ],
+          "price_upper": 100.0,
+          "goal_options": {
+            "color": "red"
+          },
+          "weight": 0.002378778656928383
+        },
+        "goal_sha256": "d123c9ef2079425fbccf9e46e7bca5fb04d528c5bb964666ca7b8be486d03d6a"
+      },
+      {
+        "task_id": "webshop.148",
+        "server_goal_index": 148,
+        "asin": "B09R1T2P6V",
+        "instruction_text": "Find me compatible apple wearable technology with stainless steel with color: gold, and size: 42mm, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09R1T2P6V",
+          "category": "electronics",
+          "query": "wearable technology",
+          "name": "Bling Charm Pendant Bracelet Band Compatible with Apple Watch Bands 38mm 40mm 42mm 44mm,Adjustable Stainless Steel Smartwatch Band with Bling Diamond Case for iwatch Series SE Series 7 6 5 4 3 2 1",
+          "product_category": "Cell Phones & Accessories › Accessories › Smartwatch Accessories › Smartwatch Bands",
+          "instruction_text": "Find me compatible apple wearable technology with stainless steel with color: gold, and size: 42mm, and price lower than 30.00 dollars",
+          "attributes": [
+            "compatible apple",
+            "stainless steel"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "gold",
+            "size": "42mm"
+          },
+          "weight": 0.03018018018018018
+        },
+        "goal_sha256": "a6ad92c100449f14726f6951ceb9bc5c0fb82435fc6f5fe3e2f295b0308f0ade"
+      },
+      {
+        "task_id": "webshop.159",
+        "server_goal_index": 159,
+        "asin": "B08R9QHFPC",
+        "instruction_text": "Find me high density, space saving, easy clean mattresses with size: twin, and price lower than 110.00 dollars",
+        "goal": {
+          "asin": "B08R9QHFPC",
+          "category": "garden",
+          "query": "mattresses",
+          "name": "BDEUS Folding Mattress Folding Sofa 4\" Breathable High-Density Foam Mattress Tppper, Portable Guest Bed with Removable&Washable Cover, 75 x 25 inches",
+          "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Mattresses & Box Springs › Mattresses",
+          "instruction_text": "Find me high density, space saving, easy clean mattresses with size: twin, and price lower than 110.00 dollars",
+          "attributes": [
+            "high density",
+            "space saving",
+            "easy clean"
+          ],
+          "price_upper": 110.0,
+          "goal_options": {
+            "size": "twin"
+          },
+          "weight": 0.020442466938573725
+        },
+        "goal_sha256": "14f30ae9b8424e4bd00bbb53ee244ae9e5ca970bc05b94185171a5456fa06da5"
+      },
+      {
+        "task_id": "webshop.176",
+        "server_goal_index": 176,
+        "asin": "B09F6SCW47",
+        "instruction_text": "Find me wall mounted, white item, easy clean tv stands for living room with color: grey, and price lower than 120.00 dollars",
+        "goal": {
+          "asin": "B09F6SCW47",
+          "category": "garden",
+          "query": "tv stands",
+          "name": "hongxinq Floating TV Stand with Storage Shelves, Chipboard Wall Mounted Hanging Television Cabinet, Modern Storage Cabinet for Living Room, Bedroom, 12Inx11.8Inx35.4In, White",
+          "product_category": "Home & Kitchen › Furniture › Living Room Furniture › TV & Media Furniture › Television Stands & Entertainment Centers",
+          "instruction_text": "Find me wall mounted, white item, easy clean tv stands for living room with color: grey, and price lower than 120.00 dollars",
+          "attributes": [
+            "wall mounted",
+            "white item",
+            "easy clean",
+            "living room"
+          ],
+          "price_upper": 120.0,
+          "goal_options": {
+            "color": "grey"
+          },
+          "weight": 0.0354800618170737
+        },
+        "goal_sha256": "65160cb7c72a2049928dee7f75189523c24cae96ed5f45f3d9430533f96827e8"
+      },
+      {
+        "task_id": "webshop.178",
+        "server_goal_index": 178,
+        "asin": "B09B2HN6NN",
+        "instruction_text": "Find me machine wash men's pants with drawstring closure, elastic waist, polyester spandex with color: navy, and size: medium, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09B2HN6NN",
+          "category": "fashion",
+          "query": "men's pants",
+          "name": "Men's 3/4 Workout Training Jogger Capri Pants Running Track Sweatpants Shorts with Pockets Summer Casual Sports Pants",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Pants",
+          "instruction_text": "Find me machine wash men's pants with drawstring closure, elastic waist, polyester spandex with color: navy, and size: medium, and price lower than 40.00 dollars",
+          "attributes": [
+            "machine wash",
+            "drawstring closure",
+            "elastic waist",
+            "polyester spandex"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "navy",
+            "size": "medium"
+          },
+          "weight": 0.0034358886190823824
+        },
+        "goal_sha256": "aa30c3641801fe66c5e6148837ba3fad5c3b707a0a69e593aa6b5f4ff53d0b2a"
+      },
+      {
+        "task_id": "webshop.224",
+        "server_goal_index": 224,
+        "asin": "B09688C4XM",
+        "instruction_text": "Find me high density, space saving sofa tables for living room with color: gs2900b, and size: small",
+        "goal": {
+          "asin": "B09688C4XM",
+          "category": "garden",
+          "query": "sofa tables",
+          "name": "Lifestyle Furniture Sectional Recliner Sofa Set Living Room Reclining Couch with Drop Down Table (Single Piece or Combination) (GS2900, 3PCS)",
+          "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Living Room Sets",
+          "instruction_text": "Find me high density, space saving sofa tables for living room with color: gs2900b, and size: small",
+          "attributes": [
+            "high density",
+            "space saving",
+            "living room"
+          ],
+          "price_upper": 1000000,
+          "goal_options": {
+            "color": "gs2900b",
+            "size": "small"
+          },
+          "weight": 0.01739587195649487
+        },
+        "goal_sha256": "63a68719d9d1a3d901f2627b8045b8b370398c4260f80fa1dd56ccfe0d2c7e54"
+      },
+      {
+        "task_id": "webshop.246",
+        "server_goal_index": 246,
+        "asin": "B082KBN23S",
+        "instruction_text": "Find me wall mounted decorative mirrors for living room with size: 50x50cm | 19.7x19.7in, and price lower than 130.00 dollars",
+        "goal": {
+          "asin": "B082KBN23S",
+          "category": "garden",
+          "query": "decorative mirrors",
+          "name": "WYSTAO Decorative Mirror Modern Minimalist Living Room Metal Mirror Wall Hanging Hall Pendant Iron Golden Soft Decoration 40/50/60/70cm (Size : 70x70cm/27.6x27.6in)",
+          "product_category": "Home & Kitchen › Home Décor Products › Mirrors › Wall-Mounted Mirrors",
+          "instruction_text": "Find me wall mounted decorative mirrors for living room with size: 50x50cm | 19.7x19.7in, and price lower than 130.00 dollars",
+          "attributes": [
+            "wall mounted",
+            "living room"
+          ],
+          "price_upper": 130.0,
+          "goal_options": {
+            "size": "50x50cm | 19.7x19.7in"
+          },
+          "weight": 0.027122241086587433
+        },
+        "goal_sha256": "a53e1d4f64217239fcd1d8a938069533d6c2ec740d4ab0a634b4a098a4815dc1"
+      },
+      {
+        "task_id": "webshop.250",
+        "server_goal_index": 250,
+        "asin": "B07DJJXGB5",
+        "instruction_text": "Find me scrubs & body treatments with tea tree, natural ingredients with scent: acne face & body wash, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B07DJJXGB5",
+          "category": "beauty",
+          "query": "scrubs & body treatments",
+          "name": "Face, Body Acne Spray with Benzoyl Peroxide - Body, Chest, Butt, Back Acne Treatment with Tea Tree Oil - Salicylic Acid Spray for Men, Women, Teens - Cystic Hormonal Acne Treatment - Acne Body Spray",
+          "product_category": "Beauty & Personal Care › Skin Care › Face › Cleansers › Washes",
+          "instruction_text": "Find me scrubs & body treatments with tea tree, natural ingredients with scent: acne face & body wash, and price lower than 50.00 dollars",
+          "attributes": [
+            "tea tree",
+            "natural ingredients"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "scent": "acne face & body wash"
+          },
+          "weight": 0.27941176470588236
+        },
+        "goal_sha256": "95aa268685a40582a8bb3ea358464d9947afabdaa8f7971b5a57f0aa2d5dc88e"
+      },
+      {
+        "task_id": "webshop.253",
+        "server_goal_index": 253,
+        "asin": "B01KI9HU1O",
+        "instruction_text": "Find me machine wash, wash cold men's sweaters with polyester cotton for tumble dry with size: 4x-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B01KI9HU1O",
+          "category": "fashion",
+          "query": "men's sweaters",
+          "name": "Grandfather Italian Mafia Puppet Men's Crewneck Sweatshirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Sweatshirts",
+          "instruction_text": "Find me machine wash, wash cold men's sweaters with polyester cotton for tumble dry with size: 4x-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "wash cold",
+            "polyester cotton",
+            "tumble dry"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "4x-large"
+          },
+          "weight": 0.005288092222369049
+        },
+        "goal_sha256": "96a5669a74fefc3f3ad485572359fc926249c59fc1539b95a04834e00f33098a"
+      },
+      {
+        "task_id": "webshop.274",
+        "server_goal_index": 274,
+        "asin": "B07VVVDRCX",
+        "instruction_text": "Find me compatible apple online game services with case cover with color: green, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B07VVVDRCX",
+          "category": "electronics",
+          "query": "online game services",
+          "name": "iPad Case Fit 2018/2017 iPad 9.7 6th/5th Generation - 360 Degree Rotating iPad Air Case Cover with Auto Wake/Sleep Compatible with Apple iPad 9.7 Inch 2018/2017 (National Wind)",
+          "product_category": "Electronics › Computers & Accessories › Tablet Accessories › Bags, Cases & Sleeves › Cases",
+          "instruction_text": "Find me compatible apple online game services with case cover with color: green, and price lower than 30.00 dollars",
+          "attributes": [
+            "compatible apple",
+            "case cover"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "green"
+          },
+          "weight": 0.04166666666666667
+        },
+        "goal_sha256": "0f833f07aabdfc3b0ed4c11ae874b87244149582240326f61bcad033f9508e6a"
+      },
+      {
+        "task_id": "webshop.279",
+        "server_goal_index": 279,
+        "asin": "B085RRL27J",
+        "instruction_text": "Find me soy free, plant based, dairy free, non gmo, gluten free wasabi peas with artificial flavors with flavor: 4-flavor variety, and size: 2.3 ounce (pack of 4), and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B085RRL27J",
+          "category": "grocery",
+          "query": "wasabi peas",
+          "name": "Taali NEW Sweet and Savory Variety Popped Water Lily Pops (6 Resealable Bags) - Try 6 Flavors! | Sweet, Salty, Savory Assortment | Protein Boost | Snack on the Go (2 oz/2.3 oz. bags)",
+          "product_category": "Grocery & Gourmet Food › Snacks & Sweets › Snack Foods › Puffed Snacks",
+          "instruction_text": "Find me soy free, plant based, dairy free, non gmo, gluten free wasabi peas with artificial flavors with flavor: 4-flavor variety, and size: 2.3 ounce (pack of 4), and price lower than 70.00 dollars",
+          "attributes": [
+            "soy free",
+            "plant based",
+            "dairy free",
+            "non gmo",
+            "gluten free",
+            "artificial flavors"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "flavor": "4-flavor variety",
+            "size": "2.3 ounce (pack of 4)"
+          },
+          "weight": 0.04469397090364832
+        },
+        "goal_sha256": "cac025476e742e58773d64488cde4aad3fc8e4fec989fa1e4ecaaff7efb1184a"
+      },
+      {
+        "task_id": "webshop.285",
+        "server_goal_index": 285,
+        "asin": "B08WG7VLQF",
+        "instruction_text": "Find me fragrance free styling products for dry hair with scent: north bondi scented, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B08WG7VLQF",
+          "category": "beauty",
+          "query": "styling products",
+          "name": "OUAI Curl Crème, The Universal Crème for All Curl Types, Fragrance-Free, 8 Fluid Ounces",
+          "product_category": "Beauty & Personal Care › Hair Care › Styling Products › Gels",
+          "instruction_text": "Find me fragrance free styling products for dry hair with scent: north bondi scented, and price lower than 70.00 dollars",
+          "attributes": [
+            "fragrance free",
+            "dry hair"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "scent": "north bondi scented"
+          },
+          "weight": 0.19607843137254902
+        },
+        "goal_sha256": "f72562b260f216e56f6327c0744db9b9466902f27a77881f6359a0b6cebe61ef"
+      },
+      {
+        "task_id": "webshop.312",
+        "server_goal_index": 312,
+        "asin": "B09HMCKZQW",
+        "instruction_text": "Find me knee high, non slip women's pumps with closed toe, leather sole, ankle strap, arch support, rubber outsole with size: 8, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09HMCKZQW",
+          "category": "fashion",
+          "query": "women's pumps",
+          "name": "Copercn Dress Ankle Booties For Women Ladies Fashion Casual Chunky Block High Heels Dress Pump Thermal Short Boots Winter Fall Dressy Short Boots For Business Work Wedding Party Dresses",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Boots › Ankle & Bootie",
+          "instruction_text": "Find me knee high, non slip women's pumps with closed toe, leather sole, ankle strap, arch support, rubber outsole with size: 8, and price lower than 50.00 dollars",
+          "attributes": [
+            "knee high",
+            "non slip",
+            "closed toe",
+            "leather sole",
+            "ankle strap",
+            "arch support",
+            "rubber outsole"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "8"
+          },
+          "weight": 0.03372975085202524
+        },
+        "goal_sha256": "cb983761ad5572bece4e43a2e623011bc1a8bce00e267c7bdc7a3c5bc400dad6"
+      },
+      {
+        "task_id": "webshop.317",
+        "server_goal_index": 317,
+        "asin": "B078FL4788",
+        "instruction_text": "Find me hair treatment oils for hair growth, hair loss with size: 4 fl oz (pack of 1), and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B078FL4788",
+          "category": "beauty",
+          "query": "hair treatment oils",
+          "name": "Glammed Naturally Oil - Braid Oil, Braid Oil for Itchy Scalp and Dry Scalp, Braid Care Oil for Dandruff, Lice and Thinning Edges, 2 Oz",
+          "product_category": "Beauty & Personal Care › Hair Care › Scalp Treatments",
+          "instruction_text": "Find me hair treatment oils for hair growth, hair loss with size: 4 fl oz (pack of 1), and price lower than 40.00 dollars",
+          "attributes": [
+            "hair growth",
+            "hair loss"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "size": "4 fl oz (pack of 1)"
+          },
+          "weight": 0.04607843137254902
+        },
+        "goal_sha256": "40c292b8428603694e5f09dc6a55a116931bca26263005ae4e3ff79da64c7c9d"
+      },
+      {
+        "task_id": "webshop.385",
+        "server_goal_index": 385,
+        "asin": "B09GVJBPRR",
+        "instruction_text": "Find me non slip, easy clean dining sets for dining room with color: glod, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09GVJBPRR",
+          "category": "garden",
+          "query": "dining sets",
+          "name": "Gold Placemats Set of 8 for Dining Table, Pressed Vinyl 15 inch Round Place Mats Non-Slip Washable Dining Table Mates,8 Placemats and 8 Coaster for Wedding Party Holiday",
+          "product_category": "Home & Kitchen › Kitchen & Dining › Kitchen & Table Linens › Place Mats",
+          "instruction_text": "Find me non slip, easy clean dining sets for dining room with color: glod, and price lower than 50.00 dollars",
+          "attributes": [
+            "non slip",
+            "easy clean",
+            "dining room"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "glod"
+          },
+          "weight": 0.00523961196162188
+        },
+        "goal_sha256": "73690ccab117b859ae15afc8531e1419bd41fc6600d11072bc7d69a06b782dba"
+      },
+      {
+        "task_id": "webshop.387",
+        "server_goal_index": 387,
+        "asin": "B08KYBVQ46",
+        "instruction_text": "Find me machine wash women's pants with elastic waist with color: orbit green, and size: medium, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B08KYBVQ46",
+          "category": "fashion",
+          "query": "women's pants",
+          "name": "adidas Originals Women's Adicolor Essentials Tights",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Active › Leggings",
+          "instruction_text": "Find me machine wash women's pants with elastic waist with color: orbit green, and size: medium, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "elastic waist"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "orbit green",
+            "size": "medium"
+          },
+          "weight": 0.002586897026790535
+        },
+        "goal_sha256": "0a7beee373b06e5f7b529696c14b6eaeeb0cef9caf3ce3fe0674b01a2ad2c024"
+      },
+      {
+        "task_id": "webshop.429",
+        "server_goal_index": 429,
+        "asin": "B0928LGTVF",
+        "instruction_text": "Find me sconces with clear glass, glass shade, vanity light, light fixture for living room, dining room with color: 1-light, and size: 1-pack, and price lower than 150.00 dollars",
+        "goal": {
+          "asin": "B0928LGTVF",
+          "category": "garden",
+          "query": "sconces",
+          "name": "Fanyate Antique Industrial Wall Sconce, 2-Light Bathroom Light Fixture Oil Rubbed Bronze Vanity Light with Clear Glass Shade Suitable for Bathroom Living Room Hallway ORB, 2 Pack",
+          "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Wall Lights › Wall Lamps & Sconces",
+          "instruction_text": "Find me sconces with clear glass, glass shade, vanity light, light fixture for living room, dining room with color: 1-light, and size: 1-pack, and price lower than 150.00 dollars",
+          "attributes": [
+            "clear glass",
+            "glass shade",
+            "vanity light",
+            "light fixture",
+            "living room",
+            "dining room"
+          ],
+          "price_upper": 150.0,
+          "goal_options": {
+            "color": "1-light",
+            "size": "1-pack"
+          },
+          "weight": 0.03385302062710975
+        },
+        "goal_sha256": "e476f1a96275ac22d73fab00e619bcc53aa4f15346437d6d8d67f3704f915931"
+      },
+      {
+        "task_id": "webshop.461",
+        "server_goal_index": 461,
+        "asin": "B099FKK27G",
+        "instruction_text": "Find me anti slip, non slip women's slippers with faux fur with color: other white, and size: small, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B099FKK27G",
+          "category": "fashion",
+          "query": "women's slippers",
+          "name": "Rachel Zoe Women's Sofia Slipper",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Flats",
+          "instruction_text": "Find me anti slip, non slip women's slippers with faux fur with color: other white, and size: small, and price lower than 50.00 dollars",
+          "attributes": [
+            "anti slip",
+            "non slip",
+            "faux fur"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "other white",
+            "size": "small"
+          },
+          "weight": 0.009868210268004045
+        },
+        "goal_sha256": "1c2caac85ccdfee16f8fee2b716cfcf9ea66917524dade5d3755b95795805cf9"
+      },
+      {
+        "task_id": "webshop.472",
+        "server_goal_index": 472,
+        "asin": "B097DSB79F",
+        "instruction_text": "Find me protein serving meat snacks with natural ingredients, artificial flavors with flavor: supreme, and size: 3 pack, and price lower than 140.00 dollars",
+        "goal": {
+          "asin": "B097DSB79F",
+          "category": "grocery",
+          "query": "meat snacks",
+          "name": "DiGiorno Original Rising Crust Three Meat Frozen Pizza - 5 Pack (29.8 oz Each) - Crispy Crust - No Artificial Flavors",
+          "product_category": "Grocery & Gourmet Food › Frozen › Pizza › Meat",
+          "instruction_text": "Find me protein serving meat snacks with natural ingredients, artificial flavors with flavor: supreme, and size: 3 pack, and price lower than 140.00 dollars",
+          "attributes": [
+            "protein serving",
+            "natural ingredients",
+            "artificial flavors"
+          ],
+          "price_upper": 140.0,
+          "goal_options": {
+            "flavor": "supreme",
+            "size": "3 pack"
+          },
+          "weight": 0.04132501485442662
+        },
+        "goal_sha256": "aae311f4d8eceb96609e9f6b9c10522e58d219788220690e8804714b1794c3de"
+      },
+      {
+        "task_id": "webshop.527",
+        "server_goal_index": 527,
+        "asin": "B08X4YD5WH",
+        "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair loss with size: 20 inch, and price lower than 100.00 dollars",
+        "goal": {
+          "asin": "B08X4YD5WH",
+          "category": "beauty",
+          "query": "hair extensions, wigs & accessories",
+          "name": "QAZPL Hair Weaving Deep Curly, Virgin Human Hair, Wig For Women, 8-24 Inch 1B Natural Black, Grade 8A, Support Perm Or Hair Coloring, 1pcs (Size : 20 inch)",
+          "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Hair Extensions",
+          "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair loss with size: 20 inch, and price lower than 100.00 dollars",
+          "attributes": [
+            "high quality",
+            "hair loss"
+          ],
+          "price_upper": 100.0,
+          "goal_options": {
+            "size": "20 inch"
+          },
+          "weight": 0.02204301075268817
+        },
+        "goal_sha256": "70597a8349e227d170c66f713bc32af944cb26ab5dbeb0ba774ed9daa3ec2ba9"
+      },
+      {
+        "task_id": "webshop.533",
+        "server_goal_index": 533,
+        "asin": "B09L44298X",
+        "instruction_text": "Find me height adjustable home office chairs with stainless steel for living room with color: classic grey, and price lower than 190.00 dollars",
+        "goal": {
+          "asin": "B09L44298X",
+          "category": "garden",
+          "query": "home office chairs",
+          "name": "Velvet Desk Chair Home Office Chairs Swivel Vanity Chair with Wheels Tufted Accent Armchair Adjustable Computer Task Chair for Bedroom Living Room Study Room (Pink)",
+          "product_category": "Home & Kitchen › Furniture › Home Office Furniture › Home Office Chairs › Home Office Desk Chairs",
+          "instruction_text": "Find me height adjustable home office chairs with stainless steel for living room with color: classic grey, and price lower than 190.00 dollars",
+          "attributes": [
+            "height adjustable",
+            "stainless steel",
+            "living room"
+          ],
+          "price_upper": 190.0,
+          "goal_options": {
+            "color": "classic grey"
+          },
+          "weight": 0.01595689982786757
+        },
+        "goal_sha256": "b077e89a067b28ad7b027dc029e6297c4c8ab78ad07edd40e906c5da2f45a828"
+      },
+      {
+        "task_id": "webshop.571",
+        "server_goal_index": 571,
+        "asin": "B07TN3Y9H1",
+        "instruction_text": "Find me mid century vanities with vanity light, glass shade with size: 5-light, and price lower than 250.00 dollars",
+        "goal": {
+          "asin": "B07TN3Y9H1",
+          "category": "garden",
+          "query": "vanities",
+          "name": "Maxim 32478SWSBRBP Finn Mid-Century Modern Satin White Glass Ball Bath Vanity Wall Mount, 5-Light 200 Total Watts, 7\"H x 44\"W, Satin Brass/Brushed Platinum",
+          "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Wall Lights › Vanity Lights",
+          "instruction_text": "Find me mid century vanities with vanity light, glass shade with size: 5-light, and price lower than 250.00 dollars",
+          "attributes": [
+            "mid century",
+            "vanity light",
+            "glass shade"
+          ],
+          "price_upper": 250.0,
+          "goal_options": {
+            "size": "5-light"
+          },
+          "weight": 0.05156136528685548
+        },
+        "goal_sha256": "7758aa672b5426134cfc5e7d4b96701121ff4fe30335f4ea9faf78b433e09378"
+      },
+      {
+        "task_id": "webshop.654",
+        "server_goal_index": 654,
+        "asin": "B08P28NXH3",
+        "instruction_text": "Find me grain free, artificial ingredients, low calorie, high protein, low carb, non gmo, gluten free puffed snacks with flavor name: cheddar cheese, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B08P28NXH3",
+          "category": "grocery",
+          "query": "puffed snacks",
+          "name": "Schoolyard Snacks Low Carb Keto Cheese Puffs - Cheddar Cheese - High Protein - All Natural - Gluten & Grain-Free - Healthy Chips - Low Calorie Food - 12 Pack Single Serve Bags - 100 Calories",
+          "product_category": "Grocery & Gourmet Food › Snacks & Sweets › Snack Foods › Puffed Snacks",
+          "instruction_text": "Find me grain free, artificial ingredients, low calorie, high protein, low carb, non gmo, gluten free puffed snacks with flavor name: cheddar cheese, and price lower than 50.00 dollars",
+          "attributes": [
+            "grain free",
+            "artificial ingredients",
+            "low calorie",
+            "high protein",
+            "low carb",
+            "non gmo",
+            "gluten free"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "flavor name": "cheddar cheese"
+          },
+          "weight": 0.1447237350463157
+        },
+        "goal_sha256": "2e290619f2fd6ec67d82c3d67693729a818bb3e606b05f796242c9f20b911096"
+      },
+      {
+        "task_id": "webshop.663",
+        "server_goal_index": 663,
+        "asin": "B09KXCHWGD",
+        "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09KXCHWGD",
+          "category": "fashion",
+          "query": "men's polos",
+          "name": "Custom Polo Shirts for Men Design Your Own Personalized Logo Text Photo Polo Shirt Customize Classic Polo Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › Polos",
+          "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 30.00 dollars",
+          "attributes": [
+            "short sleeve",
+            "button closure"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "orange"
+          },
+          "weight": 0.0016657827079001029
+        },
+        "goal_sha256": "4a0c39c2362d631f12d1459769c35552f4254a9fe300aa5e3ffa82256906fe1e"
+      },
+      {
+        "task_id": "webshop.722",
+        "server_goal_index": 722,
+        "asin": "B09PL5W9PD",
+        "instruction_text": "Find me machine wash women's swimsuits & cover ups with drawstring closure, elastic waistband, tummy control with color: white, and size: xx-large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09PL5W9PD",
+          "category": "fashion",
+          "query": "women's swimsuits & cover ups",
+          "name": "Women's One Piece Swimsuit Halter Plunge Neck Tummy Control Bathing Suits Push Up Tankini Sets Plus Size Beachwear",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Swimsuits & Cover Ups › One-Pieces",
+          "instruction_text": "Find me machine wash women's swimsuits & cover ups with drawstring closure, elastic waistband, tummy control with color: white, and size: xx-large, and price lower than 30.00 dollars",
+          "attributes": [
+            "machine wash",
+            "drawstring closure",
+            "elastic waistband",
+            "tummy control"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "white",
+            "size": "xx-large"
+          },
+          "weight": 0.005017186714735997
+        },
+        "goal_sha256": "afd044ea1e27c6a53d2432cf6566212dcab7291a4a09a8a580a3e74cef0a9de4"
+      },
+      {
+        "task_id": "webshop.744",
+        "server_goal_index": 744,
+        "asin": "B09S632DT3",
+        "instruction_text": "Find me hand wash women's lingerie, sleep & lounge for laundry bag with size: large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09S632DT3",
+          "category": "fashion",
+          "query": "women's lingerie, sleep & lounge",
+          "name": "Sleepwear Womens Chemise Nightgown Full Slip Lace Lounge Dress with Briefs Mesh Chemise V Neck Soft Pajama Dress Nightdress",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Lingerie, Sleep & Lounge › Sleep & Lounge › Sets",
+          "instruction_text": "Find me hand wash women's lingerie, sleep & lounge for laundry bag with size: large, and price lower than 50.00 dollars",
+          "attributes": [
+            "hand wash",
+            "laundry bag"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "large"
+          },
+          "weight": 0.07224025974025973
+        },
+        "goal_sha256": "036fea2806352dd6375eb686d86957b70eeb89fd2630b91615ebfc5ee52988eb"
+      },
+      {
+        "task_id": "webshop.745",
+        "server_goal_index": 745,
+        "asin": "B093HFSQ3B",
+        "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair loss with size: 8 inch, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B093HFSQ3B",
+          "category": "beauty",
+          "query": "hair extensions, wigs & accessories",
+          "name": "QAZPL Drawstring Ponytail Hair, Afro Kinky Curly, Human Hair, Wig For Women, 8-20 Inch #1B Natural Black, Support Perm Or Dye (Size : 8 inch)",
+          "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Hair Extensions",
+          "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair loss with size: 8 inch, and price lower than 60.00 dollars",
+          "attributes": [
+            "high quality",
+            "hair loss"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "size": "8 inch"
+          },
+          "weight": 0.02204301075268817
+        },
+        "goal_sha256": "cdd930dcefd0129b6f0e75d9ba025c15b763b8f5713d8ff492331ee81cded207"
+      },
+      {
+        "task_id": "webshop.761",
+        "server_goal_index": 761,
+        "asin": "B08PFRP4RN",
+        "instruction_text": "Find me easy carry, high quality hair extensions, wigs & accessories with color: purple, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B08PFRP4RN",
+          "category": "beauty",
+          "query": "hair extensions, wigs & accessories",
+          "name": "10 Packs Hair Storage Carrying Bags Big Satin Drawstring Pouches Gift Bag for Hair Extentions, Bundles, Wigs, Hair Tools (Rose red)",
+          "product_category": "Beauty & Personal Care › Tools & Accessories › Bags & Cases › Cosmetic Bags",
+          "instruction_text": "Find me easy carry, high quality hair extensions, wigs & accessories with color: purple, and price lower than 30.00 dollars",
+          "attributes": [
+            "easy carry",
+            "high quality"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "purple"
+          },
+          "weight": 0.023233486943164364
+        },
+        "goal_sha256": "1b1e455eb14916ea91ae3f233cdf40430f0364325d08ecbbbdc7dd3fe698a48c"
+      },
+      {
+        "task_id": "webshop.763",
+        "server_goal_index": 763,
+        "asin": "B098SV78BW",
+        "instruction_text": "Find me heavy duty iphone accessories for wireless charging with color: electroplate dark green-11, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B098SV78BW",
+          "category": "electronics",
+          "query": "iphone accessories",
+          "name": "Square iPhone 11 Case,Tzomsze Cute Full Camera Lens Protection & Electroplate Reinforced Corners Shockproof Edge Bumper Case Compatible with iPhone 11 [6.1 inches] -Candy Pink",
+          "product_category": "Cell Phones & Accessories › Cases, Holsters & Sleeves › Basic Cases",
+          "instruction_text": "Find me heavy duty iphone accessories for wireless charging with color: electroplate dark green-11, and price lower than 40.00 dollars",
+          "attributes": [
+            "heavy duty",
+            "wireless charging"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "electroplate dark green-11"
+          },
+          "weight": 0.02291666666666667
+        },
+        "goal_sha256": "df65d1aa6e53d8ce55c69e231cd08a86c7c9f1fbe7e7b9e6322b0b75baf5d278"
+      },
+      {
+        "task_id": "webshop.774",
+        "server_goal_index": 774,
+        "asin": "B08FQTMCNM",
+        "instruction_text": "Find me height adjustable, assembly required bases with pu leather, faux leather with color: black, and style: velvet, and price lower than 140.00 dollars",
+        "goal": {
+          "asin": "B08FQTMCNM",
+          "category": "garden",
+          "query": "bases",
+          "name": "Yaheetech Swivel Accent Chair Height Adjustable Modern Round Back Tilt Chair with Chrome Frame for Lounge, Pub, Bar - Dark Grey",
+          "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Chairs",
+          "instruction_text": "Find me height adjustable, assembly required bases with pu leather, faux leather with color: black, and style: velvet, and price lower than 140.00 dollars",
+          "attributes": [
+            "height adjustable",
+            "assembly required",
+            "pu leather",
+            "faux leather"
+          ],
+          "price_upper": 140.0,
+          "goal_options": {
+            "color": "black",
+            "style": "velvet"
+          },
+          "weight": 0.03154264214046823
+        },
+        "goal_sha256": "85ba77bf489c879a4edac0d16e6f410c1e91ca395cd24cf9e770588155ad855a"
+      },
+      {
+        "task_id": "webshop.818",
+        "server_goal_index": 818,
+        "asin": "B07KK7G5YJ",
+        "instruction_text": "Find me light weight, high resolution, easy carry underwater photography for digital photography with size: 8x8ft, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B07KK7G5YJ",
+          "category": "electronics",
+          "query": "underwater photography",
+          "name": "Laeacco Steampunk Clock Backdrops 6.5x6.5ft Vinyl Photography Background Shabby Clock Photo Backdrop Old Clock Punk Grunge Culture Adults Brave Boy Portraits Photo Studio Props",
+          "product_category": "Electronics › Camera & Photo › Lighting & Studio › Photo Studio › Backgrounds",
+          "instruction_text": "Find me light weight, high resolution, easy carry underwater photography for digital photography with size: 8x8ft, and price lower than 50.00 dollars",
+          "attributes": [
+            "light weight",
+            "high resolution",
+            "easy carry",
+            "digital photography"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "8x8ft"
+          },
+          "weight": 0.08153757283504119
+        },
+        "goal_sha256": "cce046b81b41c6340568bfcf5f168b0e666d051e7dfa0c679cebf7f8dc11f58d"
+      }
+    ]
+  },
+  "preflight": {
+    "all_selected_vs_all_prior_and_human": {
+      "tasks": 40,
+      "unique_goal_semantics": 40,
+      "required_unique_goal_semantics": 40,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 40,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    },
+    "formal_vs_qualification_all_prior_and_human": {
+      "tasks": 32,
+      "unique_goal_semantics": 32,
+      "required_unique_goal_semantics": 32,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 32,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    },
+    "all_have_nonempty_relation_schema": true
+  },
+  "prior_manifest_artifact_sha256s": [
+    "bcd08bd8c037811053bdb069cb1e97b5711cce914e002ffbfa55e56faf7588e7",
+    "bd7cb1dfe5c05b0d76fbf6022003720493e450bf504b73d5192e80eb3813ae04",
+    "590d5d0074cd0a79953b43912ef27a1faa41fe09b5e3e01e5b64f0bd567091e0"
+  ],
+  "transport_contract": {
+    "selected_goal_snapshot_is_content_addressed": true,
+    "native_goal_identity_checked_before_price_snapshot_replay": true,
+    "first_native_query_result_is_authoritative": true,
+    "identical_query_replays_identical_asin_order": true,
+    "source_free_controls_must_have_exact_trajectory_match": true,
+    "authentic_and_target_ceiling_must_have_exact_trajectory_match": true
+  },
+  "runtime_hashes": {
+    "freezer": "c60af94f45e6d7704111c177a47bba9813a4578c85bd35ccc1a37220c3e3514f",
+    "server_launcher": "0071e6ede5d0a84da2c5d9177b553672d3fbbb1e6b4d5f6e3c443912a652f40d",
+    "transport_adapter": "88b7671322575fe573b249c53c66910ad27923ac72beab41ed923de8bba402b8",
+    "frozen_goal_adapter": "0acac437f737650e54a349d3b310d5b98e19cf9f2f3e7fd2c4ed12388fb8e424",
+    "prior_manifests": {
+      "configs/webshop_synthetic_unique_v14_frozen.json": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee",
+      "configs/webshop_structural_v17_frozen.json": "afb6be5f6770ee0e1981fcf88a6557cd6242c0bfb692d534b9cb4c6df15da7ac",
+      "configs/webshop_structural_v18_frozen.json": "a645282e19cd025845a24a3e2c4584d9e4ffe3da806b5a950f5cb3fe1cdc5cb3"
+    }
+  },
+  "formal_outcomes_read_or_run": false,
+  "artifact_sha256": "946e0e5b64d14a4c228b901c25921a0e3d5695a802d17ea49deee3c61c701b2f"
+}

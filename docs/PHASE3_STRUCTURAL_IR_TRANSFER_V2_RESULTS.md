@@ -1,5 +1,7 @@
 # Phase 3 V2：source-only structural IR 的跨域迁移
 
+> 后续 Phase 4–7 的 WebShop formal、冻结 applicability、10-source catalog 与统一执行 harness 见 [`PHASE4_TO_PHASE7_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md`](PHASE4_TO_PHASE7_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md)。
+
 ## 结论
 
 当前可以支持的最强、但仍然有限的结论是：

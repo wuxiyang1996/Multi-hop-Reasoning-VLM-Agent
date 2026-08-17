@@ -1,0 +1,60 @@
+{
+  "schema_version": "webshop-structural-v21-formal-compact-v1",
+  "status": "V21_FRESH_FORMAL_STRUCTURAL_TRANSFER_VALIDATED",
+  "claim_boundary": "One-shot fresh product-disjoint V21 formal reserve; 32 tasks and five matched conditions.",
+  "model": "openai/gpt-4.1-mini",
+  "tasks": 32,
+  "target_grounder_training_rows": 4,
+  "maximum_steps": 20,
+  "strict_successes": {
+    "neural_only": 7,
+    "source_induced_structural_ir": 23,
+    "source_terminal_permuted_control": 7,
+    "generic_untyped_scaffold": 7,
+    "target_native_structural_ceiling": 23
+  },
+  "pass_successes": {
+    "neural_only": 19,
+    "source_induced_structural_ir": 24,
+    "source_terminal_permuted_control": 19,
+    "generic_untyped_scaffold": 19,
+    "target_native_structural_ceiling": 24
+  },
+  "mean_reward": {
+    "neural_only": 0.5781125992063492,
+    "source_induced_structural_ir": 0.7525,
+    "source_terminal_permuted_control": 0.5781125992063492,
+    "generic_untyped_scaffold": 0.5781125992063492,
+    "target_native_structural_ceiling": 0.7525
+  },
+  "source_vs_neural": {
+    "strict_wins": 16,
+    "strict_losses": 0,
+    "strict_ties": 16,
+    "exact_two_sided_p": 0.000030517578125,
+    "reward_wins": 18,
+    "reward_losses": 3,
+    "reward_ties": 11
+  },
+  "source_vs_terminal_permutation": {
+    "strict_wins": 16,
+    "strict_losses": 0,
+    "strict_ties": 16,
+    "exact_two_sided_p": 0.000030517578125
+  },
+  "source_vs_target_native_ceiling": {
+    "strict_wins": 0,
+    "strict_losses": 0,
+    "strict_ties": 32,
+    "exact_trajectory_matches": 32
+  },
+  "source_authorized_decisions": 261,
+  "source_admitted_episodes": 32,
+  "unsafe_commits": 0,
+  "gates_passed": 16,
+  "gates_total": 16,
+  "formal_protocol_file_sha256": "0e3e7c2cf3359d4295b08378bd106070d9f85f94e04bbbab042d9e3b7734522d",
+  "manifest_file_sha256": "92be0214c653e907517448f7abb78305597784a3c74985b2961c87101df3f6e4",
+  "full_run_report_file_sha256": "569b845383113c6e034748a0d560d2567f0ed2679e712646075e10a4e44e9806",
+  "full_report_content_sha256": "aeacee1635f97c3522f3d3f810664e93b7c90149263f15558cd4edf0e3a75bb8"
+}

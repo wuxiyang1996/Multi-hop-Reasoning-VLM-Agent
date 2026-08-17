@@ -1,0 +1,827 @@
+{
+  "arcade_structural_target_matches": 0,
+  "claim_boundary": "Validates anonymous structural type selection for routes whose target utility was already measured. It does not rehabilitate the failed V4 arcade source-permutation result and does not claim that an arcade temporal function transfers to these targets.",
+  "evidence": {
+    "arcade_v4_report": {
+      "file_sha256": "86c833250f3555c0548785eeea6373ef0430ee9c51fad314584213fbac92e121",
+      "path": "runs/phase3_source_function_v4_reserve/report.json",
+      "qualified_aggregate": {
+        "authentic_accuracy": 0.8148148148148148,
+        "authentic_correct": 22,
+        "examples": 27,
+        "permuted_correct": 22,
+        "shuffled_accuracy": 0.0,
+        "shuffled_correct": 0,
+        "source_permuted_accuracy": 0.8148148148148148
+      },
+      "report_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+      "status": "SOURCE_SPECIFIC_DOMAIN_FUNCTIONS_FAILED"
+    },
+    "minigrid_report": {
+      "file_sha256": "1bbcc533cf55ae53fa65fea58097601ac3ce9d049f8f95142c9cf703c13b1bc6",
+      "path": "runs/source_structural_v5c_fresh/report.json",
+      "report_sha256": "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b"
+    },
+    "sokoban_report": {
+      "file_sha256": "a01e2e580a7428095b3f70802da4472d46c25444b1a9854884f0c103359bd4e4",
+      "path": "runs/sokoban_relational_structural_v2/fresh_confirmation_report.json",
+      "report_sha256": "d9fdb75a038b2c3b3f445840c83ca0b2e1cd26ba14a7de598f873619be237de5"
+    }
+  },
+  "gates": {
+    "arcade_functions_do_not_false_match_structural_targets": true,
+    "arcade_v4_negative_permutation_result_preserved": true,
+    "every_target_interface_has_unique_content_match": true,
+    "expanded_catalog_has_ten_source_programs": true,
+    "no_current_target_outcome_or_action_in_selector": true,
+    "selected_programs_equal_preexisting_evidence_lineage": true,
+    "source_permutation_is_rejected_by_type_checker": true,
+    "source_programs_are_behaviorally_routed_not_identity_retrieved": true,
+    "three_minigrid_one_sokoban_six_arcade_sources": true
+  },
+  "phase5_manifest_sha256": "85d2df687b28e8b67b6241910ac40b46bc23c8056e784339fac7b75f55c75ce4",
+  "report_sha256": "6052e13739aae4c1f318de97ea268429e168bd54c181f2c2ae848fcfcdaa8897",
+  "schema_version": "phase6-source-specific-applicability-audit-v1",
+  "source_catalog": [
+    {
+      "catalog_label": "minigrid:doorkey_5x5",
+      "contract": {
+        "contract_sha256": "02cb050bc10f2ccb7152f8d28c2ae86bb96a569717d77ced281910abb8a8d987",
+        "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "ADD",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          },
+          {
+            "arity": 1,
+            "operation": "UPDATE",
+            "predicate_family": "ENTITY_ATTRIBUTE",
+            "value_kind": "BOOLEAN_VECTOR"
+          }
+        ],
+        "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+        "recurrent": false,
+        "source_confirmation_sha256": "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b",
+        "source_intervention_qualified": true,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "02cb050bc10f2ccb7152f8d28c2ae86bb96a569717d77ced281910abb8a8d987",
+      "fresh_confirmed": true,
+      "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+      "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "minigrid:put_near",
+      "contract": {
+        "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+        "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "ADD",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          },
+          {
+            "arity": 1,
+            "operation": "REMOVE",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          }
+        ],
+        "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "recurrent": false,
+        "source_confirmation_sha256": "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b",
+        "source_intervention_qualified": true,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+      "fresh_confirmed": true,
+      "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+      "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "minigrid:unlock_pickup",
+      "contract": {
+        "contract_sha256": "bbc2b80ab1156fd3d6ede1eaa23f87bbfc4588281c775a36b2bf8574a1b713b2",
+        "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "ADD",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          },
+          {
+            "arity": 1,
+            "operation": "UPDATE",
+            "predicate_family": "ENTITY_ATTRIBUTE",
+            "value_kind": "BOOLEAN_VECTOR"
+          },
+          {
+            "arity": 1,
+            "operation": "REMOVE",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          },
+          {
+            "arity": 1,
+            "operation": "ADD",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          }
+        ],
+        "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+        "recurrent": false,
+        "source_confirmation_sha256": "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b",
+        "source_intervention_qualified": true,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "bbc2b80ab1156fd3d6ede1eaa23f87bbfc4588281c775a36b2bf8574a1b713b2",
+      "fresh_confirmed": true,
+      "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+      "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "sokoban:relational-v2",
+      "contract": {
+        "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+        "ir_kind": "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "UPDATE",
+            "predicate_family": "CONTROL_STATE",
+            "value_kind": "POSITION"
+          }
+        ],
+        "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "recurrent": true,
+        "source_confirmation_sha256": "d9fdb75a038b2c3b3f445840c83ca0b2e1cd26ba14a7de598f873619be237de5",
+        "source_intervention_qualified": true,
+        "terminal_predicate_families": [
+          "ENTITY_GOAL_RELATION"
+        ]
+      },
+      "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+      "fresh_confirmed": true,
+      "ir_kind": "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+      "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "arcade:candy_crush",
+      "contract": {
+        "contract_sha256": "457ba198ed42abca031281496bd9f70b33e2984286b362070130e9846054a30f",
+        "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+        "operator_sequence": [
+          {
+            "arity": 2,
+            "operation": "SCORE",
+            "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+            "value_kind": "NORMALIZED_PROBABILITY"
+          }
+        ],
+        "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "recurrent": true,
+        "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+        "source_intervention_qualified": true,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "457ba198ed42abca031281496bd9f70b33e2984286b362070130e9846054a30f",
+      "fresh_confirmed": true,
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "lineage_status": "V4_SOURCE_DOMAIN_FUNCTION_CONFIRMED",
+      "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "arcade:gymv_columns",
+      "contract": {
+        "contract_sha256": "dbde979852bdac8042eb70fb6a659da0fb2c9339d5fd4f4605dced5fb5f2b383",
+        "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "SCORE",
+            "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+            "value_kind": "NORMALIZED_PROBABILITY"
+          }
+        ],
+        "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "recurrent": false,
+        "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+        "source_intervention_qualified": true,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "dbde979852bdac8042eb70fb6a659da0fb2c9339d5fd4f4605dced5fb5f2b383",
+      "fresh_confirmed": true,
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "lineage_status": "V4_SOURCE_DOMAIN_FUNCTION_CONFIRMED",
+      "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "arcade:gymv_streets_of_rage_2",
+      "contract": {
+        "contract_sha256": "829ab962875f3057d049e8fa13d01019bc123b3fdb6bbc30389504a08aa2388b",
+        "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "SCORE",
+            "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+            "value_kind": "NORMALIZED_PROBABILITY"
+          }
+        ],
+        "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+        "recurrent": true,
+        "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+        "source_intervention_qualified": false,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "829ab962875f3057d049e8fa13d01019bc123b3fdb6bbc30389504a08aa2388b",
+      "fresh_confirmed": false,
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "lineage_status": "V4_SOURCE_DOMAIN_FUNCTION_FAILED",
+      "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "arcade:gymv_strider",
+      "contract": {
+        "contract_sha256": "1818e59de23e8520c0e40f4644ed713bc8ca99ce602358259f0028bffd5a87f8",
+        "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "SCORE",
+            "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+            "value_kind": "NORMALIZED_PROBABILITY"
+          }
+        ],
+        "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+        "recurrent": true,
+        "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+        "source_intervention_qualified": false,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "1818e59de23e8520c0e40f4644ed713bc8ca99ce602358259f0028bffd5a87f8",
+      "fresh_confirmed": false,
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "lineage_status": "V4_SOURCE_DOMAIN_FUNCTION_FAILED",
+      "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "arcade:gymv_thunder_force_iii",
+      "contract": {
+        "contract_sha256": "5a8d406f06da09c09b50f2b01753d0e32cbb487d75997d7cf062c7253aefca4b",
+        "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "SCORE",
+            "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+            "value_kind": "NORMALIZED_PROBABILITY"
+          }
+        ],
+        "program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "recurrent": true,
+        "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+        "source_intervention_qualified": false,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "5a8d406f06da09c09b50f2b01753d0e32cbb487d75997d7cf062c7253aefca4b",
+      "fresh_confirmed": false,
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "lineage_status": "V4_SOURCE_DOMAIN_FUNCTION_FAILED",
+      "program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+      "source_identity_used_as_feature": false
+    },
+    {
+      "catalog_label": "arcade:tetris",
+      "contract": {
+        "contract_sha256": "27bf2907b4465c3de3e823b88f7ec8125f276078279a76e9cf26a52bcc4b713a",
+        "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+        "operator_sequence": [
+          {
+            "arity": 2,
+            "operation": "SCORE",
+            "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+            "value_kind": "NORMALIZED_PROBABILITY"
+          }
+        ],
+        "program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "recurrent": false,
+        "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+        "source_intervention_qualified": false,
+        "terminal_predicate_families": []
+      },
+      "contract_sha256": "27bf2907b4465c3de3e823b88f7ec8125f276078279a76e9cf26a52bcc4b713a",
+      "fresh_confirmed": false,
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "lineage_status": "V4_SOURCE_DOMAIN_FUNCTION_FAILED",
+      "program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+      "source_identity_used_as_feature": false
+    }
+  ],
+  "status": "PHASE6_SELECTIVE_SOURCE_SPECIFIC_APPLICABILITY_VALIDATED",
+  "target_outcomes_read": 0,
+  "target_requirements": [
+    {
+      "authentic_selection": {
+        "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH",
+        "receipt_sha256": "b91ad61224bf2879fc3748525aa83b15aa3969dcf0b31aabaf94a9a28772fddc",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "source_contracts": [
+          {
+            "contract_sha256": "1818e59de23e8520c0e40f4644ed713bc8ca99ce602358259f0028bffd5a87f8",
+            "matched": false,
+            "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "27bf2907b4465c3de3e823b88f7ec8125f276078279a76e9cf26a52bcc4b713a",
+            "matched": false,
+            "program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "829ab962875f3057d049e8fa13d01019bc123b3fdb6bbc30389504a08aa2388b",
+            "matched": false,
+            "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "02cb050bc10f2ccb7152f8d28c2ae86bb96a569717d77ced281910abb8a8d987",
+            "matched": false,
+            "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+            "reason": "OPERATOR_SIGNATURE_MISMATCH"
+          },
+          {
+            "contract_sha256": "bbc2b80ab1156fd3d6ede1eaa23f87bbfc4588281c775a36b2bf8574a1b713b2",
+            "matched": false,
+            "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+            "reason": "OPERATOR_SIGNATURE_MISMATCH"
+          },
+          {
+            "contract_sha256": "dbde979852bdac8042eb70fb6a659da0fb2c9339d5fd4f4605dced5fb5f2b383",
+            "matched": false,
+            "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+            "matched": false,
+            "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "5a8d406f06da09c09b50f2b01753d0e32cbb487d75997d7cf062c7253aefca4b",
+            "matched": false,
+            "program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+            "matched": true,
+            "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+            "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH"
+          },
+          {
+            "contract_sha256": "457ba198ed42abca031281496bd9f70b33e2984286b362070130e9846054a30f",
+            "matched": false,
+            "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "UNIQUE_SOURCE_CONTRACT_SELECTED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "53ec87544f90cbecf0448e2bc18b00e4344aa272292151afd8da701e8eaf16b5"
+      },
+      "current_target_outcome_read": false,
+      "existing_target_evidence_status": "DISCOVERYWORLD_STRUCTURAL_TRANSFER_VALIDATED",
+      "expected_source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+      "route_id": "minigrid-put-near-to-discoveryworld-easy-v1",
+      "source_permuted_selection": {
+        "reason": "NO_SOURCE_CONTRACT_MATCHES",
+        "receipt_sha256": "493f75a009dff063083372d373bb15ff1f2b46f545a0b99d6d913e073aba9341",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": null,
+        "source_contracts": [
+          {
+            "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+            "matched": false,
+            "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "SOURCE_CONTRACT_SELECTION_ABSTAINED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "53ec87544f90cbecf0448e2bc18b00e4344aa272292151afd8da701e8eaf16b5"
+      },
+      "target_requirement": {
+        "formal_outcome_read": false,
+        "grounder_qualified": true,
+        "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "ADD",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          },
+          {
+            "arity": 1,
+            "operation": "REMOVE",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          }
+        ],
+        "recurrent": false,
+        "requirement_sha256": "53ec87544f90cbecf0448e2bc18b00e4344aa272292151afd8da701e8eaf16b5",
+        "target_domain": "discoveryworld",
+        "target_grounder_sha256": "045477806f213c084ca391642c9ef9ae2cc9f7b11ad263d709e3da6dca823b2c",
+        "target_interface": "proteomics_easy_counted_partial_order",
+        "task_id": "discoveryworld.phase6.interface-canary",
+        "terminal_predicate_families": []
+      }
+    },
+    {
+      "authentic_selection": {
+        "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH",
+        "receipt_sha256": "3735e5ed4cd2018828a8931aea653ddf45187114fdb049dc47577eeed5f7533b",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "source_contracts": [
+          {
+            "contract_sha256": "1818e59de23e8520c0e40f4644ed713bc8ca99ce602358259f0028bffd5a87f8",
+            "matched": false,
+            "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "27bf2907b4465c3de3e823b88f7ec8125f276078279a76e9cf26a52bcc4b713a",
+            "matched": false,
+            "program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "829ab962875f3057d049e8fa13d01019bc123b3fdb6bbc30389504a08aa2388b",
+            "matched": false,
+            "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "02cb050bc10f2ccb7152f8d28c2ae86bb96a569717d77ced281910abb8a8d987",
+            "matched": false,
+            "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+            "reason": "OPERATOR_SIGNATURE_MISMATCH"
+          },
+          {
+            "contract_sha256": "bbc2b80ab1156fd3d6ede1eaa23f87bbfc4588281c775a36b2bf8574a1b713b2",
+            "matched": false,
+            "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+            "reason": "OPERATOR_SIGNATURE_MISMATCH"
+          },
+          {
+            "contract_sha256": "dbde979852bdac8042eb70fb6a659da0fb2c9339d5fd4f4605dced5fb5f2b383",
+            "matched": false,
+            "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+            "matched": false,
+            "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "5a8d406f06da09c09b50f2b01753d0e32cbb487d75997d7cf062c7253aefca4b",
+            "matched": false,
+            "program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+            "matched": true,
+            "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+            "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH"
+          },
+          {
+            "contract_sha256": "457ba198ed42abca031281496bd9f70b33e2984286b362070130e9846054a30f",
+            "matched": false,
+            "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "UNIQUE_SOURCE_CONTRACT_SELECTED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "b82289cf76538eb8a4388df9b3b1f3aaad61bd21b312fa849dfeffd9b69c740a"
+      },
+      "current_target_outcome_read": false,
+      "existing_target_evidence_status": "ALFWORLD_STRUCTURAL_TRANSFER_FAILED",
+      "expected_source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+      "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+      "source_permuted_selection": {
+        "reason": "NO_SOURCE_CONTRACT_MATCHES",
+        "receipt_sha256": "b7863e284cff12ef3526438c1df713b5a6af2721e6a1dfe81bcaa7a5ad7bd3c7",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": null,
+        "source_contracts": [
+          {
+            "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+            "matched": false,
+            "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "SOURCE_CONTRACT_SELECTION_ABSTAINED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "b82289cf76538eb8a4388df9b3b1f3aaad61bd21b312fa849dfeffd9b69c740a"
+      },
+      "target_requirement": {
+        "formal_outcome_read": false,
+        "grounder_qualified": true,
+        "ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "ADD",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          },
+          {
+            "arity": 1,
+            "operation": "REMOVE",
+            "predicate_family": "ENTITY_SLOT",
+            "value_kind": "ENTITY_REFERENCE"
+          }
+        ],
+        "recurrent": false,
+        "requirement_sha256": "b82289cf76538eb8a4388df9b3b1f3aaad61bd21b312fa849dfeffd9b69c740a",
+        "target_domain": "alfworld",
+        "target_grounder_sha256": "c76d4a0be29777cd74429be5d5ac91816265b4e870922a3ceed5592fe151c5ae",
+        "target_interface": "multiplicity_add_remove_sequence",
+        "task_id": "alfworld.phase6.interface-canary",
+        "terminal_predicate_families": []
+      }
+    },
+    {
+      "authentic_selection": {
+        "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH",
+        "receipt_sha256": "d9b8c3235331b50e5e4e88a759ac6df7531e069255234eb9c15085f66cd0626e",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "source_contracts": [
+          {
+            "contract_sha256": "1818e59de23e8520c0e40f4644ed713bc8ca99ce602358259f0028bffd5a87f8",
+            "matched": false,
+            "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "27bf2907b4465c3de3e823b88f7ec8125f276078279a76e9cf26a52bcc4b713a",
+            "matched": false,
+            "program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "829ab962875f3057d049e8fa13d01019bc123b3fdb6bbc30389504a08aa2388b",
+            "matched": false,
+            "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "02cb050bc10f2ccb7152f8d28c2ae86bb96a569717d77ced281910abb8a8d987",
+            "matched": false,
+            "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "bbc2b80ab1156fd3d6ede1eaa23f87bbfc4588281c775a36b2bf8574a1b713b2",
+            "matched": false,
+            "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "dbde979852bdac8042eb70fb6a659da0fb2c9339d5fd4f4605dced5fb5f2b383",
+            "matched": false,
+            "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+            "matched": true,
+            "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+            "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH"
+          },
+          {
+            "contract_sha256": "5a8d406f06da09c09b50f2b01753d0e32cbb487d75997d7cf062c7253aefca4b",
+            "matched": false,
+            "program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+            "matched": false,
+            "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "457ba198ed42abca031281496bd9f70b33e2984286b362070130e9846054a30f",
+            "matched": false,
+            "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "UNIQUE_SOURCE_CONTRACT_SELECTED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "7e14a5170d26b2ec38f16699d3a7cb0d00d804ec9ce7312151e3307f48b6802f"
+      },
+      "current_target_outcome_read": false,
+      "existing_target_evidence_status": "FRESH_FORMAL_STRUCTURAL_TRANSFER_VALIDATED",
+      "expected_source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+      "route_id": "sokoban-relational-to-tir-maze-v3",
+      "source_permuted_selection": {
+        "reason": "NO_SOURCE_CONTRACT_MATCHES",
+        "receipt_sha256": "cbbaf409737c372a530f68007e5b2424020064b97b4fc5dbc4005cdccf1317a1",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": null,
+        "source_contracts": [
+          {
+            "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+            "matched": false,
+            "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "SOURCE_CONTRACT_SELECTION_ABSTAINED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "7e14a5170d26b2ec38f16699d3a7cb0d00d804ec9ce7312151e3307f48b6802f"
+      },
+      "target_requirement": {
+        "formal_outcome_read": false,
+        "grounder_qualified": true,
+        "ir_kind": "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "UPDATE",
+            "predicate_family": "CONTROL_STATE",
+            "value_kind": "POSITION"
+          }
+        ],
+        "recurrent": true,
+        "requirement_sha256": "7e14a5170d26b2ec38f16699d3a7cb0d00d804ec9ce7312151e3307f48b6802f",
+        "target_domain": "tir",
+        "target_grounder_sha256": "145fc9bae80413922b2894906b540ffcd5438fe5a74017f43df6586e8ca43a96",
+        "target_interface": "single_image_maze_relational_path",
+        "task_id": "tir.phase6.interface-canary",
+        "terminal_predicate_families": [
+          "ENTITY_GOAL_RELATION"
+        ]
+      }
+    },
+    {
+      "authentic_selection": {
+        "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH",
+        "receipt_sha256": "c579c780d7aeb5d46f495864662a94830c2e4c57e714294c0fa372ea5391184a",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "source_contracts": [
+          {
+            "contract_sha256": "1818e59de23e8520c0e40f4644ed713bc8ca99ce602358259f0028bffd5a87f8",
+            "matched": false,
+            "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "27bf2907b4465c3de3e823b88f7ec8125f276078279a76e9cf26a52bcc4b713a",
+            "matched": false,
+            "program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "829ab962875f3057d049e8fa13d01019bc123b3fdb6bbc30389504a08aa2388b",
+            "matched": false,
+            "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "02cb050bc10f2ccb7152f8d28c2ae86bb96a569717d77ced281910abb8a8d987",
+            "matched": false,
+            "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "bbc2b80ab1156fd3d6ede1eaa23f87bbfc4588281c775a36b2bf8574a1b713b2",
+            "matched": false,
+            "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "dbde979852bdac8042eb70fb6a659da0fb2c9339d5fd4f4605dced5fb5f2b383",
+            "matched": false,
+            "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "b3accaec7864e02f679cbde009393605efc3f50cb0d8b2f7257940899476e409",
+            "matched": true,
+            "program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+            "reason": "EXACT_ANONYMOUS_STRUCTURAL_CONTRACT_MATCH"
+          },
+          {
+            "contract_sha256": "5a8d406f06da09c09b50f2b01753d0e32cbb487d75997d7cf062c7253aefca4b",
+            "matched": false,
+            "program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+            "reason": "SOURCE_PROGRAM_NOT_FRESH_CONFIRMED"
+          },
+          {
+            "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+            "matched": false,
+            "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+            "reason": "IR_KIND_MISMATCH"
+          },
+          {
+            "contract_sha256": "457ba198ed42abca031281496bd9f70b33e2984286b362070130e9846054a30f",
+            "matched": false,
+            "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "UNIQUE_SOURCE_CONTRACT_SELECTED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "31b054cfe23355c71905b8f7b88e6af762fa84e998bf03942b6504ea173460a0"
+      },
+      "current_target_outcome_read": false,
+      "existing_target_evidence_status": "V21_FRESH_FORMAL_STRUCTURAL_TRANSFER_VALIDATED",
+      "expected_source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+      "route_id": "sokoban-relational-to-webshop-v21",
+      "source_permuted_selection": {
+        "reason": "NO_SOURCE_CONTRACT_MATCHES",
+        "receipt_sha256": "be304be26da2ed678e906afd697137db832e5ba1003068cd7cbe15a5e5fb0763",
+        "schema_version": "source-target-structural-applicability-v1",
+        "selected_program_sha256": null,
+        "source_contracts": [
+          {
+            "contract_sha256": "b6dd7ba8af9f60fa9bcc313dcc6c62cec1cfa0d1b0cbbbbb3fc3b54a572ea73d",
+            "matched": false,
+            "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+            "reason": "IR_KIND_MISMATCH"
+          }
+        ],
+        "source_identity_used_as_feature": false,
+        "status": "SOURCE_CONTRACT_SELECTION_ABSTAINED",
+        "target_action_emitted": false,
+        "target_outcome_read": false,
+        "target_requirement_sha256": "31b054cfe23355c71905b8f7b88e6af762fa84e998bf03942b6504ea173460a0"
+      },
+      "target_requirement": {
+        "formal_outcome_read": false,
+        "grounder_qualified": true,
+        "ir_kind": "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+        "operator_sequence": [
+          {
+            "arity": 1,
+            "operation": "UPDATE",
+            "predicate_family": "CONTROL_STATE",
+            "value_kind": "POSITION"
+          }
+        ],
+        "recurrent": true,
+        "requirement_sha256": "31b054cfe23355c71905b8f7b88e6af762fa84e998bf03942b6504ea173460a0",
+        "target_domain": "webshop",
+        "target_grounder_sha256": "e4195f083d87e53d5a9b8de560eee125cd057988f8fec55949109d12894d6504",
+        "target_interface": "product_option_relation_search",
+        "task_id": "webshop.phase6.interface-canary",
+        "terminal_predicate_families": [
+          "ENTITY_GOAL_RELATION"
+        ]
+      }
+    }
+  ]
+}

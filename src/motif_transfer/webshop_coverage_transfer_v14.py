@@ -185,6 +185,10 @@ class CoverageTransferController:
             raise ValueError(
                 f"controller condition mismatch: {condition} != {self.condition}"
             )
+        neural_relation_candidate_indices = {
+            index for index, row in enumerate(semantics)
+            if bool(row.get("is_goal_constraint"))
+        }
         ground_structured_goal_constraints(semantics, self.goal_options)
         self.ledger.begin_decision(
             semantics, prior_action_had_no_effect=prior_no_effect,
@@ -207,6 +211,29 @@ class CoverageTransferController:
             }
             on_product_page = any(row.get("is_commit") for row in semantics)
             if on_product_page and not set(self.ledger.missing).issubset(visible_missing):
+                neural_relation_witness = any(
+                    index in neural_relation_candidate_indices
+                    and constraint_signature(row) is None
+                    and not bool(row.get("is_selected"))
+                    for index, row in enumerate(semantics)
+                )
+                if neural_relation_witness:
+                    # The source-induced program explicitly abstains when the
+                    # target relation cannot be bound exactly.  A neural
+                    # witness may still realize the relation over subsequent
+                    # native UI steps (for example radio then paired label),
+                    # but the symbolic executor must not reinterpret or reject
+                    # it.  Return target rank zero with no source authority.
+                    return EffectTransferDecision(
+                        selected_index=0,
+                        abstract_kind="TARGET",
+                        source_abstained=True,
+                        source_test_value=None,
+                        source_commit_value=None,
+                        reason=(
+                            "target_coverage_neural_relation_binding_abstention"
+                        ),
+                    )
                 back = next(
                     (
                         index for index, action in enumerate(candidates)
