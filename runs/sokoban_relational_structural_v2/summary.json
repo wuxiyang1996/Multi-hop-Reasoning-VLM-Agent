@@ -1,0 +1,53 @@
+{
+  "schema_version": "sokoban-relational-structural-summary-v2",
+  "status": "SOURCE_RELATIONAL_STRUCTURAL_FRESH_VALIDATED",
+  "manifest_sha256": "510102a592330a9e2a37eb6010907b59c80783db8969537d22b4484f15591bd2",
+  "artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+  "fresh_report_sha256": "d9fdb75a038b2c3b3f445840c83ca0b2e1cd26ba14a7de598f873619be237de5",
+  "program": {
+    "entry_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+    "transitions": [
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "guard": "NEXT_GROUNDED_EFFECT_HAS_SAME_OPERATOR_TYPE",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "cardinality": "ONE_OR_MORE"
+      }
+    ],
+    "terminal_predicates": [
+      {
+        "predicate_family": "ENTITY_GOAL_RELATION",
+        "arity": 2,
+        "value_kind": "RELATION_COVERAGE",
+        "feature": "entity_goal_relation_coverage",
+        "operator": "EQ",
+        "value": 1.0
+      }
+    ],
+    "terminal_rule": "INDUCED_PREDICATE_CONJUNCTION_AFTER_TYPED_TRANSITIONS",
+    "abstention_rule": {
+      "learned_candidate_cardinality": {
+        "operator": "EQ",
+        "value": 1
+      },
+      "otherwise": "ABSTAIN"
+    }
+  },
+  "metrics": {
+    "heldout_episodes": 72,
+    "unique_source_success_selections": 72,
+    "authentic_effect_bindings": 496,
+    "shuffled_effect_bindings": 0
+  },
+  "gates": {
+    "heldout_episode_coverage": true,
+    "heldout_unique_program_selection": true,
+    "authentic_effect_binding_exact": true,
+    "shuffled_effect_binding_rejected": true,
+    "authentic_beats_shuffled_effect": true,
+    "shared_structural_ir": true,
+    "source_only_lineage": true,
+    "no_named_controller_template": true
+  },
+  "summary_sha256": "1d3623bcd9a024a0ff643af42595c1ee7c83992487ba26227c85c63a4d8ec967"
+}

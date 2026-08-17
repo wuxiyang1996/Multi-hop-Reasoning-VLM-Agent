@@ -1,0 +1,532 @@
+{
+  "schema_version": "source-relational-structural-confirmation-v2",
+  "confirmation_version": "SOURCE_RELATIONAL_STRUCTURAL_CONFIRMATION_V2",
+  "status": "SOURCE_RELATIONAL_STRUCTURAL_FRESH_VALIDATED",
+  "claim_boundary": "FRESH_SOURCE_ONLY;NO_TARGET_EVIDENCE",
+  "artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+  "source_dataset_sha256": "70e4c1ed6b6d2e1ac9389fa9e72aea02d097b1b19b6920455e7a4e7befc9ff75",
+  "metrics": {
+    "heldout_episodes": 72,
+    "unique_source_success_selections": 72,
+    "authentic_effect_bindings": 496,
+    "shuffled_effect_bindings": 0
+  },
+  "gates": {
+    "heldout_episode_coverage": true,
+    "heldout_unique_program_selection": true,
+    "authentic_effect_binding_exact": true,
+    "shuffled_effect_binding_rejected": true,
+    "authentic_beats_shuffled_effect": true,
+    "shared_structural_ir": true,
+    "source_only_lineage": true,
+    "no_named_controller_template": true
+  },
+  "source_gate_passed": true,
+  "episode_receipts": [
+    {
+      "snapshot_id": "c111834157fdbc6e348f658e96a7409a2df8f6d1ca376d98f3845bd4ec7ec38e",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "0c0d550816aad5b2627f0691afe651cc790096213838b9eedfe10877b0f15a28",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "517c4ffc6ae7a6940267c154da0a1c519f14a0126429f48f799b32e14e3f4440",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "209860a60565fa58f965d89398e4575082eb530f70b870a2809d699d0fedf2df",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "cbcb7b32c7dc857e7c1a3e9da3e552cccae5e0e64e45a06c12221df119d81051",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9d2313f25d7fea33b3c1165f5a97d751fa31f1df62beb3511722d407f9b90d92",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "67a182bf87090bf8fd39e802bfc529c4613a331dc35c64e291c7ea5e5627b0b8",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "6d8c11fdc0e298093575e36c786b2572c88c2d6908a712c7b8ff2f88a06156e3",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "d72052c3a3265dfdfc128c17f92d4cb17ef808db1f548de9019ca48c24ec175c",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9c3b2e4f90464e20f2f4cc008d2f134f1f40e4a90ce660e941a3e169b0d41245",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "2b70702939e184bca8122d131958b527893458cbc6d6605fe2a631eefcdc039d",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "3295c24ce28c6857b5eb36637c97e04159299102ece8800e6fca7f039e3b6437",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "1deeac5e9d4a4fd50c79c452142ec11f3dff624e7ddd88034e2d86a6db721888",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "2a01679159c9ea132e763b324652119538c298dedfd090fb2711fe4369a3e8a1",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "a30978b2235b811133c0ef4af69179f2b68ee914f8fc88c9bc54794d448241f6",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "2d8757ca024a1e34950cfce618050e08aca67284fc40420fa58fa9750c23fe46",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "eae6f8e79eaf39216421ac659ae08c024aa04c05acfd9e15db89f833da605b91",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "2bc1be82e8e1cab6099be7600c0dfe5b031e9602c1968938a59559c1ec0b2c44",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "6c00cff04be68f3c883af10035e551ed442039113c925704f37f606c9336a6f3",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "6aef13ba627fb686fdcb91ae88e164f84d61cf940bf0a147adb6087e6986e024",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "c9f36aa13a930d6e1cd4aedfbddb627083185bc3b8c142c56e20147c6b0ea298",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "b1debf883dde8c3b77a64e2bd9c8d6288ccf59c12049dc7a4ee8c11246e9e24a",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "0dc77aa67c37ac06e8c2c5697265d3f7c64015c9c16204b4ff2f55892671c025",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9194866d7e0bf3af5b13d967ede7f03d1ad77626148066a9e856cbb1f8f32f5d",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9c6ac39bece3b85fabf747173ecfbd9c8381b9fa79818eca09bb9d32bc261b61",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "394ba92af2bc7610150d2ba30a731f3c5422a7588aa7411597cc62364b5cef6f",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "8b80d4aa317c2262285e6dce974aae654c7fcef9eb5ffc042d8467174a37ee19",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "d2a35ee0063484a0f1af413b427639ff50d5b2c85a1cbce4d7cd4819ada4c1fe",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "5acb0fe7dc4580d250085da160c9b977247e280c010086ec448e4b1028c7cfef",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "bc4040e8b5a8fd3d8f343026c4e881787497a7d759bebaf2160d5c0104435e3e",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "bb026e0f9b70f12503bae1551441ff3a87c89713a82b91830dd91cbf5231a8b8",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "ab91e649310e1b7da0acaf85767d7e7d9f0f577b46740c74488809814bfad7fe",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "fd2ab004bcc4f7baaee375892a1c23aef36158eaa06a20927ef7db5d5790190a",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "0d2b112f59adb5280523e83b3a027ac3f4909b5d82c0f7c75130b61f30f4bdb2",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "4546ad603757663078d59101385ed2a5613b341f05398268d4a5d32e5f56b4dd",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "bed8a803d7fc242f2a7f7981e2d2157607d4eec276e19369f9f5486f19ee48be",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "6e29eb73dd0a2bf40062b6741f060295e63e2a7028f13ad77cc4f2f3c3c9e740",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "0f46079af3ffd1754f495c9cd5d89044df886dbba1644735186c45901bd68263",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "30a475ebb860707ba83f9ed5b53ab71e810aac42de3220f8d191d8f3a8bcf29b",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "bc7700e3c75b903f5e0627a1153d0c3e533c065b8dbbab2ac9043580612b73b7",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "eaf2b4f3d8c40310906b3ae6ed480a7790f9eafc0dffc8e789a35f48ab88c299",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "fe086517f81911e37a302af422d38cbdf9c61dd678c3e397726b1aea62cdc384",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "81ab80f03f83fb131aa7bf1a0371c5602811770e9c268387baec1b62ce8354f4",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9792b50f4b41d6a7886ef55107c1fba93aea9207159dd4cd484c3c5e901a7ac1",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "eec29adc3733b04f03463e6723014335cd93a64fd0c291929e05deaac451466e",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "6603ae03d9743523ad53a1a11fdb2f851a3e5d4c897d51b0b20e362740787726",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "5e5b146baedf87371403c0d65b531ad64f3909b20a92ca8bf7e535f2e58a0e46",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9e2de7b6bf7ca267e85a822b3cbc318e9f1f6e6e4e0b7fcbcf2173e4200c1c06",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9e5ed5fab9307218e8ba059de61cd56f6102355fda9d7a2a69faf552bffb5c39",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "07573360b1b1b96ade5d44323a255cd4a55f75e676c499700414dd6b6c918f6a",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "8140508afa252411f133e2c3ef1f6b1d3ebade38a62b0f69f2c6f0dc102fc86b",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "fc762be244a335d8e800495a2fe9bcbac741ea329f427584e7520c5c7ef4e21a",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "d04e62129117c50da0bc520462b8822b3a6630c7d0045692c2b365ed560eafb7",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "af449c9ea3507f70a19e6d05601aeb884690841d5d918f605a89b9168ea52f8a",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "9e07ce6fbba17c7bf84fc9d24f7cd081f8942850b5e6730b5674c0a4f0ea470c",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "71d51575e13515fe3856ca1443bf6cf4625e97bcd8e70be936fe7b92a188bc2e",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "def0785b0d1b27e1fc66774749ad32b8366c96deb8bee8b52dae9136e57ae90f",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "6dea7c4c86dc8bfb655eb18f3ea11ff6eb304a32ea307182ee8f1de5a7c74438",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "98f416e393fd139e5d31e626f72330eb8244db1070c426fdeed09215988574a6",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "d35281442af48c3190ea4a2a14bccfee341d0d57403b7711387d59ae03db58b9",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "f72dbdfec13e186bcb8c06a7cb29bf40ff2bae56e1bca07880aef82bf2c6e10a",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "725dc7040f96a821a83128db7b024db361e564279d50d5eb2b93b095ed5fc214",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "0503bbbe9e25ac26ec8e96a8d115f51bccf975490bca6ce50687274bbe402b16",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "03d4f82df7753acadbd665b281a06c4edae88fc5be9d90af3e870ad885e41a30",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "a20f11101bfaeb0f9cb88250fca6a9c20bfba2db9f7ac15cc6f8c29b649f7d6d",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "014eeb84c977e36029e20223e85c182f9bab4702f8e88418170c6f18e35aa33d",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "a4ad6287e6ca21848ce455919ce9f72f45da4134ef4e58ebbec86a54f0db0324",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "ef14da970bb5956398b0f05733cd7542cb98c399a60b5ada0a8dff594a96622f",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "902acdce47992ed798493be4bd8e2037a2b8550e121a90affe5a9d318e3a8730",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "631b9fc2f54f44bf720684049c6f8feb509b15753dcd3e7da9cb8a62e36cb103",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "a4d7416b9baaa499517c83b8d97ae49ebe773b992c554d384f0d0a1c8b88c36b",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    },
+    {
+      "snapshot_id": "5138cb4b64c85fc9b407396b0aff8f212121bad03d711a0259a747088e737054",
+      "accepted_candidate_ids": [
+        "SOURCE_SUCCESS"
+      ],
+      "unique_source_success_selected": true
+    }
+  ],
+  "report_sha256": "d9fdb75a038b2c3b3f445840c83ca0b2e1cd26ba14a7de598f873619be237de5"
+}

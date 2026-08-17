@@ -1,0 +1,111 @@
+{
+  "claim_boundary": "Fresh tasks are absent from prior non-enumeration execution JSON. The target domain itself is not pristine: its previous failed formal run motivated this structural redesign.",
+  "conditions": [
+    "neural_only",
+    "source_induced",
+    "source_permuted",
+    "generic_scaffold",
+    "target_native_ceiling"
+  ],
+  "config_sha256": "2c3af898e6ed3fa646a1141d3535414c655414f7fc6e7416a239a993108a281b",
+  "formal_results_may_change_protocol": false,
+  "grounder": {
+    "file_sha256": "9f77fb51e77b2dfb4172ad203f7e3ff9f7b325e7f9e488ba11c15cc5a6f1464d",
+    "formal_target_outcome_read": false,
+    "grounder_sha256": "539e348e3460b08b6272643ae28606a33e3c785034a87f23ca8784c9bf4f647e",
+    "path": "artifacts/alfworld_structural_grounder_v1/artifact.json.gz",
+    "qualification_thresholds_frozen": true,
+    "threshold": 0.5
+  },
+  "integrity": {
+    "file_sha256": {
+      "artifacts/alfworld_structural_grounder_v1/artifact.json.gz": "9f77fb51e77b2dfb4172ad203f7e3ff9f7b325e7f9e488ba11c15cc5a6f1464d",
+      "configs/source_structural_v5c_frozen/programs/put_near.json": "dfd3c98d6ca41c7940e86819b60aa0e711bfdddffcb7fee6efa181acffed8bf9",
+      "configs/source_structural_v5c_frozen/programs/unlock_pickup.json": "355aa4822b4d25a5df2912e247f33d0b16e44d2fec42522c1772ba94a22c46f4",
+      "scripts/run_alfworld_structural_transfer_v1.py": "c0ee057f3c27d56f0fc56b47da617bc254bf8c21183dc581358ef52e1126f954",
+      "src/motif_transfer/alfworld_env.py": "628132a058715544246960f782322f1b7d455f647115c9c85e042c4d6f1cf40e",
+      "src/motif_transfer/alfworld_structural_induction.py": "f4b265e556d3f63a7ba291844145beb41af492f8f54dcd826f5a60c2a6c12602",
+      "src/motif_transfer/alfworld_structural_runtime_v1.py": "d5e9adb8eb842f168a866647a9f1638219915bcb8a75e8a13d548553f6e20927",
+      "src/motif_transfer/structural_delta_induction.py": "bfa3e2da017f664612b0c7a5e3869ce1081514a18eaa569ec3434aeafce16a52"
+    }
+  },
+  "preregistered_gates": {
+    "changed_from_neural_action_rate_min": 0.05,
+    "minimum_tasks": 12,
+    "negative_transfer_rate_vs_neural_max": 0.1,
+    "source_operator_admissions_min": 24,
+    "strictly_beats": [
+      "neural_only",
+      "source_permuted",
+      "generic_scaffold"
+    ],
+    "target_native_ceiling_success_rate_min": 0.8,
+    "two_sided_exact_sign_p_vs_neural_max": 0.05
+  },
+  "role": "SECOND_TARGET_STRUCTURAL_REPLICATION",
+  "schema_version": "alfworld-structural-transfer-frozen-manifest-v1b",
+  "source_induced": {
+    "file_sha256": "dfd3c98d6ca41c7940e86819b60aa0e711bfdddffcb7fee6efa181acffed8bf9",
+    "path": "configs/source_structural_v5c_frozen/programs/put_near.json",
+    "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+    "selection_rule": "UNIQUE_EXACT_REPEATED_STRUCTURAL_SUBPROGRAM_MATCH",
+    "source_identity_used_as_runtime_feature": false,
+    "source_name_evaluator_label_only": "put_near"
+  },
+  "source_permuted": {
+    "control": "DETERMINISTIC_SOURCE_PROGRAM_IDENTITY_PERMUTATION",
+    "file_sha256": "355aa4822b4d25a5df2912e247f33d0b16e44d2fec42522c1772ba94a22c46f4",
+    "path": "configs/source_structural_v5c_frozen/programs/unlock_pickup.json",
+    "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+    "source_name_evaluator_label_only": "unlock_pickup"
+  },
+  "status": "FROZEN_BEFORE_FRESH_EXECUTION",
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "execution_untouched_candidate_pool_size": 104,
+    "max_steps": 180,
+    "prior_execution_evidence_file_count_scanned": 6591,
+    "seed": 2026081617,
+    "selected_task_prior_execution_occurrences": {
+      "pick_two_obj_and_place-Book-None-Sofa-209/trial_T20190909_022420_451582/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Candle-None-Toilet-417/trial_T20190907_182659_461774/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Laptop-None-Ottoman-203/trial_T20190907_034519_385647/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Newspaper-None-GarbageCan-218/trial_T20190907_225306_342000/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Newspaper-None-Sofa-222/trial_T20190908_144528_617567/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Pencil-None-CoffeeTable-229/trial_T20190910_231706_006365/game.tw-pddl": 0,
+      "pick_two_obj_and_place-SoapBar-None-Cart-430/trial_T20190909_145901_138802/game.tw-pddl": 0,
+      "pick_two_obj_and_place-SoapBar-None-Shelf-415/trial_T20190908_070656_373737/game.tw-pddl": 0,
+      "pick_two_obj_and_place-SoapBottle-None-Cart-430/trial_T20190908_130358_157745/game.tw-pddl": 0,
+      "pick_two_obj_and_place-SoapBottle-None-GarbageCan-428/trial_T20190909_232825_221391/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Spoon-None-SideTable-3/trial_T20190908_123354_660107/game.tw-pddl": 0,
+      "pick_two_obj_and_place-WineBottle-None-GarbageCan-1/trial_T20190906_200307_446636/game.tw-pddl": 0
+    },
+    "split": "train",
+    "task_ids": [
+      "pick_two_obj_and_place-Book-None-Sofa-209/trial_T20190909_022420_451582/game.tw-pddl",
+      "pick_two_obj_and_place-Newspaper-None-Sofa-222/trial_T20190908_144528_617567/game.tw-pddl",
+      "pick_two_obj_and_place-Pencil-None-CoffeeTable-229/trial_T20190910_231706_006365/game.tw-pddl",
+      "pick_two_obj_and_place-SoapBottle-None-GarbageCan-428/trial_T20190909_232825_221391/game.tw-pddl",
+      "pick_two_obj_and_place-Laptop-None-Ottoman-203/trial_T20190907_034519_385647/game.tw-pddl",
+      "pick_two_obj_and_place-SoapBottle-None-Cart-430/trial_T20190908_130358_157745/game.tw-pddl",
+      "pick_two_obj_and_place-Newspaper-None-GarbageCan-218/trial_T20190907_225306_342000/game.tw-pddl",
+      "pick_two_obj_and_place-SoapBar-None-Shelf-415/trial_T20190908_070656_373737/game.tw-pddl",
+      "pick_two_obj_and_place-Spoon-None-SideTable-3/trial_T20190908_123354_660107/game.tw-pddl",
+      "pick_two_obj_and_place-WineBottle-None-GarbageCan-1/trial_T20190906_200307_446636/game.tw-pddl",
+      "pick_two_obj_and_place-SoapBar-None-Cart-430/trial_T20190909_145901_138802/game.tw-pddl",
+      "pick_two_obj_and_place-Candle-None-Toilet-417/trial_T20190907_182659_461774/game.tw-pddl"
+    ],
+    "task_selection": "STABLE_HASH_RANK_FROM_EXECUTION_UNTOUCHED_MULTIPLICITY_POOL"
+  },
+  "target_program": {
+    "induced_sequence": [
+      "ATYPE_3c9d9c20ed4abeb6",
+      "ATYPE_e2afbbc8aa7f4ef0",
+      "ATYPE_3c9d9c20ed4abeb6",
+      "ATYPE_e2afbbc8aa7f4ef0"
+    ],
+    "program_sha256": "1614ec4b73a209d1af5f0b3e6474db18bf2925d18eb5ef97452e6910a7b21e1a",
+    "source_program_copied_as_target_body": false
+  }
+}

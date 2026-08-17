@@ -1,5 +1,7 @@
 # Phase 3 source-induced neural-symbolic transfer
 
+> **Superseded status (2026-08-16):** this page records the earlier typed-horizon route. The newer state-delta / relational shared-IR route has now obtained a second prospective positive target on TIR maze, while the newer ALFWorld extension remains non-source-specific. See [`PHASE3_STRUCTURAL_IR_TRANSFER_V2_RESULTS.md`](PHASE3_STRUCTURAL_IR_TRANSFER_V2_RESULTS.md).
+
 ## Bottom line
 
 The strongest claim now supported is:

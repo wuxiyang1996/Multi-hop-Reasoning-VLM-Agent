@@ -1,0 +1,51 @@
+{
+  "applicable_tasks": 12,
+  "claim_boundary": "PROSPECTIVE_FRESH_DISCOVERYWORLD_SEEDS;SHARED_IR_WITH_TARGET_INDUCED_DOMAIN_FUNCTION_AND_TARGET_NATIVE_NEURAL_GROUNDING",
+  "condition_successes": {
+    "generic_scaffold": 0,
+    "neural_only": 3,
+    "source_induced": 12,
+    "source_permuted": 3,
+    "target_native_ceiling": 12
+  },
+  "gates": {
+    "all_forks_matched": true,
+    "all_tasks_complete": true,
+    "ceiling_not_below_source": true,
+    "minimum_applicable_tasks": true,
+    "source_permutation_behaviorally_distinct": true,
+    "source_strictly_beats_generic": true,
+    "source_strictly_beats_permuted": true,
+    "source_strictly_improves_neural": true,
+    "source_vs_neural_negative_transfer": true,
+    "source_vs_neural_significance": true,
+    "zero_oracle_use": true
+  },
+  "manifest_sha256": "793b6738e40c3be6ef3f15ceb5adab3baf269b63d07c06eac8701fbbcbc44595",
+  "report_sha256": "1ecbce2320fedd0c921f75fa07c332ff72aa7d25069d43950a2da0f8588caeca",
+  "schema_version": "discoveryworld-structural-transfer-report-v1",
+  "source_permutation_behavior_contrasts": 11,
+  "source_vs_generic": {
+    "exact_two_sided_sign_p": 0.00048828125,
+    "losses": 0,
+    "negative_transfer_rate": 0.0,
+    "ties": 0,
+    "wins": 12
+  },
+  "source_vs_neural": {
+    "exact_two_sided_sign_p": 0.00390625,
+    "losses": 0,
+    "negative_transfer_rate": 0.0,
+    "ties": 3,
+    "wins": 9
+  },
+  "source_vs_permuted": {
+    "exact_two_sided_sign_p": 0.00390625,
+    "losses": 0,
+    "negative_transfer_rate": 0.0,
+    "ties": 3,
+    "wins": 9
+  },
+  "status": "DISCOVERYWORLD_STRUCTURAL_TRANSFER_VALIDATED",
+  "tasks": 12
+}

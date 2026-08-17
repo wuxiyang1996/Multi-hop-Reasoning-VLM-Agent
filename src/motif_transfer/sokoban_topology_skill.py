@@ -203,6 +203,19 @@ def build_topology_artifact(plan: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def validate_topology_artifact(artifact: Mapping[str, Any]) -> None:
+    # V2 is induced from source intervention tuples and shares the anonymous
+    # structural operator schema with the other Phase-3 targets.  Keep the V1
+    # validator for historical receipts, but dispatch explicitly rather than
+    # silently treating the two artifact contracts as interchangeable.
+    if artifact.get("artifact_version") == (
+        "SOURCE_INDUCED_RELATIONAL_STRUCTURAL_PROGRAM_V2"
+    ):
+        from .relational_structural_induction import (
+            validate_relational_structural_program,
+        )
+
+        validate_relational_structural_program(artifact)
+        return
     body = dict(artifact)
     claimed = str(body.pop("artifact_sha256", ""))
     if not claimed or stable_hash(body) != claimed:

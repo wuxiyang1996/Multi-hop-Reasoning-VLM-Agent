@@ -5,7 +5,10 @@ from pathlib import Path
 
 from PIL import Image
 
-from motif_transfer.tir_maze_topology import execute_maze_topology
+from motif_transfer.tir_maze_topology import (
+    execute_maze_structural_program,
+    execute_maze_topology,
+)
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -61,3 +64,50 @@ def test_direction_permutation_is_destructive() -> None:
             condition="direction_permuted_source_control",
         )
     assert receipt["selected_answer"] != row["answer"]
+
+
+def test_induced_shared_ir_matches_target_ceiling_and_is_alpha_invariant() -> None:
+    artifact_path = REPO / "runs/sokoban_relational_structural_v2/artifact.json"
+    if not artifact_path.is_file():
+        return
+    artifact = json.loads(artifact_path.read_text())
+    rows = {
+        str(row["id"]): row
+        for row in json.loads((DATASET / "TIR-Bench.json").read_text())
+    }
+    row = rows["550"]
+    with Image.open(DATASET / row["image_1"]) as image:
+        authentic = execute_maze_structural_program(
+            image,
+            row["prompt"],
+            neural_binding=_binding(),
+            source_artifact=artifact,
+            condition="source_induced",
+        )
+        renamed = execute_maze_structural_program(
+            image,
+            row["prompt"],
+            neural_binding=_binding(),
+            source_artifact=artifact,
+            condition="alpha_renamed_source",
+        )
+        ceiling = execute_maze_structural_program(
+            image,
+            row["prompt"],
+            neural_binding=_binding(),
+            source_artifact=artifact,
+            condition="target_native_ceiling",
+        )
+        permuted = execute_maze_structural_program(
+            image,
+            row["prompt"],
+            neural_binding=_binding(),
+            source_artifact=artifact,
+            condition="source_relation_permuted",
+        )
+    assert authentic["selected_answer"] == row["answer"]
+    assert renamed["selected_answer"] == authentic["selected_answer"]
+    assert ceiling["selected_answer"] == authentic["selected_answer"]
+    assert permuted["selected_answer"] != authentic["selected_answer"]
+    assert authentic["source_artifact_sha256"] == artifact["artifact_sha256"]
+    assert ceiling["source_artifact_sha256"] is None

@@ -25,6 +25,14 @@ CONDITIONS = (
     "endpoint_only_target_control",
     "path_length_marginal_control",
 )
+STRUCTURAL_CONDITIONS = (
+    "neural_only",
+    "source_induced",
+    "alpha_renamed_source",
+    "source_relation_permuted",
+    "generic_scaffold",
+    "target_native_ceiling",
+)
 
 
 def parse_maze_options(prompt: str) -> dict[str, str]:
@@ -212,6 +220,303 @@ def execute_maze_topology(
     return body | {"receipt_sha256": stable_hash(body)}
 
 
+def _validate_induced_target_contract(source_artifact: Mapping[str, Any]) -> None:
+    """Fail closed unless the source artifact is the induced shared-IR form."""
+
+    validate_topology_artifact(source_artifact)
+    if source_artifact.get("artifact_version") != (
+        "SOURCE_INDUCED_RELATIONAL_STRUCTURAL_PROGRAM_V2"
+    ):
+        raise ValueError("TIR structural runtime requires the induced V2 artifact")
+    program = source_artifact.get("program") or {}
+    operators = list(source_artifact.get("operator_types") or ())
+    if len(operators) != 1 or operators[0].get("predicate_family") != "CONTROL_STATE":
+        raise ValueError("TIR target cannot ground the induced source operator")
+    if operators[0].get("operation") != "UPDATE" or operators[0].get(
+        "value_kind"
+    ) != "POSITION":
+        raise ValueError("TIR target requires a repeated position-update operator")
+    transitions = list(program.get("transitions") or ())
+    if len(transitions) != 1 or transitions[0].get("cardinality") != "ONE_OR_MORE":
+        raise ValueError("TIR target requires the induced repeating transition")
+    predicates = list(program.get("terminal_predicates") or ())
+    if len(predicates) != 1 or predicates[0].get("predicate_family") != (
+        "ENTITY_GOAL_RELATION"
+    ):
+        raise ValueError("TIR target cannot ground the induced terminal relation")
+    abstention = program.get("abstention_rule") or {}
+    if (abstention.get("learned_candidate_cardinality") or {}).get("value") != 1:
+        raise ValueError("TIR target requires the induced unique-candidate abstention")
+
+
+def execute_maze_structural_program(
+    image: Image.Image,
+    prompt: str,
+    *,
+    neural_binding: Mapping[str, Any],
+    source_artifact: Mapping[str, Any],
+    condition: str = "source_induced",
+) -> dict[str, Any]:
+    """Ground and execute an induced shared-IR program without benchmark gold.
+
+    The neural component binds native move relations and visible start/goal
+    entities.  The symbolic component contributes only the learned repeated
+    position-update transition, terminal relation, and abstention cardinality.
+    """
+
+    if condition not in STRUCTURAL_CONDITIONS or condition == "neural_only":
+        raise ValueError(f"unsupported structural TIR condition: {condition}")
+    _validate_induced_target_contract(source_artifact)
+    grounded = validate_neural_binding(neural_binding)
+    deltas = grounded["move_deltas"]
+    options: dict[str, Any] = parse_maze_options(prompt)
+    array = np.asarray(image.convert("RGB"))
+    start_channel = int(grounded["start_channel"])
+    goal_channel = int(grounded["goal_channel"])
+    start = _color_centroid(array, channel=start_channel)
+    goal = _color_centroid(array, channel=goal_channel)
+    start_other = [index for index in range(3) if index != start_channel]
+    goal_other = [index for index in range(3) if index != goal_channel]
+    start_mask = (
+        (array[:, :, start_channel] > 60)
+        & (array[:, :, start_channel] > array[:, :, start_other[0]] * 1.5)
+        & (array[:, :, start_channel] > array[:, :, start_other[1]] * 1.5)
+    )
+    goal_mask = (
+        (array[:, :, goal_channel] > 60)
+        & (array[:, :, goal_channel] > array[:, :, goal_other[0]] * 1.5)
+        & (array[:, :, goal_channel] > array[:, :, goal_other[1]] * 1.5)
+    )
+    passable = (array.mean(axis=2) > 100) | start_mask | goal_mask
+    source_active = condition in {
+        "source_induced", "alpha_renamed_source", "source_relation_permuted",
+    }
+    if condition == "alpha_renamed_source":
+        alpha = {token: f"z{index}" for index, token in enumerate(sorted(deltas))}
+        options = {
+            slot: tuple(alpha[token] for token in sequence)
+            for slot, sequence in options.items()
+        }
+        deltas = {alpha[token]: delta for token, delta in deltas.items()}
+    elif condition == "source_relation_permuted":
+        cycle = {"R": "D", "D": "L", "L": "U", "U": "R"}
+        deltas = {token: deltas[cycle[token]] for token in deltas}
+    if condition == "generic_scaffold":
+        selected = min(options, key=lambda slot: (len(options[slot]), slot))
+        body = {
+            "condition": condition,
+            "selected_answer": selected,
+            "source_option": "GENERIC",
+            "target_native_action": "shortest_option_without_grounded_effects",
+            "candidate_receipts": [],
+            "binding_sha256": stable_hash(neural_binding),
+            "source_artifact_sha256": None,
+        }
+        return body | {"receipt_sha256": stable_hash(body)}
+    candidate_receipts = []
+    successful: list[str] = []
+    for node_count in range(3, 102, 2):
+        for slot, sequence in options.items():
+            reached, receipt = _execute(
+                sequence,
+                node_count=node_count,
+                start=start,
+                goal=goal,
+                passable=passable,
+                deltas=deltas,
+                check_edges=True,
+            )
+            if reached:
+                successful.append(slot)
+                candidate_receipts.append({
+                    "answer_slot": slot,
+                    "sequence_sha256": stable_hash(sequence),
+                    "grounded_operator_type_id": source_artifact["program"][
+                        "entry_operator_type_id"
+                    ],
+                    "grounded_terminal_predicate_family": (
+                        "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION"
+                    ),
+                    **receipt,
+                })
+    unique = sorted(set(successful))
+    # This is the learned source abstention rule for source conditions.  The
+    # ceiling deliberately implements the same extensional target function
+    # without source lineage and is expected to match, not be beaten.
+    selected = unique[0] if len(unique) == 1 else None
+    body = {
+        "condition": condition,
+        "selected_answer": selected,
+        "source_option": (
+            "EXECUTE" if selected and source_active else
+            "ABSTAIN" if source_active else "TARGET_NATIVE"
+        ),
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": candidate_receipts,
+        "grounded_start_pixel": list(start),
+        "grounded_goal_pixel": list(goal),
+        "binding_sha256": stable_hash(neural_binding),
+        "source_artifact_sha256": (
+            source_artifact["artifact_sha256"] if source_active else None
+        ),
+        "target_grounding_contract": {
+            "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+            "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+            "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+            "gold_or_answer_seen": False,
+        },
+    }
+    return body | {"receipt_sha256": stable_hash(body)}
+
+
+def evaluate_tir_maze_structural_transfer(
+    receipts: list[Mapping[str, Any]],
+    *,
+    source_artifact: Mapping[str, Any],
+    source_confirmation: Mapping[str, Any],
+    expected_ids: list[str],
+    evidence_tier: str,
+    claim_boundary: str,
+) -> dict[str, Any]:
+    """Evaluate the matched structural-IR conditions after all actions exist."""
+
+    _validate_induced_target_contract(source_artifact)
+    confirmation_body = dict(source_confirmation)
+    claimed = str(confirmation_body.pop("report_sha256", ""))
+    if not claimed or stable_hash(confirmation_body) != claimed:
+        raise ValueError("invalid source relational confirmation self hash")
+    if source_confirmation.get("artifact_sha256") != source_artifact.get(
+        "artifact_sha256"
+    ) or not source_confirmation.get("source_gate_passed"):
+        raise ValueError("source relational confirmation did not pass")
+    observed = [str(row["sample_id"]) for row in receipts]
+    if observed != list(map(str, expected_ids)) or len(observed) != len(set(observed)):
+        raise ValueError("TIR structural receipt coverage/order differs from freeze")
+    traces = []
+    native_conditions = set(STRUCTURAL_CONDITIONS) - {"neural_only"}
+    for receipt in receipts:
+        if set(receipt["conditions"]) != native_conditions:
+            raise ValueError("TIR structural condition matrix is incomplete")
+        baseline = str(receipt["baseline_answer"])
+        gold = str(receipt["gold_answer_evaluator_only"])
+        for condition in STRUCTURAL_CONDITIONS:
+            native = None if condition == "neural_only" else receipt["conditions"][condition]
+            selected = baseline if native is None else native.get("selected_answer")
+            committed = str(selected or baseline)
+            body = {
+                "sample_id": str(receipt["sample_id"]),
+                "condition": condition,
+                "baseline_answer": baseline,
+                "native_selected_answer": selected,
+                "committed_answer": committed,
+                "gold_answer_evaluator_only": gold,
+                "correct_evaluator_only": committed == gold,
+                "source_option": "TARGET_ONLY" if native is None else native["source_option"],
+                "native_receipt_sha256": None if native is None else native["receipt_sha256"],
+            }
+            traces.append(body | {"trace_sha256": stable_hash(body)})
+    by_condition = {
+        condition: [row for row in traces if row["condition"] == condition]
+        for condition in STRUCTURAL_CONDITIONS
+    }
+    summaries = {
+        condition: {
+            "tasks": len(rows),
+            "successes": sum(row["correct_evaluator_only"] for row in rows),
+            "success_rate": sum(row["correct_evaluator_only"] for row in rows) / len(rows),
+            "action_changes_vs_neural": sum(
+                row["committed_answer"] != row["baseline_answer"] for row in rows
+            ),
+            "source_abstentions": sum(row["source_option"] == "ABSTAIN" for row in rows),
+        }
+        for condition, rows in by_condition.items()
+    }
+    authentic = {row["sample_id"]: row for row in by_condition["source_induced"]}
+    paired = {}
+    for comparator in STRUCTURAL_CONDITIONS:
+        if comparator == "source_induced":
+            continue
+        other = {row["sample_id"]: row for row in by_condition[comparator]}
+        wins = losses = 0
+        for sample_id in observed:
+            a = bool(authentic[sample_id]["correct_evaluator_only"])
+            b = bool(other[sample_id]["correct_evaluator_only"])
+            wins += a and not b
+            losses += b and not a
+        paired[comparator] = {
+            "wins": wins,
+            "losses": losses,
+            "ties": len(observed) - wins - losses,
+            "net_wins": wins - losses,
+            "exact_two_sided_p": exact_binomial_two_sided(wins, losses),
+        }
+    formal = evidence_tier == "FRESH_FORMAL_CONFIRMATION"
+    source_successes = summaries["source_induced"]["successes"]
+    gates = {
+        "fresh_source_program_gate_passed": True,
+        "receipt_matrix_complete": len(receipts) == len(expected_ids),
+        "all_target_neural_bindings_valid": all(
+            bool(row.get("neural_binding_valid")) for row in receipts
+        ),
+        "source_nontrivial_action_contrast": (
+            summaries["source_induced"]["action_changes_vs_neural"] >= 2
+        ),
+        "source_zero_negative_transfer_vs_neural": paired["neural_only"]["losses"] == 0,
+        "source_strictly_beats_neural": source_successes > summaries["neural_only"]["successes"],
+        "source_strictly_beats_permuted": (
+            source_successes > summaries["source_relation_permuted"]["successes"]
+        ),
+        "source_strictly_beats_generic": (
+            source_successes > summaries["generic_scaffold"]["successes"]
+        ),
+        "source_matches_target_native_ceiling": (
+            source_successes == summaries["target_native_ceiling"]["successes"]
+            and all(
+                authentic[sample_id]["committed_answer"] == next(
+                    row["committed_answer"]
+                    for row in by_condition["target_native_ceiling"]
+                    if row["sample_id"] == sample_id
+                )
+                for sample_id in observed
+            )
+        ),
+        "alpha_rename_invariance": all(
+            authentic[sample_id]["committed_answer"] == next(
+                row["committed_answer"]
+                for row in by_condition["alpha_renamed_source"]
+                if row["sample_id"] == sample_id
+            )
+            for sample_id in observed
+        ),
+        "formal_paired_significance_vs_neural": (
+            not formal or paired["neural_only"]["exact_two_sided_p"] <= 0.05
+        ),
+        "formal_paired_significance_vs_permuted": (
+            not formal or paired["source_relation_permuted"]["exact_two_sided_p"] <= 0.05
+        ),
+    }
+    passed = all(gates.values())
+    status = (
+        "FRESH_QUALIFICATION_GATE_PASSED" if passed and not formal
+        else "FRESH_FORMAL_STRUCTURAL_TRANSFER_VALIDATED" if passed
+        else "STRUCTURAL_TRANSFER_GATE_FAILED"
+    )
+    body = {
+        "schema_version": "tir-maze-source-induced-structural-transfer-v2",
+        "status": status,
+        "evidence_tier": evidence_tier,
+        "claim_boundary": claim_boundary,
+        "source_artifact_sha256": str(source_artifact["artifact_sha256"]),
+        "source_confirmation_sha256": str(source_confirmation["report_sha256"]),
+        "tasks": observed,
+        "summaries": summaries,
+        "paired": paired,
+        "gates": gates,
+        "traces": traces,
+    }
+    return body | {"report_sha256": stable_hash(body)}
+
+
 def _validate_confirmation(
     artifact: Mapping[str, Any], confirmation: Mapping[str, Any],
 ) -> None:
@@ -362,8 +667,11 @@ def evaluate_tir_maze_transfer(
 
 __all__ = [
     "CONDITIONS",
+    "STRUCTURAL_CONDITIONS",
     "execute_maze_topology",
+    "execute_maze_structural_program",
     "evaluate_tir_maze_transfer",
+    "evaluate_tir_maze_structural_transfer",
     "parse_maze_options",
     "validate_neural_binding",
 ]
