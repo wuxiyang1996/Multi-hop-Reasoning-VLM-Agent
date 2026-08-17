@@ -1,0 +1,113 @@
+{
+  "alfworld_v13_integrity": {
+    "authority_calls": 291,
+    "authority_receipt_hashes_verified": 291,
+    "config_file_sha256": "21822c84dc5ad6eea364444ef44086758c0c6652a061d7cb9aaeb22496d12f41",
+    "config_sha256": "4cc43cbba23cb7f5140bd080774ddbaac2d34ce7694fedb8508073281f37732d",
+    "episode_hashes_verified": 144,
+    "paired_vs_neural": {
+      "exact_two_sided_p": 0.015625,
+      "losses": 0,
+      "negative_transfer_rate": 0.0,
+      "net_wins": 7,
+      "ties": 17,
+      "wins": 7
+    },
+    "record_hashes_verified": 5900,
+    "report_archive_file_sha256": "43af1f66d062a92d56e6da35cb36ca59143f91b786ad02cc6eb325015f44d1c3",
+    "report_file_sha256": "ea8bb2bdbfa1a759762a37a3c28b6a83194af08a670345520a1e9fbb09ee1a38",
+    "report_sha256": "1e95fb59c02472b4f9735cbb20df370d4b7b369d14d00387d07172e3f80fbadc",
+    "source_admissions": 220,
+    "successes": {
+      "generic_scaffold": 13,
+      "neural_only": 13,
+      "source_cardinality_control": 13,
+      "source_effect_permuted": 13,
+      "source_induced": 20,
+      "target_native_ceiling": 20,
+      "tasks": 24
+    }
+  },
+  "claim_boundary": "Four registered non-video routes use the same source-only induction -> anonymous structural applicability -> calibrated authorization -> target-native neural grounding/execution boundary. Each route transfers its own learned symbolic program; this is not one canonical controller and does not establish arbitrary game-to-domain or video transfer.",
+  "gates": {
+    "alfworld_v13_report_and_nested_hashes_valid": true,
+    "four_registered_routes_use_unified_authority_boundary": true,
+    "four_routes_have_zero_negative_transfer": true,
+    "four_routes_match_target_native_ceiling": true,
+    "four_routes_pass_exact_p_0p05": true,
+    "four_routes_strictly_beat_neural_and_source_permuted": true,
+    "legacy_phase7_report_hash_valid": true,
+    "legacy_success_stats_match_source_reports": true,
+    "legacy_three_routes_remain_authorized": true,
+    "old_alfworld_putnear_abstention_not_relabeled": true,
+    "video_routes_excluded": true
+  },
+  "legacy_evidence_file_sha256": {
+    "phase3_structural_summary": "bdfa25880850a76d30e7da03ecc166935e32b6417ddf045d0b3510629a9326dd",
+    "webshop_v21_compact": "97c6ba298f13835fa9e329ed01d816b5a1671a7f92e1e2d7349363a32d7e9760"
+  },
+  "legacy_phase7_report_file_sha256": "73a075848e7bbf678d9dcacecad8959e8f70d0c9e517beb731b2f71bbde9607f",
+  "legacy_phase7_report_sha256": "735cdfe3d3097c19f33ecafa770e39307ead3e8da323d9dc3a8af8bf536b506b",
+  "report_sha256": "50b0545b6b2104b32401de988849b5de0911df2e7bb18381049cbd39ecfaf87d",
+  "route_results": [
+    {
+      "evidence_tier": "fresh_formal",
+      "exact_two_sided_p": 3.0517578125e-05,
+      "losses": 0,
+      "neural_only": 7,
+      "route_id": "sokoban-relational-to-webshop-v21",
+      "source_induced": 23,
+      "source_permuted": 7,
+      "target_domain": "webshop",
+      "target_native_ceiling": 23,
+      "tasks": 32,
+      "wins": 16
+    },
+    {
+      "evidence_tier": "fresh_formal",
+      "exact_two_sided_p": 0.00390625,
+      "losses": 0,
+      "neural_only": 3,
+      "route_id": "minigrid-put-near-to-discoveryworld-easy-v1",
+      "source_induced": 12,
+      "source_permuted": 3,
+      "target_domain": "discoveryworld",
+      "target_native_ceiling": 12,
+      "tasks": 12,
+      "wins": 9
+    },
+    {
+      "evidence_tier": "fresh_formal",
+      "exact_two_sided_p": 0.03125,
+      "losses": 0,
+      "neural_only": 6,
+      "route_id": "sokoban-relational-to-tir-maze-v3",
+      "source_induced": 12,
+      "source_permuted": 6,
+      "target_domain": "tir",
+      "target_native_ceiling": 12,
+      "tasks": 18,
+      "wins": 6
+    },
+    {
+      "evidence_tier": "independent_formal_valid_train",
+      "exact_two_sided_p": 0.015625,
+      "losses": 0,
+      "neural_only": 13,
+      "route_id": "sokoban-goal-acquisition-to-alfworld-multiplicity-v11",
+      "source_induced": 20,
+      "source_permuted": 13,
+      "target_domain": "alfworld",
+      "target_native_ceiling": 20,
+      "tasks": 24,
+      "wins": 7
+    }
+  ],
+  "schema_version": "phase8-four-domain-unified-neurosymbolic-audit-v2",
+  "selected_route_count": 4,
+  "shared_authority_component_sha256": {
+    "frozen_utility_runtime": "ce9e013e41e383cb60f23d37dc12e0705cdff750ae0df1f41beddde69d9244c8",
+    "unified_harness": "548986e9c7ff5412846b0263367d2376c247e201ef09a8f5ce94e4a7f6ce50c1"
+  },
+  "status": "PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_VALIDATED"
+}

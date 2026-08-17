@@ -1,0 +1,79 @@
+{
+  "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+  "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+  "calibration_counts": {
+    "authenticity_vs_source_permuted": {
+      "losses": 0,
+      "ties": 17,
+      "wins": 7
+    },
+    "authority": "CONSUMED_DEVELOPMENT_V10_PAIRED_OUTCOMES_ONLY",
+    "current_reserve_outcome_read": false,
+    "utility_vs_neural": {
+      "losses": 0,
+      "ties": 17,
+      "wins": 7
+    }
+  },
+  "calibration_report": "runs/alfworld_goal_acquisition_v10_development/analysis_report.json",
+  "calibration_report_file_sha256": "560b7c2e114cae51c5c3e4ac064d316e8edaacd062661f3071beea7af3e70fbe",
+  "claim_boundary": "Unified-wrapper integration smoke on one consumed V10 development task; excluded from every prospective estimate.",
+  "conditions": [
+    "raw_target_only",
+    "authentic_source_goal_relation_macro",
+    "source_cardinality_exactly_one_control",
+    "source_effect_binding_permuted_control",
+    "generic_single_relation_scaffold",
+    "target_native_recurrent_relation_ceiling"
+  ],
+  "config_sha256": "d02c984a6ee8e808f30e90ed6c0ae006a6a598b780cb59787b58f74e8ff3e7b4",
+  "formal_reserve_task_opened": null,
+  "formal_target_outcome_read_for_freeze": false,
+  "gates": {
+    "maximum_exact_two_sided_p": 1.0,
+    "minimum_source_acquisition_groundings": 1,
+    "require_strict_source_control_superiority": true,
+    "require_target_native_ceiling_match": true,
+    "require_zero_negative_transfer": true
+  },
+  "max_steps": 60,
+  "output": "runs/alfworld_unified_goal_acquisition_v11_development/report.json",
+  "phase5_manifest_sha256": "85d2df687b28e8b67b6241910ac40b46bc23c8056e784339fac7b75f55c75ce4",
+  "pre_freeze_run_exposure": {
+    "pick_two_obj_and_place-Pencil-None-Desk-327/trial_T20190907_234611_599540/game.tw-pddl": "CONSUMED_V10_DEVELOPMENT"
+  },
+  "role": "development",
+  "runner_file_sha256": "1d4699d66208c2135c612f33e0eed8ac658787696c07c2bd12e3d48fac60cf4f",
+  "schema_version": "alfworld-unified-goal-acquisition-config-v11",
+  "seed": 486310,
+  "source_acquisition_artifact": "runs/sokoban_goal_acquisition_v1/artifact.json",
+  "source_acquisition_artifact_file_sha256": "bcdd55fe0d80f93a660a4040a3aafb66eb4c9693f71490cf3ba5a5d336cf276f",
+  "source_acquisition_confirmation": "runs/sokoban_goal_acquisition_v1/fresh_confirmation_report.json",
+  "source_acquisition_confirmation_file_sha256": "a37edef5ad43702e2eac8df1c0d29f0e1c5d5fa54cbd782a72b114cc282bd4b9",
+  "source_artifact": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+  "source_artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+  "source_confirmation": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+  "source_confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+  "source_inducer_file_sha256": "18c51419e3d6add04b69dfb97c7c586aefb7a7c28e0d677d520bbf1c57fe6577",
+  "status": "CONSUMED_DEVELOPMENT_UNIFIED_WRAPPER_SMOKE",
+  "structural_applicability_file_sha256": "dc41f3b1f98823f695da9a090e0ee10626d466d51da591203f1276c973beadc1",
+  "target_causal_effect_artifact": "configs/real_source_relation_causal_candidate_v20.json",
+  "target_causal_effect_file_sha256": "3394f30b07fae7e33f91ae5b656d69aecad2bb1728f7db5dac752e52d8019be7",
+  "target_grounder": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+  "target_grounder_file_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+  "task_count": 1,
+  "task_ids": [
+    "pick_two_obj_and_place-Pencil-None-Desk-327/trial_T20190907_234611_599540/game.tw-pddl"
+  ],
+  "thresholds": {
+    "authority": "BINDING_AND_REALIZATION_INHERITED_FROM_FROZEN_V8; CAUSAL_EFFECT_0P5_FROM_DISJOINT_V20_TARGET_CALIBRATION_GATE",
+    "minimum_binding": 0.5,
+    "minimum_binding_margin": 0.0,
+    "minimum_causal_effect": 0.5,
+    "minimum_realization": 0.1
+  },
+  "unified_harness_file_sha256": "548986e9c7ff5412846b0263367d2376c247e201ef09a8f5ce94e4a7f6ce50c1",
+  "unified_runtime_file_sha256": "ce9e013e41e383cb60f23d37dc12e0705cdff750ae0df1f41beddde69d9244c8",
+  "unified_wrapper_file_sha256": "776a839611f7bb35c0de2cb4bc96cb44a0587158874c50073b7ae07e836d115c",
+  "v10_target_runtime_file_sha256": "fa754bf9a50816e746e3ee47ba8322f857711a53ac13e1a0de1e1193967ae0b5"
+}

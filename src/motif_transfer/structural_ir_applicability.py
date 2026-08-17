@@ -20,6 +20,9 @@ from typing import Any, Mapping, Sequence
 
 from .contracts import stable_hash
 from .phase3_source_function_induction import validate_source_function_program
+from .source_goal_acquisition_induction import (
+    validate_goal_acquisition_program,
+)
 
 
 @dataclass(frozen=True)
@@ -251,6 +254,67 @@ def relational_artifact_contract(
     )
 
 
+def goal_acquisition_artifact_contract(
+    artifact: Mapping[str, Any], *, confirmation: Mapping[str, Any],
+) -> SourceIRContract:
+    """Extract the full acquisition-to-relation contract learned in Sokoban.
+
+    Unlike the earlier one-operator relational contract, this contract keeps
+    the two observed acquisition updates, the positive-effect cardinality
+    binding, and the terminal relation update in their induced program order.
+    Target adapters may bind these anonymous types to native functions, but
+    cannot delete the cardinality guard or replace the learned recurrence.
+    """
+
+    validate_goal_acquisition_program(artifact)
+    confirmation_body = dict(confirmation)
+    claimed_confirmation = confirmation_body.pop("report_sha256", None)
+    if not claimed_confirmation or claimed_confirmation != stable_hash(
+        confirmation_body
+    ):
+        raise ValueError("source acquisition confirmation hash mismatch")
+    if confirmation.get("artifact_sha256") != artifact.get("artifact_sha256"):
+        raise ValueError("source acquisition confirmation/artifact mismatch")
+
+    program = artifact["program"]
+    by_id = {
+        str(row["operator_type_id"]): row
+        for row in artifact.get("operator_types") or ()
+    }
+    ordered_ids = (
+        *map(str, program.get("acquisition_operator_type_ids") or ()),
+        str(program["binding_operator_type_id"]),
+        str(program["relation_operator_type_id"]),
+    )
+    if len(ordered_ids) != len(set(ordered_ids)) or any(
+        type_id not in by_id for type_id in ordered_ids
+    ):
+        raise ValueError("source acquisition program has invalid operator order")
+    operators = tuple(_signature(by_id[type_id]) for type_id in ordered_ids)
+    recurrent = any(
+        row.get("from_operator_type_id") == row.get("to_operator_type_id")
+        for row in program.get("transition_graph") or ()
+    )
+    relation = by_id[str(program["relation_operator_type_id"])]
+    qualified = (
+        confirmation.get("status")
+        == "SOURCE_GOAL_ACQUISITION_FRESH_VALIDATED"
+        and confirmation.get("source_gate_passed") is True
+        and all((confirmation.get("gates") or {}).values())
+        and artifact.get("target_data_read") is False
+        and artifact.get("named_controller_template_used") is False
+    )
+    return SourceIRContract.create(
+        program_sha256=str(artifact["artifact_sha256"]),
+        ir_kind="RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+        operator_sequence=operators,
+        recurrent=recurrent,
+        terminal_predicate_families=(str(relation["predicate_family"]),),
+        source_intervention_qualified=qualified,
+        source_confirmation_sha256=str(claimed_confirmation),
+    )
+
+
 def temporal_function_artifact_contract(
     artifact: Mapping[str, Any], *, source_confirmation_sha256: str,
     source_intervention_qualified: bool,
@@ -353,7 +417,8 @@ def select_source_contract(
 
 __all__ = [
     "OperatorSignature", "SourceIRContract", "TargetIRRequirement",
-    "contract_matches", "relational_artifact_contract",
+    "contract_matches", "goal_acquisition_artifact_contract",
+    "relational_artifact_contract",
     "select_source_contract", "structural_program_contract",
     "temporal_function_artifact_contract",
 ]

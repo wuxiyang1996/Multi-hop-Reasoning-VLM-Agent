@@ -1,5 +1,11 @@
 # Phase 4–7：统一 neural-symbolic transfer harness
 
+> **Phase 8 更新（2026-08-17）：** 本文保留 Phase 7 当时的历史结论。旧的
+> Minigrid PutNear→ALFWorld route 仍然正确 abstain；新的 source-only
+> goal-acquisition route 已通过 24-task independent formal replication，并在同一个
+> unified harness 下把注册的正向 route 扩展为 4/4。见
+> [`PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md`](PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md)。
+
 ## 最终结论
 
 截至 Phase 7，非视频路线已经形成一个可运行、fail-closed 的统一 harness：

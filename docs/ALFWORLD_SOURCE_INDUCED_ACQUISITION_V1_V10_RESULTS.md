@@ -1,5 +1,12 @@
 # Source-induced acquisition transfer to ALFWorld: V1–V10
 
+> **Successor result:** V13 has now completed an independent, preregistered
+> 24-task `valid_train` replication under the unified harness: 20/24 versus
+> 13/24 raw and controls, 7W/0L/17T, exact `p=0.015625`, matching the 20/24
+> target-native ceiling. The V1–V10 text below remains the historical
+> consumed-development record. See
+> [`PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md`](PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md).
+
 ## Result
 
 The missing acquisition mechanism can be induced from source interventions and

@@ -7,6 +7,7 @@ from motif_transfer.structural_ir_applicability import (
     SourceIRContract,
     TargetIRRequirement,
     contract_matches,
+    goal_acquisition_artifact_contract,
     relational_artifact_contract,
     select_source_contract,
     structural_program_contract,
@@ -120,6 +121,29 @@ def test_real_arcade_function_is_a_third_ir_kind():
     )
     assert contract.ir_kind == "SPARSE_TEMPORAL_EFFECT_FUNCTION"
     assert contract.operator_sequence[0].operation == "SCORE"
+    assert contract.source_intervention_qualified is True
+
+
+def test_goal_acquisition_contract_preserves_cardinality_and_relation_types():
+    artifact = json.loads((
+        REPO / "runs/sokoban_goal_acquisition_v1/artifact.json"
+    ).read_text())
+    confirmation = json.loads((
+        REPO / "runs/sokoban_goal_acquisition_v1/fresh_confirmation_report.json"
+    ).read_text())
+    contract = goal_acquisition_artifact_contract(
+        artifact, confirmation=confirmation,
+    )
+    assert contract.ir_kind == "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM"
+    assert contract.recurrent is True
+    assert [row.predicate_family for row in contract.operator_sequence] == [
+        "ENTITY_RELATION",
+        "CONTROL_STATE",
+        "POSITIVE_EFFECT_BINDING",
+        "ENTITY_GOAL_RELATION",
+    ]
+    assert contract.operator_sequence[2].value_kind == "CANDIDATE_CARDINALITY"
+    assert contract.terminal_predicate_families == ("ENTITY_GOAL_RELATION",)
     assert contract.source_intervention_qualified is True
 
 
