@@ -1,0 +1,68 @@
+{
+  "schema_version": "source-induced-goal-relation-macro-v3",
+  "artifact_version": "SOURCE_INDUCED_GOAL_RELATION_MACRO_V3",
+  "status": "SOURCE_GOAL_RELATION_MACRO_AWAITING_FRESH_CONFIRMATION",
+  "source_receipts_sha256": "aef200f71f75fa2b0bac06bf00fddd3550f8072cd7c8e98066ca9ed83253185b",
+  "induction_authority": "SOURCE_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+  "operator_types": [
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "ENTITY_GOAL_RELATION",
+      "arity": 2,
+      "value_kind": "RELATION_COVERAGE",
+      "operator_type_id": "ATYPE_d22678218ae08b32"
+    }
+  ],
+  "program": {
+    "entry_operator_type_id": "ATYPE_d22678218ae08b32",
+    "transitions": [
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "observed_effect_guard": {
+          "feature": "entity_goal_relation_coverage",
+          "change_sign": "INCREASE"
+        },
+        "to_operator_type_id": "ATYPE_d22678218ae08b32",
+        "cardinality": "ONE_OR_MORE"
+      }
+    ],
+    "terminal_predicates": [
+      {
+        "predicate_family": "ENTITY_GOAL_RELATION",
+        "arity": 2,
+        "value_kind": "RELATION_COVERAGE",
+        "feature": "entity_goal_relation_coverage",
+        "operator": "EQ",
+        "value": 1.0
+      }
+    ],
+    "terminal_rule": "INDUCED_PREDICATE_CONJUNCTION_AFTER_TYPED_EFFECT",
+    "abstention_rule": {
+      "zero_target_bindings": "ABSTAIN",
+      "multiple_target_bindings": "ABSTAIN",
+      "nonpositive_observed_relation_delta": "ABSTAIN",
+      "terminal_predicate_unobservable": "ABSTAIN"
+    }
+  },
+  "induction_diagnostics": {
+    "episodes": 67,
+    "successful_macro_tuples": 93,
+    "observed_success_macro_lengths": [
+      1,
+      2
+    ],
+    "repeating_transition_induced": true,
+    "terminal_hypotheses_from_source": 5,
+    "selected_terminal_predicate_count": 1
+  },
+  "named_controller_template_used": false,
+  "forbidden_named_controller_templates": [
+    "EXPLORE",
+    "BACKTRACK",
+    "COMMIT"
+  ],
+  "target_binding": "TARGET_NATIVE_NEURAL_GOAL_RELATION_GROUNDER",
+  "target_data_read": false,
+  "artifact_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35"
+}

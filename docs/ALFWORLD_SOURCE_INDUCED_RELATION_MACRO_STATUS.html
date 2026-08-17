@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALFWorld Source-Induced Relation Transfer</title>
+<style>
+:root{--ink:#17212b;--muted:#64717d;--paper:#f4f1e8;--card:#fffdf7;--ok:#187158;--bad:#b34135;--line:#d8d1c3;--accent:#315d8a}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:linear-gradient(135deg,#edf3ef,var(--paper) 48%,#eee6da);font:16px/1.55 ui-sans-serif,system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:48px 24px 72px}h1{font:700 clamp(2.25rem,6vw,4.7rem)/.96 ui-serif,Georgia,serif;letter-spacing:-.04em;max-width:900px;margin:0 0 18px}h2{margin:40px 0 14px;font:700 1.55rem/1.1 ui-serif,Georgia,serif}.lead{max-width:850px;font-size:1.14rem;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:28px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 8px 30px #24313d0d}.metric{font:750 2.25rem/1 ui-serif,Georgia,serif}.ok{color:var(--ok)}.bad{color:var(--bad)}.label,.muted{color:var(--muted)}table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line)}th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}th{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:22px 0}.flow div{padding:13px 9px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:.9rem}.note{border-left:4px solid var(--accent);padding:12px 18px;background:#f7fafc}code{background:#e8e3d8;padding:.12em .35em;border-radius:5px}a{color:var(--accent)}@media(max-width:760px){.flow{grid-template-columns:1fr}main{padding-top:30px}}
+</style></head><body><main>
+<h1>The mechanism works. The fresh ALFWorld formal does not.</h1>
+<p class="lead">A relation-recurrence program was induced from source-game intervention tuples, grounded with target-native neural models, and evaluated without hand-written EXPLORE/BACKTRACK/COMMIT templates. Development and qualification were positive; the final two-task reserve failed because target acquisition never exposed the second object.</p>
+<section class="grid">
+<article class="card"><div class="metric ok">63/63</div><div class="label">held-out source episodes uniquely select the induced program</div></article>
+<article class="card"><div class="metric ok">20/24</div><div class="label">fail-closed development; raw and controls 17/24</div></article>
+<article class="card"><div class="metric ok">1/2</div><div class="label">untouched qualification; controls 0/2</div></article>
+<article class="card"><div class="metric bad">0/2</div><div class="label">fresh formal; every condition 0/2</div></article>
+</section>
+<h2>Transferred structure</h2>
+<div class="flow"><div>source intervention tuples</div><div>anonymous relation operator</div><div>positive-effect self-loop</div><div>target-native neural binding</div><div>ALFWorld native action</div></div>
+<p>The learned program contains a <code>ONE_OR_MORE</code> entity–goal relation transition, terminal coverage <code>== 1.0</code>, and fail-closed zero/multiple-binding abstentions. V5 waits for the first target-native relation effect and admits the source self-loop only for a unique neural binding.</p>
+<h2>Why V5 is cleaner than V3/V4</h2>
+<table><thead><tr><th>Runtime</th><th>Success</th><th>Paired vs raw</th><th>Source admissions</th></tr></thead><tbody>
+<tr><td>V3 development</td><td>20/24 vs 17/24</td><td>5W / 2L</td><td>884</td></tr>
+<tr><td>V4 effect-gated</td><td>20/24 vs 17/24</td><td>5W / 2L</td><td>380</td></tr>
+<tr><td><strong>V5 fail-closed</strong></td><td><strong>20/24 vs 17/24</strong></td><td><strong>3W / 0L</strong></td><td><strong>39</strong></td></tr>
+</tbody></table>
+<p>V3 perturbed the first binding. V4 waited for the first relation but still searched under zero binding. V5 enforces the abstention rule actually induced from source, eliminating development negative transfer.</p>
+<h2>Fresh reserve result</h2>
+<table><thead><tr><th>Condition</th><th>Qualification</th><th>Formal</th></tr></thead><tbody>
+<tr><td>Raw target</td><td>0/2</td><td>0/2</td></tr><tr><td>Authentic recurrence</td><td><strong>1/2</strong></td><td class="bad">0/2</td></tr><tr><td>Exactly-one / effect-permuted / generic</td><td>0/2</td><td>0/2</td></tr><tr><td>Target recurrent ceiling</td><td>1/2</td><td>0/2</td></tr>
+</tbody></table>
+<div class="note"><strong>Formal diagnosis.</strong> Both tasks produced one BIND and one completed relation, then 58 IGNORE receipts. Authentic had zero admissions because no unique second-object binding appeared. This is correct abstention, but no successful transfer.</div>
+<h2>Claim boundary</h2>
+<p>Supported: source-only relation/cardinality induction, shuffled-effect rejection, selective neural-symbolic execution, positive consumed-development mechanism evidence, and one tiny positive untouched qualification. Not supported: a positive prospective ALFWorld replication or general game-to-embodied-domain transfer.</p>
+<p>The next principled experiment must induce an acquisition subprogram—anonymous <code>SEEK → BIND → RELATE</code> effects—from source interventions. It must not retrofit a search heuristic to the consumed formal tasks. No compiled execution-untouched multiplicity reserve remains in the installed ALFWorld data.</p>
+<p class="muted"><a href="ALFWORLD_SOURCE_INDUCED_RELATION_MACRO_V3_V8_RESULTS.md">Full protocol, hashes, and bitter lessons</a></p>
+</main></body></html>
