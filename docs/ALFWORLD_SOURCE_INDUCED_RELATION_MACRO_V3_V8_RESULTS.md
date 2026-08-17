@@ -1,5 +1,11 @@
 # ALFWorld source-induced relation macro: V3–V8
 
+> **Later development result:** the source-only acquisition follow-up induced
+> the missing zero-binding prerequisite and reached 24/24 versus 17/24 raw on
+> the consumed development matrix. This does not change the negative V8 fresh
+> formal result or reopen that reserve. See
+> [Source-induced acquisition V1–V10](ALFWORLD_SOURCE_INDUCED_ACQUISITION_V1_V10_RESULTS.md).
+
 ## Bottom line
 
 This experiment establishes a useful but bounded result:

@@ -1,0 +1,104 @@
+{
+  "schema_version": "sokoban-goal-acquisition-summary-v1",
+  "status": "SOURCE_GOAL_ACQUISITION_FRESH_VALIDATED",
+  "manifest_sha256": "6bf8ee48c308046ab9cd6a2837c3ff2d58698ec563c9960c4ff20f6ac1531a38",
+  "artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+  "fresh_report_sha256": "f02fec96a448ea549e95ffa3fff3f9c5adf71ff202a89fb170a90ba55a257285",
+  "program": {
+    "measured_precondition": {
+      "feature": "positive_relation_intervention_cardinality",
+      "operator": "EQ",
+      "value": 0
+    },
+    "acquisition_operator_type_ids": [
+      "ATYPE_9ca2bacc3c57e4de",
+      "ATYPE_a51cbb518f4b6b10"
+    ],
+    "binding_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+    "relation_operator_type_id": "ATYPE_d22678218ae08b32",
+    "relation_binding_cardinality": {
+      "operator": "EQ",
+      "value": 1
+    },
+    "transition_graph": [
+      {
+        "from_operator_type_id": "ATYPE_9ca2bacc3c57e4de",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "source_support": 35
+      },
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "to_operator_type_id": "ATYPE_9ca2bacc3c57e4de",
+        "source_support": 26
+      },
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "source_support": 131
+      },
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "to_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+        "source_support": 78
+      },
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "to_operator_type_id": "ATYPE_9ca2bacc3c57e4de",
+        "source_support": 1
+      },
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "source_support": 19
+      },
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "to_operator_type_id": "ATYPE_d22678218ae08b32",
+        "source_support": 7
+      },
+      {
+        "from_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+        "to_operator_type_id": "ATYPE_d22678218ae08b32",
+        "source_support": 85
+      }
+    ],
+    "binding_to_relation": {
+      "from_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+      "to_operator_type_id": "ATYPE_d22678218ae08b32",
+      "guard": "OBSERVED_POSITIVE_BINDING_CARDINALITY",
+      "discovery_support": 85,
+      "discovery_precision": 1.0
+    },
+    "abstention_rule": {
+      "binding_cardinality_unobservable": "ABSTAIN",
+      "binding_cardinality_above_induced_value": "ABSTAIN",
+      "no_target_native_acquisition_binding": "ABSTAIN",
+      "nonconforming_observed_effect": "ABSTAIN_AND_REMEASURE"
+    }
+  },
+  "metrics": {
+    "heldout_trajectories": 69,
+    "heldout_transitions": 476,
+    "authentic_conforming_transitions": 476,
+    "authentic_conformance_rate": 1.0,
+    "shuffled_conforming_transitions": 320,
+    "shuffled_conformance_rate": 0.6722689075630253,
+    "binding_onsets": 85,
+    "binding_to_relation_transitions": 85,
+    "binding_to_relation_precision": 1.0,
+    "authentic_effect_bindings": 476,
+    "shuffled_effect_bindings": 0
+  },
+  "gates": {
+    "heldout_trajectory_coverage": true,
+    "heldout_transition_conformance": true,
+    "authentic_beats_shuffled_effect_conformance": true,
+    "binding_onset_predicts_relation": true,
+    "authentic_effect_binding_exact": true,
+    "shuffled_effect_binding_rejected": true,
+    "single_positive_binding_cardinality_induced": true,
+    "source_only_lineage": true,
+    "no_named_controller_template": true
+  },
+  "summary_sha256": "a1ac751f57cb84813ccdb7a59f39df4b75ab998fd081aff2eeab5438da69dfda"
+}

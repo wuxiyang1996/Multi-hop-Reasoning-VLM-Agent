@@ -1,0 +1,134 @@
+{
+  "schema_version": "source-induced-goal-acquisition-program-v1",
+  "artifact_version": "SOURCE_INDUCED_GOAL_ACQUISITION_PROGRAM_V1",
+  "status": "SOURCE_GOAL_ACQUISITION_AWAITING_FRESH_CONFIRMATION",
+  "source_receipts_sha256": "2f1aa88bf083dc9cf53d2dba907d1063074db238aa2af78c25253e1851835bd5",
+  "relation_artifact_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+  "induction_authority": "SOURCE_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+  "operator_types": [
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "ENTITY_RELATION",
+      "arity": 2,
+      "value_kind": "POSITION",
+      "operator_type_id": "ATYPE_9ca2bacc3c57e4de"
+    },
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "CONTROL_STATE",
+      "arity": 1,
+      "value_kind": "POSITION",
+      "operator_type_id": "ATYPE_a51cbb518f4b6b10"
+    },
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "POSITIVE_EFFECT_BINDING",
+      "arity": 1,
+      "value_kind": "CANDIDATE_CARDINALITY",
+      "operator_type_id": "ATYPE_ebdf2c54c56b9d83"
+    },
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "ENTITY_GOAL_RELATION",
+      "arity": 2,
+      "value_kind": "RELATION_COVERAGE",
+      "operator_type_id": "ATYPE_d22678218ae08b32"
+    }
+  ],
+  "program": {
+    "measured_precondition": {
+      "feature": "positive_relation_intervention_cardinality",
+      "operator": "EQ",
+      "value": 0
+    },
+    "acquisition_operator_type_ids": [
+      "ATYPE_9ca2bacc3c57e4de",
+      "ATYPE_a51cbb518f4b6b10"
+    ],
+    "binding_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+    "relation_operator_type_id": "ATYPE_d22678218ae08b32",
+    "relation_binding_cardinality": {
+      "operator": "EQ",
+      "value": 1
+    },
+    "transition_graph": [
+      {
+        "from_operator_type_id": "ATYPE_9ca2bacc3c57e4de",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "source_support": 35
+      },
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "to_operator_type_id": "ATYPE_9ca2bacc3c57e4de",
+        "source_support": 26
+      },
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "source_support": 131
+      },
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "to_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+        "source_support": 78
+      },
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "to_operator_type_id": "ATYPE_9ca2bacc3c57e4de",
+        "source_support": 1
+      },
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "source_support": 19
+      },
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "to_operator_type_id": "ATYPE_d22678218ae08b32",
+        "source_support": 7
+      },
+      {
+        "from_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+        "to_operator_type_id": "ATYPE_d22678218ae08b32",
+        "source_support": 85
+      }
+    ],
+    "binding_to_relation": {
+      "from_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+      "to_operator_type_id": "ATYPE_d22678218ae08b32",
+      "guard": "OBSERVED_POSITIVE_BINDING_CARDINALITY",
+      "discovery_support": 85,
+      "discovery_precision": 1.0
+    },
+    "abstention_rule": {
+      "binding_cardinality_unobservable": "ABSTAIN",
+      "binding_cardinality_above_induced_value": "ABSTAIN",
+      "no_target_native_acquisition_binding": "ABSTAIN",
+      "nonconforming_observed_effect": "ABSTAIN_AND_REMEASURE"
+    }
+  },
+  "induction_diagnostics": {
+    "trajectories": 68,
+    "transitions": 450,
+    "binding_onsets": 85,
+    "relation_updates": 95,
+    "acquisition_operator_support": {
+      "ATYPE_9ca2bacc3c57e4de": 35,
+      "ATYPE_a51cbb518f4b6b10": 235
+    },
+    "learned_transition_edges": 8
+  },
+  "named_controller_template_used": false,
+  "forbidden_named_controller_templates": [
+    "EXPLORE",
+    "BACKTRACK",
+    "COMMIT"
+  ],
+  "target_binding": "TARGET_NATIVE_NEURAL_STRUCTURAL_GROUNDER",
+  "target_data_read": false,
+  "artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7"
+}
