@@ -7,6 +7,13 @@
 > 但与 strong target-base `251/360` 不可区分。见
 > [`CLEVRER_UNIFIED_GOAL_RELATION_V15_RESULTS.md`](CLEVRER_UNIFIED_GOAL_RELATION_V15_RESULTS.md)。
 
+> **STAR stop result（2026-08-18）：** 随后的零 API、annotation-side V38 preflight 证明
+> STAR official symbolic executor 与 neural-policy headroom 都存在，但 source-semantics 仅为
+> `63/128` vs direct `60/128`（`11W/8L`, `p=.648`），并与 target-only equivalent 逐题相同；
+> 旧 calibration 又使 unified harness 对全部样本 fail closed。自然视频没有获得 transfer
+> qualification，按成本边界停止。见
+> [`STAR_ANNOTATION_GOAL_RELATION_V38_RESULTS.md`](STAR_ANNOTATION_GOAL_RELATION_V38_RESULTS.md)。
+
 ## 结论
 
 四条非视频 route 现在都在同一个 fail-closed authority architecture 下获得了
