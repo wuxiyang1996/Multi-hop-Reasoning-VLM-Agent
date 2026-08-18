@@ -14,6 +14,13 @@
 > qualification，按成本边界停止。见
 > [`STAR_ANNOTATION_GOAL_RELATION_V38_RESULTS.md`](STAR_ANNOTATION_GOAL_RELATION_V38_RESULTS.md)。
 
+> **AGQA 2.0 program audit（2026-08-18）：** official balanced metadata 的 669,207 个
+> functional programs 已完成零 API typed-applicability 审计。三个不同 source-induced IR
+> 精确覆盖 54,733（8.18%），wrong-source rotation 全部拒绝，但 target-written equivalent
+> 也 3/3 匹配，且既有 arcade authentic/source-permuted 同为 22/27。因此只成立
+> mechanism feasibility，不成立 video QA success 或 source provenance；raw-video gate 保持关闭。
+> 详见 [`AGQA2_PROGRAM_TRANSFER_V1_RESULTS.md`](AGQA2_PROGRAM_TRANSFER_V1_RESULTS.md)。
+
 ## 结论
 
 四条非视频 route 现在都在同一个 fail-closed authority architecture 下获得了
