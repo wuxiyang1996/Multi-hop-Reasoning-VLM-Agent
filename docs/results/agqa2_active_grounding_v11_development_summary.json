@@ -1,0 +1,46 @@
+{
+  "controls": {
+    "source_permuted_abstentions": 9,
+    "target_written_equivalent_matches": 9
+  },
+  "grounder_qualified": true,
+  "grounder_sha256": "e1fe865ffd636db34a3e3c61f1cea5ee0c8c4ae508d7eadd13aed6f4166ed3ad",
+  "metrics": {
+    "consensus_tiebreaks_triggered": 5,
+    "decisive_accuracy": 1.0,
+    "decisive_correct": 6,
+    "decisive_coverage": 0.6666666666666666,
+    "decisive_executions": 6,
+    "direct_correct": 4,
+    "raw_typed_decisive_executions": 8,
+    "rescans_triggered": 9,
+    "route_accuracy": 1.0,
+    "route_correct": 9,
+    "source_typed_overrides": 3,
+    "typed_fallback_correct": 7,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 3,
+    "unified_harness_correct": 7,
+    "unified_harness_executor_authorizations": 6,
+    "unified_harness_vs_direct_delta": 3,
+    "valid_runtime_rows": 9
+  },
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_sha256": "9ae3610726eb5976a6fc45cd1feec1b6184438d5772ac5b914c72c32cfeb8314",
+  "reported_provider_cost_usd": 0.083477344,
+  "schema_version": "agqa2-active-grounding-v11-development-summary",
+  "status": "AGQA2_ACTIVE_GROUNDER_V11_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "493ef27f55b14aa3f129f786bf96da60d3765819021b9d02197e4ec34999afca"
+}

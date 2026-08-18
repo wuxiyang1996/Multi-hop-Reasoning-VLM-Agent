@@ -27,6 +27,14 @@
 > 正确失败；unified harness 0/9 authorizations，保持 direct 5/9。见
 > [`AGQA2_FRAME_GROUNDER_V2_RESULTS.md`](AGQA2_FRAME_GROUNDER_V2_RESULTS.md)。
 
+> **AGQA active V13（2026-08-18）：** 后续已完成 source-controlled recurrent acquisition、
+> 三视图 consensus、calibrated execution 与 OR→CHOOSE answer-space parser。在排除 93 个既往或
+> aborted-preflight videos 后，V13 fresh reserve 得到 unified `7/9` vs direct `6/9`，`1W/0L`，
+> 并通过全部预注册 gate（成本 `$0.0846`）。这是 typed-applicability-closed 的小样本 natural-video
+> mechanism/success transfer；target-written equivalent 仍 9/9，因此不成立 source-provenance
+> necessity 或 broad AGQA claim。详见
+> [`AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V3_V8_RESULTS.md`](AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V3_V8_RESULTS.md)。
+
 ## 结论
 
 四条非视频 route 现在都在同一个 fail-closed authority architecture 下获得了

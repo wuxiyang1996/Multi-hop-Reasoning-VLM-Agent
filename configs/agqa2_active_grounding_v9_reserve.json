@@ -1,0 +1,215 @@
+{
+  "acquisition": {
+    "maximum_source_ir_rescans_per_recurrent_operand": 1,
+    "nonrecurrent_rescans": 0,
+    "receipt_selection": "OUTCOME_BLIND_LEXICOGRAPHIC_COVERAGE_OBSERVED_COUNT_CONFIDENCE",
+    "rescan_confidence_threshold": 0.7
+  },
+  "applicability_mode": "TARGET_OBSERVABILITY_PLUS_TYPED_EVIDENCE_V1",
+  "claim_boundary": "V9_DEVELOPMENT_QUALIFIED;12_NEW_VIDEO_DISJOINT_CANDIDATES;OUTCOME_BLIND_TYPED_EVIDENCE_SELECTS_3_PER_ROUTE;NOT_UNTOUCHED_METADATA",
+  "development_qualification_file_sha256": "52898441d00cc3cad434303ea2ae471ba0b7968b2719236f1b00d666fcd7df43",
+  "development_qualification_report": "docs/results/agqa2_active_grounding_v9_development_summary.json",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "minimum_duration_margin_frames": 3,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "expected_manifest_status": "FROZEN_V9_RAW_VIDEO_UNSEEN_BEFORE_V9_NEURAL_CALLS",
+  "expected_preregistration_status": "FROZEN_BEFORE_ANY_V9_RESERVE_NEURAL_CALL",
+  "grounder": {
+    "collector": "scripts/collect_agqa2_active_grounding_v3.py",
+    "collector_sha256": "dd583008ee1bff17f67d90a84c2b1eb487a544577dc8d62ff97814405473c1e3",
+    "executor": "src/motif_transfer/agqa_frame_grounder.py",
+    "executor_sha256": "b1e8745647669c5d58266e3e9ee1f5a93bd0bea1600bc9ea3baad18545825124",
+    "forbidden_fields": [
+      "answer",
+      "functional_program",
+      "sg_grounding",
+      "official_reasoning_labels",
+      "source_game_identity",
+      "answer_candidates",
+      "full_question_at_operand_grounder",
+      "competing_operand_at_operand_grounder"
+    ],
+    "module": "src/motif_transfer/agqa_active_frame_grounder.py",
+    "module_sha256": "fdf6d15110eb47cac61f052454f5d2e0204cefa80ab0c7b97d8fe04f4ab05cad",
+    "protocol": "TEXT_QUERY_PARSE_THEN_SOURCE_IR_CONTROLLED_OPERAND_ISOLATED_DENSE_GROUNDING_V3",
+    "visible_fields": [
+      "public_question_at_text_parser_only",
+      "one_requested_operand_per_visual_call",
+      "chronological_proxy_frames",
+      "frame_timestamps"
+    ]
+  },
+  "local_object_grounder": {
+    "confidence_threshold": 0.08,
+    "forbidden_fields": [
+      "question",
+      "answer",
+      "functional_program",
+      "answer_candidates",
+      "source_identity"
+    ],
+    "implementation": "opencv_zoo_yolox_s_int8_coco_v2022nov",
+    "maximum_interval_frames": 12,
+    "model_path": "/fs/gamma-projects/vlm-robot/datasets/models/opencv_yolox/object_detection_yolox_2022nov_int8.onnx",
+    "model_sha256": "01a3b0f400b30bc1e45230e991b2e499ab42622485a330021947333fbaf03935",
+    "module": "src/motif_transfer/agqa_local_object_grounder.py",
+    "module_sha256": "800475fed6dff07aac4055e23d162f152755f217ea91025e62f395a22ff9c852",
+    "nms_threshold": 0.5,
+    "visible_fields": [
+      "vlm_grounded_interval_frame_ids",
+      "rgb_frames"
+    ]
+  },
+  "manifest": "configs/agqa2_active_grounding_v9_reserve_manifest.json",
+  "manifest_file_sha256": "61a363542f8bc9ec738419f9ee5388982f6317d50cb740e1e1aafec2987e54a8",
+  "media": {
+    "dense_proxy_frame_count": 48,
+    "frames_per_panel": 6,
+    "jpeg_quality": 80,
+    "panel_frame_width": 192,
+    "proxy_frame_max_side": 512,
+    "rescan_frame_count": 16,
+    "rescan_frame_max_side": 640,
+    "rescan_frames_per_panel": 4,
+    "rescan_panel_frame_width": 280
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "development_model_history": [
+      {
+        "accepted_calls_persisted_and_included_in_cumulative_cost": true,
+        "id": "google/gemini-3-flash-preview",
+        "samples": 1,
+        "status": "REJECTED_FOR_PROJECTED_FULL_BATCH_COST_ABOVE_PREREGISTERED_CAP"
+      },
+      {
+        "accepted_calls_persisted_and_included_in_cumulative_cost": true,
+        "id": "google/gemini-2.5-flash-lite",
+        "samples": 1,
+        "status": "REJECTED_FOR_GENERIC_OBJECT_GROUNDING_AND_WRONG_MATCHED_DIRECT"
+      }
+    ],
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "nonrecurrent_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "parser_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "preregistration": "configs/agqa2_active_grounding_v9_reserve_preregistration.json",
+  "preregistration_file_sha256": "cf9bc1b56a3610c044cbc328f5b7c3501e80d9be3b964c636cb7c9c28a6712d4",
+  "qualification_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "query_parser_mode": "DETERMINISTIC_EXPLICIT_OPERAND_GRAMMAR_V1",
+  "report_version": "V9",
+  "rescan_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "runtime_selection": {
+    "candidate_count": 12,
+    "forbidden": [
+      "direct_response",
+      "answer",
+      "program",
+      "scene_graph"
+    ],
+    "mode": "OUTCOME_BLIND_TYPED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 3
+  },
+  "schema_version": "agqa2-active-grounding-reserve-config-v9",
+  "sources": {
+    "arcade_report": {
+      "file_sha256": "86c833250f3555c0548785eeea6373ef0430ee9c51fad314584213fbac92e121",
+      "path": "runs/phase3_source_function_v4_reserve/report.json"
+    },
+    "goal_relation": {
+      "artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+      "artifact_path": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+      "confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+      "confirmation_path": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json"
+    },
+    "temporal_pair": {
+      "artifact_file_sha256": "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/candy_crush.json",
+      "source_game": "candy_crush"
+    },
+    "temporal_single": {
+      "artifact_file_sha256": "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_columns.json",
+      "source_game": "gymv_columns"
+    }
+  },
+  "split": "reserve",
+  "status": "FROZEN_V9_FRESH_VIDEO_DISJOINT_RESERVE"
+}

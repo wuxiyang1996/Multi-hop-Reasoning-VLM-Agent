@@ -1,0 +1,62 @@
+{
+  "acquisition": {
+    "consensus_tiebreak_on_conflict": true,
+    "maximum_source_ir_rescans_per_recurrent_operand": 2,
+    "nonrecurrent_rescans": 0,
+    "receipt_selection": "THREE_VIEW_MAJORITY_ELSE_ABSTAIN",
+    "rescan_confidence_threshold": 0.7
+  },
+  "claim_boundary": "CONSUMED_V9_RESERVE_OUTCOMES_USED_FOR_V10_ADAPTATION;NO_CONFIRMATORY_CLAIM;EXACT_V9_POOL_WITH_CALIBRATED_SELECTOR",
+  "development_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "development_manifest": "configs/agqa2_active_grounding_v10_development_manifest.json",
+  "development_manifest_sha256": "8c94544af0a401d94c2678909141578379d6478365de1888630efd69a24eebe2",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "minimum_duration_margin_frames": 3,
+    "minimum_repeated_interval_dominance_margin_frames": 2,
+    "minimum_single_interval_nesting_margin_frames": 6,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "new_v10_topologies": [
+      "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING",
+      "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    ],
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "failure_policy": {
+    "development": "MUST_QUALIFY_WITHOUT_LOWERING_GATES",
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "DO_NOT_FREEZE_A_NEW_RESERVE_UNTIL_DEVELOPMENT_QUALIFIES"
+  },
+  "parent_v9_report_file_sha256": "06647b55a8314058159c02ada4f8bfb4d55073eda6fd78c87534bc363a57bf1c",
+  "runtime_selection": {
+    "candidate_count": 12,
+    "forbidden": [
+      "answer",
+      "program",
+      "scene_graph",
+      "source_identity"
+    ],
+    "mode": "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 3,
+    "reads_direct_response_only_inside_frozen_calibration": true
+  },
+  "schema_version": "agqa2-active-grounding-preregistration-v10-development",
+  "status": "FROZEN_BEFORE_ANY_V10_DEVELOPMENT_RUNTIME_RECEIPT"
+}

@@ -10,6 +10,7 @@ validated receipt after it freezes.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import re
 from typing import Any, Mapping, Sequence
 
 from .agqa_program_transfer import (
@@ -400,6 +401,281 @@ def _merged_duration(events: Sequence[AGQAEventObservation]) -> int | None:
     return sum(end - start + 1 for start, end in merged)
 
 
+def _normalized_answer(value: Any) -> str:
+    text = re.sub(r"[^a-z0-9]+", " ", str(value).casefold()).strip()
+    for prefix in ("the answer is ", "it is ", "they were ", "they are "):
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+    text = re.sub(r"^(?:a|an|the)\s+", "", text)
+    return {"true": "yes", "false": "no"}.get(text, text)
+
+
+def _answer_equivalent(left: Any, right: Any) -> bool:
+    first, second = _normalized_answer(left), _normalized_answer(right)
+    if first in {"yes", "no", "before", "after"}:
+        return bool(second) and second.split(maxsplit=1)[0] == first
+    if second in {"yes", "no", "before", "after"}:
+        return bool(first) and first.split(maxsplit=1)[0] == second
+    return bool(first) and first == second
+
+
+def _supported_events(
+    receipt: AGQAFrameGroundingReceipt, role: str, *, allow_partial: bool,
+) -> list[AGQAEventObservation]:
+    allowed = {"OBSERVED", "PARTIAL"} if allow_partial else {"OBSERVED"}
+    return [
+        event for event in receipt.events
+        if event.operand_role == role
+        and event.observability in allowed
+        and event.confidence >= 0.5
+        and event.start_frame is not None
+        and event.end_frame is not None
+        and bool(event.evidence_frames)
+    ]
+
+
+def _merged_intervals(
+    events: Sequence[AGQAEventObservation],
+) -> list[tuple[int, int]]:
+    intervals = sorted(
+        (int(event.start_frame), int(event.end_frame))
+        for event in events
+        if event.start_frame is not None and event.end_frame is not None
+    )
+    merged: list[list[int]] = []
+    for start, end in intervals:
+        if merged and start <= merged[-1][1] + 1:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return [(start, end) for start, end in merged]
+
+
+def _duration_decision_from_events(
+    receipt: AGQAFrameGroundingReceipt, *, allow_partial: bool,
+) -> tuple[str | None, dict[str, Any]]:
+    intervals = {
+        role: _merged_intervals(_supported_events(
+            receipt, role, allow_partial=allow_partial,
+        ))
+        for role in ("A", "B")
+    }
+    durations = {
+        role: sum(end - start + 1 for start, end in values)
+        for role, values in intervals.items()
+    }
+    if not intervals["A"] or not intervals["B"] or durations["A"] == durations["B"]:
+        return None, {"intervals": intervals, "durations": durations}
+    a_longer = durations["A"] > durations["B"]
+    if receipt.comparison in {"SELECT_LONGER", "SELECT_SHORTER"}:
+        choose_a = a_longer
+        if receipt.comparison == "SELECT_SHORTER":
+            choose_a = not choose_a
+        decision = receipt.operand_a if choose_a else receipt.operand_b
+    else:
+        proposition = a_longer
+        if receipt.comparison == "VERIFY_A_SHORTER":
+            proposition = not proposition
+        decision = "yes" if proposition else "no"
+    return decision, {"intervals": intervals, "durations": durations}
+
+
+def _typed_support_for_direct(
+    receipt: AGQAFrameGroundingReceipt, direct_response: str,
+) -> tuple[str | None, str]:
+    """Return a canonical direct decision only when pixels support its semantics."""
+
+    supported = {
+        role: _supported_events(receipt, role, allow_partial=True)
+        for role in ("A", "B")
+    }
+    if receipt.comparison == "BEFORE_AFTER":
+        starts = {
+            role: min((event.start_frame for event in rows), default=None)
+            for role, rows in supported.items()
+        }
+        if starts["A"] is not None and starts["B"] is not None:
+            if abs(int(starts["A"]) - int(starts["B"])) >= 3:
+                decision = "before" if starts["A"] < starts["B"] else "after"
+                if _answer_equivalent(decision, direct_response):
+                    return decision, "DIRECT_ORDER_CORROBORATED_BY_TYPED_INTERVALS"
+    elif receipt.comparison == "EXISTS":
+        if supported["A"] and _answer_equivalent("yes", direct_response):
+            return "yes", "DIRECT_EXISTS_CORROBORATED_BY_PIXEL_EVIDENCE"
+        if (
+            "RECURRENT_DOUBLE_SCAN_CONFIRMED_UNOBSERVED"
+            in receipt.canonicalizations
+            and _answer_equivalent("no", direct_response)
+        ):
+            return "no", "DIRECT_ABSENCE_CORROBORATED_BY_DOUBLE_SCAN"
+    elif receipt.comparison in {"QUERY_OBJECT", "CHOOSE_OBJECT"}:
+        objects = {
+            _normalized_answer(event.object) for event in supported["A"] + supported["B"]
+            if _normalized_answer(event.object)
+            not in {"object", "unknown", "unknown object", "item", "thing"}
+        }
+        candidates = (
+            {_normalized_answer(receipt.operand_a), _normalized_answer(receipt.operand_b)}
+            if receipt.comparison == "CHOOSE_OBJECT" else objects
+        )
+        supported_candidates = objects & candidates
+        if len(supported_candidates) == 1:
+            decision = supported_candidates.pop()
+            if _answer_equivalent(decision, direct_response):
+                return decision, "DIRECT_OBJECT_CORROBORATED_BY_TYPED_RELATION"
+    elif receipt.obligation_kind == TEMPORAL_SINGLE_ROUTE:
+        decision, _ = _duration_decision_from_events(receipt, allow_partial=True)
+        if decision is not None and _answer_equivalent(decision, direct_response):
+            return decision, "DIRECT_DURATION_CORROBORATED_BY_TYPED_INTERVALS"
+    return None, "DIRECT_RESPONSE_LACKS_TYPED_CORROBORATION"
+
+
+def calibrate_grounding_execution(
+    receipt: AGQAFrameGroundingReceipt, raw_execution: Mapping[str, Any],
+    direct_response: str, *, minimum_duration_margin_frames: int = 3,
+    minimum_single_interval_nesting_margin_frames: int = 6,
+    minimum_repeated_interval_dominance_margin_frames: int = 2,
+) -> dict[str, Any]:
+    """Fuse two frozen target-native views without labels or benchmark programs.
+
+    Agreement can authorize a decision but cannot improve over the direct view.
+    A contradictory typed decision may override direct only when its symbolic
+    evidence has an independent topology: local object corroboration, recurrent
+    double-scan agreement, or a one-versus-multiple duration structure.
+    """
+
+    raw_decision = raw_execution.get("decision")
+    decision: str | None = None
+    reason = "CALIBRATED_ABSTAIN"
+    authorization_class = "ABSTAIN"
+    if raw_decision is not None and _answer_equivalent(raw_decision, direct_response):
+        decision = str(raw_decision)
+        reason = "TYPED_AND_DIRECT_AGREE"
+        authorization_class = "AGREEMENT"
+    elif raw_decision is None:
+        decision, reason = _typed_support_for_direct(receipt, direct_response)
+        if decision is not None:
+            authorization_class = "DIRECT_CORROBORATED_BY_TYPED_EVIDENCE"
+    else:
+        markers = receipt.canonicalizations
+        override_reason = None
+        if receipt.comparison in {"QUERY_OBJECT", "CHOOSE_OBJECT"} and any(
+            "PLUS_COCO" in marker
+            or marker.startswith("RECURRENT_DOUBLE_SCAN_OBJECT_AGREEMENT:")
+            for marker in markers
+        ):
+            override_reason = "OBJECT_OVERRIDE_WITH_INDEPENDENT_CORROBORATION"
+        elif receipt.comparison == "EXISTS" and any(
+            marker in {
+                "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+                "RECURRENT_DOUBLE_SCAN_CONFIRMED_UNOBSERVED",
+            }
+            for marker in markers
+        ):
+            override_reason = "EXISTS_OVERRIDE_WITH_RECURRENT_AGREEMENT"
+        elif receipt.comparison == "BEFORE_AFTER" and all(
+            f"RECURRENT_{role}_DOUBLE_SCAN_CONFIRMED_OBSERVED" in markers
+            for role in ("A", "B")
+        ):
+            events_a = _supported_events(receipt, "A", allow_partial=False)
+            events_b = _supported_events(receipt, "B", allow_partial=False)
+            if events_a and events_b:
+                start_a = min(int(event.start_frame) for event in events_a)
+                start_b = min(int(event.start_frame) for event in events_b)
+                if abs(start_a - start_b) >= 3:
+                    override_reason = "ORDER_OVERRIDE_WITH_DUAL_RECURRENT_AGREEMENT"
+        elif receipt.obligation_kind == TEMPORAL_SINGLE_ROUTE:
+            typed_decision, topology = _duration_decision_from_events(
+                receipt, allow_partial=False,
+            )
+            interval_counts = {
+                role: len(topology["intervals"][role]) for role in ("A", "B")
+            }
+            margin = abs(topology["durations"]["A"] - topology["durations"]["B"])
+            topology_reason = None
+            if (
+                typed_decision is not None
+                and _answer_equivalent(raw_decision, typed_decision)
+                and sorted(interval_counts.values())[0] == 1
+                and sorted(interval_counts.values())[1] >= 2
+                and margin >= minimum_duration_margin_frames
+            ):
+                topology_reason = "ONE_VS_MULTIPLE_TOPOLOGY"
+            elif typed_decision is not None and _answer_equivalent(
+                raw_decision, typed_decision,
+            ) and interval_counts == {"A": 1, "B": 1}:
+                interval_a = topology["intervals"]["A"][0]
+                interval_b = topology["intervals"]["B"][0]
+                a_contains_b = (
+                    interval_a[0] <= interval_b[0]
+                    and interval_a[1] >= interval_b[1]
+                )
+                b_contains_a = (
+                    interval_b[0] <= interval_a[0]
+                    and interval_b[1] >= interval_a[1]
+                )
+                boundary_aligned = (
+                    abs(interval_a[0] - interval_b[0]) <= 1
+                    or abs(interval_a[1] - interval_b[1]) <= 1
+                )
+                if (
+                    a_contains_b != b_contains_a
+                    and boundary_aligned
+                    and margin >= minimum_single_interval_nesting_margin_frames
+                ):
+                    topology_reason = "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING"
+            elif (
+                typed_decision is not None
+                and _answer_equivalent(raw_decision, typed_decision)
+                and interval_counts["A"] == interval_counts["B"]
+                and interval_counts["A"] >= 2
+            ):
+                intervals_a = topology["intervals"]["A"]
+                intervals_b = topology["intervals"]["B"]
+                a_dominates = all(
+                    a_start <= b_start and a_end >= b_end
+                    for (a_start, a_end), (b_start, b_end)
+                    in zip(intervals_a, intervals_b)
+                )
+                b_dominates = all(
+                    b_start <= a_start and b_end >= a_end
+                    for (a_start, a_end), (b_start, b_end)
+                    in zip(intervals_a, intervals_b)
+                )
+                if (
+                    a_dominates != b_dominates
+                    and margin >= minimum_repeated_interval_dominance_margin_frames
+                ):
+                    topology_reason = "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+            if topology_reason is not None:
+                override_reason = f"DURATION_OVERRIDE_WITH_{topology_reason}"
+        if override_reason is not None:
+            decision = str(raw_decision)
+            reason = override_reason
+            authorization_class = "SOURCE_TYPED_OVERRIDE"
+
+    body = {
+        "schema_version": "agqa-calibrated-target-native-execution-v1",
+        "status": "CALIBRATED_DECISION" if decision is not None else "ABSTAIN",
+        "decision": decision,
+        "reason": reason,
+        "authorization_class": authorization_class,
+        "authorized": decision is not None,
+        "changes_direct_response": (
+            decision is not None and not _answer_equivalent(decision, direct_response)
+        ),
+        "grounding_receipt_sha256": receipt.receipt_sha256,
+        "raw_execution_sha256": raw_execution.get("execution_sha256"),
+        "direct_response_sha256": stable_hash(direct_response),
+        "direct_response_read": True,
+        "functional_program_read": False,
+        "official_answer_read": False,
+        "scene_graph_grounding_read": False,
+        "source_identity_read": False,
+    }
+    return body | {"execution_sha256": stable_hash(body)}
+
+
 def execute_grounding_receipt(
     receipt: AGQAFrameGroundingReceipt,
 ) -> dict[str, Any]:
@@ -498,7 +774,8 @@ def execute_grounding_receipt(
 __all__ = [
     "AGQAEventObservation", "AGQAFrameGroundingReceipt", "COMPARISONS",
     "FORBIDDEN_RECEIPT_KEYS", "GROUNDING_KINDS", "OBSERVABILITY",
-    "OPERAND_ROLES", "TARGET_INTERFACE", "execute_grounding_receipt",
+    "OPERAND_ROLES", "TARGET_INTERFACE", "calibrate_grounding_execution",
+    "execute_grounding_receipt",
     "parse_frame_grounding_receipt", "select_source_for_grounding",
     "target_requirement_from_grounding",
 ]

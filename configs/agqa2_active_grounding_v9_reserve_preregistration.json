@@ -1,0 +1,50 @@
+{
+  "claim_boundary": "V9_DEVELOPMENT_QUALIFIED;12_NEW_VIDEO_DISJOINT_CANDIDATES;OUTCOME_BLIND_TYPED_EVIDENCE_SELECTS_3_PER_ROUTE;NOT_UNTOUCHED_METADATA",
+  "development_qualification_summary": "docs/results/agqa2_active_grounding_v9_development_summary.json",
+  "development_qualification_summary_file_sha256": "52898441d00cc3cad434303ea2ae471ba0b7968b2719236f1b00d666fcd7df43",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "minimum_duration_margin_frames": 3,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "failure_policy": {
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "RUN_ONCE_ON_FROZEN_V9_POOL;NO_POST_RESERVE_TUNING"
+  },
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "reserve_manifest": "configs/agqa2_active_grounding_v9_reserve_manifest.json",
+  "reserve_manifest_sha256": "ff97e724eabd8d60239655c27d3ef6c9756a751fab0441dce99f7c9dc8f2119c",
+  "reserve_selection": "configs/agqa2_active_grounding_v9_reserve_selection.json",
+  "reserve_selection_sha256": "14788ca0c841b4d807c84f1519f745499fe0de315eb5cbc3b89ca61965e83042",
+  "runtime_selection": {
+    "candidate_count": 12,
+    "forbidden": [
+      "direct_response",
+      "answer",
+      "program",
+      "scene_graph"
+    ],
+    "mode": "OUTCOME_BLIND_TYPED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 3
+  },
+  "schema_version": "agqa2-active-grounding-preregistration-v9-reserve",
+  "status": "FROZEN_BEFORE_ANY_V9_RESERVE_NEURAL_CALL"
+}

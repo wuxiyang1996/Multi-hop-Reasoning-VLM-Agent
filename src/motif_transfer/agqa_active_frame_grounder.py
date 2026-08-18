@@ -10,6 +10,7 @@ answers, programs, scene graphs, or source-game identity to a neural prompt.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from collections import Counter
 import math
 import re
 from typing import Any, Mapping, Sequence
@@ -240,6 +241,14 @@ def _visible_event_phrase(value: str) -> str:
     return first + ((" " + words[1]) if len(words) == 2 else "")
 
 
+def _canonical_object_candidate(value: str) -> str:
+    """Normalize only surface form when matching a grounded object candidate."""
+
+    candidate = re.sub(r"[^a-z0-9 ]+", " ", value.casefold())
+    candidate = re.sub(r"\s+", " ", candidate).strip()
+    return re.sub(r"^(?:a|an|the)\s+", "", candidate)
+
+
 def _safe_public_plan(payload: Mapping[str, Any]) -> AGQAQueryPlan | None:
     try:
         return parse_query_plan(payload)
@@ -366,6 +375,37 @@ def parse_public_question_plan(question: str) -> AGQAQueryPlan | None:
             "visual_query_b": "",
             "parser_uncertainties": [],
         })
+
+    # AGQA also renders object-choice questions as a surface yes/no clause,
+    # while its public answer space is the two mentioned objects.  Parse that
+    # answer space before the generic EXISTS rule.  The explicit determiners
+    # make this deliberately narrower than arbitrary disjunctive actions.
+    match = re.match(
+        r"^(?:in the video, )?(?:was|were|did) (?:the person|they) "
+        r"(.+) or ((?:a|an|the) .+)$",
+        lower,
+    )
+    if match:
+        left = match.group(1)
+        candidate_starts = list(re.finditer(r"\b(?:a|an|the)\s+", left))
+        if candidate_starts:
+            candidate_start = candidate_starts[-1].start()
+            relation = _visible_event_phrase(left[:candidate_start])
+            candidate_a = _canonical_object_candidate(left[candidate_start:])
+            candidate_b = _canonical_object_candidate(match.group(2))
+            # AGQA's public ``A or B`` relation template has a candidate-valued
+            # Choose program. Boolean compounds use a distinct ``but not``
+            # surface form, so this grammar is relation-independent.
+            if relation and candidate_a and candidate_b:
+                return _safe_public_plan({
+                    "obligation_kind": RELATION_ROUTE,
+                    "comparison": "CHOOSE_OBJECT",
+                    "operand_a": candidate_a,
+                    "operand_b": candidate_b,
+                    "visual_query_a": f"a person {relation} an unknown object",
+                    "visual_query_b": "",
+                    "parser_uncertainties": [],
+                })
 
     match = re.match(
         r"^(?:in the video, )?(?:was|were|did) (?:the person|they) (.+)$",
@@ -629,7 +669,9 @@ def source_controller_for_plan(
         "obligation_kind": plan.obligation_kind,
         "required_operands": expected[3],
         "recurrent": source.recurrent,
-        "maximum_rescans_per_operand": 1 if source.recurrent else 0,
+        # A recurrent source program denotes acquisition-to-consensus.  Two
+        # rescans permit an odd three-view vote when the first two disagree.
+        "maximum_rescans_per_operand": 2 if source.recurrent else 0,
         "anonymous_source_contract_sha256": source.contract_sha256,
         "anonymous_source_program_sha256": source.program_sha256,
     }
@@ -786,7 +828,39 @@ def reconcile_recurrent_receipts(
 
     primary_observed, rescan_observed = observed(primary), observed(rescan)
     if primary_observed and rescan_observed:
-        return choose_operand_receipt(primary, rescan)
+        grounded = choose_operand_receipt(primary, rescan)
+        primary_objects = {
+            _canonical_object_candidate(row.object)
+            for row in primary.observations
+            if row.observability == "OBSERVED" and row.object.strip()
+        }
+        rescan_objects = {
+            _canonical_object_candidate(row.object)
+            for row in rescan.observations
+            if row.observability == "OBSERVED" and row.object.strip()
+        }
+        object_agreement = sorted(primary_objects & rescan_objects)
+        markers = list(grounded.canonicalizations) + [
+            "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+            f"RECURRENT_{grounded.operand_role}_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+        ] + [
+            f"RECURRENT_DOUBLE_SCAN_OBJECT_AGREEMENT:{value}"
+            for value in object_agreement
+        ]
+        payload = {
+            "operand_role": grounded.operand_role,
+            "requested_operand": grounded.requested_operand,
+            "observations": [row.as_dict() for row in grounded.observations],
+            "coverage": grounded.coverage,
+            "uncertainties": list(grounded.uncertainties),
+            "canonicalizations": list(dict.fromkeys(markers)),
+        }
+        return parse_operand_receipt(
+            payload,
+            expected_role=grounded.operand_role,
+            expected_operand=grounded.requested_operand,
+            frame_count=grounded.frame_count,
+        )
 
     if primary_observed != rescan_observed:
         grounded = primary if primary_observed else rescan
@@ -836,6 +910,94 @@ def reconcile_recurrent_receipts(
     return choose_operand_receipt(primary, rescan)
 
 
+def reconcile_recurrent_consensus(
+    primary: AGQAOperandReceipt, rescan: AGQAOperandReceipt | None,
+    tiebreak: AGQAOperandReceipt | None,
+) -> AGQAOperandReceipt:
+    """Resolve a recurrent 1-1 conflict only through a third isolated view."""
+
+    if tiebreak is None:
+        return reconcile_recurrent_receipts(primary, rescan)
+    if rescan is None:
+        raise ValueError("a recurrent tiebreak requires an earlier rescan")
+    receipts = (primary, rescan, tiebreak)
+
+    def is_observed(receipt: AGQAOperandReceipt) -> bool:
+        return any(
+            row.observability == "OBSERVED"
+            and row.confidence >= 0.5
+            and bool(row.evidence_frames)
+            for row in receipt.observations
+        )
+
+    def is_unobserved(receipt: AGQAOperandReceipt) -> bool:
+        return bool(receipt.observations) and all(
+            row.observability == "UNOBSERVED" for row in receipt.observations
+        )
+
+    observed_receipts = [receipt for receipt in receipts if is_observed(receipt)]
+    unobserved_receipts = [receipt for receipt in receipts if is_unobserved(receipt)]
+    if len(observed_receipts) >= 2:
+        grounded = observed_receipts[0]
+        for candidate in observed_receipts[1:]:
+            grounded = choose_operand_receipt(grounded, candidate)
+        object_votes = Counter(
+            _canonical_object_candidate(row.object)
+            for receipt in observed_receipts
+            for row in receipt.observations
+            if row.observability == "OBSERVED" and row.object.strip()
+        )
+        agreed_objects = sorted(
+            value for value, count in object_votes.items() if count >= 2
+        )
+        markers = list(grounded.canonicalizations) + [
+            "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+            f"RECURRENT_{grounded.operand_role}_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+            "RECURRENT_THREE_VIEW_MAJORITY_CONFIRMED_OBSERVED",
+        ] + [
+            f"RECURRENT_DOUBLE_SCAN_OBJECT_AGREEMENT:{value}"
+            for value in agreed_objects
+        ]
+        payload = {
+            "operand_role": grounded.operand_role,
+            "requested_operand": grounded.requested_operand,
+            "observations": [row.as_dict() for row in grounded.observations],
+            "coverage": grounded.coverage,
+            "uncertainties": list(grounded.uncertainties),
+            "canonicalizations": list(dict.fromkeys(markers)),
+        }
+        return parse_operand_receipt(
+            payload, expected_role=grounded.operand_role,
+            expected_operand=grounded.requested_operand,
+            frame_count=grounded.frame_count,
+        )
+    if len(unobserved_receipts) >= 2:
+        grounded = unobserved_receipts[0]
+        for candidate in unobserved_receipts[1:]:
+            grounded = choose_operand_receipt(grounded, candidate)
+        payload = {
+            "operand_role": grounded.operand_role,
+            "requested_operand": grounded.requested_operand,
+            "observations": [row.as_dict() for row in grounded.observations],
+            "coverage": "SUFFICIENT",
+            "uncertainties": list(grounded.uncertainties),
+            "canonicalizations": list(dict.fromkeys(
+                list(grounded.canonicalizations) + [
+                    "RECURRENT_DOUBLE_SCAN_CONFIRMED_UNOBSERVED",
+                    "RECURRENT_THREE_VIEW_MAJORITY_CONFIRMED_UNOBSERVED",
+                ]
+            )),
+        }
+        return parse_operand_receipt(
+            payload, expected_role=grounded.operand_role,
+            expected_operand=grounded.requested_operand,
+            frame_count=grounded.frame_count,
+        )
+    # A third uncertain view has not created a majority.  Preserve the
+    # original fail-closed conflict rather than selecting the best-looking row.
+    return reconcile_recurrent_receipts(primary, rescan)
+
+
 def merge_operand_receipts(
     plan: AGQAQueryPlan, *, operand_a: AGQAOperandReceipt,
     operand_b: AGQAOperandReceipt | None, frame_count: int,
@@ -868,9 +1030,9 @@ def merge_operand_receipts(
             observability = observation.observability
             role = receipt.operand_role
             if plan.comparison == "CHOOSE_OBJECT":
-                grounded = observation.object.strip().casefold()
-                candidate_a = plan.operand_a.strip().casefold()
-                candidate_b = plan.operand_b.strip().casefold()
+                grounded = _canonical_object_candidate(observation.object)
+                candidate_a = _canonical_object_candidate(plan.operand_a)
+                candidate_b = _canonical_object_candidate(plan.operand_b)
                 if grounded == candidate_a and grounded != candidate_b:
                     role = "A"
                 elif grounded == candidate_b and grounded != candidate_a:
@@ -933,7 +1095,8 @@ __all__ = [
     "AGQASourceAcquisitionController", "TARGET_INTERFACE",
     "choose_operand_receipt", "merge_operand_receipts", "operand_needs_rescan",
     "parse_operand_receipt", "parse_public_question_plan", "parse_query_plan",
-    "reconcile_recurrent_receipts", "recurrent_rescan_window",
+    "reconcile_recurrent_consensus", "reconcile_recurrent_receipts",
+    "recurrent_rescan_window",
     "remap_operand_receipt", "source_controller_for_plan",
     "specific_object_grounded",
 ]

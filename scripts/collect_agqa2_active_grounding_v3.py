@@ -35,12 +35,14 @@ from motif_transfer.agqa_active_frame_grounder import (  # noqa: E402
     parse_operand_receipt,
     parse_public_question_plan,
     parse_query_plan,
+    reconcile_recurrent_consensus,
     reconcile_recurrent_receipts,
     recurrent_rescan_window,
     remap_operand_receipt,
     source_controller_for_plan,
 )
 from motif_transfer.agqa_frame_grounder import (  # noqa: E402
+    calibrate_grounding_execution,
     execute_grounding_receipt,
     parse_frame_grounding_receipt,
     select_source_for_grounding,
@@ -566,6 +568,7 @@ def _collect_runtime(
     model, media = config["model"], config["media"]
     parser_model = config.get("parser_model", model)
     rescan_model = config.get("rescan_model", model)
+    tiebreak_model = config.get("tiebreak_model", rescan_model)
     nonrecurrent_model = config.get("nonrecurrent_model", model)
     dense_frames, dense_seconds, metadata = _sample_video_range(
         video_path, frame_count=int(media["dense_proxy_frame_count"]),
@@ -623,6 +626,9 @@ def _collect_runtime(
         rescan = None
         rescan_attempts: list[dict[str, Any]] = []
         rescan_metadata = None
+        tiebreak = None
+        tiebreak_attempts: list[dict[str, Any]] = []
+        tiebreak_metadata = None
         if operand_needs_rescan(
             primary, controller=controller,
             confidence_threshold=float(config["acquisition"]["rescan_confidence_threshold"]),
@@ -658,6 +664,43 @@ def _collect_runtime(
             if controller.recurrent
             else choose_operand_receipt(primary, rescan)
         )
+        conflict = any(
+            "RECURRENT_OBSERVABILITY_CONFLICT" in marker
+            for marker in selected_receipt.canonicalizations
+        )
+        if (
+            controller.recurrent
+            and conflict
+            and bool(config["acquisition"].get("consensus_tiebreak_on_conflict"))
+        ):
+            if controller.maximum_rescans_per_operand < 2:
+                raise ValueError("source controller cannot authorize a tiebreak rescan")
+            tiebreak_frames, tiebreak_seconds, tiebreak_metadata = _sample_video_range(
+                video_path,
+                frame_count=int(media["tiebreak_frame_count"]),
+                max_side=int(media["tiebreak_frame_max_side"]),
+            )
+            tiebreak_panels = _panels(
+                tiebreak_frames, tiebreak_seconds,
+                frames_per_panel=int(media["tiebreak_frames_per_panel"]),
+                frame_width=int(media["tiebreak_panel_frame_width"]),
+                quality=int(media["jpeg_quality"]),
+            )
+            local_tiebreak, tiebreak_attempts = _operand_call(
+                client, role=role, requested_operand=requested,
+                panels=tiebreak_panels,
+                frame_count=len(tiebreak_frames),
+                mode=_mode(plan) + "_RECURRENT_CONSENSUS_TIEBREAK",
+                model=tiebreak_model, cache_dir=task_cache,
+                call_prefix=f"operand_{role}_tiebreak",
+            )
+            tiebreak = remap_operand_receipt(
+                local_tiebreak, local_seconds=tiebreak_seconds,
+                global_seconds=dense_seconds,
+            )
+            selected_receipt = reconcile_recurrent_consensus(
+                primary, rescan, tiebreak,
+            )
         local_object_receipt = None
         local_object_canonicalizations: tuple[str, ...] = ()
         if plan.comparison == "QUERY_OBJECT":
@@ -688,6 +731,12 @@ def _collect_runtime(
             "rescan_receipt_global_timeline": rescan.as_dict() if rescan else None,
             "rescan_attempts": rescan_attempts,
             "rescan_video_metadata": rescan_metadata,
+            "tiebreak_triggered": tiebreak is not None,
+            "tiebreak_receipt_global_timeline": (
+                tiebreak.as_dict() if tiebreak else None
+            ),
+            "tiebreak_attempts": tiebreak_attempts,
+            "tiebreak_video_metadata": tiebreak_metadata,
             "chosen_receipt_sha256": chosen[role].receipt_sha256,
             "local_object_grounding_receipt": (
                 local_object_receipt.as_dict() if local_object_receipt else None
@@ -711,6 +760,27 @@ def _collect_runtime(
         client, question=str(sample["question"]), panels=dense_panels,
         model=model, cache_dir=task_cache,
     )
+    calibration_spec = config.get("execution_calibration")
+    calibrated_execution = None
+    if calibration_spec:
+        if calibration_spec.get("mode") != "INDEPENDENT_TARGET_EVIDENCE_V1":
+            raise ValueError("unsupported AGQA execution-calibration mode")
+        calibrated_execution = calibrate_grounding_execution(
+            receipt, execution, direct,
+            minimum_duration_margin_frames=int(
+                calibration_spec["minimum_duration_margin_frames"]
+            ),
+            minimum_single_interval_nesting_margin_frames=int(
+                calibration_spec.get(
+                    "minimum_single_interval_nesting_margin_frames", 6,
+                )
+            ),
+            minimum_repeated_interval_dominance_margin_frames=int(
+                calibration_spec.get(
+                    "minimum_repeated_interval_dominance_margin_frames", 2,
+                )
+            ),
+        )
     body = {
         "task_id": str(sample["task_id"]), "video_id": str(sample["video_id"]),
         "question_sha256": stable_hash(str(sample["question"])),
@@ -722,6 +792,7 @@ def _collect_runtime(
         "operand_runs": operand_runs,
         "grounding_receipt": receipt.as_dict(),
         "target_native_execution": execution,
+        "calibrated_target_native_execution": calibrated_execution,
         "prequalification_source_selection": prequalification,
         "source_permuted_wrong_type_abstained": wrong_source_abstained,
         "target_written_equivalent_dynamics_match": target_written_match,
@@ -736,6 +807,9 @@ def _collect_runtime(
         "operand_grounder_question_read": False,
         "operand_grounder_competing_operand_read": False,
         "direct_call_started_after_typed_receipt_froze": True,
+        "calibration_started_after_typed_and_direct_receipts_froze": bool(
+            calibration_spec
+        ),
         "grounder_sha256": grounder_sha256,
     }
     return body | {"runtime_receipt_sha256": stable_hash(body)}
@@ -779,6 +853,7 @@ def _usage_rows(runtime: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     for operand in runtime["operand_runs"].values():
         rows.extend(x["usage"] for x in operand["primary_attempts"])
         rows.extend(x["usage"] for x in operand["rescan_attempts"])
+        rows.extend(x["usage"] for x in operand.get("tiebreak_attempts", []))
     rows.append(runtime["direct_usage"])
     return [row for row in rows if not row.get("local_non_provider_call")]
 
@@ -798,7 +873,9 @@ def _cumulative_cache_usage(cache_root: Path) -> list[Mapping[str, Any]]:
     return usage
 
 
-def _runtime_applicability_score(runtime: Mapping[str, Any]) -> tuple[float, ...]:
+def _runtime_applicability_score(
+    runtime: Mapping[str, Any], *, mode: str,
+) -> tuple[float, ...]:
     """Score typed evidence without reading direct responses or annotations."""
 
     receipt = runtime["grounding_receipt"]
@@ -850,7 +927,21 @@ def _runtime_applicability_score(runtime: Mapping[str, Any]) -> tuple[float, ...
             "RECURRENT_DOUBLE_SCAN_CONFIRMED_UNOBSERVED"
             in receipt.get("canonicalizations", [])
         ) else float(bool(observed))
+    calibration_rank = 0.0
+    if mode == "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1":
+        authorization = (
+            runtime.get("calibrated_target_native_execution") or {}
+        ).get("authorization_class")
+        calibration_rank = {
+            "SOURCE_TYPED_OVERRIDE": 3.0,
+            "AGREEMENT": 2.0,
+            "DIRECT_CORROBORATED_BY_TYPED_EVIDENCE": 1.0,
+            "ABSTAIN": 0.0,
+        }.get(str(authorization), 0.0)
+    elif mode != "OUTCOME_BLIND_TYPED_EVIDENCE_RANK_V1":
+        raise ValueError("unsupported AGQA runtime-selection mode")
     return (
+        calibration_rank,
         float(decision), float(not conflict), structural_margin,
         minimum_confidence,
     )
@@ -859,6 +950,7 @@ def _runtime_applicability_score(runtime: Mapping[str, Any]) -> tuple[float, ...
 def _select_runtime_rows(
     frozen_rows: Sequence[Mapping[str, Any]],
     runtime_rows: Mapping[str, Mapping[str, Any]], *, per_route: int,
+    mode: str,
 ) -> tuple[list[Mapping[str, Any]], dict[str, Any]]:
     """Freeze top evidence-qualified rows per predicted route before evaluation."""
 
@@ -870,7 +962,7 @@ def _select_runtime_rows(
         task_id = str(frozen["task_id"])
         runtime = runtime_rows[task_id]
         route = str(runtime["query_plan"]["obligation_kind"])
-        score = _runtime_applicability_score(runtime)
+        score = _runtime_applicability_score(runtime, mode=mode)
         scores[task_id] = list(score)
         grouped.setdefault(route, []).append((score, stable_hash(task_id), frozen))
     selected = []
@@ -884,12 +976,12 @@ def _select_runtime_rows(
         selected.extend(item[2] for item in ranked[:per_route])
     selected.sort(key=lambda row: str(row["task_id"]))
     core = {
-        "mode": "OUTCOME_BLIND_TYPED_EVIDENCE_RANK_V1",
+        "mode": mode,
         "per_predicted_route": per_route,
         "candidate_count": len(frozen_rows),
         "selected_task_ids": sorted(str(row["task_id"]) for row in selected),
         "scores_by_task_id": scores,
-        "direct_response_read": False,
+        "direct_response_read": mode == "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
         "official_answer_read": False,
         "official_program_read_by_selector": False,
         "official_scene_graph_read": False,
@@ -959,11 +1051,15 @@ def collect(
         "query_parser_mode": config.get("query_parser_mode", "NEURAL_JSON_V3"),
         "applicability_mode": config.get("applicability_mode", "ALL_ROUTED_TASKS"),
         "runtime_selection": config.get("runtime_selection"),
+        "execution_calibration": config.get("execution_calibration"),
         "grounder_module_sha256": config["grounder"]["module_sha256"],
         "grounder_collector_sha256": config["grounder"]["collector_sha256"],
         "grounder_executor_sha256": config["grounder"].get("executor_sha256"),
         "parser_model": config.get("parser_model", config["model"]),
         "rescan_model": config.get("rescan_model", config["model"]),
+        "tiebreak_model": config.get(
+            "tiebreak_model", config.get("rescan_model", config["model"]),
+        ),
         "nonrecurrent_model": config.get("nonrecurrent_model", config["model"]),
         "local_object_grounder": config["local_object_grounder"],
         "model": config["model"], "media": config["media"],
@@ -1046,6 +1142,7 @@ def collect(
         evaluation_frozen_rows, runtime_selection_receipt = _select_runtime_rows(
             frozen_rows, runtime_rows,
             per_route=int(config["runtime_selection"]["per_predicted_route"]),
+            mode=str(config["runtime_selection"]["mode"]),
         )
 
     # Evaluator-only access begins after every runtime receipt and optional
@@ -1060,7 +1157,11 @@ def collect(
             raise ValueError(f"functional-program hash mismatch: {task_id}")
         oracle_route = profile_program(task_id=task_id, program=program).route_kind
         gold = str(target["answer"])
-        decision = runtime["target_native_execution"]["decision"]
+        raw_decision = runtime["target_native_execution"]["decision"]
+        calibrated = runtime.get("calibrated_target_native_execution")
+        decision = (
+            calibrated["decision"] if calibrated is not None else raw_decision
+        )
         direct = runtime["direct_response"]
         decisive = decision is not None
         typed_prediction = decision if decisive else direct
@@ -1071,6 +1172,11 @@ def collect(
                 runtime["query_plan"]["obligation_kind"] == oracle_route
             ),
             "decisive_execution": decisive,
+            "raw_typed_decisive_execution": raw_decision is not None,
+            "calibrated_authorization_class": (
+                calibrated["authorization_class"] if calibrated is not None
+                else "LEGACY_RAW_TYPED_EXECUTION"
+            ),
             "decisive_correct": _answer_matches(decision, gold) if decisive else None,
             "direct_correct": _answer_matches(direct, gold),
             "typed_fallback_prediction": typed_prediction,
@@ -1140,12 +1246,20 @@ def collect(
         row["postqualification_source_selection"] = selection
         authorized = (
             selection["selected_program_sha256"] is not None
-            and row["target_native_execution"]["decision"] is not None
+            and (
+                row["calibrated_target_native_execution"]["decision"]
+                if row.get("calibrated_target_native_execution") is not None
+                else row["target_native_execution"]["decision"]
+            ) is not None
         )
         row["unified_harness_executor_authorized"] = authorized
+        harness_decision = (
+            row["calibrated_target_native_execution"]["decision"]
+            if row.get("calibrated_target_native_execution") is not None
+            else row["target_native_execution"]["decision"]
+        )
         row["unified_harness_prediction"] = (
-            row["target_native_execution"]["decision"] if authorized
-            else row["direct_response"]
+            harness_decision if authorized else row["direct_response"]
         )
         row["unified_harness_correct"] = _answer_matches(
             row["unified_harness_prediction"], row["gold_answer_evaluator_only"],
@@ -1182,17 +1296,28 @@ def collect(
             "valid_runtime_rows": valid, "route_correct": route_correct,
             "route_accuracy": route_correct / valid if valid else 0,
             "decisive_executions": len(decisive_rows),
+            "raw_typed_decisive_executions": sum(
+                row["raw_typed_decisive_execution"] for row in evaluated
+            ),
             "decisive_coverage": len(decisive_rows) / valid if valid else 0,
             "decisive_correct": decisive_correct,
             "decisive_accuracy": decisive_correct / len(decisive_rows) if decisive_rows else 0,
             "direct_correct": direct_correct,
             "typed_fallback_correct": typed_correct,
             "typed_vs_direct_wins": wins, "typed_vs_direct_losses": losses,
+            "source_typed_overrides": sum(
+                row["calibrated_authorization_class"] == "SOURCE_TYPED_OVERRIDE"
+                for row in evaluated
+            ),
             "unified_harness_executor_authorizations": unified_authorized,
             "unified_harness_correct": unified_correct,
             "unified_harness_vs_direct_delta": unified_correct - direct_correct,
             "rescans_triggered": sum(
                 operand["rescan_triggered"] for row in evaluated
+                for operand in row["operand_runs"].values()
+            ),
+            "consensus_tiebreaks_triggered": sum(
+                operand.get("tiebreak_triggered", False) for row in evaluated
                 for operand in row["operand_runs"].values()
             ),
         },

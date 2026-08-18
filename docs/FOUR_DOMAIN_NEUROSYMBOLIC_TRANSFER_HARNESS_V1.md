@@ -94,7 +94,11 @@ positive.
 - The learned cross-game latent ontology failed fresh confirmation. This is evidence against replacing target-native grounding with one pooled universal ontology in the current implementation.
 - DiscoveryWorld V22 Normal had zero eligible forks. The later source-blind acquisition reached a usable interface, but the consumed matched diagnosis produced negative transfer because `same_location` could not represent `beside`; a fresh Normal reserve was deliberately not opened.
 - The broad four-family TIR effect V7 qualification remains failed. Maze and rotation are two separate executable programs. The rotation result does not establish source-provenance necessity because a target-written isomorphic controller tied authentic transfer.
-- CLEVRER is the only validated video route. It uses a synthetic event graph; STAR, NExT-QA, Video-Holmes, and broad natural-video transfer remain unsupported.
+- CLEVRER remains the large validated synthetic-video route. AGQA V13 now adds a
+  small typed-applicability-closed natural-video confirmation (`7/9` vs `6/9`,
+  `1W/0L`) using recurrent consensus and target-native grounding. STAR, NExT-QA,
+  Video-Holmes, open-vocabulary AGQA `QUERY_OBJECT`, and broad natural-video
+  transfer remain unsupported.
 
 These failures are why the library contains multiple source-qualified skills and exact target routes instead of one high-level `POSITION/COMMIT` heuristic.
 

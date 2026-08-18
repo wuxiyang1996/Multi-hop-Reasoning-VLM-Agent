@@ -7,11 +7,15 @@ from motif_transfer.agqa_active_frame_grounder import (
     parse_operand_receipt,
     parse_public_question_plan,
     parse_query_plan,
+    reconcile_recurrent_consensus,
     reconcile_recurrent_receipts,
     remap_operand_receipt,
     source_controller_for_plan,
 )
-from motif_transfer.agqa_frame_grounder import execute_grounding_receipt
+from motif_transfer.agqa_frame_grounder import (
+    calibrate_grounding_execution,
+    execute_grounding_receipt,
+)
 from motif_transfer.agqa_program_transfer import (
     RELATION_ROUTE,
     TEMPORAL_PAIR_ROUTE,
@@ -136,6 +140,14 @@ def test_query_object_parser_accepts_equivalent_relation_inflection():
         "CHOOSE_OBJECT", "a paper", "a table",
     ),
     (
+        "Were they on the side of a shoe or a window?",
+        "CHOOSE_OBJECT", "shoe", "window",
+    ),
+    (
+        "Were they leaning on a chair or a bed?",
+        "CHOOSE_OBJECT", "chair", "bed",
+    ),
+    (
         "Was the person opening a laptop before or after going from standing to sitting?",
         "BEFORE_AFTER", "opening a laptop", "going from standing to sitting",
     ),
@@ -158,6 +170,18 @@ def test_query_object_parser_accepts_equivalent_relation_inflection():
     (
         "In the video, did they sit on a window?", "EXISTS",
         "sitting on a window", "",
+    ),
+    (
+        "Were they throwing a pillow or a blanket?", "CHOOSE_OBJECT",
+        "pillow", "blanket",
+    ),
+    (
+        "Were they tidying the floor or a table?", "CHOOSE_OBJECT",
+        "floor", "table",
+    ),
+    (
+        "Was the person throwing a pillow but not a blanket?", "EXISTS",
+        "throwing a pillow but not a blanket", "",
     ),
 ])
 def test_public_question_grammar_keeps_explicit_operands(
@@ -224,7 +248,7 @@ def test_source_ir_controls_arity_and_recurrence_without_source_identity():
     pair = source_controller_for_plan(_plan(), sources)
     assert pair.required_operands == 2
     assert pair.recurrent is True
-    assert pair.maximum_rescans_per_operand == 1
+    assert pair.maximum_rescans_per_operand == 2
     assert "candy" not in str(pair.as_dict()).lower()
 
     duration = source_controller_for_plan(
@@ -294,6 +318,36 @@ def test_recurrent_double_unobserved_can_prove_exists_no():
     assert execution["reason"] == "QUERY_RELATION_DOUBLE_SCAN_UNOBSERVED"
 
 
+def test_recurrent_double_observed_records_role_and_object_agreement():
+    primary = _operand("A", "opening a laptop", 2, 5)
+    rescan = _operand("A", "opening a laptop", 3, 6)
+    reconciled = reconcile_recurrent_receipts(primary, rescan)
+    assert "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED" in (
+        reconciled.canonicalizations
+    )
+    assert "RECURRENT_A_DOUBLE_SCAN_CONFIRMED_OBSERVED" in (
+        reconciled.canonicalizations
+    )
+    assert "RECURRENT_DOUBLE_SCAN_OBJECT_AGREEMENT:laptop" in (
+        reconciled.canonicalizations
+    )
+
+
+def test_recurrent_three_view_vote_resolves_observability_conflict():
+    primary = _operand("A", "opening a laptop", 2, 5)
+    rescan = _operand(
+        "A", "opening a laptop", None, None,
+        confidence=0.9, coverage="SUFFICIENT",
+    )
+    tiebreak = _operand("A", "opening a laptop", 3, 6)
+    reconciled = reconcile_recurrent_consensus(primary, rescan, tiebreak)
+    assert reconciled.coverage == "SUFFICIENT"
+    assert reconciled.observations[0].observability == "OBSERVED"
+    assert "RECURRENT_THREE_VIEW_MAJORITY_CONFIRMED_OBSERVED" in (
+        reconciled.canonicalizations
+    )
+
+
 def test_rescan_is_mapped_to_global_timeline_and_selected_without_outcome():
     primary = _operand(
         "A", "opening a laptop", None, None,
@@ -349,6 +403,133 @@ def test_isolated_receipts_merge_into_existing_unified_executor():
     assert execute_grounding_receipt(receipt)["decision"] == "before"
     assert receipt.answer_read is False
     assert receipt.functional_program_read is False
+
+
+def test_calibration_allows_one_vs_multiple_duration_override():
+    plan = _plan(TEMPORAL_SINGLE_ROUTE, "SELECT_LONGER")
+    a = _operand("A", plan.visual_query_a, 4, 8)
+    b_payload = _operand("B", plan.visual_query_b, 20, 25).as_dict()
+    second = dict(b_payload["observations"][0])
+    second.update({
+        "occurrence_id": "O1", "start_frame": 40, "end_frame": 44,
+        "evidence_frames": [40, 44],
+    })
+    b_payload["observations"].append(second)
+    b = parse_operand_receipt(
+        b_payload, expected_role="B", expected_operand=plan.visual_query_b,
+        frame_count=48,
+    )
+    receipt = merge_operand_receipts(
+        plan, operand_a=a, operand_b=b, frame_count=48,
+    )
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response=plan.operand_a,
+        minimum_duration_margin_frames=3,
+    )
+    assert calibrated["decision"] == plan.operand_b
+    assert calibrated["authorization_class"] == "SOURCE_TYPED_OVERRIDE"
+    assert calibrated["changes_direct_response"] is True
+
+
+def test_calibration_abstains_on_conflicting_multi_vs_multi_duration():
+    plan = _plan(TEMPORAL_SINGLE_ROUTE, "SELECT_LONGER")
+
+    def multiple(role, requested, intervals):
+        payload = _operand(role, requested, *intervals[0]).as_dict()
+        payload["observations"] = []
+        for index, (start, end) in enumerate(intervals):
+            row = _operand(role, requested, start, end).as_dict()["observations"][0]
+            row["occurrence_id"] = f"O{index}"
+            payload["observations"].append(row)
+        return parse_operand_receipt(
+            payload, expected_role=role, expected_operand=requested,
+            frame_count=48,
+        )
+
+    receipt = merge_operand_receipts(
+        plan,
+        operand_a=multiple("A", plan.visual_query_a, [(7, 17), (37, 47)]),
+        operand_b=multiple("B", plan.visual_query_b, [(0, 6), (24, 35), (41, 47)]),
+        frame_count=48,
+    )
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response=plan.operand_a,
+        minimum_duration_margin_frames=3,
+    )
+    assert raw["decision"] == plan.operand_b
+    assert calibrated["decision"] is None
+    assert calibrated["authorization_class"] == "ABSTAIN"
+
+
+def test_calibration_allows_boundary_aligned_interval_nesting():
+    plan = _plan(TEMPORAL_SINGLE_ROUTE, "VERIFY_A_SHORTER")
+    receipt = merge_operand_receipts(
+        plan,
+        operand_a=_operand("A", plan.visual_query_a, 9, 47, confidence=1.0),
+        operand_b=_operand("B", plan.visual_query_b, 0, 47),
+        frame_count=48,
+    )
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response="no",
+        minimum_single_interval_nesting_margin_frames=6,
+    )
+    assert raw["decision"] == "yes"
+    assert calibrated["decision"] == "yes"
+    assert calibrated["reason"].endswith(
+        "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING"
+    )
+
+
+def test_calibration_rejects_small_single_interval_nesting_margin():
+    plan = _plan(TEMPORAL_SINGLE_ROUTE, "VERIFY_A_LONGER")
+    receipt = merge_operand_receipts(
+        plan,
+        operand_a=_operand("A", plan.visual_query_a, 13, 16),
+        operand_b=_operand("B", plan.visual_query_b, 15, 16),
+        frame_count=48,
+    )
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response="no",
+        minimum_single_interval_nesting_margin_frames=6,
+    )
+    assert raw["decision"] == "yes"
+    assert calibrated["decision"] is None
+
+
+def test_calibration_allows_aligned_repeated_interval_dominance():
+    plan = _plan(TEMPORAL_SINGLE_ROUTE, "VERIFY_A_LONGER")
+
+    def repeated(role, requested, intervals):
+        payload = _operand(role, requested, *intervals[0]).as_dict()
+        payload["observations"] = []
+        for index, (start, end) in enumerate(intervals):
+            row = _operand(role, requested, start, end).as_dict()["observations"][0]
+            row["occurrence_id"] = f"O{index}"
+            payload["observations"].append(row)
+        return parse_operand_receipt(
+            payload, expected_role=role, expected_operand=requested,
+            frame_count=48,
+        )
+
+    receipt = merge_operand_receipts(
+        plan,
+        operand_a=repeated("A", plan.visual_query_a, [(0, 23), (39, 47)]),
+        operand_b=repeated("B", plan.visual_query_b, [(0, 23), (41, 47)]),
+        frame_count=48,
+    )
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response="no",
+        minimum_repeated_interval_dominance_margin_frames=2,
+    )
+    assert calibrated["decision"] == "yes"
+    assert calibrated["reason"].endswith(
+        "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    )
 
 
 def test_wrong_source_type_cannot_instantiate_controller():
