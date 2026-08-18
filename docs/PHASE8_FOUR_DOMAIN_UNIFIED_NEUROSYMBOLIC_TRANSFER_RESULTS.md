@@ -1,5 +1,12 @@
 # Phase 8：四目标域统一 neural-symbolic harness
 
+> **CLEVRER extension（2026-08-18）：** Phase 8 本身仍是四个非视频 route；后续 V15 已把
+> template-free、source-induced recurrent goal-relation program 接入同一 unified authority
+> chain，并在 360 个 untouched CLEVRER reserve questions 上得到 `252/360` vs neural-only
+> `236/360`（`16W/0L`, `p=0.0000305`）。它也显著超过 source-permuted 与 shuffled-binding，
+> 但与 strong target-base `251/360` 不可区分。见
+> [`CLEVRER_UNIFIED_GOAL_RELATION_V15_RESULTS.md`](CLEVRER_UNIFIED_GOAL_RELATION_V15_RESULTS.md)。
+
 ## 结论
 
 四条非视频 route 现在都在同一个 fail-closed authority architecture 下获得了

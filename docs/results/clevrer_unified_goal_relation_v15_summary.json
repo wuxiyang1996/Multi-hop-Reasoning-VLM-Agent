@@ -1,0 +1,116 @@
+{
+  "authority": {
+    "selected_rows": 25,
+    "source_selector_emitted_target_action": false,
+    "target_executor_calls": 25
+  },
+  "claim_boundary": "Validates prospective success-rate improvement over neural-only and source-specific superiority over permuted and shuffled bindings in the fixed synthetic CLEVRER setup. Authentic is not statistically distinguishable from the strongest target-base learner, so source provenance necessity remains unsupported.",
+  "cost": {
+    "external_provider_calls": 0,
+    "external_provider_cost_usd": 0.0,
+    "local_official_prediction_files": 706
+  },
+  "gates": {
+    "all_frozen_lineage_reverified": true,
+    "all_preregistered_formal_gates_passed": true,
+    "authentic_beats_shuffled_binding_with_exact_p": true,
+    "authentic_beats_source_permuted_with_exact_p": true,
+    "authentic_improves_neural_success": true,
+    "authority_count_matches_recoveries": true,
+    "condition_metrics_recalculate": true,
+    "config_file_lineage": true,
+    "config_self_hash": true,
+    "config_was_frozen_before_reserve": true,
+    "paired_metrics_recalculate": true,
+    "report_self_hash": true,
+    "reserve_disjoint_from_prior_roles": true,
+    "reserve_identity_exact": true,
+    "reserve_unique": true,
+    "zero_external_provider_cost": true,
+    "zero_runtime_outcome_exposure": true
+  },
+  "lineage": {
+    "config_sha256": "3736d9f6c306753151d9570dde57da45700b9422089853d39ef348e0e844ddc4",
+    "formal_report_content_sha256": "a427effe2eef13a11dabda9fbbc79d90823d1dbb2ba8f1b1f5082c38f664507d",
+    "formal_report_sha256": "bc788b73808be87b7f8b51428e6c208b0733ebfdb9f77dab3607805951414491"
+  },
+  "paired": {
+    "vs_generic_scaffold": {
+      "exact_two_sided_p": 0.1670684814453125,
+      "losses": 6,
+      "net_wins": 7,
+      "ties": 341,
+      "wins": 13
+    },
+    "vs_neural_only": {
+      "exact_two_sided_p": 3.0517578125e-05,
+      "losses": 0,
+      "net_wins": 16,
+      "ties": 344,
+      "wins": 16
+    },
+    "vs_shuffled_binding": {
+      "exact_two_sided_p": 0.01171875,
+      "losses": 1,
+      "net_wins": 9,
+      "ties": 349,
+      "wins": 10
+    },
+    "vs_source_permuted": {
+      "exact_two_sided_p": 0.01181793212890625,
+      "losses": 4,
+      "net_wins": 12,
+      "ties": 340,
+      "wins": 16
+    },
+    "vs_target_base": {
+      "exact_two_sided_p": 1.0,
+      "losses": 4,
+      "net_wins": 1,
+      "ties": 351,
+      "wins": 5
+    }
+  },
+  "primary": {
+    "authentic": {
+      "accuracy": 0.7,
+      "correct": 252,
+      "recoveries": 25
+    },
+    "generic_scaffold": {
+      "accuracy": 0.6805555555555556,
+      "correct": 245,
+      "recoveries": 39
+    },
+    "neural_only": {
+      "accuracy": 0.6555555555555556,
+      "correct": 236,
+      "recoveries": 0
+    },
+    "shuffled_binding": {
+      "accuracy": 0.675,
+      "correct": 243,
+      "recoveries": 29
+    },
+    "source_permuted": {
+      "accuracy": 0.6666666666666666,
+      "correct": 240,
+      "recoveries": 57
+    },
+    "target_base": {
+      "accuracy": 0.6972222222222222,
+      "correct": 251,
+      "recoveries": 28
+    }
+  },
+  "samples": 360,
+  "schema_version": "clevrer-unified-goal-relation-v15-independent-audit",
+  "status": "CLEVRER_V15_PROSPECTIVE_RESERVE_VALIDATED_WITH_TARGET_BASE_AMBIGUITY",
+  "summary_sha256": "2cfc578d54087a18d829406f6ad0ef680b492a8db7f1fa3aba326ed2bfe2a309",
+  "warnings": {
+    "generic_scaffold_difference_not_significant": true,
+    "natural_video_transfer_not_established": true,
+    "source_provenance_necessity_not_established": true,
+    "target_base_statistically_indistinguishable": true
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "claim_boundary": "Prospective reserve test of a template-free recurrent relation program induced only from Sokoban state/action/effect/next_state tuples, compiled through the unified fail-closed harness into a CLEVRER-native paired event-graph proof grounder and native representation switch. Supports this fixed synthetic CLEVRER setup only; does not establish natural-video transfer or prove source provenance is necessary versus an extensionally identical target-written controller.",
+  "conditions": [
+    "neural_only_explicit_relation",
+    "authentic_source_induced_goal_relation",
+    "target_base_receipt_recovery",
+    "generic_error_scaffold",
+    "source_permuted_uplift",
+    "shuffled_proof_binding",
+    "source_inverted_effect",
+    "target_trajectory_only",
+    "target_native_representation_ceiling"
+  ],
+  "config_sha256": "b34a03d564bdb977bea638eaf460196b4d4719a7813bd1ff6bf1643017bf55a6",
+  "cost_budget": {
+    "external_provider_calls_allowed": 0,
+    "external_provider_cost_usd_allowed": 0.0,
+    "use_local_official_predictions_only": true
+  },
+  "development": {
+    "calibration": {
+      "authenticity_vs_source_permuted": {
+        "exact_two_sided_p": 0.00014197068519905542,
+        "losses": 11,
+        "net_wins": 27,
+        "ties": 671,
+        "wins": 38
+      },
+      "utility_vs_neural": {
+        "exact_two_sided_p": 0.00011307420209050179,
+        "losses": 5,
+        "net_wins": 22,
+        "ties": 688,
+        "wins": 27
+      }
+    },
+    "report": "docs/results/clevrer_unified_goal_relation_v15_development.json",
+    "report_sha256": "7c354b754656bbb58127a241d43596081f46f57ae76f59b4229ce33877e84946",
+    "target_base_nonconfirmatory_warning": "Development authentic-vs-target-base was 15W/10L and not significant; reserve requires strictly positive matched net wins and cannot retune the frozen threshold."
+  },
+  "frozen_lineage": {
+    "adapter": "cd08b8faa69328e6757ec2175d80693b07a6424196987b1248ffb88283eadf3d",
+    "base_feature_module": "86b165ee347479c0a63d76b830895a18f35e7dc18c3c1db84aaa986291c9a3af",
+    "development_report": "6c4cca72f9501f4106e2fa7111bf9ffe72de1e16540ab9213665780e32847d74",
+    "grounder_artifact": "f2c380de4d451746517d849dab45ed54385068ee562998d646058f8f38a6423b",
+    "grounder_training_report": "a726e4d54ee6d0ac9e3de9cdb5e61ea93bbe8ce8221b525d42e83e26dfd4caad",
+    "proof_grounder_module": "778e73cc7b6bdf612a1016e9088f9d86e99e272dd51a104c7c55fae8e8e6794d",
+    "proof_receipts_module": "def0e90c0c3f43d3a23717ff52ffc2ec67a476d5f1145f1633fa80e5c4fa8169",
+    "query_compiler_module": "49be363fac3603213ba5621855f7f6cdd6f5d17804961acb57ea6f3699b8ff5c",
+    "runner": "b60daf4662d64afab0372d1eb353d5cffeb388cd57768c7487ad708e8fb4558f",
+    "source_artifact": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+    "source_confirmation": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+    "source_inducer": "f1c849715c561da3db224f9c1632c468abee18f7eac0424418ce449e1b563fe6",
+    "split_manifest": "cde4d9b8f12fcf6cd6cb70d4635c3335123d91156e2eac5ab07bf1d591a616be",
+    "unified_harness_module": "548986e9c7ff5412846b0263367d2376c247e201ef09a8f5ce94e4a7f6ce50c1",
+    "unified_runtime_module": "ce9e013e41e383cb60f23d37dc12e0705cdff750ae0df1f41beddde69d9244c8",
+    "v14_helper_runner": "91894d03b0a4d78202672d710b67ceae49f5668217c120b08e314508ac58e2fe"
+  },
+  "gates": {
+    "causal_control_conditions": [
+      "neural_only_explicit_relation",
+      "target_base_receipt_recovery",
+      "generic_error_scaffold",
+      "source_permuted_uplift",
+      "shuffled_proof_binding",
+      "source_inverted_effect"
+    ],
+    "expected_samples": 360,
+    "maximum_authenticity_exact_p": 0.05,
+    "maximum_utility_exact_p": 0.05,
+    "minimum_authentic_recoveries": 20,
+    "minimum_authenticity_net_wins": 5,
+    "minimum_utility_net_wins": 5,
+    "reserve_failure_stops_claim": true,
+    "threshold_retuning_after_reserve": false
+  },
+  "grounder": {
+    "artifact": "runs/clevrer_sokoban_proof_v14_training/frozen_proof_grounder.json",
+    "artifact_sha256": "f82dd626d6403cbed9949b74cf589c8b560c5a99d5ed734bddd7ba70ad251482",
+    "decision_threshold": 0.2,
+    "runtime_gold_or_official_program_read": false,
+    "training_report": "runs/clevrer_sokoban_proof_v14_training/training_report.json"
+  },
+  "lineage_paths": {
+    "adapter": "src/motif_transfer/clevrer_unified_goal_relation.py",
+    "base_feature_module": "src/motif_transfer/video_recovery_cate.py",
+    "development_report": "docs/results/clevrer_unified_goal_relation_v15_development.json",
+    "grounder_artifact": "runs/clevrer_sokoban_proof_v14_training/frozen_proof_grounder.json",
+    "grounder_training_report": "runs/clevrer_sokoban_proof_v14_training/training_report.json",
+    "proof_grounder_module": "src/motif_transfer/video_proof_grounder.py",
+    "proof_receipts_module": "src/motif_transfer/clevrer_proof_receipts.py",
+    "query_compiler_module": "src/motif_transfer/clevrer_query_compiler.py",
+    "runner": "scripts/run_clevrer_unified_goal_relation_v15.py",
+    "source_artifact": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+    "source_confirmation": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+    "source_inducer": "src/motif_transfer/source_goal_relation_induction.py",
+    "split_manifest": "configs/clevrer_sokoban_proof_v14_splits.json",
+    "unified_harness_module": "src/motif_transfer/unified_neurosymbolic_harness.py",
+    "unified_runtime_module": "src/motif_transfer/unified_transfer_runtime.py",
+    "v14_helper_runner": "scripts/run_clevrer_sokoban_proof_v14.py"
+  },
+  "schema_version": "clevrer-unified-goal-relation-v15-reserve-config",
+  "source": {
+    "artifact": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+    "artifact_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+    "confirmation": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+    "confirmation_sha256": "0b9151dfe8c10d77c099d178cc7b7efe781e82b543aad048dfe4d703b9e0da81",
+    "contract_sha256": "dfff2e39f894a71deab9c8bfeffbbc2b03c859f7ad4c12b4fc90c89f21f07c46",
+    "envelope_sha256": "bd8d0c164685ff2e1c6bd2c887659e402bc17db3967833bb1d3389b14df3f952",
+    "named_policy_template_used": false,
+    "target_data_read": false
+  },
+  "status": "FROZEN_BEFORE_CLEVRER_V15_RESERVE_OUTCOMES",
+  "target": {
+    "explicit_relation_prediction_directory": "with_edge_supervision_old",
+    "interface": "paired_event_graph_goal_relation_recovery_v15",
+    "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+    "prior_result_exposure_matches": [],
+    "reserve_id_count": 360,
+    "reserve_ids_in_config": false,
+    "role": "reserve",
+    "split_manifest": "configs/clevrer_sokoban_proof_v14_splits.json",
+    "trajectory_prediction_directory": "without_edge_supervision"
+  }
+}
