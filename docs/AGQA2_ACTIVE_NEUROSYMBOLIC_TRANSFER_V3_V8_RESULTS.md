@@ -98,3 +98,14 @@ V13 可以进入“小样本、typed-applicability-closed 的 natural-video tran
 
 若继续，下一实验应固定 V13 不再调参，扩大到至少 30 个新 video-disjoint evaluation rows，并把
 `QUERY_OBJECT` 作为单独的 grounder qualification 任务，而不是混回已通过的 atomic route。
+
+## V14–V19 replication 更新
+
+上述 30+ row replication 已完成，而且推翻了仅依据 V13 小样本作出的乐观判断。V15、V16、V17、
+V19 四次 fresh replication 合计 165 rows；反事实 typed fallback 为 `110/165`，高于 direct 的
+`102/165`，但共有 8 次 negative transfer，所有 formal replication 都未通过冻结 gate。由于
+unified harness fail closed，实际授权为 0，部署分数没有提高。`QUERY_OBJECT` 按预注册 stop policy
+未继续。
+
+完整结论、逐版结果、V14 勘误与下一步见
+[`AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V14_V19_RESULTS.md`](AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V14_V19_RESULTS.md)。

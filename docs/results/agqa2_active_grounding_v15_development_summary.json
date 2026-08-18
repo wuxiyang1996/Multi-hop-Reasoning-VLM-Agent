@@ -1,0 +1,51 @@
+{
+  "accepted_provider_receipts_replayed_from_v13": 38,
+  "controls": {
+    "source_permuted_abstentions": 9,
+    "target_written_equivalent_matches": 9
+  },
+  "development_report_file_sha256": "fbdb0775cc6b5deb63b153c5ac03a6ba5fa10242611291979c37faf5c4f122c7",
+  "evaluation_protocol_sha256": "7bee7ab51127624ef50a2ab82403c0d06f03fb825c95b9514c4993bfcd211975",
+  "grounder_qualified": true,
+  "grounder_sha256": "0f11c39d7a418e6f59052497c27bd25e5add71041bc942b748fface7dde6846f",
+  "metrics": {
+    "consensus_tiebreaks_triggered": 5,
+    "decisive_accuracy": 1.0,
+    "decisive_correct": 6,
+    "decisive_coverage": 0.6666666666666666,
+    "decisive_executions": 6,
+    "direct_correct": 4,
+    "raw_typed_decisive_executions": 8,
+    "rescans_triggered": 9,
+    "route_accuracy": 1.0,
+    "route_correct": 9,
+    "source_typed_overrides": 3,
+    "typed_fallback_correct": 7,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 3,
+    "unified_harness_correct": 7,
+    "unified_harness_executor_authorizations": 6,
+    "unified_harness_vs_direct_delta": 3,
+    "valid_runtime_rows": 9
+  },
+  "new_provider_calls_during_v15_requalification": 0,
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_sha256": "f60b4394e0fcd1c24bac7ede0e0c6d3b5c4b96478d105a8121aafc383efe3eed",
+  "reported_provider_cost_usd": 0.083477344,
+  "runtime_receipt_count": 12,
+  "schema_version": "agqa2-active-grounding-v15-development-summary",
+  "status": "AGQA2_ACTIVE_GROUNDER_V15_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "ac2172beeb8705de80a627074fbe5ce129d46cfaa289cbe7c1775d0279b9242d"
+}

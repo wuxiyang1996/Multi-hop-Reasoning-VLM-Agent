@@ -1,0 +1,52 @@
+{
+  "accepted_provider_receipts_replayed_from_v17": 160,
+  "claim_scope": "TEMPORAL_OPERATOR_TRANSFER_ONLY",
+  "controls": {
+    "source_permuted_abstentions": 45,
+    "target_written_equivalent_matches": 45
+  },
+  "development_report_file_sha256": "0e3d04dd71662b821835eb63f109c89cc79da28f81f656af08d4674d474316f1",
+  "evaluation_protocol_sha256": "5cf2a76d45375e0642a3fcdea940ab1cd973963a5e40db2839f10a1bb2b5d551",
+  "grounder_qualified": true,
+  "grounder_sha256": "b7b9c21142a91582edc67a31e87f8e96e7ec407d4a8ebc2334434626b09ef40a",
+  "metrics": {
+    "consensus_tiebreaks_triggered": 12,
+    "decisive_accuracy": 0.7391304347826086,
+    "decisive_correct": 17,
+    "decisive_coverage": 0.5111111111111111,
+    "decisive_executions": 23,
+    "direct_correct": 27,
+    "raw_typed_decisive_executions": 34,
+    "rescans_triggered": 45,
+    "route_accuracy": 1.0,
+    "route_correct": 45,
+    "source_typed_overrides": 3,
+    "typed_fallback_correct": 30,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 3,
+    "unified_harness_correct": 30,
+    "unified_harness_executor_authorizations": 23,
+    "unified_harness_vs_direct_delta": 3,
+    "valid_runtime_rows": 45
+  },
+  "new_provider_calls_during_v19_requalification": 0,
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_sha256": "fbb0cf3c5396db2264d028a18f26606576d485be81aeecb7d8cb3530cf3ecf95",
+  "reported_provider_cost_usd": 0.377716624,
+  "runtime_receipt_count": 54,
+  "schema_version": "agqa2-temporal-selective-v19-development-summary",
+  "status": "AGQA2_ACTIVE_GROUNDER_V19_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "42d18e85968f070ea52f27d39a79abb2df1af7764fc973af2fb13bed520f8207"
+}

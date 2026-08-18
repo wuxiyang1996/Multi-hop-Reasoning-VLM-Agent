@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -9,6 +10,8 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 from collect_agqa2_active_grounding_v3 import (  # noqa: E402
     _answer_matches,
+    _evaluation_protocol_core,
+    _grounder_semantic_core,
     _operand_response_format,
     _provider_json_call,
     _query_response_format,
@@ -50,6 +53,36 @@ def test_preregistered_gates_are_not_weaker_than_v2():
 def test_provider_schemas_avoid_known_incompatible_unique_items_keyword():
     assert "uniqueItems" not in json.dumps(_query_response_format())
     assert "uniqueItems" not in json.dumps(_operand_response_format(48))
+
+
+def test_grounder_identity_excludes_dataset_level_selection_quota():
+    base = json.loads((
+        REPO / "configs/agqa2_active_grounding_v13_development.json"
+    ).read_text())
+    scaled = deepcopy(base)
+    scaled["runtime_selection"].update({
+        "candidate_count": 36,
+        "per_predicted_route": 10,
+    })
+    sources = [SimpleNamespace(contract_sha256="source-contract")]
+    assert stable_hash(_grounder_semantic_core(base, sources)) == stable_hash(
+        _grounder_semantic_core(scaled, sources)
+    )
+    assert stable_hash(_evaluation_protocol_core(base)) != stable_hash(
+        _evaluation_protocol_core(scaled)
+    )
+
+
+def test_grounder_identity_still_changes_for_acquisition_semantics():
+    base = json.loads((
+        REPO / "configs/agqa2_active_grounding_v13_development.json"
+    ).read_text())
+    changed = deepcopy(base)
+    changed["acquisition"]["rescan_confidence_threshold"] += 0.01
+    sources = [SimpleNamespace(contract_sha256="source-contract")]
+    assert stable_hash(_grounder_semantic_core(base, sources)) != stable_hash(
+        _grounder_semantic_core(changed, sources)
+    )
 
 
 def test_provider_call_retries_a_null_choices_transport_envelope():

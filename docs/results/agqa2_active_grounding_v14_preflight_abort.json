@@ -1,0 +1,32 @@
+{
+  "abort_sha256": "57b5dd7586e3e71c6df7672c4e6e14fc56781733d01ff80f6b0bea2465856eac",
+  "config": "configs/agqa2_active_grounding_v14_replication.json",
+  "config_file_sha256": "96cf819c27134adb9577bfc1b28731e903c4155814dba69f233dbe11cd2732bb",
+  "dependency_grounder_sha256": "b781750694866a034ef991bf3e27604e15193f8f14dd094f8838eaeac045fb2a",
+  "frozen_pool_reuse_policy": "MAY_REUSE_EXACT_UNCALLED_V14_POOL_AFTER_V15_DEVELOPMENT_REQUALIFIES_THE_HASH_BOUNDARY_CORRECTION",
+  "legacy_v14_grounder_sha256": "bead273c56f654785288c95380a9edc6e46c6a4e9be8909790d309a60cd26928",
+  "manifest_file_sha256": "5a7c6f45e90ea2712fd9128fa514b876f9adbbf8afb5ac82c88e9e5b6a69f3b4",
+  "preregistration_file_sha256": "c315d1dd7cce712b79608c9bf0c4dab3c5961c8616ad48876c35f2c65277ab62",
+  "provider_calls_started": false,
+  "raw_video_decode_or_grounder_inspection_started": false,
+  "raw_videos_downloaded_and_content_sealed": true,
+  "reason": "DATASET_LEVEL_RUNTIME_SELECTION_COUNTS_WERE_INCORRECTLY_INCLUDED_IN_THE_PER_SAMPLE_GROUNDER_IDENTITY",
+  "reported_provider_cost_usd": 0.0,
+  "runtime_receipts_created": 0,
+  "runtime_selection": {
+    "candidate_count": 36,
+    "forbidden": [
+      "answer",
+      "program",
+      "scene_graph",
+      "source_identity"
+    ],
+    "mode": "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 10,
+    "reads_direct_response_only_inside_frozen_calibration": true
+  },
+  "schema_version": "agqa2-active-grounding-v14-preflight-abort",
+  "selection_file_sha256": "6fe5eade4fd042cb3315199edc0ab5005849501411984c6cd6723fd87b9ca036",
+  "stage": "DEVELOPMENT_GROUNDER_IDENTITY_PREFLIGHT",
+  "status": "V14_ABORTED_BEFORE_ANY_RUNTIME_OR_PROVIDER_CALL"
+}

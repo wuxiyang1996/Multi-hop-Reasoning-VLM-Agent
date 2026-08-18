@@ -1,0 +1,77 @@
+{
+  "accepted_runtime_provider_calls": 147,
+  "accepted_runtime_reported_provider_cost_usd": 0.252615428,
+  "controls": {
+    "source_permuted_abstentions": 30,
+    "target_written_equivalent_matches": 30
+  },
+  "evaluation_protocol_sha256": "0b3f7f3d74496c24818e36a1abcbc0c18965820708a0d8d4851faf58711e4ba4",
+  "failed_gates": [
+    "no_typed_vs_direct_losses"
+  ],
+  "grounder_qualified": false,
+  "grounder_sha256": "0f11c39d7a418e6f59052497c27bd25e5add71041bc942b748fface7dde6846f",
+  "interpretation": "AVERAGE_GAIN_PRESENT_BUT_ZERO_NEGATIVE_TRANSFER_GATE_FAILED;V15_IS_DEVELOPMENT_ONLY_FOR_V16_SELECTIVE_OVERRIDE_RULES",
+  "metrics": {
+    "consensus_tiebreaks_triggered": 11,
+    "decisive_accuracy": 0.782608695652174,
+    "decisive_correct": 18,
+    "decisive_coverage": 0.7666666666666667,
+    "decisive_executions": 23,
+    "direct_correct": 21,
+    "raw_typed_decisive_executions": 26,
+    "rescans_triggered": 30,
+    "route_accuracy": 1.0,
+    "route_correct": 30,
+    "source_typed_overrides": 7,
+    "typed_fallback_correct": 24,
+    "typed_vs_direct_losses": 2,
+    "typed_vs_direct_wins": 5,
+    "unified_harness_correct": 21,
+    "unified_harness_executor_authorizations": 0,
+    "unified_harness_vs_direct_delta": 0,
+    "valid_runtime_rows": 30
+  },
+  "negative_transfer_rows": [
+    {
+      "authorization_reason": "EXISTS_OVERRIDE_WITH_RECURRENT_AGREEMENT",
+      "comparison": "EXISTS",
+      "direct_response": "No, the person was not eating something.",
+      "gold_answer": "no",
+      "route": "RELATION_RECURRENT",
+      "task_id": "2BO2G-7047",
+      "typed_prediction": "yes",
+      "video_id": "2BO2G"
+    },
+    {
+      "authorization_reason": "ORDER_OVERRIDE_WITH_DUAL_RECURRENT_AGREEMENT",
+      "comparison": "BEFORE_AFTER",
+      "direct_response": "after taking a cup from somewhere",
+      "gold_answer": "after",
+      "route": "TEMPORAL_PAIR_RECURRENT",
+      "task_id": "YGL6R-82038",
+      "typed_prediction": "before",
+      "video_id": "YGL6R"
+    }
+  ],
+  "provider_calls": 147,
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": false,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_file_sha256": "b89b45beef9fc6363c0d2865c697c45828a4c3807e6219b14def30a851c24f19",
+  "report_sha256": "9072122f781f395a293ed256fcd37c65cf4d69238134ff1143843fe57f92f3ce",
+  "reported_provider_cost_usd": 0.252615428,
+  "result_sha256": "36a471181e1d4f9e2553d78a9ca75c9eca844acbd6106a021e890fed2fe66732",
+  "schema_version": "agqa2-active-grounding-v15-replication-result",
+  "status": "AGQA2_ACTIVE_GROUNDER_V15_RESERVE_NOT_QUALIFIED"
+}

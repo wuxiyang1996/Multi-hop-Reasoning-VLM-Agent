@@ -1,0 +1,20 @@
+{
+  "correction": {
+    "corrected_interpretation": "LOCAL_FIRST_FRAME_INTEGRITY_DECODE_OCCURRED_DURING_DOWNLOAD_VERIFICATION;NO_NEURAL_OR_MODEL_GROUNDING_INSPECTION_OCCURRED",
+    "field": "raw_video_decode_or_grounder_inspection_started",
+    "frozen_value": false,
+    "precise_value": "LOCAL_INTEGRITY_DECODE_TRUE;NEURAL_OR_MODEL_INSPECTION_FALSE"
+  },
+  "experimental_consequence": "NO_CHANGE_TO_CONTAMINATION_ASSESSMENT_OR_V15_POOL_REUSE:THE_DECODE WAS LOCAL,OUTCOME_BLIND,AND NOT_VISIBLE_TO_ANY_NEURAL_GROUNDER",
+  "original_abort_file": "docs/results/agqa2_active_grounding_v14_preflight_abort.json",
+  "original_abort_sha256": "57b5dd7586e3e71c6df7672c4e6e14fc56781733d01ff80f6b0bea2465856eac",
+  "provider_or_runtime_evidence": {
+    "neural_grounder_calls": 0,
+    "provider_calls": 0,
+    "reported_provider_cost_usd": 0.0,
+    "runtime_receipts": 0
+  },
+  "reason_original_record_was_not_mutated": "THE_FROZEN_V14_ABORT_AND_DOWNSTREAM_HASH_REFERENCES_MUST_REMAIN_IMMUTABLE",
+  "schema_version": "agqa2-active-grounding-v14-preflight-abort-erratum-v1",
+  "status": "V14_ABORT_RECORD_CLARIFIED_WITHOUT_MUTATING_FROZEN_ARTIFACT"
+}

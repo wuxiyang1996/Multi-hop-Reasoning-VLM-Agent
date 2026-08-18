@@ -1,0 +1,53 @@
+{
+  "controls": {
+    "source_permuted_abstentions": 45,
+    "target_written_equivalent_matches": 45
+  },
+  "evaluation_protocol_sha256": "33481d709fa6b41c6549a2b0a25f330e70e1583927576081a20b68bd61c5e8fd",
+  "failed_gates": [
+    "minimum_decisive_executions",
+    "no_typed_vs_direct_losses"
+  ],
+  "grounder_qualified": false,
+  "grounder_sha256": "65df2157fb77997317b68fbdbd7407bf0e1ce028468295c7cdb824d9d9d19906",
+  "interpretation": "POWERED_REPLICATION_FOUND_FOUR_WINS_AND_THREE_LOSSES;AVERAGE_GAIN_POSITIVE_BUT_SELECTIVE_TRANSFER_NOT_QUALIFIED",
+  "metrics": {
+    "consensus_tiebreaks_triggered": 12,
+    "decisive_accuracy": 0.6666666666666666,
+    "decisive_correct": 18,
+    "decisive_coverage": 0.6,
+    "decisive_executions": 27,
+    "direct_correct": 27,
+    "raw_typed_decisive_executions": 34,
+    "rescans_triggered": 45,
+    "route_accuracy": 1.0,
+    "route_correct": 45,
+    "source_typed_overrides": 7,
+    "typed_fallback_correct": 28,
+    "typed_vs_direct_losses": 3,
+    "typed_vs_direct_wins": 4,
+    "unified_harness_correct": 27,
+    "unified_harness_executor_authorizations": 0,
+    "unified_harness_vs_direct_delta": 0,
+    "valid_runtime_rows": 45
+  },
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": false,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": false,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_file_sha256": "143065c91feadc143c92589cfa2d8592ca8b30cf4c1934ea3b6a95060f964cf3",
+  "report_sha256": "c7f34697cdd6922ad030b11102af608e95ce05c1d5e3edb7bf228fcd213e692d",
+  "reported_provider_cost_usd": 0.377716624,
+  "result_sha256": "86070b39140dd53e02abdc23c1ae0e87f9ba558040f2557976f001f274f5dde3",
+  "schema_version": "agqa2-active-grounding-v17-powered-result",
+  "status": "AGQA2_ACTIVE_GROUNDER_V17_RESERVE_NOT_QUALIFIED"
+}

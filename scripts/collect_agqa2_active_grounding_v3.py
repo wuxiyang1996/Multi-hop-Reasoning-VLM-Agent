@@ -81,6 +81,48 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _grounder_semantic_core(
+    config: Mapping[str, Any], sources: Sequence[SourceIRContract],
+) -> dict[str, Any]:
+    """Identity of the per-sample grounder, excluding dataset evaluation policy.
+
+    Runtime candidate counts, route quotas, and qualification gates decide which
+    frozen receipts enter an evaluation. They do not change parsing, sensing,
+    evidence calibration, or symbolic execution for any individual sample and
+    therefore must not create a different grounder identity.
+    """
+    return {
+        "prompt_version": PROMPT_VERSION,
+        "query_parser_mode": config.get("query_parser_mode", "NEURAL_JSON_V3"),
+        "applicability_mode": config.get("applicability_mode", "ALL_ROUTED_TASKS"),
+        "execution_calibration": config.get("execution_calibration"),
+        "grounder_module_sha256": config["grounder"]["module_sha256"],
+        "grounder_collector_sha256": config["grounder"]["collector_sha256"],
+        "grounder_executor_sha256": config["grounder"].get("executor_sha256"),
+        "parser_model": config.get("parser_model", config["model"]),
+        "rescan_model": config.get("rescan_model", config["model"]),
+        "tiebreak_model": config.get(
+            "tiebreak_model", config.get("rescan_model", config["model"]),
+        ),
+        "nonrecurrent_model": config.get("nonrecurrent_model", config["model"]),
+        "local_object_grounder": config["local_object_grounder"],
+        "model": config["model"],
+        "media": config["media"],
+        "acquisition": config["acquisition"],
+        "visible_fields": config["grounder"]["visible_fields"],
+        "forbidden_fields": config["grounder"]["forbidden_fields"],
+        "source_contract_sha256": sorted(x.contract_sha256 for x in sources),
+    }
+
+
+def _evaluation_protocol_core(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Identity of outcome-blind receipt selection and frozen success gates."""
+    return {
+        "runtime_selection": config.get("runtime_selection"),
+        "qualification_gates": config.get("qualification_gates"),
+    }
+
+
 def _decode_json_object(raw: str) -> dict[str, Any]:
     text = raw.strip()
     if text.startswith("```"):
@@ -780,6 +822,23 @@ def _collect_runtime(
                     "minimum_repeated_interval_dominance_margin_frames", 2,
                 )
             ),
+            minimum_exists_override_confidence=float(
+                calibration_spec.get("minimum_exists_override_confidence", 0.8)
+            ),
+            require_globally_separated_order_override=bool(
+                calibration_spec.get(
+                    "require_globally_separated_order_override", True,
+                )
+            ),
+            allow_exists_source_override=bool(
+                calibration_spec.get("allow_exists_source_override", True)
+            ),
+            maximum_order_override_events_per_operand=(
+                int(calibration_spec["maximum_order_override_events_per_operand"])
+                if calibration_spec.get(
+                    "maximum_order_override_events_per_operand"
+                ) is not None else None
+            ),
         )
     body = {
         "task_id": str(sample["task_id"]), "video_id": str(sample["video_id"]),
@@ -1046,29 +1105,20 @@ def collect(
     if not api_key:
         raise ValueError("OpenRouter API key is unavailable")
     sources, arcade_report = _load_sources(config)
-    semantic_core = {
-        "prompt_version": PROMPT_VERSION,
-        "query_parser_mode": config.get("query_parser_mode", "NEURAL_JSON_V3"),
-        "applicability_mode": config.get("applicability_mode", "ALL_ROUTED_TASKS"),
-        "runtime_selection": config.get("runtime_selection"),
-        "execution_calibration": config.get("execution_calibration"),
-        "grounder_module_sha256": config["grounder"]["module_sha256"],
-        "grounder_collector_sha256": config["grounder"]["collector_sha256"],
-        "grounder_executor_sha256": config["grounder"].get("executor_sha256"),
-        "parser_model": config.get("parser_model", config["model"]),
-        "rescan_model": config.get("rescan_model", config["model"]),
-        "tiebreak_model": config.get(
-            "tiebreak_model", config.get("rescan_model", config["model"]),
-        ),
-        "nonrecurrent_model": config.get("nonrecurrent_model", config["model"]),
-        "local_object_grounder": config["local_object_grounder"],
-        "model": config["model"], "media": config["media"],
-        "acquisition": config["acquisition"],
-        "visible_fields": config["grounder"]["visible_fields"],
-        "forbidden_fields": config["grounder"]["forbidden_fields"],
-        "source_contract_sha256": sorted(x.contract_sha256 for x in sources),
-    }
+    semantic_core = _grounder_semantic_core(config, sources)
     grounder_sha256 = stable_hash(semantic_core)
+    evaluation_protocol_sha256 = stable_hash(_evaluation_protocol_core(config))
+    if (
+        config.get("expected_grounder_sha256") is not None
+        and config["expected_grounder_sha256"] != grounder_sha256
+    ):
+        raise ValueError("AGQA grounder semantic identity differs from preregistration")
+    if (
+        config.get("expected_evaluation_protocol_sha256") is not None
+        and config["expected_evaluation_protocol_sha256"]
+        != evaluation_protocol_sha256
+    ):
+        raise ValueError("AGQA evaluation protocol differs from preregistration")
     if development_dependency is not None and (
         development_dependency["grounder_sha256"] != grounder_sha256
     ):
@@ -1280,6 +1330,7 @@ def collect(
         "preregistration_sha256": _sha256(prereg_path),
         "manifest_sha256": manifest_hash,
         "grounder_sha256": grounder_sha256,
+        "evaluation_protocol_sha256": evaluation_protocol_sha256,
         "model": config["model"]["id"], "sample_count": valid,
         "acquisition_candidate_count": len(frozen_rows),
         "unique_video_count": len({row["video_id"] for row in evaluated}),

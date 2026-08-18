@@ -535,6 +535,10 @@ def calibrate_grounding_execution(
     direct_response: str, *, minimum_duration_margin_frames: int = 3,
     minimum_single_interval_nesting_margin_frames: int = 6,
     minimum_repeated_interval_dominance_margin_frames: int = 2,
+    minimum_exists_override_confidence: float = 0.8,
+    require_globally_separated_order_override: bool = True,
+    allow_exists_source_override: bool = True,
+    maximum_order_override_events_per_operand: int | None = None,
 ) -> dict[str, Any]:
     """Fuse two frozen target-native views without labels or benchmark programs.
 
@@ -565,14 +569,21 @@ def calibrate_grounding_execution(
             for marker in markers
         ):
             override_reason = "OBJECT_OVERRIDE_WITH_INDEPENDENT_CORROBORATION"
-        elif receipt.comparison == "EXISTS" and any(
-            marker in {
-                "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED",
-                "RECURRENT_DOUBLE_SCAN_CONFIRMED_UNOBSERVED",
-            }
-            for marker in markers
-        ):
-            override_reason = "EXISTS_OVERRIDE_WITH_RECURRENT_AGREEMENT"
+        elif receipt.comparison == "EXISTS" and allow_exists_source_override:
+            supported_a = _supported_events(receipt, "A", allow_partial=False)
+            observed_override = (
+                _answer_equivalent(raw_decision, "yes")
+                and "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED" in markers
+                and bool(supported_a)
+                and min(event.confidence for event in supported_a)
+                >= minimum_exists_override_confidence
+            )
+            unobserved_override = (
+                _answer_equivalent(raw_decision, "no")
+                and "RECURRENT_DOUBLE_SCAN_CONFIRMED_UNOBSERVED" in markers
+            )
+            if observed_override or unobserved_override:
+                override_reason = "EXISTS_OVERRIDE_WITH_RECURRENT_AGREEMENT"
         elif receipt.comparison == "BEFORE_AFTER" and all(
             f"RECURRENT_{role}_DOUBLE_SCAN_CONFIRMED_OBSERVED" in markers
             for role in ("A", "B")
@@ -582,7 +593,34 @@ def calibrate_grounding_execution(
             if events_a and events_b:
                 start_a = min(int(event.start_frame) for event in events_a)
                 start_b = min(int(event.start_frame) for event in events_b)
-                if abs(start_a - start_b) >= 3:
+                globally_separated_decision = None
+                if (
+                    max(int(event.end_frame) for event in events_a)
+                    < min(int(event.start_frame) for event in events_b)
+                ):
+                    globally_separated_decision = "before"
+                elif (
+                    max(int(event.end_frame) for event in events_b)
+                    < min(int(event.start_frame) for event in events_a)
+                ):
+                    globally_separated_decision = "after"
+                order_sound = (
+                    not require_globally_separated_order_override
+                    or (
+                        globally_separated_decision is not None
+                        and _answer_equivalent(
+                            raw_decision, globally_separated_decision,
+                        )
+                    )
+                )
+                event_count_sound = (
+                    maximum_order_override_events_per_operand is None
+                    or (
+                        len(events_a) <= maximum_order_override_events_per_operand
+                        and len(events_b) <= maximum_order_override_events_per_operand
+                    )
+                )
+                if abs(start_a - start_b) >= 3 and order_sound and event_count_sound:
                     override_reason = "ORDER_OVERRIDE_WITH_DUAL_RECURRENT_AGREEMENT"
         elif receipt.obligation_kind == TEMPORAL_SINGLE_ROUTE:
             typed_decision, topology = _duration_decision_from_events(

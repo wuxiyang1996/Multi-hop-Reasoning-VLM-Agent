@@ -1,0 +1,50 @@
+{
+  "authorization": {
+    "minimum_confidence": 0.8,
+    "requires_cited_visual_evidence": true,
+    "requires_exact_typed_decision_match": true,
+    "unknown_abstains": true
+  },
+  "claim_boundary": "ALL_AND_ONLY_V17_SOURCE_TYPED_OVERRIDES;INDEPENDENT_CLAUDE_FULL_TIMELINE_ADJUDICATION;NO_TYPED_OR_DIRECT_CANDIDATE_VISIBLE_TO_MODEL;DEVELOPMENT_ONLY",
+  "collector": "scripts/collect_agqa2_override_adjudicator_v18.py",
+  "collector_sha256": "685a68051076de2ab8d779181ef747a2227bc32486912ed26ed9eacc3c250700",
+  "expected_manifest_status": "FROZEN_BEFORE_ANY_V18_ADJUDICATOR_CALL",
+  "failure_policy": {
+    "development": "DO_NOT_INTEGRATE_OR_FREEZE_FRESH_IF_ANY_GATE_FAILS",
+    "fresh": "REQUIRES_NEW_VIDEO_DISJOINT_RESERVE_AFTER_INTEGRATION"
+  },
+  "manifest": "configs/agqa2_override_adjudicator_v18_development_manifest.json",
+  "manifest_file_sha256": "729c74a32d5ffdcb3234d20e7800b3ec855f277db1abfb6a758124c45125dfc3",
+  "media": {
+    "frame_count": 48,
+    "frames_per_panel": 6,
+    "jpeg_quality": 80,
+    "max_side": 512,
+    "panel_frame_width": 192
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "anthropic/claude-sonnet-4.6",
+    "max_retries": 2,
+    "max_tokens": 700,
+    "provider": "openrouter",
+    "schema_retries": 3,
+    "temperature": 0,
+    "timeout_seconds": 300
+  },
+  "module": "src/motif_transfer/agqa_override_adjudicator.py",
+  "module_sha256": "fc40b669141865df6f36f7a9f52b1073e54921b9cda10fe1a3678d37821f31bf",
+  "parent_v17_report": "runs/agqa2_active_grounding_v17_powered_reserve/report.json",
+  "parent_v17_report_file_sha256": "143065c91feadc143c92589cfa2d8592ca8b30cf4c1934ea3b6a95060f964cf3",
+  "qualification_gates": {
+    "maximum_authorized_typed_vs_direct_losses": 0,
+    "maximum_reported_provider_cost_usd": 0.2,
+    "minimum_adjudicator_correct": 5,
+    "minimum_final_vs_direct_delta": 3,
+    "minimum_retained_typed_vs_direct_wins": 3,
+    "required_rows": 7
+  },
+  "schema_version": "agqa2-override-adjudicator-config-v18-development",
+  "status": "FROZEN_V18_FOCUSED_ADJUDICATOR_DEVELOPMENT"
+}

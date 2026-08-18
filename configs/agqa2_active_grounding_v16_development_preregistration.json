@@ -1,0 +1,68 @@
+{
+  "accepted_call_replay": {
+    "policy": "REUSE_ONLY_EXACT_INPUT_HASH_MATCHES;NO_NEW_PROVIDER_CALL_EXPECTED",
+    "source": "runs/agqa2_active_grounding_v15_replication/call_cache"
+  },
+  "claim_boundary": "EXACT_CONSUMED_V15_36_CANDIDATE_POOL;ONLY_SELECTIVE_OVERRIDE_SOUNDNESS_RULES_MAY_CHANGE;NO_NEW_NEURAL_ACQUISITION",
+  "development_gates": {
+    "maximum_reported_provider_cost_usd": 0.3,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 20,
+    "minimum_route_correct": 30,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 30,
+    "required_target_written_equivalent_matches": 30,
+    "required_valid_runtime_rows": 30
+  },
+  "development_manifest": "configs/agqa2_active_grounding_v16_development_manifest.json",
+  "development_manifest_sha256": "5b95c52fd9be71b35f5450243e0b86ccc23d7bb32edba93a0962971d3a380868",
+  "evaluation_protocol_sha256": "0b3f7f3d74496c24818e36a1abcbc0c18965820708a0d8d4851faf58711e4ba4",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "minimum_duration_margin_frames": 3,
+    "minimum_exists_override_confidence": 0.8,
+    "minimum_repeated_interval_dominance_margin_frames": 2,
+    "minimum_single_interval_nesting_margin_frames": 6,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "new_v10_topologies": [
+      "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING",
+      "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    ],
+    "new_v16_soundness_conditions": [
+      "EXISTS_OVERRIDE_MINIMUM_SUPPORTED_EVENT_CONFIDENCE",
+      "ORDER_OVERRIDE_GLOBAL_INTERVAL_SEPARATION"
+    ],
+    "require_globally_separated_order_override": true,
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "failure_policy": {
+    "development": "MUST_PASS_THE_UNWEAKENED_V15_GATES",
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "FREEZE_NEW_VIDEO_DISJOINT_POOL_ONLY_AFTER_QUALIFICATION"
+  },
+  "grounder_sha256": "65df2157fb77997317b68fbdbd7407bf0e1ce028468295c7cdb824d9d9d19906",
+  "runtime_selection": {
+    "candidate_count": 36,
+    "forbidden": [
+      "answer",
+      "program",
+      "scene_graph",
+      "source_identity"
+    ],
+    "mode": "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 10,
+    "reads_direct_response_only_inside_frozen_calibration": true
+  },
+  "schema_version": "agqa2-active-grounding-preregistration-v16-development",
+  "status": "FROZEN_BEFORE_ANY_V16_DEVELOPMENT_RUNTIME_RECEIPT",
+  "v15_failed_replication_result": "docs/results/agqa2_active_grounding_v15_replication_result.json",
+  "v15_failed_replication_result_file_sha256": "353012219326fd9caa544726cd467d7bd095004205ca0151a3c24f6790f1c500"
+}

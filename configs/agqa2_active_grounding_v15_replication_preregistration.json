@@ -1,0 +1,68 @@
+{
+  "acquisition": {
+    "consensus_tiebreak_on_conflict": true,
+    "maximum_source_ir_rescans_per_recurrent_operand": 2,
+    "nonrecurrent_rescans": 0,
+    "receipt_selection": "THREE_VIEW_MAJORITY_ELSE_ABSTAIN",
+    "rescan_confidence_threshold": 0.7
+  },
+  "claim_boundary": "V15_HASH_BOUNDARY_REQUALIFIED;EXACT_UNCALLED_V14_36_VIDEO_DISJOINT_POOL;30_ROW_OUTCOME_BLIND_REPLICATION;NOT_UNTOUCHED_METADATA",
+  "development_qualification_summary": "docs/results/agqa2_active_grounding_v15_development_summary.json",
+  "development_qualification_summary_file_sha256": "8cc9d8144a215d9859186cad04621199c2fcf21e98c3c90ad0f9a5d52606c9eb",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "minimum_duration_margin_frames": 3,
+    "minimum_repeated_interval_dominance_margin_frames": 2,
+    "minimum_single_interval_nesting_margin_frames": 6,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "new_v10_topologies": [
+      "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING",
+      "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    ],
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "failure_policy": {
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "replication": "RUN_ONCE_ON_EXACT_UNCALLED_V14_POOL;NO_POST_RESULT_TUNING"
+  },
+  "parent_v14_manifest": "configs/agqa2_active_grounding_v14_replication_manifest.json",
+  "parent_v14_manifest_sha256": "09eecd62a856f38266a557a33eb554a2c50c1f4cf49cca0cb2ac77980c2b4056",
+  "qualified_grounder_sha256": "0f11c39d7a418e6f59052497c27bd25e5add71041bc942b748fface7dde6846f",
+  "replication_evaluation_protocol_sha256": "0b3f7f3d74496c24818e36a1abcbc0c18965820708a0d8d4851faf58711e4ba4",
+  "replication_gates": {
+    "maximum_reported_provider_cost_usd": 0.3,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 20,
+    "minimum_route_correct": 30,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 30,
+    "required_target_written_equivalent_matches": 30,
+    "required_valid_runtime_rows": 30
+  },
+  "replication_manifest": "configs/agqa2_active_grounding_v15_replication_manifest.json",
+  "replication_manifest_sha256": "726797ca494b4ef098c4087649b911d982eca5e6df36b51c68587622f68dfc1b",
+  "runtime_selection": {
+    "candidate_count": 36,
+    "forbidden": [
+      "answer",
+      "program",
+      "scene_graph",
+      "source_identity"
+    ],
+    "mode": "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 10,
+    "reads_direct_response_only_inside_frozen_calibration": true
+  },
+  "schema_version": "agqa2-active-grounding-preregistration-v15-replication",
+  "status": "FROZEN_BEFORE_ANY_V15_REPLICATION_NEURAL_CALL",
+  "v14_zero_call_abort": "docs/results/agqa2_active_grounding_v14_preflight_abort.json",
+  "v14_zero_call_abort_file_sha256": "819394f2776237197d4c06267458488adc44a775674e9720e30b434ae9f74cbf"
+}

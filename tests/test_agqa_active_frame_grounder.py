@@ -15,6 +15,7 @@ from motif_transfer.agqa_active_frame_grounder import (
 from motif_transfer.agqa_frame_grounder import (
     calibrate_grounding_execution,
     execute_grounding_receipt,
+    parse_frame_grounding_receipt,
 )
 from motif_transfer.agqa_program_transfer import (
     RELATION_ROUTE,
@@ -430,6 +431,144 @@ def test_calibration_allows_one_vs_multiple_duration_override():
     assert calibrated["decision"] == plan.operand_b
     assert calibrated["authorization_class"] == "SOURCE_TYPED_OVERRIDE"
     assert calibrated["changes_direct_response"] is True
+
+
+def test_calibration_rejects_low_confidence_exists_override():
+    receipt = parse_frame_grounding_receipt({
+        "obligation_kind": RELATION_ROUTE,
+        "comparison": "EXISTS",
+        "operand_a": "person eating something",
+        "operand_b": "",
+        "events": [{
+            "event_id": "E0", "operand_role": "A",
+            "label": "person eating something", "subject": "person",
+            "predicate": "eating", "object": "something",
+            "observability": "OBSERVED", "start_frame": 10,
+            "end_frame": 15, "evidence_frames": [10, 13, 15],
+            "confidence": 0.7, "uncertainties": [],
+        }],
+        "coverage": "SUFFICIENT", "uncertainties": [],
+        "canonicalizations": [
+            "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+            "RECURRENT_A_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+            "RECURRENT_THREE_VIEW_MAJORITY_CONFIRMED_OBSERVED",
+        ],
+    }, frame_count=48)
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response="no",
+        minimum_exists_override_confidence=0.8,
+    )
+    assert raw["decision"] == "yes"
+    assert calibrated["decision"] is None
+    assert calibrated["authorization_class"] == "ABSTAIN"
+
+
+def test_calibration_can_abstain_from_target_ontology_unqualified_exists():
+    plan = _plan(RELATION_ROUTE, "EXISTS")
+    receipt = merge_operand_receipts(
+        plan,
+        operand_a=_operand("A", plan.visual_query_a, 10, 15),
+        operand_b=None,
+        frame_count=48,
+    )
+    payload = receipt.as_dict()
+    payload["canonicalizations"] = [
+        "RECURRENT_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+        "RECURRENT_A_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+    ]
+    receipt = parse_frame_grounding_receipt(payload, frame_count=48)
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response="no", allow_exists_source_override=False,
+    )
+    assert raw["decision"] == "yes"
+    assert calibrated["decision"] is None
+
+
+def test_calibration_requires_global_order_separation_for_override():
+    receipt = parse_frame_grounding_receipt({
+        "obligation_kind": TEMPORAL_PAIR_ROUTE,
+        "comparison": "BEFORE_AFTER", "operand_a": "event a",
+        "operand_b": "event b", "events": [
+            {
+                "event_id": "E0", "operand_role": "A", "label": "event a",
+                "subject": "person", "predicate": "event a", "object": "",
+                "observability": "OBSERVED", "start_frame": 0, "end_frame": 4,
+                "evidence_frames": [0, 4], "confidence": 0.9,
+                "uncertainties": [],
+            },
+            {
+                "event_id": "E1", "operand_role": "A", "label": "event a",
+                "subject": "person", "predicate": "event a", "object": "",
+                "observability": "OBSERVED", "start_frame": 11, "end_frame": 17,
+                "evidence_frames": [11, 17], "confidence": 0.9,
+                "uncertainties": [],
+            },
+            {
+                "event_id": "E2", "operand_role": "B", "label": "event b",
+                "subject": "person", "predicate": "event b", "object": "",
+                "observability": "OBSERVED", "start_frame": 13, "end_frame": 15,
+                "evidence_frames": [13, 15], "confidence": 0.9,
+                "uncertainties": [],
+            },
+        ],
+        "coverage": "SUFFICIENT", "uncertainties": [],
+        "canonicalizations": [
+            "RECURRENT_A_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+            "RECURRENT_B_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+        ],
+    }, frame_count=48)
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response="after",
+        require_globally_separated_order_override=True,
+    )
+    assert raw["decision"] == "before"
+    assert calibrated["decision"] is None
+    assert calibrated["authorization_class"] == "ABSTAIN"
+
+
+def test_calibration_rejects_recurrent_multi_event_order_override():
+    receipt = parse_frame_grounding_receipt({
+        "obligation_kind": TEMPORAL_PAIR_ROUTE,
+        "comparison": "BEFORE_AFTER", "operand_a": "event a",
+        "operand_b": "event b", "events": [
+            {
+                "event_id": "E0", "operand_role": "A", "label": "event a",
+                "subject": "person", "predicate": "event a", "object": "",
+                "observability": "OBSERVED", "start_frame": 2, "end_frame": 4,
+                "evidence_frames": [2, 4], "confidence": 0.9,
+                "uncertainties": [],
+            },
+            {
+                "event_id": "E1", "operand_role": "B", "label": "event b",
+                "subject": "person", "predicate": "event b", "object": "",
+                "observability": "OBSERVED", "start_frame": 10, "end_frame": 12,
+                "evidence_frames": [10, 12], "confidence": 0.9,
+                "uncertainties": [],
+            },
+            {
+                "event_id": "E2", "operand_role": "B", "label": "event b",
+                "subject": "person", "predicate": "event b", "object": "",
+                "observability": "OBSERVED", "start_frame": 20, "end_frame": 22,
+                "evidence_frames": [20, 22], "confidence": 0.9,
+                "uncertainties": [],
+            },
+        ],
+        "coverage": "SUFFICIENT", "uncertainties": [],
+        "canonicalizations": [
+            "RECURRENT_A_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+            "RECURRENT_B_DOUBLE_SCAN_CONFIRMED_OBSERVED",
+        ],
+    }, frame_count=48)
+    raw = execute_grounding_receipt(receipt)
+    calibrated = calibrate_grounding_execution(
+        receipt, raw, direct_response="after",
+        maximum_order_override_events_per_operand=1,
+    )
+    assert raw["decision"] == "before"
+    assert calibrated["decision"] is None
 
 
 def test_calibration_abstains_on_conflicting_multi_vs_multi_duration():
