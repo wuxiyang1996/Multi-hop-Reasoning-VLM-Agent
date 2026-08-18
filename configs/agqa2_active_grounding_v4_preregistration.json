@@ -1,0 +1,43 @@
+{
+  "claim_boundary": "V3_RUNTIME_FAILURE_ONLY_REPAIR;DEVELOPMENT_REQUALIFICATION_THEN_SINGLE_FRESH_RAW_VIDEO_UNSEEN_RESERVE;NO_UNTOUCHED_BENCHMARK_OR_SOURCE_PROVENANCE_CLAIM",
+  "development_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "development_manifest": "configs/agqa2_active_grounding_v3_development_manifest.json",
+  "failure_policy": {
+    "development": "MUST_REQUALIFY_WITHOUT_LOWERING_GATES",
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "RUN_ONCE_ON_V4_ONLY_RAW_VIDEO_RESERVE;NO_POST_RESERVE_TUNING"
+  },
+  "repairs": [
+    "MORPHOLOGICAL_EQUIVALENCE_IN_QUERY_RELATION_VALIDATION",
+    "IDENTICAL_REQUEST_RETRY_FOR_NULL_PROVIDER_CHOICES",
+    "COLLECTOR_HASH_INCLUDED_IN_GROUNDER_SEMANTIC_LINEAGE"
+  ],
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "reserve_manifest": "configs/agqa2_active_grounding_v4_reserve_manifest.json",
+  "reserve_selection": "configs/agqa2_active_grounding_v4_reserve_selection.json",
+  "reserve_selection_sha256": "1a1c1394510bd05651fac087b00f3e77ff3b02cc5e873946e796e35f60dab4bf",
+  "schema_version": "agqa2-active-grounding-preregistration-v4",
+  "status": "FROZEN_BEFORE_ANY_V4_NEURAL_CALL",
+  "v3_failure_evidence": "docs/results/agqa2_active_grounding_v3_reserve_failure.json",
+  "v3_failure_evidence_file_sha256": "37da1eb16bffd8df534af55960a4c430722a7090966419892e99c666240d178a"
+}

@@ -1,0 +1,144 @@
+{
+  "answer_read_during_freeze": false,
+  "archive_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-official/AGQA_balanced.zip",
+  "archive_sha256": "3cd4cc741864ac4bb875e3c1dc41d0ddea559259059b01d229527b08323bea0d",
+  "available_video_count_at_selection": 104,
+  "claim_boundary": "V4_RAW_VIDEO_UNSEEN_FROM_ALL_V3_DEVELOPMENT_AND_RESERVE_CALLS;AGQA_TEST_METADATA_PREVIOUSLY_SCANNED;NOT_UNTOUCHED_BENCHMARK",
+  "entry": "AGQA_balanced/test_balanced.txt",
+  "excluded_v3_video_ids": [
+    "0PVKV",
+    "35ZZP",
+    "3XL0K",
+    "4U8WV",
+    "727IZ",
+    "ATV2F",
+    "D1WYU",
+    "DGPAW",
+    "FQS7O",
+    "G6ZOB",
+    "LBRYS",
+    "M8OYC",
+    "MXATD",
+    "NYHD7",
+    "R971Z",
+    "VIN5T",
+    "W7CR5",
+    "YHXU9"
+  ],
+  "functional_program_visible_to_grounder": false,
+  "manifest_sha256": "1a1c1394510bd05651fac087b00f3e77ff3b02cc5e873946e796e35f60dab4bf",
+  "per_route": 3,
+  "prior_v4_raw_video_exposure": false,
+  "raw_video_archive": {
+    "archive_prefix": "Charades_v1_480/",
+    "url": "https://ai2-public-datasets.s3-us-west-2.amazonaws.com/charades/Charades_v1_480.zip"
+  },
+  "route_counts": {
+    "RELATION_RECURRENT": 3,
+    "TEMPORAL_PAIR_RECURRENT": 3,
+    "TEMPORAL_SINGLE_NONRECURRENT": 3
+  },
+  "sample_count": 9,
+  "samples": [
+    {
+      "oracle_route": "RELATION_RECURRENT",
+      "program_sha256": "749e26bcdbd2ee9bad9fa593d9eaaf0f1b3bf76878d556b441d33531191a74bb",
+      "question_sha256": "74b2c8261b183af850f6999d6de89e1be822fb673198e73f86e257afe47d9595",
+      "rank_sha256": "0000d7a2827a074302f9aa93b424ac531bebacc14b1961c9996d570cf316cd8f",
+      "task_id": "G30NS-6610",
+      "video_id": "G30NS",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/G30NS.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "RELATION_RECURRENT",
+      "program_sha256": "97fd595991013bc27b8caa2a7f1a0f2091551f7cc2ee5e117906e43d28a378cd",
+      "question_sha256": "8edef363dc40533588e1d7790594af7a0deca1fb6e519b85f3b84f9f2be766dd",
+      "rank_sha256": "0005c7da24d5f3a10dc17b26482a876b4221acc0b0c6e04e6feb46c992b0c618",
+      "task_id": "KOVTR-49982",
+      "video_id": "KOVTR",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/KOVTR.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "RELATION_RECURRENT",
+      "program_sha256": "19b79ce99a3a5e4c7e9609dd9e608d9f110b863bddca13e2ef1ca3fc7199be88",
+      "question_sha256": "7344d8d530ca58422283bf8998e8b1e2b6c59669b45ed0f57d3b39e844a9fab1",
+      "rank_sha256": "000c38cd2235b337aaf9b209b05f19b5b8b4b86f8ee8b242a7c5441a0047e273",
+      "task_id": "W0QSB-1351",
+      "video_id": "W0QSB",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/W0QSB.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "TEMPORAL_PAIR_RECURRENT",
+      "program_sha256": "5e59a50df99b7a867148520554637624885883b61180a837425c164688481ecd",
+      "question_sha256": "944453b8ec6a12d4c0939ab9ea6771b55bb8cf8308ff1197f5931c7dfc10cf94",
+      "rank_sha256": "00017e056e9c6ede286b2be6e3fd257e41d643b8576c36706ac051e0c598360e",
+      "task_id": "XOWBN-15663",
+      "video_id": "XOWBN",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/XOWBN.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "TEMPORAL_PAIR_RECURRENT",
+      "program_sha256": "4bf2df501e2a912efc8ff0acc4c67469e2ade82f73ee8612595d016e51e534e3",
+      "question_sha256": "2e7d0114f83412e5b91c5eb27d93c1cee72a2241c503f256261b2544806979de",
+      "rank_sha256": "0003f904fc6e35124a2ecd995f0c353209ddd8ad7e9ab9f0b09ca65b0009244d",
+      "task_id": "B4ED1-39352",
+      "video_id": "B4ED1",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/B4ED1.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "TEMPORAL_PAIR_RECURRENT",
+      "program_sha256": "ef2a6c2996eacb6c2e71781aab71525fa026262a863b2ff7a3fc9ae49e836bf0",
+      "question_sha256": "6ad295623d19453ea11a12f4d733b6e583bc34a3cde2f855fa381c43aa9dddde",
+      "rank_sha256": "0004fda7f98ed18c668c490c645704207800075c4292c33c6df9234dac49a97f",
+      "task_id": "86E2E-41342",
+      "video_id": "86E2E",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/86E2E.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "TEMPORAL_SINGLE_NONRECURRENT",
+      "program_sha256": "d5ff2c5c1485e0f5a3a072df42126eff5feda8640c177275d1eb441d4b5e8e80",
+      "question_sha256": "bc37352b2d63279cddf37b6262fbc4178f7841165fa62bf9520fa7d10fceeca4",
+      "rank_sha256": "000310d8eb8240c92f729b153c8d961668eee94142c8c0f9f29f52b257a2470e",
+      "task_id": "DO48Z-3984",
+      "video_id": "DO48Z",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/DO48Z.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "TEMPORAL_SINGLE_NONRECURRENT",
+      "program_sha256": "dd9c87e290a8212b3e70a08df6ad3c5ef2195131f14066aae3e58570a932792f",
+      "question_sha256": "09392c3bd4ac4348bcc9b3b4cbdb2a50e66a72259cf19ef20875bf184b2076fa",
+      "rank_sha256": "0003783ba14c97f6ae8f9971a908d18e5ad6c65d977bc906fccb1bca13958a31",
+      "task_id": "EF7Q9-4537",
+      "video_id": "EF7Q9",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/EF7Q9.mp4",
+      "video_present_at_selection": false
+    },
+    {
+      "oracle_route": "TEMPORAL_SINGLE_NONRECURRENT",
+      "program_sha256": "b73d8387f1afce526717ff65de5878778d5a0ddf4623a53bc39006d7cb723776",
+      "question_sha256": "6427ec54c99bd034303c0465db0fda6aed808a69e81d08bcf43c4f0ac7031232",
+      "rank_sha256": "0004af4e567a0a9472a9efca2194ec4408bd558e21322a043522b371d37d4e90",
+      "task_id": "HNPX7-871",
+      "video_id": "HNPX7",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/HNPX7.mp4",
+      "video_present_at_selection": false
+    }
+  ],
+  "scene_graph_grounding_read_during_freeze": false,
+  "schema_version": "agqa2-active-grounding-selection-v4",
+  "selection_nonce": "agqa2-active-grounding-v4-after-v3-runtime-failure",
+  "selection_rule": "EXCLUDE_ALL_V3_DEVELOPMENT_AND_RESERVE_VIDEO_IDS;SHA256_RANK_WITHIN_ORACLE_ROUTE;GLOBAL_VIDEO_DISJOINT;NO_ANSWER_OR_SCENE_GRAPH_READ",
+  "split": "reserve",
+  "status": "FROZEN_V4_SELECTION_BEFORE_VIDEO_DOWNLOAD_OR_V4_CALLS",
+  "unique_video_count": 9,
+  "v3_development_manifest_sha256": "43af33f3fbe32109c5a828c7cb90e7be21d6b2ee23bafe4835af54702d9202ed",
+  "v3_reserve_manifest_sha256": "c7358611e6312d1ff71e8eae33be69e7caa2a4f3ee7040077f977a1ac232ce1f",
+  "video_root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades"
+}

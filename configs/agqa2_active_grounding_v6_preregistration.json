@@ -1,0 +1,52 @@
+{
+  "applicability_rule": {
+    "forbidden_indirect_markers": [
+      "thing they",
+      "object they",
+      "anything",
+      "the first action",
+      "the second action",
+      "the first event",
+      "the second event"
+    ],
+    "relation": "FIXED_OBJECT_EXISTS_ONLY",
+    "temporal_pair": "EXPLICIT_NON_INDIRECT_OPERANDS",
+    "temporal_single": "EXPLICIT_OPERANDS_EXCLUDING_SMILE_LAUGH_BOUNDARIES"
+  },
+  "claim_boundary": "V5_INDUCED_TARGET_OBSERVABLE_EXPLICIT_OPERAND_SUBSET;RAW_VIDEO_UNSEEN_FROM_ALL_V3_V4_V5_CALLS;ADAPTATION_BASED_NOT_UNTOUCHED",
+  "development_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "development_manifest": "configs/agqa2_active_grounding_v3_development_manifest.json",
+  "failure_policy": {
+    "development": "MUST_REQUALIFY_WITHOUT_LOWERING_GATES",
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "RUN_ONCE_ON_V6_ONLY_RAW_VIDEO_RESERVE;NO_POST_RESERVE_TUNING"
+  },
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "reserve_manifest": "configs/agqa2_active_grounding_v6_reserve_manifest.json",
+  "reserve_selection": "configs/agqa2_active_grounding_v6_reserve_selection.json",
+  "reserve_selection_sha256": "95514f5c82bca7b6f9c1ed8d9e1ebca3c69352f655d53f2ba4fcaaba966d6511",
+  "schema_version": "agqa2-active-grounding-preregistration-v6",
+  "status": "FROZEN_BEFORE_ANY_V6_NEURAL_CALL",
+  "v5_adaptation_result": "docs/results/agqa2_active_grounding_v5_reserve_result.json",
+  "v5_adaptation_result_file_sha256": "f943d941f8ef0944f8848842dfc186e2189d0e70a5d93ae0aec2cefe2170ea53"
+}

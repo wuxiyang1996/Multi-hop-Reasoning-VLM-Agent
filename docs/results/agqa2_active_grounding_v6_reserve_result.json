@@ -1,0 +1,26 @@
+{
+  "schema_version": "agqa2-active-grounding-reserve-result-v6",
+  "status": "AGQA2_ACTIVE_GROUNDER_V6_RESERVE_NOT_QUALIFIED",
+  "split": "reserve",
+  "config_file_sha256": "a4f60b134ff33e539f8420f8ff5a66981ae4f354a4801d9c0e8799f6ba4891fb",
+  "grounder_sha256": "b8296e53838d8a087438b4a9902ce2cbd209ee9383dbf0e4f11265952eb32267",
+  "report_sha256": "2f8e46c28858cc8b9226f409f90513f747f739a0c99ed8aa42ef608f247ded68",
+  "valid_runtime_rows": 9,
+  "decisive_executions": 5,
+  "decisive_correct": 3,
+  "direct_correct": 6,
+  "typed_fallback_correct": 5,
+  "typed_vs_direct_wins": 1,
+  "typed_vs_direct_losses": 2,
+  "failed_gates": [
+    "minimum_decisive_executions",
+    "minimum_decisive_accuracy",
+    "no_typed_vs_direct_losses"
+  ],
+  "diagnosis": {
+    "recurrent_conflict_losses": 2,
+    "cause": "The old lexicographic receipt chooser promoted one scan despite primary/rescan observability conflict.",
+    "v7_repair": "Recurrent conjunction with conflict abstention, double-scan closed-world negatives, and outcome-blind typed-evidence applicability ranking over a frozen 12-video candidate pool."
+  },
+  "adaptation_boundary": "V7 excludes all V6 videos, freezes 12 candidates before calls, selects 3 per predicted source type using typed receipts only, then reads gold once. Gates remain unchanged."
+}

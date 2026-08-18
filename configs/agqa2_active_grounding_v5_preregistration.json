@@ -1,0 +1,39 @@
+{
+  "claim_boundary": "EXPLICIT_OPERAND_PUBLIC_QUESTION_SUBSET_ONLY;RAW_VIDEO_UNSEEN_FROM_ALL_V3_V4_CALLS;METADATA_PREVIOUSLY_SCANNED;NOT_UNTOUCHED_BENCHMARK",
+  "development_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "development_manifest": "configs/agqa2_active_grounding_v3_development_manifest.json",
+  "failure_policy": {
+    "development": "MUST_REQUALIFY_WITHOUT_LOWERING_GATES",
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "RUN_ONCE_ON_V5_ONLY_RAW_VIDEO_RESERVE;NO_POST_RESERVE_TUNING"
+  },
+  "query_parser": "DETERMINISTIC_EXPLICIT_OPERAND_GRAMMAR_V1;ABSTAIN_WHEN_OPERANDS_ARE_NOT_IN_PUBLIC_QUESTION",
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "reserve_manifest": "configs/agqa2_active_grounding_v5_reserve_manifest.json",
+  "reserve_selection": "configs/agqa2_active_grounding_v5_reserve_selection.json",
+  "reserve_selection_sha256": "1cfb472eda8943476ea4cd10667e64cdb976be45085a8a5bbc10856230e44c4e",
+  "schema_version": "agqa2-active-grounding-preregistration-v5",
+  "status": "FROZEN_BEFORE_ANY_V5_NEURAL_CALL",
+  "v4_failure_evidence": "docs/results/agqa2_active_grounding_v4_reserve_failure.json",
+  "v4_failure_evidence_file_sha256": "c2cf55b3c6fde95288debc780acf08ffb217c7c35825a3cbc0f1cd3b12d5dfff"
+}

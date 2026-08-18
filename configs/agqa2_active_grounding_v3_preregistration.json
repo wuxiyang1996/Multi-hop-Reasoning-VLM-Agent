@@ -1,0 +1,55 @@
+{
+  "schema_version": "agqa2-active-grounding-preregistration-v3",
+  "status": "FROZEN_BEFORE_ANY_V3_NEURAL_CALL",
+  "claim_boundary": "DEVELOPMENT_QUALIFICATION_THEN_SINGLE_RAW_VIDEO_UNSEEN_VIDEO_DISJOINT_RESERVE;NOT_AN_UNTOUCHED_AGQA_BENCHMARK_SPLIT;NO_SOURCE_PROVENANCE_CLAIM",
+  "development_manifest": "configs/agqa2_active_grounding_v3_development_manifest.json",
+  "reserve_manifest": "configs/agqa2_active_grounding_v3_reserve_manifest.json",
+  "protocol": {
+    "stage_1": "TEXT_ONLY_QUESTION_TO_ANONYMOUS_QUERY_AND_OPERANDS",
+    "stage_2": "OPERAND_ISOLATED_DENSE_FRAME_GROUNDING",
+    "source_ir_controller": {
+      "RELATION_RECURRENT": "ONE_OPERAND_SCAN_THEN_ONE_EVIDENCE_WINDOW_RESCAN_IF_UNRESOLVED",
+      "TEMPORAL_PAIR_RECURRENT": "TWO_INDEPENDENT_OPERAND_SCANS_THEN_ONE_MISSING_OPERAND_RESCAN",
+      "TEMPORAL_SINGLE_NONRECURRENT": "TWO_INDEPENDENT_DENSE_OPERAND_SCANS_WITH_NO_RECURRENCE"
+    },
+    "direct_baseline": "SAME_MODEL_AND_SAME_DENSE_FRAMES_IN_ONE_ANSWER_CALL",
+    "answer_program_scene_graph_source_identity_visible_at_runtime": false,
+    "target_written_equivalent_control": true,
+    "source_permuted_wrong_type_control": true
+  },
+  "media": {
+    "dense_proxy_frame_count": 48,
+    "proxy_frame_max_side": 448,
+    "frames_per_panel": 6,
+    "panel_frame_width": 144,
+    "jpeg_quality": 80,
+    "rescan_frame_count": 16
+  },
+  "development_gates": {
+    "required_valid_runtime_rows": 9,
+    "minimum_route_correct": 8,
+    "minimum_decisive_executions": 6,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "maximum_reported_provider_cost_usd": 0.1
+  },
+  "reserve_gates": {
+    "required_valid_runtime_rows": 9,
+    "minimum_route_correct": 8,
+    "minimum_decisive_executions": 6,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "maximum_reported_provider_cost_usd": 0.1
+  },
+  "failure_policy": {
+    "development": "MAY_DEBUG_PROMPTS_PARSING_AND_ACQUISITION_WITHOUT_LOWERING_GATES",
+    "reserve": "RUN_ONCE_AFTER_DEVELOPMENT_QUALIFIES;NO_POST_RESERVE_TUNING_OR_GATE_CHANGES",
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE"
+  }
+}

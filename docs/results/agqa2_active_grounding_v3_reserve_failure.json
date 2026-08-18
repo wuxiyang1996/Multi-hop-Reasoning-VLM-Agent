@@ -1,0 +1,19 @@
+{
+  "schema_version": "agqa2-active-grounding-reserve-failure-v3",
+  "status": "V3_RESERVE_NOT_QUALIFIED_RUNTIME_INCOMPLETE",
+  "split": "reserve",
+  "config_file_sha256": "63b90bc51427f8515688e34d6398b60399faf9af6dc9fd1be148cd6e47fa08e3",
+  "grounder_sha256": "842c29ccf07f178718244b447677d9ebf05dc93d75a29f65fd3bee1754256b76",
+  "complete_runtime_rows": 7,
+  "required_runtime_rows": 9,
+  "accepted_provider_calls": 38,
+  "reported_provider_cost_usd": 0.056885672,
+  "official_answers_read": false,
+  "official_scene_graphs_read": false,
+  "failures": {
+    "W7CR5-642": "QUERY_OBJECT validator rejected the semantically equivalent inflection pair put down / putting down after both schema attempts",
+    "R971Z-13938": "provider response transport raised TypeError before the second isolated operand receipt was persisted"
+  },
+  "failure_policy": "PRESERVE_V3_AS_FAILED;DO_NOT_CHANGE_ITS_GATES_OR_REPORT_IT_AS_CONFIRMATORY;USE_ONLY_PUBLIC_QUESTION_AND_RUNTIME_FAILURES_TO_BUILD_V4;EXCLUDE_ALL_V3_RESERVE_VIDEOS_FROM_V4_RESERVE",
+  "worker_errors_file_sha256": "e2d3c69f9cd9bff4549a822d5e35d17e05020c8148f203074b2ebef19bc9a320"
+}

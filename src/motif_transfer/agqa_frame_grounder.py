@@ -424,6 +424,14 @@ def execute_grounding_receipt(
             if receipt.comparison == "EXISTS" and observed_a:
                 decision = "yes"
                 reason = "QUERY_RELATION_OBSERVED"
+            elif (
+                receipt.comparison == "EXISTS"
+                and not observed_a
+                and "RECURRENT_DOUBLE_SCAN_CONFIRMED_UNOBSERVED"
+                in receipt.canonicalizations
+            ):
+                decision = "no"
+                reason = "QUERY_RELATION_DOUBLE_SCAN_UNOBSERVED"
             elif receipt.comparison == "QUERY_OBJECT":
                 objects = {
                     event.object.strip() for event in observed_a
