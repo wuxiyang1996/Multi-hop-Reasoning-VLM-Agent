@@ -1,5 +1,12 @@
 # AGQA 2.0 V1：game-induced symbolic program feasibility audit
 
+> **V2 frame-only update（2026-08-18）：** V1 compiler 现已明确限定为 evaluator-side
+> symbolic oracle。新的 question+16-frame Qwen3-VL-32B grounder 在 9 个 video-disjoint
+> development samples 上达到 route 9/9、decisive coverage 7/9，但 decisive accuracy 只有
+> 3/7；相对 direct 为 0 wins / 2 losses。因此 grounder 未通过 qualification，统一 harness
+> 0/9 authorizations 并保持 direct 5/9。见
+> [`AGQA2_FRAME_GROUNDER_V2_RESULTS.md`](AGQA2_FRAME_GROUNDER_V2_RESULTS.md)。
+
 ## 结论
 
 AGQA 2.0 **可以接入现有 unified neural-symbolic harness，但目前只通过了

@@ -21,6 +21,12 @@
 > mechanism feasibility，不成立 video QA success 或 source provenance；raw-video gate 保持关闭。
 > 详见 [`AGQA2_PROGRAM_TRANSFER_V1_RESULTS.md`](AGQA2_PROGRAM_TRANSFER_V1_RESULTS.md)。
 
+> **AGQA frame-only V2（2026-08-18）：** 已用 9 个已有 Charades videos 替换 metadata
+> compiler，建立只看 question+16 frames 的 Qwen3-VL-32B typed grounder。route 9/9、coverage
+> 7/9，但 decisive accuracy 3/7，未授权 typed execution 相对 direct 为 0W/2L。qualification
+> 正确失败；unified harness 0/9 authorizations，保持 direct 5/9。见
+> [`AGQA2_FRAME_GROUNDER_V2_RESULTS.md`](AGQA2_FRAME_GROUNDER_V2_RESULTS.md)。
+
 ## 结论
 
 四条非视频 route 现在都在同一个 fail-closed authority architecture 下获得了
