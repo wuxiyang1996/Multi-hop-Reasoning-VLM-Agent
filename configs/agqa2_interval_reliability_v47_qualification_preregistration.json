@@ -1,0 +1,88 @@
+{
+  "base_evaluation_protocol_sha256": "2c70ec61f27daaaec3ec1540a149e03d5bffdeb0201f9f42b1a8a33a466465c5",
+  "claim_boundary": "EXACT_HASHED_V46_BASE_RECEIPTS;ONE_LEGACY_EVIDENCE_ALIAS_ADDITION_ONLY;DEVELOPMENT_QUALIFICATION",
+  "confirmatory_claim_allowed": false,
+  "cost_projection": {
+    "frozen_cap_usd": 1.35,
+    "projected_150_row_cost_usd": 1.05
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 1,
+    "reason": "V45_FINITE_CLASS_INTERVAL_RELIABILITY_INDUCTION",
+    "ties": 328,
+    "wins": 21
+  },
+  "download_receipt_file_sha256": "2b8fe1f7ca337cc4abdcf4b4d75e1553401550dc06c359be87c1f0073f345bde",
+  "failure_policy": {
+    "failed_gate": "STOP_BEFORE_NEW_TEST_FORMAL",
+    "passed": "FREEZE_ONE_NEW_VIDEO_DISJOINT_TEST_FORMAL",
+    "qualification": "RUN_ONCE;NO_POST_OUTCOME_THRESHOLD_CHANGE"
+  },
+  "new_provider_calls_allowed": false,
+  "postground_evaluation_protocol": {
+    "aggregate_adapter_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "calibration_artifact_sha256": "3595b370d10f17b0a03debba70911fff6721c077e2c3eb5b99dcb9ad921b44bc",
+    "calibration_rule_sha256": "0055c7a5c09e781b14f2d899fd7c5b735da7ebcefa5e831adc9e86f0eb0f27f7",
+    "calibrator_module_sha256": "62839c32a48b70cba16f62e541c8e56f24d171d2a2344553647fc552e84d418b",
+    "compatibility_change": "ADD_LEGACY_EVIDENCE_ALIAS_EQUAL_TO_FROZEN_V45_ARTIFACT_HASH_ONLY",
+    "confirmatory_claim": false,
+    "evaluator_module_sha256": "dc4bec44aae8dd1802f63b0c6e0f0a146497fffb8b544542ad2a7498496904b3",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 1.35,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 25,
+      "minimum_source_minus_target_correct": 6,
+      "minimum_source_wins": 7,
+      "required_effect_shuffled_abstentions": 150,
+      "required_generic_scaffold_matches": 150,
+      "required_target_written_equivalent_matches": 150,
+      "required_unique_videos": 150,
+      "required_valid_rows": 150,
+      "required_wrong_source_abstentions": 150
+    },
+    "runtime_calibrator_authority": "ABSTENTION_ONLY;NO_INTERVAL_RELATION_OR_BINDING_CREATION_OR_EDIT",
+    "runtime_features": [
+      "SINGLETON_VIEW_KIND",
+      "MINIMUM_CROSS_PAIR_GAP",
+      "MAXIMUM_WITHIN_OPERAND_ENDPOINT_SPREAD"
+    ],
+    "sample_count": 150,
+    "schema_version": "agqa2-interval-reliability-v47-qualification-protocol-v1",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "1a1d4508eb32f230e509f6655e16c52022e84c87817e3be5dab55e8384f71a8e",
+    "v46_base_report_sha256": "7d8726dbb667c58b1426bf982c38b89c32ac863378d4194977f87ea9acd117a6"
+  },
+  "postground_evaluation_protocol_sha256": "40860d5bc96a97961b6bc4943fc4a86203c158bf6c604a988101bc3c842d4f39",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 1.35,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 25,
+    "minimum_source_minus_target_correct": 6,
+    "minimum_source_wins": 7,
+    "required_effect_shuffled_abstentions": 150,
+    "required_generic_scaffold_matches": 150,
+    "required_target_written_equivalent_matches": 150,
+    "required_unique_videos": 150,
+    "required_valid_rows": 150,
+    "required_wrong_source_abstentions": 150
+  },
+  "qualification_manifest_sha256": "2947435fad522b951018e31026fc08b385d6266297189cd2cf4de083824bf8fc",
+  "qualified_development_artifact_sha256": "3595b370d10f17b0a03debba70911fff6721c077e2c3eb5b99dcb9ad921b44bc",
+  "qualified_v33_development_report_sha256": "3595b370d10f17b0a03debba70911fff6721c077e2c3eb5b99dcb9ad921b44bc",
+  "schema_version": "agqa2-interval-reliability-v47-preregistration-v1",
+  "selection_manifest_sha256": "2d7444b20094d8bb387b3f3628cfebcbc6dc43a99ae72de2b96088b5feb7f33a",
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "v45_training_artifact": "configs/agqa2_interval_reliability_v45/training_artifact.json",
+  "v45_training_artifact_file_sha256": "7d0cfb86f5e7e6b94e19c4720dd70ab1dfce3b7bc8373932130ed77309a6c9e7",
+  "v45_training_artifact_sha256": "3595b370d10f17b0a03debba70911fff6721c077e2c3eb5b99dcb9ad921b44bc",
+  "v46_base_report_sha256": "7d8726dbb667c58b1426bf982c38b89c32ac863378d4194977f87ea9acd117a6",
+  "v46_runtime_abort_summary": "docs/results/agqa2_interval_reliability_v46_runtime_abort.json",
+  "v46_runtime_abort_summary_file_sha256": "1147705326c85f6794b1b1117ed838392d4e31e5dc5de19f357fbf861b594083",
+  "v47_status": "FROZEN_BEFORE_V47_QUALIFICATION_PREDICTION_EVALUATION"
+}

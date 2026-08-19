@@ -1,0 +1,291 @@
+{
+  "acquisition": {
+    "consensus_tiebreak_on_conflict": true,
+    "maximum_source_ir_rescans_per_recurrent_operand": 2,
+    "nonrecurrent_rescans": 0,
+    "receipt_selection": "THREE_VIEW_MAJORITY_ELSE_ABSTAIN",
+    "rescan_confidence_threshold": 0.7
+  },
+  "applicability_mode": "TARGET_OBSERVABILITY_PLUS_TYPED_EVIDENCE_V1",
+  "claim_boundary": "TWO_HUNDRED_FIFTY_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_ATOMIC_BEFORE_AFTER_ROWS_FROM_OFFICIAL_TRAIN_METADATA;V51_DIRECTIONAL_SUPPORT_RULE_QUALIFICATION_ONLY",
+  "directional_support_calibration": {
+    "artifact": "configs/agqa2_directional_support_v51/training_artifact.json",
+    "artifact_file_sha256": "d208ef7b614580cf13954fcef1945164f19db75701edba8bf3fec5e609c2781f",
+    "artifact_sha256": "cc549659c26dce7b6e1c7b8da2a5f3831182a02e496c06e543a28ae9de9c3cd9",
+    "module": "src/motif_transfer/agqa_directional_support_calibrator.py",
+    "module_sha256": "d2789468d01afe4ea20a351ec78e9ebf84c4941f1fc609253b24d8eff4e0a948",
+    "rule_sha256": "831bababea983c79a5afa87a40c5ecbaaaa0271e030c5e8570e6c29e591d4055"
+  },
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "allow_exists_source_override": false,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "maximum_order_override_events_per_operand": 1,
+    "minimum_duration_margin_frames": 3,
+    "minimum_exists_override_confidence": 0.8,
+    "minimum_repeated_interval_dominance_margin_frames": 2,
+    "minimum_single_interval_nesting_margin_frames": 6,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "new_v10_topologies": [
+      "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING",
+      "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    ],
+    "new_v16_soundness_conditions": [
+      "EXISTS_OVERRIDE_MINIMUM_SUPPORTED_EVENT_CONFIDENCE",
+      "ORDER_OVERRIDE_GLOBAL_INTERVAL_SEPARATION"
+    ],
+    "new_v19_typed_applicability_rules": [
+      "RELATION_EXISTS_TARGET_ONTOLOGY_UNQUALIFIED_ABSTAIN",
+      "TEMPORAL_PAIR_REQUIRES_SINGLE_EVENT_PER_OPERAND",
+      "TEMPORAL_SINGLE_REUSES_QUALIFIED_DURATION_TOPOLOGY"
+    ],
+    "require_globally_separated_order_override": true,
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "expected_evaluation_protocol_sha256": "38d4e9eb5d94575f0abbd9d906699133a45254b5d097f61fc0b85490429cd5a7",
+  "expected_grounder_sha256": "6c617dd0847f132257dcdc2d584511bdd1b00a87c68190dbbc6ff453ccc27e7f",
+  "expected_manifest_status": "FROZEN_V52_TRAIN_QUALIFICATION_VIDEOS_UNSEEN",
+  "expected_preregistration_status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "grounder": {
+    "collector": "scripts/collect_agqa2_robust_temporal_v36_development.py",
+    "collector_sha256": "dfaa13b248ab3da4a9c7ff5b3c222043ae4e16dd6a2a6a9102e35e9dd377c1f6",
+    "executor": "src/motif_transfer/agqa_frame_grounder.py",
+    "executor_sha256": "8991688819c00b1a20690fb36ab375e255033859f6d9f05f8d568659edae08c3",
+    "forbidden_fields": [
+      "answer",
+      "functional_program",
+      "sg_grounding",
+      "official_reasoning_labels",
+      "source_game_identity",
+      "answer_candidates",
+      "full_question_at_operand_grounder",
+      "competing_operand_at_operand_grounder"
+    ],
+    "module": "src/motif_transfer/agqa_active_frame_grounder.py",
+    "module_sha256": "87a41b64a77aae9cd8899f714061276fd3fcee05e8950a050fffb8849b81761c",
+    "protocol": "V19_ACQUISITION_PLUS_CLOSED_DETERMINISTIC_OPERAND_SYNTAX_NORMALIZATION_V36",
+    "visible_fields": [
+      "public_question_at_text_parser_only",
+      "one_requested_operand_per_visual_call",
+      "chronological_proxy_frames",
+      "frame_timestamps"
+    ]
+  },
+  "local_object_grounder": {
+    "confidence_threshold": 0.08,
+    "forbidden_fields": [
+      "question",
+      "answer",
+      "functional_program",
+      "answer_candidates",
+      "source_identity"
+    ],
+    "implementation": "opencv_zoo_yolox_s_int8_coco_v2022nov",
+    "maximum_interval_frames": 12,
+    "model_path": "/fs/gamma-projects/vlm-robot/datasets/models/opencv_yolox/object_detection_yolox_2022nov_int8.onnx",
+    "model_sha256": "01a3b0f400b30bc1e45230e991b2e499ab42622485a330021947333fbaf03935",
+    "module": "src/motif_transfer/agqa_local_object_grounder.py",
+    "module_sha256": "800475fed6dff07aac4055e23d162f152755f217ea91025e62f395a22ff9c852",
+    "nms_threshold": 0.5,
+    "visible_fields": [
+      "vlm_grounded_interval_frame_ids",
+      "rgb_frames"
+    ]
+  },
+  "manifest": "configs/agqa2_directional_support_v52_qualification_manifest.json",
+  "manifest_file_sha256": "d9377367069e344ae36578cdb2409446f7b47c1e0bb1808d49fa7c2b3e1e174f",
+  "media": {
+    "dense_proxy_frame_count": 48,
+    "frames_per_panel": 6,
+    "jpeg_quality": 80,
+    "panel_frame_width": 192,
+    "proxy_frame_max_side": 512,
+    "rescan_frame_count": 16,
+    "rescan_frame_max_side": 640,
+    "rescan_frames_per_panel": 4,
+    "rescan_panel_frame_width": 280,
+    "tiebreak_frame_count": 24,
+    "tiebreak_frame_max_side": 512,
+    "tiebreak_frames_per_panel": 4,
+    "tiebreak_panel_frame_width": 224
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "development_model_history": [
+      {
+        "accepted_calls_persisted_and_included_in_cumulative_cost": true,
+        "id": "google/gemini-3-flash-preview",
+        "samples": 1,
+        "status": "REJECTED_FOR_PROJECTED_FULL_BATCH_COST_ABOVE_PREREGISTERED_CAP"
+      },
+      {
+        "accepted_calls_persisted_and_included_in_cumulative_cost": true,
+        "id": "google/gemini-2.5-flash-lite",
+        "samples": 1,
+        "status": "REJECTED_FOR_GENERIC_OBJECT_GROUNDING_AND_WRONG_MATCHED_DIRECT"
+      }
+    ],
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "nonrecurrent_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "parser_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "postground": {
+    "adapter_module": "src/motif_transfer/agqa_aggregate_temporal_transfer.py",
+    "adapter_module_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "core_evaluator_module": "scripts/collect_agqa2_robust_temporal_v34_formal.py",
+    "core_evaluator_module_sha256": "ed0d8f2d807d2044e49fdd8e350c95f80206b703d193648f5575aaac1ecb16ca",
+    "development_calibration": {
+      "decision": "SELECT_SKILL",
+      "losses": 0,
+      "reason": "V51_RISK_FIRST_DIRECTIONAL_SUPPORT_INDUCTION",
+      "ties": 672,
+      "wins": 28
+    },
+    "evaluation_protocol_sha256": "25823b5a3165658988cb5f25f26dfbdf6fa66ed09fb9dc8efe28fc69c75a2ed1",
+    "evaluator_module": "scripts/evaluate_agqa2_directional_support_v52.py",
+    "evaluator_module_sha256": "522d7e8fae0d665a618f95b8d286aa04f58806896bb89e80208036c0faae9ffa",
+    "formal_gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 2.25,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 25,
+      "minimum_source_minus_target_correct": 7,
+      "minimum_source_wins": 8,
+      "required_effect_shuffled_abstentions": 250,
+      "required_generic_scaffold_matches": 250,
+      "required_target_written_equivalent_matches": 250,
+      "required_unique_videos": 250,
+      "required_valid_rows": 250,
+      "required_wrong_source_abstentions": 250
+    },
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "72c5e4e9c2e89595d5230290900339d5f57bb96503c367fd464bf2d09b8bd0a0"
+  },
+  "preregistration": "configs/agqa2_directional_support_v52_qualification_preregistration.json",
+  "preregistration_file_sha256": "fa464e823d38a3d94ddea0efd8a1ba9e2ef6c8e24d9e62d0f721de48f62b474e",
+  "qualification_gates": {
+    "maximum_reported_provider_cost_usd": 2.25,
+    "maximum_typed_vs_direct_losses": 250,
+    "minimum_decisive_accuracy": 0.0,
+    "minimum_decisive_executions": 251,
+    "minimum_route_correct": 250,
+    "minimum_typed_vs_direct_wins": 0,
+    "required_source_permuted_abstentions": 250,
+    "required_target_written_equivalent_matches": 250,
+    "required_valid_runtime_rows": 250
+  },
+  "query_parser_mode": "DETERMINISTIC_EXPLICIT_OPERAND_GRAMMAR_V1",
+  "report_version": "V52_QUALIFICATION_BASE",
+  "rescan_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "schema_version": "agqa2-directional-support-v52-qualification-config-v1",
+  "sources": {
+    "arcade_report": {
+      "file_sha256": "86c833250f3555c0548785eeea6373ef0430ee9c51fad314584213fbac92e121",
+      "path": "runs/phase3_source_function_v4_reserve/report.json"
+    },
+    "goal_relation": {
+      "artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+      "artifact_path": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+      "confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+      "confirmation_path": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json"
+    },
+    "temporal_pair": {
+      "artifact_file_sha256": "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/candy_crush.json",
+      "source_game": "candy_crush"
+    },
+    "temporal_single": {
+      "artifact_file_sha256": "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_columns.json",
+      "source_game": "gymv_columns"
+    }
+  },
+  "split": "development",
+  "status": "FROZEN_V52_DIRECTIONAL_SUPPORT_QUALIFICATION",
+  "syntax_transport_normalization": {
+    "evidence_rule": "STABLE_SORT_AND_DEDUP_ALREADY_EMITTED_VALID_FRAME_IDS",
+    "interval_rule": "OBSERVED_START_MIN_WITH_EXISTING_EVIDENCE_AND_END_MAX_WITH_EXISTING_EVIDENCE;NO_NEW_EVIDENCE_LABEL_CONFIDENCE_OR_OBJECT",
+    "json_transport_retry_attempts": 3,
+    "json_transport_retry_rule": "RETRY_IDENTICAL_REQUEST_ONLY_ON_JSON_DECODE_ERROR",
+    "normalization_module": "src/motif_transfer/agqa_operand_normalization_v2.py",
+    "normalization_module_sha256": "95d4c1b97c61fd436106f8e3a7e6085feacf7f534450b952df632c22347a0fef",
+    "outcome_or_label_dependent_repair": false
+  },
+  "tiebreak_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-2.5-flash-lite",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  }
+}

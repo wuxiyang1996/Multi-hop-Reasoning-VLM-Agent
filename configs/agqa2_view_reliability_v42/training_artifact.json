@@ -1,0 +1,150 @@
+{
+  "artifact_sha256": "ac30e4aecfe9d88a96e3dd7552c048eb5ea46dd1fec6191ce504d82e3f7774f1",
+  "candidate_rule_table": [
+    {
+      "allowed_singleton_views": [],
+      "authorizations": 43,
+      "losses": 0,
+      "net_gain": 9,
+      "rule_description_length": 0,
+      "ties": 191,
+      "wins": 9,
+      "zero_negative_transfer": true
+    },
+    {
+      "allowed_singleton_views": [
+        "primary"
+      ],
+      "authorizations": 59,
+      "losses": 3,
+      "net_gain": 7,
+      "rule_description_length": 1,
+      "ties": 187,
+      "wins": 10,
+      "zero_negative_transfer": false
+    },
+    {
+      "allowed_singleton_views": [
+        "rescan"
+      ],
+      "authorizations": 57,
+      "losses": 0,
+      "net_gain": 13,
+      "rule_description_length": 1,
+      "ties": 187,
+      "wins": 13,
+      "zero_negative_transfer": true
+    },
+    {
+      "allowed_singleton_views": [
+        "tiebreak"
+      ],
+      "authorizations": 45,
+      "losses": 0,
+      "net_gain": 10,
+      "rule_description_length": 1,
+      "ties": 190,
+      "wins": 10,
+      "zero_negative_transfer": true
+    },
+    {
+      "allowed_singleton_views": [
+        "primary",
+        "rescan"
+      ],
+      "authorizations": 73,
+      "losses": 3,
+      "net_gain": 11,
+      "rule_description_length": 2,
+      "ties": 183,
+      "wins": 14,
+      "zero_negative_transfer": false
+    },
+    {
+      "allowed_singleton_views": [
+        "primary",
+        "tiebreak"
+      ],
+      "authorizations": 61,
+      "losses": 3,
+      "net_gain": 8,
+      "rule_description_length": 2,
+      "ties": 186,
+      "wins": 11,
+      "zero_negative_transfer": false
+    },
+    {
+      "allowed_singleton_views": [
+        "rescan",
+        "tiebreak"
+      ],
+      "authorizations": 59,
+      "losses": 0,
+      "net_gain": 14,
+      "rule_description_length": 2,
+      "ties": 186,
+      "wins": 14,
+      "zero_negative_transfer": true
+    },
+    {
+      "allowed_singleton_views": [
+        "primary",
+        "rescan",
+        "tiebreak"
+      ],
+      "authorizations": 75,
+      "losses": 3,
+      "net_gain": 12,
+      "rule_description_length": 3,
+      "ties": 182,
+      "wins": 15,
+      "zero_negative_transfer": false
+    }
+  ],
+  "confirmatory_claim": false,
+  "feature_space": "SOLE_SUPPORT_VIEW_KIND_FOR_ONE_ARGUMENT_AFTER_TYPED_AGGREGATE_TEMPORAL_BINDING",
+  "future_policy": "REQUIRE_ONE_NEW_VIDEO_DISJOINT_TRAIN_SPLIT_QUALIFICATION_BEFORE_ANY_NEW_TEST_FORMAL",
+  "rule": {
+    "allowed_singleton_views": [
+      "rescan",
+      "tiebreak"
+    ],
+    "rule_sha256": "6fb3ff0078ff9fb2ec53afbc5d260b05f1c8dc3618331f147ffeb0143dd2fa5d",
+    "selection_authority": "EXHAUSTIVE_FINITE_VIEW_SUBSET_CLASS;ZERO_NEGATIVE_TRANSFER_CONSTRAINT;MAX_WINS_THEN_COVERAGE;MDL_TIE_BREAK",
+    "strict_two_per_operand_always_allowed": true,
+    "training_authorizations": 59,
+    "training_examples": 200,
+    "training_losses": 0,
+    "training_ties": 186,
+    "training_wins": 14
+  },
+  "runtime_authority": "ABSTENTION_ONLY;CANNOT_INVENT_A_BINDING",
+  "schema_version": "agqa2-view-reliability-training-artifact-v42",
+  "source_program_or_ir_changed": false,
+  "status": "V42_TRAINED_ON_CONSUMED_ROWS_BEFORE_FRESH_QUALIFICATION",
+  "target_interval_or_relation_changed": false,
+  "training_authority": "CONSUMED_V38_AND_FAILED_V40_TARGET_ROWS_ONLY;NO_FUTURE_QUALIFICATION_OR_FORMAL_DATA",
+  "training_example_count": 200,
+  "training_lineage": [
+    {
+      "base_report": "runs/agqa2_robust_temporal_v36_development/base_report.json",
+      "base_report_file_sha256": "e65621c2343463d709c99971096638f5f5676720c7c05c19224f8bd64748b641",
+      "base_report_sha256": "38c8bf703499fd2c3efe9dced2e797d9f33447c97162390a6361f8fad4e273bb",
+      "report": "runs/agqa2_aggregate_temporal_v38_development/report.json",
+      "report_file_sha256": "e255991d74c6e764392a69bd2e9ab70cfe786361acb3f4e55eca7711ed64b972",
+      "report_sha256": "f30d4580bdbe67c5677ed3ad601c000cfb1c595e65490fbdb2b2bf6a21ba89a5",
+      "rows": 100,
+      "split": "v38_consumed_development"
+    },
+    {
+      "base_report": "runs/agqa2_aggregate_temporal_v41_completion/base_report.json",
+      "base_report_file_sha256": "ca8f9c5235726b6c4b3dfcac2c3d7c21a7ebba0fe9cb5b56ee50ab46727d2e57",
+      "base_report_sha256": "4801fbe6b09268049eb87c84e995280cfdf9b69c3b8574ef6cc3df4e03e72404",
+      "report": "runs/agqa2_aggregate_temporal_v41_completion/report.json",
+      "report_file_sha256": "db41d62c0e2c0ea87c882f5d55e9bef6c050c7c32f38ab74a49d3b2c4caa3b55",
+      "report_sha256": "45015d0bdf7c1157044c4786af4437f8b526bfa80215aa741580e0b83437b03f",
+      "rows": 100,
+      "split": "v40_failed_formal_reclassified_as_consumed_training"
+    }
+  ]
+}

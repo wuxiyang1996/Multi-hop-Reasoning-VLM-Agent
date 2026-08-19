@@ -127,3 +127,42 @@ V40。
 - V40 collector：`scripts/collect_agqa2_aggregate_temporal_v40_formal.py`
 - V40 preregistration：`configs/agqa2_aggregate_temporal_v40_formal_preregistration.json`
 - V41 schema-only completion config：`configs/agqa2_aggregate_temporal_v41_completion.json`
+
+## V42–V54：target-native applicability induction（2026-08-19）
+
+V40 失败后没有重采样 formal。后续只在 official train metadata 的新、跨实验 video-disjoint
+development pools 上学习一个 **abstention-only target-native applicability model**；Candy source
+program、typed operator、target executor 和 neural acquisition grounder 均保持不变。calibrator
+只能撤销已有 binding，不能生成/移动 interval、改变 relation 或读取当前 outcome。
+
+| 阶段 | rows | 授权 | source / target | paired | 状态 |
+|---|---:|---:|---:|---:|---|
+| V44 view-only qualification | 150 | 41 | 104 / 100 | 7W / 3L, p=.171875 | NOT_QUALIFIED |
+| V47 interval qualification | 150 | 34 | 110 / 105 | 6W / 1L, p=.0625 | NOT_QUALIFIED |
+| V49 temporal-support qualification | 200 | 46 | 142 / 134 | 10W / 2L, p=.019287 | NOT_QUALIFIED（loss gate） |
+| V52 directional-support qualification | 250 | 24 | 175 / 168 | 7W / 0L, p=.0078125 | NOT_QUALIFIED（coverage/win gates 各差 1） |
+
+V46 在 150/150 base receipts 冻结后，calibrated evaluator 因缺少旧 core 要求的
+`qualified_v33_development_report_sha256` alias 中止。V47 只加入等于既有 V45 artifact hash 的
+兼容 alias，未改 rule、gate、sample 或 receipt；V46 不能被重新标成成功。对应 abort receipt 在
+`docs/results/agqa2_interval_reliability_v46_runtime_abort.json`。
+
+四轮 model development 是有限类穷举 induction，而不是手写 task-id/词汇过滤：
+
+- V42：8 个 singleton-view subsets；
+- V45：192 个 view × gap × endpoint-spread rules；
+- V48：768 个规则，增加 48-frame proxy 上的 temporal support span，risk-first 选择；
+- V51：2,304 个规则，增加 typed resolved-relation applicability；
+- V54：3,072 个规则，允许 `before/after` 使用不同 temporal-support threshold。
+
+V51 在 700 个 consumed rows 上自动选择 `before`、`rescan/tiebreak`、gap≥1、spread≤32、
+span≥6，训练为 28W/0L；V52 在新 250 rows 上复制出 7W/0L 和显著 p-value，但预注册还要求
+至少 25 次授权和 8 wins，实际为 24 和 7，所以仍不得进入 formal。
+
+V52 之后的 V54 artifact 只能算下一候选方法：它在 950 个 consumed rows 上从 3,072 条规则中
+自动选择 `before span≥6 / after span≥12`，得到 38W/0L。artifact SHA 为
+`61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241`，rule SHA 为
+`ccc436199f314b6e02815862ab7c9bbcfcda192e63c7a4ab406a7c5034962a81`。它尚未经过新的
+video-disjoint qualification，因此 **不能宣称 temporal transfer gate 已通过**，更不能开 test
+formal。下一合法步骤是冻结 V54 的独立 train qualification；只有所有 gate 同时通过，才能原样
+冻结 untouched official-test formal。

@@ -1,0 +1,84 @@
+{
+  "base_evaluation_protocol_sha256": "38d4e9eb5d94575f0abbd9d906699133a45254b5d097f61fc0b85490429cd5a7",
+  "claim_boundary": "TWO_HUNDRED_FIFTY_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_ATOMIC_BEFORE_AFTER_ROWS_FROM_OFFICIAL_TRAIN_METADATA;V51_DIRECTIONAL_SUPPORT_RULE_QUALIFICATION_ONLY",
+  "confirmatory_claim_allowed": false,
+  "cost_projection": {
+    "frozen_cap_usd": 2.25,
+    "projected_250_row_cost_usd": 1.74
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "reason": "V51_RISK_FIRST_DIRECTIONAL_SUPPORT_INDUCTION",
+    "ties": 672,
+    "wins": 28
+  },
+  "download_receipt_file_sha256": "f676ec1cbe56bb95613dd0435a49f206f3393c7d5e785ed097d91bf5982f6246",
+  "failure_policy": {
+    "failed_gate": "STOP_BEFORE_NEW_TEST_FORMAL",
+    "passed": "FREEZE_ONE_NEW_VIDEO_DISJOINT_TEST_FORMAL",
+    "qualification": "RUN_ONCE;NO_POST_OUTCOME_THRESHOLD_CHANGE"
+  },
+  "postground_evaluation_protocol": {
+    "aggregate_adapter_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "calibration_artifact_sha256": "cc549659c26dce7b6e1c7b8da2a5f3831182a02e496c06e543a28ae9de9c3cd9",
+    "calibration_rule_sha256": "831bababea983c79a5afa87a40c5ecbaaaa0271e030c5e8570e6c29e591d4055",
+    "calibrator_module_sha256": "d2789468d01afe4ea20a351ec78e9ebf84c4941f1fc609253b24d8eff4e0a948",
+    "confirmatory_claim": false,
+    "evaluator_module_sha256": "522d7e8fae0d665a618f95b8d286aa04f58806896bb89e80208036c0faae9ffa",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 2.25,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 25,
+      "minimum_source_minus_target_correct": 7,
+      "minimum_source_wins": 8,
+      "required_effect_shuffled_abstentions": 250,
+      "required_generic_scaffold_matches": 250,
+      "required_target_written_equivalent_matches": 250,
+      "required_unique_videos": 250,
+      "required_valid_rows": 250,
+      "required_wrong_source_abstentions": 250
+    },
+    "runtime_calibrator_authority": "ABSTENTION_ONLY;NO_INTERVAL_RELATION_OR_BINDING_CREATION_OR_EDIT",
+    "runtime_features": [
+      "RESOLVED_RELATION",
+      "SINGLETON_VIEW_KIND",
+      "MINIMUM_CROSS_PAIR_GAP",
+      "MAXIMUM_WITHIN_OPERAND_ENDPOINT_SPREAD",
+      "MAXIMUM_INTERVAL_SPAN"
+    ],
+    "sample_count": 250,
+    "schema_version": "agqa2-directional-support-v52-qualification-protocol-v1",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "72c5e4e9c2e89595d5230290900339d5f57bb96503c367fd464bf2d09b8bd0a0"
+  },
+  "postground_evaluation_protocol_sha256": "25823b5a3165658988cb5f25f26dfbdf6fa66ed09fb9dc8efe28fc69c75a2ed1",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 2.25,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 25,
+    "minimum_source_minus_target_correct": 7,
+    "minimum_source_wins": 8,
+    "required_effect_shuffled_abstentions": 250,
+    "required_generic_scaffold_matches": 250,
+    "required_target_written_equivalent_matches": 250,
+    "required_unique_videos": 250,
+    "required_valid_rows": 250,
+    "required_wrong_source_abstentions": 250
+  },
+  "qualification_manifest_sha256": "fc10547117189f2c79c8ad902f987f799d7b56ee7c4ce9bb8e3b77f58869153f",
+  "qualified_development_artifact_sha256": "cc549659c26dce7b6e1c7b8da2a5f3831182a02e496c06e543a28ae9de9c3cd9",
+  "qualified_v33_development_report_sha256": "cc549659c26dce7b6e1c7b8da2a5f3831182a02e496c06e543a28ae9de9c3cd9",
+  "schema_version": "agqa2-directional-support-v52-preregistration-v1",
+  "selection_manifest_sha256": "b3d880de77235b61e35669968cbae2c8fb532f7ff36618fc4cb3d9dfee384008",
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "v51_training_artifact": "configs/agqa2_directional_support_v51/training_artifact.json",
+  "v51_training_artifact_file_sha256": "d208ef7b614580cf13954fcef1945164f19db75701edba8bf3fec5e609c2781f",
+  "v51_training_artifact_sha256": "cc549659c26dce7b6e1c7b8da2a5f3831182a02e496c06e543a28ae9de9c3cd9",
+  "v52_status": "FROZEN_BEFORE_ANY_V52_QUALIFICATION_PROVIDER_OR_OUTCOME_CALL"
+}

@@ -1,0 +1,82 @@
+{
+  "base_evaluation_protocol_sha256": "2c70ec61f27daaaec3ec1540a149e03d5bffdeb0201f9f42b1a8a33a466465c5",
+  "claim_boundary": "EXACT_HASHED_V43_BASE_RECEIPTS;JSON_LIST_TO_IDENTICAL_TUPLE_CANONICALIZATION_ONLY;DEVELOPMENT_QUALIFICATION",
+  "confirmatory_claim_allowed": false,
+  "cost_projection": {
+    "frozen_cap_usd": 1.35,
+    "projected_150_row_cost_usd": 1.05
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "reason": "V42_FINITE_CLASS_VIEW_RELIABILITY_INDUCTION",
+    "ties": 186,
+    "wins": 14
+  },
+  "download_receipt_file_sha256": "160d95d1eef29e5047f5187832b44f9530e0570b992d2878e90e263fbb1e5fe1",
+  "failure_policy": {
+    "failed_gate": "STOP_BEFORE_NEW_TEST_FORMAL",
+    "passed": "FREEZE_ONE_NEW_VIDEO_DISJOINT_TEST_FORMAL",
+    "qualification": "RUN_ONCE;NO_POST_OUTCOME_THRESHOLD_CHANGE"
+  },
+  "new_provider_calls_allowed": false,
+  "postground_evaluation_protocol": {
+    "aggregate_adapter_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "calibration_artifact_sha256": "ac30e4aecfe9d88a96e3dd7552c048eb5ea46dd1fec6191ce504d82e3f7774f1",
+    "calibration_rule_sha256": "6fb3ff0078ff9fb2ec53afbc5d260b05f1c8dc3618331f147ffeb0143dd2fa5d",
+    "calibrator_module_sha256": "19fa2c9c86244e4b34aea7eb92ca37773f899968f5ce80aaa6180760c940eed3",
+    "confirmatory_claim": false,
+    "evaluator_module_sha256": "7ae37b4bc3b4efcf8068cedaa974a3a45db554ae0db6bfb876a1223175f42d2b",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 1.35,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 25,
+      "minimum_source_minus_target_correct": 6,
+      "minimum_source_wins": 7,
+      "required_effect_shuffled_abstentions": 150,
+      "required_generic_scaffold_matches": 150,
+      "required_target_written_equivalent_matches": 150,
+      "required_unique_videos": 150,
+      "required_valid_rows": 150,
+      "required_wrong_source_abstentions": 150
+    },
+    "runtime_calibrator_authority": "ABSTENTION_ONLY",
+    "sample_count": 150,
+    "schema_version": "agqa2-view-reliability-v44-qualification-protocol-v1",
+    "serialization_change": "JSON_LIST_TO_IDENTICAL_TUPLE_ONLY",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "ffdfbadfba4583f19319b00ff2f348e0feb81717a670d030f257d1396a5e227a",
+    "v43_base_report_sha256": "b01cad0b645dc6d57386d2b572afcaa612ea6ed958f7382716d9bbe6a61aa402"
+  },
+  "postground_evaluation_protocol_sha256": "fb660a18190aab23656addd587bda7646e03430b9cba3f4f7d5e8ee893a973a9",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 1.35,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 25,
+    "minimum_source_minus_target_correct": 6,
+    "minimum_source_wins": 7,
+    "required_effect_shuffled_abstentions": 150,
+    "required_generic_scaffold_matches": 150,
+    "required_target_written_equivalent_matches": 150,
+    "required_unique_videos": 150,
+    "required_valid_rows": 150,
+    "required_wrong_source_abstentions": 150
+  },
+  "qualification_manifest_sha256": "449a3d46f94b71ad4d3d3badf7ff497a243f75d87e0bb14c8cb51d6051da7a6d",
+  "qualified_v33_development_report_sha256": "ac30e4aecfe9d88a96e3dd7552c048eb5ea46dd1fec6191ce504d82e3f7774f1",
+  "schema_version": "agqa2-view-reliability-v44-preregistration-v1",
+  "selection_manifest_sha256": "2a463d2031346559bc729180e9782338461b52f0d82a70309c1eeee3c2d94bb7",
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "v42_training_artifact": "configs/agqa2_view_reliability_v42/training_artifact.json",
+  "v42_training_artifact_file_sha256": "b52b699003ac62b20e71572ea1ecf0d38be1095cd47c216a2b923da98814b954",
+  "v42_training_artifact_sha256": "ac30e4aecfe9d88a96e3dd7552c048eb5ea46dd1fec6191ce504d82e3f7774f1",
+  "v43_base_report_sha256": "b01cad0b645dc6d57386d2b572afcaa612ea6ed958f7382716d9bbe6a61aa402",
+  "v43_runtime_abort_summary": "docs/results/agqa2_view_reliability_v43_runtime_abort.json",
+  "v43_runtime_abort_summary_file_sha256": "f0f0c782dec0edf031f2af8efbc161df2e9de9a6d6d38da71a76d50941676ef2",
+  "v44_status": "FROZEN_BEFORE_V44_QUALIFICATION_PREDICTION_EVALUATION"
+}
