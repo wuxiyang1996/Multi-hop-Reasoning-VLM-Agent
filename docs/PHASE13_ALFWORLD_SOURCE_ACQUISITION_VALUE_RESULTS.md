@@ -1,5 +1,12 @@
 # Phase 13：ALFWorld source acquisition value 与 program-content control
 
+> **Phase 14–15 update（2026-08-19）：** ALFWorld source acquisition curve 已扩展到 source
+> episode budget 与 64 个确定性顺序重排；第二个 finite PutNear→DiscoveryWorld program family 也已完成
+> K=0/K=1 target acquisition replication。结论从“一个 recurrence family 的 acquisition value”升级为
+> “两个不同 IR/program families 的 acquisition value”，但仍不声称 source/target 具有统一 sample-cost
+> 单位。见
+> [`PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md`](PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md)。
+
 ## 最终结论
 
 本轮把 Phase 12 的可识别性问题真正闭合了：

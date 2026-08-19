@@ -326,7 +326,7 @@
 <body>
   <header>
     <div class="wrap">
-      <p class="eyebrow">Evidence-bound status · 2026-08-15</p>
+      <p class="eyebrow">Evidence-bound status · 2026-08-19</p>
       <h1>Game → Four Domains<br>Neural-Symbolic Transfer</h1>
       <p class="subtitle">
         我们实现的不是“一条高层游戏 heuristic 到处通用”，而是 intervention-grounded symbolic
@@ -334,6 +334,8 @@
         旧 independent-goal claim，并把自然视频正式负结果纳入边界。
       </p>
       <div class="pills">
+        <span class="pill good">2 distinct acquisition families validated</span>
+        <span class="pill good">ALFWorld source order 64/64</span>
         <span class="pill bad">Old 4-domain aggregate retired</span>
         <span class="pill good">Target action authority preserved</span>
         <span class="pill info">5 select · 4 abstain</span>
@@ -348,6 +350,7 @@
   <nav>
     <div class="wrap">
       <a href="#outcome">结果</a>
+      <a href="#acquisition">Acquisition</a>
       <a href="#mechanism">机制</a>
       <a href="#alfworld">ALFWorld</a>
       <a href="#journey">七步实验</a>
@@ -426,6 +429,43 @@
         <code>ABSTAIN</code>。在线 utility audit 在复现后选择 5 条、拒绝 4 条 route；它不产生 target action。
         这仍是 route-level calibration，不是学出来的 state-level analogy detector。
       </div>
+    </section>
+
+    <section id="acquisition">
+      <h2>最新：source value 在 acquisition，不在 provenance</h2>
+      <p class="lead">
+        同构 target-written controller 可以与 source-induced controller 完全等价；真正可归因给 source
+        intervention 的价值，是在没有完整 target 成功轨迹时自动取得正确 symbolic content。这个结论现在已在
+        两个结构不同的 program families 上通过。
+      </p>
+
+      <table>
+        <thead><tr><th>Program family</th><th>Source acquisition</th><th>Target-only acquisition</th><th>Controls / utility</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>ALFWorld recurrent acquisition→binding→relation</strong></td>
+            <td>主排序 K=4；64/64 重排在 K≤9 恢复</td>
+            <td>K=0 abstain；9/9 单-demo 在 K=1 恢复；各支持 11/11 held-out</td>
+            <td>shuffled/permuted 0；fresh execution source=target K1=9/14，raw=4/14</td>
+          </tr>
+          <tr>
+            <td><strong>PutNear finite ADD-slot→REMOVE-slot</strong></td>
+            <td>K=0/K=1 abstain；K=2 恢复；4/4 fresh source paths</td>
+            <td>K=0 abstain；3/3 单-demo 在 K=1 恢复；各支持 3/3 held-out</td>
+            <td>reversed/wrong-family/permuted 0；existing formal 12/12 vs 3/12</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>成本边界：</strong>source simulator collections 与 target trajectories 不是共同 sample-cost
+        单位；当前结果不声称 source 比正确的人类/LLM target synthesis 更便宜。它排除的是 source-label magic、
+        arbitrary-controller 和 single canonical recurrence 三种解释。
+      </div>
+      <p class="small">
+        完整协议、数字和复现入口见
+        <a href="PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md">Phase 14–15 matched acquisition report</a>。
+      </p>
     </section>
 
     <section id="mechanism">

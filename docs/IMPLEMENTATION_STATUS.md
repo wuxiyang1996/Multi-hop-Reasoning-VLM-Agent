@@ -1,5 +1,18 @@
 # Implementation Status
 
+## Phase 14–15 matched acquisition 与第二程序族（2026-08-19）
+
+ALFWorld matched acquisition audit 已冻结通过：source 主排序在 `K=4` 恢复完整 normal form，64/64
+确定性重排均在 `K≤9` 恢复；9/9 个 target 单-demo 各自于 `K=1` 恢复相同 execution normal form，
+并在 11/11 later held-out paths 上成立，shuffled/permuted support 为 0。旧小样本 terminal learner 的
+spurious entity-count predicate 已由 source-only intervention-linked causal restriction 修复。
+
+第二个非 recurrent family 也已通过：MiniGrid PutNear 的有限
+`ADD ENTITY_SLOT → REMOVE ENTITY_SLOT` program 在 source `K=2` 恢复；DiscoveryWorld target-only
+`K=0` abstain，3/3 个单-demo 在 `K=1` 独立恢复包含该 subprogram 的同一 partial-order normal form。
+这排除了“只有一套 canonical recurrent controller”的解释。完整结果与剩余成本边界见
+[`PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md`](PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md)。
+
 ## Phase 13 ALFWorld program acquisition value（2026-08-19）
 
 Source-provenance identifiability concern 已在 ALFWorld 内完成 matched acquisition-cost control。
