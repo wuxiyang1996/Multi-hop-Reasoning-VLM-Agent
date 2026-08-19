@@ -1,5 +1,16 @@
 # Implementation Status
 
+## Phase 13 ALFWorld program acquisition value（2026-08-19）
+
+Source-provenance identifiability concern 已在 ALFWorld 内完成 matched acquisition-cost control。
+Fresh compiler-valid 14-task matrix 中，raw/generic/permuted 为 `4/14`，source-induced 与
+source-blind target-only `K=1` 均为 `9/14`，14/14 action/state/effect traces 完全相同；target-only
+`K=0` abstain，需 1 条完整 target trajectory 才恢复 source 用 0 条 target trajectory 得到的
+program。正确解释是 symbolic content 有执行效用、source interventions 有 acquisition value，
+而 source provenance 本身没有额外 execution effect。完整结果、schema-recovery audit 与 claim
+boundary 见
+[`PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md`](PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md)。
+
 ## Harness retargeting 跨版本审计（2026-08-11）
 
 五个历史工作目录的 docs、raw reports 与关键 logs 已完成只读审计。审计结论、负结果、

@@ -2,6 +2,11 @@
 
 ## 最终答案
 
+> **Phase 13 update:** ALFWorld 内的 target-only `K=0/K=1` acquisition curve 与 fresh
+> compiler-valid 14-task matched replication 已完成。结论保持为“content 决定 execution、source
+> 提供 acquisition value”，并把 ALFWorld 内的 measured target cost 定量为 1 条完整成功 trajectory。
+> 详见 [`PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md`](PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md)。
+
 现在可以明确回答：
 
 > **在 execution 阶段有效的是 symbolic program 的结构内容，而不是它来自 source game 这一 provenance。**

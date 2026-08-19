@@ -1,0 +1,137 @@
+{
+  "schema_version": "alfworld-target-acquisition-value-v16-report",
+  "status": "ALFWORLD_TARGET_ACQUISITION_VALUE_RETROSPECTIVE_VALIDATED",
+  "role": "retrospective_chronological_heldout_acquisition_curve",
+  "claim_boundary": "Retrospective target-program acquisition curve. V13 raw target-only complete successes are caller-supplied demonstrations; the later V14 raw target-only successes are chronological held-out qualification. This protocol resets no environment, opens no task, and adds no prospective success claim. Existing V13/V14 results retain their original prospective status.",
+  "config_sha256": "05d77d15e99ebafaad7e4bb75956ed0ffe08a0d047c659efd936ccd45e0d2b66",
+  "estimand": "Minimum number of complete ordered successful ALFWorld target-only trajectories required to recover the execution normal form already learned from zero target trajectories by the held-out-confirmed source intervention program.",
+  "source_complete_target_trajectory_budget": 0,
+  "complete_target_trajectories_replaced": 1,
+  "source_execution_normal_form": {
+    "activation_after_positive_relations": 1,
+    "recurrent_acquisition_control": true,
+    "binding_then_relation": true,
+    "recurrent_relation_grounding": true,
+    "relation_argument_rule": "PRESERVE_FIRST_POSITIVE_RELATION_HANDLE",
+    "terminal_remaining_relations": 0,
+    "positive_effect_cardinality": 1,
+    "fail_closed_on_ambiguity": true
+  },
+  "development": {
+    "source": "V13_RAW_TARGET_ONLY_COMPLETE_SUCCESS_PATHS",
+    "eligible_trajectories": 9,
+    "task_id_hashes_in_order": [
+      "b07491accb296965ef57cfad5e607af3f2f9298def3726ba9e1f7f650673b5a3",
+      "e0bd14dd823a0680740dd426a806a324009db765e060ee692ccea63c1db1d504",
+      "167de627ff8987bca7feae586c6e13a358a15d9a7b967151cac70e7e8c630b65",
+      "15113c301c5ef5407c007af6f868847ac5beb235b2a88c63dd81c145eea44c4c",
+      "5892c7bd9eae8cc036bdfb6001100fbf30bac0f0e71f58b40af839496b78aad3",
+      "c7d4e307b0a8c24b5888b9e861d2532cd6db2303e109e9560fe4a3acfdf1318d",
+      "4020ea94dbf84857e3a6bf24605053586ecedc9539d1cfcd25b0cbe59543e6e9",
+      "8b9c4c403b06b69b606dc4e3c0f25a3c8a7982f7d1cf5c3807cb55e7125c3e60",
+      "6a5df8353eb3f24cfad161bd70cf46ed4dc40b78214a4dd5ff0d1af72a6177c9"
+    ]
+  },
+  "qualification": {
+    "source": "LATER_V14_RAW_TARGET_ONLY_COMPLETE_SUCCESS_PATHS",
+    "eligible_trajectories": 11,
+    "task_id_hashes": [
+      "5b0986c121b25fcc5eb37d683f96eaf936ee5b77efefd8e6927abcc969bf89ce",
+      "891632c0d29902d07281343249d05116ed25ad6434535487d3496ee419b4357b",
+      "4b95a9b5fe36a4e1a4348f84643ff0357bea8e574b72864d208f9c784f0286a7",
+      "6274db54012e1c35666ecb9edb7f874ca912fb02873ec5310c767568337a6415",
+      "e1d4ae6ad2b686c3c426a98b85ae79134516b749043d711e09f878cfdafba280",
+      "aea29e03ed8c05f62eea3c69b2711febc7af35b4ee8803db7c1cda03748acc32",
+      "3b6e7f0fb0a1b501f6495678bc90f2c9a5473505067a0aee7abaa4dd24fab30b",
+      "90a29575becfe335d5ede6e72ddd868e48df2f2c77988d1a17dcf2b38e167f4c",
+      "f0dd83fb0193d2d7b30cc385167fc0bc7c74cf854875b682af89aeabf79bb134",
+      "1093f9b7fbf65f5e57e92572f746a2ff077de24a94c1d2978d917622c145b867",
+      "758b4a623b196cb71fd36e158f2ed225dadac6b214949386cd6be0bbf9a2e579"
+    ]
+  },
+  "target_only_induction_curve": [
+    {
+      "complete_target_trajectory_budget": 0,
+      "status": "ABSTAIN_NO_COMPLETE_TARGET_TRAJECTORY",
+      "program_sha256": "1152efd24d662cd3d821d03ac5f0c20a03b33a06aff546b103d3b3893defe88b",
+      "matches_source_execution_normal_form": false,
+      "qualification_support": 0,
+      "qualification_shuffled_effect_support": 0,
+      "qualification_binding_relation_permuted_support": 0
+    },
+    {
+      "complete_target_trajectory_budget": 1,
+      "status": "TARGET_ONLY_RECURRENT_PROGRAM_INDUCED",
+      "program_sha256": "9e2987123fe8c4d9f34fde5f9ac366764df3ea41fee876feb7279765fc492c05",
+      "matches_source_execution_normal_form": true,
+      "qualification_support": 11,
+      "qualification_shuffled_effect_support": 0,
+      "qualification_binding_relation_permuted_support": 0
+    },
+    {
+      "complete_target_trajectory_budget": 2,
+      "status": "TARGET_ONLY_RECURRENT_PROGRAM_INDUCED",
+      "program_sha256": "ab9fd3a7836aaa2ecddd5d1fd5323359c440a3bfcaa3fb550042d6a9fedc53be",
+      "matches_source_execution_normal_form": true,
+      "qualification_support": 11,
+      "qualification_shuffled_effect_support": 0,
+      "qualification_binding_relation_permuted_support": 0
+    },
+    {
+      "complete_target_trajectory_budget": 4,
+      "status": "TARGET_ONLY_RECURRENT_PROGRAM_INDUCED",
+      "program_sha256": "79025718319ff8a97e9039c6dcba560657557876fbbd3cb29cf3a87181e287b1",
+      "matches_source_execution_normal_form": true,
+      "qualification_support": 11,
+      "qualification_shuffled_effect_support": 0,
+      "qualification_binding_relation_permuted_support": 0
+    },
+    {
+      "complete_target_trajectory_budget": 8,
+      "status": "TARGET_ONLY_RECURRENT_PROGRAM_INDUCED",
+      "program_sha256": "bb58e9a8dcd3366a25f1bffbb668b99a2993ef4ab2c25aff2ff9ab4362071d00",
+      "matches_source_execution_normal_form": true,
+      "qualification_support": 11,
+      "qualification_shuffled_effect_support": 0,
+      "qualification_binding_relation_permuted_support": 0
+    }
+  ],
+  "policy_context": {
+    "v14_source_induced_successes": 18,
+    "v14_raw_target_only_successes": 11,
+    "v14_source_policy_gain": 7,
+    "v15_target_written_exact_action_trace_matches": 45,
+    "prospective_policy_evidence_reused_not_reclassified": true
+  },
+  "fresh_pool_audit": {
+    "installed_standard_multiplicity_pool_available": false,
+    "valid_train_consumed": 45,
+    "valid_seen_historically_consumed": 24,
+    "valid_unseen_historically_consumed": 17,
+    "new_environment_reset_by_this_qualification": false,
+    "prospective_replication_status": "BLOCKED_ON_GENUINELY_NEW_ALFWORLD_INSTANCE_GENERATION"
+  },
+  "lineage": {
+    "v13_report_sha256": "1e95fb59c02472b4f9735cbb20df370d4b7b369d14d00387d07172e3f80fbadc",
+    "v14_report_sha256": "de5710f5cf305a64a0365f3c94ea550c1fd43c0e61fd888a6f70ea65abf0dc51",
+    "v15_report_sha256": "9a6425d92fc38ee2bc2888a159fc3cb7d4e01e27a4c34c229a4ebf6fc26d1678",
+    "source_acquisition_artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+    "source_relation_artifact_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+    "target_k1_program_sha256": "9e2987123fe8c4d9f34fde5f9ac366764df3ea41fee876feb7279765fc492c05"
+  },
+  "gates": {
+    "development_has_at_least_eight_complete_target_demos": true,
+    "chronological_v14_qualification_has_minimum_support": true,
+    "target_only_k0_abstains": true,
+    "target_only_first_matches_at_k1": true,
+    "k1_supports_every_qualification_trajectory": true,
+    "shuffled_effect_control_has_zero_support": true,
+    "binding_relation_permutation_has_zero_support": true,
+    "source_artifacts_pass_fresh_heldout_controls": true,
+    "source_program_has_nonzero_v14_policy_utility": true,
+    "target_written_oracle_exactly_matches_source_execution": true,
+    "phase13_resets_no_target_environment": true,
+    "no_untouched_success_claim": true
+  },
+  "report_sha256": "c04be83dbf50fd348bbe41738022399295f2026d2ed760f1c77a05ea1e05f5ee"
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "alfworld-target-acquisition-value-v16-protocol",
+  "status": "CONSUMED_RETROSPECTIVE_ACQUISITION_PROTOCOL",
+  "claim_boundary": "Retrospective target-program acquisition curve. V13 raw target-only complete successes are caller-supplied demonstrations; the later V14 raw target-only successes are chronological held-out qualification. This protocol resets no environment, opens no task, and adds no prospective success claim. Existing V13/V14 results retain their original prospective status.",
+  "estimand": "Minimum number of complete ordered successful ALFWorld target-only trajectories required to recover the execution normal form already learned from zero target trajectories by the held-out-confirmed source intervention program.",
+  "demo_order_namespace": "alfworld-target-acquisition-value-v16-demo-order",
+  "complete_target_trajectory_budgets": [0, 1, 2, 4, 8],
+  "v13_report": "runs/alfworld_unified_goal_acquisition_v13_formal/report.json",
+  "v13_report_file_sha256": "ea8bb2bdbfa1a759762a37a3c28b6a83194af08a670345520a1e9fbb09ee1a38",
+  "v14_report": "runs/alfworld_program_driven_policy_v14_formal/report.json",
+  "v14_report_file_sha256": "cd9a585611c44cad4be8b2369bbbb9660823ee7aec95395c269ef92896b2ea99",
+  "v15_report_archive": "runs/alfworld_target_written_provenance_v15/report.json.gz",
+  "v15_report_archive_file_sha256": "e99451e80ac1c9fbe8dbe93467b5920ca94151b4ef39edf4ddce597ad51bbb98",
+  "source_acquisition_artifact": "runs/sokoban_goal_acquisition_v1/artifact.json",
+  "source_acquisition_artifact_file_sha256": "bcdd55fe0d80f93a660a4040a3aafb66eb4c9693f71490cf3ba5a5d336cf276f",
+  "source_acquisition_confirmation": "runs/sokoban_goal_acquisition_v1/fresh_confirmation_report.json",
+  "source_acquisition_confirmation_file_sha256": "a37edef5ad43702e2eac8df1c0d29f0e1c5d5fa54cbd782a72b114cc282bd4b9",
+  "source_relation_artifact": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+  "source_relation_artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+  "source_relation_confirmation": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+  "source_relation_confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+  "target_inducer_file_sha256": "c5841a4862b891e3722664380e44901d1f2d081674ba86d5af596e69c355d289",
+  "gates": {
+    "minimum_development_trajectories": 8,
+    "minimum_qualification_trajectories": 8
+  },
+  "target_k1_artifact_output": "docs/results/alfworld_target_only_k1_program_v16.json",
+  "output": "docs/results/alfworld_target_acquisition_value_v16_qualification.json",
+  "config_sha256": "05d77d15e99ebafaad7e4bb75956ed0ffe08a0d047c659efd936ccd45e0d2b66"
+}

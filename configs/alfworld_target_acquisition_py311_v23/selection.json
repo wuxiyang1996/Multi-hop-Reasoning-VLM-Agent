@@ -1,0 +1,247 @@
+{
+  "schema_version": "alfworld-target-acquisition-train-itt-v20-selection",
+  "status": "FROZEN_V23_CANDIDATES_VALIDITY_AND_PY311_BEFORE_COMPILATION_OR_RESET",
+  "namespace": "alfworld-target-acquisition-fresh-v20-train-itt",
+  "source_split": "official_alfworld_json_2.1.1_train",
+  "selection_rule": "RANK SLICE [48, 80) BY ASCENDING SHA256(NAMESPACE NUL TASK_ID) FROM ALL PICK_TWO_OBJ_AND_PLACE IDENTITIES WITH TRAJ_DATA AND INITIAL_STATE BUT NO PACKAGED GAME.TW-PDDL; EXCLUDE OFFICIAL MOVABLE-RECEPTACLE AND SLICED UNSUPPORTED IDENTITIES",
+  "eligible_population": 228,
+  "eligible_population_task_ids_sha256": "15f684a0b19110f6c48df7bfc09a21df4f2bdf02310ceb04080e2fa58af34856",
+  "selection_used_identity_only": true,
+  "selection_used_compiler_solvability_observation_or_policy_outcome": false,
+  "compiler_rejected_tasks_must_remain_in_intention_to_treat_matrix": false,
+  "compiler_solvability_eligibility_rule_frozen_before_compilation": "SOLVABLE_TRUE_ONLY",
+  "runtime_interpreter_contract_frozen_before_compilation": {
+    "executable": "/fs/gamma-projects/vlm-robot/conda/envs/cosplay-candy-a100/bin/python",
+    "executable_file_sha256": "6f7f600fac69c400a8ad7b2a85f9fdd2db9e93bd908d2b2b70ee5f250c1024e7",
+    "python_major_minor": "3.11"
+  },
+  "pre_freeze_policy_execution_exposure_by_task": {
+    "pick_two_obj_and_place-CreditCard-None-ArmChair-222/trial_T20190908_042309_947043/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Cloth-None-SideTable-419/trial_T20190909_095845_033128/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-SinkBasin-416/trial_T20190909_072041_429312/game.tw-pddl": 0,
+    "pick_two_obj_and_place-HandTowel-None-SinkBasin-427/trial_T20190908_070514_346717/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-BathtubBasin-408/trial_T20190907_165913_913312/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Cloth-None-BathtubBasin-406/trial_T20190907_125848_021769/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Fork-None-SinkBasin-14/trial_T20190907_070527_588074/game.tw-pddl": 0,
+    "pick_two_obj_and_place-ToiletPaper-None-Cabinet-408/trial_T20190909_085729_823246/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Candle-None-Toilet-419/trial_T20190909_033518_510659/game.tw-pddl": 0,
+    "pick_two_obj_and_place-KeyChain-None-CoffeeTable-212/trial_T20190907_220713_901028/game.tw-pddl": 0,
+    "pick_two_obj_and_place-HandTowel-None-SinkBasin-427/trial_T20190908_070432_505321/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Cloth-None-Drawer-411/trial_T20190908_185916_759840/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Spoon-None-Drawer-6/trial_T20190908_041203_753159/game.tw-pddl": 0,
+    "pick_two_obj_and_place-DishSponge-None-CounterTop-421/trial_T20190908_133115_043454/game.tw-pddl": 0,
+    "pick_two_obj_and_place-PepperShaker-None-Cabinet-17/trial_T20190907_145409_365462/game.tw-pddl": 0,
+    "pick_two_obj_and_place-DishSponge-None-BathtubBasin-414/trial_T20190907_114619_374285/game.tw-pddl": 0,
+    "pick_two_obj_and_place-KeyChain-None-Ottoman-210/trial_T20190909_020148_624333/game.tw-pddl": 0,
+    "pick_two_obj_and_place-KeyChain-None-Ottoman-208/trial_T20190907_232923_731805/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-SinkBasin-416/trial_T20190909_072121_495176/game.tw-pddl": 0,
+    "pick_two_obj_and_place-RemoteControl-None-ArmChair-207/trial_T20190908_130008_528143/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Lettuce-None-SinkBasin-26/trial_T20190907_205906_226110/game.tw-pddl": 0,
+    "pick_two_obj_and_place-DishSponge-None-Toilet-403/trial_T20190908_025001_182302/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Cloth-None-Dresser-317/trial_T20190908_043257_624123/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Cloth-None-Toilet-420/trial_T20190909_114505_563617/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Glassbottle-None-Fridge-1/trial_T20190906_210645_277965/game.tw-pddl": 0,
+    "pick_two_obj_and_place-DishSponge-None-GarbageCan-421/trial_T20190907_163245_355955/game.tw-pddl": 0,
+    "pick_two_obj_and_place-RemoteControl-None-CoffeeTable-202/trial_T20190907_075416_851145/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBottle-None-Toilet-406/trial_T20190909_145919_337726/game.tw-pddl": 0,
+    "pick_two_obj_and_place-KeyChain-None-Sofa-202/trial_T20190908_102821_346650/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SprayBottle-None-Toilet-402/trial_T20190908_034928_263509/game.tw-pddl": 0,
+    "pick_two_obj_and_place-ToiletPaper-None-Drawer-416/trial_T20190908_013005_772043/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-BathtubBasin-423/trial_T20190909_034155_743816/game.tw-pddl": 0
+  },
+  "tasks": [
+    {
+      "task_id": "pick_two_obj_and_place-CreditCard-None-ArmChair-222/trial_T20190908_042309_947043/game.tw-pddl",
+      "rank_sha256": "2fdc7cc61baa575186ea65336f9007e42ce90dd24b53d57049fb130ec5a389dd",
+      "traj_data_file_sha256": "c78adb15f7b5e9621b82eebf6ef4ec8c1d457fbf03d791bfc3e882b51624f1a7",
+      "initial_state_file_sha256": "a8034f3968cadb85bc0633d37512b5daa4905dda641dbd3a97d7d074466c9049"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Cloth-None-SideTable-419/trial_T20190909_095845_033128/game.tw-pddl",
+      "rank_sha256": "31480e7430f446ccc9cf04d46994a5b26122f5eaa858db8811bc57883e39e3de",
+      "traj_data_file_sha256": "ea43ce4d7dda5836d4643cdd4e85c6add6fad82a9e380e4d13a7756f462d7b82",
+      "initial_state_file_sha256": "278ec8eadf849b1c3077db2313220faa5ddd6cca98087ff1253b944a9394e8ae"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-SinkBasin-416/trial_T20190909_072041_429312/game.tw-pddl",
+      "rank_sha256": "31a1f6380a9e7736949b33787ad0b68f45f50c679049a01a523562f70ddbb659",
+      "traj_data_file_sha256": "2fc9cc13d12d14f1ecb1830fc87186604d39ac051dadc7ce722049b03791c4d2",
+      "initial_state_file_sha256": "9f67fa4ba6aff5ab395ee7669cb1597ee736929f062dbf8418a1bd3321ed83c2"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-HandTowel-None-SinkBasin-427/trial_T20190908_070514_346717/game.tw-pddl",
+      "rank_sha256": "31d785777c0cf3060c738045ddc27e29ef63a3855febb82eac1c8b357363c830",
+      "traj_data_file_sha256": "91bab253a77023931a414f33619100b9f229c3cb29f72ba6b870090150ab5339",
+      "initial_state_file_sha256": "0c7ecc605a476b5eb79056aae84c4a3c63e3007b6f7ad6e180bdee9b43e4746a"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-BathtubBasin-408/trial_T20190907_165913_913312/game.tw-pddl",
+      "rank_sha256": "322740abd60eca852194502937bace169bc09a4ac36c8bae0dd5468db9313f9d",
+      "traj_data_file_sha256": "a99393d63847dee0acef7f03b37cd3563879652b57c01d5fdb6f809d4ad7bfff",
+      "initial_state_file_sha256": "b2456f757434904ad347809f594a09213c8cbfc2399150369cc395f9aeea0d2e"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Cloth-None-BathtubBasin-406/trial_T20190907_125848_021769/game.tw-pddl",
+      "rank_sha256": "324b6f92c65285ad441dd5469e4fb2ddee1caa06d6caf921e5d39510a3e1fdd7",
+      "traj_data_file_sha256": "2626f409b1f6fb64350f1f7be9016e3324032a595d9a688c1789ca39fdf26e76",
+      "initial_state_file_sha256": "0d930e9a6d67d1977eaf8d75f6ea6f1fb6b81851b428942f94987661c3561192"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Fork-None-SinkBasin-14/trial_T20190907_070527_588074/game.tw-pddl",
+      "rank_sha256": "35042bbd6a299d5822a6db7793300b3f8211093f8b60cb05625f98f6af138cbe",
+      "traj_data_file_sha256": "510182ce95c9800763e9d9dc5d2af4e6225ae8894e3a7e80f194c857e06d0d62",
+      "initial_state_file_sha256": "e43e2bf7e69225712c749ba4964147887243dba16e241090a6c8df9f2af1985b"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-ToiletPaper-None-Cabinet-408/trial_T20190909_085729_823246/game.tw-pddl",
+      "rank_sha256": "356ea476a3ec91d691bb6c9167aff5d1233f8e4f6de41b39106706e03d27e163",
+      "traj_data_file_sha256": "de01cd6ad352949ab0cd2cfbc2baef11d7eed0a9ee90086646e4982d0725fcbe",
+      "initial_state_file_sha256": "8c8d812b625472c8c9640481388075bc014673f19f7cb2f5a7489ae2b87d3cb4"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Candle-None-Toilet-419/trial_T20190909_033518_510659/game.tw-pddl",
+      "rank_sha256": "37848c0a8054545ee3d60ed4911d969fe048163224360373be1ba9ead4823970",
+      "traj_data_file_sha256": "0aeb0ca122b824475c2521d16daa3a9b9ccbca6bdff619ef8b838ea951464a4f",
+      "initial_state_file_sha256": "df12905812f87d18dbff196c208c52727892461b6ac104902d23d90efaad081b"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-KeyChain-None-CoffeeTable-212/trial_T20190907_220713_901028/game.tw-pddl",
+      "rank_sha256": "37cc964fe6a56648eeb46bcff1c33131be38d9361b2c4fe4c28a2b6c3603d3b3",
+      "traj_data_file_sha256": "16168e3d6ae888423c19d63431dc50e0318fa4b415c6f9028f79164d0936172f",
+      "initial_state_file_sha256": "f37a60833d5a116e4eadd02764824e358e05dfa30a31f4f6e1e9c80c60ad1f61"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-HandTowel-None-SinkBasin-427/trial_T20190908_070432_505321/game.tw-pddl",
+      "rank_sha256": "383da3bb9005db29364cd29d003f9b835d0f5c13a2f7d2b7155717512104ac5e",
+      "traj_data_file_sha256": "8e1e0a04426e2e30fe3228e935e9eadc5d30f7a083dbc160133d4a83bc0177ca",
+      "initial_state_file_sha256": "15076532943620161da261edcd2eb6c62a0671653228bed9ae7920af4fb6d0f4"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Cloth-None-Drawer-411/trial_T20190908_185916_759840/game.tw-pddl",
+      "rank_sha256": "3873758dd6a3f3234881f9bc20f38eb801326dc24d57d8c48db4b1a8814ddfe0",
+      "traj_data_file_sha256": "dd46854fcf8f5240cbc512324a575aee05b7e0f388e500dde41894a345b3d7e9",
+      "initial_state_file_sha256": "64b71ba4ef88f6f87c454ddcd16a0d0449e6b2b6c6c5b7124cc75cb16dc5b507"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Spoon-None-Drawer-6/trial_T20190908_041203_753159/game.tw-pddl",
+      "rank_sha256": "38866ee70207f31551a69346fa49e342e23c3362ecb93ddea310c8072f8436ea",
+      "traj_data_file_sha256": "85909414724e4dc26c612991c652171f9e3cb739916778f289909bfbd1de50ab",
+      "initial_state_file_sha256": "4ea20285c8093d7c7acd632b472dccd009970404bd29b823cb398017b3515547"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-DishSponge-None-CounterTop-421/trial_T20190908_133115_043454/game.tw-pddl",
+      "rank_sha256": "3a7dfa9f966d8bd1cb0696f3a872d7c16d05420d46119fc79dc19af7e26541c9",
+      "traj_data_file_sha256": "e9121cc836b95f54c9b55e150bea961070d0f66aa8e7ac8e5c755ad7933cf9ab",
+      "initial_state_file_sha256": "2f49f6294d71ad99255895373260dcbac8ec4b4da6e1b4036e6fc6abf897a5c3"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-PepperShaker-None-Cabinet-17/trial_T20190907_145409_365462/game.tw-pddl",
+      "rank_sha256": "3cb3385ff3a2875d97bdcbd886ed8c6358eb8c1ff214c3deb4b64139534dc0bb",
+      "traj_data_file_sha256": "f36eb12ba74a6902cf1ce501cdf6a7a0b6b1e7086d248411bd1b562cd6d1ce65",
+      "initial_state_file_sha256": "89b59a5845956484f4844dd3704c231f30eb4c81d877ff560540fc62c8383c1c"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-DishSponge-None-BathtubBasin-414/trial_T20190907_114619_374285/game.tw-pddl",
+      "rank_sha256": "3fe4929784156e2d50308d76e9cc7cc268530ea2618f4d681d424f6bde12ecbc",
+      "traj_data_file_sha256": "cc1c51f76c7ca21d377fa23116e803130afaaff981e2fbdfeaaaf258cb119654",
+      "initial_state_file_sha256": "dfe68db75c415930b9f92a98cabb36c886d307a6b0c43e26ffdadd0144279c57"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-KeyChain-None-Ottoman-210/trial_T20190909_020148_624333/game.tw-pddl",
+      "rank_sha256": "40fd8f5be0167fa529c563627d5a1737adb5565e80c355fae9fc7dfb20b931ce",
+      "traj_data_file_sha256": "af272419fe33614846038afb57a6eafdc36f35cc266ead439041289d1ae0df59",
+      "initial_state_file_sha256": "c071281add21039b3cb8539f08312573074530749908e348ec6c52dd0ea89d16"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-KeyChain-None-Ottoman-208/trial_T20190907_232923_731805/game.tw-pddl",
+      "rank_sha256": "41862a1c59965f665bddb337c29e8a2a01c894f94e54cf9bfc2d8438595e4b00",
+      "traj_data_file_sha256": "1cda7dcadd89108f3f63caea57753994a0fbc7521a428ce24b83068e5c8eb4e7",
+      "initial_state_file_sha256": "02420373d02ce8271fbb3d615b5f5607cf93c7eb5bd61446f5b63b278d17af70"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-SinkBasin-416/trial_T20190909_072121_495176/game.tw-pddl",
+      "rank_sha256": "423073c924547d558a3ddcd735c231e4d09cccf77614c8834223e49176c523f5",
+      "traj_data_file_sha256": "c086f5a509bf8ec14e08ba7fb1b882d69e6a8b71eecb9dc404fea3608c58543d",
+      "initial_state_file_sha256": "8f7a42f0df751316417973571659e203a9fb2dabfffc8208148e8abb9339d7fe"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-RemoteControl-None-ArmChair-207/trial_T20190908_130008_528143/game.tw-pddl",
+      "rank_sha256": "447837cea18142e5bc69de93ed326441a6140eeb3cb03a3a15c105257e65af0f",
+      "traj_data_file_sha256": "0674f6cd5e92ae922a528c9458a77324f06673d1156f28475da249884f16f811",
+      "initial_state_file_sha256": "a4e370cd74c3072d505e318351d54f074bc4c049321e4e818d1b9f45b081ba78"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Lettuce-None-SinkBasin-26/trial_T20190907_205906_226110/game.tw-pddl",
+      "rank_sha256": "44f58fcc1f18fb6d72577b40c5042666da2fd7f76b55782d97cc56347c027da6",
+      "traj_data_file_sha256": "0299bc9a187b5d4c340d09485a69330891cc1c1e8059b946bfcd9336eecdf1a7",
+      "initial_state_file_sha256": "cec1a5408aabbc627caaec8762bb6ef0cab42c59b84525f187d2c7b6352542c9"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-DishSponge-None-Toilet-403/trial_T20190908_025001_182302/game.tw-pddl",
+      "rank_sha256": "476b89be6b13f439435a435bc08e1b57bb5d668e09fdbe45e633aa53e60ce7f0",
+      "traj_data_file_sha256": "d78053467d89364d0cb4b3406816fa182fdcf901342f82019f140605cfc29caa",
+      "initial_state_file_sha256": "8dbbcb42e2045a731457817d7506d82fa2f8b614e2fac7233bd0eaa20dbb5539"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Cloth-None-Dresser-317/trial_T20190908_043257_624123/game.tw-pddl",
+      "rank_sha256": "4883e0fa92b32046591bff85282b55a896e81cceee7dd3690b0078f2c7f3ac1c",
+      "traj_data_file_sha256": "c3971dbd5130bcba8cb2302cad7c052c2488f5fe19ec47ab1f6197ce12ebf779",
+      "initial_state_file_sha256": "edd6edc1aac702adff40036044c9d1444758a0c005de7cefc72842ad87abd779"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Cloth-None-Toilet-420/trial_T20190909_114505_563617/game.tw-pddl",
+      "rank_sha256": "48e0ac60178248be84ebc5ba12b5387ac6e41de4f3897ed4d898bd8cafe758c4",
+      "traj_data_file_sha256": "38820e58e15a6baa5fd86a6b6813bd2f0ec1def4b1a3f337fee1d7778645e977",
+      "initial_state_file_sha256": "ab2423f22104beb991beae156af56870a221c5cd0a8e1e34b1b1426f5cc4e985"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Glassbottle-None-Fridge-1/trial_T20190906_210645_277965/game.tw-pddl",
+      "rank_sha256": "4a28eab4ca214c73d6affe717efe3f72379685e78dde9204fad74071ad52c2ba",
+      "traj_data_file_sha256": "ba20e4fab66db06a6c61a5b37e2521b4afb723fdecf69356bae313b74252da55",
+      "initial_state_file_sha256": "94dd633485bdccf5d77a5b3c44b2f5eb6798eae0a550f1fd5b1718eee510b723"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-DishSponge-None-GarbageCan-421/trial_T20190907_163245_355955/game.tw-pddl",
+      "rank_sha256": "4ac949b07ced82cdcbf9cc2d5a3a7b9cec41038f5e051b0c89923866210805f6",
+      "traj_data_file_sha256": "ce6b87f0b50f802fa966e0980d0dfff0515ca1869cdd8603f7d3e499f9406e7d",
+      "initial_state_file_sha256": "2adde674fdceb9efea982dfb749adeb330823dd2a1244bc85b81e6121f05931b"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-RemoteControl-None-CoffeeTable-202/trial_T20190907_075416_851145/game.tw-pddl",
+      "rank_sha256": "4b9732a2aa03899ea11eac3180ad18a783d228fdb5979bc8a5c506d4758c76f2",
+      "traj_data_file_sha256": "e84989fa351b8da14506f407380087113425b9cd7741c1c40291343196d0aa41",
+      "initial_state_file_sha256": "60852daeaf5b8ba3f79176644937260e25601ed7c215f31cc9853d471de4e0f0"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBottle-None-Toilet-406/trial_T20190909_145919_337726/game.tw-pddl",
+      "rank_sha256": "4bed2892fd218c05cef50b7e167b9dc0cf2737f00ba34be82b0e13b6a4039fca",
+      "traj_data_file_sha256": "57912b0fc47a4a209195eb8c8bfa8925d279ae2be72c19f6c7e23a6f48ef84fd",
+      "initial_state_file_sha256": "a0fef9ad551b78c69ffe6695cf0f9f9a5f12bc694d1e312d1fbee1d6d0c240a3"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-KeyChain-None-Sofa-202/trial_T20190908_102821_346650/game.tw-pddl",
+      "rank_sha256": "4ca2160488e520aef87e6126c6469feb6983b322d89fb46f9cfb715a2e5a5f43",
+      "traj_data_file_sha256": "a45b402e2ddd7eefb89ff0392695fb4fe4554eadca94b8fff2db5dbede43094d",
+      "initial_state_file_sha256": "6322ecf9e4c30911a150d6acf3c066b5581065480f64270aca820abdf3e4222d"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SprayBottle-None-Toilet-402/trial_T20190908_034928_263509/game.tw-pddl",
+      "rank_sha256": "50f113ee5c2617f9b383ede39e3773c6ab033113eea7e1b98d914904b5332b64",
+      "traj_data_file_sha256": "61fc8aa7de1ee477ea24e55d4b0c66d12c0a83c894ba1455f1723847ec4ebcc6",
+      "initial_state_file_sha256": "b19d8f84a09af6637771122c748f2cfd0c133c30081c3133bfd6d23a4f370127"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-ToiletPaper-None-Drawer-416/trial_T20190908_013005_772043/game.tw-pddl",
+      "rank_sha256": "515f0a428624220bf23a7199116d790c39bc1c173e0b9dfde7593f049f68eec4",
+      "traj_data_file_sha256": "c2fe76907d2d213316dac6eecffeca8d742cbd8b1a00e9ecc0ffc36d69de0324",
+      "initial_state_file_sha256": "98b3078b18e4ddfd0caa6bb86f4f225373ed4995fc9e1c18f72f97ea97c0f0b4"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-BathtubBasin-423/trial_T20190909_034155_743816/game.tw-pddl",
+      "rank_sha256": "51d6ba9d630fe4f2c4fc1824239a2a0ee135ccd4e76436912790c22f06256b7d",
+      "traj_data_file_sha256": "1c15eaa791dc6a2b23693cf4ce20dd249a4ce8666c63b73db2f51e5d409e87ce",
+      "initial_state_file_sha256": "9edb773394a7120b70530735064abfaf02436eae005609eb26cf314c78f157e4"
+    }
+  ],
+  "selection_sha256": "3975becee57b3d760fb07ebe253810351505a7699a587c58e76d53c45af97b67"
+}
