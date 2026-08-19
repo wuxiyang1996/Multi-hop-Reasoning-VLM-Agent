@@ -7,6 +7,13 @@
 > consumed-development record. See
 > [`PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md`](PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md).
 
+> **Policy-contribution successor:** Phase 11 further audited all seven V13
+> rescues and prospectively evaluated all 21 tasks left untouched after V13.
+> V14 achieved 18/21 versus 11/21 neural-only and controls (7W/0L,
+> `p=0.015625`), with a source-driven acquisition divergence before every
+> rescued terminal relation. See
+> [`PHASE11_ALFWORLD_PROGRAM_DRIVEN_POLICY_RESULTS.md`](PHASE11_ALFWORLD_PROGRAM_DRIVEN_POLICY_RESULTS.md).
+
 ## Result
 
 The missing acquisition mechanism can be induced from source interventions and

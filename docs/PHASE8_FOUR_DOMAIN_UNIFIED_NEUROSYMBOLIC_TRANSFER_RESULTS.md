@@ -1,5 +1,12 @@
 # Phase 8：四目标域统一 neural-symbolic harness
 
+> **Phase 11 ALFWorld successor（2026-08-19）：** V13 的逐动作 contribution audit 已确认
+> 7/7 rescues 都包含 source-driven acquisition divergence 到 terminal relation success 的
+> 因果链。随后 V14 执行 V13 后剩余的全部 21 个 untouched multiplicity tasks，得到
+> source-induced `18/21` vs neural-only/三个 controls `11/21`（`7W/0L/14T`，
+> `p=.015625`），并与 ceiling 的 21/21 action traces 完全相同。详见
+> [`PHASE11_ALFWORLD_PROGRAM_DRIVEN_POLICY_RESULTS.md`](PHASE11_ALFWORLD_PROGRAM_DRIVEN_POLICY_RESULTS.md)。
+
 > **Phase 9 source-specificity audit（2026-08-19）：** 11 个匿名 source programs 中，
 > 四个目标接口按 program content 选中 3 个不同 body；4/4 wrong-family routing abstain，
 > 且被选 program 在各自 formal report 中合计 38W/0L 对 destructive source control。
@@ -204,7 +211,8 @@ family、四个 ALFWorld ceiling failures 已解决，或 video transfer 已验�
 
 下一步最有价值的不是再扩大 controller heuristic，而是：
 
-1. 独立复现 ALFWorld V13，或取得真正 OOD 的新 multiplicity tasks；
+1. ~~独立复现 ALFWorld V13~~：Phase 11 已在剩余全部 21 个 untouched multiplicity tasks
+   上完成 program-driven policy replication；
 2. 在 development-only 数据上提高 ALFWorld target-native grounding ceiling，再冻结 threshold；
 3. 验证更多 source games 会归纳出不同 program，并能在 target outcome 前预测 applicability；
 4. 视频保持暂停，直到 target-native event graph 与 intervention effect 能通过 qualification。

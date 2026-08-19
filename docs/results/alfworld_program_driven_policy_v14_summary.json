@@ -1,0 +1,111 @@
+{
+  "audit_sha256": "7af5f51410a3195b1aae422fdb7688b075ad78cf243e5f328f6e7612ea4b118b",
+  "claim_boundary": "Prospective replication on all 21 execution-untouched tasks left after V13. Source IR controls anonymous option selection; the frozen target-native grounder/executor controls concrete actions.",
+  "config_file_sha256": "e00fb988ba4d6758f0034b8971d1348a0c319012126f3e3e14efe761ccb89788",
+  "config_sha256": "f0af81719bbcb9fa40f5711b45beca70faf8cbbc98281aa643b30001313968d6",
+  "gates": {
+    "all_21_remaining_tasks_executed": true,
+    "all_frozen_report_gates_pass": true,
+    "all_recomputed_policy_gates_pass": true,
+    "every_rescue_has_recomputed_causal_bridge": true,
+    "prospective_effect_is_significant_and_nonnegative": true,
+    "source_matches_target_native_ceiling": true,
+    "source_strictly_beats_all_noncausal_controls": true
+  },
+  "paired_vs_neural_only": {
+    "exact_two_sided_p": 0.015625,
+    "losses": 0,
+    "negative_transfer_rate": 0.0,
+    "net_wins": 7,
+    "ties": 14,
+    "wins": 7
+  },
+  "policy_contribution": {
+    "authentic_ceiling_exact_trace_matches": 21,
+    "control_exact_trace_matches": {
+      "generic_single_relation_scaffold": 21,
+      "source_cardinality_exactly_one_control": 21,
+      "source_effect_binding_permuted_control": 21
+    },
+    "gates": {
+      "authentic_reproduces_target_native_ceiling_action_traces": true,
+      "complete_matched_task_matrix": true,
+      "controls_reproduce_neural_only_action_traces": true,
+      "every_rescue_has_source_acquisition_divergence_before_terminal": true,
+      "every_rescue_has_source_transition_to_success": true,
+      "source_activates_only_after_observed_first_relation": true,
+      "source_changes_target_policy_actions": true,
+      "source_never_emits_target_action": true,
+      "zero_negative_transfer": true
+    },
+    "program_active_actions": 280,
+    "regressions": 0,
+    "rescued_tasks": [
+      {
+        "first_source_divergence_step": 16,
+        "source_divergent_actions": 21,
+        "task_id": "pick_two_obj_and_place-CellPhone-None-Desk-312/trial_T20190908_122230_946481/game.tw-pddl",
+        "terminal_transition_step": 44
+      },
+      {
+        "first_source_divergence_step": 44,
+        "source_divergent_actions": 5,
+        "task_id": "pick_two_obj_and_place-CellPhone-None-Sofa-224/trial_T20190918_223409_525979/game.tw-pddl",
+        "terminal_transition_step": 52
+      },
+      {
+        "first_source_divergence_step": 13,
+        "source_divergent_actions": 11,
+        "task_id": "pick_two_obj_and_place-Pillow-None-Ottoman-208/trial_T20190907_030106_770418/game.tw-pddl",
+        "terminal_transition_step": 31
+      },
+      {
+        "first_source_divergence_step": 11,
+        "source_divergent_actions": 3,
+        "task_id": "pick_two_obj_and_place-RemoteControl-None-ArmChair-208/trial_T20190908_000903_032547/game.tw-pddl",
+        "terminal_transition_step": 16
+      },
+      {
+        "first_source_divergence_step": 10,
+        "source_divergent_actions": 3,
+        "task_id": "pick_two_obj_and_place-SoapBottle-None-Cabinet-417/trial_T20190909_211711_664720/game.tw-pddl",
+        "terminal_transition_step": 14
+      },
+      {
+        "first_source_divergence_step": 12,
+        "source_divergent_actions": 8,
+        "task_id": "pick_two_obj_and_place-SprayBottle-None-Toilet-417/trial_T20190908_071820_505015/game.tw-pddl",
+        "terminal_transition_step": 23
+      },
+      {
+        "first_source_divergence_step": 9,
+        "source_divergent_actions": 3,
+        "task_id": "pick_two_obj_and_place-ToiletPaper-None-Cabinet-412/trial_T20190908_141555_713466/game.tw-pddl",
+        "terminal_transition_step": 13
+      }
+    ],
+    "rescues": 7,
+    "source_acquisition_divergences": 76,
+    "source_divergent_actions": 91,
+    "source_terminal_transitions": 18,
+    "target_native_authority_receipts": 280,
+    "tasks": 21
+  },
+  "report_file_sha256": "cd9a585611c44cad4be8b2369bbbb9660823ee7aec95395c269ef92896b2ea99",
+  "report_sha256": "de5710f5cf305a64a0365f3c94ea550c1fd43c0e61fd888a6f70ea65abf0dc51",
+  "schema_version": "alfworld-program-driven-policy-independent-audit-v14",
+  "status": "ALFWORLD_PROGRAM_DRIVEN_POLICY_V14_INDEPENDENTLY_VALIDATED",
+  "successes": {
+    "generic_scaffold": 11,
+    "neural_only": 11,
+    "source_cardinality_control": 11,
+    "source_effect_permuted": 11,
+    "source_induced": 18,
+    "target_native_ceiling": 18
+  },
+  "verified_hashes": {
+    "authority_receipts": 280,
+    "episodes": 126,
+    "records": 4784
+  }
+}
