@@ -109,3 +109,8 @@ unified harness fail closed，实际授权为 0，部署分数没有提高。`QU
 
 完整结论、逐版结果、V14 勘误与下一步见
 [`AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V14_V19_RESULTS.md`](AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V14_V19_RESULTS.md)。
+
+后续 `QUERY_OBJECT` 没有回填到失败的 atomic replication，而是作为独立 route 重新做 train-only
+development 和 30-video fresh confirmation。V25 已以 `14/30` 对 direct `4/30`、10 wins/0 loss
+通过全部冻结 gate；完整结果见
+[`AGQA2_QUERY_OBJECT_V20_V25_RESULTS.md`](AGQA2_QUERY_OBJECT_V20_V25_RESULTS.md)。

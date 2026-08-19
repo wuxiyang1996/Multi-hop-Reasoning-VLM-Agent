@@ -1,0 +1,47 @@
+{
+  "claim_scope": "ATOMIC_QUERY_OBJECT_WITH_INTERVAL_ENVELOPE_NORMALIZATION",
+  "confirmatory": false,
+  "controls": {
+    "source_permuted_abstentions": 18,
+    "target_written_equivalent_matches": 18
+  },
+  "development_report_file_sha256": "896ee84a280082b20d2f27f29abeafa89898d9c11528a8f0534aa8bd3439e2f7",
+  "evaluation_protocol_sha256": "74ac82fe2c519ee3437f2ad40a3c916b3e61c1cd0a00c4ec209dbff588a9ca01",
+  "grounder_qualified": true,
+  "grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+  "metrics": {
+    "decisive_accuracy": 0.9,
+    "decisive_correct": 9,
+    "decisive_executions": 10,
+    "direct_correct": 6,
+    "route_correct": 18,
+    "source_typed_overrides": 4,
+    "typed_fallback_correct": 10,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 4,
+    "unified_harness_correct": 10,
+    "unified_harness_executor_authorizations": 10,
+    "unified_harness_vs_direct_delta": 4,
+    "valid_runtime_rows": 18
+  },
+  "provider_attempts_replayed_without_new_calls": 83,
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": true,
+    "object_ontology_precedes_direct": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_candidates_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_sha256": "8bd78f8da8e6d1e07c7e907bb5166116a69f3eae8839584502f257083538ddf7",
+  "reported_provider_cost_usd": 0.158650084,
+  "schema_version": "agqa2-query-object-v24-development-summary",
+  "status": "AGQA2_QUERY_OBJECT_V24_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "47208675aee844df0d874a2711625bf7e2f71df2d70795d3f7a5bf0313030d1f"
+}

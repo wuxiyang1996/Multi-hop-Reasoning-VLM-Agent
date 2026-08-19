@@ -100,7 +100,7 @@ provenance 不可替代，更没有证明 source-specific game semantics 已迁�
 “完全 untouched benchmark metadata”评测；运行时 grounder 本身仍不读取 answer、functional program、
 scene graph 或 source identity。
 
-## 为什么现在停止 QUERY_OBJECT 和继续采样
+## 为什么 V19 当时停止 QUERY_OBJECT 和继续采样
 
 预注册顺序要求先通过 atomic temporal/relation base grounder，再单独 qualification open-vocabulary
 `QUERY_OBJECT`。V19 final 没通过 base gate，因此继续 QUERY_OBJECT 会违反 stop policy，也会把
@@ -122,3 +122,11 @@ negative transfer 不为零”；更多无冻结机制变化的采样会变成 o
 
 在这之前，准确状态是：
 `PIPELINE_EXECUTION_VALIDATED_TRANSFER_UTILITY_NOT_QUALIFIED`。
+
+## 后续隔离的 QUERY_OBJECT track
+
+V19 formal 结论和 atomic route artifacts 保持不变。之后没有把 `QUERY_OBJECT` 混回 V19，而是另建
+train-development → frozen grounder → fresh test reserve 的独立 lineage。V25 在 30 个新 videos 上
+通过全部 gate：unified harness `14/30` 对 matched direct `4/30`，10 wins/0 loss。详细设计、
+runtime-incomplete V23、target-only post-hoc control 和 claim boundary 见
+[`AGQA2_QUERY_OBJECT_V20_V25_RESULTS.md`](AGQA2_QUERY_OBJECT_V20_V25_RESULTS.md)。
