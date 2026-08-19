@@ -1,0 +1,52 @@
+{
+  "schema_version": "source-provenance-identifiability-audit-v15",
+  "status": "SOURCE_CONTENT_AND_ACQUISITION_VALUE_DISENTANGLED",
+  "question": "Does efficacy come from structure learned by source intervention, or can an isomorphic target-written controller work?",
+  "answer": {
+    "execution_effect": "The program structure is effective; an extensionally isomorphic target-written controller works identically.",
+    "source_provenance_after_program_specification": "Neither necessary nor behaviorally identifiable.",
+    "demonstrated_source_intervention_value": "Automatic source-only acquisition of the structure; in the matched DiscoveryWorld induction curve it replaces one complete ordered successful target trajectory.",
+    "not_measured": "Human target-controller authoring cost and whether source beats every possible target-side prior or program synthesizer."
+  },
+  "alfworld_execution_equivalence": {
+    "tasks": 45,
+    "raw_target_only_successes": 24,
+    "source_induced_successes": 38,
+    "target_written_successes": 38,
+    "exact_action_trace_matches": 45,
+    "source_artifact_reads": 0
+  },
+  "matched_acquisition_information": {
+    "source_complete_target_trajectory_budget": 0,
+    "target_only_k0_status": "ABSTAIN_NO_COMPLETE_TARGET_TRAJECTORY",
+    "target_only_k1_status": "TARGET_ONLY_PROGRAM_INDUCED",
+    "complete_target_trajectories_replaced": 1
+  },
+  "content_specificity": {
+    "source_program_catalog": 11,
+    "distinct_selected_program_bodies": 3,
+    "wrong_family_abstentions": 4,
+    "target_routes": 4
+  },
+  "claim_boundary": "The evidence supports source-induced program acquisition plus target-native grounding. It does not support a provenance magic claim: once identical program content is supplied, origin cannot change or identify extensional behavior. V15 is a posthoc consumed-population diagnostic; prospective success evidence remains the original V13/V14 runs.",
+  "lineage": {
+    "alfworld_v15_report_sha256": "9a6425d92fc38ee2bc2888a159fc3cb7d4e01e27a4c34c229a4ebf6fc26d1678",
+    "discoveryworld_source_value_report_sha256": "de2d3c6baed5b4fe3afdff63afa3f0c078a041c8ee5e3fbf09fe4393a4be0b2b",
+    "phase9_heterogeneity_report_sha256": "1e5989df44513459410472bfee7749bff5438cad9cd19aadf0343c9426fe4b87",
+    "source_artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+    "source_confirmation_sha256": "f02fec96a448ea549e95ffa3fff3f9c5adf71ff202a89fb170a90ba55a257285",
+    "auditor_file_sha256": "c10b697f01bf7c2751e614e1ba9eadd9c03ce4112c50dc1575f0c0824309f696"
+  },
+  "gates": {
+    "target_written_reads_no_source_artifact": true,
+    "target_written_exactly_matches_all_45_action_traces": true,
+    "program_content_has_nonzero_success_utility": true,
+    "source_artifact_is_source_only_induced": true,
+    "source_artifact_passes_heldout_and_shuffled_effect_controls": true,
+    "matched_target_zero_demo_induction_abstains": true,
+    "matched_target_one_demo_recovers_program": true,
+    "source_replaces_one_complete_target_trajectory": true,
+    "program_selection_is_content_specific": true
+  },
+  "report_sha256": "601bea1b7efb8bba25ebd50f7e2e5367a21765035447b3ec8731d5dc1e4a13eb"
+}
