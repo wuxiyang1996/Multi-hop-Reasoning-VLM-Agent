@@ -1,0 +1,544 @@
+{
+  "answers_or_scene_graphs_used_for_design": false,
+  "archive": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-official/AGQA_balanced.zip",
+  "archive_entries": [
+    "AGQA_balanced/train_balanced.txt",
+    "AGQA_balanced/test_balanced.txt"
+  ],
+  "current_validated_transfer_comparisons": [
+    "BEFORE_AFTER",
+    "QUERY_OBJECT"
+  ],
+  "full_distribution_definition": "HASH_SAMPLED_OFFICIAL_AGQA_TEST_ROWS_WITHOUT_OPERATOR_FILTERING;SOURCE_SKILL_MAY_SELECTIVELY_INTERVENE;ALL_OTHER_ROWS_PRESERVE_THE_IDENTICAL_TARGET_NATIVE_DIRECT_PREDICTION",
+  "limit": null,
+  "report_sha256": "aa0584b38024d7c367074ef09e925734c0ec2fcdc967608cac7beb1340a505f2",
+  "schema_version": "agqa2-full-distribution-v57-coverage-v1",
+  "status": "OUTCOME_BLIND_COVERAGE_AUDIT_COMPLETE",
+  "test_capacity": {
+    "answer_question_program_or_scene_fields_accessed": false,
+    "configured_video_ids": 2353,
+    "entry": "AGQA_balanced/test_balanced.txt",
+    "excluded_union_count": 1224,
+    "extra_excluded_video_ids": [
+      "YSKX3"
+    ],
+    "fresh_available_video_count": 590,
+    "fresh_available_video_ids_sha256": "bb56cf996bd1eef2226e07820a1fafe7413e46ac81b0414b607fcb781dbdf76c",
+    "locally_present_video_ids": 2335,
+    "rows": 669207,
+    "unique_videos": 1814
+  },
+  "train": {
+    "counts": {
+      "ans_type": {
+        "binary": 751335,
+        "open": 849559
+      },
+      "global": {
+        "<EMPTY>": 13816,
+        "action-recognition+sequencing": 4281,
+        "action-recognition+superlative": 5425,
+        "duration-comparison": 37158,
+        "duration-comparison+superlative": 1694,
+        "exists": 104620,
+        "exists+obj-rel": 136952,
+        "obj-act+sequencing": 73192,
+        "obj-rel": 992776,
+        "obj-rel+superlative": 203144,
+        "rel-act+sequencing": 16880,
+        "sequencing": 10956
+      },
+      "more_steps": {
+        "1": 198507,
+        "<EMPTY>": 1402387
+      },
+      "novel_comp": {
+        "1": 176696,
+        "<EMPTY>": 1424198
+      },
+      "program_function_presence": {
+        "AND": 43142,
+        "Choose": 254645,
+        "Compare": 101028,
+        "Equals": 135390,
+        "Exists": 788567,
+        "Filter": 1600894,
+        "HasItem": 5425,
+        "Iterate": 1376901,
+        "IterateUntil": 528369,
+        "Localize": 1399336,
+        "OnlyItem": 1390655,
+        "Query": 1355909,
+        "Subtract": 60579,
+        "Superlative": 60579,
+        "ToAction": 508427,
+        "XOR": 67585
+      },
+      "program_function_signature": {
+        "AND>Exists>Iterate>Filter>Exists>Iterate>Filter": 1432,
+        "AND>Exists>Iterate>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter": 2450,
+        "AND>Exists>Iterate>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter": 1734,
+        "AND>Exists>Iterate>Localize>Filter>Exists>Iterate>Localize>Filter": 7241,
+        "AND>Exists>Iterate>Localize>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 7457,
+        "AND>Exists>Iterate>Localize>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter": 6293,
+        "AND>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 91,
+        "AND>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 103,
+        "AND>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 70,
+        "AND>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 1033,
+        "AND>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 1119,
+        "AND>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 877,
+        "AND>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 742,
+        "AND>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 682,
+        "AND>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 799,
+        "AND>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter": 1209,
+        "AND>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 1645,
+        "AND>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 16,
+        "AND>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 261,
+        "AND>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 177,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter": 1537,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter": 796,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 2864,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter": 1294,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 27,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 11,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 443,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 206,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 347,
+        "AND>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 186,
+        "Choose>IterateUntil>Localize>Superlative>Filter>Subtract>Query>Query>XOR>Exists>Filter>Exists>Filter>Filter": 175,
+        "Choose>IterateUntil>Localize>ToAction>Query>OnlyItem>Iterate>Filter>XOR>Exists>Filter>Exists>Filter>Filter": 1206,
+        "Choose>IterateUntil>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>XOR>Exists>Filter>Exists>Filter>Filter": 838,
+        "Choose>IterateUntil>Localize>XOR>Exists>Filter>Exists>Filter>Filter": 3607,
+        "Choose>IterateUntil>XOR>Exists>Filter>Exists>Filter>Filter": 6831,
+        "Choose>Query>OnlyItem>Iterate>Filter": 14227,
+        "Choose>Query>OnlyItem>Iterate>Localize>Filter": 73523,
+        "Choose>Query>OnlyItem>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 1225,
+        "Choose>Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 27860,
+        "Choose>Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 23409,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>Superlative>Filter>Subtract>Query>Query>XOR>Exists>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 118,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>ToAction>Query>OnlyItem>Iterate>Filter>XOR>Exists>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 970,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>XOR>Exists>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 867,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>XOR>Exists>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 3098,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>XOR>Exists>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 6075,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Filter": 8965,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>Filter": 44016,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 681,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 15078,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 15029,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>Superlative>Filter>Subtract>Query>Query>XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 9,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>ToAction>Query>OnlyItem>Iterate>Filter>XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 129,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 113,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>Localize>XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 375,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>IterateUntil>XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Filter": 374,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Filter": 752,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>Filter": 3042,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 46,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 928,
+        "Choose>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 1079,
+        "Compare>Exists>Iterate>Localize>Filter": 45042,
+        "Compare>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 654,
+        "Compare>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 13056,
+        "Compare>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 4766,
+        "Compare>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 20678,
+        "Compare>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 234,
+        "Compare>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 7594,
+        "Compare>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 2872,
+        "Compare>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter": 3748,
+        "Compare>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 42,
+        "Compare>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 1286,
+        "Compare>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 896,
+        "Compare>Exists>ToAction>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 86,
+        "Compare>Exists>ToAction>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 18,
+        "Compare>Exists>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 40,
+        "Compare>Exists>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 16,
+        "Equals>OnlyItem>IterateUntil>Exists>Filter>Filter": 18798,
+        "Equals>OnlyItem>IterateUntil>Localize>Exists>Filter>Filter": 57643,
+        "Equals>OnlyItem>IterateUntil>Localize>Superlative>Filter>Subtract>Query>Query>Exists>Filter>Filter": 908,
+        "Equals>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Exists>Filter>Filter": 7937,
+        "Equals>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Exists>Filter>Filter": 6798,
+        "Equals>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>OnlyItem>IterateUntil>Exists>Filter>Filter": 6808,
+        "Equals>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>OnlyItem>IterateUntil>Localize>Exists>Filter>Filter": 13972,
+        "Equals>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>OnlyItem>IterateUntil>Localize>Superlative>Filter>Subtract>Query>Query>Exists>Filter>Filter": 193,
+        "Equals>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Exists>Filter>Filter": 1970,
+        "Equals>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Exists>Filter>Filter": 1905,
+        "Equals>Superlative>Filter>Filter>Subtract>Query>Query": 18458,
+        "Exists>Iterate>Filter": 24160,
+        "Exists>Iterate>Localize>Filter": 71670,
+        "Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 1858,
+        "Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 16387,
+        "Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 12594,
+        "Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter": 4028,
+        "Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 9129,
+        "Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 170,
+        "Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 1733,
+        "Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 1413,
+        "Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter": 2448,
+        "Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter": 7154,
+        "Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 110,
+        "Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 1316,
+        "Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 1460,
+        "Query>OnlyItem>Iterate>Filter": 39263,
+        "Query>OnlyItem>Iterate>Localize>Filter": 427193,
+        "Query>OnlyItem>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 13508,
+        "Query>OnlyItem>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Superlative>Filter>Subtract>Query>Query>Filter": 3,
+        "Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 172253,
+        "Query>OnlyItem>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 128793,
+        "Query>OnlyItem>IterateUntil>Exists>Filter>Filter": 10445,
+        "Query>OnlyItem>IterateUntil>HasItem>Filter>Filter": 1558,
+        "Query>OnlyItem>IterateUntil>Localize>Exists>Filter>Filter": 30019,
+        "Query>OnlyItem>IterateUntil>Localize>HasItem>Filter>Filter": 1535,
+        "Query>OnlyItem>IterateUntil>Localize>Superlative>Filter>Subtract>Query>Query>Exists>Filter>Filter": 1181,
+        "Query>OnlyItem>IterateUntil>Localize>Superlative>Filter>Subtract>Query>Query>HasItem>Filter>Filter": 59,
+        "Query>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Exists>Filter>Filter": 9948,
+        "Query>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>Iterate>Filter>HasItem>Filter>Filter": 1268,
+        "Query>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Exists>Filter>Filter": 9834,
+        "Query>OnlyItem>IterateUntil>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>HasItem>Filter>Filter": 1005,
+        "Superlative>Filter>Filter>Subtract>Query>Query": 18700,
+        "Superlative>Filter>Subtract>Query>Query": 1694,
+        "XOR>Exists>Iterate>Filter>Exists>Iterate>Filter": 1338,
+        "XOR>Exists>Iterate>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter": 2398,
+        "XOR>Exists>Iterate>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter": 1580,
+        "XOR>Exists>Iterate>Localize>Filter>Exists>Iterate>Localize>Filter": 7223,
+        "XOR>Exists>Iterate>Localize>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 7398,
+        "XOR>Exists>Iterate>Localize>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter": 5896,
+        "XOR>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 65,
+        "XOR>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 72,
+        "XOR>Exists>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 39,
+        "XOR>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 961,
+        "XOR>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 1087,
+        "XOR>Exists>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 858,
+        "XOR>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 698,
+        "XOR>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 748,
+        "XOR>Exists>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 720,
+        "XOR>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter": 1272,
+        "XOR>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 1960,
+        "XOR>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 23,
+        "XOR>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 285,
+        "XOR>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 201,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Filter": 1568,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Filter": 660,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Filter": 3245,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Filter": 1222,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 26,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>Superlative>Filter>Subtract>Query>Query>Filter": 10,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 467,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>Iterate>Filter>Filter": 180,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>Iterate>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 449,
+        "XOR>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter>Exists>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Iterate>Localize>ToAction>Query>OnlyItem>IterateUntil>Exists>Filter>Filter>Filter": 151
+      },
+      "program_root": {
+        "AND": 43142,
+        "Choose": 254645,
+        "Compare": 101028,
+        "Equals": 135390,
+        "Exists": 155630,
+        "Query": 847865,
+        "Superlative": 20394,
+        "XOR": 42800
+      },
+      "program_route": {
+        "COMPOSITE_ABSTAIN": 1394025,
+        "NO_EXACT_SOURCE_TYPE": 54412,
+        "RELATION_RECURRENT": 80933,
+        "TEMPORAL_PAIR_RECURRENT": 32672,
+        "TEMPORAL_SINGLE_NONRECURRENT": 38852
+      },
+      "public_parser_comparison": {
+        "BEFORE_AFTER": 85873,
+        "CHOOSE_OBJECT": 49324,
+        "EXISTS": 173080,
+        "QUERY_OBJECT": 223940,
+        "SELECT_LONGER": 717,
+        "UNPARSED": 1066052,
+        "VERIFY_A_LONGER": 996,
+        "VERIFY_A_SHORTER": 912
+      },
+      "route_by_comparison": {
+        "COMPOSITE_ABSTAIN|BEFORE_AFTER": 60145,
+        "COMPOSITE_ABSTAIN|CHOOSE_OBJECT": 43202,
+        "COMPOSITE_ABSTAIN|EXISTS": 114310,
+        "COMPOSITE_ABSTAIN|QUERY_OBJECT": 200904,
+        "COMPOSITE_ABSTAIN|UNPARSED": 975464,
+        "NO_EXACT_SOURCE_TYPE|EXISTS": 9938,
+        "NO_EXACT_SOURCE_TYPE|QUERY_OBJECT": 3195,
+        "NO_EXACT_SOURCE_TYPE|UNPARSED": 41279,
+        "RELATION_RECURRENT|CHOOSE_OBJECT": 6095,
+        "RELATION_RECURRENT|EXISTS": 27143,
+        "RELATION_RECURRENT|QUERY_OBJECT": 19409,
+        "RELATION_RECURRENT|UNPARSED": 28286,
+        "TEMPORAL_PAIR_RECURRENT|BEFORE_AFTER": 25728,
+        "TEMPORAL_PAIR_RECURRENT|CHOOSE_OBJECT": 27,
+        "TEMPORAL_PAIR_RECURRENT|UNPARSED": 6917,
+        "TEMPORAL_SINGLE_NONRECURRENT|EXISTS": 21689,
+        "TEMPORAL_SINGLE_NONRECURRENT|QUERY_OBJECT": 432,
+        "TEMPORAL_SINGLE_NONRECURRENT|SELECT_LONGER": 717,
+        "TEMPORAL_SINGLE_NONRECURRENT|UNPARSED": 14106,
+        "TEMPORAL_SINGLE_NONRECURRENT|VERIFY_A_LONGER": 996,
+        "TEMPORAL_SINGLE_NONRECURRENT|VERIFY_A_SHORTER": 912
+      },
+      "semantic": {
+        "action": 59514,
+        "object": 1334120,
+        "relation": 207260
+      },
+      "steps": {
+        "1": 26358,
+        "2": 57238,
+        "3": 98004,
+        "4": 423084,
+        "5": 674048,
+        "6": 226423,
+        "7": 86294,
+        "8": 9445
+      },
+      "structural": {
+        "choose": 254645,
+        "compare": 138186,
+        "logic": 85942,
+        "query": 849559,
+        "verify": 272562
+      },
+      "taxonomy_joint": {
+        "<EMPTY>|object|query|open": 13816,
+        "action-recognition+sequencing|action|query|open": 4281,
+        "action-recognition+superlative|action|query|open": 5425,
+        "duration-comparison+superlative|action|query|open": 1694,
+        "duration-comparison|action|compare|binary": 37158,
+        "exists+obj-rel|relation|logic|binary": 85942,
+        "exists+obj-rel|relation|verify|binary": 51010,
+        "exists|object|verify|binary": 51192,
+        "exists|relation|verify|binary": 53428,
+        "obj-act+sequencing|object|compare|binary": 73192,
+        "obj-rel+superlative|object|choose|binary": 24785,
+        "obj-rel+superlative|object|query|open": 61427,
+        "obj-rel+superlative|object|verify|binary": 116932,
+        "obj-rel|object|choose|binary": 229860,
+        "obj-rel|object|query|open": 762916,
+        "rel-act+sequencing|relation|compare|binary": 16880,
+        "sequencing|action|compare|binary": 10956
+      }
+    },
+    "current_public_parser_fraction": 0.33408957744860057,
+    "current_public_parser_rows": 534842,
+    "entry": "AGQA_balanced/train_balanced.txt",
+    "forbidden_field_values_accessed": false,
+    "forbidden_outcome_fields": [
+      "answer",
+      "sg_grounding",
+      "situations"
+    ],
+    "hashed_examples_by_parser_or_program_family": {
+      "BEFORE_AFTER": [
+        {
+          "program_sha256": "6714ac09d032251d4f9fe030017edc5c338c330892766295499b34338cce3ef9",
+          "question_sha256": "16ea35d8e2e859922732563ec6675a6b0b5fee340c4e3c940bda4bea7394c6d2",
+          "task_id_sha256": "f82d99997091f6df91e8d47e151d579c3d4268e00419aea6508b6c18f7da1616"
+        },
+        {
+          "program_sha256": "e363d8707a25dea0208440e0c505a35a9d976ffd53215fdf7a57ca48ea9820f2",
+          "question_sha256": "912cbb6a2349897620421eda0701326878ca2eb7ea2a115d8c6223aaa4b78aaf",
+          "task_id_sha256": "71e735f5f78a3b3f4cb514e4200d26d6e4e79d200f80ddbbde4663cb7375fc54"
+        },
+        {
+          "program_sha256": "ba2c01c9e1a4d83f5ebeabd6e5435b1e2a9924f033287df09160a12fca5dcc7f",
+          "question_sha256": "e9bf1f693758818e7212072afc9280ea5bb146522a25ff23188a275eded15a30",
+          "task_id_sha256": "1825c6b1dc73c3cf7861adf034858e36503cba98dc4aef2074b17488d1a82d73"
+        }
+      ],
+      "CHOOSE_OBJECT": [
+        {
+          "program_sha256": "c48d7c1e8362491b3089a3b9e10d975117ea3a35c1152f07be512125bc2fafae",
+          "question_sha256": "e806cf64d25fcd23e4b2ccb689cb5c72ef1d7a57d7adfcc3c74864ef22bc0ebc",
+          "task_id_sha256": "beface767eb732c577ad36f6f8cacf8f7c24830cf4ef52e6aa01baa0e75685f4"
+        },
+        {
+          "program_sha256": "f1e68abe4abe772fd4a4c035db8bc58e8dd1638c22fbc648e4f40759028c943f",
+          "question_sha256": "37e1749eebe706b7993bea3ced7ee780f8f8bdf8fd0821e59a081a45f32776ed",
+          "task_id_sha256": "f852f2dd62731d0586c79d5b7955f36319d958c656557503e99d1fa11c5f5948"
+        },
+        {
+          "program_sha256": "ecac652a688cbbb9a63f57b3c49d9208ae701fa6c88e17f14f516e8fd31ae76d",
+          "question_sha256": "146ccda8dd2f1ad51ef6704b782b482c5cbbbca44299c82a0b6bccacf934b453",
+          "task_id_sha256": "bc6853b9a444206d070d795498d811860969a07abf6853ebda721ec9197c4758"
+        }
+      ],
+      "COMPOSITE_ABSTAIN": [
+        {
+          "program_sha256": "19b90e08d5d733e0039d6f01c95634bd590149801148fa106b35b1a8eca74419",
+          "question_sha256": "250dbe5ad3d760e2609d319f2567372679f2bfb22ad334f2f56a2880452a02b2",
+          "task_id_sha256": "a578e2dba4d9c53cae5ea50be30a544a08fb247dd93f028df43f5de5f1a24298"
+        },
+        {
+          "program_sha256": "c962ccfbc9f4a8a42ee627b74bfae3b38d3b56a5888a14bd31f89a0a7214a9cf",
+          "question_sha256": "f47bc615ae80fd446140782ae1e0c7c10f2b914d448549a3862299751f827e18",
+          "task_id_sha256": "8efac133e224c3cc1767424f5676256970360c3a5e05742e6540174be1cae280"
+        },
+        {
+          "program_sha256": "cbe6f0219a858ba1640394181932c4643ff0d633ea47cdd25c42d72188b0da1f",
+          "question_sha256": "34c0f7dc43748bf007824e8b1b1de0972be1dad10c482a71cc510d9077c35c9b",
+          "task_id_sha256": "4cb0b72d1dd6ad4df13faec499ad516461b3ca919aac5d3eff1ce7bcc4810a32"
+        }
+      ],
+      "EXISTS": [
+        {
+          "program_sha256": "3271c456abae4201fcdfc6707f9a52715a121439e484fb5ee81bd9a7f268f491",
+          "question_sha256": "32ff961b54567e7fd2ccea412c0bc11603ad10f7ecdcd50d9e67aaf0f3896996",
+          "task_id_sha256": "6c15e806e9510b2b4368629d4d8efd1fa1be7b3e810f036ce4a01bc9036c1725"
+        },
+        {
+          "program_sha256": "3abf5caa9d77fb97d069d1cc1baa14d7391ee2dd33c342b582719938fa86d2c1",
+          "question_sha256": "fd26054f392f75013d3e23effde9f250ee5bba8f95eec1a844788abd97ced022",
+          "task_id_sha256": "333343a6f2c295a3c4f69239a3f3445fb861304200664fa92322e4e96ee73a53"
+        },
+        {
+          "program_sha256": "2966fe7eef5e1c72a386a49cf381aef8307cd29f3a5aaa81e881b39c8197e554",
+          "question_sha256": "2831c0f2c528903bf80fb09a4724dbeceb15d23f60cb18ede65b67752989b9d8",
+          "task_id_sha256": "8cbc6c0b09696050ae9e2283ab17a0933a472c2161e50765d4e1bf7db15f671f"
+        }
+      ],
+      "NO_EXACT_SOURCE_TYPE": [
+        {
+          "program_sha256": "56819c824600e51232e241da47665d02335c41c7fe0ff5c588979be62e0c7f1d",
+          "question_sha256": "940dfb88a2e438f61ddc24b58908385f6da0fcaa921e3284a32db42127a2c086",
+          "task_id_sha256": "9f229cc851063fc407d264387b25dbfeb29c7a2ad36d5b67164666823a6506aa"
+        },
+        {
+          "program_sha256": "ebc84a6a945d7e6f042945ed143ad3904c6e7fd4a634b126153415cee13128f1",
+          "question_sha256": "d92d05195c4bd46970eb62016e636a2ce806702a2dc28d006cb9510f64c6b5da",
+          "task_id_sha256": "615993b598dedacf701eeeca5efc9563dc9ea0366033b1049650224cdf811282"
+        },
+        {
+          "program_sha256": "48cb6426403cdbcfaf60301d53ac82810aeea614b64f37847986a06d6aa00f94",
+          "question_sha256": "a4f50f2046ab9808901092c0b6f23025e19950017bc369bc7ee7c6ab68ec61e4",
+          "task_id_sha256": "50f2efe2ece6dd040d5b422f3a293d7d9e34fba1915d373204089004b8cd2ec2"
+        }
+      ],
+      "QUERY_OBJECT": [
+        {
+          "program_sha256": "9f5c357b7333613fd34c2ec99190e74cd2f10c5b3fe9fd53769f35191130ec19",
+          "question_sha256": "7957f7849add713c9e649e88c5780527185589ab4dfd01a818ed43dbc0d0daa4",
+          "task_id_sha256": "9cc8038af253e58cf6890c681e35419c5bb1c7ed29b817013030ed1a6c5111e0"
+        },
+        {
+          "program_sha256": "0d3edc6fb7beb0f64a1604dabc70edf0620d7ad6647b046ba5af285529079347",
+          "question_sha256": "eb9a11a9c33115fbcccb5c3da3fab9df8acc30197ec954898955dc37d01de00a",
+          "task_id_sha256": "3d8e45c83c5c88a88daea5b54db4b06e554a181fb2fa1949a07c78931a5d0721"
+        },
+        {
+          "program_sha256": "855981de469ce2ca4d7db123e940841cf3f3138d65a5ee1d687bf075cc4a3b18",
+          "question_sha256": "8f843bafa76bb7bddd43ddf79068a0bc1b6725c2d47ed39bcdf2e40c7bdf08c8",
+          "task_id_sha256": "ddeee2f7bc0fe93c7921b85874913934f7b4bb18e702c7caee527663aad1094a"
+        }
+      ],
+      "RELATION_RECURRENT": [
+        {
+          "program_sha256": "7f690d8602be08b4c16e68811435dc57d0bb7c53ffee929ca871af5c3768f633",
+          "question_sha256": "06177e0fe9e14b027fc330744c904eed2a9326830160023b353bd628ea8d8eb5",
+          "task_id_sha256": "77412a46ddad7f71540e26de2db4b82500bdc5bbae7faf78fbe653ff37092d96"
+        },
+        {
+          "program_sha256": "1add7c49c661a7188167639c784411c11dc7965e0cab0181448305baf269ff91",
+          "question_sha256": "d2d67227b7ae4b2dfc5e935d080c78cb16dc737495d7c5a652c192df3b5cf8d4",
+          "task_id_sha256": "c003fd85c1b2e96d3561b8501b5dc4b4ca70c73ece6ed7b00f10b3b70ac0f58d"
+        },
+        {
+          "program_sha256": "1b9f98c454fe0c5fb61afbe0a8f9038074366b83dccf1e5fcf1543f05b091672",
+          "question_sha256": "aae276457d449c2a85770530b2c4fad45a8fc00daa67e6e319bb6d09ac1813eb",
+          "task_id_sha256": "7509a2db7c7e09850ee04ee6646dd84046564ce1bdbd550020fbe4cffd710f50"
+        }
+      ],
+      "SELECT_LONGER": [
+        {
+          "program_sha256": "659d955da6e9ce0fb0a9c1c4c8205a90c9b7cf899dd37cb6b308bc9f813416cf",
+          "question_sha256": "f76c539fa32dd9213c3d6fc82eab5da313a6f24899ec66e1a26123b2eeb2a718",
+          "task_id_sha256": "e4c0ffd1da460637c812275dab9e2565b9de9b1f302e03cc5605a9dcdca1bcf5"
+        },
+        {
+          "program_sha256": "230b04c78993b0c40d3d52e2f1c30d351deaf83c3091a04582f2558af704d2bf",
+          "question_sha256": "7174d7c6fce09848acd6d7235d4484c2bef4b61dd105bc2cb43f114ea8cede28",
+          "task_id_sha256": "9e26c4fd2590dc5a722d7139f12e4e844c59b0f947c1543274453d1b55580773"
+        },
+        {
+          "program_sha256": "ecc148cc064363bd96df87c73df9f67f911f0da14d87d0a2df224216d66a7409",
+          "question_sha256": "e3f13feddc7efbc3a1fd6328c15f8dbdfb7e00fb356b7d9f857131a19fc38647",
+          "task_id_sha256": "13e94cd0f3f7ac8c08e64a1c18dc7a34b9293a94e597495e2314bedeb04dfc0d"
+        }
+      ],
+      "TEMPORAL_PAIR_RECURRENT": [
+        {
+          "program_sha256": "9662fdd1883ca4e58e6da74ba21397c91d23f3ae8fbd31ef4d937858f34b0ed6",
+          "question_sha256": "d404b33be6f0c1e3f4e65390933bf0cf4ef245b1e88bbc2547047cf2e22a90c6",
+          "task_id_sha256": "9cba994ee1c9e3b377a522585cb3a6064f122e4af1c3a9764c0321d0c5b94c6e"
+        },
+        {
+          "program_sha256": "30b7cc175583495e349ffd948f3ee965c91ee97e88980384ebce96b70e72f2c1",
+          "question_sha256": "ae4d765b50547e94f19b417f3ff7be5f6c40a074035d528dffe4ead4ef3989d7",
+          "task_id_sha256": "d3f2a93fb96e87903aafc0817b9bed939ab0ddd0629b8400c9527218d52d8a08"
+        },
+        {
+          "program_sha256": "fcb5a075a72e2199b5f4dcd6d79479870c03ba72c5f949c9321f1af6aac9a837",
+          "question_sha256": "98f20dd7bd60e4697a8c434a7fef05ac9c868385da667e0d38a926a52e58a030",
+          "task_id_sha256": "90e2a3d44e6e6cf289d8da234c2291eec13cc5dcfd79447a8bd6d40eea7202d8"
+        }
+      ],
+      "TEMPORAL_SINGLE_NONRECURRENT": [
+        {
+          "program_sha256": "211a2c38845eb58310ec14f2ddd922c114157eb63211c1fa9ca8591a2a830982",
+          "question_sha256": "f722778d32c341e006f20f9d561c5569de2710dece88252171f0f632672eef80",
+          "task_id_sha256": "3f352b9173f36a5ebe1b50cc5cfff452f73e0713a27543a7abc483c6514be749"
+        },
+        {
+          "program_sha256": "08ac5cae91ce9f531fbbbd00af17c0586313f8aac96b50dd11600487953e1509",
+          "question_sha256": "4bcef0cc5d77ca447fe868e381c93907f624b9f0d5a6f6447a6848f57c57353d",
+          "task_id_sha256": "e558e748c2e988cf4baf96fe0bf8e1cd83787c0e846bba90ce954b350d1af323"
+        },
+        {
+          "program_sha256": "2478eb10ebbac63fe5899f6e8e34079f8bb76830adc693e9a08d11ae5a8cc4df",
+          "question_sha256": "88d419b45b63268ad1e8f57c4afe1296854a06bd5f5feaa1a198f4b1f2876b7a",
+          "task_id_sha256": "3feb09482a18d671a73480f262609ea2ea4373f5ea31ada4217aa3127775b05f"
+        }
+      ],
+      "VERIFY_A_LONGER": [
+        {
+          "program_sha256": "d396521c09936f378e96757639e2d30613b89e3c2d4dcf1e19cda529ec9fbcc9",
+          "question_sha256": "2e11bc7fdc6ff0e3b53d59b65411c0823f853067885b27a58725b93b591f5603",
+          "task_id_sha256": "cfdd9b8e2afcbda5d37d3d341a9fe6cdb1029b5fdaaa0a7e6ce115dea9efd231"
+        },
+        {
+          "program_sha256": "2b77cfd47f520e27671d1872ea517fefe720f529cf97468ff7c0247b8761e5fe",
+          "question_sha256": "487502bb0757136f97e66d4fa3414a5f412d8618effbe77af3fd4345ff958c8a",
+          "task_id_sha256": "4a256f104ed70e12e08d11a9264b17ee92bedab3391892470089a9c98c674044"
+        },
+        {
+          "program_sha256": "3650229b3a91a6270d69374b48fd90b1c088c97bcb40e1f238f2864f2b14a7d3",
+          "question_sha256": "9fbf6b8ba79a9812e088ff0badc253f5eac4a301763ba76f44f3815860d88756",
+          "task_id_sha256": "33ca5b4bbd28c6e08c2da7a9adc1866d959eb59181613496519944711bbec65f"
+        }
+      ],
+      "VERIFY_A_SHORTER": [
+        {
+          "program_sha256": "c2d16f71ca941f14ad37725da0c4948d69d36492b1257ef19ce2b9d29a7b8dd2",
+          "question_sha256": "042e1e2d18530f9ff56c3aa16a0ef18d95d5964a45e8438bde59929d71299bb3",
+          "task_id_sha256": "67a5bcfb168f8efc69e7fba0f4c15b777669679ff089279650717c1b7c363226"
+        },
+        {
+          "program_sha256": "20ca928c219740ef096dfc0034c0d0df52301c470c73426c9bfc01ee4ade68f0",
+          "question_sha256": "4bb1e1be8ee0af966cdc9c252f41be68e13b2eb1cb63f38acda5350e8235c040",
+          "task_id_sha256": "bc0933b7d2dedd0662c3fa2c47ca9e3b7e8289c872add5642cfa29fc4e2b92b3"
+        },
+        {
+          "program_sha256": "b2c9b482f890a027811ae3d3c6569eea3dbc729b1bba79598924979bd695a03a",
+          "question_sha256": "76c8c1e7f6249a390439790ac41d9ab41208b79abf71cae953f21d6b80174494",
+          "task_id_sha256": "ca628a0e3a6fde56a2f8d95dcfe80a783e046072a323c3c835c609aff03aa049"
+        }
+      ]
+    },
+    "parse_failures": 1066052,
+    "program_route_match_fraction": 0.050596729077627876,
+    "program_route_matches": 81000,
+    "rows": 1600894,
+    "unique_videos": 7786,
+    "validated_selective_fraction": 0.02819487111576407,
+    "validated_selective_rows": 45137
+  }
+}

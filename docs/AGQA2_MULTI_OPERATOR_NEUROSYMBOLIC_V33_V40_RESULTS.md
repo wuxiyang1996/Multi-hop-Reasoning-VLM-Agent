@@ -1,5 +1,9 @@
 # AGQA 2.0 第二类 symbolic program：V33–V56
 
+> 后续 V57–V62 已完成 operator-unfiltered full-distribution sampling 和 fresh
+> cross-split replication。最新结论见
+> [`AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md`](AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md)。
+
 ## 最终结论（V55/V56）
 
 Candy Crush source-induced temporal-function program 与 target-native neural video

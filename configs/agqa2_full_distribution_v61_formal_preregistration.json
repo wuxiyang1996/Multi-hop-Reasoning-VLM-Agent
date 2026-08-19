@@ -1,0 +1,38 @@
+{
+  "answer_or_scene_graph_read_during_freeze": false,
+  "claim_boundary": "590_NEW_OFFICIAL_TEST_VIDEOS_X_UP_TO_3_HASHED_QUESTIONS_WITHOUT_OPERATOR_FILTER;SELECTIVE_SOURCE_TRANSFER_WITH_IDENTICAL_DIRECT_FALLBACK;VIDEO_CLUSTERED_PRIMARY_INFERENCE",
+  "confirmatory_claim": true,
+  "download_receipt_file_sha256": "f0b68d218a12301a6e92c93d13b2396835b05a55b48fbfd5013a400c452f5999",
+  "evaluator_file_sha256": "dda99baadff70602828b8ad83a414486df686981bb458bea6d880ecce4b18fb8",
+  "failure_policy": {
+    "failed_gate": "REPORT_FULL_DISTRIBUTION_TRANSFER_NOT_VALIDATED",
+    "formal": "RUN_ONCE;NO_POST_OUTCOME_RULE_OR_THRESHOLD_CHANGE",
+    "passed": "REPORT_SELECTIVE_TRANSFER_ON_FULL_AGQA_DISTRIBUTION"
+  },
+  "formal_gates": {
+    "maximum_cluster_exact_pvalue": 0.05,
+    "maximum_negative_video_clusters": 2,
+    "maximum_reported_provider_cost_usd": 8.0,
+    "maximum_row_exact_pvalue": 0.05,
+    "maximum_row_losses": 2,
+    "minimum_applicable_rows": 250,
+    "minimum_positive_video_clusters": 8,
+    "minimum_row_net_gain": 8,
+    "minimum_row_wins": 10,
+    "minimum_source_authorizations": 100,
+    "required_row_count_histogram": {
+      "2": 1,
+      "3": 589
+    },
+    "required_rows": 1769,
+    "required_unique_videos": 590
+  },
+  "formal_manifest_sha256": "a2c457aab60f93befbdef91b64cc8200f559a32881f8213bd083328a5d4c99d5",
+  "primary_statistical_unit": "VIDEO_CLUSTER",
+  "qualification_grounder_sha256": "a5199eab3d4a80431d76a7480258d73bff25298a989880834eabf5460f927e5a",
+  "qualification_report_sha256": "d265474a09b886944442bd9c6db7bddd2a679e6e5a694ba44f5b3d2389bc5c1c",
+  "schema_version": "agqa2-full-distribution-prereg-v61",
+  "selection_manifest_sha256": "1b71a03bee2d58821a7927284b7ed625862c0499b20473e8167de935c95071cc",
+  "selection_without_operator_filter": true,
+  "status": "FROZEN_BEFORE_ANY_V61_PROVIDER_OR_OUTCOME_CALL"
+}
