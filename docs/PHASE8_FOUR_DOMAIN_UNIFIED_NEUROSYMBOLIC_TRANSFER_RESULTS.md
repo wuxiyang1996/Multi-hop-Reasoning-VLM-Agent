@@ -1,5 +1,13 @@
 # Phase 8：四目标域统一 neural-symbolic harness
 
+> **Phase 9 source-specificity audit（2026-08-19）：** 11 个匿名 source programs 中，
+> 四个目标接口按 program content 选中 3 个不同 body；4/4 wrong-family routing abstain，
+> 且被选 program 在各自 formal report 中合计 38W/0L 对 destructive source control。
+> 这是对既有 prospective reports 的 cross-report audit，不是新 target experiment，也不证明
+> source provenance 优于同构 target-written program。DiscoveryWorld Normal 的 development-only
+> qualification 仍未通过，因此没有打开 fresh Normal reserve。见
+> [`PHASE9_SOURCE_PROGRAM_HETEROGENEITY_RESULTS.md`](PHASE9_SOURCE_PROGRAM_HETEROGENEITY_RESULTS.md)。
+
 > **CLEVRER extension（2026-08-18）：** Phase 8 本身仍是四个非视频 route；后续 V15 已把
 > template-free、source-induced recurrent goal-relation program 接入同一 unified authority
 > chain，并在 360 个 untouched CLEVRER reserve questions 上得到 `252/360` vs neural-only
