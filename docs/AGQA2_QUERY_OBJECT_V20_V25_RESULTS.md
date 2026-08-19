@@ -105,3 +105,11 @@ source-controlled third view 相对 two-ontology target-only control 是 2 wins�
 **structural mechanism transfer + target-native neural grounding**。若要升级 source-specific claim，
 下一次实验必须在冻结前把 two-ontology target-only 设为正式 baseline，并要求 source-induced
 controller 对它也有正增益和 0 negative transfer；不能继续复用 V25 outcomes。
+
+## V26–V28 follow-up
+
+上述 source-specific follow-up 已执行。powered V28 confirmation 没有通过：正式 unified harness
+因 base decisive accuracy gate 失败而全量 abstain；post-hoc preauthorization candidate 虽为
+`40/120` vs target-only `36/120`，但只有 5 wins、1 loss、净 `+4`、单侧 exact `p=0.109375`。
+因此 V25 的 structural claim 保持不变，source provenance 仍未建立。详见
+[`AGQA2_SOURCE_SPECIFIC_V26_V28_RESULTS.md`](AGQA2_SOURCE_SPECIFIC_V26_V28_RESULTS.md)。

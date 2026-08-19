@@ -1,0 +1,270 @@
+{
+  "claim_boundary": "V25_ATOMIC_STRUCTURAL_MECHANISM_TRANSFER_REMAINS_QUALIFIED;V28_POWERED_SOURCE_SPECIFIC_CONFIRMATION_FAILED;DO_NOT_CLAIM_SOURCE_PROVENANCE_OR_FULL_AGQA",
+  "full_agqa_claim": false,
+  "schema_version": "agqa2-query-object-v26-v28-source-specific-audit-v1",
+  "scientific_interpretation": {
+    "another_reserve_seed_without_new_development_hypothesis_allowed": false,
+    "candidate_source_gain_concentrated_in_perception": true,
+    "candidate_source_trend_is_confirmatory": false,
+    "source_specific_transfer_supported_by_v28": false,
+    "structural_mechanism_transfer_still_supported_by_v25": true,
+    "target_only_ontology_ensemble_is_a_strong_baseline": true
+  },
+  "source_provenance_claim": false,
+  "status": "AGQA2_SOURCE_SPECIFIC_TRANSFER_NOT_VALIDATED",
+  "summary_sha256": "21395fa2e6ced6625f398dac357ea74501ee3f4c00feee8dc619cad1992776a9",
+  "v26_runtime_abort": {
+    "abort_sha256": "bf9467234dfda7824dd4449ed4ce99b2e95162d1e969439d4ba4bedcda1e5992",
+    "accepted_provider_calls": 673,
+    "accepted_reported_provider_cost_usd": 1.03613542,
+    "completed_runtime_receipts": 119,
+    "config_file_sha256": "76f749ca0dee2c3408639664dea3b126d90006629a6eb161f15f8fb61a190356",
+    "formal_gold_evaluation_started": false,
+    "formal_report_created": false,
+    "grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+    "official_answers_inspected_for_repair": false,
+    "post_abort_gold_blind_diagnostic": {
+      "completion_tokens": 300,
+      "configured_max_ontology_tokens": 300,
+      "diagnostic_not_used_as_formal_receipt": true,
+      "finish_reason": "length",
+      "model": "google/gemini-2.5-flash-lite",
+      "prompt_tokens": 2348,
+      "reasoning_tokens_observed": false,
+      "refusal": false,
+      "relation": "above",
+      "reported_cost_usd": 0.00020027,
+      "task_id": "QMIKJ-29239"
+    },
+    "repair_policy": "INCREASE_PRIMARY_ONTOLOGY_MAX_TOKENS_300_TO_500;REQUALIFY_ON_DEVELOPMENT;REPLAY_THE_EXACT_OUTCOME_BLIND_V26_POOL_WITH_IDENTICAL_SOURCE_SPECIFIC_GATES;DO_NOT_SELECT_A_NEW_SEED",
+    "required_runtime_receipts": 120,
+    "retry_history": {
+      "GL2JW-1948": {
+        "eventually_completed": true,
+        "initial_error": "JSONDecodeError: truncated JSON object",
+        "same_protocol_resume_attempts": 1
+      },
+      "HLB3J-14232": {
+        "eventually_completed": true,
+        "initial_error": "ValueError: provider response omitted a JSON object",
+        "same_protocol_resume_attempts": 1
+      },
+      "QMIKJ-29239": {
+        "eventually_completed": false,
+        "initial_error": "ValueError: provider response omitted a JSON object",
+        "same_protocol_resume_attempts": 2
+      }
+    },
+    "schema_version": "agqa2-query-object-v26-runtime-abort-v1",
+    "selection_manifest_sha256": "606302a1bb72e4b3495c37f41060d20e667723de5fb5e4c830441563e2a294d1",
+    "stage": "TARGET_NATIVE_ONTOLOGY_PROVIDER_JSON_DECODE",
+    "status": "V26_RUNTIME_INCOMPLETE_BEFORE_FORMAL_EVALUATION",
+    "terminal_worker_errors": {
+      "QMIKJ-29239": "ValueError: provider response omitted a JSON object"
+    }
+  },
+  "v27_runtime_abort": {
+    "abort_sha256": "2b6ba5c8e34ea16adaeacf37b96a641fccd4766c738c68d1aa48d266c40b248b",
+    "accepted_provider_calls_including_v26_hash_reuse": 792,
+    "accepted_reported_provider_cost_usd_including_v26_hash_reuse": 1.06932322,
+    "completed_runtime_receipts": 119,
+    "config_file_sha256": "31673b3193caa90a9c5d0df7a0364a3999b5635b92f36eadcb067941868e8982",
+    "formal_gold_evaluation_started": false,
+    "formal_report_created": false,
+    "grounder_sha256": "bdca5c4a06aeb2c3e877d9fa6c2d0794cb01ce3faa7d6e3c009434172c0189c7",
+    "official_answers_inspected_for_repair": false,
+    "repair_policy": "BOUND_VISUAL_DESCRIPTION_AND_UNCERTAINTY_TO_160_CHARACTERS;KEEP_DECISION_CONFIDENCE_EVIDENCE_MODEL_AND_FRAMES_UNCHANGED;REQUALIFY_ON_DEVELOPMENT;USE_A_NEW_V28_POOL_EXCLUDING_V26_VIDEOS",
+    "required_runtime_receipts": 120,
+    "schema_version": "agqa2-query-object-v27-runtime-abort-v1",
+    "stage": "TARGET_NATIVE_ONTOLOGY_PROVIDER_JSON_DECODE",
+    "status": "V27_RUNTIME_INCOMPLETE_BEFORE_FORMAL_EVALUATION",
+    "terminal_worker_errors": {
+      "QMIKJ-29239": "ValueError: provider response omitted a JSON object"
+    }
+  },
+  "v28_development": {
+    "controls": {
+      "source_permuted_abstentions": 18,
+      "target_written_equivalent_matches": 18
+    },
+    "grounder_sha256": "19ff586a6f28da233b89401775a266f27174f06fe753f3ebdb7fa267fbf8eb42",
+    "metrics": {
+      "decisive_accuracy": 0.9166666666666666,
+      "decisive_correct": 11,
+      "decisive_executions": 12,
+      "direct_correct": 6,
+      "route_correct": 18,
+      "source_typed_overrides": 6,
+      "typed_fallback_correct": 12,
+      "typed_vs_direct_losses": 0,
+      "typed_vs_direct_wins": 6,
+      "unified_harness_correct": 12,
+      "unified_harness_executor_authorizations": 12,
+      "unified_harness_vs_direct_delta": 6,
+      "valid_runtime_rows": 18
+    },
+    "qualified": true,
+    "report_file_sha256": "3fb87fbbea670408ada096dba2fcad2932c26f623401a45d0d07d378f520196a",
+    "report_path": "runs/agqa2_query_object_v28_development/report.json",
+    "report_sha256": "7bbe831adf5db2fc81fd731ee630eb7f047897f768404b1ec293008bc1899881",
+    "reported_provider_cost_usd": 0.256778584,
+    "status": "AGQA2_QUERY_OBJECT_V28_DEVELOPMENT_QUALIFIED"
+  },
+  "v28_formal": {
+    "base_mechanism_gates": {
+      "minimum_decisive_accuracy": false,
+      "minimum_decisive_executions": true,
+      "minimum_route_correct": true,
+      "minimum_typed_vs_direct_wins": true,
+      "no_typed_vs_direct_losses": true,
+      "object_ontology_precedes_direct": true,
+      "prequalification_harness_abstained": true,
+      "provider_cost_within_cap": true,
+      "required_valid_runtime_rows": true,
+      "runtime_no_answer_program_scene_graph_candidates_or_source_identity": true,
+      "source_permuted_wrong_type_abstains": true,
+      "target_written_equivalent_matches": true
+    },
+    "controls": {
+      "source_permuted_abstentions": 120,
+      "target_written_equivalent_matches": 120
+    },
+    "grounder_sha256": "19ff586a6f28da233b89401775a266f27174f06fe753f3ebdb7fa267fbf8eb42",
+    "metrics": {
+      "decisive_accuracy": 0.5277777777777778,
+      "decisive_correct": 38,
+      "decisive_executions": 72,
+      "direct_correct": 14,
+      "route_correct": 120,
+      "source_typed_overrides": 51,
+      "typed_fallback_correct": 40,
+      "typed_vs_direct_losses": 1,
+      "typed_vs_direct_wins": 27,
+      "unified_harness_correct": 14,
+      "unified_harness_executor_authorizations": 0,
+      "unified_harness_vs_direct_delta": 0,
+      "valid_runtime_rows": 120
+    },
+    "posthoc_preauthorization_candidate_audit": {
+      "discordant_pairs": 6,
+      "discordant_rows": [
+        {
+          "gold": "laptop",
+          "outcome": "SOURCE_WIN",
+          "relation": "watching",
+          "relation_group": "PERCEPTION",
+          "source_candidate_prediction": "laptop",
+          "target_only_prediction": "the screen in front of them",
+          "task_id": "3Q6N1-15196"
+        },
+        {
+          "gold": "laptop",
+          "outcome": "SOURCE_WIN",
+          "relation": "watching",
+          "relation_group": "PERCEPTION",
+          "source_candidate_prediction": "laptop",
+          "target_only_prediction": "a television screen on a stand.",
+          "task_id": "7EJUR-9413"
+        },
+        {
+          "gold": "laptop",
+          "outcome": "SOURCE_WIN",
+          "relation": "watching",
+          "relation_group": "PERCEPTION",
+          "source_candidate_prediction": "laptop",
+          "target_only_prediction": "the framed picture on the wall.",
+          "task_id": "93B2K-1034"
+        },
+        {
+          "gold": "floor",
+          "outcome": "SOURCE_WIN",
+          "relation": "standing on",
+          "relation_group": "SPATIAL_SUPPORT",
+          "source_candidate_prediction": "floor",
+          "target_only_prediction": "couch",
+          "task_id": "AGGSE-4169"
+        },
+        {
+          "gold": "bed",
+          "outcome": "SOURCE_LOSS",
+          "relation": "lying on",
+          "relation_group": "SPATIAL_SUPPORT",
+          "source_candidate_prediction": "sofa",
+          "target_only_prediction": "bed",
+          "task_id": "HJ4B1-25514"
+        },
+        {
+          "gold": "mirror",
+          "outcome": "SOURCE_WIN",
+          "relation": "watching",
+          "relation_group": "PERCEPTION",
+          "source_candidate_prediction": "mirror",
+          "target_only_prediction": "the counter items",
+          "task_id": "HNDA6-4590"
+        }
+      ],
+      "exact_one_sided_pvalue": 0.109375,
+      "passes_original_source_specific_gates": false,
+      "relation_group_metrics": {
+        "MANIPULATION_CONTACT": {
+          "direct_correct": 2,
+          "rows": 40,
+          "source_candidate_correct": 14,
+          "source_decisive": 21,
+          "source_decisive_correct": 13,
+          "target_only_correct": 14
+        },
+        "PERCEPTION": {
+          "direct_correct": 6,
+          "rows": 40,
+          "source_candidate_correct": 18,
+          "source_decisive": 26,
+          "source_decisive_correct": 17,
+          "target_only_correct": 14
+        },
+        "SPATIAL_SUPPORT": {
+          "direct_correct": 6,
+          "rows": 40,
+          "source_candidate_correct": 8,
+          "source_decisive": 25,
+          "source_decisive_correct": 8,
+          "target_only_correct": 8
+        }
+      },
+      "source_candidate_correct": 40,
+      "source_minus_target_only_correct": 4,
+      "source_vs_target_only_losses": 1,
+      "source_vs_target_only_wins": 5,
+      "status": "POSTHOC_PREAUTHORIZATION_DIAGNOSTIC_NOT_FORMAL_ENDPOINT",
+      "target_only_correct": 36
+    },
+    "report_file_sha256": "af4f8a8e1b9f77b517ada8c8f69d25dbc1c0481a8a41d66507e309af6a6f43bc",
+    "report_path": "runs/agqa2_query_object_v28_reserve/report.json",
+    "report_sha256": "fa693df4a5ce0354bbb472f0c9dfb34c99df042f8f0ffb8ab4229d6143791acd",
+    "reported_provider_cost_usd": 1.0594111800000001,
+    "source_specific_gates": {
+      "base_mechanism_gates_passed": false,
+      "maximum_exact_one_sided_pvalue": false,
+      "maximum_source_vs_target_only_losses": false,
+      "minimum_source_minus_target_only_correct": false,
+      "minimum_source_vs_target_only_wins": false,
+      "minimum_target_only_decisive": true,
+      "required_valid_paired_rows": true,
+      "target_only_prediction_is_candidate_and_source_blind": true
+    },
+    "source_specific_metrics": {
+      "discordant_pairs": 22,
+      "exact_one_sided_pvalue": 1.0,
+      "source_harness_correct": 14,
+      "source_minus_target_only_correct": -22,
+      "source_vs_target_only_losses": 22,
+      "source_vs_target_only_ties": 98,
+      "source_vs_target_only_wins": 0,
+      "target_only_correct": 36,
+      "target_only_decisive": 51,
+      "valid_paired_rows": 120
+    },
+    "source_specific_transfer_qualified": false,
+    "status": "AGQA2_QUERY_OBJECT_V28_SOURCE_SPECIFIC_NOT_QUALIFIED"
+  }
+}

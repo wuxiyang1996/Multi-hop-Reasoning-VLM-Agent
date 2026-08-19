@@ -1,0 +1,46 @@
+{
+  "claim_scope": "BOUNDED_ONTOLOGY_FREE_TEXT_WITH_UNCHANGED_DECISION_SCHEMA",
+  "confirmatory": false,
+  "controls": {
+    "source_permuted_abstentions": 18,
+    "target_written_equivalent_matches": 18
+  },
+  "development_report_file_sha256": "3fb87fbbea670408ada096dba2fcad2932c26f623401a45d0d07d378f520196a",
+  "evaluation_protocol_sha256": "74ac82fe2c519ee3437f2ad40a3c916b3e61c1cd0a00c4ec209dbff588a9ca01",
+  "grounder_qualified": true,
+  "grounder_sha256": "19ff586a6f28da233b89401775a266f27174f06fe753f3ebdb7fa267fbf8eb42",
+  "metrics": {
+    "decisive_accuracy": 0.9166666666666666,
+    "decisive_correct": 11,
+    "decisive_executions": 12,
+    "direct_correct": 6,
+    "route_correct": 18,
+    "source_typed_overrides": 6,
+    "typed_fallback_correct": 12,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 6,
+    "unified_harness_correct": 12,
+    "unified_harness_executor_authorizations": 12,
+    "unified_harness_vs_direct_delta": 6,
+    "valid_runtime_rows": 18
+  },
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": true,
+    "object_ontology_precedes_direct": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_candidates_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_sha256": "7bbe831adf5db2fc81fd731ee630eb7f047897f768404b1ec293008bc1899881",
+  "reported_provider_cost_usd": 0.256778584,
+  "schema_version": "agqa2-query-object-v28-development-summary",
+  "status": "AGQA2_QUERY_OBJECT_V28_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "065a69a4603702e21f2de008b03221fe4b620b3ba61d34e5f5533a30be3c3d09"
+}
