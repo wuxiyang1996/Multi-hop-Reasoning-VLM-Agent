@@ -1,5 +1,12 @@
 # AGQA 2.0 source-specific transfer：V26–V28
 
+> **V29–V32 更新（2026-08-18）：** V28 的 `14 vs 36` negative endpoint 后来被定位为
+> dataset-level gate、错误 abstention fallback 和 pre-/post-ground binding 混淆的组合问题。
+> 修复后的 fresh V32 post-ground unified harness 为 `40/120 vs 34/120`，6 wins / 0 losses，
+> exact one-sided `p=0.015625`，全部预注册 gates 通过。V28 本文保留为历史失败记录；新结果和
+> 严格 claim boundary 见
+> [`AGQA2_POSTGROUND_NEUROSYMBOLIC_V29_V32_RESULTS.md`](AGQA2_POSTGROUND_NEUROSYMBOLIC_V29_V32_RESULTS.md)。
+
 ## 结论
 
 这轮 powered、预注册实验给出了一个有价值的负结果：

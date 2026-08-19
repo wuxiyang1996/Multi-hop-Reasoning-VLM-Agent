@@ -1,0 +1,99 @@
+{
+  "claim_boundary": "FRESH_120_VIDEO_DISJOINT_ATOMIC_AGQA_QUERY_OBJECT_POSTGROUND_CONFIRMATION",
+  "formal_v32": {
+    "all_gates_passed": true,
+    "generic_scaffold_correct": 40,
+    "reported_provider_cost_usd": 1.056773768,
+    "report_file_sha256": "52c0fa13ff024c1cbca9a1a990ac71eff50ca1d75c2e7906459653dcc9d1fa37",
+    "report_sha256": "d186266bf91f5d80b1774774725c11b7d8098a0bf5ca034e36f76cfb3a0dfc54",
+    "rows": 120,
+    "source_authorizations": 56,
+    "source_correct": 40,
+    "source_losses": 0,
+    "source_minus_target_correct": 6,
+    "source_vs_target_exact_one_sided_pvalue": 0.015625,
+    "source_wins": 6,
+    "status": "AGQA2_POSTGROUND_V32_FORMAL_QUALIFIED",
+    "target_native_correct": 34,
+    "target_written_equivalent_correct": 40
+  },
+  "frozen_v32": {
+    "config_file_sha256": "a18166add95e409e8e16c3e6ef1cb62bf9659bb4c53ebd76c9fc95a613139108",
+    "manifest_file_sha256": "aae01f98fd7b9bed4e8b0c20c02790a2c97121310c8a2429e465134503c0fcca",
+    "manifest_sha256": "40c9e4edd90da6454049880bdb753e2a1e8d518f9e5e50cde3a3a5c7e4309909",
+    "postground_evaluation_protocol_sha256": "42dc2480f33bd276707bd723af0858e3faa2516237c7a7f259d88d6e1ca6c0a2",
+    "preregistration_file_sha256": "3effa9d44abaa4efa0fa24cfe9484ea96ae90ffcbc7588d0195d5c369d6a0649",
+    "preregistration_sha256": "32fd0af5008e36a272b3c031e118861bb065e36d3fd52419ed4504e216bc4a73",
+    "provider_cost_cap_usd": 1.3,
+    "relation_group_counts": {
+      "MANIPULATION_CONTACT": 40,
+      "PERCEPTION": 40,
+      "SPATIAL_SUPPORT": 40
+    },
+    "selection_manifest_sha256": "071d695fbcd21ca371622cbd415e926c5216924667f99f621f9bf173c5b0902d"
+  },
+  "group_results_v32": {
+    "MANIPULATION_CONTACT": {
+      "authorized": 14,
+      "losses": 0,
+      "source_correct": 8,
+      "target_correct": 8,
+      "wins": 0
+    },
+    "PERCEPTION": {
+      "authorized": 18,
+      "losses": 0,
+      "source_correct": 14,
+      "target_correct": 10,
+      "wins": 4
+    },
+    "SPATIAL_SUPPORT": {
+      "authorized": 24,
+      "losses": 0,
+      "source_correct": 18,
+      "target_correct": 16,
+      "wins": 2
+    }
+  },
+  "historical_sequence": {
+    "v29_development": {
+      "losses": 0,
+      "report_sha256": "3fe65d4aabc91c18d1e2fbe0345e78f4a622e3387c287c6cf4c0b03f7e46e899",
+      "rows": 150,
+      "source_correct": 52,
+      "status": "AGQA2_GOAL_RELATION_V29_DEVELOPMENT_QUALIFIED",
+      "target_correct": 48,
+      "wins": 4
+    },
+    "v30_failed_formal": {
+      "exact_one_sided_pvalue": 0.125,
+      "losses": 0,
+      "report_sha256": "c6cef6e5bbc3c41c0457260b3d458db7e7c6690ab3ec63201bcf9e33b8f38c9a",
+      "rows": 119,
+      "source_correct": 34,
+      "status": "AGQA2_GOAL_RELATION_V30_FORMAL_NOT_QUALIFIED",
+      "target_correct": 31,
+      "wins": 3
+    },
+    "v31_development": {
+      "losses": 1,
+      "report_sha256": "978da92610cef3d6471e69a260137b948c8873c74c3aec0ffa1fd1d66e2bcef6",
+      "rows": 269,
+      "source_correct": 93,
+      "status": "AGQA2_POSTGROUND_V31_DEVELOPMENT_QUALIFIED",
+      "target_correct": 79,
+      "wins": 15
+    }
+  },
+  "interpretation": {
+    "handwritten_ceiling_outperformed": false,
+    "old_v28_negative_was_a_clean_transfer_endpoint": false,
+    "source_effect_shuffled_improved_target": false,
+    "source_induced_program_matched_handwritten_ceiling": true,
+    "success_rate_transfer_validated": true,
+    "transferred_structure": "INTERVENTION_INDUCED_RECURRENT_ENTITY_GOAL_RELATION_PROGRAM_WITH_TARGET_NATIVE_NEURAL_GROUNDING"
+  },
+  "schema_version": "agqa2-postground-neurosymbolic-v29-v32-summary-v1",
+  "source_program_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+  "status": "AGQA2_POSTGROUND_NEUROSYMBOLIC_TRANSFER_VALIDATED"
+}

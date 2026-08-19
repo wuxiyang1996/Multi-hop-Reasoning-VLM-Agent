@@ -1,0 +1,68 @@
+{
+  "adapter": {
+    "evaluator": "scripts/evaluate_agqa2_goal_relation_v30_legacy.py",
+    "evaluator_file_sha256": "5eb61060a2e72935ee212963ea4305bee3e3af794ee4075efdbe4ef44f1db543",
+    "minimum_ontology_confidences": [
+      0.8,
+      0.8
+    ],
+    "module": "src/motif_transfer/agqa_goal_relation_transfer.py",
+    "module_file_sha256": "4d5dde27e5301240d240f750a3eb4317c8fd83933f19414ada7df92887abca73",
+    "prediction_module": "src/motif_transfer/agqa_goal_relation_evaluation.py",
+    "prediction_module_file_sha256": "c62f97c986f3c1847010a98dc11e3f05d58502a78427ab4fd49537f8658ad881",
+    "target_executor_sha256": "ff687974d27d8853666a0164a1dd02081ff374a3040caa4269d8b839047e8707",
+    "target_grounder_sha256": "98339a2ddda3cb72a7b71e36414636350b243d003f21c533fd832609dd9233df"
+  },
+  "calibration": {
+    "authenticity_vs_effect_shuffled": {
+      "losses": 0,
+      "ties": 146,
+      "wins": 4
+    },
+    "utility_vs_target_native": {
+      "losses": 0,
+      "ties": 146,
+      "wins": 4
+    }
+  },
+  "claim_boundary": "119_OF_120_V27_RUNTIME_RECEIPTS_FROZEN_BEFORE_ANY_FORMAL_GOLD_READ;ONE_TRANSPORT_MISSING_ROW_EXCLUDED;ZERO_NEW_PROVIDER_CALLS;VIDEO_DISJOINT_FROM_V29_DEVELOPMENT",
+  "controls": {
+    "generic_scaffold": "TWO_OF_THREE_NEURAL_MAJORITY_ELSE_NEURAL_ONLY",
+    "neural_only": "TWO_ONTOLOGY_AGREEMENT_ELSE_MATCHED_DIRECT",
+    "source_effect_shuffled": "SOURCE_HELDOUT_SHUFFLED_EFFECT_FAIL_CLOSED_ELSE_NEURAL_ONLY",
+    "source_induced": "UNIQUE_BINDING_SOURCE_PROGRAM_ELSE_NEURAL_ONLY",
+    "target_written_equivalent": "EXTENSIONALLY_IDENTICAL_CEILING_EXPECTED_TO_MATCH_SOURCE"
+  },
+  "development": {
+    "confirmatory": false,
+    "report": "runs/agqa2_goal_relation_v29_development/report.json",
+    "report_file_sha256": "3e210445f2ae124f032c7f96aff425bcf4209fbcf772700fc65feac971030b0a",
+    "report_sha256": "3fe65d4aabc91c18d1e2fbe0345e78f4a622e3387c287c6cf4c0b03f7e46e899"
+  },
+  "expected_evaluation_protocol_sha256": "2141eec680c44400a2cdd12771d9755da516f6c0d96907a698bc3ff406ab2a22",
+  "failure_policy": "EVALUATE_EXACT_119_ROWS_ONCE;REPORT_ALL_CONTROLS;NO_THRESHOLD_CHANGES;NO_CLAIM_IF_ANY_GATE_FAILS",
+  "manifest": "configs/agqa2_goal_relation_v30_legacy_manifest.json",
+  "manifest_file_sha256": "b40fff7702347728a89710e554157b3ed9fa517173452c5e5f4445e36e03327c",
+  "preregistration": "configs/agqa2_goal_relation_v30_legacy_preregistration.json",
+  "preregistration_file_sha256": "c6f0bd47324ff4641c27099c6e8eba8c5de1197dfbf019e396cd07371c028218",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_source_vs_target_losses": 1,
+    "minimum_source_authorizations": 30,
+    "minimum_source_minus_target_correct": 5,
+    "minimum_source_vs_target_wins": 5,
+    "required_valid_rows": 119
+  },
+  "schema_version": "agqa2-goal-relation-legacy-config-v30",
+  "source": {
+    "artifact": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+    "artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+    "confirmation": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+    "confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+    "inducer": "src/motif_transfer/source_goal_relation_induction.py",
+    "inducer_artifact_sha256": "f1c849715c561da3db224f9c1632c468abee18f7eac0424418ce449e1b563fe6",
+    "inducer_file_sha256": "f1c849715c561da3db224f9c1632c468abee18f7eac0424418ce449e1b563fe6"
+  },
+  "split": "formal",
+  "status": "FROZEN_V30_LEGACY_FORMAL_EVALUATION"
+}
