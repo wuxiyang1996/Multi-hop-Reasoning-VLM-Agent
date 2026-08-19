@@ -62,6 +62,15 @@ V22/V24：Proteomics Normal acquisition 已经达到 2/2 commit coverage 和 2/2
 学会 target-native neural grounding 和 `adjacent` relation 后再冻结。机器 stop receipt 见
 [`results/discoveryworld_normal_v25_qualification_stop.json`](results/discoveryworld_normal_v25_qualification_stop.json)。
 
+### 后续状态：V26 已按新 protocol 完成
+
+上面的 stop decision 是 V25 当时的正确结论；它没有被回写。Phase 10 另行冻结了 8 个
+development、8 个 qualification 和 24 个 untouched formal seeds，把 intervention 从 final DROP
+提前到完整 acquisition→binding→relation phase，并学会 cardinal adjacency。V26 formal 为
+authentic 24/24、neural-only 24/24、source-permuted 0/24；因此 program transfer 与 destructive-control
+separation 已验证，但没有 incremental success-rate gain。完整结果见
+[`PHASE10_DISCOVERYWORLD_NORMAL_SOURCE_VALUE_RESULTS.md`](PHASE10_DISCOVERYWORLD_NORMAL_SOURCE_VALUE_RESULTS.md)。
+
 ## 复现
 
 ```bash

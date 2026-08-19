@@ -1,0 +1,19 @@
+{
+  "schema_version": "discoveryworld-normal-source-value-v26-development",
+  "status": "CONSUMED_DEVELOPMENT_TARGET_ACQUISITION",
+  "claim_boundary": "Source-blind target-native local grounding development. Complete ordered success trajectories count only toward explicitly reported target-only induction budgets.",
+  "official_environment_commit": "fd591323920be0d3786ef350955de1945aa571e5",
+  "tasks": [
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 301},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 302},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 303},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 304},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 305},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 306},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 307},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 308}
+  ],
+  "runtime": {"maximum_steps": 48, "include_vision": false},
+  "model": {"provider": "target-native-symbolic-survey", "base_url": "https://openrouter.ai/api/v1", "api_key_name": "OPENROUTER_API_KEY", "model": "deterministic-proteomics-survey-v1", "temperature": 0, "maximum_output_tokens": 800, "schema_attempts": 3},
+  "acquisition_gate": {"minimum_commit_coverage": 8, "scorecard_visible_to_policy": false, "source_program_visible_to_policy": false}
+}

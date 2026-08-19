@@ -1,0 +1,44 @@
+{
+  "schema_version": "discoveryworld-normal-source-value-v26-protocol",
+  "status": "FROZEN_BEFORE_ANY_V26_TARGET_RESET_OR_OUTCOME",
+  "frozen_at_utc": "2026-08-19T17:19:54Z",
+  "estimand": "How many complete ordered successful target trajectories are replaced by the source-induced acquisition->binding->relation program when both conditions use the same target-native grounding data?",
+  "source_condition": {
+    "program": "runs/sokoban_goal_acquisition_v1/artifact.json",
+    "heldout_confirmation": "runs/sokoban_goal_acquisition_v1/fresh_confirmation_report.json",
+    "complete_ordered_target_trajectory_budget": 0
+  },
+  "target_only_curve": {
+    "complete_ordered_target_trajectory_budgets": [0, 1, 2, 4, 8],
+    "same_local_grounding_transitions_as_source_condition": true,
+    "isomorphic_target_written_program_role": "ORACLE_CEILING_NOT_A_LEARNED_BASELINE"
+  },
+  "task_roles": {
+    "development_seeds": [301, 302, 303, 304, 305, 306, 307, 308],
+    "qualification_seeds": [309, 310, 311, 312, 313, 314, 315, 316],
+    "sealed_formal_reserve_seeds": [401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424]
+  },
+  "qualification_gates": {
+    "development_trajectory_count_at_least": 8,
+    "qualification_trajectory_count_at_least": 8,
+    "qualification_official_success_rate_at_least": 0.875,
+    "neural_grounder_exact_accuracy_at_least": 0.95,
+    "binding_and_relation_precision_recall_equal": 1.0,
+    "authentic_trace_conformance_rate_at_least": 0.95,
+    "shuffled_trace_conformance_rate_at_most": 0.05,
+    "source_zero_target_demo_support_rate_at_least": 0.95,
+    "target_only_zero_demo_must_abstain": true,
+    "minimum_complete_target_trajectories_replaced": 1
+  },
+  "formal_policy": "Formal reserve remains sealed unless every qualification gate passes. Formal outcomes may not alter the frozen grounder or program.",
+  "prior_exposure_audit": {
+    "roots_scanned": [
+      "Multi-hop-Reasoning-VLM-Agent-two-agent-clean",
+      "Multi-hop-Reasoning-VLM-Agent",
+      "Multi-hop-Reasoning-VLM-Agent-experiment-clean",
+      "Multi-hop-Reasoning-VLM-Agent-github-main",
+      "Multi-hop-Reasoning-VLM-Agent-source-fresh-v1"
+    ],
+    "matches_for_assigned_seed_ids_before_freeze": 0
+  }
+}

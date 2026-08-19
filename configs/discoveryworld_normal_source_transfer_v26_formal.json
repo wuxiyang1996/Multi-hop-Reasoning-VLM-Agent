@@ -1,0 +1,56 @@
+{
+  "schema_version": "discoveryworld-normal-source-transfer-v26-formal",
+  "status": "FROZEN_BEFORE_V26_FORMAL_RESET_OR_OUTCOME",
+  "frozen_at_utc": "2026-08-19T17:31:43Z",
+  "claim_boundary": "Prospective fresh-seed online comparison. All conditions share the frozen target-native survey and neural grounder; only the source symbolic monitor is varied. Equality to neural-only is nonnegative mechanism transfer, not an incremental success gain.",
+  "official_environment_commit": "fd591323920be0d3786ef350955de1945aa571e5",
+  "conditions": ["authentic_source", "source_permuted", "neural_only"],
+  "tasks": [
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 401},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 402},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 403},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 404},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 405},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 406},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 407},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 408},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 409},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 410},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 411},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 412},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 413},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 414},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 415},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 416},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 417},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 418},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 419},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 420},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 421},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 422},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 423},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 424}
+  ],
+  "runtime": {"maximum_steps": 48, "include_vision": false},
+  "model": {"provider": "frozen-local-grounder", "model": "normal-v26-mlp-plus-program-monitor", "temperature": 0, "maximum_output_tokens": 800, "schema_attempts": 1},
+  "lineage": {
+    "qualification_report": "runs/discoveryworld_normal_source_value_v26_qualification_artifacts/qualification_report.json",
+    "neural_grounder": "runs/discoveryworld_normal_source_value_v26_qualification_artifacts/neural_grounder.json",
+    "source_program": "runs/sokoban_goal_acquisition_v1/artifact.json",
+    "expected_hashes": {
+      "qualification_report_sha256": "de2d3c6baed5b4fe3afdff63afa3f0c078a041c8ee5e3fbf09fe4393a4be0b2b",
+      "neural_grounder_sha256": "be775e38381807b94ccfeebd2fa78b85d542116f2ebc9b864e3059e5b8a7bb63",
+      "source_program_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+      "runner_file_sha256": "f0607bd3a56e606f0d55e01547bb00af8b9ce6fb16a736cd55a6d534029ea82b",
+      "grounding_module_file_sha256": "1b570c3cf1520fdb2817021fa6ff9c10e2b0e16113863a41986e07ea4e97d49e"
+    }
+  },
+  "preregistered_gates": {
+    "authentic_full_coverage": true,
+    "authentic_nonnegative_vs_neural_only": true,
+    "authentic_strictly_beats_source_permuted": true,
+    "permuted_fails_closed_every_task": true,
+    "all_conditions_zero_oracle": true,
+    "matched_task_counts": true
+  }
+}
