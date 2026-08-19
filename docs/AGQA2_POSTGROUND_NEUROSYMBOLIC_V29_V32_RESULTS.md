@@ -1,5 +1,11 @@
 # AGQA 2.0 post-ground neural-symbolic transfer：V29–V32
 
+> **V33–V40 temporal replication update（2026-08-18）：** 第二个 Candy Crush
+> arity-2 recurrent temporal program 在 fresh AGQA `BEFORE/AFTER` 上为
+> `68/100 vs 65/100`、5W/2L、`p=0.2265625`，未通过预注册 gates。因此本文的 V32
+> `QUERY_OBJECT` 结论仍成立，但不能扩展为 multi-operator 或 broad AGQA transfer。见
+> [`AGQA2_MULTI_OPERATOR_NEUROSYMBOLIC_V33_V40_RESULTS.md`](AGQA2_MULTI_OPERATOR_NEUROSYMBOLIC_V33_V40_RESULTS.md)。
+
 ## 结论
 
 AGQA atomic `QUERY_OBJECT` 的 game-to-video transfer 现在通过了 fresh、video-disjoint、

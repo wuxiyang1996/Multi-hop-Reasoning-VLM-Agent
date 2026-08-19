@@ -1,5 +1,11 @@
 # AGQA 2.0 V1：game-induced symbolic program feasibility audit
 
+> **最新 success-rate 边界（2026-08-18）：** Sokoban relation program 的 atomic
+> `QUERY_OBJECT` V32 formal 已通过；Candy temporal program 的 atomic `BEFORE/AFTER`
+> V40 formal 为 68/100 vs 65/100、5W/2L，未通过。AGQA 当前不是 multi-operator
+> success-validated。见
+> [`AGQA2_MULTI_OPERATOR_NEUROSYMBOLIC_V33_V40_RESULTS.md`](AGQA2_MULTI_OPERATOR_NEUROSYMBOLIC_V33_V40_RESULTS.md)。
+
 > **V2 frame-only update（2026-08-18）：** V1 compiler 现已明确限定为 evaluator-side
 > symbolic oracle。新的 question+16-frame Qwen3-VL-32B grounder 在 9 个 video-disjoint
 > development samples 上达到 route 9/9、decisive coverage 7/9，但 decisive accuracy 只有
