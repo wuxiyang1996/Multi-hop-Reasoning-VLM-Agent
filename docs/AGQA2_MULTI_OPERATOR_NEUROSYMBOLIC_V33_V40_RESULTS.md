@@ -1,6 +1,38 @@
-# AGQA 2.0 第二类 symbolic program：V33–V40
+# AGQA 2.0 第二类 symbolic program：V33–V56
 
-## 结论
+## 最终结论（V55/V56）
+
+Candy Crush source-induced temporal-function program 与 target-native neural video
+grounding 的组合，现已在 AGQA 2.0 atomic `BEFORE/AFTER` 子集上通过 fresh qualification
+和一次 video-disjoint official-test formal。相对完全相同的 neural-only direct baseline：
+
+| endpoint | rows | 授权 | source-induced / neural-only | paired result | status |
+|---|---:|---:|---:|---:|---|
+| V55 fresh train qualification | 300 | 61 | **213 / 203** | **11W / 1L**, `p=.0031738` | QUALIFIED |
+| V56 untouched-video test formal | 300 | 47 | **190 / 176** | **14W / 0L**, `p=.0000610` | **FORMAL QUALIFIED** |
+
+V55 与 V56 的 video-ID overlap 为 0；两轮使用完全相同的 V54 artifact、rule、source program、
+neural acquisition、target grounder、executor 和 success gates。V56 的全部 14 个 gate 均通过，
+reported provider cost `$2.0884 < $2.70`。formal report SHA 为
+`3937f0ccb8bf15287e56359cdeb5f4addc6fd3bb9f414630cc8b9bed9abd6369`。
+
+因此，现在可以支持的窄 claim 是：
+
+> 从 game interventions 归纳出的 typed recurrent temporal program，在不把 target answer、scene
+> graph 或 source identity 暴露给 target-native neural grounder 的条件下，通过统一 harness
+> selectively intervenes，并在新 AGQA2 atomic `BEFORE/AFTER` videos 上把 paired success 从
+> 176/300 提高到 190/300。
+
+这仍然不是 full AGQA2、通用 video MDP 或 source provenance necessity 的证明。generic scaffold
+和 target-written equivalent 与 source-induced arm 的 300/300 predictions 完全一致；因此结果验证
+的是 transferable symbolic structure + target-native neural grounding，而不是“只有 Candy 身份才能
+产生该策略”。effect-shuffled source 300/300 abstain、wrong-type source 300/300 abstain，说明 typed
+effect/authenticity boundary 是必要的 control。
+
+机器可复核摘要是
+[`results/agqa2_asymmetric_support_v55_v56_summary.json`](results/agqa2_asymmetric_support_v55_v56_summary.json)。
+
+## V33–V40 原始 formal 失败
 
 Candy Crush source-induced temporal-function program 到 AGQA atomic
 `BEFORE/AFTER` 的第二类迁移**没有通过 formal success-rate 验证**。
@@ -92,32 +124,29 @@ post-hoc failure localization 显示：
 V40/V41 的 assembly caveat 已写入 machine summary。因为最终 endpoint 本身未通过，这个 caveat
 更不能被用来弱化失败结论。
 
-## 当前可以声称什么
+## V40 时点可以声称什么
 
-仍然成立的 AGQA 正向 claim 只有 V32：
+在 V54/V55/V56 发生前，AGQA 正向 claim 只有 V32：
 
 > 在 fresh、atomic、open-answer AGQA `QUERY_OBJECT` 子集上，Sokoban interventions 归纳出的
 > recurrent relation program 与 target-native neural grounder 组合后，将 matched baseline 从
 > 34/120 提高到 40/120，6W/0L，`p=0.015625`。
 
-V33–V40 新增的是一个有价值的边界结果：相同 unified harness 可以执行另一类 game-induced
+V33–V40 当时新增的是一个有价值的边界结果：相同 unified harness 可以执行另一类 game-induced
 typed program，且 controls 正常，但其 temporal success gain 未通过 fresh replication。
 
 不能声称：
 
-- Candy temporal program 已提高 AGQA `BEFORE/AFTER` success rate；
-- 两种 source-induced program families 都得到 confirmatory validation；
 - source 优于 handwritten generic/target-written equivalent；三者 predictions 完全一致；
 - source provenance 是必要条件；
 - full AGQA 或 general video MDP transfer 已解决。
 
-## 下一步
+## V40 后的合法下一步（已执行）
 
-按预注册 failure policy，当前 V40 method 不再 resample。若未来重开 temporal track，应先在新的
-AGQA train/development videos 上训练 target-native interval uncertainty model，使 asymmetric
-`2+1/1+2` evidence 能预测自身错误；或者从 source rollouts 归纳与 Allen interval relation 更直接
-同构的 program。完成后必须冻结新的 method identity，再开一次独立 formal；不能修改或重解释
-V40。
+按预注册 failure policy，V40 method 没有 resample，也没有修改或重解释 V40。实际执行的是第一条
+合法路径：仅在新的 AGQA train/development videos 上用有限规则类训练 abstention-only target-native
+interval applicability model，经过多个失败 qualification 后冻结 V54，再依次执行 V55 fresh
+qualification 和 V56 one-shot formal。
 
 关键文件：
 
@@ -159,10 +188,57 @@ V51 在 700 个 consumed rows 上自动选择 `before`、`rescan/tiebreak`、gap
 span≥6，训练为 28W/0L；V52 在新 250 rows 上复制出 7W/0L 和显著 p-value，但预注册还要求
 至少 25 次授权和 8 wins，实际为 24 和 7，所以仍不得进入 formal。
 
-V52 之后的 V54 artifact 只能算下一候选方法：它在 950 个 consumed rows 上从 3,072 条规则中
+V52 之后冻结的 V54 artifact 在 950 个 consumed rows 上从 3,072 条规则中
 自动选择 `before span≥6 / after span≥12`，得到 38W/0L。artifact SHA 为
 `61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241`，rule SHA 为
-`ccc436199f314b6e02815862ab7c9bbcfcda192e63c7a4ab406a7c5034962a81`。它尚未经过新的
-video-disjoint qualification，因此 **不能宣称 temporal transfer gate 已通过**，更不能开 test
-formal。下一合法步骤是冻结 V54 的独立 train qualification；只有所有 gate 同时通过，才能原样
-冻结 untouched official-test formal。
+`ccc436199f314b6e02815862ab7c9bbcfcda192e63c7a4ab406a7c5034962a81`。在该时点它还不能支持
+transfer claim；后续 V55/V56 按上述顺序完成了独立验证。
+
+## V55–V56：fresh qualification 与 one-shot formal（2026-08-19）
+
+V55 在任何新 outcome call 前冻结 300 个 official-train rows，预注册 gate 为：300 valid/unique、
+authorization≥35、wins≥9、losses≤1、net gain≥8、one-sided exact `p≤.05`、四类 control 全通过、
+cost≤$2.70。结果为 61 authorizations、213/300 vs 203/300、11W/1L、净增 +10、
+`p=.003173828125`，全部 gate 通过，report SHA 为
+`8e81b8b754ca7a174d9fe09e8202e171ce384aecdb2b999868fe32358388e27a`。
+
+V55 通过后才冻结 V56：300 个 official-test atomic rows，排除全部已配置或已下载 video IDs，
+selection SHA 为 `d17c907ab4dea25d29fc30cb40763eb44fa804fd125050f73f7b64a4ffd67ab5`。
+V56 沿用 V55 的每个 gate，不按 test outcome 改 threshold。结果为 47 authorizations、190/300 vs
+176/300、14W/0L、净增 +14、`p=0.00006103515625`，全部 gate 通过。
+
+### V56 assembly caveat
+
+首次 formal collection 有 3 个 provider JSON transport failures；collector 保存 297 个完整
+receipts 并 fail closed。相同 frozen calls 只补齐 3 个缺项，没有换 sample。300/300 receipts 固定后，
+legacy V34 report path 依次暴露两个行政 schema alias 缺失：qualification summary 缺
+`report_sha256`，preregistration 缺 `qualified_v33_development_report_sha256`。原始 frozen config
+`83e766ff547a233b80659caeec6aebdda4cc6a03460154154de88cb6a2e9d76e` 保留不动；两个独立
+completion audit 证明只改变 dependency/prereg 路径与 alias，grounder、base evaluation protocol、
+post-ground protocol、samples、prompts、models、predictions 和 gates 均未改变。第二个 alias 的值
+严格等于已冻结 V54 artifact SHA。最终 evaluator 100% 复用原 300 receipts，没有新增 provider call。
+
+这项 caveat 必须随 formal claim 一起报告：第一次失败发生在 outcome loop 已启动、persisted formal
+report 尚未生成之后。它是可审计的 report-assembly compatibility repair，不是 outcome-guided method
+repair；对应 audit SHA 为 `8fab4eb74c8e944af6fcdc61194a723aaf4df40cdf5dc7d2d9a7a231b30565af`
+和 `2914f0c9ab200901342cf13496f8cb3ecd05056f32720f11406c1ca73b454328`。
+
+## 现在的边界与下一步
+
+当前可确认两类 game-induced program 到 AGQA 子域的正向 transfer：V32 `QUERY_OBJECT` 和 V56
+atomic `BEFORE/AFTER`。下一步不应再次采样同一 V56 claim，而应做以下之一：
+
+- 用另一 target-native video grounder/model 做锁定规则 replication；
+- 在 AGQA 的新 operator family 上重新做 source-only induction → qualification → formal；
+- 设计不会与 generic scaffold 完全等价的 source-specific intervention，检验 source provenance；
+- 若扩张到“video MDP”，必须加入 multi-step action/state update benchmark，V56 本身不支持该 claim。
+
+V55/V56 关键文件：
+
+- V54 calibrator：`src/motif_transfer/agqa_asymmetric_support_calibrator.py`
+- V54 artifact：`configs/agqa2_asymmetric_support_v54/training_artifact.json`
+- V55 preregistration：`configs/agqa2_asymmetric_support_v55_qualification_preregistration.json`
+- V56 original preregistration：`configs/agqa2_asymmetric_support_v56_formal_preregistration.json`
+- V56 original frozen config：`configs/agqa2_asymmetric_support_v56_formal.json`
+- V56 evaluator-compatible completion config：`configs/agqa2_asymmetric_support_v56_formal_completion_v2.json`
+- V56 report：`runs/agqa2_asymmetric_support_v56_formal/report.json`

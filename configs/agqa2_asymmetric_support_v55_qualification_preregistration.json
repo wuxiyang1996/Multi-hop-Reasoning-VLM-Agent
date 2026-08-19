@@ -1,0 +1,83 @@
+{
+  "base_evaluation_protocol_sha256": "182ae3f2d1a855cbe7ce82240740fcf28dc55040791de13623006a7077ca91c5",
+  "claim_boundary": "THREE_HUNDRED_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_ATOMIC_BEFORE_AFTER_ROWS_FROM_OFFICIAL_TRAIN_METADATA;V54_ASYMMETRIC_SUPPORT_RULE_QUALIFICATION_ONLY",
+  "confirmatory_claim_allowed": false,
+  "cost_projection": {
+    "frozen_cap_usd": 2.7,
+    "projected_300_row_cost_usd": 2.08
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "reason": "V54_RISK_FIRST_RELATION_CONDITIONAL_SUPPORT_INDUCTION",
+    "ties": 912,
+    "wins": 38
+  },
+  "download_receipt_file_sha256": "c74fe7e8ac613de8048dbe61aa92bfb1721e6d5c3cadcededb68bb038de4b0ee",
+  "failure_policy": {
+    "failed_gate": "STOP_BEFORE_NEW_TEST_FORMAL",
+    "passed": "FREEZE_ONE_NEW_VIDEO_DISJOINT_TEST_FORMAL",
+    "qualification": "RUN_ONCE;NO_POST_OUTCOME_THRESHOLD_CHANGE"
+  },
+  "postground_evaluation_protocol": {
+    "aggregate_adapter_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "calibration_artifact_sha256": "61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241",
+    "calibration_rule_sha256": "ccc436199f314b6e02815862ab7c9bbcfcda192e63c7a4ab406a7c5034962a81",
+    "calibrator_module_sha256": "5f5c4bc24af3c00eaa8d25819418f1375756150c179db2c5495972e14c54ccb9",
+    "confirmatory_claim": false,
+    "evaluator_module_sha256": "574375dec6b0eea51a6a59a34aafcd3e7113cad8249fc9010161955b106f3c5b",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 2.7,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 35,
+      "minimum_source_minus_target_correct": 8,
+      "minimum_source_wins": 9,
+      "required_effect_shuffled_abstentions": 300,
+      "required_generic_scaffold_matches": 300,
+      "required_target_written_equivalent_matches": 300,
+      "required_unique_videos": 300,
+      "required_valid_rows": 300,
+      "required_wrong_source_abstentions": 300
+    },
+    "runtime_calibrator_authority": "ABSTENTION_ONLY;NO_INTERVAL_RELATION_OR_BINDING_CREATION_OR_EDIT",
+    "runtime_features": [
+      "VIEW",
+      "GAP",
+      "SPREAD",
+      "RELATION_CONDITIONAL_INTERVAL_SPAN"
+    ],
+    "sample_count": 300,
+    "schema_version": "agqa2-asymmetric-support-v55-qualification-protocol-v1",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "78722dea321a22975fdd01f367db6c118324fbaf9d84ae97db5530f991ed377a"
+  },
+  "postground_evaluation_protocol_sha256": "5c9c4bd6392dcd4e252675cb4ee4798394db5da18598ad22b90060d06d39737c",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 2.7,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 35,
+    "minimum_source_minus_target_correct": 8,
+    "minimum_source_wins": 9,
+    "required_effect_shuffled_abstentions": 300,
+    "required_generic_scaffold_matches": 300,
+    "required_target_written_equivalent_matches": 300,
+    "required_unique_videos": 300,
+    "required_valid_rows": 300,
+    "required_wrong_source_abstentions": 300
+  },
+  "qualification_manifest_sha256": "09238a0b36437b8e3c11c8d54ae43a838f905b1dbee9282890d4a3e01632c5b4",
+  "qualified_development_artifact_sha256": "61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241",
+  "qualified_v33_development_report_sha256": "61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241",
+  "schema_version": "agqa2-asymmetric-support-v55-preregistration-v1",
+  "selection_manifest_sha256": "f941f4130737d494a8b53be305c2335fac5ed8d45935e3b5b04bc6742b1d04d0",
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "v54_training_artifact": "configs/agqa2_asymmetric_support_v54/training_artifact.json",
+  "v54_training_artifact_file_sha256": "6356585e365b2a3b17f2a059df699b3c22e2a982b9b754523ef1852d87b18580",
+  "v54_training_artifact_sha256": "61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241",
+  "v55_status": "FROZEN_BEFORE_ANY_V55_QUALIFICATION_PROVIDER_OR_OUTCOME_CALL"
+}
